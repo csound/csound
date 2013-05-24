@@ -740,7 +740,7 @@ verify_coherence(CSOUND *csound, BABO *p)
     if (UNLIKELY(*(p->lx) <= FL(0.0) ||
                  *(p->ly) <= FL(0.0) ||
                  *(p->lz) <= FL(0.0))) {
-      csound->Die(csound, Str("Babo: resonator dimensions are incorrect "
+      csound->Warning(csound, Str("Babo: resonator dimensions are incorrect "
                               "(%.1f, %.1f, %.1f)"),
                   *(p->lx), *(p->ly), *(p->lz));
     }

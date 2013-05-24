@@ -77,8 +77,10 @@ typedef struct POP_OPCODE_ {
 static CS_NOINLINE void fsg_assign(CSOUND *csound,
                                 PVSDAT *fdst, const PVSDAT *fsrc)
 {
-    if (UNLIKELY(fsrc->frame.auxp == NULL))
-      csound->Die(csound, Str("fsig = : source signal is not initialised"));
+  if (UNLIKELY(fsrc->frame.auxp == NULL)) {
+      csound->ErrorMsg(csound, Str("fsig = : source signal is not initialised"));
+      return;
+  }
     fdst->N = fsrc->N;
     fdst->overlap = fsrc->overlap;
     fdst->winsize = fsrc->winsize;
@@ -115,8 +117,8 @@ static CS_NOINLINE int csoundStack_Error(void *p, const char *msg)
       csound->LongJmp(csound, CSOUND_PERFORMANCE);
     }
     else
-      csound->Die(csound, "%s: %s", csound->GetOpcodeName(p), msg);
-    /* this is actually never reached */
+      csound->ErrorMsg(csound, "%s: %s", csound->GetOpcodeName(p), msg);
+
     return NOTOK;
 }
 
@@ -158,8 +160,10 @@ static CS_NOINLINE CsoundArgStack_t *csoundStack_AllocGlobals(CSOUND *csound,
     nBytes += stackSize;
     if (UNLIKELY(csound->CreateGlobalVariable(csound,
                                               "csArgStack", (size_t) nBytes)
-                 != 0))
-      csound->Die(csound, Str("Error allocating argument stack"));
+                 != 0)) {
+      csound->ErrorMsg(csound, Str("Error allocating argument stack"));
+      return NULL;
+    }
     pp = (CsoundArgStack_t*) csound->QueryGlobalVariable(csound, "csArgStack");
     pp->curBundle = (CsoundArgStack_t*) NULL;
     pp->dataSpace =

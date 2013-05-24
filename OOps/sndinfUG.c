@@ -52,8 +52,10 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
 
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
-      if (UNLIKELY(!csound->oparms->infilename))  /* commandline inputfile */
-        csound->Die(csound, Str("no infile specified in the commandline"));
+      if (UNLIKELY(!csound->oparms->infilename)) {  /* commandline inputfile */
+        csound->InitError(csound, Str("no infile specified in the commandline"));
+        return NOTOK;
+      }
       sfname = csound->oparms->infilename;
     }
     s = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
@@ -61,7 +63,8 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
       s = csoundFindInputFile(csound, sfname, "SADIR");
       if (UNLIKELY(s == NULL)) {
         /* RWD 5:2001 better to exit in this situation ! */
-        csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
+        csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
+        return NOTOK;
       }
     }
     sfname = s;                         /* & record fullpath filnam */
@@ -125,7 +128,8 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
       }
     }
     if (UNLIKELY(sf == NULL && csFileType == CSFTYPE_UNKNOWN)) {
-      csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
+      csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
+      return NOTOK;
     }
     if (sf != NULL) {
       csFileType = sftype2csfiletype(sfinfo.format);
@@ -263,7 +267,7 @@ int filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
     if (strcmp(sfname, "-i") == 0) {        /* get info on the -i    */
       sfname = csound->oparms->infilename;  /* commandline inputfile */
       if (UNLIKELY(sfname == NULL))
-        csound->Die(csound,
+        return csound->InitError(csound,
                     Str("no infile specified in the commandline"));
     }
     memset(&sfinfo, 0, sizeof(SF_INFO));    /* open with full dir paths */
@@ -271,7 +275,7 @@ int filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
                              "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       /* RWD 5:2001 better to exit in this situation ! */
-      csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
+      return csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
     }
     if (channel <= 0) {
       if (sf_command(sf, SFC_GET_SIGNAL_MAX, &peakVal, sizeof(double))
@@ -287,7 +291,7 @@ int filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
       double  *peaks;
       size_t  nBytes;
       if (UNLIKELY(channel > sfinfo.channels))
-        csound->Die(csound, Str("Input channel for peak exceeds number "
+        return csound->InitError(csound, Str("Input channel for peak exceeds number "
                                 "of channels in file"));
       nBytes = sizeof(double)* sfinfo.channels;
       peaks = (double*)csound->Malloc(csound, nBytes);
@@ -300,7 +304,7 @@ int filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
       csound->Free(csound, peaks);
     }
     if (UNLIKELY(peakVal < 0.0))
-      csound->Die(csound, Str("filepeak: error getting peak value"));
+      return csound->InitError(csound, Str("filepeak: error getting peak value"));
     /* scale output consistently with soundin opcode (see diskin2.c) */
     fmt = sfinfo.format & SF_FORMAT_SUBMASK;
     typ = sfinfo.format & SF_FORMAT_TYPEMASK;

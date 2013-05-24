@@ -107,13 +107,16 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
     fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
                              "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
     if (UNLIKELY(fd == NULL)) {
-      csound->Die(csound,
+      csound->ErrorMsg(csound,
                   Str("sfload: cannot open SoundFont file \"%s\" (error %s)"),
                   fname, strerror(errno));
+      return;
     }
     soundFont = &globals->sfArray[globals->currSFndx];
-    if (UNLIKELY(soundFont==NULL))
-      csound->Die(csound, Str("Sfload: cannot use globals"));
+    if (UNLIKELY(soundFont==NULL)){
+      csound->ErrorMsg(csound, Str("Sfload: cannot use globals"));
+      return;
+    }
     strcpy(soundFont->name, csound->GetFileName(fd));
     chunk_read(fil, &soundFont->chunk.main_chunk);
     csound->FileClose(csound, fd);
@@ -271,7 +274,7 @@ static int SfPreset(CSOUND *csound, SFPRESET *p)
     sf = &globals->sfArray[(DWORD) *p->isfhandle];
 
     if (presetHandle >= MAX_SFPRESET) {
-      csound->Die(csound, Str("sfpreset: preset handle too big (%d), max: %d"),
+      return csound->InitError(csound, Str("sfpreset: preset handle too big (%d), max: %d"),
                           presetHandle, (int) MAX_SFPRESET - 1);
     }
 
@@ -287,7 +290,7 @@ static int SfPreset(CSOUND *csound, SFPRESET *p)
     *p->ipresethandle = (MYFLT) presetHandle;
 
     if (UNLIKELY(globals->presetp[presetHandle] == NULL)) {
-      csound->Die(csound, Str("sfpreset: cannot find any preset having prog "
+      return csound->InitError(csound, Str("sfpreset: cannot find any preset having prog "
                               "number %d and bank number %d in SoundFont file "
                               "\"%s\""),
                   (int) *p->iprog, (int) *p->ibank,
@@ -1639,12 +1642,13 @@ static void fill_SfStruct(CSOUND *csound)
                         split->num= num;
                         split->sample = &shdr[num];
                         if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
-                          csound->Die(csound, Str("SoundFont file \"%s\" "
+                            csound->ErrorMsg(csound, Str("SoundFont file \"%s\" "
                                                   "contains ROM samples !\n"
                                                   "At present time only RAM "
                                                   "samples are allowed "
                                                   "by sfload.\n"
                                                   "Session aborted !"), Gfname);
+			    return;
                         }
                         sglobal_zone = 0;
                         ll++;
@@ -1876,11 +1880,12 @@ static void fill_SfStruct(CSOUND *csound)
                   split->num= num;
                   split->sample = &shdr[num];
                   if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
-                    csound->Die(csound, Str("SoundFont file \"%s\" contains "
+                    csound->ErrorMsg(csound, Str("SoundFont file \"%s\" contains "
                                             "ROM samples !\n"
                                             "At present time only RAM samples "
                                             "are allowed by sfload.\n"
                                             "Session aborted !"), Gfname);
+                    return;
                   }
                   sglobal_zone = 0;
                   ll++;
@@ -2030,16 +2035,21 @@ static void fill_SfPointers(CSOUND *csound)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
 
     if (UNLIKELY(globals == NULL)) {
-      csound->Die(csound, Str("Sfont: cannot use globals/"));
+      csound->ErrorMsg(csound, Str("Sfont: cannot use globals/"));
+      return;
     }
 
     soundFont = globals->soundFont;
     if (LIKELY(soundFont != NULL))
       main_chunk=&(soundFont->chunk.main_chunk);
-    else  csound->Die(csound, Str("Sfont: cannot use globals/"));
+    else  {
+     csound->ErrorMsg(csound, Str("Sfont: cannot use globals/"));
+     return;
+    }
 
     if (UNLIKELY(main_chunk->ckDATA == NULL)) {
-      csound->Die(csound, Str("Sfont format not compatible"));
+      csound->ErrorMsg(csound, Str("Sfont format not compatible"));
+      return;
     }
     chkp = (char *) main_chunk->ckDATA+4;
 
