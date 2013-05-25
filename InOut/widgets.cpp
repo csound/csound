@@ -2269,11 +2269,11 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
 
       strcpy(command, p->commandString);
 
-      char *tok = csound->strtok_r(command, " ", &th);
+      char *tok = csound->strtok_r(command,(char *) " ", &th);
 
       if(tok != NULL) {
         v[i++] = tok;
-        while((tok = csound->strtok_r(NULL, " ", &th)) != NULL) {
+        while((tok = csound->strtok_r(NULL,(char *) " ", &th)) != NULL) {
           v[i++] = tok;
         }
         v[i] = NULL;
