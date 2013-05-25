@@ -19,7 +19,7 @@ setting the appropriate NDK environment variables.
 
 Do not use the 'build.sh' helpers, use $NDK/ndk-build to build and 
 install the shared libraries (modules), the environment variables 
-will do the job of 'build.sh'.
+will do the job of 'build.sh'. There is one exception to this...
     
 The following variables must be set (this is an example from my 
 environment):
@@ -28,6 +28,7 @@ echo "Configure for Android/ARM, armeabi-v7a (ARMv7 VFP), Android 4.0+ (ICS)..."
 
 export SDK=/d/Android/adt-bundle-windows-x86-20130514/sdk
 export NDK=/d/Android/android-ndk-r8e
+export ANDROID_NDK_ROOT=$NDK
 export NDK_MODULE_PATH=/c/ndk-modules
 export PATH=${PATH}:$NDK_MODULE_PATH
 export CSOUND_SRC_ROOT=/c/Users/new/csound-csound6-git
@@ -41,8 +42,6 @@ export NDKARCH="-march=armv7-a -mfloat-abi=softfp -Wl,--fix-cortex-a8"
 Obviously all of these variables must be consistent for all components
 of Csound for Android.
     
-Now build in order:
+Download xxx from SourceForge.
+Unzip each archive into xxx.
 
-(1)
-(2)
-(3)
