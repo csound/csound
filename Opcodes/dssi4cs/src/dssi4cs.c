@@ -201,7 +201,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
 
-    if(csound->GetInputArgSMask(p))) strncpy(dssiFilename,((STRINGDAT *)p->plugin)->data);
+    if(csound->GetInputArgSMask(p))strncpy(dssiFilename,((STRINGDAT *)p->plugin)->data);
     else
       csound->strarg2name(csound, dssiFilename, ISSTRCOD(*p->iplugin) ?
 			  csound->GetString(csound, *p->iplugin) : (char *) p->iplugin, "dssiinit.",
