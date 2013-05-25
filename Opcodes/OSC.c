@@ -250,7 +250,7 @@ static CS_NOINLINE OSC_GLOBALS *alloc_globals(CSOUND *csound)
       return pp;
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_OSC_globals",
                                               sizeof(OSC_GLOBALS)) != 0)){
-      csound->Warning(csound, Str("OSC: failed to allocate globals"));
+      csound->ErrorMsg(csound, Str("OSC: failed to allocate globals"));
       return NULL;
     }
     pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");

@@ -154,13 +154,6 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
     return NOTOK;
 }
 
-static CS_NOINLINE CS_NORETURN void StrOp_FatalError(void *p, const char *msg)
-{
-    CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
-    const char  *opname = csound->GetOpcodeName(p);
-
-    csound->Warning(csound, "%s: %s", opname, Str(msg));
-}
 
 /* strcpy */
 int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
@@ -179,6 +172,41 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
     } 
     else strcpy((char*) p->r->data, newVal);
     return OK;
+}
+
+int strassign_opcode_S(CSOUND *csound, STRCPY_OP *p)
+{
+  p->r->data = p->str->data;
+  p->r->size = p->str->size;
+  return OK;
+}
+int strassign_opcode_Sk(CSOUND *csound, STRCPY_OP *p)
+{
+  if(strcmp(p->r->data, p->str->data)!=0){
+       p->r->data = p->str->data;
+       p->r->size = p->str->size;
+  }
+  return OK;
+}
+
+int str_changed(CSOUND *csound, STRCHGD *p){
+  if(p->mem == NULL) {
+    mfree(csound, p->mem);
+    p->mem = cs_strdup(csound, p->str->data);
+  }
+  *p->r = 0;
+  return OK;
+}
+
+int str_changed_k(CSOUND *csound, STRCHGD *p){
+
+  if(strcmp(p->str->data, p->mem)!=0 || p->mem == NULL) {
+    mfree(csound, p->mem);
+    p->mem = cs_strdup(csound, p->str->data);
+    *p->r = 1;
+  }
+  else *p->r = 0;
+  return OK;
 }
 
 int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
@@ -265,11 +293,11 @@ sprintf_opcode_(CSOUND *csound,
     int     i = 0, j = 0, n;
     const char  *segwaiting = NULL;
     int     maxChars, siz = strlen(fmt) + numVals*7 + 1;
-
+    printf("%s \n", fmt);
     if (UNLIKELY((int) ((OPDS*) p)->optext->t.xincod != 0))
       return StrOp_ErrMsg(p, "a-rate argument not allowed");
     if (UNLIKELY((int) ((OPDS*) p)->optext->t.inArgCount > 31)){
-      StrOp_FatalError(p, "too many arguments");
+      StrOp_ErrMsg(p, "too many arguments");
       return NOTOK;
     }
 
@@ -352,10 +380,13 @@ sprintf_opcode_(CSOUND *csound,
           /* safely detected excess string length */
           if(canRealloc){ outstring = mrealloc(csound, outstring, maxChars*2);
 	    *maxLen = maxChars*2;}
-          else return StrOp_ErrMsg(p, "buffer overflow");
+          else {
+          StrOp_ErrMsg(p, "buffer overflow");
+          return NOTOK;
+	  }
 #else
           /* wrote past end of buffer - hope that did not already crash ! */
-          StrOp_FatalError(p, "buffer overflow");
+          StrOp_ErrMsg(p, "buffer overflow");
           return NOTOK;  
 #endif
         }
@@ -376,7 +407,7 @@ sprintf_opcode_(CSOUND *csound,
       return StrOp_ErrMsg(p, "too many arguments for format");
     }
     free(strseg);
-    return 0;
+    return OK;
 }
 
 int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
@@ -388,7 +419,7 @@ int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
     }
   if (UNLIKELY(sprintf_opcode_(csound, p, (char*) p->r->data, (char*) p->sfmt->data, &(p->args[0]),
                         (int) p->INOCOUNT - 1,  0,
-                                 &(p->r->size), 1) != NOTOK)) {
+                                 &(p->r->size), 1) == NOTOK)) {
       ((char*) p->r->data)[0] = '\0';
       return NOTOK;
     }
