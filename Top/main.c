@@ -291,7 +291,7 @@ static int DummyMidiInOpen(CSOUND *csound, void **userData,
 static int DummyMidiRead(CSOUND *csound, void *userData,
                          unsigned char *buf, int nbytes);
 int DummyMidiOutOpen(CSOUND *csound, void **userData,
-                            const char *devName);
+                     const char *devName);
 int DummyMidiWrite(CSOUND *csound, void *userData,
                    const unsigned char *buf, int nbytes);
 
