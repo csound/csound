@@ -25,10 +25,12 @@
 #define CSOUND_SYSDEP_H
 
 /* check for the presence of a modern compiler (for use of certain features) */
-
+#if defined(WIN32) 
 #if !defined(locale_t)
 typedef void *locale_t;
 #endif
+#endif
+
 #ifdef HAVE_GCC3
 #  undef HAVE_GCC3
 #endif
