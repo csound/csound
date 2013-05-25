@@ -16,7 +16,7 @@
 
 #define MyAppName "Csound6"
 #define MyAppVersion ""
-#define MyAppMinVersion "0"
+#define MyAppMinVersion "0rc2"
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
@@ -154,7 +154,7 @@ Source: {#MyFluidSynthSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversi
 Source: {#MyLibLoSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 
 Source: include/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core 
-Source: include/interfaces/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core 
+Source: interfaces/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core 
 Source: frontends/CsoundAC/*.hpp; DestDir: "{#APP_INCLUDE}\csoundac"; Flags: ignoreversion;  Components: core 
 
 Source: {#MyManualSourceDir}html\*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs;  Components: core 
