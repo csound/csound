@@ -287,7 +287,8 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
     /* open file */
     /* FIXME: name can overflow with very long string */
     if(stringname==0){
-      if(ISSTRCOD(*p->iFileCode)) strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
+      if(ISSTRCOD(*p->iFileCode))
+        strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
     }
     else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
@@ -1027,7 +1028,8 @@ static int sndinset_(CSOUND *csound, SOUNDIN_ *p, int stringname)
     /* open file */
     /* FIXME: name can overflow with very long string */
     if(stringname==0){
-      if(ISSTRCOD(*p->iFileCode)) strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
+      if(ISSTRCOD(*p->iFileCode))
+        strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
     }
     else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
