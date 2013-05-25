@@ -204,7 +204,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     if(csound->GetInputArgSMask(p))) strncpy(dssiFilename,((STRINGDAT *)p->plugin)->data);
     else
       csound->strarg2name(csound, dssiFilename, ISSTRCOD(*p->iplugin) ?
-			  csound->get_arg_string(csound, *p->iplugin) : (char *) p->iplugin, "dssiinit.",
+			  csound->GetString(csound, *p->iplugin) : (char *) p->iplugin, "dssiinit.",
 			  (int) ISSTRCOD(*p->iplugin));
     PluginIndex = (unsigned long) *p->iindex;
     PluginLibrary = dlopenLADSPA(csound, dssiFilename, RTLD_NOW);
