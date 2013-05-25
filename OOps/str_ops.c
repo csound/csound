@@ -293,7 +293,7 @@ sprintf_opcode_(CSOUND *csound,
     int     i = 0, j = 0, n;
     const char  *segwaiting = NULL;
     int     maxChars, siz = strlen(fmt) + numVals*7 + 1;
-    printf("%s \n", fmt);
+ 
     if (UNLIKELY((int) ((OPDS*) p)->optext->t.xincod != 0))
       return StrOp_ErrMsg(p, "a-rate argument not allowed");
     if (UNLIKELY((int) ((OPDS*) p)->optext->t.inArgCount > 31)){
