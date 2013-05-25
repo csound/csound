@@ -96,6 +96,7 @@
 #include "OpcodeBase.hpp"
 #include <pstream.h>
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
@@ -124,6 +125,7 @@ static bool ISSTRCOD(MYFLT myflt)
 {
     return std::isnan(myflt);
 }
+
 std::ostream &operator << (std::ostream &stream, const EVTBLK &a)
 {
   stream << a.opcod;
