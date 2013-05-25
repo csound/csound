@@ -284,7 +284,7 @@ static inline CHNENTRY *find_channel(CSOUND *csound, const char *name)
 
 void set_channel_data_ptr(CSOUND *csound, const char *name, void *ptr, int newSize)
 {
-  find_channel(csound, name)->data = (MYFLT *) ptr;  
+  find_channel(csound, name)->data = (MYFLT *) ptr;
   find_channel(csound, name)->datasize = newSize;
 }
 
@@ -312,7 +312,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
     pp = (CHNENTRY *) mcalloc(csound, (size_t) sizeof(CHNENTRY) + strlen(name) + 1);
     if (pp == NULL) return (CHNENTRY*) NULL;
     pp->data = (MYFLT *) mcalloc(csound, dsize);
-   
+
 #ifndef MACOSX
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
     pthread_spin_init((pthread_spinlock_t*) pp->lock, PTHREAD_PROCESS_PRIVATE);
@@ -666,11 +666,11 @@ int chnget_opcode_init_a(CSOUND *csound, CHNGET *p)
 int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
 {
     int   err;
-    char *s = ((STRINGDAT *) p->arg)->data; 
+    char *s = ((STRINGDAT *) p->arg)->data;
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
      p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
-     
+
     if (UNLIKELY(err))
       return print_chn_err(p, err);
     csoundSpinLock(p->lock);
@@ -864,7 +864,7 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
     int   err, size;
     int  *lock;
     char *s = ((STRINGDAT *) p->arg)->data;
-    
+
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     size = csoundGetChannelDatasize(csound, p->iname->data);
@@ -876,7 +876,7 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
     if (s && strlen(s) >= (unsigned int) size) {
       if(p->fp != NULL) mfree(csound, p->fp);
       p->fp = (MYFLT *)cs_strdup(csound, s);
-      set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);  
+      set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
     }
     else strcpy((char*) p->fp, s);
     csoundSpinUnLock(lock);
@@ -915,8 +915,8 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
     if ((int)MYFLT2LRND(*(p->itype)) != 0) {
         hints.attributes = 0;
         if (p->INOCOUNT > 10) {
-	  hints.attributes = p->Sattributes->data;    
-        } 
+	  hints.attributes = p->Sattributes->data;
+        }
         hints.dflt = *(p->idflt);
         hints.min = *(p->imin);
         hints.max = *(p->imax);
@@ -1197,10 +1197,10 @@ int invalset_string_S(CSOUND *csound, INVAL *p)
      const char  *s = ((STRINGDAT *)p->valID)->data;
         csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
         sprintf((char*) p->channelName.auxp, "%s", s);
-   
+
         p->channelType = &CS_VAR_TYPE_S;
         type = CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL;
-   
+
     MYFLT *dummy;
     err = csoundGetChannelPtr(csound, &(dummy), (char*) p->channelName.auxp,
                               type);
@@ -1219,14 +1219,14 @@ int invalset_S(CSOUND *csound, INVAL *p)
 {
     int   err;
     int type;
-   
+
         const char  *s = ((STRINGDAT *)p->valID)->data;
         csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
         sprintf((char*) p->channelName.auxp, "%s", s);
-   
+
         p->channelType = &CS_VAR_TYPE_K;
         type = CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL;
-   
+
     MYFLT *dummy;
     err = csoundGetChannelPtr(csound, &(dummy), (char*) p->channelName.auxp,
                               type);
@@ -1245,14 +1245,14 @@ int invalset_string(CSOUND *csound, INVAL *p)
 {
     int   err;
     int type;
-  
+
      /* convert numerical channel to string name */
     csound->AuxAlloc(csound, 64, &p->channelName);
     sprintf((char*) p->channelName.auxp, "%d", (int)MYFLT2LRND(*p->valID));
-   
+
     p->channelType = &CS_VAR_TYPE_S;
     type = CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL;
-    
+
     MYFLT *dummy;
     err = csoundGetChannelPtr(csound, &(dummy), (char*) p->channelName.auxp,
                               type);
@@ -1272,14 +1272,14 @@ int invalset(CSOUND *csound, INVAL *p)
 {
     int   err;
     int type;
-  
+
      /* convert numerical channel to string name */
     csound->AuxAlloc(csound, 64, &p->channelName);
     sprintf((char*) p->channelName.auxp, "%d", (int)MYFLT2LRND(*p->valID));
-   
+
     p->channelType = &CS_VAR_TYPE_K;
     type = CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL;
-    
+
     MYFLT *dummy;
     err = csoundGetChannelPtr(csound, &(dummy), (char*) p->channelName.auxp,
                               type);
@@ -1313,11 +1313,11 @@ int outvalset_string_S(CSOUND *csound, OUTVAL *p)
       const char  *s = ((STRINGDAT *)p->valID)->data;
       csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
       strcpy((char*) p->channelName.auxp, s);
-    
+
 
         p->channelType = &CS_VAR_TYPE_S;
         type = CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL;
-   
+
     MYFLT *dummy;
     err = csoundGetChannelPtr(csound, &(dummy), (char*) p->channelName.auxp,
                               type);
@@ -1338,15 +1338,15 @@ int outvalset_string_S(CSOUND *csound, OUTVAL *p)
 int outvalset_S(CSOUND *csound, OUTVAL *p)
 {
     int type, err;
-  
+
       const char  *s = ((STRINGDAT *)p->valID)->data;
       csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
       strcpy((char*) p->channelName.auxp, s);
-   
-   
+
+
         p->channelType = &CS_VAR_TYPE_K;
         type = CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL;
-    
+
     MYFLT *dummy;
     err = csoundGetChannelPtr(csound, &(dummy), (char*) p->channelName.auxp,
                               type);
@@ -1366,15 +1366,15 @@ int outvalset_S(CSOUND *csound, OUTVAL *p)
 int outvalset_string(CSOUND *csound, OUTVAL *p)
 {
     int type, err;
-    
+
       /* convert numerical channel to string name */
       csound->AuxAlloc(csound, 64, &p->channelName);
       sprintf((char*)p->channelName.auxp,  "%d",
               (int)MYFLT2LRND(*p->valID));
-   
+
         p->channelType = &CS_VAR_TYPE_S;
         type = CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL;
-    
+
     MYFLT *dummy;
     err = csoundGetChannelPtr(csound, &(dummy), (char*) p->channelName.auxp,
                               type);
@@ -1393,15 +1393,15 @@ int outvalset_string(CSOUND *csound, OUTVAL *p)
 int outvalset(CSOUND *csound, OUTVAL *p)
 {
     int type, err;
-    
+
       /* convert numerical channel to string name */
       csound->AuxAlloc(csound, 64, &p->channelName);
       sprintf((char*)p->channelName.auxp,  "%d",
               (int)MYFLT2LRND(*p->valID));
-   
+
         p->channelType = &CS_VAR_TYPE_K;
         type = CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL;
-    
+
     MYFLT *dummy;
     err = csoundGetChannelPtr(csound, &(dummy), (char*) p->channelName.auxp,
                               type);

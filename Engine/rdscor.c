@@ -65,7 +65,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       while (n--!=0) sstrp += strlen(sstrp)+1;
       n = sstrp-csound->sstrbuf;
       while ((c = corfile_getc(csound->scstr)) != '"') {
-        if (c=='\\') c = corfile_getc(csound->scstr);
+        //if (c=='\\') c = corfile_getc(csound->scstr);
         *sstrp++ = c;
         n++;
         if (n > csound->strsiz-10) {

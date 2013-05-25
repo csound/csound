@@ -377,8 +377,9 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname)
       }
       else {
         if (ISSTRCOD(*p->args[1])) {
-	  evt.p[1]  = csound->strarg2insno(csound, get_arg_string(csound, *p->args[1]), 1);
-	} else evt.p[1] = *p->args[1];
+          evt.p[1]  = csound->strarg2insno(csound,
+                                           get_arg_string(csound, *p->args[1]), 1);
+        } else evt.p[1] = *p->args[1];
         evt.strarg = NULL;
       }
       for (i = 2; i <= evt.pcnt; i++)
@@ -393,12 +394,12 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname)
 
 int eventOpcode(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcode_(csound, p, 0);  
+  return eventOpcode_(csound, p, 0);
 }
 
 int eventOpcode_S(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcode_(csound, p, 1);  
+  return eventOpcode_(csound, p, 1);
 }
 
 
@@ -435,8 +436,9 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       else {
         evt.strarg = NULL;
         if (ISSTRCOD(*p->args[1])) {
-	  evt.p[1]  = csound->strarg2insno(csound, get_arg_string(csound, *p->args[1]), 1);
-	} else evt.p[1] = *p->args[1];
+          evt.p[1]  = csound->strarg2insno(csound,
+                                           get_arg_string(csound, *p->args[1]), 1);
+        } else evt.p[1] = *p->args[1];
         for (i = 2; i <= evt.pcnt; i++)
           evt.p[i] = *p->args[i];
       }
@@ -455,14 +457,10 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
 
 int eventOpcodeI(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcodeI_(csound, p, 0, 0);  
+  return eventOpcodeI_(csound, p, 0, 0);
 }
 
 int eventOpcodeI_S(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcodeI_(csound, p, 1, 0);  
+  return eventOpcodeI_(csound, p, 1, 0);
 }
-
-
-
-
