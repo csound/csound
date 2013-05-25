@@ -37,6 +37,13 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
+    MYFLT   *r;
+    STRINGDAT  *str;
+    char *mem;
+} STRCHGD;
+
+typedef struct {
+    OPDS    h;
     MYFLT   *indx;
     MYFLT *str;
 } STRTOD_OP;
@@ -204,6 +211,8 @@ int     strset_init(CSOUND *, void *);
 int     strget_init(CSOUND *, void *);
 int     strcpy_opcode_p(CSOUND *, void *);
 int     strcpy_opcode_S(CSOUND *, void *);
+int     strassign_opcode_S(CSOUND *, void *);
+int     strassign_opcode_Sk(CSOUND *, void *);
 int     strcat_opcode(CSOUND *, void *);
 int     strcmp_opcode(CSOUND *, void *);
 int     sprintf_opcode(CSOUND *, void *);
@@ -224,6 +233,8 @@ int     strlower_opcode(CSOUND *, void *);
 int     getcfg_opcode(CSOUND *, void *);
 int     strindex_opcode(CSOUND *, void *);
 int     strrindex_opcode(CSOUND *, void *);
+  int str_changed(CSOUND *csound, STRCHGD *p);
+  int str_changed_k(CSOUND *csound, STRCHGD *p);
 
 #endif      /* CSOUND_STR_OPS_C */
 
