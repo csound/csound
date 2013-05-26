@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hello">Hello World, CsoundAppActivity!</string>
-    <string name="app_name">CSD Player</string>
+    <string name="app_name">Csound 6 Player</string>
     <string name="slider1">slider1</string>
     <string name="slider2">slider2</string>
     <string name="slider3">slider3</string>
@@ -13,6 +13,8 @@
     <string name="butt4">butt4</string>
     <string name="butt5">butt5</string>
     <string name="trackpad">trackpad</string>
-    <string name="OFF">OFF</string>
-    <string name="Browse">Browse</string>
+    <string name="OFF">Stop</string>
+    <string name="ON">Start</string>
+    <string name="Browse">File</string>
+    <string name="Edit">Edit</string>
 </resources>
