@@ -7,30 +7,40 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.04" >
+        android:layout_weight="0.04"
+        android:orientation="vertical" >
 
         <LinearLayout
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:orientation="vertical" >
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
 
             <Button
                 android:id="@+id/browseButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_width="103dp"
+                android:layout_height="match_parent"
                 android:text="@string/Browse" />
+
+            <Button
+                android:id="@+id/editButton"
+                android:layout_width="110dp"
+                android:layout_height="match_parent"
+                android:text="@string/Edit" />
 
             <ToggleButton
                 android:id="@+id/onOffButton"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/OFF" />
+                android:layout_height="match_parent"
+                android:text="@string/OFF"
+                android:textOff="@string/ON"
+                android:textOn="@string/OFF" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/textView7"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_height="60dp"
+            android:layout_weight="5"
             android:text="" />
     </LinearLayout>
 
@@ -38,7 +48,7 @@
      android:id="@+id/pad"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:layout_weight="0.23"
+     android:layout_weight="0.10"
      android:text="@string/trackpad" />
 
     <LinearLayout
@@ -107,13 +117,6 @@
             android:text="@string/slider5"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
-        <TextView
-            android:id="@+id/TextView01"
-            android:layout_width="match_parent"
-            android:layout_height="33dp"
-            android:text=""
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-
         <LinearLayout
             android:id="@+id/LinearLayout02"
             android:layout_width="fill_parent"
@@ -154,13 +157,6 @@
                 android:layout_weight="0.34"
                 android:text="@string/butt5" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/textView6"
-            android:layout_width="match_parent"
-            android:layout_height="33dp"
-            android:text=""
-            android:textAppearance="?android:attr/textAppearanceSmall" />
         
     </LinearLayout>
 
