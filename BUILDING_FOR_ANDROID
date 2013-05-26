@@ -1,0 +1,47 @@
+BUILDING FOR ANDROID
+
+Csound 6 now builds and runs on Android ABI 9 or later 
+for the ARM-v7 architecture (hard floating point).
+    
+The build is complex but perhaps not as complex as one might think.
+Most of the code is C or C++, only some of the code is Java, so 
+mostly the Android Native Development Kit (NDK) must be used, as 
+well of course as the Android Software Development Toolkit (SDK) for Java.
+
+To save build time, third-party dependencies are pre-built and 
+installed as part of the Android toolchain. This includes for example
+the fluidsynth shared library and LuaJIT. The third-party source code 
+must go into a directory pointed to by NDK_MODULE_PATH. NOTE: this MUST 
+be on the same hard disk as the Csound sources.
+
+Otherwise your regular Csound build environment can be used after 
+setting the appropriate NDK environment variables.
+
+Do not use the 'build.sh' helpers, use $NDK/ndk-build to build and 
+install the shared libraries (modules), the environment variables 
+will do the job of 'build.sh'. There is one exception to this...
+    
+The following variables must be set (this is an example from my 
+environment):
+
+echo "Configure for Android/ARM, armeabi-v7a (ARMv7 VFP), Android 4.0+ (ICS)..."
+
+export SDK=/d/Android/adt-bundle-windows-x86-20130514/sdk
+export NDK=/d/Android/android-ndk-r8e
+export ANDROID_NDK_ROOT=$NDK
+export NDK_MODULE_PATH=/c/ndk-modules
+export PATH=${PATH}:$NDK_MODULE_PATH
+export CSOUND_SRC_ROOT=/c/Users/new/csound-csound6-git
+# First Android with decent audio.
+export NDKABI=9
+export NDKVER=$NDK/toolchains/arm-linux-androideabi-4.7
+export NDKP=$NDKVER/prebuilt/windows/bin/arm-linux-androideabi-
+export NDKF="--sysroot $NDK/platforms/android-$NDKABI/arch-arm"
+export NDKARCH="-march=armv7-a -mfloat-abi=softfp -Wl,--fix-cortex-a8"
+
+Obviously all of these variables must be consistent for all components
+of Csound for Android.
+    
+Download xxx from SourceForge.
+Unzip each archive into xxx.
+

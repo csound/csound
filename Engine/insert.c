@@ -2087,16 +2087,16 @@ int prealloc_(CSOUND *csound, AOP *p, int instname)
 {
   int     n, a;
 
-  if(instname) 
+  if(instname)
     n = (int) strarg2opcno(csound, ((STRINGDAT*)p->r)->data, 1,
                          (*p->b == FL(0.0) ? 0 : 1));
   else {
-    if(ISSTRCOD(*p->r)) 
+    if(ISSTRCOD(*p->r))
       n = (int) strarg2opcno(csound, get_arg_string(csound,*p->r), 1,
                          (*p->b == FL(0.0) ? 0 : 1));
     else n = *p->r;
   }
-   
+
   if (UNLIKELY(n < 1))
     return NOTOK;
   a = (int) *p->a - csound->engineState.instrtxtp[n]->active;
