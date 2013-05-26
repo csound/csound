@@ -153,8 +153,6 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
 
     return NOTOK;
 }
-
-
 /* strcpy */
 int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
@@ -186,6 +184,7 @@ int strassign_opcode_Sk(CSOUND *csound, STRCPY_OP *p)
        p->r->data = p->str->data;
        p->r->size = p->str->size;
   }
+  //csound->Message(csound, "%s", p->r->data);
   return OK;
 }
 
@@ -210,13 +209,16 @@ int str_changed_k(CSOUND *csound, STRCHGD *p){
 }
 
 int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
-{
+{   
+    
     if (ISSTRCOD(*p->indx)) {
       char *ss;
+      //printf("here\n ");
       ss = get_arg_string(csound, *p->indx);
+      //csound->Message(csound, " %s ", ss);
       if(p->r->data == NULL) {
         p->r->data = cs_strdup(csound, ss);
-        p->r->size = strlen(ss)+1; 
+        p->r->size = strlen(ss)+1;     
       } 
       else if ((int) strlen(ss) >= p->r->size) {
 	mfree(csound, p->r->data);
@@ -224,10 +226,12 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
         p->r->size = strlen(ss) + 1;
       } 
       else strcpy(p->r->data,ss);
+       
     }
     else{
       p->r->data = csound->strarg2name(csound, NULL, p->indx, "soundin.", 0);
     }
+   
     return OK;
 }
 

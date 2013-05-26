@@ -352,15 +352,18 @@ static const char *errmsg_1 =
 static const char *errmsg_2 =
   Str_noop("event: string name is allowed only for \"i\" and \"q\" events");
 
-int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname)
+int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
 {
     EVTBLK  evt;
     int     i;
     char    opcod;
 
-    opcod = *((STRINGDAT*) p->args[0])->data;
+    if(p1==0)
+         opcod = *((STRINGDAT*) p->args[0])->data;
+    else  opcod = p1;
+    printf("%c \n", p1);
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
-                  opcod != 'e') || ((STRINGDAT*) p->args[0])->data[1] != '\0'))
+                  opcod != 'e') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
       return csound->PerfError(csound, p->h.insdshead,Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
@@ -393,12 +396,12 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname)
 
 int eventOpcode(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcode_(csound, p, 0);  
+  return eventOpcode_(csound, p, 0, 0);  
 }
 
 int eventOpcode_S(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcode_(csound, p, 1);  
+  return eventOpcode_(csound, p, 1, 0);  
 }
 
 
