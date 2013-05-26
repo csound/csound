@@ -951,6 +951,7 @@ int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
 int printksset_S(CSOUND *csound, PRINTKS *p){
  char *sarg;
  sarg = ((STRINGDAT*)p->ifilcod)->data;
+ if(sarg == NULL) return csoundInitError(csound, "null string\n");
  return printksset_(csound, p, sarg);
 }
 
@@ -1061,6 +1062,19 @@ int printks(CSOUND *csound, PRINTKS *p)
     MYFLT       timel;
     int32        cycles;
     char        string[8192]; /* matt ingals replacement */
+
+    if(ISSTRCOD(*p->ifilcod)){
+      char *sarg = get_arg_string(csound, *p->ifilcod);
+      if(strcmp(sarg, p->txtstring) != 0) 
+         printksset_(csound, p, sarg);
+    } else {
+      char *sarg;
+ sarg = ((STRINGDAT*)p->ifilcod)->data;
+ if(strcmp(sarg, p->txtstring) != 0) {
+ if(sarg == NULL) return csoundPerfError(csound, p->h.insdshead, "null string\n");
+ printksset_(csound, p, sarg);
+ }
+    }
 
     /*-----------------------------------*/
     if (UNLIKELY(p->initialised != -1))
