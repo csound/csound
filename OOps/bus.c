@@ -666,7 +666,7 @@ int chnget_opcode_init_a(CSOUND *csound, CHNGET *p)
 int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
 {
   int   err;
-    char *s = ((STRINGDAT *) p->arg)->data; 
+    char *s = ((STRINGDAT *) p->arg)->data;
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
      p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
@@ -688,11 +688,11 @@ int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
 int chnget_opcode_perf_S(CSOUND *csound, CHNGET *p)
 {
     int   err;
-    char *s = ((STRINGDAT *) p->arg)->data; 
+    char *s = ((STRINGDAT *) p->arg)->data;
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
      p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
-   
+
     if (UNLIKELY(err))
       return print_chn_err(p, err);
     if(strcmp(s, (char *) p->fp) == 0) return OK;
@@ -916,20 +916,20 @@ int chnset_opcode_perf_S(CSOUND *csound, CHNGET *p)
     int   err, size;
     int  *lock;
     char *s = ((STRINGDAT *) p->arg)->data;
-    
+
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     size = csoundGetChannelDatasize(csound, p->iname->data);
-    
+
     if(strcmp(s, (char *) p->fp) == 0) return OK;
-   
+
     p->lock = lock =
       csoundGetChannelLock(csound, (char*) p->iname->data);
     csoundSpinLock(lock);
     if (s && strlen(s) >= (unsigned int) size) {
       if(p->fp != NULL) mfree(csound, p->fp);
       p->fp = (MYFLT *)cs_strdup(csound, s);
-      set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);  
+      set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
     }
     else strcpy((char*) p->fp, s);
     csoundSpinUnLock(lock);
@@ -968,7 +968,7 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
     if ((int)MYFLT2LRND(*(p->itype)) != 0) {
         hints.attributes = 0;
         if (p->INOCOUNT > 10) {
-	  hints.attributes = p->Sattributes->data;
+          hints.attributes = p->Sattributes->data;
         }
         hints.dflt = *(p->idflt);
         hints.min = *(p->imin);
@@ -1182,9 +1182,10 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
         if (retval) {
           char    ch = '\0';
           if (UNLIKELY(read(0, &ch, 1)!=1)) {
-            csound->PerfError(csound, p->h.insdshead, Str("read failure in sensekey\n"));
+            csound->PerfError(csound, p->h.insdshead,
+                              Str("read failure in sensekey\n"));
             return NOTOK;
-	  }
+          }
           keyCode = (int)((unsigned char) ch);
           /* FD_ISSET(0, &rfds) will be true. */
         }

@@ -187,7 +187,7 @@ PUBLIC char* cs_strtok_r(char* str, char* delim, char** nextp) {
 #ifdef HAVE_STRTOK_R
     return strtok_r(str, delim, nextp);
 #else
-    /* 
+    /*
      * public domain strtok_r() by Charlie Gordon
      *
      *   from comp.lang.c  9/14/2007
@@ -225,5 +225,3 @@ PUBLIC double cs_strtod(char* nptr, char** endptr) {
     return strtod(nptr, endptr);
 #endif
 }
-                    
-                

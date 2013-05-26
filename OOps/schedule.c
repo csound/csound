@@ -94,11 +94,11 @@ int kschedule(CSOUND *csound, WSCHED *p)
       }
       p->todo =0;
       pp.flag = 1;
-       if(csoundGetInputArgSMask(p) & 2){ 
+       if(csoundGetInputArgSMask(p) & 2){
           return eventOpcode_(csound, &pp, 1, 'i');
-       } 
+       }
        else {
-	 pp.flag = 0;
+         pp.flag = 0;
          return eventOpcode_(csound, &pp, 0, 'i');
        }
     }
@@ -505,4 +505,3 @@ int trigseq(CSOUND *csound, TRIGSEQ *p)
     }
     return OK;
 }
-

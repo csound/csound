@@ -304,7 +304,9 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format,
       strncat(outbuf, buf1, 256);
       len = strlen(outbuf);
       break;
-    default: csound->PerfError(csound,((KDUMP *)p)->h.insdshead, Str("unknown kdump format"));
+    default:
+      csound->PerfError(csound,((KDUMP *)p)->h.insdshead,
+                        Str("unknown kdump format"));
     }
     if (UNLIKELY(fwrite(outbuf, len, 1, ofd)!=1)) { /* now write the buffer */
       csound->PerfError(csound, ((KDUMP *)p)->h.insdshead,

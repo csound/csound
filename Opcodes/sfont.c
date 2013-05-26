@@ -151,7 +151,8 @@ static int SfLoad_(CSOUND *csound, SFLOAD *p, int istring)
     }
     if(istring) fname = csound->Strdup(csound, ((STRINGDAT *)p->fname)->data);
     else {
-      if(ISSTRCOD(*p->fname)) fname = csound->Strdup(csound, get_arg_string(csound,*p->fname));
+      if(ISSTRCOD(*p->fname))
+        fname = csound->Strdup(csound, get_arg_string(csound,*p->fname));
       else fname = csound->strarg2name(csound,
                                 NULL, p->fname, "sfont.",
                                 0);
@@ -274,8 +275,9 @@ static int SfPreset(CSOUND *csound, SFPRESET *p)
     sf = &globals->sfArray[(DWORD) *p->isfhandle];
 
     if (presetHandle >= MAX_SFPRESET) {
-      return csound->InitError(csound, Str("sfpreset: preset handle too big (%d), max: %d"),
-                          presetHandle, (int) MAX_SFPRESET - 1);
+      return csound->InitError(csound,
+                               Str("sfpreset: preset handle too big (%d), max: %d"),
+                               presetHandle, (int) MAX_SFPRESET - 1);
     }
 
     for (j=0; j< sf->presets_num; j++) {
@@ -290,11 +292,12 @@ static int SfPreset(CSOUND *csound, SFPRESET *p)
     *p->ipresethandle = (MYFLT) presetHandle;
 
     if (UNLIKELY(globals->presetp[presetHandle] == NULL)) {
-      return csound->InitError(csound, Str("sfpreset: cannot find any preset having prog "
-                              "number %d and bank number %d in SoundFont file "
-                              "\"%s\""),
-                  (int) *p->iprog, (int) *p->ibank,
-                  globals->sfArray[(DWORD) *p->isfhandle].name);
+      return csound->InitError(csound,
+                               Str("sfpreset: cannot find any preset having prog "
+                                   "number %d and bank number %d in SoundFont file"
+                                   " \"%s\""),
+                               (int) *p->iprog, (int) *p->ibank,
+                               globals->sfArray[(DWORD) *p->isfhandle].name);
     }
     return OK;
 }
@@ -1648,7 +1651,7 @@ static void fill_SfStruct(CSOUND *csound)
                                                   "samples are allowed "
                                                   "by sfload.\n"
                                                   "Session aborted !"), Gfname);
-			    return;
+                            return;
                         }
                         sglobal_zone = 0;
                         ll++;
@@ -2557,7 +2560,7 @@ static int sflooper_process(CSOUND *csound, sflooper *p)
 
 static OENTRY localops[] = {
   { "sfload",S(SFLOAD),     0, 1,    "i",    "S",      (SUBR)SfLoad_S, NULL, NULL },
-   { "sfload.i",S(SFLOAD),     0, 1,    "i",    "i",      (SUBR)SfLoad, NULL, NULL },
+   { "sfload.i",S(SFLOAD),     0, 1,    "i",    "i",   (SUBR)SfLoad, NULL, NULL },
   { "sfpreset",S(SFPRESET), 0, 1,    "i",    "iiii",   (SUBR)SfPreset         },
   { "sfplay", S(SFPLAY), 0, 5, "aa", "iixxiooo",       (SUBR)SfPlay_set,
                                                        NULL, (SUBR)SfPlay     },
@@ -2566,10 +2569,10 @@ static OENTRY localops[] = {
   { "sfplist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfplist          },
   { "sfilist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfilist          },
   { "sfpassign",S(SFPASSIGN), 0, 1,  "",     "iip",    (SUBR)SfAssignAllPresets },
-  { "sfinstrm", S(SFIPLAYMONO),0, 5, "a", "iixxiiooo",  (SUBR)SfInstrPlayMono_set,
-                                                    NULL, (SUBR)SfInstrPlayMono },
+  { "sfinstrm", S(SFIPLAYMONO),0, 5, "a", "iixxiiooo", (SUBR)SfInstrPlayMono_set,
+                                                  NULL, (SUBR)SfInstrPlayMono },
   { "sfinstr", S(SFIPLAY),  0, 5,    "aa", "iixxiiooo", (SUBR)SfInstrPlay_set,
-                                                    NULL,(SUBR)SfInstrPlay },
+                                                       NULL,(SUBR)SfInstrPlay },
   { "sfplay3", S(SFPLAY),   0, 5,    "aa", "iixxiooo",  (SUBR)SfPlay_set,
                                                     NULL, (SUBR)SfPlay3  },
   { "sfplay3m", S(SFPLAYMONO), 0, 5, "a", "iixxiooo",   (SUBR)SfPlayMono_set,

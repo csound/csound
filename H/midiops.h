@@ -62,7 +62,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-  MYFLT   *chnl; 
+  MYFLT   *chnl;
     MYFLT *insno;
     MYFLT *iresetctls;
 } MASSIGN;
@@ -160,4 +160,3 @@ typedef struct {
 } CTLIN;
 
 #endif
-

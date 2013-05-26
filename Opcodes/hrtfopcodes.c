@@ -153,8 +153,8 @@ typedef struct
         OPDS  h;
         /* outputs and inputs */
         MYFLT *outsigl, *outsigr;
-  MYFLT *in, *kangle, *kelev; 
-	  STRINGDAT *ifilel, *ifiler;
+  MYFLT *in, *kangle, *kelev;
+          STRINGDAT *ifilel, *ifiler;
        MYFLT *omode, *ofade, *osr;
 
         /* check if relative source has changed! */

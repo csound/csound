@@ -90,15 +90,15 @@ int zakinit(CSOUND *csound, ZAKINIT *p)
 
     csound->zklast = (int32) *p->isizek;
     length = (csound->zklast + 1L) * sizeof(MYFLT);
-   
+
     csound->zkstart = (MYFLT*) mcalloc(csound, length);
-    
+
     /* Likewise, allocate memory for za space, but do it in arrays of
      * length ksmps.
      * This is all set to 0 and there will be an error report if the
      * memory cannot be allocated.       */
     csound->zalast = (int32) *p->isizea;
-    
+
     length = (csound->zalast + 1L) * sizeof(MYFLT) * CS_KSMPS;
     csound->zastart = (MYFLT*) mcalloc(csound, length);
     return OK;
@@ -944,7 +944,7 @@ int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       /* Increment pointer and process next character until end of string.  */
         ++sarg;
       }
-    
+
     return OK;
 }
 
@@ -1065,7 +1065,7 @@ int printks(CSOUND *csound, PRINTKS *p)
 
     if(ISSTRCOD(*p->ifilcod)){
       char *sarg = get_arg_string(csound, *p->ifilcod);
-      if(strcmp(sarg, p->txtstring) != 0) 
+      if(strcmp(sarg, p->txtstring) != 0)
          printksset_(csound, p, sarg);
     } else {
       char *sarg;

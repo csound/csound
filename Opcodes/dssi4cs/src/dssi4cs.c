@@ -201,11 +201,13 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
 
-    if(csound->GetInputArgSMask(p))strncpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME-1);
+    if(csound->GetInputArgSMask(p))
+      strncpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME-1);
     else
       csound->strarg2name(csound, dssiFilename, ISSTRCOD(*p->iplugin) ?
-			  csound->GetString(csound, *p->iplugin) : (char *) p->iplugin, "dssiinit.",
-			  (int) ISSTRCOD(*p->iplugin));
+                          csound->GetString(csound, *p->iplugin) :
+                          (char *) p->iplugin, "dssiinit.",
+                          (int) ISSTRCOD(*p->iplugin));
     PluginIndex = (unsigned long) *p->iindex;
     PluginLibrary = dlopenLADSPA(csound, dssiFilename, RTLD_NOW);
     if (UNLIKELY(!PluginLibrary))
@@ -1093,4 +1095,3 @@ static OENTRY dssi_localops[] = {
 };
 
 LINKAGE_BUILTIN(dssi_localops)
-

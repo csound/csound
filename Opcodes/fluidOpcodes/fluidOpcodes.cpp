@@ -136,7 +136,8 @@ public:
             fluidSettings = new_fluid_settings();
             if (fluidSettings != NULL) {
                 fluid_settings_setnum(fluidSettings,
-                        (char *)"synth.sample-rate", (double) csound->GetSr(csound));
+                        (char *)"synth.sample-rate",
+                                      (double) csound->GetSr(csound));
                 fluid_settings_setint(fluidSettings,
                         (char *)"synth.midi-channels", channelCount);
                 fluid_settings_setint(fluidSettings,
@@ -193,12 +194,12 @@ public:
             toa(iFluidSynth, fluidSynth);
             listPresets = (int) *iListPresets;
 
-	    if(csound->GetInputArgSMask(this))
-	      filename = csound->Strdup(csound, ((STRINGDAT *)iFilename)->data);
+            if(csound->GetInputArgSMask(this))
+              filename = csound->Strdup(csound, ((STRINGDAT *)iFilename)->data);
              else
              filename = csound->strarg2name(csound,
                     (char*) NULL,
-		   (ISSTRCOD(*iFilename) ?
+                   (ISSTRCOD(*iFilename) ?
                     csound->GetString(csound, *iFilename) :
                     (char *) iFilename),
                     (char *)"fluid.sf2.",
@@ -528,57 +529,57 @@ noteOff:
                     result = fluid_synth_noteoff(fluidSynth,
                                                  midiChannel, midiData1);
                     if (printMsgs)
-                        csound->Message(csound,
-                                        Str("result: %d \n Note off: c:%3d k:%3d\n"),
-                                        result,
-                                        midiChannel,
-                                        midiData1);
+                      csound->Message(csound,
+                                      Str("result: %d \n Note off: c:%3d k:%3d\n"),
+                                      result,
+                                      midiChannel,
+                                      midiData1);
                     break;
                 case (int) 0x90:
                     if (!midiData2) {
-                        goto noteOff;
+                      goto noteOff;
                     }
                     result = fluid_synth_noteon(fluidSynth, midiChannel,
-                            midiData1, midiData2);
+                                                midiData1, midiData2);
                     if (printMsgs)
-                        log(csound,
-                            "result: %d \nNote on: c:%3d k:%3d v:%3d\n",result,
-                            midiChannel, midiData1, midiData2);
+                      log(csound,
+                          "result: %d \nNote on: c:%3d k:%3d v:%3d\n",result,
+                          midiChannel, midiData1, midiData2);
                     break;
                 case (int) 0xA0:
-                    if (printMsgs)
-                        log(csound, "Key pressure (not handled): "
-                            "c:%3d k:%3d v:%3d\n",
-                            midiChannel, midiData1, midiData2);
+                  if (printMsgs)
+                    log(csound, "Key pressure (not handled): "
+                        "c:%3d k:%3d v:%3d\n",
+                        midiChannel, midiData1, midiData2);
                     break;
                 case (int) 0xB0:
                     result = fluid_synth_cc(fluidSynth, midiChannel,
                                             midiData1, midiData2);
                     if (printMsgs)
-                        log(csound,
-                            "Result: %d Control change: c:%3d c:%3d v:%3d\n",result,
-                            midiChannel, midiData1, midiData2);
+                      log(csound,
+                          "Result: %d Control change: c:%3d c:%3d v:%3d\n",result,
+                          midiChannel, midiData1, midiData2);
                     break;
                 case (int) 0xC0:
-                    result = fluid_synth_program_change(fluidSynth,
-                                                        midiChannel, midiData1);
-                    if (printMsgs)
-                        log(csound,
-                            "Result: %d Program change: c:%3d p:%3d\n",result,
-                            midiChannel, midiData1);
-                    break;
+                  result = fluid_synth_program_change(fluidSynth,
+                                                      midiChannel, midiData1);
+                  if (printMsgs)
+                    log(csound,
+                        "Result: %d Program change: c:%3d p:%3d\n",result,
+                        midiChannel, midiData1);
+                  break;
                 case (int) 0xD0:
-                    if (printMsgs)
-                        log(csound, "After touch (not handled): c:%3d v:%3d\n",
-                            midiChannel, midiData1);
-                    break;
+                  if (printMsgs)
+                    log(csound, "After touch (not handled): c:%3d v:%3d\n",
+                        midiChannel, midiData1);
+                  break;
                 case (int) 0xE0: {
-                    int pbVal = midiData1 + (midiData2 << 7);
-                    fluid_synth_pitch_bend(fluidSynth, midiChannel, pbVal);
-                    if (printMsgs)
-                        log(csound,
-                            "Result: %d, Pitch bend:     c:%d b:%d\n", result,
-                            midiChannel, pbVal);
+                  int pbVal = midiData1 + (midiData2 << 7);
+                  fluid_synth_pitch_bend(fluidSynth, midiChannel, pbVal);
+                  if (printMsgs)
+                    log(csound,
+                        "Result: %d, Pitch bend:     c:%d b:%d\n", result,
+                        midiChannel, pbVal);
                 }
                 break;
                 case (int) 0xF0:
@@ -793,18 +794,19 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
 #pragma omp critical (critical_section_fluidopcodes)
     {
-        for (std::map<CSOUND *, std::vector<fluid_synth_t *> >::iterator it = getFluidSynthsForCsoundInstances().begin();
-        it != getFluidSynthsForCsoundInstances().end();
-        ++it) {
-            std::vector<fluid_synth_t *> &fluidSynths = it->second;
-            for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
-                fluid_synth_t *fluidSynth = fluidSynths[i];
-                fluid_settings_t *fluidSettings = fluid_synth_get_settings(fluidSynth);
-                delete_fluid_synth(fluidSynth);
-                delete_fluid_settings(fluidSettings);
-            }
-                        fluidSynths.clear();
+      for (std::map<CSOUND *, std::vector<fluid_synth_t *> >::
+             iterator it = getFluidSynthsForCsoundInstances().begin();
+           it != getFluidSynthsForCsoundInstances().end();
+           ++it) {
+        std::vector<fluid_synth_t *> &fluidSynths = it->second;
+        for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
+          fluid_synth_t *fluidSynth = fluidSynths[i];
+          fluid_settings_t *fluidSettings = fluid_synth_get_settings(fluidSynth);
+          delete_fluid_synth(fluidSynth);
+          delete_fluid_settings(fluidSettings);
         }
+        fluidSynths.clear();
+      }
     }
     return 0;
 }
