@@ -138,7 +138,8 @@ int     kbndset(CSOUND *, void *), kpchbend(CSOUND *, void *);
 int     imidictl(CSOUND *, void *), mctlset(CSOUND *, void *);
 int     midictl(CSOUND *, void *), imidiaft(CSOUND *, void *);
 int     maftset(CSOUND *, void *), midiaft(CSOUND *, void *);
-int     midiout(CSOUND *, void *), turnon(CSOUND *, void *); int turnon_S(CSOUND *, void *);
+int     midiout(CSOUND *, void *), turnon(CSOUND *, void *);
+int     turnon_S(CSOUND *, void *);
 int     kmapset(CSOUND *, void *), polyaft(CSOUND *, void *);
 int     ichanctl(CSOUND *, void *), chctlset(CSOUND *, void *);
 int     chanctl(CSOUND *, void *), linset(CSOUND *, void *);
@@ -224,8 +225,10 @@ int     lpslotset(CSOUND *, void *), lpitpset(CSOUND *, void *);
 int     lpinterpol(CSOUND *, void *);
 int     rmsset(CSOUND *, void *), rms(CSOUND *, void *);
 int     gainset(CSOUND *, void *), gain(CSOUND *, void *);
-int     sndinset(CSOUND *, void *), sndinset_S(CSOUND *, void *), soundin(CSOUND *, void *);
-int     sndoutset(CSOUND *, void *), sndoutset_S(CSOUND *, void *), soundout(CSOUND *, void *);
+int     sndinset(CSOUND *, void *), sndinset_S(CSOUND *, void *),
+        soundin(CSOUND *, void *);
+int     sndoutset(CSOUND *, void *), sndoutset_S(CSOUND *, void *),
+        soundout(CSOUND *, void *);
 int     soundouts(CSOUND *, void *);
 int     in(CSOUND *, void *), ins(CSOUND *, void *);
 int     inq(CSOUND *, void *), inh(CSOUND *, void *);
@@ -268,7 +271,8 @@ int     krdset_p(CSOUND *, void *), krd2set_p(CSOUND *, void *);
 int     krd3set_p(CSOUND *, void *), krd4set_p(CSOUND *, void *);
 int     kread(CSOUND *, void *), kread2(CSOUND *, void *);
 int     kread3(CSOUND *, void *), kread4(CSOUND *, void *);
-int     krdsset_S(CSOUND *, void *),krdsset_p(CSOUND *, void *), kreads(CSOUND *, void *);
+int     krdsset_S(CSOUND *, void *),krdsset_p(CSOUND *, void *),
+        kreads(CSOUND *, void *);
 int     ipow(CSOUND *, void *), apow(CSOUND *, void *);
 int     alinear(CSOUND *, void *), iklinear(CSOUND *, void *);
 int     atrian(CSOUND *, void *), iktrian(CSOUND *, void *);
@@ -373,7 +377,8 @@ int     random3(CSOUND *, void *), random3a(CSOUND *, void *);
 int     db(CSOUND *, void *), dba(CSOUND *, void *);
 int     semitone(CSOUND *, void *), asemitone(CSOUND *, void *);
 int     cent(CSOUND *, void *), acent(CSOUND *, void *);
-int     midichn(CSOUND *, void *), pgmassign(CSOUND *, void *),  pgmassign_S(CSOUND *, void *);
+int     midichn(CSOUND *, void *), pgmassign(CSOUND *, void *),
+        pgmassign_S(CSOUND *, void *);
 int     midiin_set(CSOUND *, void *), midiin(CSOUND *, void *);
 int     pgmin_set(CSOUND *, void *), pgmin(CSOUND *, void *);
 int     ctlin_set(CSOUND *, void *), ctlin(CSOUND *, void *);

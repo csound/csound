@@ -466,25 +466,25 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       }
 
       if (tree->type == T_FUNCTION) {
-          char* argTypeRight = get_arg_string_from_tree(csound,
-                                                        tree->right, typeTable);
-          char* opname = tree->value->lexeme;
-          OENTRIES* entries = find_opcode2(csound, opname);
-          char * out;
+        char* argTypeRight = get_arg_string_from_tree(csound,
+                                                      tree->right, typeTable);
+        char* opname = tree->value->lexeme;
+        OENTRIES* entries = find_opcode2(csound, opname);
+        char * out;
 
-          if(tree->value->optype != NULL) /* if there is type annotation */
+        if(tree->value->optype != NULL) /* if there is type annotation */
           out = check_annotated_type(csound, entries, tree->value->optype);
-          else  out = resolve_opcode_get_outarg(csound, entries, argTypeRight);
+        else  out = resolve_opcode_get_outarg(csound, entries, argTypeRight);
 
 
-          if (UNLIKELY(out == 0)) {
-              synterr(csound, Str("error: opcode '%s' for expression with arg "
-                                  "types %s not found, line %d \n"),
-                      opname, argTypeRight, tree->line);
-              return NULL;
-          }
+        if (UNLIKELY(out == 0)) {
+          synterr(csound, Str("error: opcode '%s' for expression with arg "
+                              "types %s not found, line %d \n"),
+                  opname, argTypeRight, tree->line);
+          return NULL;
+        }
 
-          return cs_strdup(csound, out);
+        return cs_strdup(csound, out);
 
       }
 
@@ -574,93 +574,92 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     }
 
     switch(tree->type) {
-        case NUMBER_TOKEN:
-        case INTEGER_TOKEN:
-            return cs_strdup(csound, "c");                              /* const */
-        case STRING_TOKEN:
-            return cs_strdup(csound, "S");                /* quoted String */
-        case SRATE_TOKEN:
-        case KRATE_TOKEN:
-        case KSMPS_TOKEN:
-        case ZERODBFS_TOKEN:
-        case NCHNLS_TOKEN:
-        case NCHNLSI_TOKEN:
-            return cs_strdup(csound, "r");                              /* rsvd */
-        case LABEL_TOKEN:
-            //FIXME: Need to review why label token is used so much in parser,
-            //for now treat as T_IDENT
-        case T_ARRAY_IDENT:
-        case T_IDENT:
-            s = tree->value->lexeme;
+    case NUMBER_TOKEN:
+    case INTEGER_TOKEN:
+      return cs_strdup(csound, "c");                              /* const */
+    case STRING_TOKEN:
+      return cs_strdup(csound, "S");                /* quoted String */
+    case SRATE_TOKEN:
+    case KRATE_TOKEN:
+    case KSMPS_TOKEN:
+    case ZERODBFS_TOKEN:
+    case NCHNLS_TOKEN:
+    case NCHNLSI_TOKEN:
+      return cs_strdup(csound, "r");                              /* rsvd */
+    case LABEL_TOKEN:
+      //FIXME: Need to review why label token is used so much in parser,
+      //for now treat as T_IDENT
+    case T_ARRAY_IDENT:
+    case T_IDENT:
+      s = tree->value->lexeme;
 
-            if (is_label(s, typeTable->labelList)) {
-	      
-                return cs_strdup(csound, "l");
-            }
+      if (is_label(s, typeTable->labelList)) {
+        return cs_strdup(csound, "l");
+      }
 
-            if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
-                return cs_strdup(csound, "[k]");
-            }
+      if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
+        return cs_strdup(csound, "[k]");
+      }
 
-            if ((*s >= '1' && *s <= '9') || *s == '.' || *s == '-' || *s == '+' ||
-                (*s == '0' && strcmp(s, "0dbfs") != 0))
-                return cs_strdup(csound, "c");                          /* const */
-            if (*s == '"')
-                return cs_strdup(csound, "S");
+      if ((*s >= '1' && *s <= '9') || *s == '.' || *s == '-' || *s == '+' ||
+          (*s == '0' && strcmp(s, "0dbfs") != 0))
+        return cs_strdup(csound, "c");                          /* const */
+      if (*s == '"')
+        return cs_strdup(csound, "S");
 
-            if (pnum(s) >= 0)
-                return cs_strdup(csound, "p");                           /* pnum */
+      if (pnum(s) >= 0)
+        return cs_strdup(csound, "p");                           /* pnum */
 
-            if (*s == '#')
-                s++;
+      if (*s == '#')
+        s++;
 
-            pool = (*s == 'g') ?
-            typeTable->globalPool : typeTable->localPool;
-            var = csoundFindVariableWithName(pool, tree->value->lexeme);
+      pool = (*s == 'g') ?
+        typeTable->globalPool : typeTable->localPool;
+      var = csoundFindVariableWithName(pool, tree->value->lexeme);
 
-            if (UNLIKELY(var == NULL)) {
-                synterr(csound, Str("Variable '%s' used before defined\n"),
-                        tree->value->lexeme);
-                return NULL;
-            }
+      if (UNLIKELY(var == NULL)) {
+        synterr(csound, Str("Variable '%s' used before defined\n"),
+                tree->value->lexeme);
+        return NULL;
+      }
 
-            if (var->varType == &CS_VAR_TYPE_ARRAY) {
-                return create_array_arg_type(csound, var);
-            } else {
-                return cs_strdup(csound, var->varType->varTypeName);
-            }
+      if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        return create_array_arg_type(csound, var);
+      } else {
+        return cs_strdup(csound, var->varType->varTypeName);
+      }
 
 
-        case T_ARRAY:
+    case T_ARRAY:
 
-            s = tree->value->lexeme;
+      s = tree->value->lexeme;
 
-            if (*s == '#') s++;
-            if (*s == 'g') s++;
+      if (*s == '#') s++;
+      if (*s == 'g') s++;
 
-            if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
-                return cs_strdup(csound, "[k]");
-            }
+      if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
+        return cs_strdup(csound, "[k]");
+      }
 
-            t = s;
+      t = s;
 
-            int len = 1;
-            while (*t == '[') {
-                t++;
-                len++;
-            }
+      int len = 1;
+      while (*t == '[') {
+        t++;
+        len++;
+      }
 
-            char* retVal = mmalloc(csound, (len + 2) * sizeof(char));
-            memcpy(retVal, s, len);
-            retVal[len] = ']';
-            retVal[len + 1] = '\0';
+      char* retVal = mmalloc(csound, (len + 2) * sizeof(char));
+      memcpy(retVal, s, len);
+      retVal[len] = ']';
+      retVal[len + 1] = '\0';
 
-            return retVal;
+      return retVal;
 
-        default:
-            csoundWarning(csound, Str("Unknown arg type: %d\n"), tree->type);
-            print_tree(csound, "Arg Tree\n", tree);
-            return NULL;
+    default:
+      csoundWarning(csound, Str("Unknown arg type: %d\n"), tree->type);
+      print_tree(csound, "Arg Tree\n", tree);
+      return NULL;
     }
 }
 
@@ -670,8 +669,8 @@ char* get_opcode_short_name(CSOUND* csound, char* opname) {
 
     char* dot = strchr(opname, '.');
     if(dot != NULL) {
-        int opLen = dot - opname;
-        return cs_strndup(csound, opname, opLen);
+      int opLen = dot - opname;
+      return cs_strndup(csound, opname, opLen);
     }
     return opname;
 }
@@ -1178,7 +1177,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
         case LABEL_TOKEN:
         case T_IDENT:
           varName = current->value->lexeme;
-          
+
           if (is_label(varName, typeTable->labelList)) {
             break;
           }
