@@ -51,7 +51,7 @@ static int scope(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-extern int scope_init_(CSOUND *csound)
+PUBLIC int scope_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "scope", scope);
     if (!retval) {

@@ -1,15 +1,18 @@
-INSTALLING CSOUND 5
+INSTALLING CSOUND 6
 
 To install prebuilt binaries for Linux on Intel, Windows, and OS X,
 obtain the appropriate archive or installer
 from the Files page at http://sourceforge.net/projects/csound.
 
-To build from sources in the csound5 module in Csound CVS
+To build from sources in the csound6 module in Csound GIT
 at SourceForge, follow the instructions in
 The Canonical Csound Reference Manual.
 It is available online at http://csounds.com/manual,
-in the Windows installer Csound5.02.1-win32-d.exe from SourceForge,
-or by building from sources in the manual module in Csound CVS.
+in the Windows installer from SourceForge,
+or by building from sources in the manual module in Csound GIT.
 The installation instructions are available online at
 http://csounds.com/manual/html/BuildingCsound.html
+
+NOTE: For Windows, follow the instructions in 
+"How_to_Build_Csound_on_Windows.doc" in Csound 6 GIT.
 

@@ -508,8 +508,8 @@ int turnon(CSOUND *csound, TURNON *p)
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = 3;
- 
-    if(ISSTRCOD(*p->insno)) {    
+
+    if(ISSTRCOD(*p->insno)) {
     char *ss = get_arg_string(csound,*p->insno);
     insno = csound->strarg2insno(csound,ss,1);
     if (insno <= 0L)
@@ -931,7 +931,7 @@ int sensevents(CSOUND *csound)
             }
             /* end of: 1: section, 2: score, 3: lplay list */
             retval = (e->opcod == 'l' ? 3 : (e->opcod == 's' ? 1 : 2));
-            
+
             goto scode;
           default:                            /* q, i, f, a:              */
             process_score_event(csound, e, 0);/*   handle event now       */
@@ -1106,7 +1106,7 @@ int sensevents(CSOUND *csound)
     }
     else{
       section_amps(csound, 0);
-      
+
     }
     if (retval == 1) {                        /* if s code,        */
       orcompact(csound);                      /*   rtn inactiv spc */
@@ -1115,7 +1115,7 @@ int sensevents(CSOUND *csound)
       csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
       goto retest;                            /*   & back for more */
     }
-    
+
     return 2;                   /* done with entire score */
 }
 
