@@ -241,8 +241,10 @@ int pinit(CSOUND *csound, PINIT *p)
       csound->Warning(csound, Str("More arguments than p fields"));
     for (n=0; (n<nargs) && (n<=pargs-start); n++) {
       if(ISSTRCOD(csound->currevent->p[n+start])) {
-	((STRINGDAT *)p->inits[n])->data = cs_strdup(csound, get_arg_string(csound, csound->currevent->p[n+start]));
-	((STRINGDAT *)p->inits[n])->size = strlen(((STRINGDAT *)p->inits[n])->data)+1;
+        ((STRINGDAT *)p->inits[n])->data =
+          cs_strdup(csound, get_arg_string(csound, csound->currevent->p[n+start]));
+        ((STRINGDAT *)p->inits[n])->size =
+          strlen(((STRINGDAT *)p->inits[n])->data)+1;
       }
       else  *p->inits[n] = csound->currevent->p[n+start];
       x <<= 1;
@@ -256,7 +258,7 @@ static OENTRY localops[] = {
 { "pcount", S(PFIELD),  0, 1, "i", "",       (SUBR)pcount,    NULL, NULL },
 { "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
 { "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "p",
-                                          (SUBR)pinit,     NULL, NULL },
+                                             (SUBR)pinit,     NULL, NULL },
 { "nlfilt",  S(NLFILT), 0, 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt },
 { "nlfilt2",  S(NLFILT), 0, 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt2 }
 };
@@ -266,4 +268,3 @@ int nlfilt_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

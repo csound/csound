@@ -24,7 +24,7 @@
 #include "csdl.h"
 #include <time.h>
 
-#if defined(__MACH__) 
+#if defined(__MACH__)
 #include <unistd.h>
 #endif
 
@@ -87,12 +87,12 @@ static int getcurdir(CSOUND *csound, GETCWD *p)
     p->Scd->size = 1024;
     p->Scd->data = csound->Calloc(csound, p->Scd->size);
   }
-    
+
 #if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__)
    if (UNLIKELY(getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #else
    if (UNLIKELY( _getcwd(p->Scd->data, p->Scd->size-1)==NULL))
-#endif               
+#endif
       return csound->InitError(csound, Str("cannot determine current directory"));
     return OK;
 }
@@ -194,4 +194,3 @@ static OENTRY date_localops[] =
 };
 
 LINKAGE_BUILTIN(date_localops)
-

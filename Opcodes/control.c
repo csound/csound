@@ -28,7 +28,7 @@
 #include <sys/types.h>
 #include <signal.h>
 
-#if defined(__MACH__) 
+#if defined(__MACH__)
 #include <unistd.h>
 #endif
 
@@ -43,7 +43,7 @@ static CS_NOINLINE CONTROL_GLOBALS *get_globals_(CSOUND *csound)
                                      sizeof(CONTROL_GLOBALS)) != 0){
       csound->Warning(csound, Str("control: failed to allocate globals"));
       return NULL;
-    } 
+    }
     p = (CONTROL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                        "controlGlobals_");
     p->csound = csound;
@@ -214,7 +214,8 @@ static int ocontrol_(CSOUND *csound, SCNTRL *p, int istring)
       {
         char buffer[100];
         if(istring) {
-	  csound->strarg2name(csound, buffer, ((STRINGDAT *)p->val)->data, "Control ",istring);
+          csound->strarg2name(csound, buffer,
+                              ((STRINGDAT *)p->val)->data, "Control ",istring);
         }
         else
          csound->strarg2name(csound, buffer, p->val, "Control ",istring);
@@ -304,7 +305,8 @@ static int textflash_(CSOUND *csound, TXTWIN *p, int istring)
       fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);
     }
     else if(ISSTRCOD(*p->val)) {
-      csound->strarg2name(csound, buffer, csound->GetString(csound, *p->val), "", 1);
+      csound->strarg2name(csound, buffer,
+                          csound->GetString(csound, *p->val), "", 1);
     }
     else {
 /*    csound->Message(csound, "deltext %d\n", wind); */
@@ -325,14 +327,13 @@ static int textflash_S(CSOUND *csound, TXTWIN *p){
 #define S(x)    sizeof(x)
 
 static OENTRY control_localops[] = {
-  { "control",  S(CNTRL),  0, 3, "k", "k",  (SUBR) cntrl_set, (SUBR) control, NULL },
+  { "control",  S(CNTRL), 0, 3, "k", "k", (SUBR) cntrl_set, (SUBR) control, NULL },
 { "setctrl",  S(SCNTRL), 0, 1, "",  "iii", (SUBR) ocontrol, NULL, NULL           },
-{ "setctrl.S",  S(SCNTRL), 0, 1, "",  "iSi", (SUBR) ocontrol_S, NULL, NULL           },
+{ "setctrl.S",  S(SCNTRL), 0, 1, "",  "iSi", (SUBR) ocontrol_S, NULL, NULL       },
 { "button",   S(CNTRL),  0, 3, "k", "k",  (SUBR) button_set, (SUBR) button, NULL },
 { "checkbox", S(CNTRL),  0, 3, "k", "k",   (SUBR) check_set, (SUBR) check, NULL  },
 { "flashtxt", S(TXTWIN), 0, 1, "",  "ii",  (SUBR) textflash, NULL, NULL          },
-{ "flashtxt.S", S(TXTWIN), 0, 1, "",  "iS",  (SUBR) textflash_S, NULL, NULL          },
+{ "flashtxt.S", S(TXTWIN), 0, 1, "",  "iS",  (SUBR) textflash_S, NULL, NULL      },
 };
 
 LINKAGE_BUILTIN(control_localops)
-

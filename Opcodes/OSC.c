@@ -275,7 +275,7 @@ static CS_NOINLINE OSC_PAT *alloc_pattern(OSCLISTEN *pp)
     nbytes = sizeof(OSC_PAT);
     /* allocate and initialise structure */
     p = (OSC_PAT*) csound->Calloc(csound, nbytes);
-   
+
     return p;
 }
 
@@ -329,37 +329,37 @@ static int OSC_handler(const char *path, const char *types,
               m->args[i].number = (MYFLT) argv[i]->i64; break;
             case 'c':
                m->args[i].number= (MYFLT) argv[i]->c; break;
-            case 'f':    
+            case 'f':
                m->args[i].number = (MYFLT) argv[i]->f; break;
             case 'd':
                m->args[i].number= (MYFLT) argv[i]->d; break;
             case 's':
               {
-                char  *src = (char*) &(argv[i]->s), *dst = m->args[i].string.data;            
+                char  *src = (char*) &(argv[i]->s), *dst = m->args[i].string.data;
                 if(m->args[i].string.size <= (int) strlen(src)){
-		  if(dst != NULL) csound->Free(csound, dst);
-		    dst = csound->Strdup(csound, src);
-		    m->args[i].string.size = strlen(dst) + 1;
-          	    m->args[i].string.data = dst;
-		}
-		else strcpy(dst, src);
+                  if(dst != NULL) csound->Free(csound, dst);
+                    dst = csound->Strdup(csound, src);
+                    m->args[i].string.size = strlen(dst) + 1;
+                    m->args[i].string.data = dst;
+                }
+                else strcpy(dst, src);
 
               }
               break;
             }
           }
-     
+
           retval = 0;
         }
-        
+
         break;
-        
+
       }
-     
-      
+
+
       o = (OSCLISTEN*) o->nxt;
     }
-     
+
     pp->csound->UnlockMutex(pp->mutex_);
     return retval;
 }
@@ -530,20 +530,20 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
       for (i = 0; p->saved_types[i] != '\0'; i++) {
         if (p->saved_types[i] != 's') {
           *(p->args[i]) = m->args[i].number;
-	}
+        }
         else {
           char *src = m->args[i].string.data;
           char *dst = ((STRINGDAT*) p->args[i])->data;
           if(src != NULL) {
-	    if(((STRINGDAT*) p->args[i])->size <= (int) strlen(src)){
-	       if(dst != NULL) csound->Free(csound, dst);
-	          dst = csound->Strdup(csound, src);
-	         ((STRINGDAT*) p->args[i])->size = strlen(dst) + 1;
+            if(((STRINGDAT*) p->args[i])->size <= (int) strlen(src)){
+               if(dst != NULL) csound->Free(csound, dst);
+                  dst = csound->Strdup(csound, src);
+                 ((STRINGDAT*) p->args[i])->size = strlen(dst) + 1;
                  ((STRINGDAT*) p->args[i])->data = dst;
-	   }
-          else 
+           }
+          else
           strcpy(dst, src);
-	  }
+          }
       }
       }
       /* push to stack of free message structures */

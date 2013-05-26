@@ -178,7 +178,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
 
 int mp3ininit(CSOUND *csound, MP3IN *p){
   return mp3ininit_(csound,p,0);
-} 
+}
 
 int mp3ininit_S(CSOUND *csound, MP3IN *p){
   return mp3ininit_(csound,p,1);
@@ -258,7 +258,7 @@ int mp3len_(CSOUND *csound, MP3LEN *p, int stringname)
       return csound->InitError(csound, mp3dec_error(r));
     }
     /* FIXME: name can overflow with very long string */
-    
+
     if(stringname==0){
       if(ISSTRCOD(*p->iFileCode)) strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);

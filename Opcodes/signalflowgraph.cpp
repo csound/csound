@@ -792,9 +792,9 @@ struct Connect : public OpcodeBase<Connect> {
     {
       std::string sourceOutletId = csound->strarg2name(csound,
                                                        (char *) 0,
-						       ((ISSTRCOD(*Source)) ? 
-						       csound->GetString(csound,*Source) :
-							(char *)Source),
+                                                       ((ISSTRCOD(*Source)) ? 
+                                                       csound->GetString(csound,*Source) :
+                                                        (char *)Source),
                                                        (char *)"",
                                                        ISSTRCOD(*Source));
       sourceOutletId += ":";
@@ -807,8 +807,8 @@ struct Connect : public OpcodeBase<Connect> {
       std::string sinkInletId = csound->strarg2name(csound,
                                                     (char *) 0,
                                                     ((ISSTRCOD(*Sink)) ? 
-						       csound->GetString(csound,*Sink) :
-							(char *)Sink),
+                                                       csound->GetString(csound,*Sink) :
+                                                        (char *)Sink),
                                                        (char *)"",
                                                        ISSTRCOD(*Sink));
       sinkInletId += ":";
@@ -837,9 +837,9 @@ struct Connecti : public OpcodeBase<Connecti> {
     {
       std::string sourceOutletId = csound->strarg2name(csound,
                                                        (char *) 0,
-						       ((ISSTRCOD(*Source)) ? 
-						       csound->GetString(csound,*Source) :
-							(char *)Source),
+                                                       ((ISSTRCOD(*Source)) ? 
+                                                       csound->GetString(csound,*Source) :
+                                                        (char *)Source),
                                                        (char *)"",
                                                        ISSTRCOD(*Source));
       sourceOutletId += ":";
@@ -892,8 +892,8 @@ struct Connectii : public OpcodeBase<Connectii> {
       std::string sinkInletId = csound->strarg2name(csound,
                                                     (char *) 0,
                                                     ((ISSTRCOD(*Sink)) ? 
-						       csound->GetString(csound,*Sink) :
-							(char *)Sink),
+                                                       csound->GetString(csound,*Sink) :
+                                                        (char *)Sink),
                                                        (char *)"",
                                                        ISSTRCOD(*Sink));;
       sinkInletId += ":";
@@ -1126,7 +1126,7 @@ struct FtGenOnceS : public OpcodeBase<FtGenOnceS> {
         n = (int) evtblk.p[4];
         evtblk.p[5] = SSTRCOD;
         if (n < 0) n = -n;
-	
+        
         // Only GEN 1, 23, 28, or 43 can take strings.
         switch (n) {
         case 1:
@@ -1137,7 +1137,7 @@ struct FtGenOnceS : public OpcodeBase<FtGenOnceS> {
           break;
         default:
           result = csound->InitError(csound, Str("ftgen string arg not allowed"));
-	}
+        }
 
       if (result == OK) {
         evtblk.pcnt = (int16) csound->GetInputArgCnt(this);
