@@ -952,6 +952,7 @@ int printksset_S(CSOUND *csound, PRINTKS *p){
  char *sarg;
  sarg = ((STRINGDAT*)p->ifilcod)->data;
  if(sarg == NULL) return csoundInitError(csound, "null string\n");
+ p->old = cs_strdup(csound, sarg);
  return printksset_(csound, p, sarg);
 }
 
@@ -1063,17 +1064,16 @@ int printks(CSOUND *csound, PRINTKS *p)
     int32        cycles;
     char        string[8192]; /* matt ingals replacement */
 
-    if(ISSTRCOD(*p->ifilcod)){
-      char *sarg = get_arg_string(csound, *p->ifilcod);
-      if(strcmp(sarg, p->txtstring) != 0)
-         printksset_(csound, p, sarg);
-    } else {
+    if (ISSTRCOD(*p->ifilcod) == 0) {
       char *sarg;
- sarg = ((STRINGDAT*)p->ifilcod)->data;
- if(strcmp(sarg, p->txtstring) != 0) {
- if(sarg == NULL) return csoundPerfError(csound, p->h.insdshead, "null string\n");
- printksset_(csound, p, sarg);
- }
+      sarg = ((STRINGDAT*)p->ifilcod)->data;      
+      if (strcmp(sarg, p->old) != 0) {   
+        if (sarg == NULL)
+          return csoundPerfError(csound, p->h.insdshead, Str("null string\n"));
+        printksset_(csound, p, sarg);
+        mfree(csound, p->old);
+        p->old = cs_strdup(csound, sarg);
+      }
     }
 
     /*-----------------------------------*/

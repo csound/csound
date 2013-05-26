@@ -293,6 +293,7 @@ typedef struct {
         int32   cysofar;        /* Number of print cycles so far from 0 */
         int     initialised;
         char    txtstring[8192]; /* Place to store the string printed */
+        char* old;
 } PRINTKS;
 
 /* an i-rate-only prints */
