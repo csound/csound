@@ -695,7 +695,9 @@ int chnget_opcode_perf_S(CSOUND *csound, CHNGET *p)
    
     if (UNLIKELY(err))
       return print_chn_err(p, err);
+   
     if(strcmp(s, (char *) p->fp) == 0) return OK;
+
     csoundSpinLock(p->lock);
     if(((STRINGDAT *) p->arg)->size <= (int) strlen((char *) p->fp)) {
     s = cs_strdup(csound,(char*) p->fp);
