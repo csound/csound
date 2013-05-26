@@ -361,13 +361,13 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     if(p1==0)
          opcod = *((STRINGDAT*) p->args[0])->data;
     else  opcod = p1;
-    printf("%c \n", p1);
+
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
       return csound->PerfError(csound, p->h.insdshead,Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
-    if(p->flag==1) evt.pcnt = p->argno;
+    if(p->flag==1) evt.pcnt = p->argno-2;
     else
       evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */

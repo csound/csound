@@ -93,7 +93,12 @@ int kschedule(CSOUND *csound, WSCHED *p)
         pp.args[i] = p->argums[i-4];
       }
       p->todo =0;
-      return eventOpcode_(csound, &pp, 0, 'i');
+      pp.flag = 1;
+       if(csoundGetInputArgSMask(csound) & 2){ 
+          return eventOpcode_(csound, &pp, 1, 'i');
+       } 
+       else 
+         return eventOpcode_(csound, &pp, 0, 'i');
     }
     else return OK;
 }
