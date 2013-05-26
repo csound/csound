@@ -12,6 +12,8 @@ import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -35,6 +37,7 @@ import com.csounds.CsoundObjCompletionListener;
 
 public class CsoundAppActivity extends Activity  implements CsoundObjCompletionListener {
 	Button browseButton;
+	Button editButton;
 	ToggleButton startStopButton = null;
 	CsoundObj csound = null;
 	File csd = null;
@@ -112,6 +115,17 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 				if(!running) {
 					loadFileList();
 					showDialog(BROWSE_DIALOG); 
+				}
+			}
+		});
+		editButton = (Button) findViewById(R.id.editButton);
+		editButton.setOnClickListener(new OnClickListener(){ 
+			public void onClick(View v){
+				if(!running) {
+					Intent intent = new Intent(Intent.ACTION_VIEW); 
+					Uri uri = Uri.parse("file://" + csd.getAbsolutePath()); 
+					intent.setDataAndType(uri, "text/plain"); 
+					startActivity(intent);						
 				}
 			}
 		});
