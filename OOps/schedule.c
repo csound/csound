@@ -94,11 +94,13 @@ int kschedule(CSOUND *csound, WSCHED *p)
       }
       p->todo =0;
       pp.flag = 1;
-       if(csoundGetInputArgSMask(csound) & 2){ 
+       if(csoundGetInputArgSMask(p) & 2){ 
           return eventOpcode_(csound, &pp, 1, 'i');
        } 
-       else 
+       else {
+	 pp.flag = 0;
          return eventOpcode_(csound, &pp, 0, 'i');
+       }
     }
     else return OK;
 }
