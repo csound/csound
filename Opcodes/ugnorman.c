@@ -100,7 +100,7 @@ static CS_PURE double bswap(const double *swap_me)
 /* load ATS file into memory; returns "is swapped" boolean, or -1 on error */
 
 static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
-			void *name_arg, int istring)
+                        void *name_arg, int istring)
 {
     char              opname[64];
     STDOPCOD_GLOBALS  *pp;
@@ -115,8 +115,8 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     if(istring) strncpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
     else {
       if(ISSTRCOD(*((MYFLT*)name_arg)))
-	strncpy(fname,get_arg_string(csound, *((MYFLT*)name_arg)),MAXNAME-1);
-	 else csound->strarg2name(csound, fname, name_arg, "ats.",0);
+        strncpy(fname,get_arg_string(csound, *((MYFLT*)name_arg)),MAXNAME-1);
+         else csound->strarg2name(csound, fname, name_arg, "ats.",0);
     }
     /* load memfile */
     if (UNLIKELY((*mfp = csound->ldmemfile2withCB(csound, fname,

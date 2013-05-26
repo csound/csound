@@ -31,10 +31,10 @@
 
 int mute_inst(CSOUND *csound, MUTE *p)
 {
-    int n;     
+    int n;
     int onoff = (*p->onoff == FL(0.0) ? 0 : 1);
 
-    if(ISSTRCOD(*p->ins)) {    
+    if(ISSTRCOD(*p->ins)) {
     char *ss = get_arg_string(csound,*p->ins);
     n = csound->strarg2insno(csound,ss,1);
     } else n = *p->ins;
@@ -51,7 +51,7 @@ int mute_inst(CSOUND *csound, MUTE *p)
 }
 int mute_inst_S(CSOUND *csound, MUTE *p)
 {
-    int n;     
+    int n;
     int onoff = (*p->onoff == FL(0.0) ? 0 : 1);
 
     n = csound->strarg2insno(csound, ((STRINGDAT *)p->ins)->data, 1);
@@ -71,7 +71,7 @@ int instcount(CSOUND *csound, INSTCNT *p)
 {
     int n;
 
-    if(ISSTRCOD(*p->ins)) {    
+    if(ISSTRCOD(*p->ins)) {
     char *ss = get_arg_string(csound,*p->ins);
     n = csound->strarg2insno(csound,ss,1);
     } else n = *p->ins;
@@ -100,7 +100,7 @@ int instcount(CSOUND *csound, INSTCNT *p)
 
 int instcount_S(CSOUND *csound, INSTCNT *p)
 {
-    
+
 
     int n = csound->strarg2insno(csound, ((STRINGDAT *)p->ins)->data, 1);
 
@@ -132,7 +132,7 @@ int cpuperc(CSOUND *csound, CPU_PERC *p)
 {
     int n;
 
-    if(ISSTRCOD(*p->instrnum)) {    
+    if(ISSTRCOD(*p->instrnum)) {
     char *ss = get_arg_string(csound,*p->instrnum);
     n = csound->strarg2insno(csound,ss,1);
     } else n = *p->instrnum;
@@ -158,7 +158,7 @@ int maxalloc(CSOUND *csound, CPU_PERC *p)
 {
      int n;
 
-    if(ISSTRCOD(*p->instrnum)) {    
+    if(ISSTRCOD(*p->instrnum)) {
     char *ss = get_arg_string(csound,*p->instrnum);
     n = csound->strarg2insno(csound,ss,1);
     } else n = *p->instrnum;
@@ -197,7 +197,8 @@ int pfunk_init(CSOUND *csound, PFUNK *p)
     if (n<1 || n>PMAX) ans = FL(0.0);
     else ans = csound->currevent->p[n];
     /* save the pfields of the current event */
-    csound->AuxAlloc(csound, (csound->currevent->pcnt+1)*sizeof(MYFLT), &p->pfield);
+    csound->AuxAlloc(csound,
+                     (csound->currevent->pcnt+1)*sizeof(MYFLT), &p->pfield);
     pfield = p->pfield.auxp;
     for (i=1; i<=csound->currevent->pcnt; i++)
       pfield[i] = csound->currevent->p[i];

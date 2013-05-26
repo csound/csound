@@ -232,7 +232,7 @@ static void smoothsort(SRTBLK *A[], const int N)
 }
 
 void sort(CSOUND *csound)
-{ 
+{
     SRTBLK *bp;
     SRTBLK **A;
     int i, n = 0;

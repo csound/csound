@@ -268,7 +268,7 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVING *p)
             p->next_fld = 1;
         }
       }
-      if (UNLIKELY((p->fld[abs(p->next_fld)]==NULL))) 
+      if (UNLIKELY((p->fld[abs(p->next_fld)]==NULL)))
         return csound->PerfError(csound, p->h.insdshead, Str("Missing fields in vbapmove\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (UNLIKELY(fabs(fabs(*p->fld[p->next_fld] -

@@ -81,7 +81,8 @@ int fassign(CSOUND *csound, FASSIGN *p)
     float *fout,*fsrc;
 
     // if (UNLIKELY(!fsigs_equal(p->fout,p->fsrc)))
-    //return csound->PerfError(csound,p->h.insdshead, Str("fsig = : formats are different.\n"));
+    //return csound->PerfError(csound,p->h.insdshead,
+    //                         Str("fsig = : formats are different.\n"));
     if (p->fsrc->sliding) {
       memcpy(p->fout->frame.auxp, p->fsrc->frame.auxp,
              sizeof(MYFLT)*(p->fsrc->N+2)*csound->ksmps);
@@ -127,7 +128,8 @@ int pvadsynset(CSOUND *csound, PVADS *p)
       csound->InitError(csound, Str("pvadsyn: bad value for inoscs\n"));
     /* remove this when I know how to do it... */
     if (UNLIKELY(fs->format != PVS_AMP_FREQ))
-      return csound->InitError(csound, Str("pvadsyn: format must be amp-freq (0).\n"));
+      return csound->InitError(csound,
+                               Str("pvadsyn: format must be amp-freq (0).\n"));
     p->format = fs->format;
     /* interesting question: could noscs be krate variable?
      * answer: yes, but adds complexity to oscbank,
@@ -137,9 +139,11 @@ int pvadsynset(CSOUND *csound, PVADS *p)
     startbin = (int32) *p->ibin;            /* default 0 */
     binoffset = (int32) *p->ibinoffset; /* default 1 */
     if (UNLIKELY(startbin < 0 || startbin > noscs))
-      return csound->InitError(csound, Str("pvsadsyn: ibin parameter out of range.\n"));
+      return csound->InitError(csound,
+                               Str("pvsadsyn: ibin parameter out of range.\n"));
     if (UNLIKELY(startbin + n_oscs > noscs))
-      return csound->InitError(csound, Str("pvsadsyn: ibin + inoscs too large.\n"));
+      return csound->InitError(csound,
+                               Str("pvsadsyn: ibin + inoscs too large.\n"));
     /* calc final max bin target */
     p->maxosc = startbin + (n_oscs * binoffset);
     if (UNLIKELY(p->maxosc > noscs))
@@ -253,7 +257,8 @@ int pvadsyn(CSOUND *csound, PVADS *p)
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(p->outbuf.auxp==NULL)) {
-      return csound->PerfError(csound,p->h.insdshead, Str("pvsynth: Not initialised.\n"));
+      return csound->PerfError(csound,p->h.insdshead,
+                               Str("pvsynth: Not initialised.\n"));
     }
     if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -313,13 +318,16 @@ int pvscross(CSOUND *csound, PVSCROSS *p)
     float *fout = (float *) p->fout->frame.auxp;
 
     if (UNLIKELY(fout==NULL))
-      return csound->PerfError(csound,p->h.insdshead, Str("pvscross: not initialised\n"));
+      return csound->PerfError(csound,p->h.insdshead,
+                               Str("pvscross: not initialised\n"));
 
     /* make sure sigs have same format as output */
     if (UNLIKELY(!fsigs_equal(p->fout,p->fsrc)))
-      return csound->PerfError(csound,p->h.insdshead, Str("pvscross: mismatch in fsrc format\n"));
+      return csound->PerfError(csound,p->h.insdshead,
+                               Str("pvscross: mismatch in fsrc format\n"));
     if (UNLIKELY(!fsigs_equal(p->fout,p->fdest)))
-      return csound->PerfError(csound,p->h.insdshead, Str("pvscross: mismatch in fdest format\n"));
+      return csound->PerfError(csound,p->h.insdshead,
+                               Str("pvscross: mismatch in fdest format\n"));
     if (p->fsrc->sliding) {
       CMPLX *fout, *fsrc, *fdest;
       uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -363,7 +371,8 @@ static int pvsfreadset_(CSOUND *csound, PVSFREAD *p, int stringname)
     char            pvfilnam[MAXNAME];
 
     if(stringname) strncpy(pvfilnam, ((STRINGDAT*)p->ifilno)->data, MAXNAME-1);
-    else if (ISSTRCOD(*p->ifilno)) strncpy(pvfilnam, get_arg_string(csound, *p->ifilno), MAXNAME-1);
+    else if (ISSTRCOD(*p->ifilno))
+      strncpy(pvfilnam, get_arg_string(csound, *p->ifilno), MAXNAME-1);
     else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", 0);
 
     if (UNLIKELY(PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0)) {
@@ -396,7 +405,8 @@ static int pvsfreadset_(CSOUND *csound, PVSFREAD *p, int stringname)
       return csound->InitError(csound, Str("pvsfread: ichan value exceeds "
                               "file channel count.\n"));
     if (UNLIKELY((int32) (*p->ichan) < 0))
-      return csound->InitError(csound, Str("pvsfread: ichan cannot be negative.\n"));
+      return csound->InitError(csound,
+                               Str("pvsfread: ichan cannot be negative.\n"));
 
     N = p->fftsize;
     /* setup output signal */
@@ -440,7 +450,8 @@ int pvsfread(CSOUND *csound, PVSFREAD *p)
     float *fout = (float *) p->fout->frame.auxp;
 
     if (UNLIKELY(fout==NULL))
-      return csound->PerfError(csound,p->h.insdshead, Str("pvsfread: not initialised.\n"));
+      return csound->PerfError(csound,p->h.insdshead,
+                               Str("pvsfread: not initialised.\n"));
 
     pmem = (float *) p->membase;
     framesize = p->fftsize+2;
@@ -551,7 +562,8 @@ int pvsmaska(CSOUND *csound, PVSMASKA *p)
     fsrc = (float *) p->fsrc->frame.auxp;
 
     if (UNLIKELY(fout==NULL))
-      return csound->PerfError(csound,p->h.insdshead, Str("pvsmaska: not initialised\n"));
+      return csound->PerfError(csound,p->h.insdshead,
+                               Str("pvsmaska: not initialised\n"));
 
     if (depth < FL(0.0)) {
       /* need the warning: but krate linseg can give below-zeroes incorrectly */
@@ -666,7 +678,8 @@ int pvsftwset(CSOUND *csound, PVSFTW *p)
       if (ftablef) {
         flenf = p->outfnf->flen+1;
         if (UNLIKELY(flenf < nbins))
-          return csound->InitError(csound, Str("pvsftw: freqs ftable too small.\n"));
+          return csound->InitError(csound,
+                                   Str("pvsftw: freqs ftable too small.\n"));
         for (i=0;i < nbins;i++)
           ftablef[i] = fsrc[(i*2) + 1];
       }
@@ -686,13 +699,16 @@ int pvsftw(CSOUND *csound, PVSFTW *p)
     fsrc = (float *) p->fsrc->frame.auxp;
 
     if (UNLIKELY(fsrc==NULL))
-      return csound->PerfError(csound,p->h.insdshead, Str("pvsftw: not initialised\n"));
+      return csound->PerfError(csound,p->h.insdshead,
+                               Str("pvsftw: not initialised\n"));
     if (UNLIKELY(ftablea==NULL))
-      return csound->PerfError(csound,p->h.insdshead, Str("pvsftw: no amps ftable!\n"));
+      return csound->PerfError(csound,p->h.insdshead,
+                               Str("pvsftw: no amps ftable!\n"));
     if (p->outfnf) {
       ftablef = p->outfnf->ftable;
       if (UNLIKELY(ftablef==NULL))
-        return csound->PerfError(csound,p->h.insdshead, Str("pvsftw: no freqs ftable!\n"));
+        return csound->PerfError(csound,p->h.insdshead,
+                                 Str("pvsftw: no freqs ftable!\n"));
     }
     nbins = p->fftsize/2 + 1;
 
@@ -788,7 +804,8 @@ int pvsftr(CSOUND *csound, PVSFTR *p)
 
     fdest = (float *) p->fdest->frame.auxp;
     if (UNLIKELY(fdest==NULL))
-      return csound->PerfError(csound,p->h.insdshead, Str("pvsftr: not initialised\n"));
+      return csound->PerfError(csound,p->h.insdshead,
+                               Str("pvsftr: not initialised\n"));
     nbins = p->fftsize/2 + 1;
 
     /* only write when a new frame is ready */

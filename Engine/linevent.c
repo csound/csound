@@ -397,12 +397,12 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
 
 int eventOpcode(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcode_(csound, p, 0, 0);  
+  return eventOpcode_(csound, p, 0, 0);
 }
 
 int eventOpcode_S(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcode_(csound, p, 1, 0);  
+  return eventOpcode_(csound, p, 1, 0);
 }
 
 

@@ -1411,13 +1411,13 @@ extern "C" {
     /**
      * copies the string channel identified by *name into *string
      * which should contain enough memory for the string
-     * (see csoundGetChannelDatasize() below) 
+     * (see csoundGetChannelDatasize() below)
      */
     PUBLIC void csoundGetStringChannel(CSOUND *csound,
                                        const char *name, char *string);
 
     /**
-     * sets the string channel identified by *name with *string 
+     * sets the string channel identified by *name with *string
      */
     PUBLIC  void csoundSetStringChannel(CSOUND *csound,
                                         const char *name, char *string);
@@ -1426,7 +1426,7 @@ extern "C" {
      * returns the size of data stored in a channel; for string channels
      * this might change if the channel space gets reallocated
      * Since string variables use dynamic memory allocation in Csound6,
-     * this function can be called to get the space required for 
+     * this function can be called to get the space required for
      * csoundGetStringChannel()
      */
     PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name);

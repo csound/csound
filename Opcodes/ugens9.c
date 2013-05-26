@@ -46,7 +46,7 @@ static int cvset_(CSOUND *csound, CONVOLVE *p, int stringname)
       else csound->strarg2name(csound, cvfilnam,p->ifilno, "convolve.",0);
     }
     else strncpy(cvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
-    
+
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0) {
       /* if file not already readin */
       if (UNLIKELY((mfp =
@@ -388,12 +388,12 @@ static int pconvset_(CSOUND *csound, PCONVOLVE *p, int stringname)
     memset(&IRfile, 0, sizeof(SOUNDIN));
     /* open impulse response soundfile [code derived from SAsndgetset()] */
     IRfile.skiptime = FL(0.0);
-    
+
      if(stringname==0){
       if(ISSTRCOD(*p->ifilno)) strncpy(IRfile.sfname,get_arg_string(csound, *p->ifilno), 511);
       else csound->strarg2name(csound, IRfile.sfname, p->ifilno, "soundin.",0);
     }
-    else strncpy(IRfile.sfname, ((STRINGDAT *)p->ifilno)->data, 511);    
+    else strncpy(IRfile.sfname, ((STRINGDAT *)p->ifilno)->data, 511);
 
     IRfile.sr = 0;
     if (UNLIKELY(channel < 1 || ((channel > 4) && (channel != ALLCHNLS)))) {
@@ -661,4 +661,3 @@ int ugens9_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

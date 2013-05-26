@@ -102,11 +102,12 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
     fp[3] = ftevt->p3orig = *p->p3;
     fp[4] = *p->p4;
 
-    
+
       if (istring1) {              /* Named gen */
         NAMEDGEN *named = (NAMEDGEN*) csound->GetNamedGens(csound);
         while (named) {
-          if (strcmp(named->name, ((STRINGDAT *) p->p4)->data) == 0) {    /* Look up by name */
+          if (strcmp(named->name, ((STRINGDAT *) p->p4)->data) == 0) {
+            /* Look up by name */
            break;
           }
           named = named->next;                            /*  and round again   */
@@ -244,11 +245,11 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
       goto err2;
 
     if(!istring) {
-      if(ISSTRCOD(*p->ifilno)) 
+      if(ISSTRCOD(*p->ifilno))
          csound->strarg2name(csound, filename, p->ifilno, "ftsave.",
                                0);
-	 else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME-1);
-	 
+         else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME-1);
+
     } else {
       strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
     }
@@ -387,7 +388,8 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
     return OK;
  err:
     csound->FileClose(csound, fd);
-    return err_func(csound, p->h.insdshead, Str("ftload: error allocating ftable"));
+    return err_func(csound, p->h.insdshead,
+                    Str("ftload: error allocating ftable"));
  err2:
     return err_func(csound, p->h.insdshead, Str("ftload: no table numbers"));
  err3:
@@ -446,15 +448,15 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
       goto err2;
 
     if(!istring) {
-      if(ISSTRCOD(*p->ifilno)) 
+      if(ISSTRCOD(*p->ifilno))
          csound->strarg2name(csound, filename, p->ifilno, "ftsave.",
                                0);
-	 else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME-1);
-	 
+         else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME-1);
+
     } else {
       strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
     }
-    
+
     if (*p->iflag <= FL(0.0)) {
       fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "wb",
                                "", CSFTYPE_FTABLES_BINARY, 0);
@@ -581,16 +583,16 @@ static int ftsave_kS(CSOUND *csound, FTLOAD_K *p)
 
 static OENTRY localops[] = {
   { "ftgen",    S(FTGEN),     TW, 1,  "i",  "iiiiim", (SUBR) ftgen, NULL, NULL    },
-  { "ftgen.S",    S(FTGEN),     TW, 1,  "i",  "iiiSim", (SUBR) ftgen_S, NULL, NULL    },
-  { "ftgen.iS",    S(FTGEN),     TW, 1,  "i",  "iiiiSm", (SUBR) ftgen_iS, NULL, NULL    },
-  { "ftgen.SS",    S(FTGEN),     TW, 1,  "i",  "iiiSSm", (SUBR) ftgen_SS, NULL, NULL    },
+  { "ftgen.S",    S(FTGEN),   TW, 1,  "i",  "iiiSim", (SUBR) ftgen_S, NULL, NULL  },
+  { "ftgen.iS",    S(FTGEN),  TW, 1,  "i",  "iiiiSm", (SUBR) ftgen_iS, NULL, NULL },
+  { "ftgen.SS",    S(FTGEN),  TW, 1,  "i",  "iiiSSm", (SUBR) ftgen_SS, NULL, NULL },
   { "ftgentmp", S(FTGEN),     TW, 1,  "i",  "iiiiim", (SUBR) ftgentmp, NULL, NULL },
-  { "ftgentmp.S", S(FTGEN),     TW, 1,  "i",  "iiiiSm", (SUBR) ftgentmp, NULL, NULL },
+  { "ftgentmp.S", S(FTGEN),   TW, 1,  "i",  "iiiiSm", (SUBR) ftgentmp, NULL, NULL },
   { "ftfree",   S(FTFREE),    TW, 1,  "",   "ii",     (SUBR) ftfree, NULL, NULL   },
   { "ftsave",   S(FTLOAD),    TR, 1,  "",   "iim",    (SUBR) ftsave, NULL, NULL   },
-  { "ftsave.S",   S(FTLOAD),    TR, 1,  "",   "Sim",    (SUBR) ftsave_S, NULL, NULL   },
+  { "ftsave.S",   S(FTLOAD),  TR, 1,  "",   "Sim",    (SUBR) ftsave_S, NULL, NULL },
   { "ftload",   S(FTLOAD),    TR, 1,  "",   "iim",    (SUBR) ftload, NULL, NULL   },
-    { "ftload.S",   S(FTLOAD),    TR, 1,  "",   "Sim",    (SUBR) ftload_S, NULL, NULL   },
+    { "ftload.S",  S(FTLOAD), TR, 1,  "",   "Sim",    (SUBR) ftload_S, NULL, NULL },
   { "ftsavek",  S(FTLOAD_K),  TW, 3,  "",   "ikim",   (SUBR) ftsave_k_set,
                                                   (SUBR) ftsave_k, NULL       },
   { "ftsavek.S",  S(FTLOAD_K),  TW, 3,  "",   "Skim",   (SUBR) ftsave_k_set,

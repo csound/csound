@@ -602,7 +602,8 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
 
     /* Build file name */
     if(stringname) strncpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
-    else if (ISSTRCOD(*p->ifilcod)) strncpy(lpfilname, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
+    else if (ISSTRCOD(*p->ifilcod))
+      strncpy(lpfilname, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
     else csound->strarg2name(csound, lpfilname, p->ifilcod, "lp.", 0);
 
     /* Do not reload existing file ? */

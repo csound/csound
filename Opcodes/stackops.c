@@ -258,7 +258,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
         if (sMask & maskVal) {
           argMap[i + 3] = (curOffs_i | CS_STACK_S);
           curOffs_i += (int) sizeof(STRINGDAT);
-	    /* curOffs_i = csoundStack_Align(curOffs_i);*/
+            /* curOffs_i = csoundStack_Align(curOffs_i);*/
         }
         else {
           argMap[i + 3] = (curOffs_i | CS_STACK_I);
@@ -376,12 +376,12 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
               /* int   j, maxLen; */
               src = ((STRINGDAT*) p->args[i])->data;
               dst = ((STRINGDAT*)(char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
-	      if(dst->size <= (int) strlen(src)){
+              if(dst->size <= (int) strlen(src)){
               dst->data = csound->Strdup(csound, src);
               dst->size = strlen(src) + 1;
               } else {
-		strcpy(dst->data, src);
-	      }
+                strcpy(dst->data, src);
+              }
               /* maxLen = ((STRINGDAT*) p->args[i])->size; */
               /* for (j = 0; src[j] != (char) 0; j++) { */
               /*   dst[j] = src[j]; */

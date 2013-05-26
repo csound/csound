@@ -92,7 +92,7 @@ typedef struct {
     MYFLT   *iy;
     MYFLT   *iwidth;
     MYFLT   *iheight;
-    STRINGDAT *Sattributes; 
+    STRINGDAT *Sattributes;
     int     *lock;
 } CHN_OPCODE_K;
 
