@@ -788,6 +788,7 @@ OENTRY opcodlst_1[] = {
   { "schedule.S", S(SCHED),0,  1,     "",     "Siim",
     schedule_S, NULL, NULL },
   { "schedwhen", S(WSCHED),0,3,     "",     "kkkkm",ifschedule, kschedule, NULL },
+  { "schedwhen", S(WSCHED),0,3,     "",     "kSkkm",ifschedule, kschedule, NULL },
   { "schedkwhen", S(TRIGINSTR),0, 3,"",     "kkkkkz",triginset, ktriginstr, NULL },
   { "schedkwhen.S", S(TRIGINSTR),0, 3,"",    "kkkSkz",
                                              triginset_S, ktriginstr_S, NULL },
