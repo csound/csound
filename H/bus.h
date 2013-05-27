@@ -60,13 +60,14 @@ typedef struct channelEntry_s {
         MYFLT   *data;
         int     lock;               /* Multi-thread protection */
         int     type;
+        int     datasize;  /* size of allocated chn data */
         char    name[1];
 } CHNENTRY;
 
 typedef struct {
     OPDS    h;
     MYFLT   *arg;
-    MYFLT   *iname;
+    STRINGDAT   *iname;
     MYFLT   *fp;
     int     *lock;
     int      pos;
@@ -74,14 +75,14 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *iname;
+    STRINGDAT   *iname;
     MYFLT   *fp;
     int     *lock;
 } CHNCLEAR;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *iname;
+    STRINGDAT   *iname;
     MYFLT   *imode;
     MYFLT   *itype;
     MYFLT   *idflt;
@@ -91,14 +92,13 @@ typedef struct {
     MYFLT   *iy;
     MYFLT   *iwidth;
     MYFLT   *iheight;
-    MYFLT   *Sattributes[64]; /* only the first argument is used the rest
-                                 for safety */
+    STRINGDAT *Sattributes;
     int     *lock;
 } CHN_OPCODE_K;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *iname;
+    STRINGDAT   *iname;
     MYFLT   *imode;
     int     *lock;
 } CHN_OPCODE;
@@ -106,7 +106,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *arg;
-    MYFLT   *iname;
+    STRINGDAT   *iname;
     MYFLT   *imode;
     MYFLT   *itype;
     MYFLT   *idflt;
@@ -122,7 +122,7 @@ typedef struct {
     MYFLT   *idflt;
     MYFLT   *imin;
     MYFLT   *imax;
-    MYFLT   *iname;
+    STRINGDAT   *iname;
 } CHNPARAMS_OPCODE;
 
 typedef struct {
@@ -154,10 +154,12 @@ int     chnget_opcode_init_i(CSOUND *, CHNGET *);
 int     chnget_opcode_init_k(CSOUND *, CHNGET *);
 int     chnget_opcode_init_a(CSOUND *, CHNGET *);
 int     chnget_opcode_init_S(CSOUND *, CHNGET *);
+int     chnget_opcode_perf_S(CSOUND *, CHNGET *);
 int     chnset_opcode_init_i(CSOUND *, CHNGET *);
 int     chnset_opcode_init_k(CSOUND *, CHNGET *);
 int     chnset_opcode_init_a(CSOUND *, CHNGET *);
 int     chnset_opcode_init_S(CSOUND *, CHNGET *);
+int     chnset_opcode_perf_S(CSOUND *, CHNGET *);
 int     chnmix_opcode_init(CSOUND *, CHNGET *);
 int     chnclear_opcode_init(CSOUND *, CHNCLEAR *);
 int     chn_k_opcode_init(CSOUND *, CHN_OPCODE_K *);
@@ -168,14 +170,16 @@ int     chnparams_opcode_init(CSOUND *, CHNPARAMS_OPCODE *);
 
 int kinval(CSOUND *csound, INVAL *p);
 int invalset(CSOUND *csound, INVAL *p);
-int kinval_S(CSOUND *csound, INVAL *p);
+int invalset_string(CSOUND *csound, INVAL *p);
+int invalset_string_S(CSOUND *csound, INVAL *p);
 int invalset_S(CSOUND *csound, INVAL *p);
 int koutval(CSOUND *csound, OUTVAL *p);
 int outvalset(CSOUND *csound, OUTVAL *p);
-
+int outvalset_string(CSOUND *csound, OUTVAL *p);
+int outvalset_string_S(CSOUND *csound, OUTVAL *p);
+int outvalset_S(CSOUND *csound, OUTVAL *p);
 #ifdef __cplusplus
 }
 #endif
 
 #endif      /* CSOUND_BUS_H */
-

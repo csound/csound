@@ -36,7 +36,7 @@
 /*************PVBUFREAD**************************************/
 /************************************************************/
 
-int pvbufreadset(CSOUND *csound, PVBUFREAD *p)
+int pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int stringname)
 {
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
@@ -58,7 +58,12 @@ int pvbufreadset(CSOUND *csound, PVBUFREAD *p)
       p->fftBuf = fltp;   /* fltp += PVFFTSIZE; */  /* Not needed */
     }
 
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
+    if(stringname==0){
+      if(ISSTRCOD(*p->ifilno)) strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+    }
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+
     if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
       return csound->InitError(csound, Str("PVBUFREAD cannot load %s"),
                                        pvfilnam);
@@ -106,6 +111,14 @@ int pvbufreadset(CSOUND *csound, PVBUFREAD *p)
     return OK;
 }
 
+int pvbufreadset(CSOUND *csound, PVBUFREAD *p){
+  return pvbufreadset_(csound,p,0);
+}
+
+int pvbufreadset_S(CSOUND *csound, PVBUFREAD *p){
+  return pvbufreadset_(csound,p,1);
+}
+
 int pvbufread(CSOUND *csound, PVBUFREAD *p)
 {
     MYFLT  frIndx;
@@ -135,7 +148,7 @@ int pvbufread(CSOUND *csound, PVBUFREAD *p)
 /************************************************************/
 /*************PVINTERP**************************************/
 /************************************************************/
-int pvinterpset(CSOUND *csound, PVINTERP *p)
+int pvinterpset_(CSOUND *csound, PVINTERP *p, int stringname)
 {
     unsigned int      i;
     char     pvfilnam[MAXNAME];
@@ -161,7 +174,11 @@ int pvinterpset(CSOUND *csound, PVINTERP *p)
       p->window = fltp;
     }
 
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
+    if(stringname==0){
+      if(ISSTRCOD(*p->ifilno)) strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+    }
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);;
     if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
       return csound->InitError(csound, Str("PVINTERP cannot load %s"),
                                        pvfilnam);
@@ -223,6 +240,15 @@ int pvinterpset(CSOUND *csound, PVINTERP *p)
 
     return OK;
 }
+
+int pvinterpset(CSOUND *csound, PVINTERP *p){
+  return pvinterpset_(csound,p,0);
+}
+
+int pvinterpset_S(CSOUND *csound, PVINTERP *p){
+  return pvinterpset_(csound,p,1);
+}
+
 
 int pvinterp(CSOUND *csound, PVINTERP *p)
 {
@@ -312,7 +338,7 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
 /************************************************************/
 /************* PVCROSS **************************************/
 /************************************************************/
-int pvcrossset(CSOUND *csound, PVCROSS *p)
+int pvcrossset_(CSOUND *csound, PVCROSS *p, int stringname)
 {
     uint32_t i;
     char     pvfilnam[MAXNAME];
@@ -337,7 +363,12 @@ int pvcrossset(CSOUND *csound, PVCROSS *p)
       p->outBuf = fltp;      fltp += PVFFTSIZE;
       p->window = fltp;
     }
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
+    if(stringname==0){
+      if(ISSTRCOD(*p->ifilno)) strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+    }
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+
     if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
       return csound->InitError(csound, Str("PVCROSS cannot load %s"), pvfilnam);
 
@@ -396,6 +427,14 @@ int pvcrossset(CSOUND *csound, PVCROSS *p)
     if (p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
       csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
     return OK;
+}
+
+int pvcrossset(CSOUND *csound, PVCROSS *p){
+  return pvcrossset_(csound,p,0);
+}
+
+int pvcrossset_S(CSOUND *csound, PVCROSS *p) {
+return pvcrossset_(csound,p,1);
 }
 
 int pvcross(CSOUND *csound, PVCROSS *p)

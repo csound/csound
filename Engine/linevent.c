@@ -22,7 +22,6 @@
 */
 
 #include "csoundCore.h"     /*                              LINEVENT.C      */
-#include "text.h"
 #include <ctype.h>
 
 #include "linevent.h"
@@ -294,7 +293,7 @@ static void sensLine(CSOUND *csound, void *userData)
             }
             continue;
           }
-          e.p[pcnt] = (MYFLT) strtod(cp, &newcp);
+          e.p[pcnt] = (MYFLT) cs_strtod(cp, &newcp);
           cp = newcp - 1;
         } while (pcnt < PMAX);
         if (e.opcod =='f' && e.p[1]<FL(0.0)); /* an OK case */
@@ -353,31 +352,37 @@ static const char *errmsg_1 =
 static const char *errmsg_2 =
   Str_noop("event: string name is allowed only for \"i\" and \"q\" events");
 
-int eventOpcode(CSOUND *csound, LINEVENT *p)
+int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
 {
     EVTBLK  evt;
     int     i;
     char    opcod;
 
-    opcod = ((char*) p->args[0])[0];
-    if ((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
-         opcod != 'e') || ((char*) p->args[0])[1] != '\0')
+    if(p1==0)
+         opcod = *((STRINGDAT*) p->args[0])->data;
+    else  opcod = p1;
+
+    if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
+                  opcod != 'e') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
       return csound->PerfError(csound, p->h.insdshead,Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
-    if(p->flag==1) evt.pcnt = p->argno;
+    if(p->flag==1) evt.pcnt = p->argno-2;
     else
       evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
-      if (p->XSTRCODE & 2) {
+      if (insname) {
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q'))
           return csound->PerfError(csound, p->h.insdshead,Str(errmsg_2));
         evt.p[1] = SSTRCOD;
-        evt.strarg = (char*) p->args[1];
+        evt.strarg = ((STRINGDAT*) p->args[1])->data;
       }
       else {
-        evt.p[1] = *p->args[1];
+        if (ISSTRCOD(*p->args[1])) {
+          evt.p[1]  = csound->strarg2insno(csound,
+                                           get_arg_string(csound, *p->args[1]), 1);
+        } else evt.p[1] = *p->args[1];
         evt.strarg = NULL;
       }
       for (i = 2; i <= evt.pcnt; i++)
@@ -390,17 +395,31 @@ int eventOpcode(CSOUND *csound, LINEVENT *p)
     return OK;
 }
 
+int eventOpcode(CSOUND *csound, LINEVENT *p)
+{
+  return eventOpcode_(csound, p, 0, 0);
+}
+
+int eventOpcode_S(CSOUND *csound, LINEVENT *p)
+{
+  return eventOpcode_(csound, p, 1, 0);
+}
+
+
+
 /* i-time version of event opcode */
 
-int eventOpcodeI(CSOUND *csound, LINEVENT *p)
+int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
 {
     EVTBLK  evt;
     int     i, err = 0;
     char    opcod;
 
-    opcod = ((char*) p->args[0])[0];
+    if(p1==0)
+         opcod = *((STRINGDAT*) p->args[0])->data;
+    else  opcod = p1;
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
-                  opcod != 'e') || ((char*) p->args[0])[1] != '\0'))
+                  opcod != 'e') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
       return csound->InitError(csound, Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
@@ -409,17 +428,21 @@ int eventOpcodeI(CSOUND *csound, LINEVENT *p)
       evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
-      if (p->XSTRCODE & 2) {
+      if (insname) {
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q'))
           return csound->InitError(csound, Str(errmsg_2));
         evt.p[1] = SSTRCOD;
-        evt.strarg = (char*) p->args[1];
+        evt.strarg = ((STRINGDAT*) p->args[1])->data;
         for (i = 2; i <= evt.pcnt; i++)
            evt.p[i] = *p->args[i];
       }
       else {
         evt.strarg = NULL;
-        for (i = 1; i <= evt.pcnt; i++)
+        if (ISSTRCOD(*p->args[1])) {
+          evt.p[1]  = csound->strarg2insno(csound,
+                                           get_arg_string(csound, *p->args[1]), 1);
+        } else evt.p[1] = *p->args[1];
+        for (i = 2; i <= evt.pcnt; i++)
           evt.p[i] = *p->args[i];
       }
     }
@@ -433,4 +456,14 @@ int eventOpcodeI(CSOUND *csound, LINEVENT *p)
       csound->InitError(csound, Str("event_i: error creating '%c' event"),
                                 opcod);
     return (err == 0 ? OK : NOTOK);
+}
+
+int eventOpcodeI(CSOUND *csound, LINEVENT *p)
+{
+  return eventOpcodeI_(csound, p, 0, 0);
+}
+
+int eventOpcodeI_S(CSOUND *csound, LINEVENT *p)
+{
+  return eventOpcodeI_(csound, p, 1, 0);
 }

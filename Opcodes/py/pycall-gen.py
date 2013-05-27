@@ -53,7 +53,7 @@ def generate_pycall_common_call_code(f, context, withinit, triggered):
         skip = 2
     else:
         skip = 1
-    print >> f, '    format_call_statement(command, (char*) p->function,'
+    print >> f, '    format_call_statement(command, (char*) p->function->data,'
     print >> f, '                          p->INOCOUNT, p->args, %d);' % skip
     print >> f
     if context == 'private':
@@ -155,7 +155,7 @@ def generate_pycall_opcode_struct(f, n, triggered=0):
             print >> f, '    MYFLT   *result%d;' % (i+1)
     if triggered:
         print >> f, '    MYFLT   *trigger;'
-    print >> f, '    MYFLT   *function;'
+    print >> f, '    STRINGDAT   *function;'
     print >> f, '    MYFLT   *args[VARGMAX-3];'
     if triggered:
         if n == 1:

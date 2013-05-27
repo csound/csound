@@ -700,43 +700,6 @@ extern "C" {
     return p->YieldCallback();
   }
 
-  static CS_NOINLINE void ChannelIOCallback_wrapper(CSOUND *csound,
-                                                    const char *chnName,
-                                                    MYFLT *value, int chnType)
-  {
-    CsoundCallbackWrapper *p;
-    p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
-    switch (chnType & (CSOUND_CHANNEL_TYPE_MASK
-                       | CSOUND_INPUT_CHANNEL | CSOUND_OUTPUT_CHANNEL)) {
-    case CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL:
-      *value = (MYFLT) p->ControlChannelInputCallback(chnName);
-      break;
-    case CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL:
-      p->ControlChannelOutputCallback(chnName, (double) *value);
-      break;
-#if 0
-    case CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL:
-      p->AudioChannelInputCallback(chnName, value);
-      break;
-    case CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL:
-      p->AudioChannelOutputCallback(chnName, value);
-      break;
-#endif
-    case CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL:
-      {
-        const char  *s = p->StringChannelInputCallback(chnName);
-        int         i, maxLen = csoundGetStrVarMaxLen(csound) - 1;
-        for (i = 0; s[i] != (char) 0 && i < maxLen; i++)
-          ((char*) value)[i] = s[i];
-        ((char*) value)[i] = (char) 0;
-      }
-      break;
-    case CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL:
-      p->StringChannelOutputCallback(chnName, (char*) value);
-      break;
-    }
-  }
-
 }       // extern "C"
 
 void CsoundCallbackWrapper::SetMessageCallback()

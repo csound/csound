@@ -100,7 +100,7 @@ static CS_PURE double bswap(const double *swap_me)
 /* load ATS file into memory; returns "is swapped" boolean, or -1 on error */
 
 static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
-                                        void *name_arg)
+                        void *name_arg, int istring)
 {
     char              opname[64];
     STDOPCOD_GLOBALS  *pp;
@@ -112,9 +112,12 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
       opname[i] = toupper(opname[i]);           /* converted to upper case */
 
     /* copy in ats file name */
-    csound->strarg2name(csound, fname, name_arg, "ats.",
-                        (int) csound->GetInputArgSMask(p));
-
+    if(istring) strncpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
+    else {
+      if(ISSTRCOD(*((MYFLT*)name_arg)))
+        strncpy(fname,get_arg_string(csound, *((MYFLT*)name_arg)),MAXNAME-1);
+         else csound->strarg2name(csound, fname, name_arg, "ats.",0);
+    }
     /* load memfile */
     if (UNLIKELY((*mfp = csound->ldmemfile2withCB(csound, fname,
                                                   CSFTYPE_ATS, NULL)) == NULL)) {
@@ -148,6 +151,45 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
 }
 
 /* ats info simply reads data out of the header of an atsfile. (i-rate) */
+static int atsinfo_S(CSOUND *csound, ATSINFO *p)
+{
+    char      atsfilname[MAXNAME];
+    ATSSTRUCT *atsh;
+    MEMFIL    *memfile = NULL;
+    double    *ret_data;    /* data to return */
+    int       swapped = 0;  /* flag to indicate if data needs to be swapped */
+
+    /* load memfile */
+    swapped = load_atsfile(csound, p, &memfile, atsfilname, p->ifileno, 1);
+    if (UNLIKELY(swapped < 0))
+      return NOTOK;
+    atsh = (ATSSTRUCT*) memfile->beginp;
+
+    switch ((int) MYFLT2LRND(*p->ilocation)) {
+      case 0:   ret_data = &(atsh->sampr);  break;
+      case 1:   ret_data = &(atsh->frmsz);  break;
+      case 2:   ret_data = &(atsh->winsz);  break;
+      case 3:   ret_data = &(atsh->npartials); break;
+      case 4:   ret_data = &(atsh->nfrms);  break;
+      case 5:   ret_data = &(atsh->ampmax); break;
+      case 6:   ret_data = &(atsh->freqmax); break;
+      case 7:   ret_data = &(atsh->dur);    break;
+      case 8:   ret_data = &(atsh->type);   break;
+      default:
+        return csound->InitError(csound,
+                                 Str("ATSINFO: location is out of bounds: "
+                                     "0-8 are the only possible selections"));
+    }
+    /* if not swapped then just return the data */
+    if (!swapped) {
+      *p->ireturn = (MYFLT) *ret_data;
+      return OK;
+    }
+    /* otherwise do byteswapping */
+    *p->ireturn = (MYFLT) bswap(ret_data);
+    return OK;
+}
+
 static int atsinfo(CSOUND *csound, ATSINFO *p)
 {
     char      atsfilname[MAXNAME];
@@ -157,7 +199,7 @@ static int atsinfo(CSOUND *csound, ATSINFO *p)
     int       swapped = 0;  /* flag to indicate if data needs to be swapped */
 
     /* load memfile */
-    swapped = load_atsfile(csound, p, &memfile, atsfilname, p->ifileno);
+    swapped = load_atsfile(csound, p, &memfile, atsfilname, p->ifileno, 0);
     if (UNLIKELY(swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) memfile->beginp;
@@ -243,7 +285,73 @@ static int atsreadset(CSOUND *csound, ATSREAD *p)
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
-                              p, &(p->atsmemfile), atsfilname, p->ifileno);
+                              p, &(p->atsmemfile), atsfilname, p->ifileno, 0);
+    if (UNLIKELY(p->swapped < 0))
+      return NOTOK;
+    atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
+
+    /* byte swap if necessary */
+    if (p->swapped == 1) {
+      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
+      n_partials = (int) bswap(&atsh->npartials);
+      type = (int) bswap(&atsh->type);
+    }
+    else {
+      p->maxFr = (int) atsh->nfrms - 1;
+      p->timefrmInc = atsh->nfrms / atsh->dur;
+      n_partials = (int) atsh->npartials;
+      type = (int) atsh->type;
+    }
+
+    /* check to see if partial is valid */
+    if (UNLIKELY((int) (*p->ipartial) > n_partials || (int) (*p->ipartial) <= 0)) {
+      return csound->InitError(csound, Str("ATSREAD: partial %i out of range, "
+                                           "max allowed is %i"),
+                                       (int) (*p->ipartial), n_partials);
+    }
+
+    /* point the data pointer to the correct partial */
+    p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
+
+    switch (type) {
+    case 1:
+      p->partialloc = 1 + 2 * (*p->ipartial - 1);
+      p->frmInc = n_partials * 2 + 1;
+      break;
+    case 2:
+      p->partialloc = 1 + 3 * (*p->ipartial - 1);
+      p->frmInc = n_partials * 3 + 1;
+      break;
+    case 3:
+      p->partialloc = 1 + 2 * (*p->ipartial - 1);
+      p->frmInc = n_partials * 2 + 26;
+      break;
+    case 4:
+      p->partialloc = 1 + 3 * (*p->ipartial - 1);
+      p->frmInc = n_partials * 3 + 26;
+      break;
+    default:
+      return csound->InitError(csound, Str("Type not implemented"));
+    }
+
+    /* flag set to reduce the amount of warnings sent out */
+    /* for time pointer out of range */
+    p->prFlg = 1;               /* true */
+    return OK;
+}
+
+
+static int atsreadset_S(CSOUND *csound, ATSREAD *p)
+{
+    char    atsfilname[MAXNAME];
+    ATSSTRUCT *atsh;
+    int     n_partials;
+    int     type;
+
+    /* load memfile */
+    p->swapped = load_atsfile(csound,
+                              p, &(p->atsmemfile), atsfilname, p->ifileno, 1);
     if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
@@ -370,7 +478,7 @@ static int atsreadnzset(CSOUND *csound, ATSREADNZ *p)
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
-                              p, &(p->atsmemfile), atsfilname, p->ifileno);
+                              p, &(p->atsmemfile), atsfilname, p->ifileno, 0);
     if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
@@ -420,6 +528,67 @@ static int atsreadnzset(CSOUND *csound, ATSREADNZ *p)
     p->prFlg = 1;               /* true */
     return OK;
 }
+
+static int atsreadnzset_S(CSOUND *csound, ATSREADNZ *p)
+{
+    char    atsfilname[MAXNAME];
+    ATSSTRUCT *atsh;
+    int     n_partials;
+    int     type;
+
+    /* load memfile */
+    p->swapped = load_atsfile(csound,
+                              p, &(p->atsmemfile), atsfilname, p->ifileno, 1);
+    if (UNLIKELY(p->swapped < 0))
+      return NOTOK;
+    atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
+
+    /* byte swap if necessary */
+    if (p->swapped == 1) {
+      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
+      n_partials = (int) bswap(&atsh->npartials);
+      type = (int) bswap(&atsh->type);
+    }
+    else {
+      p->maxFr = (int) atsh->nfrms - 1;
+      p->timefrmInc = atsh->nfrms / atsh->dur;
+      n_partials = (int) atsh->npartials;
+      type = (int) atsh->type;
+    }
+
+    /* point the data pointer to the correct partial */
+    p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
+
+    /* check to see if band is valid */
+    if (UNLIKELY((int) (*p->inzbin) > 25 || (int) (*p->inzbin) <= 0)) {
+      return csound->InitError(csound, Str("ATSREADNZ: band %i out of range, "
+                                           "1-25 are the valid band values"),
+                                       (int) (*p->inzbin));
+    }
+
+    switch (type) {
+    case 3:
+      /* get past the partial data to the noise */
+      p->nzbandloc = (int) (2 * n_partials + *p->inzbin);
+      p->frmInc = n_partials * 2 + 26;
+      break;
+
+    case 4:
+      p->nzbandloc = (int) (3 * n_partials + *p->inzbin);
+      p->frmInc = n_partials * 3 + 26;
+      break;
+    default:
+      return csound->InitError(csound,
+                               Str("ATSREADNZ: Type either not implemented "
+                                   "or does not contain noise"));
+    }
+    /* flag set to reduce the amount of warnings sent out */
+    /* for time pointer out of range */
+    p->prFlg = 1;               /* true */
+    return OK;
+}
+
 
 static int atsreadnz(CSOUND *csound, ATSREADNZ *p)
 {
@@ -485,7 +654,115 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
-                              p, &(p->atsmemfile), atsfilname, p->ifileno);
+                              p, &(p->atsmemfile), atsfilname, p->ifileno, 0);
+    if (UNLIKELY(p->swapped < 0))
+      return NOTOK;
+    atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
+
+    /* calculate how much memory we have to allocate for this */
+    memsize =   (int) (*p->iptls) * sizeof(ATS_DATA_LOC)
+              + (int) (*p->iptls) * sizeof(double)
+              + (int) (*p->iptls) * sizeof(MYFLT);
+    /* allocate space if we need it */
+    /* need room for a buffer and an array of oscillator phase increments */
+    if (p->auxch.auxp == NULL || p->auxch.size < (unsigned int)memsize)
+      csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
+
+    /* set up the buffer, phase, etc. */
+    p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
+    p->oscphase = (double *) (p->buf + (int) (*p->iptls));
+    p->oldamps = (MYFLT *) (p->oscphase + (int) (*p->iptls));
+    /* byte swap if necessary */
+    if (p->swapped == 1) {
+      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
+      n_partials = (int) bswap(&atsh->npartials);
+      p->MaxAmp = bswap(&atsh->ampmax);  /* store the maxium amplitude */
+      type = (int) bswap(&atsh->type);
+    }
+    else {
+      p->maxFr = (int) atsh->nfrms - 1;
+      p->timefrmInc = atsh->nfrms / atsh->dur;
+      n_partials = (int) atsh->npartials;
+      p->MaxAmp = atsh->ampmax;  /* store the maxium amplitude */
+      type = (int) atsh->type;
+    }
+
+    /* make sure partials are in range */
+    if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+                 (int) (*p->iptloffset) < 0)) {
+      return csound->InitError(csound, Str("ATSADD: Partial(s) out of range, "
+                                           "max partial allowed is %i"),
+                                       n_partials);
+    }
+    /* get a pointer to the beginning of the data */
+    p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
+
+    /* get increments for the partials */
+    switch (type) {
+    case 1:
+      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
+      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->frmInc = n_partials * 2 + 1;
+      break;
+
+    case 2:
+      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
+      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->frmInc = n_partials * 3 + 1;
+      break;
+
+    case 3:
+      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
+      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->frmInc = n_partials * 2 + 26;
+      break;
+
+    case 4:
+      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
+      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->frmInc = n_partials * 3 + 26;
+      break;
+
+    default:
+      return csound->InitError(csound, Str("ATSADD: Type not implemented"));
+    }
+
+    /* flag set to reduce the amount of warnings sent out */
+    /* for time pointer out of range */
+    p->prFlg = 1;               /* true */
+    return OK;
+}
+
+
+
+static int atsaddset_S(CSOUND *csound, ATSADD *p)
+{
+    char    atsfilname[MAXNAME];
+    ATSSTRUCT *atsh;
+    FUNC    *ftp, *AmpGateFunc;
+    int     memsize, n_partials, type;
+
+    /* set up function table for synthesis */
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
+      return csound->InitError(csound, Str("ATSADD: Function table number "
+                                           "for synthesis waveform not valid"));
+    }
+    p->ftp = ftp;
+
+    /* set up gate function table */
+    if (*p->igatefun > FL(0.0)) {
+      if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)) {
+        return csound->InitError(csound, Str("ATSADD: Gate Function table "
+                                             "number not valid"));
+      }
+      else
+        p->AmpGateFunc = AmpGateFunc;
+    }
+
+    /* load memfile */
+    p->swapped = load_atsfile(csound,
+                              p, &(p->atsmemfile), atsfilname, p->ifileno, 1);
     if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
@@ -753,26 +1030,6 @@ static MYFLT randiats(CSOUND *csound, RANDIATS *radat)
 
 /* ------------------------------------------------------------------ */
 
-#if 0
-static MYFLT randifats(CSOUND *csound, RANDIATS *radat, MYFLT freq)
-{
-    MYFLT   output;
-
-    if (radat->cnt == radat->size) {  /* get a new random value */
-      radat->a1 = radat->a2;
-      radat->a2 = (int32) csound->Rand31(&(csound->randSeed1));
-      radat->cnt = 0;
-      radat->size = (int) MYFLT2LRND(CS_ESR / freq);
-    }
-
-    output = (((MYFLT) (radat->a2 - radat->a1) / (MYFLT) radat->size)
-              * (MYFLT) radat->cnt) + (MYFLT) radat->a1;
-    radat->cnt++;
-
-    return (FL(1.0) - ((MYFLT) output * (FL(2.0) / (MYFLT) 0x7FFFFFFF)));
-}
-#endif
-
 static void FetchADDNZbands(int ptls, int firstband, double *datastart,
                             int frmInc, int maxFr, int swapped,
                             double *buf, MYFLT position)
@@ -832,7 +1089,176 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
-                              p, &(p->atsmemfile), atsfilname, p->ifileno);
+                              p, &(p->atsmemfile), atsfilname, p->ifileno, 0);
+    if (p->swapped < 0)
+      return NOTOK;
+    p->bands = (int)(*p->ibands);
+    p->bandoffset = (int) (*p->ibandoffset);
+    p->bandincr = (int) (*p->ibandincr);
+    atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
+
+    /* make sure that this file contains noise */
+    type = (p->swapped == 1) ? (int) bswap(&atsh->type) : (int) atsh->type;
+
+    if (UNLIKELY(type != 4 && type != 3)) {
+      if (type < 5)
+        return csound->InitError(csound,
+                                 Str("ATSADDNZ: "
+                                     "This file type contains no noise"));
+      else
+        return csound->InitError(csound,
+                                 Str("ATSADDNZ: This file type has not been "
+                                     "implemented in this code yet."));
+    }
+
+    p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
+    /* byte swap if necessary */
+    if (p->swapped == 1) {
+      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
+      n_partials = (int) bswap(&atsh->npartials);
+      p->winsize = (MYFLT) bswap(&atsh->winsz);
+    }
+    else {
+      p->maxFr = (int) atsh->nfrms - 1;
+      p->timefrmInc = atsh->nfrms / atsh->dur;
+      n_partials = (int) atsh->npartials;
+      p->winsize = (MYFLT) atsh->winsz;
+    }
+
+    /* make sure partials are in range */
+    if (UNLIKELY((p->bandoffset + p->bands * p->bandincr) > 25 ||
+        p->bands <0 || /* Allow zero bands for no good reason */
+                 p->bandoffset < 0)) {
+      return csound->InitError(csound, Str("ATSADDNZ: Band(s) out of range, "
+                                           "max band allowed is 25"));
+    }
+
+    /* point the data pointer to the correct partials */
+    switch (type) {
+    case 3:
+      p->firstband = 1 + 2 * n_partials;
+      p->frmInc = n_partials * 2 + 26;
+      break;
+
+    case 4:
+      p->firstband = 1 + 3 * n_partials;
+      p->frmInc = n_partials * 3 + 26;
+      break;
+
+    default:
+      return csound->InitError(csound, Str("ATSADDNZ: Type either has no noise "
+                                           "or is not implemented "
+                                           "(only type 3 and 4 work now)"));
+    }
+
+    /* save bandwidths for creating noise bands */
+    memcpy(p->nfreq, freqs, 25*sizeof(double));
+    /* p->nfreq[0] = 100.0; */
+    /* p->nfreq[1] = 100.0; */
+    /* p->nfreq[2] = 100.0; */
+    /* p->nfreq[3] = 100.0; */
+    /* p->nfreq[4] = 110.0; */
+    /* p->nfreq[5] = 120.0; */
+    /* p->nfreq[6] = 140.0; */
+    /* p->nfreq[7] = 150.0; */
+    /* p->nfreq[8] = 160.0; */
+    /* p->nfreq[9] = 190.0; */
+    /* p->nfreq[10] = 210.0; */
+    /* p->nfreq[11] = 240.0; */
+    /* p->nfreq[12] = 280.0; */
+    /* p->nfreq[13] = 320.0; */
+    /* p->nfreq[14] = 380.0; */
+    /* p->nfreq[15] = 450.0; */
+    /* p->nfreq[16] = 550.0; */
+    /* p->nfreq[17] = 700.0; */
+    /* p->nfreq[18] = 900.0; */
+    /* p->nfreq[19] = 1100.0; */
+    /* p->nfreq[20] = 1300.0; */
+    /* p->nfreq[21] = 1800.0; */
+    /* p->nfreq[22] = 2500.0; */
+    /* p->nfreq[23] = 3500.0; */
+    /* p->nfreq[24] = 4500.0; */
+
+    {
+      double tmp = TWOPI * csound->onedsr;
+
+      /* initialise frequencies to modulate noise by */
+      p->phaseinc[0] = 50.0 * tmp;
+      p->phaseinc[1] = 150.0 * tmp;
+      p->phaseinc[2] = 250.0 * tmp;
+      p->phaseinc[3] = 350.0 * tmp;
+      p->phaseinc[4] = 455.0 * tmp;
+      p->phaseinc[5] = 570.0 * tmp;
+      p->phaseinc[6] = 700.0 * tmp;
+      p->phaseinc[7] = 845.0 * tmp;
+      p->phaseinc[8] = 1000.0 * tmp;
+      p->phaseinc[9] = 1175.0 * tmp;
+      p->phaseinc[10] = 1375.0 * tmp;
+      p->phaseinc[11] = 1600.0 * tmp;
+      p->phaseinc[12] = 1860.0 * tmp;
+      p->phaseinc[13] = 2160.0 * tmp;
+      p->phaseinc[14] = 2510.0 * tmp;
+      p->phaseinc[15] = 2925.0 * tmp;
+      p->phaseinc[16] = 3425.0 * tmp;
+      p->phaseinc[17] = 4050.0 * tmp;
+      p->phaseinc[18] = 4850.0 * tmp;
+      p->phaseinc[19] = 5850.0 * tmp;
+      p->phaseinc[20] = 7050.0 * tmp;
+      p->phaseinc[21] = 8600.0 * tmp;
+      p->phaseinc[22] = 10750.0 * tmp;
+      p->phaseinc[23] = 13750.0 * tmp;
+      p->phaseinc[24] = 17750.0 * tmp;
+    }
+    /* initialise phase */
+    memset(p->oscphase, '\0', 25*sizeof(double));
+    /* p->oscphase[0] = 0.0; */
+    /* p->oscphase[1] = 0.0; */
+    /* p->oscphase[2] = 0.0; */
+    /* p->oscphase[3] = 0.0; */
+    /* p->oscphase[4] = 0.0; */
+    /* p->oscphase[5] = 0.0; */
+    /* p->oscphase[6] = 0.0; */
+    /* p->oscphase[7] = 0.0; */
+    /* p->oscphase[8] = 0.0; */
+    /* p->oscphase[9] = 0.0; */
+    /* p->oscphase[10] = 0.0; */
+    /* p->oscphase[11] = 0.0; */
+    /* p->oscphase[12] = 0.0; */
+    /* p->oscphase[13] = 0.0; */
+    /* p->oscphase[14] = 0.0; */
+    /* p->oscphase[15] = 0.0; */
+    /* p->oscphase[16] = 0.0; */
+    /* p->oscphase[17] = 0.0; */
+    /* p->oscphase[18] = 0.0; */
+    /* p->oscphase[19] = 0.0; */
+    /* p->oscphase[20] = 0.0; */
+    /* p->oscphase[21] = 0.0; */
+    /* p->oscphase[22] = 0.0; */
+    /* p->oscphase[23] = 0.0; */
+    /* p->oscphase[24] = 0.0; */
+
+    /* initialise band limited noise parameters */
+    for (i = 0; i < 25; i++) {
+      randiats_setup(csound, p->nfreq[i], &(p->randinoise[i]));
+    }
+
+    /* flag set to reduce the amount of warnings sent out */
+    /* for time pointer out of range */
+    p->prFlg = 1;               /* true */
+
+    return OK;
+}
+
+static int atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
+{
+    char        atsfilname[MAXNAME];
+    ATSSTRUCT   *atsh;
+    int         i, type, n_partials;
+
+    /* load memfile */
+    p->swapped = load_atsfile(csound,
+                              p, &(p->atsmemfile), atsfilname, p->ifileno, 1);
     if (p->swapped < 0)
       return NOTOK;
     p->bands = (int)(*p->ibands);
@@ -1119,7 +1545,192 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
-                              p, &(p->atsmemfile), atsfilname, p->ifileno);
+                              p, &(p->atsmemfile), atsfilname, p->ifileno, 0);
+    if (UNLIKELY(p->swapped < 0)){
+      return NOTOK;
+    }
+    atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
+    p->atshead = atsh;
+
+    /* calculate how much memory we have to allocate for this */
+    /* need room for a buffer and the noise data and the noise info */
+    /* per partial for synthesizing noise */
+    memsize = (int) (*p->iptls) * (sizeof(ATS_DATA_LOC) + 2 * sizeof(double)
+                                                        + sizeof(RANDIATS));
+    /* allocate space if we need it */
+    /* need room for a buffer and an array of oscillator phase increments */
+    if(p->auxch.auxp != NULL || memsize > (int)p->auxch.size)
+        csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
+
+    /* set up the buffer, phase, etc. */
+    p->oscbuf = (ATS_DATA_LOC *) (p->auxch.auxp);
+    p->randinoise = (RANDIATS *) (p->oscbuf + (int) (*p->iptls));
+    p->oscphase = (double *) (p->randinoise + (int) (*p->iptls));
+    p->nzbuf = (double *) (p->oscphase + (int) (*p->iptls));
+
+    if (p->swapped == 1) {
+      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
+      p->npartials = (int) bswap(&atsh->npartials);
+      nzmemsize = (int) (p->npartials * bswap(&atsh->nfrms));
+      type = (int) bswap(&atsh->type);
+    }
+    else {
+      p->maxFr = (int) atsh->nfrms - 1;
+      p->timefrmInc = atsh->nfrms / atsh->dur;
+      p->npartials = (int) atsh->npartials;
+      nzmemsize = (int) (p->npartials * atsh->nfrms);
+      type = (int) atsh->type;
+    }
+
+    /* see if we have to allocate memory for the nzdata */
+    if (nzmemsize != p->nzmemsize) {
+      if (p->nzdata != NULL)
+        csound->Free(csound, p->nzdata);
+      p->nzdata = (double *) csound->Malloc(csound, sizeof(double) * nzmemsize);
+    }
+
+
+    /* make sure partials are in range */
+    if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > p->npartials ||
+                 (int) (*p->iptloffset) < 0)) {
+      return csound->InitError(csound,
+                               Str("ATSSINNOI: Partial(s) out of range, "
+                                   "max partial allowed is %i"), p->npartials);
+    }
+    /* get a pointer to the beginning of the data */
+    p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
+    /* get increments for the partials */
+
+    switch (type) {
+    case 1:
+      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
+      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->frmInc = p->npartials * 2 + 1;
+      p->firstband = -1;
+      break;
+
+    case 2:
+      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
+      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->frmInc = p->npartials * 3 + 1;
+      p->firstband = -1;
+      break;
+
+    case 3:
+      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
+      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->frmInc = p->npartials * 2 + 26;
+      p->firstband = 1 + 2 * p->npartials;
+      break;
+
+    case 4:
+      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
+      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->frmInc = p->npartials * 3 + 26;
+      p->firstband = 1 + 3 * p->npartials;
+      break;
+
+    default:
+      return csound->InitError(csound, Str("ATSSINNOI: Type not implemented"));
+    }
+    /* convert noise per band to noise per partial */
+    /* make sure we do not do this if we have done it already. */
+    if ((p->firstband != -1) &&
+        ((p->filename == NULL) || (strcmp(atsfilname, p->filename) != 0) ||
+         (p->nzmemsize != nzmemsize))) {
+      if (p->filename != NULL)
+        csound->Free(csound, p->filename);
+      p->filename = (char *) csound->Malloc(csound,
+                                            sizeof(char) * strlen(atsfilname));
+      strcpy(p->filename, atsfilname);
+   /* csound->Message(csound, "\n band to energy res calculation %s \n",
+                              p->filename); */
+      /* calculate the band energys */
+      band_energy_to_res(csound, p);
+    }
+    /* save the memory size of the noise */
+    p->nzmemsize = nzmemsize;
+
+
+    /* flag set to reduce the amount of warnings sent out */
+    /* for time pointer out of range */
+    p->prFlg = 1;               /* true */
+
+    {
+      double tmp = TWOPI * csound->onedsr;
+      p->phaseinc[0] = 50.0 * tmp;
+      p->phaseinc[1] = 150.0 * tmp;
+      p->phaseinc[2] = 250.0 * tmp;
+      p->phaseinc[3] = 350.0 * tmp;
+      p->phaseinc[4] = 455.0 * tmp;
+      p->phaseinc[5] = 570.0 * tmp;
+      p->phaseinc[6] = 700.0 * tmp;
+      p->phaseinc[7] = 845.0 * tmp;
+      p->phaseinc[8] = 1000.0 * tmp;
+      p->phaseinc[9] = 1175.0 * tmp;
+      p->phaseinc[10] = 1375.0 * tmp;
+      p->phaseinc[11] = 1600.0 * tmp;
+      p->phaseinc[12] = 1860.0 * tmp;
+      p->phaseinc[13] = 2160.0 * tmp;
+      p->phaseinc[14] = 2510.0 * tmp;
+      p->phaseinc[15] = 2925.0 * tmp;
+      p->phaseinc[16] = 3425.0 * tmp;
+      p->phaseinc[17] = 4050.0 * tmp;
+      p->phaseinc[18] = 4850.0 * tmp;
+      p->phaseinc[19] = 5850.0 * tmp;
+      p->phaseinc[20] = 7050.0 * tmp;
+      p->phaseinc[21] = 8600.0 * tmp;
+      p->phaseinc[22] = 10750.0 * tmp;
+      p->phaseinc[23] = 13750.0 * tmp;
+      p->phaseinc[24] = 17750.0 * tmp;
+    }
+
+    /* initialise phase */
+    memset(p->noiphase, 0, 25*sizeof(double));
+    /* p->noiphase[0] = 0.0; */
+    /* p->noiphase[1] = 0.0; */
+    /* p->noiphase[2] = 0.0; */
+    /* p->noiphase[3] = 0.0; */
+    /* p->noiphase[4] = 0.0; */
+    /* p->noiphase[5] = 0.0; */
+    /* p->noiphase[6] = 0.0; */
+    /* p->noiphase[7] = 0.0; */
+    /* p->noiphase[8] = 0.0; */
+    /* p->noiphase[9] = 0.0; */
+    /* p->noiphase[10] = 0.0; */
+    /* p->noiphase[11] = 0.0; */
+    /* p->noiphase[12] = 0.0; */
+    /* p->noiphase[13] = 0.0; */
+    /* p->noiphase[14] = 0.0; */
+    /* p->noiphase[15] = 0.0; */
+    /* p->noiphase[16] = 0.0; */
+    /* p->noiphase[17] = 0.0; */
+    /* p->noiphase[18] = 0.0; */
+    /* p->noiphase[19] = 0.0; */
+    /* p->noiphase[20] = 0.0; */
+    /* p->noiphase[21] = 0.0; */
+    /* p->noiphase[22] = 0.0; */
+    /* p->noiphase[23] = 0.0; */
+    /* p->oscphase[24] = 0.0; */
+
+    /* initialise band limited noise parameters */
+    for (i = 0; i < (int) *p->iptls; i++) {
+      randiats_setup(csound, freqs[i], &(p->randinoise[i]));
+    }
+
+    return OK;
+}
+
+static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
+{
+    char        atsfilname[MAXNAME];
+    ATSSTRUCT   *atsh;
+    int         i, memsize, nzmemsize, type;
+
+    /* load memfile */
+    p->swapped = load_atsfile(csound,
+                              p, &(p->atsmemfile), atsfilname, p->ifileno, 1);
     if (UNLIKELY(p->swapped < 0)){
       return NOTOK;
     }
@@ -1549,7 +2160,7 @@ static int atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
     int     memsize;            /* the size of the memory to request for AUX */
 
     /* load memfile */
-    p->swapped = load_atsfile(csound, p, &mfp, atsfilname, p->ifileno);
+    p->swapped = load_atsfile(csound, p, &mfp, atsfilname, p->ifileno, 0);
     if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) mfp->beginp;
@@ -1632,6 +2243,101 @@ static int atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
 
     return OK;
 }
+
+static int atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
+{
+    char    atsfilname[MAXNAME];
+    MEMFIL  *mfp;
+    ATS_DATA_LOC *fltp;
+    ATSSTRUCT *atsh;
+    int     type, n_partials;
+    int     memsize;            /* the size of the memory to request for AUX */
+
+    /* load memfile */
+    p->swapped = load_atsfile(csound, p, &mfp, atsfilname, p->ifileno, 1);
+    if (UNLIKELY(p->swapped < 0))
+      return NOTOK;
+    atsh = (ATSSTRUCT*) mfp->beginp;
+
+    /* get past the header to the data, point frptr at time 0 */
+    p->datastart = (double *) atsh + 10;
+    p->prFlg = 1;               /* true */
+
+    /* is swapped? */
+    if (p->swapped == 1) {
+      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
+      type = (int) bswap(&atsh->type);
+      n_partials = (int) bswap(&atsh->npartials);
+    }
+    else {
+      p->maxFr = (int) atsh->nfrms - 1;
+      p->timefrmInc = atsh->nfrms / atsh->dur;
+      type = (int) atsh->type;
+      n_partials = (int) atsh->npartials;
+    }
+
+    /* we need room for 2 * (1 table + 2 for 20 and 20,000 hz) */
+    /* (one sorted one unsorted) */
+    memsize = 2 * ((int) *(p->iptls) + 2);
+
+    csound->AuxAlloc(csound, (size_t)memsize * sizeof(ATS_DATA_LOC), &p->auxch);
+
+    fltp = (ATS_DATA_LOC *) p->auxch.auxp;
+    p->table = fltp;
+    p->utable = fltp + ((int) *(p->iptls) + 2);
+
+    /* check to see if partial is valid */
+    if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+                 (int) (*p->iptloffset) < 0)) {
+      return csound->InitError(csound, Str("ATSBUFREAD: Partial out of range, "
+                                           "max partial is %i"), n_partials);
+    }
+
+    /* set up partial locations and frame increments */
+
+    switch (type) {
+    case 1:
+      p->firstpartial = 1 + 2 * (*p->iptloffset);
+      p->partialinc = 2;
+      p->frmInc = n_partials * 2 + 1;
+      break;
+
+    case 2:
+      p->firstpartial = 1 + 3 * (*p->iptloffset);
+      p->partialinc = 3;
+      p->frmInc = n_partials * 3 + 1;
+      break;
+
+    case 3:
+      p->firstpartial = 1 + 2 * (*p->iptloffset);
+      p->partialinc = 2;
+      p->frmInc = n_partials * 2 + 26;
+      break;
+
+    case 4:
+      p->firstpartial = 1 + 3 * (*p->iptloffset);
+      p->partialinc = 3;
+      p->frmInc = n_partials * 3 + 26;
+      break;
+
+    default:
+      return csound->InitError(csound, Str("ATSBUFREAD: Type not implemented"));
+    }
+
+    /* put 20 hertz = 0amp and 20000 hz = 0amp */
+    /* to make interpolation easier later */
+    p->table[0].freq = p->utable[0].freq = 20;
+    p->table[0].amp = p->utable[0].amp = 0;
+    p->table[(int) *p->iptls + 1].freq = p->utable[(int) *p->iptls + 1].freq =
+        20000;
+    p->table[(int) *p->iptls + 1].amp = p->utable[(int) *p->iptls + 1].amp = 0;
+
+    *(get_atsbufreadaddrp(csound)) = p;
+
+    return OK;
+}
+
 
 static int mycomp(const void *p1, const void *p2)
 {
@@ -1873,7 +2579,101 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
-                              p, &(p->atsmemfile), atsfilname, p->ifileno);
+                              p, &(p->atsmemfile), atsfilname, p->ifileno, 0);
+    if (p->swapped < 0)
+      return NOTOK;
+    atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
+
+    /* calculate how much memory we have to allocate for this */
+    memsize =   (int) (*p->iptls) *
+                      (sizeof(ATS_DATA_LOC) + sizeof(double) + sizeof(MYFLT)) ;
+    /* allocate space if we need it */
+    /* need room for a buffer and an array of oscillator phase increments */
+    if (p->auxch.auxp == NULL || p->auxch.size >= (unsigned int)memsize)
+      csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
+
+    /* set up the buffer, phase, etc. */
+    p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
+    p->oscphase = (double *) (p->buf + (int) (*p->iptls));
+    p->oldamps =  (MYFLT *)  (p->oscphase + (int) (*p->iptls));
+    if (p->swapped == 1) {
+      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
+      type = (int) bswap(&atsh->type);
+      n_partials = (int) bswap(&atsh->npartials);
+    }
+    else {
+      p->maxFr = (int) atsh->nfrms - 1;
+      p->timefrmInc = atsh->nfrms / atsh->dur;
+      type = (int) atsh->type;
+      n_partials = (int) atsh->npartials;
+    }
+
+    /* make sure partials are in range */
+    if ((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+        (int) (*p->iptloffset) < 0) {
+      return csound->InitError(csound, Str("ATSCROSS: Partial(s) out of range, "
+                                           "max partial allowed is %i"),
+                                       n_partials);
+    }
+    /* get a pointer to the beginning of the data */
+    p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
+
+    /* get increments for the partials */
+    switch (type) {
+    case 1:
+      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
+      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->frmInc = n_partials * 2 + 1;
+      break;
+
+    case 2:
+      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
+      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->frmInc = n_partials * 3 + 1;
+      break;
+
+    case 3:
+      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
+      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->frmInc = n_partials * 2 + 26;
+      break;
+
+    case 4:
+      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
+      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->frmInc = n_partials * 3 + 26;
+      break;
+
+    default:
+      return csound->InitError(csound, Str("ATSCROSS: Type not implemented"));
+    }
+
+    /* flag set to reduce the amount of warnings sent out */
+    /* for time pointer out of range */
+    p->prFlg = 1;               /* true */
+
+    return OK;
+}
+
+static int atscrossset_S(CSOUND *csound, ATSCROSS *p)
+{
+    char    atsfilname[MAXNAME];
+    ATSSTRUCT *atsh;
+    FUNC    *ftp;
+    int     memsize;
+    int     type, n_partials;
+
+    /* set up function table for synthesis */
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
+      return csound->InitError(csound, Str("ATSCROSS: Function table number for "
+                                           "synthesis waveform not valid"));
+    }
+    p->ftp = ftp;
+
+    /* load memfile */
+    p->swapped = load_atsfile(csound,
+                              p, &(p->atsmemfile), atsfilname, p->ifileno, 1);
     if (p->swapped < 0)
       return NOTOK;
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
@@ -2148,25 +2948,41 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-    { "ATSread",        S(ATSREAD),       0,  3,  "kk",   "kTi",
+    { "ATSread",        S(ATSREAD),       0,  3,  "kk",   "kSi",
+        (SUBR) atsreadset_S,          (SUBR) atsread,         (SUBR) NULL      },
+    { "ATSread.i",        S(ATSREAD),       0,  3,  "kk",   "kii",
         (SUBR) atsreadset,          (SUBR) atsread,         (SUBR) NULL      },
-    { "ATSreadnz",      S(ATSREADNZ),      0, 3,  "k",    "kTi",
+    { "ATSreadnz",      S(ATSREADNZ),      0, 3,  "k",    "kSi",
+        (SUBR) atsreadnzset_S,        (SUBR) atsreadnz,       (SUBR) NULL      },
+    { "ATSreadnz.i",      S(ATSREADNZ),      0, 3,  "k",    "kii",
         (SUBR) atsreadnzset,        (SUBR) atsreadnz,       (SUBR) NULL      },
-    { "ATSadd",         S(ATSADD),          TR, 5,  "a",    "kkTiiopo",
+    { "ATSadd",         S(ATSADD),          TR, 5,  "a",    "kkSiiopo",
+        (SUBR) atsaddset_S,           (SUBR) NULL,            (SUBR) atsadd    },
+    { "ATSadd.i",         S(ATSADD),          TR, 5,  "a",    "kkiiiopo",
         (SUBR) atsaddset,           (SUBR) NULL,            (SUBR) atsadd    },
-    { "ATSaddnz",       S(ATSADDNZ),       0, 5,  "a",    "kTiop",
+    { "ATSaddnz",       S(ATSADDNZ),       0, 5,  "a",    "kSiop",
+        (SUBR) atsaddnzset_S,         (SUBR) NULL,            (SUBR) atsaddnz  },
+     { "ATSaddnz.i",       S(ATSADDNZ),       0, 5,  "a",    "kiiop",
         (SUBR) atsaddnzset,         (SUBR) NULL,            (SUBR) atsaddnz  },
-    { "ATSsinnoi",      S(ATSSINNOI),       0,5,  "a",    "kkkkTiop",
+    { "ATSsinnoi",      S(ATSSINNOI),       0,5,  "a",    "kkkkSiop",
+        (SUBR) atssinnoiset_S,        (SUBR) NULL,            (SUBR) atssinnoi },
+       { "ATSsinnoi.i",      S(ATSSINNOI),       0,5,  "a",    "kkkkiiop",
         (SUBR) atssinnoiset,        (SUBR) NULL,            (SUBR) atssinnoi },
-    { "ATSbufread",     S(ATSBUFREAD),      0,3,  "",     "kkTiop",
+    { "ATSbufread",     S(ATSBUFREAD),      0,3,  "",     "kkSiop",
+        (SUBR) atsbufreadset_S,       (SUBR) atsbufread,      (SUBR) NULL      },
+       { "ATSbufread.i",     S(ATSBUFREAD),      0,3,  "",     "kkiiop",
         (SUBR) atsbufreadset,       (SUBR) atsbufread,      (SUBR) NULL      },
     { "ATSpartialtap",  S(ATSPARTIALTAP),   0,3,  "kk",   "i",
         (SUBR) atspartialtapset,    (SUBR) atspartialtap,   (SUBR) NULL      },
     { "ATSinterpread",  S(ATSINTERPREAD),   0,3,  "k",    "k",
         (SUBR) atsinterpreadset,    (SUBR) atsinterpread,   (SUBR) NULL      },
-    { "ATScross",       S(ATSCROSS),        TR, 5,  "a",    "kkTikkiopoo",
+    { "ATScross",       S(ATSCROSS),        TR, 5,  "a",    "kkSikkiopoo",
+        (SUBR) atscrossset_S,         (SUBR) NULL,            (SUBR) atscross  },
+    { "ATSinfo",        S(ATSINFO),         0,1,  "i",    "Si",
+      (SUBR) atsinfo_S,             (SUBR) NULL,            (SUBR) NULL      },
+        { "ATScross.i",       S(ATSCROSS),        TR, 5,  "a",    "kkiikkiopoo",
         (SUBR) atscrossset,         (SUBR) NULL,            (SUBR) atscross  },
-    { "ATSinfo",        S(ATSINFO),         0,1,  "i",    "Ti",
+    { "ATSinfo.i",        S(ATSINFO),         0,1,  "i",    "ii",
         (SUBR) atsinfo,             (SUBR) NULL,            (SUBR) NULL      }
 };
 

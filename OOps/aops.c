@@ -174,14 +174,14 @@ int mainit(CSOUND *csound, ASSIGNM *p)
     for (i=0; i<nargs; i++) {
       aa = *p->a[i];
       MYFLT *r =p->r[i];
-      for (n = offset; n < nsmps; n++)
-        r[n] = (n<offset || n>early ? FL(0.0) : aa);
+      for (n = 0; n < nsmps; n++)
+        r[n] = (n < offset || n > early ? FL(0.0) : aa);
     }
     for (; i<p->OUTOCOUNT; i++) {
       MYFLT *r =p->r[i];
-      memset(r, '\0', offset*sizeof(MYFLT));
-      for (n = offset; n < nsmps; n++)
-        r[n] = (n<offset || n>early ? FL(0.0) : aa);
+      memset(r, '\0', nsmps*sizeof(MYFLT));
+      for (n = 0; n < nsmps; n++)
+        r[n] = (n < offset || n > early ? FL(0.0) : aa);
     }
 
     return OK;
@@ -1501,6 +1501,37 @@ int in32(CSOUND *csound, INALL *p)
     return inn(csound, p, 32u);
 }
 
+int inch_opcode1(CSOUND *csound, INCH1 *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS, ch;
+    MYFLT *sp, *ain;
+
+      ch = ((int)*p->ch + FL(0.5));
+      if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
+        csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
+        memset(p->ar, 0, sizeof(MYFLT)*nsmps);
+        //        return OK;
+      }
+      else {
+        sp = CS_SPIN + (ch - 1);
+        ain = p->ar;
+        if (UNLIKELY(offset)) memset(ain, '\0', offset*sizeof(MYFLT));
+        if (UNLIKELY(early)) {
+          nsmps -= early;
+          memset(&ain[nsmps], '\0', early*sizeof(MYFLT));
+        }
+        for (n = offset; n < nsmps; n++) {
+          ain[n] = *sp;
+          sp += csound->inchnls;
+        }
+      }
+
+    return OK;
+}
+
+
 int inch_opcode(CSOUND *csound, INCH *p)
 {                               /* Rewritten to allow multiple args upto 40 */
     uint32_t nc, nChannels = p->INCOUNT;
@@ -1541,7 +1572,7 @@ int inall_opcode(CSOUND *csound, INALL *p)
 {
     uint32_t n = (int)p->OUTOCOUNT, m;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t    i, j = 0, k = 0, nsmps = CS_KSMPS;
+    uint32_t    i,j = 0, k = 0, nsmps = CS_KSMPS;
     uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT *spin = CS_SPIN;
     CSOUND_SPIN_SPINLOCK

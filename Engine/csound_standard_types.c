@@ -106,7 +106,7 @@ CS_VARIABLE* createString(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = cs->strVarMaxLen;
+    var->memBlockSize = sizeof(STRINGDAT);
     return var;
 }
 

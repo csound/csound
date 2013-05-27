@@ -101,6 +101,7 @@ def runTest():
 	["test46.csd", "if-then with expression in boolean comparison"],
 	["test47.csd", "until loop and t-variables"],
 	["test48.csd", "expected failure with variable used before defined", 1],
+	["test_instr0_labels.csd", "test labels in instr0 space"],
 	["test_string.csd", "test string assignment and printing"],
 	["test_sprintf.csd", "test string assignment and printing"],
 	["test_label_within_if_block.csd", "test label within if block"],
@@ -124,7 +125,8 @@ def runTest():
 	["test_fsig_udo.csd", "UDO with f-sig arg"],
 	["test_karrays_udo.csd", "UDO with k[] arg"],
 	["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
-	["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen"],
+	["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)"],
+	["test_polymorphic_udo.csd", "test polymorphic udo"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -220,7 +222,7 @@ if __name__ == "__main__":
                 csoundExecutable = arg[20:]
                 print csoundExecutable
             elif arg.startswith("--opcode6dir64="):
-                os.environ['OPCODE6DIR64'] = arg[14:]
+                os.environ['OPCODE6DIR64'] = arg[15:]
                 print os.environ['OPCODE6DIR64'] 
     results = runTest()
     if (showUIatClose):

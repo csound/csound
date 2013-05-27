@@ -27,7 +27,8 @@ extern void csoundInputMessageInternal(CSOUND *, const char *);
 
 typedef struct _inmess {
   OPDS h;
-  MYFLT *SMess, *ktrig;
+  STRINGDAT *SMess;
+  MYFLT *ktrig;
 } INMESS;
 
 
@@ -38,12 +39,12 @@ typedef struct _scorepos {
 
 int messi(CSOUND *csound, INMESS *p)
 {
-    csoundInputMessageInternal(csound, (char *)p->SMess);
+    csoundInputMessageInternal(csound, (char *)p->SMess->data);
     return OK;
 }
 
 int messk(CSOUND *csound, INMESS *p){
-    if (*p->ktrig) csoundInputMessageInternal(csound, (char *)p->SMess);
+    if (*p->ktrig) csoundInputMessageInternal(csound, (char *)p->SMess->data);
     return OK;
 }
 

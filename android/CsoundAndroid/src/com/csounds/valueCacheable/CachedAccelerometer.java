@@ -36,7 +36,7 @@ import android.util.Log;
 
 import com.csounds.CsoundObj;
 
-import csnd.CsoundMYFLTArray;
+import csnd6.CsoundMYFLTArray;
 
 public class CachedAccelerometer extends AbstractValueCacheable implements SensorEventListener {
 
@@ -108,16 +108,14 @@ public class CachedAccelerometer extends AbstractValueCacheable implements Senso
 
 	// SENSOR EVENT LISTENER
 	
-	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 		
 	}
 
-	@Override
 	public void onSensorChanged(SensorEvent event) {
-		x = event.values[0];  
-		y = event.values[1]; 
-		z = event.values[2];
-	}
+		  x = event.values[0];  
+          y = event.values[1]; 
+          z = event.values[2];
+   	}
 
 }

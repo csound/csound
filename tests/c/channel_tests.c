@@ -302,6 +302,26 @@ void test_chn_hints(void)
     CU_ASSERT_STRING_EQUAL(hints.attributes, "testattr");
 }
 
+
+void test_string_channel(void)
+{
+    const char orcS[] = "chn_S \"testing\", 3\n  instr 1\n  endin\n";
+
+    csoundSetGlobalEnv("OPCODE6DIR64", "../../");
+    CSOUND *csound = csoundCreate(0);
+    csoundEnableMessageBuffer(csound, 0);
+    csoundSetOption(csound, "--logfile=NULL");
+    csoundCompileOrc(csound, orcS);
+    int err = csoundStart(csound);
+    CU_ASSERT(err == 0);
+
+    
+    csoundSetStringChannel(csound, "testing", "ttt");
+    csoundDestroy(csound);
+    csoundDestroyMessageBuffer(csound);
+}
+
+
 int main()
 {
    CU_pSuite pSuite = NULL;
@@ -326,7 +346,8 @@ int main()
            || (NULL == CU_add_test(pSuite, "PVS Opcodes", test_pvs_opcodes))
            || (NULL == CU_add_test(pSuite, "Invalid channels", test_invalid_channel))
            || (NULL == CU_add_test(pSuite, "Channel hints", test_chn_hints))
-           )
+           || (NULL == CU_add_test(pSuite, "String channel", test_string_channel))
+       )
    {
       CU_cleanup_registry();
       return CU_get_error();

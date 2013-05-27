@@ -53,7 +53,7 @@ int csp_thread_index_get(CSOUND *csound)
 
 
 /* **** An implementation of Barriers for MAC that lacks them **** */
-#ifdef __MACH__
+#if defined(__MACH__) || defined(ANDROID)
 /*#define BARRIER_SERIAL_THREAD (-1)
 
 typedef struct {

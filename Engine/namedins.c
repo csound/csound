@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"
 #include "namedins.h"
+#include "csound_orc_semantics.h"
 #include <ctype.h>
 
 /* check if the string s is a valid instrument or opcode name */
@@ -155,9 +156,6 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
 /*        3. the file name is generated using baseName and the  */
 /*           value rounded to the nearest integer, as described */
 /*           above                                              */
-/*      'is_string' is usually p->XSTRCODE for an opcode with   */
-/*      only one string argument, otherwise it is               */
-/*      p->XSTRCODE & (1 << (argno - 1))                        */
 /*   return value:                                              */
 /*      pointer to the output string; if 's' is not NULL, it is */
 /*      always the same as 's', otherwise it is allocated with  */
@@ -209,30 +207,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
 /* the following functions are for efficient management of the opcode list */
 
 
-/* find opcode with the specified name in opcode list */
-/* returns index to opcodlst[], or zero if the opcode cannot be found */
 
-int find_opcode(CSOUND *csound, char *opname)
-{
-    int     h, n;
-
-    if (opname[0] == (char) 0 ||
-        (opname[0] >= (char) '0' && opname[0] <= (char) '9'))
-      return 0;
-
-    /* calculate hash value */
-    h = (int) name_hash_2(csound, opname);
-    /* now find entry in opcode chain */
-    n = ((int*) csound->opcode_list)[h];
-    while (n) {
-
-      if (!sCmp(opname, csound->opcodlst[n].opname))
-        return n;
-      n = csound->opcodlst[n].prvnum;
-    }
-
-    return 0;
-}
 
 
 /* -------- IV - Jan 29 2005 -------- */
@@ -327,6 +302,6 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
 {
     if (csound == NULL || csound->namedGlobals == NULL) return;
 
-    cs_hash_table_free_complete(csound, csound->namedGlobals);
+    cs_hash_table_mfree_complete(csound, csound->namedGlobals);
     csound->namedGlobals = NULL;
 }

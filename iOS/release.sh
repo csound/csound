@@ -1,6 +1,9 @@
 #!/bin/sh
-export RELEASE_DIR=csound-iOS-5.17.11
+export RELEASE_DIR=csound-iOS-6.00.0rc2
 export LIBSNDFILE_LIB=`pwd`/../../iOS/csound-iOS-dependencies/libsndfile.a 
+
+#remove backup files ending with ~
+find . -name "*~" -exec rm {} \;
 
 rm -rf $RELEASE_DIR
 mkdir $RELEASE_DIR
@@ -17,6 +20,7 @@ cp ../docs/csound_ios_manual.pdf .
 
 cp -R ../Csound\ iOS\ Examples .
 cp Csound\ iOS\ Examples/LICENSE.TXT .
+cp ../CHANGELOG .
 
 cd ..
 zip -r ${RELEASE_DIR}.zip ${RELEASE_DIR}

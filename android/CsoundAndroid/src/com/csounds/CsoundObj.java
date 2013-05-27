@@ -43,42 +43,45 @@ import com.csounds.valueCacheable.CachedButton;
 import com.csounds.valueCacheable.CachedSlider;
 import com.csounds.valueCacheable.CsoundValueCacheable;
 
-import csnd.AndroidCsound;
-import csnd.Csound;
-import csnd.CsoundCallbackWrapper;
-import csnd.CsoundMYFLTArray;
-import csnd.csndConstants;
+import csnd6.AndroidCsound;
+import csnd6.Csound;
+import csnd6.CsoundCallbackWrapper;
+import csnd6.CsoundMYFLTArray;
+import csnd6.controlChannelType;
 
 public class CsoundObj {
 
 	private Csound csound;
 	private ArrayList<CsoundValueCacheable> valuesCache;
 	private ArrayList<CsoundObjCompletionListener> completionListeners;
+	private ArrayList<String> scoreMessages;
 	private boolean muted = false;
-	private boolean stopped = false;
+	private boolean stopped = true;
 	private Thread thread;
 	private boolean audioInEnabled = false;
 	private boolean messageLoggingEnabled = false;
 	private boolean useAudioTrack = false;
 	int retVal = 0;
+	private boolean pause = false;
 
 	private CsoundCallbackWrapper callbacks;
 
 	public CsoundObj() {
-		valuesCache = new ArrayList<CsoundValueCacheable>();
-		completionListeners = new ArrayList<CsoundObjCompletionListener>();
+		this(false);
 	}
 	
 	public CsoundObj(boolean useAudioTrack) {
 		valuesCache = new ArrayList<CsoundValueCacheable>();
 		completionListeners = new ArrayList<CsoundObjCompletionListener>();
+		scoreMessages = new ArrayList<String>();
 		this.useAudioTrack = useAudioTrack;
+		
+		if(useAudioTrack) {
+			csound = new Csound();
+		} else {
+			csound = new AndroidCsound();
+		}
 	}
-
-	/* VALUE CACHEABLE */
-
-	// -(id<ValueCacheable>)addSwitch:(UISwitch*)uiSwitch
-	// forChannelName:(NSString*)channelName;
 
 	public boolean isAudioInEnabled() {
 		return audioInEnabled;
@@ -100,28 +103,21 @@ public class CsoundObj {
 			double min, double max) {
 		CachedSlider cachedSlider = new CachedSlider(seekBar, channelName, min,
 				max);
-		valuesCache.add(cachedSlider);
-
+		addValueCacheable(cachedSlider);
 		return cachedSlider;
 	}
 
 	public CsoundValueCacheable addButton(Button button, String channelName,int type) {
 		CachedButton cachedButton = new CachedButton(button, channelName, type);
-		valuesCache.add(cachedButton);
-
+		addValueCacheable(cachedButton);
 		return cachedButton;
 	}
 	
 	public CsoundValueCacheable addButton(Button button, String channelName) {
 		CachedButton cachedButton = new CachedButton(button, channelName);
-		valuesCache.add(cachedButton);
-
+		addValueCacheable(cachedButton);
 		return cachedButton;
 	}
-
-
-	// -(id<ValueCacheable>)addButton:(UIButton*)uiButton
-	// forChannelName:(NSString*)channelName;
 
 	public Csound getCsound() {
 		return csound;
@@ -136,10 +132,18 @@ public class CsoundObj {
 	}
 
 	public void addValueCacheable(CsoundValueCacheable valueCacheable) {
-		valuesCache.add(valueCacheable);
+		if(!stopped) valueCacheable.setup(this);
+		synchronized(this) {
+			valuesCache.add(valueCacheable);
+		}
 	}
-
-	public void removeValueCacheable(CsoundValueCacheable valueCacheable) {
+	
+	public synchronized void inputMessage(String mess) {
+		String message = new String(mess);
+		scoreMessages.add(message);
+	}
+	
+	public synchronized void removeValueCacheable(CsoundValueCacheable valueCacheable) {
 		valuesCache.remove(valueCacheable);
 	}
 
@@ -149,21 +153,18 @@ public class CsoundObj {
 		return accelerometer;
 	}
 
-	// -(id<ValueCacheable>)enableGyroscope;
-	// -(id<ValueCacheable>)enableAttitude;
-
 	public CsoundMYFLTArray getInputChannelPtr(String channelName) {
 		CsoundMYFLTArray ptr = new CsoundMYFLTArray(1);
 		getCsound().GetChannelPtr(
 				ptr.GetPtr(),
 				channelName,
-				csndConstants.CSOUND_CONTROL_CHANNEL
-						| csndConstants.CSOUND_INPUT_CHANNEL);
+				controlChannelType.CSOUND_CONTROL_CHANNEL.swigValue()
+						| controlChannelType.CSOUND_INPUT_CHANNEL.swigValue());
 		return ptr;
 	}
 
 	public void sendScore(String score) {
-		csound.InputMessage(score);
+		inputMessage(score);
 	}
 
 	public void addCompletionListener(CsoundObjCompletionListener listener) {
@@ -175,8 +176,6 @@ public class CsoundObj {
 		thread = new Thread() {
 			public void run() {
 				setPriority(Thread.MAX_PRIORITY);
-				// android.os.Process
-				// .setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 				if(useAudioTrack == false)
 				  runCsoundOpenSL(csdFile);
 				else
@@ -185,6 +184,12 @@ public class CsoundObj {
 		};
 		thread.start();
 	}
+	
+	public void togglePause(){ pause = !pause; } 
+	
+	public void pause() { pause = true; }
+	
+	public void play() { pause = false; }
 
 	public void stopCsound() {
 		stopped = true;
@@ -202,46 +207,67 @@ public class CsoundObj {
 	public int getError(){
      return retVal;
 	}
-	
-	// -(float*)getInputChannelPtr:(NSString*)channelName;
-	// -(float*)getOutputChannelPtr:(NSString*)channelName;
-	// -(NSData*)getOutSamples;
+
 
 	/* Render Methods */
 
 	private void runCsoundOpenSL(File f) {
 
-		AndroidCsound c = new AndroidCsound();
-		csound = c;
-		retVal = c.PreCompile();
+		((AndroidCsound)csound).setOpenSlCallbacks();
+		
+		/*if (messageLoggingEnabled) {
+			callbacks = new CsoundCallbackWrapper(csound) {
 
-		Log.d("CsoundAndroid", "Return Value: " + retVal);
+				@Override
+				public void MessageCallback(int attr, String msg) {
+					Log.d("CsoundObj", msg);
+					super.MessageCallback(attr, msg);
+				}
 
-		retVal = c.Compile(f.getAbsolutePath());
+			};
+		
+			callbacks.SetMessageCallback();
+
+		}*/
+		
+		//Log.d("CsoundAndroid", "Return Value: " + retVal);
+
+		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundAndroid", "Return Value2: " + retVal);
 
 		if (retVal == 0) {
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.setup(this);
 			}
-
+			stopped = false;
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.updateValuesToCsound();
 			}
 
-			while (c.PerformKsmps() == 0 && !stopped) {
-				for (CsoundValueCacheable cacheable : valuesCache) {
-					cacheable.updateValuesFromCsound();
+			while (csound.PerformKsmps() == 0 && !stopped) {
+				synchronized(this) {
+					for (CsoundValueCacheable cacheable : valuesCache) {
+						cacheable.updateValuesFromCsound();
+					}
+					for (String mess : scoreMessages){
+					    csound.InputMessage(mess);
+					}
+					scoreMessages.clear();
+					for (CsoundValueCacheable cacheable : valuesCache) {
+						cacheable.updateValuesToCsound();
+					}		
 				}
-
-				for (CsoundValueCacheable cacheable : valuesCache) {
-					cacheable.updateValuesToCsound();
-				}
+				while(pause)
+					try {
+						Thread.sleep(1);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 			}
 
-			c.Stop();
-			c.Cleanup();
-			c.Reset();
+			csound.Stop();
+			csound.Cleanup();
+			csound.Reset();
 
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.cleanup();
@@ -262,7 +288,7 @@ public class CsoundObj {
 
 	private void runCsoundAudioTrack(File f) {
 
-		csound = new Csound();
+		csound.SetHostImplementedAudioIO(1, 0);
 
 		if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
@@ -270,16 +296,19 @@ public class CsoundObj {
 				@Override
 				public void MessageCallback(int attr, String msg) {
 					Log.d("CsoundObj", msg);
-					// super.MessageCallback(attr, msg);
+					super.MessageCallback(attr, msg);
 				}
 
 			};
+		
 			callbacks.SetMessageCallback();
+
 		}
-		csound.SetHostImplementedAudioIO(1, 0);
+
+		Log.d("CsoundAndroid", "Return Value: " + retVal);
 
 		retVal = csound.Compile(f.getAbsolutePath());
-		Log.d("CsoundAndroid", "Return Value: " + retVal);
+		Log.d("CsoundAndroid", "Return Value2: " + retVal);
 
 		if (retVal == 0) {
 			for (CsoundValueCacheable cacheable : valuesCache) {
@@ -314,18 +343,7 @@ public class CsoundObj {
 			CsoundMYFLTArray audioIn = null;
 
 			if (audioInEnabled) {
-
-				// int channelInConfig = (csound.GetNchnls() == 2) ?
-				// AudioFormat.CHANNEL_IN_STEREO
-				// : AudioFormat.CHANNEL_IN_MONO;
-
-				// int channelInConfig = AudioFormat.CHANNEL_IN_MONO;
-				//
-				// int recordMinSize =
-				// AudioRecord.getMinBufferSize((int)csound.GetSr(),
-				// channelInConfig,
-				// AudioFormat.ENCODING_PCM_16BIT);
-
+				
 				audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
 						(int) csound.GetSr(), channelInConfig,
 						AudioFormat.ENCODING_PCM_16BIT, minSize);
@@ -370,7 +388,7 @@ public class CsoundObj {
 			Log.d("CsoundObj", "Multiplier: " + multiplier + " : "
 					+ recMultiplier);
 
-			
+			stopped = false;
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.updateValuesToCsound();
 			}
@@ -397,31 +415,27 @@ public class CsoundObj {
 
 				for (int i = 0; i < csound.GetKsmps(); i++) {
 					samples[counter++] = (short) (csound.GetSpoutSample(i, 0) * multiplier);
-
 					if (nchnls > 1) {
-						samples[counter++] = (short) (csound.GetSpoutSample(i,
-								1) * multiplier);
+					  samples[counter++] = (short) (csound.GetSpoutSample(i,1) * multiplier);
 					}
 				}
 
 				if (counter >= bufferSize) {
 					audioTrack.write(samples, 0, bufferSize);
 					counter = 0;
-					// if(audioTrack.getPlayState() !=
-					// AudioTrack.PLAYSTATE_PLAYING) {
-					// audioTrack.play();
-					//
-					// }
 				}
-
-				for (CsoundValueCacheable cacheable : valuesCache) {
-					cacheable.updateValuesFromCsound();
+				synchronized(this) {
+					for (CsoundValueCacheable cacheable : valuesCache) {
+						cacheable.updateValuesFromCsound();
+					}
+					for (String mess : scoreMessages){
+					    csound.InputMessage(mess);
+					}
+					scoreMessages.clear();
+					for (CsoundValueCacheable cacheable : valuesCache) {
+						cacheable.updateValuesToCsound();
+					}
 				}
-
-				for (CsoundValueCacheable cacheable : valuesCache) {
-					cacheable.updateValuesToCsound();
-				}
-
 				if (audioRecord != null) {
 					audioRecord.read(recordSample, 0, recBufferSize);
 					for (int i = 0; i < csound.GetKsmps(); i++) {
@@ -436,6 +450,11 @@ public class CsoundObj {
 							audioIn.SetValue(i, sample);
 						}
 					}
+				}
+				while(pause) try {
+					Thread.sleep(1);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 			}
 

@@ -41,7 +41,7 @@ CORFIL *corfile_create_w(void)
 
 CORFIL *corfile_create_r(const char *text)
 {
-    char *strdup(const char *);
+    //char *strdup(const char *);
     CORFIL *ans = (CORFIL*)malloc(sizeof(CORFIL));
     ans->body = strdup(text);
     ans->len = strlen(text)+1;
