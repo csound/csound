@@ -33,10 +33,9 @@ import android.widget.ToggleButton;
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjCompletionListener;
 
-
-
 public class CsoundAppActivity extends Activity  implements CsoundObjCompletionListener {
 	Button browseButton;
+	Button newButton;
 	Button editButton;
 	ToggleButton startStopButton = null;
 	CsoundObj csound = null;
@@ -73,7 +72,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 	      Process process = Runtime.getRuntime().exec("logcat -dt 8 AndroidCsound:I *:S");
 	      BufferedReader bufferedReader = new BufferedReader(
 	      new InputStreamReader(process.getInputStream()));
-	                       
 	      StringBuilder log=new StringBuilder();
 	      String line;
 	      log.append("Csound Compile error:\n");
@@ -82,9 +80,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 	      }
 	      TextView tv = (TextView)findViewById(R.id.textView7);
 	      tv.setText(log.toString());
-	       
    } catch (IOException e) { }
-	   
    }
 
 	private void OnFileChosen(File file){
@@ -101,7 +97,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 		} catch (Exception e){
 			Log.e("error", "could not stop csound");
 		}
-
 	}
 
 	/** Called when the activity is first created. */
@@ -109,6 +104,17 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		newButton = (Button) findViewById(R.id.newButton);
+		newButton.setOnClickListener(new OnClickListener(){ 
+			public void onClick(View v){
+				if(!running) {
+					Intent intent = new Intent(Intent.ACTION_GET_CONTENT); 
+					Uri uri = Uri.parse("file://template.csd"); 
+					intent.setDataAndType(uri, "text/plain"); 
+					startActivityForResult(intent, R.id.newButton);						
+				}
+			}
+		});
 		browseButton = (Button) findViewById(R.id.browseButton);
 		browseButton.setOnClickListener(new OnClickListener(){ 
 			public void onClick(View v){
@@ -121,7 +127,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 		editButton = (Button) findViewById(R.id.editButton);
 		editButton.setOnClickListener(new OnClickListener(){ 
 			public void onClick(View v){
-				if(!running) {
+				if(!running && csd != null) {
 					Intent intent = new Intent(Intent.ACTION_VIEW); 
 					Uri uri = Uri.parse("file://" + csd.getAbsolutePath()); 
 					intent.setDataAndType(uri, "text/plain"); 
@@ -178,6 +184,19 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 			}
 		});
 	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent intent)
+	{
+		try {
+			if (requestCode == R.id.newButton && intent != null){
+				csd = new File(intent.getData().getPath());
+			}
+		} catch (Exception e) {
+			Log.e("error", e.toString());
+		}
+	}
+	
 	private void loadFileList() {
 		try {
 			path.mkdirs();
@@ -243,6 +262,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 			return file;
 		}
 	}
+	
 
 	@Override
 	protected Dialog onCreateDialog(int id) {
