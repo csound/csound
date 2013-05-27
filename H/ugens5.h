@@ -61,7 +61,7 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *krmr, *krmo, *kerr, *kcps, *ktimpt, *ifilno, *inpoles, *ifrmrate;
+        MYFLT   *krmr, *krmo, *kerr, *kcps, *ktimpt, *ifilcod, *inpoles, *ifrmrate;
         int32   headlen, npoles, nvals, lastfram16, lastmsg;
         MYFLT   kcoefs[MAXPOLES*2], framrat16;
         int     storePoles ;

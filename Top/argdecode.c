@@ -884,6 +884,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         return 1;
       }
     }
+    else if (!(strcmp(s, "new-parser")) ||
+             !(strcmp(s, "old-parser"))) {
+        return 1;  /* ignore flag, this is here for backwards compatibility */
+    }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
 }
@@ -1320,7 +1324,7 @@ PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format
   if(csound->engineStatus & CS_STATE_COMP) return;
 
   oparms->outfilename =
-    csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+    csound->Malloc(csound, strlen(name) + 1); /* will be freed by memRESET */
   strcpy(oparms->outfilename, name);
   if (strcmp(oparms->outfilename, "stdout") == 0) {
         set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);

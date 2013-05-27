@@ -65,7 +65,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       while (n--!=0) sstrp += strlen(sstrp)+1;
       n = sstrp-csound->sstrbuf;
       while ((c = corfile_getc(csound->scstr)) != '"') {
-        if (c=='\\') c = corfile_getc(csound->scstr);
+        //if (c=='\\') c = corfile_getc(csound->scstr);
         *sstrp++ = c;
         n++;
         if (n > csound->strsiz-10) {
@@ -168,6 +168,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
       case 'e':
         e->opcod = c;
         e->pcnt = 0;
+
         return(1);
       case EOF:                          /* necessary for cscoreGetEvent */
         return(0);

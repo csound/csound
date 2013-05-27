@@ -58,8 +58,10 @@ static MYFLT *create_ls_table(CSOUND *csound, size_t cnt, int ind)
     sprintf(name, "vbap_ls_table_%d", ind);
     csound->DestroyGlobalVariable(csound, name);
     if (UNLIKELY(csound->CreateGlobalVariable(csound, name,
-                                              cnt * sizeof(MYFLT)) != 0))
-      csound->Die(csound, Str("vbap: error allocating loudspeaker table"));
+                                              cnt * sizeof(MYFLT)) != 0)) {
+      csound->ErrorMsg(csound, Str("vbap: error allocating loudspeaker table"));
+      return NULL;
+    }
     return (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
 }
 
@@ -263,7 +265,8 @@ static void choose_ls_triplets(CSOUND *csound, ls lss[CHANNELS],
     struct ls_triplet_chain *trip_ptr, *prev, *tmp_ptr;
 
     if (UNLIKELY(ls_amount == 0)) {
-      csound->Die(csound, Str("Number of loudspeakers is zero\nExiting"));
+      csound->ErrorMsg(csound, Str("Number of loudspeakers is zero\nExiting"));
+      return;
     }
 
     connections = calloc(CHANNELS * CHANNELS, sizeof(int));
@@ -571,7 +574,8 @@ static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
     //dim = (int) *p->dim;
     csound->Warning(csound, "dim : %d\n",dim);
     if (UNLIKELY(!((dim==2) || (dim == 3)))) {
-      csound->Die(csound, Str("Error in loudspeaker dimension."));
+      csound->ErrorMsg(csound, Str("Error in loudspeaker dimension."));
+      return NOTOK;
     }
     //count = (int) *p->ls_amount;
     for (j=1;j<=count;j++) {
@@ -594,7 +598,8 @@ static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
     }
     //ls_amount = (int)*p->ls_amount;
     if (UNLIKELY(count < dim)) {
-      csound->Die(csound, Str("Too few loudspeakers"));
+      csound->ErrorMsg(csound, Str("Too few loudspeakers"));
+      return NOTOK;
     }
 
     if (dim == 3) {
@@ -627,7 +632,8 @@ static void calculate_3x3_matrixes(CSOUND *csound,
     int triplet_amount = 0, i,j,k;
 
     if (UNLIKELY(tr_ptr == NULL)) {
-      csound->Die(csound, Str("Not valid 3-D configuration"));
+      csound->ErrorMsg(csound, Str("Not valid 3-D configuration"));
+      return;
     }
 
     /* counting triplet amount */

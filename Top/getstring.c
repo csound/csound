@@ -24,6 +24,9 @@
 */
 
 #include "csoundCore.h"
+#ifdef HAVE_STRTOD_L
+static locale_t csound_c_locale = NULL;
+#endif
 
 #ifdef HAVE_DIRENT_H
 #  include <sys/types.h>
@@ -41,10 +44,17 @@ int closedir(DIR*);
 #define CSSTRNGS_VERSION 0x2000
 #include <locale.h>
 #ifndef GNU_GETTEXT
-void init_getstring(void)
+void init_getstring(void *cs)
 {
+#ifndef HAVE_STRTOD_L
     setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
+#else
+    if (csound_c_locale == NULL) {
+        csound_c_locale = newlocale (0, "C", NULL);
+    }
+#endif
 }
+
 PUBLIC char *csoundLocalizeString(const char *s)
 {
     return (char*)s;
@@ -55,7 +65,7 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
     return;
 }
 #else
-void init_getstring(void)
+void init_getstring(void *cs)
 {
 /*     s = csoundGetEnv(NULL, "CS_LANG"); */
 /*     if (s == NULL)              /\* Default locale *\/ */
@@ -68,7 +78,13 @@ void init_getstring(void)
     /* This is experimental; where should these be?? */
     bindtextdomain("csound6", "/home/jpff/Sourceforge/csound/csound6/po");
 #endif
+#ifndef HAVE_STRTOD_L
     setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
+#else
+    if (csound_c_locale == NULL) {
+        csound_c_locale = newlocale (0, "C", NULL);
+    }
+#endif
 }
 
 PUBLIC char *csoundLocalizeString(const char *s)
@@ -164,5 +180,48 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
     }
     return;
 }
+
 #endif
 
+PUBLIC char* cs_strtok_r(char* str, char* delim, char** nextp) {
+#ifdef HAVE_STRTOK_R
+    return strtok_r(str, delim, nextp);
+#else
+    /*
+     * public domain strtok_r() by Charlie Gordon
+     *
+     *   from comp.lang.c  9/14/2007
+     *
+     *      http://groups.google.com/group/comp.lang.c/msg/2ab1ecbb86646684
+     *
+     *     (Declaration that it's public domain):
+     *      http://groups.google.com/group/comp.lang.c/msg/7c7b39328fefab9c
+     */
+    char *ret;
+    if (str == NULL)
+    {
+        str = *nextp;
+    }
+    str += strspn(str, delim);
+    if (*str == '\0')
+    {
+        return NULL;
+    }
+    ret = str;
+    str += strcspn(str, delim);
+    if (*str)
+    {
+        *str++ = '\0';
+    }
+    *nextp = str;
+    return ret;
+#endif
+}
+
+PUBLIC double cs_strtod(char* nptr, char** endptr) {
+#ifdef HAVE_STRTOD_L
+    return strtod_l(nptr, endptr, csound_c_locale);
+#else
+    return strtod(nptr, endptr);
+#endif
+}

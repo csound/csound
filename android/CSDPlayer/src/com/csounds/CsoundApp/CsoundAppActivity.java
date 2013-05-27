@@ -1,36 +1,42 @@
 package com.csounds.CsoundApp;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.util.ArrayList;
-import com.csounds.CsoundApp.R;
-
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ListAdapter;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
-import android.view.View.OnClickListener;
-import android.widget.Button;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjCompletionListener;
 
 public class CsoundAppActivity extends Activity  implements CsoundObjCompletionListener {
 	Button browseButton;
+	Button newButton;
+	Button editButton;
 	ToggleButton startStopButton = null;
 	CsoundObj csound = null;
 	File csd = null;
@@ -49,7 +55,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 	boolean running = false;
 	String errorMessage;
 
-	@Override
 	public void csoundObjComplete(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
@@ -61,8 +66,21 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 	}
 
    private void displayError(int error){
-	   errorMessage = "Csound Compilation Error " + error;
-	   showDialog(ERROR_DIALOG);    
+	  // errorMessage = "Csound Compilation Error ";
+	  // showDialog(ERROR_DIALOG); 
+      try {
+	      Process process = Runtime.getRuntime().exec("logcat -dt 8 AndroidCsound:I *:S");
+	      BufferedReader bufferedReader = new BufferedReader(
+	      new InputStreamReader(process.getInputStream()));
+	      StringBuilder log=new StringBuilder();
+	      String line;
+	      log.append("Csound Compile error:\n");
+	      while ((line = bufferedReader.readLine()) != null) {
+	        log.append(line + "\n");
+	      }
+	      TextView tv = (TextView)findViewById(R.id.textView7);
+	      tv.setText(log.toString());
+   } catch (IOException e) { }
    }
 
 	private void OnFileChosen(File file){
@@ -79,7 +97,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 		} catch (Exception e){
 			Log.e("error", "could not stop csound");
 		}
-
 	}
 
 	/** Called when the activity is first created. */
@@ -87,13 +104,34 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		newButton = (Button) findViewById(R.id.newButton);
+		newButton.setOnClickListener(new OnClickListener(){ 
+			public void onClick(View v){
+				if(!running) {
+					Intent intent = new Intent(Intent.ACTION_GET_CONTENT); 
+					Uri uri = Uri.parse("file://template.csd"); 
+					intent.setDataAndType(uri, "text/plain"); 
+					startActivityForResult(intent, R.id.newButton);						
+				}
+			}
+		});
 		browseButton = (Button) findViewById(R.id.browseButton);
 		browseButton.setOnClickListener(new OnClickListener(){ 
-			@Override
 			public void onClick(View v){
 				if(!running) {
 					loadFileList();
 					showDialog(BROWSE_DIALOG); 
+				}
+			}
+		});
+		editButton = (Button) findViewById(R.id.editButton);
+		editButton.setOnClickListener(new OnClickListener(){ 
+			public void onClick(View v){
+				if(!running && csd != null) {
+					Intent intent = new Intent(Intent.ACTION_VIEW); 
+					Uri uri = Uri.parse("file://" + csd.getAbsolutePath()); 
+					intent.setDataAndType(uri, "text/plain"); 
+					startActivity(intent);						
 				}
 			}
 		});
@@ -114,7 +152,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 
 		startStopButton = (ToggleButton) findViewById(R.id.onOffButton);
 		startStopButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				if (csd == null) {
 					buttonView.toggle();
@@ -123,6 +160,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 				Log.d("CSD", csd.getAbsolutePath());		
 				if(isChecked) {
 					csound = new CsoundObj();
+					
 					String channelName;
 					for(int i = 0; i < 5; i++){
 						channelName = "slider" + (i+1);
@@ -134,14 +172,31 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 					csound.enableAccelerometer(CsoundAppActivity.this);
 					csound.addCompletionListener(CsoundAppActivity.this);
 					csound.startCsound(csd);
+					TextView tv = (TextView)findViewById(R.id.textView7);
+				    tv.setText("Csound is running...");
 			
 				} else {
 					csound.stopCsound();
+					TextView tv = (TextView)findViewById(R.id.textView7);
+				    tv.setText("Csound is stopped...");
 					running = false;
 				}
 			}
 		});
 	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent intent)
+	{
+		try {
+			if (requestCode == R.id.newButton && intent != null){
+				csd = new File(intent.getData().getPath());
+			}
+		} catch (Exception e) {
+			Log.e("error", e.toString());
+		}
+	}
+	
 	private void loadFileList() {
 		try {
 			path.mkdirs();
@@ -149,9 +204,9 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 			Log.e("error", "unable to write on the sd card ");
 		}
 
+		
 		if (path.exists()) {
 			FilenameFilter filter = new FilenameFilter() {
-				@Override
 				public boolean accept(File dir, String filename) {
 					File sel = new File(dir, filename);
 					return (sel.isFile() || sel.isDirectory())
@@ -207,6 +262,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 			return file;
 		}
 	}
+	
 
 	@Override
 	protected Dialog onCreateDialog(int id) {
@@ -221,7 +277,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 		case BROWSE_DIALOG:
 			builder.setTitle("Choose your file");
 			builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
-				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					chosenFile = fileList[which].file;
 					File sel = new File(path + "/" + chosenFile);

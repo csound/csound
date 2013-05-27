@@ -41,9 +41,10 @@ OSStatus  Csound_Render(void *inRefCon,
                         AudioBufferList *ioData);
 void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
-@interface CsoundObj() 
+@interface CsoundObj()
 
 -(void)runCsound:(NSString*)csdFilePath;
+-(void)runCsoundToDisk:(NSArray*)paths;
 
 @end
 
@@ -224,6 +225,13 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
     return mCsData.cs;
 }
 
+-(AudioUnit*)getAudioUnit {
+    if (!mCsData.running) {
+        return NULL;
+    }
+    return mCsData.aunit;
+}
+
 -(float*)getInputChannelPtr:(NSString*)channelName {
     float *value;
     csoundGetChannelPtr(mCsData.cs, &value, [channelName cStringUsingEncoding:NSASCIIStringEncoding], CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
@@ -347,12 +355,16 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
     
 	if (inInterruption == kAudioSessionEndInterruption) {
 		// make sure we are again the active session
-		AudioSessionSetActive(true);
-		AudioOutputUnitStart(*(cdata->aunit));
+        if (cdata != NULL && cdata->running) {
+            AudioSessionSetActive(true);
+            AudioOutputUnitStart(*(cdata->aunit));
+        }
 	}
 	
 	if (inInterruption == kAudioSessionBeginInterruption) {
-		AudioOutputUnitStop(*(cdata->aunit));
+        if (cdata != NULL && cdata->running) {
+            AudioOutputUnitStop(*(cdata->aunit));
+        }
     }
 }
 
@@ -365,6 +377,13 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
 	mCsData.shouldRecord = true;
 	self.outputURL = outputURL_;
 	[self performSelectorInBackground:@selector(runCsound:) withObject:csdFilePath];
+}
+
+-(void)startCsoundToDisk:(NSString*)csdFilePath outputFile:(NSString*)outputFile {
+	mCsData.shouldRecord = false;
+    
+    [self performSelectorInBackground:@selector(runCsoundToDisk:)
+                           withObject:[NSMutableArray arrayWithObjects:csdFilePath, outputFile, nil]];
 }
 
 -(void)recordToURL:(NSURL *)outputURL_
@@ -421,13 +440,80 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
 	mCsData.shouldMute = false;
 }
 
+
+-(void)runCsoundToDisk:(NSArray*)paths {
+	
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+    
+        CSOUND *cs;
+        
+        cs = csoundCreate(NULL);
+        
+        char* parserFlag;
+        
+        if(self.useOldParser) {
+            parserFlag = "--old-parser";
+        } else {
+            parserFlag = "--new-parser";
+        }
+        
+        char *argv[5] = { "csound", parserFlag,
+            (char*)[[paths objectAtIndex:0] cStringUsingEncoding:NSASCIIStringEncoding], "-o", (char*)[[paths objectAtIndex:1] cStringUsingEncoding:NSASCIIStringEncoding]};
+        int ret = csoundCompile(cs, 5, argv);
+        
+        /* SETUP VALUE CACHEABLE */
+        
+        for (int i = 0; i < valuesCache.count; i++) {
+            id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+            [cachedValue setup:self];
+        }
+        
+        /* NOTIFY COMPLETION LISTENERS*/
+        
+        for (id<CsoundObjCompletionListener> listener in completionListeners) {
+            [listener csoundObjDidStart:self];
+        }
+        
+        /* SET VALUES FROM CACHE */
+        for (int i = 0; i < valuesCache.count; i++) {
+			id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+			[cachedValue updateValuesToCsound];
+		}
+        
+        if(!ret) {
+            
+            csoundPerform(cs);
+            csoundCleanup(cs);
+            csoundDestroy(cs);
+        }
+        
+        /* CLEANUP VALUE CACHEABLE */
+        
+        for (int i = 0; i < valuesCache.count; i++) {
+            id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+            [cachedValue cleanup];
+        }
+        
+        /* NOTIFY COMPLETION LISTENERS*/
+        
+        for (id<CsoundObjCompletionListener> listener in completionListeners) {
+            [listener csoundObjComplete:self];
+        }
+        
+        [mMotionManager stopAccelerometerUpdates];
+        [mMotionManager stopGyroUpdates];
+        [mMotionManager stopDeviceMotionUpdates];
+
+         [pool release];
+}
+
 -(void)runCsound:(NSString*)csdFilePath {
 	
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];	
 	CSOUND *cs;
     
 	cs = csoundCreate(NULL);
-    csoundPreCompile(cs);
     csoundSetHostImplementedAudioIO(cs, 1, 0);
 	
 	csoundSetMessageCallback(cs, messageCallback);
@@ -469,15 +555,25 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
             [cachedValue setup:self];
         }
         
-        
 		/* Audio Session handler */
         AudioSessionInitialize(NULL, NULL, InterruptionListener, &mCsData);
 		AudioSessionSetActive(true);
-		UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker;
-		AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute, sizeof(audioRouteOverride), &audioRouteOverride);
 		UInt32 audioCategory = kAudioSessionCategory_PlayAndRecord;
 		AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
-		
+        
+        //APE: must be after sets kAudioSessionCategory_PlayAndRecord
+        UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker;
+        AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute, sizeof(audioRouteOverride), &audioRouteOverride);
+        
+        // change also default out route to speaker
+        UInt32 doChangeDefaultRoute = 1;
+        AudioSessionSetProperty (kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof (doChangeDefaultRoute), &doChangeDefaultRoute);
+        
+        //Then you can add mixable audio
+        //We want our audio to mix with other app's audio //must be after OverrideToSpeaker
+        UInt32 shouldMix = 1;
+        AudioSessionSetProperty (kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof (shouldMix), &shouldMix);
+        
 		Float32 preferredBufferSize = mCsData.bufframes / csoundGetSr(cs);
 		AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, sizeof(preferredBufferSize), &preferredBufferSize);
 		AudioComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_RemoteIO, kAudioUnitManufacturer_Apple, 0, 0};
@@ -563,7 +659,11 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
 						[listener csoundObjDidStart:self];
 					}
                     
-                    if(!err) while (!mCsData.ret && mCsData.running);
+                    if(!err) {
+                        while (!mCsData.ret && mCsData.running) {
+                            [NSThread sleepForTimeInterval:.001];
+                        }
+                    }
 						
                     ExtAudioFileDispose(mCsData.file);
 					mCsData.shouldRecord = false;

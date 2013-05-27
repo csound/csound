@@ -1,4 +1,4 @@
-; C S O U N D   6   I N N O   S E T U P   S C R I P T
+  ; C S O U N D   6   I N N O   S E T U P   S C R I P T
 
 ; Copyright (C) 2013 by Michael Gogins.
 ; This software is licensed under the terms of the 
@@ -16,7 +16,7 @@
 
 #define MyAppName "Csound6"
 #define MyAppVersion ""
-#define MyAppMinVersion "0"
+#define MyAppMinVersion "0rc2"
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
@@ -24,9 +24,9 @@
 ; If you are not Michael Gogins, change this to your MinGW /usr/local/ directory.
 #define MyMinGwUsrLocalDir "C:\mingw32-4.7.2\msys\1.0\local\"
 ; If you are not Michael Gogins, change this to your Csound build directory.
-#define MySourceDir "C:\Users\Michael\csound-csound6-git\"
+#define MySourceDir "C:\Users\new\csound-csound6-git\"
 ; If you are not Michael Gogins, change this to your Csound reference manual build directory.
-#define MyManualSourceDir "C:\Users\Michael\csound-manual6-git\"
+#define MyManualSourceDir "C:\Users\new\csound-manual6-git\"
 ; If you are not Michael Gogins, change this to your Csound tutorial directory.
 #define MyCsoundTutorialSourceDir "D:\Dropbox\tutorial\"
 ; If you are not Michael Gogins, change this to your CsoundAC tutorial directory.
@@ -154,6 +154,7 @@ Source: {#MyFluidSynthSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversi
 Source: {#MyLibLoSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 
 Source: include/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core 
+Source: interfaces/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core 
 Source: frontends/CsoundAC/*.hpp; DestDir: "{#APP_INCLUDE}\csoundac"; Flags: ignoreversion;  Components: core 
 
 Source: {#MyManualSourceDir}html\*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs;  Components: core 

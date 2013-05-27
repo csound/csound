@@ -1,16 +1,17 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtmidi=null -+rtaudio=null -d -+msg_color=0 -M0 -m0
+-o dac -d -b512 -B2048
 </CsOptions>
 <CsInstruments>
 nchnls=2
 0dbfs=1
-ksmps=64
+ksmps=32
 sr = 44100
 
 ga1 init 0
 
 instr 1
+
 itie tival
 i_instanceNum = p4
 S_xName sprintf "touch.%d.x", i_instanceNum
@@ -19,7 +20,7 @@ S_yName sprintf "touch.%d.y", i_instanceNum
 kx chnget S_xName
 ky chnget S_yName
 
-kenv linsegr 0, .01, 1, .1, 1, .25, 0
+kenv linsegr 0, .001, 1, .1, 1, .25, 0
 a1 vco2 ky * .5 * kenv, 60 + (log(1 - kx) * 3000), 0
 
 ga1 = ga1 + a1
@@ -54,3 +55,4 @@ i2 0 360000
  
 </CsScore>
 </CsoundSynthesizer>
+

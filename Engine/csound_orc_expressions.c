@@ -46,6 +46,9 @@ extern char* get_arg_type(CSOUND* csound, TREE* tree);
 
 TREE* create_boolean_expression(CSOUND*, TREE*, int, int, TYPE_TABLE*);
 TREE * create_expression(CSOUND *, TREE *, int, int, TYPE_TABLE*);
+char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
+                           char* outArgTypes);
+
 
 static int genlabs = 300;
 
@@ -63,12 +66,14 @@ TREE* tree_tail(TREE* node) {
 char *create_out_arg(CSOUND *csound, char* outype, TYPE_TABLE* typeTable)
 {
     char* s = (char *)csound->Malloc(csound, 16);
+
     switch(*outype) {
     case 'a': sprintf(s, "#a%d", csound->acount++); break;
     case 'K':
     case 'k': sprintf(s, "#k%d", csound->kcount++); break;
     case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
     case 'b': sprintf(s, "#b%d", csound->bcount++); break;
+    case 'f': sprintf(s, "#f%d", csound->tcount++); break;
     case 't': sprintf(s, "#k%d", csound->tcount++); break;
     case 'S': sprintf(s, "#S%d", csound->tcount++); break;
     case '[': sprintf(s, "#%c%d[]", outype[1], csound->tcount++);
@@ -257,20 +262,7 @@ int is_expression_node(TREE *node)
     case '#':
     case '~':
     case '?':
-    case S_TABSLICE:
-    case S_TABRANGE:
-    case S_TABREF:
     case T_ARRAY:
-    case T_MAPK:
-    case T_MAPI:
-    case T_TADD:
-    case S_TUMINUS:
-    case T_TMUL:
-    case T_TDIV:
-    case T_TREM:
-    case T_TIMUL:
-    case T_TIDIV:
-    case T_TIREM:
       return 1;
     }
    return 0;
@@ -372,7 +364,7 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
     strncpy(argString, leftArgType, 80);
     strncat(argString, rightArgType, 80 - strlen(leftArgType));
     outType = resolve_opcode_get_outarg(csound, opentries, argString);
-
+    if(outType == NULL) return NULL;
     return create_out_arg(csound, outType, typeTable);
 }
 
@@ -440,14 +432,16 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
     }
     root->right = newArgList;
 
-
-
     arg1 = '\0';
     if (root->left != NULL) {
       arg1 = argtyp2( root->left->value->lexeme);
     }
-    arg2 = argtyp2( root->right->value->lexeme);
+    if (root->right != NULL) {
+      arg2 = argtyp2( root->right->value->lexeme);
     //printf("arg1=%.2x(%c); arg2=%.2x(%c)\n", arg1, arg1, arg2, arg2);
+    } else {
+      arg2 = '\0';
+    }
     op = mcalloc(csound, 80);
 
     switch(root->type) {
@@ -481,63 +475,38 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
-    case S_TABREF:
-      strncpy(op, "##tabref", 80);
-      outarg = create_out_arg(csound, "k", typeTable);
-      break;
-    case S_TABRANGE:
-      strncpy(op, "#tabgen", 80);
-      outarg = create_out_arg(csound, "k", typeTable);
-      break;
-    case S_TABSLICE:
-      strncpy(op, "#tabslice", 80);
-      if (UNLIKELY(PARSER_DEBUG))
-        csound->Message(csound, "Found TABSLICE: %s\n", op);
-      outarg = create_out_arg(csound, "t", typeTable);
-      break;
-    case T_MAPK:
-      strncpy(op, "#tabmap", 80);
-      if (UNLIKELY(PARSER_DEBUG))
-        csound->Message(csound, "Found TABMAP: %s\n", op);
-      outarg = create_out_arg(csound, "k", typeTable);
-      break;
-    case T_MAPI:
-      strncpy(op, "#tabmapo_i", 80);
-      if (UNLIKELY(PARSER_DEBUG))
-        csound->Message(csound, "Found TABMAP: %s\n", op);
-      outarg = create_out_arg(csound, "k", typeTable);
-      break;
-    case T_FUNCTION: /* assumes only single arg input */
+    case T_FUNCTION:
         {
       char* outtype;
       op = cs_strdup(csound, root->value->lexeme);
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found OP: %s\n", op);
-      /* VL: some non-existing functions were appearing here
-         looking for opcodes that did not exist */
-
-
 
       opentries = find_opcode2(csound, root->value->lexeme);
-
       if (opentries->count == 0) {
-                                /* This is a little like overkill
-                                 * and also this opnum variable is not used  */
-        //opnum = find_opcode_num(csound, "##error", "i", "i");
         csound->Warning(csound,
                     Str("error: function %s not found, "
                         "line %d \n"),
                     root->value->lexeme, line);
         outtype = "i";
-
       }
       else {
         char* inArgTypes = get_arg_string_from_tree(csound, root->right, typeTable);
-        outtype = resolve_opcode_get_outarg(csound, opentries, inArgTypes);
+        if(root->value->optype != NULL)
+         outtype = check_annotated_type(csound, opentries, root->value->optype);
+        /* if there are type annotations */
+        else outtype = resolve_opcode_get_outarg(csound, opentries, inArgTypes);
       }
-
+      if(outtype == NULL) {
+        csound->Warning(csound,
+                    Str("error: opcode %s with output type %s not found, "
+                        "line %d"),
+                        root->value->lexeme, root->value->optype, line);
+        outtype = "i";
+      }
       outarg = create_out_arg(csound, outtype, typeTable);
-        }
+
+     }
       break;
     case S_UMINUS:
       if (UNLIKELY(PARSER_DEBUG))
@@ -587,42 +556,6 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
       }
       break;
-    case T_TADD:
-      strncpy(op, "##plustab", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
-      break;
-    case T_SUB:
-      strncpy(op, "##subtab", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
-      break;
-    case S_TUMINUS:
-      strncpy(op, "##negtab", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
-      break;
-    case T_TMUL:
-      strncpy(op, "##multtab", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
-      break;
-    case T_TDIV:
-      strncpy(op, "##divtab", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
-      break;
-    case T_TREM:
-      strncpy(op, "##remtab", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
-      break;
-    case T_TIMUL:
-      strncpy(op, "##mulitab", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
-      break;
-    case T_TIDIV:
-      strncpy(op, "##divitabtab", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
-      break;
-    case T_TIREM:
-       strncpy(op, "##remitab", 80);
-       outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
-       break;
     case T_ARRAY:
         strncpy(op, "##array_get", 80);
         outarg = create_out_arg(csound,
@@ -631,8 +564,9 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                 typeTable);
         break;
 
-     }
+    }
      opTree = create_opcode_token(csound, op);
+     if(root->value) opTree->value->optype = root->value->optype;
      if (root->left != NULL) {
        opTree->right = root->left;
        opTree->right->next = root->right;
@@ -647,7 +581,6 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
        opTree->line = line;
        opTree->locn = locn;
      }
-     if (root->type==S_TABRANGE) handle_optional_args(csound, opTree);
      if (anchor == NULL) {
        anchor = opTree;
      }

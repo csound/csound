@@ -143,7 +143,7 @@ static int (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
 
 /* Csound hrtf magnitude interpolation, phase truncation object */
 
-/* aleft,aright hrtfmove asrc, kaz, kel, ifilel, ifiler [, imode = 0,
+/* aleft,aright hrtfmove asrc, kaz, kel, ifilel->data, ifiler [, imode = 0,
    ifade = 8, sr = 44100]... */
 /* imode: minphase/phase truncation, ifade: no of buffers per fade for
    phase trunc., sr can be 44.1/48/96k */
@@ -153,7 +153,9 @@ typedef struct
         OPDS  h;
         /* outputs and inputs */
         MYFLT *outsigl, *outsigr;
-        MYFLT *in, *kangle, *kelev, *ifilel, *ifiler, *omode, *ofade, *osr;
+  MYFLT *in, *kangle, *kelev;
+          STRINGDAT *ifilel, *ifiler;
+       MYFLT *omode, *ofade, *osr;
 
         /* check if relative source has changed! */
         MYFLT anglev, elevv;
@@ -275,8 +277,8 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
       }
 
     /* copy in string name */
-    strncpy(filel, (char*) p->ifilel, MAXNAME);
-    strncpy(filer, (char*) p->ifiler, MAXNAME);
+    strncpy(filel, (char*) p->ifilel->data, MAXNAME);
+    strncpy(filer, (char*) p->ifiler->data, MAXNAME);
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
@@ -1335,7 +1337,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
    static source: January 10 */
 /* overlap add convolution */
 
-/* aleft, aright hrtfstat ain, iang, iel, ifilel, ifiler [,iradius = 8.8,
+/* aleft, aright hrtfstat ain, iang, iel, ifilel, ifiler->data [,iradius = 8.8,
    isr = 44100]...options of 48 and 96k sr */
 
 /* see definitions above */
@@ -1345,7 +1347,9 @@ typedef struct
         OPDS  h;
         /* outputs and inputs */
         MYFLT *outsigl, *outsigr;
-        MYFLT *in, *iangle, *ielev, *ifilel, *ifiler, *oradius, *osr;
+        MYFLT *in, *iangle, *ielev;
+        STRINGDAT *ifilel, *ifiler;
+        MYFLT *oradius, *osr;
 
         /*see definitions in INIT*/
         int irlength, irlengthpad, overlapsize;
@@ -1458,8 +1462,8 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       }
 
     /* copy in string name... */
-    strncpy(filel, (char*) p->ifilel, MAXNAME);
-    strncpy(filer, (char*) p->ifiler, MAXNAME);
+    strncpy(filel, (char*) p->ifilel->data, MAXNAME);
+    strncpy(filer, (char*) p->ifiler->data, MAXNAME);
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
@@ -1994,7 +1998,9 @@ typedef struct
         OPDS  h;
         /* outputs and inputs */
         MYFLT *outsigl, *outsigr;
-        MYFLT *in, *kangle, *kelev, *ifilel, *ifiler, *ooverlap, *oradius, *osr;
+  MYFLT *in, *kangle, *kelev;
+  STRINGDAT *ifilel, *ifiler;
+MYFLT *ooverlap, *oradius, *osr;
 
         /* check if relative source has changed! */
         MYFLT anglev, elevv;
@@ -2078,8 +2084,8 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
       irlength = 256;
 
     /* copy in string name... */
-    strncpy(filel, (char*) p->ifilel, MAXNAME);
-    strncpy(filer, (char*) p->ifiler, MAXNAME);
+    strncpy(filel, (char*) p->ifilel->data, MAXNAME);
+    strncpy(filer, (char*) p->ifiler->data, MAXNAME);
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,

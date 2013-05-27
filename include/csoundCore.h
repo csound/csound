@@ -44,6 +44,10 @@ extern "C" {
 #endif /*  __cplusplus */
 
 #ifdef __MACH__
+#include <xlocale.h>
+#endif
+
+#if (defined(__MACH__) || defined(ANDROID))
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;
@@ -83,8 +87,8 @@ typedef struct {
 #  define XINARG4   (p->XINCODE & 8)
 #  define XINARG5   (p->XINCODE &16)
 #define XOUTCODE    ORTXT.xoutcod
-#define XSTRCODE    ORTXT.xincod_str
-#define XOUTSTRCODE ORTXT.xoutcod_str
+//#define XSTRCODE    ORTXT.xincod_str
+//#define XOUTSTRCODE ORTXT.xoutcod_str
 
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
@@ -98,6 +102,8 @@ typedef struct {
 #define FMAXLEN    ((MYFLT)(MAXLEN))
 #define PHMASK     0x0FFFFFFL
 #endif
+
+#define MAX_STRING_CHANNEL_DATASIZE 16384
 
 #define PFRAC(x)   ((MYFLT)((x) & ftp->lomask) * ftp->lodiv)
 #define MAXPOS     0x7FFFFFFFL
@@ -171,8 +177,6 @@ typedef struct {
 #define ASYNC_GLOBAL 1
 #define ASYNC_LOCAL  2
 
-
-
   typedef struct CORFIL {
     char    *body;
     unsigned int     len;
@@ -236,7 +240,6 @@ typedef struct {
         int     (*kopadr)(CSOUND *, void *p);
         int     (*aopadr)(CSOUND *, void *p);
         void    *useropinfo;    /* user opcode parameters */
-        int     prvnum;
     } OENTRY;
 
     // holds matching oentries from opcodeList
@@ -244,7 +247,7 @@ typedef struct {
     // (unlikely though)
     typedef struct oentries {
         OENTRY* entries[16];
-        int opnum[16];
+//        int opnum[16];
         int count;
         char *opname;
         int prvnum;
@@ -349,6 +352,11 @@ typedef struct {
       MYFLT   *data;
       AUXCH   aux;
    } TABDAT;
+
+  typedef struct {
+    char *data;
+    int size;
+  } STRINGDAT;
 
   typedef struct monblk {
     int16   pch;
@@ -714,6 +722,8 @@ typedef struct {
 #define MIDIINBUFMAX    (1024)
 #define MIDIINBUFMSK    (MIDIINBUFMAX-1)
 
+
+
   typedef union {
     uint32 dwData;
     unsigned char bData[4];
@@ -890,8 +900,7 @@ typedef struct NAME__ {
     uint32_t (*GetNchnls_i)(CSOUND *);
     MYFLT (*Get0dBFS) (CSOUND *);
     long (*GetKcounter)(CSOUND *);
-     int64_t (*GetCurrentTimeSamples)(CSOUND *);
-    int (*GetStrVarMaxLen)(CSOUND *);
+    int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
     MYFLT *(*GetInputBuffer)(CSOUND *);
@@ -956,6 +965,7 @@ typedef struct NAME__ {
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
     void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
+    char *(*Strdup)(CSOUND *, char*);
     void (*Free)(CSOUND *, void *ptr);
 
     /**@}*/
@@ -1217,6 +1227,8 @@ typedef struct NAME__ {
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     char *(*LocalizeString)(const char *);
+    char *(*strtok_r)(char*, char*, char**);
+    double (*strtod)(char*, char**);
     /**@}*/
     /** @name Placeholders */
     /**@{ */
@@ -1311,12 +1323,7 @@ typedef struct NAME__ {
     char          *xfilename;
     int           peakchunks;
     int           keep_tmp;
-    OENTRY        *opcodlst;
-    int           *opcode_list;
-    OENTRY        *oplstend;
-    OENTRIES      *opcodelist;
-    OENTRIES      *opcodelist_end;
-    /* int           maxopcno; */
+    CS_HASH_TABLE *opcodes;
     int32         nrecs;
     FILE*         Linepipe;
     int           Linefd;
@@ -1343,8 +1350,6 @@ typedef struct NAME__ {
     int           randSeed2;
     CsoundRandMTState *csRandState;
     RTCLOCK       *csRtClock;
-    /** max. length of string variables + 1  */
-    int           strVarMaxLen;
     int           strsmax;
     char          **strsets;
     MYFLT         *spin;
@@ -1405,7 +1410,6 @@ typedef struct NAME__ {
     void          *tseg, *tpsave, *tplim;
     /* Statics from express.c */
     int           acount, kcount, icount, Bcount, bcount, tcount;
-    int           strVarSamples;    /* number of MYFLT locations for string */
     MYFLT         *gbloffbas;       /* was static in oload.c */
     pthread_t    file_io_thread;
     int          file_io_start;
@@ -1462,18 +1466,6 @@ typedef struct NAME__ {
       int     repeat_inc /* = 1 */;
       S_MACRO   *repeat_mm;
     } sreadStatics;
-#define INSMAX  4096
-    struct extractStatics__ {
-      char    inslst[INSMAX];         /*   values set by readxfil         */
-      int     sectno, a0done;
-      int     onsect, offsect;        /*      "       "       "           */
-      MYFLT   onbeat, offbeat;        /*      "       "       "           */
-      MYFLT   ontime, offtime;        /* set by readxfil, mod by w-stmnt  */
-      SRTBLK  *frstout, *prvout;      /* links for building new outlist   */
-      SRTBLK  a0;
-      SRTBLK  f0;
-      SRTBLK  e;
-    } extractStatics;
     struct onefileStatics__ {
       NAMELST *toremove;
       char    orcname[L_tmpnam + 4];
@@ -1584,7 +1576,6 @@ typedef struct NAME__ {
     MYFLT         *disprep_fftcoefs;
     void          *winEPS_globals;
     OPARMS        oparms_;
-    const unsigned char *strhash_tabl_8;
     REMOT_BUF     SVrecvbuf;  /* RM: rt_evt input Communications buffer */
     void          *remoteGlobals;
     /* VL: pvs bus */

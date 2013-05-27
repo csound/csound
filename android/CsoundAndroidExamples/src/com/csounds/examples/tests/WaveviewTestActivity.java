@@ -39,8 +39,8 @@ import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
 import com.csounds.valueCacheable.CsoundValueCacheable;
 
-import csnd.Csound;
-import csnd.CsoundMYFLTArray;
+import csnd6.Csound;
+import csnd6.CsoundMYFLTArray;
 
 public class WaveviewTestActivity extends BaseCsoundActivity {
 
@@ -84,19 +84,16 @@ public class WaveviewTestActivity extends BaseCsoundActivity {
 			paint.setStrokeWidth(3);
 		}
 
-		@Override
 		public void setup(CsoundObj csoundObj) {
 			tableLoaded = false;
 			this.csoundObj = csoundObj;
 		}
 
-		@Override
 		public void updateValuesToCsound() {
 			// TODO Auto-generated method stub
 
 		}
 
-		@Override
 		public void updateValuesFromCsound() {
 			if (!tableLoaded) {
 				Csound csound = csoundObj.getCsound();
@@ -136,7 +133,6 @@ public class WaveviewTestActivity extends BaseCsoundActivity {
 			}
 		}
 
-		@Override
 		public void cleanup() {
 			csoundObj = null;
 			tableData = null;

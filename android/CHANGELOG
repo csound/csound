@@ -1,0 +1,8 @@
+Csound for Android ChangeLog
+
+This ChangeLog shows changes specific to Csound for Android. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
+
+
+6.00rc2 - 2013-05-23
+
+* Warning: In Csound 5 for Android, CSD's required using "-+rtaudio=null".  In Csound 6, this must not be used or it will cause the dummy audio interface to be used, just as it does on the Desktop.  The result of this is that CSD's should be easier to use between desktop and Android.

@@ -53,17 +53,34 @@ int midibset(CSOUND*, MIDIKMB*);
 
 /* IV - Oct 31 2002: modified to allow named instruments */
 
-int massign(CSOUND *csound, MASSIGN *p)
+int massign_p(CSOUND *csound, MASSIGN *p)
+{
+    int   chnl = (int)(*p->chnl + FL(0.5));
+    int   resetCtls;
+    int   retval = OK;
+
+    resetCtls = (*p->iresetctls == FL(0.0) ? 0 : 1);
+    if (--chnl >= 0)
+      retval = m_chinsno(csound, chnl, (int) *p->insno, resetCtls);
+    else {
+      for (chnl = 0; chnl < 16; chnl++) {
+        if (m_chinsno(csound, chnl, (int) *p->insno, resetCtls) != OK)
+          retval = NOTOK;
+      }
+    }
+    return retval;
+}
+
+int massign_S(CSOUND *csound, MASSIGNS *p)
 {
     int   chnl = (int)(*p->chnl + FL(0.5));
     int32  instno = 0L;
     int   resetCtls;
     int   retval = OK;
 
-    if (p->XSTRCODE || *(p->insno) >= FL(0.5)) {
-      if (UNLIKELY((instno = strarg2insno(csound, p->insno, p->XSTRCODE)) <= 0L))
+   if (UNLIKELY((instno = strarg2insno(csound, p->insno->data, 1)) <= 0L))
         return NOTOK;
-    }
+    
     resetCtls = (*p->iresetctls == FL(0.0) ? 0 : 1);
     if (--chnl >= 0)
       retval = m_chinsno(csound, chnl, (int) instno, resetCtls);
@@ -75,6 +92,7 @@ int massign(CSOUND *csound, MASSIGN *p)
     }
     return retval;
 }
+
 
 int ctrlinit(CSOUND *csound, CTLINIT *p)
 {
@@ -375,7 +393,7 @@ int midichn(CSOUND *csound, MIDICHN *p)
 
 /* pgmassign - assign MIDI program to instrument */
 
-int pgmassign(CSOUND *csound, PGMASSIGN *p)
+int pgmassign_(CSOUND *csound, PGMASSIGN *p, int instname)
 {
     int pgm, ins, chn;
 
@@ -383,7 +401,7 @@ int pgmassign(CSOUND *csound, PGMASSIGN *p)
     if (UNLIKELY(chn < 0 || chn > 16))
       return csound->InitError(csound, Str("illegal channel number"));
     /* IV - Oct 31 2002: allow named instruments */
-    if (p->XSTRCODE || ISSTRCOD(*p->inst)) {
+    if (instname || ISSTRCOD(*p->inst)) {
       MYFLT buf[128];
       csound->strarg2name(csound, (char*) buf, p->inst, "", 1);
       ins = (int)strarg2insno(csound, buf, 1);
@@ -417,6 +435,14 @@ int pgmassign(CSOUND *csound, PGMASSIGN *p)
       }
     }
     return OK;
+}
+
+int pgmassign_S(CSOUND *csound, PGMASSIGN *p){
+  return pgmassign_(csound,p,1);
+}
+
+int pgmassign(CSOUND *csound, PGMASSIGN *p){
+  return pgmassign_(csound,p,0);
 }
 
 int ichanctl(CSOUND *csound, CHANCTL *p)

@@ -1,16 +1,19 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtaudio=null -d -+msg_color=0 -m0
+-o dac -i adc -d -+msg_color=0 -m0 -b64 -B1024
 </CsOptions>
 <CsInstruments>
 nchnls=2
 0dbfs=1
-ksmps=64
+ksmps=32
 sr = 44100
 
 seed 0
 
 instr 1
+;a1 inch 1
+ ;  outs a1, a1
+
 
 ktrigger chnget "button1" 
 knotedur chnget "duration" 
@@ -42,7 +45,7 @@ ipch = 100 + rnd(1000)
 ;print irelease
 
 a2 linsegr 0, iattack, 1, idecay, isustain, irelease, 0
-a1 oscili a2 * .25, ipch, 1
+a1 oscili .25, ipch, 1
 outs a1,a1
 endin
 

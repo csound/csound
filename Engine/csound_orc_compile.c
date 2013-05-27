@@ -35,6 +35,7 @@
 #include "pstream.h"
 #include "typetabl.h"
 #include "csound_standard_types.h"
+#include "csound_orc_semantics.h"
 
 static const char* INSTR_NAME_FIRST = "::^inm_first^::";
 static  ARG* createArg(CSOUND *csound, INSTRTXT* ip,
@@ -311,7 +312,7 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
 }
 
 
-
+OENTRY* find_opcode(CSOUND*, char*);
 /**
  * Create an Opcode (OPTXT) from the AST node given for a given engineState
  */
@@ -325,12 +326,14 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     int n, nreqd;
     optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
     tp = &(optxt->t);
+    OENTRY* labelOpcode;
 
     switch(root->type) {
     case LABEL_TOKEN:
+      labelOpcode = find_opcode(csound, "$label");
       /* TODO - Need to verify here or elsewhere that this label is not
          already defined */
-      tp->oentry = &csound->opcodlst[LABEL];
+      tp->oentry = labelOpcode;
       tp->opcod = strsav_string(csound, engineState, root->value->lexeme);
 
       tp->outlist = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
@@ -338,8 +341,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       tp->inlist = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
       tp->inlist->count = 0;
 
-      ip->mdepends |= csound->opcodlst[LABEL].flags;
-      ip->opdstot += csound->opcodlst[LABEL].dsblksiz;
+      ip->mdepends |= labelOpcode->flags;
+      ip->opdstot += labelOpcode->dsblksiz;
 
       break;
     case GOTO_TOKEN:
@@ -518,7 +521,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     ip->pmax = 3L;
 
     /* start chain */
-    ip->t.oentry = &csound->opcodlst[INSTR];
+    ip->t.oentry = find_opcode(csound, "instr");
     /*  to hold global assigns */
     ip->t.opcod = strsav_string(csound, engineState, "instr");
 
@@ -547,7 +550,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           //FIXME - perhaps should add check as it was in
           //constndx?  Not sure if necessary due to assumption
           //that tree will be verified
-          MYFLT val = (MYFLT) strtod(current->right->value->lexeme, NULL);
+          MYFLT val = (MYFLT) cs_strtod(current->right->value->lexeme,
+                                       NULL);
 
           myflt_pool_find_or_add(csound, csound->engineState.constantsPool, val);
 
@@ -708,7 +712,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     ip->pmax = 3L;
 
     /* start chain */
-    ip->t.oentry = &csound->opcodlst[INSTR];
+    ip->t.oentry = find_opcode(csound, "instr");
     /*  to hold global assigns */
     ip->t.opcod = strsav_string(csound, engineState, "instr");
 
@@ -761,7 +765,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
     ip->pmax = 3L;
 
     /* Initialize */
-    ip->t.oentry = &csound->opcodlst[INSTR];
+    ip->t.oentry = find_opcode(csound, "instr");
     /*  to hold global assigns */
     ip->t.opcod = strsav_string(csound, engineState, "instr");
 
@@ -829,7 +833,7 @@ void close_instrument(CSOUND *csound, ENGINE_STATE* engineState, INSTRTXT * ip)
 
     bp = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
 
-    bp->t.oentry = &csound->opcodlst[ENDIN];        /*  send an endin to */
+    bp->t.oentry = find_opcode(csound, "endin");        /*  send an endin to */
     bp->t.opcod =
       strsav_string(csound, engineState, "endin");  /*  term instr 0 blk */
     bp->t.outlist = bp->t.inlist = NULL;
@@ -1521,8 +1525,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         /* chk instr 0 for illegal perfs */
         int thread;
         OENTRY* oentry = bp->t.oentry;
-        if (oentry == &csound->opcodlst[ENDIN]) break;
-        if (oentry == &csound->opcodlst[LABEL]) continue;
+        if (strcmp(oentry->opname, "endin") == 0) break;
+        if (strcmp(oentry->opname, "$label") == 0) continue;
         if (PARSER_DEBUG)
           csound->DebugMsg(csound, "Instr 0 check on opcode=%s\n", bp->t.opcod);
         if (UNLIKELY((thread = oentry->thread) & 06 ||
@@ -1605,9 +1609,9 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       TEXT *ttp = &optxt->t;
       ep = ttp->oentry;
 
-      if (ep == &csound->opcodlst[ENDIN]        /*    (until ENDIN)     */
-            || ep == &csound->opcodlst[ENDOP]) break;
-      if (ep == &csound->opcodlst[LABEL]) {
+      if (strcmp(ep->opname, "endin") == 0        /*    (until ENDIN)     */
+            || strcmp(ep->opname, "endop") == 0) break;
+      if (strcmp(ep->opname, "$label") == 0) {
         continue;
       }
 
@@ -1720,15 +1724,16 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       arg->type = ARG_CONSTANT;
       arg->index = myflt_pool_find_or_addc(csound, engineState->constantsPool, s);
     } else if (c == '"') {
+      STRINGDAT *str = mcalloc(csound, sizeof(STRINGDAT));
       arg->type = ARG_STRING;
       temp = mcalloc(csound, strlen(s) + 1);
       unquote_string(temp, s);
-
-      arg->argPtr = cs_hash_table_get_key(csound,
-                                          csound->engineState.stringPool, temp);
-
-      if (arg->argPtr == NULL) {
-        arg->argPtr = cs_hash_table_put_key(csound, engineState->stringPool, temp);
+      str->data = cs_hash_table_get_key(csound,
+                                        csound->engineState.stringPool, temp);
+      str->size = strlen(s) + 1;
+      arg->argPtr = str;
+      if (str->data == NULL) {
+        str->data = cs_hash_table_put_key(csound, engineState->stringPool, temp);
       }
     } else if ((n = pnum(s)) >= 0) {
       arg->type = ARG_PFIELD;
@@ -1794,7 +1799,7 @@ char argtyp2(char *s)
 /* For diagnostics map file name or macro name to an index */
 uint8_t file_to_int(CSOUND *csound, const char *name)
 {
-    extern char *strdup(const char *);
+    //extern char *strdup(const char *);
     uint8_t n = 0;
     char **filedir = csound->filedir;
     while (filedir[n] && n<63) {        /* Do we have it already? */
@@ -1872,12 +1877,10 @@ void debugPrintCsound(CSOUND* csound)
 
 
 #include "interlocks.h"
-int find_opcode(CSOUND *csound, char *name);
 void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o)
 {
     char *name = o->lexeme;
-    int32 opnum = find_opcode(csound, name);
-    OENTRY *ep = csound->opcodlst + opnum;
+    OENTRY *ep = find_opcode(csound, name);
     if (ep->flags&_QQ)
       csound->Warning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
 }
