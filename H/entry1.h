@@ -1,5 +1,5 @@
 /*
-    entry1.h:
+  entry1.h:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
 
@@ -37,7 +37,6 @@
 #include "soundio.h"
 #include "dumpf.h"
 #include "cmath.h"
-#include "diskin.h"
 #include "diskin2.h"
 #include "oload.h"
 #include "midiout.h"
@@ -121,8 +120,8 @@ int     cpsoct(CSOUND *, void *), octpch(CSOUND *, void *);
 int     cpspch(CSOUND *, void *), pchoct(CSOUND *, void *);
 int     octcps(CSOUND *, void *), acpsoct(CSOUND *, void *);
 int     cpsmidinn(CSOUND *, void *), octmidinn(CSOUND *, void *);
-int     pchmidinn(CSOUND *, void *);
-int     massign(CSOUND *, void *), ctrlinit(CSOUND *, void *);
+int     pchmidinn(CSOUND *, void *);int     massign_S(CSOUND *, void *);
+int     massign_p(CSOUND *, void *), ctrlinit(CSOUND *, void *);
 int     notnum(CSOUND *, void *), veloc(CSOUND *, void *);
 int     pchmidi(CSOUND *, void *), pchmidib(CSOUND *, void *);
 int     octmidi(CSOUND *, void *), octmidib(CSOUND *, void *);
@@ -140,6 +139,7 @@ int     imidictl(CSOUND *, void *), mctlset(CSOUND *, void *);
 int     midictl(CSOUND *, void *), imidiaft(CSOUND *, void *);
 int     maftset(CSOUND *, void *), midiaft(CSOUND *, void *);
 int     midiout(CSOUND *, void *), turnon(CSOUND *, void *);
+int     turnon_S(CSOUND *, void *);
 int     kmapset(CSOUND *, void *), polyaft(CSOUND *, void *);
 int     ichanctl(CSOUND *, void *), chctlset(CSOUND *, void *);
 int     chanctl(CSOUND *, void *), linset(CSOUND *, void *);
@@ -225,8 +225,10 @@ int     lpslotset(CSOUND *, void *), lpitpset(CSOUND *, void *);
 int     lpinterpol(CSOUND *, void *);
 int     rmsset(CSOUND *, void *), rms(CSOUND *, void *);
 int     gainset(CSOUND *, void *), gain(CSOUND *, void *);
-int     sndinset(CSOUND *, void *), soundin(CSOUND *, void *);
-int     sndo1set(CSOUND *, void *), soundout(CSOUND *, void *);
+int     sndinset(CSOUND *, void *), sndinset_S(CSOUND *, void *),
+        soundin(CSOUND *, void *);
+int     sndoutset(CSOUND *, void *), sndoutset_S(CSOUND *, void *),
+        soundout(CSOUND *, void *);
 int     soundouts(CSOUND *, void *);
 int     in(CSOUND *, void *), ins(CSOUND *, void *);
 int     inq(CSOUND *, void *), inh(CSOUND *, void *);
@@ -257,15 +259,20 @@ int     tempeset(CSOUND *, void *), tempest(CSOUND *, void *);
 int     tempset(CSOUND *, void *), tempo(CSOUND *, void *);
 int     old_kdmpset(CSOUND *, void *), old_kdmp2set(CSOUND *, void *);
 int     old_kdmp3set(CSOUND *, void *), old_kdmp4set(CSOUND *, void *);
-int     kdmpset(CSOUND *, void *), kdmp2set(CSOUND *, void *);
-int     kdmp3set(CSOUND *, void *), kdmp4set(CSOUND *, void *);
+int     kdmpset_p(CSOUND *, void *), kdmp2set_p(CSOUND *, void *);
+int     kdmp3set_p(CSOUND *, void *), kdmp4set_p(CSOUND *, void *);
+int     kdmpset_S(CSOUND *, void *), kdmp2set_S(CSOUND *, void *);
+int     kdmp3set_S(CSOUND *, void *), kdmp4set_S(CSOUND *, void *);
 int     kdump(CSOUND *, void *), kdump2(CSOUND *, void *);
 int     kdump3(CSOUND *, void *), kdump4(CSOUND *, void *);
-int     krdset(CSOUND *, void *), krd2set(CSOUND *, void *);
-int     krd3set(CSOUND *, void *), krd4set(CSOUND *, void *);
+int     krdset_S(CSOUND *, void *), krd2set_S(CSOUND *, void *);
+int     krd3set_S(CSOUND *, void *), krd4set_S(CSOUND *, void *);
+int     krdset_p(CSOUND *, void *), krd2set_p(CSOUND *, void *);
+int     krd3set_p(CSOUND *, void *), krd4set_p(CSOUND *, void *);
 int     kread(CSOUND *, void *), kread2(CSOUND *, void *);
 int     kread3(CSOUND *, void *), kread4(CSOUND *, void *);
-int     krdsset(CSOUND *, void *), kreads(CSOUND *, void *);
+int     krdsset_S(CSOUND *, void *),krdsset_p(CSOUND *, void *),
+        kreads(CSOUND *, void *);
 int     ipow(CSOUND *, void *), apow(CSOUND *, void *);
 int     alinear(CSOUND *, void *), iklinear(CSOUND *, void *);
 int     atrian(CSOUND *, void *), iktrian(CSOUND *, void *);
@@ -314,6 +321,9 @@ int     lorenzset(CSOUND *, void *), lorenz(CSOUND *, void *);
 int     filelen(CSOUND *, void *), filenchnls(CSOUND *, void *);
 int     filesr(CSOUND *, void *), filepeak(CSOUND *, void *);
 int     filevalid(CSOUND *, void *);
+int     filelen_S(CSOUND *, void *), filenchnls_S(CSOUND *, void *);
+int     filesr_S(CSOUND *, void *), filepeak_S(CSOUND *, void *);
+int     filevalid_S(CSOUND *, void *);
 int     ilogbasetwo(CSOUND *, void *), logbasetwo_set(CSOUND *, void *);
 int     powoftwo(CSOUND *, void *), powoftwoa(CSOUND *, void *);
 int     logbasetwo(CSOUND *, void *), logbasetwoa(CSOUND *, void *);
@@ -321,7 +331,8 @@ int     lp2_set(CSOUND *, void *), lp2(CSOUND *, void *);
 int     phaser2set(CSOUND *, void *), phaser2(CSOUND *, void *);
 int     phaser1set(CSOUND *, void *), phaser1(CSOUND *, void *);
 int     balnset(CSOUND *, void *), balance(CSOUND *, void *);
-int     prealloc(CSOUND *, void *), active_alloc(CSOUND*, void*);
+int     prealloc(CSOUND *, void *);
+int     prealloc_S(CSOUND *, void *), active_alloc(CSOUND*, void*);
 int     cpsxpch(CSOUND *, void *), cps2pch(CSOUND *, void *);
 int     cpstmid(CSOUND *, void *);
 int     cpstun(CSOUND *, void *), cpstun_i(CSOUND *, void *);
@@ -331,11 +342,13 @@ int     clarinset(CSOUND *, void *), clarin(CSOUND *, void *);
 int     fluteset(CSOUND *, void *), flute(CSOUND *, void *);
 int     bowedset(CSOUND *, void *), bowed(CSOUND *, void *);
 int     brassset(CSOUND *, void *), brass(CSOUND *, void *);
-int     schedule(CSOUND *, void *), schedwatch(CSOUND *, void *);
+int     schedule(CSOUND *, void *), schedule_S(CSOUND *, void *);
 int     ifschedule(CSOUND *, void *), kschedule(CSOUND *, void *);
 int     triginset(CSOUND *, void *), ktriginstr(CSOUND *, void *);
+int     triginset_S(CSOUND *, void *), ktriginstr_S(CSOUND *, void *);
 int     trigseq_set(CSOUND *, void *), trigseq(CSOUND *, void *);
 int     eventOpcode(CSOUND *, void *), eventOpcodeI(CSOUND *, void *);
+int     eventOpcode_S(CSOUND *, void *), eventOpcodeI_S(CSOUND *, void *);
 int     lfoset(CSOUND *, void *);
 int     lfok(CSOUND *, void *), lfoa(CSOUND *, void *);
 int     mute_inst(CSOUND *, void *);
@@ -364,7 +377,8 @@ int     random3(CSOUND *, void *), random3a(CSOUND *, void *);
 int     db(CSOUND *, void *), dba(CSOUND *, void *);
 int     semitone(CSOUND *, void *), asemitone(CSOUND *, void *);
 int     cent(CSOUND *, void *), acent(CSOUND *, void *);
-int     midichn(CSOUND *, void *), pgmassign(CSOUND *, void *);
+int     midichn(CSOUND *, void *), pgmassign(CSOUND *, void *),
+        pgmassign_S(CSOUND *, void *);
 int     midiin_set(CSOUND *, void *), midiin(CSOUND *, void *);
 int     pgmin_set(CSOUND *, void *), pgmin(CSOUND *, void *);
 int     ctlin_set(CSOUND *, void *), ctlin(CSOUND *, void *);
@@ -376,7 +390,7 @@ int     midiprogramchange(CSOUND *, void *);
 int     midichannelaftertouch(CSOUND *, void *);
 int     midipitchbend(CSOUND *, void *);
 int     mididefault(CSOUND *, void *);
-//int     outvalset(CSOUND *, void *);
+int     subinstrset_S(CSOUND *, void *);
 int     subinstrset(CSOUND *, void *), subinstr(CSOUND *, void *);
 int     useropcdset(CSOUND *, void *), useropcd(CSOUND *, void *);
 int     setksmpsset(CSOUND *, void *);
@@ -384,6 +398,7 @@ int     xinset(CSOUND *, void *), xoutset(CSOUND *, void *);
 int     ingoto(CSOUND *, void *), kngoto(CSOUND *, void *);
 int     iingoto(CSOUND *, void *), kingoto(CSOUND *, void *);
 int     nstrnumset(CSOUND *, void *), turnoff2k(CSOUND *, void *);
+int     nstrnumset_S(CSOUND *, void *);
 int     turnoff2S(CSOUND *, void *) ;
 int     loop_l_i(CSOUND *, void *), loop_le_i(CSOUND *, void *);
 int     loop_g_i(CSOUND *, void *), loop_ge_i(CSOUND *, void *);
@@ -395,7 +410,7 @@ int     midremot(CSOUND *, void *), midglobal(CSOUND *, void *);
 int     remoteport(CSOUND *, void *);
 int     globallock(CSOUND *, void *);
 int     globalunlock(CSOUND *, void *);
-int     filebit(CSOUND *, void *);
+int     filebit(CSOUND *, void *); int     filebit_S(CSOUND *, void *);
 int     iexprndi(CSOUND *, void *), exprndiset(CSOUND *, void *);
 int     kexprndi(CSOUND *, void *), aexprndi(CSOUND *, void *);
 int     icauchyi(CSOUND *, void *), cauchyiset(CSOUND *, void *);
@@ -440,3 +455,8 @@ int table_wa_set(CSOUND *csound, TABLWA *p);
 int table_wa(CSOUND *csound, TABLWA *p);
 int tablkt_setup(CSOUND *csound, TABL *p);
 int diskin_init(CSOUND *csound, DISKIN2 *p);
+int diskin_init_S(CSOUND *csound, DISKIN2 *p);
+int inch_opcode1(CSOUND *csound, INCH1 *p);
+int adset_S(CSOUND *csound, void *p);
+int lprdset_S(CSOUND *csound, void *p);
+int pvsfreadset_S(CSOUND *csound, void *p);

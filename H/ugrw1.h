@@ -293,6 +293,7 @@ typedef struct {
         int32   cysofar;        /* Number of print cycles so far from 0 */
         int     initialised;
         char    txtstring[8192]; /* Place to store the string printed */
+        char* old;
 } PRINTKS;
 
 /* an i-rate-only prints */
@@ -344,7 +345,9 @@ int printk2set(CSOUND*,PRINTK2 *p);
 int printks(CSOUND*,PRINTKS *p);
 int printkset(CSOUND*,PRINTK *p);
 int printksset(CSOUND*,PRINTKS *p);
+int printksset_S(CSOUND*,PRINTKS *p);
 int printsset(CSOUND*,PRINTS *p);
+int printsset_S(CSOUND*,PRINTS *p);
 //int tablecopy(CSOUND*,TABLECOPY *p);
 //int tablecopyset(CSOUND*,TABLECOPY *p);
 //int tablegpw(CSOUND*,TABLEGPW *p);

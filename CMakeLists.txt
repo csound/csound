@@ -238,6 +238,7 @@ option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" 
 option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
 option(BUILD_RELEASE "Build for release" ON)
+option(BUILD_INSTALLER "Build for release" OFF)
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
 
@@ -252,29 +253,36 @@ if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
     add_compiler_flags("-fvisibility=hidden" LINKER)
 endif()
 
+if(APPLE AND BUILD_INSTALLER)
+    set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}")
+endif()
 
 if(USE_DOUBLE)
     if(APPLE)
         set(CSOUNDLIB "CsoundLib64")
+        set(PLUGIN_INSTALL_DIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
     else()
         set(CSOUNDLIB "csound64")
     endif()
 else()
     if(APPLE)
         set(CSOUNDLIB "CsoundLib")
+        set(PLUGIN_INSTALL_DIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes")
     else()
         set(CSOUNDLIB "csound")
     endif()
 endif()
 
 if(APPLE) 
-    set(PLUGIN_INSTALL_DIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes")
-    get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
+    if(BUILD_INSTALLER)
+	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
+    else()
+        get_filename_component(PYTHON_MODULE_INSTALL_DIR "~/Library/Python/2.7/lib/python/site-packages" ABSOLUTE)
+        get_filename_component(JAVA_MODULE_INSTALL_DIR "~/Library/Java/Extensions" ABSOLUTE)
+        get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
+    endif()
+
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
-
-
-    set(PYTHON_MODULE_INSTALL_DIR "/Library/Python/2.7/site-packages")
-    set(JAVA_MODULE_INSTALL_DIR "/Library/Java/Extensions")
 
 endif()
 
@@ -283,14 +291,9 @@ if(BUILD_RELEASE)
     if(LINUX)
         set(DEFAULT_OPCODEDIR "${CMAKE_INSTALL_PREFIX}/${PLUGIN_INSTALL_DIR}")
         add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
-    elseif(APPLE)
-        set(DEFAULT_OPCODEDIR "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes")
-        add_definitions(-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\")
     endif()
 else()
     add_definitions("-DBETA")
-    set(DEFAULT_OPCODEDIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
-
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
@@ -480,7 +483,6 @@ set(libcsound_SRCS
     OOps/aops.c
     OOps/bus.c
     OOps/cmath.c
-    OOps/diskin.c
     OOps/diskin2.c
     OOps/disprep.c
     OOps/dumpf.c
@@ -784,7 +786,8 @@ add_subdirectory(include)
 
 if(APPLE)
     string(REGEX REPLACE "([^;]+)(;|$)" "include/\\1\\2" csheaders "${csheaders}")
-    set(libcsound_SRCS "${libcsound_SRCS};${csheaders}")
+    file(GLOB H_headers "${CMAKE_CURRENT_SOURCE_DIR}/H/*.h")
+    set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers}")
 endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
@@ -926,10 +929,9 @@ else()
     message(STATUS "Not using localization")
 endif()
 
-
 if(LINUX)
     message(STATUS "Building on Linux")
-    add_definitions(-DLINUX -DPIPES)
+    add_definitions(-DLINUX -DPIPES -D_GNU_SOURCE)
     list(APPEND libcsound_LIBS m dl) 
 endif()
 
@@ -944,6 +946,15 @@ if(WIN32)
 endif()
     
 
+check_function_exists(strtok_r HAVE_STRTOK_R)
+check_function_exists(strtod_l HAVE_STRTOD_L)
+
+if(HAVE_STRTOK_R)
+    add_definitions(-DHAVE_STRTOK_R)
+endif()
+if(HAVE_STRTOD_L)
+    add_definitions(-DHAVE_STRTOD_L)
+endif()
 
 # Pass flags according to system capabilities
 
@@ -1058,3 +1069,13 @@ if(UNIX)
   add_custom_target(etags DEPENDS tags)
 endif()
 
+# build a CPack driven installer package
+#include (InstallRequiredSystemLibraries)
+
+set (CPACK_PACKAGE_NAME "csound")
+set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
+set (CPACK_PACKAGE_VERSION "6.0.0")
+set (CPACK_PACKAGE_VERSION_MAJOR "6")
+set (CPACK_PACKAGE_VERSION_MINOR "0")
+set (CPACK_PACKAGE_VERSION_PATCH "0")
+include (CPack)

@@ -38,7 +38,7 @@ static int pvx_loadfile(CSOUND *, const char *, PVOC *);
 #define WLN   1                         /* time window is WLN*2*ksmps long  */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */
 
-int pvset(CSOUND *csound, PVOC *p)
+int pvset_(CSOUND *csound, PVOC *p, int stringname)
 {
     unsigned int      i;
     int32    memsize;
@@ -48,7 +48,12 @@ int pvset(CSOUND *csound, PVOC *p)
 
     p->pp = PVOC_GetGlobals(csound);
 
-    csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
+     if(stringname==0){
+      if(ISSTRCOD(*p->ifilno)) strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+    }
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+
     if (UNLIKELY(pvx_loadfile(csound, pvfilnam, p) != OK))
       return NOTOK;
 
@@ -125,6 +130,15 @@ int pvset(CSOUND *csound, PVOC *p)
 
     return OK;
 }
+
+int pvset(CSOUND *csound, PVOC *p){
+  return pvset_(csound,p,0);
+}
+
+int pvset_S(CSOUND *csound, PVOC *p){
+  return pvset_(csound,p,1);
+}
+
 
 int pvoc(CSOUND *csound, PVOC *p)
 {

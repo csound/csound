@@ -354,6 +354,7 @@ static int csoundCheckOpcodeDeny(const char *fname)
 {
     /* Check to see if the fname is on the do-not-load list */
     char buff[256];
+    char *th;
     char *p, *deny;
     char *list = getenv("CS_OMIT_LIBS");
     /* printf("DEBUG %s(%d): check fname=%s\n", __FILE__, __LINE__, fname); */
@@ -362,7 +363,7 @@ static int csoundCheckOpcodeDeny(const char *fname)
     strcpy(buff, fname);
     strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
     p = strdup(list);
-    deny = strtok(p, ",");
+    deny = cs_strtok_r(p, ",", &th);
     /* printf("DEBUG %s(%d): check buff=%s\n", __FILE__, __LINE__, deny); */
     while (deny) {
       /* printf("DEBUG %s(%d): deny=%s\n", __FILE__, __LINE__, deny); */
@@ -371,7 +372,7 @@ static int csoundCheckOpcodeDeny(const char *fname)
         /* printf("DEBUG %s(%d): found\n", __FILE__, __LINE__); */
         return 1;
       }
-      deny = strtok(NULL, ",");
+      deny = cs_strtok_r(NULL, ",", &th);
     }
     free(p);
     /* printf("DEBUG %s(%d): not found\n", __FILE__, __LINE__); */
@@ -574,12 +575,11 @@ static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
 int csoundInitModules(CSOUND *csound)
 {
     csoundModule_t  *m;
-    int             i, retval = CSOUND_SUCCESS,n=0;
+    int             i, retval = CSOUND_SUCCESS;
 
     /* call init functions */
     for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt) {
       i = csoundInitModule(csound, m);
-      //printf("module=%d \n", ++n);
       if (i != CSOUND_SUCCESS && i < retval)
         retval = i;
     }

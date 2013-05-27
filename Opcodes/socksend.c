@@ -39,7 +39,9 @@ extern  int     inet_aton(const char *cp, struct in_addr *inp);
 
 typedef struct {
     OPDS    h;
-    MYFLT   *asig, *ipaddress, *port, *buffersize;
+  MYFLT   *asig;
+  STRINGDAT *ipaddress;
+  MYFLT *port, *buffersize;
     MYFLT   *format;
     AUXCH   aux;
     int     sock;
@@ -50,7 +52,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *asigl, *asigr, *ipaddress, *port, *buffersize;
+  MYFLT   *asigl, *asigr;
+  STRINGDAT *ipaddress;
+MYFLT *port, *buffersize;
     MYFLT   *format;
     AUXCH   aux;
     int     sock;
@@ -90,9 +94,9 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
 #ifdef WIN32
-    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress);
+    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress->data);
 #else
-    inet_aton((const char *) p->ipaddress,
+    inet_aton((const char *) p->ipaddress->data,
               &p->server_addr.sin_addr);    /* the server IP address */
 #endif
     p->server_addr.sin_port = htons((int) *p->port);    /* the port */
@@ -216,9 +220,9 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
 #ifdef WIN32
-    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress);
+    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress->data);
 #else
-    inet_aton((const char *) p->ipaddress,
+    inet_aton((const char *) p->ipaddress->data,
               &p->server_addr.sin_addr);    /* the server IP address */
 #endif
     p->server_addr.sin_port = htons((int) *p->port);    /* the port */
@@ -313,9 +317,9 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
 
     /* the server IP address, in network byte order */
 #ifdef WIN32
-    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress);
+    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress->data);
 #else
-    inet_aton((const char *) p->ipaddress, &(p->server_addr.sin_addr));
+    inet_aton((const char *) p->ipaddress->data, &(p->server_addr.sin_addr));
 #endif
 
     /* the port we are going to listen on, in network byte order */

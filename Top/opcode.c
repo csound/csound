@@ -65,26 +65,33 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
     char    *s;
     size_t  nBytes = (size_t) 0;
     int     i, cnt = 0;
+    CONS_CELL *head, *items, *temp;
 
     (*lstp) = NULL;
-
-    ep = (OENTRY*) csound->opcodlst;
-    if (UNLIKELY(ep == NULL))
+    if (UNLIKELY(csound->opcodes == NULL))
       return -1;
+
+    head = items = cs_hash_table_values(csound, csound->opcodes);
+
     /* count the number of opcodes, and bytes to allocate */
-    for ( ; ep < (OENTRY*) csound->oplstend; ep++) {
-      if (ep->opname != NULL &&
-          ep->opname[0] != '\0' && isalpha(ep->opname[0]) &&
-          ep->outypes != NULL && ep->intypes != NULL) {
-        cnt++;
-        nBytes += sizeof(opcodeListEntry);
-        for (i = 0; ep->opname[i] != '\0' && ep->opname[i] != '.'; i++)
-          ;
-        nBytes += (size_t) i;
-        nBytes += strlen(ep->outypes);
-        nBytes += strlen(ep->intypes);
-        nBytes += 3;    /* for null characters */
+    while (items != NULL) {
+      temp = items->value;
+      while (temp != NULL) {
+        ep = temp->value;
+        if (ep->opname != NULL &&
+            ep->opname[0] != '\0' && isalpha(ep->opname[0]) &&
+            ep->outypes != NULL && ep->intypes != NULL) {
+          cnt++;
+          nBytes += sizeof(opcodeListEntry);
+          for (i = 0; ep->opname[i] != '\0' && ep->opname[i] != '.'; i++);
+          nBytes += (size_t) i;
+          nBytes += strlen(ep->outypes);
+          nBytes += strlen(ep->intypes);
+          nBytes += 3;    /* for null characters */
+        }
+        temp = temp->next;
       }
+      items = items->next;
     }
     nBytes += sizeof(opcodeListEntry);
     /* allocate memory for opcode list */
@@ -93,31 +100,43 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
       return CSOUND_MEMORY;
     (*lstp) = (opcodeListEntry*) lst;
     /* store opcodes in list */
-    ep = (OENTRY*) csound->opcodlst;
+    items = head;
     s = (char*) lst + ((int) sizeof(opcodeListEntry) * (cnt + 1));
-    for (cnt = 0; ep < (OENTRY*) csound->oplstend; ep++) {
-      if (ep->opname != NULL &&
-          ep->opname[0] != '\0' && isalpha(ep->opname[0]) &&
-          ep->outypes != NULL && ep->intypes != NULL) {
-        for (i = 0; ep->opname[i] != '\0' && ep->opname[i] != '.'; i++)
-          s[i] = ep->opname[i];
-        s[i++] = '\0';
-        ((opcodeListEntry*) lst)[cnt].opname = s;
-        s += i;
-        strcpy(s, ep->outypes);
-        ((opcodeListEntry*) lst)[cnt].outypes = s;
-        s += ((int) strlen(ep->outypes) + 1);
-        strcpy(s, ep->intypes);
-        ((opcodeListEntry*) lst)[cnt].intypes = s;
-        s += ((int) strlen(ep->intypes) + 1);
-        cnt++;
-      }
+    cnt = 0;
+    while (items != NULL) {
+        temp = items->value;
+        while (temp != NULL) {
+          ep = temp->value;
+
+          if (ep->opname != NULL &&
+              ep->opname[0] != '\0' && isalpha(ep->opname[0]) &&
+              ep->outypes != NULL && ep->intypes != NULL) {
+            for (i = 0; ep->opname[i] != '\0' && ep->opname[i] != '.'; i++)
+              s[i] = ep->opname[i];
+            s[i++] = '\0';
+            ((opcodeListEntry*) lst)[cnt].opname = s;
+            s += i;
+            strcpy(s, ep->outypes);
+            ((opcodeListEntry*) lst)[cnt].outypes = s;
+            s += ((int) strlen(ep->outypes) + 1);
+            strcpy(s, ep->intypes);
+            ((opcodeListEntry*) lst)[cnt].intypes = s;
+            s += ((int) strlen(ep->intypes) + 1);
+            cnt++;
+          }
+          temp = temp->next;
+        }
+      items = items->next;
     }
     ((opcodeListEntry*) lst)[cnt].opname = NULL;
     ((opcodeListEntry*) lst)[cnt].outypes = NULL;
     ((opcodeListEntry*) lst)[cnt].intypes = NULL;
+
+    cs_cons_free(csound, head);
+
     /* sort list */
     qsort(lst, (size_t) cnt, sizeof(opcodeListEntry), opcode_cmp_func);
+
     /* return the number of opcodes */
     return cnt;
 }

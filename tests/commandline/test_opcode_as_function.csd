@@ -1,4 +1,4 @@
-jCsoundSynthesizer>
+<CsoundSynthesizer>
 <CsInstruments>
 sr = 44100
 ksmps = 1

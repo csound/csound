@@ -45,8 +45,10 @@ public class BaseCsoundActivity extends Activity {
 	protected CsoundObj csoundObj = new CsoundObj();
 	protected Handler handler = new Handler();
 	
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		csoundObj.setMessageLoggingEnabled(true);
 		super.onCreate(savedInstanceState);
 	}
 	

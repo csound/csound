@@ -27,7 +27,7 @@
 #include "ugens9.h"
 #include "soundio.h"
 
-static int cvset(CSOUND *csound, CONVOLVE *p)
+static int cvset_(CSOUND *csound, CONVOLVE *p, int stringname)
 {
     char     cvfilnam[MAXNAME];
     MEMFIL   *mfp;
@@ -41,7 +41,12 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, CONVOLVE_VERSION_STRING);
 
-    csound->strarg2name(csound, cvfilnam, p->ifilno, "convolve.", p->XSTRCODE);
+    if(stringname==0){
+      if(ISSTRCOD(*p->ifilno)) strncpy(cvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+      else csound->strarg2name(csound, cvfilnam,p->ifilno, "convolve.",0);
+    }
+    else strncpy(cvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0) {
       /* if file not already readin */
       if (UNLIKELY((mfp =
@@ -135,6 +140,15 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     return OK;
 }
 
+static int cvset(CSOUND *csound, CONVOLVE *p){
+  return cvset_(csound,p,0);
+
+}
+
+static int cvset_S(CSOUND *csound, CONVOLVE *p){
+  return cvset_(csound,p,1);
+
+}
 /* Write from a circular buffer into a linear output buffer without
    clearing data
    UPDATES SOURCE & DESTINATION POINTERS TO REFLECT NEW POSITIONS */
@@ -359,7 +373,7 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
    allow this opcode to accept .con files.
    -ma++ april 2004 */
 
-static int pconvset(CSOUND *csound, PCONVOLVE *p)
+static int pconvset_(CSOUND *csound, PCONVOLVE *p, int stringname)
 {
     int     channel = (*(p->channel) <= 0 ? ALLCHNLS : (int) *(p->channel));
     SNDFILE *infd;
@@ -374,8 +388,13 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
     memset(&IRfile, 0, sizeof(SOUNDIN));
     /* open impulse response soundfile [code derived from SAsndgetset()] */
     IRfile.skiptime = FL(0.0);
-    csound->strarg2name(csound, IRfile.sfname, p->ifilno, "soundin.",
-                                p->XSTRCODE);
+
+     if(stringname==0){
+      if(ISSTRCOD(*p->ifilno)) strncpy(IRfile.sfname,get_arg_string(csound, *p->ifilno), 511);
+      else csound->strarg2name(csound, IRfile.sfname, p->ifilno, "soundin.",0);
+    }
+    else strncpy(IRfile.sfname, ((STRINGDAT *)p->ifilno)->data, 511);
+
     IRfile.sr = 0;
     if (UNLIKELY(channel < 1 || ((channel > 4) && (channel != ALLCHNLS)))) {
       return csound->InitError(csound, Str("channel request %d illegal"), channel);
@@ -438,7 +457,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
          handles finding the right channel */
       if (UNLIKELY((read_in = csound->getsndin(csound, infd, inbuf,
                                                p->Hlen*p->nchanls, &IRfile)) <= 0))
-        csound->Die(csound, Str("PCONVOLVE: less sound than expected!"));
+        return csound->InitError(csound, Str("PCONVOLVE: less sound than expected!"));
 
       /* take FFT of each channel */
       scaleFac = csound->dbfs_to_float
@@ -492,6 +511,14 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
       p->outWrite = p->outRead;
     }
     return OK;
+}
+
+static int pconvset(CSOUND *csound, PCONVOLVE *p){
+  return pconvset_(csound,p,0);
+}
+
+static int pconvset_S(CSOUND *csound, PCONVOLVE *p){
+  return pconvset_(csound,p,0);
 }
 
 static int pconvolve(CSOUND *csound, PCONVOLVE *p)
@@ -615,11 +642,17 @@ static int pconvolve(CSOUND *csound, PCONVOLVE *p)
 }
 
 static OENTRY localops[] = {
-    { "convolve", sizeof(CONVOLVE),   0, 5, "mmmm", "aTo",
+    { "convolve", sizeof(CONVOLVE),   0, 5, "mmmm", "aSo",
+            (SUBR) cvset_S,     (SUBR) NULL,    (SUBR) convolve   },
+    { "convle",   sizeof(CONVOLVE),   0, 5, "mmmm", "aSo",
+            (SUBR) cvset_S,     (SUBR) NULL,    (SUBR) convolve   },
+    { "pconvolve",sizeof(PCONVOLVE),  0, 5, "mmmm", "aSoo",
+      (SUBR) pconvset_S,  (SUBR) NULL,    (SUBR) pconvolve  },
+     { "convolve.i", sizeof(CONVOLVE),   0, 5, "mmmm", "aio",
             (SUBR) cvset,     (SUBR) NULL,    (SUBR) convolve   },
-    { "convle",   sizeof(CONVOLVE),   0, 5, "mmmm", "aTo",
+    { "convle.i",   sizeof(CONVOLVE),   0, 5, "mmmm", "aio",
             (SUBR) cvset,     (SUBR) NULL,    (SUBR) convolve   },
-    { "pconvolve",sizeof(PCONVOLVE),  0, 5, "mmmm", "aToo",
+    { "pconvolve.i",sizeof(PCONVOLVE),  0, 5, "mmmm", "aioo",
             (SUBR) pconvset,  (SUBR) NULL,    (SUBR) pconvolve  }
 };
 
@@ -628,4 +661,3 @@ int ugens9_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

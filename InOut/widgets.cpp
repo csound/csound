@@ -28,6 +28,44 @@
 #include "widglobals.h"
 #include <FL/x.H>
 
+#if !defined(cs_strtok_r)
+static char* cs_strtok_r(char* str, char* delim, char** nextp) {
+#ifdef HAVE_STRTOK_R
+    return strtok_r(str, delim, nextp);
+#else
+    /* 
+     * public domain strtok_r() by Charlie Gordon
+     *
+     *   from comp.lang.c  9/14/2007
+     *
+     *      http://groups.google.com/group/comp.lang.c/msg/2ab1ecbb86646684
+     *
+     *     (Declaration that it's public domain):
+     *      http://groups.google.com/group/comp.lang.c/msg/7c7b39328fefab9c
+     */
+    char *ret;
+    if (str == NULL)
+    {
+        str = *nextp;
+    }
+    str += strspn(str, delim);
+    if (*str == '\0')
+    {
+        return NULL;
+    }
+    ret = str;
+    str += strcspn(str, delim);
+    if (*str)
+    {
+        *str++ = '\0';
+    }
+    *nextp = str;
+    return ret;
+#endif
+}
+
+#endif
+
 Fl_Font FONT_TABLE[] = { FL_HELVETICA,                  FL_HELVETICA,
                          FL_HELVETICA_BOLD,             FL_HELVETICA_ITALIC,
                          FL_HELVETICA_BOLD_ITALIC,      FL_COURIER,
@@ -652,7 +690,7 @@ void Fl_Value_Input_Spin::input_cb(Fl_Widget*, void* v)
       (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     double nv;
     if (t.step()>=1.0) nv = strtol(t.input.value(), 0, 0);
-    else nv = strtod(t.input.value(), 0);
+    else nv = csound->strtod((char*)t.input.value(), 0);
     ST(hack_o_rama1) = 1;
     t.handle_push();
     t.handle_drag(nv);
@@ -899,7 +937,7 @@ void Fl_Value_Slider_Input::input_cb(Fl_Widget*, void* v) {
       (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     double nv;
     if (t.step()>=1.0) nv = strtol(t.input.value(), 0, 0);
-    else nv = strtod(t.input.value(), 0);
+    else nv = csound->strtod((char*)t.input.value(), 0);
     ST(hack_o_rama2) = 1;
     t.handle_push();
     t.handle_drag(nv);
@@ -1116,7 +1154,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
         }
       else if (opcode_name == "FLslider") {
         FLSLIDER *p = (FLSLIDER *) (v.opcode);
-        fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+        fld->widg_name = p->name->data;
         fld->exp = (int) *p->iexp;
         min = fld->min = *p->imin; max = fld->max = *p->imax;
         switch (fld->exp) {
@@ -1138,7 +1176,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       }
       else if (opcode_name == "FLslidBnk" || opcode_name == "FLvslidBnk") {
         FLSLIDERBANK *p = (FLSLIDERBANK *) (v.opcode);
-        fld->widg_name = GetString(csound, p->names, p->XSTRCODE);
+        fld->widg_name = ((STRINGDAT *)p->names)->data;
         int numsliders = (int) *p->inumsliders;
         fld->sldbnk = p->slider_data;
         //       fld->sldbnkValues = new MYFLT[numsliders];
@@ -1168,7 +1206,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       }
       else if (opcode_name == "FLslidBnk2" || opcode_name == "FLvslidBnk2") {
         FLSLIDERBANK2 *p = (FLSLIDERBANK2 *) (v.opcode);
-        fld->widg_name = GetString(csound, p->names, p->XSTRCODE);
+        fld->widg_name = ((STRINGDAT *)p->names)->data;
         int numsliders = (int) *p->inumsliders;
         fld->sldbnk = p->slider_data;
         // EXCEPTIONAL CASE! fld->exp contains the number of sliders
@@ -1196,7 +1234,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       }
       else if (opcode_name == "FLknob") {
         FLKNOB *p = (FLKNOB *) (v.opcode);
-        fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+        fld->widg_name = p->name->data;
         fld->exp = (int) *p->iexp;
         min = fld->min = *p->imin; max = fld->max = *p->imax;
         switch (fld->exp) {
@@ -1218,7 +1256,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       }
       else if (opcode_name == "FLroller") {
         FLROLLER *p = (FLROLLER *) (v.opcode);
-        fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+        fld->widg_name = p->name->data;
         fld->exp = (int) *p->iexp;
         min = fld->min = *p->imin; max = fld->max = *p->imax;
         switch (fld->exp) {
@@ -1240,7 +1278,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       }
       else if (opcode_name == "FLtext") {
         FLTEXT *p = (FLTEXT *) (v.opcode);
-        fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+        fld->widg_name = p->name->data;
         val = *p->kout; min = fld->min = *p->imin; max = fld->max = *p->imax;
         if (min < max) {
           if (val < min) val=min;
@@ -1255,7 +1293,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       }
       else if (opcode_name == "FLjoy") {
         FLJOYSTICK *p = (FLJOYSTICK *) (v.opcode);
-        fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+        fld->widg_name = p->name->data;
         fld->exp  = (int) *p->iexpx;
         min = fld->min = *p->iminx; max = fld->max = *p->imaxx;
         switch (fld->exp) {
@@ -1296,7 +1334,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       }
       else if (opcode_name == "FLbutton") {
         FLBUTTON *p = (FLBUTTON *) (v.opcode);
-        fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+        fld->widg_name =  p->name->data;
         fld->value = *p->kout;
         fld->min = 0; fld->max = 1; fld->exp = LIN_;
       }
@@ -1309,7 +1347,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       }
       else if (opcode_name == "FLcount") {
         FLCOUNTER *p = (FLCOUNTER *) (v.opcode);
-        fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+        fld->widg_name = p->name->data;
         val = *p->kout; min = *p->imin; max =*p->imax;
         if (min != max) {
           if (val < min) val=min;
@@ -1320,11 +1358,11 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       }
       else if (opcode_name == "FLvalue") {
         FLVALUE *p = (FLVALUE *) (v.opcode);
-        fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
+        fld->widg_name = p->name->data;
       }
       else if (opcode_name == "FLbox") {
         FL_BOX *p = (FL_BOX *) (v.opcode);
-        fld->widg_name = GetString(csound, p->itext, p->XSTRCODE);
+        fld->widg_name = p->itext->data;
       }
     }
  err:
@@ -1616,7 +1654,7 @@ extern "C" {
             return OK;
         }
 #endif
-      csound->strarg2name(csound, s, p->filename, "snap.", p->XSTRCODE);
+      csound->strarg2name(csound, s, p->filename->data, "snap.", 1);
       s2 = csound->FindOutputFile(csound, s, "SNAPDIR");
       if (UNLIKELY(s2 == NULL))
         return csound->InitError(csound,
@@ -1673,7 +1711,7 @@ extern "C" {
       string   filename;
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      csound->strarg2name(csound, s, p->filename, "snap.", p->XSTRCODE);
+      csound->strarg2name(csound, s, p->filename->data, "snap.", 1);
       s2 = csound->FindInputFile(csound, s, "SNAPDIR");
       if (UNLIKELY(s2 == NULL))
         return csound->InitError(csound,
@@ -2225,17 +2263,17 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
 
     pid_t pId = vfork();
     if (pId == 0) {
-
+      char *th;
       char *v[40];
       int i = 0;
 
       strcpy(command, p->commandString);
 
-      char *tok = strtok(command, " ");
+      char *tok = csound->strtok_r(command,(char *) " ", &th);
 
       if(tok != NULL) {
         v[i++] = tok;
-        while((tok = strtok(NULL, " ")) != NULL) {
+        while((tok = csound->strtok_r(NULL,(char *) " ", &th)) != NULL) {
           v[i++] = tok;
         }
         v[i] = NULL;
@@ -2251,15 +2289,16 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
     csound->Free(csound, command);
 #elif defined(WIN32)
     {
+      char *th;
       char *v[40];
       int i = 0;
 
       strcpy(command, p->commandString);
-      char *tok = strtok(command, " ");
+      char *tok = cs_strtok_r(command, " ", &th);
 
       if(tok != NULL) {
         v[i++] = tok;
-        while((tok = strtok(NULL, " ")) != NULL) {
+        while((tok = cs_strtok_r(NULL, " ", &th)) != NULL) {
           v[i++] = tok;
         }
         v[i] = NULL;
@@ -2613,7 +2652,7 @@ extern "C" {
   static int StartPanel(CSOUND *csound, FLPANEL *p)
   {
       char    *panelName;
-      panelName = GetString(csound, p->name, p->XSTRCODE);
+      panelName =  p->name->data;
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
@@ -2762,7 +2801,7 @@ extern "C" {
   {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      char *Name = GetString(csound, p->name, p->XSTRCODE);
+      char *Name = p->name->data;
       Fl_Group *o = new Fl_Group ((int) *p->ix, (int) *p->iy,
                                   (int) *p->iwidth, (int) *p->iheight,Name);
       widget_attributes(csound, o);
@@ -3194,7 +3233,7 @@ extern "C" {
 
   static int fl_box_(CSOUND *csound, FL_BOX *p)
   {
-      char *text = GetString(csound, p->itext, p->XSTRCODE);
+      char *text = p->itext->data;
       Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy,
                               (int)*p->iwidth, (int)*p->iheight, text);
       widget_attributes(csound, o);
@@ -3263,7 +3302,7 @@ extern "C" {
   {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      char *text = GetString(csound, p->itext, p->XSTRCODE);
+      char *text = p->itext->data;
       ADDR_SET_VALUE v = ST(AddrSetValue)[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       o->label(text);
@@ -3383,7 +3422,7 @@ extern "C" {
   {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      char *controlName = GetString(csound, p->name, p->XSTRCODE);
+      char *controlName = p->name->data;
       int ix, iy, iwidth, iheight;
       if (*p->ix<0) ix = ST(FL_ix);       else  ST(FL_ix) = ix = (int) *p->ix;
       if (*p->iy<0) iy = ST(FL_iy);       else  ST(FL_iy) = iy = (int) *p->iy;
@@ -3413,7 +3452,7 @@ extern "C" {
   {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      char *controlName = GetString(csound, p->name, p->XSTRCODE);
+      char *controlName = p->name->data;
       int ix,iy,iwidth, iheight,itype, iexp;
       bool plastic = false;
 
@@ -3517,14 +3556,14 @@ extern "C" {
       return OK;
   }
 
-  static int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
+  static int fl_slider_bank_(CSOUND *csound, FLSLIDERBANK *p, int istring)
   {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char s[MAXNAME];
       bool plastic = false;
-      if (p->XSTRCODE)
-        strcpy(s, (char*) p->names);
+      if (istring)
+        strcpy(s, ((STRINGDAT*) p->names)->data);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
         strcpy(s, csound->GetStrsets(csound,(long) *p->names));
@@ -3723,11 +3762,19 @@ extern "C" {
       return OK;
   }
 
+  static int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p){
+    return fl_slider_bank_(csound,p,0);
+  }
+
+    static int fl_slider_bank_S(CSOUND *csound, FLSLIDERBANK *p){
+    return fl_slider_bank_(csound,p,1);
+  }
+
   static int fl_joystick(CSOUND *csound, FLJOYSTICK *p)
   {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      char *Name = GetString(csound, p->name, p->XSTRCODE);
+      char *Name = p->name->data;
       int ix,iy,iwidth, iheight, iexpx, iexpy;
 
       if (*p->ix < 0)  ix = 10; // omitted options: set default
@@ -3848,7 +3895,7 @@ extern "C" {
   {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      char    *controlName = GetString(csound, p->name, p->XSTRCODE);
+      char    *controlName = p->name->data;
       int     ix, iy, iwidth, itype, iexp;
 
       if (*p->iy < 0) iy = ST(FL_iy);
@@ -3949,7 +3996,7 @@ extern "C" {
   {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      char *controlName = GetString(csound, p->name, p->XSTRCODE);
+      char *controlName = p->name->data;
       int ix,iy,iwidth,iheight,itype;
       MYFLT   istep;
 
@@ -4007,7 +4054,7 @@ extern "C" {
   {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      char *Name = GetString(csound, p->name, p->XSTRCODE);
+      char *Name = p->name->data;
       int type = (int) *p->itype;
       bool plastic = false;
       if (type > 19) {
@@ -4078,7 +4125,7 @@ extern "C" {
   {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      char *Name = GetString(csound, p->name, p->XSTRCODE);
+      char *Name = p->name->data;
 
       Fl_Button *w;
 
@@ -4112,7 +4159,7 @@ extern "C" {
       p->csound = csound;
       Fl_Button *w;
 
-      p->commandString = GetString(csound, p->command, p->XSTRCODE);
+      p->commandString = p->command->data;
 
       csound->Message(csound, Str("Command Found: %s\n"), p->commandString);
 
@@ -4216,7 +4263,7 @@ extern "C" {
 
   static int fl_counter(CSOUND *csound, FLCOUNTER *p)
   {
-      char *controlName = GetString(csound, p->name, p->XSTRCODE);
+      char *controlName = p->name->data;
       //      int ix,iy,iwidth,iheight,itype;
       //      MYFLT   istep1, istep2;
       WIDGET_GLOBALS *widgetGlobals =
@@ -4254,7 +4301,7 @@ extern "C" {
 
   static int fl_roller(CSOUND *csound, FLROLLER *p)
   {
-      char *controlName = GetString(csound, p->name, p->XSTRCODE);
+      char *controlName = p->name->data;
       int ix,iy,iwidth, iheight,itype, iexp ;
       double istep;
       WIDGET_GLOBALS *widgetGlobals =
@@ -4633,14 +4680,14 @@ extern "C" {
   }
 
 
-  static int fl_vertical_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
+  static int fl_vertical_slider_bank_(CSOUND *csound, FLSLIDERBANK *p, int istring)
   {
      WIDGET_GLOBALS *widgetGlobals =
        (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char s[MAXNAME];
       bool plastic = false;
-      if (p->XSTRCODE)
-        strcpy(s, (char*) p->names);
+      if (istring)
+        strcpy(s, ((STRINGDAT *)p->names)->data);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
         strcpy(s, csound->GetStrsets(csound,(long) *p->names));
@@ -4848,15 +4895,23 @@ extern "C" {
       return OK;
   }
 
+  static int fl_vertical_slider_bank(CSOUND *csound, FLSLIDERBANK *p){
+    return fl_vertical_slider_bank_(csound,p,0);
+  }
 
-  static int fl_slider_bank2(CSOUND *csound, FLSLIDERBANK2 *p)
+ static int fl_vertical_slider_bank_S(CSOUND *csound, FLSLIDERBANK *p){
+    return fl_vertical_slider_bank_(csound,p,1);
+  }
+
+
+  static int fl_slider_bank2_(CSOUND *csound, FLSLIDERBANK2 *p, int istring)
   {
      WIDGET_GLOBALS *widgetGlobals =
        (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char s[MAXNAME];
       bool plastic = false;
-      if (p->XSTRCODE)
-        strcpy(s, (char*) p->names);
+      if (istring)
+        strcpy(s, ((STRINGDAT*) p->names)->data);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
         strcpy(s, csound->GetStrsets(csound,(long) *p->names));
@@ -5031,15 +5086,22 @@ extern "C" {
       return OK;
   }
 
+  static int fl_slider_bank2(CSOUND *csound, FLSLIDERBANK2 *p){
+    return fl_slider_bank2_(csound, p,0);
+  }
 
-  static int fl_vertical_slider_bank2(CSOUND *csound, FLSLIDERBANK2 *p)
+ static int fl_slider_bank2_S(CSOUND *csound, FLSLIDERBANK2 *p){
+    return fl_slider_bank2_(csound, p,1);
+  }
+
+  static int fl_vertical_slider_bank2_(CSOUND *csound, FLSLIDERBANK2 *p, int istring)
   {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       char s[MAXNAME];
       bool plastic = false;
-      if (p->XSTRCODE)
-        strcpy(s, (char*) p->names);
+      if (istring)
+        strcpy(s, ((STRINGDAT*) p->names)->data);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
         strcpy(s, csound->GetStrsets(csound,(long) *p->names));
@@ -5215,6 +5277,16 @@ extern "C" {
 
       return OK;
   }
+
+ static int fl_vertical_slider_bank2(CSOUND *csound, FLSLIDERBANK2 *p){
+    return fl_vertical_slider_bank2_(csound,p,0);
+  }
+
+ static int fl_vertical_slider_bank2_S(CSOUND *csound, FLSLIDERBANK2 *p){
+    return fl_vertical_slider_bank2_(csound,p,1);
+  }
+
+
 
   static int fl_slider_bank_getHandle(CSOUND *csound, FLSLDBNK_GETHANDLE *p)
   //valid only if called immediately after FLslidBnk
@@ -5824,21 +5896,23 @@ extern "C" {
 #define S(x)    sizeof(x)
 
 const OENTRY widgetOpcodes_[] = {
-  { (char*)"FLslider",    S(FLSLIDER), 0, 1,  (char*)"ki",   (char*)"Tiijjjjjjj",
+  { (char*)"FLslider",    S(FLSLIDER), 0, 1,  (char*)"ki",   (char*)"Siijjjjjjj",
     (SUBR) fl_slider,     (SUBR) NULL,    (SUBR) NULL },
-  { (char*)"FLslidBnk",   S(FLSLIDERBANK), 0, 1, (char*)"", (char*)"Tiooooooooo",
+  { (char*)"FLslidBnk",   S(FLSLIDERBANK), 0, 1, (char*)"", (char*)"Siooooooooo",
+    (SUBR) fl_slider_bank_S, (SUBR) NULL,   (SUBR) NULL },
+    { (char*)"FLslidBnk.i",   S(FLSLIDERBANK), 0, 1, (char*)"", (char*)"iiooooooooo",
     (SUBR) fl_slider_bank, (SUBR) NULL,   (SUBR) NULL },
-  { (char*)"FLknob",      S(FLKNOB), 0, 1,  (char*)"ki",   (char*)"Tiijjjjjjo",
+  { (char*)"FLknob",      S(FLKNOB), 0, 1,  (char*)"ki",   (char*)"Siijjjjjjo",
     (SUBR) fl_knob,       (SUBR) NULL,     (SUBR) NULL },
-  { (char*)"FLroller",    S(FLROLLER), 0, 1,  (char*)"ki",   (char*)"Tiijjjjjjjj",
+  { (char*)"FLroller",    S(FLROLLER), 0, 1,  (char*)"ki",   (char*)"Siijjjjjjjj",
     (SUBR) fl_roller,               (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLtext",      S(FLTEXT), 0, 1,  (char*)"ki",   (char*)"Tiijjjjjj",
+  { (char*)"FLtext",      S(FLTEXT), 0, 1,  (char*)"ki",   (char*)"Siijjjjjj",
     (SUBR) fl_text,                 (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLjoy",  S(FLJOYSTICK), 0, 1,  (char*)"kkii", (char*)"Tiiiijjjjjjjj",
+  { (char*)"FLjoy",  S(FLJOYSTICK), 0, 1,  (char*)"kkii", (char*)"Siiiijjjjjjjj",
     (SUBR) fl_joystick,             (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLcount",     S(FLCOUNTER), 0, 1,  (char*)"ki",   (char*)"Tiiiiiiiiiz",
+  { (char*)"FLcount",     S(FLCOUNTER), 0, 1,  (char*)"ki",   (char*)"Siiiiiiiiiz",
     (SUBR) fl_counter,              (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLbutton",    S(FLBUTTON), 0, 1,  (char*)"ki",   (char*)"Tiiiiiiiz",
+  { (char*)"FLbutton",    S(FLBUTTON), 0, 1,  (char*)"ki",   (char*)"Siiiiiiiz",
     (SUBR) fl_button,               (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLbutBank",   S(FLBUTTONBANK), 0, 1,  (char*)"ki",   (char*)"iiiiiiiz",
     (SUBR) fl_button_bank,          (SUBR) NULL,              (SUBR) NULL },
@@ -5882,11 +5956,11 @@ const OENTRY widgetOpcodes_[] = {
     (SUBR) fl_setBox,               (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLsetAlign",  S(FL_TALIGN),    0, 1,  (char*)"",     (char*)"ii",
     (SUBR) fl_align,                (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLbox",       S(FL_BOX),       0, 1,  (char*)"i", (char*)"Tiiiiiii",
+  { (char*)"FLbox",       S(FL_BOX),       0, 1,  (char*)"i", (char*)"Siiiiiii",
     (SUBR) fl_box_,                  (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLvalue",     S(FLVALUE),      0, 1,  (char*)"i",    (char*)"Tjjjj",
+  { (char*)"FLvalue",     S(FLVALUE),      0, 1,  (char*)"i",    (char*)"Sjjjj",
     (SUBR) fl_value,                (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLpanel",     S(FLPANEL),      0, 1,  (char*)"",  (char*)"Tjjjoooo",
+  { (char*)"FLpanel",     S(FLPANEL),      0, 1,  (char*)"",  (char*)"Sjjjoooo",
     (SUBR) StartPanel,              (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLpanelEnd",  S(FLPANELEND),   0, 1,  (char*)"",     (char*)"",
     (SUBR) EndPanel,                (SUBR) NULL,              (SUBR) NULL },
@@ -5910,7 +5984,7 @@ const OENTRY widgetOpcodes_[] = {
     (SUBR) EndTabs,                 (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLtabs_end",  S(FLTABSEND),    0, 1,  (char*)"",     (char*)"",
     (SUBR) EndTabs,                 (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLgroup",     S(FLGROUP),      0, 1,  (char*)"",     (char*)"Tiiiij",
+  { (char*)"FLgroup",     S(FLGROUP),      0, 1,  (char*)"",     (char*)"Siiiij",
     (SUBR) StartGroup,              (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLgroupEnd",  S(FLGROUPEND),   0, 1,  (char*)"",     (char*)"",
     (SUBR) EndGroup,                (SUBR) NULL,              (SUBR) NULL },
@@ -5922,9 +5996,9 @@ const OENTRY widgetOpcodes_[] = {
     (SUBR)fl_setSnapGroup,  (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLgetsnap",   S(FLGETSNAP),    0, 1,  (char*)"i",    (char*)"io",
     (SUBR) get_snap,                (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLsavesnap",  S(FLSAVESNAPS),  0, 1,  (char*)"",     (char*)"To",
+  { (char*)"FLsavesnap",  S(FLSAVESNAPS),  0, 1,  (char*)"",     (char*)"So",
     (SUBR) save_snap,               (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLloadsnap",  S(FLLOADSNAPS),  0, 1,  (char*)"",     (char*)"To",
+  { (char*)"FLloadsnap",  S(FLLOADSNAPS),  0, 1,  (char*)"",     (char*)"So",
     (SUBR) load_snap,               (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLrun",       S(FLRUN),        0, 1,  (char*)"",     (char*)"",
     (SUBR) FL_run,                  (SUBR) NULL,              (SUBR) NULL },
@@ -5934,9 +6008,9 @@ const OENTRY widgetOpcodes_[] = {
     (SUBR) FLprintkset,             (SUBR) FLprintk,          (SUBR) NULL },
   { (char*)"FLprintk2",   S(FLPRINTK2),    0, 3,  (char*)"",     (char*)"ki",
     (SUBR) FLprintk2set,            (SUBR) FLprintk2,         (SUBR) NULL },
-  { (char*)"FLcloseButton",    S(FLCLOSEBUTTON), 0, 1,  (char*)"i", (char*)"Tiiii",
+  { (char*)"FLcloseButton",    S(FLCLOSEBUTTON), 0, 1,  (char*)"i", (char*)"Siiii",
     (SUBR) fl_close_button,               (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLexecButton",    S(FLEXECBUTTON), 0, 1,  (char*)"i", (char*)"Tiiii",
+  { (char*)"FLexecButton",    S(FLEXECBUTTON), 0, 1,  (char*)"i", (char*)"Siiii",
     (SUBR) fl_exec_button,               (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLkeyIn",    S(FLKEYIN),       0, 3,  (char*)"k",    (char*)"o",
     (SUBR)fl_keyin_set,             (SUBR)fl_keyin,           (SUBR) NULL  },
@@ -5945,10 +6019,16 @@ const OENTRY widgetOpcodes_[] = {
   { (char*)"FLmouse",     S(FLMOUSE),             0, 3,  (char*)"kkkkk",(char*)"o",
     (SUBR)fl_mouse_set,             (SUBR)fl_mouse,           (SUBR) NULL  },
   { (char*)"FLvslidBnk",  S(FLSLIDERBANK), 0, 1,  (char*)"",  (char*)"Siooooooooo",
+    (SUBR)fl_vertical_slider_bank_S,   (SUBR) NULL,             (SUBR) NULL  },
+   { (char*)"FLvslidBnk.i",  S(FLSLIDERBANK), 0, 1,  (char*)"",  (char*)"iiooooooooo",
     (SUBR)fl_vertical_slider_bank,   (SUBR) NULL,             (SUBR) NULL  },
   { (char*)"FLslidBnk2",  S(FLSLIDERBANK2),0, 1,  (char*)"",  (char*)"Siiiooooo",
+    (SUBR)fl_slider_bank2_S ,          (SUBR) NULL,             (SUBR) NULL  },
+    { (char*)"FLslidBnk2.i",  S(FLSLIDERBANK2),0, 1,  (char*)"",  (char*)"Iiiiooooo",
     (SUBR)fl_slider_bank2 ,          (SUBR) NULL,             (SUBR) NULL  },
   { (char*)"FLvslidBnk2", S(FLSLIDERBANK2),0, 1,  (char*)"",  (char*)"Siiiooooo",
+    (SUBR)fl_vertical_slider_bank2_S,  (SUBR) NULL,             (SUBR) NULL  },
+    { (char*)"FLvslidBnk2.i", S(FLSLIDERBANK2),0, 1,  (char*)"",  (char*)"iiiiooooo",
     (SUBR)fl_vertical_slider_bank2,  (SUBR) NULL,             (SUBR) NULL  },
   { (char*)"FLslidBnkGetHandle",S(FLSLDBNK_GETHANDLE),0, 1, (char*)"i", (char*)"",
     (SUBR)fl_slider_bank_getHandle,  (SUBR) NULL,             (SUBR) NULL  },

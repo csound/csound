@@ -1,24 +1,24 @@
 /*
-    hrtferx.h:
+  hrtferx.h:
 
-    Copyright (C) 1995, 2001 Eli Breder, David McIntyre, John ffitch
+  Copyright (C) 1995, 2001 Eli Breder, David McIntyre, John ffitch
 
-    This file is part of Csound.
+  This file is part of Csound.
 
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
 */
 
 /****************** hrtferxk.h *******************/
@@ -28,7 +28,8 @@
 typedef struct {
   OPDS  h;
   MYFLT         *aLeft, *aRight,             /* outputs  */
-                *aIn, *kAz, *kElev, *ifilno; /* and inputs */
+    *aIn, *kAz, *kElev;
+  STRINGDAT     *ifilno; /* and inputs */
   MEMFIL        *mfp;                        /* file pointer */
   int16         *fpbegin;
   int           oldel_index, oldaz_index;

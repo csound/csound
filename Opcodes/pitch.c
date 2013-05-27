@@ -1782,7 +1782,7 @@ int ktrnseg(CSOUND *csound, TRANSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
-      csound->Die(csound, Str("Error: transeg not initialised (krate)\n"));
+      csound->PerfError(csound,p->h.insdshead, Str("Error: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {           /* if done cur segment  */
@@ -1813,9 +1813,9 @@ int ktrnseg(CSOUND *csound, TRANSEG *p)
 
 int trnseg(CSOUND *csound, TRANSEG *p)
 {
-    MYFLT  val, *rs   = p->rslt;
-    uint32_t offset   = p->h.insdshead->ksmps_offset;
-    uint32_t early    = p->h.insdshead->ksmps_no_end;
+    MYFLT  val, *rs = p->rslt;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     NSEG        *segp = p->cursegp;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
@@ -1942,7 +1942,7 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
-      csound->Die(csound, Str("Error: transeg not initialised (krate)\n"));
+      csound->PerfError(csound,p->h.insdshead, Str("Error: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
       NSEG        *segp;

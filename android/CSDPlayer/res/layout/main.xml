@@ -5,22 +5,62 @@
     android:orientation="vertical" >
 
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.04"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <Button
+                android:id="@+id/newButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/New" />
+
+            <Button
+                android:id="@+id/browseButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/Browse" />
+
+            <Button
+                android:id="@+id/editButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/Edit" />
+
+            <ToggleButton
+                android:id="@+id/onOffButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/OFF"
+                android:textOff="@string/ON"
+                android:textOn="@string/OFF" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textView7"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_weight="5"
+            android:scrollbars="vertical"
+            android:text="" />
+
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/linearLayout1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical" >
-
-        <Button
-            android:id="@+id/browseButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Browse" />
-
-        <ToggleButton
-            android:id="@+id/onOffButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="ToggleButton" />
 
         <SeekBar
             android:id="@+id/seekBar1"
@@ -31,7 +71,7 @@
             android:id="@+id/textView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="slider1"
+            android:text="@string/slider1"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <SeekBar
@@ -43,7 +83,7 @@
             android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="slider2"
+            android:text="@string/slider2"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <SeekBar
@@ -55,7 +95,7 @@
             android:id="@+id/textView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="slider3"
+            android:text="@string/slider3"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <SeekBar
@@ -67,7 +107,7 @@
             android:id="@+id/textView4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="slider4"
+            android:text="@string/slider4"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <SeekBar
@@ -79,64 +119,58 @@
             android:id="@+id/textView5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="slider5"
+            android:text="@string/slider5"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
-        <TextView
-            android:id="@+id/textView6"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="---------------------------------------"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+        <LinearLayout
+            android:id="@+id/LinearLayout02"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" >
 
-<LinearLayout
-    android:id="@+id/LinearLayout02"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:layout_alignParentBottom="true" >
+            <Button
+                android:id="@+id/button1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.52"
+                android:text="@string/butt1" />
 
-    <Button
-        android:id="@+id/button1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.52"
-        android:text="butt1" />
+            <Button
+                android:id="@+id/button2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.60"
+                android:text="@string/butt2" />
 
-    <Button
-        android:id="@+id/button2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.60"
-        android:text="butt2" />
+            <Button
+                android:id="@+id/button3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.79"
+                android:text="@string/butt3" />
 
-    <Button
-        android:id="@+id/button3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.79"
-        android:text="butt3" />
+            <Button
+                android:id="@+id/button4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.70"
+                android:text="@string/butt4" />
 
-    <Button
-        android:id="@+id/button4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.70"
-        android:text="butt4" />
-
-    <Button
-        android:id="@+id/button5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.34"
-        android:text="butt5" />
-</LinearLayout>
-
+            <Button
+                android:id="@+id/button5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.34"
+                android:text="@string/butt5" />
+        </LinearLayout>
     </LinearLayout>
 
-    <Button
-        android:id="@+id/pad"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="trackpad" />
+ <Button
+     android:id="@+id/pad"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_weight="0.10"
+     android:text="@string/trackpad" />
+
+        
 
 </LinearLayout>

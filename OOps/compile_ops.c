@@ -5,8 +5,10 @@
 int compile_orc_i(CSOUND *csound, COMPILE *p){
   FILE *fp;
   int size=0;
-  char *orc, c, *name = csound->strarg2name(csound,NULL,p->str,"",1);
+  char *orc, c, *name;
+  
 
+  name = ((STRINGDAT *)p->str)->data;
   fp = fopen(name, "rb");
 
   if(fp == NULL) {
@@ -35,11 +37,11 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
 }
 
 int compile_str_i(CSOUND *csound, COMPILE *p){
-  *p->res = FL(csoundCompileOrc(csound, (char *)p->str));
+  *p->res = FL(csoundCompileOrc(csound, ((STRINGDAT *)p->str)->data));
   return OK;
 }
 
 int read_score_i(CSOUND *csound, COMPILE *p){
-  *p->res = FL(csoundReadScore(csound, (char *)p->str));
+  *p->res = FL(csoundReadScore(csound, ((STRINGDAT *)p->str)->data));
   return OK;
 }

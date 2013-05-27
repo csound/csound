@@ -190,7 +190,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     LADSPA_Descriptor_Function pfDescriptorFunction;
     DSSI_Descriptor_Function pfDSSIDescriptorFunction;
     LADSPA_Descriptor *LDescriptor;
-    char    dssiFilename[0x100];
+    char    dssiFilename[MAXNAME];
     unsigned long PluginIndex;
     void   *PluginLibrary;
     unsigned long PortCount;
@@ -200,8 +200,14 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin_;
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
-    csound->strarg2name(csound, dssiFilename, p->iplugin, "dssiinit.",
-                                (int) csound->GetInputArgSMask(p));
+
+    if(csound->GetInputArgSMask(p))
+      strncpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME-1);
+    else
+      csound->strarg2name(csound, dssiFilename, ISSTRCOD(*p->iplugin) ?
+                          csound->GetString(csound, *p->iplugin) :
+                          (char *) p->iplugin, "dssiinit.",
+                          (int) ISSTRCOD(*p->iplugin));
     PluginIndex = (unsigned long) *p->iindex;
     PluginLibrary = dlopenLADSPA(csound, dssiFilename, RTLD_NOW);
     if (UNLIKELY(!PluginLibrary))
@@ -1089,4 +1095,3 @@ static OENTRY dssi_localops[] = {
 };
 
 LINKAGE_BUILTIN(dssi_localops)
-

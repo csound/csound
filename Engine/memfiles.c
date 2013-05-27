@@ -77,11 +77,12 @@ static MYFLT read_ieee(FILE* f, int *end)
     char buff[120];
     double x;
     char *p = fgets(buff, 120, f);
+
     if (p==NULL || feof(f)) {
       *end = 1;
       return FL(0.0);
     }
-    x = strtod(buff, NULL);
+    x = cs_strtod(buff, NULL);
     return (MYFLT)x;
     /* union { */
     /*   double d; */
@@ -155,8 +156,7 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
         //printf("expanding from %p[%d] to\n", all, length);
         all = mrealloc(csound, all, length+=4096);
         //printf("i=%d                     %p[%d]\n", i, all, length);
-      }
-      x = read_ieee(f, &j);
+      }      x = read_ieee(f, &j);
       if (j) break;
       memcpy(&all[i], &x, sizeof(MYFLT));
     }
@@ -187,9 +187,9 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
     fscanf(f, "%d %d %d %d\n",
            &lph.headersize, &lph.lpmagic, &lph.npoles, &lph.nvals);
     fgets(buff, 120, f);
-    lph.framrate = (MYFLT)strtod(buff, &p);
-    lph.srate = (MYFLT)strtod(p, &p);
-    lph.duration = (MYFLT)strtod(p, &p);
+    lph.framrate = (MYFLT)cs_strtod(buff, &p);
+    lph.srate = (MYFLT)cs_strtod(p, &p);
+    lph.duration = (MYFLT)cs_strtod(p, &p);
     /* lph.text[0] = (char)strtol(p, &p, 0); */
     /* lph.text[1] = (char)strtol(p, &p, 0); */
     /* lph.text[2] = (char)strtol(p, &p, 0); */
