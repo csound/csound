@@ -208,33 +208,22 @@ public class CsoundObj {
      return retVal;
 	}
 
-
 	/* Render Methods */
 
 	private void runCsoundOpenSL(File f) {
-
 		((AndroidCsound)csound).setOpenSlCallbacks();
-		
-		/*if (messageLoggingEnabled) {
+		if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
-
 				@Override
 				public void MessageCallback(int attr, String msg) {
 					Log.d("CsoundObj", msg);
 					super.MessageCallback(attr, msg);
 				}
-
 			};
-		
 			callbacks.SetMessageCallback();
-
-		}*/
-		
-		//Log.d("CsoundAndroid", "Return Value: " + retVal);
-
+		}
 		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundAndroid", "Return Value2: " + retVal);
-
 		if (retVal == 0) {
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.setup(this);
@@ -243,7 +232,6 @@ public class CsoundObj {
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.updateValuesToCsound();
 			}
-
 			while (csound.PerformKsmps() == 0 && !stopped) {
 				synchronized(this) {
 					for (CsoundValueCacheable cacheable : valuesCache) {
@@ -304,12 +292,8 @@ public class CsoundObj {
 			callbacks.SetMessageCallback();
 
 		}
-
-		Log.d("CsoundAndroid", "Return Value: " + retVal);
-
 		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundAndroid", "Return Value2: " + retVal);
-
 		if (retVal == 0) {
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.setup(this);
