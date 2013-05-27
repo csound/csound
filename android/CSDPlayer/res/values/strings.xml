@@ -15,6 +15,7 @@
     <string name="trackpad">trackpad</string>
     <string name="OFF">Stop</string>
     <string name="ON">Start</string>
-    <string name="Browse">File</string>
-    <string name="Edit">Edit</string>
+    <string name="Browse">Open...</string>
+    <string name="Edit">Edit...</string>
+    <string name="New">New...</string>
 </resources>

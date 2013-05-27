@@ -16,21 +16,31 @@
             android:orientation="horizontal" >
 
             <Button
-                android:id="@+id/browseButton"
-                android:layout_width="103dp"
+                android:id="@+id/newButton"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/New" />
+
+            <Button
+                android:id="@+id/browseButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:text="@string/Browse" />
 
             <Button
                 android:id="@+id/editButton"
-                android:layout_width="110dp"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:text="@string/Edit" />
 
             <ToggleButton
                 android:id="@+id/onOffButton"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:text="@string/OFF"
                 android:textOff="@string/ON"
                 android:textOn="@string/OFF" />
@@ -41,15 +51,10 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:layout_weight="5"
+            android:scrollbars="vertical"
             android:text="" />
-    </LinearLayout>
 
- <Button
-     android:id="@+id/pad"
-     android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:layout_weight="0.10"
-     android:text="@string/trackpad" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/linearLayout1"
@@ -157,8 +162,14 @@
                 android:layout_weight="0.34"
                 android:text="@string/butt5" />
         </LinearLayout>
-        
     </LinearLayout>
+
+ <Button
+     android:id="@+id/pad"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_weight="0.10"
+     android:text="@string/trackpad" />
 
         
 
