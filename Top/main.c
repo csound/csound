@@ -286,9 +286,9 @@ extern int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
 extern void rtclose_dummy(CSOUND *);
 extern int  audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int);
 int  midi_dev_list_dummy(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput);
-static int DummyMidiInOpen(CSOUND *csound, void **userData,
+int DummyMidiInOpen(CSOUND *csound, void **userData,
                            const char *devName);
-static int DummyMidiRead(CSOUND *csound, void *userData,
+int DummyMidiRead(CSOUND *csound, void *userData,
                          unsigned char *buf, int nbytes);
 int DummyMidiOutOpen(CSOUND *csound, void **userData,
                      const char *devName);
