@@ -58,8 +58,9 @@ int pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int stringname)
       p->fftBuf = fltp;   /* fltp += PVFFTSIZE; */  /* Not needed */
     }
 
-    if(stringname==0){
-      if(ISSTRCOD(*p->ifilno)) strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+    if (stringname==0){
+      if (ISSTRCOD(*p->ifilno))
+        strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
     else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
@@ -174,8 +175,9 @@ int pvinterpset_(CSOUND *csound, PVINTERP *p, int stringname)
       p->window = fltp;
     }
 
-    if(stringname==0){
-      if(ISSTRCOD(*p->ifilno)) strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+    if (stringname==0){
+      if (ISSTRCOD(*p->ifilno))
+        strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
     else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);;
@@ -364,7 +366,8 @@ int pvcrossset_(CSOUND *csound, PVCROSS *p, int stringname)
       p->window = fltp;
     }
     if(stringname==0){
-      if(ISSTRCOD(*p->ifilno)) strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+      if (ISSTRCOD(*p->ifilno))
+        strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
     else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
