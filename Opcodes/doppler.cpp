@@ -295,7 +295,7 @@ extern "C"
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
     //csound->Message(csound, "Deleting C++ objects from doppler...\n");
-    for (std::list<RCLowpassFilter *>::iterator it = smoothingFilterInstances.begin();
+    for (std::list<RCLowpassFilter *>::iterator it=smoothingFilterInstances.begin();
          it != smoothingFilterInstances.end();
          ++it) {
       delete *it;

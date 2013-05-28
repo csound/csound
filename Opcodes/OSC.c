@@ -460,7 +460,8 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     if (UNLIKELY(n < 0 || n >= pp->nPorts))
       return csound->InitError(csound, Str("invalid handle"));
     p->port = &(pp->ports[n]);
-    p->saved_path = (char*) csound->Malloc(csound, strlen((char*) p->dest->data) + 1);
+    p->saved_path = (char*) csound->Malloc(csound,
+                                           strlen((char*) p->dest->data) + 1);
     strcpy(p->saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
     n = csound->GetInputArgCnt(p) - 3;

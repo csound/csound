@@ -93,13 +93,14 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
     }
     /* get file name, */
     if (isString) name = cs_strdup(csound, ((STRINGDAT *)iFile)->data);
-    else if(ISSTRCOD(*iFile)) name = cs_strdup(csound, get_arg_string(csound, *iFile));
+    else if(ISSTRCOD(*iFile)) name = cs_strdup(csound,
+                                               get_arg_string(csound, *iFile));
     /* else csound->strarg2name(csound, NULL, iFile, "fout.", 0);*/
     else {
       /* or handle to previously opened file */
       idx = (int) MYFLT2LRND(*iFile);
       if (UNLIKELY(idx < 0 || idx > pp->file_num ||
-          (fileType == CSFILE_STD && pp->file_opened[idx].raw == NULL) ||
+                   (fileType == CSFILE_STD && pp->file_opened[idx].raw == NULL) ||
                    (fileType != CSFILE_STD && pp->file_opened[idx].file == NULL))) {
         return csound->InitError(csound, Str("invalid file handle"));
       }
@@ -529,11 +530,11 @@ static int ficlose_opcode_(CSOUND *csound, FICLOSE *p, int istring)
 {
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int               idx = -1;
-  
+
     if (istring || ISSTRCOD(*(p->iFile))){
        char    *fname = NULL;
       if(istring) fname = cs_strdup(csound, ((STRINGDAT *)p->iFile)->data);
-      else if(ISSTRCOD(*(p->iFile))) 
+      else if(ISSTRCOD(*(p->iFile)))
        fname = cs_strdup(csound, get_arg_string(csound, *p->iFile));
       if (UNLIKELY(fname == NULL || fname[0] == (char) 0)) {
         if(fname != NULL) csound->Free(csound, fname);
