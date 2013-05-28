@@ -26,12 +26,16 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ListAdapter;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjCompletionListener;
+
+import csnd6.Csound;
+import csnd6.CsoundCallbackWrapper;
 
 public class CsoundAppActivity extends Activity  implements CsoundObjCompletionListener {
 	Button browseButton;
@@ -44,6 +48,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 	ArrayList<SeekBar> sliders = new ArrayList<SeekBar>();
 	ArrayList<Button> buttons = new ArrayList<Button>();
 	ArrayList<String> str = new ArrayList<String>();
+	CsoundCallbackWrapper callbacks = null;
 	private Boolean firstLvl = true;
 	private Item[] fileList;
 	private File path = new File(Environment.getExternalStorageDirectory() + "");
@@ -53,33 +58,41 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 	ListAdapter adapter;
 	protected Handler handler = new Handler();
 	boolean running = false;
+	private TextView messageTextView = null;
+	private ScrollView messageScrollView = null;
 	String errorMessage;
 
 	public void csoundObjComplete(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);
-				if(csound.getError() != 0) displayError(csound.getError());
+				displayLog();
 				running = false;
 			}
 		});
 	}
+	private synchronized void postMessage(String message_)
+	{
+		final String message = message_;
+		messageTextView.post(new Runnable() {
+			@Override
+			public void run() {
+				messageTextView.append(message);
+				messageScrollView.fullScroll(ScrollView.FOCUS_DOWN);
+			}
+		});
+	}
 
-   private void displayError(int error){
-	  // errorMessage = "Csound Compilation Error ";
-	  // showDialog(ERROR_DIALOG); 
+	private void displayLog(){
       try {
-	      Process process = Runtime.getRuntime().exec("logcat -dt 8 AndroidCsound:I *:S");
+	      Process process = Runtime.getRuntime().exec("logcat -dt 8 CsoundObj:D AndroidCsound:D *:S");
 	      BufferedReader bufferedReader = new BufferedReader(
 	      new InputStreamReader(process.getInputStream()));
-	      StringBuilder log=new StringBuilder();
 	      String line;
-	      log.append("Csound Compile error:\n");
+	      postMessage("Csound system log:\n");
 	      while ((line = bufferedReader.readLine()) != null) {
-	        log.append(line + "\n");
+	        postMessage(line + "\n");
 	      }
-	      TextView tv = (TextView)findViewById(R.id.textView7);
-	      tv.setText(log.toString());
    } catch (IOException e) { }
    }
 
@@ -135,6 +148,8 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 				}
 			}
 		});
+		messageTextView = (TextView)findViewById(R.id.messageTextView);
+		messageScrollView = (ScrollView) findViewById(R.id.messageScrollView);
 		
 		sliders.add((SeekBar)findViewById(R.id.seekBar1));
 		sliders.add((SeekBar)findViewById(R.id.seekBar2));
@@ -160,7 +175,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 				Log.d("CSD", csd.getAbsolutePath());		
 				if(isChecked) {
 					csound = new CsoundObj();
-					
 					String channelName;
 					for(int i = 0; i < 5; i++){
 						channelName = "slider" + (i+1);
@@ -172,13 +186,20 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 					csound.enableAccelerometer(CsoundAppActivity.this);
 					csound.addCompletionListener(CsoundAppActivity.this);
 					csound.startCsound(csd);
-					TextView tv = (TextView)findViewById(R.id.textView7);
-				    tv.setText("Csound is running...");
-			
+				    messageTextView.setText("");
+				    postMessage("Csound is running...\n");
+					callbacks = new CsoundCallbackWrapper(csound.getCsound()) {
+						@Override
+						public void MessageCallback(int attr, String msg) {
+							postMessage(msg);
+							super.MessageCallback(attr, msg);
+						}
+					};
+					callbacks.SetMessageCallback();
 				} else {
 					csound.stopCsound();
-					TextView tv = (TextView)findViewById(R.id.textView7);
-				    tv.setText("Csound is stopped...");
+				    displayLog();
+				    postMessage("Csound has stopped.");
 					running = false;
 				}
 			}
