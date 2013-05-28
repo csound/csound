@@ -42,7 +42,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
 
     memset(hdr, 0, sizeof(SF_INFO));
     /* leap thru std hoops to get the name */
-    if(strin) 
+    if(strin)
       strncpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
     else if (ISSTRCOD(*p->ifilno)){
       strncpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);

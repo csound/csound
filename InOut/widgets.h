@@ -30,7 +30,7 @@ extern "C" {
 
 typedef struct {
     OPDS    h;
-  MYFLT   *kout, *ihandle; 
+  MYFLT   *kout, *ihandle;
   STRINGDAT *name;
   MYFLT *imin, *imax, *iexp;
     MYFLT   *itype, *idisp, *iwidth, *iheight, *ix, *iy;
@@ -637,4 +637,3 @@ typedef struct  {
 
 #endif          /* CSOUND_WIDGETS_CPP */
 #endif          /* CSOUND_WIDGETS_H */
-

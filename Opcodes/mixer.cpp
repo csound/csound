@@ -76,7 +76,8 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
     createBuss(csound, buss);
     matrix[csound][send][buss] = *kgain;
 #ifdef ENABLE_MIXER_IDEBUG
-    warn(csound, "MixerSetLevel::init: csound %p send %d buss %d gain %f\n", csound, send, buss, matrix[csound][send][buss]);
+    warn(csound, "MixerSetLevel::init: csound %p send %d buss %d gain %f\n",
+         csound, send, buss, matrix[csound][send][buss]);
 #endif
     return OK;
   }
