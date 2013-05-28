@@ -116,7 +116,7 @@ static void dag_print_state(CSOUND *csound)
 void create_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
-    int max = csound->dag_task_max_size=INIT_SIZE;
+    int max = csound->dag_task_max_size;
     csound->dag_task_status = mcalloc(csound, sizeof(enum state)*max);
     csound->dag_task_watch  = mcalloc(csound, sizeof(watchList**)*max);
     csound->dag_task_map    = mcalloc(csound, sizeof(INSDS*)*max);
@@ -195,7 +195,6 @@ void dag_build(CSOUND *csound, INSDS *chain)
     if (csound->dag_task_status == NULL)
       create_dag(csound); /* Should move elsewhere */
     else {
-    top:
       memset((void*)csound->dag_task_watch, '\0',
              sizeof(watchList*)*csound->dag_task_max_size);
       for (i=0; i<csound->dag_task_max_size; i++) {
