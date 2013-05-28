@@ -4,7 +4,6 @@
     android:versionCode="1"
     android:versionName="1.0" 
     android:installLocation="auto">
-
     <uses-sdk android:minSdkVersion="10"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
@@ -12,16 +11,15 @@
     <uses-permission android:name="android.permission.READ_LOGS"/>
     <application
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name" >
+        android:label="@string/app_name" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:allowBackup="true">
         <activity
             android:label="@string/app_name"
-            android:name=".CsoundAppActivity" >
+            android:name=".CsoundAppActivity" 
+            android:configChanges="orientation" >
             <intent-filter >
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
     </application>
-
 </manifest>
