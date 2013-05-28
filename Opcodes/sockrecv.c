@@ -163,7 +163,8 @@ static int send_recv_k(CSOUND *csound, SOCKRECV *p)
     *ksig = FL(0.0);
     if(p->outsamps >= p->rcvsamps){
        p->outsamps =  0;
-       p->rcvsamps = csound->ReadCircularBuffer(csound, p->cb, p->buf, p->buffsize);
+       p->rcvsamps = 
+         csound->ReadCircularBuffer(csound, p->cb, p->buf, p->buffsize);
       }
     *ksig = p->buf[p->outsamps++];
     return OK;
@@ -305,7 +306,8 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
 
     /* the server IP address, in network byte order */
 #ifdef WIN32
-    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress->data);
+    p->server_addr.sin_addr.S_un.S_addr =
+      inet_addr((const char *) p->ipaddress->data);
 #else
     inet_aton((const char *) p->ipaddress->data, &(p->server_addr.sin_addr));
 #endif
