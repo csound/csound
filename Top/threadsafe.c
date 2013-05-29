@@ -29,7 +29,8 @@
 #endif
 
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
-extern void set_channel_data_ptr(CSOUND *csound, const char *name, void *ptr, int newSize);
+extern void set_channel_data_ptr(CSOUND *csound, const char *name,
+                                 void *ptr, int newSize);
 
 void csoundInputMessage(CSOUND *csound, const char *message){
   csoundLockMutex(csound->API_lock);

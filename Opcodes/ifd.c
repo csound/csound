@@ -75,7 +75,8 @@ static int ifd_init(CSOUND * csound, IFD * p)
                               "be an integral multiple of hopsize"));
 
     if (UNLIKELY((fftsize & (fftsize - 1))))
-      return csound->InitError(csound, Str("pvsifd: fftsize should be power-of-two"));
+      return csound->InitError(csound,
+                               Str("pvsifd: fftsize should be power-of-two"));
 
     p->frames = frames;
 
@@ -137,7 +138,8 @@ static int ifd_init(CSOUND * csound, IFD * p)
       alpha = 0.5;
       break;
     default:
-      return csound->InitError(csound, Str("pvsifd: unsupported value for iwintype\n"));
+      return csound->InitError(csound,
+                               Str("pvsifd: unsupported value for iwintype\n"));
       break;
     }
     fac = TWOPI / (fftsize - 1.0);

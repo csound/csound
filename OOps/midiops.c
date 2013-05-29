@@ -80,7 +80,7 @@ int massign_S(CSOUND *csound, MASSIGNS *p)
 
    if (UNLIKELY((instno = strarg2insno(csound, p->insno->data, 1)) <= 0L))
         return NOTOK;
-    
+
     resetCtls = (*p->iresetctls == FL(0.0) ? 0 : 1);
     if (--chnl >= 0)
       retval = m_chinsno(csound, chnl, (int) instno, resetCtls);
