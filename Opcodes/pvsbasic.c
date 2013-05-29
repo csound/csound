@@ -208,8 +208,9 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
     int N;
     char fname[MAXNAME];
 
-     if(stringname==0){
-       if(ISSTRCOD(*p->file)) strncpy(fname,get_arg_string(csound, *p->file), MAXNAME-1);
+    if (stringname==0){
+      if (ISSTRCOD(*p->file))
+        strncpy(fname,get_arg_string(csound, *p->file), MAXNAME-1);
       else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
     }
     else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME-1);
@@ -323,14 +324,16 @@ static int pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int stringname)
     PVOCDATA   pvdata;
     char fname[MAXNAME];
 
-     if(stringname==0){
-       if(ISSTRCOD(*p->file)) strncpy(fname,get_arg_string(csound, *p->file), MAXNAME-1);
+    if (stringname==0){
+      if (ISSTRCOD(*p->file))
+        strncpy(fname,get_arg_string(csound, *p->file), MAXNAME-1);
       else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
     }
     else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME-1);
 
     if (UNLIKELY(p->fout->sliding))
-      return csound->InitError(csound,Str("SDFT Not implemented in this case yet"));
+      return csound->InitError(csound,
+                               Str("SDFT Not implemented in this case yet"));
     if ((p->pvfile  = csound->PVOC_OpenFile(csound, fname,
                                             &pvdata, &fmt)) < 0)
       return csound->InitError(csound,
@@ -2406,7 +2409,7 @@ static OENTRY localops[] = {
               (SUBR) pvsscaleset, (SUBR) pvsscale},
   {"pvshift", sizeof(PVSSHIFT),0, 3, "f", "fkkOPO", (SUBR) pvsshiftset,
    (SUBR) pvsshift},
-  {"pvsmix", sizeof(PVSMIX),0, 3, "f", "ff", (SUBR) pvsmixset, (SUBR) pvsmix, NULL},
+  {"pvsmix", sizeof(PVSMIX),0, 3, "f", "ff", (SUBR) pvsmixset, (SUBR)pvsmix, NULL},
   {"pvsfilter", sizeof(PVSFILTER),0, 3, "f", "ffxp", (SUBR) pvsfilterset,
    (SUBR) pvsfilter},
   {"pvsblur", sizeof(PVSBLUR),0, 3, "f", "fki", (SUBR) pvsblurset, (SUBR) pvsblur,

@@ -44,9 +44,10 @@ static int sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p, int isstring)
 
     if(isstring) fname = ((STRINGDAT *)p->Sfname)->data;
     else {
-      if(ISSTRCOD(*p->Sfname)) fname = csound->Strdup(csound, get_arg_string(csound, *p->Sfname));
-    else
-      fname = csound->strarg2name(csound, (char*) NULL, p->Sfname, "soundin.", 0);
+      if(ISSTRCOD(*p->Sfname))
+        fname = csound->Strdup(csound, get_arg_string(csound, *p->Sfname));
+      else
+        fname = csound->strarg2name(csound, (char*) NULL, p->Sfname, "soundin.", 0);
     }
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sampleFormat = (int) MYFLT2LRND(*(p->iFormat));
@@ -182,13 +183,16 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     p->dataPtr = NULL;
     nChannels = csound->GetOutputArgCnt(p);
     if (UNLIKELY(nChannels < 1 || nChannels > LOSCILX_MAXOUTS))
-      return csound->InitError(csound, Str("loscilx: invalid number of output arguments"));
+      return csound->InitError(csound,
+                               Str("loscilx: invalid number of output arguments"));
     p->nChannels = nChannels;
     if (ISSTRCOD(*p->ifn)) {
       SNDMEMFILE  *sf;
 
       p->usingFtable = 0;
-      sf = csound->LoadSoundFile(csound, (char*) get_arg_string(csound, *p->ifn), (SF_INFO *) NULL);
+      sf = csound->LoadSoundFile(csound,
+                                 (char*) get_arg_string(csound, *p->ifn),
+                                 (SF_INFO *) NULL);
       if (UNLIKELY(sf == NULL))
         return csound->InitError(csound, Str("could not load '%s'"),
                                          (char*) p->ifn);

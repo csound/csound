@@ -141,7 +141,6 @@
 ./OOps/bus.c
 ./OOps/cmath.c
 ./OOps/compile_ops.c
-./OOps/diskin.c
 ./OOps/diskin2.c
 ./OOps/disprep.c
 ./OOps/dumpf.c

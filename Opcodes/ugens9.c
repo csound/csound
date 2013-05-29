@@ -41,16 +41,17 @@ static int cvset_(CSOUND *csound, CONVOLVE *p, int stringname)
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, CONVOLVE_VERSION_STRING);
 
-    if(stringname==0){
-      if(ISSTRCOD(*p->ifilno)) strncpy(cvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+    if (stringname==0){
+      if (ISSTRCOD(*p->ifilno))
+        strncpy(cvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, cvfilnam,p->ifilno, "convolve.",0);
     }
     else strncpy(cvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0) {
       /* if file not already readin */
-      if (UNLIKELY((mfp =
-                    csound->ldmemfile2withCB(csound, cvfilnam, CSFTYPE_CVANAL,NULL))
+      if (UNLIKELY((mfp = csound->ldmemfile2withCB(csound, cvfilnam,
+                                                   CSFTYPE_CVANAL,NULL))
                    == NULL)) {
         return csound->InitError(csound,
                                  Str("CONVOLVE cannot load %s"), cvfilnam);
@@ -389,8 +390,9 @@ static int pconvset_(CSOUND *csound, PCONVOLVE *p, int stringname)
     /* open impulse response soundfile [code derived from SAsndgetset()] */
     IRfile.skiptime = FL(0.0);
 
-     if(stringname==0){
-      if(ISSTRCOD(*p->ifilno)) strncpy(IRfile.sfname,get_arg_string(csound, *p->ifilno), 511);
+     if (stringname==0){
+      if (ISSTRCOD(*p->ifilno))
+        strncpy(IRfile.sfname,get_arg_string(csound, *p->ifilno), 511);
       else csound->strarg2name(csound, IRfile.sfname, p->ifilno, "soundin.",0);
     }
     else strncpy(IRfile.sfname, ((STRINGDAT *)p->ifilno)->data, 511);
@@ -457,7 +459,8 @@ static int pconvset_(CSOUND *csound, PCONVOLVE *p, int stringname)
          handles finding the right channel */
       if (UNLIKELY((read_in = csound->getsndin(csound, infd, inbuf,
                                                p->Hlen*p->nchanls, &IRfile)) <= 0))
-        return csound->InitError(csound, Str("PCONVOLVE: less sound than expected!"));
+        return csound->InitError(csound,
+                                 Str("PCONVOLVE: less sound than expected!"));
 
       /* take FFT of each channel */
       scaleFac = csound->dbfs_to_float

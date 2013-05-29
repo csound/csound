@@ -94,7 +94,8 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
 #ifdef WIN32
-    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress->data);
+    p->server_addr.sin_addr.S_un.S_addr =
+      inet_addr((const char *) p->ipaddress->data);
 #else
     inet_aton((const char *) p->ipaddress->data,
               &p->server_addr.sin_addr);    /* the server IP address */
@@ -220,7 +221,8 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
 #ifdef WIN32
-    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress->data);
+    p->server_addr.sin_addr.S_un.S_addr =
+      inet_addr((const char *) p->ipaddress->data);
 #else
     inet_aton((const char *) p->ipaddress->data,
               &p->server_addr.sin_addr);    /* the server IP address */
@@ -317,7 +319,8 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
 
     /* the server IP address, in network byte order */
 #ifdef WIN32
-    p->server_addr.sin_addr.S_un.S_addr = inet_addr((const char *) p->ipaddress->data);
+    p->server_addr.sin_addr.S_un.S_addr =
+      inet_addr((const char *) p->ipaddress->data);
 #else
     inet_aton((const char *) p->ipaddress->data, &(p->server_addr.sin_addr));
 #endif
