@@ -75,7 +75,6 @@ public class CsoundObj {
 		completionListeners = new ArrayList<CsoundObjCompletionListener>();
 		scoreMessages = new ArrayList<String>();
 		this.useAudioTrack = useAudioTrack;
-		
 		if(useAudioTrack) {
 			csound = new Csound();
 		} else {
@@ -269,28 +268,21 @@ public class CsoundObj {
 			for (CsoundObjCompletionListener listener : completionListeners) {
 				listener.csoundObjComplete(this);
 			}
-			
 		}
-
 	}
 
 	private void runCsoundAudioTrack(File f) {
 
 		csound.SetHostImplementedAudioIO(1, 0);
-
 		if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
-
 				@Override
 				public void MessageCallback(int attr, String msg) {
 					Log.d("CsoundObj", msg);
 					super.MessageCallback(attr, msg);
 				}
-
-			};
-		
+			};		
 			callbacks.SetMessageCallback();
-
 		}
 		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundAndroid", "Return Value2: " + retVal);
@@ -308,13 +300,10 @@ public class CsoundObj {
 					channelConfig, AudioFormat.ENCODING_PCM_16BIT);
 
 			if (audioInEnabled) {
-
 				int recordMinSize = AudioRecord.getMinBufferSize(
 						(int) csound.GetSr(), channelInConfig,
 						AudioFormat.ENCODING_PCM_16BIT);
-
 				minSize = (minSize > recordMinSize) ? minSize : recordMinSize;
-
 			}
 
 			AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
@@ -345,7 +334,6 @@ public class CsoundObj {
 							Log.d("CsoundObj",
 									"AudioRecord unable to be initialized. Error "
 											+ audioRecord.getRecordingState());
-
 						}
 						audioIn = new CsoundMYFLTArray();
 						audioIn.SetPtr(csound.GetSpin());

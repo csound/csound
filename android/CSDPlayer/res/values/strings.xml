@@ -13,8 +13,8 @@
     <string name="butt4">butt4</string>
     <string name="butt5">butt5</string>
     <string name="trackpad">trackpad</string>
-    <string name="OFF">Stop</string>
-    <string name="ON">Start</string>
+    <string name="Start">Start</string>
+    <string name="Stop">Stop</string>
     <string name="Browse">Open...</string>
     <string name="Edit">Edit...</string>
     <string name="New">New...</string>

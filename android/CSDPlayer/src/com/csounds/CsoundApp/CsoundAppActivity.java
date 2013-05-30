@@ -18,6 +18,9 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -66,17 +69,60 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 		handler.post(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);
-				displayLog();
+				//displayLog();
 				running = false;
 			}
 		});
+		displayLog();		
+	}	
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.menu, menu);
+	    return true;
 	}
-	private synchronized void postMessage(String message_)
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    switch (item.getItemId()) {
+	        case R.id.itemNew:
+	        	newButton.performClick();
+	            return true;
+	        case R.id.itemOpen:
+	        	browseButton.performClick();
+	            return true;
+	        case R.id.itemEdit:
+	        	editButton.performClick();
+	            return true;
+	        case R.id.itemRun:
+	        	startStopButton.performClick();
+	            return true;
+	        default:
+	            return super.onOptionsItemSelected(item);
+	    }
+	}
+	
+	private void postMessage(String message_)
+	{
+		postMessageClear_( message_,  false);
+	}
+	
+	private void postMessageClear(String message_)
+	{
+		postMessageClear_( message_,  true);
+	}
+	
+	private void postMessageClear_(String message_, boolean doClear_)
 	{
 		final String message = message_;
-		messageTextView.post(new Runnable() {
+		final boolean doClear = doClear_;
+		CsoundAppActivity.this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
+				if (doClear == true) {
+					messageTextView.setText("");
+				}
 				messageTextView.append(message);
 				messageScrollView.fullScroll(ScrollView.FOCUS_DOWN);
 			}
@@ -93,6 +139,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 	      while ((line = bufferedReader.readLine()) != null) {
 	        postMessage(line + "\n");
 	      }
+	      postMessage("Csound has stopped.\n");
    } catch (IOException e) { }
    }
 
@@ -128,7 +175,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 				}
 			}
 		});
-		browseButton = (Button) findViewById(R.id.browseButton);
+		browseButton = (Button) findViewById(R.id.openButton);
 		browseButton.setOnClickListener(new OnClickListener(){ 
 			public void onClick(View v){
 				if(!running) {
@@ -165,7 +212,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 		
 		pad = (Button)findViewById(R.id.pad);
 
-		startStopButton = (ToggleButton) findViewById(R.id.onOffButton);
+		startStopButton = (ToggleButton) findViewById(R.id.runButton);
 		startStopButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				if (csd == null) {
@@ -186,8 +233,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 					csound.enableAccelerometer(CsoundAppActivity.this);
 					csound.addCompletionListener(CsoundAppActivity.this);
 					csound.startCsound(csd);
-				    messageTextView.setText("");
-				    postMessage("Csound is running...\n");
+				    postMessageClear("Csound is running...\n");
 					callbacks = new CsoundCallbackWrapper(csound.getCsound()) {
 						@Override
 						public void MessageCallback(int attr, String msg) {
