@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:id="@+id/itemNew" android:visible="true" android:title="@string/New" android:menuCategory="container" android:enabled="true" android:orderInCategory="1"></item>
+    <item android:id="@+id/itemOpen" android:visible="true" android:title="@string/Browse" android:menuCategory="container" android:enabled="true" android:orderInCategory="2"></item>
+    <item android:id="@+id/itemEdit" android:visible="true" android:title="@string/Edit" android:menuCategory="container" android:enabled="true" android:orderInCategory="3"></item>
+    <item android:id="@+id/itemRun" android:visible="true" android:title="@string/Start" android:enabled="true" android:menuCategory="container" android:orderInCategory="4"></item>
+</menu>   
+

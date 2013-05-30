@@ -6,58 +6,39 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.74"
-        android:orientation="vertical" >
+        android:layout_height="wrap_content" >
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal" >
+        <Button
+            android:id="@+id/newButton"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.25"
+            android:text="New" />
 
-            <Button
-                android:id="@+id/newButton"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/New" />
+        <Button
+            android:id="@+id/openButton"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.25"
+            android:text="Open" />
 
-            <Button
-                android:id="@+id/browseButton"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/Browse" />
+        <Button
+            android:id="@+id/editButton"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.25"
+            android:text="Edit" />
 
-            <Button
-                android:id="@+id/editButton"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/Edit" />
-
-            <ToggleButton
-                android:id="@+id/onOffButton"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/OFF"
-                android:textOff="@string/ON"
-                android:textOn="@string/OFF" />
-        </LinearLayout>
-
-        <ScrollView
-            android:id="@+id/messageScrollView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
-
-            <TextView
-                android:id="@+id/messageTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:typeface="monospace" />
-        </ScrollView>
+        <ToggleButton
+            android:id="@+id/runButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.25"
+            android:textOff="@string/Start"
+            android:textOn="@string/Stop" />
     </LinearLayout>
 
     <LinearLayout
@@ -136,54 +117,65 @@
             android:layout_height="wrap_content"
             android:text="@string/slider5"
             android:textAppearance="?android:attr/textAppearanceSmall" />
+    </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/LinearLayout02"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content" >
+    <LinearLayout
+        android:id="@+id/LinearLayout02"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
 
-            <Button
-                android:id="@+id/button1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.52"
-                android:text="@string/butt1" />
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/butt1" />
 
-            <Button
-                android:id="@+id/button2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.60"
-                android:text="@string/butt2" />
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/butt2" />
 
-            <Button
-                android:id="@+id/button3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.79"
-                android:text="@string/butt3" />
+        <Button
+            android:id="@+id/button3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/butt3" />
 
-            <Button
-                android:id="@+id/button4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.70"
-                android:text="@string/butt4" />
+        <Button
+            android:id="@+id/button4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/butt4" />
 
-            <Button
-                android:id="@+id/button5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.34"
-                android:text="@string/butt5" />
-        </LinearLayout>
+        <Button
+            android:id="@+id/button5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/butt5" />
     </LinearLayout>
 
     <Button
         android:id="@+id/pad"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.11"
+        android:layout_height="148dp"
         android:text="@string/trackpad" />
+
+    <ScrollView
+        android:id="@+id/messageScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <TextView
+            android:id="@+id/messageTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:typeface="monospace" />
+    </ScrollView>
 
 </LinearLayout>
