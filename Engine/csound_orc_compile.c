@@ -680,7 +680,6 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       reallocateVarPoolMemory(csound, engineState->varPool);
     }
     close_instrument(csound, engineState, ip);
-
     return ip;
 }
 
@@ -1556,7 +1555,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var = csoundFindVariableWithName(engineState->varPool, "nchnls_i");
       *((MYFLT *)(var->memBlock)) = csound->inchnls;
       var = csoundFindVariableWithName(engineState->varPool, "0dbfs");
-      *((MYFLT *)(var->memBlock)) = csound->inchnls;
+      *((MYFLT *)(var->memBlock)) = csound->e0dbfs;
 
     }
 
