@@ -50,7 +50,13 @@ import csnd6.CsoundMYFLTArray;
 import csnd6.controlChannelType;
 
 public class CsoundObj {
-
+	/** Used to post Csound runtime messages to the host. */
+	public interface MessagePoster {
+		/** Clear the message display and post the message. */
+		public void postMessageClear(String message);
+		/** Append the message to the message display. */
+		public void postMessage(String message);
+	};
 	private Csound csound;
 	private ArrayList<CsoundValueCacheable> valuesCache;
 	private ArrayList<CsoundObjCompletionListener> completionListeners;
@@ -63,7 +69,8 @@ public class CsoundObj {
 	private boolean useAudioTrack = false;
 	int retVal = 0;
 	private boolean pause = false;
-	//private CsoundCallbackWrapper callbacks;
+	private CsoundCallbackWrapper callbacks;
+	public MessagePoster messagePoster = null;
 
 	public CsoundObj() {
 		this(false);
@@ -226,18 +233,19 @@ public class CsoundObj {
 
 	private void runCsoundOpenSL(File f) {
 		((AndroidCsound) csound).setOpenSlCallbacks();
-		/*
 		if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
 				@Override
 				public void MessageCallback(int attr, String msg) {
 					Log.d("CsoundObj", msg);
+					if (messagePoster != null) {
+						messagePoster.postMessage(msg);
+					}
 					super.MessageCallback(attr, msg);
 				}
 			};
 			callbacks.SetMessageCallback();
 		}
-		*/
 		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundAndroid", "Return Value2: " + retVal);
 		if (retVal == 0) {
@@ -289,18 +297,20 @@ public class CsoundObj {
 
 	private void runCsoundAudioTrack(File f) {
 		csound.SetHostImplementedAudioIO(1, 0);
-		/*
+
 		if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
 				@Override
 				public void MessageCallback(int attr, String msg) {
 					Log.d("CsoundObj", msg);
+					if (messagePoster != null) {
+						messagePoster.postMessage(msg);
+					}
 					super.MessageCallback(attr, msg);
 				}
 			};
 			callbacks.SetMessageCallback();
 		}
-		*/
 		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundAndroid", "Return Value2: " + retVal);
 		if (retVal == 0) {
