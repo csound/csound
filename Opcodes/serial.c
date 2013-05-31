@@ -377,7 +377,9 @@ int serialWrite_S(CSOUND *csound, SERIALWRITE *p)
     if (port==NULL) return NOTOK;
 #endif
 #ifndef WIN32
-    if (UNLIKELY(write((int)*p->port, ((STRINGDAT*)p->toWrite)->data, ((STRINGDAT*)p->toWrite)->size))<0)
+    if (UNLIKELY(write((int)*p->port,
+                       ((STRINGDAT*)p->toWrite)->data,
+                       ((STRINGDAT*)p->toWrite)->size))<0)
         return NOTOK;
 #else
       int nbytes;
