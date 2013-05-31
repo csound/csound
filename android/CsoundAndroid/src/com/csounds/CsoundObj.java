@@ -50,7 +50,13 @@ import csnd6.CsoundMYFLTArray;
 import csnd6.controlChannelType;
 
 public class CsoundObj {
-
+	/** Used to post Csound runtime messages to the host. */
+	public interface MessagePoster {
+		/** Clear the message display and post the message. */
+		public void postMessageClear(String message);
+		/** Append the message to the message display. */
+		public void postMessage(String message);
+	};
 	private Csound csound;
 	private ArrayList<CsoundValueCacheable> valuesCache;
 	private ArrayList<CsoundObjCompletionListener> completionListeners;
@@ -63,19 +69,19 @@ public class CsoundObj {
 	private boolean useAudioTrack = false;
 	int retVal = 0;
 	private boolean pause = false;
-
 	private CsoundCallbackWrapper callbacks;
+	public MessagePoster messagePoster = null;
 
 	public CsoundObj() {
 		this(false);
 	}
-	
+
 	public CsoundObj(boolean useAudioTrack) {
 		valuesCache = new ArrayList<CsoundValueCacheable>();
 		completionListeners = new ArrayList<CsoundObjCompletionListener>();
 		scoreMessages = new ArrayList<String>();
 		this.useAudioTrack = useAudioTrack;
-		if(useAudioTrack) {
+		if (useAudioTrack) {
 			csound = new Csound();
 		} else {
 			csound = new AndroidCsound();
@@ -106,12 +112,13 @@ public class CsoundObj {
 		return cachedSlider;
 	}
 
-	public CsoundValueCacheable addButton(Button button, String channelName,int type) {
+	public CsoundValueCacheable addButton(Button button, String channelName,
+			int type) {
 		CachedButton cachedButton = new CachedButton(button, channelName, type);
 		addValueCacheable(cachedButton);
 		return cachedButton;
 	}
-	
+
 	public CsoundValueCacheable addButton(Button button, String channelName) {
 		CachedButton cachedButton = new CachedButton(button, channelName);
 		addValueCacheable(cachedButton);
@@ -131,18 +138,20 @@ public class CsoundObj {
 	}
 
 	public void addValueCacheable(CsoundValueCacheable valueCacheable) {
-		if(!stopped) valueCacheable.setup(this);
-		synchronized(this) {
+		if (!stopped)
+			valueCacheable.setup(this);
+		synchronized (this) {
 			valuesCache.add(valueCacheable);
 		}
 	}
-	
+
 	public synchronized void inputMessage(String mess) {
 		String message = new String(mess);
 		scoreMessages.add(message);
 	}
-	
-	public synchronized void removeValueCacheable(CsoundValueCacheable valueCacheable) {
+
+	public synchronized void removeValueCacheable(
+			CsoundValueCacheable valueCacheable) {
 		valuesCache.remove(valueCacheable);
 	}
 
@@ -175,24 +184,37 @@ public class CsoundObj {
 		thread = new Thread() {
 			public void run() {
 				setPriority(Thread.MAX_PRIORITY);
-				if(useAudioTrack == false)
-				  runCsoundOpenSL(csdFile);
+				if (useAudioTrack == false)
+					runCsoundOpenSL(csdFile);
 				else
-				  runCsoundAudioTrack(csdFile);
+					runCsoundAudioTrack(csdFile);
 			}
 		};
 		thread.start();
 	}
-	
-	public void togglePause(){ pause = !pause; } 
-	
-	public void pause() { pause = true; }
-	
-	public void play() { pause = false; }
 
-	public void stopCsound() {
+	public void togglePause() {
+		pause = !pause;
+	}
+
+	public void pause() {
+		pause = true;
+	}
+
+	public void play() {
+		pause = false;
+	}
+
+	public synchronized void stopCsound() {
 		stopped = true;
-		thread = null;
+		try {
+			thread.join();
+			thread = null;
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			Log.d("CsoundObj", "InterruptedException in stopCsound.");
+			e.printStackTrace();
+		}
 	}
 
 	public int getNumChannels() {
@@ -203,19 +225,22 @@ public class CsoundObj {
 		return csound.GetKsmps();
 	}
 
-	public int getError(){
-     return retVal;
+	public int getError() {
+		return retVal;
 	}
 
 	/* Render Methods */
 
 	private void runCsoundOpenSL(File f) {
-		((AndroidCsound)csound).setOpenSlCallbacks();
+		((AndroidCsound) csound).setOpenSlCallbacks();
 		if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
 				@Override
 				public void MessageCallback(int attr, String msg) {
 					Log.d("CsoundObj", msg);
+					if (messagePoster != null) {
+						messagePoster.postMessage(msg);
+					}
 					super.MessageCallback(attr, msg);
 				}
 			};
@@ -232,26 +257,25 @@ public class CsoundObj {
 				cacheable.updateValuesToCsound();
 			}
 			while (csound.PerformKsmps() == 0 && !stopped) {
-				synchronized(this) {
+				synchronized (this) {
 					for (CsoundValueCacheable cacheable : valuesCache) {
 						cacheable.updateValuesFromCsound();
 					}
-					for (String mess : scoreMessages){
-					    csound.InputMessage(mess);
+					for (String mess : scoreMessages) {
+						csound.InputMessage(mess);
 					}
 					scoreMessages.clear();
 					for (CsoundValueCacheable cacheable : valuesCache) {
 						cacheable.updateValuesToCsound();
-					}		
+					}
 				}
-				while(pause)
+				while (pause)
 					try {
 						Thread.sleep(1);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 			}
-
 			csound.Stop();
 			csound.Cleanup();
 			csound.Reset();
@@ -264,7 +288,7 @@ public class CsoundObj {
 				listener.csoundObjComplete(this);
 			}
 
-		} else {			
+		} else {
 			for (CsoundObjCompletionListener listener : completionListeners) {
 				listener.csoundObjComplete(this);
 			}
@@ -272,16 +296,19 @@ public class CsoundObj {
 	}
 
 	private void runCsoundAudioTrack(File f) {
-
 		csound.SetHostImplementedAudioIO(1, 0);
+
 		if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
 				@Override
 				public void MessageCallback(int attr, String msg) {
 					Log.d("CsoundObj", msg);
+					if (messagePoster != null) {
+						messagePoster.postMessage(msg);
+					}
 					super.MessageCallback(attr, msg);
 				}
-			};		
+			};
 			callbacks.SetMessageCallback();
 		}
 		retVal = csound.Compile(f.getAbsolutePath());
@@ -316,7 +343,7 @@ public class CsoundObj {
 			CsoundMYFLTArray audioIn = null;
 
 			if (audioInEnabled) {
-				
+
 				audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
 						(int) csound.GetSr(), channelInConfig,
 						AudioFormat.ENCODING_PCM_16BIT, minSize);
@@ -344,34 +371,25 @@ public class CsoundObj {
 					}
 				}
 			}
-
 			audioTrack.play();
-
 			int counter = 0;
 			int nchnls = csound.GetNchnls();
 			int recBufferSize = csound.GetKsmps();
 			int bufferSize = recBufferSize * nchnls;
-
 			short[] samples = new short[bufferSize];
-
 			float multiplier = Short.MAX_VALUE / csound.Get0dBFS();
 			float recMultiplier = 1 / multiplier;
-
 			Log.d("CsoundObj", "Multiplier: " + multiplier + " : "
 					+ recMultiplier);
-
 			stopped = false;
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.updateValuesToCsound();
 			}
-
 			short recordSample[] = new short[recBufferSize];
-
 			if (audioRecord != null) {
 				audioRecord.read(recordSample, 0, recBufferSize);
 				for (int i = 0; i < csound.GetKsmps(); i++) {
 					short sample = recordSample[i];
-
 					if (nchnls == 2) {
 						int index = i * 2;
 						audioIn.SetValues(index,
@@ -382,26 +400,24 @@ public class CsoundObj {
 					}
 				}
 			}
-
 			while (csound.PerformKsmps() == 0 && !stopped) {
-
 				for (int i = 0; i < csound.GetKsmps(); i++) {
 					samples[counter++] = (short) (csound.GetSpoutSample(i, 0) * multiplier);
 					if (nchnls > 1) {
-					  samples[counter++] = (short) (csound.GetSpoutSample(i,1) * multiplier);
+						samples[counter++] = (short) (csound.GetSpoutSample(i,
+								1) * multiplier);
 					}
 				}
-
 				if (counter >= bufferSize) {
 					audioTrack.write(samples, 0, bufferSize);
 					counter = 0;
 				}
-				synchronized(this) {
+				synchronized (this) {
 					for (CsoundValueCacheable cacheable : valuesCache) {
 						cacheable.updateValuesFromCsound();
 					}
-					for (String mess : scoreMessages){
-					    csound.InputMessage(mess);
+					for (String mess : scoreMessages) {
+						csound.InputMessage(mess);
 					}
 					scoreMessages.clear();
 					for (CsoundValueCacheable cacheable : valuesCache) {
@@ -412,7 +428,6 @@ public class CsoundObj {
 					audioRecord.read(recordSample, 0, recBufferSize);
 					for (int i = 0; i < csound.GetKsmps(); i++) {
 						short sample = recordSample[i];
-
 						if (nchnls == 2) {
 							int index = i * 2;
 							audioIn.SetValues(index,
@@ -423,39 +438,33 @@ public class CsoundObj {
 						}
 					}
 				}
-				while(pause) try {
-					Thread.sleep(1);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+				while (pause)
+					try {
+						Thread.sleep(1);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 			}
-
 			audioTrack.stop();
 			audioTrack.release();
-
 			if (audioRecord != null) {
 				audioRecord.stop();
 				audioRecord.release();
 				audioIn.Clear();
 			}
-
-			csound.Stop();
+			//csound.Stop();
 			csound.Cleanup();
 			csound.Reset();
-
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.cleanup();
 			}
-
 			for (CsoundObjCompletionListener listener : completionListeners) {
 				listener.csoundObjComplete(this);
 			}
-
-		}
-		else {
+		} else {
 			for (CsoundObjCompletionListener listener : completionListeners) {
 				listener.csoundObjComplete(this);
 			}
 		}
-	} 		
+	}
 }
