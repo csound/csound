@@ -40,88 +40,89 @@ import com.csounds.CsoundObjCompletionListener;
 import csnd6.Csound;
 import csnd6.CsoundCallbackWrapper;
 
-public class CsoundAppActivity extends Activity  implements CsoundObjCompletionListener {
-	Button browseButton;
-	Button newButton;
-	Button editButton;
+public class CsoundAppActivity extends Activity implements
+		CsoundObjCompletionListener, CsoundObj.MessagePoster {
+	Button newButton = null;
+	Button openButton = null;
+	Button editButton = null;
 	ToggleButton startStopButton = null;
 	CsoundObj csound = null;
 	File csd = null;
-	Button pad;
+	Button pad = null;
 	ArrayList<SeekBar> sliders = new ArrayList<SeekBar>();
 	ArrayList<Button> buttons = new ArrayList<Button>();
 	ArrayList<String> str = new ArrayList<String>();
-	CsoundCallbackWrapper callbacks = null;
 	private Boolean firstLvl = true;
-	private Item[] fileList;
+	private Item[] fileList = null;
 	private File path = new File(Environment.getExternalStorageDirectory() + "");
 	private String chosenFile;
 	private static final int BROWSE_DIALOG = 0xFFFFFFFF;
 	private static final int ERROR_DIALOG = 0xFFFFFFF0;
-	ListAdapter adapter;
+	ListAdapter adapter = null;
 	protected Handler handler = new Handler();
-	boolean running = false;
 	private TextView messageTextView = null;
 	private ScrollView messageScrollView = null;
-	String errorMessage;
+	String errorMessage = null;
 
 	public void csoundObjComplete(CsoundObj csoundObj) {
-		handler.post(new Runnable() {
+		runOnUiThread(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);
-				//displayLog();
-				running = false;
+				postMessage("Csound has finished.\n");
 			}
 		});
-		displayLog();		
-	}	
-	
+	}
+
+	/*
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.menu, menu);
-	    return true;
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.menu, menu);
+		return true;
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-	    switch (item.getItemId()) {
-	        case R.id.itemNew:
-	        	newButton.performClick();
-	            return true;
-	        case R.id.itemOpen:
-	        	browseButton.performClick();
-	            return true;
-	        case R.id.itemEdit:
-	        	editButton.performClick();
-	            return true;
-	        case R.id.itemRun:
-	        	startStopButton.performClick();
-	            return true;
-	        default:
-	            return super.onOptionsItemSelected(item);
-	    }
+		switch (item.getItemId()) {
+		case R.id.itemNew:
+			newButton.performClick();
+			return true;
+		case R.id.itemOpen:
+			openButton.performClick();
+			return true;
+		case R.id.itemEdit:
+			editButton.performClick();
+			return true;
+		case R.id.itemRun:
+			startStopButton.performClick();
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
 	}
+	*/
 	
-	private void postMessage(String message_)
-	{
-		postMessageClear_( message_,  false);
+	public void postMessage(String message_) {
+		postMessageClear_(message_, false);
 	}
-	
-	private void postMessageClear(String message_)
-	{
-		postMessageClear_( message_,  true);
+
+	public void postMessageClear(String message_) {
+		postMessageClear_(message_, true);
 	}
-	
-	private void postMessageClear_(String message_, boolean doClear_)
-	{
+
+	private synchronized void postMessageClear_(String message_, boolean doClear_) {
 		final String message = message_;
 		final boolean doClear = doClear_;
 		CsoundAppActivity.this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				if (doClear == true) {
+					//Handler handler = messageTextView.getHandler();
+					//handler.removeCallbacksAndMessages(0);
 					messageTextView.setText("");
+				}
+				if (message == null) {
+					return;
 				}
 				messageTextView.append(message);
 				messageScrollView.fullScroll(ScrollView.FOCUS_DOWN);
@@ -129,141 +130,132 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 		});
 	}
 
-	private void displayLog(){
-      try {
-	      Process process = Runtime.getRuntime().exec("logcat -dt 8 CsoundObj:D AndroidCsound:D *:S");
-	      BufferedReader bufferedReader = new BufferedReader(
-	      new InputStreamReader(process.getInputStream()));
-	      String line;
-	      postMessage("Csound system log:\n");
-	      while ((line = bufferedReader.readLine()) != null) {
-	        postMessage(line + "\n");
-	      }
-	      postMessage("Csound has stopped.\n");
-   } catch (IOException e) { }
-   }
+	private void displayLog() {
+		try {
+			Process process = Runtime.getRuntime().exec(
+					"logcat -dt 16 CsoundObj:D AndroidCsound:D *:S");
+			BufferedReader bufferedReader = new BufferedReader(
+					new InputStreamReader(process.getInputStream()));
+			String line;
+			postMessage("Csound system log:\n");
+			while ((line = bufferedReader.readLine()) != null) {
+				postMessage(line + "\n");
+			}
+		} catch (IOException e) {
+		}
+	}
 
-	private void OnFileChosen(File file){
+	private void OnFileChosen(File file) {
 		Log.d("FILE CHOSEN", file.getAbsolutePath());
-		csd = file;		
+		csd = file;
 	}
 
 	@Override
 	protected void onDestroy() {
-		// TODO Auto-generated method stub
 		super.onDestroy();
 		try {
 			csound.stopCsound();
-		} catch (Exception e){
+		} catch (Exception e) {
 			Log.e("error", "could not stop csound");
 		}
 	}
-
+	
+	/**
+	 * Quit performing on leaving the user interface of the app.
+	 */
+	public void onBackPressed()
+	{
+		finish();
+	}
+	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		newButton = (Button) findViewById(R.id.newButton);
-		newButton.setOnClickListener(new OnClickListener(){ 
-			public void onClick(View v){
-				if(!running) {
-					Intent intent = new Intent(Intent.ACTION_GET_CONTENT); 
-					Uri uri = Uri.parse("file://template.csd"); 
-					intent.setDataAndType(uri, "text/plain"); 
-					startActivityForResult(intent, R.id.newButton);						
-				}
+		newButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+				Uri uri = Uri.parse("file://template.csd");
+				intent.setDataAndType(uri, "text/plain");
+				startActivityForResult(intent, R.id.newButton);
 			}
 		});
-		browseButton = (Button) findViewById(R.id.openButton);
-		browseButton.setOnClickListener(new OnClickListener(){ 
-			public void onClick(View v){
-				if(!running) {
-					loadFileList();
-					showDialog(BROWSE_DIALOG); 
-				}
+		openButton = (Button) findViewById(R.id.openButton);
+		openButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				loadFileList();
+				showDialog(BROWSE_DIALOG);
 			}
 		});
 		editButton = (Button) findViewById(R.id.editButton);
-		editButton.setOnClickListener(new OnClickListener(){ 
-			public void onClick(View v){
-				if(!running && csd != null) {
-					Intent intent = new Intent(Intent.ACTION_VIEW); 
-					Uri uri = Uri.parse("file://" + csd.getAbsolutePath()); 
-					intent.setDataAndType(uri, "text/plain"); 
-					startActivity(intent);						
+		editButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				if (csd != null) {
+					Intent intent = new Intent(Intent.ACTION_VIEW);
+					Uri uri = Uri.parse("file://" + csd.getAbsolutePath());
+					intent.setDataAndType(uri, "text/plain");
+					startActivity(intent);
 				}
 			}
 		});
-		messageTextView = (TextView)findViewById(R.id.messageTextView);
+		messageTextView = (TextView) findViewById(R.id.messageTextView);
 		messageScrollView = (ScrollView) findViewById(R.id.messageScrollView);
-		
-		sliders.add((SeekBar)findViewById(R.id.seekBar1));
-		sliders.add((SeekBar)findViewById(R.id.seekBar2));
-		sliders.add((SeekBar)findViewById(R.id.seekBar3));
-		sliders.add((SeekBar)findViewById(R.id.seekBar4));
-		sliders.add((SeekBar)findViewById(R.id.seekBar5));
-
-		buttons.add((Button)findViewById(R.id.button1));
-		buttons.add((Button)findViewById(R.id.button2));
-		buttons.add((Button)findViewById(R.id.button3));
-		buttons.add((Button)findViewById(R.id.button4));
-		buttons.add((Button)findViewById(R.id.button5));
-		
-		pad = (Button)findViewById(R.id.pad);
-
+		sliders.add((SeekBar) findViewById(R.id.seekBar1));
+		sliders.add((SeekBar) findViewById(R.id.seekBar2));
+		sliders.add((SeekBar) findViewById(R.id.seekBar3));
+		sliders.add((SeekBar) findViewById(R.id.seekBar4));
+		sliders.add((SeekBar) findViewById(R.id.seekBar5));
+		buttons.add((Button) findViewById(R.id.button1));
+		buttons.add((Button) findViewById(R.id.button2));
+		buttons.add((Button) findViewById(R.id.button3));
+		buttons.add((Button) findViewById(R.id.button4));
+		buttons.add((Button) findViewById(R.id.button5));
+		pad = (Button) findViewById(R.id.pad);
 		startStopButton = (ToggleButton) findViewById(R.id.runButton);
-		startStopButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		startStopButton.setOnClickListener(new OnClickListener() {
+			public synchronized void onClick(View v) {
 				if (csd == null) {
-					buttonView.toggle();
+					startStopButton.toggle();
 					return;
 				}
-				Log.d("CSD", csd.getAbsolutePath());		
-				if(isChecked) {
+				if (startStopButton.isChecked()) {
 					csound = new CsoundObj();
+					csound.messagePoster = CsoundAppActivity.this;
+					csound.setMessageLoggingEnabled(true);
 					String channelName;
-					for(int i = 0; i < 5; i++){
-						channelName = "slider" + (i+1);
-						csound.addSlider(sliders.get(i),channelName, 0., 1.);
-						channelName = "butt" + (i+1);
-						csound.addButton(buttons.get(i),channelName, 1);
+					for (int i = 0; i < 5; i++) {
+						channelName = "slider" + (i + 1);
+						csound.addSlider(sliders.get(i), channelName, 0., 1.);
+						channelName = "butt" + (i + 1);
+						csound.addButton(buttons.get(i), channelName, 1);
 					}
-					csound.addButton(pad,"trackpad", 1);
+					csound.addButton(pad, "trackpad", 1);
 					csound.enableAccelerometer(CsoundAppActivity.this);
 					csound.addCompletionListener(CsoundAppActivity.this);
 					csound.startCsound(csd);
-				    postMessageClear("Csound is running...\n");
-					callbacks = new CsoundCallbackWrapper(csound.getCsound()) {
-						@Override
-						public void MessageCallback(int attr, String msg) {
-							postMessage(msg);
-							super.MessageCallback(attr, msg);
-						}
-					};
-					callbacks.SetMessageCallback();
+					postMessageClear("Csound is starting...\n");
 				} else {
 					csound.stopCsound();
-				    displayLog();
-				    postMessage("Csound has stopped.");
-					running = false;
+					postMessage("Csound has been stopped.\n");
 				}
 			}
 		});
 	}
-	
+
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent intent)
-	{
+	protected void onActivityResult(int requestCode, int resultCode,
+			Intent intent) {
 		try {
-			if (requestCode == R.id.newButton && intent != null){
+			if (requestCode == R.id.newButton && intent != null) {
 				csd = new File(intent.getData().getPath());
 			}
 		} catch (Exception e) {
 			Log.e("error", e.toString());
 		}
 	}
-	
+
 	private void loadFileList() {
 		try {
 			path.mkdirs();
@@ -271,7 +263,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 			Log.e("error", "unable to write on the sd card ");
 		}
 
-		
 		if (path.exists()) {
 			FilenameFilter filter = new FilenameFilter() {
 				public boolean accept(File dir, String filename) {
@@ -288,7 +279,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 				File sel = new File(path, fList[i]);
 				if (sel.isDirectory()) {
 					fileList[i].icon = R.drawable.directory_icon;
-				} 
+				}
 			}
 			if (!firstLvl) {
 				Item temp[] = new Item[fileList.length + 1];
@@ -298,7 +289,7 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 				temp[0] = new Item("Up", R.drawable.directory_up);
 				fileList = temp;
 			}
-		} 
+		}
 		adapter = new ArrayAdapter<Item>(this,
 				android.R.layout.select_dialog_item, android.R.id.text1,
 				fileList) {
@@ -323,13 +314,11 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 			this.file = file;
 			this.icon = icon;
 		}
-
 		@Override
 		public String toString() {
 			return file;
 		}
 	}
-	
 
 	@Override
 	protected Dialog onCreateDialog(int id) {
@@ -339,7 +328,6 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 			dialog = builder.create();
 			return dialog;
 		}
-
 		switch (id) {
 		case BROWSE_DIALOG:
 			builder.setTitle("Choose your file");
@@ -355,8 +343,8 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 						loadFileList();
 						removeDialog(BROWSE_DIALOG);
 						showDialog(BROWSE_DIALOG);
-					}
-					else if (chosenFile.equalsIgnoreCase("up") && !sel.exists()) {
+					} else if (chosenFile.equalsIgnoreCase("up")
+							&& !sel.exists()) {
 						String s = str.remove(str.size() - 1);
 						path = new File(path.toString().substring(0,
 								path.toString().lastIndexOf(s)));
@@ -367,14 +355,14 @@ public class CsoundAppActivity extends Activity  implements CsoundObjCompletionL
 						loadFileList();
 						removeDialog(BROWSE_DIALOG);
 						showDialog(BROWSE_DIALOG);
-					}
-					else OnFileChosen(sel);
+					} else
+						OnFileChosen(sel);
 				}
 			});
 			break;
-		  case  ERROR_DIALOG:
-			  builder.setTitle(errorMessage);
-			  break;
+		case ERROR_DIALOG:
+			builder.setTitle(errorMessage);
+			break;
 		}
 		dialog = builder.show();
 		return dialog;
