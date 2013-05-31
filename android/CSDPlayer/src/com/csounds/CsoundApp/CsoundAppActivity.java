@@ -41,7 +41,7 @@ import csnd6.Csound;
 import csnd6.CsoundCallbackWrapper;
 
 public class CsoundAppActivity extends Activity implements
-		CsoundObjCompletionListener {
+		CsoundObjCompletionListener, CsoundObj.MessagePoster {
 	Button newButton = null;
 	Button openButton = null;
 	Button editButton = null;
@@ -52,7 +52,6 @@ public class CsoundAppActivity extends Activity implements
 	ArrayList<SeekBar> sliders = new ArrayList<SeekBar>();
 	ArrayList<Button> buttons = new ArrayList<Button>();
 	ArrayList<String> str = new ArrayList<String>();
-	CsoundCallbackWrapper csoundCallbackWrapper = null;
 	private Boolean firstLvl = true;
 	private Item[] fileList = null;
 	private File path = new File(Environment.getExternalStorageDirectory() + "");
@@ -103,11 +102,11 @@ public class CsoundAppActivity extends Activity implements
 	}
 	*/
 	
-	private void postMessage(String message_) {
+	public void postMessage(String message_) {
 		postMessageClear_(message_, false);
 	}
 
-	private void postMessageClear(String message_) {
+	public void postMessageClear(String message_) {
 		postMessageClear_(message_, true);
 	}
 
@@ -223,6 +222,8 @@ public class CsoundAppActivity extends Activity implements
 				}
 				if (startStopButton.isChecked()) {
 					csound = new CsoundObj();
+					csound.messagePoster = CsoundAppActivity.this;
+					csound.setMessageLoggingEnabled(true);
 					String channelName;
 					for (int i = 0; i < 5; i++) {
 						channelName = "slider" + (i + 1);
@@ -234,28 +235,7 @@ public class CsoundAppActivity extends Activity implements
 					csound.enableAccelerometer(CsoundAppActivity.this);
 					csound.addCompletionListener(CsoundAppActivity.this);
 					csound.startCsound(csd);
-					postMessageClear("Csound");
-					postMessage("is starting");
-					postMessage("...");
-					postMessage("\n");
-					csoundCallbackWrapper = new CsoundCallbackWrapper(csound.getCsound()) {
-						@Override
-						public void MessageCallback(int attr, String msg) {
-							// What we know is that enabling a breakpoint on this line 
-							// sometimes works for a first performance, 
-							// but never for a second performance, unless sometimes when
-							// the user bangs on the start button.
-							// But some of the old messages from shutdown of the first 
-							// performance come through at times. I suppose these are pending
-							// in the Handler queue.
-							// I think that the callback wrapper is getting replaced after the 
-							// runnable is hooked up to it. 
-							// Or, there is a deadlock.
-							postMessage(msg);
-							super.MessageCallback(attr, msg);
-						}
-					};
-					csoundCallbackWrapper.SetMessageCallback();
+					postMessageClear("Csound is starting...\n");
 				} else {
 					csound.stopCsound();
 					postMessage("Csound has been stopped.\n");
