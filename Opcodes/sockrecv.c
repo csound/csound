@@ -163,7 +163,7 @@ static int send_recv_k(CSOUND *csound, SOCKRECV *p)
     *ksig = FL(0.0);
     if(p->outsamps >= p->rcvsamps){
        p->outsamps =  0;
-       p->rcvsamps = 
+       p->rcvsamps =
          csound->ReadCircularBuffer(csound, p->cb, p->buf, p->buffsize);
       }
     *ksig = p->buf[p->outsamps++];
