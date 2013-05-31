@@ -932,7 +932,7 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
 typedef struct {
     OPDS h;
     ARRAYDAT *tab, *tabin;
-    MYFLT *str;
+    STRINGDAT *str;
     int    len;
     OENTRY *opc;
 } TABMAP;
@@ -957,10 +957,10 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
     else size = size < p->tab->sizes[0] ? size : p->tab->sizes[0];
     data =  p->tab->data;
 
-    opc = find_opcode_new(csound, (char*)p->str, "i", "i");
+    opc = find_opcode_new(csound, p->str->data, "i", "i");
 
     if (UNLIKELY(opc == NULL))
-      return csound->InitError(csound, Str("%s not found"), (char*)p->str);
+      return csound->InitError(csound, Str("%s not found"), p->str->data);
     p->opc = opc;
     for (n=0; n < size; n++) {
       eval.a = &tabin[n];
@@ -968,7 +968,7 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
       opc->iopadr(csound, (void *) &eval);
     }
 
-    opc = find_opcode_new(csound, (char*)p->str, "k", "k");
+    opc = find_opcode_new(csound, p->str->data, "k", "k");
 
     p->opc = opc;
     return OK;
