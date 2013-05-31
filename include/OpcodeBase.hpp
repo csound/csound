@@ -121,7 +121,8 @@ public:
   static int init_(CSOUND *csound, void *opcode)
   {
     if (!csound->GetReinitFlag(csound) && !csound->GetTieFlag(csound)) {
-      csound->RegisterDeinitCallback(csound, opcode, &OpcodeNoteoffBase<T>::noteoff_);
+      csound->RegisterDeinitCallback(csound, opcode,
+                                     &OpcodeNoteoffBase<T>::noteoff_);
     }
     return reinterpret_cast<T *>(opcode)->init(csound);
   }
