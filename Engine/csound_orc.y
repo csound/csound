@@ -382,6 +382,15 @@ statement : ident '=' expr NEWLINE
               $$ = ans; 
 
           }
+          | arrayident '=' expr NEWLINE
+	  {
+              TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
+              ans->left = (TREE *)$1;
+              ans->right = (TREE *)$3;
+              $$ = ans; 
+
+          }
+
           | ans opcode exprlist NEWLINE
                 {
                   $2->left = $1;
