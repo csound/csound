@@ -73,7 +73,8 @@ static int array_del(CSOUND *csound, void *p)
 
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
 {
-    if (p->data==NULL || (p->dimensions==1 && p->sizes[0] < size)) {
+    if (p->data==NULL || p->dimensions == 0 ||
+        (p->dimensions==1 && p->sizes[0] < size)) {
       uint32_t ss = sizeof(MYFLT)*size;
       if (p->data==NULL) p->data = (MYFLT*)mmalloc(csound, ss);
       else p->data = (MYFLT*) mrealloc(csound, p->data, ss);
@@ -801,15 +802,15 @@ typedef struct {
     int      len;
 } TABCPY;
 
-//static int tabcopy_set(CSOUND *csound, TABCPY *p)
-//{
-//    //int sizes,sized;
-//    if (UNLIKELY(p->src->data==NULL) || p->src->dimensions!=1)
-//      return csound->InitError(csound, Str("t-variable not initialised"));
-//    tabensure(csound, p->dst, p->src->sizes[0]);
-//    memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
-//    return OK;
-//}
+static int tabcopy_set(CSOUND *csound, TABCPY *p)
+{
+   //int sizes,sized;
+   /* if (UNLIKELY(p->src->data==NULL) || p->src->dimensions!=1) */
+   /*   return csound->InitError(csound, Str("t-variable not initialised")); */
+   tabensure(csound, p->dst, p->src->sizes[0]);
+   memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
+   return OK;
+}
 
 static int tabcopy(CSOUND *csound, TABCPY *p)
 {
@@ -1112,7 +1113,7 @@ static OENTRY arrayvars_localops[] =
     { "scalearray.k", sizeof(TABSCALE), 0, 3, "",  "[k]kkOJ",
                                                (SUBR) tabscaleset,(SUBR) tabscale },
     { "scalearray.1", sizeof(TABSCALE), 0, 1, "",  "[i]iiOJ",   (SUBR) tabscale1 },
-    { "=.t", sizeof(TABCPY), 0, 2, "[k]", "[k]", NULL, (SUBR)tabcopy },
+    { "=.t", sizeof(TABCPY), 0, 3, "[k]", "[k]", (SUBR)tabcopy_set, (SUBR)tabcopy },
     { "tabgen", sizeof(TABGEN), _QQ, 1, "[k]", "iip", (SUBR) tabgen_set, NULL    },
     { "tabmap_i", sizeof(TABMAP), _QQ, 1, "[k]", "[k]S", (SUBR) tabmap_set       },
     { "tabmap", sizeof(TABMAP), _QQ, 3, "[k]", "[k]S", (SUBR) tabmap_set,
