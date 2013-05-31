@@ -58,7 +58,7 @@ static void format_call_statement(char *statement, char *callable,
     else {
       sprintf(statement, "%s()", callable);
     }
-  
+
 }
 
 static PyObject *
