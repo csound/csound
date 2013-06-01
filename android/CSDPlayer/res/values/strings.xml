@@ -20,4 +20,15 @@
     <string name="New">New</string>
     <string name="help">Help</string>
     <string name="about">About</string>
+    <string name="csd_template" space="preserve"><![CDATA[<CsoundSynthesizer>
+<CsLicense>
+</CsLicense>
+<CsOptions>
+</CsOptions>
+<CsInstruments>
+</CsInstruments>
+<CsScore>
+</CsScore>
+</CsoundSynthesizer>]]>
+</string>
 </resources>
