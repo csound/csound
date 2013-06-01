@@ -4,5 +4,6 @@
     <item android:id="@+id/itemOpen" android:visible="true" android:title="@string/Open" android:menuCategory="container" android:enabled="true" android:orderInCategory="2"></item>
     <item android:id="@+id/itemEdit" android:visible="true" android:title="@string/Edit" android:menuCategory="container" android:enabled="true" android:orderInCategory="3"></item>
     <item android:id="@+id/itemRun" android:visible="true" android:title="@string/Start" android:enabled="true" android:menuCategory="container" android:orderInCategory="4"></item>
+    <item android:id="@+id/itemHelp" android:title="@string/help" android:visible="true" android:menuCategory="container" android:enabled="true" android:orderInCategory="5"></item>
+    <item android:id="@+id/itemAbout" android:title="@string/about" android:visible="true" android:menuCategory="container" android:enabled="true" android:orderInCategory="6"></item>
 </menu>   
-

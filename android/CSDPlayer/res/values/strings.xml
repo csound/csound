@@ -18,4 +18,6 @@
     <string name="Open">Open</string>
     <string name="Edit">Edit</string>
     <string name="New">New</string>
+    <string name="help">Help</string>
+    <string name="about">About</string>
 </resources>

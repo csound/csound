@@ -46,6 +46,8 @@ public class CsoundAppActivity extends Activity implements
 	Button openButton = null;
 	Button editButton = null;
 	ToggleButton startStopButton = null;
+	MenuItem helpItem = null;
+	MenuItem aboutItem = null;
 	CsoundObj csound = null;
 	File csd = null;
 	Button pad = null;
@@ -73,7 +75,6 @@ public class CsoundAppActivity extends Activity implements
 		});
 	}
 
-	/*
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -96,12 +97,17 @@ public class CsoundAppActivity extends Activity implements
 		case R.id.itemRun:
 			startStopButton.performClick();
 			return true;
+		case R.id.itemHelp:
+			goToUrl("http://www.csounds.com/manual/html/index.html");
+			return true;
+		case R.id.itemAbout:
+			goToUrl("http://www.csounds.com/about");			
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
 	}
-	*/
-	
+
 	public void postMessage(String message_) {
 		postMessageClear_(message_, false);
 	}
@@ -110,15 +116,14 @@ public class CsoundAppActivity extends Activity implements
 		postMessageClear_(message_, true);
 	}
 
-	private synchronized void postMessageClear_(String message_, boolean doClear_) {
+	private synchronized void postMessageClear_(String message_,
+			boolean doClear_) {
 		final String message = message_;
 		final boolean doClear = doClear_;
 		CsoundAppActivity.this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				if (doClear == true) {
-					//Handler handler = messageTextView.getHandler();
-					//handler.removeCallbacksAndMessages(0);
 					messageTextView.setText("");
 				}
 				if (message == null) {
@@ -128,6 +133,12 @@ public class CsoundAppActivity extends Activity implements
 				messageScrollView.fullScroll(ScrollView.FOCUS_DOWN);
 			}
 		});
+	}
+
+	private void goToUrl(String url) {
+		Uri uriUrl = Uri.parse(url);
+		Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
+		startActivity(launchBrowser);
 	}
 
 	private void displayLog() {
@@ -159,15 +170,14 @@ public class CsoundAppActivity extends Activity implements
 			Log.e("error", "could not stop csound");
 		}
 	}
-	
+
 	/**
 	 * Quit performing on leaving the user interface of the app.
 	 */
-	public void onBackPressed()
-	{
+	public void onBackPressed() {
 		finish();
 	}
-	
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -310,10 +320,12 @@ public class CsoundAppActivity extends Activity implements
 	private class Item {
 		public String file;
 		public int icon;
+
 		public Item(String file, Integer icon) {
 			this.file = file;
 			this.icon = icon;
 		}
+
 		@Override
 		public String toString() {
 			return file;
