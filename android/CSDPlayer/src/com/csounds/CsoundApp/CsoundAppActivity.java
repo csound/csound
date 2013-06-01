@@ -65,6 +65,7 @@ public class CsoundAppActivity extends Activity implements
 	private TextView messageTextView = null;
 	private ScrollView messageScrollView = null;
 	String errorMessage = null;
+	String csdTemplate = null;
 
 	public void csoundObjComplete(CsoundObj csoundObj) {
 		runOnUiThread(new Runnable() {
@@ -182,13 +183,26 @@ public class CsoundAppActivity extends Activity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		csdTemplate = "<CsoundSynthesizer>\n" +
+"<CsLicense>\n" + 
+"</CsLicense>\n" +
+"<CsOptions>\n" +
+"</CsOptions>\n" +
+"<CsInstruments>\n" +
+"</CsInstruments>\n" +
+"<CsScore>\n" +
+"</CsScore>\n" +
+"</CsoundSynthesizer>\n";
 		setContentView(R.layout.main);
 		newButton = (Button) findViewById(R.id.newButton);
 		newButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+				Intent intent = new Intent(Intent.ACTION_SEND);
 				Uri uri = Uri.parse("file://template.csd");
-				intent.setDataAndType(uri, "text/plain");
+				intent.setDataAndType(null, "text/plain");
+				// Stupid XML assumptions about white space obtrude...
+				// String csdTemplate = getString(R.string.csd_template);
+				intent.putExtra(intent.EXTRA_TEXT, csdTemplate);
 				startActivityForResult(intent, R.id.newButton);
 			}
 		});
