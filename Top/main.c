@@ -322,6 +322,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
         }
 
      /* and midi */
+  if(csound->enableHostImplementedMIDIIO == 0){
   if((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
     if(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
      strcmp(s, "NULL") == 0) {
@@ -332,7 +333,8 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
      csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
      csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
      csound->SetExternalMidiOutCloseCallback(csound, NULL);
-  }
+     }
+     }
    }
 
 

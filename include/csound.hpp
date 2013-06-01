@@ -427,6 +427,10 @@ public:
   {
     csoundSetHostImplementedAudioIO(csound, state, bufSize);
   }
+  virtual void SetHostImplementedMIDIIO(int state)
+  {
+    csoundSetHostImplementedMIDIIO(csound, state);
+  }
   virtual double GetScoreTime()
   {
     return csoundGetScoreTime(csound);
