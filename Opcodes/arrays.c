@@ -1038,7 +1038,7 @@ static OENTRY arrayvars_localops[] =
     {"##add.[]", sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
                                          (SUBR)tabarithset, (SUBR)tabadd},
     /* ******************************************** */
-    {"##sub.[]",  sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
+    {"##sub.[]", sizeof(TABARITH), 0, 3, "[k]", "[k][k]",
                                          (SUBR)tabarithset, (SUBR)tabsub},
     //    {"##neg.[]",  sizeof(TABARITH), 0, 3, "[k]", "[k]",
     //                                         (SUBR)tabarithset1, (SUBR)tabneg},
@@ -1054,7 +1054,7 @@ static OENTRY arrayvars_localops[] =
                                           (SUBR)tabarithset2, (SUBR)tabiaadd },
     {"##sub.[i", sizeof(TABARITH1), 0, 3, "[k]", "[k]i",
                                           (SUBR)tabarithset1, (SUBR)tabaisub },
-    {"##sub.i[", sizeof(TABARITH2), 0, 3, "[k]", "[k]i",
+    {"##sub.i[", sizeof(TABARITH2), 0, 3, "[k]", "i[k]",
                                           (SUBR)tabarithset2, (SUBR)tabiasub },
     {"##mul.[i", sizeof(TABARITH1), 0, 3, "[k]", "[k]i",
                                           (SUBR)tabarithset1, (SUBR)tabaimult },
