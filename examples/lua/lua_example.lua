@@ -1,20 +1,22 @@
 #!/usr/bin/lua
 
-require "luaCsnd"
+require "luaCsnd6"
 
-csound = luaCsnd.Csound()
-args = luaCsnd.CsoundArgVList()
+csound = luaCsnd6.Csound()
+args = luaCsnd6.CsoundArgVList()
 args_ = {"csound", "-o", "test.wav", "../trapped.csd"}
 for i,v in ipairs(args_) do
     args:Append(v)
 end
 csound:Compile(args.argc(args), args.argv(args))
-pt = luaCsnd.CsoundPerformanceThread(csound)
+csound:startPerformance(nil)
+--csound:startPerformance()
+pt = luaCsnd6.CsoundPerformanceThread(csound)
 pt:SetScoreOffsetSeconds(21.5)
 pt:Play()
-luaCsnd.csoundSleep(10000)
+luaCsnd6.csoundSleep(10000)
 pt:SetScoreOffsetSeconds(152)
-luaCsnd.csoundSleep(10000)
+luaCsnd6.csoundSleep(10000)
 pt:Stop()
 pt:Join()
 csound:Reset()
