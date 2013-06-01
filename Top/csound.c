@@ -2781,7 +2781,12 @@ PUBLIC void csoundReset(CSOUND *csound)
     csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
-    if(csound->enableHostImplementedMIDIIO == 0) strcpy(s, "portmidi");
+    if(csound->enableHostImplementedMIDIIO == 0) 
+#ifndef LINUX
+    strcpy(s, "portmidi");
+#else
+    strcpy(s, "alsa");
+#endif
     else strcpy(s, "hostbased");
     csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING,
                                       0, NULL, &max_len,
