@@ -60,7 +60,8 @@ typedef struct channelEntry_s {
         MYFLT   *data;
 #ifndef MACOSX
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
-  pthread_spinlock_t lock;
+  pthread_spinlock_t *lock;
+  pthread_spinlock_t theLock;
 #else
     int     lock;               
 #endif
