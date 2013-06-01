@@ -2787,7 +2787,9 @@ PUBLIC void csoundReset(CSOUND *csound)
 #else
     strcpy(s, "alsa");
 #endif
+
     else strcpy(s, "hostbased");
+
     csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING,
                                       0, NULL, &max_len,
                                       Str("Real time MIDI module name"), NULL);
