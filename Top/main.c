@@ -213,6 +213,10 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
 
+
+    s = csoundQueryGlobalVariable(csound, "_RTMIDI");
+    if(csound->enableHostImplementedMIDIIO == 1) strcpy(s, "hostbased");
+
      /* VL: added this also to csoundReset() in csound.c   */
       if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
@@ -334,7 +338,11 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
      csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
      csound->SetExternalMidiOutCloseCallback(csound, NULL);
      }
-     }
+     } 
+  else {
+   s = csoundQueryGlobalVariable(csound, "_RTMIDI");
+   strcpy(s, "hostbased");
+  }
    }
 
 
