@@ -1537,6 +1537,7 @@ typedef struct NAME__ {
     /* database for deferred loading of opcode plugin libraries */
     //    void          *pluginOpcodeFiles;
     int           enableHostImplementedAudioIO;
+    int           enableHostImplementedMIDIIO;
     int           hostRequestedBufferSize;
     /* engineStatus is sum of:
      *   1 (CS_STATE_PRE):  csoundPreCompile was called

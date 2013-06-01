@@ -736,6 +736,7 @@ static const CSOUND cenviron_ = {
     0,              /*  pvErrorCode         */
     //    NULL,           /*  pluginOpcodeFiles   */
     0,              /*  enableHostImplementedAudioIO  */
+    0,              /* MIDI IO */
     0,              /*  hostRequestedBufferSize       */
     0,              /*  engineStatus         */
     0,              /*  stdin_assign_flg    */
@@ -1803,6 +1804,12 @@ PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *csound,
     csound->hostRequestedBufferSize = (bufSize > 0 ? bufSize : 0);
 }
 
+PUBLIC void csoundSetHostImplementedMIDIIO(CSOUND *csound,
+                                            int state)
+{
+    csound->enableHostImplementedMIDIIO = state;
+}
+
 PUBLIC double csoundGetScoreTime(CSOUND *csound)
 {
     return (double)csound->icurTime/csound->esr;
@@ -2664,6 +2671,7 @@ static void reset(CSOUND *csound)
     csound->spoutlock = saved_env->spoutlock;
     csound->spinlock1= saved_env->spinlock1;
 #endif
+    csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
     free(saved_env);
@@ -2762,32 +2770,19 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       Str("Real time audio module name"), NULL);
 
     /* initialise real time MIDI */
-    csound->midiGlobals = (MGLOBAL*) mcalloc(csound, sizeof(MGLOBAL));
-    csound->midiGlobals->Midevtblk = (MEVENT*) NULL;
-    csound->midiGlobals->MidiInOpenCallback = DummyMidiInOpen;
-    csound->midiGlobals->MidiReadCallback = DummyMidiRead;
-    csound->midiGlobals->MidiInCloseCallback = (int (*)(CSOUND *, void *)) NULL;
-    csound->midiGlobals->MidiOutOpenCallback = DummyMidiOutOpen;
-    csound->midiGlobals->MidiWriteCallback = DummyMidiWrite;
-    csound->midiGlobals->MidiOutCloseCallback = (int (*)(CSOUND *, void *)) NULL;
-    csound->midiGlobals->MidiErrorStringCallback = (const char *(*)(int)) NULL;
-    csound->midiGlobals->midiInUserData = NULL;
-    csound->midiGlobals->midiOutUserData = NULL;
-    csound->midiGlobals->midiFileData = NULL;
-    csound->midiGlobals->midiOutFileData = NULL;
+    csound->midiGlobals = (MGLOBAL*) mcalloc(csound, sizeof(MGLOBAL)); 
     csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
     csound->midiGlobals->endatp = csound->midiGlobals->bufp;
     csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
     csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
     csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
     csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
-    csound->SetExternalMidiInCloseCallback(csound, NULL);
     csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
     csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
-    csound->SetExternalMidiOutCloseCallback(csound, NULL);
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
-    strcpy(s, "portmidi");
+    if(csound->enableHostImplementedMIDIIO == 0) strcpy(s, "portmidi");
+    else strcpy(s, "hostbased");
     csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING,
                                       0, NULL, &max_len,
                                       Str("Real time MIDI module name"), NULL);

@@ -1036,6 +1036,13 @@ extern "C" {
      */
     PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module);
 
+     /**
+      * call this function with state 1 if the host is implementing
+      * MIDI via the callbacks below.
+      */
+    PUBLIC void csoundSetHostImplementedMIDIIO(CSOUND *csound,
+					       int state);
+
     /**
       * This function can be called to obtain a list of available
       * input or output midi devices. If list is NULL, the function
