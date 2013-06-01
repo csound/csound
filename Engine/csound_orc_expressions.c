@@ -514,7 +514,9 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       root->left = create_minus_token(csound);
       arg1 = 'i';
       strncpy(op, "##mul", 80);
-      outarg = set_expression_type(csound, op, arg1, arg2, typeTable);
+      outarg = create_out_arg_for_expression(csound, op, root->left,
+                                             root->right, typeTable);
+
       break;
     case '|':
       strncpy(op, "##or", 80);
