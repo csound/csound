@@ -2730,9 +2730,6 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
    return CSOUND_SUCCESS;
 }
 
-
-
-
 PUBLIC void csoundReset(CSOUND *csound)
 {
     char    *s;
@@ -2787,7 +2784,6 @@ PUBLIC void csoundReset(CSOUND *csound)
 #else
     strcpy(s, "alsa");
 #endif
-
     else strcpy(s, "hostbased");
 
     csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING,

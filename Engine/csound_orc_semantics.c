@@ -1822,7 +1822,7 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     return ans;
 }
 
-void delete_tree(CSOUND *csound, TREE *l)
+static void delete_tree(CSOUND *csound, TREE *l)
 {
     while (1) {
       TREE *old = l;
@@ -1847,6 +1847,10 @@ void delete_tree(CSOUND *csound, TREE *l)
       //printf("Free %p\n", old);
       mfree(csound, old);
     }
+}
+
+PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree){
+  delete_tree(csound, tree);
 }
 
 

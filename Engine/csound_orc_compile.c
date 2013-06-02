@@ -46,7 +46,6 @@ static  void    lgbuild(CSOUND *, INSTRTXT *, char *,
 int     pnum(char *s) ;
 static void     unquote_string(char *, const char *);
 extern void     print_tree(CSOUND *, char *, TREE *);
-extern void delete_tree(CSOUND *csound, TREE *l);
 void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT * ip);
 char argtyp2(char *s);
 void debugPrintCsound(CSOUND* csound);
@@ -1566,7 +1565,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     return CSOUND_SUCCESS;
 }
 
-extern int init0(CSOUND *csound);
 /**
     Parse and compile an orchestra given on an string (OPTIONAL)
     if str is NULL the string is taken from the internal corfile
@@ -1577,13 +1575,11 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     int retVal;
     TREE *root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
-
     retVal = csoundCompileTree(csound, root);
-
     }
     else
       return  CSOUND_ERROR;
-    delete_tree(csound, root);
+    csoundDeleteTree(csound, root);
 
     if (UNLIKELY(csound->oparms->odebug))
       debugPrintCsound(csound);
