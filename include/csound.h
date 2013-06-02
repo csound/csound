@@ -581,6 +581,13 @@ extern "C" {
     PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root);
 
     /**
+     * Free the resources associated with the TREE *tree
+     * This function should be called whenever the TREE was
+     * created with csoundParseOrc and memory can be deallocated.
+     **/
+    PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree);
+
+    /**
      * Parse, and compile the given orchestra from an ASCII string.
      * this can be called during performance to compile a new orchestra.
      * /code
