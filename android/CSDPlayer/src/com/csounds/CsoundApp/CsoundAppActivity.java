@@ -1,7 +1,9 @@
 package com.csounds.CsoundApp;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -42,6 +44,10 @@ import csnd6.CsoundCallbackWrapper;
 
 public class CsoundAppActivity extends Activity implements
 		CsoundObjCompletionListener, CsoundObj.MessagePoster {
+    private static final String EXTRA_SCRIPT_PATH = "com.googlecode.android_scripting.extra.SCRIPT_PATH";
+    private static final String EXTRA_SCRIPT_CONTENT = "com.googlecode.android_scripting.extra.SCRIPT_CONTENT";
+    private static final String ACTION_EDIT_SCRIPT = "com.googlecode.android_scripting.action.EDIT_SCRIPT";
+    Uri templateUri = null;
 	Button newButton = null;
 	Button openButton = null;
 	Button editButton = null;
@@ -74,6 +80,23 @@ public class CsoundAppActivity extends Activity implements
 				postMessage("Csound has finished.\n");
 			}
 		});
+	}
+	
+	protected void writeTemplateFile()
+	{
+		File root = Environment.getExternalStorageDirectory();
+		csd = new File(root, "CSDTemplate.csd");
+		templateUri = Uri.parse("file://" + csd.getAbsolutePath());
+	    try {
+	        if (root.canWrite()) {
+	            FileWriter filewriter = new FileWriter(csd);
+	            BufferedWriter out = new BufferedWriter(filewriter);
+	            out.write(csdTemplate);
+	            out.close();
+	        }
+	    } catch (IOException e) {
+	        Log.e("CsoundApp", "Could not write file " + e.getMessage());
+	    }		
 	}
 
 	@Override
@@ -194,15 +217,15 @@ public class CsoundAppActivity extends Activity implements
 "</CsScore>\n" +
 "</CsoundSynthesizer>\n";
 		setContentView(R.layout.main);
+		// Better, but "Save as..." filename is not picked up by the app.
 		newButton = (Button) findViewById(R.id.newButton);
 		newButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				Intent intent = new Intent(Intent.ACTION_SEND);
-				Uri uri = Uri.parse("file://template.csd");
+				writeTemplateFile();
+				Intent intent = new Intent(Intent.ACTION_VIEW);
 				intent.setDataAndType(null, "text/plain");
 				// Stupid XML assumptions about white space obtrude...
 				// String csdTemplate = getString(R.string.csd_template);
-				intent.putExtra(intent.EXTRA_TEXT, csdTemplate);
 				startActivityForResult(intent, R.id.newButton);
 			}
 		});
