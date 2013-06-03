@@ -217,6 +217,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     if(csound->enableHostImplementedMIDIIO == 1) strcpy(s, "hostbased");
 
+    csoundLoadExternals(csound);    /* load plugin opcodes */
      /* VL: added this also to csoundReset() in csound.c   */
       if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
@@ -352,6 +353,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     */
     if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to
                                      start with no orchestra */
+         csoundLoadExternals(csound);    /* load plugin opcodes */
          if (csoundInitModules(csound) != 0)
            csound->LongJmp(csound, 1);
         csoundCompileOrc(csound, "instr 1 \n endin \n");
