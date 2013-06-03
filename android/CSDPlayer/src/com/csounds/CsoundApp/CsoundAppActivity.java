@@ -223,7 +223,7 @@ public class CsoundAppActivity extends Activity implements
 			public void onClick(View v) {
 				writeTemplateFile();
 				Intent intent = new Intent(Intent.ACTION_VIEW);
-				intent.setDataAndType(null, "text/plain");
+				intent.setDataAndType(templateUri, "text/plain");
 				// Stupid XML assumptions about white space obtrude...
 				// String csdTemplate = getString(R.string.csd_template);
 				startActivityForResult(intent, R.id.newButton);
