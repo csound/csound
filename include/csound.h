@@ -377,6 +377,8 @@ extern "C" {
     int     sample_accurate;     /* use sample-level score event accuracy */
     int     sample_rate_override; /* overriding sample rate */
     int     control_rate_override; /* overriding control rate */
+    int     nchnls_override;  /* overriding number of out channels */
+    int     nchnls_i_override;  /* overriding number of in channels */
   } CSOUND_PARAMS;
 
     /**
