@@ -212,6 +212,7 @@ typedef struct {
     int     useCsdLineCounts;
     int     sampleAccurate;  /* switch for score events sample accuracy */
     int     realtime; /* realtime priority mode  */
+    MYFLT   e0dbfs_override;
   } OPARMS;
 
   typedef struct arglst {

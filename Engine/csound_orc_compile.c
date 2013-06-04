@@ -637,6 +637,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
     if(O->nchnls_override > 0) csound->nchnls = csound->inchnls = O->nchnls_override;
     if(O->nchnls_i_override > 0) csound->inchnls = O->nchnls_i_override;
+    if(O->e0dbfs_override > 0) csound->e0dbfs = O->e0dbfs_override;
     
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
