@@ -180,6 +180,10 @@ public:
   {
     return csoundCompileTree(csound, root);
   }
+  virtual void DeleteTree(TREE *root)
+  {
+    csoundDeleteTree(csound, root);
+  }
   virtual int CompileOrc(const char *str)
   {
     return csoundCompileOrc(csound, str);
@@ -383,18 +387,6 @@ public:
   {
     return csoundGet0dBFS(csound);
   }
-  // virtual int GetStrVarMaxLen()
-  // {
-  //   return csoundGetStrVarMaxLen(csound);
-  // }
-//  virtual int GetSampleFormat()
-//  {
-//    return csoundGetSampleFormat(csound);
-//  }
-//  virtual int GetSampleSize()
-//  {
-//    return csoundGetSampleSize(csound);
-//  }
   virtual long GetInputBufferSize()
   {
     return csoundGetInputBufferSize(csound);
@@ -767,26 +759,6 @@ public:
   {
     csoundGetAudioChannel(csound,name,samples);
   }
-//  virtual int ChanIKSet(double value, int n)
-//  {
-//    return csoundChanIKSet(csound, (MYFLT) value, n);
-//  }
-//  virtual int ChanOKGet(MYFLT &value, int n)
-//  {
-//    MYFLT tmp = (MYFLT) 0;
-//    int   retval;
-//    retval = csoundChanOKGet(csound, &tmp, n);
-//    value = tmp;
-//    return retval;
-//  }
-//  virtual int ChanIASet(const MYFLT *value, int n)
-//  {
-//    return csoundChanIASet(csound, value, n);
-//  }
-//  virtual int ChanOAGet(MYFLT *value, int n)
-//  {
-//    return csoundChanOAGet(csound, value, n);
-//  }
   virtual int PvsinSet(const PVSDATEXT* value, const char *name)
   {
     return csoundSetPvsChannel(csound, value, name);
@@ -837,12 +809,6 @@ public:
   {
     return csoundDeleteConfigurationVariable(csound, name);
   }
-  /* removed
-  virtual void SetChannelIOCallback(CsoundChannelIOCallback_t func)
-  {
-    csoundSetChannelIOCallback(csound, func);
-  }
-  */
   // constructors
   // FIXME: should throw exception on failure ?
   Csound()
@@ -909,22 +875,6 @@ public:
   {
     return csoundGetSpoutSample(csound, frame, channel);
   }
-//  virtual int ChanIKSetValue(int channel, MYFLT value)
-//  {
-//    return csoundChanIKSetValue(csound, channel, value);
-//  }
-//  virtual MYFLT ChanOKGetValue(int channel)
-//  {
-//    return  csoundChanOKGetValue(csound, channel);
-//  }
-//  virtual int ChanIASetSample(int channel, int frame, MYFLT sample)
-//  {
-//    return csoundChanIASetSample(csound, channel, frame, sample);
-//  }
-//  virtual MYFLT ChanOAGetSample(int channel, int frame)
-//  {
-//    return csoundChanOAGetSample(csound, channel, frame);
-//  }
 };
 
 // thread locks
