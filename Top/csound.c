@@ -796,7 +796,8 @@ static const CSOUND cenviron_ = {
       0,            /*    syntaxCheckOnly   */
       1,            /*    useCsdLineCounts  */
       0,            /*    samp acc   */
-      0             /*    realtime  */  
+      0,            /*    realtime  */ 
+      0.0           /*    0dbfs override */ 
     },
 
     {0, 0, {0}}, /* REMOT_BUF */
