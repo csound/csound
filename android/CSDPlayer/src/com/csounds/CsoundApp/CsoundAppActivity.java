@@ -30,6 +30,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
@@ -85,8 +86,6 @@ public class CsoundAppActivity extends Activity implements
 	protected void writeTemplateFile()
 	{
 		File root = Environment.getExternalStorageDirectory();
-		csd = new File(root, "CSDTemplate.csd");
-		templateUri = Uri.parse("file://" + csd.getAbsolutePath());
 	    try {
 	        if (root.canWrite()) {
 	            FileWriter filewriter = new FileWriter(csd);
@@ -105,6 +104,7 @@ public class CsoundAppActivity extends Activity implements
 		inflater.inflate(R.menu.menu, menu);
 		return true;
 	}
+	
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -217,16 +217,31 @@ public class CsoundAppActivity extends Activity implements
 "</CsScore>\n" +
 "</CsoundSynthesizer>\n";
 		setContentView(R.layout.main);
-		// Better, but "Save as..." filename is not picked up by the app.
 		newButton = (Button) findViewById(R.id.newButton);
 		newButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				writeTemplateFile();
-				Intent intent = new Intent(Intent.ACTION_VIEW);
-				intent.setDataAndType(templateUri, "text/plain");
-				// Stupid XML assumptions about white space obtrude...
-				// String csdTemplate = getString(R.string.csd_template);
-				startActivityForResult(intent, R.id.newButton);
+				AlertDialog.Builder alert = new AlertDialog.Builder(CsoundAppActivity.this);
+				alert.setTitle("New CSD...");
+				alert.setMessage("Filename:");
+				final EditText input = new EditText(CsoundAppActivity.this);
+				alert.setView(input);
+				alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+					String value = input.getText().toString();
+					File root = Environment.getExternalStorageDirectory();
+					csd = new File(root, value);
+					writeTemplateFile();
+					Intent intent = new Intent(Intent.ACTION_VIEW);
+					Uri uri = Uri.parse("file://" + csd.getAbsolutePath());
+					intent.setDataAndType(uri, "text/plain");
+					startActivity(intent);
+				  }
+				});
+				alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				  public void onClick(DialogInterface dialog, int whichButton) {
+				  }
+				});
+				alert.show();
 			}
 		});
 		openButton = (Button) findViewById(R.id.openButton);
