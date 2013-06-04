@@ -375,10 +375,11 @@ extern "C" {
                                     multicore, 0 or 1  */
     int     realtime_mode;       /* use realtime priority mode, 0 or 1 */
     int     sample_accurate;     /* use sample-level score event accuracy */
-    int     sample_rate_override; /* overriding sample rate */
-    int     control_rate_override; /* overriding control rate */
+    MYFLT   sample_rate_override; /* overriding sample rate */
+    MYFLT   control_rate_override; /* overriding control rate */
     int     nchnls_override;  /* overriding number of out channels */
     int     nchnls_i_override;  /* overriding number of in channels */
+    MYFLT   e0dbfs_override;   /* overriding 0dbfs */
   } CSOUND_PARAMS;
 
     /**
