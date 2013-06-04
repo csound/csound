@@ -781,6 +781,7 @@ static const CSOUND cenviron_ = {
       0, 0, 0,      /*    rewrt_hdr, ...    */
       0,            /*    expr_opt          */
       0.0f, 0.0f,   /*    sr_override ...  */
+      0, 0,     /*    nchnls_override ... */
       (char*) NULL, (char*) NULL, NULL,
       (char*) NULL, (char*) NULL, (char*) NULL,
       (char*) NULL, (char*) NULL,
@@ -794,7 +795,8 @@ static const CSOUND cenviron_ = {
       1,            /*    numThreads        */
       0,            /*    syntaxCheckOnly   */
       1,            /*    useCsdLineCounts  */
-      0,            /*    calculateWeights   */
+      0,            /*    samp acc   */
+      0             /*    realtime  */  
     },
 
     {0, 0, {0}}, /* REMOT_BUF */

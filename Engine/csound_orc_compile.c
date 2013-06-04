@@ -634,6 +634,10 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                           "Setting default value."));
       csound->e0dbfs = DFLT_DBFS;
     }
+
+    if(O->nchnls_override > 0) csound->nchnls = csound->inchnls = O->nchnls_override;
+    if(O->nchnls_i_override > 0) csound->inchnls = O->nchnls_i_override;
+    
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
                       "0dbfs = %.1f\n",
