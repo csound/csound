@@ -39,6 +39,7 @@
 #include "OpcodeBase.hpp"
 
 #include <map>
+#include <cmath>
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif
@@ -199,11 +200,11 @@ public:
              else
              filename = csound->strarg2name(csound,
                     (char*) NULL,
-                   (ISSTRCOD(*iFilename) ?
+                   (std::isnan(*iFilename) ?
                     csound->GetString(csound, *iFilename) :
                     (char *) iFilename),
                     (char *)"fluid.sf2.",
-                    ISSTRCOD(*iFilename));
+                    std::isnan(*iFilename));
 
             filepath = csound->FindInputFile(csound, filename, "SFDIR;SSDIR");
             if (filepath && fluid_is_soundfont(filepath)) {
