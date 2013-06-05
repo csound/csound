@@ -12,7 +12,14 @@ swig -java -package csnd6 -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DPARCS -DH
 # ADJUST SWIG CODE FOR ANDROID and DIRECTORS
 sed -i.bak "s/AttachCurrentThread((void \*\*)/AttachCurrentThread(/" jni/java_interfaceJAVA_wrap.cpp 
 
-$ANDROID_NDK_ROOT/ndk-build TARGET_PLATFORM=android-9 V=1 NDK_DEBUG=0 
+# Actually build Csound.
+cd jni
 
+$ANDROID_NDK_ROOT/ndk-build 
 
+# Copy the local libs to the libs directory -- doing this is easier than the alternatives, believe me!
+
+cd ..
+
+sh install_libs.sh
 
