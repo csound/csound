@@ -152,6 +152,9 @@ int openSLPlayOpen(open_sl_params *params)
   case 44100:
     sr = SL_SAMPLINGRATE_44_1;
     break;
+  case 48000:
+    sr = SL_SAMPLINGRATE_48;
+    break;
   case 64000:
     sr = SL_SAMPLINGRATE_64;
     break;
@@ -339,6 +342,9 @@ int openSLRecOpen(open_sl_params *params){
     break;
   case 44100:
     sr = SL_SAMPLINGRATE_44_1;
+    break;
+  case 48000:
+    sr = SL_SAMPLINGRATE_48;
     break;
   case 64000:
     sr = SL_SAMPLINGRATE_64;
