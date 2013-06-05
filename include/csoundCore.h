@@ -197,6 +197,7 @@ typedef struct {
     int     rewrt_hdr, heartbeat, gen01defer;
     int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
     float   sr_override, kr_override;
+    int     nchnls_override, nchnls_i_override;
     char    *infilename, *outfilename;
     CORFIL  *playscore;
     char    *Linename, *Midiname, *FMidiname;
@@ -211,6 +212,7 @@ typedef struct {
     int     useCsdLineCounts;
     int     sampleAccurate;  /* switch for score events sample accuracy */
     int     realtime; /* realtime priority mode  */
+    MYFLT   e0dbfs_override;
   } OPARMS;
 
   typedef struct arglst {
