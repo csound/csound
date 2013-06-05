@@ -215,7 +215,10 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
-    if(csound->enableHostImplementedMIDIIO == 1) strcpy(s, "hostbased");
+    if(csound->enableHostImplementedMIDIIO == 1) {
+    strcpy(s, "hostbased");
+    csoundSetConfigurationVariable(csound,"rtmidi", s);
+    }
 
     csoundLoadExternals(csound);    /* load plugin opcodes */
      /* VL: added this also to csoundReset() in csound.c   */
@@ -343,6 +346,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
   else {
    s = csoundQueryGlobalVariable(csound, "_RTMIDI");
    strcpy(s, "hostbased");
+   csoundSetConfigurationVariable(csound,"rtmidi", s);
   }
    }
 
