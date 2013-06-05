@@ -63,7 +63,7 @@ static const char *shortUsageList[] = {
   Str_noop("--help\tprint long usage options"),
   Str_noop("-U unam\trun utility program unam"),
   Str_noop("-C\tuse Cscore processing of scorefile"),
-  Str_noop("-j N\tuse N processes in performance"),
+  Str_noop("-j N\tuse N threads in performance"),
   Str_noop("-I\tI-time only orch run"),
   Str_noop("-n\tno sound onto disk"),
   Str_noop("-i fnam\tsound input filename"),
@@ -184,7 +184,6 @@ static const char *longUsageList[] = {
   Str_noop("\t\t\t1=use CSD line #s (default), 0=use ORC/SCO-relative line #s"),
   Str_noop("--extract-score=FNAME\tExtract from score.srt using extract file"),
   Str_noop("--keep-sorted-score"),
-  Str_noop("--expression-opt\tOptimise use of temporary variables in expressions"),
   Str_noop("--env:NAME=VALUE\tSet environment variable NAME to VALUE"),
   Str_noop("--env:NAME+=VALUE\tAppend VALUE to environment variable NAME"),
   Str_noop("--strsetN=VALUE\t\tSet strset table at index N to VALUE"),
@@ -216,7 +215,10 @@ static const char *longUsageList[] = {
   Str_noop("--no-default-paths\tTurn off relative paths from CSD/ORC/SCO"),
   Str_noop("--sample-accurate\t\tUse sample-accurate timing of score events"),
   Str_noop("--realtime\t\trealtime priority mode"),
-  Str_noop("--sinesize\t\tlegth of internal sine table"),
+  Str_noop("--nchnls=N\t\t override number of audio channels"),
+  Str_noop("--nchnls_i=N\t\t override number of input audio channels"),
+  Str_noop("--0dbfs=N\t\t override 0dbfs (max positive signal amplitude)"),
+  Str_noop("--sinesize\t\tlength of internal sine table"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -874,6 +876,21 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->realtime = 1;
       return 1;
     }
+    else if (!(strncmp(s, "nchnls=", 7))) {
+      s += 7;
+      O->nchnls_override = atoi(s);
+      return 1;
+    }
+    else if (!(strncmp(s, "0dbfs=", 6))) {
+      s += 6;
+      O->e0dbfs_override = atoi(s);
+      return 1;
+    }
+    else if (!(strncmp(s, "nchnls_i=", 9))) {
+      s += 9;
+      O->nchnls_i_override = atoi(s);
+      return 1;
+    }
     else if (!(strncmp(s, "sinesize=", 9))) {
       {
         int i = 1, n;
@@ -1280,6 +1297,9 @@ PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
   /* sr override */
   if(p->sample_rate_override > 0) oparms->sr_override = p->sample_rate_override;
 
+  oparms->nchnls_override = p->nchnls_override;
+  oparms->nchnls_i_override = p->nchnls_i_override;
+  oparms->e0dbfs_override = p->e0dbfs_override;
 }
 
 PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
@@ -1312,6 +1332,9 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
   p->csd_line_counts = oparms->useCsdLineCounts;
   p->control_rate_override = oparms->kr_override;
   p->sample_rate_override = oparms->sr_override;
+  p->nchnls_override = oparms->nchnls_override;
+  p->nchnls_i_override = oparms->nchnls_i_override;
+  p->e0dbfs_override = oparms->e0dbfs_override;
 }
 
 
