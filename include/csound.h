@@ -1051,7 +1051,7 @@ extern "C" {
       * MIDI via the callbacks below.
       */
     PUBLIC void csoundSetHostImplementedMIDIIO(CSOUND *csound,
-					       int state);
+                                               int state);
 
     /**
       * This function can be called to obtain a list of available
