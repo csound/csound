@@ -315,6 +315,9 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
        return CSOUND_ERROR;
     }
 
+  
+
+
    { /* test for dummy module request */
     char *s;
      if((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
