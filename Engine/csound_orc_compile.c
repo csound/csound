@@ -908,8 +908,11 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
         }
         /* no active instances */
         if (active == NULL) {
-          free_instrtxt(csound, csound->dead_instr_pool[i]);
-          csound->dead_instr_pool[i] = NULL;
+        if(csound->oparms->odebug)
+         csound->Message(csound, Str(" -- free instr def %p \n"),
+                    csound->dead_instr_pool[i]);
+        free_instrtxt(csound, csound->dead_instr_pool[i]);
+        csound->dead_instr_pool[i] = NULL;
         }
       }
     }
@@ -918,7 +921,7 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
     for(i=0; i < csound->dead_instr_no; i++) {
       if(csound->dead_instr_pool[i] == NULL) {
          csound->dead_instr_pool[i] = instrtxt;
-       if(csound->oparms->odebug)
+	if(csound->oparms->odebug)
          csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
                     i);
        return;
@@ -929,7 +932,7 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
       mrealloc(csound, csound->dead_instr_pool,
                ++csound->dead_instr_no * sizeof(INSTRTXT*));
     csound->dead_instr_pool[csound->dead_instr_no-1] = instrtxt;
-    if(csound->oparms->odebug)
+    //if(csound->oparms->odebug)
     csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
                     csound->dead_instr_no-1);
 
@@ -1113,7 +1116,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
            engineState->instrtxtp[i] == engineState->instrtxtp[instrNum]) goto end;
       }
       INSDS *active = engineState->instrtxtp[instrNum]->instance;
-      while (active != NULL) {
+      while (active != NULL && instrNum != 0) {
         if(active->actflg) {
           add_to_deadpool(csound, engineState->instrtxtp[instrNum]);
           break;
@@ -1121,9 +1124,10 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
         active = active->nxtinstance;
       }
       /* no active instances */
-      if (active == NULL) {
-        if (csound->oparms->odebug)
-          csound->Message(csound, Str("no active instances \n"));
+      if (active == NULL || instrNum == 0) {
+       
+       if (csound->oparms->odebug)
+       csound->Message(csound, Str("no active instances of instr %d \n"), instrNum);
         free_instrtxt(csound, engineState->instrtxtp[instrNum]);
       }
       /* err++; continue; */
