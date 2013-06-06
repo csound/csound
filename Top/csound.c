@@ -2756,6 +2756,87 @@ PUBLIC void csoundReset(CSOUND *csound)
       csound->Die(csound, Str("Failed during csoundInitEnv"));
     }
     csound_init_rand(csound);
+  
+     
+    
+    csound->engineState.stringPool = cs_hash_table_create(csound);
+    csound->engineState.constantsPool = myflt_pool_create(csound);
+    csound->engineStatus |= CS_STATE_PRE;
+    csound_aops_init_tables(csound);
+    create_opcode_table(csound);
+    /* now load and pre-initialise external modules for this instance */
+    /* this function returns an error value that may be worth checking */
+    {
+      int err = csoundInitStaticModules(csound);
+      if (csound->delayederrormessages &&
+          csound->printerrormessagesflag==NULL) {
+        csound->Warning(csound, csound->delayederrormessages);
+        free(csound->delayederrormessages);
+        csound->delayederrormessages = NULL;
+      }
+      if (UNLIKELY(err==CSOUND_ERROR))
+        csound->Die(csound, Str("Failed during csoundInitStaticModules"));
+
+
+     csoundCreateGlobalVariable(csound, "_MODULES",
+                                (size_t) MAX_MODULES*sizeof(MODULE_INFO *));
+     char *modules = (char *) csoundQueryGlobalVariable(csound, "_MODULES");
+     memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
+
+      err = csoundLoadModules(csound);
+      if (csound->delayederrormessages &&
+          csound->printerrormessagesflag==NULL) {
+        csound->Warning(csound, csound->delayederrormessages);
+        free(csound->delayederrormessages);
+        csound->delayederrormessages = NULL;
+      }
+      if (err != CSOUND_SUCCESS)
+        csound->Die(csound, Str("Failed during csoundLoadModules"));
+
+      /* VL: moved here from main.c */
+      if (csoundInitModules(csound) != 0)
+            csound->LongJmp(csound, 1); 
+
+      init_pvsys(csound);
+      /* utilities depend on this as well as orchs; may get changed by an orch */
+      dbfs_init(csound, DFLT_DBFS);
+      csound->csRtClock = (RTCLOCK*) csound->Calloc(csound, sizeof(RTCLOCK));
+      csoundInitTimerStruct(csound->csRtClock);
+      csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
+
+#ifndef USE_DOUBLE
+#ifdef BETA
+      csound->Message(csound, Str("Csound version %s beta (float samples) %s\n"),
+                      CS_PACKAGE_VERSION, __DATE__);
+#else
+      csound->Message(csound, Str("Csound version %s (float samples) %s\n"),
+                      CS_PACKAGE_VERSION, __DATE__);
+#endif
+#else
+#ifdef BETA
+      csound->Message(csound, Str("Csound version %s beta (double samples) %s\n"),
+                      CS_PACKAGE_VERSION, __DATE__);
+#else
+      csound->Message(csound, Str("Csound version %s (double samples) %s\n"),
+                      CS_PACKAGE_VERSION, __DATE__);
+#endif
+#endif
+      {
+        char buffer[128];
+        sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
+        csound->Message(csound, "%s\n", buffer);
+      }
+
+      /* do not know file type yet */
+      O->filetyp = -1;
+      O->sfheader = 0;
+      csound->peakchunks = 1;
+      csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
+      csound->engineState.varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+      csoundAddStandardTypes(csound, csound->typePool);
+      /* csoundLoadExternals(csound); */
+    }
+
     /* allow selecting real time audio module */
     max_len = 21;
     csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
@@ -2781,6 +2862,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
+    strcpy(s, "null");
     if(csound->enableHostImplementedMIDIIO == 0) 
 #ifndef LINUX
     strcpy(s, "portmidi");
@@ -2864,84 +2946,6 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       Str("Ignore <CsOptions> in CSD files"
                                           " (default: no)"), NULL);
 
-    csound->engineState.stringPool = cs_hash_table_create(csound);
-    csound->engineState.constantsPool = myflt_pool_create(csound);
-    csound->engineStatus |= CS_STATE_PRE;
-    csound_aops_init_tables(csound);
-    create_opcode_table(csound);
-    /* now load and pre-initialise external modules for this instance */
-    /* this function returns an error value that may be worth checking */
-    {
-      int err = csoundInitStaticModules(csound);
-      if (csound->delayederrormessages &&
-          csound->printerrormessagesflag==NULL) {
-        csound->Warning(csound, csound->delayederrormessages);
-        free(csound->delayederrormessages);
-        csound->delayederrormessages = NULL;
-      }
-      if (UNLIKELY(err==CSOUND_ERROR))
-        csound->Die(csound, Str("Failed during csoundInitStaticModules"));
-
-
-     csoundCreateGlobalVariable(csound, "_MODULES",
-                                (size_t) MAX_MODULES*sizeof(MODULE_INFO *));
-     char *modules = (char *) csoundQueryGlobalVariable(csound, "_MODULES");
-     memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
-
-      err = csoundLoadModules(csound);
-      if (csound->delayederrormessages &&
-          csound->printerrormessagesflag==NULL) {
-        csound->Warning(csound, csound->delayederrormessages);
-        free(csound->delayederrormessages);
-        csound->delayederrormessages = NULL;
-      }
-      if (err != CSOUND_SUCCESS)
-        csound->Die(csound, Str("Failed during csoundLoadModules"));
-
-      /* VL: moved here from main.c */
-      if (csoundInitModules(csound) != 0)
-            csound->LongJmp(csound, 1);
-
-
-      init_pvsys(csound);
-      /* utilities depend on this as well as orchs; may get changed by an orch */
-      dbfs_init(csound, DFLT_DBFS);
-      csound->csRtClock = (RTCLOCK*) csound->Calloc(csound, sizeof(RTCLOCK));
-      csoundInitTimerStruct(csound->csRtClock);
-      csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
-
-#ifndef USE_DOUBLE
-#ifdef BETA
-      csound->Message(csound, Str("Csound version %s beta (float samples) %s\n"),
-                      CS_PACKAGE_VERSION, __DATE__);
-#else
-      csound->Message(csound, Str("Csound version %s (float samples) %s\n"),
-                      CS_PACKAGE_VERSION, __DATE__);
-#endif
-#else
-#ifdef BETA
-      csound->Message(csound, Str("Csound version %s beta (double samples) %s\n"),
-                      CS_PACKAGE_VERSION, __DATE__);
-#else
-      csound->Message(csound, Str("Csound version %s (double samples) %s\n"),
-                      CS_PACKAGE_VERSION, __DATE__);
-#endif
-#endif
-      {
-        char buffer[128];
-        sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
-        csound->Message(csound, "%s\n", buffer);
-      }
-
-      /* do not know file type yet */
-      O->filetyp = -1;
-      O->sfheader = 0;
-      csound->peakchunks = 1;
-      csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
-      csound->engineState.varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
-      csoundAddStandardTypes(csound, csound->typePool);
-      /* csoundLoadExternals(csound); */
-    }
 }
 
 PUBLIC int csoundGetDebug(CSOUND *csound)

@@ -800,8 +800,8 @@ static void rtclose_blocking(CSOUND *csound)
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
-   csound->Message(csound,
-     Str("PortAudio real-time audio module for Csound\n"));
+  //csound->Message(csound,
+  // Str("PortAudio real-time audio module for Csound\n"));
     return 0;
 }
 
