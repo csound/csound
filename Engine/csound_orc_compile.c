@@ -914,6 +914,17 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
       }
     }
     /* add latest instr to deadpool */
+    /* check for free slots */
+    for(i=0; i < csound->dead_instr_no; i++) {
+      if(csound->dead_instr_pool[i] == NULL) {
+         csound->dead_instr_pool[i] = instrtxt;
+       if(csound->oparms->odebug)
+         csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
+                    i);
+       return;
+      } 
+     }    
+    /* no free slots, expand pool */
     csound->dead_instr_pool = (INSTRTXT**)
       mrealloc(csound, csound->dead_instr_pool,
                ++csound->dead_instr_no * sizeof(INSTRTXT*));
@@ -921,6 +932,7 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
     if(csound->oparms->odebug)
     csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
                     csound->dead_instr_no-1);
+
 }
 
 /**
