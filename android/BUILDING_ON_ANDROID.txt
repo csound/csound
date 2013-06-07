@@ -1,69 +1,81 @@
-H O W   T O   B U I L D   C S O U N D   6   F O R   A N D R O I D
+HOW TO BUILD CSOUND 6 FOR ANDROID
+=================================
 
 Michael Gogins
-26 May 2013
+7 June 2013
 
 Csound 6 for Android includes the Csound library for Android, the CSDPlayer 
 app front end for the library, an app containing several demos of the 
 library, and some plugins for Csound.
 
-The build is unfortunately configured in several different places, all of 
-which must agree. The main configuration is the following environment 
-variables, shown with their current values for ARM architecture with 
-hardware floating point support, and Android Ice Cream Sandwich or later:
+
+SETTING UP THE TOOLCHAIN
+========================
+
+These instructions are for MinGW/MSys on Windows, but should mostly apply on 
+other platforms as well. You need the following tools.
+
+Install MinGW/MSys from mingw.org. See How_to_Build_Csound_on_Windows.doc in 
+the Csound 6 Git repository for how to set up the MinGW tools. On Linux, just 
+install recent gcc/g++ packages. For OS X, install Xcode.
+
+Install the Android SDK from http://developer.android.com/sdk/index.html. 
+Use the Eclipse version.
+
+Install the Android Native Development Kit (NDK) from 
+http://developer.android.com/tools/sdk/ndk/index.html.
+
+
+SETTING UP THE CSOUND PROJECTS
+==============================
+
+Clone the Csound 6 Git repository somewhere by executing:
+
+git clone git://git.code.sf.net/p/csound/csound6-git csound-csound6-git
+
+In the the Csound 6 source tree, there is an android/pluginlibs directory. 
+Download the following archives from SourceForge and unzip them in pluginlibs:
+
+http://sourceforge.net/projects/csound/files/csound5/Android/libsndfile-android.zip/download
+http://sourceforge.net/projects/csound/files/csound5/Android/fluidsynth-android.zip/download
+
+These archives contain source code for libsndfile (required for Csound) and 
+FluidSynth (used by the Fluid opcodes), packaged to build with the Android NDK.
+
+In your MSys shell, you use the following shell script or other 
+facility to set the environment variables that are used by the Android build:
 
 echo "Configure for Android/ARM, armeabi-v7a (ARMv7 VFP), Android 4.0+ (ICS)..."
 
 export SDK=/d/Android/adt-bundle-windows-x86-20130514/sdk
 export NDK=/d/Android/android-ndk-r8e
 export ANDROID_NDK_ROOT=$NDK
-export CSOUND_SRC_ROOT=/c/Users/new/csound-csound6-git
 export NDK_MODULE_PATH=${CSOUND_SRC_ROOT}/android/pluginlibs
 export PATH=${PATH}:$NDK_MODULE_PATH
-export NDKABI=9
+export NDKABI=10
 export NDKVER=$NDK/toolchains/arm-linux-androideabi-4.7
 export NDKP=$NDKVER/prebuilt/windows/bin/arm-linux-androideabi-
 export NDKF="--sysroot $NDK/platforms/android-$NDKABI/arch-arm"
 export NDKARCH="-march=armv7-a -mfloat-abi=softfp -Wl,--fix-cortex-a8"
 
+BUILDING THE CSOUND PROJECTS
+============================
+
 To save build time, most native libraries are built as NDK modules so as  
-to be available as pre-built components. The complete build 
+to be available as pre-built shared libraries. The complete build 
 may be outlined as follows. 
 
-NOTE: These instructions are for MinGW withg MSys from mingw.org on 
-Windows 8. The steps would be slightly different on different platforms.
-
-NOTE: It is vital that (currently) all NDK modules built or used by this
+NOTE: It is convenient if all NDK modules built or used by this
 project be located in the project's pluginlibs directory. Any new modules
 placed here must of course have unique directories that do not conflict with 
-existing directories. The build environment must specify the complete path to 
-pluginlibs as the NDK_MODULE_PATH environment variable.
+existing directories. The build environment must set the NDK_MODULE_PATH 
+environment variable to the complete pluginlibs path.
 
-B U I L D   A N D   I N S T A L L   L U A J I T   M O D U L E 
+The plugin projects are built before Csound itself, because Csound 
+requires the libsndfile shared library, which is built by the libstdutil 
+module.
 
-Change to $(NDK_MODULE_PATH) and use Git to clone the LuaJIT head there.
-Change to the LuaJIT directory and execute:
-
-    make HOST_CC="gcc -m32" CROSS=$NDKP TARGET_FLAGS="$NDKF $NDKARCH" TARGET_SYS=linux
-
-Copy the following files to the prebuilt Android system:
-
-I N S T A L L   S O U R C E   C O D E   F O R   M O D U L E S
-
-Download the pre-assembled archive of source code for required Android 
-modules from:
-
-http://sourceforge.net/projects/csound/files/csound5/Android/csound-android-5.19.01.zip/download
-
-Unzip the archive in $(NDK_MODULE_PATH).
-
-B U I L D   A N D   I N S T A L L   F L U I D S Y N T H   M O D U L E
-
-Change to $(CSOUND_SRC_ROOT)/android/pluginlibs/libfluidsynth/jni and execute:
-
-    $NDK/ndk-build
-    
-B U I L D   A N D   I N S T A L L   L I B S T D U T I L   M O D U L E
+BUILD THE LIBSTDUTIL MODULE (REQUIRED BY CSOUND)
 
 This will also build libsndfile for Android.
 
@@ -71,45 +83,48 @@ Change to $(CSOUND_SRC_ROOT)/android/pluginlibs/libstdutil/jni and execute:
 
     $NDK/ndk-build
 
-B U I L D   A N D   I N S T A L L   L U A   O P C O D E S   P L U G I N
+BUILD THE FLUIDSYNTH MODULE (RECOMMENDED FOR CSOUND)
 
-Following the instructions on the LuaJIT web page at http://luajit.org/,
-clone the LuaJIT Git repository in the pluginlibs directory. 
+Change to $(CSOUND_SRC_ROOT)/android/pluginlibs/libfluidsynth/jni and execute:
 
-Also following instructions on the LuaJIT web page, cross-compile the LuaJIT 
-shared library for the ARMv7a target. The build environment should already be 
-set up, so just execute the last line of this:
+    $NDK/ndk-build
+    
+BUILD THE LUAJIT MODULE (OPTIONAL, REQUIRED BY LUACSOUND OPCODES)
 
-# Android/ARM, armeabi-v7a (ARMv7 VFP), Android 4.0+ (ICS)
-NDK=/opt/android/ndk
-NDKABI=14
-NDKVER=$NDK/toolchains/arm-linux-androideabi-4.6
-NDKP=$NDKVER/prebuilt/linux-x86/bin/arm-linux-androideabi-
-NDKF="--sysroot $NDK/platforms/android-$NDKABI/arch-arm"
-NDKARCH="-march=armv7-a -mfloat-abi=softfp -Wl,--fix-cortex-a8"
-make HOST_CC="gcc -m32" CROSS=$NDKP TARGET_FLAGS="$NDKF $NDKARCH"
+LuaJIT is a version of the excellent lightweight dynamic language Lua,
+extended with a just-in-time (JIT) compiler that runs Lua code as fast as 
+compiled C code, and with a highly useful foreigh function interface (FFI).
 
-Change to $(CSOUND_SRC_ROOT)/android/pluginlibs/LuaCsound and execute:
+Change to $(NDK_MODULE_PATH) and use Git to clone the LuaJIT head there.
+Change to the LuaJIT directory and execute:
+
+    make HOST_CC="gcc -m32" CROSS=$NDKP TARGET_FLAGS="$NDKF $NDKARCH" TARGET_SYS=linux
+
+BUILD AND INSTALL LUA OPCODES (OPTIONAL, USEFUL FOR ALGORITHMIC COMPOSITION IN CSOUND)
+
+Change to $(CSOUND_SRC_ROOT)/android/pluginlibs/LuaCsound/jni and execute:
 
     $NDK/ndk-build
     
 NOTE: This currently is not building, I need to replace code that uses
 OpenMP, which is not supported on Android.
 
-B U I L D   A N D   I N S T A L L   C S O U N D   6   L I B R A R Y
+BUILD THE CSOUND NATIVE LIBRARY FOR ANDROID
 
 Change to $(CSOUND_SRC_ROOT)/android/CsoundAndroid and execute:
 
     ./build.sh
     
 This will call SWIG to generate Java bindings to the NDK module for Csound 6,
-then build and install the Csound 6 CsoundAndroid module
+then build and install the Csound 6 CsoundAndroid module.
 
 This script will also call install_libs.sh (which can be run separately) to 
 install the above-mentioned local shared libraries in the CsoundAndroid 
 libs directory, so that they will be included in the .apk file.
 
-B U I L D   A N D   R U N   C S O U N D   6   O N   A N D R O I D
+
+BUILD THE CSOUND ANDROID APPS
+=============================
 
 Configure Eclipse for the Android SDK and for the Android NDK.
 
