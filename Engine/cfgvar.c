@@ -441,7 +441,7 @@ static csCfgVariable_t **list_db_entries(CSOUND* csound, CS_HASH_TABLE *db)
 
     values = cs_hash_table_values(csound, db);
     cnt = cs_cons_length(values);
-    
+
 
     /* allocate memory for list */
     lst = (csCfgVariable_t**) mmalloc(csound, sizeof(csCfgVariable_t*)
