@@ -241,10 +241,10 @@ $(CSOUND_SRC_ROOT)/interfaces/filebuilding.cpp \
 java_interfaceJAVA_wrap.cpp
 #CsoundObj.cpp
 
-LOCAL_LDLIBS := -llog -lOpenSLES
+LOCAL_LDLIBS := -llog -lOpenSLES -ldl -lstdc++ -lm -lc
 
 LOCAL_STATIC_LIBRARIES := sndfile
-LOCAL_SHARED_LIBRARIES += luajit-2.0 libstdutil signalflowgraph libfluidsynth
+LOCAL_SHARED_LIBRARIES += sndfile log OpenSLES dl stdc++ m c
 LOCAL_PREBUILT_LIBRARIES += luajit-2.0 libstdutil signalflowgraph libfluidsynth 
 
 include $(BUILD_SHARED_LIBRARY)
