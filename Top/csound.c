@@ -2650,9 +2650,10 @@ static void reset(CSOUND *csound)
      * We do it by saving them and copying them back again...
      * hope that this does not fail...
      */
-    /* VL 15.03.2013 - I am not sure why this is needed, but
-       it probably needs to be reviewed with the changes in
-       the CSOUND struct */
+    /* VL 07.06.2013 - check if the status is COMP before
+       resetting.
+    */
+    
     saved_env = (CSOUND*) malloc(sizeof(CSOUND));
     memcpy(saved_env, csound, sizeof(CSOUND));
     memcpy(csound, &cenviron_, sizeof(CSOUND));
@@ -2678,7 +2679,7 @@ static void reset(CSOUND *csound)
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
     free(saved_env);
-
+    
 }
 
 
@@ -2739,12 +2740,15 @@ PUBLIC void csoundReset(CSOUND *csound)
     int     i, max_len;
     OPARMS  *O = csound->oparms;
 
+    
     if(csound->engineStatus & CS_STATE_COMP) {
       /* clear compiled flag */
       csound->engineStatus |= ~(CS_STATE_COMP);
+      /* and reset */
+      csound->Message(csound, "resetting Csound instance\n");
+      reset(csound);
     }
-
-    reset(csound);
+    
     if (msgcallback_ != NULL) {
       csoundSetMessageCallback(csound, msgcallback_);
     }
