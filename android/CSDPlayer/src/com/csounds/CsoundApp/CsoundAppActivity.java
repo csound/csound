@@ -15,6 +15,8 @@ import android.app.AlertDialog.Builder;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -286,6 +288,26 @@ public class CsoundAppActivity extends Activity implements
 					csound = new CsoundObj();
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
+					// Make sure this stuff really got packaged.
+					// We can interrogate the shared libs dir the same way
+					// to see what architecture is running.
+					String samples[] = null;
+					String armeabi[] = null;
+					String armeabi_v7a[] = null;
+					try {
+						samples = getAssets().list("samples");
+						armeabi = getAssets().list("armeabi/OPCODE6DIR");
+						armeabi_v7a = getAssets().list("armeabi-v7a/OPCODE6DIR");
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					// We ask for the data directory in case Android changes on us without warning.
+					PackageInfo packageInfo = null;
+					try {
+						packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+					} catch (NameNotFoundException e) {
+						e.printStackTrace();
+					}
 					String channelName;
 					for (int i = 0; i < 5; i++) {
 						channelName = "slider" + (i + 1);
@@ -296,8 +318,15 @@ public class CsoundAppActivity extends Activity implements
 					csound.addButton(pad, "trackpad", 1);
 					csound.enableAccelerometer(CsoundAppActivity.this);
 					csound.addCompletionListener(CsoundAppActivity.this);
+					// Set Csound environment variables.
+					String OPCODE6DIR = packageInfo.applicationInfo.dataDir + "/assets/libs";
+					String SSDIR = packageInfo.applicationInfo.dataDir + "/assets/samples";
+					csound.getCsound().SetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
+					csound.getCsound().SetGlobalEnv("SSDIR", SSDIR);
 					csound.startCsound(csd);
 					postMessageClear("Csound is starting...\n");
+					csound.getCsound().Message("OPCODE6DIR has been set to: " + csound.getCsound().GetEnv("OPCODE6DIR") + "\n");
+					csound.getCsound().Message("SSDIR has been set to: " + csound.getCsound().GetEnv("SSDIR") + "\n");
 				} else {
 					csound.stopCsound();
 					postMessage("Csound has been stopped.\n");
