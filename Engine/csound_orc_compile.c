@@ -878,7 +878,8 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
           mfree(csound, t);
           t = s;
         }
-     mfree(csound, ip->varPool); /* need to delete the varPool memory */
+     myflt_pool_free(csound, ip->varPool);
+     //mfree(csound, ip->varPool); /* need to delete the varPool memory */
      mfree(csound, ip);
      if(csound->oparms->odebug)
        csound->Message(csound, Str("-- deleted instr from deadpool \n"));
