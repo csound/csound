@@ -932,7 +932,7 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
       mrealloc(csound, csound->dead_instr_pool,
                ++csound->dead_instr_no * sizeof(INSTRTXT*));
     csound->dead_instr_pool[csound->dead_instr_no-1] = instrtxt;
-    //if(csound->oparms->odebug)
+   if(csound->oparms->odebug)
     csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
                     csound->dead_instr_no-1);
 
