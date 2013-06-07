@@ -3,6 +3,7 @@
 # Simple script to copy "local" shared libs to the installation libs directories.
 # This because I can't seem to get the canonical way to do this to work.
 
+cd ../CSDPlayer
 mkdir assets/armeabi/
 mkdir assets/armeabi/OPCODE6DIR/
 cp -f ../pluginlibs/libfluidsynth/libs/armeabi/libfluidOpcodes.so assets/armeabi/OPCODE6DIR/
