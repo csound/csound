@@ -2618,8 +2618,6 @@ static void reset(CSOUND *csound)
     csoundDeleteAllConfigurationVariables(csound);
     csoundDeleteAllGlobalVariables(csound);
 
-
-
 #ifdef CSCORE
     cscoreRESET(csound);
 #endif
@@ -2742,11 +2740,11 @@ PUBLIC void csoundReset(CSOUND *csound)
 
     
     if(csound->engineStatus & CS_STATE_COMP) {
-      /* clear compiled flag */
-      csound->engineStatus |= ~(CS_STATE_COMP);
-      /* and reset */
+     /* and reset */
       csound->Message(csound, "resetting Csound instance\n");
       reset(csound);
+      /* clear compiled flag */
+      csound->engineStatus |= ~(CS_STATE_COMP);  
     }
     
     if (msgcallback_ != NULL) {
