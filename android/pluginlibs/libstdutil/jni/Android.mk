@@ -34,9 +34,9 @@ $(CSOUND_SRC_ROOT)/util/std_util.c \
 $(CSOUND_SRC_ROOT)/util/xtrct.c \
 $(CSOUND_SRC_ROOT)/SDIF/sdif.c
 
-LOCAL_LDLIBS := 
+LOCAL_LDLIBS += -ldl
 
-LOCAL_STATIC_LIBRARIES := sndfile
+LOCAL_SHARED_LIBRARIES += sndfile
 
 include $(BUILD_SHARED_LIBRARY)
 
