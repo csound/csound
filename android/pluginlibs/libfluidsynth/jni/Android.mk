@@ -14,7 +14,7 @@ LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
 
 LOCAL_SRC_FILES := ../../../../Opcodes/fluidOpcodes/fluidOpcodes.cpp 
 
-#LOCAL_LDLIBS := 
+LOCAL_LDLIBS += -ldl
 
 LOCAL_STATIC_LIBRARIES := fluidsynth-static 
 

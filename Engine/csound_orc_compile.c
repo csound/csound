@@ -635,10 +635,11 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       csound->e0dbfs = DFLT_DBFS;
     }
 
-    if(O->nchnls_override > 0) csound->nchnls = csound->inchnls = O->nchnls_override;
+    if (O->nchnls_override > 0)
+      csound->nchnls = csound->inchnls = O->nchnls_override;
     if(O->nchnls_i_override > 0) csound->inchnls = O->nchnls_i_override;
     if(O->e0dbfs_override > 0) csound->e0dbfs = O->e0dbfs_override;
-    
+
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
                       "0dbfs = %.1f\n",
@@ -910,8 +911,8 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
         /* no active instances */
         if (active == NULL) {
         if(csound->oparms->odebug)
-         csound->Message(csound, Str(" -- free instr def %p \n"),
-                    csound->dead_instr_pool[i]);
+          csound->Message(csound, Str(" -- free instr def %p \n"),
+                          csound->dead_instr_pool[i]);
         free_instrtxt(csound, csound->dead_instr_pool[i]);
         csound->dead_instr_pool[i] = NULL;
         }
@@ -919,15 +920,15 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
     }
     /* add latest instr to deadpool */
     /* check for free slots */
-    for(i=0; i < csound->dead_instr_no; i++) {
-      if(csound->dead_instr_pool[i] == NULL) {
+    for (i=0; i < csound->dead_instr_no; i++) {
+      if (csound->dead_instr_pool[i] == NULL) {
          csound->dead_instr_pool[i] = instrtxt;
-	if(csound->oparms->odebug)
-         csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
-                    i);
-       return;
-      } 
-     }    
+         if (csound->oparms->odebug)
+           csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
+                           i);
+         return;
+      }
+    }
     /* no free slots, expand pool */
     csound->dead_instr_pool = (INSTRTXT**)
       mrealloc(csound, csound->dead_instr_pool,
@@ -1126,7 +1127,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       }
       /* no active instances */
       if (active == NULL || instrNum == 0) {
-       
+
        if (csound->oparms->odebug)
        csound->Message(csound, Str("no active instances of instr %d \n"), instrNum);
         free_instrtxt(csound, engineState->instrtxtp[instrNum]);
