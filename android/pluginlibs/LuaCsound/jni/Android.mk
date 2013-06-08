@@ -12,7 +12,7 @@ LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
 LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(LOCAL_PATH)../../../luajit-2.0/src
 ###
 
-LOCAL_LDLIBS := -lluajit
+LOCAL_LDLIBS += -lluajit -ldl
 
 LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Opcodes/LuaCsound.cpp
 
