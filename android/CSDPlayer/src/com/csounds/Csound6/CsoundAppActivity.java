@@ -1,4 +1,4 @@
-package com.csounds.CsoundApp;
+package com.csounds.Csound6;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -285,7 +285,19 @@ public class CsoundAppActivity extends Activity implements
 					return;
 				}
 				if (startStopButton.isChecked()) {
+					// We ask for the data directory in case Android changes on us without warning.
+					PackageInfo packageInfo = null;
+					try {
+						packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+					} catch (NameNotFoundException e) {
+						e.printStackTrace();
+					}
 					csound = new CsoundObj();
+					// Set Csound environment variables.
+					String OPCODE6DIR = packageInfo.applicationInfo.dataDir + "/assets/armeabi-v7a/OPCODE6DIR";
+					String SSDIR = packageInfo.applicationInfo.dataDir + "/assets/samples";
+					csound.getCsound().SetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
+					csound.getCsound().SetGlobalEnv("SSDIR", SSDIR);
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
 					// Make sure this stuff really got packaged.
@@ -301,13 +313,6 @@ public class CsoundAppActivity extends Activity implements
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					// We ask for the data directory in case Android changes on us without warning.
-					PackageInfo packageInfo = null;
-					try {
-						packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-					} catch (NameNotFoundException e) {
-						e.printStackTrace();
-					}
 					String channelName;
 					for (int i = 0; i < 5; i++) {
 						channelName = "slider" + (i + 1);
@@ -318,14 +323,9 @@ public class CsoundAppActivity extends Activity implements
 					csound.addButton(pad, "trackpad", 1);
 					csound.enableAccelerometer(CsoundAppActivity.this);
 					csound.addCompletionListener(CsoundAppActivity.this);
-					// Set Csound environment variables.
-					String OPCODE6DIR = packageInfo.applicationInfo.dataDir + "/assets/libs";
-					String SSDIR = packageInfo.applicationInfo.dataDir + "/assets/samples";
-					csound.getCsound().SetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
-					csound.getCsound().SetGlobalEnv("SSDIR", SSDIR);
 					csound.startCsound(csd);
 					postMessageClear("Csound is starting...\n");
-					csound.getCsound().Message("OPCODE6DIR has been set to: " + csound.getCsound().GetEnv("OPCODE6DIR") + "\n");
+					postMessage("OPCODE6DIR has been set to: " + csound.getCsound().GetEnv("OPCODE6DIR") + "\n");
 					csound.getCsound().Message("SSDIR has been set to: " + csound.getCsound().GetEnv("SSDIR") + "\n");
 				} else {
 					csound.stopCsound();
