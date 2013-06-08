@@ -7,7 +7,7 @@ ksmps   = 100
 nchnls  = 2
 
 ; Lua code to generate a score in the orchestra header.
-
+lua_exec "print(2+2)"
 lua_exec {{
 local ffi = require("ffi")
 local math = require("math")
