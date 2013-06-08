@@ -27,6 +27,8 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 extern "C"
 {
 #include <lua.h>
@@ -526,7 +528,7 @@ public:
             log(csound, "Opcode: %s\n", opcodename);
             log(csound, "Result: %d\n", result);
             char init_function[0x100];
-            std::snprintf(init_function, 0x100,
+            snprintf(init_function, 0x100,
                           "%s_init", opcodename); //h.optext->t.opcod);
             lua_getglobal(L, init_function);
             if (!lua_isnil(L, 1))
@@ -535,7 +537,7 @@ public:
                 lua_pop(L, 1);
             }
             char kontrol_function[0x100];
-            std::snprintf(kontrol_function, 0x100,
+            snprintf(kontrol_function, 0x100,
                           "%s_kontrol", opcodename); //h.optext->t.opcod);
             lua_getglobal(L, kontrol_function);
             if (!lua_isnil(L, 1))
@@ -544,7 +546,7 @@ public:
                 lua_pop(L, 1);
             }
             char audio_function[0x100];
-            std::snprintf(audio_function, 0x100,
+            snprintf(audio_function, 0x100,
                           "%s_audio", opcodename); //h.optext->t.opcod);
             lua_getglobal(L, audio_function);
             if (!lua_isnil(L, 1))
@@ -553,7 +555,7 @@ public:
                 lua_pop(L, 1);
             }
             char noteoff_function[0x100];
-            std::snprintf(noteoff_function, 0x100,
+            snprintf(noteoff_function, 0x100,
                           "%s_noteoff", opcodename); //h.optext->t.opcod);
             lua_getglobal(L, noteoff_function);
             if (!lua_isnil(L, 1))
