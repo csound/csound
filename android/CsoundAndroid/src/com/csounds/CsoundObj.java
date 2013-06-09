@@ -247,7 +247,7 @@ public class CsoundObj {
 			callbacks.SetMessageCallback();
 		}
 		retVal = csound.Compile(f.getAbsolutePath());
-		Log.d("CsoundAndroid", "Return Value2: " + retVal);
+		Log.d("CsoundObj", "Return Value2: " + retVal);
 		if (retVal == 0) {
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.setup(this);
@@ -312,7 +312,7 @@ public class CsoundObj {
 			callbacks.SetMessageCallback();
 		}
 		retVal = csound.Compile(f.getAbsolutePath());
-		Log.d("CsoundAndroid", "Return Value2: " + retVal);
+		Log.d("CsoundObj", "Return Value2: " + retVal);
 		if (retVal == 0) {
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.setup(this);
@@ -337,7 +337,7 @@ public class CsoundObj {
 					(int) csound.GetSr(), channelConfig,
 					AudioFormat.ENCODING_PCM_16BIT, minSize,
 					AudioTrack.MODE_STREAM);
-			Log.d("CsoundAndroid", "Buffer Size: " + minSize);
+			Log.d("CsoundObj", "Buffer Size: " + minSize);
 
 			AudioRecord audioRecord = null;
 			CsoundMYFLTArray audioIn = null;
