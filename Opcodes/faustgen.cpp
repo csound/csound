@@ -13,7 +13,7 @@ typedef struct {
 } FAUSTGEN;
 
 /* deinit function
-   delete faust objects 
+   delete faust objects
 */
 int delete_faustgen(CSOUND *csound, void *p) {
   FAUSTGEN *pp = (FAUSTGEN *) p;
@@ -22,7 +22,7 @@ int delete_faustgen(CSOUND *csound, void *p) {
   return OK;
 }
 
-/* init-time function 
+/* init-time function
    compile faust program
 */
 int init_faustgen(CSOUND *csound, FAUSTGEN *p){
@@ -40,17 +40,18 @@ int init_faustgen(CSOUND *csound, FAUSTGEN *p){
   argc += 1;
 #endif
 
-  /* compile engine 
+  /* compile engine
      p->code->data holds the faust program
   */
   p->factory = createDSPFactory(argc, argv, "",
-				"", "faustop", (const char *) p->code->data,"", err_msg, 3);
-  if(p->factory == NULL) 
+                                "", "faustop", (const char *) p->code->data,
+                                "", err_msg, 3);
+  if(p->factory == NULL)
     return csound->InitError(csound, "Faust compilation problem: %s\n", err_msg);
   p->engine = createDSPInstance(p->factory);
-  if(p->engine == NULL) 
+  if(p->engine == NULL)
     return csound->InitError(csound, "Faust instantiation problem \n");
-  
+
   /* init engine */
   p->engine->init(csound->GetSr(csound));
 
@@ -64,7 +65,7 @@ int init_faustgen(CSOUND *csound, FAUSTGEN *p){
     deleteDSPFactory(p->factory);
     return csound->InitError(csound, "wrong number of output args\n");
   }
- 
+
   csound->RegisterDeinitCallback(csound, p, delete_faustgen);
   return OK;
 }
@@ -76,13 +77,13 @@ int init_faustgen(CSOUND *csound, FAUSTGEN *p){
 int perf_faustgen(CSOUND *csound, FAUSTGEN *p){
 
   int nsmps = CS_KSMPS, i, j;
-  int faustins = p->engine->getNumInputs();   
-  int faustouts = p->engine->getNumOutputs();  
+  int faustins = p->engine->getNumInputs();
+  int faustouts = p->engine->getNumOutputs();
   MYFLT **ins, **outs;
-  
+
   for(i=0; i < faustins; i++) ins[i] = p->ins[i];
   for(i=0; i < faustouts; i++)  outs[i] = p->outs[i];
-    
+
   p->engine->compute(nsmps, ins, outs);
 
   return OK;
