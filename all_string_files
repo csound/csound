@@ -218,6 +218,7 @@
 ./Opcodes/eqfil.c
 ./Opcodes/fareygen.c
 ./Opcodes/fareyseq.c
+./Opcodes/faustgen.cpp
 ./Opcodes/fhtfun.h
 ./Opcodes/filter.c
 ./Opcodes/filter.h
