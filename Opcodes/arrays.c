@@ -768,10 +768,10 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
    tmax = tmin;
 
    // Correct start and ending points
-   if (end<0) end = t->sizes[0]-1;
-   else if (end>t->sizes[0]) end = t->sizes[0]-1;
+   if (end<0) end = t->sizes[0];
+   else if (end>t->sizes[0]) end = t->sizes[0];
    if (strt<0) strt = 0;
-   else if (strt>t->sizes[0]) strt = t->sizes[0]-1;
+   else if (strt>t->sizes[0]) strt = t->sizes[0];
    if (end<strt) {
      int x = end; end = strt; strt = x;
    }
