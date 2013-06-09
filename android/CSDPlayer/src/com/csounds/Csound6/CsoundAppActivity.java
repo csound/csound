@@ -47,10 +47,7 @@ import csnd6.CsoundCallbackWrapper;
 
 public class CsoundAppActivity extends Activity implements
 		CsoundObjCompletionListener, CsoundObj.MessagePoster {
-    private static final String EXTRA_SCRIPT_PATH = "com.googlecode.android_scripting.extra.SCRIPT_PATH";
-    private static final String EXTRA_SCRIPT_CONTENT = "com.googlecode.android_scripting.extra.SCRIPT_CONTENT";
-    private static final String ACTION_EDIT_SCRIPT = "com.googlecode.android_scripting.action.EDIT_SCRIPT";
-    Uri templateUri = null;
+	Uri templateUri = null;
 	Button newButton = null;
 	Button openButton = null;
 	Button editButton = null;
@@ -84,20 +81,19 @@ public class CsoundAppActivity extends Activity implements
 			}
 		});
 	}
-	
-	protected void writeTemplateFile()
-	{
+
+	protected void writeTemplateFile() {
 		File root = Environment.getExternalStorageDirectory();
-	    try {
-	        if (root.canWrite()) {
-	            FileWriter filewriter = new FileWriter(csd);
-	            BufferedWriter out = new BufferedWriter(filewriter);
-	            out.write(csdTemplate);
-	            out.close();
-	        }
-	    } catch (IOException e) {
-	        Log.e("CsoundApp", "Could not write file " + e.getMessage());
-	    }		
+		try {
+			if (root.canWrite()) {
+				FileWriter filewriter = new FileWriter(csd);
+				BufferedWriter out = new BufferedWriter(filewriter);
+				out.write(csdTemplate);
+				out.close();
+			}
+		} catch (IOException e) {
+			Log.e("Csound6", "Could not write file " + e.getMessage());
+		}
 	}
 
 	@Override
@@ -106,7 +102,6 @@ public class CsoundAppActivity extends Activity implements
 		inflater.inflate(R.menu.menu, menu);
 		return true;
 	}
-	
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -127,7 +122,7 @@ public class CsoundAppActivity extends Activity implements
 			goToUrl("http://www.csounds.com/manual/html/index.html");
 			return true;
 		case R.id.itemAbout:
-			goToUrl("http://www.csounds.com/about");			
+			goToUrl("http://www.csounds.com/about");
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -157,6 +152,7 @@ public class CsoundAppActivity extends Activity implements
 				}
 				messageTextView.append(message);
 				messageScrollView.fullScroll(ScrollView.FOCUS_DOWN);
+				Log.i("Csound6", message);
 			}
 		});
 	}
@@ -208,41 +204,42 @@ public class CsoundAppActivity extends Activity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		csdTemplate = "<CsoundSynthesizer>\n" +
-"<CsLicense>\n" + 
-"</CsLicense>\n" +
-"<CsOptions>\n" +
-"</CsOptions>\n" +
-"<CsInstruments>\n" +
-"</CsInstruments>\n" +
-"<CsScore>\n" +
-"</CsScore>\n" +
-"</CsoundSynthesizer>\n";
+		csdTemplate = "<CsoundSynthesizer>\n" + "<CsLicense>\n"
+				+ "</CsLicense>\n" + "<CsOptions>\n" + "</CsOptions>\n"
+				+ "<CsInstruments>\n" + "</CsInstruments>\n" + "<CsScore>\n"
+				+ "</CsScore>\n" + "</CsoundSynthesizer>\n";
 		setContentView(R.layout.main);
 		newButton = (Button) findViewById(R.id.newButton);
 		newButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				AlertDialog.Builder alert = new AlertDialog.Builder(CsoundAppActivity.this);
+				AlertDialog.Builder alert = new AlertDialog.Builder(
+						CsoundAppActivity.this);
 				alert.setTitle("New CSD...");
 				alert.setMessage("Filename:");
 				final EditText input = new EditText(CsoundAppActivity.this);
 				alert.setView(input);
-				alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int whichButton) {
-					String value = input.getText().toString();
-					File root = Environment.getExternalStorageDirectory();
-					csd = new File(root, value);
-					writeTemplateFile();
-					Intent intent = new Intent(Intent.ACTION_VIEW);
-					Uri uri = Uri.parse("file://" + csd.getAbsolutePath());
-					intent.setDataAndType(uri, "text/plain");
-					startActivity(intent);
-				  }
-				});
-				alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-				  public void onClick(DialogInterface dialog, int whichButton) {
-				  }
-				});
+				alert.setPositiveButton("Ok",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int whichButton) {
+								String value = input.getText().toString();
+								File root = Environment
+										.getExternalStorageDirectory();
+								csd = new File(root, value);
+								writeTemplateFile();
+								Intent intent = new Intent(Intent.ACTION_VIEW);
+								Uri uri = Uri.parse("file://"
+										+ csd.getAbsolutePath());
+								intent.setDataAndType(uri, "text/plain");
+								startActivity(intent);
+							}
+						});
+				alert.setNegativeButton("Cancel",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int whichButton) {
+							}
+						});
 				alert.show();
 			}
 		});
@@ -285,31 +282,44 @@ public class CsoundAppActivity extends Activity implements
 					return;
 				}
 				if (startStopButton.isChecked()) {
-					// We ask for the data directory in case Android changes on us without warning.
+					// We ask for the data directory in case Android changes on
+					// us without warning.
 					PackageInfo packageInfo = null;
 					try {
-						packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+						packageInfo = getPackageManager().getPackageInfo(
+								getPackageName(), 0);
 					} catch (NameNotFoundException e) {
 						e.printStackTrace();
 					}
 					csound = new CsoundObj();
-					// Set Csound environment variables.
-					String OPCODE6DIR = packageInfo.applicationInfo.dataDir + "/assets/armeabi-v7a/OPCODE6DIR";
-					String SSDIR = packageInfo.applicationInfo.dataDir + "/assets/samples";
-					csound.getCsound().SetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
-					csound.getCsound().SetGlobalEnv("SSDIR", SSDIR);
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
+					postMessageClear("Csound is starting...\n");
+					// Set Csound environment variables before starting Csound.
+					String OPCODE6DIR = getBaseContext().getApplicationInfo().nativeLibraryDir;
+					String SSDIR = packageInfo.applicationInfo.dataDir
+							+ "/samples";
+					csound.getCsound().SetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
+					csound.getCsound().SetGlobalEnv("SSDIR", SSDIR);
+					// Pre-load plugin opcodes, not only to ensure that Csound 
+					// can load them, but for easier debugging if they fail to load.
+					File file = new File(OPCODE6DIR);
+					File[] files = file.listFiles();
+					CsoundAppActivity.this.postMessage("Loading Csound plugins:\n");
+					for (int i = 0; i < files.length; i++) {
+						String pluginPath = files[i].getAbsoluteFile().toString();
+						try {
+							CsoundAppActivity.this.postMessage(pluginPath + "\n");
+							System.load(pluginPath); 
+
+						} catch (Throwable e) {
+							CsoundAppActivity.this.postMessage(e.toString() + "\n");
+						}
+					}
 					// Make sure this stuff really got packaged.
-					// We can interrogate the shared libs dir the same way
-					// to see what architecture is running.
 					String samples[] = null;
-					String armeabi[] = null;
-					String armeabi_v7a[] = null;
 					try {
 						samples = getAssets().list("samples");
-						armeabi = getAssets().list("armeabi/OPCODE6DIR");
-						armeabi_v7a = getAssets().list("armeabi-v7a/OPCODE6DIR");
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -324,9 +334,17 @@ public class CsoundAppActivity extends Activity implements
 					csound.enableAccelerometer(CsoundAppActivity.this);
 					csound.addCompletionListener(CsoundAppActivity.this);
 					csound.startCsound(csd);
-					postMessageClear("Csound is starting...\n");
-					postMessage("OPCODE6DIR has been set to: " + csound.getCsound().GetEnv("OPCODE6DIR") + "\n");
-					csound.getCsound().Message("SSDIR has been set to: " + csound.getCsound().GetEnv("SSDIR") + "\n");
+					// Make sure these are still set after starting.
+					String getOPCODE6DIR = csnd6.csndJNI.csoundGetEnv(0,
+							"OPCODE6DIR");
+					csound.getCsound().Message(
+							"OPCODE6DIR has been set to: " + getOPCODE6DIR
+									+ "\n");
+					csound.getCsound()
+							.Message(
+									"SSDIR has been set to: "
+											+ csound.getCsound()
+													.GetEnv("SSDIR") + "\n");
 				} else {
 					csound.stopCsound();
 					postMessage("Csound has been stopped.\n");
