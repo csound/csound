@@ -2634,7 +2634,7 @@ static void reset(CSOUND *csound)
     remove_tmpfiles(csound);
     rlsmemfiles(csound);
 
-    
+
 
     while (csound->filedir[n])        /* Clear source directory */
       free(csound->filedir[n++]);
