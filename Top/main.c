@@ -315,7 +315,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
        return CSOUND_ERROR;
     }
 
-  
+
 
 
    { /* test for dummy module request */
@@ -345,7 +345,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
      csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
      csound->SetExternalMidiOutCloseCallback(csound, NULL);
      }
-     } 
+     }
   else {
    s = csoundQueryGlobalVariable(csound, "_RTMIDI");
    strcpy(s, "hostbased");

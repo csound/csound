@@ -63,7 +63,7 @@ typedef struct channelEntry_s {
   pthread_spinlock_t *lock;
   pthread_spinlock_t theLock;
 #else
-    int     lock;               
+    int     lock;
 #endif
 #else
         int     lock;               /* Multi-thread protection */
