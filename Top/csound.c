@@ -796,8 +796,8 @@ static const CSOUND cenviron_ = {
       0,            /*    syntaxCheckOnly   */
       1,            /*    useCsdLineCounts  */
       0,            /*    samp acc   */
-      0,            /*    realtime  */ 
-      0.0           /*    0dbfs override */ 
+      0,            /*    realtime  */
+      0.0           /*    0dbfs override */
     },
 
     {0, 0, {0}}, /* REMOT_BUF */
@@ -2625,12 +2625,7 @@ static void reset(CSOUND *csound)
       free_opcode_table(csound);
       csound->opcodes = NULL;
     }
-#ifdef HAVE_PTHREAD_SPIN_LOCK
-     pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
-#endif
+
     csound->oparms_.odebug = 0;
     /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
     pvsys_release(csound);
@@ -2639,7 +2634,7 @@ static void reset(CSOUND *csound)
     remove_tmpfiles(csound);
     rlsmemfiles(csound);
 
-    memRESET(csound);
+
 
     while (csound->filedir[n])        /* Clear source directory */
       free(csound->filedir[n++]);
@@ -2651,7 +2646,7 @@ static void reset(CSOUND *csound)
     /* VL 07.06.2013 - check if the status is COMP before
        resetting.
     */
-    
+
     saved_env = (CSOUND*) malloc(sizeof(CSOUND));
     memcpy(saved_env, csound, sizeof(CSOUND));
     memcpy(csound, &cenviron_, sizeof(CSOUND));
@@ -2677,7 +2672,7 @@ static void reset(CSOUND *csound)
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
     free(saved_env);
-    
+
 }
 
 
@@ -2738,15 +2733,23 @@ PUBLIC void csoundReset(CSOUND *csound)
     int     i, max_len;
     OPARMS  *O = csound->oparms;
 
-    
+
+     memRESET(csound);
+    #ifdef HAVE_PTHREAD_SPIN_LOCK
+     pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
+    #endif
+
     if(csound->engineStatus & CS_STATE_COMP) {
      /* and reset */
       csound->Message(csound, "resetting Csound instance\n");
       reset(csound);
       /* clear compiled flag */
-      csound->engineStatus |= ~(CS_STATE_COMP);  
+      csound->engineStatus |= ~(CS_STATE_COMP);
     }
-    
+
     if (msgcallback_ != NULL) {
       csoundSetMessageCallback(csound, msgcallback_);
     }
@@ -2758,9 +2761,9 @@ PUBLIC void csoundReset(CSOUND *csound)
       csound->Die(csound, Str("Failed during csoundInitEnv"));
     }
     csound_init_rand(csound);
-  
-     
-    
+
+
+
     csound->engineState.stringPool = cs_hash_table_create(csound);
     csound->engineState.constantsPool = myflt_pool_create(csound);
     csound->engineStatus |= CS_STATE_PRE;
@@ -2797,7 +2800,7 @@ PUBLIC void csoundReset(CSOUND *csound)
 
       /* VL: moved here from main.c */
       if (csoundInitModules(csound) != 0)
-            csound->LongJmp(csound, 1); 
+            csound->LongJmp(csound, 1);
 
       init_pvsys(csound);
       /* utilities depend on this as well as orchs; may get changed by an orch */
@@ -2853,7 +2856,7 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       Str("Real time audio module name"), NULL);
 
     /* initialise real time MIDI */
-    csound->midiGlobals = (MGLOBAL*) mcalloc(csound, sizeof(MGLOBAL)); 
+    csound->midiGlobals = (MGLOBAL*) mcalloc(csound, sizeof(MGLOBAL));
     csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
     csound->midiGlobals->endatp = csound->midiGlobals->bufp;
     csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
@@ -2865,7 +2868,7 @@ PUBLIC void csoundReset(CSOUND *csound)
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     strcpy(s, "null");
-    if(csound->enableHostImplementedMIDIIO == 0) 
+    if(csound->enableHostImplementedMIDIIO == 0)
 #ifndef LINUX
     strcpy(s, "portmidi");
 #else

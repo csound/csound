@@ -76,13 +76,8 @@
  X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
  N       multiple args (a, k, i, or S-rate)
  F       multiple args (f-rate)
- (these types must agree with rdorch.c)                               */
+ */
 
-/* If dsblksize is 0xffff then translate on output arg
-   0xfffe then translate two (oscil)
-   0xfffd then translate on first input arg (peak)
-   0xfffc then translate two (divz)
-   0xfffb then translate on first input arg (loop_l)    */
 
 OENTRY opcodlst_1[] = {
   /* opcode   dspace  flags  thread  outarg  inargs  isub    ksub    asub    */
@@ -123,44 +118,44 @@ OENTRY opcodlst_1[] = {
   { "midremot",S(MIDREMOT),0,1,     "",     "SSm",midremot, NULL, NULL, NULL},
   { "insglobal",S(INSGLOBAL),0,1,   "",     "Sm", insglobal, NULL, NULL, NULL},
   { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL},
-  //{ "=",      0,0,          0,      "",     "",   NULL, NULL, NULL, NULL},
-  { "init",   0xffff      /* base names for later prefixes,suffixes */    },
-  { "betarand",0xffff,      0,0,      "",     "",   NULL, NULL, NULL, NULL },
-  { "bexprnd", 0xffff                                                     },
-  { "cauchy",  0xffff                                                     },
-  { "cauchyi", 0xffff                                                     },
-  { "chanctrl",0xffff                                                     },
-  { "cpsmidib",0xffff                                                     },
-  { "exprand", 0xffff                                                     },
-  { "exprandi",0xffff                                                     },
-  { "gauss" ,  0xffff                                                     },
-  { "gaussi" , 0xffff                                                     },
-  { "limit",   0xffff                                                     },
-  { "linrand", 0xffff                                                     },
-  { "midictrl",0xffff                                                     },
-  { "polyaft", 0xffff                                                     },
-  { "ntrpol",  0xffff                                                     },
-  { "octmidib",0xffff                                                     },
-  { "pcauchy", 0xffff                                                     },
-  { "pchbend", 0xffff                                                     },
-  { "pchmidib",0xffff                                                     },
-  { "poisson", 0xffff                                                     },
-  { "pow",     0xffff,                                                    },
-  { "tableng", 0xffff,  TR                                                },
-  { "taninv2", 0xffff                                                     },
-  { "timek",   0xffff,                                                    },
-  { "times",   0xffff,                                                    },
-  { "trirand", 0xffff                                                     },
-  { "unirand", 0xffff,                                                    },
-  { "weibull", 0xffff                                                     },
-  { "oscil",   0xfffe, TR                                                 },
-  { "oscil3",  0xfffe, TR                                                 },
-  { "oscili",  0xfffe, TR                                                 },
-  { "peak",    0xfffd                                                     },
-  { "rtclock", 0xffff                                                     },
-  { "ptablew",  0xfffe, TW                                                },
-  { "tablew",  0xfffe, TW                                                 },
-  { "tablewkt",0xfffe, TW                                                 },
+  /* //{ "=",      0,0,          0,      "",     "",   NULL, NULL, NULL, NULL}, */
+  /* { "init",   0xffff      /\* base names for later prefixes,suffixes *\/    }, */
+  /* { "betarand",0xffff,      0,0,      "",     "",   NULL, NULL, NULL, NULL }, */
+  /* { "bexprnd", 0xffff                                                     }, */
+  /* { "cauchy",  0xffff                                                     }, */
+  /* { "cauchyi", 0xffff                                                     }, */
+  /* { "chanctrl",0xffff                                                     }, */
+  /* { "cpsmidib",0xffff                                                     }, */
+  /* { "exprand", 0xffff                                                     }, */
+  /* { "exprandi",0xffff                                                     }, */
+  /* { "gauss" ,  0xffff                                                     }, */
+  /* { "gaussi" , 0xffff                                                     }, */
+  /* { "limit",   0xffff                                                     }, */
+  /* { "linrand", 0xffff                                                     }, */
+  /* { "midictrl",0xffff                                                     }, */
+  /* { "polyaft", 0xffff                                                     }, */
+  /* { "ntrpol",  0xffff                                                     }, */
+  /* { "octmidib",0xffff                                                     }, */
+  /* { "pcauchy", 0xffff                                                     }, */
+  /* { "pchbend", 0xffff                                                     }, */
+  /* { "pchmidib",0xffff                                                     }, */
+  /* { "poisson", 0xffff                                                     }, */
+  /* { "pow",     0xffff,                                                    }, */
+  /* { "tableng", 0xffff,  TR                                                }, */
+  /* { "taninv2", 0xffff                                                     }, */
+  /* { "timek",   0xffff,                                                    }, */
+  /* { "times",   0xffff,                                                    }, */
+  /* { "trirand", 0xffff                                                     }, */
+  /* { "unirand", 0xffff,                                                    }, */
+  /* { "weibull", 0xffff                                                     }, */
+  /* { "oscil",   0xfffe, TR                                                 }, */
+  /* { "oscil3",  0xfffe, TR                                                 }, */
+  /* { "oscili",  0xfffe, TR                                                 }, */
+  /* { "peak",    0xfffd                                                     }, */
+  /* { "rtclock", 0xffff                                                     }, */
+  /* { "ptablew",  0xfffe, TW                                                }, */
+  /* { "tablew",  0xfffe, TW                                                 }, */
+  /* { "tablewkt",0xfffe, TW                                                 }, */
   { "ihold",  S(LINK),0,    1,      "",     "",     ihold                   },
   { "turnoff",S(LINK),0,    2,      "",     "",     NULL,   turnoff         },
   {  "=.S",   S(STRCPY_OP),0,   3,  "S",    "S",

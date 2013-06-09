@@ -363,22 +363,22 @@ static int tabsub(CSOUND *csound, TABARITH *p)
     return OK;
 }
 
-static int tabneg(CSOUND *csound, TABARITH *p)
-{
-    ARRAYDAT *ans = p->ans;
-    ARRAYDAT *l   = p->left;
-    int size    = ans->sizes[0];
-    int i;
+/* static int tabneg(CSOUND *csound, TABARITH *p) */
+/* { */
+/*     ARRAYDAT *ans = p->ans; */
+/*     ARRAYDAT *l   = p->left; */
+/*     int size    = ans->sizes[0]; */
+/*     int i; */
 
-    if (UNLIKELY(p->ans->data == NULL || p->left->data==NULL))
-         return csound->PerfError(csound, p->h.insdshead,
-                                  Str("t-variable not initialised"));
+/*     if (UNLIKELY(p->ans->data == NULL || p->left->data==NULL)) */
+/*          return csound->PerfError(csound, p->h.insdshead, */
+/*                                   Str("t-variable not initialised")); */
 
-    if (l->sizes[0]<size) size = l->sizes[0];
-    for (i=0; i<size; i++)
-      ans->data[i] = - l->data[i];
-    return OK;
-}
+/*     if (l->sizes[0]<size) size = l->sizes[0]; */
+/*     for (i=0; i<size; i++) */
+/*       ans->data[i] = - l->data[i]; */
+/*     return OK; */
+/* } */
 
 static int tabmult(CSOUND *csound, TABARITH *p)
 {
@@ -768,10 +768,10 @@ static int tabscale(CSOUND *csound, TABSCALE *p)
    tmax = tmin;
 
    // Correct start and ending points
-   if (end<0) end = t->sizes[0]-1;
-   else if (end>t->sizes[0]) end = t->sizes[0]-1;
+   if (end<0) end = t->sizes[0];
+   else if (end>t->sizes[0]) end = t->sizes[0];
    if (strt<0) strt = 0;
-   else if (strt>t->sizes[0]) strt = t->sizes[0]-1;
+   else if (strt>t->sizes[0]) strt = t->sizes[0];
    if (end<strt) {
      int x = end; end = strt; strt = x;
    }
