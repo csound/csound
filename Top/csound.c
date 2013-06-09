@@ -2625,12 +2625,7 @@ static void reset(CSOUND *csound)
       free_opcode_table(csound);
       csound->opcodes = NULL;
     }
-#ifdef HAVE_PTHREAD_SPIN_LOCK
-     pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
-#endif
+
     csound->oparms_.odebug = 0;
     /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
     pvsys_release(csound);
@@ -2639,7 +2634,7 @@ static void reset(CSOUND *csound)
     remove_tmpfiles(csound);
     rlsmemfiles(csound);
 
-    memRESET(csound);
+    
 
     while (csound->filedir[n])        /* Clear source directory */
       free(csound->filedir[n++]);
@@ -2738,7 +2733,13 @@ PUBLIC void csoundReset(CSOUND *csound)
     int     i, max_len;
     OPARMS  *O = csound->oparms;
 
-    
+     memRESET(csound);
+    #ifdef HAVE_PTHREAD_SPIN_LOCK
+     pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
+    #endif
     if(csound->engineStatus & CS_STATE_COMP) {
      /* and reset */
       csound->Message(csound, "resetting Csound instance\n");
@@ -2746,7 +2747,8 @@ PUBLIC void csoundReset(CSOUND *csound)
       /* clear compiled flag */
       csound->engineStatus |= ~(CS_STATE_COMP);  
     }
-    
+
+
     if (msgcallback_ != NULL) {
       csoundSetMessageCallback(csound, msgcallback_);
     }
