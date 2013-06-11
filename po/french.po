@@ -150,7 +150,7 @@ msgstr ""
 
 #: Engine/cs_par_orc_semantic_analysis.c:224
 msgid "opcode deprecated"
-msgstr "L'opcode est obsol??te\n"
+msgstr "L'opcode est obsolète"
 
 #: Engine/cs_par_orc_semantic_analysis.c:276
 msgid "Not a proper list of ints"
@@ -233,7 +233,7 @@ msgstr ""
 #: Engine/csound_orc_compile.c:963 Engine/csound_orc_compile.c:1109
 #, c-format
 msgid "instr %ld redefined, replacing previous definition"
-msgstr "instr %ld red??fini, pr??c??dente d??finition remplac??e\n"
+msgstr "instr %ld redéfini, précédente définition remplacée"
 
 #: Engine/csound_orc_compile.c:1061
 #, c-format
