@@ -100,8 +100,8 @@ cd ..
 fi
 
 # FLTK 
-if [ ! -f fltk-1.3.1/.complete ]; then
-cd fltk-1.3.1
+if [ ! -f fltk-1.3.2/.complete ]; then
+cd fltk-1.3.2
 ./configure  --with-archflags="-arch i386 -arch x86_64" --enable-shared
 make 
 sudo make install
@@ -120,8 +120,8 @@ cd ..
 fi
 
 # LIBPNG
-if [ ! -f libpng-1.5.13/.complete ]; then
-cd libpng-1.5.13
+if [ ! -f libpng-1.6.2/.complete ]; then
+cd libpng-1.6.2
 ./configure CFLAGS="$C_FLAGS" --disable-dependency-tracking 
 make 
 sudo make install
