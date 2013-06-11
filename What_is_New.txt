@@ -1,11 +1,31 @@
-WHAT NEEDS HEAVY TESTING
-========================
+Changes since 6.00RC2 (from logs)
+=====================
 
-Multiple strings in score
+Many bug fixes and code improvements
 
---sample-accurate
+New opcodes:  faustgen, array
 
-Arrays
+Added 0dbfs and nchnls override
+
+Added delete tree to the API
+
+Greatly improve array arithmetic operations
+
+Removed limit on number of instances in parallel code
+
+Fixed schedwhen for named instrs
+
+Change to escape characters in score strings -- they do not happen
+(this is still subject to change)
+
+Fixed dssi
+
+Use thread-safe internal functions in compilaton etc
+
+Thread-safe use of locales
+
+String variables re-implemented
+
 
 What is New, What has Changed
 =============================
