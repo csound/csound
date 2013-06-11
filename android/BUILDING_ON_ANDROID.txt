@@ -4,7 +4,7 @@ HOW TO BUILD CSOUND 6 FOR ANDROID
 Michael Gogins
 7 June 2013
 
-Csound 6 for Android includes the Csound library for Android, the CSDPlayer 
+Csound 6 for Android includes the Csound library for Android, the Csound6 
 app front end for the library, an app containing several demos of the 
 library, and some plugins for Csound.
 
@@ -45,14 +45,15 @@ FluidSynth (used by the Fluid opcodes), packaged to build with the Android NDK.
 In your MSys shell, you use the following shell script or other 
 facility to set the environment variables that are used by the Android build:
 
-echo "Configure for Android/ARM, armeabi-v7a (ARMv7 VFP), Android 4.0+ (ICS)..."
+echo "Configure for Android/ARM, armeabi-v7a (ARMv7 VFP), Android 2.3.3)..."
 
 export SDK=/d/Android/adt-bundle-windows-x86-20130514/sdk
 export NDK=/d/Android/android-ndk-r8e
 export ANDROID_NDK_ROOT=$NDK
-export NDK_MODULE_PATH=${CSOUND_SRC_ROOT}/android/pluginlibs
+export CSOUND_HOME=/c/Users/new/csound-csound6-git
+export NDK_MODULE_PATH=${CSOUND_HOME}/android/pluginlibs
 export PATH=${PATH}:$NDK_MODULE_PATH
-export NDKABI=10
+export NDKABI=9
 export NDKVER=$NDK/toolchains/arm-linux-androideabi-4.7
 export NDKP=$NDKVER/prebuilt/windows/bin/arm-linux-androideabi-
 export NDKF="--sysroot $NDK/platforms/android-$NDKABI/arch-arm"
@@ -66,7 +67,7 @@ to be available as pre-built shared libraries. The complete build
 may be outlined as follows. 
 
 NOTE: It is convenient if all NDK modules built or used by this
-project be located in the project's pluginlibs directory. Any new modules
+project are located in the project's pluginlibs directory. Any new modules
 placed here must of course have unique directories that do not conflict with 
 existing directories. The build environment must set the NDK_MODULE_PATH 
 environment variable to the complete pluginlibs path.
@@ -106,9 +107,6 @@ Change to $(CSOUND_SRC_ROOT)/android/pluginlibs/LuaCsound/jni and execute:
 
     $NDK/ndk-build
     
-NOTE: This currently is not building, I need to replace code that uses
-OpenMP, which is not supported on Android.
-
 BUILD THE CSOUND NATIVE LIBRARY FOR ANDROID
 
 Change to $(CSOUND_SRC_ROOT)/android/CsoundAndroid and execute:
@@ -143,5 +141,5 @@ it is target=android-10.
 
 Clean the projects (this should rebuild them). 
 
-Connect your ARMv7 Ice Cream Sandwich device to Eclipse with a USB cable. Run 
-the CsoundPlayer project (CSDPlayer app). This wll create the .apk file as well.
+Connect your ARMv7 Android 2.3.3 or higher device to Eclipse with a USB cable. Run 
+the Csound6 project. This wll create the .apk file as well.

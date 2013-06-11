@@ -211,8 +211,7 @@ public class CsoundObj {
 			thread.join();
 			thread = null;
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			Log.d("CsoundObj", "InterruptedException in stopCsound.");
+			Log.d("CsoundObj", e.toString());
 			e.printStackTrace();
 		}
 	}
@@ -247,7 +246,7 @@ public class CsoundObj {
 			callbacks.SetMessageCallback();
 		}
 		retVal = csound.Compile(f.getAbsolutePath());
-		Log.d("CsoundAndroid", "Return Value2: " + retVal);
+		Log.d("CsoundObj", "Return Value2: " + retVal);
 		if (retVal == 0) {
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.setup(this);
@@ -312,7 +311,7 @@ public class CsoundObj {
 			callbacks.SetMessageCallback();
 		}
 		retVal = csound.Compile(f.getAbsolutePath());
-		Log.d("CsoundAndroid", "Return Value2: " + retVal);
+		Log.d("CsoundObj", "Return Value2: " + retVal);
 		if (retVal == 0) {
 			for (CsoundValueCacheable cacheable : valuesCache) {
 				cacheable.setup(this);
@@ -337,7 +336,7 @@ public class CsoundObj {
 					(int) csound.GetSr(), channelConfig,
 					AudioFormat.ENCODING_PCM_16BIT, minSize,
 					AudioTrack.MODE_STREAM);
-			Log.d("CsoundAndroid", "Buffer Size: " + minSize);
+			Log.d("CsoundObj", "Buffer Size: " + minSize);
 
 			AudioRecord audioRecord = null;
 			CsoundMYFLTArray audioIn = null;
@@ -452,7 +451,7 @@ public class CsoundObj {
 				audioRecord.release();
 				audioIn.Clear();
 			}
-			//csound.Stop();
+			csound.Stop();
 			csound.Cleanup();
 			csound.Reset();
 			for (CsoundValueCacheable cacheable : valuesCache) {
