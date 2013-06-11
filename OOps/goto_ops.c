@@ -187,7 +187,7 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
 
     if(isStringArg){
       p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
-    } 
+    }
     else  if(ISSTRCOD(*p->kInsNo)) {
       p1 = (MYFLT) strarg2insno(csound, get_arg_string(csound, *p->kInsNo), 1);
     }

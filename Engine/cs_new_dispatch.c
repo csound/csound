@@ -116,12 +116,28 @@ static void dag_print_state(CSOUND *csound)
 void create_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
-    int max = csound->dag_task_max_size=INIT_SIZE;
+    int max = csound->dag_task_max_size;
     csound->dag_task_status = mcalloc(csound, sizeof(enum state)*max);
     csound->dag_task_watch  = mcalloc(csound, sizeof(watchList**)*max);
     csound->dag_task_map    = mcalloc(csound, sizeof(INSDS*)*max);
     csound->dag_task_dep    = (char **)mcalloc(csound, sizeof(char*)*max);
     csound->dag_wlmm        = (watchList *)mcalloc(csound, sizeof(watchList)*max);
+}
+
+void recreate_dag(CSOUND *csound)
+{
+    /* Allocate the main task status and watchlists */
+    int max = csound->dag_task_max_size;
+    csound->dag_task_status =
+      mrealloc(csound, csound->dag_task_status, sizeof(enum state)*max);
+    csound->dag_task_watch  =
+      mrealloc(csound, csound->dag_task_watch, sizeof(watchList**)*max);
+    csound->dag_task_map    =
+      mrealloc(csound, csound->dag_task_map, sizeof(INSDS*)*max);
+    csound->dag_task_dep    =
+      (char **)mrealloc(csound, csound->dag_task_dep, sizeof(char*)*max);
+    csound->dag_wlmm        =
+      (watchList *)mrealloc(csound, csound->dag_wlmm, sizeof(watchList)*max);
 }
 
 static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
@@ -164,7 +180,18 @@ void dag_build(CSOUND *csound, INSDS *chain)
     INSDS *save = chain;
     INSDS **task_map;
     int i;
+
     //printf("DAG BUILD***************************************\n");
+    csound->dag_num_active = 0;
+    while (chain != NULL) {
+      csound->dag_num_active++;
+      chain = chain->nxtact;
+    }
+    if (csound->dag_num_active>csound->dag_task_max_size) {
+      printf("**************need to extend task vector\n");
+      csound->dag_task_max_size = csound->dag_num_active+INIT_SIZE;
+      recreate_dag(csound);
+    }
     if (csound->dag_task_status == NULL)
       create_dag(csound); /* Should move elsewhere */
     else {
@@ -178,15 +205,6 @@ void dag_build(CSOUND *csound, INSDS *chain)
       }
     }
     task_map = csound->dag_task_map;
-    csound->dag_num_active = 0;
-    while (chain != NULL) {
-      csound->dag_num_active++;
-      chain = chain->nxtact;
-    }
-    if (csound->dag_num_active>csound->dag_task_max_size) {
-      printf("**************need to extend task vector\n");
-      exit(1);
-    }
     for (i=0; i<csound->dag_num_active; i++) {
       csound->dag_task_status[i] = AVAILABLE;
       csound->dag_wlmm[i].id=i;

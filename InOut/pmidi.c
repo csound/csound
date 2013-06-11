@@ -482,7 +482,7 @@ static int CloseMidiOutDevice_(CSOUND *csound, void *userData)
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
-    csound->Message(csound, Str("PortMIDI real time MIDI plugin for Csound\n"));
+    // csound->Message(csound, Str("PortMIDI real time MIDI plugin for Csound\n"));
     return 0;
 }
 

@@ -76,8 +76,8 @@ namespace csound
       {
         for(size_t s = 0; s < transformations.size(); s++)
           {
-	    const Eigen::MatrixXd &t = transformations[s];
-	    Eigen::VectorXd ev = t * event;
+            const Eigen::MatrixXd &t = transformations[s];
+            Eigen::VectorXd ev = t * event;
             Event e = ev;
             double w = 0.0;
             if(weight == -1.0)

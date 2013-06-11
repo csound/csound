@@ -76,7 +76,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     csound->orcname_mode = 0;   /* 0: normal, 1: ignore, 2: fail */
     if (argdecode(csound, argc, argv) == 0)
       csound->LongJmp(csound, 1);
-    /* do not allow orc/sco/csd name in .csoundrc */
+    /* do not allow orc/sco/csd name in .csound6rc */
     csound->orcname_mode = 2;
     {
       const char  *csrcname;
@@ -84,39 +84,39 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       FILE        *csrc = NULL;
       void        *fd = NULL;
       /* IV - Feb 17 2005 */
-      csrcname = csoundGetEnv(csound, "CSOUNDRC");
+      csrcname = csoundGetEnv(csound, "CSOUND6RC");
       if (csrcname != NULL && csrcname[0] != '\0') {
         fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
                                CSFTYPE_OPTIONS, 0);
         if (fd == NULL)
-          csoundMessage(csound, Str("WARNING: cannot open csoundrc file %s\n"),
+          csoundMessage(csound, Str("WARNING: cannot open csound6rc file %s\n"),
                                 csrcname);
         else
-          csound->Message(csound, Str("Reading options from $CSOUNDRC: %s \n"),
+          csound->Message(csound, Str("Reading options from $CSOUND6RC: %s \n"),
                            csrcname);
       }
       if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
                          home_dir[0] != '\0')) {
-        s = csoundConcatenatePaths(csound, home_dir, ".csoundrc");
+        s = csoundConcatenatePaths(csound, home_dir, ".csound6rc");
         fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, s, "r", NULL,
                                CSFTYPE_OPTIONS, 0);
         if (fd != NULL)
-          csound->Message(csound, Str("Reading options from $HOME/.csoundrc\n"));
+          csound->Message(csound, Str("Reading options from $HOME/.csound6rc\n"));
         mfree(csound, s);
       }
-      /* read global .csoundrc file (if exists) */
+      /* read global .csound6rc file (if exists) */
       if (fd != NULL) {
 
         readOptions(csound, csrc, 0);
         csound->FileClose(csound, fd);
       }
-      /* check for .csoundrc in current directory */
-      fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csoundrc", "r", NULL,
+      /* check for .csound6rc in current directory */
+      fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csound6rc", "r", NULL,
                              CSFTYPE_OPTIONS, 0);
       if (fd != NULL) {
         readOptions(csound, csrc, 0);
         csound->Message(csound,
-                        Str("Reading options from local directory .csoundrc \n"));
+                        Str("Reading options from local directory .csound6rc \n"));
         csound->FileClose(csound, fd);
       }
     }
@@ -170,7 +170,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
         (csound->stdout_assign_flg & (csound->stdout_assign_flg - 1)) != 0) {
       csound->Die(csound, Str("error: multiple uses of stdout"));
     }
-    /* done parsing csoundrc, CSD, and command line options */
+    /* done parsing csound6rc, CSD, and command line options */
 
     if (csound->scorename == NULL && csound->scorestr==NULL) {
       /* No scorename yet */
@@ -213,6 +213,14 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
 
+
+    s = csoundQueryGlobalVariable(csound, "_RTMIDI");
+    if(csound->enableHostImplementedMIDIIO == 1) {
+    strcpy(s, "hostbased");
+    csoundSetConfigurationVariable(csound,"rtmidi", s);
+    }
+
+    csoundLoadExternals(csound);    /* load plugin opcodes */
      /* VL: added this also to csoundReset() in csound.c   */
       if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
@@ -285,14 +293,14 @@ extern int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
 extern int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
 extern void rtclose_dummy(CSOUND *);
 extern int  audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int);
-int  midi_dev_list_dummy(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput);
-static int DummyMidiInOpen(CSOUND *csound, void **userData,
+extern int  midi_dev_list_dummy(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput);
+extern int DummyMidiInOpen(CSOUND *csound, void **userData,
                            const char *devName);
-static int DummyMidiRead(CSOUND *csound, void *userData,
+extern int DummyMidiRead(CSOUND *csound, void *userData,
                          unsigned char *buf, int nbytes);
-int DummyMidiOutOpen(CSOUND *csound, void **userData,
+extern int DummyMidiOutOpen(CSOUND *csound, void **userData,
                      const char *devName);
-int DummyMidiWrite(CSOUND *csound, void *userData,
+extern int DummyMidiWrite(CSOUND *csound, void *userData,
                    const unsigned char *buf, int nbytes);
 
 
@@ -306,6 +314,9 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
                                 "before starting again \n");
        return CSOUND_ERROR;
     }
+
+
+
 
    { /* test for dummy module request */
     char *s;
@@ -322,6 +333,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
         }
 
      /* and midi */
+  if(csound->enableHostImplementedMIDIIO == 0){
   if((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
     if(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
      strcmp(s, "NULL") == 0) {
@@ -332,6 +344,12 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
      csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
      csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
      csound->SetExternalMidiOutCloseCallback(csound, NULL);
+     }
+     }
+  else {
+   s = csoundQueryGlobalVariable(csound, "_RTMIDI");
+   strcpy(s, "hostbased");
+   csoundSetConfigurationVariable(csound,"rtmidi", s);
   }
    }
 
@@ -342,6 +360,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     */
     if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to
                                      start with no orchestra */
+         csoundLoadExternals(csound);    /* load plugin opcodes */
          if (csoundInitModules(csound) != 0)
            csound->LongJmp(csound, 1);
         csoundCompileOrc(csound, "instr 1 \n endin \n");

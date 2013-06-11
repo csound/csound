@@ -51,6 +51,7 @@ typedef unsigned int uint32_t;
 %pragma(java) jniclasscode=%{
   static {
     try {
+        java.lang.System.loadLibrary("sndfile");
         java.lang.System.loadLibrary("csoundandroid");
     } catch (UnsatisfiedLinkError e) {
         java.lang.System.err.println("csoundandroid native code library failed to load.\n" + e);

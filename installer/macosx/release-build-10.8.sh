@@ -34,7 +34,7 @@ cp ../../../../Custom.cmake .
 #/usr/local/bin/scons -j2 &> ../csound5_build_log.txt
 mkdir build
 cd build
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release
 make -j6 install
 
 # BUILD FLOAT CSOUND5
@@ -222,6 +222,11 @@ cp -L /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
 cp -L /usr/local/lib/libfluidsynth.1.5.2.dylib $SUPPORT_LIBS_DIR
 
+for file in $SUPPORT_LIBS_DIR/*
+do
+  install_name_tool -id /usr/local/lib/`basename $file` $file
+done
+
 # for Fluidsynth
 #mkdir -p $SUPPORT_LIBS_OPT_DIR/fluid-synth/
 #cp -R /usr/local/opt/fluid-synth/lib $SUPPORT_LIBS_OPT_DIR/fluid-synth/
@@ -239,12 +244,6 @@ cp -L /usr/local/opt/gettext/lib/libintl.8.dylib $SUPPORT_LIBS_OPT_DIR/gettext/l
 export OLD_FLUID_LIB=/usr/local/opt/fluid-synth/lib/libfluidsynth.1.5.2.dylib
 export NEW_FLUID_LIB=/usr/local/lib/libfluidsynth.1.5.2.dylib 
 install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $FRAMEWORK64_DIR/Versions/6.0/Resources/Opcodes64/libfluidOpcodes.dylib
-install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $SUPPORT_LIBS_DIR/libfluidsynth.1.5.2.dylib
-
-
-#export OLD_FLUID_LIB=/usr/local/opt/fluid-synth/lib/libfluidsynth.1.dylib
-#export NEW_FLUID_LIB=/usr/local/lib/libfluidsynth.1.dylib 
-#install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $SUPPORT_LIBS_DIR/libfluidsynth.1.dylib
 
 export OLD_GLIB_LIB=/usr/local/Cellar/glib/2.36.2/lib/libglib-2.0.0.dylib
 export NEW_GLIB_LIB=/usr/local/lib/libglib-2.0.0.dylib
@@ -256,7 +255,6 @@ install_name_tool -change $OLD_VORBIS_LIB $NEW_VORBIS_LIB $SUPPORT_LIBS_DIR/libv
 
 export OLD_FLTK_LIB=/usr/local/Cellar/fltk/1.3.2/lib/libfltk.1.3.dylib 
 export NEW_FLTK_LIB=/usr/local/lib/libfltk.1.3.dylib 
-install_name_tool -change $OLD_FLTK_LIB $NEW_FLTK_LIB $SUPPORT_LIBS_DIR/libfltk.1.3.dylib
 install_name_tool -change $OLD_FLTK_LIB $NEW_FLTK_LIB $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
 install_name_tool -change $OLD_FLTK_LIB $NEW_FLTK_LIB $SUPPORT_LIBS_DIR/libfltk_forms.1.3.dylib
 

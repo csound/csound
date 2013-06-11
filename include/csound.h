@@ -375,8 +375,11 @@ extern "C" {
                                     multicore, 0 or 1  */
     int     realtime_mode;       /* use realtime priority mode, 0 or 1 */
     int     sample_accurate;     /* use sample-level score event accuracy */
-    int     sample_rate_override; /* overriding sample rate */
-    int     control_rate_override; /* overriding control rate */
+    MYFLT   sample_rate_override; /* overriding sample rate */
+    MYFLT   control_rate_override; /* overriding control rate */
+    int     nchnls_override;  /* overriding number of out channels */
+    int     nchnls_i_override;  /* overriding number of in channels */
+    MYFLT   e0dbfs_override;   /* overriding 0dbfs */
   } CSOUND_PARAMS;
 
     /**
@@ -579,6 +582,13 @@ extern "C" {
      * this can be called during performance to compile a new TREE
      */
     PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root);
+
+    /**
+     * Free the resources associated with the TREE *tree
+     * This function should be called whenever the TREE was
+     * created with csoundParseOrc and memory can be deallocated.
+     **/
+    PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree);
 
     /**
      * Parse, and compile the given orchestra from an ASCII string.
@@ -1035,6 +1045,13 @@ extern "C" {
      *  Sets the current MIDI IO module
      */
     PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module);
+
+     /**
+      * call this function with state 1 if the host is implementing
+      * MIDI via the callbacks below.
+      */
+    PUBLIC void csoundSetHostImplementedMIDIIO(CSOUND *csound,
+                                               int state);
 
     /**
       * This function can be called to obtain a list of available
