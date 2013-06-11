@@ -311,7 +311,6 @@ public class CsoundAppActivity extends Activity implements
 						try {
 							CsoundAppActivity.this.postMessage(pluginPath + "\n");
 							System.load(pluginPath); 
-
 						} catch (Throwable e) {
 							CsoundAppActivity.this.postMessage(e.toString() + "\n");
 						}
