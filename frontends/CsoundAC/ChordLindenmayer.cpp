@@ -624,7 +624,7 @@ namespace csound
         break;
       case 'R':
         {
-	  Eigen::MatrixXd rotation = createRotation(dimension, dimension1, scalar);
+          Eigen::MatrixXd rotation = createRotation(dimension, dimension1, scalar);
           turtle.orientation = rotation * turtle.orientation;
         }
         break;

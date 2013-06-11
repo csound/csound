@@ -351,7 +351,8 @@ int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
         }
       }
       if (UNLIKELY((p->fld[abs(p->next_fld)]==NULL)))
-        return csound->PerfError(csound, p->h.insdshead, Str("Missing fields in vbapzmove\n"));
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("Missing fields in vbapzmove\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (UNLIKELY(fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld])
                           - 180.0) < 1.0))
@@ -395,7 +396,8 @@ int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
         p->ang_dir.ele = FL(0.0);
       }
       else {
-        return csound->PerfError(csound, p->h.insdshead, Str("Missing fields in vbapzmove\n"));
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("Missing fields in vbapzmove\n"));
       }
     }
     else { /* angular velocities */

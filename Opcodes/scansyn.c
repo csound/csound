@@ -125,7 +125,7 @@ static int listrm(CSOUND *csound, PSCSNU *p)
     csound->Message(csound, "remove from scsn_list\n");
     while (1) {
       if (UNLIKELY(i == NULL)) {
-       
+
         csound->ErrorMsg(csound,
                          Str("Eek ... scan synthesis id was not found"));
         return NOTOK;
@@ -622,4 +622,3 @@ PUBLIC int csoundModuleInfo(void)
 {
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
-

@@ -86,7 +86,8 @@
  * ivr                         la_i_vr_create        irows
  * ivc                         la_i_vc_create        irows
  * imr                         la_i_mr_create        irows, icolumns  [, odiagonal]
- * imc                         la_i_mc_create        irows, icolumns  [, odiagonal_r, odiagonal_i]
+ * imc                         la_i_mc_create        irows, icolumns
+                                                     [, odiagonal_r, odiagonal_i]
  *
  * Array Introspection
  * -------------------
@@ -152,8 +153,10 @@
  * kvc                         la_k_vc_set           krow, kvalue_r, kvalue_i
  * imr                         la_i mr_set           irow, icolumn, ivalue
  * kmr                         la_k mr_set           krow, kcolumn, ivalue
- * imc                         la_i_mc_set           irow, icolumn, ivalue_r, ivalue_i
- * kmc                         la_k_mc_set           krow, kcolumn, kvalue_r, kvalue_i
+ * imc                         la_i_mc_set           irow, icolumn, ivalue_r,
+                                                                    ivalue_i
+ * kmc                         la_k_mc_set           krow, kcolumn, kvalue_r,
+                                                                    kvalue_i
  *
  * ivalue                      la_i_get_vr           ivr, irow
  * kvalue                      la_k_get_vr           ivr, krow,
@@ -1268,7 +1271,8 @@ public:
   int init(CSOUND *)
   {
     toa(i_mc, mc);
-    mc->mc(size_t(*i_row), size_t(*i_column)) = std::complex<MYFLT>(*i_value_r, *i_value_i);
+    mc->mc(size_t(*i_row), size_t(*i_column)) =
+      std::complex<MYFLT>(*i_value_r, *i_value_i);
     return OK;
   }
 };
@@ -1289,7 +1293,8 @@ public:
   }
   int kontrol(CSOUND *)
   {
-    mc->mc(size_t(*k_row), size_t(*k_column)) = std::complex<MYFLT>(*k_value_r, *k_value_i);
+    mc->mc(size_t(*k_row), size_t(*k_column)) =
+      std::complex<MYFLT>(*k_value_r, *k_value_i);
     return OK;
   }
 };
@@ -3212,7 +3217,8 @@ public:
     size_t columnN = gmm::mat_ncols(rhs_a->mr);
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-        lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) / rhs_b->mr(rowI, columnI);
+        lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) /
+                                 rhs_b->mr(rowI, columnI);
       }
     }
     return OK;
@@ -3248,7 +3254,8 @@ public:
   {
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-        lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) / rhs_b->mr(rowI, columnI);
+        lhs->mr(rowI, columnI) = rhs_a->mr(rowI, columnI) /
+                                 rhs_b->mr(rowI, columnI);
       }
     }
     return OK;
@@ -3278,7 +3285,8 @@ public:
     size_t columnN = gmm::mat_ncols(rhs_a->mc);
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-        lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) / rhs_b->mc(rowI, columnI);
+        lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) /
+                                 rhs_b->mc(rowI, columnI);
       }
     }
     return OK;
@@ -3314,7 +3322,8 @@ public:
   {
     for (size_t rowI = 0; rowI < rowN; ++rowI) {
       for (size_t columnI = 0; columnI < columnN; ++columnI) {
-        lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) / rhs_b->mc(rowI, columnI);
+        lhs->mc(rowI, columnI) = rhs_a->mc(rowI, columnI) /
+                                 rhs_b->mc(rowI, columnI);
       }
     }
     return OK;
@@ -4209,7 +4218,8 @@ public:
     toa(lhs_eigenvalues_, lhs_eigenvalues);
     toa(lhs_eigenvectors_, lhs_eigenvectors);
     toa(rhs_A_, rhs_A);
-    gmm::implicit_qr_algorithm(rhs_A->mr, lhs_eigenvalues->vr, lhs_eigenvectors->mr, double(*itolerance));
+    gmm::implicit_qr_algorithm(rhs_A->mr, lhs_eigenvalues->vr,
+                               lhs_eigenvectors->mr, double(*itolerance));
     return OK;
   }
 };
@@ -4233,7 +4243,8 @@ public:
   }
   int kontrol(CSOUND *)
   {
-    gmm::implicit_qr_algorithm(rhs_A->mr, lhs_eigenvalues->vr, lhs_eigenvectors->mr, double(*ktolerance));
+    gmm::implicit_qr_algorithm(rhs_A->mr, lhs_eigenvalues->vr,
+                               lhs_eigenvectors->mr, double(*ktolerance));
     return OK;
   }
 };
@@ -4253,7 +4264,8 @@ public:
     toa(lhs_eigenvalues_, lhs_eigenvalues);
     toa(lhs_eigenvectors_, lhs_eigenvectors);
     toa(rhs_A_, rhs_A);
-    gmm::implicit_qr_algorithm(rhs_A->mc, lhs_eigenvalues->vc, lhs_eigenvectors->mc, double(*itolerance));
+    gmm::implicit_qr_algorithm(rhs_A->mc, lhs_eigenvalues->vc,
+                               lhs_eigenvectors->mc, double(*itolerance));
     return OK;
   }
 };
@@ -4277,7 +4289,8 @@ public:
   }
   int kontrol(CSOUND *)
   {
-    gmm::implicit_qr_algorithm(rhs_A->mc, lhs_eigenvalues->vc, lhs_eigenvectors->mc, double(*ktolerance));
+    gmm::implicit_qr_algorithm(rhs_A->mc, lhs_eigenvalues->vc,
+                               lhs_eigenvectors->mc, double(*ktolerance));
     return OK;
   }
 };
@@ -5194,7 +5207,7 @@ extern "C"
                            "k",
                            "i",
                            (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mc_t::init_,
-                           (int (*)(CSOUND*,void*)) &la_k_norm_euclid_mc_t::kontrol_,
+                           (int (*)(CSOUND*,void*))&la_k_norm_euclid_mc_t::kontrol_,
                            (int (*)(CSOUND*,void*)) 0);
     status |=
       csound->AppendOpcode(csound,

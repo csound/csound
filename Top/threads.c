@@ -151,7 +151,8 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 
 
-#if defined(LINUX) || defined(__MACH__) || defined(__HAIKU__) || defined(ANDROID) || defined(WIN32)
+#if defined(LINUX) || defined(__MACH__) || defined(__HAIKU__) || \
+    defined(ANDROID) || defined(WIN32)
 
 #include <errno.h>
 #include <pthread.h>
