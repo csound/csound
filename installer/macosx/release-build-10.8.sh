@@ -1,9 +1,9 @@
 #!/bin/sh
 
 export MANUAL_DIR=`pwd`/../../../manual6
-export PACKAGE_NAME=csound6.00.0rc2-OSX10.8-x86_64.pkg
-export DMG_DIR="Csound 6.00.0rc2"
-export DMG_NAME="csound6.00.0rc2-OSX10.8-x86_64.dmg"
+export PACKAGE_NAME=csound6.00.0rc3-OSX10.8-x86_64.pkg
+export DMG_DIR="Csound 6.00.0rc3"
+export DMG_NAME="csound6.00.0rc3-OSX10.8-x86_64.dmg"
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
 
@@ -50,7 +50,6 @@ cd ../..
 # ASSEMBLE FILES FOR INSTALLER
 export CSLIBVERSION=6.0
 export SUPPORT_LIBS_DIR=$INSTALLER_DIR/SupportLibs/Package_Contents/usr/local/lib
-export SUPPORT_LIBS_OPT_DIR=$INSTALLER_DIR/SupportLibs/Package_Contents/usr/local/opt
 #export APPS32_DIR=$INSTALLER_DIR/CsoundApps/Package_Contents/usr/local/bin
 export APPS64_DIR=$INSTALLER_DIR/CsoundApps64/Package_Contents/usr/local/bin
 #export FRAMEWORK32_DIR=$INSTALLER_DIR/CsoundLib/Package_Contents/Library/Frameworks/CsoundLib.framework
@@ -66,7 +65,6 @@ export PD_DIR=Versions/$CSLIBVERSION/Resources/PD
 export DIST=csound6/build/dist
 
 mkdir -p $SUPPORT_LIBS_DIR
-mkdir -p $SUPPORT_LIBS_OPT_DIR
 #mkdir -p $APPS32_DIR
 mkdir -p $APPS64_DIR
 #mkdir -p $FRAMEWORK32_DIR
@@ -202,30 +200,55 @@ cp $DIST/bin/* $APPS64_DIR
 
 echo "copying support libs..."
 
-cp -L /usr/local/lib/libjpeg.8.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libfltk.1.3.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libfltk_images.1.3.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libfltk_forms.1.3.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libglib-2.0.0.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libgthread-2.0.0.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/liblo.7.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libportaudio.2.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libportmidi.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libpng15.15.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libjpeg.8.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libfltk.1.3.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libfltk_images.1.3.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libfltk_forms.1.3.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libglib-2.0.0.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libgthread-2.0.0.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/liblo.7.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libportaudio.2.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libportmidi.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libpng15.15.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libFLAC.8.2.0.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libvorbisenc.2.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libfluidsynth.1.5.2.dylib $SUPPORT_LIBS_DIR
+#cp -L /usr/local/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
+
+
+cp /usr/local/lib/libfltk.1.3.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libfltk_images.1.3.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libfltk_forms.1.3.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/liblo.7.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libportaudio.2.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libportmidi.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libpng16.16.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libFLAC.8.2.0.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libvorbisenc.2.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libfluidsynth.1.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
+
 #cp -L /usr/local/lib/libmpadec.dylib $SUPPORT_LIBS_DIR
 #cp -L /usr/local/lib/libluajit.dylib $SUPLIBS
-cp -L /usr/local/lib/libFLAC.8.2.0.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libvorbisenc.2.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
-cp -L /usr/local/lib/libfluidsynth.1.5.2.dylib $SUPPORT_LIBS_DIR
 
-for file in $SUPPORT_LIBS_DIR/*
-do
-  install_name_tool -id /usr/local/lib/`basename $file` $file
-done
+
+export OLD_FLAC_LIB=/usr/local/lib/libFLAC.8.dylib
+export NEW_FLAC_LIB=/usr/local/lib/libFLAC.8.2.0.dylib
+install_name_tool -change $OLD_FLAC_LIB $NEW_FLAC_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
+
+#for file in $SUPPORT_LIBS_DIR/*
+#do
+#  install_name_tool -id /usr/local/lib/`basename $file` $file
+#done
+
+#install_name_tool -id /usr/local/lib/libfluidsynth.1.5.2.dylib $SUPPORT_LIBS_DIR/libfluidsynth.1.5.2.dylib
+#install_name_tool -id /usr/local/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR/libwiiuse.dylib
 
 # for Fluidsynth
 #mkdir -p $SUPPORT_LIBS_OPT_DIR/fluid-synth/
@@ -234,29 +257,29 @@ done
 #mkdir -p $SUPPORT_LIBS_OPT_DIR/glib/
 #cp -R /usr/local/opt/glib/lib $SUPPORT_LIBS_OPT_DIR/glib/
 
-mkdir -p $SUPPORT_LIBS_OPT_DIR/gettext/lib
-cp -L /usr/local/opt/gettext/lib/libintl.8.dylib $SUPPORT_LIBS_OPT_DIR/gettext/lib
+#mkdir -p $SUPPORT_LIBS_OPT_DIR/gettext/lib
+#cp -L /usr/local/opt/gettext/lib/libintl.8.dylib $SUPPORT_LIBS_OPT_DIR/gettext/lib
 
 #mkdir -p $SUPPORT_LIBS_OPT_DIR/fltk/
 #cp -R /usr/local/opt/fltk/lib $SUPPORT_LIBS_OPT_DIR/fltk/
 
 # not sure this is necessary...
-export OLD_FLUID_LIB=/usr/local/opt/fluid-synth/lib/libfluidsynth.1.5.2.dylib
-export NEW_FLUID_LIB=/usr/local/lib/libfluidsynth.1.5.2.dylib 
-install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $FRAMEWORK64_DIR/Versions/6.0/Resources/Opcodes64/libfluidOpcodes.dylib
+#export OLD_FLUID_LIB=/usr/local/opt/fluid-synth/lib/libfluidsynth.1.5.2.dylib
+#export NEW_FLUID_LIB=/usr/local/lib/libfluidsynth.1.5.2.dylib 
+#install_name_tool -change $OLD_FLUID_LIB $NEW_FLUID_LIB $FRAMEWORK64_DIR/Versions/6.0/Resources/Opcodes64/libfluidOpcodes.dylib
 
-export OLD_GLIB_LIB=/usr/local/Cellar/glib/2.36.2/lib/libglib-2.0.0.dylib
-export NEW_GLIB_LIB=/usr/local/lib/libglib-2.0.0.dylib
-install_name_tool -change $OLD_GLIB_LIB $NEW_GLIB_LIB $SUPPORT_LIBS_DIR/libgthread-2.0.0.dylib
+#export OLD_GLIB_LIB=/usr/local/Cellar/glib/2.36.2/lib/libglib-2.0.0.dylib
+#export NEW_GLIB_LIB=/usr/local/lib/libglib-2.0.0.dylib
+#install_name_tool -change $OLD_GLIB_LIB $NEW_GLIB_LIB $SUPPORT_LIBS_DIR/libgthread-2.0.0.dylib
 
-export OLD_VORBIS_LIB=/usr/local/Cellar/libvorbis/1.3.3/lib/libvorbis.0.dylib
-export NEW_VORBIS_LIB=/usr/local/lib/libvorbis.0.dylib
-install_name_tool -change $OLD_VORBIS_LIB $NEW_VORBIS_LIB $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
+#export OLD_VORBIS_LIB=/usr/local/Cellar/libvorbis/1.3.3/lib/libvorbis.0.dylib
+#export NEW_VORBIS_LIB=/usr/local/lib/libvorbis.0.dylib
+#install_name_tool -change $OLD_VORBIS_LIB $NEW_VORBIS_LIB $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 
-export OLD_FLTK_LIB=/usr/local/Cellar/fltk/1.3.2/lib/libfltk.1.3.dylib 
-export NEW_FLTK_LIB=/usr/local/lib/libfltk.1.3.dylib 
-install_name_tool -change $OLD_FLTK_LIB $NEW_FLTK_LIB $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
-install_name_tool -change $OLD_FLTK_LIB $NEW_FLTK_LIB $SUPPORT_LIBS_DIR/libfltk_forms.1.3.dylib
+#export OLD_FLTK_LIB=/usr/local/Cellar/fltk/1.3.2/lib/libfltk.1.3.dylib 
+#export NEW_FLTK_LIB=/usr/local/lib/libfltk.1.3.dylib 
+#install_name_tool -change $OLD_FLTK_LIB $NEW_FLTK_LIB $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
+#install_name_tool -change $OLD_FLTK_LIB $NEW_FLTK_LIB $SUPPORT_LIBS_DIR/libfltk_forms.1.3.dylib
 
 echo "...setting permissions..."
 
