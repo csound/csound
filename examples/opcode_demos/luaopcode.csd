@@ -4,21 +4,22 @@
 lua_opdef "luatest", {{
 local ffi = require("ffi")
 local string = require("string")
-local csoundLibrary = ffi.load('libcsound64.so')
+local csoundLibrary = ffi.load('csound64.dll')
 ffi.cdef[[
     int csoundGetKsmps(void *);
     double csoundGetSr(void *);
-    struct luatest_arguments {double *out; double *stringout; char *stringin; double *in1; double *in2; double sr; int ksmps; };
+    struct STRINGDAT {char *data; int size;};
+    struct luatest_arguments {double *out; struct STRINGDAT *stringout; struct STRINGDAT *stringin; double *in1; double *in2; double sr; int ksmps; };
 ]]
 function luatest_init(csound, opcode, carguments)
     local arguments = ffi.cast("struct luatest_arguments *", carguments)
     arguments.sr = csoundLibrary.csoundGetSr(csound)
-    print(string.format('stringin: %s', ffi.string(arguments.stringin)))
+    print(string.format('stringin: %s', ffi.string(arguments.stringin.data, arguments.stringin.size)))
     print(string.format('sr: %f', arguments.sr))
     arguments.ksmps = csoundLibrary.csoundGetKsmps(csound)
     print(string.format('ksmps: %d', arguments.ksmps))
     arguments.out[0] = arguments.in1[0] * arguments.in2[0]
-    ffi.copy(arguments.stringout, 'Hello, world!')
+    ffi.copy(arguments.stringout.data, 'Hello, world!')
     return 0
 end
 function luatest_kontrol(csound, opcode, carguments)
