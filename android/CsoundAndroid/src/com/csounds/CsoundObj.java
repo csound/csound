@@ -207,12 +207,14 @@ public class CsoundObj {
 
 	public synchronized void stopCsound() {
 		stopped = true;
-		try {
-			thread.join();
-			thread = null;
-		} catch (InterruptedException e) {
-			Log.d("CsoundObj", e.toString());
-			e.printStackTrace();
+		if(thread != null) {
+			try {
+				thread.join();
+				thread = null;
+			} catch (InterruptedException e) {
+				Log.d("CsoundObj", e.toString());
+				e.printStackTrace();
+			}
 		}
 	}
 
