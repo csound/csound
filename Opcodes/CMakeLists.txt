@@ -23,13 +23,17 @@ check_include_file_cxx(gmm/gmm.h GMM_HEADER)
 check_include_file(lo/lo.h OSC_HEADER)
 find_library(LIBLO_LIBRARY lo)
 find_package(PNG)
+set(PYTHON_INCLUDE_DIRS /usr/include/Python2.7)
+set(Python_ADDITIONAL_VERSIONS 2.7)
 find_package(PythonLibs)
+
 #find_library(LUA_LIBRARIES luajit)
 find_package(Lua51)
 check_include_file(wiiuse.h WIIUSE_H)
 find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
 find_library(P5GLOVE_LIB p5glove)
+
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 

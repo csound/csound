@@ -46,7 +46,6 @@ static  void    lgbuild(CSOUND *, INSTRTXT *, char *,
 int     pnum(char *s) ;
 static void     unquote_string(char *, const char *);
 extern void     print_tree(CSOUND *, char *, TREE *);
-extern void delete_tree(CSOUND *csound, TREE *l);
 void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT * ip);
 char argtyp2(char *s);
 void debugPrintCsound(CSOUND* csound);
@@ -635,6 +634,12 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                           "Setting default value."));
       csound->e0dbfs = DFLT_DBFS;
     }
+
+    if (O->nchnls_override > 0)
+      csound->nchnls = csound->inchnls = O->nchnls_override;
+    if(O->nchnls_i_override > 0) csound->inchnls = O->nchnls_i_override;
+    if(O->e0dbfs_override > 0) csound->e0dbfs = O->e0dbfs_override;
+
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
                       "0dbfs = %.1f\n",
@@ -680,7 +685,6 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       reallocateVarPoolMemory(csound, engineState->varPool);
     }
     close_instrument(csound, engineState, ip);
-
     return ip;
 }
 
@@ -875,7 +879,8 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
           mfree(csound, t);
           t = s;
         }
-     mfree(csound, ip->varPool); /* need to delete the varPool memory */
+     myflt_pool_free(csound, ip->varPool);
+     //mfree(csound, ip->varPool); /* need to delete the varPool memory */
      mfree(csound, ip);
      if(csound->oparms->odebug)
        csound->Message(csound, Str("-- deleted instr from deadpool \n"));
@@ -905,19 +910,34 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
         }
         /* no active instances */
         if (active == NULL) {
-          free_instrtxt(csound, csound->dead_instr_pool[i]);
-          csound->dead_instr_pool[i] = NULL;
+        if(csound->oparms->odebug)
+          csound->Message(csound, Str(" -- free instr def %p \n"),
+                          csound->dead_instr_pool[i]);
+        free_instrtxt(csound, csound->dead_instr_pool[i]);
+        csound->dead_instr_pool[i] = NULL;
         }
       }
     }
     /* add latest instr to deadpool */
+    /* check for free slots */
+    for (i=0; i < csound->dead_instr_no; i++) {
+      if (csound->dead_instr_pool[i] == NULL) {
+         csound->dead_instr_pool[i] = instrtxt;
+         if (csound->oparms->odebug)
+           csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
+                           i);
+         return;
+      }
+    }
+    /* no free slots, expand pool */
     csound->dead_instr_pool = (INSTRTXT**)
       mrealloc(csound, csound->dead_instr_pool,
                ++csound->dead_instr_no * sizeof(INSTRTXT*));
     csound->dead_instr_pool[csound->dead_instr_no-1] = instrtxt;
-    if(csound->oparms->odebug)
+   if(csound->oparms->odebug)
     csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
                     csound->dead_instr_no-1);
+
 }
 
 /**
@@ -1098,7 +1118,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
            engineState->instrtxtp[i] == engineState->instrtxtp[instrNum]) goto end;
       }
       INSDS *active = engineState->instrtxtp[instrNum]->instance;
-      while (active != NULL) {
+      while (active != NULL && instrNum != 0) {
         if(active->actflg) {
           add_to_deadpool(csound, engineState->instrtxtp[instrNum]);
           break;
@@ -1106,9 +1126,10 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
         active = active->nxtinstance;
       }
       /* no active instances */
-      if (active == NULL) {
-        if (csound->oparms->odebug)
-          csound->Message(csound, Str("no active instances \n"));
+      if (active == NULL || instrNum == 0) {
+
+       if (csound->oparms->odebug)
+       csound->Message(csound, Str("no active instances of instr %d \n"), instrNum);
         free_instrtxt(csound, engineState->instrtxtp[instrNum]);
       }
       /* err++; continue; */
@@ -1556,7 +1577,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var = csoundFindVariableWithName(engineState->varPool, "nchnls_i");
       *((MYFLT *)(var->memBlock)) = csound->inchnls;
       var = csoundFindVariableWithName(engineState->varPool, "0dbfs");
-      *((MYFLT *)(var->memBlock)) = csound->inchnls;
+      *((MYFLT *)(var->memBlock)) = csound->e0dbfs;
 
     }
 
@@ -1567,7 +1588,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     return CSOUND_SUCCESS;
 }
 
-extern int init0(CSOUND *csound);
 /**
     Parse and compile an orchestra given on an string (OPTIONAL)
     if str is NULL the string is taken from the internal corfile
@@ -1578,13 +1598,11 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     int retVal;
     TREE *root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
-
     retVal = csoundCompileTree(csound, root);
-
     }
     else
       return  CSOUND_ERROR;
-    delete_tree(csound, root);
+    csoundDeleteTree(csound, root);
 
     if (UNLIKELY(csound->oparms->odebug))
       debugPrintCsound(csound);

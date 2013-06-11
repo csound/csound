@@ -180,7 +180,7 @@ namespace csound
                     n = Conversions::stringToDouble(action.substr(3));
                   }
                 double a = angle * n;
-		Eigen::MatrixXd rotation = createRotation (d1, d2, a);
+                Eigen::MatrixXd rotation = createRotation (d1, d2, a);
                 std::cerr << "Orientation before rotation: " << std::endl;
                 for (int i = 0; i < turtleOrientation.size(); i++)
                   {

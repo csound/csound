@@ -159,6 +159,8 @@ find_file(CUSTOM_CMAKE "Custom.cmake" HINTS ${CMAKE_HOME_DIRECTORY})
 if(CUSTOM_CMAKE)
     message(STATUS "Including Custom.cmake file: ${CUSTOM_CMAKE}")
     include(${CUSTOM_CMAKE})
+else()
+    message(STATUS "**********************************hahhshshahs")
 endif()
 
 

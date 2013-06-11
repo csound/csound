@@ -33,7 +33,7 @@ static char* cs_strtok_r(char* str, char* delim, char** nextp) {
 #ifdef HAVE_STRTOK_R
     return strtok_r(str, delim, nextp);
 #else
-    /* 
+    /*
      * public domain strtok_r() by Charlie Gordon
      *
      *   from comp.lang.c  9/14/2007
@@ -6020,15 +6020,15 @@ const OENTRY widgetOpcodes_[] = {
     (SUBR)fl_mouse_set,             (SUBR)fl_mouse,           (SUBR) NULL  },
   { (char*)"FLvslidBnk",  S(FLSLIDERBANK), 0, 1,  (char*)"",  (char*)"Siooooooooo",
     (SUBR)fl_vertical_slider_bank_S,   (SUBR) NULL,             (SUBR) NULL  },
-   { (char*)"FLvslidBnk.i",  S(FLSLIDERBANK), 0, 1,  (char*)"",  (char*)"iiooooooooo",
+   { (char*)"FLvslidBnk.i", S(FLSLIDERBANK), 0, 1, (char*)"", (char*)"iiooooooooo",
     (SUBR)fl_vertical_slider_bank,   (SUBR) NULL,             (SUBR) NULL  },
   { (char*)"FLslidBnk2",  S(FLSLIDERBANK2),0, 1,  (char*)"",  (char*)"Siiiooooo",
     (SUBR)fl_slider_bank2_S ,          (SUBR) NULL,             (SUBR) NULL  },
-    { (char*)"FLslidBnk2.i",  S(FLSLIDERBANK2),0, 1,  (char*)"",  (char*)"Iiiiooooo",
+    { (char*)"FLslidBnk2.i", S(FLSLIDERBANK2),0, 1, (char*)"", (char*)"Iiiiooooo",
     (SUBR)fl_slider_bank2 ,          (SUBR) NULL,             (SUBR) NULL  },
   { (char*)"FLvslidBnk2", S(FLSLIDERBANK2),0, 1,  (char*)"",  (char*)"Siiiooooo",
     (SUBR)fl_vertical_slider_bank2_S,  (SUBR) NULL,             (SUBR) NULL  },
-    { (char*)"FLvslidBnk2.i", S(FLSLIDERBANK2),0, 1,  (char*)"",  (char*)"iiiiooooo",
+    { (char*)"FLvslidBnk2.i", S(FLSLIDERBANK2),0, 1, (char*)"", (char*)"iiiiooooo",
     (SUBR)fl_vertical_slider_bank2,  (SUBR) NULL,             (SUBR) NULL  },
   { (char*)"FLslidBnkGetHandle",S(FLSLDBNK_GETHANDLE),0, 1, (char*)"i", (char*)"",
     (SUBR)fl_slider_bank_getHandle,  (SUBR) NULL,             (SUBR) NULL  },

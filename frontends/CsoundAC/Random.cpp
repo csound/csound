@@ -140,7 +140,7 @@ namespace csound
             Event event(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
             Event transformedEvent;
             //ublas::axpy_prod(getRandomCoordinates(), event, transformedEvent);
-	    transformedEvent = getRandomCoordinates() * event;
+            transformedEvent = getRandomCoordinates() * event;
             if (incrementTime)
               {
                 double buffer = fabs(transformedEvent.getTime());
