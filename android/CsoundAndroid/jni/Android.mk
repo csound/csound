@@ -244,8 +244,8 @@ java_interfaceJAVA_wrap.cpp
 
 LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lstdc++ -lm -lc
 
-LOCAL_SHARED_LIBRARIES += sndfile luajit
-LOCAL_PREBUILT_LIBRARIES += luajit-2.0 sndfile libstdutil signalflowgraph libfluidsynth 
+LOCAL_SHARED_LIBRARIES += sndfile
+LOCAL_PREBUILT_LIBRARIES += sndfile 
 
 include $(BUILD_SHARED_LIBRARY)
 
