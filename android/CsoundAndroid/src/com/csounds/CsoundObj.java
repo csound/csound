@@ -211,8 +211,7 @@ public class CsoundObj {
 			thread.join();
 			thread = null;
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			Log.d("CsoundObj", "InterruptedException in stopCsound.");
+			Log.d("CsoundObj", e.toString());
 			e.printStackTrace();
 		}
 	}
@@ -452,7 +451,7 @@ public class CsoundObj {
 				audioRecord.release();
 				audioIn.Clear();
 			}
-			//csound.Stop();
+			csound.Stop();
 			csound.Cleanup();
 			csound.Reset();
 			for (CsoundValueCacheable cacheable : valuesCache) {
