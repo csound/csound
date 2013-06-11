@@ -11,10 +11,12 @@ wiiuse_src="http://codemist.co.uk/jpff/wiiuse_v0.13a.zip"
 portaudio_src="http://portaudio.com/archives/pa_snapshot.tgz"
 #portmidi_src="http://sourceforge.net/projects/portmedia/files/portmidi/217/portmidi-src-217.zip"
 boost_src="http://sourceforge.net/projects/boost/files/boost/1.52.0/boost_1_52_0.tar.gz"
-fltk_src="http://ftp.easysw.com/pub/fltk/1.3.1/fltk-1.3.1-source.tar.gz"
-png_src="ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.5.13.tar.gz"
-
-packages=($portaudio_src $portmidi_src $flac_src $ogg_src $vorbis_src $libsndfile_src $liblo_src $wiiuse_src $fltk_src $png_src $boost_src)
+#fltk_src="http://ftp.easysw.com/pub/fltk/1.3.1/fltk-1.3.1-source.tar.gz"
+fltk_src="http://fltk.org/pub/fltk/1.3.2/fltk-1.3.2-source.tar.gz"
+#png_src="ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.5.13.tar.gz"
+png_src="http://sourceforge.net/projects/libpng/files/libpng16/1.6.2/libpng-1.6.2.tar.gz"
+fluidsynth_src="http://sourceforge.net/projects/fluidsynth/files/older%20releases/fluidsynth-1.0.9.tar.gz"
+packages=($portaudio_src $portmidi_src $flac_src $ogg_src $vorbis_src $libsndfile_src $liblo_src $wiiuse_src $fltk_src $png_src $boost_src $fluidsynth_src)
 
 
 #prepare
