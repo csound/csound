@@ -17,9 +17,4 @@ cd jni
 
 $ANDROID_NDK_ROOT/ndk-build 
 
-# Copy the local libs to the libs directory -- doing this is easier than the alternatives, believe me!
-
-cd ..
-
-sh install_libs.sh
 
