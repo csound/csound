@@ -2734,7 +2734,6 @@ PUBLIC void csoundReset(CSOUND *csound)
     OPARMS  *O = csound->oparms;
 
 
-    
     #ifdef HAVE_PTHREAD_SPIN_LOCK
      pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
      pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
