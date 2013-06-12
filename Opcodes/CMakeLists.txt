@@ -166,9 +166,9 @@ check_deps(BUILD_FAUST_OPCODES LLVM_FOUND FAUST_LIBRARY)
 if(BUILD_FAUST_OPCODES)
    llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES AsmParser Instrumentation Linker Archive BitReader DebugInfo JIT ipo Vectorize BitWriter TableGen XCoreCodeGen XCoreDesc XCoreInfo X86AsmParser X86Disassembler X86CodeGen X86Desc X86Info X86AsmPrinter X86Utils SparcCodeGen SparcDesc SparcInfo PTXCodeGen PTXDesc PTXInfo PTXAsmPrinter PowerPCCodeGen PowerPCDesc PowerPCAsmPrinter PowerPCInfo MSP430CodeGen MSP430Desc MSP430Info MSP430AsmPrinter MBlazeDisassembler MBlazeAsmParser MBlazeCodeGen MBlazeDesc MBlazeInfo MBlazeAsmPrinter MipsDisassembler MipsAsmParser MipsCodeGen MipsDesc MipsInfo MipsAsmPrinter HexagonCodeGen HexagonDesc HexagonInfo HexagonAsmPrinter CppBackendCodeGen CppBackendInfo CellSPUCodeGen CellSPUDesc CellSPUInfo ARMDisassembler ARMAsmParser ARMCodeGen SelectionDAG AsmPrinter ARMDesc ARMInfo ARMAsmPrinter MCDisassembler MCParser Interpreter CodeGen ScalarOpts InstCombine TransformUtils ipa Analysis MCJIT RuntimeDyld ExecutionEngine Target MC Object Core Support
 )
-   make_plugin(faustgen faustgen.cpp)
-   add_compiler_flags("-DFAUSTFLOAT=double"  TARGETS faustgen)
-   target_link_libraries(faustgen faust ${REQ_LLVM_LIBRARIES})
+   make_plugin(faustcsound faustgen.cpp)
+   add_compiler_flags("-DFAUSTFLOAT=double"  TARGETS faustcsound)
+   target_link_libraries(faustcsound faust ${REQ_LLVM_LIBRARIES})
 endif()
 
 
