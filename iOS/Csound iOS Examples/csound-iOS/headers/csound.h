@@ -375,8 +375,11 @@ extern "C" {
                                     multicore, 0 or 1  */
     int     realtime_mode;       /* use realtime priority mode, 0 or 1 */
     int     sample_accurate;     /* use sample-level score event accuracy */
-    int     sample_rate_override; /* overriding sample rate */
-    int     control_rate_override; /* overriding control rate */
+    MYFLT   sample_rate_override; /* overriding sample rate */
+    MYFLT   control_rate_override; /* overriding control rate */
+    int     nchnls_override;  /* overriding number of out channels */
+    int     nchnls_i_override;  /* overriding number of in channels */
+    MYFLT   e0dbfs_override;   /* overriding 0dbfs */
   } CSOUND_PARAMS;
 
     /**
@@ -581,6 +584,13 @@ extern "C" {
     PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root);
 
     /**
+     * Free the resources associated with the TREE *tree
+     * This function should be called whenever the TREE was
+     * created with csoundParseOrc and memory can be deallocated.
+     **/
+    PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree);
+
+    /**
      * Parse, and compile the given orchestra from an ASCII string.
      * this can be called during performance to compile a new orchestra.
      * /code
@@ -738,13 +748,6 @@ extern "C" {
      * Return the size of MYFLT in bytes.
      */
     PUBLIC int csoundGetSizeOfMYFLT(void);
-
-    /**
-     * Returns the number of bytes allocated for a string variable
-     * (the actual length is one less because of the null character
-     * at the end of the string). Should be called after csoundCompile().
-     */
-    PUBLIC int csoundGetStrVarMaxLen(CSOUND *);
 
     /**
      * Returns host data.
@@ -1043,6 +1046,13 @@ extern "C" {
      */
     PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module);
 
+     /**
+      * call this function with state 1 if the host is implementing
+      * MIDI via the callbacks below.
+      */
+    PUBLIC void csoundSetHostImplementedMIDIIO(CSOUND *csound,
+                                               int state);
+
     /**
       * This function can be called to obtain a list of available
       * input or output midi devices. If list is NULL, the function
@@ -1297,7 +1307,7 @@ extern "C" {
      *     audio data (csoundGetKsmps(csound) MYFLT values)
      *   CSOUND_STRING_CHANNEL
      *     string data (MYFLT values with enough space to store
-     *     csoundGetStrVarMaxLen(csound) characters, including the
+     *     csoundGetChannelDatasize() characters, including the
      *     NULL character at the end of the string)
      * and at least one of these:
      *   CSOUND_INPUT_CHANNEL
@@ -1417,24 +1427,24 @@ extern "C" {
 
     /**
      * copies the string channel identified by *name into *string
-     * which should contain enough memory a string of length
-     * csoundGetStrVarMaxLen(csound) (incl. NULL char)
+     * which should contain enough memory for the string
+     * (see csoundGetChannelDatasize() below)
      */
-    PUBLIC void csoundSetStringChannel(CSOUND *csound,
+    PUBLIC void csoundGetStringChannel(CSOUND *csound,
                                        const char *name, char *string);
 
     /**
-     * sets the string channel identified by *name with *string which
-     * should not be longer than csoundGetStrVarMaxLen(csound)
-     * (incl. NULL char)
+     * sets the string channel identified by *name with *string
      */
-    PUBLIC  void csoundGetStringChannel(CSOUND *csound,
+    PUBLIC  void csoundSetStringChannel(CSOUND *csound,
                                         const char *name, char *string);
 
     /**
      * returns the size of data stored in a channel; for string channels
-     * this might change if the channel space gets reallocate
-     * (currently this is fixed, but it might change)
+     * this might change if the channel space gets reallocated
+     * Since string variables use dynamic memory allocation in Csound6,
+     * this function can be called to get the space required for
+     * csoundGetStringChannel()
      */
     PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name);
 
@@ -2194,7 +2204,7 @@ extern "C" {
      * fetch input control values.  The 'invalue' opcodes will
      * directly call this function. If 'channelName' starts with a
      * '$', then 'invalue' opcode is expecting a C string, to be copied
-     * to 'value', with maximum size csoundGetStrVarMaxLen().
+     * to 'value', with maximum size csoundGetChannelDatasize().
      */
     PUBLIC void csoundSetInputValueCallback(CSOUND *,
             void (*inputValueCalback_)(CSOUND *,
@@ -2229,7 +2239,7 @@ extern "C" {
      *     value, while audio channels are an array of csoundGetKsmps(csound)
      *     MYFLT values. In the case of string channels, the pointer should be
      *     cast to char *, and points to a buffer of
-     *     csoundGetStrVarMaxLen(csound) bytes
+     *     csoundGetChannelDatasize() bytes
      *   int channelType
      *     bitwise OR of the channel type (CSOUND_CONTROL_CHANNEL,
      *     CSOUND_AUDIO_CHANNEL, or CSOUND_STRING_CHANNEL; use
