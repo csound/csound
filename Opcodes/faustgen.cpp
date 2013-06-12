@@ -119,6 +119,29 @@ public:
       return pctl->zone;
     else return NULL;
   }
+  MYFLT getMax(char *label){
+    ctl *pctl = &anchor;
+    pctl = pctl->nxt;
+    while(pctl){ 
+      if(strcmp(pctl->label, label) == 0) break;
+      pctl = pctl->nxt;
+    }
+    if(pctl)
+      return pctl->max;
+    else return 0;
+  }
+  MYFLT getMin(char *label){
+    ctl *pctl = &anchor;
+    pctl = pctl->nxt;
+    while(pctl){ 
+      if(strcmp(pctl->label, label) == 0) break;
+      pctl = pctl->nxt;
+    }
+    if(pctl)
+      return pctl->min;
+    else return 0;
+  }
+
 };
 
 /**
@@ -551,12 +574,14 @@ int init_faustctl(CSOUND *csound, faustctl *p){
   if(p->zone == NULL)
     return csound->InitError(csound,
 			     "dsp control %s not found\n", p->label->data);
+  p->max = fobj->ctls->getMax(p->label->data);
+  p->min = fobj->ctls->getMin(p->label->data);
   return OK;
 }
 
 int perf_faustctl(CSOUND *csound, faustctl *p) {
   MYFLT val = *p->val;
-  if(p->min != 0 && p->max != 0) 
+  if(p->min != p->max) 
     val = val < p->min ? p->min : (val > p->max ? p->max : val);
   *p->zone = val;
   return OK; 
