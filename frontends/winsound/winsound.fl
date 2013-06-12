@@ -62,7 +62,9 @@ decl {extern Fl_Preferences prof_h,prof_l,prof_p,prof_c,prof_k,prof_n;} {public
 decl {void cs_util_sndinfo(void);} {public
 }
 
-decl {void cs_util_opc(int full), cs_util_het(void), cs_util_lpc(void),cs_util_dnoise(void),cs_util_pinfo(void), cs_util_cvl(void), cs_util_pvc(void)} {public
+decl {void cs_util_opc(int full), cs_util_het(void), cs_util_lpc(void),
+      cs_util_dnoise(void),cs_util_pinfo(void), cs_util_cvl(void),
+      cs_util_pvc(void)} {public
 }
 
 Function {make_mainwindow()} {open

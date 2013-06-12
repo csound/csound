@@ -140,15 +140,15 @@ struct UI
   virtual void closeBox() = 0;
   virtual void addButton(const char* label, FAUSTFLOAT* zone) = 0;
   virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) = 0;
-  virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, 
+  virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone,
    FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
   virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone,
     FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
-  virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, 
+  virtual void addNumEntry(const char* label, FAUSTFLOAT* zone,
     FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
-  virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, 
+  virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone,
                                       FAUSTFLOAT min, FAUSTFLOAT max) = 0;
-  virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, 
+  virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone,
                                       FAUSTFLOAT min, FAUSTFLOAT max) = 0;
   virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val) {};
 };
@@ -160,12 +160,12 @@ class controls : public UI {
     char *label;
     MYFLT min, max;
     ctl  *nxt;
-  } anchor;   
+  } anchor;
 
-  void addctl(const char* label, FAUSTFLOAT* zone, 
-	      FAUSTFLOAT min, FAUSTFLOAT max){
+  void addctl(const char* label, FAUSTFLOAT* zone,
+              FAUSTFLOAT min, FAUSTFLOAT max){
     ctl *pctl = &anchor;
-    while(pctl->nxt) pctl = pctl->nxt;    
+    while(pctl->nxt) pctl = pctl->nxt;
     pctl->nxt = new ctl;
     pctl->label = (char *) label;
     pctl->zone = zone;
@@ -189,28 +189,28 @@ public:
  virtual void openVerticalBox(const char* label) {};
  virtual void closeBox() {};
 
- virtual void addButton(const char* label, FAUSTFLOAT* zone) { 
+ virtual void addButton(const char* label, FAUSTFLOAT* zone) {
     addctl(label, zone, 0, 0);
   }
-  virtual void addCheckButton(const char* label, FAUSTFLOAT* zone){ 
+  virtual void addCheckButton(const char* label, FAUSTFLOAT* zone){
     addctl(label, zone, 0, 0);
   }
-  virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, 
-   FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){ 
+  virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone,
+   FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){
     addctl(label, zone, min, max);
   }
   virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone,
-    FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { 
+    FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
     addctl(label, zone, min, max);
   }
-  virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, 
-    FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { 
+  virtual void addNumEntry(const char* label, FAUSTFLOAT* zone,
+    FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
     addctl(label, zone, min, max);
   }
-  virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, 
-				     FAUSTFLOAT min, FAUSTFLOAT max){};
-  virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, 
-				   FAUSTFLOAT min, FAUSTFLOAT max) {};
+  virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone,
+                                     FAUSTFLOAT min, FAUSTFLOAT max){};
+  virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone,
+                                   FAUSTFLOAT min, FAUSTFLOAT max) {};
 
 };
 
@@ -237,7 +237,7 @@ char **parse_cmd(char *str, int *argc){
   if(str[i] != '\0') *argc = 1;
   while(str[i] != '\0'){
     if(str[i] == ' ') {
-      while (str[++i] == ' ');  
+      while (str[++i] == ' ');
       if(str[i] == '\0') break;
       (*argc)++;
     }
@@ -251,7 +251,7 @@ char **parse_cmd(char *str, int *argc){
     while(str[++i] != ' ');
     str[i] = '\0';
     while(str[++i] == ' ');
-  }  
+  }
   return argv;
 
 }
@@ -274,7 +274,7 @@ int delete_faustcompile(CSOUND *csound, void *p) {
   deleteDSPFactory(pp->factory);
   csound->Free(csound, fobj);
   }
- 
+
   return OK;
 }
 
@@ -296,34 +296,34 @@ int init_faustcompile(CSOUND *csound, faustcompile *p) {
   factory = createDSPFactory(argc, argv, "",
                                 "", "faustop", (const char *) p->code->data,
                                 "", err_msg, 3);
-  
+
   if(factory == NULL) {
     free(argv);
-    free(cmd);    
+    free(cmd);
     return csound->InitError(csound,
                              Str("Faust compilation problem: %s\n"), err_msg);
-   } 
+   }
 
   pffactory = (faustobj **) csound->QueryGlobalVariable(csound,varname);
-  if(pffactory == NULL) {  
+  if(pffactory == NULL) {
     csound->CreateGlobalVariable(csound, varname, sizeof(faustobj *));
     pffactory = (faustobj **) csound->QueryGlobalVariable(csound,varname);
-    ffactory = (faustobj *) csound->Calloc(csound, sizeof(faustobj)); 
-    ffactory->obj = factory; 
+    ffactory = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
+    ffactory->obj = factory;
     ffactory->nxt = NULL;
     ffactory->cnt = 0;
     *pffactory = ffactory;
   }
   else {
-  ffactory = *pffactory;
-  while(ffactory->nxt){
+    ffactory = *pffactory;
+    while(ffactory->nxt){
+      ffactory = ffactory->nxt;
+    }
+    ffactory->nxt = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
+    ffactory->nxt->cnt = ffactory->cnt++;
     ffactory = ffactory->nxt;
-  }
-  ffactory->nxt = (faustobj *) csound->Calloc(csound, sizeof(faustobj)); 
-  ffactory->nxt->cnt = ffactory->cnt++;
-  ffactory = ffactory->nxt;  
-  ffactory->obj = factory;
-  
+    ffactory->obj = factory;
+
   }
   p->factory = factory;
   *p->hptr = (MYFLT) ffactory->cnt;
@@ -358,60 +358,61 @@ int delete_faustinstance(CSOUND *csound, void *p) {
   deleteDSPInstance(pp->dsp);
   csound->Free(csound, fobj);
   }
-  
+
   return OK;
 }
 
 int init_faustinstance(CSOUND *csound, faustinstance *p){
-     
+
     faustobj  *fobj, **pfdsp, *fdsp;
     llvm_dsp  *dsp;
     controls  *ctls;
     const char *varname = "::dsp";
-    
+
     fobj = *((faustobj **) csound->QueryGlobalVariable(csound,"::factory"));
-    if(fobj == NULL) 
+    if(fobj == NULL)
       return csound->InitError(csound,
-			       "no factory available\n");
+                               Str("no factory available\n"));
 
     while(fobj->cnt != *p->ihptr) {
          fobj = fobj->nxt;
-         if(fobj == NULL) 
+         if(fobj == NULL)
              return csound->InitError(csound,
-				      "factory not found %d\n", (int) *p->ihptr);
+                                      Str("factory not found %d\n"),
+                                      (int) *p->ihptr);
     }
 
-   dsp = createDSPInstance((llvm_dsp_factory *)fobj->obj); 
-   if(dsp == NULL) 
-     return csound->InitError(csound, Str("Faust instantiation problem \n"));
+   dsp = createDSPInstance((llvm_dsp_factory *)fobj->obj);
+   if(dsp == NULL)
+     return csound->InitError(csound, Str("Faust instantiation problem\n"));
 
    dsp->buildUserInterface(ctls);
-     
+
     pfdsp = (faustobj **) csound->QueryGlobalVariable(csound,varname);
-   if(pfdsp == NULL) {  
+   if(pfdsp == NULL) {
     csound->CreateGlobalVariable(csound, varname, sizeof(faustobj *));
     pfdsp = (faustobj **) csound->QueryGlobalVariable(csound,varname);
-    fdsp = (faustobj *) csound->Calloc(csound, sizeof(faustobj)); 
-    fdsp->obj = dsp; 
+    fdsp = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
+    fdsp->obj = dsp;
     fdsp->ctls = ctls;
     fdsp->nxt = NULL;
     fdsp->cnt = 0;
     *pfdsp = fdsp;
   }
   else {
-  fdsp = *pfdsp;
-  while(fdsp->nxt){
+    fdsp = *pfdsp;
+    while(fdsp->nxt){
+      fdsp = fdsp->nxt;
+    }
+    fdsp->nxt = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
+    fdsp->nxt->cnt = fdsp->cnt++;
     fdsp = fdsp->nxt;
+    fdsp->obj = dsp;
+    fdsp->ctls = ctls;
   }
-  fdsp->nxt = (faustobj *) csound->Calloc(csound, sizeof(faustobj)); 
-  fdsp->nxt->cnt = fdsp->cnt++;
-  fdsp = fdsp->nxt;  
-  fdsp->obj = dsp;
-  fdsp->ctls = ctls;
-  }   
-   csound->RegisterDeinitCallback(csound, p, delete_faustinstance); 
-   *p->ohptr = (MYFLT) fdsp->cnt;
-   return OK;
+  csound->RegisterDeinitCallback(csound, p, delete_faustinstance);
+  *p->ohptr = (MYFLT) fdsp->cnt;
+  return OK;
 }
 
 int init_faustaudio(CSOUND *csound, faustgen *p){
@@ -421,18 +422,19 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
   OPARMS parms;
 
   fobj = *((faustobj **) csound->QueryGlobalVariable(csound,"::dsp"));
-    if(fobj == NULL) 
+    if(fobj == NULL)
       return csound->InitError(csound,
-			       "no dsp instances available\n");
+                               Str("no dsp instances available\n"));
 
     while(fobj->cnt != instance) {
          fobj = fobj->nxt;
-         if(fobj == NULL) 
+         if(fobj == NULL)
              return csound->InitError(csound,
-				      "dsp instance not found %d\n", (int) *((MYFLT *)p->code));
+                                      Str("dsp instance not found %d\n"),
+                                      (int) *((MYFLT *)p->code));
     }
 
-    p->engine = (llvm_dsp *) fobj->obj;  
+    p->engine = (llvm_dsp *) fobj->obj;
     p->engine->init(csound->GetSr(csound));
 
   if(p->engine->getNumInputs() != p->INCOUNT-1) {
