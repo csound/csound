@@ -241,6 +241,7 @@ option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
 option(BUILD_RELEASE "Build for release" ON)
 option(BUILD_INSTALLER "Build for release" OFF)
+option(BUILD_TESTS "Build for release" ON)
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
 
