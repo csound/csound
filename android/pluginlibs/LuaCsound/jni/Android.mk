@@ -10,7 +10,7 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)../../../luajit-2.0/src $(LOCAL_PATH)/../../../
 LOCAL_CFLAGS := -O3 -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H 
 LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
 # MUST explicitly link TO THIS SPECIFIC LIBRARY not the Windows one.
-LOCAL_LDFLAGS += -Wl,--export-dynamic $(LOCAL_PATH)../../../luajit-2.0/src/libluajit.a
+LOCAL_LDFLAGS += -Wl,--export-dynamic $(NDK_MODULE_PATH)/luajit-2.0/src/libluajit.a
 ###
 
 LOCAL_LDLIBS += -ldl
