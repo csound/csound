@@ -49,12 +49,14 @@
 
         <SeekBar
             android:id="@+id/seekBar1"
+            style="@style/csoundSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:contentDescription="@string/slider1" />
 
         <TextView
             android:id="@+id/textView1"
+           	style="@style/csoundSeekBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/slider1"
@@ -62,11 +64,13 @@
 
         <SeekBar
             android:id="@+id/seekBar2"
+           	style="@style/csoundSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/textView2"
+            style="@style/csoundSeekBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/slider2"
@@ -74,11 +78,13 @@
 
         <SeekBar
             android:id="@+id/seekBar3"
+            style="@style/csoundSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/textView3"
+            style="@style/csoundSeekBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/slider3"
@@ -86,11 +92,13 @@
 
         <SeekBar
             android:id="@+id/seekBar4"
+            style="@style/csoundSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/textView4"
+            style="@style/csoundSeekBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/slider4"
@@ -98,11 +106,13 @@
 
         <SeekBar
             android:id="@+id/seekBar5"
+            style="@style/csoundSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/textView5"
+            style="@style/csoundSeekBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/slider5"
@@ -163,6 +173,7 @@
 
         <TextView
             android:id="@+id/messageTextView"
+            android:textColor="#00ff00"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:typeface="monospace" />

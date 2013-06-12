@@ -72,6 +72,21 @@ public class CsoundAppActivity extends Activity implements
 	private ScrollView messageScrollView = null;
 	String errorMessage = null;
 	String csdTemplate = null;
+	PackageInfo packageInfo = null;
+	static String OPCODE6DIR = null;
+	static String SSDIR = null;
+
+	static {
+		try {
+			java.lang.System.loadLibrary("sndfile");
+			java.lang.System.loadLibrary("csoundandroid");
+		} catch (UnsatisfiedLinkError e) {
+			java.lang.System.err
+					.println("csoundandroid native code library failed to load.\n"
+							+ e);
+			java.lang.System.exit(1);
+		}
+	}
 
 	public void csoundObjComplete(CsoundObj csoundObj) {
 		runOnUiThread(new Runnable() {
@@ -178,9 +193,18 @@ public class CsoundAppActivity extends Activity implements
 		}
 	}
 
+	public void setTitle(String title) {
+		String fullTitle = "Csound6";
+		if (title != null) {
+			fullTitle = fullTitle + ": " + title;
+		}
+		super.setTitle(fullTitle);
+	}
+
 	private void OnFileChosen(File file) {
 		Log.d("FILE CHOSEN", file.getAbsolutePath());
 		csd = file;
+		setTitle(csd.getName());
 	}
 
 	@Override
@@ -204,6 +228,28 @@ public class CsoundAppActivity extends Activity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		// We ask for the data directory in case Android changes on
+		// us without warning.
+		try {
+			packageInfo = getPackageManager().getPackageInfo(getPackageName(),
+					0);
+		} catch (NameNotFoundException e) {
+			e.printStackTrace();
+		}
+		// Pre-load plugin opcodes, not only to ensure that Csound
+		// can load them, but for easier debugging if they fail to load.
+		OPCODE6DIR = getBaseContext().getApplicationInfo().nativeLibraryDir;
+		SSDIR = packageInfo.applicationInfo.dataDir + "/samples";
+		File file = new File(OPCODE6DIR);
+		File[] files = file.listFiles();
+		for (int i = 0; i < files.length; i++) {
+			String pluginPath = files[i].getAbsoluteFile().toString();
+			try {
+				System.load(pluginPath);
+			} catch (Throwable e) {
+				postMessage(e.toString() + "\n");
+			}
+		}
 		csdTemplate = "<CsoundSynthesizer>\n" + "<CsLicense>\n"
 				+ "</CsLicense>\n" + "<CsOptions>\n" + "</CsOptions>\n"
 				+ "<CsInstruments>\n" + "</CsInstruments>\n" + "<CsScore>\n"
@@ -282,39 +328,28 @@ public class CsoundAppActivity extends Activity implements
 					return;
 				}
 				if (startStopButton.isChecked()) {
-					// We ask for the data directory in case Android changes on
-					// us without warning.
-					PackageInfo packageInfo = null;
-					try {
-						packageInfo = getPackageManager().getPackageInfo(
-								getPackageName(), 0);
-					} catch (NameNotFoundException e) {
-						e.printStackTrace();
+					File file = new File(OPCODE6DIR);
+					File[] files = file.listFiles();
+					CsoundAppActivity.this
+							.postMessage("Loading Csound plugins:\n");
+					for (int i = 0; i < files.length; i++) {
+						String pluginPath = files[i].getAbsoluteFile()
+								.toString();
+						try {
+							CsoundAppActivity.this.postMessage(pluginPath
+									+ "\n");
+							System.load(pluginPath);
+						} catch (Throwable e) {
+							CsoundAppActivity.this.postMessage(e.toString()
+									+ "\n");
+						}
 					}
 					csound = new CsoundObj();
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
 					postMessageClear("Csound is starting...\n");
-					// Set Csound environment variables before starting Csound.
-					String OPCODE6DIR = getBaseContext().getApplicationInfo().nativeLibraryDir;
-					String SSDIR = packageInfo.applicationInfo.dataDir
-							+ "/samples";
 					csound.getCsound().SetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
 					csound.getCsound().SetGlobalEnv("SSDIR", SSDIR);
-					// Pre-load plugin opcodes, not only to ensure that Csound 
-					// can load them, but for easier debugging if they fail to load.
-					File file = new File(OPCODE6DIR);
-					File[] files = file.listFiles();
-					CsoundAppActivity.this.postMessage("Loading Csound plugins:\n");
-					for (int i = 0; i < files.length; i++) {
-						String pluginPath = files[i].getAbsoluteFile().toString();
-						try {
-							CsoundAppActivity.this.postMessage(pluginPath + "\n");
-							System.load(pluginPath); 
-						} catch (Throwable e) {
-							CsoundAppActivity.this.postMessage(e.toString() + "\n");
-						}
-					}
 					// Make sure this stuff really got packaged.
 					String samples[] = null;
 					try {
@@ -358,6 +393,7 @@ public class CsoundAppActivity extends Activity implements
 		try {
 			if (requestCode == R.id.newButton && intent != null) {
 				csd = new File(intent.getData().getPath());
+				setTitle(csd.getName());
 			}
 		} catch (Exception e) {
 			Log.e("error", e.toString());
