@@ -2,43 +2,47 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:textSize="12sp"    
     android:orientation="vertical" >
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:padding="0dp" >
 
         <Button
             android:id="@+id/newButton"
-            style="?android:attr/buttonStyleSmall"
+            style="@style/csoundButtonStyle"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.25"
-            android:text="New" />
+            android:text="@string/New" />
 
         <Button
             android:id="@+id/openButton"
-            style="?android:attr/buttonStyleSmall"
+            style="@style/csoundButtonStyle"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.25"
-            android:text="Open" />
+            android:text="@string/Open" />
 
         <Button
             android:id="@+id/editButton"
-            style="?android:attr/buttonStyleSmall"
+            style="@style/csoundButtonStyle"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.25"
-            android:text="Edit" />
+            android:text="@string/Edit" />
 
         <ToggleButton
             android:id="@+id/runButton"
+            style="@style/csoundButtonStyle"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.25"
             android:textOff="@string/Start"
             android:textOn="@string/Stop" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -49,12 +53,14 @@
 
         <SeekBar
             android:id="@+id/seekBar1"
+            style="@style/csoundSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:contentDescription="@string/slider1" />
 
         <TextView
             android:id="@+id/textView1"
+            style="@style/csoundSeekBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/slider1"
@@ -62,11 +68,13 @@
 
         <SeekBar
             android:id="@+id/seekBar2"
+            style="@style/csoundSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/textView2"
+            style="@style/csoundSeekBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/slider2"
@@ -74,11 +82,13 @@
 
         <SeekBar
             android:id="@+id/seekBar3"
+            style="@style/csoundSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/textView3"
+            style="@style/csoundSeekBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/slider3"
@@ -86,11 +96,13 @@
 
         <SeekBar
             android:id="@+id/seekBar4"
+            style="@style/csoundSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/textView4"
+            style="@style/csoundSeekBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/slider4"
@@ -98,11 +110,13 @@
 
         <SeekBar
             android:id="@+id/seekBar5"
+            style="@style/csoundSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/textView5"
+            style="@style/csoundSeekBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/slider5"
@@ -116,6 +130,7 @@
 
         <Button
             android:id="@+id/button1"
+            style="@style/csoundButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -123,6 +138,7 @@
 
         <Button
             android:id="@+id/button2"
+            style="@style/csoundButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -130,6 +146,7 @@
 
         <Button
             android:id="@+id/button3"
+            style="@style/csoundButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -137,6 +154,7 @@
 
         <Button
             android:id="@+id/button4"
+            style="@style/csoundButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -144,16 +162,18 @@
 
         <Button
             android:id="@+id/button5"
+            style="@style/csoundButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/butt5" />
+
     </LinearLayout>
 
     <Button
         android:id="@+id/pad"
         android:layout_width="match_parent"
-        android:layout_height="148dp"
+        android:layout_height="125dp"
         android:text="@string/trackpad" />
 
     <ScrollView
@@ -165,6 +185,8 @@
             android:id="@+id/messageTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="#00ff00"
+    		android:textSize="10sp"    
             android:typeface="monospace" />
     </ScrollView>
 
