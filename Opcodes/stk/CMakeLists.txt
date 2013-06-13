@@ -58,7 +58,7 @@ if(BUILD_STK_OPCODES)
                 list(APPEND stkdefs "-D__OS_LINUX__")
                 list(APPEND stkdefs "-D__LINUX_ALSA__")
             elseif(WIN32)
-                list(APPEND stkdefs "_D__OS_WINDOWS__")
+                list(APPEND stkdefs "-D__OS_WINDOWS__")
             endif()
     
             if(BIG_ENDIAN)

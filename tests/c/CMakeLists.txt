@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
 
-ENABLE_TESTING()
 
 set(TEST_ARGS "-+env:OPCODE6DIR64=${CMAKE_CURRENT_BINARY_DIR}/../..")
 
 # Tests that depend on cunit
 find_library(CUNIT_LIBRARY cunit)
-if(CUNIT_LIBRARY)
+check_deps(BUILD_TESTS CUNIT_LIBRARY)
+if(BUILD_TESTS)
+
+ENABLE_TESTING()
 
 add_executable(compilationTest compilation_test.c)
 target_link_libraries(compilationTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
