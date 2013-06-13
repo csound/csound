@@ -170,6 +170,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       //print_tree(csound, "AST - INITIAL\n", astTree);
       typeTable = mmalloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
+     
       typeTable->globalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
       typeTable->instr0LocalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
 
