@@ -1338,6 +1338,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     if (csound->instr0 == NULL) {
       engineState = &csound->engineState;
       engineState->varPool = typeTable->globalPool;
+      printf(" varpool: %p ---\n", engineState->varPool);
       csound->instr0 = create_instrument0(csound, current, engineState,
                                           typeTable->instr0LocalPool);
       cs_hash_table_put_key(csound, engineState->stringPool, "\"\"");
@@ -1761,8 +1762,10 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
              csoundFindVariableWithName(csound->engineState.varPool, s) != NULL) {
       // FIXME - figure out why string pool searched with gexist
       //|| string_pool_indexof(csound->engineState.stringPool, s) > 0) {
+      
       arg->type = ARG_GLOBAL;
       arg->argPtr = csoundFindVariableWithName(engineState->varPool, s);
+      
     }
     else {
       arg->type = ARG_LOCAL;
