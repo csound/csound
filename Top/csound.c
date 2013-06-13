@@ -2634,7 +2634,7 @@ static void reset(CSOUND *csound)
     remove_tmpfiles(csound);
     rlsmemfiles(csound);
 
-
+     memRESET(csound);
 
     while (csound->filedir[n])        /* Clear source directory */
       free(csound->filedir[n++]);
@@ -2734,7 +2734,6 @@ PUBLIC void csoundReset(CSOUND *csound)
     OPARMS  *O = csound->oparms;
 
 
-     memRESET(csound);
     #ifdef HAVE_PTHREAD_SPIN_LOCK
      pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
      pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);

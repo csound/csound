@@ -616,7 +616,12 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       pool = (*s == 'g') ?
         typeTable->globalPool : typeTable->localPool;
       var = csoundFindVariableWithName(pool, tree->value->lexeme);
-
+      /* VL: 13-06-13 
+               if it is not found, we still check the global (merged) pool */
+      if(var == NULL && *s == 'g')
+       var = csoundFindVariableWithName(csound->engineState.varPool, 
+					tree->value->lexeme);
+     
       if (UNLIKELY(var == NULL)) {
         synterr(csound, Str("Variable '%s' used before defined\n"),
                 tree->value->lexeme);
@@ -1193,7 +1198,15 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
             typeTable->globalPool : typeTable->localPool;
 
           if (UNLIKELY(csoundFindVariableWithName(pool, varName) == NULL)) {
+	    CS_VARIABLE *var;
+             /* VL: 13-06-13 
+               if it is not found, we still check the global (merged) pool */
+            if(var == NULL && *varName == 'g')
+               var = csoundFindVariableWithName(csound->engineState.varPool, varName);
+            if(var == NULL)
             synterr(csound, Str("Variable '%s' used before defined\n"), varName);
+            else break;
+
             return 0;
 //            csound->Warning(csound,
 //                            Str("Variable '%s' used before defined\n"), varName);
@@ -1206,7 +1219,14 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                  typeTable->globalPool : typeTable->localPool;
 
           if (UNLIKELY(csoundFindVariableWithName(pool, varName) == NULL)) {
+            CS_VARIABLE *var;
+            /* VL: 13-06-13 
+               if it is not found, we still check the global (merged) pool */
+            if(var == NULL && *varName == 'g') 
+               var = csoundFindVariableWithName(csound->engineState.varPool, varName);
+            if(var == NULL) 
             synterr(csound, Str("Variable '%s' used before defined\n"), varName);
+	    else break;
 //            csound->Warning(csound,
 //                            Str("Variable '%s' used before defined\n"), varName);
             return 0;
