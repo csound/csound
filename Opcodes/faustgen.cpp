@@ -1,36 +1,36 @@
 /*  faustgen.cpp
 
-(c) Victor Lazzarini, 2013
+    (c) Victor Lazzarini, 2013
 
-This file is part of Csound.
+    This file is part of Csound.
 
-The Csound Library is free software; you can redistribute it
-and/or modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
 
-Csound is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with Csound; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-02111-1307 USA
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
 
- Faust Csound opcodes
+    Faust Csound opcodes
 
- These four opcodes allow Faust to be embedded in Csound code:
+    These four opcodes allow Faust to be embedded in Csound code:
 
- faustcompile: compiles a Faust program
- faustaudio: creates a DSP instance from a compiled Faust program
-             (any number of instances from a single compiled program are
-              allowed)
- faustctl: sets the value of a given control of a Faust DSP instance
+    faustcompile: compiles a Faust program
+    faustaudio: creates a DSP instance from a compiled Faust program
+    (any number of instances from a single compiled program are
+    allowed)
+    faustctl: sets the value of a given control of a Faust DSP instance
 
- faustgen: compiles and creates a single DSP instance from a Faust program
-           (convenient for one-off Faust programs)
+    faustgen: compiles and creates a single DSP instance from a Faust program
+    (convenient for one-off Faust programs)
 
 
 */
@@ -158,14 +158,14 @@ struct faustobj  {
 /**
  * Faust compile opcode
 
-   usage:
-   ihandle  faustcompile Scode, Sargs
+ usage:
+ ihandle  faustcompile Scode, Sargs
 
-   ihandle - handle to compiled code
-   Scode - Faust program
-   Sargs - Faust compiler args
+ ihandle - handle to compiled code
+ Scode - Faust program
+ Sargs - Faust compiler args
 
- **/
+**/
 struct faustcompile {
   OPDS h;
   MYFLT *hptr;
@@ -270,7 +270,7 @@ int init_faustcompile(CSOUND *csound, faustcompile *p) {
   }
   p->factory = factory;
   *p->hptr = (MYFLT) ffactory->cnt;
-  csound->RegisterDeinitCallback(csound, p, delete_faustcompile);
+  csound->RegisterResetCallback(csound, p, delete_faustcompile);
   free(argv);
   free(cmd);
   return OK;
@@ -279,18 +279,18 @@ int init_faustcompile(CSOUND *csound, faustcompile *p) {
 /**
  * faustgen and faustaudio opcodes
 
-   usage:
-   ihandle[,asig1,...] faustgen    Scode[,ain1,...]
-   ihandle[,asig1,...] faustaudio  ifactory,[,ain1,...]
+ usage:
+ ihandle[,asig1,...] faustgen    Scode[,ain1,...]
+ ihandle[,asig1,...] faustaudio  ifactory,[,ain1,...]
 
-   Scode - Faust program
-   ifactory - handle pointing to compiled code from faustcompile
-   asig1 ... - audio outputs from Faust program
-   ain1 ...  - audio inputs to Faust program
+ Scode - Faust program
+ ifactory - handle pointing to compiled code from faustcompile
+ asig1 ... - audio outputs from Faust program
+ ain1 ...  - audio inputs to Faust program
 
-   ihandle - handle identifying this Faust DSP instance
+ ihandle - handle identifying this Faust DSP instance
 
- **/
+**/
 struct faustgen {
   OPDS h;
   MYFLT *ohptr;
@@ -322,13 +322,13 @@ int delete_faustgen(CSOUND *csound, void *p) {
     fobj = fobj->nxt;
   }
   if(fobj == NULL) 
-  if(fobj != NULL) {
-    if(*pfobj == fobj) *pfobj = fobj->nxt;
-    csound->Free(csound, fobj);
-    delete pp->ctls;
-    deleteDSPInstance(pp->engine);
-  } else
-    csound->Warning(csound, "could not find DSP %p for deletion", pp->engine);
+    if(fobj != NULL) {
+      if(*pfobj == fobj) *pfobj = fobj->nxt;
+      csound->Free(csound, fobj);
+      delete pp->ctls;
+      deleteDSPInstance(pp->engine);
+    } else
+      csound->Warning(csound, "could not find DSP %p for deletion", pp->engine);
   if(pp->factory) delete pp->factory;
   return OK;
 }
@@ -542,14 +542,14 @@ int perf_faust(CSOUND *csound, faustgen *p){
 /**
  * faustctl opcode
 
-   usage:
-   faustctl  idsp, Slabel, kval
+ usage:
+ faustctl  idsp, Slabel, kval
 
-   idsp - handle from an existing Faust DSP instance
-   Slabel - name of control (in Faust program)
-   kval - value to be sent to control
+ idsp - handle from an existing Faust DSP instance
+ Slabel - name of control (in Faust program)
+ kval - value to be sent to control
 
- **/
+**/
 struct faustctl {
   OPDS h;
   MYFLT *inst;
