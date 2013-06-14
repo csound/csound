@@ -2741,7 +2741,8 @@ PUBLIC void csoundReset(CSOUND *csound)
      pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
     #endif
 
-    if(csound->engineStatus & CS_STATE_COMP) {
+    if(csound->engineStatus & CS_STATE_COMP || 
+       csound->engineStatus & CS_STATE_PRE) {
      /* and reset */
       csound->Message(csound, "resetting Csound instance\n");
       reset(csound);
