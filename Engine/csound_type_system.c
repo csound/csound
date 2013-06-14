@@ -263,6 +263,17 @@ void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
     }
 }
 
+void deleteVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
+  CS_VARIABLE* current = pool->head, *tmp;
+    while (current != NULL) {
+      tmp = current;
+      mfree((CSOUND *)csound, current->memBlock);      
+      current = current->next;
+      mfree((CSOUND *)csound, tmp);
+    }
+}
+
+
 
 void initializeVarPool(MYFLT* memBlock, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;
