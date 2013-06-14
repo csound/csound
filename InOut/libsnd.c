@@ -431,8 +431,9 @@ int check_rtaudio_name(char *fName, char **devName, int isOutput)
     if (*s == (char) '\0')
       return 1024;
     if (*s == (char) ':') {
-      if (devName != NULL)
-        *devName = &(s[1]);
+      if (devName != NULL) {
+       *devName = &(s[1]);
+      }
       return 1024;
     }
     else {
