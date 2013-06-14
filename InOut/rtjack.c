@@ -487,10 +487,12 @@ static void openJackStreams(RtJackGlobals *p)
 
     /* connect ports if requested */
     if (p->inputEnabled && p->inDevName != NULL) {
+      char *dev = p->outDevName;
       char  *sp = strchr(p->inDevName, '\0');
+      if(!isalpha(p->outDevName[0])) dev++;
       for (i = 0; i < p->nChannels; i++) {
         sprintf(sp, "%d", i + 1);
-        if (UNLIKELY(jack_connect(p->client, p->inDevName,
+        if (UNLIKELY(jack_connect(p->client, dev,
                                   jack_port_name(p->inPorts[i])) != 0)) {
           rtJack_ListPorts(csound, p->client, &(p->clientName[0]), 0);
           rtJack_Error(csound, -1, Str("error connecting input ports"));
@@ -499,12 +501,16 @@ static void openJackStreams(RtJackGlobals *p)
       *sp = (char) 0;
     }
     if (p->outputEnabled && p->outDevName != NULL) {
+      char *dev = p->outDevName;
       char  *sp = strchr(p->outDevName, '\0');
+   
+      if(!isalpha(p->outDevName[0])) dev++;
       for (i = 0; i < p->nChannels; i++) {
         sprintf(sp, "%d", i + 1);
         if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
-                                    p->outDevName) != 0) {
+                                    dev) != 0) {
           rtJack_ListPorts(csound, p->client, &(p->clientName[0]), 1);
+          
           rtJack_Error(csound, -1, Str("error connecting output ports"));
         }
       }
@@ -551,10 +557,11 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
       nBytes = strlen(parm->devName) + 4;
       if (UNLIKELY(nBytes > (size_t) jack_port_name_size()))
         rtJack_Error(csound, -1, Str("device name is too long"));
-      s = (char*) malloc(nBytes);
+      s = (char*) malloc(nBytes+1);
       if (UNLIKELY(s == NULL))
         rtJack_Error(csound, CSOUND_MEMORY, Str("memory allocation failure"));
       strcpy(s, parm->devName);
+      
       *devName = s;
     }
     if (isOutput && p->inputEnabled) {
@@ -613,6 +620,7 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
       return -1;
     *(csound->GetRtPlayUserData(csound)) = (void*) p;
     rtJack_CopyDevParams(p, &(p->outDevName), parm, 1);
+    
     p->outputEnabled = 1;
     /* allocate pointers to output ports */
     p->outPorts = (jack_port_t**)
