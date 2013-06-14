@@ -568,7 +568,7 @@ int zawm(CSOUND *csound, ZAWM *p)
         /* Mix mode - add to the existing value.   */
         if (UNLIKELY(early)) nsmps -= early;
         for (n=offset; n<nsmps; n++) {
-          //writeloc[n] += readloc[n];
+            writeloc[n] += readloc[n];
         }
       }
     }
