@@ -36,9 +36,10 @@ find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
 find_library(P5GLOVE_LIB p5glove)
 
+if(BUILD_FAUST_OPCODES)
 find_package(LLVM)
 find_library(FAUST_LIBRARY faust HINTS /usr/local/lib/faust)
-
+endif()
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
