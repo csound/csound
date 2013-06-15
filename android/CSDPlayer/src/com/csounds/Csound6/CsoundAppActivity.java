@@ -344,12 +344,16 @@ public class CsoundAppActivity extends Activity implements
 									+ "\n");
 						}
 					}
+					// Evidently, this has to be set before
+					// the very first Csound object is created.
+					csnd6.csndJNI.csoundSetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
+					csnd6.csndJNI.csoundSetGlobalEnv("SSDIR", SSDIR);
 					csound = new CsoundObj();
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
 					postMessageClear("Csound is starting...\n");
-					csound.getCsound().SetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
-					csound.getCsound().SetGlobalEnv("SSDIR", SSDIR);
+					//csound.getCsound().SetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
+					//csound.getCsound().SetGlobalEnv("SSDIR", SSDIR);
 					// Make sure this stuff really got packaged.
 					String samples[] = null;
 					try {
