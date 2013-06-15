@@ -172,6 +172,7 @@
 
     <Button
         android:id="@+id/pad"
+        style="csoundButtonStyle"
         android:layout_width="match_parent"
         android:layout_height="125dp"
         android:text="@string/trackpad" />
