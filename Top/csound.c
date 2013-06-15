@@ -1883,7 +1883,7 @@ PUBLIC void csoundSetCscoreCallback(CSOUND *p,
 static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
                                          const char *format, va_list args)
 {
-#if defined(WIN32) || defined(MAC)
+#if defined(WIN32) || defined(__MACH__)
     switch (attr & CSOUNDMSG_TYPE_MASK) {
     case CSOUNDMSG_ERROR:
     case CSOUNDMSG_WARNING:
@@ -2741,7 +2741,8 @@ PUBLIC void csoundReset(CSOUND *csound)
      pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
     #endif
 
-    if(csound->engineStatus & CS_STATE_COMP) {
+    if(csound->engineStatus & CS_STATE_COMP || 
+       csound->engineStatus & CS_STATE_PRE) {
      /* and reset */
       csound->Message(csound, "resetting Csound instance\n");
       reset(csound);
