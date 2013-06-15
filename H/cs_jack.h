@@ -38,4 +38,5 @@ typedef struct RtJackGlobals_ {
     jack_default_audio_sample_t **outPortBufs;
     RtJackBuffer    **bufs;             /* 'nBuffers' I/O buffers           */
     int     xrunFlag;                   /* non-zero if an xrun has occured  */
+    jack_client_t   *listclient;
 } RtJackGlobals;
