@@ -887,8 +887,9 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
         }
       }
       /* close connection */
-      if (p.jackState != 2)
+      if (p.jackState != 2) {
         jack_client_close(p.client);
+      }
     }
     /* free copy of input and output device name */
     if (p.inDevName != NULL)
@@ -984,13 +985,69 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
         CSOUNDCFG_INTEGER, 0, &i, &j,
         "Deprecated", NULL);
     /* done */
+	p->listclient = NULL;
     return 0;
 }
 
 int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
-  csound->Warning(csound, "listing of jack devices is not implemented yet");
-  return 0;
+ 
+    char            **portNames = (char**) NULL, port[64];
+    unsigned long   portFlags;
+    int             i, n, cnt=0;
+    jack_client_t *jackClient;
+    RtJackGlobals* p = (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
+                                                            "_rtjackGlobals");
+
+    if(p->listclient == NULL)
+       p->listclient = jack_client_open("list", JackNullOption, NULL);
+
+     jackClient  = p->listclient;
+    
+    if(jackClient == NULL) return 0;
+    portFlags = (isOutput ? (unsigned long) JackPortIsInput
+                          : (unsigned long) JackPortIsOutput);
+   
+    portNames = (char**) jack_get_ports(jackClient,
+                                        (char*) NULL,
+                                        JACK_DEFAULT_AUDIO_TYPE,
+                                        portFlags);
+    if(portNames == NULL) {
+        jack_client_close(jackClient);
+        return 0;
+    }
+
+    memset(port, '\0', 64);
+    for(i=0; portNames[i] != NULL; i++) {  
+     n = (int) strlen(portNames[i]);
+      do {
+        n--;
+      } while (n > 0 && isdigit(portNames[i][n]));
+      n++;
+      if(strncmp(portNames[i], port, n)==0) continue;
+      strncpy(port, portNames[i], n);
+      port[n] = '\0';
+      if (list != NULL) {        
+	strncpy(list[cnt].device_name, port, 63);
+        strncpy(list[cnt].device_id, port, 63);
+        list[cnt].max_nchnls = -1;
+        list[cnt].isOutput = isOutput;
+        }
+      cnt++;
+    }  
+  return cnt;
 }
+
+PUBLIC int csoundModuleDestroy(CSOUND *csound)
+{  
+    RtJackGlobals* p = (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
+                                                            "_rtjackGlobals");
+    if(p  && p->listclient) {
+     jack_client_close(p->listclient);
+     p->listclient = NULL;
+    }
+    return OK;
+}
+
 
 
 PUBLIC int csoundModuleInit(CSOUND *csound)
@@ -1004,6 +1061,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
           strcmp(drv, "JACK") == 0))
       return 0;
     csound->Message(csound, Str("rtaudio: JACK module enabled\n"));
+    {
     /* register Csound interface functions */
     csound->SetPlayopenCallback(csound, playopen_);
     csound->SetRecopenCallback(csound, recopen_);
@@ -1011,6 +1069,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     csound->SetRtrecordCallback(csound, rtrecord_);
     csound->SetRtcloseCallback(csound, rtclose_);
     csound->SetAudioDeviceListCallback(csound, listDevices);
+    }
     return 0;
 }
 
