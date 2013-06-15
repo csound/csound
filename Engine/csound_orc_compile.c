@@ -1341,7 +1341,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     if (csound->instr0 == NULL) {
       engineState = &csound->engineState;
       engineState->varPool = typeTable->globalPool;
-      printf(" varpool: %p ---\n", engineState->varPool);
+      
       csound->instr0 = create_instrument0(csound, current, engineState,
                                           typeTable->instr0LocalPool);
       cs_hash_table_put_key(csound, engineState->stringPool, "\"\"");
