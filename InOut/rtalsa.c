@@ -1537,6 +1537,10 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
+static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
+   csound->Warning(csound, "listing of alsa MIDI devices is not implemented yet");
+  return 0;
+}
 
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
@@ -1594,6 +1598,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetExternalMidiOutOpenCallback(csound, midi_out_open);
       csound->SetExternalMidiWriteCallback(csound, midi_out_write);
       csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
+      csound->SetMIDIDeviceListCallback(csound,listDevicesM);
 
     }
     else if (strcmp(&(buf[0]), "alsaseq") == 0) {
@@ -1605,6 +1610,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetExternalMidiOutOpenCallback(csound, alsaseq_out_open);
       csound->SetExternalMidiWriteCallback(csound, alsaseq_out_write);
       csound->SetExternalMidiOutCloseCallback(csound, alsaseq_out_close);
+      csound->SetMIDIDeviceListCallback(csound,listDevicesM);
     }
     else if (strcmp(&(buf[0]), "devfile") == 0) {
       csound->Message(csound, Str("rtmidi: devfile module enabled\n"));
@@ -1614,6 +1620,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetExternalMidiOutOpenCallback(csound, midi_out_open_file);
       csound->SetExternalMidiWriteCallback(csound, midi_out_write_file);
       csound->SetExternalMidiOutCloseCallback(csound, midi_out_close_file);
+      csound->SetMIDIDeviceListCallback(csound,listDevicesM);
     }
 
     return 0;

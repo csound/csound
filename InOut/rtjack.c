@@ -987,6 +987,12 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
+int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
+  csound->Warning(csound, "listing of jack devices is not implemented yet");
+  return 0;
+}
+
+
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
@@ -1004,7 +1010,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     csound->SetRtplayCallback(csound, rtplay_);
     csound->SetRtrecordCallback(csound, rtrecord_);
     csound->SetRtcloseCallback(csound, rtclose_);
-
+    csound->SetAudioDeviceListCallback(csound, listDevices);
     return 0;
 }
 
