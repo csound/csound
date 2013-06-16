@@ -1041,7 +1041,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {  
     RtJackGlobals* p = (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                             "_rtjackGlobals");
-    if(p  && p->listclient) {
+    if(p && p->listclient) {
      jack_client_close(p->listclient);
      p->listclient = NULL;
     }

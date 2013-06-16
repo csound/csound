@@ -844,6 +844,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* filedir */
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
+    0               /* info_message_request */
 };
 
 /* from threads.c */
