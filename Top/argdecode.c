@@ -753,13 +753,13 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       int retval;
       s += 8;
       if (*s=='\0') dieu(csound, Str("no utility name"));
-       
+
       retval = csoundRunUtility(csound, s, argc, argv);
      if(retval) {
                   csound->info_message_request = 1;
                   csound->orchname = NULL;
                   return 0;
-	      }
+              }
        else csound->LongJmp(csound, retval);
      return 1;
     }
@@ -959,7 +959,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
                   csound->info_message_request = 1;
                   csound->orchname = NULL;
                   goto end;
-	      }
+              }
               else csound->LongJmp(csound, retval);
             }
             break;
@@ -1224,7 +1224,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             while (*(++s));
             break;
           default:
-	    if(csound->info_message_request == 0)
+            if(csound->info_message_request == 0)
             dieu(csound, Str("unknown flag -%c"), c);
           }
         }

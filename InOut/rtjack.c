@@ -503,14 +503,14 @@ static void openJackStreams(RtJackGlobals *p)
     if (p->outputEnabled && p->outDevName != NULL) {
       char *dev = p->outDevName;
       char  *sp = strchr(p->outDevName, '\0');
-   
+
       if(!isalpha(p->outDevName[0])) dev++;
       for (i = 0; i < p->nChannels; i++) {
         sprintf(sp, "%d", i + 1);
         if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
                                     dev) != 0) {
           rtJack_ListPorts(csound, p->client, &(p->clientName[0]), 1);
-          
+
           rtJack_Error(csound, -1, Str("error connecting output ports"));
         }
       }
@@ -561,7 +561,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
       if (UNLIKELY(s == NULL))
         rtJack_Error(csound, CSOUND_MEMORY, Str("memory allocation failure"));
       strcpy(s, parm->devName);
-      
+
       *devName = s;
     }
     if (isOutput && p->inputEnabled) {
@@ -620,7 +620,7 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
       return -1;
     *(csound->GetRtPlayUserData(csound)) = (void*) p;
     rtJack_CopyDevParams(p, &(p->outDevName), parm, 1);
-    
+
     p->outputEnabled = 1;
     /* allocate pointers to output ports */
     p->outPorts = (jack_port_t**)
@@ -985,12 +985,12 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
         CSOUNDCFG_INTEGER, 0, &i, &j,
         "Deprecated", NULL);
     /* done */
-	p->listclient = NULL;
+        p->listclient = NULL;
     return 0;
 }
 
 int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
- 
+
     char            **portNames = (char**) NULL, port[64];
     unsigned long   portFlags;
     int             i, n, cnt=0;
@@ -1002,11 +1002,11 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
        p->listclient = jack_client_open("list", JackNullOption, NULL);
 
      jackClient  = p->listclient;
-    
+
     if(jackClient == NULL) return 0;
     portFlags = (isOutput ? (unsigned long) JackPortIsInput
                           : (unsigned long) JackPortIsOutput);
-   
+
     portNames = (char**) jack_get_ports(jackClient,
                                         (char*) NULL,
                                         JACK_DEFAULT_AUDIO_TYPE,
@@ -1017,7 +1017,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     }
 
     memset(port, '\0', 64);
-    for(i=0; portNames[i] != NULL; i++) {  
+    for(i=0; portNames[i] != NULL; i++) {
      n = (int) strlen(portNames[i]);
       do {
         n--;
@@ -1026,19 +1026,19 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       if(strncmp(portNames[i], port, n)==0) continue;
       strncpy(port, portNames[i], n);
       port[n] = '\0';
-      if (list != NULL) {        
-	strncpy(list[cnt].device_name, port, 63);
+      if (list != NULL) {
+        strncpy(list[cnt].device_name, port, 63);
         strncpy(list[cnt].device_id, port, 63);
         list[cnt].max_nchnls = -1;
         list[cnt].isOutput = isOutput;
         }
       cnt++;
-    }  
+    }
   return cnt;
 }
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound)
-{  
+{
     RtJackGlobals* p = (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                             "_rtjackGlobals");
     if(p && p->listclient) {
@@ -1077,4 +1077,3 @@ PUBLIC int csoundModuleInfo(void)
 {
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
-
