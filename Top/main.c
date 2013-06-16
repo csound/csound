@@ -127,8 +127,14 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       csound->delayederrormessages = NULL;
     }
     /* check for CSD file */
-    if (csound->orchname == NULL)
-      dieu(csound, Str("no orchestra name"));
+    if (csound->orchname == NULL) {
+      if(csound->info_message_request) {
+        csound->info_message_request = 0;
+        csound->LongJmp(csound, 1);
+      }
+      else dieu(csound, Str("no orchestra name"));
+      
+    }
     else if (csound->use_only_orchfile == 0
              && (csound->scorename == NULL || csound->scorename[0] == (char) 0)
              && csound->orchname[0] != '\0') {

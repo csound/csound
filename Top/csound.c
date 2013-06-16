@@ -844,6 +844,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* filedir */
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
+    0               /* info_message_request */
 };
 
 /* from threads.c */
@@ -2741,7 +2742,8 @@ PUBLIC void csoundReset(CSOUND *csound)
      pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
     #endif
 
-    if(csound->engineStatus & CS_STATE_COMP) {
+    if(csound->engineStatus & CS_STATE_COMP || 
+       csound->engineStatus & CS_STATE_PRE) {
      /* and reset */
       csound->Message(csound, "resetting Csound instance\n");
       reset(csound);
