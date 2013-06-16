@@ -252,7 +252,7 @@ static void longusage(CSOUND *p)
     dump_cfg_variables(p);
     p->Message(p, Str("\nShort form:\n"));
     print_short_usage(p);
-    p->LongJmp(p, 0);
+    // p->LongJmp(p, 0);
 }
 
 void dieu(CSOUND *csound, char *s, ...)
@@ -265,8 +265,10 @@ void dieu(CSOUND *csound, char *s, ...)
     va_start(args, s);
     csound->ErrMsgV(csound, Str("Csound Command ERROR:\t"), s, args);
     va_end(args);
-
+    if(csound->info_message_request == 0){
+      csound->info_message_request = 0;
     csound->LongJmp(csound, 1);
+    }
 }
 
 void set_output_format(OPARMS *O, char c)
@@ -751,8 +753,15 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       int retval;
       s += 8;
       if (*s=='\0') dieu(csound, Str("no utility name"));
+       
       retval = csoundRunUtility(csound, s, argc, argv);
-      csound->LongJmp(csound, retval);
+     if(retval) {
+                  csound->info_message_request = 1;
+                  csound->orchname = NULL;
+                  return 0;
+	      }
+       else csound->LongJmp(csound, retval);
+     return 1;
     }
     /* -v */
     else if (!(strcmp (s, "verbose"))) {
@@ -782,7 +791,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
               if (csoundInitModules(csound) != 0)
               csound->LongJmp(csound, 1); */
       list_opcodes(csound, full);
-      csound->LongJmp(csound, 0);
+      return 1;
+      //csound->LongJmp(csound, 0);
     }
     /* -Z */
     else if (!(strcmp (s, "dither"))) {
@@ -866,7 +876,9 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strcmp(s, "help"))) {
       longusage(csound);
-      csound->LongJmp(csound, 0);
+      csound->info_message_request = 1;
+      return 1;
+      //csound->LongJmp(csound, 0);
     }
     else if (!(strcmp(s, "sample-accurate"))) {
       O->sampleAccurate = 1;
@@ -943,7 +955,12 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             FIND(Str("no utility name"));
             {
               int retval = csoundRunUtility(csound, s, argc, argv);
-              csound->LongJmp(csound, retval);
+              if(retval) {
+                  csound->info_message_request = 1;
+                  csound->orchname = NULL;
+                  goto end;
+	      }
+              else csound->LongJmp(csound, retval);
             }
             break;
           case 'C':
@@ -1148,7 +1165,8 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
               csound->LongJmp(csound, 1); */
               list_opcodes(csound, full);
             }
-            csound->LongJmp(csound, 0);
+            csound->info_message_request = 1;
+            // csound->LongJmp(csound, 0);
             break;
           case 'Z':
             {
@@ -1206,6 +1224,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             while (*(++s));
             break;
           default:
+	    if(csound->info_message_request == 0)
             dieu(csound, Str("unknown flag -%c"), c);
           }
         }
@@ -1228,11 +1247,13 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
         }
       }
     } while (--argc);
+ end:
     return 1;
 }
 
 PUBLIC int csoundSetOption(CSOUND *csound, char *option){
   /* if already compiled and running, return */
+  csound->info_message_request = 1;
   if(csound->engineStatus & CS_STATE_COMP) return 1;
   char *args[2] = {"csound", option};
   return (argdecode(csound, 1, args) ? 0 : 1);
