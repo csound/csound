@@ -1148,7 +1148,8 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
               csound->LongJmp(csound, 1); */
               list_opcodes(csound, full);
             }
-            csound->LongJmp(csound, 0);
+            csound->info_message_request = 1;
+            // csound->LongJmp(csound, 0);
             break;
           case 'Z':
             {
