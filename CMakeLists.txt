@@ -32,6 +32,7 @@ include(CheckIncludeFileCXX)
 include(CheckLibraryExists)
 include(CMakeParseArguments)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # Utility function to make executables. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
