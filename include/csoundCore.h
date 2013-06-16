@@ -1627,6 +1627,7 @@ typedef struct NAME__ {
     char          *filedir[64]; /* for location directory */
     void          *message_buffer;
     int           jumpset;
+    int           info_message_request;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
