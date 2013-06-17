@@ -65,7 +65,7 @@ struct keys_t
 static pthread_mutex_t lc_getrefkey = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t lc_manageLuaState = PTHREAD_MUTEX_INITIALIZER;
 
-struct CriticalSection 
+struct CriticalSection
 {
     CriticalSection(pthread_mutex_t &mutex_) : mutex(mutex_), status(-1)
     {
@@ -111,13 +111,13 @@ keys_t &manageLuaReferenceKeys(const lua_State *L,
 }
 
 
-struct LuaStateForThread 
+struct LuaStateForThread
 {
     pthread_t thread;
     lua_State *L;
 };
 
-bool operator == (const LuaStateForThread& a, const LuaStateForThread &b) 
+bool operator == (const LuaStateForThread& a, const LuaStateForThread &b)
 {
     if (pthread_equal(a.thread, b.thread)) {
         return true;
@@ -137,9 +137,10 @@ lua_State *manageLuaState(char operation)
     CriticalSection criticalSection(lc_manageLuaState);
     LuaStateForThread luaStateForThread;
     luaStateForThread.thread = pthread_self();
-    std::vector<LuaStateForThread>::iterator it = std::find(luaStatesForThreads.begin(), 
-        luaStatesForThreads.end(), 
-        luaStateForThread);
+    std::vector<LuaStateForThread>::iterator it =
+      std::find(luaStatesForThreads.begin(),
+                luaStatesForThreads.end(),
+                luaStateForThread);
     lua_State *L = 0;
     switch(operation)
     {
