@@ -5,7 +5,7 @@
 	<TITLE></TITLE>
 	<META NAME="GENERATOR" CONTENT="LibreOffice 4.0.1.2 (Windows)">
 	<META NAME="CREATED" CONTENT="20130611;20113632">
-	<META NAME="CHANGED" CONTENT="20130615;18502506">
+	<META NAME="CHANGED" CONTENT="20130617;19311023">
 	<STYLE TYPE="text/css">
 	<!--
 		@page { size: 8.5in 11in; margin: 0.79in }
@@ -20,27 +20,35 @@
 	</STYLE>
 </HEAD>
 <BODY LANG="en-US" LINK="#000080" VLINK="#800000" DIR="LTR">
-<H1 CLASS="western">Csound 6 for Android User Guide</H1>
-<P STYLE="margin-bottom: 0in"><BR>
+<H1 CLASS="western" ALIGN=CENTER>User Guide<BR>Csound 6 for Android 
+</H1>
+<P ALIGN=CENTER STYLE="margin-bottom: 0in"><BR>
 </P>
-<P STYLE="margin-bottom: 0in">Michael Gogins</P>
-<P STYLE="margin-bottom: 0in">12 June 2013</P>
-<P STYLE="margin-bottom: 0in"><BR>
+<P ALIGN=CENTER STYLE="margin-bottom: 0in"><I><B>Michael Gogins</B></I></P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0in"><I><B>17 June 2013</B></I></P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0in"><BR>
 </P>
-<P STYLE="margin-bottom: 0in">This is an extremely basic introduction
-to using the Csound6 app on Android smartphones, tablets, and other
-devices. Contemporary smartphones and tablets can be as powerful as
-personal computers were a few years ago. Despite their small size,
-they are real computers, and on them, Csound can be used to perform
-or render real music.</P>
-<P STYLE="margin-bottom: 0in"><BR>
-</P>
-<P STYLE="margin-bottom: 0in">Csound6 is most of Csound, including
-some of the more frequently used plugin opcodes:</P>
-<P STYLE="margin-bottom: 0in"><BR>
-</P>
+<P STYLE="margin-bottom: 0in">This is an extremely basic guide to
+using the Csound 6 app for Android. It should be just enough to get
+you started if you already have some experience with Csound or, at
+least, with &ldquo;Music N&rdquo; type software synthesizers.</P>
+<P STYLE="margin-bottom: 0in">The Csound6 app is an Android version
+of Csound, an audio and music synthesis and processing language of
+great power, created by Barry Vercoe in 1984, maintained with
+complete backward compatibility since then, and widely used and
+taught for the creation of electroacoustic and computer music.
+Csound6 has many advanced features for sound synthesis including
+user-designable instruments, an easy to learn programming language
+with a type system, several phase vocoders, sample players, a
+plethora of digital oscillators, filters, and envelope generators,
+transparent multi-threading for high performance, and an embedded Lua
+just-in-time compiler.</P>
+<P STYLE="margin-bottom: 0in">The Csound app is by Victor Lazzarini,
+Steven Yi, Michael Gogins, and others. The app contains virtually all
+of Csound, including some of the more frequently used plugin opcodes:</P>
 <UL>
-	<LI><P STYLE="margin-bottom: 0in">The signal flow graph opcodes.</P>
+	<LI><P STYLE="margin-bottom: 0in">The signal flow graph opcodes, for
+	chaining instruments into effects chains and so on.</P>
 	<LI><P STYLE="margin-bottom: 0in">The Fluidsynth opcodes for playing
 	SF2 samples.</P>
 	<LI><P STYLE="margin-bottom: 0in">The libstdutil library.</P>
@@ -51,20 +59,65 @@ some of the more frequently used plugin opcodes:</P>
 	interface that is capable of loading any shared library that Android
 	permits, and calling any exported function in that library.</P>
 </UL>
-<P STYLE="margin-bottom: 0in"><BR>
+<P STYLE="margin-bottom: 0in"><IMG SRC="Csound6_User_Guide_html_773f6605.png" NAME="graphics1" ALIGN=LEFT WIDTH=264 HEIGHT=407 BORDER=0><BR CLEAR=LEFT><BR>
 </P>
-<P STYLE="margin-bottom: 0in">Csound6 has a pre-laid-out user
-interface consisting of a few menu buttons, five sliders, five click
-buttons, and a trackpad. In addition, the Android device may provide
-sensors such as accelerometers, GPS position, and temperature that
-are assigned Csound control channels.</P>
-<P STYLE="margin-bottom: 0in"><BR>
+<P STYLE="margin-bottom: 0in">Csound6 has a preset user interface
+consisting of four menu buttons, five sliders, five click buttons, a
+trackpad, and three context menu help buttons (not shown). The menu
+buttons perform the following functions:</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><I><B>New</B></I> &ndash; creates
+	a blank template CSD file in the root directory of the user's
+	storage for the user to edit. The CSD file will be remembered and
+	performed by Csound.</P>
+	<LI><P STYLE="margin-bottom: 0in"><I><B>Open </B></I><SPAN STYLE="font-variant: normal">&ndash;
+	</SPAN><SPAN STYLE="font-variant: normal"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">opens
+	an existing CSD file in the root directory of the user's storage.</SPAN></SPAN></SPAN>
+	The user's storage filesystem can be navigated to find other files.</P>
+	<LI><P STYLE="margin-bottom: 0in"><I><B>Edit</B></I> &ndash; opens a
+	text editor to edit the current CSD file. Be sure to save the file
+	you want to perform it! I recommend the free, open source Jota text
+	editor on smarphones and, though I haven't tried on tablets, it
+	probably works well there as well.</P>
+	<LI><P STYLE="margin-bottom: 0in"><I><B>Start/Stop</B></I> &ndash;
+	if a CSD file has been loaded, starts running Csound; if Csound is
+	running, stops it. If the <FONT FACE="Courier New, monospace">&lt;CsOptions&gt;</FONT>
+	element of the CSD file contains <FONT FACE="Courier New, monospace">-odac</FONT>,
+	Csound's audio output will go to the device audio output. If the CSD
+	file contains <FONT FACE="Courier New, monospace">-osoundfilename</FONT>,
+	Csound's audio output will to to the file <FONT FACE="Courier New, monospace">soundfilename</FONT>,
+	which should be a valid Linux pathname in the user's storage
+	filesystem.</P>
+</UL>
+<P STYLE="margin-bottom: 0in">The widgets are assigned control
+channel names <FONT FACE="Courier New, monospace">slider1</FONT>
+through <FONT FACE="Courier New, monospace">slider5</FONT>, <FONT FACE="Courier New, monospace">butt1</FONT>
+through <FONT FACE="Courier New, monospace">butt5</FONT>, <FONT FACE="Courier New, monospace">trackpad.x</FONT>,
+and <FONT FACE="Courier New, monospace">trackpad.y</FONT>. In
+addition, the accelerometer on the Android device is available as
+<FONT FACE="Courier New, monospace">accelerometerX</FONT>,
+<FONT FACE="Courier New, monospace">accelerometerY</FONT>, and
+<FONT FACE="Courier New, monospace">accelerometerZ</FONT>. 
 </P>
-<P STYLE="margin-bottom: 0in"><BR>
+<P STYLE="margin-bottom: 0in">The values of these widgets are
+normalized between 0 and 1, and can be read into Csound during
+performance using the <FONT FACE="Courier New, monospace">chnget</FONT>
+opcode, like this: 
 </P>
-<P STYLE="margin-bottom: 0in"><BR>
-</P>
-<P STYLE="margin-bottom: 0in"><BR>
-</P>
+<P STYLE="margin-bottom: 0in"><FONT FACE="Courier New, monospace">kslider1_value
+chnget &ldquo;slider1&rdquo;</FONT></P>
+<P STYLE="margin-bottom: 0in">The area below the trackpad prints
+messages output by Csound as it runs.</P>
+<P STYLE="margin-bottom: 0in">On Csound's SourceForge page, in the
+Files section, there is an archive of examples for the Csound6 app.
+Not all of these examples use the widgets, and some of them write
+audio to soundfile and not to the audio device. They do demonstrate
+not only some techniques for using the Csound6 Android app, but also
+a few of the many different ways of making music with Csound.</P>
+<P STYLE="margin-bottom: 0in">When I first encountered the Csound
+app, I was very impressed. Now that I have been able to contribute to
+its development, I have come to realize that a high end smartphone,
+or tablet, is in every sense of the word a real computer; the limits
+to what can be programmed on it are indefinable.</P>
 </BODY>
 </HTML>
