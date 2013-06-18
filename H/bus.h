@@ -178,6 +178,7 @@ int     chnexport_opcode_init(CSOUND *, CHNEXPORT_OPCODE *);
 int     chnparams_opcode_init(CSOUND *, CHNPARAMS_OPCODE *);
 
 int kinval(CSOUND *csound, INVAL *p);
+int kinvalS(CSOUND *csound, INVAL *p);
 int invalset(CSOUND *csound, INVAL *p);
 int invalset_string(CSOUND *csound, INVAL *p);
 int invalset_string_S(CSOUND *csound, INVAL *p);
