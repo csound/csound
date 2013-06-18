@@ -184,6 +184,7 @@ int invalset_string(CSOUND *csound, INVAL *p);
 int invalset_string_S(CSOUND *csound, INVAL *p);
 int invalset_S(CSOUND *csound, INVAL *p);
 int koutval(CSOUND *csound, OUTVAL *p);
+int koutvalS(CSOUND *csound, OUTVAL *p);
 int outvalset(CSOUND *csound, OUTVAL *p);
 int outvalset_string(CSOUND *csound, OUTVAL *p);
 int outvalset_string_S(CSOUND *csound, OUTVAL *p);

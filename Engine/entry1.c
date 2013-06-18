@@ -873,9 +873,9 @@ OENTRY opcodlst_1[] = {
   { "outvalue.k", S(OUTVAL), CW, 3, "", "Sk",
                                           (SUBR) outvalset_S, (SUBR) koutval, NULL},
   { "outvalue.S", S(OUTVAL), CW, 3, "", "iS",
-                                     (SUBR) outvalset_string, (SUBR) koutval, NULL},
+                                     (SUBR) outvalset_string, (SUBR) koutvalS, NULL},
   { "outvalue.SS", S(OUTVAL), CW, 3, "", "SS",
-                                   (SUBR) outvalset_string_S, (SUBR) koutval, NULL},
+                                   (SUBR) outvalset_string_S, (SUBR) koutvalS, NULL},
   /* IV - Oct 20 2002 */
   { "subinstr", S(SUBINST),0, 5, "mmmmmmmm", "Sm",  subinstrset_S, NULL, subinstr },
   { "subinstrinit", S(SUBINST),0, 1, "",    "Sm",   subinstrset_S, NULL, NULL     },
