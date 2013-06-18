@@ -49,5 +49,10 @@ add_test(NAME csoundDataStructuresTest
 	COMMAND $<TARGET_FILE:csoundDataStructuresTest> ${TEST_ARGS})
 endif()
 
+add_executable(ioTest io_test.c)
+target_link_libraries(ioTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME ioTest
+        COMMAND $<TARGET_FILE:ioTest> minimal.csd ${TEST_ARGS})
+
 
 
