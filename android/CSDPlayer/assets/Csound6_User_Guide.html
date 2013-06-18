@@ -5,7 +5,7 @@
 	<TITLE></TITLE>
 	<META NAME="GENERATOR" CONTENT="LibreOffice 4.0.1.2 (Windows)">
 	<META NAME="CREATED" CONTENT="20130611;20113632">
-	<META NAME="CHANGED" CONTENT="20130617;19311023">
+	<META NAME="CHANGED" CONTENT="20130617;20492971">
 	<STYLE TYPE="text/css">
 	<!--
 		@page { size: 8.5in 11in; margin: 0.79in }
@@ -22,8 +22,6 @@
 <BODY LANG="en-US" LINK="#000080" VLINK="#800000" DIR="LTR">
 <H1 CLASS="western" ALIGN=CENTER>User Guide<BR>Csound 6 for Android 
 </H1>
-<P ALIGN=CENTER STYLE="margin-bottom: 0in"><BR>
-</P>
 <P ALIGN=CENTER STYLE="margin-bottom: 0in"><I><B>Michael Gogins</B></I></P>
 <P ALIGN=CENTER STYLE="margin-bottom: 0in"><I><B>17 June 2013</B></I></P>
 <P ALIGN=CENTER STYLE="margin-bottom: 0in"><BR>
@@ -36,12 +34,13 @@ least, with &ldquo;Music N&rdquo; type software synthesizers.</P>
 of Csound, an audio and music synthesis and processing language of
 great power, created by Barry Vercoe in 1984, maintained with
 complete backward compatibility since then, and widely used and
-taught for the creation of electroacoustic and computer music.
-Csound6 has many advanced features for sound synthesis including
-user-designable instruments, an easy to learn programming language
-with a type system, several phase vocoders, sample players, a
-plethora of digital oscillators, filters, and envelope generators,
-transparent multi-threading for high performance, and an embedded Lua
+taught for the creation of electroacoustic and computer music. Desite
+its age, Csound6 remains under active development. It has many
+advanced features for sound synthesis including user-designable
+instruments, an easy to learn programming language with a type
+system, several phase vocoders, several sample players, a plethora of
+digital oscillators, filters, and envelope generators, transparent
+multi-threading for high performance, and an embedded Lua
 just-in-time compiler.</P>
 <P STYLE="margin-bottom: 0in">The Csound app is by Victor Lazzarini,
 Steven Yi, Michael Gogins, and others. The app contains virtually all
@@ -59,12 +58,11 @@ of Csound, including some of the more frequently used plugin opcodes:</P>
 	interface that is capable of loading any shared library that Android
 	permits, and calling any exported function in that library.</P>
 </UL>
-<P STYLE="margin-bottom: 0in"><IMG SRC="Csound6_User_Guide_html_773f6605.png" NAME="graphics1" ALIGN=LEFT WIDTH=264 HEIGHT=407 BORDER=0><BR CLEAR=LEFT><BR>
-</P>
 <P STYLE="margin-bottom: 0in">Csound6 has a preset user interface
 consisting of four menu buttons, five sliders, five click buttons, a
-trackpad, and three context menu help buttons (not shown). The menu
-buttons perform the following functions:</P>
+trackpad, and three context menu help buttons. The menu buttons
+perform the following functions: 
+</P>
 <UL>
 	<LI><P STYLE="margin-bottom: 0in"><I><B>New</B></I> &ndash; creates
 	a blank template CSD file in the root directory of the user's
@@ -76,16 +74,16 @@ buttons perform the following functions:</P>
 	The user's storage filesystem can be navigated to find other files.</P>
 	<LI><P STYLE="margin-bottom: 0in"><I><B>Edit</B></I> &ndash; opens a
 	text editor to edit the current CSD file. Be sure to save the file
-	you want to perform it! I recommend the free, open source Jota text
-	editor on smarphones and, though I haven't tried on tablets, it
-	probably works well there as well.</P>
+	before you perform it! I recommend the free, open source Jota text
+	editor on smartphones and, though I haven't tried Jota on tablets,
+	it probably works well there as well.</P>
 	<LI><P STYLE="margin-bottom: 0in"><I><B>Start/Stop</B></I> &ndash;
 	if a CSD file has been loaded, starts running Csound; if Csound is
 	running, stops it. If the <FONT FACE="Courier New, monospace">&lt;CsOptions&gt;</FONT>
 	element of the CSD file contains <FONT FACE="Courier New, monospace">-odac</FONT>,
-	Csound's audio output will go to the device audio output. If the CSD
-	file contains <FONT FACE="Courier New, monospace">-osoundfilename</FONT>,
-	Csound's audio output will to to the file <FONT FACE="Courier New, monospace">soundfilename</FONT>,
+	Csound's audio output will go to the device audio output. If the
+	element contains <FONT FACE="Courier New, monospace">-osoundfilename</FONT>,
+	Csound's audio output will go to the file <FONT FACE="Courier New, monospace">soundfilename</FONT>,
 	which should be a valid Linux pathname in the user's storage
 	filesystem.</P>
 </UL>
@@ -108,16 +106,17 @@ opcode, like this:
 chnget &ldquo;slider1&rdquo;</FONT></P>
 <P STYLE="margin-bottom: 0in">The area below the trackpad prints
 messages output by Csound as it runs.</P>
-<P STYLE="margin-bottom: 0in">On Csound's SourceForge page, in the
-Files section, there is an archive of examples for the Csound6 app.
-Not all of these examples use the widgets, and some of them write
-audio to soundfile and not to the audio device. They do demonstrate
-not only some techniques for using the Csound6 Android app, but also
-a few of the many different ways of making music with Csound.</P>
+<P STYLE="margin-bottom: 0in"><IMG SRC="Csound6_User_Guide_html_773f6605.png" NAME="graphics1" ALIGN=LEFT HSPACE=19 VSPACE=19 WIDTH=297 HEIGHT=586 BORDER=0><BR CLEAR=LEFT>On
+Csound's SourceForge page, in the Files section, there is an archive
+of examples for the Csound6 app. Not all of these examples use the
+widgets, and some of them write audio to soundfile and not to the
+audio device. They do demonstrate not only some techniques for using
+the Csound6 Android app, but also a few of the many different ways of
+making music with Csound.</P>
 <P STYLE="margin-bottom: 0in">When I first encountered the Csound
 app, I was very impressed. Now that I have been able to contribute to
 its development, I have come to realize that a high end smartphone,
-or tablet, is in every sense of the word a real computer; the limits
-to what can be programmed on it are indefinable.</P>
+not to mention a tablet, is in every sense of the word a real
+computer. The limits to what can be programmed on it are indefinable.</P>
 </BODY>
 </HTML>
