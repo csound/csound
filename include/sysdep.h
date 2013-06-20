@@ -380,5 +380,6 @@ static inline double csoundUndenormalizeDouble(double x)
 
 #endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 
+
 #endif  /* CSOUND_SYSDEP_H */
 

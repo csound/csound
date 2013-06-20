@@ -43,6 +43,7 @@
 %}
 
 %apply int { size_t };
+
 typedef unsigned int uint32_t;
 
 /* %typemap(freearg) char ** {
@@ -68,7 +69,6 @@ typedef unsigned int uint32_t;
 
 %include "csound.h"
 %include "cfgvar.h"
-
 
 %apply MYFLT *OUTPUT { MYFLT *dest };
 %apply MYFLT *INPUT { MYFLT *src };
@@ -101,4 +101,5 @@ typedef unsigned int uint32_t;
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
 %include "Soundfile.hpp"
+
 
