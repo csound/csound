@@ -16,7 +16,7 @@
 
 #define MyAppName "Csound6"
 #define MyAppVersion ""
-#define MyAppMinVersion "0rc2"
+#define MyAppMinVersion "0rc3"
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.

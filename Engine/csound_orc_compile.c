@@ -322,7 +322,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     TREE *inargs, *outargs;
     OPTXT *optxt, *retOptxt = NULL;
     char *arg;
-    int n, nreqd;
+    int n;// nreqd;
     optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
     tp = &(optxt->t);
     OENTRY* labelOpcode;
@@ -355,8 +355,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
                         "create_opcode: Found node for opcode %s\n",
                         root->value->lexeme);
 
-      // FIXME THIS RESULT IS NOT USED
-      nreqd = tree_arg_list_count(root->left);   /* outcount */
+      // FIXME THIS RESULT IS NOT USED -- VL I don't think it's needed
+      //nreqd = tree_arg_list_count(root->left);   /* outcount */
       /* replace opcode if needed */
 
       /* INITIAL SETUP */
@@ -857,6 +857,8 @@ void close_instrument(CSOUND *csound, ENGINE_STATE* engineState, INSTRTXT * ip)
 
 }
 
+void deleteVarPoolMemory(void* csound, CS_VAR_POOL* pool);
+
 /**
   This function deletes an inactive instrument which has been replaced
  */
@@ -879,7 +881,8 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
           mfree(csound, t);
           t = s;
         }
-     myflt_pool_free(csound, ip->varPool);
+    // myflt_pool_free(csound, ip->varPool);
+     deleteVarPoolMemory(csound, ip->varPool);
      //mfree(csound, ip->varPool); /* need to delete the varPool memory */
      mfree(csound, ip);
      if(csound->oparms->odebug)
@@ -1338,7 +1341,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     if (csound->instr0 == NULL) {
       engineState = &csound->engineState;
       engineState->varPool = typeTable->globalPool;
-      printf(" varpool: %p ---\n", engineState->varPool);
+      
       csound->instr0 = create_instrument0(csound, current, engineState,
                                           typeTable->instr0LocalPool);
       cs_hash_table_put_key(csound, engineState->stringPool, "\"\"");

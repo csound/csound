@@ -28,6 +28,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -75,6 +76,7 @@ public class CsoundAppActivity extends Activity implements
 	PackageInfo packageInfo = null;
 	static String OPCODE6DIR = null;
 	static String SSDIR = null;
+	WebView webview = null;
 
 	static {
 		try {
@@ -121,17 +123,14 @@ public class CsoundAppActivity extends Activity implements
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.itemNew:
-			newButton.performClick();
-			return true;
-		case R.id.itemOpen:
-			openButton.performClick();
-			return true;
-		case R.id.itemEdit:
-			editButton.performClick();
-			return true;
-		case R.id.itemRun:
-			startStopButton.performClick();
+		case R.id.itemGuide:
+			if (webview == null) {
+				webview = new WebView(this);
+				setContentView(webview);
+				webview.loadUrl("file:///android_asset/Csound6_User_Guide.html");
+			} else {
+				setContentView(webview);
+			}
 			return true;
 		case R.id.itemHelp:
 			goToUrl("http://www.csounds.com/manual/html/index.html");
@@ -220,8 +219,13 @@ public class CsoundAppActivity extends Activity implements
 	/**
 	 * Quit performing on leaving the user interface of the app.
 	 */
-	public void onBackPressed() {
-		finish();
+	public synchronized void onBackPressed() {
+		if (webview != null) {
+			setContentView(R.layout.main);
+			webview = null;
+		} else {
+			finish();
+		}
 	}
 
 	/** Called when the activity is first created. */
@@ -344,12 +348,17 @@ public class CsoundAppActivity extends Activity implements
 									+ "\n");
 						}
 					}
+					// Evidently, this has to be set before
+					// the very first Csound object is created.
+					csnd6.csndJNI.csoundSetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
+					csnd6.csndJNI.csoundSetGlobalEnv("SSDIR", SSDIR);
 					csound = new CsoundObj();
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
 					postMessageClear("Csound is starting...\n");
-					csound.getCsound().SetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
-					csound.getCsound().SetGlobalEnv("SSDIR", SSDIR);
+					// csound.getCsound().SetGlobalEnv("OPCODE6DIR",
+					// OPCODE6DIR);
+					// csound.getCsound().SetGlobalEnv("SSDIR", SSDIR);
 					// Make sure this stuff really got packaged.
 					String samples[] = null;
 					try {

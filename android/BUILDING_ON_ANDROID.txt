@@ -33,14 +33,10 @@ Clone the Csound 6 Git repository somewhere by executing:
 
 git clone git://git.code.sf.net/p/csound/csound6-git csound-csound6-git
 
-In the the Csound 6 source tree, there is an android/pluginlibs directory. 
-Download the following archives from SourceForge and unzip them in pluginlibs:
-
-http://sourceforge.net/projects/csound/files/csound5/Android/libsndfile-android.zip/download
-http://sourceforge.net/projects/csound/files/csound5/Android/fluidsynth-android.zip/download
-
-These archives contain source code for libsndfile (required for Csound) and 
-FluidSynth (used by the Fluid opcodes), packaged to build with the Android NDK.
+In the android directory, execute ./downloadDependencies.sh. This will 
+use git to clone or pull source code for libsndfile, which is required by 
+Csound, and for other optional third party libraries such as Fluidsynth 
+and LuaJIT.
 
 In your MSys shell, you use the following shell script or other 
 facility to set the environment variables that are used by the Android build:
