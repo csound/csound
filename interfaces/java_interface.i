@@ -21,6 +21,9 @@
 */
 
 /* module is now csnd6 */
+%{
+    #include <stdint.h>
+%}
 %module(directors="1") csnd6
 
 %feature("director") CsoundCallbackWrapper;
@@ -43,6 +46,7 @@
 %}
 
 %apply int { size_t };
+
 typedef unsigned int uint32_t;
 
 /* %typemap(freearg) char ** {
