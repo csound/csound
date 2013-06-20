@@ -598,7 +598,7 @@ int perf_faustctl(CSOUND *csound, faustctl *p) {
 static OENTRY localops[] = {
   { (char *) "faustgen", S(faustgen), 0, 5,
     (char *) "immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
-    (char *)"Sy",(SUBR)init_faustgen, NULL, (SUBR)perf_faust},
+    (char *)"SM",(SUBR)init_faustgen, NULL, (SUBR)perf_faust},
   { (char *) "faustcompile", S(faustcompile), 0, 1,
     (char *) "i",
     (char *)"SS",(SUBR)init_faustcompile, NULL, NULL},
