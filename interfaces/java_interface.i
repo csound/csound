@@ -21,9 +21,6 @@
 */
 
 /* module is now csnd6 */
-%{
-    #include <stdint.h>
-%}
 %module(directors="1") csnd6
 
 %feature("director") CsoundCallbackWrapper;
@@ -73,7 +70,6 @@ typedef unsigned int uint32_t;
 %include "csound.h"
 %include "cfgvar.h"
 
-
 %apply MYFLT *OUTPUT { MYFLT *dest };
 %apply MYFLT *INPUT { MYFLT *src };
 %ignore Csound::SetCscoreCallback(void (*cscoreCallback_)(CSOUND *));
@@ -105,4 +101,5 @@ typedef unsigned int uint32_t;
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
 %include "Soundfile.hpp"
+
 
