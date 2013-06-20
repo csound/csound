@@ -1246,6 +1246,18 @@ int kinval(CSOUND *csound, INVAL *p)
         return OK;
 }
 
+int kinvalS(CSOUND *csound, INVAL *p)
+{
+        if (csound->InputChannelCallback_)
+          csound->InputChannelCallback_(csound,
+                                        (char*) p->channelName.auxp,
+                                        (MYFLT *) ((STRINGDAT *)p->value)->data, p->channelType);
+	else memset(((STRINGDAT *)p->value)->data, '\0', ((STRINGDAT *)p->value)->size);
+
+        return OK;
+}
+
+
 int invalset_string_S(CSOUND *csound, INVAL *p)
 {
     int   err;
@@ -1264,8 +1276,12 @@ int invalset_string_S(CSOUND *csound, INVAL *p)
     if (UNLIKELY(err))
         return print_chn_err(p, err);
 
+    if(((STRINGDAT *)p->value)->data == NULL) {
+      ((STRINGDAT *)p->value)->data = (char *) mcalloc(csound, INIT_STRING_CHANNEL_DATASIZE);
+    ((STRINGDAT *)p->value)->size = INIT_STRING_CHANNEL_DATASIZE;
+    }
     /* grab input now for use during i-pass */
-    kinval(csound, p);
+    kinvalS(csound, p);
     if (!csound->InputChannelCallback_) {
         csound->Warning(csound,Str("InputChannelCallback not set."));
     }
@@ -1316,8 +1332,13 @@ int invalset_string(CSOUND *csound, INVAL *p)
     if (UNLIKELY(err))
         return print_chn_err(p, err);
 
+    if(((STRINGDAT *)p->value)->data == NULL) {
+    ((STRINGDAT *)p->value)->data = (char *) mcalloc(csound, INIT_STRING_CHANNEL_DATASIZE);
+    ((STRINGDAT *)p->value)->size = INIT_STRING_CHANNEL_DATASIZE;
+    }
+
     /* grab input now for use during i-pass */
-    kinval(csound, p);
+    kinvalS(csound, p);
     if (!csound->InputChannelCallback_) {
         csound->Warning(csound,Str("InputChannelCallback not set."));
     }
@@ -1353,6 +1374,18 @@ int invalset(CSOUND *csound, INVAL *p)
 
 
 
+int koutvalS(CSOUND *csound, OUTVAL *p)
+{
+    char    *chan = (char*)p->channelName.auxp;
+
+    if (csound->OutputChannelCallback_) {
+        csound->OutputChannelCallback_(csound, chan,
+              (MYFLT *) ((STRINGDAT *)p->value)->data, p->channelType);
+    }
+
+    return OK;
+}
+
 int koutval(CSOUND *csound, OUTVAL *p)
 {
     char    *chan = (char*)p->channelName.auxp;
@@ -1382,7 +1415,7 @@ int outvalset_string_S(CSOUND *csound, OUTVAL *p)
         return print_chn_err(p, err);
 
     /* send output now for use during i-pass */
-    koutval(csound, p);
+    koutvalS(csound, p);
     if (!csound->OutputChannelCallback_) {
         csound->Warning(csound,Str("OutputChannelCallback not set."));
     }
@@ -1439,7 +1472,7 @@ int outvalset_string(CSOUND *csound, OUTVAL *p)
         return print_chn_err(p, err);
 
     /* send output now for use during i-pass */
-    koutval(csound, p);
+    koutvalS(csound, p);
     if (!csound->OutputChannelCallback_) {
         csound->Warning(csound,Str("OutputChannelCallback not set."));
     }

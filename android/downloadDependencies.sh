@@ -9,7 +9,7 @@ echo "Using NDK_MODULE_PATH: $NDK_MODULE_PATH\n"
 cd $NDK_MODULE_PATH
 
 # LIBSNDFILE
-LIBSNDFILE_REPO=https://bitbucket.org/kunstmusik/libsndfile-android.git
+LIBSNDFILE_REPO=http://bitbucket.org/kunstmusik/libsndfile-android.git
 if [ -e libsndfile-android ]; then
   echo "libsndfile-android already exists, doing a pull to get the latest";
   cd libsndfile-android;
@@ -21,7 +21,7 @@ else
 fi
 
 # FLUIDSYNTH
-FLUIDSYNTH_REPO=https://bitbucket.org/kunstmusik/fluidsynth-android.git
+FLUIDSYNTH_REPO=http://bitbucket.org/kunstmusik/fluidsynth-android.git
 if [ -e fluidsynth-android ]; then
   echo "fluidsynth-android already exists, doing a pull to get the latest";
   cd fluidsynth-android;

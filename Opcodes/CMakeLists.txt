@@ -21,6 +21,7 @@ find_library(JACK_LIBRARY jack)
 find_library(JACKDMP_LIBRARY jackdmp)
 check_include_file(jack/jack.h JACK_HEADER)
 check_include_file_cxx(gmm/gmm.h GMM_HEADER)
+check_include_file_cxx(eigen3/E.h GMM_HEADER)
 check_include_file(lo/lo.h OSC_HEADER)
 find_library(LIBLO_LIBRARY lo)
 find_package(PNG)
@@ -35,9 +36,10 @@ find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
 find_library(P5GLOVE_LIB p5glove)
 
+if(BUILD_FAUST_OPCODES)
 find_package(LLVM)
 find_library(FAUST_LIBRARY faust HINTS /usr/local/lib/faust)
-
+endif()
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 

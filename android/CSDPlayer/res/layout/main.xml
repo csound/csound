@@ -132,7 +132,7 @@
             android:id="@+id/button1"
             style="@style/csoundButtonStyle"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="@string/butt1" />
 
@@ -140,7 +140,7 @@
             android:id="@+id/button2"
             style="@style/csoundButtonStyle"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="@string/butt2" />
 
@@ -148,7 +148,7 @@
             android:id="@+id/button3"
             style="@style/csoundButtonStyle"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="@string/butt3" />
 
@@ -156,7 +156,7 @@
             android:id="@+id/button4"
             style="@style/csoundButtonStyle"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="@string/butt4" />
 
@@ -164,16 +164,17 @@
             android:id="@+id/button5"
             style="@style/csoundButtonStyle"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="@string/butt5" />
-
     </LinearLayout>
 
     <Button
         android:id="@+id/pad"
+        style="@style/csoundButtonStyle"
         android:layout_width="match_parent"
-        android:layout_height="125dp"
+        android:layout_height="134dp"
+        android:layout_marginTop="-5dip"
         android:text="@string/trackpad" />
 
     <ScrollView

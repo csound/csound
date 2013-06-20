@@ -238,7 +238,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
       return CSOUND_ERROR;
     /* load library */
 /*  #if defined(LINUX) */
-/*       printf("About to open library '%s'\n", libraryPath); */
+    //      printf("About to open library '%s'\n", libraryPath); 
 /* #endif */
     err = csoundOpenLibrary(&h, libraryPath);
     if (UNLIKELY(err)) {
@@ -413,8 +413,12 @@ int csoundLoadModules(CSOUND *csound)
     }
     dir = opendir(dname);
     if (UNLIKELY(dir == (DIR*) NULL)) {
+      if(dname != NULL)
       csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
                                dname, strerror(errno));
+      else
+       csound->Warning(csound, Str("Error opening plugin directory: %s"),
+                               strerror(errno));
       return CSOUND_SUCCESS;
     }
     /* load database for deferred plugin loading */
