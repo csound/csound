@@ -8,11 +8,11 @@ import os.path
 
 # Import the Csound 5 API.
 
-import csnd
+import csnd6
 
 # Create an instance of Csound (actually, CppSound).
 
-csound = csnd.CppSound()
+csound = csnd6.CppSound()
 
 # Enable Csound to print to the Python console.
 
