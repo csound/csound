@@ -400,7 +400,7 @@ PUBLIC int *csoundGetChannelLock(CSOUND *csound,
       return NULL;
     pp = find_channel(csound, name);
     if (pp)
-      return &pp->lock;
+      return &(pp->lock);
     else return NULL;
 }
 
@@ -486,7 +486,7 @@ PUBLIC int csoundSetControlChannelHints(CSOUND *csound, const char *name,
     if (hints.attributes) {
         pp->hints.attributes
           = (char *) csound->Malloc(csound,
-                                    strlen(hints.attributes) * sizeof(char));
+                                    (strlen(hints.attributes) + 1)* sizeof(char));
         strcpy(pp->hints.attributes, hints.attributes);
     }
     return CSOUND_SUCCESS;
@@ -523,7 +523,7 @@ PUBLIC int csoundGetControlChannelHints(CSOUND *csound, const char *name,
     if (pp->hints.attributes) {
         hints->attributes
           = (char *) csound->Malloc(csound,
-                                    strlen(pp->hints.attributes) * sizeof(char));
+                                    (strlen(pp->hints.attributes) + 1) * sizeof(char));
         strcpy(hints->attributes, pp->hints.attributes);
     }
     return 0;

@@ -19,6 +19,8 @@ cp -f ../pluginlibs/LuaCsound/libs/armeabi-v7a/libLuaCsound.so libs/armeabi-v7a/
 
 rm -f libs/armeabi/libsndfile.so
 rm -f libs/armeabi-v7a/libsndfile.so
+rm -f libs/armeabi/libgnustl_shared.so
+rm -f libs/armeabi-v7a/libgnustl_shared.so
 
 find . -name "*.so"
 
