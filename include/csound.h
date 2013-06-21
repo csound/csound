@@ -1255,7 +1255,9 @@ extern "C" {
      * Creates a buffer for storing messages printed by Csound.
      * Should be called after creating a Csound instance andthe buffer
      * can be freed by calling csoundDestroyMessageBuffer() before
-     * deleting the Csound instance.
+     * deleting the Csound instance. You will generally want to call
+     * csoundCleanup() to make sure the last messages are flushed to
+     * the message buffer before destroying Csound.
      * If 'toStdOut' is non-zero, the messages are also printed to
      * stdout and stderr (depending on the type of the message),
      * in addition to being stored in the buffer.
