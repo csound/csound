@@ -19,7 +19,7 @@ void test_control_channel_params(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundEnableMessageBuffer(csound, 0);
+    csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=NULL");
     int argc = 2;
     csoundCompileOrc(csound, orc1);
@@ -49,7 +49,7 @@ void test_control_channel(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundEnableMessageBuffer(csound, 0);
+    csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
     int argc = 2;
     csoundCompileOrc(csound, orc1);
@@ -69,7 +69,7 @@ void test_channel_list(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundEnableMessageBuffer(csound, 0);
+    csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
     int argc = 2;
     csoundCompileOrc(csound, orc2);
@@ -138,7 +138,7 @@ void test_channel_callbacks(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundEnableMessageBuffer(csound, 0);
+    csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
     val1 = 0;
     csoundCompileOrc(csound, orc3);
@@ -203,7 +203,7 @@ void test_channel_opcodes(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundEnableMessageBuffer(csound, 0);
+    csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
     csoundCompileOrc(csound, orc4);
     csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback2);
@@ -252,7 +252,7 @@ void test_pvs_opcodes(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundEnableMessageBuffer(csound, 0);
+    csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
     csoundCompileOrc(csound, orc5);
     int err = csoundStart(csound);
@@ -272,7 +272,7 @@ void test_invalid_channel(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundEnableMessageBuffer(csound, 0);
+    csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
     csoundCompileOrc(csound, orc5);
 
@@ -297,7 +297,7 @@ void test_chn_hints(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundEnableMessageBuffer(csound, 0);
+    csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
     csoundCompileOrc(csound, orc6);
     int err = csoundStart(csound);
@@ -329,7 +329,7 @@ void test_string_channel(void)
 
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-    csoundEnableMessageBuffer(csound, 0);
+    csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=NULL");
     csoundCompileOrc(csound, orcS);
     int err = csoundStart(csound);

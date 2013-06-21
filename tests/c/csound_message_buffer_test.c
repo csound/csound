@@ -19,7 +19,7 @@ void test_create_buffer(void)
     CSOUND *csound = csoundCreate(0);
     int argc = 2;
     char *argv[] = {"csound", "-v"};
-    csoundEnableMessageBuffer(csound, 1);
+    csoundCreateMessageBuffer(csound, 1);
     int result = csoundCompile(csound, argc, argv);
 
     csoundDestroyMessageBuffer(csound);

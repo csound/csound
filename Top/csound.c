@@ -3618,12 +3618,15 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
  * in addition to being stored in the buffer.
  */
 
-void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut)
+void PUBLIC csoundCreateMessageBuffer(CSOUND *csound, int toStdOut)
 {
     csMsgBuffer *pp;
     size_t      nBytes;
 
-    csoundDestroyMessageBuffer(csound);
+    pp = (csMsgBuffer*) csound->message_buffer;
+    if (pp) {
+        csoundDestroyMessageBuffer(csound);
+    }
     nBytes = sizeof(csMsgBuffer);
     if (!toStdOut) {
         nBytes += (size_t) 16384;
