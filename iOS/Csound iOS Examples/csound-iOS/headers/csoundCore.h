@@ -1088,7 +1088,7 @@ typedef struct NAME__ {
     int (*ReadCircularBuffer)(CSOUND *, void *, MYFLT *, int);
     int (*WriteCircularBuffer)(CSOUND *, void *, const MYFLT *, int);
     void (*FlushCircularBuffer)(CSOUND *, void *);
-    void (*FreeCircularBuffer)(CSOUND *, void *);
+    void (*DestroyCircularBuffer)(CSOUND *, void *);
 
     /**@}*/
     /** @name File access */

@@ -727,8 +727,8 @@ static void rtclose_(CSOUND *csound)
         AudioObjectSetPropertyData(kAudioObjectSystemObject,
                                    &prop, 0, NULL, psize, &cdata->defdevout);
       }
-      csound->FreeCircularBuffer(csound, cdata->incb);
-      csound->FreeCircularBuffer(csound, cdata->outcb);
+      csound->DestroyCircularBuffer(csound, cdata->incb);
+      csound->DestroyCircularBuffer(csound, cdata->outcb);
       free(cdata);
       csound->Message(csound, Str("AuHAL module: device closed\n"));
     }
