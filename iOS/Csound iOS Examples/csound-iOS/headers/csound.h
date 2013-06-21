@@ -1264,7 +1264,7 @@ extern "C" {
      * csoundSetMessageCallback should not be called after creating the
      * message buffer.
      */
-    PUBLIC void csoundEnableMessageBuffer(CSOUND *csound, int toStdOut);
+    PUBLIC void csoundCreateMessageBuffer(CSOUND *csound, int toStdOut);
 
     /**
      * Returns the first message from the buffer.

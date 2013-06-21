@@ -1253,9 +1253,8 @@ extern "C" {
 
     /**
      * Creates a buffer for storing messages printed by Csound.
-     * Should be called after creating a Csound instance; note that
-     * the message buffer uses the host data pointer, and the buffer
-     * should be freed by calling csoundDestroyMessageBuffer() before
+     * Should be called after creating a Csound instance andthe buffer
+     * can be freed by calling csoundDestroyMessageBuffer() before
      * deleting the Csound instance.
      * If 'toStdOut' is non-zero, the messages are also printed to
      * stdout and stderr (depending on the type of the message),
@@ -1264,7 +1263,7 @@ extern "C" {
      * csoundSetMessageCallback should not be called after creating the
      * message buffer.
      */
-    PUBLIC void csoundEnableMessageBuffer(CSOUND *csound, int toStdOut);
+    PUBLIC void csoundCreateMessageBuffer(CSOUND *csound, int toStdOut);
 
     /**
      * Returns the first message from the buffer.
