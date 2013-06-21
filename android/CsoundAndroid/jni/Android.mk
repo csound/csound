@@ -242,9 +242,9 @@ $(CSOUND_SRC_ROOT)/interfaces/filebuilding.cpp \
 java_interfaceJAVA_wrap.cpp
 #CsoundObj.cpp
 
-LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lstdc++ -lm -lc
+LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc 
 
-LOCAL_SHARED_LIBRARIES += sndfile
+LOCAL_SHARED_LIBRARIES += sndfile gnustl_shared
 LOCAL_PREBUILT_LIBRARIES += sndfile 
 
 include $(BUILD_SHARED_LIBRARY)
