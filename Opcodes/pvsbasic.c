@@ -197,7 +197,7 @@ static int pvsfwrite_destroy(CSOUND *csound, void *pp)
   if(p->async){
     p->async = 0;
     pthread_join(p->thread, NULL);
-    csound->FreeCircularBuffer(csound, p->cb);
+    csound->DestroyCircularBuffer(csound, p->cb);
   }
   csound->PVOC_CloseFile(csound,p->pvfile);
   return OK;

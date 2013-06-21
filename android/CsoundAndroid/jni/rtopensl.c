@@ -506,8 +506,8 @@ void androidrtclose_(CSOUND *csound)
     params->engineEngine = NULL;
   }
   
-  csound->FreeCircularBuffer(csound, params->incb);
-  csound->FreeCircularBuffer(csound, params->outcb);
+  csound->DestroyCircularBuffer(csound, params->incb);
+  csound->DestroyCircularBuffer(csound, params->outcb);
 
   if (params->outputBuffer != NULL) {
     free(params->outputBuffer);

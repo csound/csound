@@ -119,7 +119,7 @@ int csoundWriteCircularBuffer(CSOUND *csound, void *p, const MYFLT *in, int item
   return itemswrite;
 }
 
-void csoundFreeCircularBuffer(CSOUND *csound, void *p){
+void csoundDestroyCircularBuffer(CSOUND *csound, void *p){
   if(p == NULL) return;
   csound->Free(csound, ((circular_buffer *)p)->buffer);
   csound->Free(csound, p);
