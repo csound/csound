@@ -3625,26 +3625,26 @@ void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut)
 
     csoundDestroyMessageBuffer(csound);
     nBytes = sizeof(csMsgBuffer);
-        if (!toStdOut) {
-                nBytes += (size_t) 16384;
-        }
+    if (!toStdOut) {
+        nBytes += (size_t) 16384;
+    }
     pp = (csMsgBuffer*) malloc(nBytes);
     pp->mutex_ = csoundCreateMutex(0);
     pp->firstMsg = (csMsgStruct*) NULL;
     pp->lastMsg = (csMsgStruct*) NULL;
     pp->msgCnt = 0;
     if (!toStdOut) {
-      pp->buf = (char*) pp + (int) sizeof(csMsgBuffer);
-          pp->buf[0] = (char) '\0';
+        pp->buf = (char*) pp + (int) sizeof(csMsgBuffer);
+        pp->buf[0] = (char) '\0';
     } else {
-          pp->buf = (char*) NULL;
-        }
-        csound->message_buffer = (void*) pp;
-        if (!toStdOut) {
-                csoundSetMessageCallback(csound, csoundMessageBufferCallback_1_);
-        } else {
-                csoundSetMessageCallback(csound, csoundMessageBufferCallback_2_);
-        }
+        pp->buf = (char*) NULL;
+    }
+    csound->message_buffer = (void*) pp;
+    if (toStdOut) {
+        csoundSetMessageCallback(csound, csoundMessageBufferCallback_2_);
+    } else {
+        csoundSetMessageCallback(csound, csoundMessageBufferCallback_1_);
+    }
 }
 
 /**
@@ -3675,15 +3675,15 @@ const char */*PUBLIC*/ csoundGetFirstMessage(CSOUND *csound)
 
 int PUBLIC csoundGetFirstMessageAttr(CSOUND *csound)
 {
-        csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+    csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     int         attr = 0;
 
     if (pp && pp->msgCnt) {
-          csoundLockMutex(pp->mutex_);
-          if (pp->firstMsg) {
-                  attr = pp->firstMsg->attr;
-          }
-      csoundUnlockMutex(pp->mutex_);
+        csoundLockMutex(pp->mutex_);
+        if (pp->firstMsg) {
+            attr = pp->firstMsg->attr;
+        }
+        csoundUnlockMutex(pp->mutex_);
     }
     return attr;
 }
@@ -3694,7 +3694,7 @@ int PUBLIC csoundGetFirstMessageAttr(CSOUND *csound)
 
 void PUBLIC csoundPopFirstMessage(CSOUND *csound)
 {
-        csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+    csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
 
     if (pp) {
       csMsgStruct *tmp;
@@ -3718,8 +3718,8 @@ void PUBLIC csoundPopFirstMessage(CSOUND *csound)
 
 int PUBLIC csoundGetMessageCnt(CSOUND *csound)
 {
-        csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
-    int         cnt = 0;
+    csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
+    int         cnt = -1;
 
     if (pp) {
       csoundLockMutex(pp->mutex_);
@@ -3735,12 +3735,20 @@ int PUBLIC csoundGetMessageCnt(CSOUND *csound)
 
 void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound)
 {
-        csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
-    csound->message_buffer = NULL;
-    csoundSetMessageCallback(csound, NULL);
+    csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     if (!pp) {
+        csound->Warning(csound,
+                        Str("csoundDestroyMessageBuffer: Message buffer not allocated."));
         return;
     }
+    csMsgStruct *msg = pp->firstMsg;
+    while (msg) {
+        csMsgStruct *tmp = msg;
+        msg = tmp->nxt;
+        free(tmp);
+    }
+    csound->message_buffer = NULL;
+    csoundSetMessageCallback(csound, NULL);
     while (csoundGetMessageCnt(csound) > 0) {
         csoundPopFirstMessage(csound);
     }

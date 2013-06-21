@@ -22,8 +22,8 @@ void test_create_buffer(void)
     csoundEnableMessageBuffer(csound, 1);
     int result = csoundCompile(csound, argc, argv);
 
-    csoundDestroy(csound);
     csoundDestroyMessageBuffer(csound);
+    csoundDestroy(csound);
 }
 
 int main()
