@@ -2152,7 +2152,7 @@ extern "C" {
  /**
   * Free circular buffer
   */
-  PUBLIC void csoundFreeCircularBuffer(CSOUND *csound, void *circularbuffer);
+  PUBLIC void csoundDestroyCircularBuffer(CSOUND *csound, void *circularbuffer);
 
   /**
    * Platform-independent function to load a shared library.
