@@ -1253,7 +1253,7 @@ int kinvalS(CSOUND *csound, INVAL *p)
                                         (char*) p->channelName.auxp,
                                         (MYFLT *) ((STRINGDAT *)p->value)->data, p->channelType);
 	else memset(((STRINGDAT *)p->value)->data, '\0', ((STRINGDAT *)p->value)->size);
-
+          
         return OK;
 }
 
