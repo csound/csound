@@ -1324,7 +1324,7 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
     p->async_flag = ASYNC_GLOBAL;
 
-    p->cb = csound->CreateCircularBuffer(csound, buffsize*4);
+    p->cb = csound->CreateCircularBuffer(csound, buffsize*4, sizeof(MYFLT));
     p->items = 0;
     p->pos = 0;
     p->bufsize = buffsize;
