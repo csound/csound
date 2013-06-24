@@ -2256,7 +2256,6 @@ void *init_pass_thread(void *p){
         OPDS *ids = (OPDS *) (ip->nxti);
         while (ids != NULL) {
           (*ids->iopadr)(csound, ids);
-          ((INSDS*)ids)->init_done=1;
           ids = ids->nxti;
         }
         ip->init_done = 1;
