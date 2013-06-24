@@ -1529,7 +1529,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     /* lock to ensure thread-safety */
     csoundLockMutex(csound->API_lock);
-    if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
+    if(csound->init_pass_threadlock) csoundLockMutex(csound->init_pass_threadlock);
     if(engineState != &csound->engineState) {
       OPDS *ids = csound->ids;
       /* any compilation other than the first one */
@@ -1585,7 +1585,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     }
 
-    if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
+    if(csound->init_pass_threadlock) csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
 
