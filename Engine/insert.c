@@ -2246,15 +2246,15 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
 void *init_pass_thread(void *p){
   CSOUND *csound = (CSOUND *) p;
   INSDS *ip;
-  while(1) {
+  while(csound->init_pass_loop) {
     csoundLockMutex(csound->init_pass_threadlock);
     ip = csound->actanchor.nxtact;
     /* do init pass for this instr */
     while(ip != NULL){
-      INSDS *nxt = ip->nxtact;
-      if(ip->init_done == 0){
+      INSDS *nxt = ip->nxtact;    
+      if(ip->init_done == 0){   
         OPDS *ids = (OPDS *) (ip->nxti);
-        while (ids != NULL) {
+        while (ids != NULL) {        
           (*ids->iopadr)(csound, ids);
           ids = ids->nxti;
         }
