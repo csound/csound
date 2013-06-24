@@ -1084,9 +1084,9 @@ typedef struct NAME__ {
     /**@}*/
     /** @name Circular lock-free buffer */
     /**@{ */
-    void *(*CreateCircularBuffer)(CSOUND *, int);
-    int (*ReadCircularBuffer)(CSOUND *, void *, MYFLT *, int);
-    int (*WriteCircularBuffer)(CSOUND *, void *, const MYFLT *, int);
+    void *(*CreateCircularBuffer)(CSOUND *, int, int);
+    int (*ReadCircularBuffer)(CSOUND *, void *, void *, int);
+    int (*WriteCircularBuffer)(CSOUND *, void *, const void *, int);
     void (*FlushCircularBuffer)(CSOUND *, void *);
     void (*DestroyCircularBuffer)(CSOUND *, void *);
 
