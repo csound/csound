@@ -43,6 +43,7 @@
 %}
 
 %apply int { size_t };
+
 typedef unsigned int uint32_t;
 
 /* %typemap(freearg) char ** {
@@ -69,28 +70,8 @@ typedef unsigned int uint32_t;
 %include "csound.h"
 %include "cfgvar.h"
 
-
 %apply MYFLT *OUTPUT { MYFLT *dest };
 %apply MYFLT *INPUT { MYFLT *src };
-%ignore Csound::SetCscoreCallback(void (*cscoreCallback_)(CSOUND *));
-//%ignore Csound::SetOutputValueCallback(void (*)(CSOUND *, const char *, MYFLT));
-//%ignore Csound::SetInputValueCallback(void (*)(CSOUND *, const char *, MYFLT *));
-%ignore Csound::SetExternalMidiInOpenCallback(int (*)(CSOUND *, void *, const char*));
-%ignore Csound::SetExternalMidiReadCallback(int (*)(CSOUND *, void *, unsigned char *, int));
-%ignore Csound::SetExternalMidiInCloseCallback(int (*)(CSOUND *, void *));
-%ignore Csound::SetHostData(void *);
-%ignore Csound::GetHostData();
-%ignore Csound::SetMessageCallback(void (*)(CSOUND *, int attr,const char *format, va_list valist));
-%ignore Csound::CreateConfigurationVariable;
-%ignore Csound::SetConfigurationVariable;
-%ignore Csound::QueryConfigurationVariable;
-%ignore Csound::ListConfigurationVariables;
-%ignore Csound::DeleteConfigurationVariable;
-%ignore Csound::ParseConfigurationVariable;
-%ignore Csound::GetHostData();
-//%ignore Csound::setPydata;
-//%ignore Csound::getPydata;
-
 %include "csound.hpp"
 
 
@@ -101,4 +82,5 @@ typedef unsigned int uint32_t;
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
 %include "Soundfile.hpp"
+
 

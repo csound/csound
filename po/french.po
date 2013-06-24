@@ -215,7 +215,7 @@ msgstr ""
 #: Engine/csound_orc_compile.c:800
 #, c-format
 msgid "create_instrument: instr num %ld\n"
-msgstr "create_instrument : numero d'instrument %ld\n"
+msgstr "create_instrument : numéro d'instrument %ld\n"
 
 #: Engine/csound_orc_compile.c:886
 msgid "-- deleted instr from deadpool \n"
@@ -239,7 +239,7 @@ msgstr "instr %ld redéfini, précédente définition remplacée"
 #: Engine/csound_orc_compile.c:1061
 #, c-format
 msgid "instr %s uses instrument number %d\n"
-msgstr "l'instr %s utilise le numero d'instrument %d\n"
+msgstr "l'instr %s utilise le numéro d'instrument %d\n"
 
 #: Engine/csound_orc_compile.c:1132
 #, c-format
@@ -458,7 +458,7 @@ msgstr "erreur interne : csoundCreateFileHandle() : type non valide : %d"
 
 #: Engine/fgens.c:91
 msgid "unknown GEN number"
-msgstr "numero de GEN inconnu"
+msgstr "numéro de GEN inconnu"
 
 #: Engine/fgens.c:133
 msgid "ftable does not exist"
@@ -482,7 +482,7 @@ msgstr "Le GEN nommé \"%s\" n'est pas défini"
 
 #: Engine/fgens.c:187
 msgid "illegal gen number"
-msgstr "numero de GEN interdit"
+msgstr "numéro de GEN interdit"
 
 #: Engine/fgens.c:195
 msgid "deferred size for GENs 1, 23, 28 or 49 only"
@@ -532,7 +532,7 @@ msgstr "pas assez d'arguments"
 
 #: Engine/fgens.c:413 Engine/fgens.c:1367
 msgid "unknown srctable number"
-msgstr "numero de srctable inconnu"
+msgstr "numéro de srctable inconnu"
 
 #: Engine/fgens.c:426
 msgid "table size too large"
@@ -654,7 +654,7 @@ msgstr "GEN33 : la ftable source n'a pas été trouvée"
 
 #: Engine/fgens.c:2072
 msgid "unknown source table number"
-msgstr "numero de table source inconnu"
+msgstr "numéro de table source inconnu"
 
 #: Engine/fgens.c:2104
 msgid "Gen41: negative probability not allowed"
@@ -763,7 +763,7 @@ msgstr "Le chargement du fichier PVOC-EX a échoué"
 #: Engine/fgens.c:2729 InOut/midirecv.c:417 OOps/midiops.c:402
 #: OOps/midiops.c:452 OOps/midiops.c:464
 msgid "illegal channel number"
-msgstr "numero de canal illégal"
+msgstr "numéro de canal illégal"
 
 #: Engine/fgens.c:2747
 msgid "ftable size too small"
@@ -792,7 +792,7 @@ msgstr "GEN53 : longueur de table non valide"
 
 #: Engine/fgens.c:3201
 msgid "GEN53: invalid source table number"
-msgstr "GEN53 : numero de la table source non valide"
+msgstr "GEN53 : numéro de la table source non valide"
 
 #: Engine/fgens.c:3204
 msgid "GEN53: mode must be in the range 0 to 15"
@@ -1382,7 +1382,7 @@ msgstr "erreur dans la partition.  L'opcode %c (ASCII %d) est illégal\n"
 
 #: Engine/musmon.c:1233
 msgid "insert_score_event(): invalid instrument number or name\n"
-msgstr "insert_score_event() : numero ou nom d'instrument non valide\n"
+msgstr "insert_score_event() : numéro ou nom d'instrument non valide\n"
 
 #: Engine/musmon.c:1253
 #, c-format
@@ -1806,7 +1806,7 @@ msgstr ""
 #: Engine/swritestr.c:538
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal number  "
-msgstr "swrite : sortie, sect %d ligne %d p%d a un numero illégal  "
+msgstr "swrite : sortie, sect %d ligne %d p%d a un numéro illégal  "
 
 #: Engine/swritestr.c:545
 msgid "    String truncated\n"
@@ -1888,7 +1888,7 @@ msgstr "connexion du périphérique midi %d : %s\n"
 #: InOut/cmidi.c:151
 #, c-format
 msgid "MIDI device number %d is out-of-range, not connected \n"
-msgstr "Le périphérique midi numero %d est hors limites, pas de connexion\n"
+msgstr "Le périphérique midi numéro %d est hors limites, pas de connexion\n"
 
 #: InOut/cmidi.c:169
 msgid "output not implemented yet in CoreMIDI \n"
@@ -2360,7 +2360,7 @@ msgstr "NPRN inconnu, lsb %d\n"
 #: InOut/midirecv.c:277
 #, c-format
 msgid "unknown drum param nos, msb %d lsb %d\n"
-msgstr "numero de param drum inconnu, msb %d, lsb %d\n"
+msgstr "numéro de param drum inconnu, msb %d, lsb %d\n"
 
 #: InOut/midirecv.c:292
 #, c-format
@@ -2475,12 +2475,12 @@ msgstr " *** erreur à l'initialisation de PortTime"
 #: InOut/pmidi.c:227
 msgid "error: must specify a device number (>=0) or 'a' for all, not a name"
 msgstr ""
-"erreur : il faut un numero de périphérique (>=0) ou 'a' pour all (tous), "
+"erreur : il faut un numéro de périphérique (>=0) ou 'a' pour all (tous), "
 "pas un nom"
 
 #: InOut/pmidi.c:234 InOut/pmidi.c:318
 msgid "error: device number is out of range"
-msgstr "erreur : numero de périphérique hors limites"
+msgstr "erreur : numéro de périphérique hors limites"
 
 #: InOut/pmidi.c:244
 msgid "no input devices are available"
@@ -2508,7 +2508,7 @@ msgstr "aucun périphérique de sortie n'est disponible"
 #: InOut/pmidi.c:311
 msgid "error: must specify a device number (>=0), not a name"
 msgstr ""
-"erreur : il faut spécifier un numero de périphérique (>=0), pas un nom"
+"erreur : il faut spécifier un numéro de périphérique (>=0), pas un nom"
 
 #: InOut/pmidi.c:324
 #, c-format
@@ -2615,7 +2615,7 @@ msgstr "ALSA %s : taille de tampon totale : %d, période : %d\n"
 #: InOut/rtalsa.c:568
 msgid " *** ALSA: must specify a device name, not a number (e.g. -odac:hw:0,0)"
 msgstr ""
-" *** ALSA : il faut spécifier un nom de périphérique, pas un numero (ex. "
+" *** ALSA : il faut spécifier un nom de périphérique, pas un numéro (ex. "
 "-odac:hw:0,0)"
 
 #: InOut/rtalsa.c:576
@@ -2697,7 +2697,7 @@ msgstr "Le fichier '%s' est ouvert comme source d'entrée MIDI\n"
 #: InOut/rtalsa.c:1049
 #, c-format
 msgid "sensMIDI: retval errno %d"
-msgstr "sensMIDI : retval erreur numero %d"
+msgstr "sensMIDI : retval erreur numéro %d"
 
 #: InOut/rtalsa.c:1116
 #, c-format
@@ -2957,7 +2957,7 @@ msgstr "erreur à la connexion des ports de sortie"
 
 #: InOut/rtjack.c:547
 msgid "must specify a device name, not a number"
-msgstr "Il faut spécifier un nom de périphérique, pas un numero"
+msgstr "Il faut spécifier un nom de périphérique, pas un numéro"
 
 #: InOut/rtjack.c:553
 msgid "device name is too long"
@@ -3011,7 +3011,7 @@ msgstr " *** PortAudio : erreur :"
 #: InOut/rtpa.c:178
 #, c-format
 msgid "%s device number %d is out of range"
-msgstr "Le numero %2$d du périphérique %1$s est hors limites"
+msgstr "Le numéro %2$d du périphérique %1$s est hors limites"
 
 #: InOut/rtpa.c:195
 #, c-format
@@ -3025,7 +3025,7 @@ msgstr ""
 
 #: InOut/rtpa.c:212 InOut/rtpa.c:625 InOut/rtwinmm.c:267
 msgid "Must specify a device number, not a name"
-msgstr "Il faut spécifier un numero de périphérique, pas un nom"
+msgstr "Il faut spécifier un numéro de périphérique, pas un nom"
 
 #: InOut/rtpa.c:247
 msgid "No sound device is available"
@@ -3147,7 +3147,7 @@ msgstr "Aucun périphérique de sortie n'est disponible"
 
 #: InOut/rtwinmm.c:286
 msgid "Device number is out of range"
-msgstr "Le numero du périphérique est hors limites"
+msgstr "Le numéro du périphérique est hors limites"
 
 #: InOut/rtwinmm.c:290
 #, c-format
@@ -3164,7 +3164,7 @@ msgstr "aucun périphérique d'entrée n'est disponible"
 
 #: InOut/rtwinmm.c:305
 msgid "device number is out of range"
-msgstr "le numero du périphérique est hors limites"
+msgstr "le numéro du périphérique est hors limites"
 
 #: InOut/rtwinmm.c:309
 #, c-format
@@ -3181,7 +3181,7 @@ msgstr "rtmidi : aucun périphérique d'entrée n'est disponible"
 
 #: InOut/rtwinmm.c:542 InOut/rtwinmm.c:646
 msgid "rtmidi: must specify a device number, not a name"
-msgstr "rtmidi : il faut spécifier un numero de périphérique, pas un nom"
+msgstr "rtmidi : il faut spécifier un numéro de périphérique, pas un nom"
 
 #: InOut/rtwinmm.c:548
 msgid "The available MIDI input devices are:\n"
@@ -3189,7 +3189,7 @@ msgstr "Les périphérique d'entrée MIDI disponibles sont :\n"
 
 #: InOut/rtwinmm.c:555
 msgid "rtmidi: input device number is out of range"
-msgstr "rtmidi : le numero du périphérique d'entrée est hors limites"
+msgstr "rtmidi : le numéro du périphérique d'entrée est hors limites"
 
 #: InOut/rtwinmm.c:560
 msgid "rtmidi: memory allocation failure"
@@ -3214,7 +3214,7 @@ msgstr "Les périphériques de sortie MIDI disponibles sont :\n"
 
 #: InOut/rtwinmm.c:659
 msgid "rtmidi: output device number is out of range"
-msgstr "rtmidi : le numero du périphérique de sortie est hors limites"
+msgstr "rtmidi : le numéro du périphérique de sortie est hors limites"
 
 #: InOut/rtwinmm.c:663
 #, c-format
@@ -3484,7 +3484,7 @@ msgstr ""
 
 #: InOut/widgets.cpp:4607
 msgid "FLkeyIn: invalid table number"
-msgstr "FLkeyIn : numero de table non valide"
+msgstr "FLkeyIn : numéro de table non valide"
 
 #: InOut/widgets.cpp:4611
 msgid "FLkeyIn: table too short!"
@@ -3505,7 +3505,7 @@ msgstr ""
 
 #: InOut/widgets.cpp:5314 InOut/widgets.cpp:5382
 msgid "FLsldBnkSet: invalid table number"
-msgstr "FLsldBnkSet : numero de table non valide"
+msgstr "FLsldBnkSet : numéro de table non valide"
 
 #: InOut/widgets.cpp:5319 InOut/widgets.cpp:5387
 msgid "FLslidBnkSet: table too short!"
@@ -3513,7 +3513,7 @@ msgstr "FLslidBnkSetk : table trop courte !"
 
 #: InOut/widgets.cpp:5327 InOut/widgets.cpp:5396
 msgid "FLsldBnkSet: invalid outable number"
-msgstr "FLsldBnkSet : numero de outable non valide"
+msgstr "FLsldBnkSet : numéro de outable non valide"
 
 #: InOut/widgets.cpp:5332 InOut/widgets.cpp:5402
 msgid "FLslidBnkSet: too many sliders to reset!"
@@ -3533,7 +3533,7 @@ msgstr ""
 
 #: InOut/widgets.cpp:5462
 msgid "FLsldBnkSetk: invalid table number"
-msgstr "FLslidBnkSetk : numero de table non valide"
+msgstr "FLslidBnkSetk : numéro de table non valide"
 
 #: InOut/widgets.cpp:5467 InOut/widgets.cpp:5558
 msgid "FLslidBnkSetk: table too short!"
@@ -3541,7 +3541,7 @@ msgstr "FLslidBnkSetk : table trop courte !"
 
 #: InOut/widgets.cpp:5475
 msgid "FLsldBnkSetk: invalid outable number"
-msgstr "FLslidBnkSetk : numero de outable non valide"
+msgstr "FLslidBnkSetk : numéro de outable non valide"
 
 #: InOut/widgets.cpp:5481 InOut/widgets.cpp:5572
 msgid "FLslidBnkSetk: too many sliders to reset!"
@@ -3549,11 +3549,11 @@ msgstr "FLslidBnkSetk : trop de règlettes à réinitialiser !"
 
 #: InOut/widgets.cpp:5553
 msgid "FLslidBnkSetk: invalid table number"
-msgstr "FLslidBnkSetk : numero de table non valide"
+msgstr "FLslidBnkSetk : numéro de table non valide"
 
 #: InOut/widgets.cpp:5566
 msgid "FLslidBnkSetk: invalid outable number"
-msgstr "FLslidBnkSetk : numero de outable non valide"
+msgstr "FLslidBnkSetk : numéro de outable non valide"
 
 #: InOut/widgets.cpp:5647
 msgid "FLxyin: none of X limits can be zero in exponential mode!"
@@ -3655,7 +3655,7 @@ msgstr "nombre d'arguments != nchnls"
 #: OOps/aops.c:1984
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
-"outrg : le numero de canal ne peut pas être < 1 (1 est le premier canal)"
+"outrg : le numéro de canal ne peut pas être < 1 (1 est le premier canal)"
 
 #: OOps/bus.c:80 OOps/bus.c:102 OOps/bus.c:127 OOps/bus.c:155
 msgid "chani: invalid index"
@@ -4001,7 +4001,7 @@ msgstr "durée négative"
 
 #: OOps/goto_ops.c:203
 msgid "turnoff2: invalid instrument number"
-msgstr "turnoff2 : numero d'instrument non valide"
+msgstr "turnoff2 : numéro d'instrument non valide"
 
 #: OOps/goto_ops.c:209
 msgid "turnoff2: invalid mode parameter"
@@ -4026,11 +4026,11 @@ msgstr "cpstabm : table de modulateur non valide"
 #: Opcodes/midiops2.c:316 Opcodes/midiops2.c:335 Opcodes/midiops2.c:375
 #: Opcodes/midiops2.c:406 Opcodes/midiops2.c:456 Opcodes/midiops2.c:490
 msgid "illegal controller number"
-msgstr "numero de contrôleur illégal"
+msgstr "numéro de contrôleur illégal"
 
 #: OOps/midiops.c:426
 msgid "pgmassign: invalid program number"
-msgstr "pgmassign : numero de programme non valide"
+msgstr "pgmassign : numéro de programme non valide"
 
 #: OOps/midiout.c:119
 msgid "illegal mrtmsg argument"
@@ -4683,11 +4683,11 @@ msgstr "l'initialisation des variables globales distantes a échoué."
 
 #: OOps/remote.c:425 OOps/remote.c:472
 msgid "missing instr nos"
-msgstr "il manque les numeros d'instr"
+msgstr "il manque les numéros d'instr"
 
 #: OOps/remote.c:439 OOps/remote.c:482
 msgid "illegal instr no"
-msgstr "numero d'instr illégal"
+msgstr "numéro d'instr illégal"
 
 #: OOps/remote.c:442
 msgid "insno already remote"
@@ -4708,11 +4708,11 @@ msgstr "insno est déjà distant spécifique"
 
 #: OOps/remote.c:505 OOps/remote.c:549
 msgid "missing channel nos"
-msgstr "il manque les numeros de canal"
+msgstr "il manque les numéros de canal"
 
 #: OOps/remote.c:517 OOps/remote.c:559
 msgid "illegal channel no"
-msgstr "numero de canal illégal"
+msgstr "numéro de canal illégal"
 
 #: OOps/remote.c:520
 msgid "channel already remote"
@@ -4750,7 +4750,7 @@ msgstr "schedkwhen avertissement : kwhen négatif ramené à zéro"
 
 #: OOps/schedule.c:450 OOps/schedule.c:473
 msgid "trigseq: incorrect table number"
-msgstr "trigseq : numero de table incorrect"
+msgstr "trigseq : numéro de table incorrect"
 
 #: OOps/sndinfUG.c:56 OOps/sndinfUG.c:271
 msgid "no infile specified in the commandline"
@@ -4924,7 +4924,7 @@ msgstr "table3 : non initialisé"
 #: OOps/ugens2.c:955
 #, c-format
 msgid "k rate function table no. %f < 1"
-msgstr "le numero de la table de fonction de taux-k %f < 1"
+msgstr "le numéro de la table de fonction de taux-k %f < 1"
 
 #: OOps/ugens2.c:1010
 msgid "duration < zero\n"
@@ -5182,7 +5182,7 @@ msgstr "frqratio illégal, %5.2f"
 
 #: OOps/ugens5.c:1335
 msgid "lpslot number should be positive"
-msgstr "le numero de lpslot doit être positif"
+msgstr "le numéro de lpslot doit être positif"
 
 #: OOps/ugens5.c:1355
 msgid "LPC slot is not allocated"
@@ -6109,7 +6109,7 @@ msgstr "ftload : erreur d'allocation de la ftable"
 
 #: Opcodes/ftgen.c:394
 msgid "ftload: no table numbers"
-msgstr "ftload : pas de numero de table"
+msgstr "ftload : pas de numéro de table"
 
 #: Opcodes/ftgen.c:396
 msgid "ftload: unable to open file"
@@ -6122,12 +6122,12 @@ msgstr "ftload : fichier incorrect"
 #: Opcodes/ftgen.c:539
 msgid "ftsave: Bad table number. Saving is possible only for existing tables."
 msgstr ""
-"ftsave : mauvais numero de table. La sauvegarde n'est possible que pour des "
+"ftsave : mauvais numéro de table. La sauvegarde n'est possible que pour des "
 "tables existantes."
 
 #: Opcodes/ftgen.c:542
 msgid "ftsave: no table numbers"
-msgstr "ftsave : pas de numeros de table"
+msgstr "ftsave : pas de numéros de table"
 
 #: Opcodes/ftgen.c:544
 msgid "ftsave: unable to open file"
@@ -6139,7 +6139,7 @@ msgstr "ftsave : impossible d'ouvrir le fichier"
 
 #: Opcodes/gab/gab.c:112
 msgid "fastab: incorrect table number"
-msgstr "fastab : numero de table incorrect"
+msgstr "fastab : numéro de table incorrect"
 
 #: Opcodes/gab/gab.c:139 Opcodes/gab/gab.c:148 Opcodes/gab/gab.c:178
 msgid "tabw off end"
@@ -6151,16 +6151,16 @@ msgstr "tab hors-limite"
 
 #: Opcodes/gab/gab.c:190
 msgid "tab_i: incorrect table number"
-msgstr "tab_i : numero de table incorrect"
+msgstr "tab_i : numéro de table incorrect"
 
 #: Opcodes/gab/gab.c:198
 #, c-format
 msgid "tab_i off end: table number: %d\n"
-msgstr "tab_i hors-limite : numero de table : %d\n"
+msgstr "tab_i hors-limite : numéro de table : %d\n"
 
 #: Opcodes/gab/gab.c:211
 msgid "tabw_i: incorrect table number"
-msgstr "tabw_i : numero de table incorrect"
+msgstr "tabw_i : numéro de table incorrect"
 
 #: Opcodes/gab/gab.c:218
 msgid "tabw_i off end"
@@ -6168,7 +6168,7 @@ msgstr "tabw_i hors-limite"
 
 #: Opcodes/gab/gab.c:263
 msgid "tab_init: incorrect table number"
-msgstr "tab_init : numero de table incorrect"
+msgstr "tab_init : numéro de table incorrect"
 
 #: Opcodes/gab/gab.c:332
 msgid "printi parameter was not a \"quoted string\""
@@ -6235,11 +6235,11 @@ msgstr "vphaseseg : fonction non valide ou manquante"
 
 #: Opcodes/gab/newgabopc.c:40 Opcodes/gab/newgabopc.c:56
 msgid "vtable1: incorrect table number"
-msgstr "vtable1 : numero de table incorrect"
+msgstr "vtable1 : numéro de table incorrect"
 
 #: Opcodes/gab/newgabopc.c:244 Opcodes/gab/newgabopc.c:302
 msgid "copyTabElems: incorrect destination table number"
-msgstr "copyTabElems : numero de table incorrect"
+msgstr "copyTabElems : numéro de table incorrect"
 
 #: Opcodes/gab/newgabopc.c:250 Opcodes/gab/newgabopc.c:307
 msgid ""
@@ -6251,7 +6251,7 @@ msgstr ""
 
 #: Opcodes/gab/newgabopc.c:256 Opcodes/gab/newgabopc.c:312
 msgid "copyTabElems: incorrect source table number"
-msgstr "copyTabElems : numero de table source incorrect"
+msgstr "copyTabElems : numéro de table source incorrect"
 
 #: Opcodes/gab/newgabopc.c:261 Opcodes/gab/newgabopc.c:316
 msgid ""
@@ -6274,7 +6274,7 @@ msgstr "inrg : entrée audio désactivée"
 #: Opcodes/gab/newgabopc.c:373
 msgid "inrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
-"inrg : le numero de canal ne peut pas être < 1 (1 est le premier canal)"
+"inrg : le numéro de canal ne peut pas être < 1 (1 est le premier canal)"
 
 #: Opcodes/gab/newgabopc.c:398 Opcodes/gab/newgabopc.c:472
 msgid "invalid function"
@@ -6300,7 +6300,7 @@ msgstr "canal illégal"
 #: Opcodes/midiops3.c:58 Opcodes/midiops3.c:162 Opcodes/midiops3.c:273
 #, c-format
 msgid "illegal control number at position n.%d"
-msgstr "numero de contrôle illégal à la position n.%d"
+msgstr "numéro de contrôle illégal à la position n.%d"
 
 #: Opcodes/gab/sliderTable.c:76
 #, c-format
@@ -6341,7 +6341,7 @@ msgstr "canal midi illégal"
 
 #: Opcodes/gab/tabmorph.c:43
 msgid "tabmorph: invalid table number"
-msgstr "tabmorph : numero de table non valide"
+msgstr "tabmorph : numéro de table non valide"
 
 #: Opcodes/gab/tabmorph.c:47
 msgid "tabmorph: all tables must have the same length!"
@@ -6349,39 +6349,39 @@ msgstr "tabmorph : toutes les tables doivent avoir la même longueur !"
 
 #: Opcodes/gab/vectorial.c:35
 msgid "mtablei: incorrect table number"
-msgstr "mtablei : numero de table incorrect"
+msgstr "mtablei : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:65 Opcodes/gab/vectorial.c:86
 #: Opcodes/gab/vectorial.c:140 Opcodes/gab/vectorial.c:215
 msgid "mtable: incorrect table number"
-msgstr "mtable : numero de table incorrect"
+msgstr "mtable : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:200
 msgid "mtabi: incorrect table number"
-msgstr "mtabi : numero de table incorrect"
+msgstr "mtabi : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:277
 msgid "mtablewi: incorrect table number"
-msgstr "mtablewi : numero de table incorrect"
+msgstr "mtablewi : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:293 Opcodes/gab/vectorial.c:314
 #: Opcodes/gab/vectorial.c:347 Opcodes/gab/vectorial.c:392
 #: Opcodes/gab/vectorial.c:440
 msgid "mtabw: incorrect table number"
-msgstr "mtabw : numero de table incorrect"
+msgstr "mtabw : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:378
 msgid "mtabwi: incorrect table number"
-msgstr "mtabwi : numero de table incorrect"
+msgstr "mtabwi : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:411
 msgid "mtablew: incorrect table number"
-msgstr "mtablew : numero de table incorrect"
+msgstr "mtablew : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:489 Opcodes/gab/vectorial.c:548
 #, c-format
 msgid "vadd_i: invalid table number %i"
-msgstr "vadd_i : numero de table %i non valide"
+msgstr "vadd_i : numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:505
 msgid "vadd_i: ifn length exceeded"
@@ -6402,7 +6402,7 @@ msgstr "vmult : la longueur de ifn1 a été dépassée"
 #: Opcodes/gab/vectorial.c:607
 #, c-format
 msgid "vpow_i: invalid table number %i"
-msgstr "vpow_i : numero de table %i non valide"
+msgstr "vpow_i : numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:624
 msgid "vpow_i: ifn length exceeded"
@@ -6415,7 +6415,7 @@ msgstr "vpow : la longueur de ifn1 a été dépassée"
 #: Opcodes/gab/vectorial.c:668
 #, c-format
 msgid "vexp_i: invalid table number %i"
-msgstr "vexp_i : numero de table %i non valide"
+msgstr "vexp_i : numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:684
 msgid "vexp_i: ifn length exceeded"
@@ -6428,12 +6428,12 @@ msgstr "vexp : la longueur de ifn1 a été dépassée"
 #: Opcodes/gab/vectorial.c:729
 #, c-format
 msgid "vectorsop: ifn1 invalid table number %i"
-msgstr "vectorsop : ifn1 numero de table %i non valide"
+msgstr "vectorsop : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:734
 #, c-format
 msgid "vectorsop: ifn2 invalid table number %i"
-msgstr "vectorsop : ifn2 numero de table %i non valide"
+msgstr "vectorsop : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:774
 msgid "vcopy: ifn1 length exceeded"
@@ -6446,12 +6446,12 @@ msgstr "vcopy : la longueur de ifn2 a été dépassée"
 #: Opcodes/gab/vectorial.c:819
 #, c-format
 msgid "vcopy_i: ifn1 invalid table number %i"
-msgstr "vcopy_i : ifn1 numero de table %i non valide"
+msgstr "vcopy_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:824
 #, c-format
 msgid "vcopy_i: ifn2 invalid table number %i"
-msgstr "vcopy_i : ifn2 numero de table %i non valide"
+msgstr "vcopy_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:846
 msgid "vcopy_i: ifn1 length exceeded"
@@ -6472,12 +6472,12 @@ msgstr "vaddv : la longueur de ifn2 a été dépassée"
 #: Opcodes/gab/vectorial.c:947
 #, c-format
 msgid "vaddv_i: ifn1 invalid table number %i"
-msgstr "vaddv_i : ifn1 numero de table %i non valide"
+msgstr "vaddv_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:952
 #, c-format
 msgid "vaddv_i: ifn2 invalid table number %i"
-msgstr "vaddv_i : ifn2 numero de table %i non valide"
+msgstr "vaddv_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:974
 msgid "vaddv_i: ifn1 length exceeded"
@@ -6498,12 +6498,12 @@ msgstr "vsubv : la longueur de ifn2 a été dépassée"
 #: Opcodes/gab/vectorial.c:1069
 #, c-format
 msgid "vsubv_i: ifn1 invalid table number %i"
-msgstr "vsubv_i : ifn1 numero de table %i non valide"
+msgstr "vsubv_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1074
 #, c-format
 msgid "vsubv_i: ifn2 invalid table number %i"
-msgstr "vsubv_i : ifn2 numero de table %i non valide"
+msgstr "vsubv_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1096
 msgid "vsubv_i: ifn1 length exceeded"
@@ -6524,12 +6524,12 @@ msgstr "vmultv : la longueur de ifn2 a été dépassée"
 #: Opcodes/gab/vectorial.c:1197
 #, c-format
 msgid "vmultv_i: ifn1 invalid table number %i"
-msgstr "vmultv_i : ifn1 numero de table %i non valide"
+msgstr "vmultv_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1202
 #, c-format
 msgid "vmultv_i: ifn2 invalid table number %i"
-msgstr "vmultv_i : ifn2 numero de table %i non valide"
+msgstr "vmultv_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1224
 msgid "vmultv_i: ifn1 length exceeded"
@@ -6550,12 +6550,12 @@ msgstr "vdivv : la longueur de ifn2 a été dépassée"
 #: Opcodes/gab/vectorial.c:1324
 #, c-format
 msgid "vdivv_i: ifn1 invalid table number %i"
-msgstr "vdivv_i : ifn1 numero de table %i non valide"
+msgstr "vdivv_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1329
 #, c-format
 msgid "vdivv_i: ifn2 invalid table number %i"
-msgstr "vdivv_i : ifn2 numero de table %i non valide"
+msgstr "vdivv_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1351
 msgid "vdivv_i: ifn1 length exceeded"
@@ -6576,12 +6576,12 @@ msgstr "vpowv : la longueur de ifn2 a été dépassée"
 #: Opcodes/gab/vectorial.c:1452
 #, c-format
 msgid "vpowv_i: ifn1 invalid table number %i"
-msgstr "vpowv_i : ifn1 numero de table %i non valide"
+msgstr "vpowv_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1457
 #, c-format
 msgid "vpowv_i: ifn2 invalid table number %i"
-msgstr "vpowv_i : ifn2 numero de table %i non valide"
+msgstr "vpowv_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1479
 msgid "vpowv_i: ifn1 length exceeded"
@@ -6602,12 +6602,12 @@ msgstr "vexpv : la longueur de ifn2 a été dépassée"
 #: Opcodes/gab/vectorial.c:1579
 #, c-format
 msgid "vexpv_i: ifn1 invalid table number %i"
-msgstr "vexpv_i : ifn1 numero de table %i non valide"
+msgstr "vexpv_i : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1584
 #, c-format
 msgid "vexpv_i: ifn2 invalid table number %i"
-msgstr "vexpv_i : ifn2 numero de table %i non valide"
+msgstr "vexpv_i : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1606
 msgid "vexpv_i: ifn1 length exceeded"
@@ -6624,12 +6624,12 @@ msgstr "vmap : Erreur : ifn1 et ifn2 ne peuvent pas être les mêmes"
 #: Opcodes/gab/vectorial.c:1666
 #, c-format
 msgid "vmap: ifn1 invalid table number %i"
-msgstr "vmap : ifn1 numero de table %i non valide"
+msgstr "vmap : ifn1 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1671
 #, c-format
 msgid "vmap: ifn2 invalid table number %i"
-msgstr "vmap : ifn2 numero de table %i non valide"
+msgstr "vmap : ifn2 numéro de table %i non valide"
 
 #: Opcodes/gab/vectorial.c:1693
 msgid "vmap: ifn1 length exceeded"
@@ -7188,7 +7188,7 @@ msgstr "loscilx : non initialisé"
 
 #: Opcodes/lowpassr.c:85 Opcodes/lowpassr.c:140
 msgid "illegal order num. (min 1, max 10)"
-msgstr "numero d'ordre illégal (min 1, max 10)"
+msgstr "numéro d'ordre illégal (min 1, max 10)"
 
 #: Opcodes/mandolin.c:82
 msgid "No table for Mandolin"
@@ -7204,7 +7204,7 @@ msgstr "metro : la phase initiale est tronquée"
 
 #: Opcodes/metro.c:105
 msgid "splitrig: incorrect table number"
-msgstr "splitrig : numero de table incorrect"
+msgstr "splitrig : numéro de table incorrect"
 
 #: Opcodes/midiops2.c:532 Opcodes/midiops2.c:547 Opcodes/midiops2.c:566
 msgid "value out of range"
@@ -7213,17 +7213,17 @@ msgstr "valeur hors limites"
 #: Opcodes/midiops2.c:598
 #, c-format
 msgid "invalid channel number: %d"
-msgstr "numero de canal non valide : %d"
+msgstr "numéro de canal non valide : %d"
 
 #: Opcodes/midiops3.c:333 Opcodes/midiops3.c:428
 #, c-format
 msgid "illegal msb control number at position n.%d"
-msgstr "msb du numero de contrôleur illégal à la position n.%d"
+msgstr "msb du numéro de contrôleur illégal à la position n.%d"
 
 #: Opcodes/midiops3.c:340 Opcodes/midiops3.c:435
 #, c-format
 msgid "illegal lsb control number at position n.%d"
-msgstr "lsb du numero de contrôleur illégal à la position n.%d"
+msgstr "lsb du numéro de contrôleur illégal à la position n.%d"
 
 #: Opcodes/modal4.c:46
 msgid "No table for Modal4 case"
@@ -7312,11 +7312,11 @@ msgstr "redéfinition de la table pour la forme d'onde %d\n"
 #: Opcodes/oscbnk.c:1769
 #, c-format
 msgid "vco2init: invalid waveform number: %f"
-msgstr "vco2init : numero de forme d'onde non valide : %f"
+msgstr "vco2init : numéro de forme d'onde non valide : %f"
 
 #: Opcodes/oscbnk.c:1777
 msgid "vco2init: invalid base ftable number"
-msgstr "vco2init : numero de la ftable de base non valide"
+msgstr "vco2init : numéro de la ftable de base non valide"
 
 #: Opcodes/oscbnk.c:1788
 msgid "vco2init: invalid partial number multiplier"
@@ -8165,11 +8165,11 @@ msgstr "scsn : la table de trajectoire contient des valeurs hors limites"
 
 #: Opcodes/seqtime.c:54 Opcodes/seqtime.c:146
 msgid "seqtime: incorrect table number"
-msgstr "seqtime : numero de table incorrect"
+msgstr "seqtime : numéro de table incorrect"
 
 #: Opcodes/seqtime.c:158 Opcodes/seqtime.c:252
 msgid "seqtim: incorrect table number"
-msgstr "seqtim : numero de table incorrect"
+msgstr "seqtim : numéro de table incorrect"
 
 #: Opcodes/serial.c:111
 msgid "No ports available"
@@ -8230,7 +8230,7 @@ msgid ""
 "Assigning all Presets of \"%s\" starting from %d (preset handle number)\n"
 msgstr ""
 "\n"
-"Assignation de tous les Presets de \"%s\" à partir de %d (numero du "
+"Assignation de tous les Presets de \"%s\" à partir de %d (numéro du "
 "descripteur de preset)\n"
 
 #: Opcodes/sfont.c:241
@@ -8270,16 +8270,16 @@ msgid ""
 "sfpreset: cannot find any preset having prog number %d and bank number %d in "
 "SoundFont file \"%s\""
 msgstr ""
-"sfpreset : impossible de trouver un preset ayant le numero de prog %d et le "
-"numero de banque %d dans le fichier SoundFont \"%s\""
+"sfpreset : impossible de trouver un preset ayant le numéro de prog %d et le "
+"numéro de banque %d dans le fichier SoundFont \"%s\""
 
 #: Opcodes/sfont.c:318 Opcodes/sfont.c:2248
 msgid "sfplay: invalid or out-of-range preset number"
-msgstr "sfplay : numero de preset non valide ou hors limites"
+msgstr "sfplay : numéro de preset non valide ou hors limites"
 
 #: Opcodes/sfont.c:655
 msgid "sfplaym: invalid or out-of-range preset number"
-msgstr "sfplaym : numero de preset non valide ou hors limites"
+msgstr "sfplaym : numéro de preset non valide ou hors limites"
 
 #: Opcodes/sfont.c:919 Opcodes/sfont.c:1191
 msgid "sfinstr: instrument out of range"
@@ -8336,7 +8336,7 @@ msgstr "SingWave : rate=%f sweepRate=%f mytime=%f\n"
 #: Opcodes/singwave.c:280
 #, c-format
 msgid "Found Formant: %s (number %i)\n"
-msgstr "Le formant %s (numero %i) a été trouvé\n"
+msgstr "Le formant %s (numéro %i) a été trouvé\n"
 
 #: Opcodes/singwave.c:399
 #, c-format
@@ -8628,7 +8628,7 @@ msgstr "impossible de lire à partir d'une pile vide"
 
 #: Opcodes/stackops.c:140
 msgid "argument number or type mismatch"
-msgstr "numero ou type d'argument inadéquat"
+msgstr "numéro ou type d'argument inadéquat"
 
 #: Opcodes/stackops.c:164
 msgid "Error allocating argument stack"
@@ -8944,12 +8944,12 @@ msgstr "ATSREADNZ : non initialisé"
 #: Opcodes/ugnorman.c:640 Opcodes/ugnorman.c:748
 msgid "ATSADD: Function table number for synthesis waveform not valid"
 msgstr ""
-"ATSADD : le numero de la table de fonction pour la forme d'onde de synthèse "
+"ATSADD : le numéro de la table de fonction pour la forme d'onde de synthèse "
 "n'est pas valide"
 
 #: Opcodes/ugnorman.c:648 Opcodes/ugnorman.c:756
 msgid "ATSADD: Gate Function table number not valid"
-msgstr "ATSADD : le numero de la table de fonction gate n'est pas valide"
+msgstr "ATSADD : le numéro de la table de fonction gate n'est pas valide"
 
 #: Opcodes/ugnorman.c:694 Opcodes/ugnorman.c:802
 #, c-format
@@ -9081,7 +9081,7 @@ msgstr ""
 #: Opcodes/ugnorman.c:2575 Opcodes/ugnorman.c:2669
 msgid "ATSCROSS: Function table number for synthesis waveform not valid"
 msgstr ""
-"ATSCROSS : le numero de table de fonction pour la forme d'onde de la synthèse"
+"ATSCROSS : le numéro de table de fonction pour la forme d'onde de la synthèse"
 " n'est pas valide"
 
 #: Opcodes/ugnorman.c:2615 Opcodes/ugnorman.c:2709
@@ -9740,13 +9740,13 @@ msgstr "--m-benchmarks=[01]\taffichage de tests de performance"
 #: Top/argdecode.c:183
 msgid "--csd-line-nums=[01]\tControls how error line numbers are printed:"
 msgstr ""
-"--csd-line-nums=[01]\tcontrôle comment les numeros de ligne des erreurs "
+"--csd-line-nums=[01]\tcontrôle comment les numéros de ligne des erreurs "
 "sont affichés"
 
 #: Top/argdecode.c:184
 msgid "\t\t\t1=use CSD line #s (default), 0=use ORC/SCO-relative line #s"
 msgstr ""
-"\t\t\t1=numeros de ligne CSD (par défaut), 0=numeros de ligne relatifs "
+"\t\t\t1=numéros de ligne CSD (par défaut), 0=numéros de ligne relatifs "
 "ORC/SCO"
 
 #: Top/argdecode.c:185
@@ -9832,7 +9832,7 @@ msgstr "--midi-key=N\t\tLire un message MIDI note on"
 
 #: Top/argdecode.c:204
 msgid "\t\t\tkey number to pfield N as MIDI value [0-127]"
-msgstr "\t\t\tnumero de touche vers le p-champ N comme valeur MIDI [0-127]"
+msgstr "\t\t\tnuméro de touche vers le p-champ N comme valeur MIDI [0-127]"
 
 #: Top/argdecode.c:205
 msgid "--midi-key-cps=N\tRoute MIDI note on message"
@@ -9840,7 +9840,7 @@ msgstr "--midi-key-cps=N\tLire un message MIDI note on"
 
 #: Top/argdecode.c:206
 msgid "\t\t\tkey number to pfield N as cycles per second"
-msgstr "\t\t\tnumero de touche vers le p-champ N en cycles par seconde"
+msgstr "\t\t\tnuméro de touche vers le p-champ N en cycles par seconde"
 
 #: Top/argdecode.c:207
 msgid "--midi-key-oct=N\tRoute MIDI note on message"
@@ -9848,7 +9848,7 @@ msgstr "--midi-key-oct=N\tLire un message MIDI note on"
 
 #: Top/argdecode.c:208
 msgid "\t\t\tkey number to pfield N as linear octave"
-msgstr "\t\t\tnumero de touche vers le p-champ N en octave linéaire"
+msgstr "\t\t\tnuméro de touche vers le p-champ N en octave linéaire"
 
 #: Top/argdecode.c:209
 msgid "--midi-key-pch=N\tRoute MIDI note on message"
@@ -9856,7 +9856,7 @@ msgstr "--midi-key-pch=N\tLire un message MIDI note on"
 
 #: Top/argdecode.c:210
 msgid "\t\t\tkey number to pfield N as oct.pch"
-msgstr "\t\t\tnumero de touche vers le p-champ N en oct.pch"
+msgstr "\t\t\tnuméro de touche vers le p-champ N en oct.pch"
 
 #: Top/argdecode.c:211
 msgid "--midi-velocity=N\tRoute MIDI note on message"
@@ -10093,7 +10093,7 @@ msgstr "Impossible d'ouvrir le fichier d'indirection %s\n"
 
 #: Top/argdecode.c:1199
 msgid "no number of threads"
-msgstr "aucun numero de thread"
+msgstr "aucun numéro de thread"
 
 #: Top/argdecode.c:1209 util/envext.c:94 util/mixer.c:316 util/scale.c:241
 #: util/xtrct.c:239
@@ -11598,7 +11598,7 @@ msgstr "le nombre de points de sortie est trop grand"
 #: util/hetro.c:340
 #, c-format
 msgid "analyzing harmonic #%d\n"
-msgstr "analyse de l'harmonique numero %d\n"
+msgstr "analyse de l'harmonique numéro %d\n"
 
 #: util/hetro.c:341
 #, c-format
@@ -11949,7 +11949,7 @@ msgstr ""
 #: util/mixer.c:111
 msgid "-S integer\tsample number at which to insert file"
 msgstr ""
-"-S entier\tnumero de l'échantillon à partir duquel insérer un fichier"
+"-S entier\tnuméro de l'échantillon à partir duquel insérer un fichier"
 
 #: util/mixer.c:112
 msgid "-T fpnum\ttime at which to insert file"
@@ -12010,15 +12010,15 @@ msgstr "-T prend le pas sur -S"
 
 #: util/mixer.c:270
 msgid "no source channel number"
-msgstr "pas de numero de canal source"
+msgstr "pas de numéro de canal source"
 
 #: util/mixer.c:273
 msgid "no destination channel number"
-msgstr "pas de numero de canal de destination"
+msgstr "pas de numéro de canal de destination"
 
 #: util/mixer.c:277
 msgid "illegal channel number ignored"
-msgstr "numero de canal illégal, ignoré"
+msgstr "numéro de canal illégal, ignoré"
 
 #: util/mixer.c:324
 msgid "Too many mixin"
@@ -12580,11 +12580,11 @@ msgstr "-N\tavertir (par un beep) à la fin\n"
 #: util/xtrct.c:70
 msgid "-S integer\tsample number at which to start file\n"
 msgstr ""
-"-S entier\tnumero de l'échantillon à partir duquel démarrer le fichier\n"
+"-S entier\tnuméro de l'échantillon à partir duquel démarrer le fichier\n"
 
 #: util/xtrct.c:72
 msgid "-Z integer\tsample number at which to end file\n"
-msgstr "-S entier\tnumero de l'échantillon auquel terminer le fichier\n"
+msgstr "-S entier\tnuméro de l'échantillon auquel terminer le fichier\n"
 
 #: util/xtrct.c:73
 msgid "-Q integer\tnumber of samples to read\n"
@@ -12779,7 +12779,7 @@ msgstr "Avertissement : paramètres changés pendant la liaison"
 
 #: util1/scot/scot.c:567
 msgid "Parameter number out of range"
-msgstr "Le numero du périphérique est hors limites"
+msgstr "Le numéro du périphérique est hors limites"
 
 #: util1/scot/scot.c:627
 msgid "Lost previous note: not written"
@@ -12824,7 +12824,7 @@ msgstr "Erreur de syntaxe : no ="
 
 #: util1/scot/scot.c:975
 msgid "Syntax error: no number"
-msgstr "Erreur de syntaxe : pas de numero"
+msgstr "Erreur de syntaxe : pas de numéro"
 
 #: util1/scot/scot.c:987
 msgid "No instruments declared"
@@ -12956,7 +12956,7 @@ msgstr "scot : %d erreurs.\n"
 
 #~ msgid "Table write k rate function table no. %f < 1"
 #~ msgstr ""
-#~ "Ecriture de table au taux k, le numero de la table de fonction %f < 1"
+#~ "Ecriture de table au taux k, le numéro de la table de fonction %f < 1"
 
 #~ msgid "Table %f not found"
 #~ msgstr "La table %f n'a pas été trouvée"
@@ -13305,7 +13305,7 @@ msgstr "scot : %d erreurs.\n"
 #~ "input arg %d '%s' of type %s not allowed when expecting %c (for opcode "
 #~ "%s), line %d\n"
 #~ msgstr ""
-#~ "l'argument numero %d d'entrée '%s' de type %s est interdit lorsque l'on "
+#~ "l'argument numéro %d d'entrée '%s' de type %s est interdit lorsque l'on "
 #~ "attend %c (pour opcode %s) ligne %d\n"
 
 #~ msgid "input arg '%s' used before defined (in opcode %s), line %d\n"
@@ -13491,10 +13491,10 @@ msgstr "scot : %d erreurs.\n"
 #~ msgstr "syntaxe de l'expression"
 
 #~ msgid "missing instrument number or name"
-#~ msgstr "il manque un numero ou un nom d'instrument"
+#~ msgstr "il manque un numéro ou un nom d'instrument"
 
 #~ msgid "illegal instr number"
-#~ msgstr "numero d'instrument illégal"
+#~ msgstr "numéro d'instrument illégal"
 
 #~ msgid "No opcode name"
 #~ msgstr "Aucun nom d'opcode"
@@ -13745,7 +13745,7 @@ msgstr "scot : %d erreurs.\n"
 #~ msgstr "Impossible d'ouvrir le fichier \"%s\"\n"
 
 #~ msgid "No number following instr\n"
-#~ msgstr "Aucun numero ne suit instr\n"
+#~ msgstr "Aucun numéro ne suit instr\n"
 
 #~ msgid "cannot find end of file %s"
 #~ msgstr "impossible de trouver la fin du fichier %s"
@@ -14038,11 +14038,11 @@ msgstr "scot : %d erreurs.\n"
 #~ msgstr " *** PortAudio : aucun périphérique %s n'est disponible\n"
 
 #~ msgid " *** PortAudio: %s device number %d is out of range\n"
-#~ msgstr " *** PortAudio : le périphérique %s numero %d est hors limites\n"
+#~ msgstr " *** PortAudio : le périphérique %s numéro %d est hors limites\n"
 
 #~ msgid " *** PortAudio: must specify a device number, not a name\n"
 #~ msgstr ""
-#~ " *** PortAudio : il faut spécifier un numero de périphérique, pas un "
+#~ " *** PortAudio : il faut spécifier un numéro de périphérique, pas un "
 #~ "nom\n"
 
 #~ msgid "WARNING: buffer overrun in real-time audio input\n"

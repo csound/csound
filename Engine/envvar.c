@@ -1241,7 +1241,7 @@ int csoundFileClose(CSOUND *csound, void *fd)
       p->nxt->prv = p->prv;
     if(p->buf != NULL) mfree(csound, p->buf);
     p->bufsize = 0;
-    csound->FreeCircularBuffer(csound, p->cb);
+    csound->DestroyCircularBuffer(csound, p->cb);
     csound->NotifyThreadLock(csound->file_io_threadlock);
    } else {
    /* unlink from chain of open files */

@@ -10,44 +10,54 @@ if(BUILD_TESTS)
 
 ENABLE_TESTING()
 
-add_executable(compilationTest compilation_test.c)
-target_link_libraries(compilationTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
-add_test(NAME compilationTest
-	COMMAND $<TARGET_FILE:compilationTest> minimal.csd ${TEST_ARGS})
+add_executable(testCompilation compilation_test.c)
+target_link_libraries(testCompilation ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME testCompilation
+        COMMAND $<TARGET_FILE:testCompilation> minimal.csd ${TEST_ARGS})
 
-add_executable(csoundTypeSystemTest csound_type_system_test.c)
-target_link_libraries(csoundTypeSystemTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
-set(csoundTypeSystemTest_CFLAGS -D__BUILDING_LIBCSOUND)
-add_test(NAME TestCsoundTypeSystem
-	COMMAND $<TARGET_FILE:csoundTypeSystemTest> ${TEST_ARGS})
+add_executable(testCsoundTypeSystem csound_type_system_test.c)
+target_link_libraries(testCsoundTypeSystem ${CSOUNDLIB} ${CUNIT_LIBRARY})
+set(testCsoundTypeSystem -D__BUILDING_LIBCSOUND)
+add_test(NAME testCsoundTypeSystem
+        COMMAND $<TARGET_FILE:testCsoundTypeSystem> ${TEST_ARGS})
 
-add_executable(csoundMessageBufferTest csound_message_buffer_test.c)
+add_executable(testCsoundMessageBuffer csound_message_buffer_test.c)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/../../H")
-target_link_libraries(csoundMessageBufferTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
-add_test(NAME TestCsoundMessageBuffer
-	COMMAND $<TARGET_FILE:csoundMessageBufferTest> ${TEST_ARGS})
+target_link_libraries(testCsoundMessageBuffer ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME testCsoundMessageBuffer
+        COMMAND $<TARGET_FILE:testCsoundMessageBuffer> ${TEST_ARGS})
 
-add_executable(csoundOrcSemanticsTest csound_orc_semantics_test.c)
-target_link_libraries(csoundOrcSemanticsTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
-add_test(NAME csoundOrcSemanticsTest
-	COMMAND $<TARGET_FILE:csoundOrcSemanticsTest> ${TEST_ARGS})
+add_executable(testCsoundOrcSemantics csound_orc_semantics_test.c)
+target_link_libraries(testCsoundOrcSemantics ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME testCsoundOrcSemantics
+        COMMAND $<TARGET_FILE:testCsoundOrcSemantics> ${TEST_ARGS})
 
-add_executable(csoundOrcCompileTest csound_orc_compile_test.c)
-target_link_libraries(csoundOrcCompileTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
-add_test(NAME csoundOrcCompileTest
-	COMMAND $<TARGET_FILE:csoundOrcCompileTest> ${TEST_ARGS})
+add_executable(testCsoundOrcCompileTest csound_orc_compile_test.c)
+target_link_libraries(testCsoundOrcCompileTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME testCsoundOrcCompileTest
+        COMMAND $<TARGET_FILE:testCsoundOrcCompileTest> ${TEST_ARGS})
 
-add_executable(channelTest channel_tests.c)
+add_executable(testChannels channel_tests.c)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/../../H")
-target_link_libraries(channelTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
-add_test(NAME channelTest
-	COMMAND $<TARGET_FILE:channelTest> ${TEST_ARGS})
+target_link_libraries(testChannels ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME testChannels
+        COMMAND $<TARGET_FILE:testChannels> ${TEST_ARGS})
 
-add_executable(csoundDataStructuresTest csound_data_structures_test.c)
-target_link_libraries(csoundDataStructuresTest ${CSOUNDLIB} ${CUNIT_LIBRARY})
-add_test(NAME csoundDataStructuresTest
-	COMMAND $<TARGET_FILE:csoundDataStructuresTest> ${TEST_ARGS})
+add_executable(testCsoundDataStructures csound_data_structures_test.c)
+target_link_libraries(testCsoundDataStructures ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME testCsoundDataStructures
+        COMMAND $<TARGET_FILE:testCsoundDataStructures> ${TEST_ARGS})
 endif()
+
+add_executable(testIo io_test.c)
+target_link_libraries(testIo ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME testIo
+        COMMAND $<TARGET_FILE:testIo> minimal.csd ${TEST_ARGS})
+
+add_executable(testCircularBuffer csound_circular_buffer_test.c)
+target_link_libraries(testCircularBuffer ${CSOUNDLIB} ${CUNIT_LIBRARY})
+add_test(NAME testCircularBuffer
+        COMMAND $<TARGET_FILE:testCircularBuffer> minimal.csd ${TEST_ARGS})
 
 
 
