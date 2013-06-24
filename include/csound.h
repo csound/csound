@@ -2120,31 +2120,35 @@ extern "C" {
 #include "version.h"
 
  /**
-  * Create circular buffer with size samples
+  * Create circular buffer with numelem number of elements. The element's size is set
+  * from elemsize. It should be used like:
+  *@code
+  * void *rb = csoundCreateCircularBuffer(csound, 1024, sizeof(MYFLT));
+  *@endcode
   */
-  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound, int size);
+  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound, int numelem, int elemsize);
 
  /**
   * Read from circular buffer
   * void *circular_buffer - pointer to an existing circular buffer
-  * MYFLT *out - buffer with at least items samples where buffer contents
-  *              will be read into
+  * void *out - preallocated buffer with at least items number of elements, where
+  *              buffer contents will be read into
   * int items - number of samples to be read
   * returns the number of samples read (0 <= n <= items)
   */
   PUBLIC int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
-                                      MYFLT *out, int items);
+                                      void *out, int items);
 
  /**
   * Write to circular buffer
   * void *circular_buffer - pointer to an existing circular buffer
-  * MYFLT *inp - buffer with at least items samples to bet written into
+  * void *inp - buffer with at least items number of elements to be written into
   *              circular buffer
   * int items - number of samples to be read
   * returns the number of samples read (0 <= n <= items)
   */
   PUBLIC int csoundWriteCircularBuffer(CSOUND *csound, void *p,
-                                       const MYFLT *inp, int items);
+                                       const void *inp, int items);
   /**
    * Empty circular buffer of any remaining data.
    */
