@@ -19,11 +19,22 @@ void test_create_buffer(void)
     CSOUND *csound = csoundCreate(0);
     int argc = 2;
     char *argv[] = {"csound", "-v"};
-    csoundEnableMessageBuffer(csound, 1);
+    csoundCreateMessageBuffer(csound, 0);
     int result = csoundCompile(csound, argc, argv);
 
-    csoundDestroy(csound);
+    int cnt = csoundGetMessageCnt(csound);
+    CU_ASSERT(cnt > 0);
+    const char * msg = csoundGetFirstMessage(csound);
+    CU_ASSERT_PTR_NOT_NULL(msg);
+    int newcnt = csoundGetMessageCnt(csound);
+    CU_ASSERT_EQUAL(cnt, newcnt);
+    csoundPopFirstMessage(csound);
+    newcnt = csoundGetMessageCnt(csound);
+    CU_ASSERT_EQUAL(cnt - 1, newcnt);
+
+    csoundCleanup(csound);
     csoundDestroyMessageBuffer(csound);
+    csoundDestroy(csound);
 }
 
 int main()

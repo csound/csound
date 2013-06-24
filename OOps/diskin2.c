@@ -475,7 +475,7 @@ int diskin2_async_deinit(CSOUND *csound,  void *p){
      csound->DestroyGlobalVariable(csound, "DISKIN_INST");
    }
    mfree(csound, current);
-   csound->FreeCircularBuffer(csound, ((DISKIN2 *)p)->cb);
+   csound->DestroyCircularBuffer(csound, ((DISKIN2 *)p)->cb);
 
    return OK;
 }

@@ -32,7 +32,7 @@
     #include "csound.h"
     #include "cfgvar.h"
     #include "csound.hpp"
-   #include "AndroidCsound.hpp"
+    #include "AndroidCsound.hpp"
     #include "cs_glue.hpp"
     #include "csPerfThread.hpp"
     #include "CsoundFile.hpp"
@@ -51,6 +51,7 @@ typedef unsigned int uint32_t;
 %pragma(java) jniclasscode=%{
   static {
     try {
+        java.lang.System.loadLibrary("gnustl_shared");
         java.lang.System.loadLibrary("sndfile");
         java.lang.System.loadLibrary("csoundandroid");
     } catch (UnsatisfiedLinkError e) {
@@ -60,7 +61,7 @@ typedef unsigned int uint32_t;
   }
 %}
 
-%include "exclusions.i"
+%include "interfaces/exclusions.i"
 
 %include "csound.h"
 %include "cfgvar.h"

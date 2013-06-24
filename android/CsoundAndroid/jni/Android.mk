@@ -9,6 +9,7 @@ LOCAL_MODULE   := csoundandroid
 LOCAL_C_INCLUDES := $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../H $(LOCAL_PATH)/../../../include $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces
 LOCAL_CFLAGS := -O3 -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R
 LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
+LOCAL_CPPFLAGS += -std=c++11 -pthread -frtti -fexceptions
 LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(NDK_MODULE_PATH)/luajit-2.0/src -L$(LIBSNDFILE_SRC_DIR)
 ###
 
@@ -242,9 +243,9 @@ $(CSOUND_SRC_ROOT)/interfaces/filebuilding.cpp \
 java_interfaceJAVA_wrap.cpp
 #CsoundObj.cpp
 
-LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lstdc++ -lm -lc
+LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc 
 
-LOCAL_SHARED_LIBRARIES += sndfile
+LOCAL_SHARED_LIBRARIES += sndfile gnustl_shared
 LOCAL_PREBUILT_LIBRARIES += sndfile 
 
 include $(BUILD_SHARED_LIBRARY)

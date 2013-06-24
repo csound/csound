@@ -843,9 +843,9 @@ public:
 
   }
   // Functions for embedding.
-  virtual void EnableMessageBuffer(int toStdOut)
+  virtual void CreateMessageBuffer(int toStdOut)
   {
-    csoundEnableMessageBuffer(csound, toStdOut);
+    csoundCreateMessageBuffer(csound, toStdOut);
   }
   virtual const char *GetFirstMessage()
   {
