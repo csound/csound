@@ -489,6 +489,7 @@ typedef struct {
     MYFLT  *spin;         /* offset into csound->spin */
     MYFLT  *spout;        /* offset into csound->spout, or local spout, if needed */
     int    init_done;
+    MYFLT  retval;
     /* Copy of required p-field values for quick access */
     MYFLT   p0;
     MYFLT   p1;
