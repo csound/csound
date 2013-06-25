@@ -238,7 +238,7 @@ int openSLInitOutParams(open_sl_params *params){
     csound->Message(csound, "memory allocation failure in opensl module \n");
     goto err_return;
   }
-  if((params->outcb = csoundCreateCircularBuffer(csound, params->outParm.bufSamp_HW*csound->GetNchnls(csound))) == NULL) {
+  if((params->outcb = csoundCreateCircularBuffer(csound, params->outParm.bufSamp_HW*csound->GetNchnls(csound), sizeof(MYFLT))) == NULL) {
     return -1; 
   }
   memset(params->outputBuffer, 0, params->outBufSamples*sizeof(MYFLT));
@@ -421,7 +421,7 @@ int openSLInitInParams(open_sl_params *params){
     return -1;
   }
   memset(params->inputBuffer, 0, params->inBufSamples*sizeof(MYFLT));
-  if((params->incb = csoundCreateCircularBuffer(csound,params->inParm.bufSamp_HW*csound->GetNchnls(csound)))== NULL) {
+  if((params->incb = csoundCreateCircularBuffer(csound,params->inParm.bufSamp_HW*csound->GetNchnls(csound), sizeof(MYFLT)))== NULL) {
     return -1;
   }
 
@@ -506,8 +506,8 @@ void androidrtclose_(CSOUND *csound)
     params->engineEngine = NULL;
   }
   
-  csound->FreeCircularBuffer(csound, params->incb);
-  csound->FreeCircularBuffer(csound, params->outcb);
+  csound->DestroyCircularBuffer(csound, params->incb);
+  csound->DestroyCircularBuffer(csound, params->outcb);
 
   if (params->outputBuffer != NULL) {
     free(params->outputBuffer);

@@ -487,9 +487,9 @@ static void openJackStreams(RtJackGlobals *p)
 
     /* connect ports if requested */
     if (p->inputEnabled && p->inDevName != NULL) {
-      char *dev = p->outDevName;
+      char *dev = p->inDevName;
       char  *sp = strchr(p->inDevName, '\0');
-      if(!isalpha(p->outDevName[0])) dev++;
+      if(!isalpha(p->inDevName[0])) dev++;
       for (i = 0; i < p->nChannels; i++) {
         sprintf(sp, "%d", i + 1);
         if (UNLIKELY(jack_connect(p->client, dev,
@@ -996,12 +996,12 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     int             i, n, cnt=0;
     jack_client_t *jackClient;
     RtJackGlobals* p = (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
-                                                            "_rtjackGlobals");
+                                                                           "_rtjackGlobals");
 
     if(p->listclient == NULL)
-       p->listclient = jack_client_open("list", JackNullOption, NULL);
+        p->listclient = jack_client_open("list", JackNoStartServer, NULL);
 
-     jackClient  = p->listclient;
+    jackClient  = p->listclient;
 
     if(jackClient == NULL) return 0;
     portFlags = (isOutput ? (unsigned long) JackPortIsInput
@@ -1013,37 +1013,40 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
                                         portFlags);
     if(portNames == NULL) {
         jack_client_close(jackClient);
+        p->listclient = NULL;
         return 0;
     }
 
     memset(port, '\0', 64);
     for(i=0; portNames[i] != NULL; i++) {
-     n = (int) strlen(portNames[i]);
-      do {
-        n--;
-      } while (n > 0 && isdigit(portNames[i][n]));
-      n++;
-      if(strncmp(portNames[i], port, n)==0) continue;
-      strncpy(port, portNames[i], n);
-      port[n] = '\0';
-      if (list != NULL) {
-        strncpy(list[cnt].device_name, port, 63);
-        strncpy(list[cnt].device_id, port, 63);
-        list[cnt].max_nchnls = -1;
-        list[cnt].isOutput = isOutput;
+        n = (int) strlen(portNames[i]);
+        do {
+            n--;
+        } while (n > 0 && isdigit(portNames[i][n]));
+        n++;
+        if(strncmp(portNames[i], port, n)==0) continue;
+        strncpy(port, portNames[i], n);
+        port[n] = '\0';
+        if (list != NULL) {
+            strncpy(list[cnt].device_name, port, 63);
+            strncpy(list[cnt].device_id, port, 63);
+            list[cnt].max_nchnls = -1;
+            list[cnt].isOutput = isOutput;
         }
-      cnt++;
+        cnt++;
     }
-  return cnt;
+    jack_client_close(jackClient);
+    p->listclient = NULL;
+    return cnt;
 }
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
     RtJackGlobals* p = (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
-                                                            "_rtjackGlobals");
+                                                                           "_rtjackGlobals");
     if(p && p->listclient) {
-     jack_client_close(p->listclient);
-     p->listclient = NULL;
+        jack_client_close(p->listclient);
+        p->listclient = NULL;
     }
     return OK;
 }
