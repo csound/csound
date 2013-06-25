@@ -238,7 +238,8 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
                csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT), &p->buf);
       if (p->dframe.auxp == NULL || p->dframe.size < sizeof(float) * (N + 2))
                csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->dframe);
-      p->cb = csound->CreateCircularBuffer(csound, (N+2)*sizeof(float)*bufframes, sizeof(MYFLT));
+      p->cb = csound->CreateCircularBuffer(csound, (N+2)*sizeof(float)*bufframes,
+                                           sizeof(MYFLT));
       pthread_create(&p->thread, NULL, pvs_io_thread, (void *) p);
       p->async = 1;
     } else{
