@@ -38,7 +38,6 @@ static  void    schedofftim(CSOUND *, INSDS *);
 void    beatexpire(CSOUND *, double);
 void    timexpire(CSOUND *, double);
 static  void    instance(CSOUND *, int);
-
 extern int argsRequired(char* argString);
 
 int init0(CSOUND *csound)
@@ -2082,6 +2081,8 @@ static void instance(CSOUND *csound, int insno)
     csoundDie(csound, Str("inconsistent opds total"));
 
 }
+
+
 
 int prealloc_(CSOUND *csound, AOP *p, int instname)
 {

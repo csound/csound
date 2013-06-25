@@ -1110,7 +1110,10 @@ OENTRY opcodlst_1[] = {
   { "ftresize",  S(RESIZE), TB, 2, "k", "kk", NULL, (SUBR) resize_table, NULL },
   { "compileorc",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_orc_i, NULL, NULL },
   { "compilestr",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_str_i, NULL, NULL },
+  { "evalstr",  S(COMPILE), 0, 1, "i", "S",  (SUBR) eval_str_i, NULL, NULL },
+  { "evalstr",  S(COMPILE), 0, 2, "k", "Sk",  NULL, (SUBR) eval_str_k, NULL },
   { "readscore",  S(COMPILE), 0, 1, "i", "S",  (SUBR) read_score_i, NULL, NULL },
+  { "return",  S(RETVAL), 0, 1, "", "i",  (SUBR) retval_i, NULL, NULL },
   /* ----------------------------------------------------------------------- */
   { "monitor",  sizeof(MONITOR_OPCODE), 0, 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  (SUBR) NULL },
