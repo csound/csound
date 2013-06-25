@@ -103,6 +103,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "text.h"
 
 struct SignalFlowGraph;
 struct Outleta;
@@ -465,8 +466,8 @@ struct Inletk : public OpcodeBase<Inletk> {
                       sourceOutlets->end(), &koutlets) == sourceOutlets->end()) {
           sourceOutlets->push_back(&koutlets);
           warn(csound, Str("Connected instances of outlet %s to instance 0x%x"
-                           "of inlet %s.\n",
-                           sourceOutletId.c_str(), this, sinkInletId);
+                           "of inlet %s.\n"),
+               sourceOutletId.c_str(), this, sinkInletId);
         }
       }
     }
@@ -588,7 +589,9 @@ struct Inletf : public OpcodeBase<Inletf> {
         if (std::find(sourceOutlets->begin(),
                       sourceOutlets->end(), &foutlets) == sourceOutlets->end()) {
           sourceOutlets->push_back(&foutlets);
-          warn(csound, "Connected instances of outlet %s to instance 0x%x of inlet %s.\n", sourceOutletId.c_str(), this, sinkInletId);
+          warn(csound,
+               Str("Connected instances of outlet %s to instance 0x%x of inlet %s.\n"),
+               sourceOutletId.c_str(), this, sinkInletId);
         }
       }
     }
@@ -644,14 +647,16 @@ struct Inletf : public OpcodeBase<Inletf> {
               lastframe = 0;
               if (UNLIKELY(!(fsignal->format == PVS_AMP_FREQ) ||
                            (fsignal->format == PVS_AMP_PHASE)))
-                result = csound->InitError(csound, Str("inletf: signal format "
-                                                       "must be amp-phase or amp-freq."));
+                result =
+                  csound->InitError(csound, Str("inletf: signal format "
+                                                "must be amp-phase or amp-freq."));
               fsignalInitialized = true;
             }
             if (fsignal->sliding) {
               for (int frameI = 0; frameI < ksmps; frameI++) {
                 sinkFrame = (CMPLX*) fsignal->frame.auxp + (fsignal->NB * frameI);
-                sourceFrame = (CMPLX*) sourceOutlet->fsignal->frame.auxp + (fsignal->NB * frameI);
+                sourceFrame =
+                  (CMPLX*) sourceOutlet->fsignal->frame.auxp + (fsignal->NB * frameI);
                 for (size_t binI = 0, binN = fsignal->NB; binI < binN; binI++) {
                   if (sourceFrame[binI].re > sinkFrame[binI].re) {
                     sinkFrame[binI] = sourceFrame[binI];
@@ -922,20 +927,22 @@ struct Connectii : public OpcodeBase<Connectii> {
                                             Soutlet->data,
                                             (char *)"",
                                             1);
-      std::string sinkInletId = csound->strarg2name(csound,
-                                                    (char *) 0,
-                                                    ((ISSTRCOD(*Sink)) ?
-                                                       csound->GetString(csound,*Sink) :
-                                                        (char *)Sink),
-                                                       (char *)"",
-                                                       ISSTRCOD(*Sink));;
+      std::string sinkInletId =
+        csound->strarg2name(csound,
+                            (char *) 0,
+                            ((ISSTRCOD(*Sink)) ?
+                             csound->GetString(csound,*Sink) :
+                             (char *)Sink),
+                            (char *)"",
+                            ISSTRCOD(*Sink));;
       sinkInletId += ":";
       sinkInletId += csound->strarg2name(csound,
                                          (char *) 0,
                                          Sinlet->data,
                                          (char *)"",
                                          1);
-      warn(csound, "Connected outlet %s to inlet %s.\n", sourceOutletId.c_str(), sinkInletId.c_str());
+      warn(csound, Str("Connected outlet %s to inlet %s.\n"),
+           sourceOutletId.c_str(), sinkInletId.c_str());
       connectionsForCsounds[csound][sinkInletId].push_back(sourceOutletId);
     }
     return OK;
@@ -975,7 +982,8 @@ struct ConnectS : public OpcodeBase<ConnectS> {
                                          Sinlet->data,
                                          (char *)"",
                                          1);
-      warn(csound, "Connected outlet %s to inlet %s.\n", sourceOutletId.c_str(), sinkInletId.c_str());
+      warn(csound, Str("Connected outlet %s to inlet %s.\n"),
+           sourceOutletId.c_str(), sinkInletId.c_str());
       connectionsForCsounds[csound][sinkInletId].push_back(sourceOutletId);
     }
     return OK;
