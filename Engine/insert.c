@@ -38,7 +38,6 @@ static  void    schedofftim(CSOUND *, INSDS *);
 void    beatexpire(CSOUND *, double);
 void    timexpire(CSOUND *, double);
 static  void    instance(CSOUND *, int);
-
 extern int argsRequired(char* argString);
 
 int init0(CSOUND *csound)
@@ -2083,6 +2082,8 @@ static void instance(CSOUND *csound, int insno)
 
 }
 
+
+
 int prealloc_(CSOUND *csound, AOP *p, int instname)
 {
   int     n, a;
@@ -2246,18 +2247,17 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
 void *init_pass_thread(void *p){
   CSOUND *csound = (CSOUND *) p;
   INSDS *ip;
-  while(1) {
+  while(csound->init_pass_loop) {
     csoundLockMutex(csound->init_pass_threadlock);
     ip = csound->actanchor.nxtact;
     /* do init pass for this instr */
     while(ip != NULL){
-      INSDS *nxt = ip->nxtact;
-      if(ip->init_done == 0){
-        OPDS *ids = (OPDS *) (ip->nxti);
-        while (ids != NULL) {
-          (*ids->iopadr)(csound, ids);
-          ((INSDS*)ids)->init_done=1;
-          ids = ids->nxti;
+      INSDS *nxt = ip->nxtact;    
+      if(ip->init_done == 0){   
+        csound->ids = (OPDS *) (ip->nxti);
+        while (csound->ids != NULL) {        
+          (*csound->ids->iopadr)(csound, csound->ids);
+          csound->ids = csound->ids->nxti;
         }
         ip->init_done = 1;
         if(csound->reinitflag==1) {

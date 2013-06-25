@@ -591,7 +591,8 @@ extern "C" {
     PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree);
 
     /**
-     * Parse, and compile the given orchestra from an ASCII string.
+     * Parse, and compile the given orchestra from an ASCII string,
+     * also evaluating any global space code (i-time only)
      * this can be called during performance to compile a new orchestra.
      * /code
      *       char *orc = "instr 1 \n a1 rand 0dbfs/4 \n out a1 \n";
@@ -599,6 +600,18 @@ extern "C" {
      * /endcode
     */
     PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str);
+
+   /**
+    *   Parse and compile an orchestra given on an string,
+    *   evaluating any global space code (i-time only). 
+    *   On SUCCESS it returns a value passed to the
+    *   'return' opcode in global space  
+    * /code
+    *       char *code = "i1 = 2 + 2 \n return i1 \n";
+    *       MYFLT retval = csoundEvalCode(csound, code);
+    * /endcode
+    */
+   PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str);
 
     /**
      * Prepares an instance of Csound for Cscore

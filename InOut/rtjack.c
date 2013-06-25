@@ -487,9 +487,9 @@ static void openJackStreams(RtJackGlobals *p)
 
     /* connect ports if requested */
     if (p->inputEnabled && p->inDevName != NULL) {
-      char *dev = p->outDevName;
+      char *dev = p->inDevName;
       char  *sp = strchr(p->inDevName, '\0');
-      if(!isalpha(p->outDevName[0])) dev++;
+      if(!isalpha(p->inDevName[0])) dev++;
       for (i = 0; i < p->nChannels; i++) {
         sprintf(sp, "%d", i + 1);
         if (UNLIKELY(jack_connect(p->client, dev,
