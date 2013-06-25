@@ -228,11 +228,12 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 
     csoundLoadExternals(csound);    /* load plugin opcodes */
      /* VL: added this also to csoundReset() in csound.c   */
-      if (csoundInitModules(csound) != 0)
+    if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
      if(csoundCompileOrc(csound, NULL) != 0){
         csoundDie(csound, Str("cannot compile orchestra \n"));
      }
+     csound->modules_loaded = 1;
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
     if (!csoundYield(csound))
@@ -364,14 +365,17 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
        Csound to start without calling csoundCompile, but directly from
        csoundCompileOrc() and csoundReadSco()
     */
-    if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to
-                                     start with no orchestra */
-         csoundLoadExternals(csound);    /* load plugin opcodes */
-         if (csoundInitModules(csound) != 0)
+   if(csound->modules_loaded == 0){
+    csoundLoadExternals(csound);    /* load plugin opcodes */
+    if (csoundInitModules(csound) != 0)
            csound->LongJmp(csound, 1);
+    csound->modules_loaded = 1;
+   }
+    if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to
+                                     start with no orchestra */  
         csoundCompileOrc(csound, "instr 1 \n endin \n");
      }
-
+   
     if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
