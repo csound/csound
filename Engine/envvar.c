@@ -1212,8 +1212,39 @@ int csoundFileClose(CSOUND *csound, void *fd)
 {
     CSFILE  *p = (CSFILE*) fd;
     int     retval = -1;
-
-    /* close file */
+   if(p->async_flag == ASYNC_GLOBAL) {
+     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+     /* close file */
+    switch (p->type) {
+      case CSFILE_FD_R:
+      case CSFILE_FD_W:
+        retval = close(p->fd);
+        break;
+      case CSFILE_STD:
+        retval = fclose(p->f);
+        break;
+      case CSFILE_SND_R:
+      case CSFILE_SND_W:
+        if(p->sf)
+        retval = sf_close(p->sf);
+        p->sf = NULL;
+        if (p->fd >= 0)
+          retval |= close(p->fd);
+        break;
+    }
+    /* unlink from chain of open files */
+    if (p->prv == NULL)
+      csound->open_files = (void*) p->nxt;
+    else
+      p->prv->nxt = p->nxt;
+    if (p->nxt != NULL)
+      p->nxt->prv = p->prv;
+    if(p->buf != NULL) mfree(csound, p->buf);
+    p->bufsize = 0;
+    csound->DestroyCircularBuffer(csound, p->cb);
+    csound->NotifyThreadLock(csound->file_io_threadlock);
+   } else {
+   /* close file */
     switch (p->type) {
       case CSFILE_FD_R:
       case CSFILE_FD_W:
@@ -1229,21 +1260,6 @@ int csoundFileClose(CSOUND *csound, void *fd)
           retval |= close(p->fd);
         break;
     }
-
-   if(p->async_flag == ASYNC_GLOBAL) {
-     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
-        /* unlink from chain of open files */
-    if (p->prv == NULL)
-      csound->open_files = (void*) p->nxt;
-    else
-      p->prv->nxt = p->nxt;
-    if (p->nxt != NULL)
-      p->nxt->prv = p->prv;
-    if(p->buf != NULL) mfree(csound, p->buf);
-    p->bufsize = 0;
-    csound->DestroyCircularBuffer(csound, p->cb);
-    csound->NotifyThreadLock(csound->file_io_threadlock);
-   } else {
    /* unlink from chain of open files */
     if (p->prv == NULL)
       csound->open_files = (void*) p->nxt;
