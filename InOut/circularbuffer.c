@@ -32,98 +32,99 @@ typedef struct _circular_buffer {
 } circular_buffer;
 
 void *csoundCreateCircularBuffer(CSOUND *csound, int numelem, int elemsize){
-  circular_buffer *p;
-  if ((p = (circular_buffer *)
-       csound->Malloc(csound, sizeof(circular_buffer))) == NULL) {
-    return NULL;
-  }
-  p->numelem = numelem;
-  p->wp = p->rp = 0;
-  p->elemsize = elemsize;
+    circular_buffer *p;
+    if ((p = (circular_buffer *)
+         csound->Malloc(csound, sizeof(circular_buffer))) == NULL) {
+      return NULL;
+    }
+    p->numelem = numelem;
+    p->wp = p->rp = 0;
+    p->elemsize = elemsize;
 
-  if ((p->buffer = (char *) csound->Malloc(csound, numelem*elemsize)) == NULL) {
-    return NULL;
-  }
-  memset(p->buffer, 0, numelem*elemsize);
-  return (void *)p;
+    if ((p->buffer = (char *) csound->Malloc(csound, numelem*elemsize)) == NULL) {
+      return NULL;
+    }
+    memset(p->buffer, 0, numelem*elemsize);
+    return (void *)p;
 }
 
 static int checkspace(circular_buffer *p, int writeCheck){
-  int wp = p->wp, rp = p->rp, numelem = p->numelem;
-  if(writeCheck){
-    if (wp > rp) return rp - wp + numelem - 1;
-    else if (wp < rp) return rp - wp - 1;
-    else return numelem - 1;
-  }
-  else {
-    if (wp > rp) return wp - rp;
-    else if (wp < rp) return wp - rp + numelem;
-    else return 0;
-  }
+    int wp = p->wp, rp = p->rp, numelem = p->numelem;
+    if(writeCheck){
+      if (wp > rp) return rp - wp + numelem - 1;
+      else if (wp < rp) return rp - wp - 1;
+      else return numelem - 1;
+    }
+    else {
+      if (wp > rp) return wp - rp;
+      else if (wp < rp) return wp - rp + numelem;
+      else return 0;
+    }
 }
 
 int csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int items){
-  int remaining;
-  int itemsread, numelem = ((circular_buffer *)p)->numelem;
-  int elemsize = ((circular_buffer *)p)->elemsize;
-  int i=0, rp = ((circular_buffer *)p)->rp;
-  char *buffer = ((circular_buffer *)p)->buffer;
-  IGN(csound);
-  if(p == NULL) return 0;
-  if ((remaining = checkspace(p, 0)) == 0) {
-    return 0;
-  }
-  itemsread = items > remaining ? remaining : items;
-  memcpy((char *) out, &(buffer[elemsize * rp]), itemsread * elemsize);
-  rp += itemsread;
-  if (rp >= numelem) {
-    rp -= numelem;
-  }
-  ((circular_buffer *)p)->rp = rp;
-  return itemsread;
+    int remaining;
+    int itemsread, numelem = ((circular_buffer *)p)->numelem;
+    int elemsize = ((circular_buffer *)p)->elemsize;
+    int i=0, rp = ((circular_buffer *)p)->rp;
+    char *buffer = ((circular_buffer *)p)->buffer;
+    IGN(csound);
+    if(p == NULL) return 0;
+    if ((remaining = checkspace(p, 0)) == 0) {
+      return 0;
+    }
+    itemsread = items > remaining ? remaining : items;
+    memcpy((char *) out, &(buffer[elemsize * rp]), itemsread * elemsize);
+    rp += itemsread;
+    if (rp >= numelem) {
+      rp -= numelem;
+    }
+    ((circular_buffer *)p)->rp = rp;
+    return itemsread;
 }
 
 void csoundFlushCircularBuffer(CSOUND *csound, void *p){
-  int remaining;
-  int itemsread, numelem = ((circular_buffer *)p)->numelem;
-  int i=0, rp = ((circular_buffer *)p)->rp;
-  //MYFLT *buffer = ((circular_buffer *)p)->buffer;
-  IGN(csound);
-  if(p == NULL) return;
-  if ((remaining = checkspace(p, 0)) == 0) {
-    return;
-  }
-  itemsread = numelem > remaining ? remaining: numelem;
-  for(i=0; i < itemsread; i++){
-    rp++;
-    if(rp == numelem) rp = 0;
-  }
-  ((circular_buffer *)p)->rp = rp;
+    int remaining;
+    int itemsread, numelem = ((circular_buffer *)p)->numelem;
+    int i=0, rp = ((circular_buffer *)p)->rp;
+    //MYFLT *buffer = ((circular_buffer *)p)->buffer;
+    IGN(csound);
+    if(p == NULL) return;
+    if ((remaining = checkspace(p, 0)) == 0) {
+      return;
+    }
+    itemsread = numelem > remaining ? remaining: numelem;
+    for(i=0; i < itemsread; i++){
+      rp++;
+      if(rp == numelem) rp = 0;
+    }
+    ((circular_buffer *)p)->rp = rp;
 }
 
 
 int csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int items){
-  int remaining;
-  int itemswrite, numelem = ((circular_buffer *)p)->numelem;
-  int elemsize = ((circular_buffer *)p)->elemsize;
-  int i=0, wp = ((circular_buffer *)p)->wp;
-  char *buffer = ((circular_buffer *)p)->buffer;
-  IGN(csound);
-  if(p == NULL) return 0;
-  if ((remaining = checkspace(p, 1)) == 0) {
-    return 0;
-  }
-  itemswrite = items > remaining ? remaining : items;
-  for(i=0; i < itemswrite; i++){
-    memcpy(&(buffer[elemsize * wp++]),((char *) in) + (i * elemsize), itemswrite* elemsize);
-    if(wp == numelem) wp = 0;
-  }
-  ((circular_buffer *)p)->wp = wp;
-  return itemswrite;
+    int remaining;
+    int itemswrite, numelem = ((circular_buffer *)p)->numelem;
+    int elemsize = ((circular_buffer *)p)->elemsize;
+    int i=0, wp = ((circular_buffer *)p)->wp;
+    char *buffer = ((circular_buffer *)p)->buffer;
+    IGN(csound);
+    if(p == NULL) return 0;
+    if ((remaining = checkspace(p, 1)) == 0) {
+      return 0;
+    }
+    itemswrite = items > remaining ? remaining : items;
+    for(i=0; i < itemswrite; i++){
+      memcpy(&(buffer[elemsize * wp++]),
+             ((char *) in) + (i * elemsize), itemswrite* elemsize);
+      if(wp == numelem) wp = 0;
+    }
+    ((circular_buffer *)p)->wp = wp;
+    return itemswrite;
 }
 
 void csoundDestroyCircularBuffer(CSOUND *csound, void *p){
-  if(p == NULL) return;
-  csound->Free(csound, ((circular_buffer *)p)->buffer);
-  csound->Free(csound, p);
+    if(p == NULL) return;
+    csound->Free(csound, ((circular_buffer *)p)->buffer);
+    csound->Free(csound, p);
 }

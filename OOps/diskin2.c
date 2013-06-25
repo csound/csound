@@ -374,7 +374,8 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
     // create circular buffer, on fail set mode to synchronous
     if(csound->realtime_audio_flag==1 && *p->forceSync==0 &&
        (p->cb = csound->CreateCircularBuffer(csound,
-                                             p->bufSize*p->nChannels*2, sizeof(MYFLT))) != NULL){
+                                             p->bufSize*p->nChannels*2,
+                                             sizeof(MYFLT))) != NULL){
       DISKIN_INST **top, *current;
       int *start;
       // allocate buffer

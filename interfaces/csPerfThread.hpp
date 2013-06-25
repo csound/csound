@@ -57,10 +57,12 @@ int main(int argc, char *argv[])
  {
    CsoundPerformanceThread perfThread(cs.GetCsound());
    perfThread.Play(); // Starts performance
-   while(perfThread.GetStatus() == 0); // nothing to do here...
-                                       // but you could process input events, graphics etc
-   perfThread.Stop();  // Stops performance. In fact, performance should have already been
-                       // finished, so this is just an example of how to stop if you need
+   while(perfThread.GetStatus() == 0); 
+                       // nothing to do here...
+                       // but you could process input events, graphics etc
+   perfThread.Stop();  // Stops performance. In fact, performance should have
+                       // already finished, so this is just an example of how
+                       //to stop if you need
    perfThread.Join();  // always call Join() after Stop() as a rule of thumb.
  }
  else{
