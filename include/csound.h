@@ -520,7 +520,7 @@ extern "C" {
     } controlChannelHints_t;
 
     typedef struct controlChannelInfo_s {
-        const char  *name;
+        char  *name;
         int     type;
         controlChannelHints_t    hints;
     } controlChannelInfo_t;
