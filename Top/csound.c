@@ -3741,8 +3741,9 @@ void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound)
 {
     csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     if (!pp) {
-        csound->Warning(csound,
-                        Str("csoundDestroyMessageBuffer: Message buffer not allocated."));
+      csound->Warning(csound,
+                      Str("csoundDestroyMessageBuffer: "
+                          "Message buffer not allocated."));
         return;
     }
     csMsgStruct *msg = pp->firstMsg;
