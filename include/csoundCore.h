@@ -1629,6 +1629,7 @@ typedef struct NAME__ {
     void          *message_buffer;
     int           jumpset;
     int           info_message_request;
+    int           modules_loaded;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
