@@ -591,7 +591,8 @@ extern "C" {
     PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree);
 
     /**
-     * Parse, and compile the given orchestra from an ASCII string.
+     * Parse, and compile the given orchestra from an ASCII string,
+     * also evaluating any global space code (i-time only)
      * this can be called during performance to compile a new orchestra.
      * /code
      *       char *orc = "instr 1 \n a1 rand 0dbfs/4 \n out a1 \n";
@@ -599,6 +600,18 @@ extern "C" {
      * /endcode
     */
     PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str);
+
+   /**
+    *   Parse and compile an orchestra given on an string,
+    *   evaluating any global space code (i-time only). 
+    *   On SUCCESS it returns a value passed to the
+    *   'return' opcode in global space  
+    * /code
+    *       char *code = "i1 = 2 + 2 \n return i1 \n";
+    *       MYFLT retval = csoundEvalCode(csound, code);
+    * /endcode
+    */
+   PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str);
 
     /**
      * Prepares an instance of Csound for Cscore
@@ -1253,10 +1266,11 @@ extern "C" {
 
     /**
      * Creates a buffer for storing messages printed by Csound.
-     * Should be called after creating a Csound instance; note that
-     * the message buffer uses the host data pointer, and the buffer
-     * should be freed by calling csoundDestroyMessageBuffer() before
-     * deleting the Csound instance.
+     * Should be called after creating a Csound instance andthe buffer
+     * can be freed by calling csoundDestroyMessageBuffer() before
+     * deleting the Csound instance. You will generally want to call
+     * csoundCleanup() to make sure the last messages are flushed to
+     * the message buffer before destroying Csound.
      * If 'toStdOut' is non-zero, the messages are also printed to
      * stdout and stderr (depending on the type of the message),
      * in addition to being stored in the buffer.
@@ -1264,7 +1278,7 @@ extern "C" {
      * csoundSetMessageCallback should not be called after creating the
      * message buffer.
      */
-    PUBLIC void csoundEnableMessageBuffer(CSOUND *csound, int toStdOut);
+    PUBLIC void csoundCreateMessageBuffer(CSOUND *csound, int toStdOut);
 
     /**
      * Returns the first message from the buffer.
@@ -2119,31 +2133,35 @@ extern "C" {
 #include "version.h"
 
  /**
-  * Create circular buffer with size samples
+  * Create circular buffer with numelem number of elements. The element's size is set
+  * from elemsize. It should be used like:
+  *@code
+  * void *rb = csoundCreateCircularBuffer(csound, 1024, sizeof(MYFLT));
+  *@endcode
   */
-  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound, int size);
+  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound, int numelem, int elemsize);
 
  /**
   * Read from circular buffer
   * void *circular_buffer - pointer to an existing circular buffer
-  * MYFLT *out - buffer with at least items samples where buffer contents
-  *              will be read into
+  * void *out - preallocated buffer with at least items number of elements, where
+  *              buffer contents will be read into
   * int items - number of samples to be read
   * returns the number of samples read (0 <= n <= items)
   */
   PUBLIC int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
-                                      MYFLT *out, int items);
+                                      void *out, int items);
 
  /**
   * Write to circular buffer
   * void *circular_buffer - pointer to an existing circular buffer
-  * MYFLT *inp - buffer with at least items samples to bet written into
+  * void *inp - buffer with at least items number of elements to be written into
   *              circular buffer
   * int items - number of samples to be read
   * returns the number of samples read (0 <= n <= items)
   */
   PUBLIC int csoundWriteCircularBuffer(CSOUND *csound, void *p,
-                                       const MYFLT *inp, int items);
+                                       const void *inp, int items);
   /**
    * Empty circular buffer of any remaining data.
    */
@@ -2152,7 +2170,7 @@ extern "C" {
  /**
   * Free circular buffer
   */
-  PUBLIC void csoundFreeCircularBuffer(CSOUND *csound, void *circularbuffer);
+  PUBLIC void csoundDestroyCircularBuffer(CSOUND *csound, void *circularbuffer);
 
   /**
    * Platform-independent function to load a shared library.

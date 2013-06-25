@@ -188,6 +188,10 @@ public:
   {
     return csoundCompileOrc(csound, str);
   }
+  virtual MYFLT EvalCode(const char *str)
+  {
+    return csoundEvalCode(csound, str);
+  }
   virtual int ReadScore(char *str)
   {
     return csoundReadScore(csound, str);
@@ -843,9 +847,9 @@ public:
 
   }
   // Functions for embedding.
-  virtual void EnableMessageBuffer(int toStdOut)
+  virtual void CreateMessageBuffer(int toStdOut)
   {
-    csoundEnableMessageBuffer(csound, toStdOut);
+    csoundCreateMessageBuffer(csound, toStdOut);
   }
   virtual const char *GetFirstMessage()
   {

@@ -147,7 +147,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
       memset(buf, 0, MTU);
     }
     p->buffsize = p->buffer.size/sizeof(MYFLT);
-    p->cb = csound->CreateCircularBuffer(csound,  *p->ptr3);
+    p->cb = csound->CreateCircularBuffer(csound,  *p->ptr3, sizeof(MYFLT));
     /* create thread */
     p->threadon = 1;
     p->thrid = csound->CreateThread(udpRecv, (void *) p);
@@ -240,7 +240,7 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
       buf = (MYFLT *) p->tmp.auxp;      /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
-    p->cb = csound->CreateCircularBuffer(csound,  *p->ptr4);
+    p->cb = csound->CreateCircularBuffer(csound,  *p->ptr4, sizeof(MYFLT));
     /* create thread */
        p->threadon = 1;
     p->thrid = csound->CreateThread(udpRecv, (void *) p);

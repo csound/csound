@@ -1241,7 +1241,7 @@ int csoundFileClose(CSOUND *csound, void *fd)
       p->nxt->prv = p->prv;
     if(p->buf != NULL) mfree(csound, p->buf);
     p->bufsize = 0;
-    csound->FreeCircularBuffer(csound, p->cb);
+    csound->DestroyCircularBuffer(csound, p->cb);
     csound->NotifyThreadLock(csound->file_io_threadlock);
    } else {
    /* unlink from chain of open files */
@@ -1324,7 +1324,7 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
     p->async_flag = ASYNC_GLOBAL;
 
-    p->cb = csound->CreateCircularBuffer(csound, buffsize*4);
+    p->cb = csound->CreateCircularBuffer(csound, buffsize*4, sizeof(MYFLT));
     p->items = 0;
     p->pos = 0;
     p->bufsize = buffsize;
