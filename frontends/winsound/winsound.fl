@@ -609,7 +609,8 @@ Function {make_info()} {open
     }
     Fl_Button {} {
       label Browse
-      callback {sndinfo_file->value(fl_file_chooser("SndInfo", "*.{wav,aif,raw,irc}", NULL));}
+      callback {sndinfo_file->value(fl_file_chooser("SndInfo",
+                                                    "*.{wav,aif,raw,irc}", NULL));}
       xywh {205 40 50 25}
     }
   }
@@ -717,7 +718,8 @@ Function {make_hetanal()} {open
     callback {do_util = 0;} open
     xywh {540 387 360 380} type Double
     code0 {int ct; prof_h.get("c",ct,0);
-het_ac->value(ct==0);het_c1->value(ct==1);het_c2->value(ct==2);het_c3->value(ct==3);het_c4->value(ct==4);} visible
+het_ac->value(ct==0);het_c1->value(ct==1);het_c2->value(ct==2);
+het_c3->value(ct==3);het_c4->value(ct==4);} visible
   } {
     Fl_File_Input het_analin {
       label Input
@@ -1098,7 +1100,8 @@ Function {make_cvlanal()} {open
     callback {do_util = 0;} open
     xywh {484 353 360 245} type Double
     code0 {int ct; prof_c.get("c",ct,0);
-cvl_ac->value(ct==0);cvl_c1->value(ct==1);cvl_c2->value(ct==2);cvl_c3->value(ct==3);cvl_c4->value(ct==4);} visible
+cvl_ac->value(ct==0);cvl_c1->value(ct==1);cvl_c2->value(ct==2);
+cvl_c3->value(ct==3);cvl_c4->value(ct==4);} visible
   } {
     Fl_File_Input cvl_analin {
       label Input
