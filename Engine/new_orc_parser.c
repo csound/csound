@@ -149,7 +149,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       corfile_rm(&csound->expanded_orc);
       if (csound->synterrcnt) err = 3;
       if (LIKELY(err == 0)) {
-        csound->Message(csound, "Parsing successful!\n");
+        if(csound->oparms->odebug) csound->Message(csound, "Parsing successful!\n");
       }
       else {
         if (err == 1){
