@@ -995,8 +995,9 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     unsigned long   portFlags;
     int             i, n, cnt=0;
     jack_client_t *jackClient;
-    RtJackGlobals* p = (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
-                                                                           "_rtjackGlobals");
+    RtJackGlobals* p =
+      (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
+                                                          "_rtjackGlobals");
 
     if(p->listclient == NULL)
         p->listclient = jack_client_open("list", JackNoStartServer, NULL);
@@ -1042,8 +1043,9 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
-    RtJackGlobals* p = (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
-                                                                           "_rtjackGlobals");
+    RtJackGlobals* p =
+      (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
+                                                          "_rtjackGlobals");
     if(p && p->listclient) {
         jack_client_close(p->listclient);
         p->listclient = NULL;

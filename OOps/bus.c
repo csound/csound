@@ -523,7 +523,7 @@ PUBLIC int csoundGetControlChannelHints(CSOUND *csound, const char *name,
     if (pp->hints.attributes) {
         hints->attributes
           = (char *) csound->Malloc(csound,
-                                    (strlen(pp->hints.attributes) + 1) * sizeof(char));
+                                    strlen(pp->hints.attributes) + 1);
         strcpy(hints->attributes, pp->hints.attributes);
     }
     return 0;
