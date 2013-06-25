@@ -2253,10 +2253,10 @@ void *init_pass_thread(void *p){
     while(ip != NULL){
       INSDS *nxt = ip->nxtact;    
       if(ip->init_done == 0){   
-        OPDS *ids = (OPDS *) (ip->nxti);
-        while (ids != NULL) {        
-          (*ids->iopadr)(csound, ids);
-          ids = ids->nxti;
+        csound->ids = (OPDS *) (ip->nxti);
+        while (csound->ids != NULL) {        
+          (*csound->ids->iopadr)(csound, csound->ids);
+          csound->ids = csound->ids->nxti;
         }
         ip->init_done = 1;
         if(csound->reinitflag==1) {
