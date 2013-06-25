@@ -43,7 +43,6 @@ void test_read_write(void) {
     csoundDestroyCircularBuffer(csound, rb);
     csoundDestroy(csound);
 }
-
 void test_read_write_diff_size(void) {
     int i, j;
     CSOUND* csound = csoundCreate(NULL);
@@ -74,6 +73,29 @@ void test_read_write_diff_size(void) {
     csoundDestroy(csound);
 }
 
+void test_wrap(void) {
+    int i, j;
+    CSOUND* csound = csoundCreate(NULL);
+    void *rb = csoundCreateCircularBuffer(csound, 32, sizeof(float));
+    CU_ASSERT_PTR_NOT_NULL(rb);
+    for (i = 0 ; i <16; i++) {
+        float val = i;
+        csoundWriteCircularBuffer(csound, rb, &val, 1);
+    }
+    for (i = 0 ; i < 65; i++) {
+        float val;
+        int read = csoundReadCircularBuffer(csound, rb, &val, 1);
+        CU_ASSERT_EQUAL(read, 1);
+        CU_ASSERT_EQUAL(val, i);
+        val = i + 16;
+        int written = csoundWriteCircularBuffer(csound, rb, &val, 1);
+        CU_ASSERT_EQUAL(written, 1);
+    }
+    csoundDestroyCircularBuffer(csound, rb);
+    csoundDestroy(csound);
+}
+
+
 int main()
 {
     CU_pSuite pSuite = NULL;
@@ -92,6 +114,7 @@ int main()
     /* add the tests to the suite */
     if ((NULL == CU_add_test(pSuite, "Test read and write", test_read_write))
             || (NULL == CU_add_test(pSuite, "Test read and write diff sizes", test_read_write_diff_size))
+            || (NULL == CU_add_test(pSuite, "Test wrap", test_wrap))
         )
     {
         CU_cleanup_registry();
