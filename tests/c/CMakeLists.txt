@@ -47,7 +47,6 @@ add_executable(testCsoundDataStructures csound_data_structures_test.c)
 target_link_libraries(testCsoundDataStructures ${CSOUNDLIB} ${CUNIT_LIBRARY})
 add_test(NAME testCsoundDataStructures
         COMMAND $<TARGET_FILE:testCsoundDataStructures> ${TEST_ARGS})
-endif()
 
 add_executable(testIo io_test.c)
 target_link_libraries(testIo ${CSOUNDLIB} ${CUNIT_LIBRARY})
@@ -55,9 +54,11 @@ add_test(NAME testIo
         COMMAND $<TARGET_FILE:testIo> minimal.csd ${TEST_ARGS})
 
 add_executable(testCircularBuffer csound_circular_buffer_test.c)
-target_link_libraries(testCircularBuffer ${CSOUNDLIB} ${CUNIT_LIBRARY})
+target_link_libraries(testCircularBuffer ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread)
 add_test(NAME testCircularBuffer
         COMMAND $<TARGET_FILE:testCircularBuffer> minimal.csd ${TEST_ARGS})
+endif()
+
 
 
 
