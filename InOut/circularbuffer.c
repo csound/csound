@@ -74,10 +74,11 @@ int csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int items){
       return 0;
     }
     itemsread = items > remaining ? remaining : items;
-    memcpy((char *) out, &(buffer[elemsize * rp]), itemsread * elemsize);
-    rp += itemsread;
-    if (rp >= numelem) {
-      rp -= numelem;
+    for(i=0; i < itemsread; i++){
+     memcpy((char *) out + (i * elemsize), &(buffer[elemsize * rp++]),  elemsize);
+     if (rp == numelem) {
+      rp = 0;
+     }
     }
     ((circular_buffer *)p)->rp = rp;
     return itemsread;
@@ -116,7 +117,7 @@ int csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int items
     itemswrite = items > remaining ? remaining : items;
     for(i=0; i < itemswrite; i++){
       memcpy(&(buffer[elemsize * wp++]),
-             ((char *) in) + (i * elemsize), itemswrite* elemsize);
+             ((char *) in) + (i * elemsize),  elemsize);
       if(wp == numelem) wp = 0;
     }
     ((circular_buffer *)p)->wp = wp;
