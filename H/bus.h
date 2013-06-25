@@ -36,8 +36,8 @@ extern "C" {
 #endif
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *r, *a;
+    OPDS    h;
+    MYFLT   *r, *a;
 } CHNVAL;
 
 typedef struct {
@@ -55,22 +55,22 @@ typedef struct {
 } KSENSE;
 
 typedef struct channelEntry_s {
-        struct channelEntry_s *nxt;
-        controlChannelHints_t hints;
-        MYFLT   *data;
+    struct channelEntry_s *nxt;
+    controlChannelHints_t hints;
+    MYFLT   *data;
 #ifndef MACOSX
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
-  pthread_spinlock_t *lock;
-  pthread_spinlock_t theLock;
+    pthread_spinlock_t *lock;
+    pthread_spinlock_t theLock;
 #else
     int     lock;
 #endif
 #else
-        int     lock;               /* Multi-thread protection */
+    int     lock;               /* Multi-thread protection */
 #endif
-        int     type;
-        int     datasize;  /* size of allocated chn data */
-        char    name[1];
+    int     type;
+    int     datasize;  /* size of allocated chn data */
+    char    name[1];
 } CHNENTRY;
 
 typedef struct {
@@ -135,17 +135,17 @@ typedef struct {
 } CHNPARAMS_OPCODE;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *value, *valID;
-        AUXCH   channelName;
-        const CS_TYPE *channelType;
+    OPDS    h;
+    MYFLT   *value, *valID;
+    AUXCH   channelName;
+    const CS_TYPE *channelType;
 } INVAL;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *valID, *value;
-        AUXCH   channelName;
-        const CS_TYPE *channelType;
+    OPDS    h;
+    MYFLT   *valID, *value;
+    AUXCH   channelName;
+    const CS_TYPE *channelType;
 } OUTVAL;
 
 int     chano_opcode_perf_k(CSOUND *, CHNVAL *);

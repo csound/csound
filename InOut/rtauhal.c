@@ -543,7 +543,7 @@ static int recopen_(CSOUND *csound, const csRtAudioParams * parm)
     cdata->inputBuffer =
       (MYFLT *) calloc (csound->GetInputBufferSize(csound), sizeof(MYFLT));
     cdata->incb =
-      csound->CreateCircularBuffer(csound, parm->bufSamp_HW*parm->nChannels);
+            csound->CreateCircularBuffer(csound, parm->bufSamp_HW*parm->nChannels, sizeof(MYFLT));
     int ret = AuHAL_open(csound, parm, cdata, 1);
     return ret;
 }
@@ -569,7 +569,7 @@ static int playopen_(CSOUND *csound, const csRtAudioParams * parm)
     memset(cdata->outputBuffer, 0,
            csound->GetOutputBufferSize(csound)*sizeof(MYFLT));
     cdata->outcb =
-      csound->CreateCircularBuffer(csound, parm->bufSamp_HW*parm->nChannels);
+      csound->CreateCircularBuffer(csound, parm->bufSamp_HW*parm->nChannels, sizeof(MYFLT));
     return AuHAL_open(csound, parm,cdata,0);
 }
 
@@ -727,8 +727,8 @@ static void rtclose_(CSOUND *csound)
         AudioObjectSetPropertyData(kAudioObjectSystemObject,
                                    &prop, 0, NULL, psize, &cdata->defdevout);
       }
-      csound->FreeCircularBuffer(csound, cdata->incb);
-      csound->FreeCircularBuffer(csound, cdata->outcb);
+      csound->DestroyCircularBuffer(csound, cdata->incb);
+      csound->DestroyCircularBuffer(csound, cdata->outcb);
       free(cdata);
       csound->Message(csound, Str("AuHAL module: device closed\n"));
     }
