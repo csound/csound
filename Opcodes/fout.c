@@ -301,9 +301,9 @@ static int outfile(CSOUND *csound, OUTFILE *p)
         //#else
         //sf_write_double(p->f.sf, buf, p->buf_pos);
         //#endif
-        if(p->f.async==1)
+        //if(p->f.async==1)
         csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
-        else sf_write_MYFLT(p->f.sf, buf, p->buf_pos);
+        //else sf_write_MYFLT(p->f.sf, buf, p->buf_pos);
         p->buf_pos = 0;
        }
 
@@ -352,9 +352,9 @@ static int fout_flush_callback(CSOUND *csound, void *p_)
       //#else
       //sf_write_double(p->f.sf, (double*) p->buf.auxp, p->buf_pos);
       //#endif
-    if(p->f.async == 1)
+      //if(p->f.async == 1)
       csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
-    else sf_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+      //else sf_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
     }
     return OK;
 }
@@ -393,7 +393,7 @@ static int outfile_set_(CSOUND *csound, OUTFILE *p, int istring)
     p->f.bufsize =  p->buf.size;
     sfinfo.channels = p->nargs;
     n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
-                       p->fname, istring, &sfinfo, 0);
+                       p->fname, istring, &sfinfo, 1);
     if (UNLIKELY(n < 0))
       return NOTOK;
 

@@ -425,9 +425,10 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if(csound->init_pass_loop == 1) {
       csoundLockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 0;
-      csoundLockMutex(csound->init_pass_threadlock);
+      csoundUnlockMutex(csound->init_pass_threadlock);
       pthread_join(csound->init_pass_thread, NULL);
       csoundDestroyMutex(csound->init_pass_threadlock);
+      csound->init_pass_threadlock = 0;
     }
 
     while (csound->freeEvtNodes != NULL) {
@@ -1325,8 +1326,9 @@ void musmon_rewind_score(CSOUND *csound)
     csound->advanceCnt = 0;
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
-
-    corfile_rewind(csound->scstr);
+    if(csound->scstr)
+      corfile_rewind(csound->scstr);
+    else csound->Warning(csound, "cannot rewind score: no score in memory \n");
 }
 
 /**
