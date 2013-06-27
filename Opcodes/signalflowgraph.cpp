@@ -1192,8 +1192,9 @@ struct FtGenOnceS : public OpcodeBase<FtGenOnceS> {
         }
         // If the arguments have not been used before for this instance of Csound,
         // create a new function table and store the arguments and table number;
-        // otherwise, look up and return the already created function table's number.
-        if(functionTablesForCsoundsForEvtblks[csound].find(eventBlock) != functionTablesForCsoundsForEvtblks[csound].end()) {
+        // otherwise look up and return the already created function table's number.
+        if(functionTablesForCsoundsForEvtblks[csound].find(eventBlock) !=
+           functionTablesForCsoundsForEvtblks[csound].end()) {
           *ifno = functionTablesForCsoundsForEvtblks[csound][eventBlock];
           // warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
           // std::cerr << "ftgenonce: re-using existing func:" << evtblk << std::endl;
