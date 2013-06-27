@@ -161,7 +161,7 @@ if(CUSTOM_CMAKE)
     message(STATUS "Including Custom.cmake file: ${CUSTOM_CMAKE}")
     include(${CUSTOM_CMAKE})
 else()
-    message(STATUS "**********************************hahhshshahs")
+    message(STATUS "Not using Custom.cmake file.")
 endif()
 
 

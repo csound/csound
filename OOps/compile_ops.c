@@ -66,3 +66,22 @@ int read_score_i(CSOUND *csound, COMPILE *p){
   *p->res = FL(csoundReadScore(csound, ((STRINGDAT *)p->str)->data));
   return OK;
 }
+
+int eval_str_i(CSOUND *csound, COMPILE *p){
+  *p->res = csoundEvalCode(csound, ((STRINGDAT *)p->str)->data);
+  return OK;
+}
+
+int eval_str_k(CSOUND *csound, COMPILE *p){
+  if(*p->ktrig)
+   *p->res = csoundEvalCode(csound, ((STRINGDAT *)p->str)->data);
+  return OK;
+}
+
+
+int retval_i(CSOUND *csound, RETVAL *p){
+  INSDS *ip = p->h.insdshead;
+  ip->retval = *p->ret;
+  return OK;
+}
+

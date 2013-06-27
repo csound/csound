@@ -336,7 +336,7 @@ static const CSOUND cenviron_ = {
     csoundReadCircularBuffer,
     csoundWriteCircularBuffer,
     csoundFlushCircularBuffer,
-    csoundFreeCircularBuffer,
+    csoundDestroyCircularBuffer,
     /* File access */
     csoundFindInputFile,
     csoundFindOutputFile,
@@ -844,7 +844,8 @@ static const CSOUND cenviron_ = {
     NULL,           /* filedir */
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
-    0               /* info_message_request */
+    0,               /* info_message_request */
+    0                /* modules loaded */
 };
 
 /* from threads.c */
@@ -2284,11 +2285,11 @@ PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
     csound->midi_dev_list_callback = mididevlist__;
 }
 
-PUBLIC int csoundAudioDevList(CSOUND *csound,  CS_AUDIODEVICE *list, int isOutput){
+PUBLIC int csoundGetAudioDevList(CSOUND *csound,  CS_AUDIODEVICE *list, int isOutput){
   return csound->audio_dev_list_callback(csound,list,isOutput);
 }
 
-PUBLIC int csoundMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput){
+PUBLIC int csoundGetMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput){
   return csound->midi_dev_list_callback(csound,list,isOutput);
 }
 
@@ -3618,12 +3619,15 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
  * in addition to being stored in the buffer.
  */
 
-void PUBLIC csoundEnableMessageBuffer(CSOUND *csound, int toStdOut)
+void PUBLIC csoundCreateMessageBuffer(CSOUND *csound, int toStdOut)
 {
     csMsgBuffer *pp;
     size_t      nBytes;
 
-    csoundDestroyMessageBuffer(csound);
+    pp = (csMsgBuffer*) csound->message_buffer;
+    if (pp) {
+        csoundDestroyMessageBuffer(csound);
+    }
     nBytes = sizeof(csMsgBuffer);
     if (!toStdOut) {
         nBytes += (size_t) 16384;
@@ -3737,8 +3741,9 @@ void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound)
 {
     csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     if (!pp) {
-        csound->Warning(csound,
-                        Str("csoundDestroyMessageBuffer: Message buffer not allocated."));
+      csound->Warning(csound,
+                      Str("csoundDestroyMessageBuffer: "
+                          "Message buffer not allocated."));
         return;
     }
     csMsgStruct *msg = pp->firstMsg;
