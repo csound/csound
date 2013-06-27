@@ -21,10 +21,11 @@
     02111-1307 USA
 */
 
-/* this file can be copied as float-version.h in installers for double precision
+/* this file can be copied as float-version.h in installers for double precision 
    currently implemented only for OSX
 */
 
 #ifndef USE_DOUBLE
 #define USE_DOUBLE
 #endif
+
