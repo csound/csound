@@ -991,18 +991,18 @@ extern "C" {
       * structs to be filled:
       *
       * \code
-      *   int i,n = csoundAudioDevList(csound,NULL,1);
+      *   int i,n = csoundGetAudioDevList(csound,NULL,1);
       *   CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
       *       malloc(n*sizeof(CS_AUDIODEVICE));
-      *   csoundAudioDevList(csound,devs,1);
+      *   csoundGetAudioDevList(csound,devs,1);
       *   for(i=0; i < n; i++)
       *       csound-Message(csound, " %d: %s (%s)\n",
       *             i, devs[i].device_id, devs[i].device_name);
       *   free(devs);
       * \endcode
       */
-    PUBLIC int csoundAudioDevList(CSOUND *csound,
-                                  CS_AUDIODEVICE *list, int isOutput);
+    PUBLIC int csoundGetAudioDevList(CSOUND *csound,
+                                     CS_AUDIODEVICE *list, int isOutput);
 
     /**
      * Sets a function to be called by Csound for opening real-time
@@ -1043,8 +1043,9 @@ extern "C" {
     PUBLIC void csoundSetRtcloseCallback(CSOUND *, void (*rtclose__)(CSOUND *));
 
     /**
-     * Sets a function that is called to obtain a list of audio devices
-     * (See csoundAudioDevList())
+     * Sets a function that is called to obtain a list of audio devices.
+     * This should be set by rtaudio modules and should not be set by hosts.
+     * (See csoundGetAudioDevList())
      */
     PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
            int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
@@ -1076,10 +1077,10 @@ extern "C" {
       * Hosts will typically call this function twice: first to obtain
       * a number of devices, then, after allocating space for each
       * device information structure, pass an array of CS_MIDIDEVICE
-      * structs to be filled. (see also csoundAudioDevList())
+      * structs to be filled. (see also csoundGetAudioDevList())
       */
-    PUBLIC int csoundMIDIDevList(CSOUND *csound,
-                                 CS_MIDIDEVICE *list, int isOutput);
+    PUBLIC int csoundGetMIDIDevList(CSOUND *csound,
+                                    CS_MIDIDEVICE *list, int isOutput);
 
     /**
      * Sets callback for opening real time MIDI input.
@@ -1127,8 +1128,9 @@ extern "C" {
 
 
     /**
-     * Sets a function that is called to obtain a list of MIDI devices
-     * (See csoundMIDIDevList())
+     * Sets a function that is called to obtain a list of MIDI devices.
+     * This should be set by IO plugins, and should not be used by hosts.
+     * (See csoundGetMIDIDevList())
      */
     PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
                 int (*mididevlist__)(CSOUND *,
