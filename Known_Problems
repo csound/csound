@@ -1,6 +1,12 @@
 Problems of which we are aware
 ==============================
 
+code like
+   outs  (kadsr)*a1,a1
+fails as the parser tries to make outs a function.
+
+Use of multiple strings in scoreline fails
+
 
 Problems Fixed since rc1
 ========================
