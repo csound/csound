@@ -370,12 +370,13 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   BEGIN(INITIAL);
                   PARM->xstrbuff[PARM->xstrptr++] = '"';
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
+                  /* printf("xstrbuff:>>%s<<\n", PARM->xstrbuff); */
                   *lvalp = make_string(csound, PARM->xstrbuff);
                   free(PARM->xstrbuff);
                   return STRING_TOKEN;
                 }
 
-<xstr>"\n"     { /* THe next two should be one case but I cannot get that to work */
+<xstr>"\n"     { /* The next two should be one case but I cannot get that to work */
                   if (PARM->xstrptr+2==PARM->xstrmax) {
                       PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
