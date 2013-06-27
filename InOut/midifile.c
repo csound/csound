@@ -777,6 +777,7 @@ extern  void    midi_ctl_reset(CSOUND *csound, int16 chan);
 void midifile_rewind_score(CSOUND *csound)
 {
     int i;
+    OPARMS *O = csound->oparms;
 
     if (MIDIFILE != NULL) {
       /* reset event index and tempo */
@@ -787,7 +788,12 @@ void midifile_rewind_score(CSOUND *csound)
       /* reset controllers on all channels */
       for (i = 0; i < MAXCHAN; i++)
         midi_ctl_reset(csound, (int16) i);
+    } else if (O->FMidiname != NULL) {
+      if (csoundMIDIFileOpen(csound, O->FMidiname) != 0)
+        csound->Die(csound, Str("Failed to load MIDI file."));
+      O->FMidiin = 1;
     }
+    else csound->Warning(csound, "Cannot rewind MIDI score\n");
 }
 
  /* ------------------------------------------------------------------------ */

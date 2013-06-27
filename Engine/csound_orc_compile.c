@@ -1529,7 +1529,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     /* lock to ensure thread-safety */
     csoundLockMutex(csound->API_lock);
-    if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
+    if(csound->init_pass_threadlock) csoundLockMutex(csound->init_pass_threadlock);
     if(engineState != &csound->engineState) {
       OPDS *ids = csound->ids;
       /* any compilation other than the first one */
@@ -1585,7 +1585,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     }
 
-    if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
+    if(csound->init_pass_threadlock) csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
 
@@ -1593,9 +1593,28 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 }
 
 /**
+    Parse and compile an orchestra given on an string,
+    evaluating any global space code (i-time only). 
+    On SUCCESS it returns a value passed to the
+    'return' opcode in global space  
+*/
+PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str){
+ 
+  if(str && csoundCompileOrc(csound,str) == CSOUND_SUCCESS)
+   return csound->instr0->instance[0].retval; 
+#ifdef NAN
+   else return NAN; 
+#else
+  else return 0;
+#endif
+}
+
+
+/**
     Parse and compile an orchestra given on an string (OPTIONAL)
     if str is NULL the string is taken from the internal corfile
     containing the initial orchestra file passed to Csound.
+    Also evaluates any global space code.
 */
 PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
 {
