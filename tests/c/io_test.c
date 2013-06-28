@@ -17,8 +17,8 @@ int main(int argc, char **argv)
             CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *) malloc(ndevs*sizeof(CS_MIDIDEVICE));
             csoundGetMIDIDevList(csound,devs,1);
             printf("Module %d:  %s (%s): %i devices\n", n, name, type, ndevs);
-            for(i=0; i < ndevs; i++)
-                printf(" %d: %s (%s)\n", i, devs[i].device_id, devs[i].device_name);
+            printf(" %d: %s %s (%s)\n", i,
+                   devs[i].device_id, devs[i].device_name, devs[i].interface_name);
             free(devs);
         } else if (strcmp(type, "audio") == 0) {
             csoundSetRTAudioModule(csound,name);
@@ -37,12 +37,13 @@ int main(int argc, char **argv)
     while(!csoundGetModule(csound, n++, &name, &type)) {
         if (strcmp(type, "midi") == 0) {
             csoundSetMIDIModule(csound,name);
-            int i,ndevs = csoundGetMIDIDevList(csound,NULL,1);
+            int i,ndevs = csoundGetMIDIDevList(csound,NULL,0);
             CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *) malloc(ndevs*sizeof(CS_MIDIDEVICE));
             csoundGetMIDIDevList(csound,devs,0);
             printf("Module %d:  %s (%s): %i devices\n", n, name, type, ndevs);
             for(i=0; i < ndevs; i++)
-                printf(" %d: %s (%s)\n", i, devs[i].device_id, devs[i].device_name);
+                printf(" %d: %s %s (%s)\n", i,
+                       devs[i].device_id, devs[i].device_name, devs[i].interface_name);
             free(devs);
         } else if (strcmp(type, "audio") == 0) {
             csoundSetRTAudioModule(csound,name);
