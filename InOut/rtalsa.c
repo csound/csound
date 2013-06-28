@@ -50,6 +50,7 @@
 #include <sys/select.h>
 #include <termios.h>
 #include <errno.h>
+#include <stdio.h>
 #include <alsa/asoundlib.h>
 #include <sched.h>
 #include <unistd.h>
@@ -1537,9 +1538,228 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
+int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
+    int count = 0;
+    int card, err;
+
+    card = -1;
+    if ((err = snd_card_next(&card)) < 0) {
+        error("cannot determine card number: %s", snd_strerror(err));
+        return 0;
+    }
+    if (card < 0) {
+        error("no sound card found");
+        return 0;
+    }
+    do {
+        snd_ctl_t *ctl;
+        char name[32];
+        int device;
+        int err;
+
+        sprintf(name, "hw:%d", card);
+        if ((err = snd_ctl_open(&ctl, name, 0)) < 0) {
+            error("cannot open control for card %d: %s", card, snd_strerror(err));
+            return 0;
+        }
+        device = -1;
+        for (;;) {
+            if ((err = snd_ctl_rawmidi_next_device(ctl, &device)) < 0) {
+                error("cannot determine device number: %s", snd_strerror(err));
+                break;
+            }
+            if (device < 0)
+                break;
+            snd_rawmidi_info_t *info;
+            const char *name;
+            const char *sub_name;
+            int subs, subs_in, subs_out;
+            int sub;
+            int err;
+
+            snd_rawmidi_info_alloca(&info);
+            snd_rawmidi_info_set_device(info, device);
+
+            snd_rawmidi_info_set_stream(info, SND_RAWMIDI_STREAM_INPUT);
+            err = snd_ctl_rawmidi_info(ctl, info);
+            if (err >= 0)
+                subs_in = snd_rawmidi_info_get_subdevices_count(info);
+            else
+                subs_in = 0;
+
+            snd_rawmidi_info_set_stream(info, SND_RAWMIDI_STREAM_OUTPUT);
+            err = snd_ctl_rawmidi_info(ctl, info);
+            if (err >= 0)
+                subs_out = snd_rawmidi_info_get_subdevices_count(info);
+            else
+                subs_out = 0;
+
+            subs = subs_in > subs_out ? subs_in : subs_out;
+            if (!subs)
+                return;
+
+            for (sub = 0; sub < subs; ++sub) {
+                snd_rawmidi_info_set_stream(info, sub < subs_in ?
+                                SND_RAWMIDI_STREAM_INPUT :
+                                SND_RAWMIDI_STREAM_OUTPUT);
+                snd_rawmidi_info_set_subdevice(info, sub);
+                err = snd_ctl_rawmidi_info(ctl, info);
+                if (err < 0) {
+                    error("cannot get rawmidi information %d:%d:%d: %s\n",
+                          card, device, sub, snd_strerror(err));
+                    return;
+                }
+                name = snd_rawmidi_info_get_name(info);
+                sub_name = snd_rawmidi_info_get_subdevice_name(info);
+                if (sub == 0 && sub_name[0] == '\0') {
+                    if (sub < subs_in && !isOutput)  {
+                        if (list) {
+                            char devid[32];
+                            strncpy(list[count].device_name, name, 31);
+                            sprintf(devid, "hw:%d,%d", card, device);
+                            strncpy(list[count].device_id, devid, 63);
+                            strncpy(list[count].interface_name, devid, 31);
+                            strncpy(list[count].midi_module, "alsaraw", 8);
+                            list[count].isOutput = isOutput;
+                        }
+                        count++;
+                    }
+                    if (sub < subs_out && isOutput)  {
+                        if (list) {
+                            char devid[64];
+                            strncpy(list[count].device_name, name, 63);
+                            sprintf(devid, "hw:%d,%d", card, device);
+                            strncpy(list[count].device_id, devid, 63);
+                            strncpy(list[count].interface_name, devid, 31);
+                            strncpy(list[count].midi_module, "alsaraw", 8);
+                            list[count].isOutput = isOutput;
+                        }
+                        count++;
+                    }
+                    break;
+                } else {
+                    if (sub < subs_in && !isOutput)  {
+                        if (list) {
+                            char devid[64];
+                            strncpy(list[count].device_name, sub_name, 63);
+                            sprintf(devid, "hw:%d,%d,%d", card, device,sub);
+                            strncpy(list[count].device_id, devid, 63);
+                            strncpy(list[count].midi_module, "alsaraw", 8);
+                            list[count].isOutput = isOutput;
+                        }
+                        count++;
+                    }
+                    if (sub < subs_out && isOutput)  {
+                        if (list) {
+                            char devid[64];
+                            strncpy(list[count].device_name, sub_name, 63);
+                            sprintf(devid, "hw:%d,%d,%d", card, device,sub);
+                            strncpy(list[count].device_id, devid, 63);
+                            strncpy(list[count].midi_module, "alsaraw", 8);
+                            list[count].isOutput = isOutput;
+                        }
+                        count++;
+                    }
+                }
+            }
+
+        }
+        snd_ctl_close(ctl);
+        if ((err = snd_card_next(&card)) < 0) {
+            error("cannot determine card number: %s", snd_strerror(err));
+            break;
+        }
+    } while (card >= 0);
+    return count;
+}
+
+
+#define LIST_INPUT	1
+#define LIST_OUTPUT	2
+
+#define perm_ok(pinfo,bits) ((snd_seq_port_info_get_capability(pinfo) & (bits)) == (bits))
+
+static int check_permission(snd_seq_port_info_t *pinfo, int perm)
+{
+    if (perm) {
+        if (perm & LIST_INPUT) {
+            if (perm_ok(pinfo, SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ))
+                goto __ok;
+        }
+        if (perm & LIST_OUTPUT) {
+            if (perm_ok(pinfo, SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE))
+                goto __ok;
+        }
+        return 0;
+    }
+ __ok:
+    if (snd_seq_port_info_get_capability(pinfo) & SND_SEQ_PORT_CAP_NO_EXPORT)
+        return 0;
+    return 1;
+}
+
+int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
+    snd_seq_client_info_t *cinfo;
+    snd_seq_port_info_t *pinfo;
+    int numdevs = 0, count = 0;
+    snd_seq_t *seq;
+
+    IGN(csound);
+
+    if (snd_seq_open(&seq, "default", SND_SEQ_OPEN_DUPLEX, 0) < 0) {
+        fprintf(stderr, "can't open sequencer\n");
+        return 1;
+    }
+
+    snd_seq_client_info_alloca(&cinfo);
+    snd_seq_port_info_alloca(&pinfo);
+    snd_seq_client_info_set_client(cinfo, -1);
+    while (snd_seq_query_next_client(seq, cinfo) >= 0) {
+        /* reset query info */
+        snd_seq_port_info_set_client(pinfo, snd_seq_client_info_get_client(cinfo));
+        snd_seq_port_info_set_port(pinfo, -1);
+        count = 0;
+        while (snd_seq_query_next_port(seq, pinfo) >= 0) {
+            if (check_permission(pinfo, isOutput? LIST_OUTPUT : LIST_INPUT)) {
+//                if (! count) {
+//                    printf("client %d: '%s' [type=%s]\n",
+//                           snd_seq_client_info_get_client(cinfo),
+//                           snd_seq_client_info_get_name(cinfo),
+//                           (snd_seq_client_info_get_type(cinfo) == SND_SEQ_USER_CLIENT ?
+//                                "user": "kernel"));
+//                }
+//                printf("------  %3d '%-16s'\n",
+//                       snd_seq_port_info_get_port(pinfo),
+//                       snd_seq_port_info_get_name(pinfo));
+                if (list) {
+                    strncpy(list[numdevs].midi_module, "alsaseq", 15);
+                    strncpy(list[numdevs].device_name, snd_seq_port_info_get_name(pinfo), 63);
+                    strncpy(list[numdevs].interface_name, snd_seq_client_info_get_name(cinfo), 63);
+                    sprintf(list[numdevs].device_id, "hw:%d,%d", snd_seq_client_info_get_client(cinfo),
+                            snd_seq_port_info_get_port(pinfo));
+                }
+                numdevs++;
+                count++;
+            }
+        }
+    }
+    return numdevs;
+}
+
 static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
-   csound->Warning(csound, "listing of alsa MIDI devices is not implemented yet");
-  return 0;
+    int count = 0;
+    char *s;
+    s = (char*) csound->QueryGlobalVariable(csound, "_RTMIDI");
+    if (strncmp(s, "alsaraw", 8) == 0) { /* ALSA Raw MIDI */
+        count = listRawMidi(csound, list, isOutput);
+    } else if (strncmp(s, "alsaseq", 8) == 0) {/* ALSA Sequencer */
+        count = listAlsaSeq(csound, list, isOutput);
+    } else if (strncmp(s, "devfile", 8) == 0) {
+
+    } else {
+        csound->ErrorMsg(csound, "rtalsa: Wrong callback.");
+    }
+    return count;
 }
 
 PUBLIC int csoundModuleInit(CSOUND *csound)
@@ -1548,79 +1768,77 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     int     i;
     char    buf[9];
     OPARMS oparms;
-   csound->GetOParms(csound, &oparms);
+    csound->GetOParms(csound, &oparms);
 
-   csound->module_list_add(csound, "alsa", "audio");
-   csound->module_list_add(csound, "alsa", "midi");
-   csound->module_list_add(csound, "alsaseq", "midi");
-   csound->module_list_add(csound, "devfile", "midi");
+    csound->module_list_add(csound, "alsa", "audio");
+    csound->module_list_add(csound, "alsaraw", "midi");
+    csound->module_list_add(csound, "alsaseq", "midi");
+    csound->module_list_add(csound, "devfile", "midi");
 
-   {
-     csCfgVariable_t *cfg;
-     int priority;
-     if ((cfg = csound->QueryConfigurationVariable(csound, "rtscheduler")) != NULL) {
-       priority = *(cfg->i.p);
-       if (priority != 0) set_scheduler_priority(csound, priority);
-       csound->DeleteConfigurationVariable(csound, "rtscheduler");
-       csound->DestroyGlobalVariable(csound, "::priority");
-     }
-   }
+    csCfgVariable_t *cfg;
+    int priority;
+    if ((cfg = csound->QueryConfigurationVariable(csound, "rtscheduler")) != NULL) {
+        priority = *(cfg->i.p);
+        if (priority != 0) set_scheduler_priority(csound, priority);
+        csound->DeleteConfigurationVariable(csound, "rtscheduler");
+        csound->DestroyGlobalVariable(csound, "::priority");
+    }
 
     s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     i = 0;
     if (s != NULL) {
-      while (*s != (char) 0 && i < 8)
-        buf[i++] = *(s++) | (char) 0x20;
+        while (*s != (char) 0 && i < 8)
+            buf[i++] = *(s++) | (char) 0x20;
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "alsa") == 0) {
-      csound->Message(csound, Str("rtaudio: ALSA module enabled\n"));
-      csound->SetPlayopenCallback(csound, playopen_);
-      csound->SetRecopenCallback(csound, recopen_);
-      csound->SetRtplayCallback(csound, rtplay_);
-      csound->SetRtrecordCallback(csound, rtrecord_);
-      csound->SetRtcloseCallback(csound, rtclose_);
-      csound->SetAudioDeviceListCallback(csound, listDevices);
+        csound->Message(csound, Str("rtaudio: ALSA module enabled\n"));
+        csound->SetPlayopenCallback(csound, playopen_);
+        csound->SetRecopenCallback(csound, recopen_);
+        csound->SetRtplayCallback(csound, rtplay_);
+        csound->SetRtrecordCallback(csound, rtrecord_);
+        csound->SetRtcloseCallback(csound, rtclose_);
+        csound->SetAudioDeviceListCallback(csound, listDevices);
 
     }
     s = (char*) csound->QueryGlobalVariable(csound, "_RTMIDI");
     i = 0;
     if (s != NULL) {
-      while (*s != (char) 0 && i < 8)
-        buf[i++] = *(s++) | (char) 0x20;
+        while (*s != (char) 0 && i < 8)
+            buf[i++] = *(s++) | (char) 0x20;
     }
     buf[i] = (char) 0;
-    if (strcmp(&(buf[0]), "alsa") == 0) {
-      csound->Message(csound, Str("rtmidi: ALSA module enabled\n"));
-      csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
-      csound->SetExternalMidiReadCallback(csound, midi_in_read);
-      csound->SetExternalMidiInCloseCallback(csound, midi_in_close);
-      csound->SetExternalMidiOutOpenCallback(csound, midi_out_open);
-      csound->SetExternalMidiWriteCallback(csound, midi_out_write);
-      csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
-      csound->SetMIDIDeviceListCallback(csound,listDevicesM);
+    if (strcmp(&(buf[0]), "alsaraw") == 0) {
+        csound->Message(csound, Str("rtmidi: ALSA Raw MIDI module enabled\n"));
+        csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
+        csound->SetExternalMidiReadCallback(csound, midi_in_read);
+        csound->SetExternalMidiInCloseCallback(csound, midi_in_close);
+        csound->SetExternalMidiOutOpenCallback(csound, midi_out_open);
+        csound->SetExternalMidiWriteCallback(csound, midi_out_write);
+        csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
+        csound->SetMIDIDeviceListCallback(csound,listDevicesM);
 
     }
     else if (strcmp(&(buf[0]), "alsaseq") == 0) {
-      if (oparms.msglevel & 0x400)
-        csound->Message(csound, Str("rtmidi: ALSASEQ module enabled\n"));
-      csound->SetExternalMidiInOpenCallback(csound, alsaseq_in_open);
-      csound->SetExternalMidiReadCallback(csound, alsaseq_in_read);
-      csound->SetExternalMidiInCloseCallback(csound, alsaseq_in_close);
-      csound->SetExternalMidiOutOpenCallback(csound, alsaseq_out_open);
-      csound->SetExternalMidiWriteCallback(csound, alsaseq_out_write);
-      csound->SetExternalMidiOutCloseCallback(csound, alsaseq_out_close);
-      csound->SetMIDIDeviceListCallback(csound,listDevicesM);
+        if (oparms.msglevel & 0x400)
+            csound->Message(csound, Str("rtmidi: ALSASEQ module enabled\n"));
+        csound->SetExternalMidiInOpenCallback(csound, alsaseq_in_open);
+        csound->SetExternalMidiReadCallback(csound, alsaseq_in_read);
+        csound->SetExternalMidiInCloseCallback(csound, alsaseq_in_close);
+        csound->SetExternalMidiOutOpenCallback(csound, alsaseq_out_open);
+        csound->SetExternalMidiWriteCallback(csound, alsaseq_out_write);
+        csound->SetExternalMidiOutCloseCallback(csound, alsaseq_out_close);
+        csound->SetMIDIDeviceListCallback(csound,listDevicesM);
     }
     else if (strcmp(&(buf[0]), "devfile") == 0) {
-      csound->Message(csound, Str("rtmidi: devfile module enabled\n"));
-      csound->SetExternalMidiInOpenCallback(csound, midi_in_open_file);
-      csound->SetExternalMidiReadCallback(csound, midi_in_read_file);
-      csound->SetExternalMidiInCloseCallback(csound, midi_in_close_file);
-      csound->SetExternalMidiOutOpenCallback(csound, midi_out_open_file);
-      csound->SetExternalMidiWriteCallback(csound, midi_out_write_file);
-      csound->SetExternalMidiOutCloseCallback(csound, midi_out_close_file);
-      csound->SetMIDIDeviceListCallback(csound,listDevicesM);
+        csound->Message(csound, Str("rtmidi: devfile module enabled\n"));
+        csound->SetExternalMidiInOpenCallback(csound, midi_in_open_file);
+        csound->SetExternalMidiReadCallback(csound, midi_in_read_file);
+        csound->SetExternalMidiInCloseCallback(csound, midi_in_close_file);
+        csound->SetExternalMidiOutOpenCallback(csound, midi_out_open_file);
+        csound->SetExternalMidiWriteCallback(csound, midi_out_write_file);
+        csound->SetExternalMidiOutCloseCallback(csound, midi_out_close_file);
+        csound->SetMIDIDeviceListCallback(csound,listDevicesM);
     }
 
     return 0;
