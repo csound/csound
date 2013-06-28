@@ -47,7 +47,9 @@
 %token IF_TOKEN
 
 %token T_OPCODE0
+%token T_OPCODE0B
 %token T_OPCODE
+%token T_OPCODEB
 
 %token UDO_TOKEN
 %token UDOSTART_DEFINITION
@@ -58,6 +60,7 @@
 %token T_ERROR
 
 %token T_FUNCTION
+%token T_FUNCTIONB
 
 %token INSTR_TOKEN
 %token ENDIN_TOKEN
@@ -73,6 +76,7 @@
 %token ZERODBFS_TOKEN
 %token STRING_TOKEN
 %token T_IDENT
+%token T_IDENTB
 
 %token INTEGER_TOKEN
 %token NUMBER_TOKEN
@@ -304,7 +308,6 @@ statement : ident '=' expr NEWLINE
                   TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
                   ans->left = (TREE *)$1;
                   ans->right = (TREE *)$3;
-                  //print_tree(csound, "=", ans);
                   $$ = ans;
                   csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
@@ -417,7 +420,7 @@ statement : ident '=' expr NEWLINE
                   csp_orc_sa_interlocks(csound, $1->value);
                   query_deprecated_opcode(csound, $1->value);
                 }
-            | opcode0  '(' exprlist ')' NEWLINE   /* VL: added this to allow general func ops with no answers */
+            | opcode0b exprlist ')' NEWLINE   /* VL: added this to allow general func ops with no answers */
                 {
                   ((TREE *)$1)->left = NULL;
                   ((TREE *)$1)->right = (TREE *)$3;
@@ -702,45 +705,46 @@ ifac      : ident               { $$ = $1; }
           | '(' expr ')'      { $$ = $2;  }
           | '(' expr error    { $$ = NULL;  }
           | '(' error         { $$ = NULL; }
-          | ident '(' exprlist ')'
+          | identb exprlist ')'
             {
                 
                 $1->left = NULL;
-                $1->right = $3;
+                $1->right = $2;
 		$1->type = T_FUNCTION;
                 
                 $$ = $1;
             }
-          | opcode ':' ident '(' exprlist ')'
+          | opcode ':' identb exprlist ')'
             {
                 $1->left = NULL;
-                $1->right = $5;
+                $1->right = $4;
 		$1->type = T_FUNCTION;
                 $1->value->optype = $3->value->lexeme;
 		
                 $$ = $1;
             }
-          | opcode ':' opcode '(' exprlist ')'   /* this is need because a & k are also opcodes */
+          | opcode ':' opcodeb exprlist ')'   /* this is need because a & k are also opcodes */
             {
                 $1->left = NULL;
-                $1->right = $5;
+                $1->right = $4;
 		$1->type = T_FUNCTION;
                 $1->value->optype = $3->value->lexeme;
 		
                 $$ = $1;
             }
-          | opcode '(' exprlist ')'
+          | opcodeb exprlist ')'
             {
                 $1->left = NULL;
-                $1->right = $3;
+                $1->right = $2;
 		$1->type = T_FUNCTION;
                 $1->value->optype = NULL;
        
                 $$ = $1;
+                //print_tree(csound, "FUNCTION CALL", $$);
             }
           
-          | ident '(' error
-          | opcode '(' error
+          | identb error
+          | opcodeb error
           ;
 
 rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
@@ -769,6 +773,7 @@ arrayident: arrayident '[' ']' {
           };
 
 ident : T_IDENT { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
+identb : T_IDENTB { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
 
 constant  : INTEGER_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
                                            INTEGER_TOKEN, (ORCTOKEN *)$1); }
@@ -801,8 +806,27 @@ opcode0   : T_OPCODE0
             }
           ;
 
-opcode    : T_OPCODE    { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1);  }
-          | T_FUNCTION  { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
+opcode0b  : T_OPCODE0B
+            {
+	      if (UNLIKELY(PARSER_DEBUG))
+                  csound->Message(csound, "opcode0 $1=%p (%s)\n",
+                                  $1,((ORCTOKEN *)$1)->lexeme );
+                $$ = make_leaf(csound,LINE,LOCN, T_OPCODE0, (ORCTOKEN *)$1);
+                
+
+            }
+          ;
+
+opcode    : T_OPCODE
+                 { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
+          | T_FUNCTION
+                 { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
+          ;
+
+opcodeb   : T_OPCODEB 
+                 { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
+          | T_FUNCTIONB
+                 { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
           ;
 
 %%
