@@ -152,8 +152,9 @@ SDIFresult SDIF_CloseWrite(FILE *f)
 
 SDIFresult SDIF_OpenRead(const char *filename, FILE **resultp)
 {
-    FILE *result = NULL;
+    FILE *result;
     SDIFresult r;
+    *resultp = NULL;
 
     if ((result = fopen(filename, "rb")) == NULL) {
       return ESDIF_SEE_ERRNO;
