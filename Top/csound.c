@@ -2285,11 +2285,11 @@ PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
     csound->midi_dev_list_callback = mididevlist__;
 }
 
-PUBLIC int csoundAudioDevList(CSOUND *csound,  CS_AUDIODEVICE *list, int isOutput){
+PUBLIC int csoundGetAudioDevList(CSOUND *csound,  CS_AUDIODEVICE *list, int isOutput){
   return csound->audio_dev_list_callback(csound,list,isOutput);
 }
 
-PUBLIC int csoundMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput){
+PUBLIC int csoundGetMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput){
   return csound->midi_dev_list_callback(csound,list,isOutput);
 }
 
