@@ -182,7 +182,7 @@ int main(int argc, char **argv)
     }
 
     result = SDIF_OpenRead(argv[1],&infile);
-    if (infile == NULL) {
+    if (result != ESDIF_SUCCESS) {
       fprintf(stderr,"Couldn't open %s: %s\n",
               argv[1], SDIF_GetErrorString(result));
       exit(1);
