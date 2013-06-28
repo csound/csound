@@ -8,10 +8,16 @@ fails as the parser tries to make outs a function.
 
 
 Use of multiple strings in scoreline fails
+          Fixed in git 2013 Jun 28 1640 UT
 
 
 If a CsOptions section is in a .csd file the line count does not take
 account of the section.
+          Believed fixed in git 2013 Jun 28 1210 UT
+
+
+Long stnding bug wherebye sdif2ad rashed on wring input
+          Fixed in git 2013 Jun 28 1525 UT
 
 
 
