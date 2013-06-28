@@ -77,6 +77,7 @@ STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
 LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
+IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\(
 XIDENT          0|[aijkftKOVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
@@ -370,12 +371,13 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   BEGIN(INITIAL);
                   PARM->xstrbuff[PARM->xstrptr++] = '"';
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
+                  /* printf("xstrbuff:>>%s<<\n", PARM->xstrbuff); */
                   *lvalp = make_string(csound, PARM->xstrbuff);
                   free(PARM->xstrbuff);
                   return STRING_TOKEN;
                 }
 
-<xstr>"\n"     { /* THe next two should be one case but I cannot get that to work */
+<xstr>"\n"     { /* The next two should be one case but I cannot get that to work */
                   if (PARM->xstrptr+2==PARM->xstrmax) {
                       PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
@@ -433,6 +435,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   (*lvalp)->type = ZERODBFS_TOKEN;
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return ZERODBFS_TOKEN; }
+{IDENTB}        { yytext[yyleng-1] = '\0';
+                  *lvalp = lookup_token(csound, yytext, yyscanner);
+                  return (*lvalp)->type+1; }
 {IDENT}         { *lvalp = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */

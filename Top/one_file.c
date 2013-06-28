@@ -243,7 +243,7 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
 
     alloc_globals(csound);
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf) != NULL) {
-      p = buffer;
+      p = buffer; STA(csdlinecount)++;
       /* Remove trailing spaces; rather heavy handed */
       {
         int len = strlen(p)-2;
