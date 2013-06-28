@@ -363,6 +363,7 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
     return CSOUND_SUCCESS;
 }
 
+
 PUBLIC int csoundGetChannelPtr(CSOUND *csound,
                                MYFLT **p, const char *name, int type)
 {
@@ -387,7 +388,14 @@ PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name){
     CHNENTRY  *pp;
     pp = find_channel(csound, name);
     if (pp == NULL) return 0;
-    else return pp->datasize;
+    else { 
+      /* the reason for this is that if chnexport is
+         used with strings, the datasize might become
+         invalid */
+      if(pp->type == CSOUND_STRING_CHANNEL)
+	return strlen((char *) pp->data);
+      return pp->datasize;
+    }
 }
 
 
@@ -1042,6 +1050,7 @@ int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     const char  *argName;
     int         type = CSOUND_CONTROL_CHANNEL, mode, err;
     controlChannelHints_t hints;
+    CHNENTRY *chn;
 
     /* must have an output argument of type 'gi', 'gk', 'ga', or 'gS' */
     if (UNLIKELY(csound->GetOutputArgCnt(p) != 1))
@@ -1082,9 +1091,21 @@ int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     /* lock = csoundGetChannelLock(csound, (char*) p->iname->data); */
     /* csoundSpinLock(lock); */
     err = create_new_channel(csound, &dummy, (char*) p->iname->data, type);
+    
     /* csoundSpinLock(lock); */
     if (err)
       return print_chn_err(p, err);
+
+    /* Now we need to find the channel entry */
+    chn = find_channel(csound, (char*) p->iname->data); 
+    /* free the allocated memory (we will not use it) */
+    mfree(csound, chn->data);
+    /* point to the arg var */    
+    if(type == CSOUND_STRING_CHANNEL)
+      chn->data = (MYFLT *) ((STRINGDAT *)p->arg)->data;
+    else
+      chn->data = p->arg;
+
     /* if control channel, set additional parameters */
     if ((type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
       return OK;
