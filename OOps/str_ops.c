@@ -306,7 +306,7 @@ sprintf_opcode_(CSOUND *csound,
     }
 
 
-    strseg = malloc(strlen(fmt));
+    strseg = malloc(siz);
 
     while (1) {
       if (UNLIKELY(i >= siz)) {
