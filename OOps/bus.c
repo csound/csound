@@ -393,7 +393,7 @@ PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name){
          used with strings, the datasize might become
          invalid */
       if(pp->type == CSOUND_STRING_CHANNEL)
-	return strlen((char *) pp->data);
+	return strlen((char *) pp->data) + 1;
       return pp->datasize;
     }
 }
