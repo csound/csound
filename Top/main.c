@@ -219,13 +219,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (csound->xfilename != NULL)
       csound->Message(csound, "xfilename: %s\n", csound->xfilename);
 
-
-    s = csoundQueryGlobalVariable(csound, "_RTMIDI");
-    if(csound->enableHostImplementedMIDIIO == 1) {
-    strcpy(s, "hostbased");
-    csoundSetConfigurationVariable(csound,"rtmidi", s);
-    }
-
     csoundLoadExternals(csound);    /* load plugin opcodes */
      /* VL: added this also to csoundReset() in csound.c   */
     if (csoundInitModules(csound) != 0)
@@ -234,6 +227,15 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
         csoundDie(csound, Str("cannot compile orchestra \n"));
      }
      csound->modules_loaded = 1;
+
+    s = csoundQueryGlobalVariable(csound, "_RTMIDI");
+    if(csound->enableHostImplementedMIDIIO == 1) {
+    strcpy(s, "hostbased");
+    csoundSetConfigurationVariable(csound,"rtmidi", s);
+    }
+
+    
+    
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
     if (!csoundYield(csound))
