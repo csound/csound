@@ -301,6 +301,14 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "elseif"        { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
+"elseif"{OPTWHITE}"\n"? { 
+                  if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                  unput('(');
+                  *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = ELSEIF_TOKEN;
+                  return ELSEIF_TOKEN; }
 "else"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ELSE_TOKEN;
                   return ELSE_TOKEN; }
