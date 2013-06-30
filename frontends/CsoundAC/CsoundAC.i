@@ -36,6 +36,7 @@
 /* This function already gets exported in other form */
 /* Don't export this to avoid build failures on amd64 */
 %ignore Counterpoint::message(const char*, va_list);
+%ignore csound::print(const char*, va_list);
 
 %module(directors="1") CsoundAC
 %{
