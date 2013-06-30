@@ -51,6 +51,9 @@ char* resolve_opcode_get_outarg(CSOUND* csound,
                                OENTRIES* entries, char* inArgTypes);
 PUBLIC int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
 char* get_arg_string_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
+char* convert_internal_to_external(CSOUND* csound, char* arg);
+char* convert_external_to_internal(CSOUND* csound, char* arg);
+
 
 char* cs_strdup(CSOUND* csound, char* str) {
     size_t len;
@@ -506,6 +509,10 @@ PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         OENTRIES* entries = find_opcode2(csound, opname);
 
+          
+        argTypeLeft = convert_internal_to_external(csound, argTypeLeft);
+        argTypeRight = convert_internal_to_external(csound, argTypeRight);
+          
         len1 = strlen(argTypeLeft);
         len2 = strlen(argTypeRight);
         inArgTypes = malloc(len1 + len2 + 1);
@@ -1088,6 +1095,60 @@ PUBLIC char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
 //    return 0;
 //}
 
+
+/* Converts internal array specifier from [[a] to a[][].  
+ Used by get_arg_string_from_tree to create an arg string that is 
+ compatible with the ones found in OENTRY's.  splitArgs converts back
+ to internal representation. */
+char* convert_internal_to_external(CSOUND* csound, char* arg) {
+    int i, dimensions;
+    char* retVal;
+    
+    if (arg == NULL || *arg != '[') {
+        return arg;
+    }
+    
+    dimensions = 0;
+    while (*arg == '[') {
+        arg++;
+        dimensions++;
+    }
+    
+    retVal = mmalloc(csound, sizeof(char) * ((dimensions * 2) + 2));
+    retVal[0] = *arg;
+    for (i = 0; i < dimensions * 2; i += 2) {
+       retVal[i + 1] = '[';
+       retVal[i + 2] = ']';
+    }
+    retVal[dimensions * 2 + 1] = '\0';
+    //mfree(csound, arg);
+    return retVal;
+}
+
+/* ASSUMES VALID ARRAY SPECIFIER! */
+char* convert_external_to_internal(CSOUND* csound, char* arg) {
+    int i, dimensions;
+    char* retVal;
+    
+    if (arg == NULL || *(arg + 1) != '[') {
+        return arg;
+    }
+    
+    dimensions = (strlen(arg) - 1) / 2;
+    
+    retVal = mmalloc(csound, sizeof(char) * (dimensions + 3));
+    retVal[dimensions + 2] = '\0';
+    retVal[dimensions + 1] = ']';
+    retVal[dimensions] = *arg;
+    
+    for (i = 0; i < dimensions; i++) {
+        retVal[i] = '[';
+    }
+    //mfree(csound, arg);
+    return retVal;
+}
+
+
 PUBLIC char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                        TYPE_TABLE* typeTable) {
 
@@ -1112,6 +1173,7 @@ PUBLIC char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
             argsLen += 1;
             argTypes[index++] = "@";
         } else {
+            argType = convert_internal_to_external(csound, argType);
             argsLen += strlen(argType);
             argTypes[index++] = argType;
         }
