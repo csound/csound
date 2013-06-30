@@ -189,14 +189,17 @@ PUBLIC int argsRequired(char* argString)
     if (t != NULL) {
       while (*t != '\0') {
         retVal++;
-        if (*t == '[') {
-          while (*t != ']' && *t != '\0') {
-            t++;
-          }
-        }
         t++;
+        while (*t == '[') {
+          t++;
+          if (*t != ']') {
+            return -1; // ERROR HERE, unmatched array identifier, perhaps should report...
+          }
+          t++;
+        }
       }
     }
+    
     return retVal;
 }
 
@@ -211,26 +214,41 @@ PUBLIC char** splitArgs(CSOUND* csound, char* argString)
     if (t != NULL) {
       while (*t != '\0' ) {
         char* part;
-
-        if (*t == '[') {
-          int len = 0;
+        int dimensions = 0;
+        
+        if (*(t + 1) == '[') {
           char* start = t;
-          while (*t != ']') {
+          int len = 1;
+          int j;
+          t++;
+            
+          while (*t == '[') {
             t++;
             len++;
+            
+            if (*t != ']') {
+               return NULL; // ERROR HERE, unmatched array identifier, perhaps should report...
+            }
+              
+            t++;
+            len++;
+            dimensions++;
           }
-          part = mmalloc(csound, sizeof(char) * (len + 2));
-          strncpy(part, start, len);
-          part[len] = ']';
-          part[len + 1] = '\0';
+          part = mmalloc(csound, sizeof(char) * (dimensions + 3));
+          part[dimensions + 2] = '\0';
+          part[dimensions + 1] = ']';
+          part[dimensions] = *start;
+          for (j = 0; j < dimensions; j++) {
+            part[j] = '[';
+          }
 
         } else {
           part = mmalloc(csound, sizeof(char) * 2);
           part[0] = *t;
           part[1] = '\0';
+          t++;
         }
         args[i] = part;
-        t++;
         i++;
       }
     }
