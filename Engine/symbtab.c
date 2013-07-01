@@ -181,7 +181,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     }
 
     if (udoflag == 1) {
-      printf("Found UDO Arg List\n");
+      if (csound->oparms->odebug) printf("Found UDO Arg List\n");
       if (isUDOArgList(s)) {
         ans = new_token(csound, UDO_ARGS_TOKEN);
         ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
