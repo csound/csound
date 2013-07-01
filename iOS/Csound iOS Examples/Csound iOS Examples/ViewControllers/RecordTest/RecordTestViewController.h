@@ -29,14 +29,13 @@
 #import "LevelMeterView.h"
 
 @interface RecordTestViewController : BaseCsoundViewController <CsoundObjCompletionListener, AVAudioPlayerDelegate>
-{
-	IBOutlet UISwitch *mSwitch;
-	IBOutlet UISlider *mGainSlider;
-	IBOutlet UILabel *mGainLabel;
-	IBOutlet LevelMeterView *mLevelMeter;
-	IBOutlet UIButton *mPlayButton;
-	AVAudioPlayer *mPlayer;
-}
+
+@property (unsafe_unretained) IBOutlet UISwitch *mSwitch;
+@property (unsafe_unretained) IBOutlet UISlider *mGainSlider;
+@property (unsafe_unretained) IBOutlet UILabel *mGainLabel;
+@property (unsafe_unretained) IBOutlet LevelMeterView *mLevelMeter;
+@property (unsafe_unretained) IBOutlet UIButton *mPlayButton;
+@property AVAudioPlayer *mPlayer;
 
 - (IBAction)toggleOnOff:(id)component;
 - (IBAction)changeGain:(UISlider *)sender;
