@@ -17,7 +17,7 @@ LOCAL_SRC_FILES := ../../../../Opcodes/fluidOpcodes/fluidOpcodes.cpp
 
 LOCAL_LDLIBS += -ldl
 
-LOCAL_STATIC_LIBRARIES := fluidsynth-static 
+LOCAL_STATIC_LIBRARIES := fluidsynth-android 
 
 include $(BUILD_SHARED_LIBRARY)
 
