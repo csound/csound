@@ -47,15 +47,26 @@ typedef unsigned int uint32_t;
   free((char *) $1);
 } */
 
-// Enable the JNI class to load the required native library.
+// Enable the JNI class to load the required native library(s).
 %pragma(java) jniclasscode=%{
   static {
     try {
         java.lang.System.loadLibrary("gnustl_shared");
+    } catch (Throwable e) {
+        java.lang.System.err.println("CsoundAndroid: gnustl_shared native code library failed to load.");
+        java.lang.System.err.println(e.toString());
+    }
+    try {
         java.lang.System.loadLibrary("sndfile");
+    } catch (Throwable e) {
+        java.lang.System.err.println("CsoundAndroid: sndfile native code library failed to load.");
+        java.lang.System.err.println(e.toString());
+    }
+    try {
         java.lang.System.loadLibrary("csoundandroid");
-    } catch (UnsatisfiedLinkError e) {
-        java.lang.System.err.println("csoundandroid native code library failed to load.\n" + e);
+    } catch (Throwable e) {
+        java.lang.System.err.println("CsoundAndroid: csoundandroid native code library failed to load.");
+        java.lang.System.err.println(e.toString());
         java.lang.System.exit(1);
     }
   }
