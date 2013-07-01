@@ -89,8 +89,8 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 }
 
 -(id<CsoundValueCacheable>)addSwitch:(UISwitch*)uiSwitch forChannelName:(NSString*)channelName {
-    CachedSwitch* cachedSwitch = [[[CachedSwitch alloc] init:uiSwitch 
-												 channelName:channelName] autorelease];
+    CachedSwitch* cachedSwitch = [[CachedSwitch alloc] init:uiSwitch 
+												 channelName:channelName];
     [valuesCache addObject:cachedSwitch];
 	
     return cachedSwitch;
@@ -98,16 +98,16 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
 -(id<CsoundValueCacheable>)addSlider:(UISlider*)uiSlider forChannelName:(NSString*)channelName { 
 
-    CachedSlider* cachedSlider = [[[CachedSlider alloc] init:uiSlider 
-                                                channelName:channelName] autorelease];
+    CachedSlider* cachedSlider = [[CachedSlider alloc] init:uiSlider 
+                                                channelName:channelName];
     [valuesCache addObject:cachedSlider];
     
     return cachedSlider;
 }
 
 -(id<CsoundValueCacheable>)addButton:(UIButton*)uiButton forChannelName:(NSString*)channelName {
-    CachedButton* cachedButton = [[[CachedButton alloc] init:uiButton 
-                                                channelName:channelName] autorelease];
+    CachedButton* cachedButton = [[CachedButton alloc] init:uiButton 
+                                                channelName:channelName];
     [valuesCache addObject:cachedButton];
     return cachedButton;
 }
@@ -134,7 +134,6 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
     CachedAccelerometer* accelerometer = [[CachedAccelerometer alloc] init:mMotionManager];
     [valuesCache addObject:accelerometer];
         
-    [accelerometer release];
     
     mMotionManager.accelerometerUpdateInterval = 1 / 100.0; // 100 hz
     
@@ -150,7 +149,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
         return nil;
     }
     
-    CachedGyroscope* gyro = [[[CachedGyroscope alloc] init:mMotionManager] autorelease];
+    CachedGyroscope* gyro = [[CachedGyroscope alloc] init:mMotionManager];
     [valuesCache addObject:gyro];
     
     mMotionManager.gyroUpdateInterval = 1 / 100.0; // 100 hz
@@ -166,7 +165,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
         return nil;
     }
     
-    CachedAttitude* attitude = [[[CachedAttitude alloc] init:mMotionManager] autorelease];
+    CachedAttitude* attitude = [[CachedAttitude alloc] init:mMotionManager];
     [valuesCache addObject:attitude];
     
     mMotionManager.deviceMotionUpdateInterval = 1 / 100.0; // 100hz
@@ -180,16 +179,16 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
 static void messageCallback(CSOUND *cs, int attr, const char *format, va_list valist) 
 {	
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	CsoundObj *obj = csoundGetHostData(cs);
-	Message info;
-	info.cs = cs;
-	info.attr = attr;
-	info.format = format;
-	info.valist = valist;
-	NSValue *infoObj = [NSValue value:&info withObjCType:@encode(Message)];
-	[obj performSelector:@selector(performMessageCallback:) withObject:infoObj];
-	[pool drain];
+	@autoreleasepool {
+		CsoundObj *obj = (__bridge CsoundObj *)(csoundGetHostData(cs));
+		Message info;
+		info.cs = cs;
+		info.attr = attr;
+		info.format = format;
+		info.valist = valist;
+		NSValue *infoObj = [NSValue value:&info withObjCType:@encode(Message)];
+		[obj performSelector:@selector(performMessageCallback:) withObject:infoObj];
+	}
 } 
 
 - (void)setMessageCallback:(SEL)method withListener:(id)listener
@@ -403,7 +402,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
     
     // Create the audio file.
     OSStatus err = noErr;
-    CFURLRef fileURL = (CFURLRef)outputURL_;
+    CFURLRef fileURL = (__bridge CFURLRef)outputURL_;
     err = ExtAudioFileCreateWithURL(fileURL, kAudioFileWAVEType, &destFormat, NULL, kAudioFileFlags_EraseFile, &(mCsData.file));
     if (err == noErr) {
         // Get the stream format from the AU...
@@ -443,81 +442,81 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
 
 -(void)runCsoundToDisk:(NSArray*)paths {
 	
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    @autoreleasepool {
 
     
-        CSOUND *cs;
-        
-        cs = csoundCreate(NULL);
-        
-        char* parserFlag;
-        
-        if(self.useOldParser) {
-            parserFlag = "--old-parser";
-        } else {
-            parserFlag = "--new-parser";
-        }
-        
-        char *argv[5] = { "csound", parserFlag,
-            (char*)[[paths objectAtIndex:0] cStringUsingEncoding:NSASCIIStringEncoding], "-o", (char*)[[paths objectAtIndex:1] cStringUsingEncoding:NSASCIIStringEncoding]};
-        int ret = csoundCompile(cs, 5, argv);
-        
-        /* SETUP VALUE CACHEABLE */
-        
-        for (int i = 0; i < valuesCache.count; i++) {
-            id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
-            [cachedValue setup:self];
-        }
-        
-        /* NOTIFY COMPLETION LISTENERS*/
-        
-        for (id<CsoundObjCompletionListener> listener in completionListeners) {
-            [listener csoundObjDidStart:self];
-        }
-        
-        /* SET VALUES FROM CACHE */
-        for (int i = 0; i < valuesCache.count; i++) {
+                CSOUND *cs;
+                
+                cs = csoundCreate(NULL);
+                
+                char* parserFlag;
+                
+                if(self.useOldParser) {
+                    parserFlag = "--old-parser";
+                } else {
+                    parserFlag = "--new-parser";
+                }
+                
+                char *argv[5] = { "csound", parserFlag,
+                    (char*)[[paths objectAtIndex:0] cStringUsingEncoding:NSASCIIStringEncoding], "-o", (char*)[[paths objectAtIndex:1] cStringUsingEncoding:NSASCIIStringEncoding]};
+                int ret = csoundCompile(cs, 5, argv);
+                
+                /* SETUP VALUE CACHEABLE */
+                
+                for (int i = 0; i < valuesCache.count; i++) {
+                    id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+                    [cachedValue setup:self];
+                }
+                
+                /* NOTIFY COMPLETION LISTENERS*/
+                
+                for (id<CsoundObjCompletionListener> listener in completionListeners) {
+                    [listener csoundObjDidStart:self];
+                }
+                
+                /* SET VALUES FROM CACHE */
+                for (int i = 0; i < valuesCache.count; i++) {
 			id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
 			[cachedValue updateValuesToCsound];
 		}
-        
-        if(!ret) {
-            
-            csoundPerform(cs);
-            csoundCleanup(cs);
-            csoundDestroy(cs);
-        }
-        
-        /* CLEANUP VALUE CACHEABLE */
-        
-        for (int i = 0; i < valuesCache.count; i++) {
-            id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
-            [cachedValue cleanup];
-        }
-        
-        /* NOTIFY COMPLETION LISTENERS*/
-        
-        for (id<CsoundObjCompletionListener> listener in completionListeners) {
-            [listener csoundObjComplete:self];
-        }
-        
-        [mMotionManager stopAccelerometerUpdates];
-        [mMotionManager stopGyroUpdates];
-        [mMotionManager stopDeviceMotionUpdates];
+                
+                if(!ret) {
+                    
+                    csoundPerform(cs);
+                    csoundCleanup(cs);
+                    csoundDestroy(cs);
+                }
+                
+                /* CLEANUP VALUE CACHEABLE */
+                
+                for (int i = 0; i < valuesCache.count; i++) {
+                    id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+                    [cachedValue cleanup];
+                }
+                
+                /* NOTIFY COMPLETION LISTENERS*/
+                
+                for (id<CsoundObjCompletionListener> listener in completionListeners) {
+                    [listener csoundObjComplete:self];
+                }
+                
+                [mMotionManager stopAccelerometerUpdates];
+                [mMotionManager stopGyroUpdates];
+                [mMotionManager stopDeviceMotionUpdates];
 
-         [pool release];
+         }
 }
 
 -(void)runCsound:(NSString*)csdFilePath {
 	
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];	
-	CSOUND *cs;
+    @autoreleasepool {	
+		CSOUND *cs;
     
-	cs = csoundCreate(NULL);
+		cs = csoundCreate(NULL);
     csoundSetHostImplementedAudioIO(cs, 1, 0);
-	
-	csoundSetMessageCallback(cs, messageCallback);
-	csoundSetHostData(cs, self);
+		
+		csoundSetMessageCallback(cs, messageCallback);
+		csoundSetHostData(cs, (__bridge void *)(self));
     
     if (mMidiInEnabled) {
         [CsoundMIDI setMidiInCallbacks:cs];
@@ -525,7 +524,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
     
     // Hardcoding to use old parser for time being
     char* parserFlag;
-	
+		
     
     if(self.useOldParser) {
        parserFlag = "--old-parser";
@@ -534,20 +533,20 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
     }
     
     char *argv[3] = { "csound", parserFlag, (char*)[csdFilePath cStringUsingEncoding:NSASCIIStringEncoding]};
-	int ret = csoundCompile(cs, 3, argv);
-	mCsData.running = true;
-    
-	if(!ret) {
-        
-		mCsData.cs = cs;
-		mCsData.ret = ret;
-		mCsData.nchnls = csoundGetNchnls(cs);
-		mCsData.bufframes = (csoundGetOutputBufferSize(cs))/mCsData.nchnls;
+		int ret = csoundCompile(cs, 3, argv);
 		mCsData.running = true;
+    
+		if(!ret) {
+        
+			mCsData.cs = cs;
+			mCsData.ret = ret;
+			mCsData.nchnls = csoundGetNchnls(cs);
+			mCsData.bufframes = (csoundGetOutputBufferSize(cs))/mCsData.nchnls;
+			mCsData.running = true;
         mCsData.valuesCache = valuesCache;
-		AudioStreamBasicDescription format;
-		OSStatus err;
-		
+			AudioStreamBasicDescription format;
+			OSStatus err;
+			
         /* SETUP VALUE CACHEABLE */
         
         for (int i = 0; i < valuesCache.count; i++) {
@@ -555,11 +554,11 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
             [cachedValue setup:self];
         }
         
-		/* Audio Session handler */
+			/* Audio Session handler */
         AudioSessionInitialize(NULL, NULL, InterruptionListener, &mCsData);
-		AudioSessionSetActive(true);
-		UInt32 audioCategory = kAudioSessionCategory_PlayAndRecord;
-		AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
+			AudioSessionSetActive(true);
+			UInt32 audioCategory = kAudioSessionCategory_PlayAndRecord;
+			AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
         
         //APE: must be after sets kAudioSessionCategory_PlayAndRecord
         UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker;
@@ -574,16 +573,16 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
         UInt32 shouldMix = 1;
         AudioSessionSetProperty (kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof (shouldMix), &shouldMix);
         
-		Float32 preferredBufferSize = mCsData.bufframes / csoundGetSr(cs);
-		AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, sizeof(preferredBufferSize), &preferredBufferSize);
-		AudioComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_RemoteIO, kAudioUnitManufacturer_Apple, 0, 0};
-		AudioComponent HALOutput = AudioComponentFindNext(NULL, &cd);
-		
-		AudioUnit csAUHAL;
-		err = AudioComponentInstanceNew(HALOutput, &csAUHAL);
+			Float32 preferredBufferSize = mCsData.bufframes / csoundGetSr(cs);
+			AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, sizeof(preferredBufferSize), &preferredBufferSize);
+			AudioComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_RemoteIO, kAudioUnitManufacturer_Apple, 0, 0};
+			AudioComponent HALOutput = AudioComponentFindNext(NULL, &cd);
+			
+			AudioUnit csAUHAL;
+			err = AudioComponentInstanceNew(HALOutput, &csAUHAL);
 
-		
-		if(!err) {
+			
+			if(!err) {
             
             mCsData.aunit = &csAUHAL;
             UInt32 enableIO = 1;
@@ -611,39 +610,39 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
                     err = AudioUnitSetProperty(csAUHAL, kAudioUnitProperty_StreamFormat, (elem ? kAudioUnitScope_Output : kAudioUnitScope_Input), elem, &format, sizeof(AudioStreamBasicDescription));
                 }		
                 
-				if (mCsData.shouldRecord) {
-					
-					// Define format for the audio file.
-					AudioStreamBasicDescription destFormat, clientFormat;
-					memset(&destFormat, 0, sizeof(AudioStreamBasicDescription));
-					memset(&clientFormat, 0, sizeof(AudioStreamBasicDescription));
-					destFormat.mFormatID = kAudioFormatLinearPCM;
-					destFormat.mFormatFlags = kLinearPCMFormatFlagIsPacked | kLinearPCMFormatFlagIsSignedInteger;
-					destFormat.mSampleRate = csoundGetSr(cs);
-					destFormat.mChannelsPerFrame = mCsData.nchnls;
-					destFormat.mBytesPerPacket = mCsData.nchnls * 2;
-					destFormat.mBytesPerFrame = mCsData.nchnls * 2;
-					destFormat.mBitsPerChannel = 16;
-					destFormat.mFramesPerPacket = 1;
-					
-					// Create the audio file.
-					CFURLRef fileURL = (CFURLRef)self.outputURL;
-					err = ExtAudioFileCreateWithURL(fileURL, kAudioFileWAVEType, &destFormat, NULL, kAudioFileFlags_EraseFile, &(mCsData.file));
-					if (err == noErr) {
-						// Get the stream format from the AU...
-						UInt32 propSize = sizeof(AudioStreamBasicDescription);
-						AudioUnitGetProperty(csAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &clientFormat, &propSize);
-						// ...and set it as the client format for the audio file. The file will use this
-						// format to perform any necessary conversions when asked to read or write.
-						ExtAudioFileSetProperty(mCsData.file, kExtAudioFileProperty_ClientDataFormat, sizeof(clientFormat), &clientFormat);
-						// Warm the file up.
-						ExtAudioFileWriteAsync(mCsData.file, 0, NULL);
-					} else {
-						printf("***Not recording. Error: %ld\n", err);
-						err = noErr;
+					if (mCsData.shouldRecord) {
+						
+						// Define format for the audio file.
+						AudioStreamBasicDescription destFormat, clientFormat;
+						memset(&destFormat, 0, sizeof(AudioStreamBasicDescription));
+						memset(&clientFormat, 0, sizeof(AudioStreamBasicDescription));
+						destFormat.mFormatID = kAudioFormatLinearPCM;
+						destFormat.mFormatFlags = kLinearPCMFormatFlagIsPacked | kLinearPCMFormatFlagIsSignedInteger;
+						destFormat.mSampleRate = csoundGetSr(cs);
+						destFormat.mChannelsPerFrame = mCsData.nchnls;
+						destFormat.mBytesPerPacket = mCsData.nchnls * 2;
+						destFormat.mBytesPerFrame = mCsData.nchnls * 2;
+						destFormat.mBitsPerChannel = 16;
+						destFormat.mFramesPerPacket = 1;
+						
+						// Create the audio file.
+						CFURLRef fileURL = (__bridge CFURLRef)self.outputURL;
+						err = ExtAudioFileCreateWithURL(fileURL, kAudioFileWAVEType, &destFormat, NULL, kAudioFileFlags_EraseFile, &(mCsData.file));
+						if (err == noErr) {
+							// Get the stream format from the AU...
+							UInt32 propSize = sizeof(AudioStreamBasicDescription);
+							AudioUnitGetProperty(csAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &clientFormat, &propSize);
+							// ...and set it as the client format for the audio file. The file will use this
+							// format to perform any necessary conversions when asked to read or write.
+							ExtAudioFileSetProperty(mCsData.file, kExtAudioFileProperty_ClientDataFormat, sizeof(clientFormat), &clientFormat);
+							// Warm the file up.
+							ExtAudioFileWriteAsync(mCsData.file, 0, NULL);
+						} else {
+							printf("***Not recording. Error: %ld\n", err);
+							err = noErr;
+						}
 					}
-				}
-				
+					
                 if(!err) {
                     AURenderCallbackStruct output;
                     output.inputProc = Csound_Render;
@@ -652,31 +651,31 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
                     AudioUnitInitialize(csAUHAL);	
                     
                     err = AudioOutputUnitStart(csAUHAL);
-					
-					/* NOTIFY COMPLETION LISTENERS*/
-					
-					for (id<CsoundObjCompletionListener> listener in completionListeners) {
-						[listener csoundObjDidStart:self];
-					}
+						
+						/* NOTIFY COMPLETION LISTENERS*/
+						
+						for (id<CsoundObjCompletionListener> listener in completionListeners) {
+							[listener csoundObjDidStart:self];
+						}
                     
                     if(!err) {
                         while (!mCsData.ret && mCsData.running) {
                             [NSThread sleepForTimeInterval:.001];
                         }
                     }
-						
+							
                     ExtAudioFileDispose(mCsData.file);
-					mCsData.shouldRecord = false;
+						mCsData.shouldRecord = false;
                     AudioOutputUnitStop(csAUHAL);
                     /* free(CAInputData); */
                 }
                 AudioUnitUninitialize(csAUHAL);
                 AudioComponentInstanceDispose(csAUHAL);
             }
-		}
-		csoundDestroy(cs);
-	}	
-	
+			}
+			csoundDestroy(cs);
+		}	
+		
     mCsData.running = false;
     
     /* CLEANUP VALUE CACHEABLE */
@@ -696,19 +695,11 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
     [mMotionManager stopGyroUpdates];
     [mMotionManager stopDeviceMotionUpdates];
     
-	[pool release];
+	}
 }
 
 #pragma mark Memory Handling
 
--(void)dealloc {
-    
-    [valuesCache release];
-    [completionListeners release];
-    [mMotionManager release];
-    
-    [super dealloc];
-}
 
 
 @end

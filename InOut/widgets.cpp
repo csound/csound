@@ -204,7 +204,7 @@ extern "C" {
         /* Create the new event */
         evt = (rtEvt_t*) malloc(sizeof(rtEvt_t));
         evt->nxt = NULL;
-        evt->evt.strarg = NULL;
+        evt->evt.strarg = NULL; evt->evt.scnt = 0;
         evt->evt.opcod = (char) *args[0];
         if (evt->evt.opcod == '\0')
           evt->evt.opcod = 'i';
@@ -233,7 +233,7 @@ extern "C" {
           int     i;
 
           /* Create the new event */
-          e.strarg = NULL;
+          e.strarg = NULL; e.scnt = 0;
           e.opcod = (char) *args[0];
           if (e.opcod == '\0')
             e.opcod = 'i';

@@ -74,9 +74,9 @@ typedef struct {
     BOOL mUseOldParser;
 }
 
-@property (nonatomic, retain) NSURL *outputURL;
+@property (nonatomic, strong) NSURL *outputURL;
 @property (assign) BOOL midiInEnabled;
-@property (nonatomic, retain) CMMotionManager* motionManager;
+@property (nonatomic, strong) CMMotionManager* motionManager;
 @property (assign) BOOL useOldParser;
 
 

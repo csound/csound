@@ -3,9 +3,9 @@
 # Simple script to copy "local" shared libs to the installation libs directories.
 # This because I can't seem to get the canonical way to do this to work.
 
-mkdir libs
-mkdir libs/armeabi
-mkdir libs/armeabi-v7a
+mkdir -p libs
+mkdir -p libs/armeabi
+mkdir -p libs/armeabi-v7a
 
 cp -f ../pluginlibs/libfluidsynth/libs/armeabi/libfluidOpcodes.so libs/armeabi/
 cp -f ../pluginlibs/libstdutil/libs/armeabi/*.so libs/armeabi/
@@ -26,7 +26,7 @@ find . -name "*.so"
 
 # Also copy other resources used by Csound opcodes.
 
-mkdir assets/samples/
+mkdir -p assets/samples/
 cp -f ../../samples/* assets/samples
 
 
