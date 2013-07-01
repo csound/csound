@@ -521,7 +521,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p){
 }
 
 static int pconvset_S(CSOUND *csound, PCONVOLVE *p){
-  return pconvset_(csound,p,0);
+  return pconvset_(csound,p,1);
 }
 
 static int pconvolve(CSOUND *csound, PCONVOLVE *p)
