@@ -71,16 +71,38 @@ int csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int items){
     IGN(csound);
     if(p == NULL) return 0;
     if ((remaining = checkspace(p, 0)) == 0) {
-      return 0;
+        return 0;
     }
     itemsread = items > remaining ? remaining : items;
     for(i=0; i < itemsread; i++){
-     memcpy((char *) out + (i * elemsize), &(buffer[elemsize * rp++]),  elemsize);
-     if (rp == numelem) {
-      rp = 0;
-     }
+        memcpy((char *) out + (i * elemsize), &(buffer[elemsize * rp++]),  elemsize);
+        if (rp == numelem) {
+            rp = 0;
+        }
     }
     ((circular_buffer *)p)->rp = rp;
+    return itemsread;
+}
+
+int csoundPeekCircularBuffer(CSOUND *csound, void *p, void *out, int items)
+{
+    int remaining;
+    int itemsread, numelem = ((circular_buffer *)p)->numelem;
+    int elemsize = ((circular_buffer *)p)->elemsize;
+    int i=0, rp = ((circular_buffer *)p)->rp;
+    char *buffer = ((circular_buffer *)p)->buffer;
+    IGN(csound);
+    if(p == NULL) return 0;
+    if ((remaining = checkspace(p, 0)) == 0) {
+        return 0;
+    }
+    itemsread = items > remaining ? remaining : items;
+    for(i=0; i < itemsread; i++){
+        memcpy((char *) out + (i * elemsize), &(buffer[elemsize * rp++]),  elemsize);
+        if (rp == numelem) {
+            rp = 0;
+        }
+    }
     return itemsread;
 }
 
