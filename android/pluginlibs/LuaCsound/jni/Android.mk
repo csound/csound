@@ -11,14 +11,15 @@ LOCAL_CFLAGS := -O3 -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DI
 LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
 LOCAL_CPPFLAGS += -std=c++11 -pthread -frtti -fexceptions
 # MUST explicitly link TO THIS SPECIFIC LIBRARY not the Windows one.
-LOCAL_LDFLAGS += -Wl,--export-dynamic $(NDK_MODULE_PATH)/luajit-2.0/src/libluajit.a
+#LOCAL_LDFLAGS += -Wl,--export-dynamic $(NDK_MODULE_PATH)/luajit-2.0/src/libluajit.a
 ###
 
 LOCAL_LDLIBS += -ldl
 
 LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Opcodes/LuaCsound.cpp
 
-LOCAL_STATIC_LIBRARIES += libluajit
+LOCAL_STATIC_LIBRARIES += luajit
 
 include $(BUILD_SHARED_LIBRARY)
 
+$(call import-module,luajit-2.0/jni)
