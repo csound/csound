@@ -1002,7 +1002,7 @@ struct AlwaysOnS  : public OpcodeBase<AlwaysOnS> {
   EVTBLK evtblk;
   int init(CSOUND *csound) {
     evtblk.opcod = 'i';
-    evtblk.strarg = 0;
+    evtblk.strarg = NULL;
     evtblk.p[0] = FL(0.0);
     evtblk.p[1] = csound->strarg2insno(csound, Sinstrument->data, 1);
     evtblk.p[2] = evtblk.p2orig = FL(0.0);
@@ -1038,7 +1038,7 @@ struct AlwaysOn  : public OpcodeBase<AlwaysOn> {
                                              (char *)"",
                                              (int) 0);
     evtblk.opcod = 'i';
-    evtblk.strarg = 0;
+    evtblk.strarg = NULL;
     evtblk.p[0] = FL(0.0);
     evtblk.p[1] = *Sinstrument;
     evtblk.p[2] = evtblk.p2orig = FL(0.0);
