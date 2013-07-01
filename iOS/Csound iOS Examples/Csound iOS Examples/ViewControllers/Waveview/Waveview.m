@@ -82,7 +82,7 @@
 - (void)setup:(CsoundObj*)csoundObj
 {
 	tableLoaded = NO;
-	csObj = [csoundObj retain];
+	csObj = csoundObj;
 
 	
 	
@@ -99,25 +99,25 @@
 	int height = self.frame.size.height;
 	int middle = height / 2;
 
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	@autoreleasepool {
 
 
-	displayData = malloc(sizeof(MYFLT) * width);
+		displayData = malloc(sizeof(MYFLT) * width);
+		
+			
+		for(int i = 0; i < width; i++) {
+			float percent = i / (float)(width);
+			int index = (int)(percent * tableLength);
+			displayData[i] = (table[index] * middle) + middle;
+			
+			//NSLog(@"%d: %f", index, val);
+			
+		}
+		
+		
+		[self performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:NO];
 	
-		
-	for(int i = 0; i < width; i++) {
-		float percent = i / (float)(width);
-		int index = (int)(percent * tableLength);
-		displayData[i] = (table[index] * middle) + middle;
-		
-		//NSLog(@"%d: %f", index, val);
-		
 	}
-	
-	
-	[self performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:NO];
-	
-	[pool release];
 
 }
 
@@ -125,28 +125,27 @@
 {
 	if (!tableLoaded) {
 	
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+		@autoreleasepool {
 
-		CSOUND *cs = [csObj getCsound];
-		sr = csoundGetSr(cs);
-		ksmps = csoundGetKsmps(cs);
-		
-				
-			if ((tableLength = csoundTableLength(cs, 1)) > 0) {
-				
-				table = malloc(tableLength * sizeof(MYFLT));
-				csoundGetTable(cs, &table, 1);
-				tableLoaded = YES;
-				[self performSelectorInBackground:@selector(updataDisplayData) withObject:nil];
-			}
+			CSOUND *cs = [csObj getCsound];
+			sr = csoundGetSr(cs);
+			ksmps = csoundGetKsmps(cs);
+			
+					
+				if ((tableLength = csoundTableLength(cs, 1)) > 0) {
+					
+					table = malloc(tableLength * sizeof(MYFLT));
+					csoundGetTable(cs, &table, 1);
+					tableLoaded = YES;
+					[self performSelectorInBackground:@selector(updataDisplayData) withObject:nil];
+				}
 
-		[pool release];
+		}
 	}
 }
 
 - (void)cleanup
 {
-	[csObj release];
 }
 
 

@@ -219,7 +219,7 @@ static void sensLine(CSOUND *csound, void *userData)
         char    *sstrp = NULL;
         int     scnt = 0;
         int     strsiz = 0;
-        e.strarg = NULL;
+        e.strarg = NULL; e.scnt = 0;
         c = *cp;
         while (c == ' ' || c == '\t')   /* skip initial white space */
           c = *(++cp);
@@ -365,7 +365,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
       return csound->PerfError(csound, p->h.insdshead,Str(errmsg_1));
-    evt.strarg = NULL;
+    evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
     if(p->flag==1) evt.pcnt = p->argno-2;
     else
@@ -383,7 +383,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
           evt.p[1]  = csound->strarg2insno(csound,
                                            get_arg_string(csound, *p->args[1]), 1);
         } else evt.p[1] = *p->args[1];
-        evt.strarg = NULL;
+        evt.strarg = NULL; evt.scnt = 0;
       }
       for (i = 2; i <= evt.pcnt; i++)
         evt.p[i] = *p->args[i];
@@ -421,7 +421,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
       return csound->InitError(csound, Str(errmsg_1));
-    evt.strarg = NULL;
+    evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
     if(p->flag==1) evt.pcnt = p->argno-1;
     else
@@ -431,13 +431,13 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       if (insname) {
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q'))
           return csound->InitError(csound, Str(errmsg_2));
-        evt.p[1] = SSTRCOD;
-        evt.strarg = ((STRINGDAT*) p->args[1])->data;
+        evt.p[1] = csound->strarg2insno(csound,((STRINGDAT *)p->args[1])->data, 1);
+        evt.strarg = NULL; evt.scnt = 0;
         for (i = 2; i <= evt.pcnt; i++)
            evt.p[i] = *p->args[i];
       }
       else {
-        evt.strarg = NULL;
+        evt.strarg = NULL; evt.scnt = 0;
         if (ISSTRCOD(*p->args[1])) {
           evt.p[1]  = csound->strarg2insno(csound,
                                            get_arg_string(csound, *p->args[1]), 1);

@@ -189,14 +189,17 @@ PUBLIC int argsRequired(char* argString)
     if (t != NULL) {
       while (*t != '\0') {
         retVal++;
-        if (*t == '[') {
-          while (*t != ']' && *t != '\0') {
-            t++;
-          }
-        }
         t++;
+        while (*t == '[') {
+          t++;
+          if (*t != ']') {
+            return -1; // ERROR HERE, unmatched array identifier, perhaps should report...
+          }
+          t++;
+        }
       }
     }
+    
     return retVal;
 }
 
@@ -211,26 +214,41 @@ PUBLIC char** splitArgs(CSOUND* csound, char* argString)
     if (t != NULL) {
       while (*t != '\0' ) {
         char* part;
-
-        if (*t == '[') {
-          int len = 0;
+        int dimensions = 0;
+        
+        if (*(t + 1) == '[') {
           char* start = t;
-          while (*t != ']') {
+          int len = 1;
+          int j;
+          t++;
+            
+          while (*t == '[') {
             t++;
             len++;
+            
+            if (*t != ']') {
+               return NULL; // ERROR HERE, unmatched array identifier, perhaps should report...
+            }
+              
+            t++;
+            len++;
+            dimensions++;
           }
-          part = mmalloc(csound, sizeof(char) * (len + 2));
-          strncpy(part, start, len);
-          part[len] = ']';
-          part[len + 1] = '\0';
+          part = mmalloc(csound, sizeof(char) * (dimensions + 3));
+          part[dimensions + 2] = '\0';
+          part[dimensions + 1] = ']';
+          part[dimensions] = *start;
+          for (j = 0; j < dimensions; j++) {
+            part[j] = '[';
+          }
 
         } else {
           part = mmalloc(csound, sizeof(char) * 2);
           part[0] = *t;
           part[1] = '\0';
+          t++;
         }
         args[i] = part;
-        t++;
         i++;
       }
     }
@@ -1164,7 +1182,7 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
           while (++i <= engineState->maxopcno) engineState->instrtxtp[i] = NULL;
         }
         inm->instno = num;
-        csound->Message(csound, Str("UDO INSTR NUM: %d\n"), num);
+        //csound->Message(csound, Str("UDO INSTR NUM: %d\n"), num);
         engineState->instrtxtp[num] = inm->ip;
         inm = inm->prv;
       }
@@ -1172,7 +1190,7 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
 }
 
 
-OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
+OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, char* outargs, char* inargs)
 {
     OPCODINFO *opinfo = csound->opcodeInfo;
     if (UNLIKELY(opinfo == NULL)) {
@@ -1181,7 +1199,9 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
     }
 
     while (opinfo != NULL) {
-      if (UNLIKELY(strcmp(opinfo->name, opname) == 0)) {
+      if (UNLIKELY(strcmp(opinfo->name, opname) == 0 &&
+                   strcmp(opinfo->intypes, inargs) == 0 &&
+                   strcmp(opinfo->outtypes, outargs) == 0)) {
         return opinfo;
       }
       opinfo = opinfo->prv;   /* Move on: JPff suggestion */
@@ -1375,7 +1395,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var->memBlock = (void *) mmalloc(csound, var->memBlockSize);
       if (var->initializeVariableMemory != NULL) {
         var->initializeVariableMemory(var, (MYFLT *)(var->memBlock));
-      }
+      } else  memset(var->memBlock , 0, var->memBlockSize);
       var = var->next;
     }
 
@@ -1485,7 +1505,9 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         instrtxt = create_instrument(csound, current, engineState);
         prvinstxt = prvinstxt->nxtinstxt = instrtxt;
         opname = current->left->value->lexeme;
-        OPCODINFO *opinfo = find_opcode_info(csound, opname);
+        OPCODINFO *opinfo = find_opcode_info(csound, opname,
+                                             current->left->left->value->lexeme,
+                                             current->left->right->value->lexeme);
 
         if (UNLIKELY(opinfo == NULL)) {
           csound->Message(csound,
@@ -1494,8 +1516,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         }
         else {
           opinfo->ip = instrtxt;
-          instrtxt->insname = (char*)mmalloc(csound, 1+strlen(opname));
-          strcpy(instrtxt->insname, opname);
+          instrtxt->insname = cs_strdup(csound, opname);
           instrtxt->opcode_info = opinfo;
         }
 
