@@ -1182,7 +1182,7 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
           while (++i <= engineState->maxopcno) engineState->instrtxtp[i] = NULL;
         }
         inm->instno = num;
-        csound->Message(csound, Str("UDO INSTR NUM: %d\n"), num);
+        //csound->Message(csound, Str("UDO INSTR NUM: %d\n"), num);
         engineState->instrtxtp[num] = inm->ip;
         inm = inm->prv;
       }
