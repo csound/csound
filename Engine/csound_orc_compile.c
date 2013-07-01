@@ -1190,7 +1190,7 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
 }
 
 
-OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
+OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, char* outargs, char* inargs)
 {
     OPCODINFO *opinfo = csound->opcodeInfo;
     if (UNLIKELY(opinfo == NULL)) {
@@ -1199,7 +1199,9 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname)
     }
 
     while (opinfo != NULL) {
-      if (UNLIKELY(strcmp(opinfo->name, opname) == 0)) {
+      if (UNLIKELY(strcmp(opinfo->name, opname) == 0 &&
+                   strcmp(opinfo->intypes, inargs) == 0 &&
+                   strcmp(opinfo->outtypes, outargs) == 0)) {
         return opinfo;
       }
       opinfo = opinfo->prv;   /* Move on: JPff suggestion */
@@ -1503,7 +1505,9 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         instrtxt = create_instrument(csound, current, engineState);
         prvinstxt = prvinstxt->nxtinstxt = instrtxt;
         opname = current->left->value->lexeme;
-        OPCODINFO *opinfo = find_opcode_info(csound, opname);
+        OPCODINFO *opinfo = find_opcode_info(csound, opname,
+                                             current->left->left->value->lexeme,
+                                             current->left->right->value->lexeme);
 
         if (UNLIKELY(opinfo == NULL)) {
           csound->Message(csound,
@@ -1512,8 +1516,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         }
         else {
           opinfo->ip = instrtxt;
-          instrtxt->insname = (char*)mmalloc(csound, 1+strlen(opname));
-          strcpy(instrtxt->insname, opname);
+          instrtxt->insname = cs_strdup(csound, opname);
           instrtxt->opcode_info = opinfo;
         }
 

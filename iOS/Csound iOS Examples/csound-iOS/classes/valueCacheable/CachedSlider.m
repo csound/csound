@@ -36,7 +36,7 @@
 
 -(CachedSlider*)init:(UISlider*)slider channelName:(NSString*)channelName {
     if (self = [super init]) {
-        mSlider = [slider retain];
+        mSlider = slider;
         self.channelName = channelName;
     }
     return self;
@@ -62,10 +62,5 @@
     [mSlider removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
 }
 
--(void)dealloc {
-    [mSlider release];
-    [mChannelName release];
-    [super dealloc];
-}
 
 @end
