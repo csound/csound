@@ -1393,7 +1393,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var->memBlock = (void *) mmalloc(csound, var->memBlockSize);
       if (var->initializeVariableMemory != NULL) {
         var->initializeVariableMemory(var, (MYFLT *)(var->memBlock));
-      }
+      } else  memset(var->memBlock , 0, var->memBlockSize);
       var = var->next;
     }
 
