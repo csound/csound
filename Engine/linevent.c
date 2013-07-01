@@ -431,8 +431,8 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       if (insname) {
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q'))
           return csound->InitError(csound, Str(errmsg_2));
-        evt.p[1] = SSTRCOD;
-        evt.strarg = ((STRINGDAT*) p->args[1])->data;
+        evt.p[1] = csound->strarg2insno(csound,((STRINGDAT *)p->args[1])->data, 1);
+        evt.strarg = NULL;
         for (i = 2; i <= evt.pcnt; i++)
            evt.p[i] = *p->args[i];
       }
