@@ -43,6 +43,7 @@ void test_read_write(void) {
     csoundDestroyCircularBuffer(csound, rb);
     csoundDestroy(csound);
 }
+
 void test_read_write_diff_size(void) {
     int i, j;
     CSOUND* csound = csoundCreate(NULL);
@@ -61,6 +62,42 @@ void test_read_write_diff_size(void) {
     int readindex = 0;
     for (i = 1 ; i < 16; i++) {
         int read = csoundReadCircularBuffer(csound, rb, outvals, 17 - i);
+        CU_ASSERT_EQUAL(read, 17-i);
+        for (j = 0; j < read; j++) {
+            CU_ASSERT_EQUAL(outvals[j], readindex++);
+        }
+        int written = csoundWriteCircularBuffer(csound, rb, &(invals[writeindex]), i );
+        CU_ASSERT_EQUAL(written, i);
+        writeindex += i;
+    }
+    csoundDestroyCircularBuffer(csound, rb);
+    csoundDestroy(csound);
+}
+
+void test_peek(void) {
+    int i, j;
+    CSOUND* csound = csoundCreate(NULL);
+    void *rb = csoundCreateCircularBuffer(csound, 512, sizeof(float));
+    CU_ASSERT_PTR_NOT_NULL(rb);
+    for (i = 0 ; i <256; i++) {
+        float val = i;
+        csoundWriteCircularBuffer(csound, rb, &val, 1);
+    }
+    float invals[256];
+    float outvals[256];
+    for (i = 256 ; i <512; i++) {
+        invals[i] = i;
+    }
+    int writeindex = 0;
+    int readindex = 0;
+    for (i = 1 ; i < 16; i++) {
+        int read = csoundPeekCircularBuffer(csound, rb, outvals, 17 - i);
+        CU_ASSERT_EQUAL(read, 17-i);
+        for (j = 0; j < read; j++) {
+            CU_ASSERT_EQUAL(outvals[j], readindex++);
+        }
+        readindex -= read;
+        read = csoundReadCircularBuffer(csound, rb, outvals, 17 - i);
         CU_ASSERT_EQUAL(read, 17-i);
         for (j = 0; j < read; j++) {
             CU_ASSERT_EQUAL(outvals[j], readindex++);
@@ -114,6 +151,7 @@ int main()
     /* add the tests to the suite */
     if ((NULL == CU_add_test(pSuite, "Test read and write", test_read_write))
             || (NULL == CU_add_test(pSuite, "Test read and write diff sizes", test_read_write_diff_size))
+            || (NULL == CU_add_test(pSuite, "Test peek", test_peek))
             || (NULL == CU_add_test(pSuite, "Test wrap", test_wrap))
         )
     {
