@@ -33,7 +33,7 @@ static NSString* CS_ACCEL_Z = @"accelerometerZ";
 
 -(id)init:(CMMotionManager*)cmManager {
     if (self = [super init]) {
-        manager = [cmManager retain];
+        manager = cmManager;
     }
     return self;
 }
@@ -51,16 +51,12 @@ static NSString* CS_ACCEL_Z = @"accelerometerZ";
 }
 
 -(void)updateValuesToCsound {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    *channelPtrX = manager.accelerometerData.acceleration.x;
-    *channelPtrY = manager.accelerometerData.acceleration.y;
-    *channelPtrZ = manager.accelerometerData.acceleration.z;   
-    [pool release];
+    @autoreleasepool {
+        *channelPtrX = manager.accelerometerData.acceleration.x;
+        *channelPtrY = manager.accelerometerData.acceleration.y;
+        *channelPtrZ = manager.accelerometerData.acceleration.z;   
+    }
 }
 
--(void)dealloc {
-    [manager release];
-    [super dealloc];
-}
 
 @end

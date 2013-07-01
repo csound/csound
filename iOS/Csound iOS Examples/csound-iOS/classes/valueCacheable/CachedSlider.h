@@ -34,7 +34,7 @@
     UISlider* mSlider;
 }
 
-@property (nonatomic, retain) NSString* channelName;
+@property (nonatomic, strong) NSString* channelName;
 
 -(CachedSlider*)init:(UISlider*)slider channelName:(NSString*)channelName;
 
