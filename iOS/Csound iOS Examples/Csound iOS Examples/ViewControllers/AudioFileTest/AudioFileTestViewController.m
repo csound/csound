@@ -65,12 +65,5 @@
     [self.csound stopCsound];
 }
 
-- (void)dealloc
-{
-	[mPitchKnob release];
-	[mPlayButton release];
-	[mPitchLabel release];
-	[super dealloc];
-}
 
 @end

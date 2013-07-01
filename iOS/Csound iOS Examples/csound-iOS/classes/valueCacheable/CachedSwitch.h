@@ -26,14 +26,12 @@
 #import <Foundation/Foundation.h>
 #import "BaseValueCacheable.h"
 
-@interface CachedSwitch : BaseValueCacheable {
-    float cachedValue;
-    float* channelPtr;
-    NSString* mChannelName;   
-    UISwitch* mSwitch;
-}
+@interface CachedSwitch : BaseValueCacheable
+    @property float cachedValue;
+    @property float* channelPtr;
+    @property (unsafe_unretained) NSString* channelName;
+    @property (unsafe_unretained) UISwitch* mSwitch;
 
-@property (nonatomic, retain) NSString* channelName;
 
 -(CachedSwitch*)init:(UISwitch*)uiSwitch channelName:(NSString*)channelName;
 

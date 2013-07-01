@@ -27,44 +27,36 @@
 
 @implementation CachedSwitch
 
-@synthesize channelName = mChannelName;
-
 -(void)updateValueCache:(id)sender {
-    cachedValue = ((UISwitch*)sender).on ? 1 : 0;
+    self.cachedValue = ((UISwitch*)sender).on ? 1 : 0;
     self.cacheDirty = YES;
 }
 
 -(CachedSwitch*)init:(UISwitch*)uiSwitch channelName:(NSString*)channelName {
     if (self = [super init]) {
-        mSwitch = [uiSwitch retain];
+        self.mSwitch = uiSwitch;
         self.channelName = channelName;
     }
     return self;
 }
 
 -(void)setup:(CsoundObj*)csoundObj {
-    cachedValue = mSwitch.on ? 1 : 0;
+    self.cachedValue = self.mSwitch.on ? 1 : 0;
     self.cacheDirty = YES;
-    channelPtr = [csoundObj getInputChannelPtr:self.channelName];
-    [mSwitch addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
+    self.channelPtr = [csoundObj getInputChannelPtr:self.channelName];
+    [self.mSwitch addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
 }
 
 
 -(void)updateValuesToCsound {
     if (self.cacheDirty) {
-        *channelPtr = cachedValue;
+        *self.channelPtr = self.cachedValue;
         self.cacheDirty = NO;
     }
 }
 
 -(void)cleanup {
-    [mSwitch removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
+    [self.mSwitch removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
 }
-
--(void)dealloc {
-    [mChannelName release];
-    [super dealloc];
-}
-
 
 @end
