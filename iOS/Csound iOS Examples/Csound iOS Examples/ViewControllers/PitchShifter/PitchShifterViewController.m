@@ -89,11 +89,5 @@
     }
 }
 
-- (void)dealloc
-{
-	[mSwitch release];
-	[mXYControl release];
-	[super dealloc];
-}
 
 @end

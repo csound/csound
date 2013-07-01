@@ -37,7 +37,7 @@
 	id<CsoundVirtualKeyboardDelegate> mKeyboardDelegate;
 }
 
-@property(nonatomic,retain) IBOutlet id<CsoundVirtualKeyboardDelegate> keyboardDelegate;
+@property(nonatomic,strong) IBOutlet id<CsoundVirtualKeyboardDelegate> keyboardDelegate;
 
 @end
 

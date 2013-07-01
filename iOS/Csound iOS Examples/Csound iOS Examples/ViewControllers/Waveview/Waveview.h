@@ -45,6 +45,6 @@
 }
 
 @property (assign) BOOL cacheDirty;
-@property (nonatomic, retain) NSString *channelName;
+@property (nonatomic, strong) NSString *channelName;
 
 @end

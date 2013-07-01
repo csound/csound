@@ -33,7 +33,7 @@ static NSString* CS_GYRO_Z = @"gyroZ";
 
 -(id)init:(CMMotionManager*)manager {
     if (self = [super init]) {
-        mManager = [manager retain];
+        mManager = manager;
     }
     return self;
 }
@@ -50,16 +50,12 @@ static NSString* CS_GYRO_Z = @"gyroZ";
 }
 
 -(void)updateValuesToCsound {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    *channelPtrX = mManager.gyroData.rotationRate.x;
-    *channelPtrY = mManager.gyroData.rotationRate.y;
-    *channelPtrZ = mManager.gyroData.rotationRate.z;  
-    [pool release];
+    @autoreleasepool {
+        *channelPtrX = mManager.gyroData.rotationRate.x;
+        *channelPtrY = mManager.gyroData.rotationRate.y;
+        *channelPtrZ = mManager.gyroData.rotationRate.z;  
+    }
 }
 
--(void)dealloc {
-    [mManager release];
-    [super dealloc];
-}
 
 @end

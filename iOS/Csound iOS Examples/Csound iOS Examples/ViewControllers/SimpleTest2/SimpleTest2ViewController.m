@@ -60,17 +60,6 @@
     }
 }
 
-- (void)dealloc {
-	[mRateSlider release];
-    [mDurationSlider release];
-
-    [mAttackSlider release];
-    [mDecaySlider release];
-    [mSustainSlider release];
-    [mReleaseSlider release];
-	[mSwitch release];
-    [super dealloc];
-}
 
 
 #pragma mark CsoundObjCompletionListener

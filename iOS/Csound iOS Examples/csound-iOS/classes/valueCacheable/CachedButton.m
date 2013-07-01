@@ -37,7 +37,7 @@
 -(id)init:(UIButton*)button channelName:(NSString*)channelName {
     if (self = [super init]) {
         self.channelName = channelName;
-        mButton = [button retain];
+        mButton = button;
     }
     return self;
 }
@@ -64,9 +64,5 @@
     [mButton removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventTouchDown];
 }
 
--(void)dealloc {
-    [mChannelName release];
-    [super dealloc];
-}
 
 @end
