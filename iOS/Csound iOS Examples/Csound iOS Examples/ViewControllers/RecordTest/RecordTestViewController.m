@@ -30,8 +30,8 @@
 -(void)viewDidLoad {
     self.title = @"Record Test";
     [super viewDidLoad];
-	mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];
-	[mPlayer setDelegate:self];
+	self.mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];
+	[self.mPlayer setDelegate:self];
 }
 
 -(IBAction) toggleOnOff:(id)component {
@@ -45,8 +45,8 @@
 		[self.csound stopCsound];
         self.csound = [[CsoundObj alloc] init];
         [self.csound addCompletionListener:self];
-		[self.csound addSlider:mGainSlider forChannelName:@"gain"];
-		[mLevelMeter addToCsoundObj:self.csound forChannelName:@"meter"];
+		[self.csound addSlider:_mGainSlider forChannelName:@"gain"];
+		[_mLevelMeter addToCsoundObj:self.csound forChannelName:@"meter"];
 		[self.csound startCsound:tempFile];
 	} else {
 		[self.csound stopRecording];
@@ -56,12 +56,12 @@
 
 - (IBAction)changeGain:(UISlider *)sender
 {
-	[mGainLabel setText:[NSString stringWithFormat:@"%.2f", [sender value]]];
+	[_mGainLabel setText:[NSString stringWithFormat:@"%.2f", [sender value]]];
 }
 
 - (IBAction)play:(UIButton *)sender
 {
-	[mPlayer play];
+	[_mPlayer play];
 	[sender removeTarget:self action:@selector(play:) forControlEvents:UIControlEventTouchUpInside];
 	[sender addTarget:self action:@selector(stop:) forControlEvents:UIControlEventTouchUpInside];
 	[sender setTitle:@"Stop" forState:UIControlStateNormal];
@@ -69,8 +69,8 @@
 
 - (IBAction)stop:(UIButton *)sender
 {
-	[mPlayer stop];
-	[mPlayer setCurrentTime:0];
+	[_mPlayer stop];
+	[_mPlayer setCurrentTime:0];
 	[sender removeTarget:self action:@selector(stop:) forControlEvents:UIControlEventTouchUpInside];
 	[sender addTarget:self action:@selector(play:) forControlEvents:UIControlEventTouchUpInside];
 	[sender setTitle:@"Play" forState:UIControlStateNormal];
@@ -78,19 +78,12 @@
 
 - (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag
 {
-	[mPlayer setCurrentTime:0];
-	[mPlayButton removeTarget:self action:@selector(stop:) forControlEvents:UIControlEventTouchUpInside];
-	[mPlayButton addTarget:self action:@selector(play:) forControlEvents:UIControlEventTouchUpInside];
-	[mPlayButton setTitle:@"Play" forState:UIControlStateNormal];
+	[_mPlayer setCurrentTime:0];
+	[_mPlayButton removeTarget:self action:@selector(stop:) forControlEvents:UIControlEventTouchUpInside];
+	[_mPlayButton addTarget:self action:@selector(play:) forControlEvents:UIControlEventTouchUpInside];
+	[_mPlayButton setTitle:@"Play" forState:UIControlStateNormal];
 }
 
-- (void)dealloc {
-	[mPlayButton release];
-	[mLevelMeter release];
-	[mSwitch release];
-	[mPlayer release];
-    [super dealloc];
-}
 
 - (NSURL *)recordingURL
 {
@@ -110,12 +103,10 @@
 }
 
 -(void)csoundObjComplete:(CsoundObj *)csoundObj {
-	[mSwitch setOn:NO animated:YES];
-	if (mPlayer != nil) {
-		[mPlayer release];
-	}
-	mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];
-	[mPlayer setDelegate:self];
+	[_mSwitch setOn:NO animated:YES];
+    _mPlayer = nil;
+	_mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];
+	[_mPlayer setDelegate:self];
 }
 
 @end
