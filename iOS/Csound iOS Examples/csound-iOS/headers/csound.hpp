@@ -188,6 +188,10 @@ public:
   {
     return csoundCompileOrc(csound, str);
   }
+  virtual MYFLT EvalCode(const char *str)
+  {
+    return csoundEvalCode(csound, str);
+  }
   virtual int ReadScore(char *str)
   {
     return csoundReadScore(csound, str);
