@@ -47,11 +47,11 @@
     NSString* title = @"Render Complete";
     NSString* message = @"File generated as trapped.wav in application Documents Folder";
     
-    UIAlertView* alert = [[[UIAlertView alloc] initWithTitle:title
+    UIAlertView* alert = [[UIAlertView alloc] initWithTitle:title
                                                     message:message
                                                    delegate:nil
                                           cancelButtonTitle:@"Dismiss"
-                                          otherButtonTitles:nil] autorelease];
+                                          otherButtonTitles:nil];
                       
     [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:NO];
 

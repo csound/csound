@@ -29,15 +29,11 @@
 
 -(id)init:(UISlider *)slider {
     if (self = [super init]) {
-        mSlider = [slider retain];
+        mSlider = slider;
     }
     return self;
 }
 
--(void)dealloc {
-    [mSlider release];
-    [super dealloc];
-}
 
 -(void)setValueSelector:(NSNumber*)value {
     [mSlider setValue:[value floatValue] animated:YES];
