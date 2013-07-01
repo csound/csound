@@ -398,14 +398,18 @@ static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
 
     /* Create the new event */
     if (stringname) {
-      evt.strarg = ((STRINGDAT*)p->args[0])->data;
-      evt.p[1] = SSTRCOD;
+      evt.p[1] = csound->strarg2insno(csound,((STRINGDAT *)p->args[0])->data, 1);
+      evt.strarg = NULL;
+      /*evt.strarg = ((STRINGDAT*)p->args[0])->data;
+	evt.p[1] = SSTRCOD;*/
     }
     else if (ISSTRCOD(*p->args[0])) {
       unquote(name, get_arg_string(csound, *p->args[0]), 512);
-      evt.strarg = name;
-      evt.scnt = 1;
-      evt.p[1] = SSTRCOD;
+      evt.p[1] = csound->strarg2insno(csound,name, 1);
+      evt.strarg = NULL;
+      /* evt.strarg = name; */
+      /* evt.scnt = 1; */
+      /* evt.p[1] = SSTRCOD; */
     }
     else {
       evt.strarg = NULL;
