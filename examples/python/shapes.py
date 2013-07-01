@@ -1,5 +1,5 @@
 from Tkinter import *
-import csnd
+import csnd6
 
 class Application(Frame):
   
@@ -83,7 +83,7 @@ class Application(Frame):
         self.pack()
         self.createCanvas()  
         self.createShapes()
-        self.cs = csnd.Csound()
+        self.cs = csnd6.Csound()
         res = self.cs.Compile("shapes.csd")
         self.cs.SetChannel("pitch", 1.0)
         self.cs.SetChannel("volume", 1.0)

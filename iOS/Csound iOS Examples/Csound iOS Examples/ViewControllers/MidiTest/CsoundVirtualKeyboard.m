@@ -280,11 +280,6 @@ static const int kTotalNumKeys = 25;
 	
 }
 
--(void)dealloc {
-	[currentTouches release];
-	[mKeyboardDelegate release];
-	[super dealloc];
-}
 
 
 @end

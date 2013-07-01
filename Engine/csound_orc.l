@@ -77,7 +77,7 @@ STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
 LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
-IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\(
+IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*"\n"?
 XIDENT          0|[aijkftKOVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
@@ -281,6 +281,14 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "if"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
+"if("{OPTWHITE}"\n"? { 
+                  if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                  *lvalp = make_token(csound, yytext);
+                  unput('(');
+                  (*lvalp)->type = IF_TOKEN;
+                  return IF_TOKEN; }
 "then"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = THEN_TOKEN;
                   return THEN_TOKEN; }
@@ -291,6 +299,14 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   (*lvalp)->type = KTHEN_TOKEN;
                   return KTHEN_TOKEN; }
 "elseif"        { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = ELSEIF_TOKEN;
+                  return ELSEIF_TOKEN; }
+"elseif("{OPTWHITE}"\n"? { 
+                  if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                  unput('(');
+                  *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
 "else"          { *lvalp = make_token(csound, yytext);
@@ -435,7 +451,10 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   (*lvalp)->type = ZERODBFS_TOKEN;
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return ZERODBFS_TOKEN; }
-{IDENTB}        { yytext[yyleng-1] = '\0';
+{IDENTB}        { if (strchr(yytext, '\n'))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                  *strrchr(yytext, '(') = '\0';
                   *lvalp = lookup_token(csound, yytext, yyscanner);
                   return (*lvalp)->type+1; }
 {IDENT}         { *lvalp = lookup_token(csound, yytext, yyscanner);

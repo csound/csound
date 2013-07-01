@@ -8,7 +8,7 @@ ksmps=100
 nchnls=1
 
 gklevel init 0
-gks chnexport "meter",3
+gks chnexport "meter",3             
 
 
 instr 1
@@ -26,7 +26,7 @@ gklevel = gklevel + ks
 endin
 
 instr 100
-gks = gklevel
+gks = gklevel                                       
 gklevel = 0
 endin
 

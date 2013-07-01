@@ -5,7 +5,7 @@
 <CsInstruments>
 
 
-opcode Test,k,[k]
+opcode Test,k,k[]
 
 kS[] xin
 k1 = kS[0]

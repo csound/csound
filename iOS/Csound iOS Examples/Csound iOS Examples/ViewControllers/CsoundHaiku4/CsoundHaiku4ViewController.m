@@ -45,9 +45,6 @@
 	[self.csound startCsound:tempFile];
 }
 
-- (void)dealloc {
-    [super dealloc];
-}
 
 #pragma mark CsoundObjCompletionListener
 
