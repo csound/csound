@@ -16,7 +16,6 @@ int clean_suite1(void)
 void test_dev_list(void)
 {
     CSOUND  *csound;
-    csoundInitialize(0,0,0);
     csound = csoundCreate(NULL);
     char *name, *type;
     int n = 0;
@@ -88,6 +87,63 @@ void test_dev_list(void)
     csoundDestroy(csound);
 }
 
+int key_callback_evt(void *userData, void *p,
+                     unsigned int type)
+{
+    int *prev = (int *) userData;
+    *((int *) p) = *prev;
+    *prev += 1;
+    return CSOUND_SUCCESS;
+}
+
+int key_callback_txt(void *userData, void *p,
+                     unsigned int type)
+{
+    int *prev = (int *) userData;
+    *((int *) p) =  *prev;
+    *prev += 1;
+    return CSOUND_SUCCESS;
+}
+
+void test_keyboard_io(void)
+{
+    int ret, err, prev = 100;
+    CSOUND  *csound;
+    csound = csoundCreate(NULL);
+    ret = csoundRegisterKeyboardCallback(csound, key_callback_evt, &prev, CSOUND_CALLBACK_KBD_EVENT);
+    CU_ASSERT(ret == CSOUND_SUCCESS);
+    ret = csoundRegisterKeyboardCallback(csound, key_callback_txt, &prev, CSOUND_CALLBACK_KBD_TEXT);
+    CU_ASSERT(ret == CSOUND_SUCCESS);
+    const char  *instrument =
+            "chn_k \"key\", 2\n"
+            "instr 1 \n"
+            "kkey sensekey\n"
+            "chnset kkey, \"key\"\n"
+            "kkey2, kdown2 sensekey\n"
+            "chnset kkey2, \"key2\"\n"
+            "chnset kdown2, \"down2\"\n"
+//            "printk2 kkey2\n"
+//            "printk2 kdown2\n"
+            "endin \n";
+    csoundCompileOrc(csound, instrument);
+    csoundReadScore(csound, "i 1 0 1");
+    ret = csoundStart(csound);
+    CU_ASSERT(ret == CSOUND_SUCCESS);
+    ret = csoundPerformKsmps(csound);
+    CU_ASSERT(ret == CSOUND_SUCCESS);
+    MYFLT val = csoundGetControlChannel(csound, "key", &err);
+//    CU_ASSERT(err == CSOUND_SUCCESS);
+    CU_ASSERT_DOUBLE_EQUAL(val, 100.0, 0.001);
+    val = csoundGetControlChannel(csound, "key2", &err);
+//    CU_ASSERT(err == CSOUND_SUCCESS);
+    CU_ASSERT_DOUBLE_EQUAL(val, 101.0, 0.001);
+    val = csoundGetControlChannel(csound, "down2", &err);
+//    CU_ASSERT(err == CSOUND_SUCCESS);
+    CU_ASSERT_DOUBLE_EQUAL(val, 1.0, 0.001);
+
+    csoundDestroy(csound);
+}
+
 int main(int argc, char **argv)
 {
     CU_pSuite pSuite = NULL;
@@ -105,6 +161,7 @@ int main(int argc, char **argv)
 
     /* add the tests to the suite */
     if ((NULL == CU_add_test(pSuite, "Device Listing", test_dev_list))
+            || (NULL == CU_add_test(pSuite, "Keyboard IO", test_keyboard_io))
         )
     {
        CU_cleanup_registry();
