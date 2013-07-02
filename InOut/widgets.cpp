@@ -1942,8 +1942,8 @@ public:
   {
       widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      csound->Set_Callback(csound, fltkKeyboardCallback, (void*) this,
-                           CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT);
+      csound->Set_KeyCallback(csound, fltkKeyboardCallback, (void*) this,
+                              CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT);
   }
   CsoundFLWindow(CSOUND *csound,
                  int x, int y, int w, int h, const char *title = 0)
@@ -1953,13 +1953,13 @@ public:
   {
       widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      csound->Set_Callback(csound, fltkKeyboardCallback, (void*) this,
-                           CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT);
+      csound->Set_KeyCallback(csound, fltkKeyboardCallback, (void*) this,
+                              CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT);
   }
   virtual ~CsoundFLWindow()
   {
       CSOUND  *csound = fltkKeyboardBuffer.GetCsound();
-      csound->Remove_Callback(csound, fltkKeyboardCallback);
+      csound->Remove_KeyCallback(csound, fltkKeyboardCallback);
   }
   virtual int handle(int evt)
   {

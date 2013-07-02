@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     uw = make_utils();
     xw = make_extras();
     textw = make_textwindow();
-    csoundInitialize(&argc, &argv, CSOUNDINIT_NO_SIGNAL_HANDLER);
+    csoundInitialize(CSOUNDINIT_NO_SIGNAL_HANDLER);
     csound = csoundCreate(NULL);
     csoundSetMessageCallback(csound, mytextNull);
     csoundSetMessageCallback(csound, mytextOutput);
