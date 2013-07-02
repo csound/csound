@@ -56,17 +56,12 @@
             self.clearsSelectionOnViewWillAppear = NO;
             self.contentSizeForViewInPopover = CGSizeMake(320.0, 600.0);
         }
-        testNames = [[NSMutableArray arrayWithObjects:@"Simple Test 1", @"Simple Test 2", 
-                      @"Button Test", @"MIDI Test", @"Ping Pong Delay", @"Harmonizer", @"Hardware Test", @"Csound Haiku 4", @"Record Test", @"Multitouch XY", @"Waveview", @"Audio File Test", @"Console Output", @"Pitch Shifter", @"TrappedGenerator",nil] retain];
+        testNames = [NSMutableArray arrayWithObjects:@"Simple Test 1", @"Simple Test 2", 
+                      @"Button Test", @"MIDI Test", @"Ping Pong Delay", @"Harmonizer", @"Hardware Test", @"Csound Haiku 4", @"Record Test", @"Multitouch XY", @"Waveview", @"Audio File Test", @"Console Output", @"Pitch Shifter", @"TrappedGenerator",nil];
     }
     return self;
 }
 							
-- (void)dealloc
-{
-    [_detailViewController release];
-    [super dealloc];
-}
 
 - (void)didReceiveMemoryWarning
 {
@@ -139,7 +134,7 @@
     
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     if (cell == nil) {
-        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier] autorelease];
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
         if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         }
@@ -273,17 +268,15 @@
             controller.masterPopoverController = currentDetail.masterPopoverController;
         }
         
-        UINavigationController *detailNavigationController = [[[UINavigationController alloc] initWithRootViewController:controller] autorelease];
+        UINavigationController *detailNavigationController = [[UINavigationController alloc] initWithRootViewController:controller];
         
         NSArray *viewControllers = [[NSArray alloc] initWithObjects:[splitViewController.viewControllers objectAtIndex:0], detailNavigationController, nil];
         splitViewController.viewControllers = viewControllers;
         splitViewController.delegate = controller;
-        [viewControllers release];
         
     }
 
     
-    [controller release];
     
 
 }

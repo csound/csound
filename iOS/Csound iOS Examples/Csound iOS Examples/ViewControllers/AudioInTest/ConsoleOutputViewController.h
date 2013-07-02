@@ -30,7 +30,7 @@
 	IBOutlet UITextView *mTextView;
 }
 
-@property (nonatomic, retain) NSString *currentMessage;
+@property (nonatomic, strong) NSString *currentMessage;
 
 - (IBAction)run:(UIButton *)sender;
 

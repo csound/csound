@@ -622,13 +622,13 @@
   (fout :pointer)
   (n :int))
 
-(defcfun ("csoundSetCallback" csoundSetCallback) :int
+(defcfun ("csoundSetKeyboardCallback" csoundSetKeyboardCallback) :int
   (arg0 :pointer)
   (func :pointer)
   (userData :pointer)
   (typeMask :unsigned-int))
 
-(defcfun ("csoundRemoveCallback" csoundRemoveCallback) :void
+(defcfun ("csoundRemoveKeyboardCallback" csoundRemoveKeyboardCallback) :void
   (arg0 :pointer)
   (func :pointer))
 
