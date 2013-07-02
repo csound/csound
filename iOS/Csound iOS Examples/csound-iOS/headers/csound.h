@@ -541,7 +541,7 @@ extern "C" {
      * Return value is zero on success, positive if initialisation was
      * done already, and negative on error.
      */
-    PUBLIC int csoundInitialize(int *argc, char ***argv, int flags);
+    PUBLIC int csoundInitialize(int flags);
 
     /**
      * Creates an instance of Csound.  Returns an opaque pointer that

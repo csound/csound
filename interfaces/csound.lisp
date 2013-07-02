@@ -106,8 +106,6 @@
 (defctype CsoundChannelIOCallback_t :pointer)
 
 (defcfun ("csoundInitialize" csoundInitialize) :int
-  (argc :pointer)
-  (argv :pointer)
   (flags :int))
 
 (defcfun ("csoundCreate" csoundCreate) :pointer

@@ -47,7 +47,6 @@ int main(int argc, char** argv) {
 
     printf("Input File: %s", argv[1]);
 
-//    csoundInitialize(&argc, &argv, 0);
     CSOUND* csound = csoundCreate(NULL);
 
 

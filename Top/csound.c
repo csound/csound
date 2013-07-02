@@ -1066,12 +1066,10 @@ static void install_signal_handler(void)
 
 static int getTimeResolution(void);
 
-PUBLIC int csoundInitialize(int *argc, char ***argv, int flags)
+PUBLIC int csoundInitialize(int flags)
 {
     int     n;
 
-    (void) argc;
-    (void) argv;
     do {
       csoundLock();
       n = init_done;
@@ -1113,7 +1111,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     csInstance_t  *p;
 
     if (init_done != 1) {
-      if (csoundInitialize(NULL, NULL, 0) < 0) return NULL;
+      if (csoundInitialize(0) < 0) return NULL;
     }
     csound = (CSOUND*) malloc(sizeof(CSOUND));
     if (UNLIKELY(csound == NULL)) return NULL;
