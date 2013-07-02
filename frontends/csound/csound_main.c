@@ -126,9 +126,6 @@ int main(int argc, char **argv)
     else if (nomessages)
       csoundSetDefaultMessageCallback(nomsg_callback);
 
-    /* initialise Csound library */
-    csoundInitialize(&argc, &argv, 0);
-
     /*  Create Csound. */
     csound = csoundCreate(NULL);
 

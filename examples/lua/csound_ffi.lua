@@ -26,7 +26,7 @@ print 'CSOUND * would be tough to do and is replaced by void *.'
 ffi.cdef[[
 int csoundGetVersion();
 int csoundGetAPIVersion();
-int csoundInitialize (int *argc, char ***argv, int flags);
+int csoundInitialize (int flags);
 void *csoundCreate(void *hostdata);
 void csoundDestroy(void *csound);
 int csoundSetOption(void *csound, const char *option);
@@ -47,7 +47,7 @@ print(string.format('Csound API version: %5.2f', csoundApi.csoundGetAPIVersion()
 print 'Calling csoundInitialize...'
 local argc = ffi.new('int *')
 local argv = ffi.new('char ***')
-result = csoundApi.csoundInitialize(argc, argv, 0);
+result = csoundApi.csoundInitialize(0);
 local voidptr = ffi.new('void *')
 print 'Creating an instance of Csound...'
 local csound = csoundApi.csoundCreate(voidptr)

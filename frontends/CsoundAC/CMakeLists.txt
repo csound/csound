@@ -38,7 +38,6 @@ if(BUILD_CSOUND_AC)
 	allegrowr.cpp
 	Cell.cpp
 	ChordLindenmayer.cpp
-	cmake_install.cmake
 	Composition.cpp
 	Conversions.cpp
 	Counterpoint.cpp

@@ -58,12 +58,6 @@ int main(int argc, char **argv)
     FILE    *insco, *outsco;
     int     result;
 
-    /* Standalone Cscore is now a client of the Csound API */
-    result = csoundInitialize(NULL, NULL, 0);
-    if (result < 0) {
-      fprintf(stderr, "Could not initialize the Csound library.\n");
-      return -1;
-    }
     cs = csoundCreate(NULL);
     if (cs == NULL) {
       fprintf(stderr, "Could not instantiate Csound.\n");
