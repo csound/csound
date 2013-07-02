@@ -33,7 +33,7 @@ static NSString* CS_ATTITUDE_YAW = @"attitudeYaw";
 
 -(id)init:(CMMotionManager*)manager {
     if (self = [super init]) {
-        mManager = [manager retain];
+        mManager = manager;
     }
     return self;
 }
@@ -50,16 +50,12 @@ static NSString* CS_ATTITUDE_YAW = @"attitudeYaw";
 }
 
 -(void)updateValuesToCsound {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    *channelPtrRoll = mManager.deviceMotion.attitude.roll;
-    *channelPtrPitch = mManager.deviceMotion.attitude.pitch;
-    *channelPtrYaw = mManager.deviceMotion.attitude.yaw;    
-    [pool release];
+    @autoreleasepool {
+        *channelPtrRoll = mManager.deviceMotion.attitude.roll;
+        *channelPtrPitch = mManager.deviceMotion.attitude.pitch;
+        *channelPtrYaw = mManager.deviceMotion.attitude.yaw;    
+    }
 }
 
--(void)dealloc {
-    [mManager release];
-    [super dealloc];
-}
 
 @end

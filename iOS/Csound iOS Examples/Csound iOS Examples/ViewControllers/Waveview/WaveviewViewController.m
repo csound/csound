@@ -60,8 +60,4 @@
 -(void)csoundObjComplete:(CsoundObj *)csoundObj {
 }
 
-- (void)dealloc {
-    [waveview release];
-    [super dealloc];
-}
 @end

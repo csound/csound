@@ -93,9 +93,10 @@ PUBLIC int Sched(CSOUND *csound, MYFLT  *args[], int numargs) {
       unquote(name, csound->currevent->strarg);
       evt.strarg = name;
       evt.p[1] = SSTRCOD;
+      evt.scnt = 1;
     }
     else {
-      evt.strarg = NULL;
+      evt.strarg = NULL; evt.scnt = 0;
       evt.p[1] = *args[1];
     }
     evt.opcod = (char) *args[0];

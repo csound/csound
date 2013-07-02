@@ -86,21 +86,6 @@
     [mCsound sendScore:@"i\"allNotesOff\" 0 1"];
 }
 
-- (void)dealloc {
-
-    [mCutoffSlider release];
-    [mResonanceSlider release];
-    
-    [mAttackSlider release];
-    [mDecaySlider release];
-    [mSustainSlider release];
-    [mReleaseSlider release];
-	[mSwitch release];
-    
-    [widgetsManager release];
-    
-    [super dealloc];
-}
 
 
 #pragma mark CsoundObjCompletionListener

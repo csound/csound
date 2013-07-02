@@ -2023,9 +2023,10 @@ static void instance(CSOUND *csound, int insno)
       MYFLT *fltp;
       CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
       if(arg->type == ARG_GLOBAL) {
-        fltp = (MYFLT *) var->memBlock; /* gbloffbas + var->memBlockIndex; */
+	   fltp = (MYFLT *) var->memBlock; /* gbloffbas + var->memBlockIndex; */
       }
       else if(arg->type == ARG_LOCAL) {
+        
         fltp = lclbas + var->memBlockIndex;
       }
       else if(arg->type == ARG_PFIELD) {
@@ -2054,12 +2055,14 @@ static void instance(CSOUND *csound, int insno)
         argpp[n] = csound->engineState.constantsPool->values + arg->index;
       }
       else if(arg->type == ARG_STRING) {
-        argpp[n] = (MYFLT*)(arg->argPtr);
+      
+	 argpp[n] = (MYFLT*)(arg->argPtr);
       }
       else if(arg->type == ARG_PFIELD) {
         argpp[n] = lcloffbas + arg->index;
       }
       else if(arg->type == ARG_GLOBAL) {
+        
         argpp[n] =  (MYFLT *) var->memBlock; /*gbloffbas + var->memBlockIndex; */
       }
       else if(arg->type == ARG_LOCAL){

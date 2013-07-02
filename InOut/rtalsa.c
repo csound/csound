@@ -1808,7 +1808,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
             buf[i++] = *(s++) | (char) 0x20;
     }
     buf[i] = (char) 0;
-    if (strcmp(&(buf[0]), "alsaraw") == 0) {
+    if (strcmp(&(buf[0]), "alsaraw") == 0 || strcmp(&(buf[0]), "alsa") == 0) {
         csound->Message(csound, Str("rtmidi: ALSA Raw MIDI module enabled\n"));
         csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
         csound->SetExternalMidiReadCallback(csound, midi_in_read);
