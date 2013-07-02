@@ -1532,13 +1532,6 @@ extern "C" {
                                   char *instrName, int mode, int allow_release);
 
     /**
-     * Set the ASCII code of the most recent key pressed.
-     * This value is used by the 'sensekey' opcode if a callback
-     * for returning keyboard events is not set (see csoundSetCallback()).
-     */
-    PUBLIC void csoundKeyPress(CSOUND *, char c);
-
-    /**
      * Register a function to be called once in every control period
      * by sensevents(). Any number of functions may be registered,
      * and will be called in the order of registration.
@@ -1551,8 +1544,17 @@ extern "C" {
             void *userData);
 
     /**
-     * Sets general purpose callback function that will be called on various
-     * events. The callback is preserved on csoundReset(), and multiple
+     * Set the ASCII code of the most recent key pressed.
+     * This value is used by the 'sensekey' opcode if a callback
+     * for returning keyboard events is not set (see csoundSetCallback()).
+     */
+    PUBLIC void csoundKeyPress(CSOUND *, char c);
+
+    /**
+     * Registers general purpose callback functions that will be called to query
+     * keyboard events. These callbacks are called on every control period by
+     * the sensekey opcode.
+     * The callback is preserved on csoundReset(), and multiple
      * callbacks may be set and will be called in reverse order of
      * registration. If the same function is set again, it is only moved
      * in the list of callbacks so that it will be called first, and the
@@ -1586,16 +1588,16 @@ extern "C" {
      * positive if the callback was ignored (for example because the type is
      * not known).
      */
-    PUBLIC int csoundSetCallback(CSOUND *, int (*func)(void *userData, void *p,
-            unsigned int type),
-            void *userData, unsigned int typeMask);
+    PUBLIC int csoundRegisterKeyboardCallback(CSOUND *,
+                                              int (*func)(void *userData, void *p,
+                                                          unsigned int type),
+                                              void *userData, unsigned int type);
 
     /**
-     * Removes a callback previously set with csoundSetCallback().
+     * Removes a callback previously set with csoundRegisterKeyboardCallback().
      */
-    PUBLIC void csoundRemoveCallback(CSOUND *,
-            int (*func)(void *, void *, unsigned int));
-
+    PUBLIC void csoundRemoveKeyboardCallback(CSOUND *csound,
+                                     int (*func)(void *, void *, unsigned int));
 
     /** @}*/
     /** @defgroup TABLE Tables
