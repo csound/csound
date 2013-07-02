@@ -393,8 +393,8 @@ static const CSOUND cenviron_ = {
     csoundSetExitGraphCallback,
     /* generic callbacks */
     csoundSetYieldCallback,
-    csoundSetCallback,
-    csoundRemoveCallback,
+    csoundRegisterKeyboardCallback,
+    csoundRemoveKeyboardCallback,
     csoundRegisterSenseEventCallback,
     csoundRegisterDeinitCallback,
     csoundRegisterResetCallback,
@@ -1853,7 +1853,7 @@ PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset)
     }
     if (aTime > 0.0) {
       EVTBLK  evt;
-      evt.strarg = NULL;
+      evt.strarg = NULL; evt.scnt = 0;
       evt.opcod = 'a';
       evt.pcnt = 3;
       evt.p[2] = evt.p[1] = FL(0.0);
@@ -2075,7 +2075,7 @@ PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
     int     i;
     int ret;
 
-    evt.strarg = NULL;
+    evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = type;
     evt.pcnt = (int16) numFields;
     for (i = 0; i < (int) numFields; i++) /* Could be memcpy */
@@ -2095,7 +2095,7 @@ PUBLIC int csoundScoreEventAbsolute(CSOUND *csound, char type,
     int     i;
     int     ret;
 
-    evt.strarg = NULL;
+    evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = type;
     evt.pcnt = (int16) numFields;
     for (i = 0; i < (int) numFields; i++)
@@ -3001,7 +3001,7 @@ static int csoundDoCallback_(CSOUND *csound, void *p, unsigned int type)
       do {
         if (pp->typeMask & type) {
           int   retval = pp->func(pp->userData, p, type);
-          if (retval <= 0)
+          if (retval != CSOUND_SUCCESS)
             return retval;
         }
         pp = pp->nxt;
@@ -3011,7 +3011,7 @@ static int csoundDoCallback_(CSOUND *csound, void *p, unsigned int type)
 }
 
 /**
- * Sets general purpose callback function that will be called on various
+ * Sets a callback function that will be called on keyboard
  * events. The callback is preserved on csoundReset(), and multiple
  * callbacks may be set and will be called in reverse order of
  * registration. If the same function is set again, it is only moved
@@ -3047,10 +3047,10 @@ static int csoundDoCallback_(CSOUND *csound, void *p, unsigned int type)
  * not known).
  */
 
-PUBLIC int csoundSetCallback(CSOUND *csound,
-                             int (*func)(void *userData, void *p,
-                                         unsigned int type),
-                             void *userData, unsigned int typeMask)
+PUBLIC int csoundRegisterKeyboardCallback(CSOUND *csound,
+                                          int (*func)(void *userData, void *p,
+                                                      unsigned int type),
+                                          void *userData, unsigned int typeMask)
 {
     CsoundCallbackEntry_t *pp;
 
@@ -3058,11 +3058,11 @@ PUBLIC int csoundSetCallback(CSOUND *csound,
                  (typeMask
                   & (~(CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT)))
                  != 0U))
-      return CSOUND_ERROR;
-    csoundRemoveCallback(csound, func);
+        return CSOUND_ERROR;
+    csoundRemoveKeyboardCallback(csound, func);
     pp = (CsoundCallbackEntry_t*) malloc(sizeof(CsoundCallbackEntry_t));
     if (UNLIKELY(pp == (CsoundCallbackEntry_t*) NULL))
-      return CSOUND_MEMORY;
+        return CSOUND_MEMORY;
     pp->typeMask = (typeMask ? typeMask : 0xFFFFFFFFU);
     pp->nxt = (CsoundCallbackEntry_t*) csound->csoundCallbacks_;
     pp->userData = userData;
@@ -3072,11 +3072,12 @@ PUBLIC int csoundSetCallback(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
+
 /**
  * Removes a callback previously set with csoundSetCallback().
  */
 
-PUBLIC void csoundRemoveCallback(CSOUND *csound,
+PUBLIC void csoundRemoveKeyboardCallback(CSOUND *csound,
                                  int (*func)(void *, void *, unsigned int))
 {
     CsoundCallbackEntry_t *pp, *prv;
@@ -3096,6 +3097,7 @@ PUBLIC void csoundRemoveCallback(CSOUND *csound,
       pp = pp->nxt;
     }
 }
+
 
 PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
                                       void (*fileOpenCallback)(CSOUND*,

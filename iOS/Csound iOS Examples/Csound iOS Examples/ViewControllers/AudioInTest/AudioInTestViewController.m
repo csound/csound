@@ -59,10 +59,6 @@
     }
 }
 
-- (void)dealloc {
-	[mSwitch release];
-    [super dealloc];
-}
 
 
 #pragma mark CsoundObjCompletionListener

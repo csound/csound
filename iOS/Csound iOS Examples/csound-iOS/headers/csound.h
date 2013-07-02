@@ -520,7 +520,7 @@ extern "C" {
     } controlChannelHints_t;
 
     typedef struct controlChannelInfo_s {
-        const char  *name;
+        char  *name;
         int     type;
         controlChannelHints_t    hints;
     } controlChannelInfo_t;
@@ -591,7 +591,8 @@ extern "C" {
     PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree);
 
     /**
-     * Parse, and compile the given orchestra from an ASCII string.
+     * Parse, and compile the given orchestra from an ASCII string,
+     * also evaluating any global space code (i-time only)
      * this can be called during performance to compile a new orchestra.
      * /code
      *       char *orc = "instr 1 \n a1 rand 0dbfs/4 \n out a1 \n";
@@ -599,6 +600,18 @@ extern "C" {
      * /endcode
     */
     PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str);
+
+   /**
+    *   Parse and compile an orchestra given on an string,
+    *   evaluating any global space code (i-time only). 
+    *   On SUCCESS it returns a value passed to the
+    *   'return' opcode in global space  
+    * /code
+    *       char *code = "i1 = 2 + 2 \n return i1 \n";
+    *       MYFLT retval = csoundEvalCode(csound, code);
+    * /endcode
+    */
+   PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str);
 
     /**
      * Prepares an instance of Csound for Cscore
@@ -989,7 +1002,7 @@ extern "C" {
       * \endcode
       */
     PUBLIC int csoundGetAudioDevList(CSOUND *csound,
-                                  CS_AUDIODEVICE *list, int isOutput);
+                                     CS_AUDIODEVICE *list, int isOutput);
 
     /**
      * Sets a function to be called by Csound for opening real-time
@@ -1030,7 +1043,8 @@ extern "C" {
     PUBLIC void csoundSetRtcloseCallback(CSOUND *, void (*rtclose__)(CSOUND *));
 
     /**
-     * Sets a function that is called to obtain a list of audio devices
+     * Sets a function that is called to obtain a list of audio devices.
+     * This should be set by rtaudio modules and should not be set by hosts.
      * (See csoundGetAudioDevList())
      */
     PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
@@ -1065,8 +1079,8 @@ extern "C" {
       * device information structure, pass an array of CS_MIDIDEVICE
       * structs to be filled. (see also csoundGetAudioDevList())
       */
-    PUBLIC int csoundMIDIDevList(CSOUND *csound,
-                                 CS_MIDIDEVICE *list, int isOutput);
+    PUBLIC int csoundGetMIDIDevList(CSOUND *csound,
+                                    CS_MIDIDEVICE *list, int isOutput);
 
     /**
      * Sets callback for opening real time MIDI input.
@@ -1114,8 +1128,9 @@ extern "C" {
 
 
     /**
-     * Sets a function that is called to obtain a list of MIDI devices
-     * (See csoundMIDIDevList())
+     * Sets a function that is called to obtain a list of MIDI devices.
+     * This should be set by IO plugins, and should not be used by hosts.
+     * (See csoundGetMIDIDevList())
      */
     PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
                 int (*mididevlist__)(CSOUND *,
@@ -1253,10 +1268,11 @@ extern "C" {
 
     /**
      * Creates a buffer for storing messages printed by Csound.
-     * Should be called after creating a Csound instance; note that
-     * the message buffer uses the host data pointer, and the buffer
-     * should be freed by calling csoundDestroyMessageBuffer() before
-     * deleting the Csound instance.
+     * Should be called after creating a Csound instance andthe buffer
+     * can be freed by calling csoundDestroyMessageBuffer() before
+     * deleting the Csound instance. You will generally want to call
+     * csoundCleanup() to make sure the last messages are flushed to
+     * the message buffer before destroying Csound.
      * If 'toStdOut' is non-zero, the messages are also printed to
      * stdout and stderr (depending on the type of the message),
      * in addition to being stored in the buffer.
@@ -1516,13 +1532,6 @@ extern "C" {
                                   char *instrName, int mode, int allow_release);
 
     /**
-     * Set the ASCII code of the most recent key pressed.
-     * This value is used by the 'sensekey' opcode if a callback
-     * for returning keyboard events is not set (see csoundSetCallback()).
-     */
-    PUBLIC void csoundKeyPress(CSOUND *, char c);
-
-    /**
      * Register a function to be called once in every control period
      * by sensevents(). Any number of functions may be registered,
      * and will be called in the order of registration.
@@ -1535,8 +1544,17 @@ extern "C" {
             void *userData);
 
     /**
-     * Sets general purpose callback function that will be called on various
-     * events. The callback is preserved on csoundReset(), and multiple
+     * Set the ASCII code of the most recent key pressed.
+     * This value is used by the 'sensekey' opcode if a callback
+     * for returning keyboard events is not set (see csoundSetCallback()).
+     */
+    PUBLIC void csoundKeyPress(CSOUND *, char c);
+
+    /**
+     * Registers general purpose callback functions that will be called to query
+     * keyboard events. These callbacks are called on every control period by
+     * the sensekey opcode.
+     * The callback is preserved on csoundReset(), and multiple
      * callbacks may be set and will be called in reverse order of
      * registration. If the same function is set again, it is only moved
      * in the list of callbacks so that it will be called first, and the
@@ -1570,16 +1588,16 @@ extern "C" {
      * positive if the callback was ignored (for example because the type is
      * not known).
      */
-    PUBLIC int csoundSetCallback(CSOUND *, int (*func)(void *userData, void *p,
-            unsigned int type),
-            void *userData, unsigned int typeMask);
+    PUBLIC int csoundRegisterKeyboardCallback(CSOUND *,
+                                              int (*func)(void *userData, void *p,
+                                                          unsigned int type),
+                                              void *userData, unsigned int type);
 
     /**
-     * Removes a callback previously set with csoundSetCallback().
+     * Removes a callback previously set with csoundRegisterKeyboardCallback().
      */
-    PUBLIC void csoundRemoveCallback(CSOUND *,
-            int (*func)(void *, void *, unsigned int));
-
+    PUBLIC void csoundRemoveKeyboardCallback(CSOUND *csound,
+                                     int (*func)(void *, void *, unsigned int));
 
     /** @}*/
     /** @defgroup TABLE Tables
@@ -2119,31 +2137,35 @@ extern "C" {
 #include "version.h"
 
  /**
-  * Create circular buffer with size samples
+  * Create circular buffer with numelem number of elements. The element's size is set
+  * from elemsize. It should be used like:
+  *@code
+  * void *rb = csoundCreateCircularBuffer(csound, 1024, sizeof(MYFLT));
+  *@endcode
   */
-  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound, int size);
+  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound, int numelem, int elemsize);
 
  /**
   * Read from circular buffer
   * void *circular_buffer - pointer to an existing circular buffer
-  * MYFLT *out - buffer with at least items samples where buffer contents
-  *              will be read into
+  * void *out - preallocated buffer with at least items number of elements, where
+  *              buffer contents will be read into
   * int items - number of samples to be read
   * returns the number of samples read (0 <= n <= items)
   */
   PUBLIC int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
-                                      MYFLT *out, int items);
+                                      void *out, int items);
 
  /**
   * Write to circular buffer
   * void *circular_buffer - pointer to an existing circular buffer
-  * MYFLT *inp - buffer with at least items samples to bet written into
+  * void *inp - buffer with at least items number of elements to be written into
   *              circular buffer
   * int items - number of samples to be read
   * returns the number of samples read (0 <= n <= items)
   */
   PUBLIC int csoundWriteCircularBuffer(CSOUND *csound, void *p,
-                                       const MYFLT *inp, int items);
+                                       const void *inp, int items);
   /**
    * Empty circular buffer of any remaining data.
    */

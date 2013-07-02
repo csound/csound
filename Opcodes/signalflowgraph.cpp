@@ -1001,21 +1001,12 @@ struct AlwaysOnS  : public OpcodeBase<AlwaysOnS> {
    */
   EVTBLK evtblk;
   int init(CSOUND *csound) {
-    std::string source = csound->strarg2name(csound,
-                                             (char *) 0,
-                                             Sinstrument,
-                                             (char *)"",
-                                             (int) 1);
     evtblk.opcod = 'i';
-    evtblk.strarg = 0;
+    evtblk.strarg = NULL;
     evtblk.p[0] = FL(0.0);
-    evtblk.p[1] = *Sinstrument->data;
+    evtblk.p[1] = csound->strarg2insno(csound, Sinstrument->data, 1);
     evtblk.p[2] = evtblk.p2orig = FL(0.0);
     evtblk.p[3] = evtblk.p3orig = FL(-1.0);
-    if (csound->GetInputArgSMask(this)) {
-      evtblk.p[1] = SSTRCOD;
-      evtblk.strarg = (char *)Sinstrument->data;
-    }
     size_t inArgCount = csound->GetInputArgCnt(this);
     // Add 2, for hard-coded p2 and p3.
     evtblk.pcnt = (int16) inArgCount + 2;
@@ -1047,7 +1038,7 @@ struct AlwaysOn  : public OpcodeBase<AlwaysOn> {
                                              (char *)"",
                                              (int) 0);
     evtblk.opcod = 'i';
-    evtblk.strarg = 0;
+    evtblk.strarg = NULL;
     evtblk.p[0] = FL(0.0);
     evtblk.p[1] = *Sinstrument;
     evtblk.p[2] = evtblk.p2orig = FL(0.0);

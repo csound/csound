@@ -53,16 +53,17 @@
 
 - (void)messageCallback:(NSValue *)infoObj
 {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	Message info;
-	[infoObj getValue:&info];
-	char message[1024];
-	vsnprintf(message, 1024, info.format, info.valist);
-	NSString *messageStr = [NSString stringWithFormat:@"%s", message];
-	[self performSelectorOnMainThread:@selector(updateUIWithNewMessage:)
-						   withObject:messageStr
-						waitUntilDone:NO];
-	[pool drain];
+    @autoreleasepool {
+    
+        Message info;
+        [infoObj getValue:&info];
+        char message[1024];
+        vsnprintf(message, 1024, info.format, info.valist);
+        NSString *messageStr = [NSString stringWithFormat:@"%s", message];
+        [self performSelectorOnMainThread:@selector(updateUIWithNewMessage:)
+                               withObject:messageStr
+                            waitUntilDone:NO];
+    }
 }
 
 #pragma mark - CsoundObj Listener
@@ -100,10 +101,5 @@
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
 }
 
-- (void)dealloc
-{
-	[mTextView release];
-    [super dealloc];
-}
 
 @end
