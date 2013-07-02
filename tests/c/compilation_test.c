@@ -31,8 +31,6 @@ void test_compile(void)
             "endin \n"
             "event_i \"i\",2, 0.5, 2, 10000, 800 \n";
 
-
-    csoundInitialize(NULL, NULL, 0);
     csound = csoundCreate(NULL);
     CU_ASSERT_PTR_NOT_NULL(csound);
     csoundSetOption(csound,"-odac");
@@ -67,7 +65,6 @@ void test_reuse(void)
             "out  a1   \n"
             "endin \n";
 
-    csoundInitialize(NULL, NULL, 0);
     csound = csoundCreate(NULL);
     CU_ASSERT_PTR_NOT_NULL(csound);
     csoundSetOption(csound,"-odac");
