@@ -221,11 +221,16 @@ extern "C" {
        (e.g. --help, or running an utility with -U). */
 #define CSOUND_EXITJMP_SUCCESS  (256)
 
-    /**
-     * Flags for csoundInitialize().
-     */
+/**
+  * Flags for csoundInitialize().
+  */
+
 #define CSOUNDINIT_NO_SIGNAL_HANDLER  1
 #define CSOUNDINIT_NO_ATEXIT          2
+
+/**
+  * Types for keyboard callbacks set in csoundRegisterKeyboardCallback()
+  */
 
 #define CSOUND_CALLBACK_KBD_EVENT   (0x00000001U)
 #define CSOUND_CALLBACK_KBD_TEXT    (0x00000002U)
@@ -536,12 +541,14 @@ extern "C" {
      *
      *  @{ */
     /**
-     * Initialise Csound library; should be called once before creating
-     * any Csound instances.
+     * Initialise Csound library with specific flags. This function is called
+     * internally by csoundCreate(), so there is generally no need to use it
+     * explicitly unless you need to avoid default initilization that sets
+     * signal handlers and atexit() callbacks.
      * Return value is zero on success, positive if initialisation was
      * done already, and negative on error.
      */
-    PUBLIC int csoundInitialize(int *argc, char ***argv, int flags);
+    PUBLIC int csoundInitialize(int flags);
 
     /**
      * Creates an instance of Csound.  Returns an opaque pointer that

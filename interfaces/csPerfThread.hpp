@@ -50,7 +50,6 @@ int main(int argc, char *argv[])
 {
  int result=0;
  Csound cs;
- csoundInitialize(NULL,NULL,NULL);
  result = cs.Compile(argc,argv);
 
  if(!result)
