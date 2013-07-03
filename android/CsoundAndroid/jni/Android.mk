@@ -245,11 +245,21 @@ java_interfaceJAVA_wrap.cpp
 
 LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc 
 
-LOCAL_SHARED_LIBRARIES += sndfile gnustl_shared
-LOCAL_PREBUILT_LIBRARIES += sndfile 
+# For building with all plugins use:
+
+#LOCAL_SHARED_LIBRARIES += LuaCsound fluidOpcodes signalflowgraph stdutil gnustl_shared sndfile 
+
+# For building without plugins, but with support for plugins that may depend on GNU STL, use:
+
+LOCAL_SHARED_LIBRARIES += gnustl_shared sndfile 
 
 include $(BUILD_SHARED_LIBRARY)
 
 $(call import-module,libsndfile-android/jni)
+#$(call import-module,libstdutil/jni)
+#$(call import-module,libfluidsynth/jni)
+#$(call import-module,signalflowgraph/jni)
+#$(call import-module,luajit-2.0/jni)
+#$(call import-module,LuaCsound/jni)
 
 

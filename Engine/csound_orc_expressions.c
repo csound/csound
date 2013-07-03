@@ -26,6 +26,7 @@
 #include "csound_orc.h"
 #include "csound_orc_expressions.h"
 #include "csound_type_system.h"
+#include "csound_orc_semantics.h"
 
 extern char argtyp2(char *);
 extern void print_tree(CSOUND *, char *, TREE *);
@@ -43,6 +44,9 @@ extern void add_array_arg(CSOUND* csound, char* varName, int dimensions,
 
 extern char* get_array_sub_type(CSOUND* csound, char*);
 extern char* get_arg_type(CSOUND* csound, TREE* tree);
+
+extern char* convert_external_to_internal(CSOUND* csound, char* arg);
+
 
 TREE* create_boolean_expression(CSOUND*, TREE*, int, int, TYPE_TABLE*);
 TREE * create_expression(CSOUND *, TREE *, int, int, TYPE_TABLE*);
@@ -360,11 +364,14 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
     char* leftArgType = get_arg_string_from_tree(csound, left, typeTable);
     char* rightArgType = get_arg_string_from_tree(csound, right, typeTable);
     char* argString = mcalloc(csound, 80);
-
+    
     strncpy(argString, leftArgType, 80);
     strncat(argString, rightArgType, 80 - strlen(leftArgType));
     outType = resolve_opcode_get_outarg(csound, opentries, argString);
     if(outType == NULL) return NULL;
+   
+    outType = convert_external_to_internal(csound, outType);
+
     return create_out_arg(csound, outType, typeTable);
 }
 

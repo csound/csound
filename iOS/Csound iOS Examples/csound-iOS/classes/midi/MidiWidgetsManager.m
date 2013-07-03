@@ -64,7 +64,7 @@ void MidiWidgetsManagerReadProc(const MIDIPacketList *pktlist, void *refcon, voi
 
 /* coremidi callback, called when MIDI data is available */
 void MidiWidgetsManagerReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon){
-    MidiWidgetsManager* manager = (MidiWidgetsManager *)refcon;  
+    MidiWidgetsManager* manager = (__bridge MidiWidgetsManager *)refcon;  
 	MIDIPacket *packet = &((MIDIPacketList *)pktlist)->packet[0];
 	Byte *curpack;
     int i, j;
@@ -109,7 +109,7 @@ void MidiWidgetsManagerReadProc(const MIDIPacketList *pktlist, void *refcon, voi
     if(!ret){
         /* MIDI output port */
         pname = CFStringCreateWithCString(NULL, "outport", defaultEncoding);
-        ret = MIDIInputPortCreate(mclient, pname, MidiWidgetsManagerReadProc, self, &mport);
+        ret = MIDIInputPortCreate(mclient, pname, MidiWidgetsManagerReadProc, (__bridge void *)(self), &mport);
         if(!ret){
             /* sources, we connect to all available input sources */
             endpoints = MIDIGetNumberOfSources();
@@ -132,9 +132,5 @@ void MidiWidgetsManagerReadProc(const MIDIPacketList *pktlist, void *refcon, voi
     MIDIClientDispose(mclient);
 }
 
--(void)dealloc {
-    [mWidgetWrappers release];
-    [super dealloc];
-}
 
 @end

@@ -489,6 +489,7 @@ typedef struct {
     MYFLT  *spin;         /* offset into csound->spin */
     MYFLT  *spout;        /* offset into csound->spout, or local spout, if needed */
     int    init_done;
+    MYFLT  retval;
     /* Copy of required p-field values for quick access */
     MYFLT   p0;
     MYFLT   p1;
@@ -1084,9 +1085,9 @@ typedef struct NAME__ {
     /**@}*/
     /** @name Circular lock-free buffer */
     /**@{ */
-    void *(*CreateCircularBuffer)(CSOUND *, int);
-    int (*ReadCircularBuffer)(CSOUND *, void *, MYFLT *, int);
-    int (*WriteCircularBuffer)(CSOUND *, void *, const MYFLT *, int);
+    void *(*CreateCircularBuffer)(CSOUND *, int, int);
+    int (*ReadCircularBuffer)(CSOUND *, void *, void *, int);
+    int (*WriteCircularBuffer)(CSOUND *, void *, const void *, int);
     void (*FlushCircularBuffer)(CSOUND *, void *);
     void (*DestroyCircularBuffer)(CSOUND *, void *);
 
@@ -1627,6 +1628,8 @@ typedef struct NAME__ {
     char          *filedir[64]; /* for location directory */
     void          *message_buffer;
     int           jumpset;
+    int           info_message_request;
+    int           modules_loaded;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

@@ -1170,12 +1170,16 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
     }
     if (evt->strarg != NULL) {  /* copy string argument if present */
       /* NEED TO COPY WHOLE STRING STRUCTURE */
-      e->evt.strarg = (char*) malloc((size_t) strlen(evt->strarg) + (size_t) 1);
+      int n = evt->scnt;
+      char *p = evt->strarg;
+      while (n--) { p += strlen(p)+1; };
+      e->evt.strarg = (char*) malloc((size_t) (p-evt->strarg)+1);
       if (UNLIKELY(e->evt.strarg == NULL)) {
         free(e);
         return CSOUND_MEMORY;
       }
-      strcpy(e->evt.strarg, evt->strarg);
+      memcpy(e->evt.strarg, evt->strarg, p-evt->strarg+1 );
+      e->evt.scnt = evt->scnt;
     }
     e->evt.opcod = evt->opcod;
     e->evt.pcnt = evt->pcnt;

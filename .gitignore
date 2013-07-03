@@ -175,3 +175,11 @@ Custom.cmake
 Engine/.csound_orc.l.swn
 Engine/.csound_orc.y.swn
 *.swm
+android/CSDPlayer/assets/samples/README
+android/CSDPlayer/assets/samples/hrtf-44100-left.dat
+android/CSDPlayer/assets/samples/hrtf-44100-right.dat
+android/CSDPlayer/assets/samples/hrtf-48000-left.dat
+android/CSDPlayer/assets/samples/hrtf-48000-right.dat
+android/CSDPlayer/assets/samples/hrtf-96000-left.dat
+android/CSDPlayer/assets/samples/hrtf-96000-right.dat
+android/CSDPlayer/assets/samples/sf_GMbank.sf2
