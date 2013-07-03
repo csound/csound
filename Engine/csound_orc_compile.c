@@ -193,13 +193,14 @@ PUBLIC int argsRequired(char* argString)
         while (*t == '[') {
           t++;
           if (*t != ']') {
-            return -1; // ERROR HERE, unmatched array identifier, perhaps should report...
+            // ERROR HERE, unmatched array identifier, perhaps should report...
+            return -1;
           }
           t++;
         }
       }
     }
-    
+
     return retVal;
 }
 
@@ -215,21 +216,22 @@ PUBLIC char** splitArgs(CSOUND* csound, char* argString)
       while (*t != '\0' ) {
         char* part;
         int dimensions = 0;
-        
+
         if (*(t + 1) == '[') {
           char* start = t;
           int len = 1;
           int j;
           t++;
-            
+
           while (*t == '[') {
             t++;
             len++;
-            
+
             if (*t != ']') {
-               return NULL; // ERROR HERE, unmatched array identifier, perhaps should report...
+               // ERROR HERE, unmatched array identifier, perhaps should report...
+               return NULL;
             }
-              
+
             t++;
             len++;
             dimensions++;
@@ -1150,7 +1152,8 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       if (active == NULL || instrNum == 0) {
 
        if (csound->oparms->odebug)
-       csound->Message(csound, Str("no active instances of instr %d \n"), instrNum);
+       csound->Message(csound,
+                       Str("no active instances of instr %d \n"), instrNum);
         free_instrtxt(csound, engineState->instrtxtp[instrNum]);
       }
       /* err++; continue; */
@@ -1190,7 +1193,8 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
 }
 
 
-OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, char* outargs, char* inargs)
+OPCODINFO *find_opcode_info(CSOUND *csound, char *opname,
+                            char* outargs, char* inargs)
 {
     OPCODINFO *opinfo = csound->opcodeInfo;
     if (UNLIKELY(opinfo == NULL)) {
@@ -1361,7 +1365,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     if (csound->instr0 == NULL) {
       engineState = &csound->engineState;
       engineState->varPool = typeTable->globalPool;
-      
+
       csound->instr0 = create_instrument0(csound, current, engineState,
                                           typeTable->instr0LocalPool);
       cs_hash_table_put_key(csound, engineState->stringPool, "\"\"");
@@ -1606,7 +1610,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     }
 
-    if(csound->init_pass_threadlock) csoundUnlockMutex(csound->init_pass_threadlock);
+    if(csound->init_pass_threadlock)
+      csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
 
@@ -1615,16 +1620,16 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
 /**
     Parse and compile an orchestra given on an string,
-    evaluating any global space code (i-time only). 
+    evaluating any global space code (i-time only).
     On SUCCESS it returns a value passed to the
-    'return' opcode in global space  
+    'return' opcode in global space
 */
 PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str){
- 
+
   if(str && csoundCompileOrc(csound,str) == CSOUND_SUCCESS)
-   return csound->instr0->instance[0].retval; 
+   return csound->instr0->instance[0].retval;
 #ifdef NAN
-   else return NAN; 
+   else return NAN;
 #else
   else return 0;
 #endif
@@ -1805,10 +1810,10 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
              csoundFindVariableWithName(csound->engineState.varPool, s) != NULL) {
       // FIXME - figure out why string pool searched with gexist
       //|| string_pool_indexof(csound->engineState.stringPool, s) > 0) {
-      
+
       arg->type = ARG_GLOBAL;
       arg->argPtr = csoundFindVariableWithName(engineState->varPool, s);
-      
+
     }
     else {
       arg->type = ARG_LOCAL;

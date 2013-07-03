@@ -401,7 +401,7 @@ static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
       evt.p[1] = csound->strarg2insno(csound,((STRINGDAT *)p->args[0])->data, 1);
       evt.strarg = NULL; evt.scnt = 0;
       /*evt.strarg = ((STRINGDAT*)p->args[0])->data;
-	evt.p[1] = SSTRCOD;*/
+        evt.p[1] = SSTRCOD;*/
     }
     else if (ISSTRCOD(*p->args[0])) {
       unquote(name, get_arg_string(csound, *p->args[0]), 512);
