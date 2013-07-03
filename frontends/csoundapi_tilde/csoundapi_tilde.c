@@ -169,7 +169,7 @@ PUBLIC void csoundapi_tilde_setup(void)
            " A PD csound class using the Csound %d.%02d.%d API\n"
            "(c) V Lazzarini, 2005-2007\n", v1, v2, v3);
     }
-    csoundInitialize(NULL,NULL,0);
+    csoundInitialize(0);
 
 }
 

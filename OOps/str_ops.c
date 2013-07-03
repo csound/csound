@@ -106,8 +106,6 @@ void strset_option(CSOUND *csound, char *s)
 int strget_init(CSOUND *csound, STRGET_OP *p)
 {
     int   indx;
-
-    ((char*) p->r)[0] = '\0';
     if (ISSTRCOD(*(p->indx))) {
       char *ss = csound->currevent->strarg;
       if (ss == NULL)
@@ -156,10 +154,11 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
 /* strcpy */
 int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
-    char  *newVal = p->str->data;
+     char  *newVal = p->str->data; 
     if(p->r->data == NULL) {
-        p->r->data = cs_strdup(csound, newVal);
-        p->r->size = p->str->size;
+      p->r->data =  cs_strdup(csound, newVal);
+      p->r->size = p->str->size;
+        return OK;
     }
     if (p->r->data == p->str->data)
       return OK;
@@ -306,7 +305,7 @@ sprintf_opcode_(CSOUND *csound,
     }
 
 
-    strseg = malloc(strlen(fmt));
+    strseg = malloc(siz);
 
     while (1) {
       if (UNLIKELY(i >= siz)) {

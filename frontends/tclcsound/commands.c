@@ -1274,7 +1274,6 @@ int tclcsound_initialise(Tcl_Interp * interp)
 {
     csdata *pdata = (csdata *) Tcl_Alloc(sizeof(csdata));
 
-    csoundInitialize(NULL, NULL, 0);
     pdata->instance = csoundCreate(pdata);
     pdata->status = CS_READY;
     pdata->result = 0;
