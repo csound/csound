@@ -1172,7 +1172,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       /* NEED TO COPY WHOLE STRING STRUCTURE */
       int n = evt->scnt;
       char *p = evt->strarg;
-      while (n--) { p += strlen(p)+1; };  
+      while (n--) { p += strlen(p)+1; };
       e->evt.strarg = (char*) malloc((size_t) (p-evt->strarg)+1);
       if (UNLIKELY(e->evt.strarg == NULL)) {
         free(e);
