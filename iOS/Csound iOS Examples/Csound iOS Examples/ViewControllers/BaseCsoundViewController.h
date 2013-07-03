@@ -30,7 +30,7 @@
     CsoundObj* mCsound;
 }
 
-@property (nonatomic, retain) CsoundObj* csound;
+@property (nonatomic, strong) CsoundObj* csound;
 
 @property (strong, nonatomic) id detailItem;
 

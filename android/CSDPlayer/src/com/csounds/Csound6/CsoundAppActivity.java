@@ -80,13 +80,27 @@ public class CsoundAppActivity extends Activity implements
 
 	static {
 		try {
-			java.lang.System.loadLibrary("sndfile");
-			java.lang.System.loadLibrary("csoundandroid");
-		} catch (UnsatisfiedLinkError e) {
+			java.lang.System.loadLibrary("gnustl_shared");
+		} catch (Throwable e){
 			java.lang.System.err
-					.println("csoundandroid native code library failed to load.\n"
+			.println("Csound6: gnustl_shared native code library failed to load.\n");
+			java.lang.System.err.println(e.toString());
+		}
+		try {
+			java.lang.System.loadLibrary("sndfile");
+		} catch (Throwable e) {
+			java.lang.System.err
+			.println("Csound6: sndfile native code library failed to load.\n");
+			java.lang.System.err.println(e.toString());
+		}
+		try {
+			java.lang.System.loadLibrary("csoundandroid");
+		} catch (Throwable e) {
+			java.lang.System.err
+					.println("Csound6: csoundandroid native code library failed to load.\n"
 							+ e);
-			java.lang.System.exit(1);
+			java.lang.System.err.println(e.toString());
+			//java.lang.System.exit(1);
 		}
 	}
 

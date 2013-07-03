@@ -54,10 +54,6 @@ int main(int argc, char **argv)
     dataout.winsize = 1024;
     dataout.frame = (float *) calloc(sizeof(float),(dataout.N+2));
 
-
-    /* initialise Csound library */
-    csoundInitialize(&argc, &argv, 0);
-
     /*  Create Csound. */
     csound = csoundCreate(NULL);
 

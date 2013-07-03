@@ -22,8 +22,8 @@ public class MainWindow extends javax.swing.JFrame {
      * Creates new form MainWindow
      */
     public MainWindow() {
-        csnd6.csoundInitialize(null, null,
-                csnd6.CSOUNDINIT_NO_SIGNAL_HANDLER | csnd6.CSOUNDINIT_NO_ATEXIT);
+        csnd6.csoundInitialize(csnd6.CSOUNDINIT_NO_SIGNAL_HANDLER
+        | csnd6.CSOUNDINIT_NO_ATEXIT);
         initComponents();
     }
 
