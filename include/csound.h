@@ -610,9 +610,9 @@ extern "C" {
 
    /**
     *   Parse and compile an orchestra given on an string,
-    *   evaluating any global space code (i-time only). 
+    *   evaluating any global space code (i-time only).
     *   On SUCCESS it returns a value passed to the
-    *   'return' opcode in global space  
+    *   'return' opcode in global space
     * /code
     *       char *code = "i1 = 2 + 2 \n return i1 \n";
     *       MYFLT retval = csoundEvalCode(csound, code);
@@ -1558,7 +1558,8 @@ extern "C" {
     /**
      * Set the ASCII code of the most recent key pressed.
      * This value is used by the 'sensekey' opcode if a callback
-     * for returning keyboard events is not set (see csoundRegisterKeyboardCallback()).
+     * for returning keyboard events is not set (see
+     * csoundRegisterKeyboardCallback()).
      */
     PUBLIC void csoundKeyPress(CSOUND *, char c);
 
