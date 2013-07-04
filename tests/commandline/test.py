@@ -104,6 +104,7 @@ def runTest():
 	["test_instr0_labels.csd", "test labels in instr0 space"],
 	["test_string.csd", "test string assignment and printing"],
 	["test_sprintf.csd", "test string assignment and printing"],
+	["test_sprintf2.csd", "test string assignment and printing that causes reallocation"],
 	["test_label_within_if_block.csd", "test label within if block"],
 
 	["test_arrays.csd", "test k-array with single dimension, assignment to expression value"],
