@@ -1108,7 +1108,7 @@ int printsset(CSOUND *csound, PRINTS *p)
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
     printksset(csound, &pk);
-    //sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
+    sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     return OK;
 }
