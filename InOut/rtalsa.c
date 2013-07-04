@@ -1721,21 +1721,12 @@ int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
         count = 0;
         while (snd_seq_query_next_port(seq, pinfo) >= 0) {
             if (check_permission(pinfo, isOutput? LIST_OUTPUT : LIST_INPUT)) {
-//                if (! count) {
-//                    printf("client %d: '%s' [type=%s]\n",
-//                           snd_seq_client_info_get_client(cinfo),
-//                           snd_seq_client_info_get_name(cinfo),
-//                           (snd_seq_client_info_get_type(cinfo) == SND_SEQ_USER_CLIENT ?
-//                                "user": "kernel"));
-//                }
-//                printf("------  %3d '%-16s'\n",
-//                       snd_seq_port_info_get_port(pinfo),
-//                       snd_seq_port_info_get_name(pinfo));
                 if (list) {
                     strncpy(list[numdevs].midi_module, "alsaseq", 15);
                     strncpy(list[numdevs].device_name, snd_seq_port_info_get_name(pinfo), 63);
                     strncpy(list[numdevs].interface_name, snd_seq_client_info_get_name(cinfo), 63);
-                    sprintf(list[numdevs].device_id, "hw:%d,%d", snd_seq_client_info_get_client(cinfo),
+                    sprintf(list[numdevs].device_id, "%shw:%d,%d", isOutput ? "dac:" :"adc:",
+                            snd_seq_client_info_get_client(cinfo),
                             snd_seq_port_info_get_port(pinfo));
                 }
                 numdevs++;
