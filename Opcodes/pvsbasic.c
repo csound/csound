@@ -1287,10 +1287,10 @@ static int pvsfilter(CSOUND *csound, PVSFILTER *p)
       return OK;
     }
     if (p->lastframe < p->fin->framecount) {
-      kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth*g : g) : FL(0.0);
-      dirgain = (1 - kdepth)*g;
+      kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : 1) : FL(0.0);
+      dirgain = (1 - kdepth);
       for (i = 0; i < N + 2; i += 2) {
-        fout[i] = (float) (fin[i] * (dirgain + fil[i] * kdepth));
+        fout[i] = (float) (fin[i] * dirgain + fil[i] * kdepth)*g;
         fout[i + 1] = fin[i + 1];
       }
 
