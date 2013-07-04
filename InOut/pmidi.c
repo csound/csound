@@ -416,7 +416,7 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
       return 0;
     n = 0;
     do {
-      int time = csound->GetCurrentTimeSamples(csound);
+      int time = csound->GetCurrentTimeSamples(csound)/csound->GetSr(csound);
       //printf("jitter: %d \n", Pt_Time(NULL) - (int)(1000*time/csound->GetSr(csound)));
       st = (int)*(mbuf++);
       if (UNLIKELY(st < 0x80)) {
@@ -435,7 +435,7 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
         break;
       }
       mev.message = (PmMessage) 0;
-      mev.timestamp = (PmTimestamp) Pt_Time(NULL);
+      mev.timestamp = (PmTimestamp) 0;
       mev.message |= (PmMessage) Pm_Message(st, 0, 0);
       if (datbyts[(st - 0x80) >> 4] > 0)
         mev.message |= (PmMessage) Pm_Message(0, (int)*(mbuf++), 0);
