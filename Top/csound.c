@@ -1883,7 +1883,7 @@ PUBLIC void csoundSetCscoreCallback(CSOUND *p,
 static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
                                          const char *format, va_list args)
 {
-#if defined(WIN32) || defined(__MACH__)
+#if defined(WIN32)
     switch (attr & CSOUNDMSG_TYPE_MASK) {
     case CSOUNDMSG_ERROR:
     case CSOUNDMSG_WARNING:
@@ -2283,11 +2283,13 @@ PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
     csound->midi_dev_list_callback = mididevlist__;
 }
 
-PUBLIC int csoundGetAudioDevList(CSOUND *csound,  CS_AUDIODEVICE *list, int isOutput){
+PUBLIC int csoundGetAudioDevList(CSOUND *csound,
+                                 CS_AUDIODEVICE *list, int isOutput){
   return csound->audio_dev_list_callback(csound,list,isOutput);
 }
 
-PUBLIC int csoundGetMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput){
+PUBLIC int csoundGetMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput)
+{
   return csound->midi_dev_list_callback(csound,list,isOutput);
 }
 
@@ -2741,7 +2743,7 @@ PUBLIC void csoundReset(CSOUND *csound)
      pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
     #endif
 
-    if(csound->engineStatus & CS_STATE_COMP || 
+    if(csound->engineStatus & CS_STATE_COMP ||
        csound->engineStatus & CS_STATE_PRE) {
      /* and reset */
       csound->Message(csound, "resetting Csound instance\n");
