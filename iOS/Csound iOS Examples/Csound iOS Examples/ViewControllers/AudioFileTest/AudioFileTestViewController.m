@@ -37,7 +37,7 @@
 
 - (IBAction)changePitch:(UIKnob *)sender
 {
-	[mPitchLabel setText:[NSString stringWithFormat:@"%.2f", [sender value]]];
+	[_mPitchLabel setText:[NSString stringWithFormat:@"%.2f", [sender value]]];
 }
 
 -(void)csoundObjDidStart:(CsoundObj *)csoundObj {
@@ -52,10 +52,10 @@
 	self.csound = [[CsoundObj alloc] init];
 	[self.csound addCompletionListener:self];
 	NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"audiofiletest" ofType:@"csd"];
-	[mPitchKnob setMinimumValue:0.5f];
-	[mPitchKnob setMaximumValue:2.0f];
-	[mPitchKnob setValue:1.0f];
-	[self.csound addValueCacheable:mPitchKnob];
+	[_mPitchKnob setMinimumValue:0.5f];
+	[_mPitchKnob setMaximumValue:2.0f];
+	[_mPitchKnob setValue:1.0f];
+	[self.csound addValueCacheable:_mPitchKnob];
 	[self.csound startCsound:csdPath];
 }
 
