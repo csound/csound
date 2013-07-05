@@ -32,17 +32,12 @@
 
 @synthesize csound = mCsound;
 
-@synthesize detailItem = _detailItem;
-@synthesize detailDescriptionLabel = _detailDescriptionLabel;
-@synthesize masterPopoverController = _masterPopoverController;
-
-
 #pragma mark - Managing the detail item
 
 - (void)setDetailItem:(id)newDetailItem
 {
     if (_detailItem != newDetailItem) {
-        _detailItem = newDetailItem; 
+        self.detailItem = newDetailItem;
         
         // Update the view.
         [self configureView];

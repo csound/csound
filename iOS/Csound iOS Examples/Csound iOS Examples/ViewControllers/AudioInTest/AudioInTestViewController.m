@@ -47,10 +47,10 @@
         [self.csound addCompletionListener:self];
     
         
-        [self.csound addSlider:mLeftDelayTimeSlider forChannelName:@"leftDelayTime"];
-        [self.csound addSlider:mLeftFeedbackSlider forChannelName:@"leftFeedback"];
-        [self.csound addSlider:mRightDelayTimeSlider forChannelName:@"rightDelayTime"];
-        [self.csound addSlider:mRightFeedbackSlider forChannelName:@"rightFeedback"];
+        [self.csound addSlider:_mLeftDelayTimeSlider forChannelName:@"leftDelayTime"];
+        [self.csound addSlider:_mLeftFeedbackSlider forChannelName:@"leftFeedback"];
+        [self.csound addSlider:_mRightDelayTimeSlider forChannelName:@"rightDelayTime"];
+        [self.csound addSlider:_mRightFeedbackSlider forChannelName:@"rightFeedback"];
         
         [self.csound startCsound:tempFile];
         
@@ -67,6 +67,6 @@
 }
 
 -(void)csoundObjComplete:(CsoundObj *)csoundObj {
-	[mSwitch setOn:NO animated:YES];
+	[_mSwitch setOn:NO animated:YES];
 }
 @end
