@@ -21,6 +21,7 @@
     <string name="help">Csound help</string>
     <string name="about">About Csound</string>
     <string name="guide">User guide</string>
+    <string name="settings">Settings</string>
     <string name="csd_template" space="preserve"><![CDATA[<CsoundSynthesizer>
 <CsLicense>
 </CsLicense>
@@ -32,4 +33,5 @@
 </CsScore>
 </CsoundSynthesizer>]]>
 </string>
+    <string name="settingsActivityTitle">Csound Settings</string>
 </resources>
