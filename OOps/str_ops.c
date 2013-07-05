@@ -154,7 +154,7 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
 /* strcpy */
 int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
-     char  *newVal = p->str->data; 
+     char  *newVal = p->str->data;
     if(p->r->data == NULL) {
       p->r->data =  cs_strdup(csound, newVal);
       p->r->size = p->str->size;
@@ -282,11 +282,11 @@ int strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
 static CS_NOINLINE int
 sprintf_opcode_(CSOUND *csound,
                     void *p,          /* opcode data structure pointer       */
-		    STRINGDAT *str,        /* pointer to space for output string  */
+                    STRINGDAT *str,   /* pointer to space for output string  */
                     const char *fmt,  /* format string                       */
                     MYFLT **kvals,    /* array of argument pointers          */
                     int numVals,      /* number of arguments                 */
-		    int strCode)      /* bit mask for string arguments       */
+                    int strCode)      /* bit mask for string arguments       */
 {
     int     len = 0;
     char    *strseg, *outstring = str->data;
@@ -367,24 +367,25 @@ sprintf_opcode_(CSOUND *csound,
             return StrOp_ErrMsg(p, "output argument may not be "
                                    "the same as any of the input args");
           }
-          if(((STRINGDAT*)parm)->size >= maxChars) {     
+          if(((STRINGDAT*)parm)->size >= maxChars) {
             int offs = outstring - str->data;
-	    str->data = mrealloc(csound, str->data, str->size  + ((STRINGDAT*)parm)->size);
+            str->data = mrealloc(csound, str->data,
+                                 str->size  + ((STRINGDAT*)parm)->size);
             str->size += ((STRINGDAT*)parm)->size;
             maxChars += ((STRINGDAT*)parm)->size;
-	    outstring = str->data + offs;          
-	  }
+            outstring = str->data + offs;
+          }
           n = sprintf(outstring, strseg, ((STRINGDAT*)parm)->data);
           break;
         default:
           return StrOp_ErrMsg(p, "invalid format string");
         }
         if (UNLIKELY(n < 0 || n >= maxChars)) {
-          /* safely detected excess string length */        
+          /* safely detected excess string length */
             int offs = outstring - str->data;
             str->data = mrealloc(csound, str->data, maxChars*2);
             outstring = str->data + offs;
-            str->size = maxChars*2;	          
+            str->size = maxChars*2;
         }
         outstring += n;
         len += n;
