@@ -239,9 +239,9 @@ static int MidiDataWrite(CSOUND *csound, void *userData,
 {
     /* stub at the moment */
     /*
-   
 
-     
+
+
     */
     return nbytes;
 }

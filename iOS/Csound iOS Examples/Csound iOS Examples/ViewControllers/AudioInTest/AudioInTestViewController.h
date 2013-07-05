@@ -26,15 +26,15 @@
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
 
-@interface AudioInTestViewController  : BaseCsoundViewController<CsoundObjCompletionListener> {
+@interface AudioInTestViewController  : BaseCsoundViewController<CsoundObjCompletionListener>
 
-    IBOutlet UISlider* mLeftDelayTimeSlider;
-    IBOutlet UISlider* mLeftFeedbackSlider;
-    IBOutlet UISlider* mRightDelayTimeSlider;
-    IBOutlet UISlider* mRightFeedbackSlider;
+@property (weak, nonatomic) IBOutlet UISlider* mLeftDelayTimeSlider;
+@property (weak, nonatomic) IBOutlet UISlider* mLeftFeedbackSlider;
+@property (weak, nonatomic) IBOutlet UISlider* mRightDelayTimeSlider;
+@property (weak, nonatomic) IBOutlet UISlider* mRightFeedbackSlider;
     
-    IBOutlet UISwitch* mSwitch;
-}
+@property (weak, nonatomic) IBOutlet UISwitch* mSwitch;
+
 
 -(IBAction) toggleOnOff:(id)component;
 
