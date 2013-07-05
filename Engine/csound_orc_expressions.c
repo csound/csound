@@ -364,12 +364,12 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
     char* leftArgType = get_arg_string_from_tree(csound, left, typeTable);
     char* rightArgType = get_arg_string_from_tree(csound, right, typeTable);
     char* argString = mcalloc(csound, 80);
-    
+
     strncpy(argString, leftArgType, 80);
     strncat(argString, rightArgType, 80 - strlen(leftArgType));
     outType = resolve_opcode_get_outarg(csound, opentries, argString);
     if(outType == NULL) return NULL;
-   
+
     outType = convert_external_to_internal(csound, outType);
 
     return create_out_arg(csound, outType, typeTable);
