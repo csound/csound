@@ -193,20 +193,23 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 
 - (void)setMessageCallback:(SEL)method withListener:(id)listener
 {
-	mMessageCallback = method;
+	self.mMessageCallback = method;
 	mMessageListener = listener;
 }
 
 - (void)performMessageCallback:(NSValue *)infoObj
 {
-	[mMessageListener performSelector:mMessageCallback withObject:infoObj];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+	[mMessageListener performSelector:_mMessageCallback withObject:infoObj];
+#pragma clang diagnostic pop
 }
 
 #pragma mark -
 
 -(void)sendScore:(NSString *)score {
     if (mCsData.cs != NULL) {
-        csoundInputMessage(mCsData.cs, [score cStringUsingEncoding:NSASCIIStringEncoding]);
+        csoundReadScore(mCsData.cs, (char*)[score cStringUsingEncoding:NSASCIIStringEncoding]);
     }
 }
 
