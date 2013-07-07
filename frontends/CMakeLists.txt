@@ -1,6 +1,7 @@
 option(BUILD_PD_CLASS "Build the puredata csoundapi~ class" ON)
 option(BUILD_CSBEATS "Build the beats score frontend" ON)
 option(BUILD_WINSOUND "Build the Winsound frontend. Requires FLTK headers and libs." OFF)
+option(BUILD_CSOUND_VST "Build the CsoundVST frontend. Requires the Steinberg VST SDK 2.3." OFF)
 
 
   # first, try to use fltk-config for fltk >= 1.3 (FindFLTK is buggy
@@ -151,3 +152,5 @@ if(BUILD_WINSOUND)
 endif()
 
 add_subdirectory(CsoundAC)
+add_subdirectory(CsoundVST)
+
