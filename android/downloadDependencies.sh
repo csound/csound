@@ -5,6 +5,8 @@ if [ -z "$NDK_MODULE_PATH" ]; then
     exit;
 fi
 
+export LUAJIT_JNI=`pwd`/pluginlibs/patches/luajit-2.0/jni
+
 echo "Using NDK_MODULE_PATH: $NDK_MODULE_PATH\n"
 cd $NDK_MODULE_PATH
 
@@ -39,9 +41,11 @@ if [ -e luajit-2.0 ]; then
   echo "libluajit already exists, doing a pull to get the latest";
   cd luajit-2.0;
   git pull;
+  cp -R $LUAJIT_JNI .
   cd ..;
 else
   echo "Cloning libluajit...";
   git clone $LUAJIT_REPO 
+  cp -R $LUAJIT_JNI luajit-2.0/
 fi
 

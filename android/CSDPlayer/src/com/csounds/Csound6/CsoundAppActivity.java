@@ -15,12 +15,14 @@ import android.app.AlertDialog.Builder;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -74,11 +76,16 @@ public class CsoundAppActivity extends Activity implements
 	String errorMessage = null;
 	String csdTemplate = null;
 	PackageInfo packageInfo = null;
+	// Csound environment variables managed on Android.
 	static String OPCODE6DIR = null;
+	static String SFDIR = null;
 	static String SSDIR = null;
+	static String SADIR = null;
+	static String INCDIR = null;
 	WebView webview = null;
 
 	static {
+		int result = 0;
 		try {
 			java.lang.System.loadLibrary("gnustl_shared");
 		} catch (Throwable e){
@@ -98,6 +105,15 @@ public class CsoundAppActivity extends Activity implements
 		} catch (Throwable e) {
 			java.lang.System.err
 					.println("Csound6: csoundandroid native code library failed to load.\n"
+							+ e);
+			java.lang.System.err.println(e.toString());
+			//java.lang.System.exit(1);
+		}
+		try {
+			result = csnd6.csnd.csoundInitialize(csnd6.csnd.CSOUNDINIT_NO_ATEXIT);
+		} catch (Throwable e) {
+			java.lang.System.err
+					.println("Csound6: csoundInitialize failed.\n"
 							+ e);
 			java.lang.System.err.println(e.toString());
 			//java.lang.System.exit(1);
@@ -152,6 +168,10 @@ public class CsoundAppActivity extends Activity implements
 		case R.id.itemAbout:
 			goToUrl("http://www.csounds.com/about");
 			return true;
+		case R.id.itemSettings:
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);			
+            return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -254,10 +274,17 @@ public class CsoundAppActivity extends Activity implements
 		} catch (NameNotFoundException e) {
 			e.printStackTrace();
 		}
+		PreferenceManager.setDefaultValues(this, R.xml.settings, false);
+		OPCODE6DIR = getBaseContext().getApplicationInfo().nativeLibraryDir;
+		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		OPCODE6DIR = sharedPreferences.getString("OPCODE6DIR", OPCODE6DIR);
+		SSDIR = packageInfo.applicationInfo.dataDir + "/samples";
+		SSDIR = sharedPreferences.getString("SSDIR", SSDIR);
+		SFDIR = sharedPreferences.getString("SFDIR", SFDIR);
+		SADIR = sharedPreferences.getString("SADIR", SADIR);
+		INCDIR = sharedPreferences.getString("INCDIR", INCDIR);
 		// Pre-load plugin opcodes, not only to ensure that Csound
 		// can load them, but for easier debugging if they fail to load.
-		OPCODE6DIR = getBaseContext().getApplicationInfo().nativeLibraryDir;
-		SSDIR = packageInfo.applicationInfo.dataDir + "/samples";
 		File file = new File(OPCODE6DIR);
 		File[] files = file.listFiles();
 		for (int i = 0; i < files.length; i++) {
@@ -365,7 +392,10 @@ public class CsoundAppActivity extends Activity implements
 					// Evidently, this has to be set before
 					// the very first Csound object is created.
 					csnd6.csndJNI.csoundSetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
+					csnd6.csndJNI.csoundSetGlobalEnv("SFDIR", SFDIR);
 					csnd6.csndJNI.csoundSetGlobalEnv("SSDIR", SSDIR);
+					csnd6.csndJNI.csoundSetGlobalEnv("SADIR", SADIR);
+					csnd6.csndJNI.csoundSetGlobalEnv("INCDIR", INCDIR);
 					csound = new CsoundObj();
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
