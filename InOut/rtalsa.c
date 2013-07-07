@@ -539,7 +539,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
              even though list[n].device_name is 64 chars long */
           strncpy(list[n].device_name, temp, 10);
           list[n].device_name[10] = '\0';
-          sprintf(tmp, "hw:%i,%i", card, num);
+          sprintf(tmp, "%shw:%i,%i", isOutput ? "dac:" : "adc:", card, num);
           strncpy(list[n].device_id, tmp, 16);
           list[n].max_nchnls = -1;
           list[n].isOutput = isOutput;
@@ -1724,8 +1724,7 @@ int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
             strncpy(list[numdevs].midi_module, "alsaseq", 15);
             strncpy(list[numdevs].device_name, snd_seq_port_info_get_name(pinfo), 63);
             strncpy(list[numdevs].interface_name, snd_seq_client_info_get_name(cinfo), 63);
-            sprintf(list[numdevs].device_id, "%shw:%d,%d", isOutput ? "dac:" :"adc:",
-                    snd_seq_client_info_get_client(cinfo),
+            sprintf(list[numdevs].device_id, "hw:%d,%d", snd_seq_client_info_get_client(cinfo),
                     snd_seq_port_info_get_port(pinfo));
           }
           numdevs++;
