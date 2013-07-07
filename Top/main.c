@@ -133,7 +133,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
         csound->LongJmp(csound, 1);
       }
       else dieu(csound, Str("no orchestra name"));
-      
+
     }
     else if (csound->use_only_orchfile == 0
              && (csound->scorename == NULL || csound->scorename[0] == (char) 0)
@@ -234,8 +234,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     csoundSetConfigurationVariable(csound,"rtmidi", s);
     }
 
-    
-    
+
+
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
     if (!csoundYield(csound))
@@ -374,10 +374,10 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     csound->modules_loaded = 1;
    }
     if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to
-                                     start with no orchestra */  
+                                     start with no orchestra */
         csoundCompileOrc(csound, "instr 1 \n endin \n");
      }
-   
+
     if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
