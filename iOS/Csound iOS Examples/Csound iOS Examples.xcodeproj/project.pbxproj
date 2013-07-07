@@ -133,7 +133,7 @@
 		F6B646F214D353A7005F786B /* AudioFileTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioFileTestViewController.h; sourceTree = "<group>"; };
 		F6B646F314D353A7005F786B /* AudioFileTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioFileTestViewController.m; sourceTree = "<group>"; };
 		F6B646F414D353A7005F786B /* AudioFileTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AudioFileTestViewController.xib; sourceTree = "<group>"; };
-		F6B646F714D353A7005F786B /* audiofiletest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = audiofiletest.csd; sourceTree = "<group>"; };
+		F6B646F714D353A7005F786B /* audiofiletest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = audiofiletest.csd; path = ../AudioInTest/audiofiletest.csd; sourceTree = "<group>"; };
 		F6B646F814D353A7005F786B /* audioInTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = audioInTest.csd; sourceTree = "<group>"; };
 		F6B646F914D353A7005F786B /* AudioInTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioInTestViewController.h; sourceTree = "<group>"; };
 		F6B646FA14D353A7005F786B /* AudioInTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioInTestViewController.m; sourceTree = "<group>"; };
@@ -377,6 +377,7 @@
 		F6B646F114D353A7005F786B /* AudioFileTest */ = {
 			isa = PBXGroup;
 			children = (
+				F6B646F714D353A7005F786B /* audiofiletest.csd */,
 				F6EE378A16AD67C50050820E /* testAudioFile.aif */,
 				F6B646F214D353A7005F786B /* AudioFileTestViewController.h */,
 				F6B646F314D353A7005F786B /* AudioFileTestViewController.m */,
@@ -388,7 +389,6 @@
 		F6B646F514D353A7005F786B /* AudioInTest */ = {
 			isa = PBXGroup;
 			children = (
-				F6B646F714D353A7005F786B /* audiofiletest.csd */,
 				F6B646F814D353A7005F786B /* audioInTest.csd */,
 				F6B646F914D353A7005F786B /* AudioInTestViewController.h */,
 				F6B646FA14D353A7005F786B /* AudioInTestViewController.m */,
@@ -890,7 +890,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Csound iOS Examples/Csound iOS Examples-Prefix.pch";
 				INFOPLIST_FILE = "Csound iOS Examples/Csound iOS Examples-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/csound-iOS/libs\"",
@@ -907,7 +907,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Csound iOS Examples/Csound iOS Examples-Prefix.pch";
 				INFOPLIST_FILE = "Csound iOS Examples/Csound iOS Examples-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/csound-iOS/libs\"",
