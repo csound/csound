@@ -7,9 +7,9 @@
 
 // package csnd;
 
-import csnd.Csound;
-import csnd.CsoundFile;
-import csnd.CsoundPerformanceThread;
+import csnd6.Csound;
+import csnd6.CsoundFile;
+import csnd6.CsoundPerformanceThread;
 
 import javax.swing.JFrame;
 
