@@ -62,7 +62,6 @@ typedef unsigned int uint32_t;
   }
 %}
 
-
 %apply char **STRING_ARRAY { char **argv };
 
 %include "exclusions.i"

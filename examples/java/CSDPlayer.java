@@ -10,7 +10,7 @@ import java.lang.System;
 import java.util.Properties;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
-import csnd.*;
+import csnd6.*;
 
 /**
  *
@@ -175,7 +175,7 @@ public class CSDPlayer extends javax.swing.JFrame {
 	            // perf.Play();
                     while (on) {
 			if (pause) // perf.Pause();
-			  csnd.csoundSleep(30);
+			  csnd6.csoundSleep(30);
                         else if (csp.PerformBuffer() != 0) on = false;
 			}
 		    // perf.Stop();
