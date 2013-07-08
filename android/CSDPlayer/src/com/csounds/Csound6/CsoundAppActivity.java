@@ -85,6 +85,7 @@ public class CsoundAppActivity extends Activity implements
 	WebView webview = null;
 
 	static {
+		int result = 0;
 		try {
 			java.lang.System.loadLibrary("gnustl_shared");
 		} catch (Throwable e){
@@ -104,6 +105,15 @@ public class CsoundAppActivity extends Activity implements
 		} catch (Throwable e) {
 			java.lang.System.err
 					.println("Csound6: csoundandroid native code library failed to load.\n"
+							+ e);
+			java.lang.System.err.println(e.toString());
+			//java.lang.System.exit(1);
+		}
+		try {
+			result = csnd6.csnd.csoundInitialize(csnd6.csnd.CSOUNDINIT_NO_ATEXIT);
+		} catch (Throwable e) {
+			java.lang.System.err
+					.println("Csound6: csoundInitialize failed.\n"
 							+ e);
 			java.lang.System.err.println(e.toString());
 			//java.lang.System.exit(1);
