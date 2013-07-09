@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [[ $1 == "clean" ]]
+then
+    echo "Cleaning up shared libraries..."
+    find . -name "*.so" -delete  
+fi
+
 cd pluginlibs
 
 for plugin in *
