@@ -717,7 +717,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     /* we have a relative path or just a filename */
     cwd = mmalloc(csound, 512);
     if (UNLIKELY(getcwd(cwd, 512)==NULL)) {
-      csoundDie(csound, "Current directory path name too long\n");
+      csoundDie(csound, Str("Current directory path name too long\n"));
     }
 
     if (lastIndex == NULL) {

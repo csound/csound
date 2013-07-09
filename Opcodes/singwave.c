@@ -361,7 +361,7 @@ int voicformset(CSOUND *csound, VOICF *p)
     {
       MYFLT temp, freq = *p->frequency;
       if ((freq * FL(22.0)) > CS_ESR)      {
-        csound->Warning(csound,"This note is too high!!\n");
+        csound->Warning(csound, Str("This note is too high!!\n"));
         freq = CS_ESR / FL(22.0);
       }
       p->basef = freq;
