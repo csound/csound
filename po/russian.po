@@ -104,6 +104,46 @@ msgstr ""
 msgid "Failed to find semantic information for instrument '%i'"
 msgstr ""
 
+#: Engine/cs_par_base.c:141 Engine/cs_par_base.c:156
+msgid "Invalid NULL Parameter barrier"
+msgstr ""
+
+#: Engine/cs_par_base.c:143
+msgid "Invalid Parameter thread_count must be > 0"
+msgstr ""
+
+#: Engine/cs_par_base.c:148
+msgid "Failed to allocate barrier"
+msgstr ""
+
+#: Engine/cs_par_base.c:280 Engine/cs_par_base.c:299 Engine/cs_par_base.c:432
+msgid "Invalid NULL Parameter set"
+msgstr ""
+
+#: Engine/cs_par_base.c:284
+msgid "Failed to allocate set"
+msgstr ""
+
+#: Engine/cs_par_base.c:301
+msgid "Invalid Parameter set not a set"
+msgstr ""
+
+#: Engine/cs_par_base.c:323 Engine/cs_par_base.c:434
+msgid "Invalid NULL Parameter data"
+msgstr ""
+
+#: Engine/cs_par_base.c:327
+msgid "Failed to allocate set element"
+msgstr ""
+
+#: Engine/cs_par_base.c:340
+msgid "Invalid NULL Parameter set_element"
+msgstr ""
+
+#: Engine/cs_par_base.c:436
+msgid "Invalid NULL Parameter out_set_element"
+msgstr ""
+
 #: Engine/cs_par_dispatch.c:64 Engine/cs_par_dispatch.c:77
 #, c-format
 msgid "Poorly specified global lock index: %i [max: %i]\n"
@@ -412,6 +452,10 @@ msgstr ""
 #: Engine/envvar.c:486
 #, c-format
 msgid "Creating search path cache for '%s':"
+msgstr ""
+
+#: Engine/envvar.c:720
+msgid "Current directory path name too long\n"
 msgstr ""
 
 #: Engine/envvar.c:994
@@ -1335,6 +1379,10 @@ msgstr ""
 msgid "insert_score_event(): insufficient p-fields\n"
 msgstr ""
 
+#: Engine/musmon.c:1335
+msgid "cannot rewind score: no score in memory \n"
+msgstr ""
+
 #: Engine/namedins.c:67 Engine/namedins.c:90
 #, c-format
 msgid "instr %s not found"
@@ -1358,7 +1406,20 @@ msgstr ""
 msgid "Unmatched #ifdef\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:207
+#: Engine/new_orc_parser.c:156
+msgid "Parsing failed due to invalid input!\n"
+msgstr ""
+
+#: Engine/new_orc_parser.c:160
+msgid "Parsing failed due to memory exhaustion!\n"
+msgstr ""
+
+#: Engine/new_orc_parser.c:163
+#, c-format
+msgid "Parsing failed due to %d syntax error%s!\n"
+msgstr ""
+
+#: Engine/new_orc_parser.c:208
 msgid "Stopping on parser failure\n"
 msgstr ""
 
@@ -2250,6 +2311,10 @@ msgstr ""
 msgid "Failed to load MIDI file."
 msgstr ""
 
+#: InOut/midifile.c:796
+msgid "Cannot rewind MIDI score\n"
+msgstr ""
+
 #: InOut/midirecv.c:132
 msgid " *** no callback for opening MIDI input"
 msgstr ""
@@ -2501,254 +2566,266 @@ msgstr ""
 msgid "    1 to %d: SCHED_RR with the specified priority (DANGEROUS)"
 msgstr ""
 
-#: InOut/rtalsa.c:344
+#: InOut/rtalsa.c:136
+msgid "csound: cannot set scheduling policy to SCHED_RR"
+msgstr ""
+
+#: InOut/rtalsa.c:139
+msgid "csound: setting scheduling policy to SCHED_RR\n"
+msgstr ""
+
+#: InOut/rtalsa.c:345
 #, c-format
 msgid " *** Cannot open device '%s' for audio output: %s"
 msgstr ""
 
-#: InOut/rtalsa.c:347
+#: InOut/rtalsa.c:348
 #, c-format
 msgid " *** Cannot open device '%s' for audio input: %s"
 msgstr ""
 
-#: InOut/rtalsa.c:408
+#: InOut/rtalsa.c:409
 #, c-format
 msgid "ALSA: -B %d not allowed on this device; using %d instead\n"
 msgstr ""
 
-#: InOut/rtalsa.c:431
+#: InOut/rtalsa.c:432
 #, c-format
 msgid "ALSA: -b %d not allowed on this device; using %d instead\n"
 msgstr ""
 
-#: InOut/rtalsa.c:444
+#: InOut/rtalsa.c:445
 #, c-format
 msgid "ALSA %s: total buffer size: %d, period size: %d\n"
 msgstr ""
 
-#: InOut/rtalsa.c:456
+#: InOut/rtalsa.c:457
 msgid "Error setting software parameters for real-time audio"
 msgstr ""
 
-#: InOut/rtalsa.c:463 InOut/rtpa.c:264 InOut/rtpa.c:277 util/scale.c:286
+#: InOut/rtalsa.c:464 InOut/rtpa.c:264 InOut/rtpa.c:277 util/scale.c:286
 #: util/xtrct.c:297
 msgid "Memory allocation failure"
 msgstr ""
 
-#: InOut/rtalsa.c:567
+#: InOut/rtalsa.c:568
 msgid " *** ALSA: must specify a device name, not a number (e.g. -odac:hw:0,0)"
 msgstr ""
 
-#: InOut/rtalsa.c:575
+#: InOut/rtalsa.c:576
 #, c-format
 msgid " *** ALSA: %s: memory allocation failure"
 msgstr ""
 
-#: InOut/rtalsa.c:662
+#: InOut/rtalsa.c:663
 msgid "Error reading data from audio input device"
 msgstr ""
 
-#: InOut/rtalsa.c:707
+#: InOut/rtalsa.c:708
 msgid "Error writing data to audio output device"
 msgstr ""
 
-#: InOut/rtalsa.c:748
+#: InOut/rtalsa.c:749
 msgid "ALSA MIDI: memory allocation failure"
 msgstr ""
 
-#: InOut/rtalsa.c:755
+#: InOut/rtalsa.c:756
 #, c-format
 msgid "ALSA: error opening MIDI input device: '%s'"
 msgstr ""
 
-#: InOut/rtalsa.c:759
+#: InOut/rtalsa.c:760
 #, c-format
 msgid "ALSA: opened MIDI input device '%s'\n"
 msgstr ""
 
-#: InOut/rtalsa.c:778
+#: InOut/rtalsa.c:779
 msgid "ALSA midi: Using all devices.\n"
 msgstr ""
 
-#: InOut/rtalsa.c:807
+#: InOut/rtalsa.c:808
 #, c-format
 msgid "ALSA midi: Error opening device: %s\n"
 msgstr ""
 
-#: InOut/rtalsa.c:829
+#: InOut/rtalsa.c:830
 msgid "ALSA midi: No devices found.\n"
 msgstr ""
 
-#: InOut/rtalsa.c:928
+#: InOut/rtalsa.c:929
 #, c-format
 msgid "ALSA: error opening MIDI output device '%s'"
 msgstr ""
 
-#: InOut/rtalsa.c:931
+#: InOut/rtalsa.c:932
 #, c-format
 msgid "ALSA: opened MIDI output device '%s'\n"
 msgstr ""
 
-#: InOut/rtalsa.c:971
+#: InOut/rtalsa.c:972
 msgid "-M stdin fcntl failed"
 msgstr ""
 
-#: InOut/rtalsa.c:979
+#: InOut/rtalsa.c:980
 #, c-format
 msgid "cannot open %s"
 msgstr ""
 
-#: InOut/rtalsa.c:990
+#: InOut/rtalsa.c:991
 msgid "MIDI receive: cannot get termios info."
 msgstr ""
 
-#: InOut/rtalsa.c:998
+#: InOut/rtalsa.c:999
 msgid "MIDI receive: cannot set input baud rate."
 msgstr ""
 
-#: InOut/rtalsa.c:1004
+#: InOut/rtalsa.c:1005
 msgid "MIDI receive: cannot set termios."
 msgstr ""
 
-#: InOut/rtalsa.c:1008
+#: InOut/rtalsa.c:1009
 #, c-format
 msgid "Opened MIDI input device file '%s'\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1048
+#: InOut/rtalsa.c:1049
 #, c-format
 msgid "sensMIDI: retval errno %d"
 msgstr ""
 
-#: InOut/rtalsa.c:1115
+#: InOut/rtalsa.c:1116
 #, c-format
 msgid "Error opening MIDI output device file '%s'"
 msgstr ""
 
-#: InOut/rtalsa.c:1119
+#: InOut/rtalsa.c:1120
 #, c-format
 msgid "Opened MIDI output device file '%s'\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1279
+#: InOut/rtalsa.c:1280
 #, c-format
 msgid "ALSASEQ: connection failed %s %s (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1283 InOut/rtalsa.c:1300
+#: InOut/rtalsa.c:1284 InOut/rtalsa.c:1301
 #, c-format
 msgid "ALSASEQ: connected %s %d:%d\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1296 InOut/rtalsa.c:1306
+#: InOut/rtalsa.c:1297 InOut/rtalsa.c:1307
 #, c-format
 msgid "ALSASEQ: connection failed %s %s, port %d (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1326
+#: InOut/rtalsa.c:1327
 msgid "ALSASEQ input: memory allocation failure"
 msgstr ""
 
-#: InOut/rtalsa.c:1333 InOut/rtalsa.c:1425
+#: InOut/rtalsa.c:1334 InOut/rtalsa.c:1426
 #, c-format
 msgid "ALSASEQ: error opening sequencer (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1338
+#: InOut/rtalsa.c:1339
 msgid "ALSASEQ: opened MIDI input sequencer\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1343 InOut/rtalsa.c:1435
+#: InOut/rtalsa.c:1344 InOut/rtalsa.c:1436
 #, c-format
 msgid "ALSASEQ: cannot set client name '%s' (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1355
+#: InOut/rtalsa.c:1356
 #, c-format
 msgid "ALSASEQ: cannot create input port (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1363
+#: InOut/rtalsa.c:1364
 #, c-format
 msgid "ALSASEQ: created input port '%s' %d:%d\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1367 InOut/rtalsa.c:1459
+#: InOut/rtalsa.c:1368 InOut/rtalsa.c:1460
 #, c-format
 msgid "ALSASEQ: cannot create midi event (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1418
+#: InOut/rtalsa.c:1419
 msgid "ALSASEQ output: memory allocation failure"
 msgstr ""
 
-#: InOut/rtalsa.c:1430
+#: InOut/rtalsa.c:1431
 msgid "ALSASEQ: opened MIDI output sequencer\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1447
+#: InOut/rtalsa.c:1448
 #, c-format
 msgid "ALSASEQ: cannot create output port (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1455
+#: InOut/rtalsa.c:1456
 #, c-format
 msgid "ALSASEQ: created output port '%s' %d:%d\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1513
+#: InOut/rtalsa.c:1514
 msgid "warning... could not create global var\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1518
+#: InOut/rtalsa.c:1519
 msgid "RT scheduler priority, alsa module"
 msgstr ""
 
-#: InOut/rtalsa.c:1526
+#: InOut/rtalsa.c:1527
 msgid "ALSASEQ client name (default: Csound)"
 msgstr ""
 
-#: InOut/rtalsa.c:1533
+#: InOut/rtalsa.c:1534
 msgid "ALSA real-time audio and MIDI module for Csound by Istvan Varga\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1546 InOut/rtalsa.c:1672
+#: InOut/rtalsa.c:1547 InOut/rtalsa.c:1673
 #, c-format
 msgid "cannot determine card number: %s"
 msgstr ""
 
-#: InOut/rtalsa.c:1550
+#: InOut/rtalsa.c:1551
 msgid "no sound card found"
 msgstr ""
 
-#: InOut/rtalsa.c:1561
+#: InOut/rtalsa.c:1562
 #, c-format
 msgid "cannot open control for card %d: %s"
 msgstr ""
 
-#: InOut/rtalsa.c:1568
+#: InOut/rtalsa.c:1569
 #, c-format
 msgid "cannot determine device number: %s"
 msgstr ""
 
-#: InOut/rtalsa.c:1610
+#: InOut/rtalsa.c:1611
 #, c-format
 msgid "cannot get rawmidi information %d:%d:%d: %s\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1792
+#: InOut/rtalsa.c:1758
+msgid "rtalsa: Wrong callback."
+msgstr ""
+
+#: InOut/rtalsa.c:1793
 msgid "rtaudio: ALSA module enabled\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1809
+#: InOut/rtalsa.c:1810
 msgid "rtmidi: ALSA Raw MIDI module enabled\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1821
+#: InOut/rtalsa.c:1822
 msgid "rtmidi: ALSASEQ module enabled\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1831
+#: InOut/rtalsa.c:1832
 msgid "rtmidi: devfile module enabled\n"
 msgstr ""
 
@@ -2760,6 +2837,11 @@ msgstr ""
 #: InOut/rtauhal.c:204
 #, c-format
 msgid "AuHAL Module: found %d output device(s):\n"
+msgstr ""
+
+#: InOut/rtauhal.c:210 InOut/rtauhal.c:217
+#, c-format
+msgid "%d: %s (%d channels) \n"
 msgstr ""
 
 #: InOut/rtauhal.c:239 InOut/rtauhal.c:252
@@ -2986,6 +3068,10 @@ msgid ""
 "mode\n"
 msgstr ""
 
+#: InOut/rtpa.c:564 InOut/rtpa.c:777
+msgid "closing device\n"
+msgstr ""
+
 #: InOut/rtpa.c:633
 #, c-format
 msgid "PortAudio: using ALSA device '%s'\n"
@@ -3171,6 +3257,10 @@ msgstr ""
 
 #: InOut/rtwinmm.c:765
 msgid "rtaudio: WinMM module enabled\n"
+msgstr ""
+
+#: InOut/rtwinmm.c:773
+msgid "rtmidi: WinMM module enabled\n"
 msgstr ""
 
 #: InOut/virtual_keyboard/virtual_keyboard.cpp:435
@@ -5221,7 +5311,7 @@ msgstr ""
 msgid "time %11.5f: "
 msgstr ""
 
-#: OOps/ugrw1.c:1072
+#: OOps/ugrw1.c:954 OOps/ugrw1.c:1072
 msgid "null string\n"
 msgstr ""
 
@@ -5764,44 +5854,49 @@ msgstr ""
 msgid "Source sft table %.2f not found."
 msgstr ""
 
-#: Opcodes/faustgen.cpp:248 Opcodes/faustgen.cpp:440
+#: Opcodes/faustgen.cpp:248 Opcodes/faustgen.cpp:441
 #, c-format
 msgid "Faust compilation problem: %s\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:347
+#: Opcodes/faustgen.cpp:332
+#, fuzzy, c-format
+msgid "could not find DSP %p for deletion"
+msgstr "%s: не выступлено с иничиативой"
+
+#: Opcodes/faustgen.cpp:348
 msgid "no factory available\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:352
+#: Opcodes/faustgen.cpp:353
 #, c-format
 msgid "factory not found %d\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:357 Opcodes/faustgen.cpp:444
+#: Opcodes/faustgen.cpp:358 Opcodes/faustgen.cpp:445
 msgid "Faust instantiation problem \n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:390 Opcodes/faustgen.cpp:477
+#: Opcodes/faustgen.cpp:391 Opcodes/faustgen.cpp:478
 #, fuzzy
 msgid "wrong number of input args\n"
 msgstr "неправильный число аргументов входного сигнала"
 
-#: Opcodes/faustgen.cpp:394 Opcodes/faustgen.cpp:482
+#: Opcodes/faustgen.cpp:395 Opcodes/faustgen.cpp:483
 #, fuzzy
 msgid "wrong number of output args\n"
 msgstr "неправильный число аргументов"
 
-#: Opcodes/faustgen.cpp:570
+#: Opcodes/faustgen.cpp:571
 msgid "no dsp instances available\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:576
+#: Opcodes/faustgen.cpp:577
 #, c-format
 msgid "dsp instance not found %d\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:581
+#: Opcodes/faustgen.cpp:582
 #, c-format
 msgid "dsp control %s not found\n"
 msgstr ""
@@ -5927,7 +6022,7 @@ msgstr "%s: не выступлено с иничиативой"
 msgid "Error deleting ftable %d"
 msgstr ""
 
-#: Opcodes/ftgen.c:137 Opcodes/signalflowgraph.cpp:1171
+#: Opcodes/ftgen.c:137 Opcodes/signalflowgraph.cpp:1175
 msgid "ftgen string arg not allowed"
 msgstr ""
 
@@ -7593,7 +7688,7 @@ msgstr "неправильный число аргументов"
 #: Opcodes/pvlock.c:536 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:684
 #: Opcodes/pvsbasic.c:1007 Opcodes/pvsbasic.c:1220 Opcodes/pvsbasic.c:1326
 #: Opcodes/pvsbasic.c:1547 Opcodes/pvsbasic.c:1752 Opcodes/pvsbasic.c:1918
-#: Opcodes/pvsgendy.c:43 Opcodes/pvslock.c:20
+#: Opcodes/pvsgendy.c:43 Opcodes/pvslock.c:20 Opcodes/signalflowgraph.cpp:627
 msgid "Unsafe to have same fsig as in and out"
 msgstr ""
 
@@ -7902,6 +7997,11 @@ msgstr ""
 msgid "SCANU cannot load %s"
 msgstr ""
 
+#: Opcodes/scansynx.c:328
+#, c-format
+msgid "%d: Looking for (%d) %s Found %.12s\n"
+msgstr ""
+
 #: Opcodes/scansynx.c:330
 msgid "Not a valid matrix"
 msgstr ""
@@ -8075,16 +8175,16 @@ msgstr ""
 msgid "Connected instances of outlet %s to instance 0x%xof inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:651
+#: Opcodes/signalflowgraph.cpp:655
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:944 Opcodes/signalflowgraph.cpp:985
+#: Opcodes/signalflowgraph.cpp:948 Opcodes/signalflowgraph.cpp:989
 #, c-format
 msgid "Connected outlet %s to inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1112 Opcodes/signalflowgraph.cpp:1196
+#: Opcodes/signalflowgraph.cpp:1116 Opcodes/signalflowgraph.cpp:1200
 msgid "ftgenonce error"
 msgstr ""
 
@@ -8104,6 +8204,10 @@ msgstr ""
 #: Opcodes/singwave.c:280
 #, c-format
 msgid "Found Formant: %s (number %i)\n"
+msgstr ""
+
+#: Opcodes/singwave.c:364
+msgid "This note is too high!!\n"
 msgstr ""
 
 #: Opcodes/singwave.c:399
@@ -8527,6 +8631,10 @@ msgstr ""
 
 #: Opcodes/ugens9.c:425
 msgid "PCONVOLVE: number of output channels not equal to input channels"
+msgstr ""
+
+#: Opcodes/ugens9.c:431
+msgid "IR srate != orch's srate"
 msgstr ""
 
 #: Opcodes/ugens9.c:463
