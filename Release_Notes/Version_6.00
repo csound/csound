@@ -1,3 +1,4 @@
+============================
 Release Notes for Csound6.00
 ============================
 
@@ -45,6 +46,7 @@ Multicore support is totally rewritten using a different algorithm for
 task-dispatch, which should use less memory and fewer locks.
 
 
+==================
 USER-LEVEL CHANGES
 ==================
 
@@ -167,6 +169,8 @@ Frontends
 Bugs fixed:
        Too many to record!
 
+
+===========
 API CHANGES
 ===========
 
@@ -218,7 +222,22 @@ API CHANGES
         and string channels 3) mutexes protecting compilation, score
         events and table access 
 
+MOBILE
 
+Csound for iOS
+
+        Transitioned SDK to use Automatic Resource Counting (ARC).  All
+        projects using Csound 6 for iOS will require using ARC. The Csound for
+        iOS Examples project shows examples of using ARC compliant code with
+        Csound.  Users with existing Csound 5-based iOS project can use the
+        "Edit->Refactor->Convert to Objective-C ARC..." wizard to aid in
+        updating their projects to use ARC. For more information about ARC,
+        please consult the "Transitioning to ARC Release Notes" on Apple's
+        Developer website at
+        https://developer.apple.com/library/ios/#releasenotes/ObjectiveC/RN-TransitioningToARC/
+
+
+====================
 SYSTEM LEVEL CHANGES
 ====================
 
