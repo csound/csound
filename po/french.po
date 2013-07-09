@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2013-06-09 09:35+0100\n"
+"PO-Revision-Date: 2013-07-09 11:34+0100\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "Language: \n"
@@ -3350,9 +3350,8 @@ msgid "rtaudio: WinMM module enabled\n"
 msgstr "rtaudio : module WinMM activé\n"
 
 #: InOut/rtwinmm.c:773
-#, fuzzy
 msgid "rtmidi: WinMM module enabled\n"
-msgstr "rtaudio : module WinMM activé\n"
+msgstr "rtmidi : module WinMM activé\n"
 
 #: InOut/virtual_keyboard/virtual_keyboard.cpp:435
 msgid "virtual_keyboard.cpp: error allocating FLTK flags"
@@ -10275,10 +10274,8 @@ msgid "unknown flag -%c"
 msgstr "option -%c inconnue"
 
 #: Top/argdecode.c:1235
-#, fuzzy
 msgid "error: orchestra and score name not allowed in .csound6rc"
-msgstr ""
-"erreur : les noms d'orchestre et de partition sont interdits dans .csoundrc"
+msgstr "erreur : les noms d'orchestre et de partition sont interdits dans .csound6rc"
 
 #: Top/argdecode.c:1376
 msgid "stdout not supported on this platform"
@@ -10608,24 +10605,22 @@ msgstr ""
 "avant de redémarrer\n"
 
 #: Top/main.c:92
-#, fuzzy, c-format
+#, c-format
 msgid "WARNING: cannot open csound6rc file %s\n"
-msgstr "AVERTISSEMENT : impossible d'ouvrir le fichier csoundrc %s\n"
+msgstr "AVERTISSEMENT : impossible d'ouvrir le fichier csound6rc %s\n"
 
 #: Top/main.c:95
-#, fuzzy, c-format
+#, c-format
 msgid "Reading options from $CSOUND6RC: %s \n"
-msgstr "Lecture des options depuis $CSOUNDRC : %s \n"
+msgstr "Lecture des options depuis $CSOUND6RC : %s \n"
 
 #: Top/main.c:104
-#, fuzzy
 msgid "Reading options from $HOME/.csound6rc\n"
-msgstr "Lecture des options depuis $HOME/.csoundrc\n"
+msgstr "Lecture des options depuis $HOME/.csound6rc\n"
 
 #: Top/main.c:119
-#, fuzzy
 msgid "Reading options from local directory .csound6rc \n"
-msgstr "Lecture des options depuis le .csoundrc du répertoire local\n"
+msgstr "Lecture des options depuis le .csound6rc du répertoire local\n"
 
 #: Top/main.c:135
 msgid "no orchestra name"
