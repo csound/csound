@@ -561,7 +561,7 @@ static void rtclose_(CSOUND *csound)
     pabs = (PA_BLOCKING_STREAM*) csound->QueryGlobalVariable(csound,
                                                              "_rtpaGlobals");
 
-    csound->Message(csound, "closing device\n");
+    csound->Message(csound, Str("closing device\n"));
     if (pabs == NULL)
       return;
 
@@ -774,7 +774,7 @@ static void rtplay_blocking(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 static void rtclose_blocking(CSOUND *csound)
 {
     DEVPARAMS *dev;
-    csound->Message(csound, "closing device\n");
+    csound->Message(csound, Str("closing device\n"));
     dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
     if (dev != NULL) {
       *(csound->GetRtRecordUserData(csound)) = NULL;

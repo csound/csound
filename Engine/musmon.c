@@ -1332,7 +1332,7 @@ void musmon_rewind_score(CSOUND *csound)
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
     if(csound->scstr)
       corfile_rewind(csound->scstr);
-    else csound->Warning(csound, "cannot rewind score: no score in memory \n");
+    else csound->Warning(csound, Str("cannot rewind score: no score in memory \n"));
 }
 
 /**

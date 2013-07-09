@@ -623,20 +623,24 @@ struct Inletf : public OpcodeBase<Inletf> {
             if (!fsignalInitialized) {
               int32 N = sourceOutlet->fsignal->N;
               if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
-                csound->Warning(csound, "Unsafe to have same fsig as in and out");
+                csound->Warning(csound,
+                                Str("Unsafe to have same fsig as in and out"));
               }
               fsignal->sliding = 0;
               if (sourceOutlet->fsignal->sliding) {
                 if (fsignal->frame.auxp == NULL ||
-                    fsignal->frame.size < sizeof(MYFLT) * opds.insdshead->ksmps * (N + 2))
-                  csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * opds.insdshead->ksmps,
+                    fsignal->frame.size <
+                    sizeof(MYFLT) * opds.insdshead->ksmps * (N + 2))
+                  csound->AuxAlloc(csound,
+                                   (N + 2) * sizeof(MYFLT) * opds.insdshead->ksmps,
                                    &fsignal->frame);
                 fsignal->NB = sourceOutlet->fsignal->NB;
                 fsignal->sliding = 1;
               } else
                 if (fsignal->frame.auxp == NULL ||
                     fsignal->frame.size < sizeof(float) * (N + 2)) {
-                  csound->AuxAlloc(csound, (N + 2) * sizeof(float), &fsignal->frame);
+                  csound->AuxAlloc(csound,
+                                   (N + 2) * sizeof(float), &fsignal->frame);
                 }
               fsignal->N = N;
               fsignal->overlap = sourceOutlet->fsignal->overlap;

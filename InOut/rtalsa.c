@@ -132,10 +132,11 @@ int set_scheduler_priority(CSOUND *csound, int priority)
     if (priority > 0) {
       p.sched_priority = priority;
       if (sched_setscheduler(0, SCHED_RR, &p) != 0) {
-        csound->Message(csound,"csound: cannot set scheduling policy to SCHED_RR");
+        csound->Message(csound,
+                        Str("csound: cannot set scheduling policy to SCHED_RR"));
       }
       else   csound->Message(csound,
-                             "csound: setting scheduling policy to SCHED_RR\n");
+                        Str("csound: setting scheduling policy to SCHED_RR\n"));
     }
     else {
       /* nice requested */
@@ -1754,7 +1755,7 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
     } else if (strncmp(s, "devfile", 8) == 0) {
 
     } else {
-      csound->ErrorMsg(csound, "rtalsa: Wrong callback.");
+      csound->ErrorMsg(csound, Str("rtalsa: Wrong callback."));
     }
     return count;
 }
