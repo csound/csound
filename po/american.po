@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2013-06-09 09:32+0100\n"
+"PO-Revision-Date: 2013-07-09 11:30+0100\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (USA)\n"
 "Language: \n"
@@ -113,18 +113,16 @@ msgid "Invalid Parameter thread_count must be > 0"
 msgstr ""
 
 #: Engine/cs_par_base.c:148
-#, fuzzy
 msgid "Failed to allocate barrier"
-msgstr "couldn't allocate memory"
+msgstr ""
 
 #: Engine/cs_par_base.c:280 Engine/cs_par_base.c:299 Engine/cs_par_base.c:432
 msgid "Invalid NULL Parameter set"
 msgstr ""
 
 #: Engine/cs_par_base.c:284
-#, fuzzy
 msgid "Failed to allocate set"
-msgstr "couldn't allocate memory"
+msgstr ""
 
 #: Engine/cs_par_base.c:301
 msgid "Invalid Parameter set not a set"
@@ -2316,9 +2314,8 @@ msgid "Failed to load MIDI file."
 msgstr ""
 
 #: InOut/midifile.c:796
-#, fuzzy
 msgid "Cannot rewind MIDI score\n"
-msgstr "can't reopen cscore.out"
+msgstr "Can't rewind MIDI score\n"
 
 #: InOut/midirecv.c:132
 msgid " *** no callback for opening MIDI input"
@@ -2791,28 +2788,28 @@ msgid "ALSA real-time audio and MIDI module for Csound by Istvan Varga\n"
 msgstr ""
 
 #: InOut/rtalsa.c:1547 InOut/rtalsa.c:1673
-#, fuzzy, c-format
+#, c-format
 msgid "cannot determine card number: %s"
-msgstr "can't determine current directory"
+msgstr "can't determine card number: %s"
 
 #: InOut/rtalsa.c:1551
 msgid "no sound card found"
 msgstr ""
 
 #: InOut/rtalsa.c:1562
-#, fuzzy, c-format
+#, c-format
 msgid "cannot open control for card %d: %s"
-msgstr "can't open scorefile %s"
+msgstr "can't open control for card %d: %s"
 
 #: InOut/rtalsa.c:1569
-#, fuzzy, c-format
+#, c-format
 msgid "cannot determine device number: %s"
-msgstr "can't redefine %s"
+msgstr "can't determine device number: %s"
 
 #: InOut/rtalsa.c:1611
 #, c-format
 msgid "cannot get rawmidi information %d:%d:%d: %s\n"
-msgstr ""
+msgstr "can't get rawmidi information %d:%d:%d: %s\n"
 
 #: InOut/rtalsa.c:1758
 msgid "rtalsa: Wrong callback."
@@ -5834,27 +5831,26 @@ msgid "Faust compilation problem: %s\n"
 msgstr ""
 
 #: Opcodes/faustgen.cpp:332
-#, fuzzy, c-format
+#, c-format
 msgid "could not find DSP %p for deletion"
-msgstr "couldn't find layout table no.0"
+msgstr "couldn't find DSP %p for deletion"
 
 #: Opcodes/faustgen.cpp:348
 msgid "no factory available\n"
 msgstr ""
 
 #: Opcodes/faustgen.cpp:353
-#, fuzzy, c-format
+#, c-format
 msgid "factory not found %d\n"
-msgstr "instr %s not found"
+msgstr ""
 
 #: Opcodes/faustgen.cpp:358 Opcodes/faustgen.cpp:445
 msgid "Faust instantiation problem \n"
 msgstr ""
 
 #: Opcodes/faustgen.cpp:391 Opcodes/faustgen.cpp:478
-#, fuzzy
 msgid "wrong number of input args\n"
-msgstr "The number of input arguments isn't valid."
+msgstr ""
 
 #: Opcodes/faustgen.cpp:395 Opcodes/faustgen.cpp:483
 msgid "wrong number of output args\n"
@@ -5865,14 +5861,14 @@ msgid "no dsp instances available\n"
 msgstr ""
 
 #: Opcodes/faustgen.cpp:577
-#, fuzzy, c-format
+#, c-format
 msgid "dsp instance not found %d\n"
-msgstr "instr %s not found"
+msgstr ""
 
 #: Opcodes/faustgen.cpp:582
-#, fuzzy, c-format
+#, c-format
 msgid "dsp control %s not found\n"
-msgstr "instr %s not found"
+msgstr ""
 
 #: Opcodes/filter.c:187 Opcodes/filter.c:225
 msgid "Filter order out of bounds: (1 <= nb < 51, 0 <= na <= 50)"
@@ -8131,9 +8127,9 @@ msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr ""
 
 #: Opcodes/signalflowgraph.cpp:948 Opcodes/signalflowgraph.cpp:989
-#, fuzzy, c-format
+#, c-format
 msgid "Connected outlet %s to inlet %s.\n"
-msgstr "Can't open output hetro file %s\n"
+msgstr ""
 
 #: Opcodes/signalflowgraph.cpp:1116 Opcodes/signalflowgraph.cpp:1200
 msgid "ftgenonce error"
@@ -10120,9 +10116,9 @@ msgid ""
 msgstr ""
 
 #: Top/main.c:92
-#, fuzzy, c-format
+#, c-format
 msgid "WARNING: cannot open csound6rc file %s\n"
-msgstr "WARNING: can't open csoundrc file %s\n"
+msgstr "WARNING: can't open csound6rc file %s\n"
 
 #: Top/main.c:95
 #, c-format
