@@ -74,7 +74,7 @@ int aline(CSOUND *csound, LINE *p)
 int expset(CSOUND *csound, EXPON *p)
 {
     double       dur, a, b;
-    printf("kr = %f , 1/kr = %f \n",CS_EKR, CS_ONEDKR);
+    //printf("kr = %f , 1/kr = %f \n",CS_EKR, CS_ONEDKR);
     if (LIKELY((dur = *p->idur) > FL(0.0) )) {
       a = *p->ia;
       b = *p->ib;

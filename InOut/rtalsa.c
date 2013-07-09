@@ -453,14 +453,14 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
                                            dev->period_smps) < 0
         /* || snd_pcm_sw_params_set_xfer_align(dev->handle, sw_params, 1) < 0 */
         || snd_pcm_sw_params(dev->handle, sw_params) < 0) {
-      sprintf(msg, "Error setting software parameters for real-time audio");
+      sprintf(msg, Str("Error setting software parameters for real-time audio"));
       goto err_return_msg;
     }
     /* allocate memory for sample conversion buffer */
     n = (dev->format == AE_SHORT ? 2 : 4) * dev->nchns * alloc_smps;
     dev->buf = (void*) malloc((size_t) n);
     if (dev->buf == NULL) {
-      sprintf(msg, "Memory allocation failure");
+      sprintf(msg, Str("Memory allocation failure"));
       goto err_return_msg;
     }
     memset(dev->buf, 0, (size_t) n);
@@ -1542,11 +1542,12 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
 
     card = -1;
     if ((err = snd_card_next(&card)) < 0) {
-      error("cannot determine card number: %s", snd_strerror(err));
+      csound->ErrorMsg(csound,
+                      Str("cannot determine card number: %s"), snd_strerror(err));
       return 0;
     }
     if (card < 0) {
-      error("no sound card found");
+      csound->ErrorMsg(csound,Str("no sound card found"));
       return 0;
     }
     do {
@@ -1557,13 +1558,15 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
 
       sprintf(name, "hw:%d", card);
       if ((err = snd_ctl_open(&ctl, name, 0)) < 0) {
-        error("cannot open control for card %d: %s", card, snd_strerror(err));
+        csound->ErrorMsg(csound, Str("cannot open control for card %d: %s"),
+                         card, snd_strerror(err));
         return 0;
       }
       device = -1;
       for (;;) {
         if ((err = snd_ctl_rawmidi_next_device(ctl, &device)) < 0) {
-          error("cannot determine device number: %s", snd_strerror(err));
+          csound->ErrorMsg(csound, Str("cannot determine device number: %s"),
+                           snd_strerror(err));
           break;
         }
         if (device < 0)
@@ -1594,7 +1597,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
 
         subs = subs_in > subs_out ? subs_in : subs_out;
         if (!subs)
-          return;
+          return 0;
 
         for (sub = 0; sub < subs; ++sub) {
           snd_rawmidi_info_set_stream(info, sub < subs_in ?
@@ -1603,9 +1606,10 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
           snd_rawmidi_info_set_subdevice(info, sub);
           err = snd_ctl_rawmidi_info(ctl, info);
           if (err < 0) {
-            error("cannot get rawmidi information %d:%d:%d: %s\n",
-                  card, device, sub, snd_strerror(err));
-            return;
+            csound->Warning(csound,
+                            Str("cannot get rawmidi information %d:%d:%d: %s\n"),
+                            card, device, sub, snd_strerror(err));
+            return 0;
           }
           name = snd_rawmidi_info_get_name(info);
           sub_name = snd_rawmidi_info_get_subdevice_name(info);
@@ -1664,7 +1668,8 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
       }
       snd_ctl_close(ctl);
       if ((err = snd_card_next(&card)) < 0) {
-        error("cannot determine card number: %s", snd_strerror(err));
+        csound->Warning(csound,
+                        Str("cannot determine card number: %s"), snd_strerror(err));
         break;
       }
     } while (card >= 0);

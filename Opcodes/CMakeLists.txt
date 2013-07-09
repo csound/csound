@@ -30,7 +30,7 @@ set(Python_ADDITIONAL_VERSIONS 2.7)
 find_package(PythonLibs)
 
 #find_library(LUA_LIBRARIES luajit)
-find_package(Lua51)
+find_package(Lua52)
 check_include_file(wiiuse.h WIIUSE_H)
 find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
