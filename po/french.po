@@ -107,54 +107,44 @@ msgid "Failed to find semantic information for instrument '%i'"
 msgstr "Impossible de trouver l'information sémantique pour l'instrument '%i'"
 
 #: Engine/cs_par_base.c:141 Engine/cs_par_base.c:156
-#, fuzzy
 msgid "Invalid NULL Parameter barrier"
-msgstr "Paramètre name NULL non valide"
+msgstr "Paramètre barrier NULL non valide"
 
 #: Engine/cs_par_base.c:143
-#, fuzzy
 msgid "Invalid Parameter thread_count must be > 0"
-msgstr "Nombre des paramètres non valide, doit être supérieur à 0"
+msgstr "Paramètre non valide, thread_count doit être > 0"
 
 #: Engine/cs_par_base.c:148
-#, fuzzy
 msgid "Failed to allocate barrier"
-msgstr "L'allocation de dag a échoué"
+msgstr "L'allocation de barrier a échoué"
 
 #: Engine/cs_par_base.c:280 Engine/cs_par_base.c:299 Engine/cs_par_base.c:432
-#, fuzzy
 msgid "Invalid NULL Parameter set"
-msgstr "Paramètre instr NULL non valide"
+msgstr "Paramètre set NULL non valide"
 
 #: Engine/cs_par_base.c:284
-#, fuzzy
 msgid "Failed to allocate set"
-msgstr "L'allocation de dag a échoué"
+msgstr "L'allocation de set a échoué"
 
 #: Engine/cs_par_base.c:301
-#, fuzzy
 msgid "Invalid Parameter set not a set"
-msgstr "Paramètre name NULL non valide"
+msgstr "Paramètre non valide, set n'est pas un ensemble"
 
 #: Engine/cs_par_base.c:323 Engine/cs_par_base.c:434
-#, fuzzy
 msgid "Invalid NULL Parameter data"
-msgstr "Paramètre dag NULL non valide"
+msgstr "Paramètre data NULL non valide"
 
 #: Engine/cs_par_base.c:327
-#, fuzzy
 msgid "Failed to allocate set element"
-msgstr "Echec de l'allocation d'une nouvelle entrée d'opcode."
+msgstr "Echec de l'allocation d'un élément de set."
 
 #: Engine/cs_par_base.c:340
-#, fuzzy
 msgid "Invalid NULL Parameter set_element"
-msgstr "Paramètre entry NULL non valide"
+msgstr "Paramètre set_element NULL non valide"
 
 #: Engine/cs_par_base.c:436
-#, fuzzy
 msgid "Invalid NULL Parameter out_set_element"
-msgstr "Paramètre update_hdl NULL non valide"
+msgstr "Paramètre out_set_element NULL non valide"
 
 #: Engine/cs_par_dispatch.c:64 Engine/cs_par_dispatch.c:77
 #, c-format
@@ -490,7 +480,7 @@ msgstr "Création du cache de chemin de recherche pour '%s' :"
 
 #: Engine/envvar.c:720
 msgid "Current directory path name too long\n"
-msgstr ""
+msgstr "Le nom du chemin du répertoire courant est trop long\n"
 
 #: Engine/envvar.c:994
 #, c-format
@@ -1439,7 +1429,7 @@ msgstr "insert_score_event() : pas assez de p-champs\n"
 
 #: Engine/musmon.c:1335
 msgid "cannot rewind score: no score in memory \n"
-msgstr ""
+msgstr "impossible de reprendre la partition : pas de partition en mémoire\n"
 
 #: Engine/namedins.c:67 Engine/namedins.c:90
 #, c-format
@@ -1466,16 +1456,16 @@ msgstr "#ifdef non apparié\n"
 
 #: Engine/new_orc_parser.c:156
 msgid "Parsing failed due to invalid input!\n"
-msgstr ""
+msgstr "Echec de l'analyse à cause d'une entrée non valide !\n"
 
 #: Engine/new_orc_parser.c:160
 msgid "Parsing failed due to memory exhaustion!\n"
-msgstr ""
+msgstr "Echec de l'analyse par manque de méloire !\n"
 
 #: Engine/new_orc_parser.c:163
 #, c-format
 msgid "Parsing failed due to %d syntax error%s!\n"
-msgstr ""
+msgstr "Echec de l'analyse, %d erreur de syntaxe %s !\n"
 
 #: Engine/new_orc_parser.c:208
 msgid "Stopping on parser failure\n"
@@ -2387,9 +2377,8 @@ msgid "Failed to load MIDI file."
 msgstr "Le chargement du fichier MIDI a échoué."
 
 #: InOut/midifile.c:796
-#, fuzzy
 msgid "Cannot rewind MIDI score\n"
-msgstr "impossible de réouvrir cscore.out"
+msgstr "Impossible de reprendre la partition MIDI\n"
 
 #: InOut/midirecv.c:132
 msgid " *** no callback for opening MIDI input"
@@ -2648,11 +2637,11 @@ msgstr "    1 to %d : SCHED_RR avec la priorité spécifiée (DANGEREUX)"
 
 #: InOut/rtalsa.c:136
 msgid "csound: cannot set scheduling policy to SCHED_RR"
-msgstr ""
+msgstr "csound : impossible de fixer la politique de partage à SCHED_RR"
 
 #: InOut/rtalsa.c:139
 msgid "csound: setting scheduling policy to SCHED_RR\n"
-msgstr ""
+msgstr "csound : politique de partage fixée à SCHED_RR\n"
 
 #: InOut/rtalsa.c:345
 #, c-format
@@ -2682,7 +2671,7 @@ msgstr "ALSA %s : taille de tampon totale : %d, période : %d\n"
 
 #: InOut/rtalsa.c:457
 msgid "Error setting software parameters for real-time audio"
-msgstr ""
+msgstr "Erreur de réglage des paramètres logiciels pour l'audio en temps réel"
 
 #: InOut/rtalsa.c:464 InOut/rtpa.c:264 InOut/rtpa.c:277 util/scale.c:286
 #: util/xtrct.c:297
@@ -2870,42 +2859,40 @@ msgstr ""
 "Modules ALSA audio en temps réel et MIDI pour Csound par Istvan Varga\n"
 
 #: InOut/rtalsa.c:1547 InOut/rtalsa.c:1673
-#, fuzzy, c-format
+#, c-format
 msgid "cannot determine card number: %s"
-msgstr "impossible de déterminer le répertoire courant"
+msgstr "Impossible de déterminer le numéro de carte : %s"
 
 #: InOut/rtalsa.c:1551
-#, fuzzy
 msgid "no sound card found"
-msgstr "-n\tpas de son vers le disque"
+msgstr "aucune carte son"
 
 #: InOut/rtalsa.c:1562
-#, fuzzy, c-format
+#, c-format
 msgid "cannot open control for card %d: %s"
-msgstr "impossible d'ouvrir le fichier de partition %s"
+msgstr "impossible d'ouvrir un contrôle pour la carte %d: %s"
 
 #: InOut/rtalsa.c:1569
-#, fuzzy, c-format
+#, c-format
 msgid "cannot determine device number: %s"
-msgstr "impossible de redéfinir %s"
+msgstr "impossible de déterminer le numéro de périphérique : %s"
 
 #: InOut/rtalsa.c:1611
 #, c-format
 msgid "cannot get rawmidi information %d:%d:%d: %s\n"
-msgstr ""
+msgstr "impossible de lire l'information rawmidi %d:%d:%d %s\n"
 
 #: InOut/rtalsa.c:1758
 msgid "rtalsa: Wrong callback."
-msgstr ""
+msgstr "rtalsa : mauvaise fonction de rappel"
 
 #: InOut/rtalsa.c:1793
 msgid "rtaudio: ALSA module enabled\n"
 msgstr "rtaudio : module ALSA activé\n"
 
 #: InOut/rtalsa.c:1810
-#, fuzzy
 msgid "rtmidi: ALSA Raw MIDI module enabled\n"
-msgstr "rtmiDi : module ALSA activé\n"
+msgstr "rtmiDi : module ALSA Raw MIDI activé\n"
 
 #: InOut/rtalsa.c:1822
 msgid "rtmidi: ALSASEQ module enabled\n"
@@ -2926,9 +2913,9 @@ msgid "AuHAL Module: found %d output device(s):\n"
 msgstr "Module AuHAL : %d périphérique(s) de sortie trouvé(s) :\n"
 
 #: InOut/rtauhal.c:210 InOut/rtauhal.c:217
-#, fuzzy, c-format
+#, c-format
 msgid "%d: %s (%d channels) \n"
-msgstr "(%d canaux)\n"
+msgstr "%d: %s (%d canaux)\n"
 
 #: InOut/rtauhal.c:239 InOut/rtauhal.c:252
 #, c-format
@@ -3157,9 +3144,8 @@ msgstr ""
 "mode full-duplex\n"
 
 #: InOut/rtpa.c:564 InOut/rtpa.c:777
-#, fuzzy
 msgid "closing device\n"
-msgstr "erreur en fermant le périphérique d'entrée"
+msgstr "fermeture du périphérique\n"
 
 #: InOut/rtpa.c:633
 #, c-format
@@ -6073,51 +6059,47 @@ msgstr "La table %.2f de la source sft n'a pas été trouvée"
 #: Opcodes/faustgen.cpp:248 Opcodes/faustgen.cpp:441
 #, c-format
 msgid "Faust compilation problem: %s\n"
-msgstr ""
+msgstr "Problème de compilation de Faust : %s\n"
 
 #: Opcodes/faustgen.cpp:332
-#, fuzzy, c-format
+#, c-format
 msgid "could not find DSP %p for deletion"
-msgstr "%s : impossible de trouver l'id de l'opcode"
+msgstr "impossible de trouver le DSP %p pour suppression"
 
 #: Opcodes/faustgen.cpp:348
-#, fuzzy
 msgid "no factory available\n"
-msgstr "Aucun port n'est disponible"
+msgstr "aucune fabrique n'est disponible\n"
 
 #: Opcodes/faustgen.cpp:353
-#, fuzzy, c-format
+#, c-format
 msgid "factory not found %d\n"
-msgstr "table de fonction non trouvée\n"
+msgstr "fabrique non trouvée %d\n"
 
 #: Opcodes/faustgen.cpp:358 Opcodes/faustgen.cpp:445
 msgid "Faust instantiation problem \n"
-msgstr ""
+msgstr "Problème d'instanciation de Faust\n"
 
 #: Opcodes/faustgen.cpp:391 Opcodes/faustgen.cpp:478
-#, fuzzy
 msgid "wrong number of input args\n"
-msgstr "Nombre incorrect d'arguments en entrée"
+msgstr "nombre incorrect d'arguments en entrée\n"
 
 #: Opcodes/faustgen.cpp:395 Opcodes/faustgen.cpp:483
-#, fuzzy
 msgid "wrong number of output args\n"
-msgstr "nombre d'arguments incorrect"
+msgstr "nombre incorrect d'arguments en sortie\n"
 
 #: Opcodes/faustgen.cpp:571
-#, fuzzy
 msgid "no dsp instances available\n"
-msgstr "Aucun périphérique %s n'est disponible\n"
+msgstr "aucune iinstance de DSP n'est disponible\n"
 
 #: Opcodes/faustgen.cpp:577
-#, fuzzy, c-format
+#, c-format
 msgid "dsp instance not found %d\n"
-msgstr "une instance de l'instrument %d a été enlevée\n"
+msgstr "instance de DSP introuvable %d\n"
 
 #: Opcodes/faustgen.cpp:582
-#, fuzzy, c-format
+#, c-format
 msgid "dsp control %s not found\n"
-msgstr "instr %s non trouvé"
+msgstr "contrôle de DSP %s introuvable\n"
 
 #: Opcodes/filter.c:187 Opcodes/filter.c:225
 msgid "Filter order out of bounds: (1 <= nb < 51, 0 <= na <= 50)"
@@ -8286,7 +8268,7 @@ msgstr "SCANU ne peut pas charger %s"
 #: Opcodes/scansynx.c:328
 #, c-format
 msgid "%d: Looking for (%d) %s Found %.12s\n"
-msgstr ""
+msgstr "%d : (%d) %s recherché, %.12s trouvé\n"
 
 #: Opcodes/scansynx.c:330
 msgid "Not a valid matrix"
@@ -8465,26 +8447,26 @@ msgstr "powershape : la ftable ifullscale doit être entirèrement positive"
 #: Opcodes/signalflowgraph.cpp:332 Opcodes/signalflowgraph.cpp:593
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s.\n"
-msgstr ""
+msgstr "Instances de l'outlet %s connectées à l'instance 0x%x de l'inlet %s.\n"
 
 #: Opcodes/signalflowgraph.cpp:408
-#, fuzzy, c-format
+#, c-format
 msgid "Created instance 0x%x of %d instances of outlet %s\n"
-msgstr "une instance de l'instrument %s a été enlevée\n"
+msgstr "Création de l'instance 0x%x des %d instances de l'outlet %s\n"
 
 #: Opcodes/signalflowgraph.cpp:468
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%xof inlet %s.\n"
-msgstr ""
+msgstr "Instances de l'outlet %s connectées à l'instance 0x%x de l'inlet %s.\n"
 
 #: Opcodes/signalflowgraph.cpp:655
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr "inletf : le format de signal doit être amp-phase ou amp-fréq."
 
 #: Opcodes/signalflowgraph.cpp:948 Opcodes/signalflowgraph.cpp:989
-#, fuzzy, c-format
+#, c-format
 msgid "Connected outlet %s to inlet %s.\n"
-msgstr "Impossible d'ouvrir le fichier hetro de sortie %s\n"
+msgstr "Outlet %s connectée à l'inlet %s.\n"
 
 #: Opcodes/signalflowgraph.cpp:1116 Opcodes/signalflowgraph.cpp:1200
 msgid "ftgenonce error"
@@ -8510,7 +8492,7 @@ msgstr "Le formant %s (numéro %i) a été trouvé\n"
 
 #: Opcodes/singwave.c:364
 msgid "This note is too high!!\n"
-msgstr ""
+msgstr "Cette note est trop haute !!\n"
 
 #: Opcodes/singwave.c:399
 #, c-format
@@ -8952,9 +8934,8 @@ msgstr ""
 "d'entrée"
 
 #: Opcodes/ugens9.c:431
-#, fuzzy
 msgid "IR srate != orch's srate"
-msgstr "taux d'échantillonnage du fichier != sr de l'orch"
+msgstr "taux d'échantillonnage IR != sr de l'orch"
 
 #: Opcodes/ugens9.c:463
 msgid "PCONVOLVE: less sound than expected!"
@@ -10377,9 +10358,9 @@ msgid "Error opening plugin directory '%s': %s"
 msgstr "Erreur en ouvrant le répertoire de plugin '%s' : %s"
 
 #: Top/csmodule.c:420
-#, fuzzy, c-format
+#, c-format
 msgid "Error opening plugin directory: %s"
-msgstr "Erreur en ouvrant le répertoire de plugin '%s' : %s"
+msgstr "Erreur en ouvrant le répertoire de plugin : %s"
 
 #: Top/csmodule.c:455
 #, c-format
@@ -10590,7 +10571,7 @@ msgstr "Aucune entrée de fréq CPU valide n'a été trouvée dans /proc/cpuinfo
 
 #: Top/csound.c:3747
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
-msgstr ""
+msgstr "csoundDestroyMessageBuffer : tampon de message non alloué."
 
 #: Top/csound.c:3778
 msgid "csound: internal error: message buffer overflow\n"
