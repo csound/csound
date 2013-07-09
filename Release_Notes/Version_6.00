@@ -224,7 +224,7 @@ API CHANGES
 
 MOBILE
 
-Csound for iOS
+Csound for iOS:
 
         Transitioned SDK to use Automatic Resource Counting (ARC).  All
         projects using Csound 6 for iOS will require using ARC. The Csound for
@@ -244,20 +244,6 @@ SYSTEM LEVEL CHANGES
 System Changes:
        in Linux and OSX the treatment of locales is now thread-safe
        and local.    
-
-Platform Changes:
-  Csound for iOS
-       Transitioned SDK to use Automatic Resource Counting (ARC).  All
-       projects using Csound 6 for iOS will require using ARC. The
-       Csound for iOS Examples project shows examples of using ARC
-       compliant code with Csound.  Users with existing Csound 5-based
-       iOS project can use the "Edit->Refactor->Convert to Objective-C
-       ARC..." wizard to aid in updating their projects to use
-       ARC. For more information about ARC, please consult the
-       "Transitioning to ARC Release Notes" on Apple's Developer
-       website at
-       https://developer.apple.com/library/ios/#releasenotes/ObjectiveC/RN-TransitioningToARC/ 
-
 
 Internal:
         The build system is now cmake (and not scons as in Csound5)
