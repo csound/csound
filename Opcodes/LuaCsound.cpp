@@ -163,10 +163,8 @@ lua_State *manageLuaState(char operation)
     {
         if (it != luaStatesForThreads.end()) {
             manageLuaReferenceKeys(it->L, "", 'C');
-//            L = it->L;
             luaStatesForThreads.erase(it);
         }
-//        luaStatesForThreads.erase(it);
     }
     break;
     }
