@@ -1,5 +1,5 @@
 #!/bin/sh
-export RELEASE_DIR=csound-iOS-6.00.0_arc
+export RELEASE_DIR=csound-iOS-6.00.0
 export LIBSNDFILE_LIB=`pwd`/../../iOS/csound-iOS-dependencies/libsndfile.a 
 
 #remove backup files ending with ~
