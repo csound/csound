@@ -11,11 +11,6 @@ in the API are not backwardly compatible.
 
 The major changes for Csound 6 are:
 
-o   The environment variables for module directories have been renamed 
-    OPCODE6DIR64 or OPCODE6DIR (note the 6) so they can co-exist with
-    directories for Csound 5 modules.
-    
-o   Similarly, .csoundrc has been renamed .csound6rc.
     
 o   A --sample-accurate option provdes sample-accurate timing 
     of score events. This breaks backward compatibility for plugin opcodes, 
@@ -46,6 +41,13 @@ o   Multicore support has been completely rewritten using an improved
     algorithm for task dispatching, which should use less memory and fewer locks.
     Multicore benchmarks are now much faster than before. Multithreading often 
     provides significant speedups over single-threaded rendering.
+
+o   Compilation of instruments and orchestra code can be done at any stage;
+    new instruments can be added or can replace old instruments with the
+    same name/number even while Csound is running.
+
+o   The Csound API has been cleaned up and extended to support new functionality.
+
     
 ==================
 USER-LEVEL CHANGES
@@ -190,7 +192,15 @@ Frontends:
             arbitrary Lua coded in Csound using the very fast LuaJIT engine,
             even writing opcodes in Lua, and calling any public C function from 
             Csound using LuaJIT's FFI.
-    
+
+General usage:
+
+    o   The environment variables for module directories have been renamed
+        OPCODE6DIR64 or OPCODE6DIR (note the 6) so they can co-exist with
+        directories for Csound 5 modules.
+
+    o   Similarly, .csoundrc has been renamed .csound6rc.
+
 Bugs fixed:
 
     o   Too many to record!
@@ -309,7 +319,7 @@ Internal changes:
         Also structures like EVTBLK have been changed.
 
     o   The LINKAGE1/FLINKAGE1 macros have been renamed to 
-        LINKAGE_BUILTIN/FLINKAGE_BUILTIN 
+        LINKAGE_BUILTIN/FLINKAGE_BUILTIN
 
 The template for arate perf-pass opcodes is:
 
