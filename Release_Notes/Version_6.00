@@ -30,7 +30,7 @@ o   New opcodes and syntax support arrays of arbitrary dimensionality.
     creates a square, 4 x 4 a-rate array. Or,
         k2[] fillarray 1, 2, 3, 4
     creates a 4-element vector filled with {1, 2, 3, 4}, and implicitly
-    defines a length. Array elements are indexed with bracets [] such as k1[2] or 
+    defines a length. Array elements are indexed with brackets [] such as k1[2] or 
     a2[2][3]. One dimensional arrays replace tvars, and can be used in opcodes like
     maxtab/maxarray, mintab/minarray and sumtab/sumarray (see below). 
     Array setting can also be done on the left-hand side of opcodes, e.g.:
@@ -78,7 +78,7 @@ Orchestra:
         is specified.  Note that this does not work for tied notes, and
         skipping initialisation is probably not useful.
 
-    o   Instruments can run at local valukes of ksmps using 
+    o   Instruments can run at local values of ksmps using 
              setksmps iksmps
         as in Csound 5 UDOs.
 
