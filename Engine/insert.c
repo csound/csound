@@ -247,10 +247,10 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->opcod_iobufs = NULL;
     ip->init_done = 0;
 
-    csound->curip    = ip;
-    csound->ids      = (OPDS *)ip;
-
+    
     if (csound->realtime_audio_flag == 0) {
+     csound->curip    = ip;
+     csound->ids      = (OPDS *)ip;
       /* do init pass for this instr */
       while ((csound->ids = csound->ids->nxti) != NULL) {
         if (O->odebug)
@@ -532,11 +532,10 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       }
     }
 
-
-    csound->curip = ip;
-    csound->ids = (OPDS *)ip;
     ip->init_done = 0;
     if(csound->realtime_audio_flag == 0) {
+     csound->curip    = ip;
+     csound->ids      = (OPDS *)ip;
       /* do init pass for this instr  */
       while ((csound->ids = csound->ids->nxti) != NULL) {
         if (O->odebug)
@@ -2248,7 +2247,10 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
 void *init_pass_thread(void *p){
     CSOUND *csound = (CSOUND *) p;
     INSDS *ip;
-    while(csound->init_pass_loop) {
+    int wakeup = (int) (1000*csound->ksmps/csound->esr);
+    if(wakeup == 0) wakeup = 1;
+     while(csound->init_pass_loop) {
+      csoundSleep(wakeup);     
       csoundLockMutex(csound->init_pass_threadlock);
       ip = csound->actanchor.nxtact;
       /* do init pass for this instr */
@@ -2257,6 +2259,9 @@ void *init_pass_thread(void *p){
         if(ip->init_done == 0){
           csound->ids = (OPDS *) (ip->nxti);
           while (csound->ids != NULL) {
+            if (csound->oparms->odebug)
+               csound->Message(csound, "init %s:\n",
+                          csound->ids->optext->t.oentry->opname);
             (*csound->ids->iopadr)(csound, csound->ids);
             csound->ids = csound->ids->nxti;
           }
