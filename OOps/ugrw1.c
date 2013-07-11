@@ -951,7 +951,7 @@ int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
 int printksset_S(CSOUND *csound, PRINTKS *p){
  char *sarg;
  sarg = ((STRINGDAT*)p->ifilcod)->data;
- if(sarg == NULL) return csoundInitError(csound, "null string\n");
+ if(sarg == NULL) return csoundInitError(csound, Str("null string\n"));
  p->old = cs_strdup(csound, sarg);
  return printksset_(csound, p, sarg);
 }

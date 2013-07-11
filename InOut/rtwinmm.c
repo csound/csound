@@ -770,7 +770,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtcloseCallback(csound, rtclose_);
     }
     if (check_name((char*) csound->QueryGlobalVariable(csound, "_RTMIDI"))) {
-      csound->Message(csound, "rtmidi: WinMM module enabled\n");
+      csound->Message(csound, Str("rtmidi: WinMM module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);
       csound->SetExternalMidiInCloseCallback(csound, midi_in_close);

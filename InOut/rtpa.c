@@ -125,7 +125,11 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       if ((isOutput && dev_info->maxOutputChannels > 0) ||
           (!isOutput && dev_info->maxInputChannels > 0)) {
         strncpy(list[j].device_name, dev_info->name, 63);
-        sprintf(tmp, "dac%d", j);
+        if (isOutput) {
+            sprintf(tmp, "dac%d", j);
+        } else {
+            sprintf(tmp, "adc%d", j);
+        }
         strncpy(list[j].device_id, tmp, 63);
         strncpy(list[j].rt_module, s, 63);
         list[j].max_nchnls =
@@ -557,7 +561,7 @@ static void rtclose_(CSOUND *csound)
     pabs = (PA_BLOCKING_STREAM*) csound->QueryGlobalVariable(csound,
                                                              "_rtpaGlobals");
 
-    csound->Message(csound, "closing device\n");
+    csound->Message(csound, Str("closing device\n"));
     if (pabs == NULL)
       return;
 
@@ -770,7 +774,7 @@ static void rtplay_blocking(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 static void rtclose_blocking(CSOUND *csound)
 {
     DEVPARAMS *dev;
-    csound->Message(csound, "closing device\n");
+    csound->Message(csound, Str("closing device\n"));
     dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
     if (dev != NULL) {
       *(csound->GetRtRecordUserData(csound)) = NULL;

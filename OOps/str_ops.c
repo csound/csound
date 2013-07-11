@@ -154,7 +154,7 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
 /* strcpy */
 int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
-     char  *newVal = p->str->data; 
+     char  *newVal = p->str->data;
     if(p->r->data == NULL) {
       p->r->data =  cs_strdup(csound, newVal);
       p->r->size = p->str->size;
@@ -282,16 +282,14 @@ int strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
 static CS_NOINLINE int
 sprintf_opcode_(CSOUND *csound,
                     void *p,          /* opcode data structure pointer       */
-                    char *dst,        /* pointer to space for output string  */
+                    STRINGDAT *str,   /* pointer to space for output string  */
                     const char *fmt,  /* format string                       */
                     MYFLT **kvals,    /* array of argument pointers          */
                     int numVals,      /* number of arguments                 */
-                    int strCode,      /* bit mask for string arguments       */
-                    int *maxLen,      /* available space in output buffer    */
-                    int canRealloc)
+                    int strCode)      /* bit mask for string arguments       */
 {
     int     len = 0;
-    char    *strseg, *outstring = dst;
+    char    *strseg, *outstring = str->data;
     MYFLT   *parm = NULL;
     int     i = 0, j = 0, n;
     const char  *segwaiting = NULL;
@@ -326,7 +324,7 @@ sprintf_opcode_(CSOUND *csound,
       }
       /* if already a segment waiting, then lets print it */
       if (segwaiting != NULL) {
-        maxChars = *maxLen - len;
+        maxChars = str->size - len;
         strseg[i] = '\0';
         if (UNLIKELY(numVals <= 0)) {
           return StrOp_ErrMsg(p, "insufficient arguments for format");
@@ -365,33 +363,29 @@ sprintf_opcode_(CSOUND *csound,
 #endif
           break;
         case 's':
-          if ((char*)parm == dst) {
+          if (((STRINGDAT*)parm)->data == str->data) {
             return StrOp_ErrMsg(p, "output argument may not be "
                                    "the same as any of the input args");
           }
-#ifdef HAVE_SNPRINTF
-          n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
-#else
+          if(((STRINGDAT*)parm)->size >= maxChars) {
+            int offs = outstring - str->data;
+            str->data = mrealloc(csound, str->data,
+                                 str->size  + ((STRINGDAT*)parm)->size);
+            str->size += ((STRINGDAT*)parm)->size;
+            maxChars += ((STRINGDAT*)parm)->size;
+            outstring = str->data + offs;
+          }
           n = sprintf(outstring, strseg, ((STRINGDAT*)parm)->data);
-#endif
           break;
         default:
           return StrOp_ErrMsg(p, "invalid format string");
         }
         if (UNLIKELY(n < 0 || n >= maxChars)) {
-#ifdef HAVE_SNPRINTF
           /* safely detected excess string length */
-          if(canRealloc){ outstring = mrealloc(csound, outstring, maxChars*2);
-            *maxLen = maxChars*2;}
-          else {
-          StrOp_ErrMsg(p, "buffer overflow");
-          return NOTOK;
-          }
-#else
-          /* wrote past end of buffer - hope that did not already crash ! */
-          StrOp_ErrMsg(p, "buffer overflow");
-          return NOTOK;
-#endif
+            int offs = outstring - str->data;
+            str->data = mrealloc(csound, str->data, maxChars*2);
+            outstring = str->data + offs;
+            str->size = maxChars*2;
         }
         outstring += n;
         len += n;
@@ -420,10 +414,9 @@ int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
         p->r->data = mcalloc(csound, size);
         p->r->size = size;
     }
-  if (UNLIKELY(sprintf_opcode_(csound, p, (char*) p->r->data,
+  if (UNLIKELY(sprintf_opcode_(csound, p, p->r,
                                (char*) p->sfmt->data, &(p->args[0]),
-                        (int) p->INOCOUNT - 1,  0,
-                                 &(p->r->size), 1) == NOTOK)) {
+                        (int) p->INOCOUNT - 1,0) == NOTOK)) {
       ((char*) p->r->data)[0] = '\0';
       return NOTOK;
     }
@@ -432,15 +425,16 @@ int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 
 static CS_NOINLINE int printf_opcode_(CSOUND *csound, PRINTF_OP *p)
 {
-    char  buf[3072];
+    STRINGDAT buf;
     int   err;
-    int size = 3072;
+    buf.size = 3072;
+    buf.data = mcalloc(csound, buf.size);
 
-    err = sprintf_opcode_(csound, p, buf, (char*) p->sfmt->data, &(p->args[0]),
-                          (int) p->INOCOUNT - 2, 0,
-                          &size,0);
+    err = sprintf_opcode_(csound, p, &buf, (char*) p->sfmt->data, &(p->args[0]),
+                          (int) p->INOCOUNT - 2,0);
     if (LIKELY(err == OK))
-      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf.data);
+    mfree(csound, buf.data);
 
     return err;
 }

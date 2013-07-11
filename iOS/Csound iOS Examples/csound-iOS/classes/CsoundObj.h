@@ -69,11 +69,12 @@ typedef struct {
     BOOL mMidiInEnabled;
     CMMotionManager* mMotionManager;
 	NSURL *outputURL;
-	SEL mMessageCallback;
 	id  mMessageListener;
     BOOL mUseOldParser;
 }
 
+
+@property (assign) SEL mMessageCallback;
 @property (nonatomic, strong) NSURL *outputURL;
 @property (assign) BOOL midiInEnabled;
 @property (nonatomic, strong) CMMotionManager* motionManager;

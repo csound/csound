@@ -221,11 +221,16 @@ extern "C" {
        (e.g. --help, or running an utility with -U). */
 #define CSOUND_EXITJMP_SUCCESS  (256)
 
-    /**
-     * Flags for csoundInitialize().
-     */
+/**
+  * Flags for csoundInitialize().
+  */
+
 #define CSOUNDINIT_NO_SIGNAL_HANDLER  1
 #define CSOUNDINIT_NO_ATEXIT          2
+
+/**
+  * Types for keyboard callbacks set in csoundRegisterKeyboardCallback()
+  */
 
 #define CSOUND_CALLBACK_KBD_EVENT   (0x00000001U)
 #define CSOUND_CALLBACK_KBD_TEXT    (0x00000002U)
@@ -536,8 +541,10 @@ extern "C" {
      *
      *  @{ */
     /**
-     * Initialise Csound library; should be called once before creating
-     * any Csound instances.
+     * Initialise Csound library with specific flags. This function is called
+     * internally by csoundCreate(), so there is generally no need to use it
+     * explicitly unless you need to avoid default initilization that sets
+     * signal handlers and atexit() callbacks.
      * Return value is zero on success, positive if initialisation was
      * done already, and negative on error.
      */
@@ -603,9 +610,9 @@ extern "C" {
 
    /**
     *   Parse and compile an orchestra given on an string,
-    *   evaluating any global space code (i-time only). 
+    *   evaluating any global space code (i-time only).
     *   On SUCCESS it returns a value passed to the
-    *   'return' opcode in global space  
+    *   'return' opcode in global space
     * /code
     *       char *code = "i1 = 2 + 2 \n return i1 \n";
     *       MYFLT retval = csoundEvalCode(csound, code);
@@ -1531,12 +1538,17 @@ extern "C" {
     PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr,
                                   char *instrName, int mode, int allow_release);
 
+
     /**
      * Register a function to be called once in every control period
      * by sensevents(). Any number of functions may be registered,
      * and will be called in the order of registration.
      * The callback function takes two arguments: the Csound instance
      * pointer, and the userData pointer as passed to this function.
+     * This facility can be used to ensure a function is called synchronously
+     * before every csound control buffer processing. It is important
+     * to make sure no blocking operations are performed in the callback.
+     * The callbacks are cleared on csoundCleanup().
      * Returns zero on success.
      */
     PUBLIC int csoundRegisterSenseEventCallback(CSOUND *,
@@ -1546,7 +1558,8 @@ extern "C" {
     /**
      * Set the ASCII code of the most recent key pressed.
      * This value is used by the 'sensekey' opcode if a callback
-     * for returning keyboard events is not set (see csoundSetCallback()).
+     * for returning keyboard events is not set (see
+     * csoundRegisterKeyboardCallback()).
      */
     PUBLIC void csoundKeyPress(CSOUND *, char c);
 
@@ -2151,10 +2164,21 @@ extern "C" {
   * void *out - preallocated buffer with at least items number of elements, where
   *              buffer contents will be read into
   * int items - number of samples to be read
-  * returns the number of samples read (0 <= n <= items)
+  * returns the actual number of samples read (0 <= n <= items)
   */
   PUBLIC int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
                                       void *out, int items);
+
+  /**
+   * Read from circular buffer without removing them from the buffer.
+   * void *circular_buffer - pointer to an existing circular buffer
+   * void *out - preallocated buffer with at least items number of elements, where
+   *              buffer contents will be read into
+   * int items - number of samples to be read
+   * returns the actual number of samples read (0 <= n <= items)
+   */
+   PUBLIC int csoundPeekCircularBuffer(CSOUND *csound, void *circular_buffer,
+                                       void *out, int items);
 
  /**
   * Write to circular buffer
@@ -2162,7 +2186,7 @@ extern "C" {
   * void *inp - buffer with at least items number of elements to be written into
   *              circular buffer
   * int items - number of samples to be read
-  * returns the number of samples read (0 <= n <= items)
+  * returns the actual number of samples written (0 <= n <= items)
   */
   PUBLIC int csoundWriteCircularBuffer(CSOUND *csound, void *p,
                                        const void *inp, int items);

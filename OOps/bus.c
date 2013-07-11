@@ -336,10 +336,10 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
       return CSOUND_ERROR;
     s = name;
 
-    while (isalnum((unsigned char) *s) ||
-           *s == (char) '_' || *s == (char) '-' || *s == (char) '.') s++;
-    if (*s != (char) 0)
-      return CSOUND_ERROR;
+//    while (isalnum((unsigned char) *s) ||
+//           *s == (char) '_' || *s == (char) '-' || *s == (char) '.') s++;
+//    if (*s != (char) 0)
+//      return CSOUND_ERROR;
     /* create new empty database on first call */
     if (csound->chn_db == NULL) {
       csound->chn_db = cs_hash_table_create(csound);

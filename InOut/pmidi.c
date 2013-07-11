@@ -294,7 +294,7 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
     PmError     retval;
     PmDeviceInfo *info;
     PortMidiStream *midistream;
-    
+
     if (UNLIKELY(start_portmidi(csound) != 0))
       return -1;
     /* check if there are any devices available */
@@ -336,7 +336,7 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
     }
     *userData = (void*) midistream;
     /* report success */
-   
+
     return 0;
 }
 
@@ -416,8 +416,9 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
       return 0;
     n = 0;
     do {
-      int time = csound->GetCurrentTimeSamples(csound);
-      //printf("jitter: %d \n", Pt_Time(NULL) - (int)(1000*time/csound->GetSr(csound)));
+      int time = csound->GetCurrentTimeSamples(csound)/csound->GetSr(csound);
+      //printf("jitter: %d \n",
+      //       Pt_Time(NULL) - (int)(1000*time/csound->GetSr(csound)));
       st = (int)*(mbuf++);
       if (UNLIKELY(st < 0x80)) {
         portMidiErrMsg(csound, Str("invalid MIDI out data"));
@@ -435,7 +436,7 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
         break;
       }
       mev.message = (PmMessage) 0;
-      mev.timestamp = (PmTimestamp) Pt_Time(NULL);
+      mev.timestamp = (PmTimestamp) 0;
       mev.message |= (PmMessage) Pm_Message(st, 0, 0);
       if (datbyts[(st - 0x80) >> 4] > 0)
         mev.message |= (PmMessage) Pm_Message(0, (int)*(mbuf++), 0);
@@ -444,9 +445,8 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
       if (UNLIKELY(Pm_Write(midistream, &mev, 1L) != pmNoError))
         portMidiErrMsg(csound, Str("MIDI out: error writing message"));
       else {
-        
         n += (datbyts[(st - 0x80) >> 4] + 1);
-	}
+      }
     } while (nbytes > 0);
     /* return the number of bytes written */
     return n;

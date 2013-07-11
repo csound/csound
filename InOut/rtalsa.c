@@ -132,10 +132,11 @@ int set_scheduler_priority(CSOUND *csound, int priority)
     if (priority > 0) {
       p.sched_priority = priority;
       if (sched_setscheduler(0, SCHED_RR, &p) != 0) {
-        csound->Message(csound,"csound: cannot set scheduling policy to SCHED_RR");
+        csound->Message(csound,
+                        Str("csound: cannot set scheduling policy to SCHED_RR"));
       }
       else   csound->Message(csound,
-                             "csound: setting scheduling policy to SCHED_RR\n");
+                        Str("csound: setting scheduling policy to SCHED_RR\n"));
     }
     else {
       /* nice requested */
@@ -453,14 +454,14 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
                                            dev->period_smps) < 0
         /* || snd_pcm_sw_params_set_xfer_align(dev->handle, sw_params, 1) < 0 */
         || snd_pcm_sw_params(dev->handle, sw_params) < 0) {
-      sprintf(msg, "Error setting software parameters for real-time audio");
+      sprintf(msg, Str("Error setting software parameters for real-time audio"));
       goto err_return_msg;
     }
     /* allocate memory for sample conversion buffer */
     n = (dev->format == AE_SHORT ? 2 : 4) * dev->nchns * alloc_smps;
     dev->buf = (void*) malloc((size_t) n);
     if (dev->buf == NULL) {
-      sprintf(msg, "Memory allocation failure");
+      sprintf(msg, Str("Memory allocation failure"));
       goto err_return_msg;
     }
     memset(dev->buf, 0, (size_t) n);
@@ -539,7 +540,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
              even though list[n].device_name is 64 chars long */
           strncpy(list[n].device_name, temp, 10);
           list[n].device_name[10] = '\0';
-          sprintf(tmp, "hw:%i,%i", card, num);
+          sprintf(tmp, "%shw:%i,%i", isOutput ? "dac:" : "adc:", card, num);
           strncpy(list[n].device_id, tmp, 16);
           list[n].max_nchnls = -1;
           list[n].isOutput = isOutput;
@@ -1542,11 +1543,12 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
 
     card = -1;
     if ((err = snd_card_next(&card)) < 0) {
-      error("cannot determine card number: %s", snd_strerror(err));
+      csound->ErrorMsg(csound,
+                      Str("cannot determine card number: %s"), snd_strerror(err));
       return 0;
     }
     if (card < 0) {
-      error("no sound card found");
+      csound->ErrorMsg(csound,Str("no sound card found"));
       return 0;
     }
     do {
@@ -1557,13 +1559,15 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
 
       sprintf(name, "hw:%d", card);
       if ((err = snd_ctl_open(&ctl, name, 0)) < 0) {
-        error("cannot open control for card %d: %s", card, snd_strerror(err));
+        csound->ErrorMsg(csound, Str("cannot open control for card %d: %s"),
+                         card, snd_strerror(err));
         return 0;
       }
       device = -1;
       for (;;) {
         if ((err = snd_ctl_rawmidi_next_device(ctl, &device)) < 0) {
-          error("cannot determine device number: %s", snd_strerror(err));
+          csound->ErrorMsg(csound, Str("cannot determine device number: %s"),
+                           snd_strerror(err));
           break;
         }
         if (device < 0)
@@ -1594,7 +1598,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
 
         subs = subs_in > subs_out ? subs_in : subs_out;
         if (!subs)
-          return;
+          return 0;
 
         for (sub = 0; sub < subs; ++sub) {
           snd_rawmidi_info_set_stream(info, sub < subs_in ?
@@ -1603,9 +1607,10 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
           snd_rawmidi_info_set_subdevice(info, sub);
           err = snd_ctl_rawmidi_info(ctl, info);
           if (err < 0) {
-            error("cannot get rawmidi information %d:%d:%d: %s\n",
-                  card, device, sub, snd_strerror(err));
-            return;
+            csound->Warning(csound,
+                            Str("cannot get rawmidi information %d:%d:%d: %s\n"),
+                            card, device, sub, snd_strerror(err));
+            return 0;
           }
           name = snd_rawmidi_info_get_name(info);
           sub_name = snd_rawmidi_info_get_subdevice_name(info);
@@ -1664,7 +1669,8 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
       }
       snd_ctl_close(ctl);
       if ((err = snd_card_next(&card)) < 0) {
-        error("cannot determine card number: %s", snd_strerror(err));
+        csound->Warning(csound,
+                        Str("cannot determine card number: %s"), snd_strerror(err));
         break;
       }
     } while (card >= 0);
@@ -1720,24 +1726,14 @@ int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
       count = 0;
       while (snd_seq_query_next_port(seq, pinfo) >= 0) {
         if (check_permission(pinfo, isOutput? LIST_OUTPUT : LIST_INPUT)) {
-//                if (! count) {
-//                    printf("client %d: '%s' [type=%s]\n",
-//                           snd_seq_client_info_get_client(cinfo),
-//                           snd_seq_client_info_get_name(cinfo),
-//                           (snd_seq_client_info_get_type(cinfo) ==
-//                            SND_SEQ_USER_CLIENT ? "user": "kernel"));
-//                }
-//                printf("------  %3d '%-16s'\n",
-//                       snd_seq_port_info_get_port(pinfo),
-//                       snd_seq_port_info_get_name(pinfo));
           if (list) {
             strncpy(list[numdevs].midi_module, "alsaseq", 15);
             strncpy(list[numdevs].device_name,
                     snd_seq_port_info_get_name(pinfo), 63);
             strncpy(list[numdevs].interface_name,
                     snd_seq_client_info_get_name(cinfo), 63);
-            sprintf(list[numdevs].device_id,
-                    "hw:%d,%d", snd_seq_client_info_get_client(cinfo),
+            sprintf(list[numdevs].device_id, "hw:%d,%d",
+                    snd_seq_client_info_get_client(cinfo),
                     snd_seq_port_info_get_port(pinfo));
           }
           numdevs++;
@@ -1759,7 +1755,7 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
     } else if (strncmp(s, "devfile", 8) == 0) {
 
     } else {
-      csound->ErrorMsg(csound, "rtalsa: Wrong callback.");
+      csound->ErrorMsg(csound, Str("rtalsa: Wrong callback."));
     }
     return count;
 }

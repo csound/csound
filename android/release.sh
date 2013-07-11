@@ -1,6 +1,6 @@
 #!/bin/sh 
 
-export RELEASE_DIR=csound-android-6.00.0rc3
+export RELEASE_DIR=csound-android-6.00.0
 
 #remove backup files ending with ~
 find . -name "*~" -exec rm {} \;
@@ -23,6 +23,7 @@ cd $RELEASE_DIR
 
 cp ../COPYING .
 cp ../CHANGELOG .
+cp ../introduction_csound_android.pdf .
 cp -R ../CSDPlayer .
 cp -R ../CsoundAndroid .
 cp -R ../CsoundAndroidExamples .

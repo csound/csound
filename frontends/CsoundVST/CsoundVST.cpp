@@ -517,7 +517,7 @@ void CsoundVST::process(float **hostInput, float **hostOutput, VstInt32 hostFram
           csoundFrameI++;
             if(csoundFrameI > csoundLastFrame) {
               csoundFrameI = 0;
-              performKsmps(true);
+              performKsmps();
             }
         }
     } else {
@@ -549,7 +549,7 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, VstInt32
           csoundFrameI++;
             if(csoundFrameI > csoundLastFrame) {
               csoundFrameI = 0;
-              performKsmps(true);
+              performKsmps();
             }
         }
     } else {
