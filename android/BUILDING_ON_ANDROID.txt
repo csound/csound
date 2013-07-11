@@ -1,8 +1,8 @@
 HOW TO BUILD CSOUND 6 FOR ANDROID
 =================================
 
-Michael Gogins
-7 June 2013
+Michael Gogins, Steven Yi
+5 July 2013
 
 Csound 6 for Android includes the Csound library for Android, the Csound6 
 app front end for the library, an app containing several demos of the 
@@ -55,8 +55,26 @@ export NDKP=$NDKVER/prebuilt/windows/bin/arm-linux-androideabi-
 export NDKF="--sysroot $NDK/platforms/android-$NDKABI/arch-arm"
 export NDKARCH="-march=armv7-a -mfloat-abi=softfp -Wl,--fix-cortex-a8"
 
-BUILDING THE CSOUND PROJECTS
-============================
+
+AUTOMATED BUILDING OF CSOUND LIBRARY AND PLUGINS
+================================================
+
+Once the above environment variables are set, you can use the following 
+scripts to build the Csound library as well as plugin libraries:
+
+1. downloadDependencies.sh: Running this script will download the libraries
+that libcsound and the plugin libs depend on (LuaJIT, Fluidsynth, and 
+libsndfile). It will also patch projects so that they can be used together
+with the plugin libraries.
+
+2. build-all.sh: This script will go through all of the plugin libraries 
+and call ndk-build to build them, as well as go into the CsoundAndroid folder
+to build libcsound.  After running this script, all native parts of Csound
+will be compiled.
+
+
+MANUALLY BUILDING THE CSOUND PROJECTS
+=====================================
 
 To save build time, most native libraries are built as NDK modules so as  
 to be available as pre-built shared libraries. The complete build 

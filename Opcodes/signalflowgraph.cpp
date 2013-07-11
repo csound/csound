@@ -623,20 +623,24 @@ struct Inletf : public OpcodeBase<Inletf> {
             if (!fsignalInitialized) {
               int32 N = sourceOutlet->fsignal->N;
               if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
-                csound->Warning(csound, "Unsafe to have same fsig as in and out");
+                csound->Warning(csound,
+                                Str("Unsafe to have same fsig as in and out"));
               }
               fsignal->sliding = 0;
               if (sourceOutlet->fsignal->sliding) {
                 if (fsignal->frame.auxp == NULL ||
-                    fsignal->frame.size < sizeof(MYFLT) * opds.insdshead->ksmps * (N + 2))
-                  csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * opds.insdshead->ksmps,
+                    fsignal->frame.size <
+                    sizeof(MYFLT) * opds.insdshead->ksmps * (N + 2))
+                  csound->AuxAlloc(csound,
+                                   (N + 2) * sizeof(MYFLT) * opds.insdshead->ksmps,
                                    &fsignal->frame);
                 fsignal->NB = sourceOutlet->fsignal->NB;
                 fsignal->sliding = 1;
               } else
                 if (fsignal->frame.auxp == NULL ||
                     fsignal->frame.size < sizeof(float) * (N + 2)) {
-                  csound->AuxAlloc(csound, (N + 2) * sizeof(float), &fsignal->frame);
+                  csound->AuxAlloc(csound,
+                                   (N + 2) * sizeof(float), &fsignal->frame);
                 }
               fsignal->N = N;
               fsignal->overlap = sourceOutlet->fsignal->overlap;
@@ -1432,29 +1436,42 @@ extern "C"
     //csound->Message(csound, "signalflowgraph: CsoundModuleDestroy(%p)\n", csound);
 #pragma omp critical (cs_sfg_ports)
     {
-      aoutletsForCsoundsForSourceOutletIds[csound].clear();
-      ainletsForCsoundsForSinkInletIds[csound].clear();
-      //for (size_t i = 0, n = aoutletVectorsForCsounds[csound].size(); i < n; i++) {
-      //  delete aoutletVectorsForCsounds[csound][i];
-      //}
-      aoutletVectorsForCsounds[csound].clear();
-      koutletsForCsoundsForSourceOutletIds[csound].clear();
-      kinletsForCsoundsForSinkInletIds[csound].clear();
-      //for (size_t i = 0, n = koutletVectorsForCsounds[csound].size(); i < n; i++) {
-      //  delete koutletVectorsForCsounds[csound][i];
-      //}
-      koutletVectorsForCsounds[csound].clear();
-      foutletsForCsoundsForSourceOutletIds[csound].clear();
-      finletsForCsoundsForSinkInletIds[csound].clear();
-      //for (size_t i = 0, n = foutletVectorsForCsounds[csound].size(); i < n; i++) {
-      //  delete foutletVectorsForCsounds[csound][i];
-      //}
-      foutletVectorsForCsounds[csound].clear();
-      connectionsForCsounds[csound].clear();
+        if (aoutletsForCsoundsForSourceOutletIds.find(csound) != aoutletsForCsoundsForSourceOutletIds.end()) {
+            aoutletsForCsoundsForSourceOutletIds[csound].clear();
+        }
+        if (ainletsForCsoundsForSinkInletIds.find(csound) != ainletsForCsoundsForSinkInletIds.end()) {
+            ainletsForCsoundsForSinkInletIds[csound].clear();
+        }
+        if (aoutletVectorsForCsounds.find(csound) != aoutletVectorsForCsounds.end()) {
+            aoutletVectorsForCsounds[csound].clear();
+        }
+        if (koutletsForCsoundsForSourceOutletIds.find(csound) != koutletsForCsoundsForSourceOutletIds.end()) {
+            koutletsForCsoundsForSourceOutletIds[csound].clear();
+        }
+        if (kinletsForCsoundsForSinkInletIds.find(csound) != kinletsForCsoundsForSinkInletIds.end()) {
+            kinletsForCsoundsForSinkInletIds[csound].clear();
+        }
+        if (koutletVectorsForCsounds.find(csound) != koutletVectorsForCsounds.end()) {
+            koutletVectorsForCsounds[csound].clear();
+        }
+        if (foutletsForCsoundsForSourceOutletIds.find(csound) != foutletsForCsoundsForSourceOutletIds.end()) {
+            foutletsForCsoundsForSourceOutletIds[csound].clear();
+        }
+        if (finletsForCsoundsForSinkInletIds.find(csound) != finletsForCsoundsForSinkInletIds.end()) {
+            finletsForCsoundsForSinkInletIds[csound].clear();
+        }
+        if (foutletVectorsForCsounds.find(csound) != foutletVectorsForCsounds.end()) {
+            foutletVectorsForCsounds[csound].clear();
+        }
+        if (connectionsForCsounds.find(csound) != connectionsForCsounds.end()) {
+            connectionsForCsounds[csound].clear();
+        }
     }
 #pragma omp critical (critical_section_ftables)
     {
-      functionTablesForCsoundsForEvtblks[csound].clear();
+        if (functionTablesForCsoundsForEvtblks.find(csound) != functionTablesForCsoundsForEvtblks.end()) {
+            functionTablesForCsoundsForEvtblks[csound].clear();
+        }
     }
     return 0;
   }
