@@ -1302,6 +1302,7 @@ inline static int nodePerf(CSOUND *csound, int index)
     IGN(index);
 
     while(1) {
+      int done;
       which_task = dag_get_task(csound);
       //printf("******** Select task %d\n", which_task);
       if (which_task==WAIT) continue;
@@ -1313,6 +1314,12 @@ inline static int nodePerf(CSOUND *csound, int index)
             /* this is the last cycle of performance */
             insds->ksmps_no_end = insds->no_end;
           }
+#ifdef HAVE_ATOMIC_BUILTIN
+        done = __sync_fetch_and_add((int *) &insds->init_done, 0);
+#else
+        done = insds->init_done;
+#endif
+        if(done) {
         opstart = (OPDS*)task_map[which_task];
         if(insds->ksmps == csound->ksmps) {
         insds->spin = csound->spin;
@@ -1362,6 +1369,7 @@ inline static int nodePerf(CSOUND *csound, int index)
         insds->ksmps_offset = 0; /* reset sample-accuracy offset */
         insds->ksmps_no_end = 0;  /* reset end of loop samples */
         played_count++;
+	}
         //printf("******** finished task %d\n", which_task);
         dag_end_task(csound, which_task);
     }
@@ -1461,6 +1469,7 @@ int kperf(CSOUND *csound)
         csound->multiThreadedDag = NULL;
       }
       else {
+        int done;
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
 
         while (ip != NULL) {                /* for each instr active:  */
@@ -1474,8 +1483,13 @@ int kperf(CSOUND *csound)
             //          ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
+#ifdef HAVE_ATOMIC_BUILTIN
+          done = __sync_fetch_and_add((int *) &ip->init_done, 0);
+#else
+	  done = ip->init_done;
+#endif
 
-          if (ip->init_done == 1) {/* if init-pass has been done */
+          if (done == 1) {/* if init-pass has been done */
             OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
             ip->spout = csound->spout;
