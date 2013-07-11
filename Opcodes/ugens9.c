@@ -428,7 +428,7 @@ static int pconvset_(CSOUND *csound, PCONVOLVE *p, int stringname)
 
     if (UNLIKELY(IRfile.sr != CS_ESR)) {
       /* ## RWD suggests performing sr conversion here! */
-      csound->Warning(csound, "IR srate != orch's srate");
+      csound->Warning(csound, Str("IR srate != orch's srate"));
     }
 
     /* make sure the partition size is nonzero and a power of 2  */

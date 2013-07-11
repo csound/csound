@@ -207,14 +207,14 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     for (i = 0; (unsigned int)  i < devnos; i++) {
       if (isInput) {
         if(devinfo[i].inchannels) {
-          csound->Message(csound, "%d: %s (%d channels) \n",
+          csound->Message(csound, Str("%d: %s (%d channels) \n"),
                           devinfo[i].indevnum, devinfo[i].name,
                           devinfo[i].inchannels);
         }
       }
       else {
         if(devinfo[i].outchannels)
-          csound->Message(csound, "%d: %s (%d channels) \n",
+          csound->Message(csound, Str("%d: %s (%d channels) \n"),
                           devinfo[i].outdevnum, devinfo[i].name,
                           devinfo[i].outchannels);
       }

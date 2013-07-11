@@ -99,7 +99,7 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
     arrayDat->dimensions = inArgCount;
     arrayDat->sizes = mcalloc(csound, sizeof(int) * inArgCount);
     for (i = 0; i < inArgCount; i++) {
-      arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[0]);
+      arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[i]);
     }
 
     size = arrayDat->sizes[0];

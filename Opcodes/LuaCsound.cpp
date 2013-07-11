@@ -12,7 +12,7 @@
   GNU Lesser General Public License for more details.
 
   You should have received a copy of the GNU Lesser General Public
-  License along with Csound; if OPCODE_IOBUFSnot, write to the Free Software
+  License along with Csound; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
   02111-1307 USA
 */
@@ -163,9 +163,8 @@ lua_State *manageLuaState(char operation)
     {
         if (it != luaStatesForThreads.end()) {
             manageLuaReferenceKeys(it->L, "", 'C');
-            L = it->L;
+            luaStatesForThreads.erase(it);
         }
-        luaStatesForThreads.erase(it);
     }
     break;
     }

@@ -1,0 +1,406 @@
+============================
+CSOUND VERSION 6.00
+RELEASE NOTES
+============================
+
+Csound version 6 provides significant advances in functionality over 
+version 5, not only for the Csound application, but also for the Csound 
+library and application programming interface (API). Complete backward 
+compatibility has been retained for all orc/sco/csd based works, but changes 
+in the API are not backwardly compatible.
+
+The major changes for Csound 6 are:
+
+    
+o   A --sample-accurate option provides sample-accurate timing 
+    of score events. This breaks backward compatibility for plugin opcodes, 
+    which require code changes for tracking current sample frame 
+    position in audio type variables (see below for an example).
+    
+o   A --realtime option, which can also be enabled by setting the 
+    CSOUND_PARAMS field realtime_mode to 1, provides asynchronous execution 
+    of file reading and writing, and of init-time orchestra code. 
+    This should make real-time operation of Csound more resistant to dropouts.
+    
+o   New opcodes and syntax support arrays of arbitrary dimensionality.    
+    Arrays are created (usually) with the init opcode or with fillarray:
+        k1[] init 4
+    generates a k-rate 1-dimensional array of length 4. Similarly,
+        a2[][] init 4, 4
+    creates a square, 4 x 4 a-rate array. Or,
+        k2[] fillarray 1, 2, 3, 4
+    creates a 4-element vector filled with {1, 2, 3, 4}, and implicitly
+    defines a length. Array elements are indexed with brackets [] such as k1[2] or 
+    a2[2][3]. One dimensional arrays replace tvars, and can be used in opcodes like
+    maxtab/maxarray, mintab/minarray and sumtab/sumarray (see below). 
+    Array setting can also be done on the left-hand side of opcodes, e.g.:
+        aSigs[0] vco2 .1, 440
+        aSigs[1] vco2 .1, 880
+        
+o   Multicore support has been completely rewritten using an improved 
+    algorithm for task dispatching, which should use less memory and fewer locks.
+    Multicore benchmarks are now much faster than before. Multithreading often 
+    provides significant speedups over single-threaded rendering.
+
+o   Compilation of instruments and orchestra code can be done at any stage;
+    new instruments can be added or can replace old instruments with the
+    same name/number even while Csound is running.
+
+o   The Csound API has been cleaned up and extended to support new functionality.
+
+    
+==================
+USER-LEVEL CHANGES
+==================
+
+New opcodes:
+
+    o   faustgen
+    
+    o   array -- many new or revised opcodes -- see below under orchestra.
+    
+    o   compileorc -- takes a filename containing a collection if instrument
+        definitions and compiles them, replacing existing versions.
+        It returns 0 on success.
+    
+    o   compilestr -- like compileorc, but takes a string of orchestra code.
+    
+    o   readscore -- runs the score preprocessor on a string and then schedules
+        new events via the RT event mechanism, returning 0 if successful.
+
+New Gen and Macros:
+
+Orchestra:
+
+    o   Note events can start and end in mid-kcycle.  As this is an
+        incompatible change it is only invoked with the command-line option
+             --sample-accurate
+        is specified.  Note that this does not work for tied notes, and
+        skipping initialisation is probably not useful.
+
+    o   Instruments can run at local values of ksmps using 
+             setksmps iksmps
+        as in Csound 5 UDOs.
+
+    o   Compilation can be done at any stage; new instruments can be 
+        added or can replace old instruments with the same name/number.  
+        Running instances of old instrument definitions are not affected.  
+        The only limitation is that header constants in instr 0 are read only 
+        once at the time of the first compilation.  Init-time code can be 
+        placed outside instruments in the global space, but this also will be 
+        executed only once following the compilation. In this way, score event
+        generation can be completely replaced by orchestra code.
+        See also the new opcodes compileorc and compilestr.
+
+    o   New syntax operators +=, -=, *= and /=.  These are more than
+        syntactic sugar; please use += and -= for accumulating reverbs
+        as it gives better multicore behaviour.
+
+    o   The opcodes add, sub, mul and div have been deleted; use the
+        forms + - * /.  Not many people were aware of these opcodes.
+
+    o   Any opcode with zero outputs or one output can be used
+        as a function.  Some opcodes might require type annotation to
+        resolve ambiguities; see the the new syntax page in
+        the Csound 6.00 manual. 
+
+    o   A statement can be broken across lines after a , = or
+        any arithmetic operation.
+
+    o   There are a range of new or recoded operations on k-valued
+        arrays, most restricted to 1 dimensional arrays (vectors): 
+        kans minarray ktab       returns the smallest value in the
+                                 (possibly) multidimensional array
+        kans maxarray ktab       returns its largest value
+        kabs sumarray ktab       returns sum of all values in the array
+        ktab genarray imin, imax[, inc]
+                                 generates vector of values from imin
+                                 to imax by increments of inc (default 1)
+        ktab2 maparray ktab1, "sin" maps the k-rate 1-arg function in
+                                 the string to every element of the vector
+        ktab2 maparray_i ktab1, "sin" maps the i-rate 1-arg function
+                                 in the string to every element of the vector
+        ktab2 slicearray ktab1, istart, iend
+                                 returns a slice of ktab1 from ktab1[istart]
+                                 to ktab1[iend]
+        copyf2array ktab, kfn    copies data from an ftable to a vector
+        copya2ftab ktab, kfn     copies data from a vector to an ftable.
+
+    o   Arithmetic on arrays is allowed.  In particular addition,
+        subtraction, multiplication, and division are provided in arithmetic 
+        syntax on vectors.  Similar operations between arrays and scalars are 
+        also allowed.
+
+    o   Each instance of every instrument has a scratchpad of 4 values
+        that persists after turnoff; this allows values to carry to next use of the
+        instrument; this may be useful for legato etc.
+
+    o   If a table number is given as -1 then an internal sine wave
+        equivalent to "f. 0 16384 10 1" is used.  Attempts to write to
+        this table will give unpredictable results, but is not
+        policed.  The 16384 can be change by command line option
+        --sine-size=# where the # is rounded up to a power of two.
+
+    o   A number of oscil opcodes now have the f-table parameter as
+        optional, defaulting to the internal sine wave. (oscil1,
+        oscil1i, oscil, oscil3, oscili, foscil, foscil1, loscil,
+        loscil3, poscil, poscil3)
+
+Score:
+
+    o   Score lines can have multiple strings.
+    
+    o   Change to escape characters in score strings -- they do not happen.
+        
+    o   Also see readscore opcode
+
+
+Modified Opcodes and Gens:
+
+    o   The k() function can take an a-rate argument, in which case it
+        invokes a call to the downsamp opcode.
+
+Utilities:
+
+    o   Hetro/adsyn analysis files can be machine byte-order
+        independent if created with -X.  The down side is a longer file
+        and a little slower loading.  The het_export utility will
+        create the independent format from the old, and het_import is
+        no longer necessary. 
+
+    o   cvanal and lpanal will produce machine independent files if the -X
+        option is used.  The convolve and lpread etc. opcodes will
+        accept either format.  You are encouraged to use the machine
+        independent form. Analysis files produced with -X can be used
+        on other systems. 
+
+Frontends:
+
+    o   CsoundQt has been ported to Csound 6.
+  
+    o   CsoundVST has been ported to Csound 6.
+    
+    o   A new Csound6 app for Android has been developed, extending the 
+        Csound 5 app with:
+        
+        (1) An improved user interface, including text editing, scrolling
+            performance messages, a built-in User Guide, and links to the 
+            Csound manual and Web site.
+            
+        (2) Plugin opcodes, including the signal flow graph opcodes, the 
+            FluidSynth opcodes, and the Lua opcodes, which enable executing
+            arbitrary Lua coded in Csound using the very fast LuaJIT engine,
+            even writing opcodes in Lua, and calling any public C function from 
+            Csound using LuaJIT's FFI.
+
+General usage:
+
+    o   The environment variables for module directories have been renamed
+        OPCODE6DIR64 or OPCODE6DIR (note the 6) so they can co-exist with
+        directories for Csound 5 modules.
+
+    o   Similarly, .csoundrc has been renamed .csound6rc.
+
+Bugs fixed:
+
+    o   Too many to record!
+
+
+===========
+API CHANGES
+===========
+
+New configuration/parameter setting functions:
+
+    PUBLIC int csoundSetOption(CSOUND *csound, char *option);
+    PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p);
+    PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p);
+    PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type,
+                                char *format);
+    PUBLIC void csoundSetInput(CSOUND *csound, char *name);
+    PUBLIC void csoundSetMIDIInput(CSOUND *csound, char *name);
+    PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, char *name);
+    PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name);
+    PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, char *name);
+
+New parsing/compilation functions:
+
+    PUBLIC TREE *csoundParseOrc(CSOUND *csound, char *str);
+    PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root);
+    PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str);
+    PUBLIC int csoundReadScore(CSOUND *csound, char *str);
+    PUBLIC int csoundCompileArgs(CSOUND *, int argc, char **argv);
+
+New function for starting csound after the first compilation:
+
+    PUBLIC int csoundStart(CSOUND *csound);
+
+New threadsafe getters/setters for the software bus:
+
+    PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, const char *name);
+    PUBLIC void csoundSetControlChannel(CSOUND *csound, const char *name,
+                                        MYFLT val);
+    PUBLIC void csoundGetAudioChannel(CSOUND *csound, const char *name,
+                                      MYFLT *samples);
+    PUBLIC void csoundSetAudioChannel(CSOUND *csound, const char *name,
+                                      MYFLT *samples);
+    PUBLIC void csoundSetStringChannel(CSOUND *csound, const char *name,
+                                       char *string);
+    PUBLIC  void csoundGetStringChannel(CSOUND *csound, const char  *name,
+                                        char *string);
+
+New threadsafe copy functions for tables:
+
+    PUBLIC void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *dest);
+    PUBLIC void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *src);
+
+The entire Csound API has been made threadsafe so that performance and control
+can occur in separate threads (after a call to csoundStart()
+or csoundCompile()). Thread safety has been implemented by:
+
+    o   Using atomic operations for reading and writing in control channels,
+    
+    o   Using spinlocks in audio and string channels,
+    
+    o   Using mutexes to protect compilation, score
+        events, and table access. 
+
+
+The Csound API and SDK for iOS has been changed to use Automatic Resource 
+Counting (ARC).  All projects using Csound 6 for iOS will require 
+the use of ARC. The Csound for iOS Examples project shows how to use 
+ARC compliant code with Csound.  Users with existing Csound 5-based 
+iOS projects can use the "Edit->Refactor->Convert to Objective-C 
+ARC..." wizard to help with updating their projects to use ARC. 
+For more information about ARC, consult the "Transitioning to ARC 
+Release Notes" on Apple's Developer website at
+https://developer.apple.com/library/ios/#releasenotes/ObjectiveC/RN-TransitioningToARC/
+
+The Csound API and SDK for Android has been changed to use the new Csound API.
+
+====================
+SYSTEM LEVEL CHANGES
+====================
+
+System changes:
+
+    o  in Linux and OSX, locales are now thread-safe
+       and local.    
+
+Internal changes:
+
+    o   The build system now uses CMake (instead of SCons as in Csound 5).
+
+    o   A number of table access opcodes have been rewritten, but
+        should behave the same.  
+        
+    o   Similarly diskin and diskin2 now use the same code, so that diskin 
+        should be more stable
+
+    o   The old parser has been completely removed.
+
+    o   New internal functions in CSOUND:
+    
+        void (*FlushCircularBuffer)(CSOUND *, void *);
+        void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
+                               const char *, int, int, int);
+        unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
+        unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
+        int  (*FSeekAsync)(CSOUND *, void *, int, int);
+        char *(*GetString)(CSOUND *, MYFLT);
+                 Extract a string originating from a score-event argument.
+
+    o   Functions removed from CSOUND:
+    
+        void *(*FileOpen)(CSOUND *,
+                      void*, int, const char*, void*, const char*);
+
+    o   The "private" parts of the API have been changed considerably.
+        Also structures like EVTBLK have been changed.
+
+    o   The LINKAGE1/FLINKAGE1 macros have been renamed to 
+        LINKAGE_BUILTIN/FLINKAGE_BUILTIN
+
+The template for arate perf-pass opcodes is:
+
+    int perf_myopcode(CSOUND *csound, MYOPCODE *p)
+    {
+        uint32_t offset = p->h.insdshead->ksmps_offset;
+        uint32_t early  = p->h.insdshead->ksmps_no_end;
+        uint32_t nsmps = CS_KSMPS;
+        ...
+        if (UNLIKELY(offset)) memset(p->res, '\0', offset*sizeof(MYFLT));
+        if (UNLIKELY(early))  {
+          nsmps -= early;
+          memset(&p->res[nsmps], '\0', early*sizeof(MYFLT));
+        }
+        for (n=offset; n<nsmps; n++) {
+            .....
+            p->res[n] = ....
+        }
+        return OK;
+    }
+
+Csound's string variable type has been re-implemented.
+
+The OENTRY structure has been changed. It has a new dependency field.
+This field is now required for multicore semantics.  Setting this field to -1 
+safely disables parallel execution, but it is recommended to enable parallel 
+execution by using the flags defined in include/interlocks.h
+If your opcode reads or writes to zak space, use ZR or ZW, or ZB for both.  
+Similarly, if it reads or writes tables, use TR, TW or TB. If it reads or 
+writes to channels, use CR, CW and CB. If it uses the stack, use SK.  
+If it outputs text, then use WR to stop mixing of output. The _QQ flag marks 
+an opcode as deprecated. Other flags may be added later.  
+
+All opcodes that touch audio should take note of sample-accurate code.
+
+A number of previous API functions have been removed. OpenFile and OpenFile2
+have both been replaced by new OpenFile2 with an additional argument.
+
+Additions have been made for arg type specifications for opcodes.
+    
+    o   Any-types have been added, as follows:
+    
+        *   '.' signifies a required arg of any-type
+        *   '?' signifies an optional arg of any-type
+        *   '*' signifies a var-arg list of any-type
+    
+    o   Arrays are now specified using "[x]" where x is a type-specifier.
+        The type-specifier can be any of the of the current specifiers, 
+        including any-types.  See Opcodes/arrays.c for examples of usage.
+
+New Type System
+===============
+
+A new type system has been added to Csound6, and significant changes
+have been made to the compiler. The previous system for handling types 
+involved reading the first letter of a variable's name every time
+the variable was used to determine its type. This meant there was much 
+re-checking of types. Also, adding new types was difficult, because much 
+custom code had to be updated to check for new type letters. 
+
+In Csound6, a separate system of types has been added.  Types are defined as
+CS_TYPEs.  The creation of variables from types and the initialisation
+of memory has been encapsulated within the CS_TYPEs. This change 
+allows easier addition of new types, as well as generic calculations of
+memory pools, amongst other things.  
+
+The compiler has been changed to use the new type system in its semantic 
+checking phase.  Variables are now registered into a CS_VAR_POOL when they 
+are first defined, with the CS_VARIABLE having a reference to its CS_TYPE.  
+After first time definition within the pool, the type information is looked 
+up in consequent variable uses, rather than re-calculated from the variable
+name.  This opens up possibilities for new variable naming and typing 
+strategies, i.e. using "myVar:K" to denote a k-rate arg. It also 
+opens up possibilities for user-defined types, such as 
+"data myType kval, aval", then using "myVar:myType" to define a var
+of that type.  (The previous is speculative, and is not an active 
+proposal at this time.)
+
+The addition of the type system has formalised the static type system 
+that has existed in Csound prior to Csound6. It has, arguably, simplified
+the code-base in terms of type handling, as well as laid groundwork
+for future type-related research to be integrated into Csound. 
+
+========================================================================

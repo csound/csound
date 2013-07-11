@@ -793,7 +793,7 @@ void midifile_rewind_score(CSOUND *csound)
         csound->Die(csound, Str("Failed to load MIDI file."));
       O->FMidiin = 1;
     }
-    else csound->Warning(csound, "Cannot rewind MIDI score\n");
+    else csound->Warning(csound, Str("Cannot rewind MIDI score\n"));
 }
 
  /* ------------------------------------------------------------------------ */

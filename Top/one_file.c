@@ -56,19 +56,6 @@ const uint32_t csScoSortMask = 4;
 const uint32_t csMidiScoMask = 8;
 const uint32_t csPlayScoMask = 16;
 
-
-/* typedef struct { */
-/*     NAMELST *toremove; */
-/*     char    orcname[L_tmpnam + 4]; */
-/*     char    sconame[L_tmpnam + 4]; */
-/*     char    midname[L_tmpnam + 4]; */
-/*     int     midiSet; */
-/*     int     csdlinecount; */
-/*     char    *orcstr; */
-/*     char    *scostr; */
-/* } ONE_FILE_GLOBALS; */
-
-//#define ST(x)   (((ONE_FILE_GLOBALS*) csound->oneFileGlobals)->x)
 #define STA(x)   (csound->onefileStatics.x)
 
 #if !defined(WIN32)
@@ -170,11 +157,11 @@ static inline void alloc_globals(CSOUND *csound)
     STA(csdlinecount) = 0;
 }
 
-char *get_sconame(CSOUND *csound)
-{
-    alloc_globals(csound);
-    return STA(sconame);
-}
+/* char *get_sconame(CSOUND *csound) */
+/* { */
+/*     //alloc_globals(csound); */
+/*     return STA(sconame); */
+/* } */
 
 static char *my_fgets(CSOUND *csound, char *s, int n, FILE *stream)
 {
@@ -188,7 +175,7 @@ static char *my_fgets(CSOUND *csound, char *s, int n, FILE *stream)
         break; /* add NULL even if ferror(), spec says 'indeterminate' */
       }
       if (ch == '\n' || ch == '\r') {   /* end of line ? */
-        ++(STA(csdlinecount));           /* count the lines */
+        ++(STA(csdlinecount));          /* count the lines */
         *(s++) = '\n';                  /* convert */
         if (ch == '\r') {
           ch = getc(stream);
@@ -241,9 +228,9 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
     char  *argv[CSD_MAX_ARGS];
     char    buffer[CSD_MAX_LINE_LEN];
 
-    alloc_globals(csound);
+    //alloc_globals(csound);
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf) != NULL) {
-      p = buffer; STA(csdlinecount)++;
+      p = buffer;
       /* Remove trailing spaces; rather heavy handed */
       {
         int len = strlen(p)-2;
@@ -362,8 +349,8 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
     }
     if (UNLIKELY(readingCsOptions))
       csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));
-    else
-      STA(csdlinecount) = 0;
+    /* else */
+    /*   STA(csdlinecount) = 0; */
  return FALSE;
 }
 
@@ -846,7 +833,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
         csoundMessage(csound, Str("unknown CSD tag: %s\n"), buffer);
       }
     }
-      if (UNLIKELY(!started)) {
+    if (UNLIKELY(!started)) {
       csoundMessage(csound,
                     Str("Could not find <CsoundSynthesizer> tag in CSD file.\n"));
       result = FALSE;
