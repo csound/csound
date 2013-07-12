@@ -2951,11 +2951,6 @@ PUBLIC void csoundReset(CSOUND *csound)
       int   maxVal = 10000;
       MYFLT minValF = FL(0.0);
       static MYFLT maxStrLenDummy = FL(0.0);
-      /* max_str_len is here for backwards compatibility with older projects */
-      csoundCreateConfigurationVariable(csound, "max_str_len", &maxStrLenDummy,
-                                          CSOUNDCFG_INTEGER, 0, &minVal, &maxVal,
-                                          "(Previously set max string length + 1, no longer used but left here for backwards compatibility)",
-                                          NULL);
 
       csoundCreateConfigurationVariable(csound, "msg_color",
                                         &(csound->enableMsgAttr),
