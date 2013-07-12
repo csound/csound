@@ -2954,7 +2954,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       /* max_str_len is here for backwards compatibility with older projects */
       csoundCreateConfigurationVariable(csound, "max_str_len", &maxStrLenDummy,
                                           CSOUNDCFG_INTEGER, 0, &minVal, &maxVal,
-                                          "(Previously set max string length + 1, no longer used)",
+                                          "(Previously set max string length + 1, no longer used but left here for backwards compatibility)",
                                           NULL);
 
       csoundCreateConfigurationVariable(csound, "msg_color",
