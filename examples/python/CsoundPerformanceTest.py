@@ -55,7 +55,7 @@ options are:
 print __doc__
 print 'IMPORTING REQUIRED MODULES...'
 print
-import csnd
+import csnd6
 import datetime
 import math
 import numpy
@@ -85,7 +85,7 @@ class CsoundComposition(object):
     def createGlobalObjects(self):
         print 'CREATING GLOBAL OBJECTS...'
         print
-        self.csound = csnd.CppSound()
+        self.csound = csnd6.CppSound()
         self.csound.setPythonMessageCallback()  
     def createFilenames(self):
         print 'CREATING FILENAMES...'
