@@ -1,7 +1,7 @@
 #Boa:Frame:PythonDemoFrame
 
 import copy
-import csnd
+import csnd6
 import os
 import pickle
 import shutil
@@ -455,7 +455,7 @@ class PythonDemoFrame(wx.Frame):
               name=u'aboutText', parent=self.notebook, pos=wx.Point(0, 0),
               size=wx.Size(789, 336),
               style=wx.TE_READONLY | wx.TE_LINEWRAP | wx.TE_MULTILINE,
-              value=u"This application demonstrates the use of Boa Constructor to build a Python program with a graphical user interface using the wxPython toolkit.\n\nThe purpose of this application is not so much real-time performance, as to enable the composer to 'fine-tune' parameters of the composition that have a global effect on the sound.\n\nThe application communicates with Csound via Csound's Python application programming interface (API). Csound runs in a separate thread using a csnd.CsoundPerformandeThread object, and the sliders on the user interface control global variables in the Csound orchestra during performance, using the channel API.\n\nThe application also provides for taking any number of 'snapshots' of the control settings, including the Csound orchestra and score, and saving or restoring the settings.\n\nYou can adapt this application to use for your own compositions by copying the files to a new directory, opening them with Boa Constructor, and editing the application.")
+              value=u"This application demonstrates the use of Boa Constructor to build a Python program with a graphical user interface using the wxPython toolkit.\n\nThe purpose of this application is not so much real-time performance, as to enable the composer to 'fine-tune' parameters of the composition that have a global effect on the sound.\n\nThe application communicates with Csound via Csound's Python application programming interface (API). Csound runs in a separate thread using a csnd6.CsoundPerformandeThread object, and the sliders on the user interface control global variables in the Csound orchestra during performance, using the channel API.\n\nThe application also provides for taking any number of 'snapshots' of the control settings, including the Csound orchestra and score, and saving or restoring the settings.\n\nYou can adapt this application to use for your own compositions by copying the files to a new directory, opening them with Boa Constructor, and editing the application.")
         self.aboutText.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False,
               u'Courier New'))
 
@@ -510,7 +510,7 @@ class PythonDemoFrame(wx.Frame):
     def __init__(self, parent):
         self._init_ctrls(parent)
         try:
-            self.csound = csnd.CppSound()
+            self.csound = csnd6.CppSound()
             self.slidersInitialized = False
             self.configuration = Configuration()
             self.csoundCommands = {
@@ -663,7 +663,7 @@ class PythonDemoFrame(wx.Frame):
             self.csound.exportForPerformance()
             self.csound.compile()
             self.updateModel()
-            self.csoundPerformanceThread = csnd.CsoundPerformanceThread(self.csound)
+            self.csoundPerformanceThread = csnd6.CsoundPerformanceThread(self.csound)
             self.csoundPerformanceThread.Play()
             print 'Playing...'
         except:
