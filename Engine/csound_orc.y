@@ -811,7 +811,7 @@ opcode0   : T_OPCODE0
 
 opcode0b  : T_OPCODE0B
             {
-	      //if (UNLIKELY(PARSER_DEBUG))
+	      if (UNLIKELY(PARSER_DEBUG))
                   csound->Message(csound, "opcode0b $1=%p (%s)\n",
                                   $1,((ORCTOKEN *)$1)->lexeme );
                 $$ = make_leaf(csound,LINE,LOCN, T_OPCODE0, (ORCTOKEN *)$1);
