@@ -2255,7 +2255,7 @@ void *init_pass_thread(void *p){
     CSOUND *csound = (CSOUND *) p;
     INSDS *ip;
     int done;
-    float wakeup = (500*csound->ksmps/csound->esr);
+    float wakeup = (1000*csound->ksmps/csound->esr);
     while(csound->init_pass_loop) {
 #if defined(MACOSX) || defined(LINUX) 
       usleep(1000*wakeup); 
