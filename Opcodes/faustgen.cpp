@@ -225,15 +225,15 @@ int delete_faustcompile(CSOUND *csound, void *p) {
 }
 
 struct hdata {
-  faustcompile **p;
-  CSOUND **csound;
+  faustcompile *p;
+  CSOUND *csound;
 };
 
 void *init_faustcompile_thread(void *pp) {
 
-  faustcompile *p = *((hdata *) pp)->p;
+  faustcompile *p = ((hdata *) pp)->p;
   faustobj  **pffactory, *ffactory;
-  CSOUND *csound = *((hdata *) pp)->csound;
+  CSOUND *csound = ((hdata *) pp)->csound;
   llvm_dsp_factory *factory;
   int argc = 0;
   char err_msg[256];
@@ -254,6 +254,7 @@ void *init_faustcompile_thread(void *pp) {
   if(factory == NULL) {
     free(argv);
     free(cmd);
+    free(pp);
     ret = csound->InitError(csound,
                              Str("Faust compilation problem: %s\n"), err_msg);
     pthread_exit(&ret);
@@ -284,20 +285,20 @@ void *init_faustcompile_thread(void *pp) {
   csound->RegisterResetCallback(csound, p, delete_faustcompile);
   free(argv);
   free(cmd);
+  free(pp);
   return NULL;
 }
 
 #define MBYTE 1048576
 int init_faustcompile(CSOUND *csound, faustcompile *p){
-  hdata data;
   pthread_t thread;
   pthread_attr_t attr; 
-  int *ret, ret2;
-  data.csound = &(csound);
-  data.p = &(p);
+  hdata *data = (hdata *) malloc(sizeof(hdata));
+  data->csound = csound;
+  data->p = p;
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, *p->stacksize*MBYTE); 
-  pthread_create(&thread, &attr,init_faustcompile_thread, &data);
+  pthread_create(&thread, &attr,init_faustcompile_thread, data);
   return OK;
 }
 
@@ -330,8 +331,8 @@ struct faustgen {
 };
 
 struct hdata2 {
-  faustgen **p;
-  CSOUND **csound;
+  faustgen *p;
+  CSOUND *csound;
 };
 
 /* deinit function
@@ -445,8 +446,8 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
 }
 
 void *init_faustgen_thread(void *pp){
-  CSOUND *csound = *((hdata2 *) pp)->csound;
-  faustgen *p = *((hdata2 *) pp)->p; 
+  CSOUND *csound = ((hdata2 *) pp)->csound;
+  faustgen *p = ((hdata2 *) pp)->p; 
   OPARMS parms;
   char err_msg[256];
   int size;
@@ -472,12 +473,14 @@ void *init_faustgen_thread(void *pp){
   if(p->factory == NULL) {
     csound->InitError(csound,
                              Str("Faust compilation problem: %s\n"), err_msg);
+    free(pp);
     return NULL;
   }
 
   dsp = createDSPInstance(p->factory);
   if(dsp == NULL) {
     csound->InitError(csound, Str("Faust instantiation problem \n"));
+    free(pp);
     return NULL;
   }
 
@@ -512,6 +515,7 @@ void *init_faustgen_thread(void *pp){
   if(p->engine->getNumInputs() != p->INCOUNT-1) {
     deleteDSPInstance(p->engine);
     deleteDSPFactory(p->factory);
+    free(pp);
     csound->InitError(csound, Str("wrong number of input args\n"));
     p->engine = NULL;
     return NULL;
@@ -519,6 +523,7 @@ void *init_faustgen_thread(void *pp){
   if(p->engine->getNumOutputs() != p->OUTCOUNT-1){
     deleteDSPInstance(p->engine);
     deleteDSPFactory(p->factory);
+    free(pp);
     csound->InitError(csound, Str("wrong number of output args\n"));
     p->engine = NULL;
     return NULL;
@@ -540,19 +545,19 @@ void *init_faustgen_thread(void *pp){
   p->ctls = ctls;
   *p->ohptr = (MYFLT) fdsp->cnt;
   csound->RegisterDeinitCallback(csound, p, delete_faustgen);
+  free(pp);
   return NULL;
 }
 
 int init_faustgen(CSOUND *csound, faustgen *p){
-  hdata2 data;
   pthread_t thread;
   pthread_attr_t attr; 
-  int *ret, ret2;
-  data.csound = &(csound);
-  data.p = &(p);
+  hdata2 *data = (hdata2 *) malloc(sizeof(hdata2));
+  data->csound = csound;
+  data->p = p;
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, MBYTE); 
-  pthread_create(&thread, &attr, init_faustgen_thread, &data);
+  pthread_create(&thread, &attr, init_faustgen_thread, data);
   return OK;
 }
 
