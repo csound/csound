@@ -2254,10 +2254,14 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
 void *init_pass_thread(void *p){
     CSOUND *csound = (CSOUND *) p;
     INSDS *ip;
-    int done, wakeup = (int) (1000*csound->ksmps/csound->esr);
-    if(wakeup == 0) wakeup = 1;
-     while(csound->init_pass_loop) {
-      csoundSleep(wakeup);  
+    int done;
+    float wakeup = (500*csound->ksmps/csound->esr);
+    while(csound->init_pass_loop) {
+#if defined(MACOSX) || defined(LINUX) 
+      usleep(1000*wakeup); 
+#else
+      csoundSleep(((int)wakeup > 0) ? wakeup : 1);  
+#endif
       ip = csound->actanchor.nxtact;
       /* do init pass for this instr */
       while(ip != NULL){

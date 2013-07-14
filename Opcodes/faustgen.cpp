@@ -159,11 +159,12 @@ struct faustobj  {
  * Faust compile opcode
 
  usage:
- ihandle  faustcompile Scode, Sargs
+ ihandle  faustcompile Scode, Sargs[,istacksize]
 
  ihandle - handle to compiled code
  Scode - Faust program
  Sargs - Faust compiler args
+ istacksize - compiler stack size in megabytes (default 1MB).
 
 **/
 struct faustcompile {
@@ -171,6 +172,7 @@ struct faustcompile {
   MYFLT *hptr;
   STRINGDAT *code;
   STRINGDAT *args;
+  MYFLT     *stacksize;
   llvm_dsp_factory *factory;
 };
 
@@ -201,7 +203,7 @@ char **parse_cmd(char *str, int *argc){
 
 int delete_faustcompile(CSOUND *csound, void *p) {
 
-  faustcompile *pp = (faustcompile *) p;
+  faustcompile *pp = ((faustcompile *) p);
   faustobj *fobj, *prv, **pfobj;
   pfobj = (faustobj **) csound->QueryGlobalVariable(csound,"::factory");
   fobj = *pfobj;
@@ -222,13 +224,21 @@ int delete_faustcompile(CSOUND *csound, void *p) {
   return OK;
 }
 
-int init_faustcompile(CSOUND *csound, faustcompile *p) {
+struct hdata {
+  faustcompile **p;
+  CSOUND **csound;
+};
 
+void *thread_func(void *pp) {
+
+  faustcompile *p = *((hdata *) pp)->p;
   faustobj  **pffactory, *ffactory;
+  CSOUND *csound = *((hdata *) pp)->csound;
   llvm_dsp_factory *factory;
   int argc = 0;
   char err_msg[256];
   char *cmd = (char *) malloc(p->args->size + 8);
+  int ret;
 
   strcpy(cmd, p->args->data);
 #ifdef USE_DOUBLE
@@ -244,8 +254,9 @@ int init_faustcompile(CSOUND *csound, faustcompile *p) {
   if(factory == NULL) {
     free(argv);
     free(cmd);
-    return csound->InitError(csound,
+    ret = csound->InitError(csound,
                              Str("Faust compilation problem: %s\n"), err_msg);
+    pthread_exit(&ret);
   }
 
   pffactory = (faustobj **) csound->QueryGlobalVariable(csound,varname);
@@ -273,7 +284,23 @@ int init_faustcompile(CSOUND *csound, faustcompile *p) {
   csound->RegisterResetCallback(csound, p, delete_faustcompile);
   free(argv);
   free(cmd);
-  return OK;
+  return NULL;
+}
+
+#define MBYTE 1048576
+int init_faustcompile(CSOUND *csound, faustcompile *p){
+  hdata data;
+  pthread_t thread;
+  pthread_attr_t attr; 
+  int *ret, ret2;
+  data.csound = &(csound);
+  data.p = &(p);
+  pthread_attr_init(&attr);
+  pthread_attr_setstacksize(&attr, *p->stacksize*MBYTE); 
+  pthread_create(&thread, &attr, thread_func, &data);
+  pthread_join(thread, (void **) &ret);
+  if(ret == NULL) return OK;
+  else return NOTOK;
 }
 
 /**
@@ -602,7 +629,7 @@ static OENTRY localops[] = {
     (char *)"SM",(SUBR)init_faustgen, NULL, (SUBR)perf_faust},
   { (char *) "faustcompile", S(faustcompile), 0, 1,
     (char *) "i",
-    (char *)"SS",(SUBR)init_faustcompile, NULL, NULL},
+    (char *)"SSp",(SUBR)init_faustcompile, NULL, NULL},
   { (char *) "faustaudio", S(faustgen), 0, 5,
     (char *) "immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     (char *)"iM",(SUBR)init_faustaudio, NULL, (SUBR)perf_faust},
