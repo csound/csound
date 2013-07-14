@@ -10,7 +10,7 @@
 /* Victor Lazzarini, 2005            */
 /*************************************/
 sr = 44100
-
+0dbfs=1
 ksmps = 64
 nchnls = 2
 
@@ -46,7 +46,7 @@ kps = 1/kol          /* pointer rate scaling */
 
 /* gk1 controls timescale, gk2 controls pitchscale */
 
-ain    inch  1
+ain inch 1
 awp  phasor sr/ftlen(1)
 awin tablei awp, 2, 1
      tablew ain*awin, awp, 1, 1
@@ -61,7 +61,7 @@ endin
 <CsScore>
 f2 0 131072 7 0 36 1 131000 1 36 0
 f3 0  16384 9 0.5 1 0
-f1 0 131072 7 0 131072 0
+f1 0 0  1  131072 7 0 131072 0
 i1 0 3600
 
 </CsScore>

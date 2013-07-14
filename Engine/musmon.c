@@ -352,7 +352,7 @@ int musmon(CSOUND *csound)
       extern void *init_pass_thread(void *);
       csound->init_pass_loop = 1;
       csound->init_pass_threadlock = csoundCreateMutex(0);
-      pthread_create(&csound->init_pass_thread,NULL, init_pass_thread, csound);
+      pthread_create(&csound->init_pass_thread,NULL,init_pass_thread, csound);
     }
 
 

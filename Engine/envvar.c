@@ -1400,7 +1400,7 @@ int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence){
 static int read_files(CSOUND *csound){
   CSFILE *current = (CSFILE *) csound->open_files;
   if(current == NULL) return 0;
-  while(current){
+  while(current){    
     if(current->async_flag == ASYNC_GLOBAL) {
     int m = current->pos, l, n = current->items;
     int items = current->bufsize;
@@ -1425,6 +1425,7 @@ static int read_files(CSOUND *csound){
         break;
       case CSFILE_SND_W:
         items = csound->ReadCircularBuffer(csound, current->cb, buf, items);
+        if(items == 0) { csoundSleep(10); break;}
         sf_write_MYFLT(current->sf, buf, items);
         break;
     }
@@ -1440,7 +1441,10 @@ static int read_files(CSOUND *csound){
 void *file_iothread(void *p){
   int res = 1;
   CSOUND *csound = p;
+  int wakeup = (int) (1000*csound->ksmps/csound->esr);
+  if(wakeup == 0) wakeup = 1;
   while(res){
+    csoundSleep(wakeup);
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
     res = read_files(csound);
     csound->NotifyThreadLock(csound->file_io_threadlock);
