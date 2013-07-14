@@ -1671,6 +1671,9 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     int n, inreqd;
     char**  argStringParts;
     ARGLST      *outlist, *inlist;
+    
+    OENTRY* pset = find_opcode(csound, "pset");
+    
     optxt = (OPTXT *)tp;
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
       TEXT *ttp = &optxt->t;
@@ -1737,6 +1740,54 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
         }
 
         ttp->inArgCount = argCount(ttp->inArgs);
+          
+          
+          if (ttp->oentry == pset) {
+              MYFLT* fp1;
+              int n;
+              ARG* inArgs = ttp->inArgs;
+              
+              printf("FOUND PSET!!!\n");
+              //            csound->Message(csound, "PSET: isno=%d, pmax=%d\n", insno, ip->pmax);
+              csound->Message(csound, "PSET: isno=[fixme], pmax=%d\n", tp->pmax);
+              if((n = ttp->inArgCount) != tp->pmax) {
+                  //csound->Warning(csound, Str("i%d pset args != pmax"), (int) insno);
+                  csound->Warning(csound, Str("i[fixme] pset args != pmax"));
+                  if (n < tp->pmax) n = tp->pmax; /* cf pset, pmax    */
+              }
+              tp->psetdata = (MYFLT*) mcalloc(csound, n * sizeof(MYFLT));
+              
+              for (n = 0, fp1 = tp->psetdata; n < ttp->inArgCount; n++, inArgs = inArgs->next) {
+                  switch (inArgs->type) {
+                      case ARG_CONSTANT:
+                          *fp1++ = engineState->constantsPool->values[inArgs->index];
+                          break;
+                      
+                      case ARG_LOCAL:
+                      case ARG_GLOBAL:
+                          *fp1++ = *((MYFLT*)inArgs->argPtr); // FIXME - need to verify this is correct
+                          
+                          break;
+                          
+                      //FIXME - need to see if pset system really works with values from pfield, string, etc.
+                      default:
+                          break;
+                  }
+                  
+                  csound->Message(csound, "..%f..", *(fp1-1));
+              }
+              
+               //            for (n = aoffp->count, fp1 = ip->psetdata, ndxp = aoffp->indx;
+              //                 n--; ) {
+              //                *fp1++ = p->gbloffbas[*ndxp++];
+              //                p->Message(p, "..%f..", *(fp1-1));
+              //            }
+              
+              csound->Message(csound, "\n");
+          }
+
+          
+          
         mfree(csound, argStringParts);
       }
 
