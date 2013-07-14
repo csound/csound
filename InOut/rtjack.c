@@ -1030,7 +1030,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         port[n] = '\0';
         if (list != NULL) {
             strncpy(list[cnt].device_name, port, 63);
-            sprintf("%s%s", isOutput ? "dac:" : "adc:",
+            sprintf("%s%s%s", isOutput ? "dac:" : "adc:",
                     list[cnt].device_id, port);
             list[cnt].max_nchnls = -1;
             list[cnt].isOutput = isOutput;
