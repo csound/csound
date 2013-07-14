@@ -118,52 +118,52 @@ int parse_option_as_cfgvar(CSOUND *csound, const char *s)
     csCfgVariable_t *p;
 
     if (UNLIKELY((int) strlen(s) < 3)) {
-      csound->Message(csound, Str(" *** '%s' is not a valid "
-                                  "Csound command line option.\n"), s);
-      csound->Message(csound, Str(" *** Type 'csound --help' for the list of "
-                                  "available options.\n"));
-      return -1;
+      csound->Warning(csound, Str(" *** '%s' is not a valid "
+                                  "Csound command line option."), s);
+      csound->Warning(csound, Str(" *** Type 'csound --help' for the list of "
+                                  "available options"));
+      return 0;
     }
     if (UNLIKELY(strncmp(s, "-+", 2) != 0)) {
-      csound->Message(csound, Str(" *** '%s' is not a valid "
-                                  "Csound command line option.\n"), s);
-      csound->Message(csound, Str(" *** Type 'csound --help' for the list of "
-                                  "available options.\n"));
-      return -1;
+      csound->Warning(csound, Str(" *** '%s' is not a valid "
+                                  "Csound command line option."), s);
+      csound->Warning(csound, Str(" *** Type 'csound --help' for the list of "
+                                  "available options"));
+      return 0;
     }
     if (strchr(s, '=') == NULL) {
       /* there is no '=' character, must be a boolean */
       p = csoundQueryConfigurationVariable(csound, s + 2);
       if (p != NULL) {
         if (UNLIKELY(p->h.type != CSOUNDCFG_BOOLEAN)) {
-          csound->Message(csound, Str(" *** type of option '%s' "
-                                      "is not boolean\n"), s + 2);
-          return -1;
+          csound->Warning(csound, Str(" *** type of option '%s' "
+                                      "is not boolean"), s + 2);
+          return 0;
         }
         *(p->b.p) = 1;
       }
       else if (LIKELY((int) strlen(s) > 5)) {
         if (UNLIKELY(strncmp(s, "-+no-", 5) != 0)) {
-          csound->Message(csound, Str(" *** '%s': invalid option name\n"),
+          csound->Warning(csound, Str(" *** '%s': invalid option name"),
                                   s + 2);
-          return -1;
+          return 0;
         }
         p = csoundQueryConfigurationVariable(csound, s + 5);
         if (UNLIKELY(p == NULL)) {
-          csound->Message(csound, Str(" *** '%s': invalid option name\n"),
+          csound->Warning(csound, Str(" *** '%s': invalid option name"),
                                   s + 2);
           return -1;
         }
         if (UNLIKELY(p->h.type != CSOUNDCFG_BOOLEAN)) {
-          csound->Message(csound, Str(" *** type of option '%s' "
-                                      "is not boolean\n"), s + 2);
-          return -1;
+          csound->Warning(csound, Str(" *** type of option '%s' "
+                                      "is not boolean"), s + 2);
+          return 0;
         }
         *(p->b.p) = 0;
       }
       else {
-        csound->Message(csound, Str(" *** '%s': invalid option name\n"), s + 2);
-        return -1;
+        csound->Warning(csound, Str(" *** '%s': invalid option name"), s + 2);
+        return 0;
       }
     }
     else if (LIKELY((int) strlen(s) > 3)) {
@@ -171,7 +171,7 @@ int parse_option_as_cfgvar(CSOUND *csound, const char *s)
       int  retval;
       buf = (char*) malloc(sizeof(char) * (size_t) ((int) strlen(s) - 1));
       if (UNLIKELY(buf == NULL)) {
-        csound->Message(csound, Str(" *** memory allocation failure\n"));
+        csound->Warning(csound, Str(" *** memory allocation failure"));
         return -1;
       }
       /* strcpy(buf, s + 2); */
@@ -192,20 +192,20 @@ int parse_option_as_cfgvar(CSOUND *csound, const char *s)
       *(val++) = '\0';  /* 'buf' is now the name, 'val' is the value string */
       retval = csoundParseConfigurationVariable(csound, buf, val);
       if (UNLIKELY(retval != CSOUNDCFG_SUCCESS)) {
-        csound->Message(csound, Str(" *** error setting option '%s' to '%s': "
-                                    "%s\n"),
+        csound->Warning(csound, Str(" *** error setting option '%s' to '%s': "
+                                    "%s"),
                                 buf, val, csoundCfgErrorCodeToString(retval));
         free((void*) buf);
-        return -1;
+        return 0;
       }
       free((void*) buf);
     }
     else {
-      csound->Message(csound, Str(" *** '%s' is not a valid "
-                                  "Csound command line option.\n"), s);
-      csound->Message(csound, Str(" *** Type 'csound --help' for the list of "
-                                  "available options.\n"));
-      return -1;
+      csound->Warning(csound, Str(" *** '%s' is not a valid "
+                                  "Csound command line option."), s);
+      csound->Warning(csound, Str(" *** Type 'csound --help' for the list of "
+                                  "available options."));
+      return 0;
     }
     return 0;
 }
