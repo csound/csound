@@ -2257,7 +2257,7 @@ void *init_pass_thread(void *p){
     int done;
     float wakeup = (1000*csound->ksmps/csound->esr);
     while(csound->init_pass_loop) {
-#if defined(MACOSX) || defined(LINUX) 
+#if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
       usleep(1000*wakeup); 
 #else
       csoundSleep(((int)wakeup > 0) ? wakeup : 1);  
