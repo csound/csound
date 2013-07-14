@@ -296,6 +296,7 @@ int init_faustcompile(CSOUND *csound, faustcompile *p){
   hdata *data = (hdata *) malloc(sizeof(hdata));
   data->csound = csound;
   data->p = p;
+  *p->hptr = -1;
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, *p->stacksize*MBYTE); 
   pthread_create(&thread, &attr,init_faustcompile_thread, data);
@@ -366,12 +367,18 @@ int delete_faustgen(CSOUND *csound, void *p) {
 }
 
 int init_faustaudio(CSOUND *csound, faustgen *p){
-  int factory = (int) *((MYFLT *)p->code);
+  int factory;
   OPARMS parms;
   faustobj  *fobj, **pfdsp, *fdsp;
   llvm_dsp  *dsp;
   controls  *ctls = new controls();
   const char *varname = "::dsp";
+#if defined(MACOSX) || defined(linux) || defined(HAIKU)
+  while((int) *((MYFLT *)p->code) == -1) usleep(1);
+#else
+  while((int) *((MYFLT *)p->code) == -1) Sleep(1);
+#endif
+  factory = (int) *((MYFLT *)p->code);
 
   fobj = *((faustobj **) csound->QueryGlobalVariable(csound,"::factory"));
   if(fobj == NULL)
@@ -471,17 +478,17 @@ void *init_faustgen_thread(void *pp){
                                 "", "faustop", (const char *) p->code->data,
                                 "", err_msg, 3);
   if(p->factory == NULL) {
-    csound->InitError(csound,
+    int ret = csound->InitError(csound,
                              Str("Faust compilation problem: %s\n"), err_msg);
     free(pp);
-    return NULL;
+    pthread_exit(&ret);
   }
 
   dsp = createDSPInstance(p->factory);
   if(dsp == NULL) {
-    csound->InitError(csound, Str("Faust instantiation problem \n"));
+    int ret = csound->InitError(csound, Str("Faust instantiation problem \n"));
     free(pp);
-    return NULL;
+    pthread_exit(&ret);
   }
 
   dsp->buildUserInterface(ctls);
@@ -513,20 +520,22 @@ void *init_faustgen_thread(void *pp){
   dsp->buildUserInterface(ctls);
   dsp->init(csound->GetSr(csound));
   if(p->engine->getNumInputs() != p->INCOUNT-1) {
+    int ret;
     deleteDSPInstance(p->engine);
     deleteDSPFactory(p->factory);
     free(pp);
-    csound->InitError(csound, Str("wrong number of input args\n"));
+    ret  =csound->InitError(csound, Str("wrong number of input args\n"));
     p->engine = NULL;
-    return NULL;
+    pthread_exit(&ret);
   }
   if(p->engine->getNumOutputs() != p->OUTCOUNT-1){
+    int ret;
     deleteDSPInstance(p->engine);
     deleteDSPFactory(p->factory);
     free(pp);
-    csound->InitError(csound, Str("wrong number of output args\n"));
+    ret = csound->InitError(csound, Str("wrong number of output args\n"));
     p->engine = NULL;
-    return NULL;
+    pthread_exit(&ret);
   }
 
   /* memory for sampAccurate offsets */
@@ -552,13 +561,16 @@ void *init_faustgen_thread(void *pp){
 int init_faustgen(CSOUND *csound, faustgen *p){
   pthread_t thread;
   pthread_attr_t attr; 
+  int *ret;
   hdata2 *data = (hdata2 *) malloc(sizeof(hdata2));
   data->csound = csound;
   data->p = p;
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, MBYTE); 
   pthread_create(&thread, &attr, init_faustgen_thread, data);
-  return OK;
+  pthread_join(thread, (void **) &ret);
+  if(ret == NULL) return OK;
+  else return NOTOK;
 }
 
 int perf_faust(CSOUND *csound, faustgen *p){
@@ -569,12 +581,6 @@ int perf_faust(CSOUND *csound, faustgen *p){
   MYFLT **out_tmp = (MYFLT **) p->memout.auxp;
   AVOIDDENORMALS;
 
-  if(p->engine == NULL) {
-    csound->Warning(csound, "faustgen: engine not ready \n");
-    for (i = 0; i < p->OUTCOUNT-1; i++)
-      memset(p->outs[i], '\0', nsmps*sizeof(MYFLT));
-    return OK;
-  }
   if (UNLIKELY(early)) {
     for (i = 0; i < p->OUTCOUNT-1; i++)
       memset(p->outs[i], '\0', nsmps*sizeof(MYFLT));

@@ -846,6 +846,8 @@ OENTRY opcodlst_1[] = {
   { "ctlchn",   S(CTLIN),0,  3,     "kkk",  "oo",    ctlin_set, ctlin, NULL },
   { "miditempo", S(MIDITEMPO),0, 3, "k",    "",
     (SUBR) midiTempoOpcode, (SUBR) midiTempoOpcode, NULL    },
+  { "midifilestatus", S(MIDITEMPO),0, 2, "k",    "",
+   NULL, (SUBR) midiFileStatus, NULL },
   { "midinoteoff", S(MIDINOTEON),0,3,"",    "xx",   midinoteoff, midinoteoff, },
   { "midinoteonkey", S(MIDINOTEON),0,3, "", "xx",   midinoteonkey, midinoteonkey },
   { "midinoteoncps", S(MIDINOTEON),0, 3, "", "xx",  midinoteoncps,midinoteoncps },
