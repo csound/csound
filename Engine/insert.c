@@ -1967,17 +1967,16 @@ static void instance(CSOUND *csound, int insno)
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
       TEXT *ttp = &optxt->t;
       ep = ttp->oentry;
-
+      opds = (OPDS*) nxtopds;                   /*   take reqd opds */
+      nxtopds += ep->dsblksiz;
       if (strcmp(ep->opname, "endin") == 0         /*  (until ENDIN)  */
           || strcmp(ep->opname, "endop") == 0)     /*  (or ENDOP)     */
         break;
+
       if (strcmp(ep->opname, "pset") == 0) {
         ip->p1 = (MYFLT) insno;
         continue;
       }
-
-      opds = (OPDS*) nxtopds;                   /*   take reqd opds */
-      nxtopds += ep->dsblksiz;
       if (UNLIKELY(odebug))
         csound->Message(csound, Str("op (%s) allocated at %p\n"),
                         ep->opname, opds);
