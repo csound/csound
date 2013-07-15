@@ -275,7 +275,7 @@ gitonewheel6            ftgen                   0, 0, 65537,     8     -.8, 336,
                         ; Table for Reed Physical Model
 gireedtable             ftgen                   0, 0, 256,       7,     1, 80, 1, 156, -1, 40, -1
                         ; Tables for simple granular synthesis
-gigrtab                 ftgen                   0, 0, 65537,    10,     1, 0.3, .1 0, .2, .02, 0, .1, .04
+gigrtab                 ftgen                   0, 0, 65537,    10,     1, 0.3, .1, 0, .2, .02, 0, .1, .04
 giwintab                ftgen                   0, 0, 65537,    10,     1, 0, .5, 0, .33, 0, .25, 0, .2, 0, .167
                         ; Tables for waveshaping drone
 giharmonics             ftgen                   0, 0, 65537,    10,     1,   0,   2,   0,   0,   1 

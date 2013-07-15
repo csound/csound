@@ -384,6 +384,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       tp->opcod = strsav_string(csound, engineState, tp->oentry->opname);
       ip->mdepends |= tp->oentry->flags;
       ip->opdstot += tp->oentry->dsblksiz;
+      
 
       /* BUILD ARG LISTS */
       {
