@@ -384,7 +384,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       tp->opcod = strsav_string(csound, engineState, tp->oentry->opname);
       ip->mdepends |= tp->oentry->flags;
       ip->opdstot += tp->oentry->dsblksiz;
-      
+
 
       /* BUILD ARG LISTS */
       {
@@ -1615,7 +1615,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
-    
+
     return CSOUND_SUCCESS;
 }
 
@@ -1672,9 +1672,9 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     int n, inreqd;
     char**  argStringParts;
     ARGLST      *outlist, *inlist;
-    
+
     OENTRY* pset = find_opcode(csound, "pset");
-    
+
     optxt = (OPTXT *)tp;
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
       TEXT *ttp = &optxt->t;
@@ -1742,68 +1742,59 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 
         ttp->inArgCount = argCount(ttp->inArgs);
           
-          
-          if (ttp->oentry == pset) {
-              MYFLT* fp1;
-              int n;
-              ARG* inArgs = ttp->inArgs;
-              //CS_VARIABLE* var;
-              
-              printf("FOUND PSET!!!\n");
-              //            csound->Message(csound, "PSET: isno=%d, pmax=%d\n", insno, ip->pmax);
-              csound->Message(csound, "PSET: isno=[fixme], pmax=%d\n", tp->pmax);
-              if((n = ttp->inArgCount) != tp->pmax) {
-                  //csound->Warning(csound, Str("i%d pset args != pmax"), (int) insno);
-                  csound->Warning(csound, Str("i[fixme] pset args != pmax"));
-                  if (n < tp->pmax) n = tp->pmax; /* cf pset, pmax    */
-              }
-              tp->psetdata = (MYFLT*) mcalloc(csound, n * sizeof(MYFLT));
-              
-              for (n = 0, fp1 = tp->psetdata; n < ttp->inArgCount; n++, inArgs = inArgs->next) {
-                  switch (inArgs->type) {
-                      case ARG_CONSTANT:
-                          *fp1++ = engineState->constantsPool->values[inArgs->index];
-                          break;
-                      
+        if (ttp->oentry == pset) {
+          MYFLT* fp1;
+          int n;
+          ARG* inArgs = ttp->inArgs;
+          //CS_VARIABLE* var;
+            
+          //csound->Message(csound, "PSET: isno=%d, pmax=%d\n", insno, ip->pmax);
+          csound->Message(csound, "PSET: isno=[fixme], pmax=%d\n", tp->pmax);
+          if((n = ttp->inArgCount) != tp->pmax) {
+            //csound->Warning(csound, Str("i%d pset args != pmax"), (int) insno);
+            csound->Warning(csound, Str("i[fixme] pset args != pmax"));
+            if (n < tp->pmax) n = tp->pmax; /* cf pset, pmax    */
+          }
+          tp->psetdata = (MYFLT*) mcalloc(csound, n * sizeof(MYFLT));
+
+          for (n = 0, fp1 = tp->psetdata;
+               n < (int)ttp->inArgCount;
+               n++, inArgs = inArgs->next) {
+            switch (inArgs->type) {
+              case ARG_CONSTANT:
+                *fp1++ = engineState->constantsPool->values[inArgs->index];
+                break;
+
 //                      case ARG_LOCAL:
 //                          *fp1++ = 44.0;
 //                          break;
-//                          
+//
 //                      case ARG_GLOBAL:
 //                          var = (CS_VARIABLE*)inArgs->argPtr;
 //                          *fp1++ = *((MYFLT*)var->memBlock);
 //                          break;
-                          
-                      /* FIXME - to note, because this is done during compile time, pset does not
-                         work with local and global variables as they have not been initialized yet.
-                         Csound5 also did not work with local/global variables.  In the future, 
-                         use the test in tests/commandline/contrib/test_pset.csd for testing.
-                      */
-                      default:
-                          *fp1++ = 0.0;
-                          break;
-                  }
-                  
-                  csound->Message(csound, "..%f..", *(fp1-1));
-              }
-              
-               //            for (n = aoffp->count, fp1 = ip->psetdata, ndxp = aoffp->indx;
-              //                 n--; ) {
-              //                *fp1++ = p->gbloffbas[*ndxp++];
-              //                p->Message(p, "..%f..", *(fp1-1));
-              //            }
-              
-              csound->Message(csound, "\n");
+                    
+                /* FIXME - to note, because this is done during compile time, pset does not
+                 work with local and global variables as they have not been initialized yet.
+                 Csound5 also did not work with local/global variables.  In the future,
+                 use the test in tests/commandline/contrib/test_pset.csd for testing.
+                 */
+              default:
+                *fp1++ = 0.0;
+                break;
+            }
+
+            csound->Message(csound, "..%f..", *(fp1-1));
           }
 
-          
-          
+          csound->Message(csound, "\n");
+        }
+
         mfree(csound, argStringParts);
       }
 
       if (O->odebug)
         csound->Message(csound, "\n");
-
     }
 }
 
