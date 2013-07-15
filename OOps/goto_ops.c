@@ -53,6 +53,7 @@ int kcgoto(CSOUND *csound, CGOTO *p)
    IGN(csound);
     if (*p->cond)
       CS_PDS = p->lblblk->prvp;
+    
     return OK;
 }
 

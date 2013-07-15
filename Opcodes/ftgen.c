@@ -231,7 +231,7 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
     void  *fd;
 
-    if (strcmp(csound->GetOpcodeName(p), "ftload") != 0) {
+    if (strncmp(csound->GetOpcodeName(p), "ftload", 6) != 0) {
       nargs--;
       ft_func = csound->FTFindP;
       err_func = csound->PerfError;
@@ -399,14 +399,14 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
     return err_func(csound, p->h.insdshead, Str("ftload: incorrect file"));
 }
 
-static int ftload(CSOUND *csound, FTLOAD_K *p)
+static int ftload(CSOUND *csound, FTLOAD *p)
 {
-  return ftload_(csound, &(p->p), 0);
+  return ftload_(csound, p, 0);
 }
 
-static int ftload_S(CSOUND *csound, FTLOAD_K *p)
+static int ftload_S(CSOUND *csound, FTLOAD *p)
 {
-  return ftload_(csound, &(p->p), 1);
+  return ftload_(csound, p, 1);
 }
 
 
@@ -434,7 +434,7 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
     void  *fd;
 
-    if (strcmp(csound->GetOpcodeName(p), "ftsave") != 0) {
+    if (strncmp(csound->GetOpcodeName(p), "ftsave", 6) != 0) {
       nargs--;
       ft_func = csound->FTFindP;
       err_func = csound->PerfError;

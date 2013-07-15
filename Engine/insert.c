@@ -1967,17 +1967,16 @@ static void instance(CSOUND *csound, int insno)
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
       TEXT *ttp = &optxt->t;
       ep = ttp->oentry;
-
+      opds = (OPDS*) nxtopds;                   /*   take reqd opds */
+      nxtopds += ep->dsblksiz;
       if (strcmp(ep->opname, "endin") == 0         /*  (until ENDIN)  */
           || strcmp(ep->opname, "endop") == 0)     /*  (or ENDOP)     */
         break;
+
       if (strcmp(ep->opname, "pset") == 0) {
         ip->p1 = (MYFLT) insno;
         continue;
       }
-
-      opds = (OPDS*) nxtopds;                   /*   take reqd opds */
-      nxtopds += ep->dsblksiz;
       if (UNLIKELY(odebug))
         csound->Message(csound, Str("op (%s) allocated at %p\n"),
                         ep->opname, opds);
@@ -2255,9 +2254,9 @@ void *init_pass_thread(void *p){
     CSOUND *csound = (CSOUND *) p;
     INSDS *ip;
     int done;
-    float wakeup = (500*csound->ksmps/csound->esr);
+    float wakeup = (1000*csound->ksmps/csound->esr);
     while(csound->init_pass_loop) {
-#if defined(MACOSX) || defined(LINUX) 
+#if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
       usleep(1000*wakeup); 
 #else
       csoundSleep(((int)wakeup > 0) ? wakeup : 1);  
