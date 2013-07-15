@@ -1747,6 +1747,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
               MYFLT* fp1;
               int n;
               ARG* inArgs = ttp->inArgs;
+              //CS_VARIABLE* var;
               
               printf("FOUND PSET!!!\n");
               //            csound->Message(csound, "PSET: isno=%d, pmax=%d\n", insno, ip->pmax);
@@ -1764,14 +1765,22 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
                           *fp1++ = engineState->constantsPool->values[inArgs->index];
                           break;
                       
-                      case ARG_LOCAL:
-                      case ARG_GLOBAL:
-                          *fp1++ = *((MYFLT*)inArgs->argPtr); // FIXME - need to verify this is correct
+//                      case ARG_LOCAL:
+//                          *fp1++ = 44.0;
+//                          break;
+//                          
+//                      case ARG_GLOBAL:
+//                          var = (CS_VARIABLE*)inArgs->argPtr;
+//                          *fp1++ = *((MYFLT*)var->memBlock);
+//                          break;
                           
-                          break;
-                          
-                      //FIXME - need to see if pset system really works with values from pfield, string, etc.
+                      /* FIXME - to note, because this is done during compile time, pset does not
+                         work with local and global variables as they have not been initialized yet.
+                         Csound5 also did not work with local/global variables.  In the future, 
+                         use the test in tests/commandline/contrib/test_pset.csd for testing.
+                      */
                       default:
+                          *fp1++ = 0.0;
                           break;
                   }
                   
