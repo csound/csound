@@ -395,14 +395,13 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         case 'O':
         case 'P':
         case 'V':
-        case 'k': 
-	  if(*(types+1) == '[') {
+        case 'k':           
+	if(*(types) == '[') {
           *kv_inlist++ = i;
 	  types+=2;
 	     break;
 	  }
          *k_inlist++ = i;
-
         break;
         case 'f': *f_inlist++ = i; break;
         /* case '[': */
@@ -412,7 +411,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         /*   break; */
         case 'K': *k_inlist++ = i;      /* also updated at i-time */
         case 'i':
-         if(*(types+1) == '[') {
+         if(*(types) == '[') {
           *iv_inlist++ = i;
 	  types+=2;
 	     break;
@@ -441,7 +440,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       switch (*types++) {
         case 'a': *a_outlist++ = i; break;
         case 'k': 
-        if(*(types+1) == '[') {
+        if(*(types) == '[') {
           *kv_outlist++ = i;
 	  types+=2;
 	     break;
@@ -450,7 +449,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         case 'f': *f_outlist++ = i; break;
         case 'K': *k_outlist++ = i;     /* also updated at i-time */
         case 'i': 
-        if(*(types+1) == '[') {
+        if(*(types) == '[') {
           *iv_inlist++ = i;
 	  types+=2;
 	     break;
