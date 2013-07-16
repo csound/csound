@@ -692,6 +692,7 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       end = tmp;
       rev = 1;
     }
+    
     src += strt;
     len = end - strt;
     if (UNLIKELY(len >=  p->Sdst->size)) {
@@ -767,7 +768,7 @@ int strchar_opcode(CSOUND *csound, STRCHAR_OP *p)
 int strlen_opcode(CSOUND *csound, STRLEN_OP *p)
 {
     (void) csound;
-    *(p->ilen) = (MYFLT) (p->Ssrc->size - 1);
+    *(p->ilen) = (MYFLT) strlen(p->Ssrc->data);
     return OK;
 }
 
