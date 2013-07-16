@@ -1,2 +1,0 @@
-#!/bin/sh
-/Developer/Tools/Rez -i APPL -o csound cs5.r
