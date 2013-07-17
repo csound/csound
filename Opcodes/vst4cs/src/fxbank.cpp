@@ -187,7 +187,7 @@ bool CFxBank::LoadBank(char *pszFile)
 {
     FILE *fp = fopen(pszFile, "rb");        /* try to open the file              */
 
-    if (!fp) {                  /* upon error                        */
+    if (!fp) {                              /* upon error                        */
       printf("Error loading bank: %s \n", pszFile);
       return false;                         /* return an error                   */
     }
@@ -277,7 +277,7 @@ bool CFxBank::LoadBank(char *pszFile)
         {
           //printf("chunkBankMagic\n");
           fxChunkSet * pCSet = (fxChunkSet *)nBank;
-          if (NeedsBSwap)                     /* eventually swap necessary bytes */
+          if (NeedsBSwap)                   /* eventually swap necessary bytes */
             {
               SwapBytes(pCSet->chunkSize);
               /* size check - must not be too large*/
@@ -295,8 +295,8 @@ bool CFxBank::LoadBank(char *pszFile)
     }
     //catch(...)
     //  {
-    //  brc = false;                          /* if any error occured, say NOPE */
-    //  if (nBank)                            /* and remove loaded data         */
+    //  brc = false;                        /* if any error occured, say NOPE */
+    //  if (nBank)                          /* and remove loaded data         */
     //    delete[] nBank;
     //  }
 
