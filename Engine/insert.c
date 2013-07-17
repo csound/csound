@@ -235,7 +235,11 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, "   ending at %p\n", (void*) flp);
     }
 
-
+#ifdef HAVE_ATOMIC_BUILTIN
+    __sync_lock_test_and_set((int*)&ip->init_done,1);
+#else
+    ip->init_done = 1;
+#endif
     if (O->Beatmode)
       ip->p2 = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
     ip->offtim       = (double) ip->p3;         /* & duplicate p3 for now */
@@ -245,6 +249,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->m_sust       = 0;
     ip->nxtolap      = NULL;
     ip->opcod_iobufs = NULL;
+    ip->strarg = newevtp->strarg;  /* copy strarg so it does not get lost */
 #ifdef HAVE_ATOMIC_BUILTIN
     __sync_lock_test_and_set((int*)&ip->init_done,0);
 #else

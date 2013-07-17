@@ -350,9 +350,12 @@ int musmon(CSOUND *csound)
 
     if(csound->realtime_audio_flag && csound->init_pass_loop == 0){
       extern void *init_pass_thread(void *);
+      pthread_attr_t attr;
       csound->init_pass_loop = 1;
       csound->init_pass_threadlock = csoundCreateMutex(0);
-      pthread_create(&csound->init_pass_thread,NULL,init_pass_thread, csound);
+      pthread_attr_init(&attr);
+      //pthread_attr_setstacksize(&attr, 1048576);
+      pthread_create(&csound->init_pass_thread,&attr,init_pass_thread, csound);
     }
 
 
