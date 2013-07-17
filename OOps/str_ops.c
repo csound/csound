@@ -157,7 +157,7 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
      char  *newVal = p->str->data;
     if(p->r->data == NULL) {
       p->r->data =  cs_strdup(csound, newVal);
-      p->r->size = p->str->size;
+      p->r->size =  strlen(p->str->data) + 1;
         return OK;
     }
     if (p->r->data == p->str->data)
@@ -166,8 +166,10 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
         mfree(csound, p->r->data);
         p->r->data = cs_strdup(csound, newVal);
         p->r->size = strlen(newVal) + 1;
+   
     }
     else strcpy((char*) p->r->data, newVal);
+        
     return OK;
 }
 
@@ -692,11 +694,13 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       end = tmp;
       rev = 1;
     }
+    
     src += strt;
     len = end - strt;
     if (UNLIKELY(len >=  p->Sdst->size)) {
       p->Sdst->data = mrealloc(csound, p->Sdst->data, len+1);
       p->Sdst->size = len+1;
+      dst = (char*) p->Sdst->data;
     }
     i = 0;
     if (!rev || p->Sdst->data == p->Ssrc->data) {
@@ -767,7 +771,9 @@ int strchar_opcode(CSOUND *csound, STRCHAR_OP *p)
 int strlen_opcode(CSOUND *csound, STRLEN_OP *p)
 {
     (void) csound;
-    *(p->ilen) = (MYFLT) (p->Ssrc->size - 1);
+    if(p->Ssrc->size)
+    *(p->ilen) = (MYFLT) p->Ssrc->size - 1;
+    else *(p->ilen) = FL(0.0);
     return OK;
 }
 
