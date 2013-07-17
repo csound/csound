@@ -808,7 +808,7 @@ static int tabcopy_set(CSOUND *csound, TABCPY *p)
    /* if (UNLIKELY(p->src->data==NULL) || p->src->dimensions!=1) */
    /*   return csound->InitError(csound, Str("t-variable not initialised")); */
    tabensure(csound, p->dst, p->src->sizes[0]);
-   memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
+   //memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
    return OK;
 }
 

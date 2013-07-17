@@ -1369,7 +1369,7 @@ inline static int nodePerf(CSOUND *csound, int index)
         insds->ksmps_offset = 0; /* reset sample-accuracy offset */
         insds->ksmps_no_end = 0;  /* reset end of loop samples */
         played_count++;
-	}
+        }
         //printf("******** finished task %d\n", which_task);
         dag_end_task(csound, which_task);
     }
@@ -1486,7 +1486,7 @@ int kperf(CSOUND *csound)
 #ifdef HAVE_ATOMIC_BUILTIN
           done = __sync_fetch_and_add((int *) &ip->init_done, 0);
 #else
-	  done = ip->init_done;
+          done = ip->init_done;
 #endif
 
           if (done == 1) {/* if init-pass has been done */
