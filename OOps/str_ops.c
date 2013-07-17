@@ -772,7 +772,7 @@ int strlen_opcode(CSOUND *csound, STRLEN_OP *p)
 {
     (void) csound;
     if(p->Ssrc->size)
-    *(p->ilen) = (MYFLT) p->Ssrc->size - 1;
+      *(p->ilen) = (MYFLT) strlen(p->Ssrc->data);
     else *(p->ilen) = FL(0.0);
     return OK;
 }
