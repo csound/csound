@@ -286,7 +286,7 @@ static int tabarithset(CSOUND *csound, TABARITH *p)
     }
     else return csound->InitError(csound, Str("t-variable not initialised"));
 }
-
+static int tabiadd(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l, MYFLT r, void *p);
 // For cases with array as first arg
 static int tabarithset1(CSOUND *csound, TABARITH1 *p)
 {
