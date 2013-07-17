@@ -188,7 +188,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
       chain = chain->nxtact;
     }
     if (csound->dag_num_active>csound->dag_task_max_size) {
-      printf("**************need to extend task vector\n");
+      //printf("**************need to extend task vector\n");
       csound->dag_task_max_size = csound->dag_num_active+INIT_SIZE;
       recreate_dag(csound);
     }
