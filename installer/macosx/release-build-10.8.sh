@@ -35,6 +35,8 @@ cp ../../../../Custom.cmake .
 #/usr/local/bin/scons -j2 &> ../csound5_build_log.txt
 mkdir build
 cd build
+# RUN CMAKE TWICE TO GET AROUND ISSUE WITH UNIVERSAL BUILD
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0
 cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0
 make -j6 install
 

@@ -716,7 +716,7 @@ int csoundMIDIFileRead(CSOUND *csound, unsigned char *buf, int nBytes)
       if ((unsigned long) csound->global_kcounter >= mf->totalKcnt &&
           !(csound->MTrkend)) {
         /* and end of file is reached: */
-	csound->Message(csound, Str("end of midi track in '%s'\n"),
+        csound->Message(csound, Str("end of midi track in '%s'\n"),
                                 csound->oparms->FMidiname);
         csound->Message(csound, Str("%d forced decays, %d extra noteoffs\n"),
                                 csound->Mforcdecs, csound->Mxtroffs);
