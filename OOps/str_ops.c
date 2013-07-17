@@ -206,7 +206,7 @@ int str_changed_k(CSOUND *csound, STRCHGD *p){
   else *p->r = 0;
   return OK;
 }
-
+extern char* get_strarg(CSOUND *csound, MYFLT p, char *strarg);
 int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
 
@@ -214,7 +214,7 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
       char *ss;
       //printf("here\n ");
       ss = get_arg_string(csound, *p->indx);
-      //csound->Message(csound, " %s ", ss);
+      //csound->Message(csound, "%s \n", ss);
       if(p->r->data == NULL) {
         p->r->data = cs_strdup(csound, ss);
         p->r->size = strlen(ss)+1;

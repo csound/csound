@@ -124,6 +124,7 @@ Source: "{#MyMinGwBinDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyMinGwBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv.dll"; Components: core;
 Source: "{#MyMinGwUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "*.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "*.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.dll*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll"; Components: core;
 Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
