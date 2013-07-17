@@ -700,6 +700,7 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     if (UNLIKELY(len >=  p->Sdst->size)) {
       p->Sdst->data = mrealloc(csound, p->Sdst->data, len+1);
       p->Sdst->size = len+1;
+      dst = (char*) p->Sdst->data;
     }
     i = 0;
     if (!rev || p->Sdst->data == p->Ssrc->data) {
