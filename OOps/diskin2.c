@@ -914,10 +914,12 @@ int diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
 
 void *diskin_io_thread(void *p){
   DISKIN_INST *current = (DISKIN_INST *) p;
+  int wakeup = 1000*current->csound->ksmps/current->csound->esr;
   int *start =
     current->csound->QueryGlobalVariable(current->csound,"DISKIN_THREAD_START");
   while(*start){
     current = (DISKIN_INST *) p;
+    csoundSleep(wakeup > 0 ? wakeup : 1); 
     while(current != NULL){
       diskin_file_read(current->csound, current->diskin);
       current = current->nxt;

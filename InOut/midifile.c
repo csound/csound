@@ -652,7 +652,7 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
       MF(timeCode) *= (double) (timeCode & 0xFF);
     }
     /* initialise structure data */
-    MF(totalKcnt) = 0UL;
+    MF(totalKcnt) = csound->global_kcounter;
     MF(nEvents) = 0; MF(maxEvents) = 0;
     MF(nTempo) = 0; MF(maxTempo) = 0;
     MF(eventList) = (midiEvent_t*) NULL;
@@ -789,6 +789,7 @@ void midifile_rewind_score(CSOUND *csound)
       for (i = 0; i < MAXCHAN; i++)
         midi_ctl_reset(csound, (int16) i);
     } else if (O->FMidiname != NULL) {
+      csound->MTrkend = 0;
       if (csoundMIDIFileOpen(csound, O->FMidiname) != 0)
         csound->Die(csound, Str("Failed to load MIDI file."));
       O->FMidiin = 1;
@@ -809,3 +810,7 @@ int midiTempoOpcode(CSOUND *csound, MIDITEMPO *p)
     return OK;
 }
 
+int midiFileStatus(CSOUND *csound, MIDITEMPO *p){
+  *p->kResult = csound->oparms->FMidiin;
+  return OK;
+}

@@ -518,6 +518,9 @@ public:
     {
         int result = OK;
         lua_State *L = manageLuaState('O');
+        /* Ensure that Csound is available in the global environment. */
+        lua_pushlightuserdata(L, csound);
+        lua_setfield(L, LUA_GLOBALSINDEX, "csound");
         const char *opcodename = ((STRINGDAT *)opcodename_)->data;
         const char *luacode = ((STRINGDAT *)luacode_)->data;
         //log(csound, "Executing Lua code:\n%s\n", luacode);
