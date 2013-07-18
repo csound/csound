@@ -868,7 +868,7 @@ static int tabgen_set(CSOUND *csound, TABGEN *p)
     MYFLT start = *p->start;
     MYFLT end   = *p->end;
     MYFLT incr  = *p->incr;
-    int i,size =  (end - start)/incr + 1;
+    int i, size =  (end - start)/incr + 1;
 
     //printf("start=%f end=%f incr=%f size=%d\n", start, end, incr, size);
     if (UNLIKELY(size < 0))
@@ -879,10 +879,10 @@ static int tabgen_set(CSOUND *csound, TABGEN *p)
       tabensure(csound, p->tab, size);
       p->tab->sizes[0] = size;
     }
-    else
-      size = p->tab->sizes[0];
+    //else /* This is wrong if array exists only write to specified part */
+    //size = p->tab->sizes[0];
     data =  p->tab->data;
-    //printf("size=%d\n[", size);
+    printf("size=%d\n[", size);
     for (i=0; i < size; i++) {
       data[i] = start;
       //printf("%f ", start);
