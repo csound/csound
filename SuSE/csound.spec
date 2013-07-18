@@ -20,13 +20,13 @@
 
 Name:           csound
 %define support_fltk	0
-BuildRequires:  alsa-devel fdupes fluidsynth-devel gcc-c++ jack-devel liblo-devel portaudio-devel python-devel scons swig
+BuildRequires:  alsa-devel fdupes fluidsynth-devel gcc-c++ jack-devel liblo-devel portaudio-devel python-devel cmake swig
 %if %support_fltk
 BuildRequires:  fltk-devel libjpeg-devel libpng-devel xorg-x11-devel
 %endif
 Summary:        Computer Sound Synthesis and Composition Program
-Version:        6.00.00
-Release:        140
+Version:        6.00
+Release:        141
 License:        GFDL-1.2 ; LGPL-2.1+ ; MIT
 Group:          Productivity/Multimedia/Sound/Utilities
 Source:         Csound%{version}.tar.bz2
@@ -56,6 +56,7 @@ args="Word64=1 Lib64=1"
 %else
 args=""
 %endif
+cmake  -DCMAKE_INSTALL_PREFIX=$RPM_BUILD_ROOT%{_prefix} -DUSE_LIB64=1 .
 make prefix=%{_prefix} buildRelease=1 useDouble=1 useOSC=1 \
   buildVirtual=1 buildBeats=1 $args \
   customCCFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing" \
@@ -68,7 +69,7 @@ args="--word64"
 args=""
 %endif
 mkdir -pv $RPM_BUILD_ROOT%{_datadir}/csound
-./install.py --prefix=%{_prefix} --instdir="$RPM_BUILD_ROOT" $args
+make install
 rm -f $RPM_BUILD_ROOT%{_prefix}/csound6-*.md5sums
 rm -rf $RPM_BUILD_ROOT%{_datadir}/doc/csound
 # rename conflicting binary names
@@ -85,7 +86,7 @@ rm -rf $RPM_BUILD_ROOT%{_includedir}
 
 %files
 %defattr(-,root,root)
-%doc COPYING ChangeLog INSTALL readme-csound6.txt README.SuSE
+%doc COPYING readme-csound6.txt README.SuSE
 %{_bindir}/*
 %{_libdir}/csound
 %{_datadir}/csound

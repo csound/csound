@@ -50,6 +50,7 @@ typedef struct {
 /* miditempo opcode: returns the current tempo of MIDI file */
 
 extern int midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
+extern int midiFileStatus(CSOUND *csound, MIDITEMPO *p);
 
 #ifdef __cplusplus
 }

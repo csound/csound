@@ -286,11 +286,16 @@ static int tabarithset(CSOUND *csound, TABARITH *p)
     }
     else return csound->InitError(csound, Str("t-variable not initialised"));
 }
-
+static int tabiadd(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l, MYFLT r, void *p);
 // For cases with array as first arg
 static int tabarithset1(CSOUND *csound, TABARITH1 *p)
 {
     ARRAYDAT *left = p->left;
+    if(p->ans->data == left->data) {
+      printf("same ptr \n");
+        return OK;
+    }
+
     if (LIKELY(left->data)) {
       int size;
       if (left->dimensions!=1)
@@ -456,8 +461,10 @@ static int tabiadd(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l, MYFLT r, void *p)
 
     if (l->sizes[0]<size) size = l->sizes[0];
     if (ans->sizes[0]<size) size = ans->sizes[0];
-    for (i=0; i<size; i++)
+    for (i=0; i<size; i++){
+
       ans->data[i] = l->data[i] + r;
+    }
     return OK;
 }
 
@@ -804,9 +811,13 @@ typedef struct {
 
 static int tabcopy_set(CSOUND *csound, TABCPY *p)
 {
-   //int sizes,sized;
-   /* if (UNLIKELY(p->src->data==NULL) || p->src->dimensions!=1) */
-   /*   return csound->InitError(csound, Str("t-variable not initialised")); */
+   tabensure(csound, p->dst, p->src->sizes[0]);
+   //memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
+   return OK;
+}
+
+static int tabcopy1(CSOUND *csound, TABCPY *p)
+{
    tabensure(csound, p->dst, p->src->sizes[0]);
    memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
    return OK;
@@ -857,7 +868,7 @@ static int tabgen_set(CSOUND *csound, TABGEN *p)
     MYFLT start = *p->start;
     MYFLT end   = *p->end;
     MYFLT incr  = *p->incr;
-    int i,size =  (end - start)/incr + 1;
+    int i, size =  (end - start)/incr + 1;
 
     //printf("start=%f end=%f incr=%f size=%d\n", start, end, incr, size);
     if (UNLIKELY(size < 0))
@@ -868,10 +879,10 @@ static int tabgen_set(CSOUND *csound, TABGEN *p)
       tabensure(csound, p->tab, size);
       p->tab->sizes[0] = size;
     }
-    else
-      size = p->tab->sizes[0];
+    //else /* This is wrong if array exists only write to specified part */
+    //size = p->tab->sizes[0];
     data =  p->tab->data;
-    //printf("size=%d\n[", size);
+    printf("size=%d\n[", size);
     for (i=0; i < size; i++) {
       data[i] = start;
       //printf("%f ", start);
@@ -1117,6 +1128,7 @@ static OENTRY arrayvars_localops[] =
                                                (SUBR) tabscaleset,(SUBR) tabscale },
     { "scalearray.1", sizeof(TABSCALE), 0, 1, "",  "i[]iiOJ",   (SUBR) tabscale1 },
     { "=.t", sizeof(TABCPY), 0, 3, "k[]", "k[]", (SUBR)tabcopy_set, (SUBR)tabcopy },
+    { "=.I", sizeof(TABCPY), 0, 3, "i[]", "i[]", (SUBR)tabcopy1, NULL },
     { "tabgen", sizeof(TABGEN), _QQ, 1, "k[]", "iip", (SUBR) tabgen_set, NULL    },
     { "tabmap_i", sizeof(TABMAP), _QQ, 1, "k[]", "k[]S", (SUBR) tabmap_set       },
     { "tabmap", sizeof(TABMAP), _QQ, 3, "k[]", "k[]S", (SUBR) tabmap_set,

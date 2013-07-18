@@ -381,7 +381,7 @@ static int outfile_set_(CSOUND *csound, OUTFILE *p, int istring)
     if (CS_KSMPS >= 512)
       p->guard_pos = CS_KSMPS * p->nargs;
     else
-      p->guard_pos = 512 * p->nargs;
+      p->guard_pos = 512* p->nargs;
 
     if (CS_KSMPS >= 512)
         buf_reqd = CS_KSMPS *  p->nargs;

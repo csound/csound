@@ -49,7 +49,7 @@ extern int pnum(char*);
 OENTRIES* find_opcode2(CSOUND*, char*);
 char* resolve_opcode_get_outarg(CSOUND* csound,
                                OENTRIES* entries, char* inArgTypes);
-PUBLIC int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
+int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
 char* get_arg_string_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 char* convert_internal_to_external(CSOUND* csound, char* arg);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
@@ -171,7 +171,7 @@ char* get_array_sub_type(CSOUND* csound, char* arrayName) {
 }
 
 /* This function gets arg type without checking type table */
-PUBLIC char* get_arg_type(CSOUND* csound, TREE* tree)
+char* get_arg_type(CSOUND* csound, TREE* tree)
 {                   /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     char* s;
     char* t;
@@ -421,7 +421,7 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
 
 
 /* This function gets arg type with checking type table */
-PUBLIC char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
+char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
     char* s;
     char* t;
@@ -714,7 +714,7 @@ OENTRY* find_opcode(CSOUND *csound, char *opname)
 /* Finds OENTRIES that match the given opcode name.  May return multiple
  * OENTRY*'s for each entry in a polyMorphic opcode.
  */
-PUBLIC OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
+OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
 
     int i = 0;
     char *shortName;
@@ -768,7 +768,7 @@ int check_array_arg(char* found, char* required) {
     return (*f == *r);
 }
 
-PUBLIC int check_in_arg(char* found, char* required) {
+int check_in_arg(char* found, char* required) {
     char* t;
     int i;
     if (UNLIKELY(found == NULL || required == NULL)) {
@@ -823,7 +823,7 @@ PUBLIC int check_in_arg(char* found, char* required) {
     return 0;
 }
 
-PUBLIC int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
+int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
     if((inArgsFound == NULL || strlen(inArgsFound) == 0) &&
        (opInArgs == NULL || strlen(opInArgs) == 0)) {
       return 1;
@@ -900,7 +900,7 @@ inline static int is_out_var_arg(char arg) {
     return (strchr("mzIXNF*", arg) != NULL);
 }
 
-PUBLIC int check_out_arg(char* found, char* required) {
+int check_out_arg(char* found, char* required) {
     char* t;
     int i;
 
@@ -950,7 +950,7 @@ PUBLIC int check_out_arg(char* found, char* required) {
     return 0;
 }
 
-PUBLIC int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
+int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 {
 
     if((outArgsFound == NULL || strlen(outArgsFound) == 0) &&
@@ -1020,7 +1020,7 @@ PUBLIC int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
  * are multiple opcode entries with same types and last one should
  * override previous definitions.
  */
-PUBLIC OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
+OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
                               char* outArgTypes, char* inArgTypes) {
 
 //    OENTRY* retVal = NULL;
@@ -1049,7 +1049,7 @@ PUBLIC OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 }
 
 /* used when creating T_FUNCTION's */
-PUBLIC char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
+char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
                               char* inArgTypes) {
     int i;
 
@@ -1149,7 +1149,7 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
 }
 
 
-PUBLIC char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
+char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                        TYPE_TABLE* typeTable) {
 
     int len = tree_arg_list_count(tree);
@@ -1199,7 +1199,7 @@ PUBLIC char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
 
 
 
-PUBLIC OENTRY* find_opcode_new(CSOUND* csound, char* opname,
+OENTRY* find_opcode_new(CSOUND* csound, char* opname,
                                char* outArgsFound, char* inArgsFound) {
 
 //    csound->Message(csound, "Searching for opcode: %s | %s | %s\n",
