@@ -167,6 +167,7 @@ int mainit(CSOUND *csound, ASSIGNM *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     unsigned int   i, n, nsmps = CS_KSMPS;
     MYFLT aa = FL(0.0);
+    early = nsmps - early;      /* Bit at end to ignore */
     if (UNLIKELY(nargs > p->OUTOCOUNT))
       return csound->InitError(csound,
                                Str("Cannot be more In arguments than Out in "
