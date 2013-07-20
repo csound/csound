@@ -2,11 +2,11 @@
 #include <android/log.h>
 
 extern "C" {
-extern void androidrtclose_(CSOUND *csound);
+extern int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm);
+extern int androidrecopen_(CSOUND *csound, const csRtAudioParams *parm);
 extern void androidrtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes);
 extern int androidrtrecord_(CSOUND *csound, MYFLT *buffer, int nbytes);
-extern int androidrecopen_(CSOUND *csound, const csRtAudioParams *parm);
-extern int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm);
+extern void androidrtclose_(CSOUND *csound);
 
 static void androidMessageCallback(CSOUND*, int attr, const char *format, va_list valist) {
     char message[1024];
