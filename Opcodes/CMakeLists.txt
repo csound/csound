@@ -30,7 +30,10 @@ set(Python_ADDITIONAL_VERSIONS 2.7)
 find_package(PythonLibs)
 
 #find_library(LUA_LIBRARIES luajit)
-find_package(Lua52)
+find_package(Lua52 QUIET)
+if(NOT LUA52_FOUND)
+find_package(Lua51)
+endif(NOT LUA52_FOUND)
 check_include_file(wiiuse.h WIIUSE_H)
 find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
@@ -140,8 +143,8 @@ if(BUILD_PYTHON_OPCODES)
 endif()
 
 # this is broken at the moment
-check_deps(BUILD_LUA_OPCODES LUA51_FOUND OPENMP_FOUND)
-if(BUILD_LUA_OPCODES)
+check_deps(BUILD_LUA_OPCODES OPENMP_FOUND)
+if(BUILD_LUA_OPCODES AND (LUA51_FOUND OR LUA52_FOUND))
         find_path(LUA_INCLUDE_DIR  lua.h
             /usr/include/luajit-2.0
             /usr/local/include/luajit-2.0)
