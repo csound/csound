@@ -3,7 +3,14 @@ Csound for iOS ChangeLog
 This ChangeLog shows changes specific to Csound for iOS. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
 
 
-5.19.02.x - 2013-xx-xx
+
+
+6.00.0 - 2013-07-10
+
+* The Csound API and SDK for iOS has been changed to use Automatic Resource Counting (ARC).  All projects using Csound 6 for iOS will require the use of ARC. The Csound for iOS Examples project shows how to use ARC compliant code with Csound.  Users with existing Csound 5-based iOS projects can use the "Edit->Refactor->Convert to Objective-C ARC..." wizard to help with updating their projects to use ARC. 
+
+For more information about ARC, consult the "Transitioning to ARC Release Notes" on Apple's Developer website at
+https://developer.apple.com/library/ios/#releasenotes/ObjectiveC/RN-TransitioningToARC/
 
 * CsoundObj.m: Replaced audio route handling code with simpler code setting category default to Speaker (Contributed by Stephan Hepper)
 

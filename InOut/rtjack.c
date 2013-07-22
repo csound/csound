@@ -1,24 +1,24 @@
 /*
-    rtjack.c:
+  rtjack.c:
 
-    Copyright (C) 2005, 2006 Istvan Varga
+  Copyright (C) 2005, 2006 Istvan Varga
 
-    This file is part of Csound.
+  This file is part of Csound.
 
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
 */
 
 #include <jack/jack.h>
@@ -210,7 +210,7 @@ static CS_NOINLINE int rtJack_ListPorts(CSOUND *csound,
     int             i, nChn, maxChn, len, nPorts, retval = -1;
 
     portFlags = (isOutput ? (unsigned long) JackPortIsInput
-                          : (unsigned long) JackPortIsOutput);
+                 : (unsigned long) JackPortIsOutput);
     len = jack_port_name_size();
     prvPortName = (char*) malloc((size_t) len);
     if (UNLIKELY(prvPortName == (char*) NULL))
@@ -226,7 +226,7 @@ static CS_NOINLINE int rtJack_ListPorts(CSOUND *csound,
       goto err_return;
     retval = 0;
     csound->Message(csound, Str("The available JACK %s devices are:\n"),
-                            (isOutput ? Str("output") : Str("input")));
+                    (isOutput ? Str("output") : Str("input")));
     /* count the number of ports, and sort port names in alphabetical order */
     for (nPorts = 0; portNames[nPorts] != NULL; nPorts++)
       ;
@@ -265,7 +265,7 @@ static CS_NOINLINE int rtJack_ListPorts(CSOUND *csound,
           maxChn = chn_;
       }
       continue;
- nextPortName:
+    nextPortName:
       if (nChn == maxChn)
         rtJack_PrintPortName(csound, prvPortName, nChn);
       prvPortName[0] = (char) 0;
@@ -392,7 +392,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
       }
     }
 }
-
+static int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput);
 /* connect to JACK server, set up ports and ring buffers, */
 /* activate client, and connect ports if requested */
 
@@ -415,7 +415,7 @@ static void openJackStreams(RtJackGlobals *p)
     if (UNLIKELY(p->sampleRate != (int) jack_get_sample_rate(p->client))) {
       sprintf(&(buf[0]), Str("sample rate %d does not match "
                              "JACK sample rate %d"),
-                         p->sampleRate, (int) jack_get_sample_rate(p->client));
+              p->sampleRate, (int) jack_get_sample_rate(p->client));
       rtJack_Error(p->csound, -1, &(buf[0]));
     }
     if (UNLIKELY(p->bufSize < 8 || p->bufSize > 32768))
@@ -486,37 +486,57 @@ static void openJackStreams(RtJackGlobals *p)
       rtJack_Error(csound, -1, Str("error activating JACK client"));
 
     /* connect ports if requested */
-    if (p->inputEnabled && p->inDevName != NULL) {
-      char *dev = p->inDevName;
-      char  *sp = strchr(p->inDevName, '\0');
-      if(!isalpha(p->inDevName[0])) dev++;
+    if (p->inputEnabled) {
+      char *dev, *sp;
+      {
+        int i,n = listDevices(csound,NULL,0);
+        CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
+          malloc(n*sizeof(CS_AUDIODEVICE));
+        listDevices(csound,devs,0);
+        for(i=0; i < n; i++)
+          csound->Message(csound, " %d: %s (%s)\n",
+                          i, devs[i].device_id, devs[i].device_name);
+        dev = devs[0].device_name;
+        free(devs);
+      }
+      if(p->inDevName != NULL)
+        dev = p->inDevName;
+      sp = strchr(dev, '\0');
+      if(!isalpha(dev[0])) dev++;
+
       for (i = 0; i < p->nChannels; i++) {
         sprintf(sp, "%d", i + 1);
         if (UNLIKELY(jack_connect(p->client, dev,
                                   jack_port_name(p->inPorts[i])) != 0)) {
-          rtJack_ListPorts(csound, p->client, &(p->clientName[0]), 0);
           rtJack_Error(csound, -1, Str("error connecting input ports"));
         }
       }
       *sp = (char) 0;
     }
-    if (p->outputEnabled && p->outDevName != NULL) {
-      char *dev = p->outDevName;
-      char  *sp = strchr(p->outDevName, '\0');
-
-      if(!isalpha(p->outDevName[0])) dev++;
+    if (p->outputEnabled){
+      char *dev, *sp;
+      {
+        int i,n = listDevices(csound,NULL,1);
+        CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
+          malloc(n*sizeof(CS_AUDIODEVICE));
+        listDevices(csound,devs,1);
+        for(i=0; i < n; i++)
+          csound->Message(csound, " %d: %s (%s)\n",
+                          i, devs[i].device_id, devs[i].device_name);
+        dev = devs[0].device_name;
+        free(devs);
+      }
+      if(p->outDevName != NULL) dev = p->outDevName;
+      sp = strchr(dev, '\0');
+      if(!isalpha(dev[0])) dev++;
       for (i = 0; i < p->nChannels; i++) {
         sprintf(sp, "%d", i + 1);
-        if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
-                                    dev) != 0) {
-          rtJack_ListPorts(csound, p->client, &(p->clientName[0]), 1);
-
+        if (jack_connect(p->client, jack_port_name(p->outPorts[i]), dev) != 0) {
           rtJack_Error(csound, -1, Str("error connecting output ports"));
         }
       }
       *sp = (char) 0;
     }
-
     /* stream is now active */
     p->jackState = 0;
 }
@@ -597,14 +617,16 @@ static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
     p->inputEnabled = 1;
     /* allocate pointers to input ports */
     p->inPorts = (jack_port_t**)
-        calloc((size_t) p->nChannels, sizeof(jack_port_t*));
+      calloc((size_t) p->nChannels, sizeof(jack_port_t*));
     if (UNLIKELY(p->inPorts == NULL))
       rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
     /* allocate pointers to input port buffers */
     p->inPortBufs = (jack_default_audio_sample_t**)
-        calloc((size_t) p->nChannels, sizeof(jack_default_audio_sample_t*));
+      calloc((size_t) p->nChannels, sizeof(jack_default_audio_sample_t*));
     if (UNLIKELY(p->inPortBufs == NULL))
       rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
+
+
 
     return 0;
 }
@@ -624,12 +646,12 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
     p->outputEnabled = 1;
     /* allocate pointers to output ports */
     p->outPorts = (jack_port_t**)
-        calloc((size_t) p->nChannels, sizeof(jack_port_t*));
+      calloc((size_t) p->nChannels, sizeof(jack_port_t*));
     if (UNLIKELY(p->outPorts == NULL))
       rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
     /* allocate pointers to output port buffers */
     p->outPortBufs = (jack_default_audio_sample_t**)
-        calloc((size_t) p->nChannels, sizeof(jack_default_audio_sample_t*));
+      calloc((size_t) p->nChannels, sizeof(jack_default_audio_sample_t*));
     if (UNLIKELY(p->outPortBufs == NULL))
       rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
     /* activate client to start playback */
@@ -651,12 +673,12 @@ static int processCallback(jack_nframes_t nframes, void *arg)
     if (p->inputEnabled) {
       for (i = 0; i < p->nChannels; i++)
         p->inPortBufs[i] = (jack_default_audio_sample_t*)
-                                jack_port_get_buffer(p->inPorts[i], nframes);
+          jack_port_get_buffer(p->inPorts[i], nframes);
     }
     if (p->outputEnabled && p->outPortBufs[0] == NULL) {
       for (i = 0; i < p->nChannels; i++)
         p->outPortBufs[i] = (jack_default_audio_sample_t*)
-                                jack_port_get_buffer(p->outPorts[i], nframes);
+          jack_port_get_buffer(p->outPorts[i], nframes);
     }
     i = 0;
     do {
@@ -773,8 +795,8 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     }
     if (p->xrunFlag) {
       p->xrunFlag = 0;
-     OPARMS oparms;
-     csound->GetOParms(csound, &oparms);
+      OPARMS oparms;
+      csound->GetOParms(csound, &oparms);
       if (oparms.msglevel & 4)
         csound->Warning(csound, Str("rtjack: xrun in real time audio"));
     }
@@ -809,7 +831,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
       /* copy audio data */
       for (k = 0; k < p->nChannels; k++)
         p->bufs[p->csndBufCnt]->outBufs[k][i] =
-            (jack_default_audio_sample_t) outbuf_[j++];
+          (jack_default_audio_sample_t) outbuf_[j++];
       if (++(p->csndBufPos) >= p->bufSize) {
         p->csndBufPos = 0;
         /* notify JACK callback that this buffer is now filled */
@@ -919,6 +941,59 @@ static CS_NORETURN void rtJack_Error(CSOUND *csound,
     csound->LongJmp(csound, errCode);
 }
 
+int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
+
+    char            **portNames = (char**) NULL, port[64];
+    unsigned long   portFlags;
+    int             i, n, cnt=0;
+    jack_client_t *jackClient;
+    RtJackGlobals* p =
+      (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
+                                                          "_rtjackGlobals");
+
+    if(p->listclient == NULL)
+      p->listclient = jack_client_open("list", JackNoStartServer, NULL);
+
+    jackClient  = p->listclient;
+
+    if(jackClient == NULL) return 0;
+    portFlags = (isOutput ? (unsigned long) JackPortIsInput
+                 : (unsigned long) JackPortIsOutput);
+
+    portNames = (char**) jack_get_ports(jackClient,
+                                        (char*) NULL,
+                                        JACK_DEFAULT_AUDIO_TYPE,
+                                        portFlags);
+    if(portNames == NULL) {
+      jack_client_close(jackClient);
+      p->listclient = NULL;
+      return 0;
+    }
+
+    memset(port, '\0', 64);
+    for(i=0; portNames[i] != NULL; i++) {
+      n = (int) strlen(portNames[i]);
+      do {
+        n--;
+      } while (n > 0 && isdigit(portNames[i][n]));
+      n++;
+      if(strncmp(portNames[i], port, n)==0) continue;
+      strncpy(port, portNames[i], n);
+      port[n] = '\0';
+      if (list != NULL) {
+        strncpy(list[cnt].device_name, port, 63);
+        snprintf(list[cnt].device_id, 63, "%s%s",
+                 isOutput ? "dac:" : "adc:",port);
+        list[cnt].max_nchnls = -1;
+        list[cnt].isOutput = isOutput;
+      }
+      cnt++;
+    }
+    jack_client_close(jackClient);
+    p->listclient = NULL;
+    return cnt;
+}
+
 /* module interface functions */
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
@@ -958,89 +1033,42 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     i = jack_client_name_size();
     if (i > (MAX_NAME_LEN + 1))
       i = (MAX_NAME_LEN + 1);
-    csound->CreateConfigurationVariable(
-        csound, "jack_client", (void*) &(p->clientName[0]),
-        CSOUNDCFG_STRING, 0, NULL, &i,
-        "JACK client name (default: csound6)", NULL);
+    csound->CreateConfigurationVariable(csound, "jack_client",
+                                        (void*) &(p->clientName[0]),
+                                        CSOUNDCFG_STRING, 0, NULL, &i,
+                                        Str("JACK client name (default: csound6)"),
+                                        NULL);
     /*   input port name */
     i = jack_port_name_size() - 3;
     if (i > (MAX_NAME_LEN + 1))
       i = (MAX_NAME_LEN + 1);
-    csound->CreateConfigurationVariable(
-        csound, "jack_inportname", (void*) &(p->inputPortName[0]),
-        CSOUNDCFG_STRING, 0, NULL, &i,
-        "JACK input port name prefix (default: input)", NULL);
+    csound->CreateConfigurationVariable(csound, "jack_inportname",
+                                        (void*) &(p->inputPortName[0]),
+                                        CSOUNDCFG_STRING, 0, NULL, &i,
+                                        Str("JACK input port name prefix "
+                                            "(default: input)"), NULL);
     /*   output port name */
     i = jack_port_name_size() - 3;
     if (i > (MAX_NAME_LEN + 1))
       i = (MAX_NAME_LEN + 1);
-    csound->CreateConfigurationVariable(
-        csound, "jack_outportname", (void*) &(p->outputPortName[0]),
-        CSOUNDCFG_STRING, 0, NULL, &i,
-        "JACK output port name prefix (default: output)", NULL);
-    /* sleep time */
+    csound->CreateConfigurationVariable(csound, "jack_outportname",
+                                      (void*) &(p->outputPortName[0]),
+                                        CSOUNDCFG_STRING, 0, NULL, &i,
+                                        Str("JACK output port name prefix"
+                                            " (default: output)"), NULL);
+  /* sleep time */
     i = 250; j = 25000;         /* min/max value */
-        csound->CreateConfigurationVariable(
-        csound, "jack_sleep_time", (void*) &(p->sleepTime),
-        CSOUNDCFG_INTEGER, 0, &i, &j,
-        "Deprecated", NULL);
+    csound->CreateConfigurationVariable(csound, "jack_sleep_time",
+                                        (void*) &(p->sleepTime),
+                                        CSOUNDCFG_INTEGER, 0, &i, &j,
+                                        Str("Deprecated"), NULL);
     /* done */
-        p->listclient = NULL;
+    p->listclient = NULL;
+
     return 0;
 }
 
-int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 
-    char            **portNames = (char**) NULL, port[64];
-    unsigned long   portFlags;
-    int             i, n, cnt=0;
-    jack_client_t *jackClient;
-    RtJackGlobals* p =
-      (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
-                                                          "_rtjackGlobals");
-
-    if(p->listclient == NULL)
-        p->listclient = jack_client_open("list", JackNoStartServer, NULL);
-
-    jackClient  = p->listclient;
-
-    if(jackClient == NULL) return 0;
-    portFlags = (isOutput ? (unsigned long) JackPortIsInput
-                          : (unsigned long) JackPortIsOutput);
-
-    portNames = (char**) jack_get_ports(jackClient,
-                                        (char*) NULL,
-                                        JACK_DEFAULT_AUDIO_TYPE,
-                                        portFlags);
-    if(portNames == NULL) {
-        jack_client_close(jackClient);
-        p->listclient = NULL;
-        return 0;
-    }
-
-    memset(port, '\0', 64);
-    for(i=0; portNames[i] != NULL; i++) {
-        n = (int) strlen(portNames[i]);
-        do {
-            n--;
-        } while (n > 0 && isdigit(portNames[i][n]));
-        n++;
-        if(strncmp(portNames[i], port, n)==0) continue;
-        strncpy(port, portNames[i], n);
-        port[n] = '\0';
-        if (list != NULL) {
-            strncpy(list[cnt].device_name, port, 63);
-            sprintf("%s%s", isOutput ? "dac:" : "adc:",
-                    list[cnt].device_id, port);
-            list[cnt].max_nchnls = -1;
-            list[cnt].isOutput = isOutput;
-        }
-        cnt++;
-    }
-    jack_client_close(jackClient);
-    p->listclient = NULL;
-    return cnt;
-}
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
@@ -1048,8 +1076,8 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
       (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                           "_rtjackGlobals");
     if(p && p->listclient) {
-        jack_client_close(p->listclient);
-        p->listclient = NULL;
+      jack_client_close(p->listclient);
+      p->listclient = NULL;
     }
     return OK;
 }
@@ -1068,13 +1096,13 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       return 0;
     csound->Message(csound, Str("rtaudio: JACK module enabled\n"));
     {
-    /* register Csound interface functions */
-    csound->SetPlayopenCallback(csound, playopen_);
-    csound->SetRecopenCallback(csound, recopen_);
-    csound->SetRtplayCallback(csound, rtplay_);
-    csound->SetRtrecordCallback(csound, rtrecord_);
-    csound->SetRtcloseCallback(csound, rtclose_);
-    csound->SetAudioDeviceListCallback(csound, listDevices);
+      /* register Csound interface functions */
+      csound->SetPlayopenCallback(csound, playopen_);
+      csound->SetRecopenCallback(csound, recopen_);
+      csound->SetRtplayCallback(csound, rtplay_);
+      csound->SetRtrecordCallback(csound, rtrecord_);
+      csound->SetRtcloseCallback(csound, rtclose_);
+      csound->SetAudioDeviceListCallback(csound, listDevices);
     }
     return 0;
 }
