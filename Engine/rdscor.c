@@ -27,7 +27,7 @@
 char* get_arg_string(CSOUND *csound, MYFLT p)
 {
     int32 n;
-    char *ss = csound->currevent->strarg;
+    char *ss = csound->ids->insdshead->strarg;  /* look at this instr's strarg */
     union {
       MYFLT d;
       int32 i;

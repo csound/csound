@@ -11,7 +11,7 @@ from Tkinter import *
 
 parserType = ""
 showUIatClose = False
-csoundExecutable = ""
+csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
 
 class Test:
     def __init__(self, fileName, description, expected=True):
@@ -159,6 +159,7 @@ def runTest():
         if(os.sep == '\\'):
             executable = (csoundExecutable == "") and "..\csound.exe" or csoundExecutable
             command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
+            print command
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../csound" or csoundExecutable
@@ -173,13 +174,12 @@ def runTest():
             testFail += 1
             out = "[FAIL] - "
 
-	out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult
+        out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult
 )
-	print out
+        print out
         output += "%s\n"%("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
         output += "%s\n\n"%("=" * 80)
-
         f = open(tempfile, "r")
 
         csOutput = ""

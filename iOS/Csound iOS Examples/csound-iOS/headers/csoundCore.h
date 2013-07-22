@@ -1180,9 +1180,9 @@ typedef struct NAME__ {
     /** @name Generic callbacks */
     /**@{ */
     void (*SetYieldCallback)(CSOUND *, int (*yieldCallback)(CSOUND *));
-    int (*Set_Callback)(CSOUND *, int (*func)(void *, void *, unsigned int),
-                                  void *userData, unsigned int typeMask);
-    void (*Remove_Callback)(CSOUND *,
+    int (*Set_KeyCallback)(CSOUND *, int (*func)(void *, void *, unsigned int),
+                        void *userData, unsigned int typeMask);
+    void (*Remove_KeyCallback)(CSOUND *,
                             int (*func)(void *, void *, unsigned int));
     int (*RegisterSenseEventCallback)(CSOUND *, void (*func)(CSOUND *, void *),
                                                 void *userData);
