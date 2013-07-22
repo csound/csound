@@ -423,14 +423,17 @@ statement : ident '=' expr NEWLINE
             | opcode0b exprlist ')' NEWLINE   /* VL: added this to allow general func ops with no answers */
                 {
                   ((TREE *)$1)->left = NULL;
-                  ((TREE *)$1)->right = (TREE *)$3;
+                  ((TREE *)$1)->right = (TREE *)$2;
                   $1->value->optype = NULL;
                   $$ = $1;
+                  
                   csp_orc_sa_global_read_add_list(csound,
                                   csp_orc_sa_globals_find(csound,
                                                           $1->right));
+                  
                   csp_orc_sa_interlocks(csound, $1->value);
                   query_deprecated_opcode(csound, $1->value);
+                 
                 }
           | LABEL_TOKEN
                 {
@@ -809,7 +812,7 @@ opcode0   : T_OPCODE0
 opcode0b  : T_OPCODE0B
             {
 	      if (UNLIKELY(PARSER_DEBUG))
-                  csound->Message(csound, "opcode0 $1=%p (%s)\n",
+                  csound->Message(csound, "opcode0b $1=%p (%s)\n",
                                   $1,((ORCTOKEN *)$1)->lexeme );
                 $$ = make_leaf(csound,LINE,LOCN, T_OPCODE0, (ORCTOKEN *)$1);
                 

@@ -12,7 +12,7 @@ in the API are not backwardly compatible.
 The major changes for Csound 6 are:
 
     
-o   A --sample-accurate option provdes sample-accurate timing 
+o   A --sample-accurate option provides sample-accurate timing 
     of score events. This breaks backward compatibility for plugin opcodes, 
     which require code changes for tracking current sample frame 
     position in audio type variables (see below for an example).
@@ -30,10 +30,10 @@ o   New opcodes and syntax support arrays of arbitrary dimensionality.
     creates a square, 4 x 4 a-rate array. Or,
         k2[] fillarray 1, 2, 3, 4
     creates a 4-element vector filled with {1, 2, 3, 4}, and implicitly
-    defines a length. Array elements are indexed with bracets [] such as k1[2] or 
+    defines a length. Array elements are indexed with brackets [] such as k1[2] or 
     a2[2][3]. One dimensional arrays replace tvars, and can be used in opcodes like
-    maxtab, mintab and sumtab (see below). Array setting can also be done on the 
-    left-hand side of opcodes, e.g.:
+    maxtab/maxarray, mintab/minarray and sumtab/sumarray (see below). 
+    Array setting can also be done on the left-hand side of opcodes, e.g.:
         aSigs[0] vco2 .1, 440
         aSigs[1] vco2 .1, 880
         
@@ -78,7 +78,7 @@ Orchestra:
         is specified.  Note that this does not work for tied notes, and
         skipping initialisation is probably not useful.
 
-    o   Instruments can run at local valukes of ksmps using 
+    o   Instruments can run at local values of ksmps using 
              setksmps iksmps
         as in Csound 5 UDOs.
 
@@ -111,7 +111,7 @@ Orchestra:
         arrays, most restricted to 1 dimensional arrays (vectors): 
         kans minarray ktab       returns the smallest value in the
                                  (possibly) multidimensional array
-        kans maxarray ktab       is like mintab
+        kans maxarray ktab       returns its largest value
         kabs sumarray ktab       returns sum of all values in the array
         ktab genarray imin, imax[, inc]
                                  generates vector of values from imin
@@ -136,15 +136,15 @@ Orchestra:
         instrument; this may be useful for legato etc.
 
     o   If a table number is given as -1 then an internal sine wave
-        equivalent to "f. 0 16382 10 1" is used.  Attempts to write to
+        equivalent to "f. 0 16384 10 1" is used.  Attempts to write to
         this table will give unpredictable results, but is not
-        policed.  The 16382 can be change by command line option
+        policed.  The 16384 can be change by command line option
         --sine-size=# where the # is rounded up to a power of two.
 
     o   A number of oscil opcodes now have the f-table parameter as
         optional, defaulting to the internal sine wave. (oscil1,
         oscil1i, oscil, oscil3, oscili, foscil, foscil1, loscil,
-        loscil3)
+        loscil3, poscil, poscil3)
 
 Score:
 

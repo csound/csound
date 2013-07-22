@@ -16,7 +16,7 @@
 
 #define MyAppName "Csound6"
 #define MyAppVersion ""
-#define MyAppMinVersion "0rc3"
+#define MyAppMinVersion "00"
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
@@ -49,7 +49,11 @@
 #define MyLibLoSourceDir "C:\mingw32-4.7.2\msys\1.0\local\src\liblo-0.26\"
 ; If you are not Michael Gogins, change this to your STK dll directory.
 #define MyLibStkSourceDir "C:\mingw32-4.7.2\msys\1.0\local\src\stk-4.4.4\"
- 
+; If you are not Michael Gogins, change this to your CsoundQt bin directory.
+#define MyCsoundQtBinDir "C:\Users\new\qutecsound-code\bin\"
+; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
+#define MyQtSdkBinDir "D:\Qt\qt-everywhere-opensource-src-5.1.0\qtbase\bin\"
+
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full; 
@@ -124,10 +128,23 @@ Source: "{#MyMinGwBinDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyMinGwBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv.dll"; Components: core;
 Source: "{#MyMinGwUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "*.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "*.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.dll*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll"; Components: core;
 Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
+
+Source: "{#MyCsoundQtBinDir}CsoundQt-d-debug.exe"; DestDir: "{#APP_BIN}"; DestName: "CsoundQt-d.exe"; Components: core;
+; g++ -Wl,-subsystem,windows -mthreads -o bin/CsoundQt-d-debug.exe object_script.CsoundQt-d-debug  
+; -lmingw32 -lqtmaind -lole32 C:/Users/new/csound-csound6-git/csound64.dll C:/Users/new/csound-csound6-git/csnd.dll 
+; C:/mingw32-4.7.2/msys/1.0/opt/Mega-Nerd/libsndfile/bin/libsndfile-1.dll 
+; -LD:/Qt/qt-everywhere-opensource-src-5.1.0/qtbase/lib 
+; -lQt5PrintSupportd -lQt5Widgetsd -lQt5Xmld -lQt5Guid -lQt5Cored build/doubles/obj/qutecsound_res.o
+Source: "{#MyQtSdkBinDir}Qt5PrintSupportd.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5Widgetsd.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5Xmld.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5Guid.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5Cored.dll"; DestDir: "{#APP_BIN}"; Components: core;
 
 Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
@@ -175,6 +192,7 @@ Source: {#MyCsoundAcTutorialSourceDir}code\*.*; DestDir: "{#APP_TUTORIAL}code\";
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}";  Components: core;  
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core  
+Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d.exe"; WorkingDir: "{#APP_BIN}";  Components: core   
 Name: "{group}\WinSound"; Filename: "{#APP_BIN}winsound.exe"; WorkingDir: "{#APP_BIN}";  Components: core 
 Name: "{group}\LuaJIT"; Filename: "{#APP_BIN}luajit.exe"; WorkingDir: "{#APP_BIN}";  Components: core 
 Name: "{group}\Audio device information"; Filename: "cmd"; Parameters: "/K pa_devs.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core 
