@@ -5770,8 +5770,8 @@ msgstr "Les dimensions ne correspondent pas dans l'arithmétique des tableaux"
 #: Opcodes/arrays.c:671 Opcodes/arrays.c:702 Opcodes/arrays.c:733
 #: Opcodes/arrays.c:754 Opcodes/arrays.c:818 Opcodes/pvsbasic.c:2336
 #: Opcodes/pvsbasic.c:2376
-msgid "t-variable not initialised"
-msgstr "t-variable : non initialisé"
+msgid "array-variable not initialised"
+msgstr "array-variable : non initialisé"
 
 #: Opcodes/arrays.c:299 Opcodes/arrays.c:317
 msgid "Dimension does not match in array arithmetic"
@@ -5779,16 +5779,16 @@ msgstr "La dimension ne correspond pas dans l'arithmétique des tableaux"
 
 #: Opcodes/arrays.c:423 Opcodes/arrays.c:568 Opcodes/arrays.c:591
 #: Opcodes/arrays.c:614 Opcodes/arrays.c:644
-msgid "division by zero in t-var"
-msgstr "division par zéro dans la t-var"
+msgid "division by zero in array-var"
+msgstr "division par zéro dans la array-var"
 
 #: Opcodes/arrays.c:736
-msgid "t-variable not a vector"
-msgstr "t-variable pas un vecteur"
+msgid "array-variable not a vector"
+msgstr "array-variable pas un vecteur"
 
 #: Opcodes/arrays.c:834
-msgid "t-var not initialised"
-msgstr "t-variable : non initialisé"
+msgid "array-var not initialised"
+msgstr "array-variable : non initialisé"
 
 #: Opcodes/arrays.c:837 Opcodes/arrays.c:895
 msgid "No table for copy2ftab"
@@ -5808,7 +5808,7 @@ msgstr "intervalle plus grand que la taille d'origine"
 
 #: Opcodes/arrays.c:951 Opcodes/arrays.c:987 Opcodes/arrays.c:990
 msgid "tvar not initialised"
-msgstr "t-variable : non initialisé"
+msgstr "array-variable : non initialisé"
 
 #: Opcodes/arrays.c:964
 #, c-format

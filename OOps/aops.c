@@ -167,6 +167,7 @@ int mainit(CSOUND *csound, ASSIGNM *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     unsigned int   i, n, nsmps = CS_KSMPS;
     MYFLT aa = FL(0.0);
+    early = nsmps - early;      /* Bit at end to ignore */
     if (UNLIKELY(nargs > p->OUTOCOUNT))
       return csound->InitError(csound,
                                Str("Cannot be more In arguments than Out in "
@@ -187,69 +188,29 @@ int mainit(CSOUND *csound, ASSIGNM *p)
     return OK;
 }
 
-/* typedef struct { */
-/*     OPDS    h; */
-/*     TABDAT  *tab; */
-/* } TABDEL; */
 
-/* static int tabdel(CSOUND *csound, void *p) */
-/* { */
-/*     TABDAT *t = ((TABDEL*)p)->tab; */
-/*     mfree(csound, t->data); */
-/*     mfree(csound, p); */
-/*     return OK; */
-/* } */
+int signum(CSOUND *csound, ASSIGN *p)
+{
+    MYFLT a = *p->a;
+    int ans = (a==FL(0.0) ? 0 : a<FL(0.0) ? -1 : 1);
+    *p->r = (MYFLT) ans;
+    return OK;
+}
 
-/* int tinit(CSOUND *csound, INITT *p) */
-/* { */
-/*     int size = MYFLT2LRND(*p->size); */
-/*     MYFLT val = *p->value; */
-/*     TABDAT *t = p->a; */
-/*     int i; */
-
-/*     t->size = size; */
-/*     mfree(csound, t->data); */
-/*     t->data = mmalloc(csound, sizeof(MYFLT)*(size+1)); */
-/*     for (i=0; i<=size; i++) t->data[i] = val; */
-/*     { // Need to recover space eventually */
-/*       TABDEL *op = (TABDEL*) mmalloc(csound, sizeof(TABDEL)); */
-/*       op->h.insdshead = ((OPDS*) p)->insdshead; */
-/*       op->tab = t; */
-/*       csound->RegisterDeinitCallback(csound, op, tabdel); */
-/*     } */
-/*     return OK; */
-/* } */
-
-/* int tassign(CSOUND *csound, ASSIGNT *p) */
-/* { */
-/*     TABDAT *t = p->tab; */
-/*     int ind = MYFLT2LRND(*p->ind); */
-/*     if (ind<0 || ind>t->size) */
-/*       return csound->PerfError(csound, p->h.insdshead,*/
-/*                                Str("Index %d out of range [0,%d] in t[]\n"), */
-/*                                ind, t->size); */
-/*     t->data[ind] = *p->val; */
-/*     return OK; */
-/* } */
-
-/* int tabref_check(CSOUND *csound, TABREF *p) */
-/* { */
-/*     if (UNLIKELY(p->tab->data==NULL)) */
-/*       return csound->InitError(csound, Str("Vector not initialised\n")); */
-/*     return OK; */
-/* } */
-
-/* int tabref(CSOUND *csound, TABREF *p) */
-/* { */
-/*     int ind = MYFLT2LRND(*p->ind); */
-/*     TABDAT *t = p->tab; */
-/*      if (ind<0 || ind>t->size) */
-/*       return csound->PerfError(csound, p->h.insdshead,*/
-/*                                Str("Index %d out of range [0,%d] in t[]\n"), */
-/*                                ind, t->size); */
-/*      *p->ans = t->data[ind]; */
-/*      return OK; */
-/* } */
+int asignum(CSOUND *csound, ASSIGN *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    unsigned int   i, nsmps = CS_KSMPS;
+    MYFLT *a = p->a;
+    memset(p->r, '\0', nsmps*sizeof(MYFLT));
+    early = nsmps-early;
+    for (i=offset; i<early; i++) {
+      int ans = (a[i]==FL(0.0) ? 0 : a[i]<FL(0.0) ? -1 : 1);
+      p->r[i] = (MYFLT) ans;
+    }
+    return OK;
+}
 
 #define RELATN(OPNAME,OP)                               \
   int OPNAME(CSOUND *csound, RELAT *p)                  \
