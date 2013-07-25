@@ -393,8 +393,11 @@ OENTRY opcodlst_1[] = {
   { "envlpx.x", S(ENVLPX), TR, 5,     "a","kiiiiiio", evxset, NULL,envlpx  },
   { "envlpxr.x", S(ENVLPR),TR, 5,     "a","kiiiiioo", evrset, NULL,envlpxr },
   { "phasor", S(PHSOR),0,   5,      "a",    "xo",   phsset, NULL, phsor   },
-  { "phasor.k", S(PHSOR),0,   3,      "k",    "ko",   phsset, kphsor, NULL   },
-  { "ephasor", S(EPHSOR), 0,  5,    "aa",    "xko",  ephsset, NULL, ephsor  },
+  { "phasor.k", S(PHSOR),0,   3,     "k",   "ko",   phsset, kphsor, NULL  },
+  { "ephasor", S(EPHSOR), 0,  5,   "aa",   "xko",  ephsset, NULL, ephsor  },
+  { "signum.i", S(ASSIGN), 0, 1,     "i",   "i", signum, NULL, NULL       },
+  { "signum.k", S(ASSIGN), 0, 3,     "k",   "k", signum, signum, NULL     },
+  { "signum.a", S(ASSIGN), 0, 4,     "a",   "a", NULL, NULL, asignum      },
   /* { "table",  0xffff, TR                                                   }, */
   /* { "tablei", 0xffff, TR                                                   }, */
   /* { "table3", 0xffff, TR                                                   }, */
