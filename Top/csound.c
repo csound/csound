@@ -2947,10 +2947,7 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       NULL);
     {
 
-      int   minVal = 10;
-      int   maxVal = 10000;
       MYFLT minValF = FL(0.0);
-      static MYFLT maxStrLenDummy = FL(0.0);
 
       csoundCreateConfigurationVariable(csound, "msg_color",
                                         &(csound->enableMsgAttr),
