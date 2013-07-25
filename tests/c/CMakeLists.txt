@@ -13,7 +13,7 @@ ENABLE_TESTING()
 add_executable(testCompilation compilation_test.c)
 target_link_libraries(testCompilation ${CSOUNDLIB_STATIC} ${CUNIT_LIBRARY})
 add_test(NAME testCompilation
-        COMMAND $<TARGET_FILE:testCompilation> minimal.csd ${TEST_ARGS})
+        COMMAND $<TARGET_FILE:testCompilation> ${TEST_ARGS})
 
 add_executable(testCsoundTypeSystem csound_type_system_test.c)
 target_link_libraries(testCsoundTypeSystem ${CSOUNDLIB_STATIC} ${CUNIT_LIBRARY})
@@ -51,13 +51,20 @@ add_test(NAME testCsoundDataStructures
 add_executable(testIo io_test.c)
 target_link_libraries(testIo ${CSOUNDLIB_STATIC} ${CUNIT_LIBRARY})
 add_test(NAME testIo
-        COMMAND $<TARGET_FILE:testIo> minimal.csd ${TEST_ARGS})
+        COMMAND $<TARGET_FILE:testIo> ${TEST_ARGS})
 
 add_executable(testCircularBuffer csound_circular_buffer_test.c)
 target_link_libraries(testCircularBuffer ${CSOUNDLIB_STATIC} ${CUNIT_LIBRARY} pthread)
 add_test(NAME testCircularBuffer
         COMMAND $<TARGET_FILE:testCircularBuffer> minimal.csd ${TEST_ARGS})
-endif()
+
+add_executable(testCscore cscore_tests.c)
+target_link_libraries(testCscore ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread)
+add_test(NAME testCscore
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/c/
+        COMMAND $<TARGET_FILE:testCscore> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
+
+endif(BUILD_TESTS)
 
 
 

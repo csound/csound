@@ -50,7 +50,11 @@ public class CsoundEditor extends JFrame {
     static FileFilter csoundFileFilter;
     private JTextArea scoreTextArea = null;
     static {
-	 System.loadLibrary("_jcsound");
+        try {
+            System.loadLibrary("_jcsound6");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Native code library failed to load.\n" + e);
+        }
         fileChooser = new JFileChooser();
         fileChooser.setAcceptAllFileFilterUsed(true);
         csoundFileFilter = new CsoundFileFilter();
