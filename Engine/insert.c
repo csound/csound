@@ -967,6 +967,26 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
       saved_curip->subins_deact = (void*) p;
       p->parent_ip = p->buf.parent_ip = saved_curip;
     }
+    
+    /* set the local ksmps values */
+//    if (local_ksmps != CS_KSMPS) {
+//        /* this is the case when p->ip->ksmps != p->h.insdshead->ksmps */
+//        p->ip->ksmps = local_ksmps;
+//        ksmps_scale = CS_KSMPS / local_ksmps;
+//        lcurip->onedksmps =  FL(1.0) / (MYFLT) local_ksmps;
+//        lcurip->ekr = csound->esr / (MYFLT) local_ksmps;
+//        lcurip->onedkr = FL(1.0) / lcurip->ekr;
+//        lcurip->kicvt = (MYFLT) FMAXLEN /lcurip->ekr;
+//        lcurip->kcounter *= ksmps_scale;
+//    } else {
+        p->ip->ksmps = CS_KSMPS;
+        p->ip->kcounter = CS_KCNT;
+        p->ip->ekr = CS_EKR;
+        p->ip->onedkr = CS_ONEDKR;
+        p->ip->onedksmps = CS_ONEDKSMPS;
+        p->ip->kicvt = CS_KICVT;
+//    }
+    
     /* copy parameters from this instrument into our subinstrument */
     p->ip->xtratim  = saved_curip->xtratim;
     p->ip->m_sust   = 0;
