@@ -1,5 +1,0 @@
-//
-// Prefix header for all source files of the 'Csound 5' target in the 'Csound 5' project.
-//
-
-#include <Carbon/Carbon.h>
