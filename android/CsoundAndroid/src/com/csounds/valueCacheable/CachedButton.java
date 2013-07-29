@@ -32,6 +32,7 @@ import android.view.View.OnTouchListener;
 import android.widget.Button;
 
 import com.csounds.CsoundObj;
+import csnd6.controlChannelType;
 
 import csnd6.CsoundMYFLTArray;
 
@@ -96,10 +97,10 @@ public class CachedButton extends AbstractValueCacheable {
 					return true;
 				}
 			});
-			ptrX = csoundObj.getInputChannelPtr(channelName + ".x");
-			ptrY = csoundObj.getInputChannelPtr(channelName + ".y");
+			ptrX = csoundObj.getInputChannelPtr(channelName + ".x", controlChannelType.CSOUND_CONTROL_CHANNEL);
+			ptrY = csoundObj.getInputChannelPtr(channelName + ".y", controlChannelType.CSOUND_CONTROL_CHANNEL);
 		}
-		ptr = csoundObj.getInputChannelPtr(channelName);
+		ptr = csoundObj.getInputChannelPtr(channelName, controlChannelType.CSOUND_CONTROL_CHANNEL);
 	}
 	
 	
