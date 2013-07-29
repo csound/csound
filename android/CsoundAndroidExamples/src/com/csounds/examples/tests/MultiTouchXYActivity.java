@@ -39,6 +39,7 @@ import com.csounds.examples.R;
 import com.csounds.valueCacheable.CsoundValueCacheable;
 
 import csnd6.CsoundMYFLTArray;
+import csnd6.controlChannelType;
 
 public class MultiTouchXYActivity extends BaseCsoundActivity implements
 		CsoundObjCompletionListener, CsoundValueCacheable {
@@ -166,8 +167,12 @@ public class MultiTouchXYActivity extends BaseCsoundActivity implements
 
 	public void setup(CsoundObj csoundObj) {
 		for(int i = 0; i < touchIds.length; i++) {
-			touchXPtr[i] = csoundObj.getInputChannelPtr(String.format("touch.%d.x", i));
-			touchYPtr[i] = csoundObj.getInputChannelPtr(String.format("touch.%d.y", i));
+			touchXPtr[i] = csoundObj.getInputChannelPtr(
+					String.format("touch.%d.x", i),
+					controlChannelType.CSOUND_CONTROL_CHANNEL);
+			touchYPtr[i] = csoundObj.getInputChannelPtr(
+					String.format("touch.%d.y", i),
+					controlChannelType.CSOUND_CONTROL_CHANNEL);
 		}
 	}
 

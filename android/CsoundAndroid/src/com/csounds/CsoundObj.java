@@ -161,16 +161,35 @@ public class CsoundObj {
 		return accelerometer;
 	}
 
-	public CsoundMYFLTArray getInputChannelPtr(String channelName) {
-		CsoundMYFLTArray ptr = new CsoundMYFLTArray(1);
+	public CsoundMYFLTArray getInputChannelPtr(String channelName, 
+			controlChannelType channelType) {
+		
+		int channelSize = (channelType == controlChannelType.CSOUND_AUDIO_CHANNEL) ?
+				getCsound().GetKsmps() : 1;
+		CsoundMYFLTArray ptr = new CsoundMYFLTArray(channelSize);
+		
 		getCsound().GetChannelPtr(
 				ptr.GetPtr(),
 				channelName,
-				controlChannelType.CSOUND_CONTROL_CHANNEL.swigValue()
+				channelType.swigValue()
 						| controlChannelType.CSOUND_INPUT_CHANNEL.swigValue());
 		return ptr;
 	}
 
+	public CsoundMYFLTArray getOutputChannelPtr(String channelName, 
+			controlChannelType channelType) {
+		int channelSize = (channelType == controlChannelType.CSOUND_AUDIO_CHANNEL) ?
+				getCsound().GetKsmps() : 1;
+		CsoundMYFLTArray ptr = new CsoundMYFLTArray(channelSize);
+		
+		getCsound().GetChannelPtr(
+				ptr.GetPtr(),
+				channelName,
+				channelType.swigValue()
+						| controlChannelType.CSOUND_OUTPUT_CHANNEL.swigValue());
+		return ptr;
+	}
+	
 	public void sendScore(String score) {
 		inputMessage(score);
 	}
