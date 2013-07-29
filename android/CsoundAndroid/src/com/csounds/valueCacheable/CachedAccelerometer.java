@@ -37,6 +37,7 @@ import android.util.Log;
 import com.csounds.CsoundObj;
 
 import csnd6.CsoundMYFLTArray;
+import csnd6.controlChannelType;
 
 public class CachedAccelerometer extends AbstractValueCacheable implements SensorEventListener {
 
@@ -73,9 +74,9 @@ public class CachedAccelerometer extends AbstractValueCacheable implements Senso
 	    	
 	    	sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST);
 	    	
-	    	channelPtrX = csoundObj.getInputChannelPtr(CS_ACCEL_X);
-			channelPtrY = csoundObj.getInputChannelPtr(CS_ACCEL_Y);
-			channelPtrZ = csoundObj.getInputChannelPtr(CS_ACCEL_Z);	
+	    	channelPtrX = csoundObj.getInputChannelPtr(CS_ACCEL_X, controlChannelType.CSOUND_CONTROL_CHANNEL);
+			channelPtrY = csoundObj.getInputChannelPtr(CS_ACCEL_Y, controlChannelType.CSOUND_CONTROL_CHANNEL);
+			channelPtrZ = csoundObj.getInputChannelPtr(CS_ACCEL_Z, controlChannelType.CSOUND_CONTROL_CHANNEL);	
 	    } else {
 	    	Log.d("CachedAccelerometer", "Unable to get Accelerometer sensor.");
 	    }

@@ -31,6 +31,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import com.csounds.CsoundObj;
 
 import csnd6.CsoundMYFLTArray;
+import csnd6.controlChannelType;
 
 public class CachedSlider extends AbstractValueCacheable{
 	private SeekBar seekBar;
@@ -83,7 +84,7 @@ public class CachedSlider extends AbstractValueCacheable{
 		cachedValue = (percent * (maxValue - minValue)) + minValue;
 		cacheDirty = true;
 		
-		ptr = this.csoundObj.getInputChannelPtr(channelName);
+		ptr = this.csoundObj.getInputChannelPtr(channelName, controlChannelType.CSOUND_CONTROL_CHANNEL);
 
 	}
 	
