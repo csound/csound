@@ -48,7 +48,6 @@
 ./H/cs_par_orc_semantics.h
 ./H/csmodule.h
 ./H/csound_orc.h
-./H/diskin.h
 ./H/diskin2.h
 ./H/disprep.h
 ./H/dumpf.h
@@ -74,7 +73,6 @@
 ./H/prototyp.h
 ./H/remote.h
 ./H/resize.h
-./H/resource.h
 ./H/schedule.h
 ./H/sndinfUG.h
 ./H/sort.h
@@ -213,7 +211,6 @@
 ./Opcodes/dssi4cs/src/dssi4cs.h
 ./Opcodes/dssi4cs/src/ladspa.h
 ./Opcodes/dssi4cs/src/load.c
-./Opcodes/dssi4cs/src/seq_event.h
 ./Opcodes/dssi4cs/src/utils.h
 ./Opcodes/eqfil.c
 ./Opcodes/fareygen.c
@@ -241,7 +238,7 @@
 ./Opcodes/gab/gab.h
 ./Opcodes/gab/hvs.c
 ./Opcodes/gab/newgabopc.c
-./Opcodes/gab/radiobaton.c
+./Opcodes/gab/radiobaton.c XXXXXXXX
 ./Opcodes/gab/sliderTable.c
 ./Opcodes/gab/stdopcod.h
 ./Opcodes/gab/tabmorph.c
@@ -334,7 +331,6 @@
 ./Opcodes/pvsdemix.c
 ./Opcodes/pvsdemix.h
 ./Opcodes/pvsgendy.c
-./Opcodes/pvslock.c
 ./Opcodes/py/pycall.auto.c
 ./Opcodes/py/pycall.auto.h
 ./Opcodes/py/pythonhelper.h
@@ -529,31 +525,11 @@
 ./frontends/CsoundVST/ScoreGeneratorVstUi.h
 ./frontends/CsoundVST/csoundvst_main.cpp
 ./frontends/CsoundVST/pyrun.c
-./frontends/OSX/main.c
-./frontends/cscore/cscore.c
-./frontends/cscore/cscoremain.c
-./frontends/cseditor/cseditor.cxx
 ./frontends/csladspa/csladspa.cpp
 ./frontends/csladspa/ladspa.h
 ./frontends/csound/csound_main.c
 ./frontends/csound/sched.c
 ./frontends/csoundapi_tilde/csoundapi_tilde.c
-./frontends/flcsound/canvas.cpp
-./frontends/flcsound/canvas.hpp
-./frontends/flcsound/curve.cpp
-./frontends/flcsound/curve.hpp
-./frontends/flcsound/main.cpp
-./frontends/flcsound/plots.cpp
-./frontends/flcsound/plots.hpp
-./frontends/flcsound/px2pt.c
-./frontends/flcsound/synthesizer.cpp
-./frontends/flcsound/synthesizer.hpp
-./frontends/flcsound/u2d.c
-./frontends/tclcsound/commands.c
-./frontends/tclcsound/main_tclsh.c
-./frontends/tclcsound/main_wish.c
-./frontends/tclcsound/tclcsound.c
-./frontends/tclcsound/tclcsound.h
 ./frontends/winsound.cxx
 ./frontends/winsound.h
 ./frontends/winsound/main.cxx
@@ -636,10 +612,6 @@
 ./util/utilmain.h
 ./util/xtrc_main.c
 ./util/xtrct.c
-./util1/cscore/cscore.c
-./util1/cscore/cscore.h
-./util1/cscore/cscore_main.c
-./util1/cscore/main.c
 ./util1/csd_util/base64.c
 ./util1/csd_util/cs.c
 ./util1/csd_util/csb64enc.c
