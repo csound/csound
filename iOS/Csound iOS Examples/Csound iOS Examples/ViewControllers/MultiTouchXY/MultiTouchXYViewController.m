@@ -72,11 +72,13 @@
 -(void)setup:(CsoundObj*)csoundObj {
 
 	for (int i = 0; i < 10; i++) {
-		touchXPtr[i] = [csoundObj getInputChannelPtr:[NSString stringWithFormat:@"touch.%d.x", i, nil]];
-		touchYPtr[i] = [csoundObj getInputChannelPtr:[NSString stringWithFormat:@"touch.%d.y", i, nil ]];
-	}
-
+		touchXPtr[i] = [csoundObj getInputChannelPtr:[NSString stringWithFormat:@"touch.%d.x", i, nil]
+                                  channelType:CSOUND_CONTROL_CHANNEL];
+		touchYPtr[i] = [csoundObj getInputChannelPtr:[NSString stringWithFormat:@"touch.%d.y", i, nil]
+                                  channelType:CSOUND_CONTROL_CHANNEL];
+    }
 }
+
 -(void)updateValuesToCsound {
 	for (int i = 0; i < 10; i++) {
 		*touchXPtr[i] = touchX[i];

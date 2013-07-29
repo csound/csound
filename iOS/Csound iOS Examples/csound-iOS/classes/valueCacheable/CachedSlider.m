@@ -43,7 +43,8 @@
 }
 
 -(void)setup:(CsoundObj*)csoundObj {
-    channelPtr = [csoundObj getInputChannelPtr:self.channelName];
+    channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                   channelType:CSOUND_CONTROL_CHANNEL];
     cachedValue = mSlider.value;
     self.cacheDirty = YES;
     [mSlider addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];

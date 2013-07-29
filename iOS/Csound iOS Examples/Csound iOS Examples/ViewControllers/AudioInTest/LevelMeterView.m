@@ -142,7 +142,7 @@
 
 -(void)setup:(CsoundObj*)csoundObj
 {
-	channelPtr = [csoundObj getOutputChannelPtr:self.channelName];
+	channelPtr = [csoundObj getOutputChannelPtr:self.channelName channelType:CSOUND_AUDIO_CHANNEL];
 	CSOUND *cs = [csoundObj getCsound];
 	sr = csoundGetSr(cs);
 	ksmps = csoundGetKsmps(cs);

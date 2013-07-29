@@ -234,16 +234,19 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
     return mCsData.aunit;
 }
 
--(float*)getInputChannelPtr:(NSString*)channelName {
+-(float*)getInputChannelPtr:(NSString*)channelName channelType:(controlChannelType)channelType
+{
     float *value;
-    csoundGetChannelPtr(mCsData.cs, &value, [channelName cStringUsingEncoding:NSASCIIStringEncoding], CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+    csoundGetChannelPtr(mCsData.cs, &value, [channelName cStringUsingEncoding:NSASCIIStringEncoding],
+                        channelType | CSOUND_INPUT_CHANNEL);
     return value;
 }
 
--(float*)getOutputChannelPtr:(NSString *)channelName
+-(float*)getOutputChannelPtr:(NSString *)channelName channelType:(controlChannelType)channelType
 {
 	float *value;
-	csoundGetChannelPtr(mCsData.cs, &value, [channelName cStringUsingEncoding:NSASCIIStringEncoding], CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+	csoundGetChannelPtr(mCsData.cs, &value, [channelName cStringUsingEncoding:NSASCIIStringEncoding],
+                        channelType | CSOUND_OUTPUT_CHANNEL);
 	return value;
 }
 
