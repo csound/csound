@@ -228,8 +228,8 @@
 
 - (void)setup:(CsoundObj *)csoundObj
 {
-	channelPtrX = [csoundObj getInputChannelPtr:@"mix"];
-	channelPtrY = [csoundObj getInputChannelPtr:@"pitch"];
+	channelPtrX = [csoundObj getInputChannelPtr:@"mix" channelType:CSOUND_CONTROL_CHANNEL];
+	channelPtrY = [csoundObj getInputChannelPtr:@"pitch" channelType:CSOUND_CONTROL_CHANNEL];
     cachedValueX = xValue;
 	cachedValueY = yValue;
     self.cacheDirty = YES;

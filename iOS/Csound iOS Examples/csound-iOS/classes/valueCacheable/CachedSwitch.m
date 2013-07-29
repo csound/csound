@@ -43,7 +43,8 @@
 -(void)setup:(CsoundObj*)csoundObj {
     self.cachedValue = self.mSwitch.on ? 1 : 0;
     self.cacheDirty = YES;
-    self.channelPtr = [csoundObj getInputChannelPtr:self.channelName];
+    self.channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                        channelType:CSOUND_CONTROL_CHANNEL];
     [self.mSwitch addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
 }
 

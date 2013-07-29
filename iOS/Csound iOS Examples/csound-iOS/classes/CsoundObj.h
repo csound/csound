@@ -116,8 +116,15 @@ typedef struct {
 
 -(CSOUND*)getCsound;
 -(AudioUnit*)getAudioUnit;
--(float*)getInputChannelPtr:(NSString*)channelName;	
--(float*)getOutputChannelPtr:(NSString*)channelName;
+
+/** get a float* output channel that maps to a channel name and type, where type is 
+ CSOUND_AUDIO_CHANNEL, CSOUND_CONTROL_CHANNEL, etc. */
+-(float*)getInputChannelPtr:(NSString*)channelName channelType:(controlChannelType)channelType;
+
+/** get a float* output channel that maps to a channel name and type, where type is 
+ CSOUND_AUDIO_CHANNEL, CSOUND_CONTROL_CHANNEL, etc. */
+-(float*)getOutputChannelPtr:(NSString*)channelName channelType:(controlChannelType)channelType;
+
 -(NSData*)getOutSamples;
 -(int)getNumChannels;
 -(int)getKsmps;
