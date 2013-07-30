@@ -3,6 +3,9 @@ Csound for iOS ChangeLog
 This ChangeLog shows changes specific to Csound for iOS. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
 
 
+6.00.1 - 2013-xx-xx
+
+* Bug #26: CsoundObj.m: modified getInputChannelPtr and getOutputChannelPtr to require passing in the channelType (i.e. CSOUND_CONTROL_CHANNEL, CSOUND_AUDIO_CHANNEL); previously getInputChannelPtr was hardcoded for only control channels and getOutputChannelPtr was hardcoded for only audio channels.  This is a non-backwards compatible change.  To update previous project, add "channelType:CSOUND_CONTROL_CHANNEL" when calling getInputChannelPtr and "channelType:CSOUND_AUDIO_CHANNEL" when calling getOutputChannelPtr.  
 
 
 6.00.0 - 2013-07-10
@@ -14,11 +17,13 @@ https://developer.apple.com/library/ios/#releasenotes/ObjectiveC/RN-Transitionin
 
 * CsoundObj.m: Replaced audio route handling code with simpler code setting category default to Speaker (Contributed by Stephan Hepper)
 
+
 5.19.02.2 - 2013-03-20
 
 * CsoundObj.m: Added [NSThread sleepForTimeInterval:.001] in while loop to prevent loop from being optimized out; caused issue when compiling application with -O1 or higher (i.e. -Os used when building for Release)
 
 * CsoundObj.m: Updated audio route handling to take into account AirPlay; also, now correctly routes to speaker and not earpiece even upon repeated connection and disconnection of headphones
+
 
 5.19.02.1 - 2013-02-11
 
