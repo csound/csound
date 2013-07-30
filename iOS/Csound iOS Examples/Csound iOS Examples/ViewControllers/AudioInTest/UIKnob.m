@@ -153,7 +153,7 @@
 
 - (void)setup:(CsoundObj *)csoundObj
 {
-	channelPtr = [csoundObj getInputChannelPtr:@"pitch"];
+	channelPtr = [csoundObj getInputChannelPtr:@"pitch" channelType:CSOUND_CONTROL_CHANNEL];
     cachedValue = value;
     self.cacheDirty = YES;
     [self addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];

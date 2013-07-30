@@ -39,9 +39,12 @@ static NSString* CS_ATTITUDE_YAW = @"attitudeYaw";
 }
 
 -(void)setup:(CsoundObj*)csoundObj {
-    channelPtrRoll = [csoundObj getInputChannelPtr:CS_ATTITUDE_ROLL];
-    channelPtrPitch = [csoundObj getInputChannelPtr:CS_ATTITUDE_PITCH];
-    channelPtrYaw = [csoundObj getInputChannelPtr:CS_ATTITUDE_YAW];    
+    channelPtrRoll = [csoundObj getInputChannelPtr:CS_ATTITUDE_ROLL
+                                       channelType:CSOUND_CONTROL_CHANNEL];
+    channelPtrPitch = [csoundObj getInputChannelPtr:CS_ATTITUDE_PITCH
+                                        channelType:CSOUND_CONTROL_CHANNEL];
+    channelPtrYaw = [csoundObj getInputChannelPtr:CS_ATTITUDE_YAW
+                                      channelType:CSOUND_CONTROL_CHANNEL];
     
     *channelPtrRoll = mManager.deviceMotion.attitude.roll;
     *channelPtrPitch = mManager.deviceMotion.attitude.pitch;
