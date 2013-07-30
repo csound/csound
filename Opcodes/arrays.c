@@ -860,7 +860,7 @@ typedef struct {
 } TABGEN;
 
 
-static int tabgen_set(CSOUND *csound, TABGEN *p)
+static int tabgen(CSOUND *csound, TABGEN *p)
 {
     MYFLT *data =  p->tab->data;
     MYFLT start = *p->start;
@@ -1127,12 +1127,14 @@ static OENTRY arrayvars_localops[] =
     { "scalearray.1", sizeof(TABSCALE), 0, 1, "",  "i[]iiOJ",   (SUBR) tabscale1 },
     { "=.t", sizeof(TABCPY), 0, 3, "k[]", "k[]", (SUBR)tabcopy_set, (SUBR)tabcopy },
     { "=.I", sizeof(TABCPY), 0, 3, "i[]", "i[]", (SUBR)tabcopy1, NULL },
-    { "tabgen", sizeof(TABGEN), _QQ, 1, "k[]", "iip", (SUBR) tabgen_set, NULL    },
+    { "tabgen", sizeof(TABGEN), _QQ, 1, "k[]", "iip", (SUBR) tabgen, NULL    },
     { "tabmap_i", sizeof(TABMAP), _QQ, 1, "k[]", "k[]S", (SUBR) tabmap_set       },
     { "tabmap", sizeof(TABMAP), _QQ, 3, "k[]", "k[]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf},
-    { "genarray", sizeof(TABGEN),0, 1, "k[]", "iip", (SUBR) tabgen_set, NULL, NULL},
-    { "maparray_i", sizeof(TABMAP),0, 1, "k[]", "k[]S", (SUBR) tabmap_set         },
+    { "genarray.i", sizeof(TABGEN),0, 1, "i[]", "iip", (SUBR) tabgen, NULL   },
+    { "genarray_i", sizeof(TABGEN),0, 1, "k[]", "iip", (SUBR) tabgen, NULL, NULL},
+    { "genarray.k", sizeof(TABGEN),0, 3, "k[]", "iip", (SUBR)tabgen, (SUBR)tabgen },
+    { "maparray_i", sizeof(TABMAP),0, 1, "k[]", "k[]S", (SUBR) tabmap_set        },
     { "maparray", sizeof(TABMAP), 0, 3, "k[]", "k[]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf},
     { "tabslice", sizeof(TABSLICE), _QQ, 2, "k[]", "k[]ii",
