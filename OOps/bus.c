@@ -329,12 +329,12 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
                                           const char *name, int type)
 {
     CHNENTRY  *pp;
-    const char      *s;
+    //    const char      *s;
 
     /* check for valid parameters and calculate hash value */
     if (UNLIKELY(!(type & 48)))
       return CSOUND_ERROR;
-    s = name;
+    //    s = name;
 
 //    while (isalnum((unsigned char) *s) ||
 //           *s == (char) '_' || *s == (char) '-' || *s == (char) '.') s++;
@@ -937,8 +937,9 @@ int chnset_opcode_perf_S(CSOUND *csound, CHNGET *p)
     int  *lock;
     char *s = ((STRINGDAT *) p->arg)->data;
 
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
-                              CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    if ((err=csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+                                 CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)))
+      return err;
     size = csoundGetChannelDatasize(csound, p->iname->data);
 
     if(strcmp(s, (char *) p->fp) == 0) return OK;
