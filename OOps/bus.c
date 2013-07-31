@@ -407,8 +407,17 @@ PUBLIC int *csoundGetChannelLock(CSOUND *csound,
     if (UNLIKELY(name == NULL))
       return NULL;
     pp = find_channel(csound, name);
-    if (pp)
+    if (pp) {
+#ifndef MACOSX
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
+      return (int*)pp->lock;
+#else
       return &(pp->lock);
+#endif
+#else
+      return &(pp->lock);
+#endif
+    }
     else return NULL;
 }
 
@@ -1114,6 +1123,7 @@ int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     hints.dflt = *(p->idflt);
     hints.min = *(p->imin);
     hints.max = *(p->imax);
+    hints.attributes = NULL;
     err = csoundSetControlChannelHints(csound, (char*) p->iname->data, hints);
     if (LIKELY(!err))
       return OK;
