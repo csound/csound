@@ -25,7 +25,7 @@ Indicator/controller slider for score position.
 Indicate snapshot in filenames.
 Use a toolkit that enables stopping/restarting without crashing.
 '''
-import 	csnd
+import 	csnd6
 import 	os
 import 	pickle
 import 	shutil
@@ -311,7 +311,7 @@ class Application(Frame):
 		self.master = master
 		self.master.title('D R O N E')
 		self.pack()
-		self.csound = csnd.CppSound()
+		self.csound = csnd6.CppSound()
 		self.csound.setPythonMessageCallback()
 		self.playing = False
 		self.thread_ = thread_
