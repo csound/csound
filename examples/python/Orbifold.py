@@ -61,7 +61,7 @@ from numpy import *
 #import ImageGrab
 #import ImageOps
 
-import csnd
+import csnd6
 import CsoundAC
 '''
 Represents operations on chords in a voice-leading orbifold.
@@ -506,7 +506,7 @@ class TonnetzModel(Tonnetz):
         self.firstInversions = []
         self.enableCsound = enableCsound
         if self.enableCsound:
-            self.csound = csnd.CppSound()
+            self.csound = csnd6.CppSound()
         if self.isCube:
             for x in xrange(-self.cubeTessitura/2, self.cubeTessitura/2):
                 for y in xrange(-self.cubeTessitura/2, self.cubeTessitura/2):
@@ -831,7 +831,7 @@ endin
         #model.csound.setCommand('csound -h -d -r 48000 -k 1000 -m128 -b1000 -B1000 -odac')
         #gc.disable()
         #model.csound.compile()
-        #performanceThread = csnd.CsoundPerformanceThread(model.csound)
+        #performanceThread = csnd6.CsoundPerformanceThread(model.csound)
         #performanceThread.Play()
     fg = (1,1,1)
     arrowcolor = (0.7,0.7,0.7)

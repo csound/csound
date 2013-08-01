@@ -31,11 +31,13 @@ print "Generated events = ", len(strangeAttractor.getScore())
 # and place the Rescale node inside the MusicModel.
 
 random = CsoundAC.Random()
+print 'random:', random
 random.createDistribution("uniform_01")
 random.setElement(6, 11, 1)
 random.setElement(8, 11, 1)
 
 rescale = CsoundAC.Rescale()
+print 'rescale:', rescale
 rescale.setRescale( 0, 1, 1,  0,     300)
 rescale.setRescale( 1, 1, 0,  2,       4)
 rescale.setRescale( 3, 1, 1, 10,       4)
@@ -49,10 +51,12 @@ rescale.addChild(random)
 # Add these nodes to the builtin MusicModel instance.
 model.addChild(rescale)
 model.setTonesPerOctave(12.0)
+print 'generating...'
 model.generate()
+print 'finished.'
 
 csound.load("../CsoundAC.csd")
-csound.setCommand("csound -RWdfo StrangeAttractor.wav StrangeAttractor.orc StrangeAttractor.sco")
+csound.setCommand("csound -RWdfo StrangeAttractor.wav")
 score = model.getScore()
 print 'Events in generated score:', len(score)
 duration = score.getDuration()

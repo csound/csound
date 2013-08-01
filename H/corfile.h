@@ -26,9 +26,9 @@
 #define __corfil
 
 CORFIL *corfile_create_w(void);
-CORFIL *corfile_create_r(char *text);
+CORFIL *corfile_create_r(const char *text);
 void corfile_putc(int c, CORFIL *f);
-void corfile_puts(char *s, CORFIL *f);
+void corfile_puts(const char *s, CORFIL *f);
 void corfile_flush(CORFIL *f);
 void corfile_rm(CORFIL **ff);
 int corfile_getc(CORFIL *f);
@@ -45,7 +45,7 @@ char *corfile_body(CORFIL *f);
 #define corfile_body(f) (f->body)
 char *corfile_current(CORFIL *f);
 #define corfile_current(f) (f->body+f->p)
-CORFIL *copy_to_corefile(CSOUND *, char *, char *, int);
+CORFIL *copy_to_corefile(CSOUND *, const char *, const char *, int);
 int corfile_length(CORFIL *f);
 #define corfile_length(f) (strlen(f->body))
 void corfile_set(CORFIL *f, int n);

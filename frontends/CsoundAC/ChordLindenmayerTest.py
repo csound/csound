@@ -60,7 +60,7 @@ processing is automatically performed:
 print __doc__
 print 'IMPORTING REQUIRED MODULES...'
 print
-import csnd
+import csnd6
 import CsoundAC
 import datetime
 import math

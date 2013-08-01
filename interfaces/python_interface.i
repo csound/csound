@@ -20,8 +20,6 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
 #ifndef MACOSX
 %module(directors="1") csnd6
 %feature("director") CsoundCallbackWrapper;
@@ -284,8 +282,8 @@ static void pythonMessageCallback(CSOUND *csound,
 
 
 %ignore Csound::SetCscoreCallback(void (*cscoreCallback_)(CSOUND *));
-//%ignore Csound::SetOutputValueCallback(void (*)(CSOUND *, const char *, MYFLT));
-//%ignore Csound::SetInputValueCallback(void (*)(CSOUND *, const char *, MYFLT *));
+%ignore Csound::SetOutputValueCallback(void (*)(CSOUND *, const char *, MYFLT));
+%ignore Csound::SetInputValueCallback(void (*)(CSOUND *, const char *, MYFLT *));
 %ignore Csound::SetExternalMidiInOpenCallback(int (*)(CSOUND *, void *, const char*));
 %ignore Csound::SetExternalMidiReadCallback(int (*)(CSOUND *, void *, unsigned char *, int));
 %ignore Csound::SetExternalMidiInCloseCallback(int (*)(CSOUND *, void *));
@@ -322,31 +320,6 @@ static void pythonMessageCallback(CSOUND *csound,
         Py_XINCREF(pyfunc);
 }
 
-  /* void SetInputValueCallback(PyObject *pyfunc){
-     // thread safety mechanism
-    pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->invalfunc == NULL) {
-       if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
-    }
-    else Py_XDECREF(pydata->invalfunc);
-        pydata->invalfunc = pyfunc;
-        self->SetInputValueCallback(PythonInValueCallback);
-        Py_XINCREF(pyfunc);
-	}*/
-
-  /* void SetOutputValueCallback(PyObject *pyfunc){
-     // thread safety mechanism
-    pycbdata *pydata = (pycbdata *) self->pydata;
-    if(pydata->outvalfunc == NULL){
-      if(!PyEval_ThreadsInitialized()) PyEval_InitThreads();
-    }
-    else Py_XDECREF(pydata->outvalfunc);
-
-        pydata->outvalfunc = pyfunc;
-        self->SetOutputValueCallback(PythonOutValueCallback);
-        Py_XINCREF(pyfunc);
-}
-  */
   void SetExternalMidiInOpenCallback(PyObject *pyfunc){
      // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
