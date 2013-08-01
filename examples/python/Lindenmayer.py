@@ -15,14 +15,19 @@ model.setCopyright('C_2010_Michael_Gogins')
 model.setLicense('Creative_Commons_by_nc_nd')
 model.setAlbum('Csound_Examples')
 csound = model.getCppSound()
+print 'csound:', csound
 lindenmayer = CsoundAC.Lindenmayer()
+print 'lindenmayer:', lindenmayer
 lindenmayer.setAxiom("b")
 lindenmayer.setAngle(2.0 * math.pi / 9.0)
 lindenmayer.addRule("b", " b [  Ti-1 a b ] Tt+1 Tk-3.1 a N b Tt+3 N Tt+1.3 Tk+2 b [ Ti+1 a b ] N")
 lindenmayer.addRule("a", " N Tt+1.1 Tk+1 N [ Tk+2 b ] Tk+3 N Tk-3 Tt-1 [ Tt+1 Tk-4 a ] N ")
 lindenmayer.setIterationCount(5)
 lindenmayer.generate()
+print 'generated...' 
 random = CsoundAC.Random()
+print 'random:', random
+
 random.createDistribution("uniform_real")
 random.setElement(7, 11, 1)
 rescale = CsoundAC.Rescale()
@@ -44,7 +49,7 @@ filename = os.path.abspath('Lindenmayer.py')
 print 'Filename:', filename
 model.setConformPitches(True)
 csound.load('../CsoundAC.csd')
-csound.setCommand("csound -m3 -RWZdfo" + filename + ".wav " + filename + ".orc " + filename + ".sco")
+csound.setCommand("csound -m3 -RWZdfo" + filename)
 csound.setFilename(filename)
 score = model.getScore()
 print 'Events in generated score:', len(score)

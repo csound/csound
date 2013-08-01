@@ -129,11 +129,11 @@ void recreate_dag(CSOUND *csound)
     /* Allocate the main task status and watchlists */
     int max = csound->dag_task_max_size;
     csound->dag_task_status =
-      mrealloc(csound, csound->dag_task_status, sizeof(enum state)*max);
+      mrealloc(csound, (enum state *)csound->dag_task_status, sizeof(enum state)*max);
     csound->dag_task_watch  =
-      mrealloc(csound, csound->dag_task_watch, sizeof(watchList**)*max);
+      mrealloc(csound, (struct watchList *)csound->dag_task_watch, sizeof(watchList**)*max);
     csound->dag_task_map    =
-      mrealloc(csound, csound->dag_task_map, sizeof(INSDS*)*max);
+      mrealloc(csound, (INSDS *)csound->dag_task_map, sizeof(INSDS*)*max);
     csound->dag_task_dep    =
       (char **)mrealloc(csound, csound->dag_task_dep, sizeof(char*)*max);
     csound->dag_wlmm        =

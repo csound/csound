@@ -3,18 +3,16 @@
 # Note the use of Python's triple quotes to embed literal text within the script.
 # Author: Michael Gogins
 
-import csnd
+import csnd6
 
 # Create an instance of Csound (actually, CppSound).
-csound = csnd.CppSound()
-# Enables CppSound to print to Python's console output.
-csound.setPythonMessageCallback()
+csound = csnd6.CppSound()
 # Set the Csound file.
 print "OK"
 csound.setCSD('''
 <CsoundSynthesizer>
 <CsOptions>
-csound -RWdfo ./Trapped.py.wav test.orc test.sco
+csound -RWdfo ./Trapped.py.wav
 </CsOptions>
 <CsInstruments>
 ;============================================================================;
@@ -692,8 +690,6 @@ e
 </CsScore>
 </CsoundSynthesizer>
 ''')
-# Export the Csound orchestra and score for performance.
-csound.exportForPerformance()
 # Perform the exported orchestra and score.
 csound.perform()
 

@@ -243,9 +243,12 @@ typedef struct _pvspitch
 } PVSPITCH;
 
 
-
+#if !defined(FALSE)
 #define FALSE (0)
+#endif
+#if !defined(TRUE)
 #define TRUE (!FALSE)
+#endif
 
 #define RoundNum(Number)  (int)MYFLT2LRND(Number)
 

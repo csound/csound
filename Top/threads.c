@@ -40,7 +40,7 @@
 #include <process.h>
 
 #ifndef MSVC
-void __stdcall GetSystemTimeAsFileTime(FILETIME*);
+//void __stdcall GetSystemTimeAsFileTime(FILETIME*);
 #endif
 
 void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)

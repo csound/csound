@@ -1,5 +1,5 @@
 from Tkinter import *
-import csnd
+import csnd6
 import math
 import time
 
@@ -146,9 +146,9 @@ class Application(Frame):
         self.pack()
         self.createCanvas()  
         self.createKeys()
-        self.cs = csnd.Csound()
+        self.cs = csnd6.Csound()
         res = self.cs.Compile("keys.csd")
-        self.perf = csnd.CsoundPerformanceThread(self.cs)
+        self.perf = csnd6.CsoundPerformanceThread(self.cs)
         self.perf.Play()
         self.master = master
         self.master.bind("<space>", self.record)
