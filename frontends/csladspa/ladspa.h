@@ -589,7 +589,7 @@ typedef struct _LADSPA_Descriptor {
 PUBLIC const LADSPA_Descriptor * ladspa_descriptor(unsigned long Index);
 
 /* Datatype corresponding to the ladspa_descriptor() function. */
-typedef PUBLIC const LADSPA_Descriptor *
+typedef  const LADSPA_Descriptor *
 (*LADSPA_Descriptor_Function)(unsigned long Index);
 
 /**********************************************************************/
