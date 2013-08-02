@@ -71,10 +71,10 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
 
         set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd)
-    
+# Had:     	    SWIG_FLAGS "-threads"
+
         SET_SOURCE_FILES_PROPERTIES(python_interface.i
             PROPERTIES CPLUSPLUS ON
-	    SWIG_FLAGS "-threads"
             SWIG_MODULE_NAME csnd6)
 
         set(SWIG_MODULE_csnd6_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
