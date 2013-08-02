@@ -20,9 +20,11 @@
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
-#define MyMinGwBinDir "C:\mingw32-4.7.2\bin\"
-; If you are not Michael Gogins, change this to your MinGW /usr/local/ directory.
-#define MyMinGwUsrLocalDir "C:\mingw32-4.7.2\msys\1.0\local\"
+#define MyMinGwBinDir "D:\mingw32-4.8.1\bin\"
+; If you are not Michael Gogins, change this to your MSys /bin/ directory.
+#define MyMSysBinDir "D:\msys\bin\"
+; If you are not Michael Gogins, change this to your MSys /usr/local/ directory.
+#define MyMSysUsrLocalDir "D:\msys\local\"
 ; If you are not Michael Gogins, change this to your Csound build directory.
 #define MySourceDir "C:\Users\new\csound-csound6-git\"
 ; If you are not Michael Gogins, change this to your Csound reference manual build directory.
@@ -32,27 +34,27 @@
 ; If you are not Michael Gogins, change this to your CsoundAC tutorial directory.
 #define MyCsoundAcTutorialSourceDir "D:\Dropbox\tutorial\"
 ; If you are not Michael Gogins, change this to your libsndfile install directory.
-#define MyLibSndfileSourceDir "C:\mingw32-4.7.2\msys\1.0\local\lib\libsndfile\"
+#define MyLibSndfileSourceDir "D:\msys\local\opt\libsndfile\"
 ; If you are not Michael Gogins, change this to your PortAudio lib directory.
-#define MyPortAudioSourceDir "C:\mingw32-4.7.2\msys\1.0\local\src\portaudio\"
+#define MyPortAudioSourceDir "D:\msys\local\src\portaudio\"
 ; If you are not Michael Gogins, change this to your PortMidi build directory.
-#define MyPortMidiSourceDir "C:\mingw32-4.7.2\msys\1.0\local\src\portmidi\"
+#define MyPortMidiSourceDir "D:\msys\local\src\portmidi\"
 ; If you are not Michael Gogins, change this to your LuaJIT bin directory.
-#define MyLuaJitSourceDir "C:\mingw32-4.7.2\msys\1.0\local\src\luajit-2.0\src\"
+#define MyLuaJitSourceDir "D:\msys\local\src\luajit-2.0\src\"
 ; If you are not Michael Gogins, change this to your FLTK dll directory.
-#define MyFltkSourceDir "C:\mingw32-4.7.2\msys\1.0\local\src\fltk-1.3.2\src\"
+#define MyFltkSourceDir "D:\msys\local\src\fltk-1.3.2\src\"
 ; If you are not Michael Gogins, change this to your libmusicxml dll directory.
-#define MyLibMusicXmlSourceDir "C:\mingw32-4.7.2\msys\1.0\local\src\libmusicxml-3.00-src\cmake\"
+#define MyLibMusicXmlSourceDir "D:\msys\local\src\libmusicxml\"
 ; If you are not Michael Gogins, change this to your FluidSynth dll directory.
-#define MyFluidSynthSourceDir "C:\mingw32-4.7.2\msys\1.0\local\src\fluidsynth\src\.libs\"
+#define MyFluidSynthSourceDir "D:\msys\local\src\fluidsynth\src\.libs\"
 ; If you are not Michael Gogins, change this to your OSC library dll directory.
-#define MyLibLoSourceDir "C:\mingw32-4.7.2\msys\1.0\local\src\liblo-0.26\"
+#define MyLibLoSourceDir "D:\msys\local\src\liblo-0.26\"
 ; If you are not Michael Gogins, change this to your STK dll directory.
-#define MyLibStkSourceDir "C:\mingw32-4.7.2\msys\1.0\local\src\stk-4.4.4\"
+#define MyLibStkSourceDir "D:\msys\local\src\stk-4.4.4\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
 #define MyCsoundQtBinDir "C:\Users\new\qutecsound-code\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
-#define MyQtSdkBinDir "D:\Qt\qt-everywhere-opensource-src-5.1.0\qtbase\bin\"
+#define MyQtSdkBinDir "D:\qt-everywhere-opensource-src-5.1.0\qtbase\bin\"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
@@ -60,13 +62,13 @@ Name: "python"; Description: "Python features (requires Python 2.7)"; Types: ful
 
 [Dirs]
 ; ALL programs and shared libraries (including opcodes and other modules) go here.
-Name: "{app}\bin"
+Name: "{app}\bin"; Permissions: users-modify
 #define APP_BIN "{app}\bin\"
 ; All C or C++ include files for Csound and other components used by Csound go here.
 ; This is a convenience for people like me who program in C or C++ and might use 
 ; features of these third party components.
 Name: "{app}\include"
-#define APP_INCLUDE "{app}\include\"
+#define APP_INCLUDE "{app}\include\"           
 ; The Csound reference manual goes here.
 Name: "{app}\doc\manual"
 #define APP_MANUAL "{app}\doc\manual\"
@@ -74,6 +76,7 @@ Name: "{app}\doc\manual"
 Name: "{app}\doc\apiref"
 #define APP_APIREF "{app}\doc\apiref\"
 ; All Csound examples go here.
+Name: "{app}\examples"; Permissions: users-modify
 #define APP_EXAMPLES "{app}\examples\"
 ; Any SoundFonts or sound samples used by Csound examples go here.
 Name: "{app}\samples"
@@ -125,8 +128,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "{#MyMinGwBinDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 ; No idea why this other name is needed.
-Source: "{#MyMinGwBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv.dll"; Components: core;
-Source: "{#MyMinGwUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyMSysBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv.dll"; Components: core;
+Source: "{#MyMSysUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "*.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.dll*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll"; Components: core;
@@ -134,24 +137,24 @@ Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: pytho
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 
-Source: "{#MyCsoundQtBinDir}CsoundQt-d-debug.exe"; DestDir: "{#APP_BIN}"; DestName: "CsoundQt-d.exe"; Components: core;
+Source: "{#MyCsoundQtBinDir}CsoundQt-d.exe"; DestDir: "{#APP_BIN}"; DestName: "CsoundQt-d.exe"; Components: core;
 ; g++ -Wl,-subsystem,windows -mthreads -o bin/CsoundQt-d-debug.exe object_script.CsoundQt-d-debug  
 ; -lmingw32 -lqtmaind -lole32 C:/Users/new/csound-csound6-git/csound64.dll C:/Users/new/csound-csound6-git/csnd.dll 
 ; C:/mingw32-4.7.2/msys/1.0/opt/Mega-Nerd/libsndfile/bin/libsndfile-1.dll 
 ; -LD:/Qt/qt-everywhere-opensource-src-5.1.0/qtbase/lib 
 ; -lQt5PrintSupportd -lQt5Widgetsd -lQt5Xmld -lQt5Guid -lQt5Cored build/doubles/obj/qutecsound_res.o
-Source: "{#MyQtSdkBinDir}Qt5PrintSupportd.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyQtSdkBinDir}Qt5Widgetsd.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyQtSdkBinDir}Qt5Xmld.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyQtSdkBinDir}Qt5Guid.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyQtSdkBinDir}Qt5Cored.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5Gui.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5Core.dll"; DestDir: "{#APP_BIN}"; Components: core;
 
 Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
 
-Source: {#MyPortAudioSourceDir}*.dll; DestDir: "{#APP_BIN}"; Components: core 
-Source: {#MyPortAudioSourceDir}pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
-Source: {#MyPortAudioSourceDir}pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
+Source: {#MyPortAudioSourceDir}\lib\.libs\*.dll; DestDir: "{#APP_BIN}"; Components: core 
+Source: {#MyPortAudioSourceDir}\bin\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
+Source: {#MyPortAudioSourceDir}\bin\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
 
 Source: {#MyPortMidiSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core 
 
@@ -164,11 +167,11 @@ Source: {#MyLuaJitSourceDir}lua*.h; DestDir: "{#APP_INCLUDE}\luajit"; Flags: ign
 
 Source: {#MyFltkSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 
-Source: {#MyLibMusicXmlSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
+Source: {#MyLibMusicXmlSourceDir}\cmake\*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 
-Source: {#MyFluidSynthSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
+; Source: {#MyFluidSynthSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 
-Source: {#MyLibLoSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
+; Source: {#MyLibLoSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 
 Source: include/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core 
 Source: interfaces/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core 

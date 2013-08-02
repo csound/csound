@@ -82,8 +82,8 @@
 # Create it in the main module, so that scripts for CsoundAC
 # will also work in a standalone Python interpreter.
 import sys
-import csnd
-sys.modules["__main__"].csound = csnd.CppSound()
+import csnd6
+sys.modules["__main__"].csound = csnd6.CppSound()
 sys.modules["__main__"].csound.thisown = 0
 sys.modules["__main__"].csound.setPythonMessageCallback()
 %}

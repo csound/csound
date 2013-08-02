@@ -1,5 +1,5 @@
 from Tkinter import *
-import csnd
+import csnd6
 
 class Application(Frame):
   
@@ -84,7 +84,7 @@ class Application(Frame):
         self.pack()
         self.createCanvas()  
         self.createShapes()
-        self.cs = csnd.Csound()
+        self.cs = csnd6.Csound()
         res = self.cs.Compile("vu.csd")
         self.cs.SetChannel("pitch", 1.0)
         self.cs.SetChannel("volume", 1.0)
@@ -93,7 +93,7 @@ class Application(Frame):
         self.meter()
         master.after(100, self.draw),
         self.master = master
-        self.perf = csnd.CsoundPerformanceThread(self.cs)
+        self.perf = csnd6.CsoundPerformanceThread(self.cs)
         self.perf.Play()
         self.master.protocol("WM_DELETE_WINDOW", self.quit)
 

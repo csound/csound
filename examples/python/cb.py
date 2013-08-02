@@ -3,11 +3,11 @@
 # needs cb.csd
 # VL, 2007
 
-import csnd
+import csnd6
 import time
 
 # create & compile instance
-cs = csnd.Csound()
+cs = csnd6.Csound()
 cs.Compile("cb.csd")
 
 # define callback
@@ -21,7 +21,7 @@ def callback(csound):
 cs.SetChannel("freq", 100)
 
 # create the thread object
-perf = csnd.CsoundPerformanceThread(cs)
+perf = csnd6.CsoundPerformanceThread(cs)
 
 # set the callback
 perf.SetProcessCallback(callback, cs)

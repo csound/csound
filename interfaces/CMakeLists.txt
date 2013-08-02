@@ -60,7 +60,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
 
     set(CMAKE_SWIG_FLAGS ${libcsound_CFLAGS})
     list(APPEND CMAKE_SWIG_FLAGS "-includeall" "-verbose")
-
+ 
     if(USE_DOUBLE)
         list(APPEND CMAKE_SWIG_FLAGS "-DUSE_DOUBLE")
     endif(USE_DOUBLE)
@@ -74,6 +74,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
     
         SET_SOURCE_FILES_PROPERTIES(python_interface.i
             PROPERTIES CPLUSPLUS ON
+	    SWIG_FLAGS "-threads"
             SWIG_MODULE_NAME csnd6)
 
         set(SWIG_MODULE_csnd6_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
