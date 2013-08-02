@@ -776,7 +776,7 @@ static const CSOUND cenviron_ = {
       1,            /*    displa          */
       0, 0, 135, /*    disp.. graphsoff ... */
 #else
-      0,            /*    displa          */
+      1,            /*    displa          */
       1, 0, 135, /*    disp.. graphsoff ... */
 #endif
       0, 0, 0,      /*    Beatmode, ...     */
