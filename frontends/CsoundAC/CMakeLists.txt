@@ -97,9 +97,9 @@ if(BUILD_CSOUND_AC)
         message(STATUS "Building CsoundAC Python interface")
         find_package(PythonLibs)
         include_directories(${PYTHON_INCLUDE_PATH})
+        # Had: 	    SWIG_FLAGS "-threads"
         set_source_files_properties(CsoundAC.i
             PROPERTIES CPLUSPLUS ON
-	    SWIG_FLAGS "-threads"
             SWIG_MODULE_NAME CsoundAC)
         swig_add_module(CsoundAC python CsoundAC.i)
         swig_link_libraries(CsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARIES})
