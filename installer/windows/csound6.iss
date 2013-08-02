@@ -26,9 +26,9 @@
 ; If you are not Michael Gogins, change this to your MSys /usr/local/ directory.
 #define MyMSysUsrLocalDir "D:\msys\local\"
 ; If you are not Michael Gogins, change this to your Csound build directory.
-#define MySourceDir "C:\Users\new\csound-csound6-git\"
+#define MySourceDir "C:\Users\mkg.sorabji\csound-csound6-git\"
 ; If you are not Michael Gogins, change this to your Csound reference manual build directory.
-#define MyManualSourceDir "C:\Users\new\csound-manual6-git\"
+#define MyManualSourceDir "C:\Users\mkg.sorabji\csound-manual6-git\"
 ; If you are not Michael Gogins, change this to your Csound tutorial directory.
 #define MyCsoundTutorialSourceDir "D:\Dropbox\tutorial\"
 ; If you are not Michael Gogins, change this to your CsoundAC tutorial directory.
@@ -52,7 +52,7 @@
 ; If you are not Michael Gogins, change this to your STK dll directory.
 #define MyLibStkSourceDir "D:\msys\local\src\stk-4.4.4\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
-#define MyCsoundQtBinDir "C:\Users\new\qutecsound-code\bin\"
+#define MyCsoundQtBinDir "C:\Users\mkg.sorabji\qutecsound-code\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
 #define MyQtSdkBinDir "D:\qt-everywhere-opensource-src-5.1.0\qtbase\bin\"
 
@@ -137,9 +137,9 @@ Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: pytho
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 
-Source: "{#MyCsoundQtBinDir}CsoundQt-d.exe"; DestDir: "{#APP_BIN}"; DestName: "CsoundQt-d.exe"; Components: core;
+Source: "{#MyCsoundQtBinDir}CsoundQt-d.exe"; DestDir: "{#APP_BIN}"; DestName: "CsoundQt.exe"; Components: core;
 ; g++ -Wl,-subsystem,windows -mthreads -o bin/CsoundQt-d-debug.exe object_script.CsoundQt-d-debug  
-; -lmingw32 -lqtmaind -lole32 C:/Users/new/csound-csound6-git/csound64.dll C:/Users/new/csound-csound6-git/csnd.dll 
+; -lmingw32 -lqtmaind -lole32 C:/Users/mkg.sorabji/csound-csound6-git/csound64.dll C:/Users/mkg.sorabji/csound-csound6-git/csnd.dll 
 ; C:/mingw32-4.7.2/msys/1.0/opt/Mega-Nerd/libsndfile/bin/libsndfile-1.dll 
 ; -LD:/Qt/qt-everywhere-opensource-src-5.1.0/qtbase/lib 
 ; -lQt5PrintSupportd -lQt5Widgetsd -lQt5Xmld -lQt5Guid -lQt5Cored build/doubles/obj/qutecsound_res.o
@@ -195,7 +195,7 @@ Source: {#MyCsoundAcTutorialSourceDir}code\*.*; DestDir: "{#APP_TUTORIAL}code\";
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}";  Components: core;  
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core  
-Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d.exe"; WorkingDir: "{#APP_BIN}";  Components: core   
+Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt.exe"; WorkingDir: "{#APP_BIN}";  Components: core   
 Name: "{group}\WinSound"; Filename: "{#APP_BIN}winsound.exe"; WorkingDir: "{#APP_BIN}";  Components: core 
 Name: "{group}\LuaJIT"; Filename: "{#APP_BIN}luajit.exe"; WorkingDir: "{#APP_BIN}";  Components: core 
 Name: "{group}\Audio device information"; Filename: "cmd"; Parameters: "/K pa_devs.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core 
