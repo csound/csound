@@ -314,9 +314,8 @@ static Sxmlelement createScore(const Score &score_, std::string filename)
 void Score::save(std::string filename)
 {
     System::inform("BEGAN Score::save(%s)...\n", filename.c_str());
-    std::ofstream stream;
-    //stream.open(filename.c_str(), std::ios_base::binary);
-    stream.open(filename.c_str(), std::ios::out | std::ios::binary);
+    std::fstream stream;
+    stream.open(filename.c_str(), std::ios_base::out | std::ios_base::binary);
     if (filename.find(".mid") != std::string::npos ||
             filename.find(".MID") != std::string::npos) {
         save(stream);
