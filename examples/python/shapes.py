@@ -91,7 +91,7 @@ class Application(Frame):
         self.meter()
         master.after(100, self.draw),
         self.master = master
-        self.perf = csnd.CsoundPerformanceThread(self.cs)
+        self.perf = csnd6.CsoundPerformanceThread(self.cs)
         self.perf.Play()
         self.master.protocol("WM_DELETE_WINDOW", self.quit)
 

@@ -20,8 +20,6 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-
 #ifndef MACOSX
 %module(directors="1") csnd6
 %feature("director") CsoundCallbackWrapper;
@@ -120,6 +118,10 @@ static void PythonMessageCallback(CSOUND *in, int attr,
     vsprintf(mbuf, format, valist);
     //if(ch = strrchr(mbuf, '\n')) *ch = '\0';
    if (strlen(mbuf) > 1){
+#ifndef PYTHON_23_or_older
+       if(!PyEval_ThreadsInitialized())
+#endif
+	PyEval_InitThreads();
     PyGILState_STATE gst;
     // printf("MESS BEFORE \n");
     gst = PyGILState_Ensure();
@@ -349,8 +351,7 @@ static void pythonMessageCallback(CSOUND *csound,
         self->SetOutputChannelCallback(PythonOutChannelCallback);
         Py_XINCREF(pyfunc);
 }
-  
-  void SetExternalMidiInOpenCallback(PyObject *pyfunc){
+void SetExternalMidiInOpenCallback(PyObject *pyfunc){
      // thread safety mechanism
     pycbdata *pydata = (pycbdata *) self->pydata;
     if(pydata->midiinopenfunc == NULL) {
@@ -451,7 +452,9 @@ static void PythonCallback(void *p){
 %extend CppSound {
   void setPythonMessageCallback()
   {
+    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     self->SetMessageCallback(pythonMessageCallback);
+    SWIG_PYTHON_THREAD_END_ALLOW;
   }
 
  

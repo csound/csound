@@ -1,5 +1,5 @@
 # Importing CsoundAC automatically creates a global 'csound' object.
-import csnd
+import csnd6
 import wx
 # Csound MUST run in its own thread.
 import threading
@@ -27,7 +27,7 @@ class ControlPanel(wx.Panel):
             # Default pitch.
             self.pitch = 60
             # Create an instance of CppSound.
-            self.csound = csnd.CppSound()
+            self.csound = csnd6.CppSound()
             # Create the Csound thread and start it.
             self.csoundThread = threading.Thread(None, self.csoundThreadRoutine)
             self.csoundThread.start()
@@ -70,7 +70,7 @@ class ControlPanel(wx.Panel):
             self.csound.compile()
             # Perform in blocks of ksmps
             # (Csound will yield implicitly to wxWindows).
-            self.performanceThread = csnd.CsoundPerformanceThread(self.csound)
+            self.performanceThread = csnd6.CsoundPerformanceThread(self.csound)
             self.performanceThread.Play()
 
         # Handle the button click -- send a note to Csound
