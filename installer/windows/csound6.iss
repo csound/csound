@@ -137,7 +137,7 @@ Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: pytho
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 
-Source: "{#MyCsoundQtBinDir}CsoundQt.exe"; DestDir: "{#APP_BIN}"; DestName: "CsoundQt-d.exe"; Components: core;
+Source: "{#MyCsoundQtBinDir}CsoundQt-d.exe"; DestDir: "{#APP_BIN}"; DestName: "CsoundQt.exe"; Components: core;
 ; g++ -Wl,-subsystem,windows -mthreads -o bin/CsoundQt-d-debug.exe object_script.CsoundQt-d-debug  
 ; -lmingw32 -lqtmaind -lole32 C:/Users/mkg.sorabji/csound-csound6-git/csound64.dll C:/Users/mkg.sorabji/csound-csound6-git/csnd.dll 
 ; C:/mingw32-4.7.2/msys/1.0/opt/Mega-Nerd/libsndfile/bin/libsndfile-1.dll 
