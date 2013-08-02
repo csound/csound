@@ -9,6 +9,7 @@ CsoundAC.Random_seed(int(time.time()))
 
 model = CsoundAC.MusicModel()
 model.setCppSound(csound)
+csound.setPythonMessageCallback()
 strangeAttractor = CsoundAC.StrangeAttractor()
 strangeAttractor.reset()
 strangeAttractor.setDimensionCount(4)

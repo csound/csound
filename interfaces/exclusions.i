@@ -10,11 +10,11 @@
 %ignore Csound::SetDrawGraphCallback;
 %ignore Csound::SetExitGraphCallback;
 %ignore Csound::SetExternalMidiErrorStringCallback;
-%ignore Csound::SetExternalMidiInCloseCallback;
-%ignore Csound::SetExternalMidiInOpenCallback;
+//%ignore Csound::SetExternalMidiInCloseCallback;
+//%ignore Csound::SetExternalMidiInOpenCallback;
 %ignore Csound::SetExternalMidiOutCloseCallback;
 %ignore Csound::SetExternalMidiOutOpenCallback;
-%ignore Csound::SetExternalMidiReadCallback;
+//%ignore Csound::SetExternalMidiReadCallback;
 %ignore Csound::SetExternalMidiWriteCallback;
 %ignore Csound::SetIsGraphable;
 %ignore Csound::SetHostData;
@@ -22,7 +22,7 @@
 %ignore Csound::SetKillXYinCallback;
 %ignore Csound::SetMakeGraphCallback;
 %ignore Csound::SetMakeXYinCallback;
-%ignore Csound::SetMessageCallback;
+//%ignore Csound::SetMessageCallback;
 %ignore Csound::SetReadXYinCallback;
 %ignore Csound::SetPlayopenCallback;
 %ignore Csound::SetRecopenCallback;
