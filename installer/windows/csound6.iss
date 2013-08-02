@@ -62,13 +62,13 @@ Name: "python"; Description: "Python features (requires Python 2.7)"; Types: ful
 
 [Dirs]
 ; ALL programs and shared libraries (including opcodes and other modules) go here.
-Name: "{app}\bin"
+Name: "{app}\bin"; Permissions: users-modify
 #define APP_BIN "{app}\bin\"
 ; All C or C++ include files for Csound and other components used by Csound go here.
 ; This is a convenience for people like me who program in C or C++ and might use 
 ; features of these third party components.
 Name: "{app}\include"
-#define APP_INCLUDE "{app}\include\"
+#define APP_INCLUDE "{app}\include\"           
 ; The Csound reference manual goes here.
 Name: "{app}\doc\manual"
 #define APP_MANUAL "{app}\doc\manual\"
@@ -76,6 +76,7 @@ Name: "{app}\doc\manual"
 Name: "{app}\doc\apiref"
 #define APP_APIREF "{app}\doc\apiref\"
 ; All Csound examples go here.
+Name: "{app}\examples"; Permissions: users-modify
 #define APP_EXAMPLES "{app}\examples\"
 ; Any SoundFonts or sound samples used by Csound examples go here.
 Name: "{app}\samples"
