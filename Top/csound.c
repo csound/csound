@@ -1584,10 +1584,10 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
 
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
-                      Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
-      return CSOUND_ERROR;
+      /* csound->Warning(csound, */
+      /*                 Str("Csound not ready for performance: csoundStart() " */
+      /*                     "has not been called \n")); */
+      return csoundStart(csound);//CSOUND_ERROR;
     }
     if (csound->jumpset == 0) {
       int returnValue;
@@ -1616,10 +1616,10 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
 
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
-                      Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
-      return CSOUND_ERROR;
+      /* csound->Warning(csound, */
+      /*                 Str("Csound not ready for performance: csoundStart() " */
+      /*                     "has not been called \n")); */
+      return csoundStart(csound);//CSOUND_ERROR;
     }
     /* setup jmp for return after an exit() */
         if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
@@ -1644,10 +1644,10 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
     int done;
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
-                      Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
-      return CSOUND_ERROR;
+      /* csound->Warning(csound, */
+      /*                 Str("Csound not ready for performance: csoundStart() " */
+      /*                     "has not been called \n")); */
+      return csoundStart(csound);//CSOUND_ERROR;
     }
     /* Setup jmp for return after an exit(). */
     if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
@@ -1680,10 +1680,11 @@ PUBLIC int csoundPerform(CSOUND *csound)
 
    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
-                      Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
-      return CSOUND_ERROR;
+      /* csound->Warning(csound, */
+      /*                 Str("Csound not ready for performance: csoundStart() " */
+      /*                     "has not been called \n")); */
+      int ret = csoundStart(csound); 
+      if(ret == CSOUND_ERROR) return CSOUND_ERROR;
     }
 
     csound->performState = 0;
