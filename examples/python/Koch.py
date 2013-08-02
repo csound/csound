@@ -16,7 +16,7 @@ csound = csnd6.CppSound()
 
 # Enable Csound to print to the Python console.
 
-#csound.setPythonMessageCallback()
+csound.setPythonMessageCallback()
 
 # A recursive function for generating a score
 # in the form of a Koch curve.
