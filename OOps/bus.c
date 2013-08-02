@@ -329,12 +329,12 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
                                           const char *name, int type)
 {
     CHNENTRY  *pp;
-    const char      *s;
+    //    const char      *s;
 
     /* check for valid parameters and calculate hash value */
     if (UNLIKELY(!(type & 48)))
       return CSOUND_ERROR;
-    s = name;
+    //    s = name;
 
 //    while (isalnum((unsigned char) *s) ||
 //           *s == (char) '_' || *s == (char) '-' || *s == (char) '.') s++;
@@ -407,8 +407,17 @@ PUBLIC int *csoundGetChannelLock(CSOUND *csound,
     if (UNLIKELY(name == NULL))
       return NULL;
     pp = find_channel(csound, name);
-    if (pp)
+    if (pp) {
+#ifndef MACOSX
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
+      return (int*)pp->lock;
+#else
       return &(pp->lock);
+#endif
+#else
+      return &(pp->lock);
+#endif
+    }
     else return NULL;
 }
 
@@ -928,8 +937,9 @@ int chnset_opcode_perf_S(CSOUND *csound, CHNGET *p)
     int  *lock;
     char *s = ((STRINGDAT *) p->arg)->data;
 
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
-                              CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    if ((err=csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+                                 CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)))
+      return err;
     size = csoundGetChannelDatasize(csound, p->iname->data);
 
     if(strcmp(s, (char *) p->fp) == 0) return OK;
@@ -1114,6 +1124,7 @@ int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     hints.dflt = *(p->idflt);
     hints.min = *(p->imin);
     hints.max = *(p->imax);
+    hints.attributes = NULL;
     err = csoundSetControlChannelHints(csound, (char*) p->iname->data, hints);
     if (LIKELY(!err))
       return OK;

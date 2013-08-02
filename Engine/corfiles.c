@@ -64,9 +64,9 @@ void corfile_putc(int c, CORFIL *f)
     f->body[f->p] = '\0';
 }
 
-void corfile_puts(char *s, CORFIL *f)
+void corfile_puts(const char *s, CORFIL *f)
 {
-    char *c;
+    const char *c;
     int n;
     /* skip and count the NUL chars to the end */
     for (n=0; f->p > 0 && f->body[f->p-1] == '\0'; n++, f->p--);
@@ -203,9 +203,9 @@ char *corfile_current(CORFIL *f)
 }
 
 /* *** THIS NEEDS TO TAKE ACCOUNT OF SEARCH PATH *** */
-void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
+void *fopen_path(CSOUND *csound, FILE **fp, const char *name, const char *basename,
                  char *env, int fromScore);
-CORFIL *copy_to_corefile(CSOUND *csound, char *fname, char *env, int fromScore)
+CORFIL *copy_to_corefile(CSOUND *csound, const char *fname, const char *env, int fromScore)
 {
     CORFIL *mm;
     FILE *ff;
@@ -213,7 +213,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, char *fname, char *env, int fromScore)
     int n;
     char buffer[1024];
 
-    fd = fopen_path(csound, &ff, fname, NULL, env, fromScore);
+    fd = fopen_path(csound, &ff, (char *)fname, NULL, (char *)env, fromScore);
     if (ff==NULL) return NULL;
     mm = corfile_create_w();
     memset(buffer, '\0', 1024);

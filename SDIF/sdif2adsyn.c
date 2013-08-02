@@ -8,8 +8,12 @@
 #include "sdif.h"
 #include "sdif-mem.h"
 
+#ifndef max
 #define max(x,y) ((x)>(y) ? (x) : (y))
+#endif
+#ifndef min
 #define min(x,y) ((x)>(y) ? (y) : (x))
+#endif
 
 /* SDIF indices start from 1 */
 #define MAXPARTIALS (1025)

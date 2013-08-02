@@ -4,7 +4,7 @@
 #  
 #   VL, 01/07
 
-import csnd
+import csnd6
 from Tkinter import *
 import display
 import array
@@ -32,18 +32,18 @@ class Disp:
 
 
 # create & compile instance
-cs = csnd.Csound()
+cs = csnd6.Csound()
 cs.Compile("am.csd")
 
 # create the thread object
-perf = csnd.CsoundPerformanceThread(cs)
+perf = csnd6.CsoundPerformanceThread(cs)
 
 # display object
 master = Tk()
 disp = display.Oscilloscope(master, window_size, perf.Stop, "green", "black")
 
 # samples array
-chn = csnd.floatArray(cs.GetKsmps())
+chn = csnd6.floatArray(cs.GetKsmps())
 dat = (cs,disp,chn)
 tes = Disp(dat)
 

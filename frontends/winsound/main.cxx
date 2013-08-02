@@ -8,7 +8,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <unistd.h>
-#if defined(MSVC)
+#if defined(WIN32)
 #include <direct.h>
 #endif
 #include <FL/Fl_Preferences.H>
