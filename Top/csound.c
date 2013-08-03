@@ -772,8 +772,13 @@ static const CSOUND cenviron_ = {
       0, 1, 1, 0,   /*    sfread, ...       */
       0, 0, 0, 0,   /*    inbufsamps, ...   */
       0,            /*    sfsampsize        */
+#ifdef LINUX
       1,            /*    displa          */
       0, 0, 135, /*    disp.. graphsoff ... */
+#else
+      1,            /*    displa          */
+      1, 0, 135, /*    disp.. graphsoff ... */
+#endif
       0, 0, 0,      /*    Beatmode, ...     */
       0, 0,         /*    usingcscore, ...  */
       0, 0, 0, 0,   /*    RTevents, ...     */

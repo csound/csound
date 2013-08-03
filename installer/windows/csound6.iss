@@ -11,7 +11,7 @@
 ; All of these changes SHOULD be in the #defines immediately following this.
 ; Also, this installer assumes LuaJIT and CsoundAC are part of Csound core.
 ; At this time the following features are not included in the installer:
-; Cabbage, CsoundVST, CsoundQt, the Java API.
+; Cabbage, CsoundVST.
 ; I hope to change this soon.
 
 #define MyAppName "Csound6"
@@ -137,6 +137,7 @@ Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: pytho
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 
+<<<<<<< HEAD
 Source: "{#MyCsoundQtBinDir}CsoundQt.exe"; DestDir: "{#APP_BIN}"; DestName: "CsoundQt-d.exe"; Components: core;
 ; g++ -Wl,-subsystem,windows -mthreads -o bin/CsoundQt-d-debug.exe object_script.CsoundQt-d-debug  
 ; -lmingw32 -lqtmaind -lole32 C:/Users/mkg.sorabji/csound-csound6-git/csound64.dll C:/Users/mkg.sorabji/csound-csound6-git/csnd.dll 
@@ -148,13 +149,18 @@ Source: "{#MyQtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: cor
 Source: "{#MyQtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Gui.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Core.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}..\plugins\platforms\qwindows.dll"; DestDir: "{#APP_BIN}\platforms"; Components: core;
+Source: "{#MyQtSdkBinDir}..\plugins\accessible\qtaccessiblewidgets.dll"; DestDir: "{#APP_BIN}\plugins\accessible"; Components: core;
+Source: "{#MyQtSdkBinDir}..\plugins\imageformats\*.dll"; DestDir: "{#APP_BIN}\plugins\imageformats"; Components: core;
+Source: "{#MyQtSdkBinDir}..\plugins\printsupport\windowsprintersupport.dll"; DestDir: "{#APP_BIN}\plugins\printsupport"; Components: core;
 
 Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
 
+; Ignore the unspeakably stupid libtool crap.
 Source: {#MyPortAudioSourceDir}\lib\.libs\*.dll; DestDir: "{#APP_BIN}"; Components: core 
-Source: {#MyPortAudioSourceDir}\bin\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
-Source: {#MyPortAudioSourceDir}\bin\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
+Source: {#MyPortAudioSourceDir}\bin\.libs\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
+Source: {#MyPortAudioSourceDir}\bin\.libs\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
 
 Source: {#MyPortMidiSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core 
 
