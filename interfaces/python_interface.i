@@ -452,9 +452,7 @@ static void PythonCallback(void *p){
 %extend CppSound {
   void setPythonMessageCallback()
   {
-    SWIG_PYTHON_THREAD_BEGIN_ALLOW;
     self->SetMessageCallback(pythonMessageCallback);
-    SWIG_PYTHON_THREAD_END_ALLOW;
   }
 
  
