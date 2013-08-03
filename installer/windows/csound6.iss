@@ -11,7 +11,7 @@
 ; All of these changes SHOULD be in the #defines immediately following this.
 ; Also, this installer assumes LuaJIT and CsoundAC are part of Csound core.
 ; At this time the following features are not included in the installer:
-; Cabbage, CsoundVST, CsoundQt, the Java API.
+; Cabbage, CsoundVST.
 ; I hope to change this soon.
 
 #define MyAppName "Csound6"
