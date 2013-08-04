@@ -137,13 +137,7 @@ Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: pytho
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 
-<<<<<<< HEAD
-Source: "{#MyCsoundQtBinDir}CsoundQt.exe"; DestDir: "{#APP_BIN}"; DestName: "CsoundQt-d.exe"; Components: core;
-; g++ -Wl,-subsystem,windows -mthreads -o bin/CsoundQt-d-debug.exe object_script.CsoundQt-d-debug  
-; -lmingw32 -lqtmaind -lole32 C:/Users/mkg.sorabji/csound-csound6-git/csound64.dll C:/Users/mkg.sorabji/csound-csound6-git/csnd.dll 
-; C:/mingw32-4.7.2/msys/1.0/opt/Mega-Nerd/libsndfile/bin/libsndfile-1.dll 
-; -LD:/Qt/qt-everywhere-opensource-src-5.1.0/qtbase/lib 
-; -lQt5PrintSupportd -lQt5Widgetsd -lQt5Xmld -lQt5Guid -lQt5Cored build/doubles/obj/qutecsound_res.o
+Source: "{#MyCsoundQtBinDir}CsoundQt-d.exe"; DestDir: "{#APP_BIN}"; DestName: "CsoundQt.exe"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
