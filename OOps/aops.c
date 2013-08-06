@@ -106,17 +106,22 @@ int assign(CSOUND *csound, ASSIGN *p)
 
 int aassign(CSOUND *csound, ASSIGN *p)
 {
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
-    /* the orchestra parser converts '=' to 'upsamp' if input arg is k-rate, */
-    /* and skips the opcode if outarg == inarg */
-    if (UNLIKELY(offset)) memset(p->r, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early))  {
-      nsmps -= early;
-      memset(&p->r[nsmps], '\0', early*sizeof(MYFLT));
+    if (UNLIKELY(csound->oparms->sampleAccurate)) {
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early  = p->h.insdshead->ksmps_no_end;
+      uint32_t nsmps = CS_KSMPS;
+      /* the orchestra parser converts '=' to 'upsamp' if input arg is k-rate, */
+      /* and skips the opcode if outarg == inarg */
+      if (UNLIKELY(offset)) memset(p->r, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        nsmps -= early;
+        memset(&p->r[nsmps], '\0', early*sizeof(MYFLT));
+      }
+      memcpy(&p->r[offset], &p->a[offset], (nsmps-offset) * sizeof(MYFLT));
     }
-    memcpy(&p->r[offset], &p->a[offset], (nsmps-offset) * sizeof(MYFLT));
+    else 
+      memcpy(p->r, p->a, nsmps * sizeof(MYFLT));
     return OK;
 }
 

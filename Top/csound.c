@@ -1446,7 +1446,7 @@ int kperf(CSOUND *csound)
     /* calls of csoundYield() */
     if (UNLIKELY(--(csound->evt_poll_cnt) < 0)) {
       csound->evt_poll_cnt = csound->evt_poll_maxcnt;
-    if (!csoundYield(csound)) csound->LongJmp(csound, 1);
+      if (UNLIKELY(!csoundYield(csound))) csound->LongJmp(csound, 1);
     }
 
     /* for one kcnt: */
@@ -1499,12 +1499,12 @@ int kperf(CSOUND *csound)
             ip->spin = csound->spin;
             ip->spout = csound->spout;
             ip->kcounter =  csound->kcounter;
-            if(ip->ksmps == csound->ksmps){
-            while ((opstart = opstart->nxtp) != NULL) {
-              opstart->insdshead->pds = opstart;
-              (*opstart->opadr)(csound, opstart); /* run each opcode */
-              opstart = opstart->insdshead->pds;
-            }
+            if(ip->ksmps == csound->ksmps) {
+              while ((opstart = opstart->nxtp) != NULL) {
+                opstart->insdshead->pds = opstart;
+                (*opstart->opadr)(csound, opstart); /* run each opcode */
+                opstart = opstart->insdshead->pds;
+              }
             } else {
               int i, n = csound->nspout, start = 0;
                 int lksmps = ip->ksmps;
