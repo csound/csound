@@ -159,7 +159,7 @@ OENTRY opcodlst_1[] = {
   { "ihold",  S(LINK),0,    1,      "",     "",     ihold                   },
   { "turnoff",S(LINK),0,    2,      "",     "",     NULL,   turnoff         },
   {  "=.S",   S(STRCPY_OP),0,   1,  "S",    "S",
-     (SUBR) strassign_opcode_S, NULL, (SUBR) NULL    },
+     (SUBR) strcpy_opcode_S, NULL, (SUBR) NULL    },
   {  "=.T",   S(STRGET_OP),0,   1,  "S",    "i",
      (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL                      },
   { "=.r",    S(ASSIGN),0,  1,      "r",    "i",    rassign                 },
