@@ -204,7 +204,7 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
       sprintf(op, "cigoto");
       break;
     case ITHEN_TOKEN:
-      sprintf(op, "cngoto");
+      sprintf(op, "cigoto");
       break;
     case THEN_TOKEN:
     case KTHEN_TOKEN:
