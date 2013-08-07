@@ -52,7 +52,7 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
     double  *tanhstg = p->tanhstg;
     double  stg[4], input;
     double  acr, tune;
-#define THERMAL (1.0 / 40000.0)  /* transistor thermal voltage  */
+#define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
     int     j, k;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -92,19 +92,26 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
       /* oversampling  */
       for (j = 0; j < 2; j++) {
         /* filter stages  */
-        for (k = 0; k < 4; k++) {
-          if (k) {
-            input = stg[k-1];
-            stg[k] = delay[k]
-                     + tune*((tanhstg[k-1] = tanh(input*THERMAL))
-                             - (k != 3 ? tanhstg[k] : tanh(delay[k]*THERMAL)));
-          }
-          else {
-            input = in[i] - res4 /*4.0*res*acr*/ *delay[5];
-            stg[k] = delay[k] + tune*(tanh(input*THERMAL) - tanhstg[k]);
-          }
+        input = in[i] - res4 /*4.0*res*acr*/ *delay[5];
+        delay[0] = stg[0] = delay[0] + tune*(tanh(input*THERMAL) - tanhstg[0]);
+#if 0
+        input = stg[0];
+        stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*THERMAL)) - tanhstg[1]);
+        input = delay[1] = stg[1];
+        stg[2] = delay[2] + tune*((tanhstg[1] = tanh(input*THERMAL)) - tanhstg[2]);
+        input = delay[2] = stg[2];
+        stg[3] = delay[3] + tune*((tanhstg[2] = 
+                                   tanh(input*THERMAL)) - tanh(delay[3]*THERMAL));
+        delay[3] = stg[3];
+#else
+        for (k = 1; k < 4; k++) {
+          input = stg[k-1];
+          stg[k] = delay[k]
+            + tune*((tanhstg[k-1] = tanh(input*THERMAL))
+                    - (k != 3 ? tanhstg[k] : tanh(delay[k]*THERMAL)));
           delay[k] = stg[k];
         }
+#endif
         /* 1/2-sample delay for phase compensation  */
         delay[5] = (stg[3] + delay[4])*0.5;
         delay[4] = stg[3];
