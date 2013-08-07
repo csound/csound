@@ -719,7 +719,7 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
       break;
 
     case 4:
-      p->firstpartial = 1 + 3 * (int)(*p->iptloffset));
+      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
       p->partialinc = 3 * (int) (*p->iptlincr);
       p->frmInc = n_partials * 3 + 26;
       break;
