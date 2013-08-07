@@ -98,6 +98,10 @@ typedef struct _moogladder {
 
   double  delay[6];
   double  tanhstg[3];
+  MYFLT   oldfreq;
+  MYFLT   oldres;
+  double  oldacr;
+  double  oldtune;
 } moogladder;
 
 static int moogladder_init(CSOUND *csound,moogladder *p);
@@ -119,6 +123,10 @@ typedef struct _statevar {
   double  lpd;
   double  lp;
   int     ostimes;
+  MYFLT   oldfreq;
+  MYFLT   oldres;
+  double  oldq;
+  double  oldf;
 } statevar;
 
 static int statevar_init(CSOUND *csound,statevar *p);
