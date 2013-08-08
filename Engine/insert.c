@@ -155,6 +155,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
       if (ip->actflg && ip->offtim < 0.0 && ip->p1 == newevtp->p[1]) {
         csound->tieflag++;
+        ip->tieflag = 1;
         tie = 1;
         goto init;                      /*     continue that event */
       }
@@ -268,9 +269,10 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         (*csound->ids->iopadr)(csound, csound->ids);
       }
       ip->init_done = 1;
+      ip->tieflag  = 0;
+      csound->tieflag = csound->reinitflag = 0;
     }
 
-    csound->tieflag = csound->reinitflag = 0;
     if (UNLIKELY(csound->inerrcnt || ip->p3 == FL(0.0))) {
       xturnoff_now(csound, ip);
       return csound->inerrcnt;
@@ -2305,6 +2307,7 @@ void *init_pass_thread(void *p){
             (*csound->ids->iopadr)(csound, csound->ids);
             csound->ids = csound->ids->nxti;
           }
+	  ip->tieflag = 0;
 #ifdef HAVE_ATOMIC_BUILTIN
     __sync_lock_test_and_set((int*)&ip->init_done,1);
 #else
