@@ -270,6 +270,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       }
       ip->init_done = 1;
       ip->tieflag  = 0;
+      ip->reinitflag = 0;
       csound->tieflag = csound->reinitflag = 0;
     }
 
@@ -558,8 +559,10 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         (*csound->ids->iopadr)(csound, csound->ids);
       }
       ip->init_done = 1;
+      ip->tieflag = ip->reinitflag = 0;
+      csound->tieflag = csound->reinitflag = 0;
     }
-    csound->tieflag = csound->reinitflag = 0;
+
     if (csound->inerrcnt) {
       xturnoff_now(csound, ip);
       return csound->inerrcnt;
@@ -941,6 +944,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
     INSDS   *saved_curip = csound->curip;
     MYFLT   *flp;
     int     n, init_op, inarg_ofs;
+    INSDS  *pip = p->h.insdshead;
 
     init_op = (p->h.opadr == NULL ? 1 : 0);
     inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
@@ -951,7 +955,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
                                          "args greater than nchnls"));
     }
     /* IV - Oct 9 2002: copied this code from useropcdset() to fix some bugs */
-    if (!(csound->reinitflag | csound->tieflag)) {
+    if (!(pip->reinitflag | pip->tieflag)) {
       /* get instance */
       if (csound->engineState.instrtxtp[instno]->act_instance == NULL)
         instance(csound, instno);
@@ -1018,7 +1022,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
       *flp++ = *p->ar[inarg_ofs + n];
 
     /* allocate memory for a temporary store of spout buffers */
-    if (!init_op && !(csound->reinitflag | csound->tieflag))
+    if (!init_op && !(pip->reinitflag | pip->tieflag))
       csoundAuxAlloc(csound,
                      (int32) csound->nspout * sizeof(MYFLT), &p->saved_spout);
 
@@ -2313,8 +2317,8 @@ void *init_pass_thread(void *p){
 #else
     ip->init_done = 1;
 #endif
-          if(csound->reinitflag==1) {
-            csound->reinitflag = 0;
+          if(ip->reinitflag==1) {
+            ip->reinitflag = 0;
           }
           csoundUnlockMutex(csound->init_pass_threadlock);
         }
