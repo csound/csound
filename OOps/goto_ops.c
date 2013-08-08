@@ -149,8 +149,9 @@ int tigoto(CSOUND *csound, GOTO *p)     /* I-time only, NOP at reinit */
 
 int tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
 {
-    if (!csound->reinitflag)
-      *p->r = (csound->tieflag ? FL(1.0) : FL(0.0));
+  if (!csound->reinitflag)
+    *p->r = p->h.insdshead->tieflag;
+  // *p->r = (csound->tieflag ? FL(1.0) : FL(0.0));
     return OK;
 }
 
