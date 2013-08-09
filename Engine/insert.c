@@ -1011,6 +1011,8 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
 
     p->ip->ksmps_offset =  saved_curip->ksmps_offset;
     p->ip->ksmps_no_end =  saved_curip->ksmps_no_end;
+    p->ip->tieflag = saved_curip->tieflag;
+    p->ip->reinitflag = saved_curip->reinitflag;
 
     /* copy remainder of pfields */
     flp = &p->ip->p3 + 1;
@@ -1191,7 +1193,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     lcurip->nxtolap = NULL;
     lcurip->ksmps_offset = parent_ip->ksmps_offset;
     lcurip->ksmps_no_end = parent_ip->ksmps_no_end;
-
+    lcurip->tieflag = parent_ip->tieflag;
+    lcurip->reinitflag = parent_ip->reinitflag;
     /* copy all p-fields, including p1 (will this work ?) */
     if (tp->pmax > 3) {         /* requested number of p-fields */
       n = tp->pmax; pcnt = 0;
