@@ -133,8 +133,7 @@ int main(int argc, char **argv)
     result = csoundCompile(csound, argc, argv);
 
 
-while (!result)
-      result = csoundPerformKsmps(csound);
+     if(!result) csoundPerform(csound);
     /* delete Csound instance */
      csoundDestroy(csound);
     /* close log file */
