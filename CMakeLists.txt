@@ -161,7 +161,10 @@ function(add_compiler_flags)
 endfunction(add_compiler_flags)
 
 ### COMPILER OPTIMIZATION FLAGS
+option(USE_COMPILER_OPTIMIZATIONS "Use the default Csound compiler optimization flags" ON)
+if(USE_COMPILER_OPTIMIZATIONS)
 include(cmake/CompilerOptimizations.cmake)
+endif()
 
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
