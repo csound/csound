@@ -282,8 +282,10 @@ int modkk(CSOUND *csound, AOP *p)
         r[n] = a OP b[n];                              \
       return OK;                                       \
     }                                                  \
-      else                                             \
+    else {                                             \
         *p->r = *p->a OP *p->b;                        \
+      return OK;                                       \
+    }                                                  \
   }
 
 KA(addka,+)
