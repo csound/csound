@@ -773,8 +773,8 @@ static const CSOUND cenviron_ = {
       0, 0, 0, 0,   /*    inbufsamps, ...   */
       0,            /*    sfsampsize        */
 #ifdef LINUX
-      1,            /*    displa          */
-      0, 0, 135, /*    disp.. graphsoff ... */
+      1,            /*    displays          */
+      1, 0, 135,    /*    graphsoff postscript, msglevel */
 #else
       1,            /*    displa          */
       1, 0, 135, /*    disp.. graphsoff ... */
