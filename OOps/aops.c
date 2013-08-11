@@ -107,7 +107,7 @@ int assign(CSOUND *csound, ASSIGN *p)
 int aassign(CSOUND *csound, ASSIGN *p)
 {
     uint32_t nsmps = CS_KSMPS;
-    if (UNLIKELY(csound->oparms->sampleAccurate)) {
+    if (LIKELY(nsmps!=1)) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t nsmps = CS_KSMPS;
@@ -121,7 +121,7 @@ int aassign(CSOUND *csound, ASSIGN *p)
       memcpy(&p->r[offset], &p->a[offset], (nsmps-offset) * sizeof(MYFLT));
     }
     else 
-      memcpy(p->r, p->a, nsmps * sizeof(MYFLT));
+      *p->r =*p->a;
     return OK;
 }
 
@@ -265,21 +265,25 @@ int modkk(CSOUND *csound, AOP *p)
 
 #define KA(OPNAME,OP)                           \
   int OPNAME(CSOUND *csound, AOP *p) {          \
-    MYFLT   *r, a, *b;                          \
-    uint32_t offset = p->h.insdshead->ksmps_offset;  \
-    uint32_t early  = p->h.insdshead->ksmps_no_end;  \
     uint32_t n, nsmps = CS_KSMPS;                    \
-    r = p->r;                                        \
-    a = *p->a;                                       \
-    b = p->b;                                        \
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT)); \
-    if (UNLIKELY(early)) {                           \
-      nsmps -= early;                                \
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));  \
-    }                                                \
-    for (n=offset; n<nsmps; n++)                     \
-      r[n] = a OP b[n];                              \
-    return OK;                                       \
+    if (LIKELY(nsmps!=1)) {                     \
+      MYFLT   *r, a, *b;                          \
+      uint32_t offset = p->h.insdshead->ksmps_offset;  \
+      uint32_t early  = p->h.insdshead->ksmps_no_end;  \
+      r = p->r;                                        \
+      a = *p->a;                                       \
+      b = p->b;                                        \
+      if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT)); \
+      if (UNLIKELY(early)) {                           \
+        nsmps -= early;                                \
+        memset(&r[nsmps], '\0', early*sizeof(MYFLT));  \
+      }                                                \
+      for (n=offset; n<nsmps; n++)                     \
+        r[n] = a OP b[n];                              \
+      return OK;                                       \
+    }                                                  \
+      else                                             \
+        *p->r = *p->a OP *p->b;                        \
   }
 
 KA(addka,+)
@@ -309,22 +313,29 @@ int modka(CSOUND *csound, AOP *p)
 
 #define AK(OPNAME,OP)                           \
   int OPNAME(CSOUND *csound, AOP *p) {          \
-    MYFLT   *r, *a, b;                          \
-    uint32_t offset = p->h.insdshead->ksmps_offset;  \
-    uint32_t early  = p->h.insdshead->ksmps_no_end;  \
     uint32_t n, nsmps = CS_KSMPS;               \
-    r = p->r;                                   \
-    a = p->a;                                   \
-    b = *p->b;                                  \
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));  \
-    if (UNLIKELY(early)) {                      \
-      nsmps -= early;                           \
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT)); \
+    if (LIKELY(nsmps != 1)) {                   \
+      MYFLT   *r, *a, b;                        \
+      uint32_t offset = p->h.insdshead->ksmps_offset;  \
+      uint32_t early  = p->h.insdshead->ksmps_no_end;  \
+      r = p->r;                                 \
+      a = p->a;                                 \
+      b = *p->b;                                \
+      if (UNLIKELY(offset))                     \
+        memset(r, '\0', offset*sizeof(MYFLT));  \
+      if (UNLIKELY(early)) {                    \
+        nsmps -= early;                         \
+        memset(&r[nsmps], '\0', early*sizeof(MYFLT)); \
+      }                                         \
+      for (n=offset; n<nsmps; n++)              \
+        r[n] = a[n] OP b;                       \
+      return OK;                                \
     }                                           \
-    for (n=offset; n<nsmps; n++)                \
-      r[n] = a[n] OP b;                         \
-    return OK;                                  \
-  }
+    else {                                      \
+      p->r[0] = p->a[0] OP *p->b;               \
+      return OK;                                \
+    }                                           \
+}
 
 AK(addak,+)
 AK(subak,-)
@@ -353,10 +364,11 @@ int modak(CSOUND *csound, AOP *p)
 
 #define AA(OPNAME,OP)                           \
   int OPNAME(CSOUND *csound, AOP *p) {          \
-    MYFLT   *r, *a, *b;                         \
-    uint32_t offset = p->h.insdshead->ksmps_offset;  \
+  MYFLT   *r, *a, *b;                           \
+  uint32_t n, nsmps = CS_KSMPS;                 \
+  if (LIKELY(nsmps!=1)) {                       \
+    uint32_t offset = p->h.insdshead->ksmps_offset;       \
     uint32_t early  = p->h.insdshead->ksmps_no_end;  \
-    uint32_t n, nsmps = CS_KSMPS;               \
     r = p->r;                                   \
     a = p->a;                                   \
     b = p->b;                                   \
@@ -368,6 +380,11 @@ int modak(CSOUND *csound, AOP *p)
     for (n=offset; n<nsmps; n++)                \
       r[n] = a[n] OP b[n];                      \
     return OK;                                  \
+  }                                             \
+    else {                                      \
+      *p->r = *p->a OP *p->b;                    \
+      return OK;                                \
+    }                                           \
   }
 
 AA(addaa,+)
