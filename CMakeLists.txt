@@ -6,6 +6,9 @@ ENABLE_TESTING()
 
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
+set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+
 # Project definitions
 set(APIVERSION "6.0")
 

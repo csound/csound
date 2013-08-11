@@ -132,7 +132,6 @@ int main(int argc, char **argv)
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
 
-
      if(!result) csoundPerform(csound);
     /* delete Csound instance */
      csoundDestroy(csound);
