@@ -202,6 +202,7 @@ int signum(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int asignum(CSOUND *csound, ASSIGN *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -293,6 +294,7 @@ KA(subka,-)
 KA(mulka,*)
 KA(divka,/)
 
+/* ********COULD BE IMPROVED******** */
 int modka(CSOUND *csound, AOP *p)
 {
     MYFLT   *r, a, *b;
@@ -344,6 +346,7 @@ AK(subak,-)
 AK(mulak,*)
 AK(divak,/)
 
+/* ********COULD BE IMPROVED******** */
 int modak(CSOUND *csound, AOP *p)
 {
     MYFLT   *r, *a, b;
@@ -394,6 +397,7 @@ AA(subaa,-)
 AA(mulaa,*)
 AA(divaa,/)
 
+/* ********COULD BE IMPROVED******** */
 int modaa(CSOUND *csound, AOP *p)
 {
     MYFLT   *r, *a, *b;
@@ -420,6 +424,7 @@ int divzkk(CSOUND *csound, DIVZ *p)
     *p->r = (*p->b != FL(0.0) ? *p->a / *p->b : *p->def);
     return OK;
 }
+/* ********COULD BE IMPROVED******** */
 
 int divzka(CSOUND *csound, DIVZ *p)
 {
@@ -443,6 +448,7 @@ int divzka(CSOUND *csound, DIVZ *p)
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int divzak(CSOUND *csound, DIVZ *p)
 {
     uint32_t n;
@@ -469,6 +475,7 @@ int divzak(CSOUND *csound, DIVZ *p)
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int divzaa(CSOUND *csound, DIVZ *p)
 {
     uint32_t n;
@@ -501,6 +508,7 @@ int conval(CSOUND *csound, CONVAL *p)
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int aconval(CSOUND *csound, CONVAL *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset*sizeof(MYFLT);
@@ -528,6 +536,7 @@ int int1(CSOUND *csound, EVAL *p)               /* returns signed whole no. */
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int int1a(CSOUND *csound, EVAL *p)              /* returns signed whole no. */
 {
     MYFLT        intpart, *a=p->a, *r=p->r;
@@ -556,6 +565,7 @@ int frac1(CSOUND *csound, EVAL *p)              /* returns positive frac part */
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac part */
 {
     MYFLT intpart, fracpart, *r = p->r, *a = p->a;
@@ -592,6 +602,7 @@ int int1_round(CSOUND *csound, EVAL *p)         /* round to nearest integer */
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int int1a_round(CSOUND *csound, EVAL *p)        /* round to nearest integer */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -616,6 +627,7 @@ int int1_floor(CSOUND *csound, EVAL *p)         /* round down */
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int int1a_floor(CSOUND *csound, EVAL *p)        /* round down */
 {
     MYFLT    *a=p->a, *r=p->r;
@@ -640,6 +652,7 @@ int int1_ceil(CSOUND *csound, EVAL *p)          /* round up */
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int int1a_ceil(CSOUND *csound, EVAL *p)         /* round up */
 {
     MYFLT    *a=p->a, *r=p->r;
@@ -700,6 +713,7 @@ int atan21(CSOUND *csound, AOP *p)
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 #define LIBA(OPNAME,LIBNAME) int OPNAME(CSOUND *csound, EVAL *p) {      \
     uint32_t offset = p->h.insdshead->ksmps_offset;                     \
     uint32_t early  = p->h.insdshead->ksmps_no_end;                     \
@@ -732,6 +746,7 @@ LIBA(tanha,TANH)
 LIBA(log10a,LOG10)
 LIBA(log2a,LOG2)
 
+/* ********COULD BE IMPROVED******** */
 int atan2aa(CSOUND *csound, AOP *p)
 {
     MYFLT   *r, *a, *b;
@@ -795,6 +810,7 @@ int ampdbfs(CSOUND *csound, EVAL *p)
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int aampdbfs(CSOUND *csound, EVAL *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1158,6 +1174,7 @@ int powoftwo(CSOUND *csound, EVAL *p)
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int powoftwoa(CSOUND *csound, EVAL *p)
 {                                   /* by G.Maldonado, liberalised by JPff */
     MYFLT    *a=p->a, *r=p->r;
@@ -1211,6 +1228,7 @@ int cent(CSOUND *csound, EVAL *p)
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int acent(CSOUND *csound, EVAL *p)        /* JPff */
 {
     MYFLT *r, *a;
@@ -1239,6 +1257,7 @@ int db(CSOUND *csound, EVAL *p)
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int dba(CSOUND *csound, EVAL *p)          /* JPff */
 {
     MYFLT *r, *a;
@@ -1863,6 +1882,7 @@ int is_NaN(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int is_NaNa(CSOUND *csound, ASSIGN *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1882,6 +1902,7 @@ int is_inf(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
+/* ********COULD BE IMPROVED******** */
 int is_infa(CSOUND *csound, ASSIGN *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
