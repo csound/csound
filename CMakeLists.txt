@@ -6,6 +6,9 @@ ENABLE_TESTING()
 
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
+set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+
 # Project definitions
 set(APIVERSION "6.0")
 
@@ -160,6 +163,11 @@ function(add_compiler_flags)
     endif()
 endfunction(add_compiler_flags)
 
+### COMPILER OPTIMIZATION FLAGS
+option(USE_COMPILER_OPTIMIZATIONS "Use the default Csound compiler optimization flags" ON)
+if(USE_COMPILER_OPTIMIZATIONS)
+include(cmake/CompilerOptimizations.cmake)
+endif()
 
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
@@ -259,10 +267,10 @@ set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 if(USE_DOUBLE) 
     add_definitions("-DUSE_DOUBLE")
 endif(USE_DOUBLE)
-if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
-    add_compiler_flags("-fvisibility=hidden")
-    add_compiler_flags("-fvisibility=hidden" LINKER)
-endif()
+#if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
+#    add_compiler_flags("-fvisibility=hidden")
+#    add_compiler_flags("-fvisibility=hidden" LINKER)
+#endif()
 
 if(APPLE AND BUILD_INSTALLER)
     set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}")
@@ -309,7 +317,7 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
     add_definitions("-Wno-format")
-    add_compiler_flags("-g")
+    #    add_compiler_flags("-g")
 endif()
 
 
@@ -1005,20 +1013,7 @@ if(BIG_ENDIAN)
 endif()
 
 
-# VL 13.02.2013: I have added this code to make the PUBLIC attribute mean
-# something on gcc (OSX, LINUX), since we are using it.
-# see http://gcc.gnu.org/wiki/Visibility
-
-if(NOT WIN32)
-if(CMAKE_C_COMPILER MATCHES "gcc")
-    add_compiler_flags(${libcsound_CFLAGS} -fvisibility=hidden
-    -ffast-math -mfpmath=sse -fomit-frame-pointer TARGETS ${CSOUNDLIB})
-else()
-   add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
-endif()
-else()
-  add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
-endif()
+add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
 
 target_link_libraries(${CSOUNDLIB} ${libcsound_LIBS})
 
@@ -1067,7 +1062,7 @@ add_subdirectory(tests/commandline)
 
 # uninstall target
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
     IMMEDIATE @ONLY)
 
