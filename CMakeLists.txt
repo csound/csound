@@ -348,7 +348,6 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
-
 find_package(OpenMP)
 
 # First, required stuff
@@ -383,6 +382,12 @@ set(CMAKE_REQUIRED_INCLUDES pthread.h)
 set(CMAKE_REQUIRED_LIBRARIES pthread)
 
 # Now, non required library searches #
+
+include(cmake/CheckAtomic.cmake)
+if(HAVE_ATOMIC_BUILTIN) 
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+endif()
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
