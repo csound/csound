@@ -45,6 +45,16 @@ endif()
 endif()
 
 
+check_c_compiler_flag(-msse2 HAS_SSE2)
+check_cxx_compiler_flag(-msse2 HAS_CXX_SSE2)
+  if (HAS_SSE2)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
+endif()
+if (HAS_CXX_SSE2)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+endif()
+
+
 check_c_compiler_flag(-fomit-frame-pointer HAS_OMIT_FRAME_POINTER)
 check_cxx_compiler_flag(-fomit-frame-pointer HAS_CXX_OMIT_FRAME_POINTER)
 if (HAS_OMIT_FRAME_POINTER)
