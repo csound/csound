@@ -1,3 +1,0 @@
-#!../../cstclsh
-csCompileList $argv
-csPerform
