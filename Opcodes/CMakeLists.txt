@@ -29,7 +29,7 @@ set(PYTHON_INCLUDE_DIRS /usr/include/Python2.7)
 set(Python_ADDITIONAL_VERSIONS 2.7)
 find_package(PythonLibs)
 
-find_library(LUA_LIBRARIES luajit)
+find_library(LUAJIT_LIBRARIES luajit)
 check_include_file(wiiuse.h WIIUSE_H)
 find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
@@ -139,17 +139,16 @@ if(BUILD_PYTHON_OPCODES)
 endif()
 
 # this is broken at the moment
-check_deps(BUILD_LUA_OPCODES LUA_LIBRARIES)
+check_deps(BUILD_LUA_OPCODES LUAJIT_LIBRARIES)
 if(BUILD_LUA_OPCODES)
-        find_path(LUA_INCLUDE_DIR  lua.h
-            /usr/include/luajit-2.0
-            /usr/local/include/luajit-2.0)
-        include_directories(${LUA_INCLUDE_DIR})
-        make_plugin(LuaCsound LuaCsound.cpp ${LUA_LIBRARIES})
-        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound)
-        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound LINKER)
-        endif()
-#endif()
+    find_path(LUAJIT_INCLUDE_DIR  lua.h
+        /usr/include/luajit-2.0
+        /usr/local/include/luajit-2.0)
+    include_directories(${LUAJIT_INCLUDE_DIR})
+    make_plugin(LuaCsound LuaCsound.cpp ${LUAJIT_LIBRARIES})
+    add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound)
+    add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound LINKER)
+endif()
 
 check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H)
 if(BUILD_WIIMOTE_OPCODES)
