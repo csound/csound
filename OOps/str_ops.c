@@ -240,11 +240,11 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 /* strcat */
 int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
-  char  *newVal1 = p->str1->data;
-  char  *newVal2 = p->str2->data;
+;
   int size;
-  if(newVal1 == NULL || newVal2 == NULL) return NOTOK;
-  size = strlen(newVal1) + strlen(newVal2);
+  
+  size = strlen(p->str1->data) + 
+         strlen(p->str2->data);
 
     if(p->r->data == NULL) {
         p->r->data = mcalloc(csound, size+1);
@@ -255,8 +255,9 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
       p->r->size = size + 1;
     }
 
-    strcpy((char*) p->r->data, newVal1);
-    strcat((char*) p->r->data, newVal2);
+    if(p->r->data != p->str1->data)
+     strncpy((char*) p->r->data,  p->str1->data, p->r->size);
+    strcat((char*) p->r->data, p->str2->data);
 
     return OK;
 }

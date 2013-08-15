@@ -1075,6 +1075,8 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
     if (UNLIKELY(fout==NULL)) goto err1;
 
     if (p->lastframe < p->fin->framecount) {
+      int tmp = N/2;
+       tmp = tmp + tmp%2; 
       for(j=0; j < 2; j++) {
         MYFLT a;
         maxe = 0.f;
@@ -1090,9 +1092,15 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
           ceps[i] = fenv[i/2];
           ceps[i+1] = 0.0;
         }
-        csound->InverseComplexFFT(csound, ceps, N/2);
-        for(i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
-        csound->ComplexFFT(csound, ceps, N/2);
+        if(!(N & (N - 1)))
+            csound->InverseComplexFFT(csound, ceps, N/2);
+	       else
+            csoundInverseComplexFFTnp2(csound, ceps, tmp);
+            for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
+             if(!(N & (N - 1)))
+            csound->ComplexFFT(csound, ceps, N/2);
+             else
+            csoundComplexFFTnp2(csound, ceps, tmp);
         for(i=0; i < N; i+=2) {
           fenv[i/2] = exp(ceps[i]);
            maxe = maxe < fenv[i/2] ? fenv[i/2] : maxe;
