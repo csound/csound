@@ -22,15 +22,6 @@ if (HAS_CXX_FAST_MATH)
 endif()
 
 
-check_c_compiler_flag(-fvisibility=hidden HAS_VISIBILITY_HIDDEN)
-check_cxx_compiler_flag(-fvisibility=hidden HAS_CXX_VISIBILITY_HIDDEN)
-if (HAS_VISIBILITY_HIDDEN)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
-endif()
-if (HAS_CXX_VISBILITY_HIDDEN)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
-endif()
-
 if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
 check_c_compiler_flag(-mfpmath=sse HAS_FPMATH_SSE)
@@ -42,6 +33,16 @@ if (HAS_CXX_FPMATH_SSE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=sse")
 endif()
 
+endif()
+
+
+check_c_compiler_flag(-msse2 HAS_SSE2)
+check_cxx_compiler_flag(-msse2 HAS_CXX_SSE2)
+  if (HAS_SSE2)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
+endif()
+if (HAS_CXX_SSE2)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
 endif()
 
 

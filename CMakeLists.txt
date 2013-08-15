@@ -267,10 +267,14 @@ set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 if(USE_DOUBLE) 
     add_definitions("-DUSE_DOUBLE")
 endif(USE_DOUBLE)
-#if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
-#    add_compiler_flags("-fvisibility=hidden")
-#    add_compiler_flags("-fvisibility=hidden" LINKER)
-#endif()
+check_c_compiler_flag(-fvisibility=hidden HAS_VISIBILITY_HIDDEN)
+check_cxx_compiler_flag(-fvisibility=hidden HAS_CXX_VISIBILITY_HIDDEN)
+if (HAS_VISIBILITY_HIDDEN)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
+endif()
+if (HAS_CXX_VISBILITY_HIDDEN)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+endif()
 
 if(APPLE AND BUILD_INSTALLER)
     set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}")
@@ -348,7 +352,6 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
-
 find_package(OpenMP)
 
 # First, required stuff
@@ -383,6 +386,12 @@ set(CMAKE_REQUIRED_INCLUDES pthread.h)
 set(CMAKE_REQUIRED_LIBRARIES pthread)
 
 # Now, non required library searches #
+
+include(cmake/CheckAtomic.cmake)
+if(HAVE_ATOMIC_BUILTIN) 
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+endif()
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
