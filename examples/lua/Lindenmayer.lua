@@ -1,7 +1,7 @@
 -- Copyright (c) 2002, 2003 by Michael Gogins. All rights reserved.
 -- Tutorial demonstrating a MusicModel composition based on a Lindenmayer system.
 
-require "luaCsnd"
+require "luaCsnd6"
 require "luaCsoundAC"
 
 filename = 'Lindenmayer.lua'
