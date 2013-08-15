@@ -349,7 +349,16 @@ sprintf_opcode_(CSOUND *csound,
         case 'u':
         case 'c':
 #ifdef HAVE_SNPRINTF
-          n = snprintf(outstring, maxChars, strseg, (int) MYFLT2LRND(*parm));
+        if(strlen(strseg) + 24 > maxChars) {
+           int offs = outstring - str->data;
+            str->data = mrealloc(csound, str->data,
+                                 str->size  + 13);
+            str->size += 24;
+            maxChars += 24;
+            outstring = str->data + offs;
+            //printf("maxchars = %d  %s\n", maxChars, strseg);
+	  }
+          n = snprintf(outstring, maxChars, strseg, (int) MYFLT2LRND(*parm));    
 #else
           n = sprintf(outstring, strseg, (int) MYFLT2LRND(*parm));
 #endif
@@ -361,6 +370,15 @@ sprintf_opcode_(CSOUND *csound,
         case 'g':
         case 'G':
 #ifdef HAVE_SNPRINTF
+          if(strlen(strseg) + 24 > maxChars) {
+           int offs = outstring - str->data;
+            str->data = mrealloc(csound, str->data,
+                                 str->size  + 13);
+            str->size += 24;
+            maxChars += 24;
+            outstring = str->data + offs;
+            //printf("maxchars = %d  %s\n", maxChars, strseg);
+	  }
           n = snprintf(outstring, maxChars, strseg, (double)*parm);
 #else
           n = sprintf(outstring, strseg, (double)*parm);
@@ -379,17 +397,19 @@ sprintf_opcode_(CSOUND *csound,
             maxChars += ((STRINGDAT*)parm)->size;
             outstring = str->data + offs;
           }
-          n = sprintf(outstring, strseg, ((STRINGDAT*)parm)->data);
+	   n = sprintf(outstring, strseg, ((STRINGDAT*)parm)->data);
           break;
         default:
           return StrOp_ErrMsg(p, "invalid format string");
         }
-        if (UNLIKELY(n < 0 || n >= maxChars)) {
+        if (n < 0 || n >= maxChars) {
           /* safely detected excess string length */
             int offs = outstring - str->data;
             str->data = mrealloc(csound, str->data, maxChars*2);
             outstring = str->data + offs;
             str->size = maxChars*2;
+            maxChars += str->size;
+           
         }
         outstring += n;
         len += n;
