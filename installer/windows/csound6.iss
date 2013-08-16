@@ -23,7 +23,7 @@
 #define MyMinGwBinDir "D:\mingw32-4.8.1\bin\"
 ; If you are not Michael Gogins, change this to your MSys /bin/ directory.
 #define MyMSysBinDir "D:\msys\bin\"
-; If you are not Michael Gogins, change this to your MSys /usr/local/ directory.
+; If you are not Michael Gogins, change this to your MSys /usr/locFal/ directory.
 #define MyMSysUsrLocalDir "D:\msys\local\"
 ; If you are not Michael Gogins, change this to your Csound build directory.
 #define MySourceDir "C:\Users\mkg.sorabji\csound-csound6-git\"
@@ -163,6 +163,7 @@ Source: {#MyLuaJitSourceDir}luajit.exe; DestDir: "{#APP_BIN}"; Flags: ignorevers
 Source: {#MyLuaJitSourceDir}lua51.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 ; No idea why this other name is needed.
 Source: {#MyLuaJitSourceDir}lua51.dll; DestDir: "{#APP_BIN}"; DestName: "lua5.1.dll"; Flags: ignoreversion;  Components: core 
+Source: {#MyLuaJitSourceDir}lua51.dll; DestDir: "{#APP_BIN}"; DestName: "luajit.dll"; Flags: ignoreversion;  Components: core 
 Source: {#MyLuaJitSourceDir}lua*.h; DestDir: "{#APP_INCLUDE}\luajit"; Flags: ignoreversion;  Components: core 
 
 Source: {#MyFltkSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
@@ -226,7 +227,7 @@ ModPathType = 'system';
 function ModPathDir(): TArrayOfString;
 begin
 	setArrayLength(Result, 1);
-	Result[0] := ExpandConstant('{app}/bin');
+	Result[0] := ExpandConstant('{app}\bin');
 end;
 
 procedure ModPath();
