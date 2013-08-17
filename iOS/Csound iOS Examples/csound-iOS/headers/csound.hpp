@@ -773,6 +773,14 @@ public:
     return csoundGetPvsChannel(csound, value, name);
   }
 
+  virtual void SetInputChannelCallback(channelCallback_t inputChannelCalback){
+    csoundSetInputChannelCallback(csound, inputChannelCalback);
+  }
+
+  virtual void SetOutputChannelCallback(channelCallback_t outputChannelCalback){
+    csoundSetOutputChannelCallback(csound, outputChannelCalback);
+  }
+
   // cfgvar.h interface
   virtual int CreateConfigurationVariable(const char *name, void *p,
                                           int type, int flags,

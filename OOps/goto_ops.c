@@ -119,14 +119,14 @@ int rireturn(CSOUND *csound, LINK *p)
 
 int reinit(CSOUND *csound, GOTO *p)
 {
-    csound->reinitflag = 1;
+    csound->reinitflag = p->h.insdshead->reinitflag = 1;
     csound->curip = p->h.insdshead;
     csound->ids = p->lblblk->prvi;        /* now, despite ANSI C warning:  */
     if(csound->realtime_audio_flag == 0) {
     while ((csound->ids = csound->ids->nxti) != NULL &&
            csound->ids->iopadr != (SUBR) rireturn)
       (*csound->ids->iopadr)(csound, csound->ids);
-    csound->reinitflag = 0;
+     csound->reinitflag = p->h.insdshead->reinitflag = 0;
      } else {
     csound->curip->init_done = 0;
     }
@@ -135,29 +135,30 @@ int reinit(CSOUND *csound, GOTO *p)
 
 int rigoto(CSOUND *csound, GOTO *p)
 {
-    if (csound->reinitflag)
+    if (p->h.insdshead->reinitflag)
       csound->ids = p->lblblk->prvi;
     return OK;
 }
 
 int tigoto(CSOUND *csound, GOTO *p)     /* I-time only, NOP at reinit */
 {
-    if (csound->tieflag && !csound->reinitflag)
+    if (p->h.insdshead->tieflag && !p->h.insdshead->reinitflag)
       csound->ids = p->lblblk->prvi;
     return OK;
 }
 
 int tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
 {
-    if (!csound->reinitflag)
-      *p->r = (csound->tieflag ? FL(1.0) : FL(0.0));
+  if (!p->h.insdshead->reinitflag)
+    *p->r = p->h.insdshead->tieflag;
+    /* *p->r = (csound->tieflag ? FL(1.0) : FL(0.0)); */
     return OK;
 }
 
 int ihold(CSOUND *csound, LINK *p)      /* make this note indefinit duration */
 {                                       /* called by ihold statmnt at Itime  */
     IGN(csound);
-    if (!csound->reinitflag) {          /* no-op at reinit                   */
+    if (!p->h.insdshead->reinitflag) {          /* no-op at reinit                   */
       csound->curip->offbet = -1.0;
       csound->curip->offtim = -1.0;
     }

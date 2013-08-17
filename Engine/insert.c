@@ -155,6 +155,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
       if (ip->actflg && ip->offtim < 0.0 && ip->p1 == newevtp->p[1]) {
         csound->tieflag++;
+        ip->tieflag = 1;
         tie = 1;
         goto init;                      /*     continue that event */
       }
@@ -268,9 +269,11 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         (*csound->ids->iopadr)(csound, csound->ids);
       }
       ip->init_done = 1;
+      ip->tieflag  = 0;
+      ip->reinitflag = 0;
+      csound->tieflag = csound->reinitflag = 0;
     }
 
-    csound->tieflag = csound->reinitflag = 0;
     if (UNLIKELY(csound->inerrcnt || ip->p3 == FL(0.0))) {
       xturnoff_now(csound, ip);
       return csound->inerrcnt;
@@ -556,8 +559,10 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         (*csound->ids->iopadr)(csound, csound->ids);
       }
       ip->init_done = 1;
+      ip->tieflag = ip->reinitflag = 0;
+      csound->tieflag = csound->reinitflag = 0;
     }
-    csound->tieflag = csound->reinitflag = 0;
+
     if (csound->inerrcnt) {
       xturnoff_now(csound, ip);
       return csound->inerrcnt;
@@ -939,6 +944,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
     INSDS   *saved_curip = csound->curip;
     MYFLT   *flp;
     int     n, init_op, inarg_ofs;
+    INSDS  *pip = p->h.insdshead;
 
     init_op = (p->h.opadr == NULL ? 1 : 0);
     inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
@@ -949,7 +955,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
                                          "args greater than nchnls"));
     }
     /* IV - Oct 9 2002: copied this code from useropcdset() to fix some bugs */
-    if (!(csound->reinitflag | csound->tieflag)) {
+    if (!(pip->reinitflag | pip->tieflag)) {
       /* get instance */
       if (csound->engineState.instrtxtp[instno]->act_instance == NULL)
         instance(csound, instno);
@@ -1005,6 +1011,8 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
 
     p->ip->ksmps_offset =  saved_curip->ksmps_offset;
     p->ip->ksmps_no_end =  saved_curip->ksmps_no_end;
+    p->ip->tieflag = saved_curip->tieflag;
+    p->ip->reinitflag = saved_curip->reinitflag;
 
     /* copy remainder of pfields */
     flp = &p->ip->p3 + 1;
@@ -1016,7 +1024,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
       *flp++ = *p->ar[inarg_ofs + n];
 
     /* allocate memory for a temporary store of spout buffers */
-    if (!init_op && !(csound->reinitflag | csound->tieflag))
+    if (!init_op && !(pip->reinitflag | pip->tieflag))
       csoundAuxAlloc(csound,
                      (int32) csound->nspout * sizeof(MYFLT), &p->saved_spout);
 
@@ -1185,7 +1193,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     lcurip->nxtolap = NULL;
     lcurip->ksmps_offset = parent_ip->ksmps_offset;
     lcurip->ksmps_no_end = parent_ip->ksmps_no_end;
-
+    lcurip->tieflag = parent_ip->tieflag;
+    lcurip->reinitflag = parent_ip->reinitflag;
     /* copy all p-fields, including p1 (will this work ?) */
     if (tp->pmax > 3) {         /* requested number of p-fields */
       n = tp->pmax; pcnt = 0;
@@ -2305,13 +2314,14 @@ void *init_pass_thread(void *p){
             (*csound->ids->iopadr)(csound, csound->ids);
             csound->ids = csound->ids->nxti;
           }
+	  ip->tieflag = 0;
 #ifdef HAVE_ATOMIC_BUILTIN
     __sync_lock_test_and_set((int*)&ip->init_done,1);
 #else
     ip->init_done = 1;
 #endif
-          if(csound->reinitflag==1) {
-            csound->reinitflag = 0;
+          if(ip->reinitflag==1) {
+            ip->reinitflag = 0;
           }
           csoundUnlockMutex(csound->init_pass_threadlock);
         }

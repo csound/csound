@@ -29,7 +29,7 @@ set(PYTHON_INCLUDE_DIRS /usr/include/Python2.7)
 set(Python_ADDITIONAL_VERSIONS 2.7)
 find_package(PythonLibs)
 
-find_library(LUA_LIBRARIES luajit)
+find_library(LUAJIT_LIBRARIES luajit)
 check_include_file(wiiuse.h WIIUSE_H)
 find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
@@ -139,17 +139,16 @@ if(BUILD_PYTHON_OPCODES)
 endif()
 
 # this is broken at the moment
-check_deps(BUILD_LUA_OPCODES LUA_LIBRARIES)
+check_deps(BUILD_LUA_OPCODES LUAJIT_LIBRARIES)
 if(BUILD_LUA_OPCODES)
-        find_path(LUA_INCLUDE_DIR  lua.h
-            /usr/include/luajit-2.0
-            /usr/local/include/luajit-2.0)
-        include_directories(${LUA_INCLUDE_DIR})
-        make_plugin(LuaCsound LuaCsound.cpp ${LUA_LIBRARIES})
-        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound)
-        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound LINKER)
-        endif()
-#endif()
+    find_path(LUAJIT_INCLUDE_DIR  lua.h
+        /usr/include/luajit-2.0
+        /usr/local/include/luajit-2.0)
+    include_directories(${LUAJIT_INCLUDE_DIR})
+    make_plugin(LuaCsound LuaCsound.cpp ${LUAJIT_LIBRARIES})
+    add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound)
+    add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound LINKER)
+endif()
 
 check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H)
 if(BUILD_WIIMOTE_OPCODES)
@@ -163,13 +162,15 @@ if(BUILD_P5GLOVE_OPCODES)
     make_plugin(p5g p5glove.c ${P5GLOVE_LIB})
 endif()
 
-check_deps(BUILD_FAUST_OPCODES LLVM_FOUND FAUST_LIBRARY)
+
 if(BUILD_FAUST_OPCODES)
+check_deps(BUILD_FAUST_OPCODES LLVM_FOUND FAUST_LIBRARY)
    llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES AsmParser Instrumentation Linker Archive BitReader DebugInfo JIT ipo Vectorize BitWriter TableGen XCoreCodeGen XCoreDesc XCoreInfo X86AsmParser X86Disassembler X86CodeGen X86Desc X86Info X86AsmPrinter X86Utils SparcCodeGen SparcDesc SparcInfo PTXCodeGen PTXDesc PTXInfo PTXAsmPrinter PowerPCCodeGen PowerPCDesc PowerPCAsmPrinter PowerPCInfo MSP430CodeGen MSP430Desc MSP430Info MSP430AsmPrinter MBlazeDisassembler MBlazeAsmParser MBlazeCodeGen MBlazeDesc MBlazeInfo MBlazeAsmPrinter MipsDisassembler MipsAsmParser MipsCodeGen MipsDesc MipsInfo MipsAsmPrinter HexagonCodeGen HexagonDesc HexagonInfo HexagonAsmPrinter CppBackendCodeGen CppBackendInfo CellSPUCodeGen CellSPUDesc CellSPUInfo ARMDisassembler ARMAsmParser ARMCodeGen SelectionDAG AsmPrinter ARMDesc ARMInfo ARMAsmPrinter MCDisassembler MCParser Interpreter CodeGen ScalarOpts InstCombine TransformUtils ipa Analysis MCJIT RuntimeDyld ExecutionEngine Target MC Object Core Support
 )
-   make_plugin(faustcsound faustgen.cpp)
-   add_compiler_flags("-DFAUSTFLOAT=double"  TARGETS faustcsound)
-   target_link_libraries(faustcsound faust ${REQ_LLVM_LIBRARIES})
+  
+  make_plugin(faustcsound faustgen.cpp)
+  add_compiler_flags("-DFAUSTFLOAT=double"  TARGETS faustcsound)
+  target_link_libraries(faustcsound faust ${REQ_LLVM_LIBRARIES})
 endif()
 
 

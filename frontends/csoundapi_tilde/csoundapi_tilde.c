@@ -573,7 +573,7 @@ static void csoundapi_set_channel(t_csoundapi *x, t_symbol *s,
     MYFLT *pval;
     int i;
     char chn[64];
-    int len = csoundGetStrVarMaxLen(p);
+    int len = 512;
     IGN(s);
 
     for(i=0; i < argc; i+=2){

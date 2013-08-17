@@ -179,9 +179,11 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
                                Str("pvsanal: fftsize of 32 is too small!\n"));
     /* check N for powof2? CARL fft routines and FFTW are not limited to that */
     N = N  + N%2;       /* Make N even */
-    if (UNLIKELY(M < N))
-      return csound->InitError(csound,
-                               Str("pvsanal: window size too small for fftsize\n"));
+    if (UNLIKELY(M < N)) {
+       csound->Warning(csound,
+                               Str("pvsanal: window size too small for fftsize"));
+       M = N;
+    }
     if (UNLIKELY(overlap > N / 2))
       return csound->InitError(csound,
                                Str("pvsanal: overlap too big for fft size\n"));
@@ -928,6 +930,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
        out (to standard output). The subroutines reals and fft
        together perform an efficient inverse FFT.  */
     if (!(NO & (NO - 1))) {
+       printf("N %d %d \n", NO, NO & (NO-1));
       syn[1] = syn[NO];
       csound->InverseRealFFT(csound, syn, NO);
       syn[NO] = syn[NO + 1] = FL(0.0);

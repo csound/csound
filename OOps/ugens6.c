@@ -360,16 +360,20 @@ int tapset(CSOUND *csound, DELTAP *p)
 int delay(CSOUND *csound, DELAY *p)
 {
     MYFLT       *ar, *asig, *curp, *endp;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t offset = 0;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    if (csound->oparms->sampleAccurate) {
+      uint32_t early  = p->h.insdshead->ksmps_no_end;
+      offset = p->h.insdshead->ksmps_offset;
+
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        nsmps -= early;
+        memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      }
     }
     asig = p->asig;
     curp = p->curp;
