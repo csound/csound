@@ -6,6 +6,9 @@ ENABLE_TESTING()
 
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
+set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+
 # Project definitions
 set(APIVERSION "6.0")
 
@@ -160,6 +163,11 @@ function(add_compiler_flags)
     endif()
 endfunction(add_compiler_flags)
 
+### COMPILER OPTIMIZATION FLAGS
+option(USE_COMPILER_OPTIMIZATIONS "Use the default Csound compiler optimization flags" ON)
+if(USE_COMPILER_OPTIMIZATIONS)
+include(cmake/CompilerOptimizations.cmake)
+endif()
 
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
@@ -259,9 +267,13 @@ set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 if(USE_DOUBLE) 
     add_definitions("-DUSE_DOUBLE")
 endif(USE_DOUBLE)
-if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
-    add_compiler_flags("-fvisibility=hidden")
-    add_compiler_flags("-fvisibility=hidden" LINKER)
+check_c_compiler_flag(-fvisibility=hidden HAS_VISIBILITY_HIDDEN)
+check_cxx_compiler_flag(-fvisibility=hidden HAS_CXX_VISIBILITY_HIDDEN)
+if (HAS_VISIBILITY_HIDDEN)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
+endif()
+if (HAS_CXX_VISBILITY_HIDDEN)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
 
 if(APPLE AND BUILD_INSTALLER)
@@ -309,7 +321,7 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
     add_definitions("-Wno-format")
-    add_compiler_flags("-g")
+    #    add_compiler_flags("-g")
 endif()
 
 
@@ -340,7 +352,6 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
-
 find_package(OpenMP)
 
 # First, required stuff
@@ -375,6 +386,12 @@ set(CMAKE_REQUIRED_INCLUDES pthread.h)
 set(CMAKE_REQUIRED_LIBRARIES pthread)
 
 # Now, non required library searches #
+
+include(cmake/CheckAtomic.cmake)
+if(HAVE_ATOMIC_BUILTIN) 
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+endif()
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
@@ -1005,20 +1022,7 @@ if(BIG_ENDIAN)
 endif()
 
 
-# VL 13.02.2013: I have added this code to make the PUBLIC attribute mean
-# something on gcc (OSX, LINUX), since we are using it.
-# see http://gcc.gnu.org/wiki/Visibility
-
-if(NOT WIN32)
-if(CMAKE_C_COMPILER MATCHES "gcc")
-    add_compiler_flags(${libcsound_CFLAGS} -fvisibility=hidden
-    -ffast-math -mfpmath=sse -fomit-frame-pointer TARGETS ${CSOUNDLIB})
-else()
-   add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
-endif()
-else()
-  add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
-endif()
+add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
 
 target_link_libraries(${CSOUNDLIB} ${libcsound_LIBS})
 
@@ -1067,7 +1071,7 @@ add_subdirectory(tests/commandline)
 
 # uninstall target
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
     IMMEDIATE @ONLY)
 

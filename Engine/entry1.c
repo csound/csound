@@ -159,7 +159,7 @@ OENTRY opcodlst_1[] = {
   { "ihold",  S(LINK),0,    1,      "",     "",     ihold                   },
   { "turnoff",S(LINK),0,    2,      "",     "",     NULL,   turnoff         },
   {  "=.S",   S(STRCPY_OP),0,   1,  "S",    "S",
-     (SUBR) strassign_opcode_S, NULL, (SUBR) NULL    },
+     (SUBR) strcpy_opcode_S, NULL, (SUBR) NULL    },
   {  "=.T",   S(STRGET_OP),0,   1,  "S",    "i",
      (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL                      },
   { "=.r",    S(ASSIGN),0,  1,      "r",    "i",    rassign                 },
@@ -895,9 +895,7 @@ OENTRY opcodlst_1[] = {
   { "turnoff2.i",S(TURNOFF2),0,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
   { "turnoff2.r",S(TURNOFF2),0,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
   { "cngoto", S(CGOTO),0,   3,      "",     "Bl",   ingoto, kngoto, NULL     },
-#ifdef VARGA
-  { "cogoto", S(CGOTO),0,   3,      "",     "bl",   iingoto, kingoto, NULL   },
-#endif
+  { "cingoto", S(CGOTO),0,   1,      "",     "Bl",   ingoto, NULL, NULL     },
   { "tempoval", S(GTEMPO),0, 2,  "k", "",      NULL, (SUBR)gettempo, NULL    },
   { "downsamp",S(DOWNSAMP),0,3, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
   { "upsamp", S(UPSAMP),0,  4,  "a", "k",    NULL,   NULL,   (SUBR)upsamp        },
