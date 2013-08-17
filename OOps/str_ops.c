@@ -154,7 +154,7 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
 /* strcpy */
 int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
-     char  *newVal = p->str->data;
+    char  *newVal = p->str->data;
     if(p->r->data == NULL) {
       p->r->data =  cs_strdup(csound, newVal);
       p->r->size =  strlen(p->str->data) + 1;
@@ -240,9 +240,11 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 /* strcat */
 int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
-  char  *newVal1 = strdup(p->str1->data);
-  char  *newVal2 = strdup(p->str2->data);
-  int size = strlen(newVal1) + strlen(newVal2);
+;
+  int size;
+  
+  size = strlen(p->str1->data) + 
+         strlen(p->str2->data);
 
     if(p->r->data == NULL) {
         p->r->data = mcalloc(csound, size+1);
@@ -253,10 +255,10 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
       p->r->size = size + 1;
     }
 
-    strcpy((char*) p->r->data, newVal1);
-    strcat((char*) p->r->data, newVal2);
+    if(p->r->data != p->str1->data)
+     strncpy((char*) p->r->data,  p->str1->data, p->r->size);
+    strcat((char*) p->r->data, p->str2->data);
 
-    free(newVal1); free(newVal2);
     return OK;
 }
 
@@ -347,7 +349,16 @@ sprintf_opcode_(CSOUND *csound,
         case 'u':
         case 'c':
 #ifdef HAVE_SNPRINTF
-          n = snprintf(outstring, maxChars, strseg, (int) MYFLT2LRND(*parm));
+        if(strlen(strseg) + 24 > maxChars) {
+           int offs = outstring - str->data;
+            str->data = mrealloc(csound, str->data,
+                                 str->size  + 13);
+            str->size += 24;
+            maxChars += 24;
+            outstring = str->data + offs;
+            //printf("maxchars = %d  %s\n", maxChars, strseg);
+	  }
+          n = snprintf(outstring, maxChars, strseg, (int) MYFLT2LRND(*parm));    
 #else
           n = sprintf(outstring, strseg, (int) MYFLT2LRND(*parm));
 #endif
@@ -359,6 +370,15 @@ sprintf_opcode_(CSOUND *csound,
         case 'g':
         case 'G':
 #ifdef HAVE_SNPRINTF
+          if(strlen(strseg) + 24 > maxChars) {
+           int offs = outstring - str->data;
+            str->data = mrealloc(csound, str->data,
+                                 str->size  + 13);
+            str->size += 24;
+            maxChars += 24;
+            outstring = str->data + offs;
+            //printf("maxchars = %d  %s\n", maxChars, strseg);
+	  }
           n = snprintf(outstring, maxChars, strseg, (double)*parm);
 #else
           n = sprintf(outstring, strseg, (double)*parm);
@@ -377,17 +397,19 @@ sprintf_opcode_(CSOUND *csound,
             maxChars += ((STRINGDAT*)parm)->size;
             outstring = str->data + offs;
           }
-          n = sprintf(outstring, strseg, ((STRINGDAT*)parm)->data);
+	   n = sprintf(outstring, strseg, ((STRINGDAT*)parm)->data);
           break;
         default:
           return StrOp_ErrMsg(p, "invalid format string");
         }
-        if (UNLIKELY(n < 0 || n >= maxChars)) {
+        if (n < 0 || n >= maxChars) {
           /* safely detected excess string length */
             int offs = outstring - str->data;
             str->data = mrealloc(csound, str->data, maxChars*2);
             outstring = str->data + offs;
             str->size = maxChars*2;
+            maxChars += str->size;
+           
         }
         outstring += n;
         len += n;

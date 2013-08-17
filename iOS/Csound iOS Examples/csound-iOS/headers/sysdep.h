@@ -54,6 +54,17 @@ typedef void *locale_t;
 #  define HAVE_C99 1
 #endif
 
+#if defined(__GNUC__)
+# if defined(__GNUC_PATCHLEVEL__)
+#  define __GNUC_VERSION__ (__GNUC__ * 10000 \
+                            + __GNUC_MINOR__ * 100 \
+                            + __GNUC_PATCHLEVEL__)
+# else
+#  define __GNUC_VERSION__ (__GNUC__ * 10000 \
+                            + __GNUC_MINOR__ * 100)
+# endif
+#endif
+
 #ifndef CABBAGE
 #ifdef MSVC
 typedef __int32 int32;

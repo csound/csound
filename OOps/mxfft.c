@@ -966,3 +966,20 @@ void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
     buf[FFTsize] = buf[FFTsize + 1] = FL(0.0);
 }
 
+void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
+{
+  if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))){
+      csound->Warning(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));
+      return;
+  }
+    fft_(csound, buf, buf, 1, FFTsize, 1, 2);
+}
+
+void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
+{
+      if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))) {
+        csound->Warning(csound, Str("csoundRealFFTnp2(): invalid FFT size"));
+        return;
+      }
+      fft_(csound, buf, buf, 1, FFTsize, 1, -2);
+}
