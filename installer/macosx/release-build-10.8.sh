@@ -7,8 +7,16 @@ export DMG_NAME="csound6.00.1-OSX10.8-x86_64.dmg"
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
 
-if [ $# -gt 0 ]; then
-	cd $1
+if [ $# == 0 ]; then
+  echo "Must give branch name to build from"
+  exit
+else
+  export BRANCH_NAME=$1
+  echo "Using branch: $BRANCH_NAME"
+fi
+
+if [ $# -gt 1 ]; then
+	cd $2
 	echo "Using directory $1 `pwd`"
         export INSTALLER_DIR=`pwd`/installer
         rm -rf installer 
@@ -22,7 +30,7 @@ else
 	cd $RELEASE_DIR
 
 	#git clone git://csound.git.sourceforge.net/gitroot/csound/csound5
-	git clone file://$PWD/../../.. csound6 --depth=1
+	git clone -b $BRANCH_NAME file://$PWD/../../.. csound6 --depth=1 
 	#cp -R csound5 csound5-f
 fi
 
