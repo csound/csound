@@ -64,6 +64,13 @@ add_test(NAME testCscore
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/c/
         COMMAND $<TARGET_FILE:testCscore> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
 
+include_directories(${CMAKE_SOURCE_DIR}/interfaces)
+add_executable(testPerfThread perfthread_test.cpp)
+target_link_libraries(testPerfThread ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread libcsnd)
+add_test(NAME testPerfThread
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/c/
+        COMMAND $<TARGET_FILE:testPerfThread> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
+
 endif(BUILD_TESTS)
 
 
