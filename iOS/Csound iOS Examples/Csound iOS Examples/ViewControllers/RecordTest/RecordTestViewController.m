@@ -44,6 +44,7 @@
         
 		[self.csound stopCsound];
         self.csound = [[CsoundObj alloc] init];
+        self.csound.useAudioInput = YES;
         [self.csound addCompletionListener:self];
 		[self.csound addSlider:_mGainSlider forChannelName:@"gain"];
 		[_mLevelMeter addToCsoundObj:self.csound forChannelName:@"meter"];
