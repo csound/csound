@@ -17,7 +17,7 @@ fi
 
 if [ $# -gt 1 ]; then
 	cd $2
-	echo "Using directory $1 `pwd`"
+	echo "Using directory $2 `pwd`"
         export INSTALLER_DIR=`pwd`/installer
         rm -rf installer 
 	rm -rf csound6/build/dist
