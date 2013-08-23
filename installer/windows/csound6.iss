@@ -15,15 +15,15 @@
 ; I hope to change this soon.
 
 #define MyAppName "Csound6"
-#define MyAppVersion ""
-#define MyAppMinVersion "00"
+#define MyAppVersion "6"
+#define MyAppMinVersion "6.00.1"
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
 #define MyMinGwBinDir "D:\mingw32-4.8.1\bin\"
 ; If you are not Michael Gogins, change this to your MSys /bin/ directory.
 #define MyMSysBinDir "D:\msys\bin\"
-; If you are not Michael Gogins, change this to your MSys /usr/locFal/ directory.
+; If you are not Michael Gogins, change this to your MSys /usr/local/ directory.
 #define MyMSysUsrLocalDir "D:\msys\local\"
 ; If you are not Michael Gogins, change this to your Csound build directory.
 #define MySourceDir "C:\Users\mkg.sorabji\csound-csound6-git\"
