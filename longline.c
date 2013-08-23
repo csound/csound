@@ -51,4 +51,5 @@ int main(int argc, char **argv)
       if (p) *p = '\0';
       process(buffer, width);
     }
+    fclose(ff);
 }

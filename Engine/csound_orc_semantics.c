@@ -1220,7 +1220,7 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
 //FIXME - this needs to be updated to take into account array names
 // that could clash with non-array names, i.e. kVar and kVar[]
 int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
-
+    CS_VARIABLE *var = 0;
     TREE* current;
     char* argType;
     char* varName;
@@ -1258,12 +1258,11 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
 
           pool = (*varName == 'g') ?
             typeTable->globalPool : typeTable->localPool;
-
-          if (UNLIKELY(csoundFindVariableWithName(pool, varName) == NULL)) {
-            CS_VARIABLE *var;
+          var = csoundFindVariableWithName(pool, varName);
+          if (UNLIKELY(var == NULL)) {
              /* VL: 13-06-13
                if it is not found, we still check the global (merged) pool */
-            if(var == NULL && *varName == 'g')
+            if(*varName == 'g')
                var = csoundFindVariableWithName(csound->engineState.varPool,
                                                 varName);
             if(var == NULL)
@@ -1282,7 +1281,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                  typeTable->globalPool : typeTable->localPool;
 
           if (UNLIKELY(csoundFindVariableWithName(pool, varName) == NULL)) {
-            CS_VARIABLE *var;
+            CS_VARIABLE *var = 0;
             /* VL: 13-06-13
                if it is not found, we still check the global (merged) pool */
             if(var == NULL && *varName == 'g')
