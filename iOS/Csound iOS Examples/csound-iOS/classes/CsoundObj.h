@@ -37,9 +37,11 @@ typedef struct csdata_ {
 	int bufframes;
 	int ret;
 	int nchnls;
+    int nchnls_i;
     bool running;
 	bool shouldRecord;
 	bool shouldMute;
+    bool useAudioInput;
 	ExtAudioFileRef file;
 	AudioUnit *aunit;
      __unsafe_unretained NSMutableArray* valuesCache;
@@ -70,7 +72,6 @@ typedef struct {
     CMMotionManager* mMotionManager;
 	NSURL *outputURL;
 	id  mMessageListener;
-    BOOL mUseOldParser;
 }
 
 
@@ -78,7 +79,7 @@ typedef struct {
 @property (nonatomic, strong) NSURL *outputURL;
 @property (assign) BOOL midiInEnabled;
 @property (nonatomic, strong) CMMotionManager* motionManager;
-@property (assign) BOOL useOldParser;
+@property (assign) BOOL useAudioInput;
 
 
 
