@@ -1,75 +1,55 @@
-#N canvas 460 170 1299 880 10;
-#X obj 346 558 dac~;
-#X msg 359 202 event e;
-#X obj 297 23 vsl 15 128 0.1 4 0 0 empty empty empty 0 -8 0 8 -257472
--1 -1 0 1;
-#X msg 247 181 control freq \$1;
-#X obj 469 459 adc~;
-#X msg 563 408 set freq amp rev del modf;
-#X obj 209 34 vsl 15 128 0 1 0 0 empty empty empty 0 -8 0 8 -257472
--1 -1 0 1;
-#X msg 209 204 control amp \$1;
-#X obj 141 116 vsl 15 128 0 0.99 0 0 empty empty empty 0 -8 0 8 -261681
--1 -1 0 1;
-#X msg 141 252 control rev \$1;
-#X obj 104 148 vsl 15 128 0.1 0.5 0 0 empty empty empty 0 -8 0 8 -261681
--1 -1 0 1;
-#X msg 104 287 control del \$1;
-#X msg 701 429 reset;
-#X msg 362 232 event i 1 0 10 16000 200;
-#X obj 475 301 loadbang;
-#X obj 356 360 tgl 15 0 empty empty empty 0 -6 0 8 -262144 -1 -1 1
-1;
-#X msg 357 380 run \$1;
-#X msg 368 277 event f 1 0 4096 10 1 0.5 0.25 0.2 0.166;
-#X obj 67 181 vsl 15 128 0.1 2 0 0 empty empty empty 0 -8 0 8 -261681
--1 -1 0 1;
-#X msg 67 317 control modf \$1;
-#X obj 239 9 r mod;
-#X obj 249 37 *;
-#X obj 282 5 tgl 15 0 empty empty empty 0 -6 0 8 -257472 -1 -1 0 1
+#N canvas 401 23 1101 736 10;
+#X obj 421 643 dac~;
+#X msg 578 316 event e;
+#X obj 446 148 vsl 15 128 0.1 4 0 0 empty empty empty 0 -8 0 8 -257472
+-1 -1 5200 1;
+#X obj 348 196 vsl 15 128 0 1 0 0 empty empty empty 0 -8 0 8 -257472
+-1 -1 6900 1;
+#X obj 252 196 vsl 15 128 0 0.99 0 0 empty empty empty 0 -8 0 8 -261681
+-1 -1 5500 1;
+#X msg 252 337 control rev \$1;
+#X obj 157 198 vsl 15 128 0.1 0.5 0 0 empty empty empty 0 -8 0 8 -261681
+-1 -1 3900 1;
+#X msg 157 337 control del \$1;
+#X msg 553 478 reset;
+#X msg 586 269 event i 1 0 10 16000 200;
+#X obj -12 6 loadbang;
+#X obj 258 39 tgl 15 0 empty empty empty 0 -6 0 8 -262144 -1 -1 1 1
 ;
-#X obj 247 155 +;
-#X msg 443 569 \; \$1 \$2;
-#X obj 500 536 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
--1;
-#X text 317 18 instr 1 controls use invalue opcode;
-#X text 318 5 modulation source is instr 2 outvalue opcode;
-#X text 418 201 ends score and stops processing;
-#X text 538 234 starts an i-statement score event;
-#X text 659 276 generates a function table;
-#X text 379 352 csound runs by default \, run 0 message stops it \,
-run 1 re-starts it;
-#X text 566 392 invalue channels are registered using 'set';
-#X text 749 428 resets the engine and recompiles the score;
-#X text 843 452 opens a new orc/score;
-#X text 521 535 bangs when score is finished;
-#X text 463 553 outvalues: [channel] [value];
-#X text 29 354 instr 2 controls use invalue opcode;
-#X msg 700 450 open csapi_demo.csd;
-#X obj 315 507 csoundapi~ csapi_demo.csd;
-#X msg 32 600 rewind;
-#X text 85 601 rewinds the score without recompilation;
-#X msg 30 633 offset 20;
-#X text 105 634 offsets the score playback by 20 secs;
-#X text 43 574 other score playback messages;
-#X msg 345 94 chnset blobs 2;
-#X text 731 166 csoundapi~ 1.01 (c) V Lazzarini \, 2005-2007;
-#X msg 325 68 chnset blar haha;
-#X msg 362 126 chnset blobs 1;
-#X text 321 50 instr 1 also uses chnget opcodes;
-#X msg 373 437 messages \$1;
-#X obj 373 416 tgl 15 0 empty empty empty 0 -6 0 8 -262144 -1 -1 1
+#X msg 259 59 run \$1;
+#X msg 567 362 event f 1 0 4096 10 1 0.5 0.25 0.2 0.166;
+#X obj 56 199 vsl 15 128 0.1 2 0 0 empty empty empty 0 -8 0 8 -261681
+-1 -1 4400 1;
+#X msg 56 338 control modf \$1;
+#X obj 394 84 r mod;
+#X obj 397 273 *;
+#X obj 411 242 tgl 15 0 empty empty empty 0 -6 0 8 -257472 -1 -1 0
 1;
-#X text 464 436 console messages on/off;
-#X text 467 109 unlike invalue channels \, chnget channels do not need
-to be registered;
-#X text 448 71 chnset messages send in k-rate numbers or strings \,
-they work with chnget opcode;
-#X text 440 603 csoundapi~ is built with the number of audio output
-channels taken from the orchestra \, or it can be built with a set
-number of out/inlets (when its 1st argument is numeric);
-#X text 566 481 the CSD or ORC/SCO files should be either in the canvas
+#X obj 432 314 +;
+#X msg 500 639 \; \$1 \$2;
+#X obj 552 639 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X text 433 82 modulation source is instr 2 outvalue opcode;
+#X text 581 301 ends score and stops processing;
+#X text 586 251 starts an i-statement score event;
+#X text 571 344 generates a function table;
+#X text 281 31 csound runs by default \, run 0 message stops it \,
+run 1 re-starts it;
+#X text -3 128 invalue channels are registered using 'set';
+#X text 573 638 bangs when score is finished;
+#X text 497 672 outvalues: [channel] [value];
+#X text 49 174 instr 2 controls use invalue opcode;
+#X msg 555 517 open csapi_demo.csd;
+#X msg 763 598 rewind;
+#X msg 763 621 offset 20;
+#X text 838 622 offsets the score playback by 20 secs;
+#X text 762 580 other score playback messages;
+#X msg 593 210 chnset blar haha;
+#X msg 15 58 messages \$1;
+#X obj 14 40 tgl 15 0 empty empty empty 0 -6 0 8 -262144 -1 -1 1 1
+;
+#X text 93 57 console messages on/off;
+#X text 630 540 the CSD or ORC/SCO files should be either in the canvas
 directory or should be given a full-path relative to the canvas directory
 ;
 #N canvas 0 22 450 300 (subpatch) 0;
@@ -630,49 +610,95 @@ directory or should be given a full-path relative to the canvas directory
 -0.0279413 -0.0232854 -0.018629 -0.0139722 -0.00931496 -0.00465754
 ;
 #X coords 0 1 4095 -1 200 140 1;
-#X restore 851 230 graph;
-#X text 454 94 comment;
-#X msg 584 328 tabset table1 1;
-#X msg 566 306 tabget table1 1;
-#X text 667 305 copies into array;
-#X text 685 327 copies from array;
-#X connect 1 0 39 0;
-#X connect 2 0 23 1;
-#X connect 3 0 39 0;
-#X connect 4 0 39 3;
-#X connect 4 1 39 3;
-#X connect 5 0 39 0;
+#X restore 824 362 graph;
+#X msg 559 438 tabset table1 1;
+#X msg 558 403 tabget table1 1;
+#X obj 392 611 csound6~ csapi_demo.csd;
+#X text 22 667 csound6~ 1 (c) V Lazzarini \, 2005-20013;
+#X obj 445 285 t f b;
+#N canvas 156 162 309 353 source 0;
+#X obj 86 237 noise~;
+#X obj 153 236 line~;
+#X obj 133 165 metro 1000;
+#X msg 131 209 0 500;
+#X obj 113 263 *~;
+#X obj 175 187 delay 500;
+#X msg 175 208 1 500;
+#X obj 106 122 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X obj 113 291 outlet~;
+#X connect 0 0 4 0;
+#X connect 1 0 4 1;
+#X connect 2 0 3 0;
+#X connect 2 0 5 0;
+#X connect 3 0 1 0;
+#X connect 4 0 8 0;
+#X connect 5 0 6 0;
+#X connect 6 0 1 0;
+#X connect 7 0 2 0;
+#X coords 0 -1 1 1 60 40 1 100 100;
+#X restore 529 561 pd source;
+#X msg 437 336 chnset freq \$1;
+#X text 350 130 instr 1 controls use chnget opcode;
+#X msg 349 336 chnset amp \$1;
+#X msg -10 145 set rev del modf;
+#X obj 254 554 r params;
+#X obj -10 168 s params;
+#X obj 259 81 s params;
+#X obj 16 79 s params;
+#X text 481 180 chnset messages send in k-rate numbers or strings \,
+they work with chnget opcode;
+#X text 480 148 unlike invalue channels \, chnget channels do not need
+to be registered;
+#X text 565 385 copies table into array;
+#X text 566 421 copies from array into table;
+#X text 552 462 resets the engine and recompiles the CSD;
+#X text 553 501 opens a new CSD;
+#X text 834 599 rewinds the score;
+#X text 22 604 csound6~ is built with the number of audio output channels
+taken from the orchestra \, or it can be built with a set number of
+out/inlets (when its 1st argument is numeric);
+#X msg -8 498 compile demo.orc;
+#X text -9 483 compiles new instruments from text file;
+#X text -4 359 control messages are sent to invalue opcode;
+#X connect 1 0 44 0;
+#X connect 2 0 46 0;
+#X connect 3 0 50 0;
+#X connect 4 0 5 0;
+#X connect 5 0 44 0;
 #X connect 6 0 7 0;
-#X connect 7 0 39 0;
-#X connect 8 0 9 0;
-#X connect 9 0 39 0;
+#X connect 7 0 44 0;
+#X connect 8 0 44 0;
+#X connect 9 0 44 0;
+#X connect 10 0 51 0;
+#X connect 10 0 38 0;
 #X connect 10 0 11 0;
-#X connect 11 0 39 0;
-#X connect 12 0 39 0;
-#X connect 13 0 39 0;
-#X connect 14 0 5 0;
+#X connect 11 0 12 0;
+#X connect 12 0 54 0;
+#X connect 13 0 44 0;
 #X connect 14 0 15 0;
-#X connect 14 0 51 0;
-#X connect 15 0 16 0;
-#X connect 16 0 39 0;
-#X connect 17 0 39 0;
-#X connect 18 0 19 0;
-#X connect 19 0 39 0;
-#X connect 20 0 21 0;
-#X connect 21 0 23 0;
-#X connect 22 0 21 1;
-#X connect 23 0 3 0;
-#X connect 38 0 39 0;
-#X connect 39 0 0 0;
-#X connect 39 1 0 1;
-#X connect 39 2 0 0;
-#X connect 39 3 0 1;
-#X connect 39 4 24 0;
-#X connect 39 5 25 0;
-#X connect 45 0 39 0;
-#X connect 47 0 39 0;
-#X connect 48 0 39 0;
-#X connect 50 0 39 0;
-#X connect 51 0 50 0;
-#X connect 59 0 39 0;
-#X connect 60 0 39 0;
+#X connect 15 0 44 0;
+#X connect 16 0 17 0;
+#X connect 17 0 19 0;
+#X connect 18 0 17 1;
+#X connect 19 0 48 0;
+#X connect 31 0 44 0;
+#X connect 36 0 44 0;
+#X connect 37 0 55 0;
+#X connect 38 0 37 0;
+#X connect 42 0 44 0;
+#X connect 43 0 44 0;
+#X connect 44 0 0 0;
+#X connect 44 1 0 1;
+#X connect 44 2 0 0;
+#X connect 44 3 0 1;
+#X connect 44 4 20 0;
+#X connect 44 5 21 0;
+#X connect 46 0 19 1;
+#X connect 46 1 19 0;
+#X connect 47 0 44 3;
+#X connect 48 0 44 0;
+#X connect 50 0 44 0;
+#X connect 51 0 53 0;
+#X connect 52 0 44 0;
+#X connect 64 0 44 0;
