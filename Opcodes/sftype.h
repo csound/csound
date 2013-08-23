@@ -22,6 +22,7 @@
 */
 
 #if !defined(_SFTYPE_H)
+#define _SFTYPE_H
 #ifdef          __GNUC__
 #  ifndef       PACKED
 #    define     PACKED  __attribute__((packed))
@@ -30,7 +31,7 @@
 #  pragma       pack(push, before, 1)
 #  define     PACKED
 #else
-# error No pack defined
+# error "No pack defined."
 #endif
 
 #ifndef WORDS_BIGENDIAN
@@ -218,7 +219,6 @@ typedef struct
         WORD sfSampleType;
 } PACKED sfSample;
 
-#define _SFTYPE_H
 #ifdef          MSVC
 #  pragma       pack(pop, before)
 #endif

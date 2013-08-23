@@ -23,7 +23,7 @@ void test_perfthread(void)
             "endin \n";
 
     Csound csound;
-    csound.SetOption("-odac");
+    csound.SetOption("-otest.wav");
     csound.CompileOrc(instrument);
     csound.ReadScore("i 1 0  1 10000 5000\n");
     csound.Start();
