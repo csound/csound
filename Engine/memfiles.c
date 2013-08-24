@@ -217,7 +217,7 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
       memcpy(&all[i], &x, sizeof(MYFLT));
     }
     fclose(f);                                  /*   and close it      */
-    printf("length=%d i=%d\n", length, i);
+    printf("length=%d i=%i\n", length, i);
     *len = i;
     all = mrealloc(csound, all, i);
     *allocp = all;

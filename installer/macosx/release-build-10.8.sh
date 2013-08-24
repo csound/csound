@@ -7,9 +7,17 @@ export DMG_NAME="csound6.00.1-OSX10.8-x86_64.dmg"
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
 
-if [ $# -gt 0 ]; then
-	cd $1
-	echo "Using directory $1 `pwd`"
+if [ $# == 0 ]; then
+  echo "Must give branch name to build from"
+  exit
+else
+  export BRANCH_NAME=$1
+  echo "Using branch: $BRANCH_NAME"
+fi
+
+if [ $# -gt 1 ]; then
+	cd $2
+	echo "Using directory $2 `pwd`"
         export INSTALLER_DIR=`pwd`/installer
         rm -rf installer 
 	rm -rf csound6/build/dist
@@ -22,7 +30,7 @@ else
 	cd $RELEASE_DIR
 
 	#git clone git://csound.git.sourceforge.net/gitroot/csound/csound5
-	git clone file://$PWD/../../.. csound6 --depth=1
+	git clone -b $BRANCH_NAME file://$PWD/../../.. csound6 --depth=1 
 	#cp -R csound5 csound5-f
 fi
 
@@ -124,10 +132,10 @@ echo "preparing framework..."
 cp  $DIST/lib/libcsnd.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
 cp  $DIST/lib/lib_jcsound6.jnilib $FRAMEWORK64_DIR/$JAVA_DIR
 cp  $DIST/lib/csnd6.jar $FRAMEWORK64_DIR/$JAVA_DIR
-cp  $DIST/lib/csoundapi~.pd_darwin $FRAMEWORK64_DIR/$PD_DIR
-cp  csound6/examples/csoundapi_tilde/csoundapi-osx.pd $FRAMEWORK64_DIR/$PD_DIR/csoundapi.pd
-cp  csound6/examples/csoundapi_tilde/csapi_demo.csd $FRAMEWORK64_DIR/../Documentation/
-
+cp  $DIST/lib/csound6~.pd_darwin $FRAMEWORK64_DIR/$PD_DIR
+cp  csound6/examples/csoundapi_tilde/csound6~-help.pd $FRAMEWORK64_DIR/$PD_DIR/
+cp  csound6/examples/csoundapi_tilde/csapi_demo.csd $FRAMEWORK64_DIR/$PD_DIR/
+cp  csound6/examples/csoundapi_tilde/demo.orc $FRAMEWORK64_DIR/$PD_DIR/
 
 echo "copying manual..."
 
