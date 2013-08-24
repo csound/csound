@@ -387,10 +387,18 @@ set(CMAKE_REQUIRED_LIBRARIES pthread)
 
 # Now, non required library searches #
 
+option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
+if(USE_ATOMIC_BUILTIN)
 include(cmake/CheckAtomic.cmake)
-if(HAVE_ATOMIC_BUILTIN) 
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_ATOMIC_BUILTIN")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+  if(HAVE_ATOMIC_BUILTIN) 
+    message(STATUS "Using Atomic Builtins")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+  else()
+    message(STATUS "Not using Atomic Builtins - not found")
+  endif()
+else()
+  message(STATUS "Not using Atomic Builtins - user disabled")
 endif()
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
