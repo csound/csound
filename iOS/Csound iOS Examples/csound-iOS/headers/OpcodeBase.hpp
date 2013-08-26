@@ -1,10 +1,7 @@
 #ifndef OPCODE_BASE_H
 #define OPCODE_BASE_H
 
-#ifndef __BUILDING_LIBCSOUND
-#define __BUILDING_LIBCSOUND
-#endif
-#include <csoundCore.h>
+
 #include <interlocks.h>
 #include <csdl.h>
 #include <cstdarg>
