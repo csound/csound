@@ -238,7 +238,7 @@
 ./Opcodes/gab/gab.h
 ./Opcodes/gab/hvs.c
 ./Opcodes/gab/newgabopc.c
-./Opcodes/gab/radiobaton.c XXXXXXXX
+./Opcodes/gab/radiobaton.c
 ./Opcodes/gab/sliderTable.c
 ./Opcodes/gab/stdopcod.h
 ./Opcodes/gab/tabmorph.c
