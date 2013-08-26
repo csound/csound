@@ -1,4 +1,4 @@
-/* 
+/*
  
  CsoundObj.m:
  
@@ -9,7 +9,7 @@
  The Csound for iOS Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.   
+ version 2.1 of the License, or (at your option) any later version.
  
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -33,6 +33,7 @@
 #import "CsoundValueCacheable.h"
 #import "CsoundMIDI.h"
 
+
 OSStatus  Csound_Render(void *inRefCon,
                         AudioUnitRenderActionFlags *ioActionFlags,
                         const AudioTimeStamp *inTimeStamp,
@@ -53,25 +54,6 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 @synthesize outputURL;
 @synthesize midiInEnabled = mMidiInEnabled;
 @synthesize motionManager = mMotionManager;
-@synthesize useOldParser = mUseOldParser;
-
-//+(void)initializeAudio {
-//    /* CONFIGURING AUDIO SETTINGS */
-//    
-//    //    self.graphSampleRate = 44100.0; // Hertz
-//    //    
-//    //    NSError *audioSessionError = nil;
-//    //    AVAudioSession *mySession = [AVAudioSession sharedInstance];     
-//    //    [mySession setPreferredHardwareSampleRate: self.graphSampleRate       
-//    //                                        error: &audioSessionError];
-//    //    [mySession setCategory: AVAudioSessionCategoryPlayAndRecord      
-//    //                     error: &audioSessionError];
-//    //    [mySession setActive: YES                                        
-//    //                   error: &audioSessionError];
-//    //    self.graphSampleRate = [mySession currentHardwareSampleRate];    
-//    
-//    
-//}
 
 - (id)init
 {
@@ -82,23 +64,23 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
         completionListeners = [[NSMutableArray alloc] init];
         mMidiInEnabled = NO;
         self.motionManager = [[CMMotionManager alloc] init];
-        mUseOldParser = NO;
+        _useAudioInput = NO;
     }
     
     return self;
 }
 
 -(id<CsoundValueCacheable>)addSwitch:(UISwitch*)uiSwitch forChannelName:(NSString*)channelName {
-    CachedSwitch* cachedSwitch = [[CachedSwitch alloc] init:uiSwitch 
-												 channelName:channelName];
+    CachedSwitch* cachedSwitch = [[CachedSwitch alloc] init:uiSwitch
+                                                channelName:channelName];
     [valuesCache addObject:cachedSwitch];
 	
     return cachedSwitch;
 }
 
--(id<CsoundValueCacheable>)addSlider:(UISlider*)uiSlider forChannelName:(NSString*)channelName { 
-
-    CachedSlider* cachedSlider = [[CachedSlider alloc] init:uiSlider 
+-(id<CsoundValueCacheable>)addSlider:(UISlider*)uiSlider forChannelName:(NSString*)channelName {
+    
+    CachedSlider* cachedSlider = [[CachedSlider alloc] init:uiSlider
                                                 channelName:channelName];
     [valuesCache addObject:cachedSlider];
     
@@ -106,7 +88,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 }
 
 -(id<CsoundValueCacheable>)addButton:(UIButton*)uiButton forChannelName:(NSString*)channelName {
-    CachedButton* cachedButton = [[CachedButton alloc] init:uiButton 
+    CachedButton* cachedButton = [[CachedButton alloc] init:uiButton
                                                 channelName:channelName];
     [valuesCache addObject:cachedButton];
     return cachedButton;
@@ -133,7 +115,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
     
     CachedAccelerometer* accelerometer = [[CachedAccelerometer alloc] init:mMotionManager];
     [valuesCache addObject:accelerometer];
-        
+    
     
     mMotionManager.accelerometerUpdateInterval = 1 / 100.0; // 100 hz
     
@@ -177,8 +159,8 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
 #pragma mark -
 
-static void messageCallback(CSOUND *cs, int attr, const char *format, va_list valist) 
-{	
+static void messageCallback(CSOUND *cs, int attr, const char *format, va_list valist)
+{
 	@autoreleasepool {
 		CsoundObj *obj = (__bridge CsoundObj *)(csoundGetHostData(cs));
 		Message info;
@@ -189,7 +171,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 		NSValue *infoObj = [NSValue value:&info withObjCType:@encode(Message)];
 		[obj performSelector:@selector(performMessageCallback:) withObject:infoObj];
 	}
-} 
+}
 
 - (void)setMessageCallback:(SEL)method withListener:(id)listener
 {
@@ -271,14 +253,14 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 -(int)getKsmps {
     if (!mCsData.running) {
         return -1;
-    }    
+    }
     return csoundGetKsmps(mCsData.cs);
 }
 
 #pragma mark Csound Code
 
-      
-    
+
+
 OSStatus  Csound_Render(void *inRefCon,
                         AudioUnitRenderActionFlags *ioActionFlags,
                         const AudioTimeStamp *inTimeStamp,
@@ -296,7 +278,7 @@ OSStatus  Csound_Render(void *inRefCon,
     int ksmps = csoundGetKsmps(cs);
     MYFLT *spin = csoundGetSpin(cs);
     MYFLT *spout = csoundGetSpout(cs);
-    AudioUnitSampleType *buffer; 
+    AudioUnitSampleType *buffer;
     
     AudioUnitRender(*cdata->aunit, ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData);
     
@@ -310,12 +292,14 @@ OSStatus  Csound_Render(void *inRefCon,
 		}
         
 		/* performance */
-		for (k = 0; k < nchnls; k++){
-			buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
-			for(j=0; j < ksmps; j++){
-				spin[j*nchnls+k] =(1./coef)*buffer[j+i*ksmps];
-			}
-		}
+        if(cdata->useAudioInput) {
+            for (k = 0; k < nchnls; k++){
+                buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
+                for(j=0; j < ksmps; j++){
+                    spin[j*nchnls+k] =(1./coef)*buffer[j+i*ksmps];
+                }
+            }
+        }
         if(!ret) {
             ret = csoundPerformKsmps(cs);
         } else {
@@ -348,7 +332,7 @@ OSStatus  Csound_Render(void *inRefCon,
 			printf("***Error writing to file: %ld\n", err);
 		}
 	}
-        
+    
     cdata->ret = ret;
     return 0;
 }
@@ -432,7 +416,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
     mCsData.shouldRecord = false;
     ExtAudioFileDispose(mCsData.file);
 }
-    
+
 -(void)stopCsound {
     mCsData.running = false;
 }
@@ -449,110 +433,16 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
 -(void)runCsoundToDisk:(NSArray*)paths {
 	
     @autoreleasepool {
-
-    
-                CSOUND *cs;
-                
-                cs = csoundCreate(NULL);
-                
-                char* parserFlag;
-                
-                if(self.useOldParser) {
-                    parserFlag = "--old-parser";
-                } else {
-                    parserFlag = "--new-parser";
-                }
-                
-                char *argv[5] = { "csound", parserFlag,
-                    (char*)[[paths objectAtIndex:0] cStringUsingEncoding:NSASCIIStringEncoding], "-o", (char*)[[paths objectAtIndex:1] cStringUsingEncoding:NSASCIIStringEncoding]};
-                int ret = csoundCompile(cs, 5, argv);
-                
-                /* SETUP VALUE CACHEABLE */
-                
-                for (int i = 0; i < valuesCache.count; i++) {
-                    id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
-                    [cachedValue setup:self];
-                }
-                
-                /* NOTIFY COMPLETION LISTENERS*/
-                
-                for (id<CsoundObjCompletionListener> listener in completionListeners) {
-                    [listener csoundObjDidStart:self];
-                }
-                
-                /* SET VALUES FROM CACHE */
-                for (int i = 0; i < valuesCache.count; i++) {
-			id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
-			[cachedValue updateValuesToCsound];
-		}
-                
-                if(!ret) {
-                    
-                    csoundPerform(cs);
-                    csoundCleanup(cs);
-                    csoundDestroy(cs);
-                }
-                
-                /* CLEANUP VALUE CACHEABLE */
-                
-                for (int i = 0; i < valuesCache.count; i++) {
-                    id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
-                    [cachedValue cleanup];
-                }
-                
-                /* NOTIFY COMPLETION LISTENERS*/
-                
-                for (id<CsoundObjCompletionListener> listener in completionListeners) {
-                    [listener csoundObjComplete:self];
-                }
-                
-                [mMotionManager stopAccelerometerUpdates];
-                [mMotionManager stopGyroUpdates];
-                [mMotionManager stopDeviceMotionUpdates];
-
-         }
-}
-
--(void)runCsound:(NSString*)csdFilePath {
-	
-    @autoreleasepool {	
-		CSOUND *cs;
-    
-		cs = csoundCreate(NULL);
-    csoundSetHostImplementedAudioIO(cs, 1, 0);
-		
-		csoundSetMessageCallback(cs, messageCallback);
-		csoundSetHostData(cs, (__bridge void *)(self));
-    
-    if (mMidiInEnabled) {
-        [CsoundMIDI setMidiInCallbacks:cs];
-    }
-    
-    // Hardcoding to use old parser for time being
-    char* parserFlag;
-		
-    
-    if(self.useOldParser) {
-       parserFlag = "--old-parser";
-    } else {
-       parserFlag = "--new-parser";
-    }
-    
-    char *argv[3] = { "csound", parserFlag, (char*)[csdFilePath cStringUsingEncoding:NSASCIIStringEncoding]};
-		int ret = csoundCompile(cs, 3, argv);
-		mCsData.running = true;
-    
-		if(!ret) {
         
-			mCsData.cs = cs;
-			mCsData.ret = ret;
-			mCsData.nchnls = csoundGetNchnls(cs);
-			mCsData.bufframes = (csoundGetOutputBufferSize(cs))/mCsData.nchnls;
-			mCsData.running = true;
-        mCsData.valuesCache = valuesCache;
-			AudioStreamBasicDescription format;
-			OSStatus err;
-			
+        
+        CSOUND *cs;
+        
+        cs = csoundCreate(NULL);
+        
+        char *argv[4] = { "csound",
+            (char*)[[paths objectAtIndex:0] cStringUsingEncoding:NSASCIIStringEncoding], "-o", (char*)[[paths objectAtIndex:1] cStringUsingEncoding:NSASCIIStringEncoding]};
+        int ret = csoundCompile(cs, 4, argv);
+        
         /* SETUP VALUE CACHEABLE */
         
         for (int i = 0; i < valuesCache.count; i++) {
@@ -560,25 +450,111 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
             [cachedValue setup:self];
         }
         
-			/* Audio Session handler */
-        AudioSessionInitialize(NULL, NULL, InterruptionListener, &mCsData);
+        /* NOTIFY COMPLETION LISTENERS*/
+        
+        for (id<CsoundObjCompletionListener> listener in completionListeners) {
+            [listener csoundObjDidStart:self];
+        }
+        
+        /* SET VALUES FROM CACHE */
+        for (int i = 0; i < valuesCache.count; i++) {
+			id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+			[cachedValue updateValuesToCsound];
+		}
+        
+        if(!ret) {
+            
+            csoundPerform(cs);
+            csoundCleanup(cs);
+            csoundDestroy(cs);
+        }
+        
+        /* CLEANUP VALUE CACHEABLE */
+        
+        for (int i = 0; i < valuesCache.count; i++) {
+            id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+            [cachedValue cleanup];
+        }
+        
+        /* NOTIFY COMPLETION LISTENERS*/
+        
+        for (id<CsoundObjCompletionListener> listener in completionListeners) {
+            [listener csoundObjComplete:self];
+        }
+        
+        [mMotionManager stopAccelerometerUpdates];
+        [mMotionManager stopGyroUpdates];
+        [mMotionManager stopDeviceMotionUpdates];
+        
+    }
+}
+
+-(void)runCsound:(NSString*)csdFilePath {
+	
+    @autoreleasepool {
+		CSOUND *cs;
+        
+		cs = csoundCreate(NULL);
+        csoundSetHostImplementedAudioIO(cs, 1, 0);
+		
+		csoundSetMessageCallback(cs, messageCallback);
+		csoundSetHostData(cs, (__bridge void *)(self));
+        
+        if (mMidiInEnabled) {
+            [CsoundMIDI setMidiInCallbacks:cs];
+        }
+        
+        char *argv[2] = { "csound", (char*)[csdFilePath cStringUsingEncoding:NSASCIIStringEncoding]};
+		int ret = csoundCompile(cs, 2, argv);
+		mCsData.running = true;
+        
+		if(!ret) {
+            
+			mCsData.cs = cs;
+			mCsData.ret = ret;
+			mCsData.nchnls = csoundGetNchnls(cs);
+			mCsData.bufframes = (csoundGetOutputBufferSize(cs))/mCsData.nchnls;
+			mCsData.running = true;
+            mCsData.valuesCache = valuesCache;
+            mCsData.useAudioInput = _useAudioInput;
+            AudioStreamBasicDescription format;
+            OSStatus err;
+            
+            /* SETUP VALUE CACHEABLE */
+            
+            for (int i = 0; i < valuesCache.count; i++) {
+                id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+                [cachedValue setup:self];
+            }
+            
+            /* Audio Session handler */
+            AudioSessionInitialize(NULL, NULL, InterruptionListener, &mCsData);
 			AudioSessionSetActive(true);
-			UInt32 audioCategory = kAudioSessionCategory_PlayAndRecord;
+			UInt32 audioCategory = _useAudioInput ? kAudioSessionCategory_PlayAndRecord :  kAudioSessionCategory_MediaPlayback;
 			AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
-        
-        //APE: must be after sets kAudioSessionCategory_PlayAndRecord
-        UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker;
-        AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute, sizeof(audioRouteOverride), &audioRouteOverride);
-        
-        // change also default out route to speaker
-        UInt32 doChangeDefaultRoute = 1;
-        AudioSessionSetProperty (kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof (doChangeDefaultRoute), &doChangeDefaultRoute);
-        
-        //Then you can add mixable audio
-        //We want our audio to mix with other app's audio //must be after OverrideToSpeaker
-        UInt32 shouldMix = 1;
-        AudioSessionSetProperty (kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof (shouldMix), &shouldMix);
-        
+            
+            
+            //APE: must be after sets kAudioSessionCategory_PlayAndRecord
+            //        UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker;
+            //        AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute, sizeof(audioRouteOverride), &audioRouteOverride);
+            
+            //            AudioSessionGetProperty(kAudioSession, <#UInt32 *ioDataSize#>, <#void *outData#>)
+            
+            // change also default out route to speaker
+            UInt32 doChangeDefaultRoute = 1;
+            AudioSessionSetProperty (kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof (doChangeDefaultRoute), &doChangeDefaultRoute);
+            
+//            CFStringRef route;
+//            UInt32 propertySize = sizeof(CFStringRef);
+//            AudioSessionGetProperty(kAudioSessionProperty_AudioRoute, &propertySize, &route);
+//            NSLog(@"CURRENT AUDIO ROUTE: %@\n", route);
+            
+            
+            //Then you can add mixable audio
+            //We want our audio to mix with other app's audio //must be after OverrideToSpeaker
+            UInt32 shouldMix = 1;
+            AudioSessionSetProperty (kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof (shouldMix), &shouldMix);
+            
 			Float32 preferredBufferSize = mCsData.bufframes / csoundGetSr(cs);
 			AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, sizeof(preferredBufferSize), &preferredBufferSize);
 			AudioComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_RemoteIO, kAudioUnitManufacturer_Apple, 0, 0};
@@ -586,36 +562,38 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
 			
 			AudioUnit csAUHAL;
 			err = AudioComponentInstanceNew(HALOutput, &csAUHAL);
-
+            
 			
 			if(!err) {
-            
-            mCsData.aunit = &csAUHAL;
-            UInt32 enableIO = 1;
-            AudioUnitSetProperty(csAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, 0, &enableIO, sizeof(enableIO));
-            AudioUnitSetProperty(csAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableIO, sizeof(enableIO));
-            
-            if (enableIO) {
-                UInt32 maxFPS;
-                UInt32 outsize;
-                int elem;
-                for(elem = 1; elem >= 0; elem--){
-                    outsize = sizeof(maxFPS);
-                    AudioUnitGetProperty(csAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, elem, &maxFPS, &outsize);
-                    AudioUnitSetProperty(csAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, elem, (UInt32*)&(mCsData.bufframes), sizeof(UInt32));
-                    outsize = sizeof(AudioStreamBasicDescription);
-                    AudioUnitGetProperty(csAUHAL, kAudioUnitProperty_StreamFormat, (elem ? kAudioUnitScope_Output : kAudioUnitScope_Input), elem, &format, &outsize);
-                    format.mSampleRate	= csoundGetSr(cs);
-                    format.mFormatID = kAudioFormatLinearPCM;
-                    format.mFormatFlags = kAudioFormatFlagsCanonical | kLinearPCMFormatFlagIsNonInterleaved;         
-                    format.mBytesPerPacket = sizeof(AudioUnitSampleType);
-                    format.mFramesPerPacket = 1;
-                    format.mBytesPerFrame = sizeof(AudioUnitSampleType);
-                    format.mChannelsPerFrame = mCsData.nchnls;
-                    format.mBitsPerChannel = sizeof(AudioUnitSampleType)*8;
-                    err = AudioUnitSetProperty(csAUHAL, kAudioUnitProperty_StreamFormat, (elem ? kAudioUnitScope_Output : kAudioUnitScope_Input), elem, &format, sizeof(AudioStreamBasicDescription));
-                }		
                 
+                mCsData.aunit = &csAUHAL;
+                UInt32 enableIO = 1;
+                AudioUnitSetProperty(csAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, 0, &enableIO, sizeof(enableIO));
+                if (_useAudioInput) {
+                    AudioUnitSetProperty(csAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableIO, sizeof(enableIO));
+                }
+                
+                if (enableIO) {
+                    UInt32 maxFPS;
+                    UInt32 outsize;
+                    int elem;
+                    for(elem = _useAudioInput ? 1 : 0; elem >= 0; elem--){
+                        outsize = sizeof(maxFPS);
+                        AudioUnitGetProperty(csAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, elem, &maxFPS, &outsize);
+                        AudioUnitSetProperty(csAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, elem, (UInt32*)&(mCsData.bufframes), sizeof(UInt32));
+                        outsize = sizeof(AudioStreamBasicDescription);
+                        AudioUnitGetProperty(csAUHAL, kAudioUnitProperty_StreamFormat, (elem ? kAudioUnitScope_Output : kAudioUnitScope_Input), elem, &format, &outsize);
+                        format.mSampleRate	= csoundGetSr(cs);
+                        format.mFormatID = kAudioFormatLinearPCM;
+                        format.mFormatFlags = kAudioFormatFlagsCanonical | kLinearPCMFormatFlagIsNonInterleaved;
+                        format.mBytesPerPacket = sizeof(AudioUnitSampleType);
+                        format.mFramesPerPacket = 1;
+                        format.mBytesPerFrame = sizeof(AudioUnitSampleType);
+                        format.mChannelsPerFrame = mCsData.nchnls;
+                        format.mBitsPerChannel = sizeof(AudioUnitSampleType)*8;
+                        err = AudioUnitSetProperty(csAUHAL, kAudioUnitProperty_StreamFormat, (elem ? kAudioUnitScope_Output : kAudioUnitScope_Input), elem, &format, sizeof(AudioStreamBasicDescription));
+                    }
+                    
 					if (mCsData.shouldRecord) {
 						
 						// Define format for the audio file.
@@ -649,63 +627,60 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
 						}
 					}
 					
-                if(!err) {
-                    AURenderCallbackStruct output;
-                    output.inputProc = Csound_Render;
-                    output.inputProcRefCon = &mCsData;
-                    AudioUnitSetProperty(csAUHAL, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &output, sizeof(output));
-                    AudioUnitInitialize(csAUHAL);	
-                    
-                    err = AudioOutputUnitStart(csAUHAL);
+                    if(!err) {
+                        AURenderCallbackStruct output;
+                        output.inputProc = Csound_Render;
+                        output.inputProcRefCon = &mCsData;
+                        AudioUnitSetProperty(csAUHAL, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &output, sizeof(output));
+                        AudioUnitInitialize(csAUHAL);
+                        
+                        err = AudioOutputUnitStart(csAUHAL);
 						
 						/* NOTIFY COMPLETION LISTENERS*/
 						
 						for (id<CsoundObjCompletionListener> listener in completionListeners) {
 							[listener csoundObjDidStart:self];
 						}
-                    
-                    if(!err) {
-                        while (!mCsData.ret && mCsData.running) {
-                            [NSThread sleepForTimeInterval:.001];
+                        
+                        if(!err) {
+                            while (!mCsData.ret && mCsData.running) {
+                                [NSThread sleepForTimeInterval:.001];
+                            }
                         }
-                    }
-							
-                    ExtAudioFileDispose(mCsData.file);
+                        
+                        ExtAudioFileDispose(mCsData.file);
 						mCsData.shouldRecord = false;
-                    AudioOutputUnitStop(csAUHAL);
-                    /* free(CAInputData); */
+                        AudioOutputUnitStop(csAUHAL);
+                        /* free(CAInputData); */
+                    }
+                    AudioUnitUninitialize(csAUHAL);
+                    AudioComponentInstanceDispose(csAUHAL);
                 }
-                AudioUnitUninitialize(csAUHAL);
-                AudioComponentInstanceDispose(csAUHAL);
-            }
 			}
 			csoundDestroy(cs);
-		}	
+		}
 		
-    mCsData.running = false;
-    
-    /* CLEANUP VALUE CACHEABLE */
-    
-    for (int i = 0; i < valuesCache.count; i++) {
-        id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
-        [cachedValue cleanup];
-    }
-    
-    /* NOTIFY COMPLETION LISTENERS*/
-    
-    for (id<CsoundObjCompletionListener> listener in completionListeners) {
-        [listener csoundObjComplete:self];	
-    }
-    
-    [mMotionManager stopAccelerometerUpdates];
-    [mMotionManager stopGyroUpdates];
-    [mMotionManager stopDeviceMotionUpdates];
-    
+        mCsData.running = false;
+        
+        /* CLEANUP VALUE CACHEABLE */
+        
+        for (int i = 0; i < valuesCache.count; i++) {
+            id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+            [cachedValue cleanup];
+        }
+        
+        /* NOTIFY COMPLETION LISTENERS*/
+        
+        for (id<CsoundObjCompletionListener> listener in completionListeners) {
+            [listener csoundObjComplete:self];
+        }
+        
+        [mMotionManager stopAccelerometerUpdates];
+        [mMotionManager stopGyroUpdates];
+        [mMotionManager stopDeviceMotionUpdates];
+        
 	}
 }
-
-#pragma mark Memory Handling
-
 
 
 @end

@@ -210,6 +210,8 @@ void test_channel_opcodes(void)
     csoundSetOutputChannelCallback(csound, (channelCallback_t) outputCallback2);
     int err = csoundStart(csound);
     CU_ASSERT(err == 0);
+    csoundGetControlChannel(csound, "1", &err);
+    CU_ASSERT(err == 0)
     csoundSetControlChannel(csound, "1", 5.0);
     MYFLT pFields[] = {1.0, 0.0, 1.0};
     err = csoundScoreEvent(csound, 'i', pFields, 3);
@@ -234,18 +236,12 @@ void test_channel_opcodes(void)
     csoundDestroy(csound);
 }
 
-const char orc5[] = "instr 1\n kval invalue \"1\"\n"
-        "outvalue \"2\",kval\n"
-        "endin\n"
-
-        "instr 2\n"
-        "kval chani 2\n"
-        "chano kval + 1, 3\n"
-        "endin\n"
-
-        "instr 3\n"
-        "kval chnget \"3\"\n"
-        "chnset kval + 1, \"4\"\n"
+const char orc5[] = "chn_k \"winsize\", 3\n"
+        "instr 1\n"
+        "kval invalue \"1\"\n"
+        "fin pvsin 1\n"
+        "ioverlap, inumbins, iwinsize, iformat pvsinfo fin\n"
+        "chnset iwinsize, \"winsize\"\n"
         "endin\n";
 
 void test_pvs_opcodes(void)
@@ -256,13 +252,17 @@ void test_pvs_opcodes(void)
     csoundSetOption(csound, "--logfile=null");
     csoundCompileOrc(csound, orc5);
     int err = csoundStart(csound);
-    CU_ASSERT(err == 0);
     PVSDATEXT pvs_data, pvs_data2;
     pvs_data.N = 16;
+    pvs_data.winsize = 32;
     csoundSetPvsChannel(csound, &pvs_data, "1");
     csoundGetPvsChannel(csound, &pvs_data2, "1");
     CU_ASSERT_EQUAL(pvs_data.N, pvs_data2.N);
-
+    MYFLT pFields[] = {1.0, 0.0, 1.0};
+    err = csoundScoreEvent(csound, 'i', pFields, 3);
+    CU_ASSERT(err == 0);
+    err = csoundPerformKsmps(csound);
+    CU_ASSERT_EQUAL(32.0, csoundGetControlChannel(csound, "winsize", NULL));
     csoundCleanup(csound);
     csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
