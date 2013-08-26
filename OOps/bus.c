@@ -579,7 +579,7 @@ static CS_NOINLINE int print_chn_err(void *p, int err)
 static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
 #ifdef HAVE_ATOMIC_BUILTIN
-    union {
+    volatile union {
     MYFLT d;
     MYFLT_INT_TYPE i;
     } x;
@@ -628,7 +628,6 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
 
     err = csoundGetChannelPtr(csound, &(p->fp), p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
-
     if (UNLIKELY(err))
       return print_chn_err(p, err);
 #ifdef HAVE_ATOMIC_BUILTIN

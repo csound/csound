@@ -39,7 +39,8 @@ MYFLT   realt(CSOUND *, MYFLT);
 void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
 {
     SRTBLK  *bp;
-    MYFLT   absp3, endtime;
+    MYFLT   absp3;
+    MYFLT   endtime;
     int     negp3;
 
     if (UNLIKELY((bp = csound->frstbp) == NULL))      /* if null file,         */
@@ -55,7 +56,8 @@ void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
     do {
       switch (bp->text[0]) {                /* else warp all timvals */
       case 'i':
-        if (UNLIKELY((absp3 = bp->newp3) < 0)) {
+        absp3 = bp->newp3;
+        if (UNLIKELY(absp3 < 0)) {
           absp3 = -absp3;
           negp3++;
         }
