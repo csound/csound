@@ -238,9 +238,8 @@ void test_channel_opcodes(void)
 
 const char orc5[] = "chn_k \"winsize\", 3\n"
         "instr 1\n"
-        "kval invalue \"1\"\n"
-        "fin pvsin 1 \n"
-        "ioverlap, inumbins, iwinsize, iformat pvsinfo fin\n"
+        "finput pvsin 1 \n"
+        "ioverlap, inumbins, iwinsize, iformat pvsinfo finput\n"
         "chnset iwinsize, \"winsize\"\n"
         "endin\n";
 
@@ -248,16 +247,16 @@ void test_pvs_opcodes(void)
 {
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
-//    csoundCreateMessageBuffer(csound, 0);
-//    csoundSetOption(csound, "--logfile=null");
+    csoundCreateMessageBuffer(csound, 0);
+    csoundSetOption(csound, "--logfile=null");
     int err = csoundCompileOrc(csound, orc5);
     CU_ASSERT(err == CSOUND_SUCCESS);
     err = csoundStart(csound);
     PVSDATEXT pvs_data, pvs_data2;
     pvs_data.N = 16;
     pvs_data.winsize = 32;
-    csoundSetPvsChannel(csound, &pvs_data, "1");
-    csoundGetPvsChannel(csound, &pvs_data2, "1");
+    err = csoundSetPvsChannel(csound, &pvs_data, "1");
+    err = csoundGetPvsChannel(csound, &pvs_data2, "1");
     CU_ASSERT_EQUAL(pvs_data.N, pvs_data2.N);
     MYFLT pFields[] = {1.0, 0.0, 1.0};
     err = csoundScoreEvent(csound, 'i', pFields, 3);
