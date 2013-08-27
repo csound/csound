@@ -2,7 +2,7 @@
 
 include(CheckIncludeFiles)
 
-option(BUILD_CSOUND_AC "Build CsoundAC extension module for Csound with algorithmic composition (needs C++ interface)" OFF)
+option(BUILD_CSOUND_AC "Build CsoundAC extension module for Csound with algorithmic composition (needs C++ interface)" ON)
 option(BUILD_CSOUND_AC_PYTHON_INTERFACE "Build the Csound AC Python interface" ON)
 option(BUILD_CSOUND_AC_LUA_INTERFACE "Build the Csound AC Lua interface" ON)
 
@@ -17,9 +17,9 @@ find_package(SWIG)
 find_package(PythonLibs)
 find_package(Lua51)
 
-include_directories(${EIGEN3_INCLUDE_DIR})
+#include_directories(${EIGEN3_INCLUDE_DIR})
 
-find_file(EIGEN_DENSE Dense ${EIGEN3_INCLUDE_DIR}/eigen3/Eigen)
+find_file(EIGEN_DENSE eigen3/Eigen/Dense)
 
 check_deps(BUILD_CSOUND_AC Boost_FOUND BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN_DENSE)
 check_deps(BUILD_CSOUND_AC_PYTHON_INTERFACE SWIG_FOUND PYTHONLIBS_FOUND EIGEN_DENSE)
