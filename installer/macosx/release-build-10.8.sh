@@ -44,8 +44,8 @@ cp ../../../../Custom.cmake .
 mkdir build
 cd build
 # RUN CMAKE TWICE TO GET AROUND ISSUE WITH UNIVERSAL BUILD
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1
 make -j6 install
 
 # BUILD FLOAT CSOUND5
@@ -115,7 +115,7 @@ cp $DIST/lib/_csnd6.so $FRAMEWORK64_DIR/$PYTHON_DIR
 cp $DIST/lib/csnd6.py $FRAMEWORK64_DIR/$PYTHON_DIR
 cp $DIST/lib/CsoundAC.py $FRAMEWORK64_DIR/$PYTHON_DIR
 cp $DIST/lib/_CsoundAC.so $FRAMEWORK64_DIR/$PYTHON_DIR
-
+export CSOUND_AC_PYLIB=$FRAMEWORK64_DIR/$PYTHON_DIR/_CsoundAC.so
 
 
 echo "preparing framework..."
@@ -252,6 +252,8 @@ cp /usr/local/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
 export OLD_FLAC_LIB=/usr/local/lib/libFLAC.8.dylib
 export NEW_FLAC_LIB=/usr/local/lib/libFLAC.8.2.0.dylib
 install_name_tool -change $OLD_FLAC_LIB $NEW_FLAC_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
+
+install_name_tool -change libCsoundAC.6.0.dylib /usr/local/lib/libCsoundAC.6.0.dylib $CSOUND_AC_PYLIB
 
 #for file in $SUPPORT_LIBS_DIR/*
 #do
