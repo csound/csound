@@ -207,6 +207,7 @@ public class CsoundEditor extends JFrame {
         try {
             csoundFile.exportForPerformance();
             csound.Compile("tmp.orc", "tmp.sco", "-odac");
+            csound.Start();
 	    csoundPerformanceThread = new CsoundPerformanceThread(csound);
             csoundPerformanceThread.Play();
         } catch (Exception x) {
