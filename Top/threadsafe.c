@@ -75,8 +75,8 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
     } x;
     x.d = FL(0.0);
     if ((err_ = csoundGetChannelPtr(csound, &pval, name,
-                            CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL)
-         == CSOUND_SUCCESS)) {
+                            CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL))
+         == CSOUND_SUCCESS) {
 #ifdef HAVE_ATOMIC_BUILTIN
       x.i = __sync_fetch_and_add((MYFLT_INT_TYPE *)pval, 0);
 #else
