@@ -32,7 +32,7 @@
 #define __CSOUND_HPP__
 
 #ifdef SWIG
-%module csnd
+%module csnd6
 %{
 #include "csound.h"
 
