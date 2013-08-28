@@ -186,6 +186,8 @@ if(WIN32 AND NOT MSVC)
     else()
         MESSAGE(STATUS "MinGW include dir not found")
     endif()
+
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
 endif()
 
 if(WIN32)
