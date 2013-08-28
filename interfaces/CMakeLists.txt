@@ -9,32 +9,32 @@ option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)"
 
 if(BUILD_CXX_INTERFACE)
     message(STATUS "Building C++ interface library")
-    set(libcsnd_SRCS
+    set(libcsnd6_SRCS
         CppSound.cpp
         CsoundFile.cpp
         Soundfile.cpp
         csPerfThread.cpp
         cs_glue.cpp
         filebuilding.cpp)
-    set(libcsnd_LIBS ${LIBSNDFILE_LIBRARY})
-    set(libcsnd_CFLAGS "")
-    list(APPEND libcsnd_LIBS ${CSOUNDLIB})
+    set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY})
+    set(libcsnd6_CFLAGS "")
+    list(APPEND libcsnd6_LIBS ${CSOUNDLIB})
 
-    add_library(libcsnd SHARED ${libcsnd_SRCS})
-    target_link_libraries(libcsnd ${libcsnd_LIBS})
-    set_target_properties(libcsnd PROPERTIES
+    add_library(libcsnd6 SHARED ${libcsnd6_SRCS})
+    target_link_libraries(libcsnd6 ${libcsnd6_LIBS})
+    set_target_properties(libcsnd6 PROPERTIES
         LINK_INTERFACE_LIBRARIES ""
         SOVERSION ${APIVERSION}
-        OUTPUT_NAME csnd
+        OUTPUT_NAME csnd6
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
-    if(${libcsnd_CFLAGS})
-        add_compiler_flags(${libcsnd_CFLAGS} TARGETS libcsnd)
+    if(${libcsnd6_CFLAGS})
+        add_compiler_flags(${libcsnd6_CFLAGS} TARGETS libcsnd6)
     endif()
 
-    install(TARGETS libcsnd
+    install(TARGETS libcsnd6
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
     
@@ -70,7 +70,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
     if(BUILD_PYTHON_INTERFACE)
         INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
 
-        set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd)
+        set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd6)
 # Had:     	    SWIG_FLAGS "-threads"
 
         SET_SOURCE_FILES_PROPERTIES(python_interface.i
@@ -106,9 +106,9 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         # The java package needs this unset or it will litter us with .java files
         unset(CMAKE_SWIG_OUTDIR)
         INCLUDE_DIRECTORIES(${JNI_INCLUDE_DIRS})
-        set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd)
+        set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
 
-        list(APPEND javaSwigOptions -package csnd6)
+        list(APPEND javaSwigOptions -package csnd6 -includeall)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES CPLUSPLUS ON)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES SWIG_FLAGS "${javaSwigOptions}")
 
@@ -142,7 +142,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
     if(BUILD_LUA_INTERFACE)
         INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 
-        set(swiglua_LIBS ${LUA_LIBRARIES} ${CSOUNDLIB} libcsnd)
+        set(swiglua_LIBS ${LUA_LIBRARIES} ${CSOUNDLIB} libcsnd6)
     
         SET_SOURCE_FILES_PROPERTIES(lua_interface.i
             PROPERTIES CPLUSPLUS ON
