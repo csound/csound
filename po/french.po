@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2013-08-28 14:03+0100\n"
+"PO-Revision-Date: 2013-08-28 14:22+0100\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "Language: \n"
@@ -3105,7 +3105,7 @@ msgstr " *** rtjack : erreur d'allocation des variables globales"
 #: InOut/rtjack.c:1039
 #, fuzzy
 msgid "JACK client name (default: csound6)"
-msgstr "nom de client ALSASEQ (Csound par défaut)"
+msgstr ""
 
 #: InOut/rtjack.c:1048
 msgid "JACK input port name prefix (default: input)"
