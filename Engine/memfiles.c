@@ -137,7 +137,7 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
     cvh.headBsize = strtol(p, &p, 10);
     cvh.dataBsize = strtol(p, &p, 10);
     cvh.dataFormat = strtol(p, &p, 10);
-    cvh.samplingRate = (MYFLT)strtod(p, &p);
+    cvh.samplingRate = (MYFLT)cs_strtod(p, &p);
     cvh.src_chnls = strtol(p, &p, 10);
     cvh.channel = strtol(p, &p, 10);
     cvh.Hlen = strtol(p, &p, 10);
