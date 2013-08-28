@@ -673,7 +673,7 @@ static int tabmax(CSOUND *csound, TABQUERY *p)
 
    if (UNLIKELY(t->data == NULL))
         return csound->PerfError(csound, p->h.insdshead,
-                                 Str("t-variable not initialised"));
+                                 Str("array-variable not initialised"));
    /* if (UNLIKELY(t->dimensions!=1)) */
    /*      return csound->PerfError(csound, p->h.insdshead, */
    /*      Str("array-variable not vector")); */
