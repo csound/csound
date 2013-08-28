@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2013-07-09 11:34+0100\n"
+"PO-Revision-Date: 2013-08-28 14:03+0100\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "Language: \n"
@@ -6510,64 +6510,52 @@ msgid "tabmorph: all tables must have the same length!"
 msgstr "tabmorph : toutes les tables doivent avoir la même longueur !"
 
 #: Opcodes/gab/vectorial.c:35
-#, fuzzy
 msgid "vtablei: incorrect table number"
-msgstr "mtablei : numéro de table incorrect"
+msgstr "vtablei : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:65
-#, fuzzy
 msgid "vtable: incorrect table number"
-msgstr "vtable1 : numéro de table incorrect"
+msgstr "vtable : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:86
-#, fuzzy
 msgid "vtablek: incorrect table number"
-msgstr "vtable1 : numéro de table incorrect"
+msgstr "vtablek : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:140
-#, fuzzy
 msgid "vtablea: incorrect table number"
-msgstr "vtable1 : numéro de table incorrect"
+msgstr "vtablea : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:200
-#, fuzzy
 msgid "vtabi: incorrect table number"
-msgstr "mtabi : numéro de table incorrect"
+msgstr "vtabi : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:215
-#, fuzzy
 msgid "vtab: incorrect table number"
-msgstr "vtable1 : numéro de table incorrect"
+msgstr "vtab : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:277
-#, fuzzy
 msgid "vtablewi: incorrect table number"
-msgstr "mtablewi : numéro de table incorrect"
+msgstr "vtablewi : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:293 Opcodes/gab/vectorial.c:392
-#, fuzzy
 msgid "vtablew: incorrect table number"
-msgstr "mtablew : numéro de table incorrect"
+msgstr "vtablew : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:314 Opcodes/gab/vectorial.c:411
-#, fuzzy
 msgid "vtablewk: incorrect table number"
-msgstr "vtable1 : numéro de table incorrect"
+msgstr "vtablewk : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:347
-#, fuzzy
 msgid "vtablewa: incorrect table number"
-msgstr "vtable1 : numéro de table incorrect"
+msgstr "vtablewa : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:378
-#, fuzzy
 msgid "vtabwi: incorrect table number"
-msgstr "mtabwi : numéro de table incorrect"
+msgstr "vtabwi : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:440
-#, fuzzy
 msgid "vtabwa: incorrect table number"
-msgstr "mtabw : numéro de table incorrect"
+msgstr "vtabwa : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:489 Opcodes/gab/vectorial.c:548
 #, c-format
@@ -10768,26 +10756,23 @@ msgid "<unknown>"
 msgstr "<inconnu>"
 
 #: Top/new_opts.c:121 Top/new_opts.c:128 Top/new_opts.c:204
-#, fuzzy, c-format
+#, c-format
 msgid " *** '%s' is not a valid Csound command line option."
-msgstr ""
-" *** '%s' n'est pas une option valide de la ligne de commande de Csound.\n"
+msgstr " *** '%s' n'est pas une option valide de la ligne de commande de Csound."
 
 #: Top/new_opts.c:123 Top/new_opts.c:130
-#, fuzzy
 msgid " *** Type 'csound --help' for the list of available options"
-msgstr ""
-" *** Taper 'csound --help' pour obtenir une liste des options disponibles.\n"
+msgstr " *** Taper 'csound --help' pour obtenir une liste des options disponibles."
 
 #: Top/new_opts.c:139 Top/new_opts.c:158
-#, fuzzy, c-format
+#, c-format
 msgid " *** type of option '%s' is not boolean"
-msgstr " *** le type de l'option '%s' n'est pas booléen\n"
+msgstr " *** le type de l'option '%s' n'est pas booléen"
 
 #: Top/new_opts.c:147 Top/new_opts.c:153 Top/new_opts.c:165
-#, fuzzy, c-format
+#, c-format
 msgid " *** '%s': invalid option name"
-msgstr " *** '%s' : nom d'option non valide\n"
+msgstr " *** '%s' : nom d'option non valide"
 
 #: Top/new_opts.c:174
 #, fuzzy
