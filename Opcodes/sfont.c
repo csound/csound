@@ -1456,7 +1456,7 @@ static void ChangeByteOrder(char *fmt, char *p, int32 size)
       while (*fmt) {
         c = *fmt++;
         if (isdigit(*fmt)) {
-          times = strtol_l(fmt, &fmt, 0, c_locale);
+          times = strtol(fmt, &fmt, 10);
         } else {
           times = 1;
         }
