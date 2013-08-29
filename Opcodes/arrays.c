@@ -1150,6 +1150,7 @@ static OENTRY arrayvars_localops[] =
     { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]", NULL, (SUBR) tablength },
     { "lenarray", 0xffff},
     { "lenarray.i", sizeof(TABQUERY1), 0, 1, "i", "k[]", (SUBR) tablength },
+    { "lenarray.ii", sizeof(TABQUERY1), 0, 1, "i", "i[]", (SUBR) tablength },
     { "lenarray.k", sizeof(TABQUERY1), 0, 1, "k", "k[]", NULL, (SUBR) tablength }
 };
 
