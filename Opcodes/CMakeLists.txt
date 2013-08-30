@@ -149,7 +149,7 @@ if(NOT APPLE)
     make_plugin(LuaCsound LuaCsound.cpp ${LUAJIT_LIBRARY})
     add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound)
     add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound LINKER)
-    include_directories(${LUA_H_PATH})
+    include_directories(${LUA_H_PATH}/luajit-2.0)
   endif()
 endif()
 
