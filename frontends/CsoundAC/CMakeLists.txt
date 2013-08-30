@@ -132,7 +132,7 @@ if(BUILD_CSOUND_AC)
 
     if(BUILD_CSOUND_AC_LUA_INTERFACE)
         message(STATUS "Building CsoundAC Lua interface")
-        include_directories(${LUA_H_PATH})
+        include_directories(${LUA_H_PATH}/luajit-2.0)
 
         SET_SOURCE_FILES_PROPERTIES(luaCsoundAC.i
             PROPERTIES CPLUSPLUS ON
