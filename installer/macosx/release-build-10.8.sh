@@ -244,6 +244,7 @@ cp /usr/local/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libfluidsynth.1.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libluajit-5.1.2.0.2.dylib $SUPPORT_LIBS_DIR 
 
 #cp -L /usr/local/lib/libmpadec.dylib $SUPPORT_LIBS_DIR
 #cp -L /usr/local/lib/libluajit.dylib $SUPLIBS
