@@ -37,6 +37,7 @@ extern void SILENCE_PUBLIC printChord(std::string label, const std::vector<doubl
  */
 VoiceleadingOperation::VoiceleadingOperation() :
     beginTime(0.0),
+    endTime(0.0),
     rescaledBeginTime(0.0),
     rescaledEndTime(0.0),
     P_(DBL_MAX),

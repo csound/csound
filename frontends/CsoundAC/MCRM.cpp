@@ -22,7 +22,7 @@
 
 namespace csound
 {
-  MCRM::MCRM()
+  MCRM::MCRM() : depth(0)
   {
   }
 
