@@ -433,7 +433,30 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       TREE* nodeToCheck = tree;
 
       if (tree->type == T_ARRAY) {
-        return get_array_sub_type(csound, tree->left->value->lexeme);
+        char* leftArgType = get_arg_type2(csound, tree->left, typeTable);
+        
+          //FIXME - should use CS_TYPE and not interrogate string
+          if (leftArgType[0] == '[') {
+            return get_array_sub_type(csound, tree->left->value->lexeme);
+          } else {
+            char* rightArgType = get_arg_string_from_tree(csound, tree->right,
+                                                          typeTable);
+            char* argString = strcat(leftArgType, rightArgType);
+              
+            char* outype = resolve_opcode_get_outarg(csound,
+                                                   find_opcode2(csound, "##array_get"),
+                                                   argString);
+              
+            if (UNLIKELY(outype == NULL)) {
+              synterr(csound,
+                      Str("unable to find array operator for "
+                          "types %s line %d\n"),
+                      argString, tree->line);
+              return NULL;
+            }
+
+            return cs_strdup(csound, outype);
+          }
       }
 
       if (tree->type == '?') {
