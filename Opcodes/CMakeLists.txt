@@ -7,8 +7,8 @@ option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_IMAGE_OPCODES "Build the image opcodes" ON)
 option(BUILD_PYTHON_OPCODES "Build the Python opcodes" ON)
 option(BUILD_LUA_OPCODES "Build the Lua opcodes" ON)
-option(BUILD_WIIMOTE_OPCODES "Build the Wiimote opcodes" ON) 
-option(BUILD_P5GLOVE_OPCODES "Build the P5Glove opcodes" ON) 
+option(BUILD_WIIMOTE_OPCODES "Build the Wiimote opcodes" ON)
+option(BUILD_P5GLOVE_OPCODES "Build the P5Glove opcodes" ON)
 option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
 option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
 option(BUILD_FAUST_OPCODES "Build the Faust opcodes" OFF)
@@ -125,7 +125,7 @@ endif()
 check_deps(BUILD_OSC_OPCODES OSC_HEADER LIBLO_LIBRARY)
 if(BUILD_OSC_OPCODES)
     make_plugin(osc OSC.c)
-    target_link_libraries(osc ${LIBLO_LIBRARY} pthread)
+    target_link_libraries(osc ${LIBLO_LIBRARY} pthread wsock32 ws2_32)
     add_dependency_to_framework(osc ${LIBLO_LIBRARY})
 endif()
 
@@ -157,7 +157,7 @@ check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H)
 if(BUILD_WIIMOTE_OPCODES)
     make_plugin(wiimote wiimote.c ${WIIUSE_LIB})
     add_dependency_to_framework(wiimote ${WIIUSE_LIB})
-  
+
 endif()
 
 check_deps(BUILD_P5GLOVE_OPCODES P5GLOVE_H)
@@ -170,7 +170,7 @@ if(BUILD_FAUST_OPCODES)
 check_deps(BUILD_FAUST_OPCODES LLVM_FOUND FAUST_LIBRARY)
    llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES AsmParser Instrumentation Linker Archive BitReader DebugInfo JIT ipo Vectorize BitWriter TableGen XCoreCodeGen XCoreDesc XCoreInfo X86AsmParser X86Disassembler X86CodeGen X86Desc X86Info X86AsmPrinter X86Utils SparcCodeGen SparcDesc SparcInfo PTXCodeGen PTXDesc PTXInfo PTXAsmPrinter PowerPCCodeGen PowerPCDesc PowerPCAsmPrinter PowerPCInfo MSP430CodeGen MSP430Desc MSP430Info MSP430AsmPrinter MBlazeDisassembler MBlazeAsmParser MBlazeCodeGen MBlazeDesc MBlazeInfo MBlazeAsmPrinter MipsDisassembler MipsAsmParser MipsCodeGen MipsDesc MipsInfo MipsAsmPrinter HexagonCodeGen HexagonDesc HexagonInfo HexagonAsmPrinter CppBackendCodeGen CppBackendInfo CellSPUCodeGen CellSPUDesc CellSPUInfo ARMDisassembler ARMAsmParser ARMCodeGen SelectionDAG AsmPrinter ARMDesc ARMInfo ARMAsmPrinter MCDisassembler MCParser Interpreter CodeGen ScalarOpts InstCombine TransformUtils ipa Analysis MCJIT RuntimeDyld ExecutionEngine Target MC Object Core Support
 )
-  
+
   make_plugin(faustcsound faustgen.cpp)
   add_compiler_flags("-DFAUSTFLOAT=double"  TARGETS faustcsound)
   target_link_libraries(faustcsound faust ${REQ_LLVM_LIBRARIES})
@@ -197,5 +197,5 @@ endif()
 #make_plugin(sfont sfont.c m)
 #set_target_properties(sfont
 #    PROPERTIES COMPILER_FLAGS "${sfont_FLAGS}")
-    
+
 add_subdirectory(stk)
