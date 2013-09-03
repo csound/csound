@@ -499,7 +499,7 @@ static void openJackStreams(RtJackGlobals *p)
         dev = devs[0].device_name;
         free(devs);
       }
-      if(p->inDevName != NULL)
+      if(p->inDevName != NULL){
         dev = p->inDevName;
       sp = strchr(dev, '\0');
       if(!isalpha(dev[0])) dev++;
@@ -512,6 +512,7 @@ static void openJackStreams(RtJackGlobals *p)
         }
       }
       *sp = (char) 0;
+      }
     }
     if (p->outputEnabled){
       char *dev, *sp;
@@ -526,7 +527,8 @@ static void openJackStreams(RtJackGlobals *p)
         dev = devs[0].device_name;
         free(devs);
       }
-      if(p->outDevName != NULL) dev = p->outDevName;
+      if(p->outDevName != NULL){ 
+      dev = p->outDevName;
       sp = strchr(dev, '\0');
       if(!isalpha(dev[0])) dev++;
       for (i = 0; i < p->nChannels; i++) {
@@ -536,6 +538,7 @@ static void openJackStreams(RtJackGlobals *p)
         }
       }
       *sp = (char) 0;
+      }
     }
     /* stream is now active */
     p->jackState = 0;
