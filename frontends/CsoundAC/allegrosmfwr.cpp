@@ -355,7 +355,7 @@ void Alg_smf_write::write_update(Alg_update_ptr update)
         int len = strlen(s);
         char smpteoffset[5];
         if (len < 24) return; // not long enough, must be bad format
-        int fps;
+        int fps = 3;
         if (s[0] == '2') {
             if (s[1] == '4') fps = 0;
             else if (s[1] == '5') fps = 1;
@@ -364,7 +364,7 @@ void Alg_smf_write::write_update(Alg_update_ptr update)
                 if (len != 27) return; // not right length
                 s += 3; // cancel effect of longer string
             }
-        } else fps = 3;
+        };
         s += 6;   int hours = decimal(s);
         s += 4;   int mins = decimal(s);
         s += 4;   int secs = decimal(s);
