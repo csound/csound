@@ -1040,9 +1040,19 @@ int outa(CSOUND *csound, OUTA *p)
     int n, l, m=0, nsmps = CS_KSMPS;
     MYFLT       *data = p->tabin->data;
     MYFLT       *sp= CS_SPOUT;
-    for (n=0; n<nsmps; n++) {
-      for (l=0; l<p->len; l++) {
-        sp[m++] = data[l+n*nsmps];
+    if (!csound->spoutactive) {
+      for (n=0; n<nsmps; n++) {
+        for (l=0; l<p->len; l++) {
+          sp[m++] = data[l+n*csound->nchnls];
+        }
+      }
+      csound->spoutactive = 1;
+    }
+    else {
+      for (n=0; n<nsmps; n++) {
+        for (l=0; l<p->len; l++) {
+          sp[m++] += data[l+n*nsmps];
+        }
       }
     }
     return OK;
