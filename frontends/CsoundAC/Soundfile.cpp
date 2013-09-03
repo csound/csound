@@ -22,7 +22,7 @@
 
 namespace csound
 {
-  Soundfile::Soundfile()
+  Soundfile::Soundfile() : sampleCount(0), startTimeSeconds(0.0)
   {
     initialize();
   }

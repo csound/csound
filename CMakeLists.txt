@@ -21,7 +21,7 @@ if(USE_LIB64)
 else()
     set(LIBRARY_INSTALL_DIR "lib")
 endif()
-message("LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
+message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
 
 if(USE_DOUBLE)
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins64-${APIVERSION}")
@@ -186,6 +186,8 @@ if(WIN32 AND NOT MSVC)
     else()
         MESSAGE(STATUS "MinGW include dir not found")
     endif()
+
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
 endif()
 
 if(WIN32)
