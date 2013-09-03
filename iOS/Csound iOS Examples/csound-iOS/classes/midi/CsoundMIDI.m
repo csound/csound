@@ -133,6 +133,8 @@ static int MidiDataRead(CSOUND *csound, void *userData,
                         unsigned char *mbuf, int nbytes)
 {
     cdata * data = (cdata *)userData;
+    if(data == NULL) return 0;
+    
     MIDIdata *mdata = data->mdata;
     int *q = &data->q, st, d1, d2, n = 0;
     
@@ -182,14 +184,17 @@ static int MidiDataRead(CSOUND *csound, void *userData,
 static int MidiInDeviceClose(CSOUND *csound, void *userData)
 {
     cdata * data = (cdata *)userData;
-    MIDIClientDispose(data->mclient);
-    free(data->mdata);
-    free(data);
+    if (data != NULL) {
+        MIDIClientDispose(data->mclient);
+        free(data->mdata);
+        free(data);
+    }
     return 0;
 }
 
 /* callback setting code */
 +(void)setMidiInCallbacks:(CSOUND *)csound {
+    csoundSetHostImplementedMIDIIO(csound, 1);
     csoundSetExternalMidiInOpenCallback(csound, MidiInDeviceOpen);
     csoundSetExternalMidiReadCallback(csound, MidiDataRead);
     csoundSetExternalMidiInCloseCallback(csound, MidiInDeviceClose);

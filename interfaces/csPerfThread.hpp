@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
  {
    CsoundPerformanceThread perfThread(cs.GetCsound());
    perfThread.Play(); // Starts performance
-   while(perfThread.GetStatus() == 0); 
+   while(perfThread.GetStatus() == 0);
                        // nothing to do here...
                        // but you could process input events, graphics etc
    perfThread.Stop();  // Stops performance. In fact, performance should have
@@ -85,9 +85,9 @@ struct PUBLIC pycallbackdata {
 
 class PUBLIC CsoundPerformanceThread {
  private:
+    CSOUND  *csound;
     volatile CsoundPerformanceThreadMessage *firstMessage;
     CsoundPerformanceThreadMessage *lastMessage;
-    CSOUND  *csound;
     void    *queueLock;         // this is actually a mutex
     void    *pauseLock;
     void    *flushLock;
@@ -96,11 +96,10 @@ class PUBLIC CsoundPerformanceThread {
     int     status;
     void *    cdata;
     int  running;
-    // --------
+    void (*processcallback)(void *cdata);
     int  Perform();
     void csPerfThread_constructor(CSOUND *);
     void QueueMessage(CsoundPerformanceThreadMessage *);
-    void (*processcallback)(void *cdata);
  public:
     int isRunning() { return running;}
 #ifdef SWIGPYTHON

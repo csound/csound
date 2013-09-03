@@ -433,7 +433,30 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       TREE* nodeToCheck = tree;
 
       if (tree->type == T_ARRAY) {
-        return get_array_sub_type(csound, tree->left->value->lexeme);
+        char* leftArgType = get_arg_type2(csound, tree->left, typeTable);
+        
+          //FIXME - should use CS_TYPE and not interrogate string
+          if (leftArgType[0] == '[') {
+            return get_array_sub_type(csound, tree->left->value->lexeme);
+          } else {
+            char* rightArgType = get_arg_string_from_tree(csound, tree->right,
+                                                          typeTable);
+            char* argString = strcat(leftArgType, rightArgType);
+              
+            char* outype = resolve_opcode_get_outarg(csound,
+                                                   find_opcode2(csound, "##array_get"),
+                                                   argString);
+              
+            if (UNLIKELY(outype == NULL)) {
+              synterr(csound,
+                      Str("unable to find array operator for "
+                          "types %s line %d\n"),
+                      argString, tree->line);
+              return NULL;
+            }
+
+            return cs_strdup(csound, outype);
+          }
       }
 
       if (tree->type == '?') {
@@ -1220,7 +1243,7 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
 //FIXME - this needs to be updated to take into account array names
 // that could clash with non-array names, i.e. kVar and kVar[]
 int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
-
+    CS_VARIABLE *var = 0;
     TREE* current;
     char* argType;
     char* varName;
@@ -1258,12 +1281,11 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
 
           pool = (*varName == 'g') ?
             typeTable->globalPool : typeTable->localPool;
-
-          if (UNLIKELY(csoundFindVariableWithName(pool, varName) == NULL)) {
-            CS_VARIABLE *var;
+          var = csoundFindVariableWithName(pool, varName);
+          if (UNLIKELY(var == NULL)) {
              /* VL: 13-06-13
                if it is not found, we still check the global (merged) pool */
-            if(var == NULL && *varName == 'g')
+            if(*varName == 'g')
                var = csoundFindVariableWithName(csound->engineState.varPool,
                                                 varName);
             if(var == NULL)
@@ -1282,7 +1304,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                  typeTable->globalPool : typeTable->localPool;
 
           if (UNLIKELY(csoundFindVariableWithName(pool, varName) == NULL)) {
-            CS_VARIABLE *var;
+            CS_VARIABLE *var = 0;
             /* VL: 13-06-13
                if it is not found, we still check the global (merged) pool */
             if(var == NULL && *varName == 'g')

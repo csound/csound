@@ -137,7 +137,7 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
     cvh.headBsize = strtol(p, &p, 10);
     cvh.dataBsize = strtol(p, &p, 10);
     cvh.dataFormat = strtol(p, &p, 10);
-    cvh.samplingRate = (MYFLT)strtod(p, &p);
+    cvh.samplingRate = (MYFLT)cs_strtod(p, &p);
     cvh.src_chnls = strtol(p, &p, 10);
     cvh.channel = strtol(p, &p, 10);
     cvh.Hlen = strtol(p, &p, 10);
@@ -217,7 +217,7 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
       memcpy(&all[i], &x, sizeof(MYFLT));
     }
     fclose(f);                                  /*   and close it      */
-    printf("length=%d i=%d\n", length, i);
+    printf("length=%d i=%u\n", length, i);
     *len = i;
     all = mrealloc(csound, all, i);
     *allocp = all;

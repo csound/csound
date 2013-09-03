@@ -21,7 +21,7 @@
 #define CSOUND_SOUNDFILE_H
 
 #ifdef SWIG
-%module csnd
+%module csnd6
 %{
 #include <sndfile.h>
 #include <iostream>

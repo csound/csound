@@ -180,7 +180,7 @@
 #define MYFLT double
 #endif
 #endif
-%module csnd
+%module csnd6
 %{
 #  include "sysdep.h"
 #  include "text.h"
