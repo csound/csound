@@ -146,7 +146,7 @@ static int slider64(CSOUND *csound, SLIDER64 *p)
       return csound->InitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
-      MYFLT value;                                                \
+      MYFLT value = FL(0.0);                                                \
       int j = 0;                                                  \
       SLDf *sld = p->s;                                           \
       unsigned char *slnum = p->slnum;                            \
@@ -361,7 +361,7 @@ if (UNLIKELY(chan  > 15))  {                                           \
 
 #define SLIDER14(p, n)                                                 \
 {                                                                      \
-    MYFLT value;                                                       \
+    MYFLT value = FL(0.0);                                                       \
     int j = 0;                                                         \
     FUNC **ftp = p->ftp-1;                                             \
     MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val;  \

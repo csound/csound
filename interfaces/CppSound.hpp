@@ -30,7 +30,7 @@
 #endif
 
 #ifdef SWIG
-%module csnd
+%module csnd6
 %include "std_string.i"
 %include "std_vector.i"
 %apply std::vector<double> *INPUT { std::vector<double> const & };
