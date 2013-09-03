@@ -15,7 +15,11 @@ ELSE(APPLE)
 ENDIF(APPLE)
 find_package(SWIG)
 find_package(PythonLibs)
-find_package(Lua51)
+find_library(LUAJIT_LIBRARY luajit)
+if(NOT LUAJIT_LIBRARY)
+    find_library(LUAJIT_LIBRARY luajit-5.1)
+endif()
+find_path(LUA_H_PATH luajit-2.0/lua.h)
 
 #include_directories(${EIGEN3_INCLUDE_DIR})
 
@@ -23,7 +27,7 @@ find_file(EIGEN_DENSE eigen3/Eigen/Dense)
 
 check_deps(BUILD_CSOUND_AC Boost_FOUND BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN_DENSE)
 check_deps(BUILD_CSOUND_AC_PYTHON_INTERFACE SWIG_FOUND PYTHONLIBS_FOUND EIGEN_DENSE)
-check_deps(BUILD_CSOUND_AC_LUA_INTERFACE SWIG_FOUND LUA51_FOUND EIGEN_DENSE)
+check_deps(BUILD_CSOUND_AC_LUA_INTERFACE SWIG_FOUND LUAJIT_LIBRARY LUA_H_PATH EIGEN_DENSE)
 
 if(BUILD_CSOUND_AC)
     include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
@@ -76,10 +80,10 @@ if(BUILD_CSOUND_AC)
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
-    target_link_libraries(libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
+    target_link_libraries(libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
 
     if(MUSICXML_LIBRARY)
-        target_link_libraries(libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
+        target_link_libraries(libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
     endif()
 
     install(TARGETS libCsoundAC
@@ -102,11 +106,17 @@ if(BUILD_CSOUND_AC)
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME CsoundAC)
         swig_add_module(CsoundAC python CsoundAC.i)
-        swig_link_libraries(CsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARIES})
+        swig_link_libraries(CsoundAC libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARIES})
 
         if(MUSICXML_LIBRARY)
-            swig_link_libraries(CsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY} ${PYTHON_LIBRARIES})
+            swig_link_libraries(CsoundAC libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY} ${PYTHON_LIBRARIES})
         endif()
+
+
+  	    if(APPLE)
+            set_target_properties(${SWIG_MODULE_CsoundAC_REAL_NAME} PROPERTIES 
+                LINK_FLAGS "-undefined dynamic_lookup")
+       	endif()
 
         set_target_properties(${SWIG_MODULE_CsoundAC_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
@@ -122,18 +132,23 @@ if(BUILD_CSOUND_AC)
 
     if(BUILD_CSOUND_AC_LUA_INTERFACE)
         message(STATUS "Building CsoundAC Lua interface")
-        find_package(Lua51)
-        include_directories(${LUA_INCLUDE_DIR})
+        include_directories(${LUA_H_PATH}/luajit-2.0)
 
         SET_SOURCE_FILES_PROPERTIES(luaCsoundAC.i
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME luaCsoundAC)
         SWIG_ADD_MODULE(luaCsoundAC lua luaCsoundAC.i)
-        SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${LUA_LIBRARIES})
+        SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${LUAJIT_LIBRARY})
 
         if(MUSICXML_LIBRARY)
-            SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY} ${LUA_LIBRARIES})
+          SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY} ${LUAJIT_LIBRARY})
         endif()
+
+
+  	    if(APPLE)
+            set_target_properties(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PROPERTIES 
+                LINK_FLAGS "-undefined dynamic_lookup")
+       	endif()
 
         set_target_properties(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}

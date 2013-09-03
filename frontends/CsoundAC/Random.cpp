@@ -24,6 +24,15 @@ namespace csound
   boost::mt19937 Random::mersenneTwister;
 
   Random::Random() :
+    uniform_smallint_generator(0),
+    uniform_int_generator(0),
+    uniform_real_generator(0),
+    bernoulli_distribution_generator(0),
+    geometric_distribution_generator(0),
+    triangle_distribution_generator(0),
+    exponential_distribution_generator(0),
+    normal_distribution_generator(0),
+    lognormal_distribution_generator(0),
     generator_(0),
     row(0),
     column(Event::HOMOGENEITY),

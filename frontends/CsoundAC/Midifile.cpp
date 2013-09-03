@@ -134,7 +134,7 @@ namespace csound
   {
   }
 
-  Chunk::Chunk(const char *_id)
+  Chunk::Chunk(const char *_id) : chunkSize(0), chunkSizePosition(0), chunkStart(0), chunkEnd(0)
   {
     id = MidiFile::chunkName(_id[0], _id[1], _id[2], _id[3]);
   }

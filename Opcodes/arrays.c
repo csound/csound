@@ -673,7 +673,7 @@ static int tabmax(CSOUND *csound, TABQUERY *p)
 
    if (UNLIKELY(t->data == NULL))
         return csound->PerfError(csound, p->h.insdshead,
-                                 Str("t-variable not initialised"));
+                                 Str("array-variable not initialised"));
    /* if (UNLIKELY(t->dimensions!=1)) */
    /*      return csound->PerfError(csound, p->h.insdshead, */
    /*      Str("array-variable not vector")); */
@@ -1018,6 +1018,46 @@ int tablength(CSOUND *csound, TABQUERY1 *p)
    return OK;
 }
 
+typedef struct {
+    OPDS h;
+    ARRAYDAT *tabin;
+    int    len;
+} OUTA;
+
+
+int outa_set(CSOUND *csound, OUTA *p)
+{
+    int len = p->tabin->dimensions==1?p->tabin->sizes[0]:-1;
+    if (len>csound->nchnls) len = csound->nchnls;
+    if (len<=0) return NOTOK;
+    p->len = len;
+    if (p->tabin->arrayMemberSize != CS_KSMPS*sizeof(MYFLT)) return NOTOK;
+    return OK;
+}
+
+int outa(CSOUND *csound, OUTA *p)
+{
+    int n, l, m=0, nsmps = CS_KSMPS;
+    MYFLT       *data = p->tabin->data;
+    MYFLT       *sp= CS_SPOUT;
+    if (!csound->spoutactive) {
+      for (n=0; n<nsmps; n++) {
+        for (l=0; l<p->len; l++) {
+          sp[m++] = data[l+n*csound->nchnls];
+        }
+      }
+      csound->spoutactive = 1;
+    }
+    else {
+      for (n=0; n<nsmps; n++) {
+        for (l=0; l<p->len; l++) {
+          sp[m++] += data[l+n*nsmps];
+        }
+      }
+    }
+    return OK;
+}
+
 
 
 // reverse, scramble, mirror, stutter, rotate, ...
@@ -1150,7 +1190,9 @@ static OENTRY arrayvars_localops[] =
     { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]", NULL, (SUBR) tablength },
     { "lenarray", 0xffff},
     { "lenarray.i", sizeof(TABQUERY1), 0, 1, "i", "k[]", (SUBR) tablength },
-    { "lenarray.k", sizeof(TABQUERY1), 0, 1, "k", "k[]", NULL, (SUBR) tablength }
+    { "lenarray.ii", sizeof(TABQUERY1), 0, 1, "i", "i[]", (SUBR) tablength },
+    { "lenarray.k", sizeof(TABQUERY1), 0, 1, "k", "k[]", NULL, (SUBR) tablength },
+    { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa}
 };
 
 LINKAGE_BUILTIN(arrayvars_localops)

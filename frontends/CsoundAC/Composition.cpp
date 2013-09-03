@@ -408,12 +408,12 @@ namespace csound
     }
     if (partNames.size() > 0) {
       for (size_t partI = 0, partN = partNames.size(); partI < partN; ++partI) {
-        std::sprintf(buffer, "part <id = %d name = %s>\n", partI, partNames[partI].c_str());
+        std::sprintf(buffer, "part <id = %u name = %s>\n", partI, partNames[partI].c_str());
         stream << buffer;
       }
     } else {
       for (size_t partI = 0, partN = 100; partI < partN; ++partI) {
-        std::sprintf(buffer, "part <id = %d name = Part%d>\n", partI, partI);
+        std::sprintf(buffer, "part <id = %u name = Part%u>\n", partI, partI);
         stream << buffer;
       }
     }
