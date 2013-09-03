@@ -1018,6 +1018,36 @@ int tablength(CSOUND *csound, TABQUERY1 *p)
    return OK;
 }
 
+typedef struct {
+    OPDS h;
+    ARRAYDAT *tabin;
+    int    len;
+} OUTA;
+
+
+int outa_set(CSOUND *csound, OUTA *p)
+{
+    int len = p->tabin->dimensions==1?p->tabin->sizes[0]:-1;
+    if (len>csound->nchnls) len = csound->nchnls;
+    if (len<=0) return NOTOK;
+    p->len = len;
+    if (p->tabin->arrayMemberSize != CS_KSMPS*sizeof(MYFLT)) return NOTOK;
+    return OK;
+}
+
+int outa(CSOUND *csound, OUTA *p)
+{
+    int n, l, m=0, nsmps = CS_KSMPS;
+    MYFLT       *data = p->tabin->data;
+    MYFLT       *sp= CS_SPOUT;
+    for (n=0; n<nsmps; n++) {
+      for (l=0; l<p->len; l++) {
+        sp[m++] = data[l+n*nsmps];
+      }
+    }
+    return OK;
+}
+
 
 
 // reverse, scramble, mirror, stutter, rotate, ...
@@ -1151,7 +1181,8 @@ static OENTRY arrayvars_localops[] =
     { "lenarray", 0xffff},
     { "lenarray.i", sizeof(TABQUERY1), 0, 1, "i", "k[]", (SUBR) tablength },
     { "lenarray.ii", sizeof(TABQUERY1), 0, 1, "i", "i[]", (SUBR) tablength },
-    { "lenarray.k", sizeof(TABQUERY1), 0, 1, "k", "k[]", NULL, (SUBR) tablength }
+    { "lenarray.k", sizeof(TABQUERY1), 0, 1, "k", "k[]", NULL, (SUBR) tablength },
+    { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa}
 };
 
 LINKAGE_BUILTIN(arrayvars_localops)
