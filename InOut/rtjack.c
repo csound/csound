@@ -487,12 +487,24 @@ static void openJackStreams(RtJackGlobals *p)
 
     /* connect ports if requested */
     if (p->inputEnabled) {
-      char *dev, *sp;
-      dev = p->inDevName;
+      char dev[128], *sp;
+      {
+        int i,n = listDevices(csound,NULL,0);
+        CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
+                malloc(n*sizeof(CS_AUDIODEVICE));
+        listDevices(csound,devs,0);
+        for(i=0; i < n; i++)
+          csound->Message(csound, " %d: %s (%s)\n",
+                          i, devs[i].device_id, devs[i].device_name);
+        strncpy(dev, devs[0].device_name, 128);
+        free(devs);
+      }
+      if(p->inDevName != NULL)
+          strncpy(dev, p->inDevName, 128);
 
       if (dev) {
         sp = strchr(dev, '\0');
-        if(!isalpha(dev[0])) dev++;
+//        if(!isalpha(dev[0])) dev++;
 
         for (i = 0; i < p->nChannels; i++) {
           sprintf(sp, "%d", i + 1);
@@ -505,11 +517,22 @@ static void openJackStreams(RtJackGlobals *p)
       }
     }
     if (p->outputEnabled) {
-      char *dev, *sp;
-      dev = p->outDevName;
+      char dev[128], *sp;
+      {
+          int i,n = listDevices(csound,NULL,1);
+          CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
+                  malloc(n*sizeof(CS_AUDIODEVICE));
+          listDevices(csound,devs,1);
+          for(i=0; i < n; i++)
+            csound->Message(csound, " %d: %s (%s)\n",
+                            i, devs[i].device_id, devs[i].device_name);
+          strncpy(dev, devs[0].device_name, 128);
+          free(devs);
+      }
+      if(p->outDevName != NULL) strncpy(dev, p->outDevName, 128);
       if (dev) {
         sp = strchr(dev, '\0');
-        if(!isalpha(dev[0])) dev++;
+//        if(!isalpha(dev[0])) dev++;
         for (i = 0; i < p->nChannels; i++) {
           sprintf(sp, "%d", i + 1);
           if (jack_connect(p->client, jack_port_name(p->outPorts[i]), dev) != 0) {
