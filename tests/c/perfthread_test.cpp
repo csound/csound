@@ -25,11 +25,22 @@ void test_perfthread(void)
     Csound csound;
     csound.SetOption("-odac");
     csound.CompileOrc(instrument);
-    csound.ReadScore("i 1 0  1 10000 5000\n");
+    csound.ReadScore("i 1 0  3 10000 5000\n");
     csound.Start();
-    CsoundPerformanceThread performanceThread(csound.GetCsound());
-    performanceThread.Play();
-    performanceThread.Join();
+    CsoundPerformanceThread performanceThread1(csound.GetCsound());
+    performanceThread1.Play();
+    performanceThread1.Join();
+    csound.Cleanup();
+    csound.Reset();
+    CsoundPerformanceThread performanceThread2(csound.GetCsound());
+    csound.SetOption("-odac");
+    csound.CompileOrc(instrument);
+    csound.ReadScore("i 1 0  3 10000 5000\n");
+    csound.Start();
+    performanceThread2.Play();
+    performanceThread2.Join();
+    csound.Cleanup();
+    csound.Reset();
 }
 
 
@@ -50,6 +61,15 @@ int main()
 
     /* add the tests to the suite */
     if ((NULL == CU_add_test(pSuite, "Test Performance Thread", test_perfthread))
+//            || (NULL == CU_add_test(pSuite, "Test reuse", test_reuse))
+        )
+    {
+        CU_cleanup_registry();
+        return CU_get_error();
+    }
+
+    /* add the tests to the suite */
+    if ((NULL == CU_add_test(pSuite, "Test Performance Thread second run", test_perfthread))
 //            || (NULL == CU_add_test(pSuite, "Test reuse", test_reuse))
         )
     {

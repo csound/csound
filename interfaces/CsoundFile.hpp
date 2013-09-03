@@ -31,7 +31,7 @@
 #pragma warning(disable: 4786)
 #endif
 #ifdef SWIG
-%module csnd
+%module csnd6
 %include "std_string.i"
 %include "std_vector.i"
 #if !defined(SWIGLUA)
