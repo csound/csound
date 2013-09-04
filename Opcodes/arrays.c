@@ -1069,9 +1069,10 @@ static int ina_set(CSOUND *csound, OUTA *p)
     aa->dimensions = 1;
     if (aa->sizes) csound->Free(csound, aa->sizes);
     if (aa->data) csound->Free(csound, aa->data);
-    aa->sizes = csound->Malloc(csound, sizeof(int));
-    aa->data =
-      csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*(p->len=csound->inchnls));
+    aa->sizes = (int*)csound->Malloc(csound, sizeof(int));
+    aa->sizes[0] = p->len = csound->inchnls;
+    aa->data = (MYFLT*)
+      csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
     aa->arrayMemberSize = CS_KSMPS*sizeof(MYFLT);
     return OK;
 }
@@ -1084,16 +1085,18 @@ static int ina(CSOUND *csound, OUTA *p)
     int n, l, m=0, nsmps = CS_KSMPS;
     MYFLT       *data = aa->data;
     MYFLT       *sp= CS_SPIN;
-    for (l=0; l<p->len; l++) {
+    int len = p->len;
+    for (l=0; l<len; l++) {
       sp = CS_SPIN + l;
-      if (UNLIKELY(offset)) memset(data, '\0', offset*sizeof(MYFLT));
+      memset(data, '\0', nsmps*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         nsmps -= early;
-        memset(&data[nsmps], '\0', early*sizeof(MYFLT));
       }
-      for (n = offset; n < nsmps; n++) {
-        data[n] = *sp;
-        sp += csound->inchnls;
+      for (n = 0; n < nsmps; n++) {
+        if (n<offset) data[n] = FL(0.0);
+        else          data[n] = *sp;
+        //printf("chn %d n=%d data=%f (%p)\n", l, n, data[n], &data[n]);
+        sp += len;
       }
       data += CS_KSMPS;
     }
