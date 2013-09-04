@@ -487,7 +487,7 @@ static void openJackStreams(RtJackGlobals *p)
 
     /* connect ports if requested */
     if (p->inputEnabled) {
-      char dev[128], *sp;
+      char dev[128], *dev_final, *sp;
       {
         int i,n = listDevices(csound,NULL,0);
         CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
@@ -503,12 +503,13 @@ static void openJackStreams(RtJackGlobals *p)
           strncpy(dev, p->inDevName, 128);
 
       if (dev) {
-        sp = strchr(dev, '\0');
-//        if(!isalpha(dev[0])) dev++;
+        dev_final = dev;
+        sp = strchr(dev_final, '\0');
+        if(!isalpha(dev_final[0])) dev_final++;
 
         for (i = 0; i < p->nChannels; i++) {
           sprintf(sp, "%d", i + 1);
-          if (UNLIKELY(jack_connect(p->client, dev,
+          if (UNLIKELY(jack_connect(p->client, dev_final,
                                     jack_port_name(p->inPorts[i])) != 0)) {
               rtJack_Error(csound, -1, Str("error connecting input ports"));
           }
@@ -517,7 +518,7 @@ static void openJackStreams(RtJackGlobals *p)
       }
     }
     if (p->outputEnabled) {
-      char dev[128], *sp;
+      char dev[128], *dev_final, *sp;
       {
           int i,n = listDevices(csound,NULL,1);
           CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
@@ -531,11 +532,12 @@ static void openJackStreams(RtJackGlobals *p)
       }
       if(p->outDevName != NULL) strncpy(dev, p->outDevName, 128);
       if (dev) {
-        sp = strchr(dev, '\0');
-//        if(!isalpha(dev[0])) dev++;
+        dev_final = dev;
+        sp = strchr(dev_final, '\0');
+        if(!isalpha(dev_final[0])) dev_final++;
         for (i = 0; i < p->nChannels; i++) {
           sprintf(sp, "%d", i + 1);
-          if (jack_connect(p->client, jack_port_name(p->outPorts[i]), dev) != 0) {
+          if (jack_connect(p->client, jack_port_name(p->outPorts[i]), dev_final) != 0) {
             rtJack_Error(csound, -1, Str("error connecting output ports"));
           }
         }
