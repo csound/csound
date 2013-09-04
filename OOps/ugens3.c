@@ -425,7 +425,7 @@ int loscil(CSOUND *csound, LOSC *p)
     switch (p->curmod) {
     case 0:
       for (; n<nsmps; n++) {                    /* NO LOOPING  */
-        loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
+        loscil_linear_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         if ((phs += inc) >= end)
@@ -434,7 +434,7 @@ int loscil(CSOUND *csound, LOSC *p)
       break;
     case 1:
       for (; n<nsmps; n++) {                    /* NORMAL LOOPING */
-        loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
+        loscil_linear_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         if (UNLIKELY((phs += inc) >= end)) {
@@ -446,7 +446,7 @@ int loscil(CSOUND *csound, LOSC *p)
     case 2:
     case2:
       for (; n<nsmps; n++) {                    /* BIDIR FORW, EVEN */
-        loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
+        loscil_linear_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         if ((phs += inc) >= end) {
@@ -461,7 +461,7 @@ int loscil(CSOUND *csound, LOSC *p)
     case 3:
     case3:
       for (; n<nsmps; n++) {                    /* BIDIR BACK, EVEN */
-        loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
+        loscil_linear_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         if (UNLIKELY((phs -= inc) < beg)) {
@@ -504,7 +504,7 @@ int loscil(CSOUND *csound, LOSC *p)
     switch (p->curmod) {
     case 0:
       for (; n<nsmps; n++) {                    /* NO LOOPING  */
-        loscil_linear_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        loscil_linear_interp_stereo(&ar1[n], &ar2[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
@@ -514,7 +514,7 @@ int loscil(CSOUND *csound, LOSC *p)
       break;
     case 1:
       for (; n<nsmps; n++) {                    /* NORMAL LOOPING */
-        loscil_linear_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        loscil_linear_interp_stereo(&ar1[n], &ar2[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
@@ -527,7 +527,7 @@ int loscil(CSOUND *csound, LOSC *p)
     case 2:
     case2s:
       for (; n<nsmps; n++) {                    /* BIDIR FORW, EVEN */
-        loscil_linear_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        loscil_linear_interp_stereo(&ar1[n], &ar2[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
@@ -543,7 +543,7 @@ int loscil(CSOUND *csound, LOSC *p)
     case 3:
     case3s:
       for (; n<nsmps; n++) {                    /* BIDIR BACK, EVEN */
-        loscil_linear_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+       loscil_linear_interp_stereo(&ar1[n], &ar2[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
@@ -578,8 +578,8 @@ int loscil(CSOUND *csound, LOSC *p)
  phsout2:
     p->lphs = phs;
  put0s:
-    memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
-    memset(&ar2[n], '\0', sizeof(MYFLT)*(nsmps-n));
+    //memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
+    //memset(&ar2[n], '\0', sizeof(MYFLT)*(nsmps-n));
     /* do { */
     /*   *ar1++ = FL(0.0); */
     /*   *ar2++ = FL(0.0); */
@@ -635,7 +635,7 @@ int loscil3(CSOUND *csound, LOSC *p)
     switch (p->curmod) {
     case 0:
       for (; n<nsmps; n++) {                    /* NO LOOPING  */
-        loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
+        loscil_cubic_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         if (UNLIKELY((phs += inc) >= end))
@@ -644,7 +644,7 @@ int loscil3(CSOUND *csound, LOSC *p)
       break;
     case 1:
       for (; n<nsmps; n++) {                    /* NORMAL LOOPING */
-        loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
+        loscil_cubic_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         if (UNLIKELY((phs += inc) >= end)) {
@@ -656,7 +656,7 @@ int loscil3(CSOUND *csound, LOSC *p)
     case 2:
     case2:
       for (; n<nsmps; n++) {                    /* BIDIR FORW, EVEN */
-        loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
+        loscil_cubic_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         if (UNLIKELY((phs += inc) >= end)) {
@@ -671,7 +671,7 @@ int loscil3(CSOUND *csound, LOSC *p)
     case 3:
     case3:
       for (; n<nsmps; n++) {                    /* BIDIR BACK, EVEN */
-        loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
+        loscil_cubic_interp_mono(&ar1[n], ftbl, phs, ftp->flen);;
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         if (UNLIKELY((phs -= inc) < beg)) {
@@ -717,7 +717,7 @@ int loscil3(CSOUND *csound, LOSC *p)
     switch (p->curmod) {
     case 0:
       for (; n<nsmps; n++) {                    /* NO LOOPING  */
-        loscil_cubic_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        loscil_cubic_interp_stereo(&ar1[n], &ar2[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
@@ -727,7 +727,7 @@ int loscil3(CSOUND *csound, LOSC *p)
       break;
     case 1:
       for (; n<nsmps; n++) {                    /* NORMAL LOOPING */
-        loscil_cubic_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        loscil_cubic_interp_stereo(&ar1[n], &ar2[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
@@ -740,7 +740,7 @@ int loscil3(CSOUND *csound, LOSC *p)
     case 2:
     case2s:
       for (; n<nsmps; n++) {                    /* BIDIR FORW, EVEN */
-        loscil_cubic_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        loscil_cubic_interp_stereo(&ar1[n], &ar2[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
@@ -756,7 +756,7 @@ int loscil3(CSOUND *csound, LOSC *p)
     case 3:
     case3s:
       for (; n<nsmps; n++) {                    /* BIDIR BACK, EVEN */
-        loscil_cubic_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        loscil_cubic_interp_stereo(&ar1[n], &ar2[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
