@@ -1037,15 +1037,15 @@ static int outa_set(CSOUND *csound, OUTA *p)
 
 static int outa(CSOUND *csound, OUTA *p)
 {
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
     int n, l, m=0, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT       *data = p->tabin->data;
     MYFLT       *sp= CS_SPOUT;
     if (!csound->spoutactive) {
       for (n=0; n<nsmps; n++) {
         for (l=0; l<p->len; l++) {
-          sp[m++] = (n>=offset && n<early ? data[l+n*csound->nchnls] :FL(0.0)) ;
+          sp[m++] = (n>=offset && n<early ? data[l+n*nsmps] :FL(0.0)) ;
         }
       }
       csound->spoutactive = 1;
