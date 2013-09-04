@@ -501,7 +501,6 @@ static void openJackStreams(RtJackGlobals *p)
       }
       if(p->inDevName != NULL)
           strncpy(dev, p->inDevName, 128);
-
       if (dev) {
         dev_final = dev;
         sp = strchr(dev_final, '\0');
@@ -516,6 +515,7 @@ static void openJackStreams(RtJackGlobals *p)
         }
         *sp = (char) 0;
       }
+
     }
     if (p->outputEnabled) {
       char dev[128], *dev_final, *sp;
