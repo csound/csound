@@ -1025,7 +1025,7 @@ typedef struct {
 } OUTA;
 
 
-int outa_set(CSOUND *csound, OUTA *p)
+static int outa_set(CSOUND *csound, OUTA *p)
 {
     int len = p->tabin->dimensions==1?p->tabin->sizes[0]:-1;
     if (len>csound->nchnls) len = csound->nchnls;
@@ -1035,15 +1035,17 @@ int outa_set(CSOUND *csound, OUTA *p)
     return OK;
 }
 
-int outa(CSOUND *csound, OUTA *p)
+static int outa(CSOUND *csound, OUTA *p)
 {
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     int n, l, m=0, nsmps = CS_KSMPS;
     MYFLT       *data = p->tabin->data;
     MYFLT       *sp= CS_SPOUT;
     if (!csound->spoutactive) {
       for (n=0; n<nsmps; n++) {
         for (l=0; l<p->len; l++) {
-          sp[m++] = data[l+n*csound->nchnls];
+          sp[m++] = (n>=offset && n<early ? data[l+n*csound->nchnls] :FL(0.0)) ;
         }
       }
       csound->spoutactive = 1;
@@ -1051,13 +1053,55 @@ int outa(CSOUND *csound, OUTA *p)
     else {
       for (n=0; n<nsmps; n++) {
         for (l=0; l<p->len; l++) {
-          sp[m++] += data[l+n*nsmps];
+          if (n>=offset && n<early)
+            sp[m] += data[l+n*nsmps];
+          m++;
         }
       }
     }
     return OK;
 }
 
+static int ina_set(CSOUND *csound, OUTA *p)
+{
+    ARRAYDAT *aa = p->tabin;
+    // should call ensure here but it is a-rate
+    aa->dimensions = 1;
+    if (aa->sizes) csound->Free(csound, aa->sizes);
+    if (aa->data) csound->Free(csound, aa->data);
+    aa->sizes = (int*)csound->Malloc(csound, sizeof(int));
+    aa->sizes[0] = p->len = csound->inchnls;
+    aa->data = (MYFLT*)
+      csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
+    aa->arrayMemberSize = CS_KSMPS*sizeof(MYFLT);
+    return OK;
+}
+
+static int ina(CSOUND *csound, OUTA *p)
+{
+    ARRAYDAT *aa = p->tabin;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    int n, l, m=0, nsmps = CS_KSMPS;
+    MYFLT       *data = aa->data;
+    MYFLT       *sp= CS_SPIN;
+    int len = p->len;
+    for (l=0; l<len; l++) {
+      sp = CS_SPIN + l;
+      memset(data, '\0', nsmps*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        nsmps -= early;
+      }
+      for (n = 0; n < nsmps; n++) {
+        if (n<offset) data[n] = FL(0.0);
+        else          data[n] = *sp;
+        //printf("chn %d n=%d data=%f (%p)\n", l, n, data[n], &data[n]);
+        sp += len;
+      }
+      data += CS_KSMPS;
+    }
+    return OK;
+}
 
 
 // reverse, scramble, mirror, stutter, rotate, ...
@@ -1192,7 +1236,8 @@ static OENTRY arrayvars_localops[] =
     { "lenarray.i", sizeof(TABQUERY1), 0, 1, "i", "k[]", (SUBR) tablength },
     { "lenarray.ii", sizeof(TABQUERY1), 0, 1, "i", "i[]", (SUBR) tablength },
     { "lenarray.k", sizeof(TABQUERY1), 0, 1, "k", "k[]", NULL, (SUBR) tablength },
-    { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa}
+    { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa},
+    { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina}
 };
 
 LINKAGE_BUILTIN(arrayvars_localops)
