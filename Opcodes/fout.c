@@ -311,6 +311,48 @@ static int outfile(CSOUND *csound, OUTFILE *p)
     return OK;
 }
 
+static int outfile_array(CSOUND *csound, OUTFILEA *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i, j, k, nsmps = CS_KSMPS;
+    uint32_t nargs = p->tabin->sizes[0];
+    MYFLT *buf = (MYFLT *) p->buf.auxp;
+    MYFLT *data = p->tabin->data;
+
+    if (UNLIKELY(early)) nsmps -= early;
+    if (p->f.sf == NULL) {
+      if (p->f.f != NULL) { /* VL: make sure there is an open file */
+        FILE  *fp = p->f.f;
+        for (k = offset; k < nsmps; k++) {
+          for (j = 0; j < nargs; j++)
+            fprintf(fp, "%g ", data[j*CS_KSMPS+k]);
+          fprintf(fp, "\n");
+        }
+      }
+    }
+    else {
+      for (j = offset, k = p->buf_pos; j < nsmps; j++)
+        for (i = 0; i < nargs; i++)
+          buf[k++] = data[j*CS_KSMPS+k] * p->scaleFac;
+      p->buf_pos = k;
+      if (p->buf_pos >= p->guard_pos) {
+
+        //#ifndef USE_DOUBLE
+        //sf_write_float(p->f.sf, buf, p->buf_pos);
+        //#else
+        //sf_write_double(p->f.sf, buf, p->buf_pos);
+        //#endif
+        if(p->f.async==1)
+        csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
+        else sf_write_MYFLT(p->f.sf, buf, p->buf_pos);
+        p->buf_pos = 0;
+       }
+
+    }
+    return OK;
+}
+
 static const int fout_format_table[50] = {
     /* 0 - 9 */
     (SF_FORMAT_FLOAT | SF_FORMAT_RAW), (SF_FORMAT_PCM_16 | SF_FORMAT_RAW),
@@ -412,6 +454,53 @@ static int outfile_set(CSOUND *csound, OUTFILE *p){
 
 static int outfile_set_S(CSOUND *csound, OUTFILE *p){
   return outfile_set_(csound,p,1);
+}
+
+static int outfile_set_A(CSOUND *csound, OUTFILEA *p)
+{
+    SF_INFO sfinfo;
+    int     format_, n, buf_reqd;
+    int len = p->tabin->sizes[0];
+
+    memset(&sfinfo, 0, sizeof(SF_INFO));
+    format_ = (int) MYFLT2LRND(*p->iflag);
+    if ((unsigned int) format_ >= (unsigned int) 50)
+      sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
+    else
+      sfinfo.format = fout_format_table[format_];
+    if (!SF2FORMAT(sfinfo.format))
+      sfinfo.format |= FORMAT2SF(csound->oparms->outformat);
+    if (!SF2TYPE(sfinfo.format))
+      sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
+    sfinfo.samplerate = (int) MYFLT2LRND(CS_ESR);
+    p->buf_pos = 0;
+
+    if (CS_KSMPS >= 512)
+      p->guard_pos = CS_KSMPS * len;
+    else
+      p->guard_pos = 512 * len;
+
+    if (CS_KSMPS >= 512)
+        buf_reqd = CS_KSMPS * len;
+      else
+        buf_reqd = (1 + (int)(512 / CS_KSMPS)) * CS_KSMPS * len;
+     if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
+        csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
+      }
+    p->f.bufsize =  p->buf.size;
+    sfinfo.channels = len;
+    n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
+                       p->fname, 1, &sfinfo, 0);
+    if (UNLIKELY(n < 0))
+      return NOTOK;
+
+    if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
+      p->scaleFac = csound->dbfs_to_float;
+    else
+      p->scaleFac = FL(1.0);
+
+    csound->RegisterDeinitCallback(csound, p, fout_flush_callback);
+    return OK;
 }
 
 
@@ -1327,6 +1416,8 @@ static OENTRY localops[] = {
         (SUBR) NULL,            (SUBR) NULL,        (SUBR) clear, NULL},
     { "fout",       S(OUTFILE),     0, 5,  "",     "Siy",
         (SUBR) outfile_set_S,     (SUBR) NULL,        (SUBR) outfile, NULL},
+    { "fout.A",     S(OUTFILEA),    0, 5,  "",     "Sia[]",
+        (SUBR) outfile_set_A,     (SUBR) NULL,        (SUBR) outfile, NULL},
     { "fout.i",       S(OUTFILE),     0, 5,  "",     "iiy",
         (SUBR) outfile_set,     (SUBR) NULL,        (SUBR) outfile, NULL},
     { "foutk",      S(KOUTFILE),    0, 3,  "",     "Siz",
