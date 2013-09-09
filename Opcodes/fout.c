@@ -334,7 +334,7 @@ static int outfile_array(CSOUND *csound, OUTFILEA *p)
     else {
       for (j = offset, k = p->buf_pos; j < nsmps; j++)
         for (i = 0; i < nargs; i++)
-          buf[k++] = data[j*CS_KSMPS+k] * p->scaleFac;
+          buf[k++] = data[i*CS_KSMPS+j] * p->scaleFac;
       p->buf_pos = k;
       if (p->buf_pos >= p->guard_pos) {
 
@@ -343,9 +343,10 @@ static int outfile_array(CSOUND *csound, OUTFILEA *p)
         //#else
         //sf_write_double(p->f.sf, buf, p->buf_pos);
         //#endif
-        if(p->f.async==1)
-        csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
-        else sf_write_MYFLT(p->f.sf, buf, p->buf_pos);
+        if (p->f.async==1)
+          csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
+        else
+          sf_write_MYFLT(p->f.sf, buf, p->buf_pos);
         p->buf_pos = 0;
        }
 
@@ -395,8 +396,27 @@ static int fout_flush_callback(CSOUND *csound, void *p_)
       //sf_write_double(p->f.sf, (double*) p->buf.auxp, p->buf_pos);
       //#endif
       if(p->f.async == 1)
-      csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
-      else sf_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+        csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
+      else
+        sf_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+    }
+    return OK;
+}
+
+static int fouta_flush_callback(CSOUND *csound, void *p_)
+{
+    OUTFILEA           *p = (OUTFILEA*) p_;
+
+    if (p->f.sf != NULL && p->buf_pos > 0) {
+      //#ifndef USE_DOUBLE
+      //sf_write_float(p->f.sf, (float*) p->buf.auxp, p->buf_pos);
+      //#else
+      //sf_write_double(p->f.sf, (double*) p->buf.auxp, p->buf_pos);
+      //#endif
+      if (p->f.async == 1)
+        csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
+      else
+        sf_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
     }
     return OK;
 }
@@ -476,10 +496,11 @@ static int outfile_set_A(CSOUND *csound, OUTFILEA *p)
     p->buf_pos = 0;
 
     if (CS_KSMPS >= 512)
-      p->guard_pos = CS_KSMPS * len;
-    else
+      buf_reqd = p->guard_pos = CS_KSMPS * len;
+    else {
       p->guard_pos = 512 * len;
-
+      buf_reqd = (1 + (int)(512 / CS_KSMPS)) * p->guard_pos;
+    }
     if (CS_KSMPS >= 512)
         buf_reqd = CS_KSMPS * len;
       else
@@ -499,7 +520,7 @@ static int outfile_set_A(CSOUND *csound, OUTFILEA *p)
     else
       p->scaleFac = FL(1.0);
 
-    csound->RegisterDeinitCallback(csound, p, fout_flush_callback);
+    csound->RegisterDeinitCallback(csound, p, fouta_flush_callback);
     return OK;
 }
 
@@ -1417,7 +1438,7 @@ static OENTRY localops[] = {
     { "fout",       S(OUTFILE),     0, 5,  "",     "Siy",
         (SUBR) outfile_set_S,     (SUBR) NULL,        (SUBR) outfile, NULL},
     { "fout.A",     S(OUTFILEA),    0, 5,  "",     "Sia[]",
-        (SUBR) outfile_set_A,     (SUBR) NULL,        (SUBR) outfile, NULL},
+        (SUBR) outfile_set_A,     (SUBR) NULL,        (SUBR) outfile_array, NULL},
     { "fout.i",       S(OUTFILE),     0, 5,  "",     "iiy",
         (SUBR) outfile_set,     (SUBR) NULL,        (SUBR) outfile, NULL},
     { "foutk",      S(KOUTFILE),    0, 3,  "",     "Siz",
