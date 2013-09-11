@@ -957,7 +957,7 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
     EVAL  eval;
 
     if (UNLIKELY(p->tabin->data == NULL)||p->tabin->dimensions!=1)
-       return csound->InitError(csound, Str("tvar not initialised"));
+       return csound->InitError(csound, Str("array-var not initialised"));
 
     size = p->tabin->sizes[0];
     if (UNLIKELY(p->tab->data==NULL)) {
@@ -993,10 +993,10 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
 
     if (UNLIKELY(p->tabin->data == NULL) || p->tabin->dimensions !=1)
       return csound->PerfError(csound,
-                               p->h.insdshead, Str("tvar not initialised"));
+                               p->h.insdshead, Str("array-var not initialised"));
     if (UNLIKELY(p->tab->data==NULL) || p->tab->dimensions !=1)
       return csound->PerfError(csound,
-                               p->h.insdshead, Str("tvar not initialised"));
+                               p->h.insdshead, Str("array-var not initialised"));
     size = p->tab->sizes[0];
 
     if (UNLIKELY(opc == NULL))

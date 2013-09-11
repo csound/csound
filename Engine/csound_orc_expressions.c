@@ -193,26 +193,26 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
                          TREE * gotoNode, int type)
 {
 /*     TREE *ans = create_empty_token(csound); */
-    char* op = (char *)csound->Malloc(csound, 7); /* Unchecked */
+    char* op = (char *)csound->Malloc(csound, 8); /* Unchecked */
     TREE *opTree, *bVar;
 
     switch(gotoNode->type) {
     case KGOTO_TOKEN:
-      sprintf(op, "ckgoto");
+      strncpy(op, "ckgoto", 8);
       break;
     case IGOTO_TOKEN:
-      sprintf(op, "cigoto");
+      strncpy(op, "cigoto", 8);
       break;
     case ITHEN_TOKEN:
-      sprintf(op, "cingoto");
+      strncpy(op, "cingoto", 8);
       break;
     case THEN_TOKEN:
     case KTHEN_TOKEN:
-      sprintf(op, "cngoto");
+      strncpy(op, "cngoto", 8);
       break;
     default:
-      if (type) sprintf(op, "ckgoto");
-      else sprintf(op, "cggoto");
+      if (type) strncpy(op, "ckgoto", 8);
+      else strncpy(op, "cggoto", 8);
     }
 
     opTree = create_opcode_token(csound, op);
@@ -235,7 +235,7 @@ TREE *create_simple_goto_token(CSOUND *csound, TREE *label, int type)
     char* op = (char *)csound->Calloc(csound, 6);
     TREE * opTree;
     char *gt[3] = {"kgoto", "igoto", "goto"};
-    sprintf(op, gt[type]);       /* kgoto, igoto, goto ?? */
+    strncpy(op, gt[type],6);       /* kgoto, igoto, goto ?? */
     opTree = create_opcode_token(csound, op);
     opTree->left = NULL;
     opTree->right = label;

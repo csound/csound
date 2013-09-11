@@ -625,7 +625,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     {
       CSOUND    *p = (CSOUND*) csound;
       char      err_msg[128];
-      sprintf(err_msg, "sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:",
+      CS_SPRINTF(err_msg, "sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:",
               sr, kr, ksmps);
       if (UNLIKELY(sr <= FL(0.0)))
         synterr(p, Str("%s invalid sample rate"), err_msg);
@@ -678,7 +678,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       /* chk consistency one more time */
       {
         char  s[256];
-        sprintf(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
+        CS_SPRINTF(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
                 csound->esr, csound->ekr, ensmps);
         if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps)))
           csoundDie(csound, Str("%s invalid ksmps value"), s);
