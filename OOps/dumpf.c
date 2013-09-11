@@ -640,9 +640,9 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
         fseek(ifd, -1L, SEEK_CUR);
         *bp = '\0';
 #ifndef USE_DOUBLE
-        sscanf(inbuf,"%f", kp);
+        CS_SSCANF(inbuf,"%f", kp);
 #else
-        sscanf(inbuf,"%lf", kp);
+        CS_SSCANF(inbuf,"%lf", kp);
 #endif
         kp++;
       }
@@ -659,9 +659,9 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
         fseek(ifd, -1L, SEEK_CUR);
         *bp = '\0';
 #ifndef USE_DOUBLE
-        sscanf(inbuf,"%f", kp);
+        CS_SSCANF(inbuf,"%f", kp);
 #else
-        sscanf(inbuf,"%lf", kp);
+        CS_SSCANF(inbuf,"%lf", kp);
 #endif
         kp++;
       }

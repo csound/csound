@@ -1399,8 +1399,8 @@ int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence){
 
 static int read_files(CSOUND *csound){
   CSFILE *current = (CSFILE *) csound->open_files;
-  if(current == NULL) return 0;
-  while(current){    
+  if (current == NULL) return 0;
+  while (current) {
     if(current->async_flag == ASYNC_GLOBAL) {
     int m = current->pos, l, n = current->items;
     int items = current->bufsize;

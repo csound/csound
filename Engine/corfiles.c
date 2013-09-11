@@ -203,9 +203,10 @@ char *corfile_current(CORFIL *f)
 }
 
 /* *** THIS NEEDS TO TAKE ACCOUNT OF SEARCH PATH *** */
-void *fopen_path(CSOUND *csound, FILE **fp, const char *name, const char *basename,
-                 char *env, int fromScore);
-CORFIL *copy_to_corefile(CSOUND *csound, const char *fname, const char *env, int fromScore)
+void *fopen_path(CSOUND *csound, FILE **fp, const char *name,
+                 const char *basename, char *env, int fromScore);
+CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
+                         const char *env, int fromScore)
 {
     CORFIL *mm;
     FILE *ff;

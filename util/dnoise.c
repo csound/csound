@@ -346,9 +346,9 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
             case 't':
               FIND(Str("no t argument"));
 #if defined(USE_DOUBLE)
-              sscanf(s,"%lf",&th);
+              CS_SSCANF(s,"%lf",&th);
 #else
-              sscanf(s,"%f",&th);
+              CS_SSCANF(s,"%f",&th);
 #endif
               while (*++s);
               break;
@@ -360,9 +360,9 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
             case 'm':
               FIND("no m arg");
 #if defined(USE_DOUBLE)
-              sscanf(s,"%lf",&g0);
+              CS_SSCANF(s,"%lf",&g0);
 #else
-              sscanf(s,"%f",&g0);
+              CS_SSCANF(s,"%f",&g0);
 #endif
               while (*++s);
               break;
@@ -374,9 +374,9 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
             case 'b':
               FIND(Str("no b argument"));
 #if defined(USE_DOUBLE)
-              sscanf(s,"%lf",&beg);
+              CS_SSCANF(s,"%lf",&beg);
 #else
-              sscanf(s,"%f",&beg);
+              CS_SSCANF(s,"%f",&beg);
 #endif
               while (*++s);
               break;
@@ -386,9 +386,9 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
               break;
             case 'e': FIND("no e arg");
 #if defined(USE_DOUBLE)
-              sscanf(s,"%lf",&end);
+              CS_SSCANF(s,"%lf",&end);
 #else
-              sscanf(s,"%f",&end);
+              CS_SSCANF(s,"%f",&end);
 #endif
               while (*++s);
               break;

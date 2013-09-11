@@ -302,18 +302,18 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           case 'P':
             FIND(Str("No P argument"))
 #if defined(USE_DOUBLE)
-            sscanf(s,"%lf", &P);
+            CS_SSCANF(s,"%lf", &P);
 #else
-            sscanf(s,"%f", &P);
+            CS_SSCANF(s,"%f", &P);
 #endif
             while (*++s);
             break;
           case 'r':
             FIND(Str("No r argument"))
 #if defined(USE_DOUBLE)
-            sscanf(s,"%lf", &Rout);
+            CS_SSCANF(s,"%lf", &Rout);
 #else
-            sscanf(s,"%f", &Rout);
+            CS_SSCANF(s,"%f", &Rout);
 #endif
             while (*++s);
             break;
