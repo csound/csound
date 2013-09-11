@@ -625,7 +625,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
   /*  for (fp1=coef+NDATA, dfp=cc+poleCount, n=poleCount; n--; ) */
   /*    *fp1++ = - (MYFLT) *--dfp; */  /* rev coefs & chng sgn */
 #if 0
-      sprintf(lpc.pwindow.caption, "pitch: %8.2f", coef[3]);
+      CS_SPRINTF(lpc.pwindow.caption, "pitch: %8.2f", coef[3]);
       display(csound, &lpc.pwindow);
 #endif
 

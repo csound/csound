@@ -351,14 +351,14 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     }
     /* allocate hardware and software parameters */
     if (snd_pcm_hw_params_any(dev->handle, hw_params) < 0) {
-      sprintf(msg, "No real-time audio configurations found");
+      strncpy(msg, Str("No real-time audio configurations found"), 512);
       goto err_return_msg;
     }
     /* now set the various hardware parameters: */
     /* access method, */
     if (snd_pcm_hw_params_set_access(dev->handle, hw_params,
                                      SND_PCM_ACCESS_RW_INTERLEAVED) < 0) {
-      sprintf(msg, "Error setting access type for soundcard");
+      strncpy(msg, Str("Error setting access type for soundcard"), 512);
       goto err_return_msg;
     }
     /* sample format, */
@@ -371,18 +371,19 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       else      dev->rec_conv = (void (*)(int, void*, MYFLT*)) fp;
     }
     if (alsaFmt == SND_PCM_FORMAT_UNKNOWN) {
-      sprintf(msg, "Unknown sample format.\n *** Only 16-bit and 32-bit "
-              "integers, and 32-bit floats are supported.");
+      strncpy(msg, Str("Unknown sample format.\n *** Only 16-bit and 32-bit "
+                       "integers, and 32-bit floats are supported."), 512);
       goto err_return_msg;
     }
     if (snd_pcm_hw_params_set_format(dev->handle, hw_params, alsaFmt) < 0) {
-      sprintf(msg, "Unable to set requested sample format on soundcard");
+      strncpy(msg,
+              Str("Unable to set requested sample format on soundcard"),512);
       goto err_return_msg;
     }
     /* number of channels, */
     if (snd_pcm_hw_params_set_channels(dev->handle, hw_params,
                                        (unsigned int) dev->nchns) < 0) {
-      sprintf(msg, "Unable to set number of channels on soundcard");
+      strncpy(msg, Str("Unable to set number of channels on soundcard"), 512);
       goto err_return_msg;
     }
     /* sample rate, (patched for sound cards that object to fixed rate) */
@@ -390,7 +391,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       unsigned int target = dev->srate;
       if (snd_pcm_hw_params_set_rate_near(dev->handle, hw_params,
                                           (unsigned int *) &dev->srate, 0) < 0) {
-        sprintf(msg, "Unable to set sample rate on soundcard");
+        strncpy(msg, Str("Unable to set sample rate on soundcard"), 512);
         goto err_return_msg;
       }
       if (dev->srate!=target)
@@ -437,7 +438,8 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     }
     /* set up device according to the above parameters */
     if (snd_pcm_hw_params(dev->handle, hw_params) < 0) {
-      sprintf(msg, "Error setting hardware parameters for real-time audio");
+      strncpy(msg,
+              Str("Error setting hardware parameters for real-time audio"), 512);
       goto err_return_msg;
     }
     /* print settings */
@@ -454,14 +456,15 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
                                            dev->period_smps) < 0
         /* || snd_pcm_sw_params_set_xfer_align(dev->handle, sw_params, 1) < 0 */
         || snd_pcm_sw_params(dev->handle, sw_params) < 0) {
-      sprintf(msg, Str("Error setting software parameters for real-time audio"));
+      strncpy(msg,
+              Str("Error setting software parameters for real-time audio"),512);
       goto err_return_msg;
     }
     /* allocate memory for sample conversion buffer */
     n = (dev->format == AE_SHORT ? 2 : 4) * dev->nchns * alloc_smps;
     dev->buf = (void*) malloc((size_t) n);
     if (dev->buf == NULL) {
-      sprintf(msg, Str("Memory allocation failure"));
+      strncpy(msg, Str("Memory allocation failure"),512);
       goto err_return_msg;
     }
     memset(dev->buf, 0, (size_t) n);
@@ -469,7 +472,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     return 0;
 
  err_return_msg:
-    p->MessageS(p, CSOUNDMSG_ERROR, " *** %s\n", Str(msg));
+    p->MessageS(p, CSOUNDMSG_ERROR, " *** %s\n", msg);
     snd_pcm_close(dev->handle);
     return -1;
 }

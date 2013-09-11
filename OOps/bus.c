@@ -1298,7 +1298,7 @@ int invalset_string_S(CSOUND *csound, INVAL *p)
 
     const char  *s = ((STRINGDAT *)p->valID)->data;
     csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
-    sprintf((char*) p->channelName.auxp, "%s", s);
+    strcpy((char*) p->channelName.auxp, s);
 
     p->channelType = &CS_VAR_TYPE_S;
     type = CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL;
@@ -1329,7 +1329,7 @@ int invalset_S(CSOUND *csound, INVAL *p)
 
     const char  *s = ((STRINGDAT *)p->valID)->data;
     csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
-    sprintf((char*) p->channelName.auxp, "%s", s);
+    strcpy((char*) p->channelName.auxp, s);
 
     p->channelType = &CS_VAR_TYPE_K;
     type = CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL;

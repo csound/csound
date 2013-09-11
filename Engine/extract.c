@@ -70,7 +70,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
     flag = 'i';                                 /* default -i flag supplied */
     STA(onsect) = 1;     STA(onbeat) = FL(0.0);   /* other default vals   */
     STA(offsect) = 999;  STA(offbeat) = FL(0.0);
-    while (fscanf(xfp, "%s", s) != EOF) {
+    while (fscanf(xfp, s) != EOF) {
       char *c = s;
       int i;
       switch (*c) {

@@ -174,27 +174,27 @@ void list_opcodes(CSOUND *csound, int level)
             xlen = len - 19;
             len = 19;
           }
-          csound->Message(csound, "%s", sp + len);
+          csound->Message(csound, sp + len);
         }
-        csound->Message(csound, "%s", lst[j].opname);
+        csound->Message(csound, lst[j].opname);
         len = (int) strlen(lst[j].opname) + xlen;
       }
       else {
         char *ans = lst[j].outypes, *arg = lst[j].intypes;
-        csound->Message(csound, "%s", lst[j].opname);
+        csound->Message(csound, lst[j].opname);
         len = (int) strlen(lst[j].opname);
         if (len > 11) {
           xlen = len - 11;
           len = 11;
         }
-        csound->Message(csound, "%s", sp + (len + 8));
+        csound->Message(csound, sp + (len + 8));
         if (ans == NULL || *ans == '\0') ans = "(null)";
         if (arg == NULL || *arg == '\0') arg = "(null)";
-        csound->Message(csound, "%s", ans);
+        csound->Message(csound, ans);
         len = (int) strlen(ans) + xlen;
         len = (len < 11 ? len : 11);
         xlen = 0;
-        csound->Message(csound, "%s", sp + (len + 8));
+        csound->Message(csound, sp + (len + 8));
         csound->Message(csound, "%s\n", arg);
       }
     }
