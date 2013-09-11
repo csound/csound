@@ -2365,7 +2365,7 @@ int pvs2tab_init(CSOUND *csound, PVS2TAB_T *p)
       return csound->InitError(csound, Str("pvs2tab: signal format "
                                            "must be amp-phase or amp-freq."));
     if (LIKELY(p->ans->data)) return OK;
-    return csound->InitError(csound, Str("t-variable not initialised"));
+    return csound->InitError(csound, Str("array-variable not initialised"));
 }
 
 int  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
@@ -2405,7 +2405,7 @@ int tab2pvs_init(CSOUND *csound, TAB2PVS_T *p)
         memset(p->fout->frame.auxp, 0, sizeof(float)*(N+2));
       return OK;
     }
-    else return csound->InitError(csound, Str("t-variable not initialised"));
+    else return csound->InitError(csound, Str("array-variable not initialised"));
 }
 
 int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)

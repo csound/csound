@@ -354,7 +354,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
     value = strchr(name, '=');
     append_mode = 0;
     if (UNLIKELY(value == NULL || value == name)) {
-      sprintf(msg, " *** invalid format for --env\n");
+      strcpy(msg, " *** invalid format for --env\n");
       retval = CSOUND_ERROR;
       goto err_return;
     }
@@ -364,7 +364,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
       *(value - 2) = '\0';
     }
     if (UNLIKELY(!is_valid_envvar_name(name))) {
-      sprintf(msg, " *** invalid environment variable name\n");
+      strcpy(msg, " *** invalid environment variable name\n");
       retval = CSOUND_ERROR;
       goto err_return;
     }
@@ -374,9 +374,9 @@ int csoundParseEnv(CSOUND *csound, const char *s)
     else
       retval = csoundAppendEnv(csound, name, value);
     if (UNLIKELY(retval == CSOUND_MEMORY))
-      sprintf(msg, " *** memory allocation failure\n");
+      strcpy(msg, " *** memory allocation failure\n");
     else
-      sprintf(msg, " *** error setting environment variable\n");
+      strcpy(msg, " *** error setting environment variable\n");
 
  err_return:
     if (UNLIKELY(retval != CSOUND_SUCCESS))

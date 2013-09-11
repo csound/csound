@@ -2028,7 +2028,7 @@ void csoundErrMsgV(CSOUND *csound,
                    const char *hdr, const char *msg, va_list args)
 {
     if (hdr != NULL)
-      csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
+      csound->MessageS(csound, CSOUNDMSG_ERROR, hdr);
     csound->csoundMessageCallback_(csound, CSOUNDMSG_ERROR, msg, args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
 }

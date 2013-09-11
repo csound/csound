@@ -391,6 +391,16 @@ static inline double csoundUndenormalizeDouble(double x)
 
 #endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 
+// This is wrong.....  needs thought
+/* #ifdef HAVE_SPRINTF_L */
+/* # define CS_SPRINTF sprintf_l */
+/* #elseif HAVE__SPRINT_L */
+/*   /\* this would be the case for the Windows locale aware function *\/ */
+/* # define CS_SPRINTF _sprintf_l */
+/* #else */
+extern int cs_sprintf(char *str, const char *format, ...);
+# define CS_SPRINTF cs_sprintf
+/* #endif */
 
 #endif  /* CSOUND_SYSDEP_H */
 

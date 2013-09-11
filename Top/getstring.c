@@ -225,3 +225,19 @@ PUBLIC double cs_strtod(char* nptr, char** endptr) {
     return strtod(nptr, endptr);
 #endif
 }
+
+//#if !defined(HAVE_SPRINTF_L) && !defined(HAVE__SPRINT_L)
+int cs_sprintf(char *str, const char *format, ...) 
+{
+    // This is not thread-safe but no idea how to fix
+    va_list args;
+    int retVal;
+    char *curlocale = setlocale(LC_NUMERIC, "C");
+    va_start(args, format);
+    retVal = vsprintf(str,format,args);
+    va_end(args);
+    setlocale(LC_NUMERIC, curlocale);
+    return retVal;
+}
+
+//#endif
