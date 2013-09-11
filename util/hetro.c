@@ -157,9 +157,9 @@ static int hetro(CSOUND *csound, int argc, char **argv)
         case 's':
           FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
-          sscanf(s,"%lf",&thishet->sr);
+          CS_SSCANF(s,"%lf",&thishet->sr);
 #else
-          sscanf(s,"%f",&thishet->sr);
+          CS_SSCANF(s,"%f",&thishet->sr);
 #endif
           break;
         case 'c':
@@ -169,25 +169,25 @@ static int hetro(CSOUND *csound, int argc, char **argv)
         case 'b':
           FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
-          sscanf(s,"%lf",&thishet->beg_time);
+          CS_SSCANF(s,"%lf",&thishet->beg_time);
 #else
-          sscanf(s,"%f",&thishet->beg_time);
+          CS_SSCANF(s,"%f",&thishet->beg_time);
 #endif
           break;
         case 'd':
           FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
-          sscanf(s,"%lf",&thishet->input_dur);
+          CS_SSCANF(s,"%lf",&thishet->input_dur);
 #else
-          sscanf(s,"%f",&thishet->input_dur);
+          CS_SSCANF(s,"%f",&thishet->input_dur);
 #endif
           break;
         case 'f':
           FIND(Str("no fundamental estimate"))
 #if defined(USE_DOUBLE)
-          sscanf(s,"%lf",&thishet->fund_est);
+          CS_SSCANF(s,"%lf",&thishet->fund_est);
 #else
-          sscanf(s,"%f",&thishet->fund_est);
+          CS_SSCANF(s,"%f",&thishet->fund_est);
 #endif
           break;
         case 'h':
@@ -204,7 +204,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
           break;
         case 'M':
           FIND(Str("no amplitude maximum"))
-          sscanf(s,"%lf",&thishet->m_ampsum);
+          CS_SSCANF(s,"%lf",&thishet->m_ampsum);
           break;
         case 'm':
           FIND(Str("no amplitude minimum"))
@@ -217,9 +217,9 @@ static int hetro(CSOUND *csound, int argc, char **argv)
         case 'l':
           FIND(Str("no filter cutoff"))
 #if defined(USE_DOUBLE)
-          sscanf(s,"%lf",&thishet->freq_c);
+          CS_SSCANF(s,"%lf",&thishet->freq_c);
 #else
-          sscanf(s,"%f",&thishet->freq_c);
+          CS_SSCANF(s,"%f",&thishet->freq_c);
 #endif
           break;
         case 'X':

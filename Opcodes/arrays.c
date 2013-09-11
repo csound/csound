@@ -1021,23 +1021,25 @@ int tablength(CSOUND *csound, TABQUERY1 *p)
 typedef struct {
     OPDS h;
     ARRAYDAT *tabin;
-    int    len;
+    unsigned int    len;
 } OUTA;
 
 
 static int outa_set(CSOUND *csound, OUTA *p)
 {
-    int len = p->tabin->dimensions==1?p->tabin->sizes[0]:-1;
-    if (len>csound->nchnls) len = csound->nchnls;
+    int len = (p->tabin->dimensions==1?p->tabin->sizes[0]:-1);
+    if (len>(int)csound->nchnls) len = csound->nchnls;
     if (len<=0) return NOTOK;
     p->len = len;
-    if (p->tabin->arrayMemberSize != CS_KSMPS*sizeof(MYFLT)) return NOTOK;
+    if (p->tabin->arrayMemberSize != (int)(CS_KSMPS*sizeof(MYFLT)))
+      return NOTOK;
     return OK;
 }
 
 static int outa(CSOUND *csound, OUTA *p)
 {
-    int n, l, m=0, nsmps = CS_KSMPS;
+    unsigned int n, m=0, nsmps = CS_KSMPS;
+    unsigned int l, pl = p->len;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT       *data = p->tabin->data;

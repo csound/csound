@@ -174,9 +174,9 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
           switch (*s++) {
           case 's': FIND(Str("no sampling rate"));
 #if defined(USE_DOUBLE)
-            sscanf(s, "%lf", &sr);
+            CS_SSCANF(s, "%lf", &sr);
 #else
-            sscanf(s, "%f", &sr);
+            CS_SSCANF(s, "%f", &sr);
 #endif
             break;
           case 'c':  FIND(Str("no channel"));
@@ -184,16 +184,16 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
             break;
           case 'b':  FIND(Str("no begin time"));
 #if defined(USE_DOUBLE)
-            sscanf(s, "%lf", &beg_time);
+            CS_SSCANF(s, "%lf", &beg_time);
 #else
-            sscanf(s, "%f", &beg_time);
+            CS_SSCANF(s, "%f", &beg_time);
 #endif
             break;
           case 'd':  FIND(Str("no duration time"));
 #if defined(USE_DOUBLE)
-            sscanf(s, "%lf", &input_dur);
+            CS_SSCANF(s, "%lf", &input_dur);
 #else
-            sscanf(s, "%f", &input_dur);
+            CS_SSCANF(s, "%f", &input_dur);
 #endif
             break;
           case 'H':
@@ -204,7 +204,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
             break;
           case 'B':
             FIND(Str("no beta given"));
-            sscanf(s, "%lf", &beta);
+            CS_SSCANF(s, "%lf", &beta);
             break;
           case 'n':  FIND(Str("no framesize"));
             sscanf(s, "%ld", &frameSize);
