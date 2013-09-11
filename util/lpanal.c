@@ -405,23 +405,23 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
         switch (*s++) {
         case 's':       FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
-                        sscanf(s,"%lf",&sr); break;
+                        CS_SSCANF(s,"%lf",&sr); break;
 #else
-                        sscanf(s,"%f",&sr); break;
+                        CS_SSCANF(s,"%f",&sr); break;
 #endif
         case 'c':       FIND(Str("no channel"))
                         sscanf(s,"%d",&channel); break;
         case 'b':       FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
-                        sscanf(s,"%lf",&beg_time); break;
+                        CS_SSCANF(s,"%lf",&beg_time); break;
 #else
-                        sscanf(s,"%f",&beg_time); break;
+                        CS_SSCANF(s,"%f",&beg_time); break;
 #endif
         case 'd':       FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
-                        sscanf(s,"%lf",&input_dur); break;
+                        CS_SSCANF(s,"%lf",&input_dur); break;
 #else
-                        sscanf(s,"%f",&input_dur); break;
+                        CS_SSCANF(s,"%f",&input_dur); break;
 #endif
         case 'p':       FIND(Str("no poles"))
                         sscanf(s,"%d",&lpc.poleCount); break;
@@ -433,18 +433,18 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
                         break;
         case 'P':       FIND(Str("no low frequency"))
 #if defined(USE_DOUBLE)
-                        sscanf(s,"%lf",&pchlow);
+                        CS_SSCANF(s,"%lf",&pchlow);
 #else
-                        sscanf(s,"%f",&pchlow);
+                        CS_SSCANF(s,"%f",&pchlow);
 #endif
                         if (pchlow == 0.0)
                           lpc.doPitch = 0; /* -P0 inhibits ptrack */
                         break;
         case 'Q':       FIND(Str("no high frequency"))
 #if defined(USE_DOUBLE)
-                        sscanf(s,"%lf",&pchhigh); break;
+                        CS_SSCANF(s,"%lf",&pchhigh); break;
 #else
-                        sscanf(s,"%f",&pchhigh); break;
+                        CS_SSCANF(s,"%f",&pchhigh); break;
 #endif
         case 'v':       FIND(Str("no verbose level"))
                         sscanf(s,"%d",&lpc.verbose);

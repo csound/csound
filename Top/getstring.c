@@ -26,6 +26,8 @@
 #include "csoundCore.h"
 #ifdef HAVE_STRTOD_L
 static locale_t csound_c_locale = NULL;
+#else
+static char *csound_c_locale = NULL;
 #endif
 
 #ifdef HAVE_DIRENT_H
@@ -47,7 +49,8 @@ int closedir(DIR*);
 void init_getstring(void *cs)
 {
 #ifndef HAVE_STRTOD_L
-    setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
+    setlocale(LC_NUMERIC, "C");                   /* Ensure C syntax */
+    csound_c_locale = setlocale(LC_NUMERIC, "C"); /* and remwmber */
 #else
     if (csound_c_locale == NULL) {
         csound_c_locale = newlocale (0, "C", NULL);
@@ -235,6 +238,19 @@ int cs_sprintf(char *str, const char *format, ...)
     char *curlocale = setlocale(LC_NUMERIC, "C");
     va_start(args, format);
     retVal = vsprintf(str,format,args);
+    va_end(args);
+    setlocale(LC_NUMERIC, curlocale);
+    return retVal;
+}
+
+int cs_sscanf(char *str, const char *format, ...) 
+{
+    // This is not thread-safe but no idea how to fix
+    va_list args;
+    int retVal;
+    char *curlocale = setlocale(LC_NUMERIC, "C");
+    va_start(args, format);
+    retVal = vsscanf(str,format,args);
     va_end(args);
     setlocale(LC_NUMERIC, curlocale);
     return retVal;
