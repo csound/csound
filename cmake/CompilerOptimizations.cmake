@@ -1,6 +1,3 @@
-include(CheckCCompilerFlag)
-include(CheckCXXCompilerFlag)
-
 
 check_c_compiler_flag(-ftree-vectorize HAS_TREE_VECTORIZE)
 check_cxx_compiler_flag(-ftree-vectorize HAS_CXX_TREE_VECTORIZE)
