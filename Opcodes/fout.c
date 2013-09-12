@@ -896,6 +896,66 @@ static int infile_set_S(CSOUND *csound, INFILE *p){
   return infile_set_(csound,p,1);
 }
 
+static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
+{
+    if (p->data==NULL || p->dimensions == 0 ||
+        (p->dimensions==1 && p->sizes[0] < size)) {
+      uint32_t ss = sizeof(MYFLT)*size;
+      if (p->data==NULL) p->data = (MYFLT*)mmalloc(csound, ss);
+      else p->data = (MYFLT*) mrealloc(csound, p->data, ss);
+      p->dimensions = 1;
+      p->arrayMemberSize = sizeof(MYFLT);
+      p->sizes = (int*)mmalloc(csound, sizeof(int));
+      p->sizes[0] = size;
+    }
+}
+
+static int infile_set_A(CSOUND *csound, INFILEA *p)
+{
+    SF_INFO sfinfo;
+    int     n, buf_reqd;
+    p->currpos = MYFLT2LRND(*p->iskpfrms);
+    p->flag = 1;
+    memset(&sfinfo, 0, sizeof(SF_INFO));
+    sfinfo.samplerate = (int) MYFLT2LRND(CS_ESR);
+    if ((int) MYFLT2LRND(*p->iflag) == 0)
+      sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
+    else
+      sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
+    sfinfo.channels = p->INOCOUNT - 3;
+    if (CS_KSMPS >= 512)
+      p->frames = CS_KSMPS;
+    else
+      p->frames = (int)(512 / CS_KSMPS) * CS_KSMPS;
+    p->chn = sfinfo.channels;
+    if (CS_KSMPS >= 512)
+      buf_reqd = CS_KSMPS * sfinfo.channels;
+    else
+      buf_reqd = (1 + (int)(512 / CS_KSMPS)) * CS_KSMPS * sfinfo.channels;
+    if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
+      csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
+    }
+    p->f.bufsize =  p->buf.size;
+    n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
+                       p->fname, 1, &sfinfo, 0);
+    if (UNLIKELY(n < 0))
+      return NOTOK;
+
+    if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
+      p->scaleFac = csound->e0dbfs;
+    else
+      p->scaleFac = FL(1.0);
+
+    p->guard_pos = p->frames * p->chn;
+    p->buf_pos = p->guard_pos;
+
+    if(p->f.async == 1)
+    csound->FSeekAsync(csound,p->f.fd, p->currpos*p->f.nchnls, SEEK_SET);
+
+    tabensure(csound, p->tabout, p->chn);
+    return OK;
+}
+
 static int infile_act(CSOUND *csound, INFILE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -911,7 +971,7 @@ static int infile_act(CSOUND *csound, INFILE *p)
     if (UNLIKELY(early)) {
       nsmps -= early;
       for (i = 0; i < nargs; i++)
-            memset(&p->argums[i][nsmps], '\0', offset*sizeof(MYFLT));
+            memset(&p->argums[i][nsmps], '\0', early*sizeof(MYFLT));
     }
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
@@ -946,6 +1006,61 @@ static int infile_act(CSOUND *csound, INFILE *p)
     for ( ; j < ksmps; j++)
       for (i = 0; i < nargs; i++)
         p->argums[i][j] = FL(0.0);
+
+    return OK;
+}
+
+static int infile_arr(CSOUND *csound, INFILEA *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i, k, j = offset;
+    uint32_t nsmps = CS_KSMPS, ksmps, chn = p->chn;
+    MYFLT *buf = (MYFLT *) p->buf.auxp;
+    MYFLT *data = p->tabout->data;
+
+    ksmps = nsmps;
+    if (UNLIKELY(offset))
+      for (i = 0; i < chn; i++)
+        memset(&data[i*chn], '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      for (i = 0; i < chn; i++)
+        memset(&data[i*chn+nsmps], '\0', early*sizeof(MYFLT));
+    }
+    if (p->flag) {
+      if (p->buf_pos >= p->guard_pos) {
+        if(UNLIKELY(p->f.async == 0)){
+            sf_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
+            p->remain = (uint32_t) sf_read_MYFLT(p->f.sf, (MYFLT*) buf,
+                                                 p->frames*p->f.nchnls);
+            p->remain /= p->f.nchnls;
+          } else {
+            p->remain = csoundReadAsync(csound,p->f.fd,(MYFLT *)buf,
+                                        p->frames*p->f.nchnls);
+            p->remain /= p->f.nchnls;
+          }
+        p->currpos += p->frames;
+        p->buf_pos = 0;
+      }
+      if (p->remain < nsmps)
+        nsmps = p->remain;
+      for (k = (uint32_t)p->buf_pos; j < nsmps; j++)
+        for (i = 0; i < chn; i++)
+          data[i*chn+j] = buf[k++] * p->scaleFac;
+      p->buf_pos = k;
+      p->remain -= ksmps;
+      if (p->remain <= 0 && p->buf_pos < p->guard_pos) {
+        p->flag = 0;
+        for (; j < ksmps; j++)
+          for (i = 0; i < chn; i++)
+            data[i*chn+j] = FL(0.0);
+      }
+      return OK;
+    }
+    for ( ; j < ksmps; j++)
+      for (i = 0; i < chn; i++)
+        data[i*chn+j] = FL(0.0);
 
     return OK;
 }
@@ -1457,15 +1572,17 @@ static OENTRY localops[] = {
         (SUBR) fiopen,          (SUBR) NULL,        (SUBR) NULL, NULL},
     { "ficlose",    S(FICLOSE),     0, 1,  "",     "S",
         (SUBR) ficlose_opcode_S,  (SUBR) NULL,        (SUBR) NULL, NULL},
-    { "ficlose.S",    S(FICLOSE),     0, 1,  "",     "i",
+    { "ficlose.S",  S(FICLOSE),     0, 1,  "",     "i",
         (SUBR) ficlose_opcode,  (SUBR) NULL,        (SUBR) NULL, NULL },
-    { "fin",        S(INFILE),      0, 5,  "",     "Siiy",
-        (SUBR) infile_set_S,      (SUBR) NULL,        (SUBR) infile_act, NULL},
-    { "fin.i",        S(INFILE),      0, 5,  "",     "iiiy",
+    { "fin.a",      S(INFILE),      0, 5,  "",      "Siiy",
+        (SUBR) infile_set_S,    (SUBR) NULL,        (SUBR) infile_act, NULL},
+    { "fin.A",      S(INFILEA),      0, 5,  "",     "Siia[]",
+        (SUBR) infile_set_A,    (SUBR) NULL,        (SUBR) infile_arr, NULL},
+    { "fin.i",      S(INFILE),       0, 5,  "",     "iiiy",
         (SUBR) infile_set,      (SUBR) NULL,        (SUBR) infile_act, NULL},
-    { "fink",       S(KINFILE),     0, 3,  "",     "Siiz",
+    { "fink",       S(KINFILE),      0, 3,  "",     "Siiz",
         (SUBR) kinfile_set_S,     (SUBR) kinfile,     (SUBR) NULL, NULL},
-    { "fink.i",       S(KINFILE),     0, 3,  "",     "iiiz",
+    { "fink.i",       S(KINFILE),    0, 3,  "",     "iiiz",
         (SUBR) kinfile_set,     (SUBR) kinfile,     (SUBR) NULL, NULL},
     { "fini",       S(I_INFILE),    0, 1,  "",     "Siim",
       (SUBR) i_infile_S,        (SUBR) NULL,        (SUBR) NULL, NULL },
