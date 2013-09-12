@@ -65,7 +65,7 @@ if(BUILD_SERIAL_OPCODES)
 endif()
 
 if(BUILD_PLATEREV_OPCODES)
-   make_plugin(platerev platerev.c)
+   make_plugin(platerev platerev.c m)
 endif()
 
 set(scansyn_SRCS
