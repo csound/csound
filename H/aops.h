@@ -100,6 +100,11 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
+    ARRAYDAT   *tabout;
+} INA;
+
+typedef struct {
+    OPDS    h;
     MYFLT   *ar1, *ar2;
 } INS;
 
@@ -139,6 +144,11 @@ typedef struct {
     OPDS    h;
     MYFLT   *asig[VARGMAX];
 } OUTX;
+
+typedef struct {
+    OPDS    h;
+    ARRAYDAT   *tabin;
+} OUTARRAY;
 
 typedef struct {
     OPDS    h;
