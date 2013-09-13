@@ -637,6 +637,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         synterr(p, Str("%s invalid ksmps value"), err_msg);
       else if (UNLIKELY(FLOAT_COMPARE(sr,(double)kr *ksmps)))
         synterr(p, Str("%s inconsistent sr, kr, ksmps"), err_msg);
+      else if(ksmps > sr)
+        synterr(p, Str("%s inconsistent sr, kr, ksmps \n"), err_msg);
     }
 
     csound->ksmps = ksmps;
