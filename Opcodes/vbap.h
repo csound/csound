@@ -54,10 +54,6 @@ typedef struct {
 
 /* VBAP structure of n loudspeaker panning */
 typedef struct {
-  OPDS          h;                  /* required header */
-  MYFLT         *out_array[CHANNELS];
-  MYFLT         *audio, *azi, *ele, *spread, *layout;
-
   int number;
   MYFLT beg_gains[CHANNELS];
   MYFLT curr_gains[CHANNELS];
@@ -71,13 +67,25 @@ typedef struct {
   CART_VEC cart_dir;
   CART_VEC spread_base;
   ANG_VEC ang_dir;
+} VBAP_DATA;
+
+typedef struct {
+  OPDS          h;                  /* required header */
+  MYFLT         *out_array[CHANNELS];
+  MYFLT         *audio, *azi, *ele, *spread, *layout;
+
+  VBAP_DATA     q;
 } VBAP;
 
 typedef struct {
-  OPDS      h;                  /* required header */
-  MYFLT         *out_array[CHANNELS];
-  MYFLT         *azi, *ele, *spread, *layout;
+  OPDS          h;                  /* required header */
+  ARRAYDAT      *tabout;
+  MYFLT         *audio, *azi, *ele, *spread, *layout;
 
+  VBAP_DATA     q;
+} VBAPA;
+
+typedef struct {
   int number;
   MYFLT gains[CHANNELS];
   int dim;
@@ -88,7 +96,23 @@ typedef struct {
   CART_VEC cart_dir;
   CART_VEC spread_base;
   ANG_VEC ang_dir;
+} VBAP1_DATA;
+
+typedef struct {
+  OPDS      h;                  /* required header */
+  MYFLT         *out_array[CHANNELS];
+  MYFLT         *azi, *ele, *spread, *layout;
+
+  VBAP1_DATA    q;
 } VBAP1;
+
+typedef struct {
+  OPDS      h;                  /* required header */
+  ARRAYDAT      *tabout;
+  MYFLT         *azi, *ele, *spread, *layout;
+
+  VBAP1_DATA    q;
+} VBAPA1;
 
 /* VBAP structure of loudspeaker moving panning */
 typedef struct {
@@ -181,7 +205,7 @@ extern void cart_to_angle(CART_VEC cvec, ANG_VEC *avec);
 extern void angle_to_cart(ANG_VEC avec, CART_VEC *cvec);
 extern void normalize_wts(OUT_WTS *wts);
 
-extern int vbap_control(CSOUND*, VBAP *p);
+extern int vbap_control(CSOUND*, VBAP_DATA *p, MYFLT*, MYFLT*, MYFLT*);
 
 void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
                    MYFLT *gains, int ls_amount,
@@ -241,7 +265,9 @@ typedef struct {
 } VBAP_ZAK_MOVING;
 
 int     vbap_init(CSOUND *, VBAP *);
+int     vbap_init_a(CSOUND *, VBAPA *);
 int     vbap(CSOUND *, VBAP *);
+int     vbap_a(CSOUND *, VBAPA *);
 int     vbap_zak_init(CSOUND *, VBAP_ZAK *);
 int     vbap_zak(CSOUND *, VBAP_ZAK *);
 int     vbap_ls_init(CSOUND *, VBAP_LS_INIT *);
@@ -251,5 +277,7 @@ int     vbap_zak_moving_init(CSOUND *, VBAP_ZAK_MOVING *);
 int     vbap_zak_moving(CSOUND *, VBAP_ZAK_MOVING *);
 int     vbap1_init(CSOUND *, VBAP1 *);
 int     vbap1(CSOUND *, VBAP1 *);
+int     vbap1_init_a(CSOUND *, VBAPA1 *);
+int     vbap1a(CSOUND *, VBAPA1 *);
 int     vbap1_moving_init(CSOUND *, VBAP1_MOVING *);
 int     vbap1_moving(CSOUND *, VBAP1_MOVING *);
