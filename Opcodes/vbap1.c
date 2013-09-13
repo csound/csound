@@ -26,7 +26,7 @@
 
 functions specific gains for loudspeaker VBAP
 
-Ville Pulkki heavily modified my Joh ffitch 2012
+Ville Pulkki heavily modified by John ffitch 2012
 */
 
 
@@ -37,22 +37,22 @@ Ville Pulkki heavily modified my Joh ffitch 2012
 #include <stdlib.h>
 
 static int vbap1_moving_control(CSOUND *, VBAP1_MOVING *);
-static int vbap1_control(CSOUND *, VBAP1 *);
+static int vbap1_control(CSOUND *, VBAP1_DATA *, MYFLT*, MYFLT*, MYFLT*);
 
 int vbap1(CSOUND *csound, VBAP1 *p) /* during note performance: */
 {
     int j;
-    int cnt = p->number;
-    vbap1_control(csound,p);
+    int cnt = p->q.number;
+    vbap1_control(csound,&p->q, p->azi, p->ele, p->spread);
 
     /* write gains */
     for (j=0; j<cnt; j++) {
-      *p->out_array[j] = p->gains[j];
+      *p->out_array[j] = p->q.gains[j];
     }
     return OK;
 }
 
-static int vbap1_control(CSOUND *csound, VBAP1 *p)
+static int vbap1_control(CSOUND *csound, VBAP1_DATA *p, MYFLT* azi, MYFLT* ele, MYFLT* spread)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -60,32 +60,33 @@ static int vbap1_control(CSOUND *csound, VBAP1 *p)
     int32 i,j, spreaddirnum;
     int cnt = p->number;
     MYFLT tmp_gains[CHANNELS],sum=FL(0.0);
-    if (UNLIKELY(p->dim == 2 && fabs(*p->ele) > 0.0)) {
-      csound->Warning(csound,Str("Warning: truncating elevation to 2-D plane\n"));
-      *p->ele = FL(0.0);
+    if (UNLIKELY(p->dim == 2 && fabs(*ele) > 0.0)) {
+      csound->Warning(csound,
+                      Str("Warning: truncating elevation to 2-D plane\n"));
+      *ele = FL(0.0);
     }
 
-    if (*p->spread <FL(0.0))
-      *p->spread = FL(0.0);
-    else if (*p->spread >FL(100.0))
-      *p->spread = FL(100.0);
+    if (*spread <FL(0.0))
+      *spread = FL(0.0);
+    else if (*spread >FL(100.0))
+      *spread = FL(100.0);
     /* Current panning angles */
-    p->ang_dir.azi = (MYFLT) *p->azi;
-    p->ang_dir.ele = (MYFLT) *p->ele;
+    p->ang_dir.azi = *azi;
+    p->ang_dir.ele = *ele;
     p->ang_dir.length = FL(1.0);
     angle_to_cart(p->ang_dir, &(p->cart_dir));
     calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
                   p->gains, cnt, p->cart_dir);
 
     /* Calculated gain factors of a spreaded virtual source*/
-    if (*p->spread > FL(0.0)) {
+    if (*spread > FL(0.0)) {
       if (p->dim == 3) {
         spreaddirnum = 16;
         /* four orthogonal dirs*/
         new_spread_dir(&spreaddir[0], p->cart_dir,
-                       p->spread_base, *p->azi, *p->spread);
+                       p->spread_base, *azi, *spread);
         new_spread_base(spreaddir[0], p->cart_dir,
-                        *p->spread, &p->spread_base);
+                        *spread, &p->spread_base);
         cross_prod(p->spread_base, p->cart_dir, &spreadbase[1]);
         cross_prod(spreadbase[1], p->cart_dir, &spreadbase[2]);
         cross_prod(spreadbase[2], p->cart_dir, &spreadbase[3]);
@@ -109,7 +110,7 @@ static int vbap1_control(CSOUND *csound, VBAP1 *p)
 
         for (i=1;i<spreaddirnum;i++) {
           new_spread_dir(&spreaddir[i], p->cart_dir,
-                         spreadbase[i],*p->azi,*p->spread);
+                         spreadbase[i],*azi,*spread);
           calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
                         tmp_gains, cnt, spreaddir[i]);
           for (j=0;j<cnt;j++) {
@@ -120,17 +121,17 @@ static int vbap1_control(CSOUND *csound, VBAP1 *p)
       else if (p->dim == 2) {
         spreaddirnum = 6;
         atmp.ele = FL(0.0);
-        atmp.azi = *p->azi - *p->spread;
+        atmp.azi = *azi - *spread;
         angle_to_cart(atmp, &spreaddir[0]);
-        atmp.azi = *p->azi - *p->spread/2;
+        atmp.azi = *azi - *spread/2;
         angle_to_cart(atmp, &spreaddir[1]);
-        atmp.azi = *p->azi - *p->spread/4;
+        atmp.azi = *azi - *spread/4;
         angle_to_cart(atmp, &spreaddir[2]);
-        atmp.azi = *p->azi + *p->spread/4;
+        atmp.azi = *azi + *spread/4;
         angle_to_cart(atmp, &spreaddir[3]);
-        atmp.azi = *p->azi + *p->spread/2;
+        atmp.azi = *azi + *spread/2;
         angle_to_cart(atmp, &spreaddir[4]);
-        atmp.azi = *p->azi + *p->spread;
+        atmp.azi = *azi + *spread;
         angle_to_cart(atmp, &spreaddir[5]);
 
         for (i=0;i<spreaddirnum;i++) {
@@ -142,10 +143,10 @@ static int vbap1_control(CSOUND *csound, VBAP1 *p)
         }
       }
     }
-    if (*p->spread > FL(70.0))
+    if (*spread > FL(70.0))
       for (i=0;i<cnt ;i++) {
-        p->gains[i] +=(*p->spread - FL(70.0))/FL(30.0) *
-          (*p->spread - FL(70.0))/FL(30.0)*FL(20.0);
+        p->gains[i] +=(*spread - FL(70.0))/FL(30.0) *
+          (*spread - FL(70.0))/FL(30.0)*FL(20.0);
       }
 
     /*normalization*/
@@ -172,46 +173,114 @@ int vbap1_init(CSOUND *csound, VBAP1 *p)
       return csound->InitError(csound,
                                Str("could not find layout table no.%d"),
                                (int)*p->layout );
-    p->number = p->OUTOCOUNT;
-    p->dim       = (int)ls_table[0];   /* reading in loudspeaker info */
-    p->ls_am     = (int)ls_table[1];
-    p->ls_set_am = (int)ls_table[2];
+    p->q.number = p->OUTOCOUNT;
+    p->q.dim       = (int)ls_table[0];   /* reading in loudspeaker info */
+    p->q.ls_am     = (int)ls_table[1];
+    p->q.ls_set_am = (int)ls_table[2];
     ptr = &(ls_table[3]);
-    if (!p->ls_set_am)
+    if (!p->q.ls_set_am)
       return csound->InitError(csound, Str("vbap system NOT configured. \nMissing"
                                            " vbaplsinit opcode in orchestra?"));
-    csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
-    if (UNLIKELY(p->aux.auxp == NULL)) {
+    csound->AuxAlloc(csound, p->q.ls_set_am * sizeof (LS_SET), &p->q.aux);
+    if (UNLIKELY(p->q.aux.auxp == NULL)) {
       return csound->InitError(csound, Str("could not allocate memory"));
     }
-    p->ls_sets = (LS_SET*) p->aux.auxp;
-    ls_set_ptr = p->ls_sets;
-    for (i=0; i < p->ls_set_am; i++) {
+    p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
+    ls_set_ptr = p->q.ls_sets;
+    for (i=0; i < p->q.ls_set_am; i++) {
       ls_set_ptr[i].ls_nos[2] = 0;     /* initial setting */
-      for (j=0 ; j < p->dim ; j++) {
+      for (j=0 ; j < p->q.dim ; j++) {
         ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
       }
       for (j=0 ; j < 9; j++)
         ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
-      for (j=0 ; j < (p->dim) * (p->dim); j++) {
+      for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
         ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
       }
     }
 
     /* other initialization */
-    if (UNLIKELY(p->dim == 2 && fabs(*p->ele) > 0.0)) {
+    if (UNLIKELY(p->q.dim == 2 && fabs(*p->ele) > 0.0)) {
       csound->Warning(csound,
                       Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
-    p->ang_dir.azi    = (MYFLT)*p->azi;
-    p->ang_dir.ele    = (MYFLT)*p->ele;
-    p->ang_dir.length = FL(1.0);
-    angle_to_cart(p->ang_dir, &(p->cart_dir));
-    p->spread_base.x  = p->cart_dir.y;
-    p->spread_base.y  = p->cart_dir.z;
-    p->spread_base.z  = -p->cart_dir.x;
-    vbap1_control(csound,p);
+    p->q.ang_dir.azi    = (MYFLT)*p->azi;
+    p->q.ang_dir.ele    = (MYFLT)*p->ele;
+    p->q.ang_dir.length = FL(1.0);
+    angle_to_cart(p->q.ang_dir, &(p->q.cart_dir));
+    p->q.spread_base.x  = p->q.cart_dir.y;
+    p->q.spread_base.y  = p->q.cart_dir.z;
+    p->q.spread_base.z  = -p->q.cart_dir.x;
+    vbap1_control(csound,&p->q, p->azi, p->ele, p->spread);
+    return OK;
+}
+
+int vbap1a(CSOUND *csound, VBAPA1 *p) /* during note performance: */
+{
+    int j;
+    int cnt = p->q.number;
+    vbap1_control(csound,&p->q, p->azi, p->ele, p->spread);
+
+    /* write gains */
+    for (j=0; j<cnt; j++) {
+      p->tabout->data[j] = p->q.gains[j];
+    }
+    return OK;
+}
+
+int vbap1_init_a(CSOUND *csound, VBAPA1 *p)
+{                               /* Initializations before run time*/
+    int     i, j;
+    MYFLT   *ls_table, *ptr;
+    LS_SET  *ls_set_ptr;
+    char name[24];
+    sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
+    ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
+    if (ls_table==NULL)
+      return csound->InitError(csound,
+                               Str("could not find layout table no.%d"),
+                               (int)*p->layout );
+    p->q.number = p->OUTOCOUNT;
+    p->q.dim       = (int)ls_table[0];   /* reading in loudspeaker info */
+    p->q.ls_am     = (int)ls_table[1];
+    p->q.ls_set_am = (int)ls_table[2];
+    ptr = &(ls_table[3]);
+    if (!p->q.ls_set_am)
+      return csound->InitError(csound, Str("vbap system NOT configured. \nMissing"
+                                           " vbaplsinit opcode in orchestra?"));
+    csound->AuxAlloc(csound, p->q.ls_set_am * sizeof (LS_SET), &p->q.aux);
+    if (UNLIKELY(p->q.aux.auxp == NULL)) {
+      return csound->InitError(csound, Str("could not allocate memory"));
+    }
+    p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
+    ls_set_ptr = p->q.ls_sets;
+    for (i=0; i < p->q.ls_set_am; i++) {
+      ls_set_ptr[i].ls_nos[2] = 0;     /* initial setting */
+      for (j=0 ; j < p->q.dim ; j++) {
+        ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
+      }
+      for (j=0 ; j < 9; j++)
+        ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
+      for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
+        ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
+      }
+    }
+
+    /* other initialization */
+    if (UNLIKELY(p->q.dim == 2 && fabs(*p->ele) > 0.0)) {
+      csound->Warning(csound,
+                      Str("Warning: truncating elevation to 2-D plane\n"));
+      *p->ele = FL(0.0);
+    }
+    p->q.ang_dir.azi    = (MYFLT)*p->azi;
+    p->q.ang_dir.ele    = (MYFLT)*p->ele;
+    p->q.ang_dir.length = FL(1.0);
+    angle_to_cart(p->q.ang_dir, &(p->q.cart_dir));
+    p->q.spread_base.x  = p->q.cart_dir.y;
+    p->q.spread_base.y  = p->q.cart_dir.z;
+    p->q.spread_base.z  = -p->q.cart_dir.x;
+    vbap1_control(csound,&p->q, p->azi, p->ele, p->spread);
     return OK;
 }
 
