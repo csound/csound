@@ -141,6 +141,15 @@ typedef struct {
   VBAP1_MOVE_DATA q;
 } VBAP1_MOVING;
 
+typedef struct {
+  OPDS           h;                  /* required header */
+  ARRAYDAT      *tabout;
+  MYFLT         *dur, *spread, *field_am,
+                *fld[VARGMAX]; /* field_am positive: point to point
+                                           negative: angle velocities */
+  VBAP1_MOVE_DATA q;
+} VBAPA1_MOVING;
+
 /* VBAP structure of loudspeaker moving panning */
 typedef struct {
   MYFLT beg_gains[CHANNELS];
@@ -169,6 +178,16 @@ typedef struct {
                                            negative: angle velocities */
   VBAP_MOVE_DATA q;
 } VBAP_MOVING;
+
+
+typedef struct {
+  OPDS          h;                  /* required header */
+  ARRAYDAT      *tabout;
+  MYFLT         *audio, *dur, *spread, *field_am,
+                *fld[VARGMAX]; /* field_am positive: point to point
+                                           negative: angle velocities */
+  VBAP_MOVE_DATA q;
+} VBAPA_MOVING;
 
 typedef struct {
   OPDS      h;                  /* required header */
@@ -281,6 +300,8 @@ int     vbap_zak(CSOUND *, VBAP_ZAK *);
 int     vbap_ls_init(CSOUND *, VBAP_LS_INIT *);
 int     vbap_moving_init(CSOUND *, VBAP_MOVING *);
 int     vbap_moving(CSOUND *, VBAP_MOVING *);
+int     vbap_moving_init_a(CSOUND *, VBAPA_MOVING *);
+int     vbap_moving_a(CSOUND *, VBAPA_MOVING *);
 int     vbap_zak_moving_init(CSOUND *, VBAP_ZAK_MOVING *);
 int     vbap_zak_moving(CSOUND *, VBAP_ZAK_MOVING *);
 int     vbap1_init(CSOUND *, VBAP1 *);
@@ -289,3 +310,5 @@ int     vbap1_init_a(CSOUND *, VBAPA1 *);
 int     vbap1a(CSOUND *, VBAPA1 *);
 int     vbap1_moving_init(CSOUND *, VBAP1_MOVING *);
 int     vbap1_moving(CSOUND *, VBAP1_MOVING *);
+int     vbap1_moving_init_a(CSOUND *, VBAPA1_MOVING *);
+int     vbap1_moving_a(CSOUND *, VBAPA1_MOVING *);
