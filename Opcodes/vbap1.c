@@ -302,6 +302,22 @@ int vbap1_moving(CSOUND *csound, VBAP1_MOVING *p)
     return OK;
 }
 
+int vbap1_moving_a(CSOUND *csound, VBAPA1_MOVING *p)
+{                               /* during note performance:   */
+    int j;
+    int cnt = p->q.number;
+
+    vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
+                         p->spread, p->field_am, p->fld);
+
+    /* write audio to resulting audio streams weighted
+       with gain factors*/
+    for (j=0; j<cnt ;j++) {
+      p->tabout->data[j] = p->q.gains[j];
+    }
+    return OK;
+}
+
 static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
                                 INSDS *insdshead, MYFLT ONEDKR,
                                 MYFLT *spread, MYFLT *field_am, MYFLT **fld)
@@ -499,6 +515,78 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
 }
 
 int vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
+{
+    int     i, j;
+    MYFLT   *ls_table, *ptr;
+    LS_SET  *ls_set_ptr;
+
+    ls_table =
+      (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, "vbap_ls_table_0"));
+    /* reading in loudspeaker info */
+    p->q.dim       = (int)ls_table[0];
+    p->q.ls_am     = (int)ls_table[1];
+    p->q.ls_set_am = (int)ls_table[2];
+    ptr = &(ls_table[3]);
+    if (!p->q.ls_set_am)
+      return csound->InitError(csound, Str("vbap system NOT configured. \n"
+                                           "Missing vbaplsinit opcode"
+                                           " in orchestra?"));
+    csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
+    if (UNLIKELY(p->q.aux.auxp == NULL)) {
+      return csound->InitError(csound, Str("could not allocate memory"));
+    }
+    p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
+    ls_set_ptr = p->q.ls_sets;
+    for (i=0 ; i < p->q.ls_set_am ; i++) {
+      ls_set_ptr[i].ls_nos[2] = 0;     /* initial setting */
+      for (j=0 ; j < p->q.dim ; j++) {
+        ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
+      }
+      for (j=0 ; j < 9; j++)
+        ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
+      for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
+        ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
+      }
+    }
+
+    /* other initialization */
+    p->q.ele_vel = FL(1.0);    /* functions specific to movement */
+    if (UNLIKELY(fabs(*p->field_am) < (2+ (p->q.dim - 2)*2))) {
+      return csound->InitError(csound,
+                  Str("Have to have at least %d directions in vbapmove"),
+                  2 + (p->q.dim - 2) * 2);
+    }
+    if (p->q.dim == 2)
+      p->q.point_change_interval =
+        (int)(CS_EKR * *p->dur /(fabs(*p->field_am) - 1.0));
+    else if (LIKELY(p->q.dim == 3))
+      p->q.point_change_interval =
+        (int)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
+    else
+      return csound->InitError(csound, Str("Wrong dimension"));
+    p->q.point_change_counter = 0;
+    p->q.curr_fld = 0;
+    p->q.next_fld = 1;
+    p->q.ang_dir.azi = *p->fld[0];
+    if (p->q.dim == 3) {
+      p->q.ang_dir.ele = *p->fld[1];
+    } else {
+      p->q.ang_dir.ele = FL(0.0);
+    }
+    if (p->q.dim == 3) {
+      p->q.curr_fld = 1;
+      p->q.next_fld = 2;
+    }
+    angle_to_cart(p->q.ang_dir, &(p->q.cart_dir));
+    p->q.spread_base.x  = p->q.cart_dir.y;
+    p->q.spread_base.y  = p->q.cart_dir.z;
+    p->q.spread_base.z  = -p->q.cart_dir.x;
+    vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
+                         p->spread, p->field_am, p->fld);
+    return OK;
+}
+
+int vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
 {
     int     i, j;
     MYFLT   *ls_table, *ptr;
