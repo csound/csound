@@ -37,7 +37,7 @@ Ville Pulkki heavily modified by John ffitch 2012
 #include <stdlib.h>
 
 static int vbap1_moving_control(CSOUND *, VBAP1_MOVE_DATA *, INSDS *, MYFLT,
-                                MYFLT*, MYFLT*, MYFLT**);
+                                MYFLT, MYFLT, MYFLT**);
 static int vbap1_control(CSOUND *, VBAP1_DATA *, MYFLT*, MYFLT*, MYFLT*);
 
 int vbap1(CSOUND *csound, VBAP1 *p) /* during note performance: */
@@ -292,7 +292,7 @@ int vbap1_moving(CSOUND *csound, VBAP1_MOVING *p)
     int cnt = p->q.number;
 
     vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
-                         p->spread, p->field_am, p->fld);
+                         *p->spread, *p->field_am, p->fld);
 
     /* write audio to resulting audio streams weighted
        with gain factors*/
@@ -308,7 +308,7 @@ int vbap1_moving_a(CSOUND *csound, VBAPA1_MOVING *p)
     int cnt = p->q.number;
 
     vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
-                         p->spread, p->field_am, p->fld);
+                         *p->spread, *p->field_am, p->fld);
 
     /* write audio to resulting audio streams weighted
        with gain factors*/
@@ -320,7 +320,7 @@ int vbap1_moving_a(CSOUND *csound, VBAPA1_MOVING *p)
 
 static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
                                 INSDS *insdshead, MYFLT ONEDKR,
-                                MYFLT *spread, MYFLT *field_am, MYFLT **fld)
+                                MYFLT spread, MYFLT field_am, MYFLT **fld)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -331,28 +331,30 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
     MYFLT tmp_gains[CHANNELS],sum=FL(0.0);
     int cnt = p->number;
 
+    printf("cnt=%d dim=%d\n", cnt, p->dim);
+
     if (UNLIKELY(p->dim == 2 && fabs(p->ang_dir.ele) > 0.0)) {
       csound->Warning(csound,
                       Str("Warning: truncating elevation to 2-D plane\n"));
       p->ang_dir.ele = FL(0.0);
     }
-    if (*spread <FL(0.0))
-      *spread = FL(0.0);
-    else if (*spread >FL(100.0))
-      *spread = FL(100.0);
+    if (spread <FL(0.0))
+      spread = FL(0.0);
+    else if (spread >FL(100.0))
+      spread = FL(100.0);
     if (p->point_change_counter++ >= p->point_change_interval) {
       p->point_change_counter = 0;
       p->curr_fld = p->next_fld;
-      if (++p->next_fld >= (int) fabs(*field_am)) {
-        if (*field_am >= FL(0.0)) /* point-to-point */
+      if (++p->next_fld >= (int) fabs(field_am)) {
+        if (field_am >= FL(0.0)) /* point-to-point */
           p->next_fld = 0;
         else
           p->next_fld = 1;
       }
       if (p->dim == 3) { /*jumping over second field */
         p->curr_fld = p->next_fld;
-        if (++p->next_fld >= ((int) fabs(*field_am))) {
-          if (*field_am >= FL(0.0)) /* point-to-point */
+        if (++p->next_fld >= ((int) fabs(field_am))) {
+          if (field_am >= FL(0.0)) /* point-to-point */
             p->next_fld = 0;
           else
             p->next_fld = 1;
@@ -361,13 +363,13 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
       if (UNLIKELY((fld[abs(p->next_fld)]==NULL)))
         return csound->PerfError(csound, insdshead,
                                  Str("Missing fields in vbapmove\n"));
-      if (*field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
+      if (field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (UNLIKELY(fabs(fabs(*fld[p->next_fld] -
                                *fld[p->curr_fld]) - 180.0) < 1.0))
           csound->Warning(csound,
                           Str("Warning: Ambiguous transition 180 degrees.\n"));
     }
-    if (*field_am >= FL(0.0)) { /* point-to-point */
+    if (field_am >= FL(0.0)) { /* point-to-point */
       if (p->dim == 3) { /* 3-D*/
         p->prev_ang_dir.azi =  *fld[p->curr_fld-1];
         p->next_ang_dir.azi =  *fld[p->next_fld];
@@ -393,9 +395,9 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
         scale_angles(&(p->prev_ang_dir));
         scale_angles(&(p->next_ang_dir));
         angle = (p->prev_ang_dir.azi - p->next_ang_dir.azi);
-        while(angle > FL(180.0))
+        while (angle > FL(180.0))
           angle -= FL(360.0);
-        while(angle < -FL(180.0))
+        while (angle < -FL(180.0))
           angle += FL(360.0);
         coeff = ((MYFLT) p->point_change_counter) /
           ((MYFLT) p->point_change_interval);
@@ -433,14 +435,14 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
     angle_to_cart(p->ang_dir, &(p->cart_dir));
     calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
                   p->gains, cnt, p->cart_dir);
-    if (*spread > FL(0.0)) {
+    if (spread > FL(0.0)) {
       if (p->dim == 3) {
         spreaddirnum=16;
         /* four orthogonal dirs*/
         new_spread_dir(&spreaddir[0], p->cart_dir,
-                       p->spread_base, p->ang_dir.azi, *spread);
+                       p->spread_base, p->ang_dir.azi, spread);
 
-        new_spread_base(spreaddir[0], p->cart_dir,*spread, &p->spread_base);
+        new_spread_base(spreaddir[0], p->cart_dir, spread, &p->spread_base);
         cross_prod(p->spread_base, p->cart_dir, &spreadbase[1]);
         cross_prod(spreadbase[1], p->cart_dir, &spreadbase[2]);
         cross_prod(spreadbase[2], p->cart_dir, &spreadbase[3]);
@@ -464,7 +466,7 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
 
         for (i=1;i<spreaddirnum;i++) {
           new_spread_dir(&spreaddir[i], p->cart_dir,
-                         spreadbase[i],p->ang_dir.azi,*spread);
+                         spreadbase[i],p->ang_dir.azi,spread);
           calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
                         tmp_gains, cnt, spreaddir[i]);
           for (j=0;j<cnt;j++) {
@@ -475,17 +477,17 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
       else if (p->dim == 2) {
         spreaddirnum=6;
         atmp.ele = FL(0.0);
-        atmp.azi = p->ang_dir.azi - *spread;
+        atmp.azi = p->ang_dir.azi - spread;
         angle_to_cart(atmp, &spreaddir[0]);
-        atmp.azi = p->ang_dir.azi - *spread/2;
+        atmp.azi = p->ang_dir.azi - spread/2;
         angle_to_cart(atmp, &spreaddir[1]);
-        atmp.azi = p->ang_dir.azi - *spread/4;
+        atmp.azi = p->ang_dir.azi - spread/4;
         angle_to_cart(atmp, &spreaddir[2]);
-        atmp.azi = p->ang_dir.azi + *spread/4;
+        atmp.azi = p->ang_dir.azi + spread/4;
         angle_to_cart(atmp, &spreaddir[3]);
-        atmp.azi = p->ang_dir.azi + *spread/2;
+        atmp.azi = p->ang_dir.azi + spread/2;
         angle_to_cart(atmp, &spreaddir[4]);
-        atmp.azi = p->ang_dir.azi + *spread;
+        atmp.azi = p->ang_dir.azi + spread;
         angle_to_cart(atmp, &spreaddir[5]);
 
         for (i=0;i<spreaddirnum;i++) {
@@ -497,10 +499,10 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
         }
       }
     }
-    if (*spread > FL(70.0))
+    if (spread > FL(70.0))
       for (i=0;i<cnt ;i++) {
-        p->gains[i] +=(*spread - FL(70.0))/FL(30.0) *
-          (*spread - FL(70.0))/FL(30.0)*FL(10.0);
+        p->gains[i] +=(spread - FL(70.0))/FL(30.0) *
+          (spread - FL(70.0))/FL(30.0)*FL(10.0);
       }
     /*normalization*/
     for (i=0;i<cnt;i++) {
@@ -520,6 +522,7 @@ int vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
 
+    p->q.number = p->OUTCOUNT;
     ls_table =
       (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, "vbap_ls_table_0"));
     /* reading in loudspeaker info */
@@ -582,7 +585,7 @@ int vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     p->q.spread_base.y  = p->q.cart_dir.z;
     p->q.spread_base.z  = -p->q.cart_dir.x;
     vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
-                         p->spread, p->field_am, p->fld);
+                         *p->spread, *p->field_am, p->fld);
     return OK;
 }
 
@@ -592,6 +595,9 @@ int vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
 
+    if (p->tabout->data == NULL || p->tabout->dimensions!=1)
+      return csound->InitError(csound, Str("Output array not initialised"));
+    p->q.number = p->tabout->sizes[0];
     ls_table =
       (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, "vbap_ls_table_0"));
     /* reading in loudspeaker info */
@@ -654,6 +660,6 @@ int vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     p->q.spread_base.y  = p->q.cart_dir.z;
     p->q.spread_base.z  = -p->q.cart_dir.x;
     vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
-                         p->spread, p->field_am, p->fld);
+                         *p->spread, *p->field_am, p->fld);
     return OK;
 }
