@@ -1399,7 +1399,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     var = typeTable->globalPool->head;
     while(var != NULL) {
-      var->memBlock = (void *) mmalloc(csound, var->memBlockSize);
+      var->memBlock = (void *) mcalloc(csound, var->memBlockSize);
       if (var->initializeVariableMemory != NULL) {
         var->initializeVariableMemory(var, (MYFLT *)(var->memBlock));
       } else  memset(var->memBlock , 0, var->memBlockSize);
