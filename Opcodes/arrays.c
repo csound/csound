@@ -880,7 +880,6 @@ static int tabgen(CSOUND *csound, TABGEN *p)
     //else /* This is wrong if array exists only write to specified part */
     //size = p->tab->sizes[0];
     data =  p->tab->data;
-    printf("size=%d\n[", size);
     for (i=0; i < size; i++) {
       data[i] = start;
       //printf("%f ", start);
