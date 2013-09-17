@@ -1223,7 +1223,7 @@ static OENTRY arrayvars_localops[] =
                                                  (SUBR) tabmap_perf},
     { "genarray.i", sizeof(TABGEN),0, 1, "i[]", "iip", (SUBR) tabgen, NULL   },
     { "genarray_i", sizeof(TABGEN),0, 1, "k[]", "iip", (SUBR) tabgen, NULL, NULL},
-    { "genarray.k", sizeof(TABGEN),0, 3, "k[]", "kkp", NULL, (SUBR)tabgen    },
+    { "genarray.k", sizeof(TABGEN),0, 2, "k[]", "kkp", NULL, (SUBR)tabgen    },
     { "maparray_i", sizeof(TABMAP),0, 1, "k[]", "k[]S", (SUBR) tabmap_set    },
     { "maparray", sizeof(TABMAP), 0, 3, "k[]", "k[]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf          },
