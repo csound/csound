@@ -578,8 +578,8 @@ int loscil(CSOUND *csound, LOSC *p)
  phsout2:
     p->lphs = phs;
  put0s:
-    //memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
-    //memset(&ar2[n], '\0', sizeof(MYFLT)*(nsmps-n));
+    memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
+    memset(&ar2[n], '\0', sizeof(MYFLT)*(nsmps-n));
     /* do { */
     /*   *ar1++ = FL(0.0); */
     /*   *ar2++ = FL(0.0); */

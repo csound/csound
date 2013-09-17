@@ -637,6 +637,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         synterr(p, Str("%s invalid ksmps value"), err_msg);
       else if (UNLIKELY(FLOAT_COMPARE(sr,(double)kr *ksmps)))
         synterr(p, Str("%s inconsistent sr, kr, ksmps"), err_msg);
+      else if(ksmps > sr)
+        synterr(p, Str("%s inconsistent sr, kr, ksmps \n"), err_msg);
     }
 
     csound->ksmps = ksmps;
@@ -1397,7 +1399,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     var = typeTable->globalPool->head;
     while(var != NULL) {
-      var->memBlock = (void *) mmalloc(csound, var->memBlockSize);
+      var->memBlock = (void *) mcalloc(csound, var->memBlockSize);
       if (var->initializeVariableMemory != NULL) {
         var->initializeVariableMemory(var, (MYFLT *)(var->memBlock));
       } else  memset(var->memBlock , 0, var->memBlockSize);
