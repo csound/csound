@@ -41,6 +41,9 @@ include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
 include(CheckLibraryExists)
 include(CMakeParseArguments)
+include(CheckCCompilerFlag)
+include(CheckCXXCompilerFlag)
+
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
@@ -278,8 +281,21 @@ if (HAS_CXX_VISBILITY_HIDDEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
 
-if(APPLE AND BUILD_INSTALLER)
+if(APPLE)
+  if(BUILD_INSTALLER)
     set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}")
+  endif()
+  
+  set(DEFAULT_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/)
+
+  if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT}) 
+    set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT}) 
+  endif()
+
+  if(EXISTS ${CMAKE_OSX_SYSROOT}) 
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.6)
+  endif()
+  
 endif()
 
 if(USE_DOUBLE)

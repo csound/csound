@@ -256,7 +256,6 @@ int CsoundChannelList::IsOutputChannel(int ndx)
 
 int CsoundChannelList::SubType(int ndx)
 {
-    MYFLT dflt, min, max;
     int   tmp;
     controlChannelHints_t hints;
     tmp = this->GetChannelMetaData(ndx, &hints);
@@ -274,7 +273,6 @@ int CsoundChannelList::SubType(int ndx)
 
 double CsoundChannelList::DefaultValue(int ndx)
 {
-    MYFLT dflt, min, max;
     controlChannelHints_t hints;
     if (this->GetChannelMetaData(ndx, &hints) > 0)
       return hints.dflt;
@@ -289,7 +287,6 @@ double CsoundChannelList::DefaultValue(int ndx)
 
 double CsoundChannelList::MinValue(int ndx)
 {
-    MYFLT dflt, min, max;
     controlChannelHints_t hints;
     if (this->GetChannelMetaData(ndx, &hints) > 0)
       return hints.min;
@@ -304,7 +301,6 @@ double CsoundChannelList::MinValue(int ndx)
 
 double CsoundChannelList::MaxValue(int ndx)
 {
-    MYFLT dflt, min, max;
     controlChannelHints_t hints;
     if (this->GetChannelMetaData(ndx, &hints) > 0)
       return hints.max;
@@ -1068,9 +1064,7 @@ int CsoundMidiInputStream::midiInCloseCallback(CSOUND *csound, void *userData)
 
 void CsoundMidiInputStream::EnableMidiInput(CsoundArgVList *argv)
 {
-    int     err;
-
-    err = csoundCreateGlobalVariable(csound, "__csnd_MidiInObject",
+    csoundCreateGlobalVariable(csound, "__csnd_MidiInObject",
                                              sizeof(void*));
     *((void**) csoundQueryGlobalVariable(csound, "__csnd_MidiInObject")) =
         (void*) this;
@@ -1330,9 +1324,7 @@ int CsoundMidiOutputStream::midiOutCloseCallback(CSOUND *csound,
 
 void CsoundMidiOutputStream::EnableMidiOutput(CsoundArgVList *argv)
 {
-    int     err;
-
-    err = csoundCreateGlobalVariable(csound, "__csnd_MidiOutObject",
+    csoundCreateGlobalVariable(csound, "__csnd_MidiOutObject",
                                              sizeof(void*));
     *((void**) csoundQueryGlobalVariable(csound, "__csnd_MidiOutObject")) =
         (void*) this;
