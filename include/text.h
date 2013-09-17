@@ -116,6 +116,8 @@ char *csoundLocalizeString(const char *s);
   void init_getstring(void*);
   PUBLIC char* cs_strtok_r(char* str, char* sep, char** lasts);
   PUBLIC double cs_strtod(char* nptr, char** endptr);
+  PUBLIC int cs_sprintf(char *str, const char *format, ...);
+  PUBLIC int cs_sscanf(char *str, const char *format, ...);
 #ifdef __cplusplus
 }
 #endif
@@ -135,7 +137,8 @@ char *csoundLocalizeString(const char *s);
   void init_getstring(void*);
   PUBLIC char* cs_strtok_r(char* str, char* sep, char** lasts);
   PUBLIC double cs_strtod(char* nptr, char** endptr);
-
+  PUBLIC int cs_sprintf(char *str, const char *format, ...);
+  PUBLIC int cs_sscanf(char *str, const char *format, ...);
 #endif  /* __BUILDING_LIBCSOUND */
 
 #ifdef __cplusplus

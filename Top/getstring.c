@@ -230,7 +230,7 @@ PUBLIC double cs_strtod(char* nptr, char** endptr) {
 }
 
 //#if !defined(HAVE_SPRINTF_L) && !defined(HAVE__SPRINT_L)
-int cs_sprintf(char *str, const char *format, ...) 
+PUBLIC int cs_sprintf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
@@ -243,7 +243,7 @@ int cs_sprintf(char *str, const char *format, ...)
     return retVal;
 }
 
-int cs_sscanf(char *str, const char *format, ...) 
+PUBLIC int cs_sscanf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
