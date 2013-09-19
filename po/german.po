@@ -99,7 +99,7 @@ msgstr ""
 msgid "(unknown error)"
 msgstr ""
 
-#: Engine/cs_new_dispatch.c:153
+#: Engine/cs_new_dispatch.c:155
 #, c-format
 msgid "Failed to find semantic information for instrument '%i'"
 msgstr ""
@@ -351,114 +351,114 @@ msgstr ""
 msgid "Opcode \"%s\" is deprecated\n"
 msgstr ""
 
-#: Engine/csound_orc_expressions.c:495
+#: Engine/csound_orc_expressions.c:499
 #, c-format
 msgid "error: function %s not found, line %d \n"
 msgstr ""
 
-#: Engine/csound_orc_expressions.c:509
+#: Engine/csound_orc_expressions.c:516
 #, c-format
 msgid "error: opcode %s with output type %s not found, line %d"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:122
+#: Engine/csound_orc_semantics.c:123
 #, c-format
 msgid "Unknown function type found: %d [%c]\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:147
+#: Engine/csound_orc_semantics.c:148
 #, c-format
 msgid "Unknown boolean expression type found: %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:200 Engine/csound_orc_semantics.c:469
+#: Engine/csound_orc_semantics.c:201 Engine/csound_orc_semantics.c:473
 #, c-format
 msgid "non-boolean expression found for ternary operator, line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:217 Engine/csound_orc_semantics.c:484
+#: Engine/csound_orc_semantics.c:218 Engine/csound_orc_semantics.c:488
 #, c-format
 msgid "unable to find ternary operator for types '%s ? %s : %s' line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:234 Engine/csound_orc_semantics.c:528
+#: Engine/csound_orc_semantics.c:236 Engine/csound_orc_semantics.c:534
 #, c-format
 msgid "Unable to verify arg types for expression '%s'\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:254 Engine/csound_orc_semantics.c:507
-#: Engine/csound_orc_semantics.c:551
+#: Engine/csound_orc_semantics.c:256 Engine/csound_orc_semantics.c:511
+#: Engine/csound_orc_semantics.c:557
 #, c-format
 msgid ""
 "error: opcode '%s' for expression with arg types %s not found, line %d \n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:276 Engine/csound_orc_semantics.c:577
+#: Engine/csound_orc_semantics.c:278 Engine/csound_orc_semantics.c:583
 #, c-format
 msgid "Unable to verify arg types for boolean expression '%s'\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:295 Engine/csound_orc_semantics.c:596
+#: Engine/csound_orc_semantics.c:297 Engine/csound_orc_semantics.c:602
 #, c-format
 msgid "error: boolean expression '%s' with arg types %s not found, line %d \n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:391 Engine/csound_orc_semantics.c:695
+#: Engine/csound_orc_semantics.c:393 Engine/csound_orc_semantics.c:701
 #, c-format
 msgid "Unknown arg type: %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:452
+#: Engine/csound_orc_semantics.c:456
 #, c-format
 msgid "unable to find array operator for types %s line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:656 Engine/csound_orc_semantics.c:1292
-#: Engine/csound_orc_semantics.c:1314
+#: Engine/csound_orc_semantics.c:662 Engine/csound_orc_semantics.c:1299
+#: Engine/csound_orc_semantics.c:1320
 #, c-format
 msgid "Variable '%s' used before defined\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1517
+#: Engine/csound_orc_semantics.c:1523
 #, c-format
 msgid "Unable to find opcode with name: %s\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1532
+#: Engine/csound_orc_semantics.c:1538
 #, c-format
 msgid "Unable to find opcode entry for '%s' with matching argument types:\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1535
+#: Engine/csound_orc_semantics.c:1541
 #, c-format
 msgid "Found: %s %s %s\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1537
+#: Engine/csound_orc_semantics.c:1543
 #, c-format
 msgid "Line: %d Loc: %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1671
+#: Engine/csound_orc_semantics.c:1677
 #, c-format
 msgid "expression for until statement not a boolean expression, line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1824
+#: Engine/csound_orc_semantics.c:1830
 #, c-format
 msgid ""
 "\n"
 "error: %s  (token \"%s\")"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1826
+#: Engine/csound_orc_semantics.c:1832
 #, c-format
 msgid ""
 " line %d:\n"
 ">>>"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:2354
+#: Engine/csound_orc_semantics.c:2364
 #, fuzzy, c-format
 msgid "insufficient required arguments for opcode %s on line %d:%d\n"
 msgstr "unzulängliche Argumente"
@@ -3711,24 +3711,24 @@ msgstr ""
 msgid "cpstun: invalid table"
 msgstr ""
 
-#: OOps/aops.c:1517 OOps/aops.c:1553
+#: OOps/aops.c:1544 OOps/aops.c:1580
 #, c-format
 msgid "Input channel %d too large; ignored"
 msgstr ""
 
-#: OOps/aops.c:1549
+#: OOps/aops.c:1576
 msgid "Input and output argument count differs in inch"
 msgstr ""
 
-#: OOps/aops.c:1926
+#: OOps/aops.c:2014
 msgid "Unknown function called"
 msgstr ""
 
-#: OOps/aops.c:1962
+#: OOps/aops.c:2050
 msgid "number of arguments != nchnls"
 msgstr ""
 
-#: OOps/aops.c:1990
+#: OOps/aops.c:2078
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 
@@ -5595,22 +5595,32 @@ msgstr ""
 msgid "Not supported setup number!"
 msgstr ""
 
-#: Opcodes/ambicode1.c:82
+#: Opcodes/ambicode1.c:109 Opcodes/ambicode1.c:127
 msgid "The numbers of input and output arguments are not valid."
 msgstr ""
 
-#: Opcodes/ambicode1.c:172
+#: Opcodes/ambicode1.c:117
+#, fuzzy
+msgid "array not initialised in ambibformenc1"
+msgstr "t-var: nicht initialisiert"
+
+#: Opcodes/ambicode1.c:294 Opcodes/ambicode1.c:690
 #, fuzzy
 msgid "The number of input arguments is not valid."
 msgstr "Falsche Zahl der Eingang Argumente"
 
-#: Opcodes/ambicode1.c:176
+#: Opcodes/ambicode1.c:298 Opcodes/ambicode1.c:694
 msgid "The isetup value should be between 1 and 5."
 msgstr ""
 
-#: Opcodes/ambicode1.c:202
+#: Opcodes/ambicode1.c:324 Opcodes/ambicode1.c:721
 msgid "The output channel count does not match the isetup value."
 msgstr ""
+
+#: Opcodes/ambicode1.c:683
+#, fuzzy
+msgid "bformdec1 output array not initilised"
+msgstr "t-var: nicht initialisiert"
 
 #: Opcodes/arrays.c:97
 msgid "Error: no sizes set for array initialization"
@@ -8348,15 +8358,15 @@ msgstr ""
 msgid "pvsarp: not initialised\n"
 msgstr "pvsarp: nicht initialisiert\n"
 
-#: Opcodes/sndloop.c:1043 Opcodes/sndloop.c:1149
+#: Opcodes/sndloop.c:1043 Opcodes/sndloop.c:1152
 msgid "signal format must be amp-phase or amp-freq.\n"
 msgstr ""
 
-#: Opcodes/sndloop.c:1129
+#: Opcodes/sndloop.c:1132
 msgid "pvsvoc: not initialised\n"
 msgstr "pvsvoc: nicht initialisiert\n"
 
-#: Opcodes/sndloop.c:1181
+#: Opcodes/sndloop.c:1184
 msgid "pvsmorph: not initialised\n"
 msgstr "pvsmorph: nicht initialisiert\n"
 
@@ -8788,9 +8798,10 @@ msgstr "vibrato(krate): nicht initialisiert"
 msgid "No table for dconv"
 msgstr "Keine Tabelle für dconv"
 
-#: Opcodes/ugmoss.c:494 Opcodes/vbap1.c:185 Opcodes/vbap1.c:446
-#: Opcodes/vbap_n.c:229 Opcodes/vbap_n.c:537 Opcodes/vbap_zak.c:230
-#: Opcodes/vbap_zak.c:542
+#: Opcodes/ugmoss.c:494 Opcodes/vbap1.c:188 Opcodes/vbap1.c:256
+#: Opcodes/vbap1.c:539 Opcodes/vbap1.c:614 Opcodes/vbap_n.c:286
+#: Opcodes/vbap_n.c:350 Opcodes/vbap_n.c:661 Opcodes/vbap_n.c:798
+#: Opcodes/vbap_zak.c:230 Opcodes/vbap_zak.c:542
 msgid "could not allocate memory"
 msgstr ""
 
@@ -9089,45 +9100,65 @@ msgstr "unzulängliche Argumente"
 msgid "Pair %d Loudspeakers: "
 msgstr ""
 
-#: Opcodes/vbap1.c:64 Opcodes/vbap1.c:204 Opcodes/vbap1.c:246
-#: Opcodes/vbap_n.c:98 Opcodes/vbap_n.c:248 Opcodes/vbap_n.c:326
-#: Opcodes/vbap_zak.c:100 Opcodes/vbap_zak.c:249 Opcodes/vbap_zak.c:327
+#: Opcodes/vbap1.c:67 Opcodes/vbap1.c:207 Opcodes/vbap1.c:275
+#: Opcodes/vbap1.c:338 Opcodes/vbap_n.c:154 Opcodes/vbap_n.c:305
+#: Opcodes/vbap_n.c:369 Opcodes/vbap_n.c:450 Opcodes/vbap_zak.c:100
+#: Opcodes/vbap_zak.c:249 Opcodes/vbap_zak.c:327
 msgid "Warning: truncating elevation to 2-D plane\n"
 msgstr ""
 
-#: Opcodes/vbap1.c:173 Opcodes/vbap_n.c:217
+#: Opcodes/vbap1.c:176 Opcodes/vbap1.c:244 Opcodes/vbap_n.c:273
+#: Opcodes/vbap_n.c:337
 #, fuzzy, c-format
 msgid "could not find layout table no.%d"
 msgstr "table: nicht initialisiert"
 
-#: Opcodes/vbap1.c:181 Opcodes/vbap1.c:441 Opcodes/vbap_n.c:225
-#: Opcodes/vbap_n.c:533
+#: Opcodes/vbap1.c:184 Opcodes/vbap1.c:252 Opcodes/vbap1.c:534
+#: Opcodes/vbap1.c:609 Opcodes/vbap_n.c:282 Opcodes/vbap_n.c:657
 msgid ""
 "vbap system NOT configured. \n"
 "Missing vbaplsinit opcode in orchestra?"
 msgstr ""
 
-#: Opcodes/vbap1.c:273 Opcodes/vbap1.c:318 Opcodes/vbap_n.c:353
-#: Opcodes/vbap_n.c:398
+#: Opcodes/vbap1.c:365 Opcodes/vbap1.c:410 Opcodes/vbap_n.c:477
+#: Opcodes/vbap_n.c:522
 msgid "Missing fields in vbapmove\n"
 msgstr ""
 
-#: Opcodes/vbap1.c:278 Opcodes/vbap_n.c:358 Opcodes/vbap_zak.c:360
+#: Opcodes/vbap1.c:370 Opcodes/vbap_n.c:482 Opcodes/vbap_zak.c:360
 msgid "Warning: Ambiguous transition 180 degrees.\n"
 msgstr ""
 
-#: Opcodes/vbap1.c:466 Opcodes/vbap_n.c:557
+#: Opcodes/vbap1.c:559 Opcodes/vbap1.c:634 Opcodes/vbap_n.c:681
+#: Opcodes/vbap_n.c:818
 #, c-format
 msgid "Have to have at least %d directions in vbapmove"
 msgstr ""
 
-#: Opcodes/vbap1.c:476 Opcodes/vbap_n.c:567 Opcodes/vbap_zak.c:572
+#: Opcodes/vbap1.c:569 Opcodes/vbap1.c:644 Opcodes/vbap_n.c:691
+#: Opcodes/vbap_n.c:828 Opcodes/vbap_zak.c:572
 msgid "Wrong dimension"
 msgstr ""
 
-#: Opcodes/vbap_n.c:525
+#: Opcodes/vbap1.c:599
+#, fuzzy
+msgid "Output array not initialised"
+msgstr "t-var: nicht initialisiert"
+
+#: Opcodes/vbap_n.c:346 Opcodes/vbap_n.c:794
+msgid ""
+"vbap system NOT configured.\n"
+"Missing vbaplsinit opcode in orchestra?"
+msgstr ""
+
+#: Opcodes/vbap_n.c:649 Opcodes/vbap_n.c:785
 #, fuzzy
 msgid "could not find layout table no.0"
+msgstr "table: nicht initialisiert"
+
+#: Opcodes/vbap_n.c:778
+#, fuzzy
+msgid "Output array in vpabmove not initalised"
 msgstr "table: nicht initialisiert"
 
 #: Opcodes/vbap_zak.c:355 Opcodes/vbap_zak.c:400

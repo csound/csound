@@ -246,15 +246,17 @@ static void MYFLT_to_float(int nSmps, MYFLT *inBuf, float *outBuf, int *seed)
 static void short_to_MYFLT(int nSmps, int16_t *inBuf, MYFLT *outBuf)
 {
     int n;
+    MYFLT adjust = FL(1.0) / (MYFLT) 0x8000;
     for (n=0; n<nSmps; n++)
-      outBuf[n] = (MYFLT) inBuf[n] * (FL(1.0) / (MYFLT) 0x8000);
+      outBuf[n] = (MYFLT) inBuf[n] * adjust;
 }
 
 static void long_to_MYFLT(int nSmps, int32_t *inBuf, MYFLT *outBuf)
 {
     int n;
+    MYFLT adjust = FL(1.0) / (MYFLT) 0x80000000UL;
     for (n=0; n<nSmps; n++)
-      outBuf[n] = (MYFLT) inBuf[n] * (FL(1.0) / (MYFLT) 0x80000000UL);
+      outBuf[n] = (MYFLT) inBuf[n] * adjust;
 }
 
 static void float_to_MYFLT(int nSmps, float *inBuf, MYFLT *outBuf)
@@ -320,6 +322,7 @@ static snd_pcm_format_t set_format(void (**convFunc)(void), int csound_format,
 
 /* set up audio device */
 
+#define MSGLEN (512)
 static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
 {
     snd_pcm_hw_params_t *hw_params;
@@ -327,7 +330,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     snd_pcm_format_t    alsaFmt;
     int                 err, n, alloc_smps;
     CSOUND              *p = csound;
-    char                *devName, msg[512];
+    char                *devName, msg[MSGLEN];
 
     dev->buf = NULL;
     snd_pcm_hw_params_alloca(&hw_params);
@@ -351,14 +354,14 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     }
     /* allocate hardware and software parameters */
     if (snd_pcm_hw_params_any(dev->handle, hw_params) < 0) {
-      strncpy(msg, Str("No real-time audio configurations found"), 512);
+      strncpy(msg, Str("No real-time audio configurations found"), MSGLEN);
       goto err_return_msg;
     }
     /* now set the various hardware parameters: */
     /* access method, */
     if (snd_pcm_hw_params_set_access(dev->handle, hw_params,
                                      SND_PCM_ACCESS_RW_INTERLEAVED) < 0) {
-      strncpy(msg, Str("Error setting access type for soundcard"), 512);
+      strncpy(msg, Str("Error setting access type for soundcard"), MSGLEN);
       goto err_return_msg;
     }
     /* sample format, */
@@ -372,18 +375,18 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     }
     if (alsaFmt == SND_PCM_FORMAT_UNKNOWN) {
       strncpy(msg, Str("Unknown sample format.\n *** Only 16-bit and 32-bit "
-                       "integers, and 32-bit floats are supported."), 512);
+                       "integers, and 32-bit floats are supported."), MSGLEN);
       goto err_return_msg;
     }
     if (snd_pcm_hw_params_set_format(dev->handle, hw_params, alsaFmt) < 0) {
       strncpy(msg,
-              Str("Unable to set requested sample format on soundcard"),512);
+              Str("Unable to set requested sample format on soundcard"),MSGLEN);
       goto err_return_msg;
     }
     /* number of channels, */
     if (snd_pcm_hw_params_set_channels(dev->handle, hw_params,
                                        (unsigned int) dev->nchns) < 0) {
-      strncpy(msg, Str("Unable to set number of channels on soundcard"), 512);
+      strncpy(msg, Str("Unable to set number of channels on soundcard"), MSGLEN);
       goto err_return_msg;
     }
     /* sample rate, (patched for sound cards that object to fixed rate) */
@@ -391,7 +394,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       unsigned int target = dev->srate;
       if (snd_pcm_hw_params_set_rate_near(dev->handle, hw_params,
                                           (unsigned int *) &dev->srate, 0) < 0) {
-        strncpy(msg, Str("Unable to set sample rate on soundcard"), 512);
+        strncpy(msg, Str("Unable to set sample rate on soundcard"), MSGLEN);
         goto err_return_msg;
       }
       if (dev->srate!=target)
@@ -439,7 +442,8 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     /* set up device according to the above parameters */
     if (snd_pcm_hw_params(dev->handle, hw_params) < 0) {
       strncpy(msg,
-              Str("Error setting hardware parameters for real-time audio"), 512);
+              Str("Error setting hardware parameters for real-time audio"),
+              MSGLEN);
       goto err_return_msg;
     }
     /* print settings */
@@ -457,14 +461,14 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
         /* || snd_pcm_sw_params_set_xfer_align(dev->handle, sw_params, 1) < 0 */
         || snd_pcm_sw_params(dev->handle, sw_params) < 0) {
       strncpy(msg,
-              Str("Error setting software parameters for real-time audio"),512);
+              Str("Error setting software parameters for real-time audio"),MSGLEN);
       goto err_return_msg;
     }
     /* allocate memory for sample conversion buffer */
     n = (dev->format == AE_SHORT ? 2 : 4) * dev->nchns * alloc_smps;
     dev->buf = (void*) malloc((size_t) n);
     if (dev->buf == NULL) {
-      strncpy(msg, Str("Memory allocation failure"),512);
+      strncpy(msg, Str("Memory allocation failure"),MSGLEN);
       goto err_return_msg;
     }
     memset(dev->buf, 0, (size_t) n);
@@ -632,7 +636,6 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
 {
     DEVPARAMS *dev;
     int       n, m, err;
-
 
     dev = (DEVPARAMS*) *(csound->GetRtRecordUserData(csound));
     if (dev->handle == NULL) {
@@ -1547,7 +1550,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
     card = -1;
     if ((err = snd_card_next(&card)) < 0) {
       csound->ErrorMsg(csound,
-                      Str("cannot determine card number: %s"), snd_strerror(err));
+                       Str("cannot determine card number: %s"), snd_strerror(err));
       return 0;
     }
     if (card < 0) {

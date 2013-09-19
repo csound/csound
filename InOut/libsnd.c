@@ -100,7 +100,8 @@ static void spoutsf(CSOUND *csound)
     if (!csound->libsndStatics.outbufrem) {
       if (csound->libsndStatics.osfopen) {
         csound->nrecs++;
-        csound->audtran(csound, csound->libsndStatics.outbuf, csound->libsndStatics.outbufsiz); /* Flush buffer */
+        csound->audtran(csound, csound->libsndStatics.outbuf,
+                        csound->libsndStatics.outbufsiz); /* Flush buffer */
         csound->libsndStatics.outbufp = (MYFLT*) csound->libsndStatics.outbuf;
       }
       csound->libsndStatics.outbufrem = csound->oparms_.outbufsamps;
@@ -144,7 +145,8 @@ static void spoutsf_noscale(CSOUND *csound)
     if (!csound->libsndStatics.outbufrem) {
       if (csound->libsndStatics.osfopen) {
         csound->nrecs++;
-        csound->audtran(csound, csound->libsndStatics.outbuf, csound->libsndStatics.outbufsiz); /* Flush buffer */
+        csound->audtran(csound, csound->libsndStatics.outbuf,
+                        csound->libsndStatics.outbufsiz); /* Flush buffer */
         csound->libsndStatics.outbufp = (MYFLT*) csound->libsndStatics.outbuf;
       }
       csound->libsndStatics.outbufrem = csound->oparms_.outbufsamps;
