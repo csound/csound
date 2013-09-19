@@ -425,12 +425,14 @@ static const CSOUND cenviron_ = {
     csoundLocalizeString,
     cs_strtok_r,
     cs_strtod,
+    cs_sprintf,
+    cs_sscanf,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
