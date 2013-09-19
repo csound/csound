@@ -398,8 +398,6 @@ static inline double csoundUndenormalizeDouble(double x)
 /*   /\* this would be the case for the Windows locale aware function *\/ */
 /* # define CS_SPRINTF _sprintf_l */
 /* #else */
-extern int cs_sprintf(char *str, const char *format, ...);
-extern int cs_sscanf(char *str, const char *format, ...);
 # define CS_SPRINTF cs_sprintf
 # define CS_SSCANF cs_sscanf
 /* #endif */

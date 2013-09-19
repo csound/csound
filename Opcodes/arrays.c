@@ -880,7 +880,6 @@ static int tabgen(CSOUND *csound, TABGEN *p)
     //else /* This is wrong if array exists only write to specified part */
     //size = p->tab->sizes[0];
     data =  p->tab->data;
-    printf("size=%d\n[", size);
     for (i=0; i < size; i++) {
       data[i] = start;
       //printf("%f ", start);
@@ -1223,7 +1222,7 @@ static OENTRY arrayvars_localops[] =
                                                  (SUBR) tabmap_perf},
     { "genarray.i", sizeof(TABGEN),0, 1, "i[]", "iip", (SUBR) tabgen, NULL   },
     { "genarray_i", sizeof(TABGEN),0, 1, "k[]", "iip", (SUBR) tabgen, NULL, NULL},
-    { "genarray.k", sizeof(TABGEN),0, 3, "k[]", "kkp", NULL, (SUBR)tabgen    },
+    { "genarray.k", sizeof(TABGEN),0, 2, "k[]", "kkp", NULL, (SUBR)tabgen    },
     { "maparray_i", sizeof(TABMAP),0, 1, "k[]", "k[]S", (SUBR) tabmap_set    },
     { "maparray", sizeof(TABMAP), 0, 3, "k[]", "k[]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf          },
