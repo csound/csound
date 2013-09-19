@@ -228,4 +228,3 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     csoundFileClose(csound, fd);
     return mm;
 }
-

@@ -914,7 +914,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
 //                                                            typeTable);
 //
 //              char* argString = strcat(leftArgType, rightArgType);
-//              argString = strcat(argString, "k"); 
+//              argString = strcat(argString, "k");
 // FIXME - this is hardcoding a k input for what would be the in arg type
 //
 //              outType = resolve_opcode_get_outarg(csound, opentries,
