@@ -412,7 +412,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
         goto err_rtn_msg;
       }
       if (tvdx <= FL(0.0)) {
-        sprintfstrncpy(err_msg,
+        strncpy(err_msg,
                        Str("srconv: invalid x values in time-vary function"),
                        256);
         goto err_rtn_msg;
