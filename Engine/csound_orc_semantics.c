@@ -226,7 +226,7 @@ char* get_arg_type(CSOUND* csound, TREE* tree)
 
       char* argTypeRight = get_arg_type(csound, nodeToCheck->right);
 
-      if(nodeToCheck->left != NULL) {
+      if (nodeToCheck->left != NULL) {
         char* argTypeLeft = get_arg_type(csound, nodeToCheck->left);
 
         char* opname = get_expression_opcode_type(csound, nodeToCheck);
@@ -268,9 +268,10 @@ char* get_arg_type(CSOUND* csound, TREE* tree)
     }
 
     if (is_boolean_expression_node(tree)) {
+      //print_tree(csound, "Boolean exop", tree);
       char* argTypeLeft = get_arg_type(csound, tree->left);
       char* argTypeRight = get_arg_type(csound, tree->right);
-
+      //fprintf(stderr, "left type/right type %s /%s\n", argTypeLeft, argTypeRight);
       char* opname = get_boolean_expression_opcode_type(csound, tree);
 
       if (UNLIKELY(argTypeLeft == NULL || argTypeRight == NULL)) {
