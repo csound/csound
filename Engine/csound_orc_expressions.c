@@ -382,7 +382,7 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
 TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
                          TYPE_TABLE* typeTable)
 {
-    char *op, arg1, arg2, *outarg = NULL;
+    char *op, *outarg = NULL;
     TREE *anchor = NULL, *last;
     TREE * opTree, *current, *newArgList;
     OENTRIES* opentries;
@@ -440,19 +440,6 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
     }
     root->right = newArgList;
 
-#if 0
-    arg1 = '\0';
-    if (root->left != NULL) {
-      arg1 = argtyp2( root->left->value->lexeme);
-    }
-    // FIXME arg2 is not used but calculated
-    if (root->right != NULL) {
-      arg2 = argtyp2( root->right->value->lexeme);
-      //printf("arg1=%.2x(%c); arg2=%.2x(%c)\n", arg1, arg1, arg2, arg2);
-    } else {
-      arg2 = '\0';
-    }
-#endif
     op = mcalloc(csound, 80);
 
     switch(root->type) {
@@ -526,7 +513,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "HANDLING UNARY MINUS!");
       root->left = create_minus_token(csound);
-      arg1 = 'i';
+      //      arg1 = 'i';
       strncpy(op, "##mul", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
