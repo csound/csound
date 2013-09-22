@@ -237,6 +237,11 @@ typedef uint_least16_t uint16;
 
 #endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 
+#ifdef WIN32
+#  define ENVSEP ';'
+#else
+#  define ENVSEP ':'
+#endif
 /* standard integer types */
 
 #if defined(USE_GUSI2)
