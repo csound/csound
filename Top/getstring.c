@@ -229,7 +229,52 @@ PUBLIC double cs_strtod(char* nptr, char** endptr) {
 #endif
 }
 
-//#if !defined(HAVE_SPRINTF_L) && !defined(HAVE__SPRINT_L)
+#if defined(HAVE_SPRINTF_L)
+PUBLIC int cs_sprintf(char *str, const char *format, ...)
+{
+    // This is not thread-safe but no idea how to fix
+    va_list args;
+    int retVal;
+    va_start(args, format);
+    retVal = vsprintf_l(str,csound_c_locale,format,args);
+    va_end(args);
+    return retVal;
+}
+
+PUBLIC int cs_sscanf(char *str, const char *format, ...)
+{
+    // This is not thread-safe but no idea how to fix
+    va_list args;
+    int retVal;
+    va_start(args, format);
+    retVal = vsscanf_l(str,csound_c_locale,format,args);
+    va_end(args);
+    return retVal;
+}
+#else
+#if defined(HAVE__SPRINT_L)
+PUBLIC int cs_sprintf(char *str, const char *format, ...)
+{
+    // This is not thread-safe but no idea how to fix
+    va_list args;
+    int retVal;
+    va_start(args, format);
+    retVal = __vsprintf_l(str,csound_c_locale,format,args);
+    va_end(args);
+    return retVal;
+}
+
+PUBLIC int cs_sscanf(char *str, const char *format, ...)
+{
+    // This is not thread-safe but no idea how to fix
+    va_list args;
+    int retVal;
+    va_start(args, format);
+    retVal = __vsscanf_l(str,csound_c_locale,format,args);
+    va_end(args);
+    return retVal;
+}
+#else
 PUBLIC int cs_sprintf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
@@ -256,4 +301,5 @@ PUBLIC int cs_sscanf(char *str, const char *format, ...)
     return retVal;
 }
 
-//#endif
+#endif
+#endif
