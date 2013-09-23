@@ -1670,7 +1670,7 @@ int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
         return 0;
     };
 
-    outArg = get_arg_type(csound, root->left);
+    outArg = get_arg_type2(csound, root->left, typeTable);
 
 
     if (UNLIKELY(outArg == NULL || (*outArg != 'b' && *outArg != 'B'))) {
