@@ -2,6 +2,7 @@
 #define CSOUND_ORC_SEMANTICS_H
 
 #include "csoundCore.h"
+#include "csound_orc.h"
 
 /** Gets short version of opcode name, trimming off anything after '.'. 
  If opname has no '.' in name, simply returns the opname pointer.  
@@ -16,6 +17,7 @@ PUBLIC OENTRY* find_opcode_new(CSOUND* csound, char* opname,
 /* find OENTRY with the specified name in opcode list */
 
 OENTRY* find_opcode(CSOUND *, char *);
+char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 
 #endif
 

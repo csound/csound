@@ -537,7 +537,8 @@ static void openJackStreams(RtJackGlobals *p)
         if(!isalpha(dev_final[0])) dev_final++;
         for (i = 0; i < p->nChannels; i++) {
           sprintf(sp, "%d", i + 1);
-          if (jack_connect(p->client, jack_port_name(p->outPorts[i]), dev_final) != 0) {
+          if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
+                           dev_final) != 0) {
             rtJack_Error(csound, -1, Str("error connecting output ports"));
           }
         }

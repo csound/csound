@@ -496,26 +496,20 @@ OENTRY opcodlst_1[] = {
   { "soundout.i",S(SNDOUT), _QQ, 5,   "",    "aio",  sndoutset, NULL, soundout  },
   { "soundouts",S(SNDOUTS),_QQ, 5,  "",    "aaSo", sndoutset_S, NULL, soundouts },
   { "soundouts.i",S(SNDOUTS),_QQ, 5,  "",    "aaio", sndoutset, NULL, soundouts },
-  { "in",     S(INM),0,     4,      "a",    "",     NULL,   NULL,   in      },
+  { "in.a",   S(INM),0,     4,      "a",    "",     NULL,   NULL,   in      },
+  { "in.A",   S(INM),0,     4,      "a[]",  "",     NULL,   NULL,   inarray },
   { "ins",    S(INS),0,     4,      "aa",   "",     NULL,   NULL,   ins     },
   { "inq",    S(INQ),0,     4,      "aaaa", "",     NULL,   NULL,   inq     },
-  /* Note that there is code in rdorch.c that assumes that opcodes starting
-     with the charcters out followed by a s, q, h, o or x are in this group
-     ***BEWARE***
-     CODE REMOVED 2011-Dec-14
-  */
-  { "out",    S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
+  { "out.a",  S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
+  { "out.A",  S(OUTARRAY),0, 4,      "",     "a[]",  NULL,   NULL,   outarr },
   { "outs",   S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
   { "outq",   S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
   { "outh",   S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
   { "outo",   S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
   { "outx",   S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
   { "out32",  S(OUTX),0,     4,      "",     "y",    NULL,   NULL,   outall },
-  /* { "out",    S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   out     }, */
-  /* { "outs",   S(OUTS),0,    4,      "",     "aa",   NULL,   NULL,   outs    }, */
   { "outs1",  S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   outs1   },
   { "outs2",  S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   outs2   },
-  /* { "outq",   S(OUTQ),0,    4,      "",     "aaaa", NULL,   NULL,   outq    }, */
   { "outq1",  S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   outq1   },
   { "outq2",  S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   outq2   },
   { "outq3",  S(OUTM),0,    4,      "",     "a",    NULL,   NULL,   outq3   },
@@ -525,7 +519,7 @@ OENTRY opcodlst_1[] = {
   { "goto",   S(GOTO),0,    3,      "",     "l",    igoto,  kgoto           },
   { "cigoto", S(CGOTO),0,   1,      "",     "Bl",   icgoto                  },
   { "ckgoto", S(CGOTO),0,   2,      "",     "Bl",   NULL,   kcgoto          },
-  { "cggoto.0", S(CGOTO),0,   3,      "",     "Bl",   icgoto, kcgoto          },
+  { "cggoto.0", S(CGOTO),0, 3,      "",     "Bl",   icgoto, kcgoto          },
   { "timout", S(TIMOUT),0,  3,      "",     "iil",  timset, timout          },
   { "reinit", S(GOTO),0,    2,      "",     "l",    NULL,   reinit          },
   { "rigoto", S(GOTO),0,    1,      "",     "l",    rigoto                  },

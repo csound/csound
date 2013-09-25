@@ -1058,6 +1058,9 @@ static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
    return OK;
 }
 
+void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize);
+void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize);
+
 static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
 {
     int32 i,N = p->fout->N;
@@ -1076,47 +1079,47 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
 
     if (p->lastframe < p->fin->framecount) {
       int tmp = N/2;
-       tmp = tmp + tmp%2; 
-      for(j=0; j < 2; j++) {
+      tmp = tmp + tmp%2; 
+      for (j=0; j < 2; j++) {
         MYFLT a;
         maxe = 0.f;
         maxa = 0.f;
-      for(i=0; i < N; i+=2) {
-        a  = (j ? fin[i] : (fexc[i] = ffr[i]));
-        maxa = maxa < a ? a : maxa;
-        if (a <= 0) a = 1e-20;
-        fenv[i/2] = log(a);
-      }
-      if (coefs < 1) coefs = 80;
-        for(i=0; i < N; i+=2){
+        for (i=0; i < N; i+=2) {
+          a  = (j ? fin[i] : (fexc[i] = ffr[i]));
+          maxa = maxa < a ? a : maxa;
+          if (a <= 0) a = 1e-20;
+          fenv[i/2] = log(a);
+        }
+        if (coefs < 1) coefs = 80;
+        for (i=0; i < N; i+=2){
           ceps[i] = fenv[i/2];
           ceps[i+1] = 0.0;
         }
-        if(!(N & (N - 1)))
-            csound->InverseComplexFFT(csound, ceps, N/2);
-	       else
-            csoundInverseComplexFFTnp2(csound, ceps, tmp);
-            for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
-             if(!(N & (N - 1)))
-            csound->ComplexFFT(csound, ceps, N/2);
-             else
-            csoundComplexFFTnp2(csound, ceps, tmp);
-        for(i=0; i < N; i+=2) {
+        if (!(N & (N - 1)))
+          csound->InverseComplexFFT(csound, ceps, N/2);
+        else
+          csoundInverseComplexFFTnp2(csound, ceps, tmp);
+        for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
+        if (!(N & (N - 1)))
+          csound->ComplexFFT(csound, ceps, N/2);
+        else
+          csoundComplexFFTnp2(csound, ceps, tmp);
+        for (i=0; i < N; i+=2) {
           fenv[i/2] = exp(ceps[i]);
-           maxe = maxe < fenv[i/2] ? fenv[i/2] : maxe;
+          maxe = maxe < fenv[i/2] ? fenv[i/2] : maxe;
         }
         if (maxe)
-        for(i=0; i<N; i+=2){
-          if (j) fenv[i/2] *= maxa/maxe;
-          if (fenv[i/2] && !j) {
-             fenv[i/2] /= maxe;
-             fexc[i] /= fenv[i/2];
-          }
+          for (i=0; i<N; i+=2){
+            if (j) fenv[i/2] *= maxa/maxe;
+            if (fenv[i/2] && !j) {
+              fenv[i/2] /= maxe;
+              fexc[i] /= fenv[i/2];
+            }
           }
       }
-
+      
       kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : FL(1.0)): FL(0.0);
-      for(i=0;i < N+2;i+=2) {
+      for (i=0;i < N+2;i+=2) {
         fout[i] = fenv[i/2]*(fexc[i]*kdepth + fin[i]*(FL(1.0)-kdepth))*gain;
         fout[i+1] = ffr[i+1]*(kdepth) + fin[i+1]*(FL(1.0)-kdepth);
       }
