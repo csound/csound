@@ -1236,10 +1236,12 @@ typedef struct NAME__ {
     char *(*LocalizeString)(const char *);
     char *(*strtok_r)(char*, char*, char**);
     double (*strtod)(char*, char**);
-    /**@}*/
+    int (*sprintf)(char *str, const char *format, ...);
+    int (*sscanf)(char *str, const char *format, ...);
+      /**@}*/
     /** @name Placeholders */
     /**@{ */
-    SUBR dummyfn_2[50];
+    SUBR dummyfn_2[48];
     /**@}*/
     /*  NO MORE PUBLIC VARIABLES IN CSOUND struct
 

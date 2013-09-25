@@ -40,7 +40,7 @@ static char   *fpnum(CSOUND *,char *, int, int, CORFIL *sco);
 static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
 {
     char *c, buffer[1024];
-    sprintf(buffer, "%.6f", n);
+    CS_SPRINTF(buffer, "%.6f", n);
     /* corfile_puts(buffer, sco); */
     for (c = buffer; *c != '\0'; c++)
       corfile_putc(*c, sco);
@@ -118,7 +118,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
     case 'e':
       if (bp->pcnt > 0) {
         char buffer[80];
-        sprintf(buffer, "f 0 %f %f\n", bp->p2val, bp->newp2);
+        CS_SPRINTF(buffer, "f 0 %f %f\n", bp->p2val, bp->newp2);
         corfile_puts(buffer, sco);
       }
       corfile_putc(c, sco);

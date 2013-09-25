@@ -701,7 +701,7 @@ static int checkLicence(CSOUND *csound, FILE *unf)
         csound->SF_csd_licence = licence;
         return TRUE;
       }
-      csoundMessage(csound, "%s", p);
+      csoundMessage(csound, p);
       len += strlen(p);
       licence = mrealloc(csound, licence, len);
       strncat(licence, p, len);

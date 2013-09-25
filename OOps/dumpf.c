@@ -297,10 +297,10 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format,
       break;
     case 8: *outbuf = '\0';
       while (--nk) {
-        sprintf(buf1, "%6.4f\t", *kp++);
+        CS_SPRINTF(buf1, "%6.4f\t", *kp++);
         strncat(outbuf, buf1, 256);
       }
-      sprintf(buf1, "%6.4f\n", *kp);
+      CS_SPRINTF(buf1, "%6.4f\n", *kp);
       strncat(outbuf, buf1, 256);
       len = strlen(outbuf);
       break;
@@ -640,9 +640,9 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
         fseek(ifd, -1L, SEEK_CUR);
         *bp = '\0';
 #ifndef USE_DOUBLE
-        sscanf(inbuf,"%f", kp);
+        CS_SSCANF(inbuf,"%f", kp);
 #else
-        sscanf(inbuf,"%lf", kp);
+        CS_SSCANF(inbuf,"%lf", kp);
 #endif
         kp++;
       }
@@ -659,9 +659,9 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
         fseek(ifd, -1L, SEEK_CUR);
         *bp = '\0';
 #ifndef USE_DOUBLE
-        sscanf(inbuf,"%f", kp);
+        CS_SSCANF(inbuf,"%f", kp);
 #else
-        sscanf(inbuf,"%lf", kp);
+        CS_SSCANF(inbuf,"%lf", kp);
 #endif
         kp++;
       }

@@ -880,7 +880,6 @@ static int tabgen(CSOUND *csound, TABGEN *p)
     //else /* This is wrong if array exists only write to specified part */
     //size = p->tab->sizes[0];
     data =  p->tab->data;
-    printf("size=%d\n[", size);
     for (i=0; i < size; i++) {
       data[i] = start;
       //printf("%f ", start);
@@ -957,7 +956,7 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
     EVAL  eval;
 
     if (UNLIKELY(p->tabin->data == NULL)||p->tabin->dimensions!=1)
-       return csound->InitError(csound, Str("tvar not initialised"));
+       return csound->InitError(csound, Str("array-var not initialised"));
 
     size = p->tabin->sizes[0];
     if (UNLIKELY(p->tab->data==NULL)) {
@@ -993,10 +992,10 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
 
     if (UNLIKELY(p->tabin->data == NULL) || p->tabin->dimensions !=1)
       return csound->PerfError(csound,
-                               p->h.insdshead, Str("tvar not initialised"));
+                               p->h.insdshead, Str("array-var not initialised"));
     if (UNLIKELY(p->tab->data==NULL) || p->tab->dimensions !=1)
       return csound->PerfError(csound,
-                               p->h.insdshead, Str("tvar not initialised"));
+                               p->h.insdshead, Str("array-var not initialised"));
     size = p->tab->sizes[0];
 
     if (UNLIKELY(opc == NULL))
@@ -1021,23 +1020,25 @@ int tablength(CSOUND *csound, TABQUERY1 *p)
 typedef struct {
     OPDS h;
     ARRAYDAT *tabin;
-    int    len;
+    unsigned int    len;
 } OUTA;
 
 
 static int outa_set(CSOUND *csound, OUTA *p)
 {
-    int len = p->tabin->dimensions==1?p->tabin->sizes[0]:-1;
-    if (len>csound->nchnls) len = csound->nchnls;
+    int len = (p->tabin->dimensions==1?p->tabin->sizes[0]:-1);
+    if (len>(int)csound->nchnls) len = csound->nchnls;
     if (len<=0) return NOTOK;
     p->len = len;
-    if (p->tabin->arrayMemberSize != CS_KSMPS*sizeof(MYFLT)) return NOTOK;
+    if (p->tabin->arrayMemberSize != (int)(CS_KSMPS*sizeof(MYFLT)))
+      return NOTOK;
     return OK;
 }
 
 static int outa(CSOUND *csound, OUTA *p)
 {
-    int n, l, m=0, nsmps = CS_KSMPS;
+    unsigned int n, m=0, nsmps = CS_KSMPS;
+    unsigned int l, pl = p->len;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT       *data = p->tabin->data;
@@ -1221,7 +1222,7 @@ static OENTRY arrayvars_localops[] =
                                                  (SUBR) tabmap_perf},
     { "genarray.i", sizeof(TABGEN),0, 1, "i[]", "iip", (SUBR) tabgen, NULL   },
     { "genarray_i", sizeof(TABGEN),0, 1, "k[]", "iip", (SUBR) tabgen, NULL, NULL},
-    { "genarray.k", sizeof(TABGEN),0, 3, "k[]", "kkp", NULL, (SUBR)tabgen    },
+    { "genarray.k", sizeof(TABGEN),0, 2, "k[]", "kkp", NULL, (SUBR)tabgen    },
     { "maparray_i", sizeof(TABMAP),0, 1, "k[]", "k[]S", (SUBR) tabmap_set    },
     { "maparray", sizeof(TABMAP), 0, 3, "k[]", "k[]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf          },
@@ -1239,7 +1240,7 @@ static OENTRY arrayvars_localops[] =
     { "lenarray", 0xffff},
     { "lenarray.i", sizeof(TABQUERY1), 0, 1, "i", "k[]", (SUBR) tablength },
     { "lenarray.ii", sizeof(TABQUERY1), 0, 1, "i", "i[]", (SUBR) tablength },
-    { "lenarray.k", sizeof(TABQUERY1), 0, 1, "k", "k[]", NULL, (SUBR) tablength },
+    { "lenarray.k", sizeof(TABQUERY1), 0, 2, "k", "k[]", NULL, (SUBR) tablength },
     { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa},
     { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina}
 };
