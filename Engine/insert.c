@@ -1119,6 +1119,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     tp = csound->engineState.instrtxtp[instno];
     /* set local ksmps if defined by user */
     n = p->OUTOCOUNT + p->INOCOUNT - 1;
+    
     if (*(p->ar[n]) != FL(0.0)) {
       i = (unsigned int) *(p->ar[n]);
       if (UNLIKELY(i < 1 || i > csound->ksmps ||
@@ -1128,7 +1129,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       }
       local_ksmps = i;
     }
-
+    
     if (!p->ip) {
       /* search for already allocated, but not active instance */
       /* if none was found, allocate a new instance */
@@ -1153,14 +1154,16 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       buf->iobufp_ptrs[2] = buf->iobufp_ptrs[3] = NULL;
       buf->iobufp_ptrs[4] = buf->iobufp_ptrs[5] = NULL;
       buf->iobufp_ptrs[6] = buf->iobufp_ptrs[7] = NULL;
+      buf->iobufp_ptrs[8] = buf->iobufp_ptrs[9] = NULL;
+      buf->iobufp_ptrs[10] = buf->iobufp_ptrs[11] = NULL;
 
       /* store parameters of input and output channels, and parent ip */
       buf->uopcode_struct = (void*) p;
       buf->parent_ip = p->parent_ip = parent_ip;
 
     }
-
-    /* copy parameters from the caller instrument into our subinstrument */
+ 
+   /* copy parameters from the caller instrument into our subinstrument */
     lcurip = p->ip;
 
     /* set the local ksmps values */
@@ -1222,7 +1225,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     while (csound->ids != NULL) {
       (*csound->ids->iopadr)(csound, csound->ids);
       csound->ids = csound->ids->nxti;
-    }
+      }
     p->ip->init_done = 1;
 
     /* copy length related parameters back to caller instr */
@@ -1274,8 +1277,13 @@ int xinset(CSOUND *csound, XIN *p)
     bufs = ((UOPCODE*) buf->uopcode_struct)->ar + inm->outchns;
     /* copy i-time variables */
     ndx_list = inm->in_ndx_list - 1;
-    while (*++ndx_list >= 0)
-      *(*(p->args + *ndx_list)) = *(*(bufs + *ndx_list));
+
+    while (*++ndx_list >= 0) {
+      //printf("%.1f %p \n", *(*(p->args + *ndx_list)), *(p->args + *ndx_list));
+       *(*(p->args + *ndx_list)) = *(*(bufs + *ndx_list));
+
+    }
+
     /* IV - Jul 29 2006: and string variables */
     while (*++ndx_list >= 0) {
       void *in, *out;
@@ -1948,7 +1956,7 @@ static void instance(CSOUND *csound, int insno)
 
     OPARMS    *O = csound->oparms;
     int       odebug = O->odebug;
-    ARG*          arg;
+    ARG*      arg;
     int       argStringCount;
 
     tp = csound->engineState.instrtxtp[insno];
@@ -2054,7 +2062,7 @@ static void instance(CSOUND *csound, int insno)
       if (ep->useropinfo == NULL)
         argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
       else          /* user defined opcodes are a special case */
-        argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
+	  argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
 
       arg = ttp->outArgs;
       for (n = 0; arg != NULL; n++) {
@@ -2079,6 +2087,8 @@ static void instance(CSOUND *csound, int insno)
         }
         argpp[n] = fltp;
         arg = arg->next;
+        *argpp[n] = n;
+        //printf("%f %p\n", *argpp[n], argpp[n]);
       }
 
       for (argStringCount = argsRequired(ep->outypes);
