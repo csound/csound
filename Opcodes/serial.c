@@ -422,7 +422,7 @@ int serialPrint(CSOUND *csound, SERIALPRINT *p)
 #endif
     if (bytes > 0) {
       str[bytes] = 0; // terminate
-      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", str);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, str);
     }
     return OK;
 }

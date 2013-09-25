@@ -270,9 +270,9 @@ PUBLIC EVENT * cscoreDefineEvent(CSOUND *csound, char *s)
     p = &evtmp->p[1];
     q = &evtmp->p[PMAX];
 #ifdef USE_DOUBLE
-    while (sscanf(s,"%lf",p++) > 0)         /* read pfields */
+    while (CS_SSCANF(s,"%lf",p++) > 0)         /* read pfields */
 #else
-    while (sscanf(s,"%f",p++) > 0)          /* read pfields */
+    while (CS_SSCANF(s,"%f",p++) > 0)          /* read pfields */
 #endif
     {
       while ((*s >= '0' && *s <= '9') || *s == '.' || *s == '-')

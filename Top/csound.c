@@ -425,12 +425,14 @@ static const CSOUND cenviron_ = {
     csoundLocalizeString,
     cs_strtok_r,
     cs_strtod,
+    cs_sprintf,
+    cs_sscanf,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -2028,7 +2030,7 @@ void csoundErrMsgV(CSOUND *csound,
                    const char *hdr, const char *msg, va_list args)
 {
     if (hdr != NULL)
-      csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
+      csound->MessageS(csound, CSOUNDMSG_ERROR, hdr);
     csound->csoundMessageCallback_(csound, CSOUNDMSG_ERROR, msg, args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
@@ -3202,7 +3204,7 @@ static int getTimeResolution(void)
       do {
         s++;
       } while (*s == ' ' || *s == '\t');    /* skip white space */
-      i = sscanf(s, "%lf", &timeResolutionSeconds);
+      i = CS_SSCANF(s, "%lf", &timeResolutionSeconds);
       if (i < 1 || timeResolutionSeconds < 1.0) {
         timeResolutionSeconds = -1.0;       /* invalid entry */
         continue;

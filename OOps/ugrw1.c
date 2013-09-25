@@ -994,7 +994,7 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
             break;
 
           default:
-            sprintf(outstring, strseg, xx);
+            CS_SPRINTF(outstring, strseg, xx);
             break;
           }
           outstring += strlen(outstring);
@@ -1043,7 +1043,7 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
           break;
 
         default:
-          sprintf(outstring, strseg, xx);
+          CS_SPRINTF(outstring, strseg, xx);
           break;
         }
       }
@@ -1092,7 +1092,7 @@ int printks(CSOUND *csound, PRINTKS *p)
       /* Do the print cycle. */
       string[0]='\0';           /* incase of empty string */
       sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2);
-      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, string);
     }
     return OK;
 }
@@ -1109,7 +1109,7 @@ int printsset(CSOUND *csound, PRINTS *p)
     pk.ptime = &ptime;
     printksset(csound, &pk);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
-    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
+    csound->MessageS(csound, CSOUNDMSG_ORCH, string);
     return OK;
 }
 
@@ -1124,7 +1124,7 @@ int printsset_S(CSOUND *csound, PRINTS *p)
     pk.ptime = &ptime;
     printksset_S(csound, &pk);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
-    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
+    csound->MessageS(csound, CSOUNDMSG_ORCH, string);
     return OK;
 }
 

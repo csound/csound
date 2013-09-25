@@ -65,7 +65,7 @@ if(BUILD_SERIAL_OPCODES)
 endif()
 
 if(BUILD_PLATEREV_OPCODES)
-   make_plugin(platerev platerev.c)
+   make_plugin(platerev platerev.c m)
 endif()
 
 set(scansyn_SRCS
@@ -95,7 +95,7 @@ if(BUILD_DSSI_OPCODES)
     make_plugin(dssi4cs "${dssi_SRC}" dl)
 endif()
 
-check_deps(BUILD_FLUID_OPCODES FLUIDSYNTH_H FLUIDSYNTH_LIBRARY)
+check_deps(BUILD_FLUID_OPCODES FLUIDSYNTH_H FLUIDSYNTH_LIBRARY USE_OPENMP)
 if(BUILD_FLUID_OPCODES)
     if(EXISTS ${FLUIDSYNTH_INCLUDE_DIR})
         include_directories("${FLUIDSYNTH_INCLUDE_DIR}")

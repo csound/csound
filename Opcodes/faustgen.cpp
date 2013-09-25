@@ -292,13 +292,13 @@ void *init_faustcompile_thread(void *pp) {
 #define MBYTE 1048576
 int init_faustcompile(CSOUND *csound, faustcompile *p){
   pthread_t thread;
-  pthread_attr_t attr; 
+  pthread_attr_t attr;
   hdata *data = (hdata *) malloc(sizeof(hdata));
   data->csound = csound;
   data->p = p;
   *p->hptr = -1;
   pthread_attr_init(&attr);
-  pthread_attr_setstacksize(&attr, *p->stacksize*MBYTE); 
+  pthread_attr_setstacksize(&attr, *p->stacksize*MBYTE);
   pthread_create(&thread, &attr,init_faustcompile_thread, data);
   return OK;
 }
@@ -454,7 +454,7 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
 
 void *init_faustgen_thread(void *pp){
   CSOUND *csound = ((hdata2 *) pp)->csound;
-  faustgen *p = ((hdata2 *) pp)->p; 
+  faustgen *p = ((hdata2 *) pp)->p;
   OPARMS parms;
   char err_msg[256];
   int size;
@@ -560,13 +560,13 @@ void *init_faustgen_thread(void *pp){
 
 int init_faustgen(CSOUND *csound, faustgen *p){
   pthread_t thread;
-  pthread_attr_t attr; 
+  pthread_attr_t attr;
   int *ret;
   hdata2 *data = (hdata2 *) malloc(sizeof(hdata2));
   data->csound = csound;
   data->p = p;
   pthread_attr_init(&attr);
-  pthread_attr_setstacksize(&attr, MBYTE); 
+  pthread_attr_setstacksize(&attr, MBYTE);
   pthread_create(&thread, &attr, init_faustgen_thread, data);
   pthread_join(thread, (void **) &ret);
   if(ret == NULL) return OK;
