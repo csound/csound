@@ -24,6 +24,10 @@
 #ifndef __CSOUND_DATA_STRUCTURES_H
 #define __CSOUND_DATA_STRUCTURES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define HASH_SIZE 4099
 
 typedef struct _cons {
@@ -107,4 +111,8 @@ PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTabl
 /** Frees hash table hash table keys using mfree. Does call free on ->value pointer. */
 PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
+#ifdef __cplusplus
+}
+#endif
+    
 #endif
