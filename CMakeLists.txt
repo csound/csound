@@ -999,7 +999,7 @@ if(WIN32)
     add_definitions(-DWIN32)
 endif()
     
-
+# Locale-aware reading and printing
 check_function_exists(strtok_r HAVE_STRTOK_R)
 check_function_exists(strtod_l HAVE_STRTOD_L)
 check_function_exists(sprintf_l HAVE_SPRINTF_L)
@@ -1012,6 +1012,21 @@ if(HAVE_STRTOD_L)
 endif()
 if(HAVE_SPRINTF_L)
     add_definitions(-DHAVE_SPRINTF_L)
+endif()
+
+# Same for Windows
+check_function_exists(_strtok_r HAVE__STRTOK_R)
+check_function_exists(_strtod_l HAVE__STRTOD_L)
+check_function_exists(_sprintf_l HAVE__SPRINTF_L)
+
+if(HAVE__STRTOK_R)
+    add_definitions(-DHAVE__STRTOK_R)
+endif()
+if(HAVE__STRTOD_L)
+    add_definitions(-DHAVE__STRTOD_L)
+endif()
+if(HAVE__SPRINTF_L)
+    add_definitions(-DHAVE__SPRINTF_L)
 endif()
 
 # Pass flags according to system capabilities
