@@ -852,7 +852,8 @@ static const CSOUND cenviron_ = {
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
     0,               /* info_message_request */
-    0                /* modules loaded */
+    0,                /* modules loaded */
+    NULL              /* self-reference */
 };
 
 /* from threads.c */
@@ -1138,6 +1139,11 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     csoundUnLock();
     csoundReset(csound);
     csound->API_lock = csoundCreateMutex(1);
+    /* NB: as suggested by F Pinot, keep the
+       address of the pointer to CSOUND inside 
+       the struct, so it can be cleared later */
+    csound->self = &csound;
+   
     return csound;
 }
 
@@ -1209,6 +1215,8 @@ PUBLIC void csoundDestroy(CSOUND *csound)
       //csoundLockMutex(csound->API_lock);
       csoundDestroyMutex(csound->API_lock);
     }
+    /* clear the pointer */
+    *(csound->self) = NULL;
     free((void*) csound);
 }
 
@@ -2669,7 +2677,7 @@ static void reset(CSOUND *csound)
     /* VL 07.06.2013 - check if the status is COMP before
        resetting.
     */
-
+    CSOUND **self = csound->self;
     saved_env = (CSOUND*) malloc(sizeof(CSOUND));
     memcpy(saved_env, csound, sizeof(CSOUND));
     memcpy(csound, &cenviron_, sizeof(CSOUND));
@@ -2694,6 +2702,7 @@ static void reset(CSOUND *csound)
     csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
+    csound->self = self;
     free(saved_env);
 
 }

@@ -1636,6 +1636,7 @@ typedef struct NAME__ {
     int           jumpset;
     int           info_message_request;
     int           modules_loaded;
+    struct CSOUND_ **self;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
