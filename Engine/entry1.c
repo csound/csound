@@ -95,7 +95,7 @@ OENTRY opcodlst_1[] = {
   { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd },
   /* IV - Sep 10 2002: removed perf time routines of xin and xout */
   { "xin",  S(XIN_MAX),0,   1,  "****************", "",  xinset,  NULL, NULL },
-  /* { "##xin64",   S(XIN_HIGH),0,  1,
+  /* { "xin.64",   S(XIN_HIGH),0,  1,
     "****************************************************************", "",
     xinset,  NULL, NULL },
   { "##xin256",  S(XIN_MAX),0,   1,
