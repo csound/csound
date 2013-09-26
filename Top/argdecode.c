@@ -1278,6 +1278,9 @@ PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
   oparms->syntaxCheckOnly = p->syntax_check_only;
   oparms->sampleAccurate = p->sample_accurate;
   oparms->realtime = p->realtime_mode;
+  oparms->useCsdLineCounts = p->csd_line_counts;
+  oparms->heartbeat = p->heartbeat;
+  oparms->ringbell = p->ring_bell;
 
   /* message level */
   if(p->message_level > 0)
@@ -1356,6 +1359,8 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
   p->nchnls_override = oparms->nchnls_override;
   p->nchnls_i_override = oparms->nchnls_i_override;
   p->e0dbfs_override = oparms->e0dbfs_override;
+  p->heartbeat = oparms->heartbeat;
+  p->ring_bell = oparms->ringbell;
 }
 
 
