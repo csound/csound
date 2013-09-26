@@ -375,8 +375,7 @@ extern "C" {
     int     number_of_threads;   /* number of threads for multicore performance */
     int     syntax_check_only;   /* do not compile, only check syntax */
     int     csd_line_counts;     /* csd line error reporting */
-    int     compute_weights;     /* use calculated opcode weights for
-                                    multicore, 0 or 1  */
+    int     compute_weights;     /* deprecated, kept for backwards comp.  */
     int     realtime_mode;       /* use realtime priority mode, 0 or 1 */
     int     sample_accurate;     /* use sample-level score event accuracy */
     MYFLT   sample_rate_override; /* overriding sample rate */
