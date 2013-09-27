@@ -20,7 +20,7 @@ cd "${PKGDIR}"
 find . -type f -wholename "*/CVS/*" -exec rm -f "{}" \;
 find . -type d -empty -exec rmdir -p "{}" \;
 find . -type d -exec chmod 755 "{}" \;
-find . -type f -perm +0100 -exec chmod 755 "{}" \;
+find . -type f -perm /0100 -exec chmod 755 "{}" \;
 find . -type f \! -perm +0100 -exec chmod 644 "{}" \;
 find . -type f -iname "*.[ch]" -exec chmod 644 "{}" \;
 find . -type f -iname "*.[ch]pp" -exec chmod 644 "{}" \;
