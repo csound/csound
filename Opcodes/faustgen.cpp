@@ -653,6 +653,12 @@ int init_faustctl(CSOUND *csound, faustctl *p){
                              Str("dsp control %s not found\n"), p->label->data);
   p->max = fobj->ctls->getMax(p->label->data);
   p->min = fobj->ctls->getMin(p->label->data);
+  {
+   MYFLT val = *p->val;
+   if(p->min != p->max)
+    val = val < p->min ? p->min : (val > p->max ? p->max : val);
+   *p->zone = val;
+  }
   return OK;
 }
 
