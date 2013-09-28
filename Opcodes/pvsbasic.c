@@ -2383,6 +2383,7 @@ typedef struct tab2pvs_t {
     PVSDAT *fout;
     ARRAYDAT *in;
     MYFLT  *olap, *winsize, *wintype, *format;
+    uint32 ktime;
     uint32  lastframe;
 } TAB2PVS_T;
 
@@ -2397,6 +2398,7 @@ int tab2pvs_init(CSOUND *csound, TAB2PVS_T *p)
       p->fout->format = 0;
       p->fout->framecount = 1;
       p->lastframe = 0;
+      p->ktime = 0;
       if (p->fout->frame.auxp == NULL ||
           p->fout->frame.size < sizeof(float) * (N + 2)) {
         csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
@@ -2412,6 +2414,12 @@ int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
 {
     int size = p->in->sizes[0], i;
     float *fout = (float *) p->fout->frame.auxp;
+    
+    p->ktime += CS_KSMPS;
+    if(p->ktime > (uint32) p->fout->overlap) {
+       p->fout->framecount++;
+       p->ktime = 0;
+    }
 
     if (p->lastframe < p->fout->framecount){
       for (i = 0; i < size; i++){
@@ -2419,6 +2427,7 @@ int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
       }
       p->lastframe = p->fout->framecount;
     }
+    
     return OK;
 }
 
