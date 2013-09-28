@@ -1,0 +1,359 @@
+v2.0.0 
+
+(** = backwards compatibility issue)
+(*  = deprecation issue)
+
+- Coded with C++, STL, and Boost for added robustness and lower maintenance effort.
+
+- Uses Max5 attributes (there's a csound~ tab in the inspector window).
+
+- Can save sequences as JSON or XML files (in addition to binary format).
+
+- If @matchsr attribute is 1, csound~ will auto recompile Csound with sample-rate
+  overrides whenever host sample-rate does not equal Csound sample-rate.  ksmps will
+  be preserved.
+
+- Can specify Max objects in the orchestra. Format is "<~> ... </~>" where "..."
+  is a Max script for creating an object.
+
+- Non-editable attribute @nolatency tells you when csound~ is processing audio
+  without latency.
+
+- Messages printed to the Max window can now be traced back to a specific csound~
+  instance by double-clicking on a line in the Max window.
+
+- Warnings are colored light orange in the Max window instead of red.
+
+- Fixed deadlock issues when using outlet data to trigger other csound~ functions.
+
+- Fixed memory deallocation bug when running debug build of csound~.
+   
+- If csound~ is in bypass mode, sending "start" or "bang" to compile the orchestra
+  will not be followed by an automatic run of 1 k-cycle performance.
+
+- If csound~ is in bypass mode, MIDI bytes are not queued.
+
+** No longer Max4 compatible. 
+
+** rsidx output message format has changed to: "rsidx table# index value".
+    
+* @start is deprecated. Please use @autostart instead.
+
+* "noscale" is deprecated. Now, audio is auto scaled when 0dB levels don't match.
+
+* Specifying the csound command inside the csound~ object box without an attribute
+  prefix is no longer recommended.  Start prepending it with "@arg".
+
+
+
+  
+v1.0.7
+
+- If ksmps evenly divides the Max signal vector size, [csound~] will 
+  process audio with zero latency.
+  
+- chn string channels are now supported.
+
+- Default message output interval is now 1ms (was 50ms).
+
+- Added "interval x" message (x is milliseconds).
+  With this message, user can control the rate of message output from [csound~].
+  NOTE: "overdrive 1" overrides "interval".  
+
+- User can specify attributes and add the Csound message to the 
+  [csound~] argument list.
+  
+- Fixed rare bug related to "loadsamp".
+
+v1.0.6
+
+-> In MacOSX, [csound~] will accept Max style paths as well as POSIX style
+   paths.  [dp.pathconvert] is no longer necessary.
+
+-> Added "open" message that does the same thing as double-clicking on the
+   [csound~] external; it opens the current csd or orc/sco file(s).
+
+-> Added "run" message that allows you to execute command line commands.
+
+v1.0.5
+
+-> Due to Csound API changes, v1.0.5+ is only compatible with Csound 5.10+.
+
+-> Doubles version for intel Mac now available.
+
+v1.0.4
+
+-> Fully Max5 compatible.
+
+-> "WARNING" messages will not be posted if message output is disabled.
+
+-> If a double-quoted element in an "event" message has spaces in it, 
+   [csound~] will preserve those double-quotes when passing the message
+   to Csound.
+
+   If a string element in an "event" message has a forward/backward slash,
+   it will be double-quoted before passing to Csound.
+
+-> Fixed bug causing rare crashes related to Csound posting to Max window.
+
+-> Added "loadsamp" message to load samples into pre-existing or non-existent
+   tables. 
+
+-> Added "rsidx" and "wsidx" messages to read and write Csound table values.
+
+-> Added "readbuf" and "writebuf" messages for reading/writing MSP buffers.
+
+-> Upon receiving a "bang" or "start" message, if DSP is not active, 
+   [csound~] will automatically perform one k-cycle in order to force
+   loading of tables that are set to load at time 0.
+
+-> Double-clicking on the [csound~] object opens the current csd/orc/sco
+   files in the default editor for those types of files.
+
+v1.0.3
+
+-> Added "bypass" message.  "bypass 1" enables bypass mode and
+   "bypass 0" disables bypass mode.
+
+   When bypass mode is enabled, audio arriving at [csound~]'s inlets
+   will be copied to their respective outlets.  If there is an active
+   Csound performance, it will not be performed while in bypass mode,
+   thus saving CPU cycles.
+   
+-> Added "tempo" message.  It accepts a float argument that sets
+   the playback speed when playing recorded events.  "tempo 1.0" means
+   playback at original speed.  "tempo" messages are not recorded.
+
+-> (WinXP) Fixed crashes when sending "start" or "bang" after sending a
+   "csound" message that contains files that can't be found.  Now, when
+   the "csound" message is received, all csd/orc/sco files are are
+   searched for.  If they are not found, then sending "bang" or "start"
+   will do nothing.
+
+-> (WinXP) Only two binaries included in zip file (csound~_double.mxe and
+   csound~_float.mxe).  These binaries are compatible with Csound_5.03
+   through Csound_5.06.  They should also be compatible with upcoming
+   releases (fingers crossed).
+    
+v1.0.2
+
+-> Fixed deadlock bug that occurs when starting/restarting a Csound
+   performance while [csound~] is receiving "control" messages.
+
+-> Added ability to use chnset opcode instead of outvalue opcode.
+ 
+   Declaring output channels (with the chn_k opcode) is required for 
+   chnset to work with [csound~].
+
+   Declaring input channels is not required for chnget.
+
+-> Writing/Reading a recording to/from a file now occurs in a
+   separate thread.
+
+-> Fixed endian issues when reading recordings made on different 
+   architectures.
+
+-> (WinXP) csound~.mxe size has increased due to static linking of
+   the VC8 C runtime library.  This will prevent the "error 14001"
+   problem that some people have experienced.
+
+-> Changed dependance on pthreadVC2.dll to pthreadGC2.dll (which
+   just so happens to be distributed with Csound5).  This means you
+   don't have to insall pthreadVC2.dll anymore (yay).
+
+v1.0.1
+
+-> Fixed hanging problem when attempting to read a sequence file
+   that doesn't exist.
+
+-> Fixed memory corruption when unable to allocate more memory during
+   recording or reading/writing a sequence file.
+
+2007_03_05 (aka v1.0)
+
+-> Any tabs contained in Csound messages printed to the Max window
+   are now replaced with space chars.  This will prevent the char that
+   looks like a box from being printed.
+
+-> The current directory is now (re)set before looking for a csd/orc/sco 
+   file when the "csound" message is received.  
+
+-> Fixed binary file writing for WinXP. 
+
+-> Updated csound~.sln/vcproj to VC8 (Visual C++ 2005 Express Edition).
+   They will not load in earlier versions of Visual C++.
+
+2007_02_25
+
+-> Added "overdrive" message.  "overdrive 1" enables overdrive mode; 
+   outvalue pairs are output as soon as they are received from Csound.  
+   "overdrive 0" disables overdrive mode; outvalue pairs are output every 50ms.
+
+-> Fixed memory leak when saving sequences to file.
+
+2007_02_18
+
+-> If a csd/orc/sco file specified in the "csound" message is
+   not found using fopen(), the Max function locatefile_extended()
+   is used.  This will allow csd/orc/sco files to be located within
+   Max's search path.
+
+-> Added magic # to beginning of saved sequence files.  This will prevent
+   users from loading files that are not csound~ sequences.
+
+2007_02_04
+
+-> Fixed problem of csd/orc files not being able to load when
+   located on a secondary or external drive.
+
+-> Hanging MIDI notes are now flushed when recording/playback of
+   sequences is stopped.
+
+2007_01_26
+
+-> Added "write" and "read" messages to save and load sequences of
+   MIDI and event data.  Data is in binary format. 
+
+2006_11_15
+
+-> Recompiled csound~ to be compatible with Csound5.04.
+
+2006_11_05
+
+-> Recompiled csound~ to fix compatibility issues with Csound5.03.1
+
+2006_10_16
+
+-> The opcode chnget can now be used instead of invalue.
+   chnget is useful for querying at i-rate and k-rate, whereas
+   invalue can only query at k-rate.
+
+2006_09_01
+
+-> (MacOSX) Compiled a version of csound~ compatible with MaxMSP 4.6.
+
+-> Recompiled WinXP versions to work with Csound 5.02 and 5.03.  The 
+   2006_09_01 build is incompatible with Csound 5.01 or earlier.
+
+2006_08_18
+
+-> Replaced RedBlack Tree code with a hash table to store invalue/outvalue
+   names and values.  This will not change the way you used invalue/outvalue
+   feature.  It may improve performance for low k-rate values.
+
+2006_06_15
+
+-> If message output is not enabled, then the command line string
+   passed to csoundCompile() will not be printed to the window.
+
+-> Added messages "recordStart/recordStop/playStart/playStop".
+   These messages control the newly added sequencer which can record
+   all MIDI events, "control" message events, and "event" message
+   events.  It can also play them back.  
+
+   This feature is intended mainly for non-realtime rendering.
+   Adding "-oSomeFileName.aif" to the "csound" command will enable
+   non-realtime rendering and if there are any recorded events, they
+   will be played back during the rendering.
+
+   This feature has not been fully tested and should not be considered
+   complete.  Other than this entry in the change log, there is no 
+   documentation.  If you haven't talked to me about it, then you probably
+   shouldn't use it.
+
+2006_06_13
+
+-> Fixed command line parsing so that flags that look like negative
+   numbers (e.g. "-3") are processed correctly.
+
+-> If rendering to a file and reading from a MIDI file, if the "-T"
+   flag is not present, then it is added so that the rendering thread
+   exits when the end of the MIDI file is reached.
+
+2006_04_24:
+
+-> Fixed "control" message handling of integer arguments.  Previously,
+   messages such as "control gain 100" were not handled correctly
+   because 100 is not a float (i.e. does not have a period to denote it
+   as a float).  
+
+2006_04_09:
+
+-> Fixed crash when csound~ is exited before a performance has finished.
+
+2006_03_18:
+
+-> If using 64bit csound~ on WinXP, Csound 5.01 (or later) is required.
+
+-> Added the "noscale" flag.  It's used to bypass audio data scaling
+   to/from Csound.
+
+2006_03_15:
+
+-> Added another outlet that sends a bang whenever a csd/orc is
+   successfully compiled.  It's a useful feature if you have MIDI
+   control opcodes that need to be initialized from the Max environment.
+
+-> Added messages "m", "c", and "e" which are equivalent to
+   "midi", "control", and "event", respectively.  These new messages
+   are intended to save screen space.
+
+2006_03_14:
+
+-> If neither -d or -g is present in the "csound" message, then csound~
+   will add -g to allow the user to see the ASCII representation of
+   tables.  Either -d or -g must be present to prevent crashing.
+
+-> Added bang method which acts like the "start" message.  Added
+   for compatibility with Ingalls' csound~ patches.
+
+2006_03_11:
+
+The following changes were made in order to add features that were in
+Matt Ingalls' version of csound~.
+
+-> Renamed dmp.csound~ to csound~.   
+
+-> Added second optional integer argument to specify # of output signals.
+   If no arguments are supplied, then there are 2 input/output signals.
+   If 1 argument is supplied, then that argument specifies the # of input/output
+   signals.  If 2 arguments are supplied, the first is the # of input signals 
+   and second is the # output signals.
+
+-> After "start" message is received, if the # of Csound audio channels != the
+   # of input or output signals for the external, a warning is displayed.
+
+-> Added "printout" message which works exactly like "message" message. 
+
+-> If csound~ has not received a "path" message to set the current directory,
+   relative pathnames in the "csound" will be relative to the directory
+   that contains the patch that contains csound~.
+
+-> Added the "sfdir" message.  The "sfdir" has one argument which should be the
+   pathname to a directory.  That directory will be used to set the SFDIR, SSDIR, 
+   SADIR, INCDIR, and CSSTRNGS global environment variables.  By default, these 
+   env variables are set to the defualt directory (see above).  At the moment, 
+   I don't know what the INCDIR and CSSTRNGS variables are for, but they were set 
+   in Ingalls' csound~ so I set them just in case.
+
+2006_03_07:
+
+-> Changed behavior of "start" message.  When "start" is passed to [dmp.csound~],
+   the current directory is reset to the directory that was given as part of the
+   last "path" message.  If "path" has not been received yet, then nothing is done.
+
+   This should fix the problem where other instances of [dmp.csound~] have a 
+   different directory saved as the current directory.  
+
+
+
+
+
+
+
+
+
+
+
+
+
