@@ -1,0 +1,7 @@
+- message_buffer add() functions now requires type.
+
+- CsoundObject::Compile() functions now do not post directly. Instead they now add to the message buffer.
+
+- CsoundObject::Stop() now calls csoundCleanup() and csoundReset().
+
+- Created spinlock class for Mac using OSSpinLock.
