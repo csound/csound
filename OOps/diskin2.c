@@ -246,7 +246,7 @@ int diskin_init_S(CSOUND *csound, DISKIN2 *p){
   MYFLT temp; int ret;
   temp = *p->iWinSize;
   *p->iSkipInit = temp;
-  *p->iWinSize = 2;
+  *p->iWinSize = 0;
   ret = diskin2_init_S(csound,p);
   *p->iWinSize = temp;
   return ret;
