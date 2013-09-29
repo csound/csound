@@ -210,6 +210,8 @@ int pvsin_perf(CSOUND *csound, FCHAN *p)
 
     size = fin->N < fout->N ? fin->N : fout->N;
     memcpy(fout, fin, sizeof(PVSDAT)-sizeof(AUXCH));
+    printf("fout=%p fout->frame.auxp=%p fin=%p fin->frame=%p\n",
+           fout, fout->frame.auxp, fin, fin->frame);
     memcpy(fout->frame.auxp, fin->frame, sizeof(float)*(size+2));
     return OK;
 }
