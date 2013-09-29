@@ -251,10 +251,13 @@ int csoundAppendEnv(CSOUND *csound, const char *name, const char *value)
                              + (size_t) strlen(value) + (size_t) 2);
     /* append to old value */
     strcpy(newval, oldval);     /* These are safe as space calculated above */
+    //    printf("%d: newval = %s\n", __LINE__, newval);
     // should be a better way
-    newval[strlen(oldval)+1]= ENVSEP;
-    newval[strlen(oldval)+2]= '\0';
+    newval[strlen(oldval)]= ENVSEP;
+    newval[strlen(oldval)+1]= '\0';
+    //    printf("%d: newval = %s\n", __LINE__, newval);
     strcat(newval, value);
+    //    printf("%d: newval = %s\n", __LINE__, newval);
     /* set variable */
     retval = csoundSetEnv(csound, name, newval);
     mfree(csound, newval);
@@ -289,9 +292,12 @@ int csoundPrependEnv(CSOUND *csound, const char *name, const char *value)
                                      + (size_t) strlen(value) + (size_t) 2);
     /* prepend to old value */
     strcpy(newval, value);
-    newval[strlen(value)+1]= ENVSEP;
-    newval[strlen(value)+2]= '\0';
+    //    printf("%d: newval = %s\n", __LINE__,  newval);
+    newval[strlen(value)]= ENVSEP;
+    newval[strlen(value)+1]= '\0';
+    //    printf("%d: newval = %s\n", __LINE__,  newval);
     strcat(newval, oldval);
+    //    printf("%d: newval = %s\n", __LINE__,  newval);
     /* set variable */
     retval = csoundSetEnv(csound, name, newval);
     mfree(csound, newval);
