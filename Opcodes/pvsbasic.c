@@ -2418,7 +2418,7 @@ int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
     p->ktime += CS_KSMPS;
     if(p->ktime > (uint32) p->fout->overlap) {
        p->fout->framecount++;
-       p->ktime = 0;
+       p->ktime -= p->fout->overlap;
     }
 
     if (p->lastframe < p->fout->framecount){
