@@ -1302,8 +1302,8 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
     OENTRY* oentry;
     if(root->value->optype == NULL)
-    oentry = resolve_opcode(csound, entries,
-                            leftArgString, rightArgString);
+      oentry = resolve_opcode(csound, entries,
+                              leftArgString, rightArgString);
     /* if there is type annotation, try to resolve it */
     else oentry = resolve_opcode(csound, entries,
                                  root->value->optype, rightArgString);
