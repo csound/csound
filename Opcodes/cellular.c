@@ -95,6 +95,7 @@ static int cell(CSOUND *csound,CELL *p)
         outVec[j] = previous[j];
         actual[j] = ruleVec[(int)(previous[jm1]*4 + previous[j]*2 +
                                   previous[(j+1) % elements])];
+        printf("%d: actual = %g outVec = %g\n", j, actual[j], outVec[j]);
       }
 
     } else {
@@ -112,7 +113,7 @@ static int cell(CSOUND *csound,CELL *p)
 #define S sizeof
 
 static OENTRY localops[] = {
-  {"cell",  S(CELL),  3, TB, "",  "kkiiii",(SUBR)cell_set, (SUBR)cell        }
+  {"cell",  S(CELL),  TB, 3, "",  "kkiiii",(SUBR)cell_set, (SUBR)cell        }
 };
 
 LINKAGE
