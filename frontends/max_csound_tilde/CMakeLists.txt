@@ -26,39 +26,39 @@ check_deps(BUILD_MAX_CSOUND_TILDE
 if(BUILD_MAX_CSOUND_TILDE)
 
 set(max_csound_tilde_SRCS
-  Args.cpp    
-  Lock.cpp    
-  channel.cpp   
-  message_buffer.cpp  
-  util.cpp
-  CsoundObject.cpp  
-  PatchScripter.cpp 
-  csound~.cpp   
-  midi.cpp
-  CsoundTable.cpp   
-  atom_buffer.cpp   
-  memory.cpp    
-  sequencer.cpp)
+  src/Args.cpp    
+  src/Lock.cpp    
+  src/channel.cpp   
+  src/message_buffer.cpp  
+  src/util.cpp
+  src/CsoundObject.cpp  
+  src/PatchScripter.cpp 
+  src/csound~.cpp   
+  src/midi.cpp
+  src/CsoundTable.cpp   
+  src/atom_buffer.cpp   
+  src/memory.cpp    
+  src/sequencer.cpp)
 
 set(max_csound_tilde_headers
-  Args.h      
-  Parser.h    
-  csound~.h   
-  max_headers.h   
-  sequencer.h
-  CsoundObject.h    
-  PatchScripter.h   
-  definitions.h   
-  memory.h    
-  util.h
-  CsoundTable.h   
-  atom_buffer.h   
-  eksepshun.h   
-  message_buffer.h
-  Lock.h      
-  channel.h   
-  includes.h    
-  midi.h)
+  src/Args.h      
+  src/Parser.h    
+  src/csound~.h   
+  src/max_headers.h   
+  src/sequencer.h
+  src/CsoundObject.h    
+  src/PatchScripter.h   
+  src/definitions.h   
+  src/memory.h    
+  src/util.h
+  src/CsoundTable.h   
+  src/atom_buffer.h   
+  src/eksepshun.h   
+  src/message_buffer.h
+  src/Lock.h      
+  src/channel.h   
+  src/includes.h    
+  src/midi.h)
 
 set(maxcs_SRCS "${max_csound_tilde_SRCS};${max_csound_tilde_headers}")
 
@@ -69,14 +69,35 @@ set(maxcs_SRCS "${max_csound_tilde_SRCS};${max_csound_tilde_headers}")
 
 add_library(csound~.mxo SHARED ${maxcs_SRCS})
 target_link_libraries(csound~.mxo 
-  ${MAX_AUDIO_FRAMEWORK} ${CORE_SERVICES_FRAMEWORK}
-  ${LIBSNDFILE_LIBRARY} ${LAUNCH_SERVICES_FRAMEWORK} ${CSOUNDLIB})
+  ${MAX_AUDIO_FRAMEWORK} ${LIBSNDFILE_LIBRARY} ${CSOUNDLIB}
+  ${CORE_SERVICES_FRAMEWORK} )
 include_directories(${MAX_INCLUDES_DIR})
 include_directories(${MSP_INCLUDES_DIR})
 include_directories(${CORE_SERVICES_FRAMEWORK}/Frameworks/CarbonCore.framework/Headers)
 include_directories(${LAUNCH_SERVICES_FRAMEWORK}/Headers)
 
 set_target_properties(csound~.mxo PROPERTIES FRAMEWORK YES)
+set(CSMXO_DIR ${CMAKE_CURRENT_BINARY_DIR}/Debug/csound~.mxo)
+
+add_custom_command(TARGET csound~.mxo
+  POST_BUILD
+  COMMAND rm ARGS -r ${CSMXO_DIR}) 
+
+add_custom_command(TARGET csound~.mxo
+  POST_BUILD
+  COMMAND mv ARGS -f ${CMAKE_CURRENT_BINARY_DIR}/Debug/csound~.mxo.framework ${CSMXO_DIR}) 
+
+add_custom_command(TARGET csound~.mxo
+  POST_BUILD
+  COMMAND mv ARGS -f ${CSMXO_DIR}/csound~.mxo  ${CSMXO_DIR}/csound~) 
+
+add_custom_command(TARGET csound~.mxo
+  POST_BUILD
+  COMMAND sed ARGS 's/csound~.mxo/csound~/g' ${CSMXO_DIR}/Resources/Info.plist > ${CSMXO_DIR}/Resources/Info2.plist) 
+
+add_custom_command(TARGET csound~.mxo
+  POST_BUILD
+  COMMAND mv ARGS -f ${CSMXO_DIR}/Resources/Info2.plist ${CSMXO_DIR}/Resources/Info.plist) 
 
 # Ugh, adding this here as using the long one from C74's
 # SDK causes Xcode 5 to crash
