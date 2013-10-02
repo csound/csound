@@ -1119,7 +1119,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     tp = csound->engineState.instrtxtp[instno];
     /* set local ksmps if defined by user */
     n = p->OUTOCOUNT + p->INOCOUNT - 1;
-    
+
     if (*(p->ar[n]) != FL(0.0)) {
       i = (unsigned int) *(p->ar[n]);
       if (UNLIKELY(i < 1 || i > csound->ksmps ||
@@ -1129,7 +1129,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       }
       local_ksmps = i;
     }
-    
+
     if (!p->ip) {
       /* search for already allocated, but not active instance */
       /* if none was found, allocate a new instance */
@@ -1162,7 +1162,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       buf->parent_ip = p->parent_ip = parent_ip;
 
     }
- 
+
    /* copy parameters from the caller instrument into our subinstrument */
     lcurip = p->ip;
 
@@ -2062,7 +2062,7 @@ static void instance(CSOUND *csound, int insno)
       if (ep->useropinfo == NULL)
         argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
       else          /* user defined opcodes are a special case */
-	  argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
+        argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
 
       arg = ttp->outArgs;
       for (n = 0; arg != NULL; n++) {
