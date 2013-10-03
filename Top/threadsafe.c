@@ -190,6 +190,7 @@ PUBLIC int csoundSetPvsChannel(CSOUND *csound, const PVSDATEXT *fin,
           f->frame = mrealloc(csound, f->frame, sizeof(float)*(fin->N+2));
 	} 
         memcpy(f, fin, sizeof(PVSDATEXT)-sizeof(float *));
+        if(fin->frame != NULL)
         memcpy(f->frame, fin->frame, sizeof(float)*(f->N+2));
         csoundSpinUnLock(lock);
     } else {
