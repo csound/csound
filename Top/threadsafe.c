@@ -175,14 +175,23 @@ void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
 PUBLIC int csoundSetPvsChannel(CSOUND *csound, const PVSDATEXT *fin,
                                const char *name)
 {
-    MYFLT *f;
-    if (csoundGetChannelPtr(csound, &f, name,
+    MYFLT *pp;
+    PVSDATEXT *f;
+    if (csoundGetChannelPtr(csound, &pp, name,
                            CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL)
             == CSOUND_SUCCESS){
         int    *lock =
                 csoundGetChannelLock(csound, name);
+        f = (PVSDATEXT *) pp;
         csoundSpinLock(lock);
-        memcpy(f, fin, sizeof(PVSDATEXT));
+        if(f->frame == NULL) {
+          f->frame = mcalloc(csound, sizeof(float)*(fin->N+2));
+	} else if(f->N < fin->N) {
+          f->frame = mrealloc(csound, f->frame, sizeof(float)*(fin->N+2));
+	} 
+        memcpy(f, fin, sizeof(PVSDATEXT)-sizeof(float *));
+        if(fin->frame != NULL)
+        memcpy(f->frame, fin->frame, sizeof(float)*(f->N+2));
         csoundSpinUnLock(lock);
     } else {
         return CSOUND_ERROR;
@@ -193,14 +202,18 @@ PUBLIC int csoundSetPvsChannel(CSOUND *csound, const PVSDATEXT *fin,
 PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout,
                                const char *name)
 {
-    MYFLT *f;
-    if (csoundGetChannelPtr(csound, &f, name,
+    MYFLT *pp;
+    PVSDATEXT *f;
+    if (csoundGetChannelPtr(csound, &pp, name,
                            CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL)
             == CSOUND_SUCCESS){
       int    *lock =
       csoundGetChannelLock(csound, name);
+      f = (PVSDATEXT *) pp;
       csoundSpinLock(lock);
-      memcpy(fout, f, sizeof(PVSDATEXT));
+      memcpy(fout, f, sizeof(PVSDATEXT)-sizeof(float *));
+      if(fout->frame != NULL)
+        memcpy(fout->frame, f->frame, sizeof(float)*(fout->N+2));
       csoundSpinUnLock(lock);
     } else {
         return CSOUND_ERROR;
