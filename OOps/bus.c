@@ -174,9 +174,25 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
 int pvsin_init(CSOUND *csound, FCHAN *p)
 {
     int N;
-    N = p->init.N = (int32)(*p->N ? *p->N : 1024);
-    p->init.overlap = (int32) (*p->overlap ? *p->overlap : p->init.N/4);
-    p->init.winsize = (int32) (*p->winsize ? *p->winsize : p->init.N);
+    MYFLT *pp;
+    PVSDATEXT *f;
+    int     n = (int)MYFLT2LRND(*(p->a));
+    char name[16];
+     sprintf(name, "%i", n);
+    if (csoundGetChannelPtr(csound, &pp, name,
+                           CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL)
+            == CSOUND_SUCCESS){
+        int    *lock =
+                csoundGetChannelLock(csound, name);
+        f = (PVSDATEXT *) pp;
+        csoundSpinLock(lock);
+        memcpy(&(p->init), f, sizeof(PVSDAT)-sizeof(AUXCH));
+        csoundSpinUnLock(lock);
+    }
+
+    N = p->init.N = (int32)(*p->N ? *p->N : p->init.N);
+    p->init.overlap = (int32) (*p->overlap ? *p->overlap : p->init.overlap);
+    p->init.winsize = (int32) (*p->winsize ? *p->winsize : p->init.winsize);
     p->init.wintype = (int32)(*p->wintype);
     p->init.format = (int32)(*p->format);
     p->init.framecount = 0;
@@ -226,7 +242,10 @@ int pvsout_init(CSOUND *csound, FCHAN *p)
     PVSDAT *fin = p->r;
     MYFLT *pp;
     PVSDATEXT *f;
+    int     n = (int)MYFLT2LRND(*(p->a));
     char name[16];
+
+    sprintf(name, "%i", n);
     if (csoundGetChannelPtr(csound, &pp, name,
                            CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL)
             == CSOUND_SUCCESS){

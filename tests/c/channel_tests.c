@@ -240,6 +240,7 @@ const char orc5[] = "chn_k \"winsize\", 3\n"
         "instr 1\n"
         "finput pvsin 1 \n"
         "ioverlap, inumbins, iwinsize, iformat pvsinfo finput\n"
+        "pvsout finput, 1\n"
         "chnset iwinsize, \"winsize\"\n"
         "endin\n";
 
