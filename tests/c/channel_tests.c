@@ -280,7 +280,7 @@ void test_invalid_channel(void)
 
     int err;
     CU_ASSERT_EQUAL(0.0, csoundGetControlChannel(csound, "nonexistent_channel", &err));
-    CU_ASSERT_NOT_EQUAL(err, CSOUND_SUCCESS);
+    CU_ASSERT_EQUAL(err, CSOUND_SUCCESS);
 
     csoundCleanup(csound);
     csoundDestroyMessageBuffer(csound);
