@@ -254,6 +254,8 @@ void test_pvs_opcodes(void)
     CU_ASSERT(err == CSOUND_SUCCESS);
     err = csoundStart(csound);
     PVSDATEXT pvs_data, pvs_data2;
+    memset(&pvs_data,0,sizeof(PVSDATEXT));
+    memset(&pvs_data2,0,sizeof(PVSDATEXT));
     pvs_data.N = 16;
     pvs_data.winsize = 32;
     err = csoundSetPvsChannel(csound, &pvs_data, "1");
