@@ -113,8 +113,8 @@ void CsoundObject::Compile()
 int CsoundObject::Compile(bool lock)
 {
 	int threadCreateResult, result = COMPILATION_FAILURE;
-	char *opcodedir = NULL;
-	string default_opcodedir;
+//	char *opcodedir = NULL;
+//	string default_opcodedir;
 	MYFLT *csIn = NULL;
 
 	if(!m_args.ArgListValid())
@@ -127,17 +127,18 @@ int CsoundObject::Compile(bool lock)
 	{
 		m_midiBuffer.Clear();
 	
-		#ifdef MACOSX
-			if(sizeof(MYFLT) == sizeof(float))
-				default_opcodedir = "/Library/Frameworks/CsoundLib.framework/Resources/Opcodes";
-			else
-				default_opcodedir = "/Library/Frameworks/CsoundLib64.framework/Resources/Opcodes64";
-		#elif _WINDOWS
-			if(sizeof(MYFLT) == sizeof(float))
-				default_opcodedir = "C:\\Program Files\\Csound\\plugins";
-			else
-				default_opcodedir = "C:\\Program Files\\Csound\\plugins64";
-		#endif
+        // FIXME - look into setting this again, at least for Windows
+//		#ifdef MACOSX
+//			if(sizeof(MYFLT) == sizeof(float))
+//				default_opcodedir = "/Library/Frameworks/CsoundLib.framework/Resources/Opcodes";
+//			else
+//				default_opcodedir = "/Library/Frameworks/CsoundLib64.framework/Versions/6.0/Resources/Opcodes64";
+//		#elif _WINDOWS
+//			if(sizeof(MYFLT) == sizeof(float))
+//				default_opcodedir = "C:\\Program Files\\Csound\\plugins";
+//			else
+//				default_opcodedir = "C:\\Program Files\\Csound\\plugins64";
+//		#endif
 	
 		{	
 			// Begin locked section.
@@ -145,18 +146,18 @@ int CsoundObject::Compile(bool lock)
 
 			m_compiled = false;
 
-			if(sizeof(MYFLT) == sizeof(float))
-			{
-				opcodedir = (char*) csoundGetEnv(NULL, "OPCODEDIR");
-				if(!opcodedir && 0 != csoundSetGlobalEnv("OPCODEDIR", default_opcodedir.c_str())) 
-					m_msg_buf.addv(message::_ERROR_MSG, "csoundSetGlobalEnv(OPCODEDIR,%s) failed.", default_opcodedir.c_str());
-			}
-			else
-			{
-				opcodedir = (char*) csoundGetEnv(NULL, "OPCODEDIR64");
-				if(!opcodedir && 0 != csoundSetGlobalEnv("OPCODEDIR64", default_opcodedir.c_str()))
-					m_msg_buf.addv(message::_ERROR_MSG, "csoundSetGlobalEnv(OPCODEDIR64,%s) failed.", default_opcodedir.c_str());
-			}
+//			if(sizeof(MYFLT) == sizeof(float))
+//			{
+//				opcodedir = (char*) csoundGetEnv(NULL, "OPCODE6DIR");
+//				if(!opcodedir && 0 != csoundSetGlobalEnv("OPCODE6DIR", default_opcodedir.c_str()))
+//					m_msg_buf.addv(message::_ERROR_MSG, "csoundSetGlobalEnv(OPCODE6DIR,%s) failed.", default_opcodedir.c_str());
+//			}
+//			else
+//			{
+//				opcodedir = (char*) csoundGetEnv(NULL, "OPCODE6DIR64");
+//				if(!opcodedir && 0 != csoundSetGlobalEnv("OPCODE6DIR64", default_opcodedir.c_str()))
+//					m_msg_buf.addv(message::_ERROR_MSG, "csoundSetGlobalEnv(OPCODE6DIR64,%s) failed.", default_opcodedir.c_str());
+//			}
 		
 			// Let the user know what arguments are being passed to csoundCompile().
 			if(m_x->messageOutputEnabled) 
@@ -169,8 +170,10 @@ int CsoundObject::Compile(bool lock)
             #endif
 
             // Cannot render to file if csoundSetHostImplementedAudioIO() is called.
-            if(!m_renderingToFile) 
+            if(!m_renderingToFile) {
                 csoundSetHostImplementedAudioIO(m_csound, 1, 0);
+                csoundSetHostImplementedMIDIIO(m_csound, 1);
+            }
 
             // These functions cannot be called until after csoundPreCompile()
             // has executed.  csoundPreCompile() allocates memory for an MGLOBAL
@@ -220,6 +223,7 @@ int CsoundObject::Compile(bool lock)
             if(!sys_getdspstate() && !m_x->bypass)
             {
                 m_iChanGroup.GetPtrs();                             // Sync channel values before running a k-cycle.
+                csoundStart(m_csound);
                 csIn = csoundGetSpin(m_csound);
                 memset(csIn, 0, sizeof(MYFLT) * m_ksmps * m_chans); // Fill the input buffers with zeros.
                 m_performanceFinished = csoundPerformKsmps(m_csound);
