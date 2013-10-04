@@ -198,7 +198,7 @@ int pvsin_init(CSOUND *csound, FCHAN *p)
     p->init.framecount = 0;
     memcpy(p->r, &p->init, sizeof(PVSDAT)-sizeof(AUXCH));
     if (p->r->frame.auxp == NULL ||
-        p->r->frame.size < sizeof(float) * (N + 2))
+      p->r->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->r->frame);
     return OK;
 }
