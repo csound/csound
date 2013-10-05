@@ -1054,6 +1054,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
           }
 
           argType = get_arg_type2(csound, current, typeTable);
+          if(argType==NULL) return 1;
 
           //FIXME - this feels like a hack
           if (*argType == 'c' || *argType == 'r' || *argType == 'p') {
