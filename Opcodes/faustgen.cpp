@@ -252,11 +252,12 @@ void *init_faustcompile_thread(void *pp) {
                              "", "faustop", (const char *) p->code->data,
                              "", err_msg, 3);
   if(factory == NULL) {
+    csound->Message(csound,Str("\nFaust compilation problem:\nline %s\n"), &(err_msg[1]));
+    *(p->hptr) = FL(-2.0); // error code.
     free(argv);
     free(cmd);
     free(pp);
-    ret = csound->InitError(csound,
-                             Str("Faust compilation problem: %s\n"), err_msg);
+    ret = -1;   
     pthread_exit(&ret);
   }
 
@@ -369,7 +370,7 @@ int delete_faustgen(CSOUND *csound, void *p) {
 int init_faustaudio(CSOUND *csound, faustgen *p){
   int factory;
   OPARMS parms;
-  faustobj  *fobj, **pfdsp, *fdsp;
+  faustobj  *fobj, **fobjp, **pfdsp, *fdsp;
   llvm_dsp  *dsp;
   controls  *ctls = new controls();
   const char *varname = "::dsp";
@@ -378,12 +379,19 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
 #else
   while((int) *((MYFLT *)p->code) == -1) Sleep(1);
 #endif
+  
   factory = (int) *((MYFLT *)p->code);
 
-  fobj = *((faustobj **) csound->QueryGlobalVariable(csound,"::factory"));
+  if(factory == -2)
+    return csound->InitError(csound,
+                             Str("Faust code did not compile properly.\n"
+				 "Check above messages for Faust compiler errors\n"));
+ 
+  fobjp = (faustobj **) csound->QueryGlobalVariable(csound,"::factory");
   if(fobj == NULL)
     return csound->InitError(csound,
                              Str("no factory available\n"));
+  fobj = *fobjp;
   while(fobj->cnt != factory) {
     fobj = fobj->nxt;
     if(fobj == NULL)
@@ -633,13 +641,14 @@ struct faustctl {
 
 int init_faustctl(CSOUND *csound, faustctl *p){
 
-  faustobj *fobj;
+  faustobj *fobj, **fobjp;
   int instance = (int) *p->inst;
 
-  fobj = *((faustobj **) csound->QueryGlobalVariable(csound,"::dsp"));
-  if(fobj == NULL)
+  fobjp = (faustobj **) csound->QueryGlobalVariable(csound,"::dsp");
+  if(fobjp == NULL)
     return csound->InitError(csound,
                              Str("no dsp instances available\n"));
+  fobj = *fobjp;  
 
   while(fobj->cnt != instance) {
     fobj = fobj->nxt;
