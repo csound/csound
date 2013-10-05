@@ -184,7 +184,17 @@ PUBLIC int csoundSetPvsChannel(CSOUND *csound, const PVSDATEXT *fin,
                 csoundGetChannelLock(csound, name);
         f = (PVSDATEXT *) pp;
         csoundSpinLock(lock);
-        memcpy(f, fin, sizeof(PVSDATEXT));
+        
+        
+        if(f->frame == NULL) {
+          f->frame = mcalloc(csound, sizeof(float)*(fin->N+2));
+	} else if(f->N < fin->N) {
+          f->frame = mrealloc(csound, f->frame, sizeof(float)*(fin->N+2));
+	}
+
+        memcpy(f, fin, sizeof(PVSDATEXT)-sizeof(float *));
+        if(fin->frame != NULL)
+	  memcpy(f->frame, fin->frame, (f->N+2)*sizeof(float)); 
         csoundSpinUnLock(lock);
     } else {
         return CSOUND_ERROR;
@@ -205,7 +215,9 @@ PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout,
       f = (PVSDATEXT *) pp;
       if(pp == NULL) return CSOUND_ERROR;
       csoundSpinLock(lock);
-      memcpy(fout, f, sizeof(PVSDATEXT));
+      memcpy(fout, f, sizeof(PVSDATEXT)-sizeof(float *));
+      if(fout->frame != NULL && f->frame != NULL) 
+	memcpy(fout->frame, f->frame, sizeof(float)*(fout->N));
       csoundSpinUnLock(lock);
     } else {
         return CSOUND_ERROR;
