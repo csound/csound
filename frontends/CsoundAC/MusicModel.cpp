@@ -247,6 +247,9 @@ namespace csound
       }
       getScore().save(getMidiFilename().c_str());
     }
+    if ((argsmap.find("--notation") != argsmap.end()) && !errorStatus) {
+        translateToNotation();
+    }
     if ((argsmap.find("--audio") != argsmap.end()) && !errorStatus) {
       postPossible = false;
       const char *audiosystem = argsmap["--audio"].c_str();
