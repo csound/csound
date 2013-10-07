@@ -919,7 +919,7 @@ void *diskin_io_thread(void *p){
     current->csound->QueryGlobalVariable(current->csound,"DISKIN_THREAD_START");
   while(*start){
     current = (DISKIN_INST *) p;
-    csoundSleep(wakeup > 0 ? wakeup : 1); 
+    csoundSleep(wakeup > 0 ? wakeup : 1);
     while(current != NULL){
       diskin_file_read(current->csound, current->diskin);
       current = current->nxt;
