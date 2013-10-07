@@ -46,17 +46,17 @@ static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
       corfile_putc(*c, sco);
 }
 
-/* 
+/*
    The 'first' parameter was added so that the
-   copies of p2 and p3 are made only in scores 
+   copies of p2 and p3 are made only in scores
    loaded before the first compilation before
    performance starts; in this case swritestr()
    is called with first = 0;
-   In the case of scores passed in after Csound 
+   In the case of scores passed in after Csound
    is running, events are scheduled as RT events
    through the linevent mechanism (linevent.c)
    and in that scenario, cannot contain duplicate
-   p2 and p3 values. In this case, swritestr() is 
+   p2 and p3 values. In this case, swritestr() is
    called with first = 1;
    VL - new in Csound 6.
 */
@@ -115,10 +115,10 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
         sprintf(temp,"%d ",(int32)bp->p3val);   /* put p3val  */
         fpnum(csound,temp, lincnt, pcnt, sco);
         corfile_putc(SP, sco);
-	if (first) { 
-        sprintf(temp,"%d ",(int32)bp->newp3);   /* put newp3  */
-        fpnum(csound,temp, lincnt, pcnt, sco);
-	}
+        if (first) {
+          sprintf(temp,"%d ",(int32)bp->newp3);   /* put newp3  */
+          fpnum(csound,temp, lincnt, pcnt, sco);
+        }
         while ((c = *p++) != SP && c != LF)
           ;
       }

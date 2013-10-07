@@ -1952,7 +1952,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
 
           /* calc noise */
           if (i < 25) {
-            noise = nzamp * cos(p->noiphase[i]) * 
+            noise = nzamp * cos(p->noiphase[i]) *
                     randiats(csound, &(p->randinoise[i]));
             p->noiphase[i] += p->phaseinc[i];
           }

@@ -100,7 +100,7 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
         input = delay[1] = stg[1];
         stg[2] = delay[2] + tune*((tanhstg[1] = tanh(input*THERMAL)) - tanhstg[2]);
         input = delay[2] = stg[2];
-        stg[3] = delay[3] + tune*((tanhstg[2] = 
+        stg[3] = delay[3] + tune*((tanhstg[2] =
                                    tanh(input*THERMAL)) - tanh(delay[3]*THERMAL));
         delay[3] = stg[3];
 #else
@@ -270,4 +270,3 @@ int newfils_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

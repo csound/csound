@@ -885,7 +885,7 @@ static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
  * following way is searched:
  *   1. if envList is NULL or empty, no directories are searched
  *   2. envList is parsed as a ';' or ':' separated list of environment
- *      variable names, and all environment variables are expanded and 
+ *      variable names, and all environment variables are expanded and
  *      expected to contain a ';' or ':' separated list of directory names
  *   2. all directories in the resulting pathname list are searched, starting
  *      from the last and towards the first one, and the directory where the

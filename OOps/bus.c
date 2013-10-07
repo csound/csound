@@ -255,9 +255,9 @@ int pvsout_init(CSOUND *csound, FCHAN *p)
         csoundSpinLock(lock);
         if(f->frame == NULL) {
           f->frame = mcalloc(csound, sizeof(float)*(fin->N+2));
-	} else if(f->N < fin->N) {
+        } else if(f->N < fin->N) {
           f->frame = mrealloc(csound, f->frame, sizeof(float)*(fin->N+2));
-	}
+        }
         memcpy(f, fin, sizeof(PVSDAT)-sizeof(AUXCH));
         csoundSpinUnLock(lock);
     }

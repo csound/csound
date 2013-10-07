@@ -120,7 +120,7 @@ int aassign(CSOUND *csound, ASSIGN *p)
       }
       memcpy(&p->r[offset], &p->a[offset], (nsmps-offset) * sizeof(MYFLT));
     }
-    else 
+    else
       *p->r =*p->a;
     return OK;
 }
@@ -1343,7 +1343,7 @@ int inarray(CSOUND *csound, INA *p)
     uint32_t m, nsmps =CS_KSMPS, i;
     uint32_t ksmps = nsmps;
 
-    if (n>csound->inchnls) n = csound->inchnls;
+    if ((int)n>csound->inchnls) n = csound->inchnls;
     CSOUND_SPIN_SPINLOCK
     if (UNLIKELY(offset)) for (i = 0; i < n; i++)
                   memset(&data[i*ksmps], '\0', offset*sizeof(MYFLT));
