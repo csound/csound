@@ -330,9 +330,9 @@ PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable
     }
     mfree(csound, hashTable);
 }
-    
-    
-    
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

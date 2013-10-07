@@ -257,7 +257,7 @@ void *init_faustcompile_thread(void *pp) {
     free(argv);
     free(cmd);
     free(pp);
-    ret = -1;   
+    ret = -1;
     pthread_exit(&ret);
   }
 
@@ -379,14 +379,15 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
 #else
   while((int) *((MYFLT *)p->code) == -1) Sleep(1);
 #endif
-  
+
   factory = (int) *((MYFLT *)p->code);
 
   if(factory == -2)
-    return csound->InitError(csound,
-                             Str("Faust code did not compile properly.\n"
-				 "Check above messages for Faust compiler errors\n"));
- 
+    return
+      csound->InitError(csound,
+                        Str("Faust code did not compile properly.\n"
+                            "Check above messages for Faust compiler errors\n"));
+
   fobjp = (faustobj **) csound->QueryGlobalVariable(csound,"::factory");
   if(fobj == NULL)
     return csound->InitError(csound,
@@ -648,7 +649,7 @@ int init_faustctl(CSOUND *csound, faustctl *p){
   if(fobjp == NULL)
     return csound->InitError(csound,
                              Str("no dsp instances available\n"));
-  fobj = *fobjp;  
+  fobj = *fobjp;
 
   while(fobj->cnt != instance) {
     fobj = fobj->nxt;

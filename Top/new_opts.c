@@ -192,7 +192,7 @@ int parse_option_as_cfgvar(CSOUND *csound, const char *s)
       *(val++) = '\0';  /* 'buf' is now the name, 'val' is the value string */
       retval = csoundParseConfigurationVariable(csound, buf, val);
       if (UNLIKELY(retval != CSOUNDCFG_SUCCESS)) {
-        csound->Warning(csound, 
+        csound->Warning(csound,
                         Str(" *** error setting option '%s' to '%s': %s"),
                         buf, val, csoundCfgErrorCodeToString(retval));
         free((void*) buf);

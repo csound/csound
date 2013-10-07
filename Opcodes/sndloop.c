@@ -1079,7 +1079,7 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
 
     if (p->lastframe < p->fin->framecount) {
       int tmp = N/2;
-      tmp = tmp + tmp%2; 
+      tmp = tmp + tmp%2;
       for (j=0; j < 2; j++) {
         MYFLT a;
         maxe = 0.f;
@@ -1117,7 +1117,7 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
             }
           }
       }
-      
+
       kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : FL(1.0)): FL(0.0);
       for (i=0;i < N+2;i+=2) {
         fout[i] = fenv[i/2]*(fexc[i]*kdepth + fin[i]*(FL(1.0)-kdepth))*gain;
