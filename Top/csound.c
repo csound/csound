@@ -432,7 +432,7 @@ static const CSOUND cenviron_ = {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -851,9 +851,9 @@ static const CSOUND cenviron_ = {
     NULL,           /* filedir */
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
-    0,               /* info_message_request */
-    0,                /* modules loaded */
-    NULL              /* self-reference */
+    0,              /* info_message_request */
+    0,              /* modules loaded */
+    NULL            /* self-reference */
 };
 
 /* from threads.c */
@@ -1140,10 +1140,10 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     csoundReset(csound);
     csound->API_lock = csoundCreateMutex(1);
     /* NB: as suggested by F Pinot, keep the
-       address of the pointer to CSOUND inside 
+       address of the pointer to CSOUND inside
        the struct, so it can be cleared later */
     csound->self = &csound;
-   
+
     return csound;
 }
 

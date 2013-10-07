@@ -2414,7 +2414,7 @@ int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
 {
     int size = p->in->sizes[0], i;
     float *fout = (float *) p->fout->frame.auxp;
-    
+
     p->ktime += CS_KSMPS;
     if(p->ktime > (uint32) p->fout->overlap) {
        p->fout->framecount++;
@@ -2427,7 +2427,7 @@ int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
       }
       p->lastframe = p->fout->framecount;
     }
-    
+
     return OK;
 }
 
@@ -2481,7 +2481,7 @@ static OENTRY localops[] = {
                                (SUBR) pvsgainset, (SUBR) pvsgain, NULL},
   {"pvs2tab", sizeof(PVS2TAB_T), 0,3, "k", "k[]f",
                                (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
-  {"tab2pvs", sizeof(TAB2PVS_T), 0, 3, "f", "k[]oop", (SUBR) tab2pvs_init, 
+  {"tab2pvs", sizeof(TAB2PVS_T), 0, 3, "f", "k[]oop", (SUBR) tab2pvs_init,
                                                      (SUBR) tab2pvs, NULL},
   {"pvs2array", sizeof(PVS2TAB_T), 0,3, "k", "k[]f",
                                (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
