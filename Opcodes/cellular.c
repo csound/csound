@@ -41,11 +41,11 @@ static int cell_set(CSOUND *csound,CELL *p)
     FUNC        *ftp;
     int elements=0;
     MYFLT *currLine, *initVec = NULL;
-   
+
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ioutFunc)) != NULL)) {
       p->outVec = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
-       
+
       if (UNLIKELY( elements > (int)ftp->flen ))
         return csound->InitError(csound, Str("cell: invalid num of elements"));
     }
@@ -72,7 +72,7 @@ static int cell_set(CSOUND *csound,CELL *p)
     /*   *currLine++ = *initVec++; */
     /* } while (--elements); */
 
-  
+
     return OK;
 }
 
@@ -88,15 +88,15 @@ static int cell(CSOUND *csound,CELL *p)
     if (*p->ktrig) {
       int j, elements = p->elements, jm1;
       MYFLT *actual, *previous, *outVec = p->outVec , *ruleVec = p->ruleVec;
-      
+
       previous = &(p->currLine[elements * p->NewOld]);
       p->NewOld += 1;
       p->NewOld %= 2;
       actual   = &(p->currLine[elements * p->NewOld]);
 // Cellular Engine
-      
+
       for (j=0; j < elements; j++) {
-        
+
         jm1 = (j < 1) ? elements-1 : j-1;
         outVec[j] = previous[j];
         actual[j] = ruleVec[(int)(previous[jm1]*4 + previous[j]*2 +
