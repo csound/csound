@@ -188,59 +188,63 @@ int CsoundObject::Compile(bool lock)
             // Set the current directory again (in case it was changed).
             SetCurDir();
 
-            result = COMPILATION_SUCCESS;
-            csoundSetHostData(m_csound, m_x);
-            m_chans = csoundGetNchnls(m_csound);
-            m_ksmps = csoundGetKsmps(m_csound);
-            m_x->evenlyDivisible = (m_x->vectorSize % m_ksmps == 0);
-//            MaxChannelStringLength = csoundGetStrVarMaxLen(m_csound);
-            MaxChannelStringLength = 256; //FIXME - not sure this is correct...
-            m_compiled = true;
-            m_in_index = 0;
-            m_out_index = 1000000; // Must init to something larger than the largest possible Max vector size.
-            m_performanceFinished = false;
-            m_sr = csoundGetSr(m_csound);
-            m_sequencer.SetSR(m_sr);
+            if(CSOUND_SUCCESS != csoundCompile(m_csound, m_args.NumArgs(), m_args.GetArray())) {
+                m_msg_buf.add(message::_ERROR_MSG, "csoundCompile() failed.");
+            } else {
+                result = COMPILATION_SUCCESS;
+                csoundSetHostData(m_csound, m_x);
+                m_chans = csoundGetNchnls(m_csound);
+                m_ksmps = csoundGetKsmps(m_csound);
+                m_x->evenlyDivisible = (m_x->vectorSize % m_ksmps == 0);
+    //            MaxChannelStringLength = csoundGetStrVarMaxLen(m_csound);
+                MaxChannelStringLength = 256; //FIXME - not sure this is correct...
+                m_compiled = true;
+                m_in_index = 0;
+                m_out_index = 1000000; // Must init to something larger than the largest possible Max vector size.
+                m_performanceFinished = false;
+                m_sr = csoundGetSr(m_csound);
+                m_sequencer.SetSR(m_sr);
+              
+                if(m_x->sr != m_sr)
+                {
+                    result = COMPILATION_SUCCESS_MISMATCHED_SR;
+                    if(!m_x->matchMaxSR && m_x->messageOutputEnabled)
+                        m_msg_buf.addv(message::_WARNING_MSG, "Max sr (%d) != Csound sr (%d)", m_x->sr, m_sr);
+                }
+
+                m_scale = csoundGet0dBFS(m_csound);
+                m_oneDivScale = 1.0 / m_scale;
             
-            if(m_x->sr != m_sr)
-            {
-                result = COMPILATION_SUCCESS_MISMATCHED_SR;
-                if(!m_x->matchMaxSR && m_x->messageOutputEnabled)
-                    m_msg_buf.addv(message::_WARNING_MSG, "Max sr (%d) != Csound sr (%d)", m_x->sr, m_sr);
-            }
+                if(m_chans != m_x->numInSignals)
+                    m_msg_buf.addv(message::_WARNING_MSG, "# of Csound audio channels (%d) != # of signal inlets (%d).", m_chans, m_x->numInSignals);
+            
+                if(m_chans != m_x->numOutSignals)
+                    m_msg_buf.addv(message::_WARNING_MSG, "# of Csound audio channels (%d) != # of signal outlets (%d).", m_chans, m_x->numOutSignals);
 
-            m_scale = csoundGet0dBFS(m_csound);
-            m_oneDivScale = 1.0 / m_scale;
-        
-            if(m_chans != m_x->numInSignals)
-                m_msg_buf.addv(message::_WARNING_MSG, "# of Csound audio channels (%d) != # of signal inlets (%d).", m_chans, m_x->numInSignals);
-        
-            if(m_chans != m_x->numOutSignals)
-                m_msg_buf.addv(message::_WARNING_MSG, "# of Csound audio channels (%d) != # of signal outlets (%d).", m_chans, m_x->numOutSignals);
-
-            // If DSP is not active and bypass == 0, perform one k-cycle of the newly compiled 
-            // Csound instance to force table loading.
-            if(!sys_getdspstate() && !m_x->bypass)
-            {
-                m_iChanGroup.GetPtrs();                             // Sync channel values before running a k-cycle.
                 csoundStart(m_csound);
-                csIn = csoundGetSpin(m_csound);
-                memset(csIn, 0, sizeof(MYFLT) * m_ksmps * m_chans); // Fill the input buffers with zeros.
-                m_performanceFinished = csoundPerformKsmps(m_csound);
-            }
+                // If DSP is not active and bypass == 0, perform one k-cycle of the newly compiled
+                // Csound instance to force table loading.
+                if(!sys_getdspstate() && !m_x->bypass)
+                {
+                    m_iChanGroup.GetPtrs();                             // Sync channel values before running a k-cycle.
+                    csIn = csoundGetSpin(m_csound);
+                    memset(csIn, 0, sizeof(MYFLT) * m_ksmps * m_chans); // Fill the input buffers with zeros.
+                    m_performanceFinished = csoundPerformKsmps(m_csound);
+                }
 
-            m_iChanGroup.GetPtrs();
-            m_oChanGroup.GetPtrs();
+                m_iChanGroup.GetPtrs();
+                m_oChanGroup.GetPtrs();
 
-            // Set inChans to the lesser of the two (x->chans and x->numInSignals).  Same for outChans.
-            m_inChans = (m_chans < m_x->numInSignals ? m_chans : m_x->numInSignals);
-            m_outChans = (m_chans < m_x->numOutSignals ? m_chans : m_x->numOutSignals);
-        
-            if(m_renderingToFile)
-            {
-                threadCreateResult = pthread_create(&m_renderThread, NULL, (void *(*)(void*))CsoundObject_RenderThreadFunc, (void *) this);
-                if(threadCreateResult != 0) m_msg_buf.add(message::_ERROR_MSG, "Could not create Csound render thread.");
-                else m_renderThreadExists = true;
+                // Set inChans to the lesser of the two (x->chans and x->numInSignals).  Same for outChans.
+                m_inChans = (m_chans < m_x->numInSignals ? m_chans : m_x->numInSignals);
+                m_outChans = (m_chans < m_x->numOutSignals ? m_chans : m_x->numOutSignals);
+            
+                if(m_renderingToFile)
+                {
+                    threadCreateResult = pthread_create(&m_renderThread, NULL, (void *(*)(void*))CsoundObject_RenderThreadFunc, (void *) this);
+                    if(threadCreateResult != 0) m_msg_buf.add(message::_ERROR_MSG, "Could not create Csound render thread.");
+                    else m_renderThreadExists = true;
+                }
             }
 		} // End locked section.
 	}
