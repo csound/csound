@@ -895,13 +895,13 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
     csound->DestroyGlobalVariable(csound, "_rtjackGlobals");
     if (p.client != (jack_client_t*) NULL) {
       /* deactivate client */
-      if (p.jackState != 2) {
-        if (p.jackState == 0)
-          csound->Sleep((size_t)
-                        ((int) ((double) (p.bufSize * p.nBuffers)
-                                * 1000.0 / (double) p.sampleRate + 0.999)));
+      //if (p.jackState != 2) {
+      //if (p.jackState == 0)
+      //  csound->Sleep((size_t)
+      //                ((int) ((double) (p.bufSize * p.nBuffers)
+      //                        * 1000.0 / (double) p.sampleRate + 0.999)));
         jack_deactivate(p.client);
-      }
+	//}
       csound->Sleep((size_t) 50);
       /* unregister and free all ports */
       if (p.inPorts != NULL) {
