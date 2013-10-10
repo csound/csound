@@ -58,6 +58,7 @@ int T_EXPORT main(void)
 	class_addmethod(c, (method)csound_control,      "control", A_GIMME, 0);
 	class_addmethod(c, (method)csound_dblclick,     "dblclick", A_CANT, 0);
 	class_addmethod(c, (method)csound_dsp,          "dsp", A_CANT, 0);
+   	class_addmethod(c, (method)csound_dsp64,          "dsp64", A_CANT, 0);
 	class_addmethod(c, (method)csound_event,        "e", A_GIMME, 0);
 	class_addmethod(c, (method)csound_event,        "event", A_GIMME, 0);
 	class_addmethod(c, (method)csound_float,        "float", A_FLOAT, 0);
@@ -287,6 +288,48 @@ t_int *csound_perform(t_int *w)
 	return (w+1+x->numPerformArgs);  
 }
 
+
+void csound_perform64(t_object *_x, t_object *dsp64, double **ins,
+                           long numins, double **outs, long numouts, long sampleframes, long flags, void *
+                           userparam) {
+    
+	t_csound *x = (t_csound *)_x;
+	int i, chan, vectorSize = x->vectorSize;
+	CsoundObject *cso = x->cso;
+	x->in64 = ins, x->out64 = outs;
+    
+//	for(i=0; i<x->numInSignals; i++) x->in[i] = (float *)(w[i+2]);
+	for(i=0; i < numouts; i++)
+	{
+		memset(outs[i], 0, sizeof(t_double) * sampleframes);
+	}
+    
+	if(x->l_obj.z_disabled) return;
+	
+	if(x->bypass)
+	{
+		// Copy audio input to output.
+		chan = (x->numInSignals < x->numOutSignals ? x->numInSignals : x->numOutSignals);
+		for(i=0; i<chan; i++) memcpy(x->out[i], x->in[i], sizeof(double) * vectorSize);
+		
+		// Since we're bypassing the Csound performance, return early.
+		// Must return w + 1 + the # of args to perform method (see csound_dsp()).
+//		return (w+1+x->numPerformArgs);
+	}
+	
+	cso->Perform64();
+	
+	if(x->outputOverdrive && x->output)
+	{
+		cso->m_oChanGroup.ProcessDirtyChannels(ChannelGroup::AUDIO_THREAD);
+		cso->m_oChanGroup.SendDirtyChannels(x->message_outlet, ChannelGroup::AUDIO_THREAD);
+	}
+	
+	// Must return w + 1 + the # of args to perform method (see csound_dsp()).
+//	return (w+1+x->numPerformArgs);
+}
+
+
 void csound_dsp(t_csound *x, t_signal **sp, short *count)
 {
 	CsoundObject *cso = x->cso;
@@ -317,6 +360,42 @@ void csound_dsp(t_csound *x, t_signal **sp, short *count)
 		}
 	}
 
+	x->evenlyDivisible = (x->vectorSize % x->cso->m_ksmps == 0);
+}
+
+void csound_dsp64(t_csound *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
+{
+	CsoundObject *cso = x->cso;
+	int i=0, totalVectors=0;
+//	void **perform_args;
+	
+	totalVectors = x->numInSignals + x->numOutSignals;
+	x->numPerformArgs = totalVectors + 1;
+    
+//	perform_args = (void **) MemoryNew(sizeof(void*) * (totalVectors + 1));
+//	perform_args[0] = (void *) x;  // first argument is a pointer to the t_csound struct
+//	for(i=1; i<=totalVectors; i++) perform_args[i] = (void*) sp[i-1]->s_vec;
+	
+//	x->sr = sp[0]->s_sr;  // store current sampling rate
+    x->sr = (int)samplerate;  // store current sampling rate
+//	x->vectorSize = sp[0]->s_n; // store vector size
+    x->vectorSize = maxvectorsize;
+	x->one_div_sr = 1.0f / (float)x->sr; // store 1 / sr
+   
+//	dsp_addv(csound_perform, x->numPerformArgs, perform_args);
+	dsp_add64(dsp64, (t_object*)x, (t_perfroutine64)csound_perform64, 0, NULL);
+//	MemoryFree(perform_args);
+    
+	if(cso->m_compiled && x->sr != cso->m_sr)
+	{
+		if(!x->matchMaxSR && x->messageOutputEnabled)
+			object_error(x->m_obj, "Max sr (%d) != Csound sr (%d)", x->sr, x->cso->m_sr);
+		else if(x->matchMaxSR)
+		{
+			cso->Compile();
+		}
+	}
+    
 	x->evenlyDivisible = (x->vectorSize % x->cso->m_ksmps == 0);
 }
  
@@ -464,7 +543,7 @@ void csound_event(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 		switch(argv[i].a_type)
 		{
 		case A_LONG:
-			sprintf(tmp, " %d", argv[i].a_w.w_long);
+			sprintf(tmp, " %lld", argv[i].a_w.w_long);
 			totalSize += strlen(tmp);
 			strncat(buffer, tmp, MAX_EVENT_MESSAGE_SIZE - strlen(buffer) - 1);
 			break;

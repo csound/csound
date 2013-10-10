@@ -188,59 +188,63 @@ int CsoundObject::Compile(bool lock)
             // Set the current directory again (in case it was changed).
             SetCurDir();
 
-            result = COMPILATION_SUCCESS;
-            csoundSetHostData(m_csound, m_x);
-            m_chans = csoundGetNchnls(m_csound);
-            m_ksmps = csoundGetKsmps(m_csound);
-            m_x->evenlyDivisible = (m_x->vectorSize % m_ksmps == 0);
-//            MaxChannelStringLength = csoundGetStrVarMaxLen(m_csound);
-            MaxChannelStringLength = 256; //FIXME - not sure this is correct...
-            m_compiled = true;
-            m_in_index = 0;
-            m_out_index = 1000000; // Must init to something larger than the largest possible Max vector size.
-            m_performanceFinished = false;
-            m_sr = csoundGetSr(m_csound);
-            m_sequencer.SetSR(m_sr);
+            if(CSOUND_SUCCESS != csoundCompile(m_csound, m_args.NumArgs(), m_args.GetArray())) {
+                m_msg_buf.add(message::_ERROR_MSG, "csoundCompile() failed.");
+            } else {
+                result = COMPILATION_SUCCESS;
+                csoundSetHostData(m_csound, m_x);
+                m_chans = csoundGetNchnls(m_csound);
+                m_ksmps = csoundGetKsmps(m_csound);
+                m_x->evenlyDivisible = (m_x->vectorSize % m_ksmps == 0);
+    //            MaxChannelStringLength = csoundGetStrVarMaxLen(m_csound);
+                MaxChannelStringLength = 256; //FIXME - not sure this is correct...
+                m_compiled = true;
+                m_in_index = 0;
+                m_out_index = 1000000; // Must init to something larger than the largest possible Max vector size.
+                m_performanceFinished = false;
+                m_sr = csoundGetSr(m_csound);
+                m_sequencer.SetSR(m_sr);
+              
+                if(m_x->sr != m_sr)
+                {
+                    result = COMPILATION_SUCCESS_MISMATCHED_SR;
+                    if(!m_x->matchMaxSR && m_x->messageOutputEnabled)
+                        m_msg_buf.addv(message::_WARNING_MSG, "Max sr (%d) != Csound sr (%d)", m_x->sr, m_sr);
+                }
+
+                m_scale = csoundGet0dBFS(m_csound);
+                m_oneDivScale = 1.0 / m_scale;
             
-            if(m_x->sr != m_sr)
-            {
-                result = COMPILATION_SUCCESS_MISMATCHED_SR;
-                if(!m_x->matchMaxSR && m_x->messageOutputEnabled)
-                    m_msg_buf.addv(message::_WARNING_MSG, "Max sr (%d) != Csound sr (%d)", m_x->sr, m_sr);
-            }
+                if(m_chans != m_x->numInSignals)
+                    m_msg_buf.addv(message::_WARNING_MSG, "# of Csound audio channels (%d) != # of signal inlets (%d).", m_chans, m_x->numInSignals);
+            
+                if(m_chans != m_x->numOutSignals)
+                    m_msg_buf.addv(message::_WARNING_MSG, "# of Csound audio channels (%d) != # of signal outlets (%d).", m_chans, m_x->numOutSignals);
 
-            m_scale = csoundGet0dBFS(m_csound);
-            m_oneDivScale = 1.0 / m_scale;
-        
-            if(m_chans != m_x->numInSignals)
-                m_msg_buf.addv(message::_WARNING_MSG, "# of Csound audio channels (%d) != # of signal inlets (%d).", m_chans, m_x->numInSignals);
-        
-            if(m_chans != m_x->numOutSignals)
-                m_msg_buf.addv(message::_WARNING_MSG, "# of Csound audio channels (%d) != # of signal outlets (%d).", m_chans, m_x->numOutSignals);
-
-            // If DSP is not active and bypass == 0, perform one k-cycle of the newly compiled 
-            // Csound instance to force table loading.
-            if(!sys_getdspstate() && !m_x->bypass)
-            {
-                m_iChanGroup.GetPtrs();                             // Sync channel values before running a k-cycle.
                 csoundStart(m_csound);
-                csIn = csoundGetSpin(m_csound);
-                memset(csIn, 0, sizeof(MYFLT) * m_ksmps * m_chans); // Fill the input buffers with zeros.
-                m_performanceFinished = csoundPerformKsmps(m_csound);
-            }
+                // If DSP is not active and bypass == 0, perform one k-cycle of the newly compiled
+                // Csound instance to force table loading.
+                if(!sys_getdspstate() && !m_x->bypass)
+                {
+                    m_iChanGroup.GetPtrs();                             // Sync channel values before running a k-cycle.
+                    csIn = csoundGetSpin(m_csound);
+                    memset(csIn, 0, sizeof(MYFLT) * m_ksmps * m_chans); // Fill the input buffers with zeros.
+                    m_performanceFinished = csoundPerformKsmps(m_csound);
+                }
 
-            m_iChanGroup.GetPtrs();
-            m_oChanGroup.GetPtrs();
+                m_iChanGroup.GetPtrs();
+                m_oChanGroup.GetPtrs();
 
-            // Set inChans to the lesser of the two (x->chans and x->numInSignals).  Same for outChans.
-            m_inChans = (m_chans < m_x->numInSignals ? m_chans : m_x->numInSignals);
-            m_outChans = (m_chans < m_x->numOutSignals ? m_chans : m_x->numOutSignals);
-        
-            if(m_renderingToFile)
-            {
-                threadCreateResult = pthread_create(&m_renderThread, NULL, (void *(*)(void*))CsoundObject_RenderThreadFunc, (void *) this);
-                if(threadCreateResult != 0) m_msg_buf.add(message::_ERROR_MSG, "Could not create Csound render thread.");
-                else m_renderThreadExists = true;
+                // Set inChans to the lesser of the two (x->chans and x->numInSignals).  Same for outChans.
+                m_inChans = (m_chans < m_x->numInSignals ? m_chans : m_x->numInSignals);
+                m_outChans = (m_chans < m_x->numOutSignals ? m_chans : m_x->numOutSignals);
+            
+                if(m_renderingToFile)
+                {
+                    threadCreateResult = pthread_create(&m_renderThread, NULL, (void *(*)(void*))CsoundObject_RenderThreadFunc, (void *) this);
+                    if(threadCreateResult != 0) m_msg_buf.add(message::_ERROR_MSG, "Could not create Csound render thread.");
+                    else m_renderThreadExists = true;
+                }
             }
 		} // End locked section.
 	}
@@ -331,6 +335,88 @@ void CsoundObject::Perform()
 		}
 	}
 }
+
+
+void CsoundObject::Perform64()
+{
+	int i, j, chan, indexMultChans;
+	int vectorSize = m_x->vectorSize;
+	double **in = m_x->in64, **out = m_x->out64;
+	MYFLT *csIn, *csOut;
+	ScopedLock k(m_lock);
+
+	if(m_compiled && !m_renderingToFile && !m_performanceFinished)
+	{
+		csOut = csoundGetSpout(m_csound);
+		csIn = csoundGetSpin(m_csound);
+
+		if(m_x->evenlyDivisible)
+		{	/* ksmps evenly divides the current Max vector size. Keep filling csIn[].
+			 * When csIn[] is full, process Csound.  Processing Csound will give us
+			 * ksmps output frames stored in csOut[].  At the end of the for loop, if
+			 * there are any frames in csOut[], copy them to the output buffer provided
+			 * by Max.  Since vector_size % ksmps == 0, this results in latency = 0 samples. */
+			j = 0;
+			for(i=0; i<vectorSize; i++)
+			{
+				if(!m_performanceFinished)
+				{
+					indexMultChans = m_in_index * m_chans;
+					for(chan=0; chan<m_inChans; chan++)
+						csIn[indexMultChans + chan] = (MYFLT)in[chan][i] * m_scale; 
+					
+					if(++m_in_index == m_ksmps) 
+					{	
+						m_performanceFinished = csoundPerformKsmps(m_csound);
+						m_in_index = 0;
+						m_out_index = 0;
+					}
+
+					while(m_out_index < m_ksmps && j < vectorSize)
+					{
+						indexMultChans = m_out_index * m_chans;
+						for(chan=0; chan<m_outChans; chan++)
+							out[chan][j] = (t_double)(csOut[indexMultChans + chan] * m_oneDivScale);
+						++j;
+						++m_out_index;
+					}
+				}
+			}
+		}
+		else // x->evenlyDivisible == false
+		{	/* ksmps does not evenly divide the current Max vector size. Here's a description of the loop: 
+			 * We add a frame from the Max input vectors to csIn[], check to see if we have ksmps frames,
+			 * if we have ksmps frames then process Csound, then copy a frame from csOut[] to the Max output
+			 * vector (csOut[] may contain only zeros). This results in latency = ksmps. */
+			for(i=0; i<vectorSize; i++)
+			{
+				if(!m_performanceFinished)
+				{
+					if(m_in_index == m_ksmps) 
+					{	
+						m_performanceFinished = csoundPerformKsmps(m_csound);
+						m_in_index = 0;
+					}
+					indexMultChans = m_in_index * m_chans;
+					for(chan=0; chan<m_inChans; chan++)
+						csIn[indexMultChans + chan] = (MYFLT)in[chan][i] * m_scale;
+					
+					for(chan=0; chan<m_outChans; chan++)
+						out[chan][i] = (t_double)(csOut[indexMultChans + chan] * m_oneDivScale);
+					
+					++m_in_index;
+				}
+			}
+		}
+		if(m_performanceFinished) 
+		{
+			m_iChanGroup.ClearPtrs();
+			m_oChanGroup.ClearPtrs();
+			defer_low(m_obj, (method)csound_sendPerfDoneBang, NULL, 0, NULL);
+		}
+	}
+}
+
 
 void CsoundObject::Rewind()
 {
@@ -478,7 +564,7 @@ void messageCallback(CSOUND *csound, int attr, const char *format, va_list valis
 		
 		// Clear the contents of buf in preparation for the next line of text.
 		buf[0] = '\0'; 
-	}		
+	}
 }
 
 int midiInOpenCallback(CSOUND *csound, void **userData, const char *buf) { return 0; }
