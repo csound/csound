@@ -252,7 +252,9 @@ void *init_faustcompile_thread(void *pp) {
                              "", "faustop", (const char *) p->code->data,
                              "", err_msg, 3);
   if(factory == NULL) {
-    csound->Message(csound,Str("\nFaust compilation problem:\nline %s\n"), &(err_msg[1]));
+    csound->Message(csound,
+                    Str("\nFaust compilation problem:\nline %s\n"),
+                    &(err_msg[1]));
     *(p->hptr) = FL(-2.0); // error code.
     free(argv);
     free(cmd);
