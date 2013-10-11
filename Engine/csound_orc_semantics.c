@@ -1054,7 +1054,11 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
           }
 
           argType = get_arg_type2(csound, current, typeTable);
-          if(argType==NULL) return 1;
+          if(argType==NULL) {
+            synterr(csound,
+              Str("Variable type for %s could not be determined.\n"), varName);
+            return 0;
+          }
 
           //FIXME - this feels like a hack
           if (*argType == 'c' || *argType == 'r' || *argType == 'p') {
