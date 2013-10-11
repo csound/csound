@@ -900,8 +900,8 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
       //  csound->Sleep((size_t)
       //                ((int) ((double) (p.bufSize * p.nBuffers)
       //                        * 1000.0 / (double) p.sampleRate + 0.999)));
-        jack_deactivate(p.client);
-	//}
+      jack_deactivate(p.client);
+      //}
       csound->Sleep((size_t) 50);
       /* unregister and free all ports */
       if (p.inPorts != NULL) {
