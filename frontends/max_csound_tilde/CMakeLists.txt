@@ -1,6 +1,6 @@
 
 set(MAX_SDK_ROOT
-  "/Users/stevenyi/work/max_msp/MaxSDK-6.1.3")
+  "/Users/victor/src/MaxSDK-6.1.3")
 set(MAX_INCLUDES_DIR 
   "${MAX_SDK_ROOT}/c74support/max-includes")
 set(MSP_INCLUDES_DIR 

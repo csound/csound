@@ -652,6 +652,9 @@ extern "C" {
     /**
      * Prepares Csound for performance after compilation
      * using one or more of the above functions.
+     * NB: this is called internally by csoundCompile(), therefore
+     * it is only required if performance is started without
+     * a call to that function
      */
     PUBLIC int csoundStart(CSOUND *csound);
 
