@@ -571,9 +571,9 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           //constndx?  Not sure if necessary due to assumption
           //that tree will be verified
           MYFLT val = (MYFLT) cs_strtod(current->right->value->lexeme,
-                                       NULL);
+                                        NULL);
           // systems constants get set here and are not
-	  // compiled into i-time code
+          // compiled into i-time code
           myflt_pool_find_or_add(csound, csound->engineState.constantsPool, val);
 
           /* modify otran defaults*/
@@ -599,12 +599,12 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           else if (current->left->type == ZERODBFS_TOKEN) {
             _0dbfs = val;
           }
-	  
+
         }
         else{
         op->nxtop = create_opcode(csound, current, ip, engineState);
         op = last_optxt(op);
-	}
+        }
 
       }
       current = current->next;
@@ -651,7 +651,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->ekr = kr;
     if(_0dbfs < 0) csound->e0dbfs = DFLT_DBFS;
     else csound->e0dbfs = _0dbfs;
-    
+
 
     OPARMS  *O = csound->oparms;
     if (UNLIKELY(csound->e0dbfs <= FL(0.0))){
@@ -768,7 +768,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
         else {
         op->nxtop = create_opcode(csound, current, ip, engineState);
         op = last_optxt(op);
-	}
+        }
       }
       current = current->next;
     }
@@ -1619,8 +1619,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       *((MYFLT *)(var->memBlock)) = csound->inchnls;
       var = csoundFindVariableWithName(engineState->varPool, "0dbfs");
       *((MYFLT *)(var->memBlock)) = csound->e0dbfs;
-     
-      
+
+
     }
 
     if(csound->init_pass_threadlock)
