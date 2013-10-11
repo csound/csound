@@ -228,7 +228,7 @@ static int MidiDataRead(CSOUND *csound, void *userData,
 static int MidiInDeviceClose(CSOUND *csound, void *userData)
 {
     cdata * data = (cdata *)userData;
-    if(data != NULL) { 
+    if(data != NULL) {
     MIDIClientDispose(data->mclient);
     free(data->mdata);
     free(data);
