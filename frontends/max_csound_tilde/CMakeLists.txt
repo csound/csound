@@ -77,15 +77,23 @@ include_directories(${CORE_SERVICES_FRAMEWORK}/Frameworks/CarbonCore.framework/H
 include_directories(${LAUNCH_SERVICES_FRAMEWORK}/Headers)
 
 set_target_properties(csound~.mxo PROPERTIES FRAMEWORK YES)
-set(CSMXO_DIR ${CMAKE_CURRENT_BINARY_DIR}/Debug/csound~.mxo)
+
+
+if(${CMAKE_GENERATOR} STREQUAL "Xcode") 
+  set(CSMXO_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/Debug)
+else()
+  set(CSMXO_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR})
+endif()
+
+set(CSMXO_DIR ${CSMXO_OUT_DIR}/csound~.mxo)
 
 add_custom_command(TARGET csound~.mxo
   POST_BUILD
-  COMMAND rm ARGS -r ${CSMXO_DIR}) 
+  COMMAND rm ARGS -rf ${CSMXO_DIR}) 
 
 add_custom_command(TARGET csound~.mxo
   POST_BUILD
-  COMMAND mv ARGS -f ${CMAKE_CURRENT_BINARY_DIR}/Debug/csound~.mxo.framework ${CSMXO_DIR}) 
+  COMMAND mv ARGS -f ${CSMXO_OUT_DIR}/csound~.mxo.framework ${CSMXO_DIR}) 
 
 add_custom_command(TARGET csound~.mxo
   POST_BUILD
