@@ -1074,12 +1074,11 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
             if (*varName == 'g')
               var = csoundFindVariableWithName(csound->engineState.varPool,
                                                varName);
-            if(var == NULL)
+            if(var == NULL) {
               synterr(csound,
                       Str("Variable '%s' used before defined\n"), varName);
-            else break;
-
-            return 0;
+              return 0;
+            }
           }
           break;
         case T_ARRAY:
@@ -1095,13 +1094,11 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
             if (var == NULL && *varName == 'g')
               var = csoundFindVariableWithName(csound->engineState.varPool,
                                                varName);
-            if (var == NULL)
+            if (var == NULL) {
               synterr(csound,
                       Str("Variable '%s' used before defined\n"), varName);
-            else break;
-            //            csound->Warning(csound,
-            //            Str("Variable '%s' used before defined\n"), varName);
-            return 0;
+              return 0;
+            }
           }
           break;
         default:
