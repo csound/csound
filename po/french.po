@@ -231,9 +231,9 @@ msgid "%s inconsistent sr, kr, ksmps"
 msgstr "%s sr, kr, ksmps contradictoires"
 
 #: Engine/csound_orc_compile.c:643
-#, fuzzy, c-format
+#, c-format
 msgid "%s inconsistent sr, kr, ksmps \n"
-msgstr "%s sr, kr, ksmps contradictoires"
+msgstr "%s sr, kr, ksmps contradictoires\n"
 
 #: Engine/csound_orc_compile.c:659
 msgid "bad value for 0dbfs: must be positive. Setting default value."
@@ -378,11 +378,10 @@ msgid "Unknown boolean expression type found: %d\n"
 msgstr "Type d'expression booléenne inconnue détecté : %d\n"
 
 #: Engine/csound_orc_semantics.c:231
-#, fuzzy, c-format
+#, c-format
 msgid "unable to find array operator for types %s line %d\n"
 msgstr ""
-"impossible de trouver un opérateur ternaire pour les types '%s ? %s : %s' "
-"ligne %d\n"
+"impossible de trouver un opérateur de tableau pour les types '%s ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:248
 #, c-format
@@ -2670,32 +2669,35 @@ msgid " *** Cannot open device '%s' for audio input: %s"
 msgstr " *** Impossible d'ouvrir le périphérique '%s' pour l'entrée audio : %s"
 
 #: InOut/rtalsa.c:357
-#, fuzzy
 msgid "No real-time audio configurations found"
-msgstr "Non valide en configuration 3-D"
+msgstr "Configuration audio temps réel introuvable"
 
 #: InOut/rtalsa.c:364
 msgid "Error setting access type for soundcard"
-msgstr ""
+msgstr "Erreur lors du réglage du type d'accès à la carte son"
 
 #: InOut/rtalsa.c:377
 msgid ""
 "Unknown sample format.\n"
-" *** Only 16-bit and 32-bit integers, and 32-bit floats are supported."
+" *** Only 16-bit and 32-bit integers, and 32-bit floats are supported.\n"
 msgstr ""
+"Format d'échantillon inconnu.\n"
+" *** Seuls les entiers sur 16 et 32 bit et les flottants sur 32 bit "
+" sont supportés.\n"
 
 #: InOut/rtalsa.c:383
 msgid "Unable to set requested sample format on soundcard"
 msgstr ""
+"Impossible de fixer le format d'échantillonnage demandé "
+"sur la carte son"
 
 #: InOut/rtalsa.c:389
-#, fuzzy
 msgid "Unable to set number of channels on soundcard"
-msgstr "nombre de canaux non valide"
+msgstr "Impossible de fixer le nombre de canaux sur la carte son"
 
 #: InOut/rtalsa.c:397
 msgid "Unable to set sample rate on soundcard"
-msgstr ""
+msgstr "Impossible de fixer le taux d'échantillonnage sur la carte son"
 
 #: InOut/rtalsa.c:413
 #, c-format
@@ -3146,20 +3148,19 @@ msgstr " *** rtjack : erreur d'allocation des variables globales"
 
 #: InOut/rtjack.c:1047
 msgid "JACK client name (default: csound6)"
-msgstr ""
+msgstr "Nom du client JACK (par défaut : csound6)"
 
 #: InOut/rtjack.c:1056
 msgid "JACK input port name prefix (default: input)"
-msgstr ""
+msgstr "Préfixe du nom du port d'entrée de JACK (par défaut : input)"
 
 #: InOut/rtjack.c:1065
 msgid "JACK output port name prefix (default: output)"
-msgstr ""
+msgstr "Préfixe du nom du port de sortie de JACK (par défaut : output)"
 
 #: InOut/rtjack.c:1072
-#, fuzzy
 msgid "Deprecated"
-msgstr "L'opcode est obsolète"
+msgstr "Obsolète"
 
 #: InOut/rtjack.c:1105
 msgid "rtaudio: JACK module enabled\n"
@@ -4725,10 +4726,9 @@ msgid "pvsanal: fftsize of 32 is too small!\n"
 msgstr "pvsanal : une taille de tfr à 32 est trop petite !\n"
 
 #: OOps/pvsanal.c:184
-#, fuzzy
 msgid "pvsanal: window size too small for fftsize"
 msgstr ""
-"pvsanal : la taille de la fenêtre est trop petite pour la taille de tfr\n"
+"pvsanal : taille fenêtre trop petite pour la taille de tfr"
 
 #: OOps/pvsanal.c:189
 msgid "pvsanal: overlap too big for fft size\n"
@@ -5788,9 +5788,8 @@ msgid "The numbers of input and output arguments are not valid."
 msgstr "Nombre incorrect d'arguments en entrée et en sortie."
 
 #: Opcodes/ambicode1.c:117
-#, fuzzy
 msgid "array not initialised in ambibformenc1"
-msgstr "array-variable : non initialisé"
+msgstr "tableau non initialisé dans ambibformenc1"
 
 #: Opcodes/ambicode1.c:294 Opcodes/ambicode1.c:690
 msgid "The number of input arguments is not valid."
@@ -5805,9 +5804,8 @@ msgid "The output channel count does not match the isetup value."
 msgstr "Le nombre de canaux de sortie ne correspond pas à la valeur de isetup."
 
 #: Opcodes/ambicode1.c:683
-#, fuzzy
 msgid "bformdec1 output array not initilised"
-msgstr "array-variable : non initialisé"
+msgstr "tableau de sortie de bformdec1 non initialisé"
 
 #: Opcodes/arrays.c:97
 msgid "Error: no sizes set for array initialization"
@@ -6129,12 +6127,15 @@ msgid "Source sft table %.2f not found."
 msgstr "La table %.2f de la source sft n'a pas été trouvée"
 
 #: Opcodes/faustgen.cpp:256
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "Faust compilation problem:\n"
 "line %s\n"
-msgstr "Problème de compilation de Faust : %s\n"
+msgstr ""
+"\n"
+"Problème de compilation de Faust : \n"
+"ligne %s\n"
 
 #: Opcodes/faustgen.cpp:367
 #, c-format
@@ -6146,6 +6147,8 @@ msgid ""
 "Faust code did not compile properly.\n"
 "Check above messages for Faust compiler errors\n"
 msgstr ""
+"Le code Faust n'a pas été compilé proprement.\n"
+"Verifier ci-dessus les messages d'erreur du compilateur Faust\n"
 
 #: Opcodes/faustgen.cpp:396
 msgid "no factory available\n"
@@ -9475,9 +9478,8 @@ msgid "Wrong dimension"
 msgstr "Dimension incorrecte"
 
 #: Opcodes/vbap1.c:599
-#, fuzzy
 msgid "Output array not initialised"
-msgstr "array-variable : non initialisé"
+msgstr "Tableau de sortie non initialisé"
 
 #: Opcodes/vbap_n.c:346 Opcodes/vbap_n.c:794
 msgid ""
@@ -9492,9 +9494,8 @@ msgid "could not find layout table no.0"
 msgstr "la table de disposition nO.0 est introuvable"
 
 #: Opcodes/vbap_n.c:778
-#, fuzzy
 msgid "Output array in vpabmove not initalised"
-msgstr "array-variable : non initialisé"
+msgstr "Tableau de sortie de vpabmove non initialisé"
 
 #: Opcodes/vbap_zak.c:355 Opcodes/vbap_zak.c:400
 msgid "Missing fields in vbapzmove\n"
@@ -13130,9 +13131,8 @@ msgstr "scot : %d erreurs.\n"
 #~ msgid "tvar not initialised"
 #~ msgstr "array-variable : non initialisé"
 
-#, fuzzy
 #~ msgid "t-variable not initialised"
-#~ msgstr "array-variable : non initialisé"
+#~ msgstr "t-variable non initialisée"
 
 #~ msgid "mtable: incorrect table number"
 #~ msgstr "mtable : numéro de table incorrect"
