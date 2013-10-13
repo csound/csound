@@ -963,6 +963,45 @@ int comb(CSOUND *csound, COMB *p)
                              Str("comb: not initialised"));
 }
 
+int invcomb(CSOUND *csound, COMB *p)
+{
+    int n, nsmps = csound->ksmps;
+    MYFLT       *ar, *asig, *xp, *endp;
+    MYFLT       coef = p->coef;
+
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
+    if (p->prvt != *p->krvt) {
+      p->prvt = *p->krvt;
+      /*
+       * The argument to exp() in the following is sometimes a small
+       * enough negative number to result in a denormal (or worse)
+       * on Alpha. So if the result would be less than 1.0e-16, we
+       * just say it is zero and do not call exp().  heh 981101
+       */
+      double exp_arg = (double)(log001 * *p->ilpt / p->prvt);
+      if (UNLIKELY(exp_arg < -36.8413615))    /* ln(1.0e-16) */
+        coef = p->coef = FL(0.0);
+      else
+        coef = p->coef = (MYFLT)exp(exp_arg);
+    }
+    xp = p->pntr;
+    endp = (MYFLT *) p->auxch.endp;
+    ar = p->ar;
+    asig = p->asig;
+    MYFLT out;
+    for (n=0; n<nsmps; n++) {
+      out = *xp;
+      ar[n] = (*xp = asig[n])-coef*out;
+      if (UNLIKELY(++xp >= endp))
+        xp = (MYFLT *) p->auxch.auxp;
+    }
+    p->pntr = xp;
+    return OK;
+ err1:
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("combinv: not initialised"));
+}
+
 int alpass(CSOUND *csound, COMB *p)
 {
     uint32_t    offset = p->h.insdshead->ksmps_offset;
