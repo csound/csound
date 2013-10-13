@@ -361,7 +361,7 @@ OENTRY opcodlst_1[] = {
   { "expon",  S(EXPON),0,   3,      "k",    "iii",  expset, kexpon, NULL   },
   { "expon.a",  S(EXPON),0,   5,      "a",    "iii",  expset, NULL, expon   },
   { "cosseg", S(COSSEG),0,  3,      "k",    "iin",  csgset, kosseg, NULL  },
-  { "cosseg.a", S(COSSEG),0,  5,      "q",    "iin",  csgset, NULL, cosseg  },
+  { "cosseg.a", S(COSSEG),0,  5,      "a",    "iin",  csgset, NULL, cosseg  },
   { "cossegb", S(COSSEG),0, 3,      "k",    "iin",  csgset_bkpt, kosseg, NULL  },
   { "cossegb.a", S(COSSEG),0, 5,      "a",    "iin",  csgset_bkpt, NULL, cosseg  },
   { "cossegr", S(COSSEG),0,  3,     "k",    "iin",  csgrset, kcssegr, NULL  },
