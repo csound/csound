@@ -223,33 +223,37 @@ static const int diskin2_format_table[11] = {
 static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname);
 
 int diskin2_init(CSOUND *csound, DISKIN2 *p) {
+  p->SkipInit = *p->iSkipInit;
+  p->WinSize = *p->iWinSize;  
+  p->BufSize =  *p->iBufSize;
+  p->fforceSync = *p->forceSync;
   return diskin2_init_(csound,p,0);
 }
 
 int diskin2_init_S(CSOUND *csound, DISKIN2 *p) {
+  p->SkipInit = *p->iSkipInit;
+  p->WinSize = *p->iWinSize;  
+  p->BufSize =  *p->iBufSize;
+  p->fforceSync = *p->forceSync;
   return diskin2_init_(csound,p,1);
 }
 
 /* VL 11-01-13  diskin_init - calls diskin2_init  */
 
 int diskin_init(CSOUND *csound, DISKIN2 *p){
-  MYFLT temp; int ret;
-  temp = *p->iWinSize;
-  *p->iSkipInit = temp;
-  *p->iWinSize = 2;
-  ret = diskin2_init(csound,p);
-  *p->iWinSize = temp;
-  return ret;
+  p->SkipInit = *p->iWinSize;
+  p->WinSize = 2;  
+  p->BufSize = 0;
+  p->fforceSync = 0;
+  return diskin2_init_(csound,p,0);
 }
 
 int diskin_init_S(CSOUND *csound, DISKIN2 *p){
-  MYFLT temp; int ret;
-  temp = *p->iWinSize;
-  *p->iSkipInit = temp;
-  *p->iWinSize = 0;
-  ret = diskin2_init_S(csound,p);
-  *p->iWinSize = temp;
-  return ret;
+  p->SkipInit = *p->iWinSize;
+  p->WinSize = 2;  
+  p->BufSize = 0;
+  p->fforceSync = 0;
+  return diskin2_init_(csound,p,1);
 }
 
 int diskin2_async_deinit(CSOUND *csound, void *p);
@@ -318,7 +322,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
     /* interpolation window size: valid settings are 1 (no interpolation), */
     /* 2 (linear interpolation), 4 (cubic interpolation), and integer */
     /* multiples of 4 in the range 8 to 1024 (sinc interpolation) */
-    p->winSize = (int)(*(p->iWinSize) + FL(0.5));
+    p->winSize = (int)((p->WinSize) + FL(0.5));
     if (p->winSize < 1)
       p->winSize = 4;               /* use cubic interpolation by default */
     else if (p->winSize > 2) {
@@ -360,7 +364,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
     p->pos_frac_inc = (int64_t)0;
     p->prv_kTranspose = FL(0.0);
     /* allocate and initialise buffers */
-    p->bufSize = diskin2_calc_buffer_size(p, (int)(*(p->iBufSize) + FL(0.5)));
+    p->bufSize = diskin2_calc_buffer_size(p, (int)((p->BufSize) + FL(0.5)));
     n = 2 * p->bufSize * p->nChannels * (int)sizeof(MYFLT);
     if (n != (int)p->auxData.size)
       csound->AuxAlloc(csound, (int32) n, &(p->auxData));
@@ -372,7 +376,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
     memset(p->buf, 0, n*sizeof(MYFLT));
 
     // create circular buffer, on fail set mode to synchronous
-    if(csound->realtime_audio_flag==1 && *p->forceSync==0 &&
+    if(csound->realtime_audio_flag==1 && p->fforceSync==0 &&
        (p->cb = csound->CreateCircularBuffer(csound,
                                              p->bufSize*p->nChannels*2,
                                              sizeof(MYFLT))) != NULL){
@@ -1785,7 +1789,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
     /* interpolation window size: valid settings are 1 (no interpolation), */
     /* 2 (linear interpolation), 4 (cubic interpolation), and integer */
     /* multiples of 4 in the range 8 to 1024 (sinc interpolation) */
-    p->winSize = (int)(*(p->iWinSize) + FL(0.5));
+    p->winSize = (int)((p->WinSize) + FL(0.5));
     if (p->winSize < 1)
       p->winSize = 4;               /* use cubic interpolation by default */
     else if (p->winSize > 2) {
@@ -1827,7 +1831,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
     p->pos_frac_inc = (int64_t)0;
     p->prv_kTranspose = FL(0.0);
     /* allocate and initialise buffers */
-    p->bufSize = diskin2_calc_buffer_size_array(p, (int)(*(p->iBufSize) + FL(0.5)));
+    p->bufSize = diskin2_calc_buffer_size_array(p, (int)((p->BufSize) + FL(0.5)));
     n = 2 * p->bufSize * p->nChannels * (int)sizeof(MYFLT);
     if (n != (int)p->auxData.size)
       csound->AuxAlloc(csound, (int32) n, &(p->auxData));
@@ -1839,7 +1843,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
     memset(p->buf, 0, n*sizeof(MYFLT));
 
     // create circular buffer, on fail set mode to synchronous
-    if(csound->realtime_audio_flag==1 && *p->forceSync==0 &&
+    if(csound->realtime_audio_flag==1 && p->fforceSync==0 &&
        (p->cb = csound->CreateCircularBuffer(csound,
                                              p->bufSize*p->nChannels*2,
                                              sizeof(MYFLT))) != NULL){
@@ -2143,33 +2147,37 @@ int diskin2_perf_asynchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
 }
 
 int diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p) {
+    p->SkipInit = *p->iSkipInit;
+  p->WinSize = *p->iWinSize;  
+  p->BufSize =  *p->iBufSize;
+  p->fforceSync = *p->forceSync;
   return diskin2_init_array(csound,p,0);
 }
 
 int diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p) {
+  p->SkipInit = *p->iSkipInit;
+  p->WinSize = *p->iWinSize;  
+  p->BufSize =  *p->iBufSize;
+  p->fforceSync = *p->forceSync;
   return diskin2_init_array(csound,p,1);
 }
 
 /* diskin_init_array - calls diskin2_init_array  */
 
 int diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p){
-  MYFLT temp; int ret;
-  temp = *p->iWinSize;
-  *p->iSkipInit = temp;
-  *p->iWinSize = 2;
-  ret = diskin2_init_array_I(csound,p);
-  *p->iWinSize = temp;
-  return ret;
+  p->SkipInit = *p->iWinSize;
+  p->WinSize = 2;  
+  p->BufSize = 0;
+  p->fforceSync = 0;
+  return diskin2_init_array(csound,p,0);
 }
 
 int diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p){
-  MYFLT temp; int ret;
-  temp = *p->iWinSize;
-  *p->iSkipInit = temp;
-  *p->iWinSize = 0;
-  ret = diskin2_init_array_S(csound,p);
-  *p->iWinSize = temp;
-  return ret;
+  p->SkipInit = *p->iWinSize;
+  p->WinSize = 2;  
+  p->BufSize = 0;
+  p->fforceSync = 0;
+  return diskin2_init_array(csound,p,1);
 }
 
 int diskin2_perf_array(CSOUND *csound, DISKIN2_ARRAY *p) {

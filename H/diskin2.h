@@ -44,6 +44,11 @@ typedef struct {
     MYFLT   *iSkipInit;
     MYFLT   *forceSync;
  /* ------------------------------------- */
+    MYFLT   WinSize;
+    MYFLT   BufSize;
+    MYFLT   SkipInit;
+    MYFLT   fforceSync;
+
     int     initDone;
     int     nChannels;
     int     bufSize;            /* in sample frames, power of two */
@@ -82,6 +87,10 @@ typedef struct {
     MYFLT   *iSkipInit;
     MYFLT   *forceSync;
  /* ------------------------------------- */
+    MYFLT   WinSize;
+    MYFLT   BufSize;
+    MYFLT   SkipInit;
+    MYFLT   fforceSync;
     int     initDone;
     int     nChannels;
     int     bufSize;            /* in sample frames, power of two */
