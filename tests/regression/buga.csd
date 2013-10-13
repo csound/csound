@@ -6,9 +6,8 @@ nchnls=2
 
 giamp = 10000
 
-		opcode TestUDO, i, [i]
-ipch	xin
-print ipch[0]
+		opcode TestUDO, i, i[]
+ipch[]	xin
 ipch[0] 	= ipch[0] * 2
 		xout ipch[0]
 		endop
