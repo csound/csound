@@ -39,7 +39,7 @@ def runTest():
 
     tests = [
         ["buga1.csd", " "],
-###        ["buga.csd", " "],
+        ["buga.csd", " "],
         ["bugas.csd", " "],
         ["bugb.csd", " "],
         ["bugf.csd", " "],
