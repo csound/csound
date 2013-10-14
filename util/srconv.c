@@ -302,18 +302,18 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           case 'P':
             FIND(Str("No P argument"))
 #if defined(USE_DOUBLE)
-            sscanf(s,"%lf", &P);
+            csound->sscanf(s,"%lf", &P);
 #else
-            sscanf(s,"%f", &P);
+            csound->sscanf(s,"%f", &P);
 #endif
             while (*++s);
             break;
           case 'r':
             FIND(Str("No r argument"))
 #if defined(USE_DOUBLE)
-            sscanf(s,"%lf", &Rout);
+            csound->sscanf(s,"%lf", &Rout);
 #else
-            sscanf(s,"%f", &Rout);
+            csound->sscanf(s,"%f", &Rout);
 #endif
             while (*++s);
             break;
@@ -358,7 +358,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       Chans = 1;
 
     if ((P != FL(0.0)) && (Rout != FL(0.0))) {
-      sprintf(err_msg, Str("srconv: cannot specify both -r and -P"));
+      strncpy(err_msg, Str("srconv: cannot specify both -r and -P"), 256);
       goto err_rtn_msg;
     }
     if (P != FL(0.0))
@@ -369,7 +369,8 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     if (tvflg) {
       P = FL(0.0);        /* will be reset to max in time-vary function */
       if ((tvfp = fopen(bfile, "r")) == NULL) {
-        sprintf(err_msg, Str("srconv: cannot open time-vary function file"));
+        strncpy(err_msg,
+                Str("srconv: cannot open time-vary function file"), 256);
         goto err_rtn_msg;
       }
       /* register file to be closed by csoundReset() */
@@ -382,106 +383,109 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       i1 = fyval;
       for (i = 0; i < tvlen; i++, i0++, i1++) {
 #ifdef USE_DOUBLE
-        if ((fscanf(tvfp, "%lf %lf", i0, i1)) != 2) {
+        if ((fscanf(tvfp, "%lf %lf", i0, i1)) != 2)
 #else
-        if ((fscanf(tvfp, "%f %f", i0, i1)) != 2) {
+        if ((fscanf(tvfp, "%f %f", i0, i1)) != 2)
 #endif
-          sprintf(err_msg, Str("srconv: too few x-y pairs "
-                               "in time-vary function file"));
-          goto err_rtn_msg;
-        }
-        if (*i1 > P)
-          P = *i1;
-        }
-        Rout = Rin / P;    /* this is min Rout */
-        tvx0 = fxval[0];
-        tvx1 = fxval[1];
-        tvy0 = fyval[0];
-        tvy1 = fyval[1];
-        tvdx = tvx1 - tvx0;
-        if (tvx0 != FL(0.0)) {
-          sprintf(err_msg, Str("srconv: first x value "
-                               "in time-vary function must be 0"));
-          goto err_rtn_msg;
-        }
-        if (tvy0 <= FL(0.0)) {
-          sprintf(err_msg, Str("srconv: invalid initial y value "
-                               "in time-vary function"));
-          goto err_rtn_msg;
-        }
-        if (tvdx <= FL(0.0)) {
-          sprintf(err_msg, Str("srconv: invalid x values in time-vary function"));
-          goto err_rtn_msg;
-        }
-        tvdy = tvy1 - tvy0;
-        tvslope = tvdy / tvdx;
-        tvnxt = 1;
-      }
-      /* This is not right *********  */
-      if (P != FL(0.0)) {
-        csound->SetUtilSr(csound,Rin);
-      }
-      if (P == FL(0.0)) {
-        csound->SetUtilSr(csound,Rout);
-      }
-
-      if (O.outformat == 0)
-        O.outformat = p->format;
-      O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
-      if (O.filetyp == TYP_RAW) {
-        O.sfheader = 0;
-        O.rewrt_hdr = 0;
-      }
-      else
-        O.sfheader = 1;
-#ifdef NeXT
-      if (O.outfilename == NULL && !O.filetyp)
-        O.outfilename = "test.snd";
-      else if (O.outfilename == NULL)
-        O.outfilename = "test";
-#else
-      if (O.outfilename == NULL) {
-        if (O.filetyp == TYP_WAV)
-          O.outfilename = "test.wav";
-        else if (O.filetyp == TYP_AIFF)
-          O.outfilename = "test.aif";
-        else
-          O.outfilename = "test";
-      }
-#endif
-      {
-        SF_INFO sfinfo;
-        char    *name;
-        memset(&sfinfo, 0, sizeof(SF_INFO));
-        sfinfo.samplerate = (int) ((double) Rout + 0.5);
-        sfinfo.channels = (int) p->nchanls;
-        sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
-        if (strcmp(O.outfilename, "stdout") != 0) {
-          name = csound->FindOutputFile(csound, O.outfilename, "SFDIR");
-          if (name == NULL) {
-            sprintf(err_msg, Str("cannot open %s."), O.outfilename);
+          {
+            strncpy(err_msg, Str("srconv: too few x-y pairs "
+                                 "in time-vary function file"), 256);
             goto err_rtn_msg;
           }
-          outfd = sf_open(name, SFM_WRITE, &sfinfo);
-          if (outfd != NULL)
-            csound->NotifyFileOpened(csound, name,
-                                     csound->type2csfiletype(O.filetyp,
-                                                             O.outformat),
-                                     1, 0);
-          csound->Free(csound, name);
-        }
-        else
-          outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 1);
-        if (outfd == NULL) {
+        if (*i1 > P)
+          P = *i1;
+      }
+      Rout = Rin / P;    /* this is min Rout */
+      tvx0 = fxval[0];
+      tvx1 = fxval[1];
+      tvy0 = fyval[0];
+      tvy1 = fyval[1];
+      tvdx = tvx1 - tvx0;
+      if (tvx0 != FL(0.0)) {
+        strncpy(err_msg, Str("srconv: first x value "
+                             "in time-vary function must be 0"), 256);
+        goto err_rtn_msg;
+      }
+      if (tvy0 <= FL(0.0)) {
+        strncpy(err_msg, Str("srconv: invalid initial y value "
+                             "in time-vary function"),256);
+        goto err_rtn_msg;
+      }
+      if (tvdx <= FL(0.0)) {
+        strncpy(err_msg,
+                       Str("srconv: invalid x values in time-vary function"),
+                       256);
+        goto err_rtn_msg;
+      }
+      tvdy = tvy1 - tvy0;
+      tvslope = tvdy / tvdx;
+      tvnxt = 1;
+    }
+    /* This is not right *********  */
+    if (P != FL(0.0)) {
+      csound->SetUtilSr(csound,Rin);
+    }
+    if (P == FL(0.0)) {
+      csound->SetUtilSr(csound,Rout);
+    }
+
+    if (O.outformat == 0)
+      O.outformat = p->format;
+    O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
+    if (O.filetyp == TYP_RAW) {
+      O.sfheader = 0;
+      O.rewrt_hdr = 0;
+    }
+    else
+      O.sfheader = 1;
+#ifdef NeXT
+    if (O.outfilename == NULL && !O.filetyp)
+      O.outfilename = "test.snd";
+    else if (O.outfilename == NULL)
+      O.outfilename = "test";
+#else
+    if (O.outfilename == NULL) {
+      if (O.filetyp == TYP_WAV)
+        O.outfilename = "test.wav";
+      else if (O.filetyp == TYP_AIFF)
+        O.outfilename = "test.aif";
+      else
+        O.outfilename = "test";
+    }
+#endif
+    {
+      SF_INFO sfinfo;
+      char    *name;
+      memset(&sfinfo, 0, sizeof(SF_INFO));
+      sfinfo.samplerate = (int) ((double) Rout + 0.5);
+      sfinfo.channels = (int) p->nchanls;
+      sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
+      if (strcmp(O.outfilename, "stdout") != 0) {
+        name = csound->FindOutputFile(csound, O.outfilename, "SFDIR");
+        if (name == NULL) {
           sprintf(err_msg, Str("cannot open %s."), O.outfilename);
           goto err_rtn_msg;
         }
-        /* register file to be closed by csoundReset() */
-        (void) csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
-                                        O.outfilename);
-        sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
+        outfd = sf_open(name, SFM_WRITE, &sfinfo);
+        if (outfd != NULL)
+          csound->NotifyFileOpened(csound, name,
+                                   csound->type2csfiletype(O.filetyp,
+                                                           O.outformat),
+                                   1, 0);
+        csound->Free(csound, name);
       }
-      csound->SetUtilSr(csound, (MYFLT)p->sr);
+      else
+        outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 1);
+      if (outfd == NULL) {
+        sprintf(err_msg, Str("cannot open %s."), O.outfilename);
+        goto err_rtn_msg;
+      }
+      /* register file to be closed by csoundReset() */
+      (void) csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
+                                      O.outfilename);
+      sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
+    }
+    csound->SetUtilSr(csound, (MYFLT)p->sr);
     csound->SetUtilNchnls(csound, Chans = p->nchanls);
 
     outbufsiz = OBUF * O.sfsampsize;                   /* calc outbuf size */
@@ -565,7 +569,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 
     output = (MYFLT*) csound->Calloc(csound, (size_t) OBUF * sizeof(MYFLT));
     nextOut = output;
-\
+
  /* initialization: */
 
     nread = csound->getsndin(csound, inf, input, IBUF2, p);
@@ -711,8 +715,8 @@ static int srconv(CSOUND *csound, int argc, char **argv)
               tvy1 = fyval[tvnxt];
               tvdx = tvx1 - tvx0;
               if (tvdx <= FL(0.0)) {
-                sprintf(err_msg, Str("srconv: invalid x values "
-                                     "in time-vary function"));
+                strncpy(err_msg, Str("srconv: invalid x values "
+                                     "in time-vary function"), 256);
                 goto err_rtn_msg;
               }
               tvdy = tvy1 - tvy0;
@@ -733,7 +737,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     return 0;
 
  err_rtn_msg:
-    csound->ErrorMsg(csound, "%s", err_msg);
+    csound->ErrorMsg(csound, err_msg);
     return -1;
 }
 

@@ -880,7 +880,6 @@ static int tabgen(CSOUND *csound, TABGEN *p)
     //else /* This is wrong if array exists only write to specified part */
     //size = p->tab->sizes[0];
     data =  p->tab->data;
-    printf("size=%d\n[", size);
     for (i=0; i < size; i++) {
       data[i] = start;
       //printf("%f ", start);
@@ -957,7 +956,7 @@ static int tabmap_set(CSOUND *csound, TABMAP *p)
     EVAL  eval;
 
     if (UNLIKELY(p->tabin->data == NULL)||p->tabin->dimensions!=1)
-       return csound->InitError(csound, Str("tvar not initialised"));
+       return csound->InitError(csound, Str("array-var not initialised"));
 
     size = p->tabin->sizes[0];
     if (UNLIKELY(p->tab->data==NULL)) {
@@ -993,10 +992,10 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
 
     if (UNLIKELY(p->tabin->data == NULL) || p->tabin->dimensions !=1)
       return csound->PerfError(csound,
-                               p->h.insdshead, Str("tvar not initialised"));
+                               p->h.insdshead, Str("array-var not initialised"));
     if (UNLIKELY(p->tab->data==NULL) || p->tab->dimensions !=1)
       return csound->PerfError(csound,
-                               p->h.insdshead, Str("tvar not initialised"));
+                               p->h.insdshead, Str("array-var not initialised"));
     size = p->tab->sizes[0];
 
     if (UNLIKELY(opc == NULL))
@@ -1018,6 +1017,92 @@ int tablength(CSOUND *csound, TABQUERY1 *p)
    return OK;
 }
 
+typedef struct {
+    OPDS h;
+    ARRAYDAT *tabin;
+    unsigned int    len;
+} OUTA;
+
+
+static int outa_set(CSOUND *csound, OUTA *p)
+{
+    int len = (p->tabin->dimensions==1?p->tabin->sizes[0]:-1);
+    if (len>(int)csound->nchnls) len = csound->nchnls;
+    if (len<=0) return NOTOK;
+    p->len = len;
+    if (p->tabin->arrayMemberSize != (int)(CS_KSMPS*sizeof(MYFLT)))
+      return NOTOK;
+    return OK;
+}
+
+static int outa(CSOUND *csound, OUTA *p)
+{
+    unsigned int n, m=0, nsmps = CS_KSMPS;
+    unsigned int l, pl = p->len;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
+    MYFLT       *data = p->tabin->data;
+    MYFLT       *sp= CS_SPOUT;
+    if (!csound->spoutactive) {
+      for (n=0; n<nsmps; n++) {
+        for (l=0; l<p->len; l++) {
+          sp[m++] = (n>=offset && n<early ? data[l+n*nsmps] :FL(0.0)) ;
+        }
+      }
+      csound->spoutactive = 1;
+    }
+    else {
+      for (n=0; n<nsmps; n++) {
+        for (l=0; l<p->len; l++) {
+          if (n>=offset && n<early)
+            sp[m] += data[l+n*nsmps];
+          m++;
+        }
+      }
+    }
+    return OK;
+}
+
+static int ina_set(CSOUND *csound, OUTA *p)
+{
+    ARRAYDAT *aa = p->tabin;
+    // should call ensure here but it is a-rate
+    aa->dimensions = 1;
+    if (aa->sizes) csound->Free(csound, aa->sizes);
+    if (aa->data) csound->Free(csound, aa->data);
+    aa->sizes = (int*)csound->Malloc(csound, sizeof(int));
+    aa->sizes[0] = p->len = csound->inchnls;
+    aa->data = (MYFLT*)
+      csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
+    aa->arrayMemberSize = CS_KSMPS*sizeof(MYFLT);
+    return OK;
+}
+
+static int ina(CSOUND *csound, OUTA *p)
+{
+    ARRAYDAT *aa = p->tabin;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    int n, l, m=0, nsmps = CS_KSMPS;
+    MYFLT       *data = aa->data;
+    MYFLT       *sp= CS_SPIN;
+    int len = p->len;
+    for (l=0; l<len; l++) {
+      sp = CS_SPIN + l;
+      memset(data, '\0', nsmps*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        nsmps -= early;
+      }
+      for (n = 0; n < nsmps; n++) {
+        if (n<offset) data[n] = FL(0.0);
+        else          data[n] = *sp;
+        //printf("chn %d n=%d data=%f (%p)\n", l, n, data[n], &data[n]);
+        sp += len;
+      }
+      data += CS_KSMPS;
+    }
+    return OK;
+}
 
 
 // reverse, scramble, mirror, stutter, rotate, ...
@@ -1034,11 +1119,15 @@ static OENTRY arrayvars_localops[] =
       { "array.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill     },
       { "array.i", sizeof(TABFILL), 0, 1, "i[]", "m", (SUBR)tabfill     },
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", "i[]im", (SUBR)array_set },
+    { "##array_set.k0", sizeof(ARRAY_SET), 0, 2, "", "k[]kz",
+                                              NULL, (SUBR)array_set },
     { "##array_set.i2", sizeof(ARRAY_SET), 0, 3, "", ".[].m",
                                             (SUBR)array_set, (SUBR)array_set },
     { "##array_set.k", sizeof(ARRAY_SET), 0, 2, "", ".[].z",
                                               NULL, (SUBR)array_set },
     { "##array_get.i", sizeof(ARRAY_GET), 0, 1, "i", "i[]m", (SUBR)array_get },
+    { "##array_get.k0", sizeof(ARRAY_GET), 0, 2, "k", "k[]z",
+      NULL, (SUBR)array_get },
     { "##array_get.i2", sizeof(ARRAY_GET), 0, 3, ".", ".[]m",
                                        (SUBR)array_get, (SUBR)array_get },
     { "##array_get.k", sizeof(ARRAY_GET), 0, 2, ".", ".[]z",
@@ -1133,7 +1222,7 @@ static OENTRY arrayvars_localops[] =
                                                  (SUBR) tabmap_perf},
     { "genarray.i", sizeof(TABGEN),0, 1, "i[]", "iip", (SUBR) tabgen, NULL   },
     { "genarray_i", sizeof(TABGEN),0, 1, "k[]", "iip", (SUBR) tabgen, NULL, NULL},
-    { "genarray.k", sizeof(TABGEN),0, 3, "k[]", "kkp", NULL, (SUBR)tabgen    },
+    { "genarray.k", sizeof(TABGEN),0, 2, "k[]", "kkp", NULL, (SUBR)tabgen    },
     { "maparray_i", sizeof(TABMAP),0, 1, "k[]", "k[]S", (SUBR) tabmap_set    },
     { "maparray", sizeof(TABMAP), 0, 3, "k[]", "k[]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf          },
@@ -1150,7 +1239,10 @@ static OENTRY arrayvars_localops[] =
     { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]", NULL, (SUBR) tablength },
     { "lenarray", 0xffff},
     { "lenarray.i", sizeof(TABQUERY1), 0, 1, "i", "k[]", (SUBR) tablength },
-    { "lenarray.k", sizeof(TABQUERY1), 0, 1, "k", "k[]", NULL, (SUBR) tablength }
+    { "lenarray.ii", sizeof(TABQUERY1), 0, 1, "i", "i[]", (SUBR) tablength },
+    { "lenarray.k", sizeof(TABQUERY1), 0, 2, "k", "k[]", NULL, (SUBR) tablength },
+    { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa},
+    { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina}
 };
 
 LINKAGE_BUILTIN(arrayvars_localops)

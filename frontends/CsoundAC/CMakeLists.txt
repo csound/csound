@@ -5,6 +5,7 @@ include(CheckIncludeFiles)
 option(BUILD_CSOUND_AC "Build CsoundAC extension module for Csound with algorithmic composition (needs C++ interface)" ON)
 option(BUILD_CSOUND_AC_PYTHON_INTERFACE "Build the Csound AC Python interface" ON)
 option(BUILD_CSOUND_AC_LUA_INTERFACE "Build the Csound AC Lua interface" ON)
+option(USE_SYSTEM_PORTSMF ON)
 
 find_package(Boost)
 find_library(MUSICXML_LIBRARY musicxml2)
@@ -15,7 +16,13 @@ ELSE(APPLE)
 ENDIF(APPLE)
 find_package(SWIG)
 find_package(PythonLibs)
-find_package(Lua51)
+find_library(LUAJIT_LIBRARY luajit)
+if(NOT LUAJIT_LIBRARY)
+    find_library(LUAJIT_LIBRARY luajit-5.1)
+endif()
+find_path(LUA_H_PATH luajit-2.0/lua.h)
+
+find_library(PORTSMF_LIBRARY portSMF)
 
 #include_directories(${EIGEN3_INCLUDE_DIR})
 
@@ -23,19 +30,13 @@ find_file(EIGEN_DENSE eigen3/Eigen/Dense)
 
 check_deps(BUILD_CSOUND_AC Boost_FOUND BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN_DENSE)
 check_deps(BUILD_CSOUND_AC_PYTHON_INTERFACE SWIG_FOUND PYTHONLIBS_FOUND EIGEN_DENSE)
-check_deps(BUILD_CSOUND_AC_LUA_INTERFACE SWIG_FOUND LUA51_FOUND EIGEN_DENSE)
+check_deps(BUILD_CSOUND_AC_LUA_INTERFACE SWIG_FOUND LUAJIT_LIBRARY LUA_H_PATH EIGEN_DENSE)
 
 if(BUILD_CSOUND_AC)
     include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
     include_directories(${Boost_INCLUDE_DIRS})
     include_directories(${FLTK_INCLUDE_DIR})
     set(libcsoundac_SRCS
-	allegro.cpp
-	allegrord.cpp
-	allegroserial.cpp
-	allegrosmfrd.cpp
-	allegrosmfwr.cpp
-	allegrowr.cpp
 	Cell.cpp
 	ChordLindenmayer.cpp
 	Composition.cpp
@@ -48,7 +49,6 @@ if(BUILD_CSOUND_AC)
 	ImageToScore.cpp
 	Lindenmayer.cpp
 	MCRM.cpp
-	mfmidi.cpp
 	Midifile.cpp
 	MusicModel.cpp
 	Node.cpp
@@ -61,11 +61,24 @@ if(BUILD_CSOUND_AC)
 	Shell.cpp
 	Soundfile.cpp
 	StrangeAttractor.cpp
-	strparse.cpp
 	System.cpp
-	trace.cpp
 	Voicelead.cpp
 	VoiceleadingNode.cpp)
+
+    check_deps(USE_SYSTEM_PORTSMF PORTSMF_LIBRARY)
+    if(NOT USE_SYSTEM_PORTSMF)
+        list(APPEND libcsoundac_SRCS
+        allegro.cpp
+        allegrord.cpp
+        allegroserial.cpp
+        allegrosmfrd.cpp
+        allegrosmfwr.cpp
+        allegrowr.cpp
+        mfmidi.cpp
+        strparse.cpp
+        trace.cpp
+        )
+    endif()
 
     add_library(libCsoundAC SHARED ${libcsoundac_SRCS})
     set_target_properties(libCsoundAC PROPERTIES
@@ -77,6 +90,9 @@ if(BUILD_CSOUND_AC)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
     target_link_libraries(libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
+    if(USE_SYSTEM_PORTSMF)
+        target_link_libraries(libCsoundAC ${PORTSMF_LIBRARY})
+    endif()
 
     if(MUSICXML_LIBRARY)
         target_link_libraries(libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
@@ -108,6 +124,12 @@ if(BUILD_CSOUND_AC)
             swig_link_libraries(CsoundAC libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY} ${PYTHON_LIBRARIES})
         endif()
 
+
+  	    if(APPLE)
+            set_target_properties(${SWIG_MODULE_CsoundAC_REAL_NAME} PROPERTIES 
+                LINK_FLAGS "-undefined dynamic_lookup")
+       	endif()
+
         set_target_properties(${SWIG_MODULE_CsoundAC_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
@@ -122,18 +144,23 @@ if(BUILD_CSOUND_AC)
 
     if(BUILD_CSOUND_AC_LUA_INTERFACE)
         message(STATUS "Building CsoundAC Lua interface")
-        find_package(Lua51)
-        include_directories(${LUA_INCLUDE_DIR})
+        include_directories(${LUA_H_PATH}/luajit-2.0)
 
         SET_SOURCE_FILES_PROPERTIES(luaCsoundAC.i
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME luaCsoundAC)
         SWIG_ADD_MODULE(luaCsoundAC lua luaCsoundAC.i)
-        SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${LUA_LIBRARIES})
+        SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${LUAJIT_LIBRARY})
 
         if(MUSICXML_LIBRARY)
-            SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY} ${LUA_LIBRARIES})
+          SWIG_LINK_LIBRARIES(luaCsoundAC libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY} ${LUAJIT_LIBRARY})
         endif()
+
+
+  	    if(APPLE)
+            set_target_properties(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PROPERTIES 
+                LINK_FLAGS "-undefined dynamic_lookup")
+       	endif()
 
         set_target_properties(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}

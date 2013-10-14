@@ -53,7 +53,7 @@ int kcgoto(CSOUND *csound, CGOTO *p)
    IGN(csound);
     if (*p->cond)
       CS_PDS = p->lblblk->prvp;
-    
+
     return OK;
 }
 
@@ -158,7 +158,7 @@ int tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
 int ihold(CSOUND *csound, LINK *p)      /* make this note indefinit duration */
 {                                       /* called by ihold statmnt at Itime  */
     IGN(csound);
-    if (!p->h.insdshead->reinitflag) {          /* no-op at reinit                   */
+    if (!p->h.insdshead->reinitflag) {  /* no-op at reinit                   */
       csound->curip->offbet = -1.0;
       csound->curip->offtim = -1.0;
     }

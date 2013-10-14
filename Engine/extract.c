@@ -70,7 +70,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
     flag = 'i';                                 /* default -i flag supplied */
     STA(onsect) = 1;     STA(onbeat) = FL(0.0);   /* other default vals   */
     STA(offsect) = 999;  STA(offbeat) = FL(0.0);
-    while (fscanf(xfp, "%s", s) != EOF) {
+    while (fscanf(xfp, s) != EOF) {
       char *c = s;
       int i;
       switch (*c) {
@@ -89,17 +89,17 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
           break;
         case 'f':
 #if defined(USE_DOUBLE)
-          sscanf(s, "%d:%lf", &STA(onsect), &STA(onbeat));
+          CS_SSCANF(s, "%d:%lf", &STA(onsect), &STA(onbeat));
 #else
-          sscanf(s, "%d:%f", &STA(onsect), &STA(onbeat));
+          CS_SSCANF(s, "%d:%f", &STA(onsect), &STA(onbeat));
 #endif
           break;
         case 't':
           STA(offsect) = STA(onsect);       /* default offsect */
 #if defined(USE_DOUBLE)
-          sscanf(s, "%d:%lf", &STA(offsect), &STA(offbeat));
+          CS_SSCANF(s, "%d:%lf", &STA(offsect), &STA(offbeat));
 #else
-          sscanf(s, "%d:%f", &STA(offsect), &STA(offbeat));
+          CS_SSCANF(s, "%d:%f", &STA(offsect), &STA(offbeat));
 #endif
         }
       }

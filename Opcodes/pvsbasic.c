@@ -1459,7 +1459,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
         }
         else {  /* new modes 1 & 2 */
           int tmp = N/2;
-          tmp = tmp + tmp%2; 
+          tmp = tmp + tmp%2;
           if (coefs < 1) coefs = 80;
           while(cond) {
             cond = 0;
@@ -1467,15 +1467,15 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
               ceps[i] = fenv[i/2];
               ceps[i+1] = 0.0;
             }
-            if(!(N & (N - 1)))
-            csound->InverseComplexFFT(csound, ceps, N/2);
-	       else
-            csoundInverseComplexFFTnp2(csound, ceps, tmp);
+            if (!(N & (N - 1)))
+              csound->InverseComplexFFT(csound, ceps, N/2);
+            else
+              csoundInverseComplexFFTnp2(csound, ceps, tmp);
             for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
-             if(!(N & (N - 1)))
-            csound->ComplexFFT(csound, ceps, N/2);
-             else
-            csoundComplexFFTnp2(csound, ceps, tmp);
+            if (!(N & (N - 1)))
+              csound->ComplexFFT(csound, ceps, N/2);
+            else
+              csoundComplexFFTnp2(csound, ceps, tmp);
             for (i=0; i < N; i+=2) {
               if (keepform > 1) {
                 if (fenv[i/2] < ceps[i])
@@ -1671,7 +1671,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
       if (keepform) { /* new modes 1 & 2 */
         int cond = 1;
         int tmp = N/2;
-        tmp = tmp + tmp%2; 
+        tmp = tmp + tmp%2;
         for (i=0; i < N; i+=2)
           fenv[i/2] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
         if (coefs < 1) coefs = 80;
@@ -1681,14 +1681,14 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
             ceps[i] = fenv[i/2];
             ceps[i+1] = 0.0;
           }
-          if(!(N & (N - 1)))
+          if (!(N & (N - 1)))
             csound->InverseComplexFFT(csound, ceps, N/2);
-	       else
+          else
             csoundInverseComplexFFTnp2(csound, ceps, tmp);
-            for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
-             if(!(N & (N - 1)))
+          for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
+          if (!(N & (N - 1)))
             csound->ComplexFFT(csound, ceps, N/2);
-             else
+          else
             csoundComplexFFTnp2(csound, ceps, tmp);
           for (i=0; i < N; i+=2) {
             if (keepform > 1) {
@@ -1857,7 +1857,7 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
         }
         else {  /* new modes 1 & 2 */
            int tmp = N/2;
-          tmp = tmp + tmp%2; 
+          tmp = tmp + tmp%2;
           if (coefs < 1) coefs = 80;
           while(cond) {
             cond = 0;
@@ -1865,15 +1865,15 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
               ceps[i] = fenv[i/2];
               ceps[i+1] = 0.0;
             }
-            if(!(N & (N - 1)))
-            csound->InverseComplexFFT(csound, ceps, N/2);
-	       else
-            csoundInverseComplexFFTnp2(csound, ceps, tmp);
+            if (!(N & (N - 1)))
+              csound->InverseComplexFFT(csound, ceps, N/2);
+            else
+              csoundInverseComplexFFTnp2(csound, ceps, tmp);
             for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
-             if(!(N & (N - 1)))
-            csound->ComplexFFT(csound, ceps, N/2);
-             else
-            csoundComplexFFTnp2(csound, ceps, tmp);
+            if (!(N & (N - 1)))
+              csound->ComplexFFT(csound, ceps, N/2);
+            else
+              csoundComplexFFTnp2(csound, ceps, tmp);
             for (i=0; i < N; i+=2) {
               if (keepform > 1) {
                 if (fenv[i/2] < ceps[i])
@@ -2304,7 +2304,7 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
         }
         else {  /* new modes 1 & 2 */
           int tmp = N/2;
-          tmp = tmp + tmp%2; 
+          tmp = tmp + tmp%2;
           if (coefs < 1) coefs = 80;
           while(cond) {
             cond = 0;
@@ -2312,15 +2312,15 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
               ceps[i] = fenv[i/2];
               ceps[i+1] = 0.0;
             }
-            if(!(N & (N - 1)))
-            csound->InverseComplexFFT(csound, ceps, N/2);
-	       else
-            csoundInverseComplexFFTnp2(csound, ceps, tmp);
+            if (!(N & (N - 1)))
+              csound->InverseComplexFFT(csound, ceps, N/2);
+            else
+              csoundInverseComplexFFTnp2(csound, ceps, tmp);
             for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
-             if(!(N & (N - 1)))
-            csound->ComplexFFT(csound, ceps, N/2);
-             else
-            csoundComplexFFTnp2(csound, ceps, tmp);
+            if (!(N & (N - 1)))
+              csound->ComplexFFT(csound, ceps, N/2);
+            else
+              csoundComplexFFTnp2(csound, ceps, tmp);
             for (i=0; i < N; i+=2) {
               if (keepform > 1) {
                 if (fenv[i/2] < ceps[i])
@@ -2354,7 +2354,7 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
 typedef struct pvs2tab_t {
     OPDS h;
     MYFLT *framecount;
-    TABDAT *ans;
+    ARRAYDAT *ans;
     PVSDAT *fsig;
 } PVS2TAB_T;
 
@@ -2365,12 +2365,12 @@ int pvs2tab_init(CSOUND *csound, PVS2TAB_T *p)
       return csound->InitError(csound, Str("pvs2tab: signal format "
                                            "must be amp-phase or amp-freq."));
     if (LIKELY(p->ans->data)) return OK;
-    return csound->InitError(csound, Str("t-variable not initialised"));
+    return csound->InitError(csound, Str("array-variable not initialised"));
 }
 
 int  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
 
-  int size = p->ans->size, N = p->fsig->N, i;
+  int size = p->ans->sizes[0], N = p->fsig->N, i;
   float *fsig = (float *) p->fsig->frame.auxp;
   for(i = 0; i < size && i < N+2; i++)
       p->ans->data[i] = (MYFLT) fsig[i];
@@ -2381,8 +2381,9 @@ int  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
 typedef struct tab2pvs_t {
     OPDS h;
     PVSDAT *fout;
-    TABDAT *in;
+    ARRAYDAT *in;
     MYFLT  *olap, *winsize, *wintype, *format;
+    uint32 ktime;
     uint32  lastframe;
 } TAB2PVS_T;
 
@@ -2390,13 +2391,14 @@ int tab2pvs_init(CSOUND *csound, TAB2PVS_T *p)
 {
     if (LIKELY(p->in->data)){
       int N;
-      p->fout->N = N = p->in->size - 2;
+      p->fout->N = N = p->in->sizes[0] - 2;
       p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
       p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
       p->fout->wintype = (int32) *p->wintype;
       p->fout->format = 0;
       p->fout->framecount = 1;
       p->lastframe = 0;
+      p->ktime = 0;
       if (p->fout->frame.auxp == NULL ||
           p->fout->frame.size < sizeof(float) * (N + 2)) {
         csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
@@ -2405,13 +2407,19 @@ int tab2pvs_init(CSOUND *csound, TAB2PVS_T *p)
         memset(p->fout->frame.auxp, 0, sizeof(float)*(N+2));
       return OK;
     }
-    else return csound->InitError(csound, Str("t-variable not initialised"));
+    else return csound->InitError(csound, Str("array-variable not initialised"));
 }
 
 int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
 {
-    int size = p->in->size, i;
+    int size = p->in->sizes[0], i;
     float *fout = (float *) p->fout->frame.auxp;
+
+    p->ktime += CS_KSMPS;
+    if(p->ktime > (uint32) p->fout->overlap) {
+       p->fout->framecount++;
+       p->ktime -= p->fout->overlap;
+    }
 
     if (p->lastframe < p->fout->framecount){
       for (i = 0; i < size; i++){
@@ -2419,6 +2427,7 @@ int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
       }
       p->lastframe = p->fout->framecount;
     }
+
     return OK;
 }
 
@@ -2470,9 +2479,13 @@ static OENTRY localops[] = {
                                (SUBR) pvsenvwset, (SUBR) pvsenvw},
   {"pvsgain", sizeof(PVSGAIN), 0,3, "f", "fk",
                                (SUBR) pvsgainset, (SUBR) pvsgain, NULL},
-  {"pvs2tab", sizeof(PVS2TAB_T), 0,3, "k", "tf",
+  {"pvs2tab", sizeof(PVS2TAB_T), 0,3, "k", "k[]f",
                                (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
-  {"tab2pvs", sizeof(TAB2PVS_T), 0, 3, "f", "toop",
+  {"tab2pvs", sizeof(TAB2PVS_T), 0, 3, "f", "k[]oop", (SUBR) tab2pvs_init,
+                                                     (SUBR) tab2pvs, NULL},
+  {"pvs2array", sizeof(PVS2TAB_T), 0,3, "k", "k[]f",
+                               (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
+  {"pvsfromarray", sizeof(TAB2PVS_T), 0, 3, "f", "k[]oop",
                                (SUBR) tab2pvs_init, (SUBR) tab2pvs, NULL}
 };
 

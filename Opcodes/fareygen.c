@@ -74,7 +74,7 @@ static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
     csound->Message(csound, "f%3.0f %8.2f %8.2f ",
                             ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
     if (ISSTRCOD(ff->e.p[4]))
-      csound->Message(csound, "%s", ff->e.strarg);
+      csound->Message(csound, ff->e.strarg);
     else
       csound->Message(csound, "%8.2f", ff->e.p[4]);
     if (ISSTRCOD(ff->e.p[5]))
@@ -297,4 +297,3 @@ static NGFENS farey_fgens[] = {
 };
 
 FLINKAGE_BUILTIN(farey_fgens)
-

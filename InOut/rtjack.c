@@ -487,55 +487,63 @@ static void openJackStreams(RtJackGlobals *p)
 
     /* connect ports if requested */
     if (p->inputEnabled) {
-      char *dev, *sp;
+      char dev[128], *dev_final, *sp;
       {
         int i,n = listDevices(csound,NULL,0);
         CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
-          malloc(n*sizeof(CS_AUDIODEVICE));
+                malloc(n*sizeof(CS_AUDIODEVICE));
         listDevices(csound,devs,0);
         for(i=0; i < n; i++)
           csound->Message(csound, " %d: %s (%s)\n",
                           i, devs[i].device_id, devs[i].device_name);
-        dev = devs[0].device_name;
+        strncpy(dev, devs[0].device_name, 128);
         free(devs);
       }
       if(p->inDevName != NULL)
-        dev = p->inDevName;
-      sp = strchr(dev, '\0');
-      if(!isalpha(dev[0])) dev++;
+          strncpy(dev, p->inDevName, 128);
+      if (dev) {
+        dev_final = dev;
+        sp = strchr(dev_final, '\0');
+        if(!isalpha(dev_final[0])) dev_final++;
 
-      for (i = 0; i < p->nChannels; i++) {
-        sprintf(sp, "%d", i + 1);
-        if (UNLIKELY(jack_connect(p->client, dev,
-                                  jack_port_name(p->inPorts[i])) != 0)) {
-          rtJack_Error(csound, -1, Str("error connecting input ports"));
+        for (i = 0; i < p->nChannels; i++) {
+          sprintf(sp, "%d", i + 1);
+          if (UNLIKELY(jack_connect(p->client, dev_final,
+                                    jack_port_name(p->inPorts[i])) != 0)) {
+              rtJack_Error(csound, -1, Str("error connecting input ports"));
+          }
         }
+        *sp = (char) 0;
       }
-      *sp = (char) 0;
+
     }
-    if (p->outputEnabled){
-      char *dev, *sp;
+    if (p->outputEnabled) {
+      char dev[128], *dev_final, *sp;
       {
-        int i,n = listDevices(csound,NULL,1);
-        CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
-          malloc(n*sizeof(CS_AUDIODEVICE));
-        listDevices(csound,devs,1);
-        for(i=0; i < n; i++)
-          csound->Message(csound, " %d: %s (%s)\n",
-                          i, devs[i].device_id, devs[i].device_name);
-        dev = devs[0].device_name;
-        free(devs);
+          int i,n = listDevices(csound,NULL,1);
+          CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
+                  malloc(n*sizeof(CS_AUDIODEVICE));
+          listDevices(csound,devs,1);
+          for(i=0; i < n; i++)
+            csound->Message(csound, " %d: %s (%s)\n",
+                            i, devs[i].device_id, devs[i].device_name);
+          strncpy(dev, devs[0].device_name, 128);
+          free(devs);
       }
-      if(p->outDevName != NULL) dev = p->outDevName;
-      sp = strchr(dev, '\0');
-      if(!isalpha(dev[0])) dev++;
-      for (i = 0; i < p->nChannels; i++) {
-        sprintf(sp, "%d", i + 1);
-        if (jack_connect(p->client, jack_port_name(p->outPorts[i]), dev) != 0) {
-          rtJack_Error(csound, -1, Str("error connecting output ports"));
+      if(p->outDevName != NULL) strncpy(dev, p->outDevName, 128);
+      if (dev) {
+        dev_final = dev;
+        sp = strchr(dev_final, '\0');
+        if(!isalpha(dev_final[0])) dev_final++;
+        for (i = 0; i < p->nChannels; i++) {
+          sprintf(sp, "%d", i + 1);
+          if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
+                           dev_final) != 0) {
+            rtJack_Error(csound, -1, Str("error connecting output ports"));
+          }
         }
+        *sp = (char) 0;
       }
-      *sp = (char) 0;
     }
     /* stream is now active */
     p->jackState = 0;
@@ -887,13 +895,13 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
     csound->DestroyGlobalVariable(csound, "_rtjackGlobals");
     if (p.client != (jack_client_t*) NULL) {
       /* deactivate client */
-      if (p.jackState != 2) {
-        if (p.jackState == 0)
-          csound->Sleep((size_t)
-                        ((int) ((double) (p.bufSize * p.nBuffers)
-                                * 1000.0 / (double) p.sampleRate + 0.999)));
-        jack_deactivate(p.client);
-      }
+      //if (p.jackState != 2) {
+      //if (p.jackState == 0)
+      //  csound->Sleep((size_t)
+      //                ((int) ((double) (p.bufSize * p.nBuffers)
+      //                        * 1000.0 / (double) p.sampleRate + 0.999)));
+      jack_deactivate(p.client);
+      //}
       csound->Sleep((size_t) 50);
       /* unregister and free all ports */
       if (p.inPorts != NULL) {

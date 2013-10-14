@@ -227,8 +227,8 @@ static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
      *  Write characters
      */
 
-    sprintf(cmin, "%g", *min);
-    sprintf(cmax, "%g", *max);
+    CS_SPRINTF(cmin, "%g", *min);
+    CS_SPRINTF(cmax, "%g", *max);
 }
 
 static void PS_drawAxes(winEPS_globals_t *pp,

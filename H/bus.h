@@ -154,6 +154,7 @@ int     chani_opcode_perf_k(CSOUND *, CHNVAL *);
 int     chani_opcode_perf_a(CSOUND *, CHNVAL *);
 int     pvsin_init(CSOUND *, FCHAN *);
 int     pvsin_perf(CSOUND *, FCHAN *);
+int     pvsout_init(CSOUND *, FCHAN *);
 int     pvsout_perf(CSOUND *, FCHAN *);
 
 int     sensekey_perf(CSOUND *, KSENSE *);

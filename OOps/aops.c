@@ -120,7 +120,7 @@ int aassign(CSOUND *csound, ASSIGN *p)
       }
       memcpy(&p->r[offset], &p->a[offset], (nsmps-offset) * sizeof(MYFLT));
     }
-    else 
+    else
       *p->r =*p->a;
     return OK;
 }
@@ -1333,6 +1333,33 @@ int in(CSOUND *csound, INM *p)
     return OK;
 }
 
+int inarray(CSOUND *csound, INA *p)
+{
+    MYFLT *data = p->tabout->data;
+    uint32_t n = p->tabout->sizes[0];
+    uint32_t offset = p->h.insdshead->ksmps_offset*sizeof(MYFLT);
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    MYFLT *sp = CS_SPIN;
+    uint32_t m, nsmps =CS_KSMPS, i;
+    uint32_t ksmps = nsmps;
+
+    if ((int)n>csound->inchnls) n = csound->inchnls;
+    CSOUND_SPIN_SPINLOCK
+    if (UNLIKELY(offset)) for (i = 0; i < n; i++)
+                  memset(&data[i*ksmps], '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      for (i = 0; i < n; i++)
+        memset(&data[nsmps+i*ksmps], '\0', early*sizeof(MYFLT));
+    }
+    for (m = offset; m < nsmps; m++) {
+      for (i = 0; i < n; i++)
+        data[m+i*ksmps] = *sp++;
+    }
+    CSOUND_SPIN_SPINUNLOCK
+    return OK;
+}
+
 int ins(CSOUND *csound, INS *p)
 {
     MYFLT       *sp, *ar1, *ar2;
@@ -1836,6 +1863,67 @@ int outall(CSOUND *csound, OUTX *p)             /* Output a list of channels */
     uint32_t nch = p->INOCOUNT;
 
     return outn(csound, (nch <= csound->nchnls ? nch : csound->nchnls), p);
+}
+
+int outarr(CSOUND *csound, OUTARRAY *p)
+{
+    uint32_t nsmps =CS_KSMPS,  i, j, k=0;
+    uint32_t ksmps = nsmps;
+    uint32_t n = p->tabin->sizes[0];
+    MYFLT *data = p->tabin->data;
+    if (csound->oparms->sampleAccurate) {
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
+
+      CSOUND_SPOUT_SPINLOCK
+      if (!csound->spoutactive) {
+        for (j=0; j<nsmps; j++) {
+          for (i=0; i<n; i++) {
+            CS_SPOUT[k + i] = (j<offset||j>early) ? FL(0.0) : data[j+i*ksmps];
+          }
+          for ( ; i < csound->nchnls; i++) {
+            CS_SPOUT[k + i] = FL(0.0);
+          }
+          k += csound->nchnls;
+        }
+        csound->spoutactive = 1;
+      }
+      else {
+        for (j=offset; j<early; j++) {
+          for (i=0; i<n; i++) {
+            CS_SPOUT[k + i] += data[j+i*ksmps];
+          }
+          k += csound->nchnls;
+        }
+      }
+      CSOUND_SPOUT_SPINUNLOCK
+    }
+    else {
+      CSOUND_SPOUT_SPINLOCK
+
+      if (!csound->spoutactive) {
+        for (j=0; j<nsmps; j++) {
+          for (i=0; i<n; i++) {
+            CS_SPOUT[k + i] = data[j+i*ksmps];
+          }
+          for ( ; i < csound->nchnls; i++) {
+            CS_SPOUT[k + i] = FL(0.0);
+          }
+          k += csound->nchnls;
+        }
+        csound->spoutactive = 1;
+      }
+      else {
+        for (j=0; j<nsmps; j++) {
+          for (i=0; i<n; i++) {
+            CS_SPOUT[k + i] += data[j+i*ksmps];
+          }
+          k += csound->nchnls;
+        }
+      }
+      CSOUND_SPOUT_SPINUNLOCK
+    }
+    return OK;
 }
 
 int outch(CSOUND *csound, OUTCH *p)

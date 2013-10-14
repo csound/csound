@@ -50,7 +50,7 @@ static CS_NOINLINE CS_PRINTF2 void pvlook_print(PVLOOK *p, const char *fmt, ...)
     len = (int) vsprintf(s, fmt, args);
     va_end(args);
  /* fprintf(p->outfd, "%s", s); */
-    p->csound->MessageS(p->csound, CSOUNDMSG_ORCH, "%s", s);
+    p->csound->MessageS(p->csound, CSOUNDMSG_ORCH, s);
     tmp = strrchr(s, '\n');
     if (tmp == NULL)
       p->linePos += len;
