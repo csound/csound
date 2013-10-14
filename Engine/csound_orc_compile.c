@@ -1543,7 +1543,9 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         break;
       case T_OPCODE:
       case T_OPCODE0:
+      case LABEL:
         break;
+
       default:
         csound->Message(csound,
                         Str("Unknown TREE node of type %d found in root.\n"),
