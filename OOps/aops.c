@@ -2089,7 +2089,7 @@ int outRange(CSOUND *csound, OUTRANGE *p)
         int i;
         MYFLT *sptemp = sp;
         for (i=0; i < narg; i++)
-	 sptemp[i] = ara[i][n];
+          sptemp[i] = ara[i][n];
         sp += nchnls;
       }
       csound->spoutactive = 1;
@@ -2099,7 +2099,7 @@ int outRange(CSOUND *csound, OUTRANGE *p)
         int i;
         MYFLT *sptemp = sp;
         for (i=0; i < narg; i++)
-	sptemp[i] += ara[i][n];
+          sptemp[i] += ara[i][n];
         sp += nchnls;
       }
     }
