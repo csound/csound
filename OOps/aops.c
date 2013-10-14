@@ -2084,7 +2084,7 @@ int outRange(CSOUND *csound, OUTRANGE *p)
       ara[j] = p->argums[j];
 
     if (!csound->spoutactive) {
-      memset(sp, 0, nsmps * nchnls * sizeof(MYFLT));
+      memset(CS_SPOUT, 0, nsmps * nchnls * sizeof(MYFLT));
       for (n=offset; n<nsmps-early; n++) {
         int i;
         MYFLT *sptemp = sp;
