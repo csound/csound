@@ -1762,9 +1762,12 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
           ARG* inArgs = ttp->inArgs;
           //CS_VARIABLE* var;
 
-          //csound->Message(csound, "PSET: isno=%d, pmax=%d\n", insno, ip->pmax);
-          csound->Message(csound, "PSET: isno=[fixme], pmax=%d\n", tp->pmax);
-          if((n = ttp->inArgCount) != tp->pmax) {
+          if (tp->insname)
+            csound->Message(csound, "PSET: isname=\"%s\", pmax=%d\n",
+                            tp->insname, tp->pmax);
+          else
+            csound->Message(csound, "PSET: isno=??, pmax=%d\n", tp->pmax);
+          if ((n = ttp->inArgCount) != tp->pmax) {
             //csound->Warning(csound, Str("i%d pset args != pmax"), (int) insno);
             csound->Warning(csound, Str("i[fixme] pset args != pmax"));
             if (n < tp->pmax) n = tp->pmax; /* cf pset, pmax    */
@@ -1800,7 +1803,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
                 break;
             }
 
-            csound->Message(csound, "..%f..", *(fp1-1));
+            //            csound->Message(csound, "..%f..", *(fp1-1));
           }
 
           csound->Message(csound, "\n");
