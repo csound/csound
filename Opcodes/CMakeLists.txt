@@ -177,7 +177,7 @@ check_deps(BUILD_FAUST_OPCODES LLVM_FOUND FAUST_LIBRARY)
 
   make_plugin(faustcsound faustgen.cpp)
   add_compiler_flags("-DFAUSTFLOAT=double"  TARGETS faustcsound)
-  target_link_libraries(faustcsound faust ${REQ_LLVM_LIBRARIES})
+  target_link_libraries(faustcsound ${FAUST_LIBRARY} -L/usr/local/lib ${REQ_LLVM_LIBRARIES})
 endif()
 
 
