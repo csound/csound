@@ -169,7 +169,7 @@ static char* gm[] = {
   (char *)"Gunshot"
 };
 
-Bank::Bank(CSOUND *csound, char* bankName) {
+Bank::Bank(CSOUND *csound, char* bankName) : bankNum(0) {
         this->name = bankName;
 
         currentProgram = 0;

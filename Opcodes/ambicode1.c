@@ -28,7 +28,6 @@
     02111-1307 USA
 */
 
-// #include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
 #include <assert.h>
@@ -49,6 +48,19 @@ typedef struct {
 
 } AMBIC;
 
+typedef struct {
+
+    /* Required header: */
+    OPDS   h;
+
+    /* Output channels (4, 9 or 16 in use): */
+    ARRAYDAT    *tabout;
+
+    /* Input arguments: */
+    MYFLT *ain, *kangle, *kelevation;
+
+} AMBICA;
+
 /* ------------------------------------------------------------------------- */
 
 typedef struct {
@@ -65,6 +77,21 @@ typedef struct {
 
 } AMBID;
 
+typedef struct {
+
+    /* Required header: */
+    OPDS   h;
+
+    /* Output channels (up to eight supported here, depending on the
+     isetup parameter). */
+    ARRAYDAT  *tabout;
+
+    /* Input arguments: */
+    MYFLT *isetup;
+    ARRAYDAT *tabin;
+    uint32_t dim;
+} AMBIDA;
+
 /* ------------------------------------------------------------------------- */
 #define ROOT27 (5.1961524227066318806)
 #define ROOT135d16 (0.72618437741389066597) /* sqrt(135.0/256.0) */
@@ -73,6 +100,24 @@ static int ibformenc(CSOUND * csound, AMBIC * p)
 {
     /* All we do in here is police our parameters. */
     switch (p->OUTOCOUNT) {
+    case 4:
+    case 9:
+    case 16:
+      return OK;
+    default:
+      return csound->InitError
+        (csound, Str("The numbers of input and output arguments are not valid."));
+  }
+}
+
+static int ibformenc_a(CSOUND * csound, AMBICA * p)
+{
+    if (p->tabout->data==NULL || p->tabout->dimensions!=1)
+      return csound->InitError(csound,
+                               Str("array not initialised in ambibformenc1"));
+
+    /* All we do in here is police our parameters. */
+    switch (p->tabout->sizes[0]) {
     case 4:
     case 9:
     case 16:
@@ -150,6 +195,83 @@ abformenc(CSOUND * csound, AMBIC * p) {
       coefficient = coefficients[channelIndex];
       input = p->ain;
       output = p->aouts[channelIndex];
+      if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&output[sampleCount], '\0', early*sizeof(MYFLT));
+      for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++)
+        output[sampleIndex] = coefficient * input[sampleIndex];
+    }
+
+    return OK;
+
+}
+
+static int
+abformenc_a(CSOUND * csound, AMBICA * p) {
+
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t sampleCount, sampleIndex, channelCount, channelIndex, ksmps;
+    double angle, elevation, x, y, z;
+    MYFLT coefficients[16], coefficient, * output, * input;
+    MYFLT x2, y2, z2;
+
+    /* Find basic mode & angles: */
+    ksmps = sampleCount = CS_KSMPS;
+    channelCount = p->tabout->sizes[0];
+    angle = (double)(*(p->kangle)) * (PI / 180.0);
+    elevation = (double)(*(p->kelevation)) * (PI / 180.0);
+
+    /* Find direction cosines: */
+    x  = cos(elevation);
+    y  = x;
+    z  = sin(elevation);
+    x *= cos(angle);
+    y *= sin(angle);
+    x2 = x * x;
+    y2 = y * y;
+    z2 = z * z;
+
+    /* Find directional coefficients: */
+    switch (channelCount) {
+    case 16:
+      /* Third order. */
+      coefficients[ 9] = (MYFLT)((2.5 * z2 - 1.5) * z);
+      coefficients[10] = (MYFLT)(ROOT135d16 * x * (5.0 * z2 - 1));
+      coefficients[11] = (MYFLT)(ROOT135d16 * y * (5.0 * z2 - 1));
+      coefficients[12] = (MYFLT)(0.5*ROOT27 * z * (x2 - y2));
+      coefficients[13] = (MYFLT)(ROOT27 * x * y * z);
+      coefficients[14] = (MYFLT)(x * (x2 - 3.0 * y2));
+      coefficients[15] = (MYFLT)(y * (3.0 * x2 - y2));
+      /* Deliberately no break;. */
+    case 9:
+      /* Second order. */
+      coefficients[ 4] = (MYFLT)(1.5 * z2 - 0.5);
+      coefficients[ 5] = (MYFLT)(2.0 * z * x);
+      coefficients[ 6] = (MYFLT)(2.0 * y * z);
+      coefficients[ 7] = (MYFLT)(x2 - y2);
+      coefficients[ 8] = (MYFLT)(2.0 * x * y);
+      /* Deliberately no break;. */
+    case 4:
+      /* Zero and first order. */
+      coefficients[ 0] = SQRT(FL(0.5));
+      coefficients[ 1] = (MYFLT)x;
+      coefficients[ 2] = (MYFLT)y;
+      coefficients[ 3] = (MYFLT)z;
+      break;
+    default:
+      /* Should never be reached as this is policed at init time. */
+      assert(0);
+    }
+    /* (There are some repeated multiplies in the code above, but I
+       suggest these aren't removed until everyone is sure the
+       unoptimised code is doing the right thing!) */
+
+    /* Process channels: */
+    if (UNLIKELY(early)) sampleCount -= early;
+    for (channelIndex = 0; channelIndex < channelCount; channelIndex++) {
+      coefficient = coefficients[channelIndex];
+      input = p->ain;
+      output = &p->tabout->data[ksmps*channelIndex];
       if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) memset(&output[sampleCount], '\0', early*sizeof(MYFLT));
       for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++)
@@ -553,15 +675,414 @@ abformdec(CSOUND * csound, AMBID * p) {
 
 }
 
+static int
+ibformdec_a(CSOUND * csound, AMBIDA * p) {
+    int dim;
+    if (p->tabout->data==NULL || p->tabout->dimensions!=1)
+      return csound->InitError(csound,
+                               Str("bformdec1 output array not initilised"));
+    dim = p->tabin->sizes[0];
+    /* All we do in here is police our parameters. */
+    if (UNLIKELY(dim != 4 &&
+                 dim != 9 &&
+                 dim != 16)) {
+      return csound->InitError(csound,
+                               Str("The number of input arguments is not valid."));
+    }
+    else if (UNLIKELY(*(p->isetup) < 1 || *(p->isetup) > 5)) {
+      return csound->InitError(csound,
+                               Str("The isetup value should be between 1 and 5."));
+    }
+    else {
+      p->dim = dim = p->tabout->sizes[0];
+      /* Then we check the output arguments. */
+      if (*(p->isetup) == 1 && dim == 2) {
+        /* Stereo. */
+        return OK;
+      }
+      else if (*(p->isetup) == 2 && dim == 4) {
+        /* Quad. */
+        return OK;
+      }
+      else if (*(p->isetup) == 3 && dim == 5) {
+        /* Surround 5.0. */
+        return OK;
+      }
+      else if (*(p->isetup) == 4 && dim == 8) {
+        /* Octagon. */
+        return OK;
+      }
+      else if (*(p->isetup) == 5 && dim == 8) {
+        /* Cube. */
+        return OK;
+      }
+      else {
+        return csound->InitError(csound,
+                                 Str("The output channel count does not"
+                                     " match the isetup value."));
+      }
+    }
+    return OK;                    /* Never used */
+}
+
+static int
+abformdec_a(CSOUND * csound, AMBIDA * p) {
+
+    /* All assert() calls in here should already have been validated in
+       ibformdec(). I've also abused the notation a fair bit, often
+       holding scaled values in w, x, y etc. */
+
+    /* (There are some repeated multiplies in the code below, but I
+       suggest these aren't removed until everyone is sure the
+       unoptimised code is doing the right thing!) */
+
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t sampleCount = CS_KSMPS, sampleIndex;
+    uint32_t ksmps = sampleCount;
+    MYFLT p0, q, u, v, w, x, y, z;
+    uint32_t dim = p->dim;
+    MYFLT *tabin = p->tabin->data, *tabout = p->tabout->data;
+
+    switch ((int)*(p->isetup)) {
+    case 1: /* Stereo */
+      /* Use a 90degree stereo decode, equivalent to a M+S microphone
+         array at the origin. Works better than front-facing
+         arrangements for most purposes, as a composer using this opcode
+         probably wants to hear the back stage. */
+      if (UNLIKELY(offset)) {
+        memset(&tabout[0], '\0', offset*sizeof(MYFLT));
+        memset(&tabout[ksmps], '\0', offset*sizeof(MYFLT));
+      }
+      if (UNLIKELY(early)) {
+        sampleCount -= early;
+        memset(&tabout[sampleCount], '\0', early*sizeof(MYFLT));
+        memset(&tabout[ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+      }
+      for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
+        w = tabin[sampleIndex] * SQRT(FL(0.5));
+        y = tabin[2*ksmps+sampleIndex] * FL(0.5);
+        /* Left: */
+        tabout[sampleIndex] = w + y;
+        /* Right: */
+        tabout[ksmps+sampleIndex] = w - y;
+      }
+      break;
+    case 2: /* Quad */
+      if (UNLIKELY(offset)) {
+        memset(&tabout[0], '\0', offset*sizeof(MYFLT));
+        memset(&tabout[ksmps], '\0', offset*sizeof(MYFLT));
+        memset(&tabout[2*ksmps], '\0', offset*sizeof(MYFLT));
+        memset(&tabout[3*ksmps], '\0', offset*sizeof(MYFLT));
+      }
+      if (UNLIKELY(early)) {
+        sampleCount -= early;
+        memset(&tabout[sampleCount], '\0', early*sizeof(MYFLT));
+        memset(&tabout[ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+        memset(&tabout[2*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+        memset(&tabout[3*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+      }
+      /* Use a first-order 'in-phase' decode. */
+      for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
+        w = tabin[sampleIndex] * FL(0.35355);
+        x = tabin[ksmps+sampleIndex] * FL(0.17677);
+        y = tabin[2*ksmps+sampleIndex] * FL(0.17677);
+        /* Front left: */
+        tabout[sampleIndex] = w + x + y;
+        /* Back left: */
+        tabout[ksmps+sampleIndex] = w - x + y;
+        /* Back right: */
+        tabout[2*ksmps+sampleIndex] = w - x - y;
+        /* Front right: */
+        tabout[3*ksmps+sampleIndex] = w + x - y;
+      }
+      break;
+    case 3: /* 5.0 */
+      if (UNLIKELY(offset)) {
+        memset(&tabout[0], '\0', offset*sizeof(MYFLT));
+        memset(&tabout[ksmps], '\0', offset*sizeof(MYFLT));
+        memset(&tabout[2*ksmps], '\0', offset*sizeof(MYFLT));
+        memset(&tabout[3*ksmps], '\0', offset*sizeof(MYFLT));
+      }
+     if (UNLIKELY(early)) {
+      sampleCount -= early;
+      memset(&tabout[sampleCount], '\0', early*sizeof(MYFLT));
+      memset(&tabout[ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+      memset(&tabout[2*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+      memset(&tabout[3*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+    }
+     /* This is a second order decoder provided by Bruce Wiggins. It is
+         optimised for high frequency use within a dual-band decoder,
+         however it has good a low-frequency response. It is not quite
+         'in-phase' but it is not far off. */
+      if (dim == 4) {
+        /* Matrix truncated to first order (not ideal). */
+        for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
+          w = tabin[sampleIndex];
+          x = tabin[ksmps+sampleIndex];
+          y = tabin[2*ksmps+sampleIndex];
+          /* Left: */
+          tabout[sampleIndex]
+            = w * FL(0.405) + x * FL(0.32) + y * FL(0.31);
+          /* Right: */
+          tabout[ksmps+sampleIndex]
+            = w * FL(0.405) + x * FL(0.32) - y * FL(0.31);
+          /* Centre: */
+          tabout[2*ksmps+sampleIndex]
+            = w * FL(0.085) + x * FL(0.04);
+          /* Surround Left: */
+          tabout[3*ksmps+sampleIndex]
+            = w * FL(0.635) - x * FL(0.335) + y * FL(0.28);
+          /* Surround Right: */
+          tabout[4*ksmps+sampleIndex]
+            = w * FL(0.635) - x * FL(0.335) - y * FL(0.28);
+        }
+      }
+      else {
+        /* This is the full matrix. */
+        if (UNLIKELY(offset)) {
+          memset(&tabout[0], '\0', offset*sizeof(MYFLT));
+          memset(&tabout[ksmps], '\0', offset*sizeof(MYFLT));
+          memset(&tabout[2*ksmps], '\0', offset*sizeof(MYFLT));
+          memset(&tabout[3*ksmps], '\0', offset*sizeof(MYFLT));
+        }
+        if (UNLIKELY(early)) {
+          sampleCount -= early;
+          memset(&tabout[0+sampleCount], '\0', early*sizeof(MYFLT));
+          memset(&tabout[ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+          memset(&tabout[2*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+          memset(&tabout[3*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+        }
+        for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
+          w = tabin[sampleIndex];
+          x = tabin[ksmps+sampleIndex];
+          y = tabin[2*ksmps+sampleIndex];
+          u = tabin[7*ksmps+sampleIndex];
+          v = tabin[8*ksmps+sampleIndex];
+          /* Left: */
+          tabout[sampleIndex]
+            = (w * FL(0.405) + x * FL(0.32) + y * FL(0.31)
+               + u * FL(0.085) + v * FL(0.125));
+          /* Right: */
+          tabout[ksmps+sampleIndex]
+            = (w * FL(0.405) + x * FL(0.32) - y * FL(0.31)
+               + u * FL(0.085) - v * FL(0.125));
+          /* Centre: */
+          tabout[2*ksmps+sampleIndex]
+            = (w * FL(0.085) + x * FL(0.04)
+               + u * FL(0.045));
+          /* Surround Left: */
+          tabout[3*ksmps+sampleIndex]
+            = (w * FL(0.635) - x * FL(0.335) + y * FL(0.28)
+               - u * FL(0.08) + v * FL(0.08));
+          /* Surround Right: */
+          tabout[4*ksmps+sampleIndex]
+            = (w * FL(0.635) - x * FL(0.335) - y * FL(0.28)
+               - u * FL(0.08) - v * FL(0.08));
+        }
+      }
+      break;
+    case 4: /* Octagon: */
+      if (dim == 4) {
+        /* First order 'in-phase' decode: */
+        if (UNLIKELY(offset))
+          for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
+            memset(&tabout[ksmps*sampleIndex], '\0', offset*sizeof(MYFLT));
+        if (UNLIKELY(early)) {
+          sampleCount -= early;
+          for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
+            memset(&tabout[ksmps*sampleIndex+sampleCount], '\0',
+                   early*sizeof(MYFLT));
+        }
+        for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
+          w = tabin[sampleIndex] * FL(0.17677);
+          x = tabin[ksmps+sampleIndex];
+          y = tabin[2*ksmps+sampleIndex];
+          /* About 11 o'clock: */
+          tabout[sampleIndex] = w + x * FL(0.11548) + y * FL(0.04783);
+          /* About 10 o'clock: */
+          tabout[ksmps+sampleIndex] = w + x * FL(0.04783) + y * FL(0.11546);
+          /* About 8 o'clock: */
+          tabout[2*ksmps+sampleIndex] = w - x * FL(0.04783) + y * FL(0.11546);
+          /* About 7 o'clock: */
+          tabout[3*ksmps+sampleIndex] = w - x * FL(0.11548) + y * FL(0.04783);
+          /* About 5 o'clock: */
+          tabout[4*ksmps+sampleIndex] = w - x * FL(0.11548) - y * FL(0.04783);
+          /* About 4 o'clock: */
+          tabout[5*ksmps+sampleIndex] = w - x * FL(0.04783) - y * FL(0.11546);
+          /* About 2 o'clock: */
+          tabout[6*ksmps+sampleIndex] = w + x * FL(0.04783) - y * FL(0.11546);
+          /* About 1 o'clock: */
+          tabout[7*ksmps+sampleIndex] = w + x * FL(0.11548) - y * FL(0.04783);
+        }
+      }
+      else if (dim == 9) {
+        /* Second order 'in-phase' / 'controlled opposites' decode: */
+        if (UNLIKELY(offset))
+          for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
+            memset(&tabout[ksmps*sampleIndex], '\0', offset*sizeof(MYFLT));
+        if (UNLIKELY(early)) {
+          sampleCount -= early;
+          for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
+            memset(&tabout[ksmps*sampleIndex+sampleCount], '\0',
+                   early*sizeof(MYFLT));
+        }
+        for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
+          w = tabin[sampleIndex] * FL(0.17677);
+          x = tabin[ksmps+sampleIndex];
+          y = tabin[2*ksmps+sampleIndex];
+          u = tabin[7*ksmps+sampleIndex] * FL(0.03417);
+          v = tabin[8*ksmps+sampleIndex] * FL(0.03417);
+          /* About 11 o'clock: */
+          tabout[sampleIndex]
+            = w + x * FL(0.15906) + y * FL(0.06588) + u + v;
+          /* About 10 o'clock: */
+          tabout[ksmps+sampleIndex]
+            = w + x * FL(0.06588) + y * FL(0.15906) - u + v;
+          /* About 8 o'clock: */
+          tabout[2*ksmps+sampleIndex]
+            = w - x * FL(0.06588) + y * FL(0.15906) - u - v;
+          /* About 7 o'clock: */
+          tabout[3*ksmps+sampleIndex]
+            = w - x * FL(0.15906) + y * FL(0.06588) + u - v;
+          /* About 5 o'clock: */
+          tabout[4*ksmps+sampleIndex]
+            = w - x * FL(0.15906) - y * FL(0.06588) + u + v;
+          /* About 4 o'clock: */
+          tabout[5*ksmps+sampleIndex]
+            = w - x * FL(0.06588) - y * FL(0.15906) - u + v;
+          /* About 2 o'clock: */
+          tabout[6*ksmps+sampleIndex]
+            = w + x * FL(0.06588) - y * FL(0.15906) - u - v;
+          /* About 1 o'clock: */
+          tabout[7*ksmps+sampleIndex]
+            = w + x * FL(0.15906) - y * FL(0.06588) + u - v;
+        }
+      }
+      else {
+        if (UNLIKELY(offset))
+          for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
+            memset(&tabout[ksmps*sampleIndex], '\0', offset*sizeof(MYFLT));
+        if (UNLIKELY(early)) {
+          sampleCount -= early;
+          for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
+            memset(&tabout[ksmps*sampleIndex+sampleCount], '\0',
+                   early*sizeof(MYFLT));
+        }
+        /* Third order 'in-phase' / 'controlled opposites' decode: */
+        for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
+          w  = tabin[ksmps* 0+sampleIndex] * FL(0.176777);
+          x  = tabin[ksmps* 1+sampleIndex];
+          y  = tabin[ksmps* 2+sampleIndex];
+          u  = tabin[ksmps* 7+sampleIndex] * FL(0.053033);
+          v  = tabin[ksmps* 8+sampleIndex] * FL(0.053033);
+          p0 = tabin[ksmps*14+sampleIndex];
+          q  = tabin[ksmps*15+sampleIndex];
+          /* About 11 o'clock: */
+          tabout[0+sampleIndex]
+            = (w
+               + x * FL(0.173227) + y * FL(0.071753)
+               + u + v
+               + p0 * FL(0.004784) + q * FL(0.011548));
+          /* About 10 o'clock: */
+          tabout[ksmps+sampleIndex]
+            = (w
+               + x * FL(0.071753) + y * FL(0.173227)
+               - u + v
+               - p0 * FL(0.011548) - q * FL(0.004784));
+          /* About 8 o'clock: */
+          tabout[2*ksmps+sampleIndex]
+            = (w
+               - x * FL(0.071753) + y * FL(0.173227)
+               - u - v
+               + p0 * FL(0.004784) - q * FL(0.011548));
+          /* About 7 o'clock: */
+          tabout[3*ksmps+sampleIndex]
+            = (w
+               - x * FL(0.173227) + y * FL(0.071753)
+               + u - v
+               - p0 * FL(0.011548) + q * FL(0.004784));
+          /* About 5 o'clock: */
+          tabout[ksmps*4+sampleIndex]
+            = (w
+               - x * FL(0.173227) - y * FL(0.071753)
+               + u + v
+               - p0 * FL(0.004784) - q * FL(0.011548));
+          /* About 4 o'clock: */
+          tabout[ksmps*5+sampleIndex]
+            = (w
+               - x * FL(0.071753) - y * FL(0.173227)
+               - u + v
+               + p0 * FL(0.011548) + q * FL(0.004784));
+          /* About 2 o'clock: */
+          tabout[ksmps*6+sampleIndex]
+            = (w
+               + x * FL(0.071753) - y * FL(0.173227)
+               - u - v
+               - p0 * FL(0.004784) + q * FL(0.011548));
+          /* About 1 o'clock: */
+          tabout[ksmps*7+sampleIndex]
+            = (w
+               + x * FL(0.173227) - y * FL(0.071753)
+               + u - v
+               + p0 * FL(0.011548) - q * FL(0.004784));
+        }
+      }
+      break;
+    case 5: /* Cube: */
+      /* First order 'in-phase' decode: */
+      if (UNLIKELY(offset))
+        for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
+          memset(&tabout[ksmps*sampleIndex], '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+          sampleCount -= early;
+          for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
+            memset(&tabout[ksmps*sampleIndex+sampleCount],
+                   '\0', early*sizeof(MYFLT));
+        }
+      for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
+        w = tabin[sampleIndex] * FL(0.17677);
+        x = tabin[ksmps+sampleIndex] * FL(0.07216);
+        y = tabin[2*ksmps+sampleIndex] * FL(0.07216);
+        z = tabin[3*ksmps+sampleIndex] * FL(0.07216);
+        /* Front left bottom: */
+        p->tabout->data[sampleIndex] = w + x + y - z;
+        /* Front left top: */
+        p->tabout->data[ksmps+sampleIndex] = w + x + y + z;
+        /* Back left bottom: */
+        p->tabout->data[2*ksmps+sampleIndex] = w - x + y - z;
+        /* Back left top: */
+        p->tabout->data[3*ksmps+sampleIndex] = w - x + y + z;
+        /* Back right bottom: */
+        p->tabout->data[ksmps*4+sampleIndex] = w - x - y - z;
+        /* Back right top: */
+        p->tabout->data[ksmps*5+sampleIndex] = w - x - y + z;
+        /* Front right bottom: */
+        p->tabout->data[ksmps*6+sampleIndex] = w + x - y - z;
+        /* Front right top: */
+        p->tabout->data[ksmps*7+sampleIndex] = w + x - y + z;
+      }
+      break;
+    default:
+      assert(0);
+    }
+
+    return OK;
+}
+
 /* ------------------------------------------------------------------------- */
 
 #define S(x) sizeof(x)
 
 static OENTRY ambicode1_localops[] = {
-  { "bformenc1", S(AMBIC), 0, 5, "mmmmmmmmmmmmmmmm", "akk",
+  { "bformenc1.a", S(AMBIC), 0, 5, "mmmmmmmmmmmmmmmm", "akk",
                 (SUBR)ibformenc, NULL, (SUBR)abformenc },
-  { "bformdec1", S(AMBID), 0, 5, "mmmmmmmm", "iy",
+  { "bformenc1.A", S(AMBIC), 0, 5, "a[]", "akk",
+                (SUBR)ibformenc_a, NULL, (SUBR)abformenc_a },
+  { "bformdec1.a", S(AMBID), 0, 5, "mmmmmmmm", "iy",
     (SUBR)ibformdec, NULL, (SUBR)abformdec },
+  { "bformdec1.A", S(AMBIDA), 0, 5, "a[]", "ia[]",
+    (SUBR)ibformdec_a, NULL, (SUBR)abformdec_a },
 };
 
 LINKAGE_BUILTIN(ambicode1_localops)

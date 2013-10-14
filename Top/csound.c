@@ -425,12 +425,14 @@ static const CSOUND cenviron_ = {
     csoundLocalizeString,
     cs_strtok_r,
     cs_strtod,
+    cs_sprintf,
+    cs_sscanf,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -849,8 +851,9 @@ static const CSOUND cenviron_ = {
     NULL,           /* filedir */
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
-    0,               /* info_message_request */
-    0                /* modules loaded */
+    0,              /* info_message_request */
+    0,              /* modules loaded */
+    NULL            /* self-reference */
 };
 
 /* from threads.c */
@@ -1136,6 +1139,11 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     csoundUnLock();
     csoundReset(csound);
     csound->API_lock = csoundCreateMutex(1);
+    /* NB: as suggested by F Pinot, keep the
+       address of the pointer to CSOUND inside
+       the struct, so it can be cleared later */
+    csound->self = &csound;
+
     return csound;
 }
 
@@ -1207,6 +1215,8 @@ PUBLIC void csoundDestroy(CSOUND *csound)
       //csoundLockMutex(csound->API_lock);
       csoundDestroyMutex(csound->API_lock);
     }
+    /* clear the pointer */
+    *(csound->self) = NULL;
     free((void*) csound);
 }
 
@@ -2028,7 +2038,7 @@ void csoundErrMsgV(CSOUND *csound,
                    const char *hdr, const char *msg, va_list args)
 {
     if (hdr != NULL)
-      csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
+      csound->MessageS(csound, CSOUNDMSG_ERROR, hdr);
     csound->csoundMessageCallback_(csound, CSOUNDMSG_ERROR, msg, args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
@@ -2667,7 +2677,7 @@ static void reset(CSOUND *csound)
     /* VL 07.06.2013 - check if the status is COMP before
        resetting.
     */
-
+    CSOUND **self = csound->self;
     saved_env = (CSOUND*) malloc(sizeof(CSOUND));
     memcpy(saved_env, csound, sizeof(CSOUND));
     memcpy(csound, &cenviron_, sizeof(CSOUND));
@@ -2692,6 +2702,7 @@ static void reset(CSOUND *csound)
     csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
+    csound->self = self;
     free(saved_env);
 
 }
@@ -3202,7 +3213,7 @@ static int getTimeResolution(void)
       do {
         s++;
       } while (*s == ' ' || *s == '\t');    /* skip white space */
-      i = sscanf(s, "%lf", &timeResolutionSeconds);
+      i = CS_SSCANF(s, "%lf", &timeResolutionSeconds);
       if (i < 1 || timeResolutionSeconds < 1.0) {
         timeResolutionSeconds = -1.0;       /* invalid entry */
         continue;
