@@ -129,7 +129,8 @@ echo "preparing framework..."
 #cp  csound5-f/examples/csoundapi_tilde/csapi_demo.csd $FRAMEWORK32_DIR/../Documentation/
 
 #mv  $DIST/CsoundLib64.framework/Resources/Opcodes64/csladspa.dylib  $FRAMEWORK64_DIR/$CSLADSPA_DIR
-cp  $DIST/lib/libcsnd.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
+cp  $DIST/lib/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
+cp  $DIST/lib/libCsoundAC.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
 cp  $DIST/lib/lib_jcsound6.jnilib $FRAMEWORK64_DIR/$JAVA_DIR
 cp  $DIST/lib/csnd6.jar $FRAMEWORK64_DIR/$JAVA_DIR
 cp  $DIST/lib/csound6~.pd_darwin $FRAMEWORK64_DIR/$PD_DIR
@@ -244,6 +245,7 @@ cp /usr/local/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libfluidsynth.1.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libluajit-5.1.2.0.2.dylib $SUPPORT_LIBS_DIR 
 
 #cp -L /usr/local/lib/libmpadec.dylib $SUPPORT_LIBS_DIR
 #cp -L /usr/local/lib/libluajit.dylib $SUPLIBS

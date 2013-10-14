@@ -230,11 +230,11 @@ int     sndinset(CSOUND *, void *), sndinset_S(CSOUND *, void *),
         soundin(CSOUND *, void *);
 int     sndoutset(CSOUND *, void *), sndoutset_S(CSOUND *, void *),
         soundout(CSOUND *, void *);
-int     soundouts(CSOUND *, void *);
+int     soundouts(CSOUND *, void *), inarray(CSOUND *, void *);
 int     in(CSOUND *, void *), ins(CSOUND *, void *);
 int     inq(CSOUND *, void *), inh(CSOUND *, void *);
 int     ino(CSOUND *, void *), in16(CSOUND *, void *);
-int     in32(CSOUND *, void *);
+int     in32(CSOUND *, void *), outarr(CSOUND *, void *);
 int     inch_opcode(CSOUND *, void *), inall_opcode(CSOUND *, void *);
 int     outmultiple(CSOUND *, void *);
 /* int     out(CSOUND *, void *), outs(CSOUND *, void *); */

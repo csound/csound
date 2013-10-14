@@ -240,6 +240,7 @@ const char orc5[] = "chn_k \"winsize\", 3\n"
         "instr 1\n"
         "finput pvsin 1 \n"
         "ioverlap, inumbins, iwinsize, iformat pvsinfo finput\n"
+        "pvsout finput, 1\n"
         "chnset iwinsize, \"winsize\"\n"
         "endin\n";
 
@@ -253,6 +254,8 @@ void test_pvs_opcodes(void)
     CU_ASSERT(err == CSOUND_SUCCESS);
     err = csoundStart(csound);
     PVSDATEXT pvs_data, pvs_data2;
+    memset(&pvs_data,0,sizeof(PVSDATEXT));
+    memset(&pvs_data2,0,sizeof(PVSDATEXT));
     pvs_data.N = 16;
     pvs_data.winsize = 32;
     err = csoundSetPvsChannel(csound, &pvs_data, "1");
@@ -277,7 +280,7 @@ void test_invalid_channel(void)
 
     int err;
     CU_ASSERT_EQUAL(0.0, csoundGetControlChannel(csound, "nonexistent_channel", &err));
-    CU_ASSERT_NOT_EQUAL(err, CSOUND_SUCCESS);
+    CU_ASSERT_EQUAL(err, CSOUND_SUCCESS);
 
     csoundCleanup(csound);
     csoundDestroyMessageBuffer(csound);

@@ -930,7 +930,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
        out (to standard output). The subroutines reals and fft
        together perform an efficient inverse FFT.  */
     if (!(NO & (NO - 1))) {
-       printf("N %d %d \n", NO, NO & (NO-1));
+      /*printf("N %d %d \n", NO, NO & (NO-1));*/
       syn[1] = syn[NO];
       csound->InverseRealFFT(csound, syn, NO);
       syn[NO] = syn[NO + 1] = FL(0.0);

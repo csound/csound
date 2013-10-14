@@ -257,7 +257,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->init_done = 0;
 #endif
 
-    
+
     if (csound->realtime_audio_flag == 0) {
      csound->curip    = ip;
      csound->ids      = (OPDS *)ip;
@@ -973,7 +973,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
       saved_curip->subins_deact = (void*) p;
       p->parent_ip = p->buf.parent_ip = saved_curip;
     }
-    
+
     /* set the local ksmps values */
 //    if (local_ksmps != CS_KSMPS) {
 //        /* this is the case when p->ip->ksmps != p->h.insdshead->ksmps */
@@ -992,7 +992,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
         p->ip->onedksmps = CS_ONEDKSMPS;
         p->ip->kicvt = CS_KICVT;
 //    }
-    
+
     /* copy parameters from this instrument into our subinstrument */
     p->ip->xtratim  = saved_curip->xtratim;
     p->ip->m_sust   = 0;
@@ -1119,6 +1119,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     tp = csound->engineState.instrtxtp[instno];
     /* set local ksmps if defined by user */
     n = p->OUTOCOUNT + p->INOCOUNT - 1;
+
     if (*(p->ar[n]) != FL(0.0)) {
       i = (unsigned int) *(p->ar[n]);
       if (UNLIKELY(i < 1 || i > csound->ksmps ||
@@ -1153,6 +1154,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       buf->iobufp_ptrs[2] = buf->iobufp_ptrs[3] = NULL;
       buf->iobufp_ptrs[4] = buf->iobufp_ptrs[5] = NULL;
       buf->iobufp_ptrs[6] = buf->iobufp_ptrs[7] = NULL;
+      buf->iobufp_ptrs[8] = buf->iobufp_ptrs[9] = NULL;
+      buf->iobufp_ptrs[10] = buf->iobufp_ptrs[11] = NULL;
 
       /* store parameters of input and output channels, and parent ip */
       buf->uopcode_struct = (void*) p;
@@ -1160,7 +1163,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
     }
 
-    /* copy parameters from the caller instrument into our subinstrument */
+   /* copy parameters from the caller instrument into our subinstrument */
     lcurip = p->ip;
 
     /* set the local ksmps values */
@@ -1222,7 +1225,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     while (csound->ids != NULL) {
       (*csound->ids->iopadr)(csound, csound->ids);
       csound->ids = csound->ids->nxti;
-    }
+      }
     p->ip->init_done = 1;
 
     /* copy length related parameters back to caller instr */
@@ -1274,8 +1277,13 @@ int xinset(CSOUND *csound, XIN *p)
     bufs = ((UOPCODE*) buf->uopcode_struct)->ar + inm->outchns;
     /* copy i-time variables */
     ndx_list = inm->in_ndx_list - 1;
-    while (*++ndx_list >= 0)
-      *(*(p->args + *ndx_list)) = *(*(bufs + *ndx_list));
+
+    while (*++ndx_list >= 0) {
+      //printf("%.1f %p \n", *(*(p->args + *ndx_list)), *(p->args + *ndx_list));
+       *(*(p->args + *ndx_list)) = *(*(bufs + *ndx_list));
+
+    }
+
     /* IV - Jul 29 2006: and string variables */
     while (*++ndx_list >= 0) {
       void *in, *out;
@@ -1948,7 +1956,7 @@ static void instance(CSOUND *csound, int insno)
 
     OPARMS    *O = csound->oparms;
     int       odebug = O->odebug;
-    ARG*          arg;
+    ARG*      arg;
     int       argStringCount;
 
     tp = csound->engineState.instrtxtp[insno];
@@ -2079,6 +2087,8 @@ static void instance(CSOUND *csound, int insno)
         }
         argpp[n] = fltp;
         arg = arg->next;
+        *argpp[n] = n;
+        //printf("%f %p\n", *argpp[n], argpp[n]);
       }
 
       for (argStringCount = argsRequired(ep->outypes);
@@ -2291,9 +2301,9 @@ void *init_pass_thread(void *p){
     float wakeup = (1000*csound->ksmps/csound->esr);
     while(csound->init_pass_loop) {
 #if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
-      usleep(1000*wakeup); 
+      usleep(1000*wakeup);
 #else
-      csoundSleep(((int)wakeup > 0) ? wakeup : 1);  
+      csoundSleep(((int)wakeup > 0) ? wakeup : 1);
 #endif
       ip = csound->actanchor.nxtact;
       /* do init pass for this instr */
@@ -2304,23 +2314,23 @@ void *init_pass_thread(void *p){
 #else
         done = ip->init_done;
 #endif
-        if(done == 0){
-         csoundLockMutex(csound->init_pass_threadlock);
+        if (done == 0) {
+          csoundLockMutex(csound->init_pass_threadlock);
           csound->ids = (OPDS *) (ip->nxti);
           while (csound->ids != NULL) {
             if (csound->oparms->odebug)
-               csound->Message(csound, "init %s:\n",
-                          csound->ids->optext->t.oentry->opname);
+              csound->Message(csound, "init %s:\n",
+                              csound->ids->optext->t.oentry->opname);
             (*csound->ids->iopadr)(csound, csound->ids);
             csound->ids = csound->ids->nxti;
           }
-	  ip->tieflag = 0;
+          ip->tieflag = 0;
 #ifdef HAVE_ATOMIC_BUILTIN
-    __sync_lock_test_and_set((int*)&ip->init_done,1);
+          __sync_lock_test_and_set((int*)&ip->init_done,1);
 #else
-    ip->init_done = 1;
+          ip->init_done = 1;
 #endif
-          if(ip->reinitflag==1) {
+          if (ip->reinitflag==1) {
             ip->reinitflag = 0;
           }
           csoundUnlockMutex(csound->init_pass_threadlock);
