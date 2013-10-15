@@ -329,30 +329,30 @@ msgstr "instr %s redéfini"
 msgid "ERROR: Could not find OPCODINFO for opname: %s\n"
 msgstr "ERREUR : impossible de trouver l'OPCODINFO pour : %s\n"
 
-#: Engine/csound_orc_compile.c:1549
+#: Engine/csound_orc_compile.c:1551
 #, c-format
 msgid "Unknown TREE node of type %d found in root.\n"
 msgstr "Noeud inconnu de type %d trouvé à la racine.\n"
 
-#: Engine/csound_orc_compile.c:1558
+#: Engine/csound_orc_compile.c:1560
 #, c-format
 msgid "%d syntax errors in orchestra.  compilation invalid\n"
 msgstr "%d erreurs de syntaxe dans l'orchestre. Compilation non valide\n"
 
-#: Engine/csound_orc_compile.c:1598
+#: Engine/csound_orc_compile.c:1600
 msgid "perf-pass statements illegal in header blk\n"
 msgstr "les instructions d'exécution sont interdites dans le bloc d'en-tête\n"
 
-#: Engine/csound_orc_compile.c:1767
+#: Engine/csound_orc_compile.c:1772
 msgid "i[fixme] pset args != pmax"
 msgstr "i[fixme] pset args != pmax"
 
-#: Engine/csound_orc_compile.c:1889
+#: Engine/csound_orc_compile.c:1894
 #, c-format
 msgid "Missing local arg: %s\n"
 msgstr "Argument local manquant : %s\n"
 
-#: Engine/csound_orc_compile.c:2020
+#: Engine/csound_orc_compile.c:2025
 #, c-format
 msgid "Opcode \"%s\" is deprecated\n"
 msgstr "L'opcode \"%s\" est obsolète\n"
@@ -422,8 +422,8 @@ msgstr ""
 "erreur : expression booléenne '%s' avec types d'arg %s introuvable, ligne "
 "%d\n"
 
-#: Engine/csound_orc_semantics.c:437 Engine/csound_orc_semantics.c:1075
-#: Engine/csound_orc_semantics.c:1096
+#: Engine/csound_orc_semantics.c:437 Engine/csound_orc_semantics.c:1079
+#: Engine/csound_orc_semantics.c:1099
 #, c-format
 msgid "Variable '%s' used before defined\n"
 msgstr "Variable '%s' utilisée avant d'être définie\n"
@@ -433,33 +433,38 @@ msgstr "Variable '%s' utilisée avant d'être définie\n"
 msgid "Unknown arg type: %d\n"
 msgstr "Type d'arg inconnu : %d\n"
 
-#: Engine/csound_orc_semantics.c:1299
+#: Engine/csound_orc_semantics.c:1059
+#, fuzzy, c-format
+msgid "Variable type for %s could not be determined.\n"
+msgstr "Variable '%s' utilisée avant d'être définie\n"
+
+#: Engine/csound_orc_semantics.c:1300
 #, c-format
 msgid "Unable to find opcode with name: %s\n"
 msgstr "Opcode nommé %s introuvable\n"
 
-#: Engine/csound_orc_semantics.c:1314
+#: Engine/csound_orc_semantics.c:1315
 #, c-format
 msgid "Unable to find opcode entry for '%s' with matching argument types:\n"
 msgstr ""
 "Aucune entrée pour l'opcode '%s' avec les types d'argument correspondants :\n"
 
-#: Engine/csound_orc_semantics.c:1317
+#: Engine/csound_orc_semantics.c:1318
 #, c-format
 msgid "Found: %s %s %s\n"
 msgstr "Trouvé : %s %s %s\n"
 
-#: Engine/csound_orc_semantics.c:1319
+#: Engine/csound_orc_semantics.c:1320
 #, c-format
 msgid "Line: %d Loc: %d\n"
 msgstr "Ligne : %d Pos : %d\n"
 
-#: Engine/csound_orc_semantics.c:1453
+#: Engine/csound_orc_semantics.c:1454
 #, c-format
 msgid "expression for until statement not a boolean expression, line %d\n"
 msgstr "l'expression de l'instruction until n'est pas booléenne, ligne %d\n"
 
-#: Engine/csound_orc_semantics.c:1606
+#: Engine/csound_orc_semantics.c:1607
 #, c-format
 msgid ""
 "\n"
@@ -468,7 +473,7 @@ msgstr ""
 "\n"
 "erreur : %s (symbole \"%s\")"
 
-#: Engine/csound_orc_semantics.c:1608
+#: Engine/csound_orc_semantics.c:1609
 #, c-format
 msgid ""
 " line %d:\n"
@@ -477,7 +482,7 @@ msgstr ""
 " ligne %d :\n"
 ">>>"
 
-#: Engine/csound_orc_semantics.c:2140
+#: Engine/csound_orc_semantics.c:2141
 #, c-format
 msgid "insufficient required arguments for opcode %s on line %d:%d\n"
 msgstr "arguments requis manquants pour l'opcode %s ligne %d:%d\n"
@@ -575,7 +580,7 @@ msgstr "intervalle x interdit"
 
 #: Engine/fgens.c:409 Engine/fgens.c:558 Engine/fgens.c:639 Engine/fgens.c:884
 #: Engine/fgens.c:1362 Engine/fgens.c:2473 Engine/fgens.c:2781
-#: Engine/fgens.c:2922 Opcodes/ftest.c:128 Top/main.c:73 util/cvanal.c:67
+#: Engine/fgens.c:2922 Opcodes/ftest.c:128 Top/main.c:118 util/cvanal.c:67
 #: util/lpanal.c:401 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr "pas assez d'arguments"
@@ -1300,7 +1305,7 @@ msgstr "impossible de réouvrir cscore.srt"
 msgid "sorting cscore.out ..\n"
 msgstr "tri de cscore.out ..\n"
 
-#: Engine/musmon.c:340 Top/main.c:278
+#: Engine/musmon.c:340 Top/main.c:329
 msgid "\t... done\n"
 msgstr "\t... fait\n"
 
@@ -1459,7 +1464,7 @@ msgstr "Impossible de trouver l'instrument %d"
 msgid "cannot find the specified instrument or opcode"
 msgstr "impossible de trouver l'instrument ou l'opcode spécifié"
 
-#: Engine/new_orc_parser.c:92 Top/main.c:213
+#: Engine/new_orc_parser.c:92 Top/main.c:264
 #, c-format
 msgid "Failed to open input file %s\n"
 msgstr "L'ouverture du fichier de sortie %s a échoué\n"
@@ -2677,19 +2682,19 @@ msgid "Error setting access type for soundcard"
 msgstr "Erreur lors du réglage du type d'accès à la carte son"
 
 #: InOut/rtalsa.c:377
+#, fuzzy
 msgid ""
 "Unknown sample format.\n"
-" *** Only 16-bit and 32-bit integers, and 32-bit floats are supported.\n"
+" *** Only 16-bit and 32-bit integers, and 32-bit floats are supported."
 msgstr ""
 "Format d'échantillon inconnu.\n"
-" *** Seuls les entiers sur 16 et 32 bit et les flottants sur 32 bit "
-" sont supportés.\n"
+" *** Seuls les entiers sur 16 et 32 bit et les flottants sur 32 bit  sont "
+"supportés.\n"
 
 #: InOut/rtalsa.c:383
 msgid "Unable to set requested sample format on soundcard"
 msgstr ""
-"Impossible de fixer le format d'échantillonnage demandé "
-"sur la carte son"
+"Impossible de fixer le format d'échantillonnage demandé sur la carte son"
 
 #: InOut/rtalsa.c:389
 msgid "Unable to set number of channels on soundcard"
@@ -3813,7 +3818,7 @@ msgstr "Appel de fonction inconnue"
 msgid "number of arguments != nchnls"
 msgstr "nombre d'arguments != nchnls"
 
-#: OOps/aops.c:2078
+#: OOps/aops.c:2080
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 "outrg : le numéro de canal ne peut pas être < 1 (1 est le premier canal)"
@@ -3902,34 +3907,34 @@ msgstr "compileorc : impossible d'ouvrir %s\n"
 msgid "compileorc: could not read %s\n"
 msgstr "compileorc : impossible de lire %s\n"
 
-#: OOps/diskin2.c:269
+#: OOps/diskin2.c:273
 msgid "diskin2: invalid number of channels"
 msgstr "diskin2 : nombre de canaux non valide"
 
-#: OOps/diskin2.c:285
+#: OOps/diskin2.c:289 OOps/diskin2.c:1741
 msgid "diskin2: unknown sample format"
 msgstr "diskin2 : format d'échantillon inconnu"
 
-#: OOps/diskin2.c:300
+#: OOps/diskin2.c:304 OOps/diskin2.c:1756
 #, c-format
 msgid "diskin2: %s: failed to open file"
 msgstr "diskin2 : %s: l'ouverture du fichier a échoué"
 
-#: OOps/diskin2.c:310
+#: OOps/diskin2.c:314
 msgid ""
 "diskin2: number of output args inconsistent with number of file channels"
 msgstr ""
 "diskin2 : le nombre d'arguments en sortie est en contradiction avec le "
 "nombre de canaux du fichier"
 
-#: OOps/diskin2.c:342
+#: OOps/diskin2.c:346 OOps/diskin2.c:1813
 #, c-format
 msgid "diskin2: warning: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 "diskin2 : avertissement: taux d'échantillonnage (%d) du fichier != sr (%d) "
 "de l'orchestre\n"
 
-#: OOps/diskin2.c:423
+#: OOps/diskin2.c:427 OOps/diskin2.c:1894
 #, c-format
 msgid ""
 "diskin2: opened (asynchronously) '%s':\n"
@@ -3938,7 +3943,7 @@ msgstr ""
 "diskin2 : '%s' ouvert (asynchrone) :\n"
 "          %d Hz, %d voix, %ld trames d'échantillons\n"
 
-#: OOps/diskin2.c:437
+#: OOps/diskin2.c:441 OOps/diskin2.c:1908
 #, c-format
 msgid ""
 "diskin2: opened '%s':\n"
@@ -3947,28 +3952,30 @@ msgstr ""
 "diskin2 : '%s' ouvert :\n"
 "          %d Hz, %d voix, %ld trames d'échantillons\n"
 
-#: OOps/diskin2.c:516 OOps/diskin2.c:702 OOps/diskin2.c:898
+#: OOps/diskin2.c:520 OOps/diskin2.c:706 OOps/diskin2.c:902
+#: OOps/diskin2.c:1526 OOps/diskin2.c:1940 OOps/diskin2.c:2133
 msgid "diskin2: not initialised"
 msgstr "diskin2 : non initialisé"
 
-#: OOps/diskin2.c:682 OOps/diskin2.c:873
+#: OOps/diskin2.c:686 OOps/diskin2.c:877 OOps/diskin2.c:1697
+#: OOps/diskin2.c:2106
 msgid "diskin2: file descriptor closed or invalid\n"
 msgstr "diskin2 : descripteur de fichier fermé ou non valide\n"
 
-#: OOps/diskin2.c:1006
+#: OOps/diskin2.c:1010
 msgid "soundin: invalid number of channels"
 msgstr "soundin : nombre de canaux non valide"
 
-#: OOps/diskin2.c:1028
+#: OOps/diskin2.c:1032
 msgid "soundin: unknown sample format"
 msgstr "soundin : format d'échantillon inconnu"
 
-#: OOps/diskin2.c:1049
+#: OOps/diskin2.c:1053
 #, c-format
 msgid "soundin: %s: failed to open file"
 msgstr "soundin : %s : l'ouverture du fichier a échoué"
 
-#: OOps/diskin2.c:1057
+#: OOps/diskin2.c:1061
 #, c-format
 msgid ""
 "soundin: opened '%s':\n"
@@ -3977,49 +3984,54 @@ msgstr ""
 "soundin: '%s' ouvert :\n"
 "         %d Hz, %d voix, %ld trames d'échantillons\n"
 
-#: OOps/diskin2.c:1067
+#: OOps/diskin2.c:1071
 msgid ""
 "soundin: number of output args inconsistent with number of file channels"
 msgstr ""
 "soundin : le nombre d'arguments en sortie est en contradiction avec le "
 "nombre de canaux du fichier"
 
-#: OOps/diskin2.c:1076
+#: OOps/diskin2.c:1080
 #, c-format
 msgid "soundin: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr "soundin : taux d'échantillonnage (%d) != sr (%d) de l'orchestre\n"
 
-#: OOps/diskin2.c:1125
+#: OOps/diskin2.c:1129
 msgid "soundin: not initialised"
 msgstr "soundin : non initialisé"
 
-#: OOps/diskin2.c:1208
+#: OOps/diskin2.c:1212
 #, c-format
 msgid "%s is deprecated; use fout instead\n"
 msgstr "%s est obsolète ; utiliser plutôt fout\n"
 
-#: OOps/diskin2.c:1245
+#: OOps/diskin2.c:1249
 #, c-format
 msgid "%s: invalid sample format: %d"
 msgstr "%s : format d'échantillon non valide : %d"
 
-#: OOps/diskin2.c:1250
+#: OOps/diskin2.c:1254
 #, c-format
 msgid "%s cannot open %s"
 msgstr "%s ne peut pas ouvrir %s"
 
-#: OOps/diskin2.c:1262
+#: OOps/diskin2.c:1266
 #, c-format
 msgid "%s: opening RAW outfile %s\n"
 msgstr "%s : ouverture du fichier RAW %s en sortie\n"
 
-#: OOps/diskin2.c:1287
+#: OOps/diskin2.c:1291
 msgid "soundout: not initialised"
 msgstr "soundout : non initialisé"
 
-#: OOps/diskin2.c:1309
+#: OOps/diskin2.c:1313
 msgid "soundouts: not initialised"
 msgstr "soundouts : non initialisé"
+
+#: OOps/diskin2.c:1782
+#, fuzzy
+msgid "diskin2: output array too small"
+msgstr "Table de sortie manquante ou trop courte !"
 
 #: OOps/disprep.c:60
 #, c-format
@@ -4727,8 +4739,7 @@ msgstr "pvsanal : une taille de tfr à 32 est trop petite !\n"
 
 #: OOps/pvsanal.c:184
 msgid "pvsanal: window size too small for fftsize"
-msgstr ""
-"pvsanal : taille fenêtre trop petite pour la taille de tfr"
+msgstr "pvsanal : taille fenêtre trop petite pour la taille de tfr"
 
 #: OOps/pvsanal.c:189
 msgid "pvsanal: overlap too big for fft size\n"
@@ -5423,19 +5434,24 @@ msgstr "durée de boucle illégale"
 msgid "comb: not initialised"
 msgstr "comb : non initialisé"
 
-#: OOps/ugens6.c:1000
+#: OOps/ugens6.c:1002
+#, fuzzy
+msgid "combinv: not initialised"
+msgstr "comb : non initialisé"
+
+#: OOps/ugens6.c:1039
 msgid "alpass: not initialised"
 msgstr "alpass : non initialisé"
 
-#: OOps/ugens6.c:1033
+#: OOps/ugens6.c:1072
 msgid "revlpsiz inconsistent\n"
 msgstr "revlpsiz incohérent\n"
 
-#: OOps/ugens6.c:1124
+#: OOps/ugens6.c:1163
 msgid "reverb: not intialised"
 msgstr "reverb : non initialisé"
 
-#: OOps/ugens6.c:1198
+#: OOps/ugens6.c:1237
 msgid "pan: not initialised"
 msgstr "pan : non initialisé"
 
@@ -10613,7 +10629,7 @@ msgstr "Echec de l'allocation d'une nouvelle entrée d'opcode."
 msgid "Failed to allocate opcode entry for %s."
 msgstr "Echec de l'allocation d'une entrée d'opcode pour %s."
 
-#: Top/csound.c:2717 Top/main.c:335
+#: Top/csound.c:2717 Top/main.c:390
 msgid "setting dummy interface\n"
 msgstr "mise en place d'une interface factice\n"
 
@@ -10701,7 +10717,25 @@ msgstr "csoundDestroyMessageBuffer : tampon de message non alloué."
 msgid "csound: internal error: message buffer overflow\n"
 msgstr "csound : erreur interne : dépassement du tampon de messages\n"
 
+#: Top/main.c:64
+#, c-format
+msgid "WARNING: cannot open csound6rc file %s\n"
+msgstr "AVERTISSEMENT : impossible d'ouvrir le fichier csound6rc %s\n"
+
 #: Top/main.c:67
+#, c-format
+msgid "Reading options from $CSOUND6RC: %s \n"
+msgstr "Lecture des options depuis $CSOUND6RC : %s \n"
+
+#: Top/main.c:76
+msgid "Reading options from $HOME/.csound6rc\n"
+msgstr "Lecture des options depuis $HOME/.csound6rc\n"
+
+#: Top/main.c:91
+msgid "Reading options from local directory .csound6rc \n"
+msgstr "Lecture des options depuis le .csound6rc du répertoire local\n"
+
+#: Top/main.c:112
 msgid ""
 "Csound is already started, call csoundReset()\n"
 "before starting again \n"
@@ -10709,96 +10743,78 @@ msgstr ""
 "Csound a déjà démarré, appeler csoundReset()\n"
 "avant de redémarrer\n"
 
-#: Top/main.c:92
-#, c-format
-msgid "WARNING: cannot open csound6rc file %s\n"
-msgstr "AVERTISSEMENT : impossible d'ouvrir le fichier csound6rc %s\n"
-
-#: Top/main.c:95
-#, c-format
-msgid "Reading options from $CSOUND6RC: %s \n"
-msgstr "Lecture des options depuis $CSOUND6RC : %s \n"
-
-#: Top/main.c:104
-msgid "Reading options from $HOME/.csound6rc\n"
-msgstr "Lecture des options depuis $HOME/.csound6rc\n"
-
-#: Top/main.c:119
-msgid "Reading options from local directory .csound6rc \n"
-msgstr "Lecture des options depuis le .csound6rc du répertoire local\n"
-
-#: Top/main.c:135
+#: Top/main.c:186
 msgid "no orchestra name"
 msgstr "aucun nom d'orchestre"
 
-#: Top/main.c:159
+#: Top/main.c:210
 msgid "Reading CSD failed ... stopping"
 msgstr "La lecture du CSD a échoué ... arrêt"
 
-#: Top/main.c:173
+#: Top/main.c:224
 msgid "error: multiple uses of stdin"
 msgstr "erreur : utilisations multiples de stdin"
 
-#: Top/main.c:177
+#: Top/main.c:228
 msgid "error: multiple uses of stdout"
 msgstr "erreur : utilisations multiples de stdout"
 
-#: Top/main.c:186
+#: Top/main.c:237
 msgid "realtime performance using dummy numeric scorefile\n"
 msgstr ""
 "exécution en temps réel en utilisant un fichier de partition numérique "
 "factice\n"
 
-#: Top/main.c:209
+#: Top/main.c:260
 #, c-format
 msgid "orchname:  %s\n"
 msgstr "nom de l'orchestre :   %s\n"
 
-#: Top/main.c:227
+#: Top/main.c:278
 msgid "cannot compile orchestra \n"
 msgstr "impossible de compiler l'orchestre\n"
 
-#: Top/main.c:240
+#: Top/main.c:291
 msgid "end of orchestra compile"
 msgstr "fin de la compilation de l'orchestre"
 
-#: Top/main.c:248
+#: Top/main.c:299
 #, c-format
 msgid "using previous %s\n"
 msgstr "utilisation du %s précédent\n"
 
-#: Top/main.c:258
+#: Top/main.c:309
 #, c-format
 msgid "cannot open scorefile %s"
 msgstr "impossible d'ouvrir le fichier de partition %s"
 
-#: Top/main.c:260
+#: Top/main.c:311
 msgid "sorting score ...\n"
 msgstr "tri de la partition ...\n"
 
-#: Top/main.c:270
+#: Top/main.c:321
 #, c-format
 msgid "cannot open extract file %s"
 msgstr "impossible d'ouvrir le fichier d'extraction %s"
 
-#: Top/main.c:273
+#: Top/main.c:324
 msgid "  ... extracting ...\n"
 msgstr "  ... extraction ...\n"
 
-#: Top/main.c:282
+#: Top/main.c:333
 msgid "end of score sort"
 msgstr "fin du tri de la partition"
 
-#: Top/main.c:284
+#: Top/main.c:335
 msgid "Syntax check completed.\n"
 msgstr "Vérification de la syntaxe accomplie.\n"
 
-#: Top/main.c:401 util/dnoise.c:266
+#: Top/main.c:456 util/dnoise.c:266
 #, c-format
 msgid "%s not a recognised SFOUTYP env setting"
 msgstr "%s n'est pas un réglage d'env SFOUTYP reconnu"
 
-#: Top/main.c:420
+#: Top/main.c:475
 msgid "srate and krate overrides must occur jointly"
 msgstr ""
 "les redéfinition des taux d'échantillonnage et de contrôle doivent être "
