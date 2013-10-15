@@ -1041,12 +1041,11 @@ except OSError:
 
 try:
     os.remove("CheckSums")
-    os.remove("Output")
 except OSError:
     pass
 
 try:
-    os.rename("Output1", "Old_Output")
+    os.rename("Output", "Old_Output")
 except OSError:
     pass
 
@@ -1069,5 +1068,4 @@ for filename in testFiles:
 print "********Comparing checksums"
 os.system("diff CheckSums SAFESums")
 print "********Comparing output"
-os.system("sed -e /Elapsed/d < Output > Output1")
-os.system("diff Output1 Old_Output | grep -v Elapsed")
+os.system("diff Output Old_Output")

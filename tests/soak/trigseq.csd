@@ -14,7 +14,7 @@ nchnls = 2
 0dbfs  = 1
 
 giTimes	ftgen	91, 0, 128, -2,     1, 1/2, 1/2, 1/8, 1/8, 1/2,1/2, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16, 1/16; times
-giSeq	ftgen 	90, 0, 128, -2,     1, 2,     .5, 3,    .25, 4,      .10, 5,       .05, 6, ;** sequence amplitude and freq-ratio bins
+giSeq	ftgen 	90, 0, 128, -2,     1, 2,     .5, 3,    .25, 4,      .10, 5,       .05, 6 ;** sequence amplitude and freq-ratio bins
  
 	
 instr	1
