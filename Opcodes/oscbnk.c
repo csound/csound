@@ -2580,7 +2580,7 @@ static const OENTRY localops[] = {
             (SUBR) vco2ftset, (SUBR) NULL, (SUBR) NULL                  },
     { "vco2ft",     sizeof(VCO2FT),     TW, 3,      "k",    "kov",
             (SUBR) vco2ftset, (SUBR) vco2ft, (SUBR) NULL                },
-    { "vco2",       sizeof(VCO2),       TR, 5,      "a",    "kkoOOo",
+    { "vco2",       sizeof(VCO2),       TR, 5,      "a",    "kkoM",
             (SUBR) vco2set, (SUBR) NULL, (SUBR) vco2                    },
     { "denorm",     sizeof(DENORMS),   0,  4,      "",     "y",
             (SUBR) NULL, (SUBR) NULL, (SUBR) denorms                    },
