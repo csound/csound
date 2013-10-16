@@ -434,9 +434,9 @@ msgid "Unknown arg type: %d\n"
 msgstr "Type d'arg inconnu : %d\n"
 
 #: Engine/csound_orc_semantics.c:1059
-#, fuzzy, c-format
+#, c-format
 msgid "Variable type for %s could not be determined.\n"
-msgstr "Variable '%s' utilisée avant d'être définie\n"
+msgstr "Impossible de déterminer le type de la variable %s.\n"
 
 #: Engine/csound_orc_semantics.c:1300
 #, c-format
@@ -2682,19 +2682,18 @@ msgid "Error setting access type for soundcard"
 msgstr "Erreur lors du réglage du type d'accès à la carte son"
 
 #: InOut/rtalsa.c:377
-#, fuzzy
 msgid ""
 "Unknown sample format.\n"
 " *** Only 16-bit and 32-bit integers, and 32-bit floats are supported."
 msgstr ""
 "Format d'échantillon inconnu.\n"
 " *** Seuls les entiers sur 16 et 32 bit et les flottants sur 32 bit  sont "
-"supportés.\n"
+"supportés."
 
 #: InOut/rtalsa.c:383
 msgid "Unable to set requested sample format on soundcard"
 msgstr ""
-"Impossible de fixer le format d'échantillonnage demandé sur la carte son"
+"Impossible de fixer le format d'échantillon demandé sur la carte son"
 
 #: InOut/rtalsa.c:389
 msgid "Unable to set number of channels on soundcard"
@@ -4029,9 +4028,8 @@ msgid "soundouts: not initialised"
 msgstr "soundouts : non initialisé"
 
 #: OOps/diskin2.c:1782
-#, fuzzy
 msgid "diskin2: output array too small"
-msgstr "Table de sortie manquante ou trop courte !"
+msgstr "diskin2 : tableau de sortie trop petit"
 
 #: OOps/disprep.c:60
 #, c-format
@@ -5435,9 +5433,8 @@ msgid "comb: not initialised"
 msgstr "comb : non initialisé"
 
 #: OOps/ugens6.c:1002
-#, fuzzy
 msgid "combinv: not initialised"
-msgstr "comb : non initialisé"
+msgstr "combinv : non initialisé"
 
 #: OOps/ugens6.c:1039
 msgid "alpass: not initialised"
