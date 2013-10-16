@@ -11,7 +11,8 @@ from Tkinter import *
 
 parserType = ""
 showUIatClose = False
-csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
+##csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
+csoundExecutable =""
 
 class Test:
     def __init__(self, fileName, description, expected=True):
@@ -163,7 +164,7 @@ def runTest():
             print command
             retVal = os.system(command)
         else:
-            executable = (csoundExecutable == "") and "../csound" or csoundExecutable
+            executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
             command = "%s %s %s %s &> %s"%(executable, parserType, runArgs, filename, tempfile)
             retVal = os.system(command)
   
