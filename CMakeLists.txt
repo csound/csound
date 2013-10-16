@@ -1113,6 +1113,7 @@ add_subdirectory(SDIF)
 add_subdirectory(po)
 add_subdirectory(tests/c)
 add_subdirectory(tests/commandline)
+add_subdirectory(tests/regression)
 
 # uninstall target
 configure_file(
