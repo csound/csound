@@ -1325,7 +1325,7 @@ int soundouts(CSOUND *csound, SNDOUTS *p)
 }
 
 static CS_NOINLINE void diskin2_read_buffer_array(CSOUND *csound,
-						  DISKIN2_ARRAY *p, int bufReadPos)
+                                                  DISKIN2_ARRAY *p, int bufReadPos)
 {
     MYFLT *tmp;
     int32 nsmps;
@@ -1779,7 +1779,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
       /* check dim 1 to see if it matches  channels*/
       if(t->sizes[0] < p->nChannels)
          return csound->InitError(csound,
-				  Str("diskin2: output array too small"));
+                                  Str("diskin2: output array too small"));
     }
     
     /* skip initialisation if requested */

@@ -1045,7 +1045,7 @@ static int outa(CSOUND *csound, OUTA *p)
     MYFLT       *sp= CS_SPOUT;
     if (!csound->spoutactive) {
       for (n=0; n<nsmps; n++) {
-        for (l=0; l<p->len; l++) {
+        for (l=0; l<pl; l++) {
           sp[m++] = (n>=offset && n<early ? data[l+n*nsmps] :FL(0.0)) ;
         }
       }
@@ -1083,7 +1083,7 @@ static int ina(CSOUND *csound, OUTA *p)
     ARRAYDAT *aa = p->tabin;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int n, l, m=0, nsmps = CS_KSMPS;
+    unin32_t n, nsmps = CS_KSMPS;
     MYFLT       *data = aa->data;
     MYFLT       *sp= CS_SPIN;
     int len = p->len;
