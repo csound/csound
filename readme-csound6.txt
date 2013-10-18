@@ -1,5 +1,5 @@
 CSOUND
-Version 6.00
+Version 6.01
 
 A user-programmable and user-extensible sound processing language
 and software synthesizer.

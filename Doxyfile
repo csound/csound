@@ -32,7 +32,7 @@ PROJECT_NAME           = "Csound API"
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = 6.00
+PROJECT_NUMBER         = 6.01
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description 
 # for a project that appears at the top of each page and should give viewer 
