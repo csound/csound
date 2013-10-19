@@ -1083,7 +1083,7 @@ static int ina(CSOUND *csound, OUTA *p)
     ARRAYDAT *aa = p->tabin;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    unin32_t n, nsmps = CS_KSMPS;
+    uint32_t n, l, nsmps = CS_KSMPS;
     MYFLT       *data = aa->data;
     MYFLT       *sp= CS_SPIN;
     int len = p->len;
