@@ -174,15 +174,31 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
 int pvsin_init(CSOUND *csound, FCHAN *p)
 {
     int N;
-    N = p->init.N = (int32)(*p->N ? *p->N : 1024);
-    p->init.overlap = (int32) (*p->overlap ? *p->overlap : p->init.N/4);
-    p->init.winsize = (int32) (*p->winsize ? *p->winsize : p->init.N);
+    MYFLT *pp;
+    PVSDATEXT *f;
+    int     n = (int)MYFLT2LRND(*(p->a));
+    char name[16];
+     sprintf(name, "%i", n);
+    if (csoundGetChannelPtr(csound, &pp, name,
+                           CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL)
+            == CSOUND_SUCCESS){
+        int    *lock =
+                csoundGetChannelLock(csound, name);
+        f = (PVSDATEXT *) pp;
+        csoundSpinLock(lock);
+        memcpy(&(p->init), f, sizeof(PVSDAT)-sizeof(AUXCH));
+        csoundSpinUnLock(lock);
+    }
+
+    N = p->init.N = (int32)(*p->N ? *p->N : p->init.N);
+    p->init.overlap = (int32) (*p->overlap ? *p->overlap : p->init.overlap);
+    p->init.winsize = (int32) (*p->winsize ? *p->winsize : p->init.winsize);
     p->init.wintype = (int32)(*p->wintype);
     p->init.format = (int32)(*p->format);
     p->init.framecount = 0;
     memcpy(p->r, &p->init, sizeof(PVSDAT)-sizeof(AUXCH));
     if (p->r->frame.auxp == NULL ||
-        p->r->frame.size < sizeof(float) * (N + 2))
+      p->r->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->r->frame);
     return OK;
 }
@@ -192,7 +208,7 @@ int pvsin_perf(CSOUND *csound, FCHAN *p)
     PVSDAT *fout = p->r;
     int     n = (int)MYFLT2LRND(*(p->a));
     char chan_name[16];
-    int   err, size;
+    int   err, size, *lock;
     PVSDATEXT *fin;
     MYFLT      *pp;
 
@@ -209,10 +225,45 @@ int pvsin_perf(CSOUND *csound, FCHAN *p)
                                    "channel not found or not right type"), err);
 
     size = fin->N < fout->N ? fin->N : fout->N;
+    lock = csoundGetChannelLock(csound, chan_name);
+    csoundSpinLock(lock);
     memcpy(fout, fin, sizeof(PVSDAT)-sizeof(AUXCH));
-    memcpy(fout->frame.auxp, fin->frame, sizeof(float)*(size+2));
+    //printf("fout=%p fout->frame.auxp=%p fin=%p fin->frame=%p\n",
+    //       fout, fout->frame.auxp, fin, fin->frame);
+    if(fin->frame != NULL)
+       memcpy(fout->frame.auxp, fin->frame, sizeof(float)*(size+2));
+    else memset(fout->frame.auxp, 0, sizeof(float)*(size+2));
+    csoundSpinUnLock(lock);
     return OK;
 }
+
+int pvsout_init(CSOUND *csound, FCHAN *p)
+{
+    PVSDAT *fin = p->r;
+    MYFLT *pp;
+    PVSDATEXT *f;
+    int     n = (int)MYFLT2LRND(*(p->a));
+    char name[16];
+
+    sprintf(name, "%i", n);
+    if (csoundGetChannelPtr(csound, &pp, name,
+                           CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+            == CSOUND_SUCCESS){
+        int    *lock =
+                csoundGetChannelLock(csound, name);
+        f = (PVSDATEXT *) pp;
+        csoundSpinLock(lock);
+        if(f->frame == NULL) {
+          f->frame = mcalloc(csound, sizeof(float)*(fin->N+2));
+        } else if(f->N < fin->N) {
+          f->frame = mrealloc(csound, f->frame, sizeof(float)*(fin->N+2));
+        }
+        memcpy(f, fin, sizeof(PVSDAT)-sizeof(AUXCH));
+        csoundSpinUnLock(lock);
+    }
+    return OK;
+}
+
 
 int pvsout_perf(CSOUND *csound, FCHAN *p)
 {
@@ -220,7 +271,7 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
     PVSDAT *fin = p->r;
     int     n = (int)MYFLT2LRND(*(p->a));
     char chan_name[16];
-    int   err, size;
+    int   err, size, *lock;
     PVSDATEXT *fout;
     MYFLT *pp;
 
@@ -236,9 +287,13 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
                                Str("pvsout error %d:"
                                    "channel not found or not right type"), err);
 
+    lock = csoundGetChannelLock(csound, chan_name);
+    csoundSpinLock(lock);
     size = fin->N < fout->N ? fin->N : fout->N;
     memcpy(fout, fin, sizeof(PVSDAT)-sizeof(AUXCH));
-    memcpy(fout->frame, fin->frame.auxp, sizeof(float)*(size+2));
+    if(fout->frame != NULL)
+       memcpy(fout->frame, fin->frame.auxp, sizeof(float)*(size+2));
+    csoundSpinUnLock(lock);
     return OK;
 }
 /* ======================================================================== */
@@ -579,7 +634,7 @@ static CS_NOINLINE int print_chn_err(void *p, int err)
 static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
 #ifdef HAVE_ATOMIC_BUILTIN
-    union {
+    volatile union {
     MYFLT d;
     MYFLT_INT_TYPE i;
     } x;
@@ -628,7 +683,6 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
 
     err = csoundGetChannelPtr(csound, &(p->fp), p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
-
     if (UNLIKELY(err))
       return print_chn_err(p, err);
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -1299,7 +1353,7 @@ int invalset_string_S(CSOUND *csound, INVAL *p)
 
     const char  *s = ((STRINGDAT *)p->valID)->data;
     csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
-    sprintf((char*) p->channelName.auxp, "%s", s);
+    strcpy((char*) p->channelName.auxp, s);
 
     p->channelType = &CS_VAR_TYPE_S;
     type = CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL;
@@ -1330,7 +1384,7 @@ int invalset_S(CSOUND *csound, INVAL *p)
 
     const char  *s = ((STRINGDAT *)p->valID)->data;
     csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
-    sprintf((char*) p->channelName.auxp, "%s", s);
+    strcpy((char*) p->channelName.auxp, s);
 
     p->channelType = &CS_VAR_TYPE_K;
     type = CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL;

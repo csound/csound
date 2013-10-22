@@ -752,7 +752,7 @@ public:
 		return sum;
 	}
 	/**
-	 * Returns the Euclidean distance from this chord 
+	 * Returns the Euclidean distance from this chord
      * to the unison diagonal of its chord space.
      */
 	virtual double distanceToUnisonDiagonal() const {
@@ -1430,7 +1430,7 @@ inline SILENCE_PUBLIC bool operator >= (const Chord &a, const Chord &b) {
  */
 inline SILENCE_PUBLIC double euclidean(const Chord &a, const Chord &b) {
 	double sumOfSquaredDifferences = 0.0;
-	for (size_t voice = 0, voices = a.voices(); voice < voice; ++voice) {
+	for (size_t voice = 0, voices = a.voices(); voice < voices; ++voice) {
 		sumOfSquaredDifferences += std::pow((a.getPitch(voice) - b.getPitch(voice)), 2.0);
 	}
 	return std::sqrt(sumOfSquaredDifferences);
@@ -2302,6 +2302,7 @@ template<> inline SILENCE_PUBLIC Chord normalize<EQUIVALENCE_RELATION_V>(const C
             return permutation;
         }
     }
+    throw "Shouldn't come here.";
 }
 
 inline Chord Chord::eV() const {
@@ -2345,6 +2346,7 @@ template<> inline SILENCE_PUBLIC Chord normalize<EQUIVALENCE_RELATION_RT>(const 
             return normalize<EQUIVALENCE_RELATION_T>(voicing, range, g);
         }
     }
+    throw "Shouldn't come here.";
 }
 
 //	EQUIVALENCE_RELATION_RTg
@@ -2359,6 +2361,7 @@ template<> inline SILENCE_PUBLIC Chord normalize<EQUIVALENCE_RELATION_RTg>(const
             return normalTg;
         }
     }
+    throw "Shouldn't come here.";
 }
 
 //	EQUIVALENCE_RELATION_RI
@@ -2403,6 +2406,7 @@ template<> inline SILENCE_PUBLIC Chord normalize<EQUIVALENCE_RELATION_RPT>(const
             return normalize<EQUIVALENCE_RELATION_T>(voicing, range, g);
         }
     }
+    throw "Shouldn't come here.";
 }
 
 inline Chord Chord::eRPT(double range) const {
@@ -2442,6 +2446,7 @@ template<> inline SILENCE_PUBLIC Chord normalize<EQUIVALENCE_RELATION_RPTg>(cons
             return normalTg;
         }
     }
+    throw "Shouldn't come here.";
 }
 
 inline Chord Chord::eRPTT(double range, double g) const {

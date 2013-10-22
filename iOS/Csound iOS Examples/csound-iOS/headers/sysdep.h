@@ -54,6 +54,17 @@ typedef void *locale_t;
 #  define HAVE_C99 1
 #endif
 
+#if defined(__GNUC__)
+# if defined(__GNUC_PATCHLEVEL__)
+#  define __GNUC_VERSION__ (__GNUC__ * 10000 \
+                            + __GNUC_MINOR__ * 100 \
+                            + __GNUC_PATCHLEVEL__)
+# else
+#  define __GNUC_VERSION__ (__GNUC__ * 10000 \
+                            + __GNUC_MINOR__ * 100)
+# endif
+#endif
+
 #ifndef CABBAGE
 #ifdef MSVC
 typedef __int32 int32;
@@ -226,6 +237,11 @@ typedef uint_least16_t uint16;
 
 #endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 
+#ifdef WIN32
+#  define ENVSEP ';'
+#else
+#  define ENVSEP ':'
+#endif
 /* standard integer types */
 
 #if defined(USE_GUSI2)
@@ -380,6 +396,16 @@ static inline double csoundUndenormalizeDouble(double x)
 
 #endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 
+// This is wrong.....  needs thought
+/* #ifdef HAVE_SPRINTF_L */
+/* # define CS_SPRINTF sprintf_l */
+/* #elseif HAVE__SPRINT_L */
+/*   /\* this would be the case for the Windows locale aware function *\/ */
+/* # define CS_SPRINTF _sprintf_l */
+/* #else */
+# define CS_SPRINTF cs_sprintf
+# define CS_SSCANF cs_sscanf
+/* #endif */
 
 #endif  /* CSOUND_SYSDEP_H */
 

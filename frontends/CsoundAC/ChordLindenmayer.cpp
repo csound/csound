@@ -40,7 +40,7 @@ using boost::io::group;
 
 namespace csound
 {
-  ChordLindenmayer::ChordLindenmayer() : angle(1.0)
+  ChordLindenmayer::ChordLindenmayer() : iterationCount(0), angle(1.0)
   {
   }
 

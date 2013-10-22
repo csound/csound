@@ -223,7 +223,7 @@ int musmon(CSOUND *csound)
     memset(&(csound->evt), 0, sizeof(EVTBLK));
 
   /* run instr 0 inits */
-  if (UNLIKELY(init0(csound) != 0))
+    if (UNLIKELY(init0(csound) != 0))
     csoundDie(csound, Str("header init errors"));
 
     /* kperf() will not call csoundYield() more than 250 times per second */

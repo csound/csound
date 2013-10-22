@@ -49,7 +49,7 @@ int CppSound::compile(int argc, char **argv_)
 {
   Message("BEGAN CppSound::compile(%d, %p)...\n", argc, argv_);
   int returnValue = 0;
-  argv.push_back("");
+  argv.push_back(const_cast<char *>(""));
   go = false;
   csound->orcname_mode = 0;
   // Changed to use only internally stored Csound orchestra and score.

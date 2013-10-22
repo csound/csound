@@ -121,7 +121,7 @@ void create_dag(CSOUND *csound)
     csound->dag_task_watch  = mcalloc(csound, sizeof(watchList**)*max);
     csound->dag_task_map    = mcalloc(csound, sizeof(INSDS*)*max);
     csound->dag_task_dep    = (char **)mcalloc(csound, sizeof(char*)*max);
-    csound->dag_wlmm        = (watchList *)mcalloc(csound, sizeof(watchList)*max);
+    csound->dag_wlmm = (watchList *)mcalloc(csound, sizeof(watchList)*max);
 }
 
 void recreate_dag(CSOUND *csound)
@@ -129,9 +129,11 @@ void recreate_dag(CSOUND *csound)
     /* Allocate the main task status and watchlists */
     int max = csound->dag_task_max_size;
     csound->dag_task_status =
-      mrealloc(csound, (enum state *)csound->dag_task_status, sizeof(enum state)*max);
+      mrealloc(csound, (enum state *)csound->dag_task_status,
+               sizeof(enum state)*max);
     csound->dag_task_watch  =
-      mrealloc(csound, (struct watchList *)csound->dag_task_watch, sizeof(watchList**)*max);
+      mrealloc(csound, (struct watchList *)csound->dag_task_watch,
+               sizeof(watchList**)*max);
     csound->dag_task_map    =
       mrealloc(csound, (INSDS *)csound->dag_task_map, sizeof(INSDS*)*max);
     csound->dag_task_dep    =
@@ -147,7 +149,7 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
     if (current_instr == NULL) {
       current_instr =
         csp_orc_sa_instr_get_by_name(csound,
-                                     csound->engineState.instrtxtp[insno]->insname);
+           csound->engineState.instrtxtp[insno]->insname);
       if (current_instr == NULL)
         csound->Die(csound,
                     Str("Failed to find semantic information"
@@ -327,7 +329,8 @@ taskID dag_get_task(CSOUND *csound)
 /* This static is OK as not written */
 static watchList DoNotRead = { INVALID, NULL};
 
-inline static int moveWatch(CSOUND *csound, watchList * volatile *w, watchList *t)
+inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
+                            watchList *t)
 {
     watchList *local=*w;
     t->next = NULL;
@@ -584,24 +587,17 @@ void mainThread (State *s) {
     }
   }
 
-  /* INV : Data structure access invariants start here */
-  /* INV : Status only decrease from now */
-  /* INV : Watch list for id contains a subset of the things that depend on id */
-  /* INV : Each id appears in at most one watch list */
-  /* INV : doNotAdd only appears at the head of a watch list */
-  /* INV : if (watch[id] == doNotAdd) then { status[id] == DONE; } */
-
+/* INV : Data structure access invariants start here */
+/* INV : Status only decrease from now */
+/* INV : Watch list for id contains a subset of the things that depend on id */
+/* INV : Each id appears in at most one watch list */
+/* INV : doNotAdd only appears at the head of a watch list */
+/* INV : if (watch[id] == doNotAdd) then { status[id] == DONE; } */
 
   waitForWorkToBeCompleted(*dispatch);
 
   return;
 }
-
-
-
-
-
-
 
 void workerThread (State *s) {
   taskID work;

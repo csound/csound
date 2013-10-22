@@ -157,13 +157,23 @@
 #  define PUBLIC        __declspec(dllexport)
 #elif defined(__GNUC__) && (__GNUC__ >= 4) /* && !defined(__MACH__) */
 #  define PUBLIC    __attribute__ ( (visibility("default")) )
-#  define HAVE_ATOMIC_BUILTIN
 #else
 #  define PUBLIC
 #endif
 
 #if defined(MSVC)
 #  include <intrin.h> /* for _InterlockedExchange */
+#endif
+
+#if defined(__MACH__)
+// on OSX 10.6 i386 does not have all builtins
+ #if defined(MAC_OS_X_VERSION_10_6)
+  #ifdef HAVE_ATOMIC_BUILTIN
+   #ifndef __x86_64__
+    #undef HAVE_ATOMIC_BUILTIN
+   #endif
+  #endif
+ #endif
 #endif
 
 /**
@@ -181,7 +191,7 @@
 #define MYFLT double
 #endif
 #endif
-%module csnd
+%module csnd6
 %{
 #  include "sysdep.h"
 #  include "text.h"
@@ -376,8 +386,7 @@ extern "C" {
     int     number_of_threads;   /* number of threads for multicore performance */
     int     syntax_check_only;   /* do not compile, only check syntax */
     int     csd_line_counts;     /* csd line error reporting */
-    int     compute_weights;     /* use calculated opcode weights for
-                                    multicore, 0 or 1  */
+    int     compute_weights;     /* deprecated, kept for backwards comp.  */
     int     realtime_mode;       /* use realtime priority mode, 0 or 1 */
     int     sample_accurate;     /* use sample-level score event accuracy */
     MYFLT   sample_rate_override; /* overriding sample rate */
@@ -643,6 +652,9 @@ extern "C" {
     /**
      * Prepares Csound for performance after compilation
      * using one or more of the above functions.
+     * NB: this is called internally by csoundCompile(), therefore
+     * it is only required if performance is started without
+     * a call to that function
      */
     PUBLIC int csoundStart(CSOUND *csound);
 

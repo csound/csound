@@ -32,7 +32,7 @@ static int mtable_i(CSOUND *csound,MTABLEI *p)
     int j, nargs;
     MYFLT *table, xbmul = FL(0.0), **out = p->outargs;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
-      return csound->InitError(csound, Str("mtablei: incorrect table number"));
+      return csound->InitError(csound, Str("vtablei: incorrect table number"));
     }
     table = ftp->ftable;
     nargs = p->INOCOUNT-4;
@@ -62,7 +62,7 @@ static int mtable_set(CSOUND *csound,MTABLE *p) /*  mtab by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
-      return csound->InitError(csound, Str("mtable: incorrect table number"));
+      return csound->InitError(csound, Str("vtable: incorrect table number"));
     }
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-4;
@@ -83,7 +83,7 @@ static int mtable_k(CSOUND *csound,MTABLE *p)
       FUNC *ftp;
       if ( (ftp = csound->FTnp2Find(csound, p->xfn) ) == NULL) {
         return csound->PerfError(csound, p->h.insdshead,
-                                 Str("mtable: incorrect table number"));
+                                 Str("vtablek: incorrect table number"));
       }
       p->pfn = (long)*p->xfn;
       p->ftable = ftp->ftable;
@@ -137,7 +137,7 @@ static int mtable_a(CSOUND *csound,MTABLE *p)
       FUNC *ftp;
       if ( (ftp = csound->FTnp2Find(csound, p->xfn) ) == NULL) {
         return csound->PerfError(csound, p->h.insdshead,
-                                 Str("mtable: incorrect table number"));
+                                 Str("vtablea: incorrect table number"));
       }
       p->pfn = (long)*p->xfn;
       p->ftable = ftp->ftable;
@@ -197,7 +197,7 @@ static int mtab_i(CSOUND *csound,MTABI *p)
     long indx;
     MYFLT *table, **out = p->outargs;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
-      return csound->InitError(csound, Str("mtabi: incorrect table number"));
+      return csound->InitError(csound, Str("vtabi: incorrect table number"));
     }
     table = ftp->ftable;
     nargs = p->INOCOUNT-2;
@@ -212,7 +212,7 @@ static int mtab_set(CSOUND *csound,MTAB *p)     /* mtab by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
-      return csound->InitError(csound, Str("mtable: incorrect table number"));
+      return csound->InitError(csound, Str("vtab: incorrect table number"));
     }
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-2;
@@ -274,7 +274,7 @@ static int mtablew_i(CSOUND *csound,MTABLEIW *p)
     long indx;
     MYFLT *table, xbmul = FL(0.0), **in = p->inargs;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
-      return csound->InitError(csound, Str("mtablewi: incorrect table number"));
+      return csound->InitError(csound, Str("vtablewi: incorrect table number"));
     }
     table = ftp->ftable;
     nargs = p->INOCOUNT-3;
@@ -290,7 +290,7 @@ static int mtablew_set(CSOUND *csound,MTABLEW *p)   /* mtabw by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
-      return csound->InitError(csound, Str("mtabw: incorrect table number"));
+      return csound->InitError(csound, Str("vtablew: incorrect table number"));
     }
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-3;
@@ -311,7 +311,7 @@ static int mtablew_k(CSOUND *csound,MTABLEW *p)
       FUNC *ftp;
       if ( (ftp = csound->FTnp2Find(csound, p->xfn) ) == NULL) {
         return csound->PerfError(csound, p->h.insdshead,
-                                 Str("mtabw: incorrect table number"));
+                                 Str("vtablewk: incorrect table number"));
       }
       p->pfn = (long)*p->xfn;
       p->ftable = ftp->ftable;
@@ -344,7 +344,7 @@ static int mtablew_a(CSOUND *csound,MTABLEW *p)
       FUNC *ftp;
       if ( (ftp = csound->FTnp2Find(csound, p->xfn) ) == NULL) {
         return csound->PerfError(csound, p->h.insdshead,
-                                 Str("mtabw: incorrect table number"));
+                                 Str("vtablewa: incorrect table number"));
       }
       p->pfn = (long)*p->xfn;
       p->ftable = ftp->ftable;
@@ -375,7 +375,7 @@ static int mtabw_i(CSOUND *csound, MTABIW *p)
     long indx;
     MYFLT *table, **in = p->inargs;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
-      return csound->InitError(csound, Str("mtabwi: incorrect table number"));
+      return csound->InitError(csound, Str("vtabwi: incorrect table number"));
     }
     table = ftp->ftable;
     nargs = p->INOCOUNT-2;
@@ -389,7 +389,7 @@ static int mtabw_set(CSOUND *csound,MTABW *p)   /* mtabw by G.Maldonado */
 {
     FUNC *ftp;
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
-      return csound->InitError(csound, Str("mtabw: incorrect table number"));
+      return csound->InitError(csound, Str("vtablew: incorrect table number"));
     }
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-2;
@@ -408,7 +408,7 @@ static int mtabw_k(CSOUND *csound,MTABW *p)
       FUNC *ftp;
       if ( (ftp = csound->FTnp2Find(csound, p->xfn) ) == NULL) {
         return csound->PerfError(csound, p->h.insdshead,
-                                 Str("mtablew: incorrect table number"));
+                                 Str("vtablewk: incorrect table number"));
       }
       p->pfn = (long)*p->xfn;
       p->ftable = ftp->ftable;
@@ -437,7 +437,7 @@ static int mtabw_a(CSOUND *csound,MTABW *p)
       FUNC *ftp;
       if ( (ftp = csound->FTnp2Find(csound, p->xfn) ) == NULL) {
         return csound->PerfError(csound, p->h.insdshead,
-                                 Str("mtabw: incorrect table number"));
+                                 Str("vtabwa: incorrect table number"));
       }
       p->pfn = (long)*p->xfn;
       p->ftable = ftp->ftable;

@@ -6,6 +6,9 @@ ENABLE_TESTING()
 
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
+set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+
 # Project definitions
 set(APIVERSION "6.0")
 
@@ -18,7 +21,7 @@ if(USE_LIB64)
 else()
     set(LIBRARY_INSTALL_DIR "lib")
 endif()
-message("LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
+message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
 
 if(USE_DOUBLE)
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins64-${APIVERSION}")
@@ -38,6 +41,9 @@ include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
 include(CheckLibraryExists)
 include(CMakeParseArguments)
+include(CheckCCompilerFlag)
+include(CheckCXXCompilerFlag)
+
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
@@ -160,6 +166,11 @@ function(add_compiler_flags)
     endif()
 endfunction(add_compiler_flags)
 
+### COMPILER OPTIMIZATION FLAGS
+option(USE_COMPILER_OPTIMIZATIONS "Use the default Csound compiler optimization flags" ON)
+if(USE_COMPILER_OPTIMIZATIONS)
+include(cmake/CompilerOptimizations.cmake)
+endif()
 
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
@@ -178,6 +189,8 @@ if(WIN32 AND NOT MSVC)
     else()
         MESSAGE(STATUS "MinGW include dir not found")
     endif()
+
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
 endif()
 
 if(WIN32)
@@ -259,13 +272,30 @@ set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 if(USE_DOUBLE) 
     add_definitions("-DUSE_DOUBLE")
 endif(USE_DOUBLE)
-if(${CMAKE_C_COMPILER} MATCHES "gcc" AND LINUX)
-    add_compiler_flags("-fvisibility=hidden")
-    add_compiler_flags("-fvisibility=hidden" LINKER)
+check_c_compiler_flag(-fvisibility=hidden HAS_VISIBILITY_HIDDEN)
+check_cxx_compiler_flag(-fvisibility=hidden HAS_CXX_VISIBILITY_HIDDEN)
+if (HAS_VISIBILITY_HIDDEN)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
+endif()
+if (HAS_CXX_VISBILITY_HIDDEN)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
 
-if(APPLE AND BUILD_INSTALLER)
+if(APPLE)
+  if(BUILD_INSTALLER)
     set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}")
+  endif()
+  
+  set(DEFAULT_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/)
+
+  if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT}) 
+    set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT}) 
+  endif()
+
+  if(EXISTS ${CMAKE_OSX_SYSROOT}) 
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.6)
+  endif()
+  
 endif()
 
 if(USE_DOUBLE)
@@ -309,7 +339,7 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
     add_definitions("-Wno-format")
-    add_compiler_flags("-g")
+    #    add_compiler_flags("-g")
 endif()
 
 
@@ -340,7 +370,6 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
-
 find_package(OpenMP)
 
 # First, required stuff
@@ -375,6 +404,20 @@ set(CMAKE_REQUIRED_INCLUDES pthread.h)
 set(CMAKE_REQUIRED_LIBRARIES pthread)
 
 # Now, non required library searches #
+
+option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
+if(USE_ATOMIC_BUILTIN)
+include(cmake/CheckAtomic.cmake)
+  if(HAVE_ATOMIC_BUILTIN) 
+    message(STATUS "Using Atomic Builtins")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+  else()
+    message(STATUS "Not using Atomic Builtins - not found")
+  endif()
+else()
+  message(STATUS "Not using Atomic Builtins - user disabled")
+endif()
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
@@ -956,15 +999,34 @@ if(WIN32)
     add_definitions(-DWIN32)
 endif()
     
-
+# Locale-aware reading and printing
 check_function_exists(strtok_r HAVE_STRTOK_R)
 check_function_exists(strtod_l HAVE_STRTOD_L)
+check_function_exists(sprintf_l HAVE_SPRINTF_L)
 
 if(HAVE_STRTOK_R)
     add_definitions(-DHAVE_STRTOK_R)
 endif()
 if(HAVE_STRTOD_L)
     add_definitions(-DHAVE_STRTOD_L)
+endif()
+if(HAVE_SPRINTF_L)
+    add_definitions(-DHAVE_SPRINTF_L)
+endif()
+
+# Same for Windows
+check_function_exists(_strtok_r HAVE__STRTOK_R)
+check_function_exists(_strtod_l HAVE__STRTOD_L)
+check_function_exists(_sprintf_l HAVE__SPRINTF_L)
+
+if(HAVE__STRTOK_R)
+    add_definitions(-DHAVE__STRTOK_R)
+endif()
+if(HAVE__STRTOD_L)
+    add_definitions(-DHAVE__STRTOD_L)
+endif()
+if(HAVE__SPRINTF_L)
+    add_definitions(-DHAVE__SPRINTF_L)
 endif()
 
 # Pass flags according to system capabilities
@@ -1005,20 +1067,7 @@ if(BIG_ENDIAN)
 endif()
 
 
-# VL 13.02.2013: I have added this code to make the PUBLIC attribute mean
-# something on gcc (OSX, LINUX), since we are using it.
-# see http://gcc.gnu.org/wiki/Visibility
-
-if(NOT WIN32)
-if(CMAKE_C_COMPILER MATCHES "gcc")
-    add_compiler_flags(${libcsound_CFLAGS} -fvisibility=hidden
-    -ffast-math -mfpmath=sse -fomit-frame-pointer TARGETS ${CSOUNDLIB})
-else()
-   add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
-endif()
-else()
-  add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
-endif()
+add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
 
 target_link_libraries(${CSOUNDLIB} ${libcsound_LIBS})
 
@@ -1064,10 +1113,11 @@ add_subdirectory(SDIF)
 add_subdirectory(po)
 add_subdirectory(tests/c)
 add_subdirectory(tests/commandline)
+add_subdirectory(tests/regression)
 
 # uninstall target
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
     IMMEDIATE @ONLY)
 

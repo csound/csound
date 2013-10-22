@@ -571,8 +571,9 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           //constndx?  Not sure if necessary due to assumption
           //that tree will be verified
           MYFLT val = (MYFLT) cs_strtod(current->right->value->lexeme,
-                                       NULL);
-
+                                        NULL);
+          // systems constants get set here and are not
+          // compiled into i-time code
           myflt_pool_find_or_add(csound, csound->engineState.constantsPool, val);
 
           /* modify otran defaults*/
@@ -600,9 +601,10 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           }
 
         }
-
+        else{
         op->nxtop = create_opcode(csound, current, ip, engineState);
         op = last_optxt(op);
+        }
 
       }
       current = current->next;
@@ -625,7 +627,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     {
       CSOUND    *p = (CSOUND*) csound;
       char      err_msg[128];
-      sprintf(err_msg, "sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:",
+      CS_SPRINTF(err_msg, "sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:",
               sr, kr, ksmps);
       if (UNLIKELY(sr <= FL(0.0)))
         synterr(p, Str("%s invalid sample rate"), err_msg);
@@ -637,6 +639,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         synterr(p, Str("%s invalid ksmps value"), err_msg);
       else if (UNLIKELY(FLOAT_COMPARE(sr,(double)kr *ksmps)))
         synterr(p, Str("%s inconsistent sr, kr, ksmps"), err_msg);
+      else if(ksmps > sr)
+        synterr(p, Str("%s inconsistent sr, kr, ksmps \n"), err_msg);
     }
 
     csound->ksmps = ksmps;
@@ -647,6 +651,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->ekr = kr;
     if(_0dbfs < 0) csound->e0dbfs = DFLT_DBFS;
     else csound->e0dbfs = _0dbfs;
+
 
     OPARMS  *O = csound->oparms;
     if (UNLIKELY(csound->e0dbfs <= FL(0.0))){
@@ -678,7 +683,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       /* chk consistency one more time */
       {
         char  s[256];
-        sprintf(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
+        CS_SPRINTF(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
                 csound->esr, csound->ekr, ensmps);
         if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps)))
           csoundDie(csound, Str("%s invalid ksmps value"), s);
@@ -754,10 +759,16 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
 
     while (current != NULL) {
       if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
+        OENTRY* oentry = (OENTRY*)current->markup;
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "In INSTR GLOBAL: %s\n", current->value->lexeme);
+        if (current->type == '='
+            && strcmp(oentry->opname, "=.r") == 0)
+         csound->Warning(csound, "system constants can only be set once\n");
+        else {
         op->nxtop = create_opcode(csound, current, ip, engineState);
         op = last_optxt(op);
+        }
       }
       current = current->next;
     }
@@ -1397,7 +1408,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     var = typeTable->globalPool->head;
     while(var != NULL) {
-      var->memBlock = (void *) mmalloc(csound, var->memBlockSize);
+      var->memBlock = (void *) mcalloc(csound, var->memBlockSize);
       if (var->initializeVariableMemory != NULL) {
         var->initializeVariableMemory(var, (MYFLT *)(var->memBlock));
       } else  memset(var->memBlock , 0, var->memBlockSize);
@@ -1532,7 +1543,9 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         break;
       case T_OPCODE:
       case T_OPCODE0:
+      case LABEL:
         break;
+
       default:
         csound->Message(csound,
                         Str("Unknown TREE node of type %d found in root.\n"),
@@ -1608,6 +1621,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       *((MYFLT *)(var->memBlock)) = csound->inchnls;
       var = csoundFindVariableWithName(engineState->varPool, "0dbfs");
       *((MYFLT *)(var->memBlock)) = csound->e0dbfs;
+
 
     }
 
@@ -1748,9 +1762,12 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
           ARG* inArgs = ttp->inArgs;
           //CS_VARIABLE* var;
 
-          //csound->Message(csound, "PSET: isno=%d, pmax=%d\n", insno, ip->pmax);
-          csound->Message(csound, "PSET: isno=[fixme], pmax=%d\n", tp->pmax);
-          if((n = ttp->inArgCount) != tp->pmax) {
+          if (tp->insname)
+            csound->Message(csound, "PSET: isname=\"%s\", pmax=%d\n",
+                            tp->insname, tp->pmax);
+          else
+            csound->Message(csound, "PSET: isno=??, pmax=%d\n", tp->pmax);
+          if ((n = ttp->inArgCount) != tp->pmax) {
             //csound->Warning(csound, Str("i%d pset args != pmax"), (int) insno);
             csound->Warning(csound, Str("i[fixme] pset args != pmax"));
             if (n < tp->pmax) n = tp->pmax; /* cf pset, pmax    */
@@ -1786,7 +1803,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
                 break;
             }
 
-            csound->Message(csound, "..%f..", *(fp1-1));
+            //            csound->Message(csound, "..%f..", *(fp1-1));
           }
 
           csound->Message(csound, "\n");

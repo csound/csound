@@ -349,17 +349,20 @@ extern "C" {
   }
 }
 
-void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound)
+void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
 {
+    csound = csound_;
     firstMessage = (CsoundPerformanceThreadMessage*) 0;
     lastMessage = (CsoundPerformanceThreadMessage*) 0;
-    this->csound = csound;
     queueLock = (void*) 0;
     pauseLock = (void*) 0;
     flushLock = (void*) 0;
     perfThread = (void*) 0;
     paused = 1;
     status = CSOUND_MEMORY;
+    cdata = 0;
+    processcallback = 0;
+    running = 0;
     queueLock = csoundCreateMutex(0);
     if (!queueLock)
       return;
@@ -375,8 +378,6 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound)
     catch (std::bad_alloc&) {
       return;
     }
-    processcallback = NULL;
-    running = 0;
     firstMessage = lastMessage;
     perfThread = csoundCreateThread(csoundPerformanceThread_, (void*) this);
     if (perfThread)
