@@ -7,3 +7,4 @@ GCC_VERSION = com.apple.compilers.llvm.clang.1_0
 STRIP_INSTALLED_PRODUCT=YES
 //DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
 DEPLOYMENT_POSTPROCESSING=YES
+USER_HEADER_SEARCH_PATHS=$(inherited) /usr/local/include
