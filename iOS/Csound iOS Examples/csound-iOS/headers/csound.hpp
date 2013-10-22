@@ -32,7 +32,7 @@
 #define __CSOUND_HPP__
 
 #ifdef SWIG
-%module csnd
+%module csnd6
 %{
 #include "csound.h"
 
@@ -771,6 +771,14 @@ public:
   virtual int PvsoutGet(PVSDATEXT* value, const char *name)
   {
     return csoundGetPvsChannel(csound, value, name);
+  }
+
+  virtual void SetInputChannelCallback(channelCallback_t inputChannelCalback){
+    csoundSetInputChannelCallback(csound, inputChannelCalback);
+  }
+
+  virtual void SetOutputChannelCallback(channelCallback_t outputChannelCalback){
+    csoundSetOutputChannelCallback(csound, outputChannelCalback);
   }
 
   // cfgvar.h interface

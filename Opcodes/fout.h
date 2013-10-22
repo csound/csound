@@ -50,6 +50,17 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
+    MYFLT   *fname, *iflag;
+    ARRAYDAT* tabin;
+    MYFLT   scaleFac;
+    int     buf_pos;
+    int     guard_pos;
+    AUXCH   buf;
+    FOUT_FILE f;
+} OUTFILEA;
+
+typedef struct {
+    OPDS    h;
     MYFLT   *fname, *iflag, *argums[VARGMAX];
     MYFLT   scaleFac;
     uint32_t     nargs;
@@ -73,6 +84,22 @@ typedef struct {
     AUXCH   buf;
     FOUT_FILE f;
 } INFILE;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *fname, *iskpfrms, *iflag;
+    ARRAYDAT *tabout;
+    MYFLT   scaleFac;
+    int32   currpos;
+    int     flag;
+    int     chn;
+    int     buf_pos;
+    int     guard_pos;
+    int     frames;
+    uint32_t     remain;
+    AUXCH   buf;
+    FOUT_FILE f;
+} INFILEA;
 
 typedef struct {
     OPDS    h;

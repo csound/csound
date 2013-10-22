@@ -23,6 +23,7 @@
 #include "Composition.hpp"
 #include "System.hpp"
 #include <cstdlib>
+#include <map>
 
 namespace csound
 {
@@ -248,8 +249,6 @@ namespace csound
     score.save(getMidiFilename());
     // Not implemented fully yet.
     //score.save(getMusicXmlFilename());
-    // Would often take too long!...
-    //translateToNotation();
     int errorStatus = perform();
     System::inform("ENDED Composition::performMaster().\n");
     return errorStatus;
@@ -394,10 +393,10 @@ namespace csound
     std::ofstream stream;
     stream.open(filename.c_str(), std::ifstream::binary);
     char buffer[0x200];
-    std::sprintf(buffer, "title = \"%s\"\n", getTitle().c_str());
+    std::sprintf(buffer, "title = %s\n", getTitle().c_str());
     stream << buffer;
     if (getArtist().length() > 1) {
-      std::sprintf(buffer, "author = \"%s\"\n", getArtist().c_str());
+      std::sprintf(buffer, "author = %s\n", getArtist().c_str());
       stream << buffer;
     }
     stream << "beat = 1/64" << std::endl;
@@ -408,36 +407,52 @@ namespace csound
     }
     if (partNames.size() > 0) {
       for (size_t partI = 0, partN = partNames.size(); partI < partN; ++partI) {
-        std::sprintf(buffer, "part <id = %d name = %s>\n", partI, partNames[partI].c_str());
+        std::sprintf(buffer, "part <id = %u name = %s>\n", partI, partNames[partI].c_str());
         stream << buffer;
       }
     } else {
       for (size_t partI = 0, partN = 100; partI < partN; ++partI) {
-        std::sprintf(buffer, "part <id = %d name = Part%d>\n", partI, partI);
+        std::sprintf(buffer, "part <id = %u name = Part%u>\n", partI, partI);
         stream << buffer;
       }
     }
+    std::map<int, std::vector<Event> > eventsForParts;
     for (size_t eventI = 0, eventN = score.size(); eventI < eventN; ++eventI) {
-      const Event &event = score[eventI];
-      if (event.isNoteOn()) {
-        double duration = event.getDuration() * 32.0;
-        duration = Conversions::round(duration);
-        if (duration > 0) {
-          std::sprintf(buffer, "part %g time %g dur %g pitch %g;\n", event.getInstrument() + 1, event.getTime() * 32.0, duration, event.getKey());
-          stream << buffer;
+        const Event &event = score[eventI];
+        if (event.isNoteOn()) {
+            double duration = event.getDuration() * 32.0;
+            duration = Conversions::round(duration);
+            if (duration > 0) {
+              int part = int(event.getInstrument() + 1);
+              eventsForParts[part].push_back(event);
+            }
         }
-      }
+    }
+    for (std::map<int, std::vector<Event> >::iterator it = eventsForParts.begin(); it != eventsForParts.end(); ++it) {
+        int part = it->first;
+        std::vector<Event> &events = it->second;
+        for (std::vector<Event>::iterator eventI = events.begin(); eventI != events.end(); ++eventI) {
+            Event &event = *eventI;
+            if (eventI == events.begin()) {
+                std::sprintf(buffer, "part %d\n", part);
+            } else {
+                double duration = event.getDuration() * 32.0;
+                duration = Conversions::round(duration);
+                std::sprintf(buffer, "time %g dur %g pitch %g;\n", event.getTime() * 32.0, duration, event.getKey());
+            }
+            stream << buffer;
+        }
     }
     stream.close();
-    std::sprintf(buffer, "fomus -i %s -o %s.ly", getFomusFilename().c_str(), getTitle().c_str());
+    std::sprintf(buffer, "fomus --verbose -i %s -o %s.xml", getFomusFilename().c_str(), getTitle().c_str());
     int errorStatus;
     errorStatus = std::system(buffer);
     if (errorStatus) {
       return errorStatus;
     }
-    std::sprintf(buffer, "lilypond -fpdf %s.ly", getTitle().c_str());
-    errorStatus = std::system(buffer);
-    return errorStatus;
+    //std::sprintf(buffer, "lilypond -fpdf %s.xml", getTitle().c_str());
+    //errorStatus = std::system(buffer);
+    //return errorStatus;
   }
 
   int Composition::processArgv(int argc, const char **argv)

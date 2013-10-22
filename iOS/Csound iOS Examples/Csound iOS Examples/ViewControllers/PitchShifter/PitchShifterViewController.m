@@ -34,6 +34,7 @@
 		
 		[self.csound stopCsound];
 		self.csound = [[CsoundObj alloc] init];
+        self.csound.useAudioInput = YES;
 		[self.csound addCompletionListener:self];
 		
 		[self.csound addValueCacheable:mXYControl];

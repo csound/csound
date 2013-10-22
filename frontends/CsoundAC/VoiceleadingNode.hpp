@@ -69,31 +69,31 @@ namespace csound
     /**
      * Prime chord, or DBL_MAX if no operation.
      */
-    double P;
+    double P_;
     /**
      * Transposition, or DBL_MAX if no operation.
      */
-    double T;
+    double T_;
     /**
      * Pitch-set class, or DBL_MAX if no operation.
      */
-    double C;
+    double C_;
     /**
      * Inversion by interchange.
      */
-    double K;
+    double K_;
     /**
      * Contextual transposition.
      */
-    double Q;
+    double Q_;
     /**
      * Voicing, or DBL_MAX if no operation.
      */
-    double V;
+    double V_;
     /**
      * If true, perform the closest voice-leading from the prior operation.
      */
-    bool L;
+    bool L_;
     /**
      * The index of the first event to which the operation is applied.
      */
@@ -207,7 +207,7 @@ namespace csound
      * e.g. "E flat major ninth." However, chords do not have to be
      * in twelve tone equal temperament.
      */
-    virtual void PT(double time, double P_, double T);
+    void PT(double time, double P_, double T);
     /**
      * Beginning at the specified time and continuing
      * to the beginning of the next operation
@@ -217,7 +217,7 @@ namespace csound
      * Note that PTV specifies what musicians normally call
      * the voicing, or inversion, of a chord.
      */
-    virtual void PTV(double time, double P_, double T, double V_);
+    void PTV(double time, double P_, double T, double V_);
     /**
      * Beginning at the specified time and continuing
      * to the beginning of the next operation
@@ -229,7 +229,7 @@ namespace csound
      * Note that PTL specifies what musicians normally call
      * the voice-leading of a chord.
      */
-    virtual void PTL(double time, double P_, double T, bool avoidParallels = true);
+    void PTL(double time, double P_, double T, bool avoidParallels = true);
     /**
      * Beginning at the specified time and continuing
      * to the beginning of the next operation
@@ -239,45 +239,45 @@ namespace csound
      * Note that C (equivalent to PT) specifies what musicians normally
      * call a chord.
      */
-    virtual void C(double time, double C_);
+    void C(double time, double C_);
     /**
      * Same as PT, except that a single number
      * is used in place of the P and T numbers.
      */
-    virtual void C(double time, std::string C_);
+    void C(double time, std::string C_);
     /**
      * Same as C, except the chord can be specified by
      * jazz-type name (e.g. EbM7) instead of C number.
      */
-    virtual void CV(double time, double C_, double V_);
+    void CV(double time, double C_, double V_);
     /**
      * Same as PTV, except the chord is specified by
      * a single number instead of the P and T numbers.
      */
-    virtual void CV(double time, std::string C_, double V_);
+    void CV(double time, std::string C_, double V_);
     /**
      * Same as CV, except the chord is specified by
      * jazz-type name (e.g. EbM7) instead of C number.
      */
-    virtual void CL(double time, double C_, bool avoidParallels = true);
+    void CL(double time, double C_, bool avoidParallels = true);
     /**
      * Same as PTL, except the chord is specified by
      * a single number instead of P and T numbers.
      */
-    virtual void CL(double time, std::string C_, bool avoidParallels = true);
+    void CL(double time, std::string C_, bool avoidParallels = true);
     /**
      * Find the C of the previous segment, and contextually invert it; apply
      * the resulting C to the current segment. Contextual inversion is
      * that inversion of C in which the first two pitch-classes are exchanged.
      */
-    virtual void K(double time);
+    void K(double time);
     /**
      * Find the C of the previous segment, and contextually invert it; apply
      * the resulting C to the current segment with voicing V. Contextual
      * inversion is that inversion of C in which the first two pitch-classes
      * are exchanged.
      */
-    virtual void KV(double time, double V_);
+    void KV(double time, double V_);
     /**
      * Find the C of the previous segment, and contextually invert it; apply
      * the resulting C to the current segment, using the closest voiceleading
@@ -285,20 +285,20 @@ namespace csound
      * Contextual inversion is that inversion of C in which the first two
      * pitch-classes are exchanged.
      */
-    virtual void KL(double time, bool avoidParallels = true);
+    void KL(double time, bool avoidParallels = true);
     /**
      * Find the C of the previous segment, and contextually transpose it;
      * apply the resulting C to the current segment. Contextual transposition
      * transposes C up by Q if C is an I-form, and down by Q if C is a T-form.
      */
-    virtual void Q(double time, double Q_);
+    void Q(double time, double Q_);
     /**
      * Find the C of the previous segment, and contextually transpose it;
      * apply the resulting C to the current segment with voicing V.
      * Contextual transposition transposes C up by Q if C is an I-form,
      * and down by Q if C is a T-form.
      */
-    virtual void QV(double time, double Q_, double V_);
+    void QV(double time, double Q_, double V_);
     /**
      * Find the C of the previous segment, and contextually transpose it;
      * apply the resulting C to the current segment, using the closest
@@ -306,7 +306,7 @@ namespace csound
      * Contextual transposition transposes C up by Q if C is an I-form,
      * and down by Q if C is a T-form.
      */
-    virtual void QL(double time, double Q_, bool avoidParallels = true);
+    void QL(double time, double Q_, bool avoidParallels = true);
     /**
      * Beginning at the specified time and continuing
      * to the beginning of the next operation
@@ -316,7 +316,7 @@ namespace csound
      * Note that V specifies what musicians normally call
      * the voicing or inversion of the chord.
      */
-    virtual void V(double time, double V_);
+    void V(double time, double V_);
     /**
      * Beginning at the specified time and continuing
      * to the beginning of the next operation
@@ -328,7 +328,7 @@ namespace csound
      * Note that L specifies what musicians normally call
      * voice-leading.
      */
-    virtual void L(double time, bool avoidParallels = true);
+    void L(double time, bool avoidParallels = true);
     /**
      * Apply all of the voice-leading operations stored within this
      * node to the score. Enables voice-leading operations to be used

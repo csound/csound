@@ -154,7 +154,7 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
 /* strcpy */
 int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
-     char  *newVal = p->str->data;
+    char  *newVal = p->str->data;
     if(p->r->data == NULL) {
       p->r->data =  cs_strdup(csound, newVal);
       p->r->size =  strlen(p->str->data) + 1;
@@ -166,10 +166,10 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
         mfree(csound, p->r->data);
         p->r->data = cs_strdup(csound, newVal);
         p->r->size = strlen(newVal) + 1;
-   
+
     }
     else strcpy((char*) p->r->data, newVal);
-        
+
     return OK;
 }
 
@@ -185,7 +185,7 @@ int strassign_opcode_Sk(CSOUND *csound, STRCPY_OP *p)
        p->r->data = p->str->data;
        p->r->size = p->str->size;
   }
-  //csound->Message(csound, "%s", p->r->data);
+  //csound->Message(csound, p->r->data);
   return OK;
 }
 
@@ -240,9 +240,11 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 /* strcat */
 int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
-  char  *newVal1 = strdup(p->str1->data);
-  char  *newVal2 = strdup(p->str2->data);
-  int size = strlen(newVal1) + strlen(newVal2);
+;
+  int size;
+
+  size = strlen(p->str1->data) +
+         strlen(p->str2->data);
 
     if(p->r->data == NULL) {
         p->r->data = mcalloc(csound, size+1);
@@ -253,10 +255,10 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
       p->r->size = size + 1;
     }
 
-    strcpy((char*) p->r->data, newVal1);
-    strcat((char*) p->r->data, newVal2);
+    if(p->r->data != p->str1->data)
+     strncpy((char*) p->r->data,  p->str1->data, p->r->size);
+    strcat((char*) p->r->data, p->str2->data);
 
-    free(newVal1); free(newVal2);
     return OK;
 }
 
@@ -347,6 +349,15 @@ sprintf_opcode_(CSOUND *csound,
         case 'u':
         case 'c':
 #ifdef HAVE_SNPRINTF
+          if ((int)strlen(strseg) + 24 > (int)maxChars) {
+            int offs = outstring - str->data;
+            str->data = mrealloc(csound, str->data,
+                                 str->size  + 13);
+            str->size += 24;
+            maxChars += 24;
+            outstring = str->data + offs;
+            //printf("maxchars = %d  %s\n", maxChars, strseg);
+          }
           n = snprintf(outstring, maxChars, strseg, (int) MYFLT2LRND(*parm));
 #else
           n = sprintf(outstring, strseg, (int) MYFLT2LRND(*parm));
@@ -359,6 +370,15 @@ sprintf_opcode_(CSOUND *csound,
         case 'g':
         case 'G':
 #ifdef HAVE_SNPRINTF
+          if(strlen(strseg) + 24 > (unsigned)maxChars) {
+           int offs = outstring - str->data;
+            str->data = mrealloc(csound, str->data,
+                                 str->size  + 13);
+            str->size += 24;
+            maxChars += 24;
+            outstring = str->data + offs;
+            //printf("maxchars = %d  %s\n", maxChars, strseg);
+          }
           n = snprintf(outstring, maxChars, strseg, (double)*parm);
 #else
           n = sprintf(outstring, strseg, (double)*parm);
@@ -382,12 +402,14 @@ sprintf_opcode_(CSOUND *csound,
         default:
           return StrOp_ErrMsg(p, "invalid format string");
         }
-        if (UNLIKELY(n < 0 || n >= maxChars)) {
+        if (n < 0 || n >= maxChars) {
           /* safely detected excess string length */
             int offs = outstring - str->data;
             str->data = mrealloc(csound, str->data, maxChars*2);
             outstring = str->data + offs;
             str->size = maxChars*2;
+            maxChars += str->size;
+
         }
         outstring += n;
         len += n;
@@ -435,7 +457,7 @@ static CS_NOINLINE int printf_opcode_(CSOUND *csound, PRINTF_OP *p)
     err = sprintf_opcode_(csound, p, &buf, (char*) p->sfmt->data, &(p->args[0]),
                           (int) p->INOCOUNT - 2,0);
     if (LIKELY(err == OK))
-      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf.data);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, buf.data);
     mfree(csound, buf.data);
 
     return err;
@@ -472,7 +494,7 @@ int puts_opcode_init(CSOUND *csound, PUTS_OP *p)
       if (!p->noNewLine)
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*) p->str->data);
       else
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", (char*) p->str->data);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, (char*) p->str->data);
     }
     p->prv_ktrig = *p->ktrig;
 
@@ -486,7 +508,7 @@ int puts_opcode_perf(CSOUND *csound, PUTS_OP *p)
       if (!p->noNewLine)
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*) p->str->data);
       else
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", (char*) p->str->data);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, (char*) p->str->data);
     }
 
     return OK;
@@ -525,7 +547,7 @@ int strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
     while (*s == ' ' || *s == '\t') s++;
     if (UNLIKELY(*s == '\0'))
       return StrOp_ErrMsg(p, "empty string");
-    x = strtod(s, &tmp);
+    x = cs_strtod(s, &tmp);
     if (UNLIKELY(*tmp != '\0'))
       return StrOp_ErrMsg(p, "invalid format");
     *p->indx = (MYFLT) x;
@@ -694,7 +716,7 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       end = tmp;
       rev = 1;
     }
-    
+
     src += strt;
     len = end - strt;
     if (UNLIKELY(len >=  p->Sdst->size)) {

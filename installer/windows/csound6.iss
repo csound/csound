@@ -15,8 +15,8 @@
 ; I hope to change this soon.
 
 #define MyAppName "Csound6"
-#define MyAppVersion ""
-#define MyAppMinVersion "00"
+#define MyAppVersion "6"
+#define MyAppMinVersion "6.01.0"
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
@@ -137,7 +137,7 @@ Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: pytho
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 
-Source: "{#MyCsoundQtBinDir}CsoundQt-d.exe"; DestDir: "{#APP_BIN}"; DestName: "CsoundQt.exe"; Components: core;
+Source: "{#MyCsoundQtBinDir}CsoundQt-d-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
@@ -152,7 +152,7 @@ Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreve
 Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
 
 ; Ignore the unspeakably stupid libtool crap.
-Source: {#MyPortAudioSourceDir}\lib\.libs\*.dll; DestDir: "{#APP_BIN}"; Components: core 
+Source: {#MyPortAudioSourceDir}\lib\.libs\*x86.dll; DestDir: "{#APP_BIN}"; Components: core 
 Source: {#MyPortAudioSourceDir}\bin\.libs\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
 Source: {#MyPortAudioSourceDir}\bin\.libs\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
 
@@ -163,6 +163,7 @@ Source: {#MyLuaJitSourceDir}luajit.exe; DestDir: "{#APP_BIN}"; Flags: ignorevers
 Source: {#MyLuaJitSourceDir}lua51.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 ; No idea why this other name is needed.
 Source: {#MyLuaJitSourceDir}lua51.dll; DestDir: "{#APP_BIN}"; DestName: "lua5.1.dll"; Flags: ignoreversion;  Components: core 
+Source: {#MyLuaJitSourceDir}lua51.dll; DestDir: "{#APP_BIN}"; DestName: "luajit.dll"; Flags: ignoreversion;  Components: core 
 Source: {#MyLuaJitSourceDir}lua*.h; DestDir: "{#APP_INCLUDE}\luajit"; Flags: ignoreversion;  Components: core 
 
 Source: {#MyFltkSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
@@ -195,7 +196,7 @@ Source: {#MyCsoundAcTutorialSourceDir}code\*.*; DestDir: "{#APP_TUTORIAL}code\";
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}";  Components: core;  
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core  
-Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt.exe"; WorkingDir: "{#APP_BIN}";  Components: core   
+Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-cs6.exe"; WorkingDir: "{#APP_BIN}";  Components: core   
 Name: "{group}\WinSound"; Filename: "{#APP_BIN}winsound.exe"; WorkingDir: "{#APP_BIN}";  Components: core 
 Name: "{group}\LuaJIT"; Filename: "{#APP_BIN}luajit.exe"; WorkingDir: "{#APP_BIN}";  Components: core 
 Name: "{group}\Audio device information"; Filename: "cmd"; Parameters: "/K pa_devs.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core 
@@ -226,7 +227,7 @@ ModPathType = 'system';
 function ModPathDir(): TArrayOfString;
 begin
 	setArrayLength(Result, 1);
-	Result[0] := ExpandConstant('{app}/bin');
+	Result[0] := ExpandConstant('{app}\bin');
 end;
 
 procedure ModPath();

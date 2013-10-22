@@ -360,16 +360,20 @@ int tapset(CSOUND *csound, DELTAP *p)
 int delay(CSOUND *csound, DELAY *p)
 {
     MYFLT       *ar, *asig, *curp, *endp;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t offset = 0;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    if (csound->oparms->sampleAccurate) {
+      uint32_t early  = p->h.insdshead->ksmps_no_end;
+      offset = p->h.insdshead->ksmps_offset;
+
+      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        nsmps -= early;
+        memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      }
     }
     asig = p->asig;
     curp = p->curp;
@@ -957,6 +961,45 @@ int comb(CSOUND *csound, COMB *p)
  err1:
     return csound->PerfError(csound, p->h.insdshead,
                              Str("comb: not initialised"));
+}
+
+int invcomb(CSOUND *csound, COMB *p)
+{
+    int n, nsmps = csound->ksmps;
+    MYFLT       *ar, *asig, *xp, *endp;
+    MYFLT       coef = p->coef;
+
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
+    if (p->prvt != *p->krvt) {
+      p->prvt = *p->krvt;
+      /*
+       * The argument to exp() in the following is sometimes a small
+       * enough negative number to result in a denormal (or worse)
+       * on Alpha. So if the result would be less than 1.0e-16, we
+       * just say it is zero and do not call exp().  heh 981101
+       */
+      double exp_arg = (double)(log001 * *p->ilpt / p->prvt);
+      if (UNLIKELY(exp_arg < -36.8413615))    /* ln(1.0e-16) */
+        coef = p->coef = FL(0.0);
+      else
+        coef = p->coef = (MYFLT)exp(exp_arg);
+    }
+    xp = p->pntr;
+    endp = (MYFLT *) p->auxch.endp;
+    ar = p->ar;
+    asig = p->asig;
+    MYFLT out;
+    for (n=0; n<nsmps; n++) {
+      out = *xp;
+      ar[n] = (*xp = asig[n])-coef*out;
+      if (UNLIKELY(++xp >= endp))
+        xp = (MYFLT *) p->auxch.auxp;
+    }
+    p->pntr = xp;
+    return OK;
+ err1:
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("combinv: not initialised"));
 }
 
 int alpass(CSOUND *csound, COMB *p)

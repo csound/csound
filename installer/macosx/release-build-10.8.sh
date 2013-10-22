@@ -1,15 +1,23 @@
 #!/bin/sh
 
 export MANUAL_DIR=`pwd`/../../../manual6
-export PACKAGE_NAME=csound6.00.0-OSX10.8-x86_64.pkg
-export DMG_DIR="Csound 6.00.0"
-export DMG_NAME="csound6.00.0-OSX10.8-x86_64.dmg"
+export PACKAGE_NAME=csound6.01.0-OSX10.8-x86_64.pkg
+export DMG_DIR="Csound 6.01.0"
+export DMG_NAME="csound6.01.0-OSX10.8-x86_64.dmg"
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
 
-if [ $# -gt 0 ]; then
-	cd $1
-	echo "Using directory $1 `pwd`"
+if [ $# == 0 ]; then
+  echo "Must give branch name to build from"
+  exit
+else
+  export BRANCH_NAME=$1
+  echo "Using branch: $BRANCH_NAME"
+fi
+
+if [ $# -gt 1 ]; then
+	cd $2
+	echo "Using directory $2 `pwd`"
         export INSTALLER_DIR=`pwd`/installer
         rm -rf installer 
 	rm -rf csound6/build/dist
@@ -22,7 +30,7 @@ else
 	cd $RELEASE_DIR
 
 	#git clone git://csound.git.sourceforge.net/gitroot/csound/csound5
-	git clone file://$PWD/../../.. csound6 --depth=1
+	git clone -b $BRANCH_NAME file://$PWD/../../.. csound6 --depth=1 
 	#cp -R csound5 csound5-f
 fi
 
@@ -36,8 +44,8 @@ cp ../../../../Custom.cmake .
 mkdir build
 cd build
 # RUN CMAKE TWICE TO GET AROUND ISSUE WITH UNIVERSAL BUILD
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1
 make -j6 install
 
 # BUILD FLOAT CSOUND5
@@ -107,7 +115,7 @@ cp $DIST/lib/_csnd6.so $FRAMEWORK64_DIR/$PYTHON_DIR
 cp $DIST/lib/csnd6.py $FRAMEWORK64_DIR/$PYTHON_DIR
 cp $DIST/lib/CsoundAC.py $FRAMEWORK64_DIR/$PYTHON_DIR
 cp $DIST/lib/_CsoundAC.so $FRAMEWORK64_DIR/$PYTHON_DIR
-
+export CSOUND_AC_PYLIB=$FRAMEWORK64_DIR/$PYTHON_DIR/_CsoundAC.so
 
 
 echo "preparing framework..."
@@ -121,13 +129,14 @@ echo "preparing framework..."
 #cp  csound5-f/examples/csoundapi_tilde/csapi_demo.csd $FRAMEWORK32_DIR/../Documentation/
 
 #mv  $DIST/CsoundLib64.framework/Resources/Opcodes64/csladspa.dylib  $FRAMEWORK64_DIR/$CSLADSPA_DIR
-cp  $DIST/lib/libcsnd.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
+cp  $DIST/lib/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
+cp  $DIST/lib/libCsoundAC.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
 cp  $DIST/lib/lib_jcsound6.jnilib $FRAMEWORK64_DIR/$JAVA_DIR
 cp  $DIST/lib/csnd6.jar $FRAMEWORK64_DIR/$JAVA_DIR
-cp  $DIST/lib/csoundapi~.pd_darwin $FRAMEWORK64_DIR/$PD_DIR
-cp  csound6/examples/csoundapi_tilde/csoundapi-osx.pd $FRAMEWORK64_DIR/$PD_DIR/csoundapi.pd
-cp  csound6/examples/csoundapi_tilde/csapi_demo.csd $FRAMEWORK64_DIR/../Documentation/
-
+cp  $DIST/lib/csound6~.pd_darwin $FRAMEWORK64_DIR/$PD_DIR
+cp  csound6/examples/csoundapi_tilde/csound6~-help.pd $FRAMEWORK64_DIR/$PD_DIR/
+cp  csound6/examples/csoundapi_tilde/csapi_demo.csd $FRAMEWORK64_DIR/$PD_DIR/
+cp  csound6/examples/csoundapi_tilde/demo.orc $FRAMEWORK64_DIR/$PD_DIR/
 
 echo "copying manual..."
 
@@ -236,6 +245,7 @@ cp /usr/local/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libfluidsynth.1.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
+cp /usr/local/lib/libluajit-5.1.2.0.2.dylib $SUPPORT_LIBS_DIR 
 
 #cp -L /usr/local/lib/libmpadec.dylib $SUPPORT_LIBS_DIR
 #cp -L /usr/local/lib/libluajit.dylib $SUPLIBS
@@ -244,6 +254,8 @@ cp /usr/local/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
 export OLD_FLAC_LIB=/usr/local/lib/libFLAC.8.dylib
 export NEW_FLAC_LIB=/usr/local/lib/libFLAC.8.2.0.dylib
 install_name_tool -change $OLD_FLAC_LIB $NEW_FLAC_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
+
+install_name_tool -change libCsoundAC.6.0.dylib /usr/local/lib/libCsoundAC.6.0.dylib $CSOUND_AC_PYLIB
 
 #for file in $SUPPORT_LIBS_DIR/*
 #do

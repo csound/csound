@@ -37,15 +37,16 @@ extern void SILENCE_PUBLIC printChord(std::string label, const std::vector<doubl
  */
 VoiceleadingOperation::VoiceleadingOperation() :
     beginTime(0.0),
+    endTime(0.0),
     rescaledBeginTime(0.0),
     rescaledEndTime(0.0),
-    P(DBL_MAX),
-    T(DBL_MAX),
-    C(DBL_MAX),
-    K(DBL_MAX),
-    Q(DBL_MAX),
-    V(DBL_MAX),
-    L(false),
+    P_(DBL_MAX),
+    T_(DBL_MAX),
+    C_(DBL_MAX),
+    K_(DBL_MAX),
+    Q_(DBL_MAX),
+    V_(DBL_MAX),
+    L_(false),
     begin(0),
     end(0),
     avoidParallels(false)
@@ -76,26 +77,26 @@ std::ostream &operator << (std::ostream &stream, const VoiceleadingOperation &op
     stream << "  rescaledEndTime:   " << operation.rescaledEndTime << std::endl;
     stream << "  begin:             " << operation.begin << std::endl;
     stream << "  end:               " << operation.end << std::endl;
-    if (!(operation.P == DBL_MAX)) {
-        stream << "  P:                 " << operation.P << std::endl;
+    if (!(operation.P_ == DBL_MAX)) {
+        stream << "  P:                 " << operation.P_ << std::endl;
     }
-    if (!(operation.T == DBL_MAX)) {
-        stream << "  T:                 " << operation.T << std::endl;
+    if (!(operation.T_ == DBL_MAX)) {
+        stream << "  T:                 " << operation.T_ << std::endl;
     }
-    if (!(operation.C == DBL_MAX)) {
-        stream << "  C:                 " << operation.C << std::endl;
+    if (!(operation.C_ == DBL_MAX)) {
+        stream << "  C:                 " << operation.C_ << std::endl;
     }
-    if (!(operation.K == DBL_MAX)) {
-        stream << "  K:                 " << operation.K << std::endl;
+    if (!(operation.K_ == DBL_MAX)) {
+        stream << "  K:                 " << operation.K_ << std::endl;
     }
-    if (!(operation.Q == DBL_MAX)) {
-        stream << "  Q:                 " << operation.Q << std::endl;
+    if (!(operation.Q_ == DBL_MAX)) {
+        stream << "  Q:                 " << operation.Q_ << std::endl;
     }
-    if (!(operation.V == DBL_MAX)) {
-        stream << "  V:                 " << operation.V << std::endl;
+    if (!(operation.V_ == DBL_MAX)) {
+        stream << "  V:                 " << operation.V_ << std::endl;
     }
-    if (operation.L) {
-        stream << "  L:                 " << int(operation.L) << std::endl;
+    if (operation.L_) {
+        stream << "  L:                 " << int(operation.L_) << std::endl;
     }
     return stream;
 }
@@ -118,23 +119,23 @@ void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOpe
     if (operation.begin == operation.end) {
         return;
     }
-    if (!(operation.K == DBL_MAX)) {
-        if ((operation.V == DBL_MAX) && (!operation.L)) {
+    if (!(operation.K_ == DBL_MAX)) {
+        if ((operation.V_ == DBL_MAX) && (!operation.L_)) {
             System::inform("Operation: K\n");
             score.setK(priorOperation.begin,
                     operation.begin,
                     operation.end,
                     base,
                     range);
-        } else if ((operation.V != DBL_MAX) && (!operation.L)) {
+        } else if ((operation.V_ != DBL_MAX) && (!operation.L_)) {
             System::inform("Operation: KV\n");
             score.setKV(priorOperation.begin,
                     operation.begin,
                     operation.end,
-                    operation.V,
+                    operation.V_,
                     base,
                     range);
-        } else if ((operation.V == DBL_MAX) && (operation.L)) {
+        } else if ((operation.V_ == DBL_MAX) && (operation.L_)) {
             System::inform("Operation: KL\n");
             score.setKL(priorOperation.begin,
                     operation.begin,
@@ -143,53 +144,53 @@ void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOpe
                     range,
                     operation.avoidParallels);
         }
-    } else if (!(operation.Q == DBL_MAX)) {
-        if ((operation.V == DBL_MAX) && (!operation.L)) {
+    } else if (!(operation.Q_ == DBL_MAX)) {
+        if ((operation.V_ == DBL_MAX) && (!operation.L_)) {
             System::inform("Operation: Q\n");
             score.setQ(priorOperation.begin,
                     operation.begin,
                     operation.end,
-                    operation.Q,
+                    operation.Q_,
                     modality,
                     base,
                     range);
-        } else if ((operation.V != DBL_MAX) && (!operation.L)) {
+        } else if ((operation.V_ != DBL_MAX) && (!operation.L_)) {
             System::inform("Operation: QV\n");
             score.setQV(priorOperation.begin,
                     operation.begin,
                     operation.end,
-                    operation.Q,
+                    operation.Q_,
                     modality,
-                    operation.V,
+                    operation.V_,
                     base,
                     range);
-        } else if ((operation.V == DBL_MAX) && (operation.L)) {
+        } else if ((operation.V_ == DBL_MAX) && (operation.L_)) {
             System::inform("Operation: QL\n");
             score.setQL(priorOperation.begin,
                     operation.begin,
                     operation.end,
-                    operation.Q,
+                    operation.Q_,
                     modality,
                     base,
                     range,
                     operation.avoidParallels);
         }
-    } else if (!(operation.P == DBL_MAX) && !(operation.T == DBL_MAX)) {
-        if (!(operation.V == DBL_MAX)) {
+    } else if (!(operation.P_ == DBL_MAX) && !(operation.T_ == DBL_MAX)) {
+        if (!(operation.V_ == DBL_MAX)) {
             System::inform("Operation: PTV\n");
             score.setPTV(operation.begin,
                     operation.end,
-                    operation.P,
-                    operation.T,
-                    operation.V,
+                    operation.P_,
+                    operation.T_,
+                    operation.V_,
                     base,
                     range);
-        } else if (operation.L) {
+        } else if (operation.L_) {
             System::inform("Operation: PTL\n");
             score.setPT(operation.begin,
                     operation.end,
-                    operation.P,
-                    operation.T,
+                    operation.P_,
+                    operation.T_,
                     base,
                     range,
                     divisionsPerOctave);
@@ -205,16 +206,16 @@ void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOpe
             System::inform("Operation: PT\n");
             score.setPT(operation.begin,
                     operation.end,
-                    operation.P,
-                    operation.T,
+                    operation.P_,
+                    operation.T_,
                     base,
                     range,
                     divisionsPerOctave);
         }
-    } else if (!(operation.C == DBL_MAX)) {
-        if (!(operation.V == DBL_MAX)) {
+    } else if (!(operation.C_ == DBL_MAX)) {
+        if (!(operation.V_ == DBL_MAX)) {
             System::inform("Operation: CV\n");
-            std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
+            std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C_, divisionsPerOctave), divisionsPerOctave);
             printChord("CV", pcs);
             std::vector<double> pt = Voicelead::pitchClassSetToPandT(pcs, divisionsPerOctave);
             double prime = pt[0];
@@ -224,12 +225,12 @@ void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOpe
                     operation.end,
                     prime,
                     transposition,
-                    operation.V,
+                    operation.V_,
                     base,
                     range);
-        } else if (operation.L) {
+        } else if (operation.L_) {
             System::inform("Operation: CL\n");
-            std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
+            std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C_, divisionsPerOctave), divisionsPerOctave);
             printChord("CL", pcs);
             score.voicelead(priorOperation.begin,
                     priorOperation.end,
@@ -242,7 +243,7 @@ void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOpe
                     divisionsPerOctave);
         } else {
             System::inform("Operation: C\n");
-            std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C, divisionsPerOctave), divisionsPerOctave);
+            std::vector<double> pcs = Voicelead::mToPitchClassSet(Voicelead::cToM(operation.C_, divisionsPerOctave), divisionsPerOctave);
             score.setPitchClassSet(operation.begin,
                     operation.end,
                     pcs,
@@ -250,7 +251,7 @@ void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOpe
         }
     } else {
         System::inform("Operation: V\n");
-        if (!(operation.V == DBL_MAX)) {
+        if (!(operation.V_ == DBL_MAX)) {
             std::vector<double> ptv = score.getPTV(operation.begin,
                     operation.end,
                     base,
@@ -260,11 +261,11 @@ void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOpe
                     operation.end,
                     ptv[0],
                     ptv[1],
-                    operation.V,
+                    operation.V_,
                     base,
                     range,
                     divisionsPerOctave);
-        } else if (operation.L) {
+        } else if (operation.L_) {
             System::inform("Operation: L\n");
             score.voicelead(priorOperation.begin,
                     priorOperation.end,
@@ -279,34 +280,34 @@ void VoiceleadingNode::apply(Score &score, const VoiceleadingOperation &priorOpe
     System::message("ENDED VoiceleadingNode::apply.\n");
 }
 
-void VoiceleadingNode::PT(double time, double P, double T)
+void VoiceleadingNode::PT(double time, double P_, double T_)
 {
     operations[time].beginTime = time;
-    operations[time].P = P;
-    operations[time].T = T;
+    operations[time].P_ = P_;
+    operations[time].T_ = T_;
 }
 
-void VoiceleadingNode::PTV(double time, double P, double T, double V)
+void VoiceleadingNode::PTV(double time, double P_, double T_, double V_)
 {
     operations[time].beginTime = time;
-    operations[time].P = P;
-    operations[time].T = T;
-    operations[time].V = V;
+    operations[time].P_ = P_;
+    operations[time].T_ = T_;
+    operations[time].V_ = V_;
 }
 
-void VoiceleadingNode::PTL(double time, double P, double T, bool avoidParallels)
+void VoiceleadingNode::PTL(double time, double P_, double T_, bool avoidParallels)
 {
     operations[time].beginTime = time;
-    operations[time].P = P;
-    operations[time].T = T;
-    operations[time].L = true;
+    operations[time].P_ = P_;
+    operations[time].T_ = T_;
+    operations[time].L_ = true;
     operations[time].avoidParallels = avoidParallels;
 }
 
 void VoiceleadingNode::C(double time, double C_)
 {
     operations[time].beginTime = time;
-    operations[time].C = C_;
+    operations[time].C_ = C_;
 }
 
 void VoiceleadingNode::C(double time, std::string C_)
@@ -314,83 +315,83 @@ void VoiceleadingNode::C(double time, std::string C_)
     C(time, Voicelead::nameToC(C_, divisionsPerOctave));
 }
 
-void VoiceleadingNode::CV(double time, double C, double V)
+void VoiceleadingNode::CV(double time, double C_, double V_)
 {
     operations[time].beginTime = time;
-    operations[time].C = C;
-    operations[time].V = V;
+    operations[time].C_ = C_;
+    operations[time].V_ = V_;
 }
 
-void VoiceleadingNode::CV(double time, std::string C, double V)
+void VoiceleadingNode::CV(double time, std::string C_, double V_)
 {
-    CV(time, Voicelead::nameToC(C, divisionsPerOctave), V);
+    CV(time, Voicelead::nameToC(C_, divisionsPerOctave), V_);
 }
 
-void VoiceleadingNode::CL(double time, double C, bool avoidParallels)
+void VoiceleadingNode::CL(double time, double C_, bool avoidParallels)
 {
     operations[time].beginTime = time;
-    operations[time].C = C;
-    operations[time].L = true;
+    operations[time].C_ = C_;
+    operations[time].L_ = true;
     operations[time].avoidParallels = avoidParallels;
 }
 
-void VoiceleadingNode::CL(double time, std::string C, bool avoidParallels)
+void VoiceleadingNode::CL(double time, std::string C_, bool avoidParallels)
 {
-    CL(time, Voicelead::nameToC(C, divisionsPerOctave), avoidParallels);
+    CL(time, Voicelead::nameToC(C_, divisionsPerOctave), avoidParallels);
 }
 
 void VoiceleadingNode::K(double time)
 {
     operations[time].beginTime = time;
-    operations[time].K = 1.0;
+    operations[time].K_ = 1.0;
 }
 
-void VoiceleadingNode::KV(double time, double V)
+void VoiceleadingNode::KV(double time, double V_)
 {
     operations[time].beginTime = time;
-    operations[time].K = 1.0;
-    operations[time].V = V;
+    operations[time].K_ = 1.0;
+    operations[time].V_ = V_;
 }
 
 void VoiceleadingNode::KL(double time, bool avoidParallels)
 {
     operations[time].beginTime = time;
-    operations[time].K = 1.0;
-    operations[time].L = true;
+    operations[time].K_ = 1.0;
+    operations[time].L_ = true;
     operations[time].avoidParallels = avoidParallels;
 }
 
-void VoiceleadingNode::Q(double time, double Q)
+void VoiceleadingNode::Q(double time, double Q_)
 {
     operations[time].beginTime = time;
-    operations[time].Q = Q;
+    operations[time].Q_ = Q_;
 }
 
-void VoiceleadingNode::QV(double time, double Q, double V)
+void VoiceleadingNode::QV(double time, double Q_, double V_)
 {
     operations[time].beginTime = time;
-    operations[time].Q = Q;
-    operations[time].V = V;
+    operations[time].Q_ = Q_;
+    operations[time].V_ = V_;
 }
 
-void VoiceleadingNode::QL(double time, double Q, bool avoidParallels)
+void VoiceleadingNode::QL(double time, double Q_, bool avoidParallels)
 {
     operations[time].beginTime = time;
-    operations[time].Q = Q;
-    operations[time].L = true;
+    operations[time].Q_ = Q_;
+    operations[time].L_ = true;
     operations[time].avoidParallels = avoidParallels;
 }
 
 void VoiceleadingNode::V(double time, double V_)
 {
     operations[time].beginTime = time;
-    operations[time].V = V_;
+    operations[time].V_ = V_;
 }
 
 void VoiceleadingNode::L(double time, bool avoidParallels)
 {
     operations[time].beginTime = time;
-    operations[time].L = true;
+    operations[time].L_ = true;
     operations[time].avoidParallels = avoidParallels;
 }
 

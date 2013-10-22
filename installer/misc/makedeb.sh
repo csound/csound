@@ -36,7 +36,7 @@ find . \! -type d -print | cpio -p -d -m -C 1048576 "${SAVED_CWD}/debian/tmp"
 cd "${SAVED_CWD}"
 find "./debian/tmp" -exec chown -h 0:0 "{}" \;
 find "./debian/tmp" -type d -exec chmod 0755 "{}" \;
-find "./debian/tmp" -type f -perm +0100 -exec chmod 0755 "{}" \;
+find "./debian/tmp" -type f -perm /0100 -exec chmod 0755 "{}" \;
 find "./debian/tmp" -type f \! -perm +0100 -exec chmod 0644 "{}" \;
 
 dh_makeshlibs
