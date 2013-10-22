@@ -98,9 +98,9 @@ add_custom_command(TARGET csound~.mxo
   POST_BUILD
   COMMAND mv ARGS -f ${CSMXO_OUT_DIR}/csound~.mxo.framework ${CSMXO_DIR}) 
 
-#add_custom_command(TARGET csound~.mxo
-#  POST_BUILD
-#  COMMAND mv ARGS -f ${CSMXO_DIR}/csound~.mxo  ${CSMXO_DIR}/csound~) 
+add_custom_command(TARGET csound~.mxo
+  POST_BUILD
+  COMMAND mv ARGS -f ${CSMXO_DIR}/csound~.mxo  ${CSMXO_DIR}/csound~) 
 
 add_custom_command(TARGET csound~.mxo
   POST_BUILD
