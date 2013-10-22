@@ -23,6 +23,9 @@
 #include "csoundCore.h"
 #include "csound_data_structures.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* FUNCTIONS FOR CONS_CELL */
 
@@ -327,3 +330,9 @@ PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable
     }
     mfree(csound, hashTable);
 }
+
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif

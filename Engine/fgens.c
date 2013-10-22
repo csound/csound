@@ -2174,7 +2174,7 @@ static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
     csoundMessage(csound, "f%3.0f %8.2f %8.2f ",
                             ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
     if (ISSTRCOD(ff->e.p[4]))
-      csoundMessage(csound, "%s", ff->e.strarg);
+      csoundMessage(csound, ff->e.strarg);
     else
       csoundMessage(csound, "%8.2f", ff->e.p[4]);
     if (ISSTRCOD(ff->e.p[5]))
@@ -2212,7 +2212,7 @@ static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
       return;
     memset(&dwindow, 0, sizeof(WINDAT));
     sprintf(strmsg, Str("ftable %d:"), (int) ff->fno);
-    dispset(csound, &dwindow, ftp->ftable, (int32) (ff->flen + ff->guardreq),
+    dispset(csound, &dwindow, ftp->ftable, (int32) (ff->flen),
                     strmsg, 0, "ftable");
     display(csound, &dwindow);
 }
@@ -2275,7 +2275,6 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
     }
     ftp->fno = (int32) ff->fno;
     ftp->flen = ff->flen;
-
     return ftp;
 }
 

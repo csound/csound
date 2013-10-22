@@ -1,7 +1,7 @@
 -- Copyright (c) 2002, 2003 by Michael Gogins. All rights reserved.
 -- Tutorial demonstrating a MusicModel composition based on a Lindenmayer system.
 
-require "luaCsnd"
+require "luaCsnd6"
 require "luaCsoundAC"
 
 filename = 'Lindenmayer.lua'
@@ -39,7 +39,7 @@ print('Events in generated score: '..score:size())
 model:setConformPitches(true)
 csound = model:getCppSound()
 csound:load('../CsoundAC.csd')
-csound:setCommand("csound -m3 -RWZdfo " .. filename .. ".wav " .. filename .. ".orc " .. filename .. ".sco")
+csound:setCommand("csound -m3 -RWZdfo " .. filename .. ".wav ")
 csound:setFilename(filename)
 duration = score:getDuration()		
 print('Duration: '.. duration)

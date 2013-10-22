@@ -3,7 +3,17 @@ Csound for iOS ChangeLog
 This ChangeLog shows changes specific to Csound for iOS. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
 
 
-6.00.1 - 2013-xx-xx
+6.00.2 - 2013-xx-xx
+
+* Fixed MIDI input not working (added missing call to csoundSetHostImplementedMIDIIO) 
+
+* Projects that require audio input in addition to audio output now must set
+the useAudioInput flag to YES on CsoundObj before running.  This flag affects
+what Audio category is used (either kAudioSessionCategory_MediaPlayback or
+kAudioSessionCategory_PlayAndRecord).  Using only media playback allows
+Bluetooth audio devices to be used with your project.
+
+6.00.1 - 2013-08-06
 
 * Bug #26: CsoundObj.m: modified getInputChannelPtr and getOutputChannelPtr to require passing in the channelType (i.e. CSOUND_CONTROL_CHANNEL, CSOUND_AUDIO_CHANNEL); previously getInputChannelPtr was hardcoded for only control channels and getOutputChannelPtr was hardcoded for only audio channels.  This is a non-backwards compatible change.  To update previous project, add "channelType:CSOUND_CONTROL_CHANNEL" when calling getInputChannelPtr and "channelType:CSOUND_AUDIO_CHANNEL" when calling getOutputChannelPtr.  
 

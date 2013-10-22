@@ -7,8 +7,8 @@ option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_IMAGE_OPCODES "Build the image opcodes" ON)
 option(BUILD_PYTHON_OPCODES "Build the Python opcodes" ON)
 option(BUILD_LUA_OPCODES "Build the Lua opcodes" ON)
-option(BUILD_WIIMOTE_OPCODES "Build the Wiimote opcodes" ON) 
-option(BUILD_P5GLOVE_OPCODES "Build the P5Glove opcodes" ON) 
+option(BUILD_WIIMOTE_OPCODES "Build the Wiimote opcodes" ON)
+option(BUILD_P5GLOVE_OPCODES "Build the P5Glove opcodes" ON)
 option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
 option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
 option(BUILD_FAUST_OPCODES "Build the Faust opcodes" OFF)
@@ -29,7 +29,12 @@ set(PYTHON_INCLUDE_DIRS /usr/include/Python2.7)
 set(Python_ADDITIONAL_VERSIONS 2.7)
 find_package(PythonLibs)
 
-find_library(LUA_LIBRARIES luajit)
+find_library(LUAJIT_LIBRARY luajit)
+if(NOT LUAJIT_LIBRARY)
+    find_library(LUAJIT_LIBRARY luajit-5.1)
+endif()
+find_path(LUA_H_PATH luajit-2.0/lua.h)
+
 check_include_file(wiiuse.h WIIUSE_H)
 find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
@@ -37,6 +42,7 @@ find_library(P5GLOVE_LIB p5glove)
 
 if(BUILD_FAUST_OPCODES)
 find_package(LLVM)
+exec_program(llvm-config ARGS --libs OUTPUT_VARIABLE LLVM_LIBS)
 find_library(FAUST_LIBRARY faust HINTS /usr/local/lib/faust)
 endif()
 
@@ -60,7 +66,7 @@ if(BUILD_SERIAL_OPCODES)
 endif()
 
 if(BUILD_PLATEREV_OPCODES)
-   make_plugin(platerev platerev.c)
+   make_plugin(platerev platerev.c m)
 endif()
 
 set(scansyn_SRCS
@@ -120,7 +126,11 @@ endif()
 check_deps(BUILD_OSC_OPCODES OSC_HEADER LIBLO_LIBRARY)
 if(BUILD_OSC_OPCODES)
     make_plugin(osc OSC.c)
-    target_link_libraries(osc ${LIBLO_LIBRARY} pthread)
+    if(WIN32)
+      target_link_libraries(osc ${LIBLO_LIBRARY} pthread wsock32 ws2_32)
+    else()
+      target_link_libraries(osc ${LIBLO_LIBRARY} pthread)
+    endif()
     add_dependency_to_framework(osc ${LIBLO_LIBRARY})
 endif()
 
@@ -138,24 +148,21 @@ if(BUILD_PYTHON_OPCODES)
     make_plugin(py py/pythonopcodes.c ${PYTHON_LIBRARIES})
 endif()
 
-# this is broken at the moment
-check_deps(BUILD_LUA_OPCODES LUA_LIBRARIES)
-if(BUILD_LUA_OPCODES)
-        find_path(LUA_INCLUDE_DIR  lua.h
-            /usr/include/luajit-2.0
-            /usr/local/include/luajit-2.0)
-        include_directories(${LUA_INCLUDE_DIR})
-        make_plugin(LuaCsound LuaCsound.cpp ${LUA_LIBRARIES})
-        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound)
-        add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound LINKER)
-        endif()
-#endif()
+if(NOT APPLE)
+  check_deps(BUILD_LUA_OPCODES LUAJIT_LIBRARY LUA_H_PATH)
+  if(BUILD_LUA_OPCODES)
+    make_plugin(LuaCsound LuaCsound.cpp ${LUAJIT_LIBRARY})
+    add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound)
+    add_compiler_flags(${OpenMP_CXX_FLAGS} TARGETS LuaCsound LINKER)
+    include_directories(${LUA_H_PATH}/luajit-2.0)
+  endif()
+endif()
 
 check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H)
 if(BUILD_WIIMOTE_OPCODES)
     make_plugin(wiimote wiimote.c ${WIIUSE_LIB})
     add_dependency_to_framework(wiimote ${WIIUSE_LIB})
-  
+
 endif()
 
 check_deps(BUILD_P5GLOVE_OPCODES P5GLOVE_H)
@@ -165,11 +172,14 @@ endif()
 
 check_deps(BUILD_FAUST_OPCODES LLVM_FOUND FAUST_LIBRARY)
 if(BUILD_FAUST_OPCODES)
-   llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES AsmParser Instrumentation Linker Archive BitReader DebugInfo JIT ipo Vectorize BitWriter TableGen XCoreCodeGen XCoreDesc XCoreInfo X86AsmParser X86Disassembler X86CodeGen X86Desc X86Info X86AsmPrinter X86Utils SparcCodeGen SparcDesc SparcInfo PTXCodeGen PTXDesc PTXInfo PTXAsmPrinter PowerPCCodeGen PowerPCDesc PowerPCAsmPrinter PowerPCInfo MSP430CodeGen MSP430Desc MSP430Info MSP430AsmPrinter MBlazeDisassembler MBlazeAsmParser MBlazeCodeGen MBlazeDesc MBlazeInfo MBlazeAsmPrinter MipsDisassembler MipsAsmParser MipsCodeGen MipsDesc MipsInfo MipsAsmPrinter HexagonCodeGen HexagonDesc HexagonInfo HexagonAsmPrinter CppBackendCodeGen CppBackendInfo CellSPUCodeGen CellSPUDesc CellSPUInfo ARMDisassembler ARMAsmParser ARMCodeGen SelectionDAG AsmPrinter ARMDesc ARMInfo ARMAsmPrinter MCDisassembler MCParser Interpreter CodeGen ScalarOpts InstCombine TransformUtils ipa Analysis MCJIT RuntimeDyld ExecutionEngine Target MC Object Core Support
-)
-   make_plugin(faustcsound faustgen.cpp)
-   add_compiler_flags("-DFAUSTFLOAT=double"  TARGETS faustcsound)
-   target_link_libraries(faustcsound faust ${REQ_LLVM_LIBRARIES})
+  #   llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES AsmParser Instrumentation Linker Archive BitReader DebugInfo JIT ipo Vectorize BitWriter TableGen XCoreCodeGen XCoreDesc XCoreInfo X86AsmParser X86Disassembler X86CodeGen X86Desc X86Info X86AsmPrinter X86Utils SparcCodeGen SparcDesc SparcInfo PTXCodeGen PTXDesc PTXInfo PTXAsmPrinter PowerPCCodeGen PowerPCDesc PowerPCAsmPrinter PowerPCInfo MSP430CodeGen MSP430Desc MSP430Info MSP430AsmPrinter MBlazeDisassembler MBlazeAsmParser MBlazeCodeGen MBlazeDesc MBlazeInfo MBlazeAsmPrinter MipsDisassembler MipsAsmParser MipsCodeGen MipsDesc MipsInfo MipsAsmPrinter HexagonCodeGen HexagonDesc HexagonInfo HexagonAsmPrinter CppBackendCodeGen CppBackendInfo CellSPUCodeGen CellSPUDesc CellSPUInfo ARMDisassembler ARMAsmParser ARMCodeGen SelectionDAG AsmPrinter ARMDesc ARMInfo ARMAsmPrinter MCDisassembler MCParser Interpreter CodeGen ScalarOpts InstCombine TransformUtils ipa Analysis MCJIT RuntimeDyld ExecutionEngine Target MC Object Core Support)
+
+  make_plugin(faustcsound faustgen.cpp)
+  add_compiler_flags("-DFAUSTFLOAT=double"  TARGETS faustcsound)
+  target_link_libraries(faustcsound ${FAUST_LIBRARY} -L/usr/local/lib ${LLVM_LIBS})
+  message("LLVM INCLUDE DIRS: ${LLVM_INCLUDE_DIRS}")
+  message("LLVM LIBS: ${LLVM_LIBS}")
+  include_directories(${LLVM_INCLUDE_DIRS})
 endif()
 
 
@@ -193,5 +203,5 @@ endif()
 #make_plugin(sfont sfont.c m)
 #set_target_properties(sfont
 #    PROPERTIES COMPILER_FLAGS "${sfont_FLAGS}")
-    
+
 add_subdirectory(stk)

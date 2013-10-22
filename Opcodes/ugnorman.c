@@ -701,25 +701,25 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
     /* get increments for the partials */
     switch (type) {
     case 1:
-      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
+      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
       p->partialinc = 2 * (int) (*p->iptlincr);
       p->frmInc = n_partials * 2 + 1;
       break;
 
     case 2:
-      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
+      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
       p->partialinc = 3 * (int) (*p->iptlincr);
       p->frmInc = n_partials * 3 + 1;
       break;
 
     case 3:
-      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
+      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
       p->partialinc = 2 * (int) (*p->iptlincr);
       p->frmInc = n_partials * 2 + 26;
       break;
 
     case 4:
-      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
+      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
       p->partialinc = 3 * (int) (*p->iptlincr);
       p->frmInc = n_partials * 3 + 26;
       break;
@@ -809,25 +809,25 @@ static int atsaddset_S(CSOUND *csound, ATSADD *p)
     /* get increments for the partials */
     switch (type) {
     case 1:
-      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
+      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
       p->partialinc = 2 * (int) (*p->iptlincr);
       p->frmInc = n_partials * 2 + 1;
       break;
 
     case 2:
-      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
+      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
       p->partialinc = 3 * (int) (*p->iptlincr);
       p->frmInc = n_partials * 3 + 1;
       break;
 
     case 3:
-      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
+      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
       p->partialinc = 2 * (int) (*p->iptlincr);
       p->frmInc = n_partials * 2 + 26;
       break;
 
     case 4:
-      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
+      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
       p->partialinc = 3 * (int) (*p->iptlincr);
       p->frmInc = n_partials * 3 + 26;
       break;
@@ -1503,8 +1503,6 @@ static void band_energy_to_res(CSOUND *csound, ATSSINNOI *p)
     for (i = 0; i < (int) p->atshead->nfrms; i++) {
       /* init sums */
       memset(bandsum, 0, 25*sizeof(double));
-      /* for (k = 0; k < 25; k++) */
-      /*   bandsum[k] = 0.0; */
       /* find sums per band */
       for (j = 0; j < (int) p->atshead->npartials; j++) {
         partialfreq = *(curframe + 2 + j * (int) p->partialinc);
@@ -1604,28 +1602,28 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 
     switch (type) {
     case 1:
-      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
+      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
       p->partialinc = 2 * (int) (*p->iptlincr);
       p->frmInc = p->npartials * 2 + 1;
       p->firstband = -1;
       break;
 
     case 2:
-      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
+      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
       p->partialinc = 3 * (int) (*p->iptlincr);
       p->frmInc = p->npartials * 3 + 1;
       p->firstband = -1;
       break;
 
     case 3:
-      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
+      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
       p->partialinc = 2 * (int) (*p->iptlincr);
       p->frmInc = p->npartials * 2 + 26;
       p->firstband = 1 + 2 * p->npartials;
       break;
 
     case 4:
-      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
+      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
       p->partialinc = 3 * (int) (*p->iptlincr);
       p->frmInc = p->npartials * 3 + 26;
       p->firstband = 1 + 3 * p->npartials;
@@ -1789,29 +1787,29 @@ static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
 
     switch (type) {
     case 1:
-      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
-      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
+      p->partialinc = 2 * (int)(*p->iptlincr);
       p->frmInc = p->npartials * 2 + 1;
       p->firstband = -1;
       break;
 
     case 2:
-      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
-      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
+      p->partialinc = 3 * (int)(*p->iptlincr);
       p->frmInc = p->npartials * 3 + 1;
       p->firstband = -1;
       break;
 
     case 3:
-      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
-      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
+      p->partialinc = 2 * (int)(*p->iptlincr);
       p->frmInc = p->npartials * 2 + 26;
       p->firstband = 1 + 2 * p->npartials;
       break;
 
     case 4:
-      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
-      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
+      p->partialinc = 3 * (int)(*p->iptlincr);
       p->frmInc = p->npartials * 3 + 26;
       p->firstband = 1 + 3 * p->npartials;
       break;
@@ -1873,31 +1871,6 @@ static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
 
     /* initialise phase */
     memset(p->noiphase, 0, 25*sizeof(double));
-    /* p->noiphase[0] = 0.0; */
-    /* p->noiphase[1] = 0.0; */
-    /* p->noiphase[2] = 0.0; */
-    /* p->noiphase[3] = 0.0; */
-    /* p->noiphase[4] = 0.0; */
-    /* p->noiphase[5] = 0.0; */
-    /* p->noiphase[6] = 0.0; */
-    /* p->noiphase[7] = 0.0; */
-    /* p->noiphase[8] = 0.0; */
-    /* p->noiphase[9] = 0.0; */
-    /* p->noiphase[10] = 0.0; */
-    /* p->noiphase[11] = 0.0; */
-    /* p->noiphase[12] = 0.0; */
-    /* p->noiphase[13] = 0.0; */
-    /* p->noiphase[14] = 0.0; */
-    /* p->noiphase[15] = 0.0; */
-    /* p->noiphase[16] = 0.0; */
-    /* p->noiphase[17] = 0.0; */
-    /* p->noiphase[18] = 0.0; */
-    /* p->noiphase[19] = 0.0; */
-    /* p->noiphase[20] = 0.0; */
-    /* p->noiphase[21] = 0.0; */
-    /* p->noiphase[22] = 0.0; */
-    /* p->noiphase[23] = 0.0; */
-    /* p->oscphase[24] = 0.0; */
 
     /* initialise band limited noise parameters */
     for (i = 0; i < (int) *p->iptls; i++) {
@@ -1979,15 +1952,14 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
 
           /* calc noise */
           if (i < 25) {
-          noise = nzamp * COS(p->noiphase[i])
-            * randiats(csound, &(p->randinoise[i]));
-          p->noiphase[i] += p->phaseinc[i];
+            noise = nzamp * cos(p->noiphase[i]) *
+                    randiats(csound, &(p->randinoise[i]));
+            p->noiphase[i] += p->phaseinc[i];
           }
           else noise = FL(0.0);
           /* calc output */
           ar[n] += csound->e0dbfs *
             (MYFLT)(amp * sinewave * *p->ksinamp + noise **p->knzamp);
-
         }
         p->oscphase[i] = phase;
       }
@@ -2194,8 +2166,8 @@ static int atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
     p->utable = fltp + ((int) *(p->iptls) + 2);
 
     /* check to see if partial is valid */
-    if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-                 (int) (*p->iptloffset) < 0)) {
+    if (UNLIKELY((int)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+                 (int)(*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSBUFREAD: Partial out of range, "
                                            "max partial is %i"), n_partials);
     }
@@ -2288,8 +2260,8 @@ static int atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
     p->utable = fltp + ((int) *(p->iptls) + 2);
 
     /* check to see if partial is valid */
-    if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-                 (int) (*p->iptloffset) < 0)) {
+    if (UNLIKELY((int)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+                 (int)(*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSBUFREAD: Partial out of range, "
                                            "max partial is %i"), n_partials);
     }
@@ -2493,8 +2465,8 @@ static int atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
 
     atsbufreadaddr = *(get_atsbufreadaddrp(csound));
     if (UNLIKELY(atsbufreadaddr == NULL)) goto err1;
-    *p->kfreq = (MYFLT) ((atsbufreadaddr->utable)[(int) (*p->iparnum)].freq);
-    *p->kamp = (MYFLT) ((atsbufreadaddr->utable)[(int) (*p->iparnum)].amp);
+    *p->kfreq = (MYFLT) ((atsbufreadaddr->utable)[(int)(*p->iparnum)].freq);
+    *p->kamp = (MYFLT) ((atsbufreadaddr->utable)[(int)(*p->iparnum)].amp);
     return OK;
  err1:
     return csound->PerfError(csound, p->h.insdshead,
@@ -2585,7 +2557,7 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
     /* calculate how much memory we have to allocate for this */
-    memsize =   (int) (*p->iptls) *
+    memsize =   (int)(*p->iptls) *
                       (sizeof(ATS_DATA_LOC) + sizeof(double) + sizeof(MYFLT)) ;
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
@@ -2594,8 +2566,8 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
 
     /* set up the buffer, phase, etc. */
     p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
-    p->oscphase = (double *) (p->buf + (int) (*p->iptls));
-    p->oldamps =  (MYFLT *)  (p->oscphase + (int) (*p->iptls));
+    p->oscphase = (double *) (p->buf + (int)(*p->iptls));
+    p->oldamps =  (MYFLT *)  (p->oscphase + (int)(*p->iptls));
     if (p->swapped == 1) {
       p->maxFr = (int) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
@@ -2610,8 +2582,8 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
     }
 
     /* make sure partials are in range */
-    if ((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-        (int) (*p->iptloffset) < 0) {
+    if ((int)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+        (int)(*p->iptloffset) < 0) {
       return csound->InitError(csound, Str("ATSCROSS: Partial(s) out of range, "
                                            "max partial allowed is %i"),
                                        n_partials);
@@ -2623,25 +2595,25 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
     switch (type) {
     case 1:
       p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
-      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->partialinc = 2 * (int)(*p->iptlincr);
       p->frmInc = n_partials * 2 + 1;
       break;
 
     case 2:
       p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
-      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->partialinc = 3 * (int)(*p->iptlincr);
       p->frmInc = n_partials * 3 + 1;
       break;
 
     case 3:
       p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
-      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->partialinc = 2 * (int)(*p->iptlincr);
       p->frmInc = n_partials * 2 + 26;
       break;
 
     case 4:
       p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
-      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->partialinc = 3 * (int)(*p->iptlincr);
       p->frmInc = n_partials * 3 + 26;
       break;
 
@@ -2679,7 +2651,7 @@ static int atscrossset_S(CSOUND *csound, ATSCROSS *p)
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
     /* calculate how much memory we have to allocate for this */
-    memsize =   (int) (*p->iptls) *
+    memsize =   (int)(*p->iptls) *
                       (sizeof(ATS_DATA_LOC) + sizeof(double) + sizeof(MYFLT)) ;
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
@@ -2688,8 +2660,8 @@ static int atscrossset_S(CSOUND *csound, ATSCROSS *p)
 
     /* set up the buffer, phase, etc. */
     p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
-    p->oscphase = (double *) (p->buf + (int) (*p->iptls));
-    p->oldamps =  (MYFLT *)  (p->oscphase + (int) (*p->iptls));
+    p->oscphase = (double *) (p->buf + (int)(*p->iptls));
+    p->oldamps =  (MYFLT *)  (p->oscphase + (int)(*p->iptls));
     if (p->swapped == 1) {
       p->maxFr = (int) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
@@ -2704,8 +2676,8 @@ static int atscrossset_S(CSOUND *csound, ATSCROSS *p)
     }
 
     /* make sure partials are in range */
-    if ((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-        (int) (*p->iptloffset) < 0) {
+    if ((int)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+        (int)(*p->iptloffset) < 0) {
       return csound->InitError(csound, Str("ATSCROSS: Partial(s) out of range, "
                                            "max partial allowed is %i"),
                                        n_partials);
@@ -2717,25 +2689,25 @@ static int atscrossset_S(CSOUND *csound, ATSCROSS *p)
     switch (type) {
     case 1:
       p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
-      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->partialinc = 2 * (int)(*p->iptlincr);
       p->frmInc = n_partials * 2 + 1;
       break;
 
     case 2:
       p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
-      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->partialinc = 3 * (int)(*p->iptlincr);
       p->frmInc = n_partials * 3 + 1;
       break;
 
     case 3:
       p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
-      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->partialinc = 2 * (int)(*p->iptlincr);
       p->frmInc = n_partials * 2 + 26;
       break;
 
     case 4:
       p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
-      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->partialinc = 3 * (int)(*p->iptlincr);
       p->frmInc = n_partials * 3 + 26;
       break;
 

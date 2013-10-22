@@ -24,7 +24,7 @@ void test_control_channel_params(void)
     int argc = 2;
     csoundCompileOrc(csound, orc1);
     int err = csoundStart(csound);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
     controlChannelHints_t hints;
     hints.behav = CSOUND_CONTROL_CHANNEL_INT;
     hints.dflt = 5;
@@ -54,7 +54,7 @@ void test_control_channel(void)
     int argc = 2;
     csoundCompileOrc(csound, orc1);
     int err = csoundStart(csound);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
     csoundSetControlChannel(csound, "testing", 5.0);
     CU_ASSERT_EQUAL(5.0, csoundGetControlChannel(csound, "testing", NULL));
 
@@ -74,7 +74,7 @@ void test_channel_list(void)
     int argc = 2;
     csoundCompileOrc(csound, orc2);
     int err = csoundStart(csound);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
     controlChannelInfo_t *lst;
     int numchnls = csoundListChannels(csound, &lst);
     CU_ASSERT(numchnls == 2);
@@ -145,14 +145,14 @@ void test_channel_callbacks(void)
     csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback);
     csoundSetOutputChannelCallback(csound, (channelCallback_t) outputCallback);
     int err = csoundStart(csound);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
     MYFLT pFields[] = {1.0, 0.0, 1.0};
     err = csoundScoreEvent(csound, 'i', pFields, 3);
     MYFLT pFields2[] = {2.0, 0.0, 1.0};
     err = csoundScoreEvent(csound, 'i', pFields2, 3);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
     err = csoundPerformKsmps(csound);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
     CU_ASSERT_DOUBLE_EQUAL(val1, 5.0, 0.0000001);
     CU_ASSERT_DOUBLE_EQUAL(val2, 10.0, 0.0000001);
     CU_ASSERT_STRING_EQUAL(strval, "hello channels");
@@ -209,24 +209,26 @@ void test_channel_opcodes(void)
     csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback2);
     csoundSetOutputChannelCallback(csound, (channelCallback_t) outputCallback2);
     int err = csoundStart(csound);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
+    csoundGetControlChannel(csound, "1", &err);
+    CU_ASSERT(err == CSOUND_SUCCESS)
     csoundSetControlChannel(csound, "1", 5.0);
     MYFLT pFields[] = {1.0, 0.0, 1.0};
     err = csoundScoreEvent(csound, 'i', pFields, 3);
     err = csoundPerformKsmps(csound);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
     CU_ASSERT_EQUAL(5.0, csoundGetControlChannel(csound, "2", NULL));
     MYFLT pFields2[] = {2.0, 0.0, 1.0};
     err = csoundScoreEvent(csound, 'i', pFields2, 3);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
     err = csoundPerformKsmps(csound);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
     CU_ASSERT_EQUAL(6.0, csoundGetControlChannel(csound, "3", NULL));
     MYFLT pFields3[] = {3.0, 0.0, 1.0};
     err = csoundScoreEvent(csound, 'i', pFields3, 3);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
     err = csoundPerformKsmps(csound);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
     CU_ASSERT_EQUAL(7.0, csoundGetControlChannel(csound, "4", NULL));
 
     csoundCleanup(csound);
@@ -234,18 +236,12 @@ void test_channel_opcodes(void)
     csoundDestroy(csound);
 }
 
-const char orc5[] = "instr 1\n kval invalue \"1\"\n"
-        "outvalue \"2\",kval\n"
-        "endin\n"
-
-        "instr 2\n"
-        "kval chani 2\n"
-        "chano kval + 1, 3\n"
-        "endin\n"
-
-        "instr 3\n"
-        "kval chnget \"3\"\n"
-        "chnset kval + 1, \"4\"\n"
+const char orc5[] = "chn_k \"winsize\", 3\n"
+        "instr 1\n"
+        "finput pvsin 1 \n"
+        "ioverlap, inumbins, iwinsize, iformat pvsinfo finput\n"
+        "pvsout finput, 1\n"
+        "chnset iwinsize, \"winsize\"\n"
         "endin\n";
 
 void test_pvs_opcodes(void)
@@ -254,15 +250,21 @@ void test_pvs_opcodes(void)
     CSOUND *csound = csoundCreate(0);
     csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
-    csoundCompileOrc(csound, orc5);
-    int err = csoundStart(csound);
-    CU_ASSERT(err == 0);
+    int err = csoundCompileOrc(csound, orc5);
+    CU_ASSERT(err == CSOUND_SUCCESS);
+    err = csoundStart(csound);
     PVSDATEXT pvs_data, pvs_data2;
+    memset(&pvs_data,0,sizeof(PVSDATEXT));
+    memset(&pvs_data2,0,sizeof(PVSDATEXT));
     pvs_data.N = 16;
-    csoundSetPvsChannel(csound, &pvs_data, "1");
-    csoundGetPvsChannel(csound, &pvs_data2, "1");
+    pvs_data.winsize = 32;
+    err = csoundSetPvsChannel(csound, &pvs_data, "1");
+    err = csoundGetPvsChannel(csound, &pvs_data2, "1");
     CU_ASSERT_EQUAL(pvs_data.N, pvs_data2.N);
-
+    MYFLT pFields[] = {1.0, 0.0, 1.0};
+    err = csoundScoreEvent(csound, 'i', pFields, 3);
+    err = csoundPerformKsmps(csound);
+    CU_ASSERT_EQUAL(32.0, csoundGetControlChannel(csound, "winsize", NULL));
     csoundCleanup(csound);
     csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
@@ -278,7 +280,7 @@ void test_invalid_channel(void)
 
     int err;
     CU_ASSERT_EQUAL(0.0, csoundGetControlChannel(csound, "nonexistent_channel", &err));
-    CU_ASSERT_NOT_EQUAL(err, CSOUND_SUCCESS);
+    CU_ASSERT_EQUAL(err, CSOUND_SUCCESS);
 
     csoundCleanup(csound);
     csoundDestroyMessageBuffer(csound);
@@ -333,7 +335,7 @@ void test_string_channel(void)
     csoundSetOption(csound, "--logfile=NULL");
     csoundCompileOrc(csound, orcS);
     int err = csoundStart(csound);
-    CU_ASSERT(err == 0);
+    CU_ASSERT(err == CSOUND_SUCCESS);
 
     
     csoundSetStringChannel(csound, "testing", "ttt");

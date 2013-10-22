@@ -511,6 +511,8 @@ typedef struct {
     MYFLT  *spin;         /* offset into csound->spin */
     MYFLT  *spout;        /* offset into csound->spout, or local spout, if needed */
     int    init_done;
+    int    tieflag;
+    int    reinitflag;
     MYFLT  retval;
     char   *strarg;       /* string argument */
     /* Copy of required p-field values for quick access */
@@ -1234,10 +1236,12 @@ typedef struct NAME__ {
     char *(*LocalizeString)(const char *);
     char *(*strtok_r)(char*, char*, char**);
     double (*strtod)(char*, char**);
-    /**@}*/
+    int (*sprintf)(char *str, const char *format, ...);
+    int (*sscanf)(char *str, const char *format, ...);
+      /**@}*/
     /** @name Placeholders */
     /**@{ */
-    SUBR dummyfn_2[50];
+    SUBR dummyfn_2[48];
     /**@}*/
     /*  NO MORE PUBLIC VARIABLES IN CSOUND struct
 
@@ -1632,6 +1636,7 @@ typedef struct NAME__ {
     int           jumpset;
     int           info_message_request;
     int           modules_loaded;
+    struct CSOUND_ **self;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

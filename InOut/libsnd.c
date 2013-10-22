@@ -45,7 +45,7 @@ static  void    sndfilein_noscale(CSOUND *csound);
 
 static inline void alloc_globals(CSOUND *csound)
 {
-    STA(nframes) = (uint32)1;
+    csound->libsndStatics.nframes = (uint32)1;
 }
 
 /* The interface requires 2 functions:
@@ -60,23 +60,26 @@ static inline void alloc_globals(CSOUND *csound)
 static void spoutsf(CSOUND *csound)
 {
     uint32_t   chn = 0;
-    int     n, spoutrem = csound->nspout;
+    int     n;
+    int spoutrem = csound->nspout;
     MYFLT   *sp = csound->spout;
     MYFLT   absamp = FL(0.0);
-    uint32  nframes = STA(nframes);
-
+    uint32  nframes = csound->libsndStatics.nframes;
  nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
-    if ((n = spoutrem) > (int) STA(outbufrem))
-      n = (int)STA(outbufrem);
+    if ((n = spoutrem) > (int) csound->libsndStatics.outbufrem) {
+      n = (int) csound->libsndStatics.outbufrem;
+    }
     spoutrem -= n;
-    STA(outbufrem) -= n;
+    csound->libsndStatics.outbufrem -= n;
     do {
       absamp = *sp++;
-      if (STA(osfopen))
-        *STA(outbufp)++ = absamp * csound->dbfs_to_float;
-      if (absamp < FL(0.0))
+      if (csound->libsndStatics.osfopen) {
+        *csound->libsndStatics.outbufp++ = (absamp * csound->dbfs_to_float);
+      }
+      if (absamp < FL(0.0)) {
         absamp = -absamp;
+      }
       if (absamp > csound->maxamp[chn]) {   /*  maxamp this seg  */
         csound->maxamp[chn] = absamp;
         csound->maxpos[chn] = nframes;
@@ -86,23 +89,27 @@ static void spoutsf(CSOUND *csound)
         csound->rngflg = 1;
       }
       if (csound->multichan) {
-        if (++chn >= csound->nchnls)
-          chn = 0, nframes++;
-      }
-      else
+        if (++chn >= csound->nchnls) {
+            chn = 0;
+            nframes++;
+        }
+      } else {
         nframes++;
-    } while (--n);
-
-    if (!STA(outbufrem)) {
-      if (STA(osfopen)) {
-        csound->nrecs++;
-        csound->audtran(csound, STA(outbuf), STA(outbufsiz)); /* Flush buffer */
-        STA(outbufp) = (MYFLT*) STA(outbuf);
       }
-      STA(outbufrem) = csound->oparms_.outbufsamps;
-      if (spoutrem) goto nchk;
+    } while (--n);
+    if (!csound->libsndStatics.outbufrem) {
+      if (csound->libsndStatics.osfopen) {
+        csound->nrecs++;
+        csound->audtran(csound, csound->libsndStatics.outbuf,
+                        csound->libsndStatics.outbufsiz); /* Flush buffer */
+        csound->libsndStatics.outbufp = (MYFLT*) csound->libsndStatics.outbuf;
+      }
+      csound->libsndStatics.outbufrem = csound->oparms_.outbufsamps;
+      if (spoutrem) {
+          goto nchk;
+      }
     }
-    STA(nframes) = nframes;
+    csound->libsndStatics.nframes = nframes;
 }
 
 /* special version of spoutsf for "raw" floating point files */
@@ -113,18 +120,18 @@ static void spoutsf_noscale(CSOUND *csound)
     int      n, spoutrem = csound->nspout;
     MYFLT    *sp = csound->spout;
     MYFLT    absamp = FL(0.0);
-    uint32   nframes = STA(nframes);
+    uint32   nframes = csound->libsndStatics.nframes;
 
  nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
-    if ((n = spoutrem) > (int) STA(outbufrem))
-      n = (int)STA(outbufrem);
+    if ((n = spoutrem) > (int) csound->libsndStatics.outbufrem)
+      n = (int)csound->libsndStatics.outbufrem;
     spoutrem -= n;
-    STA(outbufrem) -= n;
+    csound->libsndStatics.outbufrem -= n;
     do {
       absamp = *sp++;
-      if (STA(osfopen))
-        *STA(outbufp)++ = absamp;
+      if (csound->libsndStatics.osfopen)
+        *csound->libsndStatics.outbufp++ = absamp;
       if (absamp < FL(0.0))
         absamp = -absamp;
       if (absamp > csound->maxamp[chn]) {   /*  maxamp this seg  */
@@ -135,16 +142,17 @@ static void spoutsf_noscale(CSOUND *csound)
         chn = 0, nframes++;
     } while (--n);
 
-    if (!STA(outbufrem)) {
-      if (STA(osfopen)) {
+    if (!csound->libsndStatics.outbufrem) {
+      if (csound->libsndStatics.osfopen) {
         csound->nrecs++;
-        csound->audtran(csound, STA(outbuf), STA(outbufsiz)); /* Flush buffer */
-        STA(outbufp) = (MYFLT*) STA(outbuf);
+        csound->audtran(csound, csound->libsndStatics.outbuf,
+                        csound->libsndStatics.outbufsiz); /* Flush buffer */
+        csound->libsndStatics.outbufp = (MYFLT*) csound->libsndStatics.outbuf;
       }
-      STA(outbufrem) = csound->oparms_.outbufsamps;
+      csound->libsndStatics.outbufrem = csound->oparms_.outbufsamps;
       if (spoutrem) goto nchk;
     }
-    STA(nframes) = nframes;
+    csound->libsndStatics.nframes = nframes;
 }
 
 /* diskfile write option for audtran's */
@@ -174,12 +182,12 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       case 3:
         {
           char    s[512];
-          sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs,
+          CS_SPRINTF(s, "%ld(%.3f)%n", (long) csound->nrecs,
                   csound->icurTime/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, s);
           }
         }
         break;
@@ -226,12 +234,12 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       case 3:
         {
           char    s[512];
-          sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs,
+          CS_SPRINTF(s, "%ld(%.3f)%n", (long) csound->nrecs,
                   csound->icurTime/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, s);
           }
         }
         break;
@@ -278,12 +286,12 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       case 3:
         {
           char    s[512];
-          sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs,
+          CS_SPRINTF(s, "%ld(%.3f)%n", (long) csound->nrecs,
                   csound->icurTime/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, s);
           }
         }
         break;
@@ -328,12 +336,12 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       case 3:
         {
           char    s[512];
-          sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs,
+          CS_SPRINTF(s, "%ld(%.3f)%n", (long) csound->nrecs,
                   csound->icurTime/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, s);
           }
         }
         break;
@@ -378,12 +386,12 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       case 3:
         {
           char    s[512];
-          sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs,
+          CS_SPRINTF(s, "%ld(%.3f)%n", (long) csound->nrecs,
                   csound->icurTime/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, s);
           }
         }
         break;
