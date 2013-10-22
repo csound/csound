@@ -2058,7 +2058,7 @@ int outRange_i(CSOUND *csound, OUTRANGE *p)
 {
    IGN(csound);
     p->narg = p->INOCOUNT-1;
-   
+
     return OK;
 }
 
@@ -2073,7 +2073,7 @@ int outRange(CSOUND *csound, OUTRANGE *p)
     int startChan = (int) *p->kstartChan -1;
     MYFLT *sp = CS_SPOUT + startChan;
     int narg = p->narg;
-    
+
 
     if (startChan < 0)
       return csound->PerfError(csound, p->h.insdshead,
