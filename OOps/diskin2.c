@@ -224,7 +224,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname);
 
 int diskin2_init(CSOUND *csound, DISKIN2 *p) {
   p->SkipInit = *p->iSkipInit;
-  p->WinSize = *p->iWinSize;  
+  p->WinSize = *p->iWinSize;
   p->BufSize =  *p->iBufSize;
   p->fforceSync = *p->forceSync;
   return diskin2_init_(csound,p,0);
@@ -232,7 +232,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p) {
 
 int diskin2_init_S(CSOUND *csound, DISKIN2 *p) {
   p->SkipInit = *p->iSkipInit;
-  p->WinSize = *p->iWinSize;  
+  p->WinSize = *p->iWinSize;
   p->BufSize =  *p->iBufSize;
   p->fforceSync = *p->forceSync;
   return diskin2_init_(csound,p,1);
@@ -242,7 +242,7 @@ int diskin2_init_S(CSOUND *csound, DISKIN2 *p) {
 
 int diskin_init(CSOUND *csound, DISKIN2 *p){
   p->SkipInit = *p->iWinSize;
-  p->WinSize = 2;  
+  p->WinSize = 2;
   p->BufSize = 0;
   p->fforceSync = 0;
   return diskin2_init_(csound,p,0);
@@ -250,7 +250,7 @@ int diskin_init(CSOUND *csound, DISKIN2 *p){
 
 int diskin_init_S(CSOUND *csound, DISKIN2 *p){
   p->SkipInit = *p->iWinSize;
-  p->WinSize = 2;  
+  p->WinSize = 2;
   p->BufSize = 0;
   p->fforceSync = 0;
   return diskin2_init_(csound,p,1);
@@ -1416,7 +1416,7 @@ static inline void diskin2_get_sample_array(CSOUND *csound,
 {
     int  bufPos, i;
     int ksmps = CS_KSMPS;
-    MYFLT *aOut = (MYFLT *) p->aOut->data;    
+    MYFLT *aOut = (MYFLT *) p->aOut->data;
 
     if (p->wrapMode) {
       if (UNLIKELY(fPos >= p->fileLength)){
@@ -1433,7 +1433,7 @@ static inline void diskin2_get_sample_array(CSOUND *csound,
       /* recalculate buffer position */
       bufPos = (int)(fPos - p->bufStartPos);
     }
- 
+
     /* copy all channels from buffer */
     if(p->aOut_buf == NULL){
     if (p->nChannels == 1) {
@@ -1723,7 +1723,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
     SF_INFO sfinfo;
     int     n;
     ARRAYDAT *t = p->aOut;
-   
+
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
       /* skip initialisation if requested */
@@ -1781,7 +1781,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
          return csound->InitError(csound,
                                   Str("diskin2: output array too small"));
     }
-    
+
     /* skip initialisation if requested */
     if (p->initDone && *(p->iSkipInit) != FL(0.0))
       return OK;
@@ -2148,7 +2148,7 @@ int diskin2_perf_asynchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
 
 int diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p) {
     p->SkipInit = *p->iSkipInit;
-  p->WinSize = *p->iWinSize;  
+  p->WinSize = *p->iWinSize;
   p->BufSize =  *p->iBufSize;
   p->fforceSync = *p->forceSync;
   return diskin2_init_array(csound,p,0);
@@ -2156,7 +2156,7 @@ int diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p) {
 
 int diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p) {
   p->SkipInit = *p->iSkipInit;
-  p->WinSize = *p->iWinSize;  
+  p->WinSize = *p->iWinSize;
   p->BufSize =  *p->iBufSize;
   p->fforceSync = *p->forceSync;
   return diskin2_init_array(csound,p,1);
@@ -2166,7 +2166,7 @@ int diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p) {
 
 int diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p){
   p->SkipInit = *p->iWinSize;
-  p->WinSize = 2;  
+  p->WinSize = 2;
   p->BufSize = 0;
   p->fforceSync = 0;
   return diskin2_init_array(csound,p,0);
@@ -2174,7 +2174,7 @@ int diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p){
 
 int diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p){
   p->SkipInit = *p->iWinSize;
-  p->WinSize = 2;  
+  p->WinSize = 2;
   p->BufSize = 0;
   p->fforceSync = 0;
   return diskin2_init_array(csound,p,1);

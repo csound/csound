@@ -130,7 +130,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     /*   FILE        *csrc = NULL; */
     /*   void        *fd = NULL; */
     /*   /\* IV - Feb 17 2005 *\/ */
-     
+
     /*   csrcname = csoundGetEnv(csound, "CSOUND6RC"); */
     /*   if (csrcname != NULL && csrcname[0] != '\0') { */
     /*     fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, csrcname, "r", NULL, */
@@ -146,7 +146,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     /*                      home_dir[0] != '\0')) { */
     /*     csound->Message(csound, Str("Reading options from $HOME/.csound6rc\n")); */
     /*     s = csoundConcatenatePaths(csound, home_dir, ".csound6rc"); */
-        
+
     /*     fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, s, "r", NULL, */
     /*                            CSFTYPE_OPTIONS, 0); */
 
