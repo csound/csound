@@ -1276,6 +1276,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     char* rightArgString;
     char* opcodeName;
 
+    if(root->value == NULL) return 0;
 
     if (!check_args_exist(csound, root->right, typeTable)) {
       return 0;

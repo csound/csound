@@ -1,9 +1,9 @@
 #!/bin/sh
 
 export MANUAL_DIR=`pwd`/../../../manual6
-export PACKAGE_NAME=csound6.00.1-OSX10.8-x86_64.pkg
-export DMG_DIR="Csound 6.00.1"
-export DMG_NAME="csound6.00.1-OSX10.8-x86_64.dmg"
+export PACKAGE_NAME=csound6.01.0-OSX10.8-x86_64.pkg
+export DMG_DIR="Csound 6.01.0"
+export DMG_NAME="csound6.01.0-OSX10.8-x86_64.dmg"
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
 
@@ -44,8 +44,8 @@ cp ../../../../Custom.cmake .
 mkdir build
 cd build
 # RUN CMAKE TWICE TO GET AROUND ISSUE WITH UNIVERSAL BUILD
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1
 make -j6 install
 
 # BUILD FLOAT CSOUND5
