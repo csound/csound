@@ -373,7 +373,8 @@ void m_chn_init_all(CSOUND *csound)
     int16   chan;
 
     defaultinsno = 0;
-    while (++defaultinsno <= (int) csound->engineState.maxinsno &&
+    while (csound->engineState.instrtxtp &&
+           ++defaultinsno <= (int) csound->engineState.maxinsno &&
            csound->engineState.instrtxtp[defaultinsno] == NULL);
     if (defaultinsno > (int) csound->engineState.maxinsno)
       defaultinsno = 0;         /* no instruments */
@@ -383,7 +384,8 @@ void m_chn_init_all(CSOUND *csound)
       csound->m_chnbp[chan] = chn = (MCHNBLK*) mcalloc(csound, sizeof(MCHNBLK));
       n = (int) chan + 1;
       /* if corresponding instrument exists, assign as insno, */
-      if (n <= (int) csound->engineState.maxinsno &&
+      if (csound->engineState.instrtxtp &&
+          n <= (int) csound->engineState.maxinsno &&
           csound->engineState.instrtxtp[n] != NULL)
         chn->insno = (int16) n;
       else if (defaultinsno > 0)
