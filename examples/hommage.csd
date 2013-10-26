@@ -8,12 +8,11 @@ sr= 44100
 kr = 4410
 ksmps = 10
 nchnls= 2
+0dbfs = 1
 
 
 instr 1
 
-ii   active       0
-print ii
 kfreq    expon      p5, p3, p6
 kinterval expon      p7, p3, p8    
 kglissdur line     p9, p3, p10
@@ -100,7 +99,7 @@ aout10l = kpa10*aout10
 aout10r = -(kpa10-1)*aout10
 
 
-kline linen ampdb(p4)*32767, p14, p3, p14
+kline linen ampdb(p4)*0dbfs, p14, p3, p14
 
 ;kpleft = (sqrt(2)/2)*(1-kpan/sqrt(1+(kpan*kpan)))
 ;kpright = (sqrt(2)/2)* (1+kpan/sqrt(1+(kpan*kpan)))
@@ -115,8 +114,6 @@ endin
 
 instr 2
 
-ii   active       2
-print ii
 
 kfreq    expon      p5, p3, p6
 kinterval expon      p7, p3, p8    
@@ -218,7 +215,7 @@ aout10l = kpa10*aout10
 aout10r = -(kpa10-1)*aout10
 
 
-kline linen ampdb(p4)*32767, p14, p3, p14
+kline linen ampdb(p4)*0dbfs, p14, p3, p14
 
 ;kpleft = (sqrt(2)/2)*(1-kpan/sqrt(1+(kpan*kpan)))
 ;kpright = (sqrt(2)/2)* (1+kpan/sqrt(1+(kpan*kpan)))
@@ -233,8 +230,6 @@ endin
 
 instr 3
 
-ii   active       0
-print ii
 
 kfreq0    expon      p5, p3, p6
 kinterval expon      p7, p3, p8    
@@ -328,7 +323,7 @@ aout10l = kpa10*aout10
 aout10r = -(kpa10-1)*aout10
 
 
-kline linen ampdb(p4)*20000, p14, p3, p14
+kline linen ampdb(p4)*0dbfs*0.6, p14, p3, p14
 
 ;kpleft = (sqrt(2)/2)*(1-kpan/sqrt(1+(kpan*kpan)))
 ;kpright = (sqrt(2)/2)* (1+kpan/sqrt(1+(kpan*kpan)))
@@ -478,22 +473,3 @@ i3 125   6   -20    800  850  1.1  1.3    6  6   -1  .5    22    3  500 0 0
 </bsbPanel>
 <bsbPresets>
 </bsbPresets>
-<MacOptions>
-Version: 3
-Render: Real
-Ask: Yes
-Functions: ioObject
-Listing: Window
-WindowBounds: 755 61 297 497
-CurrentView: io
-IOViewEdit: On
-Options:
-</MacOptions>
-<MacGUI>
-ioView nobackground {54484, 53456, 51400}
-ioSlider {5, 5} {20, 100} 0.000000 1.000000 0.000000 slider1
-ioSlider {45, 5} {20, 100} 0.000000 1.000000 0.000000 slider2
-ioSlider {85, 5} {20, 100} 0.000000 1.000000 0.000000 slider3
-ioSlider {125, 5} {20, 100} 0.000000 1.000000 0.000000 slider4
-ioSlider {165, 5} {20, 100} 0.000000 1.000000 0.000000 slider5
-</MacGUI>
