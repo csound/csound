@@ -163,9 +163,9 @@ static int sprocess(CSOUND *csound, DATASPACE *p)
         sizefrs = size/nchans;
         while(spos > sizefrs) spos -= sizefrs;
         while(spos <= 0)  spos += sizefrs;
-      
+
         for (j = 0; j < nchans; j++) {
-	  pos = spos;
+          pos = spos;
           bwin = (MYFLT *) p->bwin[j].auxp;
           fwin = (MYFLT *) p->fwin[j].auxp;
           prev = (MYFLT *)p->prev[j].auxp;
@@ -378,7 +378,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
         sizefrs = size/nchans;
         while(spos > sizefrs) spos -= sizefrs;
         while(spos <= 0)  spos += sizefrs;
-        
+
 
         for (j = 0; j < nchans; j++) {
           pos = spos;
