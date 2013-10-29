@@ -275,12 +275,15 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
      if(csoundCompileOrc(csound, NULL) != 0){
-       /* csoundDie(csound, Str("cannot compile orchestra \n")); */
+       if(csound->oparms->no_exit_on_compile_error == 0)
+         csoundDie(csound, Str("cannot compile orchestra \n"));
+       else {
          /* VL -- 21-10-13 Csound does not need to die on 
           failure to compile. It can carry on, because new
           instruments can be compiled again */
        csound->Warning(csound, Str("cannot compile orchestra."));
        csound->Warning(csound, Str("Csound will start with no instruments"));
+       }
      }
      csound->modules_loaded = 1;
 
