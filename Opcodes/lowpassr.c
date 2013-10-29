@@ -50,7 +50,10 @@ static int lowpr(CSOUND *csound, LOWPR *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
-      b = 10.0 / (*p->kres * sqrt((double)kfco)) - 1.0;
+      if (kfco<=FL(0.0))
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("Cutoff parameter must be positive"));
+      b = 10.0 / (kres * sqrt((double)kfco)) - 1.0;
       p->k = k = 1000.0 / (double)kfco;
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
@@ -90,7 +93,10 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (p->okf!= fco[0] || p->okr != res[0]) { /* Only if changed */
-      b = 10.0 / (p->kres[0] * sqrt((double)fco[0])) - 1.0;
+      if (fco[0]<=FL(0.0))
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("Cutoff parameter must be positive"));
+      b = 10.0 / (res[0] * sqrt((double)fco[0])) - 1.0;
       p->k = k = 1000.0 / (double)fco[0];
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
@@ -109,7 +115,10 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
     for (n=offset; n<nsmps;n++) {
       // ****Optimise by remembering okf/okr
       if (p->okf!= fco[n] || p->okr != res[n]) { /* Only if changed */
-        b = 10.0 / (p->kres[n] * sqrt((double)fco[n])) - 1.0;
+        if (fco[n]<=FL(0.0))
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("Cutoff parameter must be positive"));
+        b = 10.0 / (res[n] * sqrt((double)fco[n])) - 1.0;
         p->k = k = 1000.0 / (double)fco[0];
         p->coef1 = coef1 = (b+2.0 * k);
         p->coef2 = coef2 = 1.0/(1.0 + b + k);
@@ -138,6 +147,9 @@ static int lowprak(CSOUND *csound, LOWPR *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (p->okf != fco[0] || p->okr != kres) { /* Only if changed */
+      if (fco[0]<=FL(0.0))
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("Cutoff parameter must be positive"));
       b = 10.0 / (kres * sqrt((double)fco[0])) - 1.0;
       p->k = k = 1000.0 / (double)fco[0];
       p->coef1 = coef1 = (b+2.0 * k);
@@ -155,7 +167,10 @@ static int lowprak(CSOUND *csound, LOWPR *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps;n++) {
-      if (p->okf != fco[0]) { /* Only if changed */
+      if (p->okf != fco[n]) { /* Only if changed */
+        if (fco[n]<=FL(0.0))
+          return csound->PerfError(csound, p->h.insdshead,
+                                   Str("Cutoff parameter must be positive"));
         b = 10.0 / (kres * sqrt((double)fco[n])) - 1.0;
         p->k = k = 1000.0 / (double)fco[n];
         p->coef1 = coef1 = (b+2.0 * k);
@@ -177,19 +192,22 @@ static int lowprka(CSOUND *csound, LOWPR *p)
     double b, k = p->k;
     MYFLT *ar, *asig;
     double yn, ynm1, ynm2 ;
-    MYFLT kfco = *p->kfco;
+    MYFLT fco = *p->kfco;
     MYFLT *res = p->kres;
     double coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (p->okf!= kfco || p->okr != res[0]) { /* Only if changed */
-      b = 10.0 / (res[0] * sqrt((double)kfco)) - 1.0;
-      p->k = k = 1000.0 / (double)kfco;
+    if (p->okf!= fco || p->okr != res[0]) { /* Only if changed */
+        if (fco<=FL(0.0))
+          return csound->PerfError(csound, p->h.insdshead,
+                                   Str("Cutoff parameter must be positive"));
+      b = 10.0 / (res[0] * sqrt((double)fco)) - 1.0;
+      p->k = k = 1000.0 / (double)fco;
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
-      p->okf = kfco; p->okr = res[0]; /* remember to save recalculation */
+      p->okf = fco; p->okr = res[0]; /* remember to save recalculation */
     }
     ar = p->ar;
     asig = p->asig;
@@ -204,8 +222,8 @@ static int lowprka(CSOUND *csound, LOWPR *p)
     for (n=offset; n<nsmps;n++) {
       // ****Optimise by remembering okf/okr
       if (p->okr != res[n]) { /* Only if changed */
-        b = 10.0 / (res[n] * sqrt((double)kfco)) - 1.0;
-        p->k = k = 1000.0 / (double)kfco;
+        b = 10.0 / (res[n] * sqrt((double)fco)) - 1.0;
+        p->k = k = 1000.0 / (double)fco;
         p->coef1 = coef1 = (b+2.0 * k);
         p->coef2 = coef2 = 1.0/(1.0 + b + k);
         p->okr = res[n]; /* remember to save recalculation */
