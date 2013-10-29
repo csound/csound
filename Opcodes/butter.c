@@ -46,7 +46,7 @@ typedef struct  {
 
 static void butter_filter(uint32_t, uint32_t, MYFLT *, MYFLT *, double *);
 
-static int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
+int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 {
     if (*p->istor==FL(0.0)) {
       p->a[6] = p->a[7] = 0.0;
@@ -234,14 +234,14 @@ static void butter_filter(uint32_t n, uint32_t offset,
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "butterhp", S(BFIL),  0, 5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
-{ "butterlp", S(BFIL),  0, 5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
-{ "butterbp", S(BBFIL), 0, 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bpbut  },
-{ "butterbr", S(BBFIL), 0, 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bcbut  },
-{ "buthp",    S(BFIL),  0, 5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
-{ "butlp",    S(BFIL),  0, 5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
-{ "butbp",    S(BBFIL), 0, 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bpbut  },
-{ "butbr",    S(BBFIL), 0, 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bcbut  }
+{ "butterhp.k", S(BFIL), 0, 5, "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
+{ "butterlp.k", S(BFIL), 0, 5, "a",    "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
+{ "butterbp",   S(BBFIL), 0, 5, "a",   "akko", (SUBR)bbutset, NULL, (SUBR)bpbut  },
+{ "butterbr",   S(BBFIL), 0, 5, "a",   "akko", (SUBR)bbutset, NULL, (SUBR)bcbut  },
+{ "buthp.k",    S(BFIL),  0, 5, "a",   "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
+{ "butlp.k",    S(BFIL),  0, 5, "a",   "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
+{ "butbp",      S(BBFIL), 0, 5, "a",   "akko", (SUBR)bbutset, NULL, (SUBR)bpbut  },
+{ "butbr",      S(BBFIL), 0, 5, "a",   "akko", (SUBR)bbutset, NULL, (SUBR)bcbut  }
 };
 
 int butter_init_(CSOUND *csound)
