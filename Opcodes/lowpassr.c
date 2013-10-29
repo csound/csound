@@ -87,12 +87,13 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
     double yn, ynm1, ynm2 ;
     MYFLT *fco = p->kfco;
     MYFLT *res = p->kres;
+    MYFLT okf = p->okf, okr = p->okr;
     double coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (p->okf!= fco[0] || p->okr != res[0]) { /* Only if changed */
+    if (okf!= fco[0] || okr != res[0]) { /* Only if changed */
       if (fco[0]<=FL(0.0))
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("Cutoff parameter must be positive"));
@@ -100,7 +101,8 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
       p->k = k = 1000.0 / (double)fco[0];
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
-      p->okf = fco[0]; p->okr = res[0]; /* remember to save recalculation */
+      okf = fco[0]; okr = res[0];
+      /* remember to save recalculation */
     }
     ar = p->ar;
     asig = p->asig;
@@ -113,8 +115,7 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps;n++) {
-      // ****Optimise by remembering okf/okr
-      if (p->okf!= fco[n] || p->okr != res[n]) { /* Only if changed */
+      if (okf!= fco[n] || okr != res[n]) { /* Only if changed */
         if (fco[n]<=FL(0.0))
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("Cutoff parameter must be positive"));
@@ -122,7 +123,8 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
         p->k = k = 1000.0 / (double)fco[0];
         p->coef1 = coef1 = (b+2.0 * k);
         p->coef2 = coef2 = 1.0/(1.0 + b + k);
-        p->okf = fco[n]; p->okr = res[n]; /* remember to save recalculation */
+        okf = fco[n]; okr = res[n];
+        /* remember to save recalculation */
       }
       ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
       ynm2 = ynm1;
@@ -130,7 +132,7 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
     }
     p->ynm1 = ynm1;
     p->ynm2 = ynm2;             /* And save */
-
+    p->okf = okf; p->okr = okr;
     return OK;
 }
 
@@ -141,12 +143,13 @@ static int lowprak(CSOUND *csound, LOWPR *p)
     double yn, ynm1, ynm2 ;
     MYFLT *fco = p->kfco;
     MYFLT kres = *p->kres;
+    MYFLT okf = p->okf, okr = p->okr;
     double coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (p->okf != fco[0] || p->okr != kres) { /* Only if changed */
+    if (okf != fco[0] || okr != kres) { /* Only if changed */
       if (fco[0]<=FL(0.0))
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("Cutoff parameter must be positive"));
@@ -154,7 +157,7 @@ static int lowprak(CSOUND *csound, LOWPR *p)
       p->k = k = 1000.0 / (double)fco[0];
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
-      p->okf = fco[0]; p->okr = kres; /* remember to save recalculation */
+      okf = fco[0]; okr = kres; /* remember to save recalculation */
     }
     ar = p->ar;
     asig = p->asig;
@@ -167,7 +170,7 @@ static int lowprak(CSOUND *csound, LOWPR *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps;n++) {
-      if (p->okf != fco[n]) { /* Only if changed */
+      if (okf != fco[n]) { /* Only if changed */
         if (fco[n]<=FL(0.0))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("Cutoff parameter must be positive"));
@@ -175,7 +178,7 @@ static int lowprak(CSOUND *csound, LOWPR *p)
         p->k = k = 1000.0 / (double)fco[n];
         p->coef1 = coef1 = (b+2.0 * k);
         p->coef2 = coef2 = 1.0/(1.0 + b + k);
-        p->okf = fco[n]; /* remember to save recalculation */
+        okf = fco[n]; /* remember to save recalculation */
       }
       ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
       ynm2 = ynm1;
@@ -183,6 +186,7 @@ static int lowprak(CSOUND *csound, LOWPR *p)
     }
     p->ynm1 = ynm1;
     p->ynm2 = ynm2;             /* And save */
+    p->okf = okf; p->okr = okr;
 
     return OK;
 }
@@ -194,12 +198,13 @@ static int lowprka(CSOUND *csound, LOWPR *p)
     double yn, ynm1, ynm2 ;
     MYFLT fco = *p->kfco;
     MYFLT *res = p->kres;
+    MYFLT okr = p->okr, okf = p->okf;
     double coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (p->okf!= fco || p->okr != res[0]) { /* Only if changed */
+    if (okf!= fco || okr != res[0]) { /* Only if changed */
         if (fco<=FL(0.0))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("Cutoff parameter must be positive"));
@@ -207,7 +212,7 @@ static int lowprka(CSOUND *csound, LOWPR *p)
       p->k = k = 1000.0 / (double)fco;
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
-      p->okf = fco; p->okr = res[0]; /* remember to save recalculation */
+      okf = fco; okr = res[0]; /* remember to save recalculation */
     }
     ar = p->ar;
     asig = p->asig;
@@ -221,12 +226,12 @@ static int lowprka(CSOUND *csound, LOWPR *p)
     }
     for (n=offset; n<nsmps;n++) {
       // ****Optimise by remembering okf/okr
-      if (p->okr != res[n]) { /* Only if changed */
+      if (okr != res[n]) { /* Only if changed */
         b = 10.0 / (res[n] * sqrt((double)fco)) - 1.0;
         p->k = k = 1000.0 / (double)fco;
         p->coef1 = coef1 = (b+2.0 * k);
         p->coef2 = coef2 = 1.0/(1.0 + b + k);
-        p->okr = res[n]; /* remember to save recalculation */
+        okr = res[n]; /* remember to save recalculation */
       }
       ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
       ynm2 = ynm1;
@@ -234,6 +239,7 @@ static int lowprka(CSOUND *csound, LOWPR *p)
     }
     p->ynm1 = ynm1;
     p->ynm2 = ynm2;             /* And save */
+    p->okf = okf; p->okr = okr;
 
     return OK;
 }
