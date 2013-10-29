@@ -476,7 +476,7 @@ OENTRY opcodlst_1[] = {
   { "atonex", S(TONEX),0,   5,      "a",    "akoo", tonsetx, NULL,  atonex  },
   { "reson",  S(RESON),0,   5,      "a",    "akkoo",rsnset, NULL,   reson   },
   { "resonx", S(RESONX),0,  5,      "a",    "akkooo", rsnsetx, NULL, resonx },
-  { "areson", S(RESON),0,   5,      "a",    "akkoo",rsnset, NULL,   areson  },
+  { "areson.kk", S(RESON),0,5,      "a",    "akkoo",rsnset, NULL,   areson  },
   { "lpread", S(LPREAD),0,  3,      "kkkk", "kSoo", lprdset_S,lpread          },
   { "lpread.i", S(LPREAD),0,  3,      "kkkk", "kioo", lprdset,lpread          },
   { "lpform", S(LPFORM),0,  3,      "kk", "k",     lpformantset,lpformant   },
