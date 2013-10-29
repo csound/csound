@@ -347,14 +347,140 @@ static int tonea(CSOUND *csound, TONE *p)
     return OK;
 }
 
+typedef struct  {
+        OPDS    h;
+        MYFLT   *sr, *ain, *afc, *istor;
+        MYFLT   lkf;
+        double  a[8];
+} BFIL;
+
+#define ROOT2 (1.4142135623730950488)
+
+extern int butset(CSOUND *csound, BFIL *p);
+
+static int hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
+{
+    MYFLT       *out, *in;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t nsmps = CS_KSMPS;
+    double    *a, c;
+    double t, y;
+    uint32_t nn;
+    a = p->a;
+
+    in = p->ain;
+    out = p->sr;
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+
+    if (p->afc[0] <= FL(0.0))     {
+      memcpy(&out[offset], &in[offset], (nsmps-offset)*sizeof(MYFLT));
+      return OK;
+    }
+
+    if (p->afc[0] != p->lkf)      {
+      p->lkf = p->afc[0];
+      c = tan((double)(csound->pidsr * p->lkf));
+
+      a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
+      a[2] = -(a[1] + a[1]);
+      a[3] = a[1];
+      a[4] = 2.0 * ( c*c - 1.0) * a[1];
+      a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
+    }
+    for (nn=offset; nn<nsmps; nn++) {
+      if (p->afc[nn] != p->lkf)      {
+        double    *a, c;
+        p->lkf = p->afc[nn];
+        c = tan((double)(csound->pidsr * p->lkf));
+
+        a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
+        a[2] = -(a[1] + a[1]);
+        a[3] = a[1];
+        a[4] = 2.0 * ( c*c - 1.0) * a[1];
+        a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
+      }
+      t = (double)in[nn] - a[4] * a[6] - a[5] * a[7];
+      t = csoundUndenormalizeDouble(t); /* Not needed on AMD */
+      y = t * a[1] + a[2] * a[6] + a[3] * a[7];
+      a[7] = a[6];
+      a[6] = t;
+      out[nn] = (MYFLT)y;
+    }
+    return OK;
+}
+
+static int lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
+{
+    MYFLT       *out, *in;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t nsmps = CS_KSMPS;
+    double *a = p->a, c;
+    double t, y;
+    uint32_t nn;
+
+    in = p->ain;
+    out = p->sr;
+
+    if (*p->afc <= FL(0.0))     {
+      memset(out, 0, CS_KSMPS*sizeof(MYFLT));
+      return OK;
+    }
+
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+
+    if (p->afc[0] != p->lkf)      {
+      p->lkf = p->afc[0];
+      c = 1.0 / tan((double)(csound->pidsr * p->lkf));
+      a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
+      a[2] = a[1] + a[1];
+      a[3] = a[1];
+      a[4] = 2.0 * ( 1.0 - c*c) * a[1];
+      a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
+    }
+
+    //butter_filter(nsmps, offset, in, out, p->a);
+    for (nn=offset; nn<nsmps; nn++) {
+      if (p->afc[0] != p->lkf)      {
+        p->lkf = p->afc[nn];
+        c = 1.0 / tan((double)(csound->pidsr * p->lkf));
+        a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
+        a[2] = a[1] + a[1];
+        a[3] = a[1];
+        a[4] = 2.0 * ( 1.0 - c*c) * a[1];
+        a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
+      }
+      t = (double)in[nn] - a[4] * a[6] - a[5] * a[7];
+      t = csoundUndenormalizeDouble(t); /* Not needed on AMD */
+      y = t * a[1] + a[2] * a[6] + a[3] * a[7];
+      a[7] = a[6];
+      a[6] = t;
+      out[nn] = (MYFLT)y;
+    }
+    return OK;
+}
+
+
+
 
 static OENTRY afilts_localops[] =
 {
-  { "areson.aa", sizeof(RESON), 0, 5, "a", "aaaoo", (SUBR)rsnset, NULL, (SUBR)aresonaa},
-  { "areson.ak", sizeof(RESON), 0, 5, "a", "aakoo", (SUBR)rsnset, NULL, (SUBR)aresonak},
-  { "areson.ka", sizeof(RESON), 0, 5, "a", "akaoo", (SUBR)rsnset, NULL, (SUBR)aresonka},
-  { "atone.a",  sizeof(TONE),0,  5,   "a", "ako",  (SUBR)tonset, NULL, (SUBR)atonea   },
-  { "tone.a",  sizeof(TONE),0,  5,    "a",  "aao",  (SUBR)tonset, NULL, (SUBR)tonea   }
+  { "areson.aa", sizeof(RESON), 0,5,"a","aaaoo", (SUBR)rsnset,NULL,(SUBR)aresonaa},
+  { "areson.ak", sizeof(RESON), 0,5,"a","aakoo", (SUBR)rsnset,NULL,(SUBR)aresonak},
+  { "areson.ka", sizeof(RESON), 0,5,"a","akaoo", (SUBR)rsnset,NULL,(SUBR)aresonka},
+  { "atone.a",  sizeof(TONE),   0,5,"a","ako",   (SUBR)tonset,NULL,(SUBR)atonea  },
+  { "tone.a",  sizeof(TONE),    0,5,"a","aao",   (SUBR)tonset,NULL,(SUBR)tonea   },
+  { "butterhp.a", sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)hibuta   },
+  { "butterlp.a", sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)lobuta   },
 
 };
 
