@@ -450,7 +450,7 @@ static int lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 
     //butter_filter(nsmps, offset, in, out, p->a);
     for (nn=offset; nn<nsmps; nn++) {
-      if (p->afc[0] != p->lkf)      {
+      if (p->afc[nn] != p->lkf)      {
         p->lkf = p->afc[nn];
         c = 1.0 / tan((double)(csound->pidsr * p->lkf));
         a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
@@ -479,9 +479,10 @@ static OENTRY afilts_localops[] =
   { "areson.ka", sizeof(RESON), 0,5,"a","akaoo", (SUBR)rsnset,NULL,(SUBR)aresonka},
   { "atone.a",  sizeof(TONE),   0,5,"a","ako",   (SUBR)tonset,NULL,(SUBR)atonea  },
   { "tone.a",  sizeof(TONE),    0,5,"a","aao",   (SUBR)tonset,NULL,(SUBR)tonea   },
-  { "butterhp.a", sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)hibuta   },
-  { "butterlp.a", sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)lobuta   },
-
+  { "butterhp.a", sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)hibuta  },
+  { "butterlp.a", sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)lobuta  },
+  { "buthp.a",    sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)hibuta  },
+  { "butlp.a",    sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)lobuta  },
 };
 
 LINKAGE_BUILTIN(afilts_localops)
