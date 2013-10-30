@@ -429,8 +429,8 @@ static int statevar_process(CSOUND *csound,statevar *p)
     MYFLT  *outbp = p->outbp;
     MYFLT  *outbr = p->outbr;
     MYFLT  *in = p->in;
-    MYFLT  freq = *p->freq;
-    MYFLT  res  = *p->res;
+    MYFLT  *freq = p->freq;
+    MYFLT  *res  = p->res;
     double  lpd = p->lpd;
     double  bpd = p->bpd;
     double  lp  = p->lp, hp = 0.0, bp = 0.0, br = 0.0;
@@ -439,23 +439,6 @@ static int statevar_process(CSOUND *csound,statevar *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-
-    if (p->oldfreq != freq || p->oldres != res) {
-      f = 2.0*sin(freq*(double)csound->pidsr/ostimes);
-      q = 1.0/res;
-      lim = ((2.0 - f) *0.05)/ostimes;
-      /* csound->Message(csound, "lim: %f, q: %f \n", lim, q); */
-
-      if (q < lim) q = lim;
-      p->oldq = q;
-      p->oldf = f;
-      p->oldfreq = freq;
-      p->oldres = res;
-    }
-    else {
-      q = p->oldq;
-      f = p->oldf;
-    }
 
     if (UNLIKELY(offset)) {
       memset(outhp, '\0', offset*sizeof(MYFLT));
@@ -470,7 +453,24 @@ static int statevar_process(CSOUND *csound,statevar *p)
       memset(&outbp[nsmps], '\0', early*sizeof(MYFLT));
       memset(&outbr[nsmps], '\0', early*sizeof(MYFLT));
     }
+    q = p->oldq;
+    f = p->oldf;
+
     for (i=offset; i<nsmps; i++) {
+      MYFLT fr = (XINARG2 ? freq[i] : *freq);
+      MYFLT rs = (XINARG3 ? res[i] : *res);
+      if (p->oldfreq != fr|| p->oldres != rs) {
+        f = 2.0*sin(fr*(double)csound->pidsr/ostimes);
+        q = 1.0/rs;
+        lim = ((2.0 - f) *0.05)/ostimes;
+        /* csound->Message(csound, "lim: %f, q: %f \n", lim, q); */
+
+        if (q < lim) q = lim;
+        p->oldq = q;
+        p->oldf = f;
+        p->oldfreq = fr;
+        p->oldres = rs;
+      }
       for (j=0; j<ostimes; j++) {
 
         hp = in[i] - q*bpd - lp;
@@ -554,7 +554,7 @@ static OENTRY localops[] = {
                     (SUBR) moogladder_init, NULL, (SUBR) moogladder_process_ak },
   {"moogladder.ka", sizeof(moogladder), 0, 5, "a", "akap",
                     (SUBR) moogladder_init, NULL, (SUBR) moogladder_process_ka },
-  {"statevar", sizeof(statevar), 0, 5, "aaaa", "akkop",
+  {"statevar", sizeof(statevar), 0, 5, "aaaa", "axxop",
                     (SUBR) statevar_init, NULL, (SUBR) statevar_process     },
   {"fofilter", sizeof(fofilter), 0, 5, "a", "akkkp",
                     (SUBR) fofilter_init, NULL, (SUBR) fofilter_process     }
