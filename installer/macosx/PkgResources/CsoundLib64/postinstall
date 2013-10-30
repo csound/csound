@@ -11,7 +11,7 @@ if [ -d "$PYTHON_DIR" ]; then
   /bin/ln -sF $PY_SRC_DIR/_csnd6.so $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/csnd6.py $PYTHON_DIR
 else
-  mkdir $PYTHON_DIR
+  mkdir -p $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/CsoundAC.py $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/_CsoundAC.so $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/_csnd6.so $PYTHON_DIR
