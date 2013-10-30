@@ -394,7 +394,6 @@ static int hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
     }
     for (nn=offset; nn<nsmps; nn++) {
       if (p->afc[nn] != p->lkf)      {
-        double    *a, c;
         p->lkf = p->afc[nn];
         c = tan((double)(csound->pidsr * p->lkf));
 
