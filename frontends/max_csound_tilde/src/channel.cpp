@@ -104,7 +104,7 @@ void ChannelObject::SetName(const char *str)
 
 
 ChannelGroup::ChannelGroup(t_object *o, CSOUND *c, Direction d) : 
-	m_channels(), m_direction(d), m_obj(o), m_csound(c), m_lock("ChannelGroup"), m_cmp_co("", 0), 
+	m_channels(), m_direction(d), m_obj(o), m_csound(c), m_lock((char*)"ChannelGroup"), m_cmp_co((char*)"", 0),
 	m_audio_thread_atom_buffer(2),
 	m_clock_thread_atom_buffer(2)
 {
