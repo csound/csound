@@ -170,6 +170,7 @@
 ./Opcodes/LuaCsound.cpp
 ./Opcodes/OSC.c
 ./Opcodes/Vosim.c
+./Opcodes/afilters.c
 ./Opcodes/ambicode.c
 ./Opcodes/ambicode1.c
 ./Opcodes/ampmidid.cpp

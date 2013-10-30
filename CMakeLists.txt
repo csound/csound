@@ -621,6 +621,7 @@ set(libcsound_SRCS
     Opcodes/cpumeter.c
     Opcodes/gendy.c
     Opcodes/tl/sc_noise.c
+    Opcodes/afilters.c
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c
