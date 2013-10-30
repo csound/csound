@@ -571,6 +571,141 @@ static int lp2(CSOUND *csound, LP2 *p)
     return OK;
 }
 
+static int lp2aa(CSOUND *csound, LP2 *p)
+{
+    double a, b, c, temp;
+    MYFLT *out, *in;
+    double yn, ynm1, ynm2;
+    MYFLT *fcop = p->kfco, *resp = p->kres;
+    MYFLT fco = fcop[0], res = resp[0];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+
+    temp = (double)(csound->mpidsr * fco / res);
+      /* (-PI_F * kfco / (kres * CS_ESR)); */
+    a = 2.0 * cos((double) (fco * csound->tpidsr)) * exp(temp);
+    b = exp(temp+temp);
+    c = 1.0 - a + b;
+
+    out  = p->out;
+    in   = p->in;
+    ynm1 = p->ynm1;
+    ynm2 = p->ynm2;
+
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n=offset; n<nsmps; n++) {
+      if (res!=resp[n] || fco!=fcop[n]) {
+        res=resp[n]; fco=fcop[n];
+        temp = (double)(csound->mpidsr * fco / res);
+        /* (-PI_F * kfco / (kres * CS_ESR)); */
+        a = 2.0 * cos((double) (fco * csound->tpidsr)) * exp(temp);
+        b = exp(temp+temp);
+        c = 1.0 - a + b;
+      }
+      out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (double)in[n]);
+      ynm2 = ynm1;
+      ynm1 = yn;
+    }
+    p->ynm1 = ynm1;
+    p->ynm2 = ynm2;
+    return OK;
+}
+
+static int lp2ka(CSOUND *csound, LP2 *p)
+{
+    double a, b, c, temp;
+    MYFLT *out, *in;
+    double yn, ynm1, ynm2;
+    MYFLT *resp = p->kres;
+    MYFLT fco = *p->kfco, res = resp[0];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+
+    temp = (double)(csound->mpidsr * fco / res);
+      /* (-PI_F * kfco / (kres * CS_ESR)); */
+    a = 2.0 * cos((double) (fco * csound->tpidsr)) * exp(temp);
+    b = exp(temp+temp);
+    c = 1.0 - a + b;
+
+    out  = p->out;
+    in   = p->in;
+    ynm1 = p->ynm1;
+    ynm2 = p->ynm2;
+
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n=offset; n<nsmps; n++) {
+      if (res!=resp[n]) {
+        res=resp[n];
+        temp = (double)(csound->mpidsr * fco / res);
+        /* (-PI_F * kfco / (kres * CS_ESR)); */
+        a = 2.0 * cos((double) (fco * csound->tpidsr)) * exp(temp);
+        b = exp(temp+temp);
+        c = 1.0 - a + b;
+      }
+      out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (double)in[n]);
+      ynm2 = ynm1;
+      ynm1 = yn;
+    }
+    p->ynm1 = ynm1;
+    p->ynm2 = ynm2;
+    return OK;
+}
+
+static int lp2ak(CSOUND *csound, LP2 *p)
+{
+    double a, b, c, temp;
+    MYFLT *out, *in;
+    double yn, ynm1, ynm2;
+    MYFLT *fcop = p->kfco;
+    MYFLT fco = fcop[0], res = *p->kres;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+
+    temp = (double)(csound->mpidsr * fco / res);
+      /* (-PI_F * kfco / (kres * CS_ESR)); */
+    a = 2.0 * cos((double) (fco * csound->tpidsr)) * exp(temp);
+    b = exp(temp+temp);
+    c = 1.0 - a + b;
+
+    out  = p->out;
+    in   = p->in;
+    ynm1 = p->ynm1;
+    ynm2 = p->ynm2;
+
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n=offset; n<nsmps; n++) {
+      if (fco!=fcop[n]) {
+        fco=fcop[n];
+        temp = (double)(csound->mpidsr * fco / res);
+        /* (-PI_F * kfco / (kres * CS_ESR)); */
+        a = 2.0 * cos((double) (fco * csound->tpidsr)) * exp(temp);
+        b = exp(temp+temp);
+        c = 1.0 - a + b;
+      }
+      out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (double)in[n]);
+      ynm2 = ynm1;
+      ynm1 = yn;
+    }
+    p->ynm1 = ynm1;
+    p->ynm2 = ynm2;
+    return OK;
+}
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
@@ -578,7 +713,10 @@ static OENTRY localops[] = {
 { "hilbert", S(HILBERT), 0, 5, "aa", "a", (SUBR)hilbertset, NULL, (SUBR)hilbert },
 { "resonr", S(RESONZ),   0, 5, "a",  "akkoo", (SUBR)resonzset, NULL, (SUBR)resonr},
 { "resonz", S(RESONZ),   0, 5, "a",  "akkoo", (SUBR)resonzset, NULL, (SUBR)resonz},
-{ "lowpass2", S(LP2),    0, 5, "a",  "akko",  (SUBR)lp2_set, NULL, (SUBR)lp2     },
+{ "lowpass2.kk", S(LP2), 0, 5, "a",  "akko",  (SUBR)lp2_set, NULL, (SUBR)lp2     },
+{ "lowpass2.aa", S(LP2), 0, 5, "a",  "aaao",  (SUBR)lp2_set, NULL, (SUBR)lp2aa   },
+{ "lowpass2.ak", S(LP2), 0, 5, "a",  "aakao", (SUBR)lp2_set, NULL, (SUBR)lp2ak   },
+{ "lowpass2.ka", S(LP2), 0, 5, "a",  "akao",  (SUBR)lp2_set, NULL, (SUBR)lp2ka   },
 { "phaser2", S(PHASER2), 0, 5, "a", "akkkkkk",(SUBR)phaser2set,NULL,(SUBR)phaser2},
 { "phaser1", S(PHASER1), 0, 5, "a", "akkko", (SUBR)phaser1set, NULL,(SUBR)phaser1}
 };
