@@ -433,46 +433,46 @@ msgstr "Etiqueta CSD desconocida: %s\n"
 msgid "Variable type for %s could not be determined.\n"
 msgstr "argumento de entrada '%s' usado antes de ser definido\n"
 
-#: Engine/csound_orc_semantics.c:1300
+#: Engine/csound_orc_semantics.c:1301
 #, fuzzy, c-format
 msgid "Unable to find opcode with name: %s\n"
 msgstr "No es posible abrir el archivo PVOC-EX %s: %s"
 
-#: Engine/csound_orc_semantics.c:1315
+#: Engine/csound_orc_semantics.c:1316
 #, c-format
 msgid "Unable to find opcode entry for '%s' with matching argument types:\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1318
+#: Engine/csound_orc_semantics.c:1319
 #, c-format
 msgid "Found: %s %s %s\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1320
+#: Engine/csound_orc_semantics.c:1321
 #, c-format
 msgid "Line: %d Loc: %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1454
+#: Engine/csound_orc_semantics.c:1455
 #, c-format
 msgid "expression for until statement not a boolean expression, line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1607
+#: Engine/csound_orc_semantics.c:1608
 #, c-format
 msgid ""
 "\n"
 "error: %s  (token \"%s\")"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1609
+#: Engine/csound_orc_semantics.c:1610
 #, fuzzy, c-format
 msgid ""
 " line %d:\n"
 ">>>"
 msgstr " línea %d:\n"
 
-#: Engine/csound_orc_semantics.c:2141
+#: Engine/csound_orc_semantics.c:2142
 #, fuzzy, c-format
 msgid "insufficient required arguments for opcode %s on line %d:%d\n"
 msgstr "número insuficiente de argumentos requeridos"
@@ -568,7 +568,7 @@ msgstr "intervalo x ilegal"
 
 #: Engine/fgens.c:409 Engine/fgens.c:558 Engine/fgens.c:639 Engine/fgens.c:884
 #: Engine/fgens.c:1362 Engine/fgens.c:2473 Engine/fgens.c:2781
-#: Engine/fgens.c:2922 Opcodes/ftest.c:128 Top/main.c:118 util/cvanal.c:67
+#: Engine/fgens.c:2922 Opcodes/ftest.c:128 Top/main.c:119 util/cvanal.c:67
 #: util/lpanal.c:401 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr "argumentos insuficientes"
@@ -802,7 +802,7 @@ msgstr "número equivocado de argumentos para la tabla-f (ftable)"
 msgid "Failed to load PVOC-EX file"
 msgstr "No fue posible cargar el archivo PVOC-EX"
 
-#: Engine/fgens.c:2728 InOut/midirecv.c:417 OOps/midiops.c:402
+#: Engine/fgens.c:2728 InOut/midirecv.c:419 OOps/midiops.c:402
 #: OOps/midiops.c:452 OOps/midiops.c:464
 msgid "illegal channel number"
 msgstr "número de canal ilegal"
@@ -1231,22 +1231,22 @@ msgstr "valor de tempo inicial (istartempo) ilegal"
 msgid "Beat mode not in force"
 msgstr ""
 
-#: Engine/musmon.c:173 Top/csound.c:2854
+#: Engine/musmon.c:173 Top/csound.c:2855
 #, c-format
 msgid "Csound version %s beta (double samples) %s\n"
 msgstr "Csound version %s beta (64-bit) %s\n"
 
-#: Engine/musmon.c:176 Top/csound.c:2857
+#: Engine/musmon.c:176 Top/csound.c:2858
 #, c-format
 msgid "Csound version %s (double samples) %s\n"
 msgstr "Csound version %s (64-bit) %s\n"
 
-#: Engine/musmon.c:181 Top/csound.c:2846
+#: Engine/musmon.c:181 Top/csound.c:2847
 #, c-format
 msgid "Csound version %s beta (float samples) %s\n"
 msgstr "Csound version %s beta (32-bit) %s\n"
 
-#: Engine/musmon.c:184 Top/csound.c:2849
+#: Engine/musmon.c:184 Top/csound.c:2850
 #, c-format
 msgid "Csound version %s (float samples) %s\n"
 msgstr "Csound version %s (32-bit) %s\n"
@@ -1288,7 +1288,7 @@ msgstr "no es posible reabrir cscore.srt"
 msgid "sorting cscore.out ..\n"
 msgstr "ordenando cscore.out ...\n"
 
-#: Engine/musmon.c:340 Top/main.c:329
+#: Engine/musmon.c:340 Top/main.c:291
 msgid "\t... done\n"
 msgstr "\t... listo\n"
 
@@ -1448,7 +1448,7 @@ msgstr ""
 msgid "cannot find the specified instrument or opcode"
 msgstr "No se puede encontrar el instrumento o opcode especificado"
 
-#: Engine/new_orc_parser.c:92 Top/main.c:264
+#: Engine/new_orc_parser.c:92 Top/main.c:218
 #, fuzzy, c-format
 msgid "Failed to open input file %s\n"
 msgstr "No fue posible abrir el archivo de salida %s"
@@ -2431,56 +2431,56 @@ msgstr ""
 msgid "unrecognised message type %d"
 msgstr "mensaje de tipo %d no reconocido"
 
-#: InOut/midirecv.c:400
+#: InOut/midirecv.c:402
 #, c-format
 msgid "midi channel %d using instr %d\n"
 msgstr "canal MIDI %d usa instrumento %d\n"
 
-#: InOut/midirecv.c:403
+#: InOut/midirecv.c:405
 #, c-format
 msgid "midi channel %d is muted\n"
 msgstr ""
 
-#: InOut/midirecv.c:421
+#: InOut/midirecv.c:423
 #, c-format
 msgid "MIDI channel %d muted\n"
 msgstr ""
 
-#: InOut/midirecv.c:426
+#: InOut/midirecv.c:428
 #, c-format
 msgid "Insno = %d\n"
 msgstr ""
 
-#: InOut/midirecv.c:427
+#: InOut/midirecv.c:429
 msgid "unknown instr"
 msgstr "instrumento desconocido"
 
-#: InOut/midirecv.c:430
+#: InOut/midirecv.c:432
 #, c-format
 msgid "chnl %d using instr %d\n"
 msgstr ""
 
-#: InOut/midirecv.c:490
+#: InOut/midirecv.c:492
 #, c-format
 msgid " *** error reading MIDI device: %d (%s)"
 msgstr ""
 
-#: InOut/midirecv.c:519
+#: InOut/midirecv.c:521
 #, c-format
 msgid "undefined sys-realtime msg %x\n"
 msgstr ""
 
-#: InOut/midirecv.c:537
+#: InOut/midirecv.c:539
 #, c-format
 msgid "undefined sys_common msg %x\n"
 msgstr ""
 
-#: InOut/midirecv.c:599
+#: InOut/midirecv.c:601
 #, c-format
 msgid "Error closing MIDI in device: %d (%s)"
 msgstr "Error cerrando el dispositivo de entrada MIDI: %d (%s)"
 
-#: InOut/midirecv.c:606
+#: InOut/midirecv.c:608
 #, c-format
 msgid "Error closing MIDI out device: %d (%s)"
 msgstr "Error cerrando el dispositivo de salida MIDI: %d (%s)"
@@ -3864,11 +3864,11 @@ msgstr "ATENCION: no fue posible retirar %s\n"
 msgid "diskin2: invalid number of channels"
 msgstr "diskin2: número inválido de canales"
 
-#: OOps/diskin2.c:289 OOps/diskin2.c:1741
+#: OOps/diskin2.c:289 OOps/diskin2.c:1745
 msgid "diskin2: unknown sample format"
 msgstr "diskin2: formato de muestras desconocido"
 
-#: OOps/diskin2.c:304 OOps/diskin2.c:1756
+#: OOps/diskin2.c:304 OOps/diskin2.c:1760
 #, c-format
 msgid "diskin2: %s: failed to open file"
 msgstr ""
@@ -3880,21 +3880,21 @@ msgstr ""
 "diskin2: número de argumentos de salida no coincide con el número de canales "
 "del archivo"
 
-#: OOps/diskin2.c:346 OOps/diskin2.c:1813
+#: OOps/diskin2.c:346 OOps/diskin2.c:1817
 #, c-format
 msgid "diskin2: warning: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 "diskin2: warning: tasa de muestreo del archivo (%d) != de tasa de muestreo "
 "de la orquesta (%d)\n"
 
-#: OOps/diskin2.c:427 OOps/diskin2.c:1894
+#: OOps/diskin2.c:427 OOps/diskin2.c:1905
 #, c-format
 msgid ""
 "diskin2: opened (asynchronously) '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
 
-#: OOps/diskin2.c:441 OOps/diskin2.c:1908
+#: OOps/diskin2.c:441 OOps/diskin2.c:1919
 #, c-format
 msgid ""
 "diskin2: opened '%s':\n"
@@ -3902,12 +3902,12 @@ msgid ""
 msgstr ""
 
 #: OOps/diskin2.c:520 OOps/diskin2.c:706 OOps/diskin2.c:902
-#: OOps/diskin2.c:1526 OOps/diskin2.c:1940 OOps/diskin2.c:2133
+#: OOps/diskin2.c:1529 OOps/diskin2.c:1951 OOps/diskin2.c:2144
 msgid "diskin2: not initialised"
 msgstr "diskin2: no ha sido inicializado"
 
-#: OOps/diskin2.c:686 OOps/diskin2.c:877 OOps/diskin2.c:1697
-#: OOps/diskin2.c:2106
+#: OOps/diskin2.c:686 OOps/diskin2.c:877 OOps/diskin2.c:1700
+#: OOps/diskin2.c:2117
 msgid "diskin2: file descriptor closed or invalid\n"
 msgstr ""
 
@@ -3977,7 +3977,7 @@ msgstr "soundout: no ha sido inicializado"
 msgid "soundouts: not initialised"
 msgstr "soundouts: no ha sido inicializado"
 
-#: OOps/diskin2.c:1782
+#: OOps/diskin2.c:1786
 msgid "diskin2: output array too small"
 msgstr ""
 
@@ -7259,8 +7259,8 @@ msgstr ""
 msgid "loscilx: invalid number of output arguments"
 msgstr ""
 
-#: Opcodes/loscilx.c:209 Opcodes/loscilx.c:238 Opcodes/pvlock.c:152
-#: Opcodes/pvlock.c:375 Opcodes/pvsbasic.c:566
+#: Opcodes/loscilx.c:209 Opcodes/loscilx.c:238 Opcodes/pvlock.c:160
+#: Opcodes/pvlock.c:383 Opcodes/pvlock.c:657 Opcodes/pvsbasic.c:566
 msgid ""
 "number of output arguments inconsistent with number of sound file channels"
 msgstr ""
@@ -7269,7 +7269,12 @@ msgstr ""
 msgid "loscilx: not initialised"
 msgstr "loscilx: no ha sido inicializado"
 
-#: Opcodes/lowpassr.c:85 Opcodes/lowpassr.c:140
+#: Opcodes/lowpassr.c:55 Opcodes/lowpassr.c:99 Opcodes/lowpassr.c:121
+#: Opcodes/lowpassr.c:155 Opcodes/lowpassr.c:176 Opcodes/lowpassr.c:210
+msgid "Cutoff parameter must be positive"
+msgstr ""
+
+#: Opcodes/lowpassr.c:252 Opcodes/lowpassr.c:307
 msgid "illegal order num. (min 1, max 10)"
 msgstr ""
 
@@ -7887,19 +7892,19 @@ msgstr ""
 msgid "pvcross: not initialised"
 msgstr "pvcross: no ha sido inicializado"
 
-#: Opcodes/pvlock.c:67 Opcodes/pvsbasic.c:480
+#: Opcodes/pvlock.c:71 Opcodes/pvsbasic.c:480
 #, fuzzy
 msgid "invalid number of output arguments"
 msgstr "número inválido de argumentos"
 
-#: Opcodes/pvlock.c:536 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:684
+#: Opcodes/pvlock.c:826 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:684
 #: Opcodes/pvsbasic.c:1007 Opcodes/pvsbasic.c:1220 Opcodes/pvsbasic.c:1326
 #: Opcodes/pvsbasic.c:1555 Opcodes/pvsbasic.c:1768 Opcodes/pvsbasic.c:1942
 #: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:627
 msgid "Unsafe to have same fsig as in and out"
 msgstr ""
 
-#: Opcodes/pvlock.c:548
+#: Opcodes/pvlock.c:838
 msgid "pvsfreeze: signal format must be amp-freq."
 msgstr ""
 
@@ -8699,7 +8704,7 @@ msgstr ""
 msgid "Error allocating argument stack"
 msgstr ""
 
-#: Opcodes/stackops.c:206 Top/argdecode.c:1245 util/envext.c:99
+#: Opcodes/stackops.c:206 Top/argdecode.c:1251 util/envext.c:99
 #: util/scale.c:248
 msgid "too many arguments"
 msgstr ""
@@ -9896,208 +9901,213 @@ msgstr ""
 msgid "--sinesize\t\tlength of internal sine table"
 msgstr ""
 
-#: Top/argdecode.c:223
+#: Top/argdecode.c:222
+msgid ""
+"--no-exit-on-compile-error\t\t do not exit if CSD orchestra does not compile"
+msgstr ""
+
+#: Top/argdecode.c:224
 msgid "--help\t\t\tLong help"
 msgstr ""
 
-#: Top/argdecode.c:239
+#: Top/argdecode.c:240
 #, c-format
 msgid "flag defaults: csound -s -otest -b%d -B%d -m%d\n"
 msgstr ""
 
-#: Top/argdecode.c:246 Top/argdecode.c:262
+#: Top/argdecode.c:247 Top/argdecode.c:263
 msgid "Usage:\tcsound [-flags] orchfile scorefile\n"
 msgstr ""
 
-#: Top/argdecode.c:247 Top/argdecode.c:263 util/envext.c:53 util/xtrct.c:67
+#: Top/argdecode.c:248 Top/argdecode.c:264 util/envext.c:53 util/xtrct.c:67
 msgid "Legal flags are:\n"
 msgstr ""
 
-#: Top/argdecode.c:248
+#: Top/argdecode.c:249
 msgid ""
 "Long format:\n"
 "\n"
 msgstr ""
 
-#: Top/argdecode.c:253
+#: Top/argdecode.c:254
 msgid ""
 "\n"
 "Short form:\n"
 msgstr ""
 
-#: Top/argdecode.c:266
+#: Top/argdecode.c:267
 msgid "Csound Command ERROR:\t"
 msgstr ""
 
-#: Top/argdecode.c:401
+#: Top/argdecode.c:402
 #, c-format
 msgid "unknown output format: '%s'"
 msgstr ""
 
-#: Top/argdecode.c:419 Top/argdecode.c:1008
+#: Top/argdecode.c:420 Top/argdecode.c:1014
 msgid "no iobufsamps"
 msgstr ""
 
-#: Top/argdecode.c:426 Top/argdecode.c:1015
+#: Top/argdecode.c:427 Top/argdecode.c:1021
 msgid "no hardware bufsamps"
 msgstr ""
 
-#: Top/argdecode.c:452 Top/argdecode.c:1115
+#: Top/argdecode.c:453 Top/argdecode.c:1121
 msgid "no midifile name"
 msgstr ""
 
-#: Top/argdecode.c:457 Top/argdecode.c:1121
+#: Top/argdecode.c:458 Top/argdecode.c:1127
 msgid "-F: stdin not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:467
+#: Top/argdecode.c:468
 msgid "no midi output file name"
 msgstr ""
 
-#: Top/argdecode.c:496
+#: Top/argdecode.c:497
 msgid "invalid python variable definition syntax"
 msgstr ""
 
-#: Top/argdecode.c:502 Top/argdecode.c:976
+#: Top/argdecode.c:503 Top/argdecode.c:982
 msgid "no infilename"
 msgstr ""
 
-#: Top/argdecode.c:505 Top/argdecode.c:980
+#: Top/argdecode.c:506 Top/argdecode.c:986
 msgid "input cannot be stdout"
 msgstr ""
 
-#: Top/argdecode.c:509 Top/argdecode.c:984
+#: Top/argdecode.c:510 Top/argdecode.c:990
 msgid "stdin audio not supported"
 msgstr ""
 
-#: Top/argdecode.c:544 Top/argdecode.c:1048
+#: Top/argdecode.c:545 Top/argdecode.c:1054
 msgid "no control rate"
 msgstr ""
 
-#: Top/argdecode.c:558 Top/argdecode.c:1090
+#: Top/argdecode.c:559 Top/argdecode.c:1096
 msgid "no Linein score device_name"
 msgstr ""
 
-#: Top/argdecode.c:574 Top/argdecode.c:580 Top/argdecode.c:1056
+#: Top/argdecode.c:575 Top/argdecode.c:581 Top/argdecode.c:1062
 msgid "no message level"
 msgstr ""
 
-#: Top/argdecode.c:587
+#: Top/argdecode.c:588
 msgid "no message amps"
 msgstr ""
 
-#: Top/argdecode.c:596
+#: Top/argdecode.c:597
 msgid "no message range"
 msgstr ""
 
-#: Top/argdecode.c:605
+#: Top/argdecode.c:606
 msgid "no message warnings"
 msgstr ""
 
-#: Top/argdecode.c:614
+#: Top/argdecode.c:615
 msgid "no message raw"
 msgstr ""
 
-#: Top/argdecode.c:623
+#: Top/argdecode.c:624
 msgid "no message dB"
 msgstr ""
 
-#: Top/argdecode.c:632
+#: Top/argdecode.c:633
 msgid "no message colours"
 msgstr ""
 
-#: Top/argdecode.c:641
+#: Top/argdecode.c:642
 msgid "no benchmark level"
 msgstr ""
 
-#: Top/argdecode.c:649
+#: Top/argdecode.c:650
 msgid "no value for --csd-line-nums"
 msgstr ""
 
-#: Top/argdecode.c:658 Top/argdecode.c:1101
+#: Top/argdecode.c:659 Top/argdecode.c:1107
 msgid "no midi device_name"
 msgstr ""
 
-#: Top/argdecode.c:663 Top/argdecode.c:1107
+#: Top/argdecode.c:664 Top/argdecode.c:1113
 msgid "-M: stdin not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:683 Top/argdecode.c:992 util/envext.c:84 util/mixer.c:206
+#: Top/argdecode.c:684 Top/argdecode.c:998 util/envext.c:84 util/mixer.c:206
 #: util/scale.c:173 util/srconv.c:247 util/xtrct.c:120
 msgid "no outfilename"
 msgstr ""
 
-#: Top/argdecode.c:686 Top/argdecode.c:996 util/scale.c:177 util/srconv.c:251
+#: Top/argdecode.c:687 Top/argdecode.c:1002 util/scale.c:177 util/srconv.c:251
 #: util/xtrct.c:124
 msgid "-o cannot be stdin"
 msgstr ""
 
-#: Top/argdecode.c:690 Top/argdecode.c:1000 util/scale.c:180 util/srconv.c:256
+#: Top/argdecode.c:691 Top/argdecode.c:1006 util/scale.c:180 util/srconv.c:256
 msgid "stdout audio not supported"
 msgstr ""
 
-#: Top/argdecode.c:700 Top/argdecode.c:1198 util/hetro.c:232
+#: Top/argdecode.c:701 Top/argdecode.c:1204 util/hetro.c:232
 msgid "no log file"
 msgstr ""
 
-#: Top/argdecode.c:755 Top/argdecode.c:955
+#: Top/argdecode.c:756 Top/argdecode.c:961
 msgid "no utility name"
 msgstr ""
 
-#: Top/argdecode.c:774 Top/argdecode.c:1070
+#: Top/argdecode.c:775 Top/argdecode.c:1076
 msgid "no xfilename"
 msgstr ""
 
-#: Top/argdecode.c:920
+#: Top/argdecode.c:926
 #, c-format
 msgid "unknown long option: '--%s'"
 msgstr ""
 
-#: Top/argdecode.c:1043
+#: Top/argdecode.c:1049
 msgid "no sample rate"
 msgstr ""
 
-#: Top/argdecode.c:1075
+#: Top/argdecode.c:1081
 msgid "no tempo value"
 msgstr ""
 
-#: Top/argdecode.c:1080
+#: Top/argdecode.c:1086
 msgid "illegal tempo"
 msgstr ""
 
-#: Top/argdecode.c:1129
+#: Top/argdecode.c:1135
 msgid "no MIDI output device"
 msgstr ""
 
-#: Top/argdecode.c:1181
+#: Top/argdecode.c:1187
 msgid "No indirection file"
 msgstr ""
 
-#: Top/argdecode.c:1188
+#: Top/argdecode.c:1194
 #, c-format
 msgid "Cannot open indirection file %s\n"
 msgstr ""
 
-#: Top/argdecode.c:1217
+#: Top/argdecode.c:1223
 msgid "no number of threads"
 msgstr ""
 
-#: Top/argdecode.c:1228 util/envext.c:94 util/mixer.c:316 util/scale.c:241
+#: Top/argdecode.c:1234 util/envext.c:94 util/mixer.c:316 util/scale.c:241
 #: util/xtrct.c:239
 #, c-format
 msgid "unknown flag -%c"
 msgstr ""
 
-#: Top/argdecode.c:1235
+#: Top/argdecode.c:1241
 msgid "error: orchestra and score name not allowed in .csound6rc"
 msgstr ""
 
-#: Top/argdecode.c:1381
+#: Top/argdecode.c:1387
 #, fuzzy
 msgid "stdout not supported on this platform"
 msgstr "no está soportado en esta terminal"
 
-#: Top/argdecode.c:1421 Top/argdecode.c:1441 Top/argdecode.c:1461
+#: Top/argdecode.c:1427 Top/argdecode.c:1447 Top/argdecode.c:1467
 #, fuzzy
 msgid "stdin not supported on this platform"
 msgstr "no está soportado en esta terminal"
@@ -10226,275 +10236,284 @@ msgstr ""
 msgid "Error allocating opcode list"
 msgstr ""
 
-#: Top/csound.c:1409
+#: Top/csound.c:1410
 #, c-format
 msgid "Multithread performance: insno: %3d  thread %d of %d starting.\n"
 msgstr ""
 
-#: Top/csound.c:1415
+#: Top/csound.c:1416
 msgid "Bad ThreadId"
 msgstr ""
 
-#: Top/csound.c:1603 Top/csound.c:1635 Top/csound.c:1663 Top/csound.c:1699
-#: Top/csound.c:3879
+#: Top/csound.c:1604 Top/csound.c:1636 Top/csound.c:1664 Top/csound.c:1700
+#: Top/csound.c:3880
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 
-#: Top/csound.c:1619 Top/csound.c:1648
+#: Top/csound.c:1620 Top/csound.c:1649
 msgid "Score finished in csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1642 Top/csound.c:3886
+#: Top/csound.c:1643 Top/csound.c:3887
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1670
+#: Top/csound.c:1671
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:1708
+#: Top/csound.c:1709
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:1716
+#: Top/csound.c:1717
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:1727
+#: Top/csound.c:1728
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2010
+#: Top/csound.c:2011
 msgid "WARNING: "
 msgstr "ATENCION: "
 
-#: Top/csound.c:2150
+#: Top/csound.c:2151
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2151
+#: Top/csound.c:2152
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2180 Top/csound.c:2217
+#: Top/csound.c:2181 Top/csound.c:2218
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2184 Top/csound.c:2221
+#: Top/csound.c:2185 Top/csound.c:2222
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2338
+#: Top/csound.c:2339
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2343 Top/csound.c:2377
+#: Top/csound.c:2344 Top/csound.c:2378
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2346 Top/csound.c:2380
+#: Top/csound.c:2347 Top/csound.c:2381
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2372
+#: Top/csound.c:2373
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2394
+#: Top/csound.c:2395
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:2555
+#: Top/csound.c:2556
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:2577
+#: Top/csound.c:2578
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:2717 Top/main.c:390
+#: Top/csound.c:2718 Top/main.c:352
 msgid "setting dummy interface\n"
 msgstr ""
 
-#: Top/csound.c:2793
+#: Top/csound.c:2794
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:2815
+#: Top/csound.c:2816
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:2831
+#: Top/csound.c:2832
 msgid "Failed during csoundLoadModules"
 msgstr ""
 
-#: Top/csound.c:2888
+#: Top/csound.c:2889
 msgid "Real time audio module name"
 msgstr ""
 
-#: Top/csound.c:2913
+#: Top/csound.c:2914
 msgid "Real time MIDI module name"
 msgstr ""
 
-#: Top/csound.c:2918
+#: Top/csound.c:2919
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:2924
+#: Top/csound.c:2925
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:2932
+#: Top/csound.c:2933
 #, fuzzy
 msgid "Title tag in output soundfile (no spaces)"
 msgstr "No fue posible abrir el archivo de salida %s"
 
-#: Top/csound.c:2938
+#: Top/csound.c:2939
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:2944
+#: Top/csound.c:2945
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:2949
+#: Top/csound.c:2950
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:2956
+#: Top/csound.c:2957
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:2961
+#: Top/csound.c:2962
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:2971
+#: Top/csound.c:2972
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:2977
+#: Top/csound.c:2978
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:2984
+#: Top/csound.c:2985
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3194
+#: Top/csound.c:3195
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:3224
+#: Top/csound.c:3225
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:3778
+#: Top/csound.c:3779
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:3809
+#: Top/csound.c:3810
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 
-#: Top/main.c:64
+#: Top/main.c:65
 #, fuzzy, c-format
 msgid "WARNING: cannot open csound6rc file %s\n"
 msgstr "ATENCION: no se puede abrir el archivo csoundrc %s\n"
 
-#: Top/main.c:67
+#: Top/main.c:68
 #, c-format
 msgid "Reading options from $CSOUND6RC: %s \n"
 msgstr ""
 
-#: Top/main.c:76
+#: Top/main.c:77
 msgid "Reading options from $HOME/.csound6rc\n"
 msgstr ""
 
-#: Top/main.c:91
+#: Top/main.c:92
 msgid "Reading options from local directory .csound6rc \n"
 msgstr ""
 
-#: Top/main.c:112
+#: Top/main.c:113
 msgid ""
 "Csound is already started, call csoundReset()\n"
 "before starting again \n"
 msgstr ""
 
-#: Top/main.c:186
+#: Top/main.c:140
 msgid "no orchestra name"
 msgstr ""
 
-#: Top/main.c:210
+#: Top/main.c:164
 msgid "Reading CSD failed ... stopping"
 msgstr "Falla de lectura del archivo csd... deteniendo"
 
-#: Top/main.c:224
+#: Top/main.c:178
 msgid "error: multiple uses of stdin"
 msgstr ""
 
-#: Top/main.c:228
+#: Top/main.c:182
 msgid "error: multiple uses of stdout"
 msgstr ""
 
-#: Top/main.c:237
+#: Top/main.c:191
 msgid "realtime performance using dummy numeric scorefile\n"
 msgstr ""
 
-#: Top/main.c:260
+#: Top/main.c:214
 #, c-format
 msgid "orchname:  %s\n"
 msgstr "nombre de la orquesta:  %s\n"
 
-#: Top/main.c:278
+#: Top/main.c:233
 #, fuzzy
 msgid "cannot compile orchestra \n"
 msgstr "No es posible abrir el archivo de orquesta %s"
 
-#: Top/main.c:291
+#: Top/main.c:238
+#, fuzzy
+msgid "cannot compile orchestra."
+msgstr "No es posible abrir el archivo de orquesta %s"
+
+#: Top/main.c:239
+msgid "Csound will start with no instruments"
+msgstr ""
+
+#: Top/main.c:253
 msgid "end of orchestra compile"
 msgstr "fin de compilación de la orquesta"
 
-#: Top/main.c:299
+#: Top/main.c:261
 #, c-format
 msgid "using previous %s\n"
 msgstr ""
 
-#: Top/main.c:309
+#: Top/main.c:271
 #, c-format
 msgid "cannot open scorefile %s"
 msgstr "no es posible abrir el archivo de score %s"
 
-#: Top/main.c:311
+#: Top/main.c:273
 msgid "sorting score ...\n"
 msgstr ""
 
-#: Top/main.c:321
+#: Top/main.c:283
 #, c-format
 msgid "cannot open extract file %s"
 msgstr ""
 
-#: Top/main.c:324
+#: Top/main.c:286
 msgid "  ... extracting ...\n"
 msgstr "  ... extrayendo ...\n"
 
-#: Top/main.c:333
+#: Top/main.c:295
 msgid "end of score sort"
 msgstr ""
 
-#: Top/main.c:335
+#: Top/main.c:297
 msgid "Syntax check completed.\n"
 msgstr "Revisión de sintaxis completa.\n"
 
-#: Top/main.c:456 util/dnoise.c:266
+#: Top/main.c:418 util/dnoise.c:266
 #, c-format
 msgid "%s not a recognised SFOUTYP env setting"
 msgstr ""
 
-#: Top/main.c:475
+#: Top/main.c:437
 msgid "srate and krate overrides must occur jointly"
 msgstr ""
 

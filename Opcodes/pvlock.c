@@ -108,7 +108,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
 }
 
 static int sinit1(CSOUND *csound, DATASPACE *p){
-   p->nchans = csound->GetOutputArgCnt(p);   
+   p->nchans = csound->GetOutputArgCnt(p);
    return sinit(csound, p);
 }
 
@@ -171,9 +171,9 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
         sizefrs = size/nchans;
         while(spos > sizefrs) spos -= sizefrs;
         while(spos <= 0)  spos += sizefrs;
-      
+
         for (j = 0; j < nchans; j++) {
-	  pos = spos;
+          pos = spos;
           bwin = (MYFLT *) p->bwin[j].auxp;
           fwin = (MYFLT *) p->fwin[j].auxp;
           prev = (MYFLT *)p->prev[j].auxp;
@@ -387,7 +387,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
         sizefrs = size/nchans;
         while(spos > sizefrs) spos -= sizefrs;
         while(spos <= 0)  spos += sizefrs;
-        
+
 
         for (j = 0; j < nchans; j++) {
           pos = spos;
@@ -541,10 +541,10 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
                          "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if(sfinfo.rate != CS_ESR)
      p->resamp = CS_ESR/sfinfo.rate;
-    else 
+    else
      p->resamp = 1;
     p->nchans = sfinfo.chans;
- 
+
     sinit(csound, p);
     size = p->N*sizeof(MYFLT);
     for (i=0; i < p->nchans; i++)
@@ -569,26 +569,26 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
     p->accum = 0;
     p->tab = (MYFLT *) p->indata[0].auxp;
     p->curbuf = 0;
-   
+
 
     return OK;
 }
 
-/* 
- this will read a buffer full of samples 
+/*
+ this will read a buffer full of samples
  from disk position offset samps from the last
  call to fillbuf
 */
 
 MYFLT *fillbuf(CSOUND *csound, DATASPACE *p, int offset){
-   
+
    sf_count_t sampsread;
 
    // find read position
    sf_seek(p->sf, offset, SEEK_CUR);
 
    // fill p->curbuf
-   sampsread = sf_read_MYFLT(p->sf, p->indata[curbuf].auxp, 
+   sampsread = sf_read_MYFLT(p->sf, p->indata[curbuf].auxp,
                 p->indata[curbuf].size/sizeof(MYFLT));
 
    // place read pointer at the read position
@@ -658,15 +658,15 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
                                        "inconsistent with number of "
                                        "sound file channels"));
         sizefrs = size/nchans;
-        
+
         while(spos > sizefrs) {
-	  tab = fillbuffer(csound, p, size*sizeof(MYFLT));
+          tab = fillbuffer(csound, p, size*sizeof(MYFLT));
           spos -= sizefrs;
-	}
+        }
         while(spos <= 0){
           tab = fillbuffer(csound, p, -size*sizeof(MYFLT));
           spos += sizefrs;
-	}      
+        }
 
         for (j = 0; j < nchans; j++) {
           pos = spos;
@@ -785,7 +785,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
       }
 
       /* we only output as many channels as we have outs for */
-      for (j=0; j < outnum; j++) { 
+      for (j=0; j < outnum; j++) {
         out = p->out[j];
         framecnt  = (int *) p->framecount[j].auxp;
         outframe  = (MYFLT *) p->outframe[j].auxp;
