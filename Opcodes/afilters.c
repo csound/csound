@@ -354,9 +354,26 @@ typedef struct  {
         double  a[8];
 } BFIL;
 
+typedef struct  {
+        OPDS    h;
+        MYFLT   *sr, *ain, *kfo, *kbw, *istor;
+        MYFLT   lkf, lkb;
+        double  a[8];
+} BBFIL;
+
 #define ROOT2 (1.4142135623730950488)
 
 extern int butset(CSOUND *csound, BFIL *p);
+
+static int bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
+{
+    if (*p->istor==FL(0.0)) {
+      p->a[6] = p->a[7] = 0.0;
+      p->lkb = FL(0.0);
+      p->lkf = FL(0.0);
+    }
+    return OK;
+}
 
 static int hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
 {
@@ -364,7 +381,7 @@ static int hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
-    double    *a, c;
+    double    *a;
     double t, y;
     uint32_t nn;
     a = p->a;
@@ -382,18 +399,19 @@ static int hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
       return OK;
     }
 
-    if (p->afc[0] != p->lkf)      {
-      p->lkf = p->afc[0];
-      c = tan((double)(csound->pidsr * p->lkf));
+    /* if (p->afc[0] != p->lkf)      { */
+    /*   p->lkf = p->afc[0]; */
+    /*   c = tan((double)(csound->pidsr * p->lkf)); */
 
-      a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
-      a[2] = -(a[1] + a[1]);
-      a[3] = a[1];
-      a[4] = 2.0 * ( c*c - 1.0) * a[1];
-      a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
-    }
+    /*   a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c); */
+    /*   a[2] = -(a[1] + a[1]); */
+    /*   a[3] = a[1]; */
+    /*   a[4] = 2.0 * ( c*c - 1.0) * a[1]; */
+    /*   a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1]; */
+    /* } */
     for (nn=offset; nn<nsmps; nn++) {
       if (p->afc[nn] != p->lkf)      {
+        double c;
         p->lkf = p->afc[nn];
         c = tan((double)(csound->pidsr * p->lkf));
 
@@ -419,7 +437,7 @@ static int lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
-    double *a = p->a, c;
+    double *a = p->a;
     double t, y;
     uint32_t nn;
 
@@ -437,19 +455,19 @@ static int lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-    if (p->afc[0] != p->lkf)      {
-      p->lkf = p->afc[0];
-      c = 1.0 / tan((double)(csound->pidsr * p->lkf));
-      a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
-      a[2] = a[1] + a[1];
-      a[3] = a[1];
-      a[4] = 2.0 * ( 1.0 - c*c) * a[1];
-      a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
-    }
+    /* if (p->afc[0] != p->lkf)      { */
+    /*   p->lkf = p->afc[0]; */
+    /*   c = 1.0 / tan((double)(csound->pidsr * p->lkf)); */
+    /*   a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c); */
+    /*   a[2] = a[1] + a[1]; */
+    /*   a[3] = a[1]; */
+    /*   a[4] = 2.0 * ( 1.0 - c*c) * a[1]; */
+    /*   a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1]; */
+    /* } */
 
-    //butter_filter(nsmps, offset, in, out, p->a);
     for (nn=offset; nn<nsmps; nn++) {
-      if (p->afc[nn] != p->lkf)      {
+      if (p->afc[nn] != p->lkf) {
+        double c;
         p->lkf = p->afc[nn];
         c = 1.0 / tan((double)(csound->pidsr * p->lkf));
         a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
@@ -468,6 +486,113 @@ static int lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
     return OK;
 }
 
+static int bpbutxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t nsmps = CS_KSMPS;
+    MYFLT       *out, *in;
+    double *a = p->a;
+    double t, y;
+    uint32_t nn;
+
+    in = p->ain;
+    out = p->sr;
+    if (p->kbw[0] <= FL(0.0))     {
+      memset(out, 0, CS_KSMPS*sizeof(MYFLT));
+      return OK;
+    }
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    /* if (p->kbw[0] != p->lkb || p->kfo[0] != p->lkf) { */
+    /*   p->lkf = p->kfo[0]; */
+    /*   p->lkb = p->kbw[0]; */
+    /*   c = 1.0 / tan((double)(csound->pidsr * p->lkb)); */
+    /*   d = 2.0 * cos((double)(csound->tpidsr * p->lkf)); */
+    /*   a[1] = 1.0 / (1.0 + c); */
+    /*   a[2] = 0.0; */
+    /*   a[3] = -a[1]; */
+    /*   a[4] = - c * d * a[1]; */
+    /*   a[5] = (c - 1.0) * a[1]; */
+    /* } */
+    //butter_filter(nsmps, offset, in, out, p->a);
+    for (nn=offset; nn<nsmps; nn++) {
+      MYFLT bw, fr;
+      bw = (XINARG3 ? p->kbw[nn] : *p->kbw);
+      fr = (XINARG2 ? p->kfo[nn] : *p->kfo);
+      if (bw != p->lkb || fr != p->lkf) {
+        double c, d;
+        p->lkf = fr;
+        p->lkb = bw;
+        c = 1.0 / tan((double)(csound->pidsr * bw));
+        d = 2.0 * cos((double)(csound->tpidsr * fr));
+        a[1] = 1.0 / (1.0 + c);
+        a[2] = 0.0;
+        a[3] = -a[1];
+        a[4] = - c * d * a[1];
+        a[5] = (c - 1.0) * a[1];
+      }
+      t = (double)in[nn] - a[4] * a[6] - a[5] * a[7];
+      t = csoundUndenormalizeDouble(t); /* Not needed on AMD */
+      y = t * a[1] + a[2] * a[6] + a[3] * a[7];
+      a[7] = a[6];
+      a[6] = t;
+      out[nn] = (MYFLT)y;
+    }
+    return OK;
+}
+
+static int bcbutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t nsmps = CS_KSMPS;
+    MYFLT       *out, *in;
+    double *a = p->a;
+    double t, y;
+    uint32_t nn;
+
+    in = p->ain;
+    out = p->sr;
+
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    if (p->kbw[0] <= FL(0.0))     {
+      memcpy(&out[offset], &out[offset], (nsmps-offset)*sizeof(MYFLT));
+      return OK;
+    }
+
+    for (nn=offset; nn<nsmps; nn++) {
+      MYFLT bw, fr;
+      bw = (XINARG3 ? p->kbw[nn] : *p->kbw);
+      fr = (XINARG2 ? p->kfo[nn] : *p->kfo);
+      if (bw != p->lkb || fr != p->lkf) {
+        double c, d;
+        p->lkf = fr;
+        p->lkb = bw;
+        c = tan((double)(csound->pidsr * bw));
+        d = 2.0 * cos((double)(csound->tpidsr * fr));
+        a[1] = 1.0 / (1.0 + c);
+        a[2] = - d * a[1];
+        a[3] = a[1];
+        a[4] = a[2];
+        a[5] = (1.0 - c) * a[1];
+      }
+      t = (double)in[nn] - a[4] * a[6] - a[5] * a[7];
+      t = csoundUndenormalizeDouble(t); /* Not needed on AMD */
+      y = t * a[1] + a[2] * a[6] + a[3] * a[7];
+      a[7] = a[6];
+      a[6] = t;
+      out[nn] = (MYFLT)y;
+    }
+    return OK;
+}
 
 
 
@@ -482,6 +607,10 @@ static OENTRY afilts_localops[] =
   { "butterlp.a", sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)lobuta  },
   { "buthp.a",    sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)hibuta  },
   { "butlp.a",    sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)lobuta  },
+  { "butterbp",   sizeof(BBFIL),0,5,"a","axxo",   (SUBR)bbutset,NULL,(SUBR)bpbutxx},
+  { "butbp",      sizeof(BBFIL),0,5,"a","axxo",  (SUBR)bbutset,NULL,(SUBR)bpbutxx},
+  { "butterbr",   sizeof(BBFIL),0,5,"a","axxo",   (SUBR)bbutset,NULL,(SUBR)bpbutxx},
+  { "butbr",      sizeof(BBFIL),0,5,"a","axxo",  (SUBR)bbutset,NULL,(SUBR)bpbutxx},
 };
 
 LINKAGE_BUILTIN(afilts_localops)
