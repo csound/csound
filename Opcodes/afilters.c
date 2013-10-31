@@ -282,6 +282,7 @@ static int aresonka(CSOUND *csound, RESON *p)
 }
 
 extern int tonset(CSOUND*, TONE*);
+extern int tonsetx(CSOUND *csound, TONEX *p);
 
 static int atonea(CSOUND *csound, TONE *p)
 {
@@ -324,6 +325,7 @@ static int tonea(CSOUND *csound, TONE *p)
     uint32_t n, nsmps = CS_KSMPS;
     double      c1 = p->c1, c2 = p->c2;
     double      yt1 = p->yt1;
+    double      prvhp = p->prvhp;
 
     ar = p->ar;
     asig = p->asig;
@@ -333,19 +335,93 @@ static int tonea(CSOUND *csound, TONE *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      if (p->khp[n] != (MYFLT)p->prvhp) {
+      if (p->khp[n] != prvhp) {
         double b;
-        p->prvhp = (double)p->khp[n];
-        b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
-        p->c2 = c2 = b - sqrt(b * b - 1.0);
-        p->c1 = c1 = 1.0 - c2;
+        prvhp = (double)p->khp[n];
+        b = 2.0 - cos((double)(prvhp * csound->tpidsr));
+        c2 = b - sqrt(b * b - 1.0);
+        c1 = 1.0 - c2;
       }
       yt1 = c1 * (double)(asig[n]) + c2 * yt1;
       ar[n] = (MYFLT)yt1;
     }
     p->yt1 = yt1;
+    p->prvhp = prvhp;
+    p->c1 = c1;
+    p->c2 = c2;
     return OK;
 }
+
+static int tonexa(CSOUND *csound, TONEX *p) /* From Gabriel Maldonado, modified */
+{
+    MYFLT       *ar = p->ar;
+    double      c2 = p->c2, *yt1 = p->yt1,c1 = p->c1;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      j, lp = p->loop;
+
+    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
+    if (UNLIKELY(offset))  memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (j=0; j< lp; j++) {
+      /* Should *yt1 be reset to something?? */
+      for (n=0; n<nsmps; n++) {
+        double x;
+        if (p->khp[n] != p->prvhp) {
+          double b;
+          p->prvhp = (double)p->khp[n];
+          b = 2.0 - cos(p->prvhp * (double)csound->tpidsr);
+          p->c2 = b - sqrt(b * b - 1.0);
+          p->c1 = 1.0 - p->c2;
+        }
+        x = c1 * ar[n] + c2 * yt1[j];
+        yt1[j] = x;
+        ar[n] = (MYFLT)x;
+      }
+    }
+    return OK;
+}
+
+static int atonexa(CSOUND *csound, TONEX *p) /* Gabriel Maldonado, modified */
+{
+    MYFLT       *ar = p->ar;
+    double      c2 = p->c2, *yt1 = p->yt1;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    int      j, lp = p->loop;
+    MYFLT    prvhp = p->prvhp;
+
+    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (j=1; j<lp; j++) {
+      for (n=offset; n<nsmps; n++) {
+        double sig = (double)ar[n];
+        double x;
+        if (p->khp[n] != prvhp) {
+          double b;
+          prvhp = p->khp[n];
+          b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
+          c2 = b - sqrt(b * b - 1.0);
+        }
+        x = c2 * (yt1[j] + sig);
+        yt1[j] = x - sig;            /* yt1 contains yt1-xt1 */
+        ar[n] = (MYFLT)x;
+      }
+    }
+    p->c2 = c2;
+    p->prvhp = prvhp;
+    return OK;
+}
+
 
 typedef struct  {
         OPDS    h;
@@ -598,19 +674,21 @@ static int bcbutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
 
 static OENTRY afilts_localops[] =
 {
-  { "areson.aa", sizeof(RESON), 0,5,"a","aaaoo", (SUBR)rsnset,NULL,(SUBR)aresonaa},
-  { "areson.ak", sizeof(RESON), 0,5,"a","aakoo", (SUBR)rsnset,NULL,(SUBR)aresonak},
-  { "areson.ka", sizeof(RESON), 0,5,"a","akaoo", (SUBR)rsnset,NULL,(SUBR)aresonka},
-  { "atone.a",  sizeof(TONE),   0,5,"a","ako",   (SUBR)tonset,NULL,(SUBR)atonea  },
-  { "tone.a",  sizeof(TONE),    0,5,"a","aao",   (SUBR)tonset,NULL,(SUBR)tonea   },
-  { "butterhp.a", sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)hibuta  },
-  { "butterlp.a", sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)lobuta  },
-  { "buthp.a",    sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)hibuta  },
-  { "butlp.a",    sizeof(BFIL), 0,5,"a","aao",   (SUBR)butset,NULL,(SUBR)lobuta  },
-  { "butterbp",   sizeof(BBFIL),0,5,"a","axxo",   (SUBR)bbutset,NULL,(SUBR)bpbutxx},
-  { "butbp",      sizeof(BBFIL),0,5,"a","axxo",  (SUBR)bbutset,NULL,(SUBR)bpbutxx},
-  { "butterbr",   sizeof(BBFIL),0,5,"a","axxo",   (SUBR)bbutset,NULL,(SUBR)bpbutxx},
-  { "butbr",      sizeof(BBFIL),0,5,"a","axxo",  (SUBR)bbutset,NULL,(SUBR)bpbutxx},
+  { "areson.aa", sizeof(RESON), 0,5,"a","aaaoo",(SUBR)rsnset,NULL,(SUBR)aresonaa},
+  { "areson.ak", sizeof(RESON), 0,5,"a","aakoo",(SUBR)rsnset,NULL,(SUBR)aresonak},
+  { "areson.ka", sizeof(RESON), 0,5,"a","akaoo",(SUBR)rsnset,NULL,(SUBR)aresonka},
+  { "atone.a",  sizeof(TONE),   0,5,"a","ako",  (SUBR)tonset,NULL,(SUBR)atonea  },
+  { "atonex.a", sizeof(TONEX),  0,5, "a","aaoo",(SUBR)tonsetx,NULL,(SUBR)atonexa},
+  { "tone.a",  sizeof(TONE),    0,5,"a","aao",  (SUBR)tonset,NULL,(SUBR)tonea   },
+  { "tonex.a", sizeof(TONEX),   0,5,"a","aaoo", (SUBR)tonsetx,NULL,(SUBR)tonexa },
+  { "butterhp.a", sizeof(BFIL), 0,5,"a","aao",  (SUBR)butset,NULL,(SUBR)hibuta  },
+  { "butterlp.a", sizeof(BFIL), 0,5,"a","aao",  (SUBR)butset,NULL,(SUBR)lobuta  },
+  { "buthp.a",    sizeof(BFIL), 0,5,"a","aao",  (SUBR)butset,NULL,(SUBR)hibuta  },
+  { "butlp.a",    sizeof(BFIL), 0,5,"a","aao",  (SUBR)butset,NULL,(SUBR)lobuta  },
+  { "butterbp",   sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bpbutxx},
+  { "butbp",      sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bpbutxx},
+  { "butterbr",   sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bpbutxx},
+  { "butbr",      sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bpbutxx},
 };
 
 LINKAGE_BUILTIN(afilts_localops)
