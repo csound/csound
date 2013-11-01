@@ -137,7 +137,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
         csound->info_message_request = 0;
         csound->LongJmp(csound, 1);
       }
-      else dieu(csound, Str("no orchestra name"));
+      else if(csound->oparms->daemon == 0)
+         dieu(csound, Str("no orchestra name"));
 
     }
     else if (csound->use_only_orchfile == 0
@@ -158,13 +159,14 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
         mfree(csound, fileDir);
       }
 
+      if(csound->orchname != NULL) {
       csound->csdname = csound->orchname; /* save original CSD name */
       if (!read_unified_file(csound, &(csound->orchname),
                                        &(csound->scorename))) {
         csound->Die(csound, Str("Reading CSD failed ... stopping"));
       }
-
       csdFound = 1;
+      }
     }
 
     /* IV - Feb 19 2005: run a second pass of argdecode so that */
@@ -209,13 +211,13 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       mfree(csound, fileDir);
     }
 
-    if (csound->orchstr==NULL) {
+    if (csound->orchstr==NULL && csound->orchname) {
       /*  does not deal with search paths */
       csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
       csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL, 0);
       if (csound->orchstr==NULL)
         csound->Die(csound,
-                    Str("Failed to open input file %s\n"), csound->orchname);
+                    Str("Failed to open input file - %s\n"), csound->orchname);
       corfile_puts("\n#exit\n", csound->orchstr);
       corfile_putc('\0', csound->orchstr);
       corfile_putc('\0', csound->orchstr);
@@ -229,7 +231,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
      if(csoundCompileOrc(csound, NULL) != 0){
-       if(csound->oparms->no_exit_on_compile_error == 0)
+       if(csound->oparms->daemon == 0)
          csoundDie(csound, Str("cannot compile orchestra \n"));
        else {
          /* VL -- 21-10-13 Csound does not need to die on
