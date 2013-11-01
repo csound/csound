@@ -87,9 +87,12 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       file_to_int(csound, "**unknown**");
       if (str == NULL) {
         char bb[80];
-        if (csound->orchstr==NULL)
+
+        if (csound->orchstr==NULL && !csound->oparms->daemon)
           csound->Die(csound,
                       Str("Failed to open input file %s\n"), csound->orchname);
+        else return NULL;
+
         if (csound->orchname==NULL ||
             csound->orchname[0]=='\0') csound->orchname = csound->csdname;
         /* We know this is the start so stack is empty so far */
