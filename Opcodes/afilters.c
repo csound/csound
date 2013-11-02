@@ -562,7 +562,7 @@ static int lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
     return OK;
 }
 
-static int bpbutxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
+static int bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -621,7 +621,7 @@ static int bpbutxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
     return OK;
 }
 
-static int bcbutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
+static int bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -685,10 +685,10 @@ static OENTRY afilts_localops[] =
   { "butterlp.a", sizeof(BFIL), 0,5,"a","aao",  (SUBR)butset,NULL,(SUBR)lobuta  },
   { "buthp.a",    sizeof(BFIL), 0,5,"a","aao",  (SUBR)butset,NULL,(SUBR)hibuta  },
   { "butlp.a",    sizeof(BFIL), 0,5,"a","aao",  (SUBR)butset,NULL,(SUBR)lobuta  },
-  { "butterbp",   sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bpbutxx},
-  { "butbp",      sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bpbutxx},
-  { "butterbr",   sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bpbutxx},
-  { "butbr",      sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bpbutxx},
+  { "butterbp",   sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bppasxx},
+  { "butbp",      sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bppasxx},
+  { "butterbr",   sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bpcutxx},
+  { "butbr",      sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bpcutxx},
 };
 
 LINKAGE_BUILTIN(afilts_localops)

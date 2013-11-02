@@ -181,7 +181,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
         scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor */
         k     = res*scale;
       }
-      xn = (double)in[n] * dmax;
+      xn = (double)in[n] * dmax/csound->e0dbfs;
       xn = xn - k * y4n; /* Inverted feed back for corner peaking */
 
       /* Four cascaded onepole filters (bilinear transform) */
@@ -202,7 +202,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
       y1nm1 = y1n;      /* Update Y1n-1 */
       y2nm1 = y2n;      /* Update Y2n-1 */
       y3nm1 = y3n;      /* Update Y3n-1 */
-      out[n]   = (MYFLT)(y4n * max);
+      out[n]   = (MYFLT)(y4n * max * csound->e0dbfs);
     }
     p->xnm1 = xnm1; p->y1nm1 = y1nm1; p->y2nm1 = y2nm1; p->y3nm1 = y3nm1;
     p->y1n  = y1n;  p->y2n  = y2n; p->y3n = y3n; p->y4n = y4n;

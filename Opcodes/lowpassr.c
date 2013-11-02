@@ -262,19 +262,12 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
     MYFLT    b, k = p->k;
     MYFLT   *ar, *asig, yn,*ynm1, *ynm2 ;
     MYFLT    coef1 = p->coef1, coef2 = p->coef2;
-    MYFLT    kfco = *p->kfco, kres = *p->kres;
+    MYFLT    *kfco = p->kfco, *kres = p->kres;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      j;
 
-    if (p->okf != kfco || p->okr != kres) { /* Only if changed */
-      b = FL(10.0) / (*p->kres * SQRT(kfco)) - FL(1.0);
-      p->k = k = FL(1000.0) / kfco;
-      p->coef1 = coef1 = (b+FL(2.0) * k);
-      p->coef2 = coef2 = FL(1.0)/(FL(1.0) + b + k);
-      p->okf = kfco; p->okr = kres; /* remember to save recalculation */
-    }
 
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
@@ -289,12 +282,24 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
       ar = p->ar;
 
       for (n=offset;n<nsmps;n++) {
+        MYFLT fco = (XINARG2 ? kfco[n] : *kfco);
+        MYFLT res = (XINARG3 ? kres[n] : *kres);
+        if (p->okf != fco || p->okr != res) { /* Only if changed */
+          b = FL(10.0) / (res * SQRT(fco)) - FL(1.0);
+          k = FL(1000.0) / fco;
+          coef1 = (b+FL(2.0) * k);
+          coef2 = FL(1.0)/(FL(1.0) + b + k);
+          p->okf = fco; p->okr = res; /* remember to save recalculation */
+        }
         ar[n] = yn = (coef1 * ynm1[j] - k * ynm2[j] + asig[n]) * coef2;
         ynm2[j] = ynm1[j];
         ynm1[j] = yn;
       }
       asig= p->ar;
     }
+    p->k = k;
+    p->coef1 = coef1;
+    p->coef2 = coef2;
     return OK;
 }
 
@@ -373,7 +378,7 @@ static OENTRY localops[] = {
                           (SUBR)lowpr_set, NULL,   (SUBR)lowprak },
 { "lowres.ka",   S(LOWPR),   0, 5, "a", "akao",
                           (SUBR)lowpr_set, NULL,   (SUBR)lowprka },
-{ "lowresx",  S(LOWPRX),  0, 5, "a", "akkoo",
+{ "lowresx",  S(LOWPRX),  0, 5, "a", "axxoo",
                           (SUBR)lowpr_setx, NULL, (SUBR)lowprx   },
 { "vlowres", S(LOWPR_SEP),0, 5, "a", "akkik",
                           (SUBR)lowpr_w_sep_set, NULL, (SUBR)lowpr_w_sep }
