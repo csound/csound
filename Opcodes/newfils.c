@@ -508,19 +508,15 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
 {
     MYFLT  *out = p->out;
     MYFLT  *in = p->in;
-    MYFLT  freq = *p->freq;
-    MYFLT  ris = *p->ris;
-    MYFLT  dec = *p->dec;
+    MYFLT  *freq = p->freq;
+    MYFLT  *ris = p->ris;
+    MYFLT  *dec = p->dec;
     double  *delay = p->delay,ang,fsc,rrad1,rrad2;
     double  w1,y1,w2,y2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-
-    ang = (double)csound->tpidsr*freq;         /* pole angle */
-    fsc = sin(ang) - 3.0;                      /* freq scl   */
-    rrad1 =  pow(10.0, fsc/(dec*CS_ESR));  /* filter radii */
-    rrad2 =  pow(10.0, fsc/(ris*CS_ESR));
+    MYFLT lfrq = -FL(1.0), lrs = -FL(1.0), ldc = -FL(1.0);
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -528,6 +524,16 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (i=offset;i<nsmps;i++) {
+      MYFLT frq = XINARG2 ? freq[i] : *freq;
+      MYFLT rs = XINARG3 ? ris[i] : *ris;
+      MYFLT dc = XINARG4 ? dec[i] : *dec;
+      if (frq != lfrq || rs != lrs || dc != ldc) {
+        lfrq = frq; lrs = rs; ldc = dc;
+        ang = (double)csound->tpidsr*frq;         /* pole angle */
+        fsc = sin(ang) - 3.0;                      /* freq scl   */
+        rrad1 =  pow(10.0, fsc/(dc*CS_ESR));  /* filter radii */
+        rrad2 =  pow(10.0, fsc/(rs*CS_ESR));
+      }
 
       w1  = in[i] + 2.0*rrad1*cos(ang)*delay[0] - rrad1*rrad1*delay[1];
       y1 =  w1 - delay[1];
@@ -556,7 +562,7 @@ static OENTRY localops[] = {
                     (SUBR) moogladder_init, NULL, (SUBR) moogladder_process_ka },
   {"statevar", sizeof(statevar), 0, 5, "aaaa", "axxop",
                     (SUBR) statevar_init, NULL, (SUBR) statevar_process     },
-  {"fofilter", sizeof(fofilter), 0, 5, "a", "akkkp",
+  {"fofilter", sizeof(fofilter), 0, 5, "a", "axxxp",
                     (SUBR) fofilter_init, NULL, (SUBR) fofilter_process     }
 };
 
