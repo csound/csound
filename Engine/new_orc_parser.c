@@ -91,7 +91,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         if (csound->orchstr==NULL && !csound->oparms->daemon)
           csound->Die(csound,
                       Str("Failed to open input file %s\n"), csound->orchname);
-        else return NULL;
+        //else return NULL;
 
         if (csound->orchname==NULL ||
             csound->orchname[0]=='\0') csound->orchname = csound->csdname;
