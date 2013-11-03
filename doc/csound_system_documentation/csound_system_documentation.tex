@@ -12,6 +12,7 @@
 \begin{document}
 \maketitle
 
+%===========================
 \chapter{Introduction}
 
 ...
@@ -41,88 +42,73 @@ Libraries}
 
 \subsection{Source Tree Walkthrough}
 
-cs6
+\begin{description}
 
-root of Csound 6
+\item[cs6] root of Csound 6
 
-cs6/include
-
-public headers that will get distributed and used by host-applications
+\item[cs6/include] public headers that will get distributed and used by host-applications
 and plugin libraries
 
-cs6/H
+\item[cs6/H] private headers that are only used within libcsound itself
 
-private headers that are only used within libcsound itself
-
-cs6/Top
-
-Contains source files for the parts that wrap the engine, including
+\item[cs6/Top] Contains source files for the parts that wrap the engine, including
 argument parsing, module loading, CSD reading, CScore, and others
 
-cs6/Engine
+\item[cs6/Engine] Contains source files for the audio engine and compiler of Csound
 
-Contains source files for the audio engine and compiler of Csound
-
-cs6/InOut
-
-Contains source files for plugin libraries dealing with input and
+\item[cs6/InOut] Contains source files for plugin libraries dealing with input and
 output, particularly audio, midi, and graphs
 
-cs6/OOps
-
-Contains source files for opcodes. Originally named for ``Original
+\item[cs6/OOps] Contains source files for opcodes. Originally named for ``Original
 Opcodes'', now contains mostly opcodes built-in to libcsound
 
-cs6/Opcodes
-
-Contains source files for opcodes. Those that do not have external
+\item[cs6/Opcodes] Contains source files for opcodes. Those that do not have external
 library dependencies have been folded back into libcsound. Those with
 external dependencies are built as separate opcode plugins.
 
-cs6/interfaces
-
-Contains the source files for building the various interface wrapper
+\item[cs6/interfaces] Contains the source files for building the various interface wrapper
 libraries (i.e.~Java, Python), as well as the C++ interface library.
 
-cs6/frontends
-
-Contains the source files for building various frontends (i.e.~CsoundAC,
+\item[cs6/frontends] Contains the source files for building various frontends (i.e.~CsoundAC,
 csoundapi\textasciitilde{}, beats).
 
-cs6/util
-
-Contains the source files for the main csound-related utilities
+\item[cs6/util] Contains the source files for the main csound-related utilities
 (i.e.~pvanal, lpanal, dnoise, etc.). The files here are used to build
 individual commandline programs, as well as altogether for the stdutil
 plugin library.
 
-cs6/util1
-
-Contains the source files for building various frontends (i.e.~CsoundAC,
+\item[cs6/util1] Contains the source files for building various frontends (i.e.~CsoundAC,
 csoundapi\textasciitilde{}, beats).
 
-cs6/installer
-
-Contains the source code and build scripts for creating various
+\item[cs6/installer] Contains the source code and build scripts for creating various
 platform-specific installers.
 
-cs6/android
-
-Contains example projects and build scripts for building Csound for
+\item[cs6/android] Contains example projects and build scripts for building Csound for
 Android.
 
-cs6/iOS
+\item[cs6/iOS] Contains example projects and build scripts for building Csound for iOS.
 
-Contains example projects and build scripts for building Csound for iOS.
+\end{description}
 
-\subsection{High-Level Architecture}
+
+%===========================
+\chapter{High-Level Architecture}
+
+\begin{figure}[htbp]
+\centerline{\framebox{
+        \includegraphics[width=0.8\textwidth]{images/overview.png}}}
+\caption{Csound System Architecture Overview}
+\label{overview}
+\end{figure}
 
 The architecture of Csound follows in the tradition of Music-N. It uses
 the abstraction of \emph{instruments} for time-schedulable blocks of
-code made up of unit generators, called \emph{opcodes}. \ldots{}
+code made up of unit generators, called \emph{opcodes}. 
 
-\begin{center}\rule{3in}{0.4pt}\end{center}
 
+
+
+%===========================
 \chapter{Prelude to Processing}
 
 \section{Csound Configuration (Commandline Args/Options)}
@@ -141,6 +127,7 @@ Text is read through one of two primary paths:
 
 Both of the paths actually filter through the CORFILE system\ldots{}
 
+%===========================
 \chapter{Orchestra Compiler}
 
 \section{Introduction}
@@ -189,6 +176,7 @@ Instruments, Opcodes, Instrument Instances, Opcode Instances
 \subsection{Transactional Compilation}
 
 
+%===========================
 \chapter{Score Compiler}
 
 \subsection{Event Parsing}
@@ -197,6 +185,8 @@ Instruments, Opcodes, Instrument Instances, Opcode Instances
 
 \begin{center}\rule{3in}{0.4pt}\end{center}
 
+
+%===========================
 \chapter{Runtime}
 
 \section{Introduction}
@@ -216,8 +206,12 @@ Instruments, Opcodes, Instrument Instances, Opcode Instances
 \section{Channels}
 
 
+%===========================
 \chapter{API and Wrappers}
 
+
+
+%===========================
 \chapter{Developer Information}
 
 \section{Csound Testing}
