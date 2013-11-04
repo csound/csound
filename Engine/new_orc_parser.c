@@ -125,7 +125,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       csound_preset_extra(&qq, qq.yyscanner);
       qq.line = csound->orcLineOffset;
       csound->expanded_orc = corfile_create_w();
-      add_include_udo_dir(csound->expanded_orc);
+      //add_include_udo_dir(csound->expanded_orc);
       file_to_int(csound, "**unknown**");
       if (str == NULL) {
         char bb[80];
