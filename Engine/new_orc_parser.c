@@ -97,7 +97,7 @@ void add_include_udo_dir(CORFIL *xx)
       printf("** found CS_UDO_DIR=%s\n", dir);
       if (udo) {
         struct dirent *f;
-        printf("**and it opens\n");
+        //printf("**and it opens\n");
         strcpy(buff, "#line 0\n");
         while ((f = readdir(udo)) != NULL) {
           char *fname = &(f->d_name[0]);
@@ -120,7 +120,7 @@ void add_include_udo_dir(CORFIL *xx)
         corfile_preputs(buff, xx);
       }
     }
-    printf("Giving\n%s", corfile_body(xx));
+    //printf("Giving\n%s", corfile_body(xx));
 }
 
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
