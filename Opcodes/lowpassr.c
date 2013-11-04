@@ -338,6 +338,7 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
       nsmps -= early;
       memset(&p->ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    ar = p->ar;
     for (j=0; j< p->loop; j++) {
       MYFLT lynm1 = ynm1[j];
       MYFLT lynm2 = ynm2[j];
@@ -353,7 +354,6 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
       coef1 = (b+FL(2.0) *k);
       coef2 = FL(1.0)/(FL(1.0) + b + k);
 
-      ar = p->ar;
       for (n=offset;n<nsmps; n++) {
         /* This can be speeded up avoiding indirection */
         ar[n] = yn = (coef1 * lynm1 - k * lynm2 + asig[n]) * coef2;
