@@ -27,6 +27,21 @@
 #include "csound_orc.h"
 #include "corfile.h"
 
+#if defined(HAVE_DIRENT_H)
+#  include <dirent.h>
+#  if 0 && defined(__MACH__)
+typedef void*   DIR;
+DIR             opendir(const char *);
+struct dirent   *readdir(DIR*);
+int             closedir(DIR*);
+#  endif
+#endif
+
+#if defined(WIN32)
+#  include <io.h>
+#  include <direct.h>
+#endif
+
 extern void csound_orcrestart(FILE*, void *);
 
 extern int csound_orcdebug;
@@ -72,6 +87,32 @@ uint32_t make_location(PRE_PARM *qq)
     return loc;
 }
 
+// Code to add #includes of UDOs
+void add_include_udo_dir(CORFIL *xx)
+{
+    char *dir = getenv("CS_UDO_DIR");
+    if (dir) {
+      DIR *udo = opendir(dir);
+      printf("** found CS_UDO_DIR=%s\n", dir);
+      if (udo) {
+        struct dirent *f;
+        printf("**and it opens\n");
+        while ((f = readdir(udo)) != NULL) {
+          char *fname = &(f->d_name[0]);
+          int n = (int)strlen(fname);
+          printf("**  name=%s n=%d\n", fname, n);
+          if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
+            corfile_puts("#include \"", xx);corfile_puts(dir, xx);
+            corfile_puts("/", xx); corfile_puts(fname, xx);
+            corfile_puts("\"\n", xx);
+          }
+        }
+        closedir(udo);
+      }
+    }
+    printf("Giving\n%s", corfile_body(xx));
+}
+
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
     int err;
@@ -84,6 +125,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       csound_preset_extra(&qq, qq.yyscanner);
       qq.line = csound->orcLineOffset;
       csound->expanded_orc = corfile_create_w();
+      add_include_udo_dir(csound->expanded_orc);
       file_to_int(csound, "**unknown**");
       if (str == NULL) {
         char bb[80];
@@ -147,6 +189,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       csound_orcset_extra(&pp, pp.yyscanner);
       csound_orc_scan_buffer(corfile_body(csound->expanded_orc),
                              corfile_tell(csound->expanded_orc), pp.yyscanner);
+
       //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
       err = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
       corfile_rm(&csound->expanded_orc);
