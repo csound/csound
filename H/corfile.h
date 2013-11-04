@@ -51,5 +51,6 @@ int corfile_length(CORFIL *f);
 void corfile_set(CORFIL *f, int n);
 #define corfile_set(f,n) (f->p = n)
 void corfile_seek(CORFIL *f, int n, int dir);
+void corfile_preputs(const char *s, CORFIL *f);
 
 #endif

@@ -91,23 +91,33 @@ uint32_t make_location(PRE_PARM *qq)
 void add_include_udo_dir(CORFIL *xx)
 {
     char *dir = getenv("CS_UDO_DIR");
+    char buff[1024];
     if (dir) {
       DIR *udo = opendir(dir);
       printf("** found CS_UDO_DIR=%s\n", dir);
       if (udo) {
         struct dirent *f;
         printf("**and it opens\n");
+        strcpy(buff, "#line 0\n");
         while ((f = readdir(udo)) != NULL) {
           char *fname = &(f->d_name[0]);
           int n = (int)strlen(fname);
           printf("**  name=%s n=%d\n", fname, n);
           if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
-            corfile_puts("#include \"", xx);corfile_puts(dir, xx);
-            corfile_puts("/", xx); corfile_puts(fname, xx);
-            corfile_puts("\"\n", xx);
+            strcpy(buff, "#include \"");
+            strncat(buff, dir, 1024);
+            strncat(buff, "/", 1024);
+            strncat(buff, fname, 1024);
+            strncat(buff, "\"\n", 1024);
+            if (strlen(buff)>768) {
+              corfile_preputs(buff, xx);
+              buff[0] ='\0';
+            }
           }
         }
         closedir(udo);
+        strncat(buff, "###\n", 1024);
+        corfile_preputs(buff, xx);
       }
     }
     printf("Giving\n%s", corfile_body(xx));
@@ -125,7 +135,6 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       csound_preset_extra(&qq, qq.yyscanner);
       qq.line = csound->orcLineOffset;
       csound->expanded_orc = corfile_create_w();
-      //add_include_udo_dir(csound->expanded_orc);
       file_to_int(csound, "**unknown**");
       if (str == NULL) {
         char bb[80];
@@ -135,6 +144,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                       Str("Failed to open input file %s\n"), csound->orchname);
         else if(csound->oparms->daemon)  return NULL;
 
+        add_include_udo_dir(csound->orchstr);
         if (csound->orchname==NULL ||
             csound->orchname[0]=='\0') csound->orchname = csound->csdname;
         /* We know this is the start so stack is empty so far */
