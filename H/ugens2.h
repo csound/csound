@@ -69,4 +69,5 @@ typedef struct {
         MYFLT   *sr, *xamp, *xcps, *ifn, *iphs;
         int32   lphs;
         FUNC    *ftp;
+        FUNC    FF;
 } OSC;

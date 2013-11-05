@@ -1115,6 +1115,7 @@ add_subdirectory(po)
 add_subdirectory(tests/c)
 add_subdirectory(tests/commandline)
 add_subdirectory(tests/regression)
+add_subdirectory(tests/soak)
 
 # uninstall target
 configure_file(
