@@ -436,6 +436,7 @@ OENTRY opcodlst_1[] = {
   { "oscil.ka",S(OSC),0,    5,      "a",    "kajo", oscset, NULL,   oscka  },
   { "oscil.ak",S(OSC),0,    5,      "a",    "akjo", oscset, NULL,   oscak  },
   { "oscil.aa",S(OSC),0,    5,      "a",    "aajo", oscset, NULL,   oscaa  },
+  //{ "oscil.aaA",S(OSC),0,   5,      "a",    "aai[]o", oscseta, NULL,oscaa  },
   /* Change these to
      { "oscil.kk", S(POSC),0, 7, "s", "kkjo", posc_set, kposc, posckk },
      { "oscil.ka", S(POSC),0, 5, "a", "kajo", posc_set, NULL,  poscka },
@@ -950,7 +951,7 @@ OENTRY opcodlst_1[] = {
     (SUBR)multitap_set,NULL,(SUBR)multitap_play},
   { "comb",   S(COMB),0,    5,  "a",  "akioo", (SUBR)cmbset,NULL, (SUBR)comb    },
   { "combinv",S(COMB),0,    5,  "a",  "akioo", (SUBR)cmbset,NULL, (SUBR)invcomb },
-  { "alpass", S(COMB),0,    5,  "a",  "akioo", (SUBR)cmbset,NULL, (SUBR)alpass  },
+  { "alpass", S(COMB),0,    5,  "a",  "axioo", (SUBR)cmbset,NULL, (SUBR)alpass  },
   {  "strset",   S(STRSET_OP),0,   1,  "",     "iS",
      (SUBR) strset_init, (SUBR) NULL, (SUBR) NULL                        },
   {  "strget",   S(STRGET_OP),0,   1,  "S",    "i",
