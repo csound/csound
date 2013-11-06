@@ -48,6 +48,7 @@ import com.csounds.CsoundObjCompletionListener;
 import csnd6.Csound;
 import csnd6.CsoundCallbackWrapper;
 
+@SuppressWarnings("unused")
 public class CsoundAppActivity extends Activity implements
 		CsoundObjCompletionListener, CsoundObj.MessagePoster {
 	Uri templateUri = null;
@@ -85,6 +86,7 @@ public class CsoundAppActivity extends Activity implements
 	WebView webview = null;
 
 	static {
+		
 		int result = 0;
 		try {
 			java.lang.System.loadLibrary("gnustl_shared");
@@ -211,6 +213,7 @@ public class CsoundAppActivity extends Activity implements
 		startActivity(launchBrowser);
 	}
 
+	
 	private void displayLog() {
 		try {
 			Process process = Runtime.getRuntime().exec(
@@ -336,6 +339,7 @@ public class CsoundAppActivity extends Activity implements
 		});
 		openButton = (Button) findViewById(R.id.openButton);
 		openButton.setOnClickListener(new OnClickListener() {
+			@SuppressWarnings("deprecation")
 			public void onClick(View v) {
 				loadFileList();
 				showDialog(BROWSE_DIALOG);
@@ -531,6 +535,7 @@ public class CsoundAppActivity extends Activity implements
 		case BROWSE_DIALOG:
 			builder.setTitle("Choose your file");
 			builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+				@SuppressWarnings("deprecation")
 				public void onClick(DialogInterface dialog, int which) {
 					chosenFile = fileList[which].file;
 					File sel = new File(path + "/" + chosenFile);
