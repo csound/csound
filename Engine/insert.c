@@ -1725,6 +1725,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
       do {
         /* copy inputs */
         tmp = p->buf->iobufp_ptrs;
+        
         while (*tmp) {                  /* a-rate */
           ptr1 = *(tmp++) + ofs; ptr2 = *(tmp++);
           n = csound->ksmps;
@@ -1760,7 +1761,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         out = *tmp;
         while (*(++tmp)) {              /* a-rate */
           ptr1 = *tmp; ptr2 = *(++tmp) + ofs;
-          n = csound->ksmps;
+          n = lksmps;
           do {
             *(ptr2++) = *(ptr1++);
           } while (--n);
