@@ -213,6 +213,7 @@ typedef struct {
     int     sampleAccurate;  /* switch for score events sample accuracy */
     int     realtime; /* realtime priority mode  */
     MYFLT   e0dbfs_override;
+    int     daemon;
   } OPARMS;
 
   typedef struct arglst {

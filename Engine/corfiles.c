@@ -228,3 +228,12 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     csoundFileClose(csound, fd);
     return mm;
 }
+
+void corfile_preputs(const char *s, CORFIL *f)
+{
+    char *body = f->body;
+    f->body = (char*)malloc(f->len=(strlen(body)+strlen(s)+1));
+    f->p = f->len-1;
+    strcpy(f->body, s); strcat(f->body, body);
+    free(body);
+}

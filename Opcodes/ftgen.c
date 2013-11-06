@@ -272,9 +272,9 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
         if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
           goto err;
         ftp = ft_func(csound, &fno_f);
-        memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ);
-        memset(&(ftp->ftable[0]), 0, sizeof(MYFLT) * (ftp->flen + 1));
-        n = fread(&(ftp->ftable[0]), sizeof(MYFLT), ftp->flen + 1, file);
+        memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT*) - SSTRSIZ);
+        memset(ftp->ftable, 0, sizeof(MYFLT) * (ftp->flen + 1));
+        n = fread(ftp->ftable, sizeof(MYFLT), ftp->flen + 1, file);
         if (UNLIKELY(n!=ftp->flen + 1)) goto err4;
         /* ***** Need to do byte order here ***** */
         argp++;
@@ -374,7 +374,7 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
           goto err;
         ftp = ft_func(csound, &fno_f);
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT));
-        memset(&(ftp->ftable[0]), 0, sizeof(MYFLT) * (ftp->flen + 1));
+        memset(ftp->ftable, 0, sizeof(MYFLT) * (ftp->flen + 1));
         for (j = 0; j <= ftp->flen; j++) {
           if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;
           ftp->ftable[j] = (MYFLT) cs_strtod(s, &endptr);
