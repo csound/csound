@@ -621,6 +621,7 @@ set(libcsound_SRCS
     Opcodes/cpumeter.c
     Opcodes/gendy.c
     Opcodes/tl/sc_noise.c
+    Opcodes/afilters.c
     Top/argdecode.c
     Top/cscore_internal.c
     Top/cscorfns.c
@@ -1114,6 +1115,7 @@ add_subdirectory(po)
 add_subdirectory(tests/c)
 add_subdirectory(tests/commandline)
 add_subdirectory(tests/regression)
+add_subdirectory(tests/soak)
 
 # uninstall target
 configure_file(

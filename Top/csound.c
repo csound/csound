@@ -804,7 +804,8 @@ static const CSOUND cenviron_ = {
       1,            /*    useCsdLineCounts  */
       0,            /*    samp acc   */
       0,            /*    realtime  */
-      0.0           /*    0dbfs override */
+      0.0,          /*    0dbfs override */
+      0             /*    no exit on compile error */  
     },
 
     {0, 0, {0}}, /* REMOT_BUF */

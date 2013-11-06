@@ -141,24 +141,21 @@
 #include "cs_par_orc_semantics.h"
 #include "parse_param.h"
 
-    //int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 #define udoflag csound->parserUdoflag
 
-   //int namedInstrFlag = 0; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 #define namedInstrFlag csound->parserNamedInstrFlag
 
-extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
-extern int csound_orclex(TREE**, CSOUND *, void *);
-extern void print_tree(CSOUND *, char *msg, TREE *);
-extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE*, const char*);
-extern void add_udo_definition(CSOUND*, char *, char *, char *);
-extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
+    extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
+    extern int csound_orclex(TREE**, CSOUND *, void *);
+    extern void print_tree(CSOUND *, char *msg, TREE *);
+    extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE*, const char*);
+    extern void add_udo_definition(CSOUND*, char *, char *, char *);
+    extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LINE csound_orcget_lineno(scanner)
 #define LOCN csound_orcget_locn(scanner)
-extern int csound_orcget_locn(void *);
-extern int csound_orcget_lineno(void *);
-extern ORCTOKEN *make_string(CSOUND *, char *);
-
+    extern int csound_orcget_locn(void *);
+    extern int csound_orcget_lineno(void *);
+    extern ORCTOKEN *make_string(CSOUND *, char *);
 %}
 %%
 

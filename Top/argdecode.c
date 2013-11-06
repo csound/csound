@@ -219,6 +219,7 @@ static const char *longUsageList[] = {
   Str_noop("--nchnls_i=N\t\t override number of input audio channels"),
   Str_noop("--0dbfs=N\t\t override 0dbfs (max positive signal amplitude)"),
   Str_noop("--sinesize\t\tlength of internal sine table"),
+  Str_noop("--daemon\t\t daemon mode: do not exit if CSD/orchestra is not given, is empty or does not compile"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -917,6 +918,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
              !(strcmp(s, "old-parser"))) {
         return 1;  /* ignore flag, this is here for backwards compatibility */
     }
+    else if (!(strcmp(s, "daemon"))) {
+        O->daemon = 1;
+        return 1; 
+    }
+
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
 }
@@ -1281,6 +1287,7 @@ PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
   oparms->useCsdLineCounts = p->csd_line_counts;
   oparms->heartbeat = p->heartbeat;
   oparms->ringbell = p->ring_bell;
+  oparms->daemon = p->daemon;
 
   /* message level */
   if(p->message_level > 0)
@@ -1361,6 +1368,7 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
   p->e0dbfs_override = oparms->e0dbfs_override;
   p->heartbeat = oparms->heartbeat;
   p->ring_bell = oparms->ringbell;
+  p->daemon = oparms->daemon;
 }
 
 

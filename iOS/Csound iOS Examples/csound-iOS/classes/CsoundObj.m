@@ -167,7 +167,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 		info.cs = cs;
 		info.attr = attr;
 		info.format = format;
-		info.valist = valist;
+        va_copy(info.valist,valist);
 		NSValue *infoObj = [NSValue value:&info withObjCType:@encode(Message)];
 		[obj performSelector:@selector(performMessageCallback:) withObject:infoObj];
 	}
