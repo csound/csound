@@ -26,9 +26,9 @@
 ; If you are not Michael Gogins, change this to your MSys /usr/local/ directory.
 #define MyMSysUsrLocalDir "D:\msys\local\"
 ; If you are not Michael Gogins, change this to your Csound build directory.
-#define MySourceDir "C:\Users\mkg.sorabji\csound-csound6-git\"
+#define MySourceDir "C:\Users\mike\csound-csound6-git\"
 ; If you are not Michael Gogins, change this to your Csound reference manual build directory.
-#define MyManualSourceDir "C:\Users\mkg.sorabji\csound-manual6-git\"
+#define MyManualSourceDir "C:\Users\mike\csound-manual6-git\"
 ; If you are not Michael Gogins, change this to your Csound tutorial directory.
 #define MyCsoundTutorialSourceDir "D:\Dropbox\tutorial\"
 ; If you are not Michael Gogins, change this to your CsoundAC tutorial directory.
@@ -52,7 +52,7 @@
 ; If you are not Michael Gogins, change this to your STK dll directory.
 #define MyLibStkSourceDir "D:\msys\local\src\stk-4.4.4\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
-#define MyCsoundQtBinDir "C:\Users\mkg.sorabji\qutecsound-code\bin\"
+#define MyCsoundQtBinDir "C:\Users\mike\qutecsound-code\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
 #define MyQtSdkBinDir "D:\qt-everywhere-opensource-src-5.1.0\qtbase\bin\"
 
