@@ -1,0 +1,14 @@
+csound~
+
+This ChangeLog tracks changes after Matt Ingalls and Davis Pyon's original
+project work was moved into the Csound 6 central repository.
+
+
+v1.1.1
+======
+
+* fixed issues when running in 32-bit mode Max/MSP due to direct accessing of
+values in t_atom, rather than using atom_getlong, atom_getfloat, etc.
+
+* fixed invalue channel callback code; caused crashes when invalue opcode was
+used
