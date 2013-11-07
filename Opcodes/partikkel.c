@@ -28,7 +28,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* Assume csound and p pointers are always available */
 #define frand() (csound->RandMT(&p->randstate)/(double)(0xffffffff))
-
 /* linear interpolation between x and y by z
  * NOTE: arguments evaluated more than once, do not pass anything with side
  * effects
@@ -98,62 +97,61 @@ static int setup_globals(CSOUND *csound, PARTIKKEL *p)
 
     pg = csound->QueryGlobalVariable(csound, "partikkel");
     if (pg == NULL) {
-        char *t;
-        int i;
+      int i;
 
-        if (UNLIKELY(csound->CreateGlobalVariable(csound, "partikkel",
-                                               sizeof(PARTIKKEL_GLOBALS)) != 0))
-            return INITERROR("could not allocate globals");
-        pg = csound->QueryGlobalVariable(csound, "partikkel");
-        pg->rootentry = NULL;
-        /* build default tables. allocate enough for three, plus extra for the
-         * ftable data itself */
-        t = pg->tablestorage = csound->Calloc(csound, 4*sizeof(FUNC)
-                                                      + 12*sizeof(MYFLT));
-        pg->ooo_tab = (FUNC *)t;
-        t += sizeof(FUNC) + 2*sizeof(MYFLT);
-        pg->zzz_tab = (FUNC *)t;
-        t += sizeof(FUNC) + 2*sizeof(MYFLT);
-        pg->zzo_tab = (FUNC *)t;
-        t += sizeof(FUNC) + 2*sizeof(MYFLT);
-        pg->zzhhhhz_tab = (FUNC *)t;
-        /* we only fill in the entries in the FUNC struct that we use */
-        /* table with data [1.0, 1.0, 1.0], used as default by envelopes */
-        pg->ooo_tab->flen = 2;
-        pg->ooo_tab->lobits = 31;
-        for (i = 0; i <= 2; ++i)
-            pg->ooo_tab->ftable[i] = FL(1.0);
-        /* table with data [0.0, 0.0, 0.0], used as default by grain
-         * distribution table, channel masks and grain waveforms */
-        pg->zzz_tab->flen = 2;
-        pg->zzz_tab->lobits = 31;
-        /* table with data [0.0, 0.0, 1.0], used as default by gain masks,
-         * fm index table, and wave start and end freq tables */
-        pg->zzo_tab->ftable[2] = FL(1.0);
-        /* table with data [0.0, 0.0, 0.5, 0.5, 0.5, 0.5, 0.0], used as default
-         * by wave gain table */
-        for (i = 2; i <= 5; ++i)
-            pg->zzhhhhz_tab->ftable[i] = FL(0.5);
+      if (UNLIKELY(csound->CreateGlobalVariable(csound, "partikkel",
+                                                sizeof(PARTIKKEL_GLOBALS)) != 0))
+        return INITERROR("could not allocate globals");
+      pg = csound->QueryGlobalVariable(csound, "partikkel");
+      pg->rootentry = NULL;
+      /* build default tables. allocate enough for three, plus extra for the
+       * ftable data itself */
+      /* we only fill in the entries in the FUNC struct that we use */
+      /* table with data [1.0, 1.0, 1.0], used as default by envelopes */
+      pg->ooo_tab = (FUNC *)csound->Calloc(csound, sizeof(FUNC));
+      pg->ooo_tab->ftable = (MYFLT*)csound->Calloc(csound, 3*sizeof(MYFLT));
+      pg->ooo_tab->flen = 2;
+      pg->ooo_tab->lobits = 31;
+      for (i = 0; i <= 2; ++i)
+        pg->ooo_tab->ftable[i] = FL(1.0);
+      /* table with data [0.0, 0.0, 0.0], used as default by grain
+       * distribution table, channel masks and grain waveforms */
+      pg->zzz_tab = (FUNC *)csound->Calloc(csound, sizeof(FUNC));
+      pg->zzz_tab->ftable = (MYFLT*)csound->Calloc(csound, 3*sizeof(MYFLT));
+      pg->zzz_tab->flen = 2;
+      pg->zzz_tab->lobits = 31;
+      /* table with data [0.0, 0.0, 1.0], used as default by gain masks,
+       * fm index table, and wave start and end freq tables */
+      pg->zzo_tab = (FUNC *)csound->Calloc(csound, sizeof(FUNC));
+      pg->zzo_tab->ftable = (MYFLT*)csound->Calloc(csound, 4*sizeof(MYFLT));
+      pg->zzo_tab->ftable[2] = FL(1.0);
+      pg->zzo_tab->flen = 3;  /* JPff */
+      /* table with data [0.0, 0.0, 0.5, 0.5, 0.5, 0.5, 0.0], used as default
+       * by wave gain table */
+      pg->zzhhhhz_tab = (FUNC *)csound->Calloc(csound, sizeof(FUNC));
+      pg->zzhhhhz_tab->ftable = (MYFLT*)csound->Calloc(csound, 8*sizeof(MYFLT));
+      for (i = 2; i <= 5; ++i)
+        pg->zzhhhhz_tab->ftable[i] = FL(0.5);
     }
     p->globals = pg;
     if ((int)*p->opcodeid == 0) {
-        /* opcodeid 0 means we do not bother with the sync opcode */
-        p->globals_entry = NULL;
-        return OK;
+      /* opcodeid 0 means we do not bother with the sync opcode */
+      p->globals_entry = NULL;
+      return OK;
     }
     /* try to find entry corresponding to our opcodeid */
     pe = &pg->rootentry;
     while (*pe != NULL && (*pe)->id != *p->opcodeid)
-        pe = &((*pe)->next);
+      pe = &((*pe)->next);
 
     /* check if one already existed, if not, create one */
     if (*pe == NULL) {
-        *pe = csound->Malloc(csound, sizeof(PARTIKKEL_GLOBALS_ENTRY));
-        (*pe)->id = *p->opcodeid;
-        (*pe)->partikkel = p;
-        /* allocate table for sync data */
-        (*pe)->synctab = csound->Calloc(csound, 2*CS_KSMPS*sizeof(MYFLT));
-        (*pe)->next = NULL;
+      *pe = csound->Malloc(csound, sizeof(PARTIKKEL_GLOBALS_ENTRY));
+      (*pe)->id = *p->opcodeid;
+      (*pe)->partikkel = p;
+      /* allocate table for sync data */
+      (*pe)->synctab = csound->Calloc(csound, 2*CS_KSMPS*sizeof(MYFLT));
+      (*pe)->next = NULL;
     }
     p->globals_entry = *pe;
     return OK;
