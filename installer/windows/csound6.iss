@@ -11,12 +11,19 @@
 ; All of these changes SHOULD be in the #defines immediately following this.
 ; Also, this installer assumes LuaJIT and CsoundAC are part of Csound core.
 ; At this time the following features are not included in the installer:
-; Cabbage, CsoundVST.
+; Cabbage, faustgen, vst4cs.
 ; I hope to change this soon.
+
+; Uncomment the following line to build for CsoundVST.
+; #define CSOUNDVST
 
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
-#define MyAppMinVersion "6.01.0"
+#ifdef CSOUNDVST
+#define MyAppMinVersion "6.01.1-vst"
+#else
+#define MyAppMinVersion "6.01.1"
+#endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
@@ -59,6 +66,10 @@
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full; 
+Name: "pd"; Description: "Pure Data csound~ object (requires Pure Data)"; Types: full; 
+#ifdef CSOUNDVST
+Name: "csoundvst"; Description: "Csound VST plugin"; Types: full; 
+#endif
 
 [Dirs]
 ; ALL programs and shared libraries (including opcodes and other modules) go here.
@@ -132,10 +143,14 @@ Source: "{#MyMSysBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv
 Source: "{#MyMSysUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "*.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "*.dll*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll"; Components: core;
+Source: "*.dll*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll, csound6~.dll, CsoundVST.dll"; Components: core;
 Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
+Source: "csound6~.dll";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: pd;
+#ifdef CSOUNDVST
+Source: "CsoundVST.dll";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst;
+#endif
 
 Source: "{#MyCsoundQtBinDir}CsoundQt-d-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components: core;
