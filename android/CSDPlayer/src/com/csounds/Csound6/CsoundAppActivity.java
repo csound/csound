@@ -166,7 +166,7 @@ public class CsoundAppActivity extends Activity implements
 			goToUrl("http://www.csounds.com/manual/html/index.html");
 			return true;
 		case R.id.itemAbout:
-			goToUrl("http://www.csounds.com/about");
+			goToUrl("http://www.csounds.com/");
 			return true;
 		case R.id.itemSettings:
             Intent intent = new Intent(this, SettingsActivity.class);
