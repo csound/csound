@@ -283,10 +283,13 @@ int csoundFTAlloc(CSOUND *csound, int tableNum, int len)
       csound->maxfnum = size;
     }
     /* allocate space for table */
-    size = (int) sizeof(FUNC) + (len * (int) sizeof(MYFLT));
+    size = (int) (len * (int) sizeof(MYFLT));
     ftp = csound->flist[tableNum];
-    if (ftp == NULL)
-      csound->flist[tableNum] = (FUNC*) csound->Malloc(csound, (size_t) size);
+    if (ftp == NULL) {
+      csound->flist[tableNum] = (FUNC*) csound->Malloc(csound, sizeof(FUNC));
+      csound->flist[tableNum]->ftable =
+        (MYFLT*)csound->Malloc(csound, sizeof(MYFLT)*(len+1));
+    }
     else if (len != (int) ftp->flen) {
       if (csound->actanchor.nxtact != NULL) { /*   & chk for danger    */
         /* return */  /* VL: changed this into a Warning */
@@ -986,7 +989,7 @@ static int gen15(FGDATA *ff, FUNC *ftp)
     lp13 = (void*) ftp;
     ff->fno++;                                  /* alloc eq. space for fno+1 */
     ftp = ftalloc(ff);                          /* & copy header */
-    memcpy((void*) ftp, lp13, (size_t) sizeof(FUNC));
+    memcpy((void*) ftp, lp13, (size_t) sizeof(FUNC)-sizeof(MYFLT*));
     ftp->fno = (int32) ff->fno;
     fp    = &ff->e.p[5];
     nsw = 1;
@@ -1128,11 +1131,14 @@ static int gen18(FGDATA *ff, FUNC *ftp)
       }
 
       range = (MYFLT) (finish - start), j = start;
-      while (j++ <= finish) {                      /* write the table */
-        f = (MYFLT)modf((fnlen*(j-start)/range), &i);
-        *(fp18 + j) += amp * ((f * (*(fp + (int)(i+1)) -
-                                    *(fp + (int)i))) +
-                              *(fp + (int)i));
+      while (j <= finish) {                      /* write the table */
+        f = (MYFLT)modf((fnlen*(j++ - start)/range), &i);
+        if (i==fnp->flen) 
+          fp18[j] += amp * fp[(int)i];
+        else
+          fp18[j] += amp * ((f * (*(fp + (int)(i+1)) -
+                                  *(fp + (int)i))) +
+                            *(fp + (int)i));
       }
     }
     return OK;
@@ -2221,7 +2227,7 @@ static void generate_sine_tab(CSOUND *csound)
 {                               /* Assume power of 2 length */
     int flen = csound->sinelength;
     FUNC    *ftp = (FUNC*) mcalloc(csound, sizeof(FUNC));
-    ftp->ftable = (MYFLT*) mcalloc(csound, sizeof(MYFLT)*flen);
+    ftp->ftable = (MYFLT*) mcalloc(csound, sizeof(MYFLT)*(flen+1));
     double  tpdlen = TWOPI / (double) flen;
     MYFLT *ftable = ftp->ftable;
     unsigned int i;
@@ -2266,8 +2272,8 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
         }
       }
       else {                                /* else clear it to zero */
-        memset((void*) ftp, 0, sizeof(FUNC));
         memset((void*) ftp->ftable, 0, ff->flen+1);
+        memset((void*) ftp, 0, sizeof(FUNC)-sizeof(MYFLT*)); /* leaving table! */
       }
     }
     if (ftp == NULL) {                      /*   alloc space as reqd */
