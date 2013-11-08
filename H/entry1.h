@@ -188,6 +188,7 @@ int     tablikt(CSOUND *, void *), ko1set(CSOUND *, void *);
 int     kosc1(CSOUND *, void *), kosc1i(CSOUND *, void *);
 int     oscnset(CSOUND *, void *), osciln(CSOUND *, void *);
 int     oscset(CSOUND *, void *), koscil(CSOUND *, void *);
+int     oscsetA(CSOUND *, void *);
 int     osckk(CSOUND *, void *), oscka(CSOUND *, void *);
 int     oscak(CSOUND *, void *), oscaa(CSOUND *, void *);
 int     koscli(CSOUND *, void *), osckki(CSOUND *, void *);
