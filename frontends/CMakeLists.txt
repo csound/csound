@@ -26,7 +26,7 @@ option(BUILD_CSOUND_VST "Build the CsoundVST frontend. Requires the Steinberg VS
       string(REGEX MATCH "fltk[_ ]png" FLTK_PNG ${FLTK_LIBRARIES})
     endif(FLTK_VERSION GREATER 1.1)
   endif(FLTK_CONFIG_SCRIPT)
-  if(NOT HAVE_FLTK) 
+  if(NOT HAVE_FLTK)
 
     set(FLTK_SKIP_OPENGL true)
     find_package(FLTK)
@@ -36,6 +36,7 @@ find_package(FLEX)
 find_package(BISON)
 
 find_path(PD_HEADER_PATH m_pd.h)
+find_library(PD_LIBRARY pd.dll)
 
 ## Csound Commandline Executable ##
 set(CS_MAIN_SRCS csound/csound_main.c)
@@ -58,7 +59,7 @@ function(make_plugin_frontend libname srcs)
         endif()
         math(EXPR i "${i}+1")
     endwhile()
-    
+
     set_target_properties(${libname} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
@@ -83,7 +84,7 @@ set_target_properties(csladspa PROPERTIES PREFIX "")
 check_deps(BUILD_CSBEATS FLEX_EXECUTABLE BISON_EXECUTABLE)
 
 if(BUILD_CSBEATS)
-    
+
     BISON_TARGET(csbeats_PARSER beats/beats.y ${CMAKE_CURRENT_BINARY_DIR}/beats.tab.c)
     FLEX_TARGET(csbeats_SCANNER beats/beats.l ${CMAKE_CURRENT_BINARY_DIR}/beatslex.yy.c)
 
@@ -98,34 +99,44 @@ if(BUILD_CSBEATS)
         ${BISON_csbeats_PARSER_OUTPUTS})
 
     make_executable(csbeats "${csbeats_SRCS}" "m")
-    
+
 endif()
 
 #PD Interface
-check_deps(BUILD_PD_CLASS PD_HEADER_PATH)
+if(WIN_32)
+    check_deps(BUILD_PD_CLASS PD_HEADER_PATH PD_LIBRARY)
+else()
+    check_deps(BUILD_PD_CLASS PD_HEADER_PATH)
+endif()
 if(BUILD_PD_CLASS)
-
     include_directories(${PD_HEADER_PATH})
     if(LINUX)
         set(pdname "csound6~.pd_linux")
     elseif(APPLE)
-       set(pdname "csound6~.pd_darwin")
+        set(pdname "csound6~.pd_darwin")
     elseif(WIN32)
         set(pdname "csound6~.dll")
     endif()
-
     add_library(${pdname} MODULE csoundapi_tilde/csoundapi_tilde.c)
-    target_link_libraries (${pdname} ${CSOUNDLIB})
+    if(WIN32)
+        target_link_libraries (${pdname} ${CSOUNDLIB} ${PD_LIBRARY})
+        set_target_properties(${pdname}  PROPERTIES "LINK_FLAGS"
+            "-Wl,--allow-multiple-definition")
+    else()
+        target_link_libraries (${pdname} ${CSOUNDLIB})
+    endif()
     set_target_properties(${pdname} PROPERTIES
         PREFIX ""
-        SUFFIX "")
+        SUFFIX ""
+        RUNTIME_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
     if(APPLE)
-    set_target_properties(${pdname}  PROPERTIES "LINK_FLAGS"
-    "-flat_namespace -undefined suppress")
-    ENDIF(APPLE)
+        set_target_properties(${pdname}  PROPERTIES "LINK_FLAGS"
+            "-flat_namespace -undefined suppress")
+    endif(APPLE)
     install(TARGETS ${pdname}
         LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR})
-
 endif()
 
 
@@ -137,13 +148,13 @@ if(BUILD_WINSOUND)
     set(WINSOUND_H ${CMAKE_CURRENT_BINARY_DIR}/winsound.h)
     set_source_files_properties(${WINSOUND_CXX} GENERATED)
     set_source_files_properties(${WINSOUND_H} GENERATED)
-    add_custom_target(winsound_fl COMMAND fluid -c -o ${WINSOUND_CXX} -h ${WINSOUND_H} ${WINSOUND_FL}) 
-    
+    add_custom_target(winsound_fl COMMAND fluid -c -o ${WINSOUND_CXX} -h $ --{WINSOUND_H} ${WINSOUND_FL})
+
     set(WINSOUND_SRCS ${WINSOUND_CXX} winsound/main.cxx)
 
     make_executable(winsound "${WINSOUND_SRCS}" "${FLTK_LIBRARIES}")
     target_link_libraries (winsound ${CSOUNDLIB})
-    add_dependencies(winsound winsound_fl)    
+    add_dependencies(winsound winsound_fl)
     include_directories(${FLTK_INCLUDE_DIR})
     include_directories(${CMAKE_CURRENT_BINARY_DIR})
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/winsound)
