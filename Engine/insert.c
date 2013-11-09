@@ -1817,6 +1817,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     int     n;
     OPDS    *saved_pds = CS_PDS;
     MYFLT   **tmp, *ptr1, *ptr2;
+    INSDS    *this_instr = p->ip;
     p->ip->spin = csound->spin;
     p->ip->spout = csound->spout;
 
@@ -1858,6 +1859,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
         }
       } while ((CS_PDS = CS_PDS->nxtp));
 
+      this_instr->kcounter++;
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
         ptr1 = *tmp; ptr2 = *(++tmp);
@@ -1895,6 +1897,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
           CS_PDS->insdshead->pds = NULL;
         }
       } while ((CS_PDS = CS_PDS->nxtp));
+
+      this_instr->kcounter++;
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
         ptr1 = *tmp; *(*(++tmp)) = *ptr1;
