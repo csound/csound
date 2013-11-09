@@ -101,10 +101,13 @@ Android.
 \label{overview}
 \end{figure}
 
-The architecture of Csound follows in the tradition of Music-N. It uses
-the abstraction of \emph{instruments} for time-schedulable blocks of
-code made up of unit generators, called \emph{opcodes}. 
+The architecture of Csound follows in the tradition of Music-N. In general, Csound ORC code is used to define \emph{Instruments}, which are then instantiated at run-time by Csound SCO events, MIDI events, Remote events, or API calls. Instruments in turn are made up of a series of \emph{Opcodes}, which are the Unit-Generators of Music-N heritage.
 
+In further detail, Csound Orchestra code is used to define instrument templates.  The ORC code, as text, goes through the Csound Orchestra Compiler, and at the end is compiled into INSTRTXT instances that are held in a linked-list.  The information held in INSTRTXT instances include information relevant for runtime instantiation, initiation, and performance of an instrument.  This information includes what opcodes are used and in what order for both initialization and performance time, what variables are required (including the names of the variables as well as their types), as well as how the memory for variables and opcodes are all hooked up to teach other.  
+
+For traditional Music-N systems that were not capable of accepting realtime events, a score was used as the single source of events that would trigger changes to the state of the system, such as initializing new instances of instruments or creating new function tables. In Csound, this system is still in place with the processing of SCO code at compile-time, but it also augmented with the processing of events at runtime. Before run-time, if a Csound SCO block is passed to the Score compiler, it will be processed, sorted, time-warped, and re-written as a well-formatted string.  This well-formatted string, read in using the CORFILE mechanism, represented the notes of a note-list composition.  
+
+In addition to the well-formatted SCO, realtime events can also affect the state of the system.  In general, the main performance function, kperf(), is used to process pending events (sensevents()), expire current instances (timeexpire(), beatexpire()), as well as run active instances.  In sensevents(), events that a processed are new SCO events that have arrived via STDIN pipe, SCO events from the API (csoundReadScore()), MIDI events, as well as Remote events.
 
 
 
