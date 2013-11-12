@@ -26,7 +26,7 @@
 #include "csmodule.h"
 #include <ctype.h>
 
-extern int UDPServerStart(CSOUND *csound, int port); 
+
 extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 #define FIND(MSG)   if (*s == '\0')  \
@@ -925,10 +925,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         return 1; 
     }
     else if (!(strncmp(s, "port=",5))) {
-        O->daemon = 1;
         s += 5;
-        if(csound->QueryGlobalVariable(csound, "::UDPCOM") == NULL)
-            UDPServerStart(csound,atoi(s));
+        O->daemon = atoi(s);
         return 1; 
     }
 
