@@ -397,6 +397,7 @@ static void cs_beep(CSOUND *csound)
     csound->Message(csound, Str("%c\tbeep!\n"), '\a');
 }
 
+
 PUBLIC int csoundCleanup(CSOUND *csound)
 {
     void    *p;
@@ -484,7 +485,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (csound->oparms->ringbell)
       cs_beep(csound);
 
-
+    
     return dispexit(csound);    /* hold or terminate the display output     */
 }
 
