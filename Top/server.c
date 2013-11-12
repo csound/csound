@@ -48,15 +48,17 @@ static uintptr_t udp_recv(void *pdata)
   socklen_t clilen = sizeof(from);
   UDPCOM *p = (UDPCOM *) pdata;
   CSOUND *csound = p->cs;
+  int port = p->port;
   char   *orchestra = csound->Malloc(csound, MAXSTR);
 
-  csound->Message(csound, "UDP server started on port %i \n",p->port);
+  csound->Message(csound, "UDP server started on port %d \n",port);
   while(recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen) > 0) {
-    if(csound->oparms->odebug) csound->Message(csound, "orchestra: \n %s\n", orchestra);
-    if(strcmp("##close##",orchestra)==0) break;
+   if(csound->oparms->odebug) 
+    csound->Message(csound, "orchestra: \n%s\n", orchestra);
+   if(strncmp("##close##",orchestra,9)==0) break;
     csoundCompileOrc(csound, orchestra);
   }
-
+  csound->Message(csound, "UDP server on port %d stopped\n",port);
   csound->Free(csound, orchestra);
   return (uintptr_t) 0;
 
@@ -101,9 +103,14 @@ int UDPServerClose(CSOUND *csound)
   if(p != NULL){
     const char *mess = "##close##"; 
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-    sendto(p->sock,mess,sizeof(mess),0,to,sizeof(p->server_addr)); 
-    csound->Message(csound, "closing UDP server\n");
-    csoundJoinThread(p->thrid);
+    sendto(p->sock,mess,sizeof(mess)+1,0,to,sizeof(p->server_addr)); 
+    pthread_join(p->thrid, NULL);
+#ifndef WIN32
+    close(p->sock);
+#else 
+    closesocket(p->sock);
+#endif
+    csound->DestroyGlobalVariable(csound,"::UDPCOM"); 
   }
   return OK;
 }
