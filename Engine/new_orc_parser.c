@@ -142,7 +142,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         if (csound->orchstr==NULL && !csound->oparms->daemon)
           csound->Die(csound,
                       Str("Failed to open input file %s\n"), csound->orchname);
-        else if(csound->oparms->daemon)  return NULL;
+        else if(csound->orchstr==NULL && csound->oparms->daemon)  return NULL;
 
         add_include_udo_dir(csound->orchstr);
         if (csound->orchname==NULL ||
