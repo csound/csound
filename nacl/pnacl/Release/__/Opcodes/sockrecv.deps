@@ -1,0 +1,39 @@
+# Updated by fix_deps.py
+pnacl/Release/__//Opcodes/sockrecv.o: ..//Opcodes/sockrecv.c \
+  ../include/csoundCore.h ../include/sysdep.h ../include/float-version.h \
+  ../include/cs_par_structs.h ../include/csound_type_system.h \
+  ../include/csound.h ../include/text.h ../include/cfgvar.h \
+  ../include/msg_attr.h ../include/version.h ../include/cscore.h \
+  ../include/csound_data_structures.h ../include/pools.h ../H/sort.h \
+  ../H/prototyp.h /usr/local/include/sndfile.h ../include/cwindow.h \
+  ../H/envvar.h ../H/remote.h \
+  /Users/victor/src/nacl_sdk/pepper_canary/include/pnacl/sys/socket.h \
+  /Users/victor/src/nacl_sdk/pepper_canary/include/pnacl/netinet/in.h \
+  /Users/victor/src/nacl_sdk/pepper_canary/include/pnacl/netinet6/in6.h \
+  /Users/victor/src/nacl_sdk/pepper_canary/include/pnacl/netdb.h \
+  /Users/victor/src/nacl_sdk/pepper_canary/include/pnacl/arpa/inet.h
+..//Opcodes/sockrecv.c:
+../include/csoundCore.h:
+../include/sysdep.h:
+../include/float-version.h:
+../include/cs_par_structs.h:
+../include/csound_type_system.h:
+../include/csound.h:
+../include/text.h:
+../include/cfgvar.h:
+../include/msg_attr.h:
+../include/version.h:
+../include/cscore.h:
+../include/csound_data_structures.h:
+../include/pools.h:
+../H/sort.h:
+../H/prototyp.h:
+/usr/local/include/sndfile.h:
+../include/cwindow.h:
+../H/envvar.h:
+../H/remote.h:
+/Users/victor/src/nacl_sdk/pepper_canary/include/pnacl/sys/socket.h:
+/Users/victor/src/nacl_sdk/pepper_canary/include/pnacl/netinet/in.h:
+/Users/victor/src/nacl_sdk/pepper_canary/include/pnacl/netinet6/in6.h:
+/Users/victor/src/nacl_sdk/pepper_canary/include/pnacl/netdb.h:
+/Users/victor/src/nacl_sdk/pepper_canary/include/pnacl/arpa/inet.h:

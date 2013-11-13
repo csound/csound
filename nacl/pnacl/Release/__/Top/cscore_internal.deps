@@ -1,0 +1,14 @@
+# Updated by fix_deps.py
+pnacl/Release/__//Top/cscore_internal.o: ..//Top/cscore_internal.c \
+  ../include/cscore.h ../include/sysdep.h ../include/float-version.h \
+  ../include/csound.h ../include/text.h ../include/cfgvar.h \
+  ../include/msg_attr.h ../include/version.h
+..//Top/cscore_internal.c:
+../include/cscore.h:
+../include/sysdep.h:
+../include/float-version.h:
+../include/csound.h:
+../include/text.h:
+../include/cfgvar.h:
+../include/msg_attr.h:
+../include/version.h:

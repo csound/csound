@@ -28,6 +28,9 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
+#ifdef NACL
+#include <sys/select.h>
+#endif
 
 #include "bus.h"
 #include "namedins.h"
