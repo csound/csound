@@ -47,7 +47,7 @@ extern "C" {
 #include <xlocale.h>
 #endif
 
-#if (defined(__MACH__) || defined(ANDROID))
+#if (defined(__MACH__) || defined(ANDROID) || defined(NACL))
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;

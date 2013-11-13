@@ -1,0 +1,45 @@
+# Updated by fix_deps.py
+pnacl/Release/__//Opcodes/physmod.o: ..//Opcodes/physmod.c \
+  ../include/csoundCore.h ../include/sysdep.h ../include/float-version.h \
+  ../include/cs_par_structs.h ../include/csound_type_system.h \
+  ../include/csound.h ../include/text.h ../include/cfgvar.h \
+  ../include/msg_attr.h ../include/version.h ../include/cscore.h \
+  ../include/csound_data_structures.h ../include/pools.h ../H/sort.h \
+  ../H/prototyp.h /usr/local/include/sndfile.h ../include/cwindow.h \
+  ../H/envvar.h ../H/remote.h ..//Opcodes/clarinet.h \
+  ..//Opcodes/physutil.h ..//Opcodes/flute.h ..//Opcodes/bowed.h \
+  ..//Opcodes/brass.h ../include/interlocks.h ..//Opcodes/mandolin.h \
+  ..//Opcodes/singwave.h ..//Opcodes/moog1.h ..//Opcodes/fm4op.h \
+  ..//Opcodes/shaker.h ..//Opcodes/bowedbar.h
+..//Opcodes/physmod.c:
+../include/csoundCore.h:
+../include/sysdep.h:
+../include/float-version.h:
+../include/cs_par_structs.h:
+../include/csound_type_system.h:
+../include/csound.h:
+../include/text.h:
+../include/cfgvar.h:
+../include/msg_attr.h:
+../include/version.h:
+../include/cscore.h:
+../include/csound_data_structures.h:
+../include/pools.h:
+../H/sort.h:
+../H/prototyp.h:
+/usr/local/include/sndfile.h:
+../include/cwindow.h:
+../H/envvar.h:
+../H/remote.h:
+..//Opcodes/clarinet.h:
+..//Opcodes/physutil.h:
+..//Opcodes/flute.h:
+..//Opcodes/bowed.h:
+..//Opcodes/brass.h:
+../include/interlocks.h:
+..//Opcodes/mandolin.h:
+..//Opcodes/singwave.h:
+..//Opcodes/moog1.h:
+..//Opcodes/fm4op.h:
+..//Opcodes/shaker.h:
+..//Opcodes/bowedbar.h:
