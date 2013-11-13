@@ -57,17 +57,18 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
     char *time_string;
     /* char *q; */
     int32 tmp;
+
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
-    tmp = (int32) MYFLT2LRND(*(p->timstmp));
+   tmp = (int32) MYFLT2LRND(*(p->timstmp));
 #else
-    tmp = (int32) (*(p->timstmp) + FL(0.5));
+  tmp = (int32) (*(p->timstmp) + FL(0.5));
 #endif
     if (tmp <= 0) temp_time = time(NULL);
     else         temp_time = (time_t)tmp;
 
     time_string = ctime(&temp_time);
     /*    printf("Timestamp = %f\ntimestring=>%s<\n", *p->timstmp, time_string); */
-    p->Stime_->data[0] = '\0';
+   
     /* q = strchr(time_string, '\n'); */
     /* if (q) *q='\0'; */
     if(p->Stime_->data != NULL) csound->Free(csound, p->Stime_->data);
@@ -182,7 +183,7 @@ static int readfi_S(CSOUND *csound, READF *p)
 static OENTRY date_localops[] =
 {
     { "date",   sizeof(DATEMYFLT),  0, 1, "i",    "", (SUBR)datemyfltset   },
-    { "dates",  sizeof(DATESTRING), 0, 1, "S",    "j", (SUBR)datestringset },
+    { "dates",  sizeof(DATESTRING), 0, 1, "S",    "i", (SUBR)datestringset },
     { "pwd",    sizeof(GETCWD),     0, 1, "S",    "",  (SUBR)getcurdir     },
     { "readfi", sizeof(READF),      0, 1, "Si",   "i", (SUBR)readfi,       },
     { "readfi.S", sizeof(READF),      0, 1, "Si",   "S", (SUBR)readfi_S,       },
