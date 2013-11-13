@@ -1,8 +1,8 @@
-# TODO: include libsndfile srcs so that linking can be completed
+# Makefile for NaCl Csound lib
+# V Lazzarini 2013
 
-VALID_TOOLCHAINS := pnacl
-LOCAL_PATH := $(call my-dir)
-EXTRA_INC_PATHS := $(LOCAL_PATH)/../include $(LOCAL_PATH)/../H $(LOCAL_PATH)/../interfaces /usr/local/include
+VALID_TOOLCHAINS := pnacl newlib glibc
+LOCAL_INCLUDES := -I../include -I../H -I. -I.. -I../Engine -I/usr/local/include
 
 NACL_SDK_ROOT ?= $(abspath $(CURDIR)/../../..)
 include $(NACL_SDK_ROOT)/tools/common.mk
@@ -10,10 +10,7 @@ include $(NACL_SDK_ROOT)/tools/common.mk
 CSOUND_SRC_ROOT := ../
 
 TARGET = csound
-DEPS = ppapi_simple nacl_io
-LIBS = $(DEPS) ppapi_cpp ppapi pthread
-
-CFLAGS = -O3 -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DNACL -Wno-format -Wno-empty-body
+CFLAGS = -O3  $(LOCAL_INCLUDES) -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DNACL -Wno-format -Wno-empty-body
 
 SOURCES := $(CSOUND_SRC_ROOT)/Engine/auxfd.c \
 $(CSOUND_SRC_ROOT)/Engine/cfgvar.c \
@@ -231,12 +228,7 @@ csound_orcparse.c \
 
 $(foreach dep,$(DEPS),$(eval $(call DEPEND_RULE,$(dep))))
 $(foreach src,$(SOURCES),$(eval $(call COMPILE_RULE,$(src),$(CFLAGS))))
+$(eval $(call LIB_RULE,$(TARGET),$(SOURCES)))
 
-ifeq ($(CONFIG),Release)
-$(eval $(call LINK_RULE,$(TARGET)_unstripped,$(SOURCES),$(LIBS),$(DEPS)))
-$(eval $(call STRIP_RULE,$(TARGET),$(TARGET)_unstripped))
-else
-$(eval $(call LINK_RULE,$(TARGET),$(SOURCES),$(LIBS),$(DEPS)))
-endif
 
-$(eval $(call NMF_RULE,$(TARGET),))
+
