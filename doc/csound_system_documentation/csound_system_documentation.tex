@@ -145,6 +145,12 @@ Both of the paths actually filter through the CORFILE system\ldots{}
 \label{overview}
 \end{figure}
 
+Csound compiler is separated into a number of distinct phases, as illustrated by the figure above. The following subsections will discuss each phase of the compiler.  It will include relevant data structures, functions, and files to consult.  
+
+\subsection{CORFIL}
+
+The CORFIL mechanism is an implementation of an in-memory file system. ...
+
 \subsection{Pre-Processing}
 
 % using bclogo, but would be happy to switch to something else too
@@ -153,7 +159,17 @@ Both of the paths actually filter through the CORFILE system\ldots{}
 Engine/csound\_pre.l (Flex file)
 \end{bclogo}
 
+The Orchestra Pre-Processor is responsible for processing the following things:
 
+\begin{itemize}
+  \item \#include - processing to include text from an external file
+  \item \#define - reading in Orchestra Macro definitions
+  \item \#undef - un-define a macro
+  \item \$MACRO - processing Orchestra Macro usages
+  \item \#ifdef, \#ifndef, \#else, \#end - conditionally include text
+\end{itemize}
+
+The pre-processor is generated using \href{http://flex.sourceforge.net/}{Flex}. It is given text and the expanded processed text is returned (this is done with the text wrapped in a CORFIL). The call to csound\_prelex() is done within new\_orc\_parser.c::csoundParseOrc(), with most of the implementation of the pre-processor utility functions done within csound\_pre.l.
 
 \subsection{Lexer}
 
