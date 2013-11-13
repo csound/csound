@@ -397,12 +397,16 @@ static void cs_beep(CSOUND *csound)
     csound->Message(csound, Str("%c\tbeep!\n"), '\a');
 }
 
+extern int UDPServerClose(CSOUND *csound);
 PUBLIC int csoundCleanup(CSOUND *csound)
 {
     void    *p;
     MYFLT   *maxp;
     int32    *rngp;
     uint32_t n;
+
+    if(csound->QueryGlobalVariable(csound,"::UDPCOM") 
+         != NULL) UDPServerClose(csound);
 
     while (csound->evtFuncChain != NULL) {
       p = (void*) csound->evtFuncChain;
@@ -484,7 +488,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (csound->oparms->ringbell)
       cs_beep(csound);
 
-
+    
     return dispexit(csound);    /* hold or terminate the display output     */
 }
 
