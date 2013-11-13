@@ -188,18 +188,19 @@ static int ftgentmp(CSOUND *csound, FTGEN *p)
     return register_ftable_delete(csound, p, fno);
 }
 
-/* static int ftgentmp_S(CSOUND *csound, FTGEN *p) */
-/* { */
-/*     int   p1, fno; */
 
-/*     if (UNLIKELY(ftgen_(csound, p,0,1) != OK)) */
-/*       return NOTOK; */
-/*     p1 = (int) MYFLT2LRND(*p->p1); */
-/*     if (p1) */
-/*       return OK; */
-/*     fno = (int) MYFLT2LRND(*p->ifno); */
-/*     return register_ftable_delete(csound, p, fno); */
-/* } */
+static int ftgentmp_S(CSOUND *csound, FTGEN *p)
+{
+    int   p1, fno;
+
+    if (UNLIKELY(ftgen_(csound, p,0,1) != OK))
+      return NOTOK;
+    p1 = (int) MYFLT2LRND(*p->p1);
+    if (p1)
+      return OK;
+    fno = (int) MYFLT2LRND(*p->ifno);
+    return register_ftable_delete(csound, p, fno);
+}
 
 static int ftfree(CSOUND *csound, FTFREE *p)
 {
@@ -586,8 +587,8 @@ static OENTRY localops[] = {
   { "ftgen.S",    S(FTGEN),   TW, 1,  "i",  "iiiSim", (SUBR) ftgen_S, NULL, NULL  },
   { "ftgen.iS",    S(FTGEN),  TW, 1,  "i",  "iiiiSm", (SUBR) ftgen_iS, NULL, NULL },
   { "ftgen.SS",    S(FTGEN),  TW, 1,  "i",  "iiiSSm", (SUBR) ftgen_SS, NULL, NULL },
-  { "ftgentmp", S(FTGEN),     TW, 1,  "i",  "iiiiim", (SUBR) ftgentmp, NULL, NULL },
-  { "ftgentmp.S", S(FTGEN),   TW, 1,  "i",  "iiiiSm", (SUBR) ftgentmp, NULL, NULL },
+  { "ftgentmp.i", S(FTGEN),   TW, 1,  "i",  "iiiiim", (SUBR) ftgentmp, NULL, NULL },
+  { "ftgentmp.S", S(FTGEN),   TW, 1,  "i",  "iiiiSm", (SUBR) ftgentmp_S, NULL,NULL},
   { "ftfree",   S(FTFREE),    TW, 1,  "",   "ii",     (SUBR) ftfree, NULL, NULL   },
   { "ftsave",   S(FTLOAD),    TR, 1,  "",   "iim",    (SUBR) ftsave, NULL, NULL   },
   { "ftsave.S",   S(FTLOAD),  TR, 1,  "",   "Sim",    (SUBR) ftsave_S, NULL, NULL },
