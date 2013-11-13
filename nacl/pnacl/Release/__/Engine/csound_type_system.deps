@@ -1,0 +1,31 @@
+# Updated by fix_deps.py
+pnacl/Release/__//Engine/csound_type_system.o: \
+  ..//Engine/csound_type_system.c ../include/csound_type_system.h \
+  ../include/csound.h ../include/sysdep.h ../include/float-version.h \
+  ../include/text.h ../include/cfgvar.h ../include/msg_attr.h \
+  ../include/version.h ../include/csoundCore.h \
+  ../include/cs_par_structs.h ../include/cscore.h \
+  ../include/csound_data_structures.h ../include/pools.h ../H/sort.h \
+  ../H/prototyp.h /usr/local/include/sndfile.h ../include/cwindow.h \
+  ../H/envvar.h ../H/remote.h
+:
+..//Engine/csound_type_system.c:
+../include/csound_type_system.h:
+../include/csound.h:
+../include/sysdep.h:
+../include/float-version.h:
+../include/text.h:
+../include/cfgvar.h:
+../include/msg_attr.h:
+../include/version.h:
+../include/csoundCore.h:
+../include/cs_par_structs.h:
+../include/cscore.h:
+../include/csound_data_structures.h:
+../include/pools.h:
+../H/sort.h:
+../H/prototyp.h:
+/usr/local/include/sndfile.h:
+../include/cwindow.h:
+../H/envvar.h:
+../H/remote.h:
