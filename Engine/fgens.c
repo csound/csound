@@ -59,7 +59,9 @@ static int gn1314(FGDATA *, FUNC *, MYFLT, MYFLT);
 static int gen51(FGDATA *, FUNC *), gen52(FGDATA *, FUNC *);
 static int gen53(FGDATA *, FUNC *);
 static int GENUL(FGDATA *, FUNC *);
+#ifndef NACL
 static int gen49(FGDATA *, FUNC *);
+#endif
 
 static const GEN or_sub[GENMAX + 1] = {
     GENUL,
@@ -67,7 +69,13 @@ static const GEN or_sub[GENMAX + 1] = {
     gen11, gen12, gen13, gen14, gen15, gen16, gen17, gen18, gen19, gen20,
     gen21, GENUL, gen23, gen24, gen25, GENUL, gen27, gen28, GENUL, gen30,
     gen31, gen32, gen33, gen34, GENUL, GENUL, GENUL, GENUL, GENUL, gen40,
-    gen41, gen42, gen43, GENUL, GENUL, GENUL, GENUL, GENUL, gen49, GENUL,
+    gen41, gen42, gen43, GENUL, GENUL, GENUL, GENUL, GENUL, 
+#ifndef NACL
+    gen49, 
+#else
+    GENUL,
+#endif
+    GENUL,
     gen51, gen52, gen53, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL
 };
 
@@ -2763,7 +2771,7 @@ static int gen43(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
-
+#ifndef NACL
 #include "mp3dec.h"
 
 static int gen49raw(FGDATA *ff, FUNC *ftp)
@@ -2943,6 +2951,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     }
     return gen49raw(ff, ftp);
 }
+#endif
 
 #if 0
 static CS_NOINLINE FUNC *gen49_defer_load(CSOUND *csound, int fno)
