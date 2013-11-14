@@ -68,10 +68,10 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
 
     time_string = ctime(&temp_time);
     /*    printf("Timestamp = %f\ntimestring=>%s<\n", *p->timstmp, time_string); */
-   
+
     /* q = strchr(time_string, '\n'); */
     /* if (q) *q='\0'; */
-    if(p->Stime_->data != NULL) csound->Free(csound, p->Stime_->data);
+    if (p->Stime_->data != NULL) csound->Free(csound, p->Stime_->data);
     p->Stime_->data = csound->Strdup(csound, time_string);
     p->Stime_->size = strlen(time_string)+1;
     return OK;
@@ -84,15 +84,15 @@ typedef struct {
 
 static int getcurdir(CSOUND *csound, GETCWD *p)
 {
-  if(p->Scd->data == NULL){
-    p->Scd->size = 1024;
-    p->Scd->data = csound->Calloc(csound, p->Scd->size);
-  }
+    if (p->Scd->data == NULL) {
+      p->Scd->size = 1024;
+      p->Scd->data = csound->Calloc(csound, p->Scd->size);
+    }
 
 #if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__)
-   if (UNLIKELY(getcwd(p->Scd->data, p->Scd->size-1)==NULL))
+    if (UNLIKELY(getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #else
-   if (UNLIKELY( _getcwd(p->Scd->data, p->Scd->size-1)==NULL))
+    if (UNLIKELY( _getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #endif
       return csound->InitError(csound, Str("cannot determine current directory"));
     return OK;
@@ -126,7 +126,7 @@ static int readf_init_(CSOUND *csound, READF *p, int isstring)
     else csound->strarg2name(csound, name, p->Sfile, "input.", 0);
     p->fd = fopen(name, "r");
     p->lineno = 0;
-    if(p->Sline->data == NULL) {
+    if (p->Sline->data == NULL) {
       p->Sline->data = (char *) csound->Calloc(csound, MAXLINE);
     p->Sline->size = MAXLINE;
     }
@@ -136,11 +136,11 @@ static int readf_init_(CSOUND *csound, READF *p, int isstring)
 }
 
 static int readf_init(CSOUND *csound, READF *p){
-  return readf_init_(csound,p,0);
+    return readf_init_(csound,p,0);
 }
 
 static int readf_init_S(CSOUND *csound, READF *p){
-  return readf_init_(csound,p,1);
+    return readf_init_(csound,p,1);
 }
 
 
@@ -157,7 +157,8 @@ static int readf(CSOUND *csound, READF *p)
         return OK;
       }
       else
-        return csound->PerfError(csound, p->h.insdshead, Str("readf: read failure"));
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("readf: read failure"));
     }
     *p->line = ++p->lineno;
     return OK;
@@ -183,7 +184,7 @@ static int readfi_S(CSOUND *csound, READF *p)
 static OENTRY date_localops[] =
 {
     { "date",   sizeof(DATEMYFLT),  0, 1, "i",    "", (SUBR)datemyfltset   },
-    { "dates",  sizeof(DATESTRING), 0, 1, "S",    "i", (SUBR)datestringset },
+    { "dates",  sizeof(DATESTRING), 0, 1, "S",    "j", (SUBR)datestringset },
     { "pwd",    sizeof(GETCWD),     0, 1, "S",    "",  (SUBR)getcurdir     },
     { "readfi", sizeof(READF),      0, 1, "Si",   "i", (SUBR)readfi,       },
     { "readfi.S", sizeof(READF),      0, 1, "Si",   "S", (SUBR)readfi_S,       },
