@@ -20,6 +20,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
   02111-1307 USA
 */
+#ifdef NACL
+typedef unsigned int u_int32_t; 
+#endif
 
 #include "csoundCore.h"
 #ifdef WIN32
@@ -30,6 +33,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #endif
+
+
 
 typedef struct {
   int port;

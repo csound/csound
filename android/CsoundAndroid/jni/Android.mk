@@ -146,8 +146,10 @@ $(CSOUND_SRC_ROOT)/Top/one_file.c \
 $(CSOUND_SRC_ROOT)/Top/opcode.c \
 $(CSOUND_SRC_ROOT)/Top/threads.c \
 $(CSOUND_SRC_ROOT)/Top/utility.c \
+$(CSOUND_SRC_ROOT)/Top/server.c \
 $(CSOUND_SRC_ROOT)/Top/threadsafe.c \
 $(CSOUND_SRC_ROOT)/Opcodes/ambicode.c       \
+$(CSOUND_SRC_ROOT)/Opcodes/afilters.c       \
 $(CSOUND_SRC_ROOT)/Opcodes/bbcut.c          \
 $(CSOUND_SRC_ROOT)/Opcodes/biquad.c \
 $(CSOUND_SRC_ROOT)/Opcodes/butter.c         \
