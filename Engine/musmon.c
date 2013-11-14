@@ -405,7 +405,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     int32    *rngp;
     uint32_t n;
 
-    if(csound->QueryGlobalVariable(csound,"::UDPCOM") 
+    if(csound->QueryGlobalVariable(csound,"::UDPCOM")
          != NULL) UDPServerClose(csound);
 
     while (csound->evtFuncChain != NULL) {
@@ -488,7 +488,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (csound->oparms->ringbell)
       cs_beep(csound);
 
-    
+
     return dispexit(csound);    /* hold or terminate the display output     */
 }
 
