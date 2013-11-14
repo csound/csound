@@ -104,8 +104,6 @@ bool AudioInstance::Init(uint32_t argc,
                          const char* argv[]) {
   
  const char *instr = 
-  "nchnls = 2 \n"
-  "0dbfs = 1 \n"
   "schedule 1, 0, -1 \n"
   "chnset 440, \"frequency\" \n"
   "instr 1 \n"
@@ -121,6 +119,8 @@ bool AudioInstance::Init(uint32_t argc,
   csoundCreateMessageBuffer(csound, 0);
   csoundSetHostImplementedAudioIO(csound,1,0);
   csoundSetOption(csound, (char *) "-odac");
+  csoundSetOption(csound, (char *) "--nchnls=1");
+   csoundSetOption(csound, (char *) "--0dbfs=1");
   csoundStart(csound);
   csoundCompileOrc(csound, (char *)instr); 
  
