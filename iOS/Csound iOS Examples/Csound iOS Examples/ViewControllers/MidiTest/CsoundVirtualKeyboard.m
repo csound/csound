@@ -137,7 +137,7 @@ static const int kTotalNumKeys = 25;
 	[self updateKeyRects];
 		
 	NSArray* touches = [currentTouches allObjects];
-	int count = [touches count];
+    NSUInteger count = [touches count];
 
 	int currentKeyState[kTotalNumKeys];
 	
@@ -145,7 +145,7 @@ static const int kTotalNumKeys = 25;
 		currentKeyState[i] = NO;
 	}
 	
-	for (int i = 0; i < count; i++) {
+	for (NSUInteger i = 0; i < count; i++) {
 		UITouch* touch = [touches objectAtIndex:i];
 		CGPoint point = [touch locationInView:self];
 		int index = [self getKeyboardKey:point];
