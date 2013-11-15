@@ -1,5 +1,5 @@
 /*
- * Csound pnacl test code
+ * Csound pnacl interactive frontend
  * based on nacl sdk audio api example
  *
  * Copyright (C) 2013 V Lazzarini
@@ -34,7 +34,7 @@
 namespace {
 const char* const kPlaySoundId = "playSound";
 const char* const kStopSoundId = "stopSound";
-const char* const kSetFrequencyId = "setFrequency";
+const char* const kOrchestraId = "orchestra";
 static const char kMessageArgumentSeparator = ':';
 
 const double kDefaultFrequency = 440.0;
@@ -48,7 +48,7 @@ class AudioInstance : public pp::Instance {
  public:
   explicit AudioInstance(PP_Instance instance)
       : pp::Instance(instance),
-        frequency_(kDefaultFrequency), csound(NULL), count(0) {}
+        csound(NULL), count(0) {}
   virtual ~AudioInstance() {
     csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
@@ -56,13 +56,10 @@ class AudioInstance : public pp::Instance {
 
   virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]);
   virtual void HandleMessage(const pp::Var& var_message);
-  void SetFrequency(double frequency);
-  double frequency() const { return frequency_; }
 
  private:
   
   pp::Audio audio_;
-  MYFLT frequency_;
   CSOUND *csound;
   int count;
 
@@ -102,15 +99,6 @@ class AudioInstance : public pp::Instance {
 bool AudioInstance::Init(uint32_t argc,
                          const char* argn[],
                          const char* argv[]) {
-  
- const char *instr = 
-  "schedule 1, 0, -1 \n"
-  "chnset 440, \"frequency\" \n"
-  "instr 1 \n"
-  "k1 chnget \"frequency\" \n"
-  "a1 oscili 0.5, k1 \n"
-  "outs a1,a1 \n"
-  "endin \n";
 
   int frames = pp::AudioConfig::RecommendSampleFrameCount(
     this, PP_AUDIOSAMPLERATE_44100, kSampleFrameCount);
@@ -120,9 +108,9 @@ bool AudioInstance::Init(uint32_t argc,
   csoundSetHostImplementedAudioIO(csound,1,0);
   csoundSetOption(csound, (char *) "-odac");
   csoundSetOption(csound, (char *) "--nchnls=1");
-   csoundSetOption(csound, (char *) "--0dbfs=1");
+  csoundSetOption(csound, (char *) "--0dbfs=1");
+  csoundSetOption(csound, (char *) "--daemon");
   csoundStart(csound);
-  csoundCompileOrc(csound, (char *)instr); 
  
   while(csoundGetMessageCnt(csound)) {
   PostMessage(csoundGetFirstMessage(csound));
@@ -148,25 +136,14 @@ void AudioInstance::HandleMessage(const pp::Var& var_message) {
     audio_.StartPlayback();
   } else if (message == kStopSoundId) {
     audio_.StopPlayback();
-  } else if (message.find(kSetFrequencyId) == 0) {
-    // The argument to setFrequency is everything after the first ':'.
+  } else if (message.find(kOrchestraId) == 0) {
+    // The argument is everything after the first ':'.
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
-    if (sep_pos != std::string::npos) {
+    if (sep_pos != std::string::npos) {      
       std::string string_arg = message.substr(sep_pos + 1);
-      // Got the argument value as a string: try to convert it to a number.
-      std::istringstream stream(string_arg);
-      double double_value;
-      if (stream >> double_value) {
-        SetFrequency(double_value);
-        return;
-      }
+      csoundCompileOrc(csound, (char *) string_arg.c_str()); 
     }
   }
-}
-
-void AudioInstance::SetFrequency(double frequency) {
-  frequency_ = frequency;
-  csoundSetControlChannel(csound, "frequency", frequency_);
 }
 
 class AudioModule : public pp::Module {
