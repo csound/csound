@@ -14,6 +14,7 @@ function attachListeners() {
       changeOrchestra);
   document.getElementById('orchestraField').addEventListener('select',
      selectOrchestra);
+  orchval = getOrchestraElement().value;
 }
 
 // Called by the common.js module.
@@ -69,6 +70,8 @@ function selectOrchestra()
 
 // Called by the common.js module.
 function handleMessage(e) {
-  //getFrequencyElement().value = e.data;
-  console.log(e.data)
+  //console.log(e.data)
+  var element = document.getElementById('console');
+  element.value += e.data;
+  element.scrollTop = 99999; // focus on bottom
 }
