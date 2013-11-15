@@ -1,6 +1,25 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+/*
+ * Csound pnacl interactive frontend
+ * based on nacl sdk audio api example
+ *
+ * Copyright (C) 2013 V Lazzarini
+ *
+ * This file belongs to Csound.
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 // Set to true when the Document is loaded IFF "test=true" is in the query
 // string.
@@ -187,11 +206,27 @@ var common = (function() {
     listenerDiv.addEventListener('load', moduleDidLoad, true);
     listenerDiv.addEventListener('message', handleMessage, true);
     listenerDiv.addEventListener('crash', handleCrash, true);
+    listenerDiv.addEventListener('progress', handleProgress, true);
     if (typeof window.attachListeners !== 'undefined') {
       window.attachListeners();
     }
   }
 
+    var progressCount=0;
+  function handleProgress(event) {
+    var loadPercent = 0.0;
+    var loadPercentString;
+  if (event.lengthComputable && event.total > 0) {
+ loadPercent = (event.loaded / event.total) * 100.0;
+ loadPercentString = 'loading... (' + loadPercent.toFixed(2) + '%)';
+   } else {
+    // total length not known yet
+  loadPercent = -1.0;
+  progressCount++;
+  loadPercentString = 'loading... (count=' + progressCount + ')';
+    }
+    updateStatus(loadPercentString);
+    }
 
   /**
    * Called when the Browser can not communicate with the Module
@@ -216,7 +251,7 @@ var common = (function() {
    */
   function moduleDidLoad() {
     common.naclModule = document.getElementById('nacl_module');
-    updateStatus('RUNNING');
+    updateStatus('ready');
 
     if (typeof window.moduleDidLoad !== 'undefined') {
       window.moduleDidLoad();
@@ -367,11 +402,12 @@ var common = (function() {
    */
   function updateStatus(opt_message) {
     if (opt_message) {
-      statusText = 'Csound: ' + opt_message;
+      statusText = 'Csound: ' + opt_message + '\n';
     }
-    var statusField = document.getElementById('statusField');
+    var statusField = document.getElementById('console');
     if (statusField) {
-      statusField.innerHTML = statusText;
+      statusField.value = statusText;
+      //statusField.scrollTop = 99999; // focus on bottom
     }
   }
 
