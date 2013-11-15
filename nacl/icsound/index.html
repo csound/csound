@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="-1">
+  <title>Interactive Csound</title>
+  <script type="text/javascript" src="common.js"></script>
+  <script type="text/javascript" src="example.js"></script>
+</head>
+<body data-name="icsound" data-tools="pnacl" data-configs="Debug Release" data-path="pnacl/Release">
+  <h2><code id="statusField">NO-STATUS</code></h2>
+  <p>
+  <button id="playButton">Play</button>
+  <button id="stopButton">Stop</button> </p>
+  <p> 
+  <textarea  cols="50" rows="10" id="orchestraField" value=" ">
+  Write your code here </textarea> <br>
+  <button id="compileButton1">Compile All</button>
+  <button id="compileButton2">Compile Selection</button> </p>
+
+  <!-- The NaCl plugin will be embedded inside the element with id "listener".
+      See common.js.-->
+  <div id="listener"></div>
+</body>
+</html>
