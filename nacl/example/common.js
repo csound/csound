@@ -128,14 +128,14 @@ var common = (function() {
     moduleEl.setAttribute('height', height);
     moduleEl.setAttribute('path', path);
     moduleEl.setAttribute('src', path + '/' + name + '.nmf');
-
+   
     // Add any optional arguments
     if (attrs) {
       for (var key in attrs) {
         moduleEl.setAttribute(key, attrs[key]);
       }
     }
-
+    
     var mimetype = mimeTypeForTool(tool);
     moduleEl.setAttribute('type', mimetype);
 
@@ -274,9 +274,9 @@ var common = (function() {
     logMessageArray.push(message);
     if (logMessageArray.length > kMaxLogMessageLength)
       logMessageArray.shift();
-
-    document.getElementById('log').textContent = logMessageArray.join('\n');
-    console.log(message);
+      if( document.getElementById('log') )
+        document.getElementById('log').textContent = logMessageArray.join('\n');
+        console.log(message);
   }
 
   /**
@@ -297,6 +297,7 @@ var common = (function() {
    */
   function handleMessage(message_event) {
     if (typeof message_event.data === 'string') {
+	
       for (var type in defaultMessageTypes) {
         if (defaultMessageTypes.hasOwnProperty(type)) {
           if (startsWith(message_event.data, type + ':')) {
