@@ -1,27 +1,164 @@
 <!DOCTYPE html>
 <html>
 <!--
-Copyright (c) 2012 The Chromium Authors. All rights reserved.
-Use of this source code is governed by a BSD-style license that can be
-found in the LICENSE file.
+/*
+ * Csound pnacl interactive frontend
+ * based on nacl sdk audio api example
+ *
+ * Copyright (C) 2013 V Lazzarini
+ *
+ * This file belongs to Csound.
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 -->
 <head>
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="-1">
   <title>Interactive Csound</title>
+
+  <style type="text/css">
+   body {
+  padding-left: 6em;
+  font-family: "Courier New", "Times New Roman",
+        Times, serif;
+  color: red;
+  background-color: #FCF477
+  }
+
+  textarea.console {
+  font-family: "Courier New", "Times New Roman",
+        Times, serif;
+  color: green;
+  background-color: #000000
+}
+
+ textarea.code {
+  font-family: "Courier New", "Times New Roman",
+        Times, serif;
+  color: black;
+  background-color:#B8F4F5
+}
+
+ </style>
+
   <script type="text/javascript" src="common.js"></script>
-  <script type="text/javascript" src="example.js"></script>
+  <script type="text/javascript">
+
+var orchval, selection;
+
+// Called by the common.js module.
+function attachListeners() {
+  document.getElementById('playButton').addEventListener('click', playSound);
+  document.getElementById('stopButton').addEventListener('click', stopSound);
+   document.getElementById('compileButton1').addEventListener('click', compileOrc1);
+    document.getElementById('compileButton2').addEventListener('click', compileOrc2);
+  document.getElementById('orchestraField').addEventListener('blur',
+      changeOrchestra);
+  document.getElementById('orchestraField').addEventListener('select',
+     selectOrchestra);
+  orchval = getOrchestraElement().value;
+}
+
+// Called by the common.js module.
+function moduleDidLoad() {
+  common.hideModule();
+}
+
+function getOrchestraElement() {
+  return document.getElementById('orchestraField');
+}
+
+function playSound() {
+    console.log("play");
+  common.naclModule.postMessage('playSound');
+}
+
+function stopSound() {
+  common.naclModule.postMessage('stopSound');
+}
+function compileOrc1() {
+    common.naclModule.postMessage('orchestra:' + orchval);
+    console.log(orchval);
+}
+
+function compileOrc2() {
+    orchval = selection;
+    common.naclModule.postMessage('orchestra:' + orchval);
+    console.log(orchval);
+}
+
+function changeOrchestra() 
+{    
+    orchval = getOrchestraElement().value;
+}
+
+function getText(elem) {
+    if(elem.tagName === "TEXTAREA" ||
+       (elem.tagName === "INPUT" && elem.type === "text")) {
+        return elem.value.substring(elem.selectionStart,
+                                    elem.selectionEnd);
+    }
+    return null;
+}
+
+// this function can be used to send control
+// channel values to Csound
+function setCsoundChannel(name, value){
+   var channel = 'channel:' + name + ':';
+   common.naclModule.postMessage(channel + value);
+}
+
+function selectOrchestra() 
+{
+    selection = getText(document.activeElement);  
+}
+
+// Called by the common.js module.
+function handleMessage(e) {
+  var element = document.getElementById('console');
+  element.value += e.data;
+  element.scrollTop = 99999; // focus on bottom
+}
+</script>
 </head>
 <body data-name="icsound" data-tools="pnacl" data-configs="Debug Release" data-path="pnacl/Release">
-  <h2><code id="statusField">NO-STATUS</code></h2>
   <p>
   <button id="playButton">Play</button>
-  <button id="stopButton">Stop</button> </p>
+  <button id="stopButton">Pause</button> </p>
   <p> 
-  <textarea  cols="50" rows="10" id="orchestraField" value=" ">
-  Write your code here </textarea> <br>
+  <textarea class="code" cols="80" rows="20" id="orchestraField"
+  value="schedule 1,0,1 \n instr 1 \n a1 rand 0.5 \n out a1 \n endin \n">
+; press "Compile All" to compile this code, 
+; if Csound is running you will hear white noise.
+; This is an edit box, you can change the code
+; and compile again with the buttons below.
+
+schedule 1,0,1
+
+instr 1
+ a1 rand 0.5
+ out a1
+endin
+  </textarea> <br>
   <button id="compileButton1">Compile All</button>
   <button id="compileButton2">Compile Selection</button> </p>
+   <p>
+  <textarea class="console" cols="80" rows="25" id="console"
+  value="">Csound: not loaded</textarea>
+  </p>
 
   <!-- The NaCl plugin will be embedded inside the element with id "listener".
       See common.js.-->

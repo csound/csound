@@ -35,6 +35,7 @@ namespace {
 const char* const kPlaySoundId = "playSound";
 const char* const kStopSoundId = "stopSound";
 const char* const kOrchestraId = "orchestra";
+const char* const kChannelId = "channel";
 static const char kMessageArgumentSeparator = ':';
 
 const double kDefaultFrequency = 440.0;
@@ -44,7 +45,9 @@ const uint32_t kSampleFrameCount = 4096u;
 const uint32_t kChannels = 2u;
 }  // namespace
 
+
 class AudioInstance : public pp::Instance {
+
  public:
   explicit AudioInstance(PP_Instance instance)
       : pp::Instance(instance),
@@ -112,11 +115,6 @@ bool AudioInstance::Init(uint32_t argc,
   csoundSetOption(csound, (char *) "--daemon");
   csoundStart(csound);
  
-  while(csoundGetMessageCnt(csound)) {
-  PostMessage(csoundGetFirstMessage(csound));
-  csoundPopFirstMessage(csound);
-  }  
- 
   audio_ = pp::Audio(
       this,
       pp::AudioConfig(this, PP_AUDIOSAMPLERATE_44100, frames),
@@ -134,14 +132,30 @@ void AudioInstance::HandleMessage(const pp::Var& var_message) {
   std::string message = var_message.AsString();
   if (message == kPlaySoundId) {
     audio_.StartPlayback();
+    PostMessage("Csound: running...\n");
   } else if (message == kStopSoundId) {
     audio_.StopPlayback();
+    PostMessage("Csound: paused...\n");
   } else if (message.find(kOrchestraId) == 0) {
     // The argument is everything after the first ':'.
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
     if (sep_pos != std::string::npos) {      
       std::string string_arg = message.substr(sep_pos + 1);
       csoundCompileOrc(csound, (char *) string_arg.c_str()); 
+    }
+  } else if(message.find(kChannelId) == 0){
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {
+        std::string string_arg = message.substr(sep_pos + 1);
+        sep_pos = string_arg.find_first_of(kMessageArgumentSeparator);
+	std::string channel = string_arg.substr(0, sep_pos);
+        std::string svalue = string_arg.substr(sep_pos + 1);
+        std::istringstream stream(svalue);
+        MYFLT val;
+      if (stream >> val) {
+        csoundSetControlChannel(csound,(char *)channel.c_str(), val);
+        return;
+      }
     }
   }
 }
