@@ -1,9 +1,5 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
 
 var orchval, selection;
-
 // Called by the common.js module.
 function attachListeners() {
   document.getElementById('playButton').addEventListener('click', playSound);
@@ -19,8 +15,6 @@ function attachListeners() {
 
 // Called by the common.js module.
 function moduleDidLoad() {
-  // The module is not hidden by default so we can easily see if the plugin
-  // failed to load.
   common.hideModule();
 }
 
@@ -29,6 +23,7 @@ function getOrchestraElement() {
 }
 
 function playSound() {
+    console.log("play");
   common.naclModule.postMessage('playSound');
 }
 
@@ -46,21 +41,24 @@ function compileOrc2() {
     console.log(orchval);
 }
 
-
 function changeOrchestra() 
 {
+    
     orchval = getOrchestraElement().value;
 }
 
-function getText(elem) { // only allow input[type=text]/textarea
+function getText(elem) {
     if(elem.tagName === "TEXTAREA" ||
        (elem.tagName === "INPUT" && elem.type === "text")) {
         return elem.value.substring(elem.selectionStart,
                                     elem.selectionEnd);
-        // or return the return value of Tim Down's selection code here
     }
     return null;
 }
+
+//function setCsoundChannel(name, value){
+  // common.naclModule.postMessage('channel:'+ name ':' + value);
+//}
 
 
 function selectOrchestra() 
