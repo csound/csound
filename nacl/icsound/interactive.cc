@@ -77,7 +77,7 @@ class AudioInstance : public pp::Instance {
      short* buff = (short*) samples;
      MYFLT _0dbfs = csoundGet0dBFS(csound_);
      MYFLT *spout = csoundGetSpout(csound_); 
-     int ksmps = csoundGetKsmps(csound_);
+     int ksmps = csoundGetKsmps(csound_)*csoundGetNchnls(csound_);
          
      if(spout != NULL) 
        for(n=0; n < buffsamps; n++) {
@@ -110,7 +110,7 @@ bool AudioInstance::Init(uint32_t argc,
   csoundCreateMessageBuffer(csound, 0);
   csoundSetHostImplementedAudioIO(csound,1,0);
   csoundSetOption(csound, (char *) "-odac");
-  csoundSetOption(csound, (char *) "--nchnls=1");
+  csoundSetOption(csound, (char *) "--nchnls=2");
   csoundSetOption(csound, (char *) "--0dbfs=1");
   csoundSetOption(csound, (char *) "--daemon");
   csoundStart(csound);
