@@ -44,7 +44,9 @@ const uint32_t kSampleFrameCount = 4096u;
 const uint32_t kChannels = 2u;
 }  // namespace
 
+
 class AudioInstance : public pp::Instance {
+
  public:
   explicit AudioInstance(PP_Instance instance)
       : pp::Instance(instance),
@@ -112,11 +114,6 @@ bool AudioInstance::Init(uint32_t argc,
   csoundSetOption(csound, (char *) "--daemon");
   csoundStart(csound);
  
-  while(csoundGetMessageCnt(csound)) {
-  PostMessage(csoundGetFirstMessage(csound));
-  csoundPopFirstMessage(csound);
-  }  
- 
   audio_ = pp::Audio(
       this,
       pp::AudioConfig(this, PP_AUDIOSAMPLERATE_44100, frames),
@@ -134,8 +131,10 @@ void AudioInstance::HandleMessage(const pp::Var& var_message) {
   std::string message = var_message.AsString();
   if (message == kPlaySoundId) {
     audio_.StartPlayback();
+    PostMessage("Csound: running...\n");
   } else if (message == kStopSoundId) {
     audio_.StopPlayback();
+    PostMessage("Csound: paused...\n");
   } else if (message.find(kOrchestraId) == 0) {
     // The argument is everything after the first ':'.
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);

@@ -9,19 +9,60 @@ found in the LICENSE file.
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="-1">
   <title>Interactive Csound</title>
+
+  <style type="text/css">
+   body {
+  padding-left: 6em;
+  font-family: "Courier New", "Times New Roman",
+        Times, serif;
+  color: red;
+  background-color: #FCF477
+  }
+
+  textarea.console {
+  font-family: "Courier New", "Times New Roman",
+        Times, serif;
+  color: green;
+  background-color: #000000
+}
+
+ textarea.code {
+  font-family: "Courier New", "Times New Roman",
+        Times, serif;
+  color: black;
+  background-color:#B8F4F5
+}
+
+ </style>
+
   <script type="text/javascript" src="common.js"></script>
   <script type="text/javascript" src="example.js"></script>
 </head>
 <body data-name="icsound" data-tools="pnacl" data-configs="Debug Release" data-path="pnacl/Release">
-  <h2><code id="statusField">NO-STATUS</code></h2>
   <p>
   <button id="playButton">Play</button>
-  <button id="stopButton">Stop</button> </p>
+  <button id="stopButton">Pause</button> </p>
   <p> 
-  <textarea  cols="50" rows="10" id="orchestraField" value=" ">
-  Write your code here </textarea> <br>
+  <textarea class="code" cols="80" rows="20" id="orchestraField"
+  value="schedule 1,0,1 \n instr 1 \n a1 rand 0.5 \n out a1 \n endin \n">
+; press "Compile All" to compile this code, 
+; if Csound is running you will hear white noise.
+; This is an edit box, you can change the code
+; and compile again with the buttons below.
+
+schedule 1,0,1
+
+instr 1
+ a1 rand 0.5
+ out a1
+endin
+  </textarea> <br>
   <button id="compileButton1">Compile All</button>
   <button id="compileButton2">Compile Selection</button> </p>
+   <p>
+  <textarea class="console" cols="80" rows="25" id="console"
+  value="">Csound: not loaded</textarea>
+  </p>
 
   <!-- The NaCl plugin will be embedded inside the element with id "listener".
       See common.js.-->

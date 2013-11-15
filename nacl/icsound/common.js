@@ -187,11 +187,26 @@ var common = (function() {
     listenerDiv.addEventListener('load', moduleDidLoad, true);
     listenerDiv.addEventListener('message', handleMessage, true);
     listenerDiv.addEventListener('crash', handleCrash, true);
+    listenerDiv.addEventListener('progress', handleProgress, true);
     if (typeof window.attachListeners !== 'undefined') {
       window.attachListeners();
     }
   }
 
+  function handleProgress(event) {
+    var loadPercent = 0.0;
+    var loadPercentString;
+  if (event.lengthComputable && event.total > 0) {
+ loadPercent = (event.loaded / event.total) * 100.0;
+ loadPercentString = 'loading... (' + loadPercent.toFixed(2) + '%)';
+   } else {
+    // total length not known yet
+  loadPercent = -1.0;
+  progressCount++;
+  loadPercentString = 'loading... (count=' + progressCount + ')';
+    }
+    updateStatus(loadPercentString);
+    }
 
   /**
    * Called when the Browser can not communicate with the Module
@@ -216,7 +231,7 @@ var common = (function() {
    */
   function moduleDidLoad() {
     common.naclModule = document.getElementById('nacl_module');
-    updateStatus('RUNNING');
+    updateStatus('ready');
 
     if (typeof window.moduleDidLoad !== 'undefined') {
       window.moduleDidLoad();
@@ -367,11 +382,12 @@ var common = (function() {
    */
   function updateStatus(opt_message) {
     if (opt_message) {
-      statusText = 'Csound: ' + opt_message;
+      statusText = 'Csound: ' + opt_message + '\n';
     }
-    var statusField = document.getElementById('statusField');
+    var statusField = document.getElementById('console');
     if (statusField) {
-      statusField.innerHTML = statusText;
+      statusField.value = statusText;
+      //statusField.scrollTop = 99999; // focus on bottom
     }
   }
 
