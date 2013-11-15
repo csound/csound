@@ -41,7 +41,7 @@ static const char kMessageArgumentSeparator = ':';
 const double kDefaultFrequency = 440.0;
 const double kPi = 3.141592653589;
 const double kTwoPi = 2.0 * kPi;
-const uint32_t kSampleFrameCount = 4096u;
+const uint32_t kSampleFrameCount =512u;
 const uint32_t kChannels = 2u;
 }  // namespace
 
@@ -111,7 +111,10 @@ bool AudioInstance::Init(uint32_t argc,
   csoundSetHostImplementedAudioIO(csound,1,0);
   csoundSetOption(csound, (char *) "-odac");
   csoundSetOption(csound, (char *) "--nchnls=2");
+  csoundSetOption(csound, (char *) "-r44100");
+  csoundSetOption(csound, (char *) "-k689.0625");
   csoundSetOption(csound, (char *) "--0dbfs=1");
+  csoundSetOption(csound, (char *) "-b1024");
   csoundSetOption(csound, (char *) "--daemon");
   csoundStart(csound);
  
