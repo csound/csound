@@ -541,7 +541,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     count = p->count;
 
     ar = p->sr;
-    if (UNLIKELY(offset)) memset(ar, 0, nsmps*sizeof(MYFLT));
+    memset(ar, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
