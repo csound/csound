@@ -136,7 +136,7 @@ bool AudioInstance::Init(uint32_t argc,
   nacl_io_init_ppapi(pp_instance(),get_browser_interface_);
 
   mount("",                                       /* source */
-        "/persistent",                            /* target */
+        "/local",                                 /* target */
         "html5fs",                                /* filesystemtype */
         0,                                        /* mountflags */
         "type=PERSISTENT,expected_size=1048576"); /* data */
