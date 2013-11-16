@@ -47,7 +47,7 @@ extern "C" {
 #include <xlocale.h>
 #endif
 
-#if (defined(__MACH__) || defined(ANDROID))
+#if (defined(__MACH__) || defined(ANDROID) || defined(NACL))
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;
@@ -622,7 +622,7 @@ typedef struct {
     /** GEN01 parameters */
     GEN01ARGS gen01args;
     /** table data (flen + 1 MYFLT values) */
-    MYFLT   ftable[1];
+    MYFLT   *ftable;
   } FUNC;
 
   typedef struct {
