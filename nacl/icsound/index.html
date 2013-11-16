@@ -55,16 +55,17 @@
  </style>
 
   <script type="text/javascript" src="common.js"></script>
+  <script type="text/javascript" src="icsound.js"></script>
   <script type="text/javascript">
 
 var orchval, selection;
 
 // Called by the common.js module.
 function attachListeners() {
-  document.getElementById('playButton').addEventListener('click', playSound);
-  document.getElementById('stopButton').addEventListener('click', stopSound);
-   document.getElementById('compileButton1').addEventListener('click', compileOrc1);
-    document.getElementById('compileButton2').addEventListener('click', compileOrc2);
+  document.getElementById('playButton').addEventListener('click', icsoundPlay);
+  document.getElementById('pauseButton').addEventListener('click', icsoundPause);
+  document.getElementById('compileButton1').addEventListener('click', compileOrc1);
+  document.getElementById('compileButton2').addEventListener('click', compileOrc2);
   document.getElementById('orchestraField').addEventListener('blur',
       changeOrchestra);
   document.getElementById('orchestraField').addEventListener('select',
@@ -81,23 +82,13 @@ function getOrchestraElement() {
   return document.getElementById('orchestraField');
 }
 
-function playSound() {
-    console.log("play");
-  common.naclModule.postMessage('playSound');
-}
-
-function stopSound() {
-  common.naclModule.postMessage('stopSound');
-}
 function compileOrc1() {
-    common.naclModule.postMessage('orchestra:' + orchval);
-    console.log(orchval);
+    icsoundCompileOrc(orchval);
 }
 
 function compileOrc2() {
     orchval = selection;
-    common.naclModule.postMessage('orchestra:' + orchval);
-    console.log(orchval);
+    icsoundCompileOrc(orchval);
 }
 
 function changeOrchestra() 
@@ -112,13 +103,6 @@ function getText(elem) {
                                     elem.selectionEnd);
     }
     return null;
-}
-
-// this function can be used to send control
-// channel values to Csound
-function setCsoundChannel(name, value){
-   var channel = 'channel:' + name + ':';
-   common.naclModule.postMessage(channel + value);
 }
 
 function selectOrchestra() 
@@ -137,7 +121,7 @@ function handleMessage(e) {
 <body data-name="icsound" data-tools="pnacl" data-configs="Debug Release" data-path="pnacl/Release">
   <p>
   <button id="playButton">Play</button>
-  <button id="stopButton">Pause</button> </p>
+  <button id="pauseButton">Pause</button> </p>
   <p> 
   <textarea class="code" cols="80" rows="20" id="orchestraField"
   value="schedule 1,0,1 \n instr 1 \n a1 rand 0.5 \n out a1 \n endin \n">
