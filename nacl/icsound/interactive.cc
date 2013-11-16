@@ -29,19 +29,23 @@
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/module.h"
 #include "ppapi/cpp/var.h"
+#include <sys/mount.h>
+#include "nacl_io/nacl_io.h"
 #include <csound.h>
 
 namespace {
 const char* const kPlaySoundId = "playSound";
 const char* const kStopSoundId = "stopSound";
 const char* const kOrchestraId = "orchestra";
+const char* const kScoreId = "score";
+const char* const kEventId = "event";
 const char* const kChannelId = "channel";
 static const char kMessageArgumentSeparator = ':';
 
 const double kDefaultFrequency = 440.0;
 const double kPi = 3.141592653589;
 const double kTwoPi = 2.0 * kPi;
-const uint32_t kSampleFrameCount = 4096u;
+const uint32_t kSampleFrameCount =512u;
 const uint32_t kChannels = 2u;
 }  // namespace
 
@@ -49,9 +53,12 @@ const uint32_t kChannels = 2u;
 class AudioInstance : public pp::Instance {
 
  public:
-  explicit AudioInstance(PP_Instance instance)
+  explicit AudioInstance(PP_Instance instance, 
+                         PPB_GetInterface get_browser_interface)
       : pp::Instance(instance),
-        csound(NULL), count(0) {}
+        csound(NULL), count(0) {
+    get_browser_interface_ = get_browser_interface;
+}
   virtual ~AudioInstance() {
     csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
@@ -65,6 +72,7 @@ class AudioInstance : public pp::Instance {
   pp::Audio audio_;
   CSOUND *csound;
   int count;
+  PPB_GetInterface get_browser_interface_;
 
   static void CsoundCallback(void* samples,
                                uint32_t buffer_size,
@@ -77,7 +85,7 @@ class AudioInstance : public pp::Instance {
      short* buff = (short*) samples;
      MYFLT _0dbfs = csoundGet0dBFS(csound_);
      MYFLT *spout = csoundGetSpout(csound_); 
-     int ksmps = csoundGetKsmps(csound_);
+     int ksmps = csoundGetKsmps(csound_)*csoundGetNchnls(csound_);
          
      if(spout != NULL) 
        for(n=0; n < buffsamps; n++) {
@@ -110,8 +118,11 @@ bool AudioInstance::Init(uint32_t argc,
   csoundCreateMessageBuffer(csound, 0);
   csoundSetHostImplementedAudioIO(csound,1,0);
   csoundSetOption(csound, (char *) "-odac");
-  csoundSetOption(csound, (char *) "--nchnls=1");
+  csoundSetOption(csound, (char *) "--nchnls=2");
+  csoundSetOption(csound, (char *) "-r44100");
+  csoundSetOption(csound, (char *) "-k689.0625");
   csoundSetOption(csound, (char *) "--0dbfs=1");
+  csoundSetOption(csound, (char *) "-b1024");
   csoundSetOption(csound, (char *) "--daemon");
   csoundStart(csound);
  
@@ -121,6 +132,20 @@ bool AudioInstance::Init(uint32_t argc,
       CsoundCallback,
       this);
   frames = csoundGetOutputBufferSize(csound);
+
+  nacl_io_init_ppapi(pp_instance(),get_browser_interface_);
+
+  mount("",                                       /* source */
+        "/persistent",                            /* target */
+        "html5fs",                                /* filesystemtype */
+        0,                                        /* mountflags */
+        "type=PERSISTENT,expected_size=1048576"); /* data */
+
+  mount("",       /* source. Use relative URL */
+        "/http",  /* target */
+        "httpfs", /* filesystemtype */
+        0,        /* mountflags */
+        "");      /* data */
   
   return true;
 }
@@ -137,11 +162,22 @@ void AudioInstance::HandleMessage(const pp::Var& var_message) {
     audio_.StopPlayback();
     PostMessage("Csound: paused...\n");
   } else if (message.find(kOrchestraId) == 0) {
-    // The argument is everything after the first ':'.
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
     if (sep_pos != std::string::npos) {      
       std::string string_arg = message.substr(sep_pos + 1);
       csoundCompileOrc(csound, (char *) string_arg.c_str()); 
+    }
+  } else if (message.find(kScoreId) == 0) {
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {      
+      std::string string_arg = message.substr(sep_pos + 1);
+      csoundReadScore(csound, (char *) string_arg.c_str()); 
+    }
+  } else if (message.find(kEventId) == 0) {
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {      
+      std::string string_arg = message.substr(sep_pos + 1);
+      csoundInputMessage(csound, (char *) string_arg.c_str()); 
     }
   } else if(message.find(kChannelId) == 0){
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
@@ -167,7 +203,7 @@ class AudioModule : public pp::Module {
   }
 
   virtual pp::Instance* CreateInstance(PP_Instance instance) {
-    return new AudioInstance(instance);
+    return new AudioInstance(instance, get_browser_interface());
   }
 };
 
