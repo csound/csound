@@ -280,6 +280,7 @@ var common = (function() {
   }
 
   /**
+   * description
    */
   var defaultMessageTypes = {
     'alert': alert,

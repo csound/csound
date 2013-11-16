@@ -2,8 +2,7 @@
 <html>
 <!--
 /*
- * Csound pnacl interactive frontend
- * based on nacl sdk audio api example
+ * Csound pnacl interactive frontend example
  *
  * Copyright (C) 2013 V Lazzarini
  *
@@ -30,95 +29,73 @@
   <title>Interactive Csound</title>
 
   <style type="text/css">
-   body {
-  padding-left: 6em;
-  font-family: "Courier New", "Times New Roman",
-        Times, serif;
-  color: red;
-  background-color: #FCF477
-  }
+   body { padding-left: 6em; font-family: "Times New Roman";
+          color: red; background-color: #FCF477 }
+   textarea.console { font-family: "Courier New"; color: green;
+                     background-color: #000000 }
+   textarea.code { font-family: "Courier New"; color: black;
+                   background-color:#B8F4F5 }
+   </style>
 
-  textarea.console {
-  font-family: "Courier New", "Times New Roman",
-        Times, serif;
-  color: green;
-  background-color: #000000
-}
-
- textarea.code {
-  font-family: "Courier New", "Times New Roman",
-        Times, serif;
-  color: black;
-  background-color:#B8F4F5
-}
-
- </style>
-
-  <script type="text/javascript" src="common.js"></script>
   <script type="text/javascript" src="icsound.js"></script>
   <script type="text/javascript">
 
-var orchval, selection;
+    var orchval, selection;
 
-// Called by the common.js module.
-function attachListeners() {
-  document.getElementById('playButton').addEventListener('click', icsoundPlay);
-  document.getElementById('pauseButton').addEventListener('click', icsoundPause);
-  document.getElementById('compileButton1').addEventListener('click', compileOrc1);
-  document.getElementById('compileButton2').addEventListener('click', compileOrc2);
-  document.getElementById('orchestraField').addEventListener('blur',
-      changeOrchestra);
-  document.getElementById('orchestraField').addEventListener('select',
-     selectOrchestra);
-  orchval = getOrchestraElement().value;
-}
+    // functions called by icsound.js
+    function moduleDidLoad() { }
 
-// Called by the common.js module.
-function moduleDidLoad() {
-  common.hideModule();
-}
-
-function getOrchestraElement() {
-  return document.getElementById('orchestraField');
-}
-
-function compileOrc1() {
-    icsoundCompileOrc(orchval);
-}
-
-function compileOrc2() {
-    orchval = selection;
-    icsoundCompileOrc(orchval);
-}
-
-function changeOrchestra() 
-{    
-    orchval = getOrchestraElement().value;
-}
-
-function getText(elem) {
-    if(elem.tagName === "TEXTAREA" ||
-       (elem.tagName === "INPUT" && elem.type === "text")) {
-        return elem.value.substring(elem.selectionStart,
-                                    elem.selectionEnd);
+    function attachListeners() {
+       document.getElementById('playButton').addEventListener('click', icsound.Play);
+       document.getElementById('pauseButton').addEventListener('click', icsound.Pause);
+       document.getElementById('compileButton1').addEventListener('click', compileOrc1);
+       document.getElementById('compileButton2').addEventListener('click', compileOrc2);
+       document.getElementById('orchestraField').addEventListener('blur',changeOrchestra);
+       document.getElementById('orchestraField').addEventListener('select',selectOrchestra);
+       orchval = getOrchestraElement().value;
     }
-    return null;
-}
 
-function selectOrchestra() 
-{
-    selection = getText(document.activeElement);  
-}
+    function handleMessage(message) {
+        var element = document.getElementById('console');
+        element.value += message.data;
+        element.scrollTop = 99999; // focus on bottom
+    }
+    
+    // event handlers for the html page
+    function getOrchestraElement() {
+      return document.getElementById('orchestraField');
+    }
 
-// Called by the common.js module.
-function handleMessage(e) {
-  var element = document.getElementById('console');
-  element.value += e.data;
-  element.scrollTop = 99999; // focus on bottom
-}
-</script>
+    function compileOrc1() {
+       icsound.CompileOrc(orchval);
+    }
+
+    function compileOrc2() {
+       orchval = selection;
+       icsound.CompileOrc(orchval);
+    }
+
+   function changeOrchestra() {    
+       orchval = getOrchestraElement().value;
+    }
+
+   function getText(elem) {
+       if(elem.tagName === "TEXTAREA" ||
+         (elem.tagName === "INPUT" && elem.type === "text")) {
+           return elem.value.substring(elem.selectionStart,
+                                       elem.selectionEnd);
+        }
+        return null;
+    }
+
+    function selectOrchestra() {
+        selection = getText(document.activeElement);  
+    }
+
+  </script>
 </head>
-<body data-name="icsound" data-tools="pnacl" data-configs="Debug Release" data-path="pnacl/Release">
+
+<body>
   <p>
   <button id="playButton">Play</button>
   <button id="pauseButton">Pause</button> </p>
@@ -144,8 +121,7 @@ endin
   value="">Csound: not loaded</textarea>
   </p>
 
-  <!-- The NaCl plugin will be embedded inside the element with id "listener".
-      See common.js.-->
-  <div id="listener"></div>
+  <!--pNaCl icsound module-->
+  <div id="engine"></div>
 </body>
 </html>
