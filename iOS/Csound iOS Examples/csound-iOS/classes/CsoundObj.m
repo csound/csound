@@ -329,7 +329,7 @@ OSStatus  Csound_Render(void *inRefCon,
 	if (cdata->shouldRecord) {
 		OSStatus err = ExtAudioFileWriteAsync(cdata->file, inNumberFrames, ioData);
 		if (err != noErr) {
-			printf("***Error writing to file: %ld\n", err);
+			printf("***Error writing to file: %d\n", (int)err);
 		}
 	}
     
@@ -404,7 +404,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
         // Warm the file up.
         ExtAudioFileWriteAsync(mCsData.file, 0, NULL);
     } else {
-        printf("***Not recording. Error: %ld\n", err);
+        printf("***Not recording. Error: %d\n", (int)err);
         err = noErr;
     }
     
@@ -622,7 +622,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
 							// Warm the file up.
 							ExtAudioFileWriteAsync(mCsData.file, 0, NULL);
 						} else {
-							printf("***Not recording. Error: %ld\n", err);
+							printf("***Not recording. Error: %d\n", (int)err);
 							err = noErr;
 						}
 					}
