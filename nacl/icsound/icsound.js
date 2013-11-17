@@ -91,7 +91,7 @@ var icsound = (function() {
    */
    function moduleDidLoad() {
     icsound.module = document.getElementById('icsound_module');
-    updateStatus('ready');
+       updateStatus('ready', 1);
     if (typeof window.moduleDidLoad !== 'undefined') {
       window.moduleDidLoad();
     }
@@ -177,15 +177,6 @@ var icsound = (function() {
    }
 
   /**
-   * Copies a server file to /local/. (not persistent)
-   *
-   * @param {string} name The file name
-   */
-  function CopyToLocal(name) {
-    icsound.module.postMessage('copyToLocal:' + name);
-   }
-
-  /**
    * Sets the value of a control channel in Csound
    *
    * @param {string} name The channel to be set.
@@ -194,6 +185,30 @@ var icsound = (function() {
   function SetChannel(name, value){
     var channel = 'channel:' + name + ':';
     icsound.module.postMessage(channel + value);
+   }
+
+  /**
+   * Copies a server file to local/. (not persistent)
+   *
+   * @param {string} name The file name
+   */
+  function CopyToLocal(name) {
+    icsound.module.postMessage('copyToLocal:' + name);
+   }
+ 
+  /**
+   * Copies a URL file to local/. (not persistent)
+   *
+   * NB: at the moment the only URL allowed
+   * appears to be the one serving this file
+   * and subdirectories thereof.
+   *
+   * @param {string} url  The url name
+   * @param {string} name The file name
+   */
+    function CopyUrlToLocal(url, name) {
+     var ident = 'copyUrlToLocal:' + url + '#';
+     icsound.module.postMessage(ident + name);
    }
 
   return {
@@ -208,7 +223,8 @@ var icsound = (function() {
     ReadScore: ReadScore,
     Event: Event,
     SetChannel: SetChannel,
-    CopyToLocal: CopyToLocal
+    CopyToLocal: CopyToLocal,
+    CopyUrlToLocal: CopyUrlToLocal
   };
 
 }());
