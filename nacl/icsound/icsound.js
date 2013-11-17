@@ -190,18 +190,18 @@ var icsound = (function() {
   /**
    * Copies a server file to local/. (not persistent)
    *
-   * @param {string} name The file name
+   * @param {string} src The src name
+   * @param {string} dest The dest name
    */
-  function CopyToLocal(name) {
-    icsound.module.postMessage('copyToLocal:' + name);
+    function CopyToLocal(src, dest) {
+    var ident = 'copyToLocal:' + src + '#';
+     icsound.module.postMessage(ident + dest);
    }
  
   /**
    * Copies a URL file to local/. (not persistent)
    *
-   * NB: at the moment the only URL allowed
-   * appears to be the one serving this file
-   * and subdirectories thereof.
+   * NB: not implemented yet
    *
    * @param {string} url  The url name
    * @param {string} name The file name
