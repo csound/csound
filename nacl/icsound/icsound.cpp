@@ -43,7 +43,9 @@ const char* const kScoreId = "score";
 const char* const kEventId = "event";
 const char* const kChannelId = "channel";
 const char* const kCopyId = "copyToLocal";
+const char* const kCopyUrlId = "copyUrlToLocal";
 static const char kMessageArgumentSeparator = ':';
+static const char kUrlArgumentSeparator = '#';
 
 const double kDefaultFrequency = 440.0;
 const double kPi = 3.141592653589;
@@ -59,28 +61,36 @@ class AudioInstance : public pp::Instance {
   explicit AudioInstance(PP_Instance instance, 
                          PPB_GetInterface get_browser_interface)
       : pp::Instance(instance),
-        csound(NULL), count(0), fileResult(0), fileThread(NULL), fname(NULL) {
+        csound(NULL), count(0), fileResult(0), 
+        fileThread(NULL), urlThread(NULL), 
+        fname(NULL), url(NULL) {
     get_browser_interface_ = get_browser_interface;
 }
   virtual ~AudioInstance() {
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
+    if(fname) free(fname); 
+    if(url) free(url);
+    if(csound){
+      csoundDestroyMessageBuffer(csound);
+      csoundDestroy(csound);
+    }
   }
 
   virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]);
   virtual void HandleMessage(const pp::Var& var_message);
   void CopyFileToLocalAsync(char *name);
-  
+  void CopyFromURLToLocalAsync(char *URL, char *name);  
 
  private:  
   pp::Audio audio_;
   CSOUND *csound;
   int count;
   PPB_GetInterface get_browser_interface_;
-  pthread_t fileThread;
-  char *fname;
   int fileResult;
-
+  pthread_t fileThread;
+  pthread_t urlThread;
+  char *fname;
+  char *url;
+  
   static void CsoundCallback(void* samples,
                                uint32_t buffer_size,
                                void* data) {
@@ -116,7 +126,7 @@ class AudioInstance : public pp::Instance {
 public:
   char *GetFileName(){ return fname; }
   void SetFileResult(int res){ fileResult = res; }
-           
+  char *GetUrl(){ return url; }         
 };
 
 bool AudioInstance::Init(uint32_t argc,
@@ -153,12 +163,13 @@ bool AudioInstance::Init(uint32_t argc,
         0,                                        /* mountflags */
         "type=TEMPORARY"); /* data */
 
-  mount("",       /* source. Use relative URL */
+  int res = mount("",       /* source. Use relative URL */
         "/http",  /* target */
         "httpfs", /* filesystemtype */
         0,        /* mountflags */
         "");      /* data */
   
+
   return true;
 }
 
@@ -211,25 +222,43 @@ void AudioInstance::HandleMessage(const pp::Var& var_message) {
       std::string string_arg = message.substr(sep_pos + 1);
       CopyFileToLocalAsync((char *) string_arg.c_str()); 
     }
+  } else if (message.find(kCopyUrlId) == 0) {
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {      
+      std::string string_arg = message.substr(sep_pos + 1);
+      if (sep_pos != std::string::npos) {
+        std::string string_arg = message.substr(sep_pos + 1);
+        sep_pos = string_arg.find_first_of(kUrlArgumentSeparator);
+	std::string surl = string_arg.substr(0, sep_pos);
+        std::string sname = string_arg.substr(sep_pos + 1);
+        CopyFromURLToLocalAsync((char *) surl.c_str(), (char *) sname.c_str()); 
+      }
+    }
   }
-}
 
+}
 
 void* fileThreadFunc(void *data){
 
   AudioInstance *p = (AudioInstance*) data;
-  char *name = strdup(p->GetFileName());
+  char *name = p->GetFileName();
   FILE *fp_in, *fp_out;
   int retval=0;
-  char *rem_name = (char *) malloc(strlen(name)+strlen("http/"));
-  sprintf(rem_name,"http/%s",name); 
+  char *rem_name;
+  if(p->GetUrl() == NULL){
+   rem_name = (char *) malloc(strlen(name)+strlen("http/"));
+   sprintf(rem_name,"http/%s",name); 
+  }
+  else{
+   rem_name = (char *) malloc(strlen(name)+strlen("url/"));
+   sprintf(rem_name,"url/%s",name); 
+  }
   p->PostMessage("Copying: ");
   p->PostMessage(rem_name);
-   p->PostMessage("\n");
+  p->PostMessage("\n");
   if((fp_in = fopen(rem_name, "r"))!= NULL){
     char *local_name = (char *) malloc(strlen(name)+strlen("local/"));
     sprintf(local_name,"local/%s",name);  
-    p->PostMessage(local_name);
     if((fp_out = fopen(local_name, "w"))!=NULL) {
       char buffer[512];
       int read;
@@ -237,26 +266,54 @@ void* fileThreadFunc(void *data){
     	fwrite(buffer,1,read,fp_out);
       fclose(fp_out);
       retval = 0;
-      p->PostMessage(": copied file\n");
+      p->PostMessage("copied file: ");
+      sprintf(rem_name,"http/%s",name); 
+      p->PostMessage("\n");
     } else retval = -1;
     free(local_name);
     fclose(fp_in);
   } else retval = -1; 
-
   if(retval < 0){
    p->PostMessage(rem_name);
    p->PostMessage(": could not copy file\n");
   }
   free(rem_name);
-  free(name); 
   p->SetFileResult(retval); 
   return NULL;
 }
 
 void AudioInstance::CopyFileToLocalAsync(char *name){
-  fname = name;
+ if(fname) free(fname); 
+ fname = strdup(name);
+ if(url){
+   free(url);
+   url = NULL;
+  }
   pthread_create(&fileThread, NULL, &fileThreadFunc,(void*) this);
 }
+
+void* urlThreadFunc(void *data){
+  AudioInstance *p = (AudioInstance*) data;
+  mount(p->GetUrl(), /* source. Use relative URL */
+        "/url",  /* target */
+        "httpfs", /* filesystemtype */
+        0,        /* mountflags */
+        "");      /* data */
+  fileThreadFunc(data);
+  umount("/tmp");  
+  return NULL;
+}
+
+void AudioInstance::CopyFromURLToLocalAsync(char *URL,char *name){
+   fname = name;
+   if(fname) free(fname); 
+   fname = strdup(name);
+   if(url) free(url);
+   url = strdup(URL);
+   pthread_create(&urlThread, NULL, &urlThreadFunc,(void*) this);
+}
+
+
 
 
 
