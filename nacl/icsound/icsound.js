@@ -77,7 +77,7 @@ var icsound = (function() {
    */
   function handleCrash(event) {
     if (icsound.module.exitStatus == -1) {
-      updateStatus('Csound has crashed');
+      updateStatus('Ops, something went wrong... please refresh page',1);
     } else {
       updateStatus('Csound has exited [' + icsound.module.exitStatus + ']');
     }
@@ -124,13 +124,14 @@ var icsound = (function() {
    * Prints current status to the console
    * @param {string} opt_message The status message.
    */
-  function updateStatus(opt_message) {
+    function updateStatus(opt_message, keep) {
     if (opt_message) {
       statusText = 'Csound: ' + opt_message + '\n';
     }
     var statusField = document.getElementById('console');
     if (statusField) {
-      statusField.value = statusText;
+	if(!keep) statusField.value = statusText;
+        else statusField.value += statusText;
     }
   }
 
@@ -176,6 +177,15 @@ var icsound = (function() {
    }
 
   /**
+   * Copies a server file to /local/. (not persistent)
+   *
+   * @param {string} name The file name
+   */
+  function CopyToLocal(name) {
+    icsound.module.postMessage('copyToLocal:' + name);
+   }
+
+  /**
    * Sets the value of a control channel in Csound
    *
    * @param {string} name The channel to be set.
@@ -197,7 +207,8 @@ var icsound = (function() {
     CompileOrc: CompileOrc,
     ReadScore: ReadScore,
     Event: Event,
-    SetChannel: SetChannel
+    SetChannel: SetChannel,
+    CopyToLocal: CopyToLocal
   };
 
 }());
