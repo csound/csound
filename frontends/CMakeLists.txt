@@ -3,35 +3,6 @@ option(BUILD_CSBEATS "Build the beats score frontend" ON)
 option(BUILD_WINSOUND "Build the Winsound frontend. Requires FLTK headers and libs." OFF)
 option(BUILD_CSOUND_VST "Build the CsoundVST frontend. Requires the Steinberg VST SDK 2.3." OFF)
 
-
-  # first, try to use fltk-config for fltk >= 1.3 (FindFLTK is buggy
-  # on Unix, where e.g. xft and xinerama options are not dealt with)
-  find_program(FLTK_CONFIG_SCRIPT fltk-config)
-  if(FLTK_CONFIG_SCRIPT)
-    execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --api-version
-                    OUTPUT_VARIABLE FLTK_VERSION)
-    string(STRIP FLTK_VERSION FLTK_VERSION)
-    if(FLTK_VERSION GREATER 1.1)
-      set(HAVE_FLTK "Fltk")
-      set(FLTK_FOUND 1)
-      message(STATUS "Using fltk-config script for Fltk " ${FLTK_VERSION})
-      execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --includedir
-                      OUTPUT_VARIABLE FLTK_INCLUDE_DIR)
-      string(STRIP FLTK_INCLUDE_DIR FLTK_INCLUDE_DIR)
-      execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --ldflags
-                      OUTPUT_VARIABLE FLTK_LIBRARIES)
-      string(STRIP FLTK_LIBRARIES FLTK_LIBRARIES)
-      string(REGEX MATCH "fltk[_ ]jpeg" FLTK_JPEG ${FLTK_LIBRARIES})
-      string(REGEX MATCH "fltk[_ ]z" FLTK_Z ${FLTK_LIBRARIES})
-      string(REGEX MATCH "fltk[_ ]png" FLTK_PNG ${FLTK_LIBRARIES})
-    endif(FLTK_VERSION GREATER 1.1)
-  endif(FLTK_CONFIG_SCRIPT)
-  if(NOT HAVE_FLTK)
-
-    set(FLTK_SKIP_OPENGL true)
-    find_package(FLTK)
-  endif()
-
 find_package(FLEX)
 find_package(BISON)
 
