@@ -12,6 +12,7 @@ option(BUILD_P5GLOVE_OPCODES "Build the P5Glove opcodes" ON)
 option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
 option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
 option(BUILD_FAUST_OPCODES "Build the Faust opcodes" OFF)
+option(BUILD_VST4CS_OPCODES "Build the vst4cs opcodes" OFF)
 
 find_package(Boost)
 check_include_file(ladspa.h LADSPA_H)
@@ -189,6 +190,32 @@ endif()
 #    make_plugin(ogg ogg.c "${vorbis_LIBS}")
 #endif()
 
+check_deps(BUILD_VST4CS_OPCODES VSTSDK2X_DIR FLTK_FOUND)
+if(BUILD_VST4CS_OPCODES)
+    include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
+    include_directories(${VSTSDK2X_DIR})
+    include_directories(${VSTSDK2X_DIR}/public.sdk/source/vst2.x)
+    include_directories(${VSTSDK2X_DIR}/pluginterfaces/source/vst2.x)
+    include_directories(${FLTK_INCLUDE_DIR})
+    add_definitions(-DVST_FORCE_DEPRECATED=0 -DCS_VSTHOST)
+    set(VST4CS_SRCS
+        vst4cs/src/vst4cs.cpp
+        vst4cs/src/vsthost.cpp
+        vst4cs/src/fxbank.cpp
+        ${VSTSDK2X_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
+        ${VSTSDK2X_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
+    add_library(vst4cs SHARED ${VST4CS_SRCS})
+    set_target_properties(vst4cs PROPERTIES
+        LINK_INTERFACE_LIBRARIES ""
+        RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+        )
+    target_link_libraries(vst4cs ${CSOUNDLIB} ${FLTK_LIBRARIES})
+    install(TARGETS vst4cs
+        LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
+        ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
+endif()
 
 
 #set(sfont_FLAGS "")
