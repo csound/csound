@@ -56,14 +56,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 # libs - list of library files to link to
 # output_name (OPTIONAL) - overide the name of the generated executable
 #
-function(make_executable name srcs libs) 
+function(make_executable name srcs libs)
     add_executable(${name} ${srcs})
     target_link_libraries (${name} ${libs})
     set_target_properties(${name} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR})
 
-    if(${ARGC} EQUAL 4) 
-        set_target_properties(${name} PROPERTIES            
+    if(${ARGC} EQUAL 4)
+        set_target_properties(${name} PROPERTIES
             OUTPUT_NAME ${ARGV3})
     endif()
     install(TARGETS ${name}
@@ -78,7 +78,7 @@ endfunction(make_executable)
 
 function(make_utility name srcs)
     make_executable(${name} "${srcs}" "${CSOUNDLIB}")
-    add_dependencies(${name} ${CSOUNDLIB}) 
+    add_dependencies(${name} ${CSOUNDLIB})
 endfunction()
 
 
@@ -196,43 +196,43 @@ endif()
 if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
-    
-    set(CSOUND_WINDOWS_LIBRARIES 
-        advapi32 
-        comctl32 
-        comdlg32 
-        glu32 
-        kernel32 
+
+    set(CSOUND_WINDOWS_LIBRARIES
+        advapi32
+        comctl32
+        comdlg32
+        glu32
+        kernel32
         msvcrt
-        odbc32 
-        odbccp32 
-        ole32 
-        oleaut32 
-        shell32             
-        user32 
-        uuid             
-        winmm 
-        winspool 
-        ws2_32 
-        wsock32 
-        advapi32 
-        comctl32 
-        comdlg32 
-        glu32 
-        kernel32 
-        odbc32 
-        odbccp32 
-        ole32 
-        oleaut32 
-        shell32             
-        user32 
-        uuid             
-        winmm 
-        winspool 
-        ws2_32 
+        odbc32
+        odbccp32
+        ole32
+        oleaut32
+        shell32
+        user32
+        uuid
+        winmm
+        winspool
+        ws2_32
+        wsock32
+        advapi32
+        comctl32
+        comdlg32
+        glu32
+        kernel32
+        odbc32
+        odbccp32
+        ole32
+        oleaut32
+        shell32
+        user32
+        uuid
+        winmm
+        winspool
+        ws2_32
         wsock32
         pthread)
-    
+
 endif(WIN32)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -269,7 +269,7 @@ option(BUILD_TESTS "Build for release" ON)
 set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 # This needs to be here since _everybody_ needs this flag
-if(USE_DOUBLE) 
+if(USE_DOUBLE)
     add_definitions("-DUSE_DOUBLE")
 endif(USE_DOUBLE)
 check_c_compiler_flag(-fvisibility=hidden HAS_VISIBILITY_HIDDEN)
@@ -285,17 +285,17 @@ if(APPLE)
   if(BUILD_INSTALLER)
     set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}")
   endif()
-  
+
   set(DEFAULT_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/)
 
-  if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT}) 
-    set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT}) 
+  if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT})
+    set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
   endif()
 
-  if(EXISTS ${CMAKE_OSX_SYSROOT}) 
+  if(EXISTS ${CMAKE_OSX_SYSROOT})
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.6)
   endif()
-  
+
 endif()
 
 if(USE_DOUBLE)
@@ -314,7 +314,7 @@ else()
     endif()
 endif()
 
-if(APPLE) 
+if(APPLE)
     if(BUILD_INSTALLER)
 	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
     else()
@@ -337,7 +337,7 @@ else()
     add_definitions("-DBETA")
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX) 
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     add_definitions("-Wno-format")
     #    add_compiler_flags("-g")
 endif()
@@ -353,7 +353,7 @@ set(BUILD_PLUGINS_DIR ${BUILD_DIR})
 set(BUILD_BIN_DIR ${BUILD_DIR})
 set(BUILD_LIB_DIR ${BUILD_DIR})
 
-#if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode") 
+#if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
 #    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes)
 #endif()
 
@@ -387,12 +387,12 @@ find_path(SNDFILE_H_PATH sndfile.h)
 if(SNDFILE_H_PATH)
     include_directories(${SNDFILE_H_PATH})
 else()
-    message(FATAL_ERROR "Could not find sndfile.h") 
+    message(FATAL_ERROR "Could not find sndfile.h")
 endif()
 
 find_library(PTHREAD_LIBRARY pthread)
 
-if(NOT PTHREAD_LIBRARY AND WIN32)   
+if(NOT PTHREAD_LIBRARY AND WIN32)
     find_library(PTHREAD_LIBRARY pthreadGC2)
 endif()
 
@@ -408,7 +408,7 @@ set(CMAKE_REQUIRED_LIBRARIES pthread)
 option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
 if(USE_ATOMIC_BUILTIN)
 include(cmake/CheckAtomic.cmake)
-  if(HAVE_ATOMIC_BUILTIN) 
+  if(HAVE_ATOMIC_BUILTIN)
     message(STATUS "Using Atomic Builtins")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_ATOMIC_BUILTIN")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ATOMIC_BUILTIN")
@@ -457,6 +457,34 @@ if(NOT BISON_EXECUTABLE)
     message(FATAL_ERROR "Csound requires the bison executable")
 endif()
 
+find_program(FLTK_CONFIG_SCRIPT fltk-config)
+if(FLTK_CONFIG_SCRIPT)
+    execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --api-version
+                OUTPUT_VARIABLE FLTK_VERSION)
+    if(FLTK_VERSION)
+        string(STRIP ${FLTK_VERSION} FLTK_VERSION)
+        if(FLTK_VERSION GREATER 1.1)
+          set(HAVE_FLTK "Fltk")
+          set(FLTK_FOUND 1)
+          message("FLTK FOUND: ${FLTK_FOUND}")
+          message(STATUS "Using fltk-config script for FLTK " ${FLTK_VERSION})
+          execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --includedir
+                          OUTPUT_VARIABLE FLTK_INCLUDE_DIR)
+          string(STRIP ${FLTK_INCLUDE_DIR} FLTK_INCLUDE_DIR)
+          execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --ldflags --use-images
+                          OUTPUT_VARIABLE FLTK_LIBRARIES)
+          string(STRIP ${FLTK_LIBRARIES} FLTK_LIBRARIES)
+          string(REGEX MATCH "fltk[_ ]jpeg" FLTK_JPEG ${FLTK_LIBRARIES})
+          string(REGEX MATCH "fltk[_ ]z" FLTK_Z ${FLTK_LIBRARIES})
+          string(REGEX MATCH "fltk[_ ]png" FLTK_PNG ${FLTK_LIBRARIES})
+        endif(FLTK_VERSION GREATER 1.1)
+    endif(FLTK_VERSION)
+endif(FLTK_CONFIG_SCRIPT)
+if(NOT HAVE_FLTK)
+    set(FLTK_SKIP_OPENGL true)
+    find_package(FLTK)
+endif()
+
 ## MAIN TARGETS ##
 
 set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
@@ -464,7 +492,7 @@ set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
 include_directories(./H)
 include_directories(./include)
 include_directories(./Engine)
- 
+
 #adding this for files that #include SDIF/sdif*
 include_directories(./)
 
@@ -481,7 +509,7 @@ if(PTHREAD_BARRIER_INIT_EXISTS)
 endif()
 
 
-check_deps(USE_OPEN_MP OPENMP_FOUND PTHREAD_BARRIER_INIT_EXISTS) 
+check_deps(USE_OPEN_MP OPENMP_FOUND PTHREAD_BARRIER_INIT_EXISTS)
 if(USE_OPEN_MP)
    list(APPEND libcsound_CFLAGS -DUSE_OPENMP)
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -572,44 +600,44 @@ set(libcsound_SRCS
     Opcodes/compress.c
     Opcodes/eqfil.c
     Opcodes/Vosim.c
-    Opcodes/pitch.c 
-    Opcodes/pitch0.c  
-    Opcodes/spectra.c 
+    Opcodes/pitch.c
+    Opcodes/pitch0.c
+    Opcodes/spectra.c
     Opcodes/ambicode1.c
-    Opcodes/sfont.c 
-    Opcodes/grain4.c 
-    Opcodes/hrtferX.c 
+    Opcodes/sfont.c
+    Opcodes/grain4.c
+    Opcodes/hrtferX.c
     Opcodes/loscilx.c
-    Opcodes/minmax.c 
-    Opcodes/pan2.c 
+    Opcodes/minmax.c
+    Opcodes/pan2.c
     Opcodes/arrays.c
     Opcodes/phisem.c
-    Opcodes/hrtfopcodes.c 
-    Opcodes/stackops.c 
-    Opcodes/vbap.c 
-    Opcodes/vbap1.c 
-    Opcodes/vbap_n.c 
-    Opcodes/vbap_zak.c  
-    Opcodes/vaops.c 
-    Opcodes/ugakbari.c 
-    Opcodes/harmon.c 
-    Opcodes/pitchtrack.c 
-    Opcodes/partikkel.c 
-    Opcodes/shape.c 
+    Opcodes/hrtfopcodes.c
+    Opcodes/stackops.c
+    Opcodes/vbap.c
+    Opcodes/vbap1.c
+    Opcodes/vbap_n.c
+    Opcodes/vbap_zak.c
+    Opcodes/vaops.c
+    Opcodes/ugakbari.c
+    Opcodes/harmon.c
+    Opcodes/pitchtrack.c
+    Opcodes/partikkel.c
+    Opcodes/shape.c
     Opcodes/tabsum.c
-    Opcodes/crossfm.c 
-    Opcodes/pvlock.c 
-    Opcodes/fareyseq.c 
-    Opcodes/modmatrix.c 
-    Opcodes/scoreline.c 
+    Opcodes/crossfm.c
+    Opcodes/pvlock.c
+    Opcodes/fareyseq.c
+    Opcodes/modmatrix.c
+    Opcodes/scoreline.c
     Opcodes/modal4.c
-    Opcodes/physutil.c 
-    Opcodes/physmod.c 
-    Opcodes/mandolin.c 
+    Opcodes/physutil.c
+    Opcodes/physmod.c
+    Opcodes/mandolin.c
     Opcodes/singwave.c
-    Opcodes/fm4op.c 
-    Opcodes/moog1.c 
-    Opcodes/shaker.c 
+    Opcodes/fm4op.c
+    Opcodes/moog1.c
+    Opcodes/shaker.c
     Opcodes/bowedbar.c
     Opcodes/gab/tabmorph.c
     Opcodes/gab/hvs.c
@@ -637,74 +665,74 @@ set(libcsound_SRCS
     Top/threadsafe.c
     Top/server.c)
 
-set(stdopcod_SRCS 
-    Opcodes/ambicode.c      
-    Opcodes/bbcut.c         
+set(stdopcod_SRCS
+    Opcodes/ambicode.c
+    Opcodes/bbcut.c
     Opcodes/biquad.c
-    Opcodes/butter.c        
-    Opcodes/clfilt.c        
+    Opcodes/butter.c
+    Opcodes/clfilt.c
     Opcodes/cross2.c
-    Opcodes/dam.c           
-    Opcodes/dcblockr.c      
+    Opcodes/dam.c
+    Opcodes/dcblockr.c
     Opcodes/filter.c
-    Opcodes/flanger.c       
-    Opcodes/follow.c        
+    Opcodes/flanger.c
+    Opcodes/follow.c
     Opcodes/fout.c
-    Opcodes/freeverb.c      
-    Opcodes/ftconv.c        
+    Opcodes/freeverb.c
+    Opcodes/ftconv.c
     Opcodes/ftgen.c
-    Opcodes/gab/gab.c       
-    Opcodes/gab/vectorial.c 
+    Opcodes/gab/gab.c
+    Opcodes/gab/vectorial.c
     Opcodes/grain.c
-    Opcodes/locsig.c        
-    Opcodes/lowpassr.c      
+    Opcodes/locsig.c
+    Opcodes/lowpassr.c
     Opcodes/metro.c
-    Opcodes/midiops2.c      
-    Opcodes/midiops3.c      
+    Opcodes/midiops2.c
+    Opcodes/midiops3.c
     Opcodes/newfils.c
-    Opcodes/nlfilt.c        
-    Opcodes/oscbnk.c        
+    Opcodes/nlfilt.c
+    Opcodes/oscbnk.c
     Opcodes/pluck.c
-    Opcodes/repluck.c       
-    Opcodes/reverbsc.c      
+    Opcodes/repluck.c
+    Opcodes/reverbsc.c
     Opcodes/seqtime.c
-    Opcodes/sndloop.c       
-    Opcodes/sndwarp.c       
+    Opcodes/sndloop.c
+    Opcodes/sndwarp.c
     Opcodes/space.c
-    Opcodes/spat3d.c        
-    Opcodes/syncgrain.c     
+    Opcodes/spat3d.c
+    Opcodes/syncgrain.c
     Opcodes/ugens7.c
-    Opcodes/ugens9.c        
-    Opcodes/ugensa.c        
+    Opcodes/ugens9.c
+    Opcodes/ugensa.c
     Opcodes/uggab.c
-    Opcodes/ugmoss.c        
-    Opcodes/ugnorman.c      
+    Opcodes/ugmoss.c
+    Opcodes/ugnorman.c
     Opcodes/ugsc.c
-    Opcodes/wave-terrain.c  
+    Opcodes/wave-terrain.c
     Opcodes/stdopcod.c
     Opcodes/socksend.c
     Opcodes/sockrecv.c)
 
 set(cs_pvs_ops_SRCS
-    Opcodes/ifd.c 
-    Opcodes/partials.c 
-    Opcodes/psynth.c 
+    Opcodes/ifd.c
+    Opcodes/partials.c
+    Opcodes/psynth.c
     Opcodes/pvsbasic.c
-    Opcodes/pvscent.c 
-    Opcodes/pvsdemix.c 
-    Opcodes/pvs_ops.c 
+    Opcodes/pvscent.c
+    Opcodes/pvsdemix.c
+    Opcodes/pvs_ops.c
     Opcodes/pvsband.c
     Opcodes/pvsbuffer.c
     Opcodes/pvsgendy.c)
 
 set(oldpvoc_SRCS
-    Opcodes/dsputil.c 
-    Opcodes/pvadd.c 
-    Opcodes/pvinterp.c 
+    Opcodes/dsputil.c
+    Opcodes/pvadd.c
+    Opcodes/pvinterp.c
     Opcodes/pvocext.c
-    Opcodes/pvread.c 
-    Opcodes/ugens8.c 
-    Opcodes/vpvoc.c 
+    Opcodes/pvread.c
+    Opcodes/ugens8.c
+    Opcodes/vpvoc.c
     Opcodes/pvoc.c)
 
 set(mp3in_SRCS
@@ -735,25 +763,25 @@ set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
 
 add_custom_command(
     SOURCE ${LEX_SRC}
-    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SRC} > ${LEX_OUT} 
+    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SRC} > ${LEX_OUT}
     TARGET NewParser
     OUTPUTS ${LEX_OUT})
 
 add_custom_command(
     SOURCE ${PRELEX_SRC}
-    COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SRC} > ${PRELEX_OUT} 
+    COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SRC} > ${PRELEX_OUT}
     TARGET NewParser
     OUTPUTS ${PRELEX_OUT})
 
 add_custom_command(
     SOURCE ${YACC_SRC}
     COMMAND ${BISON_EXECUTABLE}
-    ARGS -pcsound_orc -d --report=itemset -o ${YACC_OUT} ${YACC_SRC} 
+    ARGS -pcsound_orc -d --report=itemset -o ${YACC_OUT} ${YACC_SRC}
     TARGET NewParser
     DEPENDS ${LEX_OUT}
     OUTPUTS ${YACC_OUT})
 
-list(APPEND libcsound_SRCS 
+list(APPEND libcsound_SRCS
     ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
     Engine/csound_orc_semantics.c
     Engine/csound_orc_expressions.c
@@ -782,25 +810,25 @@ if(SCORE_PARSER)
 
     add_custom_command(
         SOURCE ${LEX_SCOSRC}
-        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT} 
+        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT}
         TARGET NewScoParser
         OUTPUTS ${LEX_SCOOUT})
 
     add_custom_command(
         SOURCE ${PRELEX_SCOSRC}
-        COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT} 
+        COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
         TARGET NewScoParser
         OUTPUTS ${PRELEXSCO_OUT})
 
     add_custom_command(
         SOURCE ${YACC_SCOSRC}
         COMMAND ${BISON_EXECUTABLE}
-        ARGS -pcsound_sco -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC} 
+        ARGS -pcsound_sco -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
         TARGET NewScoParser
         DEPENDS ${LEX_SCOOUT}
         OUTPUTS ${YACC_SCOOUT})
 
-    list(APPEND libcsound_SRCS 
+    list(APPEND libcsound_SRCS
         ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEXSCO_OUT})
 
     set_source_files_properties(${YACC_SCOOUT} GENERATED)
@@ -811,7 +839,7 @@ endif()
 
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-    
+
 if(NEW_PARSER_DEBUG)
     message(STATUS "Building with new parser debugging")
     list(APPEND libcsound_CFLAGS -DPARSER_DEBUG=1)
@@ -821,15 +849,15 @@ endif()
 
 if(BUILD_MULTI_CORE)
     message(STATUS "Building with multicore")
-    
+
     list(APPEND libcsound_SRCS
         Engine/cs_new_dispatch.c
         Engine/cs_par_base.c
         Engine/cs_par_orc_semantic_analysis.c
         Engine/cs_par_dispatch.c)
-    
+
     list(APPEND libcsound_CFLAGS -DPARCS)
-    
+
 else()
     message(STATUS "Not building with multicore")
 endif()
@@ -872,10 +900,10 @@ endif()
 
 #if(NOT EXISTS ${CSOUNDLIB_DIR}/Resources/libs/${depname})
 #   add_custom_command(
-#       TARGET ${CSOUNDLIB} 
+#       TARGET ${CSOUNDLIB}
 #       POST_BUILD
 #       COMMAND mkdir
-#       ARGS -p ${CSOUNDLIB_DIR}/Resources/libs 
+#       ARGS -p ${CSOUNDLIB_DIR}/Resources/libs
 #       COMMAND cp
 #       ARGS ${source} ${CSOUNDLIB_DIR}/Resources/libs/${depname}
 #       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
@@ -884,7 +912,7 @@ endif()
 #endif()
 
 #add_custom_command(
-#       TARGET ${CSOUNDLIB} 
+#       TARGET ${CSOUNDLIB}
 #       POST_BUILD
 #       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
 #       ARGS -change ${source} @loader_path/Resources/libs/${depname} ${CSOUNDLIB_DIR}/${CSOUNDLIB}
@@ -898,7 +926,7 @@ endif()
 # libname - name of library to produce
 # srcs - list of src files (must be quoted if a list)
 # extralibs (OPTIONAL) - extra libraries to link the plugin to
-#  
+#
 # NB - this was moved here as it needs some VARS defined above
 # for setting up the framework
 function(make_plugin libname srcs)
@@ -915,7 +943,7 @@ function(make_plugin libname srcs)
         endif()
         math(EXPR i "${i}+1")
     endwhile()
-    
+
     set_target_properties(${libname} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
@@ -940,8 +968,8 @@ function(add_dependency_to_framework pluginlib dependency)
 
 	#if(NOT EXISTS ${RESOURCE_DIR}/libs/${depname})
 	#add_custom_command(
-	#TARGET ${pluginlib} 
-	#COMMAND mkdir 
+	#TARGET ${pluginlib}
+	#COMMAND mkdir
 	#ARGS -p ${RESOURCE_DIR}/libs
 	#COMMAND cp
 	#ARGS -f ${source} ${RESOURCE_DIR}/libs/${depname}
@@ -950,7 +978,7 @@ function(add_dependency_to_framework pluginlib dependency)
 	#)
 	#endif()
 	#add_custom_command(
-	#TARGET ${pluginlib} 
+	#TARGET ${pluginlib}
 	#POST_BUILD
 	#COMMAND ${CMAKE_INSTALL_NAME_TOOL}
 	#ARGS -change ${source} @loader_path/../libs/${depname} ${BUILD_PLUGINS_DIR}/lib${pluginlib}.dylib
@@ -964,11 +992,11 @@ install(TARGETS ${CSOUNDLIB}
     ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
     FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 
-set(libcsound_LIBS 
-    ${LIBSNDFILE_LIBRARY}  
+set(libcsound_LIBS
+    ${LIBSNDFILE_LIBRARY}
     ${PTHREAD_LIBRARY})
 
-if(WIN32) 
+if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
 endif()
 
@@ -988,19 +1016,19 @@ endif()
 if(LINUX)
     message(STATUS "Building on Linux")
     add_definitions(-DLINUX -DPIPES -D_GNU_SOURCE)
-    list(APPEND libcsound_LIBS m dl) 
+    list(APPEND libcsound_LIBS m dl)
 endif()
 
 if(APPLE)
     message(STATUS "Building on OSX")
     add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS)
-    list(APPEND libcsound_LIBS m dl) 
+    list(APPEND libcsound_LIBS m dl)
 endif()
 
 if(WIN32)
     add_definitions(-DWIN32)
 endif()
-    
+
 # Locale-aware reading and printing
 check_function_exists(strtok_r HAVE_STRTOK_R)
 check_function_exists(strtod_l HAVE_STRTOD_L)
