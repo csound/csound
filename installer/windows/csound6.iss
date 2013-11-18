@@ -11,11 +11,11 @@
 ; All of these changes SHOULD be in the #defines immediately following this.
 ; Also, this installer assumes LuaJIT and CsoundAC are part of Csound core.
 ; At this time the following features are not included in the installer:
-; Cabbage, faustgen, vst4cs.
+; Cabbage, faustgen.
 ; I hope to change this soon.
 
 ; Uncomment the following line to build for CsoundVST.
-; #define CSOUNDVST
+#define CSOUNDVST
 
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
@@ -68,7 +68,7 @@ Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full; 
 Name: "pd"; Description: "Pure Data csound~ object (requires Pure Data)"; Types: full; 
 #ifdef CSOUNDVST
-Name: "csoundvst"; Description: "Csound VST plugin"; Types: full; 
+Name: "csoundvst"; Description: "Csound VST plugin and vst4cs opcodes"; Types: full; 
 #endif
 
 [Dirs]
