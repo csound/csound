@@ -471,14 +471,14 @@ if(FLTK_CONFIG_SCRIPT)
           execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --includedir
                           OUTPUT_VARIABLE FLTK_INCLUDE_DIR)
           string(STRIP ${FLTK_INCLUDE_DIR} FLTK_INCLUDE_DIR)
-          execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --ldflags
+          execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --ldflags --use-images
                           OUTPUT_VARIABLE FLTK_LIBRARIES)
           string(STRIP ${FLTK_LIBRARIES} FLTK_LIBRARIES)
           string(REGEX MATCH "fltk[_ ]jpeg" FLTK_JPEG ${FLTK_LIBRARIES})
           string(REGEX MATCH "fltk[_ ]z" FLTK_Z ${FLTK_LIBRARIES})
           string(REGEX MATCH "fltk[_ ]png" FLTK_PNG ${FLTK_LIBRARIES})
-        endif(FLTK_VERSION)
-    endif(FLTK_VERSION GREATER 1.1)
+        endif(FLTK_VERSION GREATER 1.1)
+    endif(FLTK_VERSION)
 endif(FLTK_CONFIG_SCRIPT)
 if(NOT HAVE_FLTK)
     set(FLTK_SKIP_OPENGL true)
