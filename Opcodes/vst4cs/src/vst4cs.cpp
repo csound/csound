@@ -65,7 +65,6 @@ extern "C" {
   {
     VSTINIT *p = (VSTINIT *) data;
     VSTPlugin *plugin = new VSTPlugin(csound);
-
     *p->iVSThandle = (MYFLT) vstPlugins().size();
     vstPlugins().push_back(plugin);
     if ((int) vstPlugins().size() == 1) {
@@ -96,7 +95,6 @@ extern "C" {
   {
     VSTINFO *p = (VSTINFO *) data;
     VSTPlugin *plugin = vstPlugins()[(size_t) *p->iVSThandle];
-
     plugin->Info();
     return OK;
   }
@@ -109,17 +107,11 @@ extern "C" {
     if (p->opcodeInChannels > 32)
       csound->InitError(csound, "vstaudio: too many input args");
     VSTPlugin *plugin = vstPlugins()[(size_t) *p->iVSThandle];
-    //       if (!plugin) {
-    //         csound->InitError(csound, "vstaudio_init: invalid plugin pointer!");
-    //         return NOTOK;
-    //       }
-
     plugin->Debug("vstaudio_init.\n");
     p->framesPerBlock = csound->GetKsmps(csound);
     p->pluginInChannels  = (size_t) plugin->getNumInputs();
     p->pluginOutChannels = (size_t) plugin->getNumOutputs();
     p->opcodeOutChannels = (size_t) csound->GetOutputArgCnt(data);
-
     return OK;
   }
 
@@ -171,7 +163,6 @@ extern "C" {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     for(j=0; j < p->pluginOutChannels; j++)
        memset(p->aouts[j], '\0', offset*sizeof(MYFLT));
-    // plugin->Debug("vstaudio: plugin %x.\n", plugin);
     for (j = 0; j < p->pluginInChannels && j < p->opcodeInChannels; j++)
       for (i = offset; i < p->framesPerBlock; i++)
         plugin->inputs_[j][i] =
@@ -190,7 +181,6 @@ extern "C" {
     for ( ; j < p->opcodeOutChannels; j++)
       for (i = 0; i < p->framesPerBlock; i++)
         p->aouts[j][i] = FL(0.0);
-
     return OK;
   }
 
@@ -199,12 +189,10 @@ extern "C" {
   {
     VSTMIDIOUT *p = (VSTMIDIOUT *) data;
     VSTPlugin *plugin;
-
     p->vstHandle = (size_t) *p->iVSThandle;
     plugin = vstPlugins()[p->vstHandle];
     plugin->Debug("vstmidiout_init.\n");
     p->prvMidiData = 0;
-
     return OK;
   }
 
@@ -213,7 +201,6 @@ extern "C" {
     VSTMIDIOUT *p = (VSTMIDIOUT *) data;
     VSTPlugin *plugin;
     int     st, ch, d1, d2, midiData;
-
     st = (int) *(p->kstatus);
     if (st < 128 || st >= 240) {
       p->prvMidiData = 0;
@@ -236,10 +223,8 @@ extern "C" {
       d2 = 0;
     d1 = (d1 >= 0 ? (d1 < 128 ? d1 : 127) : 0);
     midiData = st | ch | (d1 << 8) | (d2 << 16);
-
     if (midiData == p->prvMidiData)
       return OK;
-
     p->prvMidiData = midiData;
     plugin = vstPlugins()[p->vstHandle];
     plugin->Debug("vstmidiout. kstatus = %i kdata1 = %i kdata2 = %i"
@@ -249,7 +234,6 @@ extern "C" {
                   (int) *(p->kdata2),
                   midiData);
     plugin->AddMIDI(midiData, 0, 0);
-
     return OK;
   }
 
@@ -262,10 +246,8 @@ extern "C" {
   {
     VSTPARAMGET *p = (VSTPARAMGET *) data;
     VSTPlugin *plugin = vstPlugins()[(size_t) *p->iVSThandle];
-
     plugin->Debug("vstparamset(%d).\n", int(*p->kparam));
     *p->kvalue = plugin->GetParamValue(int(*p->kparam));
-
     if (*(p->kvalue) == FL(-1.0))
       plugin->Log("Invalid parameter number %d.\n", int(*p->kparam));
     return OK;
@@ -275,7 +257,6 @@ extern "C" {
   {
     VSTPARAMSET *p = (VSTPARAMSET *) data;
     VSTPlugin *plugin = vstPlugins()[(size_t) *p->iVSThandle];
-
     plugin->Debug("vstparamset_init.\n");
     p->oldkparam = 0;
     p->oldkvalue = 0;
@@ -286,14 +267,12 @@ extern "C" {
   {
     VSTPARAMSET *p = (VSTPARAMSET *) data;
     VSTPlugin *plugin = vstPlugins()[(size_t) *p->iVSThandle];
-
     if (*p->kparam == p->oldkparam && *p->kvalue == p->oldkvalue)
       return OK;
     p->oldkparam = *p->kparam;
     p->oldkvalue = *p->kvalue;
     plugin->Debug("vstsend(%d, %f).\n", int(*p->kparam), *p->kvalue);
     plugin->SetParameter(int(*p->kparam), float(*p->kvalue));
-
     return OK;
   }
 
@@ -302,9 +281,7 @@ extern "C" {
     VSTBANKLOAD *p = (VSTBANKLOAD *) data;
     VSTPlugin *plugin = vstPlugins()[(size_t) *p->iVSThandle];
     void    *dummyPointer = 0;
-
     CFxBank fxBank((char *) p->ibank);          /* load the bank    */
-
     plugin->Dispatch(effBeginLoadBank,
                      0, 0, (VstPatchChunkInfo *) fxBank.GetChunk(), 0);
     if (plugin->Dispatch(effBeginLoadBank,
@@ -312,7 +289,6 @@ extern "C" {
       csound->InitError(csound, "Error: BeginLoadBank.");
       return NOTOK;
     }
-    // csound->Message(csound, "EffBeginLoadBank\n");
     if (fxBank.IsLoaded()) {
       if (plugin->aeffect->uniqueID != fxBank.GetFxID()) {
         csound->InitError(csound, "Loaded bank ID doesn't match plug-in ID.");
@@ -329,13 +305,9 @@ extern "C" {
         plugin->Log("Chunks loaded OK.\n");
       }
       else {
-        //     int     cProg = plugin->EffGetProgram();
         int     cProg = plugin->Dispatch(effGetProgram, 0, 0, dummyPointer, 0);
-        //     csound->Message(csound, "Current Program= %i\n", cProg);
         int     i, j;
         int     nParms = fxBank.GetNumParams();
-
-        //     csound->Message(csound, "nParms= %i\n", nParms);
         for (i = 0; i < fxBank.GetNumPrograms(); i++) {
           plugin->Dispatch(effSetProgram, 0, i, dummyPointer, 0);
           plugin->Dispatch(effSetProgramName, 0, 0, fxBank.GetProgramName(i),
@@ -372,7 +344,6 @@ extern "C" {
   {
     VSTEDIT *p = (VSTEDIT *) data;
     VSTPlugin *plugin = vstPlugins()[(size_t) *p->iVSThandle];
-
     plugin->OpenEditor();
     //plugin->targetFLpanel = vstPlugEditors().size()-1; //gab
     vstPlugEditors().push_back(plugin); //gab
@@ -395,7 +366,6 @@ extern "C" {
     strcpy(bankname, (char *) p->ibank);          /*   use that         */
     if (!plugin)
       return NOTOK;
-
     CFxBank b;
 
     if (plugin->aeffect->flags & effFlagsProgramChunks)
@@ -439,9 +409,6 @@ extern "C" {
     if (b.SaveBank(bankname))
       {
         plugin->Log("%s Bank saved OK.\n",bankname);
-        //pEffect->SetChunkFile(bankname);
-        //      ShowDetails();
-        //              OnSetProgram();
       }
     else {
       plugin->Log("Error: Error saving file\n");
