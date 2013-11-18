@@ -77,8 +77,8 @@ extern "C" {
       plugin->Log("VST Plug-In Technology by Steinberg\n");
       plugin->Log("============================================================\n");
     }
-    char    vstplugname[0x100];
-    strcpy(vstplugname, (char *) p->iplugin);
+    char vstplugname[0x100];
+    strncpy(vstplugname,((STRINGDAT *)p->iplugin)->data, MAXNAME-1);
 #if WIN32
     path_convert(vstplugname);
 #endif
@@ -564,7 +564,7 @@ extern "C" {
   }
 
   static OENTRY localops[] = {
-    { "vstinit",      sizeof(VSTINIT),    0, 1, "i", "So", &vstinit, 0, 0 },
+    { "vstinit",      sizeof(VSTINIT),    0, 1, "i", "To", &vstinit, 0, 0 },
     { "vstinfo",      sizeof(VSTINFO),    0, 1, "", "i", &vstinfo, 0, 0 },
     { "vstaudio",     sizeof(VSTAUDIO),   0, 5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
                                              "iy", &vstaudio_init, 0, &vstaudio },
@@ -576,16 +576,14 @@ extern "C" {
                                                                  &vstparamget, 0 },
     { "vstparamset",  sizeof(VSTPARAMSET),0, 3, "", "ikk", &vstparamset_init,
                                                                  &vstparamset, 0 },
-    { "vstbankload",  sizeof(VSTBANKLOAD),0, 1, "", "iS", &vstbankload, 0, 0 },
+    { "vstbankload",  sizeof(VSTBANKLOAD),0, 1, "", "iT", &vstbankload, 0, 0 },
     { "vstprogset",   sizeof(VSTPROGSET), 0, 1, "", "ii", &vstprogset, 0, 0 },
     { "vstedit",      sizeof(VSTEDIT),    0, 1, "", "i", &vstedit_init, 0, 0 },
-    { "vsttempo",     sizeof(VSTTEMPO),   0, 2, "" ,"ki", 0,
+    { "vsttempo",     sizeof(VSTTEMPO),   0, 2, "", "ki", 0,
                                              &vstSetTempo, 0/*, &vstedit_deinit*/},
-    { "vstnote",      sizeof(VSTNOTEOUT), 0, 3, "" ,"iiiii",  &vstnote_init,
-                                                                &vstnote_perf, 0 },
-    { "vstbanksave",  sizeof(VSTBANKLOAD),    0, 1, "" ,"iS",    &vstbanksave,
-                                                    0,           0/*, 0        */},
-    { 0, 0, 0, 0, 0, 0, (SUBR) 0, (SUBR) 0, (SUBR) 0 }
+    { "vstnote",      sizeof(VSTNOTEOUT), 0, 3, "", "iiiii", &vstnote_init, &vstnote_perf, 0 },
+    { "vstbanksave",  sizeof(VSTBANKLOAD),0, 1, "", "iT",    &vstbanksave,  0,             0 },
+    { 0,              0,                   0, 0, 0,  0,      (SUBR) 0,     (SUBR) 0, (SUBR) 0 }
   };
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
@@ -599,8 +597,12 @@ extern "C" {
     int     err = 0;
     while (ep->opname != NULL) {
       err |= csound->AppendOpcode(csound,
-                                  ep->opname, ep->flags, ep->dsblksiz, ep->thread,
-                                  ep->outypes, ep->intypes,
+                                  ep->opname,
+                                  ep->dsblksiz,
+                                  ep->flags,
+                                  ep->thread,
+                                  ep->outypes,
+                                  ep->intypes,
                                   (int (*)(CSOUND *, void *)) ep->iopadr,
                                   (int (*)(CSOUND *, void *)) ep->kopadr,
                                   (int (*)(CSOUND *, void *)) ep->aopadr);
