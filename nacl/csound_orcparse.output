@@ -1,4 +1,4 @@
-Terminals which are not used
+Terminals unused in grammar
 
    S_BITSHIFT_RRIGHT
    UDO_TOKEN
@@ -44,28 +44,28 @@ Grammar
    12         | INTEGER_TOKEN
    13         | label
 
-   14 @1: /* empty */
+   14 $@1: /* empty */
 
-   15 @2: /* empty */
+   15 $@2: /* empty */
 
-   16 instrdecl: INSTR_TOKEN @1 instlist NEWLINE @2 statementlist ENDIN_TOKEN NEWLINE
+   16 instrdecl: INSTR_TOKEN $@1 instlist NEWLINE $@2 statementlist ENDIN_TOKEN NEWLINE
    17          | INSTR_TOKEN NEWLINE error
 
    18 udoname: T_IDENT
    19        | T_OPCODE
    20        | T_OPCODE0
 
-   21 @3: /* empty */
+   21 $@3: /* empty */
 
-   22 @4: /* empty */
+   22 $@4: /* empty */
 
-   23 @5: /* empty */
+   23 $@5: /* empty */
 
-   24 @6: /* empty */
+   24 $@6: /* empty */
 
-   25 @7: /* empty */
+   25 $@7: /* empty */
 
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
 
    27 statementlist: statementlist statement
    28              | /* empty */
@@ -363,31 +363,31 @@ instlist (94)
     on left: 8 9 10 11 12 13, on right: 8 9 10 16
 instrdecl (95)
     on left: 16 17, on right: 3 6
-@1 (96)
+$@1 (96)
     on left: 14, on right: 16
-@2 (97)
+$@2 (97)
     on left: 15, on right: 16
 udoname (98)
     on left: 18 19 20, on right: 26
 udodecl (99)
     on left: 26, on right: 4 7
-@3 (100)
+$@3 (100)
     on left: 21, on right: 26
-@4 (101)
+$@4 (101)
     on left: 22, on right: 26
-@5 (102)
+$@5 (102)
     on left: 23, on right: 26
-@6 (103)
+$@6 (103)
     on left: 24, on right: 26
-@7 (104)
+$@7 (104)
     on left: 25, on right: 26
 statementlist (105)
     on left: 27 28, on right: 16 26 27 45 57 58 59 60 63
 topstatement (106)
     on left: 29 30, on right: 2 5
 statement (107)
-    on left: 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46,
-    on right: 27 30
+    on left: 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46, on right:
+    27 30
 ans (108)
     on left: 47 48 49 50 51 52 53 54, on right: 38 51 52 53 54
 arrayexpr (109)
@@ -403,8 +403,8 @@ then (113)
 goto (114)
     on left: 67 68 69, on right: 42 43
 label (115)
-    on left: 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84,
-    on right: 9 10 11 13 42 43 86
+    on left: 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84, on right:
+    9 10 11 13 42 43 86
 exprlist (116)
     on left: 85 86 87 88 89 90 91 92 93, on right: 38 39 40 85 86 87
     156 157 158 159
@@ -455,9 +455,9 @@ state 0
     5              | . topstatement
     6              | . instrdecl
     7              | . udodecl
-   16 instrdecl: . INSTR_TOKEN @1 instlist NEWLINE @2 statementlist ENDIN_TOKEN NEWLINE
+   16 instrdecl: . INSTR_TOKEN $@1 instlist NEWLINE $@2 statementlist ENDIN_TOKEN NEWLINE
    17          | . INSTR_TOKEN NEWLINE error
-   26 udodecl: . UDOSTART_DEFINITION @3 udoname @4 ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   26 udodecl: . UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
    29 topstatement: . rident '=' expr NEWLINE
    30             | . statement
    31 statement: . ident '=' expr NEWLINE
@@ -698,25 +698,25 @@ state 5
 
 state 6
 
-   21 @3: .
-   26 udodecl: UDOSTART_DEFINITION . @3 udoname @4 ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   21 $@3: .
+   26 udodecl: UDOSTART_DEFINITION . $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
 
-    $default  reduce using rule 21 (@3)
+    $default  reduce using rule 21 ($@3)
 
-    @3  go to state 65
+    $@3  go to state 65
 
 
 state 7
 
-   14 @1: .
-   16 instrdecl: INSTR_TOKEN . @1 instlist NEWLINE @2 statementlist ENDIN_TOKEN NEWLINE
+   14 $@1: .
+   16 instrdecl: INSTR_TOKEN . $@1 instlist NEWLINE $@2 statementlist ENDIN_TOKEN NEWLINE
    17          | INSTR_TOKEN . NEWLINE error
 
     NEWLINE  shift, and go to state 66
 
-    $default  reduce using rule 14 (@1)
+    $default  reduce using rule 14 ($@1)
 
-    @1  go to state 67
+    $@1  go to state 67
 
 
 state 8
@@ -936,9 +936,9 @@ state 20
     2 rootstatement: rootstatement . topstatement
     3              | rootstatement . instrdecl
     4              | rootstatement . udodecl
-   16 instrdecl: . INSTR_TOKEN @1 instlist NEWLINE @2 statementlist ENDIN_TOKEN NEWLINE
+   16 instrdecl: . INSTR_TOKEN $@1 instlist NEWLINE $@2 statementlist ENDIN_TOKEN NEWLINE
    17          | . INSTR_TOKEN NEWLINE error
-   26 udodecl: . UDOSTART_DEFINITION @3 udoname @4 ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   26 udodecl: . UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
    29 topstatement: . rident '=' expr NEWLINE
    30             | . statement
    31 statement: . ident '=' expr NEWLINE
@@ -2512,7 +2512,7 @@ state 65
    18 udoname: . T_IDENT
    19        | . T_OPCODE
    20        | . T_OPCODE0
-   26 udodecl: UDOSTART_DEFINITION @3 . udoname @4 ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   26 udodecl: UDOSTART_DEFINITION $@3 . udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
 
     T_OPCODE0  shift, and go to state 154
     T_OPCODE   shift, and go to state 155
@@ -2536,7 +2536,7 @@ state 67
    11         | . '+' label
    12         | . INTEGER_TOKEN
    13         | . label
-   16 instrdecl: INSTR_TOKEN @1 . instlist NEWLINE @2 statementlist ENDIN_TOKEN NEWLINE
+   16 instrdecl: INSTR_TOKEN $@1 . instlist NEWLINE $@2 statementlist ENDIN_TOKEN NEWLINE
    70 label: . T_OPCODE
    71      | . T_OPCODE0
    72      | . T_FUNCTION
@@ -7033,12 +7033,12 @@ state 156
 
 state 157
 
-   22 @4: .
-   26 udodecl: UDOSTART_DEFINITION @3 udoname . @4 ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   22 $@4: .
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname . $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
 
-    $default  reduce using rule 22 (@4)
+    $default  reduce using rule 22 ($@4)
 
-    @4  go to state 237
+    $@4  go to state 237
 
 
 state 158
@@ -7103,7 +7103,7 @@ state 160
 
 state 161
 
-   16 instrdecl: INSTR_TOKEN @1 instlist . NEWLINE @2 statementlist ENDIN_TOKEN NEWLINE
+   16 instrdecl: INSTR_TOKEN $@1 instlist . NEWLINE $@2 statementlist ENDIN_TOKEN NEWLINE
 
     NEWLINE  shift, and go to state 240
 
@@ -8810,7 +8810,7 @@ state 236
 
 state 237
 
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 . ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 . ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
 
     ','  shift, and go to state 269
 
@@ -8873,12 +8873,12 @@ state 239
 
 state 240
 
-   15 @2: .
-   16 instrdecl: INSTR_TOKEN @1 instlist NEWLINE . @2 statementlist ENDIN_TOKEN NEWLINE
+   15 $@2: .
+   16 instrdecl: INSTR_TOKEN $@1 instlist NEWLINE . $@2 statementlist ENDIN_TOKEN NEWLINE
 
-    $default  reduce using rule 15 (@2)
+    $default  reduce using rule 15 ($@2)
 
-    @2  go to state 272
+    $@2  go to state 272
 
 
 state 241
@@ -9412,12 +9412,12 @@ state 268
 
 state 269
 
-   23 @5: .
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 ',' . @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   23 $@5: .
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 ',' . $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
 
-    $default  reduce using rule 23 (@5)
+    $default  reduce using rule 23 ($@5)
 
-    @5  go to state 285
+    $@5  go to state 285
 
 
 state 270
@@ -9475,7 +9475,7 @@ state 271
 
 state 272
 
-   16 instrdecl: INSTR_TOKEN @1 instlist NEWLINE @2 . statementlist ENDIN_TOKEN NEWLINE
+   16 instrdecl: INSTR_TOKEN $@1 instlist NEWLINE $@2 . statementlist ENDIN_TOKEN NEWLINE
    27 statementlist: . statementlist statement
    28              | .
 
@@ -9722,7 +9722,7 @@ state 284
 
 state 285
 
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 ',' @5 . UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 . UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
 
     UDO_ANS_TOKEN  shift, and go to state 294
 
@@ -9736,7 +9736,7 @@ state 286
 
 state 287
 
-   16 instrdecl: INSTR_TOKEN @1 instlist NEWLINE @2 statementlist . ENDIN_TOKEN NEWLINE
+   16 instrdecl: INSTR_TOKEN $@1 instlist NEWLINE $@2 statementlist . ENDIN_TOKEN NEWLINE
    27 statementlist: statementlist . statement
    31 statement: . ident '=' expr NEWLINE
    32          | . ident S_ADDIN expr NEWLINE
@@ -9925,17 +9925,17 @@ state 293
 
 state 294
 
-   24 @6: .
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 ',' @5 UDO_ANS_TOKEN . @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   24 $@6: .
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN . $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
 
-    $default  reduce using rule 24 (@6)
+    $default  reduce using rule 24 ($@6)
 
-    @6  go to state 300
+    $@6  go to state 300
 
 
 state 295
 
-   16 instrdecl: INSTR_TOKEN @1 instlist NEWLINE @2 statementlist ENDIN_TOKEN . NEWLINE
+   16 instrdecl: INSTR_TOKEN $@1 instlist NEWLINE $@2 statementlist ENDIN_TOKEN . NEWLINE
 
     NEWLINE  shift, and go to state 301
 
@@ -10029,14 +10029,14 @@ state 299
 
 state 300
 
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 ',' @5 UDO_ANS_TOKEN @6 . ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 . ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
 
     ','  shift, and go to state 305
 
 
 state 301
 
-   16 instrdecl: INSTR_TOKEN @1 instlist NEWLINE @2 statementlist ENDIN_TOKEN NEWLINE .
+   16 instrdecl: INSTR_TOKEN $@1 instlist NEWLINE $@2 statementlist ENDIN_TOKEN NEWLINE .
 
     $default  reduce using rule 16 (instrdecl)
 
@@ -10068,7 +10068,7 @@ state 304
 
 state 305
 
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 ',' @5 UDO_ANS_TOKEN @6 ',' . UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' . UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
 
     UDO_ARGS_TOKEN  shift, and go to state 308
 
@@ -10149,24 +10149,24 @@ state 307
 
 state 308
 
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN . NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN . NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE
 
     NEWLINE  shift, and go to state 309
 
 
 state 309
 
-   25 @7: .
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE . @7 statementlist UDOEND_TOKEN NEWLINE
+   25 $@7: .
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE . $@7 statementlist UDOEND_TOKEN NEWLINE
 
-    $default  reduce using rule 25 (@7)
+    $default  reduce using rule 25 ($@7)
 
-    @7  go to state 310
+    $@7  go to state 310
 
 
 state 310
 
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 . statementlist UDOEND_TOKEN NEWLINE
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 . statementlist UDOEND_TOKEN NEWLINE
    27 statementlist: . statementlist statement
    28              | .
 
@@ -10177,7 +10177,7 @@ state 310
 
 state 311
 
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist . UDOEND_TOKEN NEWLINE
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist . UDOEND_TOKEN NEWLINE
    27 statementlist: statementlist . statement
    31 statement: . ident '=' expr NEWLINE
    32          | . ident S_ADDIN expr NEWLINE
@@ -10243,13 +10243,13 @@ state 311
 
 state 312
 
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN . NEWLINE
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN . NEWLINE
 
     NEWLINE  shift, and go to state 313
 
 
 state 313
 
-   26 udodecl: UDOSTART_DEFINITION @3 udoname @4 ',' @5 UDO_ANS_TOKEN @6 ',' UDO_ARGS_TOKEN NEWLINE @7 statementlist UDOEND_TOKEN NEWLINE .
+   26 udodecl: UDOSTART_DEFINITION $@3 udoname $@4 ',' $@5 UDO_ANS_TOKEN $@6 ',' UDO_ARGS_TOKEN NEWLINE $@7 statementlist UDOEND_TOKEN NEWLINE .
 
     $default  reduce using rule 26 (udodecl)
