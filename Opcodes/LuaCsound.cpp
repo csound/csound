@@ -192,7 +192,8 @@ public:
         lua_pushlightuserdata(L, csound);
         lua_setfield(L, LUA_GLOBALSINDEX, "csound");
         const char *luacode = ((STRINGDAT *)luacode_)->data;
-        log(csound, "Executing (L: 0x%p) Lua code:\n%s\n", L, luacode);
+        log(csound, "Executing (L: 0x%p) Lua code.\n", L);
+        warn(csound, "\n%s\n", luacode);
         result = luaL_dostring(L, luacode);
         if (result == 0)
         {
