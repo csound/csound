@@ -1,6 +1,5 @@
 /*
  * Csound pnacl interactive frontend
- * based on nacl sdk audio api example
  *
  * Copyright (C) 2013 V Lazzarini
  *
@@ -41,65 +40,63 @@
 #include <csound.h>
 
 namespace {
-const char* const kPlaySoundId = "playSound";
-const char* const kStopSoundId = "stopSound";
-const char* const kOrchestraId = "orchestra";
-const char* const kScoreId = "score";
-const char* const kEventId = "event";
-const char* const kChannelId = "channel";
-const char* const kCopyId = "copyToLocal";
-const char* const kCopyUrlId = "copyUrlToLocal";
-static const char kMessageArgumentSeparator = ':';
-static const char kUrlArgumentSeparator = '#';
+  const char* const kPlaySoundId = "playCsound";
+  const char* const kStopSoundId = "pauseCsound";
+  const char* const kOrchestraId = "orchestra";
+  const char* const kScoreId = "score";
+  const char* const kEventId = "event";
+  const char* const kChannelId = "channel";
+  const char* const kCopyId = "copyToLocal";
+  const char* const kCopyUrlId = "copyUrlToLocal";
+  const char* const kCsdId = "csd";
+  static const char kMessageArgumentSeparator = ':';
+  static const char kUrlArgumentSeparator = '#';
 
-const double kDefaultFrequency = 440.0;
-const double kPi = 3.141592653589;
-const double kTwoPi = 2.0 * kPi;
-const uint32_t kSampleFrameCount =512u;
-const uint32_t kChannels = 2u;
+  const double kDefaultFrequency = 440.0;
+  const double kPi = 3.141592653589;
+  const double kTwoPi = 2.0 * kPi;
+  const uint32_t kSampleFrameCount =512u;
+  const uint32_t kChannels = 2u;
 }  // namespace
 
 
 struct UrlReader {
- 
-  static UrlReader *Create(pp::Instance *inst, char *path);
-  UrlReader(pp::Instance *inst, char *path);
-  void Start();  
 
   std::string  mem;
+  char buffer[32768]; 
   int  bytes;
-private:
   std::string url;
   pp::Instance  *instance;
   pp::URLLoader url_loader;
   pp::URLRequestInfo url_request;
   pp::CompletionCallbackFactory<UrlReader> cc_factory;
+
+  static UrlReader *Create(pp::Instance *inst, char *path);
+  UrlReader(pp::Instance *inst, char *path);
+  void Start();  
   void ReadBody();
   void OnRead(int32_t result);
   void OnOpenUrl(int32_t result);
-  char buffer[32768]; 
-
-
   UrlReader(const UrlReader&);
   void operator=(const UrlReader&);
   
 };
 
-class AudioInstance : public pp::Instance {
+class CsoundInstance : public pp::Instance {
 
- public:
-  explicit AudioInstance(PP_Instance instance, 
-                         PPB_GetInterface get_browser_interface)
-      : pp::Instance(instance),
-        csound(NULL), count(0), fileResult(0), 
-        fileThread(NULL), urlThread(NULL), 
-        from(NULL), dest(NULL), urlReader(NULL)
+public:
+  explicit CsoundInstance(PP_Instance instance, 
+			  PPB_GetInterface get_browser_interface)
+    : pp::Instance(instance),
+      csound(NULL), count(0), fileResult(0), 
+      fileThread(NULL), 
+      from(NULL), dest(NULL)
         
- {
-        get_browser_interface_ = get_browser_interface;
- }
+  {
+    get_browser_interface_ = get_browser_interface;
+  }
 
-  virtual ~AudioInstance() {
+  virtual ~CsoundInstance() {
     if(dest) free(dest); 
     if(from) free(from);
     if(csound){
@@ -114,72 +111,67 @@ class AudioInstance : public pp::Instance {
   void CopyFromURLToLocalAsync(char *URL, char *name); 
    
 
- private:  
-  pp::Audio audio_;
+private:  
+  pp::Audio dac;
   CSOUND *csound;
   int count;
   PPB_GetInterface get_browser_interface_;
   int fileResult;
   char *from;
   char *dest;
-  UrlReader *urlReader;
   
   static void CsoundCallback(void* samples,
-                               uint32_t buffer_size,
-                               void* data) {
-    AudioInstance* instance = (AudioInstance*) data;
+			     uint32_t buffer_size,
+			     void* data) {
+    CsoundInstance* instance = (CsoundInstance*) data;
     CSOUND *csound_ = instance->csound;
     if(csound_ != NULL) {
-     int count_ = instance->count;
-     int n, buffsamps = buffer_size / sizeof(short);
-     short* buff = (short*) samples;
-     MYFLT _0dbfs = csoundGet0dBFS(csound_);
-     MYFLT *spout = csoundGetSpout(csound_); 
-     int ksmps = csoundGetKsmps(csound_)*csoundGetNchnls(csound_);
+      int count_ = instance->count;
+      int n, buffsamps = buffer_size / sizeof(short);
+      short* buff = (short*) samples;
+      MYFLT _0dbfs = csoundGet0dBFS(csound_);
+      MYFLT *spout = csoundGetSpout(csound_); 
+      int ksmps = csoundGetKsmps(csound_)*csoundGetNchnls(csound_);
          
-     if(spout != NULL) 
-       for(n=0; n < buffsamps; n++) {
-	 if(count_ == 0) {
-         int ret = csoundPerformKsmps(csound_);
-         if(ret != 0) return;
-         count_ = ksmps;
-	 }
-         buff[n] = (int16_t) (32768*spout[ksmps-count_]);
-         count_--;
-       }
-     instance->count = count_;
+      if(spout != NULL) 
+	for(n=0; n < buffsamps; n++) {
+	  if(count_ == 0) {
+	    int ret = csoundPerformKsmps(csound_);
+	    if(ret != 0) return;
+	    count_ = ksmps;
+	  }
+	  buff[n] = (int16_t) (32768*spout[ksmps-count_]);
+	  count_--;
+	}
+      instance->count = count_;
 
-    while(csoundGetMessageCnt(csound_)){
-       instance->PostMessage(csoundGetFirstMessage(csound_));
-       csoundPopFirstMessage(csound_);
-    }
+      while(csoundGetMessageCnt(csound_)){
+	instance->PostMessage(csoundGetFirstMessage(csound_));
+	csoundPopFirstMessage(csound_);
+      }
 
     }
   } 
  
-
+  
 public:
 
   pthread_t fileThread;
-  pthread_t urlThread;
   
   char *GetDestFileName(){ return dest; }
   void SetFileResult(int res){ fileResult = res; }
-  char *GetSrcFileName(){ return from; } 
-    
-  
-  int  GetBytes() { return urlReader->bytes; } 
-  const char *GetMem() { return urlReader->mem.data(); }
-  void DeleteUrlReader() { delete urlReader; urlReader = NULL; }
+  char *GetSrcFileName(){ return from; }
+  void Playback(char *csd = NULL); 
  
 };
 
-bool AudioInstance::Init(uint32_t argc,
-                         const char* argn[],
-                         const char* argv[]) {
+bool CsoundInstance::Init(uint32_t argc,
+			  const char* argn[],
+			  const char* argv[]) {
 
-  int frames = pp::AudioConfig::RecommendSampleFrameCount(
-    this, PP_AUDIOSAMPLERATE_44100, kSampleFrameCount);
+  int frames = 
+   pp::AudioConfig::RecommendSampleFrameCount(this,
+        PP_AUDIOSAMPLERATE_44100, kSampleFrameCount);
 
   csound = csoundCreate(NULL);
   csoundCreateMessageBuffer(csound, 0);
@@ -191,43 +183,50 @@ bool AudioInstance::Init(uint32_t argc,
   csoundSetOption(csound, (char *) "--0dbfs=1");
   csoundSetOption(csound, (char *) "-b1024");
   csoundSetOption(csound, (char *) "--daemon");
+ 
   csoundStart(csound);
  
-  audio_ = pp::Audio(
-      this,
-      pp::AudioConfig(this, PP_AUDIOSAMPLERATE_44100, frames),
-      CsoundCallback,
-      this);
-  frames = csoundGetOutputBufferSize(csound);
+  dac = pp::Audio(
+		  this,
+		  pp::AudioConfig(this, PP_AUDIOSAMPLERATE_44100, frames),
+		  CsoundCallback,
+		  this);
 
+  // the call to nacl_io_init_ppapi
+  // has to happen *after* csoundStart(csound)
+  // otherwise there is a segfault
+
+  // NB: this has implications for using 
+  // csoundCompile() here, because it would require
+  // a mounted filesystem before a CSD can be read.
+  // A solution is to leave CSD reading/parsing to
+  // the javascript side, using the orchestra and score
+  // messages to the nacl csound module.
   nacl_io_init_ppapi(pp_instance(),get_browser_interface_);
-
-  mount("",                                       /* source */
+  mount("",                                      /* source */
         "/local",                                 /* target */
         "html5fs",                                /* filesystemtype */
         0,                                        /* mountflags */
         "type=TEMPORARY"); /* data */
 
-  int res = mount("",       /* source. Use relative URL */
+  mount("",       /* source. Use relative URL */
         "/http",  /* target */
         "httpfs", /* filesystemtype */
         0,        /* mountflags */
         "");      /* data */
-  
-
   return true;
 }
 
-void AudioInstance::HandleMessage(const pp::Var& var_message) {
+void CsoundInstance::HandleMessage(const pp::Var& var_message) {
   if (!var_message.is_string()) {
     return;
   }
   std::string message = var_message.AsString();
   if (message == kPlaySoundId) {
-    audio_.StartPlayback();
+    dac.StartPlayback();
     PostMessage("Csound: running...\n");
   } else if (message == kStopSoundId) {
-    audio_.StopPlayback();
+    dac.StopPlayback();
     PostMessage("Csound: paused...\n");
   } else if (message.find(kOrchestraId) == 0) {
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
@@ -250,12 +249,12 @@ void AudioInstance::HandleMessage(const pp::Var& var_message) {
   } else if(message.find(kChannelId) == 0){
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
     if (sep_pos != std::string::npos) {
-        std::string string_arg = message.substr(sep_pos + 1);
-        sep_pos = string_arg.find_first_of(kMessageArgumentSeparator);
-	std::string channel = string_arg.substr(0, sep_pos);
-        std::string svalue = string_arg.substr(sep_pos + 1);
-        std::istringstream stream(svalue);
-        MYFLT val;
+      std::string string_arg = message.substr(sep_pos + 1);
+      sep_pos = string_arg.find_first_of(kMessageArgumentSeparator);
+      std::string channel = string_arg.substr(0, sep_pos);
+      std::string svalue = string_arg.substr(sep_pos + 1);
+      std::istringstream stream(svalue);
+      MYFLT val;
       if (stream >> val) {
         csoundSetControlChannel(csound,(char *)channel.c_str(), val);
         return;
@@ -290,19 +289,19 @@ void AudioInstance::HandleMessage(const pp::Var& var_message) {
 
 void* fileThreadFunc(void *data){
 
-  AudioInstance *p = (AudioInstance*) data;
+  CsoundInstance *p = (CsoundInstance*) data;
   FILE *fp_in, *fp_out;
   int retval=0;
   char *rem_name;
   rem_name = (char *) 
-       malloc(strlen(p->GetSrcFileName())+strlen("http/"));
+    malloc(strlen(p->GetSrcFileName())+strlen("http/"))+1;
   sprintf(rem_name,"http/%s",p->GetSrcFileName()); 
   p->PostMessage("Copying: ");
   p->PostMessage(rem_name);
   p->PostMessage("\n");
   if((fp_in = fopen(rem_name, "r"))!= NULL){
     char *local_name = (char *) 
-          malloc(strlen(p->GetDestFileName())+strlen("local/"));   
+      malloc(strlen(p->GetDestFileName())+strlen("local/"))+1;   
     sprintf(local_name,"local/%s",p->GetDestFileName());
     if((fp_out = fopen(local_name, "w"))!=NULL) {
       char buffer[512];
@@ -319,134 +318,132 @@ void* fileThreadFunc(void *data){
     fclose(fp_in);
   } else retval = -1; 
   if(retval < 0){
-   p->PostMessage(rem_name);
-   p->PostMessage(": could not copy file\n");
+    p->PostMessage(rem_name);
+    p->PostMessage(": could not copy file\n");
   }
   free(rem_name);
   p->SetFileResult(retval); 
   return NULL;
 }
 
-void AudioInstance::CopyFileToLocalAsync(char *src , char *name){
- if(dest) free(name); 
- dest = strdup(name);
- if(from) free(from);
- from = strdup(src);
- pthread_create(&fileThread, NULL, &fileThreadFunc,(void*) this);
+void CsoundInstance::CopyFileToLocalAsync(char *src , char *name){
+  if(dest) free(name); 
+  dest = strdup(name);
+  if(from) free(from);
+  from = strdup(src);
+  pthread_create(&fileThread, NULL, &fileThreadFunc,(void*) this);
 }
 
 void* urlThreadFunc(void *data) {
-  AudioInstance *p = (AudioInstance*) data;
+  UrlReader *d = ((UrlReader*)data);
+  CsoundInstance *p = (CsoundInstance *) d->instance;
+  
   char *local_name = (char *) 
-       malloc(strlen(p->GetDestFileName())+strlen("local/"));
+    malloc(strlen(p->GetDestFileName())+strlen("local/")+1);
   sprintf(local_name,"local/%s",p->GetDestFileName()); 
   p->PostMessage("Copying memory into: ");
   p->PostMessage(local_name);
   p->PostMessage("\n");
   FILE *fp_out;
-  const char *buffer = p->GetMem();
+  const char *buffer = d->mem.data();
   if((fp_out = fopen(local_name, "w"))!= NULL){
     int cnt = 0;
-    while(cnt < p->GetBytes()) {        
+    while(cnt < d->bytes) {        
         cnt += fwrite(&buffer[cnt],1,512,fp_out);
-    }
-    fclose(fp_out);
-     p->PostMessage(local_name);
-     p->PostMessage(": copied ");
-     p->PostMessage(pp::Var(cnt*512));
-     p->PostMessage(" bytes\n");	
+      }
+      fclose(fp_out);
+      p->PostMessage(local_name);
+      p->PostMessage(": copied ");
+      p->PostMessage(pp::Var(cnt));
+      p->PostMessage(" bytes\n");	
+      }
+    free(local_name);
+    delete d;
+    p->PostMessage("Complete\n");
+    return NULL;
   }
-  p->PostMessage("clearing memory...\n");
-  p->DeleteUrlReader();
-  p->PostMessage("...done\n");
-  free(local_name);
-  return NULL;
-}
 
-UrlReader *UrlReader::Create(pp::Instance *inst, char *path){
+  UrlReader *UrlReader::Create(pp::Instance *inst, char *path){
     return new UrlReader(inst, path);
-}
-
-UrlReader::UrlReader(pp::Instance *inst, char *path) :
-  url(path), instance(inst),
-  url_request(inst), url_loader(inst), cc_factory(this), bytes(0) 
-  {
-   url_request.SetURL(url);
-   url_request.SetMethod("GET");
-   url_request.SetProperty(PP_URLREQUESTPROPERTY_ALLOWCROSSORIGINREQUESTS, pp::Var(true));
- 
-   instance->PostMessage("UrlReader\n");
   }
+
+  UrlReader::UrlReader(pp::Instance *inst, char *path) :
+    url(path), instance(inst),
+    url_request(inst), url_loader(inst), cc_factory(this), bytes(0) 
+    {
+      url_request.SetURL(url);
+      url_request.SetMethod("GET");
+      url_request.SetProperty(PP_URLREQUESTPROPERTY_ALLOWCROSSORIGINREQUESTS, pp::Var(true));
+      instance->PostMessage("UrlReader\n");
+    }
   
-void UrlReader::Start() {
-      pp::CompletionCallback cc =
-        cc_factory.NewCallback(&UrlReader::OnOpenUrl);
-      url_loader.Open(url_request,cc);
+  void UrlReader::Start() {
+    pp::CompletionCallback cc =
+      cc_factory.NewCallback(&UrlReader::OnOpenUrl);
+    url_loader.Open(url_request,cc);
   }
 
-void UrlReader::ReadBody(){
+  void UrlReader::ReadBody(){
     pp::CompletionCallback cc =
-    cc_factory.NewOptionalCallback(&UrlReader::OnRead);
+      cc_factory.NewOptionalCallback(&UrlReader::OnRead);
     int result;
     do {
-    result = url_loader.ReadResponseBody(buffer,512,cc);
-    if(result > 0){
-      bytes += result;
-      int end = std::min(32768,result);
-      mem.insert(mem.end(), buffer, buffer+end);
-     }
+      result = url_loader.ReadResponseBody(buffer,512,cc);
+      if(result > 0){
+	bytes += result;
+	int end = std::min(32768,result);
+	mem.insert(mem.end(), buffer, buffer+end);
+      }
     }
     while(result > 0);
     if (result != PP_OK_COMPLETIONPENDING) {
-    cc.Run(result);
+      cc.Run(result);
     } 
-}
-
-void UrlReader::OnRead(int32_t result){
-  if (result == PP_OK){
-    pthread_create(&(((AudioInstance*)instance)->urlThread), NULL, &urlThreadFunc,(void*) instance);
-    instance->PostMessage("...done\n");
-    return;
   }
-  else if (result > 0) {
-    bytes += result;
-    int end = std::min(32768,result);
-    mem.insert(mem.end(), buffer, buffer+end);
+
+  void UrlReader::OnRead(int32_t result){
+    if (result == PP_OK){
+      pthread_t id;
+      pthread_create(&id, NULL, 
+		     &urlThreadFunc,(void*)this);
+      instance->PostMessage("...done\n");
+    }
+    else if (result > 0) {
+      bytes += result;
+      int end = std::min(32768,result);
+      mem.insert(mem.end(), buffer, buffer+end);
+      ReadBody();
+    }
+  }
+
+  void UrlReader::OnOpenUrl(int32_t result){    
+    if(result != PP_OK){
+      instance->PostMessage("URL open failed.\n");
+      return;
+    } 
+    instance->PostMessage("loading URL data into memory...\n");
     ReadBody();
   }
-}
 
-void UrlReader::OnOpenUrl(int32_t result){    
-  if(result != PP_OK){
-     instance->PostMessage("URL open failed.\n");
-     return;
-  } 
-  instance->PostMessage("loading URL data into memory...\n");
-  ReadBody();
-}
-
-void AudioInstance::CopyFromURLToLocalAsync(char *URL,char *name){
-  if(urlReader == NULL) {
-   if(dest) free(dest); 
-   dest = strdup(name);
-   urlReader = UrlReader::Create(this, URL); 
-   PostMessage("created URL urlReader \n");
-   if(urlReader != NULL) urlReader->Start();
-  } else PostMessage("Url opening in process: try again later\n");
-}
-
-
-class AudioModule : public pp::Module {
- public:
-  AudioModule() : pp::Module() {}
-  ~AudioModule() {
+  void CsoundInstance::CopyFromURLToLocalAsync(char *URL,char *name){
+    if(dest) free(dest); 
+    dest = strdup(name);
+    UrlReader *r = UrlReader::Create(this, URL); 
+    PostMessage("created URL urlReader \n");
+    if(r != NULL) r->Start();
   }
 
-  virtual pp::Instance* CreateInstance(PP_Instance instance) {
-    return new AudioInstance(instance, get_browser_interface());
-  }
-};
+  class CsoundModule : public pp::Module {
+  public:
+    CsoundModule() : pp::Module() {}
+    ~CsoundModule() {
+    }
 
-namespace pp {
-Module* CreateModule() { return new AudioModule(); }
-}  // namespace pp
+    virtual pp::Instance* CreateInstance(PP_Instance instance) {
+      return new CsoundInstance(instance, get_browser_interface());
+    }
+  };
+
+  namespace pp {
+    Module* CreateModule() { return new CsoundModule(); }
+  }  

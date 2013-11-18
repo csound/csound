@@ -20,9 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/** 
- * @constructor
- */
+
 var icsound = (function() {
 
   /**
@@ -139,14 +137,14 @@ var icsound = (function() {
    * Starts audio playback
    */
   function Play() {
-    icsound.module.postMessage('playSound');
+    icsound.module.postMessage('playCsound');
   } 
 
   /**
    * Pauses audio playback
    */
   function Pause() {
-   icsound.module.postMessage('stopSound');
+   icsound.module.postMessage('pauseCsound');
   }
 
   /**
@@ -201,7 +199,7 @@ var icsound = (function() {
   /**
    * Copies a URL file to local/. (not persistent)
    *
-   * NB: not implemented yet
+   * NB: works with the origin URL and CORS-ready URLs
    *
    * @param {string} url  The url name
    * @param {string} name The file name
