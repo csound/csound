@@ -26,13 +26,18 @@
 #include <limits>
 #include <sstream>
 #include "ppapi/cpp/audio.h"
+#include "ppapi/cpp/completion_callback.h"
 #include "ppapi/cpp/instance.h"
+#include "ppapi/cpp/url_loader.h"
+#include "ppapi/cpp/url_request_info.h"
+#include "ppapi/utility/completion_callback_factory.h"
 #include "ppapi/cpp/module.h"
 #include "ppapi/cpp/var.h"
 #include <sys/mount.h>
 #include <errno.h>
 #include "nacl_io/nacl_io.h"
 #include <stdio.h>
+#include <time.h>
 #include <csound.h>
 
 namespace {
@@ -55,6 +60,31 @@ const uint32_t kChannels = 2u;
 }  // namespace
 
 
+struct UrlReader {
+ 
+  static UrlReader *Create(pp::Instance *inst, char *path);
+  UrlReader(pp::Instance *inst, char *path);
+  void Start();  
+
+  std::string  mem;
+  int  bytes;
+private:
+  std::string url;
+  pp::Instance  *instance;
+  pp::URLLoader url_loader;
+  pp::URLRequestInfo url_request;
+  pp::CompletionCallbackFactory<UrlReader> cc_factory;
+  void ReadBody();
+  void OnRead(int32_t result);
+  void OnOpenUrl(int32_t result);
+  char buffer[32768]; 
+
+
+  UrlReader(const UrlReader&);
+  void operator=(const UrlReader&);
+  
+};
+
 class AudioInstance : public pp::Instance {
 
  public:
@@ -63,9 +93,12 @@ class AudioInstance : public pp::Instance {
       : pp::Instance(instance),
         csound(NULL), count(0), fileResult(0), 
         fileThread(NULL), urlThread(NULL), 
-        from(NULL), dest(NULL) {
-    get_browser_interface_ = get_browser_interface;
-}
+        from(NULL), dest(NULL), urlReader(NULL)
+        
+ {
+        get_browser_interface_ = get_browser_interface;
+ }
+
   virtual ~AudioInstance() {
     if(dest) free(dest); 
     if(from) free(from);
@@ -78,7 +111,8 @@ class AudioInstance : public pp::Instance {
   virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]);
   virtual void HandleMessage(const pp::Var& var_message);
   void CopyFileToLocalAsync(char *from, char *to);
-  void CopyFromURLToLocalAsync(char *URL, char *name);  
+  void CopyFromURLToLocalAsync(char *URL, char *name); 
+   
 
  private:  
   pp::Audio audio_;
@@ -86,10 +120,9 @@ class AudioInstance : public pp::Instance {
   int count;
   PPB_GetInterface get_browser_interface_;
   int fileResult;
-  pthread_t fileThread;
-  pthread_t urlThread;
   char *from;
   char *dest;
+  UrlReader *urlReader;
   
   static void CsoundCallback(void* samples,
                                uint32_t buffer_size,
@@ -122,11 +155,23 @@ class AudioInstance : public pp::Instance {
     }
 
     }
-  }  
+  } 
+ 
+
 public:
+
+  pthread_t fileThread;
+  pthread_t urlThread;
+  
   char *GetDestFileName(){ return dest; }
   void SetFileResult(int res){ fileResult = res; }
-  char *GetSrcFileName(){ return from; }         
+  char *GetSrcFileName(){ return from; } 
+    
+  
+  int  GetBytes() { return urlReader->bytes; } 
+  const char *GetMem() { return urlReader->mem.data(); }
+  void DeleteUrlReader() { delete urlReader; urlReader = NULL; }
+ 
 };
 
 bool AudioInstance::Init(uint32_t argc,
@@ -249,8 +294,6 @@ void* fileThreadFunc(void *data){
   FILE *fp_in, *fp_out;
   int retval=0;
   char *rem_name;
-  p->PostMessage(p->GetDestFileName());
-    p->PostMessage("\n");
   rem_name = (char *) 
        malloc(strlen(p->GetSrcFileName())+strlen("http/"));
   sprintf(rem_name,"http/%s",p->GetSrcFileName()); 
@@ -292,22 +335,99 @@ void AudioInstance::CopyFileToLocalAsync(char *src , char *name){
  pthread_create(&fileThread, NULL, &fileThreadFunc,(void*) this);
 }
 
-void* urlThreadFunc(void *data){
+void* urlThreadFunc(void *data) {
   AudioInstance *p = (AudioInstance*) data;
-  // TODO: implement copy from URL using pepper API & nacl_io
+  char *local_name = (char *) 
+       malloc(strlen(p->GetDestFileName())+strlen("local/"));
+  sprintf(local_name,"local/%s",p->GetDestFileName()); 
+  p->PostMessage("Copying memory into: ");
+  p->PostMessage(local_name);
+  p->PostMessage("\n");
+  FILE *fp_out;
+  const char *buffer = p->GetMem();
+  if((fp_out = fopen(local_name, "w"))!= NULL){
+    int cnt = 0;
+    while(cnt < p->GetBytes()) {        
+        cnt += fwrite(&buffer[cnt],1,512,fp_out);
+    }
+    fclose(fp_out);
+     p->PostMessage(local_name);
+     p->PostMessage(": copied ");
+     p->PostMessage(pp::Var(cnt*512));
+     p->PostMessage(" bytes\n");	
+  }
+  p->PostMessage("clearing memory...\n");
+  p->DeleteUrlReader();
+  p->PostMessage("...done\n");
+  free(local_name);
   return NULL;
 }
 
-void AudioInstance::CopyFromURLToLocalAsync(char *URL,char *name){
-   if(dest) free(dest); 
-   dest = strdup(name);
-   if(from) free(from);
-   from = strdup(URL);
-   pthread_create(&urlThread, NULL, &urlThreadFunc,(void*) this);
+UrlReader *UrlReader::Create(pp::Instance *inst, char *path){
+    return new UrlReader(inst, path);
 }
 
+UrlReader::UrlReader(pp::Instance *inst, char *path) :
+  url(path), instance(inst),
+  url_request(inst), url_loader(inst), cc_factory(this), bytes(0) 
+  {
+   url_request.SetURL(url);
+   url_request.SetMethod("GET");
+   instance->PostMessage("UrlReader\n");
+  }
+  
+void UrlReader::Start() {
+      pp::CompletionCallback cc =
+        cc_factory.NewCallback(&UrlReader::OnOpenUrl);
+      url_loader.Open(url_request,cc);
+  }
 
+void UrlReader::ReadBody(){
+    pp::CompletionCallback cc =
+    cc_factory.NewOptionalCallback(&UrlReader::OnRead);
+    int result;
+    do {
+    result = url_loader.ReadResponseBody(buffer,512,cc);
+    if(result > 0){
+      bytes += result;
+      int end = std::min(32768,result);
+      mem.insert(mem.end(), buffer, buffer+end);
+     }
+    }
+    while(result > 0);
+    if (result != PP_OK_COMPLETIONPENDING) {
+    cc.Run(result);
+    } 
+}
 
+void UrlReader::OnRead(int32_t result){
+  if (result == PP_OK){
+    pthread_create(&(((AudioInstance*)instance)->urlThread), NULL, &urlThreadFunc,(void*) instance);
+    instance->PostMessage("...done\n");
+    return;
+  }
+  else if (result > 0) {
+    bytes += result;
+    int end = std::min(32768,result);
+    mem.insert(mem.end(), buffer, buffer+end);
+    ReadBody();
+  }
+}
+
+void UrlReader::OnOpenUrl(int32_t result){     
+  instance->PostMessage("loading URL data into memory...\n");
+  ReadBody();
+}
+
+void AudioInstance::CopyFromURLToLocalAsync(char *URL,char *name){
+  if(urlReader == NULL) {
+   if(dest) free(dest); 
+   dest = strdup(name);
+   urlReader = UrlReader::Create(this, URL); 
+   PostMessage("created URL urlReader \n");
+   if(urlReader != NULL) urlReader->Start();
+  } else PostMessage("Url opening in process: try again later\n");
+}
 
 
 class AudioModule : public pp::Module {
