@@ -162,7 +162,7 @@ public:
         return NULL;
       return p->prgName;
       }
-    void SetProgramName(int nProgram, char *name = "")
+    void SetProgramName(int nProgram, const char *name = "")
       {
       fxProgram *p = GetProgram(nProgram);
       if (!p)
