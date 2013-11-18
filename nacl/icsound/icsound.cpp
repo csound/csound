@@ -373,6 +373,8 @@ UrlReader::UrlReader(pp::Instance *inst, char *path) :
   {
    url_request.SetURL(url);
    url_request.SetMethod("GET");
+   url_request.SetProperty(PP_URLREQUESTPROPERTY_ALLOWCROSSORIGINREQUESTS, pp::Var(true));
+ 
    instance->PostMessage("UrlReader\n");
   }
   
@@ -414,7 +416,11 @@ void UrlReader::OnRead(int32_t result){
   }
 }
 
-void UrlReader::OnOpenUrl(int32_t result){     
+void UrlReader::OnOpenUrl(int32_t result){    
+  if(result != PP_OK){
+     instance->PostMessage("URL open failed.\n");
+     return;
+  } 
   instance->PostMessage("loading URL data into memory...\n");
   ReadBody();
 }
