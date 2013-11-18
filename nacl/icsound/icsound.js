@@ -79,7 +79,7 @@ var icsound = (function() {
     if (icsound.module.exitStatus == -1) {
       updateStatus('Ops, something went wrong... please refresh page',1);
     } else {
-      updateStatus('Csound has exited [' + icsound.module.exitStatus + ']');
+	updateStatus('Csound has exited [' + icsound.module.exitStatus + ']', 1);
     }
     if (typeof window.handleCrash !== 'undefined') {
       window.handleCrash(icsound.module.lastError);
