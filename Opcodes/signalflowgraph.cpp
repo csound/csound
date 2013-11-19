@@ -105,6 +105,8 @@
 #include <vector>
 #include "text.h"
 
+namespace csound {
+
 struct SignalFlowGraph;
 struct Outleta;
 struct Outletk;
@@ -1475,4 +1477,6 @@ extern "C"
     }
     return 0;
   }
+}
+
 }
