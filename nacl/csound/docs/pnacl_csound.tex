@@ -9,23 +9,23 @@ showspaces=false, showstringspaces=false
 
 
 
-\title{Csound for Portable Native Clients}
+\title{Csound for Portable Native Client}
 \author{Victor Lazzarini}
 \date{19/11/2013}
 \maketitle
 
 \section{Introduction}
 
-Native Clients (NaCl) is a sandboxing technology developed by Google that allows C/C++ modules to extend the support provided
-by HTML5. Portable Native Clients (pNaCl) is one of the toolchains in the NaCl SDK (the others are newlib and glibc). The advantage
+Native Client (NaCl) is a sandboxing technology developed by Google that allows C/C++ modules to extend the support provided
+by HTML5. Portable Native Client (pNaCl) is one of the toolchains in the NaCl SDK (the others are newlib and glibc). The advantage
 of pNaCl over the other options is that it only requires a single module to be built for all supported architectures.
 
 The other major advantage is that pNaCl is, as of Google Chrome 31, enabled by default in the browser. This means that users
 just need to load a page containing the pNaCl application and it will work. pNaCl modules are compiled to llvm bytecode that is 
-compiled to a native binary by the browser. To check whether your version of Chrome supports pNaCl, use the following address:
+translated to a native binary by the browser. To check whether your version of Chrome supports pNaCl, use the following address:
 \\
 
-chrome://nacl
+ {\tt chrome://nacl }
 \\
 
 Porting Csound to pNaCl involved three steps, following the SDK installation:
@@ -58,9 +58,9 @@ elsewhere in your project application folders.
 
 NaCl pages need to be served over http, which means they will not work when opened as local files. You need to start a local server,
 and this can be done with the python script httpd.py found in the \$NACL\_SDK\_ROOT/tools directory. If you start this script 
-in the top level directory of the pNaCl Csound package, then the example will be found at the http://localhost:5103 address.
+in the top level directory of the pNaCl Csound package, then the example will be found at the {\tt http://localhost:5103} address.
 
-\section{Csound NaCl module reference}
+\section{Csound pNaCl module reference}
 
 The interface to Csound is found in the csound.js javascript file. Csound is ready on module load, and can accept control messages
 from then on.
@@ -75,7 +75,7 @@ The following control functions can be used to interact with Csound:
 \item {\tt csound.CompileOrc(s)} - compiles the Csound code in the string s
 \item {\tt csound.ReadScore(s)} - reads the score in the string s (with preprocessing support)
 \item {\tt csound.Event(s)} - sends in the line events contained in the string s (no preprocessing)
-\item {\tt csound.SetChannel(name, value)} - sends the control channel \emph{name} the value \emph{value}
+\item {\tt csound.SetChannel(name, value)} - sends the control channel \emph{name} the value \emph{value}, both arguments being strings.
 \end{itemize}
 
 \subsection{Filesystem functions}
