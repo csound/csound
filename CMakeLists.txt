@@ -230,8 +230,7 @@ if(WIN32)
         winmm
         winspool
         ws2_32
-        wsock32
-        pthread)
+        wsock32)
 
 endif(WIN32)
 
