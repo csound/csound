@@ -109,7 +109,7 @@ int UDPServerClose(CSOUND *csound)
     const char *mess = "##close##"; 
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
     sendto(p->sock,mess,sizeof(mess)+1,0,to,sizeof(p->server_addr)); 
-    pthread_join(p->thrid, NULL);
+    csoundJoinThread(p->thrid);
 #ifndef WIN32
     close(p->sock);
 #else 
