@@ -32,7 +32,7 @@
   font-family: Arial, san-serif;
 }
 body {
-  margin: 0;
+  margin: 0; 
 }
 .main-column {
   background-color: #B8F4F5;
@@ -92,6 +92,7 @@ body {
   padding-left: 8px;
 }
 .iframe-wrapper {
+  background-color= #FCF477;
   overflow-y: auto;
   -webkit-flex: auto;
 }
@@ -123,6 +124,7 @@ function deselectExamps() {
 
 function setFrame(src) {
   var frame = document.querySelector('iframe');
+  frame.style.background = '#FCF477';
   frame.style.height = '700px';
   frame.src = src;
 }
@@ -161,10 +163,16 @@ document.addEventListener('DOMContentLoaded', function () {
               Interactive
             </div>
           </div>      
+	 <div class="nav-group-header">Reference</div>
+	 <div class="examp" data-href="docs/pnacl_csound.html">
+            <div class="extitle">
+              pNaCl-Csound
+            </div>
+         </div>
         </div>
-      </div>
+     </div>
       <div class="iframe-wrapper">
-        <iframe>
+        <iframe background="#FCF477">
 	</iframe>
       </div>
       <div class="right-border"></div>
