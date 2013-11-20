@@ -15,18 +15,15 @@ dependencies will be built and installed to::
 
     mdkir ~/mingw64
 
-3. Modify the Toolchain-mingw64.cmake file and replace /home/steven with your
-own home directory.
-
-4. Run the download-deps.sh script.  This script will download source and
+3. Run the download-deps.sh script.  This script will download source and
 binary versions of dependencies that Csound will need. A folder called cache
 will be created and files will be downloaded to there.  A second folder, build,
 will hold the unarchived versions of the dependencies.
 
-5. Run the build-deps.sh script.  This will be the dependencies and install 
+4. Run the build-deps.sh script.  This will be the dependencies and install 
 them into ~/mingw64.
 
-6. Run the build.sh script.  This will run Cmake and then compile Csound.
+5. Run the build.sh script.  This will run Cmake and then compile Csound.
 
 ## Notes
 
