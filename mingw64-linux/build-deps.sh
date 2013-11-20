@@ -1,10 +1,11 @@
 #!/bin/sh
 
+export MINGW64_INSTALL_ROOT=`pwd`/mingw64
+echo $MINGW64_INSTALL_ROOT
+
 cd build
 
-#C_FLAGS="-arch i386 -arch x86_64 -mmacosx-version-min=10.4"
-
-MINGW64_INSTALL_ROOT=$HOME/mingw64
+mkdir -p $MINGW64_INSTALL_ROOT
 
 export CFLAGS="-I${MINGW64_INSTALL_ROOT}/usr/local/include"
 export CPPFLAGS="-I${MINGW64_INSTALL_ROOT}/usr/local/include"
@@ -16,9 +17,9 @@ export PKG_CONFIG_LIBDIR="${MINGW64_INSTALL_ROOT}/usr/local/lib"
 # PORTAUDIO
 if [ ! -f portaudio/.complete ]; then
 cd portaudio
-./configure --host=x86_64-w64-mingw32 
+./configure --host=x86_64-w64-mingw32  --prefix=$MINGW64_INSTALL_ROOT/usr/local
 make
-DESTDIR=$HOME/mingw64 make install
+make install
 touch .complete
 cd ..
 fi
@@ -46,9 +47,9 @@ fi
 if [ ! -f libogg-1.3.0/.complete ]; then
 
 cd libogg-1.3.0
-./configure --host=x86_64-w64-mingw32 
+./configure --host=x86_64-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local
 make 
-DESTDIR=$HOME/mingw64 make install
+make install
 touch .complete
 cd ..
 fi
@@ -59,9 +60,9 @@ fi
 if [ ! -f libvorbis-1.3.3/.complete ]; then
 
 cd libvorbis-1.3.3
-./configure --host=x86_64-w64-mingw32
+./configure --host=x86_64-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local
 make 
-DESTDIR=$HOME/mingw64 make install
+make install
 touch .complete
 cd ..
 fi
@@ -83,9 +84,9 @@ fi
 # LIBSNDFILE
 if [ ! -f libsndfile-1.0.25/.complete ]; then
 cd libsndfile-1.0.25
-./configure  --host=x86_64-w64-mingw32 --disable-disable-sqlite
+./configure  --host=x86_64-w64-mingw32 --disable-disable-sqlite --prefix=$MINGW64_INSTALL_ROOT/usr/local
 make 
-DESTDIR=$HOME/mingw64 make install
+make install
 touch .complete
 cd ..
 fi
