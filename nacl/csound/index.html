@@ -91,11 +91,12 @@ body {
   padding-left: 8px;
 }
 .iframe-wrapper {
-  background-color= #FCF477;
+  overflow-x: scroll;
   overflow-y: auto;
   -webkit-flex: auto;
 }
 iframe {
+  
   border: none;
   width: 100%;
   height: auto;
@@ -136,9 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // select the first example.
-    setFrame('start.html')
-    //setExamp(document.querySelector('.examp'));
+  setFrame('start.html')
 });
 
   </script>
@@ -172,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
      </div>
       <div class="iframe-wrapper">
-        <iframe background="#FCF477">
+        <iframe>
 	</iframe>
       </div>
       <div class="right-border"></div>
