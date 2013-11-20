@@ -23,10 +23,11 @@ packages=($pthreads $portaudio_src $portmidi_src $flac_src $ogg_src $vorbis_src 
 
 
 #prepare
-mkdir cache
+mkdir -p cache
 #rm -rf build
-mkdir build
-
+mkdir -p build
+mkdir -p mingw64/usr/local/lib
+mkdir -p mingw64/usr/local/include
 
 cd cache
 for i in ${packages[*]}; do
@@ -43,8 +44,8 @@ for i in `ls ../cache | grep -v zip`; do
   tar xzvf ../cache/$i 
 done
 
-cp Pre-built.2/dll/x64/pthreadGC2.dll $HOME/mingw64/usr/local/lib
-cp Pre-built.2/include/* $HOME/mingw64/usr/local/include
+cp Pre-built.2/dll/x64/pthreadGC2.dll ../mingw64/usr/local/lib
+cp Pre-built.2/include/* ../mingw64/usr/local/include
 
 svn co https://svn.code.sf.net/p/portmedia/code/portmidi/trunk portmidi-svn
 
