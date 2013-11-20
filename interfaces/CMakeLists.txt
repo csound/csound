@@ -77,8 +77,12 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
     if(BUILD_PYTHON_INTERFACE)
         INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
 
-        # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python 
-        set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
+        if(WIN32)
+            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd6)
+        else()
+            # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python 
+            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
+        endif()
 # Had:     	    SWIG_FLAGS "-threads"
 
         SET_SOURCE_FILES_PROPERTIES(python_interface.i
