@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<!--
+/*
+ * Csound pnacl interactive frontend example
+ *
+ * Copyright (C) 2013 V Lazzarini
+ *
+ * This file belongs to Csound.
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+-->
+<head>
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="-1">
+  <title>Interactive Csound</title>
+
+  <style type="text/css">
+   body { padding-left: 6em; font-family: "Times New Roman";
+          color: red; background-color: #FCF477 }
+   textarea.console { font-family: "Courier New"; color: green;
+                     background-color: #000000 }
+   textarea.code { font-family: "Courier New"; color: black;
+                   background-color:#B8F4F5 }
+   </style>
+
+  <script type="text/javascript" src="csound.js"></script>
+  <script type="text/javascript">
+
+    var orchval, selection;
+
+    // functions called by csound.js
+    function moduleDidLoad() { }
+
+    function attachListeners() {
+       document.getElementById('playButton').addEventListener('click', csound.Play);
+       document.getElementById('pauseButton').addEventListener('click', csound.Pause);
+       document.getElementById('compileButton1').addEventListener('click', compileOrc1);
+       document.getElementById('compileButton2').addEventListener('click', compileOrc2);
+       document.getElementById('orchestraField').addEventListener('blur',changeOrchestra);
+       document.getElementById('orchestraField').addEventListener('select',selectOrchestra);
+       orchval = getOrchestraElement().value;
+    }
+
+    function handleMessage(message) {
+        var element = document.getElementById('console');
+        element.value += message.data;
+        element.scrollTop = 99999; // focus on bottom
+    }
+    
+    // event handlers for the html page
+    function getOrchestraElement() {
+      return document.getElementById('orchestraField');
+    }
+
+    function compileOrc1() {
+       csound.CompileOrc(orchval);
+    }
+
+    function compileOrc2() {
+       orchval = selection;
+       csound.CompileOrc(orchval);
+    }
+
+   function changeOrchestra() {    
+       orchval = getOrchestraElement().value;
+    }
+
+   function getText(elem) {
+       if(elem.tagName === "TEXTAREA" ||
+         (elem.tagName === "INPUT" && elem.type === "text")) {
+           return elem.value.substring(elem.selectionStart,
+                                       elem.selectionEnd);
+        }
+        return null;
+    }
+
+    function selectOrchestra() {
+        selection = getText(document.activeElement);  
+    }
+
+  </script>
+</head>
+
+<body>
+  <p>
+  <button id="playButton">Play</button>
+  <button id="pauseButton">Pause</button> </p>
+  <p> 
+  <textarea class="code" cols="80" rows="20" id="orchestraField"
+  value="schedule 1,0,1 \n instr 1 \n a1 rand 0.5 \n out a1 \n endin \n">
+; press "Compile All" to compile this code, 
+; if Csound is running you will hear white noise.
+; This is an edit box, you can change the code
+; and compile again with the buttons below.
+
+schedule 1,0,1
+
+instr 1
+ a1 rand 0.5
+ out a1
+endin
+  </textarea> <br>
+  <button id="compileButton1">Compile All</button>
+  <button id="compileButton2">Compile Selection</button> </p>
+   <p>
+  <textarea class="console" cols="80" rows="25" id="console"
+  value="">Csound: not loaded</textarea>
+  </p>
+  <!--pNaCl csound module-->
+  <div id="engine"></div>
+</body>
+</html>
