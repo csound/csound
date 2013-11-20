@@ -128,8 +128,16 @@ var csound = (function() {
     }
     var statusField = document.getElementById('console');
     if (statusField) {
+        var fieldType = statusField.tagName.toLowerCase();
+        if(fieldType == 'div') {
+        statusText += " <br>";
+        if(!keep) statusField.innerHTML = statusText ;
+            else 
+             statusField.innerHTML += statusText;
+	} else {
 	if(!keep) statusField.value = statusText;
         else statusField.value += statusText;
+	}
     }
   }
 
