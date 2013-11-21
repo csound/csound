@@ -74,7 +74,7 @@
         selection = getText(document.activeElement);  
     }
 
-    function handleFileSelect(evt) {
+  function handleFileSelect(evt) {
     var files = evt.target.files; 
     var f = files[0];
     var objectURL = window.webkitURL.createObjectURL(f);
@@ -91,8 +91,7 @@
   <button id="playButton">Play</button>
   <button id="pauseButton">Pause</button> </p>
   <p> 
-  <textarea class="code" cols="80" rows="20" id="orchestraField"
-  value="schedule 1,0,1 \n instr 1 \n a1 rand 0.5 \n out a1 \n endin \n">
+  <textarea class="code" cols="80" rows="20" id="orchestraField">
 ; press "Compile All" to compile this code, 
 ; if Csound is running you will hear white noise.
 ; This is an edit box, you can change the code
@@ -112,7 +111,7 @@ endin
    <p>
   <p>
   <input type="file" id="files" name="file" /> soundfile loaded as
-   ./local/<input type="text" id="fname"name="filename" value="test.wav" />
+   ./local/<input type="text" id="fname" name="filename" value="test.wav" />
   </p>
   <textarea class="console" cols="80" rows="25" id="console"
   value="">Csound: not loaded</textarea>

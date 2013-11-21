@@ -88,7 +88,8 @@ In order to facilitate access to files, the following filesystem functions can b
 \item {\tt csound.CopyToLocal(src, dest)} - copies the file \emph{src} in the ORIGIN directory to the local file \emph{dest}, which can
 be accessed at ./local/\emph{dest}
 \item {\tt csound.CopyUrlToLocal(url,dest)} - copies the url \emph{url} to the local file \emph{dest}, which can
-be accessed at ./local/\emph{dest}. Currently only ORIGIN and CORS urls are allowed.
+be accessed at ./local/\emph{dest}. Currently only ORIGIN and CORS urls are allowed remotely, but local files can
+also be passed if encoded as urls with the webkitURL.createObjectURL() javascript method.
 \end{itemize}
 
 
