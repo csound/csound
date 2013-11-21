@@ -1,5 +1,6 @@
 \documentclass[11pt]{article}
 \usepackage{listings}
+\usepackage{hyperref}
 
 \lstset {
 basicstyle={\ttfamily, \footnotesize},
@@ -41,7 +42,8 @@ Porting Csound to pNaCl involved three steps, following the SDK installation:
 
 \subsection{Building the libraries}
 
-With the NaCl SDK installed, and the NACL\_SDK\_ROOT set as per installation instructions and the libsndfile-nacl sources,
+With the NaCl SDK installed, and the NACL\_SDK\_ROOT set as per installation instructions and the libsndfile-nacl sources
+(\url{https://www.dropbox.com/s/ezfo9rmo5wtzptz/libsndfile-nacl.tar.gz}),
 you can use the make command to build libsndfile. To build the Csound library, run  the build.sh script in the ./nacl subdirectory 
 of the Csound 6 sources. When libraries are built, they are added to the SDK, and made readily available for applications to be
 built with them.
