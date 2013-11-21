@@ -22,7 +22,10 @@
     var orchval, selection;
 
     // functions called by csound.js
-    function moduleDidLoad() { }
+    function moduleDidLoad() {
+
+    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    }
 
     function attachListeners() {
        document.getElementById('playButton').addEventListener('click', csound.Play);
@@ -71,6 +74,15 @@
         selection = getText(document.activeElement);  
     }
 
+    function handleFileSelect(evt) {
+    var files = evt.target.files; 
+    var f = files[0];
+    var objectURL = window.webkitURL.createObjectURL(f);
+    var filename = document.getElementById('fname').value;
+    csound.CopyUrlToLocal(objectURL, filename);
+  }
+  
+
   </script>
 </head>
 
@@ -92,10 +104,16 @@ instr 1
  a1 rand 0.5
  out a1
 endin
-  </textarea> <br>
+  </textarea>
+
+  <br>
   <button id="compileButton1">Compile All</button>
   <button id="compileButton2">Compile Selection</button> </p>
    <p>
+  <p>
+  <input type="file" id="files" name="file" /> soundfile loaded as
+   ./local/<input type="text" id="fname"name="filename" value="test.wav" />
+  </p>
   <textarea class="console" cols="80" rows="25" id="console"
   value="">Csound: not loaded</textarea>
   </p>
