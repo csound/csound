@@ -7,7 +7,7 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
 <!-- html --> 
 <meta name="src" content="pnacl_csound.tex"> 
-<meta name="date" content="2013-11-20 21:45:00"> 
+<meta name="date" content="2013-11-21 00:49:00"> 
 <link rel="stylesheet" type="text/css" href="pnacl_csound.css"> 
 </head><body 
 >
@@ -151,11 +151,13 @@ class="cmti-10x-x-109">url </span>to the local
      file <span 
 class="cmti-10x-x-109">dest</span>, which can be accessed at ./local/<span 
 class="cmti-10x-x-109">dest</span>. Currently only ORIGIN
-     and CORS urls are allowed.</li></ul>
-<!--l. 95--><p class="noindent" >
+     and CORS urls are allowed remotely, but local files can also be passed
+     if encoded as urls with the webkitURL.createObjectURL() javascript
+     method.</li></ul>
+<!--l. 96--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.3   </span> <a 
  id="x1-90003.3"></a>Callbacks</h4>
-<!--l. 97--><p class="noindent" >The csound.js module will call the following window functions when it
+<!--l. 98--><p class="noindent" >The csound.js module will call the following window functions when it
 starts:
      <ul class="itemize1">
      <li class="itemize"><span 
@@ -170,7 +172,7 @@ class="cmtt-10x-x-109">function handleMessage(message)</span>: called when there
      <li class="itemize"><span 
 class="cmtt-10x-x-109">function attachListeners()</span>:  this  is  called  when  listeners  for
      different events are to be attached.</li></ul>
-<!--l. 106--><p class="indent" >   You should implement these functions in your HTML page script, in order to
+<!--l. 107--><p class="indent" >   You should implement these functions in your HTML page script, in order to
 use the Csound javascript interface. In addition to the above, Csound javascript
 module messages are always sent to the HTML element with id=&#8216;console&#8217;, which
 is normally of type <span 
@@ -181,14 +183,14 @@ class="cmmi-10x-x-109">&#x003E;</span>.
                                                                      
 
                                                                      
-<!--l. 110--><p class="noindent" >
+<!--l. 111--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.4   </span> <a 
  id="x1-100003.4"></a>Example</h4>
-<!--l. 112--><p class="noindent" >Here is a minimal HTML example showing the use of Csound
-   <!--l. 114--><div class="lstinputlisting">
+<!--l. 113--><p class="noindent" >Here is a minimal HTML example showing the use of Csound
+   <!--l. 115--><div class="lstinputlisting">
 <a 
  id="x1-10001"></a>
-<!--l. 114--><p class="indent" >   <span 
+<!--l. 115--><p class="indent" >   <span 
 class="cmtt-10x-x-109">, </span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
  id="x1-10002r1"></a></span><span 
