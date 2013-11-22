@@ -29,6 +29,7 @@
 
 
 extern int csoundFileClose(CSOUND*, void*);
+CORFIL *copy_url_corefile(CSOUND *, const char *, int);
 
 CORFIL *corfile_create_w(void)
 {
@@ -276,7 +277,9 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
 {
     int n;
     CURL *curl = curl_easy_init();
-    CORFIL *mm;
+    CORFIL *mm = corfile_create_w();
+    struct MemoryStruct chunk;
+    
     chunk.memory = malloc(1);  /* will be grown as needed by the realloc above */
     chunk.size = 0;    /* no data at this point */
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -288,7 +291,7 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
       csound->Die(csound, "curl_easy_perform() failed: %s\n",
                   curl_easy_strerror(n));
     }
-    curl_easy_cleanup(curl_handle);
+    curl_easy_cleanup(curl);
     corfile_puts(chunk.memory, mm);
     corfile_putc('\0', mm);     /* For use in bison/flex */
     corfile_putc('\0', mm);     /* For use in bison/flex */
