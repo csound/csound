@@ -29,7 +29,8 @@
 
     function attachListeners() {
        document.getElementById('playButton').addEventListener('click', csound.Play);
-       document.getElementById('pauseButton').addEventListener('click', csound.Pause);
+       document.getElementById('pauseButton').addEventListener('click',csound.Pause);
+       document.getElementById('loadButton').addEventListener('click', loadFile);
        document.getElementById('compileButton1').addEventListener('click', compileOrc1);
        document.getElementById('compileButton2').addEventListener('click', compileOrc2);
        document.getElementById('orchestraField').addEventListener('blur',changeOrchestra);
@@ -73,23 +74,32 @@
     function selectOrchestra() {
         selection = getText(document.activeElement);  
     }
-
+  
+  var fname = '';
+  var objectURL;
   function handleFileSelect(evt) {
     var files = evt.target.files; 
     var f = files[0];
-    var objectURL = window.webkitURL.createObjectURL(f);
-    var filename = document.getElementById('fname').value;
-    csound.CopyUrlToLocal(objectURL, filename);
+    objectURL = window.webkitURL.createObjectURL(f);
+    fname = f.name;
+    document.getElementById('loadButton').innerText = 'load to ./local/' + fname;
   }
-  
+
+   function loadFile(){
+    if(fname != ''){
+     csound.CopyUrlToLocal(objectURL, fname);
+     document.getElementById('loadButton').innerText = './local/' + fname +
+     ' loaded' ;
+    }
+   }
 
   </script>
 </head>
 
 <body>
   <p>
-  <button id="playButton">Play</button>
-  <button id="pauseButton">Pause</button> </p>
+  <button id="playButton">Start Engine</button>
+  <button id="pauseButton">Pause Engine</button> </p>
   <p> 
   <textarea class="code" cols="80" rows="20" id="orchestraField">
 ; press "Compile All" to compile this code, 
@@ -110,8 +120,8 @@ endin
   <button id="compileButton2">Compile Selection</button> </p>
    <p>
   <p>
-  <input type="file" id="files" name="file" /> file loaded as
-   ./local/<input type="text" id="fname" name="filename" value="test.wav" />
+  <input type="file" id="files" name="file" />
+  <button id="loadButton">load to ./local</button>
   </p>
   <textarea class="console" cols="80" rows="25" id="console"
   value="">Csound: not loaded</textarea>
