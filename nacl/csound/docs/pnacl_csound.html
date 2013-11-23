@@ -7,13 +7,17 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
 <!-- html --> 
 <meta name="src" content="pnacl_csound.tex"> 
-<meta name="date" content="2013-11-20 09:32:00"> 
+<meta name="date" content="2013-11-21 00:49:00"> 
 <link rel="stylesheet" type="text/css" href="pnacl_csound.css"> 
 </head><body 
 >
    <div class="maketitle">
+                                                                     
 
+                                                                     
+                                                                     
 
+                                                                     
 
 <h2 class="titleHead">Csound for Portable Native Client</h2>
 <div class="author" ><span 
@@ -23,29 +27,31 @@ class="cmr-12">19/11/2013</span></div>
    </div>
    <h3 class="sectionHead"><span class="titlemark">1   </span> <a 
  id="x1-10001"></a>Introduction</h3>
-<!--l. 19--><p class="noindent" >Native Client (NaCl) is a sandboxing technology developed by Google that allows
+<!--l. 20--><p class="noindent" >Native Client (NaCl) is a sandboxing technology developed by Google that allows
 C/C++ modules to extend the support provided by HTML5. Portable
 Native Client (pNaCl) is one of the toolchains in the NaCl SDK (the
 others are newlib and glibc). The advantage of pNaCl over the other
 options is that it only requires a single module to be built for all supported
 architectures.
-<!--l. 23--><p class="indent" >   The other major advantage is that pNaCl is, as of Google Chrome 31, enabled
+<!--l. 24--><p class="indent" >   The other major advantage is that pNaCl is, as of Google Chrome 31, enabled
 by default in the browser. This means that users just need to load a page
 containing the pNaCl application and it will work. pNaCl modules are compiled
 to llvm bytecode that is translated to a native binary by the browser. To check
 whether your version of Chrome supports pNaCl, use the following address:
 <br 
 class="newline" />
-<!--l. 28--><p class="indent" >   <span 
+<!--l. 29--><p class="indent" >   <span 
 class="cmtt-10x-x-109">chrome://nacl  </span><br 
 class="newline" />
-<!--l. 31--><p class="indent" >   Porting Csound to pNaCl involved three steps, following the SDK
+<!--l. 32--><p class="indent" >   Porting Csound to pNaCl involved three steps, following the SDK
 installation: <br 
 class="newline" />
      <ol  class="enumerate1" >
      <li 
   class="enumerate" id="x1-1002x1">Building libsndfile as a pNaCl library
+                                                                     
 
+                                                                     
      </li>
      <li 
   class="enumerate" id="x1-1004x2">Build Csound as a pNaCl library
@@ -53,48 +59,53 @@ class="newline" />
      <li 
   class="enumerate" id="x1-1006x3">Developing the pNaCl module to provide an interface to the Csound
      library</li></ol>
-<!--l. 40--><p class="noindent" >
+<!--l. 41--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">2   </span> <a 
  id="x1-20002"></a>Building Csound for pNaCl</h3>
-<!--l. 42--><p class="noindent" >
+<!--l. 43--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">2.1   </span> <a 
  id="x1-30002.1"></a>Building the libraries</h4>
-<!--l. 44--><p class="noindent" >With the NaCl SDK installed, and the NACL_SDK_ROOT set as per
-installation instructions and the libsndfile-nacl sources, you can use the make
-command to build libsndfile. To build the Csound library, run the build.sh script
-in the ./nacl subdirectory of the Csound 6 sources. When libraries are built, they
-are added to the SDK, and made readily available for applications to be built
-with them.
-<!--l. 49--><p class="noindent" >
+<!--l. 45--><p class="noindent" >With the NaCl SDK installed, and the NACL_SDK_ROOT set
+as per installation instructions and the libsndfile-nacl sources
+(<a 
+href="https://www.dropbox.com/s/ezfo9rmo5wtzptz/libsndfile-nacl.tar.gz" class="url" ><span 
+class="cmtt-10x-x-109">https://www.dropbox.com/s/ezfo9rmo5wtzptz/libsndfile-nacl.tar.gz</span></a>),
+you can use the make command to build libsndfile. To build the Csound library,
+run the build.sh script in the ./nacl subdirectory of the Csound 6 sources. When
+libraries are built, they are added to the SDK, and made readily available for
+applications to be built with them.
+<!--l. 51--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">2.2   </span> <a 
  id="x1-40002.2"></a>Building the pNaCl Csound module</h4>
-<!--l. 51--><p class="noindent" >Once the libraries are built, you can run make in the ./nacl/csound subdirectory
+<!--l. 53--><p class="noindent" >Once the libraries are built, you can run make in the ./nacl/csound subdirectory
 of the Csound sources. This will build the nacl module in pnacl/Release. There is
 a package.sh that can be used to copy and package all the relevant files for
 HTML5 development. This package is self-contained, i.e. it does not have any
 dependencies, and it can be expanded elsewhere in your project application
 folders.
-<!--l. 57--><p class="noindent" >
+<!--l. 59--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">2.3   </span> <a 
  id="x1-50002.3"></a>Running the example application</h4>
-<!--l. 59--><p class="noindent" >NaCl pages need to be served over http, which means they will not work when
+<!--l. 61--><p class="noindent" >NaCl pages need to be served over http, which means they will not work when
 opened as local files. You need to start a local server, and this can be done with
 the python script httpd.py found in the $NACL_SDK_ROOT/tools directory.
-If you start this script in the top level directory of the pNaCl Csound
+                                                                     
 
+                                                                     
+If you start this script in the top level directory of the pNaCl Csound
 package, then the example will be found at the <span 
 class="cmtt-10x-x-109">http://localhost:5103</span>
 address.
-<!--l. 63--><p class="noindent" >
+<!--l. 65--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">3   </span> <a 
  id="x1-60003"></a>Csound pNaCl module reference</h3>
-<!--l. 65--><p class="noindent" >The interface to Csound is found in the csound.js javascript file. Csound
+<!--l. 67--><p class="noindent" >The interface to Csound is found in the csound.js javascript file. Csound
 is ready on module load, and can accept control messages from then
 on.
-<!--l. 68--><p class="noindent" >
+<!--l. 70--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.1   </span> <a 
  id="x1-70003.1"></a>Control functions</h4>
-<!--l. 70--><p class="noindent" >The following control functions can be used to interact with Csound:
+<!--l. 72--><p class="noindent" >The following control functions can be used to interact with Csound:
      <ul class="itemize1">
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.Play() </span>- starts performance
@@ -118,11 +129,13 @@ class="cmtt-10x-x-109">csound.SetChannel(name, value) </span>- sends the control
 class="cmti-10x-x-109">name</span>
      the value <span 
 class="cmti-10x-x-109">value</span>, both arguments being strings.</li></ul>
+                                                                     
 
-<!--l. 81--><p class="noindent" >
+                                                                     
+<!--l. 83--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.2   </span> <a 
  id="x1-80003.2"></a>Filesystem functions</h4>
-<!--l. 83--><p class="noindent" >In order to facilitate access to files, the following filesystem functions can be
+<!--l. 85--><p class="noindent" >In order to facilitate access to files, the following filesystem functions can be
 used:
      <ul class="itemize1">
      <li class="itemize"><span 
@@ -138,11 +151,13 @@ class="cmti-10x-x-109">url </span>to the local
      file <span 
 class="cmti-10x-x-109">dest</span>, which can be accessed at ./local/<span 
 class="cmti-10x-x-109">dest</span>. Currently only ORIGIN
-     and CORS urls are allowed.</li></ul>
-<!--l. 93--><p class="noindent" >
+     and CORS urls are allowed remotely, but local files can also be passed
+     if encoded as urls with the webkitURL.createObjectURL() javascript
+     method.</li></ul>
+<!--l. 96--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.3   </span> <a 
  id="x1-90003.3"></a>Callbacks</h4>
-<!--l. 95--><p class="noindent" >The csound.js module will call the following window functions when it
+<!--l. 98--><p class="noindent" >The csound.js module will call the following window functions when it
 starts:
      <ul class="itemize1">
      <li class="itemize"><span 
@@ -157,7 +172,7 @@ class="cmtt-10x-x-109">function handleMessage(message)</span>: called when there
      <li class="itemize"><span 
 class="cmtt-10x-x-109">function attachListeners()</span>:  this  is  called  when  listeners  for
      different events are to be attached.</li></ul>
-<!--l. 104--><p class="indent" >   You should implement these functions in your HTML page script, in order to
+<!--l. 107--><p class="indent" >   You should implement these functions in your HTML page script, in order to
 use the Csound javascript interface. In addition to the above, Csound javascript
 module messages are always sent to the HTML element with id=&#8216;console&#8217;, which
 is normally of type <span 
@@ -165,15 +180,17 @@ class="cmmi-10x-x-109">&#x003C;</span>div<span
 class="cmmi-10x-x-109">&#x003E; </span>or <span 
 class="cmmi-10x-x-109">&#x003C;</span>textarea<span 
 class="cmmi-10x-x-109">&#x003E;</span>.
+                                                                     
 
-<!--l. 108--><p class="noindent" >
+                                                                     
+<!--l. 111--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.4   </span> <a 
  id="x1-100003.4"></a>Example</h4>
-<!--l. 110--><p class="noindent" >Here is a minimal HTML example showing the use of Csound
-   <!--l. 112--><div class="lstinputlisting">
+<!--l. 113--><p class="noindent" >Here is a minimal HTML example showing the use of Csound
+   <!--l. 115--><div class="lstinputlisting">
 <a 
  id="x1-10001"></a>
-<!--l. 112--><p class="indent" >   <span 
+<!--l. 115--><p class="indent" >   <span 
 class="cmtt-10x-x-109">, </span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
  id="x1-10002r1"></a></span><span 
@@ -588,7 +605,7 @@ class="cmtt-9">&#x00A0;</span><span
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x003C;</span><span 
-class="cmtt-9">h2</span><span 
+class="cmtt-9">h3</span><span 
 class="cmtt-9">&#x003E;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">Click</span><span 
@@ -604,11 +621,10 @@ class="cmtt-9">&#x00A0;</span><span
 class="cmtt-9">to</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">play</span><span 
-class="cmtt-9">...</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x003C;</span><span 
 class="cmtt-9">/</span><span 
-class="cmtt-9">h2</span><span 
+class="cmtt-9">h3</span><span 
 class="cmtt-9">&#x003E;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
  id="x1-10041r40"></a></span><span 
@@ -661,9 +677,11 @@ class="cmtt-9">&#x003C;</span><span
 class="cmtt-9">/</span><span 
 class="cmtt-9">html</span><span 
 class="cmtt-9">&#x003E;</span>
+   
    </div>
     
 </body></html> 
 
+                                                                     
 
 

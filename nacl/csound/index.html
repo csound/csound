@@ -51,7 +51,6 @@ body {
   font-size: 150%;
   font-weight: bold;
   padding: 2px;
-  -webkit-app-region: drag;
 }
 .left-border, .right-border {
   width: 2px;
@@ -92,7 +91,7 @@ body {
   padding-left: 8px;
 }
 .iframe-wrapper {
-  background-color= #FCF477;
+  overflow-x: scroll;
   overflow-y: auto;
   -webkit-flex: auto;
 }
@@ -137,8 +136,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // select the first example.
-  setExamp(document.querySelector('.examp'));
+  setFrame('start.html')
 });
 
   </script>
@@ -158,6 +156,21 @@ document.addEventListener('DOMContentLoaded', function () {
              Minimal
             </div>
           </div>
+	   <div class="examp" data-href="sliders.html">
+            <div class="extitle">
+              Sliders
+            </div>
+          </div>
+	  <div class="examp" data-href="canvas.html">
+            <div class="extitle">
+              Canvas
+            </div>
+          </div>
+	  <div class="examp" data-href="effects.html">
+            <div class="extitle">
+              Effects
+            </div>
+          </div>
           <div class="examp" data-href="interactive.html">
             <div class="extitle">
               Interactive
@@ -172,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
      </div>
       <div class="iframe-wrapper">
-        <iframe background="#FCF477">
+        <iframe>
 	</iframe>
       </div>
       <div class="right-border"></div>
