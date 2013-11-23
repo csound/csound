@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<!--
+ Csound pnacl trapped example
+ Copyright (C) 2013 V Lazzarini
+-->
+<head>
+ <title>Trapped Example</title>
+ <script type="text/javascript" src="csound.js"></script>
+ <script type="text/javascript">
+ // called by csound.js
+ function moduleDidLoad() {
+  csound.PlayCsd("http/trapped.csd");
+  document.getElementById("tit").innerHTML = "Trapped in Convert (R. Boulanger)";
+ }
+ function attachListeners() {}
+ function handleMessage(message) {
+   var mess = message.data + " <br>";
+   var messField = document.getElementById("mess")
+   messField.innerHTML += mess;
+ }
+ </script>
+</head>
+<body>
+  <div id="console"></div>
+  <div id="mess">
+     <h3 id="tit"></h3> 
+  </div>
+  <!--pNaCl csound module-->
+  <div id="engine"></div>
+</body>
+</html>
+

@@ -83,42 +83,21 @@ struct UrlReader {
 };
 
 class CsoundInstance : public pp::Instance {
-
-public:
-  explicit CsoundInstance(PP_Instance instance, 
-			  PPB_GetInterface get_browser_interface)
-    : pp::Instance(instance),
-      csound(NULL), count(0), fileResult(0), 
-      fileThread(NULL), 
-      from(NULL), dest(NULL)
-        
-  {
-    get_browser_interface_ = get_browser_interface;
-  }
-
-  virtual ~CsoundInstance() {
-    if(dest) free(dest); 
-    if(from) free(from);
-    if(csound){
-      csoundDestroyMessageBuffer(csound);
-      csoundDestroy(csound);
-    }
-  }
-
-  virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]);
-  virtual void HandleMessage(const pp::Var& var_message);
-  void CopyFileToLocalAsync(char *from, char *to);
-  void CopyFromURLToLocalAsync(char *URL, char *name); 
-   
-
-private:  
-  pp::Audio dac;
+ 
+  pp::Audio dac; 
   CSOUND *csound;
   int count;
   PPB_GetInterface get_browser_interface_;
   int fileResult;
   char *from;
   char *dest;
+  char *csd;
+  bool compiled;
+
+  void PlayCsound();
+  void PlayCsd(char *c);
+  void CopyFileToLocalAsync(char *from, char *to);
+  void CopyFromURLToLocalAsync(char *URL, char *name); 
   
   static void CsoundCallback(void* samples,
 			     uint32_t buffer_size,
@@ -133,6 +112,8 @@ private:
       MYFLT *spout = csoundGetSpout(csound_); 
       int ksmps = csoundGetKsmps(csound_)*csoundGetNchnls(csound_);
          
+     
+      MYFLT scale = 32768./_0dbfs;
       if(spout != NULL) 
 	for(n=0; n < buffsamps; n++) {
 	  if(count_ == 0) {
@@ -140,7 +121,7 @@ private:
 	    if(ret != 0) return;
 	    count_ = ksmps;
 	  }
-	  buff[n] = (int16_t) (32768*spout[ksmps-count_]);
+	  buff[n] = (int16_t) (scale*spout[ksmps-count_]);
 	  count_--;
 	}
       instance->count = count_;
@@ -152,16 +133,40 @@ private:
 
     }
   } 
- 
-  
-public:
 
+  public:
   pthread_t fileThread;
-  
   char *GetDestFileName(){ return dest; }
   void SetFileResult(int res){ fileResult = res; }
   char *GetSrcFileName(){ return from; }
-  void Playback(char *csd = NULL); 
+  bool isCompiled() { return compiled; }
+  void isCompiled(bool c) { compiled = c; }
+  virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]);
+  virtual void HandleMessage(const pp::Var& var_message);
+  CSOUND *GetCsound() { return csound; }
+  char *GetCsd() { return csd;}
+  bool StartDAC();
+
+  explicit CsoundInstance(PP_Instance instance, 
+			  PPB_GetInterface get_browser_interface)
+    : pp::Instance(instance),
+      csound(NULL), count(0), fileResult(0), 
+      fileThread(NULL), 
+      from(NULL), dest(NULL), csd(NULL), compiled(false)
+        
+  {
+    get_browser_interface_ = get_browser_interface;
+  }
+
+  virtual ~CsoundInstance() {
+    if(dest) free(dest); 
+    if(from) free(from);
+    if(csound){
+      csoundDestroyMessageBuffer(csound);
+      csoundDestroy(csound);
+    }
+  }
+
  
 };
 
@@ -169,40 +174,15 @@ bool CsoundInstance::Init(uint32_t argc,
 			  const char* argn[],
 			  const char* argv[]) {
 
-  int frames = 
-   pp::AudioConfig::RecommendSampleFrameCount(this,
-        PP_AUDIOSAMPLERATE_44100, kSampleFrameCount);
-
   csound = csoundCreate(NULL);
-  csoundCreateMessageBuffer(csound, 0);
+  csoundCreateMessageBuffer(csound, 0);  
   csoundSetHostImplementedAudioIO(csound,1,0);
-  csoundSetOption(csound, (char *) "-odac");
-  csoundSetOption(csound, (char *) "--nchnls=2");
-  csoundSetOption(csound, (char *) "-r44100");
-  csoundSetOption(csound, (char *) "-k689.0625");
-  csoundSetOption(csound, (char *) "--0dbfs=1");
-  csoundSetOption(csound, (char *) "-b1024");
-  csoundSetOption(csound, (char *) "--daemon");
- 
-  csoundStart(csound);
- 
-  dac = pp::Audio(
-		  this,
-		  pp::AudioConfig(this, PP_AUDIOSAMPLERATE_44100, frames),
-		  CsoundCallback,
-		  this);
-
-  // the call to nacl_io_init_ppapi
-  // has to happen *after* csoundStart(csound)
-  // otherwise there is a segfault
-
-  // NB: this has implications for using 
-  // csoundCompile() here, because it would require
-  // a mounted filesystem before a CSD can be read.
-  // A solution is to leave CSD reading/parsing to
-  // the javascript side, using the orchestra and score
-  // messages to the nacl csound module.
   nacl_io_init_ppapi(pp_instance(),get_browser_interface_);
+
+  // this is to prevent a segfault with Csound
+  umount("/");
+  mount("", "/", "memfs", 0, "");
+
   mount("",                                      /* source */
         "/local",                                 /* target */
         "html5fs",                                /* filesystemtype */
@@ -217,17 +197,107 @@ bool CsoundInstance::Init(uint32_t argc,
   return true;
 }
 
+bool CsoundInstance::StartDAC(){
+    MYFLT sr = csoundGetSr(csound);
+    PP_AudioSampleRate isr;
+    if(sr == 44100.) isr = PP_AUDIOSAMPLERATE_44100;
+    else if (sr == 48000.) isr = PP_AUDIOSAMPLERATE_48000;
+    else {
+      PostMessage("Csound error: unsupported SR \n");
+      return false;
+    }
+    if(csoundGetNchnls(csound) != 2) {
+      PostMessage("Csound error: only stereo output is supported \n");
+      return false;
+    }
+
+    int frames = 
+    pp::AudioConfig::RecommendSampleFrameCount(this,
+        PP_AUDIOSAMPLERATE_44100, kSampleFrameCount);
+    dac = pp::Audio(
+		  this,
+		  pp::AudioConfig(this, PP_AUDIOSAMPLERATE_44100, frames),
+		  CsoundCallback,
+		  this);
+    dac.StartPlayback();
+    return true;
+}
+
+void* compileThreadFunc(void *data) {
+  CsoundInstance *p = (CsoundInstance *) data;
+  CSOUND *csound = p->GetCsound();
+  char *csd =  p->GetCsd();
+  char *argv[] = {(char *)"csound", p->GetCsd()}; 
+  MYFLT sr = 0.0;
+  if(csoundCompile(csound,2,argv) == 0){
+  if(p->StartDAC())
+    p->isCompiled(true);
+  else {
+    return NULL;
+  }
+   free(csd);
+  }
+   return NULL;
+}
+
+
+void CsoundInstance::PlayCsd(char *c) {
+  if(!compiled){
+  csd = strdup(c);
+  pthread_t t;
+  pthread_create(&t, NULL, compileThreadFunc, this);
+  } else 
+  PostMessage("Csound is already started \n"
+	      "Refresh page to play a different CSD\n");
+}
+
+
+
+void CsoundInstance::PlayCsound() {
+  if(!compiled) {
+    csoundSetOption(csound, (char *) "-odac");
+    csoundSetOption(csound, (char *) "--nchnls=2");
+    csoundSetOption(csound, (char *) "-r44100");
+    csoundSetOption(csound, (char *) "-k689.0625");
+    csoundSetOption(csound, (char *) "--0dbfs=1");
+    csoundSetOption(csound, (char *) "-b1024");
+    csoundSetOption(csound, (char *) "--daemon");
+    csoundStart(csound);
+    compiled = true;
+    StartDAC();
+    return;
+  }
+  dac.StartPlayback();
+}
+
 void CsoundInstance::HandleMessage(const pp::Var& var_message) {
   if (!var_message.is_string()) {
     return;
   }
   std::string message = var_message.AsString();
   if (message == kPlaySoundId) {
-    dac.StartPlayback();
-    PostMessage("Csound: running...\n");
+    if(!compiled) {
+      PlayCsound();
+      PostMessage("Csound: running...\n");
+    } else {
+      dac.StartPlayback();
+      PostMessage("Csound: running...\n");
+    }
   } else if (message == kStopSoundId) {
     dac.StopPlayback();
     PostMessage("Csound: paused...\n");
+  } else if (message.find(kCsdId) == 0) {
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {      
+      std::string string_arg = message.substr(sep_pos + 1);
+      PlayCsd((char *)string_arg.c_str()); 
+    }
+  } else if (message.find(kOrchestraId) == 0) {
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {      
+      std::string string_arg = message.substr(sep_pos + 1);
+      csoundCompileOrc(csound, (char *) string_arg.c_str()); 
+    }
   } else if (message.find(kOrchestraId) == 0) {
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
     if (sep_pos != std::string::npos) {      
@@ -284,6 +354,10 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
         CopyFromURLToLocalAsync((char *) surl.c_str(), (char *) sname.c_str()); 
       }
     }
+  } else {
+    PostMessage("message not handled: ");
+    PostMessage(message.c_str());
+    PostMessage("\n");
   }
 }
 
@@ -327,11 +401,12 @@ void* fileThreadFunc(void *data){
 }
 
 void CsoundInstance::CopyFileToLocalAsync(char *src , char *name){
+  pthread_t id;
   if(dest) free(name); 
   dest = strdup(name);
   if(from) free(from);
   from = strdup(src);
-  pthread_create(&fileThread, NULL, &fileThreadFunc,(void*) this);
+  pthread_create(&id, NULL, &fileThreadFunc,(void*) this);
 }
 
 void* urlThreadFunc(void *data) {
