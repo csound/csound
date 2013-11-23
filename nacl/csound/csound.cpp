@@ -135,7 +135,6 @@ class CsoundInstance : public pp::Instance {
   } 
 
   public:
-  pthread_t fileThread;
   char *GetDestFileName(){ return dest; }
   void SetFileResult(int res){ fileResult = res; }
   char *GetSrcFileName(){ return from; }
@@ -151,7 +150,6 @@ class CsoundInstance : public pp::Instance {
 			  PPB_GetInterface get_browser_interface)
     : pp::Instance(instance),
       csound(NULL), count(0), fileResult(0), 
-      fileThread(NULL), 
       from(NULL), dest(NULL), csd(NULL), compiled(false)
         
   {
