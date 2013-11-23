@@ -54,7 +54,7 @@
         self.title = @"Csound for iOS";
         if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
             self.clearsSelectionOnViewWillAppear = NO;
-            self.contentSizeForViewInPopover = CGSizeMake(320.0, 600.0);
+            self.preferredContentSize = CGSizeMake(320.0, 600.0);
         }
         testNames = [NSMutableArray arrayWithObjects:@"Simple Test 1", @"Simple Test 2", 
                       @"Button Test", @"MIDI Test", @"Ping Pong Delay", @"Harmonizer", @"Hardware Test", @"Csound Haiku 4", @"Record Test", @"Multitouch XY", @"Waveview", @"Audio File Test", @"Console Output", @"Pitch Shifter", @"TrappedGenerator",nil];
