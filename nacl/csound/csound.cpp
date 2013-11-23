@@ -294,13 +294,8 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
     if (sep_pos != std::string::npos) {      
       std::string string_arg = message.substr(sep_pos + 1);
-      csoundCompileOrc(csound, (char *) string_arg.c_str()); 
-    }
-  } else if (message.find(kOrchestraId) == 0) {
-    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
-    if (sep_pos != std::string::npos) {      
-      std::string string_arg = message.substr(sep_pos + 1);
-      csoundCompileOrc(csound, (char *) string_arg.c_str()); 
+      if(compiled) csoundCompileOrc(csound, (char *) string_arg.c_str()); 
+      else PostMessage("engine has not started yet\n");
     }
   } else if (message.find(kScoreId) == 0) {
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
