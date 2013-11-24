@@ -37,11 +37,17 @@
        document.getElementById('orchestraField').addEventListener('select',selectOrchestra);
        orchval = getOrchestraElement().value;
     }
-
+   
+    var count = 0;
     function handleMessage(message) {
         var element = document.getElementById('console');
         element.value += message.data;
         element.scrollTop = 99999; // focus on bottom
+        count += 1;
+        if(count == 1000) {
+           element.value = ' ';
+           count = 0;
+        }
     }
     
     // event handlers for the html page
