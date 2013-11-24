@@ -11,7 +11,7 @@ ichn = 1
 lp1: massign   ichn, 0
 loop_le   ichn, 1, 16, lp1
 pgmassign 0, 0
-gisf   sfload "./http/sf_GMbank.sf2"
+gisf   sfload "./local/sf_GMbank.sf2"
 sfpassign  0, gisf
 
 /* this instrument parses MIDI input

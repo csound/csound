@@ -35,11 +35,18 @@
  function attachListeners() {
  }
 
- function handleMessage(message) {
-   var element = document.getElementById('console');
-   element.value += message.data;
-   element.scrollTop = 99999; // focus on bottom
- }
+ var count = 0;
+    function handleMessage(message) {
+        var element = document.getElementById('console');
+        element.value += message.data;
+        element.scrollTop = 99999; // focus on bottom
+        count += 1;
+        if(count == 1000) {
+           element.value = ' ';
+           count = 0;
+        }
+  }
+
  var playing = false;
  function cnvs_getCoordinates(e) {
   if(playing) {
@@ -57,6 +64,10 @@
  function cnvs_play(e){
    csound.Event("i1 0 -1");
    csound.SetChannel('cf',3000);
+   x=e.clientX;
+   y=e.clientY;
+   csound.SetChannel('amp',y);
+   csound.SetChannel('freq',x);
    var c=document.getElementById("cnvs");
    var ctx=c.getContext("2d");
    ctx.fillStyle="#0000FF";
