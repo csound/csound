@@ -111,7 +111,10 @@ class CsoundInstance : public pp::Instance {
       MYFLT _0dbfs = csoundGet0dBFS(csound_);
       MYFLT *spout = csoundGetSpout(csound_); 
       int ksmps = csoundGetKsmps(csound_)*csoundGetNchnls(csound_);
-         
+      while(csoundGetMessageCnt(csound_)){
+	instance->PostMessage(csoundGetFirstMessage(csound_));
+	csoundPopFirstMessage(csound_);
+      }    
      
       MYFLT scale = 32768./_0dbfs;
       if(spout != NULL) 
@@ -125,11 +128,6 @@ class CsoundInstance : public pp::Instance {
 	  count_--;
 	}
       instance->count = count_;
-
-      while(csoundGetMessageCnt(csound_)){
-	instance->PostMessage(csoundGetFirstMessage(csound_));
-	csoundPopFirstMessage(csound_);
-      }
 
     }
   } 
