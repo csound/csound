@@ -48,7 +48,7 @@
   if(!playing) {
   if(started) csound.Play();
   else {
-   csound.PlayCsd("http/gm.csd")
+   csound.PlayCsd("http/gm.csd");
    started = true;
   }
   document.getElementById('playButton').innerText = "Pause";
