@@ -1002,6 +1002,15 @@ int cpsmidinn(CSOUND *csound, EVAL *p)
     return OK;
 }
 
+/* More precise and probably no slower. */
+
+int cpsmidinn2(CSOUND *csound, EVAL *p)
+{
+    IGN(csound);
+    *p->r = pow(FL(2.0), (*p->a - FL(69.0)) / FL(12.0)) * FL(440.0);
+    return OK;
+}
+
 int octmidinn(CSOUND *csound, EVAL *p)
 {
     IGN(csound);
