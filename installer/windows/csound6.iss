@@ -61,7 +61,7 @@
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
 #define MyCsoundQtBinDir "C:\Users\mike\qutecsound-code\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
-#define MyQtSdkBinDir "D:\qt-everywhere-opensource-src-5.1.0\qtbase\bin\"
+#define MyQtSdkBinDir "D:\qt-everywhere-opensource-src-5.1.1\qtbase\bin\"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
