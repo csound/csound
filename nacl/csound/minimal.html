@@ -22,9 +22,9 @@
        addEventListener("click",Play);
  }
  function handleMessage(message) {
-   var mess = message.data + " <br>";
+   var mess = message.data;
    var messField = document.getElementById("mess")
-   messField.innerHTML += mess;
+   messField.innerText += mess;
  }
 
  // click handler

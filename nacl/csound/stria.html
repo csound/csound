@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html>
 <!--
- Csound pnacl trapped example
+ Csound pnacl stria example
  Copyright (C) 2013 V Lazzarini
 -->
 <head>
- <title>Trapped Example</title>
+ <title>Stria Example</title>
  <script type="text/javascript" src="csound.js"></script>
  <script type="text/javascript">
  // called by csound.js
  function moduleDidLoad() {
-  csound.PlayCsd("http/trapped.csd");
-  document.getElementById("tit").innerHTML = "Trapped in Convert (R. Boulanger)";
+  csound.PlayCsd("http/stria.csd");
+  document.getElementById("tit").innerHTML = "Stria (J. Chowning)";
+  document.getElementById("stit").innerHTML = "reconstruction by K. Dahan";
  }
  function attachListeners() {}
  function handleMessage(message) {
@@ -24,7 +25,8 @@
 </head>
 <body>
   <div id="console"></div>
-   <h3 id="tit"></h3> 
+  <h3 id="tit"></h3>
+  <h4 id="stit"></h4> 
   <div id="mess">
   </div>
   <!--pNaCl csound module-->
