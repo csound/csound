@@ -93,7 +93,7 @@ typedef struct {
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
-#ifdef USE_DOUBLE
+#ifdef  B64BIT
 #define MAXLEN     0x40000000
 #define FMAXLEN    ((MYFLT)(MAXLEN))
 #define PHMASK     0x3fffffff

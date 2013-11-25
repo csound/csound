@@ -65,7 +65,7 @@ typedef struct {
         MYFLT   *ar, *xamp, *xcps, *iseed, *sel, *base;
         int16   ampcod, cpscod, new;
         int     rand;
-        int32    phs;
+        long    phs;
         MYFLT   num1;
 } RANDH;
 
@@ -74,6 +74,6 @@ typedef struct {
         MYFLT   *ar, *xamp, *xcps, *iseed, *sel, *base;
         int16   ampcod, cpscod, new;
         int     rand;
-        int32    phs;
+        long    phs;
         MYFLT   num1, num2, dfdmax;
 } RANDI;

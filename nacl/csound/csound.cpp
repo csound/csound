@@ -93,6 +93,7 @@ class CsoundInstance : public pp::Instance {
   char *dest;
   char *csd;
   bool compiled;
+  bool finished;
 
   void PlayCsound();
   void PlayCsd(char *c);
@@ -104,7 +105,7 @@ class CsoundInstance : public pp::Instance {
 			     void* data) {
     CsoundInstance* instance = (CsoundInstance*) data;
     CSOUND *csound_ = instance->csound;
-    if(csound_ != NULL) {
+    if(csound_ != NULL && !instance->isFinished()) {
       int count_ = instance->count;
       int n, buffsamps = buffer_size / sizeof(short);
       short* buff = (short*) samples;
@@ -115,21 +116,24 @@ class CsoundInstance : public pp::Instance {
 	instance->PostMessage(csoundGetFirstMessage(csound_));
 	csoundPopFirstMessage(csound_);
       }    
-     
+
       MYFLT scale = 32768./_0dbfs;
       if(spout != NULL) 
 	for(n=0; n < buffsamps; n++) {
 	  if(count_ == 0) {
 	    int ret = csoundPerformKsmps(csound_);
-	    if(ret != 0) return;
+	    if(ret != 0) {
+	       instance->isFinished(true);
+               return;
+	    }
 	    count_ = ksmps;
 	  }
 	  buff[n] = (int16_t) (scale*spout[ksmps-count_]);
 	  count_--;
 	}
       instance->count = count_;
-
-    }
+    } else
+      memset(samples,0,buffer_size);
   } 
 
   public:
@@ -138,6 +142,8 @@ class CsoundInstance : public pp::Instance {
   char *GetSrcFileName(){ return from; }
   bool isCompiled() { return compiled; }
   void isCompiled(bool c) { compiled = c; }
+  bool isFinished() { return finished; }
+  void isFinished(bool f) { finished = f; }
   virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]);
   virtual void HandleMessage(const pp::Var& var_message);
   CSOUND *GetCsound() { return csound; }
@@ -148,7 +154,7 @@ class CsoundInstance : public pp::Instance {
 			  PPB_GetInterface get_browser_interface)
     : pp::Instance(instance),
       csound(NULL), count(0), fileResult(0), 
-      from(NULL), dest(NULL), csd(NULL), compiled(false)
+      from(NULL), dest(NULL), csd(NULL), compiled(false), finished(false)
         
   {
     get_browser_interface_ = get_browser_interface;
