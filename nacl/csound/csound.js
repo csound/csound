@@ -173,6 +173,15 @@ var csound = (function() {
    csound.module.postMessage('csd:' + s);
   }
 
+  /**
+   * Starts audio playback with a CSD
+   *
+   * @param {string} s A string containing the pathname to the CSD.
+   */
+  function RenderCsd(s) {
+   csound.module.postMessage('render:' + s);
+  }
+
 
   /**
    * Sends a score to be read by Csound
@@ -236,6 +245,7 @@ var csound = (function() {
     Play: Play,
     Pause: Pause,
     PlayCsd: PlayCsd,
+    RenderCsd: RenderCsd,
     CompileOrc: CompileOrc,
     ReadScore: ReadScore,
     Event: Event,
