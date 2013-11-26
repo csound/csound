@@ -438,12 +438,12 @@ void* fileThreadFunc(void *data){
     free(local_name);
     fclose(fp_in);
   } else retval = -1; 
+  free(rem_name);
   if(retval < 0){
     p->PostMessage(rem_name);
-    p->PostMessage(": could not copy file\n");
-  }
-  free(rem_name);
-  p->SetFileResult(retval); 
+    p->PostMessage(": could not copy file\n");    
+  } else p->PostMessage("Complete"); 
+  p->SetFileResult(retval);
   return NULL;
 }
 
@@ -516,7 +516,7 @@ void* urlThreadFunc(void *data) {
       }
     free(local_name);
     delete d;
-    p->PostMessage("Complete\n");
+    p->PostMessage("Complete");
     return NULL;
   }
 

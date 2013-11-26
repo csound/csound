@@ -7,7 +7,7 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
 <!-- html --> 
 <meta name="src" content="pnacl_csound.tex"> 
-<meta name="date" content="2013-11-25 23:37:00"> 
+<meta name="date" content="2013-11-26 13:59:00"> 
 <link rel="stylesheet" type="text/css" href="pnacl_csound.css"> 
 </head><body 
 >
@@ -23,7 +23,7 @@
 <div class="author" ><span 
 class="cmr-12">Victor Lazzarini</span></div><br />
 <div class="date" ><span 
-class="cmr-12">November 25, 2013</span></div>
+class="cmr-12">November 26, 2013</span></div>
    </div>
    <h3 class="sectionHead"><span class="titlemark">1   </span> <a 
  id="x1-10001"></a>Introduction</h3>
@@ -115,6 +115,11 @@ class="cmtt-10x-x-109">csound.PlayCsd(s) </span>- starts performance from a CSD 
      be in ./http/ (ORIGIN server) or ./local/ (local sandbox).
      </li>
      <li class="itemize"><span 
+class="cmtt-10x-x-109">csound.RenderCsd(s) </span>- renders a CSD file s, which can be in ./http/
+     (ORIGIN server) or ./local/ (local sandbox), with no RT audio output.
+     The &#8220;finished render&#8221; message is issued on completion.
+     </li>
+     <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.Pause() </span>- pauses performance
      </li>
      <li class="itemize"><span 
@@ -127,19 +132,19 @@ class="cmtt-10x-x-109">csound.ReadScore(s) </span>-  reads  the  score  in  the 
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.Event(s) </span>- sends in the line events contained in the string s
      (no preprocessing)
+                                                                     
+
+                                                                     
      </li>
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.SetChannel(name, value) </span>- sends the control channel <span 
 class="cmti-10x-x-109">name</span>
      the value <span 
 class="cmti-10x-x-109">value</span>, both arguments being strings.</li></ul>
-                                                                     
-
-                                                                     
-<!--l. 84--><p class="noindent" >
+<!--l. 86--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.2   </span> <a 
  id="x1-80003.2"></a>Filesystem functions</h4>
-<!--l. 86--><p class="noindent" >In order to facilitate access to files, the following filesystem functions can be
+<!--l. 88--><p class="noindent" >In order to facilitate access to files, the following filesystem functions can be
 used:
      <ul class="itemize1">
      <li class="itemize"><span 
@@ -147,7 +152,8 @@ class="cmtt-10x-x-109">csound.CopyToLocal(src, dest) </span>- copies the file <s
 class="cmti-10x-x-109">src </span>in the ORIGIN
      directory to the local file <span 
 class="cmti-10x-x-109">dest</span>, which can be accessed at ./local/<span 
-class="cmti-10x-x-109">dest</span>
+class="cmti-10x-x-109">dest</span>.
+     The &#8220;Complete&#8221; message is issued on completion.
      </li>
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.CopyUrlToLocal(url,dest) </span>- copies the url <span 
@@ -157,16 +163,28 @@ class="cmti-10x-x-109">dest</span>, which can be accessed at ./local/<span
 class="cmti-10x-x-109">dest</span>. Currently only ORIGIN
      and CORS urls are allowed remotely, but local files can also be passed
      if encoded as urls with the webkitURL.createObjectURL() javascript
-     method.</li></ul>
-<!--l. 97--><p class="noindent" >
+     method. The &#8220;Complete&#8221; message is issued on completion.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">csound.RequestFileFromLocal(src) </span>- requests the data from the
+     local file <span 
+class="cmti-10x-x-109">src</span>. The &#8220;Complete&#8221; message is issued on completion.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">csound.GetFileData() </span>- returns the most recently requested file data
+     as an ArrayObject.</li></ul>
+<!--l. 101--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.3   </span> <a 
  id="x1-90003.3"></a>Callbacks</h4>
-<!--l. 99--><p class="noindent" >The csound.js module will call the following window functions when it
+<!--l. 103--><p class="noindent" >The csound.js module will call the following window functions when it
 starts:
      <ul class="itemize1">
      <li class="itemize"><span 
 class="cmtt-10x-x-109">function moduleDidLoad()</span>: this is called as soon as the module is
      loaded
+                                                                     
+
+                                                                     
      </li>
      <li class="itemize"><span 
 class="cmtt-10x-x-109">function handleMessage(message)</span>: called when there are messages
@@ -176,7 +194,7 @@ class="cmtt-10x-x-109">function handleMessage(message)</span>: called when there
      <li class="itemize"><span 
 class="cmtt-10x-x-109">function attachListeners()</span>:  this  is  called  when  listeners  for
      different events are to be attached.</li></ul>
-<!--l. 108--><p class="indent" >   You should implement these functions in your HTML page script, in order to
+<!--l. 112--><p class="indent" >   You should implement these functions in your HTML page script, in order to
 use the Csound javascript interface. In addition to the above, Csound javascript
 module messages are always sent to the HTML element with id=&#8216;console&#8217;, which
 is normally of type <span 
@@ -184,17 +202,14 @@ class="cmmi-10x-x-109">&#x003C;</span>div<span
 class="cmmi-10x-x-109">&#x003E; </span>or <span 
 class="cmmi-10x-x-109">&#x003C;</span>textarea<span 
 class="cmmi-10x-x-109">&#x003E;</span>.
-                                                                     
-
-                                                                     
-<!--l. 112--><p class="noindent" >
+<!--l. 116--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.4   </span> <a 
  id="x1-100003.4"></a>Example</h4>
-<!--l. 114--><p class="noindent" >Here is a minimal HTML example showing the use of Csound
-   <!--l. 116--><div class="lstinputlisting">
+<!--l. 118--><p class="noindent" >Here is a minimal HTML example showing the use of Csound
+   <!--l. 120--><div class="lstinputlisting">
 <a 
  id="x1-10001"></a>
-<!--l. 116--><p class="indent" >   <span 
+<!--l. 120--><p class="indent" >   <span 
 class="cmtt-10x-x-109">, </span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
  id="x1-10002r1"></a></span><span 
@@ -674,10 +689,10 @@ class="cmtt-9">html</span><span
 class="cmtt-9">&#x003E;</span>
    
    </div>
-<!--l. 118--><p class="noindent" >
+<!--l. 122--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">4   </span> <a 
  id="x1-110004"></a>Limitations</h3>
-<!--l. 120--><p class="noindent" >The following limitations apply:
+<!--l. 124--><p class="noindent" >The following limitations apply:
      <ul class="itemize1">
      <li class="itemize">no realtime audio input (not supported yet in Pepper/NaCl)
      </li>
@@ -686,6 +701,9 @@ class="cmtt-9">&#x003E;</span>
      data to Csound, and respond to MIDI NOTE messages.
      </li>
      <li class="itemize">no  plugins,  as  pNaCl  does  not  support  dlopen()  and  friends.  This
+                                                                     
+
+                                                                     
      means some opcodes are not available as they reside in plugin libraries.
      It might be possible to add some of these opcodes statically to the
      Csound pNaCl library in the future.

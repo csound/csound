@@ -74,6 +74,8 @@ The following control functions can be used to interact with Csound:
 \begin{itemize}
 \item {\tt csound.Play()} - starts performance
 \item {\tt csound.PlayCsd(s)} - starts performance from a CSD file s, which can be in ./http/ (ORIGIN server) or ./local/ (local sandbox).
+\item {\tt csound.RenderCsd(s)} - renders a CSD file s, which can be in ./http/ (ORIGIN server) or ./local/ (local sandbox), with no RT audio output.
+The ``finished render" message is issued on completion.
 \item {\tt csound.Pause()} - pauses performance
 \item {\tt csound.CompileOrc(s)} - compiles the Csound code in the string s
 \item {\tt csound.ReadScore(s)} - reads the score in the string s (with preprocessing support)
@@ -87,10 +89,12 @@ In order to facilitate access to files, the following filesystem functions can b
 
 \begin{itemize}
 \item {\tt csound.CopyToLocal(src, dest)} - copies the file \emph{src} in the ORIGIN directory to the local file \emph{dest}, which can
-be accessed at ./local/\emph{dest}
+be accessed at ./local/\emph{dest}. The ``Complete" message is issued on completion.
 \item {\tt csound.CopyUrlToLocal(url,dest)} - copies the url \emph{url} to the local file \emph{dest}, which can
 be accessed at ./local/\emph{dest}. Currently only ORIGIN and CORS urls are allowed remotely, but local files can
-also be passed if encoded as urls with the webkitURL.createObjectURL() javascript method.
+also be passed if encoded as urls with the webkitURL.createObjectURL() javascript method. The ``Complete" message is issued on completion.
+\item {\tt csound.RequestFileFromLocal(src)} - requests the data from the local file \emph{src}. The ``Complete" message is issued on completion. 
+\item {\tt csound.GetFileData()} - returns the most recently requested file data as an ArrayObject.
 \end{itemize}
 
 
