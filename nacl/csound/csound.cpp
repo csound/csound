@@ -178,7 +178,6 @@ bool CsoundInstance::Init(uint32_t argc,
 
   csound = csoundCreate(NULL);
   csoundCreateMessageBuffer(csound, 0);  
-  csoundSetHostImplementedAudioIO(csound,1,0);
   nacl_io_init_ppapi(pp_instance(),get_browser_interface_);
 
   // this is to prevent a segfault with Csound
@@ -257,6 +256,7 @@ void CsoundInstance::PlayCsd(char *c) {
 
 void CsoundInstance::PlayCsound() {
   if(!compiled) {
+    csoundSetHostImplementedAudioIO(csound,1,0);
     csoundSetOption(csound, (char *) "-odac");
     csoundSetOption(csound, (char *) "--nchnls=2");
     csoundSetOption(csound, (char *) "-r44100");

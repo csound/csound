@@ -7,7 +7,7 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
 <!-- html --> 
 <meta name="src" content="pnacl_csound.tex"> 
-<meta name="date" content="2013-11-23 21:09:00"> 
+<meta name="date" content="2013-11-25 23:37:00"> 
 <link rel="stylesheet" type="text/css" href="pnacl_csound.css"> 
 </head><body 
 >
@@ -23,7 +23,7 @@
 <div class="author" ><span 
 class="cmr-12">Victor Lazzarini</span></div><br />
 <div class="date" ><span 
-class="cmr-12">19/11/2013</span></div>
+class="cmr-12">November 25, 2013</span></div>
    </div>
    <h3 class="sectionHead"><span class="titlemark">1   </span> <a 
  id="x1-10001"></a>Introduction</h3>
@@ -465,15 +465,6 @@ class="cmtt-9">&#x00A0;</span><span
 class="cmtt-9">message</span><span 
 class="cmtt-9">.</span><span 
 class="cmtt-9">data</span><span 
-class="cmtt-9">&#x00A0;</span><span 
-class="cmtt-9">+</span><span 
-class="cmtt-9">&#x00A0;</span><span 
-class="cmtt-9">"</span><span 
-class="cmtt-9">&#x00A0;</span><span 
-class="cmtt-9">&#x003C;</span><span 
-class="cmtt-9">br</span><span 
-class="cmtt-9">&#x003E;</span><span 
-class="cmtt-9">"</span><span 
 class="cmtt-9">;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
  id="x1-10027r26"></a></span><span 
@@ -501,7 +492,7 @@ class="cmtt-9">&#x00A0;</span><span
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">messField</span><span 
 class="cmtt-9">.</span><span 
-class="cmtt-9">innerHTML</span><span 
+class="cmtt-9">innerText</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">+=</span><span 
 class="cmtt-9">&#x00A0;</span><span 
@@ -683,6 +674,24 @@ class="cmtt-9">html</span><span
 class="cmtt-9">&#x003E;</span>
    
    </div>
+<!--l. 118--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">4   </span> <a 
+ id="x1-110004"></a>Limitations</h3>
+<!--l. 120--><p class="noindent" >The following limitations apply:
+     <ul class="itemize1">
+     <li class="itemize">no realtime audio input (not supported yet in Pepper/NaCl)
+     </li>
+     <li class="itemize">no  MIDI  in  the  NaCl  module.  However,  it  might  be  possible  to
+     implement MIDI in javascript, and using the csound.js functions, send
+     data to Csound, and respond to MIDI NOTE messages.
+     </li>
+     <li class="itemize">no  plugins,  as  pNaCl  does  not  support  dlopen()  and  friends.  This
+     means some opcodes are not available as they reside in plugin libraries.
+     It might be possible to add some of these opcodes statically to the
+     Csound pNaCl library in the future.
+     </li>
+     <li class="itemize">no offline/to file render. While might be possible to render to local,
+     the output file may not be acessible at the moment.</li></ul>
     
 </body></html> 
 
