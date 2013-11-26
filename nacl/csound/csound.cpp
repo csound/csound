@@ -49,6 +49,7 @@ namespace {
   const char* const kCopyId = "copyToLocal";
   const char* const kCopyUrlId = "copyUrlToLocal";
   const char* const kCsdId = "csd";
+  const char* const kRenderId = "render";
   static const char kMessageArgumentSeparator = ':';
   static const char kUrlArgumentSeparator = '#';
 
@@ -96,7 +97,7 @@ class CsoundInstance : public pp::Instance {
   bool finished;
 
   void PlayCsound();
-  void PlayCsd(char *c);
+  void PlayCsd(char *c, bool dac);
   void CopyFileToLocalAsync(char *from, char *to);
   void CopyFromURLToLocalAsync(char *URL, char *name); 
   
@@ -234,19 +235,52 @@ void* compileThreadFunc(void *data) {
   if(p->StartDAC())
     p->isCompiled(true);
   else {
+      free(csd);
     return NULL;
   }
-   free(csd);
   }
+     free(csd);
+   return NULL;
+}
+
+void* compileThreadFuncNoDAC(void *data) {
+  CsoundInstance *p = (CsoundInstance *) data;
+  CSOUND *csound = p->GetCsound();
+  char *csd =  p->GetCsd();
+  char *argv[] = {(char *)"csound", p->GetCsd()}; 
+  MYFLT sr = 0.0;
+  int ret = csoundCompile(csound,2,argv);
+    while(csoundGetMessageCnt(csound)){
+	p->PostMessage(csoundGetFirstMessage(csound));
+	csoundPopFirstMessage(csound);
+    } 
+  if(ret == 0) {
+    p->isCompiled(true);
+    while(csoundPerformKsmps(csound) == 0) {
+      while(csoundGetMessageCnt(csound)){
+	p->PostMessage(csoundGetFirstMessage(csound));
+	csoundPopFirstMessage(csound);
+      }  
+    }
+    csoundCleanup(csound); 
+    while(csoundGetMessageCnt(csound)){
+	p->PostMessage(csoundGetFirstMessage(csound));
+	csoundPopFirstMessage(csound);
+   } 
+  }    
+  free(csd);
    return NULL;
 }
 
 
-void CsoundInstance::PlayCsd(char *c) {
+void CsoundInstance::PlayCsd(char *c, bool dac) {
   if(!compiled){
   csd = strdup(c);
   pthread_t t;
+  if(dac)
   pthread_create(&t, NULL, compileThreadFunc, this);
+  else
+  pthread_create(&t, NULL, compileThreadFuncNoDAC, this);
   } else 
   PostMessage("Csound is already started \n"
 	      "Refresh page to play a different CSD\n");
@@ -292,7 +326,13 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
     if (sep_pos != std::string::npos) {      
       std::string string_arg = message.substr(sep_pos + 1);
-      PlayCsd((char *)string_arg.c_str()); 
+      PlayCsd((char *)string_arg.c_str(), true); 
+    }
+  }  else if (message.find(kRenderId) == 0) {
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {      
+      std::string string_arg = message.substr(sep_pos + 1);
+      PlayCsd((char *)string_arg.c_str(), false); 
     }
   } else if (message.find(kOrchestraId) == 0) {
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
