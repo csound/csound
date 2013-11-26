@@ -12,7 +12,7 @@ showspaces=false, showstringspaces=false
 
 \title{Csound for Portable Native Client}
 \author{Victor Lazzarini}
-\date{19/11/2013}
+\date{\today}
 \maketitle
 
 \section{Introduction}
@@ -114,5 +114,18 @@ which is normally of type \textless div\textgreater \, or \textless textarea\tex
 Here is a minimal HTML example showing the use of Csound
 
 \lstinputlisting[language=HTML]{../minimal.html}
+
+\section{Limitations}
+
+The following limitations apply:
+
+\begin{itemize}
+\item no realtime audio input (not supported yet in Pepper/NaCl)
+\item no MIDI in the NaCl module. However, it might be possible to implement MIDI in javascript, and using the csound.js functions,
+send data to Csound, and respond to MIDI NOTE messages.
+\item no plugins, as pNaCl does not support dlopen() and friends. This means some opcodes are not available as they reside in plugin libraries.
+It might be possible to add some of these opcodes statically to the Csound pNaCl library in the future.
+\item no offline/to file render. While might be possible to render to local, the output file may not be acessible at the moment.
+\end {itemize}
 
 \end{document}
