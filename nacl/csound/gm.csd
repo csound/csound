@@ -121,7 +121,7 @@ endin
 
 /* this is the GM soundfont synthesizer instrument */
 instr 10
-kenv linenr 1,0.001,p8,0.001
+kenv linenr 10,0.001,p8,0.001
 iamp table p5, 5
 a1, a2 sfplay p5, p4, iamp,1, p6, 0, 0, 2
 kv table p7, 2
