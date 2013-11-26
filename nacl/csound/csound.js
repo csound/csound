@@ -103,6 +103,16 @@ var csound = (function() {
     csound.module = null;
   }
 
+  var fileData = null;
+  function handleFileMessage(event) {
+      updateStatus("fetching file data\n");
+      fileData = event.data;
+      updateStatus("finished fetching file data\n");
+        var csoundhook= document.getElementById('engine');
+        csoundhook.removeEventListener('message', handleFileMessage, true);
+        csoundhook.addEventListener('message', handleMessage, true);
+   }
+
   /**
    * handles messages by passing them to the window handler
    *
@@ -112,7 +122,13 @@ var csound = (function() {
    */
   function handleMessage(event) {
     if (typeof window.handleMessage !== 'undefined') {
-      window.handleMessage(event);
+	if(event.data == "Reading:"){
+          var csoundhook= document.getElementById('engine');
+          csoundhook.removeEventListener('message', handleMessage, true);
+          csoundhook.addEventListener('message', handleFileMessage, true);
+	}
+       else 
+       window.handleMessage(event);
       return;
     }
   }
@@ -174,7 +190,7 @@ var csound = (function() {
   }
 
   /**
-   * Starts audio playback with a CSD
+   * Starts audio rendering with a CSD (no RT audio playback)
    *
    * @param {string} s A string containing the pathname to the CSD.
    */
@@ -236,7 +252,24 @@ var csound = (function() {
      csound.module.postMessage(ident + name);
    }
 
-  return {
+  /**
+   * Requests the data from a local file
+   * module sends "Complete" message when done.
+   *
+   * @param {string} url  The file name
+   */
+   function RequestFileFromLocal(name) {
+     csound.module.postMessage("getFile:" + name);
+   }
+  /**
+   * Returns the most recently requested file data.
+   *
+   */
+   function GetFileData(){
+       return fileData;
+   }
+
+   return {
     module: null,
     attachDefaultListeners: attachDefaultListeners,
     createModule: createModule,
@@ -251,7 +284,9 @@ var csound = (function() {
     Event: Event,
     SetChannel: SetChannel,
     CopyToLocal: CopyToLocal,
-    CopyUrlToLocal: CopyUrlToLocal
+    CopyUrlToLocal: CopyUrlToLocal,
+    RequestFileFromLocal: RequestFileFromLocal,
+    GetFileData : GetFileData
   };
 
 }());

@@ -25,6 +25,7 @@
 #include <limits>
 #include <sstream>
 #include "ppapi/cpp/audio.h"
+#include "ppapi/cpp/var_array_buffer.h"
 #include "ppapi/cpp/completion_callback.h"
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/url_loader.h"
@@ -48,6 +49,7 @@ namespace {
   const char* const kChannelId = "channel";
   const char* const kCopyId = "copyToLocal";
   const char* const kCopyUrlId = "copyUrlToLocal";
+  const char* const kGetFileId = "getFile";
   const char* const kCsdId = "csd";
   const char* const kRenderId = "render";
   static const char kMessageArgumentSeparator = ':';
@@ -99,7 +101,8 @@ class CsoundInstance : public pp::Instance {
   void PlayCsound();
   void PlayCsd(char *c, bool dac);
   void CopyFileToLocalAsync(char *from, char *to);
-  void CopyFromURLToLocalAsync(char *URL, char *name); 
+  void CopyFromURLToLocalAsync(char *URL, char *name);
+  void GetFileFromLocalAsync(char *src); 
   
   static void CsoundCallback(void* samples,
 			     uint32_t buffer_size,
@@ -266,7 +269,8 @@ void* compileThreadFuncNoDAC(void *data) {
     while(csoundGetMessageCnt(csound)){
 	p->PostMessage(csoundGetFirstMessage(csound));
 	csoundPopFirstMessage(csound);
-   } 
+   }
+    p->PostMessage("finished render"); 
   }    
   free(csd);
    return NULL;
@@ -391,6 +395,12 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
         CopyFromURLToLocalAsync((char *) surl.c_str(), (char *) sname.c_str()); 
       }
     }
+  } else if (message.find(kGetFileId) == 0) {
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {      
+      std::string string_arg = message.substr(sep_pos + 1);
+      GetFileFromLocalAsync((char *)string_arg.c_str()); 
+    }
   } else {
     PostMessage("message not handled: ");
     PostMessage(message.c_str());
@@ -445,6 +455,41 @@ void CsoundInstance::CopyFileToLocalAsync(char *src , char *name){
   from = strdup(src);
   pthread_create(&id, NULL, &fileThreadFunc,(void*) this);
 }
+
+
+void* fileReadThreadFunc(void *data){
+
+  CsoundInstance *p = (CsoundInstance*) data;
+  FILE *fp_in;
+  p->PostMessage("Reading:");
+  if((fp_in = fopen(p->GetSrcFileName(), "r"))!= NULL){
+      fseek(fp_in, 0, SEEK_END);      
+      long size = ftell(fp_in);
+      fseek(fp_in, 0 ,SEEK_SET); 
+      char *buffer = (char *) malloc(size);
+      long pos = 0, bytes =0;
+      while((bytes = 
+            fread(&buffer[pos],1,16384,fp_in)) 
+             != 0) pos += bytes;
+      fclose(fp_in);
+      pp::VarArrayBuffer v2 = pp::VarArrayBuffer(size);
+      void* pDst = v2.Map();
+      memcpy(pDst,buffer,size);
+      v2.Unmap();    
+      p->PostMessage(v2);
+  }
+  p->PostMessage("Complete");
+  return NULL;
+}
+
+void CsoundInstance::GetFileFromLocalAsync(char *src){
+  pthread_t id;
+  if(from) free(from);
+  from = strdup(src);
+  pthread_create(&id, NULL, &fileReadThreadFunc,(void*) this);
+}
+
+
 
 void* urlThreadFunc(void *data) {
   UrlReader *d = ((UrlReader*)data);
