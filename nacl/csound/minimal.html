@@ -16,6 +16,7 @@
   "a1 oscili 0.1,440+rnd(440)\n" +
   "outs a1,a1 \n" + 
   "endin");
+  document.getElementById("tit").innerHTML = "Click on the page below to play";
  }
  function attachListeners() {
    document.getElementById("mess").
@@ -35,8 +36,9 @@
 </head>
 <body>
   <div id="console"></div>
+   <h3 id="tit"> </h3>
   <div id="mess">
-     <h3> Click on the page below to play </h3>
+    
   </div>
   <!--pNaCl csound module-->
   <div id="engine"></div>

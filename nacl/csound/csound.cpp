@@ -232,9 +232,9 @@ void* compileThreadFunc(void *data) {
   CsoundInstance *p = (CsoundInstance *) data;
   CSOUND *csound = p->GetCsound();
   char *csd =  p->GetCsd();
-  char *argv[] = {(char *)"csound", p->GetCsd()}; 
+  char *argv[] = {(char *)"csound", p->GetCsd(), (char *)"-+rtaudio=null"}; 
   MYFLT sr = 0.0;
-  if(csoundCompile(csound,2,argv) == 0){
+  if(csoundCompile(csound,3,argv) == 0){
   if(p->StartDAC())
     p->isCompiled(true);
   else {
