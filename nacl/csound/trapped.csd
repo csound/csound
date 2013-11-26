@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--o test.wav -W -d
+-odac -W -d
 </CsOptions>
 <CsInstruments>
 ;============================================================================;
