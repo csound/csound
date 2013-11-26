@@ -43,7 +43,7 @@
   a.href = window.URL.createObjectURL(bb);
   a.textContent = 'Click here to save file';
   a.dataset.downloadurl = [MIME_TYPE, a.download, a.href].join(':');
-  document.getElementById('mess').appendChild(a);
+  document.getElementById('console').appendChild(a);
  }
 
  function ReadFile() {
@@ -52,10 +52,8 @@
  </script>
 </head>
 <body>
-  <div id="console"></div>
-  <div id="container">
-  <output></output><br></div>
   <div id="mess"> </div>
+   <div id="console"></div>
   <!--pNaCl csound module-->
   <div id="engine"></div>
 </body>
