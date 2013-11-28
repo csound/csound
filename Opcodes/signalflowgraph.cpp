@@ -1059,7 +1059,7 @@ struct AlwaysOn  : public OpcodeBase<AlwaysOn> {
     for (size_t pfieldI = 4, argumI = 0; argumI < argumN; pfieldI++, argumI++) {
       evtblk.p[pfieldI] = *argums[argumI];
     }
-    csound->insert_score_event(csound, &evtblk, FL(0.0));
+    csound->insert_score_event_at_sample(csound, &evtblk, 0);
     return OK;
   }
 };
