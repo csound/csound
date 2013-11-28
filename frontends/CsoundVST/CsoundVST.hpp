@@ -140,8 +140,9 @@ public:
 
 extern "C"
 {
-  SILENCE_PUBLIC CsoundVST* CreateCsoundVST();
-  SILENCE_PUBLIC void RunCsoundVST(const char *filename);
+    SILENCE_PUBLIC AEffect* VSTPluginMain(audioMasterCallback audioMaster);
+    SILENCE_PUBLIC CsoundVST* CreateCsoundVST();
+    SILENCE_PUBLIC void RunCsoundVST(const char *filename);
 }
 
 #endif

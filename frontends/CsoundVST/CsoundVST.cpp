@@ -170,7 +170,7 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
       sprintf(buffer, "Program%d", (int)(i + 1));
       bank[i].name = buffer;
     }
-  setCommand("csound -f -h -+rtmidi=null -M0 -d -n -m7 --midi-key-oct=4 --midi-velocity=5 temp.orc temp.sco");
+  setCommand("csound -f -h -+rtmidi=null -M0 -d -n -m7 --midi-key-oct=4 --midi-velocity=5");
 }
 
 CsoundVST::CsoundVST() :
@@ -284,7 +284,7 @@ uintptr_t CsoundVST::performanceThreadRoutine()
   vstcommand.append(command);
   if (command.find(".orc") == std::string::npos && command.find(".sco") == std::string::npos) {
     updateCommand = true;
-    vstcommand.append(" temp.orc temp.sco");
+    //vstcommand.append(" temp.orc temp.sco");
   }
   if (updateCommand) {
     setCommand(vstcommand);
@@ -814,6 +814,17 @@ VstIntPtr CsoundVST::dispatcher(VstInt32 opcode, VstInt32 index, VstIntPtr value
 
 extern "C"
 {
+    PUBLIC AEffect* VSTPluginMain(audioMasterCallback audioMaster)
+    {
+        if (!audioMaster (0, audioMasterVersion, 0, 0, 0, 0)) {
+            return 0;
+        }
+        AudioEffect* effect = new CsoundVST(audioMaster);
+        if (!effect) {
+            return 0;
+        }
+        return effect->getAeffect();
+    }
   SILENCE_PUBLIC CsoundVST* CreateCsoundVST()
   {
     CsoundVST *csoundVST = new CsoundVST;
