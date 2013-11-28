@@ -269,6 +269,11 @@ int CsoundVST::midiDeviceOpen(CSOUND *csound, void **userData,
   return 0;
 }
 
+int CsoundVST::midiDeviceClose(CSOUND *csound, void *userData)
+{
+  return 0;
+}
+
 uintptr_t CsoundVST::performanceThreadRoutine()
 {
   stop();
@@ -291,8 +296,8 @@ uintptr_t CsoundVST::performanceThreadRoutine()
     std::string buffer = getCommand();
     csoundVstFltk->commandInput->value(buffer.c_str());
   }
-  exportForPerformance();
-  Message("Saved as: '%s' and '%s'.\n", getOrcFilename().c_str(), getScoFilename().c_str());
+  //exportForPerformance();
+  //Message("Saved as: '%s' and '%s'.\n", getOrcFilename().c_str(), getScoFilename().c_str());
   reset();
   // FLTK flags is the sum of any of the following values:
   //   1:  disable widget opcodes by setting up dummy opcodes instead
@@ -320,8 +325,11 @@ uintptr_t CsoundVST::performanceThreadRoutine()
     }
     if(getIsVst()) {
       Message("Compiling for VST performance.\n");
+      SetHostImplementedAudioIO(1, 0);
+      SetHostImplementedMIDIIO(1);
       SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
       SetExternalMidiReadCallback(&CsoundVST::midiRead);
+      SetExternalMidiInCloseCallback(&CsoundVST::midiDeviceClose);
         if(compile()) {
           Message("Csound compilation failed.\n");
           reset();
@@ -466,10 +474,10 @@ int CsoundVST::midiRead(CSOUND *csound, void *userData,
     midiData[cnt + 1] = (unsigned char) event.midiData[1];
     midiData[cnt + 2] = (unsigned char) event.midiData[2];
     csoundVST->midiEventQueue.pop_front();
-    //~ Message("CsoundVST::midiRead(%x, %x, %x)\n",
-    //~ (int) midiData[cnt + 0],
-    //~ (int) midiData[cnt + 1],
-    //~ (int) midiData[cnt + 2]);
+    //csoundVST->Message("CsoundVST::midiRead(%x, %x, %x)\n",
+    //(int) midiData[cnt + 0],
+    //(int) midiData[cnt + 1],
+    //(int) midiData[cnt + 2]);
     switch ((int) midiData[cnt] & 0xF0) {
     case 0x80:    /* note off */
     case 0x90:    /* note on */
