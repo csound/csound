@@ -386,9 +386,9 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     if (UNLIKELY(O->odebug)) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
       if (UNLIKELY(name))
-        csound->Message(csound, Str("activating instr %s\n"), name);
+        csound->Message(csound, Str("MIDI activating instr %s\n"), name);
       else
-        csound->Message(csound, Str("activating instr %d\n"), insno);
+        csound->Message(csound, Str("MIDI activating instr %d\n"), insno);
     }
     csound->inerrcnt = 0;
     ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
@@ -397,9 +397,9 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       if (UNLIKELY(O->msglevel & RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
-          csound->Message(csound, Str("new alloc for instr %s:\n"), name);
+          csound->Message(csound, Str("new MIDI alloc for instr %s:\n"), name);
         else
-          csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
+          csound->Message(csound, Str("new MIDI alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
       tp->isNew = 0;
