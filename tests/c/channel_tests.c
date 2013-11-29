@@ -327,7 +327,7 @@ void test_chn_hints(void)
 
 void test_string_channel(void)
 {
-    const char orcS[] = "chn_S \"testing\", 3\n  instr 1\n  endin\n";
+    const char orcS[] = "instr 1\n  endin\n";
 
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
@@ -337,8 +337,10 @@ void test_string_channel(void)
     int err = csoundStart(csound);
     CU_ASSERT(err == CSOUND_SUCCESS);
 
-    
     csoundSetStringChannel(csound, "testing", "ttt");
+    char string[128];
+    csoundGetStringChannel(csound, "testing", string);
+    CU_ASSERT_STRING_EQUAL(string, "ttt");
     csoundCleanup(csound);
     csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
