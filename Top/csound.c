@@ -2760,13 +2760,14 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
    return CSOUND_SUCCESS;
 }
 
+
+
 PUBLIC void csoundReset(CSOUND *csound)
 {
     char    *s;
     int     i, max_len;
     OPARMS  *O = csound->oparms;
-
-
+       
     #ifdef HAVE_PTHREAD_SPIN_LOCK
      pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
      pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);

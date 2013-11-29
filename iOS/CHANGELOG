@@ -2,8 +2,19 @@ Csound for iOS ChangeLog
 
 This ChangeLog shows changes specific to Csound for iOS. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
 
+6.01.0-iOS7 - 2013-11-25
 
-6.00.2 - 2013-xx-xx
+* Updated target iOS version to 7.0
+
+* Updated library builds to architectures for iOS 7.0: armv7, armv7s, arm64,
+i386, x86_64
+
+* Updated code to remove warnings for 7.0
+
+* Updated xibs for iOS 7.0
+
+
+6.01.0 - 2013-09-09
 
 * Fixed MIDI input not working (added missing call to csoundSetHostImplementedMIDIIO) 
 
@@ -12,6 +23,7 @@ the useAudioInput flag to YES on CsoundObj before running.  This flag affects
 what Audio category is used (either kAudioSessionCategory_MediaPlayback or
 kAudioSessionCategory_PlayAndRecord).  Using only media playback allows
 Bluetooth audio devices to be used with your project.
+
 
 6.00.1 - 2013-08-06
 

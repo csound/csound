@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<!--
+/*
+ * Csound pnacl examples
+ *
+ * Copyright (C) 2013 V Lazzarini
+ *
+ * This file belongs to Csound.
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+-->
+<head>
+  <title>Csound for pNaCl</title>
+
+<STYLE type="text/css">
+  html {
+  color: #222;
+  font-family: Arial, san-serif;
+}
+body {
+  margin: 0; 
+}
+.main-column {
+  background-color: #B8F4F5;
+  display: -webkit-flex;
+  height: 100%;
+  position: absolute;
+  -webkit-flex-direction: column;
+  width: 100%;
+}
+.header, .footer, .left-border, .right-border {
+  background-color: #FF0000;
+  -webkit-flex: none;
+}
+.header {
+  color: #FCF477;
+  font-size: 150%;
+  font-weight: bold;
+  padding: 2px;
+}
+.left-border, .right-border {
+  width: 2px;
+}
+.footer {
+  height: 2px;
+}
+
+.main {
+  display: -webkit-flex;
+  min-height: 0;
+  -webkit-flex: 1;
+  -webkit-flex-direction: row;
+}
+.examples {
+  overflow-y: auto;
+}
+.nav {
+  padding: 8px;
+  -webkit-flex: initial;
+}
+.nav-group-header {
+  font-weight: bold;
+  padding: 4px 0;
+}
+.examp {
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 0;
+}
+.examp:hover {
+  background-color: #B8FFFF;
+}
+.selected {
+  color: #FF0000;
+}
+.extitle {
+  padding-left: 8px;
+}
+.iframe-wrapper {
+  overflow-x: scroll;
+  overflow-y: auto;
+  -webkit-flex: auto;
+}
+iframe {
+  border: none;
+  width: 100%;
+  height: auto;
+}
+</style>
+
+<script type="text/javascript">
+
+function setExamp(e) {
+  setFrame(e.dataset.href);
+  deselectExamps();
+  selectExamp(e);
+}
+
+function selectExamp(e) {
+  e.classList.add('selected');
+}
+
+function deselectExamps() {
+  var examps = document.querySelectorAll('.examp');
+  for (var i = 0; i < examps.length; ++i) {
+    examps[i].classList.remove('selected');
+  }
+}
+
+function setFrame(src) {
+  var frame = document.querySelector('iframe');
+  frame.style.background = '#FCF477';
+  frame.style.height = '700px';
+  frame.src = src;
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  var examps = document.querySelectorAll('.examp');
+  for (var i = 0; i < examps.length; ++i) {
+      examps[i].addEventListener('click', function (e) {
+      setExamp(this);
+    });
+  }
+
+  setFrame('start.html')
+});
+
+  </script>
+</head>
+<body>
+  <div class="main-column">
+    <div class="header">
+      Csound for Portable Native Client
+    </div>
+    <div class="main">
+      <div class="left-border"></div>
+      <div class="examples">
+        <div class="nav">
+          <div class="nav-group-header">Examples</div>
+          <div class="examp" data-href="minimal.html">
+            <div class="extitle">
+             Minimal
+            </div>
+          </div>
+	  <div class="examp" data-href="trapped.html">
+            <div class="extitle">
+              Trapped
+            </div>
+          </div>
+	  <div class="examp" data-href="stria.html">
+            <div class="extitle">
+              Stria
+            </div>
+          </div>
+	  <div class="examp" data-href="render.html">
+            <div class="extitle">
+              File Render
+            </div>
+           </div>
+	   <div class="examp" data-href="sliders.html">
+            <div class="extitle">
+              Sliders
+            </div>
+          </div>
+	  <div class="examp" data-href="canvas.html">
+            <div class="extitle">
+              Canvas
+            </div>
+          </div>
+	  <div class="examp" data-href="effects.html">
+            <div class="extitle">
+              Effects
+            </div>
+          </div>
+	  <div class="examp" data-href="midiplayer.html">
+            <div class="extitle">
+              MIDIPlayer
+            </div>
+          </div>
+	  <div class="examp" data-href="csdplayer.html">
+            <div class="extitle">
+              CSDPlayer
+            </div>
+          </div>
+          <div class="examp" data-href="interactive.html">
+            <div class="extitle">
+              Interactive
+            </div>
+          </div>      
+	 <div class="nav-group-header">Reference</div>
+	 <div class="examp" data-href="docs/pnacl_csound.html">
+            <div class="extitle">
+              pNaCl-Csound
+            </div>
+         </div>
+        </div>
+     </div>
+      <div class="iframe-wrapper">
+        <iframe>
+	</iframe>
+      </div>
+      <div class="right-border"></div>
+    </div>
+    <div class="footer"></div>
+  </div>
+</body>
+</html>

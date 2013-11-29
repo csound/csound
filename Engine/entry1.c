@@ -330,9 +330,11 @@ OENTRY opcodlst_1[] = {
   { "octcps.k",S(EVAL),0,   2,      "k",    "k",    NULL,   octcps          },
   { "cpsoct.a",S(EVAL),0,   4,      "a",    "a",    NULL,   NULL,   acpsoct },
   { "cpsmidinn.i",S(EVAL),0,1,      "i",    "i",    cpsmidinn               },
+  { "cpsmidinn2.i",S(EVAL),0,1,     "i",    "i",    cpsmidinn2              },
   { "octmidinn.i",S(EVAL),0,1,      "i",    "i",    octmidinn               },
   { "pchmidinn.i",S(EVAL),0,1,      "i",    "i",    pchmidinn               },
   { "cpsmidinn.k",S(EVAL),0,2,      "k",    "k",    NULL,   cpsmidinn       },
+  { "cpsmidinn2.k",S(EVAL),0,2,     "k",    "k",    NULL,   cpsmidinn2      },
   { "octmidinn.k",S(EVAL),0,2,      "k",    "k",    NULL,   octmidinn       },
   { "pchmidinn.k",S(EVAL),0,2,      "k",    "k",    NULL,   pchmidinn       },
   { "notnum", S(MIDIKMB),0, 1,      "i",    "",     notnum                  },
@@ -1037,6 +1039,9 @@ OENTRY opcodlst_1[] = {
      (SUBR) strrindex_opcode, (SUBR) NULL, (SUBR) NULL                   },
   {  "strrindexk", S(STRINDEX_OP),0, 3, "k",   "SS",
      (SUBR) strrindex_opcode, (SUBR) strrindex_opcode, (SUBR) NULL       },
+#ifdef HAVE_CURL
+  {  "strfromurl", S(STRCPY_OP), 0, 1, "S", "S", (SUBR) str_from_url     },
+#endif
   {  "changed.S", S(STRINDEX_OP),0, 3, "k",   "S",
      (SUBR) str_changed, (SUBR) str_changed_k, (SUBR) NULL       },
   { "loop_lt",   0xfffb                                                  },

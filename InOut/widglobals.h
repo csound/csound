@@ -237,10 +237,6 @@ typedef struct {
  //GAB (MAKING snapshots_iterator GLOBAL IS A TEMPORARY UGLY HACK)
     vector<SNAPVEC>::iterator snapshots_iterator;
     FLTKMETER *p_vumeter;
-#ifdef CS_VSTHOST
-    vector<VSTPlugin*> VSTplugEditors; //GAB for the vst plugin custom editors
-    vector<VSTPlugin*> vstPlugins; //GAB to remove globals in VST plugins
-#endif
 
 #ifdef CS_IMAGE
     vector<ImageSTRUCT> Bm_image; // map of pointers to CAnyBmp objects

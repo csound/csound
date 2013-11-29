@@ -11,12 +11,19 @@
 ; All of these changes SHOULD be in the #defines immediately following this.
 ; Also, this installer assumes LuaJIT and CsoundAC are part of Csound core.
 ; At this time the following features are not included in the installer:
-; Cabbage, CsoundVST.
+; Cabbage, faustgen.
 ; I hope to change this soon.
+
+; Uncomment the following line to build for CsoundVST.
+#define CSOUNDVST
 
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
-#define MyAppMinVersion "6.01.0"
+#ifdef CSOUNDVST
+#define MyAppMinVersion "6.01.1-vst"
+#else
+#define MyAppMinVersion "6.01.1"
+#endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
@@ -26,9 +33,9 @@
 ; If you are not Michael Gogins, change this to your MSys /usr/local/ directory.
 #define MyMSysUsrLocalDir "D:\msys\local\"
 ; If you are not Michael Gogins, change this to your Csound build directory.
-#define MySourceDir "C:\Users\mkg.sorabji\csound-csound6-git\"
+#define MySourceDir "C:\Users\mike\csound-csound6-git\"
 ; If you are not Michael Gogins, change this to your Csound reference manual build directory.
-#define MyManualSourceDir "C:\Users\mkg.sorabji\csound-manual6-git\"
+#define MyManualSourceDir "C:\Users\mike\csound-manual6-git\"
 ; If you are not Michael Gogins, change this to your Csound tutorial directory.
 #define MyCsoundTutorialSourceDir "D:\Dropbox\tutorial\"
 ; If you are not Michael Gogins, change this to your CsoundAC tutorial directory.
@@ -52,13 +59,17 @@
 ; If you are not Michael Gogins, change this to your STK dll directory.
 #define MyLibStkSourceDir "D:\msys\local\src\stk-4.4.4\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
-#define MyCsoundQtBinDir "C:\Users\mkg.sorabji\qutecsound-code\bin\"
+#define MyCsoundQtBinDir "C:\Users\mike\qutecsound-code\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
-#define MyQtSdkBinDir "D:\qt-everywhere-opensource-src-5.1.0\qtbase\bin\"
+#define MyQtSdkBinDir "D:\qt-everywhere-opensource-src-5.1.1\qtbase\bin\"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full; 
+Name: "pd"; Description: "Pure Data csound~ object (requires Pure Data)"; Types: full; 
+#ifdef CSOUNDVST
+Name: "csoundvst"; Description: "Csound VST plugin and vst4cs opcodes"; Types: full; 
+#endif
 
 [Dirs]
 ; ALL programs and shared libraries (including opcodes and other modules) go here.
@@ -132,10 +143,14 @@ Source: "{#MyMSysBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv
 Source: "{#MyMSysUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "*.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "*.dll*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll"; Components: core;
+Source: "*.dll*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll, csound6~.dll, CsoundVST.dll"; Components: core;
 Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
+Source: "csound6~.dll";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: pd;
+#ifdef CSOUNDVST
+Source: "CsoundVST.dll";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst;
+#endif
 
 Source: "{#MyCsoundQtBinDir}CsoundQt-d-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components: core;
@@ -152,9 +167,11 @@ Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreve
 Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
 
 ; Ignore the unspeakably stupid libtool crap.
-Source: {#MyPortAudioSourceDir}\lib\.libs\*x86.dll; DestDir: "{#APP_BIN}"; Components: core 
+Source: {#MyPortAudioSourceDir}\lib\.libs\*.dll; DestDir: "{#APP_BIN}"; Components: core 
 Source: {#MyPortAudioSourceDir}\bin\.libs\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
 Source: {#MyPortAudioSourceDir}\bin\.libs\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
+; Required by pre-build portaudio_x86.dll (built with MSVC).
+Source: "C:\Windows\system32\msvcr110.dll"; DestDir: "{#APP_BIN}"; Components: core  
 
 Source: {#MyPortMidiSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core 
 
