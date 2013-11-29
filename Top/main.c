@@ -37,7 +37,7 @@
 #include <omp.h>
 #endif
 
-
+extern int UDPServerStart(CSOUND *csound, int port); 
 extern  void    dieu(CSOUND *, char *, ...);
 extern  int     argdecode(CSOUND *, int, char **);
 extern  int     init_pvsys(CSOUND *);
@@ -245,8 +245,12 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     if(csound->enableHostImplementedMIDIIO == 1) {
-    strcpy(s, "hostbased");
-    csoundSetConfigurationVariable(csound,"rtmidi", s);
+        if (s == NULL) {
+            s = strdup("hostbased");
+        } else {
+            strcpy(s, "hostbased");
+        }
+        csoundSetConfigurationVariable(csound,"rtmidi", s);
     }
 
 
@@ -475,6 +479,10 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
       csound->WaitBarrier(csound->barrier2);
     }
     csound->engineStatus |= CS_STATE_COMP;
+    if(csound->oparms->daemon > 1) 
+        UDPServerStart(csound,csound->oparms->daemon);
+
+    
     return musmon(csound);
 }
 

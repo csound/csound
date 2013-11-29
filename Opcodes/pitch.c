@@ -670,6 +670,7 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
         *lphs++ = ((int32) (*p->iphs * FMAXLEN)) & PHMASK;
       } while (--count);
     }
+
     return OK;
 }
 

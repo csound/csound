@@ -46,6 +46,7 @@ char *corfile_body(CORFIL *f);
 char *corfile_current(CORFIL *f);
 #define corfile_current(f) (f->body+f->p)
 CORFIL *copy_to_corefile(CSOUND *, const char *, const char *, int);
+CORFIL *copy_url_corefile(CSOUND *, const char *, int);
 int corfile_length(CORFIL *f);
 #define corfile_length(f) (strlen(f->body))
 void corfile_set(CORFIL *f, int n);
