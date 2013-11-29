@@ -3,6 +3,7 @@
 %\usepackage{url}
 \usepackage{hyperref}
 \usepackage[pdftex]{graphicx}
+\usepackage[tikz]{bclogo}
 \sloppy
 \newenvironment{contentsmall}{\small}
 
@@ -109,7 +110,7 @@ For traditional Music-N systems that were not capable of accepting realtime even
 
 In addition to the well-formatted SCO, realtime events can also affect the state of the system.  In general, the main performance function, kperf(), is used to process pending events (sensevents()), expire current instances (timeexpire(), beatexpire()), as well as run active instances.  In sensevents(), events that a processed are new SCO events that have arrived via STDIN pipe, SCO events from the API (csoundReadScore()), MIDI events, as well as Remote events.
 
-
+At runtime, kperf() is called once per-audio buffer.  The buffer is of ksmps size.  Within that kperf() call, sensevents() is called to update the state of Csound and active instruments are performed.  In general, an application such as the csound command-line executable or an API host application will repeatedly call kperf().  Csound will continue to run until an end condition is met: end of Score, end of MIDI file (if MIDI file was supplied at commandline), encounter of the 'e' event, or an API application stops Csound.  
 
 %===========================
 \chapter{Prelude to Processing}
@@ -137,9 +138,45 @@ Both of the paths actually filter through the CORFILE system\ldots{}
 
 \section{Compiler Phases}
 
+\begin{figure}[htbp]
+\centerline{\framebox{
+        \includegraphics[width=0.8\textwidth]{images/compiler.png}}}
+\caption{Csound Compiler Phases}
+\label{overview}
+\end{figure}
+
+Csound compiler is separated into a number of distinct phases, as illustrated by the figure above. The following subsections will discuss each phase of the compiler.  It will include relevant data structures, functions, and files to consult.  
+
+\subsection{CORFIL}
+
+The CORFIL mechanism is an implementation of an in-memory file system. ...
+
 \subsection{Pre-Processing}
 
+% using bclogo, but would be happy to switch to something else too
+\begin{bclogo}[couleur=blue!30,arrondi=0.1,ombre=true,logo=\bcetoile]
+{Important Files}
+Engine/csound\_pre.l (Flex file)
+\end{bclogo}
+
+The Orchestra Pre-Processor is responsible for processing the following things:
+
+\begin{itemize}
+  \item \#include - processing to include text from an external file
+  \item \#define - reading in Orchestra Macro definitions
+  \item \#undef - un-define a macro
+  \item \$MACRO - processing Orchestra Macro usages
+  \item \#ifdef, \#ifndef, \#else, \#end - conditionally include text
+\end{itemize}
+
+The pre-processor is generated using \href{http://flex.sourceforge.net/}{Flex}. It is given text and the expanded processed text is returned (this is done with the text wrapped in a CORFIL). The call to csound\_prelex() is done within new\_orc\_parser.c::csoundParseOrc(), with most of the implementation of the pre-processor utility functions done within csound\_pre.l.
+
 \subsection{Lexer}
+
+\begin{bclogo}[couleur=blue!30,arrondi=0.1,ombre=true,logo=\bcetoile]
+{Important Files}
+Engine/csound\_orc.l (Flex file)
+\end{bclogo}
 
 The lexing phase reads in a stream of characters and breaks them up into
 tokens. (Lexers are also known as\emph{scanners} or \emph{tokenizers}.)
@@ -147,7 +184,13 @@ Csound uses the \href{http://flex.sourceforge.net/}{Flex} tool to
 generate its lexing code. The source for this is found in
 Engine/csound\_orc.l.
 
+
 \subsection{Parser}
+
+\begin{bclogo}[couleur=blue!30,arrondi=0.1,ombre=true,logo=\bcetoile]
+{Important Files}
+Engine/csound\_orc.y (Bison file)
+\end{bclogo}
 
 The parsing phase uses the tokens generated from the lexing phase and
 uses rules defined in a \emph{grammar} to structure the tokens into a
@@ -156,7 +199,15 @@ is now generated using the
 \href{http://www.gnu.org/software/bison/}{Bison} parser-generator tool.
 The source for this is found in Engine/csound\_orc.y.
 
+
 \subsection{Semantic Analysis}
+
+\begin{bclogo}[couleur=blue!30,arrondi=0.1,ombre=true,logo=\bcetoile]
+{Important Files}
+Engine/csound\_orc\_semantics.c 
+Engine/csound\_type\_system.c 
+Engine/csound\_standard\_types.c 
+\end{bclogo}
 
 \subsubsection{Type System}
 

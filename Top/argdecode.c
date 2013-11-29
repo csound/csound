@@ -26,6 +26,7 @@
 #include "csmodule.h"
 #include <ctype.h>
 
+
 extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 #define FIND(MSG)   if (*s == '\0')  \
@@ -219,7 +220,10 @@ static const char *longUsageList[] = {
   Str_noop("--nchnls_i=N\t\t override number of input audio channels"),
   Str_noop("--0dbfs=N\t\t override 0dbfs (max positive signal amplitude)"),
   Str_noop("--sinesize\t\tlength of internal sine table"),
-  Str_noop("--daemon\t\t daemon mode: do not exit if CSD/orchestra is not given, is empty or does not compile"),
+  Str_noop("--daemon\t\t daemon mode: do not exit if CSD/orchestra is "
+           "not given, is empty or does not compile"),
+  Str_noop("--port=N\t\t listen to UDP port N for instruments/orchestra "
+           "code (implies --daemon)"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -920,7 +924,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strcmp(s, "daemon"))) {
         O->daemon = 1;
-        return 1; 
+        return 1;
+    }
+    else if (!(strncmp(s, "port=",5))) {
+        s += 5;
+        O->daemon = atoi(s);
+        return 1;
     }
 
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);

@@ -53,7 +53,7 @@ int csp_thread_index_get(CSOUND *csound)
 
 
 /* **** An implementation of Barriers for MAC that lacks them **** */
-#if defined(__MACH__) || defined(ANDROID)
+#if defined(__MACH__) || defined(ANDROID) || defined(NACL)
 /*#define BARRIER_SERIAL_THREAD (-1)
 
 typedef struct {
@@ -66,7 +66,7 @@ extern int barrier_init(barrier_t *b, void *,unsigned int max);
 extern int barrier_destroy(barrier_t *b);
 extern int barrier_wait(barrier_t *b);
 
-#ifndef PTHREAD_BARRIER_SERIAL_THREAD
+#ifndef PTHREAD_BARRIER_SERIAL_THREAD 
 /*#define pthread_barrier_t barrier_t */
 #define PTHREAD_BARRIER_SERIAL_THREAD BARRIER_SERIAL_THREAD
 #define pthread_barrier_init(barrier, attr, count) \
