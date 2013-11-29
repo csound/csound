@@ -25,6 +25,25 @@
 
 #include "CsoundVST.hpp"
 
+#ifdef VSTPluginMain
+#undef VSTPluginMain
+#endif
+
+extern "C"
+{
+    PUBLIC AEffect* VSTPluginMain(audioMasterCallback audioMaster)
+    {
+        if (!audioMaster (0, audioMasterVersion, 0, 0, 0, 0)) {
+            return 0;
+        }
+        AudioEffect* effect = new CsoundVST(audioMaster);
+        if (!effect) {
+            return 0;
+        }
+        return effect->getAeffect();
+    }
+};
+
 AudioEffect *createEffectInstance(audioMasterCallback audioMaster)
 {
  return new CsoundVST (audioMaster);
