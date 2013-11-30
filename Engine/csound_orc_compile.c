@@ -1259,8 +1259,11 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
                       gVar->varName, gVar->varType->varTypeName);
       var = csoundFindVariableWithName(current_state->varPool, gVar->varName);
       if(var == NULL){
+	ARRAY_VAR_INIT varInit;
+      varInit.dimensions = gVar->dimensions;
+      varInit.type = gVar->varType;
       var = csoundCreateVariable(csound, csound->typePool,
-                                 gVar->varType, gVar->varName, NULL);
+                                 gVar->varType, gVar->varName, &varInit);
       csoundAddVariable(current_state->varPool, var);
       /* memory has already been allocated, so we just point to it */
       /* when disposing of the engineState global vars, we do not
