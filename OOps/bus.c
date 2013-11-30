@@ -28,6 +28,9 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
+#ifdef NACL
+#include <sys/select.h>
+#endif
 
 #include "bus.h"
 #include "namedins.h"
@@ -542,7 +545,7 @@ PUBLIC int csoundSetControlChannelHints(CSOUND *csound, const char *name,
         pp->hints.behav = CSOUND_CONTROL_CHANNEL_NO_HINTS;
         return 0;
     }
-    if  (hints.behav & CSOUND_CONTROL_CHANNEL_INT) {
+    if  (hints.behav == CSOUND_CONTROL_CHANNEL_INT) {
         hints.dflt = (MYFLT) ((int32) MYFLT2LRND(hints.dflt));
         hints.min  = (MYFLT) ((int32) MYFLT2LRND(hints.min));
         hints.max  = (MYFLT) ((int32) MYFLT2LRND(hints.max));
@@ -1036,9 +1039,9 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
     hints.behav = CSOUND_CONTROL_CHANNEL_NO_HINTS;
     if ((int)MYFLT2LRND(*(p->itype)) == 1)
         hints.behav = CSOUND_CONTROL_CHANNEL_INT;
-    if ((int)MYFLT2LRND(*(p->itype)) == 2)
+    else if ((int)MYFLT2LRND(*(p->itype)) == 2)
         hints.behav |= CSOUND_CONTROL_CHANNEL_LIN;
-    if ((int)MYFLT2LRND(*(p->itype)) == 3)
+    else if ((int)MYFLT2LRND(*(p->itype)) == 3)
         hints.behav |= CSOUND_CONTROL_CHANNEL_EXP;
     if ((int)MYFLT2LRND(*(p->itype)) != 0) {
         hints.attributes = 0;
