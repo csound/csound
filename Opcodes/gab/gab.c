@@ -33,6 +33,8 @@
 #include <math.h>
 #include "interlocks.h"
 
+#define FLT_MAX ((MYFLT)0x7fffffff)
+
 static int krsnsetx(CSOUND *csound, KRESONX *p)
   /* Gabriel Maldonado, modifies for arb order  */
 {
@@ -539,7 +541,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     count = p->count;
 
     ar = p->sr;
-    if (UNLIKELY(offset)) memset(ar, 0, nsmps*sizeof(MYFLT));
+    memset(ar, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
@@ -711,7 +713,17 @@ static int isChanged(CSOUND *csound,ISCHANGED *p)
 
 static int partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
 {
-    p->max = 0;
+    int flag = (int) *p->imaxflag;
+    switch (flag) {
+    case 1:
+      p->max = 0; break;
+    case 2:
+      p->max = -FLT_MAX; break;
+    case 3:
+      p->max = FLT_MAX; break;
+    case 4:
+      p->max = 0; break;
+    }
     p->counter = 0;
     return OK;
 }
@@ -759,13 +771,22 @@ static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
                                Str("max_k: invalid imaxflag value"));
     }
     if (*p->ktrig) {
-      if (flag == 4) {
+      switch (flag) {
+      case 4:
         *p->kout = p->max / (MYFLT) p->counter;
         p->counter = 0;
-      }
-      else
+        p->max = FL(0.0);
+      break;
+      case 1:
         *p->kout = p->max;
-      p->max = FL(0.0);
+        p->max = 0; break;
+      case 2:
+        *p->kout = p->max;
+        p->max = -FLT_MAX; break;
+      case 3:
+        *p->kout = p->max;
+        p->max = FLT_MAX; break;
+      }
     }
     return OK;
 }

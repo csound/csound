@@ -46,8 +46,31 @@ if(BUILD_CSOUNDVST)
         target_link_libraries(CsoundVST libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
     endif()
 
+    set(CSOUNDVST_MAIN_SRCS
+        csoundvst_main.cpp
+        ${VSTSDK2X_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
+        ${VSTSDK2X_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
+    add_executable(csoundvstmain ${CSOUNDVST_MAIN_SRCS})
+    set_target_properties(csoundvstmain PROPERTIES
+        LINK_INTERFACE_LIBRARIES ""
+        OUTPUT_NAME csoundvstmain
+        RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+        )
+    target_link_libraries(csoundvstmain ${CsoundVST} libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
+
+    if(MUSICXML_LIBRARY)
+        target_link_libraries(csoundvstmain ${CsoundVST} libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
+    endif()
+
+
     install(TARGETS CsoundVST
+        RUNTIME DESTINATION ${LIBRARY_INSTALL_DIR}
         LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
         ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
+
+    install(TARGETS csoundvstmain
+        RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}")
 
 endif()

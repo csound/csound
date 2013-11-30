@@ -77,6 +77,7 @@ IFDEF           #ifn?def
 ELSE            #else[ \t]*(;.*)?$
 END             #end(if)?[ \t]*(;.*)?(\n|\r\n?)
 CONT            \\[ \t]*(;.*)?(\n|\r\n?)
+RESET           "###\n"
 
 %x incl
 %x macro
@@ -84,7 +85,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 %x ifdef
 
 %%
-
+{RESET}         { csound_preset_lineno(csound->orcLineOffset, yyscanner); }
 {CONT}          { csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
                 }
@@ -372,7 +373,8 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                   if (UNLIKELY(PARM->depth > 1024))
                     csound->Die(csound, Str("unexpected EOF"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
-                  csound->DebugMsg(csound,"%s(%d): loc=%d; lastloc=%d\n", __FILE__, __LINE__,
+                  csound->DebugMsg(csound,"%s(%d): loc=%d; lastloc=%d\n",
+                                   __FILE__, __LINE__,
                          PARM->llocn, PARM->locn);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   /* csound->DebugMsg(csound,"End of input; popping to %p\n", */
@@ -381,7 +383,8 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  csound->DebugMsg(csound,"%s(%d): line now %d at %d\n", __FILE__, __LINE__,
+                  csound->DebugMsg(csound,"%s(%d): line now %d at %d\n",
+                                   __FILE__, __LINE__,
                          csound_preget_lineno(yyscanner), PARM->macro_stack_ptr);
                   /* csound->DebugMsg(csound,"n=%d\n", n); */
                   if (n!=0) {

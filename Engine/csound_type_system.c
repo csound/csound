@@ -144,7 +144,6 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
         CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
         var->varType = type;
         var->varName = cs_strdup(csound, name);
-
         return var;
       }
       current = current->next;

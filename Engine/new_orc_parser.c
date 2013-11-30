@@ -27,6 +27,21 @@
 #include "csound_orc.h"
 #include "corfile.h"
 
+#if defined(HAVE_DIRENT_H)
+#  include <dirent.h>
+#  if 0 && defined(__MACH__)
+typedef void*   DIR;
+DIR             opendir(const char *);
+struct dirent   *readdir(DIR*);
+int             closedir(DIR*);
+#  endif
+#endif
+
+#if defined(WIN32)
+#  include <io.h>
+#  include <direct.h>
+#endif
+
 extern void csound_orcrestart(FILE*, void *);
 
 extern int csound_orcdebug;
@@ -72,6 +87,42 @@ uint32_t make_location(PRE_PARM *qq)
     return loc;
 }
 
+// Code to add #includes of UDOs
+void add_include_udo_dir(CORFIL *xx)
+{
+    char *dir = getenv("CS_UDO_DIR");
+    char buff[1024];
+    if (dir) {
+      DIR *udo = opendir(dir);
+      printf("** found CS_UDO_DIR=%s\n", dir);
+      if (udo) {
+        struct dirent *f;
+        //printf("**and it opens\n");
+        strcpy(buff, "#line 0\n");
+        while ((f = readdir(udo)) != NULL) {
+          char *fname = &(f->d_name[0]);
+          int n = (int)strlen(fname);
+          printf("**  name=%s n=%d\n", fname, n);
+          if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
+            strcpy(buff, "#include \"");
+            strncat(buff, dir, 1024);
+            strncat(buff, "/", 1024);
+            strncat(buff, fname, 1024);
+            strncat(buff, "\"\n", 1024);
+            if (strlen(buff)>768) {
+              corfile_preputs(buff, xx);
+              buff[0] ='\0';
+            }
+          }
+        }
+        closedir(udo);
+        strncat(buff, "###\n", 1024);
+        corfile_preputs(buff, xx);
+      }
+    }
+    //printf("Giving\n%s", corfile_body(xx));
+}
+
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
     int err;
@@ -91,8 +142,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         if (csound->orchstr==NULL && !csound->oparms->daemon)
           csound->Die(csound,
                       Str("Failed to open input file %s\n"), csound->orchname);
-        else if(csound->oparms->daemon)  return NULL;
+        else if(csound->orchstr==NULL && csound->oparms->daemon)  return NULL;
 
+        add_include_udo_dir(csound->orchstr);
         if (csound->orchname==NULL ||
             csound->orchname[0]=='\0') csound->orchname = csound->csdname;
         /* We know this is the start so stack is empty so far */
@@ -147,6 +199,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       csound_orcset_extra(&pp, pp.yyscanner);
       csound_orc_scan_buffer(corfile_body(csound->expanded_orc),
                              corfile_tell(csound->expanded_orc), pp.yyscanner);
+
       //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
       err = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
       corfile_rm(&csound->expanded_orc);

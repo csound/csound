@@ -1666,7 +1666,12 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         }
         STA(str)++;
         STA(str)->is_marked_repeat = 0;
-        STA(str)->cf = copy_to_corefile(csound, mname, "INCDIR", 1);
+#ifdef HAVE_CURL
+        if (strstr(mname, "://"))
+          STA(str)->cf = copy_url_corefile(csound, mname, 1);
+        else
+#endif
+          STA(str)->cf = copy_to_corefile(csound, mname, "INCDIR", 1);
         if (STA(str)->cf == NULL) {
           STA(str)--;
           STA(str)->line--; /* include was one line earlier */
