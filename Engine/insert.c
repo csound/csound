@@ -386,9 +386,9 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     if (UNLIKELY(O->odebug)) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
       if (UNLIKELY(name))
-        csound->Message(csound, Str("activating instr %s\n"), name);
+        csound->Message(csound, Str("MIDI activating instr %s\n"), name);
       else
-        csound->Message(csound, Str("activating instr %d\n"), insno);
+        csound->Message(csound, Str("MIDI activating instr %d\n"), insno);
     }
     csound->inerrcnt = 0;
     ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
@@ -397,9 +397,9 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       if (UNLIKELY(O->msglevel & RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
-          csound->Message(csound, Str("new alloc for instr %s:\n"), name);
+          csound->Message(csound, Str("new MIDI alloc for instr %s:\n"), name);
         else
-          csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
+          csound->Message(csound, Str("new MIDI alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
       tp->isNew = 0;
@@ -1690,7 +1690,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           CS_PDS->insdshead->pds = NULL;
           do {
             (*CS_PDS->opadr)(csound, CS_PDS);
-            if (CS_PDS->insdshead->pds != NULL) {
+            if (CS_PDS->insdshead->pds != NULL
+                && CS_PDS->insdshead->pds->insdshead) {
               CS_PDS = CS_PDS->insdshead->pds;
               CS_PDS->insdshead->pds = NULL;
             }
@@ -1725,6 +1726,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
       do {
         /* copy inputs */
         tmp = p->buf->iobufp_ptrs;
+
         while (*tmp) {                  /* a-rate */
           ptr1 = *(tmp++) + ofs; ptr2 = *(tmp++);
           n = csound->ksmps;
@@ -1750,7 +1752,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           CS_PDS->insdshead->pds = NULL;
           do {
             (*CS_PDS->opadr)(csound, CS_PDS);
-            if (CS_PDS->insdshead->pds != NULL) {
+            if (CS_PDS->insdshead->pds != NULL
+                 && CS_PDS->insdshead->pds->insdshead) {
               CS_PDS = CS_PDS->insdshead->pds;
               CS_PDS->insdshead->pds = NULL;
             }
@@ -1760,7 +1763,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         out = *tmp;
         while (*(++tmp)) {              /* a-rate */
           ptr1 = *tmp; ptr2 = *(++tmp) + ofs;
-          n = csound->ksmps;
+          n = lksmps;
           do {
             *(ptr2++) = *(ptr1++);
           } while (--n);
@@ -1816,6 +1819,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     int     n;
     OPDS    *saved_pds = CS_PDS;
     MYFLT   **tmp, *ptr1, *ptr2;
+    INSDS    *this_instr = p->ip;
     p->ip->spin = csound->spin;
     p->ip->spout = csound->spout;
 
@@ -1851,12 +1855,14 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       CS_PDS->insdshead->pds = NULL;
       do {
         (*CS_PDS->opadr)(csound, CS_PDS);
-        if (CS_PDS->insdshead->pds != NULL) {
-          CS_PDS = CS_PDS->insdshead->pds;
-          CS_PDS->insdshead->pds = NULL;
+        if (CS_PDS->insdshead->pds != NULL
+           && CS_PDS->insdshead->pds->insdshead) {
+        CS_PDS = CS_PDS->insdshead->pds;
+        CS_PDS->insdshead->pds = NULL;
         }
       } while ((CS_PDS = CS_PDS->nxtp));
 
+      this_instr->kcounter++;
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
         ptr1 = *tmp; ptr2 = *(++tmp);
@@ -1889,11 +1895,14 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       CS_PDS->insdshead->pds = NULL;
       do {
         (*CS_PDS->opadr)(csound, CS_PDS);
-        if (CS_PDS->insdshead->pds != NULL) {
+        if (CS_PDS->insdshead->pds != NULL
+            && CS_PDS->insdshead->pds->insdshead) {
           CS_PDS = CS_PDS->insdshead->pds;
           CS_PDS->insdshead->pds = NULL;
         }
       } while ((CS_PDS = CS_PDS->nxtp));
+
+      this_instr->kcounter++;
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
         ptr1 = *tmp; *(*(++tmp)) = *ptr1;
