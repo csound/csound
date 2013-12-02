@@ -91,45 +91,33 @@ touch .complete
 cd ..
 fi
 
-
-exit 
-
-# WIIUSE
-if [ ! -f wiiuse_v0.13/.complete ]; then
-cd wiiuse_v0.13
-xcodebuild -project wiiuse.xcodeproj -sdk macosx
-sudo cp build/Release/libwiiuse.dylib /usr/local/lib
-sudo cp wiiuse_v0.12/src/wiiuse.h /usr/local/include
-touch .complete
-cd ..
-fi
-
 # FLTK 
 if [ ! -f fltk-1.3.2/.complete ]; then
-cd fltk-1.3.2
-./configure  --with-archflags="-arch i386 -arch x86_64" --enable-shared
-make 
-sudo make install
-touch .complete
+cd fltk-1.3.2 
+./configure  --host=x86_64-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local --enable-threads --enable-gl --enable-shared --enable-localjpeg --enable-localzlib --enable-localpng
+make || true
+make install
+# touch .complete
 cd ..
 fi
+
 
 # LIBLO 
-if [ ! -f liblo-0.26/.complete ]; then
-cd liblo-0.26 
-./configure CFLAGS="$C_FLAGS" --disable-dependency-tracking 
-make 
-sudo make install
-touch .complete
-cd ..
-fi
+#if [ ! -f liblo-0.26/.complete ]; then
+#cd liblo-0.26 
+#./configure  --host=x86_64-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local
+#make install
+##touch .complete
+#cd ..
+#fi
+
+exit
 
 # LIBPNG
-if [ ! -f libpng-1.6.6/.complete ]; then
-cd libpng-1.6.6
-./configure CFLAGS="$C_FLAGS" --disable-dependency-tracking 
-make 
-sudo make install
-touch .complete
+if [ ! -f libpng-1.6.7/.complete ]; then
+cd libpng-1.6.7
+./configure  --host=x86_64-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local 
+make install
+##touch .complete
 cd ..
 fi
