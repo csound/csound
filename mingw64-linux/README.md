@@ -30,3 +30,6 @@ them into ~/mingw64.
 Currently not all dependencies have been worked through for building.  See the
 build-deps.sh script and see where "exit" is put in.  Anything after exit has 
 not yet been updated for building.
+
+* wiiuse - I tried v0.12 binary release of wiiuse from sf.net/projects/wiiuse, 
+but found it was compiled for win32 and not w64.  Not including as of now.
