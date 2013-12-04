@@ -1,9 +1,9 @@
 #!/bin/sh
 
-export MINGW64_INSTALL_ROOT=`pwd`/mingw64
+export MINGW64_INSTALL_ROOT=`pwd`/mingw64-i686
 echo $MINGW64_INSTALL_ROOT
 
-cd build
+cd build32
 
 mkdir -p $MINGW64_INSTALL_ROOT
 
@@ -17,7 +17,7 @@ export PKG_CONFIG_LIBDIR="${MINGW64_INSTALL_ROOT}/usr/local/lib"
 # PORTAUDIO
 if [ ! -f portaudio/.complete ]; then
 cd portaudio
-./configure --host=x86_64-w64-mingw32  --prefix=$MINGW64_INSTALL_ROOT/usr/local
+./configure --host=i686-w64-mingw32  --prefix=$MINGW64_INSTALL_ROOT/usr/local
 make
 make install
 touch .complete
@@ -47,7 +47,7 @@ fi
 if [ ! -f libogg-1.3.0/.complete ]; then
 
 cd libogg-1.3.0
-./configure --host=x86_64-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local
+./configure --host=i686-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local
 make 
 make install
 touch .complete
@@ -60,7 +60,7 @@ fi
 if [ ! -f libvorbis-1.3.3/.complete ]; then
 
 cd libvorbis-1.3.3
-./configure --host=x86_64-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local
+./configure --host=i686-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local
 make 
 make install
 touch .complete
@@ -73,7 +73,7 @@ fi
 if [ ! -f flac-1.2.1/.complete ]; then
 
 cd flac-1.2.1
-./configure  --host=x86_64-w64-mingw32 --disable-cpplibs --disable-asm-optimizations --enable-sse --prefix=${MINGW64_INSTALL_ROOT}/usr/local
+./configure  --host=i686-w64-mingw32 --disable-cpplibs --disable-asm-optimizations --enable-sse --prefix=${MINGW64_INSTALL_ROOT}/usr/local
 make 
 make install
 touch .complete
@@ -84,7 +84,7 @@ fi
 # LIBSNDFILE
 if [ ! -f libsndfile-1.0.25/.complete ]; then
 cd libsndfile-1.0.25
-./configure  --host=x86_64-w64-mingw32 --disable-disable-sqlite --prefix=$MINGW64_INSTALL_ROOT/usr/local
+./configure  --host=i686-w64-mingw32 --disable-disable-sqlite --prefix=$MINGW64_INSTALL_ROOT/usr/local
 make 
 make install
 touch .complete
@@ -94,7 +94,7 @@ fi
 # FLTK 
 if [ ! -f fltk-1.3.2/.complete ]; then
 cd fltk-1.3.2 
-./configure  --host=x86_64-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local --enable-threads --enable-gl --enable-shared --enable-localjpeg --enable-localzlib --enable-localpng
+./configure  --host=i686-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local --enable-threads --enable-gl --enable-shared --enable-localjpeg --enable-localzlib --enable-localpng
 make || true
 make install
 # touch .complete
@@ -105,7 +105,7 @@ fi
 # LIBLO 
 #if [ ! -f liblo-0.26/.complete ]; then
 #cd liblo-0.26 
-#./configure  --host=x86_64-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local
+#./configure  --host=i686-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local
 #make install
 ##touch .complete
 #cd ..
@@ -116,7 +116,7 @@ exit
 # LIBPNG
 if [ ! -f libpng-1.6.7/.complete ]; then
 cd libpng-1.6.7
-./configure  --host=x86_64-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local 
+./configure  --host=i686-w64-mingw32 --prefix=$MINGW64_INSTALL_ROOT/usr/local 
 make install
 ##touch .complete
 cd ..
