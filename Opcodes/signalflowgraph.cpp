@@ -32,9 +32,10 @@
  * outleta Sname, asignal
  * outletk Sname, ksignal
  * outletf Sname, fsignal
- * outletv Sname, asignal[]
+ * outletv Sname, xsignal[]
  *
  * Outlets send a, k, or f-rate signals out from an instrument.
+ * A- and k-rate signals may be arrays.
  *
  * The name of the outlet is implicitly qualified by the instrument name
  * or number,`so it is valid to use the same outlet name in more than one
@@ -43,10 +44,10 @@
  * asignal   inleta Sname
  * ksignal   inletk Sname
  * fsignal   inletf Sname
- * asignal[] inletv SName
+ * xsignal[] inletv SName
  *
- * Inlets receive a, k, f-rate, or a-rate array signals from outlets in
- * other instruments.
+ * Inlets receive a, k, or f-rate signals from outlets in
+ * other instruments. A- and k-rate signals may be arrays.
  *
  * Outlets are connected to inlets of the same type using the connect
  * opcode. If arrays are used, the inlets and outlets must be a-rate
