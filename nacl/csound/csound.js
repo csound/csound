@@ -229,6 +229,33 @@ var csound = (function() {
    }
 
   /**
+   * Sets the value of a string channel in Csound
+   *
+   * @param {string} name The channel to be set.
+   * @param {string} string The string to set the channel.
+   */
+  function SetStringChannel(name, value){
+    var channel = 'schannel:' + name + ':';
+    csound.module.postMessage(channel + value);
+   }
+
+
+  /**
+   * Requests the value of a control channel in Csound
+   *
+   * @param {string} name The channel requested
+   *
+   * The channel value will be passed from csound as
+   * a message with the following format:
+   *
+   *  ::control::channel:value
+   */
+  function RequestChannel(name){
+    var channel = 'outchannel:' + name;
+    csound.module.postMessage(channel);
+  }
+
+  /**
    * Copies a server file to local/. (not persistent)
    *
    * @param {string} src The src name
@@ -286,7 +313,9 @@ var csound = (function() {
     CopyToLocal: CopyToLocal,
     CopyUrlToLocal: CopyUrlToLocal,
     RequestFileFromLocal: RequestFileFromLocal,
-    GetFileData : GetFileData
+    GetFileData : GetFileData,
+       RequestChannel: RequestChannel,
+       SetStringChannel: SetStringChannel
   };
 
 }());
