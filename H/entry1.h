@@ -121,7 +121,6 @@ int     cpsoct(CSOUND *, void *), octpch(CSOUND *, void *);
 int     cpspch(CSOUND *, void *), pchoct(CSOUND *, void *);
 int     octcps(CSOUND *, void *), acpsoct(CSOUND *, void *);
 int     cpsmidinn(CSOUND *, void *), octmidinn(CSOUND *, void *);
-int     cpsmidinn2(CSOUND *, void *);
 int     pchmidinn(CSOUND *, void *);int     massign_S(CSOUND *, void *);
 int     massign_p(CSOUND *, void *), ctrlinit(CSOUND *, void *);
 int     notnum(CSOUND *, void *), veloc(CSOUND *, void *);
