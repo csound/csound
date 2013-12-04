@@ -25,38 +25,38 @@ packages=($pthreads $portaudio_src $portmidi_src $flac_src $ogg_src $vorbis_src 
 
 
 #prepare
-mkdir -p cache
+mkdir -p cache32
 #rm -rf build
-mkdir -p build
-mkdir -p mingw64/usr/local/lib
-mkdir -p mingw64/usr/local/include
+mkdir -p build32
+mkdir -p mingw64-i686/usr/local/lib
+mkdir -p mingw64-i686/usr/local/include
 
-cd cache
+cd cache32
 for i in ${packages[*]}; do
   echo $i
   wget -nc $i 
 done
 
-cd ../build
-for i in `ls ../cache | grep zip`; do
-  unzip ../cache/$i 
+cd ../build32
+for i in `ls ../cache32 | grep zip`; do
+  echo "Unzipping $i"
+  unzip ../cache32/$i 
 done
 
-for i in `ls ../cache | grep -v zip`; do
-  tar xzvf ../cache/$i 
+for i in `ls ../cache32 | grep -v zip`; do 
+  tar xzvf ../cache32/$i
 done
 
-cp Pre-built.2/dll/x64/pthreadGC2.dll ../mingw64/usr/local/lib
-cp Pre-built.2/include/* ../mingw64/usr/local/include
+cp Pre-built.2/dll/x86/pthreadGC2.dll ../mingw64-i686/usr/local/lib
+cp Pre-built.2/include/* ../mingw64-i686/usr/local/include
 
 #cp wiiuse_v0.12_win/wiiuse.dll ../mingw64/usr/local/lib
-#cp wiiuse_v0.12_win/wiiuse.lib ../mingw64/usr/local/lib
-#cp wiiuse_v0.12_win/wiiuse.h ../mingw64/usr/local/include
+#cp wiiuse_v0.12_win/wiiuse.lib ../mingw64/usr/local/lib #cp wiiuse_v0.12_win/wiiuse.h ../mingw64/usr/local/include
 
 
-cp zlib1.dll ../mingw64/usr/local/lib
-cp lib/* ../mingw64/usr/local/lib
-cp include/* ../mingw64/usr/local/include/
+cp zlib1.dll ../mingw64-i686/usr/local/lib
+cp lib/* ../mingw64-i686/usr/local/lib
+cp include/* ../mingw64-i686/usr/local/include/
 
 svn co https://svn.code.sf.net/p/portmedia/code/portmidi/trunk portmidi-svn
 
