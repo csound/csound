@@ -128,8 +128,8 @@ struct Connect;
 struct AlwaysOn;
 struct FtGenOnce;
 
-static void* cs_sfg_ftables;
-static void* cs_sfg_ports;
+static void* cs_sfg_ftables = 0;
+static void* cs_sfg_ports = 0;
 
 #if defined(ISSTRCOD)
 #undef ISSTRCOD
@@ -1635,13 +1635,17 @@ extern "C"
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
+    if (cs_sfg_ports == 0) {
+        cs_sfg_ports = csound->Create_Mutex(1);
+    }
+    if (cs_sfg_ftables == 0) {
+        cs_sfg_ftables = csound->Create_Mutex(1);
+    }
     return 0;
   }
 
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
-    cs_sfg_ports = csound->Create_Mutex(1);
-    cs_sfg_ftables = csound->Create_Mutex(1);
     OENTRY *ep = (OENTRY *)&(oentries[0]);
     int  err = 0;
     while (ep->opname != 0) {
@@ -1706,8 +1710,6 @@ extern "C"
         }
     }
     csound->UnlockMutex(cs_sfg_ftables);
-    csound->DestroyMutex(cs_sfg_ports);
-    csound->DestroyMutex(cs_sfg_ftables);
     return 0;
   }
 }
