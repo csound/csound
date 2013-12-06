@@ -48,7 +48,7 @@ static void format_call_statement2(char *statement, char *callable,
     int       i;
 
     statement[0] = '\0';
-    if (argc > 0) {
+    if (skip-argc > 0) {
       sprintf(statement, "%s(%0.6f", callable, *(argv[skip]));
       for (i = skip+1; i < argc; ++i) {
         sprintf(statement + strlen(statement), ", %f", *(argv[i]));
