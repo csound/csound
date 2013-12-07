@@ -904,19 +904,24 @@ typedef struct NAME__ {
     MYFLT (*GetSr)(CSOUND *);
     MYFLT (*GetKr)(CSOUND *);
     uint32_t (*GetKsmps)(CSOUND *);
+     /** Get number of output channels */
     uint32_t (*GetNchnls)(CSOUND *);
+    /** Get number of input channels */
     uint32_t (*GetNchnls_i)(CSOUND *);
     MYFLT (*Get0dBFS) (CSOUND *);
+    /** Get number of control blocks elapsed */
     long (*GetKcounter)(CSOUND *);
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
     MYFLT *(*GetInputBuffer)(CSOUND *);
     MYFLT *(*GetOutputBuffer)(CSOUND *);
+    /** Set internal debug mode */
     void (*SetDebug)(CSOUND *, int d);
     int (*GetDebug)(CSOUND *);
     int (*GetSizeOfMYFLT)(void);
     void (*GetOParms)(CSOUND *, OPARMS *);
+    /** Get environment variable */
     const char *(*GetEnv)(CSOUND *, const char *name);
     /**@}*/
     /** @name Message printout */
@@ -946,10 +951,14 @@ typedef struct NAME__ {
     int (*GetZakBounds)(CSOUND *, MYFLT **);
     int (*GetTieFlag)(CSOUND *);
     int (*GetReinitFlag)(CSOUND *);
+    /** Current maximum number of strings, accessible through the strset and strget opcodes */
     int (*GetStrsmax)(CSOUND *);
     char *(*GetStrsets)(CSOUND *, long);
+    /* Fast power of two function from a precomputed table */
     MYFLT (*Pow2)(CSOUND *, MYFLT a);
+    /* Fast power function for positive integers */
     MYFLT (*intpow)(MYFLT, int32);
+    /* Returns a string name for the file type */
     char *(*type2string)(int type);
     /**@}*/
     /** @name Arguments to opcodes */
@@ -982,8 +991,11 @@ typedef struct NAME__ {
     int (*hfgens)(CSOUND *, FUNC **, const EVTBLK *, int);
     int (*FTAlloc)(CSOUND *, int tableNum, int len);
     int (*FTDelete)(CSOUND *, int tableNum);
+    /** Find tables with power of two size. If table exists but is not a power of 2, NULL is returned. */
     FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
+    /** Find any table, except deferred load tables. */
     FUNC *(*FTFindP)(CSOUND *, MYFLT *argp);
+    /** Find any table. */
     FUNC *(*FTnp2Find)(CSOUND *, MYFLT *argp);
     int (*GetTable)(CSOUND *, MYFLT **tablePtr, int tableNum);
     int (*TableLength)(CSOUND *, int table);
