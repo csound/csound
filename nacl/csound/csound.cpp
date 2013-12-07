@@ -47,6 +47,8 @@ namespace {
   const char* const kScoreId = "score";
   const char* const kEventId = "event";
   const char* const kChannelId = "channel";
+  const char* const kSChannelId = "schannel";
+  const char* const kChannelOutId = "outchannel";
   const char* const kCopyId = "copyToLocal";
   const char* const kCopyUrlId = "copyUrlToLocal";
   const char* const kGetFileId = "getFile";
@@ -370,6 +372,30 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
         csoundSetControlChannel(csound,(char *)channel.c_str(), val);
         return;
       }
+    }
+  } else if(message.find(kSChannelId) == 0){
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {
+      std::string string_arg = message.substr(sep_pos + 1);
+      sep_pos = string_arg.find_first_of(kMessageArgumentSeparator);
+      std::string channel = string_arg.substr(0, sep_pos);
+      std::string svalue = string_arg.substr(sep_pos + 1);
+      csoundSetStringChannel(csound,(char *)channel.c_str(),(char *)svalue.c_str());
+        return;
+    }
+  }
+    else if(message.find(kChannelOutId) == 0){
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {
+      std::string string_arg = message.substr(sep_pos + 1);
+      sep_pos = string_arg.find_first_of(kMessageArgumentSeparator);
+      std::string channel = string_arg.substr(0);
+      char mess[64]; 
+      int err;
+      MYFLT val = csoundGetControlChannel(csound,(char *)channel.c_str(), &err);
+      sprintf(mess, "::control::%s:%f",(char *)channel.c_str(),val);
+      PostMessage(mess);
+      return;  
     }
   } else if (message.find(kCopyId) == 0) {
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);

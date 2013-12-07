@@ -13,8 +13,10 @@
   csound.Play();
   csound.CompileOrc(
   "instr 1 \n" +
-  "a1 oscili 0.1,440+rnd(440)\n" +
-  "outs a1,a1 \n" + 
+  "icps = 440+rnd(440) \n" +
+  "chnset icps, \"freq\" \n" +
+  "a1 oscili 0.1, icps\n" +
+  "outs a1,a1 \n" +
   "endin");
   document.getElementById("tit").innerHTML = "Click on the page below to play";
  }
@@ -24,13 +26,20 @@
  }
  function handleMessage(message) {
    var mess = message.data;
+   if(mess.slice(0,11) == "::control::") {
+   var messField = document.getElementById("console")
+   messField.innerText = mess.slice(11);
+   }
+   else {
    var messField = document.getElementById("mess")
    messField.innerText += mess;
+   csound.RequestChannel("freq");
+  }
  }
 
  // click handler
  function Play() {
-   csound.Event("i 1 0 5");  
+   csound.Event("i 1 0 5");
  }
  </script>
 </head>
