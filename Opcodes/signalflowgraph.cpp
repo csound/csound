@@ -32,20 +32,26 @@
  * outleta Sname, asignal
  * outletk Sname, ksignal
  * outletf Sname, fsignal
+ * outletv Sname, xsignal[]
  *
  * Outlets send a, k, or f-rate signals out from an instrument.
+ * A- and k-rate signals may be arrays.
  *
  * The name of the outlet is implicitly qualified by the instrument name
  * or number,`so it is valid to use the same outlet name in more than one
  * instrument (but not to use the same outlet name twice in one instrument).
  *
- * asignal inleta Sname
- * ksignal inletk Sname
- * fsignal inletf Sname
+ * asignal   inleta Sname
+ * ksignal   inletk Sname
+ * fsignal   inletf Sname
+ * xsignal[] inletv SName
  *
- * Inlets receive a, k, or f-rate signals from outlets in other instruments.
+ * Inlets receive a, k, or f-rate signals from outlets in
+ * other instruments. A- and k-rate signals may be arrays.
+ *
  * Outlets are connected to inlets of the same type using the connect
- * opcode.
+ * opcode. If arrays are used, the inlets and outlets must be a-rate
+ * and the same shape.
  *
  * The name of the inlet is implicitly qualified by the instrument name,
  * or number, so it is valid to use the same inlet name in more than one
@@ -112,13 +118,18 @@ struct Outleta;
 struct Outletk;
 struct Outletf;
 struct Outletkid;
+struct Outletv;
 struct Inleta;
 struct Inletk;
 struct Inletf;
 struct Inletkid;
+struct Inletv;
 struct Connect;
 struct AlwaysOn;
 struct FtGenOnce;
+
+static void* cs_sfg_ftables = 0;
+static void* cs_sfg_ports = 0;
 
 #if defined(ISSTRCOD)
 #undef ISSTRCOD
@@ -198,16 +209,19 @@ struct EventBlock {
 std::map<CSOUND *, std::map< std::string, std::vector< Outleta * > > > aoutletsForCsoundsForSourceOutletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Outletk * > > > koutletsForCsoundsForSourceOutletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Outletf * > > > foutletsForCsoundsForSourceOutletIds;
+std::map<CSOUND *, std::map< std::string, std::vector< Outletv * > > > voutletsForCsoundsForSourceOutletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Outletkid * > > > kidoutletsForCsoundsForSourceOutletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Inleta * > > > ainletsForCsoundsForSinkInletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Inletk * > > > kinletsForCsoundsForSinkInletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Inletf * > > > finletsForCsoundsForSinkInletIds;
+std::map<CSOUND *, std::map< std::string, std::vector< Inletv * > > > vinletsForCsoundsForSinkInletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< Inletkid * > > > kidinletsForCsoundsForSinkInletIds;
 std::map<CSOUND *, std::map< std::string, std::vector< std::string > > > connectionsForCsounds;
 std::map<CSOUND *, std::map< EventBlock, int > > functionTablesForCsoundsForEvtblks;
 std::map<CSOUND *, std::vector< std::vector< std::vector<Outleta *> *> * > > aoutletVectorsForCsounds;
 std::map<CSOUND *, std::vector< std::vector< std::vector<Outletk *> *> * > > koutletVectorsForCsounds;
 std::map<CSOUND *, std::vector< std::vector< std::vector<Outletf *> *> * > > foutletVectorsForCsounds;
+std::map<CSOUND *, std::vector< std::vector< std::vector<Outletv *> *> * > > voutletVectorsForCsounds;
 std::map<CSOUND *, std::vector< std::vector< std::vector<Outletkid *> *> * > > kidoutletVectorsForCsounds;
 
 // For true thread-safety, access to shared data must be protected.
@@ -220,7 +234,8 @@ std::map<CSOUND *, std::vector< std::vector< std::vector<Outletkid *> *> * > > k
  */
 struct SignalFlowGraph : public OpcodeBase<SignalFlowGraph> {
   int init(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
       aoutletsForCsoundsForSourceOutletIds[csound].clear();
       ainletsForCsoundsForSinkInletIds[csound].clear();
@@ -228,14 +243,19 @@ struct SignalFlowGraph : public OpcodeBase<SignalFlowGraph> {
       kinletsForCsoundsForSinkInletIds[csound].clear();
       foutletsForCsoundsForSourceOutletIds[csound].clear();
       finletsForCsoundsForSinkInletIds[csound].clear();
+      voutletsForCsoundsForSourceOutletIds[csound].clear();
+      vinletsForCsoundsForSinkInletIds[csound].clear();
       kidoutletsForCsoundsForSourceOutletIds[csound].clear();
       kidinletsForCsoundsForSinkInletIds[csound].clear();
       connectionsForCsounds[csound].clear();
     }
-#pragma omp critical (critical_section_ftables)
+    csound->UnlockMutex(cs_sfg_ports);
+//#pragma omp critical (cs_sfg_ftables)
+    csound->LockMutex(cs_sfg_ftables);
     {
       functionTablesForCsoundsForEvtblks[csound].clear();
     }
+    csound->UnlockMutex(cs_sfg_ftables);
     return OK;
   };
 };
@@ -252,7 +272,8 @@ struct Outleta : public OpcodeBase<Outleta> {
   char sourceOutletId[0x100];
   int init(CSOUND *csound) {
     //warn(csound, "BEGAN Outleta::init()...\n");
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
       sourceOutletId[0] = 0;
       const char *insname =
@@ -271,6 +292,7 @@ struct Outleta : public OpcodeBase<Outleta> {
              this, aoutlets.size(), sourceOutletId);
       }
     }
+    csound->UnlockMutex(cs_sfg_ports);
     //warn(csound, "ENDED Outleta::init()...\n");
     return OK;
   }
@@ -292,7 +314,8 @@ struct Inleta : public OpcodeBase<Inleta> {
   std::vector< std::vector<Outleta *> *> *sourceOutlets;
   int sampleN;
   int init(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
       warn(csound, "BEGAN Inleta::init()...\n");
       sampleN = opds.insdshead->ksmps;
@@ -331,21 +354,22 @@ struct Inleta : public OpcodeBase<Inleta> {
                       &aoutlets) == sourceOutlets->end()) {
           sourceOutlets->push_back(&aoutlets);
           warn(csound,
-               Str("Connected instances of outlet %s to instance 0x%x of "
+               Str("Connected instances of out/let %s to instance 0x%x of "
                    "inlet %s.\n"), sourceOutletId.c_str(), this, sinkInletId);
         }
       }
       warn(csound, "ENDED Inleta::init().\n");
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
   /**
    * Sum arate values from active outlets feeding this inlet.
    */
   int audio(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
-
       //warn(csound, "BEGAN Inleta::audio()...\n");
       // Zero the inlet buffer.
       for (int sampleI = 0; sampleI < sampleN; sampleI++) {
@@ -377,6 +401,7 @@ struct Inleta : public OpcodeBase<Inleta> {
       }
       //warn(csound, "ENDED Inleta::audio().\n");
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
 };
@@ -392,9 +417,9 @@ struct Outletk : public OpcodeBase<Outletk> {
    */
   char sourceOutletId[0x100];
   int init(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
-
       const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
       if (insname) {
@@ -411,6 +436,7 @@ struct Outletk : public OpcodeBase<Outletk> {
              this, koutlets.size(), sourceOutletId);
       }
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
 };
@@ -431,7 +457,8 @@ struct Inletk : public OpcodeBase<Inletk> {
   std::vector< std::vector<Outletk *> *> *sourceOutlets;
   int ksmps;
   int init(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
 
       ksmps = opds.insdshead->ksmps;
@@ -473,13 +500,14 @@ struct Inletk : public OpcodeBase<Inletk> {
         }
       }
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
   /**
    * Sum krate values from active outlets feeding this inlet.
    */
   int kontrol(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
     {
       // Zero the inlet buffer.
       *ksignal = FL(0.0);
@@ -500,6 +528,7 @@ struct Inletk : public OpcodeBase<Inletk> {
         }
       }
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
 };
@@ -515,7 +544,7 @@ struct Outletf : public OpcodeBase<Outletf> {
    */
   char sourceOutletId[0x100];
   int init(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
     {
       const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
@@ -532,6 +561,7 @@ struct Outletf : public OpcodeBase<Outletf> {
         warn(csound, "Created instance 0x%x of outlet %s\n", this, sourceOutletId);
       }
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
 };
@@ -554,7 +584,8 @@ struct Inletf : public OpcodeBase<Inletf> {
   int lastframe;
   bool fsignalInitialized;
   int init(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
       ksmps = opds.insdshead->ksmps;
       lastframe = 0;
@@ -597,6 +628,7 @@ struct Inletf : public OpcodeBase<Inletf> {
         }
       }
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
   /**
@@ -604,7 +636,8 @@ struct Inletf : public OpcodeBase<Inletf> {
    */
   int audio(CSOUND *csound) {
     int result = OK;
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
       float *sink = 0;
       float *source = 0;
@@ -688,7 +721,160 @@ struct Inletf : public OpcodeBase<Inletf> {
         }
       }
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return result;
+  }
+};
+
+struct Outletv : public OpcodeBase<Outletv> {
+  /**
+   * Inputs.
+   */
+  STRINGDAT *Sname;
+  ARRAYDAT *vsignal;
+  /**
+   * State.
+   */
+  char sourceOutletId[0x100];
+  int init(CSOUND *csound) {
+    //warn(csound, "BEGAN Outleta::init()...\n");
+//#pragma omp critical (cs_sfg_ports)
+    csound->UnlockMutex(cs_sfg_ports);
+    {
+      sourceOutletId[0] = 0;
+      const char *insname =
+        csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
+      if (insname) {
+        std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname->data);
+      } else {
+        std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno,
+                     (char *)Sname->data);
+      }
+      std::vector<Outletv *> &voutlets =
+        voutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
+      if (std::find(voutlets.begin(), voutlets.end(), this) == voutlets.end()) {
+        voutlets.push_back(this);
+        warn(csound, "Created instance 0x%x of %d instances of outlet %s\n",
+             this, voutlets.size(), sourceOutletId);
+      }
+    }
+    //warn(csound, "ENDED Outleta::init()...\n");
+    csound->UnlockMutex(cs_sfg_ports);
+    return OK;
+  }
+};
+
+struct Inletv : public OpcodeBase<Inletv> {
+  /**
+   * Output.
+   */
+  ARRAYDAT *vsignal;
+  /**
+   * Inputs.
+   */
+  STRINGDAT *Sname;
+  /**
+   * State.
+   */
+  char sinkInletId[0x100];
+  std::vector< std::vector<Outletv *> *> *sourceOutlets;
+  size_t arraySize;
+  size_t myFltsPerArrayElement;
+  int sampleN;
+  int init(CSOUND *csound) {
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
+    {
+      warn(csound, "BEGAN Inleta::init()...\n");
+      sampleN = opds.insdshead->ksmps;
+      // The array elements may be krate (1 MYFLT) or arate (ksmps MYFLT).
+      myFltsPerArrayElement = vsignal->arrayMemberSize / sizeof(MYFLT);
+      arraySize = myFltsPerArrayElement;
+      for(size_t dimension = 0; dimension < vsignal->dimensions; ++dimension) {
+          arraySize *= MYFLT2LRND(vsignal->sizes[dimension]);
+      }
+      warn(csound, "sourceOutlets: 0x%x\n", sourceOutlets);
+      if (std::find(voutletVectorsForCsounds[csound].begin(),
+                    voutletVectorsForCsounds[csound].end(),
+                    sourceOutlets) == voutletVectorsForCsounds[csound].end()) {
+        sourceOutlets = new std::vector< std::vector<Outletv *> *>;
+        voutletVectorsForCsounds[csound].push_back(sourceOutlets);
+      }
+      warn(csound, "sourceOutlets: 0x%x\n", sourceOutlets);
+      sinkInletId[0] = 0;
+      const char *insname =
+        csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
+      if (insname) {
+        std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname->data);
+      } else {
+        std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno,
+                     (char *)Sname->data);
+      }
+      std::vector<Inletv *> &vinlets =
+        vinletsForCsoundsForSinkInletIds[csound][sinkInletId];
+      if (std::find(vinlets.begin(), vinlets.end(), this) == vinlets.end()) {
+        vinlets.push_back(this);
+        warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
+      }
+      // Find source outlets connecting to this.
+      // Any number of sources may connect to any number of sinks.
+      std::vector<std::string> &sourceOutletIds =
+        connectionsForCsounds[csound][sinkInletId];
+      for (size_t i = 0, n = sourceOutletIds.size(); i < n; i++) {
+        const std::string &sourceOutletId = sourceOutletIds[i];
+        std::vector<Outletv*> &voutlets =
+          voutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
+        if (std::find(sourceOutlets->begin(), sourceOutlets->end(),
+                      &voutlets) == sourceOutlets->end()) {
+          sourceOutlets->push_back(&voutlets);
+          warn(csound,
+               Str("Connected instances of outlet %s to instance 0x%x of "
+                   "inlet %s.\n"), sourceOutletId.c_str(), this, sinkInletId);
+        }
+      }
+      warn(csound, "ENDED Inleta::init().\n");
+    }
+    csound->UnlockMutex(cs_sfg_ports);
+    return OK;
+  }
+  /**
+   * Sum values from active outlets feeding this inlet.
+   */
+  int audio(CSOUND *csound) {
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
+    {
+
+      //warn(csound, "BEGAN Inletv::audio()...\n");
+      // Zero the inlet buffer.
+      //for (int sampleI = 0; sampleI < sampleN; sampleI++) {
+      //  vsignal[sampleI] = FL(0.0);
+      //}
+      for (uint32_t signalI = 0; signalI < arraySize; ++signalI) {
+        vsignal->data[signalI] = FL(0.0);
+      }
+      // Loop over the source connections...
+      for (size_t sourceI = 0, sourceN = sourceOutlets->size();
+           sourceI < sourceN;
+           sourceI++) {
+        // Loop over the source connection instances...
+        std::vector<Outletv *> *instances = sourceOutlets->at(sourceI);
+        for (size_t instanceI = 0, instanceN = instances->size();
+             instanceI < instanceN;
+             instanceI++) {
+          Outletv *sourceOutlet = instances->at(instanceI);
+          // Skip inactive instances.
+          if (sourceOutlet->opds.insdshead->actflg) {
+            for (uint32_t signalI = 0; signalI < arraySize; ++signalI) {
+                vsignal->data[signalI] += sourceOutlet->vsignal->data[signalI];
+            }
+          }
+        }
+      }
+      //warn(csound, "ENDED Inletv::audio().\n");
+    }
+    csound->UnlockMutex(cs_sfg_ports);
+    return OK;
   }
 };
 
@@ -705,7 +891,8 @@ struct Outletkid : public OpcodeBase<Outletkid> {
   char sourceOutletId[0x100];
   char *instanceId;
   int init(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
       const char *insname = csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
       instanceId = csound->strarg2name(csound,
@@ -729,6 +916,7 @@ struct Outletkid : public OpcodeBase<Outletkid> {
         warn(csound, "Created instance 0x%x of %d instances of outlet %s\n", this, koutlets.size(), sourceOutletId);
       }
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
 };
@@ -751,9 +939,9 @@ struct Inletkid : public OpcodeBase<Inletkid> {
   std::vector< std::vector<Outletkid *> *> *sourceOutlets;
   int ksmps;
   int init(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
-
       ksmps = opds.insdshead->ksmps;
       if (std::find(kidoutletVectorsForCsounds[csound].begin(),
                     kidoutletVectorsForCsounds[csound].end(),
@@ -790,15 +978,17 @@ struct Inletkid : public OpcodeBase<Inletkid> {
         }
       }
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
   /**
    * Replay instance signal.
    */
   int kontrol(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
-      // Zero the inlet buffer.
+      // Zero the / buffer.
       *ksignal = FL(0.0);
       // Loop over the source connections...
       for (size_t sourceI = 0, sourceN = sourceOutlets->size();
@@ -819,6 +1009,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
         }
       }
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
 };
@@ -832,7 +1023,8 @@ struct Connect : public OpcodeBase<Connect> {
   MYFLT  *Sink;
   STRINGDAT *Sinlet;
   int init(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
       std::string sourceOutletId = csound->strarg2name(csound,
                                                        (char *) 0,
@@ -864,6 +1056,7 @@ struct Connect : public OpcodeBase<Connect> {
       warn(csound, "Connected outlet %s to inlet %s.\n", sourceOutletId.c_str(), sinkInletId.c_str());
       connectionsForCsounds[csound][sinkInletId].push_back(sourceOutletId);
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
 };
@@ -877,7 +1070,8 @@ struct Connecti : public OpcodeBase<Connecti> {
   STRINGDAT *Sink;
   STRINGDAT *Sinlet;
   int init(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
       std::string sourceOutletId = csound->strarg2name(csound,
                                                        (char *) 0,
@@ -906,6 +1100,7 @@ struct Connecti : public OpcodeBase<Connecti> {
       warn(csound, "Connected outlet %s to inlet %s.\n", sourceOutletId.c_str(), sinkInletId.c_str());
       connectionsForCsounds[csound][sinkInletId].push_back(sourceOutletId);
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
 };
@@ -920,7 +1115,8 @@ struct Connectii : public OpcodeBase<Connectii> {
   MYFLT *Sink;
   STRINGDAT *Sinlet;
   int init(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
       std::string sourceOutletId = csound->strarg2name(csound,
                                                        (char *) 0,
@@ -951,6 +1147,7 @@ struct Connectii : public OpcodeBase<Connectii> {
            sourceOutletId.c_str(), sinkInletId.c_str());
       connectionsForCsounds[csound][sinkInletId].push_back(sourceOutletId);
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
 };
@@ -964,7 +1161,8 @@ struct ConnectS : public OpcodeBase<ConnectS> {
   STRINGDAT *Sink;
   STRINGDAT *Sinlet;
   int init(CSOUND *csound) {
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
       std::string sourceOutletId = csound->strarg2name(csound,
                                                        (char *) 0,
@@ -992,6 +1190,7 @@ struct ConnectS : public OpcodeBase<ConnectS> {
            sourceOutletId.c_str(), sinkInletId.c_str());
       connectionsForCsounds[csound][sinkInletId].push_back(sourceOutletId);
     }
+    csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
 };
@@ -1081,7 +1280,8 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
   EventBlock eventBlock;
   int init(CSOUND *csound) {
     int result;
-#pragma omp critical (cs_ftables)
+//#pragma omp critical (cs_ftables)
+    csound->LockMutex(cs_sfg_ftables);
     {
       // Default output.
       *ifno = FL(0.0);
@@ -1125,6 +1325,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
           }
         }
     }
+    csound->UnlockMutex(cs_sfg_ftables);
     return OK;
   }
 };
@@ -1146,7 +1347,8 @@ struct FtGenOnceS : public OpcodeBase<FtGenOnceS> {
   EventBlock eventBlock;
   int init(CSOUND *csound) {
     int result = OK;
-#pragma omp critical (cs_ftables)
+//#pragma omp critical (cs_ftables)
+    csound->LockMutex(cs_sfg_ftables);
     {
       // Default output.
       *ifno = FL(0.0);
@@ -1210,6 +1412,7 @@ struct FtGenOnceS : public OpcodeBase<FtGenOnceS> {
         }
       }
     }
+    csound->UnlockMutex(cs_sfg_ftables);
     return OK;
   }
 };
@@ -1318,6 +1521,28 @@ extern "C"
       (SUBR)&Inletf::audio_
     },
     {
+      (char *)"outletv",
+      sizeof(Outletv),
+      CW,
+      5,
+      (char *)"",
+      (char *)"Sx[]",
+      (SUBR)&Outletv::init_,
+      0,
+      (SUBR)&Outletv::audio_
+    },
+    {
+      (char *)"inletv",
+      sizeof(Inletv),
+      CR,
+      5,
+      (char *)"x[]",
+      (char *)"S",
+      (SUBR)&Inletv::init_,
+      0,
+      (SUBR)&Inletv::audio_
+    },
+    {
       (char *)"connect",
       sizeof(Connect),
       0,
@@ -1410,6 +1635,12 @@ extern "C"
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
+    if (cs_sfg_ports == 0) {
+        cs_sfg_ports = csound->Create_Mutex(1);
+    }
+    if (cs_sfg_ftables == 0) {
+        cs_sfg_ftables = csound->Create_Mutex(1);
+    }
     return 0;
   }
 
@@ -1436,7 +1667,8 @@ extern "C"
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
     //csound->Message(csound, "signalflowgraph: CsoundModuleDestroy(%p)\n", csound);
-#pragma omp critical (cs_sfg_ports)
+//#pragma omp critical (cs_sfg_ports)
+    csound->LockMutex(cs_sfg_ports);
     {
         if (aoutletsForCsoundsForSourceOutletIds.find(csound) != aoutletsForCsoundsForSourceOutletIds.end()) {
             aoutletsForCsoundsForSourceOutletIds[csound].clear();
@@ -1469,12 +1701,15 @@ extern "C"
             connectionsForCsounds[csound].clear();
         }
     }
-#pragma omp critical (critical_section_ftables)
+    csound->UnlockMutex(cs_sfg_ports);
+//#pragma omp critical (cs_sfg_ftables)
+    csound->LockMutex(cs_sfg_ftables);
     {
         if (functionTablesForCsoundsForEvtblks.find(csound) != functionTablesForCsoundsForEvtblks.end()) {
             functionTablesForCsoundsForEvtblks[csound].clear();
         }
     }
+    csound->UnlockMutex(cs_sfg_ftables);
     return 0;
   }
 }

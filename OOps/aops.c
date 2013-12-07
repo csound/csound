@@ -994,19 +994,6 @@ int cpspch(CSOUND *csound, EVAL *p)
 int cpsmidinn(CSOUND *csound, EVAL *p)
 {
     IGN(csound);
-    /* Convert Midi Note number to 8ve.decimal format */
-    MYFLT oct = (*p->a / FL(12.0)) + FL(MIDINOTE0);
-    /* Lookup in cpsoct table */
-    int32 loct = (int32)(oct * OCTRES);
-    *p->r = (MYFLT)CPSOCTL(loct);
-    return OK;
-}
-
-/* More precise and probably no slower. */
-
-int cpsmidinn2(CSOUND *csound, EVAL *p)
-{
-    IGN(csound);
     *p->r = pow(FL(2.0), (*p->a - FL(69.0)) / FL(12.0)) * FL(440.0);
     return OK;
 }
