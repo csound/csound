@@ -1339,7 +1339,7 @@ EXTRA_PACKAGES         =
 # the first chapter. If it is left blank doxygen will generate a 
 # standard header. Notice: only use this tag if you know what you are doing!
 
-LATEX_HEADER           =
+LATEX_HEADER           = 
 
 # The LATEX_FOOTER tag can be used to specify a personal LaTeX footer for 
 # the generated latex document. The footer should contain everything after 
@@ -1586,7 +1586,7 @@ INCLUDE_FILE_PATTERNS  =
 # undefined via #undef or recursively expanded use the := operator 
 # instead of the = operator.
 
-PREDEFINED             = 
+PREDEFINED             = __BUILDING_LIBCSOUND
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then 
 # this tag can be used to specify a list of macro names that should be expanded. 
