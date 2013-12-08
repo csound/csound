@@ -854,7 +854,8 @@ static const CSOUND cenviron_ = {
     0,              /* jumpset */
     0,              /* info_message_request */
     0,              /* modules loaded */
-    NULL            /* self-reference */
+    NULL,            /* self-reference */
+    NULL            /* csdebug_data */
 };
 
 /* from threads.c */

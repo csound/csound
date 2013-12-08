@@ -262,6 +262,7 @@ option(USE_LRINT "Use lrint/lrintf for converting floating point values to integ
 option(BUILD_RELEASE "Build for release" ON)
 option(BUILD_INSTALLER "Build for release" OFF)
 option(BUILD_TESTS "Build for release" ON)
+option(BUILD_DEBUGGER "Build csound internal debugger" ON)
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
 
@@ -791,6 +792,14 @@ list(APPEND libcsound_SRCS
 
 set_source_files_properties(${YACC_OUT} GENERATED)
 set_source_files_properties(${LEX_OUT} GENERATED)
+
+
+# Debugger
+if(BUILD_DEBUGGER)
+    add_definitions("-DCSDEBUGGER")
+    list(APPEND libcsound_SRCS
+        "Top/csdebug.c")
+endif(BUILD_DEBUGGER)
 
 # Handling New Score Parser
 
