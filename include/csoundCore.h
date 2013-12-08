@@ -1252,16 +1252,18 @@ typedef struct NAME__ {
     int (*sprintf)(char *str, const char *format, ...);
     int (*sscanf)(char *str, const char *format, ...);
       /**@}*/
-    /** @name Placeholders */
+    /** @name Placeholders
+        To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
     SUBR dummyfn_2[48];
     /**@}*/
-    /*  NO MORE PUBLIC VARIABLES IN CSOUND struct
-
-      NB: if a new variable member is needed by the library, add it below, as a
-      private data member.
-
-      If access is required solely by plugins (and not by internally by the
+#ifdef __BUILDING_LIBCSOUND
+    /* ------- private data (not to be used by hosts or externals) ------- */
+    /** @name Private Data
+      Private Data in the CSOUND struct to be used internally by the Csound library
+      and should be hidden from plugins.
+      If a new variable member is needed by the library, add it below, as a
+      private data member. If access is required solely by plugins (and not internally by the
       library), use the CreateGlobalVariable() etc. interface, instead of adding
       to CSOUND.
 
@@ -1272,17 +1274,19 @@ typedef struct NAME__ {
       below:
 
       1) To get the data member value:
+      \code
          returnType (*GetVar)(CSOUND *)
-
+      \endcode
       2) in case of pointers, data should be copied out to a supplied memory
          slot, rather than the pointer being obtained:
+      \code
          void (*GetData)(CSOUND *, dataType *)
 
          dataType var;
          csound->GetData(csound, &var);
+      \endcode
     */
-#ifdef __BUILDING_LIBCSOUND
-    /* ------- private data (not to be used by hosts or externals) ------- */
+    /**@{ */
     SUBR          first_callback_;
     channelCallback_t InputChannelCallback_;
     channelCallback_t OutputChannelCallback_;
@@ -1650,6 +1654,7 @@ typedef struct NAME__ {
     int           info_message_request;
     int           modules_loaded;
     struct CSOUND_ **self;
+    /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
