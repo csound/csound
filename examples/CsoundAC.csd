@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -f -h -+rtmidi=null -M0 -d -n -m7 --midi-key=4 --midi-velocity=5 temp.orc temp.sco
+csound -f -h -+rtmidi=null -M0 -d -n -m7 --midi-key=4 --midi-velocity=5
 </CsOptions>
 <CsLicense>
 
@@ -8,23 +8,23 @@ C S O U N D   O R C H E S T R A   F O R   V S T   A N D   M I D I   U S E
 
 Copyright (c) 2006-1012 by Michael Gogins. All rights reserved.
 
-This software is licensed under the terms of the 
+This software is licensed under the terms of the
 GNU Lesser General Public License, version 3.0.
 
-This file contains instrument definitions that require Windows, some 
-SoundFonts, and the vst4cs opcodes. This file should also 
+This file contains instrument definitions that require Windows, some
+SoundFonts, and the vst4cs opcodes. This file should also
 run "as is" in CsoundVST in VST hosts, or to receive MIDI.
 
-Instruments are fungible: they all use the same pfields, have their own 
-ftables, do not use UDOs, use aoutlets, produce more or less the same output 
+Instruments are fungible: they all use the same pfields, have their own
+ftables, do not use UDOs, use aoutlets, produce more or less the same output
 amplitudes, and therefore can be cut and pasted with impunity.
 
-These instruments should be regarded as starting points. Many have highly 
+These instruments should be regarded as starting points. Many have highly
 tunable parameters.
 
 HOW TO USE
 
-Paste this entire file into your piece's code as a string constant. 
+Paste this entire file into your piece's code as a string constant.
 
 Cut and paste the instruments to get them into the order you want.
 
@@ -34,7 +34,7 @@ Enable and adjust effects if desired.
 
 Modify instruments if desired, or copy them and change them.
 
-In your piece, load the whole orchestra into Csound, 
+In your piece, load the whole orchestra into Csound,
 and send Csound notes from your piece.
 
 </CsLicense>
@@ -42,6 +42,11 @@ and send Csound notes from your piece.
 sr                              =                       48000
 ksmps                           =                       20
 nchnls                          =                       2
+;
+
+
+#define FLUID #fluid#
+;#define VST #vst#
 iampdbfs                        init                    32768
                                 prints                  "Default amplitude at 0 dBFS:  %9.4f\n", iampdbfs
 idbafs                          init                    dbamp(iampdbfs)
@@ -54,9 +59,12 @@ iampheadroom                    init                    ampdb(idbaheadroom)
                                 prints                  "Amplitude at headroom:        %9.4f\n", iampheadroom
                                 prints                  "Balance so the overall amps at the end of performance -6 dbfs.\n"
 
+#ifdef VST
 giPianoteq                      vstinit                 "C:\\utah\\opt\\pianoteq-3.5\\Pianoteq.dll", 0
                                 vstinfo                 giPianoteq
+#endif
 
+#ifdef FLUID
 giFluidsynth		            fluidEngine		        0, 0
 giFluidSteinway		            fluidLoad		        "Piano Steinway Grand Model C (21,738KB).sf2",  giFluidsynth, 1
                                 fluidProgramSelect	    giFluidsynth, 0, giFluidSteinway, 0, 1
@@ -66,6 +74,7 @@ giFluidMarimba		            fluidLoad		        "Marimba Moonman (414KB).SF2", gi
                                 fluidProgramSelect	    giFluidsynth, 2, giFluidMarimba, 0, 0
 giFluidOrgan		            fluidLoad		        "Organ Jeux V1.4 (3,674KB).SF2", giFluidsynth, 1
                                 fluidProgramSelect	    giFluidsynth, 3, giFluidOrgan, 0, 4
+#endif
 
 giFlatQ                         init                    sqrt(0.5)
 giseed				            init                    0.5
@@ -249,9 +258,15 @@ gkMasterLevel                   init                    1.5
                                 connect                 "Xing",                 "outright", "Reverberation",        "inright"
                                 connect                 "ZakianFlute",          "outleft", 	"Reverberation",        "inleft"
                                 connect                 "ZakianFlute",          "outright", "Reverberation",        "inright"
-                                
+
+#ifdef VST
                                 alwayson                "VstPianoteqAudio", 0, 1.5
+#endif
+
+#ifdef FLUID
                                 alwayson                "FluidAudio", 0, 32
+#endif
+
                                 alwayson                "Reverberation"
                                 alwayson                "Compressor"
                                 alwayson                "ParametricEq1"
@@ -263,7 +278,6 @@ gkMasterLevel                   init                    1.5
                                 // Original by Hans Mikelson.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -276,10 +290,10 @@ i_height                        =                       p9
 i_pitchclassset                 =                       p10
 i_homogeneity                   =                       p11
 ifrequency                      =                       cpsmidinn(i_midikey)
-iamplitude                      =                       ampdb(i_midivelocity) 
+iamplitude                      =                       ampdb(i_midivelocity)
                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                 ;   p1  p2     p3   p4    p5     p6   p7
-                                ;       Start  Dur  Amp   Frqc   U    V  
+                                ;       Start  Dur  Amp   Frqc   U    V
                                 ; i 4   32     6    6000  6.00   3    2
                                 ; i 4   36     4    .     5.11   5.6  0.4
                                 ; i 4   +      4    .     6.05   2    8.5
@@ -316,13 +330,12 @@ aoutleft                        =                       aampenv * aox
 aoutright                       =                       aampenv * aoy
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   BandedWG
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -346,13 +359,12 @@ aoutleft, aoutright             pan2                    asignal * iamplitude * a
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
                                 endin
-                        
+
                                 instr                   BassModel
                                 //////////////////////////////////////////////
                                 // Original by Hans Mikelson.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -387,7 +399,7 @@ ablock3                         init                    0
 afiltr                          init                    0
 afeedbk                         init                    0
 koutenv                         linseg                  0, .01, 1, p3 - .11 , 1, .1 , 0 ; Output envelope
-kfltenv                         linseg                  0, 1.5, 1, 1.5, 0 
+kfltenv                         linseg                  0, 1.5, 1, 1.5, 0
                                 ; This envelope loads the string with a triangle wave.
 kenvstr                         linseg                  0, ipluck / 4, -ip4 / 2, ipluck / 2, ip4 / 2, ipluck / 4, 0, p3 - ipluck, 0
 aenvstr                         =                       kenvstr
@@ -399,7 +411,7 @@ ablock                          =                       ablock2
                                 ; Delay line with filtered feedback
 adline                          delay                   ablock + ainput, 1 / ifqc - 15 / sr
 afiltr                          tone                    adline, 400
-                                ; Resonance of the body 
+                                ; Resonance of the body
 abody1                          reson                   afiltr, 110, 40
 abody1                          =                       abody1 / 5000
 abody2                          reson                   afiltr, 70, 20
@@ -415,13 +427,12 @@ adeclick                        linsegr                 0.0, iattack, 1.0, isust
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   ChebyshevDrone
                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                 ; By Michael Gogins.
                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -459,7 +470,6 @@ aoutleft, aoutright             pan2                    asignal * adeclick, i_pa
                                 // Original by Jon Nelson.
                                 // Adapted by Michael Gogins.
                                 ///////////////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -522,7 +532,6 @@ aoutleft, aoutright		        pan2			        asignal * adeclick, i_pan
                                 //////////////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////////////
-                                pset                    0, 0, 1000
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -547,7 +556,7 @@ ihertzleft                      =                       cpsmidinn(ikeyin + idetu
 ihertzright                     =                       cpsmidinn(ikeyin - idetune)
 iamplitude                      =                       ampdb(i_midivelocity)
 isine                          ftgenonce                   0, 0, 65536,    10,     1
-icosine                        ftgenonce                   0, 0, 65536,    11,     1 
+icosine                        ftgenonce                   0, 0, 65536,    11,     1
 igenleft                        =                       isine
 igenright                       =                       icosine
 kvibrato                        oscili                  1.0 / 120.0, 7.0, icosine
@@ -574,7 +583,6 @@ aoutleft, aoutright             pan2                    asignal2 * adeclick, i_p
                                 // Original by John ffitch.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -594,7 +602,7 @@ p3                              =                       i_duration
 adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
 ifrequency                      =                       cpsmidinn(i_midikey)
 ; Normalize so iamplitude for p5 of 80 == ampdb(80).
-iamplitude                      =                       ampdb(i_midivelocity) 
+iamplitude                      =                       ampdb(i_midivelocity)
 idur                            =                       50
 iamp                            =                       iamplitude
 iffitch1                        ftgenonce               0, 0, 65536,     10,     1
@@ -631,7 +639,6 @@ aoutleft, aoutright             pan2                    asignal * adeclick, i_pa
                                 // Original by Perry Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -653,7 +660,7 @@ icrossfade                      =                       3
 ivibedepth                      =                       0.2
 iviberate                       =                       6
 isine                           ftgenonce               0, 0, 65536,    10,     1
-icosine                         ftgenonce               0, 0, 65536,    11,     1 
+icosine                         ftgenonce               0, 0, 65536,    11,     1
 icookblank                      ftgenonce               0, 0, 65536,     10,     0 ; Blank wavetable for some Cook FM opcodes.
 ifn1                            =                       isine
 ifn2                            =                       icosine
@@ -676,7 +683,6 @@ aoutleft, aoutright		        pan2			        asignal * adeclick, i_pan
                                 ; Original pfields
                                 ; p1 p2 p3 p4 p5 p6 p7 p8 p9
                                 ; ins st dur db func at dec freq1 freq2
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -746,7 +752,6 @@ aoutright                       =                       a18 * adeclick
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -767,7 +772,6 @@ ichannel                        =                       1
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -788,7 +792,6 @@ ichannel                        =                       2
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -804,12 +807,11 @@ i_homogeneity                   =                       p11
 ichannel                        =                       3
                                 fluidNote		        giFluidsynth, ichannel, i_midikey, i_midivelocity
                                 endin
-                                
+
                                 instr                   FluidSteinway
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -825,13 +827,12 @@ i_homogeneity                   =                       p11
 ichannel                        =                       0
                                 fluidNote		        giFluidsynth, ichannel, i_midikey, i_midivelocity
                                 endin
-                                
+
                                 instr                   Flute
                                 //////////////////////////////////////////////////////
                                 // Original by James Kelley.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////////////
-                                pset                    0, 0, 1000
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -903,7 +904,6 @@ aoutleft, aoutright             pan2                    a3 * adeclick, i_pan
                                 //////////////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -943,7 +943,6 @@ aoutleft, aoutright		        pan2			        asignal * iamplitude * adeclick, i_p
                                 //////////////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -984,7 +983,6 @@ aoutleft, aoutright		        pan2			        asignal * iamplitude * adeclick, i_p
                                 // Original by Thomas Kung.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1028,7 +1026,7 @@ a4                              =                       exp(-0.5 * a3 + ao1)
 ao2                             oscili                  a2 * ipch, ipch, icosine
                                 ; Final output left
 isine                          ftgenonce                   2, 0, 65536,    10,     1
-                                
+
 aoutl                           oscili                  1 * kadsr * a4, ao2 + cpsmidinn(ioct + ishift), isine
                                 ; Final output right
 aoutr                           oscili                  1 * kadsr * a4, ao2 + cpsmidinn(ioct - ishift), isine
@@ -1044,7 +1042,6 @@ aoutleft, aoutright		        pan2			        asignal * adeclick, i_pan
                                 // Original by Steven Yi.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1073,7 +1070,7 @@ env1:
 kenv 	                        linseg	                0, i_duration * .5, 1, i_duration * .5, 0
                                 kgoto                   endEnvelope
 env2:
-kenv	                        linseg 	                0, i_duration - .1, 1, .1, 0	
+kenv	                        linseg 	                0, i_duration - .1, 1, .1, 0
 kgoto                           endEnvelope
 endEnvelope:
 kc1                             =                       5
@@ -1102,7 +1099,6 @@ aoutleft, aoutright             pan2                    iamplitude * asignal * a
                                 // Original by Hans Mikelson.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1167,7 +1163,6 @@ aoutright                       =                       aoutr * kamp * iamplitud
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1207,7 +1202,6 @@ aoutleft, aoutright             pan2                    asignal * adeclick, i_pa
                                 //////////////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1284,7 +1278,6 @@ aoutleft, aoutright             pan2                    asignal * adeclick, ipan
                                 // Original by Perry Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 1000
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1340,7 +1333,6 @@ aoutleft, aoutright             pan2                    asignal * adeclick, i_pa
                                 ; i 3   +      4    .     8.05   2    8.5  0.7
                                 ; i 3   .      2    .     8.02   4    5    0.6
                                 ; i 3   .      2    .     8.02   5    0.5  1.2
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1355,7 +1347,7 @@ i_homogeneity                   =                       p11
 ifrequency                      =                       cpsmidinn(i_midikey)
 iamplitude                      =                       ampdb(i_midivelocity) * 4
 iHz                             =                       ifrequency
-ifqc                            init                    iHz        
+ifqc                            init                    iHz
 ip4                             init                    iamplitude
 ifqci                           init                    iHz
 ia                              =                       0.6 ; p6
@@ -1393,7 +1385,7 @@ ileftgain                       =                       sqrt(2.0) / 2.0 * (cos(i
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 1000
+
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1438,7 +1430,7 @@ aoutleft, aoutright             pan2                    asignal * adeclick, i_pa
                                 // Original by Thomas Kung.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 1000
+
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1495,7 +1487,6 @@ aoutleft, aoutright             pan2                    asignal * adeclick, i_pa
                                 //////////////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1550,7 +1541,7 @@ aoutleft, aoutright             pan2                    asignal * iamplitude * a
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
                                 endin
-                                
+
                                 instr                   PRCBowed
                                 //////////////////////////////////////////////////////
                                 // By Michael Gogins.
@@ -1568,12 +1559,12 @@ i_pitchclassset                 =                       p10
 i_homogeneity                   =                       p11
 ifrequency                      =                       cpsmidinn(i_midikey)
 iamplitude                      =                       ampdb(i_midivelocity) * 6
-                                ; Controllers: 
+                                ; Controllers:
                                 ;   1  Vibrato Gain
                                 ;   2  Bow Pressure
                                 ;   4  Bow Position
                                 ;  11  Vibrato Frequency
-                                ; 128  Volume 
+                                ; 128  Volume
 asignal 		                STKBowed 		        ifrequency, 1.0, 1, 1.8, 2, 120.0, 4, 50.0, 11, 20.0
 iattack                         =                       0.005
 isustain                        =                       p3
@@ -1584,13 +1575,12 @@ aoutleft, aoutright             pan2                    asignal * iamplitude * a
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
                                 endin
-                                
+
                                 instr                   STKBandedWG
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1613,14 +1603,13 @@ adeclick                        linsegr                 0.0, iattack, 1.0, isust
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
-                                
+                                endin
+
                                 instr                   STKBeeThree
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1645,14 +1634,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    aphased * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKBlowBotl
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1676,14 +1664,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKBlowHole
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1707,14 +1694,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKBowed
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1728,12 +1714,12 @@ i_pitchclassset                 =                       p10
 i_homogeneity                   =                       p11
 ifrequency                      =                       cpsmidinn(i_midikey)
 iamplitude                      =                       ampdb(i_midivelocity) * 8
-                                ; Controllers: 
+                                ; Controllers:
                                 ;   1  Vibrato Gain
                                 ;   2  Bow Pressure
                                 ;   4  Bow Position
                                 ;  11  Vibrato Frequency
-                                ; 128  Volume 
+                                ; 128  Volume
 asignal 		                STKBowed 		        ifrequency, 1.0, 1, 0.8, 2, 120.0, 4, 20.0, 11, 20.0
 idampingattack                  =                       .002
 idampingrelease                 =                       .01
@@ -1744,14 +1730,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKClarinet
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1775,14 +1760,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKDrummer
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1806,14 +1790,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKFlute
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1843,14 +1826,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKFMVoices
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1880,14 +1862,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKHvyMetl
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1917,14 +1898,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKMandolin
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1948,14 +1928,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
-                                
+                                endin
+
                                 instr                   STKModalBar
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1996,14 +1975,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
-                                
+                                endin
+
                                  instr                   STKMoog
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2027,14 +2005,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
-                                
+                                endin
+
                                  instr                   STKPercFlut
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2058,14 +2035,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
-                                
+                                endin
+
                                 instr                   STKPlucked
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2089,14 +2065,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
-                                
+                                endin
+
                                 instr                   STKResonate
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2109,7 +2084,7 @@ i_height                        =                       p9
 i_pitchclassset                 =                       p10
 i_homogeneity                   =                       p11
 ifrequency                      =                       cpsmidinn(i_midikey)
-iamplitude                      =                       ampdb(i_midivelocity) 
+iamplitude                      =                       ampdb(i_midivelocity)
                                 ;Control Change Numbers:
                                 ;    * Resonance Frequency (0-Nyquist) = 2
                                 ;    * Pole Radii = 4
@@ -2126,14 +2101,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
-                                
+                                endin
+
                                 instr                   STKRhodey
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2157,14 +2131,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
-                                
+                                endin
+
                                 instr                   STKSaxofony
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2196,14 +2169,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKShakers
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2257,14 +2229,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKSimple
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2293,14 +2264,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKSitar
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2324,14 +2294,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKTubeBell
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2355,14 +2324,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKVoicForm
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2386,14 +2354,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKWhistle
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2417,14 +2384,13 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   STKWurley
                                 //////////////////////////////////////////////
                                 // Original by Perry R. Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2448,7 +2414,7 @@ adeclick                        linsegr                 0, idampingattack, 1, id
 aoutleft, aoutright             pan2                    asignal * iamplitude * adeclick, i_pan
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
-                                endin                                
+                                endin
 
                                 instr                   StringPad
                                 //////////////////////////////////////////////
@@ -2457,7 +2423,6 @@ aoutleft, aoutright             pan2                    asignal * iamplitude * a
                                 //////////////////////////////////////////////
                                 ; String-pad borrowed from the piece "Dorian Gray",
                                 ; http://akozar.spymac.net/music/ Modified to fit my needs
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2499,7 +2464,6 @@ aoutleft, aoutright             pan2                    asignal * adeclick, i_pa
                                 // Original by Hans Mikelson.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 1000
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2559,7 +2523,6 @@ aoutleft, aoutright             pan2                    asignal * adeclick, i_pa
                                 // Original by Perry Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2596,11 +2559,11 @@ aoutleft, aoutright		        pan2	                asignal * iamplitude * adeclic
                                 outleta                 "outright", aoutright
                                 endin
 
+#ifdef VST
                                 instr                   VstPianoteq
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2616,13 +2579,13 @@ i_homogeneity                   =                       p11
 ichannel                        =                       0
                                 vstnote                 giPianoteq, ichannel, i_midikey, i_midivelocity, i_duration
                                 endin
-                                
+#endif
+
                                 instr                   WaveguideGuitar
                                 //////////////////////////////////////////////////////
                                 // Original by Jeff Livingston.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2639,17 +2602,17 @@ iamplitude                      =                       ampdb(i_midivelocity) / 
 iHz                             =                       ifrequency
                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                 ; The model takes pluck position, and pickup position (in % of string length), and generates
-                                ; a pluck excitation signal, representing the string displacement.  The pluck consists 
-                                ; of a forward and backward traveling displacement wave, which are recirculated thru two 
-                                ; separate delay lines, to simulate the one dimensional string waveguide, with 
+                                ; a pluck excitation signal, representing the string displacement.  The pluck consists
+                                ; of a forward and backward traveling displacement wave, which are recirculated thru two
+                                ; separate delay lines, to simulate the one dimensional string waveguide, with
                                 ; fixed ends.
                                 ;
                                 ; Losses due to internal friction of the string, and with air, as well as
-                                ; losses due to the mechanical impedance of the string terminations are simulated by 
+                                ; losses due to the mechanical impedance of the string terminations are simulated by
                                 ; low pass filtering the signal inside the feedback loops.
                                 ; Delay line outputs at the bridge termination are summed and fed into an IIR filter
                                 ; modeled to simulate the lowest two vibrational modes (resonances) of the guitar body.
-                                ; The theory implies that force due to string displacement, which is equivalent to 
+                                ; The theory implies that force due to string displacement, which is equivalent to
                                 ; displacement velocity times bridge mechanical impedance, is the input to the guitar
                                 ; body resonator model. Here we have modified the transfer fuction representing the bridge
                                 ; mech impedance, to become the string displacement to bridge input force transfer function.
@@ -2658,15 +2621,15 @@ iHz                             =                       ifrequency
                                 ; (based on a simplified model, viewing the top plate as a force driven spring).
                                 ;
                                 ; The effects of pluck hardness, and contact with frets during pluck release,
-                                ; have been modeled by injecting noise into the initial pluck, proportional to initial 
+                                ; have been modeled by injecting noise into the initial pluck, proportional to initial
                                 ; string displacement.
                                 ;
                                 ; Note on pluck shape: Starting with a triangular displacment, I found a decent sounding
                                 ; initial pluck shape after some trial and error.  This pluck shape, which is a linear
-                                ; ramp, with steep fall off, doesn't necessarily agree with the pluck string models I've 
-                                ; studied.  I found that initial pluck shape significantly affects the realism of the 
+                                ; ramp, with steep fall off, doesn't necessarily agree with the pluck string models I've
+                                ; studied.  I found that initial pluck shape significantly affects the realism of the
                                 ; sound output, but I the treatment of this topic in musical acoustics literature seems
-                                ; rather limited as far as I've encountered.  
+                                ; rather limited as far as I've encountered.
                                 ;
                                 ; Original pfields
                                 ; p1     p2   p3    p4    p5    p6      p7      p8       p9        p10         p11    p12   p13
@@ -2684,26 +2647,26 @@ ip13                            init                    0.0
 afwav                           init                    0
 abkwav                          init                    0
 abkdout                         init                    0
-afwdout                         init                    0 
+afwdout                         init                    0
 iEstr	                        init                    1.0 / cpspch(6.04)
 ifqc                            init                    iHz ; cpspch(p5)
                                 ; note:delay time=2x length of string (time to traverse it)
-idlt                            init                    1.0 / ifqc		
+idlt                            init                    1.0 / ifqc
 ipluck                          =                       0.5 * idlt * ip6 * ifqc / cpspch(8.02)
 ifbfac = ip7  			        ; feedback factor
                                 ; (exponentialy scaled) additive noise to add hi freq content
-ibrightness                     =                       ip10 * exp(ip6 * log(2)) / 2 
-ivibRate                        =                       ip11	
+ibrightness                     =                       ip10 * exp(ip6 * log(2)) / 2
+ivibRate                        =                       ip11
 ivibDepth                       pow                     2, ip12 / 12
                                 ; vibrato depth, +,- ivibDepth semitones
-ivibDepth                       =                       idlt - 1.0 / (ivibDepth * ifqc)	
+ivibDepth                       =                       idlt - 1.0 / (ivibDepth * ifqc)
                                 ; vibrato start delay (secs)
-ivibStDly                       =                       ip13 
+ivibStDly                       =                       ip13
                                 ; termination impedance model
                                 ; cutoff freq of LPF due to mech. impedance at the nut (2kHz-10kHz)
-if0                             =                       10000 
+if0                             =                       10000
                                 ; damping parameter of nut impedance
-iA0                             =                       ip7  
+iA0                             =                       ip7
 ialpha                          =                       cos(2 * 3.14159265 * if0 * 1 / sr)
                                 ; FIR LPF model of nut impedance,  H(z)=a0+a1z^-1+a0z^-2
 ia0                             =                       0.3 * iA0 / (2 * (1 - ialpha))
@@ -2724,35 +2687,35 @@ isegB                           =                       1 / sr
 isegB2                          =                       ipluck
 iplkdelB                        =                       (ipluck / 2 > idlt / 2 - ippos ? 0 : idlt / 2 - ippos - ipluck / 2)
                                 ; EXCITATION SIGNAL GENERATION
-                                ; the two excitation signals are fed into the fwd delay represent the 1st and 2nd 
-                                ; reflections off of the left boundary, and two accelerations fed into the bkwd delay 
+                                ; the two excitation signals are fed into the fwd delay represent the 1st and 2nd
+                                ; reflections off of the left boundary, and two accelerations fed into the bkwd delay
                                 ; represent the the 1st and 2nd reflections off of the right boundary.
-                                ; Likewise for the backward traveling acceleration waves, only they encouter the 
+                                ; Likewise for the backward traveling acceleration waves, only they encouter the
                                 ; terminations in the opposite order.
 ipw                             =                       1
 ipamp                           =                       ip4 * ipluck ; 4 / ipluck
 aenvstrf                        linseg                  0, isegF, -ipamp / 2, isegF2, 0
 adel1	                        delayr                  (idlt > 0) ? idlt : 0.01
                                 ; initial forward traveling wave (pluck to bridge)
-aenvstrf1                       deltapi                 iplkdelF        
-                                ; first forward traveling reflection (nut to bridge) 
-aenvstrf2                       deltapi                 iplkdelB + idlt / 2 
+aenvstrf1                       deltapi                 iplkdelF
+                                ; first forward traveling reflection (nut to bridge)
+aenvstrf2                       deltapi                 iplkdelB + idlt / 2
                                 delayw                  aenvstrf
-                                ; inject noise for attack time string fret contact, and pre pluck vibrations against pick 
+                                ; inject noise for attack time string fret contact, and pre pluck vibrations against pick
 anoiz                           rand	                ibrightness
 aenvstrf1                       =                       aenvstrf1 + anoiz*aenvstrf1
 aenvstrf2                       =                       aenvstrf2 + anoiz*aenvstrf2
                                 ; filter to account for losses along loop path
-aenvstrf2	                    filter2                 aenvstrf2, 3, 0, ia0, ia1, ia0 
+aenvstrf2	                    filter2                 aenvstrf2, 3, 0, ia0, ia1, ia0
                                 ; combine into one signal (flip refl wave's phase)
 aenvstrf                        =                       aenvstrf1 - aenvstrf2
-                                ; initial backward excitation wave  
-aenvstrb                        linseg                  0, isegB, - ipamp / 2, isegB2, 0  
+                                ; initial backward excitation wave
+aenvstrb                        linseg                  0, isegB, - ipamp / 2, isegB2, 0
 adel2	                        delayr                  (idlt > 0) ? idlt : 0.01
                                 ; initial bdwd traveling wave (pluck to nut)
-aenvstrb1                       deltapi                 iplkdelB        
-                                ; first forward traveling reflection (nut to bridge) 
-aenvstrb2                       deltapi                 idlt / 2 + iplkdelF 
+aenvstrb1                       deltapi                 iplkdelB
+                                ; first forward traveling reflection (nut to bridge)
+aenvstrb2                       deltapi                 idlt / 2 + iplkdelF
                                 delayw                  aenvstrb
                                 ; initial bdwd traveling wave (pluck to nut)
 ;  aenvstrb1	delay	aenvstrb,  iplkdelB
@@ -2773,31 +2736,31 @@ ainputb                         tone                    aenvstrb, sr * 0.9 / 2
 ainputf                         tone                    ainputf, sr * 0.9 / 2
 ainputb                         tone                    ainputb, sr * 0.9 / 2
                                 ; Vibrato generator
-icosine                         ftgenonce               0, 0, 65536,    11,     1.0                        
+icosine                         ftgenonce               0, 0, 65536,    11,     1.0
 avib                            poscil                  ivibDepth, ivibRate, icosine
 avibdl		                    delayr		            (((ivibStDly * 1.1)) > 0.0) ? (ivibStDly * 1.1) : 0.01
 avibrato	                    deltapi	                ivibStDly
                                 delayw		            avib
-                                ; Dual Delay line, 
-                                ; NOTE: delay length longer than needed by a bit so that the output at t=idlt will be interpolated properly        
+                                ; Dual Delay line,
+                                ; NOTE: delay length longer than needed by a bit so that the output at t=idlt will be interpolated properly
                                 ;forward traveling wave delay line
 afd  		                    delayr                  (((idlt + ivibDepth) * 1.1) > 0.0) ? ((idlt + ivibDepth) * 1.1) : 0.01
                                 ; output tap point for fwd traveling wave
-afwav  	                        deltapi                 ipupos    	
+afwav  	                        deltapi                 ipupos
                                 ; output at end of fwd delay (left string boundary)
-afwdout	                        deltapi                 idlt - 1 / sr + avibrato	
-                                ; lpf/attn due to reflection impedance		
-afwdout	                        filter2                 afwdout, 3, 0, ia0, ia1, ia0  
+afwdout	                        deltapi                 idlt - 1 / sr + avibrato
+                                ; lpf/attn due to reflection impedance
+afwdout	                        filter2                 afwdout, 3, 0, ia0, ia1, ia0
                                 delayw                  ainputf + afwdout * ifbfac * ifbfac
                                 ; backward trav wave delay line
 abkwd  	                        delayr                  (((idlt + ivibDepth) * 1.1) > 0) ? ((idlt + ivibDepth) * 1.1) : 0.01
                                 ; output tap point for bkwd traveling wave
-abkwav  	                    deltapi                 idlt / 2 - ipupos		
+abkwav  	                    deltapi                 idlt / 2 - ipupos
                                 ; output at the left boundary
-; abkterm	deltapi	idlt/2				
+; abkterm	deltapi	idlt/2
                                 ; output at end of bkwd delay (right string boundary)
-abkdout	                        deltapi                 idlt - 1 / sr + avibrato	
-abkdout	                        filter2                 abkdout, 3, 0, ia0, ia1, ia0  	
+abkdout	                        deltapi                 idlt - 1 / sr + avibrato
+abkdout	                        filter2                 abkdout, 3, 0, ia0, ia1, ia0
                                 delayw                  ainputb + abkdout * ifbfac * ifbfac
                                 ; resonant body filter model, from Cuzzucoli and Lombardo
                                 ; IIR filter derived via bilinear transform method
@@ -2811,7 +2774,7 @@ aoutleft, aoutright             pan2                    asignal * iamplitude, i_
                                 outleta                 "outleft",  aoutleft
                                 outleta                 "outright", aoutright
                                 endin
-                                
+
                                 instr                   Xing
                                 //////////////////////////////////////////////
                                 // Original by Andrew Horner.
@@ -2892,7 +2855,6 @@ if34                   		    ftgenonce               0, 0, 65536,    -10,    94,
 if35                   		    ftgenonce               0, 0, 65536,    -10,    2661, 87, 33, 18
 if36                   		    ftgenonce               0, 0, 65536,    -10,    174, 12
 if37                   		    ftgenonce               0, 0, 65536,    -10,    314, 13
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -3098,11 +3060,11 @@ aoutleft, aoutright             pan2                    asignal * adeclick, i_pa
                                 // OUTPUT INSTRUMENTS MUST GO BELOW HERE
                                 //////////////////////////////////////////////
 
+#ifdef FLUID
                                 instr                   FluidAudio
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -3114,12 +3076,13 @@ aoutright			            =			            i_midivelocity * aoutright * 10000
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
                                 endin
+#endif
 
+#ifdef VST
                                 instr                   VstPianoteqAudio
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 3600
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -3128,12 +3091,12 @@ i_midivelocity                  =                       p5
 ainleft                         init                    0.0
 ainright                        init                    0.0
 aoutleft, aoutright             vstaudiog               giPianoteq, ainleft, ainright
-aoutleft			            = 			            i_midivelocity * aoutleft 
-aoutright			            =			            i_midivelocity * aoutright 
+aoutleft			            = 			            i_midivelocity * aoutleft
+aoutright			            =			            i_midivelocity * aoutright
                                 outleta                 "outleft", aoutleft
                                 outleta                 "outright", aoutright
                                 endin
-
+#endif
                                 instr                   Reverberation
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
@@ -3168,7 +3131,7 @@ aoutright                       compress                ainright,       ainright
                                 endif
                                 outleta                 "outleft",      aoutleft
                                 outleta                 "outright",     aoutright
-                                endin   
+                                endin
 
                                 instr                   ParametricEq1
                                 //////////////////////////////////////////////
@@ -3230,9 +3193,8 @@ aoutleft                        =                       gkMasterLevel * ainleft
 aoutright                       =                       gkMasterLevel * ainright
                                 outs                    aoutleft, aoutright
                                 endin
-                                
+
 </CsInstruments>
 <CsScore>
-f 0 3600
 </CsScore>
 </CsoundSynthesizer>
