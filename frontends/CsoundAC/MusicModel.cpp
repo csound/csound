@@ -74,7 +74,7 @@ namespace csound
     char buffer[0x100];
     //std::sprintf(buffer, "\ns %9.3f", extendSeconds);
     //cppSound->addScoreLine(buffer);
-    std::sprintf(buffer, "\ne %9.3f", extendSeconds);
+    std::sprintf(buffer, "\ne %9.3f\n", extendSeconds);
     cppSound->addScoreLine(buffer);
     //cppSound->exportForPerformance();
   }

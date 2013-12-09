@@ -509,7 +509,6 @@ aoutleft, aoutright		        pan2			        asignal * adeclick, i_pan
                                 //////////////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////////////
-                                pset                    0, 0, 1000
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -738,7 +737,6 @@ aoutright                       =                       a18 * adeclick
                                 // Original by James Kelley.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////////////
-                                pset                    0, 0, 1000
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1199,7 +1197,6 @@ aoutleft, aoutright             pan2                    asignal * adeclick, ipan
                                 // Original by Perry Cook.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 1000
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1310,7 +1307,6 @@ ileftgain                       =                       sqrt(2.0) / 2.0 * (cos(i
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 1000
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -1356,7 +1352,6 @@ aoutleft, aoutright             pan2                    asignal * adeclick, i_pa
                                 // Original by Thomas Kung.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 1000
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
@@ -2491,7 +2486,6 @@ aoutleft, aoutright             pan2                    asignal * adeclick, i_pa
                                 // Original by Hans Mikelson.
                                 // Adapted by Michael Gogins.
                                 //////////////////////////////////////////////
-                                pset                    0, 0, 1000
 i_instrument                    =                       p1
 i_time                          =                       p2
 i_duration                      =                       p3
