@@ -354,7 +354,7 @@ struct Inleta : public OpcodeBase<Inleta> {
                       &aoutlets) == sourceOutlets->end()) {
           sourceOutlets->push_back(&aoutlets);
           warn(csound,
-               Str("Connected instances of out/let %s to instance 0x%x of "
+               Str("Connected instances of outlet %s to instance 0x%x of "
                    "inlet %s.\n"), sourceOutletId.c_str(), this, sinkInletId);
         }
       }
@@ -737,7 +737,7 @@ struct Outletv : public OpcodeBase<Outletv> {
    */
   char sourceOutletId[0x100];
   int init(CSOUND *csound) {
-    //warn(csound, "BEGAN Outleta::init()...\n");
+    warn(csound, "BEGAN Outletv::init()...\n");
 //#pragma omp critical (cs_sfg_ports)
     csound->UnlockMutex(cs_sfg_ports);
     {
@@ -758,7 +758,7 @@ struct Outletv : public OpcodeBase<Outletv> {
              this, voutlets.size(), sourceOutletId);
       }
     }
-    //warn(csound, "ENDED Outleta::init()...\n");
+    warn(csound, "ENDED Outletv::init()...\n");
     csound->UnlockMutex(cs_sfg_ports);
     return OK;
   }
@@ -785,14 +785,16 @@ struct Inletv : public OpcodeBase<Inletv> {
 //#pragma omp critical (cs_sfg_ports)
     csound->LockMutex(cs_sfg_ports);
     {
-      warn(csound, "BEGAN Inleta::init()...\n");
+      warn(csound, "BEGAN Inletv::init()...\n");
       sampleN = opds.insdshead->ksmps;
       // The array elements may be krate (1 MYFLT) or arate (ksmps MYFLT).
       myFltsPerArrayElement = vsignal->arrayMemberSize / sizeof(MYFLT);
+      warn(csound, "myFltsPerArrayElement: %d\n", myFltsPerArrayElement);
       arraySize = myFltsPerArrayElement;
       for(size_t dimension = 0; dimension < vsignal->dimensions; ++dimension) {
           arraySize *= MYFLT2LRND(vsignal->sizes[dimension]);
       }
+      warn(csound, "arraySize: %d\n", arraySize);
       warn(csound, "sourceOutlets: 0x%x\n", sourceOutlets);
       if (std::find(voutletVectorsForCsounds[csound].begin(),
                     voutletVectorsForCsounds[csound].end(),
@@ -832,7 +834,7 @@ struct Inletv : public OpcodeBase<Inletv> {
                    "inlet %s.\n"), sourceOutletId.c_str(), this, sinkInletId);
         }
       }
-      warn(csound, "ENDED Inleta::init().\n");
+      warn(csound, "ENDED Inletv::init().\n");
     }
     csound->UnlockMutex(cs_sfg_ports);
     return OK;
@@ -1526,7 +1528,7 @@ extern "C"
       CW,
       5,
       (char *)"",
-      (char *)"Sx[]",
+      (char *)"Sa[]",
       (SUBR)&Outletv::init_,
       0,
       (SUBR)&Outletv::audio_
@@ -1536,7 +1538,7 @@ extern "C"
       sizeof(Inletv),
       CR,
       5,
-      (char *)"x[]",
+      (char *)"a[]",
       (char *)"S",
       (SUBR)&Inletv::init_,
       0,
