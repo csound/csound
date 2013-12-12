@@ -97,6 +97,9 @@
  * to ftgenonce with the same arguments receives the same instance of the
  * function table data. Every change in the value of any ftgenonce argument
  * causes the creation of a new function table.
+ *
+ * TODO: The inletv opcode always crashes. Not sure why. Perhaps the
+ * array operations are not ready for prime time at a-rate.
  */
 
 #include "OpcodeBase.hpp"
@@ -754,8 +757,8 @@ struct Outletv : public OpcodeBase<Outletv> {
         voutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
       if (std::find(voutlets.begin(), voutlets.end(), this) == voutlets.end()) {
         voutlets.push_back(this);
-        warn(csound, "Created instance 0x%x of %d instances of outlet %s\n",
-             this, voutlets.size(), sourceOutletId);
+        warn(csound, "Created instance 0x%x of %d instances of outlet %s (out arraydat: 0x%x dims: %2d size: %4d [%4d] data: 0x%x (0x%x))\n",
+             this, voutlets.size(), sourceOutletId, vsignal, vsignal->dimensions, vsignal->sizes[0], vsignal->arrayMemberSize, vsignal->data, &vsignal->data);
       }
     }
     warn(csound, "ENDED Outletv::init()...\n");
@@ -816,7 +819,8 @@ struct Inletv : public OpcodeBase<Inletv> {
         vinletsForCsoundsForSinkInletIds[csound][sinkInletId];
       if (std::find(vinlets.begin(), vinlets.end(), this) == vinlets.end()) {
         vinlets.push_back(this);
-        warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
+        warn(csound, "Created instance 0x%x of inlet %s (in arraydat: 0x%x dims: %2d size: %4d [%4d] data: 0x%x (0x%x))\n",
+             this, sinkInletId, vsignal, vsignal->dimensions, vsignal->sizes[0], vsignal->arrayMemberSize, vsignal->data, &vsignal->data);
       }
       // Find source outlets connecting to this.
       // Any number of sources may connect to any number of sinks.
@@ -831,7 +835,7 @@ struct Inletv : public OpcodeBase<Inletv> {
           sourceOutlets->push_back(&voutlets);
           warn(csound,
                Str("Connected instances of outlet %s to instance 0x%x of "
-                   "inlet %s.\n"), sourceOutletId.c_str(), this, sinkInletId);
+                   "inlet %s\n"), sourceOutletId.c_str(), this, sinkInletId);
         }
       }
       warn(csound, "ENDED Inletv::init().\n");
@@ -846,15 +850,10 @@ struct Inletv : public OpcodeBase<Inletv> {
 //#pragma omp critical (cs_sfg_ports)
     csound->LockMutex(cs_sfg_ports);
     {
-
       //warn(csound, "BEGAN Inletv::audio()...\n");
-      // Zero the inlet buffer.
-      //for (int sampleI = 0; sampleI < sampleN; sampleI++) {
-      //  vsignal[sampleI] = FL(0.0);
+      //for (uint32_t signalI = 0; signalI < arraySize; ++signalI) {
+      //  vsignal->data[signalI] = FL(0.0);
       //}
-      for (uint32_t signalI = 0; signalI < arraySize; ++signalI) {
-        vsignal->data[signalI] = FL(0.0);
-      }
       // Loop over the source connections...
       for (size_t sourceI = 0, sourceN = sourceOutlets->size();
            sourceI < sourceN;
@@ -868,7 +867,10 @@ struct Inletv : public OpcodeBase<Inletv> {
           // Skip inactive instances.
           if (sourceOutlet->opds.insdshead->actflg) {
             for (uint32_t signalI = 0; signalI < arraySize; ++signalI) {
-                vsignal->data[signalI] += sourceOutlet->vsignal->data[signalI];
+                ARRAYDAT *insignal = sourceOutlet->vsignal;
+                MYFLT *indata = insignal->data;
+                //warn(csound, "Inletv::audio: sourceOutlet: 0%x in arraydat: 0x%x data: 0x%x (0x%x)\n", sourceOutlet, insignal, indata, &insignal->data);
+                vsignal->data[signalI] += indata[signalI];
             }
           }
         }
