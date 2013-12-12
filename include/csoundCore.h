@@ -214,8 +214,6 @@ typedef struct {
     int     realtime; /* realtime priority mode  */
     MYFLT   e0dbfs_override;
     int     daemon;
-
-    int     csdebug; /* run Csound in debugger mode */
   } OPARMS;
 
   typedef struct arglst {
@@ -1655,8 +1653,8 @@ typedef struct NAME__ {
     int           jumpset;
     int           info_message_request;
     int           modules_loaded;
-    struct CSOUND_ **self;
     void*         csdebug_data; /* debugger data */
+    struct CSOUND_ **self; /* unused ? */
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
   };

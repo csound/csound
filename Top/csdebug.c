@@ -1,5 +1,5 @@
 /*
-    csdebug.h:
+    csdebug.c:
 
     Copyright (C) 2013 Andres Cabrera
 
@@ -34,6 +34,7 @@ PUBLIC void csoundDebuggerInit(CSOUND *csound)
     data->bkpt_anchor->line = -1;
     data->bkpt_anchor->next = NULL;
     data->debug_instr_ptr = NULL;
+    data->status = CSDEBUG_STATUS_RUNNING;
     data->bkpt_buffer = csoundCreateCircularBuffer(csound, 64, sizeof(bkpt_node_t **));
     csound->csdebug_data = data;
 }
@@ -56,7 +57,7 @@ PUBLIC void csoundDebuggerClean(CSOUND *csound)
 PUBLIC void csoundDebugSetMode(CSOUND *csound, debug_mode_t enabled)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    if (enabled)
+//    if (enabled)
     data->csdebug_on = enabled;
 }
 
@@ -114,17 +115,20 @@ PUBLIC void csoundClearBreakpoints(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
-    bkpt_node_t *newpoint;
+    bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t));
+    newpoint->line = -1;
+    newpoint->instr = -1;
     newpoint->mode = CSDEBUG_BKPT_CLEAR_ALL;
     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
 }
 
-PUBLIC void csoundSetBreakpointCallback(CSOUND *csound, breakpoint_cb_t bkpt_cb)
+PUBLIC void csoundSetBreakpointCallback(CSOUND *csound, breakpoint_cb_t bkpt_cb, void *userdata)
 {
 
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
     data->bkpt_cb = bkpt_cb;
+    data->cb_data = userdata;
 }
 
 /* FIXME make command operations atomic, and make them block until message has been processed */

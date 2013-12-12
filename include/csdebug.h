@@ -41,6 +41,12 @@ typedef enum {
     CSDEBUG_BKPT_CLEAR_ALL
 } bkpt_mode_t;
 
+typedef enum {
+    CSDEBUG_STATUS_RUNNING,
+    CSDEBUG_STATUS_STOPPED,
+    CSDEBUG_STATUS_CONTINUE
+} debug_status_t;
+
 typedef struct bkpt_node_s {
     int line; /* if line is < 0 breakpoint is for instrument instances */
     MYFLT instr; /* instrument number (including fractional part */
@@ -57,23 +63,29 @@ typedef enum {
     CSDEBUG_CMD_STOP
 } debug_command_t;
 
-typedef void (*breakpoint_cb_t) (CSOUND *, int line, double instr);
-
-typedef struct {
-    void *bkpt_buffer; /* for passing breakpoints to the running engine */
-    int csdebug_on;
-    debug_command_t command;
-    bkpt_node_t *bkpt_anchor;
-    INSDS *debug_instr_ptr; /* != NULL when stopped at a breakpoint */
-    pthread_mutex_t bkpt_mutex;
-    breakpoint_cb_t bkpt_cb;
-} csdebug_data_t;
-
 typedef enum {
     CSDEBUG_OFF = 0x0,
     CSDEBUG_K = 0x01,
     CSDEBUG_INIT = 0x02
 } debug_mode_t;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef void (*breakpoint_cb_t) (CSOUND *, int line, double instr, void *userdata);
+
+typedef struct {
+    void *bkpt_buffer; /* for passing breakpoints to the running engine */
+    int csdebug_on;
+    debug_status_t status;
+    debug_command_t command;
+    bkpt_node_t *bkpt_anchor;
+    INSDS *debug_instr_ptr; /* != NULL when stopped at a breakpoint */
+    pthread_mutex_t bkpt_mutex;
+    breakpoint_cb_t bkpt_cb;
+    void *cb_data;
+} csdebug_data_t;
 
 
 PUBLIC void csoundDebuggerInit(CSOUND *csound);
@@ -87,7 +99,7 @@ PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr);
 PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr);
 PUBLIC void csoundClearBreakpoints(CSOUND *csound);
 
-PUBLIC void csoundSetBreakpointCallback(CSOUND *csound, breakpoint_cb_t bkpt_cb);
+PUBLIC void csoundSetBreakpointCallback(CSOUND *csound, breakpoint_cb_t bkpt_cb, void *userdata);
 
 PUBLIC void csoundDebugStepOver(CSOUND *csound);
 PUBLIC void csoundDebugStepInto(CSOUND *csound);
@@ -96,6 +108,11 @@ PUBLIC void csoundDebugContinue(CSOUND *csound);
 PUBLIC void csoundDebugStop(CSOUND *csound);
 
 PUBLIC INSDS *csoundDebugGetInstrument(CSOUND *csound);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #ifndef __BUILDING_LIBCSOUND_DEFINED
 #undef __BUILDING_LIBCSOUND
