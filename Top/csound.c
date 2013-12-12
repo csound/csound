@@ -70,6 +70,10 @@
 
 #include "csound_standard_types.h"
 
+#ifdef CSDEBUGGER
+#include "csdebug.h"
+#endif
+
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
@@ -1439,18 +1443,9 @@ unsigned long kperfThread(void * cs)
 
 int kperf(CSOUND *csound)
 {
-    INSDS *ip;
-    /* update orchestra time */
-    csound->kcounter = ++(csound->global_kcounter);
-    csound->icurTime += csound->ksmps;
-    csound->curBeat += csound->curBeat_inc;
-
-
-    /* if skipping time on request by 'a' score statement: */
-    if (UNLIKELY(csound->advanceCnt)) {
-      csound->advanceCnt--;
-      return 1;
-    }
+    INSDS *ip = NULL;
+    INSDS *debugip = NULL;
+    
     /* if i-time only, return now */
     if (UNLIKELY(csound->initonly))
       return 1;
@@ -1460,13 +1455,67 @@ int kperf(CSOUND *csound)
       csound->evt_poll_cnt = csound->evt_poll_maxcnt;
       if (UNLIKELY(!csoundYield(csound))) csound->LongJmp(csound, 1);
     }
+#ifdef CSDEBUGGER
+    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
+    bkpt_node_t *bkpt_node;
+    /* process new breakpoints */
+    if (data) {
+        while (csoundReadCircularBuffer(csound, data->bkpt_buffer, &bkpt_node, 1) == 1) {
+            if (bkpt_node->mode == CSDEBUG_BKPT_CLEAR_ALL) {
+                bkpt_node_t *n;
+                while (data->bkpt_anchor->next) {
+                    n = data->bkpt_anchor->next;
+                    data->bkpt_anchor->next = n->next;
+                    free(n); /* TODO this should be moved from kperf to a non-realtime context */
+                }
+                free(bkpt_node);
+            } else if (bkpt_node->mode == CSDEBUG_BKPT_DELETE) {
+                bkpt_node_t *n = data->bkpt_anchor->next;
+                bkpt_node_t *prev = data->bkpt_anchor;
+                while (n) {
+                    if (n->line == bkpt_node->line && n->instr == bkpt_node->instr) {
+                        prev->next = n->next;
+                        free(n); /* TODO this should be moved from kperf to a non-realtime context */
+                        n = prev->next;
+                        continue;
+                    }
+                    prev = n;
+                    n = n->next;
+                }
+                free(bkpt_node); /* TODO move to non rt context */
+            } else {
+                // TODO sort list to optimize
+                bkpt_node->next = data->bkpt_anchor->next;
+                data->bkpt_anchor->next = bkpt_node;
+            }
+        }
 
-    /* for one kcnt: */
-    if (csound->oparms_.sfread)         /*   if audio_infile open  */
-      csound->spinrecv(csound);         /*      fill the spin buf  */
-    csound->spoutactive = 0;            /*   make spout inactive   */
-    /* clear spout */
-    memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
+        if (data->command == CSDEBUG_CMD_CONTINUE) {
+            data->status = CSDEBUG_STATUS_CONTINUE;
+            data->command = CSDEBUG_CMD_NONE;
+        }
+    }
+
+    if (data && data->status != CSDEBUG_STATUS_STOPPED)
+#endif
+    {        
+      /* update orchestra time */
+      csound->kcounter = ++(csound->global_kcounter);
+      csound->icurTime += csound->ksmps;
+      csound->curBeat += csound->curBeat_inc;
+      /* if skipping time on request by 'a' score statement: */
+      if (UNLIKELY(csound->advanceCnt)) {
+        csound->advanceCnt--;
+          return 1;
+      }
+
+      /* for one kcnt: */
+      if (csound->oparms_.sfread)         /*   if audio_infile open  */
+        csound->spinrecv(csound);         /*      fill the spin buf  */
+      csound->spoutactive = 0;            /*   make spout inactive   */
+      /* clear spout */
+      memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
+    }
     ip = csound->actanchor.nxtact;
 
     if (ip != NULL) {
@@ -1491,6 +1540,30 @@ int kperf(CSOUND *csound)
 
         while (ip != NULL) {                /* for each instr active:  */
           INSDS *nxt = ip->nxtact;
+#ifdef CSDEBUGGER
+          if(data) {
+              /* TODO commands must be put in a lockfree queue */
+              if(data->status == CSDEBUG_STATUS_CONTINUE) {
+                  debugip = ((csdebug_data_t *)csound->csdebug_data)->debug_instr_ptr;
+                  if (debugip) { /* if not NULL, resume from last active, and clear debugip */
+                      ip = debugip;
+                      debugip = NULL;
+                  }
+                  data->status = CSDEBUG_STATUS_RUNNING;
+              } else { /* check if we have arrived at an instrument breakpoint */
+                  bkpt_node_t *bp_node = data->bkpt_anchor->next;
+                  while (bp_node) {
+                      if (bp_node->instr == ip->p1) {
+                          data->debug_instr_ptr = ip;
+                          data->bkpt_cb(csound, 0, ip->p1, data->cb_data);
+                          data->status = CSDEBUG_STATUS_STOPPED;
+                          return 0;
+                      }
+                      bp_node = bp_node->next;
+                  }
+              }
+          }
+#endif
           if (UNLIKELY(csound->oparms->sampleAccurate &&
                        ip->offtim > 0                 &&
                        time_end > ip->offtim)) {
@@ -1560,10 +1633,15 @@ int kperf(CSOUND *csound)
       }
     }
 
-    if (!csound->spoutactive) {             /*   results now in spout? */
-      memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
+#ifdef CSDEBUGGER
+    if (data && ! data->debug_instr_ptr)
+#endif
+    {
+      if (!csound->spoutactive) {             /*   results now in spout? */
+        memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
+      }
+      csound->spoutran(csound);               /*      send to audio_out  */
     }
-    csound->spoutran(csound);               /*      send to audio_out  */
     return 0;
 }
 

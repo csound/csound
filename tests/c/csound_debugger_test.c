@@ -1,8 +1,6 @@
 /*
- * File:   main.c
- * Author: stevenyi
- *
- * Created on June 7, 2012, 4:03 PM
+ * File:   csound_debugger_test.c
+ * Author: mantaraya36
  */
 
 #include <stdio.h>
@@ -17,6 +15,7 @@ int init_suite1(void)
 {
     return 0;
 }
+
 
 int clean_suite1(void)
 {
@@ -43,17 +42,21 @@ void test_add_bkpt(void)
     csoundDestroy(csound);
 }
 
-static void brkpt_cb(CSOUND *csound, int line, double instr)
+static void brkpt_cb(CSOUND *csound, int line, double instr, void *userdata)
 {
-    INSDS *i = csoundDebugGetInstrument(csound);
+//    INSDS *i = csoundDebugGetInstrument(csound);
+    int *count = (int *) userdata;
     printf("bkpt line %i instr %f\n", line, instr);
+    *count = *count + 1;
+    csoundRemoveInstrumentBreakpoint(csound, instr);
+    csoundDebugContinue(csound);
 }
 
 void test_add_callback(void)
 {
     CSOUND* csound = csoundCreate(NULL);
     csoundDebuggerInit(csound);
-    csoundSetBreakpointCallback(csound, brkpt_cb);
+    csoundSetBreakpointCallback(csound, brkpt_cb, NULL);
     csoundDebuggerClean(csound);
     csoundDestroy(csound);
 }
@@ -61,19 +64,22 @@ void test_add_callback(void)
 void test_breakpoint(void)
 {
     int i;
+    int break_count = 0;
     CSOUND* csound = csoundCreate(NULL);
     csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n");
-    csoundInputMessage(csound, "i 1.1 0 1 440");
-    csoundInputMessage(csound, "i 1.2 1 1 880");
-    csoundInputMessage(csound, "i 1.1 2 1 440");
+    csoundInputMessage(csound, "i 1.1 0   1 440");
+    csoundInputMessage(csound, "i 1.2 0   1 880");
+    csoundInputMessage(csound, "i 1.1 0.1 1 440");
     csoundStart(csound);
     csoundDebuggerInit(csound);
-    csoundSetBreakpointCallback(csound, brkpt_cb);
+    csoundSetBreakpointCallback(csound, brkpt_cb, (void *) &break_count);
     csoundSetInstrumentBreakpoint(csound, 1.1);
+    csoundSetInstrumentBreakpoint(csound, 1.2);
 
     for (i = 0; i < 1000; i++) {
         csoundPerformKsmps(csound);
     }
+    CU_ASSERT(break_count == 2);
 
     csoundDebuggerClean(csound);
     csoundDestroy(csound);
