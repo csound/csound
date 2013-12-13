@@ -644,6 +644,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     }
 
     csound->ksmps = ksmps;
+    
     csound->nchnls = nchnls;
     if(inchnls==0) csound->inchnls = nchnls;
     else csound->inchnls = inchnls;
@@ -651,7 +652,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->ekr = kr;
     if(_0dbfs < 0) csound->e0dbfs = DFLT_DBFS;
     else csound->e0dbfs = _0dbfs;
-
+    
 
     OPARMS  *O = csound->oparms;
     if (UNLIKELY(csound->e0dbfs <= FL(0.0))){
@@ -671,6 +672,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                       "0dbfs = %.1f\n",
                       csound->esr, csound->ekr, csound->ksmps,
                       csound->nchnls, csound->e0dbfs);
+    
     if (O->sr_override) {        /* if command-line overrides, apply now */
       MYFLT ensmps;
       csound->esr = (MYFLT) O->sr_override;
@@ -695,7 +697,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
       }
     }
-
+    
     csound->tpidsr = TWOPI_F / csound->esr;               /* now set internal  */
     csound->mtpdsr = -(csound->tpidsr);                   /*    consts         */
     csound->pidsr = PI_F / csound->esr;
@@ -711,6 +713,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       reallocateVarPoolMemory(csound, engineState->varPool);
     }
     close_instrument(csound, engineState, ip);
+     
     return ip;
 }
 
@@ -813,6 +816,16 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
     ip->t.outlist->count = 0;
     ip->t.inlist = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
     ip->t.inlist->count = 1;
+
+    /* create local ksmps variable */
+     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R; 
+     CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool, 
+                                            rType, "ksmps", NULL); 
+     csoundAddVariable(ip->varPool, var); 
+     /* same for kr */
+     var = csoundCreateVariable(csound, csound->typePool, 
+                                            rType, "kr", NULL); 
+     csoundAddVariable(ip->varPool, var); 
 
     /* Maybe should do this assignment at end when instr is setup?
      * Note: look into how "instr 4,5,6,8" is handled, i.e. if copies
@@ -1608,6 +1621,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       while ((ip = ip->nxtinstxt) != NULL) {        /* add all other entries */
         insprep(csound, ip, engineState);           /*   as combined offsets */
         recalculateVarPoolMemory(csound, ip->varPool);
+        printf("size of varpool: %d \n", ip->varPool->poolSize);
       }
 
       CS_VARIABLE *var;
@@ -1617,6 +1631,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       *((MYFLT *)(var->memBlock)) = csound->ekr;
       var = csoundFindVariableWithName(engineState->varPool, "ksmps");
       *((MYFLT *)(var->memBlock)) = csound->ksmps;
+      printf("KSMPS::::: %f \n", csound->ksmps);
       var = csoundFindVariableWithName(engineState->varPool, "nchnls");
       *((MYFLT *)(var->memBlock)) = csound->nchnls;
       if (csound->inchnls<0) csound->inchnls = csound->nchnls;
@@ -1782,6 +1797,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
                n++, inArgs = inArgs->next) {
             switch (inArgs->type) {
               case ARG_CONSTANT:
+                
                 *fp1++ = engineState->constantsPool->values[inArgs->index];
                 break;
 
@@ -1853,7 +1869,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
     int         n;
 
     c = *s;
-
+     
     ARG* arg = csound->Calloc(csound, sizeof(ARG));
 
     if (UNLIKELY(csound->oparms->odebug))
@@ -1863,6 +1879,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
     if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
         (c == '0' && strcmp(s, "0dbfs") != 0)) {
       arg->type = ARG_CONSTANT;
+     
       arg->index = myflt_pool_find_or_addc(csound, engineState->constantsPool, s);
     } else if (c == '"') {
       STRINGDAT *str = mcalloc(csound, sizeof(STRINGDAT));
@@ -1880,19 +1897,24 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       arg->type = ARG_PFIELD;
       arg->index = n;
     }
+    /* trap local ksmps and kr  */
+    else if ( (strcmp(s, "ksmps") == 0 && csoundFindVariableWithName(ip->varPool, s))
+             || (strcmp(s, "kr") == 0 && csoundFindVariableWithName(ip->varPool, s))){
+      arg->type = ARG_LOCAL;
+      arg->argPtr = csoundFindVariableWithName(ip->varPool, s);
+      CS_VARIABLE *var = (CS_VARIABLE *)arg->argPtr;     
+    }
     else if (c == 'g' || (c == '#' && *(s+1) == 'g') ||
              csoundFindVariableWithName(csound->engineState.varPool, s) != NULL) {
       // FIXME - figure out why string pool searched with gexist
-      //|| string_pool_indexof(csound->engineState.stringPool, s) > 0) {
-
+      //|| string_pool_indexof(csound->engineState.stringPool, s) > 0) {     
       arg->type = ARG_GLOBAL;
       arg->argPtr = csoundFindVariableWithName(engineState->varPool, s);
-
+   
     }
     else {
       arg->type = ARG_LOCAL;
       arg->argPtr = csoundFindVariableWithName(ip->varPool, s);
-
       if(arg->argPtr == NULL) {
         csound->Message(csound, Str("Missing local arg: %s\n"), s);
       }
@@ -1909,6 +1931,7 @@ char argtyp2(char *s)
     /* two situations: defined at header level: 0dbfs = 1.0
      *  and returned as a value:  idb = 0dbfs
      */
+    
     if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
         (c == '0' && strcmp(s, "0dbfs") != 0))
       return('c');                              /* const */

@@ -1185,6 +1185,17 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       lcurip->kicvt = CS_KICVT;
     }
 
+    /* VL 13-12-13 */ 
+    /* this sets ksmps and kr local variables */    
+    /* create local ksmps variable and init with ksmps */
+    CS_VARIABLE *var = 
+       csoundFindVariableWithName(lcurip->instr->varPool, "ksmps");  
+       *((MYFLT *)(var->memBlock)) = lcurip->ksmps;
+     /* same for kr */
+      var = 
+       csoundFindVariableWithName(lcurip->instr->varPool, "kr");
+     *((MYFLT *)(var->memBlock)) = lcurip->ekr;
+
     lcurip->m_chnbp = parent_ip->m_chnbp;       /* MIDI parameters */
     lcurip->m_pitch = parent_ip->m_pitch;
     lcurip->m_veloc = parent_ip->m_veloc;
@@ -1428,7 +1439,8 @@ int xoutset(CSOUND *csound, XOUT *p)
   it can be used on any instrument with the implementation
   of a mechanism to perform at local ksmps (in kperf etc)
 */
-
+#include "typetabl.h"
+#include "csound_standard_types.h"
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
 
@@ -1451,7 +1463,20 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     CS_ONEDKR = FL(1.0) / CS_EKR;
     CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
     CS_KCNT *= n;
-
+     
+    /* VL 13-12-13 */ 
+    /* this sets ksmps and kr local variables */    
+    /* lookup local ksmps variable and init with ksmps */
+     INSTRTXT *ip = p->h.insdshead->instr;
+     CS_VARIABLE *var = 
+       csoundFindVariableWithName(ip->varPool, "ksmps");
+     *((MYFLT *)(var->memBlock)) = CS_KSMPS;
+     
+     /* same for kr */
+     var = 
+       csoundFindVariableWithName(ip->varPool, "kr");
+     *((MYFLT *)(var->memBlock)) = CS_EKR;
+     
     return OK;
 }
 
@@ -2006,7 +2031,8 @@ static void instance(CSOUND *csound, int insno)
     /* gbloffbas = csound->globalVarPool; */
     lcloffbas = &ip->p0;
     lclbas = (MYFLT*) ((char*) ip + pextent);   /* split local space */
-    initializeVarPool(lclbas, tp->varPool);
+   initializeVarPool(lclbas, tp->varPool);
+
     opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize;
     opdslim = nxtopds + tp->opdstot;
     if (UNLIKELY(odebug))
@@ -2134,6 +2160,19 @@ static void instance(CSOUND *csound, int insno)
         }
       }
 
+    }
+
+    /* VL 13-12-13: point the memory to the local ksmps & kr variables,
+       and initialise them */
+    CS_VARIABLE* var = csoundFindVariableWithName(ip->instr->varPool, "ksmps");
+    if(var) {
+    var->memBlock = lclbas + var->memBlockIndex;
+    *((MYFLT *)(var->memBlock)) = csound->ksmps;
+    }
+    var = csoundFindVariableWithName(ip->instr->varPool, "kr");
+    if(var) {
+    var->memBlock = lclbas + var->memBlockIndex;
+    *((MYFLT *)(var->memBlock)) = csound->ekr;
     }
 
     if (UNLIKELY(nxtopds > opdslim))
