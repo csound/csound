@@ -1550,6 +1550,8 @@ int kperf(CSOUND *csound)
                       debugip = NULL;
                   }
                   data->status = CSDEBUG_STATUS_RUNNING;
+              } else if(data->status == CSDEBUG_STATUS_STOPPED) {
+                  return 0;
               } else { /* check if we have arrived at an instrument breakpoint */
                   bkpt_node_t *bp_node = data->bkpt_anchor->next;
                   while (bp_node) {
@@ -1634,7 +1636,7 @@ int kperf(CSOUND *csound)
     }
 
 #ifdef CSDEBUGGER
-    if (data && ! data->debug_instr_ptr)
+    if (data && data->status != CSDEBUG_STATUS_STOPPED)
 #endif
     {
       if (!csound->spoutactive) {             /*   results now in spout? */
