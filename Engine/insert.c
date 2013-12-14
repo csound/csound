@@ -2122,8 +2122,6 @@ static void instance(CSOUND *csound, int insno)
         }
         argpp[n] = fltp;
         arg = arg->next;
-        *argpp[n] = n;
-        //printf("%f %p\n", *argpp[n], argpp[n]);
       }
 
       for (argStringCount = argsRequired(ep->outypes);
