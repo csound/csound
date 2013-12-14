@@ -77,12 +77,10 @@ typedef void (*breakpoint_cb_t) (CSOUND *, int line, double instr, void *userdat
 
 typedef struct {
     void *bkpt_buffer; /* for passing breakpoints to the running engine */
-    int csdebug_on;
     debug_status_t status;
     debug_command_t command;
-    bkpt_node_t *bkpt_anchor;
+    bkpt_node_t *bkpt_anchor; /* linked list for breakpoints */
     INSDS *debug_instr_ptr; /* != NULL when stopped at a breakpoint */
-    pthread_mutex_t bkpt_mutex;
     breakpoint_cb_t bkpt_cb;
     void *cb_data;
 } csdebug_data_t;

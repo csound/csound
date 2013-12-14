@@ -54,11 +54,10 @@ PUBLIC void csoundDebuggerClean(CSOUND *csound)
     csound->csdebug_data = NULL;
 }
 
-PUBLIC void csoundDebugSetMode(CSOUND *csound, debug_mode_t enabled)
+PUBLIC void csoundDebugStart(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-//    if (enabled)
-    data->csdebug_on = enabled;
+    data->status = CSDEBUG_STATUS_RUNNING;
 }
 
 PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line)
