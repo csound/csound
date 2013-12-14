@@ -2107,8 +2107,8 @@ static void instance(CSOUND *csound, int insno)
           fltp = (MYFLT *) var->memBlock; /* gbloffbas + var->memBlockIndex; */
         }
         else if(arg->type == ARG_LOCAL) {
-
           fltp = lclbas + var->memBlockIndex;
+          var->memBlock = fltp;
         }
         else if (arg->type == ARG_PFIELD) {
           /* VL 1.1.13 - changed lclbas to
@@ -2142,11 +2142,11 @@ static void instance(CSOUND *csound, int insno)
           argpp[n] = lcloffbas + arg->index;
         }
         else if(arg->type == ARG_GLOBAL) {
-
           argpp[n] =  (MYFLT *) var->memBlock; /*gbloffbas + var->memBlockIndex; */
         }
         else if(arg->type == ARG_LOCAL){
           argpp[n] = lclbas + var->memBlockIndex;
+          var->memBlock = argpp[n];  /* allows direct reference to the variable memBlock */
         }
         else if(arg->type == ARG_LABEL) {
           argpp[n] = (MYFLT*)(opMemStart +
