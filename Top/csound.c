@@ -1457,6 +1457,10 @@ int kperf(CSOUND *csound)
     }
 #ifdef CSDEBUGGER
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
+    debug_command_t command;
+    if (csoundReadCircularBuffer(csound, data->cmd_buffer, &command, 1) == 0) {
+        command = CSDEBUG_CMD_NONE;
+    }
     bkpt_node_t *bkpt_node;
     /* process new breakpoints */
     if (data) {
@@ -1489,14 +1493,12 @@ int kperf(CSOUND *csound)
                 data->bkpt_anchor->next = bkpt_node;
             }
         }
-
-        if (data->command == CSDEBUG_CMD_CONTINUE) {
+        if (command == CSDEBUG_CMD_CONTINUE) {
             data->status = CSDEBUG_STATUS_CONTINUE;
-            data->command = CSDEBUG_CMD_NONE;
         }
     }
 
-    if (data && data->status != CSDEBUG_STATUS_STOPPED)
+    if (!data || (data && data->status != CSDEBUG_STATUS_STOPPED))
 #endif
     {        
       /* update orchestra time */
@@ -1542,7 +1544,6 @@ int kperf(CSOUND *csound)
           INSDS *nxt = ip->nxtact;
 #ifdef CSDEBUGGER
           if(data) {
-              /* TODO commands must be put in a lockfree queue */
               if(data->status == CSDEBUG_STATUS_CONTINUE) {
                   debugip = ((csdebug_data_t *)csound->csdebug_data)->debug_instr_ptr;
                   if (debugip) { /* if not NULL, resume from last active, and clear debugip */
@@ -1552,14 +1553,23 @@ int kperf(CSOUND *csound)
                   data->status = CSDEBUG_STATUS_RUNNING;
               } else if(data->status == CSDEBUG_STATUS_STOPPED) {
                   return 0;
+              } else if (command == CSDEBUG_CMD_STOP) {
+                  data->debug_instr_ptr = ip;
+                  data->status = CSDEBUG_STATUS_STOPPED;
+                  return 0;
               } else { /* check if we have arrived at an instrument breakpoint */
                   bkpt_node_t *bp_node = data->bkpt_anchor->next;
                   while (bp_node) {
                       if (bp_node->instr == ip->p1) {
-                          data->debug_instr_ptr = ip;
-                          data->bkpt_cb(csound, 0, ip->p1, data->cb_data);
-                          data->status = CSDEBUG_STATUS_STOPPED;
-                          return 0;
+                          if (bp_node->count == 0) {
+                              data->debug_instr_ptr = ip;
+                              data->bkpt_cb(csound, 0, ip->p1, data->cb_data);
+                              data->status = CSDEBUG_STATUS_STOPPED;
+                              bp_node->count = bp_node->skip;
+                              return 0;
+                          } else {
+                              bp_node->count--;
+                          }
                       }
                       bp_node = bp_node->next;
                   }
@@ -1636,7 +1646,7 @@ int kperf(CSOUND *csound)
     }
 
 #ifdef CSDEBUGGER
-    if (data && data->status != CSDEBUG_STATUS_STOPPED)
+    if (!data || (data && data->status != CSDEBUG_STATUS_STOPPED))
 #endif
     {
       if (!csound->spoutactive) {             /*   results now in spout? */
