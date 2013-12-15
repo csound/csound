@@ -1458,8 +1458,9 @@ int kperf(CSOUND *csound)
 #ifdef CSDEBUGGER
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     debug_command_t command;
-    if (csoundReadCircularBuffer(csound, data->cmd_buffer, &command, 1) == 0) {
-        command = CSDEBUG_CMD_NONE;
+    command = CSDEBUG_CMD_NONE;
+    if (data) {
+        csoundReadCircularBuffer(csound, data->cmd_buffer, &command, 1);
     }
     bkpt_node_t *bkpt_node;
     /* process new breakpoints */
