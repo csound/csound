@@ -37,7 +37,7 @@
 #include <omp.h>
 #endif
 
-extern int UDPServerStart(CSOUND *csound, int port); 
+extern int UDPServerStart(CSOUND *csound, int port);
 extern  void    dieu(CSOUND *, char *, ...);
 extern  int     argdecode(CSOUND *, int, char **);
 extern  int     init_pvsys(CSOUND *);
@@ -479,10 +479,10 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
       csound->WaitBarrier(csound->barrier2);
     }
     csound->engineStatus |= CS_STATE_COMP;
-    if(csound->oparms->daemon > 1) 
+    if(csound->oparms->daemon > 1)
         UDPServerStart(csound,csound->oparms->daemon);
 
-    
+
     return musmon(csound);
 }
 

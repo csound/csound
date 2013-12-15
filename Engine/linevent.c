@@ -357,7 +357,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     EVTBLK  evt;
     int     i;
     char    opcod;
-    
+
     if(p1==0)
          opcod = *((STRINGDAT*) p->args[0])->data;
     else  opcod = p1;
@@ -371,7 +371,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     else
       evt.pcnt = p->INOCOUNT - 1;
 
-    
+
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (insname) {
@@ -393,7 +393,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     }
     if (insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0)
       return csound->PerfError(csound, p->h.insdshead,
-                               Str("event: error creating '%c' event"), 
+                               Str("event: error creating '%c' event"),
                                opcod);
     return OK;
 }
