@@ -33,10 +33,10 @@ void test_add_bkpt(void)
 {
     CSOUND* csound = csoundCreate(NULL);
     csoundDebuggerInit(csound);
-    csoundSetBreakpoint(csound, 3);
-    csoundSetBreakpoint(csound, 5);
-    csoundSetInstrumentBreakpoint(csound, 3.4);
-    csoundSetInstrumentBreakpoint(csound, 1.1);
+    csoundSetBreakpoint(csound, 3, 0);
+    csoundSetBreakpoint(csound, 5, 0);
+    csoundSetInstrumentBreakpoint(csound, 3.4, 0);
+    csoundSetInstrumentBreakpoint(csound, 1.1, 0);
     csoundClearBreakpoints(csound);
     csoundDebuggerClean(csound);
     csoundDestroy(csound);
@@ -70,7 +70,7 @@ void test_breakpoint_once(void)
     csoundStart(csound);
     csoundDebuggerInit(csound);
     csoundSetBreakpointCallback(csound, brkpt_cb, (void *) &break_count);
-    csoundSetInstrumentBreakpoint(csound, 1.1);
+    csoundSetInstrumentBreakpoint(csound, 1.1, 0);
 
     for (i = 0; i < 1000; i++) {
         csoundPerformKsmps(csound);
@@ -103,8 +103,8 @@ void test_breakpoint_remove(void)
     csoundStart(csound);
     csoundDebuggerInit(csound);
     csoundSetBreakpointCallback(csound, brkpt_cb2, (void *) &break_count);
-    csoundSetInstrumentBreakpoint(csound, 1.1);
-    csoundSetInstrumentBreakpoint(csound, 1.2);
+    csoundSetInstrumentBreakpoint(csound, 1.1, 0);
+    csoundSetInstrumentBreakpoint(csound, 1.2, 0);
 
     for (i = 0; i < 1000; i++) {
         csoundPerformKsmps(csound);
