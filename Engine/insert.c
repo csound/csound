@@ -1185,14 +1185,14 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       lcurip->kicvt = CS_KICVT;
     }
 
-    /* VL 13-12-13 */ 
-    /* this sets ksmps and kr local variables */    
+    /* VL 13-12-13 */
+    /* this sets ksmps and kr local variables */
     /* create local ksmps variable and init with ksmps */
-    CS_VARIABLE *var = 
-       csoundFindVariableWithName(lcurip->instr->varPool, "ksmps");  
+    CS_VARIABLE *var =
+       csoundFindVariableWithName(lcurip->instr->varPool, "ksmps");
        *((MYFLT *)(var->memBlock)) = lcurip->ksmps;
      /* same for kr */
-      var = 
+      var =
        csoundFindVariableWithName(lcurip->instr->varPool, "kr");
      *((MYFLT *)(var->memBlock)) = lcurip->ekr;
 
@@ -1463,20 +1463,20 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     CS_ONEDKR = FL(1.0) / CS_EKR;
     CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
     CS_KCNT *= n;
-     
-    /* VL 13-12-13 */ 
-    /* this sets ksmps and kr local variables */    
+
+    /* VL 13-12-13 */
+    /* this sets ksmps and kr local variables */
     /* lookup local ksmps variable and init with ksmps */
      INSTRTXT *ip = p->h.insdshead->instr;
-     CS_VARIABLE *var = 
+     CS_VARIABLE *var =
        csoundFindVariableWithName(ip->varPool, "ksmps");
      *((MYFLT *)(var->memBlock)) = CS_KSMPS;
-     
+
      /* same for kr */
-     var = 
+     var =
        csoundFindVariableWithName(ip->varPool, "kr");
      *((MYFLT *)(var->memBlock)) = CS_EKR;
-     
+
     return OK;
 }
 
