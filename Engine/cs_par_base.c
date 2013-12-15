@@ -66,7 +66,7 @@ extern int barrier_init(barrier_t *b, void *,unsigned int max);
 extern int barrier_destroy(barrier_t *b);
 extern int barrier_wait(barrier_t *b);
 
-#ifndef PTHREAD_BARRIER_SERIAL_THREAD 
+#ifndef PTHREAD_BARRIER_SERIAL_THREAD
 /*#define pthread_barrier_t barrier_t */
 #define PTHREAD_BARRIER_SERIAL_THREAD BARRIER_SERIAL_THREAD
 #define pthread_barrier_init(barrier, attr, count) \
