@@ -50,6 +50,8 @@ typedef enum {
 typedef struct bkpt_node_s {
     int line; /* if line is < 0 breakpoint is for instrument instances */
     MYFLT instr; /* instrument number (including fractional part */
+    int skip; /* number of times to skip when arriving at the breakpoint */
+    int count; /* current backwards count for skip, when 0 break */
     bkpt_mode_t mode;
     struct bkpt_node_s *next;
 } bkpt_node_t;
@@ -77,8 +79,8 @@ typedef void (*breakpoint_cb_t) (CSOUND *, int line, double instr, void *userdat
 
 typedef struct {
     void *bkpt_buffer; /* for passing breakpoints to the running engine */
+    void *cmd_buffer; /* for passing commands to the running engine */
     debug_status_t status;
-    debug_command_t command;
     bkpt_node_t *bkpt_anchor; /* linked list for breakpoints */
     INSDS *debug_instr_ptr; /* != NULL when stopped at a breakpoint */
     breakpoint_cb_t bkpt_cb;
@@ -91,9 +93,9 @@ PUBLIC void csoundDebuggerClean(CSOUND *csound);
 
 PUBLIC void csoundDebugSetMode(CSOUND *csound, debug_mode_t enabled);
 
-PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line);
+PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int skip);
 PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line);
-PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr);
+PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int skip);
 PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr);
 PUBLIC void csoundClearBreakpoints(CSOUND *csound);
 
