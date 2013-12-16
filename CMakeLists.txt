@@ -44,7 +44,6 @@ include(CMakeParseArguments)
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # Utility function to make executables. All plugin targets should use this as it
@@ -443,6 +442,24 @@ check_deps(USE_LRINT HAVE_LRINT)
 if(USE_LRINT)
     add_definitions("-DUSE_LRINT")
 endif()
+
+## Check existence of CURL
+include(FindCURL)
+
+# Find the native CURL headers and libraries.
+#
+#  CURL_INCLUDE_DIRS   - where to find curl/curl.h, etc.
+#  CURL_LIBRARIES      - List of libraries when using curl.
+#  CURL_FOUND          - True if curl found.
+#  CURL_VERSION_STRING - the version of curl found (since CMake 2.8.8)
+
+if(CURL_FOUND)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_CURL")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  ${CURL_LIBRARIES}")
+else()
+  message(STATUS "Not using CURL for urls - not found")
+endif()
+
 
 # Flex/Bison for the new parser
 find_package(FLEX)
