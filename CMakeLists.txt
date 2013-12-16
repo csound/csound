@@ -455,7 +455,7 @@ include(FindCURL)
 
 if(CURL_FOUND)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_CURL")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  ${CURL_LIBRARIES}")
+
 else()
   message(STATUS "Not using CURL for urls - not found")
 endif()
@@ -1187,3 +1187,7 @@ set (CPACK_PACKAGE_VERSION_MAJOR "6")
 set (CPACK_PACKAGE_VERSION_MINOR "0")
 set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
+
+if(CURL_FOUND)
+add_compiler_flags(${CURL_LIBRARIES} TARGETS ${CSOUNDLIB} LINKER)
+endif()
