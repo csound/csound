@@ -515,6 +515,7 @@ typedef struct {
     int    tieflag;
     int    reinitflag;
     MYFLT  retval;
+    MYFLT  *lclbas;  /* base for variable memory pool */ 
     char   *strarg;       /* string argument */
     /* Copy of required p-field values for quick access */
     MYFLT   p0;

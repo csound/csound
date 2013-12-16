@@ -1190,11 +1190,11 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* create local ksmps variable and init with ksmps */
     CS_VARIABLE *var =
        csoundFindVariableWithName(lcurip->instr->varPool, "ksmps");
-       *((MYFLT *)(var->memBlock)) = lcurip->ksmps;
+       *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ksmps;
      /* same for kr */
       var =
        csoundFindVariableWithName(lcurip->instr->varPool, "kr");
-     *((MYFLT *)(var->memBlock)) = lcurip->ekr;
+     *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ekr;
 
     lcurip->m_chnbp = parent_ip->m_chnbp;       /* MIDI parameters */
     lcurip->m_pitch = parent_ip->m_pitch;
@@ -1470,12 +1470,14 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
      INSTRTXT *ip = p->h.insdshead->instr;
      CS_VARIABLE *var =
        csoundFindVariableWithName(ip->varPool, "ksmps");
-     *((MYFLT *)(var->memBlock)) = CS_KSMPS;
+     MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+     *varmem = CS_KSMPS;
 
      /* same for kr */
      var =
        csoundFindVariableWithName(ip->varPool, "kr");
-     *((MYFLT *)(var->memBlock)) = CS_EKR;
+     varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+     *varmem = CS_EKR;
 
     return OK;
 }
@@ -2108,7 +2110,6 @@ static void instance(CSOUND *csound, int insno)
         }
         else if(arg->type == ARG_LOCAL) {
           fltp = lclbas + var->memBlockIndex;
-          var->memBlock = fltp;
         }
         else if (arg->type == ARG_PFIELD) {
           /* VL 1.1.13 - changed lclbas to
@@ -2130,6 +2131,7 @@ static void instance(CSOUND *csound, int insno)
         argpp[n] = NULL;
 
       arg = ttp->inArgs;
+      ip->lclbas = lclbas;
       for (; arg != NULL; n++, arg = arg->next) {
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
         if(arg->type == ARG_CONSTANT) {
@@ -2146,7 +2148,6 @@ static void instance(CSOUND *csound, int insno)
         }
         else if(arg->type == ARG_LOCAL){
           argpp[n] = lclbas + var->memBlockIndex;
-          var->memBlock = argpp[n];  /* allows direct reference to the variable memBlock */
         }
         else if(arg->type == ARG_LABEL) {
           argpp[n] = (MYFLT*)(opMemStart +
