@@ -805,7 +805,7 @@ static const CSOUND cenviron_ = {
       0,            /*    samp acc   */
       0,            /*    realtime  */
       0.0,          /*    0dbfs override */
-      0             /*    no exit on compile error */  
+      0             /*    no exit on compile error */
     },
 
     {0, 0, {0}}, /* REMOT_BUF */
@@ -2767,7 +2767,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     char    *s;
     int     i, max_len;
     OPARMS  *O = csound->oparms;
-       
+
     #ifdef HAVE_PTHREAD_SPIN_LOCK
      pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
      pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);

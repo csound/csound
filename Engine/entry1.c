@@ -371,7 +371,7 @@ OENTRY opcodlst_1[] = {
   { "linsegb", S(LINSEG),0,  3,     "k",    "iin", lsgset_bkpt, klnseg, NULL  },
   { "linsegb.a", S(LINSEG),0,  5,     "a",    "iin", lsgset_bkpt, NULL, linseg  },
   { "linsegr",S(LINSEG),0,  3,      "k",    "iin",  lsgrset,klnsegr,NULL },
-  { "linsegr.a",S(LINSEG),0,  5,      "s",    "iin",  lsgrset,NULL,linsegr },
+  { "linsegr.a",S(LINSEG),0,  5,      "a",    "iin",  lsgrset,NULL,linsegr },
   { "expseg", S(EXXPSEG),0,  3,     "k",    "iin",  xsgset, kxpseg, NULL  },
   { "expseg.a", S(EXXPSEG),0,  5,     "a",    "iin",  xsgset, NULL, expseg  },
   { "expsegb", S(EXXPSEG),0,  3,     "k",    "iin",  xsgset_bkpt, kxpseg, NULL },
