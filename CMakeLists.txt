@@ -44,7 +44,6 @@ include(CMakeParseArguments)
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # Utility function to make executables. All plugin targets should use this as it
@@ -443,6 +442,16 @@ check_deps(USE_LRINT HAVE_LRINT)
 if(USE_LRINT)
     add_definitions("-DUSE_LRINT")
 endif()
+
+## Check existence of CURL
+find_package(CURL)
+
+if(CURL_FOUND)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_CURL")
+else()
+  message(STATUS "Not using CURL for urls - not found")
+endif()
+
 
 # Flex/Bison for the new parser
 find_package(FLEX)
@@ -999,6 +1008,10 @@ if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
 endif()
 
+if(CURL_FOUND)
+  list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
+endif()
+
 # Linux does not have a separate libintl, it is part of libc
 set(LIBINTL_AVAIL (LIBINTL_LIBRARY OR LINUX))
 check_deps(USE_GETTEXT LIBINTL_HEADER LIBINTL_AVAIL GETTEXT_MSGFMT_EXECUTABLE)
@@ -1096,6 +1109,8 @@ if(BIG_ENDIAN)
 endif()
 
 
+
+
 add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
 
 target_link_libraries(${CSOUNDLIB} ${libcsound_LIBS})
@@ -1170,3 +1185,4 @@ set (CPACK_PACKAGE_VERSION_MAJOR "6")
 set (CPACK_PACKAGE_VERSION_MINOR "0")
 set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
+
