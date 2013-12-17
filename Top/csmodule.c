@@ -89,7 +89,7 @@
 #endif
 
 #if !(defined (NACL))
-#if defined(LINUX) || defined(NEW_MACH_CODE) 
+#if defined(LINUX) || defined(NEW_MACH_CODE)
 #include <dlfcn.h>
 #elif defined(WIN32)
 #include <windows.h>
@@ -840,7 +840,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  socksend_localops_init,
 #endif
                                  gendy_localops_init,
-                                 scnoise_localops_init, afilts_localops_init, 
+                                 scnoise_localops_init, afilts_localops_init,
                                  NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);
