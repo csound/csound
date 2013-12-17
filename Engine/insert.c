@@ -348,7 +348,11 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       showallocs(csound);
     }
 
-    if(newevtp->pinstance != NULL) *(newevtp->pinstance) = (void *) ip;
+    printf("instancep: %p  evtp: %p \n", newevtp->pinstance, newevtp);
+    if(newevtp->pinstance != NULL) {
+      *((MYFLT *)newevtp->pinstance) = (MYFLT) ((long) ip);
+      printf("instancep: %l  ip: %f \n", (long) ip, *((MYFLT *)newevtp->pinstance));
+    }
 
     return 0;
 }
@@ -700,6 +704,12 @@ static void deact(CSOUND *csound, INSDS *ip)
       fdchclose(csound, ip);
     csound->dag_changed++;
     //printf("**** dag changed by deact\n");
+}
+
+int kill_instance(CSOUND *csound, KILLOP *p) {
+  if(*p->inst) xturnoff(csound, (INSDS *) ((long)*p->inst));
+  else csound->Warning(csound, "instance not valid \n");
+  return OK;
 }
 
 /* Turn off a particular insalloc, also remove from list of active */

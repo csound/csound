@@ -427,7 +427,7 @@ typedef struct {
     int     scnt;
     char    *strarg;
     /* instance pointer */
-    void  **pinstance;
+    void  *pinstance;
     /** Event type */
     char    opcod;
     /** Number of p-fields */

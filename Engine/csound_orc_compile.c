@@ -1621,7 +1621,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       while ((ip = ip->nxtinstxt) != NULL) {        /* add all other entries */
         insprep(csound, ip, engineState);           /*   as combined offsets */
         recalculateVarPoolMemory(csound, ip->varPool);
-        printf("size of varpool: %d \n", ip->varPool->poolSize);
       }
 
       CS_VARIABLE *var;
@@ -1631,7 +1630,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       *((MYFLT *)(var->memBlock)) = csound->ekr;
       var = csoundFindVariableWithName(engineState->varPool, "ksmps");
       *((MYFLT *)(var->memBlock)) = csound->ksmps;
-      printf("KSMPS::::: %f \n", csound->ksmps);
       var = csoundFindVariableWithName(engineState->varPool, "nchnls");
       *((MYFLT *)(var->memBlock)) = csound->nchnls;
       if (csound->inchnls<0) csound->inchnls = csound->nchnls;

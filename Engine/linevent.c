@@ -470,3 +470,51 @@ int eventOpcodeI_S(CSOUND *csound, LINEVENT *p)
 {
   return eventOpcodeI_(csound, p, 1, 0);
 }
+
+int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
+{
+    EVTBLK  evt;
+    int     i;
+   
+    evt.strarg = NULL; evt.scnt = 0;
+    evt.opcod = 'i';
+    evt.pcnt = p->INOCOUNT;
+
+    /* pass in the memory to hold the instance after insertion */
+    evt.pinstance = (void *) p->inst;
+
+    /* IV - Oct 31 2002: allow string argument */
+    if (evt.pcnt > 0) {
+      if (insname) {
+        evt.p[1] =  csound->strarg2insno(csound,
+                                           ((STRINGDAT*) p->args[0])->data, 1);
+        evt.strarg = NULL; evt.scnt = 0;
+      }
+      else {
+        if (ISSTRCOD(*p->args[0])) {
+          evt.p[1]  = csound->strarg2insno(csound,
+                                           get_arg_string(csound, *p->args[0]), 1);
+        } else evt.p[1] = *p->args[0];
+        evt.strarg = NULL; evt.scnt = 0;
+      }
+      for (i = 2; i <= evt.pcnt; i++)
+        evt.p[i] = *p->args[i-1];
+    }
+    if (insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0)
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("instance: error creating event"));
+
+    return OK;
+}
+
+int instanceOpcode(CSOUND *csound, LINEVENT2 *p)
+{
+  return instanceOpcode_(csound, p, 0);
+}
+
+int instanceOpcode_S(CSOUND *csound, LINEVENT2 *p)
+{
+  return instanceOpcode_(csound, p, 1);
+}
+
+
