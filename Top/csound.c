@@ -610,7 +610,7 @@ static const CSOUND cenviron_ = {
     FL(0.0), FL(0.0), FL(0.0),  /*  prvbt, curbt, nxtbt */
     FL(0.0), FL(0.0),       /*  curp2, nxtim        */
     0,              /*  cyclesRemaining     */
-    { 0, NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
+    { 0, NULL, NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
     NULL,           /*  memalloc_db         */
     (MGLOBAL*) NULL, /* midiGlobals         */
     NULL,           /*  envVarDB            */
@@ -682,7 +682,7 @@ static const CSOUND cenviron_ = {
       NULL, NULL,   /* Linep, Linebufend    */
       0,            /* stdmode              */
       {
-        0, NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
+        0, NULL, NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
         {NULL},
       },            /* EVTBLK  prve         */
       NULL,        /* Linebuf              */
@@ -853,8 +853,8 @@ static const CSOUND cenviron_ = {
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
     0,              /* info_message_request */
-    0,              /* modules loaded */
-    NULL            /* self-reference */
+    0              /* modules loaded */
+    /*, NULL */           /* self-reference */
 };
 
 /* from threads.c */

@@ -348,6 +348,12 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       showallocs(csound);
     }
 
+    printf("instancep: %p  evtp: %p \n", newevtp->pinstance, newevtp);
+    if(newevtp->pinstance != NULL) {
+      *((MYFLT *)newevtp->pinstance) = (MYFLT) ((long) ip);
+      printf("instancep: %l  ip: %f \n", (long) ip, *((MYFLT *)newevtp->pinstance));
+    }
+
     return 0;
 }
 
@@ -698,6 +704,12 @@ static void deact(CSOUND *csound, INSDS *ip)
       fdchclose(csound, ip);
     csound->dag_changed++;
     //printf("**** dag changed by deact\n");
+}
+
+int kill_instance(CSOUND *csound, KILLOP *p) {
+  if(*p->inst) xturnoff(csound, (INSDS *) ((long)*p->inst));
+  else csound->Warning(csound, "instance not valid \n");
+  return OK;
 }
 
 /* Turn off a particular insalloc, also remove from list of active */
@@ -1290,9 +1302,7 @@ int xinset(CSOUND *csound, XIN *p)
     ndx_list = inm->in_ndx_list - 1;
 
     while (*++ndx_list >= 0) {
-      //printf("%.1f %p \n", *(*(p->args + *ndx_list)), *(p->args + *ndx_list));
        *(*(p->args + *ndx_list)) = *(*(bufs + *ndx_list));
-
     }
 
     /* IV - Jul 29 2006: and string variables */
@@ -1387,11 +1397,9 @@ int xoutset(CSOUND *csound, XOUT *p)
 
     /* skip input pointers, including the three delimiter NULLs */
     tmp = buf->iobufp_ptrs;
-    /* VL: needs to check if there are not 4 nulls in a sequence, which
-       would indicate no a, k, f or t sigs */
     if (*tmp || *(tmp + 1) || *(tmp + 2) || *(tmp + 3))
       tmp += (inm->perf_incnt << 1);
-    tmp += 4;  /* VL: this was 2, now 4 with fsigs and tsigs added */
+    tmp += 4; 
     if (*tmp || *(tmp + 1))
       return OK;
 

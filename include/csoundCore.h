@@ -426,6 +426,8 @@ typedef struct {
     /** String argument(s) (NULL if none) */
     int     scnt;
     char    *strarg;
+    /* instance pointer */
+    void  *pinstance;
     /** Event type */
     char    opcod;
     /** Number of p-fields */
@@ -1654,7 +1656,7 @@ typedef struct NAME__ {
     int           jumpset;
     int           info_message_request;
     int           modules_loaded;
-    struct CSOUND_ **self;
+    /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
   };
