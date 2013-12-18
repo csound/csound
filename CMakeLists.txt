@@ -444,18 +444,10 @@ if(USE_LRINT)
 endif()
 
 ## Check existence of CURL
-include(FindCURL)
-
-# Find the native CURL headers and libraries.
-#
-#  CURL_INCLUDE_DIRS   - where to find curl/curl.h, etc.
-#  CURL_LIBRARIES      - List of libraries when using curl.
-#  CURL_FOUND          - True if curl found.
-#  CURL_VERSION_STRING - the version of curl found (since CMake 2.8.8)
+find_package(CURL)
 
 if(CURL_FOUND)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_CURL")
-
 else()
   message(STATUS "Not using CURL for urls - not found")
 endif()
@@ -1016,6 +1008,10 @@ if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
 endif()
 
+if(CURL_FOUND)
+  list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
+endif()
+
 # Linux does not have a separate libintl, it is part of libc
 set(LIBINTL_AVAIL (LIBINTL_LIBRARY OR LINUX))
 check_deps(USE_GETTEXT LIBINTL_HEADER LIBINTL_AVAIL GETTEXT_MSGFMT_EXECUTABLE)
@@ -1113,6 +1109,8 @@ if(BIG_ENDIAN)
 endif()
 
 
+
+
 add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
 
 target_link_libraries(${CSOUNDLIB} ${libcsound_LIBS})
@@ -1188,6 +1186,3 @@ set (CPACK_PACKAGE_VERSION_MINOR "0")
 set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
 
-if(CURL_FOUND)
-add_compiler_flags(${CURL_LIBRARIES} TARGETS ${CSOUNDLIB} LINKER)
-endif()

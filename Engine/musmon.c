@@ -1188,6 +1188,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       memcpy(e->evt.strarg, evt->strarg, p-evt->strarg+1 );
       e->evt.scnt = evt->scnt;
     }
+    e->evt.pinstance = evt->pinstance;
     e->evt.opcod = evt->opcod;
     e->evt.pcnt = evt->pcnt;
     p = &(e->evt.p[0]);
@@ -1196,7 +1197,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       p[i] = evt->p[i];
     /* ...and use the copy from now on */
     evt = &(e->evt);
-
+   
     /* check for required p-fields */
     switch (evt->opcod) {
       case 'f':
