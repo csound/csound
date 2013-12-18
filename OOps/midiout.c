@@ -69,7 +69,7 @@ int release(CSOUND *csound, REL *p)
 int xtratim(CSOUND *csound, XTRADUR *p)
 {
     int *xtra = &(p->h.insdshead->xtratim);
-    int tim = (int)(*p->extradur * csound->ekr);
+    int tim = (int)(*p->extradur * p->h.insdshead->ekr);
     if (*xtra < tim)  /* gab-a5 revised */
       *xtra = tim;
     return OK;
