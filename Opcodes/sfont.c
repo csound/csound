@@ -51,7 +51,7 @@ static void layerDefaults(layerType *layer);
 static void splitDefaults(splitType *split);
 
 #define MAX_SFONT               (10)
-#define MAX_SFPRESET            (512)
+#define MAX_SFPRESET            (16384)
 #define GLOBAL_ATTENUATION      (FL(0.3))
 
 #define ONETWELTH               (0.08333333333333333333333333333)
@@ -62,8 +62,8 @@ typedef struct _sfontg {
   SFBANK *sfArray;
   int currSFndx;
   int maxSFndx;
-  presetType *presetp[MAX_SFPRESET];
-  SHORT *sampleBase[MAX_SFPRESET];
+  presetType **presetp;
+  SHORT **sampleBase;
   MYFLT pitches[128];
 } sfontg;
 
@@ -92,6 +92,9 @@ int sfont_ModuleDestroy(CSOUND *csound)
     }
     free(sfArray);
     globals->currSFndx = 0;
+    csound->Free(csound, globals->presetp); 
+    csound->Free(csound, globals->sampleBase); 
+
     csound->DestroyGlobalVariable(csound, "::sfontg");
     return 0;
 }
@@ -2597,14 +2600,16 @@ int sfont_ModuleCreate(CSOUND *csound)
       return csound->InitError(csound,
                                Str("error... could not create sfont globals\n"));
 
-    globals->sfArray = (SFBANK *)malloc(MAX_SFONT*sizeof(SFBANK));
+    globals->sfArray = (SFBANK *) malloc(MAX_SFONT*sizeof(SFBANK));
+    globals->presetp = (presetType **) csound->Malloc(csound, MAX_SFPRESET *sizeof(presetType *));
+    globals->sampleBase = (SHORT **) csound->Malloc(csound, MAX_SFPRESET*sizeof(SHORT *));
     globals->currSFndx = 0;
     globals->maxSFndx = MAX_SFONT;
     for (j=0; j<128; j++) {
       globals->pitches[j] = (MYFLT) (440.0 * pow (2.0,(j - 69.0)/12.0));
     }
 
-    return OK;
+   return OK;
 }
 
 int sfont_ModuleInit(CSOUND *csound)
