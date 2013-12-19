@@ -1598,6 +1598,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* run global i-time code */
       init0(csound);
       csound->ids = ids;
+      
     }
     else {
       /* first compilation */
