@@ -348,10 +348,9 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       showallocs(csound);
     }
 
-    printf("instancep: %p  evtp: %p \n", newevtp->pinstance, newevtp);
+
     if(newevtp->pinstance != NULL) {
       *((MYFLT *)newevtp->pinstance) = (MYFLT) ((long) ip);
-      printf("instancep: %l  ip: %f \n", (long) ip, *((MYFLT *)newevtp->pinstance));
     }
 
     return 0;

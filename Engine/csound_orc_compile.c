@@ -924,7 +924,10 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
           t = s;
         }
     // myflt_pool_free(csound, ip->varPool);
-     deleteVarPoolMemory(csound, ip->varPool);
+    /* VL: 19-12-13
+       an instrument varpool memory is allocated in the instrument block
+       so deallocating the pool is not really right */
+    // deleteVarPoolMemory(csound, ip->varPool);
      //mfree(csound, ip->varPool); /* need to delete the varPool memory */
      mfree(csound, ip);
      if (csound->oparms->odebug)
