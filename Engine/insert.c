@@ -2354,6 +2354,7 @@ void *init_pass_thread(void *p){
     int done;
     float wakeup = (1000*csound->ksmps/csound->esr);
     while(csound->init_pass_loop) {
+        csoundLockMutex(csound->init_pass_threadlock);
 #if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
       usleep(1000*wakeup);
 #else
@@ -2369,8 +2370,8 @@ void *init_pass_thread(void *p){
         done = ip->init_done;
 #endif
         if (done == 0) {
-          csoundLockMutex(csound->init_pass_threadlock);
           csound->ids = (OPDS *) (ip->nxti);
+          csound->curip = ip;
           while (csound->ids != NULL) {
             if (csound->oparms->odebug)
               csound->Message(csound, "init %s:\n",
@@ -2387,10 +2388,11 @@ void *init_pass_thread(void *p){
           if (ip->reinitflag==1) {
             ip->reinitflag = 0;
           }
-          csoundUnlockMutex(csound->init_pass_threadlock);
+          
         }
         ip = nxt;
       }
+      csoundUnlockMutex(csound->init_pass_threadlock);
     }
     return NULL;
 }
