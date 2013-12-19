@@ -1497,9 +1497,9 @@ typedef struct NAME__ {
     } sreadStatics;
     struct onefileStatics__ {
       NAMELST *toremove;
-      char    orcname[L_tmpnam + 4];
-      char    sconame[L_tmpnam + 4];
-      char    midname[L_tmpnam + 4];
+      char    *orcname;
+      char    *sconame;
+      char    *midname;
       int     midiSet;
       int     csdlinecount;
     } onefileStatics;

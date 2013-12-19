@@ -675,7 +675,7 @@ static const CSOUND cenviron_ = {
     },
     {
       NULL,
-      {'\0'}, {'\0'}, {'\0'}, /* orcname, sconame, midname */
+      NULL, NULL, NULL, /* orcname, sconame, midname */
       0, 0           /* midiSet, csdlinecount */
     },
     {
