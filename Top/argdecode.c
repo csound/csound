@@ -457,9 +457,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       if (UNLIKELY(*s == '\0')) dieu(csound, Str("no midifile name"));
       O->FMidiname = s;                 /* Midifile name */
       if (!strcmp(O->FMidiname, "stdin")) {
-        set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #if defined(WIN32)
         csoundDie(csound, Str("-F: stdin not supported on this platform"));
+#else
+        set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #endif
       }
       else
@@ -1116,10 +1117,11 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             FIND(Str("no midi device_name"));
             O->Midiname = s;              /* Midi device name */
             s += (int) strlen(s);
-            if (!strcmp(O->Midiname, "stdin")) {
-              set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
+            if (strcmp(O->Midiname, "stdin")==0) {
 #if defined(WIN32)
               csoundDie(csound, Str("-M: stdin not supported on this platform"));
+#else
+              set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
 #endif
             }
             else
@@ -1130,10 +1132,11 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             FIND(Str("no midifile name"));
             O->FMidiname = s;             /* Midifile name */
             s += (int) strlen(s);
-            if (!strcmp(O->FMidiname, "stdin")) {
-              set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
+            if (strcmp(O->FMidiname, "stdin")==0) {
 #if defined(WIN32)
               csoundDie(csound, Str("-F: stdin not supported on this platform"));
+#else
+              set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #endif
             }
             else
