@@ -92,8 +92,8 @@ int sfont_ModuleDestroy(CSOUND *csound)
     }
     free(sfArray);
     globals->currSFndx = 0;
-    csound->Free(csound, globals->presetp); 
-    csound->Free(csound, globals->sampleBase); 
+    csound->Free(csound, globals->presetp);
+    csound->Free(csound, globals->sampleBase);
 
     csound->DestroyGlobalVariable(csound, "::sfontg");
     return 0;
@@ -2601,12 +2601,14 @@ int sfont_ModuleCreate(CSOUND *csound)
                                Str("error... could not create sfont globals\n"));
 
     globals->sfArray = (SFBANK *) malloc(MAX_SFONT*sizeof(SFBANK));
-    globals->presetp = (presetType **) csound->Malloc(csound, MAX_SFPRESET *sizeof(presetType *));
-    globals->sampleBase = (SHORT **) csound->Malloc(csound, MAX_SFPRESET*sizeof(SHORT *));
+    globals->presetp =
+      (presetType **) csound->Malloc(csound, MAX_SFPRESET *sizeof(presetType *));
+    globals->sampleBase =
+      (SHORT **) csound->Malloc(csound, MAX_SFPRESET*sizeof(SHORT *));
     globals->currSFndx = 0;
     globals->maxSFndx = MAX_SFONT;
     for (j=0; j<128; j++) {
-      globals->pitches[j] = (MYFLT) (440.0 * pow (2.0,(j - 69.0)/12.0));
+      globals->pitches[j] = (MYFLT) (440.0 * pow(2.0, (double)(j- 69)/12.0));
     }
 
    return OK;

@@ -1398,7 +1398,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     tmp = buf->iobufp_ptrs;
     if (*tmp || *(tmp + 1) || *(tmp + 2) || *(tmp + 3))
       tmp += (inm->perf_incnt << 1);
-    tmp += 4; 
+    tmp += 4;
     if (*tmp || *(tmp + 1))
       return OK;
 
@@ -2354,7 +2354,7 @@ void *init_pass_thread(void *p){
     int done;
     float wakeup = (1000*csound->ksmps/csound->esr);
     while(csound->init_pass_loop) {
-        
+
 #if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
       usleep(1000*wakeup);
 #else
@@ -2392,9 +2392,9 @@ void *init_pass_thread(void *p){
           csoundUnlockMutex(csound->init_pass_threadlock);
         }
         ip = nxt;
-        
+
       }
-      
+
     }
     return NULL;
 }
