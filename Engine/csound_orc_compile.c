@@ -1598,7 +1598,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* run global i-time code */
       init0(csound);
       csound->ids = ids;
-      
+
     }
     else {
       /* first compilation */
@@ -1900,12 +1900,13 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       arg->index = n;
     }
     /* trap local ksmps and kr  */
-    else if ( (strcmp(s, "ksmps") == 0 && csoundFindVariableWithName(ip->varPool, s))
-             || (strcmp(s, "kr") == 0 && csoundFindVariableWithName(ip->varPool, s))){
-      arg->type = ARG_LOCAL;
-      arg->argPtr = csoundFindVariableWithName(ip->varPool, s);
-      CS_VARIABLE *var = (CS_VARIABLE *)arg->argPtr;
-    }
+    else
+      if ((strcmp(s, "ksmps") == 0 && csoundFindVariableWithName(ip->varPool, s))
+          || (strcmp(s, "kr") == 0 && csoundFindVariableWithName(ip->varPool, s))) {
+        arg->type = ARG_LOCAL;
+        arg->argPtr = csoundFindVariableWithName(ip->varPool, s);
+        CS_VARIABLE *var = (CS_VARIABLE *)arg->argPtr;
+      }
     else if (c == 'g' || (c == '#' && *(s+1) == 'g') ||
              csoundFindVariableWithName(csound->engineState.varPool, s) != NULL) {
       // FIXME - figure out why string pool searched with gexist
