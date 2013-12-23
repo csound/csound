@@ -13,7 +13,7 @@ of Csound from Linux.  These scripts were developed using Debian.
 2. Create a directory called mingw64 in your home directory. This is where the 
 dependencies will be built and installed to::
 
-    mdkir ~/mingw64
+    mkdir ~/mingw64
 
 3. Run the download-deps.sh script.  This script will download source and
 binary versions of dependencies that Csound will need. A folder called cache

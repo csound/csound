@@ -69,9 +69,9 @@ static const GEN or_sub[GENMAX + 1] = {
     gen11, gen12, gen13, gen14, gen15, gen16, gen17, gen18, gen19, gen20,
     gen21, GENUL, gen23, gen24, gen25, GENUL, gen27, gen28, GENUL, gen30,
     gen31, gen32, gen33, gen34, GENUL, GENUL, GENUL, GENUL, GENUL, gen40,
-    gen41, gen42, gen43, GENUL, GENUL, GENUL, GENUL, GENUL, 
+    gen41, gen42, gen43, GENUL, GENUL, GENUL, GENUL, GENUL,
 #ifndef NACL
-    gen49, 
+    gen49,
 #else
     GENUL,
 #endif
@@ -1141,7 +1141,7 @@ static int gen18(FGDATA *ff, FUNC *ftp)
       range = (MYFLT) (finish - start), j = start;
       while (j <= finish) {                      /* write the table */
         f = (MYFLT)modf((fnlen*(j++ - start)/range), &i);
-        if (i==fnp->flen) 
+        if (i==fnp->flen)
           fp18[j] += amp * fp[(int)i];
         else
           fp18[j] += amp * ((f * (*(fp + (int)(i+1)) -
@@ -2467,7 +2467,7 @@ FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
       return NULL;
     }
     if (ftp->flen == 0) {
-      if(csound->oparms->gen01defer)
+      if (LIKELY(csound->oparms->gen01defer))
        ftp = gen01_defer_load(csound, fno);
       else {
         csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);

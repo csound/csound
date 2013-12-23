@@ -1189,7 +1189,7 @@ int printk2set(CSOUND *csound, PRINTK2 *p)
 int printk2(CSOUND *csound, PRINTK2 *p)
 {
     MYFLT   value = *p->val;
-
+    
     if (p->oldvalue != value) {
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%d ",
                                                (int)p->h.insdshead->p1);

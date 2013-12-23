@@ -348,6 +348,11 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       showallocs(csound);
     }
 
+
+    if(newevtp->pinstance != NULL) {
+      *((MYFLT *)newevtp->pinstance) = (MYFLT) ((long) ip);
+    }
+
     return 0;
 }
 
@@ -698,6 +703,12 @@ static void deact(CSOUND *csound, INSDS *ip)
       fdchclose(csound, ip);
     csound->dag_changed++;
     //printf("**** dag changed by deact\n");
+}
+
+int kill_instance(CSOUND *csound, KILLOP *p) {
+  if(*p->inst) xturnoff(csound, (INSDS *) ((long)*p->inst));
+  else csound->Warning(csound, "instance not valid \n");
+  return OK;
 }
 
 /* Turn off a particular insalloc, also remove from list of active */
@@ -1185,6 +1196,17 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       lcurip->kicvt = CS_KICVT;
     }
 
+    /* VL 13-12-13 */
+    /* this sets ksmps and kr local variables */
+    /* create local ksmps variable and init with ksmps */
+    CS_VARIABLE *var =
+       csoundFindVariableWithName(lcurip->instr->varPool, "ksmps");
+       *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ksmps;
+     /* same for kr */
+      var =
+       csoundFindVariableWithName(lcurip->instr->varPool, "kr");
+     *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ekr;
+
     lcurip->m_chnbp = parent_ip->m_chnbp;       /* MIDI parameters */
     lcurip->m_pitch = parent_ip->m_pitch;
     lcurip->m_veloc = parent_ip->m_veloc;
@@ -1279,9 +1301,7 @@ int xinset(CSOUND *csound, XIN *p)
     ndx_list = inm->in_ndx_list - 1;
 
     while (*++ndx_list >= 0) {
-      //printf("%.1f %p \n", *(*(p->args + *ndx_list)), *(p->args + *ndx_list));
        *(*(p->args + *ndx_list)) = *(*(bufs + *ndx_list));
-
     }
 
     /* IV - Jul 29 2006: and string variables */
@@ -1376,11 +1396,9 @@ int xoutset(CSOUND *csound, XOUT *p)
 
     /* skip input pointers, including the three delimiter NULLs */
     tmp = buf->iobufp_ptrs;
-    /* VL: needs to check if there are not 4 nulls in a sequence, which
-       would indicate no a, k, f or t sigs */
     if (*tmp || *(tmp + 1) || *(tmp + 2) || *(tmp + 3))
       tmp += (inm->perf_incnt << 1);
-    tmp += 4;  /* VL: this was 2, now 4 with fsigs and tsigs added */
+    tmp += 4;
     if (*tmp || *(tmp + 1))
       return OK;
 
@@ -1428,7 +1446,8 @@ int xoutset(CSOUND *csound, XOUT *p)
   it can be used on any instrument with the implementation
   of a mechanism to perform at local ksmps (in kperf etc)
 */
-
+#include "typetabl.h"
+#include "csound_standard_types.h"
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
 
@@ -1451,6 +1470,21 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     CS_ONEDKR = FL(1.0) / CS_EKR;
     CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
     CS_KCNT *= n;
+
+    /* VL 13-12-13 */
+    /* this sets ksmps and kr local variables */
+    /* lookup local ksmps variable and init with ksmps */
+     INSTRTXT *ip = p->h.insdshead->instr;
+     CS_VARIABLE *var =
+       csoundFindVariableWithName(ip->varPool, "ksmps");
+     MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+     *varmem = CS_KSMPS;
+
+     /* same for kr */
+     var =
+       csoundFindVariableWithName(ip->varPool, "kr");
+     varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+     *varmem = CS_EKR;
 
     return OK;
 }
@@ -2006,7 +2040,8 @@ static void instance(CSOUND *csound, int insno)
     /* gbloffbas = csound->globalVarPool; */
     lcloffbas = &ip->p0;
     lclbas = (MYFLT*) ((char*) ip + pextent);   /* split local space */
-    initializeVarPool(lclbas, tp->varPool);
+   initializeVarPool(lclbas, tp->varPool);
+
     opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize;
     opdslim = nxtopds + tp->opdstot;
     if (UNLIKELY(odebug))
@@ -2081,7 +2116,6 @@ static void instance(CSOUND *csound, int insno)
           fltp = (MYFLT *) var->memBlock; /* gbloffbas + var->memBlockIndex; */
         }
         else if(arg->type == ARG_LOCAL) {
-
           fltp = lclbas + var->memBlockIndex;
         }
         else if (arg->type == ARG_PFIELD) {
@@ -2104,6 +2138,7 @@ static void instance(CSOUND *csound, int insno)
         argpp[n] = NULL;
 
       arg = ttp->inArgs;
+      ip->lclbas = lclbas;
       for (; arg != NULL; n++, arg = arg->next) {
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
         if(arg->type == ARG_CONSTANT) {
@@ -2116,7 +2151,6 @@ static void instance(CSOUND *csound, int insno)
           argpp[n] = lcloffbas + arg->index;
         }
         else if(arg->type == ARG_GLOBAL) {
-
           argpp[n] =  (MYFLT *) var->memBlock; /*gbloffbas + var->memBlockIndex; */
         }
         else if(arg->type == ARG_LOCAL){
@@ -2132,6 +2166,19 @@ static void instance(CSOUND *csound, int insno)
         }
       }
 
+    }
+
+    /* VL 13-12-13: point the memory to the local ksmps & kr variables,
+       and initialise them */
+    CS_VARIABLE* var = csoundFindVariableWithName(ip->instr->varPool, "ksmps");
+    if(var) {
+    var->memBlock = lclbas + var->memBlockIndex;
+    *((MYFLT *)(var->memBlock)) = csound->ksmps;
+    }
+    var = csoundFindVariableWithName(ip->instr->varPool, "kr");
+    if(var) {
+    var->memBlock = lclbas + var->memBlockIndex;
+    *((MYFLT *)(var->memBlock)) = csound->ekr;
     }
 
     if (UNLIKELY(nxtopds > opdslim))
@@ -2307,6 +2354,7 @@ void *init_pass_thread(void *p){
     int done;
     float wakeup = (1000*csound->ksmps/csound->esr);
     while(csound->init_pass_loop) {
+
 #if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
       usleep(1000*wakeup);
 #else
@@ -2324,6 +2372,7 @@ void *init_pass_thread(void *p){
         if (done == 0) {
           csoundLockMutex(csound->init_pass_threadlock);
           csound->ids = (OPDS *) (ip->nxti);
+          csound->curip = ip;
           while (csound->ids != NULL) {
             if (csound->oparms->odebug)
               csound->Message(csound, "init %s:\n",
@@ -2343,7 +2392,9 @@ void *init_pass_thread(void *p){
           csoundUnlockMutex(csound->init_pass_threadlock);
         }
         ip = nxt;
+
       }
+
     }
     return NULL;
 }

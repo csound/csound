@@ -73,80 +73,69 @@ char *mytmpnam(char *name)
 #endif
 
 
-CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
+CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 {
-    size_t  nBytes = L_tmpnam+4;
-    if (buf == NULL) {
-      nBytes = (size_t) (L_tmpnam);
-      if (ext != NULL && ext[0] != (char) 0)
-        nBytes += strlen(ext);
-      buf = csound->Malloc(csound, nBytes);
-    }
-    {
+    size_t  nBytes = 256;
+    char lbuf[256];
 #if defined(LINUX) || defined(__MACH__)
-      struct stat tmp;
-      do {
+    struct stat tmp;
 #elif defined(WIN32)
-      struct _stat tmp;
-      do {
+    struct _stat tmp;
 #endif
+    do {
 #ifndef WIN32
-        //        if (UNLIKELY(mytmpnam(buf) == NULL))
-        //          csound->Die(csound, Str(" *** cannot create temporary file"));
-        int fd;
-        char *tmpdir = getenv("TMPDIR");
-        if (tmpdir != NULL && tmpdir[0] != '\0')
-          snprintf(buf, nBytes, "%s/csound-XXXXXX", tmpdir);
-        else
-          strcpy(buf, "/tmp/csound-XXXXXX");
-        umask(0077);
+      int fd;
+      char *tmpdir = getenv("TMPDIR");
+      if (tmpdir != NULL && tmpdir[0] != '\0')
+        snprintf(lbuf, nBytes, "%s/csound-XXXXXX", tmpdir);
+      else
+        strcpy(lbuf, "/tmp/csound-XXXXXX");
+      umask(0077);
         /* ensure exclusive access on buggy implementations of mkstemp */
-        if (UNLIKELY((fd = mkstemp(buf)) < 0))
-          csound->Die(csound, Str(" *** cannot create temporary file"));
-        close(fd);
-        unlink(buf);
+      if (UNLIKELY((fd = mkstemp(lbuf)) < 0))
+        csound->Die(csound, Str(" *** cannot create temporary file"));
+      close(fd);
+      unlink(lbuf);
 #else
-        {
-          char  *s = (char*) csoundGetEnv(csound, "SFDIR");
-          if (s == NULL)
-            s = (char*) csoundGetEnv(csound, "HOME");
-          s = _tempnam(s, "cs");
-          if (UNLIKELY(s == NULL))
-            csound->Die(csound, Str(" *** cannot create temporary file"));
-          strncpy(buf, s, nBytes);
-          free(s);
-        }
+      {
+        char  *s = (char*) csoundGetEnv(csound, "SFDIR");
+        if (s == NULL)
+          s = (char*) csoundGetEnv(csound, "HOME");
+        s = _tempnam(s, "cs");
+        if (UNLIKELY(s == NULL))
+          csound->Die(csound, Str(" *** cannot create temporary file"));
+        strncpy(lbuf, s, nBytes);
+        free(s);
+      }
 #endif
-        if (ext != NULL && ext[0] != (char) 0) {
+      if (ext != NULL && ext[0] != (char) 0) {
 #if !defined(LINUX) && !defined(__MACH__) && !defined(WIN32)
-          char  *p;
-          /* remove original extension (does not work on OS X */
-          /* and may be a bad idea) */
-          if ((p = strrchr(buf, '.')) != NULL)
-            *p = '\0';
+        char  *p;
+        /* remove original extension (does not work on OS X */
+        /* and may be a bad idea) */
+        if ((p = strrchr(lbuf, '.')) != NULL)
+          *p = '\0';
 #endif
-          strncat(buf, ext, nBytes);
-        }
+        strncat(lbuf, ext, nBytes);
+      }
 #ifdef __MACH__
-        /* on MacOS X, store temporary files in /tmp instead of /var/tmp */
-        /* (suggested by Matt Ingalls) */
-        if (strncmp(buf, "/var/tmp/", 9) == 0) {
-          int i = 3;
-          do {
-            i++;
-            buf[i - 4] = buf[i];
-          } while (buf[i] != (char) 0);
-        }
+      /* on MacOS X, store temporary files in /tmp instead of /var/tmp */
+      /* (suggested by Matt Ingalls) */
+      if (strncmp(lbuf, "/var/tmp/", 9) == 0) {
+        int i = 3;
+        do {
+          i++;
+          lbuf[i - 4] = lbuf[i];
+          } while (lbuf[i] != '\0');
+      }
 #endif
 #if defined(LINUX) || defined(__MACH__)
-        /* if the file already exists, try again */
-      } while (stat(buf, &tmp) == 0);
+      /* if the file already exists, try again */
+    } while (stat(lbuf, &tmp) == 0);
 #elif defined(WIN32)
-      } while (_stat(buf, &tmp) == 0);
+    } while (_stat(lbuf, &tmp) == 0);
 #endif
-    }
-
-    return buf;
+    return strdup(lbuf);
 }
 
 static inline void alloc_globals(CSOUND *csound)
@@ -156,12 +145,6 @@ static inline void alloc_globals(CSOUND *csound)
       /* count lines from 0 so that it adds OK to orc/sco counts */
     STA(csdlinecount) = 0;
 }
-
-/* char *get_sconame(CSOUND *csound) */
-/* { */
-/*     //alloc_globals(csound); */
-/*     return STA(sconame); */
-/* } */
 
 static char *my_fgets(CSOUND *csound, char *s, int n, FILE *stream)
 {
@@ -349,9 +332,7 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
     }
     if (UNLIKELY(readingCsOptions))
       csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));
-    /* else */
-    /*   STA(csdlinecount) = 0; */
- return FALSE;
+    return FALSE;
 }
 
 static int createOrchestra(CSOUND *csound, FILE *unf)
@@ -403,12 +384,12 @@ static int createScore(CSOUND *csound, FILE *unf)
 
 static int createExScore(CSOUND *csound, char *p, FILE *unf)
 {
-    char    extname[L_tmpnam + 4];
+    char *extname;
     char *q;
-    char prog[L_tmpnam + 4];
+    char prog[256];
     void *fd;
     FILE  *scof;
-    char    buffer[CSD_MAX_LINE_LEN];
+    char  buffer[CSD_MAX_LINE_LEN];
 
     p = strstr(p, "bin=\"");
     if (UNLIKELY(p==NULL)) {
@@ -423,8 +404,9 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
     *q = '\0';
     strcpy(prog, p+5); /* after "<CsExScore " */
     /* Generate score name */
-    csoundTmpFileName(csound, STA(sconame), ".sco");
-    csoundTmpFileName(csound, extname, ".ext");
+    if (STA(sconame)) free(STA(sconame));
+    STA(sconame) = csoundTmpFileName(csound, ".sco");
+    extname = csoundTmpFileName(csound, ".ext");
     fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, extname, "w", NULL,
                                 CSFTYPE_SCORE, 1);
     csound->tempStatus |= csScoInMask;
@@ -533,7 +515,8 @@ static int createMIDI2(CSOUND *csound, FILE *unf)
     char  buffer[CSD_MAX_LINE_LEN];
 
     /* Generate MIDI file name */
-    csoundTmpFileName(csound, STA(midname), ".mid");
+    if (STA(midname)) free(STA(midname));
+    STA(midname) = csoundTmpFileName(csound, ".mid");
     fd = csoundFileOpenWithType(csound, &midf, CSFILE_STD, STA(midname),
                                 "wb", NULL, CSFTYPE_STD_MIDI, 1);
     if (UNLIKELY(fd == NULL)) {
@@ -743,7 +726,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       return 0;
     }
     alloc_globals(csound);
-    STA(orcname)[0] = STA(sconame)[0] = STA(midname)[0] = '\0';
+    STA(orcname) = STA(sconame) = STA(midname) = NULL;
     STA(midiSet) = FALSE;
 #ifdef _DEBUG
     csoundMessage(csound, "Calling unified file system with %s\n", name);
@@ -803,10 +786,6 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
           r = createExScore(csound, p, unf);
         result = r && result;
       }
-      /* else if (strstr(p, "<CsMidifile>") == p) { */
-      /*   r = createMIDI(csound, unf); */
-      /*   result = r && result; */
-      /* } */
       else if (strstr(p, "<CsMidifileB>") == p) {
         r = createMIDI2(csound, unf);
         result = r && result;
