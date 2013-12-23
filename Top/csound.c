@@ -610,7 +610,7 @@ static const CSOUND cenviron_ = {
     FL(0.0), FL(0.0), FL(0.0),  /*  prvbt, curbt, nxtbt */
     FL(0.0), FL(0.0),       /*  curp2, nxtim        */
     0,              /*  cyclesRemaining     */
-    { 0, NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
+    { 0, NULL, NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
     NULL,           /*  memalloc_db         */
     (MGLOBAL*) NULL, /* midiGlobals         */
     NULL,           /*  envVarDB            */
@@ -675,14 +675,14 @@ static const CSOUND cenviron_ = {
     },
     {
       NULL,
-      {'\0'}, {'\0'}, {'\0'}, /* orcname, sconame, midname */
+      NULL, NULL, NULL, /* orcname, sconame, midname */
       0, 0           /* midiSet, csdlinecount */
     },
     {
       NULL, NULL,   /* Linep, Linebufend    */
       0,            /* stdmode              */
       {
-        0, NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
+        0, NULL, NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
         {NULL},
       },            /* EVTBLK  prve         */
       NULL,        /* Linebuf              */
@@ -805,7 +805,7 @@ static const CSOUND cenviron_ = {
       0,            /*    samp acc   */
       0,            /*    realtime  */
       0.0,          /*    0dbfs override */
-      0             /*    no exit on compile error */  
+      0             /*    no exit on compile error */
     },
 
     {0, 0, {0}}, /* REMOT_BUF */
@@ -853,8 +853,8 @@ static const CSOUND cenviron_ = {
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
     0,              /* info_message_request */
-    0,              /* modules loaded */
-    NULL            /* self-reference */
+    0              /* modules loaded */
+    /*, NULL */           /* self-reference */
 };
 
 /* from threads.c */
@@ -2767,7 +2767,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     char    *s;
     int     i, max_len;
     OPARMS  *O = csound->oparms;
-       
+
     #ifdef HAVE_PTHREAD_SPIN_LOCK
      pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
      pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
