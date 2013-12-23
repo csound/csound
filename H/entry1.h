@@ -351,6 +351,8 @@ int     triginset_S(CSOUND *, void *), ktriginstr_S(CSOUND *, void *);
 int     trigseq_set(CSOUND *, void *), trigseq(CSOUND *, void *);
 int     eventOpcode(CSOUND *, void *), eventOpcodeI(CSOUND *, void *);
 int     eventOpcode_S(CSOUND *, void *), eventOpcodeI_S(CSOUND *, void *);
+int     instanceOpcode(CSOUND *, void *), instanceOpcode_S(CSOUND *, void *);
+int     kill_instance(CSOUND *csound, void *p);
 int     lfoset(CSOUND *, void *);
 int     lfok(CSOUND *, void *), lfoa(CSOUND *, void *);
 int     mute_inst(CSOUND *, void *);

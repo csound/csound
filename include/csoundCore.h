@@ -426,6 +426,8 @@ typedef struct {
     /** String argument(s) (NULL if none) */
     int     scnt;
     char    *strarg;
+    /* instance pointer */
+    void  *pinstance;
     /** Event type */
     char    opcod;
     /** Number of p-fields */
@@ -515,6 +517,7 @@ typedef struct {
     int    tieflag;
     int    reinitflag;
     MYFLT  retval;
+    MYFLT  *lclbas;  /* base for variable memory pool */ 
     char   *strarg;       /* string argument */
     /* Copy of required p-field values for quick access */
     MYFLT   p0;
@@ -1494,9 +1497,9 @@ typedef struct NAME__ {
     } sreadStatics;
     struct onefileStatics__ {
       NAMELST *toremove;
-      char    orcname[L_tmpnam + 4];
-      char    sconame[L_tmpnam + 4];
-      char    midname[L_tmpnam + 4];
+      char    *orcname;
+      char    *sconame;
+      char    *midname;
       int     midiSet;
       int     csdlinecount;
     } onefileStatics;
@@ -1653,7 +1656,7 @@ typedef struct NAME__ {
     int           jumpset;
     int           info_message_request;
     int           modules_loaded;
-    struct CSOUND_ **self;
+    /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
   };
