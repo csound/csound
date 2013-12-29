@@ -611,7 +611,7 @@ int krandh(CSOUND *csound, RANDH *p)
     /* IV - Jul 11 2002 */
     *p->ar = *p->base + p->num1 * *p->xamp;     /* rslt = num * amp     */
     p->phs += (long)(*p->xcps * CS_KICVT); /* phs += inc           */
-    
+
     if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
       if (!p->new) {
