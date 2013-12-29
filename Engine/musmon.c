@@ -1197,7 +1197,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       p[i] = evt->p[i];
     /* ...and use the copy from now on */
     evt = &(e->evt);
-   
+
     /* check for required p-fields */
     switch (evt->opcod) {
       case 'f':
