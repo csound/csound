@@ -622,3 +622,5 @@
 ./util1/scot/scot_main.c
 ./util1/sortex/smain.c
 ./util1/sortex/xmain.c
+./Opcodes/cuda/adsyn.cu
+./Opcodes/cuda/pvsops.cu
