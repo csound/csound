@@ -361,7 +361,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
         dsize = ((int)sizeof(MYFLT) * csound->ksmps);
         break;
       case CSOUND_STRING_CHANNEL:
-        dsize = INIT_STRING_CHANNEL_DATASIZE;
+        dsize = ((int)sizeof(STRINGDAT));
         break;
       case CSOUND_PVS_CHANNEL:
         dsize = ((int)sizeof(PVSDATEXT));
@@ -1168,10 +1168,7 @@ int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     /* free the allocated memory (we will not use it) */
     mfree(csound, chn->data);
     /* point to the arg var */
-    if(type == CSOUND_STRING_CHANNEL)
-      chn->data = (MYFLT *) ((STRINGDAT *)p->arg)->data;
-    else
-      chn->data = p->arg;
+    chn->data = p->arg;
 
     /* if control channel, set additional parameters */
     if ((type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
