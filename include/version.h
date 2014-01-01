@@ -24,7 +24,7 @@
 #ifndef CSOUND_VERSION_H
 #define CSOUND_VERSION_H
 
-#define VERSION "6.01.0"
+#define VERSION "6.02.0"
 
 /* Define to the full name of this package. */
 #define CS_PACKAGE_NAME     "Csound"
@@ -38,7 +38,7 @@
 /* Define to the version of this package. */
 #define CS_PACKAGE_VERSION  VERSION
 #define CS_VERSION          (6)
-#define CS_SUBVER           (1)
+#define CS_SUBVER           (2)
 #define CS_PATCHLEVEL       (0)
 
 #define CS_APIVERSION       3   /* should be increased anytime a new version
