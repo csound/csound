@@ -1,7 +1,7 @@
 // -*- c++ -*-
 // adsyn.cu
 // experimental cuda opcodes
-// 
+//
 // V Lazzarini, 2013
 
 #include <csdl.h>
@@ -11,9 +11,9 @@
 
 #define PFRACLO(x)   ((MYFLT)((x) & lomask) * lodiv)
 
-__global__ void component(MYFLT *out, int *ndx, MYFLT *tab, 
-			  float *amp, int *inc, int vsize, 
-                          int blocks, int lobits, MYFLT lodiv, 
+__global__ void component(MYFLT *out, int *ndx, MYFLT *tab,
+                          float *amp, int *inc, int vsize,
+                          int blocks, int lobits, MYFLT lodiv,
                           int lomask) {
 
   int h = threadIdx.x*blocks + blockIdx.x;
@@ -21,14 +21,14 @@ __global__ void component(MYFLT *out, int *ndx, MYFLT *tab,
 
   offset = h*vsize;
   out += offset;
- 
+
   for(i=0; i < vsize; i++) {
-    lndx = ndx[h];  
+    lndx = ndx[h];
     n = lndx >> lobits;
     out[i] = amp[h]*(tab[n] +  PFRACLO(lndx)*(tab[n+1] - tab[n]));
     ndx[h] = (lndx + inc[h]) & PHMASK;
-  }  
-  
+  }
+
 }
 
 __global__  void mixdown(MYFLT *out, int comps, int vsize, float kamp){
@@ -63,25 +63,25 @@ static int init_cudaop(CSOUND *csound, CUDAOP *p){
   int nsmps = CS_KSMPS;
   if(nsmps > 1024) return csound->InitError(csound, "ksmps is too large\n");
 
-  if((p->itab = 
-      csound->FTFind(csound, p->itabn))== NULL) 
-    return csound->InitError(csound, 
-			     "could not find table %.0f\n", *p->itabn);
+  if((p->itab =
+      csound->FTFind(csound, p->itabn))== NULL)
+    return csound->InitError(csound,
+                             "could not find table %.0f\n", *p->itabn);
 
-  if((p->ftab = 
-      csound->FTnp2Find(csound, p->ftabn))== NULL) 
-    return csound->InitError(csound, 
-			     "could not find table %.0f\n", *p->ftabn);
+  if((p->ftab =
+      csound->FTnp2Find(csound, p->ftabn))== NULL)
+    return csound->InitError(csound,
+                             "could not find table %.0f\n", *p->ftabn);
 
-  if((p->atab = 
-      csound->FTnp2Find(csound, p->atabn))== NULL) 
-    return csound->InitError(csound, 
-			     "could not find table %.0f\n", *p->atabn);
+  if((p->atab =
+      csound->FTnp2Find(csound, p->atabn))== NULL)
+    return csound->InitError(csound,
+                             "could not find table %.0f\n", *p->atabn);
 
   a = p->ftab->flen;
   b = p->atab->flen;
-  p->N = a < b ? a : b; 
-  
+  p->N = a < b ? a : b;
+
   if(*p->inum > 0 && *p->inum < p->N) p->N = *p->inum;
 
   p->blocks = p->N > 1024 ? p->N/1024 : 1;
@@ -99,7 +99,7 @@ static int init_cudaop(CSOUND *csound, CUDAOP *p){
   cudaMemset(p->ndx, 0, ipsize);
   cudaMemcpy(p->tab, p->itab->ftable, tsize, cudaMemcpyHostToDevice);
 
-  p->ap = p->atab->ftable;    
+  p->ap = p->atab->ftable;
   p->fp = p->ftab->ftable;
 
   csound->RegisterDeinitCallback(csound, p, destroy_cudaop);
@@ -114,7 +114,7 @@ static void update_params(CSOUND *csound, CUDAOP *p){
   float amp[MAXBLOCK];
   int inc[MAXBLOCK], i, j;
   int N = p->N > MAXBLOCK ? MAXBLOCK : p->N;
-  
+
   for(j=0; N > 0; j++,  N = p->N - N) {
    for(i=0;i < N; i++){
     amp[i] = p->ap[i];
@@ -131,7 +131,7 @@ static int perf_cudaop(CSOUND *csound, CUDAOP *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t nsmps = CS_KSMPS;
-  p->ap = p->atab->ftable;    
+  p->ap = p->atab->ftable;
   p->fp = p->ftab->ftable;
 
   if (UNLIKELY(offset)) memset(p->asig, '\0', offset*sizeof(MYFLT));
@@ -142,16 +142,16 @@ static int perf_cudaop(CSOUND *csound, CUDAOP *p){
 
   update_params(csound, p);
   component<<<p->blocks,
-  	p->N/p->blocks>>>(p->out,p->ndx,
-  			  p->tab,p->amp,
-  			  p->inc,nsmps,
-  			  p->blocks,
-  			  p->itab->lobits,
-  			  p->itab->lodiv,
-  			  p->itab->lomask);
+        p->N/p->blocks>>>(p->out,p->ndx,
+                          p->tab,p->amp,
+                          p->inc,nsmps,
+                          p->blocks,
+                          p->itab->lobits,
+                          p->itab->lodiv,
+                          p->itab->lomask);
    mixdown<<<1,nsmps>>>(p->out,p->N,nsmps,*p->kamp);
    cudaMemcpy(p->asig,p->out,nsmps*sizeof(MYFLT),cudaMemcpyDeviceToHost);
-   
+
   return OK;
 }
 
@@ -192,18 +192,18 @@ static int destroy_cudaop2(CSOUND *csound, void *pp);
 static int init_cudaop2(CSOUND *csound, CUDAOP2 *p){
 
   int asize, ipsize, fpsize, tsize;
-  if(p->fsig->overlap > 1024) 
+  if(p->fsig->overlap > 1024)
      return csound->InitError(csound, "overlap is too large\n");
-  
-  if((p->itab = 
-      csound->FTFind(csound, p->itabn))== NULL) 
-    return csound->InitError(csound, 
-			     "could not find table %.0f\n", *p->itabn);
+
+  if((p->itab =
+      csound->FTFind(csound, p->itabn))== NULL)
+    return csound->InitError(csound,
+                             "could not find table %.0f\n", *p->itabn);
   p->N = (p->fsig->N)/2;
-  
+
   if(*p->inum > 0 && *p->inum < p->N) p->N = *p->inum;
 
-  p->blocks = p->N > 1024 ? p->N/1024 : 1; 
+  p->blocks = p->N > 1024 ? p->N/1024 : 1;
   p->vsamps = p->fsig->overlap < VSAMPS ? VSAMPS : p->fsig->overlap;
 
   asize = p->N*p->vsamps*sizeof(MYFLT);
@@ -218,12 +218,12 @@ static int init_cudaop2(CSOUND *csound, CUDAOP2 *p){
   cudaMalloc(&p->tab, tsize);
   cudaMemset(p->ndx, 0, ipsize);
   cudaMemcpy(p->tab,p->itab->ftable,tsize, cudaMemcpyHostToDevice);
-    
+
   asize = p->vsamps*sizeof(MYFLT);
-  if(p->out_.auxp == NULL || 
+  if(p->out_.auxp == NULL ||
      p->out_.size < asize)
-    csound->AuxAlloc(csound, asize , &p->out_); 
- 
+    csound->AuxAlloc(csound, asize , &p->out_);
+
   csound->RegisterDeinitCallback(csound, p, destroy_cudaop2);
   p->count = 0;
 
@@ -270,16 +270,16 @@ static int perf_cudaop2(CSOUND *csound, CUDAOP2 *p){
     if(count == 0) {
       update_params2(csound, p);
       component<<<p->blocks,
-	p->N/p->blocks>>>(p->out,p->ndx,
-			  p->tab,p->amp,
-			  p->inc,p->vsamps,
-			  p->blocks,
-			  p->itab->lobits,
-			  p->itab->lodiv,
-			  p->itab->lomask);
+        p->N/p->blocks>>>(p->out,p->ndx,
+                          p->tab,p->amp,
+                          p->inc,p->vsamps,
+                          p->blocks,
+                          p->itab->lobits,
+                          p->itab->lodiv,
+                          p->itab->lomask);
       mixdown<<<1,vsamps>>>(p->out,p->N,vsamps,*p->kamp);
-      cudaMemcpy(out_,p->out,vsamps*sizeof(MYFLT),cudaMemcpyDeviceToHost);      
-      count = vsamps; 
+      cudaMemcpy(out_,p->out,vsamps*sizeof(MYFLT),cudaMemcpyDeviceToHost);
+      count = vsamps;
     }
     asig[n] = (MYFLT) out_[vsamps - count];
     count--;
