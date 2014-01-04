@@ -1344,7 +1344,11 @@ static int gen23(FGDATA *ff, FUNC *ftp)
     if (ftp == NULL) {
       /* Start counting elements */
       ff->flen = 0;
-      while (!feof(infile)) nextval(infile), ff->flen++;
+      nextval(infile);
+      do {
+        ff->flen++;
+        nextval(infile);
+      } while (!feof(infile));
       csoundMessage(csound, Str("%ld elements in %s\n"),
                               ff->flen, ff->e.strarg);
       rewind(infile);
