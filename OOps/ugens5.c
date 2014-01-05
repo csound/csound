@@ -608,7 +608,7 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
     ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = p;
 
     /* Build file name */
-    if(stringname) strncpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
+    if (stringname) strncpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
     else if (ISSTRCOD(*p->ifilcod))
       strncpy(lpfilname, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
     else csound->strarg2name(csound, lpfilname, p->ifilcod, "lp.", 0);
@@ -681,7 +681,8 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
 
 int lprdset(CSOUND *csound, LPREAD *p){
   return lprdset_(csound, p, 0);
-  }
+}
+
 int lprdset_S(CSOUND *csound, LPREAD *p){
   return lprdset_(csound, p, 1);
 }
@@ -689,7 +690,7 @@ int lprdset_S(CSOUND *csound, LPREAD *p){
 
 #ifdef TRACE_POLES
 static void
- DumpPolesF(int poleCount, MYFLT *part1, MYFLT *part2, int isMagn, char *where)
+  DumpPolesF(int poleCount, MYFLT *part1, MYFLT *part2, int isMagn, char *where)
 {
     int i;
 
@@ -754,7 +755,7 @@ static int DoPoleInterpolation(int poleCount,
     int i;
 
     if (UNLIKELY(poleCount%2!=0)) {
-/*    printf (Str("Cannot handle uneven pole count yet \n")); */
+      printf (Str("Cannot handle uneven pole count yet \n"));
       return (0);
     }
 
