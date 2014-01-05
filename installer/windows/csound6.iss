@@ -72,9 +72,12 @@ Name: "csoundvst"; Description: "Csound VST plugin and vst4cs opcodes"; Types: f
 #endif
 
 [Dirs]
-; ALL programs and shared libraries (including opcodes and other modules) go here.
+; ALL programs and shared libraries (except opcodes and other Csound modules) go here.
 Name: "{app}\bin"; Permissions: users-modify
 #define APP_BIN "{app}\bin\"
+; ALL Csound opcodes and other Csound modules go here.
+Name: "{app}\plugins64"; Permissions: users-modify
+#define APP_PLUGINS64 "{app}\plugins64\"
 ; All C or C++ include files for Csound and other components used by Csound go here.
 ; This is a convenience for people like me who program in C or C++ and might use 
 ; features of these third party components.
@@ -141,16 +144,51 @@ Source: "{#MyMinGwBinDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 ; No idea why this other name is needed.
 Source: "{#MyMSysBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv.dll"; Components: core;
 Source: "{#MyMSysUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "*.dll*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll, csound6~.dll, CsoundVST.dll"; Components: core;
-Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "csound6~.dll";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: pd;
+Source: "CsoundAC.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 #ifdef CSOUNDVST
 Source: "CsoundVST.dll";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst;
 #endif
+Source: "luaCsnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "luaCsoundAC.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "_jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+
+Source: "LuaCsound.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "ampmidid.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "cellular.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "chua.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "cs_date.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "csladspa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "doppler.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "fareygen.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "fluidOpcodes.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "fractalnoise.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "image.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "ipmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "linear_algebra.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "mixer.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "osc.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "platerev.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "pmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "rtpa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "rtwinmm.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "scansyn.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "serial.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "signalflowgraph.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "stdutil.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "stk.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "system_call.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "virtual.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+#ifdef CSOUNDVST
+Source: "vst4cs.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: csoundvst;
+#endif
+Source: "widgets.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 
 Source: "{#MyCsoundQtBinDir}CsoundQt-d-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components: core;
@@ -170,7 +208,7 @@ Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile";
 Source: {#MyPortAudioSourceDir}\lib\.libs\*.dll; DestDir: "{#APP_BIN}"; Components: core 
 Source: {#MyPortAudioSourceDir}\bin\.libs\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
 Source: {#MyPortAudioSourceDir}\bin\.libs\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
-; Required by pre-build portaudio_x86.dll (built with MSVC).
+; Required by pre-built portaudio_x86.dll (built with MSVC).
 Source: "C:\Windows\system32\msvcr110.dll"; DestDir: "{#APP_BIN}"; Components: core  
 
 Source: {#MyPortMidiSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core 
@@ -226,7 +264,7 @@ Name: "{group}\CsoundAC Tutorial"; Filename: "{#APP_TUTORIAL}Csound_Algorithmic_
 
 [Registry]
 Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"RAWWAVE_PATH"; ValueData:"{#APP_SAMPLES}"; Flags: preservestringtype uninsdeletekey;  Components: core 
-Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"OPCODE6DIR64"; ValueData:"{#APP_BIN}"; Flags: preservestringtype uninsdeletekey;  Components: core 
+Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"OPCODE6DIR64"; ValueData:"{#APP_PLUGINS64}"; Flags: preservestringtype uninsdeletekey;  Components: core 
 Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"PYTHONPATH"; ValueData:"{#APP_BIN}"; Flags: preservestringtype uninsdeletekey;  Components: python 
 
 [Tasks]

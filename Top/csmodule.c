@@ -471,7 +471,7 @@ int csoundLoadModules(CSOUND *csound)
         continue;
       }
       sprintf(buf, "%s%c%s", dname, DIRSEP, fname);
-/*       printf("Loading: %s\n", buf); */
+    csoundWarning(csound, Str("Loading '%s'\n"), buf);
       n = csoundLoadExternal(csound, buf);
       if (UNLIKELY(n == CSOUND_ERROR))
         continue;               /* ignore non-plugin files */
