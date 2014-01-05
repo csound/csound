@@ -390,13 +390,7 @@ struct Inleta : public OpcodeBase<Inleta> {
           Outleta *sourceOutlet = instances->at(instanceI);
           // Skip inactive instances.
           if (sourceOutlet->opds.insdshead->actflg) {
-            // Loop over the samples in the inlet buffer.
-            uint32_t sampleOffset = kperiodOffset();
-            uint32_t sampleI;
-            for (sampleI = 0; sampleI < sampleOffset; ++sampleI) {
-                asignal[sampleI] = FL(0.0);
-            }
-            for ( ; sampleI < sampleN; ++sampleI) {
+            for (int sampleI = 0, sampleN = ksmps(); sampleI < sampleN; ++sampleI) {
               asignal[sampleI] += sourceOutlet->asignal[sampleI];
             }
           }
@@ -1639,6 +1633,9 @@ extern "C"
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
+    if(csound->GetMessageLevel(csound) & WARNMSG) {
+        csound->Message(csound, "signalflowgraph: csoundModuleCreate(%p)\n", csound);
+    }
     if (cs_sfg_ports == 0) {
         cs_sfg_ports = csound->Create_Mutex(1);
     }
@@ -1650,6 +1647,9 @@ extern "C"
 
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
+    if(csound->GetMessageLevel(csound) & WARNMSG) {
+        csound->Message(csound, "signalflowgraph: csoundModuleInit(%p)\n", csound);
+    }
     OENTRY *ep = (OENTRY *)&(oentries[0]);
     int  err = 0;
     while (ep->opname != 0) {
@@ -1670,7 +1670,9 @@ extern "C"
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
-    //csound->Message(csound, "signalflowgraph: CsoundModuleDestroy(%p)\n", csound);
+    if(csound->GetMessageLevel(csound) & WARNMSG) {
+        csound->Message(csound, "signalflowgraph: csoundModuleDestroy(%p)\n", csound);
+    }
 //#pragma omp critical (cs_sfg_ports)
     csound->LockMutex(cs_sfg_ports);
     {

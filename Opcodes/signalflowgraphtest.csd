@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -m255 -RWfo signalflowgraphtest.wav
+csound -m255 -RWfdo dac
 </CsOptions>
 <CsInstruments>
 
@@ -63,8 +63,8 @@ i 1 0 10
 i 2 2 1 101
 i 1 5 10
 i 2 7 1 102
-i 2 12 1 101 
-i 2 17 1 102 
+i 2 12 1 101
+i 2 17 1 102
 
 i 3 20 10 1 1
 i 3 21 10 2 1
