@@ -350,7 +350,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 
 
     if(newevtp->pinstance != NULL) {
-      *((MYFLT *)newevtp->pinstance) = (MYFLT) ((long) ip);
+      newevtp->pinstance = ip;
     }
 
     return 0;
