@@ -511,6 +511,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
     }
     else {
       MYFLT *timp = p->xdlt, *curq = q->curp;
+      if(*timp == INFINITY) goto err2;
       for (n=offset; n<nsmps; n++) {
         delsmps = timp[n] * csound->esr;
         idelsmps = (int32)delsmps;
@@ -527,7 +528,10 @@ int deltapi(CSOUND *csound, DELTAP *p)
     return OK;
  err1:
     return csound->PerfError(csound, p->h.insdshead,
-                             Str("deltapi: not initialised"));
+                              Str("deltapi: not initialised"));
+  err2:
+    return csound->PerfError(csound, p->h.insdshead,
+                              Str("deltapi: INF delaytime"));
 }
 
 /* ***** From Hans Mikelson ************* */
