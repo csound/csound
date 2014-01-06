@@ -217,6 +217,7 @@ static void sensLine(CSOUND *csound, void *userData)
         char    *sstrp = NULL;
         int     scnt = 0;
         int     strsiz = 0;
+        memset(&e, 0, sizeof(EVTBLK));
         e.strarg = NULL; e.scnt = 0;
         c = *cp;
         while (c == ' ' || c == '\t')   /* skip initial white space */
@@ -355,6 +356,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     EVTBLK  evt;
     int     i;
     char    opcod;
+    memset(&evt, 0, sizeof(EVTBLK));
 
     if (p1==0)
          opcod = *((STRINGDAT*) p->args[0])->data;
@@ -414,6 +416,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     EVTBLK  evt;
     int     i, err = 0;
     char    opcod;
+    memset(&evt, 0, sizeof(EVTBLK));
 
     if(p1==0)
          opcod = *((STRINGDAT*) p->args[0])->data;

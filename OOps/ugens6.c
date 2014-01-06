@@ -495,6 +495,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
+      if(*p->xdlt == INFINITY) goto err2;
       delsmps = *p->xdlt * csound->esr;
       idelsmps = (int32)delsmps;
       delfrac = delsmps - idelsmps;
@@ -512,6 +513,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
     else {
       MYFLT *timp = p->xdlt, *curq = q->curp;
       for (n=offset; n<nsmps; n++) {
+        if(timp[n] == INFINITY) goto err2;
         delsmps = timp[n] * csound->esr;
         idelsmps = (int32)delsmps;
         delfrac = delsmps - idelsmps;
@@ -527,7 +529,10 @@ int deltapi(CSOUND *csound, DELTAP *p)
     return OK;
  err1:
     return csound->PerfError(csound, p->h.insdshead,
-                             Str("deltapi: not initialised"));
+                              Str("deltapi: not initialised"));
+  err2:
+    return csound->PerfError(csound, p->h.insdshead,
+                              Str("deltapi: INF delaytime"));
 }
 
 /* ***** From Hans Mikelson ************* */
@@ -604,6 +609,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
+      if(*p->xdlt == INFINITY) goto err2;
       delsmps = *p->xdlt * csound->esr;
       idelsmps = (int32)delsmps;
       delfrac = delsmps - idelsmps;
@@ -638,6 +644,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
       MYFLT *timp = p->xdlt, *curq = q->curp;
       for (n=offset; n<nsmps; n++) {
         MYFLT ym1, y0, y1, y2;
+        if(timp[n] == INFINITY) goto err2;
         delsmps = *timp++ * csound->esr;
         idelsmps = (int32)delsmps;
         delfrac = delsmps - idelsmps;
@@ -665,6 +672,10 @@ int deltap3(CSOUND *csound, DELTAP *p)
  err1:
     return csound->PerfError(csound, p->h.insdshead,
                              Str("deltap3: not initialised"));
+  err2:
+    return csound->PerfError(csound, p->h.insdshead,
+                              Str("deltapi: INF delaytime"));
+
 }
 
 

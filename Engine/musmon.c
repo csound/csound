@@ -513,6 +513,7 @@ int turnon(CSOUND *csound, TURNON *p)
 {
     EVTBLK  evt;
     int insno;
+    memset(&evt, 0, sizeof(EVTBLK));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = 3;
@@ -537,7 +538,7 @@ int turnon_S(CSOUND *csound, TURNON *p)
 {
     EVTBLK  evt;
     int     insno;
-
+    memset(&evt, 0, sizeof(EVTBLK));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = 3;
