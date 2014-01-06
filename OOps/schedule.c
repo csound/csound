@@ -357,6 +357,7 @@ static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
     int     i, argnum;
     EVTBLK  evt;
     char    name[512];
+    memset(&evt, 0, sizeof(EVTBLK));
 
     if (p->timrem > 0)
       p->timrem--;

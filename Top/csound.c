@@ -1881,6 +1881,7 @@ PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset)
     }
     if (aTime > 0.0) {
       EVTBLK  evt;
+      memset(&evt, 0, sizeof(EVTBLK));
       evt.strarg = NULL; evt.scnt = 0;
       evt.opcod = 'a';
       evt.pcnt = 3;
@@ -2102,6 +2103,7 @@ PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
     EVTBLK  evt;
     int     i;
     int ret;
+    memset(&evt, 0, sizeof(EVTBLK));
 
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = type;
@@ -2122,6 +2124,7 @@ PUBLIC int csoundScoreEventAbsolute(CSOUND *csound, char type,
     EVTBLK  evt;
     int     i;
     int     ret;
+    memset(&evt, 0, sizeof(EVTBLK));
 
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = type;
