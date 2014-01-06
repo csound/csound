@@ -471,7 +471,9 @@ int csoundLoadModules(CSOUND *csound)
         continue;
       }
       sprintf(buf, "%s%c%s", dname, DIRSEP, fname);
-    csoundWarning(csound, Str("Loading '%s'\n"), buf);
+      if (csound->oparms->odebug) {
+        csoundMessage(csound, Str("Loading '%s'\n"), buf);
+      }
       n = csoundLoadExternal(csound, buf);
       if (UNLIKELY(n == CSOUND_ERROR))
         continue;               /* ignore non-plugin files */
