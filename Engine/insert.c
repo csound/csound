@@ -89,7 +89,7 @@ static void set_xtratim(CSOUND *csound, INSDS *ip)
     if (ip->relesing)
       return;
     ip->offtim = (csound->icurTime +
-                  csound->ksmps * (double) ip->xtratim)/csound->esr;
+                  ip->ksmps * (double) ip->xtratim)/csound->esr;
     ip->offbet = csound->curBeat + (csound->curBeat_inc * (double) ip->xtratim);
     ip->relesing = 1;
     csound->engineState.instrtxtp[ip->insno]->pending_release++;
