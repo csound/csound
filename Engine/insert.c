@@ -1260,7 +1260,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* restore globals */
     csound->ids = saved_ids;
     csound->curip = saved_curip;
-    if (local_ksmps != CS_KSMPS) {
+    if (local_ksmps != csound->ksmps) {
+      ksmps_scale = csound->ksmps / local_ksmps;
       saved_curip->xtratim = lcurip->xtratim / ksmps_scale;
       /* IV - Sep 17 2002: also select perf routine */
       p->h.opadr = (SUBR) useropcd1;
