@@ -1633,7 +1633,7 @@ extern "C"
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
-    if(csound->GetMessageLevel(csound) & WARNMSG) {
+    if(csound->GetDebug(csound)) {
         csound->Message(csound, "signalflowgraph: csoundModuleCreate(%p)\n", csound);
     }
     if (cs_sfg_ports == 0) {
@@ -1647,7 +1647,7 @@ extern "C"
 
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
-    if(csound->GetMessageLevel(csound) & WARNMSG) {
+    if(csound->GetDebug(csound)) {
         csound->Message(csound, "signalflowgraph: csoundModuleInit(%p)\n", csound);
     }
     OENTRY *ep = (OENTRY *)&(oentries[0]);
@@ -1670,7 +1670,7 @@ extern "C"
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
-    if(csound->GetMessageLevel(csound) & WARNMSG) {
+    if(csound->GetDebug(csound)) {
         csound->Message(csound, "signalflowgraph: csoundModuleDestroy(%p)\n", csound);
     }
 //#pragma omp critical (cs_sfg_ports)
