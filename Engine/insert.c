@@ -1267,7 +1267,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       parent_ip->xtratim = lcurip->xtratim; 
       p->h.opadr = (SUBR) useropcd2;
     }
-    if(csound->oparm->odebug)
+    if(csound->oparms->odebug)
     csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n", 
             lcurip, lcurip->xtratim, parent_ip, parent_ip->xtratim);
     return OK;
