@@ -347,12 +347,9 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, Str("instr %d now active:\n"), insno);
       showallocs(csound);
     }
-
-
     if(newevtp->pinstance != NULL) {
       newevtp->pinstance = ip;
     }
-
     return 0;
 }
 

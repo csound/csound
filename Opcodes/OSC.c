@@ -29,10 +29,10 @@
 
 /* structure for real time event */
 
-typedef struct rtEvt_s {
-    struct rtEvt_s  *nxt;
-    EVTBLK  e;
-} rtEvt_t;
+/* typedef struct rtEvt_s { */
+/*     struct rtEvt_s  *nxt; */
+/*     EVTBLK  e; */
+/* } rtEvt_t; */
 
 typedef struct {
     OPDS h;             /* default header */
