@@ -87,7 +87,7 @@ int dspset(CSOUND *csound, DSPLAY *p)
     char   strmsg[256];
 
     if (p->h.optext->t.intype == 'k')
-      npts = (int32)(*p->iprd * csound->ekr);
+      npts = (int32)(*p->iprd * CS_EKR);
     else npts = (int32)(*p->iprd * csound->esr);
     if (UNLIKELY(npts <= 0)) {
       return csound->InitError(csound, Str("illegal iprd in display"));
@@ -247,7 +247,7 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
       return csound->InitError(csound, Str("window size must be power of two"));
     }
     if (p->h.optext->t.intype == 'k')
-      step_size = (int32)(*p->iprd * csound->ekr);
+      step_size = (int32)(*p->iprd * CS_EKR);
     else step_size = (int32)(*p->iprd * csound->esr);
     if (UNLIKELY(step_size <= 0)) {
       return csound->InitError(csound, Str("illegal iprd in ffy display"));
@@ -437,9 +437,9 @@ int tempeset(CSOUND *csound, TEMPEST *p)
     MYFLT b, iperiod = *p->iprd;
     char  strmsg[256];
 
-    if (UNLIKELY((p->timcount = (int)(csound->ekr * iperiod)) <= 0))
+    if (UNLIKELY((p->timcount = (int)(CS_EKR * iperiod)) <= 0))
       return csound->InitError(csound, Str("illegal iperiod"));
-    if (UNLIKELY((p->dtimcnt = (int)(csound->ekr * *p->idisprd)) < 0))
+    if (UNLIKELY((p->dtimcnt = (int)(CS_EKR * *p->idisprd)) < 0))
       return csound->InitError(csound, Str("illegal idisprd"));
     if (UNLIKELY((p->tweek = *p->itweek) <= 0))
       return csound->InitError(csound, Str("illegal itweek"));
@@ -537,7 +537,7 @@ int tempeset(CSOUND *csound, TEMPEST *p)
 #endif
     p->thresh = *p->ithresh;            /* record incoming loudness threshold */
     p->xfdbak = *p->ixfdbak;            /*    & expectation feedback fraction */
-    p->tempscal = FL(60.0) * csound->ekr / p->timcount;
+    p->tempscal = FL(60.0) * CS_EKR / p->timcount;
     p->avglam = p->tempscal / *p->istartempo;       /* init the tempo factors */
     p->tempo = FL(0.0);
     p->hcur = p->hbeg;                              /* init the circular ptrs */
