@@ -2177,7 +2177,7 @@ extern "C" {
   * void *out - preallocated buffer with at least items number of elements, where
   *              buffer contents will be read into
   * int items - number of samples to be read
-  * returns the actual number of samples read (0 <= n <= items)
+  * returns the actual number of items read (0 <= n <= items)
   */
   PUBLIC int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
                                       void *out, int items);
@@ -2188,7 +2188,7 @@ extern "C" {
    * void *out - preallocated buffer with at least items number of elements, where
    *              buffer contents will be read into
    * int items - number of samples to be read
-   * returns the actual number of samples read (0 <= n <= items)
+   * returns the actual number of items read (0 <= n <= items)
    */
    PUBLIC int csoundPeekCircularBuffer(CSOUND *csound, void *circular_buffer,
                                        void *out, int items);

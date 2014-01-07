@@ -55,7 +55,7 @@ int kdmpset_S(CSOUND *csound, KDUMP *p) {
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = p->timcount;
     return OK;
@@ -84,7 +84,7 @@ int kdmpset_p(CSOUND *csound, KDUMP *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = p->timcount;
     return OK;
@@ -109,7 +109,7 @@ int kdmp2set_S(CSOUND *csound, KDUMP2 *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = p->timcount;
     return OK;
@@ -137,7 +137,7 @@ int kdmp2set_p(CSOUND *csound, KDUMP2 *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = p->timcount;
     return OK;
@@ -163,7 +163,7 @@ int kdmp3set_S(CSOUND *csound, KDUMP3 *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = p->timcount;
     return OK;
@@ -192,7 +192,7 @@ int kdmp3set_p(CSOUND *csound, KDUMP3 *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = p->timcount;
     return OK;
@@ -217,7 +217,7 @@ int kdmp4set_S(CSOUND *csound, KDUMP4 *p)
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = p->timcount;
     return OK;
@@ -244,7 +244,7 @@ int kdmp4set_p(CSOUND *csound, KDUMP4 *p)
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = p->timcount;
     return OK;
@@ -393,7 +393,7 @@ int krdset_p(CSOUND *csound, KREAD *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
@@ -419,7 +419,7 @@ int krdset_S(CSOUND *csound, KREAD *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
@@ -445,7 +445,7 @@ int krd2set_S(CSOUND *csound, KREAD2 *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
@@ -473,7 +473,7 @@ int krd2set_p(CSOUND *csound, KREAD2 *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
@@ -499,7 +499,7 @@ int krd3set_S(CSOUND *csound, KREAD3 *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
@@ -527,7 +527,7 @@ int krd3set_p(CSOUND *csound, KREAD3 *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
@@ -553,7 +553,7 @@ int krd4set_S(CSOUND *csound, KREAD4 *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
@@ -581,7 +581,7 @@ int krd4set_p(CSOUND *csound, KREAD4 *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
@@ -754,7 +754,7 @@ int krdsset_S(CSOUND *csound, KREADS *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
     p->lasts = (char*)csound->Calloc(csound, INITSIZE);
@@ -781,7 +781,7 @@ int krdsset_p(CSOUND *csound, KREADS *p)
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
-    if ((p->timcount = (int32)(*p->iprd * csound->ekr)) <= 0)
+    if ((p->timcount = (int32)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
     p->lasts = (char*)csound->Malloc(csound, INITSIZE);

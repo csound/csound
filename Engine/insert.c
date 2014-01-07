@@ -89,7 +89,7 @@ static void set_xtratim(CSOUND *csound, INSDS *ip)
     if (ip->relesing)
       return;
     ip->offtim = (csound->icurTime +
-                  csound->ksmps * (double) ip->xtratim)/csound->esr;
+                  ip->ksmps * (double) ip->xtratim)/csound->esr;
     ip->offbet = csound->curBeat + (csound->curBeat_inc * (double) ip->xtratim);
     ip->relesing = 1;
     csound->engineState.instrtxtp[ip->insno]->pending_release++;
@@ -1107,7 +1107,6 @@ int useropcd1(CSOUND *, UOPCODE*), useropcd2(CSOUND *, UOPCODE*);
 int useropcdset(CSOUND *csound, UOPCODE *p)
 {
     OPDS         *saved_ids = csound->ids;
-    INSDS        *saved_curip = csound->curip;
     INSDS        *parent_ip = csound->curip, *lcurip;
     INSTRTXT     *tp;
     unsigned int instno;
@@ -1248,24 +1247,29 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     p->ip->init_done = 1;
 
     /* copy length related parameters back to caller instr */
-    saved_curip->relesing = lcurip->relesing;
-    saved_curip->offbet = lcurip->offbet;
-    saved_curip->offtim = lcurip->offtim;
-    saved_curip->p3 = lcurip->p3;
+    parent_ip->relesing = lcurip->relesing; 
+    parent_ip->offbet = lcurip->offbet; 
+    parent_ip->offtim = lcurip->offtim; 
+    parent_ip->p3 = parent_ip->p3; 
     local_ksmps = lcurip->ksmps;
 
     /* restore globals */
     csound->ids = saved_ids;
-    csound->curip = saved_curip;
+    csound->curip = parent_ip;
+
+    /* select perf routine and scale xtratim accordingly */
     if (local_ksmps != CS_KSMPS) {
-      saved_curip->xtratim = lcurip->xtratim / ksmps_scale;
-      /* IV - Sep 17 2002: also select perf routine */
+       ksmps_scale = CS_KSMPS / local_ksmps; 
+       parent_ip->xtratim = lcurip->xtratim / ksmps_scale; 
       p->h.opadr = (SUBR) useropcd1;
     }
     else {
-      saved_curip->xtratim = lcurip->xtratim;
+      parent_ip->xtratim = lcurip->xtratim; 
       p->h.opadr = (SUBR) useropcd2;
     }
+    if(csound->oparms->odebug)
+    csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n", 
+            lcurip, lcurip->xtratim, parent_ip, parent_ip->xtratim);
     return OK;
 }
 

@@ -1011,7 +1011,7 @@ int ko1set(CSOUND *csound, OSCIL1 *p)
     }
     p->ftp = ftp;
     p->phs = 0;
-    p->dcnt = (int32)(*p->idel * csound->ekr);
+    p->dcnt = (int32)(*p->idel * CS_EKR);
     p->kinc = (int32) (CS_KICVT / *p->idur);
     if (p->kinc==0) p->kinc = 1;
     return OK;
