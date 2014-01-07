@@ -258,6 +258,7 @@ option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" 
 
 option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
+option(USE_CURL "Use CURL library" ON)
 option(BUILD_RELEASE "Build for release" ON)
 option(BUILD_INSTALLER "Build for release" OFF)
 option(BUILD_TESTS "Build for release" ON)
@@ -444,14 +445,17 @@ if(USE_LRINT)
 endif()
 
 ## Check existence of CURL
-find_package(CURL)
+if(USE_CURL)
+  find_package(CURL)
 
-if(CURL_FOUND)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_CURL")
+  if(CURL_FOUND)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_CURL")
+  else()
+    message(STATUS "Not using CURL for urls - not found")
+  endif()
 else()
-  message(STATUS "Not using CURL for urls - not found")
+  message(STATUS "Not using CURL for urls - disabled")
 endif()
-
 
 # Flex/Bison for the new parser
 find_package(FLEX)
