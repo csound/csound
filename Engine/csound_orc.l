@@ -46,9 +46,6 @@ ORCTOKEN *make_token(CSOUND *, char *s);
 ORCTOKEN *make_label(CSOUND *, char *s);
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
-//extern int udoflag;
-//extern int namedInstrFlag;
-//YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
 #include "parse_param.h"
 
 #define YY_EXTRA_TYPE  PARSE_PARM *

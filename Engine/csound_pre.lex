@@ -49,7 +49,10 @@ void csound_pre_line(CORFIL*, yyscan_t);
 #define PARM    yyget_extra(yyscanner)
 
 #define YY_USER_INIT {csound_pre_scan_string(csound->orchstr->body, yyscanner); \
-    csound_preset_lineno(csound->orcLineOffset, yyscanner); yyg->yy_flex_debug_r=1;}
+    csound_preset_lineno(csound->orcLineOffset, yyscanner);             \
+    yyg->yy_flex_debug_r=1; PARM->macro_stack_size = 0;                 \
+    PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
+  }
 %}
 %option reentrant
 %option noyywrap
@@ -158,7 +161,9 @@ QNAN		"qnan"[ \t]*\(
 
 %%
 
-{RESET}         { csound_preset_lineno(csound->orcLineOffset, yyscanner); }
+{RESET}         { csound_preset_lineno(csound->orcLineOffset, yyscanner);
+                  csound->Free(csound, PARM->alt_stack);
+                }
 {CONT}          { csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
                 }
@@ -245,8 +250,13 @@ QNAN		"qnan"[ \t]*\(
                    /*         yytext+1, PARM->macro_stack_ptr); */
                    /* print_csound_predata(csound, "macro found", yyscanner); */
                    /* ??fiddle with buffers I guess */
-                   if (UNLIKELY(PARM->macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
-                     csound->Die(csound, Str("Includes nested too deeply"));
+                   if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+                     PARM->alt_stack =
+                       (MACRON*)
+                       csound->ReAlloc(csound, PARM->alt_stack,
+                                       sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     csound->DebugMsg(csound, "alt_stack now %d long\n",
+                                      PARM->macro_stack_size);
                    }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
@@ -276,9 +286,13 @@ QNAN		"qnan"[ \t]*\(
                    }
                    /* Need to read from macro definition */
                    /* ??fiddle with buffers I guess */
-                   if (UNLIKELY(PARM->macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
-                     csound->Message(csound, Str("Includes nested too deeply\n"));
-                     exit(1);
+                   if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+                     PARM->alt_stack =
+                       (MACRON*)
+                       csound->ReAlloc(csound, PARM->alt_stack,
+                                       sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     csound->DebugMsg(csound, "alt_stack now %d long\n",
+                                      PARM->macro_stack_size);
                    }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
@@ -340,11 +354,14 @@ QNAN		"qnan"[ \t]*\(
                      PARM->macros = nn;
                    }
                    /* csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body); */
-                   if (UNLIKELY(PARM->macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
-                     csound->Message(csound,
-                                     Str("macro_stack_ptr beyond end: %d \n"),
-                                     PARM->macro_stack_ptr);
-                     exit(1);
+                   if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+                     PARM->alt_stack =
+                       (MACRON*)
+                       csound->ReAlloc(csound, PARM->alt_stack,
+                                       sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     csound->DebugMsg(csound,
+                                      "macro_stack extends alt_stack to %d long\n",
+                                      PARM->macro_stack_size);
                    }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = PARM->macros->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
@@ -408,6 +425,14 @@ QNAN		"qnan"[ \t]*\(
                      PARM->macros = nn;
                    }
                    csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
+                   if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+                     PARM->alt_stack =
+                       (MACRON*)
+                       csound->ReAlloc(csound, PARM->alt_stack,
+                                       sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     csound->DebugMsg(csound, "alt_stack now %d long\n",
+                                      PARM->macro_stack_size);
+                   }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = PARM->macros->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
@@ -453,6 +478,14 @@ QNAN		"qnan"[ \t]*\(
                   /* csound->DebugMsg(csound,"End of input; popping to %p\n", */
                   /*         YY_CURRENT_BUFFER); */
                   csound_pre_line(csound->expanded_orc, yyscanner);
+                  if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+                     PARM->alt_stack =
+                       (MACRON*)
+                       csound->ReAlloc(csound, PARM->alt_stack,
+                                       sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     csound->DebugMsg(csound, "alt_stack now %d long\n",
+                                      PARM->macro_stack_size);
+                  }
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
@@ -741,6 +774,13 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     if (cf == NULL)
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
+    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+      PARM->alt_stack =
+        (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
+                                  sizeof(MACRON)*(PARM->macro_stack_size+=10));
+      csound->DebugMsg(csound, "alt_stack now %d long, \n",
+                       PARM->macro_stack_size);
+    }
     csound->DebugMsg(csound,"%s(%d): stacking line %d at %d\n", __FILE__, __LINE__,
            csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
