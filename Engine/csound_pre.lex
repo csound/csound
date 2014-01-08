@@ -60,7 +60,6 @@ void csound_pre_line(CORFIL*, yyscan_t);
 %option outfile="Engine/csound_prelex.c"
 %option stdout
 
-WHITE           ^[ \t]*
 NEWLINE         (\n|\r\n?)
 STSTR           \"
 ESCAPE          \\.
@@ -380,10 +379,12 @@ QNAN		"qnan"[ \t]*\(
                    MACRO     *mm = PARM->macros;
                    char      *mname;
                    int c, i, j;
-                   /* csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext); */
+                   /* csound->DebugMsg(csound,"Macro with arguments call %s\n",
+                                       yytext); */
                    yytext[yyleng-2] = '\0';
                    while (mm != NULL) {  /* Find the definition */
-                     csound->DebugMsg(csound,"Check %s against %s\n", yytext+1, mm->name);
+                     csound->DebugMsg(csound,"Check %s against %s\n",
+                                      yytext+1, mm->name);
                      if (!(strcmp(yytext+1, mm->name)))
                        break;
                      mm = mm->next;
@@ -465,7 +466,8 @@ QNAN		"qnan"[ \t]*\(
 <<EOF>>         {
                   MACRO *x, *y=NULL;
                   int n;
-                  csound->DebugMsg(csound,"*********Leaving buffer %p\n", YY_CURRENT_BUFFER);
+                  csound->DebugMsg(csound,"*********Leaving buffer %p\n",
+                                   YY_CURRENT_BUFFER);
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
                   if (UNLIKELY(PARM->depth > 1024))
@@ -528,8 +530,10 @@ QNAN		"qnan"[ \t]*\(
 <macro>[ \t]*    /* eat the whitespace */
 <macro>{MACRO}  {
                   yytext[yyleng-1] = '\0';
-                  /* csound->DebugMsg(csound,"Define macro with args %s\n", yytext); */
-                  /* print_csound_predata(csound, "Before do_macro_arg", yyscanner); */
+                  /* csound->DebugMsg(csound,"Define macro with args %s\n",
+                                      yytext); */
+                  /* print_csound_predata(csound, "Before do_macro_arg",
+                                          yyscanner); */
                   do_macro_arg(csound, yytext, yyscanner);
                   //print_csound_predata(csound,"After do_macro_arg", yyscanner);
                   BEGIN(INITIAL);
@@ -610,7 +614,8 @@ QNAN		"qnan"[ \t]*\(
                   else {
                     corfile_puts(yytext, csound->expanded_orc);
                   }
-                }
+}
+{IDENT}         { corfile_puts(yytext,csound->expanded_orc); }
 {INT}     	{ do_function(yytext,csound->expanded_orc); }
 {FRAC}		{ do_function(yytext,csound->expanded_orc); }
 {ROUND}		{ do_function(yytext,csound->expanded_orc); }
@@ -761,7 +766,8 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       csound->Die(csound, Str("Includes nested too deeply"));
     }
     csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
-    csound->DebugMsg(csound,"line %d at end of #include line\n", csound_preget_lineno(yyscanner));
+    csound->DebugMsg(csound,"line %d at end of #include line\n",
+                     csound_preget_lineno(yyscanner));
     {
       uint8_t n = file_to_int(csound, buffer);
       char bb[16];
@@ -1110,6 +1116,7 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
 void do_function(char *text, CORFIL *cf)
 {
     char *p = text;
+    printf("do_function on >>%s<<\n", text);
     while (*p != '\0') {
       if (!isspace(*p)) corfile_putc(*p, cf);
       p++;
