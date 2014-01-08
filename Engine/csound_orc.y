@@ -714,7 +714,7 @@ ifac      : ident               { $$ = $1; }
                 
                 $$ = $1;
             }
-          | opcode ':' identb exprlist ')'
+          | opcode ':' opcodeb exprlist ')'
             {
                 $1->left = NULL;
                 $1->right = $4;
