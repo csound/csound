@@ -776,6 +776,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       PARM->llocn = PARM->locn;
       corfile_puts(bb, csound->expanded_orc);
     }
+    csound->DebugMsg(csound,"reading included file \"%s\"\n" buffer);
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (cf == NULL)
       csound->Die(csound,
@@ -1099,9 +1100,9 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
       int locn = PARM->locn;
       int llocn = PARM->llocn;
       if (locn != llocn) {
-      char bb[80];
-      sprintf(bb, "#source %d\n", locn);
-      corfile_puts(bb, cf);
+        char bb[80];
+        sprintf(bb, "#source %d\n", locn);
+        corfile_puts(bb, cf);
       }
       PARM->llocn = locn;
       if (n!=PARM->line+1) {
