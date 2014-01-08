@@ -776,7 +776,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       PARM->llocn = PARM->locn;
       corfile_puts(bb, csound->expanded_orc);
     }
-    csound->DebugMsg(csound,"reading included file \"%s\"\n" buffer);
+    csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (cf == NULL)
       csound->Die(csound,
