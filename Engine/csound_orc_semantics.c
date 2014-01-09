@@ -37,6 +37,7 @@
 char *csound_orcget_text ( void *scanner );
 int is_label(char* ident, CONS_CELL* labelList);
 
+extern int csound_orcget_locn(void *);
 extern  char argtyp2(char*);
 extern  int tree_arg_list_count(TREE *);
 void print_tree(CSOUND *, char *, TREE *);
@@ -1607,19 +1608,9 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     if (*p=='\0') line--;
     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
+    csound->Message(csound, Str(" file %s"),
+                    csound->filedir[csound_orcget_locn(yyscanner)]);
     csound->Message(csound, Str(" line %d:\n>>>"), line);
-    /* if(!strcmp(csound_orcget_text(yyscanner), "\n")) { */
-    /*  csound->Message(csound, Str("error: %s (\"\\n\")"), */
-    /*                 str); */
-    /*  csound->Message(csound, Str(" line %d:\n>>> "), */
-    /*               csound_orcget_lineno(yyscanner)); */
-    /* } */
-    /* else { */
-    /*  csound->Message(csound, Str("\nerror: %s  (token \"%s\")"), */
-    /*                 str, csound_orcget_text(yyscanner)); */
-    /* csound->Message(csound, Str(" line %d:\n>>> "), */
-    /*                 csound_orcget_lineno(yyscanner)+1); */
-    /* } */
     while ((ch=*--p) != '\n' && ch != '\0');
     do {
       ch = *++p;
