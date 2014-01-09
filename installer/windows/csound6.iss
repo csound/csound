@@ -11,10 +11,10 @@
 ; All of these changes SHOULD be in the #defines immediately following this.
 ; Also, this installer assumes LuaJIT and CsoundAC are part of Csound core.
 ; At this time the following features are not included in the installer:
-; Cabbage, faustgen.
+; faustgen.
 ; I hope to change this soon.
 
-; Uncomment the following line to build for CsoundVST.
+; Uncomment the following line to build for Cabbage, CsoundVST, and vst4cs.
 #define CSOUNDVST
 
 #define MyAppName "Csound6"
@@ -62,13 +62,15 @@
 #define MyCsoundQtBinDir "C:\Users\mike\qutecsound-code\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
 #define MyQtSdkBinDir "D:\qt-everywhere-opensource-src-5.1.1\qtbase\bin\"
+; If you are not Michael Gogins, change this to your unzipped cabbage-master directory.
+#define MyCabbageDir "D:\cabbage-master\"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full; 
 Name: "pd"; Description: "Pure Data csound~ object (requires Pure Data)"; Types: full; 
 #ifdef CSOUNDVST
-Name: "csoundvst"; Description: "Csound VST plugin and vst4cs opcodes"; Types: full; 
+Name: "csoundvst"; Description: "Cabbage, Csound VST plugin, and vst4cs opcodes"; Types: full; 
 #endif
 
 [Dirs]
@@ -98,7 +100,8 @@ Name: "{app}\samples"
 ; Tutorials go here.
 Name: "{app}\doc\tutorial"
 #define APP_TUTORIAL "{app}\doc\tutorial\"
-
+Name: "{app}\cabbage"
+#define APP_CABBAGE "{app}\cabbage\"
 ; These are the Csound environment variables related to directories.
 
 #define SFDIR
@@ -159,6 +162,14 @@ Source: "luaCsnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components:
 Source: "luaCsoundAC.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "_jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
+#ifdef CSOUNDVST
+Source: "{#MyCabbageDir}cabbage.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
+Source: "{#MyCabbageDir}CabbagePluginSynth.dat"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
+Source: "{#MyCabbageDir}CabbagePluginEffect.dat"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
+Source: "{#MyCabbageDir}Examples\*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs; Components: csoundvst
+Source: "{#MyCabbageDir}Docs\*"; DestDir: "{#APP_BIN}\Docs"; Flags: ignoreversion recursesubdirs; Components: csoundvst
+#endif
+
 Source: "LuaCsound.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "ampmidid.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "cellular.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
@@ -176,6 +187,7 @@ Source: "mixer.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Componen
 Source: "osc.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "platerev.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "pmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "py.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: python;
 Source: "rtpa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "rtwinmm.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "scansyn.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
@@ -252,7 +264,9 @@ Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}";  Com
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core  
 Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-cs6.exe"; WorkingDir: "{#APP_BIN}";  Components: core   
-Name: "{group}\WinSound"; Filename: "{#APP_BIN}winsound.exe"; WorkingDir: "{#APP_BIN}";  Components: core 
+#ifdef CSOUNDVST
+Name: "{group}\Cabbage"; Filename: "{#APP_BIN}cabbage.exe"; WorkingDir: "{#APP_BIN}";  Components: csoundvst
+#endif
 Name: "{group}\LuaJIT"; Filename: "{#APP_BIN}luajit.exe"; WorkingDir: "{#APP_BIN}";  Components: core 
 Name: "{group}\Audio device information"; Filename: "cmd"; Parameters: "/K pa_devs.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core 
 Name: "{group}\Audio device latency"; Filename: "cmd"; Parameters: "/K pa_minlat.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core 
