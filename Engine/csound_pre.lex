@@ -1117,7 +1117,7 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
 void do_function(char *text, CORFIL *cf)
 {
     char *p = text;
-    printf("do_function on >>%s<<\n", text);
+    //printf("do_function on >>%s<<\n", text);
     while (*p != '\0') {
       if (!isspace(*p)) corfile_putc(*p, cf);
       p++;
