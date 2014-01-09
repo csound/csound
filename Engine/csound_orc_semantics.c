@@ -1605,12 +1605,16 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     char ch;
     char *p = csound_orcget_current_pointer(yyscanner)-1;
     int line = csound_orcget_lineno(yyscanner);
-    int file = csound_orcget_locn(yyscanner);
+    unsigned int files = csound_orcget_locn(yyscanner);
     if (*p=='\0') line--;
     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
-    csound->Message(csound, Str(" file %s (%d)"),
-                    csound->filedir[file], file);
+    while (files) {
+      int ff = files&0x3f;
+      files = files >>6;
+      csound->Message(csound, Str(" from file %s (%d)\n"),
+                    csound->filedir[ff], ff);
+    }
     csound->Message(csound, Str(" line %d:\n>>>"), line);
     while ((ch=*--p) != '\n' && ch != '\0');
     do {
