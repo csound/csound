@@ -55,7 +55,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable);
 char* convert_internal_to_external(CSOUND* csound, char* arg);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
-void do_baktrace(CSOUND *csound, unsigned int files);
+void do_baktrace(CSOUND *csound, uint64_t files);
 
 char* cs_strdup(CSOUND* csound, char* str) {
     size_t len;
@@ -1618,7 +1618,7 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     char ch;
     char *p = csound_orcget_current_pointer(yyscanner)-1;
     int line = csound_orcget_lineno(yyscanner);
-    unsigned int files = csound_orcget_locn(yyscanner);
+    uint64_t files = csound_orcget_locn(yyscanner);
     if (*p=='\0') line--;
     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
@@ -1633,11 +1633,11 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     csound->Message(csound, " <<<\n");
 }
 
-void do_baktrace(CSOUND *csound, unsigned int files)
+void do_baktrace(CSOUND *csound, uint64_t files)
 {
     while (files) {
-      int ff = files&0x3f;
-      files = files >>6;
+      unsigned int ff = files&0xff;
+      files = files >>8;
       csound->Message(csound, Str(" from file %s (%d)\n"),
                       csound->filedir[ff], ff);
     } 
@@ -1786,93 +1786,93 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case ')':
     case '=':
       csound->Message(csound,"%c:(%d:%s)\n", l->type,
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case NEWLINE:
       csound->Message(csound,"NEWLINE:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_NEQ:
       csound->Message(csound,"S_NEQ:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_AND:
       csound->Message(csound,"S_AND:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_OR:
       csound->Message(csound,"S_OR:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_LT:
       csound->Message(csound,"S_LT:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_LE:
       csound->Message(csound,"S_LE:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_EQ:
       csound->Message(csound,"S_EQ:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_GT:
       csound->Message(csound,"S_GT:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_GE:
       csound->Message(csound,"S_GE:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case LABEL_TOKEN:
       csound->Message(csound,"LABEL_TOKEN: %s\n", l->value->lexeme); break;
     case IF_TOKEN:
       csound->Message(csound,"IF_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case THEN_TOKEN:
       csound->Message(csound,"THEN_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case ITHEN_TOKEN:
       csound->Message(csound,"ITHEN_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case KTHEN_TOKEN:
       csound->Message(csound,"KTHEN_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case ELSEIF_TOKEN:
       csound->Message(csound,"ELSEIF_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case ELSE_TOKEN:
       csound->Message(csound,"ELSE_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case UNTIL_TOKEN:
       csound->Message(csound,"UNTIL_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case DO_TOKEN:
       csound->Message(csound,"DO_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case OD_TOKEN:
       csound->Message(csound,"OD_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case GOTO_TOKEN:
       csound->Message(csound,"GOTO_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case IGOTO_TOKEN:
       csound->Message(csound,"IGOTO_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case KGOTO_TOKEN:
       csound->Message(csound,"KGOTO_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case SRATE_TOKEN:
       csound->Message(csound,"SRATE_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case KRATE_TOKEN:
       csound->Message(csound,"KRATE_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case ZERODBFS_TOKEN:
       csound->Message(csound,"ZERODFFS_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case KSMPS_TOKEN:
       csound->Message(csound,"KSMPS_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case NCHNLS_TOKEN:
       csound->Message(csound,"NCHNLS_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case NCHNLSI_TOKEN:
       csound->Message(csound,"NCHNLSI_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case INSTR_TOKEN:
       csound->Message(csound,"INSTR_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case STRING_TOKEN:
       csound->Message(csound,"STRING_TOKEN: %s\n", l->value->lexeme); break;
     case T_IDENT:
@@ -1883,10 +1883,10 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
       csound->Message(csound,"NUMBER_TOKEN: %f\n", l->value->fvalue); break;
     case S_ANDTHEN:
       csound->Message(csound,"S_ANDTHEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_APPLY:
       csound->Message(csound,"S_APPLY:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case T_OPCODE0:
       csound->Message(csound,"T_OPCODE0: %s\n",
                       l->value->lexeme); break;
@@ -1898,13 +1898,13 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
                       l->value->lexeme); break;
     case S_UMINUS:
       csound->Message(csound,"S_UMINUS:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case T_INSTLIST:
       csound->Message(csound,"T_INSTLIST:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0x3f]); break;
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     default:
       csound->Message(csound,"unknown:%d(%d:%s)\n",
-                      l->type, l->line, csound->filedir[(l->locn)&0x3f]);
+                      l->type, l->line, csound->filedir[(l->locn)&0xff]);
     }
 
     print_tree_i(csound, l->left,n+1);
@@ -2085,7 +2085,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     }
 
     csound->Message(csound, " loc=\"%d:%s\">\n",
-                    l->line, csound->filedir[(l->locn)&0x3f]);
+                    l->line, csound->filedir[(l->locn)&0xff]);
 
     print_tree_xml(csound, l->left,n+1, TREE_LEFT);
     print_tree_xml(csound, l->right,n+1, TREE_RIGHT);
