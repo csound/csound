@@ -1605,7 +1605,7 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     char ch;
     char *p = csound_orcget_current_pointer(yyscanner)-1;
     int line = csound_orcget_lineno(yyscanner);
-    int files = csound_orcget_locn(yyscanner);
+    unsigned int files = csound_orcget_locn(yyscanner);
     if (*p=='\0') line--;
     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
