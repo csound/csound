@@ -348,7 +348,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       showallocs(csound);
     }
     if(newevtp->pinstance != NULL) {
-      newevtp->pinstance = ip;
+      *((MYFLT *)newevtp->pinstance) = (MYFLT) ((long) ip);
     }
     return 0;
 }
