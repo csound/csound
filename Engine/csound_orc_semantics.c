@@ -1319,8 +1319,17 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
               opcodeName);
       csoundMessage(csound, Str("Found: %s %s %s\n"),
                     leftArgString, root->value->lexeme, rightArgString);
-      csoundMessage(csound, Str("Line: %d Loc: %d\n"),
-                    root->line, root->locn);
+      csoundMessage(csound, Str("Line: %d\n"),
+                    root->line);
+      {
+        unsigned int files = root->locn;
+        while (files) {
+          int ff = files&0x3f;
+          files = files >>6;
+          csound->Message(csound, Str(" from file %s (%d)\n"),
+                          csound->filedir[ff], ff);
+        }
+      }
       return 0;
     } else {
       root->markup = oentry;
@@ -2136,8 +2145,17 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           default:
             synterr(csound,
                     Str("insufficient required arguments for opcode %s"
-                        " on line %d:%d\n"),
-                    ep->opname, l->line, l->locn);
+                        " on line %d:\n"),
+                    ep->opname, l->line);
+            {
+              unsigned int files = l->locn;
+              while (files) {
+                int ff = files&0x3f;
+                files = files >>6;
+                csound->Message(csound, Str(" from file %s (%d)\n"),
+                                csound->filedir[ff], ff);
+              }
+            }
           }
           incnt++;
         } while (incnt < nreqd);
