@@ -484,7 +484,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 {FILE}          { BEGIN(src); }
 
 <src>[ \t]*     /* eat the whitespace */
-<src>{FNAME}    { PARM->locn = atoi(yytext); }
+<src>{FNAME}    { PARM->locn = atoll(yytext); }
 <src>"\n"       { BEGIN(INITIAL); }
 
 
@@ -619,7 +619,7 @@ char *csound_orcget_current_pointer(void *yyscanner)
     return yyg->yy_c_buf_p;
 }
 
-int csound_orcget_locn(void *yyscanner)
+uint64_t csound_orcget_locn(void *yyscanner)
 {
 //    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return PARM->locn;

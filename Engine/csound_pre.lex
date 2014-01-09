@@ -473,7 +473,7 @@ QNAN		"qnan"[ \t]*\(
                   if (UNLIKELY(PARM->depth > 1024))
                     csound->Die(csound, Str("unexpected EOF"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
-                  csound->DebugMsg(csound,"%s(%d): loc=%d; lastloc=%d\n",
+                  csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n",
                                    __FILE__, __LINE__,
                          PARM->llocn, PARM->locn);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
@@ -770,9 +770,9 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
                      csound_preget_lineno(yyscanner));
     {
       uint8_t n = file_to_int(csound, buffer);
-      char bb[16];
+      char bb[128];
       PARM->lstack[PARM->depth] = n;
-      sprintf(bb, "#source %d\n", PARM->locn = make_location(PARM));
+      sprintf(bb, "#source %Lud\n", PARM->locn = make_location(PARM));
       PARM->llocn = PARM->locn;
       corfile_puts(bb, csound->expanded_orc);
     }
@@ -1097,11 +1097,11 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
     int n = csound_preget_lineno(yyscanner);
     /* This assumes that the initial line was not written with this system  */
     if (cf->body[cf->p-1]=='\n') {
-      int locn = PARM->locn;
-      int llocn = PARM->llocn;
+      uint64_t locn = PARM->locn;
+      uint64_t llocn = PARM->llocn;
       if (locn != llocn) {
         char bb[80];
-        sprintf(bb, "#source %d\n", locn);
+        sprintf(bb, "#source %Lud\n", locn);
         corfile_puts(bb, cf);
       }
       PARM->llocn = locn;
