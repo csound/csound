@@ -183,3 +183,8 @@ android/CSDPlayer/assets/samples/hrtf-48000-right.dat
 android/CSDPlayer/assets/samples/hrtf-96000-left.dat
 android/CSDPlayer/assets/samples/hrtf-96000-right.dat
 android/CSDPlayer/assets/samples/sf_GMbank.sf2
+nacl/csound_orclex.c
+nacl/csound_orcparse.c
+nacl/csound_orcparse.h
+nacl/csound_prelex.c
+nacl/pnacl

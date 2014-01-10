@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export CS_TILDE_VERSION=1.1.0
+export CS_TILDE_VERSION=1.1.1
 export MANUAL_DIR=`pwd`/../../../manual6
 export PACKAGE_NAME=csound~_${CS_TILDE_VERSION}.pkg
 export DMG_DIR="csound~_${CS_TILDE_VERSION}"
@@ -67,7 +67,7 @@ cp -r ../../help/csound~ "$HELP_DIR"
 echo "building packages ..."
 
 #pkgbuild --identifier com.csound.csound6Environment.csound~ --root installer/Package_Contents/ --version 1 --scripts ../PkgResources/csound~ csound~_v1.1.0.pkg
-pkgbuild --identifier com.csound.csound6Environment.csound~ --root installer/Package_Contents/ --version 1  csound~_v1.1.0.pkg
+pkgbuild --identifier com.csound.csound6Environment.csound~ --root installer/Package_Contents/ --version 1  csound~_v${CS_TILDE_VERSION}.pkg
 
 #echo "building product..."
 

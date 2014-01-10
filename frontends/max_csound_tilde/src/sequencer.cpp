@@ -132,7 +132,7 @@ Sequencer::Sequencer(t_object *o, CSOUND *c, ChannelGroup *g, MidiBuffer *m) :
 	m_csound(c),
 	m_inChannelGroup(g),
 	m_midiInputBuffer(m),
-	m_lock("Sequencer"),
+	m_lock((char*)"Sequencer"),
 	m_time(0), m_timerRes(1), m_nticks(0), m_fticks(0), m_nSamples(0), m_sr(DEFAULT_SAMPLE_RATE),
 	m_playing(false), 
 	m_recording(false),

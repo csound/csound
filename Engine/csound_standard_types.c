@@ -114,12 +114,16 @@ CS_VARIABLE* createArray(void* csound, void* p) {
     CSOUND* cs = (CSOUND*)csound;
     ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
 
-    CS_TYPE* type = state->type;
+
     CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
     var->memBlockSize = sizeof(ARRAYDAT);
-    var->subType = type;
     var->initializeVariableMemory = &arrayInitMemory;
+
+    if(state) { // NB: this function is being called with p=NULL
+    CS_TYPE* type = state->type;
+    var->subType = type;
     var->dimensions = state->dimensions;
+    }
     return var;
 }
 

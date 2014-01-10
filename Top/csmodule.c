@@ -88,10 +88,12 @@
 #endif
 #endif
 
+#if !(defined (NACL))
 #if defined(LINUX) || defined(NEW_MACH_CODE)
 #include <dlfcn.h>
 #elif defined(WIN32)
 #include <windows.h>
+#endif
 #endif
 
 
@@ -129,6 +131,7 @@ static  const   char    *plugindir_envvar =   "OPCODE6DIR";
 static  const   char    *plugindir64_envvar = "OPCODE6DIR64";
 
 /* default directory to load plugins from if environment variable is not set */
+#if !(defined (NACL))
 #if !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
 #  define ENABLE_OPCODEDIR_WARNINGS 1
 #  ifdef CS_DEFAULT_PLUGINDIR
@@ -144,6 +147,7 @@ static  const   char    *plugindir64_envvar = "OPCODE6DIR64";
 #      define CS_DEFAULT_PLUGINDIR  "/usr/local/lib/csound/plugins64"
 #    endif
 #  endif
+#endif
 #endif
 
 #if (TARGET_OS_IPHONE != 0) && (TARGET_IPHONE_SIMULATOR != 0)
@@ -243,7 +247,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     err = csoundOpenLibrary(&h, libraryPath);
     if (UNLIKELY(err)) {
       char ERRSTR[256];
- #if defined(LINUX)
+#if !(defined(NACL)) && defined(LINUX)
       sprintf(ERRSTR, Str("could not open library '%s' (%s)"),
                       libraryPath, dlerror());
  #else
@@ -409,7 +413,12 @@ int csoundLoadModules(CSOUND *csound)
       if (dname == NULL)
 #  endif
 #endif
+#ifdef  CS_DEFAULT_PLUGINDIR
         dname = CS_DEFAULT_PLUGINDIR;
+#else
+      dname = "";
+#endif
+
     }
     dir = opendir(dname);
     if (UNLIKELY(dir == (DIR*) NULL)) {
@@ -462,7 +471,9 @@ int csoundLoadModules(CSOUND *csound)
         continue;
       }
       sprintf(buf, "%s%c%s", dname, DIRSEP, fname);
-/*       printf("Loading: %s\n", buf); */
+      if (csound->oparms->odebug) {
+        csoundMessage(csound, Str("Loading '%s'\n"), buf);
+      }
       n = csoundLoadExternal(csound, buf);
       if (UNLIKELY(n == CSOUND_ERROR))
         continue;               /* ignore non-plugin files */
@@ -673,7 +684,7 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
-#elif defined(LINUX) || defined (NEW_MACH_CODE)
+#elif !(defined(NACL)) && (defined(LINUX) || defined (NEW_MACH_CODE))
 
 PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
 {
@@ -788,11 +799,14 @@ extern long crossfm_localops_init(CSOUND *, void *);
 extern long pvlock_localops_init(CSOUND *, void *);
 extern long fareyseq_localops_init(CSOUND *, void *);
 extern long cpumeter_localops_init(CSOUND *, void *);
-extern long mp3in_localops_init(CSOUND *, void *);
 extern long gendy_localops_init(CSOUND *, void *);
 extern long scnoise_localops_init(CSOUND *, void *);
+#ifndef NACL
 extern long socksend_localops_init(CSOUND *, void *);
+extern long mp3in_localops_init(CSOUND *, void *);
 extern long sockrecv_localops_init(CSOUND *, void *);
+#endif
+extern long afilts_localops_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
@@ -819,12 +833,17 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  fareyseq_localops_init, hrtfearly_localops_init,
                                  hrtfreverb_localops_init, minmax_localops_init,
                                  vaops_localops_init, pvsgendy_localops_init,
-                                 socksend_localops_init, sockrecv_localops_init,
 #ifndef WIN32
                                  cpumeter_localops_init,
 #endif
-                                 mp3in_localops_init, gendy_localops_init,
-                                 scnoise_localops_init, NULL };
+#ifndef NACL
+                                 mp3in_localops_init,
+                                 sockrecv_localops_init,
+                                 socksend_localops_init,
+#endif
+                                 gendy_localops_init,
+                                 scnoise_localops_init, afilts_localops_init,
+                                 NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);
 

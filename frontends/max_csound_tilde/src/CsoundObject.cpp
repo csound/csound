@@ -512,8 +512,12 @@ void CsoundObject_RenderThreadFunc(CsoundObject *cso)
 
 void inputValueCallback(CSOUND *csound, const char *name, void *channelValuePtr, const void *channelType)
 {
-	CsoundObject *cso = (CsoundObject *) csoundGetHostData(csound);
-	if(cso->m_x->input) cso->m_iChanGroup.GetVal(name, (MYFLT*)channelValuePtr );
+//	CsoundObject *cso = (CsoundObject *) csoundGetHostData(csound);
+    
+   	t_csound *x = (t_csound *) csoundGetHostData(csound);
+	if(x->input) {
+        x->cso->m_iChanGroup.GetVal(name, (MYFLT*)channelValuePtr );
+    }
 }
 
 void outputValueCallback(CSOUND *csound, const char *name, void *channelValuePtr, const void *channelType)

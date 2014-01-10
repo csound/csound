@@ -24,10 +24,10 @@
 */
 
 #include <stdio.h>
-#include <m_pd.h>  
+#include <m_pd.h>
 #include <pthread.h>
 #include "csound.h"
-     
+
 #define CS_MAX_CHANS 32
 #define MAXMESSTRING 16384
 
@@ -341,7 +341,7 @@ static t_int *csoundapi_perform(t_int *w)
     t_sample *out[CS_MAX_CHANS], *in[CS_MAX_CHANS];
     t_int   i, n, end = x->end, run = x->run;
     MYFLT  *csout, *csin;
- 
+
     csout = csoundGetSpout(x->csound);
     csin = csoundGetSpin(x->csound);
 

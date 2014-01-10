@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<!--
+ Csound pnacl minimal example
+ Copyright (C) 2013 V Lazzarini
+-->
+<head>
+ <title>Minimal Csound Example</title>
+ <script type="text/javascript" src="csound.js"></script>
+ <script type="text/javascript">
+ // called by csound.js
+ function moduleDidLoad() {
+  csound.Play();
+  csound.CompileOrc(
+  "instr 1 \n" +
+  "icps = 440+rnd(440) \n" +
+  "chnset icps, \"freq\" \n" +
+  "a1 oscili 0.1, icps\n" +
+  "outs a1,a1 \n" +
+  "endin");
+  document.getElementById("tit").innerHTML = "Click on the page below to play";
+ }
+ function attachListeners() {
+   document.getElementById("mess").
+       addEventListener("click",Play);
+ }
+ function handleMessage(message) {
+   var mess = message.data;
+   if(mess.slice(0,11) == "::control::") {
+   var messField = document.getElementById("console")
+   messField.innerText = mess.slice(11);
+   }
+   else {
+   var messField = document.getElementById("mess")
+   messField.innerText += mess;
+   csound.RequestChannel("freq");
+  }
+ }
+
+ // click handler
+ function Play() {
+   csound.Event("i 1 0 5");
+ }
+ </script>
+</head>
+<body>
+  <div id="console"></div>
+   <h3 id="tit"> </h3>
+  <div id="mess">
+    
+  </div>
+  <!--pNaCl csound module-->
+  <div id="engine"></div>
+</body>
+</html>
+

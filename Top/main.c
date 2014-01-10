@@ -37,7 +37,7 @@
 #include <omp.h>
 #endif
 
-
+extern int UDPServerStart(CSOUND *csound, int port);
 extern  void    dieu(CSOUND *, char *, ...);
 extern  int     argdecode(CSOUND *, int, char **);
 extern  int     init_pvsys(CSOUND *);
@@ -49,48 +49,49 @@ extern  uintptr_t  kperfThread(void * cs);
 extern void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
 extern void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
 
-void checkOptions(CSOUND *csound) {
-      const char  *csrcname;
-      const char  *home_dir;
-      FILE        *csrc = NULL;
-      void        *fd = NULL;
-      char *s;
-      /* IV - Feb 17 2005 */
-      csrcname = csoundGetEnv(csound, "CSOUND6RC");
-      if (csrcname != NULL && csrcname[0] != '\0') {
-        fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
-                               CSFTYPE_OPTIONS, 0);
-        if (fd == NULL)
-          csoundMessage(csound, Str("WARNING: cannot open csound6rc file %s\n"),
-                                csrcname);
-        else
-          csound->Message(csound, Str("Reading options from $CSOUND6RC: %s \n"),
-                           csrcname);
-      }
-      if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
-                         home_dir[0] != '\0')) {
-        s = csoundConcatenatePaths(csound, home_dir, ".csound6rc");
-        fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, s, "r", NULL,
-                               CSFTYPE_OPTIONS, 0);
-        if (fd != NULL)
-          csound->Message(csound, Str("Reading options from $HOME/.csound6rc\n"));
-        mfree(csound, s);
-      }
-      /* read global .csound6rc file (if exists) */
-      if (fd != NULL) {
-
-        readOptions(csound, csrc, 0);
-        csound->FileClose(csound, fd);
-      }
-      /* check for .csound6rc in current directory */
-      fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csound6rc", "r", NULL,
+void checkOptions(CSOUND *csound)
+{
+    const char  *csrcname;
+    const char  *home_dir;
+    FILE        *csrc = NULL;
+    void        *fd = NULL;
+    char *s;
+    /* IV - Feb 17 2005 */
+    csrcname = csoundGetEnv(csound, "CSOUND6RC");
+    if (csrcname != NULL && csrcname[0] != '\0') {
+      fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
                              CSFTYPE_OPTIONS, 0);
-      if (fd != NULL) {
-        readOptions(csound, csrc, 0);
-        csound->Message(csound,
-                        Str("Reading options from local directory .csound6rc \n"));
-        csound->FileClose(csound, fd);
-      }
+      if (fd == NULL)
+        csoundMessage(csound, Str("WARNING: cannot open csound6rc file %s\n"),
+                      csrcname);
+      else
+        csound->Message(csound, Str("Reading options from $CSOUND6RC: %s \n"),
+                        csrcname);
+    }
+    if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
+                       home_dir[0] != '\0')) {
+      s = csoundConcatenatePaths(csound, home_dir, ".csound6rc");
+      fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, s, "r", NULL,
+                             CSFTYPE_OPTIONS, 0);
+      if (fd != NULL)
+        csound->Message(csound, Str("Reading options from $HOME/.csound6rc\n"));
+      mfree(csound, s);
+    }
+    /* read global .csound6rc file (if exists) */
+    if (fd != NULL) {
+
+      readOptions(csound, csrc, 0);
+      csound->FileClose(csound, fd);
+    }
+    /* check for .csound6rc in current directory */
+    fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csound6rc", "r", NULL,
+                           CSFTYPE_OPTIONS, 0);
+    if (fd != NULL) {
+      readOptions(csound, csrc, 0);
+      csound->Message(csound,
+                      Str("Reading options from local directory .csound6rc \n"));
+      csound->FileClose(csound, fd);
+    }
 }
 
 
@@ -124,53 +125,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     /* do not allow orc/sco/csd name in .csound6rc */
     csound->orcname_mode = 2;
     checkOptions(csound);
-    /* { */
-    /*   const char  *csrcname; */
-    /*   const char  *home_dir; */
-    /*   FILE        *csrc = NULL; */
-    /*   void        *fd = NULL; */
-    /*   /\* IV - Feb 17 2005 *\/ */
-     
-    /*   csrcname = csoundGetEnv(csound, "CSOUND6RC"); */
-    /*   if (csrcname != NULL && csrcname[0] != '\0') { */
-    /*     fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, csrcname, "r", NULL, */
-    /*                            CSFTYPE_OPTIONS, 0); */
-    /*     if (fd == NULL) */
-    /*       csoundMessage(csound, Str("WARNING: cannot open csound6rc file %s\n"), */
-    /*                             csrcname); */
-    /*     else */
-    /*       csound->Message(csound, Str("Reading options from $CSOUND6RC: %s \n"), */
-    /*                        csrcname); */
-    /*   } */
-    /*   if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL && */
-    /*                      home_dir[0] != '\0')) { */
-    /*     csound->Message(csound, Str("Reading options from $HOME/.csound6rc\n")); */
-    /*     s = csoundConcatenatePaths(csound, home_dir, ".csound6rc"); */
-        
-    /*     fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, s, "r", NULL, */
-    /*                            CSFTYPE_OPTIONS, 0); */
-
-    /*     csound->Message(csound, Str("%s=%p\n"), s,fd); */
-    /*     if (fd != NULL) */
-    /*       csound->Message(csound, Str("Reading options from $HOME/.csound6rc\n")); */
-    /*     mfree(csound, s); */
-    /*   } */
-    /*   /\* read global .csound6rc file (if exists) *\/ */
-    /*   if (fd != NULL) { */
-
-    /*     readOptions(csound, csrc, 0); */
-    /*     csound->FileClose(csound, fd); */
-    /*   } */
-    /*   /\* check for .csound6rc in current directory *\/ */
-    /*   fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csound6rc", "r", NULL, */
-    /*                          CSFTYPE_OPTIONS, 0); */
-    /*   if (fd != NULL) { */
-    /*     readOptions(csound, csrc, 0); */
-    /*     csound->Message(csound, */
-    /*                     Str("Reading options from local directory .csound6rc \n")); */
-    /*     csound->FileClose(csound, fd); */
-    /*   } */
-    /* } */
     if (csound->delayederrormessages) {
       if (O->msglevel>8)
         csound->Warning(csound, csound->delayederrormessages);
@@ -183,7 +137,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
         csound->info_message_request = 0;
         csound->LongJmp(csound, 1);
       }
-      else dieu(csound, Str("no orchestra name"));
+      else if(csound->oparms->daemon == 0)
+         dieu(csound, Str("no orchestra name"));
 
     }
     else if (csound->use_only_orchfile == 0
@@ -204,13 +159,14 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
         mfree(csound, fileDir);
       }
 
+      if(csound->orchname != NULL) {
       csound->csdname = csound->orchname; /* save original CSD name */
       if (!read_unified_file(csound, &(csound->orchname),
                                        &(csound->scorename))) {
         csound->Die(csound, Str("Reading CSD failed ... stopping"));
       }
-
       csdFound = 1;
+      }
     }
 
     /* IV - Feb 19 2005: run a second pass of argdecode so that */
@@ -255,13 +211,13 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       mfree(csound, fileDir);
     }
 
-    if (csound->orchstr==NULL) {
+    if (csound->orchstr==NULL && csound->orchname) {
       /*  does not deal with search paths */
       csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
       csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL, 0);
       if (csound->orchstr==NULL)
         csound->Die(csound,
-                    Str("Failed to open input file %s\n"), csound->orchname);
+                    Str("Failed to open input file - %s\n"), csound->orchname);
       corfile_puts("\n#exit\n", csound->orchstr);
       corfile_putc('\0', csound->orchstr);
       corfile_putc('\0', csound->orchstr);
@@ -275,14 +231,26 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
      if(csoundCompileOrc(csound, NULL) != 0){
-        csoundDie(csound, Str("cannot compile orchestra \n"));
+       if(csound->oparms->daemon == 0)
+         csoundDie(csound, Str("cannot compile orchestra \n"));
+       else {
+         /* VL -- 21-10-13 Csound does not need to die on
+          failure to compile. It can carry on, because new
+          instruments can be compiled again */
+       csound->Warning(csound, Str("cannot compile orchestra."));
+       csound->Warning(csound, Str("Csound will start with no instruments"));
+       }
      }
      csound->modules_loaded = 1;
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     if(csound->enableHostImplementedMIDIIO == 1) {
-    strcpy(s, "hostbased");
-    csoundSetConfigurationVariable(csound,"rtmidi", s);
+        if (s == NULL) {
+            s = strdup("hostbased");
+        } else {
+            strcpy(s, "hostbased");
+        }
+        csoundSetConfigurationVariable(csound,"rtmidi", s);
     }
 
 
@@ -428,9 +396,9 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
            csound->LongJmp(csound, 1);
     csound->modules_loaded = 1;
    }
-    if (csound->instr0 == NULL) { /* compile empty instr 1 to allow csound to
+    if (csound->instr0 == NULL) { /* compile dummy instr0 to allow csound to
                                      start with no orchestra */
-        csoundCompileOrc(csound, "instr 1 \n endin \n");
+        csoundCompileOrc(csound, "idummy = 0 \n");
      }
 
     if ((n = setjmp(csound->exitjmp)) != 0) {
@@ -511,6 +479,10 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
       csound->WaitBarrier(csound->barrier2);
     }
     csound->engineStatus |= CS_STATE_COMP;
+    if(csound->oparms->daemon > 1)
+        UDPServerStart(csound,csound->oparms->daemon);
+
+
     return musmon(csound);
 }
 
