@@ -34,7 +34,7 @@
 
 typedef struct csdata_ {
 	CSOUND *cs;
-	int bufframes;
+	long bufframes;
 	int ret;
 	int nchnls;
     int nchnls_i;
@@ -114,6 +114,8 @@ typedef struct {
 -(void)stopCsound;
 -(void)muteCsound;
 -(void)unmuteCsound;
+
+-(void)handleInterruption:(NSNotification*)notification;
 
 -(CSOUND*)getCsound;
 -(AudioUnit*)getAudioUnit;

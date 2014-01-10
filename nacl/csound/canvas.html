@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<!--
+ Csound pnacl canvas example
+ Copyright (C) 2013 V Lazzarini
+-->
+<head>
+ <title>Canvas Example</title>
+ <style type="text/css">
+   textarea.console { font-family: "Courier New"; color: #FCF477;
+                     background-color: #007700 }
+   canvas.cnvs { font-family: "Courier New"; color: #FCF477;
+                     background-color: #FF0000 }
+  </style>
+ <script type="text/javascript" src="csound.js"></script>
+ <script type="text/javascript">
+ // called by csound.js
+ function moduleDidLoad() {
+  csound.Play();
+  csound.CompileOrc(
+  "instr 1 \n" +
+  "kfr chnget \"freq\" \n" +
+  "kamp chnget \"amp\" \n" +
+  "kcf chnget \"cf\" \n" +
+  "ka linenr (400-kamp)/400,.01,0.1,0.01 \n" +
+  "a1 vco2   ka,440+kfr \n" +
+  "kcf port kcf,0.01 \n" + 
+  "a2 moogvcf a1, kcf*(1+ka), 0.8 \n" +
+   "outs a2,a2 \n"  +
+  "printf \"fundamental: %.1f Hz\n\",kfr,kfr+440\n" +
+  "printf \"amplitude: %.2f \n\",kamp, kamp/1000\n" +
+  "endin");
+   csound.SetChannel("cf", 1000);
+ }
+ function attachListeners() {
+ }
+
+ var count = 0;
+    function handleMessage(message) {
+        var element = document.getElementById('console');
+        element.value += message.data;
+        element.scrollTop = 99999; // focus on bottom
+        count += 1;
+        if(count == 1000) {
+           element.value = ' ';
+           count = 0;
+        }
+  }
+
+ var playing = false;
+ function cnvs_getCoordinates(e) {
+  if(playing) {
+   x=e.clientX;
+   y=e.clientY;
+   csound.SetChannel('amp',y);
+   csound.SetChannel('freq',x);
+   var c=document.getElementById("cnvs");
+   var ctx=c.getContext("2d");
+   ctx.clearRect(0,0,400,400);
+   ctx.fillStyle="#0000FF";
+   ctx.fillRect(e.clientX,e.clientY,10,10);
+  }
+ }
+ function cnvs_play(e){
+   csound.Event("i1 0 -1");
+   csound.SetChannel('cf',3000);
+   x=e.clientX;
+   y=e.clientY;
+   csound.SetChannel('amp',y);
+   csound.SetChannel('freq',x);
+   var c=document.getElementById("cnvs");
+   var ctx=c.getContext("2d");
+   ctx.fillStyle="#0000FF";
+   ctx.fillRect(e.clientX,e.clientY,10,10);
+   playing = true;
+ }
+  function cnvs_stop(e){
+   csound.Event("i-1 0 -1");
+   csound.SetChannel('cf',1000);
+   var c=document.getElementById("cnvs");
+   var ctx=c.getContext("2d");
+   ctx.clearRect(0,0,400,400);
+   playing = false;
+ }
+
+function cnvs_out()
+{
+ csound.SetChannel('amp', 400);
+}
+
+</script>
+</head>
+<body>
+  <p>
+<canvas class="cnvs" id="cnvs" width="400" height="400" style="border:1px solid#000000;"
+ onmousemove="cnvs_getCoordinates(event)"
+ onmousedown="cnvs_play(event)"
+ onmouseup="cnvs_stop(event)"
+ onmouseout="cnvs_out()"
+>
+</canvas>
+ </p>
+  <textarea class="console" cols="55" rows="13" id="console"
+  value="">Csound: not loaded</textarea>
+  <!--pNaCl csound module-->
+  <div id="engine"></div>
+</body>
+</html>
+

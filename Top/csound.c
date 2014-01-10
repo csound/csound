@@ -610,7 +610,7 @@ static const CSOUND cenviron_ = {
     FL(0.0), FL(0.0), FL(0.0),  /*  prvbt, curbt, nxtbt */
     FL(0.0), FL(0.0),       /*  curp2, nxtim        */
     0,              /*  cyclesRemaining     */
-    { 0, NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
+    { 0, NULL, NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
     NULL,           /*  memalloc_db         */
     (MGLOBAL*) NULL, /* midiGlobals         */
     NULL,           /*  envVarDB            */
@@ -622,7 +622,7 @@ static const CSOUND cenviron_ = {
     NULL, NULL, NULL, /* tseg, tpsave, tplim */
     0, 0, 0, 0, 0, 0, /*  acount, kcount, icount, Bcount, bcount, tcount */
     (MYFLT*) NULL,  /*  gbloffbas           */
-#if defined(WIN32) && (__GNUC_VERSION__ < 40800)
+#if defined(WIN32) //&& (__GNUC_VERSION__ < 40800)
     (pthread_t){0, 0},   /* file_io_thread    */
 #else
     (pthread_t)0,   /* file_io_thread    */
@@ -630,7 +630,7 @@ static const CSOUND cenviron_ = {
     0,              /* file_io_start   */
     NULL,           /* file_io_threadlock */
     0,              /* realtime_audio_flag */
-#if defined(WIN32) && (__GNUC_VERSION__ < 40800)
+#if defined(WIN32) //&& (__GNUC_VERSION__ < 40800)
     (pthread_t){0, 0},   /* init pass thread    */
 #else
     (pthread_t)0,   /* init pass thread */
@@ -675,14 +675,14 @@ static const CSOUND cenviron_ = {
     },
     {
       NULL,
-      {'\0'}, {'\0'}, {'\0'}, /* orcname, sconame, midname */
+      NULL, NULL, NULL, /* orcname, sconame, midname */
       0, 0           /* midiSet, csdlinecount */
     },
     {
       NULL, NULL,   /* Linep, Linebufend    */
       0,            /* stdmode              */
       {
-        0, NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
+        0, NULL, NULL, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
         {NULL},
       },            /* EVTBLK  prve         */
       NULL,        /* Linebuf              */
@@ -804,7 +804,8 @@ static const CSOUND cenviron_ = {
       1,            /*    useCsdLineCounts  */
       0,            /*    samp acc   */
       0,            /*    realtime  */
-      0.0           /*    0dbfs override */
+      0.0,          /*    0dbfs override */
+      0             /*    no exit on compile error */
     },
 
     {0, 0, {0}}, /* REMOT_BUF */
@@ -852,8 +853,8 @@ static const CSOUND cenviron_ = {
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
     0,              /* info_message_request */
-    0,              /* modules loaded */
-    NULL            /* self-reference */
+    0              /* modules loaded */
+    /*, NULL */           /* self-reference */
 };
 
 /* from threads.c */
@@ -1142,7 +1143,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     /* NB: as suggested by F Pinot, keep the
        address of the pointer to CSOUND inside
        the struct, so it can be cleared later */
-    csound->self = &csound;
+    //csound->self = &csound;
 
     return csound;
 }
@@ -1216,7 +1217,7 @@ PUBLIC void csoundDestroy(CSOUND *csound)
       csoundDestroyMutex(csound->API_lock);
     }
     /* clear the pointer */
-    *(csound->self) = NULL;
+    //*(csound->self) = NULL;
     free((void*) csound);
 }
 
@@ -1880,6 +1881,7 @@ PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset)
     }
     if (aTime > 0.0) {
       EVTBLK  evt;
+      memset(&evt, 0, sizeof(EVTBLK));
       evt.strarg = NULL; evt.scnt = 0;
       evt.opcod = 'a';
       evt.pcnt = 3;
@@ -2101,6 +2103,7 @@ PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
     EVTBLK  evt;
     int     i;
     int ret;
+    memset(&evt, 0, sizeof(EVTBLK));
 
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = type;
@@ -2121,6 +2124,7 @@ PUBLIC int csoundScoreEventAbsolute(CSOUND *csound, char type,
     EVTBLK  evt;
     int     i;
     int     ret;
+    memset(&evt, 0, sizeof(EVTBLK));
 
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = type;
@@ -2677,7 +2681,7 @@ static void reset(CSOUND *csound)
     /* VL 07.06.2013 - check if the status is COMP before
        resetting.
     */
-    CSOUND **self = csound->self;
+    //CSOUND **self = csound->self;
     saved_env = (CSOUND*) malloc(sizeof(CSOUND));
     memcpy(saved_env, csound, sizeof(CSOUND));
     memcpy(csound, &cenviron_, sizeof(CSOUND));
@@ -2702,7 +2706,7 @@ static void reset(CSOUND *csound)
     csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
-    csound->self = self;
+    //csound->self = self;
     free(saved_env);
 
 }
@@ -2759,12 +2763,13 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
    return CSOUND_SUCCESS;
 }
 
+
+
 PUBLIC void csoundReset(CSOUND *csound)
 {
     char    *s;
     int     i, max_len;
     OPARMS  *O = csound->oparms;
-
 
     #ifdef HAVE_PTHREAD_SPIN_LOCK
      pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);

@@ -681,6 +681,8 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     char *cwd;
     int  len;
 
+    if(path == NULL) return NULL;
+
     char *tempPath = csoundConvertPathname(csound, path);
 
     char *lastIndex = strrchr(tempPath, DIRSEP);

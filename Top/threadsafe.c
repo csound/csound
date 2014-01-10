@@ -147,14 +147,18 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
     if (csoundGetChannelPtr(csound, &pstring, name,
                            CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)
             == CSOUND_SUCCESS){
-      int    size = csoundGetChannelDatasize(csound, name);
+        
+      STRINGDAT* stringdat = (STRINGDAT*) pstring;
+      int    size = stringdat->size; //csoundGetChannelDatasize(csound, name);
       int    *lock = csoundGetChannelLock(csound, (char*) name);
+        
       csoundSpinLock(lock);
-      if(strlen(string) > (unsigned int) size) {
-        if(pstring!=NULL) mfree(csound,pstring);
-        pstring = (MYFLT *) cs_strdup(csound, string);
-        set_channel_data_ptr(csound,name,(void*)pstring, strlen(string)+1);
-      } else strcpy((char *) pstring, string);
+      if(strlen(string) + 1 > (unsigned int) size) {
+        if(stringdat->data!=NULL) mfree(csound,stringdat->data);
+        stringdat->data = cs_strdup(csound, string);
+        stringdat->size = strlen(string) + 1;
+        //set_channel_data_ptr(csound,name,(void*)pstring, strlen(string)+1);
+      } else strcpy((char *) stringdat->data, string);
       csoundSpinUnLock(lock);
     }
 }
@@ -167,7 +171,7 @@ void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
             == CSOUND_SUCCESS){
       int *lock = csoundGetChannelLock(csound, (char*) name);
       csoundSpinLock(lock);
-      strcpy(string, (char *) pstring);
+      strcpy(string, ((STRINGDAT *) pstring)->data);
       csoundSpinUnLock(lock);
     }
 }

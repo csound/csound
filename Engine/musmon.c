@@ -397,12 +397,16 @@ static void cs_beep(CSOUND *csound)
     csound->Message(csound, Str("%c\tbeep!\n"), '\a');
 }
 
+extern int UDPServerClose(CSOUND *csound);
 PUBLIC int csoundCleanup(CSOUND *csound)
 {
     void    *p;
     MYFLT   *maxp;
     int32    *rngp;
     uint32_t n;
+
+    if(csound->QueryGlobalVariable(csound,"::UDPCOM")
+         != NULL) UDPServerClose(csound);
 
     while (csound->evtFuncChain != NULL) {
       p = (void*) csound->evtFuncChain;
@@ -509,6 +513,7 @@ int turnon(CSOUND *csound, TURNON *p)
 {
     EVTBLK  evt;
     int insno;
+    memset(&evt, 0, sizeof(EVTBLK));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = 3;
@@ -533,7 +538,7 @@ int turnon_S(CSOUND *csound, TURNON *p)
 {
     EVTBLK  evt;
     int     insno;
-
+    memset(&evt, 0, sizeof(EVTBLK));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = 3;
@@ -1184,6 +1189,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       memcpy(e->evt.strarg, evt->strarg, p-evt->strarg+1 );
       e->evt.scnt = evt->scnt;
     }
+    e->evt.pinstance = evt->pinstance;
     e->evt.opcod = evt->opcod;
     e->evt.pcnt = evt->pcnt;
     p = &(e->evt.p[0]);

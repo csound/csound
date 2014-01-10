@@ -27,6 +27,10 @@
 #define CSOUND_STR_OPS_C    1
 #include "str_ops.h"
 #include <ctype.h>
+#ifdef HAVE_CURL
+#include <curl/curl.h>
+#include "corfile.h"
+#endif
 
 #define STRSMAX 8
 
@@ -1003,3 +1007,29 @@ int strrindex_opcode(CSOUND *csound, STRINDEX_OP *p)
 
     return OK;
 }
+
+#ifdef HAVE_CURL
+int str_from_url(CSOUND *csound, STRCPY_OP *p)
+{
+    char  *newVal = p->str->data;
+    if (strstr(newVal, ":/")==NULL) return strcpy_opcode_S(csound, p);
+    {
+      CORFIL *mm = copy_url_corefile(csound, newVal,0);
+      int len = corfile_length(mm);
+      if (p->r->data == NULL) {
+        p->r->data =  cs_strdup(csound, corfile_body(mm));
+        p->r->size =  len + 1;
+        goto cleanup;
+      }
+      if (UNLIKELY(len >= p->r->size)) {
+        mfree(csound, p->r->data);
+        p->r->data = cs_strdup(csound, corfile_body(mm));
+        p->r->size = len + 1;
+      }
+      else strcpy((char*) p->r->data, corfile_body(mm));
+    cleanup:
+      corfile_rm(&mm);
+      return OK;
+    }
+}
+#endif
