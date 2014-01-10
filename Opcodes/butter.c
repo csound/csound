@@ -46,20 +46,10 @@ typedef struct  {
 
 static void butter_filter(uint32_t, uint32_t, MYFLT *, MYFLT *, double *);
 
-static int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
+int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 {
     if (*p->istor==FL(0.0)) {
       p->a[6] = p->a[7] = 0.0;
-      p->lkf = FL(0.0);
-    }
-    return OK;
-}
-
-static int bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
-{
-    if (*p->istor==FL(0.0)) {
-      p->a[6] = p->a[7] = 0.0;
-      p->lkb = FL(0.0);
       p->lkf = FL(0.0);
     }
     return OK;
@@ -113,7 +103,7 @@ static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
     out = p->sr;
 
     if (*p->kfc <= FL(0.0))     {
-      memset(out, 0, CS_KSMPS*sizeof(MYFLT));
+      memset(out, 0, nsmps*sizeof(MYFLT));
       return OK;
     }
 
@@ -123,8 +113,8 @@ static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-    if (*p->kfc != p->lkf)      {      double     *a, c;
-
+    if (*p->kfc != p->lkf) {
+      double     *a, c;
       a = p->a;
       p->lkf = *p->kfc;
       c = 1.0 / tan((double)(csound->pidsr * p->lkf));
@@ -133,80 +123,6 @@ static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
       a[3] = a[1];
       a[4] = 2.0 * ( 1.0 - c*c) * a[1];
       a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
-    }
-
-    butter_filter(nsmps, offset, in, out, p->a);
-    return OK;
-}
-
-static int bpbut(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
-{
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t nsmps = CS_KSMPS;
-    MYFLT       *out, *in;
-
-    in = p->ain;
-    out = p->sr;
-    if (*p->kbw <= FL(0.0))     {
-      memset(out, 0, CS_KSMPS*sizeof(MYFLT));
-      return OK;
-    }
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    if (*p->kbw != p->lkb || *p->kfo != p->lkf) {
-      double *a, c, d;
-      a = p->a;
-      p->lkf = *p->kfo;
-      p->lkb = *p->kbw;
-      c = 1.0 / tan((double)(csound->pidsr * p->lkb));
-      d = 2.0 * cos((double)(csound->tpidsr * p->lkf));
-      a[1] = 1.0 / (1.0 + c);
-      a[2] = 0.0;
-      a[3] = -a[1];
-      a[4] = - c * d * a[1];
-      a[5] = (c - 1.0) * a[1];
-    }
-    butter_filter(nsmps, offset, in, out, p->a);
-    return OK;
-}
-
-static int bcbut(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
-{
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t nsmps = CS_KSMPS;
-    MYFLT       *out, *in;
-
-    in = p->ain;
-    out = p->sr;
-
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    if (*p->kbw <= FL(0.0))     {
-      memcpy(&out[offset], &out[offset], (nsmps-offset)*sizeof(MYFLT));
-      return OK;
-    }
-
-    if (*p->kbw != p->lkb || *p->kfo != p->lkf) {
-      double *a, c, d;
-
-      a = p->a;
-      p->lkf = *p->kfo;
-      p->lkb = *p->kbw;
-      c = tan((double)(csound->pidsr * p->lkb));
-      d = 2.0 * cos((double)(csound->tpidsr * p->lkf));
-      a[1] = 1.0 / (1.0 + c);
-      a[2] = - d * a[1];
-      a[3] = a[1];
-      a[4] = a[2];
-      a[5] = (1.0 - c) * a[1];
     }
 
     butter_filter(nsmps, offset, in, out, p->a);
@@ -234,14 +150,10 @@ static void butter_filter(uint32_t n, uint32_t offset,
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "butterhp", S(BFIL),  0, 5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
-{ "butterlp", S(BFIL),  0, 5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
-{ "butterbp", S(BBFIL), 0, 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bpbut  },
-{ "butterbr", S(BBFIL), 0, 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bcbut  },
-{ "buthp",    S(BFIL),  0, 5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
-{ "butlp",    S(BFIL),  0, 5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
-{ "butbp",    S(BBFIL), 0, 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bpbut  },
-{ "butbr",    S(BBFIL), 0, 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bcbut  }
+{ "butterhp.k", S(BFIL), 0, 5, "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
+{ "butterlp.k", S(BFIL), 0, 5, "a",    "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
+{ "buthp.k",    S(BFIL),  0, 5, "a",   "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
+{ "butlp.k",    S(BFIL),  0, 5, "a",   "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
 };
 
 int butter_init_(CSOUND *csound)

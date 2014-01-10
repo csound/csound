@@ -94,8 +94,8 @@ int kingoto(CSOUND *csound, CGOTO *p)
 
 int timset(CSOUND *csound, TIMOUT *p)
 {
-    if (UNLIKELY((p->cnt1 = (int32)(*p->idel * csound->ekr + FL(0.5))) < 0L ||
-                 (p->cnt2 = (int32)(*p->idur * csound->ekr + FL(0.5))) < 0L))
+    if (UNLIKELY((p->cnt1 = (int32)(*p->idel * CS_EKR + FL(0.5))) < 0L ||
+                 (p->cnt2 = (int32)(*p->idur * CS_EKR + FL(0.5))) < 0L))
       return csoundInitError(csound, Str("negative time period"));
     return OK;
 }

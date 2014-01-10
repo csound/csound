@@ -610,7 +610,8 @@ int krandh(CSOUND *csound, RANDH *p)
 {
     /* IV - Jul 11 2002 */
     *p->ar = *p->base + p->num1 * *p->xamp;     /* rslt = num * amp     */
-    p->phs += (int32)(*p->xcps * CS_KICVT); /* phs += inc           */
+    p->phs += (long)(*p->xcps * CS_KICVT); /* phs += inc           */
+
     if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
       if (!p->new) {
@@ -631,7 +632,7 @@ int krandh(CSOUND *csound, RANDH *p)
 
 int randh(CSOUND *csound, RANDH *p)
 {
-    int32       phs = p->phs, inc;
+    long      phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -646,7 +647,7 @@ int randh(CSOUND *csound, RANDH *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    inc = (int32)(*cpsp++ * csound->sicvt);
+    inc = (long)(*cpsp++ * csound->sicvt);
     for (n=offset;n<nsmps;n++) {
       /* IV - Jul 11 2002 */
       ar[n] = base + p->num1 * *ampp;   /* rslt = num * amp */
@@ -654,7 +655,7 @@ int randh(CSOUND *csound, RANDH *p)
         ampp++;
       phs += inc;                               /* phs += inc       */
       if (p->cpscod)
-        inc = (int32)(*cpsp++ * csound->sicvt);
+        inc = (long)(*cpsp++ * csound->sicvt);
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         if (!p->new) {
@@ -733,7 +734,7 @@ int krandi(CSOUND *csound, RANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
     *p->ar = *p->base + (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
-    p->phs += (int32)(*p->xcps * CS_KICVT); /* phs += inc           */
+    p->phs += (long)(*p->xcps * CS_KICVT); /* phs += inc           */
     if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
       if (!p->new) {
@@ -757,7 +758,7 @@ int krandi(CSOUND *csound, RANDI *p)
 
 int randi(CSOUND *csound, RANDI *p)
 {
-    int32       phs = p->phs, inc;
+    long       phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -772,7 +773,7 @@ int randi(CSOUND *csound, RANDI *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    inc = (int32)(*cpsp++ * csound->sicvt);
+    inc = (long)(*cpsp++ * csound->sicvt);
     for (n=offset;n<nsmps;n++) {
       /* IV - Jul 11 2002 */
       ar[n] = base + (p->num1 + (MYFLT)phs * p->dfdmax) * *ampp;
@@ -780,7 +781,7 @@ int randi(CSOUND *csound, RANDI *p)
         ampp++;
       phs += inc;                               /* phs += inc       */
       if (p->cpscod)
-        inc = (int32)(*cpsp++ * csound->sicvt);  /*   (nxt inc)      */
+        inc = (long)(*cpsp++ * csound->sicvt);  /*   (nxt inc)      */
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         if (!p->new) {

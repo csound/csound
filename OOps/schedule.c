@@ -357,6 +357,7 @@ static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
     int     i, argnum;
     EVTBLK  evt;
     char    name[512];
+    memset(&evt, 0, sizeof(EVTBLK));
 
     if (p->timrem > 0)
       p->timrem--;
@@ -365,7 +366,7 @@ static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
 
     /* Check if mintime has changed */
     if (p->prvmintim != *p->mintime) {
-      int32 timrem = (int32) (*p->mintime * csound->ekr + FL(0.5));
+      int32 timrem = (int32) (*p->mintime * CS_EKR + FL(0.5));
       if (timrem > 0) {
         /* Adjust countdown for new mintime */
         p->timrem += timrem - p->prvktim;
@@ -430,7 +431,7 @@ static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
     }
     /* Reset min pause counter */
     if (*p->mintime > FL(0.0))
-      p->timrem = (int32) (*p->mintime * csound->ekr + FL(0.5));
+      p->timrem = (int32) (*p->mintime * CS_EKR + FL(0.5));
     else
       p->timrem = 0;
     return

@@ -26,6 +26,7 @@
 #include "csmodule.h"
 #include <ctype.h>
 
+
 extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 #define FIND(MSG)   if (*s == '\0')  \
@@ -219,6 +220,10 @@ static const char *longUsageList[] = {
   Str_noop("--nchnls_i=N\t\t override number of input audio channels"),
   Str_noop("--0dbfs=N\t\t override 0dbfs (max positive signal amplitude)"),
   Str_noop("--sinesize\t\tlength of internal sine table"),
+  Str_noop("--daemon\t\t daemon mode: do not exit if CSD/orchestra is "
+           "not given, is empty or does not compile"),
+  Str_noop("--port=N\t\t listen to UDP port N for instruments/orchestra "
+           "code (implies --daemon)"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -452,9 +457,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       if (UNLIKELY(*s == '\0')) dieu(csound, Str("no midifile name"));
       O->FMidiname = s;                 /* Midifile name */
       if (!strcmp(O->FMidiname, "stdin")) {
-        set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #if defined(WIN32)
         csoundDie(csound, Str("-F: stdin not supported on this platform"));
+#else
+        set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #endif
       }
       else
@@ -917,6 +923,16 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
              !(strcmp(s, "old-parser"))) {
         return 1;  /* ignore flag, this is here for backwards compatibility */
     }
+    else if (!(strcmp(s, "daemon"))) {
+        O->daemon = 1;
+        return 1;
+    }
+    else if (!(strncmp(s, "port=",5))) {
+        s += 5;
+        O->daemon = atoi(s);
+        return 1;
+    }
+
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
 }
@@ -1101,10 +1117,11 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             FIND(Str("no midi device_name"));
             O->Midiname = s;              /* Midi device name */
             s += (int) strlen(s);
-            if (!strcmp(O->Midiname, "stdin")) {
-              set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
+            if (strcmp(O->Midiname, "stdin")==0) {
 #if defined(WIN32)
               csoundDie(csound, Str("-M: stdin not supported on this platform"));
+#else
+              set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
 #endif
             }
             else
@@ -1115,10 +1132,11 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             FIND(Str("no midifile name"));
             O->FMidiname = s;             /* Midifile name */
             s += (int) strlen(s);
-            if (!strcmp(O->FMidiname, "stdin")) {
-              set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
+            if (strcmp(O->FMidiname, "stdin")==0) {
 #if defined(WIN32)
               csoundDie(csound, Str("-F: stdin not supported on this platform"));
+#else
+              set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #endif
             }
             else
@@ -1281,6 +1299,7 @@ PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
   oparms->useCsdLineCounts = p->csd_line_counts;
   oparms->heartbeat = p->heartbeat;
   oparms->ringbell = p->ring_bell;
+  oparms->daemon = p->daemon;
 
   /* message level */
   if(p->message_level > 0)
@@ -1361,6 +1380,7 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
   p->e0dbfs_override = oparms->e0dbfs_override;
   p->heartbeat = oparms->heartbeat;
   p->ring_bell = oparms->ringbell;
+  p->daemon = oparms->daemon;
 }
 
 

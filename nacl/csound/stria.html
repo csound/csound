@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<!--
+ Csound pnacl stria example
+ Copyright (C) 2013 V Lazzarini
+-->
+<head>
+ <title>Stria Example</title>
+ <script type="text/javascript" src="csound.js"></script>
+ <script type="text/javascript">
+ // called by csound.js
+ function moduleDidLoad() {
+  csound.PlayCsd("http/stria.csd");
+  document.getElementById("tit").innerHTML = "Stria (J. Chowning)";
+  document.getElementById("stit").innerHTML = "reconstruction by K. Dahan";
+ }
+ function attachListeners() {}
+ function handleMessage(message) {
+   var mess = message.data;
+   var messField = document.getElementById("mess")
+   messField.innerText += mess;
+   scrollTo(0, messField.scrollHeight);
+ }
+ </script>
+</head>
+<body>
+  <div id="console"></div>
+  <h3 id="tit"></h3>
+  <h4 id="stit"></h4> 
+  <div id="mess">
+  </div>
+  <!--pNaCl csound module-->
+  <div id="engine"></div>
+</body>
+</html>
+

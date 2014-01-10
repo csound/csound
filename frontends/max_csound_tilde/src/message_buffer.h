@@ -69,4 +69,4 @@ private:
 
 } // namespace dvx
 
-#endif _MESSAGE_BUFFER_H
+#endif //_MESSAGE_BUFFER_H
