@@ -1978,7 +1978,7 @@ uint8_t file_to_int(CSOUND *csound, const char *name)
     // Not there so add
     // ensure long enough?
     if (n==255) {
-      filedir[n] = strdup("**unknown**");
+      filedir[n] = strdup(Str("**unrecorded**"));
     }
     else {
       filedir[n] = strdup(name);
