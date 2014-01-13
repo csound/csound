@@ -10,6 +10,7 @@ instr baz
 asig        vibes        .8, 440, .5, p4 , 1, p5, .7, 2, .1
             outs         asig, asig
             print        taninv2(1,2)
+            print        tan (1/2)
             ii           taninv2  1,2
             print        ii
             prints       p6

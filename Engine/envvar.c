@@ -1308,7 +1308,7 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
   int  csftype = (fromScore ? CSFTYPE_SCO_INCLUDE : CSFTYPE_ORC_INCLUDE);
 
   /* First try to open name given */
-  fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "rb", NULL,
+  fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "r", NULL,
                          csftype, 0);
   if (fd != NULL)
     return fd;
@@ -1317,7 +1317,7 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
     char *dir, *name_full;
     if ((dir = csoundSplitDirectoryFromPath(csound, basename)) != NULL) {
       name_full = csoundConcatenatePaths(csound, dir, name);
-      fd = csound->FileOpen2(csound, fp, CSFILE_STD, name_full, "rb", NULL,
+      fd = csound->FileOpen2(csound, fp, CSFILE_STD, name_full, "r", NULL,
                              csftype, 0);
       mfree(csound, dir);
       mfree(csound, name_full);
@@ -1326,7 +1326,7 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
     }
   }
   /* or use env argument */
-  fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "rb", env,
+  fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "r", env,
                          csftype, 0);
   return fd;
 }

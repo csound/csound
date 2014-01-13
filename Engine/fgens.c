@@ -2782,7 +2782,7 @@ static int gen43(FGDATA *ff, FUNC *ftp)
 static int gen49raw(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound        = ff->csound;
-    MYFLT   *fp            = ftp->ftable;
+    MYFLT   *fp           = ftp == NULL ? NULL: ftp->ftable;
     mp3dec_t mpa           = NULL;
     mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_AUTO,
                                MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,

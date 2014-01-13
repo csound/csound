@@ -37,6 +37,7 @@
 char *csound_orcget_text ( void *scanner );
 int is_label(char* ident, CONS_CELL* labelList);
 
+extern int csound_orcget_locn(void *);
 extern  char argtyp2(char*);
 extern  int tree_arg_list_count(TREE *);
 void print_tree(CSOUND *, char *, TREE *);
@@ -54,7 +55,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable);
 char* convert_internal_to_external(CSOUND* csound, char* arg);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
-
+void do_baktrace(CSOUND *csound, uint64_t files);
 
 char* cs_strdup(CSOUND* csound, char* str) {
     size_t len;
@@ -231,6 +232,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                     Str("unable to find array operator for "
                         "types %s line %d\n"),
                     argString, tree->line);
+            do_baktrace(csound, tree->locn);
             return NULL;
           }
 
@@ -247,6 +249,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           synterr(csound,
                   Str("non-boolean expression found for ternary operator,"
                       " line %d\n"), tree->line);
+          do_baktrace(csound, tree->locn);
           return NULL;
         }
         arg1 = get_arg_type2(csound, tree->right->left, typeTable);
@@ -263,6 +266,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                   Str("unable to find ternary operator for "
                       "types '%s ? %s : %s' line %d\n"),
                   ans, arg1, arg2, tree->line);
+          do_baktrace(csound, tree->locn);
           return NULL;
         }
 
@@ -286,6 +290,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           synterr(csound, Str("error: opcode '%s' for expression with arg "
                               "types %s not found, line %d \n"),
                   opname, argTypeRight, tree->line);
+          do_baktrace(csound, tree->locn);
           return NULL;
         }
 
@@ -296,7 +301,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       char* argTypeRight = get_arg_type2(csound,
                                          nodeToCheck->right, typeTable);
 
-      if(nodeToCheck->left != NULL) {
+      if (nodeToCheck->left != NULL) {
         char* argTypeLeft = get_arg_type2(csound, nodeToCheck->left, typeTable);
 
         char* opname = get_expression_opcode_type(csound, nodeToCheck);
@@ -308,6 +313,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           synterr(csound,
                   Str("Unable to verify arg types for expression '%s'\n"),
                   opname);
+          do_baktrace(csound, tree->locn);
           return NULL;
         }
 
@@ -332,6 +338,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           synterr(csound, Str("error: opcode '%s' for expression with arg "
                               "types %s not found, line %d \n"),
                   opname, inArgTypes, tree->line);
+          do_baktrace(csound, tree->locn);
           return NULL;
         }
 
@@ -357,6 +364,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         synterr(csound,
                 Str("Unable to verify arg types for boolean expression '%s'\n"),
                 opname);
+        do_baktrace(csound, tree->locn);
         return NULL;
       }
 
@@ -377,6 +385,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         synterr(csound, Str("error: boolean expression '%s' with arg "
                             "types %s not found, line %d \n"),
                 opname, inArgTypes, tree->line);
+        do_baktrace(csound, tree->locn);
         return NULL;
       }
 
@@ -436,6 +445,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       if (UNLIKELY(var == NULL)) {
         synterr(csound, Str("Variable '%s' used before defined\n"),
                 tree->value->lexeme);
+        do_baktrace(csound, tree->locn);
         return NULL;
       }
 
@@ -1057,6 +1067,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
           if(argType==NULL) {
             synterr(csound,
               Str("Variable type for %s could not be determined.\n"), varName);
+            do_baktrace(csound, tree->locn);
             return 0;
           }
 
@@ -1077,6 +1088,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
             if(var == NULL) {
               synterr(csound,
                       Str("Variable '%s' used before defined\n"), varName);
+              do_baktrace(csound, tree->locn);
               return 0;
             }
           }
@@ -1097,7 +1109,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
             if (var == NULL) {
               synterr(csound,
                       Str("Variable '%s' used before defined\n"), varName);
-              return 0;
+             return 0;
             }
           }
           break;
@@ -1318,8 +1330,9 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
               opcodeName);
       csoundMessage(csound, Str("Found: %s %s %s\n"),
                     leftArgString, root->value->lexeme, rightArgString);
-      csoundMessage(csound, Str("Line: %d Loc: %d\n"),
-                    root->line, root->locn);
+      csoundMessage(csound, Str("Line: %d\n"),
+                    root->line);
+      do_baktrace(csound, root->locn);
       return 0;
     } else {
       root->markup = oentry;
@@ -1451,11 +1464,12 @@ int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
 
     if (UNLIKELY(outArg == NULL || (*outArg != 'b' && *outArg != 'B'))) {
-        synterr(csound,
-                Str("expression for until statement not a boolean "
-                    "expression, line %d\n"),
-                root->line);
-        return 0;
+      synterr(csound,
+              Str("expression for until statement not a boolean "
+                  "expression, line %d\n"),
+              root->line);
+      do_baktrace(csound, root->locn);
+      return 0;
     }
     return 1;
 }
@@ -1604,22 +1618,12 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     char ch;
     char *p = csound_orcget_current_pointer(yyscanner)-1;
     int line = csound_orcget_lineno(yyscanner);
+    uint64_t files = csound_orcget_locn(yyscanner);
     if (*p=='\0') line--;
     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
+    do_baktrace(csound, files);
     csound->Message(csound, Str(" line %d:\n>>>"), line);
-    /* if(!strcmp(csound_orcget_text(yyscanner), "\n")) { */
-    /*  csound->Message(csound, Str("error: %s (\"\\n\")"), */
-    /*                 str); */
-    /*  csound->Message(csound, Str(" line %d:\n>>> "), */
-    /*               csound_orcget_lineno(yyscanner)); */
-    /* } */
-    /* else { */
-    /*  csound->Message(csound, Str("\nerror: %s  (token \"%s\")"), */
-    /*                 str, csound_orcget_text(yyscanner)); */
-    /* csound->Message(csound, Str(" line %d:\n>>> "), */
-    /*                 csound_orcget_lineno(yyscanner)+1); */
-    /* } */
     while ((ch=*--p) != '\n' && ch != '\0');
     do {
       ch = *++p;
@@ -1629,10 +1633,19 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     csound->Message(csound, " <<<\n");
 }
 
+void do_baktrace(CSOUND *csound, uint64_t files)
+{
+    while (files) {
+      unsigned int ff = files&0xff;
+      files = files >>8;
+      csound->Message(csound, Str(" from file %s (%d)\n"),
+                      csound->filedir[ff], ff);
+    } 
+}
 
 /**
  * Appends TREE * node to TREE * node using ->next field in struct; walks
- * down the linked list to append at end; checks for NULL's and returns
+ * down  list to append at end; checks for NULL's and returns
  * appropriate nodes
  */
 TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast)
@@ -1772,67 +1785,94 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case '(':
     case ')':
     case '=':
-      csound->Message(csound,"%c:(%d:%d)\n", l->type, l->line, l->locn); break;
+      csound->Message(csound,"%c:(%d:%s)\n", l->type,
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case NEWLINE:
-      csound->Message(csound,"NEWLINE:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"NEWLINE:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_NEQ:
-      csound->Message(csound,"S_NEQ:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"S_NEQ:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_AND:
-      csound->Message(csound,"S_AND:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"S_AND:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_OR:
-      csound->Message(csound,"S_OR:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"S_OR:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_LT:
-      csound->Message(csound,"S_LT:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"S_LT:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_LE:
-      csound->Message(csound,"S_LE:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"S_LE:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_EQ:
-      csound->Message(csound,"S_EQ:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"S_EQ:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_GT:
-      csound->Message(csound,"S_GT:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"S_GT:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_GE:
-      csound->Message(csound,"S_GE:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"S_GE:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case LABEL_TOKEN:
       csound->Message(csound,"LABEL_TOKEN: %s\n", l->value->lexeme); break;
     case IF_TOKEN:
-      csound->Message(csound,"IF_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"IF_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case THEN_TOKEN:
-      csound->Message(csound,"THEN_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"THEN_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case ITHEN_TOKEN:
-      csound->Message(csound,"ITHEN_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"ITHEN_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case KTHEN_TOKEN:
-      csound->Message(csound,"KTHEN_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"KTHEN_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case ELSEIF_TOKEN:
-      csound->Message(csound,"ELSEIF_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"ELSEIF_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case ELSE_TOKEN:
-      csound->Message(csound,"ELSE_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"ELSE_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case UNTIL_TOKEN:
-      csound->Message(csound,"UNTIL_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"UNTIL_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case DO_TOKEN:
-      csound->Message(csound,"DO_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"DO_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case OD_TOKEN:
-      csound->Message(csound,"OD_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"OD_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case GOTO_TOKEN:
-      csound->Message(csound,"GOTO_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"GOTO_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case IGOTO_TOKEN:
-      csound->Message(csound,"IGOTO_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"IGOTO_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case KGOTO_TOKEN:
-      csound->Message(csound,"KGOTO_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"KGOTO_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case SRATE_TOKEN:
-      csound->Message(csound,"SRATE_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"SRATE_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case KRATE_TOKEN:
-      csound->Message(csound,"KRATE_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"KRATE_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case ZERODBFS_TOKEN:
-      csound->Message(csound,"ZERODFFS_TOKEN:(%d:%d)\n",
-                      l->line, l->locn); break;
+      csound->Message(csound,"ZERODFFS_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case KSMPS_TOKEN:
-      csound->Message(csound,"KSMPS_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"KSMPS_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case NCHNLS_TOKEN:
-      csound->Message(csound,"NCHNLS_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"NCHNLS_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case NCHNLSI_TOKEN:
-      csound->Message(csound,"NCHNLSI_TOKEN:(%d:%d)\n",
-                      l->line, l->locn); break;
+      csound->Message(csound,"NCHNLSI_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case INSTR_TOKEN:
-      csound->Message(csound,"INSTR_TOKEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"INSTR_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case STRING_TOKEN:
       csound->Message(csound,"STRING_TOKEN: %s\n", l->value->lexeme); break;
     case T_IDENT:
@@ -1842,21 +1882,29 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case NUMBER_TOKEN:
       csound->Message(csound,"NUMBER_TOKEN: %f\n", l->value->fvalue); break;
     case S_ANDTHEN:
-      csound->Message(csound,"S_ANDTHEN:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"S_ANDTHEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_APPLY:
-      csound->Message(csound,"S_APPLY:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"S_APPLY:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case T_OPCODE0:
-      csound->Message(csound,"T_OPCODE0: %s\n", l->value->lexeme); break;
+      csound->Message(csound,"T_OPCODE0: %s\n",
+                      l->value->lexeme); break;
     case T_OPCODE:
-      csound->Message(csound,"T_OPCODE: %s\n", l->value->lexeme); break;
+      csound->Message(csound,"T_OPCODE: %s\n",
+                      l->value->lexeme); break;
     case T_FUNCTION:
-      csound->Message(csound,"T_FUNCTION: %s\n", l->value->lexeme); break;
+      csound->Message(csound,"T_FUNCTION: %s\n",
+                      l->value->lexeme); break;
     case S_UMINUS:
-        csound->Message(csound,"S_UMINUS:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"S_UMINUS:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case T_INSTLIST:
-        csound->Message(csound,"T_INSTLIST:(%d:%d)\n", l->line, l->locn); break;
+      csound->Message(csound,"T_INSTLIST:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     default:
-      csound->Message(csound,"unknown:%d(%d:%d)\n", l->type, l->line, l->locn);
+      csound->Message(csound,"unknown:%d(%d:%s)\n",
+                      l->type, l->line, csound->filedir[(l->locn)&0xff]);
     }
 
     print_tree_i(csound, l->left,n+1);
@@ -2036,7 +2084,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"unknown\"(%d)", l->type);
     }
 
-    csound->Message(csound, " loc=\"%d:%d\">\n", l->line, l->locn);
+    csound->Message(csound, " loc=\"%d:%s\">\n",
+                    l->line, csound->filedir[(l->locn)&0xff]);
 
     print_tree_xml(csound, l->left,n+1, TREE_LEFT);
     print_tree_xml(csound, l->right,n+1, TREE_RIGHT);
@@ -2140,8 +2189,9 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           default:
             synterr(csound,
                     Str("insufficient required arguments for opcode %s"
-                        " on line %d:%d\n"),
-                    ep->opname, l->line, l->locn);
+                        " on line %d:\n"),
+                    ep->opname, l->line);
+            do_baktrace(csound, l->locn);
           }
           incnt++;
         } while (incnt < nreqd);

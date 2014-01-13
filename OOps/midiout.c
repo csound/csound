@@ -77,7 +77,7 @@ int xtratim(CSOUND *csound, XTRADUR *p)
 
 int mclock_set(CSOUND *csound, MCLOCK *p)
 {
-    p->period= csound->ekr / *p->freq;
+    p->period= CS_EKR / *p->freq;
     p->clock_tics = p->period;
     p->beginning_flag = TRUE;
     return OK;
