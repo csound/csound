@@ -482,7 +482,7 @@ extern "C" {
         int           rate;
         int           len;
         int           line;
-        int           locn;
+        uint64_t      locn;
         struct TREE   *left;
         struct TREE   *right;
         struct TREE   *next;

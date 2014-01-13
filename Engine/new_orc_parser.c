@@ -76,13 +76,13 @@ void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
     csound->DebugMsg(csound,"******************\n");
 }
 
-uint32_t make_location(PRE_PARM *qq)
+uint64_t make_location(PRE_PARM *qq)
 {
     int d = qq->depth;
-    uint32_t loc = 0;
-    int n = (d>6?d-5:0);
+    uint64_t loc = 0;
+    int n = (d>8?d-7:0);
     for (; n<=d; n++) {
-      loc = (loc<<6)+(qq->lstack[n]);
+      loc = (loc<<8)+(qq->lstack[n]);
     }
     return loc;
 }
