@@ -38,7 +38,7 @@ fi
 #BUILD DOUBLES CSOUND
 echo "Building Csound (double)..."
 cd csound6
-cp ../../../../Custom.cmake .
+cp ../../Custom_10.9.cmake Custom.cmake 
 
 #/usr/local/bin/scons -j2 &> ../csound5_build_log.txt
 mkdir build
