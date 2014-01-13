@@ -21,6 +21,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <CoreServices/CoreServices.h>
 #include "CsoundTable.h"
 #include "buffer.h"	// Leave this out of CsoundTable.h; it causes conflicts with boost/max header combo.
 

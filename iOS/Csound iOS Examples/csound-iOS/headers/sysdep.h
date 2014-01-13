@@ -31,6 +31,22 @@ typedef void *locale_t;
 #endif
 #endif
 
+/* this checks for 64BIT builds */
+#if defined(__MACH__) || defined(LINUX)
+#include <limits.h>
+#if ( __WORDSIZE == 64 )
+#define B64BIT
+#endif
+#endif
+
+#if defined(WIN32)
+#if _WIN64
+#define B64BIT
+#endif
+#endif
+
+
+
 #ifdef HAVE_GCC3
 #  undef HAVE_GCC3
 #endif
@@ -408,4 +424,3 @@ static inline double csoundUndenormalizeDouble(double x)
 /* #endif */
 
 #endif  /* CSOUND_SYSDEP_H */
-
