@@ -2283,8 +2283,9 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
                                       "may find this disturbing"), ff->fno);
         }
       }
-      else {                                /* else clear it to zero */
-        memset((void*) ftp->ftable, 0, ff->flen+1);
+      else {     
+                                    /* else clear it to zero */
+        memset((void*) ftp->ftable, 0, sizeof(MYFLT)*(ff->flen+1));
         memset((void*) ftp, 0, sizeof(FUNC)-sizeof(MYFLT*)); /* leaving table! */
       }
     }
