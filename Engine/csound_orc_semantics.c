@@ -204,7 +204,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     char* s;
     char* t;
     //CS_TYPE* type;
-    CS_VAR_POOL* pool;
     CS_VARIABLE* var;
 
     if (is_expression_node(tree)) {
@@ -411,6 +410,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       //for now treat as T_IDENT
     case T_ARRAY_IDENT:
     case T_IDENT:
+      
       s = tree->value->lexeme;
 
       if (is_label(s, typeTable->labelList)) {
@@ -433,15 +433,23 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       if (*s == '#')
         s++;
 
-      pool = (*s == 'g') ?
-        typeTable->globalPool : typeTable->localPool;
-      var = csoundFindVariableWithName(pool, tree->value->lexeme);
-      /* VL: 13-06-13
-               if it is not found, we still check the global (merged) pool */
-      if(var == NULL && *s == 'g')
-       var = csoundFindVariableWithName(csound->engineState.varPool,
-                                        tree->value->lexeme);
+      /* VL: 16/01/2014
+         in a second compilation, the
+         typeTable->globalPool is incorrect and will not
+         contain the correct addresses of global variables,
+         which are stored correctly in the engineState.varPool.
+         Ideally we should remove typeTable->globalPool and only use
+         the varPool in the engineState
+      */
 
+      if(*s == 'g') {
+       var = csoundFindVariableWithName(csound->engineState.varPool,
+                                        tree->value->lexeme); 
+       if(var == NULL)
+       var = csoundFindVariableWithName(typeTable->globalPool, tree->value->lexeme);
+       } else
+        var = csoundFindVariableWithName(typeTable->localPool, tree->value->lexeme);
+      
       if (UNLIKELY(var == NULL)) {
         synterr(csound, Str("Variable '%s' used before defined\n"),
                 tree->value->lexeme);
@@ -449,7 +457,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return NULL;
       }
 
-      if (var->varType == &CS_VAR_TYPE_ARRAY) {
+      if (var->varType == &CS_VAR_TYPE_ARRAY) { 
         return create_array_arg_type(csound, var);
       } else {
         return cs_strdup(csound, var->varType->varTypeName);
