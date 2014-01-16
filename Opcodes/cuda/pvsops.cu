@@ -8,6 +8,8 @@
 #include <cufft.h>
 #define VSAMPS 16
 #define MAXBLOCK 8192
+#define THREADS_PER_BLOCK 1024
+
 #include <pstream.h>
 
 /* kernel to convert from pvs to rectangular frame */
@@ -151,7 +153,7 @@ static int pvsynperf(CSOUND *csound, PVSYN *p){
       cudaMemcpy(inframe,fsig,(N+2)*sizeof(float),
                  cudaMemcpyHostToDevice);
       /* perf pvs to rect conversion */
-      blocks = bins > 1024 ? bins/1024 : 1;
+      blocks = bins > THREADS_PER_BLOCK? bins/THREADS_PER_BLOCK : 1;
       frompvs<<<blocks,
         bins/blocks>>>(inframe,p->lastph,blocks,
                        p->scal,p->fac);
@@ -161,7 +163,7 @@ static int pvsynperf(CSOUND *csound, PVSYN *p){
       if (cudaDeviceSynchronize() != cudaSuccess)
         csound->Message(csound,"Cuda error: Failed to synchronize\n");
       /* window and rotate data on device */
-      blocks =  N > 1024 ? N/1024 : 1;
+      blocks =  N > THREADS_PER_BLOCK ? N/THREADS_PER_BLOCK : 1;
       winrotate<<<blocks,
         N/blocks>>>(inframe,win,blocks,N,hsize*curframe);
       /* copy data to current out frame */
@@ -347,7 +349,7 @@ static int pvanalperf(CSOUND *csound, PVAN *p){
       cudaMemcpy(aframe,cur,N*sizeof(float),
                  cudaMemcpyHostToDevice);
       /* window and rotate data on device */
-      blocks =  N > 1024 ? N/1024 : 1;
+      blocks =  N > THREADS_PER_BLOCK ? N/THREADS_PER_BLOCK : 1;
       rotatewin<<<blocks,
         N/blocks>>>(aframe,win,blocks,N,hsize*(numframes-curframe));
        /* execute inverse real FFT */
@@ -356,7 +358,7 @@ static int pvanalperf(CSOUND *csound, PVAN *p){
       if (cudaDeviceSynchronize() != cudaSuccess)
         csound->Message(csound,"Cuda error: Failed to synchronize\n");
        /* perf rect to pvs conversion */
-      blocks = bins > 1024 ? bins/1024 : 1;
+      blocks = bins >THREADS_PER_BLOCK ? bins/THREADS_PER_BLOCK : 1;
       topvs<<<blocks,
         bins/blocks>>>(aframe,p->oldph,blocks,p->scal,p->fac);
        /* copy data to current out frame */
