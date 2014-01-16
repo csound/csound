@@ -2283,8 +2283,9 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
                                       "may find this disturbing"), ff->fno);
         }
       }
-      else {                                /* else clear it to zero */
-        memset((void*) ftp->ftable, 0, ff->flen+1);
+      else {     
+                                    /* else clear it to zero */
+        memset((void*) ftp->ftable, 0, sizeof(MYFLT)*(ff->flen+1));
         memset((void*) ftp, 0, sizeof(FUNC)-sizeof(MYFLT*)); /* leaving table! */
       }
     }
@@ -2781,7 +2782,7 @@ static int gen43(FGDATA *ff, FUNC *ftp)
 static int gen49raw(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound        = ff->csound;
-    MYFLT   *fp            = ftp->ftable;
+    MYFLT   *fp           = ftp == NULL ? NULL: ftp->ftable;
     mp3dec_t mpa           = NULL;
     mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_AUTO,
                                MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
