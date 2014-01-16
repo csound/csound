@@ -8,6 +8,7 @@
 #include <cufft.h>
 #define VSAMPS 16
 #define MAXBLOCK 8192
+#define THREADS_PER_BLOCK 1024
 
 #define PFRACLO(x)   ((MYFLT)((x) & lomask) * lodiv)
 
@@ -84,7 +85,7 @@ static int init_cudaop(CSOUND *csound, CUDAOP *p){
 
   if(*p->inum > 0 && *p->inum < p->N) p->N = *p->inum;
 
-  p->blocks = p->N > 1024 ? p->N/1024 : 1;
+  p->blocks = p->N > THREADS_PER_BLOCK ? p->N/THREADS_PER_BLOCK : 1;
 
   asize = p->N*nsmps*sizeof(MYFLT);
   ipsize = p->N*sizeof(int);
@@ -203,7 +204,7 @@ static int init_cudaop2(CSOUND *csound, CUDAOP2 *p){
 
   if(*p->inum > 0 && *p->inum < p->N) p->N = *p->inum;
 
-  p->blocks = p->N > 1024 ? p->N/1024 : 1;
+  p->blocks = p->N > THREADS_PER_BLOCK ? p->N/THREADS_PER_BLOCK : 1;
   p->vsamps = p->fsig->overlap < VSAMPS ? VSAMPS : p->fsig->overlap;
 
   asize = p->N*p->vsamps*sizeof(MYFLT);
