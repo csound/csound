@@ -245,7 +245,7 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
     int size;
-    char *str1 = p->str1->data, *str2 = p->str2->data;
+    char *str1 = p->str1->data, *str2 = strdup(p->str2->data);
   
     size = strlen(str1) + strlen(str2);
 
@@ -261,7 +261,7 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     if (p->r->data != str1)
      strncpy((char*) p->r->data,  str1, p->r->size);
     strcat((char*) p->r->data, str2);
-
+    free(str2);                 /* not needed anymore */
     return OK;
 }
 
