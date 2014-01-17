@@ -48,7 +48,7 @@ typedef struct {
         uint32  lastframe;
 } FSIGDISP;
 
-#define WINDMAX 4096
+#define WINDMAX 16384
 #define WINDMIN 16
 
 typedef struct {
