@@ -244,24 +244,23 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 /* strcat */
 int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
-;
-  int size;
+    int size;
+    char *str1 = p->str1->data, *str2 = p->str2->data;
+  
+    size = strlen(str1) + strlen(str2);
 
-  size = strlen(p->str1->data) +
-         strlen(p->str2->data);
-
-    if(p->r->data == NULL) {
+    if (p->r->data == NULL) {
         p->r->data = mcalloc(csound, size+1);
         p->r->size = size+1;
     }
-    else if(UNLIKELY((int) size >= p->r->size)) {
+    else if (UNLIKELY((int) size >= p->r->size)) {
       p->r->data = mrealloc(csound, p->r->data, size + 1);
       p->r->size = size + 1;
     }
 
-    if(p->r->data != p->str1->data)
-     strncpy((char*) p->r->data,  p->str1->data, p->r->size);
-    strcat((char*) p->r->data, p->str2->data);
+    if (p->r->data != str1)
+     strncpy((char*) p->r->data,  str1, p->r->size);
+    strcat((char*) p->r->data, str2);
 
     return OK;
 }
