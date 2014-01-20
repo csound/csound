@@ -1,5 +1,5 @@
 #!/bin/sh
-export RELEASE_DIR=csound-iOS-6.02.0
+export RELEASE_DIR=csound-iOS-6.02.0.1
 
 #remove backup files ending with ~
 find . -name "*~" -exec rm {} \;
