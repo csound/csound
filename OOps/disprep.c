@@ -235,6 +235,10 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
     int32 window_size, step_size;
     int   hanning;
     char  strmsg[256];
+    if(p->smpbuf.auxp == NULL)
+      csound->AuxAlloc(csound, sizeof(MYFLT)*WINDMAX, &(p->smpbuf));
+          
+    p->sampbuf = (MYFLT *) p->smpbuf.auxp;
 
     window_size = (int32)*p->inpts;
     if (UNLIKELY(window_size > WINDMAX)) {
