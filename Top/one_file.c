@@ -315,10 +315,10 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
         }
         p++;
       }
-#ifdef _DEBUG
+     #ifdef _DEBUG
       csoundMessage(csound, "argc=%d argv[%d]=%s\n", argc, argc, argv[argc]);
-#endif
-      /*      argc++; */                  /* according to Nicola but wrong */
+     #endif
+      /*     argc++; */                  /* according to Nicola but wrong */
       /* Read an argv thing */
       if (UNLIKELY(argc == 0)) {
         if (readingCsOptions)
