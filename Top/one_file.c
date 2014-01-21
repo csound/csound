@@ -262,7 +262,7 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
               /* ETX char used to mark the limits of a string */
               *p = (isspace(*(p+1)) ? '\0' : 3);
             }
-            break;
+            //            break;
           }
 
           if (*p==';' ||
@@ -315,10 +315,13 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
         }
         p++;
       }
-     #ifdef _DEBUG
-      csoundMessage(csound, "argc=%d argv[%d]=%s\n", argc, argc, argv[argc]);
-     #endif
-      /*     argc++; */                  /* according to Nicola but wrong */
+      //argc++;                /* according to Nicola but wrong */
+#ifdef _DEBUG
+      {
+        int i;
+        for (i=0;  i<=argc; i++) printf("%d: %s\n", i, argv[i]);
+      }
+#endif
       /* Read an argv thing */
       if (UNLIKELY(argc == 0)) {
         if (readingCsOptions)

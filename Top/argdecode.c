@@ -133,6 +133,7 @@ static const char *longUsageList[] = {
   Str_noop("--noheader\t\tRaw format"),
   Str_noop("--nopeaks\t\tDo not write peak information"),
   " ",
+   Str_noop("--displays\t\tUse graphic displays"),
   Str_noop("--nodisplays\t\tSuppress all displays"),
   Str_noop("--asciidisplay\t\tSuppress graphics, use ascii displays"),
   Str_noop("--postscriptdisplay\tSuppress graphics, use Postscript displays"),
@@ -446,6 +447,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strcmp (s, "displays"))) {
       O->displays = 1;                  /* func displays */
+      O->graphsoff = 0;
       return 1;
     }
     else if (!(strcmp (s, "defer-gen1"))) {
