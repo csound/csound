@@ -79,7 +79,6 @@ void checkOptions(CSOUND *csound)
     }
     /* read global .csound6rc file (if exists) */
     if (fd != NULL) {
-
       readOptions(csound, csrc, 0);
       csound->FileClose(csound, fd);
     }

@@ -663,9 +663,11 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
       }
     }
     /* Check  pole number */
-    if (UNLIKELY(p->npoles > MAXPOLES)) {
-      return csound->InitError(csound, Str("npoles > MAXPOLES"));
-    }
+    csound->AuxAlloc(csound, (int32)(p->npoles*2*sizeof(MYFLT)), &p->aux);
+    p->kcoefs = (MYFLT*)p->aux.auxp;
+    /* if (UNLIKELY(p->npoles > MAXPOLES)) { */
+    /*   return csound->InitError(csound, Str("npoles > MAXPOLES")); */
+    /* } */
     /* Look for total frame data size (file size - header) */
     totvals = (mfp->length - p->headlen)/sizeof(MYFLT);
     /* Store the size of a frame in integer */
@@ -1000,8 +1002,9 @@ int lprsnset(CSOUND *csound, LPRESON *p)
    /* get adr lpread struct */
     p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
 
+    csound->AuxAlloc(csound, (int32)((q->npoles<<1)*sizeof(MYFLT)), &p->aux);
    /* Initialize pointer to circulat buffer (for filtering) */
-    p->circjp = p->circbuf;
+    p->circjp = p->circbuf = (MYFLT*)p->aux.auxp;
     p->jp2lim = p->circbuf + (q->npoles << 1);  /* npoles det circbuflim */
     return OK;
 }
@@ -1110,6 +1113,9 @@ int lpfrsnset(CSOUND *csound, LPFRESON *p)
     p->prvratio = FL(1.0);
     p->d = FL(0.0);
     p->prvout = FL(0.0);
+    csound->AuxAlloc(csound, (int32)(p->lpread->npoles*sizeof(MYFLT)), &p->aux);
+    p->past = (MYFLT*)p->aux.auxp;
+
     return OK;
 }
 
@@ -1382,6 +1388,8 @@ int lpitpset(CSOUND *csound, LPINTERPOL *p)
 #endif
 
     p->npoles = p->lp1->npoles;
+    csound->AuxAlloc(csound, (int32)(p->npoles*2*sizeof(MYFLT)), &p->aux);
+    p->kcoefs = (MYFLT*)p->aux.auxp;    
     p->storePoles = 1;
     ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = (LPREAD*) p;
     return OK;
