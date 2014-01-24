@@ -82,6 +82,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *kcf,*kbw, *kfor;
         LPREAD  *lpread;
+        AUXCH   aux;
 } LPFORM;
 
 typedef struct {
