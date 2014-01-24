@@ -749,11 +749,8 @@ int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
     if (UNLIKELY(err))
       return print_chn_err(p, err);
     csoundSpinLock(p->lock);
-    if(s != NULL) {
-      memset(s, '\0', strlen(s));
-      mfree(csound, s);
-    }
     if(((STRINGDAT *) p->fp)->data != NULL) {
+    if(s != NULL) mfree(csound, s);
     s = cs_strdup(csound,((STRINGDAT *) p->fp)->data);
     ((STRINGDAT *) p->arg)->data = s;
     ((STRINGDAT *) p->arg)->size = strlen(s) + 1;
@@ -773,12 +770,14 @@ int chnget_opcode_perf_S(CSOUND *csound, CHNGET *p)
     if (UNLIKELY(err))
       return print_chn_err(p, err);
 
-    if(strcmp(s, ((STRINGDAT *) p->fp)->data) == 0) return OK;
+    if( ((STRINGDAT *) p->fp)->data != NULL &&
+      strcmp(s, ((STRINGDAT *) p->fp)->data) == 0) return OK;
 
     csoundSpinLock(p->lock);
      
     if(((STRINGDAT *) p->fp)->data != NULL){
     if(((STRINGDAT *) p->arg)->size <= ((STRINGDAT *) p->fp)->size) {
+    if(s != NULL) mfree(csound, s);
     s = cs_strdup(csound,((STRINGDAT *) p->fp)->data);
     ((STRINGDAT *) p->arg)->data = s;
     ((STRINGDAT *) p->arg)->size = strlen(s) + 1;
