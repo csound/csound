@@ -1995,7 +1995,7 @@ void debugPrintCsound(CSOUND* csound)
     csound->Message(csound, "String Pool:\n");
 
     while(val != NULL) {
-      csound->Message(csound, "    %d) %s\n", count++, val->value);
+      csound->Message(csound, "    %d) %s\n", count++, (char *)val->value);
       val = val->next;
     }
     csound->Message(csound, "Constants Pool:\n");
