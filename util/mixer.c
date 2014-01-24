@@ -163,7 +163,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
 {
     OPARMS      O;
     char        *inputfile = NULL;
-    SNDFILE     *infd, *outfd;
+    SNDFILE     *outfd;
     int         i;
     char        outformch='s', c, *s;
     const char  *envoutyp;
@@ -336,7 +336,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
       return -1;
     }
     for (i = 0; i < n; i++) {
-      if (!(infd = MXsndgetset(csound, &mixin[i]))) {
+      if (!MXsndgetset(csound, &mixin[i])) {
         csound->ErrorMsg(csound, Str("%s: error while opening %s"),
                                  argv[0], inputfile);
         return -1;
