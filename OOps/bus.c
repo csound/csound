@@ -982,7 +982,8 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
       csoundGetChannelLock(csound, (char*) p->iname->data);
     csoundSpinLock(lock);
     if (s && strlen(s) >= (unsigned int) ((STRINGDAT *)p->fp)->size) {
-      if(((STRINGDAT *)p->fp)->data != NULL) mfree(csound, ((STRINGDAT *)p->fp)->data);
+      if (((STRINGDAT *)p->fp)->data != NULL)
+        mfree(csound, ((STRINGDAT *)p->fp)->data);
       ((STRINGDAT *)p->fp)->data = cs_strdup(csound, s);
       ((STRINGDAT *)p->fp)->size = strlen(s)+1;
       //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
@@ -1004,13 +1005,15 @@ int chnset_opcode_perf_S(CSOUND *csound, CHNGET *p)
       return err;
     size = csoundGetChannelDatasize(csound, p->iname->data);
 
-    if(strcmp(s, (char *) p->fp) == 0) return OK;
+    if (s==NULL) return NOTOK;
+    if (strcmp(s, (char *) p->fp) == 0) return OK;
 
     p->lock = lock =
       csoundGetChannelLock(csound, (char*) p->iname->data);
     csoundSpinLock(lock);
-   if (s && strlen(s) >= (unsigned int) ((STRINGDAT *)p->fp)->size) {
-      if(((STRINGDAT *)p->fp)->data != NULL) mfree(csound, ((STRINGDAT *)p->fp)->data);
+    if (s && strlen(s) >= (unsigned int) ((STRINGDAT *)p->fp)->size) {
+      if (((STRINGDAT *)p->fp)->data != NULL)
+        mfree(csound, ((STRINGDAT *)p->fp)->data);
       ((STRINGDAT *)p->fp)->data = cs_strdup(csound, s);
       ((STRINGDAT *)p->fp)->size = strlen(s)+1;
       //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
@@ -1220,14 +1223,14 @@ int chnparams_opcode_init(CSOUND *csound, CHNPARAMS_OPCODE *p)
     *(p->imode) = (MYFLT) ((err & 48) >> 4);
     /* check for control channel parameters */
     if ((err & 15) == CSOUND_CONTROL_CHANNEL) {
-        controlChannelHints_t hints;
-        err = csoundGetControlChannelHints(csound, (char*) p->iname->data, &hints);
-        if (UNLIKELY(err > 0))
-            *(p->ictltype) = (MYFLT) err;
-        *(p->ictltype) = hints.behav;
-        *(p->idflt) = hints.dflt;
-        *(p->imin) = hints.min;
-        *(p->imax) = hints.max;
+      controlChannelHints_t hints;
+      err = csoundGetControlChannelHints(csound, (char*) p->iname->data, &hints);
+      if (UNLIKELY(err > 0))
+        *(p->ictltype) = (MYFLT) err;
+      *(p->ictltype) = hints.behav;
+      *(p->idflt) = hints.dflt;
+      *(p->imin) = hints.min;
+      *(p->imax) = hints.max;
     }
     return OK;
 }
