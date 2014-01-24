@@ -131,7 +131,7 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
     f = fopen(filnam, "r");
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_CVANAL, 0, 0);
     all = (char *)mmalloc(csound, (size_t) length);
-    p = fgets(buff, 120, f); /* Skip CVANAL */
+    (void)fgets(buff, 120, f); /* Skip CVANAL */
     cvh.magic = CVMAGIC;
     p = fgets(buff, 120, f);
     cvh.headBsize = strtol(p, &p, 10);
