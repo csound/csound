@@ -34,7 +34,7 @@ typedef void *locale_t;
 /* this checks for 64BIT builds */
 #if defined(__MACH__) || defined(LINUX)
 #include <limits.h>
-#if ( __WORDSIZE == 64 )
+#if ( __WORDSIZE == 64 ) || defined(__x86_64__) || defined(__amd64__)
 #define B64BIT
 #endif
 #endif
