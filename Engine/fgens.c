@@ -1352,7 +1352,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
         nextval(infile);
       } while (!feof(infile));
       csoundMessage(csound, Str("%ld elements in %s\n"),
-                              ff->flen, ff->e.strarg);
+		    (long) ff->flen, ff->e.strarg);
       rewind(infile);
       /* Allocate memory and read them in now */
   /*  ff->flen      = ff->flen + 2;        ??? */
@@ -2195,7 +2195,7 @@ static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
     csoundMessage(csound, "f%3.0f %8.2f %8.2f ",
                             ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
     if (ISSTRCOD(ff->e.p[4]))
-      csoundMessage(csound, ff->e.strarg);
+      csoundMessage(csound,"%s", ff->e.strarg);
     else
       csoundMessage(csound, "%8.2f", ff->e.p[4]);
     if (ISSTRCOD(ff->e.p[5]))
@@ -2505,7 +2505,7 @@ static int gen01(FGDATA *ff, FUNC *ftp)
       ftp->gen01args.iskptim = ff->e.p[6];
       ftp->gen01args.iformat = ff->e.p[7];
       ftp->gen01args.channel = ff->e.p[8];
-      strncpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZE);
+      strncpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ);
       return OK;
     }
     return gen01raw(ff, ftp);
@@ -2954,7 +2954,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
       ftp->gen01args.iskptim = ff->e.p[6];
       ftp->gen01args.iformat = ff->e.p[7];
       ftp->gen01args.channel = ff->e.p[8];
-      strbcpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZE);
+      strncpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ);
       return OK;
     }
     return gen49raw(ff, ftp);
