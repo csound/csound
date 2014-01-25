@@ -10,6 +10,7 @@
 #define MAXBLOCK 8192
 #define THREADS_PER_BLOCK 1024
 
+__device__ MYFLT mema[20*1024];
 #define PFRACLO(x)   ((MYFLT)((x) & lomask) * lodiv)
 
 __global__ void component(MYFLT *out, int *ndx, MYFLT *tab,
@@ -18,29 +19,43 @@ __global__ void component(MYFLT *out, int *ndx, MYFLT *tab,
                           int lomask) {
 
   int h = threadIdx.x*blocks + blockIdx.x;
-  int i, offset, n, lndx, nmax =0;
-
+  int i, offset, n, lndx;
   offset = h*vsize;
   out += offset;
 
   for(i=0; i < vsize; i++) {
     lndx = ndx[h];
     n = lndx >> lobits;
-    nmax = nmax > n ? nmax : n;
     out[i] = amp[h]*(tab[n] +  PFRACLO(lndx)*(tab[n+1] - tab[n]));
     ndx[h] = (lndx + inc[h]) & PHMASK;
   }
 
 }
 
+__global__ void components(MYFLT *out, int *ndx, MYFLT *tab,
+                          float *amp, int *inc, int vsize,
+                          int blocks) {
+
+  int h = threadIdx.x*blocks + blockIdx.x;
+  int i, offset, lndx;
+  offset = h*vsize;
+  MYFLT *s = mema+offset;
+
+  for(i=0; i < vsize; i++) {
+    lndx = ndx[h];
+    s[i] = amp[h]*sin((PI*2*lndx)/FMAXLEN);
+    ndx[h] = (lndx + inc[h]) & PHMASK;
+  }
+   
+}
+
 __global__  void mixdown(MYFLT *out, int comps, int vsize, float kamp){
    int h = threadIdx.x;
    int i;
    for(i=0; i < comps; i++)
-     out[h] += out[h + vsize*i];
-   out[h] *= kamp;
+     mema[h] += mema[h + vsize*i];
+   mema[h] *= kamp;
 }
-
 
 
 static int destroy_cudaop(CSOUND *csound, void *pp);
@@ -122,8 +137,8 @@ static void update_params(CSOUND *csound, CUDAOP *p){
     amp[i] = p->ap[i];
     inc[i] = *p->kfreq*p->fp[i]*FMAXLEN/csound->GetSr(csound);
    }
-  cudaMemcpy(&p->amp[N*j],amp,fpsize, cudaMemcpyHostToDevice);
-  cudaMemcpy(&p->inc[N*j],inc,ipsize, cudaMemcpyHostToDevice);
+   cudaMemcpy(&p->amp[N*j],amp,fpsize, cudaMemcpyHostToDevice);
+   cudaMemcpy(&p->inc[N*j],inc,ipsize, cudaMemcpyHostToDevice);
  }
 
 }
@@ -143,16 +158,18 @@ static int perf_cudaop(CSOUND *csound, CUDAOP *p){
   }
  
   update_params(csound, p);
-  component<<<p->blocks,
+  //clear<<<1,1>>>(p->out,nsmps);
+  //cudaMemset(p->out, 0, nsmps*sizeof(MYFLT));
+  components<<<p->blocks,
         p->N/p->blocks>>>(p->out,p->ndx,
                           p->tab,p->amp,
                           p->inc,nsmps,
-                          p->blocks,
-                          p->itab->lobits,
-                          p->itab->lodiv,
-                          p->itab->lomask);
+                          p->blocks);//,
+  //p->itab->lobits,
+  //                      p->itab->lodiv,
+  //                      p->itab->lomask);
    mixdown<<<1,nsmps>>>(p->out,p->N,nsmps,*p->kamp);
-   cudaMemcpy(p->asig,p->out,nsmps*sizeof(MYFLT),cudaMemcpyDeviceToHost);
+   cudaMemcpy(p->asig,mema,nsmps*sizeof(MYFLT),cudaMemcpyDeviceToHost);
 
   return OK;
 }

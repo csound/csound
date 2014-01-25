@@ -987,7 +987,8 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
       ((STRINGDAT *)p->fp)->size = strlen(s)+1;
       //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
     }
-    else strcpy((char*) p->fp, s);
+    else if(((STRINGDAT *)p->fp)->data != NULL) 
+            strcpy(((STRINGDAT *)p->fp)->data, s);
     csoundSpinUnLock(lock);
 
     return OK;
@@ -1005,7 +1006,8 @@ int chnset_opcode_perf_S(CSOUND *csound, CHNGET *p)
     size = csoundGetChannelDatasize(csound, p->iname->data);
 
     if (s==NULL) return NOTOK;
-    if (strcmp(s, (char *) p->fp) == 0) return OK;
+    if (((STRINGDAT *)p->fp)->data 
+        && strcmp(s, ((STRINGDAT *)p->fp)->data) == 0) return OK;
 
     p->lock = lock =
       csoundGetChannelLock(csound, (char*) p->iname->data);
@@ -1017,7 +1019,8 @@ int chnset_opcode_perf_S(CSOUND *csound, CHNGET *p)
       ((STRINGDAT *)p->fp)->size = strlen(s)+1;
       //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
     }
-    else strcpy((char*) p->fp, s);
+    else if(((STRINGDAT *)p->fp)->data != NULL) 
+            strcpy(((STRINGDAT *)p->fp)->data, s);
     csoundSpinUnLock(lock);
     //printf("%s \n", (char *)p->fp);
     return OK;
@@ -1031,6 +1034,7 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
     int   type, mode, err;
     controlChannelHints_t hints;
     hints.attributes = NULL;
+    hints.dflt = FL(0.0);
 
     mode = (int)MYFLT2LRND(*(p->imode));
     if (UNLIKELY(mode < 1 || mode > 3))
