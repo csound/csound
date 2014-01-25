@@ -175,6 +175,8 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     /* **** COVERITY: the call to instance modifies structure to which
        **** tp points for cannot be null.  A false positive **** */
      /* pop from free instance chain */
+    if(csound->oparms->odebug) 
+      csoundMessage(csound, "insert(): tp->act_instance = %p \n", tp->act_instance);
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
     ip->insno = (int16) insno;
@@ -2749,6 +2751,8 @@ static void instance(CSOUND *csound, int insno)
     int       argStringCount;
 
     tp = csound->engineState.instrtxtp[insno];
+
+    
     n = 3;
     if (O->midiKey>n) n = O->midiKey;
     if (O->midiKeyCps>n) n = O->midiKeyCps;
@@ -2775,6 +2779,9 @@ static void instance(CSOUND *csound, int insno)
     ip->nxtact = tp->act_instance;
     tp->act_instance = ip;
     ip->insno = insno;
+    if(csound->oparms->odebug) 
+      csoundMessage(csound,"instance(): tp->act_instance = %p \n", tp->act_instance);
+
 
     if (insno > csound->engineState.maxinsno) {
       size_t pcnt = (size_t) tp->opcode_info->perf_incnt;
