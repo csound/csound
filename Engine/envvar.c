@@ -675,52 +675,51 @@ char *csoundSplitFilenameFromPath(CSOUND* csound, const char * path)
  * Note: does not check if file exists
  */
 char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
-    char *partialPath;
+    char *partialPath, *tempPath, *lastIndex;
     char *retval;
     char *cwd;
     int  len;
 
-    if(path == NULL) return NULL;
+    if (path == NULL) return NULL;
 
-    char *tempPath = csoundConvertPathname(csound, path);
+    tempPath = csoundConvertPathname(csound, path);
+    if (tempPath == NULL) return NULL;
+    lastIndex = strrchr(tempPath, DIRSEP);
 
-    char *lastIndex = strrchr(tempPath, DIRSEP);
-
-    if (csoundIsNameFullpath(tempPath))
-    {
-        /* check if root directory */
-        if (lastIndex == tempPath) {
-            partialPath = (char *)mmalloc(csound, 2);
-            partialPath[0] = DIRSEP;
-            partialPath[1] = '\0';
-
-            mfree(csound, tempPath);
-
-            return partialPath;
-        }
-
-#  ifdef WIN32
-        /* check if root directory of Windows drive */
-        if ((lastIndex - tempPath) == 2 && tempPath[1] == ':') {
-            partialPath = (char *)mmalloc(csound, 4);
-            partialPath[0] = tempPath[0];
-            partialPath[1] = tempPath[1];
-            partialPath[2] = tempPath[2];
-            partialPath[3] = '\0';
-
-            mfree(csound, tempPath);
-
-            return partialPath;
-        }
-#  endif
-        len = (lastIndex - tempPath);
-
-        partialPath = (char *)mcalloc(csound, len + 1);
-        strncpy(partialPath, tempPath, len);
+    if (tempPath && csoundIsNameFullpath(tempPath)) {
+      /* check if root directory */
+      if (lastIndex == tempPath) {
+        partialPath = (char *)mmalloc(csound, 2);
+        partialPath[0] = DIRSEP;
+        partialPath[1] = '\0';
 
         mfree(csound, tempPath);
 
         return partialPath;
+      }
+
+#  ifdef WIN32
+      /* check if root directory of Windows drive */
+      if ((lastIndex - tempPath) == 2 && tempPath[1] == ':') {
+        partialPath = (char *)mmalloc(csound, 4);
+        partialPath[0] = tempPath[0];
+        partialPath[1] = tempPath[1];
+        partialPath[2] = tempPath[2];
+        partialPath[3] = '\0';
+
+        mfree(csound, tempPath);
+
+        return partialPath;
+      }
+#  endif
+      len = (lastIndex - tempPath);
+
+      partialPath = (char *)mcalloc(csound, len + 1);
+      strncpy(partialPath, tempPath, len);
+
+      mfree(csound, tempPath);
+
+      return partialPath;
     }
 
     /* do we need to worry about ~/ on *nix systems ? */
@@ -731,7 +730,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     }
 
     if (lastIndex == NULL) {
-        return cwd;
+      return cwd;
     }
 
     len = (lastIndex - tempPath);  /* could be 0 on OS 9 */
@@ -754,8 +753,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
 {
     FILE  *f;
     char  *name, *name2, **searchPath;
-    //int   len;
-
+ 
     *fullName = NULL;
     if ((name = csoundConvertPathname(csound, filename)) == NULL)
       return (FILE*) NULL;
@@ -942,7 +940,7 @@ char *csoundFindOutputFile(CSOUND *csound,
     fd = csoundFindFile_Fd(csound, &name_found, filename, 1, envList);
     if (fd >= 0) {
       close(fd);
-      remove(name_found);
+      if (remove(name_found)<0) csound->DebugMsg(csound, "Remove failed\n");
     }
     return name_found;
 }
