@@ -338,7 +338,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
 {
     TEXT *tp;
     TREE *inargs, *outargs;
-    OPTXT *optxt, *retOptxt = NULL;
+    OPTXT *optxt;
     char *arg;
     int n;// nreqd;
     optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
@@ -464,15 +464,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       if (PARSER_DEBUG) print_tree(csound, NULL, root);
     }
 
-    // This code is odd as retOptxt is never set to other than NULL
-    if (retOptxt == NULL) {
-      retOptxt = optxt;
-    }
-    else {
-      append_optxt(retOptxt, optxt);
-    }
-
-    return retOptxt;
+    return optxt;
 }
 
 /**
