@@ -120,7 +120,7 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
       csound->ErrorMsg(csound, Str("Sfload: cannot use globals"));
       return;
     }
-    strcpy(soundFont->name, csound->GetFileName(fd));
+    strncpy(soundFont->name, csound->GetFileName(fd), 256);
     chunk_read(fil, &soundFont->chunk.main_chunk);
     csound->FileClose(csound, fd);
     globals->soundFont = soundFont;
@@ -1886,6 +1886,7 @@ static void fill_SfStruct(CSOUND *csound)
                   split->num= num;
                   split->sample = &shdr[num];
                   if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
+                    free(instru);
                     csound->ErrorMsg(csound, Str("SoundFont file \"%s\" contains "
                                             "ROM samples !\n"
                                             "At present time only RAM samples "
