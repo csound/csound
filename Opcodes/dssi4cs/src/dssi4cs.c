@@ -404,7 +404,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
         if (p->iverbose != 0) {
           csound->Message(csound,
                           "DSSI4CS: Created internal control port "
-                          "%lu for Port %i.\n",
+                          "%lu for Port %ui.\n",
                           ConnectedControlPorts, i);
         }
 
@@ -424,7 +424,8 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
               (LADSPA_Data *) DSSIPlugin_->audio[ConnectedAudioPorts]);
         if (p->iverbose != 0) {
           csound->Message(csound,
-                          "DSSI4CS: Created internal audio port %lu for Port %i.\n",
+                          "DSSI4CS: Created internal audio port"
+                          " %lu for Port %ui.\n",
                           ConnectedAudioPorts, i);
         }
 
@@ -442,13 +443,11 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
 
     DSSIPlugin_->Active = 0;
     DSSIPlugin_->EventCount = 0;
-    if (*p->iverbose != 0)
-      info(csound, DSSIPlugin_);
-
     if (p->iverbose != 0) {
       csound->Message(csound, "DSSI4CS: Init Done.\n");
+      if (*p->iverbose != 0)
+        info(csound, DSSIPlugin_);
     }
-
     return OK;
 }
 
@@ -575,12 +574,11 @@ int dssiactivate(CSOUND * csound, DSSIACTIVATE * p)
       break;
     case -100:
       {
-        if (p->printflag != -100) {
+        if (p->printflag != -100)
           return csound->PerfError(csound, p->h.insdshead,
                                    "DSSI4CS: dssiactivate "
                                    "not properly initialised.");
-          p->printflag = -100;
-        }
+        p->printflag = -100;
       }
       break;
 
