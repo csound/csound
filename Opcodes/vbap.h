@@ -216,8 +216,6 @@ void angle_to_cart_II( ANG_VEC *from,  CART_VEC *to);
 int lines_intersect(int i,int j,int k,int l, ls lss[CHANNELS]);
 MYFLT vec_angle(CART_VEC v1, CART_VEC v2);
 void vec_mean(CART_VEC v1, CART_VEC v2, CART_VEC *v3);
-MYFLT vec_prod(CART_VEC v1, CART_VEC v2);
-MYFLT vec_length(CART_VEC v1);
 MYFLT angle_in_base(CART_VEC vb1,CART_VEC vb2,CART_VEC vec);
 void cross_prod(CART_VEC v1,CART_VEC v2,
                 CART_VEC *res) ;

@@ -172,7 +172,10 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       instance(csound, insno);
       tp->isNew=0;
     }
-    /* pop from free instance chain */
+    /* **** COVERITY: I cannot prove that tp->act_stance is not NULL;
+       **** it will be after a new instance but that does not reset tp
+       **** etc **** */
+     /* pop from free instance chain */
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
     ip->insno = (int16) insno;
@@ -407,6 +410,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       tp->isNew = 0;
     }
     /* pop from free instance chain */
+    /* **** COVERITY: again ip will be null if new MIDI allocation **** */
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
     ip->insno = (int16) insno;
@@ -1143,6 +1147,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
       if (!tp->act_instance)
         instance(csound, instno);
+      /* **** COVERITY: THis cound dereference lcupip which could be null
+         if previous line is called.  Needs fixing **** */
       lcurip = tp->act_instance;            /* use free intance, and  */
       tp->act_instance = lcurip->nxtact;    /* remove from chain      */
       lcurip->actflg++;                     /*    and mark the instr active */
@@ -1250,7 +1256,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     parent_ip->relesing = lcurip->relesing; 
     parent_ip->offbet = lcurip->offbet; 
     parent_ip->offtim = lcurip->offtim; 
-    parent_ip->p3 = parent_ip->p3; 
+    parent_ip->p3 = parent_ip->p3; /* **** COVERITY: is this right? **** */
     local_ksmps = lcurip->ksmps;
 
     /* restore globals */
@@ -1669,6 +1675,8 @@ int subinstr(CSOUND *csound, SUBINST *p)
 
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
+    /* **** COVERITY: They claim ip cannot be NULL here as all paths
+       **** have checked **** */
     if (!p->ip)                                         /* loop to last opds */
       while (CS_PDS->nxtp)CS_PDS = CS_PDS->nxtp;
     return OK;
@@ -1842,6 +1850,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
+    /* **** COVERITY: They claim ip cannot be NULL here as all paths
+       **** have checked **** */
     if (!p->ip)                                         /* loop to last opds */
       while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
     return OK;
@@ -1960,6 +1970,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     /* restore globals */
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
+    /* **** COVERITY: They claim ip cannot be NULL here as all paths
+       **** have checked **** */
     if (!p->ip)                                         /* loop to last opds */
       while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
     return OK;
@@ -2293,18 +2305,22 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
 
     if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[insno] == NULL)) {
+      csoundLockMutex(csound->API_lock);
       return CSOUND_ERROR;
     }
 
     if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
+      csoundLockMutex(csound->API_lock);
       return CSOUND_ERROR;
     }
     ip = &(csound->actanchor);
     ip2 = NULL;
 
     while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
-    if (ip == NULL)
+    if (ip == NULL) {
+      csoundLockMutex(csound->API_lock);
       return CSOUND_ERROR;
+    }
     do {                        /* This loop does not terminate in mode=0 */
       nip = ip->nxtact;
       if (((mode & 8) && ip->offtim >= 0.0) ||
