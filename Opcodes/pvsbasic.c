@@ -794,6 +794,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t n, nsmps = CS_KSMPS;
       return csound->InitError(csound, Str("pvsosc does not work while sliding"));
+#ifdef SOME_FINE_DAY
       p->fout->NB = NB;
       p->fout->sliding = 1;
       if (p->fout->frame.auxp == NULL ||
@@ -809,6 +810,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
           bframe[i+NB*n].im = (n<offset ? FL(0.0) : i * N * csound->onedsr);
         }
       return OK;
+#endif
     }
     else
       {

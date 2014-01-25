@@ -57,7 +57,7 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
       if (UNLIKELY((void *)(stick->ftp = csound->FTnp2Find(csound, stick->ktable))
                    == NULL)) {
         csound->Warning(csound, Str("linuxjoystick: No such table %f"),
-                        stick->ktable);
+                        *(float*)(stick->ktable));
         return OK;
       }
       stick->table = *stick->ktable;

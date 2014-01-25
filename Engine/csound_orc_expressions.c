@@ -596,7 +596,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
     }
     opTree = create_opcode_token(csound, op);
-    if(root->value) opTree->value->optype = root->value->optype;
+    if (root->value) opTree->value->optype = root->value->optype;
     if (root->left != NULL) {
       opTree->right = root->left;
       opTree->right->next = root->right;

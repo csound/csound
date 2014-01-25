@@ -206,7 +206,7 @@ int argsRequired(char* argString)
 char** splitArgs(CSOUND* csound, char* argString)
 {
     int argCount = argsRequired(argString);
-    char** args = mmalloc(csound, sizeof(char**) * (argCount + 1));
+    char** args = mmalloc(csound, sizeof(char*) * (argCount + 1));
     char* t = argString;
     int i = 0;
 
@@ -464,6 +464,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       if (PARSER_DEBUG) print_tree(csound, NULL, root);
     }
 
+    // This code is odd as retOptxt is never set to other than NULL
     if (retOptxt == NULL) {
       retOptxt = optxt;
     }
@@ -1330,7 +1331,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       current = current_state->instrtxtp[i];
       if (current != NULL) {
         if(csound->oparms->odebug)
-          csound->Message(csound, "instr %d \n", i, current);
+          csound->Message(csound, "instr %d:%p \n", i, current);
         current->nxtinstxt = NULL;
         j = i;
         while (++j < end-1) {
@@ -1995,7 +1996,7 @@ void debugPrintCsound(CSOUND* csound)
     csound->Message(csound, "String Pool:\n");
 
     while(val != NULL) {
-      csound->Message(csound, "    %d) %s\n", count++, val->value);
+      csound->Message(csound, "    %d) %s\n", count++, (char *)val->value);
       val = val->next;
     }
     csound->Message(csound, "Constants Pool:\n");

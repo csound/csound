@@ -18,7 +18,7 @@ __global__ void component(MYFLT *out, int *ndx, MYFLT *tab,
                           int lomask) {
 
   int h = threadIdx.x*blocks + blockIdx.x;
-  int i, offset, n, lndx;
+  int i, offset, n, lndx, nmax =0;
 
   offset = h*vsize;
   out += offset;
@@ -26,6 +26,7 @@ __global__ void component(MYFLT *out, int *ndx, MYFLT *tab,
   for(i=0; i < vsize; i++) {
     lndx = ndx[h];
     n = lndx >> lobits;
+    nmax = nmax > n ? nmax : n;
     out[i] = amp[h]*(tab[n] +  PFRACLO(lndx)*(tab[n+1] - tab[n]));
     ndx[h] = (lndx + inc[h]) & PHMASK;
   }
@@ -140,7 +141,7 @@ static int perf_cudaop(CSOUND *csound, CUDAOP *p){
     nsmps -= early;
     memset(&(p->asig[nsmps]), '\0', early*sizeof(MYFLT));
   }
-
+ 
   update_params(csound, p);
   component<<<p->blocks,
         p->N/p->blocks>>>(p->out,p->ndx,
