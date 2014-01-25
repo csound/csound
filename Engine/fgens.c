@@ -166,7 +166,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
               (int)evtblkp->p[1], (int)evtblkp->p[4], ff.e.pcnt, evtblkp->c.extra,
               &(ff.e.p[2]), &(evtblkp->p[2]), sizeof(MYFLT) * PMAX);
 #endif
-      memcpy(&(ff.e.p[2]), &(evtblkp->p[2]), sizeof(MYFLT) * PMAX);
+      memcpy(&(ff.e.p[2]), &(evtblkp->p[2]), sizeof(MYFLT) * (PMAX-2));
       ff.e.c.extra = (MYFLT*)malloc(sizeof(MYFLT) * evtblkp->c.extra[0]);
       memcpy(ff.e.c.extra, evtblkp->c.extra, sizeof(MYFLT) * evtblkp->c.extra[0]);
     }
@@ -992,8 +992,10 @@ static int gen15(FGDATA *ff, FUNC *ftp)
     }
     nargs -= nh;
     ff->e.pcnt = (int16)(nargs + 4);            /* added by F. Pinot 16-01-2012 */
-    if (gen13(ff, ftp) != OK)                   /* call gen13   */
+    if (gen13(ff, ftp) != OK) {                  /* call gen13   */
+      free(hsin);
       return NOTOK;
+    }
     lp13 = (void*) ftp;
     ff->fno++;                                  /* alloc eq. space for fno+1 */
     ftp = ftalloc(ff);                          /* & copy header */
@@ -1613,6 +1615,7 @@ static int gen28(FGDATA *ff, FUNC *ftp)
  gen28err1:
     return fterror(ff, Str("could not open space file"));
  gen28err2:
+    free(x); free(y); free(z);
     return fterror(ff, Str("Time values must be in increasing order"));
 }
 
@@ -2502,7 +2505,7 @@ static int gen01(FGDATA *ff, FUNC *ftp)
       ftp->gen01args.iskptim = ff->e.p[6];
       ftp->gen01args.iformat = ff->e.p[7];
       ftp->gen01args.channel = ff->e.p[8];
-      strcpy(ftp->gen01args.strarg, ff->e.strarg);
+      strncpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZE);
       return OK;
     }
     return gen01raw(ff, ftp);
@@ -2545,7 +2548,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       if (ISSTRCOD(ff->e.p[5])) {
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
-          strcpy(p->sfname, ff->e.strarg + 1);
+          strncpy(p->sfname, ff->e.strarg + 1, 512);
           if (len >= 0 && p->sfname[len] == '"')
             p->sfname[len] = '\0';
         }
@@ -2729,7 +2732,7 @@ static int gen43(FGDATA *ff, FUNC *ftp)
 
     filno = &ff->e.p[5];
     if (ISSTRCOD(ff->e.p[5]))
-      strcpy(filename, (char *)(&ff->e.strarg[0]));
+      strncpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME);
     else
       csound->strarg2name(csound, filename, filno, "pvoc.", 0);
 
@@ -2951,7 +2954,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
       ftp->gen01args.iskptim = ff->e.p[6];
       ftp->gen01args.iformat = ff->e.p[7];
       ftp->gen01args.channel = ff->e.p[8];
-      strcpy(ftp->gen01args.strarg, ff->e.strarg);
+      strbcpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZE);
       return OK;
     }
     return gen49raw(ff, ftp);
