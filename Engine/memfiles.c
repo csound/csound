@@ -134,7 +134,7 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
     (void)fgets(buff, 120, f); /* Skip CVANAL */
     cvh.magic = CVMAGIC;
     p = fgets(buff, 120, f);
-    if (p==NULL) return csoundPerfError(csound, Str("Ill-formed CV file\n"));
+    if (p==NULL) return csoundInitError(csound, Str("Ill-formed CV file\n"));
     cvh.headBsize = strtol(p, &p, 10);
     cvh.dataBsize = strtol(p, &p, 10);
     cvh.dataFormat = strtol(p, &p, 10);
@@ -187,7 +187,7 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
     for (i=0; i<6; i++) fgetc(f); /* Skip LPANAL */
     if (4!=fscanf(f, "%d %d %d %d\n",
                   &lph.headersize, &lph.lpmagic, &lph.npoles, &lph.nvals))
-      return csound->PerfError(csound, Str("Ill-formed LPC file\n"));
+      return csound->InitError(csound, Str("Ill-formed LPC file\n"));
     fgets(buff, 120, f);
     lph.framrate = (MYFLT)cs_strtod(buff, &p);
     lph.srate = (MYFLT)cs_strtod(p, &p);
