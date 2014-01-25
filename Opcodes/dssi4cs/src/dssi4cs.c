@@ -574,12 +574,11 @@ int dssiactivate(CSOUND * csound, DSSIACTIVATE * p)
       break;
     case -100:
       {
-        if (p->printflag != -100) {
+        if (p->printflag != -100)
           return csound->PerfError(csound, p->h.insdshead,
                                    "DSSI4CS: dssiactivate "
                                    "not properly initialised.");
-          p->printflag = -100;
-        }
+        p->printflag = -100;
       }
       break;
 
