@@ -37,7 +37,7 @@
 // The above comment and below are not in line with lpc.h 
 
 #define DEFpoleCount 34        /* recommended default (max 50 in lpc.h)    */
-#define DEFSLICE 2000          /* <= MAXWINDIN/2 (currently 5000 in lpc.h) */
+#define DEFSLICE 200           /* <= MAXWINDIN/2 (currently 5000 in lpc.h) */
 #define PITCHMIN        FL(70.0)
 #define PITCHMAX        FL(200.0)   /* default limits in Hz for pitch search */
 

@@ -77,6 +77,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
       switch (*c) {
       case 'i':
         all = 0;
+        // intended no break here
       case 'f':
       case 't':
         flag = *c++;
@@ -85,7 +86,8 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
         switch (flag) {
         case 'i':
           sscanf(s, "%d", &i);
-          STA(inslst)[i] = 1;
+          if (i>=0 && i < INSMAX) STA(inslst)[i] = 1;
+          else csound->Die(csound, Str("instrument number out of range"));
           all = 0;
           break;
         case 'f':

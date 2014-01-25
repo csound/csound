@@ -127,6 +127,8 @@ static char set_output_format(CSOUND *csound, char c, char outformch, OPARMS *op
       oparms->outformat = AE_FLOAT; /* float sndfile (for rescaling) */
       break;
     default:
+      oparms->outformat = 0;
+      csound->ErrorMsg(csound, Str("srconv: unknown outout format '%c'\n"), c);
       return outformch; /* do nothing */
     };
     return c;
@@ -321,7 +323,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             FIND(Str("No break file"))
             tvflg = 1;
             bfile = s;
-            while ((*s++)); s--;
+            while ((*s++)) {}; s--;
             break;
           default:
             csound->Message(csound, Str("Looking at %c\n"), c);
