@@ -115,7 +115,7 @@ int csoundPeekCircularBuffer(CSOUND *csound, void *p, void *out, int items)
 
 void csoundFlushCircularBuffer(CSOUND *csound, void *p)
 {
-    if (p == NULL) return 0;
+  if (p == NULL) return;
     { 
       int remaining;
       int itemsread, numelem = ((circular_buffer *)p)->numelem;

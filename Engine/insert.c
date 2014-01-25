@@ -1256,7 +1256,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     parent_ip->relesing = lcurip->relesing; 
     parent_ip->offbet = lcurip->offbet; 
     parent_ip->offtim = lcurip->offtim; 
-    parent_ip->p3 = parent_ip->p3; /* **** COVERITY: is this right? **** */
+    parent_ip->p3 = lcurip->p3; 
     local_ksmps = lcurip->ksmps;
 
     /* restore globals */
@@ -1675,8 +1675,6 @@ int subinstr(CSOUND *csound, SUBINST *p)
 
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
-    /* **** COVERITY: They claim ip cannot be NULL here as all paths
-       **** have checked **** */
     if (!p->ip)                                         /* loop to last opds */
       while (CS_PDS->nxtp)CS_PDS = CS_PDS->nxtp;
     return OK;
@@ -1850,8 +1848,6 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
-    /* **** COVERITY: They claim ip cannot be NULL here as all paths
-       **** have checked **** */
     if (!p->ip)                                         /* loop to last opds */
       while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
     return OK;
@@ -1970,10 +1966,9 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     /* restore globals */
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
-    /* **** COVERITY: They claim ip cannot be NULL here as all paths
-       **** have checked **** */
-    if (!p->ip)                                         /* loop to last opds */
+    if (!p->ip) {                                        /* loop to last opds */
       while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
+    }
     return OK;
 }
 
