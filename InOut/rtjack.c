@@ -499,22 +499,23 @@ static void openJackStreams(RtJackGlobals *p)
         strncpy(dev, devs[0].device_name, 128);
         free(devs);
       }
-      if(p->inDevName != NULL)
-          strncpy(dev, p->inDevName, 128);
-      if (dev) {
-        dev_final = dev;
-        sp = strchr(dev_final, '\0');
-        if(!isalpha(dev_final[0])) dev_final++;
-
-        for (i = 0; i < p->nChannels; i++) {
-          sprintf(sp, "%d", i + 1);
-          if (UNLIKELY(jack_connect(p->client, dev_final,
-                                    jack_port_name(p->inPorts[i])) != 0)) {
-              rtJack_Error(csound, -1, Str("error connecting input ports"));
-          }
-        }
-        *sp = (char) 0;
+      if(p->inDevName != NULL) {
+        strncpy(dev, p->inDevName, 128); dev[127]='\0';
       }
+      //if (dev) {
+      dev_final = dev;
+      sp = strchr(dev_final, '\0');
+      if (!isalpha(dev_final[0])) dev_final++;
+
+      for (i = 0; i < p->nChannels; i++) {
+        sprintf(sp, "%d", i + 1);
+        if (UNLIKELY(jack_connect(p->client, dev_final,
+                                  jack_port_name(p->inPorts[i])) != 0)) {
+          rtJack_Error(csound, -1, Str("error connecting input ports"));
+        }
+      }
+      *sp = (char) 0;
+      //}
 
     }
     if (p->outputEnabled) {
@@ -530,20 +531,21 @@ static void openJackStreams(RtJackGlobals *p)
           strncpy(dev, devs[0].device_name, 128);
           free(devs);
       }
-      if(p->outDevName != NULL) strncpy(dev, p->outDevName, 128);
-      if (dev) {
-        dev_final = dev;
-        sp = strchr(dev_final, '\0');
-        if(!isalpha(dev_final[0])) dev_final++;
-        for (i = 0; i < p->nChannels; i++) {
-          sprintf(sp, "%d", i + 1);
-          if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
-                           dev_final) != 0) {
-            rtJack_Error(csound, -1, Str("error connecting output ports"));
-          }
-        }
-        *sp = (char) 0;
+      if (p->outDevName != NULL) {
+        strncpy(dev, p->outDevName, 128); dev[127]='\0';
       }
+      //if (dev) { this test is rubbish
+      dev_final = dev;
+      sp = strchr(dev_final, '\0');
+      if(!isalpha(dev_final[0])) dev_final++;
+      for (i = 0; i < p->nChannels; i++) {
+        sprintf(sp, "%d", i + 1);
+        if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
+                         dev_final) != 0) {
+          rtJack_Error(csound, -1, Str("error connecting output ports"));
+        }
+      }
+      *sp = (char) 0;
     }
     /* stream is now active */
     p->jackState = 0;
@@ -782,6 +784,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     for (i = j = 0; i < nframes; i++) {
       if (bufpos == 0) {
         /* wait until there is enough data in ring buffer */
+        /* **** COVERITY: claims this is a double lock **** */
         rtJack_Lock(csound, &(p->bufs[bufcnt]->csndLock));
       }
       /* copy audio data */
@@ -834,6 +837,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
       if (p->csndBufPos == 0) {
         /* wait until there is enough free space in ring buffer */
         if (!p->inputEnabled)
+          /* **** COVERITY: claims this is a double lock **** */
           rtJack_Lock(csound, &(p->bufs[p->csndBufCnt]->csndLock));
       }
       /* copy audio data */
