@@ -115,7 +115,7 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
       if (ss == NULL)
         return OK;
       ss = get_arg_string(csound, *p->indx);
-      if(p->r->data == NULL) {
+      if (p->r->data == NULL) {
         p->r->data = cs_strdup(csound, ss);
         p->r->size = strlen(ss)+1;
        }
@@ -159,7 +159,7 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
 int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
     char  *newVal = p->str->data;
-    if(p->r->data == NULL) {
+    if (p->r->data == NULL) {
       p->r->data =  cs_strdup(csound, newVal);
       p->r->size =  strlen(p->str->data) + 1;
         return OK;
@@ -179,49 +179,50 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 
 int strassign_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
-  p->r->data = p->str->data;
-  p->r->size = p->str->size;
-  return OK;
+    p->r->data = p->str->data;
+    p->r->size = p->str->size;
+    return OK;
 }
 int strassign_opcode_Sk(CSOUND *csound, STRCPY_OP *p)
 {
-  if(strcmp(p->r->data, p->str->data)!=0){
-       p->r->data = p->str->data;
-       p->r->size = p->str->size;
-  }
-  //csound->Message(csound, p->r->data);
-  return OK;
+    if (strcmp(p->r->data, p->str->data)!=0){
+      p->r->data = p->str->data;
+      p->r->size = p->str->size;
+    }
+    //csound->Message(csound, p->r->data);
+    return OK;
 }
 
-int str_changed(CSOUND *csound, STRCHGD *p){
-  if(p->mem == NULL) {
-    mfree(csound, p->mem);
-    p->mem = cs_strdup(csound, p->str->data);
-  }
-  *p->r = 0;
-  return OK;
+int str_changed(CSOUND *csound, STRCHGD *p)
+{
+    if (p->mem == NULL) {
+      mfree(csound, p->mem);
+      p->mem = cs_strdup(csound, p->str->data);
+    }
+    *p->r = 0;
+    return OK;
 }
 
-int str_changed_k(CSOUND *csound, STRCHGD *p){
-
-  if(strcmp(p->str->data, p->mem)!=0 || p->mem == NULL) {
-    mfree(csound, p->mem);
-    p->mem = cs_strdup(csound, p->str->data);
-    *p->r = 1;
-  }
-  else *p->r = 0;
-  return OK;
+int str_changed_k(CSOUND *csound, STRCHGD *p)
+{
+    if (p->mem == NULL || strcmp(p->str->data, p->mem)!=0) {
+      mfree(csound, p->mem);
+      p->mem = cs_strdup(csound, p->str->data);
+      *p->r = 1;
+    }
+    else *p->r = 0;
+    return OK;
 }
+
 extern char* get_strarg(CSOUND *csound, MYFLT p, char *strarg);
 int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
-
     if (ISSTRCOD(*p->indx)) {
       char *ss;
       //printf("here\n ");
       ss = get_arg_string(csound, *p->indx);
       //csound->Message(csound, "%s \n", ss);
-      if(p->r->data == NULL) {
+      if (p->r->data == NULL) {
         p->r->data = cs_strdup(csound, ss);
         p->r->size = strlen(ss)+1;
       }
@@ -373,7 +374,7 @@ sprintf_opcode_(CSOUND *csound,
         case 'g':
         case 'G':
 #ifdef HAVE_SNPRINTF
-          if(strlen(strseg) + 24 > (unsigned)maxChars) {
+          if (strlen(strseg) + 24 > (unsigned)maxChars) {
            int offs = outstring - str->data;
             str->data = mrealloc(csound, str->data,
                                  str->size  + 13);
@@ -392,7 +393,7 @@ sprintf_opcode_(CSOUND *csound,
             return StrOp_ErrMsg(p, "output argument may not be "
                                    "the same as any of the input args");
           }
-          if(((STRINGDAT*)parm)->size >= maxChars) {
+          if (((STRINGDAT*)parm)->size >= maxChars) {
             int offs = outstring - str->data;
             str->data = mrealloc(csound, str->data,
                                  str->size  + ((STRINGDAT*)parm)->size);
@@ -437,7 +438,7 @@ sprintf_opcode_(CSOUND *csound,
 
 int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
-  if(p->r->data == NULL) {
+  if (p->r->data == NULL) {
         int size = p->sfmt->size+ 10*((int) p->INOCOUNT);
         p->r->data = mcalloc(csound, size);
         p->r->size = size;
@@ -687,8 +688,8 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     char        *dst;
     int         i, len, strt, end, rev = 0;
 
-    if(p->Ssrc->data == NULL) return NOTOK;
-    if(p->Sdst->data == NULL) {
+    if (p->Ssrc->data == NULL) return NOTOK;
+    if (p->Sdst->data == NULL) {
         int size = p->Ssrc->size;
         p->Sdst->data = mcalloc(csound, size);
         p->Sdst->size = size;
@@ -797,7 +798,7 @@ int strchar_opcode(CSOUND *csound, STRCHAR_OP *p)
 int strlen_opcode(CSOUND *csound, STRLEN_OP *p)
 {
     (void) csound;
-    if(p->Ssrc->size)
+    if (p->Ssrc->size)
       *(p->ilen) = (MYFLT) strlen(p->Ssrc->data);
     else *(p->ilen) = FL(0.0);
     return OK;
@@ -817,8 +818,8 @@ int strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
     const char  *src;
     char        *dst;
     int         i;
-    if(p->Ssrc->data == NULL) return NOTOK;
-    if(p->Sdst->data == NULL) {
+    if (p->Ssrc->data == NULL) return NOTOK;
+    if (p->Sdst->data == NULL) {
         int size = p->Ssrc->size;
         p->Sdst->data = mcalloc(csound, size);
         p->Sdst->size = size;
@@ -841,8 +842,8 @@ int strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
     const char  *src;
     char        *dst;
     int         i;
-    if(p->Ssrc->data == NULL) return NOTOK;
-    if(p->Sdst->data == NULL) {
+    if (p->Ssrc->data == NULL) return NOTOK;
+    if (p->Sdst->data == NULL) {
         int size = p->Ssrc->size;
         p->Sdst->data = mcalloc(csound, size);
         p->Sdst->size = size;
@@ -927,7 +928,7 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
     }
     if (s != NULL) {
 
-    if(p->Sdst->data == NULL) {
+    if (p->Sdst->data == NULL) {
         int size = strlen(s) + 1;
         p->Sdst->data = mcalloc(csound, size);
         p->Sdst->size = size;
