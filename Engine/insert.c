@@ -1203,6 +1203,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* VL 13-12-13 */
     /* this sets ksmps and kr local variables */
     /* create local ksmps variable and init with ksmps */
+    if(lcurip->lclbas != NULL) {
     CS_VARIABLE *var =
        csoundFindVariableWithName(lcurip->instr->varPool, "ksmps");
        *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ksmps;
@@ -1210,6 +1211,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       var =
        csoundFindVariableWithName(lcurip->instr->varPool, "kr");
      *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ekr;
+    }
 
     lcurip->m_chnbp = parent_ip->m_chnbp;       /* MIDI parameters */
     lcurip->m_pitch = parent_ip->m_pitch;
