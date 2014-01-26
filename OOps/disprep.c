@@ -462,6 +462,8 @@ int tempeset(CSOUND *csound, TEMPEST *p)
       return csound->InitError(csound, Str("ifn table begins with zero"));
     if (UNLIKELY(ftp==NULL)) return NOTOK;
 
+    if (npts==0) return NOTOK;
+    
     nptsm1 = npts - 1;
     if (npts != p->npts || minlam != p->minlam) {
       p->npts = npts;

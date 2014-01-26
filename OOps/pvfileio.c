@@ -495,7 +495,7 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
 
     if (pvoc_writeheader(csound, p) != 0) {
       csound->FileClose(csound, p->fd);
-      remove(p->name);
+      (void)remove(p->name);
       mfree(csound, p->name);
       if (p->customWindow)
         mfree(csound, p->customWindow);
@@ -872,7 +872,7 @@ int pvoc_closefile(CSOUND *csound, int ofd)
 
     csound->FileClose(csound, p->fd);
     if (p->to_delete && !p->readonly)
-      remove(p->name);
+      (void)remove(p->name);
     mfree(csound, p->name);
     mfree(csound, p->customWindow);
     free(p);
