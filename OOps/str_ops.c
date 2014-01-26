@@ -428,6 +428,7 @@ sprintf_opcode_(CSOUND *csound,
         segwaiting++;
     }
     if (UNLIKELY(numVals > 0)) {
+        free(strseg);
       return StrOp_ErrMsg(p, "too many arguments for format");
     }
     free(strseg);
