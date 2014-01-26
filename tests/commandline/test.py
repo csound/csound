@@ -166,6 +166,7 @@ def runTest():
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
             command = "%s %s %s %s &> %s"%(executable, parserType, runArgs, filename, tempfile)
+            #print command
             retVal = os.system(command)
   
         out = ""
