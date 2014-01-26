@@ -12,7 +12,7 @@ i3 ftgen 3,0,16384,10,1
 schedule 1,0,10
 
 instr 1
-a1 cudasynth 0.001, 100,3, 2, 1, 20
+a1 cudasynth 0.001, 100,0, 2, 1,20
     out a1
 
 endin
@@ -22,20 +22,4 @@ endin
 e 10
 </CsScore>
 </CsoundSynthesizer>
-<bsbPanel>
- <label>Widgets</label>
- <objectName/>
- <x>100</x>
- <y>100</y>
- <width>320</width>
- <height>240</height>
- <visible>true</visible>
- <uuid/>
- <bgcolor mode="nobackground">
-  <r>255</r>
-  <g>255</g>
-  <b>255</b>
- </bgcolor>
-</bsbPanel>
-<bsbPresets>
-</bsbPresets>
+
