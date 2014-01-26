@@ -509,8 +509,8 @@ static void list_devices(CSOUND *csound)
            And line return at the end*/
         csound->Message(csound, " \"hw:%i,%i\" - %s",card, num, temp );
       }
+      fclose(f);
     }
-    fclose(f);
     free(line);
     free(line_);
 }
@@ -554,8 +554,8 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         }
         n++;
       }
+      fclose(f);
     }
-    fclose(f);
     free(line);
     free(line_);
     return n;
@@ -827,7 +827,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
         snd_ctl_close(ctl);
       }
     }
-    else if (devName != NULL && devName[0] != '\0') {
+    else if (devName[0] != '\0') {
       dev = open_midi_device(csound, devName);
       if (dev == NULL) {
         free(name);
