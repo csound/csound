@@ -172,9 +172,8 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       instance(csound, insno);
       tp->isNew=0;
     }
-    /* **** COVERITY: I cannot prove that tp->act_stance is not NULL;
-       **** it will be after a new instance but that does not reset tp
-       **** etc **** */
+    /* **** COVERITY: note that call to instance fills in structure to
+       **** which tp points.  This is a false positive **** */
      /* pop from free instance chain */
     if(csound->oparms->odebug) 
       csoundMessage(csound, "insert(): tp->act_instance = %p \n", tp->act_instance);
@@ -412,7 +411,8 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       tp->isNew = 0;
     }
     /* pop from free instance chain */
-    /* **** COVERITY: again ip will be null if new MIDI allocation **** */
+     /* **** COVERITY: note that call to instance fills in structure to
+       **** which tp points.  This is a false positive **** */
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
     ip->insno = (int16) insno;
@@ -1149,8 +1149,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
       if (!tp->act_instance)
         instance(csound, instno);
-      /* **** COVERITY: THis cound dereference lcupip which could be null
-         if previous line is called.  Needs fixing **** */
+    /* **** COVERITY: note that call to instance fills in structure to
+       **** which tp points.  This is a false positive **** */
       lcurip = tp->act_instance;            /* use free intance, and  */
       tp->act_instance = lcurip->nxtact;    /* remove from chain      */
       lcurip->actflg++;                     /*    and mark the instr active */
@@ -2015,8 +2015,6 @@ static void instance(CSOUND *csound, int insno)
     int       argStringCount;
 
     tp = csound->engineState.instrtxtp[insno];
-
-    
     n = 3;
     if (O->midiKey>n) n = O->midiKey;
     if (O->midiKeyCps>n) n = O->midiKeyCps;

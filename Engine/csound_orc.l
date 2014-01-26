@@ -544,9 +544,7 @@ ORCTOKEN *new_token(CSOUND *csound, int type)
 ORCTOKEN *make_token(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, STRING_TOKEN);
-    int len = strlen(s);
-    ans->lexeme = (char*)mcalloc(csound, len + 1);
-    strcpy(ans->lexeme, s);
+    ans->lexeme = cs_strdup(csound, s);
     return ans;
 }
 

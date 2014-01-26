@@ -41,7 +41,7 @@ static int Load_Het_File_(CSOUND *csound, const char *filnam,
     int cc;
     int16 x;
     char *all;
-    char buffer[10];
+    char buffer[16];
     f = fopen(filnam, "r");
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_HETRO, 0, 0);
     all = (char *)mmalloc(csound, (size_t) length);
@@ -134,6 +134,7 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
     (void)fgets(buff, 120, f); /* Skip CVANAL */
     cvh.magic = CVMAGIC;
     p = fgets(buff, 120, f);
+    if (p==NULL) return csoundInitError(csound, Str("Ill-formed CV file\n"));
     cvh.headBsize = strtol(p, &p, 10);
     cvh.dataBsize = strtol(p, &p, 10);
     cvh.dataFormat = strtol(p, &p, 10);
@@ -184,8 +185,9 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_LPC, 0, 0);
     all = (char *)mmalloc(csound, (size_t) length);
     for (i=0; i<6; i++) fgetc(f); /* Skip LPANAL */
-    fscanf(f, "%d %d %d %d\n",
-           &lph.headersize, &lph.lpmagic, &lph.npoles, &lph.nvals);
+    if (4!=fscanf(f, "%d %d %d %d\n",
+                  &lph.headersize, &lph.lpmagic, &lph.npoles, &lph.nvals))
+      return csound->InitError(csound, Str("Ill-formed LPC file\n"));
     fgets(buff, 120, f);
     lph.framrate = (MYFLT)cs_strtod(buff, &p);
     lph.srate = (MYFLT)cs_strtod(p, &p);
@@ -325,7 +327,7 @@ MEMFIL *ldmemfile2withCB(CSOUND *csound, const char *filnam, int csFileType,
     else
       csound->memfiles = mfp;
     mfp->next = NULL;
-    strcpy(mfp->filename, filnam); /* FIXME: will crash if filnam > 255 chars? */
+    strncpy(mfp->filename, filnam, 256);
 
     pathnam = csoundFindInputFile(csound, filnam, "SADIR");
     if (UNLIKELY(pathnam == NULL)) {
