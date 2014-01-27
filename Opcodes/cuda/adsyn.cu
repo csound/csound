@@ -53,7 +53,6 @@ __global__ void component_sine(MYFLT *out, int *ndx,
 __global__  void mixdown(MYFLT *out, int comps, int vsize, float kamp){
    int h = threadIdx.x;
    int i;
-   out[h] = 0.0;
    for(i=1; i < comps; i++){
      out[h] += out[h + vsize*i];
    }
