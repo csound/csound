@@ -85,11 +85,11 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
     }
     lower_rail = (DelayLine*)p->lower.auxp;
     lower_rail->length = rail_len;
-    if (rail_len > 0) {
+    //if (rail_len > 0) {  Always true
       csound->AuxAlloc(csound, rail_len*sizeof(MYFLT),&p->down_data);
       lower_rail->data = (MYFLT*)p->down_data.auxp;
-    }
-    else lower_rail->data = NULL;
+      //}
+    //else lower_rail->data = NULL;
     lower_rail->pointer = lower_rail->data;
     lower_rail->end = lower_rail->data + rail_len - 1;
 
