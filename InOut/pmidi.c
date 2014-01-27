@@ -271,9 +271,9 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
                  (PmDeviceID) portMidi_getRealDeviceID(i, 0),
                          NULL, 512L, (PmTimeProcPtr) NULL, NULL);
         if (UNLIKELY(retval != pmNoError)) {
-          // This error may leak memory from "data"
+          // Prevent leaking memory from "data"
           if (data) {
-            pmall_data *n data->next;
+            next = data->next;
             free(data);
           }
           return portMidiErrMsg(csound, Str("error opening input device %d: %s"),
