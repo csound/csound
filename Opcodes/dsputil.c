@@ -272,8 +272,8 @@ void UDSample(
     /* number of input points contributing to each op: depends on LPF */
     realInStep = stindex;
     stepInStep = fex;
-    for (i = 0; i<outLen; ++i) {      /* output sample loop */
-                                      /* i = lex*nrstIp, so .. */
+    for (i = 0; i<outLen; ++i) {       /* output sample loop      */
+                                       /* i = lex*nrstIp, so ..   */
       nrstInStep = (int32)realInStep;  /* imm. prec actual sample */
       fracInStep = realInStep-(MYFLT)nrstInStep;  /* Fractional part */
       negPhase = phasePerInStep * fracInStep;
@@ -293,8 +293,9 @@ void UDSample(
               + frac * (p->dsputil_sncTab[nrst + 1]
                         - p->dsputil_sncTab[nrst]))
              * (MYFLT) inSnd[x];
-        if ( (x = nrstInStep+j)<inLen )
+        if ( (x = nrstInStep+j)<inLen ) { /* Brackets inserted here -- REVIEW */
           nrst = (int)posPhase;   frac = posPhase - (MYFLT)nrst;
+        }
         a += (p->dsputil_sncTab[nrst]
               + frac * (p->dsputil_sncTab[nrst + 1]
                         - p->dsputil_sncTab[nrst]))

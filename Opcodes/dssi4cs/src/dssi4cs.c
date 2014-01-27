@@ -404,7 +404,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
         if (p->iverbose != 0) {
           csound->Message(csound,
                           "DSSI4CS: Created internal control port "
-                          "%lu for Port %ui.\n",
+                          "%lu for Port %lu.\n",
                           ConnectedControlPorts, i);
         }
 
@@ -425,7 +425,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
         if (p->iverbose != 0) {
           csound->Message(csound,
                           "DSSI4CS: Created internal audio port"
-                          " %lu for Port %ui.\n",
+                          " %lu for Port %lu.\n",
                           ConnectedAudioPorts, i);
         }
 
@@ -449,6 +449,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
         info(csound, DSSIPlugin_);
     }
     return OK;
+    /* Does this code leak memory from PluginLibrary? -- REVIEW NEEDED */
 }
 
 /****************************************************************************
@@ -1041,7 +1042,7 @@ int dssilist(CSOUND * csound, DSSILIST * p)
       csound->Message(csound,
                       "DSSI4CS: DSSI_PATH environment variable not set.\n");
     }
-    if ((!pcLADSPAPath) && (!pcLADSPAPath))
+    if ((!pcLADSPAPath) && (!pcDSSIPath)) /* Fixed - JPff */
       return NOTOK;
     if (pcDSSIPath) {
       pcLADSPAPath = strcat((char *) pcLADSPAPath, ":");

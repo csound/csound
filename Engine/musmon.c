@@ -1235,6 +1235,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
         /* calculate the length in beats */
         if (evt->p3orig > FL(0.0))
           evt->p3orig = (MYFLT) ((double) evt->p3orig / st->ibeatTime);
+        /* fall through required */
       case 'q':                         /* mute instrument */
         /* check for a valid instrument number or name */
         if (evt->strarg != NULL && ISSTRCOD(p[1]))

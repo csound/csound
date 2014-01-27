@@ -211,7 +211,8 @@ void csoundCloseMidiOutFile(CSOUND *csound)
     /* write end of track meta-event */
     csoundWriteMidiOutFile(csound, &(midiOutFile_header[22]), 3);
     /* update header for track length */
-    fseek(p->f, 18L, SEEK_SET);
+    if (fseek(p->f, 18L, SEEK_SET)<0)
+      csound->Message(csound, Str("error closing MIDI output file\n"));
     fputc((int)(p->nBytes >> 24) & 0xFF, p->f);
     fputc((int)(p->nBytes >> 16) & 0xFF, p->f);
     fputc((int)(p->nBytes >> 8) & 0xFF, p->f);
