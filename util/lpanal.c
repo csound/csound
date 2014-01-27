@@ -430,7 +430,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
         case 'h':       FIND(Str("no hopsize"))
                         sscanf(s,"%d",&slice); break;
         case 'C':       FIND(Str("no comment string"))
-                        strncat(tp,s,(LPBUFSIZ - sizeof(LPHEADER) + 4));
+                        strncat(tp,s,(LPBUFSIZ - sizeof(LPHEADER) + 4)-strlen(tp));
                         tp += strlen(tp);
                         break;
         case 'P':       FIND(Str("no low frequency"))
