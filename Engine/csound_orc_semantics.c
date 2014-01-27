@@ -385,9 +385,10 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                             "types %s not found, line %d \n"),
                 opname, inArgTypes, tree->line);
         do_baktrace(csound, tree->locn);
+        free(inArgTypes);
         return NULL;
       }
-
+      free(inArgTypes);
       return cs_strdup(csound, out);
 
     }

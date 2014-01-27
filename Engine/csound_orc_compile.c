@@ -206,7 +206,7 @@ int argsRequired(char* argString)
 char** splitArgs(CSOUND* csound, char* argString)
 {
     int argCount = argsRequired(argString);
-    char** args = mmalloc(csound, sizeof(char**) * (argCount + 1));
+    char** args = mmalloc(csound, sizeof(char*) * (argCount + 1));
     char* t = argString;
     int i = 0;
 
@@ -338,7 +338,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
 {
     TEXT *tp;
     TREE *inargs, *outargs;
-    OPTXT *optxt;//, *retOptxt = NULL;
+    OPTXT *optxt;
     char *arg;
     int n;// nreqd;
     optxt = (OPTXT *) mcalloc(csound, (int32)sizeof(OPTXT));
@@ -463,15 +463,6 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
                           "type %d\n"), root->type);
       if (PARSER_DEBUG) print_tree(csound, NULL, root);
     }
-
-    //if (retOptxt == NULL) {
-    //retOptxt = optxt;
-      //}
-      //else {
-      //append_optxt(retOptxt, optxt);
-      //}
-
-    //return retOptxt;
 
     return optxt;
 }
@@ -1332,7 +1323,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       current = current_state->instrtxtp[i];
       if (current != NULL) {
         if(csound->oparms->odebug)
-          csound->Message(csound, "instr %d \n", i, current);
+          csound->Message(csound, "instr %d:%p \n", i, current);
         current->nxtinstxt = NULL;
         j = i;
         while (++j < end-1) {
@@ -1907,7 +1898,6 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
           || (strcmp(s, "kr") == 0 && csoundFindVariableWithName(ip->varPool, s))) {
         arg->type = ARG_LOCAL;
         arg->argPtr = csoundFindVariableWithName(ip->varPool, s);
-        CS_VARIABLE *var = (CS_VARIABLE *)arg->argPtr;
       }
     else if (c == 'g' || (c == '#' && *(s+1) == 'g') ||
              csoundFindVariableWithName(csound->engineState.varPool, s) != NULL) {
@@ -1998,7 +1988,7 @@ void debugPrintCsound(CSOUND* csound)
     csound->Message(csound, "String Pool:\n");
 
     while(val != NULL) {
-      csound->Message(csound, "    %d) %s\n", count++, val->value);
+      csound->Message(csound, "    %d) %s\n", count++, (char *)val->value);
       val = val->next;
     }
     csound->Message(csound, "Constants Pool:\n");

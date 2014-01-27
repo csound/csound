@@ -265,7 +265,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
         frameSize >>= 1;        /* divide down until just larger */
     }
     if (ovlp == 0 && frameIncr == 0) {
-      csound->Message(csound, "frameSize=%d\n", frameSize);
+      csound->Message(csound, "frameSize=%ld\n", frameSize);
       ovlp = OVLP_DEF;          /* default overlap */
       frameIncr = frameSize / ovlp;
     }

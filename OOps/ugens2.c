@@ -1168,13 +1168,12 @@ static int fill_func_from_array(ARRAYDAT *a, FUNC *f)
 int oscsetA(CSOUND *csound, OSC *p)
 {
     FUNC        *ftp = &p->FF;
-    int res;
 
     if (*p->iphs >= 0)
       p->lphs = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
     //check p->ifn is a valid array with power-of-two length
     p->ftp = ftp;
-    res = fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
+    fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
     return OK;
 }
 
