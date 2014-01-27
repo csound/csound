@@ -2612,9 +2612,9 @@ void SetInternalYieldCallback(CSOUND *csound,
 
 int csoundYield(CSOUND *csound)
 {
-   if (exitNow_)
-     csound->LongJmp(csound, CSOUND_SIGNAL);
-     csound->csoundInternalYieldCallback_(csound);
+    if (exitNow_)
+      csound->LongJmp(csound, CSOUND_SIGNAL);
+    csound->csoundInternalYieldCallback_(csound);
     return csound->csoundYieldCallback_(csound);
 }
 
@@ -2713,11 +2713,12 @@ static void reset(CSOUND *csound)
 
 
 PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
-  char *s;
- if((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
-         strncpy(s, module, 20);
-  if(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
-     strcmp(s, "NULL") == 0) {
+    char *s;
+    if ((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
+      strncpy(s, module, 20);
+    if (s==NULL) return;        /* Should not happen */
+    if (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
+        strcmp(s, "NULL") == 0) {
       csound->Message(csound, Str("setting dummy interface\n"));
       csound->SetPlayopenCallback(csound, playopen_dummy);
       csound->SetRecopenCallback(csound, recopen_dummy);
@@ -2733,34 +2734,35 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
 
 
 PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
-  char *s;
+    char *s;
 
-  if((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
-         strncpy(s, module, 20);
+    if((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
+      strncpy(s, module, 20);
+    if (s==NULL) return;        /* Should not happen */
     if(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
-     strcmp(s, "NULL") == 0) {
-     csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
-     csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
-     csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
-     csound->SetExternalMidiInCloseCallback(csound, NULL);
-     csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
-     csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
-     csound->SetExternalMidiOutCloseCallback(csound, NULL);
-
+       strcmp(s, "NULL") == 0) {
+      csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
+      csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
+      csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
+      csound->SetExternalMidiInCloseCallback(csound, NULL);
+      csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
+      csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
+      csound->SetExternalMidiOutCloseCallback(csound, NULL);
+      
       return;
-  }
-   if (csoundInitModules(csound) != 0)
-             csound->LongJmp(csound, 1);
+    }
+    if (csoundInitModules(csound) != 0)
+      csound->LongJmp(csound, 1);
 }
 
 
 PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
-   MODULE_INFO **modules =
-     (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
-   if(modules[no] == NULL || no >= MAX_MODULES) return CSOUND_ERROR;
-   *module = modules[no]->module;
-   *type = modules[no]->type;
-   return CSOUND_SUCCESS;
+    MODULE_INFO **modules =
+      (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
+    if(modules[no] == NULL || no >= MAX_MODULES) return CSOUND_ERROR;
+    *module = modules[no]->module;
+    *type = modules[no]->type;
+    return CSOUND_SUCCESS;
 }
 
 
@@ -2791,7 +2793,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundSetMessageCallback(csound, msgcallback_);
     }
     csound->printerrormessagesflag = (void*)1234;
-    /* copy system environment variables */
+    /* copysystem environment variables */
     i = csoundInitEnv(csound);
     if (UNLIKELY(i != CSOUND_SUCCESS)) {
       csound->engineStatus |= CS_STATE_JMP;

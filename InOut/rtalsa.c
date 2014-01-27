@@ -509,8 +509,8 @@ static void list_devices(CSOUND *csound)
            And line return at the end*/
         csound->Message(csound, " \"hw:%i,%i\" - %s",card, num, temp );
       }
+      fclose(f);
     }
-    fclose(f);
     free(line);
     free(line_);
 }
@@ -554,8 +554,8 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         }
         n++;
       }
+      fclose(f);
     }
-    fclose(f);
     free(line);
     free(line_);
     return n;
@@ -781,7 +781,11 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
 
     (*userData) = NULL;
     olddev = NULL;
-    if (devName[0] == 'a') {
+    if (devName==NULL) {
+      csound->Message(csound, Str("ALSA midi: no string\n"));
+      exit(1);                  /* what should happen here???????? */
+    }
+    else if (devName[0] == 'a') {
       csound->Message(csound, Str("ALSA midi: Using all devices.\n"));
       card = -1;
       if (snd_card_next(&card) >= 0 && card >= 0) {
@@ -823,7 +827,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
         snd_ctl_close(ctl);
       }
     }
-    else if (devName != NULL && devName[0] != '\0') {
+    else if (devName[0] != '\0') {
       dev = open_midi_device(csound, devName);
       if (dev == NULL) {
         free(name);
@@ -932,7 +936,8 @@ static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
       s = devName;
     err = snd_rawmidi_open(NULL, &dev, s, SND_RAWMIDI_NONBLOCK);
     if (err != 0) {
-      csound->ErrorMsg(csound, Str("ALSA: error opening MIDI output device '%s'"));
+      csound->ErrorMsg(csound,
+                       Str("ALSA: error opening MIDI output device '%s'"),s);
       return 0;
     }
     csound->Message(csound, Str("ALSA: opened MIDI output device '%s'\n"), s);

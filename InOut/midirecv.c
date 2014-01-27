@@ -282,12 +282,11 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
             if (parnum == 0)
               fval = (MYFLT) (mep->dat2 - 64);
             else fval = mep->dat2;
-            if (dsctl_map != NULL) {
-              fp = (MYFLT*) &(dsctl_map[parnum*2]);
-              if (*fp != FL(0.0)) {
-                MYFLT xx = (fval * *fp++);
-                fval = xx + *fp;                /* optionally map */
-              }
+            //            if (dsctl_map != NULL) { always true
+            fp = (MYFLT*) &(dsctl_map[parnum*2]);
+            if (*fp != FL(0.0)) {
+              MYFLT xx = (fval * *fp++);
+              fval = xx + *fp;                /* optionally map */
             }
             csound->Message(csound, Str("CHAN %d DRUMKEY %d not in keylst, "
                                         "PARAM %d NOT UPDATED\n"),

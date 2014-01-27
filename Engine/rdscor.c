@@ -214,7 +214,8 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                           csound->DebugMsg(csound,
                                            "and more extra p-fields [%d](%d)%d\n",
                                            c, (int) e->c.extra[0],
-                                           sizeof(MYFLT)*((int)e->c.extra[0]+PMAX));
+                                           (int)sizeof(MYFLT)*
+                                                   ((int)e->c.extra[0]+PMAX));
                           new =
                             (MYFLT *)realloc(e->c.extra,
                                              sizeof(MYFLT)*((int) e->c.extra[0]+

@@ -1067,9 +1067,9 @@ int printks(CSOUND *csound, PRINTKS *p)
     if (ISSTRCOD(*p->ifilcod) == 0) {
       char *sarg;
       sarg = ((STRINGDAT*)p->ifilcod)->data;
-      if (strcmp(sarg, p->old) != 0) {
-        if (sarg == NULL)
-          return csoundPerfError(csound, p->h.insdshead, Str("null string\n"));
+      if (sarg == NULL)
+        return csoundPerfError(csound, p->h.insdshead, Str("null string\n"));
+     if (strcmp(sarg, p->old) != 0) {
         printksset_(csound, p, sarg);
         mfree(csound, p->old);
         p->old = cs_strdup(csound, sarg);
