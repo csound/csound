@@ -121,7 +121,8 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
       return;
     }
     strncpy(soundFont->name, csound->GetFileName(fd), 256);
-    chunk_read(fil, &soundFont->chunk.main_chunk);
+    if (UNLIKELY(chunk_read(fil, &soundFont->chunk.main_chunk)<0))
+      csound->Message(csound, Str("sfont: failed to read file\n"));
     csound->FileClose(csound, fd);
     globals->soundFont = soundFont;
     fill_SfPointers(csound);
@@ -1648,12 +1649,14 @@ static void fill_SfStruct(CSOUND *csound)
                         split->num= num;
                         split->sample = &shdr[num];
                         if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
-                            csound->ErrorMsg(csound, Str("SoundFont file \"%s\" "
-                                                  "contains ROM samples !\n"
-                                                  "At present time only RAM "
-                                                  "samples are allowed "
-                                                  "by sfload.\n"
-                                                  "Session aborted !"), Gfname);
+                          free(preset);
+                          csound->ErrorMsg(csound, Str("SoundFont file \"%s\" "
+                                                       "contains ROM samples !\n"
+                                                       "At present time only RAM "
+                                                       "samples are allowed "
+                                                       "by sfload.\n"
+                                                       "Session aborted !"),
+                                           Gfname);
                             return;
                         }
                         sglobal_zone = 0;
@@ -1891,7 +1894,7 @@ static void fill_SfStruct(CSOUND *csound)
                                             "ROM samples !\n"
                                             "At present time only RAM samples "
                                             "are allowed by sfload.\n"
-                                            "Session aborted !"), Gfname);
+                                                 "Session aborted !"), Gfname);
                     return;
                   }
                   sglobal_zone = 0;

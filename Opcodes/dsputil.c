@@ -287,13 +287,14 @@ void UDSample(
       for (j=1L; j<in2out; ++j) { /* inner FIR convolution loop */
         posPhase += phasePerInStep;
         negPhase += phasePerInStep;
-        if ( (x = nrstInStep-j)>=0L )
+        if ( (x = nrstInStep-j)>=0L ) { /* Brackets inserted here */
           nrst = (int)negPhase;   frac = negPhase - (MYFLT)nrst;
+        }
         a += (p->dsputil_sncTab[nrst]
               + frac * (p->dsputil_sncTab[nrst + 1]
                         - p->dsputil_sncTab[nrst]))
              * (MYFLT) inSnd[x];
-        if ( (x = nrstInStep+j)<inLen ) { /* Brackets inserted here -- REVIEW */
+        if ( (x = nrstInStep+j)<inLen ) { /* Brackets inserted here */
           nrst = (int)posPhase;   frac = posPhase - (MYFLT)nrst;
         }
         a += (p->dsputil_sncTab[nrst]

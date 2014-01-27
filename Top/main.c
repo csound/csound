@@ -243,7 +243,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
      csound->modules_loaded = 1;
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
-    if(csound->enableHostImplementedMIDIIO == 1) {
+    if (csound->enableHostImplementedMIDIIO == 1) {
         if (s == NULL) {
             s = strdup("hostbased");
         } else {
@@ -311,6 +311,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
 
+    free(s);
     return CSOUND_SUCCESS;
 }
 

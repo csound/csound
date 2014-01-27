@@ -60,7 +60,7 @@ const uint32_t csPlayScoMask = 16;
 
 CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 {
-    size_t  nBytes = 256;
+#define   nBytes (256)
     char lbuf[256];
 #if defined(LINUX) || defined(__MACH__)
     struct stat tmp;
@@ -101,7 +101,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
         if ((p = strrchr(lbuf, '.')) != NULL)
           *p = '\0';
 #endif
-        strncat(lbuf, ext, nBytes);
+        strncat(lbuf, ext, nBytes-strlen(lbuf)-1);
       }
 #ifdef __MACH__
       /* on MacOS X, store temporary files in /tmp instead of /var/tmp */
