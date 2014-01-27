@@ -393,7 +393,7 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
       p->vector = ftp->ftable;
       p->elements = (int) *p->ielements;
     }
-    else return csound->InitError(csound, Str("Failed to find ftable");
+    else return csound->InitError(csound, Str("Failed to find ftable"));
     if ( p->elements > (int)ftp->flen )
       return csound->InitError(csound,
                                Str("vphaseseg: invalid num. of elements"));
@@ -469,7 +469,7 @@ static int vphaseseg(CSOUND *csound, VPSEG *p)
       }
     }
     if (curtab==NULL) return NOTOK;
-    
+
     flength = p->elements;
     vector = p->vector;
     do {

@@ -351,7 +351,7 @@ void FLTKKeyboard::handleKey(int key, int value) {
     // This cannot happen
     //    if(index < 0) {
     //      return;
-    }
+    //}
 
     index = ((octave * 12) + index) - 21;
 
