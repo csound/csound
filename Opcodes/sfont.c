@@ -119,9 +119,9 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
     if (UNLIKELY(soundFont==NULL)){
       csound->ErrorMsg(csound, Str("Sfload: cannot use globals"));
       return;
-    }
     strncpy(soundFont->name, csound->GetFileName(fd), 256);
-    chunk_read(fil, &soundFont->chunk.main_chunk);
+    if (UNLIKELY(chunk_read(fil, &soundFont->chunk.main_chunk)<0))
+      csound->Message(csound, Str("sfont: failed to read file\n");
     csound->FileClose(csound, fd);
     globals->soundFont = soundFont;
     fill_SfPointers(csound);
@@ -1519,6 +1519,10 @@ static void fill_SfStruct(CSOUND *csound)
 
     size = phdrChunk->ckSize / sizeof(sfPresetHeader);
     soundFont->presets_num = size;
+    /* **** COVERITY: Allocation size mismatch
+       **** (SIZECHECK)2. incorrect_multiplication: Allocating a
+       **** multiple of 38 bytes to pointer of type presetType, which
+       **** needs 28 bytes.  **** */
     preset = (presetType *) malloc(size * sizeof(sfPresetHeader));
     for (j=0; j < size; j++) {
       preset[j].name = phdr[j].achPresetName;
@@ -1648,12 +1652,14 @@ static void fill_SfStruct(CSOUND *csound)
                         split->num= num;
                         split->sample = &shdr[num];
                         if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
-                            csound->ErrorMsg(csound, Str("SoundFont file \"%s\" "
-                                                  "contains ROM samples !\n"
-                                                  "At present time only RAM "
-                                                  "samples are allowed "
-                                                  "by sfload.\n"
-                                                  "Session aborted !"), Gfname);
+                          free(preset);
+                          csound->ErrorMsg(csound, Str("SoundFont file \"%s\" "
+                                                       "contains ROM samples !\n"
+                                                       "At present time only RAM "
+                                                       "samples are allowed "
+                                                       "by sfload.\n"
+                                                       "Session aborted !"),
+                                           Gfname);
                             return;
                         }
                         sglobal_zone = 0;
@@ -1891,7 +1897,7 @@ static void fill_SfStruct(CSOUND *csound)
                                             "ROM samples !\n"
                                             "At present time only RAM samples "
                                             "are allowed by sfload.\n"
-                                            "Session aborted !"), Gfname);
+                                                 "Session aborted !"), Gfname);
                     return;
                   }
                   sglobal_zone = 0;
