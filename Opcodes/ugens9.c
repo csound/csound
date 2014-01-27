@@ -413,8 +413,9 @@ static int pconvset_(CSOUND *csound, PCONVOLVE *p, int stringname)
       ainput_dur = FL(0.0);     /* This is probably wrong -- JPff */
     }
     else {
-        IRfile.getframes = IRfile.framesrem;
-        ainput_dur = (MYFLT) IRfile.getframes / IRfile.sr;
+      IRfile.getframes = IRfile.framesrem;
+      if (UNLIKELY(IRfile.sr==0)) csound->InitError(csound, Str("SR zero"));
+      ainput_dur = (MYFLT) IRfile.getframes / IRfile.sr;
       }
 
     csound->Warning(csound, Str("analyzing %ld sample frames (%3.1f secs)\n"),
