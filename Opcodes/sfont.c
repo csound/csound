@@ -1519,7 +1519,7 @@ static void fill_SfStruct(CSOUND *csound)
 
     size = phdrChunk->ckSize / sizeof(sfPresetHeader);
     soundFont->presets_num = size;
-    preset = (presetType *) malloc(size * sizeof(sfPresetHeader));
+    preset = (presetType *) malloc(size * sizeof(presetType));
     for (j=0; j < size; j++) {
       preset[j].name = phdr[j].achPresetName;
       if (strcmp(preset[j].name,"EOP")==0) {
