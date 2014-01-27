@@ -58,21 +58,6 @@ const uint32_t csPlayScoMask = 16;
 
 #define STA(x)   (csound->onefileStatics.x)
 
-#if !defined(WIN32)
-char *mytmpnam(char *name)
-{
-    int fd;
-    char *tmpdir = getenv("TMPDIR");
-    sprintf(name, "%s/csound-XXXXXX",  (tmpdir!=NULL ? tmpdir :"/tmp"));
-    umask(0077); /* ensure exclusive access on buggy implementations of mkstemp */
-    fd = mkstemp(name);
-    close(fd);
-    unlink(name);
-    return (fd<0 ? NULL : name);
-}
-#endif
-
-
 CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 {
     size_t  nBytes = 256;
