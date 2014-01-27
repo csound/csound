@@ -125,7 +125,7 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     /**
      *  Remove extension from sound-file and add ".eps"
      */
-    strncpy(pathnam, filenam, 1024);
+    strncpy(pathnam, filenam, 1024); pathnam[1023] = '\0';
     t = strrchr(pathnam, '.');
     if (t != NULL) *t = '\0';
     strncat(pathnam, ".eps", 1024);
@@ -395,7 +395,7 @@ void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr)
     fprintf(pp->psFile, "%f  %f  moveto \n", xx, yy);
     fprintf(pp->psFile, "(minimum  : %f) show \n", wdptr->min);
 
-    if (wdptr->caption) {
+    if (wdptr->caption[0]) {
       xx = MyPS_XORIG + MyPS_WIDTH / FL(3.0);
       yy = MyPS_YORIG + MyPS_HEIGHT + fnts;
       fprintf(pp->psFile, "%f  %f  moveto \n0", xx, yy);
