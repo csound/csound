@@ -119,9 +119,10 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
     if (UNLIKELY(soundFont==NULL)){
       csound->ErrorMsg(csound, Str("Sfload: cannot use globals"));
       return;
+    }
     strncpy(soundFont->name, csound->GetFileName(fd), 256);
     if (UNLIKELY(chunk_read(fil, &soundFont->chunk.main_chunk)<0))
-      csound->Message(csound, Str("sfont: failed to read file\n");
+      csound->Message(csound, Str("sfont: failed to read file\n"));
     csound->FileClose(csound, fd);
     globals->soundFont = soundFont;
     fill_SfPointers(csound);
@@ -1519,11 +1520,7 @@ static void fill_SfStruct(CSOUND *csound)
 
     size = phdrChunk->ckSize / sizeof(sfPresetHeader);
     soundFont->presets_num = size;
-    /* **** COVERITY: Allocation size mismatch
-       **** (SIZECHECK)2. incorrect_multiplication: Allocating a
-       **** multiple of 38 bytes to pointer of type presetType, which
-       **** needs 28 bytes.  **** */
-    preset = (presetType *) malloc(size * sizeof(sfPresetHeader));
+    preset = (presetType *) malloc(size * sizeof(presetType));
     for (j=0; j < size; j++) {
       preset[j].name = phdr[j].achPresetName;
       if (strcmp(preset[j].name,"EOP")==0) {
