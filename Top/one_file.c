@@ -347,7 +347,7 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
         corfile_puts(buffer, incore);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>"));
-    corfile_rm(incore);
+    corfile_rm(&incore);
     return FALSE;
 }
 
