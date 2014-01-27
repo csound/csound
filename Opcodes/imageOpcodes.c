@@ -191,6 +191,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
 
     img = malloc(sizeof(Image));
     if (UNLIKELY(!img)) {
+      free(image_data);
       csound->InitError(csound, Str("imageload: out of memory.\n"));
       return NULL;
     }
@@ -608,9 +609,9 @@ static int imagesave (CSOUND *csound, IMGSAVE * p)
 {
     Images *pimages;
     Image *img;
-    char filename[255];
+    char filename[256];
 
-    strcpy(filename, (char*) (p->ifilnam->data));
+    strncpy(filename, (char*) (p->ifilnam->data), 256);
 
     pimages = (Images *) csound->QueryGlobalVariable(csound,
                                                      "imageOpcodes.images");
