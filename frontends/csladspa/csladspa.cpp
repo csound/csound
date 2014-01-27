@@ -68,6 +68,7 @@ struct CsoundPlugin {
 
   CsoundPlugin(const char *csd, int chns, int ports, AuxData* paux,
                unsigned long rate);
+  ~CsoundPlugin();
   void Process(unsigned long cnt);
 };
 
@@ -118,6 +119,12 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   delete[] cmdl;
   delete[]  sr;
   delete[]  kr;
+}
+
+CsoundPlugin::~CsoundPlugin(){
+  delete csound;
+  delete[] inp;
+  delete[] outp;
 }
 
 
@@ -177,9 +184,6 @@ static LADSPA_Handle createplugin(const LADSPA_Descriptor *pdesc,
 static void destroyplugin(LADSPA_Handle inst)
 {
   CsoundPlugin* p = (CsoundPlugin*)inst;
-  delete p->csound;
-  delete[] p->inp;
-  delete[] p->outp;
   delete p;
 }
 
