@@ -95,7 +95,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
       if (UNLIKELY((fd = mkstemp(lbuf)) < 0))
         csound->Die(csound, Str(" *** cannot create temporary file"));
       close(fd);
-      unlink(lbuf);
+      //unlink(lbuf);
 #else
       {
         char  *s = (char*) csoundGetEnv(csound, "SFDIR");
@@ -362,6 +362,7 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
         corfile_puts(buffer, incore);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>"));
+    corfile_rm(incore);
     return FALSE;
 }
 
@@ -405,7 +406,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
       return FALSE;
     }
     *q = '\0';
-    strcpy(prog, p+5); /* after "<CsExScore " */
+    strncpy(prog, p+5, 256); /* after "<CsExScore " */
     /* Generate score name */
     if (STA(sconame)) free(STA(sconame));
     STA(sconame) = csoundTmpFileName(csound, ".sco");
@@ -597,7 +598,7 @@ static int createFile(CSOUND *csound, char *buffer, FILE *unf)
       q = strchr(p, '>');
     if (q) *q='\0';
     //  printf("p=>>%s<<\n", p);
-    strcpy(filename, p);
+    strncpy(filename, p, 256);
 //sscanf(buffer, "<CsFileB filename=\"%s\">", filename);
 //    if (filename[0] != '\0' &&
 //       filename[strlen(filename) - 1] == '>' &&

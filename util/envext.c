@@ -100,7 +100,8 @@ static int envext(CSOUND *csound, int argc, char **argv)
     } while (--argc);
 
     /* Read sound file */
-    if ((infd = SCsndgetset(csound, &p, inputfile))==NULL) {
+    if (UNLIKELY(inputfile==NULL ||
+                 (infd = SCsndgetset(csound, &p, inputfile))==NULL)) {
       csound->Message(csound,Str("%s: error while opening %s"), argv[0], inputfile);
       return 1;
     }
