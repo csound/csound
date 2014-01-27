@@ -83,7 +83,7 @@ int main(int argc, char **argv)
       exit(1);
     }
     if (hdr.headersize-sizeof(LPHEADER)+4 !=
-        fread(&hdr, sizeof(char), hdr.headersize-sizeof(LPHEADER)+4, inf)) {
+        fread(&str, sizeof(char), hdr.headersize-sizeof(LPHEADER)+4, inf)) {
       printf("Ill formed data\n");
       exit(1);
     }
