@@ -115,7 +115,8 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
     p->cs = csound;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef WIN32
-    fcntl(p->sock, F_SETFL, O_NONBLOCK);
+    if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
+      return csound->InitError(csound, Str("Cannot set nonblock"));
 #endif
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError
@@ -210,7 +211,8 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
     p->cs = csound;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef WIN32
-    fcntl(p->sock, F_SETFL, O_NONBLOCK);
+    if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
+      return csound->InitError(csound, Str("Cannot set nonblock"));
 #endif
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));

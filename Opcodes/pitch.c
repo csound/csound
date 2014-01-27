@@ -1707,7 +1707,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
         segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
-        segp->nxtpt = nxtval;
+      segp->nxtpt = nxtval;
       segp->val = val;
       if (alpha == FL(0.0)) {
         segp->c1 = (nxtval-val)/d;
@@ -1761,7 +1761,7 @@ int trnset_bkpt(CSOUND *csound, TRANSEG *p)
         segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
-        segp->nxtpt = nxtval;
+      segp->nxtpt = nxtval;
       segp->val = val;
       if (alpha == FL(0.0)) {
         segp->c1 = (nxtval-val)/d;
@@ -1907,7 +1907,7 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
         segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
-        segp->nxtpt = nxtval;
+      segp->nxtpt = nxtval;
       segp->val = val;
       if (alpha == FL(0.0)) {
         segp->c1 = (nxtval-val)/d;
