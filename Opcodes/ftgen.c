@@ -113,6 +113,7 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
           named = named->next;                            /*  and round again   */
         }
         if (UNLIKELY(named == NULL)) {
+          free(ftevt);
           return csound->InitError(csound,
                                    Str("Named gen \"%s\" not defined"),
                                    (char *)p->p4);
@@ -275,7 +276,7 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
         ftp = ft_func(csound, &fno_f);
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT*) - SSTRSIZ);
         memset(ftp->ftable, 0, sizeof(MYFLT) * (ftp->flen + 1));
-        n = fread(ftp->ftable, sizeof(MYFLT), ftp->flen + 1, file);
+        n = fread(ftp->ftable, sizeof(MYFLT), ftp->flen + 1l, file);
         if (UNLIKELY(n!=ftp->flen + 1)) goto err4;
         /* ***** Need to do byte order here ***** */
         argp++;

@@ -102,13 +102,13 @@ void add_include_udo_dir(CORFIL *xx)
         while ((f = readdir(udo)) != NULL) {
           char *fname = &(f->d_name[0]);
           int n = (int)strlen(fname);
-          printf("**  name=%s n=%d\n", fname, n);
+          //printf("**  name=%s n=%d\n", fname, n);
           if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
             strcpy(buff, "#include \"");
-            strncat(buff, dir, 1024);
-            strncat(buff, "/", 1024);
-            strncat(buff, fname, 1024);
-            strncat(buff, "\"\n", 1024);
+            strncat(buff, dir, 1024); buff[1023]= '\0';
+            strncat(buff, "/", 1024); buff[1023]= '\0';
+            strncat(buff, fname, 1024); buff[1023]= '\0';
+            strncat(buff, "\"\n", 1024); buff[1023]= '\0';
             if (strlen(buff)>768) {
               corfile_preputs(buff, xx);
               buff[0] ='\0';
