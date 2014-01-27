@@ -828,7 +828,7 @@ public:
     csound = csoundCreate((CSOUND*) 0);
      #ifdef SWIGPYTHON
       pydata =(pycbdata *) new pycbdata;
-      memset(pydata, sizeof(pydata), 0);
+      memset(pydata, 0, sizeof(pydata));
     ((pycbdata *)pydata)->mfunc = NULL;
     ((pycbdata *)pydata)->messageBufferIndex = 0;
     csoundSetHostData(csound, this);

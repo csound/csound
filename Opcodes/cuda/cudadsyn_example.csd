@@ -12,7 +12,7 @@ i3 ftgen 3,0,16384,10,1
 schedule 1,0,10
 
 instr 1
-a1 cudasynth 0.001, 100,0, 2, 1,20
+a1 cudasynth 0.001, 100,0, 2, 1,128
     out a1
 
 endin
