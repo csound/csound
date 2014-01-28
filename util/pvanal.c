@@ -824,6 +824,7 @@ static void chan_split(CSOUND *csound, const MYFLT *inbuf, MYFLT **chbuf,
     long i,j,len;
     MYFLT ampfac;
     MYFLT *buf_c[MAXPVXCHANS];
+
     const MYFLT *p_inbuf = inbuf;
 
     len = insize/chans;
