@@ -456,8 +456,11 @@ InitScaleTable(MIXER_GLOBALS *pp, int i)
       newpoint->x1 = (int) (x*samplepert);
       newpoint->y1 = y;
       if (newpoint->x1 == newpoint->x0) {
+        MYFLT div = (MYFLT)(tt->x1 - tt->x0)
         tt->y1 = y;
-        tt->yr = (y - tt->y0)/((MYFLT)(tt->x1 - tt->x0));
+        if(div)
+          tt->yr = (y - tt->y0)/div;
+        else  tt->yr = y;
         csound->Free(csound, newpoint);
       }
       else {
