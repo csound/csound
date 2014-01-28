@@ -201,7 +201,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       tvflg = 0,                /* flag for time-varying time-scaling */
       tvnxt = 0,                /* counter for stepping thru time-var func */
       tvlen,                    /* length of time-varying function */
-      Chans = 0,                /* number of channels */
+      Chans = 1,                /* number of channels */
       chan,                     /* current channel */
       Q = 2;                    /* quality factor */
 
