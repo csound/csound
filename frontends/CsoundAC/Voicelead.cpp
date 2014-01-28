@@ -167,7 +167,7 @@ namespace csound
     std::sort(v1.begin(), v1.end());
     std::vector<double> v2 = voiceleading(source, destination2);
     std::sort(v2.begin(), v2.end());
-    for (size_t i = v1.size() - 1; i >= 0; i--) {
+    for (int i = v1.size() - 1; i >= 0; i--) {
       if(v1[i] < v2[i]) {
         return destination1;
       }

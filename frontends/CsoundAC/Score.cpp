@@ -666,9 +666,6 @@ void Score::removeArrangement()
 std::vector<double> Score::getPitches(size_t begin_, size_t end_, size_t divisionsPerOctave_) const
 {
     System::inform("BEGAN Score::getPitches(%d, %d, %d)\n", begin_, end_, divisionsPerOctave_);
-    if (begin_ < 0) {
-        begin_ = 0;
-    }
     if (end_ > size()) {
         end_ = size();
     }
@@ -691,9 +688,6 @@ std::vector<double> Score::getPitches(size_t begin_, size_t end_, size_t divisio
 
 void Score::setPitches(size_t begin_, size_t end_, const std::vector<double> &pitches)
 {
-    if (begin_ < 0) {
-        begin_ = 0;
-    }
     if (end_ > size()) {
         end_ = size();
     }
@@ -706,9 +700,6 @@ void Score::setPitches(size_t begin_, size_t end_, const std::vector<double> &pi
 
 void Score::setPitchClassSet(size_t begin_, size_t end_, const std::vector<double> &pcs, size_t divisionsPerOctave_)
 {
-    if (begin_ < 0) {
-        begin_ = 0;
-    }
     if (end_ > size()) {
         end_ = size();
     }
@@ -727,9 +718,6 @@ std::vector<double> Score::getPTV(size_t begin_,
         double range,
         size_t divisionsPerOctave_) const
 {
-    if (begin_ < 0) {
-        begin_ = 0;
-    }
     if (end_ > size()) {
         end_ = size();
     }
@@ -751,9 +739,6 @@ void Score::setPTV(size_t begin_,
         double range,
         size_t divisionsPerOctave_)
 {
-    if (begin_ < 0) {
-        begin_ = 0;
-    }
     if (end_ > size()) {
         end_ = size();
     }
@@ -774,9 +759,6 @@ std::vector<double> Score::getPT(size_t begin_,
         double range,
         size_t divisionsPerOctave_) const
 {
-    if (begin_ < 0) {
-        begin_ = 0;
-    }
     if (end_ > size()) {
         end_ = size();
     }
@@ -798,9 +780,6 @@ void Score::setPT(size_t begin_,
         double range,
         size_t divisionsPerOctave_)
 {
-    if (begin_ < 0) {
-        begin_ = 0;
-    }
     if (end_ > size()) {
         end_ = size();
     }
@@ -848,9 +827,6 @@ void Score::setVoicing(size_t begin_,
         double range,
         size_t divisionsPerOctave_)
 {
-    if (begin_ < 0) {
-        begin_ = 0;
-    }
     if (end_ > size()) {
         end_ = size();
     }
@@ -900,17 +876,11 @@ void Score::voicelead(size_t beginSource,
         stream.flush();
         System::inform(stream.str().c_str());
     }
-    if (beginSource < 0) {
-        beginSource = 0;
-    }
     if (endSource > size()) {
         endSource = size();
     }
     if (beginSource == endSource) {
         return;
-    }
-    if (beginTarget < 0) {
-        beginTarget = 0;
     }
     if (endTarget > size()) {
         endTarget = size();
@@ -997,17 +967,11 @@ void Score::voicelead(size_t beginSource,
         stream.flush();
         System::inform(stream.str().c_str());
     }
-    if (beginSource < 0) {
-        beginSource = 0;
-    }
     if (endSource > size()) {
         endSource = size();
     }
     if (beginSource == endSource) {
         return;
-    }
-    if (beginTarget < 0) {
-        beginTarget = 0;
     }
     if (endTarget > size()) {
         endTarget = size();

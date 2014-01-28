@@ -322,7 +322,7 @@ PUBLIC void cscorePutEvent(CSOUND *csound, EVENT *e)
     q = &e->p[1];
     if ((pcnt = e->pcnt)) {
       if (pcnt--)       fprintf(csound->oscfp," %g",*q++);
-      else goto termin;
+      //else goto termin; /* cannot happen */
       if (pcnt--) {
         if (warpout)    fprintf(csound->oscfp," %g", e->p2orig);
                         fprintf(csound->oscfp," %g",*q++);

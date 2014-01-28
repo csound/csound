@@ -364,7 +364,7 @@ static int csoundCheckOpcodeDeny(const char *fname)
     /* printf("DEBUG %s(%d): check fname=%s\n", __FILE__, __LINE__, fname); */
     /* printf("DEBUG %s(%d): list %s\n", __FILE__, __LINE__, list); */
     if (list==NULL) return 0;
-    strcpy(buff, fname);
+    strncpy(buff, fname, 256);
     strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
     p = strdup(list);
     deny = cs_strtok_r(p, ",", &th);
@@ -422,12 +422,12 @@ int csoundLoadModules(CSOUND *csound)
     }
     dir = opendir(dname);
     if (UNLIKELY(dir == (DIR*) NULL)) {
-      if(dname != NULL)
+      //if (dname != NULL)  /* cannot be other */
       csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
                                dname, strerror(errno));
-      else
-       csound->Warning(csound, Str("Error opening plugin directory: %s"),
-                               strerror(errno));
+      //else
+      //csound->Warning(csound, Str("Error opening plugin directory: %s"),
+      //                         strerror(errno));
       return CSOUND_SUCCESS;
     }
     /* load database for deferred plugin loading */

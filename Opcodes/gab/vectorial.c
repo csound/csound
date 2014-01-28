@@ -1726,6 +1726,7 @@ static int vlimit_set(CSOUND *csound,VLIMIT *p)
       p->vector = ftp->ftable;
       p->elements = (int) *p->ielements;
     }
+    else return NOTOK;
     if (UNLIKELY(p->elements > (int)ftp->flen )) {
       return csound->InitError(csound, Str("vectorop: invalid num of elements"));
     }
@@ -2208,6 +2209,7 @@ static int vseg_set(CSOUND *csound,VSEG *p)
       p->vector = ftp->ftable;
       p->elements = (int) *p->ielements;
     }
+    else return NOTOK;
     if (UNLIKELY( p->elements > (int)ftp->flen ))
       return csound->InitError(csound,
                                Str("vlinseg/vexpseg: invalid num. of elements"));
