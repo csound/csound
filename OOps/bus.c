@@ -968,13 +968,13 @@ int chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
 
 int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
 {
-    int   err, size;
+  int   err;
     int  *lock;
     char *s = ((STRINGDAT *) p->arg)->data;
 
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-    size = csoundGetChannelDatasize(csound, p->iname->data);
+    // size = csoundGetChannelDatasize(csound, p->iname->data);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
 
@@ -998,14 +998,14 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
 
 int chnset_opcode_perf_S(CSOUND *csound, CHNGET *p)
 {
-    int   err, size;
+    int   err;
     int  *lock;
     char *s = ((STRINGDAT *) p->arg)->data;
 
     if ((err=csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                                  CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)))
       return err;
-    size = csoundGetChannelDatasize(csound, p->iname->data);
+    // size = csoundGetChannelDatasize(csound, p->iname->data);
 
     if (s==NULL) return NOTOK;
     if (((STRINGDAT *)p->fp)->data 
