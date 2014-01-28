@@ -149,6 +149,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
     sc.end_table = &sc.scale_table;
 
     O.filetyp = O.outformat = 0;
+    O.heartbeat = 0;
     /* Check arguments */
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
@@ -250,6 +251,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
 
  retry:
     /* Read sound file */
+    if (inputfile == NULL) return -1;
     if (!(infile = SCsndgetset(csound, &sc, inputfile))) {
       csound->Message(csound, Str("%s: error while opening %s"),
                               argv[0], inputfile);
