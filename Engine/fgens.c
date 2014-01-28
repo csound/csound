@@ -2188,7 +2188,7 @@ static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
     char    buf[64];
     va_list args;
 
-    sprintf(buf, Str("ftable %d: "), ff->fno);
+    snprintf(buf, 64, Str("ftable %d: "), ff->fno);
     va_start(args, s);
     csound->ErrMsgV(csound, buf, s, args);
     va_end(args);
@@ -2232,7 +2232,7 @@ static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
     if (!csound->oparms->displays)
       return;
     memset(&dwindow, 0, sizeof(WINDAT));
-    sprintf(strmsg, Str("ftable %d:"), (int) ff->fno);
+    snprintf(strmsg, 64, Str("ftable %d:"), (int) ff->fno);
     dispset(csound, &dwindow, ftp->ftable, (int32) (ff->flen),
                     strmsg, 0, "ftable");
     display(csound, &dwindow);
@@ -2553,13 +2553,13 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
             p->sfname[len] = '\0';
         }
         else
-          strcpy(p->sfname, ff->e.strarg);
+          strncpy(p->sfname, ff->e.strarg, 512);
       }
       else if (filno >= 0 && filno <= csound->strsmax &&
                csound->strsets && csound->strsets[filno])
-        strcpy(p->sfname, csound->strsets[filno]);
+        strncpy(p->sfname, csound->strsets[filno], 512);
       else
-        sprintf(p->sfname, "soundin.%d", filno);   /* soundin.filno */
+        snprintf(p->sfname, 512, "soundin.%d", filno);   /* soundin.filno */
       if (!fmt)
         p->format = csound->oparms->outformat;
       else {
@@ -2819,9 +2819,9 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       else if ((filno= (int32) MYFLT2LRND(ff->e.p[5])) >= 0 &&
                filno <= csound->strsmax &&
                csound->strsets && csound->strsets[filno])
-        strncpy(sfname, csound->strsets[filno], 1023);
+        strncpy(sfname, csound->strsets[filno], 1024);
       else
-        sprintf(sfname, "soundin.%d", filno);   /* soundin.filno */
+        snprintf(sfname, 1024, "soundin.%d", filno);   /* soundin.filno */
     }
     chan  = (int) MYFLT2LRND(ff->e.p[7]);
     if (UNLIKELY(chan < 0)) {

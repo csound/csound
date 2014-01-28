@@ -906,14 +906,14 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       } while (ip->opcod_iobufs);
       if (op)
-        sprintf(buf, Str("INIT ERROR in instr %d (opcode %s): "),
+        snprintf(buf, 512, Str("INIT ERROR in instr %d (opcode %s): "),
                 ip->insno, op->name);
       else
-        sprintf(buf, Str("INIT ERROR in instr %d (subinstr %d): "),
+        snprintf(buf, 512, Str("INIT ERROR in instr %d (subinstr %d): "),
                 ip->insno, csound->ids->insdshead->insno);
     }
     else
-      sprintf(buf, Str("INIT ERROR in instr %d: "), ip->insno);
+      snprintf(buf, 512, Str("INIT ERROR in instr %d: "), ip->insno);
     va_start(args, s);
     csoundErrMsgV(csound, buf, s, args);
     va_end(args);
@@ -934,14 +934,14 @@ int csoundPerfError(CSOUND *csound, INSDS *ip, const char *s, ...)
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       } while (ip->opcod_iobufs);
       if (op)
-        sprintf(buf, Str("PERF ERROR in instr %d (opcode %s): "),
+        snprintf(buf, 512, Str("PERF ERROR in instr %d (opcode %s): "),
                 ip->insno, op->name);
       else
-        sprintf(buf, Str("PERF ERROR in instr %d (subinstr %d): "),
+        snprintf(buf, 512, Str("PERF ERROR in instr %d (subinstr %d): "),
                 ip->insno, ip->insno);
     }
     else
-      sprintf(buf, Str("PERF ERROR in instr %d: "), ip->insno);
+      snprintf(buf, 512, Str("PERF ERROR in instr %d: "), ip->insno);
     va_start(args, s);
     csoundErrMsgV(csound, buf, s, args);
     va_end(args);

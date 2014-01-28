@@ -493,7 +493,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         for(i=0; (unsigned int)  i < devnos; i++) {
           if(devinfo[i].inchannels) {
             strncpy(list[n].device_name,  devinfo[i].name, 63);
-            sprintf(tmp, "dac%d", devinfo[i].indevnum);
+            snprintf(tmp, 64, "dac%d", devinfo[i].indevnum);
             strncpy(list[n].device_id, tmp, 63);
             strncpy(list[n].rt_module, s, 63);
             list[n].max_nchnls = devinfo[i].inchannels;
@@ -506,7 +506,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         for(i=0;(unsigned int) i < devnos; i++){
           if(devinfo[i].outchannels) {
             strncpy(list[n].device_name,  devinfo[i].name, 63);
-            sprintf(tmp, "adc%d", devinfo[i].outdevnum);
+            snprintf(tmp, 64, "adc%d", devinfo[i].outdevnum);
             strncpy(list[n].device_id, tmp, 63);
             strncpy(list[n].rt_module, s, 63);
             list[n].max_nchnls = devinfo[i].outchannels;

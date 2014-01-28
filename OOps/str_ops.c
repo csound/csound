@@ -401,7 +401,7 @@ sprintf_opcode_(CSOUND *csound,
             maxChars += ((STRINGDAT*)parm)->size;
             outstring = str->data + offs;
           }
-          n = sprintf(outstring, strseg, ((STRINGDAT*)parm)->data);
+          n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
           break;
         default:
           return StrOp_ErrMsg(p, "invalid format string");
@@ -438,14 +438,14 @@ sprintf_opcode_(CSOUND *csound,
 
 int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
-  if (p->r->data == NULL) {
-        int size = p->sfmt->size+ 10*((int) p->INOCOUNT);
-        p->r->data = mcalloc(csound, size);
-        p->r->size = size;
+    if (p->r->data == NULL) {
+      int size = p->sfmt->size+ 10*((int) p->INOCOUNT);
+      p->r->data = mcalloc(csound, size);
+      p->r->size = size;
     }
-  if (UNLIKELY(sprintf_opcode_(csound, p, p->r,
-                               (char*) p->sfmt->data, &(p->args[0]),
-                        (int) p->INOCOUNT - 1,0) == NOTOK)) {
+    if (UNLIKELY(sprintf_opcode_(csound, p, p->r,
+                                  (char*) p->sfmt->data, &(p->args[0]),
+                                  (int) p->INOCOUNT - 1,0) == NOTOK)) {
       ((char*) p->r->data)[0] = '\0';
       return NOTOK;
     }
@@ -884,7 +884,7 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
     s = &(buf[0]);
     switch (opt) {
     case 1:             /* maximum length of variable */
-      sprintf(&(buf[0]), "%d", (int) p->Sdst->size - 1);
+      snprintf(&(buf[0]), 32, "%d", (int) p->Sdst->size - 1);
       break;
     case 2:             /* input sound file name */
       s = (csound->oparms->sfread && !csound->initonly ?
@@ -1032,5 +1032,36 @@ int str_from_url(CSOUND *csound, STRCPY_OP *p)
       corfile_rm(&mm);
       return OK;
     }
+}
+#endif
+
+#ifndef HAVE_STLCAT
+/* Direct from BSD sources */
+size_t
+strlcat(char *dst, const char *src, size_t siz)
+{
+    char *d = dst;
+    const char *s = src;
+    size_t n = siz;
+    size_t dlen;
+
+    /* Find the end of dst and adjust bytes left but don't go past end */
+    while (n-- != 0 && *d != '\0')
+      d++;
+    dlen = d - dst;
+    n = siz - dlen;
+
+    if (n == 0)
+      return (dlen + strlen(s));
+    while (*s != '\0') {
+      if (n != 1) {
+        *d++ = *s;
+        n--;
+      }
+      s++;
+    }
+    *d = '\0';
+
+    return (dlen + (s - src));	/* count does not include NUL */
 }
 #endif

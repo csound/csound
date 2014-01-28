@@ -231,7 +231,7 @@ static CS_NOINLINE int rtJack_ListPorts(CSOUND *csound,
     for (nPorts = 0; portNames[nPorts] != NULL; nPorts++)
       ;
     qsort((void*) portNames, (size_t) nPorts, sizeof(char*), portname_cmp_func);
-    sprintf(&(clientNameBuf[0]), "%s:", clientName);
+    snprintf(&(clientNameBuf[0]), MAX_NAME_LEN + 2, "%s:", clientName);
     len = strlen(&(clientNameBuf[0]));
     prvPortName[0] = (char) 0;
     maxChn = nChn = 0;
@@ -372,7 +372,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
     if (p->inputEnabled) {
       /* register input ports */
       for (i = 0; i < p->nChannels; i++) {
-        sprintf(&(portName[0]), "%s%d", &(p->inputPortName[0]), i + 1);
+        snprintf(portName, MAX_NAME_LEN + 4"%s%d", p->inputPortName, i + 1);
         p->inPorts[i] = jack_port_register(p->client, &(portName[0]),
                                            JACK_DEFAULT_AUDIO_TYPE,
                                            flags | JackPortIsInput, 0UL);
@@ -383,7 +383,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
     if (p->outputEnabled) {
       /* register output ports */
       for (i = 0; i < p->nChannels; i++) {
-        sprintf(&(portName[0]), "%s%d", &(p->outputPortName[0]), i + 1);
+        snprintf(portName, MAX_NAME_LEN + 4, "%s%d", p->outputPortName, i + 1);
         p->outPorts[i] = jack_port_register(p->client, &(portName[0]),
                                             JACK_DEFAULT_AUDIO_TYPE,
                                             flags | JackPortIsOutput, 0UL);
@@ -413,7 +413,7 @@ static void openJackStreams(RtJackGlobals *p)
     if (UNLIKELY(p->sampleRate < 1000 || p->sampleRate > 768000))
       rtJack_Error(csound, -1, Str("invalid sample rate"));
     if (UNLIKELY(p->sampleRate != (int) jack_get_sample_rate(p->client))) {
-      sprintf(&(buf[0]), Str("sample rate %d does not match "
+      snprintf(&(buf[0]), 256, Str("sample rate %d does not match "
                              "JACK sample rate %d"),
               p->sampleRate, (int) jack_get_sample_rate(p->client));
       rtJack_Error(p->csound, -1, &(buf[0]));
@@ -508,7 +508,7 @@ static void openJackStreams(RtJackGlobals *p)
       if (!isalpha(dev_final[0])) dev_final++;
 
       for (i = 0; i < p->nChannels; i++) {
-        sprintf(sp, "%d", i + 1);
+        snprintf(sp, 128-(dev-sp), "%d", i + 1);
         if (UNLIKELY(jack_connect(p->client, dev_final,
                                   jack_port_name(p->inPorts[i])) != 0)) {
           rtJack_Error(csound, -1, Str("error connecting input ports"));
@@ -539,7 +539,7 @@ static void openJackStreams(RtJackGlobals *p)
       sp = strchr(dev_final, '\0');
       if(!isalpha(dev_final[0])) dev_final++;
       for (i = 0; i < p->nChannels; i++) {
-        sprintf(sp, "%d", i + 1);
+        snprintf(sp, 128-(dev-sp), "%d", i + 1);
         if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
                          dev_final) != 0) {
           rtJack_Error(csound, -1, Str("error connecting output ports"));

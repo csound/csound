@@ -112,11 +112,11 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
       }
       else { /*make sure p3s (table length) are ints */
         char temp[256];
-        sprintf(temp,"%d ",(int32)bp->p3val);   /* put p3val  */
+        snprintf(temp,256,"%d ",(int32)bp->p3val);   /* put p3val  */
         fpnum(csound,temp, lincnt, pcnt, sco);
         corfile_putc(SP, sco);
         if (first) {
-          sprintf(temp,"%d ",(int32)bp->newp3);   /* put newp3  */
+          snprintf(temp,256,"%d ",(int32)bp->newp3);   /* put newp3  */
           fpnum(csound,temp, lincnt, pcnt, sco);
         }
         while ((c = *p++) != SP && c != LF)
