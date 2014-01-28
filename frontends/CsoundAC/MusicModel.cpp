@@ -254,7 +254,6 @@ namespace csound
       postPossible = false;
       const char *audiosystem = argsmap["--audio"].c_str();
       const char *devicename = argsmap["--device"].c_str();
-      const char *temp_path = std::getenv("TEMP");
       std::sprintf(command,
                    "csound --midi-key=4 --midi-velocity=5 -m195 -+rtaudio=%s -o %s",
                    audiosystem, devicename);
