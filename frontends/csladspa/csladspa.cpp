@@ -114,6 +114,7 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   result = csound->Compile(5,cmdl);
   spout = csound->GetSpout();
   spin  = csound->GetSpin();
+  memset(ctl, 0, sizeof(LADSPA_Data *)*MAXPORTS);
 
   delete[] cmdl;
   delete[]  sr;
@@ -436,7 +437,7 @@ unsigned int CountCSD(char **csdnames)
 #endif
     if(indx!=string::npos){
       dip = opendir(path.substr(0,indx).c_str());
-      strcpy(ladspa_path, path.substr(0,indx).c_str());
+      strncpy(ladspa_path, path.substr(0,indx).c_str(), 1024);
     }
     else dip = opendir(ladspa_path);
   }
@@ -450,7 +451,7 @@ unsigned int CountCSD(char **csdnames)
       string validExt = trim(temp.substr(indx+1));
       if(!validExt.compare("csd"))
         {
-          if(ladspa_path != NULL) {
+          if(strlen(ladspa_path) != 0) {
             name = ladspa_path;
             name.append("/");
             name.append(temp);
