@@ -596,8 +596,8 @@ void *thread_func(void *p){
 
       orc = (char *) malloc(size+1);
       fseek(fp, 0, SEEK_SET);
-      fread(orc,1,size,fp);
-      csoundCompileOrc(pp->csound, orc);
+      if(fread(orc,1,size,fp) > 0)
+        csoundCompileOrc(pp->csound, orc);
       fclose(fp);
       free(orc);
     } else post("csound6~: could not open %s \n", pp->orc);

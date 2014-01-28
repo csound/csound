@@ -583,17 +583,17 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
           char* outype = resolve_opcode_get_outarg(csound, opentries,
                                                          argString);
 
-          // free(argString);
-
           if (outype == NULL) {
             return NULL;
           }
           outarg = create_out_arg(csound, outype, typeTable);
 
         }
-
         break;
-
+	/* it should not get here, but if it does,
+           return NULL */
+    default:
+      return NULL;
     }
     opTree = create_opcode_token(csound, op);
     if (root->value) opTree->value->optype = root->value->optype;

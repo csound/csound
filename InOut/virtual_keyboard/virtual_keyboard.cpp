@@ -401,6 +401,7 @@ static int fl_vkeybd(CSOUND *csound, FLVKEYBD *p) {
 
     keyboardWidgets[csound] = widget;
 
+    delete[] mapFileName;
     return OK;
 }
 
