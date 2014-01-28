@@ -832,7 +832,10 @@ public:
     ((pycbdata *)pydata)->mfunc = NULL;
     ((pycbdata *)pydata)->messageBufferIndex = 0;
     csoundSetHostData(csound, this);
+    #else
+    pydata = NULL;
     #endif
+    
   }
   Csound(void *hostData)
   {
@@ -842,6 +845,8 @@ public:
     ((pycbdata *)pydata)->mfunc = NULL;
     ((pycbdata *)pydata)->messageBufferIndex = 0;
     csoundSetHostData(csound, this);
+    #else
+    pydata = NULL;
     #endif
   }
   // destructor
