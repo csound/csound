@@ -1677,7 +1677,7 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
       csoundLockMutex(csound->API_lock);
       do {
         if (UNLIKELY((done = sensevents(csound)))){
-          csoundLockMutex(csound->API_lock);
+          csoundUnlockMutex(csound->API_lock);
           return done;
         }
       } while (kperf(csound));
