@@ -71,17 +71,17 @@ char *create_out_arg(CSOUND *csound, char* outype, TYPE_TABLE* typeTable)
     char* s = (char *)csound->Malloc(csound, 16);
 
     switch(*outype) {
-    case 'a': sprintf(s, "#a%d", csound->acount++); break;
+    case 'a': snprintf(s, 16, "#a%d", csound->acount++); break;
     case 'K':
-    case 'k': sprintf(s, "#k%d", csound->kcount++); break;
-    case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
-    case 'b': sprintf(s, "#b%d", csound->bcount++); break;
-    case 'f': sprintf(s, "#f%d", csound->tcount++); break;
-    case 't': sprintf(s, "#k%d", csound->tcount++); break;
-    case 'S': sprintf(s, "#S%d", csound->tcount++); break;
-    case '[': sprintf(s, "#%c%d[]", outype[1], csound->tcount++);
+    case 'k': snprintf(s, 16, "#k%d", csound->kcount++); break;
+    case 'B': snprintf(s, 16, "#B%d", csound->Bcount++); break;
+    case 'b': snprintf(s, 16, "#b%d", csound->bcount++); break;
+    case 'f': snprintf(s, 16, "#f%d", csound->tcount++); break;
+    case 't': snprintf(s, 16, "#k%d", csound->tcount++); break;
+    case 'S': snprintf(s, 16, "#S%d", csound->tcount++); break;
+    case '[': snprintf(s, 16, "#%c%d[]", outype[1], csound->tcount++);
               break; // piggyback on tcount
-    default:  sprintf(s, "#i%d", csound->icount++); break;
+    default:  snprintf(s, 16, "#i%d", csound->icount++); break;
     }
 
     if (*outype == '[') {
@@ -122,7 +122,7 @@ char *set_expression_type(CSOUND *csound, char * op, char arg1, char arg2,
 char * get_boolean_arg(CSOUND *csound, int type)
 {
     char* s = (char *)csound->Malloc(csound, 8);
-    sprintf(s, "#%c%d", type?'B':'b',csound->Bcount++);
+    snprintf(s, 8, "#%c%d", type?'B':'b',csound->Bcount++);
 
     return s;
 }
@@ -336,7 +336,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     arg2 = get_arg_type2(csound, d, typeTable);
     ans  = get_arg_type2(csound, b, typeTable);
 
-    sprintf(condInTypes, "%s%s%s", ans, arg1, arg2);
+    snprintf(condInTypes, 64, "%s%s%s", ans, arg1, arg2);
 
     OENTRIES* entries = find_opcode2(csound, ":cond");
     outype = resolve_opcode_get_outarg(csound, entries, condInTypes);
@@ -365,7 +365,7 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
     char* argString = mcalloc(csound, 80);
 
     strncpy(argString, leftArgType, 80);
-    strncat(argString, rightArgType, 80 - strlen(leftArgType));
+    strlcat(argString, rightArgType, 80);
     outType = resolve_opcode_get_outarg(csound, opentries, argString);
     if(outType == NULL) return NULL;
 
@@ -775,7 +775,7 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
     char *label = (char *)csound->Calloc(csound, 20);
     ORCTOKEN *token;
 
-    sprintf(label, "__synthetic_%ld", (long)count);
+    snprintf(label,20, "__synthetic_%ld", (long)count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
     token = make_token(csound, label);
@@ -787,7 +787,7 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
 {
     char *label = (char *)csound->Calloc(csound, 20);
 
-    sprintf(label, "__synthetic_%ld:", (long)count);
+    snprintf(label, 20, "__synthetic_%ld:", (long)count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
     return make_leaf(csound, -1, 0, LABEL_TOKEN, make_label(csound, label));

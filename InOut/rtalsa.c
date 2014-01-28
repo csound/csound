@@ -547,7 +547,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
              even though list[n].device_name is 64 chars long */
           strncpy(list[n].device_name, temp, 10);
           list[n].device_name[10] = '\0';
-          sprintf(tmp, "%shw:%i,%i", isOutput ? "dac:" : "adc:", card, num);
+          snprintf(tmp, 64, "%shw:%i,%i", isOutput ? "dac:" : "adc:", card, num);
           strncpy(list[n].device_id, tmp, 16);
           list[n].max_nchnls = -1;
           list[n].isOutput = isOutput;
@@ -790,7 +790,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
       card = -1;
       if (snd_card_next(&card) >= 0 && card >= 0) {
         do {
-          sprintf(name, "hw:%d", card);
+          snprintf(name, 32, "hw:%d", card);
           if (snd_ctl_open(&ctl, name, 0) >= 0) {
             device = -1;
             for (;;) {
@@ -800,7 +800,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
               if (device < 0) {
                 break;
               }
-              sprintf(name, "hw:%d,%d", card, device);
+              snprintf(name, 32, "hw:%d,%d", card, device);
               newdev = open_midi_device(csound, name);
               if (newdev != NULL) {   /* Device opened successfully */
                 numdevs++;
@@ -1568,7 +1568,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
       int device;
       int err;
 
-      sprintf(name, "hw:%d", card);
+      snprintf(name, 32, "hw:%d", card);
       if ((err = snd_ctl_open(&ctl, name, 0)) < 0) {
         csound->ErrorMsg(csound, Str("cannot open control for card %d: %s"),
                          card, snd_strerror(err));
@@ -1630,7 +1630,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
               if (list) {
                 char devid[32];
                 strncpy(list[count].device_name, name, 31);
-                sprintf(devid, "hw:%d,%d", card, device);
+                snprintf(devid, 32, "hw:%d,%d", card, device);
                 strncpy(list[count].device_id, devid, 63);
                 strncpy(list[count].interface_name, devid, 31);
                 strncpy(list[count].midi_module, "alsaraw", 8);
@@ -1642,7 +1642,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
               if (list) {
                 char devid[64];
                 strncpy(list[count].device_name, name, 63);
-                sprintf(devid, "hw:%d,%d", card, device);
+                snprintf(devid, 64, "hw:%d,%d", card, device);
                 strncpy(list[count].device_id, devid, 63);
                 strncpy(list[count].interface_name, devid, 31);
                 strncpy(list[count].midi_module, "alsaraw", 8);
@@ -1656,7 +1656,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
               if (list) {
                 char devid[64];
                 strncpy(list[count].device_name, sub_name, 63);
-                sprintf(devid, "hw:%d,%d,%d", card, device,sub);
+                snprintf(devid, 64, "hw:%d,%d,%d", card, device,sub);
                 strncpy(list[count].device_id, devid, 63);
                 strncpy(list[count].midi_module, "alsaraw", 8);
                 list[count].isOutput = isOutput;
@@ -1667,7 +1667,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
               if (list) {
                 char devid[64];
                 strncpy(list[count].device_name, sub_name, 63);
-                sprintf(devid, "hw:%d,%d,%d", card, device,sub);
+                snprintf(devid, 64, "hw:%d,%d,%d", card, device,sub);
                 strncpy(list[count].device_id, devid, 63);
                 strncpy(list[count].midi_module, "alsaraw", 8);
                 list[count].isOutput = isOutput;
@@ -1743,7 +1743,7 @@ int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
                     snd_seq_port_info_get_name(pinfo), 63);
             strncpy(list[numdevs].interface_name,
                     snd_seq_client_info_get_name(cinfo), 63);
-            sprintf(list[numdevs].device_id, "hw:%d,%d",
+            snprintf(list[numdevs].device_id, 64, "hw:%d,%d",
                     snd_seq_client_info_get_client(cinfo),
                     snd_seq_port_info_get_port(pinfo));
           }

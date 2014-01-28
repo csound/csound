@@ -634,7 +634,7 @@ static int nested_repeat(CSOUND *csound)                /* gab A9*/
       {
         char buffer[128];
         memset(buffer, '\0', 128);
-        sprintf(buffer, "%d", i);
+        snprintf(buffer, 128, "%d", i);
 #ifdef MACDEBUG
         csound->DebugMsg(csound,"%s(%d) new i = %s\n",
                          __FILE__, __LINE__,  buffer);
@@ -691,7 +691,7 @@ static int do_repeat(CSOUND *csound)
         corfile_seek(STA(repeat_mm)->body, n, SEEK_CUR);
         {
           char buffer[128];
-          sprintf(buffer, "%d", i);
+          snprintf(buffer, 128, "%d", i);
           corfile_reset(STA(repeat_mm)->body);
           corfile_puts(buffer, STA(repeat_mm)->body);
           corfile_rewind(STA(repeat_mm)->body);
