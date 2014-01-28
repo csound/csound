@@ -119,10 +119,12 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   delete[] cmdl;
   delete[]  sr;
   delete[]  kr;
+  delete paux;
 }
 
 CsoundPlugin::~CsoundPlugin(){
   delete csound;
+  delete[] ctlchn;
   delete[] inp;
   delete[] outp;
 }
@@ -392,13 +394,16 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
         desc->ImplementationData = (void *) paux;
         delete[] str;
         cerr << "PLUGIN LOADED\n";
-
         return desc;
       }
+      delete[] str;
     }
   // otherwise we just delete the empty descriptors
   // and return NULL
   delete desc;
+  delete[] PortNames;
+  delete paux;
+  delete[] ctlchn;
   delete[] PortDescriptors;
   delete[] PortRangeHints;
   cerr << "PLUGIN NOT LOADED: probably missing csLADSPA section\n";
@@ -465,6 +470,7 @@ unsigned int CountCSD(char **csdnames)
           i++;
         }
     }
+  closedir(dip);
   return i;
 }
 
@@ -489,6 +495,7 @@ const LADSPA_Descriptor *ladspa_descriptor(unsigned long Index)
   // delete the CSD list
   for(unsigned int i=0; i < csds; i++) delete[] csdnames[i];
 
+  delete[] csdnames;
   if(descriptor == NULL)
     cerr << "no more csLADSPA plugins\n";
   return descriptor;
