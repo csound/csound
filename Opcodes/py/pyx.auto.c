@@ -495,7 +495,7 @@ static int pyassign_krate(CSOUND *csound, PYASSIGN *p)
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
        *py_initialize_done == 0)
       return NOTOK;
-    sprintf(source, "%s = %f", (char*) p->string->data, *p->value);
+    snprintf(source, 1024, "%s = %f", (char*) p->string->data, *p->value);
 
     result = run_statement_in_given_context(source, 0);
     if (result == NULL) {
@@ -515,7 +515,7 @@ static int pyassigni_irate(CSOUND *csound, PYASSIGN *p)
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
        *py_initialize_done == 0)
       return NOTOK;
-    sprintf(source, "%s = %f", (char*) p->string->data, *p->value);
+    snprintf(source, 1024, "%s = %f", (char*) p->string->data, *p->value);
 
     result = run_statement_in_given_context(source, 0);
     if (result == NULL) {
@@ -546,7 +546,7 @@ static int pylassign_krate(CSOUND *csound, PYASSIGN *p)
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
        *py_initialize_done == 0)
       return NOTOK;
-    sprintf(source, "%s = %f", (char*) p->string->data, *p->value);
+    snprintf(source, 1024, "%s = %f", (char*) p->string->data, *p->value);
 
     result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
@@ -567,7 +567,7 @@ static int pylassigni_irate(CSOUND *csound, PYASSIGN *p)
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
 
-    sprintf(source, "%s = %f", (char*) p->string->data, *p->value);
+    snprintf(source, 1024, "%s = %f", (char*) p->string->data, *p->value);
 
     result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
@@ -589,7 +589,7 @@ static int pyassignt_krate(CSOUND *csound, PYASSIGNT *p)
     if (!*p->trigger)
       return OK;
 
-    sprintf(source, "%s = %f", (char*) p->string->data, *p->value);
+    snprintf(source, 1024, "%s = %f", (char*) p->string->data, *p->value);
 
     result = run_statement_in_given_context(source, 0);
     if (result == NULL) {
@@ -622,7 +622,7 @@ static int pylassignt_krate(CSOUND *csound, PYASSIGNT *p)
     if (!*p->trigger)
       return OK;
 
-    sprintf(source, "%s = %f", (char*) p->string->data, *p->value);
+    snprintf(source, 1024, "%s = %f", (char*) p->string->data, *p->value);
 
     result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {

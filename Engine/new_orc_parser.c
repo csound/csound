@@ -105,10 +105,10 @@ void add_include_udo_dir(CORFIL *xx)
           //printf("**  name=%s n=%d\n", fname, n);
           if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
             strcpy(buff, "#include \"");
-            strncat(buff, dir, 1024); buff[1023]= '\0';
-            strncat(buff, "/", 1024); buff[1023]= '\0';
-            strncat(buff, fname, 1024); buff[1023]= '\0';
-            strncat(buff, "\"\n", 1024); buff[1023]= '\0';
+            strlcat(buff, dir, 1024); 
+            strlcat(buff, "/", 1024); 
+            strlcat(buff, fname, 1024);
+            strlcat(buff, "\"\n", 1024);
             if (strlen(buff)>768) {
               corfile_preputs(buff, xx);
               buff[0] ='\0';
@@ -116,7 +116,7 @@ void add_include_udo_dir(CORFIL *xx)
           }
         }
         closedir(udo);
-        strncat(buff, "###\n", 1024);
+        strlcat(buff, "###\n", 1024);
         corfile_preputs(buff, xx);
       }
     }
@@ -148,10 +148,10 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         if (csound->orchname==NULL ||
             csound->orchname[0]=='\0') csound->orchname = csound->csdname;
         /* We know this is the start so stack is empty so far */
-        sprintf(bb, "#source %d\n",
+        snprintf(bb, 80, "#source %d\n",
                 qq.lstack[0] = file_to_int(csound, csound->orchname));
         corfile_puts(bb, csound->expanded_orc);
-        sprintf(bb, "#line %d\n", csound->orcLineOffset);
+        snprintf(bb, 80, "#line %d\n", csound->orcLineOffset);
         corfile_puts(bb, csound->expanded_orc);
       }
       else {

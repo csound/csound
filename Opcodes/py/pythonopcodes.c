@@ -49,14 +49,15 @@ static void format_call_statement2(char *statement, char *callable,
 
     statement[0] = '\0';
     if (argc-skip > 0) {
-      sprintf(statement, "%s(%0.6f", callable, *(argv[skip]));
+      snprintf(statement, 1024, "%s(%0.6f", callable, *(argv[skip]));
       for (i = skip+1; i < argc; ++i) {
-        sprintf(statement + strlen(statement), ", %f", *(argv[i]));
+        sprintf(statement + strlen(statement), 1024 - strlen(statement),
+                ", %f", *(argv[i]));
       }
-      strcat(statement, ")");
+      strlcat(statement, ")", 1024);
     }
     else {
-      sprintf(statement, "%s()", callable);
+      snprintf(statement, 1024, "%s()", callable);
     }
 
 }
@@ -68,14 +69,15 @@ static void format_call_statement(char *statement, char *callable,
 
     statement[0] = '\0';
     if (argc > 0) {
-      sprintf(statement, "%s(%0.6f", callable, *(argv[0]));
+      snprintf(statement, 1024, "%s(%0.6f", callable, *(argv[0]));
       for (i = 1; i < argc - skip; ++i) {
-        sprintf(statement + strlen(statement), ", %f", *(argv[i]));
+        snprintf(statement + strlen(statement), 1024-strlen(statement),
+                 ", %f", *(argv[i]));
       }
-      strcat(statement, ")");
+      strlcat(statement, ")", 1024);
     }
     else {
-      sprintf(statement, "%s()", callable);
+      snprintf(statement, 1024, "%s()", callable);
     }
 }
 

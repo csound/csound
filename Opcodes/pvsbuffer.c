@@ -78,7 +78,7 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     while ((phandle = (FSIG_HANDLE **)csound->QueryGlobalVariable(csound,varname))
           != NULL)
       if (p->handle == *phandle) break;
-      else sprintf(varname, "::buffer%d", ++i);
+      else snprintf(varname, 32, "::buffer%d", ++i);
 
     if (phandle == NULL) {
      csound->CreateGlobalVariable(csound, varname, sizeof(FSIG_HANDLE *));
@@ -140,7 +140,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     FSIG_HANDLE *handle=NULL, **phandle;
     char varname[32];
 
-    sprintf(varname, "::buffer%d", (int)(*p->hptr));
+    snprintf(varname, 32, "::buffer%d", (int)(*p->hptr));
     /* csound->Message(csound, "%s:\n", varname); */
     phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
     if (phandle == NULL)
@@ -190,7 +190,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
    if (*p->hptr != p->optr) {
      char varname[32];
-     sprintf(varname, "::buffer%d", (int)(*p->hptr));
+     snprintf(varname, 32, "::buffer%d", (int)(*p->hptr));
      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
      if (phandle == NULL)
        csound->PerfError(csound, p->h.insdshead,
@@ -261,7 +261,7 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 
     if (*p->hptr != p->optr){
       char varname[32];
-      sprintf(varname, "::buffer%d", (int)(*p->hptr));
+      snprintf(varname, 32, "::buffer%d", (int)(*p->hptr));
       phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
       if (phandle == NULL)
         csound->PerfError(csound, p->h.insdshead,

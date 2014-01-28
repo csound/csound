@@ -101,7 +101,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
         if ((p = strrchr(lbuf, '.')) != NULL)
           *p = '\0';
 #endif
-        strncat(lbuf, ext, nBytes-strlen(lbuf)-1);
+        strlcat(lbuf, ext, nBytes);
       }
 #ifdef __MACH__
       /* on MacOS X, store temporary files in /tmp instead of /var/tmp */
@@ -676,7 +676,7 @@ static int checkLicence(CSOUND *csound, FILE *unf)
       csoundMessage(csound, p);
       len += strlen(p);
       licence = mrealloc(csound, licence, len);
-      strncat(licence, p, len);
+      strlcat(licence, p, len);
     }
     mfree(csound, licence);
     csoundErrorMsg(csound, Str("Missing end tag </CsLicence>"));
