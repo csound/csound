@@ -169,7 +169,7 @@ static void print_input_backtrace(CSOUND *csound, int needLFs,
       switch(lastsource) {
       case 0: m = Str("  included from line %d of macro %s%s"); break;
       case 1: m = Str("  called from line %d of macro %s%s"); break;
-      default:
+        //default:
       case 2: m = Str("  in line %d of macro %s%s"); break;
       }
       msgfunc(csound, m, (lastsource == 0 ? curr->line - 1 : curr->line),
