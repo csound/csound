@@ -120,7 +120,7 @@ SCsndgetset(CSOUND *csound, SOUNDIN **pp, char *inputfile)
     *pp = p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
-    strcpy(p->sfname, inputfile);
+    strncpy(p->sfname, inputfile, MAXSNDNAME-1);
     if ((infd = csound->sndgetset(csound, p)) == 0) /*open sndfil, do skiptime*/
       return(0);
     p->getframes = p->framesrem;
