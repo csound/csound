@@ -47,7 +47,7 @@ void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *ptable){
      we need to protect it */
   if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
   len = csoundGetTable(csound, &ftab, table);
-  memcpy(ptable, ftab, len*sizeof(MYFLT));
+  memcpy(ptable, ftab, (size_t) (len*sizeof(MYFLT)));
   if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
   csoundUnlockMutex(csound->API_lock);
 }
@@ -60,7 +60,7 @@ void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *ptable){
      we need to protect it */
  if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
   len = csoundGetTable(csound, &ftab, table);
-  memcpy(ftab, ptable, len*sizeof(MYFLT));
+  memcpy(ftab, ptable, (size_t) (len*sizeof(MYFLT)));
   if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
   csoundUnlockMutex(csound->API_lock);
 }

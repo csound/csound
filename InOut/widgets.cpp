@@ -1660,7 +1660,7 @@ extern "C" {
       if (UNLIKELY(s2 == NULL))
         return csound->InitError(csound,
                                  Str("FLsavesnap: cannot open file"));
-      strncpy(s, s2, MAXNAME);
+      strncpy(s, s2, MAXNAME-1);
       csound->Free(csound, s2);
       filename = s;
 
@@ -1717,7 +1717,7 @@ extern "C" {
       if (UNLIKELY(s2 == NULL))
         return csound->InitError(csound,
                                  Str("FLloadsnap: cannot open file"));
-      strncpy(s, s2, MAXNAME);
+      strncpy(s, s2, MAXNAME-1);
       csound->Free(csound, s2);
       filename = s;
 
@@ -1732,7 +1732,7 @@ extern "C" {
         ST(snapshots).resize(group+1, snapvec_init);
       while (!(file.eof())) {
         char buf[MAXNAME];
-        file.getline(buf,MAXNAME);
+        file.getline(buf,MAXNAME-1);
 
         stringstream sbuf;
         sbuf << buf;
@@ -3564,10 +3564,10 @@ extern "C" {
       char s[MAXNAME];
       bool plastic = false;
       if (istring)
-        strncpy(s, ((STRINGDAT*) p->names)->data, MAXNAME);
+        strncpy(s, ((STRINGDAT*) p->names)->data, MAXNAME-1);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-        strncpy(s, csound->GetStrsets(csound,(long) *p->names), MAXNAME);
+        strncpy(s, csound->GetStrsets(csound,(long) *p->names), MAXNAME-1);
       }
       string tempname(s);
       stringstream sbuf;
@@ -4690,10 +4690,10 @@ extern "C" {
       char s[MAXNAME];
       bool plastic = false;
       if (istring)
-        strncpy(s, ((STRINGDAT *)p->names)->data, MAXNAME);
+        strncpy(s, ((STRINGDAT *)p->names)->data, MAXNAME-1);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-        strncpy(s, csound->GetStrsets(csound,(long) *p->names), MAXNAME);
+        strncpy(s, csound->GetStrsets(csound,(long) *p->names), MAXNAME-1);
       }
       string tempname(s);
       stringstream sbuf;
@@ -4914,10 +4914,10 @@ extern "C" {
       char s[MAXNAME];
       bool plastic = false;
       if (istring)
-        strncpy(s, ((STRINGDAT*) p->names)->data, MAXNAME);
+        strncpy(s, ((STRINGDAT*) p->names)->data, MAXNAME-1);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-        strncpy(s, csound->GetStrsets(csound,(long) *p->names), MAXNAME);
+        strncpy(s, csound->GetStrsets(csound,(long) *p->names), MAXNAME-1);
       }
       string tempname(s);
       stringstream sbuf;
@@ -5104,10 +5104,10 @@ extern "C" {
       char s[MAXNAME];
       bool plastic = false;
       if (istring)
-        strncpy(s, ((STRINGDAT*) p->names)->data, MAXNAME);
+        strncpy(s, ((STRINGDAT*) p->names)->data, MAXNAME-1);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-        strncpy(s, csound->GetStrsets(csound,(long) *p->names), MAXNAME);
+        strncpy(s, csound->GetStrsets(csound,(long) *p->names), MAXNAME-1);
       }
       string tempname(s);
       stringstream sbuf;
