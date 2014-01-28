@@ -456,7 +456,7 @@ InitScaleTable(MIXER_GLOBALS *pp, int i)
       newpoint->x1 = (int) (x*samplepert);
       newpoint->y1 = y;
       if (newpoint->x1 == newpoint->x0) {
-        MYFLT div = (MYFLT)(tt->x1 - tt->x0)
+        MYFLT div = (MYFLT)(tt->x1 - tt->x0);
         tt->y1 = y;
         if(div)
           tt->yr = (y - tt->y0)/div;
@@ -528,7 +528,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     p->analonly = 1;
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
-    strcpy(p->sfname, ddd->name);
+    strncpy(p->sfname, ddd->name, MAXSNDNAME-1);
     /* open sndfil, do skiptime */
     if (UNLIKELY((infd = csound->sndgetset(csound, p)) == NULL))
       return NULL;
