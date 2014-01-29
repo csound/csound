@@ -465,7 +465,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
         default:
           {
             char errmsg[256];
-            sprintf(errmsg,Str("unrecognised flag -%c"), *--s);
+            snprintf(errmsg,256,Str("unrecognised flag -%c"), *--s);
             lpdieu(csound, errmsg);
           }
         }
