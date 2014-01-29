@@ -65,7 +65,7 @@ static inline MYFLT vec_length(CART_VEC v1)
 static MYFLT *create_ls_table(CSOUND *csound, size_t cnt, int ind)
 {
     char name[24];
-    sprintf(name, "vbap_ls_table_%d", ind);
+    snprintf(name, 24, "vbap_ls_table_%d", ind);
     csound->DestroyGlobalVariable(csound, name);
     if (UNLIKELY(csound->CreateGlobalVariable(csound, name,
                                               cnt * sizeof(MYFLT)) != 0)) {

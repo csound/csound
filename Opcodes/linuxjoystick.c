@@ -68,9 +68,9 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
         return OK;
       }
       stick->dev = (int)MYFLT2LRND(*stick->kdev);
-      sprintf(device, "/dev/js%i", stick->dev);
+      snprintf(device, 256, "/dev/js%i", stick->dev);
       if ((stick->devFD = open(device, O_RDONLY, O_NONBLOCK)) < 0) {
-        sprintf(device, "/dev/input/js%i", stick->dev);
+        snprintf(device, 256, "/dev/input/js%i", stick->dev);
         stick->devFD = open(device, O_RDONLY, O_NONBLOCK);
       }
       if (stick->devFD > 0) {

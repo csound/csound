@@ -532,14 +532,14 @@ int spdspset(CSOUND *csound, SPECDISP *p)
       SPECDAT *specp = p->wsig;
       DOWNDAT *downp = specp->downsrcp;
       if (downp->lofrq > FL(5.0)) {
-        sprintf(strmsg,
+        snprintf(strmsg, 256,
                 Str("instr %d %s, dft (%s), %ld octaves (%d - %d Hz):"),
                 (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
                 outstring[specp->dbout],
                 downp->nocts, (int)downp->lofrq, (int)downp->hifrq);
       }
       else {                            /* more detail if low frequency  */
-        sprintf(strmsg,
+        snprintf(strmsg, 256,
                 Str("instr %d %s, dft (%s), %ld octaves (%3.1f - %3.1f Hz):"),
                 (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
                 outstring[specp->dbout],

@@ -51,7 +51,7 @@ static void format_call_statement2(char *statement, char *callable,
     if (argc-skip > 0) {
       snprintf(statement, 1024, "%s(%0.6f", callable, *(argv[skip]));
       for (i = skip+1; i < argc; ++i) {
-        sprintf(statement + strlen(statement), 1024 - strlen(statement),
+        snprintf(statement + strlen(statement), 1024 - strlen(statement),
                 ", %f", *(argv[i]));
       }
       strlcat(statement, ")", 1024);
