@@ -252,7 +252,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     /* open sndfil, do skiptime */
     if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
                                     &input_dur, &sr, channel)) == NULL) {
-      sprintf(err_msg, 512, Str("error while opening %s"), infilnam);
+      snprintf(err_msg, 512, Str("error while opening %s"), infilnam);
       return quit(csound, err_msg);
     }
     sr = (MYFLT)p->sr;
