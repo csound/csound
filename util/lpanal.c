@@ -523,7 +523,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
                                     &input_dur, &sr, channel)) == NULL) {
       char errmsg[256];
-      sprintf(errmsg,Str("error while opening %s"), infilnam);
+      snprintf(errmsg,256,Str("error while opening %s"), infilnam);
       quit(csound, errmsg);
     }
 

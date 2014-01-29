@@ -209,7 +209,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
           case 'n':  FIND(Str("no framesize"));
             sscanf(s, "%ld", &frameSize);
             if (frameSize < MINFRMPTS || frameSize > MAXFRMPTS) {
-              sprintf(err_msg, Str("frameSize must be between %d and %d"),
+              snprintf(err_msg, 512, Str("frameSize must be between %d and %d"),
                                MINFRMPTS, MAXFRMPTS);
               return quit(csound, err_msg);
             }
@@ -252,7 +252,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     /* open sndfil, do skiptime */
     if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
                                     &input_dur, &sr, channel)) == NULL) {
-      sprintf(err_msg, Str("error while opening %s"), infilnam);
+      sprintf(err_msg, 512, Str("error while opening %s"), infilnam);
       return quit(csound, err_msg);
     }
     sr = (MYFLT)p->sr;
@@ -392,7 +392,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int frame)
                                  / (MYFLT) p->dispCnt));
     p->csound->dispset(p->csound, &(p->dwindow), p->dispBufs[p->dispFrame],
                        p->npts, "pvanalwin", 0, "PVANAL");
-    sprintf(&(p->dwindow.caption[0]), "%ld", (long) frame);
+    snprintf(&(p->dwindow.caption[0]), CAPSIZE, "%ld", (long) frame);
     p->csound->display(p->csound, &(p->dwindow));
     p->dispCnt = 0;
     p->dispFrame++;
