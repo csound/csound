@@ -984,13 +984,13 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
           case 'X':
           case 'u':
           case 'c':
-            sprintf(outstring, strseg, (int)MYFLT2LRND(xx));
+            snprintf(outstring, 8196, strseg, (int)MYFLT2LRND(xx));
             break;
           case 'h':
-            sprintf(outstring, strseg, (int16)MYFLT2LRND(xx));
+            snprintf(outstring, 8196, strseg, (int16)MYFLT2LRND(xx));
             break;
           case 'l':
-            sprintf(outstring, strseg, (int32)MYFLT2LRND(xx));
+            snprintf(outstring, 8196, strseg, (int32)MYFLT2LRND(xx));
             break;
 
           default:
@@ -1033,13 +1033,13 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
         case 'X':
         case 'u':
         case 'c':
-          sprintf(outstring, strseg, (int)MYFLT2LRND(xx));
+          snprintf(outstring, 8196, strseg, (int)MYFLT2LRND(xx));
           break;
         case 'h':
-          sprintf(outstring, strseg, (int16)MYFLT2LRND(xx));
+          snprintf(outstring, 8196, strseg, (int16)MYFLT2LRND(xx));
           break;
         case 'l':
-          sprintf(outstring, strseg, (int32)MYFLT2LRND(xx));
+          snprintf(outstring, 8196, strseg, (int32)MYFLT2LRND(xx));
           break;
 
         default:
@@ -1048,7 +1048,7 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
         }
       }
       else
-        sprintf(outstring, strseg);
+        snprintf(outstring, 8196, strseg);
     }
 }
 
