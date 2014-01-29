@@ -230,7 +230,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       else if (strcmp(envoutyp, "IRCAM") == 0)
         O.filetyp = TYP_IRCAM;
       else {
-        sprintf(err_msg, Str("%s not a recognized SFOUTYP env setting"),
+        snprintf(err_msg, 256, Str("%s not a recognized SFOUTYP env setting"),
                 envoutyp);
         dieu(csound, err_msg);
         return -1;
@@ -469,7 +469,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       if (strcmp(O.outfilename, "stdout") != 0) {
         name = csound->FindOutputFile(csound, O.outfilename, "SFDIR");
         if (name == NULL) {
-          sprintf(err_msg, Str("cannot open %s."), O.outfilename);
+          snprintf(err_msg, 256, Str("cannot open %s."), O.outfilename);
           goto err_rtn_msg;
         }
         outfd = sf_open(name, SFM_WRITE, &sfinfo);
@@ -483,7 +483,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       else
         outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 1);
       if (outfd == NULL) {
-        sprintf(err_msg, Str("cannot open %s."), O.outfilename);
+        snprintf(err_msg, 256, Str("cannot open %s."), O.outfilename);
         goto err_rtn_msg;
       }
       /* register file to be closed by csoundReset() */

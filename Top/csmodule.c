@@ -248,10 +248,10 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     if (UNLIKELY(err)) {
       char ERRSTR[256];
 #if !(defined(NACL)) && defined(LINUX)
-      sprintf(ERRSTR, Str("could not open library '%s' (%s)"),
+      snprintf(ERRSTR, 256, Str("could not open library '%s' (%s)"),
                       libraryPath, dlerror());
  #else
-      sprintf(ERRSTR, Str("could not open library '%s' (%d)"),
+      snprintf(ERRSTR, 256, Str("could not open library '%s' (%d)"),
                       libraryPath, err);
  #endif
       if (csound->delayederrormessages == NULL) {
@@ -470,7 +470,7 @@ int csoundLoadModules(CSOUND *csound)
         csoundWarning(csound, Str("Library %s omitted\n"), fname);
         continue;
       }
-      sprintf(buf, "%s%c%s", dname, DIRSEP, fname);
+      snprintf(buf, 1024, "%s%c%s", dname, DIRSEP, fname);
       if (csound->oparms->odebug) {
         csoundMessage(csound, Str("Loading '%s'\n"), buf);
       }

@@ -254,7 +254,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
                                     &thishet->beg_time, &thishet->input_dur,
                                     &thishet->sr, channel)) == NULL) {
       char errmsg[256];
-      sprintf(errmsg, Str("Cannot open %s"), thishet->infilnam);
+      snprintf(errmsg, 256, Str("Cannot open %s"), thishet->infilnam);
       return quit(csound, errmsg);
     }
     nsamps = p->getframes;
@@ -265,7 +265,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
                                             thishet->auxp, nsamps, p)) <= 0) {
       char errmsg[256];
       csound->Message(csound, "smpsin = %ld\n", (long) thishet->smpsin);
-      sprintf(errmsg, Str("Read error on %s\n"), thishet->infilnam);
+      snprintf(errmsg, 256, Str("Read error on %s\n"), thishet->infilnam);
       return quit(csound, errmsg);
     }
     thishet->sr = (MYFLT) p->sr;                /* sr now from open  */

@@ -238,7 +238,7 @@ void print_short_usage(CSOUND *csound)
     int     i;
     i = -1;
     while (shortUsageList[++i] != NULL) {
-      sprintf(buf, "%s\n", shortUsageList[i]);
+      snprintf(buf, 256, "%s\n", shortUsageList[i]);
       csound->Message(csound, Str(buf));
     }
     csound->Message(csound,

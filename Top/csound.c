@@ -3810,7 +3810,7 @@ static void csoundMessageBufferCallback_1_(CSOUND *csound, int attr,
     int         len;
 
     csoundLockMutex(pp->mutex_);
-    len = vsprintf(pp->buf, fmt, args);         // FIXME: this can overflow
+    len = vsnprintf(pp->buf, 16384, fmt, args); // FIXEDME: this can overflow
     if (UNLIKELY((unsigned int) len >= (unsigned int) 16384)) {
       csoundUnlockMutex(pp->mutex_);
       fprintf(stderr, Str("csound: internal error: message buffer overflow\n"));
@@ -3851,7 +3851,7 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
     p = (csMsgStruct*) malloc(sizeof(csMsgStruct) + (size_t) len);
     p->nxt = (csMsgStruct*) NULL;
     p->attr = attr;
-    vsprintf(&(p->s[0]), fmt, args_save);
+    vsnprintf(&(p->s[0]), len, fmt, args_save);
     va_end(args_save);
     csoundLockMutex(pp->mutex_);
     if (pp->firstMsg == (csMsgStruct*) NULL)

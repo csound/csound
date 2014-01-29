@@ -411,7 +411,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
       if (strstr(p, "</CsScore>") == p) {
         char sys[1024];
         csoundFileClose(csound, fd);
-        sprintf(sys, "%s %s %s", prog, extname, STA(sconame));
+        snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
         if (UNLIKELY(system(sys) != 0)) {
           csoundErrorMsg(csound, Str("External generation failed"));
           remove(extname);
@@ -539,7 +539,7 @@ static int createSample(CSOUND *csound, char *buffer, FILE *unf)
     /* char  buffer[CSD_MAX_LINE_LEN]; */
 
     sscanf(buffer, "<CsSampleB filename=\"%d\">", &num);
-    sprintf(sampname, "soundin.%d", num);
+    snprintf(sampname, 256, "soundin.%d", num);
     if (UNLIKELY((smpf = fopen(sampname, "rb")) != NULL)) {
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), sampname);
