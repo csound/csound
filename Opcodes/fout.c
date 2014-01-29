@@ -1479,22 +1479,22 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
         case 'X':
         case 'u':
         case 'c':
-          sprintf(outstring, strseg, (int) MYFLT2LRND(*kvals[j]));
+          snprintf(outstring, 8192, strseg, (int) MYFLT2LRND(*kvals[j]));
           break;
         case 'h':
-          sprintf(outstring, strseg, (int16) MYFLT2LRND(*kvals[j]));
+          snprintf(outstring, 8192, strseg, (int16) MYFLT2LRND(*kvals[j]));
           break;
         case 'l':
-          sprintf(outstring, strseg, (long) MYFLT2LRND(*kvals[j]));
+          snprintf(outstring, 8192, strseg, (long) MYFLT2LRND(*kvals[j]));
           break;
 
         default:
-          sprintf(outstring, strseg, *kvals[j]);
+          snprintf(outstring, 8192, strseg, *kvals[j]);
           break;
         }
       }
       else
-        sprintf(outstring, strseg);
+        snprintf(outstring, 8192, strseg);
     }
 }
 

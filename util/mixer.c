@@ -320,7 +320,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
         mixin[n].name = --s;
         if (!mixin[n].non_clear)
           for (i=1; i<5; i++) mixin[n].channels[i] = i;
-        if (UNLIKELY(n++ >= NUMBER_OF_FILES)) {
+        if (UNLIKELY(n++ >= NUMBER_OF_FILES-1)) {
           usage(csound,Str("Too many mixin"));
         }
         mixin[n].start = -1;
