@@ -157,7 +157,7 @@ int chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     if (UNLIKELY(n < 0))
       return csound->PerfError(csound, p->h.insdshead,Str("chani: invalid index"));
 
-    sprnintf(chan_name, 16, "%i", n);
+    snprintf(chan_name, 16, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (UNLIKELY(err))
@@ -281,7 +281,7 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
     if (UNLIKELY(n < 0))
       return csound->PerfError(csound, p->h.insdshead,Str("pvsout: invalid index"));
 
-    sprintf(chan_name, 16, "%i", n);
+    snprintf(chan_name, 16, "%i", n);
     err = csoundGetChannelPtr(csound, &pp, chan_name,
                               CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     fout = (PVSDATEXT *) pp;
