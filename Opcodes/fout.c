@@ -1469,7 +1469,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
       if (segwaiting) {
         switch (*segwaiting) {
           case '%':
-            snprintf(outstring, 8192, b"%%");
+            strncpy(outstring, "%%", 8192);
             j--;
             break;
         case 'd':
