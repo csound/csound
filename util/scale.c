@@ -239,7 +239,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
           default:
             {
               char  err_msg[64];
-              sprintf(err_msg, Str("unknown flag -%c"), c);
+              snprintf(err_msg, 64, Str("unknown flag -%c"), c);
               usage(csound, err_msg);
             }
           }
