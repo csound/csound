@@ -372,7 +372,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
     if (p->inputEnabled) {
       /* register input ports */
       for (i = 0; i < p->nChannels; i++) {
-        snprintf(portName, MAX_NAME_LEN + 4"%s%d", p->inputPortName, i + 1);
+        snprintf(portName, MAX_NAME_LEN + 4, "%s%d", p->inputPortName, i + 1);
         p->inPorts[i] = jack_port_register(p->client, &(portName[0]),
                                            JACK_DEFAULT_AUDIO_TYPE,
                                            flags | JackPortIsInput, 0UL);
