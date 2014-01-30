@@ -729,7 +729,7 @@ static int atsa_main(CSOUND *csound, int argc, char **argv)
       // MKG 2014 Jan 29: No linkage for strlcat with MinGW here.
       // but wrong; corrected
       //strlcat(buffer, ATSA_RES_FILE, 160);
-      strncat(buffer, ATSA_RES_FILE, 160-strlen(buffer));
+      strncat(buffer, ATSA_RES_FILE, 160-strlen(buffer)); buffer[159] = '\0';
       val = main_anal(csound, soundfile, ats_outfile, anargs, buffer);
     }
 #else
