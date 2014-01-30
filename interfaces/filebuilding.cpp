@@ -181,7 +181,7 @@ extern "C" {
     fprintf(file, "<CsScore>");
     for (std::vector<std::string>::iterator it = csoundFile.score.begin();
          it != csoundFile.score.end(); ++it) {
-      fprintf(file, it->c_str());
+      fprintf(file, "%s", (it->c_str()));
     }
     fprintf(file, "</CsScore>");
     fprintf(file, "</CsoundSynthesizer>");

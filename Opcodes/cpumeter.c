@@ -16,7 +16,8 @@
  *
  */
 
-#if defined(__MACH__) || defined(LINUX)
+// only available on Linux (no /proc/stat on OSX)
+#if defined(LINUX)
 
 #include "csoundCore.h"
 #include <sys/resource.h>

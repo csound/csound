@@ -389,7 +389,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
 
  err_return:
     if (UNLIKELY(retval != CSOUND_SUCCESS))
-      csoundMessage(csound, Str(msg));
+      csoundMessage(csound, "%s", Str(msg));
     mfree(csound, name);
     return retval;
 }
