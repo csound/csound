@@ -843,14 +843,14 @@ bool CsoundFile::getInstrument(int number, std::string &definition_) const
 std::string CsoundFile::getInstrument(std::string name) const
 {
   std::string definition;
-  getInstrument(name, definition);
+  (void) getInstrument(name, definition);
   return definition;
 }
 
 std::string CsoundFile::getInstrument(int number) const
 {
   std::string definition;
-  getInstrument(number, definition);
+  (void) getInstrument(number, definition);
   return definition;
 }
 
@@ -862,7 +862,7 @@ std::string CsoundFile::getInstrumentBody(std::string name) const
   std::string id;
   std::string name_;
   std::string post;
-  parseInstrument(definition, pre, id, name_, post);
+  (void) parseInstrument(definition, pre, id, name_, post);
   return definition;
 }
 
@@ -874,7 +874,7 @@ std::string CsoundFile::getInstrumentBody(int number) const
   std::string id;
   std::string name;
   std::string post;
-  parseInstrument(definition, pre, id, name, post);
+  (void) parseInstrument(definition, pre, id, name, post);
   return post;
 }
 

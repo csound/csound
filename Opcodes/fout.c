@@ -1191,7 +1191,7 @@ static int i_infile_(CSOUND *csound, I_INFILE *p, int istring)
             goto newcycle;
           }
           while (isdigit(*cfp) || *cfp == '.' || *cfp == '+' || *cfp == '-') {
-            *(++cfp) = cc = getc(fp);
+            *(++cfp) = (char)(cc = getc(fp));
           }
           *++cfp = '\0';        /* Must terminate string */
           *(args[j]) = (MYFLT) atof(cf);
@@ -1226,7 +1226,7 @@ static int i_infile_(CSOUND *csound, I_INFILE *p, int istring)
       }
       break;
     case 2: /* binary floats without loop */
-      fseek(fp, p->currpos * sizeof(float) * nargs, SEEK_SET);
+      if (fseek(fp, p->currpos * sizeof(float) * nargs, SEEK_SET)<0) return NOTOK;
       p->currpos++;
       for (j = 0; j < nargs; j++) {
         if (fread(args[j], sizeof(float), 1, fp));
@@ -1418,7 +1418,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
 
           switch (*segwaiting) {
           case '%':
-            sprintf(outstring, "%%");
+            snprintf(outstring, 8192, "%%");
             j--;
             break;
           case 'd':
@@ -1428,17 +1428,17 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
           case 'X':
           case 'u':
           case 'c':
-            sprintf(outstring, strseg, (int) MYFLT2LRND(*kvals[j]));
+            snprintf(outstring, 8192, strseg, (int) MYFLT2LRND(*kvals[j]));
             break;
           case 'h':
-            sprintf(outstring, strseg, (int16) MYFLT2LRND(*kvals[j]));
+            snprintf(outstring, 8192, strseg, (int16) MYFLT2LRND(*kvals[j]));
             break;
           case 'l':
-            sprintf(outstring, strseg, (int32) MYFLT2LRND(*kvals[j]));
+            snprintf(outstring, 8192, strseg, (int32) MYFLT2LRND(*kvals[j]));
             break;
 
           default:
-            sprintf(outstring, strseg, *kvals[j]);
+            snprintf(outstring, 8192, strseg, *kvals[j]);
             break;
           }
           outstring += strlen(outstring);
@@ -1469,7 +1469,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
       if (segwaiting) {
         switch (*segwaiting) {
           case '%':
-            sprintf(outstring, "%%");
+            strncpy(outstring, "%%", 8192);
             j--;
             break;
         case 'd':
@@ -1479,22 +1479,22 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
         case 'X':
         case 'u':
         case 'c':
-          sprintf(outstring, strseg, (int) MYFLT2LRND(*kvals[j]));
+          snprintf(outstring, 8192, strseg, (int) MYFLT2LRND(*kvals[j]));
           break;
         case 'h':
-          sprintf(outstring, strseg, (int16) MYFLT2LRND(*kvals[j]));
+          snprintf(outstring, 8192, strseg, (int16) MYFLT2LRND(*kvals[j]));
           break;
         case 'l':
-          sprintf(outstring, strseg, (long) MYFLT2LRND(*kvals[j]));
+          snprintf(outstring, 8192, strseg, (long) MYFLT2LRND(*kvals[j]));
           break;
 
         default:
-          sprintf(outstring, strseg, *kvals[j]);
+          snprintf(outstring, 8192, strseg, *kvals[j]);
           break;
         }
       }
       else
-        sprintf(outstring, strseg);
+        snprintf(outstring, 8192, strseg);
     }
 }
 

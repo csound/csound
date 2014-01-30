@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
       } else if (csound.module == null) {
         csound.updateStatus('loading csound module');
         csound.attachDefaultListeners();
-         csound.createModule();
+        csound.createModule();
     } else {
       csound.updateStatus('not ready');
     }

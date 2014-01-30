@@ -55,7 +55,7 @@ typedef struct {
         FUNC *outftp, **ftp = p->ftp;                                   \
         MYFLT *chanblock = (MYFLT *)  csound->m_chnbp[chan]->ctl_val;   \
                                                                         \
-        if((outftp = csound->FTnp2Find(csound, p->ioutfn)) != NULL)        \
+        if((outftp = csound->FTnp2Find(csound, p->ioutfn)) != NULL)     \
           p->outTable = outftp->ftable;                                 \
         while (j < 8) {                                                 \
             int t = (int) *sld->ifn;                                    \
@@ -63,7 +63,7 @@ typedef struct {
             value=*sld->initvalue;                                      \
                                                                         \
             if (*slnum > 127) {                                         \
-                sprintf(sbuf,                                           \
+              snprintf(sbuf, 120,                                       \
                         Str("illegal control number at position n.%d"), \
                         j);                                             \
                 return csound->InitError(csound, sbuf);                 \
@@ -73,7 +73,8 @@ typedef struct {
             *max=*sld->imax;                                            \
             if (t !=0  && t != -1) {           /*table indexing */      \
               if (value >= 1 || value < 0) {                            \
-                sprintf(sbuf, Str("sliderXtable: illegal initvalue at " \
+                snprintf(sbuf, 120,                                     \
+                         Str("sliderXtable: illegal initvalue at "      \
                                   "position %d.  When using table "     \
                                   "indexing, the init range is 0 to 1"),\
                         j);                                             \
@@ -82,7 +83,7 @@ typedef struct {
               }                                                         \
             }                                                           \
             else if (value < *min || value > *max ) {                   \
-              sprintf(sbuf,                                             \
+              snprintf(sbuf, 120,                                       \
                       Str("illegal initvalue at position n.%d"), j);    \
               return csound->InitError(csound, sbuf);                   \
               break;                                                    \
@@ -276,14 +277,14 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
         value=*sld->initvalue;                                          \
                                                                         \
         if (*slnum > 127) {                                             \
-          sprintf(sbuf,                                                 \
+          snprintf(sbuf, 120,                                           \
                   Str("illegal control number at position n.%d"), j);   \
           return csound->InitError(csound, sbuf);                       \
           break;                                                        \
         }                                                               \
         if (value < (*min=*sld->imin) ||                                \
             value > (*max=*sld->imax) ) {                               \
-          sprintf(sbuf,                                                 \
+          snprintf(sbuf, 120,                                           \
                   Str("illegal initvalue at position n.%d"), j);        \
           return csound->InitError(csound, sbuf);                       \
           break;                                                        \
@@ -312,7 +313,8 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
           /* representing the phase of the table */                     \
           if (*sld->ifn > 0)   *ftp = csound->FTnp2Find(csound, sld->ifn); \
           if (value >= 1 || value < 0) {                                \
-            sprintf(sbuf, Str("sliderXtable: illegal initvalue at "     \
+            snprintf(sbuf, 120,                                         \
+                    Str("sliderXtable: illegal initvalue at "           \
                               "position %d. When using table indexing," \
                               " the init range is 0 to 1"), j);         \
             return csound->InitError(csound, sbuf);                     \
@@ -507,16 +509,16 @@ static int sliderKawai_i(CSOUND *csound, SLIDERKAWAI *p)
     MYFLT *min = p->min, *max= p->max;
     FUNC **ftp = p->ftp;
     do  {
-        if ((value=*sld->initvalue) < (*min=*sld->imin) ||
-            value > (*max=*sld->imax) ) {
-          sprintf(sbuf, Str("illegal initvalue at position n.%d"), j);
-            return csound->InitError(csound, sbuf);
-        }
-        if (*sld->ifn > 0)   *ftp++ = csound->FTnp2Find(csound, sld->ifn);
-        else                 *ftp++ = NULL;
-        value =  (*(sld++)->initvalue - *min) / (*max++ - *min);
-        min++;
-        csound->m_chnbp[j]->ctl_val[7] = (MYFLT)((int)(value * f7bit + FL(0.5)));
+      if ((value=*sld->initvalue) < (*min=*sld->imin) ||
+          value > (*max=*sld->imax) ) {
+        snprintf(sbuf, 120, Str("illegal initvalue at position n.%d"), j);
+        return csound->InitError(csound, sbuf);
+      }
+      if (*sld->ifn > 0)   *ftp++ = csound->FTnp2Find(csound, sld->ifn);
+      else                 *ftp++ = NULL;
+      value =  (*(sld++)->initvalue - *min) / (*max++ - *min);
+      min++;
+      csound->m_chnbp[j]->ctl_val[7] = (MYFLT)((int)(value * f7bit + FL(0.5)));
     } while (++j < n);
     return OK;
 }
