@@ -2389,7 +2389,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       // MKG 2014 Jan 29: No linkage for strlcat with MinGW here.
       // snd corrected
       //strlcat(buffer, ATSA_RES_FILE, 160);
-      strncat(buffer, ATSA_RES_FILE, 159-strlen(buffer));
+      strncat(buffer, ATSA_RES_FILE, 159-strlen(buffer)); buffer[159]='\0';
       csound->Message(csound, Str("Analysing residual..."));
       residual_analysis(csound, buffer, sound);
 #else
