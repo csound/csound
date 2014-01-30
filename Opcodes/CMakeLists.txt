@@ -146,6 +146,7 @@ endif()
 check_deps(BUILD_PYTHON_OPCODES PYTHONLIBS_FOUND)
 if(BUILD_PYTHON_OPCODES)
     include_directories(${PYTHON_INCLUDE_DIRS})
+    include_directories(${CMAKE_HOME_DIRECTORY}/include)
     make_plugin(py py/pythonopcodes.c ${PYTHON_LIBRARIES})
 endif()
 

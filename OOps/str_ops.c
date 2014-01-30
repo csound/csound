@@ -247,7 +247,7 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
     int size;
     char *str1 = p->str1->data, *str2 = strdup(p->str2->data);
-  
+
     size = strlen(str1) + strlen(str2);
 
     if (p->r->data == NULL) {
@@ -1035,7 +1035,7 @@ int str_from_url(CSOUND *csound, STRCPY_OP *p)
 }
 #endif
 
-#ifndef HAVE_STLCAT
+#ifndef HAVE_STRLCAT
 /* Direct from BSD sources */
 size_t
 strlcat(char *dst, const char *src, size_t siz)
