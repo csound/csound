@@ -163,7 +163,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
 {
     OPARMS      O;
     char        *inputfile = NULL;
-    SNDFILE     *infd, *outfd;
+    SNDFILE     *outfd;
     int         i;
     char        outformch='s', c, *s;
     const char  *envoutyp;
@@ -320,7 +320,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
         mixin[n].name = --s;
         if (!mixin[n].non_clear)
           for (i=1; i<5; i++) mixin[n].channels[i] = i;
-        if (UNLIKELY(n++ >= NUMBER_OF_FILES)) {
+        if (UNLIKELY(n++ >= NUMBER_OF_FILES-1)) {
           usage(csound,Str("Too many mixin"));
         }
         mixin[n].start = -1;
@@ -336,7 +336,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
       return -1;
     }
     for (i = 0; i < n; i++) {
-      if (!(infd = MXsndgetset(csound, &mixin[i]))) {
+      if (!MXsndgetset(csound, &mixin[i])) {
         csound->ErrorMsg(csound, Str("%s: error while opening %s"),
                                  argv[0], inputfile);
         return -1;
@@ -456,8 +456,11 @@ InitScaleTable(MIXER_GLOBALS *pp, int i)
       newpoint->x1 = (int) (x*samplepert);
       newpoint->y1 = y;
       if (newpoint->x1 == newpoint->x0) {
+        MYFLT div = (MYFLT)(tt->x1 - tt->x0);
         tt->y1 = y;
-        tt->yr = (y - tt->y0)/((MYFLT)(tt->x1 - tt->x0));
+        if(div)
+          tt->yr = (y - tt->y0)/div;
+        else  tt->yr = y;
         csound->Free(csound, newpoint);
       }
       else {
@@ -525,7 +528,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     p->analonly = 1;
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
-    strcpy(p->sfname, ddd->name);
+    strncpy(p->sfname, ddd->name, MAXSNDNAME-1);
     /* open sndfil, do skiptime */
     if (UNLIKELY((infd = csound->sndgetset(csound, p)) == NULL))
       return NULL;
@@ -664,7 +667,7 @@ int mixer_init_(CSOUND *csound)
     char    buf[128];
     int     retval = csound->AddUtility(csound, "mixer", mixer_main);
 
-    sprintf(buf, Str("Mixes sound files (max. %d)"), (int) NUMBER_OF_FILES);
+    snprintf(buf, 128, Str("Mixes sound files (max. %d)"), (int) NUMBER_OF_FILES);
     if (!retval) {
       retval = csound->SetUtilityDescription(csound, "mixer", buf);
     }

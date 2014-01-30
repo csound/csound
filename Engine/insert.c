@@ -172,7 +172,11 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       instance(csound, insno);
       tp->isNew=0;
     }
-    /* pop from free instance chain */
+    /* **** COVERITY: note that call to instance fills in structure to
+       **** which tp points.  This is a false positive **** */
+     /* pop from free instance chain */
+    if(csound->oparms->odebug) 
+      csoundMessage(csound, "insert(): tp->act_instance = %p \n", tp->act_instance);
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
     ip->insno = (int16) insno;
@@ -407,6 +411,8 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       tp->isNew = 0;
     }
     /* pop from free instance chain */
+     /* **** COVERITY: note that call to instance fills in structure to
+       **** which tp points.  This is a false positive **** */
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
     ip->insno = (int16) insno;
@@ -542,7 +548,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       pfields[index] = value;
       if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %3d\n",
-                        pfield, pfields[index]);
+                        pfield, (int)pfields[index]);
       }
     }
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -900,14 +906,14 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       } while (ip->opcod_iobufs);
       if (op)
-        sprintf(buf, Str("INIT ERROR in instr %d (opcode %s): "),
+        snprintf(buf, 512, Str("INIT ERROR in instr %d (opcode %s): "),
                 ip->insno, op->name);
       else
-        sprintf(buf, Str("INIT ERROR in instr %d (subinstr %d): "),
+        snprintf(buf, 512, Str("INIT ERROR in instr %d (subinstr %d): "),
                 ip->insno, csound->ids->insdshead->insno);
     }
     else
-      sprintf(buf, Str("INIT ERROR in instr %d: "), ip->insno);
+      snprintf(buf, 512, Str("INIT ERROR in instr %d: "), ip->insno);
     va_start(args, s);
     csoundErrMsgV(csound, buf, s, args);
     va_end(args);
@@ -928,14 +934,14 @@ int csoundPerfError(CSOUND *csound, INSDS *ip, const char *s, ...)
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       } while (ip->opcod_iobufs);
       if (op)
-        sprintf(buf, Str("PERF ERROR in instr %d (opcode %s): "),
+        snprintf(buf, 512, Str("PERF ERROR in instr %d (opcode %s): "),
                 ip->insno, op->name);
       else
-        sprintf(buf, Str("PERF ERROR in instr %d (subinstr %d): "),
+        snprintf(buf, 512, Str("PERF ERROR in instr %d (subinstr %d): "),
                 ip->insno, ip->insno);
     }
     else
-      sprintf(buf, Str("PERF ERROR in instr %d: "), ip->insno);
+      snprintf(buf, 512, Str("PERF ERROR in instr %d: "), ip->insno);
     va_start(args, s);
     csoundErrMsgV(csound, buf, s, args);
     va_end(args);
@@ -1143,6 +1149,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
       if (!tp->act_instance)
         instance(csound, instno);
+    /* **** COVERITY: note that call to instance fills in structure to
+       **** which tp points.  This is a false positive **** */
       lcurip = tp->act_instance;            /* use free intance, and  */
       tp->act_instance = lcurip->nxtact;    /* remove from chain      */
       lcurip->actflg++;                     /*    and mark the instr active */
@@ -1195,6 +1203,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* VL 13-12-13 */
     /* this sets ksmps and kr local variables */
     /* create local ksmps variable and init with ksmps */
+    if(lcurip->lclbas != NULL) {
     CS_VARIABLE *var =
        csoundFindVariableWithName(lcurip->instr->varPool, "ksmps");
        *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ksmps;
@@ -1202,6 +1211,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       var =
        csoundFindVariableWithName(lcurip->instr->varPool, "kr");
      *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ekr;
+    }
 
     lcurip->m_chnbp = parent_ip->m_chnbp;       /* MIDI parameters */
     lcurip->m_pitch = parent_ip->m_pitch;
@@ -1250,7 +1260,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     parent_ip->relesing = lcurip->relesing; 
     parent_ip->offbet = lcurip->offbet; 
     parent_ip->offtim = lcurip->offtim; 
-    parent_ip->p3 = parent_ip->p3; 
+    parent_ip->p3 = lcurip->p3; 
     local_ksmps = lcurip->ksmps;
 
     /* restore globals */
@@ -1960,8 +1970,9 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     /* restore globals */
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
-    if (!p->ip)                                         /* loop to last opds */
+    if (!p->ip) {                                        /* loop to last opds */
       while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
+    }
     return OK;
 }
 
@@ -2030,6 +2041,9 @@ static void instance(CSOUND *csound, int insno)
     ip->nxtact = tp->act_instance;
     tp->act_instance = ip;
     ip->insno = insno;
+    if(csound->oparms->odebug) 
+      csoundMessage(csound,"instance(): tp->act_instance = %p \n", tp->act_instance);
+
 
     if (insno > csound->engineState.maxinsno) {
       size_t pcnt = (size_t) tp->opcode_info->perf_incnt;
@@ -2293,18 +2307,22 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
 
     if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[insno] == NULL)) {
+      csoundLockMutex(csound->API_lock);
       return CSOUND_ERROR;
     }
 
     if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
+      csoundLockMutex(csound->API_lock);
       return CSOUND_ERROR;
     }
     ip = &(csound->actanchor);
     ip2 = NULL;
 
     while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
-    if (ip == NULL)
+    if (ip == NULL) {
+      csoundLockMutex(csound->API_lock);
       return CSOUND_ERROR;
+    }
     do {                        /* This loop does not terminate in mode=0 */
       nip = ip->nxtact;
       if (((mode & 8) && ip->offtim >= 0.0) ||

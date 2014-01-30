@@ -126,9 +126,9 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
           (!isOutput && dev_info->maxInputChannels > 0)) {
         strncpy(list[j].device_name, dev_info->name, 63);
         if (isOutput) {
-            sprintf(tmp, "dac%d", j);
+          snprintf(tmp, 256, "dac%d", j);
         } else {
-            sprintf(tmp, "adc%d", j);
+          snprintf(tmp, 256, "adc%d", j);
         }
         strncpy(list[j].device_id, tmp, 63);
         strncpy(list[j].rt_module, s, 63);

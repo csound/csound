@@ -34,8 +34,10 @@
  * Program size expands linearly with slice size, and as square of poleCount.
  */
 
+// The above comment and below are not in line with lpc.h
+
 #define DEFpoleCount 34        /* recommended default (max 50 in lpc.h)    */
-#define DEFSLICE 200           /* <= MAXWINDIN/2 (currently 1000 in lpc.h) */
+#define DEFSLICE 200           /* <= MAXWINDIN/2 (currently 5000 in lpc.h) */
 #define PITCHMIN        FL(70.0)
 #define PITCHMAX        FL(200.0)   /* default limits in Hz for pitch search */
 
@@ -428,7 +430,11 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
         case 'h':       FIND(Str("no hopsize"))
                         sscanf(s,"%d",&slice); break;
         case 'C':       FIND(Str("no comment string"))
-                        strncat(tp,s,(LPBUFSIZ - sizeof(LPHEADER) + 4));
+                        // MKG 2014 Jan 29: No linkage for strlcat with MinGW here.
+                        //but wrong; corrected
+                        //strlcat(tp,s,(LPBUFSIZ - sizeof(LPHEADER) + 4));
+                        strncat(tp,s,
+                                (LPBUFSIZ - sizeof(LPHEADER) + 3-strlen(tp)));
                         tp += strlen(tp);
                         break;
         case 'P':       FIND(Str("no low frequency"))
@@ -463,7 +469,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
         default:
           {
             char errmsg[256];
-            sprintf(errmsg,Str("unrecognised flag -%c"), *--s);
+            snprintf(errmsg,256,Str("unrecognised flag -%c"), *--s);
             lpdieu(csound, errmsg);
           }
         }
@@ -521,7 +527,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
                                     &input_dur, &sr, channel)) == NULL) {
       char errmsg[256];
-      sprintf(errmsg,Str("error while opening %s"), infilnam);
+      snprintf(errmsg,256,Str("error while opening %s"), infilnam);
       quit(csound, errmsg);
     }
 

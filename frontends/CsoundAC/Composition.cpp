@@ -407,12 +407,12 @@ namespace csound
     }
     if (partNames.size() > 0) {
       for (size_t partI = 0, partN = partNames.size(); partI < partN; ++partI) {
-        std::sprintf(buffer, "part <id = %u name = %s>\n", partI, partNames[partI].c_str());
+        std::sprintf(buffer, "part <id = %zu name = %s>\n", partI, partNames[partI].c_str());
         stream << buffer;
       }
     } else {
       for (size_t partI = 0, partN = 100; partI < partN; ++partI) {
-        std::sprintf(buffer, "part <id = %u name = Part%u>\n", partI, partI);
+        std::sprintf(buffer, "part <id = %zu name = Part%zu>\n", partI, partI);
         stream << buffer;
       }
     }
@@ -445,14 +445,8 @@ namespace csound
     }
     stream.close();
     std::sprintf(buffer, "fomus --verbose -i %s -o %s.xml", getFomusFilename().c_str(), getTitle().c_str());
-    int errorStatus;
-    errorStatus = std::system(buffer);
-    if (errorStatus) {
-      return errorStatus;
-    }
-    //std::sprintf(buffer, "lilypond -fpdf %s.xml", getTitle().c_str());
-    //errorStatus = std::system(buffer);
-    //return errorStatus;
+    int errorStatus = std::system(buffer);
+    return errorStatus;
   }
 
   int Composition::processArgv(int argc, const char **argv)

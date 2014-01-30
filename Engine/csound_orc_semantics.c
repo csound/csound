@@ -254,7 +254,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         arg1 = get_arg_type2(csound, tree->right->left, typeTable);
         arg2 = get_arg_type2(csound, tree->right->right, typeTable);
 
-        sprintf(condInTypes, "%s%s%s", ans, arg1, arg2);
+        snprintf(condInTypes, 64, "%s%s%s", ans, arg1, arg2);
 
         out = resolve_opcode_get_outarg(csound,
                                         find_opcode2(csound, ":cond"),
@@ -385,9 +385,10 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                             "types %s not found, line %d \n"),
                 opname, inArgTypes, tree->line);
         do_baktrace(csound, tree->locn);
+        free(inArgTypes);
         return NULL;
       }
-
+      free(inArgTypes);
       return cs_strdup(csound, out);
 
     }

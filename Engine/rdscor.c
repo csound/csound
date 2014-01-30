@@ -202,7 +202,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                                        (int)e->p[3],(int)e->p[4]);
                       new = (MYFLT*)realloc(e->c.extra,sizeof(MYFLT)*PMAX);
                       if (new==NULL) {
-                        fprintf(stderr, "Out of Mdemory\n");
+                        fprintf(stderr, Str("Out of Memory\n"));
                         exit(7);
                       }
                       e->c.extra = new;
@@ -214,7 +214,8 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                           csound->DebugMsg(csound,
                                            "and more extra p-fields [%d](%d)%d\n",
                                            c, (int) e->c.extra[0],
-                                           sizeof(MYFLT)*((int)e->c.extra[0]+PMAX));
+                                           (int)sizeof(MYFLT)*
+                                                   ((int)e->c.extra[0]+PMAX));
                           new =
                             (MYFLT *)realloc(e->c.extra,
                                              sizeof(MYFLT)*((int) e->c.extra[0]+

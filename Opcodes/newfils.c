@@ -511,7 +511,7 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
     MYFLT  *freq = p->freq;
     MYFLT  *ris = p->ris;
     MYFLT  *dec = p->dec;
-    double  *delay = p->delay,ang,fsc,rrad1,rrad2;
+    double  *delay = p->delay,ang=0,fsc,rrad1=0,rrad2=0;
     double  w1,y1,w2,y2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

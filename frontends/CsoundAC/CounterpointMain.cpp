@@ -78,7 +78,7 @@ int main(int argc, char **argv)
       longcantus.push_back(52);
       longcantus.push_back(50);
     }
-  fprintf(stderr,"\n\nCantus length %d\n", longcantus.size());
+  fprintf(stderr,"\n\nCantus length %zu\n", longcantus.size());
   int voicebegs[] = {38, 57,62,70,80};
   fprintf(stderr,"\n\nTesting resizability...");
   double secondsPerPulse = 0.0625;

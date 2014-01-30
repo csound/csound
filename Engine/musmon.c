@@ -406,7 +406,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     uint32_t n;
 
     if(csound->QueryGlobalVariable(csound,"::UDPCOM")
-         != NULL) UDPServerClose(csound);
+       != NULL) UDPServerClose(csound);
 
     while (csound->evtFuncChain != NULL) {
       p = (void*) csound->evtFuncChain;
@@ -427,7 +427,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
         csound->engineState.instrtxtp[0]->instance &&
         csound->engineState.instrtxtp[0]->instance->actflg)
       xturnoff_now(csound, csound->engineState.instrtxtp[0]->instance);
-      delete_pending_rt_events(csound);
+    delete_pending_rt_events(csound);
 
     if(csound->init_pass_loop == 1) {
       csoundLockMutex(csound->init_pass_threadlock);
@@ -1235,6 +1235,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
         /* calculate the length in beats */
         if (evt->p3orig > FL(0.0))
           evt->p3orig = (MYFLT) ((double) evt->p3orig / st->ibeatTime);
+        /* fall through required */
       case 'q':                         /* mute instrument */
         /* check for a valid instrument number or name */
         if (evt->strarg != NULL && ISSTRCOD(p[1]))

@@ -288,20 +288,20 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format,
     case 7:
       outbuf[0] = '\0';
       while (--nk) {
-        sprintf(buf1, "%ld\t", (long) *kp++);
-        strncat(outbuf, buf1, 256);
+        snprintf(buf1, 256, "%ld\t", (long) *kp++);
+        strlcat(outbuf, buf1, 256);
       }
-      sprintf(buf1, "%ld\n", (long) *kp);
-      strncat(outbuf, buf1, 256);
+      snprintf(buf1, 256, "%ld\n", (long) *kp);
+      strlcat(outbuf, buf1, 256);
       len = strlen(outbuf);
       break;
     case 8: *outbuf = '\0';
       while (--nk) {
         CS_SPRINTF(buf1, "%6.4f\t", *kp++);
-        strncat(outbuf, buf1, 256);
+        strlcat(outbuf, buf1, 256);
       }
       CS_SPRINTF(buf1, "%6.4f\n", *kp);
-      strncat(outbuf, buf1, 256);
+      strlcat(outbuf, buf1, 256);
       len = strlen(outbuf);
       break;
     default:
@@ -656,7 +656,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
         do {                    /* Absorb digits and such*/
           *(++bp) = (char)getc(ifd);
         } while (!isspace(*bp));
-        fseek(ifd, -1L, SEEK_CUR);
+        (void)ungetc(*bp, ifd); //fseek(ifd, -1L, SEEK_CUR);
         *bp = '\0';
 #ifndef USE_DOUBLE
         CS_SSCANF(inbuf,"%f", kp);
