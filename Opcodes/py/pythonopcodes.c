@@ -57,7 +57,7 @@ static void format_call_statement2(char *statement, char *callable,
       }
       // MKG 2014 Jan 29: No linkage for strlcat in py.dll on MinGW.
       //strlcat(statement, ")", 1024);
-      strncat(statement, ")", 1023 - strlen(statement));
+      strncat(statement, ")", 1023 - strlen(statement)); statement[1023] = '\0';
     }
     else {
       snprintf(statement, 1024, "%s()", callable);
@@ -79,7 +79,7 @@ static void format_call_statement(char *statement, char *callable,
       }
       // MKG 2014 Jan 29: No linkage for strlcat in py.dll on MinGW.
       //strlcat(statement, ")", 1024);
-      strncat(statement, ")", 1023-strlen(statement));
+      strncat(statement, ")", 1023-strlen(statement)); statement[1023] = '\0';
     }
     else {
       snprintf(statement, 1024, "%s()", callable);

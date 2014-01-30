@@ -435,6 +435,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
                         //strlcat(tp,s,(LPBUFSIZ - sizeof(LPHEADER) + 4));
                         strncat(tp,s,
                                 (LPBUFSIZ - sizeof(LPHEADER) + 3-strlen(tp)));
+                        tp[(LPBUFSIZ - sizeof(LPHEADER) + 3] = '\0';
                         tp += strlen(tp);
                         break;
         case 'P':       FIND(Str("no low frequency"))
