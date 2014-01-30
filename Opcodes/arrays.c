@@ -1086,7 +1086,7 @@ static int ina(CSOUND *csound, OUTA *p)
     uint32_t n, l, nsmps = CS_KSMPS;
     MYFLT       *data = aa->data;
     MYFLT       *sp= CS_SPIN;
-    int len = p->len;
+    uint32_t len = (uint32_t)p->len;
     for (l=0; l<len; l++) {
       sp = CS_SPIN + l;
       memset(data, '\0', nsmps*sizeof(MYFLT));
