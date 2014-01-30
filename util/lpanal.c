@@ -431,8 +431,10 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
                         sscanf(s,"%d",&slice); break;
         case 'C':       FIND(Str("no comment string"))
                         // MKG 2014 Jan 29: No linkage for strlcat with MinGW here.
+                        //but wrong; corrected
                         //strlcat(tp,s,(LPBUFSIZ - sizeof(LPHEADER) + 4));
-                        strncat(tp,s,(LPBUFSIZ - sizeof(LPHEADER) + 3));
+                        strncat(tp,s,
+                                (LPBUFSIZ - sizeof(LPHEADER) + 3-strlen(tp)));
                         tp += strlen(tp);
                         break;
         case 'P':       FIND(Str("no low frequency"))
