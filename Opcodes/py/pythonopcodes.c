@@ -19,6 +19,7 @@
  */
 
 #include <Python.h>
+#include <sysdep.h>
 #include "csdl.h"
 #include "pythonopcodes.h"
 #include "pythonhelper.h"
@@ -54,7 +55,9 @@ static void format_call_statement2(char *statement, char *callable,
         snprintf(statement + strlen(statement), 1024 - strlen(statement),
                 ", %f", *(argv[i]));
       }
-      strlcat(statement, ")", 1024);
+      // MKG 2014 Jan 29: No linkage for strlcat in py.dll on MinGW.
+      //strlcat(statement, ")", 1024);
+      strncat(statement, ")", 1023);
     }
     else {
       snprintf(statement, 1024, "%s()", callable);
@@ -74,7 +77,9 @@ static void format_call_statement(char *statement, char *callable,
         snprintf(statement + strlen(statement), 1024-strlen(statement),
                  ", %f", *(argv[i]));
       }
-      strlcat(statement, ")", 1024);
+      // MKG 2014 Jan 29: No linkage for strlcat in py.dll on MinGW.
+      //strlcat(statement, ")", 1024);
+      strncat(statement, ")", 1023);
     }
     else {
       snprintf(statement, 1024, "%s()", callable);
