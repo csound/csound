@@ -57,7 +57,7 @@ int fdspset(CSOUND *csound, FSIGDISP *p){
         (p->fdata.size < (unsigned int) (p->size*sizeof(MYFLT)))) {
       csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->fdata);
     }
-    sprintf(strmsg, Str("instr %d, pvs-signal %s:"),
+    snprintf(strmsg, 256, Str("instr %d, pvs-signal %s:"),
             (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0]);
     dispset(csound, &p->dwindow, (MYFLT*) p->fdata.auxp, p->size, strmsg,
                     (int) *p->flag, Str("display"));
@@ -114,7 +114,7 @@ int dspset(CSOUND *csound, DSPLAY *p)
     }
     p->nxtp = (MYFLT *) auxp;
     p->pntcnt = npts;
-    sprintf(strmsg, Str("instr %d, signal %s:"),
+    snprintf(strmsg, 256, Str("instr %d, signal %s:"),
                     (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0]);
     dispset(csound, &p->dwindow, (MYFLT*) auxp, bufpts, strmsg,
                     (int) *p->iwtflg, Str("display"));
@@ -235,6 +235,10 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
     int32 window_size, step_size;
     int   hanning;
     char  strmsg[256];
+    if(p->smpbuf.auxp == NULL)
+      csound->AuxAlloc(csound, sizeof(MYFLT)*WINDMAX, &(p->smpbuf));
+          
+    p->sampbuf = (MYFLT *) p->smpbuf.auxp;
 
     window_size = (int32)*p->inpts;
     if (UNLIKELY(window_size > WINDMAX)) {
@@ -275,7 +279,7 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
         csound->disprep_fftcoefs = (MYFLT*) mmalloc(csound, WINDMAX * 2
                                                             * sizeof(MYFLT));
       }
-      sprintf(strmsg, Str("instr %d, signal %s, fft (%s):"),
+      snprintf(strmsg, 256, Str("instr %d, signal %s, fft (%s):"),
                       (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
                       p->dbout ? Str("db") : Str("mag"));
       dispset(csound, &p->dwindow, csound->disprep_fftcoefs, p->ncoefs, strmsg,
@@ -458,6 +462,8 @@ int tempeset(CSOUND *csound, TEMPEST *p)
       return csound->InitError(csound, Str("ifn table begins with zero"));
     if (UNLIKELY(ftp==NULL)) return NOTOK;
 
+    if (npts==0) return NOTOK;
+    
     nptsm1 = npts - 1;
     if (npts != p->npts || minlam != p->minlam) {
       p->npts = npts;
@@ -480,7 +486,7 @@ int tempeset(CSOUND *csound, TEMPEST *p)
       p->stmemnow = p->stmemp + nptsm1;
     }
     if (p->dtimcnt && !(p->dwindow.windid)) {  /* init to display stmem & exp */
-      sprintf(strmsg, "instr %d tempest:", (int) p->h.insdshead->p1);
+      snprintf(strmsg, 256, "instr %d tempest:", (int) p->h.insdshead->p1);
       dispset(csound, &p->dwindow, p->stmemp, (int32)npts * 2, strmsg, 0,
                       Str("tempest"));
       p->dwindow.danflag = 1;                    /* for mid-scale axis */

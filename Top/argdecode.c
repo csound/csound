@@ -133,6 +133,7 @@ static const char *longUsageList[] = {
   Str_noop("--noheader\t\tRaw format"),
   Str_noop("--nopeaks\t\tDo not write peak information"),
   " ",
+   Str_noop("--displays\t\tUse graphic displays"),
   Str_noop("--nodisplays\t\tSuppress all displays"),
   Str_noop("--asciidisplay\t\tSuppress graphics, use ascii displays"),
   Str_noop("--postscriptdisplay\tSuppress graphics, use Postscript displays"),
@@ -237,7 +238,7 @@ void print_short_usage(CSOUND *csound)
     int     i;
     i = -1;
     while (shortUsageList[++i] != NULL) {
-      sprintf(buf, "%s\n", shortUsageList[i]);
+      snprintf(buf, 256, "%s\n", shortUsageList[i]);
       csound->Message(csound, Str(buf));
     }
     csound->Message(csound,
@@ -446,6 +447,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strcmp (s, "displays"))) {
       O->displays = 1;                  /* func displays */
+      O->graphsoff = 0;
       return 1;
     }
     else if (!(strcmp (s, "defer-gen1"))) {
@@ -1384,46 +1386,47 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
 }
 
 
-PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format){
+PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format)
+{
 
-  OPARMS *oparms = csound->oparms;
-  char *typename;
+    OPARMS *oparms = csound->oparms;
+    char *typename;
 
-  /* if already compiled and running, return */
-  if(csound->engineStatus & CS_STATE_COMP) return;
+    /* if already compiled and running, return */
+    if (csound->engineStatus & CS_STATE_COMP) return;
 
-  oparms->outfilename =
-    csound->Malloc(csound, strlen(name) + 1); /* will be freed by memRESET */
-  strcpy(oparms->outfilename, name);
-  if (strcmp(oparms->outfilename, "stdout") == 0) {
-        set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
+    oparms->outfilename =
+      csound->Malloc(csound, strlen(name) + 1); /* will be freed by memRESET */
+    strcpy(oparms->outfilename, name); /* unsafe -- REVIEW */
+    if (strcmp(oparms->outfilename, "stdout") == 0) {
+      set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
 #if defined(WIN32)
-        csound->Warning(csound, Str("stdout not supported on this platform"));
+      csound->Warning(csound, Str("stdout not supported on this platform"));
 #endif
-      }
-  else set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
+    }
+    else set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
 
-  oparms->sfwrite = 1;
-  if(type != NULL){
-  int i=0;
-  while((typename = file_type_map[i].format) != NULL) {
-    if(!strcmp(type,typename)) break;
-    i++;
+    oparms->sfwrite = 1;
+    if (type != NULL) {
+      int i=0;
+      while ((typename = file_type_map[i].format) != NULL) {
+        if(!strcmp(type,typename)) break;
+        i++;
+      }
+      if (typename != NULL) {
+        oparms->filetyp = file_type_map[i].type;
+      }
     }
-  if(typename != NULL) {
-    oparms->filetyp = file_type_map[i].type;
-  }
-  }
-  if(format != NULL){
-   int i=0;
-   while((typename = sample_format_map[i].longformat) != NULL) {
-    if(!strcmp(type,typename)) break;
-    i++;
+    if (format != NULL) {
+      int i=0;
+      while ((typename = sample_format_map[i].longformat) != NULL) {
+        if (!strcmp(type,typename)) break;
+        i++;
+      }
+      if (format != NULL) {
+        set_output_format(oparms, sample_format_map[i].shortformat);
+      }
     }
-  if(format != NULL) {
-    set_output_format(oparms, sample_format_map[i].shortformat);
-  }
-  }
 }
 
 PUBLIC void csoundSetInput(CSOUND *csound, char *name) {

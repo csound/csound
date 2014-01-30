@@ -115,7 +115,7 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
       if (ss == NULL)
         return OK;
       ss = get_arg_string(csound, *p->indx);
-      if(p->r->data == NULL) {
+      if (p->r->data == NULL) {
         p->r->data = cs_strdup(csound, ss);
         p->r->size = strlen(ss)+1;
        }
@@ -159,7 +159,7 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
 int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
     char  *newVal = p->str->data;
-    if(p->r->data == NULL) {
+    if (p->r->data == NULL) {
       p->r->data =  cs_strdup(csound, newVal);
       p->r->size =  strlen(p->str->data) + 1;
         return OK;
@@ -179,49 +179,50 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 
 int strassign_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
-  p->r->data = p->str->data;
-  p->r->size = p->str->size;
-  return OK;
+    p->r->data = p->str->data;
+    p->r->size = p->str->size;
+    return OK;
 }
 int strassign_opcode_Sk(CSOUND *csound, STRCPY_OP *p)
 {
-  if(strcmp(p->r->data, p->str->data)!=0){
-       p->r->data = p->str->data;
-       p->r->size = p->str->size;
-  }
-  //csound->Message(csound, p->r->data);
-  return OK;
+    if (strcmp(p->r->data, p->str->data)!=0){
+      p->r->data = p->str->data;
+      p->r->size = p->str->size;
+    }
+    //csound->Message(csound, p->r->data);
+    return OK;
 }
 
-int str_changed(CSOUND *csound, STRCHGD *p){
-  if(p->mem == NULL) {
-    mfree(csound, p->mem);
-    p->mem = cs_strdup(csound, p->str->data);
-  }
-  *p->r = 0;
-  return OK;
+int str_changed(CSOUND *csound, STRCHGD *p)
+{
+    if (p->mem == NULL) {
+      mfree(csound, p->mem);
+      p->mem = cs_strdup(csound, p->str->data);
+    }
+    *p->r = 0;
+    return OK;
 }
 
-int str_changed_k(CSOUND *csound, STRCHGD *p){
-
-  if(strcmp(p->str->data, p->mem)!=0 || p->mem == NULL) {
-    mfree(csound, p->mem);
-    p->mem = cs_strdup(csound, p->str->data);
-    *p->r = 1;
-  }
-  else *p->r = 0;
-  return OK;
+int str_changed_k(CSOUND *csound, STRCHGD *p)
+{
+    if (p->mem == NULL || strcmp(p->str->data, p->mem)!=0) {
+      mfree(csound, p->mem);
+      p->mem = cs_strdup(csound, p->str->data);
+      *p->r = 1;
+    }
+    else *p->r = 0;
+    return OK;
 }
+
 extern char* get_strarg(CSOUND *csound, MYFLT p, char *strarg);
 int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
-
     if (ISSTRCOD(*p->indx)) {
       char *ss;
       //printf("here\n ");
       ss = get_arg_string(csound, *p->indx);
       //csound->Message(csound, "%s \n", ss);
-      if(p->r->data == NULL) {
+      if (p->r->data == NULL) {
         p->r->data = cs_strdup(csound, ss);
         p->r->size = strlen(ss)+1;
       }
@@ -244,25 +245,24 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 /* strcat */
 int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
-;
-  int size;
+    int size;
+    char *str1 = p->str1->data, *str2 = strdup(p->str2->data);
 
-  size = strlen(p->str1->data) +
-         strlen(p->str2->data);
+    size = strlen(str1) + strlen(str2);
 
-    if(p->r->data == NULL) {
+    if (p->r->data == NULL) {
         p->r->data = mcalloc(csound, size+1);
         p->r->size = size+1;
     }
-    else if(UNLIKELY((int) size >= p->r->size)) {
+    else if (UNLIKELY((int) size >= p->r->size)) {
       p->r->data = mrealloc(csound, p->r->data, size + 1);
       p->r->size = size + 1;
     }
 
-    if(p->r->data != p->str1->data)
-     strncpy((char*) p->r->data,  p->str1->data, p->r->size);
-    strcat((char*) p->r->data, p->str2->data);
-
+    if (p->r->data != str1)
+     strncpy((char*) p->r->data,  str1, p->r->size);
+    strcat((char*) p->r->data, str2);
+    free(str2);                 /* not needed anymore */
     return OK;
 }
 
@@ -374,7 +374,7 @@ sprintf_opcode_(CSOUND *csound,
         case 'g':
         case 'G':
 #ifdef HAVE_SNPRINTF
-          if(strlen(strseg) + 24 > (unsigned)maxChars) {
+          if (strlen(strseg) + 24 > (unsigned)maxChars) {
            int offs = outstring - str->data;
             str->data = mrealloc(csound, str->data,
                                  str->size  + 13);
@@ -393,7 +393,7 @@ sprintf_opcode_(CSOUND *csound,
             return StrOp_ErrMsg(p, "output argument may not be "
                                    "the same as any of the input args");
           }
-          if(((STRINGDAT*)parm)->size >= maxChars) {
+          if (((STRINGDAT*)parm)->size >= maxChars) {
             int offs = outstring - str->data;
             str->data = mrealloc(csound, str->data,
                                  str->size  + ((STRINGDAT*)parm)->size);
@@ -401,7 +401,7 @@ sprintf_opcode_(CSOUND *csound,
             maxChars += ((STRINGDAT*)parm)->size;
             outstring = str->data + offs;
           }
-          n = sprintf(outstring, strseg, ((STRINGDAT*)parm)->data);
+          n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
           break;
         default:
           return StrOp_ErrMsg(p, "invalid format string");
@@ -429,6 +429,7 @@ sprintf_opcode_(CSOUND *csound,
         segwaiting++;
     }
     if (UNLIKELY(numVals > 0)) {
+        free(strseg);
       return StrOp_ErrMsg(p, "too many arguments for format");
     }
     free(strseg);
@@ -437,14 +438,14 @@ sprintf_opcode_(CSOUND *csound,
 
 int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
-  if(p->r->data == NULL) {
-        int size = p->sfmt->size+ 10*((int) p->INOCOUNT);
-        p->r->data = mcalloc(csound, size);
-        p->r->size = size;
+    if (p->r->data == NULL) {
+      int size = p->sfmt->size+ 10*((int) p->INOCOUNT);
+      p->r->data = mcalloc(csound, size);
+      p->r->size = size;
     }
-  if (UNLIKELY(sprintf_opcode_(csound, p, p->r,
-                               (char*) p->sfmt->data, &(p->args[0]),
-                        (int) p->INOCOUNT - 1,0) == NOTOK)) {
+    if (UNLIKELY(sprintf_opcode_(csound, p, p->r,
+                                  (char*) p->sfmt->data, &(p->args[0]),
+                                  (int) p->INOCOUNT - 1,0) == NOTOK)) {
       ((char*) p->r->data)[0] = '\0';
       return NOTOK;
     }
@@ -687,8 +688,8 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     char        *dst;
     int         i, len, strt, end, rev = 0;
 
-    if(p->Ssrc->data == NULL) return NOTOK;
-    if(p->Sdst->data == NULL) {
+    if (p->Ssrc->data == NULL) return NOTOK;
+    if (p->Sdst->data == NULL) {
         int size = p->Ssrc->size;
         p->Sdst->data = mcalloc(csound, size);
         p->Sdst->size = size;
@@ -797,7 +798,7 @@ int strchar_opcode(CSOUND *csound, STRCHAR_OP *p)
 int strlen_opcode(CSOUND *csound, STRLEN_OP *p)
 {
     (void) csound;
-    if(p->Ssrc->size)
+    if (p->Ssrc->size)
       *(p->ilen) = (MYFLT) strlen(p->Ssrc->data);
     else *(p->ilen) = FL(0.0);
     return OK;
@@ -817,8 +818,8 @@ int strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
     const char  *src;
     char        *dst;
     int         i;
-    if(p->Ssrc->data == NULL) return NOTOK;
-    if(p->Sdst->data == NULL) {
+    if (p->Ssrc->data == NULL) return NOTOK;
+    if (p->Sdst->data == NULL) {
         int size = p->Ssrc->size;
         p->Sdst->data = mcalloc(csound, size);
         p->Sdst->size = size;
@@ -841,8 +842,8 @@ int strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
     const char  *src;
     char        *dst;
     int         i;
-    if(p->Ssrc->data == NULL) return NOTOK;
-    if(p->Sdst->data == NULL) {
+    if (p->Ssrc->data == NULL) return NOTOK;
+    if (p->Sdst->data == NULL) {
         int size = p->Ssrc->size;
         p->Sdst->data = mcalloc(csound, size);
         p->Sdst->size = size;
@@ -883,7 +884,7 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
     s = &(buf[0]);
     switch (opt) {
     case 1:             /* maximum length of variable */
-      sprintf(&(buf[0]), "%d", (int) p->Sdst->size - 1);
+      snprintf(&(buf[0]), 32, "%d", (int) p->Sdst->size - 1);
       break;
     case 2:             /* input sound file name */
       s = (csound->oparms->sfread && !csound->initonly ?
@@ -927,7 +928,7 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
     }
     if (s != NULL) {
 
-    if(p->Sdst->data == NULL) {
+    if (p->Sdst->data == NULL) {
         int size = strlen(s) + 1;
         p->Sdst->data = mcalloc(csound, size);
         p->Sdst->size = size;
@@ -1031,5 +1032,36 @@ int str_from_url(CSOUND *csound, STRCPY_OP *p)
       corfile_rm(&mm);
       return OK;
     }
+}
+#endif
+
+#ifndef HAVE_STRLCAT
+/* Direct from BSD sources */
+size_t
+strlcat(char *dst, const char *src, size_t siz)
+{
+    char *d = dst;
+    const char *s = src;
+    size_t n = siz;
+    size_t dlen;
+
+    /* Find the end of dst and adjust bytes left but don't go past end */
+    while (n-- != 0 && *d != '\0')
+      d++;
+    dlen = d - dst;
+    n = siz - dlen;
+
+    if (n == 0)
+      return (dlen + strlen(s));
+    while (*s != '\0') {
+      if (n != 1) {
+        *d++ = *s;
+        n--;
+      }
+      s++;
+    }
+    *d = '\0';
+
+    return (dlen + (s - src));	/* count does not include NUL */
 }
 #endif

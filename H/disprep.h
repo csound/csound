@@ -48,17 +48,18 @@ typedef struct {
         uint32  lastframe;
 } FSIGDISP;
 
-#define WINDMAX 4096
+#define WINDMAX 16384
 #define WINDMIN 16
 
 typedef struct {
         OPDS    h;
         MYFLT   *signal, *iprd, *inpts, *ihann, *idbout, *iwtflg;
-        MYFLT   sampbuf[WINDMAX], *bufp, *endp, overN;
+        MYFLT   *sampbuf, *bufp, *endp, overN;
         int32   windsize, overlap, ncoefs;
         int     hanning, dbout;
         WINDAT  dwindow;
         AUXCH   auxch;
+        AUXCH  smpbuf;
 } DSPFFT;
 
 typedef struct {

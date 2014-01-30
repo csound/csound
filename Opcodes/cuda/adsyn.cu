@@ -10,16 +10,17 @@
 #define MAXBLOCK 8192
 #define THREADS_PER_BLOCK 1024
 
+//__shared__ MYFLT mema[64*20];
+
 #define PFRACLO(x)   ((MYFLT)((x) & lomask) * lodiv)
 
-__global__ void component(MYFLT *out, int *ndx, MYFLT *tab,
+__global__ void component_table(MYFLT *out, int *ndx, MYFLT *tab,
                           float *amp, int *inc, int vsize,
                           int blocks, int lobits, MYFLT lodiv,
                           int lomask) {
 
   int h = threadIdx.x*blocks + blockIdx.x;
   int i, offset, n, lndx;
-
   offset = h*vsize;
   out += offset;
 
@@ -32,14 +33,31 @@ __global__ void component(MYFLT *out, int *ndx, MYFLT *tab,
 
 }
 
+__global__ void component_sine(MYFLT *out, int *ndx,
+                          float *amp, int *inc, int vsize,
+                          int blocks) {
+
+  int h = threadIdx.x*blocks + blockIdx.x;
+  int i, offset, lndx;
+  offset = h*vsize;
+  out += offset;
+
+  for(i=0; i < vsize; i++) {
+    lndx = ndx[h];
+    out[i] = amp[h]*sin((PI*2*lndx)/FMAXLEN);
+    ndx[h] = (lndx + inc[h]) & PHMASK;
+  }
+   
+}
+
 __global__  void mixdown(MYFLT *out, int comps, int vsize, float kamp){
    int h = threadIdx.x;
    int i;
-   for(i=0; i < comps; i++)
+   for(i=1; i < comps; i++){
      out[h] += out[h + vsize*i];
+   }
    out[h] *= kamp;
 }
-
 
 
 static int destroy_cudaop(CSOUND *csound, void *pp);
@@ -64,10 +82,12 @@ static int init_cudaop(CSOUND *csound, CUDAOP *p){
   int nsmps = CS_KSMPS;
   if(nsmps > 1024) return csound->InitError(csound, "ksmps is too large\n");
 
+  if(*p->itabn != 0){ 
   if((p->itab =
       csound->FTFind(csound, p->itabn))== NULL)
     return csound->InitError(csound,
                              "could not find table %.0f\n", *p->itabn);
+  } else p->itab = NULL;
 
   if((p->ftab =
       csound->FTnp2Find(csound, p->ftabn))== NULL)
@@ -90,15 +110,18 @@ static int init_cudaop(CSOUND *csound, CUDAOP *p){
   asize = p->N*nsmps*sizeof(MYFLT);
   ipsize = p->N*sizeof(int);
   fpsize = p->N*sizeof(float);
-  tsize = (p->itab->flen+1)*sizeof(MYFLT);
+  if(p->itab)
+   tsize = (p->itab->flen+1)*sizeof(MYFLT);
 
   cudaMalloc(&p->out, asize);
   cudaMalloc(&p->ndx, ipsize);
   cudaMalloc(&p->amp, fpsize);
   cudaMalloc(&p->inc, ipsize);
-  cudaMalloc(&p->tab, tsize);
+  if(p->itab) {
+   cudaMalloc(&p->tab, tsize);
+   cudaMemcpy(p->tab, p->itab->ftable, tsize, cudaMemcpyHostToDevice);
+  }
   cudaMemset(p->ndx, 0, ipsize);
-  cudaMemcpy(p->tab, p->itab->ftable, tsize, cudaMemcpyHostToDevice);
 
   p->ap = p->atab->ftable;
   p->fp = p->ftab->ftable;
@@ -121,8 +144,8 @@ static void update_params(CSOUND *csound, CUDAOP *p){
     amp[i] = p->ap[i];
     inc[i] = *p->kfreq*p->fp[i]*FMAXLEN/csound->GetSr(csound);
    }
-  cudaMemcpy(&p->amp[N*j],amp,fpsize, cudaMemcpyHostToDevice);
-  cudaMemcpy(&p->inc[N*j],inc,ipsize, cudaMemcpyHostToDevice);
+   cudaMemcpy(&p->amp[N*j],amp,fpsize, cudaMemcpyHostToDevice);
+   cudaMemcpy(&p->inc[N*j],inc,ipsize, cudaMemcpyHostToDevice);
  }
 
 }
@@ -140,16 +163,23 @@ static int perf_cudaop(CSOUND *csound, CUDAOP *p){
     nsmps -= early;
     memset(&(p->asig[nsmps]), '\0', early*sizeof(MYFLT));
   }
-
+ 
   update_params(csound, p);
-  component<<<p->blocks,
+  if(p->itab) 
+   component_table<<<p->blocks,
         p->N/p->blocks>>>(p->out,p->ndx,
                           p->tab,p->amp,
                           p->inc,nsmps,
                           p->blocks,
-                          p->itab->lobits,
-                          p->itab->lodiv,
+			  p->itab->lobits,
+			  p->itab->lodiv,
                           p->itab->lomask);
+  else
+   component_sine<<<p->blocks,
+        p->N/p->blocks>>>(p->out,p->ndx,
+                          p->amp,
+                          p->inc,nsmps,
+                          p->blocks);
    mixdown<<<1,nsmps>>>(p->out,p->N,nsmps,*p->kamp);
    cudaMemcpy(p->asig,p->out,nsmps*sizeof(MYFLT),cudaMemcpyDeviceToHost);
 
@@ -270,7 +300,7 @@ static int perf_cudaop2(CSOUND *csound, CUDAOP2 *p){
   for(n=offset; n < nsmps; n++){
     if(count == 0) {
       update_params2(csound, p);
-      component<<<p->blocks,
+      component_table<<<p->blocks,
         p->N/p->blocks>>>(p->out,p->ndx,
                           p->tab,p->amp,
                           p->inc,p->vsamps,
