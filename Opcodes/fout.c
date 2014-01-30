@@ -1494,7 +1494,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
         }
       }
       else
-        snprintf(outstring, 8192, strseg);
+        snprintf(outstring, 8192, "%s", strseg);
     }
 }
 
@@ -1504,7 +1504,7 @@ static int fprintf_k(CSOUND *csound, FPRINTF *p)
 
     (void) csound;
     sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
-    fprintf(p->f.f, string);
+    fprintf(p->f.f, "%s", string);
 
     return OK;
 }
@@ -1517,7 +1517,7 @@ static int fprintf_i(CSOUND *csound, FPRINTF *p)
     if (UNLIKELY(fprintf_set(csound, p) != OK))
       return NOTOK;
     sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
-    fprintf(p->f.f, string);
+    fprintf(p->f.f,"%s", string);
     /* fflush(p->f.f); */
     return OK;
 }
@@ -1529,7 +1529,7 @@ static int fprintf_i_S(CSOUND *csound, FPRINTF *p)
     if (UNLIKELY(fprintf_set_S(csound, p) != OK))
       return NOTOK;
     sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
-    fprintf(p->f.f, string);
+    fprintf(p->f.f, "%s", string);
     /* fflush(p->f.f); */
     return OK;
 }

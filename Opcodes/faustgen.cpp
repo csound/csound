@@ -356,14 +356,14 @@ int delete_faustgen(CSOUND *csound, void *p) {
     prv = fobj;
     fobj = fobj->nxt;
   }
-  if(fobj == NULL)
+
     if(fobj != NULL) {
       if(*pfobj == fobj) *pfobj = fobj->nxt;
       csound->Free(csound, fobj);
       delete pp->ctls;
       deleteDSPInstance(pp->engine);
     } else
-      csound->Warning(csound,
+   csound->Warning(csound,
                       Str("could not find DSP %p for deletion"), pp->engine);
   if(pp->factory) delete pp->factory;
   return OK;
@@ -478,7 +478,7 @@ void *init_faustgen_thread(void *pp){
   argv[0] = "-vec";
   argv[1] = "-lv";
   argv[2] = " 1";
-  p->engine == NULL;
+  p->engine = NULL;
 
 #ifdef USE_DOUBLE
   argv[3] = "-double";

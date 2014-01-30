@@ -25,6 +25,9 @@
 #include "soundio.h"
 #include <math.h>
 
+#ifndef WIN32
+#include <unistd.h>
+#endif
 #define INCSDIF 1
 
 #if INCSDIF
@@ -230,7 +233,8 @@ static int hetro(CSOUND *csound, int argc, char **argv)
           break;
         case '-':
           FIND(Str("no log file"));
-          while (*s++); s--;
+          while (*s++)
+               ; s--;
           break;
         default:
           return quit(csound, Str("Invalid switch option"));

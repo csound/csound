@@ -26,6 +26,9 @@
 #include "soundio.h"
 #include "lpc.h"
 #include "cwindow.h"
+#ifndef WIN32
+#include <unistd.h>
+#endif
 #include <math.h>
 
 /* LPC analysis, modified by BV 8'92 for linkage to audio files via soundin.c.

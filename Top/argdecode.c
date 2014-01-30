@@ -1211,12 +1211,14 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
                 readOptions(csound, ind, 0);
                 csound->FileClose(csound, fd);
               }
-              while (*s++); s--;
+              while (*s++)
+               ; s--; /* semicolon on separate line to silence warning */
             }
             break;
           case 'O':
             FIND(Str("no log file"));
-            while (*s++); s--;
+            while (*s++)
+	      ; s--; /* semicolon on separate line to silence warning */
             break;
           case '-':
 #if defined(LINUX)

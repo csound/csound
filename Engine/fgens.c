@@ -61,7 +61,7 @@ static int gen53(FGDATA *, FUNC *);
 static int GENUL(FGDATA *, FUNC *);
 #ifndef NACL
 static int gen49(FGDATA *, FUNC *);
-#endif
+#endif 
 
 static const GEN or_sub[GENMAX + 1] = {
     GENUL,
