@@ -833,7 +833,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  fareyseq_localops_init, hrtfearly_localops_init,
                                  hrtfreverb_localops_init, minmax_localops_init,
                                  vaops_localops_init, pvsgendy_localops_init,
-#ifndef WIN32
+#ifdef LINUX
                                  cpumeter_localops_init,
 #endif
 #ifndef NACL

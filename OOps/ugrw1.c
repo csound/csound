@@ -1048,7 +1048,7 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
         }
       }
       else
-        snprintf(outstring, 8196, strseg);
+        snprintf(outstring, 8196, "%s", strseg);
     }
 }
 
