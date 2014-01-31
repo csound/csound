@@ -411,7 +411,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       //for now treat as T_IDENT
     case T_ARRAY_IDENT:
     case T_IDENT:
-      
+
       s = tree->value->lexeme;
 
       if (is_label(s, typeTable->labelList)) {
@@ -445,12 +445,12 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       if(*s == 'g') {
        var = csoundFindVariableWithName(csound->engineState.varPool,
-                                        tree->value->lexeme); 
+                                        tree->value->lexeme);
        if(var == NULL)
        var = csoundFindVariableWithName(typeTable->globalPool, tree->value->lexeme);
        } else
         var = csoundFindVariableWithName(typeTable->localPool, tree->value->lexeme);
-      
+
       if (UNLIKELY(var == NULL)) {
         synterr(csound, Str("Variable '%s' used before defined\n"),
                 tree->value->lexeme);
@@ -458,7 +458,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return NULL;
       }
 
-      if (var->varType == &CS_VAR_TYPE_ARRAY) { 
+      if (var->varType == &CS_VAR_TYPE_ARRAY) {
         return create_array_arg_type(csound, var);
       } else {
         return cs_strdup(csound, var->varType->varTypeName);
@@ -1649,7 +1649,7 @@ void do_baktrace(CSOUND *csound, uint64_t files)
       files = files >>8;
       csound->Message(csound, Str(" from file %s (%d)\n"),
                       csound->filedir[ff], ff);
-    } 
+    }
 }
 
 /**

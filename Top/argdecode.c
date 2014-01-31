@@ -1218,7 +1218,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
           case 'O':
             FIND(Str("no log file"));
             while (*s++)
-	      ; s--; /* semicolon on separate line to silence warning */
+              ; s--; /* semicolon on separate line to silence warning */
             break;
           case '-':
 #if defined(LINUX)
