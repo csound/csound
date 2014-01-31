@@ -61,7 +61,7 @@ static int gen53(FGDATA *, FUNC *);
 static int GENUL(FGDATA *, FUNC *);
 #ifndef NACL
 static int gen49(FGDATA *, FUNC *);
-#endif 
+#endif
 
 static const GEN or_sub[GENMAX + 1] = {
     GENUL,
@@ -1352,7 +1352,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
         nextval(infile);
       } while (!feof(infile));
       csoundMessage(csound, Str("%ld elements in %s\n"),
-		    (long) ff->flen, ff->e.strarg);
+                    (long) ff->flen, ff->e.strarg);
       rewind(infile);
       /* Allocate memory and read them in now */
   /*  ff->flen      = ff->flen + 2;        ??? */
@@ -2286,7 +2286,7 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
                                       "may find this disturbing"), ff->fno);
         }
       }
-      else {     
+      else {
                                     /* else clear it to zero */
         memset((void*) ftp->ftable, 0, sizeof(MYFLT)*(ff->flen+1));
         memset((void*) ftp, 0, sizeof(FUNC)-sizeof(MYFLT*)); /* leaving table! */

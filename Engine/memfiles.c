@@ -356,7 +356,7 @@ MEMFIL *ldmemfile2withCB(CSOUND *csound, const char *filnam, int csFileType,
       }
     }
     csoundMessage(csound, Str("file %s (%ld bytes) loaded into memory\n"),
-		  pathnam, (long) len);
+                  pathnam, (long) len);
     mfree(csound, pathnam);
     return mfp;                                          /* rtn new slotadr */
 }
