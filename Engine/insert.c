@@ -175,7 +175,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     /* **** COVERITY: note that call to instance fills in structure to
        **** which tp points.  This is a false positive **** */
      /* pop from free instance chain */
-    if(csound->oparms->odebug) 
+    if(csound->oparms->odebug)
       csoundMessage(csound, "insert(): tp->act_instance = %p \n", tp->act_instance);
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
@@ -1257,10 +1257,10 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     p->ip->init_done = 1;
 
     /* copy length related parameters back to caller instr */
-    parent_ip->relesing = lcurip->relesing; 
-    parent_ip->offbet = lcurip->offbet; 
-    parent_ip->offtim = lcurip->offtim; 
-    parent_ip->p3 = lcurip->p3; 
+    parent_ip->relesing = lcurip->relesing;
+    parent_ip->offbet = lcurip->offbet;
+    parent_ip->offtim = lcurip->offtim;
+    parent_ip->p3 = lcurip->p3;
     local_ksmps = lcurip->ksmps;
 
     /* restore globals */
@@ -1269,16 +1269,16 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
     /* select perf routine and scale xtratim accordingly */
     if (local_ksmps != CS_KSMPS) {
-       ksmps_scale = CS_KSMPS / local_ksmps; 
-       parent_ip->xtratim = lcurip->xtratim / ksmps_scale; 
+       ksmps_scale = CS_KSMPS / local_ksmps;
+       parent_ip->xtratim = lcurip->xtratim / ksmps_scale;
       p->h.opadr = (SUBR) useropcd1;
     }
     else {
-      parent_ip->xtratim = lcurip->xtratim; 
+      parent_ip->xtratim = lcurip->xtratim;
       p->h.opadr = (SUBR) useropcd2;
     }
     if(csound->oparms->odebug)
-    csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n", 
+    csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n",
             lcurip, lcurip->xtratim, parent_ip, parent_ip->xtratim);
     return OK;
 }
@@ -2041,7 +2041,7 @@ static void instance(CSOUND *csound, int insno)
     ip->nxtact = tp->act_instance;
     tp->act_instance = ip;
     ip->insno = insno;
-    if(csound->oparms->odebug) 
+    if(csound->oparms->odebug)
       csoundMessage(csound,"instance(): tp->act_instance = %p \n", tp->act_instance);
 
 
