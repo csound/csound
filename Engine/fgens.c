@@ -2288,8 +2288,10 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
       }
       else {
                                     /* else clear it to zero */
+        MYFLT *tmp = ftp->ftable;
         memset((void*) ftp->ftable, 0, sizeof(MYFLT)*(ff->flen+1));
-        memset((void*) ftp, 0, sizeof(FUNC)-sizeof(MYFLT*)); /* leaving table! */
+        memset((void*) ftp, 0, sizeof(FUNC));
+        ftp->ftable = tmp; /* restore table pointer */
       }
     }
     if (ftp == NULL) {                      /*   alloc space as reqd */
