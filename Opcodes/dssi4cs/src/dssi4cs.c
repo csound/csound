@@ -976,14 +976,15 @@ LADSPAPluginSearch(CSOUND *csound,
     if (!pcDSSIPath) {
       csound->Message(csound,
                       "DSSI4CS: DSSI_PATH environment variable not set.\n");
+      pcStart = pcLADSPAPath;
     }
-    // if ((!pcLADSPAPath) && (!pcLADSPAPath))
-    //  return;
-    if (pcDSSIPath) {
-      pcLADSPAPath = strcat((char *) pcLADSPAPath, ":");
-      pcLADSPAPath = strcat((char *) pcLADSPAPath, pcDSSIPath);
+    else {
+      int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
+      char *tmp = (char*)malloc(strlen(len));
+      snprintf(tmp, len, "%s:%s", pcLADSPAPath, pcDSSIPath);
+      pcLADSPAPath = pcStart = tmp;
     }
-    pcStart = pcLADSPAPath;
+    // Search the list
     while (*pcStart != '\0') {
       pcEnd = pcStart;
       while (*pcEnd != ':' && *pcEnd != '\0')
@@ -991,8 +992,7 @@ LADSPAPluginSearch(CSOUND *csound,
 
       pcBuffer = csound->Malloc(csound, 1 + (pcEnd - pcStart));
       if (pcEnd > pcStart)
-        strncpy(pcBuffer, pcStart, pcEnd - pcStart);
-      pcBuffer[pcEnd - pcStart] = '\0';
+        strncpy(pcBuffer, pcStart, 1+ pcEnd - pcStart);
 
       LADSPADirectoryPluginSearch(csound, pcBuffer, fCallbackFunction);
       csound->Free(csound, pcBuffer);
@@ -1001,6 +1001,7 @@ LADSPAPluginSearch(CSOUND *csound,
       if (*pcStart == ':')
         pcStart++;
     }
+    if (pcDSSIPath) free(pcLADSPAPath);
 }
 
 void
