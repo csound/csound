@@ -750,10 +750,12 @@ int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
       return print_chn_err(p, err);
     csoundSpinLock(p->lock);
     if(((STRINGDAT *) p->fp)->data != NULL) {
-    if(s != NULL) mfree(csound, s);
+      if(((STRINGDAT *) p->fp)->size > ((STRINGDAT *) p->arg)->size) {
+     if(s != NULL) mfree(csound, s);
     s = cs_strdup(csound,((STRINGDAT *) p->fp)->data);
     ((STRINGDAT *) p->arg)->data = s;
     ((STRINGDAT *) p->arg)->size = strlen(s) + 1;
+      } else strcpy(((STRINGDAT *) p->arg)->data, ((STRINGDAT *) p->fp)->data);
     }
     csoundSpinUnLock(p->lock);
     return OK;
