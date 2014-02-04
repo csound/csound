@@ -98,7 +98,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
     char    *s;
-    int new_s = 0;
     FILE    *xfile = NULL;
     int     n;
     int     csdFound = 0;
