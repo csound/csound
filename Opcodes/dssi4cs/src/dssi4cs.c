@@ -962,7 +962,7 @@ LADSPAPluginSearch(CSOUND *csound,
 {
     char   *pcBuffer;
     const char *pcEnd;
-    const char *pcLADSPAPath;
+          char *pcLADSPAPath;
     const char *pcDSSIPath;
     const char *pcStart;
 
@@ -980,7 +980,7 @@ LADSPAPluginSearch(CSOUND *csound,
     }
     else {
       int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
-      char *tmp = (char*)malloc(strlen(len));
+      char *tmp = (char*)malloc(len);
       snprintf(tmp, len, "%s:%s", pcLADSPAPath, pcDSSIPath);
       pcLADSPAPath = pcStart = tmp;
     }
