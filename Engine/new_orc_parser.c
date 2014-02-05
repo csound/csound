@@ -244,8 +244,11 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       //FIXME - synterrcnt should not be global
       if (astTree == NULL || csound->synterrcnt){
           err = 3;
-          csound->Message(csound, "Parsing failed due to %d semantic error%s!\n",
-                          csound->synterrcnt, csound->synterrcnt==1?"":"s");
+          if (astTree)
+            csound->Message(csound, "Parsing failed due to %d semantic error%s!\n",
+                            csound->synterrcnt, csound->synterrcnt==1?"":"s");
+          else
+            csound->Message(csound, "Parsing failed due no input!\n");
           goto ending;
       }
       err = 0;
