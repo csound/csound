@@ -172,13 +172,13 @@ void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
             == CSOUND_SUCCESS){
       int *lock = csoundGetChannelLock(csound, (char*) name);
       chstring = ((STRINGDAT *) pstring)->data;
-      if(lock != NULL)  csoundSpinLock(lock);
+      //if(lock != NULL)  csoundSpinLock(lock);
       if(string != NULL && chstring != NULL) {
       n1 = strlen(string);
       n2 = strlen(chstring);
         strncpy(string,chstring, n1 < n2 ? n1 : n2);
       }
-      if(lock != NULL) csoundSpinUnLock(lock);
+      //if(lock != NULL) csoundSpinUnLock(lock);
     }
 }
 
