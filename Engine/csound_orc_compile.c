@@ -1963,7 +1963,7 @@ uint8_t file_to_int(CSOUND *csound, const char *name)
     //extern char *strdup(const char *);
     uint8_t n = 0;
     char **filedir = csound->filedir;
-    while (filedir[n] && n<255) {        /* Do we have it already? */
+    while (n<255 && filedir[n] && n<255) {        /* Do we have it already? */
       if (strcmp(filedir[n], name)==0) return n; /* yes */
       n++;                                       /* look again */
     }
