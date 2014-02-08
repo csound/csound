@@ -98,7 +98,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
     char    *s;
-    int new_s = 0;
     FILE    *xfile = NULL;
     int     n;
     int     csdFound = 0;
@@ -246,14 +245,12 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     if (csound->enableHostImplementedMIDIIO == 1) {
         if (s == NULL) {
-          s = strdup("hostbased"); new_s=1;
+          s = "hostbased";
         } else {
             strcpy(s, "hostbased");
         }
         csoundSetConfigurationVariable(csound,"rtmidi", s);
     }
-
-
 
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
@@ -312,7 +309,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
 
-    if (new_s) free(s);
     return CSOUND_SUCCESS;
 }
 
