@@ -147,11 +147,11 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
     if (csoundGetChannelPtr(csound, &pstring, name,
                            CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)
             == CSOUND_SUCCESS){
-        
+
       STRINGDAT* stringdat = (STRINGDAT*) pstring;
       int    size = stringdat->size; //csoundGetChannelDatasize(csound, name);
       int    *lock = csoundGetChannelLock(csound, (char*) name);
-        
+
       csoundSpinLock(lock);
       if(strlen(string) + 1 > (unsigned int) size) {
         if(stringdat->data!=NULL) mfree(csound,stringdat->data);
@@ -166,7 +166,7 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
 void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
 {
     MYFLT  *pstring;
-    int n1, n2;
+    int n1, n2, length;
     if (csoundGetChannelPtr(csound, &pstring, name,
                            CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
             == CSOUND_SUCCESS){
@@ -175,6 +175,7 @@ void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
       n1 = strlen(string);
       n2 = strlen(((STRINGDAT *) pstring)->data);
       if(string != NULL)
+
         strncpy(string, ((STRINGDAT *) pstring)->data, n1 < n2 ? n1 : n2);
       if(lock != NULL) csoundSpinUnLock(lock);
     }
