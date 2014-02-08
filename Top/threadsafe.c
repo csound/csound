@@ -152,14 +152,14 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
       int    size = stringdat->size; //csoundGetChannelDatasize(csound, name);
       int    *lock = csoundGetChannelLock(csound, (char*) name);
 
-      csoundSpinLock(lock);
+      if(lock != NULL)  csoundSpinLock(lock);
       if(strlen(string) + 1 > (unsigned int) size) {
         if(stringdat->data!=NULL) mfree(csound,stringdat->data);
         stringdat->data = cs_strdup(csound, string);
         stringdat->size = strlen(string) + 1;
         //set_channel_data_ptr(csound,name,(void*)pstring, strlen(string)+1);
       } else strcpy((char *) stringdat->data, string);
-      csoundSpinUnLock(lock);
+       if(lock != NULL) csoundSpinUnLock(lock);
     }
 }
 
