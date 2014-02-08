@@ -165,18 +165,19 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
 
 void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
 {
-    MYFLT  *pstring;
+  MYFLT  *pstring, *chstring;
     int n1, n2, length;
     if (csoundGetChannelPtr(csound, &pstring, name,
                            CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
             == CSOUND_SUCCESS){
       int *lock = csoundGetChannelLock(csound, (char*) name);
-      if(lock != NULL) csoundSpinLock(lock);
+      chstring = ((STRINGDAT *) pstring)->data;
+      if(lock != NULL)  csoundSpinLock(lock);
+      if(string != NULL && chstring != NULL) {
       n1 = strlen(string);
-      n2 = strlen(((STRINGDAT *) pstring)->data);
-      if(string != NULL)
-
-        strncpy(string, ((STRINGDAT *) pstring)->data, n1 < n2 ? n1 : n2);
+      n2 = strlen(chstring);
+        strncpy(string,chstring, n1 < n2 ? n1 : n2);
+      }
       if(lock != NULL) csoundSpinUnLock(lock);
     }
 }
