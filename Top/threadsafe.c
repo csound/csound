@@ -169,21 +169,21 @@ void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
 {
   MYFLT  *pstring;
   char *chstring;
-    int n1, n2, length;
+    int n1, n2;
     if (csoundGetChannelPtr(csound, &pstring, name,
                            CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
             == CSOUND_SUCCESS){
       int *lock = csoundGetChannelLock(csound, (char*) name);
       chstring = ((STRINGDAT *) pstring)->data;
-      if(lock != NULL)  
+      if (lock != NULL)  
         csoundSpinLock(lock);
-       if(string != NULL && chstring != NULL) {
+       if (string != NULL && chstring != NULL) {
 	 n1 = strlen(string);
-      n2 = strlen(chstring);
-        strncpy(string,chstring, n1 < n2 ? n1 : n2);
-		}
-      if(lock != NULL)
-        csoundSpinUnLock(lock);
+         n2 = strlen(chstring);
+         strncpy(string,chstring, n1 < n2 ? n1 : n2);
+       }
+       if(lock != NULL)
+         csoundSpinUnLock(lock);
     }
 }
 
