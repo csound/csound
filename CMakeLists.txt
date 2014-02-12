@@ -1175,7 +1175,7 @@ add_custom_target(uninstall
 
 # target etags/tags
 if(UNIX)
-  add_custom_target(tags COMMAND etags `find ${CMAKE_CURRENT_SOURCE_DIR} -name \\*.cc -or -name \\*.hh -or -name \\*.cpp -or -name \\*.h -or -name \\*.c | grep -v " "`)
+  add_custom_target(tags COMMAND etags `find ${CMAKE_CURRENT_SOURCE_DIR} -name \\*.cc -or -name \\*.hh -or -name \\*.cpp -or -name \\*.h -or -name \\*.c | grep -v " " `)
   add_custom_target(etags DEPENDS tags)
 endif()
 
