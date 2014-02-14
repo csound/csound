@@ -1146,6 +1146,7 @@ OENTRY opcodlst_1[] = {
   { "ftresizei", S(RESIZE), TB, 1, "i", "ii", (SUBR) resize_table, NULL, NULL },
   { "ftresize",  S(RESIZE), TB, 2, "k", "kk", NULL, (SUBR) resize_table, NULL },
   { "compileorc",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_orc_i, NULL, NULL },
+  { "compilecsd",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_csd_i, NULL, NULL },
   { "compilestr",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_str_i, NULL, NULL },
   { "evalstr",  S(COMPILE), 0, 1, "i", "S",  (SUBR) eval_str_i, NULL, NULL },
   { "evalstr",  S(COMPILE), 0, 2, "k", "Sk",  NULL, (SUBR) eval_str_k, NULL },

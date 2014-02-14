@@ -351,6 +351,8 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
     return FALSE;
 }
 
+
+
 static int createScore(CSOUND *csound, FILE *unf)
 {
     char   *p;
@@ -370,6 +372,7 @@ static int createScore(CSOUND *csound, FILE *unf)
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
     return FALSE;
 }
+
 
 static int createExScore(CSOUND *csound, char *p, FILE *unf)
 {
@@ -811,6 +814,68 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     if (STA(midiSet)) {
       csound->oparms->FMidiname = STA(midname);
       csound->oparms->FMidiin = 1;
+    }
+    csoundFileClose(csound, fd);
+    return result;
+}
+
+
+int read_unified_file2(CSOUND *csound, char *csd)
+{
+    char  *name = csd;
+    FILE  *unf;
+    void  *fd;
+    int   result = TRUE;
+    int   started = FALSE;
+    int   r;
+    char    buffer[CSD_MAX_LINE_LEN];
+
+    /* Need to open in binary to deal with MIDI and the like. */
+    fd = csoundFileOpenWithType(csound, &unf, CSFILE_STD, name, "rb", NULL,
+                                CSFTYPE_UNIFIED_CSD, 0);
+    /* RWD 3:2000 fopen can fail... */
+    if (UNLIKELY(fd == NULL)) {
+      csound->ErrorMsg(csound, Str("Failed to open csd file: %s"),
+                               strerror(errno));
+      return 0;
+    }
+    
+#ifdef _DEBUG
+    csoundMessage(csound, "Calling unified file system with %s\n", name);
+#endif
+    while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)) {
+      char *p = buffer;
+      while (*p == ' ' || *p == '\t') p++;
+      if (strstr(p, "<CsoundSynthesizer>") == p ||
+          strstr(p, "<CsoundSynthesiser>") == p) {
+        csoundMessage(csound, Str("STARTING FILE\n"));
+        started = TRUE;
+      }
+      else if (strstr(p, "</CsoundSynthesizer>") == p ||
+               strstr(p, "</CsoundSynthesiser>") == p) {
+        if (csound->scorestr != NULL)
+          corfile_flush(csound->scorestr);
+        csoundFileClose(csound, fd);
+        return result;
+      }
+      else if (strstr(p, "<CsInstruments>") == p) {
+        csoundMessage(csound, Str("Creating orchestra\n"));
+        r = createOrchestra(csound, unf);
+        result = r && result;
+      }
+      else if (strstr(p, "<CsScore") == p) {
+        csoundMessage(csound, Str("Creating score\n"));
+        if (strstr(p, "<CsScore>") == p)
+          r = createScore(csound, unf);
+        else
+          r = createExScore(csound, p, unf);
+        result = r && result;
+      }    
+    }
+    if (UNLIKELY(!started)) {
+      csoundMessage(csound,
+                    Str("Could not find <CsoundSynthesizer> tag in CSD file.\n"));
+      result = FALSE;
     }
     csoundFileClose(csound, fd);
     return result;
