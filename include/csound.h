@@ -677,6 +677,24 @@ extern "C" {
     PUBLIC int csoundCompile(CSOUND *, int argc, char **argv);
 
     /**
+     * Compiles a Csound input file (.csd file)
+     * which includes command-line arguments,
+     * but does not perform the file. Returns a non-zero error code on failure.
+     * In this (host-driven) mode, the sequence of calls should be as follows:
+     * /code
+     *       csoundCompileCsd(csound, argc, argv);
+     *       while (!csoundPerformBuffer(csound));
+     *       csoundCleanup(csound);
+     *       csoundReset(csound);
+     * /endcode
+     * NB: this function can be called during performance to
+     * replace or add new instruments and events.
+     *
+     */
+
+    PUBLIC int csoundCompileCsd(CSOUND *csound, char *str);
+
+    /**
      * Senses input events and performs audio output until the end of score
      * is reached (positive return value), an error occurs (negative return
      * value), or performance is stopped by calling csoundStop() from another
