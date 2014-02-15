@@ -75,7 +75,7 @@ int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance
         return 0;
     }
 
-    item = (CS_TYPE_ITEM*)mcalloc(csound, sizeof(CS_TYPE_ITEM));
+    item = (CS_TYPE_ITEM*)csound->Calloc(csound, sizeof(CS_TYPE_ITEM));
     item->cstype = typeInstance;
 
     if (pool->head == NULL) {
@@ -100,7 +100,7 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
     char* retVal;
 
     if (varName[0] != '[') {
-      retVal = (char*)mcalloc(csound, sizeof(char) * (strlen(varName) + 1));
+      retVal = (char*)csound->Calloc(csound, sizeof(char) * (strlen(varName) + 1));
         strcpy(retVal, varName);
     } else {
       int start = 0;
@@ -127,7 +127,7 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
       newSecondLen = (len - typeEnd);
       newTotalLen = newFirstLen + newSecondLen;
 
-      retVal = (char*)mcalloc(csound, sizeof(char) * (newTotalLen + 1));
+      retVal = (char*)csound->Calloc(csound, sizeof(char) * (newTotalLen + 1));
       strncpy(retVal, t, newFirstLen);
       strncpy(retVal + newFirstLen, t2, newSecondLen);
     }
@@ -262,13 +262,14 @@ void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
     }
 }
 
-void deleteVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
-  CS_VARIABLE* current = pool->head, *tmp;
+void deleteVarPoolMemory(void* csnd, CS_VAR_POOL* pool) {
+    CS_VARIABLE* current = pool->head, *tmp;
+    CSOUND *csound = (CSOUND *)csnd;
     while (current != NULL) {
       tmp = current;
-      mfree((CSOUND *)csound, current->memBlock);
+      csound->Free(csound, current->memBlock);
       current = current->next;
-      mfree((CSOUND *)csound, tmp);
+      csound->Free(csound, tmp);
     }
 }
 

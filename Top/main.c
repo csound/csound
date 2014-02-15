@@ -75,7 +75,7 @@ void checkOptions(CSOUND *csound)
                              CSFTYPE_OPTIONS, 0);
       if (fd != NULL)
         csound->Message(csound, Str("Reading options from $HOME/.csound6rc\n"));
-      mfree(csound, s);
+      csound->Free(csound, s);
     }
     /* read global .csound6rc file (if exists) */
     if (fd != NULL) {
@@ -155,7 +155,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
         csoundAppendEnv(csound, "SSDIR", fileDir);
         csoundAppendEnv(csound, "INCDIR", fileDir);
         csoundAppendEnv(csound, "MFDIR", fileDir);
-        mfree(csound, fileDir);
+        csound->Free(csound, fileDir);
       }
 
       if(csound->orchname != NULL) {
@@ -198,7 +198,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       csoundAppendEnv(csound, "SADIR", fileDir);
       csoundAppendEnv(csound, "SSDIR", fileDir);
       csoundAppendEnv(csound, "MFDIR", fileDir);
-      mfree(csound, fileDir);
+      csound->Free(csound, fileDir);
     }
 
     /* Add directory of ORC file to search paths*/
@@ -207,7 +207,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       csoundAppendEnv(csound, "SADIR", fileDir);
       csoundAppendEnv(csound, "SSDIR", fileDir);
       csoundAppendEnv(csound, "MFDIR", fileDir);
-      mfree(csound, fileDir);
+      csound->Free(csound, fileDir);
     }
 
     if (csound->orchstr==NULL && csound->orchname) {

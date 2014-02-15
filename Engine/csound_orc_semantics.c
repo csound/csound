@@ -64,7 +64,7 @@ char* cs_strdup(CSOUND* csound, char* str) {
     if (str == NULL) return NULL;
 
     len = strlen(str);
-    retVal = mmalloc(csound, (len + 1) * sizeof(char));
+    retVal = csound->Malloc(csound, (len + 1) * sizeof(char));
 
     if(len > 0) memcpy(retVal, str, len * sizeof(char));//why not strcpy?
     retVal[len] = '\0';
@@ -83,7 +83,7 @@ char* cs_strndup(CSOUND* csound, char* str, size_t size) {
       return cs_strdup(csound, str);
     }
 
-    retVal = mmalloc(csound, (size + 1) * sizeof(char));
+    retVal = csound->Malloc(csound, (size + 1) * sizeof(char));
     memcpy(retVal, str, size * sizeof(char));
     retVal[size] = '\0';
 
@@ -175,7 +175,7 @@ char* get_array_sub_type(CSOUND* csound, char* arrayName) {
 char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
 
     int i, len = arrayVar->dimensions + 3;
-    char* retVal = mmalloc(csound, len);
+    char* retVal = csound->Malloc(csound, len);
     retVal[len - 1] = '\0';
     retVal[len - 2] = ']';
     retVal[len - 3] = *arrayVar->subType->varTypeName;
@@ -484,7 +484,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         len++;
       }
 
-      char* retVal = mmalloc(csound, (len + 2) * sizeof(char));
+      char* retVal = csound->Malloc(csound, (len + 2) * sizeof(char));
       memcpy(retVal, s, len);
       retVal[len] = ']';
       retVal[len + 1] = '\0';
@@ -528,7 +528,7 @@ OENTRY* find_opcode(CSOUND *csound, char *opname)
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
 
     retVal = (head != NULL) ? head->value : NULL;
-    if (shortName != opname) mfree(csound, shortName);
+    if (shortName != opname) csound->Free(csound, shortName);
 
     return retVal;
 }
@@ -548,7 +548,7 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
       return NULL;
     }
 
-    retVal = mcalloc(csound, sizeof(OENTRIES));
+    retVal = csound->Calloc(csound, sizeof(OENTRIES));
 
     shortName = get_opcode_short_name(csound, opname);
 
@@ -561,7 +561,7 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
     }
 
     if (shortName != opname) {
-        mfree(csound, shortName);
+        csound->Free(csound, shortName);
     }
 
     return retVal;
@@ -668,7 +668,7 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
 
       if ((argsFoundCount > argsRequiredCount) &&
           !(is_in_var_arg(*argsRequired[argsRequiredCount - 1]))) {
-        mfree(csound, argsRequired);
+        csound->Free(csound, argsRequired);
         return 0;
       }
 
@@ -712,8 +712,8 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
 
       }
 
-      mfree(csound, argsFound);
-      mfree(csound, argsRequired);
+      csound->Free(csound, argsFound);
+      csound->Free(csound, argsRequired);
 
       return returnVal;
     }
@@ -793,7 +793,7 @@ int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 
       if ((argsFoundCount > argsRequiredCount) &&
           !(is_out_var_arg(*argsRequired[argsRequiredCount - 1]))) {
-        mfree(csound, argsRequired);
+        csound->Free(csound, argsRequired);
         return 0;
       }
 
@@ -829,8 +829,8 @@ int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
         }
       }
 
-      mfree(csound, argsFound);
-      mfree(csound, argsRequired);
+      csound->Free(csound, argsFound);
+      csound->Free(csound, argsRequired);
 
       return returnVal;
     }
@@ -937,14 +937,14 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
         dimensions++;
     }
 
-    retVal = mmalloc(csound, sizeof(char) * ((dimensions * 2) + 2));
+    retVal = csound->Malloc(csound, sizeof(char) * ((dimensions * 2) + 2));
     retVal[0] = *arg;
     for (i = 0; i < dimensions * 2; i += 2) {
        retVal[i + 1] = '[';
        retVal[i + 2] = ']';
     }
     retVal[dimensions * 2 + 1] = '\0';
-    //mfree(csound, arg);
+    //csound->Free(csound, arg);
     return retVal;
 }
 
@@ -959,7 +959,7 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
 
     dimensions = (strlen(arg) - 1) / 2;
 
-    retVal = mmalloc(csound, sizeof(char) * (dimensions + 3));
+    retVal = csound->Malloc(csound, sizeof(char) * (dimensions + 3));
     retVal[dimensions + 2] = '\0';
     retVal[dimensions + 1] = ']';
     retVal[dimensions] = *arg;
@@ -967,7 +967,7 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
     for (i = 0; i < dimensions; i++) {
         retVal[i] = '[';
     }
-    //mfree(csound, arg);
+    //csound->Free(csound, arg);
     return retVal;
 }
 
@@ -982,7 +982,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
         return NULL;
     }
 
-    char** argTypes = mmalloc(csound, len * sizeof(char*));
+    char** argTypes = csound->Malloc(csound, len * sizeof(char*));
     char* argString = NULL;
     TREE* current = tree;
     int index = 0;
@@ -1005,7 +1005,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
         current = current->next;
     }
 
-    argString = mmalloc(csound, (argsLen + 1) * sizeof(char));
+    argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
     char* temp = argString;
 
     for (i = 0; i < len; i++) {
@@ -1035,7 +1035,7 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
     }
     OENTRY* retVal = resolve_opcode(csound, opcodes, outArgsFound, inArgsFound);
 
-    mfree(csound, opcodes);
+    csound->Free(csound, opcodes);
 
     return retVal;
 }
@@ -1499,7 +1499,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       switch(current->type) {
       case INSTR_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
-        typeTable->localPool = mcalloc(csound, sizeof(CS_VAR_POOL));
+        typeTable->localPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
         current->markup = typeTable->localPool;
 
         if (current->right) {
@@ -1522,7 +1522,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       case UDO_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
 
-        typeTable->localPool = mcalloc(csound, sizeof(CS_VAR_POOL));
+        typeTable->localPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
         current->markup = typeTable->localPool;
 
         if (current->right != NULL) {
@@ -1695,7 +1695,7 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
                 TREE* left, TREE* right)
 {
     TREE *ans;
-    ans = (TREE*)mmalloc(csound, sizeof(TREE));
+    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);
@@ -1716,7 +1716,7 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
 TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
 {
     TREE *ans;
-    ans = (TREE*)mmalloc(csound, sizeof(TREE));
+    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);
@@ -1744,11 +1744,11 @@ static void delete_tree(CSOUND *csound, TREE *l)
       if (l->value) {
         if (l->value->lexeme) {
           //printf("Free %p (%s)\n", l->value->lexeme, l->value->lexeme);
-          mfree(csound, l->value->lexeme);
+          csound->Free(csound, l->value->lexeme);
           //l->value->lexeme = NULL;
         }
         //printf("Free val %p\n", l->value);
-        mfree(csound, l->value);
+        csound->Free(csound, l->value);
         //l->value = NULL;
       }
       delete_tree(csound, l->left);
@@ -1757,7 +1757,7 @@ static void delete_tree(CSOUND *csound, TREE *l)
       //l->right = NULL;
       l = l->next;
       //printf("Free %p\n", old);
-      mfree(csound, old);
+      csound->Free(csound, old);
     }
 }
 

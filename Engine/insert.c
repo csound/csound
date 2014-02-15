@@ -801,7 +801,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
             // csound->Message(csound, "ip=%p \n", ip);
             cnt++;
             if (ip->opcod_iobufs && ip->insno > csound->engineState.maxinsno)
-              mfree(csound, ip->opcod_iobufs);          /* IV - Nov 10 2002 */
+              csound->Free(csound, ip->opcod_iobufs);          /* IV - Nov 10 2002 */
             if (ip->fdchp != NULL)
               fdchclose(csound, ip);
             if (ip->auxchp != NULL)
@@ -810,7 +810,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
               nxtip->prvinstance = prvip;
             *prvnxtloc = nxtip;
 
-            mfree(csound, (char *)ip);
+            csound->Free(csound, (char *)ip);
 
           }
           else {
@@ -2025,7 +2025,7 @@ static void instance(CSOUND *csound, int insno)
     pextra = n-3;
     /* alloc new space,  */
     pextent = sizeof(INSDS) + tp->pextrab + pextra*sizeof(MYFLT *);
-    ip = (INSDS*) mcalloc(csound,
+    ip = (INSDS*) csound->Calloc(csound,
                           (size_t) pextent + tp->varPool->poolSize + tp->opdstot);
     ip->csound = csound;
     ip->m_chnbp = (MCHNBLK*) NULL;
@@ -2049,7 +2049,7 @@ static void instance(CSOUND *csound, int insno)
       size_t pcnt = (size_t) tp->opcode_info->perf_incnt;
       pcnt += (size_t) tp->opcode_info->perf_outcnt;
       pcnt = sizeof(OPCOD_IOBUFS) + sizeof(MYFLT*) * (pcnt << 1);
-      ip->opcod_iobufs = (void*) mmalloc(csound, pcnt);
+      ip->opcod_iobufs = (void*) csound->Malloc(csound, pcnt);
     }
 
     /* gbloffbas = csound->globalVarPool; */
@@ -2265,13 +2265,13 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
       }
 #if 0
       if (active->opcod_iobufs && active->insno > csound->engineState.maxinsno)
-        mfree(csound, active->opcod_iobufs);            /* IV - Nov 10 2002 */
+        csound->Free(csound, active->opcod_iobufs);            /* IV - Nov 10 2002 */
 #endif
       if (active->fdchp != NULL)
         fdchclose(csound, active);
       if (active->auxchp != NULL)
         auxchfree(csound, active);
-      mfree(csound, active);
+      csound->Free(csound, active);
       active = nxt;
     }
     csound->engineState.instrtxtp[n] = NULL;
@@ -2284,10 +2284,10 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
         txtp->nxtinstxt = ip->nxtinstxt;
         while (t) {
           OPTXT *s = t->nxtop;
-          mfree(csound, t);
+          csound->Free(csound, t);
           t = s;
         }
-        mfree(csound, ip);
+        csound->Free(csound, ip);
         return OK;
       }
     return NOTOK;

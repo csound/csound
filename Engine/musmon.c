@@ -199,9 +199,9 @@ int musmon(CSOUND *csound)
     dbfs_init(csound, csound->e0dbfs);
     csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
     csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
-    csound->spin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
-    csound->spout = (MYFLT *) mcalloc(csound, csound->nspout * sizeof(MYFLT));
-    csound->auxspin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
+    csound->spin  = (MYFLT *) csound->Calloc(csound, csound->nspin * sizeof(MYFLT));
+    csound->spout = (MYFLT *) csound->Calloc(csound, csound->nspout * sizeof(MYFLT));
+    csound->auxspin  = (MYFLT *) csound->Calloc(csound, csound->nspin * sizeof(MYFLT));
     /* memset(csound->maxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
     /* memset(csound->smaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
     /* memset(csound->omaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
@@ -294,7 +294,7 @@ int musmon(CSOUND *csound)
     //csound->scfp
     if (UNLIKELY(O->usingcscore)) {
       if (STA(lsect) == NULL) {
-        STA(lsect) = (EVENT*) mmalloc(csound, sizeof(EVENT));
+        STA(lsect) = (EVENT*) csound->Malloc(csound, sizeof(EVENT));
         STA(lsect)->op = 'l';
       }
       csound->Message(csound, Str("using Cscore processing\n"));
