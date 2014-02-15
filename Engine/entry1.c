@@ -543,7 +543,7 @@ OENTRY opcodlst_1[] = {
   { "print",  S(PRINTV),WR, 1,      "",     "m",    printv                  },
   { "display",S(DSPLAY),0,  7,      "",     "xioo", dspset, kdsplay,dsplay  },
   { "pvsdisp",S(FSIGDISP),0,  3,      "",     "foo", fdspset, fdsplay,NULL },
-  { "dispfft",S(DSPFFT),0,  7,      "",     "xiiooo",fftset,kdspfft,dspfft  },
+  { "dispfft",S(DSPFFT),0,  7,      "",     "xiiooooo",fftset,kdspfft,dspfft  },
   { "dumpk",  S(KDUMP),0,   3,      "",     "kSii", kdmpset_S,kdump           },
   { "dumpk2", S(KDUMP2),0,  3,      "",     "kkSii",kdmp2set_S,kdump2         },
   { "dumpk3", S(KDUMP3),0,  3,      "",     "kkkSii",kdmp3set_S,kdump3        },
