@@ -56,6 +56,11 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
     return OK;
 }
 
+int compile_csd_i(CSOUND *csound, COMPILE *p){
+  *p->res = (MYFLT) csoundCompileCsd(csound, ((STRINGDAT *)p->str)->data);
+   return OK;
+}
+
 int compile_str_i(CSOUND *csound, COMPILE *p){
     *p->res = (MYFLT)(csoundCompileOrc(csound, ((STRINGDAT *)p->str)->data));
     return OK;
