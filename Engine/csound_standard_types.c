@@ -54,43 +54,43 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
       ksmps = csound->ksmps;
 //    }
 
-    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = ksmps * sizeof (MYFLT);
     var->updateMemBlockSize = &updateAsigMemBlock;
     var->initializeVariableMemory = &varInitMemory;
     return var;
 }
 
-CS_VARIABLE* createMyflt(void* csound, void* p) {
-    CSOUND* cs = (CSOUND*)csound;
-    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+CS_VARIABLE* createMyflt(void* cs, void* p) {
+    CSOUND* csound = (CSOUND*)cs;
+    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = sizeof (MYFLT);
     var->initializeVariableMemory = &varInitMemory;
     return var;
 }
 
-CS_VARIABLE* createBool(void* csound, void* p) {
-    CSOUND* cs = (CSOUND*)csound;
-    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+CS_VARIABLE* createBool(void* cs, void* p) {
+    CSOUND* csound = (CSOUND*)cs;
+    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = sizeof (MYFLT);
     var->initializeVariableMemory = &varInitMemory;
     return var;
 }
 
-CS_VARIABLE* createWsig(void* csound, void* p) {
-    CSOUND* cs = (CSOUND*)csound;
-    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+CS_VARIABLE* createWsig(void* cs, void* p) {
+    CSOUND* csound = (CSOUND*)cs;
+    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = sizeof(SPECDAT);
     var->initializeVariableMemory = &varInitMemory;
     return var;
 }
 
-CS_VARIABLE* createFsig(void* csound, void* p) {
-    CSOUND* cs = (CSOUND*)csound;
-    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+CS_VARIABLE* createFsig(void* cs, void* p) {
+    CSOUND* csound = (CSOUND*)cs;
+    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = sizeof(PVSDAT);
     var->initializeVariableMemory = &varInitMemory;
@@ -102,20 +102,20 @@ void arrayInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
     dat->arrayType = var->subType;
 }
 
-CS_VARIABLE* createString(void* csound, void* p) {
-    CSOUND* cs = (CSOUND*)csound;
-    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+CS_VARIABLE* createString(void* cs, void* p) {
+    CSOUND* csound = (CSOUND*)cs;
+    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = sizeof(STRINGDAT);
     return var;
 }
 
-CS_VARIABLE* createArray(void* csound, void* p) {
-    CSOUND* cs = (CSOUND*)csound;
+CS_VARIABLE* createArray(void* csnd, void* p) {
+    CSOUND* csound = (CSOUND*)csnd;
     ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
 
 
-    CS_VARIABLE* var = mcalloc(cs, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = sizeof(ARRAYDAT);
     var->initializeVariableMemory = &arrayInitMemory;
 

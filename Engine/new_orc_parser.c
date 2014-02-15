@@ -183,7 +183,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       corfile_rm(&csound->orchstr);
     }
     {
-      TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
+      TREE* astTree = (TREE *)csound->Calloc(csound, sizeof(TREE));
       TREE* newRoot;
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
@@ -225,20 +225,20 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         print_tree(csound, "AST - INITIAL\n", astTree);
       }
       //print_tree(csound, "AST - INITIAL\n", astTree);
-      typeTable = mmalloc(csound, sizeof(TYPE_TABLE));
+      typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
 
-      typeTable->globalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
-      typeTable->instr0LocalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
+      typeTable->globalPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+      typeTable->instr0LocalPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
 
       /**** THIS NEXT LINE IS WRONG AS err IS int WHILE FN RETURNS TREE* ****/
       astTree = verify_tree(csound, astTree, typeTable);
-//      mfree(csound, typeTable->instr0LocalPool);
-//      mfree(csound, typeTable->globalPool);
-//      mfree(csound, typeTable);
+//      csound->Free(csound, typeTable->instr0LocalPool);
+//      csound->Free(csound, typeTable->globalPool);
+//      csound->Free(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
 
       //FIXME - synterrcnt should not be global
@@ -267,7 +267,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csound->Warning(csound, Str("Stopping on parser failure\n"));
         csoundDeleteTree(csound, astTree);
         if (typeTable != NULL) {
-          mfree(csound, typeTable);
+          csound->Free(csound, typeTable);
         }
         return NULL;
       }

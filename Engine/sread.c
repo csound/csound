@@ -220,14 +220,14 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
       mm = STA(macros)->next;
       if (strcmp(STA(macros)->name, "[") != 0)
         corfile_rm(&(STA(macros)->body));
-      mfree(csound, STA(macros)->name);
+      csound->Free(csound, STA(macros)->name);
  #ifdef MACDEBUG
      csound->DebugMsg(csound,"%s(%d): corfile is %p\n",
                       __FILE__, __LINE__, STA(macros)->body);
  #endif
      for (i = 0; i < STA(macros)->acnt; i++)
-        mfree(csound, STA(macros)->arg[i]);
-      mfree(csound, STA(macros));
+        csound->Free(csound, STA(macros)->arg[i]);
+      csound->Free(csound, STA(macros));
       STA(macros) = mm;
     }
     else {
@@ -240,12 +240,12 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
           return -1;
         }
       }
-      mfree(csound, nn->name);
+      csound->Free(csound, nn->name);
       corfile_rm(&nn->body);
       for (i = 0; i < nn->acnt; i++)
-        mfree(csound, nn->arg[i]);
+        csound->Free(csound, nn->arg[i]);
       mm->next = nn->next;
-      mfree(csound, nn);
+      csound->Free(csound, nn);
     }
     return 0;
 }
@@ -359,8 +359,8 @@ static int getscochar(CSOUND *csound, int expand)
         for (j = 0; j < mm->acnt; j++) {
           char term = (j == mm->acnt - 1 ? ')' : '\'');
           char trm1 = (j == mm->acnt - 1 ? ')' : '#');
-          S_MACRO* nn = (S_MACRO*) mmalloc(csound, sizeof(S_MACRO));
-          nn->name = mmalloc(csound, strlen(mm->arg[j])+1);
+          S_MACRO* nn = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO));
+          nn->name = csound->Malloc(csound, strlen(mm->arg[j])+1);
           strcpy(nn->name, mm->arg[j]);
 #ifdef MACDEBUG
           csound->Message(csound,"defining argument %s ", nn->name);
@@ -388,7 +388,7 @@ static int getscochar(CSOUND *csound, int expand)
       if (UNLIKELY(STA(input_cnt)>=STA(input_size))) {
         int old = STA(str)-STA(inputs);
         STA(input_size) += 20;
-        STA(inputs) = mrealloc(csound, STA(inputs), STA(input_size)
+        STA(inputs) = csound->ReAlloc(csound, STA(inputs), STA(input_size)
                                                   * sizeof(IN_STACK));
         STA(str) = &STA(inputs)[old];     /* In case it moves */
       }
@@ -558,8 +558,8 @@ static int getscochar(CSOUND *csound, int expand)
       /* Make string macro or value */
       CS_SPRINTF(buffer, "%f", *pv);
       {
-        S_MACRO *nn = (S_MACRO*) mmalloc(csound, sizeof(S_MACRO));
-        nn->name = mmalloc(csound, 2);
+        S_MACRO *nn = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO));
+        nn->name = csound->Malloc(csound, 2);
         strcpy(nn->name, "[");
         nn->body = corfile_create_r(buffer);
 #ifdef MACDEBUG
@@ -573,7 +573,7 @@ static int getscochar(CSOUND *csound, int expand)
         if (UNLIKELY(STA(input_cnt)>=STA(input_size))) {
           int old = STA(str)-STA(inputs);
           STA(input_size) += 20;
-          STA(inputs) = mrealloc(csound, STA(inputs), STA(input_size)
+          STA(inputs) = csound->ReAlloc(csound, STA(inputs), STA(input_size)
                                                     * sizeof(IN_STACK));
           STA(str) = &STA(inputs)[old];     /* In case it moves */
         }
@@ -726,7 +726,7 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
       s = strchr(s, ':') + 1;                   /* skip arg bit */
       if (UNLIKELY(s == NULL || s >= p))
         csound->Die(csound, Str("Invalid macro name for --smacro"));
-      mname = (char*) mmalloc(csound, (p - s) + 1);
+      mname = (char*) csound->Malloc(csound, (p - s) + 1);
       strncpy(mname, s, p - s);
       mname[p - s] = '\0';
       /* check if macro is already defined */
@@ -735,13 +735,13 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
           break;
       }
       if (mm == NULL) {
-        mm = (S_MACRO*) mcalloc(csound, sizeof(S_MACRO));
+        mm = (S_MACRO*) csound->Calloc(csound, sizeof(S_MACRO));
         mm->name = mname;
         mm->next = STA(macros);
         STA(macros) = mm;
       }
       else
-        mfree(csound, mname);
+        csound->Free(csound, mname);
       mm->margs = MARGS;    /* Initial size */
       mm->acnt = 0;
       if (*p != '\0')
@@ -753,8 +753,8 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
 #endif
       nn = nn->next;
     }
-    mm = (S_MACRO*) mcalloc(csound, sizeof(S_MACRO));
-    mm->name = (char*)mmalloc(csound,4);
+    mm = (S_MACRO*) csound->Calloc(csound, sizeof(S_MACRO));
+    mm->name = (char*)csound->Malloc(csound,4);
     strcpy(mm->name, "INF");
     mm->body = corfile_create_r("800000000000.0");
 #ifdef MACDEBUG
@@ -768,7 +768,7 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
 void sread_init(CSOUND *csound)
 {
     /* sread_alloc_globals(csound); */
-    STA(inputs) = (IN_STACK*) mmalloc(csound, 20 * sizeof(IN_STACK));
+    STA(inputs) = (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK));
     STA(input_size) = 20;
     STA(input_cnt) = 0;
     STA(str) = STA(inputs);
@@ -783,7 +783,7 @@ void sread_init(CSOUND *csound)
 void sread_initstr(CSOUND *csound, CORFIL *sco)
 {
     /* sread_alloc_globals(csound); */
-    STA(inputs) = (IN_STACK*) mmalloc(csound, 20 * sizeof(IN_STACK));
+    STA(inputs) = (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK));
     STA(input_size) = 20;
     STA(input_cnt) = 0;
     STA(str) = STA(inputs);
@@ -904,7 +904,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           if (UNLIKELY(STA(repeat_index) >= RPTDEPTH))
             scorerr(csound, Str("Loops are nested too deeply"));
           STA(repeat_mm_n)[STA(repeat_index)] =
-            (S_MACRO*)mmalloc(csound, sizeof(S_MACRO));
+            (S_MACRO*)csound->Malloc(csound, sizeof(S_MACRO));
           STA(repeat_cnt_n)[STA(repeat_index)] = 0;
           do {
             c = getscochar(csound, 1);
@@ -946,7 +946,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           ungetscochar(csound, c);
           /* Define macro for counter */
           STA(repeat_mm_n)[STA(repeat_index)]->name =
-            mmalloc(csound, strlen(STA(repeat_name_n)[STA(repeat_index)])+1);
+            csound->Malloc(csound, strlen(STA(repeat_name_n)[STA(repeat_index)])+1);
           strcpy(STA(repeat_mm_n)[STA(repeat_index)]->name,
                  STA(repeat_name_n)[STA(repeat_index)]);
           STA(repeat_mm_n)[STA(repeat_index)]->acnt = 0;
@@ -1032,8 +1032,8 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           flushlin(csound);     /* Ignore rest of line */
           if (i) {
             /* Only if there is a name: define macro for counter */
-            STA(repeat_mm) = (S_MACRO*) mmalloc(csound, sizeof(S_MACRO));
-            STA(repeat_mm)->name = mmalloc(csound, strlen(STA(repeat_name)) + 1);
+            STA(repeat_mm) = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO));
+            STA(repeat_mm)->name = csound->Malloc(csound, strlen(STA(repeat_name)) + 1);
             strcpy(STA(repeat_mm)->name, STA(repeat_name));
             STA(repeat_mm)->acnt = 0;
             STA(repeat_mm)->body = corfile_create_r("1");
@@ -1069,14 +1069,14 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             if (strcmp(buff, STA(names)[j].name)==0) break;
           if (j>STA(next_name)) {
             j = ++STA(next_name);
-            STA(names)[j].name = (char*)mmalloc(csound, i+1);
+            STA(names)[j].name = (char*)csound->Malloc(csound, i+1);
             strcpy(STA(names)[j].name, buff);
           }
-          else mfree(csound, STA(names)[j].file);
+          else csound->Free(csound, STA(names)[j].file);
           STA(names)[STA(next_name)].posit = corfile_tell(STA(str)->cf);
           STA(names)[STA(next_name)].line = STA(str)->line;
           STA(names)[STA(next_name)].file =
-            mmalloc(csound, strlen(corfile_body(STA(str)->cf)) + 1);
+            csound->Malloc(csound, strlen(corfile_body(STA(str)->cf)) + 1);
           strcpy(STA(names)[STA(next_name)].file, corfile_body(STA(str)->cf));
           if (csound->oparms->msglevel & TIMEMSG)
             csound->Message(csound,Str("%d: File %s position %ld\n"),
@@ -1112,7 +1112,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             if (STA(input_cnt)>=STA(input_size)) {
               int old = STA(str)-STA(inputs);
               STA(input_size) += 20;
-              STA(inputs) = mrealloc(csound, STA(inputs),
+              STA(inputs) = csound->ReAlloc(csound, STA(inputs),
                                             STA(input_size) * sizeof(IN_STACK));
               STA(str) = &STA(inputs)[old];     /* In case it moves */
             }
@@ -1421,7 +1421,7 @@ static void pcopy(CSOUND *csound, int pfno, int ncopy, SRTBLK *prvbp)
 static void salcinit(CSOUND *csound)
 {                             /* init the sorter mem space for a new section */
     if (STA(curmem) == NULL) { /*  alloc 1st memblk if nec; init *nxp to this */
-      STA(curmem) = (char*) mmalloc(csound, (size_t) (MEMSIZ + MARGIN));
+      STA(curmem) = (char*) csound->Malloc(csound, (size_t) (MEMSIZ + MARGIN));
       STA(memend) = (char*) STA(curmem) + MEMSIZ;
     }
     STA(nxp) = (char*) STA(curmem);
@@ -1455,7 +1455,7 @@ void sfree(CSOUND *csound)       /* free all sorter allocated space */
 {                                /*    called at completion of sort */
     /* sread_alloc_globals(csound); */
     if (STA(curmem) != NULL) {
-      mfree(csound, STA(curmem));
+      csound->Free(csound, STA(curmem));
       STA(curmem) = NULL;
     }
     while (STA(str) != &STA(inputs)[0]) {
@@ -1537,11 +1537,11 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
       while (isspace((c = getscochar(csound, 1))));
       if (c == 'd') {
         int   arg = 0;
-        S_MACRO *mm = (S_MACRO*) mmalloc(csound, sizeof(S_MACRO));
+        S_MACRO *mm = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO));
         mm->margs = MARGS;
         if (UNLIKELY(!check_preproc_name(csound, "define"))) {
           csound->Message(csound, Str("Not #define"));
-          mfree(csound, mm); free(mname);
+          csound->Free(csound, mm); free(mname);
           flushlin(csound);
           //          free(mname);
           goto srch;
@@ -1563,7 +1563,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         mname[i] = '\0';
         if (csound->oparms->msglevel & TIMEMSG)
           csound->Message(csound, Str("Macro definition for %s\n"), mname);
-        mm->name = mmalloc(csound, i + 1);
+        mm->name = csound->Malloc(csound, i + 1);
         strcpy(mm->name, mname);
         if (c == '(') { /* arguments */
           do {
@@ -1583,10 +1583,10 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
               c = getscochar(csound, 1);
             }
             mname[i] = '\0';
-            mm->arg[arg] = mmalloc(csound, i+1);
+            mm->arg[arg] = csound->Malloc(csound, i+1);
             strcpy(mm->arg[arg++], mname);
             if (arg>=mm->margs) {
-              mm = (S_MACRO*)mrealloc(csound, mm,
+              mm = (S_MACRO*)csound->ReAlloc(csound, mm,
                                     sizeof(S_MACRO)+mm->margs*sizeof(char*));
               mm->margs += MARGS;
             }
@@ -1660,7 +1660,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         if (STA(input_cnt)>=STA(input_size)) {
           int old = STA(str)-STA(inputs);
           STA(input_size) += 20;
-          STA(inputs) = mrealloc(csound, STA(inputs), STA(input_size)
+          STA(inputs) = csound->ReAlloc(csound, STA(inputs), STA(input_size)
                                                     * sizeof(IN_STACK));
           STA(str) = &STA(inputs)[old];     /* In case it moves */
         }

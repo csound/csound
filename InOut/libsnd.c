@@ -558,7 +558,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
  inset:
     /* calc inbufsize reqd */
     STA(inbufsiz) = (unsigned) (O->inbufsamps * sizeof(MYFLT));
-    STA(inbuf) = (MYFLT*) mcalloc(csound, STA(inbufsiz)); /* alloc inbuf space */
+    STA(inbuf) = (MYFLT*) csound->Calloc(csound, STA(inbufsiz)); /* alloc inbuf space */
     if (STA(pipdevout) == 2)
       csound->Message(csound,
                       Str("reading %d sample blks of %d-bit floats from %s \n"),
@@ -824,7 +824,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     O->sfsampsize = (int) sfsampsize(FORMAT2SF(O->outformat));
     /* calc outbuf size & alloc bufspace */
     STA(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
-    STA(outbufp)   = STA(outbuf) = mmalloc(csound, STA(outbufsiz));
+    STA(outbufp)   = STA(outbuf) = csound->Malloc(csound, STA(outbufsiz));
     if (STA(pipdevout) == 2)
       csound->Message(csound,
                       Str("writing %d sample blks of %d-bit floats to %s \n"),
@@ -1009,9 +1009,9 @@ void iotranset(CSOUND *csound)
       return;
     }
     STA(inbufsiz)  = (unsigned int) (O->inbufsamps * (int) sizeof(MYFLT));
-    STA(inbuf)     = (MYFLT*) mcalloc(csound, STA(inbufsiz));
+    STA(inbuf)     = (MYFLT*) csound->Calloc(csound, STA(inbufsiz));
     STA(outbufsiz) = (unsigned int) (O->outbufsamps * (int) sizeof(MYFLT));
-    STA(outbuf)    = (MYFLT*) mcalloc(csound, STA(outbufsiz));
+    STA(outbuf)    = (MYFLT*) csound->Calloc(csound, STA(outbufsiz));
     STA(outbufp)   = STA(outbuf);
     O->sfread      = 1;
     O->sfwrite     = 1;
