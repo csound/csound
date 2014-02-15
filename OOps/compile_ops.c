@@ -47,12 +47,12 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
       return NOTOK;
     }
 
-    orc = (char *) mcalloc(csound, size+1);
+    orc = (char *) csound->Calloc(csound, size+1);
     fseek(fp, 0, SEEK_SET);
     (void)fread(orc,1,size,fp);
     *p->res = (MYFLT)(csoundCompileOrc(csound, orc));
     fclose(fp);
-    mfree(csound,orc);
+    csound->Free(csound,orc);
     return OK;
 }
 

@@ -601,7 +601,7 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
     if (csound->lprdaddr == NULL ||
         csound->currentLPCSlot >= csound->max_lpc_slot) {
       csound->max_lpc_slot = csound->currentLPCSlot + MAX_LPC_SLOT;
-      csound->lprdaddr = mrealloc(csound,
+      csound->lprdaddr = csound->ReAlloc(csound,
                                   csound->lprdaddr,
                                   csound->max_lpc_slot * sizeof(LPREAD*));
     }
@@ -1357,7 +1357,7 @@ int lpslotset(CSOUND *csound, LPSLOT *p)
     else {
       if (n >= csound->max_lpc_slot) {
         csound->max_lpc_slot = n + MAX_LPC_SLOT;
-        csound->lprdaddr = mrealloc(csound,
+        csound->lprdaddr = csound->ReAlloc(csound,
                                     csound->lprdaddr,
                                     csound->max_lpc_slot * sizeof(LPREAD**));
       }

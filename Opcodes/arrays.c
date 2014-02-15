@@ -65,8 +65,8 @@ static int array_del(CSOUND *csound, void *p)
 {
     ARRAYDAT *t = ((ARRAYDEL*)p)->arrayDat;
     t->arrayType = NULL; // types cleaned up later
-    mfree(csound, t->data);
-    mfree(csound, p);           /* Unlikely to free the p */
+    csound->Free(csound, t->data);
+    csound->Free(csound, p);           /* Unlikely to free the p */
     return OK;
 }
 #endif
@@ -76,11 +76,11 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
     if (p->data==NULL || p->dimensions == 0 ||
         (p->dimensions==1 && p->sizes[0] < size)) {
       uint32_t ss = sizeof(MYFLT)*size;
-      if (p->data==NULL) p->data = (MYFLT*)mmalloc(csound, ss);
-      else p->data = (MYFLT*) mrealloc(csound, p->data, ss);
+      if (p->data==NULL) p->data = (MYFLT*)csound->Malloc(csound, ss);
+      else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
       p->dimensions = 1;
       p->arrayMemberSize = sizeof(MYFLT);
-      p->sizes = (int*)mmalloc(csound, sizeof(int));
+      p->sizes = (int*)csound->Malloc(csound, sizeof(int));
       p->sizes[0] = size;
     }
 }
@@ -97,7 +97,7 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
                                Str("Error: no sizes set for array initialization"));
 
     arrayDat->dimensions = inArgCount;
-    arrayDat->sizes = mcalloc(csound, sizeof(int) * inArgCount);
+    arrayDat->sizes = csound->Calloc(csound, sizeof(int) * inArgCount);
     for (i = 0; i < inArgCount; i++) {
       arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[i]);
     }
@@ -114,14 +114,14 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
     CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, NULL);
 
 //    if(arrayDat->data != NULL) {
-//        mfree(csound, arrayDat->data);
+//        csound->Free(csound, arrayDat->data);
 //    }
     arrayDat->arrayMemberSize = var->memBlockSize;
     int memSize = var->memBlockSize*size;
-    arrayDat->data = mcalloc(csound, memSize);
+    arrayDat->data = csound->Calloc(csound, memSize);
 //    for (i=0; i<size; i++) t->data[i] = val;
 //    { // Need to recover space eventually
-//        TABDEL *op = (TABDEL*) mmalloc(csound, sizeof(TABDEL));
+//        TABDEL *op = (TABDEL*) csound->Malloc(csound, sizeof(TABDEL));
 //        op->h.insdshead = ((OPDS*) p)->insdshead;
 //        op->tab = t;
 //        csound->RegisterDeinitCallback(csound, op, tabdel);

@@ -276,7 +276,7 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
                   FL(1.0), hanning);            /* fill with proper values */
       if (csound->disprep_fftcoefs == NULL) {
         /* room for WINDMAX*2 floats (fft size) */
-        csound->disprep_fftcoefs = (MYFLT*) mmalloc(csound, WINDMAX * 2
+        csound->disprep_fftcoefs = (MYFLT*) csound->Malloc(csound, WINDMAX * 2
                                                             * sizeof(MYFLT));
       }
       snprintf(strmsg, 256, Str("instr %d, signal %s, fft (%s):"),

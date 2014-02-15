@@ -90,7 +90,7 @@ void init_symbtab(CSOUND *csound)
                 add_token(csound, shortName, get_opcode_type(ep));
 
                 if (shortName != ep->opname) {
-                    mfree(csound, shortName);
+                    csound->Free(csound, shortName);
                 }
             }
             items = items->next;
@@ -99,7 +99,7 @@ void init_symbtab(CSOUND *csound)
     }
 
 
-    mfree(csound, top);
+    csound->Free(csound, top);
 }
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
@@ -119,7 +119,7 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
       return a;
     }
     ans = new_token(csound, T_IDENT);
-    ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
+    ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
     strcpy(ans->lexeme, s);
     ans->type = type;
 
@@ -174,7 +174,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     if (udoflag == 0) {
       if (isUDOAnsList(s)) {
         ans = new_token(csound, UDO_ANS_TOKEN);
-        ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
+        ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
         strcpy(ans->lexeme, s);
         return ans;
       }
@@ -184,7 +184,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
       if (csound->oparms->odebug) printf("Found UDO Arg List\n");
       if (isUDOArgList(s)) {
         ans = new_token(csound, UDO_ARGS_TOKEN);
-        ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
+        ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
         strcpy(ans->lexeme, s);
         return ans;
       }
@@ -193,16 +193,16 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     a = cs_hash_table_get(csound, symbtab, s);
 
     if (a != NULL) {
-      ans = (ORCTOKEN*)mmalloc(csound, sizeof(ORCTOKEN));
+      ans = (ORCTOKEN*)csound->Malloc(csound, sizeof(ORCTOKEN));
       memcpy(ans, a, sizeof(ORCTOKEN));
       ans->next = NULL;
-      ans->lexeme = (char *)mmalloc(csound, strlen(a->lexeme) + 1);
+      ans->lexeme = (char *)csound->Malloc(csound, strlen(a->lexeme) + 1);
       strcpy(ans->lexeme, a->lexeme);
       return ans;
     }
 
     ans = new_token(csound, T_IDENT);
-    ans->lexeme = (char*)mmalloc(csound, 1+strlen(s));
+    ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
     strcpy(ans->lexeme, s);
 
     if (udoflag == -2 || namedInstrFlag == 1) {
@@ -378,7 +378,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     /* now build index lists for the various types of arguments */
     i = i_incnt + S_incnt + inm->perf_incnt + iv_incnt +
         i_outcnt + S_outcnt + inm->perf_outcnt + iv_outcnt;
-    i_inlist = inm->in_ndx_list = (int16*) mmalloc(csound,
+    i_inlist = inm->in_ndx_list = (int16*) csound->Malloc(csound,
                                                    sizeof(int16) * (i + 16));
     S_inlist = i_inlist + i_incnt + 1;
     iv_inlist =  S_inlist + S_incnt + 1;
@@ -493,7 +493,7 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
     }
 
     if (shortName != oentry->opname) {
-        mfree(csound, shortName);
+        csound->Free(csound, shortName);
     }
 
     return retVal;
@@ -540,8 +540,8 @@ int add_udo_definition(CSOUND *csound, char *opname,
     }
 
     /* IV - Oct 31 2002 */
-    /* store the name in a linked list (note: must use mcalloc) */
-    inm = (OPCODINFO *) mcalloc(csound, sizeof(OPCODINFO));
+    /* store the name in a linked list (note: must use csound->Calloc) */
+    inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
     inm->name = cs_strdup(csound, opname);
     inm->intypes = intypes;
     inm->outtypes = outtypes;
@@ -561,7 +561,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     /* check in/out types and copy to the opcode's */
     /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
-    newopc->outypes = mmalloc(csound, strlen(outtypes) + 1
+    newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
                                       + strlen(intypes) + 2);
     newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
 

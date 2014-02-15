@@ -126,7 +126,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 static inline void alloc_globals(CSOUND *csound)
 {
     /* if (UNLIKELY(csound->oneFileGlobals == NULL)) { */
-    /*   csound->oneFileGlobals = mcalloc(csound, sizeof(ONE_FILE_GLOBALS)); */
+    /*   csound->oneFileGlobals = csound->Calloc(csound, sizeof(ONE_FILE_GLOBALS)); */
       /* count lines from 0 so that it adds OK to orc/sco counts */
     STA(csdlinecount) = 0;
 }
@@ -170,8 +170,8 @@ void remove_tmpfiles(CSOUND *csound)            /* IV - Feb 03 2005 */
       if (remove(STA(toremove)->name))
         csoundMessage(csound, Str("WARNING: could not remove %s\n"),
                               STA(toremove)->name);
-      mfree(csound, STA(toremove)->name);
-      mfree(csound, STA(toremove));
+      csound->Free(csound, STA(toremove)->name);
+      csound->Free(csound, STA(toremove));
       STA(toremove) = nxt;
     }
 }
@@ -180,8 +180,8 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
 {                               /* add temporary file to delete list */
     NAMELST *tmp;
     alloc_globals(csound);
-    tmp = (NAMELST*) mmalloc(csound, sizeof(NAMELST));
-    tmp->name = (char*) mmalloc(csound, strlen(name) + 1);
+    tmp = (NAMELST*) csound->Malloc(csound, sizeof(NAMELST));
+    tmp->name = (char*) csound->Malloc(csound, strlen(name) + 1);
     strcpy(tmp->name, name);
     tmp->next = STA(toremove);
     STA(toremove) = tmp;
@@ -663,22 +663,22 @@ static int checkLicence(CSOUND *csound, FILE *unf)
     char  buffer[CSD_MAX_LINE_LEN];
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
-    licence = (char*) mcalloc(csound, len);
+    licence = (char*) csound->Calloc(csound, len);
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf) != NULL) {
       p = buffer;
       if (strstr(p, "</CsLicence>") != NULL ||
           strstr(p, "</CsLicense>") != NULL) {
         csoundMessage(csound, Str("**** End of Licence Information ****\n"));
-        mfree(csound, csound->SF_csd_licence);
+        csound->Free(csound, csound->SF_csd_licence);
         csound->SF_csd_licence = licence;
         return TRUE;
       }
       csoundMessage(csound, "%s", p);
       len += strlen(p);
-      licence = mrealloc(csound, licence, len);
+      licence = csound->ReAlloc(csound, licence, len);
       strlcat(licence, p, len);
     }
-    mfree(csound, licence);
+    csound->Free(csound, licence);
     csoundErrorMsg(csound, Str("Missing end tag </CsLicence>"));
     return FALSE;
 }
