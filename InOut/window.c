@@ -158,8 +158,11 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     wdptr->max    = max;                 /* record most pos and most */
     wdptr->min    = min;                 /*  neg this array of data  */
     wdptr->absmax = absmax;              /* record absmax this data  */
-    if (absmax > wdptr->oabsmax)
-      wdptr->oabsmax = absmax;           /* & absmax over life of win */
+    /* VL: absmax needs to be updated at every display in some cases */
+    if (wdptr->absflag  || absmax > wdptr->oabsmax)
+     wdptr->oabsmax = absmax;           /* & absmax over life of win */
+
+    
 
     pol = wdptr->polarity;     /* adjust polarity flg for life of win */
     if (pol == (int16)NOPOL)  {
