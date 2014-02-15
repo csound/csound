@@ -45,9 +45,11 @@ extern  int     init_pvsys(CSOUND *);
 extern  void    print_benchmark_info(CSOUND *, const char *);
 extern  void    openMIDIout(CSOUND *);
 extern  int     read_unified_file(CSOUND *, char **, char **);
+extern  int     read_unified_file2(CSOUND *csound, char *csd);
 extern  uintptr_t  kperfThread(void * cs);
 extern void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
 extern void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
+extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 
 void checkOptions(CSOUND *csound)
 {
@@ -489,4 +491,30 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
 
   if(result == CSOUND_SUCCESS) return csoundStart(csound);
   else return result;
+}
+
+
+
+PUBLIC int csoundCompileCsd(CSOUND *csound, char *str) {
+
+  if((csound->engineStatus & CS_STATE_COMP) == 0) {
+    char *argv[2] = { "csound", (char *) str };
+    int argc = 2;
+    return csoundCompile(csound, argc, argv);
+  } 
+  else { 
+    int res = read_unified_file2(csound, (char *) str);
+   if(res) {
+    res = csoundCompileOrc(csound, NULL);
+    if(res == CSOUND_SUCCESS){
+      csoundLockMutex(csound->API_lock);
+      char *sc = scsortstr(csound, csound->scorestr);
+      csoundInputMessageInternal(csound, (const char *) sc);
+      free(sc);
+      csoundUnlockMutex(csound->API_lock);
+      return CSOUND_SUCCESS;
+    }
+   }
+   return res;
+  }
 }
