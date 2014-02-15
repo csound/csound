@@ -235,6 +235,10 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
     int32 window_size, step_size;
     int   hanning;
     char  strmsg[256];
+    int32  minbin, maxbin;
+    minbin = *p->imin;
+    maxbin = *p->imax;
+
     if(p->smpbuf.auxp == NULL)
       csound->AuxAlloc(csound, sizeof(MYFLT)*WINDMAX, &(p->smpbuf));
           
@@ -259,7 +263,12 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
     hanning = (int)*p->ihann;
     p->dbout   = (int)*p->idbout;
     p->overlap = window_size - step_size;
-    if (window_size != p->windsize ||
+    
+    
+
+    if ( (maxbin - minbin) != p->npts ||
+         minbin != p->start         ||
+         window_size != p->windsize ||
          hanning != p->hanning) {             /* if windowing has changed:  */
       int32 auxsiz;
       MYFLT *hWin;
@@ -282,8 +291,11 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
       snprintf(strmsg, 256, Str("instr %d, signal %s, fft (%s):"),
                       (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
                       p->dbout ? Str("db") : Str("mag"));
-    
-      dispset(csound, &p->dwindow, csound->disprep_fftcoefs, p->ncoefs, strmsg,
+      if(maxbin == 0) maxbin = p->ncoefs;
+      if(minbin > maxbin) minbin = 0;
+      p->npts = maxbin - minbin;
+      p->start = minbin;
+      dispset(csound, &p->dwindow, csound->disprep_fftcoefs+p->start, p->npts, strmsg,
                       (int) *p->iwtflg, Str("fft"));
        }
       
@@ -371,16 +383,16 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
               p->windsize, hWin, p->dbout, p->overN);
         tp = csound->disprep_fftcoefs;
         tplim = tp + p->ncoefs;
-        do {
-          *tp *= p->overN;            /* scale 1/N */
-        } while (++tp < tplim);
+        //do {
+	// *tp *= p->overN;            /* scale 1/N */
+        //} while (++tp < tplim);
         display(csound, &p->dwindow); /* & display */
         if (p->overlap > 0) {
           bufp = p->sampbuf;
           tp   = endp - p->overlap;
-          //do {
-          //  *bufp++ = *tp++;
-          //} while (tp < endp);
+          do {
+            *bufp++ = *tp++;
+          } while (tp < endp);
         }
         else bufp = p->sampbuf + p->overlap;
       }
