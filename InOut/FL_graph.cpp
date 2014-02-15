@@ -203,7 +203,11 @@ void graph_box::draw()
         fl_line_style(FL_DOT);
         fl_line(win_x+w()/2, win_y, win_x+w()/2, win_y+win_h);
       }
+      if(pol != NEGPOL)
       sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->oabsmax);
+      else
+      sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->max);
+
       ST(form)->label(string);
     }
     fl_line_style(FL_SOLID);
