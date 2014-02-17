@@ -32,6 +32,34 @@
 #endif
 #define DSSI4CS_MAX_NUM_EVENTS 128
 
+size_t
+strlcat(char *dst, const char *src, size_t siz)
+{
+    char *d = dst;
+    const char *s = src;
+    size_t n = siz;
+    size_t dlen;
+
+    /* Find the end of dst and adjust bytes left but don't go past end */
+    while (n-- != 0 && *d != '\0')
+      d++;
+    dlen = d - dst;
+    n = siz - dlen;
+
+    if (n == 0)
+      return (dlen + strlen(s));
+    while (*s != '\0') {
+      if (n != 1) {
+        *d++ = *s;
+        n--;
+      }
+      s++;
+    }
+    *d = '\0';
+
+    return (dlen + (s - src));  /* count does not include NUL */
+}
+
 //static const char   *version = "0.1alpha";
 
 /* TODO accomodate plugins which return control outputs */
@@ -906,6 +934,7 @@ static void
     DIR    *psDirectory;
     LADSPA_Descriptor_Function fDescriptorFunction;
     long    lDirLength;
+    long    slen;
     long    iNeedSlash;
     struct dirent *psDirectoryEntry;
     void   *pvPluginHandle;
@@ -930,12 +959,12 @@ static void
       }
 
       pcFilename = csound->Malloc(csound,
-                                  lDirLength + strlen(psDirectoryEntry->d_name)
-                                             + 1 + iNeedSlash);
-      strcpy(pcFilename, pcDirectory);
+                                  slen = (lDirLength + strlen(psDirectoryEntry->d_name)
+                                          + 2));
+      strncpy(pcFilename, pcDirectory, slen);
       if (iNeedSlash)
-        strcat(pcFilename, "/");
-      strcat(pcFilename, psDirectoryEntry->d_name);
+        strlcat(pcFilename, "/",slen);
+      strlcat(pcFilename, psDirectoryEntry->d_name, slen);
 
       pvPluginHandle = dlopen(pcFilename, RTLD_LAZY);
       if (pvPluginHandle) {
@@ -1033,7 +1062,7 @@ int dssilist(CSOUND * csound, DSSILIST * p)
     /* Most of this function comes from the ladspa sdk by Richard Furse */
     char   *pcBuffer;
     const char *pcEnd;
-    const char *pcLADSPAPath;
+          char *pcLADSPAPath;
     const char *pcDSSIPath;
     const char *pcStart;
 
@@ -1049,9 +1078,17 @@ int dssilist(CSOUND * csound, DSSILIST * p)
     }
     if ((!pcLADSPAPath) && (!pcDSSIPath)) /* Fixed - JPff */
       return NOTOK;
-    if (pcDSSIPath) {
-      pcLADSPAPath = strcat((char *) pcLADSPAPath, ":");
-      pcLADSPAPath = strcat((char *) pcLADSPAPath, pcDSSIPath);
+    if (pcDSSIPath) {           /* **** THIS CODE IS WRONG -- NO SPACEALLOCATED **** */
+      if (pcLADSPAPath) {
+        char *nn = (char*)malloc(strlen((char *) pcLADSPAPath)+strlen(pcDSSIPath)+2);
+        strcpy(nn, pcLADSPAPath);
+        strcat(nn, ":");
+        strcat(nn, pcDSSIPath);
+        free(pcLADSPAPath);
+        pcLADSPAPath = nn;
+      }
+      else pcLADSPAPath = strdup(pcDSSIPath);
+        
     }
     pcStart = pcLADSPAPath;
     while (*pcStart != '\0') {
@@ -1068,6 +1105,7 @@ int dssilist(CSOUND * csound, DSSILIST * p)
       if (*pcStart == ':')
         pcStart++;
     }
+    if (pcDSSIPath) free(pcLADSPAPath);
     return OK;
 }
 
