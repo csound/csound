@@ -163,7 +163,8 @@ char* cs_hash_table_put_no_key_copy(CSOUND* csound,
     CS_HASH_TABLE_ITEM* item = hashTable->buckets[index];
 
     if (item == NULL) {
-        CS_HASH_TABLE_ITEM* newItem = csound->Malloc(csound, sizeof(CS_HASH_TABLE_ITEM));
+        CS_HASH_TABLE_ITEM* newItem = csound->Malloc(csound,
+                                                     sizeof(CS_HASH_TABLE_ITEM));
         newItem->key = key;
         newItem->value = value;
         newItem->next = NULL;

@@ -482,9 +482,10 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     }
     totLen += ((int) strlen(envList) + 1);
     /* create path cache entry */
-    p = (searchPathCacheEntry_t*) csound->Malloc(csound, sizeof(searchPathCacheEntry_t)
-                                                  + sizeof(char*) * pathCnt
-                                                  + sizeof(char) * totLen);
+    p = (searchPathCacheEntry_t*) csound->Malloc(csound,
+                                                 sizeof(searchPathCacheEntry_t)
+                                                 + sizeof(char*) * pathCnt
+                                                 + sizeof(char) * totLen);
     s = (char*) &(p->lst[pathCnt + 1]);
     p->name = s;
     strcpy(p->name, envList);
@@ -753,7 +754,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
 {
     FILE  *f;
     char  *name, *name2, **searchPath;
- 
+
     *fullName = NULL;
     if ((name = csoundConvertPathname(csound, filename)) == NULL)
       return (FILE*) NULL;

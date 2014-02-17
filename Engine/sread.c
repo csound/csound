@@ -1033,7 +1033,8 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           if (i) {
             /* Only if there is a name: define macro for counter */
             STA(repeat_mm) = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO));
-            STA(repeat_mm)->name = csound->Malloc(csound, strlen(STA(repeat_name)) + 1);
+            STA(repeat_mm)->name = csound->Malloc(csound,
+                                                  strlen(STA(repeat_name)) + 1);
             strcpy(STA(repeat_mm)->name, STA(repeat_name));
             STA(repeat_mm)->acnt = 0;
             STA(repeat_mm)->body = corfile_create_r("1");
