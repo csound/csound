@@ -149,7 +149,7 @@ void graph_box::draw()
         y_axis = gra_y + (gra_h/2);
       else if (pol == (short)NEGPOL)
         y_axis = gra_y;
-	else                /* POSPOL */
+        else                /* POSPOL */
         y_axis = gra_y + gra_h;
 
       if (npts < MAXLSEGS) {
@@ -196,8 +196,8 @@ void graph_box::draw()
          x-axis height is determined by the case we're in */
       fl_line(gra_x, y_axis, (gra_x + gra_w), y_axis);
       fl_line(gra_x, y_axis, (gra_x + gra_w), y_axis);
-       
-      
+
+
       fl_line(gra_x, gra_y, gra_x, (gra_y + gra_h));
       if (win->danflag) {       /* flag to add dotted divider */
         fl_line_style(FL_DOT);
@@ -312,7 +312,7 @@ extern "C" {
 
   void DrawGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
   {
-   
+
       add_graph(csound, wdptr);
       csound->CheckEvents(csound);
   }

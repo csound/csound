@@ -75,7 +75,7 @@ typedef struct {
         MYFLT   *circbuf, *circjp, *jp2lim;
         LPREAD  *lpread;
         AUXCH   aux;
- 
+
 } LPRESON;
 
 typedef struct {
@@ -150,4 +150,3 @@ int kareson(CSOUND*,RESON *p);
 int limitset(CSOUND*,LIMIT *p);
 int klimit(CSOUND*,LIMIT *p);
 int limit(CSOUND*,LIMIT *p);
-

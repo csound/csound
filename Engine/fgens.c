@@ -151,7 +151,8 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       int   size;
       for (size = csound->maxfnum; size < ff.fno; size += MAXFNUM)
         ;
-      nn = (FUNC**) csound->ReAlloc(csound, csound->flist, (size + 1) * sizeof(FUNC*));
+      nn = (FUNC**) csound->ReAlloc(csound,
+                                    csound->flist, (size + 1) * sizeof(FUNC*));
       csound->flist = nn;
       for (i = csound->maxfnum + 1; i <= size; i++)
         csound->flist[i] = NULL;                /*  Clear new section       */
@@ -284,7 +285,8 @@ int csoundFTAlloc(CSOUND *csound, int tableNum, int len)
     if (UNLIKELY(tableNum > csound->maxfnum)) { /* extend list if necessary     */
       for (size = csound->maxfnum; size < tableNum; size += MAXFNUM)
         ;
-      nn = (FUNC**) csound->ReAlloc(csound, csound->flist, (size + 1) * sizeof(FUNC*));
+      nn = (FUNC**) csound->ReAlloc(csound,
+                                    csound->flist, (size + 1) * sizeof(FUNC*));
       csound->flist = nn;
       for (i = csound->maxfnum + 1; i <= size; i++)
         csound->flist[i] = NULL;            /* Clear new section            */

@@ -154,20 +154,21 @@ static int dssideinit(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin)
 
     for (i = 0; DSSIPlugin != NULL; i++) {
       DSSI4CS_PLUGIN *nxt = (DSSI4CS_PLUGIN *) DSSIPlugin->NextPlugin;
-      if (DSSIPlugin->Type == LADSPA) {
-        if (DSSIPlugin->Descriptor->deactivate != NULL)
-          DSSIPlugin->Descriptor->deactivate(DSSIPlugin->Handle);
-        if (DSSIPlugin->Descriptor->cleanup != NULL)
-          DSSIPlugin->Descriptor->cleanup(DSSIPlugin->Handle);
+      if (DSSIPlugin->Descriptor) {
+        if (DSSIPlugin->Type == LADSPA) {
+          if (DSSIPlugin->Descriptor->deactivate != NULL)
+            DSSIPlugin->Descriptor->deactivate(DSSIPlugin->Handle);
+          if (DSSIPlugin->Descriptor->cleanup != NULL)
+            DSSIPlugin->Descriptor->cleanup(DSSIPlugin->Handle);
+        }
+        else {
+          if (DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->deactivate != NULL)
+            DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->deactivate(DSSIPlugin->Handle);
+          if (DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->cleanup != NULL)
+            DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->cleanup(DSSIPlugin->Handle);
+        }
       }
-      else {
-        if (DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->deactivate != NULL)
-          DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->deactivate(
-              DSSIPlugin->Handle);
-        if (DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->cleanup != NULL)
-          DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->cleanup(
-              DSSIPlugin->Handle);
-      }
+      else csound->Message(csound, "missing descriptor\n");
       if (i != 0)
         csound->Free(csound, DSSIPlugin);
       DSSIPlugin = nxt;
@@ -266,6 +267,9 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       pfDescriptorFunction =
           (LADSPA_Descriptor_Function) dlsym(PluginLibrary,
                                              "ladspa_descriptor");
+      if (pfDescriptorFunction==NULL) {
+        return csound->InitError(csound, "No lapspa descriptor\n");
+      }
       DSSIPlugin_->Descriptor =
           (LADSPA_Descriptor *) csound->Calloc(csound,
                                                sizeof(LADSPA_Descriptor));
@@ -284,27 +288,27 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       /* TODO: cleanup if error */
       /* csound->Free(csound, DSSIPlugin_->Descriptor); */
       if (pcError)
-        csound->InitError(csound, "DSSI4CS: Unable to find "
-                                  "ladspa_descriptor() function or\n"
-                                  "dssi_descriptor() function in plugin file "
-                                  "\"%s\": %s.\n"
-                                  "Are you sure this is a LADSPA or "
-                                  "DSSI plugin file ?",
-                                  dssiFilename, pcError);
+        return
+          csound->InitError(csound, "DSSI4CS: Unable to find "
+                            "ladspa_descriptor() function or\n"
+                            "dssi_descriptor() function in plugin file "
+                            "\"%s\": %s.\n"
+                            "Are you sure this is a LADSPA or "
+                            "DSSI plugin file ?",
+                            dssiFilename, pcError);
       else
-        csound->InitError(csound, "DSSI4CS: Unable to find "
-                                  "ladspa_descriptor() function or\n"
-                                  "dssi_descriptor() function in plugin file "
-                                  "\"%s\".\n"
-                                  "Are you sure this is a LADSPA or "
-                                  "DSSI plugin file ?",
-                                  dssiFilename);
-      return NOTOK;
+        return
+          csound->InitError(csound, "DSSI4CS: Unable to find "
+                            "ladspa_descriptor() function or\n"
+                            "dssi_descriptor() function in plugin file "
+                            "\"%s\".\n"
+                            "Are you sure this is a LADSPA or "
+                            "DSSI plugin file ?",
+                            dssiFilename);
     }
     if (UNLIKELY(!LDescriptor)) {
-      csound->InitError(csound, "DSSI4CS: No plugin index %lu in %s",
-                                PluginIndex, dssiFilename);
-      return NOTOK;
+      return csound->InitError(csound, "DSSI4CS: No plugin index %lu in %s",
+                               PluginIndex, dssiFilename);
     }
     if (p->iverbose != 0) {
       csound->Message(csound, "DSSI4CS: About to instantiate plugin.\n");

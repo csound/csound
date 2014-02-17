@@ -705,22 +705,13 @@ ifac      : ident               { $$ = $1; }
           | '(' expr ')'      { $$ = $2;  }
           | '(' expr error    { $$ = NULL;  }
           | '(' error         { $$ = NULL; }
-          | identb exprlist ')'
+          | opcode exprlist ')'
             {
                 
                 $1->left = NULL;
                 $1->right = $2;
 		$1->type = T_FUNCTION;
                 
-                $$ = $1;
-            }
-          | opcode ':' opcodeb exprlist ')'
-            {
-                $1->left = NULL;
-                $1->right = $4;
-		$1->type = T_FUNCTION;
-                $1->value->optype = $3->value->lexeme;
-		
                 $$ = $1;
             }
           | opcode ':' opcodeb exprlist ')'   /* this is need because a & k are also opcodes */
