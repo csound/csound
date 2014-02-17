@@ -105,8 +105,8 @@ void add_include_udo_dir(CORFIL *xx)
           //printf("**  name=%s n=%d\n", fname, n);
           if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
             strcpy(buff, "#include \"");
-            strlcat(buff, dir, 1024); 
-            strlcat(buff, "/", 1024); 
+            strlcat(buff, dir, 1024);
+            strlcat(buff, "/", 1024);
             strlcat(buff, fname, 1024);
             strlcat(buff, "\"\n", 1024);
             if (strlen(buff)>768) {

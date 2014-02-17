@@ -1199,8 +1199,8 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
                engineState->maxopcno : engineState->maxinsno);
           engineState->maxopcno = i + MAXINSNO;
           engineState->instrtxtp = (INSTRTXT**)
-            csound->ReAlloc(csound, engineState->instrtxtp, (1 + engineState->maxopcno)
-                     * sizeof(INSTRTXT*));
+            csound->ReAlloc(csound, engineState->instrtxtp,
+                            (1 + engineState->maxopcno) * sizeof(INSTRTXT*));
           /* Array expected to be nulled so.... */
           while (++i <= engineState->maxopcno) engineState->instrtxtp[i] = NULL;
         }

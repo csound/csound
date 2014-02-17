@@ -558,7 +558,8 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
  inset:
     /* calc inbufsize reqd */
     STA(inbufsiz) = (unsigned) (O->inbufsamps * sizeof(MYFLT));
-    STA(inbuf) = (MYFLT*) csound->Calloc(csound, STA(inbufsiz)); /* alloc inbuf space */
+    STA(inbuf) = (MYFLT*) csound->Calloc(csound,
+                                         STA(inbufsiz)); /* alloc inbuf space */
     if (STA(pipdevout) == 2)
       csound->Message(csound,
                       Str("reading %d sample blks of %d-bit floats from %s \n"),
