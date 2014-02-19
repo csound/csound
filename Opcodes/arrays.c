@@ -1115,6 +1115,7 @@ static OENTRY arrayvars_localops[] =
     { "fillarray", 0xffff },
       { "fillarray.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill },
       { "fillarray.i", sizeof(TABFILL), 0, 1, "i[]", "m", (SUBR)tabfill },
+      { "fillarray.s", sizeof(TABFILL), 0, 1, "S[]", "W", (SUBR)tabfill },
     { "array", 0xffff },
       { "array.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill     },
       { "array.i", sizeof(TABFILL), 0, 1, "i[]", "m", (SUBR)tabfill     },
