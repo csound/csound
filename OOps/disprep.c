@@ -241,7 +241,7 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
 
     if(p->smpbuf.auxp == NULL)
       csound->AuxAlloc(csound, sizeof(MYFLT)*WINDMAX, &(p->smpbuf));
-          
+
     p->sampbuf = (MYFLT *) p->smpbuf.auxp;
 
     window_size = (int32)*p->inpts;
@@ -263,8 +263,8 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
     hanning = (int)*p->ihann;
     p->dbout   = (int)*p->idbout;
     p->overlap = window_size - step_size;
-    
-    
+
+
 
     if ( (maxbin - minbin) != p->npts ||
          minbin != p->start         ||
@@ -295,10 +295,11 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
       if(minbin > maxbin) minbin = 0;
       p->npts = maxbin - minbin;
       p->start = minbin;
-      dispset(csound, &p->dwindow, csound->disprep_fftcoefs+p->start, p->npts, strmsg,
-                      (int) *p->iwtflg, Str("fft"));
+      dispset(csound, &p->dwindow,
+              csound->disprep_fftcoefs+p->start, p->npts, strmsg,
+              (int) *p->iwtflg, Str("fft"));
        }
-      
+
     return OK;
 }
 
@@ -384,7 +385,7 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
         tp = csound->disprep_fftcoefs;
         tplim = tp + p->ncoefs;
         //do {
-	// *tp *= p->overN;            /* scale 1/N */
+        // *tp *= p->overN;            /* scale 1/N */
         //} while (++tp < tplim);
         display(csound, &p->dwindow); /* & display */
         if (p->overlap > 0) {
@@ -488,7 +489,7 @@ int tempeset(CSOUND *csound, TEMPEST *p)
     if (UNLIKELY(ftp==NULL)) return NOTOK;
 
     if (npts==0) return NOTOK;
-    
+
     nptsm1 = npts - 1;
     if (npts != p->npts || minlam != p->minlam) {
       p->npts = npts;
@@ -737,4 +738,3 @@ int tempest(CSOUND *csound, TEMPEST *p)
       return csound->PerfError(csound, p->h.insdshead,
                                Str("tempest: not initialised"));
 }
-

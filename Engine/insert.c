@@ -1458,7 +1458,7 @@ int xoutset(CSOUND *csound, XOUT *p)
   it can be used on any instrument with the implementation
   of a mechanism to perform at local ksmps (in kperf etc)
 */
-#include "typetabl.h"
+//#include "typetabl.h"
 #include "csound_standard_types.h"
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {

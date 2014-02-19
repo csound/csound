@@ -63,6 +63,7 @@
    J              "             "         -1
    V              "             "          .5
    P              "             "          1
+   W       begins indef list of Strings (any count)
    y       begins indef list of aargs (any count)
    z       begins indef list of kargs (any count)
    Z       begins alternating kakaka...list (any count)    */
@@ -75,7 +76,7 @@
  s       deprecated (use a or k as required)
  X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
  N       multiple args (a, k, i, or S-rate)
- F       multiple args (f-rate)
+ F       multiple args (f-rate)#
  */
 
 

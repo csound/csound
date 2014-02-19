@@ -380,7 +380,8 @@ void m_chn_init_all(CSOUND *csound)
     for (chan = (int16) 0; chan < (int16) 16; chan++) {
       /* alloc a midi control blk for midi channel */
       /*  & assign default instrument number       */
-      csound->m_chnbp[chan] = chn = (MCHNBLK*) csound->Calloc(csound, sizeof(MCHNBLK));
+      csound->m_chnbp[chan] =
+        chn = (MCHNBLK*) csound->Calloc(csound, sizeof(MCHNBLK));
       n = (int) chan + 1;
       /* if corresponding instrument exists, assign as insno, */
       if (csound->engineState.instrtxtp &&

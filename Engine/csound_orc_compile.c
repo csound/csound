@@ -33,7 +33,7 @@
 #include "oload.h"
 #include "insert.h"
 #include "pstream.h"
-#include "typetabl.h"
+//#include "typetabl.h"
 #include "csound_standard_types.h"
 #include "csound_orc_semantics.h"
 
@@ -275,7 +275,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       }       /* IV - Sep 1 2002: added 'M' */
       else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
                treqd != 'Z' && treqd != 'M' && treqd != 'N' &&
-               treqd != '*' && treqd != 'I') /* else any no */
+               treqd != '*' && treqd != 'I' && treqd != 'W') /* else any no */
         synterr(csound, Str("too many input args\n"));
     }
 
@@ -285,6 +285,7 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
       if (n >= nreqd) {               /* det type required */
         switch (*types[nreqd-1]) {
         case 'M':
+        case 'W':
         case 'N':
         case 'Z':
         case 'y':
@@ -1199,8 +1200,8 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
                engineState->maxopcno : engineState->maxinsno);
           engineState->maxopcno = i + MAXINSNO;
           engineState->instrtxtp = (INSTRTXT**)
-            csound->ReAlloc(csound, engineState->instrtxtp, (1 + engineState->maxopcno)
-                     * sizeof(INSTRTXT*));
+            csound->ReAlloc(csound, engineState->instrtxtp,
+                            (1 + engineState->maxopcno) * sizeof(INSTRTXT*));
           /* Array expected to be nulled so.... */
           while (++i <= engineState->maxopcno) engineState->instrtxtp[i] = NULL;
         }
