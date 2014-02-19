@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 //#include <stdbool.h>
 #include "csoundCore.h"
 #include "csound_orc.h"
@@ -66,7 +67,7 @@ char* cs_strdup(CSOUND* csound, char* str) {
     len = strlen(str);
     retVal = csound->Malloc(csound, (len + 1) * sizeof(char));
 
-    if(len > 0) memcpy(retVal, str, len * sizeof(char));//why not strcpy?
+    if (len > 0) memcpy(retVal, str, len * sizeof(char));//why not strcpy?
     retVal[len] = '\0';
 
     return retVal;
@@ -443,7 +444,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
          the varPool in the engineState
       */
 
-      if(*s == 'g') {
+      if (*s == 'g') {
        var = csoundFindVariableWithName(csound->engineState.varPool,
                                         tree->value->lexeme);
        if(var == NULL)
@@ -519,8 +520,7 @@ OENTRY* find_opcode(CSOUND *csound, char *opname)
     CONS_CELL* head;
     OENTRY* retVal;
 
-    if (opname[0] == (char) 0 ||
-        (opname[0] >= (char) '0' && opname[0] <= (char) '9'))
+    if (opname[0] == '\0' || isdigit(opname[0]))
         return 0;
 
     shortName = get_opcode_short_name(csound, opname);
@@ -573,7 +573,7 @@ inline static int is_in_optional_arg(char arg) {
 }
 
 inline static int is_in_var_arg(char arg) {
-    return (strchr("mMNnyzZ*", arg) != NULL);
+    return (strchr("mMNnWyzZ*", arg) != NULL);
 }
 
 int check_array_arg(char* found, char* required) {
@@ -858,8 +858,8 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 //            }
 //            continue;
 //        }
-        if(check_in_args(csound, inArgTypes, temp->intypes) &&
-           check_out_args(csound, outArgTypes, temp->outypes)) {
+        if (check_in_args(csound, inArgTypes, temp->intypes) &&
+            check_out_args(csound, outArgTypes, temp->outypes)) {
 //            if (retVal != NULL) {
 //                return NULL;
 //            }
@@ -881,7 +881,7 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
         if (temp->intypes == NULL && temp->outypes == NULL) {
             continue;
         }
-        if(check_in_args(csound, inArgTypes, temp->intypes)) {
+        if (check_in_args(csound, inArgTypes, temp->intypes)) {
             // FIXME this is only returning the first match, we need to check
             // if there are multiple matches and if so, return NULL to signify
             // ambiguity
@@ -2193,6 +2193,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           case 'M':
           case 'N':
           case 'm':
+          case 'W':
             nreqd--;
             break;
           default:

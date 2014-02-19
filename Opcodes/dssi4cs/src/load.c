@@ -47,7 +47,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
       pcDSSIPath = getenv("DSSI_PATH");
       if (pcDSSIPath) {
         int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
-        char *tmp;
+        char *tmp = (char*)malloc(len);
         snprintf(tmp, len, "%s:%s", pcLADSPAPath, pcDSSIPath);
         pcLADSPAPath = tmp;
       }
