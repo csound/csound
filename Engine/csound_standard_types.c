@@ -226,6 +226,7 @@ const char* VAR_ARG_IN_TYPES[] = {
     "M", "icrpka",
     "N", "icrpkaS",
     "n", "icrp",   /* this one requires odd number of args... */
+    "W", "S",
     "y", "a",
     "z", "kicrp",
     "Z", "kaicrp",  NULL  /* this one needs to be ka alternatating... */
