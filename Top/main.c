@@ -233,7 +233,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       csound->LongJmp(csound, 1);
      if(csoundCompileOrc(csound, NULL) != 0){
        if(csound->oparms->daemon == 0)
-         csoundDie(csound, Str("cannot compile orchestra \n"));
+         csoundDie(csound, Str("cannot compile orchestra"));
        else {
          /* VL -- 21-10-13 Csound does not need to die on
           failure to compile. It can carry on, because new
