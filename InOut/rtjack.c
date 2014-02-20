@@ -896,7 +896,7 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
     *(csound->GetRtRecordUserData(csound))  = NULL;
     memcpy(&p, pp, sizeof(RtJackGlobals));
     /* free globals */
-    csound->DestroyGlobalVariable(csound, "_rtjackGlobals");
+    
     if (p.client != (jack_client_t*) NULL) {
       /* deactivate client */
       //if (p.jackState != 2) {
@@ -941,6 +941,7 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
       free(p.outPortBufs);
     /* free ring buffers */
     rtJack_DeleteBuffers(&p);
+    csound->DestroyGlobalVariable(csound, "_rtjackGlobals");
 }
 
 /* print error message, close connection, and terminate performance */
