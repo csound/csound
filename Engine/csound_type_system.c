@@ -139,6 +139,7 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
                                   CS_TYPE* type, char* name, void* typeArg)
 {
     CS_TYPE_ITEM* current = pool->head;
+    if(type != NULL)
     while (current != NULL) {
       if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
         CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
@@ -148,6 +149,8 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
       }
       current = current->next;
     }
+    else ((CSOUND *)csound)->ErrorMsg(csound, 
+            "cannot create variable %s: NULL type", name);
     return NULL;
 }
 
@@ -203,12 +206,12 @@ int csoundFindVariable(CS_VAR_POOL* pool, const char* name) {
         counter++;
       }
     }
-
     return returnValue;
 }
 
 
 int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var) {
+  if(var != NULL) {
     if(pool->head == NULL) {
         pool->head = var;
     } else {
@@ -223,8 +226,8 @@ int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var) {
     // boundaries maybe should align block size here to +7 before dividing?
     var->memBlockIndex = pool->poolSize / sizeof(MYFLT);
     pool->poolSize += var->memBlockSize;
-
     return 0;
+  } else return -1;
 }
 
 void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool)

@@ -945,7 +945,8 @@ int csoundPerfError(CSOUND *csound, INSDS *ip, const char *s, ...)
     va_start(args, s);
     csoundErrMsgV(csound, buf, s, args);
     va_end(args);
-    putop(csound, &(ip->pds->optext->t));
+    if(ip->pds)
+     putop(csound, &(ip->pds->optext->t));
     csoundMessage(csound, Str("   note aborted\n"));
     csound->perferrcnt++;
     xturnoff_now((CSOUND*) csound, ip);       /* rm ins fr actlist */
@@ -1457,7 +1458,7 @@ int xoutset(CSOUND *csound, XOUT *p)
   it can be used on any instrument with the implementation
   of a mechanism to perform at local ksmps (in kperf etc)
 */
-#include "typetabl.h"
+//#include "typetabl.h"
 #include "csound_standard_types.h"
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
