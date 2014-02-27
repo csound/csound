@@ -32,6 +32,7 @@
 #include "namedins.h"
 #include "interlocks.h"
 #include "csound_orc_semantics.h"
+#include "csound_standard_types.h"
 
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)
@@ -47,6 +48,8 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
 //static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val);
 extern int csound_orcget_lineno(void*);
 
+/* from csound_orc_compile.c */
+extern char** splitArgs(CSOUND* csound, char* argString);
 
 int get_opcode_type(OENTRY *ep)
 {
@@ -215,6 +218,27 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 }
 
 
+static int is_optional_udo_in_arg(char* argtype) {
+    return strchr("jOPVop", *argtype) != NULL;
+}
+
+static char map_udo_in_arg_type(char in) {
+    if(strchr("ijop", in) != NULL) {
+        return 'i';
+    } else if("kKOPV") {
+        return 'k';
+    }
+    return in;
+}
+
+static char map_udo_out_arg_type(char in) {
+    if(in == 'K') {
+        return 'k';
+    }
+    return in;
+}
+
+
 /**
  *
   This function takes in the arguments from useropinfo in OENTRY and parses
@@ -252,6 +276,69 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     int16   *S_inlist, *S_outlist, *f_inlist, *f_outlist, *kv_inlist,
             *kv_outlist, *iv_inlist, *iv_outlist;
 
+    /* NEW UDO TYPE SYSTEM CODE */
+    char** in_args = splitArgs(csound, inm->intypes);
+    char** out_args = splitArgs(csound, inm->outtypes);
+    char typeSpecifier[2];
+    typeSpecifier[1] = NULL;
+    char tempName[20];
+    i = 0;
+    if(*in_args[0] != '0') {
+        while (in_args[i] != NULL) {
+            char* in_arg = in_args[i];
+            snprintf(tempName, 20, "in%d", i);
+            
+            if(*in_arg == '[') {
+                int dimensions = 0;
+                while (*in_arg == '[') {
+                    dimensions += 1;
+                    in_arg += 1;
+                }
+                typeSpecifier[0] = *in_arg;
+                printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
+                CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+                CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, (CS_TYPE*)&CS_VAR_TYPE_ARRAY,
+                                                        tempName, type);
+                var->dimensions = dimensions;
+                csoundAddVariable(inm->in_arg_pool, var);
+            } else {
+                char c = map_udo_in_arg_type(*in_arg);
+                printf("found arg type %s -> %c\n", in_arg, c);
+               
+                typeSpecifier[0] = c;
+                CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+                CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, type,
+                                                        tempName, NULL);
+                csoundAddVariable(inm->in_arg_pool, var);
+            }
+            i++;
+        }
+    }
+//    inm->inchns = i + 1; /* Add one for optional local ksmps */
+    inm->inchns = i;
+    
+    i = 0;
+    if(*out_args[0] != '0') {
+        while(out_args[i] != NULL) {
+            char* out_arg = out_args[i];
+            if(*out_arg == '[') {
+                printf("array found\n");
+            } else {
+                char c = map_udo_out_arg_type(*out_arg);
+                printf("found arg type %s -> %c\n", out_arg, c);
+            }
+            i++;
+        }
+    }
+    
+    inm->outchns = i;
+   
+    opc->dsblksiz = (uint16) (sizeof(UOPCODE) + sizeof(MYFLT*) * (inm->inchns + inm->outchns));
+    opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
+                     & (~((uint16) 15)));   /* align (needed ?) */
+    
+    /* END NEW UDO TYPE SYSTEM CODE */
+    
     /* count the number of arguments, and check types */
     i = i_incnt = S_incnt = a_incnt = k_incnt = f_incnt = f_outcnt =
         i_outcnt = S_outcnt = a_outcnt = k_outcnt = kv_incnt =
@@ -545,7 +632,9 @@ int add_udo_definition(CSOUND *csound, char *opname,
     inm->name = cs_strdup(csound, opname);
     inm->intypes = intypes;
     inm->outtypes = outtypes;
-
+    inm->in_arg_pool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+    inm->out_arg_pool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+    
     inm->prv = csound->opcodeInfo;
     csound->opcodeInfo = inm;
 

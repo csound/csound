@@ -862,7 +862,10 @@ typedef struct NAME__ {
     char    *name, *intypes, *outtypes;
     int16   inchns, outchns, perf_incnt, perf_outcnt;
     int16   *in_ndx_list, *out_ndx_list;
+    CS_VAR_POOL* out_arg_pool;
+    CS_VAR_POOL* in_arg_pool;
     INSTRTXT *ip;
+    
     struct opcodinfo *prv;
   } OPCODINFO;
 
