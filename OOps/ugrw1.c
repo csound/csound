@@ -91,7 +91,7 @@ int zakinit(CSOUND *csound, ZAKINIT *p)
     csound->zklast = (int32) *p->isizek;
     length = (csound->zklast + 1L) * sizeof(MYFLT);
 
-    csound->zkstart = (MYFLT*) mcalloc(csound, length);
+    csound->zkstart = (MYFLT*) csound->Calloc(csound, length);
 
     /* Likewise, allocate memory for za space, but do it in arrays of
      * length ksmps.
@@ -100,7 +100,7 @@ int zakinit(CSOUND *csound, ZAKINIT *p)
     csound->zalast = (int32) *p->isizea;
 
     length = (csound->zalast + 1L) * sizeof(MYFLT) * CS_KSMPS;
-    csound->zastart = (MYFLT*) mcalloc(csound, length);
+    csound->zastart = (MYFLT*) csound->Calloc(csound, length);
     return OK;
 }
 
@@ -1048,7 +1048,7 @@ void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
         }
       }
       else
-        snprintf(outstring, 8196, strseg);
+        snprintf(outstring, 8196, "%s", strseg);
     }
 }
 
@@ -1071,7 +1071,7 @@ int printks(CSOUND *csound, PRINTKS *p)
         return csoundPerfError(csound, p->h.insdshead, Str("null string\n"));
      if (strcmp(sarg, p->old) != 0) {
         printksset_(csound, p, sarg);
-        mfree(csound, p->old);
+        csound->Free(csound, p->old);
         p->old = cs_strdup(csound, sarg);
       }
     }

@@ -2518,7 +2518,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     shortName = get_opcode_short_name(csound, ep->opname);
 
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
-    entryCopy = mmalloc(csound, sizeof(OENTRY));
+    entryCopy = csound->Malloc(csound, sizeof(OENTRY));
     memcpy(entryCopy, ep, sizeof(OENTRY));
     entryCopy->useropinfo = NULL;
 
@@ -2530,7 +2530,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     }
 
     if (shortName != ep->opname) {
-        mfree(csound, shortName);
+        csound->Free(csound, shortName);
     }
     return 0;
 }
@@ -2895,7 +2895,7 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       Str("Real time audio module name"), NULL);
 
     /* initialise real time MIDI */
-    csound->midiGlobals = (MGLOBAL*) mcalloc(csound, sizeof(MGLOBAL));
+    csound->midiGlobals = (MGLOBAL*) csound->Calloc(csound, sizeof(MGLOBAL));
     csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
     csound->midiGlobals->endatp = csound->midiGlobals->bufp;
     csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
@@ -2933,7 +2933,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* sound file tag options */
     max_len = 201;
     i = (max_len + 7) & (~7);
-    csound->SF_id_title = (char*) mcalloc(csound, (size_t) i * (size_t) 6);
+    csound->SF_id_title = (char*) csound->Calloc(csound, (size_t) i * (size_t) 6);
     csoundCreateConfigurationVariable(csound, "id_title", csound->SF_id_title,
                                       CSOUNDCFG_STRING, 0, NULL, &max_len,
                                       Str("Title tag in output soundfile "

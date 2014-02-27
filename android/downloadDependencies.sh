@@ -45,7 +45,19 @@ if [ -e luajit-2.0 ]; then
   cd ..;
 else
   echo "Cloning libluajit...";
-  git clone $LUAJIT_REPO 
+  git clone $LUAJIT_REPO
   cp -R $LUAJIT_JNI luajit-2.0/
+fi
+
+# OpenSoundControl
+OSC_REPO=git://liblo.git.sourceforge.net/gitroot/liblo/liblo
+if [ -e liblo ]; then
+  echo "fluidsynth-osc already exists, doing a pull to get the latest";
+  cd liblo;
+  git pull;
+  cd ..;
+else
+  echo "Cloning liblo...";
+  git clone $OSC_REPO
 fi
 

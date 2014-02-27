@@ -370,14 +370,14 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "decode_long %s\n", s);
     if (!(strncmp(s, "omacro:", 7))) {
-      NAMES *nn = (NAMES*) mmalloc(csound, sizeof(NAMES));
+      NAMES *nn = (NAMES*) csound->Malloc(csound, sizeof(NAMES));
       nn->mac = s;
       nn->next = csound->omacros;
       csound->omacros = nn;
       return 1;
     }
     else if (!(strncmp(s, "smacro:", 7))) {
-      NAMES *nn = (NAMES*) mmalloc(csound, sizeof(NAMES));
+      NAMES *nn = (NAMES*) csound->Malloc(csound, sizeof(NAMES));
       nn->mac = s;
       nn->next = csound->smacros;
       csound->smacros = nn;
@@ -851,13 +851,13 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       nbytes = (int) strlen(s) + 1;
       if (csound->dl_opcodes_oplibs == NULL) {
         /* start new library list */
-        csound->dl_opcodes_oplibs = (char*) mmalloc(csound, (size_t) nbytes);
+        csound->dl_opcodes_oplibs = (char*) csound->Malloc(csound, (size_t) nbytes);
         strcpy(csound->dl_opcodes_oplibs, s);
       }
       else {
         /* append to existing list */
         nbytes += ((int) strlen(csound->dl_opcodes_oplibs) + 1);
-        csound->dl_opcodes_oplibs = (char*) mrealloc(csound,
+        csound->dl_opcodes_oplibs = (char*) csound->ReAlloc(csound,
                                                      csound->dl_opcodes_oplibs,
                                                      (size_t) nbytes);
         strcat(csound->dl_opcodes_oplibs, ",");
@@ -954,7 +954,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
     nbytes = (argc + 1) * (int) sizeof(char*);
     for (i = 0; i <= argc; i++)
       nbytes += ((int) strlen(argv_[i]) + 1);
-    p1 = (char*) mmalloc(csound, nbytes);   /* will be freed by memRESET() */
+    p1 = (char*) csound->Malloc(csound, nbytes);   /* will be freed by memRESET() */
     p2 = (char*) p1 + ((int) sizeof(char*) * (argc + 1));
     argv = (char**) p1;
     for (i = 0; i <= argc; i++) {
@@ -1211,12 +1211,14 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
                 readOptions(csound, ind, 0);
                 csound->FileClose(csound, fd);
               }
-              while (*s++); s--;
+              while (*s++)
+               ; s--; /* semicolon on separate line to silence warning */
             }
             break;
           case 'O':
             FIND(Str("no log file"));
-            while (*s++); s--;
+            while (*s++)
+              ; s--; /* semicolon on separate line to silence warning */
             break;
           case '-':
 #if defined(LINUX)

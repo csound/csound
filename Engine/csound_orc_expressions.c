@@ -1,4 +1,5 @@
- /*
+
+/*
     csound_orc_expressions.c:
 
     Copyright (C) 2006
@@ -130,7 +131,7 @@ char * get_boolean_arg(CSOUND *csound, int type)
 TREE *create_empty_token(CSOUND *csound)
 {
     TREE *ans;
-    ans = (TREE*)mmalloc(csound, sizeof(TREE));
+    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);
@@ -150,7 +151,7 @@ TREE *create_empty_token(CSOUND *csound)
 TREE *create_minus_token(CSOUND *csound)
 {
     TREE *ans;
-    ans = (TREE*)mmalloc(csound, sizeof(TREE));
+    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);
@@ -348,7 +349,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     opTree->right->next = c;
     opTree->right->next->next = d;
     /* should recycle memory for root->right */
-    //mfree(csound, root->right); root->right = NULL;
+    //csound->Free(csound, root->right); root->right = NULL;
     last->next = opTree;
     //    print_tree(csound, "Answer:\n", anchor);
     return anchor;
@@ -362,7 +363,7 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
 
     char* leftArgType = get_arg_string_from_tree(csound, left, typeTable);
     char* rightArgType = get_arg_string_from_tree(csound, right, typeTable);
-    char* argString = mcalloc(csound, 80);
+    char* argString = csound->Calloc(csound, 80);
 
     strncpy(argString, leftArgType, 80);
     strlcat(argString, rightArgType, 80);
@@ -439,7 +440,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
     }
     root->right = newArgList;
 
-    op = mcalloc(csound, 80);
+    op = csound->Calloc(csound, 80);
 
     switch(root->type) {
     case '+':
@@ -590,7 +591,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
         }
         break;
-	/* it should not get here, but if it does,
+        /* it should not get here, but if it does,
            return NULL */
     default:
       return NULL;
@@ -621,7 +622,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       }
       last->next = opTree;
     }
-    mfree(csound, op);
+    csound->Free(csound, op);
     return anchor;
 }
 
@@ -710,7 +711,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
       root->locn = locn;
     }
 
-    op = mcalloc(csound, 80);
+    op = csound->Calloc(csound, 80);
     switch(root->type) {
     case S_EQ:
       strncpy(op, "==", 80);
@@ -765,7 +766,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
       }
       last->next = opTree;
     }
-    mfree(csound, op);
+    csound->Free(csound, op);
     return anchor;
 }
 

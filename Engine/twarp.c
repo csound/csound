@@ -101,7 +101,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
     TSEG    *tp, *prvtp;
 
     if (csound->tseg == NULL) {               /* if no space yet, alloc */
-      csound->tseg = mmalloc(csound, (int32)TSEGMAX * sizeof(TSEG));
+      csound->tseg = csound->Malloc(csound, (int32)TSEGMAX * sizeof(TSEG));
       csound->tplim = (TSEG*) csound->tseg + TSEGMAX-1;
     }
     tp = (TSEG*) (csound->tpsave = csound->tseg);
