@@ -1,4 +1,4 @@
-// -*- c++ -*-
+/ -*- c++ -*-
 // adsyn.cu
 // experimental cuda opcodes
 //
@@ -47,7 +47,7 @@ __global__ void component_sine(MYFLT *out, int *ndx,
     out[i] = amp[h]*sin((PI*2*lndx)/FMAXLEN);
     ndx[h] = (lndx + inc[h]) & PHMASK;
   }
-   
+
 }
 
 __global__  void mixdown(MYFLT *out, int comps, int vsize, float kamp){
@@ -82,7 +82,7 @@ static int init_cudaop(CSOUND *csound, CUDAOP *p){
   int nsmps = CS_KSMPS;
   if(nsmps > 1024) return csound->InitError(csound, "ksmps is too large\n");
 
-  if(*p->itabn != 0){ 
+  if(*p->itabn != 0){
   if((p->itab =
       csound->FTFind(csound, p->itabn))== NULL)
     return csound->InitError(csound,
@@ -163,16 +163,16 @@ static int perf_cudaop(CSOUND *csound, CUDAOP *p){
     nsmps -= early;
     memset(&(p->asig[nsmps]), '\0', early*sizeof(MYFLT));
   }
- 
+
   update_params(csound, p);
-  if(p->itab) 
+  if(p->itab)
    component_table<<<p->blocks,
         p->N/p->blocks>>>(p->out,p->ndx,
                           p->tab,p->amp,
                           p->inc,nsmps,
                           p->blocks,
-			  p->itab->lobits,
-			  p->itab->lodiv,
+                          p->itab->lobits,
+                          p->itab->lodiv,
                           p->itab->lomask);
   else
    component_sine<<<p->blocks,

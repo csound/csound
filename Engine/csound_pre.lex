@@ -772,7 +772,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       uint8_t n = file_to_int(csound, buffer);
       char bb[128];
       PARM->lstack[PARM->depth] = n;
-      sprintf(bb, "#source %Lud\n", PARM->locn = make_location(PARM));
+      sprintf(bb, "#source %llud\n", PARM->locn = make_location(PARM));
       PARM->llocn = PARM->locn;
       corfile_puts(bb, csound->expanded_orc);
     }
@@ -1101,7 +1101,7 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
       uint64_t llocn = PARM->llocn;
       if (locn != llocn) {
         char bb[80];
-        sprintf(bb, "#source %Lud\n", locn);
+        sprintf(bb, "#source %llud\n", locn);
         corfile_puts(bb, cf);
       }
       PARM->llocn = locn;

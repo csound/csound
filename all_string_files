@@ -33,7 +33,6 @@
 ./Engine/swritestr.c
 ./Engine/symbtab.c
 ./Engine/twarp.c
-./Engine/typetabl.h
 ./H/aops.h
 ./H/bus.h
 ./H/cmath.h

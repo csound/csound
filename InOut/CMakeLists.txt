@@ -114,7 +114,9 @@ if(USE_PORTAUDIO)
     include_directories(${PORTAUDIO_INCLUDE_PATH})
 
     if(WIN32)
-        list(APPEND rtpa_LIBS winmm dsound ${CSOUND_WINDOWS_LIBRARIES})
+        set_source_files_properties(rtpa.c
+                              PROPERTIES LANGUAGE CXX)
+        list(APPEND rtpa_LIBS winmm dsound setupapi ${CSOUND_WINDOWS_LIBRARIES})
     endif()
 
     make_plugin(rtpa rtpa.c ${rtpa_LIBS})

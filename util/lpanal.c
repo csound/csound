@@ -26,6 +26,9 @@
 #include "soundio.h"
 #include "lpc.h"
 #include "cwindow.h"
+#ifndef WIN32
+#include <unistd.h>
+#endif
 #include <math.h>
 
 /* LPC analysis, modified by BV 8'92 for linkage to audio files via soundin.c.
@@ -435,7 +438,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
                         //strlcat(tp,s,(LPBUFSIZ - sizeof(LPHEADER) + 4));
                         strncat(tp,s,
                                 (LPBUFSIZ - sizeof(LPHEADER) + 3-strlen(tp)));
-                        tp[(LPBUFSIZ - sizeof(LPHEADER) + 3] = '\0';
+                        tp[LPBUFSIZ - sizeof(LPHEADER) + 3] = '\0';
                         tp += strlen(tp);
                         break;
         case 'P':       FIND(Str("no low frequency"))
