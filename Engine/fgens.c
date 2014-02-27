@@ -116,7 +116,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
 
     *ftpp = NULL;
     if (UNLIKELY(csound->gensub == NULL)) {
-      csound->gensub = (GEN*) mmalloc(csound, sizeof(GEN) * (GENMAX + 1));
+      csound->gensub = (GEN*) csound->Malloc(csound, sizeof(GEN) * (GENMAX + 1));
       memcpy(csound->gensub, or_sub, sizeof(GEN) * (GENMAX + 1));
       csound->genmax = GENMAX + 1;
     }
@@ -141,7 +141,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
         return fterror(&ff, Str("ftable does not exist"));
       }
       csound->flist[ff.fno] = NULL;
-      mfree(csound, (void*) ftp);
+      csound->Free(csound, (void*) ftp);
       if (UNLIKELY(msg_enabled))
         csoundMessage(csound, Str("ftable %d now deleted\n"), ff.fno);
       return 0;
@@ -151,7 +151,8 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       int   size;
       for (size = csound->maxfnum; size < ff.fno; size += MAXFNUM)
         ;
-      nn = (FUNC**) mrealloc(csound, csound->flist, (size + 1) * sizeof(FUNC*));
+      nn = (FUNC**) csound->ReAlloc(csound,
+                                    csound->flist, (size + 1) * sizeof(FUNC*));
       csound->flist = nn;
       for (i = csound->maxfnum + 1; i <= size; i++)
         csound->flist[i] = NULL;                /*  Clear new section       */
@@ -208,7 +209,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       ftp = csound->flist[ff.fno];
       if (i != 0) {
         csound->flist[ff.fno] = NULL;
-        mfree(csound, ftp);
+        csound->Free(csound, ftp);
         return -1;
       }
       *ftpp = ftp;
@@ -258,7 +259,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       csoundMessage(csound, Str("ftable %d:\n"), ff.fno);
     if ((*csound->gensub[genum])(&ff, ftp) != 0) {
       csound->flist[ff.fno] = NULL;
-      mfree(csound, ftp);
+      csound->Free(csound, ftp);
       return -1;
     }
     /* VL 11.01.05 for deferred GEN01, it's called in gen01raw */
@@ -284,7 +285,8 @@ int csoundFTAlloc(CSOUND *csound, int tableNum, int len)
     if (UNLIKELY(tableNum > csound->maxfnum)) { /* extend list if necessary     */
       for (size = csound->maxfnum; size < tableNum; size += MAXFNUM)
         ;
-      nn = (FUNC**) mrealloc(csound, csound->flist, (size + 1) * sizeof(FUNC*));
+      nn = (FUNC**) csound->ReAlloc(csound,
+                                    csound->flist, (size + 1) * sizeof(FUNC*));
       csound->flist = nn;
       for (i = csound->maxfnum + 1; i <= size; i++)
         csound->flist[i] = NULL;            /* Clear new section            */
@@ -1352,7 +1354,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
         nextval(infile);
       } while (!feof(infile));
       csoundMessage(csound, Str("%ld elements in %s\n"),
-		    (long) ff->flen, ff->e.strarg);
+                    (long) ff->flen, ff->e.strarg);
       rewind(infile);
       /* Allocate memory and read them in now */
   /*  ff->flen      = ff->flen + 2;        ??? */
@@ -2241,8 +2243,8 @@ static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
 static void generate_sine_tab(CSOUND *csound)
 {                               /* Assume power of 2 length */
     int flen = csound->sinelength;
-    FUNC    *ftp = (FUNC*) mcalloc(csound, sizeof(FUNC));
-    ftp->ftable = (MYFLT*) mcalloc(csound, sizeof(MYFLT)*(flen+1));
+    FUNC    *ftp = (FUNC*) csound->Calloc(csound, sizeof(FUNC));
+    ftp->ftable = (MYFLT*) csound->Calloc(csound, sizeof(MYFLT)*(flen+1));
     double  tpdlen = TWOPI / (double) flen;
     MYFLT *ftable = ftp->ftable;
     unsigned int i;
@@ -2277,8 +2279,8 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
     if (UNLIKELY(ftp != NULL)) {
       csound->Warning(csound, Str("replacing previous ftable %d"), ff->fno);
       if (ff->flen != (int32)ftp->flen) {       /* if redraw & diff len, */
-        mfree(csound, ftp->ftable);
-        mfree(csound, (void*) ftp);             /*   release old space   */
+        csound->Free(csound, ftp->ftable);
+        csound->Free(csound, (void*) ftp);             /*   release old space   */
         csound->flist[ff->fno] = ftp = NULL;
         if (csound->actanchor.nxtact != NULL) { /*   & chk for danger    */
           csound->Warning(csound, Str("ftable %d relocating due to size change"
@@ -2286,15 +2288,17 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
                                       "may find this disturbing"), ff->fno);
         }
       }
-      else {     
+      else {
                                     /* else clear it to zero */
+        MYFLT *tmp = ftp->ftable;
         memset((void*) ftp->ftable, 0, sizeof(MYFLT)*(ff->flen+1));
-        memset((void*) ftp, 0, sizeof(FUNC)-sizeof(MYFLT*)); /* leaving table! */
+        memset((void*) ftp, 0, sizeof(FUNC));
+        ftp->ftable = tmp; /* restore table pointer */
       }
     }
     if (ftp == NULL) {                      /*   alloc space as reqd */
-      csound->flist[ff->fno] = ftp = (FUNC*) mcalloc(csound, sizeof(FUNC));
-      ftp->ftable = (MYFLT*) mcalloc(csound, (1+ff->flen) * sizeof(MYFLT));
+      csound->flist[ff->fno] = ftp = (FUNC*) csound->Calloc(csound, sizeof(FUNC));
+      ftp->ftable = (MYFLT*) csound->Calloc(csound, (1+ff->flen) * sizeof(MYFLT));
     }
     ftp->fno = (int32) ff->fno;
     ftp->flen = ff->flen;
@@ -3268,18 +3272,18 @@ int allocgen(CSOUND *csound, char *s, GEN fn)
       n = n->next;
     }
     /* Need to allocate */
-    n = (NAMEDGEN*) mmalloc(csound, sizeof(NAMEDGEN));
+    n = (NAMEDGEN*) csound->Malloc(csound, sizeof(NAMEDGEN));
     n->genum = csound->genmax++;
     n->next = (NAMEDGEN*) csound->namedgen;
-    n->name = mmalloc(csound, strlen(s) + 1);
+    n->name = csound->Malloc(csound, strlen(s) + 1);
     strcpy(n->name, s);
     csound->namedgen = (void*) n;
     if (csound->gensub == NULL) {
-      csound->gensub = (GEN*) mmalloc(csound, csound->genmax * sizeof(GEN));
+      csound->gensub = (GEN*) csound->Malloc(csound, csound->genmax * sizeof(GEN));
       memcpy(csound->gensub, or_sub, sizeof(or_sub));
     }
     else
-      csound->gensub = (GEN*) mrealloc(csound, csound->gensub,
+      csound->gensub = (GEN*) csound->ReAlloc(csound, csound->gensub,
                                                csound->genmax * sizeof(GEN));
     csound->gensub[csound->genmax-1] = fn;
     return csound->genmax-1;

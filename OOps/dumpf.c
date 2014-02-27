@@ -760,7 +760,7 @@ int krdsset_S(CSOUND *csound, KREADS *p)
     p->lasts = (char*)csound->Calloc(csound, INITSIZE);
     p->lasts[0] = '\0';
      if(p->str->data == NULL) {
-       p->str->data = mcalloc(csound, INITSIZE);
+       p->str->data = csound->Calloc(csound, INITSIZE);
         p->str->size = INITSIZE;
     }
     return OK;
@@ -787,7 +787,7 @@ int krdsset_p(CSOUND *csound, KREADS *p)
     p->lasts = (char*)csound->Malloc(csound, INITSIZE);
     p->lasts[0] = '\0';
      if(p->str->data == NULL) {
-       p->str->data = mcalloc(csound, INITSIZE);
+       p->str->data = csound->Calloc(csound, INITSIZE);
         p->str->size = INITSIZE;
     }
     return OK;

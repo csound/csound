@@ -76,11 +76,10 @@ static CS_NOINLINE void DrawAscii_(CSOUND *csound, WINDAT *wdptr, char *points)
 void DrawAscii(CSOUND *csound, WINDAT *wdptr)
 {
     csoundMessage(csound, Str("%s\t%ld points, scalemax %5.3f\n"),
-                          wdptr->caption, wdptr->npts, wdptr->absmax);
+                  wdptr->caption, (long) wdptr->npts, wdptr->absmax);
     if (wdptr->absmax) {                              /* for non-triv fn:   */
       char    points[(VER + 1) * HOR];            /* alloc the 2-Dim array  */
       memset(&(points[0]), ' ', ((VER + 1) * HOR));   /* blank out all pts  */
       DrawAscii_(csound, wdptr, &(points[0]));
     }
 }
-

@@ -77,7 +77,7 @@ void cscoreRESET(CSOUND *csound)
       SPACE *n;
       do {
         n = p->nxtspace;
-        mfree(csound, p);
+        csound->Free(csound, p);
         p = n;
       }
       while (p != NULL);
@@ -98,7 +98,7 @@ static SPACE *morespace(CSOUND *csound)
     prvspace = &spaceanchor;
     while ((space = prvspace->nxtspace) != NULL)
       prvspace = space;
-    space = (SPACE *) mmalloc(csound, (long) MAXALLOC);
+    space = (SPACE *) csound->Malloc(csound, (long) MAXALLOC);
     prvspace->nxtspace = space;
     space->nxtspace = NULL;
     space->h.prvblk = NULL;
@@ -766,7 +766,7 @@ static void savinfdata(         /* store input file data */
     int    n;
 
     if ((infp = infiles) == NULL) {
-      infp = infiles = (INFILE *) mcalloc(csound, MAXOPEN * sizeof(INFILE));
+      infp = infiles = (INFILE *) csound->Calloc(csound, MAXOPEN * sizeof(INFILE));
       goto save;
     }
     for (n = MAXOPEN; n--; infp++)
@@ -898,7 +898,7 @@ PUBLIC FILE *cscoreFileOpen(CSOUND *csound, char *name)
       exit(0);     /* FIXME: should not call exit */
     }
     csoundNotifyFileOpened(csound, pathname, CSFTYPE_SCORE, 0, 0);
-    mfree(csound, pathname);
+    csound->Free(csound, pathname);
     /* alloc a receiving evtblk */
     next = cscoreCreateEvent(csound,PMAX);  /* FIXME: need next->op = '\0' ?? */
     /* save all, wasend, non-warped, not eof */
@@ -919,7 +919,7 @@ PUBLIC void cscoreFileClose(CSOUND *csound, FILE *fp)
       for (n = MAXOPEN; n--; infp++)
         if (infp->iscfp == fp) {
           infp->iscfp = NULL;
-          mfree(csound, (char *)infp->next);
+          csound->Free(csound, (char *)infp->next);
           fclose(fp);
           if (csound->scfp == fp) csound->scfp = NULL;
           return;

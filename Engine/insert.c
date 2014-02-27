@@ -175,7 +175,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     /* **** COVERITY: note that call to instance fills in structure to
        **** which tp points.  This is a false positive **** */
      /* pop from free instance chain */
-    if(csound->oparms->odebug) 
+    if(csound->oparms->odebug)
       csoundMessage(csound, "insert(): tp->act_instance = %p \n", tp->act_instance);
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
@@ -801,7 +801,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
             // csound->Message(csound, "ip=%p \n", ip);
             cnt++;
             if (ip->opcod_iobufs && ip->insno > csound->engineState.maxinsno)
-              mfree(csound, ip->opcod_iobufs);          /* IV - Nov 10 2002 */
+              csound->Free(csound, ip->opcod_iobufs);          /* IV - Nov 10 2002 */
             if (ip->fdchp != NULL)
               fdchclose(csound, ip);
             if (ip->auxchp != NULL)
@@ -810,7 +810,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
               nxtip->prvinstance = prvip;
             *prvnxtloc = nxtip;
 
-            mfree(csound, (char *)ip);
+            csound->Free(csound, (char *)ip);
 
           }
           else {
@@ -945,7 +945,8 @@ int csoundPerfError(CSOUND *csound, INSDS *ip, const char *s, ...)
     va_start(args, s);
     csoundErrMsgV(csound, buf, s, args);
     va_end(args);
-    putop(csound, &(ip->pds->optext->t));
+    if(ip->pds)
+     putop(csound, &(ip->pds->optext->t));
     csoundMessage(csound, Str("   note aborted\n"));
     csound->perferrcnt++;
     xturnoff_now((CSOUND*) csound, ip);       /* rm ins fr actlist */
@@ -1257,10 +1258,10 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     p->ip->init_done = 1;
 
     /* copy length related parameters back to caller instr */
-    parent_ip->relesing = lcurip->relesing; 
-    parent_ip->offbet = lcurip->offbet; 
-    parent_ip->offtim = lcurip->offtim; 
-    parent_ip->p3 = lcurip->p3; 
+    parent_ip->relesing = lcurip->relesing;
+    parent_ip->offbet = lcurip->offbet;
+    parent_ip->offtim = lcurip->offtim;
+    parent_ip->p3 = lcurip->p3;
     local_ksmps = lcurip->ksmps;
 
     /* restore globals */
@@ -1269,16 +1270,16 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
     /* select perf routine and scale xtratim accordingly */
     if (local_ksmps != CS_KSMPS) {
-       ksmps_scale = CS_KSMPS / local_ksmps; 
-       parent_ip->xtratim = lcurip->xtratim / ksmps_scale; 
+       ksmps_scale = CS_KSMPS / local_ksmps;
+       parent_ip->xtratim = lcurip->xtratim / ksmps_scale;
       p->h.opadr = (SUBR) useropcd1;
     }
     else {
-      parent_ip->xtratim = lcurip->xtratim; 
+      parent_ip->xtratim = lcurip->xtratim;
       p->h.opadr = (SUBR) useropcd2;
     }
     if(csound->oparms->odebug)
-    csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n", 
+    csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n",
             lcurip, lcurip->xtratim, parent_ip, parent_ip->xtratim);
     return OK;
 }
@@ -1457,7 +1458,7 @@ int xoutset(CSOUND *csound, XOUT *p)
   it can be used on any instrument with the implementation
   of a mechanism to perform at local ksmps (in kperf etc)
 */
-#include "typetabl.h"
+//#include "typetabl.h"
 #include "csound_standard_types.h"
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
@@ -2025,7 +2026,7 @@ static void instance(CSOUND *csound, int insno)
     pextra = n-3;
     /* alloc new space,  */
     pextent = sizeof(INSDS) + tp->pextrab + pextra*sizeof(MYFLT *);
-    ip = (INSDS*) mcalloc(csound,
+    ip = (INSDS*) csound->Calloc(csound,
                           (size_t) pextent + tp->varPool->poolSize + tp->opdstot);
     ip->csound = csound;
     ip->m_chnbp = (MCHNBLK*) NULL;
@@ -2041,7 +2042,7 @@ static void instance(CSOUND *csound, int insno)
     ip->nxtact = tp->act_instance;
     tp->act_instance = ip;
     ip->insno = insno;
-    if(csound->oparms->odebug) 
+    if(csound->oparms->odebug)
       csoundMessage(csound,"instance(): tp->act_instance = %p \n", tp->act_instance);
 
 
@@ -2049,7 +2050,7 @@ static void instance(CSOUND *csound, int insno)
       size_t pcnt = (size_t) tp->opcode_info->perf_incnt;
       pcnt += (size_t) tp->opcode_info->perf_outcnt;
       pcnt = sizeof(OPCOD_IOBUFS) + sizeof(MYFLT*) * (pcnt << 1);
-      ip->opcod_iobufs = (void*) mmalloc(csound, pcnt);
+      ip->opcod_iobufs = (void*) csound->Malloc(csound, pcnt);
     }
 
     /* gbloffbas = csound->globalVarPool; */
@@ -2265,13 +2266,13 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
       }
 #if 0
       if (active->opcod_iobufs && active->insno > csound->engineState.maxinsno)
-        mfree(csound, active->opcod_iobufs);            /* IV - Nov 10 2002 */
+        csound->Free(csound, active->opcod_iobufs);            /* IV - Nov 10 2002 */
 #endif
       if (active->fdchp != NULL)
         fdchclose(csound, active);
       if (active->auxchp != NULL)
         auxchfree(csound, active);
-      mfree(csound, active);
+      csound->Free(csound, active);
       active = nxt;
     }
     csound->engineState.instrtxtp[n] = NULL;
@@ -2284,10 +2285,10 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
         txtp->nxtinstxt = ip->nxtinstxt;
         while (t) {
           OPTXT *s = t->nxtop;
-          mfree(csound, t);
+          csound->Free(csound, t);
           t = s;
         }
-        mfree(csound, ip);
+        csound->Free(csound, ip);
         return OK;
       }
     return NOTOK;

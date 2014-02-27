@@ -257,9 +257,9 @@ int pvsout_init(CSOUND *csound, FCHAN *p)
         f = (PVSDATEXT *) pp;
         csoundSpinLock(lock);
         if(f->frame == NULL) {
-          f->frame = mcalloc(csound, sizeof(float)*(fin->N+2));
+          f->frame = csound->Calloc(csound, sizeof(float)*(fin->N+2));
         } else if(f->N < fin->N) {
-          f->frame = mrealloc(csound, f->frame, sizeof(float)*(fin->N+2));
+          f->frame = csound->ReAlloc(csound, f->frame, sizeof(float)*(fin->N+2));
         }
         memcpy(f, fin, sizeof(PVSDAT)-sizeof(AUXCH));
         csoundSpinUnLock(lock);
@@ -367,9 +367,9 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
         dsize = ((int)sizeof(PVSDATEXT));
         break;
       }
-    pp = (CHNENTRY *) mcalloc(csound, (size_t) sizeof(CHNENTRY) + strlen(name) + 1);
+    pp = (CHNENTRY *) csound->Calloc(csound, (size_t) sizeof(CHNENTRY) + strlen(name) + 1);
     if (pp == NULL) return (CHNENTRY*) NULL;
-    pp->data = (MYFLT *) mcalloc(csound, dsize);
+    pp->data = (MYFLT *) csound->Calloc(csound, dsize);
 
 #ifndef MACOSX
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
@@ -502,7 +502,7 @@ PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
       return 0;
 
     /* create list, initially in unsorted order */
-    // TODO - should this be malloc or mmalloc?
+    // TODO - should this be malloc or csound->Malloc?
     *lst = (controlChannelInfo_t*) malloc(n * sizeof(controlChannelInfo_t));
     if (UNLIKELY(*lst == NULL))
       return CSOUND_MEMORY;
@@ -750,10 +750,12 @@ int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
       return print_chn_err(p, err);
     csoundSpinLock(p->lock);
     if(((STRINGDAT *) p->fp)->data != NULL) {
-    if(s != NULL) mfree(csound, s);
+      if(((STRINGDAT *) p->fp)->size > ((STRINGDAT *) p->arg)->size) {
+     if(s != NULL) csound->Free(csound, s);
     s = cs_strdup(csound,((STRINGDAT *) p->fp)->data);
     ((STRINGDAT *) p->arg)->data = s;
     ((STRINGDAT *) p->arg)->size = strlen(s) + 1;
+      } else strcpy(((STRINGDAT *) p->arg)->data, ((STRINGDAT *) p->fp)->data);
     }
     csoundSpinUnLock(p->lock);
     return OK;
@@ -774,10 +776,10 @@ int chnget_opcode_perf_S(CSOUND *csound, CHNGET *p)
       strcmp(s, ((STRINGDAT *) p->fp)->data) == 0) return OK;
 
     csoundSpinLock(p->lock);
-     
+
     if(((STRINGDAT *) p->fp)->data != NULL){
     if(((STRINGDAT *) p->arg)->size <= ((STRINGDAT *) p->fp)->size) {
-    if(s != NULL) mfree(csound, s);
+    if(s != NULL) csound->Free(csound, s);
     s = cs_strdup(csound,((STRINGDAT *) p->fp)->data);
     ((STRINGDAT *) p->arg)->data = s;
     ((STRINGDAT *) p->arg)->size = strlen(s) + 1;
@@ -984,12 +986,12 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
     csoundSpinLock(lock);
     if (strlen(s) >= (unsigned int) ((STRINGDAT *)p->fp)->size) {
       if (((STRINGDAT *)p->fp)->data != NULL)
-        mfree(csound, ((STRINGDAT *)p->fp)->data);
+        csound->Free(csound, ((STRINGDAT *)p->fp)->data);
       ((STRINGDAT *)p->fp)->data = cs_strdup(csound, s);
       ((STRINGDAT *)p->fp)->size = strlen(s)+1;
       //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
     }
-    else if(((STRINGDAT *)p->fp)->data != NULL) 
+    else if(((STRINGDAT *)p->fp)->data != NULL)
             strcpy(((STRINGDAT *)p->fp)->data, s);
     csoundSpinUnLock(lock);
 
@@ -1008,7 +1010,7 @@ int chnset_opcode_perf_S(CSOUND *csound, CHNGET *p)
     // size = csoundGetChannelDatasize(csound, p->iname->data);
 
     if (s==NULL) return NOTOK;
-    if (((STRINGDAT *)p->fp)->data 
+    if (((STRINGDAT *)p->fp)->data
         && strcmp(s, ((STRINGDAT *)p->fp)->data) == 0) return OK;
 
     p->lock = lock =
@@ -1016,12 +1018,12 @@ int chnset_opcode_perf_S(CSOUND *csound, CHNGET *p)
     csoundSpinLock(lock);
     if (strlen(s) >= (unsigned int) ((STRINGDAT *)p->fp)->size) {
       if (((STRINGDAT *)p->fp)->data != NULL)
-        mfree(csound, ((STRINGDAT *)p->fp)->data);
+        csound->Free(csound, ((STRINGDAT *)p->fp)->data);
       ((STRINGDAT *)p->fp)->data = cs_strdup(csound, s);
       ((STRINGDAT *)p->fp)->size = strlen(s)+1;
       //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
     }
-    else if(((STRINGDAT *)p->fp)->data != NULL) 
+    else if(((STRINGDAT *)p->fp)->data != NULL)
             strcpy(((STRINGDAT *)p->fp)->data, s);
     csoundSpinUnLock(lock);
     //printf("%s \n", (char *)p->fp);
@@ -1180,7 +1182,7 @@ int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     /* Now we need to find the channel entry */
     chn = find_channel(csound, (char*) p->iname->data);
     /* free the allocated memory (we will not use it) */
-    mfree(csound, chn->data);
+    csound->Free(csound, chn->data);
     /* point to the arg var */
     chn->data = p->arg;
 
@@ -1379,7 +1381,7 @@ int invalset_string_S(CSOUND *csound, INVAL *p)
 
     if(((STRINGDAT *)p->value)->data == NULL) {
       ((STRINGDAT *)p->value)->data =
-        (char *) mcalloc(csound, INIT_STRING_CHANNEL_DATASIZE);
+        (char *) csound->Calloc(csound, INIT_STRING_CHANNEL_DATASIZE);
     ((STRINGDAT *)p->value)->size = INIT_STRING_CHANNEL_DATASIZE;
     }
     /* grab input now for use during i-pass */
@@ -1436,7 +1438,7 @@ int invalset_string(CSOUND *csound, INVAL *p)
 
     if(((STRINGDAT *)p->value)->data == NULL) {
       ((STRINGDAT *)p->value)->data =
-        (char *) mcalloc(csound, INIT_STRING_CHANNEL_DATASIZE);
+        (char *) csound->Calloc(csound, INIT_STRING_CHANNEL_DATASIZE);
       ((STRINGDAT *)p->value)->size = INIT_STRING_CHANNEL_DATASIZE;
     }
 

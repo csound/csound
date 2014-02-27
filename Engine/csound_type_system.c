@@ -75,7 +75,7 @@ int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance
         return 0;
     }
 
-    item = (CS_TYPE_ITEM*)mcalloc(csound, sizeof(CS_TYPE_ITEM));
+    item = (CS_TYPE_ITEM*)csound->Calloc(csound, sizeof(CS_TYPE_ITEM));
     item->cstype = typeInstance;
 
     if (pool->head == NULL) {
@@ -100,7 +100,7 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
     char* retVal;
 
     if (varName[0] != '[') {
-      retVal = (char*)mcalloc(csound, sizeof(char) * (strlen(varName) + 1));
+      retVal = (char*)csound->Calloc(csound, sizeof(char) * (strlen(varName) + 1));
         strcpy(retVal, varName);
     } else {
       int start = 0;
@@ -127,7 +127,7 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
       newSecondLen = (len - typeEnd);
       newTotalLen = newFirstLen + newSecondLen;
 
-      retVal = (char*)mcalloc(csound, sizeof(char) * (newTotalLen + 1));
+      retVal = (char*)csound->Calloc(csound, sizeof(char) * (newTotalLen + 1));
       strncpy(retVal, t, newFirstLen);
       strncpy(retVal + newFirstLen, t2, newSecondLen);
     }
@@ -139,6 +139,7 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
                                   CS_TYPE* type, char* name, void* typeArg)
 {
     CS_TYPE_ITEM* current = pool->head;
+    if(type != NULL)
     while (current != NULL) {
       if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
         CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
@@ -148,6 +149,8 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
       }
       current = current->next;
     }
+    else ((CSOUND *)csound)->ErrorMsg(csound, 
+            "cannot create variable %s: NULL type", name);
     return NULL;
 }
 
@@ -203,12 +206,12 @@ int csoundFindVariable(CS_VAR_POOL* pool, const char* name) {
         counter++;
       }
     }
-
     return returnValue;
 }
 
 
 int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var) {
+  if(var != NULL) {
     if(pool->head == NULL) {
         pool->head = var;
     } else {
@@ -223,8 +226,8 @@ int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var) {
     // boundaries maybe should align block size here to +7 before dividing?
     var->memBlockIndex = pool->poolSize / sizeof(MYFLT);
     pool->poolSize += var->memBlockSize;
-
     return 0;
+  } else return -1;
 }
 
 void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool)
@@ -262,13 +265,14 @@ void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
     }
 }
 
-void deleteVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
-  CS_VARIABLE* current = pool->head, *tmp;
+void deleteVarPoolMemory(void* csnd, CS_VAR_POOL* pool) {
+    CS_VARIABLE* current = pool->head, *tmp;
+    CSOUND *csound = (CSOUND *)csnd;
     while (current != NULL) {
       tmp = current;
-      mfree((CSOUND *)csound, current->memBlock);
+      csound->Free(csound, current->memBlock);
       current = current->next;
-      mfree((CSOUND *)csound, tmp);
+      csound->Free(csound, tmp);
     }
 }
 
