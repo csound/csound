@@ -1302,75 +1302,23 @@ int xinset(CSOUND *csound, XIN *p)
 {
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
-    int16       *ndx_list;
-    MYFLT       **tmp, **bufs;
+    MYFLT **bufs;
+    CS_VARIABLE* current;
 
     (void) csound;
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
     inm = buf->opcode_info;
     bufs = ((UOPCODE*) buf->uopcode_struct)->ar + inm->outchns;
-    /* copy i-time variables */
-    ndx_list = inm->in_ndx_list - 1;
-
-    while (*++ndx_list >= 0) {
-       *(*(p->args + *ndx_list)) = *(*(bufs + *ndx_list));
+    
+    current = inm->in_arg_pool->head;
+    
+    for (int i = 0; i < inm->inchns; i++) {
+        void* in = (void*)(bufs + i);
+        void* out = (void*)(p->args + i);
+        memcpy(out, in, current->memBlockSize);
+        current = current->next;
     }
-
-    /* IV - Jul 29 2006: and string variables */
-    while (*++ndx_list >= 0) {
-      void *in, *out;
-      in = (void *)*(bufs + *ndx_list);
-      out = (void *) *(p->args + *ndx_list);
-      memcpy(out, in, sizeof(STRINGDAT));
-    }
-    /* and i-time arrays */
-    while (*++ndx_list >= 0) {
-      void *in, *out;
-      in = (void *)*(bufs + *ndx_list);
-      out = (void *) *(p->args + *ndx_list);
-      memcpy(out, in, sizeof(ARRAYDAT));
-    }
-
-    /* find a-rate variables and add to list of perf-time buf ptrs ... */
-    tmp = buf->iobufp_ptrs;
-    if (*tmp || *(tmp + 1))
-      return OK;
-
-    while (*++ndx_list >= 0) {
-
-      *(tmp++) = *(bufs + *ndx_list);   /* "from" address */
-      *(tmp++) = *(p->args + *ndx_list);/* "to" address */
-    }
-    *(tmp++) = NULL;            /* put delimiter */
-    /* ... same for k-rate */
-    while (*++ndx_list >= 0) {
-      *(tmp++) = *(bufs + *ndx_list);   /* "from" address */
-      *(tmp++) = *(p->args + *ndx_list);/* "to" address */
-    }
-    *(tmp++) = NULL;            /* put delimiter */
-    /* fsigs: we'll need to do extra work */
-    while (*++ndx_list >= 0) {
-      void *in, *out;
-      in = (void *)*(bufs + *ndx_list);
-      *(tmp++) = (MYFLT *) in;
-      out = (void *) *(p->args + *ndx_list);
-      *(tmp++) = (MYFLT *) out;
-      memcpy(out, in, sizeof(PVSDAT));
-    }
-    *(tmp++) = NULL;
-    /* arrays: similar to avove */
-    while (*++ndx_list >= 0) {
-      void *in, *out;
-      in = (void *)*(bufs + *ndx_list);
-      *(tmp++) = (MYFLT *) in;
-      out = (void *) *(p->args + *ndx_list);
-      *(tmp++) = (MYFLT *) out;
-      memcpy(out, in, sizeof(ARRAYDAT));
-    }
-    *(tmp++) = NULL;
-
-    /* fix for case when xout is omitted */
-    *(tmp++) = NULL;  *(tmp++) = NULL;  *(tmp++) = NULL; *tmp = NULL;
+    
     return OK;
 }
 
@@ -1378,75 +1326,22 @@ int xoutset(CSOUND *csound, XOUT *p)
 {
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
-    int16       *ndx_list;
-    MYFLT       **tmp, **bufs;
+    MYFLT       **bufs;
+    CS_VARIABLE* current;
 
     (void) csound;
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
     inm = buf->opcode_info;
     bufs = ((UOPCODE*) buf->uopcode_struct)->ar;
-    /* copy i-time variables */
-    ndx_list = inm->out_ndx_list - 1;
-    while (*++ndx_list >= 0) {
-      *(*(bufs + *ndx_list)) = *(*(p->args + *ndx_list));
+    
+    current = inm->out_arg_pool->head;
+    
+    for (int i = 0; i < inm->outchns; i++) {
+        void* in = (void*)(p->args + i);
+        void* out = (void*)(bufs + i);
+        memcpy(out, in, current->memBlockSize);
+        current = current->next;
     }
-    /* IV - Jul 29 2006: and string variables */
-    while (*++ndx_list >= 0) {
-      void *in, *out;
-      in =  (void *) *(p->args + *ndx_list);
-      out = (void *) *(bufs + *ndx_list);
-      memcpy(out, in, sizeof(STRINGDAT));
-    }
-    /* i-time arrays */
-    while (*++ndx_list >= 0) {
-      void *in, *out;
-      in =  (void *) *(p->args + *ndx_list);
-      out = (void *) *(bufs + *ndx_list);
-      memcpy(out, in, sizeof(ARRAYDAT));
-    }
-
-
-    /* skip input pointers, including the three delimiter NULLs */
-    tmp = buf->iobufp_ptrs;
-    if (*tmp || *(tmp + 1) || *(tmp + 2) || *(tmp + 3))
-      tmp += (inm->perf_incnt << 1);
-    tmp += 4;
-    if (*tmp || *(tmp + 1))
-      return OK;
-
-    /* find a-rate variables and add to list of perf-time buf ptrs ... */
-    while (*++ndx_list >= 0) {
-      *(tmp++) = *(p->args + *ndx_list);/* "from" address */
-      *(tmp++) = *(bufs + *ndx_list);   /* "to" address */
-    }
-    *(tmp++) = NULL;            /* put delimiter */
-    /* ... same for k-rate */
-    while (*++ndx_list >= 0) {
-      *(tmp++) = *(p->args + *ndx_list);/* "from" address */
-      *(tmp++) = *(bufs + *ndx_list);   /* "to" address */
-    }
-    *(tmp++) = NULL;                /* put delimiter */
-
-    /* fsigs: we'll need to do extra work */
-    while (*++ndx_list >= 0) {
-      void *in, *out;
-      in =  (void *) *(p->args + *ndx_list);
-      *(tmp++) = (MYFLT *) in;
-      out = (void *) *(bufs + *ndx_list);
-      *(tmp++) = (MYFLT *) out;
-      memcpy(out, in, sizeof(PVSDAT));
-    }
-    *(tmp++) = NULL;
-    /* arrays: as above */
-    while (*++ndx_list >= 0) {
-      void *in, *out;
-      in =  (void *) *(p->args + *ndx_list);
-      *(tmp++) = (MYFLT *) in;
-      out = (void *) *(bufs + *ndx_list);
-      *(tmp++) = (MYFLT *) out;
-      memcpy(out, in, sizeof(ARRAYDAT));
-    }
-    *tmp = NULL;
 
     return OK;
 }
@@ -2047,9 +1942,10 @@ static void instance(CSOUND *csound, int insno)
 
 
     if (insno > csound->engineState.maxinsno) {
-      size_t pcnt = (size_t) tp->opcode_info->perf_incnt;
-      pcnt += (size_t) tp->opcode_info->perf_outcnt;
-      pcnt = sizeof(OPCOD_IOBUFS) + sizeof(MYFLT*) * (pcnt << 1);
+//      size_t pcnt = (size_t) tp->opcode_info->perf_incnt;
+//      pcnt += (size_t) tp->opcode_info->perf_outcnt;
+        OPCODINFO* info = tp->opcode_info;
+      size_t pcnt = sizeof(OPCOD_IOBUFS) + sizeof(MYFLT*) * (info->inchns + info->outchns);
       ip->opcod_iobufs = (void*) csound->Malloc(csound, pcnt);
     }
 
