@@ -494,7 +494,7 @@ void *init_faustgen_thread(void *pp){
                                 "", err_msg, 3);
   if(p->factory == NULL) {
     int ret = csound->InitError(csound,
-                             Str("Faust compilation problem: %s\n"), err_msg);
+				Str("Faust compilation problem: %s\n"), err_msg.c_str());
     free(pp);
     pthread_exit(&ret);
   }
