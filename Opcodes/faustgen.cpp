@@ -236,7 +236,7 @@ void *init_faustcompile_thread(void *pp) {
   CSOUND *csound = ((hdata *) pp)->csound;
   llvm_dsp_factory *factory;
   int argc = 0;
-  std::string err_msg;
+  char err_msg[256];
   char *cmd = (char *) malloc(p->args->size + 8);
   int ret;
 
@@ -248,8 +248,9 @@ void *init_faustcompile_thread(void *pp) {
   const char* varname = "::factory";
 
 
-  factory = createDSPFactoryFromString("faustop", (const char *) p->code->data,
-				       argc, (const char**) argv, "", err_msg, 3);
+  factory = createDSPFactory(argc, argv, "",
+                             "", "faustop", (const char *) p->code->data,
+                             "", err_msg, 3);
   if(factory == NULL) {
     csound->Message(csound,
                     Str("\nFaust compilation problem:\nline %s\n"),
@@ -466,7 +467,7 @@ void *init_faustgen_thread(void *pp){
   CSOUND *csound = ((hdata2 *) pp)->csound;
   faustgen *p = ((hdata2 *) pp)->p;
   OPARMS parms;
-  std::string err_msg;
+  char err_msg[256];
   int size;
   int argc = 3;
   const char* argv[argc];
@@ -484,12 +485,12 @@ void *init_faustgen_thread(void *pp){
   argc += 1;
 #endif
 
-  p->factory =  createDSPFactoryFromString("faustop", (const char *) p->code->data,
-					   argc, (const char **)argv, "", err_msg, 3);
- 
+  p->factory = createDSPFactory(argc, argv, "",
+                                "", "faustop", (const char *) p->code->data,
+                                "", err_msg, 3);
   if(p->factory == NULL) {
     int ret = csound->InitError(csound,
-				Str("Faust compilation problem: %s\n"), err_msg.c_str());
+                             Str("Faust compilation problem: %s\n"), err_msg);
     free(pp);
     pthread_exit(&ret);
   }
