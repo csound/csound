@@ -54,7 +54,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
     int decim = *p->idecim;
 
     if (N) {
-      for (i=0; N; i++){
+      for (i=0; N; i++) {
         N >>= 1;
       }
       N = (int) pow(2.0, i-1);
@@ -191,10 +191,10 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
             post += j;
             while (post < 0) post += size;
             while (post >= size) post -= size;
-             if(post+nchans <  size)
-            in = tab[post] + frac*(tab[post+nchans] - tab[post]);
-	     else in = tab[post];
-
+            if(post+nchans <  size)
+              in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+            else in = tab[post];
+            
             fwin[i] = in * win[i]; /* window it */
             /* back windo, bwin */
             post = (int) (pos - hsize*pitch);
@@ -202,9 +202,9 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
             post += j;
             while(post < 0) post += size;
             while(post >= size) post -= size;
-             if(post+nchans <  size)
-            in = tab[post] + frac*(tab[post+nchans] - tab[post]);
-	     else in = tab[post];
+            if(post+nchans <  size)
+              in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+            else in = tab[post];
             bwin[i] = in * win[i];  /* window it */
             /* increment read pos according to pitch transposition */
             pos += pitch;
@@ -367,9 +367,9 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
         tab = ft->ftable;
         size = ft->flen;
 
-	 if (time < 0 || time >= 1 || !*p->konset) {
+        if (time < 0 || time >= 1 || !*p->konset) {
           spos += hsize*time;
-	   }
+        }
         else if (p->tscale) {
           spos += hsize*(time/(1+p->accum));
           p->accum=0.0;
@@ -420,10 +420,10 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
             while(post >= size) post -= size;
             //if (post >= 0 && post < size)
             if(post+nchans <  size)
-	    in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
-             else in = tab[post];
-	      //else in =  (MYFLT) 0;
-
+              in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
+            else in = tab[post];
+            //else in =  (MYFLT) 0;
+            
             bwin[i] = in * win[i];
             post = (int) pos + hsize;
             post *= nchans;

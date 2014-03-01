@@ -1305,9 +1305,9 @@ static MYFLT nextval(FILE *f)
     /* Read the next charcater; suppress multiple space and comments to a
        single space */
     int c;
- top:
     c = getc(f);
-    if (feof(f)) return FL(0.0); /* Hope value is ignored */
+ top:
+    if (feof(f)) return NAN; /* Hope value is ignored */
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
       double d;                           /* A number starts */
       char buff[128];
@@ -1348,7 +1348,6 @@ static int gen23(FGDATA *ff, FUNC *ftp)
     if (ftp == NULL) {
       /* Start counting elements */
       ff->flen = 0;
-      nextval(infile);
       do {
         ff->flen++;
         nextval(infile);
