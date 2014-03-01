@@ -44,7 +44,7 @@ find_library(P5GLOVE_LIB p5glove)
 if(BUILD_FAUST_OPCODES)
 find_package(LLVM)
 exec_program(llvm-config ARGS --libs OUTPUT_VARIABLE LLVM_LIBS)
-find_library(FAUST_LIBRARY faust HINTS /usr/local/lib/faust)
+find_library(FAUST_LIBRARY faust HINTS /usr/local/lib/faust $ENV{HOME}/lib/faust)
 endif()
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
@@ -175,7 +175,7 @@ check_deps(BUILD_FAUST_OPCODES LLVM_FOUND FAUST_LIBRARY)
 if(BUILD_FAUST_OPCODES)
   make_plugin(faustcsound faustgen.cpp)
   add_compiler_flags("-DFAUSTFLOAT=double"  TARGETS faustcsound)
-  target_link_libraries(faustcsound ${FAUST_LIBRARY} -L/usr/local/lib ${LLVM_LIBS})
+  target_link_libraries(faustcsound ${FAUST_LIBRARY} -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
   include_directories(${LLVM_INCLUDE_DIRS})
 endif()
 
