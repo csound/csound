@@ -218,9 +218,9 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 }
 
 
-static int is_optional_udo_in_arg(char* argtype) {
-    return strchr("jOPVop", *argtype) != NULL;
-}
+//static int is_optional_udo_in_arg(char* argtype) {
+//    return strchr("jOPVop", *argtype) != NULL;
+//}
 
 static char map_udo_in_arg_type(char in) {
     if(strchr("ijop", in) != NULL) {
@@ -238,6 +238,12 @@ static char map_udo_out_arg_type(char in) {
     return in;
 }
 
+static void map_args(char* args) {
+    while (*args != '\0') {
+        *args = map_udo_out_arg_type(*args);
+        args++;
+    }
+}
 
 /**
  *
@@ -268,21 +274,23 @@ static char map_udo_out_arg_type(char in) {
 static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 {
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
-    char    *types, *otypes;
-    int     i, i_incnt, iv_incnt, iv_outcnt, a_incnt, k_incnt,
-            i_outcnt, a_outcnt, k_outcnt, err;
-    int     S_incnt, S_outcnt, f_outcnt, f_incnt, kv_incnt, kv_outcnt;
-    int16   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
-    int16   *S_inlist, *S_outlist, *f_inlist, *f_outlist, *kv_inlist,
-            *kv_outlist, *iv_inlist, *iv_outlist;
-
-    /* NEW UDO TYPE SYSTEM CODE */
-    char** in_args = splitArgs(csound, inm->intypes);
-    char** out_args = splitArgs(csound, inm->outtypes);
+    char** in_args;
+    char** out_args;
+    char intypes[256];
     char typeSpecifier[2];
-    typeSpecifier[1] = NULL;
     char tempName[20];
-    i = 0;
+    int i = 0, err = 0;
+    
+    typeSpecifier[1] = NULL;
+    if (*inm->intypes == '0') {
+        intypes[0] = 'o';
+        intypes[1] = NULL;
+    } else {
+        snprintf(intypes, 256, "%so", inm->intypes);
+    }
+    in_args = splitArgs(csound, intypes);
+    out_args = splitArgs(csound, inm->outtypes);
+    
     if(*in_args[0] != '0') {
         while (in_args[i] != NULL) {
             char* in_arg = in_args[i];
@@ -295,18 +303,32 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
                     in_arg += 1;
                 }
                 typeSpecifier[0] = *in_arg;
-                printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
+//                printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
                 CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+                
+                if(type == NULL) {
+                    synterr(csound, Str("invalid input type for opcode %s"), in_arg);
+                    err++;
+                    continue;
+                }
+                
                 CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, (CS_TYPE*)&CS_VAR_TYPE_ARRAY,
                                                         tempName, type);
                 var->dimensions = dimensions;
                 csoundAddVariable(inm->in_arg_pool, var);
             } else {
                 char c = map_udo_in_arg_type(*in_arg);
-                printf("found arg type %s -> %c\n", in_arg, c);
+//                printf("found arg type %s -> %c\n", in_arg, c);
                
                 typeSpecifier[0] = c;
                 CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+                
+                if(type == NULL) {
+                    synterr(csound, Str("invalid input type for opcode %s"), in_arg);
+                    err++;
+                    continue;
+                }
+                
                 CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, type,
                                                         tempName, NULL);
                 csoundAddVariable(inm->in_arg_pool, var);
@@ -321,11 +343,44 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     if(*out_args[0] != '0') {
         while(out_args[i] != NULL) {
             char* out_arg = out_args[i];
+            snprintf(tempName, 20, "out%d", i);
+            
             if(*out_arg == '[') {
-                printf("array found\n");
+                int dimensions = 0;
+                while (*out_arg == '[') {
+                    dimensions += 1;
+                    out_arg += 1;
+                }
+                typeSpecifier[0] = *out_arg;
+                //                printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
+                CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+                
+                
+                if(type == NULL) {
+                    synterr(csound, Str("invalid output type for opcode %s"), out_arg);
+                    err++;
+                    continue;
+                }
+                
+                CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, (CS_TYPE*)&CS_VAR_TYPE_ARRAY,
+                                                        tempName, type);
+                var->dimensions = dimensions;
+                csoundAddVariable(inm->out_arg_pool, var);
             } else {
                 char c = map_udo_out_arg_type(*out_arg);
-                printf("found arg type %s -> %c\n", out_arg, c);
+//                printf("found arg type %s -> %c\n", out_arg, c);
+                typeSpecifier[0] = c;
+                CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+                
+                if(type == NULL) {
+                    synterr(csound, Str("invalid output type for opcode %s"), out_arg);
+                    err++;
+                    continue;
+                }
+                
+                CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, type,
+                                                        tempName, NULL);
+                csoundAddVariable(inm->out_arg_pool, var);
             }
             i++;
         }
@@ -337,218 +392,30 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
                      & (~((uint16) 15)));   /* align (needed ?) */
     
-    /* END NEW UDO TYPE SYSTEM CODE */
     
-    /* count the number of arguments, and check types */
-    i = i_incnt = S_incnt = a_incnt = k_incnt = f_incnt = f_outcnt =
-        i_outcnt = S_outcnt = a_outcnt = k_outcnt = kv_incnt =
-        kv_outcnt = iv_outcnt = iv_incnt = err = 0;
-    types = inm->intypes; otypes = opc->intypes;
-    opc->dsblksiz = (uint16) sizeof(UOPCODE);
-    if (!strcmp(types, "0"))
-      types++;                  /* no input args */
-    while (*types) {
-      switch (*types) {
-      case 'a':
-        a_incnt++; *otypes++ = *types;
-        break;
-      case 'O':
-        k_incnt++; *otypes++ = 'O'; break;
-      case 'P':
-         k_incnt++;*otypes++ = 'P'; break;
-      case 'V':
-         k_incnt++;*otypes++ = 'V'; break;
-      case 'K':
-        i_incnt++;              /* also updated at i-time */
-      case 'k':
-        if(*(types+1) == '[') {
-          kv_incnt++;
-          *otypes++ = *types;
-          *otypes++ = *(types+1);
-          *otypes++ = *(types+2);
-          types+=2;
-          break;
-        }
-        k_incnt++; *otypes++ = 'k';
-        break;
-      case 'f':
-        f_incnt++; *otypes++ = *types;
-        break;
-      case 'i':
-      if(*(types+1) == '[') {
-          iv_incnt++;
-          *otypes++ = *types;
-          *otypes++ = *(types+1);
-          *otypes++ = *(types+2);
-          types+=2;
-          break;
-        }
-      case 'o':
-      case 'p':
-      case 'j':
-        i_incnt++; *otypes++ = *types;
-       break;
-      case 'S':
-        S_incnt++; *otypes++ = *types;
-        break;
-      default:
-        synterr(csound, Str("invalid input type for opcode %s"), inm->name);
-        err++; i--;
-      }
-      i++; types++;
-      if (UNLIKELY(i > OPCODENUMOUTS_MAX)) {
-        synterr(csound, Str("too many input args for opcode %s"), inm->name);
-        csound->LongJmp(csound, 1);
-      }
-    }
-    *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
-    inm->inchns = i;                    /* total number of input chnls */
-    inm->perf_incnt = a_incnt + k_incnt + f_incnt + kv_incnt;
-    opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
-    /* same for outputs */
-    i = 0;
-    types = inm->outtypes; otypes = opc->outypes;
-    if (!strcmp(types, "0"))
-      types++;                  /* no output args */
-    while (*types) {
-      if (UNLIKELY(i >= OPCODENUMOUTS_MAX)) {
-        synterr(csound, Str("too many output args for opcode %s"), inm->name);
-        csound->LongJmp(csound, 1);
-      }
-      switch (*types) {
-      case 'a':
-        a_outcnt++; *otypes++ = *types;
-        break;
-      case 'K':
-        i_outcnt++;             /* also updated at i-time */
-      case 'k':
-        if(*(types+1) == '[') {
-          kv_outcnt++;
-          *otypes++ = *types;
-          *otypes++ = *(types+1);
-          *otypes++ = *(types+2);
-          types+=2;
-          break;
-        }
-        k_outcnt++; *otypes++ = 'k';
-        break;
-      case 'f':
-        f_outcnt++; *otypes++ = *types;
-        break;
-      case 'i':
-         if(*(types+1) == '[') {
-          iv_outcnt++;
-          *otypes++ = *types;
-          *otypes++ = *(types+1);
-          *otypes++ = *(types+2);
-          types+=2;
-          break;
-        }
-        i_outcnt++; *otypes++ = *types;
-        break;
-      case 'S':
-        S_outcnt++; *otypes++ = *types;
-        break;
-      default:
-        synterr(csound, Str("invalid output type for opcode %s"), inm->name);
-        err++; i--;
-      }
-      i++; types++;
-    }
-    *otypes = '\0';
-    inm->outchns = i;                   /* total number of output chnls */
-    inm->perf_outcnt = a_outcnt + k_outcnt + f_outcnt + kv_outcnt;
+    opc->intypes = (inm->intypes[0] == '0') ? cs_strdup(csound, "") : cs_strdup(csound, intypes);
+    opc->outypes = (inm->outtypes[0] == '0') ? cs_strdup(csound, "") : cs_strdup(csound, inm->outtypes);
+    
+    map_args(opc->intypes);
+    map_args(opc->outypes);
+//    /* count the number of arguments, and check types */
+//      default:
+//        synterr(csound, Str("invalid input type for opcode %s"), inm->name);
+//        err++; i--;
+//      }
+//      i++; types++;
+//      if (UNLIKELY(i > OPCODENUMOUTS_MAX)) {
+//        synterr(csound, Str("too many input args for opcode %s"), inm->name);
+//        csound->LongJmp(csound, 1);
+//      }
+//    }
+//      default:
+//        synterr(csound, Str("invalid output type for opcode %s"), inm->name);
+//        err++; i--;
+//      }
+//      i++; types++;
+//    }
 
-    opc->dsblksiz += (uint16) (sizeof(MYFLT*) * i);
-    opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
-                     & (~((uint16) 15)));   /* align (needed ?) */
-    /* now build index lists for the various types of arguments */
-    i = i_incnt + S_incnt + inm->perf_incnt + iv_incnt +
-        i_outcnt + S_outcnt + inm->perf_outcnt + iv_outcnt;
-    i_inlist = inm->in_ndx_list = (int16*) csound->Malloc(csound,
-                                                   sizeof(int16) * (i + 16));
-    S_inlist = i_inlist + i_incnt + 1;
-    iv_inlist =  S_inlist + S_incnt + 1;
-    a_inlist = iv_inlist + iv_incnt + 1;
-    k_inlist = a_inlist + a_incnt + 1;
-    f_inlist = k_inlist + k_incnt + 1;
-    kv_inlist = f_inlist + f_incnt + 1;
-    i = 0; types = inm->intypes;
-    while (*types) {
-
-      switch (*types++) {
-
-        case 'a': *a_inlist++ = i; break;
-        case 'O':
-        case 'P':
-        case 'V':
-        case 'k':
-        if(*(types) == '[') {
-          *kv_inlist++ = i;
-          types+=2;
-             break;
-          }
-         *k_inlist++ = i;
-        break;
-        case 'f': *f_inlist++ = i; break;
-        /* case '[': */
-        /*   if(*types=='i') *iv_inlist++ = i; */
-        /*   else *kv_inlist++ = i; */
-        /*   types+=2; */
-        /*   break; */
-        case 'K': *k_inlist++ = i;      /* also updated at i-time */
-        case 'i':
-         if(*(types) == '[') {
-          *iv_inlist++ = i;
-          types+=2;
-             break;
-          }
-        case 'o':
-        case 'p':
-        case 'j': *i_inlist++ = i; break;
-        case 'S': *S_inlist++ = i; break;
-      }
-      i++;
-    }
-
-    /* put delimiters */
-    *i_inlist = *S_inlist = *iv_inlist = *a_inlist = *k_inlist =
-      *f_inlist = *kv_inlist = -1;
-
-    i_outlist = inm->out_ndx_list = kv_inlist + 1;
-    S_outlist = i_outlist + i_outcnt + 1;
-    iv_outlist =  S_outlist + S_outcnt + 1;
-    a_outlist = iv_outlist + iv_outcnt + 1;
-    k_outlist = a_outlist + a_outcnt + 1;
-    f_outlist = k_outlist + k_outcnt + 1;
-    kv_outlist = f_outlist + f_outcnt + 1;
-    i = 0; types = inm->outtypes;
-    while (*types) {
-      switch (*types++) {
-        case 'a': *a_outlist++ = i; break;
-        case 'k':
-        if(*(types) == '[') {
-          *kv_outlist++ = i;
-          types+=2;
-             break;
-          }
-        *k_outlist++ = i; break;
-        case 'f': *f_outlist++ = i; break;
-        case 'K': *k_outlist++ = i;     /* also updated at i-time */
-        case 'i':
-        if(*(types) == '[') {
-          *iv_inlist++ = i;
-          types+=2;
-             break;
-        }
-        *i_outlist++ = i; break;
-        case 'S': *S_outlist++ = i; break;
-      }
-      i++;
-    }
-
-    *i_outlist = *S_outlist = *iv_outlist = *a_outlist = *k_outlist =
-      *f_outlist = *kv_outlist = -1;  /* put delimiters */
     return err;
 }
 

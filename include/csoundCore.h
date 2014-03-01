@@ -860,8 +860,7 @@ typedef struct NAME__ {
   typedef struct opcodinfo {
     int32    instno;
     char    *name, *intypes, *outtypes;
-    int16   inchns, outchns, perf_incnt, perf_outcnt;
-    int16   *in_ndx_list, *out_ndx_list;
+    int16   inchns, outchns;
     CS_VAR_POOL* out_arg_pool;
     CS_VAR_POOL* in_arg_pool;
     INSTRTXT *ip;
