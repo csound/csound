@@ -367,7 +367,8 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound, MYFLT **p,
         dsize = ((int)sizeof(PVSDATEXT));
         break;
       }
-    pp = (CHNENTRY *) csound->Calloc(csound, (size_t) sizeof(CHNENTRY) + strlen(name) + 1);
+    pp = (CHNENTRY *) csound->Calloc(csound,
+                                     (size_t) sizeof(CHNENTRY) + strlen(name) + 1);
     if (pp == NULL) return (CHNENTRY*) NULL;
     pp->data = (MYFLT *) csound->Calloc(csound, dsize);
 
