@@ -731,6 +731,8 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     /* open file */
     if (STA(pipdevout)) {
       STA(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
+      sf_command(STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
+                 &O->quality, sizeof(double));
 #ifdef PIPES
       if (STA(outfile) == NULL) {
         char fmt_name[6];
@@ -752,6 +754,8 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
                                     "for use in pipe\n"), fmt_name);
         sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
         STA(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
+        sf_command(STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
+                 &O->quality, sizeof(double));
       }
 #endif
       if (UNLIKELY(STA(outfile) == NULL))
@@ -764,6 +768,8 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
         csoundDie(csound, Str("sfinit: cannot open %s"), fName);
       STA(sfoutname) = fullName;
       STA(outfile)   = sf_open(fullName, SFM_WRITE, &sfinfo);
+      sf_command(STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
+                 &O->quality, sizeof(double));
       if (UNLIKELY(STA(outfile) == NULL))
         csoundDie(csound, Str("sfinit: cannot open %s"), fullName);
       /* only notify the host if we opened a real file, not stdout or a pipe */
