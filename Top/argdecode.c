@@ -225,6 +225,7 @@ static const char *longUsageList[] = {
            "not given, is empty or does not compile"),
   Str_noop("--port=N\t\t listen to UDP port N for instruments/orchestra "
            "code (implies --daemon)"),
+  Str_noop("--vbr-quality=Ft\t set quality of variable bit0rate compression"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -934,6 +935,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         O->daemon = atoi(s);
         return 1;
     }
+    else if (!(strncmp(s, "vbr-quality=",12))) {
+        s += 12;
+        O->quality = atof(s);
+        return 1;
+      }
 
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
