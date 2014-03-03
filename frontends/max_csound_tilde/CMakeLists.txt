@@ -17,6 +17,12 @@ if(APPLE)
     PATHS ${MSP_INCLUDES_DIR})
   find_library(MAX_API_FRAMEWORK MaxAPI
     PATHS ${MAX_INCLUDES_DIR})
+else()
+
+  find_library(MAX_AUDIO_FRAMEWORK MaxAudio
+    PATHS ${MSP_INCLUDES_DIR})
+  find_library(MAX_API_FRAMEWORK MaxAPI
+    PATHS ${MAX_INCLUDES_DIR})
 endif()
 
 option(BUILD_MAX_CSOUND_TILDE "Build csound~ for Max/MSP" ON)
@@ -28,6 +34,7 @@ if(APPLE)
     CORE_SERVICES_FRAMEWORK LIBSNDFILE_LIBRARY LAUNCH_SERVICES_FRAMEWORK)
 else()
   check_deps(BUILD_MAX_CSOUND_TILDE
+    MAX_AUDIO_FRAMEWORK MAX_API_FRAMEWORK
     Boost_FOUND LIBSNDFILE_LIBRARY)
 endif()
 
@@ -85,12 +92,13 @@ set(maxcs_SRCS "${max_csound_tilde_SRCS};${max_csound_tilde_headers}")
 if(APPLE)
   set(MAX_OUTPUT_LIB "csound~.mxo")
 else()
-  set(MAX_OUTPUT_LIB "csound~.mxe")
+  set(MAX_OUTPUT_LIB "csound~")
 endif()
 
 add_library(${MAX_OUTPUT_LIB} SHARED ${maxcs_SRCS})
 target_link_libraries(${MAX_OUTPUT_LIB} 
-   ${LIBSNDFILE_LIBRARY} ${CSOUNDLIB})
+  ${MAX_API_FRAMEWORK} ${MAX_AUDIO_FRAMEWORK}
+  ${LIBSNDFILE_LIBRARY} ${CSOUNDLIB})
 include_directories(${MAX_INCLUDES_DIR})
 include_directories(${MSP_INCLUDES_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
@@ -100,8 +108,7 @@ if(APPLE)
 
 include_directories(${CORE_SERVICES_FRAMEWORK}/Frameworks/CarbonCore.framework/Headers)
 include_directories(${LAUNCH_SERVICES_FRAMEWORK}/Headers)
-target_link_libraries(${MAX_OUTPUT_LIB} 
-  ${MAX_AUDIO_FRAMEWORK} ${CORE_SERVICES_FRAMEWORK} )
+target_link_libraries(${CORE_SERVICES_FRAMEWORK} )
 set_target_properties(${MAX_OUTPUT_LIB} PROPERTIES FRAMEWORK YES)
 
 if(${CMAKE_GENERATOR} STREQUAL "Xcode") 
@@ -140,7 +147,12 @@ set_target_properties(csound~.mxo PROPERTIES LINK_FLAGS
 else()
 
 set_target_properties(${MAX_OUTPUT_LIB} PROPERTIES
-  COMPILE_FLAGS "-DWIN_VERSION -DWIN_EXT_VERSION -D_WINDOWS")
+  COMPILE_FLAGS "-DWIN_VERSION -DWIN_EXT_VERSION -D_WINDOWS"
+  SUFFIX mxe
+  )
+
+target_link_libraries(${MAX_OUTPUT_LIB} 
+  ${PTHREAD_LIBRARY})
 
 endif(APPLE)
 
