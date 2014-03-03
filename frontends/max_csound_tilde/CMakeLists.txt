@@ -148,7 +148,7 @@ else()
 
 set_target_properties(${MAX_OUTPUT_LIB} PROPERTIES
   COMPILE_FLAGS "-DWIN_VERSION -DWIN_EXT_VERSION -D_WINDOWS"
-  SUFFIX mxe
+  SUFFIX .mxe
   )
 
 target_link_libraries(${MAX_OUTPUT_LIB} 
