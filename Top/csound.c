@@ -561,8 +561,8 @@ static const CSOUND cenviron_ = {
     0,              /*  nspout              */
     NULL,           /*  auxspin  */
     (OPARMS*) NULL, /*  oparms              */
-       { NULL },       /*  m_chnbp             */
-        0,                      /*   dither_output  */
+    { NULL },       /*  m_chnbp             */
+    0,                      /*   dither_output  */
     FL(0.0),        /*  onedsr              */
     FL(0.0),        /*  sicvt               */
     FL(-1.0),       /*  tpidsr              */
@@ -805,7 +805,8 @@ static const CSOUND cenviron_ = {
       0,            /*    samp acc   */
       0,            /*    realtime  */
       0.0,          /*    0dbfs override */
-      0             /*    no exit on compile error */
+      0,            /*    no exit on compile error */
+      0.4           /*    vbr quality  */
     },
 
     {0, 0, {0}}, /* REMOT_BUF */
@@ -853,7 +854,7 @@ static const CSOUND cenviron_ = {
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
     0,              /* info_message_request */
-    0              /* modules loaded */
+    0,              /* modules loaded */
     /*, NULL */           /* self-reference */
 };
 
