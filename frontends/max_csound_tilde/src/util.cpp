@@ -22,7 +22,11 @@
 */
 
 #include "util.h"
+
+#if defined(__MACH__)
 #include <LaunchServices.h>
+#endif
+
 using namespace std;
 
 void change_directory(t_object *o, const char *path)
