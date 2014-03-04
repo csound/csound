@@ -29,7 +29,8 @@ abstract_lock::abstract_lock(char *name)
 { 
 	if(name != NULL)
 		#ifdef _WINDOWS
-			strncpy_s(m_name, name, MAXI_STR_LEN-1);
+			//strncpy_s(m_name, name, MAXI_STR_LEN-1);
+			strncpy(m_name, name, MAXI_STR_LEN-1);
 		#else
 			strncpy(m_name, name, MAXI_STR_LEN-1);
 		#endif

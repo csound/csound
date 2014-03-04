@@ -214,6 +214,7 @@ typedef struct {
     int     realtime; /* realtime priority mode  */
     MYFLT   e0dbfs_override;
     int     daemon;
+    double  quality;        /* for ogg encoding */
   } OPARMS;
 
   typedef struct arglst {
