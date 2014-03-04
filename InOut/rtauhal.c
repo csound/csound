@@ -638,12 +638,14 @@ OSStatus  Csound_Render(void *inRefCon,
     IGN(ioActionFlags);
     IGN(inTimeStamp);
     IGN(inBusNumber);
+         
 
     n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
     for (k = 0; k < onchnls; k++) {
       buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
       for(j=0; (unsigned int) j < inNumberFrames; j++){
         buffer[j] = (AudioUnitSampleType) outputBuffer[j*onchnls+k] ;
+        outputBuffer[j*onchnls+k] = FL(0.0);
       }
     }
     return 0;
