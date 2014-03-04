@@ -194,7 +194,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
         strcpy(s, csound->strsets[i]);
       }
       else {
-        int n;
+        int n;              /* this is wrong */
         if (s == NULL)
           /* allocate +20 characters, assuming sizeof(int) <= 8 */
           s = csound->Malloc(csound, n = strlen(baseName) + 21);
