@@ -758,6 +758,7 @@ OENTRY opcodlst_1[] = {
     (SUBR)printkset, (SUBR)printk, NULL },
   { "printks",S(PRINTKS),WR, 3,   "",   "SiM",
     (SUBR)printksset_S,(SUBR)printks, NULL },
+  { "printks2", sizeof(PRINTK3),0, 3, "", "Sk", (SUBR)printk3set, (SUBR)printk3 },
   { "printks.i",S(PRINTKS),WR, 3,   "",   "iiM",
     (SUBR)printksset,(SUBR)printks, NULL },
   { "prints",S(PRINTS),0,   1,   "",   "SM",   (SUBR)printsset_S, NULL, NULL },
