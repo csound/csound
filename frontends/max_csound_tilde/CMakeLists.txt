@@ -108,7 +108,7 @@ if(APPLE)
 
 include_directories(${CORE_SERVICES_FRAMEWORK}/Frameworks/CarbonCore.framework/Headers)
 include_directories(${LAUNCH_SERVICES_FRAMEWORK}/Headers)
-target_link_libraries(${CORE_SERVICES_FRAMEWORK} )
+target_link_libraries(${MAX_OUTPUT_LIB} ${CORE_SERVICES_FRAMEWORK})
 set_target_properties(${MAX_OUTPUT_LIB} PROPERTIES FRAMEWORK YES)
 
 if(${CMAKE_GENERATOR} STREQUAL "Xcode") 
