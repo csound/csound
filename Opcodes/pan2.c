@@ -112,9 +112,44 @@ static int pan2run(CSOUND *csound, PAN2 *p)
     return OK;
 }
 
+typedef struct {
+        OPDS    h;
+        MYFLT   *iformat;
+        MYFLT   *val;
+        MYFLT   oldvalue;
+        char    *sarg;
+} PRINTK3;
+
+
+int printk3set(CSOUND *csound, PRINTK3 *p)
+{
+    p->oldvalue = FL(-1.12123e35);  /* hack to force printing first value */
+    p->sarg = ((STRINGDAT*)p->iformat)->data;
+    return OK;
+}
+
+int printk3(CSOUND *csound, PRINTK3 *p)
+{
+    MYFLT   value = *p->val;
+
+    if (p->oldvalue != value) {
+      char buff[1024];
+      MYFLT *vv[1];
+      vv[0] = &value;
+      buff[0] = '\0';
+      sprints(buff, p->sarg, vv, 1);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, buff);
+      p->oldvalue = value;
+    }
+    //else printf("....%f %f\n", p->oldvalue, value);
+    return OK;
+}
+
+
 static OENTRY pan2_localops[] =
 {
-  { "pan2", sizeof(PAN2), 0, 5, "aa", "axo", (SUBR) pan2set, 0, (SUBR) pan2run }
+  { "pan2", sizeof(PAN2), 0, 5, "aa", "axo", (SUBR) pan2set, 0, (SUBR) pan2run },
+  { "printks2", sizeof(PRINTK3),0, 3, "", "Sk", (SUBR)printk3set, (SUBR)printk3 }
 };
 
 LINKAGE_BUILTIN(pan2_localops)
