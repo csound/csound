@@ -37,6 +37,10 @@
 #include "csdl.h"
 #include "faust/llvm-dsp.h"
 #include "faust/gui/UI.h"
+#if defined(MACOSX) || defined(linux) || defined(HAIKU)
+#include <unistd.h>
+#endif
+
 #define MAXARG 40
 
 /**
@@ -236,7 +240,7 @@ void *init_faustcompile_thread(void *pp) {
   CSOUND *csound = ((hdata *) pp)->csound;
   llvm_dsp_factory *factory;
   int argc = 0;
-  char err_msg[256];
+  std::string err_msg;
   char *cmd = (char *) malloc(p->args->size + 8);
   int ret;
 
@@ -248,13 +252,12 @@ void *init_faustcompile_thread(void *pp) {
   const char* varname = "::factory";
 
 
-  factory = createDSPFactory(argc, argv, "",
-                             "", "faustop", (const char *) p->code->data,
+  factory = createDSPFactoryFromString("faustop", (const char *) p->code->data,argc, argv,
                              "", err_msg, 3);
   if(factory == NULL) {
     csound->Message(csound,
                     Str("\nFaust compilation problem:\nline %s\n"),
-                    &(err_msg[1]));
+                    err_msg.c_str());
     *(p->hptr) = FL(-2.0); // error code.
     free(argv);
     free(cmd);
@@ -356,7 +359,6 @@ int delete_faustgen(CSOUND *csound, void *p) {
     prv = fobj;
     fobj = fobj->nxt;
   }
-
     if(fobj != NULL) {
       if(*pfobj == fobj) *pfobj = fobj->nxt;
       csound->Free(csound, fobj);
@@ -365,9 +367,12 @@ int delete_faustgen(CSOUND *csound, void *p) {
     } else
    csound->Warning(csound,
                       Str("could not find DSP %p for deletion"), pp->engine);
-  if(pp->factory) delete pp->factory;
+    if(pp->factory) deleteDSPFactory(pp->factory);
+
   return OK;
 }
+
+
 
 int init_faustaudio(CSOUND *csound, faustgen *p){
   int factory;
@@ -467,7 +472,7 @@ void *init_faustgen_thread(void *pp){
   CSOUND *csound = ((hdata2 *) pp)->csound;
   faustgen *p = ((hdata2 *) pp)->p;
   OPARMS parms;
-  char err_msg[256];
+  std::string err_msg;
   int size;
   int argc = 3;
   const char* argv[argc];
@@ -485,12 +490,11 @@ void *init_faustgen_thread(void *pp){
   argc += 1;
 #endif
 
-  p->factory = createDSPFactory(argc, argv, "",
-                                "", "faustop", (const char *) p->code->data,
+  p->factory = createDSPFactoryFromString("faustop", (const char *) p->code->data, argc, argv,
                                 "", err_msg, 3);
   if(p->factory == NULL) {
     int ret = csound->InitError(csound,
-                             Str("Faust compilation problem: %s\n"), err_msg);
+				Str("Faust compilation problem: %s\n"), err_msg.c_str());
     free(pp);
     pthread_exit(&ret);
   }

@@ -191,7 +191,8 @@ static int dssideinit(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin)
         }
         else {
           if (DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->deactivate != NULL)
-            DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->deactivate(DSSIPlugin->Handle);
+            DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->
+              deactivate(DSSIPlugin->Handle);
           if (DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->cleanup != NULL)
             DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->cleanup(DSSIPlugin->Handle);
         }
@@ -958,9 +959,9 @@ static void
         return;
       }
 
-      pcFilename = csound->Malloc(csound,
-                                  slen = (lDirLength + strlen(psDirectoryEntry->d_name)
-                                          + 2));
+      pcFilename =
+        csound->Malloc(csound,
+                       slen = (lDirLength + strlen(psDirectoryEntry->d_name) + 2));
       strncpy(pcFilename, pcDirectory, slen);
       if (iNeedSlash)
         strlcat(pcFilename, "/",slen);
@@ -1078,9 +1079,10 @@ int dssilist(CSOUND * csound, DSSILIST * p)
     }
     if ((!pcLADSPAPath) && (!pcDSSIPath)) /* Fixed - JPff */
       return NOTOK;
-    if (pcDSSIPath) {           /* **** THIS CODE IS WRONG -- NO SPACEALLOCATED **** */
+    if (pcDSSIPath) {  /* **** THIS CODE WAS WRONG -- NO SPACEALLOCATED **** */
       if (pcLADSPAPath) {
-        char *nn = (char*)malloc(strlen((char *) pcLADSPAPath)+strlen(pcDSSIPath)+2);
+        char *nn =
+          (char*)malloc(strlen((char *) pcLADSPAPath)+strlen(pcDSSIPath)+2);
         strcpy(nn, pcLADSPAPath);
         strcat(nn, ":");
         strcat(nn, pcDSSIPath);
@@ -1088,7 +1090,7 @@ int dssilist(CSOUND * csound, DSSILIST * p)
         pcLADSPAPath = nn;
       }
       else pcLADSPAPath = strdup(pcDSSIPath);
-        
+
     }
     pcStart = pcLADSPAPath;
     while (*pcStart != '\0') {
