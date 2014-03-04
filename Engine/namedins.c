@@ -195,10 +195,12 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
       }
       else {
         int n;
-        if (s == NULL)
+        if (s == NULL) {
           /* allocate +20 characters, assuming sizeof(int) <= 8 */
           s = csound->Malloc(csound, n = strlen(baseName) + 21);
-        snprintf(s, n, "%s%d", baseName, i);
+          snprintf(s, n, "%s%d", baseName, i);
+        }
+        else sprintf(s, "%s%d", baseName, i);
       }
     }
     return s;
