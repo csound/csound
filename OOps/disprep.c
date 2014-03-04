@@ -378,12 +378,13 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
     else {                          /* then start collecting  */
       *bufp++ = *p->signal;
       if (bufp >= endp) {           /* when full, do fft:     */
-        MYFLT *tp, *tplim;
+        MYFLT *tp;
+        //MYFLT *tplim;
         MYFLT *hWin = (MYFLT *) p->auxch.auxp;
         d_fft(csound, p->sampbuf, csound->disprep_fftcoefs,
               p->windsize, hWin, p->dbout, p->overN);
         tp = csound->disprep_fftcoefs;
-        tplim = tp + p->ncoefs;
+        //tplim = tp + p->ncoefs;
         //do {
         // *tp *= p->overN;            /* scale 1/N */
         //} while (++tp < tplim);
@@ -427,12 +428,13 @@ int dspfft(CSOUND *csound, DSPFFT *p)
       else {                              /* then start collecting  */
         *bufp++ = *sigp++;
         if (bufp >= endp) {               /* when full, do fft:     */
-          MYFLT *tp, *tplim;
+          MYFLT *tp;
+          //MYFLT *tplim;
           MYFLT *hWin = (MYFLT *) p->auxch.auxp;
           d_fft(csound, p->sampbuf, csound->disprep_fftcoefs,
                 p->windsize, hWin, p->dbout, p->overN);
           tp = csound->disprep_fftcoefs;
-          tplim = tp + p->ncoefs;
+          //tplim = tp + p->ncoefs;
           //do {
           //  *tp *= p->overN;              /* scale 1/N */
           //} while (++tp < tplim);
