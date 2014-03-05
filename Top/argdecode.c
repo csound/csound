@@ -26,7 +26,7 @@
 #include "csmodule.h"
 #include <ctype.h>
 
-static void list_audio_devices(CSOUND *csound);
+static void list_audio_devices(CSOUND *csound, int output);
 extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 #define FIND(MSG)   if (*s == '\0')  \
@@ -226,7 +226,7 @@ static const char *longUsageList[] = {
   Str_noop("--port=N\t\t listen to UDP port N for instruments/orchestra "
            "code (implies --daemon)"),
   Str_noop("--vbr-quality=Ft\t set quality of variable bit0rate compression"),
-  Str_noop("--devices \t\t list available audio devices"),
+  Str_noop("--devices[=in|out] \t\t list available audio devices"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -945,7 +945,17 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csoundLoadExternals(csound);
       if (csoundInitModules(csound) != 0)
               csound->LongJmp(csound, 1);
-      list_audio_devices(csound);
+      if(*(s+7) == '='){
+	if(!strncmp(s+8,"in", 2)) {
+        list_audio_devices(csound, 0);
+	}
+      else if(!strncmp(s+8,"out", 2))
+	list_audio_devices(csound,1);
+      }
+      else {
+        list_audio_devices(csound,0);
+        list_audio_devices(csound,1);
+      }
       csound->info_message_request = 1;
       return 1;
       }
@@ -1528,22 +1538,16 @@ PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name) {
    strcpy(oparms->Midioutname, name);
 }
 
-static void list_audio_devices(CSOUND *csound){
+static void list_audio_devices(CSOUND *csound, int output){
 
-       int i,n = csoundGetAudioDevList(csound,NULL,0);
+       int i,n = csoundGetAudioDevList(csound,NULL, output);
          CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
              malloc(n*sizeof(CS_AUDIODEVICE));
-         csound->Message(csound, "%d audio input device(s):\n", n);
-         csoundGetAudioDevList(csound,devs,0);
-         for(i=0; i < n; i++)
-             csound->Message(csound, " %d: %s (%s)\n",
-                   i, devs[i].device_id, devs[i].device_name);
-         free(devs);
-         n = csoundGetAudioDevList(csound,NULL,1);
-         devs = (CS_AUDIODEVICE *)
-             malloc(n*sizeof(CS_AUDIODEVICE));
-         csound->Message(csound, "%d output audio device(s):\n", n);
-         csoundGetAudioDevList(csound,devs,1);
+         if(output)
+          csound->Message(csound, "%d audio output devices \n", n);
+         else
+           csound->Message(csound, "%d audio input devices \n", n);
+         csoundGetAudioDevList(csound,devs,output);
          for(i=0; i < n; i++)
              csound->Message(csound, " %d: %s (%s)\n",
                    i, devs[i].device_id, devs[i].device_name);
