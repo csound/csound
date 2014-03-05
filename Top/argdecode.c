@@ -968,6 +968,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         !(strncmp(O->outfilename, "dac",3))) {
       /* these are default values to get the
          backend to open successfully */
+      set_output_format(O, 'f');
       O->inbufsamps = O->outbufsamps = 256;
       O->oMaxLag = 1024;
       csoundLoadExternals(csound);

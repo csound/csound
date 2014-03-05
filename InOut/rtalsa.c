@@ -357,9 +357,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       strncpy(msg, Str("No real-time audio configurations found"), MSGLEN);
       goto err_return_msg;
     }
-    int systemrate, dummy;
-    snd_pcm_hw_params_get_rate(hw_params, &systemrate, &dummy);
-    csound->system_sr(csound, (MYFLT) systemrate);
+    
     /* now set the various hardware parameters: */
     /* access method, */
     if (snd_pcm_hw_params_set_access(dev->handle, hw_params,
@@ -396,13 +394,14 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     {
       unsigned int target = dev->srate;
       if (snd_pcm_hw_params_set_rate_near(dev->handle, hw_params,
-                                          (unsigned int *) &dev->srate, 0) < 0) {
+                                          (unsigned int *) &dev->srate, 0) < 0){
         strncpy(msg, Str("Unable to set sample rate on soundcard"), MSGLEN);
         goto err_return_msg;
       }
       if (dev->srate!=target)
         p->MessageS(p, CSOUNDMSG_WARNING, " *** rate set to %d\n", dev->srate);
     }
+    csound->system_sr(csound, (MYFLT) dev->srate);
     /* buffer size, */
     if (dev->buffer_smps == 0)
       dev->buffer_smps = 1024;
@@ -450,10 +449,11 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       goto err_return_msg;
     }
     /* print settings */
+    
     if (p->GetMessageLevel(p) != 0)
-      p->Message(p, Str("ALSA %s: total buffer size: %d, period size: %d\n"),
+      p->Message(p, Str("ALSA %s: total buffer size: %d, period size: %d \n"),
                  (play ? "output" : "input"),
-                 dev->buffer_smps, dev->period_smps);
+                 dev->buffer_smps, dev->period_smps, dev->srate);
     /* now set software parameters */
     n = (play ? dev->buffer_smps : 1);
     if (snd_pcm_sw_params_current(dev->handle, sw_params) < 0
