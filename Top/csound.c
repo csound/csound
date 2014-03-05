@@ -187,6 +187,11 @@ static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
 
+static MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
+  if(val > 0) csound->_system_sr = val;
+  return csound->_system_sr;
+}
+
 static const CSOUND cenviron_ = {
     /* attributes  */
     csoundGetSr,
@@ -427,12 +432,13 @@ static const CSOUND cenviron_ = {
     cs_strtod,
     cs_sprintf,
     cs_sscanf,
+    csoundSystemSr,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -561,8 +567,8 @@ static const CSOUND cenviron_ = {
     0,              /*  nspout              */
     NULL,           /*  auxspin  */
     (OPARMS*) NULL, /*  oparms              */
-       { NULL },       /*  m_chnbp             */
-        0,                      /*   dither_output  */
+    { NULL },       /*  m_chnbp             */
+    0,                      /*   dither_output  */
     FL(0.0),        /*  onedsr              */
     FL(0.0),        /*  sicvt               */
     FL(-1.0),       /*  tpidsr              */
@@ -805,7 +811,8 @@ static const CSOUND cenviron_ = {
       0,            /*    samp acc   */
       0,            /*    realtime  */
       0.0,          /*    0dbfs override */
-      0             /*    no exit on compile error */
+      0,            /*    no exit on compile error */
+      0.4           /*    vbr quality  */
     },
 
     {0, 0, {0}}, /* REMOT_BUF */
@@ -853,7 +860,8 @@ static const CSOUND cenviron_ = {
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
     0,              /* info_message_request */
-    0              /* modules loaded */
+    0,              /* modules loaded */
+    -1              /* audio system sr */
     /*, NULL */           /* self-reference */
 };
 

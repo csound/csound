@@ -252,7 +252,8 @@ void *init_faustcompile_thread(void *pp) {
   const char* varname = "::factory";
 
 
-  factory = createDSPFactoryFromString("faustop", (const char *) p->code->data,argc, argv,
+  factory = createDSPFactoryFromString("faustop",
+                                       (const char *) p->code->data,argc, argv,
                              "", err_msg, 3);
   if(factory == NULL) {
     csound->Message(csound,
@@ -359,7 +360,6 @@ int delete_faustgen(CSOUND *csound, void *p) {
     prv = fobj;
     fobj = fobj->nxt;
   }
-
     if(fobj != NULL) {
       if(*pfobj == fobj) *pfobj = fobj->nxt;
       csound->Free(csound, fobj);
@@ -368,7 +368,8 @@ int delete_faustgen(CSOUND *csound, void *p) {
     } else
    csound->Warning(csound,
                       Str("could not find DSP %p for deletion"), pp->engine);
-  if(pp->factory) delete pp->factory;
+    if(pp->factory) deleteDSPFactory(pp->factory);
+
   return OK;
 }
 
@@ -490,11 +491,13 @@ void *init_faustgen_thread(void *pp){
   argc += 1;
 #endif
 
-  p->factory = createDSPFactoryFromString("faustop", (const char *) p->code->data, argc, argv,
+  p->factory = createDSPFactoryFromString("faustop",
+                                          (const char *) p->code->data, argc, argv,
                                 "", err_msg, 3);
   if(p->factory == NULL) {
     int ret = csound->InitError(csound,
-				Str("Faust compilation problem: %s\n"), err_msg.c_str());
+                                Str("Faust compilation problem: %s\n"),
+                                err_msg.c_str());
     free(pp);
     pthread_exit(&ret);
   }
