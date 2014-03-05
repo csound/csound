@@ -1078,7 +1078,9 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
               /* the integer file descriptor is no longer needed */
               close(tmp_fd);
               p->fd = tmp_fd = -1;
-              goto doneSFOpen;
+              sf_command(p->sf, SFC_SET_VBR_ENCODING_QUALITY,
+                         &csound->oparms->quality, sizeof(double));
+             goto doneSFOpen;
             }
           }
           /* maybe raw file ? rewind and try again */
@@ -1098,6 +1100,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
         if (UNLIKELY(p->sf == (SNDFILE*) NULL))
           goto err_return;
         sf_command(p->sf, SFC_SET_CLIPPING, NULL, SF_TRUE);
+        sf_command(p->sf, SFC_SET_VBR_ENCODING_QUALITY,
+                   &csound->oparms->quality, sizeof(double));
         *((SNDFILE**) fd) = p->sf;
         break;
       default:                                  /* low level I/O */
