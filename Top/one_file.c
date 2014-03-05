@@ -618,6 +618,50 @@ static int createFile(CSOUND *csound, char *buffer, FILE *unf)
     return FALSE;
 }
 
+static int createFilea(CSOUND *csound, char *buffer, FILE *unf)
+{
+    FILE  *smpf;
+    void  *fd;
+    char  filename[256];
+    char  buff[1024];
+    /* char  buffer[CSD_MAX_LINE_LEN]; */
+    char *p = buffer, *q;
+
+    filename[0] = '\0';
+
+    p += 17;    /* 18== strlen("<CsFileB filename=  ") */
+    if (*p=='"') {
+      p++; q = strchr(p, '"');
+    }
+    else
+      q = strchr(p, '>');
+    if (q) *q='\0';
+    //  printf("p=>>%s<<\n", p);
+    strncpy(filename, p, 256);
+//sscanf(buffer, "<CsFile filename=\"%s\">", filename);
+//    if (filename[0] != '\0' &&
+//       filename[strlen(filename) - 1] == '>' &&
+//       filename[strlen(filename) - 2] == '"')
+//    filename[strlen(filename) - 2] = '\0';
+    if (UNLIKELY((smpf = fopen(filename, "r")) != NULL)) {
+      fclose(smpf);
+      csoundDie(csound, Str("File %s already exists"), filename);
+    }
+    fd = csoundFileOpenWithType(csound, &smpf, CSFILE_STD, filename, "w", NULL,
+                                CSFTYPE_UNKNOWN, 1);
+    if (UNLIKELY(fd == NULL)) {
+      csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
+    }
+    //read_base64(csound, unf, smpf);
+    while (fgets(buff, 1024, unf)!=NULL) {
+      if (strstr(buff, "</CsFile>")) break;
+      fputs(buff, smpf);
+    }
+    csoundFileClose(csound, fd);
+    add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
+    return TRUE;
+}
+
 static int checkVersion(CSOUND *csound, FILE *unf)
 {
     char  *p;
@@ -788,6 +832,10 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       }
       else if (strstr(p, "<CsFileB filename=") == p) {
         r = createFile(csound, buffer, unf);
+        result = r && result;
+      }
+      else if (strstr(p, "<CsFile filename=") == p) {
+        r = createFilea(csound, buffer, unf);
         result = r && result;
       }
       else if (strstr(p, "<CsVersion>") == p) {
