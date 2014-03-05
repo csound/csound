@@ -187,6 +187,11 @@ static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
 
+static MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
+  if(val > 0) csound->_system_sr = val;
+  return csound->_system_sr;
+}
+
 static const CSOUND cenviron_ = {
     /* attributes  */
     csoundGetSr,
@@ -427,12 +432,13 @@ static const CSOUND cenviron_ = {
     cs_strtod,
     cs_sprintf,
     cs_sscanf,
+    csoundSystemSr,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -855,6 +861,7 @@ static const CSOUND cenviron_ = {
     0,              /* jumpset */
     0,              /* info_message_request */
     0,              /* modules loaded */
+    -1              /* audio system sr */
     /*, NULL */           /* self-reference */
 };
 
