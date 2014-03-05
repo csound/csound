@@ -214,6 +214,7 @@ typedef struct {
     int     realtime; /* realtime priority mode  */
     MYFLT   e0dbfs_override;
     int     daemon;
+    double  quality;        /* for ogg encoding */
   } OPARMS;
 
   typedef struct arglst {
@@ -1256,11 +1257,12 @@ typedef struct NAME__ {
     double (*strtod)(char*, char**);
     int (*sprintf)(char *str, const char *format, ...);
     int (*sscanf)(char *str, const char *format, ...);
+    MYFLT (*system_sr)(CSOUND *, MYFLT );
       /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[48];
+    SUBR dummyfn_2[47];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1658,6 +1660,7 @@ typedef struct NAME__ {
     int           jumpset;
     int           info_message_request;
     int           modules_loaded;
+    MYFLT         _system_sr;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
