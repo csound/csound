@@ -283,12 +283,17 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
     /* although the SR is set in the stream properties,
        we also need to set the device to match */
+     double sr;
     prop.mSelector = kAudioDevicePropertyNominalSampleRate;
+    if(!isInput){
+      AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
+      csound->system_sr(csound, sr);
+    }
+
     psize = sizeof(double);
     AudioObjectSetPropertyData(dev, &prop, 0, NULL, psize, &srate);
-
-    double sr;
     AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
+
     if(sr != srate) {
       csound->Warning(csound,
                       Str("Attempted to set device SR, tried %.1f, got %.1f \n"),
