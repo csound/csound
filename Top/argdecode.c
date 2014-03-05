@@ -226,7 +226,8 @@ static const char *longUsageList[] = {
   Str_noop("--port=N\t\t listen to UDP port N for instruments/orchestra "
            "code (implies --daemon)"),
   Str_noop("--vbr-quality=Ft\t set quality of variable bit0rate compression"),
-  Str_noop("--devices[=in|out] \t\t list available audio devices"),
+  Str_noop("--devices[=in|out] \t\t list available audio devices and exit"),
+  Str_noop("--get-system-sr \t\t print system sr and exit"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -364,6 +365,9 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
     { "mpc2k",  TYP_MPC2K },  { "rf64",   TYP_RF64  },
     { NULL , -1 }
 };
+
+extern void sfopenout(CSOUND *csound);
+extern void sfcloseout(CSOUND *csound);
 
 static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
 {
@@ -959,6 +963,23 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->info_message_request = 1;
       return 1;
       }
+    else if (!(strncmp(s, "get-system-sr",13))){
+      if(O->outfilename && 
+        !(strncmp(O->outfilename, "dac",3))) {
+      /* these are default values to get the
+         backend to open successfully */
+      O->inbufsamps = O->outbufsamps = 256;
+      O->oMaxLag = 1024;
+      csoundLoadExternals(csound);
+      if (csoundInitModules(csound) != 0)
+              csound->LongJmp(csound, 1);
+      sfopenout(csound);
+      csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
+      sfcloseout(csound);
+      }
+      csound->info_message_request = 1;
+      return 1;
+    }
 
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
