@@ -357,6 +357,9 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       strncpy(msg, Str("No real-time audio configurations found"), MSGLEN);
       goto err_return_msg;
     }
+    int systemrate, dummy;
+    snd_pcm_hw_params_get_rate(hw_params, &systemrate, &dummy);
+    csound->system_sr(csound, (MYFLT) systemrate);
     /* now set the various hardware parameters: */
     /* access method, */
     if (snd_pcm_hw_params_set_access(dev->handle, hw_params,
