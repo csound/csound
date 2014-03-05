@@ -946,11 +946,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       if (csoundInitModules(csound) != 0)
               csound->LongJmp(csound, 1);
       if(*(s+7) == '='){
-	if(!strncmp(s+8,"in", 2)) {
-        list_audio_devices(csound, 0);
-	}
-      else if(!strncmp(s+8,"out", 2))
-	list_audio_devices(csound,1);
+        if(!strncmp(s+8,"in", 2)) {
+          list_audio_devices(csound, 0);
+        }
+        else if(!strncmp(s+8,"out", 2))
+          list_audio_devices(csound,1);
       }
       else {
         list_audio_devices(csound,0);
