@@ -126,7 +126,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 static inline void alloc_globals(CSOUND *csound)
 {
     /* if (UNLIKELY(csound->oneFileGlobals == NULL)) { */
-    /*   csound->oneFileGlobals = mcalloc(csound, sizeof(ONE_FILE_GLOBALS)); */
+    /*   csound->oneFileGlobals = csound->Calloc(csound, sizeof(ONE_FILE_GLOBALS)); */
       /* count lines from 0 so that it adds OK to orc/sco counts */
     STA(csdlinecount) = 0;
 }
@@ -170,8 +170,8 @@ void remove_tmpfiles(CSOUND *csound)            /* IV - Feb 03 2005 */
       if (remove(STA(toremove)->name))
         csoundMessage(csound, Str("WARNING: could not remove %s\n"),
                               STA(toremove)->name);
-      mfree(csound, STA(toremove)->name);
-      mfree(csound, STA(toremove));
+      csound->Free(csound, STA(toremove)->name);
+      csound->Free(csound, STA(toremove));
       STA(toremove) = nxt;
     }
 }
@@ -180,8 +180,8 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
 {                               /* add temporary file to delete list */
     NAMELST *tmp;
     alloc_globals(csound);
-    tmp = (NAMELST*) mmalloc(csound, sizeof(NAMELST));
-    tmp->name = (char*) mmalloc(csound, strlen(name) + 1);
+    tmp = (NAMELST*) csound->Malloc(csound, sizeof(NAMELST));
+    tmp->name = (char*) csound->Malloc(csound, strlen(name) + 1);
     strcpy(tmp->name, name);
     tmp->next = STA(toremove);
     STA(toremove) = tmp;
@@ -351,6 +351,8 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
     return FALSE;
 }
 
+
+
 static int createScore(CSOUND *csound, FILE *unf)
 {
     char   *p;
@@ -370,6 +372,7 @@ static int createScore(CSOUND *csound, FILE *unf)
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
     return FALSE;
 }
+
 
 static int createExScore(CSOUND *csound, char *p, FILE *unf)
 {
@@ -615,6 +618,51 @@ static int createFile(CSOUND *csound, char *buffer, FILE *unf)
     return FALSE;
 }
 
+static int createFilea(CSOUND *csound, char *buffer, FILE *unf)
+{
+    FILE  *smpf;
+    void  *fd;
+    char  filename[256];
+    char  buff[1024];
+    /* char  buffer[CSD_MAX_LINE_LEN]; */
+    char *p = buffer, *q;
+    int res=FALSE;
+
+    filename[0] = '\0';
+
+    p += 17;    /* 17== strlen("<CsFile filename=  ") */
+    if (*p=='"') {
+      p++; q = strchr(p, '"');
+    }
+    else
+      q = strchr(p, '>');
+    if (q) *q='\0';
+    //  printf("p=>>%s<<\n", p);
+    strncpy(filename, p, 256);
+    if (UNLIKELY((smpf = fopen(filename, "r")) != NULL)) {
+      fclose(smpf);
+      csoundDie(csound, Str("File %s already exists"), filename);
+    }
+    fd = csoundFileOpenWithType(csound, &smpf, CSFILE_STD, filename, "w", NULL,
+                                CSFTYPE_UNKNOWN, 1);
+    if (UNLIKELY(fd == NULL)) {
+      csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
+    }
+    while (fgets(buff, 1024, unf)!=NULL) {
+      char *p = buff;
+      while (isblank(*p)) p++;
+      if (!strncmp(p, "</CsFile>", 9)) { /* stop on antitag at start of line */
+        res = TRUE; break;
+      }
+      fputs(buff, smpf);
+    }
+    if (UNLIKELY(res==FALSE))
+      csoundErrorMsg(csound, Str("Missing end tag </CsFile>"));
+    csoundFileClose(csound, fd);
+    add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
+    return res;
+}
+
 static int checkVersion(CSOUND *csound, FILE *unf)
 {
     char  *p;
@@ -663,22 +711,22 @@ static int checkLicence(CSOUND *csound, FILE *unf)
     char  buffer[CSD_MAX_LINE_LEN];
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
-    licence = (char*) mcalloc(csound, len);
+    licence = (char*) csound->Calloc(csound, len);
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf) != NULL) {
       p = buffer;
       if (strstr(p, "</CsLicence>") != NULL ||
           strstr(p, "</CsLicense>") != NULL) {
         csoundMessage(csound, Str("**** End of Licence Information ****\n"));
-        mfree(csound, csound->SF_csd_licence);
+        csound->Free(csound, csound->SF_csd_licence);
         csound->SF_csd_licence = licence;
         return TRUE;
       }
       csoundMessage(csound, "%s", p);
       len += strlen(p);
-      licence = mrealloc(csound, licence, len);
+      licence = csound->ReAlloc(csound, licence, len);
       strlcat(licence, p, len);
     }
-    mfree(csound, licence);
+    csound->Free(csound, licence);
     csoundErrorMsg(csound, Str("Missing end tag </CsLicence>"));
     return FALSE;
 }
@@ -787,6 +835,10 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
         r = createFile(csound, buffer, unf);
         result = r && result;
       }
+      else if (strstr(p, "<CsFile filename=") == p) {
+        r = createFilea(csound, buffer, unf);
+        result = r && result;
+      }
       else if (strstr(p, "<CsVersion>") == p) {
         r = checkVersion(csound, unf);
         result = r && result;
@@ -811,6 +863,68 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     if (STA(midiSet)) {
       csound->oparms->FMidiname = STA(midname);
       csound->oparms->FMidiin = 1;
+    }
+    csoundFileClose(csound, fd);
+    return result;
+}
+
+
+int read_unified_file2(CSOUND *csound, char *csd)
+{
+    char  *name = csd;
+    FILE  *unf;
+    void  *fd;
+    int   result = TRUE;
+    int   started = FALSE;
+    int   r;
+    char    buffer[CSD_MAX_LINE_LEN];
+
+    /* Need to open in binary to deal with MIDI and the like. */
+    fd = csoundFileOpenWithType(csound, &unf, CSFILE_STD, name, "rb", NULL,
+                                CSFTYPE_UNIFIED_CSD, 0);
+    /* RWD 3:2000 fopen can fail... */
+    if (UNLIKELY(fd == NULL)) {
+      csound->ErrorMsg(csound, Str("Failed to open csd file: %s"),
+                               strerror(errno));
+      return 0;
+    }
+    
+#ifdef _DEBUG
+    csoundMessage(csound, "Calling unified file system with %s\n", name);
+#endif
+    while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)) {
+      char *p = buffer;
+      while (*p == ' ' || *p == '\t') p++;
+      if (strstr(p, "<CsoundSynthesizer>") == p ||
+          strstr(p, "<CsoundSynthesiser>") == p) {
+        csoundMessage(csound, Str("STARTING FILE\n"));
+        started = TRUE;
+      }
+      else if (strstr(p, "</CsoundSynthesizer>") == p ||
+               strstr(p, "</CsoundSynthesiser>") == p) {
+        if (csound->scorestr != NULL)
+          corfile_flush(csound->scorestr);
+        csoundFileClose(csound, fd);
+        return result;
+      }
+      else if (strstr(p, "<CsInstruments>") == p) {
+        csoundMessage(csound, Str("Creating orchestra\n"));
+        r = createOrchestra(csound, unf);
+        result = r && result;
+      }
+      else if (strstr(p, "<CsScore") == p) {
+        csoundMessage(csound, Str("Creating score\n"));
+        if (strstr(p, "<CsScore>") == p)
+          r = createScore(csound, unf);
+        else
+          r = createExScore(csound, p, unf);
+        result = r && result;
+      }    
+    }
+    if (UNLIKELY(!started)) {
+      csoundMessage(csound,
+                    Str("Could not find <CsoundSynthesizer> tag in CSD file.\n"));
+      result = FALSE;
     }
     csoundFileClose(csound, fd);
     return result;

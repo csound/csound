@@ -167,7 +167,7 @@ static int SfLoad_(CSOUND *csound, SFLOAD *p, int istring)
     *p->ihandle = (float) globals->currSFndx;
     sf = &globals->sfArray[globals->currSFndx];
     qsort(sf->preset, sf->presets_num, sizeof(presetType),
-          (int (*)(const void *, const void * )) compare);
+        (int (*)(const void *, const void * )) compare);
     csound->Free(csound,fname);
     if (UNLIKELY(++globals->currSFndx>=globals->maxSFndx)) {
       globals->maxSFndx += 5;

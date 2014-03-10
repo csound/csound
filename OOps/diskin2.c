@@ -394,7 +394,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
                                                        "DISKIN_INST")) == NULL){
         csound->CreateGlobalVariable(csound, "DISKIN_INST", sizeof(DISKIN_INST *));
         top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST");
-        *top = (DISKIN_INST *) mcalloc(csound, sizeof(DISKIN_INST));
+        *top = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
         csound->CreateGlobalVariable(csound, "DISKIN_PTHREAD", sizeof(pthread_t));
         csound->CreateGlobalVariable(csound, "DISKIN_THREAD_START", sizeof(int));
         current = *top;
@@ -404,7 +404,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
         while(current->nxt != NULL) { /* find next empty slot in chain */
           current = current->nxt;
         }
-        current->nxt = (DISKIN_INST *) mcalloc(csound, sizeof(DISKIN_INST));
+        current->nxt = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
         current = current->nxt;
       }
       current->csound = csound;
@@ -479,7 +479,7 @@ int diskin2_async_deinit(CSOUND *csound,  void *p){
      csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START");
      csound->DestroyGlobalVariable(csound, "DISKIN_INST");
    }
-   mfree(csound, current);
+   csound->Free(csound, current);
    csound->DestroyCircularBuffer(csound, ((DISKIN2 *)p)->cb);
 
    return OK;
@@ -1504,7 +1504,7 @@ int diskin2_async_deinit_array(CSOUND *csound,  void *p){
      csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START_ARRAY");
      csound->DestroyGlobalVariable(csound, "DISKIN_INST_ARRAY");
    }
-   mfree(csound, current);
+   csound->Free(csound, current);
    csound->DestroyCircularBuffer(csound, ((DISKIN2_ARRAY *)p)->cb);
 
    return OK;
@@ -1772,12 +1772,12 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
       CS_VARIABLE* var;
       int memSize;
     t->dimensions = 1;
-    t->sizes = mcalloc(csound, sizeof(int));
+    t->sizes = csound->Calloc(csound, sizeof(int));
     t->sizes[0] = p->nChannels;
     var  = t->arrayType->createVariable(csound, NULL);
     t->arrayMemberSize = var->memBlockSize;
     memSize = var->memBlockSize*(t->sizes[0]);
-    t->data = mcalloc(csound, memSize);
+    t->data = csound->Calloc(csound, memSize);
 
     } else{
       /* check dim 1 to see if it matches  channels*/
@@ -1868,7 +1868,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
                                      "DISKIN_INST_ARRAY", sizeof(DISKIN_INST *));
         top = (DISKIN_INST **) csound->QueryGlobalVariable(csound,
                                                            "DISKIN_INST_ARRAY");
-        *top = (DISKIN_INST *) mcalloc(csound, sizeof(DISKIN_INST));
+        *top = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
         csound->CreateGlobalVariable(csound,
                                      "DISKIN_PTHREAD_ARRAY", sizeof(pthread_t));
         csound->CreateGlobalVariable(csound,
@@ -1880,7 +1880,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
         while(current->nxt != NULL) { /* find next empty slot in chain */
           current = current->nxt;
         }
-        current->nxt = (DISKIN_INST *) mcalloc(csound, sizeof(DISKIN_INST));
+        current->nxt = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
         current = current->nxt;
       }
       current->csound = csound;
