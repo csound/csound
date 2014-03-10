@@ -26,7 +26,7 @@
 #include "csmodule.h"
 #include <ctype.h>
 
-
+static void list_audio_devices(CSOUND *csound, int output);
 extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 #define FIND(MSG)   if (*s == '\0')  \
@@ -225,6 +225,9 @@ static const char *longUsageList[] = {
            "not given, is empty or does not compile"),
   Str_noop("--port=N\t\t listen to UDP port N for instruments/orchestra "
            "code (implies --daemon)"),
+  Str_noop("--vbr-quality=Ft\t set quality of variable bit0rate compression"),
+  Str_noop("--devices[=in|out] \t\t list available audio devices and exit"),
+  Str_noop("--get-system-sr \t\t print system sr and exit"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -363,6 +366,9 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
     { NULL , -1 }
 };
 
+extern void sfopenout(CSOUND *csound);
+extern void sfcloseout(CSOUND *csound);
+
 static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
@@ -370,14 +376,14 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "decode_long %s\n", s);
     if (!(strncmp(s, "omacro:", 7))) {
-      NAMES *nn = (NAMES*) mmalloc(csound, sizeof(NAMES));
+      NAMES *nn = (NAMES*) csound->Malloc(csound, sizeof(NAMES));
       nn->mac = s;
       nn->next = csound->omacros;
       csound->omacros = nn;
       return 1;
     }
     else if (!(strncmp(s, "smacro:", 7))) {
-      NAMES *nn = (NAMES*) mmalloc(csound, sizeof(NAMES));
+      NAMES *nn = (NAMES*) csound->Malloc(csound, sizeof(NAMES));
       nn->mac = s;
       nn->next = csound->smacros;
       csound->smacros = nn;
@@ -851,13 +857,13 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       nbytes = (int) strlen(s) + 1;
       if (csound->dl_opcodes_oplibs == NULL) {
         /* start new library list */
-        csound->dl_opcodes_oplibs = (char*) mmalloc(csound, (size_t) nbytes);
+        csound->dl_opcodes_oplibs = (char*) csound->Malloc(csound, (size_t) nbytes);
         strcpy(csound->dl_opcodes_oplibs, s);
       }
       else {
         /* append to existing list */
         nbytes += ((int) strlen(csound->dl_opcodes_oplibs) + 1);
-        csound->dl_opcodes_oplibs = (char*) mrealloc(csound,
+        csound->dl_opcodes_oplibs = (char*) csound->ReAlloc(csound,
                                                      csound->dl_opcodes_oplibs,
                                                      (size_t) nbytes);
         strcat(csound->dl_opcodes_oplibs, ",");
@@ -934,6 +940,47 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         O->daemon = atoi(s);
         return 1;
     }
+    else if (!(strncmp(s, "vbr-quality=",12))) {
+        s += 12;
+        O->quality = atof(s);
+        return 1;
+      }
+    else if (!(strncmp(s, "devices",7))) {
+      csoundLoadExternals(csound);
+      if (csoundInitModules(csound) != 0)
+              csound->LongJmp(csound, 1);
+      if(*(s+7) == '='){
+        if(!strncmp(s+8,"in", 2)) {
+          list_audio_devices(csound, 0);
+        }
+        else if(!strncmp(s+8,"out", 2))
+          list_audio_devices(csound,1);
+      }
+      else {
+        list_audio_devices(csound,0);
+        list_audio_devices(csound,1);
+      }
+      csound->info_message_request = 1;
+      return 1;
+      }
+    else if (!(strncmp(s, "get-system-sr",13))){
+      if(O->outfilename && 
+        !(strncmp(O->outfilename, "dac",3))) {
+      /* these are default values to get the
+         backend to open successfully */
+      set_output_format(O, 'f');
+      O->inbufsamps = O->outbufsamps = 256;
+      O->oMaxLag = 1024;
+      csoundLoadExternals(csound);
+      if (csoundInitModules(csound) != 0)
+              csound->LongJmp(csound, 1);
+      sfopenout(csound);
+      csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
+      sfcloseout(csound);
+      }
+      csound->info_message_request = 1;
+      return 1;
+    }
 
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
@@ -954,7 +1001,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
     nbytes = (argc + 1) * (int) sizeof(char*);
     for (i = 0; i <= argc; i++)
       nbytes += ((int) strlen(argv_[i]) + 1);
-    p1 = (char*) mmalloc(csound, nbytes);   /* will be freed by memRESET() */
+    p1 = (char*) csound->Malloc(csound, nbytes);   /* will be freed by memRESET() */
     p2 = (char*) p1 + ((int) sizeof(char*) * (argc + 1));
     argv = (char**) p1;
     for (i = 0; i <= argc; i++) {
@@ -1511,4 +1558,20 @@ PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name) {
    oparms->Midioutname =
      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
    strcpy(oparms->Midioutname, name);
+}
+
+static void list_audio_devices(CSOUND *csound, int output){
+
+       int i,n = csoundGetAudioDevList(csound,NULL, output);
+         CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
+             malloc(n*sizeof(CS_AUDIODEVICE));
+         if(output)
+          csound->Message(csound, "%d audio output devices \n", n);
+         else
+           csound->Message(csound, "%d audio input devices \n", n);
+         csoundGetAudioDevList(csound,devs,output);
+         for(i=0; i < n; i++)
+             csound->Message(csound, " %d: %s (%s)\n",
+                   i, devs[i].device_id, devs[i].device_name);
+         free(devs);
 }

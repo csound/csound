@@ -45,10 +45,13 @@ typedef struct {
     AUXCH    auxch;
     FDCH     fdch;
 } MP3IN;
+
+
 typedef struct {
     OPDS    h;
     MYFLT   *ir;
     MYFLT   *iFileCode;
+    
 } MP3LEN;
 
 int mp3in_cleanup(CSOUND *csound, MP3IN *p)
@@ -284,7 +287,16 @@ int mp3len_(CSOUND *csound, MP3LEN *p, int stringname)
       return csound->InitError(csound, mp3dec_error(r));
     }
     close(fd);
-    *p->ir = (MYFLT)mpainfo.duration;
+
+    if(!strcmp(csound->GetOpcodeName(&p->h), "mp3len"))
+        *p->ir = (MYFLT)mpainfo.duration;
+    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3sr"))
+      *p->ir = (MYFLT) mpainfo.frequency;
+    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3bitrate"))
+      *p->ir = (MYFLT) mpainfo.bitrate;
+    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3nchnls"))
+      *p->ir = (MYFLT) mpainfo.channels;
+
     mp3dec_uninit(mpa);
     return OK;
 }
@@ -303,7 +315,13 @@ static OENTRY mp3in_localops[] = {
   {"mp3in",  S(MP3IN),  0, 5, "aa", "Soooo", (SUBR) mp3ininit_S, NULL, (SUBR) mp3in},
   {"mp3in.i",  S(MP3IN),  0, 5, "aa", "ioooo", (SUBR) mp3ininit, NULL, (SUBR) mp3in},
   {"mp3len", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
-    {"mp3len.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL}
+  {"mp3len.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+  {"mp3sr", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
+  {"mp3sr.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+    {"mp3bitrate", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
+  {"mp3bitrate.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+    {"mp3nchnls", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
+  {"mp3nchnls.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL}
 };
 
 LINKAGE_BUILTIN(mp3in_localops)

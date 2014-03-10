@@ -4,6 +4,10 @@ project (Csound)
 
 ENABLE_TESTING()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+set(CMAKE_COMPILER_IS_CLANG 1)
+endif()
+
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
@@ -291,8 +295,8 @@ if(APPLE)
     set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
   endif()
 
-  if(EXISTS ${CMAKE_OSX_SYSROOT})
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.6)
+   if(EXISTS ${CMAKE_OSX_SYSROOT})
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
   endif()
 
 endif()
@@ -676,6 +680,11 @@ set(libcsound_SRCS
     Top/utility.c
     Top/threadsafe.c
     Top/server.c)
+
+if(WIN32 AND NOT MSVC)
+set_source_files_properties(Opcodes/sfont.c PROPERTIES
+    COMPILE_FLAGS -mno-ms-bitfields)
+endif()
 
 set(stdopcod_SRCS
     Opcodes/ambicode.c

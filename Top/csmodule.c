@@ -532,7 +532,7 @@ int csoundLoadExternals(CSOUND *csound)
     } while (++i < cnt);
     /* file list is no longer needed */
     free(lst);
-    mfree(csound, s);
+    csound->Free(csound, s);
     return 0;
 }
 

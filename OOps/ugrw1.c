@@ -91,7 +91,7 @@ int zakinit(CSOUND *csound, ZAKINIT *p)
     csound->zklast = (int32) *p->isizek;
     length = (csound->zklast + 1L) * sizeof(MYFLT);
 
-    csound->zkstart = (MYFLT*) mcalloc(csound, length);
+    csound->zkstart = (MYFLT*) csound->Calloc(csound, length);
 
     /* Likewise, allocate memory for za space, but do it in arrays of
      * length ksmps.
@@ -100,7 +100,7 @@ int zakinit(CSOUND *csound, ZAKINIT *p)
     csound->zalast = (int32) *p->isizea;
 
     length = (csound->zalast + 1L) * sizeof(MYFLT) * CS_KSMPS;
-    csound->zastart = (MYFLT*) mcalloc(csound, length);
+    csound->zastart = (MYFLT*) csound->Calloc(csound, length);
     return OK;
 }
 
@@ -1071,7 +1071,7 @@ int printks(CSOUND *csound, PRINTKS *p)
         return csoundPerfError(csound, p->h.insdshead, Str("null string\n"));
      if (strcmp(sarg, p->old) != 0) {
         printksset_(csound, p, sarg);
-        mfree(csound, p->old);
+        csound->Free(csound, p->old);
         p->old = cs_strdup(csound, sarg);
       }
     }
@@ -1202,6 +1202,30 @@ int printk2(CSOUND *csound, PRINTK2 *p)
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
       p->oldvalue = value;
     }
+    return OK;
+}
+
+int printk3set(CSOUND *csound, PRINTK3 *p)
+{
+    p->oldvalue = FL(-1.12123e35);  /* hack to force printing first value */
+    p->sarg = ((STRINGDAT*)p->iformat)->data;
+    return OK;
+}
+
+int printk3(CSOUND *csound, PRINTK3 *p)
+{
+    MYFLT   value = *p->val;
+
+    if (p->oldvalue != value) {
+      char buff[8196];
+      MYFLT *vv[1];
+      vv[0] = &value;
+      buff[0] = '\0';
+      sprints(buff, p->sarg, vv, 1);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, buff);
+      p->oldvalue = value;
+    }
+    //else printf("....%f %f\n", p->oldvalue, value);
     return OK;
 }
 

@@ -45,9 +45,11 @@ extern  int     init_pvsys(CSOUND *);
 extern  void    print_benchmark_info(CSOUND *, const char *);
 extern  void    openMIDIout(CSOUND *);
 extern  int     read_unified_file(CSOUND *, char **, char **);
+extern  int     read_unified_file2(CSOUND *csound, char *csd);
 extern  uintptr_t  kperfThread(void * cs);
 extern void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
 extern void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
+extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 
 void checkOptions(CSOUND *csound)
 {
@@ -75,7 +77,7 @@ void checkOptions(CSOUND *csound)
                              CSFTYPE_OPTIONS, 0);
       if (fd != NULL)
         csound->Message(csound, Str("Reading options from $HOME/.csound6rc\n"));
-      mfree(csound, s);
+      csound->Free(csound, s);
     }
     /* read global .csound6rc file (if exists) */
     if (fd != NULL) {
@@ -98,7 +100,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
     char    *s;
-    int new_s = 0;
     FILE    *xfile = NULL;
     int     n;
     int     csdFound = 0;
@@ -156,7 +157,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
         csoundAppendEnv(csound, "SSDIR", fileDir);
         csoundAppendEnv(csound, "INCDIR", fileDir);
         csoundAppendEnv(csound, "MFDIR", fileDir);
-        mfree(csound, fileDir);
+        csound->Free(csound, fileDir);
       }
 
       if(csound->orchname != NULL) {
@@ -199,7 +200,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       csoundAppendEnv(csound, "SADIR", fileDir);
       csoundAppendEnv(csound, "SSDIR", fileDir);
       csoundAppendEnv(csound, "MFDIR", fileDir);
-      mfree(csound, fileDir);
+      csound->Free(csound, fileDir);
     }
 
     /* Add directory of ORC file to search paths*/
@@ -208,7 +209,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       csoundAppendEnv(csound, "SADIR", fileDir);
       csoundAppendEnv(csound, "SSDIR", fileDir);
       csoundAppendEnv(csound, "MFDIR", fileDir);
-      mfree(csound, fileDir);
+      csound->Free(csound, fileDir);
     }
 
     if (csound->orchstr==NULL && csound->orchname) {
@@ -232,7 +233,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       csound->LongJmp(csound, 1);
      if(csoundCompileOrc(csound, NULL) != 0){
        if(csound->oparms->daemon == 0)
-         csoundDie(csound, Str("cannot compile orchestra \n"));
+         csoundDie(csound, Str("cannot compile orchestra"));
        else {
          /* VL -- 21-10-13 Csound does not need to die on
           failure to compile. It can carry on, because new
@@ -246,14 +247,12 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     if (csound->enableHostImplementedMIDIIO == 1) {
         if (s == NULL) {
-          s = strdup("hostbased"); new_s=1;
+          s = "hostbased";
         } else {
             strcpy(s, "hostbased");
         }
         csoundSetConfigurationVariable(csound,"rtmidi", s);
     }
-
-
 
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
@@ -312,7 +311,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
 
-    if (new_s) free(s);
     return CSOUND_SUCCESS;
 }
 
@@ -493,4 +491,30 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
 
   if(result == CSOUND_SUCCESS) return csoundStart(csound);
   else return result;
+}
+
+
+
+PUBLIC int csoundCompileCsd(CSOUND *csound, char *str) {
+
+  if((csound->engineStatus & CS_STATE_COMP) == 0) {
+    char *argv[2] = { "csound", (char *) str };
+    int argc = 2;
+    return csoundCompile(csound, argc, argv);
+  } 
+  else { 
+    int res = read_unified_file2(csound, (char *) str);
+   if(res) {
+    res = csoundCompileOrc(csound, NULL);
+    if(res == CSOUND_SUCCESS){
+      csoundLockMutex(csound->API_lock);
+      char *sc = scsortstr(csound, csound->scorestr);
+      csoundInputMessageInternal(csound, (const char *) sc);
+      free(sc);
+      csoundUnlockMutex(csound->API_lock);
+      return CSOUND_SUCCESS;
+    }
+   }
+   return res;
+  }
 }

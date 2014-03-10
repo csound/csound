@@ -201,6 +201,11 @@ static int selectPortAudioDevice(CSOUND *csound, int devNum, int play)
                       dev_info->name);
     else
       csound->Message(csound, Str("PortAudio: failed to obtain device info.\n"));
+
+    if(play) {
+      csound->system_sr(csound, (MYFLT) dev_info->defaultSampleRate);
+    }
+
     return devNum;
 }
 
