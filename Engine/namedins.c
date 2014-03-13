@@ -194,11 +194,13 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
         strcpy(s, csound->strsets[i]);
       }
       else {
-        int n;              /* this is wrong */
-        if (s == NULL)
+        int n;
+        if (s == NULL) {
           /* allocate +20 characters, assuming sizeof(int) <= 8 */
           s = csound->Malloc(csound, n = strlen(baseName) + 21);
-        snprintf(s, n, "%s%d", baseName, i);
+          snprintf(s, n, "%s%d", baseName, i);
+        }
+        else sprintf(s, "%s%d", baseName, i); /* dubious */
       }
     }
     return s;

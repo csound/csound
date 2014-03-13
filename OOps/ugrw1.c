@@ -1205,6 +1205,30 @@ int printk2(CSOUND *csound, PRINTK2 *p)
     return OK;
 }
 
+int printk3set(CSOUND *csound, PRINTK3 *p)
+{
+    p->oldvalue = FL(-1.12123e35);  /* hack to force printing first value */
+    p->sarg = ((STRINGDAT*)p->iformat)->data;
+    return OK;
+}
+
+int printk3(CSOUND *csound, PRINTK3 *p)
+{
+    MYFLT   value = *p->val;
+
+    if (p->oldvalue != value) {
+      char buff[8196];
+      MYFLT *vv[1];
+      vv[0] = &value;
+      buff[0] = '\0';
+      sprints(buff, p->sarg, vv, 1);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, buff);
+      p->oldvalue = value;
+    }
+    //else printf("....%f %f\n", p->oldvalue, value);
+    return OK;
+}
+
 /* inz writes to za space at a rate as many channels as can. */
 int inz(CSOUND *csound, IOZ *p)
 {
