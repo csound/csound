@@ -252,7 +252,8 @@ void *init_faustcompile_thread(void *pp) {
   const char* varname = "::factory";
 
 
-  factory = createDSPFactoryFromString("faustop", (const char *) p->code->data,argc, argv,
+  factory = createDSPFactoryFromString("faustop",
+                                       (const char *) p->code->data,argc, argv,
                              "", err_msg, 3);
   if(factory == NULL) {
     csound->Message(csound,
@@ -490,11 +491,13 @@ void *init_faustgen_thread(void *pp){
   argc += 1;
 #endif
 
-  p->factory = createDSPFactoryFromString("faustop", (const char *) p->code->data, argc, argv,
+  p->factory = createDSPFactoryFromString("faustop",
+                                          (const char *) p->code->data, argc, argv,
                                 "", err_msg, 3);
   if(p->factory == NULL) {
     int ret = csound->InitError(csound,
-				Str("Faust compilation problem: %s\n"), err_msg.c_str());
+                                Str("Faust compilation problem: %s\n"),
+                                err_msg.c_str());
     free(pp);
     pthread_exit(&ret);
   }
