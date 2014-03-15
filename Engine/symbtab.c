@@ -282,6 +282,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     int i = 0, err = 0;
     
     typeSpecifier[1] = NULL;
+    
+    // The following handles adding of extra 'o' type for optional ksmps arg for all UDO's
     if (*inm->intypes == '0') {
         intypes[0] = 'o';
         intypes[1] = NULL;
@@ -337,7 +339,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         }
     }
 //    inm->inchns = i + 1; /* Add one for optional local ksmps */
-    inm->inchns = i;
+    inm->inchns = i - 1;
     
     i = 0;
     if(*out_args[0] != '0') {
