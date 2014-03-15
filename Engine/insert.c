@@ -1246,7 +1246,11 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     else
       memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(MYFLT));
 
-
+    // may need to calculate pool memory, but at the same time, may not, as
+    // variables are at their max size at csound's global ksmps
+    //    recalculateVarPoolMemory(csound, <#CS_VAR_POOL *pool#>)
+    //    recalculateVarPoolMemory(csound, <#CS_VAR_POOL *pool#>)
+    
     /* do init pass for this instr */
     p->ip->init_done = 0;
     csound->curip = lcurip;
@@ -1313,8 +1317,8 @@ int xinset(CSOUND *csound, XIN *p)
     current = inm->in_arg_pool->head;
     
     for (int i = 0; i < inm->inchns; i++) {
-        void* in = (void*)(bufs + i);
-        void* out = (void*)(p->args + i);
+        void* in = (void*)bufs[i];
+        void* out = (void*)p->args[i];
         memcpy(out, in, current->memBlockSize);
         current = current->next;
     }
@@ -1337,8 +1341,8 @@ int xoutset(CSOUND *csound, XOUT *p)
     current = inm->out_arg_pool->head;
     
     for (int i = 0; i < inm->outchns; i++) {
-        void* in = (void*)(p->args + i);
-        void* out = (void*)(bufs + i);
+        void* in = (void*)p->args[i];
+        void* out = (void*)bufs[i];
         memcpy(out, in, current->memBlockSize);
         current = current->next;
     }
