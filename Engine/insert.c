@@ -1306,7 +1306,7 @@ int xinset(CSOUND *csound, XIN *p)
 {
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
-    MYFLT **bufs;
+    MYFLT **bufs, **tmp;
     CS_VARIABLE* current;
 
     (void) csound;
@@ -1315,10 +1315,12 @@ int xinset(CSOUND *csound, XIN *p)
     bufs = ((UOPCODE*) buf->uopcode_struct)->ar + inm->outchns;
     
     current = inm->in_arg_pool->head;
+    tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars for copying at perf-time
     
     for (int i = 0; i < inm->inchns; i++) {
         void* in = (void*)bufs[i];
         void* out = (void*)p->args[i];
+        tmp[i] = out;
         memcpy(out, in, current->memBlockSize);
         current = current->next;
     }
@@ -1330,19 +1332,23 @@ int xoutset(CSOUND *csound, XOUT *p)
 {
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
-    MYFLT       **bufs;
+    MYFLT       **bufs, **tmp;
     CS_VARIABLE* current;
+    int offset;
 
     (void) csound;
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
     inm = buf->opcode_info;
     bufs = ((UOPCODE*) buf->uopcode_struct)->ar;
+    offset = inm->inchns;
+    tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars for copying at perf-time
     
     current = inm->out_arg_pool->head;
     
     for (int i = 0; i < inm->outchns; i++) {
         void* in = (void*)p->args[i];
         void* out = (void*)bufs[i];
+        tmp[i + offset] = in;
         memcpy(out, in, current->memBlockSize);
         current = current->next;
     }
@@ -1765,6 +1771,9 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     OPDS    *saved_pds = CS_PDS;
     MYFLT   **tmp, *ptr1, *ptr2;
     INSDS    *this_instr = p->ip;
+    OPCODINFO   *inm;
+    CS_VARIABLE* current;
+    
     p->ip->spin = csound->spin;
     p->ip->spout = csound->spout;
 
@@ -1773,30 +1782,47 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     /* IV - Nov 16 2002: update release flag */
     p->ip->relesing = p->parent_ip->relesing;
     tmp = p->buf->iobufp_ptrs;
+    inm = p->buf->opcode_info;
+    
+    MYFLT** internal_ptrs = tmp;
+    MYFLT** external_ptrs = p->ar;
+    
+    
     if (CS_KSMPS != 1) {           /* generic case for kr != sr */
       /* copy inputs */
-      while (*tmp) {                    /* a-rate */
-        ptr1 = *(tmp++); ptr2 = *(tmp++);
-        n = csound->ksmps;
-        do {
-          *(ptr2++) = *(ptr1++);
-        } while (--n);
-      }
-
-      while (*(++tmp)) {                /* k-rate */
-        ptr1 = *tmp; *(*(++tmp)) = *ptr1;
-      }
-
-      /* VL: fsigs in need to be dealt with here */
-      while (*(++tmp)) {
-        ptr1 = *tmp;
-        memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT));
-      }
-      /* VL: arrays */
-      while (*(++tmp)) {
-        ptr1 = *tmp;
-        memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
-      }
+        current = inm->in_arg_pool->head;
+        for (int i = 0; i < inm->inchns; i++) {
+            // this hardcoded type check for non-perf time vars needs to change to use generic code...
+            if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
+              void* in = (void*)external_ptrs[i];
+              void* out = (void*)internal_ptrs[i];
+              memcpy(out, in, current->memBlockSize);
+            }
+            current = current->next;
+        }
+//      while (*tmp) {                    /* a-rate */
+//        ptr1 = *(tmp++); ptr2 = *(tmp++);
+//        n = csound->ksmps;
+//        do {
+//          *(ptr2++) = *(ptr1++);
+//        } while (--n);
+//      }
+//
+//      while (*(++tmp)) {                /* k-rate */
+//        ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+//      }
+//
+//      /* VL: fsigs in need to be dealt with here */
+//      while (*(++tmp)) {
+//        ptr1 = *tmp;
+//        memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT));
+//      }
+//      /* VL: arrays */
+//      while (*(++tmp)) {
+//        ptr1 = *tmp;
+//        memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
+//      }
+        
       CS_PDS->insdshead->pds = NULL;
       do {
         (*CS_PDS->opadr)(csound, CS_PDS);
@@ -1808,34 +1834,57 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       } while ((CS_PDS = CS_PDS->nxtp));
 
       this_instr->kcounter++;
-      /* copy outputs */
-      while (*(++tmp)) {                /* a-rate */
-        ptr1 = *tmp; ptr2 = *(++tmp);
-        n = csound->ksmps;
-        do {
-          *(ptr2++) = *(ptr1++);
-        } while (--n);
-      }
+//      /* copy outputs */
+//      while (*(++tmp)) {                /* a-rate */
+//        ptr1 = *tmp; ptr2 = *(++tmp);
+//        n = csound->ksmps;
+//        do {
+//          *(ptr2++) = *(ptr1++);
+//        } while (--n);
+//      }
+        
+        current = inm->out_arg_pool->head;
+        for (int i = 0; i < inm->outchns; i++) {
+            // this hardcoded type check for non-perf time vars needs to change to use generic code...
+            if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
+              void* in = (void*)internal_ptrs[i + inm->inchns];
+              void* out = (void*)external_ptrs[i + inm->inchns];
+              memcpy(out, in, current->memBlockSize);
+            }
+            current = current->next;
+        }
     }
     else {                      /* special case for kr == sr */
       /* copy inputs */
-      while (*tmp) {                    /* a-rate */
-        ptr1 = *(tmp++);
-        *(*(tmp++)) = *ptr1;
-      }
-      while (*(++tmp)) {                /* k-rate */
-        ptr1 = *tmp; *(*(++tmp)) = *ptr1;
-      }
-      /* VL: fsigs in need to be dealt with here */
-      while (*(++tmp)) {
-        ptr1 = *tmp;
-        memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT));
-      }
-      /* VL: arrays */
-      while (*(++tmp)) {
-        ptr1 = *tmp;
-        memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
-      }
+//      while (*tmp) {                    /* a-rate */
+//        ptr1 = *(tmp++);
+//        *(*(tmp++)) = *ptr1;
+//      }
+//      while (*(++tmp)) {                /* k-rate */
+//        ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+//      }
+//      /* VL: fsigs in need to be dealt with here */
+//      while (*(++tmp)) {
+//        ptr1 = *tmp;
+//        memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(PVSDAT));
+//      }
+//      /* VL: arrays */
+//      while (*(++tmp)) {
+//        ptr1 = *tmp;
+//        memcpy((void *)(*(++tmp)), (void *) ptr1, sizeof(ARRAYDAT));
+//      }
+        
+        current = inm->in_arg_pool->head;
+        for (int i = 0; i < inm->inchns; i++) {
+            // this hardcoded type check for non-perf time vars needs to change to use generic code...
+            if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
+                void* in = (void*)external_ptrs[i];
+                void* out = (void*)internal_ptrs[i];
+                memcpy(out, in, current->memBlockSize);
+            }
+            current = current->next;
+        }
+        
       /*  run each opcode  */
       CS_PDS->insdshead->pds = NULL;
       do {
@@ -1848,24 +1897,34 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       } while ((CS_PDS = CS_PDS->nxtp));
 
       this_instr->kcounter++;
-      /* copy outputs */
-      while (*(++tmp)) {                /* a-rate */
-        ptr1 = *tmp; *(*(++tmp)) = *ptr1;
-      }
+//      /* copy outputs */
+//      while (*(++tmp)) {                /* a-rate */
+//        ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+//      }
+        current = inm->out_arg_pool->head;
+        for (int i = 0; i < inm->outchns; i++) {
+            // this hardcoded type check for non-perf time vars needs to change to use generic code...
+            if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
+                void* in = (void*)internal_ptrs[i + inm->inchns];
+                void* out = (void*)external_ptrs[i + inm->inchns];
+                memcpy(out, in, current->memBlockSize);
+            }
+            current = current->next;
+        }
     }
-    while (*(++tmp)) {                  /* k-rate */
-      ptr1 = *tmp; *(*(++tmp)) = *ptr1;
-    }
-    /* VL: fsigs out need to be dealt with here */
-    while (*(++tmp)) {
-      ptr1 = *tmp;
-      memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(PVSDAT));
-    }
-    /* arrays */
-    while (*(++tmp)) {
-      ptr1 = *tmp;
-      memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(ARRAYDAT));
-    }
+//    while (*(++tmp)) {                  /* k-rate */
+//      ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+//    }
+//    /* VL: fsigs out need to be dealt with here */
+//    while (*(++tmp)) {
+//      ptr1 = *tmp;
+//      memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(PVSDAT));
+//    }
+//    /* arrays */
+//    while (*(++tmp)) {
+//      ptr1 = *tmp;
+//      memcpy((void *)(*(++tmp)), (void *)ptr1, sizeof(ARRAYDAT));
+//    }
  endop:
     /* restore globals */
     CS_PDS = saved_pds;
