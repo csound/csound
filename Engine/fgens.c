@@ -1305,9 +1305,9 @@ static MYFLT nextval(FILE *f)
     /* Read the next charcater; suppress multiple space and comments to a
        single space */
     int c;
- top:
     c = getc(f);
-    if (feof(f)) return FL(0.0); /* Hope value is ignored */
+ top:
+    if (feof(f)) return NAN; /* Hope value is ignored */
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
       double d;                           /* A number starts */
       char buff[128];
@@ -1348,7 +1348,6 @@ static int gen23(FGDATA *ff, FUNC *ftp)
     if (ftp == NULL) {
       /* Start counting elements */
       ff->flen = 0;
-      nextval(infile);
       do {
         ff->flen++;
         nextval(infile);
@@ -2313,7 +2312,7 @@ FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
     FUNC    *ftp;
     int     fno;
 
-    fno = (int) *argp;
+    fno = MYFLT2LONG(*argp);
     if (UNLIKELY(fno == -1)) {
       if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
       return csound->sinetable;
@@ -2345,7 +2344,7 @@ FUNC *csoundFTFind2(CSOUND *csound, MYFLT *argp)
     FUNC    *ftp;
     int     fno;
 
-    fno = (int) *argp;
+    fno = MYFLT2LONG(*argp);
     if (UNLIKELY(fno == -1)) {
       if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
       return csound->sinetable;
@@ -2439,7 +2438,7 @@ FUNC *csoundFTFindP(CSOUND *csound, MYFLT *argp)
     /* Check limits, and then index  directly into the flist[] which
      * contains pointers to FUNC data structures for each table.
      */
-    fno = (int) *argp;
+    fno = MYFLT2LONG(*argp);
     if (UNLIKELY(fno == -1)) {
       if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
       return csound->sinetable;
@@ -2466,7 +2465,7 @@ FUNC *csoundFTFindP(CSOUND *csound, MYFLT *argp)
 FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
 {
     FUNC    *ftp;
-    int     fno = (int) *argp;
+    int     fno = MYFLT2LONG(*argp);
 
     if (UNLIKELY(fno == -1)) {
       if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);

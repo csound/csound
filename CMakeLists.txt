@@ -175,6 +175,10 @@ if(USE_COMPILER_OPTIMIZATIONS)
 include(cmake/CompilerOptimizations.cmake)
 endif()
 
+if(APPLE)
+set(OSX_VERSION " ")
+endif()
+
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
 find_file(CUSTOM_CMAKE "Custom.cmake" HINTS ${CMAKE_HOME_DIRECTORY})
@@ -295,8 +299,8 @@ if(APPLE)
     set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
   endif()
 
-  if(EXISTS ${CMAKE_OSX_SYSROOT})
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.6)
+   if(EXISTS ${CMAKE_OSX_SYSROOT})
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
   endif()
 
 endif()
