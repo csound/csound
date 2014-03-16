@@ -167,6 +167,7 @@ CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name)
             returnValue = current;
             break;
           }
+          //printf("current=%p %s \n", current,name); 
           current = current->next;
         }
     }
