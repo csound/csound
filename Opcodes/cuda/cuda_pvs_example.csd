@@ -15,7 +15,7 @@ fsig = cudanal(asig,
                ifftsize, 
                ihopsize, 
                ifftsize, 1)
- asig = cudasynth(fsig)
+asig = pvsynth(fsig)
 asig = linenr(asig,0.005,0.01,0.01)    
    out(asig)
 endin
@@ -34,7 +34,7 @@ endin
 
 </CsInstruments>
 <CsScore>
-i1 0 5
+i1 0 60
 </CsScore>
 </CsoundSynthesizer>
 

@@ -6,8 +6,7 @@
 
 #include <csdl.h>
 #include <cufft.h>
-#define VSAMPS 16
-#define MAXBLOCK 8192
+
 #define THREADS_PER_BLOCK 1024
 
 #include <pstream.h>
@@ -47,6 +46,7 @@ typedef struct _pvsyn{
   AUXCH  count;
   cufftHandle plan;
   double scal, fac;
+  int blockspt;
 } PVSYN;
 
 static int destroy_pvsyn(CSOUND *csound, void *pp);
@@ -60,6 +60,9 @@ static int pvsynset(CSOUND *csound, PVSYN *p){
     int size, numframes, i;
     MYFLT sum = 0.0;
     float *win;
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, 0);
+    p->blockspt = deviceProp.maxThreadsPerBlock;
 
     if(p->fsig->wintype != 1)
       return csound->InitError(csound,
@@ -158,7 +161,7 @@ static int pvsynperf(CSOUND *csound, PVSYN *p){
       cudaMemcpy(inframe,fsig,(N+2)*sizeof(float),
                  cudaMemcpyHostToDevice);
       /* perf pvs to rect conversion */
-      blocks = bins > THREADS_PER_BLOCK? bins/THREADS_PER_BLOCK : 1;
+      blocks = bins > p->blockspt? bins/p->blockspt : 1;
       frompvs<<<blocks,
         bins/blocks-1>>>(inframe,p->lastph,
                        p->scal,p->fac);
@@ -168,7 +171,7 @@ static int pvsynperf(CSOUND *csound, PVSYN *p){
       if (cudaDeviceSynchronize() != cudaSuccess)
         csound->Message(csound,"Cuda error: Failed to synchronize\n");
       /* window and rotate data on device */
-      blocks =  N > THREADS_PER_BLOCK ? N/THREADS_PER_BLOCK : 1;
+      blocks =  N > p->blockspt ? N/p->blockspt : 1;
       winrotate<<<blocks,
         N/blocks>>>(inframe2,inframe,win,N,hsize*curframe);
       /* copy data to current out frame */
@@ -244,7 +247,7 @@ typedef struct _pvan {
   AUXCH  count;
   cufftHandle plan;
   double scal, fac;
-
+  int blockspt;
 } PVAN;
 
 static int destroy_pvanal(CSOUND *csound, void *pp);
@@ -256,6 +259,9 @@ static int pvanalset(CSOUND *csound, PVAN *p){
     int size, numframes, i;
     int hsize = *p->hsize;
     float *win;
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, 0);
+    p->blockspt = deviceProp.maxThreadsPerBlock;
 
     p->fsig->N = N;
     p->fsig->overlap = hsize;
@@ -358,7 +364,7 @@ static int pvanalperf(CSOUND *csound, PVAN *p){
       cudaMemcpy(aframe,cur,N*sizeof(float),
              cudaMemcpyHostToDevice);
       /* window and rotate data on device */
-      blocks =  N > THREADS_PER_BLOCK ? N/THREADS_PER_BLOCK : 1;
+      blocks =  N > p->blockspt ? N/p->blockspt : 1;
       rotatewin<<<blocks,
        N/blocks>>>(aframe2,aframe,win,N,hsize*(numframes-curframe));
        /* execute inverse real FFT */
@@ -367,7 +373,7 @@ static int pvanalperf(CSOUND *csound, PVAN *p){
       if (cudaDeviceSynchronize() != cudaSuccess)
       // csound->Message(csound,"Cuda error: Failed to synchronize\n");
        /* perf rect to pvs conversion */
-      blocks = bins > THREADS_PER_BLOCK ? bins/THREADS_PER_BLOCK : 1;
+      blocks = bins > p->blockspt ? bins/p->blockspt : 1;
       topvs<<<blocks,
       bins/blocks-1>>>(aframe2,p->oldph,p->scal,p->fac);
        /* copy data to current out frame */
