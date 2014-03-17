@@ -1,8 +1,10 @@
-option(BUILD_CUDA_OPCODES "Build the CUDA GPU opcodes" ON)
+option(BUILD_CUDA_OPCODES "Build the CUDA GPU opcodes" OFF)
 
-FIND_PACKAGE(CUDA REQUIRED)
-
-check_deps(BUILD_CUDA_OPCODES CUDA_FOUND)
+if(BUILD_CUDA_OPCODES)
+ FIND_PACKAGE(CUDA REQUIRED)
+ check_deps(BUILD_CUDA_OPCODES CUDA_FOUND)
+ option(BUILD_CUDA_OPCODES "Build the CUDA GPU opcodes" ON)
+endif()
 
 if(BUILD_CUDA_OPCODES)
  function(make_cuda_plugin libname srcs)
