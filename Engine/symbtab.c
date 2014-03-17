@@ -395,7 +395,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
                      & (~((uint16) 15)));   /* align (needed ?) */
     
     
-    opc->intypes = (inm->intypes[0] == '0') ? cs_strdup(csound, "") : cs_strdup(csound, intypes);
+    opc->intypes = cs_strdup(csound, intypes);
     opc->outypes = (inm->outtypes[0] == '0') ? cs_strdup(csound, "") : cs_strdup(csound, inm->outtypes);
     
     map_args(opc->intypes);
