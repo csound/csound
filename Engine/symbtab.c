@@ -225,7 +225,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 static char map_udo_in_arg_type(char in) {
     if(strchr("ijop", in) != NULL) {
         return 'i';
-    } else if("kKOPV") {
+    } else if(strchr("kKOPV", in) != NULL) {
         return 'k';
     }
     return in;
