@@ -1248,8 +1248,10 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
     // may need to calculate pool memory, but at the same time, may not, as
     // variables are at their max size at csound's global ksmps
-    //    recalculateVarPoolMemory(csound, <#CS_VAR_POOL *pool#>)
-    //    recalculateVarPoolMemory(csound, <#CS_VAR_POOL *pool#>)
+//    if(p->ip) {
+//        recalculateVarPoolMemory(csound, inm->in_arg_pool);
+//        recalculateVarPoolMemory(csound, inm->out_arg_pool);
+//    }
     
     /* do init pass for this instr */
     p->ip->init_done = 0;
@@ -1320,7 +1322,7 @@ int xinset(CSOUND *csound, XIN *p)
     for (int i = 0; i < inm->inchns; i++) {
         void* in = (void*)bufs[i];
         void* out = (void*)p->args[i];
-        tmp[i] = out;
+        tmp[i + inm->outchns] = out;
         memcpy(out, in, current->memBlockSize);
         current = current->next;
     }
@@ -1334,13 +1336,11 @@ int xoutset(CSOUND *csound, XOUT *p)
     OPCODINFO   *inm;
     MYFLT       **bufs, **tmp;
     CS_VARIABLE* current;
-    int offset;
 
     (void) csound;
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
     inm = buf->opcode_info;
     bufs = ((UOPCODE*) buf->uopcode_struct)->ar;
-    offset = inm->inchns;
     tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars for copying at perf-time
     
     current = inm->out_arg_pool->head;
@@ -1348,7 +1348,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     for (int i = 0; i < inm->outchns; i++) {
         void* in = (void*)p->args[i];
         void* out = (void*)bufs[i];
-        tmp[i + offset] = in;
+        tmp[i] = in;
         memcpy(out, in, current->memBlockSize);
         current = current->next;
     }
@@ -1786,7 +1786,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     
     MYFLT** internal_ptrs = tmp;
     MYFLT** external_ptrs = p->ar;
-    
+//    MYFLT** external_ptrs = tmp;
+//    MYFLT** internal_ptrs = p->ar;
     
     if (CS_KSMPS != 1) {           /* generic case for kr != sr */
       /* copy inputs */
@@ -1794,8 +1795,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
         for (int i = 0; i < inm->inchns; i++) {
             // this hardcoded type check for non-perf time vars needs to change to use generic code...
             if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
-              void* in = (void*)external_ptrs[i];
-              void* out = (void*)internal_ptrs[i];
+              void* in = (void*)external_ptrs[i + inm->outchns];
+              void* out = (void*)internal_ptrs[i + inm->outchns];
               memcpy(out, in, current->memBlockSize);
             }
             current = current->next;
@@ -1847,8 +1848,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
         for (int i = 0; i < inm->outchns; i++) {
             // this hardcoded type check for non-perf time vars needs to change to use generic code...
             if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
-              void* in = (void*)internal_ptrs[i + inm->inchns];
-              void* out = (void*)external_ptrs[i + inm->inchns];
+              void* in = (void*)internal_ptrs[i];
+              void* out = (void*)external_ptrs[i];
               memcpy(out, in, current->memBlockSize);
             }
             current = current->next;
@@ -1878,8 +1879,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
         for (int i = 0; i < inm->inchns; i++) {
             // this hardcoded type check for non-perf time vars needs to change to use generic code...
             if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
-                void* in = (void*)external_ptrs[i];
-                void* out = (void*)internal_ptrs[i];
+                void* in = (void*)external_ptrs[i + inm->outchns];
+                void* out = (void*)internal_ptrs[i + inm->outchns];
                 memcpy(out, in, current->memBlockSize);
             }
             current = current->next;
@@ -1905,8 +1906,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
         for (int i = 0; i < inm->outchns; i++) {
             // this hardcoded type check for non-perf time vars needs to change to use generic code...
             if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
-                void* in = (void*)internal_ptrs[i + inm->inchns];
-                void* out = (void*)external_ptrs[i + inm->inchns];
+                void* in = (void*)internal_ptrs[i];
+                void* out = (void*)external_ptrs[i];
                 memcpy(out, in, current->memBlockSize);
             }
             current = current->next;
