@@ -125,9 +125,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 
 static inline void alloc_globals(CSOUND *csound)
 {
-    /* if (UNLIKELY(csound->oneFileGlobals == NULL)) { */
-    /*   csound->oneFileGlobals = csound->Calloc(csound, sizeof(ONE_FILE_GLOBALS)); */
-      /* count lines from 0 so that it adds OK to orc/sco counts */
+    /* count lines from 0 so that it adds OK to orc/sco counts */
     STA(csdlinecount) = 0;
 }
 
@@ -888,7 +886,7 @@ int read_unified_file2(CSOUND *csound, char *csd)
                                strerror(errno));
       return 0;
     }
-    
+
 #ifdef _DEBUG
     csoundMessage(csound, "Calling unified file system with %s\n", name);
 #endif
@@ -919,7 +917,7 @@ int read_unified_file2(CSOUND *csound, char *csd)
         else
           r = createExScore(csound, p, unf);
         result = r && result;
-      }    
+      }
     }
     if (UNLIKELY(!started)) {
       csoundMessage(csound,
