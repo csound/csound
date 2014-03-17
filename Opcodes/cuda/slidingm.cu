@@ -337,7 +337,6 @@ void threadblock(int device, int n, int *nblocks, int *nthreads)
 #include <csdl.h>
 
 typedef struct _SPV {
-
   OPDS h;
   MYFLT *out, *in, *shift, *iN;
   int nbins, ptr, nbtch, nblocks, nthreads, rblocks, rthreads;
