@@ -27,7 +27,7 @@ if(BUILD_CUDA_OPCODES)
     install(TARGETS ${libname}
 	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
-endfunction(make_plugin)
+endfunction(make_cuda_plugin)
  
  find_library(CUFFT cufft HINTS "/usr/local/cuda/lib")
  include_directories(${CMAKE_HOME_DIRECTORY}/include) 
