@@ -451,8 +451,8 @@ PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name){
       /* the reason for this is that if chnexport is
          used with strings, the datasize might become
          invalid */
-      if (pp->type == CSOUND_STRING_CHANNEL)
-        return strlen((char *) pp->data) + 1;
+      if ((pp->type & CSOUND_STRING_CHANNEL) == CSOUND_STRING_CHANNEL)
+        return ((STRINGDAT*)pp->data)->size;
       return pp->datasize;
     }
 }
