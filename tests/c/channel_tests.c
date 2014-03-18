@@ -339,6 +339,7 @@ void test_string_channel(void)
 
     csoundSetStringChannel(csound, "testing", "ttt");
     int len = csoundGetChannelDatasize(csound, "testing");
+    CU_ASSERT_EQUAL(len, 4);
     char string[len];
     csoundGetStringChannel(csound, "testing", string);
     CU_ASSERT_STRING_EQUAL(string, "ttt");
