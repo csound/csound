@@ -61,6 +61,8 @@ typedef struct {
     OPCODINFO *opcode_info;
     void    *uopcode_struct;
     INSDS   *parent_ip;
+    size_t  in_arg_sizes[64];  // 64 is arbitrary and can be changed
+    size_t  out_arg_sizes[64]; // 64 is arbitrary and can be changed
     MYFLT   *iobufp_ptrs[12];  /* expandable IV - Oct 26 2002 */ /* was 8 */
 } OPCOD_IOBUFS;
 
