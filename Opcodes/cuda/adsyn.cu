@@ -7,20 +7,18 @@
 #include <csdl.h>
 #include <cufft.h>
 #define VSAMPS 64
-#define MAXBLOCK 8192
-#define THREADS_PER_BLOCK 1024
 
 //__shared__ MYFLT mema[64*20];
-
 #define PFRACLO(x)   ((MYFLT)((x) & lomask) * lodiv)
 
-__global__ void component_table(MYFLT *out, int *ndx, MYFLT *tab,
+__global__ void component_table(MYFLT *out, int64_t *ndx, MYFLT *tab,
                           float *amp, int *inc, int vsize,
                           int blocks, int lobits, MYFLT lodiv,
                           int lomask) {
 
   int h = threadIdx.x*blocks + blockIdx.x;
-  int i, offset, n, lndx;
+  int i, offset, n;
+  int64_t lndx;
   offset = h*vsize;
   out += offset;
 
@@ -33,12 +31,13 @@ __global__ void component_table(MYFLT *out, int *ndx, MYFLT *tab,
 
 }
 
-__global__ void component_sine(MYFLT *out, int *ndx,
+__global__ void component_sine(MYFLT *out, int64_t *ndx,
                           float *amp, int *inc, int vsize,
                           int blocks) {
 
   int h = threadIdx.x*blocks + blockIdx.x;
-  int i, offset, lndx;
+  int i, offset;
+  int64_t lndx;
   offset = h*vsize;
   out += offset;
 
@@ -70,7 +69,8 @@ typedef struct cudaop_ {
   MYFLT *out;
   float *amp;
   MYFLT *tab;
-  int *ndx, *inc;
+  int64_t *ndx; 
+  int *inc;
   MYFLT *ap, *fp;
   FUNC *itab, *ftab, *atab;
   int N, blocks;
@@ -79,8 +79,14 @@ typedef struct cudaop_ {
 static int init_cudaop(CSOUND *csound, CUDAOP *p){
 
   int a, b, asize, ipsize, fpsize, tsize;
-  int nsmps = CS_KSMPS;
+  int nsmps = CS_KSMPS, blockspt;
   if(nsmps > 1024) return csound->InitError(csound, "ksmps is too large\n");
+  cudaDeviceProp deviceProp;
+  cudaGetDeviceProperties(&deviceProp, 0);
+  blockspt = deviceProp.maxThreadsPerBlock;
+  if(deviceProp.major < 3) 
+    csound->InitError(csound, 
+     "this opcode requires device capability 3.0 minimum\n");
 
   if(*p->itabn != 0){
   if((p->itab =
@@ -105,10 +111,10 @@ static int init_cudaop(CSOUND *csound, CUDAOP *p){
 
   if(*p->inum > 0 && *p->inum < p->N) p->N = *p->inum;
 
-  p->blocks = p->N > THREADS_PER_BLOCK ? p->N/THREADS_PER_BLOCK : 1;
+  p->blocks = p->N > blockspt ? p->N/blockspt : 1;
 
   asize = p->N*nsmps*sizeof(MYFLT);
-  ipsize = p->N*sizeof(int);
+  ipsize = p->N*sizeof(int64_t);
   fpsize = p->N*sizeof(float);
   if(p->itab)
    tsize = (p->itab->flen+1)*sizeof(MYFLT);
@@ -135,19 +141,17 @@ static void update_params(CSOUND *csound, CUDAOP *p){
 
   int ipsize = p->N*sizeof(int);
   int fpsize = p->N*sizeof(float);
-  float amp[MAXBLOCK];
-  int inc[MAXBLOCK], i, j;
-  int N = p->N > MAXBLOCK ? MAXBLOCK : p->N;
+  float amp[p->N];
+  int inc[p->N], i;
+  int N = p->N;
 
-  for(j=0; N > 0; j++,  N = p->N - N) {
    for(i=0;i < N; i++){
     amp[i] = p->ap[i];
     inc[i] = *p->kfreq*p->fp[i]*FMAXLEN/csound->GetSr(csound);
    }
-   cudaMemcpy(&p->amp[N*j],amp,fpsize, cudaMemcpyHostToDevice);
-   cudaMemcpy(&p->inc[N*j],inc,ipsize, cudaMemcpyHostToDevice);
- }
-
+   cudaMemcpy(p->amp,amp,fpsize, cudaMemcpyHostToDevice);
+   cudaMemcpy(p->inc,inc,ipsize, cudaMemcpyHostToDevice);
+ 
 }
 
 static int perf_cudaop(CSOUND *csound, CUDAOP *p){
@@ -220,17 +224,23 @@ static int destroy_cudaop2(CSOUND *csound, void *pp);
 
 static int init_cudaop2(CSOUND *csound, CUDAOP2 *p){
 
-  int asize, ipsize, fpsize;
+  int asize, ipsize, fpsize, blockspt;
   if(p->fsig->overlap > 1024)
      return csound->InitError(csound, "overlap is too large\n");
+  cudaDeviceProp deviceProp;
+  cudaGetDeviceProperties(&deviceProp, 0);
+  blockspt = deviceProp.maxThreadsPerBlock;
+  if(deviceProp.major < 3) 
+    csound->InitError(csound, 
+   "this opcode requires device capability 3.0 minimum\n");
 
   p->N = (p->fsig->N)/2;
 
   if(*p->inum > 0 && *p->inum < p->N) p->N = *p->inum;
 
-  p->blocks = p->N > THREADS_PER_BLOCK ? p->N/THREADS_PER_BLOCK : 1;
+  p->blocks = p->N > blockspt ? p->N/blockspt : 1;
   p->vsamps = p->fsig->overlap < VSAMPS ? VSAMPS : p->fsig->overlap;
-  p->vblocks = p->vsamps >  THREADS_PER_BLOCK ? p->vsamps/THREADS_PER_BLOCK : 1;
+  p->vblocks = p->vsamps >  blockspt ? p->vsamps/blockspt : 1;
 
   asize = p->N*p->vsamps*sizeof(MYFLT);
   ipsize = p->N*sizeof(int64_t);
