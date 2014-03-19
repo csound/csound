@@ -2,10 +2,8 @@ option(BUILD_CUDA_OPCODES "Build the CUDA GPU opcodes" OFF)
 
 if(BUILD_CUDA_OPCODES)
  FIND_PACKAGE(CUDA REQUIRED)
- check_deps(BUILD_CUDA_OPCODES CUDA_FOUND)
-endif()
-
-if(BUILD_CUDA_OPCODES)
+check_deps(BUILD_CUDA_OPCODES CUDA_FOUND)
+ if(BUILD_CUDA_OPCODES)
  function(make_cuda_plugin libname srcs)
 
  SET(LIB_TYPE_DYNAMIC) #set the lib type
@@ -40,5 +38,6 @@ endfunction(make_cuda_plugin)
  make_cuda_plugin(cudaop2 pvsops.cu)
  make_cuda_plugin(cudaop3 slidingm.cu)
  target_link_libraries(cudaop2 ${CUFFT})
+ endif()
 
 endif()
