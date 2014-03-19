@@ -254,7 +254,7 @@ static int init_cudaop2(CSOUND *csound, CUDAOP2 *p){
 }
 
 
-__global__ void partial(MYFLT *out, float *frame, MYFLT pitch, int64_t *ph, float *amps, 
+__global__ void partial(MYFLT *out, float *frame, MYFLT pitch, int64_t *ph, float *amps,
                       int vsize, MYFLT sr) {
 
   int h = threadIdx.x + blockIdx.x*blockDim.x;
@@ -268,7 +268,7 @@ __global__ void partial(MYFLT *out, float *frame, MYFLT pitch, int64_t *ph, floa
   lph = ph[h];
   inc =  round(pitch*frame[k+1]*FMAXLEN/sr);
   for(i=0; i < vsize; i++) {
-    out[i] = 
+    out[i] =
     amp*SIN((2*PI*lph)/FMAXLEN);
     lph = (lph + inc) & PHMASK;
     amp += ampinc;
@@ -286,7 +286,7 @@ __global__  void mixdown(MYFLT *out, int comps, int vsize, float kamp){
    out[h] *= kamp;
 }
 
-__global__ void sample(MYFLT *out, float *frame, MYFLT amp, MYFLT pitch, int64_t *ph, float *amps, 
+__global__ void sample(MYFLT *out, float *frame, MYFLT amp, MYFLT pitch, int64_t *ph, float *amps,
                        int bins, int vsize, MYFLT sr) {
 
   int n = threadIdx.x + blockIdx.x*blockDim.x, h,k;
@@ -299,7 +299,7 @@ __global__ void sample(MYFLT *out, float *frame, MYFLT amp, MYFLT pitch, int64_t
           a = amps[h] + ascl*(frame[k] - amps[h]);
           out[n] += a*SIN((2*PI*lph)/FMAXLEN);
   }
-  out[n] *= amp;   
+  out[n] *= amp;
 }
 
 __global__ void update(float *frame, float *amps, int64_t *ph, MYFLT pitch, int vsize, MYFLT sr){
@@ -332,7 +332,7 @@ static int perf_cudaop2(CSOUND *csound, CUDAOP2 *p){
       cudaMemcpy(p->frame,p->fp,sizeof(float)*p->N*2,cudaMemcpyHostToDevice);
       if(p->N > vsamps) {
        partial<<<p->blocks,p->N/p->blocks>>>
-                           (p->out,p->frame, 
+                           (p->out,p->frame,
                             *p->kfreq, p->ndx, p->previous,
                             p->vsamps,
                             csound->GetSr(csound));
@@ -340,22 +340,22 @@ static int perf_cudaop2(CSOUND *csound, CUDAOP2 *p){
                                                  p->N,
                                                  vsamps,
                                                  *p->kamp);
-      } else {   	
+      } else {
        sample<<<p->vblocks,vsamps/p->vblocks>>>(p->out,
-						p->frame,
-						*p->kamp,
-						*p->kfreq,
-						p->ndx,
-						p->previous,
-						p->N,
-						vsamps, 
+                                                p->frame,
+                                                *p->kamp,
+                                                *p->kfreq,
+                                                p->ndx,
+                                                p->previous,
+                                                p->N,
+                                                vsamps,
                                                 csound->GetSr(csound));
        update<<<p->blocks,p->N/p->blocks>>>(p->frame,
-					    p->previous,
-					    p->ndx,
-					    *p->kfreq,
-					    vsamps,
-					    csound->GetSr(csound));
+                                            p->previous,
+                                            p->ndx,
+                                            *p->kfreq,
+                                            vsamps,
+                                            csound->GetSr(csound));
        }
       cudaMemcpy(out_,p->out,vsamps*sizeof(MYFLT),cudaMemcpyDeviceToHost);
       count = vsamps;
