@@ -149,7 +149,7 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
       }
       current = current->next;
     }
-    else ((CSOUND *)csound)->ErrorMsg(csound, 
+    else ((CSOUND *)csound)->ErrorMsg(csound,
             "cannot create variable %s: NULL type", name);
     return NULL;
 }
@@ -167,6 +167,7 @@ CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name)
             returnValue = current;
             break;
           }
+          //printf("current=%p %s \n", current,name);
           current = current->next;
         }
     }
