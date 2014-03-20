@@ -1651,7 +1651,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         // this hardcoded type check for non-perf time vars needs to change to use generic code...
         // skip a-vars for now, handle uniquely within performance loop
         if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b &&
-            current->varType != &CS_VAR_TYPE_A) {
+            current->varType != &CS_VAR_TYPE_A &&
+            current->subType != &CS_VAR_TYPE_I) { // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
           memcpy(out, in, p->buf->in_arg_sizes[i]);
@@ -1765,7 +1766,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     current = inm->out_arg_pool->head;
     for (int i = 0; i < inm->outchns; i++) {
       // this hardcoded type check for non-perf time vars needs to change to use generic code...
-        if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
+        if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b &&
+           current->subType != &CS_VAR_TYPE_I) {
           void* in = (void*)internal_ptrs[i];
           void* out = (void*)external_ptrs[i];
             
@@ -1821,7 +1823,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       current = inm->in_arg_pool->head;
       for (int i = 0; i < inm->inchns; i++) {
           // this hardcoded type check for non-perf time vars needs to change to use generic code...
-          if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
+          if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b &&
+              current->subType != &CS_VAR_TYPE_I) {
               if(current->varType == &CS_VAR_TYPE_A && CS_KSMPS == 1) {
                   *internal_ptrs[i + inm->outchns] = *external_ptrs[i + inm->outchns];
               } else {
@@ -1850,7 +1853,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       current = inm->out_arg_pool->head;
       for (int i = 0; i < inm->outchns; i++) {
         // this hardcoded type check for non-perf time vars needs to change to use generic code...
-        if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
+        if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b &&
+            current->subType != &CS_VAR_TYPE_I) {
           if(current->varType == &CS_VAR_TYPE_A && CS_KSMPS == 1) {
             *external_ptrs[i] = *internal_ptrs[i];
           } else {
