@@ -205,7 +205,7 @@ int str_changed(CSOUND *csound, STRCHGD *p)
 
 int str_changed_k(CSOUND *csound, STRCHGD *p)
 {
-    if (p->mem == NULL || strcmp(p->str->data, p->mem)!=0) {
+  if (p->str->data && ( p->mem == NULL || strcmp(p->str->data, p->mem)!=0)) {
       csound->Free(csound, p->mem);
       p->mem = cs_strdup(csound, p->str->data);
       *p->r = 1;
