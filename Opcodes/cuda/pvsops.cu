@@ -21,7 +21,7 @@ __global__ void frompvs(float* inframe, double* lastph,
   lastph[k-1] = phi;
   inframe[i] =  (float) (mag*cos(phi));
   inframe[i+1] = (float) (mag*sin(phi));
-  
+
 }
 
 __global__ void winrotate(float* inframe2, float* inframe, float *win,
@@ -63,9 +63,9 @@ static int pvsynset(CSOUND *csound, PVSYN *p){
     cudaGetDeviceProperties(&deviceProp, 0);
     blockspt = deviceProp.maxThreadsPerBlock;
 
-    if(deviceProp.major < 3) 
-    csound->InitError(csound, 
-		     "this opcode requires device capability 3.0 minimum\n");
+    if(deviceProp.major < 3)
+    csound->InitError(csound,
+                      "this opcode requires device capability 3.0 minimum\n");
 
     if(p->fsig->wintype != 1)
       return csound->InitError(csound,
@@ -126,7 +126,7 @@ static int pvsynset(CSOUND *csound, PVSYN *p){
     p->nthreads = N/p->nblocks;
     if(csound->GetDebug(csound))
       csound->Message(csound, "%d (%d each), %d (%d each)\n",
-		    p->nblocks, p->nthreads, p->bblocks, p->bthreads);
+                    p->nblocks, p->nthreads, p->bblocks, p->bthreads);
     return OK;
   }
   return csound->InitError(csound, "fftsize not power-of-two \n");
@@ -265,8 +265,8 @@ static int pvanalset(CSOUND *csound, PVAN *p){
     cudaDeviceProp deviceProp;
     cudaGetDeviceProperties(&deviceProp, 0);
     blockspt = deviceProp.maxThreadsPerBlock;
-    if(deviceProp.major < 3) 
-    csound->InitError(csound, 
+    if(deviceProp.major < 3)
+    csound->InitError(csound,
      "this opcode requires device capability 3.0 minimum\n");
 
     p->fsig->N = N;
@@ -322,14 +322,14 @@ static int pvanalset(CSOUND *csound, PVAN *p){
     cufftPlan1d(&p->plan, N, CUFFT_R2C, 1);
     cufftSetCompatibilityMode(p->plan, CUFFT_COMPATIBILITY_NATIVE);
     csound->RegisterDeinitCallback(csound, p, destroy_pvanal);
-    
+
     p->bblocks = bins > blockspt? bins/blockspt : 1;
     p->nblocks = N > blockspt ? N/blockspt : 1;
     p->bthreads = bins/p->bblocks;
     p->nthreads = N/p->nblocks;
   if(csound->GetDebug(csound))
     csound->Message(csound, "%d (%d each), %d (%d each)\n",
-		    p->nblocks, p->nthreads, p->bblocks, p->bthreads);
+                    p->nblocks, p->nthreads, p->bblocks, p->bthreads);
     return OK;
   }
   return csound->InitError(csound, "fftsize not power-of-two \n");
@@ -378,7 +378,7 @@ static int pvanalperf(CSOUND *csound, PVAN *p){
        /* execute inverse real FFT */
       if(cufftExecR2C(p->plan,aframe2,(cufftComplex*)aframe2)
       != CUFFT_SUCCESS) csound->Message(csound, "cuda fft error\n");
-       if (cudaDeviceSynchronize() != cudaSuccess) 
+       if (cudaDeviceSynchronize() != cudaSuccess)
          csound->Message(csound,"Cuda error: Failed to synchronize\n");
        /* perf rect to pvs conversion */
        topvs<<<p->bblocks,p->bthreads-1>>>(aframe2,p->oldph,p->scal,p->fac);

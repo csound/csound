@@ -518,7 +518,7 @@ typedef struct {
     int    tieflag;
     int    reinitflag;
     MYFLT  retval;
-    MYFLT  *lclbas;  /* base for variable memory pool */ 
+    MYFLT  *lclbas;  /* base for variable memory pool */
     char   *strarg;       /* string argument */
     /* Copy of required p-field values for quick access */
     MYFLT   p0;
@@ -955,7 +955,7 @@ typedef struct NAME__ {
     int (*GetZakBounds)(CSOUND *, MYFLT **);
     int (*GetTieFlag)(CSOUND *);
     int (*GetReinitFlag)(CSOUND *);
-    /** Current maximum number of strings, accessible through the strset 
+    /** Current maximum number of strings, accessible through the strset
         and strget opcodes */
     int (*GetStrsmax)(CSOUND *);
     char *(*GetStrsets)(CSOUND *, long);
@@ -996,7 +996,7 @@ typedef struct NAME__ {
     int (*hfgens)(CSOUND *, FUNC **, const EVTBLK *, int);
     int (*FTAlloc)(CSOUND *, int tableNum, int len);
     int (*FTDelete)(CSOUND *, int tableNum);
-    /** Find tables with power of two size. If table exists but is 
+    /** Find tables with power of two size. If table exists but is
         not a power of 2, NULL is returned. */
     FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
     /** Find any table, except deferred load tables. */
@@ -1267,7 +1267,7 @@ typedef struct NAME__ {
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
     /** @name Private Data
-      Private Data in the CSOUND struct to be used internally by the Csound 
+      Private Data in the CSOUND struct to be used internally by the Csound
       library and should be hidden from plugins.
       If a new variable member is needed by the library, add it below, as a
       private data member. If access is required solely by plugins (and not
