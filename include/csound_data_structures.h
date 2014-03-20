@@ -1,20 +1,20 @@
 /*
  csound_data_structures.h:
- 
+
  Copyright (C) 2013 Steven Yi
- 
+
  This file is part of Csound.
- 
+
  The Csound Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
- 
+
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
@@ -49,9 +49,9 @@ typedef struct _cs_hash_table {
 /* FUNCTIONS FOR CONS CELL */
 
 /** Given a value and CONS_CELL, create a new CONS_CELL that holds the
- value, then set the ->next value to the passed-in cons cell.  This 
+ value, then set the ->next value to the passed-in cons cell.  This
  operation effectively appends a value to the head of cons list. The
- function returns the head of the cons list.  It is safe to pass in 
+ function returns the head of the cons list.  It is safe to pass in
  a NULL for the cons argument; the returned value will be just the
  newly generated cons cell. */
 PUBLIC CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
@@ -76,7 +76,7 @@ PUBLIC CS_HASH_TABLE* cs_hash_table_create(CSOUND* csound);
 /** Retreive void* value for given char* key.  Returns NULL if no items founds for key. */
 PUBLIC void* cs_hash_table_get(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key);
 
-/** Retreive char* key from internal hash item for given char* key.  Useful when using 
+/** Retreive char* key from internal hash item for given char* key.  Useful when using
  CS_HASH_TABLE as a Set<String> type. Returns NULL if there is no entry for given key. */
 PUBLIC char* cs_hash_table_get_key(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key);
 
@@ -92,7 +92,7 @@ PUBLIC char* cs_hash_table_put_key(CSOUND* csound, CS_HASH_TABLE* hashTable, cha
  simply returns. Calls mfree on the table item. */
 PUBLIC void cs_hash_table_remove(CSOUND* csound, CS_HASH_TABLE* hashTable, char* key);
 
-/** Merges in all items from the the source table into the target table.  Entries with 
+/** Merges in all items from the the source table into the target table.  Entries with
  identical keys from the source table will replace entries in the target table. */
 PUBLIC void cs_hash_table_merge(CSOUND* csound, CS_HASH_TABLE* target, CS_HASH_TABLE* source);
 
@@ -114,5 +114,5 @@ PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable
 #ifdef __cplusplus
 }
 #endif
-    
+
 #endif
