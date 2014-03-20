@@ -2312,7 +2312,7 @@ FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
     FUNC    *ftp;
     int     fno;
 
-    fno = (int) *argp;
+    fno = MYFLT2LONG(*argp);
     if (UNLIKELY(fno == -1)) {
       if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
       return csound->sinetable;
@@ -2344,7 +2344,7 @@ FUNC *csoundFTFind2(CSOUND *csound, MYFLT *argp)
     FUNC    *ftp;
     int     fno;
 
-    fno = (int) *argp;
+    fno = MYFLT2LONG(*argp);
     if (UNLIKELY(fno == -1)) {
       if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
       return csound->sinetable;
@@ -2438,7 +2438,7 @@ FUNC *csoundFTFindP(CSOUND *csound, MYFLT *argp)
     /* Check limits, and then index  directly into the flist[] which
      * contains pointers to FUNC data structures for each table.
      */
-    fno = (int) *argp;
+    fno = MYFLT2LONG(*argp);
     if (UNLIKELY(fno == -1)) {
       if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
       return csound->sinetable;
@@ -2465,7 +2465,7 @@ FUNC *csoundFTFindP(CSOUND *csound, MYFLT *argp)
 FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
 {
     FUNC    *ftp;
-    int     fno = (int) *argp;
+    int     fno = MYFLT2LONG(*argp);
 
     if (UNLIKELY(fno == -1)) {
       if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
