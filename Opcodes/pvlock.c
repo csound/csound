@@ -194,7 +194,7 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
             if(post+nchans <  size)
               in = tab[post] + frac*(tab[post+nchans] - tab[post]);
             else in = tab[post];
-            
+
             fwin[i] = in * win[i]; /* window it */
             /* back windo, bwin */
             post = (int) (pos - hsize*pitch);
@@ -423,7 +423,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
               in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
             else in = tab[post];
             //else in =  (MYFLT) 0;
-            
+
             bwin[i] = in * win[i];
             post = (int) pos + hsize;
             post *= nchans;

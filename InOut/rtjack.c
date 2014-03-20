@@ -406,7 +406,7 @@ static void openJackStreams(RtJackGlobals *p)
     p->client = jack_client_open(&(p->clientName[0]), JackNullOption, NULL);
     if (UNLIKELY(p->client == NULL))
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
-    
+
     csound->system_sr(csound, jack_get_sample_rate(p->client));
 
     /* check consistency of parameters */
@@ -612,7 +612,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
       rtJack_Error(csound, -1, Str("sample rate must be an integer"));
     p->nChannels = parm->nChannels;
     p->bufSize = parm->bufSamp_SW;
-    p->nBuffers = (parm->bufSamp_HW + parm->bufSamp_SW - 1) / parm->bufSamp_SW; 
+    p->nBuffers = (parm->bufSamp_HW + parm->bufSamp_SW - 1) / parm->bufSamp_SW;
 }
 
 /* open for audio input */
@@ -772,6 +772,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     int           i, j, k, nframes, bufpos, bufcnt;
 
     p = (RtJackGlobals*) *(csound->GetRtPlayUserData(csound));
+    if (UNLIKELY(p==NULL)) rtJack_Abort(csound, 0);
     if (p->jackState != 0) {
       if (p->jackState < 0)
         openJackStreams(p);     /* open audio input */
@@ -898,7 +899,7 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
     *(csound->GetRtRecordUserData(csound))  = NULL;
     memcpy(&p, pp, sizeof(RtJackGlobals));
     /* free globals */
-    
+
     if (p.client != (jack_client_t*) NULL) {
       /* deactivate client */
       //if (p.jackState != 2) {
