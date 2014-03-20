@@ -1338,6 +1338,7 @@ int xinset(CSOUND *csound, XIN *p)
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
     MYFLT **bufs, **tmp;
+    int i;
 
     (void) csound;
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
@@ -1346,7 +1347,7 @@ int xinset(CSOUND *csound, XIN *p)
     
     tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars for copying at perf-time
     
-    for (int i = 0; i < inm->inchns; i++) {
+    for (i = 0; i < inm->inchns; i++) {
         void* in = (void*)bufs[i];
         void* out = (void*)p->args[i];
         tmp[i + inm->outchns] = out;
@@ -1361,6 +1362,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
     MYFLT       **bufs, **tmp;
+    int i;
 
     (void) csound;
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
@@ -1368,7 +1370,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     bufs = ((UOPCODE*) buf->uopcode_struct)->ar;
     tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars for copying at perf-time
     
-    for (int i = 0; i < inm->outchns; i++) {
+    for (i = 0; i < inm->outchns; i++) {
         void* in = (void*)p->args[i];
         void* out = (void*)bufs[i];
         tmp[i] = in;
@@ -1617,7 +1619,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
 int useropcd1(CSOUND *csound, UOPCODE *p)
 {
     OPDS    *saved_pds = CS_PDS;
-    int    g_ksmps, ofs, early, offset;
+    int    g_ksmps, ofs, early, offset, i;
     OPCODINFO   *inm;
     CS_VARIABLE* current;
     INSDS    *this_instr = p->ip;
@@ -1647,7 +1649,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     
     /* copy inputs */
     current = inm->in_arg_pool->head;
-    for (int i = 0; i < inm->inchns; i++) {
+    for (i = 0; i < inm->inchns; i++) {
         // this hardcoded type check for non-perf time vars needs to change to use generic code...
         // skip a-vars for now, handle uniquely within performance loop
         if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b &&
@@ -1664,7 +1666,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           
         /* copy a-sig inputs, accounting for offset */
         current = inm->in_arg_pool->head;
-        for (int i = 0; i < inm->inchns; i++) {
+        for (i = 0; i < inm->inchns; i++) {
             if(current->varType == &CS_VAR_TYPE_A) {
               MYFLT* in = (void*)external_ptrs[i + inm->outchns];
               MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -1687,7 +1689,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
          
         /* copy a-sig outputs, accounting for offset */
         current = inm->out_arg_pool->head;
-        for (int i = 0; i < inm->outchns; i++) {
+        for (i = 0; i < inm->outchns; i++) {
             if(current->varType == &CS_VAR_TYPE_A) {
               MYFLT* in = (void*)internal_ptrs[i];
               MYFLT* out = (void*)external_ptrs[i];
@@ -1721,7 +1723,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
       do {
         /* copy a-sig inputs, accounting for offset */
         current = inm->in_arg_pool->head;
-        for (int i = 0; i < inm->inchns; i++) {
+        for (i = 0; i < inm->inchns; i++) {
             if(current->varType == &CS_VAR_TYPE_A) {
               MYFLT* in = (void*)external_ptrs[i + inm->outchns];
               MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -1745,7 +1747,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           
         /* copy a-sig outputs, accounting for offset */
         current = inm->out_arg_pool->head;
-        for (int i = 0; i < inm->outchns; i++) {
+        for (i = 0; i < inm->outchns; i++) {
             if(current->varType == &CS_VAR_TYPE_A) {
               MYFLT* in = (void*)internal_ptrs[i];
               MYFLT* out = (void*)external_ptrs[i];
@@ -1763,7 +1765,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     
     /* copy outputs */
     current = inm->out_arg_pool->head;
-    for (int i = 0; i < inm->outchns; i++) {
+    for (i = 0; i < inm->outchns; i++) {
       // this hardcoded type check for non-perf time vars needs to change to use generic code...
         if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
           void* in = (void*)internal_ptrs[i];
@@ -1803,6 +1805,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     INSDS    *this_instr = p->ip;
     OPCODINFO   *inm;
     CS_VARIABLE* current;
+    int i;
     
     p->ip->spin = csound->spin;
     p->ip->spout = csound->spout;
@@ -1819,7 +1822,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     
     /* copy inputs */
       current = inm->in_arg_pool->head;
-      for (int i = 0; i < inm->inchns; i++) {
+      for (i = 0; i < inm->inchns; i++) {
           // this hardcoded type check for non-perf time vars needs to change to use generic code...
           if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
               if(current->varType == &CS_VAR_TYPE_A && CS_KSMPS == 1) {
@@ -1848,7 +1851,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
         
       /* copy outputs */
       current = inm->out_arg_pool->head;
-      for (int i = 0; i < inm->outchns; i++) {
+      for (i = 0; i < inm->outchns; i++) {
         // this hardcoded type check for non-perf time vars needs to change to use generic code...
         if(current->varType != &CS_VAR_TYPE_I && current->varType != &CS_VAR_TYPE_b) {
           if(current->varType == &CS_VAR_TYPE_A && CS_KSMPS == 1) {
