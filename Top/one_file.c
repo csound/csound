@@ -125,9 +125,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 
 static inline void alloc_globals(CSOUND *csound)
 {
-    /* if (UNLIKELY(csound->oneFileGlobals == NULL)) { */
-    /*   csound->oneFileGlobals = csound->Calloc(csound, sizeof(ONE_FILE_GLOBALS)); */
-      /* count lines from 0 so that it adds OK to orc/sco counts */
+    /* count lines from 0 so that it adds OK to orc/sco counts */
     STA(csdlinecount) = 0;
 }
 
@@ -626,10 +624,11 @@ static int createFilea(CSOUND *csound, char *buffer, FILE *unf)
     char  buff[1024];
     /* char  buffer[CSD_MAX_LINE_LEN]; */
     char *p = buffer, *q;
+    int res=FALSE;
 
     filename[0] = '\0';
 
-    p += 17;    /* 18== strlen("<CsFileB filename=  ") */
+    p += 17;    /* 17== strlen("<CsFile filename=  ") */
     if (*p=='"') {
       p++; q = strchr(p, '"');
     }
@@ -638,11 +637,6 @@ static int createFilea(CSOUND *csound, char *buffer, FILE *unf)
     if (q) *q='\0';
     //  printf("p=>>%s<<\n", p);
     strncpy(filename, p, 256);
-//sscanf(buffer, "<CsFile filename=\"%s\">", filename);
-//    if (filename[0] != '\0' &&
-//       filename[strlen(filename) - 1] == '>' &&
-//       filename[strlen(filename) - 2] == '"')
-//    filename[strlen(filename) - 2] = '\0';
     if (UNLIKELY((smpf = fopen(filename, "r")) != NULL)) {
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), filename);
@@ -652,14 +646,19 @@ static int createFilea(CSOUND *csound, char *buffer, FILE *unf)
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
     }
-    //read_base64(csound, unf, smpf);
     while (fgets(buff, 1024, unf)!=NULL) {
-      if (strstr(buff, "</CsFile>")) break;
+      char *p = buff;
+      while (isblank(*p)) p++;
+      if (!strncmp(p, "</CsFile>", 9)) { /* stop on antitag at start of line */
+        res = TRUE; break;
+      }
       fputs(buff, smpf);
     }
+    if (UNLIKELY(res==FALSE))
+      csoundErrorMsg(csound, Str("Missing end tag </CsFile>"));
     csoundFileClose(csound, fd);
     add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
-    return TRUE;
+    return res;
 }
 
 static int checkVersion(CSOUND *csound, FILE *unf)
@@ -887,7 +886,7 @@ int read_unified_file2(CSOUND *csound, char *csd)
                                strerror(errno));
       return 0;
     }
-    
+
 #ifdef _DEBUG
     csoundMessage(csound, "Calling unified file system with %s\n", name);
 #endif
@@ -918,7 +917,7 @@ int read_unified_file2(CSOUND *csound, char *csd)
         else
           r = createExScore(csound, p, unf);
         result = r && result;
-      }    
+      }
     }
     if (UNLIKELY(!started)) {
       csoundMessage(csound,
