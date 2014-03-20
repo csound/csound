@@ -187,7 +187,7 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
     }
     free(pthread);
     return NULL;
-    
+
 }
 
 PUBLIC void *csoundGetCurrentThreadId(void)
