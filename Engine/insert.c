@@ -1246,42 +1246,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     else
       memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(MYFLT));
 
-    // may need to calculate pool memory, but at the same time, may not, as
-    // variables are at their max size at csound's global ksmps
-    if(buf != NULL) {
-        size_t memSize;
-        CS_VARIABLE* current = inm->in_arg_pool->head;
-        CS_VARIABLE temp;
-        int i = 0;
-        
-        while (current != NULL) {
-            if(current->updateMemBlockSize != NULL) {
-                current->updateMemBlockSize(csound, &temp);
-                memSize = temp.memBlockSize;
-            } else {
-                memSize = current->memBlockSize;
-            }
-            buf->in_arg_sizes[i] = memSize;
-            current = current->next;
-            i++;
-        }
-        
-        i = 0;
-        current = inm->out_arg_pool->head;
-        
-        while (current != NULL) {
-            if(current->updateMemBlockSize != NULL) {
-                current->updateMemBlockSize(csound, &temp);
-                memSize = temp.memBlockSize;
-            } else {
-                memSize = current->memBlockSize;
-            }
-            buf->out_arg_sizes[i] = memSize;
-            current = current->next;
-            i++;
-        }
-    }
-    
     /* do init pass for this instr */
     p->ip->init_done = 0;
     csound->curip = lcurip;
@@ -1339,19 +1303,22 @@ int xinset(CSOUND *csound, XIN *p)
     OPCODINFO   *inm;
     MYFLT **bufs, **tmp;
     int i;
+    CS_VARIABLE* current;
 
     (void) csound;
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
     inm = buf->opcode_info;
     bufs = ((UOPCODE*) buf->uopcode_struct)->ar + inm->outchns;
-    
     tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars for copying at perf-time
+    current = inm->in_arg_pool->head;
     
     for (i = 0; i < inm->inchns; i++) {
         void* in = (void*)bufs[i];
         void* out = (void*)p->args[i];
         tmp[i + inm->outchns] = out;
-        memcpy(out, in, buf->in_arg_sizes[i]);
+//        memcpy(out, in, buf->in_arg_sizes[i]);
+        current->varType->copyValue(csound, out, in);
+        current = current->next;
     }
     
     return OK;
@@ -1362,6 +1329,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
     MYFLT       **bufs, **tmp;
+    CS_VARIABLE* current;
     int i;
 
     (void) csound;
@@ -1369,12 +1337,15 @@ int xoutset(CSOUND *csound, XOUT *p)
     inm = buf->opcode_info;
     bufs = ((UOPCODE*) buf->uopcode_struct)->ar;
     tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars for copying at perf-time
+    current = inm->out_arg_pool->head;
     
     for (i = 0; i < inm->outchns; i++) {
         void* in = (void*)p->args[i];
         void* out = (void*)bufs[i];
         tmp[i] = in;
-        memcpy(out, in, buf->out_arg_sizes[i]);
+//        memcpy(out, in, buf->out_arg_sizes[i]);
+        current->varType->copyValue(csound, out, in);
+        current = current->next;
     }
 
     return OK;
@@ -1657,7 +1628,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             current->subType != &CS_VAR_TYPE_I) { // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          memcpy(out, in, p->buf->in_arg_sizes[i]);
+//          memcpy(out, in, p->buf->in_arg_sizes[i]);
+          current->varType->copyValue(csound, out, in);
         }
         current = current->next;
     }
@@ -1785,7 +1757,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             }
               
           } else {
-            memcpy(out, in, p->buf->out_arg_sizes[i]);
+//            memcpy(out, in, p->buf->out_arg_sizes[i]);
+              current->varType->copyValue(csound, out, in);
           }
       }
       current = current->next;
@@ -1833,7 +1806,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
               } else {
                 void* in = (void*)external_ptrs[i + inm->outchns];
                 void* out = (void*)internal_ptrs[i + inm->outchns];
-                memcpy(out, in, p->buf->in_arg_sizes[i]);
+                current->varType->copyValue(csound, out, in);
+//                memcpy(out, in, p->buf->in_arg_sizes[i]);
               }
           }
           current = current->next;
@@ -1863,7 +1837,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
           } else {
             void* in = (void*)internal_ptrs[i];
             void* out = (void*)external_ptrs[i];
-            memcpy(out, in, p->buf->out_arg_sizes[i]);
+//            memcpy(out, in, p->buf->out_arg_sizes[i]);
+            current->varType->copyValue(csound, out, in);
           }
         }
         current = current->next;
