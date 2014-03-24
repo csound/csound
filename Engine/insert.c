@@ -2139,9 +2139,9 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     else
       n = (int) (*p->insno + FL(0.5));
 
-    if (UNLIKEL(n < 1 ||
-                n > csound->engineState.maxinsno ||
-                csound->engineState.instrtxtp[n] == NULL))
+    if (UNLIKELY(n < 1 ||
+                 n > csound->engineState.maxinsno ||
+                 csound->engineState.instrtxtp[n] == NULL))
       return OK;                /* Instrument does not exist so noop */
     ip = csound->engineState.instrtxtp[n];
     active = ip->instance;
