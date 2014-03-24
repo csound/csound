@@ -56,16 +56,16 @@ void string_copy_value(void* csound, void* dest, void* src) {
     STRINGDAT* sDest = (STRINGDAT*)dest;
     STRINGDAT* sSrc = (STRINGDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
-   
-    if(sSrc->size != sDest->size) {
-        sDest->size = sSrc->size;
-  
-        if(sDest->data != NULL) {
-            cs->Free(cs, sDest->data);
-        }
-        sDest->data = cs_strdup(csound, sSrc->data);
+
+    if (sSrc->size != sDest->size) {
+      sDest->size = sSrc->size;
+
+      if (sDest->data != NULL) {
+        cs->Free(cs, sDest->data);
+      }
+      sDest->data = cs_strdup(csound, sSrc->data);
     } else {
-        memcpy(sDest->data, sSrc->data, sDest->size);
+      memcpy(sDest->data, sSrc->data, sDest->size);
     }
 }
 
@@ -80,25 +80,25 @@ void array_copy_value(void* csound, void* dest, void* src) {
     // TODO - this is heavy handed to reallocate memory every time,
     // should rewrite like string_copy_value to just copy values if
     // there is enough memory
-    
+
     aDest->arrayMemberSize = aSrc->arrayMemberSize;
     aDest->dimensions = aSrc->dimensions;
     aDest->sizes = cs->Malloc(cs, sizeof(int) * aSrc->dimensions);
     memcpy(aDest->sizes, aSrc->sizes, sizeof(int) * aSrc->dimensions);
     aDest->arrayType = aSrc->arrayType;
-    
+
     size = aDest->sizes[0];
     for (i = 1; i < aDest->dimensions; i++) {
-        size *= aDest->sizes[i];
+      size *= aDest->sizes[i];
     }
-    
+
     aDest->data = cs->Malloc(cs, aSrc->arrayMemberSize * size);
     memcpy(aDest->data, aSrc->data, aSrc->arrayMemberSize * size);
-    
-//    if(sSrc->size != sDest->size) {
+
+//    if (sSrc->size != sDest->size) {
 //        sDest->size = sSrc->size;
-//  
-//        if(sDest->data != NULL) {
+//
+//        if (sDest->data != NULL) {
 //            cs->Free(cs, sDest->data);
 //        }
 //        sDest->data = cs_strdup(csound, sSrc->data);
@@ -128,11 +128,11 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
 
     //FIXME - this needs to take into account local ksmps, once
     //context work is complete
-//    if(instr != NULL) {
+//    if (instr != NULL) {
 //      OPDS* p = (OPDS*)instr;
 //      ksmps = CS_KSMPS;
 //    } else {
-      ksmps = csound->ksmps;
+    ksmps = csound->ksmps;
 //    }
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
@@ -200,10 +200,10 @@ CS_VARIABLE* createArray(void* csnd, void* p) {
     var->memBlockSize = sizeof(ARRAYDAT);
     var->initializeVariableMemory = &arrayInitMemory;
 
-    if(state) { // NB: this function is being called with p=NULL
-    CS_TYPE* type = state->type;
-    var->subType = type;
-    var->dimensions = state->dimensions;
+    if (state) { // NB: this function is being called with p=NULL
+      CS_TYPE* type = state->type;
+      var->subType = type;
+      var->dimensions = state->dimensions;
     }
     return var;
 }
