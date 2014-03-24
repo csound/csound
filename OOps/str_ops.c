@@ -162,6 +162,7 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
     if (p->r->data == NULL) {
       p->r->data =  cs_strdup(csound, newVal);
       p->r->size =  strlen(p->str->data) + 1;
+      // printf("str:%p %p \n", p->r, p->r->data);
         return OK;
     }
     if (p->r->data == p->str->data)
@@ -172,7 +173,9 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
         p->r->size = strlen(newVal) + 1;
 
     }
-    else strcpy((char*) p->r->data, newVal);
+    else {strcpy((char*) p->r->data, newVal);
+      // printf("str:%p %p \n", p->r, p->r->data);
+    }
 
     return OK;
 }
