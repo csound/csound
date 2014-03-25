@@ -1217,7 +1217,7 @@ int osckk(CSOUND *csound, OSC *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    
+
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
     ftbl = ftp->ftable;
@@ -1231,7 +1231,7 @@ int osckk(CSOUND *csound, OSC *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    
+
     for (n=offset;n<nsmps;n++) {
       ar[n] = ftbl[phs >> lobits] * amp;
       /* phs += inc; */
