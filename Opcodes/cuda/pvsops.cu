@@ -374,7 +374,8 @@ static int pvanalperf(CSOUND *csound, PVAN *p){
       cudaMemcpy(aframe,cur,N*sizeof(float),
              cudaMemcpyHostToDevice);
       /* window and rotate data on device */
-      rotatewin<<<p->nblocks,p->nthreads>>>(aframe2,aframe,win,N,hsize*(numframes-curframe));
+      rotatewin<<<p->nblocks,p->nthreads>>>(aframe2,aframe,win,N,
+                                            hsize*(numframes-curframe));
        /* execute inverse real FFT */
       if(cufftExecR2C(p->plan,aframe2,(cufftComplex*)aframe2)
       != CUFFT_SUCCESS) csound->Message(csound, "cuda fft error\n");
