@@ -30,7 +30,6 @@
 int linset(CSOUND *csound, LINE *p)
 {
    double       dur;
-
     if ((dur = *p->idur) > FL(0.0)) {
       p->incr = (*p->ib - *p->ia) / dur * csound->onedsr;
       p->val = *p->ia;
