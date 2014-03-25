@@ -1231,6 +1231,7 @@ int osckk(CSOUND *csound, OSC *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+
     for (n=offset;n<nsmps;n++) {
       ar[n] = ftbl[phs >> lobits] * amp;
       /* phs += inc; */

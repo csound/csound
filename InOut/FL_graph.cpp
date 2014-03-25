@@ -149,7 +149,7 @@ void graph_box::draw()
         y_axis = gra_y + (gra_h/2);
       else if (pol == (short)NEGPOL)
         y_axis = gra_y;
-      else                /* POSPOL */
+        else                /* POSPOL */
         y_axis = gra_y + gra_h;
 
       if (npts < MAXLSEGS) {
@@ -195,12 +195,19 @@ void graph_box::draw()
       /* now draw axes: y-axis is always on the left edge,
          x-axis height is determined by the case we're in */
       fl_line(gra_x, y_axis, (gra_x + gra_w), y_axis);
+      fl_line(gra_x, y_axis, (gra_x + gra_w), y_axis);
+
+
       fl_line(gra_x, gra_y, gra_x, (gra_y + gra_h));
       if (win->danflag) {       /* flag to add dotted divider */
         fl_line_style(FL_DOT);
         fl_line(win_x+w()/2, win_y, win_x+w()/2, win_y+win_h);
       }
+      if(pol != NEGPOL)
       sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->oabsmax);
+      else
+      sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->max);
+
       ST(form)->label(string);
     }
     fl_line_style(FL_SOLID);

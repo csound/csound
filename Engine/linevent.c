@@ -249,7 +249,7 @@ static void sensLine(CSOUND *csound, void *userData)
           pcnt++;
           if (c == '"') {                       /* if find character string */
             if (e.strarg == NULL)
-              e.strarg = sstrp = mmalloc(csound, strsiz=SSTRSIZ);
+              e.strarg = sstrp = csound->Malloc(csound, strsiz=SSTRSIZ);
             n = scnt;
             while (n-->0) sstrp += strlen(sstrp)+1;
             n = 0;
@@ -260,7 +260,7 @@ static void sensLine(CSOUND *csound, void *userData)
               }
               sstrp[n++] = c;                   /*   save in private strbuf */
               if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
-                e.strarg = mrealloc(csound, e.strarg, strsiz+=SSTRSIZ);
+                e.strarg = csound->ReAlloc(csound, e.strarg, strsiz+=SSTRSIZ);
                 sstrp = e.strarg+n;
               }
             }

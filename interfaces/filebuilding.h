@@ -190,19 +190,11 @@ PUBLIC int csoundCsdCompile(CSOUND *csound, char *filename);
  */
 PUBLIC int csoundCsdPerform(CSOUND *csound, char *filename);
 
-/**
- * Compiles a Csound input file (.csd file)
- * which includes command-line arguments,
- * but does not perform the file. Returns a non-zero error code on failure.
- * In this (host-driven) mode, the sequence of calls should be as follows:
- * /code
- *       csoundCompileCsd(csound, argc, argv);
- *       while (!csoundPerformBuffer(csound));
- *       csoundCleanup(csound);
- *       csoundReset(csound);
- * /endcode
+
+ /* VL: a new, more complete, version of this function has been added to the main
+     Csound library. 
+  PUBLIC int csoundCompileCsd(CSOUND *, char *csdFilename);
  */
-PUBLIC int csoundCompileCsd(CSOUND *, char *csdFilename);
 
 /**
  * Compiles and renders a Csound performance,

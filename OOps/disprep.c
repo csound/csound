@@ -235,9 +235,13 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
     int32 window_size, step_size;
     int   hanning;
     char  strmsg[256];
+    int32  minbin, maxbin;
+    minbin = *p->imin;
+    maxbin = *p->imax;
+
     if(p->smpbuf.auxp == NULL)
       csound->AuxAlloc(csound, sizeof(MYFLT)*WINDMAX, &(p->smpbuf));
-          
+
     p->sampbuf = (MYFLT *) p->smpbuf.auxp;
 
     window_size = (int32)*p->inpts;
@@ -259,8 +263,13 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
     hanning = (int)*p->ihann;
     p->dbout   = (int)*p->idbout;
     p->overlap = window_size - step_size;
-    if (window_size != p->windsize ||
-        hanning != p->hanning) {             /* if windowing has changed:  */
+
+
+
+    if ( (maxbin - minbin) != p->npts ||
+         minbin != p->start         ||
+         window_size != p->windsize ||
+         hanning != p->hanning) {             /* if windowing has changed:  */
       int32 auxsiz;
       MYFLT *hWin;
       p->windsize = window_size;                /* set new parameter values */
@@ -276,15 +285,21 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
                   FL(1.0), hanning);            /* fill with proper values */
       if (csound->disprep_fftcoefs == NULL) {
         /* room for WINDMAX*2 floats (fft size) */
-        csound->disprep_fftcoefs = (MYFLT*) mmalloc(csound, WINDMAX * 2
+        csound->disprep_fftcoefs = (MYFLT*) csound->Malloc(csound, WINDMAX * 2
                                                             * sizeof(MYFLT));
       }
       snprintf(strmsg, 256, Str("instr %d, signal %s, fft (%s):"),
                       (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
                       p->dbout ? Str("db") : Str("mag"));
-      dispset(csound, &p->dwindow, csound->disprep_fftcoefs, p->ncoefs, strmsg,
-                      (int) *p->iwtflg, Str("fft"));
-    }
+      if(maxbin == 0) maxbin = p->ncoefs;
+      if(minbin > maxbin) minbin = 0;
+      p->npts = maxbin - minbin;
+      p->start = minbin;
+      dispset(csound, &p->dwindow,
+              csound->disprep_fftcoefs+p->start, p->npts, strmsg,
+              (int) *p->iwtflg, Str("fft"));
+       }
+
     return OK;
 }
 
@@ -301,7 +316,7 @@ static void PackReals(MYFLT *buffer, int32 size)
 }
 
 /* Convert Real & Imaginary spectra into Amplitude & Phase */
-static void Rect2Polar(MYFLT *buffer, int32 size)
+static void Rect2Polar(MYFLT *buffer, int32 size, MYFLT scal)
 {
     int32   i;
     MYFLT   *real,*imag;
@@ -311,8 +326,8 @@ static void Rect2Polar(MYFLT *buffer, int32 size)
     real = buffer;
     imag = buffer+1;
     for (i = 0; i < size; i++) {
-      re = real[i+i];
-      im = imag[i+i];
+      re = real[i+i]*scal;
+      im = imag[i+i]*scal;
       real[2L*i] = mag = HYPOT(re,im);
       if (mag == FL(0.0))
         imag[i+i] = FL(0.0);
@@ -325,6 +340,7 @@ static void Rect2Polar(MYFLT *buffer, int32 size)
 static void Lin2DB(MYFLT *buffer, int32 size)
 {
     while (size--) {
+      if(*buffer > 0.0)
       *buffer = /* FL(20.0)*log10 */ FL(8.68589)*LOG(*buffer);
       buffer++;
     }
@@ -336,14 +352,14 @@ static void d_fft(      /* perform an FFT as reqd below */
   MYFLT  *dst,   /* output array - packed magnitude, only half-length */
   int32  size,   /* number of points in input */
   MYFLT  *hWin,  /* hanning window lookup table */
-  int    dbq)    /* flag: 1-> convert output into db */
+  int    dbq, MYFLT scal)    /* flag: 1-> convert output into db */
 {
     memcpy(dst, sce, sizeof(MYFLT) * size);     /* copy into scratch buffer */
     ApplyHalfWin(dst, hWin, size);
     csound->RealFFT(csound, dst, (int) size);   /* perform the FFT */
     dst[size] = dst[1];
     dst[1] = dst[size + 1L] = FL(0.0);
-    Rect2Polar(dst, (size >> 1) + 1);
+    Rect2Polar(dst, (size >> 1) + 1, scal);
     PackReals(dst, (size >> 1) + 1);
     if (dbq)
       Lin2DB(dst, (size >> 1) + 1);
@@ -353,21 +369,25 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *bufp = p->bufp, *endp = p->endp;
 
+    if(p->dbout) p->dwindow.polarity = NEGPOL;
+          else p->dwindow.polarity = POSPOL;
+
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     if (bufp < p->sampbuf)          /* skip any spare samples */
       bufp++;
     else {                          /* then start collecting  */
       *bufp++ = *p->signal;
       if (bufp >= endp) {           /* when full, do fft:     */
-        MYFLT *tp, *tplim;
+        MYFLT *tp;
+        //MYFLT *tplim;
         MYFLT *hWin = (MYFLT *) p->auxch.auxp;
         d_fft(csound, p->sampbuf, csound->disprep_fftcoefs,
-              p->windsize, hWin, p->dbout);
+              p->windsize, hWin, p->dbout, p->overN);
         tp = csound->disprep_fftcoefs;
-        tplim = tp + p->ncoefs;
-        do {
-          *tp *= p->overN;            /* scale 1/N */
-        } while (++tp < tplim);
+        //tplim = tp + p->ncoefs;
+        //do {
+        // *tp *= p->overN;            /* scale 1/N */
+        //} while (++tp < tplim);
         display(csound, &p->dwindow); /* & display */
         if (p->overlap > 0) {
           bufp = p->sampbuf;
@@ -393,6 +413,12 @@ int dspfft(CSOUND *csound, DSPFFT *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
+    if(p->dbout){
+       p->dwindow.polarity = NEGPOL;
+       p->dwindow.absflag = 1;
+    }
+          else p->dwindow.polarity = POSPOL;
+
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     nsmps -= early;
     for (n=offset; n<nsmps; n++) {
@@ -402,15 +428,17 @@ int dspfft(CSOUND *csound, DSPFFT *p)
       else {                              /* then start collecting  */
         *bufp++ = *sigp++;
         if (bufp >= endp) {               /* when full, do fft:     */
-          MYFLT *tp, *tplim;
+          MYFLT *tp;
+          //MYFLT *tplim;
           MYFLT *hWin = (MYFLT *) p->auxch.auxp;
           d_fft(csound, p->sampbuf, csound->disprep_fftcoefs,
-                p->windsize, hWin, p->dbout);
+                p->windsize, hWin, p->dbout, p->overN);
           tp = csound->disprep_fftcoefs;
-          tplim = tp + p->ncoefs;
-          do {
-            *tp *= p->overN;              /* scale 1/N */
-          } while (++tp < tplim);
+          //tplim = tp + p->ncoefs;
+          //do {
+          //  *tp *= p->overN;              /* scale 1/N */
+          //} while (++tp < tplim);
+
           display(csound, &p->dwindow);   /* & display */
           if (p->overlap > 0) {
             bufp = p->sampbuf;
@@ -463,7 +491,7 @@ int tempeset(CSOUND *csound, TEMPEST *p)
     if (UNLIKELY(ftp==NULL)) return NOTOK;
 
     if (npts==0) return NOTOK;
-    
+
     nptsm1 = npts - 1;
     if (npts != p->npts || minlam != p->minlam) {
       p->npts = npts;
@@ -712,4 +740,3 @@ int tempest(CSOUND *csound, TEMPEST *p)
       return csound->PerfError(csound, p->h.insdshead,
                                Str("tempest: not initialised"));
 }
-

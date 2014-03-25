@@ -601,7 +601,7 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
     if (csound->lprdaddr == NULL ||
         csound->currentLPCSlot >= csound->max_lpc_slot) {
       csound->max_lpc_slot = csound->currentLPCSlot + MAX_LPC_SLOT;
-      csound->lprdaddr = mrealloc(csound,
+      csound->lprdaddr = csound->ReAlloc(csound,
                                   csound->lprdaddr,
                                   csound->max_lpc_slot * sizeof(LPREAD*));
     }
@@ -871,7 +871,7 @@ int lpread(CSOUND *csound, LPREAD *p)
     MYFLT   *interMagn = polePhas2 + p->npoles;
     MYFLT   *interPhas = interMagn + p->npoles;
 
-    
+
     if (UNLIKELY(p->mfp==NULL)) {
       return csound->PerfError(csound, p->h.insdshead,
                                Str("lpread: not initialised"));
@@ -1357,7 +1357,7 @@ int lpslotset(CSOUND *csound, LPSLOT *p)
     else {
       if (n >= csound->max_lpc_slot) {
         csound->max_lpc_slot = n + MAX_LPC_SLOT;
-        csound->lprdaddr = mrealloc(csound,
+        csound->lprdaddr = csound->ReAlloc(csound,
                                     csound->lprdaddr,
                                     csound->max_lpc_slot * sizeof(LPREAD**));
       }
@@ -1396,7 +1396,7 @@ int lpitpset(CSOUND *csound, LPINTERPOL *p)
 
     p->npoles = p->lp1->npoles;
     csound->AuxAlloc(csound, (int32)(p->npoles*8*sizeof(MYFLT)), &p->aux);
-    p->kcoefs = (MYFLT*)p->aux.auxp;    
+    p->kcoefs = (MYFLT*)p->aux.auxp;
     p->storePoles = 1;
     ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = (LPREAD*) p;
     return OK;
