@@ -47,8 +47,13 @@ void wsig_copy_value(void* csound, void* dest, void* src) {
 }
 
 void fsig_copy_value(void* csound, void* dest, void* src) {
-    memcpy(dest, src, sizeof(PVSDAT));
-    //TODO - check if this needs to copy PVSDAT's AUXCH
+    PVSDAT *fsigout = (PVSDAT*) dest;
+    PVSDAT *fsigin = (PVSDAT*) src;
+    int N = fsigin->N;
+    memcpy(dest, src, sizeof(PVSDAT) - sizeof(AUXCH));
+    if(fsigout->frame.auxp == NULL || fsigout->frame.size < (N + 2) * sizeof(float))
+      ((CSOUND *)csound)->AuxAlloc(csound, (N + 2) * sizeof(float), &fsigout->frame);
+    memcpy(fsigout->frame.auxp, fsigin->frame.auxp, (N + 2) * sizeof(float));
 }
 
 
