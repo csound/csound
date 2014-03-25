@@ -259,6 +259,11 @@ public:
     argv[6] = (char*) 0;
     return csoundCompile(csound, 6, &(argv[0]));
   }
+  virtual int CompileCsd(char *csd)
+  {
+    return csoundCompileCsd(csound, csd);
+  }
+
   virtual int Start()
   {
     return csoundStart(csound);

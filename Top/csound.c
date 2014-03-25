@@ -187,6 +187,11 @@ static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
 
+static MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
+  if(val > 0) csound->_system_sr = val;
+  return csound->_system_sr;
+}
+
 static const CSOUND cenviron_ = {
     /* attributes  */
     csoundGetSr,
@@ -427,12 +432,13 @@ static const CSOUND cenviron_ = {
     cs_strtod,
     cs_sprintf,
     cs_sscanf,
+    csoundSystemSr,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -561,8 +567,8 @@ static const CSOUND cenviron_ = {
     0,              /*  nspout              */
     NULL,           /*  auxspin  */
     (OPARMS*) NULL, /*  oparms              */
-       { NULL },       /*  m_chnbp             */
-        0,                      /*   dither_output  */
+    { NULL },       /*  m_chnbp             */
+    0,                      /*   dither_output  */
     FL(0.0),        /*  onedsr              */
     FL(0.0),        /*  sicvt               */
     FL(-1.0),       /*  tpidsr              */
@@ -805,7 +811,8 @@ static const CSOUND cenviron_ = {
       0,            /*    samp acc   */
       0,            /*    realtime  */
       0.0,          /*    0dbfs override */
-      0             /*    no exit on compile error */
+      0,            /*    no exit on compile error */
+      0.4           /*    vbr quality  */
     },
 
     {0, 0, {0}}, /* REMOT_BUF */
@@ -853,7 +860,8 @@ static const CSOUND cenviron_ = {
     {NULL},         /* message buffer struct */
     0,              /* jumpset */
     0,              /* info_message_request */
-    0              /* modules loaded */
+    0,              /* modules loaded */
+    -1              /* audio system sr */
     /*, NULL */           /* self-reference */
 };
 
@@ -1543,7 +1551,7 @@ int kperf(CSOUND *csound)
 
                for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opstart = (OPDS*) ip;
-                  while ((opstart = opstart->nxtp) != NULL) {
+                  while ((opstart = opstart->nxtp) != NULL && ip->actflg) {
                     opstart->insdshead->pds = opstart;
                     (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
@@ -2518,7 +2526,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     shortName = get_opcode_short_name(csound, ep->opname);
 
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
-    entryCopy = mmalloc(csound, sizeof(OENTRY));
+    entryCopy = csound->Malloc(csound, sizeof(OENTRY));
     memcpy(entryCopy, ep, sizeof(OENTRY));
     entryCopy->useropinfo = NULL;
 
@@ -2530,7 +2538,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     }
 
     if (shortName != ep->opname) {
-        mfree(csound, shortName);
+        csound->Free(csound, shortName);
     }
     return 0;
 }
@@ -2748,7 +2756,7 @@ PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
       csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
       csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
       csound->SetExternalMidiOutCloseCallback(csound, NULL);
-      
+
       return;
     }
     if (csoundInitModules(csound) != 0)
@@ -2895,7 +2903,7 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       Str("Real time audio module name"), NULL);
 
     /* initialise real time MIDI */
-    csound->midiGlobals = (MGLOBAL*) mcalloc(csound, sizeof(MGLOBAL));
+    csound->midiGlobals = (MGLOBAL*) csound->Calloc(csound, sizeof(MGLOBAL));
     csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
     csound->midiGlobals->endatp = csound->midiGlobals->bufp;
     csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
@@ -2933,7 +2941,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* sound file tag options */
     max_len = 201;
     i = (max_len + 7) & (~7);
-    csound->SF_id_title = (char*) mcalloc(csound, (size_t) i * (size_t) 6);
+    csound->SF_id_title = (char*) csound->Calloc(csound, (size_t) i * (size_t) 6);
     csoundCreateConfigurationVariable(csound, "id_title", csound->SF_id_title,
                                       CSOUNDCFG_STRING, 0, NULL, &max_len,
                                       Str("Title tag in output soundfile "
