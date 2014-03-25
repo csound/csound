@@ -13,9 +13,9 @@ set(PYTHON_INCLUDE_DIRS "/usr/include/python2.7")
 ##set(BUILD_CSOUND_AC_LUA_INTERFACE OFF)
 
 #### NOTE the processor type needs setting
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -O3 -mtune=core2")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -mtune=core2")
 ## also to test multicore
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W -Wno-missing-field-initializers -Wno-unused-parameter -O3 -mtune=core2 -DJPFF")
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W -Wno-missing-field-initializers -Wno-unused-parameter -mtune=core2 -DJPFF")
 
 include(CheckCCompilerFlag)
 check_c_compiler_flag(-ftree-vectorize HAS_TREE_VECTORISE)

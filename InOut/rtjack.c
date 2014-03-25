@@ -407,6 +407,8 @@ static void openJackStreams(RtJackGlobals *p)
     if (UNLIKELY(p->client == NULL))
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
 
+    csound->system_sr(csound, jack_get_sample_rate(p->client));
+
     /* check consistency of parameters */
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > 255))
       rtJack_Error(csound, -1, Str("invalid number of channels"));
@@ -770,6 +772,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     int           i, j, k, nframes, bufpos, bufcnt;
 
     p = (RtJackGlobals*) *(csound->GetRtPlayUserData(csound));
+    if (UNLIKELY(p==NULL)) rtJack_Abort(csound, 0);
     if (p->jackState != 0) {
       if (p->jackState < 0)
         openJackStreams(p);     /* open audio input */
@@ -896,7 +899,7 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
     *(csound->GetRtRecordUserData(csound))  = NULL;
     memcpy(&p, pp, sizeof(RtJackGlobals));
     /* free globals */
-    csound->DestroyGlobalVariable(csound, "_rtjackGlobals");
+
     if (p.client != (jack_client_t*) NULL) {
       /* deactivate client */
       //if (p.jackState != 2) {
@@ -941,6 +944,7 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
       free(p.outPortBufs);
     /* free ring buffers */
     rtJack_DeleteBuffers(&p);
+    csound->DestroyGlobalVariable(csound, "_rtjackGlobals");
 }
 
 /* print error message, close connection, and terminate performance */

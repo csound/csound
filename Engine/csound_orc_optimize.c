@@ -28,7 +28,7 @@
 static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
 {
     TREE *ans;
-    ans = (TREE*)mmalloc(csound, sizeof(TREE));
+    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
     if (UNLIKELY(ans == NULL)) exit(1);
     ans->type = T_FUNCTION;
     ans->value = make_token(csound, fname);
@@ -134,41 +134,43 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
                             ans->type = ans->value->type = NUMBER_TOKEN;
                             ans->value->fvalue = lval+rval;
                             ans->value->lexeme =
-                            (char*)mrealloc(csound, ans->value->lexeme, 24);
+                              (char*)csound->
+                              ReAlloc(csound, ans->value->lexeme, 24);
                             CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
                             ans->next = root->next;
                             //Memory leak!!
-                            //mfree(csound, root); mfree(csound root->right);
+                            //csound->Free(csound, root); mfree(csound root->right);
                             return ans;
                         case '-':
                             ans->type = ans->value->type = NUMBER_TOKEN;
                             ans->value->fvalue = lval-rval;
                             ans->value->lexeme =
-                            (char*)mrealloc(csound, ans->value->lexeme, 24);
+                              (char*)csound->
+                              ReAlloc(csound, ans->value->lexeme, 24);
                             CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
                             ans->next = root->next;
                             //Memory leak!!
-                            //mfree(csound, root); mfree(csound, root->right);
+                            //csound->Free(csound, root); mfree(csound, root->right);
                             return ans;
                         case '*':
                             ans->type = ans->value->type = NUMBER_TOKEN;
                             ans->value->fvalue = lval*rval;
                             ans->value->lexeme =
-                            (char*)mrealloc(csound, ans->value->lexeme, 24);
+                            (char*)csound->ReAlloc(csound, ans->value->lexeme, 24);
                             CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
                             ans->next = root->next;
                             //Memory leak!!
-                            //mfree(csound, root); mfree(csound, root->right);
+                            //csound->Free(csound, root); mfree(csound, root->right);
                             return ans;
                         case '/':
                             ans->type = ans->value->type = NUMBER_TOKEN;
                             ans->value->fvalue = lval/rval;
                             ans->value->lexeme =
-                            (char*)mrealloc(csound, ans->value->lexeme, 24);
+                            (char*)csound->ReAlloc(csound, ans->value->lexeme, 24);
                             CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
                             ans->next = root->next;
                             //Memory leak!!
-                            //mfree(csound, root); mfree(csound, root->right);
+                            //csound->Free(csound, root); mfree(csound, root->right);
                             return ans;
                             /* case S_NEQ: */
                             /*   break; */
@@ -200,7 +202,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
                     -(ans->type==INTEGER_TOKEN ? (double)ans->value->value
                       : ans->value->fvalue);
                     ans->value->lexeme =
-                    (char*)mrealloc(csound, ans->value->lexeme, 24);
+                    (char*)csound->ReAlloc(csound, ans->value->lexeme, 24);
                     CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
                     ans->type = ans->value->type = NUMBER_TOKEN;
                     //print_tree(csound, "ans", ans);

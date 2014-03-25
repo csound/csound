@@ -105,8 +105,8 @@ void add_include_udo_dir(CORFIL *xx)
           //printf("**  name=%s n=%d\n", fname, n);
           if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
             strcpy(buff, "#include \"");
-            strlcat(buff, dir, 1024); 
-            strlcat(buff, "/", 1024); 
+            strlcat(buff, dir, 1024);
+            strlcat(buff, "/", 1024);
             strlcat(buff, fname, 1024);
             strlcat(buff, "\"\n", 1024);
             if (strlen(buff)>768) {
@@ -183,7 +183,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       corfile_rm(&csound->orchstr);
     }
     {
-      TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
+      TREE* astTree = (TREE *)csound->Calloc(csound, sizeof(TREE));
       TREE* newRoot;
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
@@ -225,20 +225,20 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         print_tree(csound, "AST - INITIAL\n", astTree);
       }
       //print_tree(csound, "AST - INITIAL\n", astTree);
-      typeTable = mmalloc(csound, sizeof(TYPE_TABLE));
+      typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
 
-      typeTable->globalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
-      typeTable->instr0LocalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
+      typeTable->globalPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+      typeTable->instr0LocalPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
 
       /**** THIS NEXT LINE IS WRONG AS err IS int WHILE FN RETURNS TREE* ****/
       astTree = verify_tree(csound, astTree, typeTable);
-//      mfree(csound, typeTable->instr0LocalPool);
-//      mfree(csound, typeTable->globalPool);
-//      mfree(csound, typeTable);
+//      csound->Free(csound, typeTable->instr0LocalPool);
+//      csound->Free(csound, typeTable->globalPool);
+//      csound->Free(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
 
       //FIXME - synterrcnt should not be global
@@ -247,7 +247,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
           if (astTree)
             csound->Message(csound, "Parsing failed due to %d semantic error%s!\n",
                             csound->synterrcnt, csound->synterrcnt==1?"":"s");
-          else
+          else if (csound->synterrcnt)
+               csound->Message(csound, "Parsing failed to syntax errors\n");
+          else 
             csound->Message(csound, "Parsing failed due no input!\n");
           goto ending;
       }
@@ -264,10 +266,10 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
     ending:
       csound_orclex_destroy(pp.yyscanner);
       if(err) {
-        csound->Warning(csound, Str("Stopping on parser failure\n"));
+        csound->ErrorMsg(csound, Str("Stopping on parser failure"));
         csoundDeleteTree(csound, astTree);
         if (typeTable != NULL) {
-          mfree(csound, typeTable);
+          csound->Free(csound, typeTable);
         }
         return NULL;
       }
