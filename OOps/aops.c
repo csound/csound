@@ -1802,9 +1802,10 @@ inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
     if (csound->oparms->sampleAccurate) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
-
+      
       CSOUND_SPOUT_SPINLOCK
       if (!csound->spoutactive) {
+      
         for (j=0; j<nsmps; j++) {
           for (i=0; i<n; i++) {
             CS_SPOUT[k + i] = (j<offset||j>early) ? FL(0.0) : p->asig[i][j];
@@ -1817,7 +1818,9 @@ inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
         csound->spoutactive = 1;
       }
       else {
-        for (j=offset; j<early; j++) {
+        //if(offset) printf("offset = %d, %d nsmps\n", offset, nsmps);
+        // no need to offset as the data is already offset in the asig
+        for (j=0; j<early; j++) {
           for (i=0; i<n; i++) {
             CS_SPOUT[k + i] += p->asig[i][j];
           }
