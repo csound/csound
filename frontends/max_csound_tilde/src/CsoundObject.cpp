@@ -456,14 +456,14 @@ void CsoundObject::Stop()
 	m_oChanGroup.ClearPtrs();
 	{
 		ScopedLock k(m_lock);
-		if(m_compiled)
-		{
+//		if(m_compiled)
+//		{
 			csoundCleanup(m_csound);
 			csoundReset(m_csound);
 			m_compiled = false;
 			m_performanceFinished = true;
 			send_bang = true;
-		}
+//		}
 	}
 	if(send_bang) 
 		csound_sendPerfDoneBang(m_x,NULL,0,NULL); // Always call outlets outside locked zones.
