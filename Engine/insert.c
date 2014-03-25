@@ -291,6 +291,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       duration_samps =  ip->p3 * csound->esr;
       start_time_kcycles = start_time_samps/csound->ksmps;
       ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
+      //printf("ksmps offset = %d \n",  ip->ksmps_offset);
       ip->no_end = csound->ksmps -
         ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;
       /* the ksmps_no_end field is initially 0, set to no_end in the last
