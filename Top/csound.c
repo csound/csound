@@ -438,7 +438,7 @@ static const CSOUND cenviron_ = {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -1551,7 +1551,7 @@ int kperf(CSOUND *csound)
 
                for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opstart = (OPDS*) ip;
-                  while ((opstart = opstart->nxtp) != NULL) {
+                  while ((opstart = opstart->nxtp) != NULL && ip->actflg) {
                     opstart->insdshead->pds = opstart;
                     (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
@@ -2756,7 +2756,7 @@ PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
       csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
       csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
       csound->SetExternalMidiOutCloseCallback(csound, NULL);
-      
+
       return;
     }
     if (csoundInitModules(csound) != 0)

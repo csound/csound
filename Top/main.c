@@ -501,8 +501,8 @@ PUBLIC int csoundCompileCsd(CSOUND *csound, char *str) {
     char *argv[2] = { "csound", (char *) str };
     int argc = 2;
     return csoundCompile(csound, argc, argv);
-  } 
-  else { 
+  }
+  else {
     int res = read_unified_file2(csound, (char *) str);
    if(res) {
     res = csoundCompileOrc(csound, NULL);
