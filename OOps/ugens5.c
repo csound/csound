@@ -871,7 +871,7 @@ int lpread(CSOUND *csound, LPREAD *p)
     MYFLT   *interMagn = polePhas2 + p->npoles;
     MYFLT   *interPhas = interMagn + p->npoles;
 
-    
+
     if (UNLIKELY(p->mfp==NULL)) {
       return csound->PerfError(csound, p->h.insdshead,
                                Str("lpread: not initialised"));
@@ -1396,7 +1396,7 @@ int lpitpset(CSOUND *csound, LPINTERPOL *p)
 
     p->npoles = p->lp1->npoles;
     csound->AuxAlloc(csound, (int32)(p->npoles*8*sizeof(MYFLT)), &p->aux);
-    p->kcoefs = (MYFLT*)p->aux.auxp;    
+    p->kcoefs = (MYFLT*)p->aux.auxp;
     p->storePoles = 1;
     ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = (LPREAD*) p;
     return OK;
