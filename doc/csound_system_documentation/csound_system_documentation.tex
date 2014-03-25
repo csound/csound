@@ -261,6 +261,30 @@ Instruments, Opcodes, Instrument Instances, Opcode Instances
 
 
 %===========================
+\chapter{Other Features}
+
+\section{Subinstruments and User-Defined Opcodes}
+
+Subinstruments is a feature that allows one instrument to instantiate, run, and transfer values to/from another instrument instance. This feature was later modified as the User-Defined Opcode system, which allows users to create new opcodes using Csound ORC code. Internally, UDO's are stored as instrument definitions. They are performed in the same manner as an instrument in regards to there being a linked list of opcodes that are called at init- and performance-time.  
+
+In general, Subinstruments differ from UDO's in that they do not add OENTRY's to the opcode table.  Instead, the subinstr and subinstrinit opcodes are used.  These opcodes will search the list of instrument definitions directly using the instrum or "instrname" argument given to the opcode. Once found, the instantiation is done using the instrument definition.  On the other hand, UDO's do add OENTRY's to the opcode table. This allows the name of the UDO to be used within orchestra code directly as an opcode name, rather than using subinstr and subinstrinit for all calls to the code.
+
+The UDO system is described below. The primary code for UDO's and Subinstrument calls are contained within Engine/insert.c.
+
+\subsection{Parsing of UDO's}
+
+\subsection{Instantiation of UDO's}
+
+\subsubsection{Interaction of internal state and arguments}
+
+\subsection{Performance of UDO's}
+
+\subsection{Other Notes}
+
+\subsubsection{Opcode Overloading}
+
+
+%===========================
 \chapter{API and Wrappers}
 
 

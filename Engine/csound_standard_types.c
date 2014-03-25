@@ -29,6 +29,86 @@
 //#define Wfloats (((int) sizeof(SPECDAT) + 7) / (int) sizeof(MYFLT))
 //#define Pfloats (((int) sizeof(PVSDAT) + 7) / (int) sizeof(MYFLT))
 
+/* MEMORY COPYING FUNCTIONS */
+
+void myflt_copy_value(void* csound, void* dest, void* src) {
+    MYFLT* f1 = (MYFLT*)dest;
+    MYFLT* f2 = (MYFLT*)src;
+    *f1 = *f2;
+}
+
+void asig_copy_value(void* csound, void* dest, void* src) {
+    memcpy(dest, src, sizeof(MYFLT) * ((CSOUND*)csound)->ksmps);
+}
+
+void wsig_copy_value(void* csound, void* dest, void* src) {
+    memcpy(dest, src, sizeof(SPECDAT));
+    //TODO - check if this needs to copy SPECDAT's DOWNDAT member and AUXCH
+}
+
+void fsig_copy_value(void* csound, void* dest, void* src) {
+    memcpy(dest, src, sizeof(PVSDAT));
+    //TODO - check if this needs to copy PVSDAT's AUXCH
+}
+
+
+void string_copy_value(void* csound, void* dest, void* src) {
+    STRINGDAT* sDest = (STRINGDAT*)dest;
+    STRINGDAT* sSrc = (STRINGDAT*)src;
+    CSOUND* cs = (CSOUND*)csound;
+
+    if (sSrc->size != sDest->size) {
+      sDest->size = sSrc->size;
+
+      if (sDest->data != NULL) {
+        cs->Free(cs, sDest->data);
+      }
+      sDest->data = cs_strdup(csound, sSrc->data);
+    } else {
+      memcpy(sDest->data, sSrc->data, sDest->size);
+    }
+}
+
+
+void array_copy_value(void* csound, void* dest, void* src) {
+    ARRAYDAT* aDest = (ARRAYDAT*)dest;
+    ARRAYDAT* aSrc = (ARRAYDAT*)src;
+    CSOUND* cs = (CSOUND*)csound;
+    size_t size;
+    int i;
+
+    // TODO - this is heavy handed to reallocate memory every time,
+    // should rewrite like string_copy_value to just copy values if
+    // there is enough memory
+
+    aDest->arrayMemberSize = aSrc->arrayMemberSize;
+    aDest->dimensions = aSrc->dimensions;
+    aDest->sizes = cs->Malloc(cs, sizeof(int) * aSrc->dimensions);
+    memcpy(aDest->sizes, aSrc->sizes, sizeof(int) * aSrc->dimensions);
+    aDest->arrayType = aSrc->arrayType;
+
+    size = aDest->sizes[0];
+    for (i = 1; i < aDest->dimensions; i++) {
+      size *= aDest->sizes[i];
+    }
+
+    aDest->data = cs->Malloc(cs, aSrc->arrayMemberSize * size);
+    memcpy(aDest->data, aSrc->data, aSrc->arrayMemberSize * size);
+
+//    if (sSrc->size != sDest->size) {
+//        sDest->size = sSrc->size;
+//
+//        if (sDest->data != NULL) {
+//            cs->Free(cs, sDest->data);
+//        }
+//        sDest->data = cs_strdup(csound, sSrc->data);
+//    } else {
+//        memcpy(sDest->data, sSrc->data, sDest->size);
+//    }
+}
+
+/* MEM SIZE UPDATING FUNCTIONS */
+
 void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
     CSOUND* cs = (CSOUND*)csound;
     int ksmps = cs->ksmps;
@@ -39,6 +119,7 @@ void varInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
     memset(memblock, 0, var->memBlockSize);
 }
 
+/* CREATE VAR FUNCTIONS */
 
 CS_VARIABLE* createAsig(void* cs, void* p) {
     int ksmps;
@@ -47,11 +128,11 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
 
     //FIXME - this needs to take into account local ksmps, once
     //context work is complete
-//    if(instr != NULL) {
+//    if (instr != NULL) {
 //      OPDS* p = (OPDS*)instr;
 //      ksmps = CS_KSMPS;
 //    } else {
-      ksmps = csound->ksmps;
+    ksmps = csound->ksmps;
 //    }
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
@@ -119,10 +200,10 @@ CS_VARIABLE* createArray(void* csnd, void* p) {
     var->memBlockSize = sizeof(ARRAYDAT);
     var->initializeVariableMemory = &arrayInitMemory;
 
-    if(state) { // NB: this function is being called with p=NULL
-    CS_TYPE* type = state->type;
-    var->subType = type;
-    var->dimensions = state->dimensions;
+    if (state) { // NB: this function is being called with p=NULL
+      CS_TYPE* type = state->type;
+      var->subType = type;
+      var->dimensions = state->dimensions;
     }
     return var;
 }
@@ -132,51 +213,51 @@ CS_VARIABLE* createArray(void* csnd, void* p) {
 //#define ARGTYP_l        0x00000800L     /* label */
 
 const CS_TYPE CS_VAR_TYPE_A = {
-  "a", "audio rate vector", CS_ARG_TYPE_BOTH, createAsig, NULL
+  "a", "audio rate vector", CS_ARG_TYPE_BOTH, createAsig, asig_copy_value, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_K = {
-  "k", "control rate var", CS_ARG_TYPE_BOTH, createMyflt, NULL
+  "k", "control rate var", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_I = {
-  "i", "init time var", CS_ARG_TYPE_BOTH, createMyflt, NULL
+  "i", "init time var", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_S = {
-    "S", "String var", CS_ARG_TYPE_BOTH, createString, NULL
+    "S", "String var", CS_ARG_TYPE_BOTH, createString, string_copy_value, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_P = {
-  "p", "p-field", CS_ARG_TYPE_BOTH, createMyflt, NULL
+  "p", "p-field", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_R = {
-  "r", "reserved symbol", CS_ARG_TYPE_BOTH, createMyflt, NULL
+  "r", "reserved symbol", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_C = {
-  "c", "constant", CS_ARG_TYPE_IN, createMyflt, NULL
+  "c", "constant", CS_ARG_TYPE_IN, createMyflt, myflt_copy_value, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_W = {
-  "w", "spectral", CS_ARG_TYPE_BOTH, createWsig, NULL
+  "w", "spectral", CS_ARG_TYPE_BOTH, createWsig, wsig_copy_value, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_F = {
-  "f", "f-sig", CS_ARG_TYPE_BOTH, createFsig, NULL
+  "f", "f-sig", CS_ARG_TYPE_BOTH, createFsig, fsig_copy_value, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_B = {
-  "B", "boolean", CS_ARG_TYPE_BOTH, createBool, NULL
+  "B", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_b = {
-  "b", "boolean", CS_ARG_TYPE_BOTH, createBool, NULL
+  "b", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_ARRAY = {
-   "[", "array", CS_ARG_TYPE_BOTH, createArray, NULL
+   "[", "array", CS_ARG_TYPE_BOTH, createArray, array_copy_value, NULL
 };
 
 

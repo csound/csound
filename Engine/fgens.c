@@ -3304,7 +3304,8 @@ int resize_table(CSOUND *csound, RESIZE *p)
     if ((ftp = csound->FTFind(csound, p->fn)) == NULL)
       return NOTOK;
     if (ftp->flen<fsize)
-      ftp->ftable = (MYFLT *) csound->ReAlloc(csound, ftp->ftable, sizeof(MYFLT)*(fsize+1));
+      ftp->ftable = (MYFLT *) csound->ReAlloc(csound, ftp->ftable,
+                                              sizeof(MYFLT)*(fsize+1));
     ftp->flen = fsize+1;
     csound->flist[fno] = ftp;
     return OK;
