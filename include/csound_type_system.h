@@ -41,6 +41,7 @@ extern "C" {
         char* varDescription;
         int argtype; // used to denote if allowed as in-arg, out-arg, or both
         struct csvariable* (*createVariable)(void*, void*);
+        void (*copyValue)(void* csound, void* dest, void* src);
         struct cstype** unionTypes;
     } CS_TYPE;
 

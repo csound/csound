@@ -9,11 +9,11 @@ ksmps = 64
 
 
 instr 1
-ifftsize = 2048
-ihopsize = 256
-ibins = 512
-asig = diskin:a("flutec3.wav",1,0,1)
-fsig = pvsanal(asig, ifftsize,ihopsize, ifftsize, 1)
+ifftsize = 1024
+ihopsize = 128
+ibins = 256
+asig1,adp diskin "/users/victor/audio/metheny.wav",1,0,1
+fsig = pvsanal(asig1, ifftsize,ihopsize, ifftsize, 1)
 asig = cudasynth(fsig,1,1,ibins)
 asig = linenr(asig,0.001,0.01,0.01)
     out(asig*0.5)
@@ -23,7 +23,7 @@ endin
 
 </CsInstruments>
 <CsScore>
-i1 0 10
+i1 0 60
 </CsScore>
 </CsoundSynthesizer>
 
