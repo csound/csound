@@ -69,7 +69,7 @@ typedef struct cudaop_ {
   MYFLT *out;
   float *amp;
   MYFLT *tab;
-  int64_t *ndx; 
+  int64_t *ndx;
   int *inc;
   MYFLT *ap, *fp;
   FUNC *itab, *ftab, *atab;
@@ -84,8 +84,8 @@ static int init_cudaop(CSOUND *csound, CUDAOP *p){
   cudaDeviceProp deviceProp;
   cudaGetDeviceProperties(&deviceProp, 0);
   blockspt = deviceProp.maxThreadsPerBlock;
-  if(deviceProp.major < 3) 
-    csound->InitError(csound, 
+  if(deviceProp.major < 3)
+    csound->InitError(csound,
      "this opcode requires device capability 3.0 minimum\n");
 
   if(*p->itabn != 0){
@@ -151,7 +151,7 @@ static void update_params(CSOUND *csound, CUDAOP *p){
    }
    cudaMemcpy(p->amp,amp,fpsize, cudaMemcpyHostToDevice);
    cudaMemcpy(p->inc,inc,ipsize, cudaMemcpyHostToDevice);
- 
+
 }
 
 static int perf_cudaop(CSOUND *csound, CUDAOP *p){
@@ -230,8 +230,8 @@ static int init_cudaop2(CSOUND *csound, CUDAOP2 *p){
   cudaDeviceProp deviceProp;
   cudaGetDeviceProperties(&deviceProp, 0);
   blockspt = deviceProp.maxThreadsPerBlock;
-  if(deviceProp.major < 3) 
-    csound->InitError(csound, 
+  if(deviceProp.major < 3)
+    csound->InitError(csound,
    "this opcode requires device capability 3.0 minimum\n");
 
   p->bins = (p->fsig->N)/2;
@@ -270,13 +270,13 @@ static int init_cudaop2(CSOUND *csound, CUDAOP2 *p){
 
 //__shared__ int64_t ph[2048];
 
-__global__ void sample(MYFLT *out, float *frame, MYFLT pitch, int64_t *ph, float *amps,
-                       int bins, int vsize, MYFLT sr) {
-  
+__global__ void sample(MYFLT *out, float *frame, MYFLT pitch, int64_t *ph,
+                       float *amps, int bins, int vsize, MYFLT sr) {
+
   int t = (threadIdx.x + blockIdx.x*blockDim.x);
   int n =  t%vsize;  /* sample index */
   int h = t/vsize;  /* bin index */
-  int k = h<<1; 
+  int k = h<<1;
   int64_t lph;
   float a = amps[h], ascl = ((float)n)/vsize;
   MYFLT fscal = pitch*FMAXLEN/sr;
@@ -285,7 +285,7 @@ __global__ void sample(MYFLT *out, float *frame, MYFLT pitch, int64_t *ph, float
   out[t] = a*SIN((2*PI*lph)/FMAXLEN);
 }
 
-__global__ void updatemix(MYFLT *out, float *frame, float *amps, MYFLT kamp, 
+__global__ void updatemix(MYFLT *out, float *frame, float *amps, MYFLT kamp,
            int64_t *ph, MYFLT pitch, int bins, int vsize, MYFLT sr){
 
  int h = threadIdx.x + blockIdx.x*blockDim.x;
@@ -322,17 +322,17 @@ static int perf_cudaop2(CSOUND *csound, CUDAOP2 *p){
     if(count == 0) {
       cudaMemcpy(p->frame,p->fp,sizeof(float)*p->bins*2,cudaMemcpyHostToDevice);
       sample<<<p->blocks,p->threads>>>(p->out,p->frame,
-      					       *p->kfreq,
+                                               *p->kfreq,
                                                 p->ndx,
-      					        p->previous, 
+                                                p->previous,
                                                 p->bins,
                                                 vsamps,
                                                 csound->GetSr(csound));
       updatemix<<<p->mblocks,p->mthreads>>>(p->out, p->frame,
-       				            p->previous, *p->kamp,
+                                            p->previous, *p->kamp,
                                             p->ndx,
                                             *p->kfreq,
-       					    p->bins,
+                                            p->bins,
                                             vsamps,
                                             csound->GetSr(csound));
       cudaMemcpy(out_,p->out,vsamps*sizeof(MYFLT),cudaMemcpyDeviceToHost);
