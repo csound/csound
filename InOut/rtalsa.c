@@ -357,7 +357,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       strncpy(msg, Str("No real-time audio configurations found"), MSGLEN);
       goto err_return_msg;
     }
-    
+
     /* now set the various hardware parameters: */
     /* access method, */
     if (snd_pcm_hw_params_set_access(dev->handle, hw_params,
@@ -449,7 +449,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       goto err_return_msg;
     }
     /* print settings */
-    
+
     if (p->GetMessageLevel(p) != 0)
       p->Message(p, Str("ALSA %s: total buffer size: %d, period size: %d \n"),
                  (play ? "output" : "input"),

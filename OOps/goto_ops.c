@@ -169,6 +169,7 @@ int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
     IGN(csound);
     INSDS  *lcurip = CS_PDS->insdshead;
+    if (p->h.insdshead->actflg) {
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     /* find top level instrument instance */
     while (lcurip->opcod_iobufs)
@@ -177,6 +178,7 @@ int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
     if (lcurip->xtratim <= 0)
       while (CS_PDS->nxtp != NULL)
         CS_PDS = CS_PDS->nxtp;                /* loop to last opds */
+    }
     return OK;
 }
 
