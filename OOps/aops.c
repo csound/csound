@@ -1802,10 +1802,10 @@ inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
     if (csound->oparms->sampleAccurate) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
-      
+
       CSOUND_SPOUT_SPINLOCK
       if (!csound->spoutactive) {
-      
+
         for (j=0; j<nsmps; j++) {
           for (i=0; i<n; i++) {
             CS_SPOUT[k + i] = (j<offset||j>early) ? FL(0.0) : p->asig[i][j];
@@ -1888,7 +1888,8 @@ int outarr(CSOUND *csound, OUTARRAY *p)
         csound->spoutactive = 1;
       }
       else {
-        for (j=offset; j<early; j++) {
+        /* no need to offset data is already offset in the buffer*/
+        for (j=0; j<early; j++) {
           for (i=0; i<n; i++) {
             CS_SPOUT[k + i] += data[j+i*ksmps];
           }
@@ -1952,7 +1953,8 @@ int outch(CSOUND *csound, OUTCH *p)
       }
       else {
         sp = CS_SPOUT + (ch - 1);
-        for (n=offset; n<early; n++) {
+        /* no need to offset */
+        for (n=0; n<early; n++) {
           /* if (n>=offset)*/ *sp += apn[n];
           sp += nchnls;
         }
@@ -2064,7 +2066,7 @@ int outRange_i(CSOUND *csound, OUTRANGE *p)
 int outRange(CSOUND *csound, OUTRANGE *p)
 {
     int j;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
+    //uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int nchnls = csound->GetNchnls(csound);
@@ -2084,7 +2086,8 @@ int outRange(CSOUND *csound, OUTRANGE *p)
 
     if (!csound->spoutactive) {
       memset(CS_SPOUT, 0, nsmps * nchnls * sizeof(MYFLT));
-      for (n=offset; n<nsmps-early; n++) {
+      /* no need to offset */
+      for (n=0; n<nsmps-early; n++) {
         int i;
         MYFLT *sptemp = sp;
         for (i=0; i < narg; i++)
@@ -2094,7 +2097,7 @@ int outRange(CSOUND *csound, OUTRANGE *p)
       csound->spoutactive = 1;
     }
     else {
-      for (n=offset; n<nsmps-early; n++) {
+      for (n=0; n<nsmps-early; n++) {
         int i;
         MYFLT *sptemp = sp;
         for (i=0; i < narg; i++)
