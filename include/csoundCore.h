@@ -865,7 +865,6 @@ typedef struct NAME__ {
     CS_VAR_POOL* out_arg_pool;
     CS_VAR_POOL* in_arg_pool;
     INSTRTXT *ip;
-    
     struct opcodinfo *prv;
   } OPCODINFO;
 
