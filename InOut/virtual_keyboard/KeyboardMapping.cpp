@@ -80,6 +80,7 @@ KeyboardMapping::KeyboardMapping(CSOUND *csound, const char *mapFileName)
         currentBank[i] = 0;
         previousBank[i] = -1;
     }
+    previousProgram = -1;
 }
 
 KeyboardMapping::~KeyboardMapping()

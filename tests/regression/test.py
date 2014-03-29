@@ -50,7 +50,8 @@ def runTest():
         ["bugs.csd", " "],
         ["bugsort.csd", " "],
         ["bugst.csd", " "],
-        ["bugtrans.csd", " "]
+        ["bugtrans.csd", " "],
+        ["bugbra.csd", " "]
     ]
 
     output = ""

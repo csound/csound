@@ -58,7 +58,7 @@ static char *rcsid = "$Id$";
  *      Warnings
  *
  *      Revision 1.6  2005/02/18 16:21:14  istvanv
- *      added csound pointer to mmalloc, auxalloc, and other functions
+ *      added csound pointer to csound->Malloc, auxalloc, and other functions
  *
  *      Revision 1.5  2005/01/27 19:22:50  istvanv
  *      Merged changes from 4.24.1, including new localization system,
@@ -85,6 +85,7 @@ static char *rcsid = "$Id$";
  */
 #include "csoundCore.h"
 #include <math.h>
+#include <assert.h>
 
 static void fft_(CSOUND *,MYFLT *, MYFLT *, int, int, int, int);
 static void fftmx(MYFLT *, MYFLT *, int, int, int, int, int,
@@ -109,17 +110,17 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
   /*    *a,       pointer to array 'anal'  */
   /*    *b;       pointer to array 'banal' */
 {
-    int nfac[16];               /*  These are one bigger than needed   */
+    int32 nfac[17];             /*  These are one bigger than needed   */
                                 /*  because wish to use Fortran array  */
                                 /* index which runs 1 to n, not 0 to n */
 
-    int         m = 0,
-                nf,
+    int32       m = 0,
                 k,
                 kt,
-                ntot,
-                j,
                 jj,
+                j,
+                nf,
+                ntot,
                 maxf, maxp=-1;
 
     /* work space pointers */
@@ -142,6 +143,7 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
     ntot = abs(nspn*nseg);
 
     for (m=0; !(k%16); nfac[++m]=4,k/=16);
+    assert(m<16);
     for (j=3,jj=9; jj<=k; j+=2,jj=j*j)
       for (; !(k%jj); nfac[++m]=j,k/=jj);
 

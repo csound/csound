@@ -82,7 +82,7 @@ MEMFIL  *ldmemfile2withCB(CSOUND *csound, const char *filnam, int csFileType,
                          int (*callback)(CSOUND*, MEMFIL*));
 void    rlsmemfiles(CSOUND *);
 int     delete_memfile(CSOUND *, const char *);
-char    *csoundTmpFileName(CSOUND *, char *, const char *);
+char    *csoundTmpFileName(CSOUND *, const char *);
 void    *SAsndgetset(CSOUND *, char *, void *, MYFLT *, MYFLT *, MYFLT *, int);
 int     getsndin(CSOUND *, void *, MYFLT *, int, void *);
 void    *sndgetset(CSOUND *, void *);

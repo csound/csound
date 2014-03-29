@@ -49,7 +49,15 @@ public:
   MYFLT im;
   MYFLT ib;
   MYFLT onedrms;
-  KAMPMIDID() {}
+  KAMPMIDID() :
+    kamplitude(0),
+    kvelocity(0),
+    irdb(0),
+    ir(0),
+    im(0),
+    ib(0),
+    onedrms(0)
+  {}
   int init(CSOUND *csound)
   {
       // Convert RMS power to amplitude (assuming a sinusoidal signal).
@@ -83,7 +91,15 @@ public:
   MYFLT im;
   MYFLT ib;
   MYFLT onedrms;
-  IAMPMIDID() {}
+  IAMPMIDID() :
+    iamplitude(0),
+    ivelocity(0),
+    irdb(0),
+    ir(0),
+    im(0),
+    ib(0),
+    onedrms(0)
+  {}
   int init(CSOUND *csound)
   {
       // Convert RMS power to amplitude (assuming a sinusoidal signal).

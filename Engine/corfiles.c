@@ -279,11 +279,11 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
     CURL *curl = curl_easy_init();
     CORFIL *mm = corfile_create_w();
     struct MemoryStruct chunk;
-    
+
     chunk.memory = malloc(1);  /* will be grown as needed by the realloc above */
     chunk.size = 0;    /* no data at this point */
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback); 
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
     n = curl_easy_perform(curl);
