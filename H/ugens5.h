@@ -63,29 +63,34 @@ typedef struct {
         OPDS    h;
         MYFLT   *krmr, *krmo, *kerr, *kcps, *ktimpt, *ifilcod, *inpoles, *ifrmrate;
         int32   headlen, npoles, nvals, lastfram16, lastmsg;
-        MYFLT   kcoefs[MAXPOLES*2], framrat16;
+        MYFLT   *kcoefs, framrat16;
         int     storePoles ;
         MEMFIL  *mfp;
+        AUXCH   aux;
 } LPREAD;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig;
-        MYFLT   circbuf[MAXPOLES<<1], *circjp, *jp2lim;
+        MYFLT   *circbuf, *circjp, *jp2lim;
         LPREAD  *lpread;
+        AUXCH   aux;
+
 } LPRESON;
 
 typedef struct {
         OPDS    h;
         MYFLT   *kcf,*kbw, *kfor;
         LPREAD  *lpread;
+        AUXCH   aux;
 } LPFORM;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *kfrqratio;
-        MYFLT   past[MAXPOLES], prvratio, d, prvout;
+        MYFLT   *past, prvratio, d, prvout;
         LPREAD  *lpread;
+        AUXCH   aux;
 } LPFRESON;
 
 typedef struct {
@@ -120,8 +125,9 @@ typedef struct {
         int32    lpad,npoles ;
         LPREAD  *lp1,*lp2 ;
         int32    lastmsg;
-        MYFLT   kcoefs[MAXPOLES*2], framrat16;
+        MYFLT   *kcoefs/*[MAXPOLES*2]*/, framrat16;
         int             storePoles ;
+        AUXCH    aux;
 } LPINTERPOL ;
 
 typedef struct {
@@ -144,4 +150,3 @@ int kareson(CSOUND*,RESON *p);
 int limitset(CSOUND*,LIMIT *p);
 int klimit(CSOUND*,LIMIT *p);
 int limit(CSOUND*,LIMIT *p);
-

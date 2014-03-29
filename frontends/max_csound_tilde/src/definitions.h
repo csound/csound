@@ -49,7 +49,7 @@
 		#define _USE_BOOST_SERIALIZATION 
 	#endif
 	typedef unsigned char byte;
-	typedef unsigned long DWORD;
+	typedef unsigned int DWORD;
 #endif
 
 #ifndef FL

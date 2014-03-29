@@ -677,6 +677,7 @@ Fl_Spin::Fl_Spin(CSOUND *cs, int x, int y, int w, int h, const char* l)
     mouseobj = 0;
     deltadir=0;
     delta=0;
+    indrag=0;
 }
 
 // ---- IV - Aug 23 2002 ---- included file: Fl_Value_Input_Spin.cpp
@@ -1659,7 +1660,7 @@ extern "C" {
       if (UNLIKELY(s2 == NULL))
         return csound->InitError(csound,
                                  Str("FLsavesnap: cannot open file"));
-      strcpy(s, s2);
+      strncpy(s, s2, MAXNAME-1);
       csound->Free(csound, s2);
       filename = s;
 
@@ -1716,7 +1717,7 @@ extern "C" {
       if (UNLIKELY(s2 == NULL))
         return csound->InitError(csound,
                                  Str("FLloadsnap: cannot open file"));
-      strcpy(s, s2);
+      strncpy(s, s2, MAXNAME-1);
       csound->Free(csound, s2);
       filename = s;
 
@@ -1731,7 +1732,7 @@ extern "C" {
         ST(snapshots).resize(group+1, snapvec_init);
       while (!(file.eof())) {
         char buf[MAXNAME];
-        file.getline(buf,MAXNAME);
+        file.getline(buf,MAXNAME-1);
 
         stringstream sbuf;
         sbuf << buf;
@@ -3563,10 +3564,10 @@ extern "C" {
       char s[MAXNAME];
       bool plastic = false;
       if (istring)
-        strcpy(s, ((STRINGDAT*) p->names)->data);
+        strncpy(s, ((STRINGDAT*) p->names)->data, MAXNAME-1);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-        strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+        strncpy(s, csound->GetStrsets(csound,(long) *p->names), MAXNAME-1);
       }
       string tempname(s);
       stringstream sbuf;
@@ -4396,8 +4397,8 @@ extern "C" {
 
   static int FLprintkset(CSOUND *csound, FLPRINTK *p)
   {
-    WIDGET_GLOBALS *widgetGlobals =
-      (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
+    //WIDGET_GLOBALS *widgetGlobals =
+    //(WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     if (*p->ptime < MYFLT(1.0) / CS_EKR)
       p->ctime = MYFLT(1.0) / CS_EKR;
       else        p->ctime = *p->ptime;
@@ -4452,8 +4453,8 @@ extern "C" {
 
   void skin(CSOUND* csound, Fl_Widget *o, int imgNum, bool isTiled)
   {
-    WIDGET_GLOBALS *widgetGlobals =
-      (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
+    // WIDGET_GLOBALS *widgetGlobals =
+    //  (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 #ifdef CS_IMAGE
       extern void* get_image(CSOUND* csound, int imgNum);
       ImageSTRUCT *bmp =  (ImageSTRUCT*) get_image(csound, imgNum);
@@ -4488,6 +4489,8 @@ extern "C" {
         numLinesX = numLinesX_ - 1;
         numLinesY = numLinesY_ - 1;
         valueX = valueY = .5;
+        rx = rw = ry = rh = 0;
+        red = green = blue = 0;
         //      if (filename != NULL) {
         //       img = new Fl_PNG_Image(filename);
         //       this->image(img);
@@ -4687,10 +4690,10 @@ extern "C" {
       char s[MAXNAME];
       bool plastic = false;
       if (istring)
-        strcpy(s, ((STRINGDAT *)p->names)->data);
+        strncpy(s, ((STRINGDAT *)p->names)->data, MAXNAME-1);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-        strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+        strncpy(s, csound->GetStrsets(csound,(long) *p->names), MAXNAME-1);
       }
       string tempname(s);
       stringstream sbuf;
@@ -4911,10 +4914,10 @@ extern "C" {
       char s[MAXNAME];
       bool plastic = false;
       if (istring)
-        strcpy(s, ((STRINGDAT*) p->names)->data);
+        strncpy(s, ((STRINGDAT*) p->names)->data, MAXNAME-1);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-        strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+        strncpy(s, csound->GetStrsets(csound,(long) *p->names), MAXNAME-1);
       }
       string tempname(s);
       stringstream sbuf;
@@ -5101,10 +5104,10 @@ extern "C" {
       char s[MAXNAME];
       bool plastic = false;
       if (istring)
-        strcpy(s, ((STRINGDAT*) p->names)->data);
+        strncpy(s, ((STRINGDAT*) p->names)->data, MAXNAME-1);
       else if ((long) *p->names <= csound->GetStrsmax(csound) &&
                csound->GetStrsets(csound,(long) *p->names)) {
-        strcpy(s, csound->GetStrsets(csound,(long) *p->names));
+        strncpy(s, csound->GetStrsets(csound,(long) *p->names), MAXNAME-1);
       }
       string tempname(s);
       stringstream sbuf;
@@ -5487,8 +5490,9 @@ extern "C" {
 
   static int fl_slider_bank2_setVal_k(CSOUND *csound, FLSLDBNK2_SETK *p)
   {
-      WIDGET_GLOBALS *widgetGlobals =
-        (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
+    //WIDGET_GLOBALS *widgetGlobals =
+    //    (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
+
       if(*p->kflag) {
         FLSLIDERBANK2 *q = p->q;
         MYFLT *table=p->table;
@@ -5541,7 +5545,7 @@ extern "C" {
   {
       FUNC* ftp;
       WIDGET_GLOBALS *widgetGlobals =
-        (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
+      (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       p->numslid = (int)*p->numSlid;
       p->startind = (int)*p->startInd;
       p->startslid = (int)*p->startSlid;

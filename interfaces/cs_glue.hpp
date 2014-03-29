@@ -603,9 +603,9 @@ class PUBLIC CsoundMidiInputStream : public CsoundMidiInputBuffer {
  public:
     CsoundMidiInputStream(CSOUND *csound);
     CsoundMidiInputStream(Csound *csound);
-    ~CsoundMidiInputStream()
-    {
-    }
+    //~CsoundMidiInputStream()
+    //{
+    //}
     /**
      * Enables MIDI input for the associated Csound instance.
      * Should be called between csoundPreCompile() and csoundCompile().
@@ -686,9 +686,9 @@ class PUBLIC CsoundMidiOutputStream : public CsoundMidiOutputBuffer {
  public:
     CsoundMidiOutputStream(CSOUND *csound);
     CsoundMidiOutputStream(Csound *csound);
-    ~CsoundMidiOutputStream()
-    {
-    }
+    //~CsoundMidiOutputStream()
+    //{
+    //}
     /**
      * Enables MIDI output for the associated Csound instance.
      * Should be called between csoundPreCompile() and csoundCompile().

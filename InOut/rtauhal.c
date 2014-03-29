@@ -283,12 +283,17 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
     /* although the SR is set in the stream properties,
        we also need to set the device to match */
+     double sr;
     prop.mSelector = kAudioDevicePropertyNominalSampleRate;
+    if(!isInput){
+      AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
+      csound->system_sr(csound, sr);
+    }
+
     psize = sizeof(double);
     AudioObjectSetPropertyData(dev, &prop, 0, NULL, psize, &srate);
-
-    double sr;
     AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
+
     if(sr != srate) {
       csound->Warning(csound,
                       Str("Attempted to set device SR, tried %.1f, got %.1f \n"),
@@ -493,7 +498,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         for(i=0; (unsigned int)  i < devnos; i++) {
           if(devinfo[i].inchannels) {
             strncpy(list[n].device_name,  devinfo[i].name, 63);
-            sprintf(tmp, "dac%d", devinfo[i].indevnum);
+            snprintf(tmp, 64, "adc%d", devinfo[i].indevnum);
             strncpy(list[n].device_id, tmp, 63);
             strncpy(list[n].rt_module, s, 63);
             list[n].max_nchnls = devinfo[i].inchannels;
@@ -506,7 +511,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         for(i=0;(unsigned int) i < devnos; i++){
           if(devinfo[i].outchannels) {
             strncpy(list[n].device_name,  devinfo[i].name, 63);
-            sprintf(tmp, "dac%d", devinfo[i].outdevnum);
+            snprintf(tmp, 64, "dac%d", devinfo[i].outdevnum);
             strncpy(list[n].device_id, tmp, 63);
             strncpy(list[n].rt_module, s, 63);
             list[n].max_nchnls = devinfo[i].outchannels;
@@ -638,12 +643,14 @@ OSStatus  Csound_Render(void *inRefCon,
     IGN(ioActionFlags);
     IGN(inTimeStamp);
     IGN(inBusNumber);
+         
 
     n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
     for (k = 0; k < onchnls; k++) {
       buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
       for(j=0; (unsigned int) j < inNumberFrames; j++){
         buffer[j] = (AudioUnitSampleType) outputBuffer[j*onchnls+k] ;
+        outputBuffer[j*onchnls+k] = FL(0.0);
       }
     }
     return 0;

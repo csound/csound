@@ -253,10 +253,11 @@ LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc
 
 # For building without plugins, but with support for plugins that may depend on GNU STL, use:
 
-LOCAL_SHARED_LIBRARIES += gnustl_shared sndfile 
+LOCAL_SHARED_LIBRARIES += gnustl_shared sndfile
+#LOCAL_STATIC_LIBRARIES += sndfile
+
 
 include $(BUILD_SHARED_LIBRARY)
-
 $(call import-module,libsndfile-android/jni)
 #$(call import-module,libstdutil/jni)
 #$(call import-module,libfluidsynth/jni)

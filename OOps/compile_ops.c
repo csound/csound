@@ -24,64 +24,68 @@
 #include <stdio.h>
 
 int compile_orc_i(CSOUND *csound, COMPILE *p){
-  FILE *fp;
-  int size=0;
-  char *orc, c, *name;
+    FILE *fp;
+    int size=0;
+    char *orc, c, *name;
 
+    name = ((STRINGDAT *)p->str)->data;
+    fp = fopen(name, "rb");
 
-  name = ((STRINGDAT *)p->str)->data;
-  fp = fopen(name, "rb");
+    if (fp == NULL) {
+      csound->Warning(csound, Str("compileorc: could not open %s\n"), name);
+      *p->res = (MYFLT)(CSOUND_ERROR);
+      return NOTOK;
+    }
 
-  if(fp == NULL) {
-    csound->Warning(csound, Str("compileorc: could not open %s\n"), name);
-    *p->res = FL(CSOUND_ERROR);
-    return NOTOK;
-  }
+    while(!feof(fp))
+      size += fread(&c,1,1,fp);
 
-  while(!feof(fp))
-     size += fread(&c,1,1,fp);
+    if(size==0) {
+      fclose(fp);
+      *p->res = (MYFLT)(CSOUND_ERROR);
+      csound->InitError(csound, Str("compileorc: could not read %s\n"), name);
+      return NOTOK;
+    }
 
-  if(size==0) {
-   fclose(fp);
-   *p->res = FL(CSOUND_ERROR);
-   csound->InitError(csound, Str("compileorc: could not read %s\n"), name);
-   return NOTOK;
-  }
+    orc = (char *) csound->Calloc(csound, size+1);
+    fseek(fp, 0, SEEK_SET);
+    (void)fread(orc,1,size,fp);
+    *p->res = (MYFLT)(csoundCompileOrc(csound, orc));
+    fclose(fp);
+    csound->Free(csound,orc);
+    return OK;
+}
 
-  orc = (char *) mcalloc(csound, size+1);
-  fseek(fp, 0, SEEK_SET);
-  fread(orc,1,size,fp);
-  *p->res = FL(csoundCompileOrc(csound, orc));
-  fclose(fp);
-  mfree(csound,orc);
-  return OK;
+int compile_csd_i(CSOUND *csound, COMPILE *p){
+  *p->res = (MYFLT) csoundCompileCsd(csound, ((STRINGDAT *)p->str)->data);
+   return OK;
 }
 
 int compile_str_i(CSOUND *csound, COMPILE *p){
-  *p->res = FL(csoundCompileOrc(csound, ((STRINGDAT *)p->str)->data));
-  return OK;
+    *p->res = (MYFLT)(csoundCompileOrc(csound, ((STRINGDAT *)p->str)->data));
+    return OK;
 }
 
 int read_score_i(CSOUND *csound, COMPILE *p){
-  *p->res = FL(csoundReadScore(csound, ((STRINGDAT *)p->str)->data));
-  return OK;
+    *p->res = (MYFLT)(csoundReadScore(csound, ((STRINGDAT *)p->str)->data));
+    return OK;
 }
 
 int eval_str_i(CSOUND *csound, COMPILE *p){
-  *p->res = csoundEvalCode(csound, ((STRINGDAT *)p->str)->data);
-  return OK;
+    *p->res = csoundEvalCode(csound, ((STRINGDAT *)p->str)->data);
+    return OK;
 }
 
 int eval_str_k(CSOUND *csound, COMPILE *p){
-  if(*p->ktrig)
-   *p->res = csoundEvalCode(csound, ((STRINGDAT *)p->str)->data);
-  return OK;
+    if (*p->ktrig)
+      *p->res = csoundEvalCode(csound, ((STRINGDAT *)p->str)->data);
+    return OK;
 }
 
 
 int retval_i(CSOUND *csound, RETVAL *p){
-  INSDS *ip = p->h.insdshead;
-  ip->retval = *p->ret;
-  return OK;
+    INSDS *ip = p->h.insdshead;
+    ip->retval = *p->ret;
+    return OK;
 }
 

@@ -65,8 +65,8 @@ static int array_del(CSOUND *csound, void *p)
 {
     ARRAYDAT *t = ((ARRAYDEL*)p)->arrayDat;
     t->arrayType = NULL; // types cleaned up later
-    mfree(csound, t->data);
-    mfree(csound, p);           /* Unlikely to free the p */
+    csound->Free(csound, t->data);
+    csound->Free(csound, p);           /* Unlikely to free the p */
     return OK;
 }
 #endif
@@ -76,11 +76,11 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
     if (p->data==NULL || p->dimensions == 0 ||
         (p->dimensions==1 && p->sizes[0] < size)) {
       uint32_t ss = sizeof(MYFLT)*size;
-      if (p->data==NULL) p->data = (MYFLT*)mmalloc(csound, ss);
-      else p->data = (MYFLT*) mrealloc(csound, p->data, ss);
+      if (p->data==NULL) p->data = (MYFLT*)csound->Malloc(csound, ss);
+      else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
       p->dimensions = 1;
       p->arrayMemberSize = sizeof(MYFLT);
-      p->sizes = (int*)mmalloc(csound, sizeof(int));
+      p->sizes = (int*)csound->Malloc(csound, sizeof(int));
       p->sizes[0] = size;
     }
 }
@@ -97,7 +97,7 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
                                Str("Error: no sizes set for array initialization"));
 
     arrayDat->dimensions = inArgCount;
-    arrayDat->sizes = mcalloc(csound, sizeof(int) * inArgCount);
+    arrayDat->sizes = csound->Calloc(csound, sizeof(int) * inArgCount);
     for (i = 0; i < inArgCount; i++) {
       arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[i]);
     }
@@ -114,14 +114,14 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
     CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, NULL);
 
 //    if(arrayDat->data != NULL) {
-//        mfree(csound, arrayDat->data);
+//        csound->Free(csound, arrayDat->data);
 //    }
     arrayDat->arrayMemberSize = var->memBlockSize;
     int memSize = var->memBlockSize*size;
-    arrayDat->data = mcalloc(csound, memSize);
+    arrayDat->data = csound->Calloc(csound, memSize);
 //    for (i=0; i<size; i++) t->data[i] = val;
 //    { // Need to recover space eventually
-//        TABDEL *op = (TABDEL*) mmalloc(csound, sizeof(TABDEL));
+//        TABDEL *op = (TABDEL*) csound->Malloc(csound, sizeof(TABDEL));
 //        op->h.insdshead = ((OPDS*) p)->insdshead;
 //        op->tab = t;
 //        csound->RegisterDeinitCallback(csound, op, tabdel);
@@ -178,7 +178,8 @@ static int array_set(CSOUND* csound, ARRAY_SET *p) {
 
     incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
-    memcpy(mem, p->value, dat->arrayMemberSize);
+    //memcpy(mem, p->value, dat->arrayMemberSize);
+    dat->arrayType->copyValue(csound, mem, p->value);
     /* printf("array_set: mem = %p, incr = %d, value = %f\n", */
     /*        mem, incr, *((MYFLT*)p->value)); */
     return OK;
@@ -222,7 +223,8 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 
     incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
-    memcpy(p->out, mem, dat->arrayMemberSize);
+//    memcpy(p->out, mem, dat->arrayMemberSize);
+    dat->arrayType->copyValue(csound, p->out, mem);
     return OK;
 }
 
@@ -1086,7 +1088,7 @@ static int ina(CSOUND *csound, OUTA *p)
     uint32_t n, l, nsmps = CS_KSMPS;
     MYFLT       *data = aa->data;
     MYFLT       *sp= CS_SPIN;
-    int len = p->len;
+    uint32_t len = (uint32_t)p->len;
     for (l=0; l<len; l++) {
       sp = CS_SPIN + l;
       memset(data, '\0', nsmps*sizeof(MYFLT));
@@ -1115,6 +1117,7 @@ static OENTRY arrayvars_localops[] =
     { "fillarray", 0xffff },
       { "fillarray.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill },
       { "fillarray.i", sizeof(TABFILL), 0, 1, "i[]", "m", (SUBR)tabfill },
+      { "fillarray.s", sizeof(TABFILL), 0, 1, "S[]", "W", (SUBR)tabfill },
     { "array", 0xffff },
       { "array.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill     },
       { "array.i", sizeof(TABFILL), 0, 1, "i[]", "m", (SUBR)tabfill     },
@@ -1126,12 +1129,12 @@ static OENTRY arrayvars_localops[] =
     { "##array_set.k", sizeof(ARRAY_SET), 0, 2, "", ".[].z",
                                               NULL, (SUBR)array_set },
     { "##array_get.i", sizeof(ARRAY_GET), 0, 1, "i", "i[]m", (SUBR)array_get },
-    { "##array_get.k0", sizeof(ARRAY_GET), 0, 2, "k", "k[]z",
-      NULL, (SUBR)array_get },
+    { "##array_get.k0", sizeof(ARRAY_GET), 0, 3, "k", "k[]z",
+      (SUBR)array_get, (SUBR)array_get },
     { "##array_get.i2", sizeof(ARRAY_GET), 0, 3, ".", ".[]m",
                                        (SUBR)array_get, (SUBR)array_get },
-    { "##array_get.k", sizeof(ARRAY_GET), 0, 2, ".", ".[]z",
-      NULL, (SUBR)array_get },
+    { "##array_get.k", sizeof(ARRAY_GET), 0, 3, ".", ".[]z",
+      (SUBR)array_get, (SUBR)array_get },
     /* ******************************************** */
     {"##add.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
                                          (SUBR)tabarithset, (SUBR)tabadd},
@@ -1237,10 +1240,12 @@ static OENTRY arrayvars_localops[] =
     { "lentab", 0xffff},
     { "lentab.i", sizeof(TABQUERY1), _QQ, 1, "i", "k[]", (SUBR) tablength },
     { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]", NULL, (SUBR) tablength },
-    { "lenarray", 0xffff},
-    { "lenarray.i", sizeof(TABQUERY1), 0, 1, "i", "k[]", (SUBR) tablength },
-    { "lenarray.ii", sizeof(TABQUERY1), 0, 1, "i", "i[]", (SUBR) tablength },
-    { "lenarray.k", sizeof(TABQUERY1), 0, 2, "k", "k[]", NULL, (SUBR) tablength },
+//    { "lenarray", 0xffff},
+//    { "lenarray.i", sizeof(TABQUERY1), 0, 1, "i", "k[]", (SUBR) tablength },
+//    { "lenarray.ii", sizeof(TABQUERY1), 0, 1, "i", "i[]", (SUBR) tablength },
+    { "lenarray.ix", sizeof(TABQUERY1), 0, 1, "i", ".[]", (SUBR) tablength },
+//    { "lenarray.k", sizeof(TABQUERY1), 0, 2, "k", "k[]", NULL, (SUBR) tablength },
+    { "lenarray.kx", sizeof(TABQUERY1), 0, 2, "k", ".[]", NULL, (SUBR) tablength },
     { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa},
     { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina}
 };

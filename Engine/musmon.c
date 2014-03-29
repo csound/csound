@@ -199,9 +199,9 @@ int musmon(CSOUND *csound)
     dbfs_init(csound, csound->e0dbfs);
     csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
     csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
-    csound->spin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
-    csound->spout = (MYFLT *) mcalloc(csound, csound->nspout * sizeof(MYFLT));
-    csound->auxspin  = (MYFLT *) mcalloc(csound, csound->nspin * sizeof(MYFLT));
+    csound->spin  = (MYFLT *) csound->Calloc(csound, csound->nspin * sizeof(MYFLT));
+    csound->spout = (MYFLT *) csound->Calloc(csound, csound->nspout * sizeof(MYFLT));
+    csound->auxspin = (MYFLT *) csound->Calloc(csound, csound->nspin *sizeof(MYFLT));
     /* memset(csound->maxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
     /* memset(csound->smaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
     /* memset(csound->omaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
@@ -294,7 +294,7 @@ int musmon(CSOUND *csound)
     //csound->scfp
     if (UNLIKELY(O->usingcscore)) {
       if (STA(lsect) == NULL) {
-        STA(lsect) = (EVENT*) mmalloc(csound, sizeof(EVENT));
+        STA(lsect) = (EVENT*) csound->Malloc(csound, sizeof(EVENT));
         STA(lsect)->op = 'l';
       }
       csound->Message(csound, Str("using Cscore processing\n"));
@@ -406,7 +406,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     uint32_t n;
 
     if(csound->QueryGlobalVariable(csound,"::UDPCOM")
-         != NULL) UDPServerClose(csound);
+       != NULL) UDPServerClose(csound);
 
     while (csound->evtFuncChain != NULL) {
       p = (void*) csound->evtFuncChain;
@@ -427,7 +427,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
         csound->engineState.instrtxtp[0]->instance &&
         csound->engineState.instrtxtp[0]->instance->actflg)
       xturnoff_now(csound, csound->engineState.instrtxtp[0]->instance);
-      delete_pending_rt_events(csound);
+    delete_pending_rt_events(csound);
 
     if(csound->init_pass_loop == 1) {
       csoundLockMutex(csound->init_pass_threadlock);
@@ -513,6 +513,7 @@ int turnon(CSOUND *csound, TURNON *p)
 {
     EVTBLK  evt;
     int insno;
+    memset(&evt, 0, sizeof(EVTBLK));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = 3;
@@ -537,7 +538,7 @@ int turnon_S(CSOUND *csound, TURNON *p)
 {
     EVTBLK  evt;
     int     insno;
-
+    memset(&evt, 0, sizeof(EVTBLK));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = 3;
@@ -1188,6 +1189,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       memcpy(e->evt.strarg, evt->strarg, p-evt->strarg+1 );
       e->evt.scnt = evt->scnt;
     }
+    e->evt.pinstance = evt->pinstance;
     e->evt.opcod = evt->opcod;
     e->evt.pcnt = evt->pcnt;
     p = &(e->evt.p[0]);
@@ -1233,6 +1235,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
         /* calculate the length in beats */
         if (evt->p3orig > FL(0.0))
           evt->p3orig = (MYFLT) ((double) evt->p3orig / st->ibeatTime);
+        /* fall through required */
       case 'q':                         /* mute instrument */
         /* check for a valid instrument number or name */
         if (evt->strarg != NULL && ISSTRCOD(p[1]))

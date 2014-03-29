@@ -51,7 +51,7 @@ static void layerDefaults(layerType *layer);
 static void splitDefaults(splitType *split);
 
 #define MAX_SFONT               (10)
-#define MAX_SFPRESET            (512)
+#define MAX_SFPRESET            (16384)
 #define GLOBAL_ATTENUATION      (FL(0.3))
 
 #define ONETWELTH               (0.08333333333333333333333333333)
@@ -62,8 +62,8 @@ typedef struct _sfontg {
   SFBANK *sfArray;
   int currSFndx;
   int maxSFndx;
-  presetType *presetp[MAX_SFPRESET];
-  SHORT *sampleBase[MAX_SFPRESET];
+  presetType **presetp;
+  SHORT **sampleBase;
   MYFLT pitches[128];
 } sfontg;
 
@@ -92,6 +92,9 @@ int sfont_ModuleDestroy(CSOUND *csound)
     }
     free(sfArray);
     globals->currSFndx = 0;
+    csound->Free(csound, globals->presetp);
+    csound->Free(csound, globals->sampleBase);
+
     csound->DestroyGlobalVariable(csound, "::sfontg");
     return 0;
 }
@@ -117,8 +120,9 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
       csound->ErrorMsg(csound, Str("Sfload: cannot use globals"));
       return;
     }
-    strcpy(soundFont->name, csound->GetFileName(fd));
-    chunk_read(fil, &soundFont->chunk.main_chunk);
+    strncpy(soundFont->name, csound->GetFileName(fd), 256);
+    if (UNLIKELY(chunk_read(fil, &soundFont->chunk.main_chunk)<0))
+      csound->Message(csound, Str("sfont: failed to read file\n"));
     csound->FileClose(csound, fd);
     globals->soundFont = soundFont;
     fill_SfPointers(csound);
@@ -163,7 +167,7 @@ static int SfLoad_(CSOUND *csound, SFLOAD *p, int istring)
     *p->ihandle = (float) globals->currSFndx;
     sf = &globals->sfArray[globals->currSFndx];
     qsort(sf->preset, sf->presets_num, sizeof(presetType),
-          (int (*)(const void *, const void * )) compare);
+        (int (*)(const void *, const void * )) compare);
     csound->Free(csound,fname);
     if (UNLIKELY(++globals->currSFndx>=globals->maxSFndx)) {
       globals->maxSFndx += 5;
@@ -1516,7 +1520,7 @@ static void fill_SfStruct(CSOUND *csound)
 
     size = phdrChunk->ckSize / sizeof(sfPresetHeader);
     soundFont->presets_num = size;
-    preset = (presetType *) malloc(size * sizeof(sfPresetHeader));
+    preset = (presetType *) malloc(size * sizeof(presetType));
     for (j=0; j < size; j++) {
       preset[j].name = phdr[j].achPresetName;
       if (strcmp(preset[j].name,"EOP")==0) {
@@ -1645,12 +1649,14 @@ static void fill_SfStruct(CSOUND *csound)
                         split->num= num;
                         split->sample = &shdr[num];
                         if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
-                            csound->ErrorMsg(csound, Str("SoundFont file \"%s\" "
-                                                  "contains ROM samples !\n"
-                                                  "At present time only RAM "
-                                                  "samples are allowed "
-                                                  "by sfload.\n"
-                                                  "Session aborted !"), Gfname);
+                          free(preset);
+                          csound->ErrorMsg(csound, Str("SoundFont file \"%s\" "
+                                                       "contains ROM samples !\n"
+                                                       "At present time only RAM "
+                                                       "samples are allowed "
+                                                       "by sfload.\n"
+                                                       "Session aborted !"),
+                                           Gfname);
                             return;
                         }
                         sglobal_zone = 0;
@@ -1883,11 +1889,12 @@ static void fill_SfStruct(CSOUND *csound)
                   split->num= num;
                   split->sample = &shdr[num];
                   if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
+                    free(instru);
                     csound->ErrorMsg(csound, Str("SoundFont file \"%s\" contains "
                                             "ROM samples !\n"
                                             "At present time only RAM samples "
                                             "are allowed by sfload.\n"
-                                            "Session aborted !"), Gfname);
+                                                 "Session aborted !"), Gfname);
                     return;
                   }
                   sglobal_zone = 0;
@@ -2597,14 +2604,18 @@ int sfont_ModuleCreate(CSOUND *csound)
       return csound->InitError(csound,
                                Str("error... could not create sfont globals\n"));
 
-    globals->sfArray = (SFBANK *)malloc(MAX_SFONT*sizeof(SFBANK));
+    globals->sfArray = (SFBANK *) malloc(MAX_SFONT*sizeof(SFBANK));
+    globals->presetp =
+      (presetType **) csound->Malloc(csound, MAX_SFPRESET *sizeof(presetType *));
+    globals->sampleBase =
+      (SHORT **) csound->Malloc(csound, MAX_SFPRESET*sizeof(SHORT *));
     globals->currSFndx = 0;
     globals->maxSFndx = MAX_SFONT;
     for (j=0; j<128; j++) {
-      globals->pitches[j] = (MYFLT) (440.0 * pow (2.0,(j - 69.0)/12.0));
+      globals->pitches[j] = (MYFLT) (440.0 * pow(2.0, (double)(j- 69)/12.0));
     }
 
-    return OK;
+   return OK;
 }
 
 int sfont_ModuleInit(CSOUND *csound)
