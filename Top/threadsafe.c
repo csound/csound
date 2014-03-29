@@ -47,7 +47,7 @@ void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *ptable){
      we need to protect it */
   if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
   len = csoundGetTable(csound, &ftab, table);
-  memcpy(ptable, ftab, len*sizeof(MYFLT));
+  memcpy(ptable, ftab, (size_t) (len*sizeof(MYFLT)));
   if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
   csoundUnlockMutex(csound->API_lock);
 }
@@ -60,7 +60,7 @@ void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *ptable){
      we need to protect it */
  if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
   len = csoundGetTable(csound, &ftab, table);
-  memcpy(ftab, ptable, len*sizeof(MYFLT));
+  memcpy(ftab, ptable, (size_t) (len*sizeof(MYFLT)));
   if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
   csoundUnlockMutex(csound->API_lock);
 }
@@ -147,28 +147,49 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
     if (csoundGetChannelPtr(csound, &pstring, name,
                            CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)
             == CSOUND_SUCCESS){
-      int    size = csoundGetChannelDatasize(csound, name);
+
+      STRINGDAT* stringdat = (STRINGDAT*) pstring;
+      int    size = stringdat->size; //csoundGetChannelDatasize(csound, name);
       int    *lock = csoundGetChannelLock(csound, (char*) name);
-      csoundSpinLock(lock);
-      if(strlen(string) > (unsigned int) size) {
-        if(pstring!=NULL) mfree(csound,pstring);
-        pstring = (MYFLT *) cs_strdup(csound, string);
-        set_channel_data_ptr(csound,name,(void*)pstring, strlen(string)+1);
-      } else strcpy((char *) pstring, string);
-      csoundSpinUnLock(lock);
+
+      if(lock != NULL) {
+        csoundSpinLock(lock);
+      }
+
+      if(strlen(string) + 1 > (unsigned int) size) {
+        if(stringdat->data!=NULL) csound->Free(csound,stringdat->data);
+        stringdat->data = cs_strdup(csound, string);
+        stringdat->size = strlen(string) + 1;
+        //set_channel_data_ptr(csound,name,(void*)pstring, strlen(string)+1);
+      } else {
+        strcpy((char *) stringdat->data, string);
+      }
+
+      if(lock != NULL) {
+        csoundSpinUnLock(lock);
+      }
     }
 }
 
 void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
 {
-    MYFLT  *pstring;
+  MYFLT  *pstring;
+  char *chstring;
+    int n2;
     if (csoundGetChannelPtr(csound, &pstring, name,
                            CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
             == CSOUND_SUCCESS){
       int *lock = csoundGetChannelLock(csound, (char*) name);
-      csoundSpinLock(lock);
-      strcpy(string, (char *) pstring);
-      csoundSpinUnLock(lock);
+      chstring = ((STRINGDAT *) pstring)->data;
+      if (lock != NULL)
+        csoundSpinLock(lock);
+       if(string != NULL && chstring != NULL) {
+         n2 = strlen(chstring);
+         strncpy(string,chstring, n2);
+         string[n2] = 0;
+       }
+      if(lock != NULL)
+        csoundSpinUnLock(lock);
     }
 }
 
@@ -187,9 +208,9 @@ PUBLIC int csoundSetPvsChannel(CSOUND *csound, const PVSDATEXT *fin,
 
 
         if(f->frame == NULL) {
-          f->frame = mcalloc(csound, sizeof(float)*(fin->N+2));
+          f->frame = csound->Calloc(csound, sizeof(float)*(fin->N+2));
         } else if(f->N < fin->N) {
-          f->frame = mrealloc(csound, f->frame, sizeof(float)*(fin->N+2));
+          f->frame = csound->ReAlloc(csound, f->frame, sizeof(float)*(fin->N+2));
         }
 
         memcpy(f, fin, sizeof(PVSDATEXT)-sizeof(float *));

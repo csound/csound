@@ -1011,7 +1011,7 @@ int ko1set(CSOUND *csound, OSCIL1 *p)
     }
     p->ftp = ftp;
     p->phs = 0;
-    p->dcnt = (int32)(*p->idel * csound->ekr);
+    p->dcnt = (int32)(*p->idel * CS_EKR);
     p->kinc = (int32) (CS_KICVT / *p->idur);
     if (p->kinc==0) p->kinc = 1;
     return OK;
@@ -1168,13 +1168,12 @@ static int fill_func_from_array(ARRAYDAT *a, FUNC *f)
 int oscsetA(CSOUND *csound, OSC *p)
 {
     FUNC        *ftp = &p->FF;
-    int res;
 
     if (*p->iphs >= 0)
       p->lphs = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
     //check p->ifn is a valid array with power-of-two length
     p->ftp = ftp;
-    res = fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
+    fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
     return OK;
 }
 
@@ -1232,6 +1231,7 @@ int osckk(CSOUND *csound, OSC *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+
     for (n=offset;n<nsmps;n++) {
       ar[n] = ftbl[phs >> lobits] * amp;
       /* phs += inc; */

@@ -1280,7 +1280,7 @@ void csound_run(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 			snprintf(tmp, MAX_STRING_LENGTH-1, "%f", (float)atom_getfloat(&argv[i]));
 			break;
 		case A_LONG:
-			snprintf(tmp, MAX_STRING_LENGTH-1, "%lld", (long long)atom_getlong(argv[i]));
+			snprintf(tmp, MAX_STRING_LENGTH-1, "%lld", (long long)atom_getlong(&argv[i]));
 			break;
 		case A_SYM:
 			strncpy(tmp, argv[i].a_w.w_sym->s_name, MAX_STRING_LENGTH-1);
