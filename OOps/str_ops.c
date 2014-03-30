@@ -396,15 +396,16 @@ sprintf_opcode_(CSOUND *csound,
             return StrOp_ErrMsg(p, "output argument may not be "
                                    "the same as any of the input args");
           }
-          if (((STRINGDAT*)parm)->size >= maxChars) {
+          if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= maxChars) {
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data,
-                                 str->size  + ((STRINGDAT*)parm)->size);
-            str->size += ((STRINGDAT*)parm)->size;
-            maxChars += ((STRINGDAT*)parm)->size;
+                                        str->size  + ((STRINGDAT*)parm)->size + strlen(strseg));
+            str->size += ((STRINGDAT*)parm)->size + strlen(strseg);
+            maxChars += ((STRINGDAT*)parm)->size + strlen(strseg);
             outstring = str->data + offs;
           }
           n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
+          /*** Broken by here  as strseg wag not counted in the size calculation above ***/
           break;
         default:
           return StrOp_ErrMsg(p, "invalid format string");
@@ -442,7 +443,7 @@ sprintf_opcode_(CSOUND *csound,
 int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
     if (p->r->data == NULL) {
-      int size = p->sfmt->size+ 10*((int) p->INOCOUNT);
+      int size = p->sfmt->size+ 10*((int) p->INOCOUNT); /* this 10 is 1n incorrect guess */
       p->r->data = csound->Calloc(csound, size);
       p->r->size = size;
     }
