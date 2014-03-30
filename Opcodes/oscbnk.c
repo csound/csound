@@ -828,13 +828,13 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
     int           i, w_interp, g_interp, f_nolock;
     MYFLT         *aout0, *aout, *ft, *w_ft, frq_scl, pfrac, w_pfrac, f, a, k;
     MYFLT         wfdivxf, w_frq_f, x_frq_f;
-    uint32 n, mask, lobits, w_mask, w_lobits;
-    uint32 *phs, frq, x_ph, x_frq, g_ph, g_frq, w_ph, w_frq;
+    uint32        n, mask, lobits, w_mask, w_lobits;
+    uint32        *phs, frq, x_ph, x_frq, g_ph, g_frq, w_ph, w_frq;
     GRAIN2_OSC    *o;
     FUNC          *ftp;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t nn, nsmps = CS_KSMPS;
+    uint32_t      offset = p->h.insdshead->ksmps_offset;
+    uint32_t      early  = p->h.insdshead->ksmps_no_end;
+    uint32_t      nn, nsmps = CS_KSMPS;
 
     /* clear output */
     memset(p->ar, 0, nsmps*sizeof(MYFLT));
