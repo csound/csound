@@ -1259,11 +1259,18 @@ typedef struct NAME__ {
     int (*sprintf)(char *str, const char *format, ...);
     int (*sscanf)(char *str, const char *format, ...);
     MYFLT (*system_sr)(CSOUND *, MYFLT );
-      /**@}*/
+    /**@}*/
+    /** @name Score Event s*/
+    /**@{ */
+    MYFLT (*GetScoreOffsetSeconds)(CSOUND *);
+    void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT offset);
+    void (*RewindScore)(CSOUND *);
+    void (*InputMessage)(CSOUND *, const char *message__);
+       /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[47];
+    SUBR dummyfn_2[43];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
