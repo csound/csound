@@ -866,7 +866,7 @@ static const CSOUND cenviron_ = {
     0,              /* info_message_request */
     0,              /* modules loaded */
     -1,             /* audio system sr */
-    NULL            /* csdebug_data */
+    0               /* csdebug_data */
     /*, NULL */           /* self-reference */
 };
 
@@ -1453,11 +1453,18 @@ int kperf(CSOUND *csound)
 {
     INSDS *ip;
     INSDS *debugip = NULL;
-    /* update orchestra time */
-    csound->kcounter = ++(csound->global_kcounter);
-    csound->icurTime += csound->ksmps;
-    csound->curBeat += csound->curBeat_inc;
-
+#ifdef CSDEBUGGER
+    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
+    debug_command_t command;
+    command = CSDEBUG_CMD_NONE;
+    if (!data || data->status != CSDEBUG_STATUS_STOPPED)
+#endif
+    {
+        /* update orchestra time */
+        csound->kcounter = ++(csound->global_kcounter);
+        csound->icurTime += csound->ksmps;
+        csound->curBeat += csound->curBeat_inc;
+    }
 
     /* if skipping time on request by 'a' score statement: */
     if (UNLIKELY(csound->advanceCnt)) {
@@ -1474,9 +1481,6 @@ int kperf(CSOUND *csound)
       if (UNLIKELY(!csoundYield(csound))) csound->LongJmp(csound, 1);
     }
 #ifdef CSDEBUGGER
-    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    debug_command_t command;
-    command = CSDEBUG_CMD_NONE;
     if (data) {
         csoundReadCircularBuffer(csound, data->cmd_buffer, &command, 1);
     }
@@ -1517,7 +1521,7 @@ int kperf(CSOUND *csound)
         }
     }
 
-    if (!data || (data && data->status != CSDEBUG_STATUS_STOPPED))
+    if (!data || data->status != CSDEBUG_STATUS_STOPPED)
 #endif
     {        
       /* update orchestra time */
@@ -1585,7 +1589,7 @@ int kperf(CSOUND *csound)
                               data->bkpt_cb(csound, 0, ip->p1, data->cb_data);
                               data->status = CSDEBUG_STATUS_STOPPED;
                               bp_node->count = bp_node->skip;
-                              return 0;
+                              return 1; // 1 means continue
                           } else {
                               bp_node->count--;
                           }
@@ -1665,7 +1669,7 @@ int kperf(CSOUND *csound)
     }
 
 #ifdef CSDEBUGGER
-    if (!data || (data && data->status != CSDEBUG_STATUS_STOPPED))
+    if (!data || data->status != CSDEBUG_STATUS_STOPPED)
 #endif
     {
       if (!csound->spoutactive) {             /*   results now in spout? */
