@@ -62,7 +62,10 @@ void string_copy_value(void* csound, void* dest, void* src) {
     STRINGDAT* sSrc = (STRINGDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
 
-    if (sSrc->size != sDest->size) {
+    if(src == NULL) return;
+    if(dest == NULL) return;
+
+    if (sSrc->size >= sDest->size) {
       sDest->size = sSrc->size;
 
       if (sDest->data != NULL) {
