@@ -825,6 +825,7 @@ if(BUILD_DEBUGGER)
     add_definitions("-DCSDEBUGGER")
     list(APPEND libcsound_SRCS
         "Top/csdebug.c")
+    message(STATUS Building Csound Debugger)
 endif(BUILD_DEBUGGER)
 
 # Handling New Score Parser
