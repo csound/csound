@@ -826,15 +826,15 @@ static void grain3_init_grain(GRAIN3 *p, GRAIN2_OSC *o,
 static int grain3(CSOUND *csound, GRAIN3 *p)
 {
     int           i, w_interp, g_interp, f_nolock;
-    MYFLT         *aout0, *ft, *w_ft, frq_scl, pfrac, w_pfrac, f, a, k;
+    MYFLT         *aout0, *aout, *ft, *w_ft, frq_scl, pfrac, w_pfrac, f, a, k;
     MYFLT         wfdivxf, w_frq_f, x_frq_f;
-    uint32 n, mask, lobits, w_mask, w_lobits;
-    uint32 *phs, frq, x_ph, x_frq, g_ph, g_frq, w_ph, w_frq;
+    uint32        n, mask, lobits, w_mask, w_lobits;
+    uint32        *phs, frq, x_ph, x_frq, g_ph, g_frq, w_ph, w_frq;
     GRAIN2_OSC    *o;
     FUNC          *ftp;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t nn, nsmps = CS_KSMPS;
+    uint32_t      offset = p->h.insdshead->ksmps_offset;
+    uint32_t      early  = p->h.insdshead->ksmps_no_end;
+    uint32_t      nn, nsmps = CS_KSMPS;
 
     /* clear output */
     memset(p->ar, 0, nsmps*sizeof(MYFLT));
@@ -847,7 +847,7 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
     aout0 = p->ar;                              /* audio output         */
     w_interp = (p->mode & 8 ? 1 : 0);   /* interpolate window   */
     g_interp = (p->mode & 4 ? 0 : 1);   /* interpolate grain    */
-    f_nolock = (p->mode & 2 ? 1 : 0);   /* don't lock grain frq */
+    f_nolock = (p->mode & 2 ? 1 : 0);   /* do not lock grain frq */
     w_ft = p->wft;                              /* window ftable        */
     w_mask = p->wft_mask; w_lobits = p->wft_lobits; w_pfrac = p->wft_pfrac;
     phs = p->phase;                             /* grain phase offset   */
@@ -939,8 +939,8 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
     }
     p->init_k = 0;
 
-    o = p->osc_start;
-    for (nn=offset; nn<nsmps; nn++) {
+    nn = nsmps; o = p->osc_start;
+    while (nn>offset) {
       if (x_ph >= OSCBNK_PHSMAX) {      /* check for new grain  */
         x_ph &= OSCBNK_PHSMSK;
         if (!(p->mode & 0x20)) {
@@ -956,7 +956,7 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
       }
 
       if (o == p->osc_end) {            /* no active grains     */
-        x_ph += x_frq; phs++; continue;
+        x_ph += x_frq; nn--; aout0++; phs++; continue;
       }
 
       g_ph = o->grain_phs;              /* grain phase          */
@@ -972,7 +972,7 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
       w_ph = o->window_phs;             /* window phase         */
 
       /* render grain */
-      i = nsmps-nn;
+      aout = aout0; i = nn;
       while (i--) {
         /* window waveform */
         n = w_ph >> w_lobits; a = w_ft[n++];
@@ -983,7 +983,7 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
         if (g_interp) k += (ft[n] - k) * pfrac
                         * (MYFLT) ((int32) (g_ph & mask));
         /* mix to output */
-        aout0[nn] += a * k;
+        *(aout++) += a * k;
         /* update phase */
         g_ph = (g_ph + g_frq) & OSCBNK_PHSMSK;
         /* check for end of grain */
