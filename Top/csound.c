@@ -433,12 +433,16 @@ static const CSOUND cenviron_ = {
     cs_sprintf,
     cs_sscanf,
     csoundSystemSr,
+    csoundGetScoreOffsetSeconds,
+    csoundSetScoreOffsetSeconds,
+    csoundRewindScore,
+    csoundInputMessageInternal,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, 
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
