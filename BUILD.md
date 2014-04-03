@@ -260,10 +260,63 @@ then you can run make again to build them. The csound command-line frontend will
 be installed in HOME/bin, the libraries in HOME/lib and the include files in
 HOME/include. The plugin dir is in \$HOME/lib/csound/plugins64-6.0.
 
-If the dependency you are adding uses ./configure, you can the same parameters
-to it as explained in step 2. If it uses cmake, you can use the same parameters
-as in step 5.
+### Dependencies List
 
+If the dependency you are adding uses ./configure, you can the same parameters to it as explained in step 2. If it uses cmake, you can use the same parameters as in step 5. After adding dependencies to your $HOME directories, you can run cmake again to re-build Csound. Check the printed output to see if the added dependency has switched on the build of the desired component.
+
+#### OSC opcodes
+
+liblo - http://liblo.sourceforge.net/ NB: the build for version 0.28 seems to be broken.
+
+#### Fluid opcodes
+
+Fluidsynth - http://sourceforge.net/apps/trac/fluidsynth/ NB: cmake might need to be coerced into finding the fluidsynth headers once it is built. For that, you can use the following cmake command (see step 5):
+
+cmake -DCMAKE_INSTALL_PREFIX=$HOME -DFLUIDSYNTH_H=$HOME/include ..
+
+#### Widget opcodes
+
+FLTK - http://www.fltk.org/index.php NB: make sure you configure the FLTK build with --enable-shared, otherwise there could be problems linking to libfltk on 64bit linux.
+
+#### Faust opcodes
+
+libfaust - use faust2 branch of Faust git sources:
+
+$ git clone git://git.code.sf.net/p/faudiostream/code faust
+$ cd faust
+$ git checkout faust2
+
+NB: libfaust also requires LLVM 3.0, 3.1, 3.2, 3.3 or 3.4 - http://llvm.org/ LLVM can be built with CMake (as in step 5 above). To build faust, use the following make command (replacing LLVM_32 for LLVM_3* depending on the version you are using, if it is not 3.2)
+
+$ make LLVM_VERSION=LLVM_32 LLVM_CONFIG=llvm-config LLVM_CLANG=g++ CXX=g++ ARCHFLAGS=-fPIC
+
+To install it, you should run
+
+$make PREFIX=$HOME
+
+To switch the faust opcodes build on and coerce cmake into finding the faust library use:
+
+cmake -DCMAKE_INSTALL_PREFIX=$HOME -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$HOME/lib/faust/libfaust.a ..
+
+#### Portaudio module
+
+portaudio - http://www.portaudio.com/
+
+#### Portmidi module
+
+portmidi - http://portmedia.sourceforge.net/portmidi/
+
+#### JACK module
+
+Jack connection kit - http://jackaudio.org/
+
+#### Python bindings
+
+swig - http://www.swig.org/ Python headers / library - http://www.python.org
+
+#### Java bindings
+
+swig - http://www.swig.org/ Java SDK - http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
 
 Raspberry Pi Standard Distro 
