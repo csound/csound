@@ -860,8 +860,9 @@ static const CSOUND cenviron_ = {
     NULL,           /* pow2 table */
     NULL,           /* cps conv table */
     NULL,           /* output of preprocessor */
-    NULL,           /* filedir */
-    {NULL},         /* message buffer struct */
+    NULL,           /* output of preprocessor */
+    {NULL},         /* filedir */
+    NULL,           /* message buffer struct */
     0,              /* jumpset */
     0,              /* info_message_request */
     0,              /* modules loaded */
@@ -3919,3 +3920,4 @@ PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
 //#ifdef __cplusplus
 //}
 //#endif
+ 
