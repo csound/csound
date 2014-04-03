@@ -7,6 +7,8 @@
 \usepackage{caption}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{comment}
 
 
 %\DeclareCaptionFont{white}{\color{white}}
@@ -88,6 +90,31 @@ Csound for iOS was chosen to be delivered as pre-compiled libraries and headers 
 \end{enumerate}
 
 After selecting ``Add files'' the csound-iOS folders should now be a part of your project.  You will now be able to reference reference both the standard Csound C API as well as the Objective-C CsoundObj API from your project code.
+
+Additionally, you will need to add the following Frameworks to your main project:
+
+\begin{itemize}
+  \item CoreMidi.framework 
+  \item CoreMotion.framework 
+  \item AudioToolbox.framework 
+  \item CoreAudio.framework 
+  \item AVFoundation.framework 
+  \item QuartzCore.framework 
+  \item UIKit.framework 
+  \item Foundation.framework 
+  \item CoreGraphics.framework 
+\end{itemize}
+
+You can do this by selecting the main project node in the Project Navigator, then in the properties go to ``Build Phases'' and under ``Link Binary with Libraries'' use the + button to add the Frameworks. (You can refer to the the Csound iOS Examples project for these Frameworks.) 
+
+When complete, your project's Frameworks node should look like Figure \ref{fig:frameworks}.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics{images/frameworks}
+\end{center}
+\caption{Required Frameworks for Csound for iOS}\label{fig:frameworks}
+\end{figure}
 
 %======
 
