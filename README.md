@@ -1,5 +1,5 @@
-CSOUND AND CSOUND VST
-Version 6.00
+# CSOUND AND CSOUND VST
+Version 6.02
 
 A user-programmable and user-extensible sound processing language
 and software synthesizer.
@@ -23,7 +23,7 @@ License along with this software; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 02111-1307 USA
 
-GETTING STARTED
+# GETTING STARTED
 
 CsoundQt, a graphical shell for Csound, makes an excellent place to begin 
 the exploration of Csound, especially because CsoundQt has an extensive menu 
@@ -57,7 +57,7 @@ The doc/manual/api/index.html file is the front page to the C/C++
 Csound and Csound API application programming interfaces reference,
 but it is also helpful when programming Csound in other languages.
 
-CONTRIBUTORS
+# CONTRIBUTORS
 
 Csound contains contributions from musicians, scientists, and programmers
 from around the world. They include (but are not limited to):
