@@ -773,7 +773,7 @@ int chnget_opcode_perf_S(CSOUND *csound, CHNGET *p)
     if (UNLIKELY(err))
       return print_chn_err(p, err);
 
-    if( ((STRINGDAT *) p->fp)->data != NULL &&
+    if(s != NULL && ((STRINGDAT *) p->fp)->data != NULL &&
       strcmp(s, ((STRINGDAT *) p->fp)->data) == 0) return OK;
 
     csoundSpinLock(p->lock);
