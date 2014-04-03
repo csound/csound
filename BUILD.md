@@ -18,7 +18,7 @@ Instructions for Windows can be found in their own document at the link below
 
 [Csound Windows Build Doc][1]
 
-[1]: <http://sourceforge.net/p/csound/csound6-git/ci/master/tree/How_to_Build_Csound_on_Windows.doc>
+[1]: <https://github.com/csound/csound/blob/develop/How_to_Build_Csound_on_Windows.doc>
 
 Instructions compiled by Dominic Melville contact via dcamelville at gmail.com
 for amendments and updates
@@ -57,17 +57,17 @@ installing Csound:
 
 1.  `cd ~ `
 
-2.  `mkdir csound `
+2.  `mkdir csound`
 
 3.  `cd csound`
 
-4.  `git clone git://git.code.sf.net/p/csound/csound6-git csound6 `
+4.  `git clone https://github.com/csound/csound.git csound`
 
 5.  `mkdir cs6make `
 
 6.  `cd cs6make `
 
-7.  `cmake ../csound6 `
+7.  `cmake ../csound`
 
 8.  `make -j6 `
 
@@ -223,9 +223,9 @@ released sources, you do not need to change branches.
 
 -   `cd ..`
 
--   `git clone http://git.code.sf.net/p/csound/csound6-git csound-csound6-git `
+-   `git clone https://github.com/csound/csound.git csound `
 
--   `cd csound-csound6-git `
+-   `cd csound`
 
 -   `git checkout develop`
 
@@ -294,13 +294,13 @@ non-free rpi `
 
 3.  `cd csound`
 
-4.  `git clone git://git.code.sf.net/p/csound/csound6-git csound6`
+4.  `git clone https://github.com/csound/csound.git csound`
 
 5.  `mkdir cs6make`
 
 6.  `cd cs6make`
 
-7.  `cmake ../csound6 -DBUILD_CSOUND_AC=OFF` (this will not build CsoundAC, that
+7.  `cmake ../csound -DBUILD_CSOUND_AC=OFF` (this will not build CsoundAC, that
     gives errors)
 
 8.  `make -j6`
