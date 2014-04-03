@@ -62,41 +62,41 @@ but it is also helpful when programming Csound in other languages.
 Csound contains contributions from musicians, scientists, and programmers
 from around the world. They include (but are not limited to):
 
-Allan Lee
-Bill Gardner
-Bill Verplank
-Dan Ellis
-David Macintyre
-Eli Breder
-Gabriel Maldonado
-Greg Sullivan
-Hans Mikelson
-Istvan Varga
-Jean Piché
-John ffitch
-John Ramsdell
-Marc Resibois
-Mark Dolson
-Matt Ingalls
-Max Mathews
-Michael Casey
-Michael Clark
-Michael Gogins
-Mike Berry
-Paris Smaragdis
-Perry Cook
-Peter Neubäcker
-Peter Nix
-Rasmus Ekman
-Richard Dobson
-Richard Karpen
-Rob Shaw
-Robin Whittle
-Sean Costello
-Steven Yi
-Tom Erbe
-Victor Lazzarini
-Ville Pulkki
-Andres Cabrera
-Felipe Sataler
-Ian McCurdy
+* Allan Lee
+* Bill Gardner
+* Bill Verplank
+* Dan Ellis
+* David Macintyre
+* Eli Breder
+* Gabriel Maldonado
+* Greg Sullivan
+* Hans Mikelson
+* Istvan Varga
+* Jean Piché
+* John ffitch
+* John Ramsdell
+* Marc Resibois
+* Mark Dolson
+* Matt Ingalls
+* Max Mathews
+* Michael Casey
+* Michael Clark
+* Michael Gogins
+* Mike Berry
+* Paris Smaragdis
+* Perry Cook
+* Peter Neubäcker
+* Peter Nix
+* Rasmus Ekman
+* Richard Dobson
+* Richard Karpen
+* Rob Shaw
+* Robin Whittle
+* Sean Costello
+* Steven Yi
+* Tom Erbe
+* Victor Lazzarini
+* Ville Pulkki
+* Andres Cabrera
+* Felipe Sataler
+* Ian McCurdy
