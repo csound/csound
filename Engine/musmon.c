@@ -170,18 +170,18 @@ int musmon(CSOUND *csound)
 
 #ifdef USE_DOUBLE
 #ifdef BETA
-    csound->Message(csound, Str("Csound version %s beta (double samples) %s\n"),
+    csound->Message(csound, Str("--Csound version %s beta (double samples) %s\n"),
                             CS_PACKAGE_VERSION, __DATE__);
 #else
-    csound->Message(csound, Str("Csound version %s (double samples) %s\n"),
+    csound->Message(csound, Str("--Csound version %s (double samples) %s\n"),
                             CS_PACKAGE_VERSION, __DATE__);
 #endif
 #else
 #ifdef BETA
-    csound->Message(csound, Str("Csound version %s beta (float samples) %s\n"),
+    csound->Message(csound, Str("--Csound version %s beta (float samples) %s\n"),
                             CS_PACKAGE_VERSION, __DATE__);
 #else
-    csound->Message(csound, Str("Csound version %s (float samples) %s\n"),
+    csound->Message(csound, Str("--Csound version %s (float samples) %s\n"),
                             CS_PACKAGE_VERSION, __DATE__);
 #endif
 #endif
