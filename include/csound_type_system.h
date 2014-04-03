@@ -48,7 +48,9 @@ extern "C" {
     typedef struct csvariable {
         char* varName;
         CS_TYPE* varType;
-        int memBlockSize;
+        int memBlockSize; /* Must be a multiple of sizeof(MYFLT), as
+                             Csound uses MYFLT* and pointer arithmetic to assign var
+                             locations */
         int memBlockIndex;
         int dimensions;  // used by arrays
         int refCount;
