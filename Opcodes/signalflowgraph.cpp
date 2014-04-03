@@ -845,9 +845,9 @@ struct Inletv : public OpcodeBase<Inletv> {
     csound->LockMutex(cs_sfg_ports);
     {
       //warn(csound, "BEGAN Inletv::audio()...\n");
-      //for (uint32_t signalI = 0; signalI < arraySize; ++signalI) {
-      //  vsignal->data[signalI] = FL(0.0);
-      //}
+      for (uint32_t signalI = 0; signalI < arraySize; ++signalI) {
+        vsignal->data[signalI] = FL(0.0);
+      }
       // Loop over the source connections...
       for (size_t sourceI = 0, sourceN = sourceOutlets->size();
            sourceI < sourceN;
