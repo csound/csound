@@ -1318,7 +1318,6 @@ int xinset(CSOUND *csound, XIN *p)
       void* in = (void*)bufs[i];
       void* out = (void*)p->args[i];
       tmp[i + inm->outchns] = out;
-//        memcpy(out, in, buf->in_arg_sizes[i]);
       current->varType->copyValue(csound, out, in);
       current = current->next;
     }
@@ -1346,7 +1345,6 @@ int xoutset(CSOUND *csound, XOUT *p)
       void* in = (void*)p->args[i];
       void* out = (void*)bufs[i];
       tmp[i] = in;
-//        memcpy(out, in, buf->out_arg_sizes[i]);
       current->varType->copyValue(csound, out, in);
       current = current->next;
     }
@@ -1631,11 +1629,11 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
       if (current->varType != &CS_VAR_TYPE_I &&
           current->varType != &CS_VAR_TYPE_b &&
           current->varType != &CS_VAR_TYPE_A &&
-          current->subType != &CS_VAR_TYPE_I) {
+          current->subType != &CS_VAR_TYPE_I &&
+          current->subType != &CS_VAR_TYPE_A) {
         // This one checks if an array has a subtype of 'i'
         void* in = (void*)external_ptrs[i + inm->outchns];
         void* out = (void*)internal_ptrs[i + inm->outchns];
-//          memcpy(out, in, p->buf->in_arg_sizes[i]);
         current->varType->copyValue(csound, out, in);
       }
       current = current->next;
@@ -1651,6 +1649,24 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             MYFLT* in = (void*)external_ptrs[i + inm->outchns];
             MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
             *out = *(in + ofs);
+          } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
+                     current->subType == &CS_VAR_TYPE_A) {
+            ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
+            ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
+            int count = src->sizes[0];
+            int j;
+            if(src->dimensions > 1) {
+                for (j = 0; j < src->dimensions; j++) {
+                    count *= src->sizes[j];
+                }
+            }
+
+            for (j = 0; j < count; j++) {
+                int memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
+              MYFLT* in = src->data + memberOffset;
+              MYFLT* out = target->data + memberOffset;
+              *out = *(in + ofs);
+            }
           }
           current = current->next;
         }
@@ -1674,7 +1690,26 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             MYFLT* in = (void*)internal_ptrs[i];
             MYFLT* out = (void*)external_ptrs[i];
             *(out + ofs) = *in;
+          } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
+                     current->subType == &CS_VAR_TYPE_A) {
+            ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
+            ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
+            int count = src->sizes[0];
+            int j;
+            if(src->dimensions > 1) {
+              for (j = 0; j < src->dimensions; j++) {
+                count *= src->sizes[j];
+              }
+            }
+          
+            for (j = 0; j < count; j++) {
+              int memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
+              MYFLT* in = src->data + memberOffset;
+              MYFLT* out = target->data + memberOffset;
+              *(out + ofs) = *in;
+            }
           }
+
           current = current->next;
         }
 
@@ -1702,12 +1737,31 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
       do {
         /* copy a-sig inputs, accounting for offset */
+        size_t asigSize = (this_instr->ksmps * sizeof(MYFLT));
         current = inm->in_arg_pool->head;
         for (i = 0; i < inm->inchns; i++) {
           if (current->varType == &CS_VAR_TYPE_A) {
             MYFLT* in = (void*)external_ptrs[i + inm->outchns];
             MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
-            memcpy(out, in + ofs, this_instr->ksmps);
+            memcpy(out, in + ofs, asigSize);
+          } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
+                     current->subType == &CS_VAR_TYPE_A) {
+            ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
+            ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
+            int count = src->sizes[0];
+            int j;
+            if(src->dimensions > 1) {
+                for (j = 0; j < src->dimensions; j++) {
+                    count *= src->sizes[j];
+                }
+            }
+
+            for (j = 0; j < count; j++) {
+                int memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
+              MYFLT* in = src->data + memberOffset;
+              MYFLT* out = target->data + memberOffset;
+              memcpy(out, in + ofs, asigSize);
+            }
           }
           current = current->next;
         }
@@ -1731,9 +1785,29 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           if (current->varType == &CS_VAR_TYPE_A) {
             MYFLT* in = (void*)internal_ptrs[i];
             MYFLT* out = (void*)external_ptrs[i];
-            memcpy(out + ofs, in, this_instr->ksmps);
+            memcpy(out + ofs, in, asigSize);
+          } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
+                     current->subType == &CS_VAR_TYPE_A) {
+              ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
+              ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
+              int count = src->sizes[0];
+              int j;
+              if(src->dimensions > 1) {
+                  for (j = 0; j < src->dimensions; j++) {
+                      count *= src->sizes[j];
+                  }
+              }
+              
+              for (j = 0; j < count; j++) {
+                  int memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
+                  MYFLT* in = src->data + memberOffset;
+                  MYFLT* out = target->data + memberOffset;
+                  memcpy(out + ofs, in, asigSize);
+              }
+ 
           }
-            current = current->next;
+            
+          current = current->next;
         }
 
         this_instr->spout += csound->nchnls*lksmps;
@@ -1764,9 +1838,36 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           if (early) {
             memset(out + g_ksmps, '\0', sizeof(MYFLT) * early);
           }
+        } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
+                   current->subType == &CS_VAR_TYPE_A) {
+          if (offset || early) {
+            ARRAYDAT* outDat = (ARRAYDAT*)out;
+            int count = outDat->sizes[0];
+            int j;
+            if(outDat->dimensions > 1) {
+                for (j = 0; j < outDat->dimensions; j++) {
+                    count *= outDat->sizes[j];
+                }
+            }
 
+            if(offset) {
+              for (j = 0; j < count; j++) {
+                int memberOffset = j * (outDat->arrayMemberSize / sizeof(MYFLT));
+                MYFLT* outMem = outDat->data + memberOffset;
+                memset(outMem, '\0', sizeof(MYFLT) * offset);
+              }
+            }
+             
+            if(early) {
+              for (j = 0; j < count; j++) {
+                int memberOffset = j * (outDat->arrayMemberSize / sizeof(MYFLT));
+                MYFLT* outMem = outDat->data + memberOffset;
+                memset(outMem + g_ksmps, '\0', sizeof(MYFLT) * early);
+              }
+            }
+          }
+            
         } else {
-//            memcpy(out, in, p->buf->out_arg_sizes[i]);
           current->varType->copyValue(csound, out, in);
         }
       }
