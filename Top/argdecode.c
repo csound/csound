@@ -899,6 +899,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strcmp(s, "realtime"))) {
+      csound->Message(csound, "realtime mode enabled\n");
       O->realtime = 1;
       return 1;
     }
