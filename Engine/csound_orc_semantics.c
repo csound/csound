@@ -445,12 +445,12 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       */
 
       if (*s == 'g') {
-       var = csoundFindVariableWithName(csound->engineState.varPool,
+       var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                         tree->value->lexeme);
        if(var == NULL)
-       var = csoundFindVariableWithName(typeTable->globalPool, tree->value->lexeme);
+       var = csoundFindVariableWithName(csound, typeTable->globalPool, tree->value->lexeme);
        } else
-        var = csoundFindVariableWithName(typeTable->localPool, tree->value->lexeme);
+        var = csoundFindVariableWithName(csound, typeTable->localPool, tree->value->lexeme);
 
       if (UNLIKELY(var == NULL)) {
         synterr(csound, Str("Variable '%s' used before defined\n"),
@@ -1087,12 +1087,12 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
 
           pool = (*varName == 'g') ?
             typeTable->globalPool : typeTable->localPool;
-          var = csoundFindVariableWithName(pool, varName);
+          var = csoundFindVariableWithName(csound, pool, varName);
           if (UNLIKELY(var == NULL)) {
             /* VL: 13-06-13
                if it is not found, we still check the global (merged) pool */
             if (*varName == 'g')
-              var = csoundFindVariableWithName(csound->engineState.varPool,
+              var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                                varName);
             if(var == NULL) {
               synterr(csound,
@@ -1108,12 +1108,12 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
           pool = (*varName == 'g') ?
             typeTable->globalPool : typeTable->localPool;
 
-          if (UNLIKELY(csoundFindVariableWithName(pool, varName) == NULL)) {
+          if (UNLIKELY(csoundFindVariableWithName(csound, pool, varName) == NULL)) {
             CS_VARIABLE *var = 0;
             /* VL: 13-06-13
                if it is not found, we still check the global (merged) pool */
             if (var == NULL && *varName == 'g')
-              var = csoundFindVariableWithName(csound->engineState.varPool,
+              var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                                varName);
             if (var == NULL) {
               synterr(csound,
@@ -1151,7 +1151,7 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
     if (*t == '#') t++;
     pool = (*t == 'g') ? typeTable->globalPool : typeTable->localPool;
 
-    var = csoundFindVariableWithName(pool, varName);
+    var = csoundFindVariableWithName(csound, pool, varName);
     if (var == NULL) {
       t = varName;
       argLetter[1] = 0;
@@ -1183,7 +1183,7 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
 
       var = csoundCreateVariable(csound, csound->typePool,
                                  type, varName, typeArg);
-      csoundAddVariable(pool, var);
+      csoundAddVariable(csound, pool, var);
     } else {
       //TODO - implement reference count increment
     }
@@ -1202,7 +1202,7 @@ void add_array_arg(CSOUND* csound, char* varName, int dimensions,
 
     pool = (*varName == 'g') ? typeTable->globalPool : typeTable->localPool;
 
-    var = csoundFindVariableWithName(pool, varName);
+    var = csoundFindVariableWithName(csound, pool, varName);
     if (var == NULL) {
       CS_TYPE* varType;
 
@@ -1223,7 +1223,7 @@ void add_array_arg(CSOUND* csound, char* varName, int dimensions,
       var = csoundCreateVariable(csound, csound->typePool,
                                  (CS_TYPE*) &CS_VAR_TYPE_ARRAY,
                                  varName, typeArg);
-      csoundAddVariable(pool, var);
+      csoundAddVariable(csound, pool, var);
     } else {
       //TODO - implement reference count increment
     }
@@ -1499,7 +1499,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       switch(current->type) {
       case INSTR_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
-        typeTable->localPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+        typeTable->localPool = csoundCreateVarPool(csound);
         current->markup = typeTable->localPool;
 
         if (current->right) {
@@ -1522,7 +1522,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       case UDO_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
 
-        typeTable->localPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+        typeTable->localPool = csoundCreateVarPool(csound);
         current->markup = typeTable->localPool;
 
         if (current->right != NULL) {
