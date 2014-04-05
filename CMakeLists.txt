@@ -239,6 +239,13 @@ if(WIN32)
         ws2_32
         wsock32)
 
+if(NOT MSVC)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign")
+endif()
+
+
+
 endif(WIN32)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")

@@ -282,7 +282,7 @@ __global__ void sample(MYFLT *out, float *frame, MYFLT pitch, int64_t *ph,
   MYFLT fscal = pitch*FMAXLEN/sr;
   lph = (ph[h] + (int64_t)(n*round(frame[k+1]*fscal))) & PHMASK;
   a += ascl*(frame[k] - a);
-  out[t] = a*SIN((2*PI*lph)/FMAXLEN);
+  out[t] = a*sinf((2*PI*lph)/FMAXLEN);
 }
 
 __global__ void updatemix(MYFLT *out, float *frame, float *amps, MYFLT kamp,
@@ -293,7 +293,8 @@ __global__ void updatemix(MYFLT *out, float *frame, float *amps, MYFLT kamp,
  /* update phases and amps */
  ph[h]  = (ph[h] + (int64_t)(vsize*round(pitch*frame[k+1]*FMAXLEN/sr))) & PHMASK;
  amps[h] = frame[k];
- if(h > vsize) return;
+ if(h > vsize) 
+   return;
  /* mix all partials */
   for(i=1; i < bins; i++){
     out[h] +=  out[h + vsize*i];
@@ -328,6 +329,8 @@ static int perf_cudaop2(CSOUND *csound, CUDAOP2 *p){
                                                 p->bins,
                                                 vsamps,
                                                 csound->GetSr(csound));
+      // if (cudaDeviceSynchronize() != cudaSuccess)
+      // csound->Message(csound,"Cuda error: Failed to synchronize\n");
       updatemix<<<p->mblocks,p->mthreads>>>(p->out, p->frame,
                                             p->previous, *p->kamp,
                                             p->ndx,
