@@ -75,7 +75,7 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
 {
     if (p->data==NULL || p->dimensions == 0 ||
         (p->dimensions==1 && p->sizes[0] < size)) {
-      uint32_t ss = sizeof(MYFLT)*size;
+      size_t ss = sizeof(MYFLT)*size;
       if (p->data==NULL) p->data = (MYFLT*)csound->Malloc(csound, ss);
       else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
       p->dimensions = 1;
@@ -223,8 +223,8 @@ static int array_get(CSOUND* csound, ARRAY_GET *p) {
 
     incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
-//    memcpy(p->out, mem, dat->arrayMemberSize);
-    dat->arrayType->copyValue(csound, p->out, mem);
+//    memcpy(p->out, &mem[incr], dat->arrayMemberSize);
+    dat->arrayType->copyValue(csound, (void*)p->out, (void*)mem);
     return OK;
 }
 
