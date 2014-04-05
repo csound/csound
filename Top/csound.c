@@ -2889,7 +2889,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       O->sfheader = 0;
       csound->peakchunks = 1;
       csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
-      csound->engineState.varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+      csound->engineState.varPool = csoundCreateVarPool(csound);
       csoundAddStandardTypes(csound, csound->typePool);
       /* csoundLoadExternals(csound); */
     }
