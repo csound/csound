@@ -1207,11 +1207,11 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* create local ksmps variable and init with ksmps */
     if (lcurip->lclbas != NULL) {
     CS_VARIABLE *var =
-       csoundFindVariableWithName(lcurip->instr->varPool, "ksmps");
+       csoundFindVariableWithName(csound, lcurip->instr->varPool, "ksmps");
        *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ksmps;
      /* same for kr */
       var =
-       csoundFindVariableWithName(lcurip->instr->varPool, "kr");
+       csoundFindVariableWithName(csound, lcurip->instr->varPool, "kr");
      *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ekr;
     }
 
@@ -1389,13 +1389,13 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     /* lookup local ksmps variable and init with ksmps */
      INSTRTXT *ip = p->h.insdshead->instr;
      CS_VARIABLE *var =
-       csoundFindVariableWithName(ip->varPool, "ksmps");
+       csoundFindVariableWithName(csound, ip->varPool, "ksmps");
      MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
      *varmem = CS_KSMPS;
 
      /* same for kr */
      var =
-       csoundFindVariableWithName(ip->varPool, "kr");
+       csoundFindVariableWithName(csound, ip->varPool, "kr");
      varmem = p->h.insdshead->lclbas + var->memBlockIndex;
      *varmem = CS_EKR;
 
@@ -2180,12 +2180,12 @@ static void instance(CSOUND *csound, int insno)
 
     /* VL 13-12-13: point the memory to the local ksmps & kr variables,
        and initialise them */
-    CS_VARIABLE* var = csoundFindVariableWithName(ip->instr->varPool, "ksmps");
+    CS_VARIABLE* var = csoundFindVariableWithName(csound, ip->instr->varPool, "ksmps");
     if (var) {
       var->memBlock = lclbas + var->memBlockIndex;
       *((MYFLT *)(var->memBlock)) = csound->ksmps;
     }
-    var = csoundFindVariableWithName(ip->instr->varPool, "kr");
+    var = csoundFindVariableWithName(csound, ip->instr->varPool, "kr");
     if (var) {
       var->memBlock = lclbas + var->memBlockIndex;
       *((MYFLT *)(var->memBlock)) = csound->ekr;

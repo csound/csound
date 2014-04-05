@@ -323,7 +323,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
                                                   (CS_TYPE*)&CS_VAR_TYPE_ARRAY,
                                                   tempName, &varInit);
           var->dimensions = dimensions;
-          csoundAddVariable(inm->in_arg_pool, var);
+          csoundAddVariable(csound, inm->in_arg_pool, var);
         } else {
           char c = map_udo_in_arg_type(*in_arg);
           //                printf("found arg type %s -> %c\n", in_arg, c);
@@ -340,7 +340,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
                                                   type, tempName, NULL);
-          csoundAddVariable(inm->in_arg_pool, var);
+          csoundAddVariable(csound, inm->in_arg_pool, var);
         }
         i++;
       }
@@ -377,7 +377,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
                                                   (CS_TYPE*)&CS_VAR_TYPE_ARRAY,
                                                   tempName, &varInit);
           var->dimensions = dimensions;
-          csoundAddVariable(inm->out_arg_pool, var);
+          csoundAddVariable(csound, inm->out_arg_pool, var);
         } else {
           char c = map_udo_out_arg_type(*out_arg);
           //                printf("found arg type %s -> %c\n", out_arg, c);
@@ -393,7 +393,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, type,
                                                   tempName, NULL);
-          csoundAddVariable(inm->out_arg_pool, var);
+          csoundAddVariable(csound, inm->out_arg_pool, var);
         }
         i++;
       }
@@ -514,8 +514,8 @@ int add_udo_definition(CSOUND *csound, char *opname,
     inm->name = cs_strdup(csound, opname);
     inm->intypes = intypes;
     inm->outtypes = outtypes;
-    inm->in_arg_pool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
-    inm->out_arg_pool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+    inm->in_arg_pool = csoundCreateVarPool(csound);
+    inm->out_arg_pool = csoundCreateVarPool(csound); 
 
     inm->prv = csound->opcodeInfo;
     csound->opcodeInfo = inm;
