@@ -25,8 +25,8 @@
 
 int compile_orc_i(CSOUND *csound, COMPILE *p){
     FILE *fp;
-    int size=0, start=0, end=0;
-    char *orc, c, *name, *ptr;
+    int size=0;
+    char *orc, c, *name;
 
     name = ((STRINGDAT *)p->str)->data;
     fp = fopen(name, "rb");
@@ -49,20 +49,7 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
 
     orc = (char *) csound->Calloc(csound, size+1);
     fseek(fp, 0, SEEK_SET);
-    (void)fread(orc,1,size,fp);
-	
-	//check to see if input file is a .CSD RyW
-	ptr = strstr(orc,"<CsInstruments>");
-	if(ptr!=NULL)
-		start = ptr+15-orc;
-	ptr = strstr(orc,"</CsInstruments>");
-	if(ptr!=NULL)
-	   end = ptr-orc;
-
-	//if so extract orchestra section from it
-	if(end-start)
-	sprintf(orc, "%.*s\n", end - start, &orc[start]);	
-	
+    (void)fread(orc,1,size,fp);	
     *p->res = (MYFLT)(csoundCompileOrc(csound, orc));
     fclose(fp);
     csound->Free(csound,orc);
