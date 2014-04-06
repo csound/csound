@@ -172,7 +172,7 @@ CS_VARIABLE* createWsig(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = sizeof(SPECDAT);
+    var->memBlockSize = sizeof(MYFLT) * ((sizeof(SPECDAT) + 7) / sizeof(MYFLT));
     var->initializeVariableMemory = &varInitMemory;
     return var;
 }
@@ -181,7 +181,7 @@ CS_VARIABLE* createFsig(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = sizeof(PVSDAT);
+    var->memBlockSize = sizeof(MYFLT) * ((sizeof(PVSDAT) + 7) / sizeof(MYFLT));
     var->initializeVariableMemory = &varInitMemory;
     return var;
 }
@@ -195,7 +195,7 @@ CS_VARIABLE* createString(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = sizeof(STRINGDAT);
+    var->memBlockSize = sizeof(MYFLT) * ((sizeof(STRINGDAT) + 7) / sizeof(MYFLT));
     return var;
 }
 
@@ -205,7 +205,7 @@ CS_VARIABLE* createArray(void* csnd, void* p) {
 
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-    var->memBlockSize = sizeof(ARRAYDAT);
+    var->memBlockSize = sizeof(MYFLT) * ((sizeof(ARRAYDAT) + 7 ) / sizeof(MYFLT));
     var->initializeVariableMemory = &arrayInitMemory;
 
     if (state) { // NB: this function is being called with p=NULL
