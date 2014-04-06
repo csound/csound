@@ -49,7 +49,7 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
 
     orc = (char *) csound->Calloc(csound, size+1);
     fseek(fp, 0, SEEK_SET);
-    (void)fread(orc,1,size,fp);
+    (void)fread(orc,1,size,fp);	
     *p->res = (MYFLT)(csoundCompileOrc(csound, orc));
     fclose(fp);
     csound->Free(csound,orc);

@@ -1579,7 +1579,7 @@ int kperf(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int csoundReadScore(CSOUND *csound, char *str)
+PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
 {
     OPARMS  *O = csound->oparms;
      /* protect resource */
