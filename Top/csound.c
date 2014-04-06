@@ -1621,38 +1621,38 @@ int kperf(CSOUND *csound)
     bkpt_node_t *bkpt_node;
     /* process new breakpoints */
     if (data) {
-        while (csoundReadCircularBuffer(csound, data->bkpt_buffer, &bkpt_node, 1) == 1) {
-            if (bkpt_node->mode == CSDEBUG_BKPT_CLEAR_ALL) {
-                bkpt_node_t *n;
-                while (data->bkpt_anchor->next) {
-                    n = data->bkpt_anchor->next;
-                    data->bkpt_anchor->next = n->next;
-                    free(n); /* FIXME this should be moved from kperf to a non-realtime context */
-                }
-                free(bkpt_node);
-            } else if (bkpt_node->mode == CSDEBUG_BKPT_DELETE) {
-                bkpt_node_t *n = data->bkpt_anchor->next;
-                bkpt_node_t *prev = data->bkpt_anchor;
-                while (n) {
-                    if (n->line == bkpt_node->line && n->instr == bkpt_node->instr) {
-                        prev->next = n->next;
-                        free(n); /* FIXME this should be moved from kperf to a non-realtime context */
-                        n = prev->next;
-                        continue;
-                    }
-                    prev = n;
-                    n = n->next;
-                }
-                free(bkpt_node); /* FIXME move to non rt context */
-            } else {
-                // FIXME sort list to optimize
-                bkpt_node->next = data->bkpt_anchor->next;
-                data->bkpt_anchor->next = bkpt_node;
+      while (csoundReadCircularBuffer(csound, data->bkpt_buffer, &bkpt_node, 1) == 1) {
+        if (bkpt_node->mode == CSDEBUG_BKPT_CLEAR_ALL) {
+          bkpt_node_t *n;
+          while (data->bkpt_anchor->next) {
+            n = data->bkpt_anchor->next;
+            data->bkpt_anchor->next = n->next;
+            free(n); /* FIXME this should be moved from kperf to a non-realtime context */
+          }
+          free(bkpt_node);
+        } else if (bkpt_node->mode == CSDEBUG_BKPT_DELETE) {
+          bkpt_node_t *n = data->bkpt_anchor->next;
+          bkpt_node_t *prev = data->bkpt_anchor;
+          while (n) {
+            if (n->line == bkpt_node->line && n->instr == bkpt_node->instr) {
+              prev->next = n->next;
+              free(n); /* FIXME this should be moved from kperf to a non-realtime context */
+              n = prev->next;
+              continue;
             }
+            prev = n;
+            n = n->next;
+          }
+          free(bkpt_node); /* FIXME move to non rt context */
+        } else {
+            // FIXME sort list to optimize
+            bkpt_node->next = data->bkpt_anchor->next;
+            data->bkpt_anchor->next = bkpt_node;
         }
-        if (command == CSDEBUG_CMD_CONTINUE) {
-            data->status = CSDEBUG_STATUS_CONTINUE;
-        }
+      }
+      if (command == CSDEBUG_CMD_CONTINUE) {
+        data->status = CSDEBUG_STATUS_CONTINUE;
+      }
     }
 
     if (!data || data->status != CSDEBUG_STATUS_STOPPED)
@@ -1690,35 +1690,38 @@ int kperf(CSOUND *csound)
         while (ip != NULL) {                /* for each instr active:  */
 #ifdef CSDEBUGGER
           if(data) {
-              if(data->status == CSDEBUG_STATUS_CONTINUE) {
-                  if (data->debug_instr_ptr) { /* if not NULL, resume from last active */
-                      ip = data->debug_instr_ptr;
-                      data->debug_instr_ptr = NULL;
-                  }
-                  data->status = CSDEBUG_STATUS_RUNNING;
-              } else if(data->status == CSDEBUG_STATUS_STOPPED) {
-                  return 0;
-              } else if (command == CSDEBUG_CMD_STOP) {
-                  data->debug_instr_ptr = ip;
-                  data->status = CSDEBUG_STATUS_STOPPED;
-                  return 0;
-              } else { /* check if we have arrived at an instrument breakpoint */
-                  bkpt_node_t *bp_node = data->bkpt_anchor->next;
-                  while (bp_node) {
-                      if (bp_node->instr == ip->p1) {
-                          if (bp_node->count == 0) {
-                              data->debug_instr_ptr = ip;
-                              data->bkpt_cb(csound, 0, ip->p1, data->cb_data);
-                              data->status = CSDEBUG_STATUS_STOPPED;
-                              bp_node->count = bp_node->skip;
-                              return 0;
-                          } else {
-                              bp_node->count--;
-                          }
-                      }
-                      bp_node = bp_node->next;
-                  }
+            if(data->status == CSDEBUG_STATUS_CONTINUE) {
+              if (data->debug_instr_ptr) { /* if not NULL, resume from last active */
+                ip = data->debug_instr_ptr;
+                data->debug_instr_ptr = NULL;
+              } else {
+                ip = NULL;
+                continue;
               }
+              data->status = CSDEBUG_STATUS_RUNNING;
+            } else if(data->status == CSDEBUG_STATUS_STOPPED) {
+              return 0;
+            } else if (command == CSDEBUG_CMD_STOP) {
+              data->debug_instr_ptr = ip;
+              data->status = CSDEBUG_STATUS_STOPPED;
+              return 0;
+            } else { /* check if we have arrived at an instrument breakpoint */
+              bkpt_node_t *bp_node = data->bkpt_anchor->next;
+              while (bp_node) {
+                if (bp_node->instr == ip->p1) {
+                  if (bp_node->count == 0) {
+                    data->debug_instr_ptr = ip;
+                    data->bkpt_cb(csound, 0, ip->p1, data->cb_data);
+                    data->status = CSDEBUG_STATUS_STOPPED;
+                    bp_node->count = bp_node->skip;
+                    return 0;
+                  } else {
+                    bp_node->count--;
+                  }
+                }
+                bp_node = bp_node->next;
+              }
+            }
           }
 #endif
           if (UNLIKELY(csound->oparms->sampleAccurate &&
