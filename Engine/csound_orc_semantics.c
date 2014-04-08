@@ -274,6 +274,14 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       }
 
+      // Deal with odd case if i(expressions)
+      if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
+        //print_tree(csound, "i()", tree);
+        if (UNLIKELY(tree->right->type != LABEL_TOKEN))
+          synterr(csound,
+                  Str("Use of i() with expression not permitted\n"));
+      }
+      
       if (tree->type == T_FUNCTION) {
         char* argTypeRight = get_arg_string_from_tree(csound,
                                                       tree->right, typeTable);
