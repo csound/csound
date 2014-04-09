@@ -168,11 +168,12 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
 
 //CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
 //                                        const char* name) {
-CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool, const char* name)
+CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
+                                        const char* name)
 {
-    
+
     CS_VARIABLE* returnValue = cs_hash_table_get(csound, pool->table, (char*)name);
-    
+
     if (returnValue == NULL && pool->parent != NULL) {
       returnValue = csoundFindVariableWithName(csound, pool->parent, name);
     }
