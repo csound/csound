@@ -1701,7 +1701,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
                 count *= src->sizes[j];
               }
             }
-          
+
             for (j = 0; j < count; j++) {
               int memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
               MYFLT* in = src->data + memberOffset;
@@ -1797,16 +1797,16 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
                       count *= src->sizes[j];
                   }
               }
-              
+
               for (j = 0; j < count; j++) {
                   int memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
                   MYFLT* in = src->data + memberOffset;
                   MYFLT* out = target->data + memberOffset;
                   memcpy(out + ofs, in, asigSize);
               }
- 
+
           }
-            
+
           current = current->next;
         }
 
@@ -1857,7 +1857,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
                 memset(outMem, '\0', sizeof(MYFLT) * offset);
               }
             }
-             
+
             if(early) {
               for (j = 0; j < count; j++) {
                 int memberOffset = j * (outDat->arrayMemberSize / sizeof(MYFLT));
@@ -1866,7 +1866,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
               }
             }
           }
-            
+
         } else {
           current->varType->copyValue(csound, out, in);
         }
@@ -2180,7 +2180,8 @@ static void instance(CSOUND *csound, int insno)
 
     /* VL 13-12-13: point the memory to the local ksmps & kr variables,
        and initialise them */
-    CS_VARIABLE* var = csoundFindVariableWithName(csound, ip->instr->varPool, "ksmps");
+    CS_VARIABLE* var = csoundFindVariableWithName(csound,
+                                                  ip->instr->varPool, "ksmps");
     if (var) {
       var->memBlock = lclbas + var->memBlockIndex;
       *((MYFLT *)(var->memBlock)) = csound->ksmps;
