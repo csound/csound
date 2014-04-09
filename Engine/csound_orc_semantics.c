@@ -281,7 +281,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           synterr(csound,
                   Str("Use of i() with expression not permitted\n"));
       }
-      
+
       if (tree->type == T_FUNCTION) {
         char* argTypeRight = get_arg_string_from_tree(csound,
                                                       tree->right, typeTable);
@@ -453,12 +453,14 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       */
 
       if (*s == 'g') {
-       var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                        tree->value->lexeme);
-       if(var == NULL)
-       var = csoundFindVariableWithName(csound, typeTable->globalPool, tree->value->lexeme);
-       } else
-        var = csoundFindVariableWithName(csound, typeTable->localPool, tree->value->lexeme);
+        var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                         tree->value->lexeme);
+        if(var == NULL)
+          var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                           tree->value->lexeme);
+      } else
+        var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                         tree->value->lexeme);
 
       if (UNLIKELY(var == NULL)) {
         synterr(csound, Str("Variable '%s' used before defined\n"),
