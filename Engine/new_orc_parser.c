@@ -228,8 +228,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
 
-      typeTable->globalPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
-      typeTable->instr0LocalPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+      typeTable->globalPool = csoundCreateVarPool(csound);
+      typeTable->instr0LocalPool = csoundCreateVarPool(csound);
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
@@ -269,6 +269,11 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csound->ErrorMsg(csound, Str("Stopping on parser failure"));
         csoundDeleteTree(csound, astTree);
         if (typeTable != NULL) {
+          csoundFreeVarPool(csound, typeTable->globalPool);
+          csoundFreeVarPool(csound, typeTable->instr0LocalPool);
+          if(typeTable->localPool != typeTable->instr0LocalPool) {
+            csoundFreeVarPool(csound, typeTable->localPool);
+          }
           csound->Free(csound, typeTable);
         }
         return NULL;

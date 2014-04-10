@@ -29,6 +29,7 @@ extern "C" {
 #endif
 
 #include "csound.h"
+#include "csound_data_structures.h"
 
 #define CS_ARG_TYPE_BOTH 0
 #define CS_ARG_TYPE_IN 1
@@ -49,8 +50,8 @@ extern "C" {
         char* varName;
         CS_TYPE* varType;
         int memBlockSize; /* Must be a multiple of sizeof(MYFLT), as
-                             Csound uses MYFLT* and pointer arithmetic to assign var
-                             locations */
+                             Csound uses MYFLT* and pointer arithmetic 
+                             to assign var locations */
         int memBlockIndex;
         int dimensions;  // used by arrays
         int refCount;
@@ -94,16 +95,21 @@ extern "C" {
      */
 
     typedef struct csvarpool {
+        CS_HASH_TABLE* table;
         CS_VARIABLE* head;
+        CS_VARIABLE* tail;
         int poolSize;
         struct csvarpool* parent;
     } CS_VAR_POOL;
 
+    PUBLIC CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound);
+    PUBLIC void csoundFreeVarPool(CSOUND* csound, CS_VAR_POOL* pool);
     PUBLIC char* getVarSimpleName(CSOUND* csound, const char* name);
-    PUBLIC CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool,
+    PUBLIC CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound,
+                                                   CS_VAR_POOL* pool,
                                                    const char* name);
-    PUBLIC int csoundFindVariable(CS_VAR_POOL* pool, const char* name);
-    PUBLIC int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var);
+    PUBLIC int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool,
+                                 CS_VARIABLE* var);
     PUBLIC void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
     PUBLIC void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
     PUBLIC void initializeVarPool(MYFLT* memBlock, CS_VAR_POOL* pool);

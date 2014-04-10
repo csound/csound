@@ -481,7 +481,7 @@ void addGlobalVariable(CSOUND *csound,
 {
     CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
                                             type, name, typeArg);
-    csoundAddVariable(engineState->varPool, var);
+    csoundAddVariable(csound, engineState->varPool, var);
     var->memBlock = (void *) csound->Malloc(csound, var->memBlockSize);
     if (var->initializeVariableMemory != NULL) {
       var->initializeVariableMemory(var, var->memBlock);
@@ -755,7 +755,8 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
       if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
         OENTRY* oentry = (OENTRY*)current->markup;
         if (UNLIKELY(PARSER_DEBUG))
-          csound->Message(csound, "In INSTR GLOBAL: %s\n", current->value->lexeme);
+          csound->Message(csound,
+                          "In INSTR GLOBAL: %s\n", current->value->lexeme);
         if (current->type == '='
             && strcmp(oentry->opname, "=.r") == 0)
          csound->Warning(csound, "system constants can only be set once\n");
@@ -812,11 +813,11 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
      CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
      CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
                                             rType, "ksmps", NULL);
-     csoundAddVariable(ip->varPool, var);
+     csoundAddVariable(csound, ip->varPool, var);
      /* same for kr */
      var = csoundCreateVariable(csound, csound->typePool,
                                             rType, "kr", NULL);
-     csoundAddVariable(ip->varPool, var);
+     csoundAddVariable(csound, ip->varPool, var);
 
     /* Maybe should do this assignment at end when instr is setup?
      * Note: look into how "instr 4,5,6,8" is handled, i.e. if copies
@@ -1266,14 +1267,15 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       if (csound->oparms->odebug)
         csound->Message(csound, Str(" merging  %d) %s:%s\n"), count,
                         gVar->varName, gVar->varType->varTypeName);
-      var = csoundFindVariableWithName(current_state->varPool, gVar->varName);
+      var = csoundFindVariableWithName(csound,
+                                       current_state->varPool, gVar->varName);
       if (var == NULL) {
         ARRAY_VAR_INIT varInit;
         varInit.dimensions = gVar->dimensions;
         varInit.type = gVar->varType;
         var = csoundCreateVariable(csound, csound->typePool,
                                    gVar->varType, gVar->varName, &varInit);
-        csoundAddVariable(current_state->varPool, var);
+        csoundAddVariable(csound, current_state->varPool, var);
         /* memory has already been allocated, so we just point to it */
         /* when disposing of the engineState global vars, we do not
            delete the memBlock */
@@ -1312,7 +1314,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     while ((current = current->nxtinstxt) != NULL) {
       if (csound->oparms->odebug)
         csound->Message(csound, "insprep %p \n", current);
-      insprep(csound, current, current_state);/* run insprep() to connect ARGS  */
+      insprep(csound, current, current_state);/* run insprep() to connect ARGS */
       recalculateVarPoolMemory(csound,
                                current->varPool); /* recalculate var pool */
     }
@@ -1581,7 +1583,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     /* lock to ensure thread-safety */
     csoundLockMutex(csound->API_lock);
-    if (csound->init_pass_threadlock) csoundLockMutex(csound->init_pass_threadlock);
+    if (csound->init_pass_threadlock)
+      csoundLockMutex(csound->init_pass_threadlock);
     if (engineState != &csound->engineState) {
       OPDS *ids = csound->ids;
       /* any compilation other than the first one */
@@ -1622,18 +1625,18 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       }
 
       CS_VARIABLE *var;
-      var = csoundFindVariableWithName(engineState->varPool, "sr");
+      var = csoundFindVariableWithName(csound, engineState->varPool, "sr");
       *((MYFLT *)(var->memBlock)) = csound->esr;
-      var = csoundFindVariableWithName(engineState->varPool, "kr");
+      var = csoundFindVariableWithName(csound, engineState->varPool, "kr");
       *((MYFLT *)(var->memBlock)) = csound->ekr;
-      var = csoundFindVariableWithName(engineState->varPool, "ksmps");
+      var = csoundFindVariableWithName(csound, engineState->varPool, "ksmps");
       *((MYFLT *)(var->memBlock)) = csound->ksmps;
-      var = csoundFindVariableWithName(engineState->varPool, "nchnls");
+      var = csoundFindVariableWithName(csound, engineState->varPool, "nchnls");
       *((MYFLT *)(var->memBlock)) = csound->nchnls;
       if (csound->inchnls<0) csound->inchnls = csound->nchnls;
-      var = csoundFindVariableWithName(engineState->varPool, "nchnls_i");
+      var = csoundFindVariableWithName(csound, engineState->varPool, "nchnls_i");
       *((MYFLT *)(var->memBlock)) = csound->inchnls;
-      var = csoundFindVariableWithName(engineState->varPool, "0dbfs");
+      var = csoundFindVariableWithName(csound, engineState->varPool, "0dbfs");
       *((MYFLT *)(var->memBlock)) = csound->e0dbfs;
 
 
@@ -1895,22 +1898,25 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
     }
     /* trap local ksmps and kr  */
     else
-      if ((strcmp(s, "ksmps") == 0 && csoundFindVariableWithName(ip->varPool, s))
-          || (strcmp(s, "kr") == 0 && csoundFindVariableWithName(ip->varPool, s))) {
+      if ((strcmp(s, "ksmps") == 0 &&
+           csoundFindVariableWithName(csound, ip->varPool, s))
+          || (strcmp(s, "kr") == 0 &&
+              csoundFindVariableWithName(csound, ip->varPool, s))) {
         arg->type = ARG_LOCAL;
-        arg->argPtr = csoundFindVariableWithName(ip->varPool, s);
+        arg->argPtr = csoundFindVariableWithName(csound, ip->varPool, s);
       }
     else if (c == 'g' || (c == '#' && *(s+1) == 'g') ||
-             csoundFindVariableWithName(csound->engineState.varPool, s) != NULL) {
+             csoundFindVariableWithName(csound,
+                                        csound->engineState.varPool, s) != NULL) {
       // FIXME - figure out why string pool searched with gexist
       //|| string_pool_indexof(csound->engineState.stringPool, s) > 0) {
       arg->type = ARG_GLOBAL;
-      arg->argPtr = csoundFindVariableWithName(engineState->varPool, s);
+      arg->argPtr = csoundFindVariableWithName(csound, engineState->varPool, s);
 
     }
     else {
       arg->type = ARG_LOCAL;
-      arg->argPtr = csoundFindVariableWithName(ip->varPool, s);
+      arg->argPtr = csoundFindVariableWithName(csound, ip->varPool, s);
       if (arg->argPtr == NULL) {
         csound->Message(csound, Str("Missing local arg: %s\n"), s);
       }
