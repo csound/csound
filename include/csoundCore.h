@@ -1670,6 +1670,9 @@ typedef struct NAME__ {
     int           modules_loaded;
     MYFLT         _system_sr;
     void*         csdebug_data; /* debugger data */
+    int (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug and nodebug function */
+    int (*kperf_debug)(CSOUND *); /* kperf debug function pointer */
+    int (*kperf_nodebug)(CSOUND *); /* kperf nodebug function pointer */
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

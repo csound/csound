@@ -101,6 +101,10 @@ extern int csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 
+int kperf_nodebug(CSOUND *csound);
+int kperf_debug(CSOUND *csound);
+
+
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 extern OENTRY opcodlst_1[];
@@ -871,7 +875,10 @@ static const CSOUND cenviron_ = {
     0,              /* info_message_request */
     0,              /* modules loaded */
     -1,             /* audio system sr */
-    0               /* csdebug_data */
+    0,              /* csdebug_data */
+    kperf_nodebug,  /* current kperf function */
+    kperf_debug,    /* kperf debug function pointer */
+    kperf_nodebug   /* current kperf nodebug function pointer */
     /*, NULL */           /* self-reference */
 };
 
@@ -1584,7 +1591,7 @@ remainder is left to each opcode to deal with.
     return 0;
 }
 
-int kperf(CSOUND *csound)
+int kperf_debug(CSOUND *csound)
 {
     INSDS *ip;
 #ifdef CSDEBUGGER
@@ -1688,6 +1695,22 @@ int kperf(CSOUND *csound)
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
 
         while (ip != NULL) {                /* for each instr active:  */
+          if (UNLIKELY(csound->oparms->sampleAccurate &&
+                       ip->offtim > 0                 &&
+                       time_end > ip->offtim)) {
+            /* this is the last cycle of performance */
+            //   csound->Message(csound, "last cycle %d: %f %f %d\n",
+            //       ip->insno, csound->icurTime/csound->esr,
+            //          ip->offtim, ip->no_end);
+            ip->ksmps_no_end = ip->no_end;
+          }
+#ifdef HAVE_ATOMIC_BUILTIN
+          done = __sync_fetch_and_add((int *) &ip->init_done, 0);
+#else
+          done = ip->init_done;
+#endif
+
+          if (done == 1) {/* if init-pass has been done */
 #ifdef CSDEBUGGER
           if(data) {
             if(data->status == CSDEBUG_STATUS_CONTINUE) {
@@ -1704,6 +1727,7 @@ int kperf(CSOUND *csound)
             } else if (command == CSDEBUG_CMD_STOP) {
               data->debug_instr_ptr = ip;
               data->status = CSDEBUG_STATUS_STOPPED;
+              data->bkpt_cb(csound, 0, ip->p1, data->cb_data); /* treat stop as if breakpoint had been reached */
               return 0;
             } else { /* check if we have arrived at an instrument breakpoint */
               bkpt_node_t *bp_node = data->bkpt_anchor->next;
@@ -1724,22 +1748,6 @@ int kperf(CSOUND *csound)
             }
           }
 #endif
-          if (UNLIKELY(csound->oparms->sampleAccurate &&
-                       ip->offtim > 0                 &&
-                       time_end > ip->offtim)) {
-            /* this is the last cycle of performance */
-            //   csound->Message(csound, "last cycle %d: %f %f %d\n",
-            //       ip->insno, csound->icurTime/csound->esr,
-            //          ip->offtim, ip->no_end);
-            ip->ksmps_no_end = ip->no_end;
-          }
-#ifdef HAVE_ATOMIC_BUILTIN
-          done = __sync_fetch_and_add((int *) &ip->init_done, 0);
-#else
-          done = ip->init_done;
-#endif
-
-          if (done == 1) {/* if init-pass has been done */
             OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
             ip->spout = csound->spout;
@@ -1752,38 +1760,38 @@ int kperf(CSOUND *csound)
               }
             } else {
               int i, n = csound->nspout, start = 0;
-                int lksmps = ip->ksmps;
-                int incr = csound->nchnls*lksmps;
-                int offset =  ip->ksmps_offset;
-                int early = ip->ksmps_no_end;
-                OPDS  *opstart;
-                ip->spin = csound->spin;
-                ip->spout = csound->spout;
-                ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
+              int lksmps = ip->ksmps;
+              int incr = csound->nchnls*lksmps;
+              int offset =  ip->ksmps_offset;
+              int early = ip->ksmps_no_end;
+              OPDS  *opstart;
+              ip->spin = csound->spin;
+              ip->spout = csound->spout;
+              ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
 
-                /* we have to deal with sample-accurate code
+              /* we have to deal with sample-accurate code
                    whole CS_KSMPS blocks are offset here, the
                    remainder is left to each opcode to deal with.
                 */
-                while(offset >= lksmps) {
-                  offset -= lksmps;
-                  start += csound->nchnls;
-                }
-                ip->ksmps_offset = offset;
-                if(early){
-                  n -= (early*csound->nchnls);
-                  ip->ksmps_no_end = early % lksmps;
-                  }
+              while(offset >= lksmps) {
+                offset -= lksmps;
+                start += csound->nchnls;
+              }
+              ip->ksmps_offset = offset;
+              if(early){
+                n -= (early*csound->nchnls);
+                ip->ksmps_no_end = early % lksmps;
+              }
 
-               for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
-                  opstart = (OPDS*) ip;
-                  while ((opstart = opstart->nxtp) != NULL && ip->actflg) {
-                    opstart->insdshead->pds = opstart;
-                    (*opstart->opadr)(csound, opstart); /* run each opcode */
-                    opstart = opstart->insdshead->pds;
-                  }
-                  ip->kcounter++;
+              for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
+                opstart = (OPDS*) ip;
+                while ((opstart = opstart->nxtp) != NULL && ip->actflg) {
+                  opstart->insdshead->pds = opstart;
+                  (*opstart->opadr)(csound, opstart); /* run each opcode */
+                  opstart = opstart->insdshead->pds;
                 }
+                ip->kcounter++;
+              }
             }
           }
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
@@ -1859,7 +1867,7 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
         csoundMessage(csound, Str("Score finished in csoundPerformKsmps().\n"));
         return done;
       }
-    } while (kperf(csound));
+    } while (csound->kperf(csound));
     csoundUnlockMutex(csound->API_lock);
       return 0;
 }
@@ -1888,7 +1896,7 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
         csoundMessage(csound, Str("Score finished in csoundPerformKsmps().\n"));
         return done;
       }
-    } while (kperf(csound));
+    } while (csound->kperf(csound));
     return 0;
 }
 
@@ -1919,7 +1927,7 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
           csoundUnlockMutex(csound->API_lock);
           return done;
         }
-      } while (kperf(csound));
+      } while (csound->kperf(csound));
       csoundUnlockMutex(csound->API_lock);
       csound->sampsNeeded -= csound->nspout;
     }
@@ -1961,7 +1969,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
           }
           return done;
         }
-      } while (kperf(csound));
+      } while (csound->kperf(csound));
       csoundUnlockMutex(csound->API_lock);
     } while ((unsigned char) csound->performState == (unsigned char) '\0');
     csoundMessage(csound, Str("csoundPerform(): stopped.\n"));
@@ -4136,7 +4144,7 @@ PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
     csoundLockMutex(csound->API_lock);
     do {
       done |= sensevents(csound);
-    } while (kperf(csound));
+    } while (csound->kperf(csound));
     csoundUnlockMutex(csound->API_lock);
     return done;
 }
