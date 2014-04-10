@@ -12,7 +12,7 @@ __global__ void convol(MYFLT *out, MYFLT *del, MYFLT *coefs, int irsize, int rp,
   int n =  t%vsize;  /* sample index */
   int h =  t/vsize;  /* coeff index */
   rp = (rp + n + h)%(irsize+vsize); /* read point, oldest -> newest */
-  out[t]  =  del[rp]*coefs[irsize-1-h];  /* single tap */
+  out[t] = del[rp]*coefs[irsize-1-h];  /* single tap */
   if(t > vsize) return;
   syncthreads();
   for(int i=1; i < irsize; i++)
@@ -63,7 +63,9 @@ static int conv_init(CSOUND *csound, CONV *p){
   p->threads = threads > blockspt ? blockspt : threads;
 
   csound->RegisterDeinitCallback(csound, p, destroy_conv);
-  if(csound->oparm->odebug)
+  OPARMS parms;
+  csound->GetOParms(csound, &parms);
+  if(parms.odebug)
    csound->Message(csound, "blocks %d, threads %d - %d\n", p->blocks, p->threads, threads);
 
   return OK;
