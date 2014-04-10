@@ -38,6 +38,7 @@ PUBLIC void csoundDebuggerInit(CSOUND *csound)
     data->bkpt_buffer = csoundCreateCircularBuffer(csound, 64, sizeof(bkpt_node_t **));
     data->cmd_buffer = csoundCreateCircularBuffer(csound, 64, sizeof(debug_command_t));
     csound->csdebug_data = data;
+    csound->kperf = csound->kperf_debug;
 }
 
 PUBLIC void csoundDebuggerClean(CSOUND *csound)
@@ -54,6 +55,7 @@ PUBLIC void csoundDebuggerClean(CSOUND *csound)
     }
     free(data);
     csound->csdebug_data = NULL;
+    csound->kperf = csound->kperf_nodebug;
 }
 
 PUBLIC void csoundDebugStart(CSOUND *csound)
