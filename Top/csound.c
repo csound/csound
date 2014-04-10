@@ -442,7 +442,7 @@ static const CSOUND cenviron_ = {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, 
+      NULL, NULL, NULL,
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -2564,9 +2564,9 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
     tmpEntry.thread     = (uint8_t) thread;
     tmpEntry.outypes    = (char*) outypes;
     tmpEntry.intypes    = (char*) intypes;
-    tmpEntry.iopadr     = (SUBR) iopadr;
-    tmpEntry.kopadr     = (SUBR) kopadr;
-    tmpEntry.aopadr     = (SUBR) aopadr;
+    tmpEntry.iopadr     = iopadr;
+    tmpEntry.kopadr     = kopadr;
+    tmpEntry.aopadr     = aopadr;
     err = opcode_list_new_oentry(csound, &tmpEntry);
     if (UNLIKELY(err))
       csoundErrorMsg(csound, Str("Failed to allocate new opcode entry."));
@@ -2889,7 +2889,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       O->sfheader = 0;
       csound->peakchunks = 1;
       csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
-      csound->engineState.varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+      csound->engineState.varPool = csoundCreateVarPool(csound);
       csoundAddStandardTypes(csound, csound->typePool);
       /* csoundLoadExternals(csound); */
     }
@@ -3920,4 +3920,4 @@ PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
 //#ifdef __cplusplus
 //}
 //#endif
- 
+
