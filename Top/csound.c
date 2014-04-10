@@ -1733,7 +1733,7 @@ int kperf_debug(CSOUND *csound)
               bkpt_node_t *bp_node = data->bkpt_anchor->next;
               while (bp_node) {
                 if (bp_node->instr == ip->p1) {
-                  if (bp_node->count == 0) {
+                  if (bp_node->count < 2) { /* skip of 0 or 1 has the same effect */
                     data->debug_instr_ptr = ip;
                     data->bkpt_cb(csound, 0, ip->p1, data->cb_data);
                     data->status = CSDEBUG_STATUS_STOPPED;
