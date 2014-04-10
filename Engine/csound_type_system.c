@@ -96,6 +96,18 @@ int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance
 
 /* VAR POOL FUNCTIONS */
 
+
+CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound) {
+    CS_VAR_POOL* varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+    varPool->table = cs_hash_table_create(csound);
+    return varPool;
+}
+
+void csoundFreeVarPool(CSOUND* csound, CS_VAR_POOL* pool) {
+    cs_hash_table_mfree_complete(csound, pool->table);
+    csound->Free(csound, pool);
+}
+
 char* getVarSimpleName(CSOUND* csound, const char* varName) {
     char* retVal;
 
@@ -156,24 +168,14 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
 
 //CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
 //                                        const char* name) {
-CS_VARIABLE* csoundFindVariableWithName(CS_VAR_POOL* pool, const char* name)
+CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
+                                        const char* name)
 {
-    CS_VARIABLE* current = pool->head;
-    CS_VARIABLE* returnValue = NULL;
 
-    if(current != NULL && name != NULL) {
-      while(current != NULL) {
-        if (strcmp(current->varName, name) == 0) {
-          returnValue = current;
-          break;
-        }
-        //printf("current=%p %s \n", current,name);
-        current = current->next;
-      }
-    }
-    
+    CS_VARIABLE* returnValue = cs_hash_table_get(csound, pool->table, (char*)name);
+
     if (returnValue == NULL && pool->parent != NULL) {
-      returnValue = csoundFindVariableWithName(pool->parent, name);
+      returnValue = csoundFindVariableWithName(csound, pool->parent, name);
     }
 
     return returnValue;
@@ -192,36 +194,17 @@ CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int index) {
     return current;
 }
 
-int csoundFindVariable(CS_VAR_POOL* pool, const char* name) {
-    CS_VARIABLE* current = pool->head;
-    int returnValue = -1;
-    int counter = 0;
 
-    if(current != NULL && name != NULL) {
-      while(current != NULL) {
-        if (strcmp(current->varName, name) == 0) {
-          returnValue = counter;
-          break;
-        }
-        current = current->next;
-        counter++;
-      }
-    }
-    return returnValue;
-}
-
-
-int csoundAddVariable(CS_VAR_POOL* pool, CS_VARIABLE* var) {
+int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
   if(var != NULL) {
     if(pool->head == NULL) {
       pool->head = var;
+      pool->tail = var;
     } else {
-      CS_VARIABLE* varCurrent = pool->head;
-      while(varCurrent->next != NULL) {
-        varCurrent = varCurrent->next;
-      }
-      varCurrent->next = var;
+      pool->tail->next = var;
+      pool->tail = var;
     }
+    cs_hash_table_put(csound, pool->table, var->varName, var);
     // may need to revise this; var pools are accessed as MYFLT*,
     // so need to ensure all memory is aligned to sizeof(MYFLT)
     // boundaries maybe should align block size here to +7 before dividing?
