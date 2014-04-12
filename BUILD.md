@@ -341,6 +341,8 @@ non-free rpi `
 
 (This can be done with nano)
 
+After adding that to the sources.list, you should run `sudo apt-get update ` and retry the `sudo apt-get build-dep csound` command.
+
 1.  `cd ~ `
 
 2.  `mkdir csound`
