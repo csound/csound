@@ -93,19 +93,18 @@ __global__ void updatemix(MYFLT *out, float *frame, float *amps, MYFLT kamp,
            int64_t *ph, MYFLT pitch, int bins, int vsize, MYFLT sr){
 
  int h = threadIdx.x + blockIdx.x*blockDim.x;
- int k = h << 1, i;
+ int k = h << 1, i,j;
  /* update phases and amps */
  ph[h]  = (ph[h] + (int64_t)(vsize*round(pitch*frame[k+1]*FMAXLEN/sr))) & PHMASK;
  amps[h] = frame[k];
- if(h > vsize) 
+ if(h >= vsize) 
    return;
  /* mix all partials */
-  for(i=1; i < bins; i++){
-    out[h] +=  out[h + vsize*i];
+ for(i=1, j= vsize; i < bins; i++, j+=vsize){
+    out[h] +=  out[h + j];
   }
  out[h] *= kamp;
 }
-
 
 static int perf_cudadsyn(CSOUND *csound, CUDADSYN *p){
 

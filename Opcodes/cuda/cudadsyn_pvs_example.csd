@@ -11,7 +11,7 @@ ksmps = 64
 instr 1
 ifftsize = 1024
 ihopsize = 256
-ibins = 128
+ibins = 512
 asig1,adp diskin "/users/victor/audio/metheny.wav",1,0,1
 fsig = pvsanal(asig1, ifftsize,ihopsize, ifftsize, 1)
 asig = cudasynth(fsig,1,1,ibins)

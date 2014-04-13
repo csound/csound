@@ -8,15 +8,43 @@
 
 __global__ void convol(MYFLT *out, MYFLT *del, MYFLT *coefs, int irsize, int rp, int vsize) {
   int t = (threadIdx.x + blockIdx.x*blockDim.x);
-  if(t > irsize*vsize) return;
+  if(t >= irsize*vsize) return;
   int n =  t%vsize;  /* sample index */
   int h =  t/vsize;  /* coeff index */
-  rp = (rp + n + h)%(irsize+vsize); /* read point, oldest -> newest */
-  out[t] = del[rp]*coefs[irsize-1-h];  /* single tap */
-  if(t > vsize) return;
+  int end = irsize+vsize;
+  rp += n + h; /* read point, oldest -> newest */
+  out[t] = del[rp < end ? rp : rp%end]*coefs[irsize-1-h];  /* single tap */
+  if(t >= vsize) return;
   syncthreads();
-  for(int i=1; i < irsize; i++)
-    out[n] +=  out[n + vsize*i]; /* mix all taps */       
+  MYFLT a = 0.0;
+  for(int i=1, j=vsize; i < irsize; i++, j+=vsize)
+    a +=  out[n + j]; /* mix all taps */   
+  out[n] += a;    
+}
+
+__device__ double atomicAdd(double* address, double val)
+{
+    unsigned long long int* address_as_ull =
+                              (unsigned long long int*)address;
+    unsigned long long int old = *address_as_ull, assumed;
+    do {
+        assumed = old;
+        old = atomicCAS(address_as_ull, assumed,
+                        __double_as_longlong(val +
+                               __longlong_as_double(assumed)));
+    } while (assumed != old);
+    return __longlong_as_double(old);
+}
+
+__global__ void convol2(MYFLT *out, MYFLT *del, MYFLT *coefs, int irsize, int rp, int vsize) {
+  int t = (threadIdx.x + blockIdx.x*blockDim.x);
+  if(t >= irsize*vsize) return;
+  int n =  t%vsize;  /* sample index */
+  int h =  t/vsize;  /* coeff index */
+  int end = irsize+vsize;
+  rp += n + h; /* read point, oldest -> newest */
+  MYFLT s = del[rp < end ? rp : rp%end]*coefs[irsize-1-h];  /* single tap */
+  t == n ? out[n] = s : atomicAdd(&out[n], s);
 }
 
 typedef struct _CONV {
