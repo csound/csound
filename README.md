@@ -74,7 +74,7 @@ from around the world. They include (but are not limited to):
 * Greg Sullivan
 * Hans Mikelson
 * Istvan Varga
-* Jean Pich�
+* Jean Piché
 * John ffitch
 * John Ramsdell
 * Marc Resibois
@@ -87,7 +87,7 @@ from around the world. They include (but are not limited to):
 * Mike Berry
 * Paris Smaragdis
 * Perry Cook
-* Peter Neub�cker
+* Peter Neubäcker
 * Peter Nix
 * Rasmus Ekman
 * Richard Dobson
