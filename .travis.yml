@@ -2,7 +2,7 @@ language: cpp
 compiler:
       - gcc
       - clang
-env: OMP_NUM_THREADS=4
+env: OMP_NUM_THREADS=4 VERBOSE=1
 before_install:
       - sudo apt-get update -qq
 install:
