@@ -2,7 +2,11 @@ language: cpp
 compiler:
       - gcc
       - clang
-env: OMP_NUM_THREADS=4 VERBOSE=1
+env:
+      matrix:
+        - OMP_NUM_THREADS=4 VERBOSE=1
+      global:
+        secure: JxNTr0zTdQ6KNsVQgQYL9acqTWege7VeblmRQ4bb4he5WyIViyrXvrrss111EVimoC37qKFMHzL/yDh2hbNHW26ZIGcIKvNduO5IeixglJMun2h4FYtVjRc+iBCm+sL7RceB1usDLXk1+QFlvN9iMJqgHfjCZ1/rzIg+BSZ6llU=
 before_install:
       - sudo apt-get update -qq
 install:
@@ -12,4 +16,12 @@ before_script:
 script:
       - cd build && cmake .. -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON && make && make test
 
-
+addons:
+      coverity_scan:
+          project:
+              name: "fsateler/csound"
+              description: "Your project description here"
+          notification_email: csound-devel@lists.sourceforge.net
+          build_command_prepend: "mkdir build && cd build && cmake .."
+          build_command: "make -C build"
+          branch_pattern: coverity_scan
