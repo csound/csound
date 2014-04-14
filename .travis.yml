@@ -4,7 +4,7 @@ compiler:
       - clang
 env:
       global:
-           - secure: JxNTr0zTdQ6KNsVQgQYL9acqTWege7VeblmRQ4bb4he5WyIViyrXvrrss111EVimoC37qKFMHzL/yDh2hbNHW26ZIGcIKvNduO5IeixglJMun2h4FYtVjRc+iBCm+sL7RceB1usDLXk1+QFlvN9iMJqgHfjCZ1/rzIg+BSZ6llU=
+           - secure: "pOICMBtfwljj450Vht1D2/XvtUm07edkbiUI0+PCnfuwiwBFJyqY919whZu+CrplQvkVS+RzvxT3wpgkVccflo0uvNJ7NwfKksRqrUKwTp59nGIwjUsnDjI3YkxOQyxIdIPsSm3bUxXVy/Jge0v6vzvbbPXKxyAxKsupnUBYOwM="
            - OMP_NUM_THREADS=4
            - VERBOSE=1
 before_install:
