@@ -3,10 +3,10 @@ compiler:
       - gcc
       - clang
 env:
-      matrix:
-        - OMP_NUM_THREADS=4 VERBOSE=1
       global:
-        secure: JxNTr0zTdQ6KNsVQgQYL9acqTWege7VeblmRQ4bb4he5WyIViyrXvrrss111EVimoC37qKFMHzL/yDh2hbNHW26ZIGcIKvNduO5IeixglJMun2h4FYtVjRc+iBCm+sL7RceB1usDLXk1+QFlvN9iMJqgHfjCZ1/rzIg+BSZ6llU=
+           - secure: JxNTr0zTdQ6KNsVQgQYL9acqTWege7VeblmRQ4bb4he5WyIViyrXvrrss111EVimoC37qKFMHzL/yDh2hbNHW26ZIGcIKvNduO5IeixglJMun2h4FYtVjRc+iBCm+sL7RceB1usDLXk1+QFlvN9iMJqgHfjCZ1/rzIg+BSZ6llU=
+           - OMP_NUM_THREADS=4
+           - VERBOSE=1
 before_install:
       - sudo apt-get update -qq
 install:
