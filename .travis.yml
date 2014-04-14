@@ -14,7 +14,7 @@ install:
 before_script:
         - mkdir -p build
 script:
-      - [ ${COVERITY_SCAN_BRANCH} == 1 ] || cd build && cmake .. -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON && make && make test
+      - [ ${COVERITY_SCAN_BRANCH} == 1 ] || cd $TRAVIS_BUILD_DIR/build && cmake .. -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON && make && make test
 
 addons:
       coverity_scan:
@@ -22,6 +22,6 @@ addons:
               name: "csound/csound"
               description: "A user-programmable and user-extensible sound processing language and software synthesizer"
           notification_email: csound-devel@lists.sourceforge.net
-          build_command_prepend: "mkdir -p build && cd build && cmake .."
-          build_command: "make -C build"
+          build_command_prepend: "mkdir -p $TRAVIS_BUILD_DIR/build && cd $TRAVIS_BUILD_DIR/build && cmake .."
+          build_command: "make -C $TRAVIS_BUILD_DIR/build"
           branch_pattern: coverity_scan
