@@ -14,7 +14,7 @@ install:
 before_script:
         - mkdir -p build
 script:
-      - cd build && cmake .. -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON && make && make test
+      - [ ${COVERITY_SCAN_BRANCH} == 1 ] || cd build && cmake .. -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON && make && make test
 
 addons:
       coverity_scan:
