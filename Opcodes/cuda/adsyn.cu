@@ -13,7 +13,7 @@ typedef struct cudadsyn_ {
   PVSDAT *fsig;
   MYFLT *kamp, *kfreq;
   MYFLT *inum;
-  MYFLT *out;
+  float *out;
   float *frame;
   int64_t *ndx;
   float *fp, *previous;
@@ -51,18 +51,18 @@ static int init_cudadsyn(CSOUND *csound, CUDADSYN *p){
   p->threads /= p->blocks;
   p->mthreads /= p->mblocks;
 
-  asize = p->bins*p->vsamps*sizeof(MYFLT);
+  asize = p->bins*p->vsamps*sizeof(float);
   ipsize  =p->fsig->N*sizeof(int64_t)/2;
-  fpsize = p->fsig->N*sizeof(float)*2;
+  fpsize = p->fsig->N*sizeof(float);
 
   cudaMalloc(&p->out, asize);
   cudaMalloc(&p->ndx, ipsize);
   cudaMalloc(&p->frame, fpsize);
-  cudaMalloc(&p->previous, fpsize);
-  cudaMemset(p->previous, 0, fpsize);
+  cudaMalloc(&p->previous, fpsize/2);
+  cudaMemset(p->previous, 0, fpsize/2);
   cudaMemset(p->ndx, 0, ipsize);
 
-  asize = p->vsamps*sizeof(MYFLT);
+  asize = p->vsamps*sizeof(float);
   if(p->out_.auxp == NULL ||
      p->out_.size < asize)
     csound->AuxAlloc(csound, asize , &p->out_);
@@ -72,10 +72,8 @@ static int init_cudadsyn(CSOUND *csound, CUDADSYN *p){
   return OK;
 }
 
-//__shared__ int64_t ph[2048];
-
-__global__ void sample(MYFLT *out, float *frame, MYFLT pitch, int64_t *ph,
-                       float *amps, int bins, int vsize, MYFLT sr) {
+__global__ void sample(float *out, float *frame, float pitch, int64_t *ph,
+                       float *amps, int bins, int vsize, float sr) {
 
   int t = (threadIdx.x + blockIdx.x*blockDim.x);
   int n =  t%vsize;  /* sample index */
@@ -83,27 +81,20 @@ __global__ void sample(MYFLT *out, float *frame, MYFLT pitch, int64_t *ph,
   int k = h<<1;
   int64_t lph;
   float a = amps[h], ascl = ((float)n)/vsize;
-  MYFLT fscal = pitch*FMAXLEN/sr;
+  float fscal = pitch*FMAXLEN/sr;
   lph = (ph[h] + (int64_t)(n*round(frame[k+1]*fscal))) & PHMASK;
   a += ascl*(frame[k] - a);
-  out[t] = a*sinf((2*PI*lph)/FMAXLEN);
+  atomicAdd(&out[n], a*sinf((2*PI*lph)/FMAXLEN));
 }
 
-__global__ void updatemix(MYFLT *out, float *frame, float *amps, MYFLT kamp,
-           int64_t *ph, MYFLT pitch, int bins, int vsize, MYFLT sr){
+__global__ void update(float *frame, float *amps,
+      int64_t *ph,float pitch, int vsize, float sr){
 
  int h = threadIdx.x + blockIdx.x*blockDim.x;
- int k = h << 1, i,j;
+ int k = h << 1;
  /* update phases and amps */
  ph[h]  = (ph[h] + (int64_t)(vsize*round(pitch*frame[k+1]*FMAXLEN/sr))) & PHMASK;
  amps[h] = frame[k];
- if(h >= vsize) 
-   return;
- /* mix all partials */
- for(i=1, j= vsize; i < bins; i++, j+=vsize){
-    out[h] +=  out[h + j];
-  }
- out[h] *= kamp;
 }
 
 static int perf_cudadsyn(CSOUND *csound, CUDADSYN *p){
@@ -111,7 +102,7 @@ static int perf_cudadsyn(CSOUND *csound, CUDADSYN *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT *out_ = (MYFLT *) p->out_.auxp;
+  float *out_ = (float *) p->out_.auxp;
   MYFLT      *asig = p->asig;
   int count = p->count,  vsamps = p->vsamps;
   p->fp = (float *) (p->fsig->frame.auxp);
@@ -124,6 +115,7 @@ static int perf_cudadsyn(CSOUND *csound, CUDADSYN *p){
 
   for(n=offset; n < nsmps; n++){
     if(count == 0) {
+      cudaMemset(p->out, 0, sizeof(float)*vsamps);
       cudaMemcpy(p->frame,p->fp,sizeof(float)*p->bins*2,cudaMemcpyHostToDevice);
       sample<<<p->blocks,p->threads>>>(p->out,p->frame,
                                                *p->kfreq,
@@ -132,16 +124,15 @@ static int perf_cudadsyn(CSOUND *csound, CUDADSYN *p){
                                                 p->bins,
                                                 vsamps,
                                                 csound->GetSr(csound));
-      if (cudaDeviceSynchronize() != cudaSuccess)
-      csound->Message(csound,"Cuda error: Failed to synchronize\n");
-      updatemix<<<p->mblocks,p->mthreads>>>(p->out, p->frame,
-                                            p->previous, *p->kamp,
+       if (cudaDeviceSynchronize() != cudaSuccess)
+       csound->Message(csound,"Cuda error: Failed to synchronize\n");
+       update<<<p->mblocks,p->mthreads>>>(p->frame,
+                                           p->previous,
                                             p->ndx,
                                             *p->kfreq,
-                                            p->bins,
                                             vsamps,
                                             csound->GetSr(csound));
-      cudaMemcpy(out_,p->out,vsamps*sizeof(MYFLT),cudaMemcpyDeviceToHost);
+      cudaMemcpy(out_,p->out,vsamps*sizeof(float),cudaMemcpyDeviceToHost);
       count = vsamps;
     }
     asig[n] = (MYFLT) out_[vsamps - count];
