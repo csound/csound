@@ -103,7 +103,7 @@ static int pvsynset(CSOUND *csound, PVSYN *p){
     sum = FL(2.0) / sum;
     for(i = 0; i < N; i++) win[i] *= sum;
     sum = FL(0.0);
-    for(i = 0; i <= N; i+=hsize)
+    for(i = 0; i < N; i+=hsize)
               sum += win[i] * win[i];
     sum = 2.0/(sum*N);
     for(i = 0; i < N; i++) win[i] *= sum;
