@@ -451,6 +451,19 @@ static int tabrem(CSOUND *csound, TABARITH *p)
     return OK;
 }
 
+#define IIARRAY(opcode,fn) \
+static int opcode(CSOUND *csound, TABARITH *p)        \
+{                                                     \
+    if (tabarithset(csound, p)) return fn(csound, p); \
+    else return NOTOK;                                \
+}
+
+IIARRAY(tabaddi,tabadd)
+IIARRAY(tabsubi,tabsub)
+IIARRAY(tabmulti,tabmult)
+IIARRAY(tabdivi,tabdiv)
+IIARRAY(tabremi,tabrem)
+
 // Add array and scalar
 static int tabiadd(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l, MYFLT r, void *p)
 {
@@ -654,6 +667,34 @@ static int tabiarem(CSOUND *csound, TABARITH2 *p)
     }
     return OK;
 }
+
+#define IiARRAY(opcode,fn)                             \
+static int opcode(CSOUND *csound, TABARITH1 *p)        \
+{                                                      \
+    if (tabarithset1(csound, p)) return fn(csound, p);                     \
+    else return NOTOK;                                 \
+}
+
+IiARRAY(tabaiaddi,tabaiadd)
+IiARRAY(tabaisubi,tabaisub)
+IiARRAY(tabaimulti,tabaimult)
+IiARRAY(tabaidivi,tabaidiv)
+IiARRAY(tabairemi,tabairem)
+
+#define iIARRAY(opcode,fn)                             \
+static int opcode(CSOUND *csound, TABARITH2 *p)        \
+{                                                      \
+    if (tabarithset2(csound, p)) return fn(csound, p); \
+    else return NOTOK;                                 \
+}
+iIARRAY(tabiaaddi,tabiaadd)
+iIARRAY(tabiasubi,tabiasub)
+iIARRAY(tabiamulti,tabiamult)
+iIARRAY(tabiadivi,tabiadiv)
+iIARRAY(tabiaremi,tabiarem)
+        
+
+
 
 static int tabqset(CSOUND *csound, TABQUERY *p)
 {
@@ -1138,37 +1179,56 @@ static OENTRY arrayvars_localops[] =
     /* ******************************************** */
     {"##add.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
                                          (SUBR)tabarithset, (SUBR)tabadd},
+    {"##add.[i]", sizeof(TABARITH), 0, 3, "i[]", "i[]i[]",
+                                         (SUBR)tabaddi},
     /* ******************************************** */
     {"##sub.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
                                          (SUBR)tabarithset, (SUBR)tabsub},
+    {"##sub.[i]", sizeof(TABARITH), 0, 3, "i[]", "i[]i[]",
+                                         (SUBR)tabsubi},
     //    {"##neg.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]",
     //                                         (SUBR)tabarithset1, (SUBR)tabneg},
     {"##mul.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
                                          (SUBR)tabarithset,(SUBR)tabmult},
+    {"##mul.[i]", sizeof(TABARITH), 0, 3, "i[]", "i[]i[]",
+                                         (SUBR)tabmulti},
     {"##div.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
                                           (SUBR)tabarithset,(SUBR)tabdiv },
+    {"##div.[i]",  sizeof(TABARITH), 0, 3, "i[]", "i[]i[]",
+                                          (SUBR)tabdivi },
     {"##rem.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
                                           (SUBR)tabarithset, (SUBR)tabrem},
+    {"##rem.[i]",  sizeof(TABARITH), 0, 3, "i[]", "i[]i[]", (SUBR)tabremi},
     {"##add.[i", sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
                                           (SUBR)tabarithset1, (SUBR)tabaiadd },
     {"##add.i[", sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
                                           (SUBR)tabarithset2, (SUBR)tabiaadd },
+    {"##add.[p", sizeof(TABARITH1), 0, 3, "i[]", "i[]i", (SUBR)tabaiaddi },
+    {"##add.p[", sizeof(TABARITH2), 0, 3, "i[]", "ii[]", (SUBR)tabiaaddi },
     {"##sub.[i", sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
                                           (SUBR)tabarithset1, (SUBR)tabaisub },
     {"##sub.i[", sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
                                           (SUBR)tabarithset2, (SUBR)tabiasub },
+    {"##sub.[p", sizeof(TABARITH1), 0, 3, "i[]", "i[]i", (SUBR)tabaisubi },
+    {"##sub.p[", sizeof(TABARITH2), 0, 3, "i[]", "ii[]", (SUBR)tabiasubi },
     {"##mul.[i", sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
                                           (SUBR)tabarithset1, (SUBR)tabaimult },
     {"##mul.i[", sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
                                           (SUBR)tabarithset2, (SUBR)tabiamult },
+    {"##mul.[p", sizeof(TABARITH1), 0, 3, "i[]", "i[]i", (SUBR)tabaimulti },
+    {"##mul.p[", sizeof(TABARITH2), 0, 3, "i[]", "ii[]",  (SUBR)tabiamulti },
     {"##div.[i",  sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
                                           (SUBR)tabarithset1, (SUBR)tabaidiv },
     {"##div.i[",  sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
                                           (SUBR)tabarithset2, (SUBR)tabiadiv },
+    {"##div.[p",  sizeof(TABARITH1), 0, 3, "i[]", "i[]i", (SUBR)tabaidivi },
+    {"##div.p[",  sizeof(TABARITH2), 0, 3, "i[]", "ii[]", (SUBR)tabiadivi },
     {"##rem.[i",  sizeof(TABARITH1),0,  3, "k[]", "k[]i",
                                           (SUBR)tabarithset1, (SUBR)tabairem },
     {"##rem.i[",  sizeof(TABARITH2),0,  3, "k[]", "ik[]",
                                           (SUBR)tabarithset2, (SUBR)tabiarem },
+    {"##rem.[p",  sizeof(TABARITH1),0,  3, "i[]", "i[]i", (SUBR)tabairemi },
+    {"##rem.p[",  sizeof(TABARITH2),0,  3, "i[]", "ii[]", (SUBR)tabiaremi },
     {"##add.[k", sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
                                           (SUBR)tabarithset1, (SUBR)tabaiadd },
     {"##add.k[", sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
@@ -1223,11 +1283,15 @@ static OENTRY arrayvars_localops[] =
     { "tabmap_i", sizeof(TABMAP), _QQ, 1, "k[]", "k[]S", (SUBR) tabmap_set   },
     { "tabmap", sizeof(TABMAP), _QQ, 3, "k[]", "k[]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf},
+    { "tabmap", sizeof(TABMAP), _QQ, 3, "k[]", "k[]S", (SUBR) tabmap_set,
+                                                 (SUBR) tabmap_perf},
     { "genarray.i", sizeof(TABGEN),0, 1, "i[]", "iip", (SUBR) tabgen, NULL   },
     { "genarray_i", sizeof(TABGEN),0, 1, "k[]", "iip", (SUBR) tabgen, NULL, NULL},
     { "genarray.k", sizeof(TABGEN),0, 2, "k[]", "kkp", NULL, (SUBR)tabgen    },
     { "maparray_i", sizeof(TABMAP),0, 1, "k[]", "k[]S", (SUBR) tabmap_set    },
-    { "maparray", sizeof(TABMAP), 0, 3, "k[]", "k[]S", (SUBR) tabmap_set,
+    { "maparray.k", sizeof(TABMAP), 0, 3, "k[]", "k[]S", (SUBR) tabmap_set,
+                                                 (SUBR) tabmap_perf          },
+    { "maparray.s", sizeof(TABMAP), 0, 3, "S[]", "S[]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf          },
     { "tabslice", sizeof(TABSLICE), _QQ, 2, "k[]", "k[]ii",
                                                  NULL, (SUBR) tabslice, NULL },
@@ -1246,11 +1310,7 @@ static OENTRY arrayvars_localops[] =
     { "lentab", 0xffff},
     { "lentab.i", sizeof(TABQUERY1), _QQ, 1, "i", "k[]", (SUBR) tablength },
     { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]", NULL, (SUBR) tablength },
-//    { "lenarray", 0xffff},
-//    { "lenarray.i", sizeof(TABQUERY1), 0, 1, "i", "k[]", (SUBR) tablength },
-//    { "lenarray.ii", sizeof(TABQUERY1), 0, 1, "i", "i[]", (SUBR) tablength },
     { "lenarray.ix", sizeof(TABQUERY1), 0, 1, "i", ".[]", (SUBR) tablength },
-//    { "lenarray.k", sizeof(TABQUERY1), 0, 2, "k", "k[]", NULL, (SUBR) tablength },
     { "lenarray.kx", sizeof(TABQUERY1), 0, 2, "k", ".[]", NULL, (SUBR) tablength },
     { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa},
     { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina}
