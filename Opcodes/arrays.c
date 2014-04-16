@@ -1279,7 +1279,7 @@ static OENTRY arrayvars_localops[] =
                                                (SUBR) tabscaleset,(SUBR) tabscale },
     { "scalearray.1", sizeof(TABSCALE), 0, 1, "",  "i[]iiOJ",   (SUBR) tabscale1 },
     { "=.t", sizeof(TABCPY), 0, 3, "k[]", "k[]", (SUBR)tabcopy_set, (SUBR)tabcopy },
-    { "=.I", sizeof(TABCPY), 0, 3, "i[]", "i[]", (SUBR)tabcopy1, NULL },
+    { "=.I", sizeof(TABCPY), 0, 1, "i[]", "i[]", (SUBR)tabcopy1, NULL },
     { "tabgen", sizeof(TABGEN), _QQ, 1, "k[]", "iip", (SUBR) tabgen, NULL    },
     { "tabmap_i", sizeof(TABMAP), _QQ, 1, "k[]", "k[]S", (SUBR) tabmap_set   },
     { "tabmap", sizeof(TABMAP), _QQ, 3, "k[]", "k[]S", (SUBR) tabmap_set,
