@@ -451,6 +451,19 @@ static int tabrem(CSOUND *csound, TABARITH *p)
     return OK;
 }
 
+#define IIARRAY(opcode,fn) \
+static int opcode(CSOUND *csound, TABARITH *p)        \
+{                                                     \
+    if (!tabarithset(csound, p)) return fn(csound, p); \
+    else return NOTOK;                                \
+}
+
+IIARRAY(tabaddi,tabadd)
+IIARRAY(tabsubi,tabsub)
+IIARRAY(tabmulti,tabmult)
+IIARRAY(tabdivi,tabdiv)
+IIARRAY(tabremi,tabrem)
+
 // Add array and scalar
 static int tabiadd(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l, MYFLT r, void *p)
 {
@@ -654,6 +667,35 @@ static int tabiarem(CSOUND *csound, TABARITH2 *p)
     }
     return OK;
 }
+
+#define IiARRAY(opcode,fn)                             \
+static int opcode(CSOUND *csound, TABARITH1 *p)        \
+{                                                      \
+    if (!tabarithset1(csound, p)) return fn(csound, p); \
+    else return NOTOK;                                 \
+}
+
+IiARRAY(tabaiaddi,tabaiadd)
+IiARRAY(tabaisubi,tabaisub)
+IiARRAY(tabaimulti,tabaimult)
+IiARRAY(tabaidivi,tabaidiv)
+IiARRAY(tabairemi,tabairem)
+
+#define iIARRAY(opcode,fn)                             \
+static int opcode(CSOUND *csound, TABARITH2 *p)        \
+{                                                      \
+    if (!tabarithset2(csound, p)) return fn(csound, p); \
+    else return NOTOK;                                 \
+}
+
+iIARRAY(tabiaaddi,tabiaadd)
+iIARRAY(tabiasubi,tabiasub)
+iIARRAY(tabiamulti,tabiamult)
+iIARRAY(tabiadivi,tabiadiv)
+iIARRAY(tabiaremi,tabiarem)
+        
+
+
 
 static int tabqset(CSOUND *csound, TABQUERY *p)
 {
@@ -872,8 +914,9 @@ static int tabgen(CSOUND *csound, TABGEN *p)
 
     //printf("start=%f end=%f incr=%f size=%d\n", start, end, incr, size);
     if (UNLIKELY(size < 0))
-      csound->InitError(csound,
-                        Str("inconsistent start, end and increment parameters"));
+      return
+        csound->InitError(csound,
+                          Str("inconsistent start, end and increment parameters"));
     tabensure(csound, p->tab, size);
     if (UNLIKELY(p->tab->data==NULL)) {
       tabensure(csound, p->tab, size);
@@ -930,13 +973,38 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
     int end   = (int) *p->end;
     int size = end - start + 1;
     if (UNLIKELY(size < 0))
-      csound->InitError(csound, Str("inconsistent start, end parameters"));
+      return csound->InitError(csound, Str("inconsistent start, end parameters"));
     if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
       //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
-      csound->InitError(csound, Str("slice larger than original size"));
+      return csound->InitError(csound, Str("slice larger than original size"));
     }
     tabensure(csound, p->tab, size);
     memcpy(p->tab->data, tabin+start,sizeof(MYFLT)*size);
+    return OK;
+}
+
+#include "str_ops.h"
+// This cheats using strcpy opcode fake
+static int tabsliceS(CSOUND *csound, TABSLICE *p){
+
+    MYFLT *tabin = p->tabin->data;
+    int start = (int) *p->start;
+    int end   = (int) *p->end;
+    int size = end - start + 1, i;
+    STRCPY_OP xx;
+    if (UNLIKELY(size < 0))
+      return csound->InitError(csound, Str("inconsistent start, end parameters"));
+    if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
+      //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
+      return csound->InitError(csound, Str("slice larger than original size"));
+    }
+    tabensure(csound, p->tab, size);
+    for (i=0; i<size; i++) {
+      xx.r = p->tab->data +i;
+      xx.str = tabin+start+i;
+      strcpy_opcode_S(csound, &xx);
+    }
+    //memcpy(p->tab->data, tabin+start,sizeof(MYFLT)*size);
     return OK;
 }
 
@@ -1138,37 +1206,56 @@ static OENTRY arrayvars_localops[] =
     /* ******************************************** */
     {"##add.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
                                          (SUBR)tabarithset, (SUBR)tabadd},
+    {"##add.[i]", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
+                                         (SUBR)tabaddi},
     /* ******************************************** */
     {"##sub.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
                                          (SUBR)tabarithset, (SUBR)tabsub},
+    {"##sub.[i]", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
+                                         (SUBR)tabsubi},
     //    {"##neg.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]",
     //                                         (SUBR)tabarithset1, (SUBR)tabneg},
     {"##mul.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
                                          (SUBR)tabarithset,(SUBR)tabmult},
+    {"##mul.[i]", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
+                                         (SUBR)tabmulti},
     {"##div.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
                                           (SUBR)tabarithset,(SUBR)tabdiv },
+    {"##div.[i]",  sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
+                                          (SUBR)tabdivi },
     {"##rem.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
                                           (SUBR)tabarithset, (SUBR)tabrem},
+    {"##rem.[i]",  sizeof(TABARITH), 0, 1, "i[]", "i[]i[]", (SUBR)tabremi},
     {"##add.[i", sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
                                           (SUBR)tabarithset1, (SUBR)tabaiadd },
     {"##add.i[", sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
                                           (SUBR)tabarithset2, (SUBR)tabiaadd },
+    {"##add.[p", sizeof(TABARITH1), 0, 1, "i[]", "i[]i", (SUBR)tabaiaddi },
+    {"##add.p[", sizeof(TABARITH2), 0, 1, "i[]", "ii[]", (SUBR)tabiaaddi },
     {"##sub.[i", sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
                                           (SUBR)tabarithset1, (SUBR)tabaisub },
     {"##sub.i[", sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
                                           (SUBR)tabarithset2, (SUBR)tabiasub },
+    {"##sub.[p", sizeof(TABARITH1), 0, 1, "i[]", "i[]i", (SUBR)tabaisubi },
+    {"##sub.p[", sizeof(TABARITH2), 0, 1, "i[]", "ii[]", (SUBR)tabiasubi },
     {"##mul.[i", sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
                                           (SUBR)tabarithset1, (SUBR)tabaimult },
     {"##mul.i[", sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
                                           (SUBR)tabarithset2, (SUBR)tabiamult },
+    {"##mul.[p", sizeof(TABARITH1), 0, 1, "i[]", "i[]i", (SUBR)tabaimulti },
+    {"##mul.p[", sizeof(TABARITH2), 0, 1, "i[]", "ii[]",  (SUBR)tabiamulti },
     {"##div.[i",  sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
                                           (SUBR)tabarithset1, (SUBR)tabaidiv },
     {"##div.i[",  sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
                                           (SUBR)tabarithset2, (SUBR)tabiadiv },
+    {"##div.[p",  sizeof(TABARITH1), 0, 1, "i[]", "i[]i", (SUBR)tabaidivi },
+    {"##div.p[",  sizeof(TABARITH2), 0, 1, "i[]", "ii[]", (SUBR)tabiadivi },
     {"##rem.[i",  sizeof(TABARITH1),0,  3, "k[]", "k[]i",
                                           (SUBR)tabarithset1, (SUBR)tabairem },
     {"##rem.i[",  sizeof(TABARITH2),0,  3, "k[]", "ik[]",
                                           (SUBR)tabarithset2, (SUBR)tabiarem },
+    {"##rem.[p",  sizeof(TABARITH1),0,  1, "i[]", "i[]i", (SUBR)tabairemi },
+    {"##rem.p[",  sizeof(TABARITH2),0,  1, "i[]", "ii[]", (SUBR)tabiaremi },
     {"##add.[k", sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
                                           (SUBR)tabarithset1, (SUBR)tabaiadd },
     {"##add.k[", sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
@@ -1192,7 +1279,6 @@ static OENTRY arrayvars_localops[] =
     { "maxtab", 0xffff},
     { "maxtab.k",sizeof(TABQUERY),_QQ, 3, "kz", "k[]",
                                           (SUBR) tabqset, (SUBR) tabmax },
-    { "maxtab.i",sizeof(TABQUERY),_QQ, 3, "iI", "i[]", (SUBR) tabmax1, NULL  },
     { "maxarray", 0xffff},
     { "maxarray.k", sizeof(TABQUERY), 0, 3, "kz", "k[]",
                                           (SUBR) tabqset,(SUBR) tabmax },
@@ -1203,14 +1289,13 @@ static OENTRY arrayvars_localops[] =
                                           (SUBR) tabqset, (SUBR) tabmin },
     { "minarray.k", sizeof(TABQUERY),0, 3, "kz", "k[]",(SUBR) tabqset,
                                           (SUBR) tabmin },
-    { "mintab.i", sizeof(TABQUERY),_QQ, 3, "iI", "i[]",(SUBR) tabmin1 },
-    { "minarray.i", sizeof(TABQUERY),0, 3, "iI", "i[]",(SUBR) tabmin1 },
+    { "minarray.i", sizeof(TABQUERY),0, 1, "iI", "i[]",(SUBR) tabmin1 },
     { "sumarray", 0xffff},
     { "sumtab", sizeof(TABQUERY1),_QQ, 3, "k", "k[]",
                                           (SUBR) tabqset1, (SUBR) tabsum },
     { "sumarray.k", sizeof(TABQUERY1),0, 3, "k", "k[]",
                                           (SUBR) tabqset1, (SUBR) tabsum },
-    { "sumarray.i", sizeof(TABQUERY1),0, 1, "k", "k[]", (SUBR) tabsum1   },
+    { "sumarray.i", sizeof(TABQUERY1),0, 1, "i", "i[]", (SUBR) tabsum1   },
     { "scalet", sizeof(TABSCALE), _QQ, 3, "",  "k[]kkOJ",
                                                (SUBR) tabscaleset,(SUBR) tabscale },
     { "scalearray", 0xffff},
@@ -1218,39 +1303,42 @@ static OENTRY arrayvars_localops[] =
                                                (SUBR) tabscaleset,(SUBR) tabscale },
     { "scalearray.1", sizeof(TABSCALE), 0, 1, "",  "i[]iiOJ",   (SUBR) tabscale1 },
     { "=.t", sizeof(TABCPY), 0, 3, "k[]", "k[]", (SUBR)tabcopy_set, (SUBR)tabcopy },
-    { "=.I", sizeof(TABCPY), 0, 3, "i[]", "i[]", (SUBR)tabcopy1, NULL },
+    { "=.I", sizeof(TABCPY), 0, 1, "i[]", "i[]", (SUBR)tabcopy1, NULL },
     { "tabgen", sizeof(TABGEN), _QQ, 1, "k[]", "iip", (SUBR) tabgen, NULL    },
     { "tabmap_i", sizeof(TABMAP), _QQ, 1, "k[]", "k[]S", (SUBR) tabmap_set   },
+    { "tabmap", sizeof(TABMAP), _QQ, 3, "k[]", "k[]S", (SUBR) tabmap_set,
+                                                 (SUBR) tabmap_perf},
     { "tabmap", sizeof(TABMAP), _QQ, 3, "k[]", "k[]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf},
     { "genarray.i", sizeof(TABGEN),0, 1, "i[]", "iip", (SUBR) tabgen, NULL   },
     { "genarray_i", sizeof(TABGEN),0, 1, "k[]", "iip", (SUBR) tabgen, NULL, NULL},
     { "genarray.k", sizeof(TABGEN),0, 2, "k[]", "kkp", NULL, (SUBR)tabgen    },
     { "maparray_i", sizeof(TABMAP),0, 1, "k[]", "k[]S", (SUBR) tabmap_set    },
-    { "maparray", sizeof(TABMAP), 0, 3, "k[]", "k[]S", (SUBR) tabmap_set,
+    { "maparray.k", sizeof(TABMAP), 0, 3, "k[]", "k[]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf          },
+    { "maparray.i", sizeof(TABMAP), 0, 1, "i[]", "i[]S", (SUBR) tabmap_set },
+/*  { "maparray.s", sizeof(TABMAP), 0, 3, "S[]", "S[]S", (SUBR) tabmap_set, */
+/*                                               (SUBR) tabmap_perf          }, */
     { "tabslice", sizeof(TABSLICE), _QQ, 2, "k[]", "k[]ii",
                                                  NULL, (SUBR) tabslice, NULL },
-    { "slicearray.k", sizeof(TABSLICE), 0, 2, "k[]", "k[]ii",
+    { "slicearray.k", sizeof(TABSLICE), 0, 3, "k[]", "k[]ii",
                                       (SUBR) tabslice, (SUBR) tabslice, NULL },
-    { "slicearray.i", sizeof(TABSLICE), 0, 2, "i[]", "i[]ii",
+    { "slicearray.s", sizeof(TABSLICE), 0, 3, "S[]", "[]ii",
+                                      (SUBR) tabsliceS, (SUBR) tabsliceS, NULL },
+    { "slicearray.i", sizeof(TABSLICE), 0, 1, "i[]", "i[]ii",
                                                  (SUBR) tabslice, NULL, NULL },
     { "copy2ftab", sizeof(TABCOPY), TW|_QQ, 2, "", "k[]k", NULL, (SUBR) tab2ftab },
     { "copy2ttab", sizeof(TABCOPY), TR|_QQ, 2, "", "k[]k", NULL, (SUBR) ftab2tab },
-    { "copya2ftab.k", sizeof(TABCOPY), TW, 2, "", "k[]k",
+    { "copya2ftab.k", sizeof(TABCOPY), TW, 3, "", "k[]k",
                                             (SUBR) tab2ftab, (SUBR) tab2ftab },
-    { "copyf2array.k", sizeof(TABCOPY), TR, 2, "", "k[]k",
+    { "copyf2array.k", sizeof(TABCOPY), TR, 3, "", "k[]k",
                                             (SUBR) tab2ftab, (SUBR) ftab2tab },
-    { "copya2ftab.i", sizeof(TABCOPY), TW, 2, "", "i[]i", (SUBR) tab2ftab },
-    { "copyf2array.i", sizeof(TABCOPY), TR, 2, "", "i[]i", (SUBR) ftab2tab },
+    { "copya2ftab.i", sizeof(TABCOPY), TW, 1, "", "i[]i", (SUBR) tab2ftab },
+    { "copyf2array.i", sizeof(TABCOPY), TR, 1, "", "i[]i", (SUBR) ftab2tab },
     { "lentab", 0xffff},
     { "lentab.i", sizeof(TABQUERY1), _QQ, 1, "i", "k[]", (SUBR) tablength },
     { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]", NULL, (SUBR) tablength },
-//    { "lenarray", 0xffff},
-//    { "lenarray.i", sizeof(TABQUERY1), 0, 1, "i", "k[]", (SUBR) tablength },
-//    { "lenarray.ii", sizeof(TABQUERY1), 0, 1, "i", "i[]", (SUBR) tablength },
     { "lenarray.ix", sizeof(TABQUERY1), 0, 1, "i", ".[]", (SUBR) tablength },
-//    { "lenarray.k", sizeof(TABQUERY1), 0, 2, "k", "k[]", NULL, (SUBR) tablength },
     { "lenarray.kx", sizeof(TABQUERY1), 0, 2, "k", ".[]", NULL, (SUBR) tablength },
     { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa},
     { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina}
