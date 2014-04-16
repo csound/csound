@@ -173,7 +173,8 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
         p->r->size = strlen(newVal) + 1;
 
     }
-    else {strcpy((char*) p->r->data, newVal);
+    else {
+      strcpy((char*) p->r->data, newVal);
       // printf("str:%p %p \n", p->r, p->r->data);
     }
 
