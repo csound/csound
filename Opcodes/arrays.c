@@ -454,7 +454,7 @@ static int tabrem(CSOUND *csound, TABARITH *p)
 #define IIARRAY(opcode,fn) \
 static int opcode(CSOUND *csound, TABARITH *p)        \
 {                                                     \
-    if (tabarithset(csound, p)) return fn(csound, p); \
+    if (!tabarithset(csound, p)) return fn(csound, p); \
     else return NOTOK;                                \
 }
 
@@ -983,12 +983,15 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
     return OK;
 }
 
+#include "str_ops.h"
+// This cheats using strcpy opcode fake
 static int tabsliceS(CSOUND *csound, TABSLICE *p){
 
     MYFLT *tabin = p->tabin->data;
     int start = (int) *p->start;
     int end   = (int) *p->end;
     int size = end - start + 1, i;
+    STRCPY_OP xx;
     if (UNLIKELY(size < 0))
       return csound->InitError(csound, Str("inconsistent start, end parameters"));
     if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
@@ -996,9 +999,11 @@ static int tabsliceS(CSOUND *csound, TABSLICE *p){
       return csound->InitError(csound, Str("slice larger than original size"));
     }
     tabensure(csound, p->tab, size);
-    /* for (i=0; i<size; i++) { */
-    /*   p->tab->data[i] = NULL; */
-    /* } */
+    for (i=0; i<size; i++) {
+      xx.r = p->tab->data +i;
+      xx.str = tabin+start+i;
+      strcpy_opcode_S(csound, &xx);
+    }
     //memcpy(p->tab->data, tabin+start,sizeof(MYFLT)*size);
     return OK;
 }
@@ -1318,6 +1323,8 @@ static OENTRY arrayvars_localops[] =
                                                  NULL, (SUBR) tabslice, NULL },
     { "slicearray.k", sizeof(TABSLICE), 0, 3, "k[]", "k[]ii",
                                       (SUBR) tabslice, (SUBR) tabslice, NULL },
+    { "slicearray.s", sizeof(TABSLICE), 0, 3, "S[]", "[]ii",
+                                      (SUBR) tabsliceS, (SUBR) tabsliceS, NULL },
     { "slicearray.i", sizeof(TABSLICE), 0, 1, "i[]", "i[]ii",
                                                  (SUBR) tabslice, NULL, NULL },
     { "copy2ftab", sizeof(TABCOPY), TW|_QQ, 2, "", "k[]k", NULL, (SUBR) tab2ftab },
