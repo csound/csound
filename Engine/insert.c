@@ -2110,7 +2110,7 @@ static void instance(CSOUND *csound, int insno)
         if (UNLIKELY(odebug))
           csound->Message(csound, "opadr = %p\n", (void*) opds->opadr);
         if (UNLIKELY(opds->opadr == NULL))
-          csoundDie(csound, Str("null opadr %s"), opds->optext);
+          csoundDie(csound, Str("null opadr %s"));
       }
     args:
       if (ep->useropinfo == NULL)
