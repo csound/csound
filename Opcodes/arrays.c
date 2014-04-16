@@ -671,7 +671,7 @@ static int tabiarem(CSOUND *csound, TABARITH2 *p)
 #define IiARRAY(opcode,fn)                             \
 static int opcode(CSOUND *csound, TABARITH1 *p)        \
 {                                                      \
-    if (tabarithset1(csound, p)) return fn(csound, p); \
+    if (!tabarithset1(csound, p)) return fn(csound, p); \
     else return NOTOK;                                 \
 }
 
@@ -684,7 +684,7 @@ IiARRAY(tabairemi,tabairem)
 #define iIARRAY(opcode,fn)                             \
 static int opcode(CSOUND *csound, TABARITH2 *p)        \
 {                                                      \
-    if (tabarithset2(csound, p)) return fn(csound, p); \
+    if (!tabarithset2(csound, p)) return fn(csound, p); \
     else return NOTOK;                                 \
 }
 
@@ -914,8 +914,9 @@ static int tabgen(CSOUND *csound, TABGEN *p)
 
     //printf("start=%f end=%f incr=%f size=%d\n", start, end, incr, size);
     if (UNLIKELY(size < 0))
-      csound->InitError(csound,
-                        Str("inconsistent start, end and increment parameters"));
+      return
+        csound->InitError(csound,
+                          Str("inconsistent start, end and increment parameters"));
     tabensure(csound, p->tab, size);
     if (UNLIKELY(p->tab->data==NULL)) {
       tabensure(csound, p->tab, size);
@@ -972,13 +973,33 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
     int end   = (int) *p->end;
     int size = end - start + 1;
     if (UNLIKELY(size < 0))
-      csound->InitError(csound, Str("inconsistent start, end parameters"));
+      return csound->InitError(csound, Str("inconsistent start, end parameters"));
     if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
       //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
-      csound->InitError(csound, Str("slice larger than original size"));
+      return csound->InitError(csound, Str("slice larger than original size"));
     }
     tabensure(csound, p->tab, size);
     memcpy(p->tab->data, tabin+start,sizeof(MYFLT)*size);
+    return OK;
+}
+
+static int tabsliceS(CSOUND *csound, TABSLICE *p){
+
+    MYFLT *tabin = p->tabin->data;
+    int start = (int) *p->start;
+    int end   = (int) *p->end;
+    int size = end - start + 1, i;
+    if (UNLIKELY(size < 0))
+      return csound->InitError(csound, Str("inconsistent start, end parameters"));
+    if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
+      //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
+      return csound->InitError(csound, Str("slice larger than original size"));
+    }
+    tabensure(csound, p->tab, size);
+    /* for (i=0; i<size; i++) { */
+    /*   p->tab->data[i] = NULL; */
+    /* } */
+    //memcpy(p->tab->data, tabin+start,sizeof(MYFLT)*size);
     return OK;
 }
 
@@ -1253,7 +1274,6 @@ static OENTRY arrayvars_localops[] =
     { "maxtab", 0xffff},
     { "maxtab.k",sizeof(TABQUERY),_QQ, 3, "kz", "k[]",
                                           (SUBR) tabqset, (SUBR) tabmax },
-    { "maxtab.i",sizeof(TABQUERY),_QQ, 3, "iI", "i[]", (SUBR) tabmax1, NULL  },
     { "maxarray", 0xffff},
     { "maxarray.k", sizeof(TABQUERY), 0, 3, "kz", "k[]",
                                           (SUBR) tabqset,(SUBR) tabmax },
@@ -1264,14 +1284,13 @@ static OENTRY arrayvars_localops[] =
                                           (SUBR) tabqset, (SUBR) tabmin },
     { "minarray.k", sizeof(TABQUERY),0, 3, "kz", "k[]",(SUBR) tabqset,
                                           (SUBR) tabmin },
-    { "mintab.i", sizeof(TABQUERY),_QQ, 3, "iI", "i[]",(SUBR) tabmin1 },
-    { "minarray.i", sizeof(TABQUERY),0, 3, "iI", "i[]",(SUBR) tabmin1 },
+    { "minarray.i", sizeof(TABQUERY),0, 1, "iI", "i[]",(SUBR) tabmin1 },
     { "sumarray", 0xffff},
     { "sumtab", sizeof(TABQUERY1),_QQ, 3, "k", "k[]",
                                           (SUBR) tabqset1, (SUBR) tabsum },
     { "sumarray.k", sizeof(TABQUERY1),0, 3, "k", "k[]",
                                           (SUBR) tabqset1, (SUBR) tabsum },
-    { "sumarray.i", sizeof(TABQUERY1),0, 1, "k", "k[]", (SUBR) tabsum1   },
+    { "sumarray.i", sizeof(TABQUERY1),0, 1, "i", "i[]", (SUBR) tabsum1   },
     { "scalet", sizeof(TABSCALE), _QQ, 3, "",  "k[]kkOJ",
                                                (SUBR) tabscaleset,(SUBR) tabscale },
     { "scalearray", 0xffff},
@@ -1292,8 +1311,9 @@ static OENTRY arrayvars_localops[] =
     { "maparray_i", sizeof(TABMAP),0, 1, "k[]", "k[]S", (SUBR) tabmap_set    },
     { "maparray.k", sizeof(TABMAP), 0, 3, "k[]", "k[]S", (SUBR) tabmap_set,
                                                  (SUBR) tabmap_perf          },
-    { "maparray.s", sizeof(TABMAP), 0, 3, "S[]", "S[]S", (SUBR) tabmap_set,
-                                                 (SUBR) tabmap_perf          },
+    { "maparray.i", sizeof(TABMAP), 0, 1, "i[]", "i[]S", (SUBR) tabmap_set },
+/*  { "maparray.s", sizeof(TABMAP), 0, 3, "S[]", "S[]S", (SUBR) tabmap_set, */
+/*                                               (SUBR) tabmap_perf          }, */
     { "tabslice", sizeof(TABSLICE), _QQ, 2, "k[]", "k[]ii",
                                                  NULL, (SUBR) tabslice, NULL },
     { "slicearray.k", sizeof(TABSLICE), 0, 3, "k[]", "k[]ii",
