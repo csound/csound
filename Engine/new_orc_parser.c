@@ -90,6 +90,7 @@ uint64_t make_location(PRE_PARM *qq)
 // Code to add #includes of UDOs
 void add_include_udo_dir(CORFIL *xx)
 {
+#if defined(HAVE_DIRENT_H)
     char *dir = getenv("CS_UDO_DIR");
     char buff[1024];
     if (dir) {
@@ -121,6 +122,7 @@ void add_include_udo_dir(CORFIL *xx)
       }
     }
     //printf("Giving\n%s", corfile_body(xx));
+#endif
 }
 
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
