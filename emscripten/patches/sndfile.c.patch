@@ -1,0 +1,4 @@
+312c312
+< 	assert (sizeof (sf_count_t) == 8) ;
+---
+> //	assert (sizeof (sf_count_t) == 8) ;
