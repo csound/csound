@@ -133,6 +133,12 @@ if(BUILD_WINSOUND)
 
 endif()
 
+# debugger command line app
+if(BUILD_DEBUGGER)
+
+    make_executable(csdebugger debugger/csdebugger.cpp "${CSOUNDLIB}")
+endif(BUILD_DEBUGGER)
+
 add_subdirectory(CsoundAC)
 add_subdirectory(CsoundVST)
 add_subdirectory(max_csound_tilde)

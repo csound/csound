@@ -24,6 +24,10 @@
 #ifndef CSDEBUG_H
 #define CSDEBUG_H
 
+#ifndef CSDEBUGGER
+#error You must build csound with debugger enabled to use this header.
+#endif
+
 // Necessary to access private members within the Csound structure even from applications that include this header
 #ifdef __BUILDING_LIBCSOUND
 #define __BUILDING_LIBCSOUND_DEFINED
