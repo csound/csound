@@ -84,7 +84,7 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
       }
         
       ss = p->arrayMemberSize*size;
-      if (p->data==NULL) p->data = (MYFLT*)csound->Malloc(csound, ss);
+      if (p->data==NULL) p->data = (MYFLT*)csound->Calloc(csound, ss);
       else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
       p->dimensions = 1;
       p->sizes = (int*)csound->Malloc(csound, sizeof(int));
@@ -142,7 +142,10 @@ static int tabfill(CSOUND *csound, TABFILL *p)
     int i;
     MYFLT  **valp = p->iargs;
     tabensure(csound, p->ans, nargs);
-    for (i=0; i<nargs; i++) p->ans->data[i] = *valp[i];
+    size_t memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
+    for (i=0; i<nargs; i++) {
+        p->ans->arrayType->copyValue(csound, p->ans->data + (i * memMyfltSize), valp[i]);
+    }
     return OK;
 }
 
