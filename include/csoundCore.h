@@ -29,7 +29,7 @@
 #define CSOUNDCORE_H
 
 #include "sysdep.h"
-#ifdef HAVE_PTHREAD
+#ifndef EMSCRIPTEN
 #include <pthread.h>
 #endif
 #include "cs_par_structs.h"
