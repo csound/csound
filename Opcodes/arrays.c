@@ -75,11 +75,18 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
 {
     if (p->data==NULL || p->dimensions == 0 ||
         (p->dimensions==1 && p->sizes[0] < size)) {
-      size_t ss = sizeof(MYFLT)*size;
+
+      size_t ss;
+        
+      if(p->data == NULL) {
+          CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+          p->arrayMemberSize = var->memBlockSize;
+      }
+        
+      ss = p->arrayMemberSize*size;
       if (p->data==NULL) p->data = (MYFLT*)csound->Malloc(csound, ss);
       else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
       p->dimensions = 1;
-      p->arrayMemberSize = sizeof(MYFLT);
       p->sizes = (int*)csound->Malloc(csound, sizeof(int));
       p->sizes[0] = size;
     }
@@ -972,41 +979,50 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
     int start = (int) *p->start;
     int end   = (int) *p->end;
     int size = end - start + 1;
+    int i;
+    int memMyfltSize = p->tabin->arrayMemberSize / sizeof(MYFLT);
+    
     if (UNLIKELY(size < 0))
       return csound->InitError(csound, Str("inconsistent start, end parameters"));
-    if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
+    if (UNLIKELY(p->tabin->dimensions!=1 || end >= p->tabin->sizes[0])) {
       //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
       return csound->InitError(csound, Str("slice larger than original size"));
     }
     tabensure(csound, p->tab, size);
-    memcpy(p->tab->data, tabin+start,sizeof(MYFLT)*size);
+   
+    for (i = start; i < end + 1; i++) {
+        int destIndex = i - start;
+        p->tab->arrayType->copyValue(csound, p->tab->data + (destIndex * memMyfltSize),
+                                     tabin + (memMyfltSize * i));
+    }
+    
     return OK;
 }
 
-#include "str_ops.h"
-// This cheats using strcpy opcode fake
-static int tabsliceS(CSOUND *csound, TABSLICE *p){
-
-    MYFLT *tabin = p->tabin->data;
-    int start = (int) *p->start;
-    int end   = (int) *p->end;
-    int size = end - start + 1, i;
-    STRCPY_OP xx;
-    if (UNLIKELY(size < 0))
-      return csound->InitError(csound, Str("inconsistent start, end parameters"));
-    if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
-      //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
-      return csound->InitError(csound, Str("slice larger than original size"));
-    }
-    tabensure(csound, p->tab, size);
-    for (i=0; i<size; i++) {
-      xx.r = p->tab->data +i;
-      xx.str = tabin+start+i;
-      strcpy_opcode_S(csound, &xx);
-    }
-    //memcpy(p->tab->data, tabin+start,sizeof(MYFLT)*size);
-    return OK;
-}
+//#include "str_ops.h"
+//// This cheats using strcpy opcode fake
+//static int tabsliceS(CSOUND *csound, TABSLICE *p){
+//
+//    MYFLT *tabin = p->tabin->data;
+//    int start = (int) *p->start;
+//    int end   = (int) *p->end;
+//    int size = end - start + 1, i;
+//    STRCPY_OP xx;
+//    if (UNLIKELY(size < 0))
+//      return csound->InitError(csound, Str("inconsistent start, end parameters"));
+//    if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
+//      //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
+//      return csound->InitError(csound, Str("slice larger than original size"));
+//    }
+//    tabensure(csound, p->tab, size);
+//    for (i=0; i<size; i++) {
+//      xx.r = p->tab->data +i;
+//      xx.str = tabin+start+i;
+//      strcpy_opcode_S(csound, &xx);
+//    }
+//    //memcpy(p->tab->data, tabin+start,sizeof(MYFLT)*size);
+//    return OK;
+//}
 
 typedef struct {
     OPDS h;
@@ -1321,12 +1337,13 @@ static OENTRY arrayvars_localops[] =
 /*                                               (SUBR) tabmap_perf          }, */
     { "tabslice", sizeof(TABSLICE), _QQ, 2, "k[]", "k[]ii",
                                                  NULL, (SUBR) tabslice, NULL },
-    { "slicearray.k", sizeof(TABSLICE), 0, 3, "k[]", "k[]ii",
-                                      (SUBR) tabslice, (SUBR) tabslice, NULL },
-    { "slicearray.s", sizeof(TABSLICE), 0, 3, "S[]", "[]ii",
-                                      (SUBR) tabsliceS, (SUBR) tabsliceS, NULL },
+    
     { "slicearray.i", sizeof(TABSLICE), 0, 1, "i[]", "i[]ii",
                                                  (SUBR) tabslice, NULL, NULL },
+    { "slicearray.x", sizeof(TABSLICE), 0, 3, ".[]", ".[]ii",
+                                      (SUBR) tabslice, (SUBR) tabslice, NULL },
+//    { "slicearray.s", sizeof(TABSLICE), 0, 3, "S[]", "[]ii",
+//                                      (SUBR) tabsliceS, (SUBR) tabsliceS, NULL },
     { "copy2ftab", sizeof(TABCOPY), TW|_QQ, 2, "", "k[]k", NULL, (SUBR) tab2ftab },
     { "copy2ttab", sizeof(TABCOPY), TR|_QQ, 2, "", "k[]k", NULL, (SUBR) ftab2tab },
     { "copya2ftab.k", sizeof(TABCOPY), TW, 3, "", "k[]k",
