@@ -777,7 +777,7 @@ static int tabmin(CSOUND *csound, TABQUERY *p)
 
 static int tabmin1(CSOUND *csound, TABQUERY *p)
 {
-    if (tabqset(csound, p) == OK) return tabmax(csound, p);
+    if (tabqset(csound, p) == OK) return tabmin(csound, p);
     else return NOTOK;
 }
 
