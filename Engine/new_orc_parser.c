@@ -272,7 +272,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csoundDeleteTree(csound, astTree);
         if (typeTable != NULL) {
           csoundFreeVarPool(csound, typeTable->globalPool);
-          csoundFreeVarPool(csound, typeTable->instr0LocalPool);
+          if(typeTable->instr0LocalPool != NULL) {
+            csoundFreeVarPool(csound, typeTable->instr0LocalPool);
+          }
           if(typeTable->localPool != typeTable->instr0LocalPool) {
             csoundFreeVarPool(csound, typeTable->localPool);
           }
