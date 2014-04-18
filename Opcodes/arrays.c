@@ -861,28 +861,62 @@ typedef struct {
     int      len;
 } TABCPY;
 
-static int tabcopy_set(CSOUND *csound, TABCPY *p)
-{
-   tabensure(csound, p->dst, p->src->sizes[0]);
-   //memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
-   return OK;
-}
-
-static int tabcopy1(CSOUND *csound, TABCPY *p)
-{
-   tabensure(csound, p->dst, p->src->sizes[0]);
-   memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
-   return OK;
+static int get_array_total_size(ARRAYDAT* dat) {
+    int i;
+    int size;
+    
+       if (dat->sizes == NULL) {
+               return -1;
+           }
+    
+        size = dat->sizes[0];
+        for (i = 1; i < dat->dimensions; i++) {
+                size *= dat->sizes[i];
+            }
+        return size;
 }
 
 static int tabcopy(CSOUND *csound, TABCPY *p)
 {
-    if (UNLIKELY(p->src->data==NULL) || p->src->dimensions!=1)
-      return csound->InitError(csound, Str("array-variable not initialised"));
-    tabensure(csound, p->dst, p->src->sizes[0]);
-    memmove(p->dst->data, p->src->data, sizeof(MYFLT)*p->src->sizes[0]);
+    int i, arrayTotalSize, memMyfltSize;
+    
+    if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
+        return csound->InitError(csound, Str("array-variable not initialised"));
+    if(p->dst->dimensions > 0 && p->src->dimensions != p->dst->dimensions)
+        return csound->InitError(csound, Str("array-variable dimensions do not match"));
+    if(p->src->arrayType != p->dst->arrayType)
+        return csound->InitError(csound, Str("array-variable types do not match"));
+    
+    if (p->src == p->dst) return OK;
+    
+    arrayTotalSize = get_array_total_size(p->src);
+    memMyfltSize = p->src->arrayMemberSize / sizeof(MYFLT);
+    p->dst->arrayMemberSize = p->src->arrayMemberSize;
+    
+    if (arrayTotalSize != get_array_total_size(p->dst)) {
+        p->dst->dimensions = p->src->dimensions;
+        
+        p->dst->sizes = csound->Malloc(csound, sizeof(int) * p->src->dimensions);
+        memcpy(p->dst->sizes, p->src->sizes, sizeof(int) * p->src->dimensions);
+        
+        if (p->dst->data == NULL) {
+            p->dst->data = csound->Calloc(csound, p->src->arrayMemberSize * arrayTotalSize);
+        } else {
+            csound->ReAlloc(csound, p->dst->data, p->src->arrayMemberSize * arrayTotalSize);
+            memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
+        }
+    }
+    
+    
+    for (i = 0; i < arrayTotalSize; i++) {
+        int index = (i * memMyfltSize);
+        p->dst->arrayType->copyValue(csound, (void*)(p->dst->data + index), (void*)(p->src->data + index));
+    }
+    
     return OK;
 }
+
+
 
 static int tab2ftab(CSOUND *csound, TABCOPY *p)
 {
@@ -1321,8 +1355,8 @@ static OENTRY arrayvars_localops[] =
     { "scalearray.k", sizeof(TABSCALE), 0, 3, "",  "k[]kkOJ",
                                                (SUBR) tabscaleset,(SUBR) tabscale },
     { "scalearray.1", sizeof(TABSCALE), 0, 1, "",  "i[]iiOJ",   (SUBR) tabscale1 },
-    { "=.t", sizeof(TABCPY), 0, 3, "k[]", "k[]", (SUBR)tabcopy_set, (SUBR)tabcopy },
-    { "=.I", sizeof(TABCPY), 0, 1, "i[]", "i[]", (SUBR)tabcopy1, NULL },
+    { "=.I", sizeof(TABCPY), 0, 1, "i[]", "i[]", (SUBR)tabcopy, NULL },
+    { "=._", sizeof(TABCPY), 0, 3, ".[]", ".[]", (SUBR)tabcopy, (SUBR)tabcopy },
     { "tabgen", sizeof(TABGEN), _QQ, 1, "k[]", "iip", (SUBR) tabgen, NULL    },
     { "tabmap_i", sizeof(TABMAP), _QQ, 1, "k[]", "k[]S", (SUBR) tabmap_set   },
     { "tabmap", sizeof(TABMAP), _QQ, 3, "k[]", "k[]S", (SUBR) tabmap_set,
