@@ -45,14 +45,14 @@ static int init_cudadsyn(CSOUND *csound, CUDADSYN *p){
   p->vsamps = p->fsig->overlap;
   p->threads = p->bins*p->vsamps;
   p->blocks = p->threads > blockspt ? p->threads/blockspt : 1;
-  p->mthreads = p->bins > p->vsamps ? p->bins : p->vsamps;
+  p->mthreads = p->bins;
   p->mblocks = p->mthreads >  blockspt ? p->mthreads/blockspt : 1;
 
   p->threads /= p->blocks;
   p->mthreads /= p->mblocks;
 
-  asize = p->bins*p->vsamps*sizeof(float);
-  ipsize  =p->fsig->N*sizeof(int64_t)/2;
+  asize =  p->vsamps*sizeof(float);
+  ipsize = p->fsig->N*sizeof(int64_t)/2;
   fpsize = p->fsig->N*sizeof(float);
 
   cudaMalloc(&p->out, asize);
@@ -146,6 +146,7 @@ static int destroy_cudadsyn(CSOUND *csound, void *pp){
   CUDADSYN *p = (CUDADSYN *) pp;
   cudaFree(p->out);
   cudaFree(p->ndx);
+  cudaFree(p->previous);
   cudaFree(p->frame);
   return OK;
 }
