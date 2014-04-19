@@ -61,7 +61,7 @@ typedef struct cladsyn_ {
   MYFLT *asig;
   PVSDAT *fsig;
   MYFLT *kamp, *kfreq;
-  MYFLT *inum;
+  MYFLT *inum, *idev, *icpu;
   cl_mem out;
   cl_mem frame;
   cl_mem ph;
@@ -98,7 +98,7 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   if(p->fsig->overlap > 1024)
      return csound->InitError(csound, "overlap is too large\n");
   
-  err = clGetDeviceIDs(NULL,CL_DEVICE_TYPE_GPU, 4, device_ids, &num);
+  err = clGetDeviceIDs(NULL, (*p->icpu ? CL_DEVICE_TYPE_CPU : CL_DEVICE_TYPE_GPU), 4, device_ids, &num);
   if (err != CL_SUCCESS)
   {
         csound->Message(csound, "Error: Failed to create a device group!\n");
@@ -108,11 +108,14 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   for(int i=0; i < num; i++){
   char name[128];
   clGetDeviceInfo(device_ids[i], CL_DEVICE_NAME, 128, name, NULL);
-  fprintf(stdout, "GPU[%d] %s\n",i, name);
+  if(*p->icpu)
+  csound->Message(csound, "available CPU[%d] %s\n",i, name);
+  else
+  csound->Message(csound, "available GPU[%d] %s\n",i, name);
   }
 
   // SELECT THE GPU HERE
-  device_id = device_ids[0];
+  device_id = device_ids[(int)*p->idev];
 
    context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
    if (!context)
@@ -169,7 +172,10 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
  
   char name[128];
   clGetDeviceInfo(device_id, CL_DEVICE_NAME, 128, name, NULL);
-    fprintf(stdout, "Using GPU: %s\n", name);
+ if(*p->icpu)
+  csound->Message(csound, "using CPU: %s\n",name);
+  else
+  csound->Message(csound, "using GPU: %s\n",name);
 
   p->bins = (p->fsig->N)/2;
 
@@ -177,16 +183,16 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
 
   p->vsamps = p->fsig->overlap;
   p->threads = p->bins*p->vsamps;
-  p->mthreads = p->bins;
+  p->mthreads = (p->bins > p->vsamps ? p->bins : p->vsamps);
 
   asize =  p->vsamps*sizeof(cl_float);
-  ipsize = p->fsig->N*sizeof(cl_long)/2;
+  ipsize = (p->bins > p->vsamps ? p->bins : p->vsamps)*sizeof(cl_long);
   fpsize = p->fsig->N*sizeof(cl_float);
 
   p->out = clCreateBuffer(context,0, asize, NULL, NULL);
   p->frame =   clCreateBuffer(context, CL_MEM_READ_ONLY, fpsize, NULL, NULL);
   p->ph =  clCreateBuffer(context,0, ipsize, NULL, NULL);
-  p->amps =  clCreateBuffer(context,0, fpsize/2, NULL, NULL);
+  p->amps =  clCreateBuffer(context,0,(p->bins > p->vsamps ? p->bins : p->vsamps)*sizeof(cl_float), NULL, NULL);
  
   // memset needed?
 
@@ -290,7 +296,7 @@ static int destroy_cladsyn(CSOUND *csound, void *pp){
 }
 
 static OENTRY localops[] = {
-  {"cladsynth", sizeof(CLADSYN),0, 5, "a", "fkko", (SUBR) init_cladsyn, NULL,
+  {"cladsynth", sizeof(CLADSYN),0, 5, "a", "fkkooo", (SUBR) init_cladsyn, NULL,
    (SUBR) perf_cladsyn}
 };
 
