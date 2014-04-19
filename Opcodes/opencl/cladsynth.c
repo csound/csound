@@ -110,6 +110,8 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   clGetDeviceInfo(device_ids[i], CL_DEVICE_NAME, 128, name, NULL);
   fprintf(stdout, "GPU[%d] %s\n",i, name);
   }
+
+  // SELECT THE GPU HERE
   device_id = device_ids[0];
 
    context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
