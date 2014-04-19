@@ -29,7 +29,9 @@
 #define CSOUNDCORE_H
 
 #include "sysdep.h"
+#ifndef EMSCRIPTEN
 #include <pthread.h>
+#endif
 #include "cs_par_structs.h"
 #include <stdarg.h>
 #include <setjmp.h>
