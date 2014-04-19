@@ -160,7 +160,7 @@ if(NOT APPLE)
   endif()
 endif()
 
-check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H)
+check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H WIIUSE_LIB)
 if(BUILD_WIIMOTE_OPCODES)
     make_plugin(wiimote wiimote.c ${WIIUSE_LIB})
     add_dependency_to_framework(wiimote ${WIIUSE_LIB})

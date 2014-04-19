@@ -84,12 +84,14 @@ void array_copy_value(void* csound, void* dest, void* src) {
     CSOUND* cs = (CSOUND*)csound;
     size_t size;
     int i;
-
+    int memMyfltSize;
+    
     // TODO - this is heavy handed to reallocate memory every time,
     // should rewrite like string_copy_value to just copy values if
     // there is enough memory
 
     aDest->arrayMemberSize = aSrc->arrayMemberSize;
+    memMyfltSize = aDest->arrayMemberSize / sizeof(MYFLT);
     aDest->dimensions = aSrc->dimensions;
     aDest->sizes = cs->Malloc(cs, sizeof(int) * aSrc->dimensions);
     memcpy(aDest->sizes, aSrc->sizes, sizeof(int) * aSrc->dimensions);
@@ -100,19 +102,12 @@ void array_copy_value(void* csound, void* dest, void* src) {
       size *= aDest->sizes[i];
     }
 
-    aDest->data = cs->Malloc(cs, aSrc->arrayMemberSize * size);
-    memcpy(aDest->data, aSrc->data, aSrc->arrayMemberSize * size);
-
-//    if (sSrc->size != sDest->size) {
-//        sDest->size = sSrc->size;
-//
-//        if (sDest->data != NULL) {
-//            cs->Free(cs, sDest->data);
-//        }
-//        sDest->data = cs_strdup(csound, sSrc->data);
-//    } else {
-//        memcpy(sDest->data, sSrc->data, sDest->size);
-//    }
+    aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * size);
+    for (i = 0; i < size; i++) {
+        int index = i * memMyfltSize;
+        aDest->arrayType->copyValue(csound, aDest->data + index, aSrc->data + index);
+    }
+    
 }
 
 /* MEM SIZE UPDATING FUNCTIONS */
