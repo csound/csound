@@ -134,14 +134,12 @@ char * cl_error_string(int err) {
     }
 }
 
-
-
 static int destroy_cladsyn(CSOUND *csound, void *pp);
 
 static int init_cladsyn(CSOUND *csound, CLADSYN *p){
 
   int asize, ipsize, fpsize, err;
-  cl_device_id device_ids[4], device_id;             
+  cl_device_id device_ids[16], device_id;             
   cl_context context;                
   cl_command_queue commands;          
   cl_program program;                
@@ -151,13 +149,13 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   if(p->fsig->overlap > 1024)
      return csound->InitError(csound, "overlap is too large\n");
   
-  err = clGetDeviceIDs(NULL, (*p->icpu ? CL_DEVICE_TYPE_CPU : CL_DEVICE_TYPE_GPU), 4, device_ids, &num);
+  err = clGetDeviceIDs(NULL, (*p->icpu ? CL_DEVICE_TYPE_CPU : CL_DEVICE_TYPE_GPU), 16, device_ids, &num);
   if (err != CL_SUCCESS)
     return (*p->icpu?
 	    csound->InitError(csound, "failed to find a GPU! %s \n", cl_error_string(err)):
             csound->InitError(csound, "failed to find a CPU! %s\n",  cl_error_string(err)));
   
-  for(int i=0; i < num; i++){
+  for(uint i=0; i < num; i++){
   char name[128];
   clGetDeviceInfo(device_ids[i], CL_DEVICE_NAME, 128, name, NULL);
   if(*p->icpu)
@@ -167,7 +165,10 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   }
 
   // SELECT THE GPU HERE
-  device_id = device_ids[(int)*p->idev];
+  if(*p->idev < num)
+   device_id = device_ids[(int)*p->idev];
+  else
+   device_id = device_ids[num-1];
 
    context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
    if (!context)
@@ -236,7 +237,7 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
 
   asize = p->vsamps*sizeof(float);
   if(p->out_.auxp == NULL ||
-     p->out_.size < asize)
+      p->out_.size < (unsigned long) asize)
     csound->AuxAlloc(csound, asize , &p->out_);
 
   csound->RegisterDeinitCallback(csound, p, destroy_cladsyn);
