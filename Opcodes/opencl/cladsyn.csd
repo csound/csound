@@ -12,7 +12,7 @@ instr 1
 ifftsize = 2048
 ihopsize = 512
 ibins = 1024
-itype = 0 ; /* 0 = GPU, 1 = CPU */
+itype = 1 ; /* 0 = GPU, 1 = CPU */
 idev =  0 ; /* device number */
 asig1,adp diskin "/users/victor/audio/metheny.wav",1,0,1
 fsig = pvsanal(asig1, ifftsize,ihopsize, ifftsize, 1)
