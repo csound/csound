@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
---opcode-lib=./libclops.dylib
+--opcode-lib=./libclop1.dylib
 </CsOptions>
 <CsInstruments>
 
