@@ -410,7 +410,7 @@ if(NOT PTHREAD_LIBRARY AND WIN32)
     find_library(PTHREAD_LIBRARY pthreadGC2)
 endif()
 
-if(NOT PTHREAD_LIBRARY)
+if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
     message(FATAL_ERROR "Csound requires the pthread library")
 endif()
 
@@ -524,6 +524,7 @@ include_directories(./Engine)
 include_directories(./)
 
 #checking pthread functions
+if(PTHREAD_LIBRARY)
 check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
 check_function_exists(pthread_barrier_init PTHREAD_BARRIER_INIT_EXISTS)
 
@@ -533,6 +534,7 @@ endif()
 
 if(PTHREAD_BARRIER_INIT_EXISTS)
    list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
+endif()
 endif()
 
 
@@ -1024,9 +1026,14 @@ install(TARGETS ${CSOUNDLIB}
     ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
     FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 
-set(libcsound_LIBS
+if(EMSCRIPTEN) 
+  set(libcsound_LIBS
+    ${LIBSNDFILE_LIBRARY})
+else()
+  set(libcsound_LIBS
     ${LIBSNDFILE_LIBRARY}
     ${PTHREAD_LIBRARY})
+endif()
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
