@@ -88,25 +88,27 @@ static int pvsynset(CSOUND *csound, PVSYN *p){
 
     size = (N+2)*sizeof(float);
     cudaMalloc(&p->inframe, size);
-    size = (N+2)*sizeof(float);
+    cudaMemset(p->inframe, 0, size);
+     size = (N+2)*sizeof(float);
     cudaMalloc(&p->inframe2, size);
-    size = (N/2-1)*sizeof(double);
+    size = (N+2)*sizeof(float);
     cudaMalloc(&p->lastph, size);
     cudaMemset(p->lastph, 0, size);
     size = N*sizeof(float);
     cudaMalloc(&p->win, size);
 
-    win = (float *) malloc(sizeof(float)*N);
-    for(i=0; i < N; i++)
+    win = (float *) malloc(sizeof(float)*(N+1));
+    for(i=0; i <= N; i++)
       win[i] = (float) (0.5 - 0.5*cos(i*TWOPI/N));
+
     for(i = 0; i < N; i++) sum += win[i];
     sum = FL(2.0) / sum;
     for(i = 0; i < N; i++) win[i] *= sum;
     sum = FL(0.0);
-    for(i = 0; i < N; i+=hsize)
-              sum += win[i] * win[i];
-    sum = 2.0/(sum*N);
-    for(i = 0; i < N; i++) win[i] *= sum;
+    for(i = 0; i <= N; i+=hsize)
+               sum += win[i] * win[i];
+    sum = (1.0/N)/(sum);
+    for(i = 0; i < N; i++) win[i] *= 3*sum/sqrt(numframes);
     cudaMemcpy(p->win,win,N*sizeof(float),
                cudaMemcpyHostToDevice);
     free(win);
@@ -161,7 +163,7 @@ static int pvsynperf(CSOUND *csound, PVSYN *p){
       float *cur = &(frames[start]);
       float *win = (float *) p->win;
       float *inframe = p->inframe;
-      float *inframe2 = p->inframe2;
+            float *inframe2 = p->inframe2;
       float *fsig = (float *) p->fsig->frame.auxp;
       /* copy fsig data to device */
       fsig[N+1] = fsig[1] = 0.f;
@@ -310,7 +312,14 @@ static int pvanalset(CSOUND *csound, PVAN *p){
 
     win = (float *) malloc(sizeof(float)*N);
     for(i=0; i < N; i++)
-      win[i] = (float) (0.5 - 0.5*cos(i*TWOPI/N))*(4./N);
+      win[i] = (float) (0.5 - 0.5*cos(i*TWOPI/N));
+    float sum = 0.0;
+   for(i = 0; i < N; i++) sum += win[i];
+    sum = FL(2.0) / sum;
+   for(i = 0; i < N; i++) win[i] *= sum;
+
+
+
     cudaMemcpy(p->win,win,N*sizeof(float),
                cudaMemcpyHostToDevice);
     free(win);
