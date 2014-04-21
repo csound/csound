@@ -83,6 +83,10 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
     c = *p++;
     isntAfunc = 1;
     switch (c) {
+    case 'z':
+      printf("skip z\n");
+      //corfile_putc('\n', sco);
+      break;
     case 'f':
       isntAfunc = 0;
     case 'q':
@@ -90,7 +94,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
     case 'a':
       corfile_putc(c, sco);
       corfile_putc(*p++, sco);
-    while ((c = *p++) != SP && c != LF)
+      while ((c = *p++) != SP && c != LF)
         corfile_putc(c, sco);                /* put p1       */
       corfile_putc(c, sco);
       if (c == LF)
