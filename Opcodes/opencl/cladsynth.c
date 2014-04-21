@@ -139,12 +139,12 @@ static int destroy_cladsyn(CSOUND *csound, void *pp);
 static int init_cladsyn(CSOUND *csound, CLADSYN *p){
 
   int asize, ipsize, fpsize, err;
-  cl_device_id device_ids[16], device_id;             
+  cl_device_id device_ids[32], device_id;             
   cl_context context;                
   cl_command_queue commands;          
   cl_program program;                
   cl_kernel kernel1, kernel2;                 
-  cl_uint num;
+  cl_uint num = 0, nump =  0;
   cl_platform_id platforms[16];
     uint i;
 
@@ -153,18 +153,19 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
 
 
 
-  err = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_ALL, 16, device_ids, &num);
+  err = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_ALL, 32, device_ids, &num);
   if (err != CL_SUCCESS){
-   clGetPlatformIDs(16, platforms, &num);
-    for(i=0; i < num; i++){
+    clGetPlatformIDs(16, platforms, &nump);
+    int devs = 0;
+    for(i=0; i < nump && devs < 32; i++){
      char name[128];
-      clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, 128, name, NULL);
+     clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, 128, name, NULL);
      csound->Message(csound, "available platform[%d] %s\n",i, name);
-    err = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_ALL, 16, device_ids, &num);
+     err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 32-devs, &device_ids[devs], &num);
     if (err != CL_SUCCESS)
      csound->InitError(csound, "failed to find an OpenCL device! %s \n", cl_error_string(err));
-    else break;
     }
+    devs += num;
   }
 
   
