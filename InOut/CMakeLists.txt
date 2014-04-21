@@ -29,7 +29,7 @@ if(USE_PORTAUDIO)
     find_library(PORTAUDIO_LIBRARY portaudio)
     if(PORTAUDIO_INCLUDE_PATH AND PORTAUDIO_LIBRARY)
         try_run(PORTAUDIO_V19 PORTAUDIO_TEST_COMPILED
-            ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/portaudio_test.c 
+            ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/portaudio_test.c
             CMAKE_FLAGS -DLINK_LIBRARIES:STRING=${PORTAUDIO_LIBRARY}
             COMPILE_DEFINITIONS "-I${PORTAUDIO_INCLUDE_PATH}"
             COMPILE_OUTPUT_VARIABLE OUTPUT)
@@ -115,22 +115,31 @@ if(USE_PULSEAUDIO)
     make_plugin(rtpulse rtpulse.c ${PULSEAUDIO_LIBRARY} ${PULSESIMPLE_LIBRARY})
 endif()
 
-check_deps(USE_PORTAUDIO PORTAUDIO_INCLUDE_PATH PORTAUDIO_LIBRARY PORTAUDIO_TEST_COMPILED)
-if(USE_PORTAUDIO AND PORTAUDIO_V19 MATCHES 1)
-    set(rtpa_LIBS ${PORTAUDIO_LIBRARY})
-    include_directories(${PORTAUDIO_INCLUDE_PATH})
-
-    if(WIN32)
+if(WIN32)
+    check_deps(USE_PORTAUDIO PORTAUDIO_INCLUDE_PATH PORTAUDIO_LIBRARY)
+    if(USE_PORTAUDIO AND PORTAUDIO_V19 MATCHES 1)
+        set(rtpa_LIBS ${PORTAUDIO_LIBRARY})
+        include_directories(${PORTAUDIO_INCLUDE_PATH})
         set_source_files_properties(rtpa.c
                               PROPERTIES LANGUAGE CXX)
         list(APPEND rtpa_LIBS winmm dsound setupapi ${CSOUND_WINDOWS_LIBRARIES})
+        make_plugin(rtpa rtpa.c ${rtpa_LIBS})
+        add_dependency_to_framework(portaudio ${PORTAUDIO_LIBRARY})
+    else()
+          message(STATUS "Not building Portaudio Driver...")
+          message(STATUS "Portaudio v19 Found: ${PORTAUDIO_V19}")
     endif()
-
-    make_plugin(rtpa rtpa.c ${rtpa_LIBS})
-    add_dependency_to_framework(portaudio ${PORTAUDIO_LIBRARY})
 else()
-  message(STATUS "Not building Portaudio Driver...")
-  message(STATUS "Portaudio v19 Found: ${PORTAUDIO_V19}")
+    check_deps(USE_PORTAUDIO PORTAUDIO_INCLUDE_PATH PORTAUDIO_LIBRARY PORTAUDIO_TEST_COMPILED)
+    if(USE_PORTAUDIO AND PORTAUDIO_V19 MATCHES 1)
+        set(rtpa_LIBS ${PORTAUDIO_LIBRARY})
+        include_directories(${PORTAUDIO_INCLUDE_PATH})
+        make_plugin(rtpa rtpa.c ${rtpa_LIBS})
+        add_dependency_to_framework(portaudio ${PORTAUDIO_LIBRARY})
+    else()
+      message(STATUS "Not building Portaudio Driver...")
+      message(STATUS "Portaudio v19 Found: ${PORTAUDIO_V19}")
+    endif()
 endif()
 
 if(APPLE)
