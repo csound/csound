@@ -2,7 +2,7 @@
 <CsOptions>
 ; Select audio/midi flags here according to platform
 ; Audio out   Audio in    No messages
--odac           -iadc     -d     ;;;RT audio I/O
+-odac
 ; For Non-realtime ouput leave only the line below:
 ; -o madsr.wav -W ;;; for file output any platform
 </CsOptions>
@@ -95,7 +95,7 @@ endin
 instr Soundfile
   ; Stereo input.
   asignal[] init 2
-  asignal[] inletv "in"
+  asignal inletv "in"
   out asignal
 endin
 
