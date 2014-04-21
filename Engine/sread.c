@@ -823,6 +823,40 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         STA(warpin)++;
         copypflds(csound);
         break;
+      case 'y':
+        ifa(csound);
+        printf("set seed in score\n");
+        {
+          char  *p = &(STA(bp)->text[1]);
+          char q;
+          char *old_nxp = STA(nxp)-2;
+          while (isblank(*p)) p++;
+          /* Measurement shows isdigit and 3 cases is about 30% */
+          /* faster than use of strchr (measured on Suse9.3)    */
+          /*         if (strchr("+-.0123456789", *p) != NULL) { */
+          q = *p;
+          if (isdigit(q) || q=='+' || q=='-' || q=='.') {
+            double  tt;
+            char    *tmp = p;
+            tt = cs_strtod(p, &tmp);
+            printf("tt=%lf q=%c\n", tt, q);
+            csound->randSeed1 = (int)tt;
+            printf("seed from score %d\n", csound->randSeed1);
+          }
+          else {
+            uint32_t tmp = (uint32_t) csound->GetRandomSeedFromTime();
+            while (tmp >= (uint32_t) 0x7FFFFFFE)
+              tmp -= (uint32_t) 0x7FFFFFFE;
+            csound->randSeed1 = tmp+1;
+            printf("seed from clock %d\n", csound->randSeed1);
+          }
+          flushlin(csound);
+          STA(op) = getop(csound);
+          STA(nxp) = old_nxp;
+          *STA(nxp)++ = STA(op); /* Undo this line */
+          STA(nxp)++;
+        }
+        goto again;
       case 't':
         copypflds(csound);
         break;
@@ -1746,6 +1780,7 @@ static int getop(CSOUND *csound)        /* get next legal opcode */
     case 'v':           /* Local warping */
     case 'w':
     case 'x':
+    case 'y':           /* Set random seed */
     case '{':           /* Section brackets */
     case '}':
     case EOF:

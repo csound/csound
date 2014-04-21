@@ -142,6 +142,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
         continue;
       case 's':
       case 't':
+      case 'y':
         csound->warped = 0;
         goto unwarped;
       case 'w':
