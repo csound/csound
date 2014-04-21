@@ -37,7 +37,7 @@ void cscore(CSOUND *cs)
       a = cscoreListAppendList(cs, a, b);      /* now add these notes to original pitches */
       cscoreListPut(cs, a);
       cscorePutString(cs, "e");
-      EVLIST *ev = cscoreListGetUntil(cs, 100);
+      /*EVLIST *ev = */ cscoreListGetUntil(cs, 100);
 
 
       return;

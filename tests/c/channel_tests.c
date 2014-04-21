@@ -21,7 +21,7 @@ void test_control_channel_params(void)
     CSOUND *csound = csoundCreate(0);
     csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=NULL");
-    int argc = 2;
+    //int argc = 2;
     csoundCompileOrc(csound, orc1);
     int err = csoundStart(csound);
     CU_ASSERT(err == CSOUND_SUCCESS);
@@ -51,7 +51,7 @@ void test_control_channel(void)
     CSOUND *csound = csoundCreate(0);
     csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
-    int argc = 2;
+    //int argc = 2;
     csoundCompileOrc(csound, orc1);
     int err = csoundStart(csound);
     CU_ASSERT(err == CSOUND_SUCCESS);
@@ -71,7 +71,7 @@ void test_channel_list(void)
     CSOUND *csound = csoundCreate(0);
     csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
-    int argc = 2;
+    //int argc = 2;
     csoundCompileOrc(csound, orc2);
     int err = csoundStart(csound);
     CU_ASSERT(err == CSOUND_SUCCESS);

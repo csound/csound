@@ -397,7 +397,7 @@ sprintf_opcode_(CSOUND *csound,
             return StrOp_ErrMsg(p, "output argument may not be "
                                    "the same as any of the input args");
           }
-          if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= maxChars) {
+          if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= (unsigned)maxChars) {
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data,
                                         str->size  + ((STRINGDAT*)parm)->size +

@@ -111,7 +111,7 @@ void test_peek(void) {
 }
 
 void test_wrap(void) {
-    int i, j;
+    int i;
     CSOUND* csound = csoundCreate(NULL);
     void *rb = csoundCreateCircularBuffer(csound, 32, sizeof(float));
     CU_ASSERT_PTR_NOT_NULL(rb);
