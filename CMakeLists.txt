@@ -4,11 +4,11 @@ project (Csound)
 
 ENABLE_TESTING()
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-                        
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 set(CMAKE_COMPILER_IS_CLANG 1)
 endif()
+
+message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
 set(CMAKE_C_FLAGS_RELEASE "-O3 ")
