@@ -1579,7 +1579,8 @@ int kperf(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int csoundReadScore(CSOUND *csound, char *str)
+
+PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
 {
     OPARMS  *O = csound->oparms;
      /* protect resource */
@@ -1588,7 +1589,7 @@ PUBLIC int csoundReadScore(CSOUND *csound, char *str)
       corfile_rewind(csound->scorestr);
 
     csound->scorestr = corfile_create_w();
-    corfile_puts(str, csound->scorestr);
+    corfile_puts((char *)str, csound->scorestr);
     corfile_flush(csound->scorestr);
     /* copy sorted score name */
     csoundLockMutex(csound->API_lock);

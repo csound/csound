@@ -242,4 +242,4 @@ endif()
 
 add_subdirectory(stk)
 add_subdirectory(cuda)
-
+add_subdirectory(opencl)

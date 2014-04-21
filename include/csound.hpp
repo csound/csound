@@ -192,7 +192,7 @@ public:
   {
     return csoundEvalCode(csound, str);
   }
-  virtual int ReadScore(char *str)
+  virtual int ReadScore(const char *str)
   {
     return csoundReadScore(csound, str);
   }

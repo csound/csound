@@ -1184,7 +1184,7 @@ extern "C" {
      *  It can be called repeatedly, with the new score events
      *  being added to the currently scheduled ones.
      */
-    PUBLIC int csoundReadScore(CSOUND *csound, char *str);
+    PUBLIC int csoundReadScore(CSOUND *csound, const char *str);
 
     /**
      * Returns the current score time in seconds
