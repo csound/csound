@@ -61,7 +61,7 @@ typedef struct cladsyn_ {
   MYFLT *asig;
   PVSDAT *fsig;
   MYFLT *kamp, *kfreq;
-  MYFLT *inum, *idev, *icpu;
+  MYFLT *inum, *idev;
   cl_mem out;
   cl_mem frame;
   cl_mem ph;
@@ -145,23 +145,42 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   cl_program program;                
   cl_kernel kernel1, kernel2;                 
   cl_uint num;
+  cl_platform_id platforms[16];
+    uint i;
 
   if(p->fsig->overlap > 1024)
      return csound->InitError(csound, "overlap is too large\n");
+
+
+
+  err = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_ALL, 16, device_ids, &num);
+  if (err != CL_SUCCESS){
+   clGetPlatformIDs(16, platforms, &num);
+    for(i=0; i < num; i++){
+     char name[128];
+      clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, 128, name, NULL);
+     csound->Message(csound, "available platform[%d] %s\n",i, name);
+    err = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_ALL, 16, device_ids, &num);
+    if (err != CL_SUCCESS)
+     csound->InitError(csound, "failed to find an OpenCL device! %s \n", cl_error_string(err));
+    else break;
+    }
+  }
+
   
-  err = clGetDeviceIDs(NULL, (*p->icpu ? CL_DEVICE_TYPE_CPU : CL_DEVICE_TYPE_GPU), 16, device_ids, &num);
-  if (err != CL_SUCCESS)
-    return (*p->icpu?
-	    csound->InitError(csound, "failed to find a GPU! %s \n", cl_error_string(err)):
-            csound->InitError(csound, "failed to find a CPU! %s\n",  cl_error_string(err)));
-  uint i;
   for(i=0; i < num; i++){
   char name[128];
+  cl_device_type type;
   clGetDeviceInfo(device_ids[i], CL_DEVICE_NAME, 128, name, NULL);
-  if(*p->icpu)
-  csound->Message(csound, "available CPU[%d] %s\n",i, name);
-  else
-  csound->Message(csound, "available GPU[%d] %s\n",i, name);
+  clGetDeviceInfo(device_ids[i], CL_DEVICE_TYPE, sizeof(cl_device_type), &type, NULL);
+  if(type & CL_DEVICE_TYPE_CPU)
+  csound->Message(csound, "available CPU[device %d] %s\n",i, name);
+  else  if(type & CL_DEVICE_TYPE_GPU)
+  csound->Message(csound, "available GPU[device %d] %s\n",i, name);
+  else  if(type & CL_DEVICE_TYPE_ACCELERATOR)
+  csound->Message(csound, "available ACCELLERATOR[device %d] %s\n",i, name);
+  else 
+  csound->Message(csound, "available generic [device %d] %s\n",i, name);;
   }
 
   // SELECT THE GPU HERE
@@ -211,10 +230,7 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
  
   char name[128];
   clGetDeviceInfo(device_id, CL_DEVICE_NAME, 128, name, NULL);
- if(*p->icpu)
-  csound->Message(csound, "using CPU: %s\n",name);
-  else
-  csound->Message(csound, "using GPU: %s\n",name);
+  csound->Message(csound, "using device: %s\n",name);
 
   p->bins = (p->fsig->N)/2;
 
@@ -337,7 +353,7 @@ static int destroy_cladsyn(CSOUND *csound, void *pp){
 }
 
 static OENTRY localops[] = {
-  {"cladsynth", sizeof(CLADSYN),0, 5, "a", "fkkooo", (SUBR) init_cladsyn, NULL,
+  {"cladsynth", sizeof(CLADSYN),0, 5, "a", "fkkoo", (SUBR) init_cladsyn, NULL,
    (SUBR) perf_cladsyn}
 };
 
