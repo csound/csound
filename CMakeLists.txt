@@ -1027,6 +1027,7 @@ install(TARGETS ${CSOUNDLIB}
     FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 
 if(EMSCRIPTEN) 
+  include_directories(emscripten/deps/libsndfile-1.0.25/src/)
   set(libcsound_LIBS
     ${LIBSNDFILE_LIBRARY})
 else()
