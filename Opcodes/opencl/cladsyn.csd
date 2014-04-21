@@ -13,7 +13,7 @@ ifftsize = 2048
 ihopsize = 512
 ibins = 1024
 idev =  1 ; /* device number */
-asig1,adp mp3in "/users/victor/audio/metheny.mp3"
+asig1 vco2 0.5, 440
 fsig = pvsanal(asig1, ifftsize,ihopsize, ifftsize, 1)
 asig = cladsynth(fsig,1,1,ibins,idev)
 asig = linenr(asig,0.001,0.01,0.01)
@@ -25,7 +25,7 @@ instr 2
 ifftsize = 2048
 ihopsize = 512
 ibins = 1024
-asig1,adp diskin "/users/victor/audio/metheny.wav",1,0,1
+asig1 vco2 0.5, 440
 fsig = pvsanal(asig1, ifftsize,ihopsize, ifftsize, 1)
 asig = pvsadsyn(fsig,ibins,1)
 asig = linenr(asig,0.001,0.01,0.01)
