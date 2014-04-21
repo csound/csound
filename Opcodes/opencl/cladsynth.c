@@ -154,8 +154,8 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
     return (*p->icpu?
 	    csound->InitError(csound, "failed to find a GPU! %s \n", cl_error_string(err)):
             csound->InitError(csound, "failed to find a CPU! %s\n",  cl_error_string(err)));
-  
-  for(uint i=0; i < num; i++){
+  uint i;
+  for(i=0; i < num; i++){
   char name[128];
   clGetDeviceInfo(device_ids[i], CL_DEVICE_NAME, 128, name, NULL);
   if(*p->icpu)
