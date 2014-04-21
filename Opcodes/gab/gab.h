@@ -91,6 +91,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
+    MYFLT   *retval;
 } EXITNOW;
 
 typedef struct {
