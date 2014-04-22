@@ -755,7 +755,8 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
       if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
         OENTRY* oentry = (OENTRY*)current->markup;
         if (UNLIKELY(PARSER_DEBUG))
-          csound->Message(csound, "In INSTR GLOBAL: %s\n", current->value->lexeme);
+          csound->Message(csound,
+                          "In INSTR GLOBAL: %s\n", current->value->lexeme);
         if (current->type == '='
             && strcmp(oentry->opname, "=.r") == 0)
          csound->Warning(csound, "system constants can only be set once\n");
@@ -1266,7 +1267,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       if (csound->oparms->odebug)
         csound->Message(csound, Str(" merging  %d) %s:%s\n"), count,
                         gVar->varName, gVar->varType->varTypeName);
-      var = csoundFindVariableWithName(csound, current_state->varPool, gVar->varName);
+      var = csoundFindVariableWithName(csound,
+                                       current_state->varPool, gVar->varName);
       if (var == NULL) {
         ARRAY_VAR_INIT varInit;
         varInit.dimensions = gVar->dimensions;
@@ -1312,7 +1314,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     while ((current = current->nxtinstxt) != NULL) {
       if (csound->oparms->odebug)
         csound->Message(csound, "insprep %p \n", current);
-      insprep(csound, current, current_state);/* run insprep() to connect ARGS  */
+      insprep(csound, current, current_state);/* run insprep() to connect ARGS */
       recalculateVarPoolMemory(csound,
                                current->varPool); /* recalculate var pool */
     }
@@ -1581,7 +1583,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     /* lock to ensure thread-safety */
     csoundLockMutex(csound->API_lock);
-    if (csound->init_pass_threadlock) csoundLockMutex(csound->init_pass_threadlock);
+    if (csound->init_pass_threadlock)
+      csoundLockMutex(csound->init_pass_threadlock);
     if (engineState != &csound->engineState) {
       OPDS *ids = csound->ids;
       /* any compilation other than the first one */
@@ -1895,13 +1898,16 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
     }
     /* trap local ksmps and kr  */
     else
-      if ((strcmp(s, "ksmps") == 0 && csoundFindVariableWithName(csound, ip->varPool, s))
-          || (strcmp(s, "kr") == 0 && csoundFindVariableWithName(csound, ip->varPool, s))) {
+      if ((strcmp(s, "ksmps") == 0 &&
+           csoundFindVariableWithName(csound, ip->varPool, s))
+          || (strcmp(s, "kr") == 0 &&
+              csoundFindVariableWithName(csound, ip->varPool, s))) {
         arg->type = ARG_LOCAL;
         arg->argPtr = csoundFindVariableWithName(csound, ip->varPool, s);
       }
     else if (c == 'g' || (c == '#' && *(s+1) == 'g') ||
-             csoundFindVariableWithName(csound, csound->engineState.varPool, s) != NULL) {
+             csoundFindVariableWithName(csound,
+                                        csound->engineState.varPool, s) != NULL) {
       // FIXME - figure out why string pool searched with gexist
       //|| string_pool_indexof(csound->engineState.stringPool, s) > 0) {
       arg->type = ARG_GLOBAL;

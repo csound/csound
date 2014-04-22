@@ -1,6 +1,8 @@
 # CSOUND AND CSOUND VST
 Version 6.02
 
+[![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
+
 A user-programmable and user-extensible sound processing language
 and software synthesizer.
 
@@ -72,7 +74,7 @@ from around the world. They include (but are not limited to):
 * Greg Sullivan
 * Hans Mikelson
 * Istvan Varga
-* Jean PichÈ
+* Jean Pich√©
 * John ffitch
 * John Ramsdell
 * Marc Resibois
@@ -85,7 +87,7 @@ from around the world. They include (but are not limited to):
 * Mike Berry
 * Paris Smaragdis
 * Perry Cook
-* Peter Neub‰cker
+* Peter Neub√§cker
 * Peter Nix
 * Rasmus Ekman
 * Richard Dobson
