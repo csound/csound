@@ -36,7 +36,7 @@ endfunction(make_cuda_plugin)
  SET(CUDA_NVCC_FLAGS  "-arch=sm_11 " CACHE STRING "nvcc flags" FORCE)
   make_cuda_plugin(cudaop2 pvsopsf.cu)
   make_cuda_plugin(cudaop3 slidingm.cu)
-  make_cuda_plugin(cudaop4 conv.cu)
+  make_cuda_plugin(cudaop4 convf.cu)
   target_link_libraries(cudaop2 ${CUFFT})
  else()
  SET(CUDA_NVCC_FLAGS  "-ccbin /usr/bin/clang -arch=sm_30 -Xcompiler

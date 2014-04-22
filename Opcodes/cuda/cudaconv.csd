@@ -3,8 +3,8 @@
 --opcode-lib=libcudaop4.dylib
 </CsOptions>
 <CsInstruments>
-ksmps = 1024
-i1 ftgen  1,0,16384,1,"/Users/victor/audio/church.wav",0,0,1
+ksmps = 128
+i1 ftgen  1,0,1024,1,"/Users/victor/audio/church.wav",0,0,1
 
 instr 1
 
