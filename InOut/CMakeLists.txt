@@ -33,6 +33,11 @@ if(USE_PORTAUDIO)
             CMAKE_FLAGS -DLINK_LIBRARIES:STRING=${PORTAUDIO_LIBRARY}
             COMPILE_DEFINITIONS "-I${PORTAUDIO_INCLUDE_PATH}"
             COMPILE_OUTPUT_VARIABLE OUTPUT)
+	if(NOT PORTAUDIO_TEST_COMPILED) 
+            set(PORTAUDIO_V19 false)
+	endif()
+    else()
+        set(PORTAUDIO_V19 false)
     endif()
 endif()
 if(USE_PORTMIDI)
