@@ -191,7 +191,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                                          INTEGER_TOKEN, (ORCTOKEN *)$1), $3); }
           | label ',' instlist
               {
-                  csp_orc_sa_instr_add(csound, strdup(((ORCTOKEN *)$1)->lexeme));
+                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$1)->lexeme);
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST,
                                make_leaf(csound, LINE,LOCN,
                                          T_IDENT, (ORCTOKEN *)$1), $3); }
@@ -200,7 +200,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                   TREE *ans;
                   ans = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$2);
                   ans->rate = (int) '+';
-                  csp_orc_sa_instr_add(csound, strdup(((ORCTOKEN *)$2)->lexeme));
+                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$2)->lexeme);
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST, ans, $4); }
           | '+' label
               {
