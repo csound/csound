@@ -82,7 +82,7 @@ void array_copy_value(void* csound, void* dest, void* src) {
     ARRAYDAT* aDest = (ARRAYDAT*)dest;
     ARRAYDAT* aSrc = (ARRAYDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
-    size_t size;
+    size_t size, j;
     int i;
     int memMyfltSize;
     
@@ -103,9 +103,10 @@ void array_copy_value(void* csound, void* dest, void* src) {
     }
 
     aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * size);
-    for (i = 0; i < size; i++) {
-        int index = i * memMyfltSize;
-        aDest->arrayType->copyValue(csound, aDest->data + index, aSrc->data + index);
+    for (j = 0; j < size; j++) {
+        int index = j * memMyfltSize;
+        aDest->arrayType->copyValue(csound,
+                                    aDest->data + index, aSrc->data + index);
     }
     
 }
