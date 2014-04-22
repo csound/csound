@@ -101,10 +101,6 @@ extern int csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 
-int kperf_nodebug(CSOUND *csound);
-int kperf_debug(CSOUND *csound);
-
-
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 extern OENTRY opcodlst_1[];
@@ -876,9 +872,7 @@ static const CSOUND cenviron_ = {
     0,              /* modules loaded */
     -1,             /* audio system sr */
     0,              /* csdebug_data */
-    kperf_nodebug,  /* current kperf function */
-    kperf_debug,    /* kperf debug function pointer */
-    kperf_nodebug   /* current kperf nodebug function pointer */
+    kperf_nodebug  /* current kperf function - nodebug by default */
     /*, NULL */           /* self-reference */
 };
 

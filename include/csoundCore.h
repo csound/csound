@@ -818,6 +818,11 @@ typedef struct {
   extern const uint32_t csMidiScoMask;
   extern const uint32_t csPlayScoMask;
 
+/* kperf function protoypes. Used by the debugger to switch between debug
+ * and nodebug kperf functions */
+  int kperf_nodebug(CSOUND *csound);
+  int kperf_debug(CSOUND *csound);
+
 #endif  /* __BUILDING_LIBCSOUND */
 
 #define MARGS   (3)
@@ -1673,8 +1678,6 @@ typedef struct NAME__ {
     MYFLT         _system_sr;
     void*         csdebug_data; /* debugger data */
     int (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug and nodebug function */
-    int (*kperf_debug)(CSOUND *); /* kperf debug function pointer */
-    int (*kperf_nodebug)(CSOUND *); /* kperf nodebug function pointer */
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
