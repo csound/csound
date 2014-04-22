@@ -34,9 +34,10 @@ static int init_cudadsyn(CSOUND *csound, CUDADSYN *p){
   cudaDeviceProp deviceProp;
   cudaGetDeviceProperties(&deviceProp, 0);
   blockspt = deviceProp.maxThreadsPerBlock;
-  if(deviceProp.major < 3)
-    csound->InitError(csound,
-   "this opcode requires device capability 3.0 minimum\n");
+  if(deviceProp.major < 2)
+   csound->InitError(csound,
+       "this opcode requires device capability 2.0 minimum. Device is %d.%d\n", 
+        deviceProp.major, deviceProp.minor );
 
   p->bins = (p->fsig->N)/2;
 
