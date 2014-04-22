@@ -86,6 +86,8 @@ static int conv_init(CSOUND *csound, CONV *p){
   cudaDeviceProp deviceProp;
   cudaGetDeviceProperties(&deviceProp, 0);
   int blockspt = deviceProp.maxThreadsPerBlock;
+  csound->Message(csound, "CUDAconv: using device %s (capability %d.%d)\n", 
+        deviceProp.name,deviceProp.major, deviceProp.minor);
 
   p->blocks = threads > blockspt ? ceil(threads/blockspt) : 1;
   p->threads = threads > blockspt ? blockspt : threads;
