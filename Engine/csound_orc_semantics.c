@@ -274,6 +274,18 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       }
 
+      // Deal with odd case if i(expressions)
+      if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
+        //print_tree(csound, "i()", tree);
+        if (tree->right->type == T_ARRAY &&
+            tree->right->left->type == T_IDENT &&
+            tree->right->right->type == INTEGER_TOKEN) {}
+        else
+          if (UNLIKELY(tree->right->type != LABEL_TOKEN))
+            synterr(csound,
+                    Str("Use of i() with expression not permitted\n"));
+      }
+
       if (tree->type == T_FUNCTION) {
         char* argTypeRight = get_arg_string_from_tree(csound,
                                                       tree->right, typeTable);
@@ -445,12 +457,14 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       */
 
       if (*s == 'g') {
-       var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                        tree->value->lexeme);
-       if(var == NULL)
-       var = csoundFindVariableWithName(csound, typeTable->globalPool, tree->value->lexeme);
-       } else
-        var = csoundFindVariableWithName(csound, typeTable->localPool, tree->value->lexeme);
+        var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                         tree->value->lexeme);
+        if(var == NULL)
+          var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                           tree->value->lexeme);
+      } else
+        var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                         tree->value->lexeme);
 
       if (UNLIKELY(var == NULL)) {
         synterr(csound, Str("Variable '%s' used before defined\n"),
