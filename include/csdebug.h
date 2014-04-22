@@ -1,7 +1,7 @@
 /*
     csdebug.h:
 
-    Copyright (C) 2013 Andres Cabrera
+    Copyright (C) 2014 Andres Cabrera
 
     This file is part of Csound.
 
@@ -28,7 +28,8 @@
 #error You must build csound with debugger enabled to use this header.
 #endif
 
-// Necessary to access private members within the Csound structure even from applications that include this header
+// Necessary to access private members within the Csound structure even from
+// applications that include this header
 #ifdef __BUILDING_LIBCSOUND
 #define __BUILDING_LIBCSOUND_DEFINED
 #else
@@ -37,6 +38,9 @@
 
 #include "pthread.h"
 #include "csoundCore.h"
+
+/** \cond DOXYGEN_HIDDEN
+ * These types should not appear in the Doxygen docs */
 
 typedef enum {
     CSDEBUG_BKPT_LINE,
@@ -75,10 +79,21 @@ typedef enum {
     CSDEBUG_INIT = 0x02
 } debug_mode_t;
 
+/** @endcond */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
+/** @defgroup DEBUGGER Debugger
+ *
+ *  @{ */
+
+/** Breakpoint callback function type
+ *
+ * When a breakpoint is reached, the debugger will call a function of this type
+ * see csoundSetBreakpointCallback() */
 typedef void (*breakpoint_cb_t) (CSOUND *, int line, double instr, void *userdata);
 
 typedef struct {
@@ -91,28 +106,108 @@ typedef struct {
     void *cb_data;
 } csdebug_data_t;
 
-
+/** Intialize debugger facilities
+ *
+ * This function allocates debugger structures, and enables its usage.
+ * There is a small performance penalty when using the debugger, so
+ * be sure to call csoundDebuggerClean() after use.
+ *
+ * This call is not thread safe and must be called before performance starts.
+ *
+ * @param csound A Csound instance
+*/
 PUBLIC void csoundDebuggerInit(CSOUND *csound);
+
+/** Cleanup debugger facilities
+ *
+ * @param csound A Csound instance
+*/
 PUBLIC void csoundDebuggerClean(CSOUND *csound);
 
-PUBLIC void csoundDebugSetMode(CSOUND *csound, debug_mode_t enabled);
-
+/*
+ * Not yet implemented, so hidden for now
 PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int skip);
 PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line);
+*/
+
+/** Set a breakpoint for an instrument number
+ *
+ * Sets a breakpoint for an instrument number with optional number of skip
+ * control blocks. You can specify a fractional instrument number to identify
+ * particular instances. Specifying a value greater than 1 will result in that
+ * number of control blocks being skipped before this breakpoint is called
+ * again. A value of 0 and 1 has the same effect.
+ *
+ * This call is thread safe, as the breakpoint will be put in a lock free queue
+ * that is processed as soon as possible in the kperf function.
+ *
+ * @param csound a Csound instance
+ * @param instr instrument number
+ * @param skip number of control blocks to skip
+ */
 PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int skip);
+
+/** Remove instrument breakpoint
+ *
+ * Removes an instrument breakpoint from the breakpoint list. Csound will no
+ * longer break at that instrument
+ *
+ * This call is thread safe, as the breakpoint will be put in a lock free queue
+ * that is processed as soon as possible in the kperf function.
+ */
 PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr);
+
+/** Clear all breakpoints
+ *
+ * Removes all breakpoints. This call is thread safe, as it will be processed
+ *  as soon as possible in the kperf function.
+ */
 PUBLIC void csoundClearBreakpoints(CSOUND *csound);
 
+/** Sets the breakpoint callback function
+ *
+ * Sets the function that will be called when a breakpoint is reached.
+ *
+ * @param csound Csound instance pointer
+ * @param bkpt_cb pointer to breakpoint callback function
+ * @param userdata pointer to user data that will be passed to the callback
+ * function
+ */
 PUBLIC void csoundSetBreakpointCallback(CSOUND *csound, breakpoint_cb_t bkpt_cb, void *userdata);
 
+/* Not implemented yet, so not exposed in the API
 PUBLIC void csoundDebugStepOver(CSOUND *csound);
 PUBLIC void csoundDebugStepInto(CSOUND *csound);
 PUBLIC void csoundDebugNext(CSOUND *csound);
+*/
+
+/** Continue execution from breakpoint
+ *
+ * Call this function to continue execution of a Csound instance which is
+ * stopped because a breakpoint has been reached. This function will continue
+ * traversing the instrument chain from the instrument instance that
+ * triggered the break.
+ */
 PUBLIC void csoundDebugContinue(CSOUND *csound);
+
+/** Stop Csound rendering and enter the debugger
+ *
+ * Calling this function will enter the debugger at the soonest possible point
+ * as if a breakpoint had been reached.
+ */
 PUBLIC void csoundDebugStop(CSOUND *csound);
 
+/** Get current instrument at which csound is stopped
+ *
+ * Returns the pointer to the instrument at which the Csound debugger broke
+ * rendering. This is the instrument that triggered the callback.
+ *
+ * You should only call this function if an actual breakpoint has been reached
+ * and Csound has been stopped by the debugger.
+ */
 PUBLIC INSDS *csoundDebugGetInstrument(CSOUND *csound);
 
+/**  @} */
 
 #ifdef __cplusplus
 }
