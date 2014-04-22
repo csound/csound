@@ -62,10 +62,8 @@ static int pvsynset(CSOUND *csound, PVSYN *p){
     cudaDeviceProp deviceProp;
     cudaGetDeviceProperties(&deviceProp, 0);
     blockspt = deviceProp.maxThreadsPerBlock;
-
-    if(deviceProp.major < 3)
-    csound->InitError(csound,
-                      "this opcode requires device capability 3.0 minimum\n");
+    csound->Message(csound, "CUDAsynth: using device %s (capability %d.%d)\n", 
+        deviceProp.name,deviceProp.major, deviceProp.minor);
 
     if(p->fsig->wintype != 1)
       return csound->InitError(csound,
@@ -267,9 +265,8 @@ static int pvanalset(CSOUND *csound, PVAN *p){
     cudaDeviceProp deviceProp;
     cudaGetDeviceProperties(&deviceProp, 0);
     blockspt = deviceProp.maxThreadsPerBlock;
-    if(deviceProp.major < 3)
-    csound->InitError(csound,
-     "this opcode requires device capability 3.0 minimum\n");
+    csound->Message(csound, "CUDAnal: using device %s (capability %d.%d)\n", 
+        deviceProp.name,deviceProp.major, deviceProp.minor);
 
     p->fsig->N = N;
     p->fsig->overlap = hsize;
@@ -317,8 +314,6 @@ static int pvanalset(CSOUND *csound, PVAN *p){
    for(i = 0; i < N; i++) sum += win[i];
     sum = FL(2.0) / sum;
    for(i = 0; i < N; i++) win[i] *= sum;
-
-
 
     cudaMemcpy(p->win,win,N*sizeof(float),
                cudaMemcpyHostToDevice);

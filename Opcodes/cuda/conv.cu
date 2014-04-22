@@ -22,30 +22,30 @@ __global__ void convol(MYFLT *out, MYFLT *del, MYFLT *coefs, int irsize, int rp,
   out[n] += a;    
 }
 
-__device__ double atomicAdd(double* address, double val)
-{
-    unsigned long long int* address_as_ull =
-                              (unsigned long long int*)address;
-    unsigned long long int old = *address_as_ull, assumed;
-    do {
-        assumed = old;
-        old = atomicCAS(address_as_ull, assumed,
-                        __double_as_longlong(val +
-                               __longlong_as_double(assumed)));
-    } while (assumed != old);
-    return __longlong_as_double(old);
-}
+// __device__ double atomicAdd(double* address, double val)
+// {
+//     unsigned long long int* address_as_ull =
+//                               (unsigned long long int*)address;
+//     unsigned long long int old = *address_as_ull, assumed;
+//     do {
+//         assumed = old;
+//         old = atomicCAS(address_as_ull, assumed,
+//                         __double_as_longlong(val +
+//                                __longlong_as_double(assumed)));
+//     } while (assumed != old);
+//     return __longlong_as_double(old);
+// }
 
-__global__ void convol2(MYFLT *out, MYFLT *del, MYFLT *coefs, int irsize, int rp, int vsize) {
-  int t = (threadIdx.x + blockIdx.x*blockDim.x);
-  if(t >= irsize*vsize) return;
-  int n =  t%vsize;  /* sample index */
-  int h =  t/vsize;  /* coeff index */
-  int end = irsize+vsize;
-  rp += n + h; /* read point, oldest -> newest */
-  MYFLT s = del[rp < end ? rp : rp%end]*coefs[irsize-1-h];  /* single tap */
-  t == n ? out[n] = s : atomicAdd(&out[n], s);
-}
+// __global__ void convol2(MYFLT *out, MYFLT *del, MYFLT *coefs, int irsize, int rp, int vsize) {
+//   int t = (threadIdx.x + blockIdx.x*blockDim.x);
+//   if(t >= irsize*vsize) return;
+//   int n =  t%vsize;  /* sample index */
+//   int h =  t/vsize;  /* coeff index */
+//   int end = irsize+vsize;
+//   rp += n + h; /* read point, oldest -> newest */
+//   MYFLT s = del[rp < end ? rp : rp%end]*coefs[irsize-1-h];  /* single tap */
+//   t == n ? out[n] = s : atomicAdd(&out[n], s);
+// }
 
 typedef struct _CONV {
   OPDS h;
@@ -86,6 +86,8 @@ static int conv_init(CSOUND *csound, CONV *p){
   cudaDeviceProp deviceProp;
   cudaGetDeviceProperties(&deviceProp, 0);
   int blockspt = deviceProp.maxThreadsPerBlock;
+  csound->Message(csound, "CUDAconv: using device %s (capability %d.%d)\n", 
+        deviceProp.name,deviceProp.major, deviceProp.minor);
 
   p->blocks = threads > blockspt ? ceil(threads/blockspt) : 1;
   p->threads = threads > blockspt ? blockspt : threads;
