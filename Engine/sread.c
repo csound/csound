@@ -825,7 +825,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         break;
       case 'y':
         ifa(csound);
-        printf("set seed in score\n");
+        //printf("set seed in score\n");
         {
           char  *p = &(STA(bp)->text[1]);
           char q;
@@ -839,7 +839,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             double  tt;
             char    *tmp = p;
             tt = cs_strtod(p, &tmp);
-            printf("tt=%lf q=%c\n", tt, q);
+            //printf("tt=%lf q=%c\n", tt, q);
             csound->randSeed1 = (int)tt;
             printf("seed from score %d\n", csound->randSeed1);
           }
@@ -851,6 +851,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             printf("seed from clock %d\n", csound->randSeed1);
           }
           flushlin(csound);
+          // Really we need to remove this line totally but this did not work
           STA(op) = getop(csound);
           STA(nxp) = old_nxp;
           *STA(nxp)++ = STA(op); /* Undo this line */
