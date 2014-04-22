@@ -50,7 +50,7 @@ cp frontends/max_csound_tilde/csound~.mxe ../../installer
 
 cd ../../installer
 cp ../../csound~.iss .
-"$ISCC" -o. -fcsound~_${CS_TILDE_VERSION} csound~.iss 
+"$ISCC" -o. -fcsound~_${CS_TILDE_VERSION} -dCS_TILDE_VERSION=${CS_TILDE_VERSION} csound~.iss 
 exit
 
 # ASSEMBLE FILES FOR INSTALLER
