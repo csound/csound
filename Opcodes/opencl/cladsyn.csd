@@ -12,7 +12,7 @@ instr 1
 ifftsize = 2048
 ihopsize = 512
 ibins = 1024
-idev =  1 ; /* device number */
+idev =  0 ; /* device number */
 asig1 vco2 0.5, 440
 fsig = pvsanal(asig1, ifftsize,ihopsize, ifftsize, 1)
 asig = cladsynth(fsig,1,1,ibins,idev)
