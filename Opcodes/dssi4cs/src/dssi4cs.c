@@ -1016,7 +1016,7 @@ LADSPAPluginSearch(CSOUND *csound,
       int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
       char *tmp = (char*)malloc(len);
       snprintf(tmp, len, "%s:%s", pcLADSPAPath, pcDSSIPath);
-      pcLADSPAPath = pcStart = tmp;
+      pcLADSPAPath = pcStart = (const char*)tmp;
     }
     // Search the list
     while (*pcStart != '\0') {
