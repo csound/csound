@@ -80,7 +80,7 @@ __global__ void sample(float *out, float *frame, float pitch, int64_t *ph,
   int n =  t%vsize;  /* sample index */
   int h = t/vsize;  /* bin index */
   int k = h<<1;
-  int64_t lph;
+  int64_t lph; 
   float a = amps[h], ascl = ((float)n)/vsize;
   float fscal = pitch*FMAXLEN/sr;
   lph = (ph[h] + (int64_t)(n*round(frame[k+1]*fscal))) & PHMASK;
