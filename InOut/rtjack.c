@@ -403,7 +403,7 @@ static void openJackStreams(RtJackGlobals *p)
     CSOUND *csound = p->csound;
 
     /* connect to JACK server */
-    p->client = jack_client_open(&(p->clientName[0]), JackNullOption, NULL);
+    p->client = jack_client_open(&(p->clientName[0]), JackNoStartServer, NULL);
     if (UNLIKELY(p->client == NULL))
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
 
@@ -573,7 +573,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
       /* connection yet; this is a somewhat hackish solution... */
       if (p->client == (jack_client_t*) NULL) {
         useTmpClient = 1;
-        client_ = jack_client_open(&(p->clientName[0]), JackNullOption, NULL);
+        client_ = jack_client_open(&(p->clientName[0]), JackNoStartServer, NULL);
       }
       else
         client_ = p->client;
