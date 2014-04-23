@@ -31,6 +31,8 @@
 #include <math.h>
 #include "corfile.h"
 
+#include "csdebug.h"
+
 #define SEGAMPS AMPLMSG
 #define SORMSG  RNGEMSG
 
@@ -892,6 +894,11 @@ int sensevents(CSOUND *csound)
     OPARMS  *O = csound->oparms;
     int     retval, sensType;
     int     conn, *sinp;
+
+    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
+    if (data && data->status == CSDEBUG_STATUS_STOPPED) {
+        return 0; /* don't process events if we're in debug mode and stopped */
+    }
 
     if (UNLIKELY(csound->MTrkend && O->termifend)) {   /* end of MIDI file:  */
       deactivate_all_notes(csound);
