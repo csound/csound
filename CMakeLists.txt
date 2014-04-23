@@ -681,6 +681,7 @@ set(libcsound_SRCS
     Opcodes/tl/sc_noise.c
     Opcodes/afilters.c
     Top/argdecode.c
+    Top/csdebug.c
     Top/cscore_internal.c
     Top/cscorfns.c
     Top/csmodule.c
