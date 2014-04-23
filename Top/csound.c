@@ -70,9 +70,7 @@
 
 #include "csound_standard_types.h"
 
-#ifdef CSDEBUGGER
 #include "csdebug.h"
-#endif
 
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -1588,12 +1586,10 @@ remainder is left to each opcode to deal with.
 int kperf_debug(CSOUND *csound)
 {
     INSDS *ip;
-#ifdef CSDEBUGGER
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     debug_command_t command;
     command = CSDEBUG_CMD_NONE;
     if (!data || data->status != CSDEBUG_STATUS_STOPPED)
-#endif
     {
       /* update orchestra time */
       csound->kcounter = ++(csound->global_kcounter);
@@ -1615,7 +1611,6 @@ int kperf_debug(CSOUND *csound)
       csound->evt_poll_cnt = csound->evt_poll_maxcnt;
       if (UNLIKELY(!csoundYield(csound))) csound->LongJmp(csound, 1);
     }
-#ifdef CSDEBUGGER
     if (data) {
         csoundReadCircularBuffer(csound, data->cmd_buffer, &command, 1);
     }
@@ -1657,7 +1652,6 @@ int kperf_debug(CSOUND *csound)
     }
 
     if (!data || data->status != CSDEBUG_STATUS_STOPPED)
-#endif
     {
       /* for one kcnt: */
       if (csound->oparms_.sfread)         /*   if audio_infile open  */
@@ -1705,7 +1699,6 @@ int kperf_debug(CSOUND *csound)
 #endif
 
           if (done == 1) {/* if init-pass has been done */
-#ifdef CSDEBUGGER
           if(data) {
             if(data->status == CSDEBUG_STATUS_CONTINUE) {
               if (data->debug_instr_ptr) { /* if not NULL, resume from last active */
@@ -1741,7 +1734,6 @@ int kperf_debug(CSOUND *csound)
               }
             }
           }
-#endif
             OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
             ip->spout = csound->spout;
@@ -1795,9 +1787,7 @@ int kperf_debug(CSOUND *csound)
       }
     }
 
-#ifdef CSDEBUGGER
     if (!data || data->status != CSDEBUG_STATUS_STOPPED)
-#endif
     {
       if (!csound->spoutactive) {             /*   results now in spout? */
         memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
