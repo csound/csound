@@ -1,7 +1,8 @@
 // -*- c++ -*-
-// pvsops.cu
+// pvsopsf.cu
 // experimental cuda opcodes
-//
+// version using single-precision floats
+// 
 // V Lazzarini, 2013
 
 #include <csdl.h>
@@ -10,14 +11,14 @@
 #include <pstream.h>
 
 /* kernel to convert from pvs to rectangular frame */
-__global__ void frompvs(float* inframe, double* lastph,
-                        double scal, double fac) {
+__global__ void frompvs(float* inframe, float* lastph,
+                        float scal, float fac) {
 
   int k = threadIdx.x + blockIdx.x*blockDim.x + 1;
   int i = k << 1;
   float mag = inframe[i];
-  double delta = (inframe[i+1] - k*scal)*fac;
-  double phi = fmod(lastph[k-1] + delta, TWOPI);
+  float delta = (inframe[i+1] - k*scal)*fac;
+  float phi = fmod((double)lastph[k-1] + delta, TWOPI);
   lastph[k-1] = phi;
   inframe[i] =  (float) (mag*cos(phi));
   inframe[i+1] = (float) (mag*sin(phi));
@@ -36,14 +37,14 @@ typedef struct _pvsyn{
   PVSDAT *fsig;
   float *inframe; /* N */
   float *inframe2;
-  double *lastph;  /* N/2 */
+  float *lastph;  /* N/2 */
   float *win;    /* N */
   int framecount;
   int curframe;
   AUXCH  frames;
   AUXCH  count;
   cufftHandle plan;
-  double scal, fac;
+  float scal, fac;
   int bblocks, nblocks;
   int bthreads, nthreads;
 } PVSYN;
@@ -205,23 +206,23 @@ static int destroy_pvsyn(CSOUND *csound, void *pp){
   return OK;
 }
 
-__device__ double modTwoPi(double x)
+__device__ float modTwoPi(float x)
 {
-  x = fmod(x,TWOPI);
+  x = fmod((double)x,TWOPI);
   return x <= -PI ? x + TWOPI :
     (x > PI ? x - TWOPI : x);
 }
 
 /* kernel to convert from rectangular to pvs frame */
-__global__ void topvs(float* aframe, double* oldph,
-                      double scal, double fac) {
+__global__ void topvs(float* aframe, float* oldph,
+                      float scal, float fac) {
   int k = threadIdx.x + blockIdx.x*blockDim.x + 1;
   int i = k << 1;
 
   float re = aframe[i], im = aframe[i+1];
   float mag = sqrtf(re*re + im*im);
-  double phi = atan2f(im,re);
-  double delta = phi - oldph[k-1];
+  float phi = atan2f(im,re);
+  float delta = phi - oldph[k-1];
   oldph[k-1] = phi;
   aframe[i] =  mag;
   aframe[i+1] = (float) ((modTwoPi(delta) + k*scal)*fac);
@@ -240,7 +241,7 @@ typedef struct _pvan {
 
   float *aframe; /* N */
   float *aframe2;
-  double *oldph;  /* N/2 */
+  float *oldph;  /* N/2 */
   float *win;    /* N */
 
   int framecount;
@@ -248,7 +249,7 @@ typedef struct _pvan {
   AUXCH  frames;
   AUXCH  count;
   cufftHandle plan;
-  double scal, fac;
+  float scal, fac;
   int bblocks, nblocks;
   int bthreads, nthreads;
 } PVAN;
@@ -301,7 +302,7 @@ static int pvanalset(CSOUND *csound, PVAN *p){
     cudaMalloc(&p->aframe, size);
     size = (N+2)*sizeof(float);
     cudaMalloc(&p->aframe2, size);
-    size = (N/2-1)*sizeof(double);
+    size = (N/2-1)*sizeof(float);
     cudaMalloc(&p->oldph, size);
     cudaMemset(p->oldph, 0, size);
     size = N*sizeof(float);
@@ -319,6 +320,8 @@ static int pvanalset(CSOUND *csound, PVAN *p){
                cudaMemcpyHostToDevice);
     free(win);
 
+
+    
     p->framecount = 1;
     p->curframe = numframes-1;
     p->fac = csound->GetSr(csound)/(TWOPI*hsize);

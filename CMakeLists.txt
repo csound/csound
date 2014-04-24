@@ -306,8 +306,9 @@ if(APPLE)
     set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
   endif()
 
-   if(EXISTS ${CMAKE_OSX_SYSROOT})
+  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*") 
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
+    message(STATUS "OSX: Setting Depolyment Target to 10.7")
   endif()
 
 endif()
@@ -680,6 +681,7 @@ set(libcsound_SRCS
     Opcodes/tl/sc_noise.c
     Opcodes/afilters.c
     Top/argdecode.c
+    Top/csdebug.c
     Top/cscore_internal.c
     Top/cscorfns.c
     Top/csmodule.c
