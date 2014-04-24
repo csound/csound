@@ -70,6 +70,8 @@
 
 #include "csound_standard_types.h"
 
+#include "csdebug.h"
+
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
