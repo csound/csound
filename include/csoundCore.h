@@ -197,7 +197,7 @@ typedef struct {
     int     RTevents, Midiin, FMidiin, RMidiin;
     int     ringbell, termifend;
     int     rewrt_hdr, heartbeat, gen01defer;
-    int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
+    //    int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
     float   sr_override, kr_override;
     int     nchnls_override, nchnls_i_override;
     char    *infilename, *outfilename;
