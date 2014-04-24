@@ -34,9 +34,9 @@ static int init_cudadsyn(CSOUND *csound, CUDADSYN *p){
   cudaDeviceProp deviceProp;
   cudaGetDeviceProperties(&deviceProp, 0);
   blockspt = deviceProp.maxThreadsPerBlock;
-  if(deviceProp.major < 2)
+  if(deviceProp.major < 1)
    csound->InitError(csound,
-       "this opcode requires device capability 2.0 minimum. Device is %d.%d\n", 
+		     "this opcode requires device capability 1.0 minimum. Device is %d.%d\n", 
         deviceProp.major, deviceProp.minor );
 
   p->bins = (p->fsig->N)/2;
@@ -52,7 +52,7 @@ static int init_cudadsyn(CSOUND *csound, CUDADSYN *p){
   p->threads /= p->blocks;
   p->mthreads /= p->mblocks;
 
-  asize =  p->vsamps*sizeof(float);
+  asize =  p->vsamps*p->bins*sizeof(float);
   ipsize = p->fsig->N*sizeof(int64_t)/2;
   fpsize = p->fsig->N*sizeof(float);
 
@@ -80,12 +80,16 @@ __global__ void sample(float *out, float *frame, float pitch, int64_t *ph,
   int n =  t%vsize;  /* sample index */
   int h = t/vsize;  /* bin index */
   int k = h<<1;
-  int64_t lph;
+  int64_t lph; 
   float a = amps[h], ascl = ((float)n)/vsize;
   float fscal = pitch*FMAXLEN/sr;
   lph = (ph[h] + (int64_t)(n*round(frame[k+1]*fscal))) & PHMASK;
   a += ascl*(frame[k] - a);
-  atomicAdd(&out[n], a*sinf((2*PI*lph)/FMAXLEN));
+  out[t] = a*sinf((2*PI*lph)/FMAXLEN);
+  if(t >= vsize) return;
+  syncthreads();
+  for(int i=vsize; i < vsize*bins; i+=vsize)
+    out[t] += out[t + i];
 }
 
 __global__ void update(float *frame, float *amps,
