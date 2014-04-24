@@ -25,8 +25,6 @@
 
 #include "csdebug.h"
 
-#include "csoundCore.h"
-
 PUBLIC void csoundDebuggerInit(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *)malloc(sizeof(csdebug_data_t));
