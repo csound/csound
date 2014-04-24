@@ -740,12 +740,15 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     /* IV - Jan 27 2005: --expression-opt */
+    /* NOTE these do nothing */
     else if (!(strcmp (s, "expression-opt"))) {
-      O->expr_opt = 1;
+      //O->expr_opt = 1;
+      csound->Warning(csound, "option expresson-opt has no affect\n");
       return 1;
     }
     else if (!(strcmp (s, "no-expression-opt"))) {
-      O->expr_opt = 0;
+      //O->expr_opt = 0;
+      csound->Warning(csound, "option no-expresson-opt has no affect\n");
       return 1;
     }
     else if (!(strncmp (s, "env:", 4))) {
