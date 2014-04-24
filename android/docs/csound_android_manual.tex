@@ -112,6 +112,11 @@ The CsoundObj API revolves around the Java CsoundObj class. This class contains 
 
 To communicate to and from a host program with Csound, you will most likely use \textbf{chnset} and \textbf{chnget} opcodes. These opcodes will allow you to read from and write values to a named channel.  Your host program will also be writing to and reading from these same channels.  As a byproduct of using named channels, your CSD will be portable to work on other platforms (Desktop, IOS); porting over apps to/from Android then will only involve redoing the application and UI code, while your audio engine (Csound) should ``just work.'' 
 
+\subsubsection{CsOptions}
+
+Csound will use the CsOptions you provide.  A standard set of flags to use are ``{\tt -odac -dm0 -+msg\_color=0}''. This will tell Csound to play to dac in realtime, turn off displays, use message level 0, and turn of message colors.  This will minimize messages going out to the console or to your message handler if you set one.  You may also need ``{\tt -iadc}'' if your project uses audio input. (You can always consult the Csound Examples project to see what CsOptions are used in the CSD's for that project.) 
+
+\emph{Note: In Csound5 for Android, it was previously required to set \linebreak ``{\tt -+rtaudio=null}'' when using audio. This is no longer required for Csound 6 for Android.}
  
 
 \subsection{CsoundValueCacheable for Communicating with Csound}
