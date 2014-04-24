@@ -1386,7 +1386,7 @@ static OENTRY arrayvars_localops[] =
     { "copya2ftab.k", sizeof(TABCOPY), TW, 3, "", "k[]k",
                                             (SUBR) tab2ftab, (SUBR) tab2ftab },
     { "copyf2array.k", sizeof(TABCOPY), TR, 3, "", "k[]k",
-                                            (SUBR) tab2ftab, (SUBR) ftab2tab },
+                                            (SUBR) ftab2tab, (SUBR) ftab2tab },
     { "copya2ftab.i", sizeof(TABCOPY), TW, 1, "", "i[]i", (SUBR) tab2ftab },
     { "copyf2array.i", sizeof(TABCOPY), TR, 1, "", "i[]i", (SUBR) ftab2tab },
     { "lentab", 0xffff},
