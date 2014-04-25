@@ -125,7 +125,7 @@ add_custom_command(TARGET ${MAX_OUTPUT_LIB}
 
 add_custom_command(TARGET ${MAX_OUTPUT_LIB} 
   POST_BUILD
-  COMMAND mv ARGS -f ${CSMXO_OUT_DIR}/csound~.mxo.framework ${CSMXO_DIR}) 
+  COMMAND cp ARGS -r ${CSMXO_OUT_DIR}/csound~.mxo.framework ${CSMXO_DIR}) 
 
 add_custom_command(TARGET ${MAX_OUTPUT_LIB}
   POST_BUILD
