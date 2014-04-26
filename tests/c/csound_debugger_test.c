@@ -115,6 +115,58 @@ void test_breakpoint_remove(void)
     csoundDestroy(csound);
 }
 
+static void brkpt_cb3(CSOUND *csound, int line, double instr, void *userdata)
+{
+    debug_instr_t *debug_instr = csoundDebugGetCurrentInstrInstance(csound);
+    debug_variable_t *vars = csoundDebugGetVariables(csound, debug_instr);
+
+    CU_ASSERT_EQUAL(*((MYFLT *)vars->data), 2.5);
+    CU_ASSERT(*((MYFLT *)vars->next->data) == 3.5);
+    CU_ASSERT(*((MYFLT *)vars->next->next->data)== 0.5);
+    CU_ASSERT_STRING_EQUAL((char *) vars->next->next->next->data, "hello");
+}
+
+void test_variables(void)
+{
+    CSOUND* csound = csoundCreate(NULL);
+    csoundCompileOrc(csound, "instr 1\n ivar init 2.5\n kvar init 3.5\n asig init 0.5\nSvar init \"hello\"\n endin\n");
+    csoundInputMessage(csound, "i 1 0  1 440");
+    csoundStart(csound);
+    csoundDebuggerInit(csound);
+    csoundSetBreakpointCallback(csound, brkpt_cb3, NULL);
+    csoundSetInstrumentBreakpoint(csound, 1, 1);
+
+    csoundPerformKsmps(csound);
+
+    csoundDebuggerClean(csound);
+    csoundDestroy(csound);
+}
+
+static void brkpt_cb4(CSOUND *csound, int line, double instr, void *userdata)
+{
+    debug_instr_t *debug_instr = csoundDebugGetInstrInstances(csound);
+    CU_ASSERT_EQUAL(debug_instr->p1, 1);
+    CU_ASSERT_EQUAL(debug_instr->p2, 0);
+    CU_ASSERT_EQUAL(debug_instr->p3, 1.1);
+    CU_ASSERT_EQUAL(debug_instr->kcounter, 0);
+    csoundDebugFreeInstrInstances(csound, debug_instr);
+}
+
+void test_instruments(void)
+{
+    CSOUND* csound = csoundCreate(NULL);
+    csoundCompileOrc(csound, "instr 1\n Svar init \"hello\"\n endin\n");
+    csoundInputMessage(csound, "i 1 0  1.1 440");
+    csoundStart(csound);
+    csoundDebuggerInit(csound);
+    csoundSetBreakpointCallback(csound, brkpt_cb4, NULL);
+    csoundSetInstrumentBreakpoint(csound, 1, 0);
+
+    csoundPerformKsmps(csound);
+
+    csoundDebuggerClean(csound);
+    csoundDestroy(csound);
+}
 
 int main()
 {
@@ -132,11 +184,14 @@ int main()
     }
     
     /* add the tests to the suite */
-    if ((NULL == CU_add_test(pSuite, "Test debugger init", test_debugger_init))
-            || (NULL == CU_add_test(pSuite, "Test add breakpoint", test_add_bkpt))
-            || (NULL == CU_add_test(pSuite, "Test add callback", test_add_callback))
-            || (NULL == CU_add_test(pSuite, "Test breakpoint", test_breakpoint_once))
-            || (NULL == CU_add_test(pSuite, "Test breakpoint remove", test_breakpoint_remove))
+    if (NULL == CU_add_test(pSuite, "Test instruments", test_instruments)
+         ||(NULL == CU_add_test(pSuite, "Test variables", test_variables)
+         || (NULL == CU_add_test(pSuite, "Test debugger init", test_debugger_init))
+         || (NULL == CU_add_test(pSuite, "Test add breakpoint", test_add_bkpt))
+         || (NULL == CU_add_test(pSuite, "Test add callback", test_add_callback))
+         || (NULL == CU_add_test(pSuite, "Test breakpoint", test_breakpoint_once))
+         || (NULL == CU_add_test(pSuite, "Test breakpoint remove", test_breakpoint_remove))
+         )
         )
     {
         CU_cleanup_registry();
