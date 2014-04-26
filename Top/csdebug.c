@@ -33,8 +33,10 @@ PUBLIC void csoundDebuggerInit(CSOUND *csound)
     data->bkpt_anchor->next = NULL;
     data->debug_instr_ptr = NULL;
     data->status = CSDEBUG_STATUS_RUNNING;
-    data->bkpt_buffer = csoundCreateCircularBuffer(csound, 64, sizeof(bkpt_node_t **));
-    data->cmd_buffer = csoundCreateCircularBuffer(csound, 64, sizeof(debug_command_t));
+    data->bkpt_buffer = csoundCreateCircularBuffer(csound,
+                                                   64, sizeof(bkpt_node_t **));
+    data->cmd_buffer = csoundCreateCircularBuffer(csound,
+                                                  64, sizeof(debug_command_t));
     csound->csdebug_data = data;
     csound->kperf = kperf_debug;
 }
@@ -127,7 +129,8 @@ PUBLIC void csoundClearBreakpoints(CSOUND *csound)
     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
 }
 
-PUBLIC void csoundSetBreakpointCallback(CSOUND *csound, breakpoint_cb_t bkpt_cb, void *userdata)
+PUBLIC void csoundSetBreakpointCallback(CSOUND *csound,
+                                       breakpoint_cb_t bkpt_cb, void *userdata)
 {
 
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
