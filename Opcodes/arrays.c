@@ -77,12 +77,12 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
         (p->dimensions==1 && p->sizes[0] < size)) {
 
       size_t ss;
-        
+
       if(p->data == NULL) {
           CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
           p->arrayMemberSize = var->memBlockSize;
       }
-        
+
       ss = p->arrayMemberSize*size;
       if (p->data==NULL) p->data = (MYFLT*)csound->Calloc(csound, ss);
       else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
@@ -144,7 +144,9 @@ static int tabfill(CSOUND *csound, TABFILL *p)
     tabensure(csound, p->ans, nargs);
     size_t memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
     for (i=0; i<nargs; i++) {
-        p->ans->arrayType->copyValue(csound, p->ans->data + (i * memMyfltSize), valp[i]);
+        p->ans->arrayType->copyValue(csound,
+                                     p->ans->data + (i * memMyfltSize),
+                                     valp[i]);
     }
     return OK;
 }
@@ -703,7 +705,7 @@ iIARRAY(tabiasubi,tabiasub)
 iIARRAY(tabiamulti,tabiamult)
 iIARRAY(tabiadivi,tabiadiv)
 iIARRAY(tabiaremi,tabiarem)
-        
+
 
 
 
@@ -864,11 +866,11 @@ typedef struct {
 static int get_array_total_size(ARRAYDAT* dat) {
     int i;
     int size;
-    
+
        if (dat->sizes == NULL) {
                return -1;
            }
-    
+
         size = dat->sizes[0];
         for (i = 1; i < dat->dimensions; i++) {
                 size *= dat->sizes[i];
@@ -879,40 +881,45 @@ static int get_array_total_size(ARRAYDAT* dat) {
 static int tabcopy(CSOUND *csound, TABCPY *p)
 {
     int i, arrayTotalSize, memMyfltSize;
-    
+
     if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
         return csound->InitError(csound, Str("array-variable not initialised"));
     if(p->dst->dimensions > 0 && p->src->dimensions != p->dst->dimensions)
-        return csound->InitError(csound, Str("array-variable dimensions do not match"));
+        return csound->InitError(csound,
+                                 Str("array-variable dimensions do not match"));
     if(p->src->arrayType != p->dst->arrayType)
         return csound->InitError(csound, Str("array-variable types do not match"));
-    
+
     if (p->src == p->dst) return OK;
-    
+
     arrayTotalSize = get_array_total_size(p->src);
     memMyfltSize = p->src->arrayMemberSize / sizeof(MYFLT);
     p->dst->arrayMemberSize = p->src->arrayMemberSize;
-    
+
     if (arrayTotalSize != get_array_total_size(p->dst)) {
         p->dst->dimensions = p->src->dimensions;
-        
+
         p->dst->sizes = csound->Malloc(csound, sizeof(int) * p->src->dimensions);
         memcpy(p->dst->sizes, p->src->sizes, sizeof(int) * p->src->dimensions);
-        
+
         if (p->dst->data == NULL) {
-            p->dst->data = csound->Calloc(csound, p->src->arrayMemberSize * arrayTotalSize);
+            p->dst->data = csound->Calloc(csound,
+                                          p->src->arrayMemberSize * arrayTotalSize);
         } else {
-            csound->ReAlloc(csound, p->dst->data, p->src->arrayMemberSize * arrayTotalSize);
+            csound->ReAlloc(csound, p->dst->data,
+                            p->src->arrayMemberSize * arrayTotalSize);
             memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
         }
     }
-    
-    
+
+
     for (i = 0; i < arrayTotalSize; i++) {
         int index = (i * memMyfltSize);
-        p->dst->arrayType->copyValue(csound, (void*)(p->dst->data + index), (void*)(p->src->data + index));
+        p->dst->arrayType->copyValue(csound,
+                                     (void*)(p->dst->data + index),
+                                     (void*)(p->src->data + index));
     }
-    
+
     return OK;
 }
 
@@ -1018,7 +1025,7 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
     int size = end - start + 1;
     int i;
     int memMyfltSize = p->tabin->arrayMemberSize / sizeof(MYFLT);
-    
+
     if (UNLIKELY(size < 0))
       return csound->InitError(csound, Str("inconsistent start, end parameters"));
     if (UNLIKELY(p->tabin->dimensions!=1 || end >= p->tabin->sizes[0])) {
@@ -1026,13 +1033,14 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
       return csound->InitError(csound, Str("slice larger than original size"));
     }
     tabensure(csound, p->tab, size);
-   
+
     for (i = start; i < end + 1; i++) {
         int destIndex = i - start;
-        p->tab->arrayType->copyValue(csound, p->tab->data + (destIndex * memMyfltSize),
+        p->tab->arrayType->copyValue(csound,
+                                     p->tab->data + (destIndex * memMyfltSize),
                                      tabin + (memMyfltSize * i));
     }
-    
+
     return OK;
 }
 
@@ -1046,7 +1054,8 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
 //    int size = end - start + 1, i;
 //    STRCPY_OP xx;
 //    if (UNLIKELY(size < 0))
-//      return csound->InitError(csound, Str("inconsistent start, end parameters"));
+//      return csound->InitError(csound,
+//                               Str("inconsistent start, end parameters"));
 //    if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
 //      //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
 //      return csound->InitError(csound, Str("slice larger than original size"));
@@ -1374,7 +1383,7 @@ static OENTRY arrayvars_localops[] =
 /*                                               (SUBR) tabmap_perf          }, */
     { "tabslice", sizeof(TABSLICE), _QQ, 2, "k[]", "k[]ii",
                                                  NULL, (SUBR) tabslice, NULL },
-    
+
     { "slicearray.i", sizeof(TABSLICE), 0, 1, "i[]", "i[]ii",
                                                  (SUBR) tabslice, NULL, NULL },
     { "slicearray.x", sizeof(TABSLICE), 0, 3, ".[]", ".[]ii",

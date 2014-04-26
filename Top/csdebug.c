@@ -33,119 +33,122 @@ PUBLIC void csoundDebuggerInit(CSOUND *csound)
     data->bkpt_anchor->next = NULL;
     data->debug_instr_ptr = NULL;
     data->status = CSDEBUG_STATUS_RUNNING;
-    data->bkpt_buffer = csoundCreateCircularBuffer(csound, 64, sizeof(bkpt_node_t **));
-    data->cmd_buffer = csoundCreateCircularBuffer(csound, 64, sizeof(debug_command_t));
-    csound->csdebug_data = data;
-    csound->kperf = kperf_debug;
-}
+    data->bkpt_buffer = csoundCreateCircularBuffer(csound,
+/*                                                    64, sizeof(bkpt_node_t **)); */
+/*     data->cmd_buffer = csoundCreateCircularBuffer(csound, */
+/*                                                   64, sizeof(debug_command_t)); */
+/*     csound->csdebug_data = data; */
+/*     csound->kperf = kperf_debug; */
+/* } */
 
-PUBLIC void csoundDebuggerClean(CSOUND *csound)
-{
-    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    assert(data);
-    bkpt_node_t *node = data->bkpt_anchor;
-    csoundDestroyCircularBuffer(csound, data->bkpt_buffer);
-    csoundDestroyCircularBuffer(csound, data->cmd_buffer);
-    while (node) {
-        bkpt_node_t *oldnode = node;
-        node = node->next;
-        free(oldnode);
-    }
-    free(data);
-    csound->csdebug_data = NULL;
-    csound->kperf = kperf_nodebug;
-}
+/* PUBLIC void csoundDebuggerClean(CSOUND *csound) */
+/* { */
+/*     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data; */
+/*     assert(data); */
+/*     bkpt_node_t *node = data->bkpt_anchor; */
+/*     csoundDestroyCircularBuffer(csound, data->bkpt_buffer); */
+/*     csoundDestroyCircularBuffer(csound, data->cmd_buffer); */
+/*     while (node) { */
+/*         bkpt_node_t *oldnode = node; */
+/*         node = node->next; */
+/*         free(oldnode); */
+/*     } */
+/*     free(data); */
+/*     csound->csdebug_data = NULL; */
+/*     csound->kperf = kperf_nodebug; */
+/* } */
 
-PUBLIC void csoundDebugStart(CSOUND *csound)
-{
-    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    data->status = CSDEBUG_STATUS_RUNNING;
-}
+/* PUBLIC void csoundDebugStart(CSOUND *csound) */
+/* { */
+/*     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data; */
+/*     data->status = CSDEBUG_STATUS_RUNNING; */
+/* } */
 
-PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int skip)
-{
-    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    assert(data);
-    if (line < 0) {
-        csound->Warning(csound, Str("Negative line for breakpoint invalid."));
-    }
-    bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t));
-    newpoint->line = line;
-    newpoint->instr = 0;
-    newpoint->skip = skip;
-    newpoint->count = skip;
-    newpoint->mode = CSDEBUG_BKPT_LINE;
-    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
-}
+/* PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int skip) */
+/* { */
+/*     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data; */
+/*     assert(data); */
+/*     if (line < 0) { */
+/*         csound->Warning(csound, Str("Negative line for breakpoint invalid.")); */
+/*     } */
+/*     bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t)); */
+/*     newpoint->line = line; */
+/*     newpoint->instr = 0; */
+/*     newpoint->skip = skip; */
+/*     newpoint->count = skip; */
+/*     newpoint->mode = CSDEBUG_BKPT_LINE; */
+/*     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1); */
+/* } */
 
-PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line)
-{
-    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    assert(data);
-    if (line < 0) {
-        csound->Warning(csound, Str ("Negative line for breakpoint invalid."));
-    }
-    bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t));
-    newpoint->line = line;
-    newpoint->instr = 0;
-    newpoint->mode = CSDEBUG_BKPT_DELETE;
-    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
-}
+/* PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line) */
+/* { */
+/*     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data; */
+/*     assert(data); */
+/*     if (line < 0) { */
+/*         csound->Warning(csound, Str ("Negative line for breakpoint invalid.")); */
+/*     } */
+/*     bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t)); */
+/*     newpoint->line = line; */
+/*     newpoint->instr = 0; */
+/*     newpoint->mode = CSDEBUG_BKPT_DELETE; */
+/*     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1); */
+/* } */
 
-PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int skip)
-{
-    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    assert(data);
-    bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t));
-    newpoint->line = -1;
-    newpoint->instr = instr;
-    newpoint->skip = skip;
-    newpoint->count = skip;
-    newpoint->mode = CSDEBUG_BKPT_INSTR;
-    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
-}
+/* PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int skip) */
+/* { */
+/*     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data; */
+/*     assert(data); */
+/*     bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t)); */
+/*     newpoint->line = -1; */
+/*     newpoint->instr = instr; */
+/*     newpoint->skip = skip; */
+/*     newpoint->count = skip; */
+/*     newpoint->mode = CSDEBUG_BKPT_INSTR; */
+/*     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1); */
+/* } */
 
-PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr)
-{
-    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    assert(data);
-    bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t));
-    newpoint->line = -1;
-    newpoint->instr = instr;
-    newpoint->mode = CSDEBUG_BKPT_DELETE;
-    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
-}
+/* PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr) */
+/* { */
+/*     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data; */
+/*     assert(data); */
+/*     bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t)); */
+/*     newpoint->line = -1; */
+/*     newpoint->instr = instr; */
+/*     newpoint->mode = CSDEBUG_BKPT_DELETE; */
+/*     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1); */
+/* } */
 
-PUBLIC void csoundClearBreakpoints(CSOUND *csound)
-{
-    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    assert(data);
-    bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t));
-    newpoint->line = -1;
-    newpoint->instr = -1;
-    newpoint->mode = CSDEBUG_BKPT_CLEAR_ALL;
-    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
-}
+/* PUBLIC void csoundClearBreakpoints(CSOUND *csound) */
+/* { */
+/*     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data; */
+/*     assert(data); */
+/*     bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t)); */
+/*     newpoint->line = -1; */
+/*     newpoint->instr = -1; */
+/*     newpoint->mode = CSDEBUG_BKPT_CLEAR_ALL; */
+/*     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1); */
+/* } */
 
-PUBLIC void csoundSetBreakpointCallback(CSOUND *csound, breakpoint_cb_t bkpt_cb, void *userdata)
-{
+/* PUBLIC void csoundSetBreakpointCallback(CSOUND *csound, */
+/*                                        breakpoint_cb_t bkpt_cb, void *userdata) */
+/* { */
 
-    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    assert(data);
-    data->bkpt_cb = bkpt_cb;
-    data->cb_data = userdata;
-}
+/*     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data; */
+/*     assert(data); */
+/*     data->bkpt_cb = bkpt_cb; */
+/*     data->cb_data = userdata; */
+/* } */
 
-PUBLIC void csoundDebugStepOver(CSOUND *csound)
-{
-    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    assert(data);
-    debug_command_t command = CSDEBUG_CMD_STEPOVER;
-    csoundWriteCircularBuffer(csound, data->cmd_buffer, &command, 1);
-}
+/* PUBLIC void csoundDebugStepOver(CSOUND *csound) */
+/* { */
+/*     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data; */
+/*     assert(data); */
+/*     debug_command_t command = CSDEBUG_CMD_STEPOVER; */
+/*     csoundWriteCircularBuffer(csound, data->cmd_buffer, &command, 1); */
+/* } */
 
-PUBLIC void csoundDebugStepInto(CSOUND *csound)
-{
+/* PUBLIC void csoundDebugStepInto(CSOUND *csound) */
+/* { */
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
     debug_command_t command = CSDEBUG_CMD_STEPINTO;
