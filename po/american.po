@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2013-09-11 13:20+0100\n"
+"PO-Revision-Date: 2014-04-26 11:47+0100\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (USA)\n"
 "Language: \n"
@@ -5655,91 +5655,91 @@ msgstr "array-var not initialized"
 msgid "Error: no sizes set for array initialization"
 msgstr ""
 
-#: Opcodes/arrays.c:161
+#: Opcodes/arrays.c:163
 msgid "Error: no indexes set for array set\n"
 msgstr ""
 
-#: Opcodes/arrays.c:166 Opcodes/arrays.c:212
+#: Opcodes/arrays.c:168 Opcodes/arrays.c:214
 #, c-format
 msgid "Array dimension %d out of range for dimensions %d\n"
 msgstr ""
 
-#: Opcodes/arrays.c:173 Opcodes/arrays.c:182 Opcodes/arrays.c:219
-#: Opcodes/arrays.c:227
+#: Opcodes/arrays.c:175 Opcodes/arrays.c:184 Opcodes/arrays.c:221
+#: Opcodes/arrays.c:229
 #, c-format
 msgid "Array index %d out of range (0,%d) for dimension %d\n"
 msgstr ""
 
-#: Opcodes/arrays.c:209
+#: Opcodes/arrays.c:211
 msgid "Error: no indexes set for array get"
 msgstr ""
 
-#: Opcodes/arrays.c:291
+#: Opcodes/arrays.c:293
 msgid "Dimensions do not match in array arithmetic"
 msgstr ""
 
-#: Opcodes/arrays.c:299 Opcodes/arrays.c:322 Opcodes/arrays.c:340
-#: Opcodes/arrays.c:354 Opcodes/arrays.c:374 Opcodes/arrays.c:411
-#: Opcodes/arrays.c:432 Opcodes/arrays.c:455 Opcodes/arrays.c:485
-#: Opcodes/arrays.c:523 Opcodes/arrays.c:543 Opcodes/arrays.c:560
-#: Opcodes/arrays.c:601 Opcodes/arrays.c:624 Opcodes/arrays.c:647
-#: Opcodes/arrays.c:667 Opcodes/arrays.c:713 Opcodes/arrays.c:719
-#: Opcodes/arrays.c:730 Opcodes/arrays.c:761 Opcodes/arrays.c:792
-#: Opcodes/arrays.c:813 Opcodes/arrays.c:884 Opcodes/pvsbasic.c:2371
+#: Opcodes/arrays.c:301 Opcodes/arrays.c:324 Opcodes/arrays.c:342
+#: Opcodes/arrays.c:356 Opcodes/arrays.c:376 Opcodes/arrays.c:413
+#: Opcodes/arrays.c:434 Opcodes/arrays.c:457 Opcodes/arrays.c:487
+#: Opcodes/arrays.c:525 Opcodes/arrays.c:545 Opcodes/arrays.c:562
+#: Opcodes/arrays.c:603 Opcodes/arrays.c:626 Opcodes/arrays.c:649
+#: Opcodes/arrays.c:669 Opcodes/arrays.c:715 Opcodes/arrays.c:721
+#: Opcodes/arrays.c:732 Opcodes/arrays.c:763 Opcodes/arrays.c:794
+#: Opcodes/arrays.c:815 Opcodes/arrays.c:886 Opcodes/pvsbasic.c:2371
 #: Opcodes/pvsbasic.c:2413
 msgid "array-variable not initialised"
 msgstr "array-variable not initialized"
 
-#: Opcodes/arrays.c:316 Opcodes/arrays.c:334
+#: Opcodes/arrays.c:318 Opcodes/arrays.c:336
 msgid "Dimension does not match in array arithmetic"
 msgstr "Dimension doesn't match in array arithmetic"
 
-#: Opcodes/arrays.c:440 Opcodes/arrays.c:598 Opcodes/arrays.c:621
-#: Opcodes/arrays.c:644 Opcodes/arrays.c:674
+#: Opcodes/arrays.c:442 Opcodes/arrays.c:600 Opcodes/arrays.c:623
+#: Opcodes/arrays.c:646 Opcodes/arrays.c:676
 msgid "division by zero in array-var"
 msgstr ""
 
-#: Opcodes/arrays.c:795
+#: Opcodes/arrays.c:797
 msgid "array-variable not a vector"
 msgstr "array-variable not a vector"
 
-#: Opcodes/arrays.c:886
+#: Opcodes/arrays.c:889
 #, fuzzy
 msgid "array-variable dimensions do not match"
 msgstr "array-variable not a vector"
 
-#: Opcodes/arrays.c:888
+#: Opcodes/arrays.c:891
 #, fuzzy
 msgid "array-variable types do not match"
 msgstr "array-variable not a vector"
 
-#: Opcodes/arrays.c:931 Opcodes/arrays.c:1082 Opcodes/arrays.c:1118
-#: Opcodes/arrays.c:1121
+#: Opcodes/arrays.c:938 Opcodes/arrays.c:1091 Opcodes/arrays.c:1127
+#: Opcodes/arrays.c:1130
 msgid "array-var not initialised"
 msgstr "array-var not initialized"
 
-#: Opcodes/arrays.c:934 Opcodes/arrays.c:992
+#: Opcodes/arrays.c:941 Opcodes/arrays.c:999
 msgid "No table for copy2ftab"
 msgstr ""
 
-#: Opcodes/arrays.c:963
+#: Opcodes/arrays.c:970
 msgid "inconsistent start, end and increment parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:1023
+#: Opcodes/arrays.c:1030
 msgid "inconsistent start, end parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:1026
+#: Opcodes/arrays.c:1033
 msgid "slice larger than original size"
 msgstr ""
 
-#: Opcodes/arrays.c:1095
+#: Opcodes/arrays.c:1104
 #, c-format
 msgid "%s not found"
 msgstr "%s not found"
 
-#: Opcodes/arrays.c:1126
+#: Opcodes/arrays.c:1135
 msgid "map fn not found at k rate"
 msgstr ""
 
@@ -10106,7 +10106,7 @@ msgstr ""
 msgid "cscoreFileGetCurrent: no fp current"
 msgstr ""
 
-#: Top/csdebug.c:70 Top/csdebug.c:86
+#: Top/csdebug.c:72 Top/csdebug.c:88
 msgid "Negative line for breakpoint invalid."
 msgstr ""
 
@@ -10197,187 +10197,187 @@ msgstr ""
 msgid "Bad ThreadId"
 msgstr ""
 
-#: Top/csound.c:1836 Top/csound.c:1868 Top/csound.c:1896 Top/csound.c:1932
-#: Top/csound.c:4118
+#: Top/csound.c:1845 Top/csound.c:1877 Top/csound.c:1905 Top/csound.c:1941
+#: Top/csound.c:4128
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr "Csound not ready for performance: csoundStart() hasn't been called \n"
 
-#: Top/csound.c:1852 Top/csound.c:1881
+#: Top/csound.c:1861 Top/csound.c:1890
 msgid "Score finished in csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1875 Top/csound.c:4125
+#: Top/csound.c:1884 Top/csound.c:4135
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1903
+#: Top/csound.c:1912
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:1941
+#: Top/csound.c:1950
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:1949
+#: Top/csound.c:1958
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:1960
+#: Top/csound.c:1969
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2244
+#: Top/csound.c:2253
 msgid "WARNING: "
 msgstr ""
 
-#: Top/csound.c:2386
+#: Top/csound.c:2395
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2387
+#: Top/csound.c:2396
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2416 Top/csound.c:2453
+#: Top/csound.c:2425 Top/csound.c:2462
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2420 Top/csound.c:2457
+#: Top/csound.c:2429 Top/csound.c:2466
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2574
+#: Top/csound.c:2583
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2579 Top/csound.c:2613
+#: Top/csound.c:2588 Top/csound.c:2622
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2582 Top/csound.c:2616
+#: Top/csound.c:2591 Top/csound.c:2625
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2608
+#: Top/csound.c:2617
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2630
+#: Top/csound.c:2639
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:2791
+#: Top/csound.c:2801
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:2813
+#: Top/csound.c:2823
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:2954 Top/main.c:357
+#: Top/csound.c:2964 Top/main.c:357
 msgid "setting dummy interface\n"
 msgstr ""
 
-#: Top/csound.c:3032
+#: Top/csound.c:3042
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:3054
+#: Top/csound.c:3064
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:3070
+#: Top/csound.c:3080
 msgid "Failed during csoundLoadModules"
 msgstr ""
 
-#: Top/csound.c:3085
+#: Top/csound.c:3095
 #, c-format
 msgid "Csound version %s beta (float samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3088
+#: Top/csound.c:3098
 #, c-format
 msgid "Csound version %s (float samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3093
+#: Top/csound.c:3103
 #, c-format
 msgid "Csound version %s beta (double samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3096
+#: Top/csound.c:3106
 #, c-format
 msgid "Csound version %s (double samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3127
+#: Top/csound.c:3137
 msgid "Real time audio module name"
 msgstr ""
 
-#: Top/csound.c:3152
+#: Top/csound.c:3162
 msgid "Real time MIDI module name"
 msgstr ""
 
-#: Top/csound.c:3157
+#: Top/csound.c:3167
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:3163
+#: Top/csound.c:3173
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:3171
+#: Top/csound.c:3181
 msgid "Title tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3177
+#: Top/csound.c:3187
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3183
+#: Top/csound.c:3193
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3188
+#: Top/csound.c:3198
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3195
+#: Top/csound.c:3205
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3200
+#: Top/csound.c:3210
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3210
+#: Top/csound.c:3220
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:3216
+#: Top/csound.c:3226
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:3223
+#: Top/csound.c:3233
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3433
+#: Top/csound.c:3443
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr "Can't open /proc/cpuinfo. Support for RDTSC isn't available.\n"
 
-#: Top/csound.c:3463
+#: Top/csound.c:3473
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:4017
+#: Top/csound.c:4027
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:4048
+#: Top/csound.c:4058
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 
@@ -11301,8 +11301,8 @@ msgid "N = # of bandpass filters (1024)"
 msgstr ""
 
 #: util/dnoise.c:1151
-msgid "w = filter overlap factor: {0,1,(2),3} DON'T USE -w AND -M"
-msgstr ""
+msgid "w = filter overlap factor: {0,1,(2),3} DO NOT USE -w AND -M"
+msgstr "w = filter overlap factor: {0,1,(2),3} DON'T USE -w AND -M"
 
 #: util/dnoise.c:1152
 msgid "M = analysis window length (N-1 unless -w is specified)"
