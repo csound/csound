@@ -38,7 +38,7 @@ void usage() {
 
 int main(int argc, char** argv) {
     CSOUND* csound;
-    
+
     header();
 
     if(argc != 2) {

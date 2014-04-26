@@ -1545,9 +1545,9 @@ int kperf_nodebug(CSOUND *csound)
                 ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
 
                 /* we have to deal with sample-accurate code
-whole CS_KSMPS blocks are offset here, the
-remainder is left to each opcode to deal with.
-*/
+                   whole CS_KSMPS blocks are offset here, the
+                   remainder is left to each opcode to deal with.
+                */
                 while(offset >= lksmps) {
                   offset -= lksmps;
                   start += csound->nchnls;
@@ -1617,13 +1617,15 @@ int kperf_debug(CSOUND *csound)
     bkpt_node_t *bkpt_node;
     /* process new breakpoints */
     if (data) {
-      while (csoundReadCircularBuffer(csound, data->bkpt_buffer, &bkpt_node, 1) == 1) {
+      while (csoundReadCircularBuffer(csound,
+                                      data->bkpt_buffer, &bkpt_node, 1) == 1) {
         if (bkpt_node->mode == CSDEBUG_BKPT_CLEAR_ALL) {
           bkpt_node_t *n;
           while (data->bkpt_anchor->next) {
             n = data->bkpt_anchor->next;
             data->bkpt_anchor->next = n->next;
-            free(n); /* FIXME this should be moved from kperf to a non-realtime context */
+            free(n); /* FIXME this should be moved from kperf to a
+                        non-realtime context */
           }
           free(bkpt_node);
         } else if (bkpt_node->mode == CSDEBUG_BKPT_DELETE) {
@@ -1632,7 +1634,8 @@ int kperf_debug(CSOUND *csound)
           while (n) {
             if (n->line == bkpt_node->line && n->instr == bkpt_node->instr) {
               prev->next = n->next;
-              free(n); /* FIXME this should be moved from kperf to a non-realtime context */
+              free(n); /* FIXME this should be moved from kperf to a
+                          non-realtime context */
               n = prev->next;
               continue;
             }
@@ -1662,7 +1665,8 @@ int kperf_debug(CSOUND *csound)
     }
     ip = csound->actanchor.nxtact;
 
-    if (ip != NULL) { // FIXME debugger should also be able to stop even if no instruments are on
+    if (ip != NULL) { // FIXME debugger should also be able to stop
+                      // even if no instruments are on
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
@@ -1701,7 +1705,8 @@ int kperf_debug(CSOUND *csound)
           if (done == 1) {/* if init-pass has been done */
           if(data) {
             if(data->status == CSDEBUG_STATUS_CONTINUE) {
-              if (data->debug_instr_ptr) { /* if not NULL, resume from last active */
+              if (data->debug_instr_ptr) {
+                /* if not NULL, resume from last active */
                 ip = data->debug_instr_ptr;
                 data->debug_instr_ptr = NULL;
               } else {
@@ -1714,13 +1719,17 @@ int kperf_debug(CSOUND *csound)
             } else if (command == CSDEBUG_CMD_STOP) {
               data->debug_instr_ptr = ip;
               data->status = CSDEBUG_STATUS_STOPPED;
-              data->bkpt_cb(csound, 0, ip->p1, data->cb_data); /* treat stop as if breakpoint had been reached */
+              data->bkpt_cb(csound,  /* treat stop as if breakpoint
+                                        had been reached */
+                            0, ip->p1,
+                            data->cb_data);
               return 0;
             } else { /* check if we have arrived at an instrument breakpoint */
               bkpt_node_t *bp_node = data->bkpt_anchor->next;
               while (bp_node) {
                 if (bp_node->instr == ip->p1) {
-                  if (bp_node->count < 2) { /* skip of 0 or 1 has the same effect */
+                  if (bp_node->count < 2) {
+                    /* skip of 0 or 1 has the same effect */
                     data->debug_instr_ptr = ip;
                     data->bkpt_cb(csound, 0, ip->p1, data->cb_data);
                     data->status = CSDEBUG_STATUS_STOPPED;
@@ -2769,7 +2778,8 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 
 PUBLIC int csoundAppendOpcode(CSOUND *csound,
                               const char *opname, int dsblksiz, int flags,
-                              int thread, const char *outypes, const char *intypes,
+                              int thread, const char *outypes,
+                                          const char *intypes,
                               int (*iopadr)(CSOUND *, void *),
                               int (*kopadr)(CSOUND *, void *),
                               int (*aopadr)(CSOUND *, void *))
@@ -3154,8 +3164,8 @@ PUBLIC void csoundReset(CSOUND *csound)
     csoundCreateConfigurationVariable(csound, "mute_tracks",
                                       &(csound->midiGlobals->muteTrackList[0]),
                                       CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                      Str("Ignore events (other than tempo changes)"
-                                          " in tracks defined by pattern"),
+                                      Str("Ignore events (other than tempo "
+                                          "changes) in tracks defined by pattern"),
                                       NULL);
     csoundCreateConfigurationVariable(csound, "raw_controller_mode",
                                       &(csound->midiGlobals->rawControllerMode),
