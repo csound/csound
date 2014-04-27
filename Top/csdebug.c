@@ -250,6 +250,7 @@ PUBLIC debug_variable_t *csoundDebugGetVariables(CSOUND *csound, debug_instr_t *
             debug_var->next = csound->Malloc(csound, sizeof(debug_variable_t));
             debug_var = debug_var->next;
         }
+        debug_var->next = NULL;
         debug_var->name = var->varName;
         debug_var->typeName = var->varType->varTypeName;
         if (strcmp(debug_var->typeName, "i") == 0
