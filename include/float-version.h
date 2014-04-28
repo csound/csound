@@ -24,7 +24,7 @@
 /* uncomment the line below for double-precision installed headers */
 
 
-#ifndef USE_DOUBLE
-#define USE_DOUBLE
-#endif
+//#ifndef USE_DOUBLE
+//#define USE_DOUBLE
+//#endif
 
