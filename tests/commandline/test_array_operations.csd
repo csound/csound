@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--m0
+-ndm0
 </CsOptions>
 <CsInstruments>
 ksmps = 32
@@ -77,9 +77,12 @@ instr Fillarray
     iArr1d[] fillarray 1, 2, 3
     kArr1d[] fillarray 1, 2, 3
     SArr1d[] fillarray "a", "b", "c"
+    prints "iArr1d = "
     PrtArr1i iArr1d
-    PrtArr1k kArr1d
+    prints "SArr1d = "
     PrtArr1S SArr1d
+    printks "kArr1d = ", 0
+    PrtArr1k kArr1d
 ;different types, two dims
     iArr2d[][] init 2, 3
     iArr2d fillarray 1, 2, 3, 4, 5, 6
@@ -100,9 +103,9 @@ instr Lenarray
     iArr1d[] fillarray 1, 2, 3
     kArr1d[] fillarray 1, 2, 3
     SArr1d[] fillarray "a", "b", "c"
-    print lenarray(iArr1d)
-    print lenarray(SArr1d)
-    printk 0, lenarray(kArr1d)
+    prints "Length of iArr1d = %d\n", lenarray(iArr1d)
+    prints "Length of SArr1d = %d\n", lenarray(SArr1d)
+    printks "Length of kArr1d = %d\n", 0, lenarray(kArr1d)
     turnoff    
 endin
 
@@ -419,93 +422,4 @@ i "Assign" .12 .01
 i "Genarray" .13 .01
 </CsScore>
 </CsoundSynthesizer>
-<bsbPanel>
- <label>Widgets</label>
- <objectName/>
- <x>758</x>
- <y>141</y>
- <width>541</width>
- <height>240</height>
- <visible>true</visible>
- <uuid/>
- <bgcolor mode="nobackground">
-  <r>255</r>
-  <g>255</g>
-  <b>255</b>
- </bgcolor>
- <bsbObject version="2" type="BSBButton">
-  <objectName>_Browse</objectName>
-  <x>73</x>
-  <y>27</y>
-  <width>100</width>
-  <height>30</height>
-  <uuid>{737b2ca7-2fac-4257-ae57-7863dd7b6135}</uuid>
-  <visible>true</visible>
-  <midichan>0</midichan>
-  <midicc>0</midicc>
-  <type>value</type>
-  <pressedValue>1.00000000</pressedValue>
-  <stringvalue>/home/jh/Joachim/Stuecke/25Siononmiro/z_produktion_angela_2014/teil1_trocken.wav</stringvalue>
-  <text>button0</text>
-  <image>/</image>
-  <eventLine>i1 0 10</eventLine>
-  <latch>false</latch>
-  <latched>false</latched>
- </bsbObject>
- <bsbObject version="2" type="BSBLineEdit">
-  <objectName>Browse1</objectName>
-  <x>28</x>
-  <y>67</y>
-  <width>462</width>
-  <height>29</height>
-  <uuid>{111f96a6-2d30-48ad-aa25-27efb2119419}</uuid>
-  <visible>true</visible>
-  <midichan>0</midichan>
-  <midicc>0</midicc>
-  <label>bla</label>
-  <alignment>left</alignment>
-  <font>Arial</font>
-  <fontsize>10</fontsize>
-  <precision>3</precision>
-  <color>
-   <r>0</r>
-   <g>0</g>
-   <b>0</b>
-  </color>
-  <bgcolor mode="nobackground">
-   <r>206</r>
-   <g>206</g>
-   <b>206</b>
-  </bgcolor>
-  <background>nobackground</background>
- </bsbObject>
- <bsbObject version="2" type="BSBLineEdit">
-  <objectName>bla</objectName>
-  <x>28</x>
-  <y>118</y>
-  <width>462</width>
-  <height>29</height>
-  <uuid>{f8350608-e7d4-472f-8e21-2eaf0248a8e3}</uuid>
-  <visible>true</visible>
-  <midichan>0</midichan>
-  <midicc>0</midicc>
-  <label>aaaaaaaaaaaaaaaaaaaaaaaaa</label>
-  <alignment>left</alignment>
-  <font>Arial</font>
-  <fontsize>10</fontsize>
-  <precision>3</precision>
-  <color>
-   <r>0</r>
-   <g>0</g>
-   <b>0</b>
-  </color>
-  <bgcolor mode="nobackground">
-   <r>206</r>
-   <g>206</g>
-   <b>206</b>
-  </bgcolor>
-  <background>nobackground</background>
- </bsbObject>
-</bsbPanel>
-<bsbPresets>
-</bsbPresets>
+
