@@ -37,9 +37,11 @@
     csoundStart(csound);
     csoundDebuggerInit(csound);
     csoundSetBreakpointCallback(csound, brkpt_cb, &userdata);
-    csoundSetInstrumentBreakpoint(csound, 1, 1);
+    csoundSetInstrumentBreakpoint(csound, 1, 5);
 
     // Run Csound Performance here
+    // The breakpoint callback will be called when instrument 1 has been
+    // instantiated and 5 control blocks have been processed.
 
     csoundDebuggerClean(csound);
     csoundDestroy(csound);
@@ -55,8 +57,10 @@
 
 #include "csound_type_system.h"
 
-/** \cond DOXYGEN_HIDDEN
- * These types should not appear in the Doxygen docs */
+
+/** @defgroup DEBUGGER Debugger
+ *
+ *  @{ */
 
 typedef struct debug_instr_s {
     CS_VARIABLE *varPoolHead;
@@ -73,6 +77,17 @@ typedef struct debug_variable_s {
     void *data;
     struct debug_variable_s *next;
 } debug_variable_t;
+
+typedef struct {
+    debug_instr_t *breakpointInstr;
+    debug_variable_t *instrVarList;
+    debug_instr_t *instrListHead;
+} debug_bkpt_info_t;
+
+
+/** \cond DOXYGEN_HIDDEN
+ * These types should not appear in the Doxygen docs */
+
 
 typedef enum {
     CSDEBUG_BKPT_LINE,
@@ -111,6 +126,12 @@ typedef enum {
     CSDEBUG_INIT = 0x02
 } debug_mode_t;
 
+#ifdef __BUILD_LIBCSOUND
+
+void csoundDebuggerBreakpointReached(CSOUND *csound);
+
+#endif
+
 /** @endcond */
 
 #ifdef __cplusplus
@@ -118,15 +139,11 @@ extern "C" {
 #endif
 
 
-/** @defgroup DEBUGGER Debugger
- *
- *  @{ */
-
 /** Breakpoint callback function type
  *
  * When a breakpoint is reached, the debugger will call a function of this type
  * see csoundSetBreakpointCallback() */
-typedef void (*breakpoint_cb_t) (CSOUND *, int line, double instr, void *userdata);
+typedef void (*breakpoint_cb_t) (CSOUND *, debug_bkpt_info_t *, void *userdata);
 
 typedef struct csdebug_data_s {
     void *bkpt_buffer; /* for passing breakpoints to the running engine */
@@ -229,18 +246,12 @@ PUBLIC void csoundDebugContinue(CSOUND *csound);
  */
 PUBLIC void csoundDebugStop(CSOUND *csound);
 
-PUBLIC debug_instr_t *csoundDebugGetInstrInstances(CSOUND *csound);
-
-/** Get current instrument at which csound is stopped
- *
- * Returns the pointer to the instrument at which the Csound debugger broke
- * rendering. This is the instrument that triggered the callback.
- *
- * You should only call this function if an actual breakpoint has been reached
- * and Csound has been stopped by the debugger. Will return NULL if Csound is
- * not stopped, but this will not be thread safe in this case.
+/** Get a list of active instrument instances
+ * Returns a linked list of allocated instrument instances
+ * csoundDebugFreeInstrInstances() must be called on the list once it is no
+ * longer needed.
  */
-PUBLIC debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound);
+PUBLIC debug_instr_t *csoundDebugGetInstrInstances(CSOUND *csound);
 
 /** Free list created by csoundDebugGetCurrentInstrInstance() or
  * csoundDebugGetInstrInstances()

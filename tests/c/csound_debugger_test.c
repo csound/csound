@@ -42,11 +42,9 @@ void test_add_bkpt(void)
     csoundDestroy(csound);
 }
 
-static void brkpt_cb(CSOUND *csound, int line, double instr, void *userdata)
+static void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
-//    INSDS *i = csoundDebugGetInstrument(csound);
     int *count = (int *) userdata;
-    printf("bkpt line %i instr %f\n", line, instr);
     *count = *count + 1;
 }
 
@@ -81,13 +79,12 @@ void test_breakpoint_once(void)
     csoundDestroy(csound);
 }
 
-static void brkpt_cb2(CSOUND *csound, int line, double instr, void *userdata)
+static void brkpt_cb2(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
 //    INSDS *i = csoundDebugGetInstrument(csound);
     int *count = (int *) userdata;
-    printf("bkpt line %i instr %f\n", line, instr);
     *count = *count + 1;
-    csoundRemoveInstrumentBreakpoint(csound, instr);
+    csoundRemoveInstrumentBreakpoint(csound, bkpt_info->breakpointInstr->p1);
     csoundDebugContinue(csound);
 }
 
@@ -115,10 +112,9 @@ void test_breakpoint_remove(void)
     csoundDestroy(csound);
 }
 
-static void brkpt_cb3(CSOUND *csound, int line, double instr, void *userdata)
+static void brkpt_cb3(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
-    debug_instr_t *debug_instr = csoundDebugGetCurrentInstrInstance(csound);
-    debug_variable_t *vars = csoundDebugGetVariables(csound, debug_instr);
+    debug_variable_t *vars = bkpt_info->instrVarList;
 
     CU_ASSERT_EQUAL(*((MYFLT *)vars->data), 2.5);
     CU_ASSERT(*((MYFLT *)vars->next->data) == 3.5);
@@ -142,17 +138,16 @@ void test_variables(void)
     csoundDestroy(csound);
 }
 
-static void brkpt_cb4(CSOUND *csound, int line, double instr, void *userdata)
+static void brkpt_cb4(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
-    debug_instr_t *debug_instr = csoundDebugGetInstrInstances(csound);
+    debug_instr_t *debug_instr = bkpt_info->breakpointInstr;
     CU_ASSERT_EQUAL(debug_instr->p1, 1);
     CU_ASSERT_EQUAL(debug_instr->p2, 0);
     CU_ASSERT_EQUAL(debug_instr->p3, 1.1);
     CU_ASSERT_EQUAL(debug_instr->kcounter, 0);
-    csoundDebugFreeInstrInstances(csound, debug_instr);
 }
 
-void test_instruments(void)
+void test_bkpt_instrument(void)
 {
     CSOUND* csound = csoundCreate(NULL);
     csoundCompileOrc(csound, "instr 1\n Svar init \"hello\"\n endin\n");
@@ -184,7 +179,7 @@ int main()
     }
     
     /* add the tests to the suite */
-    if (NULL == CU_add_test(pSuite, "Test instruments", test_instruments)
+    if (NULL == CU_add_test(pSuite, "Test Breakpoint instrument", test_bkpt_instrument)
          ||(NULL == CU_add_test(pSuite, "Test variables", test_variables)
          || (NULL == CU_add_test(pSuite, "Test debugger init", test_debugger_init))
          || (NULL == CU_add_test(pSuite, "Test add breakpoint", test_add_bkpt))
