@@ -125,15 +125,13 @@ static int perf_cudadsyn(CSOUND *csound, CUDADSYN *p){
                                                 p->bins,
                                                 vsamps,
                                                 csound->GetSr(csound));
-       if (cudaDeviceSynchronize() != cudaSuccess)
-       csound->Message(csound,"Cuda error: Failed to synchronize\n");
+       cudaMemcpy(out_,p->out,vsamps*sizeof(float),cudaMemcpyDeviceToHost);
        update<<<p->mblocks,p->mthreads>>>(p->frame,
                                            p->previous,
                                             p->ndx,
                                             *p->kfreq,
                                             vsamps,
                                             csound->GetSr(csound));
-      cudaMemcpy(out_,p->out,vsamps*sizeof(float),cudaMemcpyDeviceToHost);
       count = vsamps;
     }
     asig[n] = (MYFLT) out_[vsamps - count];
