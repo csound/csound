@@ -25,6 +25,20 @@
 
 #include "csdebug.h"
 
+void csoundDebuggerBreakpointReached(CSOUND *csound)
+{
+    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
+    debug_bkpt_info_t bkpt_info;
+    bkpt_info.breakpointInstr = csoundDebugGetCurrentInstrInstance(csound);
+    bkpt_info.instrListHead = csoundDebugGetInstrInstances(csound);
+    bkpt_info.instrVarList = csoundDebugGetVariables(csound,
+                                                     bkpt_info.breakpointInstr);
+    data->bkpt_cb(csound, &bkpt_info, data->cb_data);
+    csoundDebugFreeInstrInstances(csound, bkpt_info.breakpointInstr);
+    csoundDebugFreeInstrInstances(csound, bkpt_info.instrListHead);
+    csoundDebugFreeVariables(csound, bkpt_info.instrVarList);
+}
+
 PUBLIC void csoundDebuggerInit(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *)malloc(sizeof(csdebug_data_t));
@@ -275,7 +289,7 @@ PUBLIC debug_variable_t *csoundDebugGetVariables(CSOUND *csound, debug_instr_t *
 PUBLIC void csoundDebugFreeVariables(CSOUND *csound, debug_variable_t *varHead)
 {
     while (varHead) {
-        debug_variable_t *oldvar;
+        debug_variable_t *oldvar = varHead;
         varHead = varHead->next;
         csound->Free(csound, oldvar);
     }
