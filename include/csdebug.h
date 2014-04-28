@@ -37,9 +37,11 @@
     csoundStart(csound);
     csoundDebuggerInit(csound);
     csoundSetBreakpointCallback(csound, brkpt_cb, &userdata);
-    csoundSetInstrumentBreakpoint(csound, 1, 1);
+    csoundSetInstrumentBreakpoint(csound, 1, 5);
 
     // Run Csound Performance here
+    // The breakpoint callback will be called when instrument 1 has been
+    // instantiated and 5 control blocks have been processed.
 
     csoundDebuggerClean(csound);
     csoundDestroy(csound);
@@ -54,6 +56,11 @@
 #endif
 
 #include "csound_type_system.h"
+
+
+/** @defgroup DEBUGGER Debugger
+ *
+ *  @{ */
 
 typedef struct debug_instr_s {
     CS_VARIABLE *varPoolHead;
@@ -131,10 +138,6 @@ void csoundDebuggerBreakpointReached(CSOUND *csound);
 extern "C" {
 #endif
 
-
-/** @defgroup DEBUGGER Debugger
- *
- *  @{ */
 
 /** Breakpoint callback function type
  *
