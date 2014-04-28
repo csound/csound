@@ -51,7 +51,7 @@
 ./H/disprep.h
 ./H/dumpf.h
 ./H/entry1.h
-./include/envvar.h
+./H/envvar.h
 ./H/fftlib.h
 ./H/fgens.h
 ./H/insert.h
@@ -69,12 +69,12 @@
 ./H/new_opts.h
 ./H/oload.h
 ./H/oscils.h
-./include/prototyp.h
-./include/remote.h
+./H/prototyp.h
+./H/remote.h
 ./H/resize.h
 ./H/schedule.h
 ./H/sndinfUG.h
-./include/sort.h
+./H/sort.h
 ./H/str_ops.h
 ./H/tok.h
 ./H/ugens1.h
@@ -526,6 +526,7 @@
 ./frontends/CsoundVST/ScoreGeneratorVstUi.h
 ./frontends/CsoundVST/csoundvst_main.cpp
 ./frontends/CsoundVST/pyrun.c
+./frontends/debugger/csdebugger.cpp
 ./frontends/csladspa/csladspa.cpp
 ./frontends/csladspa/ladspa.h
 ./frontends/csound/csound_main.c
@@ -538,6 +539,7 @@
 ./include/cfgvar.h
 ./include/cs_par_structs.h
 ./include/cscore.h
+./include/csdebug.h
 ./include/csdl.h
 ./include/csound.h
 ./include/csound.hpp
