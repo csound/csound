@@ -562,9 +562,9 @@ int deltapn(CSOUND *csound, DELTAP *p)
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
       for (n=offset; n<nsmps; n++) {
-        if (UNLIKELY(tap >= endp ))
+        while (UNLIKELY(tap >= endp ))
           tap -= q->npts;
-        if (UNLIKELY(tap < begp))
+        while (UNLIKELY(tap < begp))
           tap += q->npts;
         ar[n] = *tap;
         tap++;
