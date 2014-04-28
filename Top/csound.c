@@ -101,6 +101,8 @@ extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
+void csoundDebuggerBreakpointReached(CSOUND *csound);
+
 extern OENTRY opcodlst_1[];
 
 static void free_opcode_table(CSOUND* csound) {
