@@ -246,18 +246,12 @@ PUBLIC void csoundDebugContinue(CSOUND *csound);
  */
 PUBLIC void csoundDebugStop(CSOUND *csound);
 
-PUBLIC debug_instr_t *csoundDebugGetInstrInstances(CSOUND *csound);
-
-/** Get current instrument at which csound is stopped
- *
- * Returns the pointer to the instrument at which the Csound debugger broke
- * rendering. This is the instrument that triggered the callback.
- *
- * You should only call this function if an actual breakpoint has been reached
- * and Csound has been stopped by the debugger. Will return NULL if Csound is
- * not stopped, but this will not be thread safe in this case.
+/** Get a list of active instrument instances
+ * Returns a linked list of allocated instrument instances
+ * csoundDebugFreeInstrInstances() must be called on the list once it is no
+ * longer needed.
  */
-PUBLIC debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound);
+PUBLIC debug_instr_t *csoundDebugGetInstrInstances(CSOUND *csound);
 
 /** Free list created by csoundDebugGetCurrentInstrInstance() or
  * csoundDebugGetInstrInstances()
