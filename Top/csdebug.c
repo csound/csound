@@ -25,6 +25,8 @@
 
 #include "csdebug.h"
 
+debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound);
+
 void csoundDebuggerBreakpointReached(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
@@ -221,7 +223,7 @@ PUBLIC debug_instr_t *csoundDebugGetInstrInstances(CSOUND *csound)
     return instrhead;
 }
 
-PUBLIC debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound)
+debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     if (!data->debug_instr_ptr) {
