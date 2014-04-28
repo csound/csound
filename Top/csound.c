@@ -1719,10 +1719,7 @@ int kperf_debug(CSOUND *csound)
             } else if (command == CSDEBUG_CMD_STOP) {
               data->debug_instr_ptr = ip;
               data->status = CSDEBUG_STATUS_STOPPED;
-              data->bkpt_cb(csound,  /* treat stop as if breakpoint
-                                        had been reached */
-                            0, ip->p1,
-                            data->cb_data);
+              csoundDebuggerBreakpointReached(csound);
               return 0;
             } else { /* check if we have arrived at an instrument breakpoint */
               bkpt_node_t *bp_node = data->bkpt_anchor->next;
@@ -1731,8 +1728,8 @@ int kperf_debug(CSOUND *csound)
                   if (bp_node->count < 2) {
                     /* skip of 0 or 1 has the same effect */
                     data->debug_instr_ptr = ip;
-                    data->bkpt_cb(csound, 0, ip->p1, data->cb_data);
                     data->status = CSDEBUG_STATUS_STOPPED;
+                    csoundDebuggerBreakpointReached(csound);
                     bp_node->count = bp_node->skip;
                     return 0;
                   } else {
