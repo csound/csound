@@ -55,9 +55,6 @@
 
 #include "csound_type_system.h"
 
-/** \cond DOXYGEN_HIDDEN
- * These types should not appear in the Doxygen docs */
-
 typedef struct debug_instr_s {
     CS_VARIABLE *varPoolHead;
     MYFLT *lclbas;
@@ -73,6 +70,17 @@ typedef struct debug_variable_s {
     void *data;
     struct debug_variable_s *next;
 } debug_variable_t;
+
+typedef struct {
+    debug_instr_t *breakpointInstr;
+    debug_variable_t *instrVarList;
+    debug_instr_t *instrListHead;
+} debug_bkpt_info_t;
+
+
+/** \cond DOXYGEN_HIDDEN
+ * These types should not appear in the Doxygen docs */
+
 
 typedef enum {
     CSDEBUG_BKPT_LINE,
@@ -111,6 +119,12 @@ typedef enum {
     CSDEBUG_INIT = 0x02
 } debug_mode_t;
 
+#ifdef __BUILD_LIBCSOUND
+
+void csoundDebuggerBreakpointReached(CSOUND *csound);
+
+#endif
+
 /** @endcond */
 
 #ifdef __cplusplus
@@ -126,7 +140,7 @@ extern "C" {
  *
  * When a breakpoint is reached, the debugger will call a function of this type
  * see csoundSetBreakpointCallback() */
-typedef void (*breakpoint_cb_t) (CSOUND *, int line, double instr, void *userdata);
+typedef void (*breakpoint_cb_t) (CSOUND *, debug_bkpt_info_t *, void *userdata);
 
 typedef struct csdebug_data_s {
     void *bkpt_buffer; /* for passing breakpoints to the running engine */
