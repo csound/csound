@@ -282,13 +282,13 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     int i = 0, err = 0;
     ARRAY_VAR_INIT varInit;
 
-    typeSpecifier[1] = NULL;
+    typeSpecifier[1] = '\0';
 
     // The following handles adding of extra 'o' type for optional
     // ksmps arg for all UDO's
     if (*inm->intypes == '0') {
         intypes[0] = 'o';
-        intypes[1] = NULL;
+        intypes[1] = '\0';
     } else {
         snprintf(intypes, 256, "%so", inm->intypes);
     }
