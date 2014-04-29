@@ -62,6 +62,7 @@ static uintptr_t udp_recv(void *pdata)
     csound->Message(csound, "orchestra: \n%s\n", orchestra);
    if(strncmp("##close##",orchestra,9)==0) break;
     csoundCompileOrc(csound, orchestra);
+    memset(orchestra,0, MAXSTR);
   }
   csound->Message(csound, "UDP server on port %d stopped\n",port);
   csound->Free(csound, orchestra);
