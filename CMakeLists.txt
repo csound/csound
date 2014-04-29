@@ -875,6 +875,7 @@ endif()
 
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 if(NEW_PARSER_DEBUG)
     message(STATUS "Building with new parser debugging")
@@ -907,7 +908,7 @@ add_subdirectory(include)
 if(APPLE)
     string(REGEX REPLACE "([^;]+)(;|$)" "include/\\1\\2" csheaders "${csheaders}")
     file(GLOB H_headers "${CMAKE_CURRENT_SOURCE_DIR}/H/*.h")
-    set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers}")
+    set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h")
 endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
@@ -922,7 +923,7 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
 if(APPLE)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
-    set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER "${csheaders}")
+    set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER "${csheaders};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h")
 endif()
 
 # This copies libsndfile into the framework and sets the install names

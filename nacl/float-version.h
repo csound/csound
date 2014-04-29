@@ -25,6 +25,10 @@
    currently implemented only for OSX
 */
 
+/* #undef FLOAT_VERSION_H_DOUBLE */
+
+#ifdef FLOAT_VERSION_H_DOUBLE
 #ifndef USE_DOUBLE
 #define USE_DOUBLE
+#endif
 #endif
