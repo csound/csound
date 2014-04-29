@@ -401,12 +401,12 @@ msgstr ""
 "ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:286
-#, fuzzy, c-format
+#, c-format
 msgid "Use of i() with expression not permitted on line %d\n"
 msgstr "L'utilisation de i() dans une expression est interdite, ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:303
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "error: opcode '%s' for expression with arg types %s not found, line %d\n"
 msgstr ""
