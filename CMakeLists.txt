@@ -282,10 +282,6 @@ option(BUILD_TESTS "Build for release" ON)
 
 set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
-# This needs to be here since _everybody_ needs this flag
-if(USE_DOUBLE)
-    add_definitions("-DUSE_DOUBLE")
-endif(USE_DOUBLE)
 check_c_compiler_flag(-fvisibility=hidden HAS_VISIBILITY_HIDDEN)
 check_cxx_compiler_flag(-fvisibility=hidden HAS_CXX_VISIBILITY_HIDDEN)
 if (HAS_VISIBILITY_HIDDEN)
