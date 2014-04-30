@@ -548,8 +548,6 @@
 ./include/csound_type_system.h
 ./include/cwindow.h
 ./include/csound_data_structures.h
-./include/float-version-double.h
-./include/float-version.h
 ./include/interlocks.h
 ./include/msg_attr.h
 ./include/pools.h
