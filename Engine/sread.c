@@ -850,7 +850,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             csound->randSeed1 = tmp+1;
             printf("seed from clock %d\n", csound->randSeed1);
           }
-          flushlin(csound);
+          //flushlin(csound);
           // Really we need to remove this line totally but this did not work
           STA(op) = getop(csound);
           STA(nxp) = old_nxp;
