@@ -1776,143 +1776,144 @@ msgstr "Duplicazione %d: %s (%s,%ld)\n"
 msgid "Warp_factor = %f\n"
 msgstr "Warp_factor = %f\n"
 
-#: Engine/sread.c:1201
-msgid "sread is confused on legal opcodes\n"
+#: Engine/sread.c:1202
+#, fuzzy, c-format
+msgid "sread is confused on legal opcodes %c(%.2x)\n"
 msgstr "sread è confuso sugli opcodes leciti\n"
 
-#: Engine/sread.c:1263
+#: Engine/sread.c:1265
 msgid "No previous event for ^"
 msgstr "Non c'è l'evento precedente per ^"
 
-#: Engine/sread.c:1268
+#: Engine/sread.c:1270
 #, c-format
 msgid "illegal space following %s, zero substituted"
 msgstr "spazio illecito seguente %s, sostituito con zero"
 
-#: Engine/sread.c:1298
+#: Engine/sread.c:1300
 #, c-format
 msgid "ignoring '%s' in '%c' event"
 msgstr "ignorato '%s' nell'evento '%c'"
 
-#: Engine/sread.c:1301
+#: Engine/sread.c:1303
 msgid "! invalid in p1, p2, or p3"
 msgstr "! non valido in p1, p2, or p3"
 
-#: Engine/sread.c:1302 Engine/sread.c:1307 Engine/sread.c:1791
-#: Engine/sread.c:1814 Engine/sread.c:1828
+#: Engine/sread.c:1304 Engine/sread.c:1309 Engine/sread.c:1793
+#: Engine/sread.c:1816 Engine/sread.c:1830
 msgid "      remainder of line flushed\n"
 msgstr "      resto della linea ignorato\n"
 
-#: Engine/sread.c:1306
+#: Engine/sread.c:1308
 #, c-format
 msgid "illegal character after !: '%c'"
 msgstr "carattere illecito dopo !: '%c'"
 
-#: Engine/sread.c:1382
+#: Engine/sread.c:1384
 #, c-format
 msgid "WARNING: instr %s not found, assuming insno = -1\n"
 msgstr "ATTENZIONE: strumento %s non trovato, insno = -1\n"
 
-#: Engine/sread.c:1402
+#: Engine/sread.c:1404
 msgid "sread: illegal use of carry,   0 substituted\n"
 msgstr "sread: uso illecito del riporto,   sostituito 0\n"
 
-#: Engine/sread.c:1548
+#: Engine/sread.c:1550
 #, fuzzy
 msgid "Improper \\"
 msgstr "Improprio \\"
 
-#: Engine/sread.c:1579
+#: Engine/sread.c:1581
 msgid "Not #define"
 msgstr "Non #define"
 
-#: Engine/sread.c:1601
+#: Engine/sread.c:1603
 #, c-format
 msgid "Macro definition for %s\n"
 msgstr "Definizione di macro per %s\n"
 
-#: Engine/sread.c:1632
+#: Engine/sread.c:1634
 msgid "macro error\n"
 msgstr "errore macro\n"
 
-#: Engine/sread.c:1641 Engine/sread.c:1650
+#: Engine/sread.c:1643 Engine/sread.c:1652
 #, fuzzy
 msgid "Syntax error in macro definition"
 msgstr "Errore di sintassi nella macro chiamata"
 
-#: Engine/sread.c:1661
+#: Engine/sread.c:1663
 #, c-format
 msgid "Macro %s with %d arguments defined\n"
 msgstr "Macro %s con %d argomenti definiti\n"
 
-#: Engine/sread.c:1673
+#: Engine/sread.c:1675
 msgid "Not #include"
 msgstr "Non #include"
 
-#: Engine/sread.c:1715
+#: Engine/sread.c:1717
 #, c-format
 msgid "Cannot open #include'd file %s"
 msgstr "Impossibile aprire il file #include %s"
 
-#: Engine/sread.c:1725
+#: Engine/sread.c:1727
 msgid "Not #undef"
 msgstr "Non #undef"
 
-#: Engine/sread.c:1746
+#: Engine/sread.c:1748
 #, c-format
 msgid "macro %s undefined\n"
 msgstr "macro %s non definita\n"
 
-#: Engine/sread.c:1752
+#: Engine/sread.c:1754
 msgid "unknown # option"
 msgstr "opzione # sconosciuta"
 
-#: Engine/sread.c:1790
+#: Engine/sread.c:1792
 #, c-format
 msgid "illegal opcode %c"
 msgstr "opcode illecito %c"
 
-#: Engine/sread.c:1813
+#: Engine/sread.c:1815
 #, c-format
 msgid "unexpected char %c"
 msgstr "carattere inatteso %c"
 
-#: Engine/sread.c:1827
+#: Engine/sread.c:1829
 msgid "illegally placed string"
 msgstr "stringa piazzata illecitamente"
 
-#: Engine/sread.c:1834
+#: Engine/sread.c:1836
 msgid "unmatched quote"
 msgstr "virgolette senza corrispondenza"
 
-#: Engine/sread.c:1878
+#: Engine/sread.c:1880
 msgid "sread: illegal number format:  "
 msgstr "sread: formato numerico illecito:  "
 
-#: Engine/sread.c:1884
+#: Engine/sread.c:1886
 msgid "   zero substituted.\n"
 msgstr "   sostituito zero.\n"
 
-#: Engine/swritestr.c:159
-#, c-format
-msgid "swrite: unexpected opcode, section %d line %d\n"
+#: Engine/swritestr.c:160
+#, fuzzy, c-format
+msgid "swrite: unexpected opcode %c, section %d line %d\n"
 msgstr "swrite: opcode inatteso, sezione %d linea %d\n"
 
-#: Engine/swritestr.c:247 Engine/swritestr.c:288
+#: Engine/swritestr.c:248 Engine/swritestr.c:289
 #, c-format
 msgid "swrite: output, sect%d line%d p%d makes illegal reference to "
 msgstr "swrite: output, sez%d linea%d p%d fa illecito riferimento a "
 
-#: Engine/swritestr.c:254 Engine/swritestr.c:294
+#: Engine/swritestr.c:255 Engine/swritestr.c:295
 msgid "   Zero substituted\n"
 msgstr "   sostituito zero\n"
 
-#: Engine/swritestr.c:353
+#: Engine/swritestr.c:354
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal ramp symbol\n"
 msgstr "swrite: output, sez%d linea%d p%d ha illecito simbolo ramp\n"
 
-#: Engine/swritestr.c:357
+#: Engine/swritestr.c:358
 #, c-format
 msgid ""
 "swrite: output, sect%d line%d p%d ramp has illegal forward or backward ref\n"
@@ -1920,12 +1921,12 @@ msgstr ""
 "swrite: output, sez%d linea%d p%d ramp fa riferimento a precedente o "
 "successivo illecito\n"
 
-#: Engine/swritestr.c:421 Engine/swritestr.c:486
+#: Engine/swritestr.c:422 Engine/swritestr.c:487
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal expramp symbol\n"
 msgstr "swrite: output, sez%d linea%d p%d ha simbolo expramp illecito\n"
 
-#: Engine/swritestr.c:426 Engine/swritestr.c:491
+#: Engine/swritestr.c:427 Engine/swritestr.c:492
 #, c-format
 msgid ""
 "swrite: output, sect%d line%d p%d expramp has illegal forward or backward "
@@ -1934,18 +1935,18 @@ msgstr ""
 "swrite: output, sez%d linea%d p%d expramp fa riferimento illecito a "
 "precedente o sucessivo\n"
 
-#: Engine/swritestr.c:507
+#: Engine/swritestr.c:508
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegally terminated string   "
 msgstr ""
 "swrite: output, sez%d linea%d p%d ha stringa terminante illecitamente   "
 
-#: Engine/swritestr.c:559
+#: Engine/swritestr.c:560
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal number  "
 msgstr "swrite: output, sez%d linea%d p%d ha numero illecito  "
 
-#: Engine/swritestr.c:566
+#: Engine/swritestr.c:567
 msgid "    String truncated\n"
 msgstr "    Stringa troncata\n"
 
