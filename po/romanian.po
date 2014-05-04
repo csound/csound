@@ -387,91 +387,98 @@ msgid "unable to find ternary operator for types '%s ? %s : %s' line %d\n"
 msgstr ""
 
 #: Engine/csound_orc_semantics.c:286
-msgid "Use of i() with expression not permitted\n"
+#, c-format
+msgid "Use of i() with expression not permitted on line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:302 Engine/csound_orc_semantics.c:350
+#: Engine/csound_orc_semantics.c:303
+#, c-format
+msgid ""
+"error: opcode '%s' for expression with arg types %s not found, line %d\n"
+msgstr ""
+
+#: Engine/csound_orc_semantics.c:327
+#, c-format
+msgid "Unable to verify arg types for expression '%s'\n"
+msgstr ""
+
+#: Engine/csound_orc_semantics.c:351
 #, c-format
 msgid ""
 "error: opcode '%s' for expression with arg types %s not found, line %d \n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:326
-#, c-format
-msgid "Unable to verify arg types for expression '%s'\n"
-msgstr ""
-
-#: Engine/csound_orc_semantics.c:377
+#: Engine/csound_orc_semantics.c:378
 #, c-format
 msgid "Unable to verify arg types for boolean expression '%s'\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:397
+#: Engine/csound_orc_semantics.c:398
 #, c-format
 msgid "error: boolean expression '%s' with arg types %s not found, line %d \n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:470 Engine/csound_orc_semantics.c:1113
-#: Engine/csound_orc_semantics.c:1134
+#: Engine/csound_orc_semantics.c:471 Engine/csound_orc_semantics.c:1114
+#: Engine/csound_orc_semantics.c:1135
 #, c-format
 msgid "Variable '%s' used before defined\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:510
+#: Engine/csound_orc_semantics.c:511
 #, c-format
 msgid "Unknown arg type: %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1092
+#: Engine/csound_orc_semantics.c:1093
 #, c-format
 msgid "Variable type for %s could not be determined.\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1336
+#: Engine/csound_orc_semantics.c:1337
 #, c-format
 msgid "Unable to find opcode with name: %s\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1351
+#: Engine/csound_orc_semantics.c:1352
 #, c-format
 msgid "Unable to find opcode entry for '%s' with matching argument types:\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1354
+#: Engine/csound_orc_semantics.c:1355
 #, c-format
 msgid "Found: %s %s %s\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1356
+#: Engine/csound_orc_semantics.c:1357
 #, c-format
 msgid "Line: %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1491
+#: Engine/csound_orc_semantics.c:1492
 #, c-format
 msgid "expression for until statement not a boolean expression, line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1646
+#: Engine/csound_orc_semantics.c:1647
 #, c-format
 msgid ""
 "\n"
 "error: %s  (token \"%s\")"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1649
+#: Engine/csound_orc_semantics.c:1650
 #, c-format
 msgid ""
 " line %d:\n"
 ">>>"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1664
+#: Engine/csound_orc_semantics.c:1665
 #, c-format
 msgid " from file %s (%d)\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:2215
+#: Engine/csound_orc_semantics.c:2216
 #, c-format
 msgid "insufficient required arguments for opcode %s on line %d:\n"
 msgstr ""
@@ -1701,169 +1708,170 @@ msgstr ""
 msgid "Warp_factor = %f\n"
 msgstr ""
 
-#: Engine/sread.c:1201
-msgid "sread is confused on legal opcodes\n"
+#: Engine/sread.c:1202
+#, c-format
+msgid "sread is confused on legal opcodes %c(%.2x)\n"
 msgstr ""
 
-#: Engine/sread.c:1263
+#: Engine/sread.c:1265
 msgid "No previous event for ^"
 msgstr ""
 
-#: Engine/sread.c:1268
+#: Engine/sread.c:1270
 #, c-format
 msgid "illegal space following %s, zero substituted"
 msgstr ""
 
-#: Engine/sread.c:1298
+#: Engine/sread.c:1300
 #, c-format
 msgid "ignoring '%s' in '%c' event"
 msgstr ""
 
-#: Engine/sread.c:1301
+#: Engine/sread.c:1303
 msgid "! invalid in p1, p2, or p3"
 msgstr ""
 
-#: Engine/sread.c:1302 Engine/sread.c:1307 Engine/sread.c:1791
-#: Engine/sread.c:1814 Engine/sread.c:1828
+#: Engine/sread.c:1304 Engine/sread.c:1309 Engine/sread.c:1793
+#: Engine/sread.c:1816 Engine/sread.c:1830
 msgid "      remainder of line flushed\n"
 msgstr ""
 
-#: Engine/sread.c:1306
+#: Engine/sread.c:1308
 #, c-format
 msgid "illegal character after !: '%c'"
 msgstr ""
 
-#: Engine/sread.c:1382
+#: Engine/sread.c:1384
 #, c-format
 msgid "WARNING: instr %s not found, assuming insno = -1\n"
 msgstr ""
 
-#: Engine/sread.c:1402
+#: Engine/sread.c:1404
 msgid "sread: illegal use of carry,   0 substituted\n"
 msgstr ""
 
-#: Engine/sread.c:1548
+#: Engine/sread.c:1550
 msgid "Improper \\"
 msgstr ""
 
-#: Engine/sread.c:1579
+#: Engine/sread.c:1581
 msgid "Not #define"
 msgstr ""
 
-#: Engine/sread.c:1601
+#: Engine/sread.c:1603
 #, c-format
 msgid "Macro definition for %s\n"
 msgstr ""
 
-#: Engine/sread.c:1632
+#: Engine/sread.c:1634
 msgid "macro error\n"
 msgstr ""
 
-#: Engine/sread.c:1641 Engine/sread.c:1650
+#: Engine/sread.c:1643 Engine/sread.c:1652
 msgid "Syntax error in macro definition"
 msgstr ""
 
-#: Engine/sread.c:1661
+#: Engine/sread.c:1663
 #, c-format
 msgid "Macro %s with %d arguments defined\n"
 msgstr ""
 
-#: Engine/sread.c:1673
+#: Engine/sread.c:1675
 msgid "Not #include"
 msgstr ""
 
-#: Engine/sread.c:1715
+#: Engine/sread.c:1717
 #, c-format
 msgid "Cannot open #include'd file %s"
 msgstr ""
 
-#: Engine/sread.c:1725
+#: Engine/sread.c:1727
 msgid "Not #undef"
 msgstr ""
 
-#: Engine/sread.c:1746
+#: Engine/sread.c:1748
 #, c-format
 msgid "macro %s undefined\n"
 msgstr ""
 
-#: Engine/sread.c:1752
+#: Engine/sread.c:1754
 msgid "unknown # option"
 msgstr ""
 
-#: Engine/sread.c:1790
+#: Engine/sread.c:1792
 #, c-format
 msgid "illegal opcode %c"
 msgstr ""
 
-#: Engine/sread.c:1813
+#: Engine/sread.c:1815
 #, c-format
 msgid "unexpected char %c"
 msgstr ""
 
-#: Engine/sread.c:1827
+#: Engine/sread.c:1829
 msgid "illegally placed string"
 msgstr ""
 
-#: Engine/sread.c:1834
+#: Engine/sread.c:1836
 msgid "unmatched quote"
 msgstr ""
 
-#: Engine/sread.c:1878
+#: Engine/sread.c:1880
 msgid "sread: illegal number format:  "
 msgstr ""
 
-#: Engine/sread.c:1884
+#: Engine/sread.c:1886
 msgid "   zero substituted.\n"
 msgstr ""
 
-#: Engine/swritestr.c:159
+#: Engine/swritestr.c:160
 #, c-format
-msgid "swrite: unexpected opcode, section %d line %d\n"
+msgid "swrite: unexpected opcode %c, section %d line %d\n"
 msgstr ""
 
-#: Engine/swritestr.c:247 Engine/swritestr.c:288
+#: Engine/swritestr.c:248 Engine/swritestr.c:289
 #, c-format
 msgid "swrite: output, sect%d line%d p%d makes illegal reference to "
 msgstr ""
 
-#: Engine/swritestr.c:254 Engine/swritestr.c:294
+#: Engine/swritestr.c:255 Engine/swritestr.c:295
 msgid "   Zero substituted\n"
 msgstr ""
 
-#: Engine/swritestr.c:353
+#: Engine/swritestr.c:354
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal ramp symbol\n"
 msgstr ""
 
-#: Engine/swritestr.c:357
+#: Engine/swritestr.c:358
 #, c-format
 msgid ""
 "swrite: output, sect%d line%d p%d ramp has illegal forward or backward ref\n"
 msgstr ""
 
-#: Engine/swritestr.c:421 Engine/swritestr.c:486
+#: Engine/swritestr.c:422 Engine/swritestr.c:487
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal expramp symbol\n"
 msgstr ""
 
-#: Engine/swritestr.c:426 Engine/swritestr.c:491
+#: Engine/swritestr.c:427 Engine/swritestr.c:492
 #, c-format
 msgid ""
 "swrite: output, sect%d line%d p%d expramp has illegal forward or backward "
 "ref\n"
 msgstr ""
 
-#: Engine/swritestr.c:507
+#: Engine/swritestr.c:508
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegally terminated string   "
 msgstr ""
 
-#: Engine/swritestr.c:559
+#: Engine/swritestr.c:560
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal number  "
 msgstr ""
 
-#: Engine/swritestr.c:566
+#: Engine/swritestr.c:567
 msgid "    String truncated\n"
 msgstr ""
 
@@ -10077,7 +10085,7 @@ msgstr ""
 msgid "cscoreFileGetCurrent: no fp current"
 msgstr ""
 
-#: Top/csdebug.c:72 Top/csdebug.c:88
+#: Top/csdebug.c:88 Top/csdebug.c:104
 msgid "Negative line for breakpoint invalid."
 msgstr ""
 
@@ -10155,200 +10163,200 @@ msgstr ""
 msgid "Error de-initialising module '%s'"
 msgstr ""
 
-#: Top/csound.c:137
+#: Top/csound.c:139
 msgid "Error allocating opcode list"
 msgstr ""
 
-#: Top/csound.c:1427
+#: Top/csound.c:1429
 #, c-format
 msgid "Multithread performance: insno: %3d  thread %d of %d starting.\n"
 msgstr ""
 
-#: Top/csound.c:1433
+#: Top/csound.c:1435
 msgid "Bad ThreadId"
 msgstr ""
 
-#: Top/csound.c:1845 Top/csound.c:1877 Top/csound.c:1905 Top/csound.c:1941
-#: Top/csound.c:4128
+#: Top/csound.c:1844 Top/csound.c:1876 Top/csound.c:1904 Top/csound.c:1940
+#: Top/csound.c:4127
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 
-#: Top/csound.c:1861 Top/csound.c:1890
+#: Top/csound.c:1860 Top/csound.c:1889
 msgid "Score finished in csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1884 Top/csound.c:4135
+#: Top/csound.c:1883 Top/csound.c:4134
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1912
+#: Top/csound.c:1911
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:1950
+#: Top/csound.c:1949
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:1958
+#: Top/csound.c:1957
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:1969
+#: Top/csound.c:1968
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2253
+#: Top/csound.c:2252
 msgid "WARNING: "
 msgstr ""
 
-#: Top/csound.c:2395
+#: Top/csound.c:2394
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2396
+#: Top/csound.c:2395
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2425 Top/csound.c:2462
+#: Top/csound.c:2424 Top/csound.c:2461
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2429 Top/csound.c:2466
+#: Top/csound.c:2428 Top/csound.c:2465
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2583
+#: Top/csound.c:2582
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2588 Top/csound.c:2622
+#: Top/csound.c:2587 Top/csound.c:2621
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2591 Top/csound.c:2625
+#: Top/csound.c:2590 Top/csound.c:2624
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2617
+#: Top/csound.c:2616
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2639
+#: Top/csound.c:2638
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:2801
+#: Top/csound.c:2800
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:2823
+#: Top/csound.c:2822
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:2964 Top/main.c:357
+#: Top/csound.c:2963 Top/main.c:357
 msgid "setting dummy interface\n"
 msgstr ""
 
-#: Top/csound.c:3042
+#: Top/csound.c:3041
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:3064
+#: Top/csound.c:3063
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:3080
+#: Top/csound.c:3079
 msgid "Failed during csoundLoadModules"
 msgstr ""
 
-#: Top/csound.c:3095
+#: Top/csound.c:3094
 #, c-format
 msgid "Csound version %s beta (float samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3098
+#: Top/csound.c:3097
 #, c-format
 msgid "Csound version %s (float samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3103
+#: Top/csound.c:3102
 #, c-format
 msgid "Csound version %s beta (double samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3106
+#: Top/csound.c:3105
 #, c-format
 msgid "Csound version %s (double samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3137
+#: Top/csound.c:3136
 msgid "Real time audio module name"
 msgstr ""
 
-#: Top/csound.c:3162
+#: Top/csound.c:3161
 msgid "Real time MIDI module name"
 msgstr ""
 
-#: Top/csound.c:3167
+#: Top/csound.c:3166
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:3173
+#: Top/csound.c:3172
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:3181
+#: Top/csound.c:3180
 msgid "Title tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3187
+#: Top/csound.c:3186
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3193
+#: Top/csound.c:3192
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3198
+#: Top/csound.c:3197
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3205
+#: Top/csound.c:3204
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3210
+#: Top/csound.c:3209
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3220
+#: Top/csound.c:3219
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:3226
+#: Top/csound.c:3225
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:3233
+#: Top/csound.c:3232
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3443
+#: Top/csound.c:3442
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:3473
+#: Top/csound.c:3472
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:4027
+#: Top/csound.c:4026
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:4058
+#: Top/csound.c:4057
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 

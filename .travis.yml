@@ -27,3 +27,8 @@ addons:
           build_command_prepend: "mkdir -p $TRAVIS_BUILD_DIR/build && cd $TRAVIS_BUILD_DIR/build && cmake .."
           build_command: "make -C $TRAVIS_BUILD_DIR/build"
           branch_pattern: coverity_scan
+
+notifications:
+      email:
+          recipients:
+              - csound-devel@lists.sourceforge.net
