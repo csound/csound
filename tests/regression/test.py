@@ -48,10 +48,11 @@ def runTest():
         ["bugm.csd", " "],
         ["bugn.csd", " "],
         ["bugs.csd", " "],
-        ["bugsort.csd", " "],
+        ["bugsort.csd", "memory problem in sort"],
         ["bugst.csd", " "],
         ["bugtrans.csd", " "],
-        ["bugbra.csd", " "]
+        ["bugbra.csd", " "],
+        ["bugy.csd", "y in score"]
     ]
 
     output = ""
