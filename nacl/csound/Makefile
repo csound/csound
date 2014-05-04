@@ -21,11 +21,11 @@ SOURCES = csound.cpp
 #$(foreach dep,$(DEPS),$(eval $(call DEPEND_RULE,$(dep))))
 $(foreach src,$(SOURCES),$(eval $(call COMPILE_RULE,$(src),$(CFLAGS))))
 
-ifeq ($(CONFIG),Release)
+#ifeq ($(CONFIG),Release)
 $(eval $(call LINK_RULE,$(TARGET)_unstripped,$(SOURCES),$(LIBS),$(DEPS)))
 $(eval $(call STRIP_RULE,$(TARGET),$(TARGET)_unstripped))
-else
-$(eval $(call LINK_RULE,$(TARGET),$(SOURCES),$(LIBS),$(DEPS)))
-endif
+#else
+#$(eval $(call LINK_RULE,$(TARGET),$(SOURCES),$(LIBS),$(DEPS)))
+#endif
 
 $(eval $(call NMF_RULE,$(TARGET),))

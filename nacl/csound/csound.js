@@ -296,6 +296,22 @@ var csound = (function() {
        return fileData;
    }
 
+   function input_ok(s) {
+    csound.module.postMessage({input: s.getAudioTracks()[0]});
+   }
+
+   function input_fail(e) {
+    csound.logMessage("Input audio error: " + e);
+   }
+
+  /**
+   * Start default audio input
+   *
+   */
+   function StartInputAudio() {
+     navigator.webkitGetUserMedia({'audio': true},input_ok,input_fail);
+   }
+
    return {
     module: null,
     attachDefaultListeners: attachDefaultListeners,
@@ -314,8 +330,9 @@ var csound = (function() {
     CopyUrlToLocal: CopyUrlToLocal,
     RequestFileFromLocal: RequestFileFromLocal,
     GetFileData : GetFileData,
-       RequestChannel: RequestChannel,
-       SetStringChannel: SetStringChannel
+    RequestChannel: RequestChannel,
+    SetStringChannel: SetStringChannel,
+    StartInputAudio: StartInputAudio
   };
 
 }());
