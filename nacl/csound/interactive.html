@@ -23,13 +23,20 @@
 
     // functions called by csound.js
     function moduleDidLoad() {
-
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
     }
 
+    function WithInput(){
+    csound.StartInputAudio();
+    document.getElementById('inputAudio').removeEventListener('click',
+    WithInput);
+   }
+
     function attachListeners() {
-       document.getElementById('playButton').addEventListener('click', csound.Play);
+       document.getElementById('playButton').addEventListener('click',
+       csound.Play);
        document.getElementById('pauseButton').addEventListener('click',csound.Pause);
+       document.getElementById('inputAudio').addEventListener('click',WithInput);
        document.getElementById('loadButton').addEventListener('click', loadFile);
        document.getElementById('compileButton1').addEventListener('click', compileOrc1);
        document.getElementById('compileButton2').addEventListener('click', compileOrc2);
@@ -105,7 +112,9 @@
 <body>
   <p>
   <button id="playButton">Start Engine</button>
-  <button id="pauseButton">Pause Engine</button> </p>
+  <button id="pauseButton">Pause Engine</button>
+ <input type="radio" id="inputAudio" value="1">input audio<br>
+  </p>
   <p> 
   <textarea class="code" cols="80" rows="20" id="orchestraField">
 ; press "Compile All" to compile this code, 

@@ -25,6 +25,8 @@
 #include <limits>
 #include <sstream>
 #include "ppapi/cpp/audio.h"
+#include "ppapi/cpp/audio_buffer.h"
+#include "ppapi/cpp/media_stream_audio_track.h"
 #include "ppapi/cpp/var_array_buffer.h"
 #include "ppapi/cpp/completion_callback.h"
 #include "ppapi/cpp/instance.h"
@@ -99,12 +101,44 @@ class CsoundInstance : public pp::Instance {
   char *csd;
   bool compiled;
   bool finished;
+  bool is_running;
+  int in_channels;
+  int in_samples;
+  bool input_is_on;
+  pp::CompletionCallbackFactory<CsoundInstance> audio_callback_factory;
+  pp::MediaStreamAudioTrack audio_input;
+  void  *circularBuffer;
+  short *input_buffer;
 
   void PlayCsound();
   void PlayCsd(char *c, bool dac);
   void CopyFileToLocalAsync(char *from, char *to);
   void CopyFromURLToLocalAsync(char *URL, char *name);
   void GetFileFromLocalAsync(char *src); 
+
+
+  void OnGetInput(int32_t result, pp::AudioBuffer buffer) {
+    if (result != PP_OK){
+      input_is_on = false;
+      PostMessage("Csound: audio input error...\n");
+      return;
+    }
+    
+    const char* data = static_cast<const char*>(buffer.GetDataBuffer());
+    in_channels = buffer.GetNumberOfChannels();
+    in_samples = buffer.GetNumberOfSamples();
+
+    // push into circular buffer
+    if(is_running){
+      csoundWriteCircularBuffer(csound,circularBuffer,data,in_samples);
+      input_is_on = true;
+    }
+    // recycle buffer and schedule next one
+    audio_input.RecycleBuffer(buffer);
+    audio_input.GetBuffer(audio_callback_factory.NewCallbackWithOutput(
+        &CsoundInstance::OnGetInput));
+
+  }
   
   static void CsoundCallback(void* samples,
 			     uint32_t buffer_size,
@@ -113,20 +147,33 @@ class CsoundInstance : public pp::Instance {
     CSOUND *csound_ = instance->csound;
     if(csound_ != NULL && !instance->isFinished()) {
       int count_ = instance->count;
-      int n, buffsamps = buffer_size / sizeof(short);
+      int i,j,n, buffsamps = buffer_size / sizeof(short);
       short* buff = (short*) samples;
       MYFLT _0dbfs = csoundGet0dBFS(csound_);
       MYFLT *spout = csoundGetSpout(csound_); 
+      MYFLT *spin = csoundGetSpin(csound_); 
       int ksmps = csoundGetKsmps(csound_)*csoundGetNchnls(csound_);
+      short *buf = instance->input_buffer;
+      int in_chans = instance->in_channels;
       while(csoundGetMessageCnt(csound_)){
 	instance->PostMessage(csoundGetFirstMessage(csound_));
 	csoundPopFirstMessage(csound_);
-      }    
-
+      }
+      instance->is_running = true;    
       MYFLT scale = 32768./_0dbfs;
       if(spout != NULL) 
 	for(n=0; n < buffsamps; n++) {
 	  if(count_ == 0) {
+             // get data from circular buffer into spin
+             if(instance->input_is_on){ 
+	       csoundReadCircularBuffer(csound_,instance->circularBuffer,buf,
+	          	 ksmps);
+		  for(i=j=0; i < ksmps*2; i+=2, j+=in_chans){
+		    spin[i] = buf[j]/scale;
+		  if(in_chans > 1)
+		    spin[i+1] = buf[j+1]/scale;
+	         }
+             }
 	    int ret = csoundPerformKsmps(csound_);
 	    if(ret != 0) {
 	       instance->isFinished(true);
@@ -160,7 +207,9 @@ class CsoundInstance : public pp::Instance {
 			  PPB_GetInterface get_browser_interface)
     : pp::Instance(instance),
       csound(NULL), count(0), fileResult(0), 
-      from(NULL), dest(NULL), csd(NULL), compiled(false), finished(false)
+    from(NULL), dest(NULL), csd(NULL), compiled(false), finished(false),
+    is_running(false), input_is_on(false),
+    audio_callback_factory(this)
         
   {
     get_browser_interface_ = get_browser_interface;
@@ -170,6 +219,7 @@ class CsoundInstance : public pp::Instance {
     if(dest) free(dest); 
     if(from) free(from);
     if(csound){
+      delete[] input_buffer;
       csoundDestroyMessageBuffer(csound);
       csoundDestroy(csound);
     }
@@ -183,7 +233,8 @@ bool CsoundInstance::Init(uint32_t argc,
 			  const char* argv[]) {
 
   csound = csoundCreate(NULL);
-  csoundCreateMessageBuffer(csound, 0);  
+  csoundCreateMessageBuffer(csound, 0); 
+  
   nacl_io_init_ppapi(pp_instance(),get_browser_interface_);
 
   // this is to prevent a segfault with Csound
@@ -226,6 +277,10 @@ bool CsoundInstance::StartDAC(){
 		  pp::AudioConfig(this, PP_AUDIOSAMPLERATE_44100, frames),
 		  CsoundCallback,
 		  this);
+    int cbufsiz = kSampleFrameCount*csoundGetNchnls(csound)*4;
+    circularBuffer = csoundCreateCircularBuffer(csound, cbufsiz, sizeof(short));
+    // FIXME: this assumes input will be at max 2 channels
+    input_buffer = new short[csoundGetKsmps(csound)*2];
     dac.StartPlayback();
     return true;
 }
@@ -314,6 +369,21 @@ void CsoundInstance::PlayCsound() {
 
 void CsoundInstance::HandleMessage(const pp::Var& var_message) {
   if (!var_message.is_string()) {
+   if(!var_message.is_dictionary())
+      return;
+   if(!input_is_on) {
+    pp::VarDictionary var_dictionary_message(var_message);
+    pp::Var var_input = var_dictionary_message.Get("input");
+    if (!var_input.is_resource())
+      return;  
+    pp::Resource resource_input = var_input.AsResource();
+    audio_input  = pp::MediaStreamAudioTrack(resource_input);
+    audio_input.GetBuffer(audio_callback_factory.NewCallbackWithOutput(
+          &CsoundInstance::OnGetInput));
+    PostMessage("Csound: started audio input...\n");
+   } else {
+    PostMessage("Csound: audio input has started already...\n");
+   }
     return;
   }
   std::string message = var_message.AsString();
