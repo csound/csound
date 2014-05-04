@@ -7,7 +7,7 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
 <!-- html --> 
 <meta name="src" content="pnacl_csound.tex"> 
-<meta name="date" content="2013-11-26 19:54:00"> 
+<meta name="date" content="2014-05-02 23:09:00"> 
 <link rel="stylesheet" type="text/css" href="pnacl_csound.css"> 
 </head><body 
 >
@@ -23,7 +23,7 @@
 <div class="author" ><span 
 class="cmr-12">Victor Lazzarini</span></div><br />
 <div class="date" ><span 
-class="cmr-12">November 26, 2013</span></div>
+class="cmr-12">May 2, 2014</span></div>
    </div>
    <h3 class="sectionHead"><span class="titlemark">1   </span> <a 
  id="x1-10001"></a>Introduction</h3>
@@ -123,28 +123,32 @@ class="cmtt-10x-x-109">csound.RenderCsd(s) </span>- renders a CSD file s, which 
 class="cmtt-10x-x-109">csound.Pause() </span>- pauses performance
      </li>
      <li class="itemize"><span 
+class="cmtt-10x-x-109">csound.StartAudioInput() </span>- switches on audio input (available in
+     Chrome version 36 onwards)
+     </li>
+     <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.CompileOrc(s) </span>- compiles the Csound code in the string s
      </li>
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.ReadScore(s) </span>-  reads  the  score  in  the  string  s  (with
      preprocessing support)
+                                                                     
+
+                                                                     
      </li>
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.Event(s) </span>- sends in the line events contained in the string s
      (no preprocessing)
-                                                                     
-
-                                                                     
      </li>
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.SetChannel(name, value) </span>- sends the control channel <span 
 class="cmti-10x-x-109">name</span>
      the value <span 
 class="cmti-10x-x-109">value</span>, both arguments being strings.</li></ul>
-<!--l. 86--><p class="noindent" >
+<!--l. 88--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.2   </span> <a 
  id="x1-80003.2"></a>Filesystem functions</h4>
-<!--l. 88--><p class="noindent" >In order to facilitate access to files, the following filesystem functions can be
+<!--l. 90--><p class="noindent" >In order to facilitate access to files, the following filesystem functions can be
 used:
      <ul class="itemize1">
      <li class="itemize"><span 
@@ -173,18 +177,18 @@ class="cmti-10x-x-109">src</span>. The &#8220;Complete&#8221; message is issued 
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.GetFileData() </span>- returns the most recently requested file data
      as an ArrayObject.</li></ul>
-<!--l. 101--><p class="noindent" >
+<!--l. 103--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.3   </span> <a 
  id="x1-90003.3"></a>Callbacks</h4>
-<!--l. 103--><p class="noindent" >The csound.js module will call the following window functions when it
+<!--l. 105--><p class="noindent" >The csound.js module will call the following window functions when it
 starts:
+                                                                     
+
+                                                                     
      <ul class="itemize1">
      <li class="itemize"><span 
 class="cmtt-10x-x-109">function moduleDidLoad()</span>: this is called as soon as the module is
      loaded
-                                                                     
-
-                                                                     
      </li>
      <li class="itemize"><span 
 class="cmtt-10x-x-109">function handleMessage(message)</span>: called when there are messages
@@ -194,7 +198,7 @@ class="cmtt-10x-x-109">function handleMessage(message)</span>: called when there
      <li class="itemize"><span 
 class="cmtt-10x-x-109">function attachListeners()</span>:  this  is  called  when  listeners  for
      different events are to be attached.</li></ul>
-<!--l. 112--><p class="indent" >   You should implement these functions in your HTML page script, in order to
+<!--l. 114--><p class="indent" >   You should implement these functions in your HTML page script, in order to
 use the Csound javascript interface. In addition to the above, Csound javascript
 module messages are always sent to the HTML element with id=&#8216;console&#8217;, which
 is normally of type <span 
@@ -202,14 +206,14 @@ class="cmmi-10x-x-109">&#x003C;</span>div<span
 class="cmmi-10x-x-109">&#x003E; </span>or <span 
 class="cmmi-10x-x-109">&#x003C;</span>textarea<span 
 class="cmmi-10x-x-109">&#x003E;</span>.
-<!--l. 116--><p class="noindent" >
+<!--l. 118--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.4   </span> <a 
  id="x1-100003.4"></a>Example</h4>
-<!--l. 118--><p class="noindent" >Here is a minimal HTML example showing the use of Csound
-   <!--l. 120--><div class="lstinputlisting">
+<!--l. 120--><p class="noindent" >Here is a minimal HTML example showing the use of Csound
+   <!--l. 122--><div class="lstinputlisting">
 <a 
  id="x1-10001"></a>
-<!--l. 120--><p class="indent" >   <span 
+<!--l. 122--><p class="indent" >   <span 
 class="cmtt-10x-x-109">, </span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
  id="x1-10002r1"></a></span><span 
@@ -373,19 +377,59 @@ class="cmtt-9">&#x00A0;</span><br /><span class="label"><a
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">"</span><span 
-class="cmtt-9">a1</span><span 
+class="cmtt-9">icps</span><span 
 class="cmtt-9">&#x00A0;</span><span 
-class="cmtt-9">oscili</span><span 
+class="cmtt-9">=</span><span 
 class="cmtt-9">&#x00A0;</span><span 
-class="cmtt-9">0.1,440+</span><span 
+class="cmtt-9">440+</span><span 
 class="cmtt-9">rnd</span><span 
-class="cmtt-9">(440)\</span><span 
+class="cmtt-9">(440)</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">\</span><span 
 class="cmtt-9">n</span><span 
 class="cmtt-9">"</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">+</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
  id="x1-10018r17"></a></span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">"</span><span 
+class="cmtt-9">chnset</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">icps</span><span 
+class="cmtt-9">,</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">\</span><span 
+class="cmtt-9">"</span><span 
+class="cmtt-9">freq</span><span 
+class="cmtt-9">\</span><span 
+class="cmtt-9">"</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">\</span><span 
+class="cmtt-9">n</span><span 
+class="cmtt-9">"</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">+</span><span 
+class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
+ id="x1-10019r18"></a></span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">"</span><span 
+class="cmtt-9">a1</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">oscili</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">0.1,</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">icps</span><span 
+class="cmtt-9">\</span><span 
+class="cmtt-9">n</span><span 
+class="cmtt-9">"</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">+</span><span 
+class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
+ id="x1-10020r19"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">"</span><span 
@@ -401,7 +445,7 @@ class="cmtt-9">"</span><span
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">+</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10019r18"></a></span><span 
+ id="x1-10021r20"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">"</span><span 
@@ -409,7 +453,7 @@ class="cmtt-9">endin</span><span
 class="cmtt-9">"</span><span 
 class="cmtt-9">);</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10020r19"></a></span><span 
+ id="x1-10022r21"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">document</span><span 
@@ -441,11 +485,11 @@ class="cmtt-9">play</span><span
 class="cmtt-9">"</span><span 
 class="cmtt-9">;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10021r20"></a></span><span 
+ id="x1-10023r22"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">}</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10022r21"></a></span><span 
+ id="x1-10024r23"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">function</span><span 
 class="cmtt-9">&#x00A0;</span><span 
@@ -454,7 +498,7 @@ class="cmtt-9">()</span><span
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">{</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10023r22"></a></span><span 
+ id="x1-10025r24"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
@@ -467,7 +511,7 @@ class="cmtt-9">mess</span><span
 class="cmtt-9">"</span><span 
 class="cmtt-9">).</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10024r23"></a></span><span 
+ id="x1-10026r25"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
@@ -484,11 +528,11 @@ class="cmtt-9">,</span><span
 class="cmtt-9">Play</span><span 
 class="cmtt-9">);</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10025r24"></a></span><span 
+ id="x1-10027r26"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">}</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10026r25"></a></span><span 
+ id="x1-10028r27"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">function</span><span 
 class="cmtt-9">&#x00A0;</span><span 
@@ -499,7 +543,7 @@ class="cmtt-9">)</span><span
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">{</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10027r26"></a></span><span 
+ id="x1-10029r28"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
@@ -514,7 +558,77 @@ class="cmtt-9">.</span><span
 class="cmtt-9">data</span><span 
 class="cmtt-9">;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10028r27"></a></span><span 
+ id="x1-10030r29"></a></span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">if</span><span 
+class="cmtt-9">(</span><span 
+class="cmtt-9">mess</span><span 
+class="cmtt-9">.</span><span 
+class="cmtt-9">slice</span><span 
+class="cmtt-9">(0,11)</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">==</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">"</span><span 
+class="cmtt-9">::</span><span 
+class="cmtt-9">control</span><span 
+class="cmtt-9">::</span><span 
+class="cmtt-9">"</span><span 
+class="cmtt-9">)</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">{</span><span 
+class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
+ id="x1-10031r30"></a></span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">var</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">messField</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">=</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">document</span><span 
+class="cmtt-9">.</span><span 
+class="cmtt-9">getElementById</span><span 
+class="cmtt-9">(</span><span 
+class="cmtt-9">"</span><span 
+class="cmtt-9">console</span><span 
+class="cmtt-9">"</span><span 
+class="cmtt-9">)</span><span 
+class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
+ id="x1-10032r31"></a></span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">messField</span><span 
+class="cmtt-9">.</span><span 
+class="cmtt-9">innerText</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">=</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">mess</span><span 
+class="cmtt-9">.</span><span 
+class="cmtt-9">slice</span><span 
+class="cmtt-9">(11);</span><span 
+class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
+ id="x1-10033r32"></a></span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">}</span><span 
+class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
+ id="x1-10034r33"></a></span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">else</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">{</span><span 
+class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
+ id="x1-10035r34"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
@@ -533,7 +647,7 @@ class="cmtt-9">mess</span><span
 class="cmtt-9">"</span><span 
 class="cmtt-9">)</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10029r28"></a></span><span 
+ id="x1-10036r35"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
@@ -546,13 +660,31 @@ class="cmtt-9">&#x00A0;</span><span
 class="cmtt-9">mess</span><span 
 class="cmtt-9">;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10030r29"></a></span><span 
+ id="x1-10037r36"></a></span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">csound</span><span 
+class="cmtt-9">.</span><span 
+class="cmtt-9">RequestChannel</span><span 
+class="cmtt-9">(</span><span 
+class="cmtt-9">"</span><span 
+class="cmtt-9">freq</span><span 
+class="cmtt-9">"</span><span 
+class="cmtt-9">);</span><span 
+class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
+ id="x1-10038r37"></a></span><span 
+class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">}</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10031r30"></a></span><span 
+ id="x1-10039r38"></a></span><span 
+class="cmtt-9">&#x00A0;</span><span 
+class="cmtt-9">}</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10032r31"></a></span><span 
+ id="x1-10040r39"></a></span><span 
+class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
+ id="x1-10041r40"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">//</span><span 
 class="cmtt-9">&#x00A0;</span><span 
@@ -560,7 +692,7 @@ class="cmtt-9">click</span><span
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">handler</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10033r32"></a></span><span 
+ id="x1-10042r41"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">function</span><span 
 class="cmtt-9">&#x00A0;</span><span 
@@ -569,7 +701,7 @@ class="cmtt-9">()</span><span
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">{</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10034r33"></a></span><span 
+ id="x1-10043r42"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
@@ -588,29 +720,29 @@ class="cmtt-9">5</span><span
 class="cmtt-9">"</span><span 
 class="cmtt-9">);</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10035r34"></a></span><span 
+ id="x1-10044r43"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">}</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10036r35"></a></span><span 
+ id="x1-10045r44"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x003C;</span><span 
 class="cmtt-9">/</span><span 
 class="cmtt-9">script</span><span 
 class="cmtt-9">&#x003E;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10037r36"></a></span><span 
+ id="x1-10046r45"></a></span><span 
 class="cmtt-9">&#x003C;</span><span 
 class="cmtt-9">/</span><span 
 class="cmtt-9">head</span><span 
 class="cmtt-9">&#x003E;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10038r37"></a></span><span 
+ id="x1-10047r46"></a></span><span 
 class="cmtt-9">&#x003C;</span><span 
 class="cmtt-9">body</span><span 
 class="cmtt-9">&#x003E;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10039r38"></a></span><span 
+ id="x1-10048r47"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x003C;</span><span 
@@ -627,7 +759,7 @@ class="cmtt-9">/</span><span
 class="cmtt-9">div</span><span 
 class="cmtt-9">&#x003E;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10040r39"></a></span><span 
+ id="x1-10049r48"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
@@ -646,7 +778,7 @@ class="cmtt-9">/</span><span
 class="cmtt-9">h3</span><span 
 class="cmtt-9">&#x003E;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10041r40"></a></span><span 
+ id="x1-10050r49"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x003C;</span><span 
@@ -659,9 +791,9 @@ class="cmtt-9">mess</span><span
 class="cmtt-9">"</span><span 
 class="cmtt-9">&#x003E;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10042r41"></a></span><span 
+ id="x1-10051r50"></a></span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10043r42"></a></span><span 
+ id="x1-10052r51"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x003C;</span><span 
@@ -669,7 +801,7 @@ class="cmtt-9">/</span><span
 class="cmtt-9">div</span><span 
 class="cmtt-9">&#x003E;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10044r43"></a></span><span 
+ id="x1-10053r52"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x003C;</span><span 
@@ -683,7 +815,7 @@ class="cmitt-10x-x-90">module</span><span
 class="cmitt-10x-x-90">--</span><span 
 class="cmtt-9">&#x003E;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10045r44"></a></span><span 
+ id="x1-10054r53"></a></span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">&#x003C;</span><span 
@@ -700,34 +832,32 @@ class="cmtt-9">/</span><span
 class="cmtt-9">div</span><span 
 class="cmtt-9">&#x003E;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10046r45"></a></span><span 
+ id="x1-10055r54"></a></span><span 
 class="cmtt-9">&#x003C;</span><span 
 class="cmtt-9">/</span><span 
 class="cmtt-9">body</span><span 
 class="cmtt-9">&#x003E;</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
- id="x1-10047r46"></a></span><span 
+ id="x1-10056r55"></a></span><span 
 class="cmtt-9">&#x003C;</span><span 
 class="cmtt-9">/</span><span 
 class="cmtt-9">html</span><span 
 class="cmtt-9">&#x003E;</span>
    
    </div>
-<!--l. 122--><p class="noindent" >
+<!--l. 124--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">4   </span> <a 
  id="x1-110004"></a>Limitations</h3>
-<!--l. 124--><p class="noindent" >The following limitations apply:
+<!--l. 126--><p class="noindent" >The following limitations apply:
      <ul class="itemize1">
-     <li class="itemize">no realtime audio input (not supported yet in Pepper/NaCl)
-     </li>
      <li class="itemize">no  MIDI  in  the  NaCl  module.  However,  it  might  be  possible  to
      implement MIDI in javascript, and using the csound.js functions, send
      data to Csound, and respond to MIDI NOTE messages.
-     </li>
-     <li class="itemize">no  plugins,  as  pNaCl  does  not  support  dlopen()  and  friends.  This
                                                                      
 
                                                                      
+     </li>
+     <li class="itemize">no  plugins,  as  pNaCl  does  not  support  dlopen()  and  friends.  This
      means some opcodes are not available as they reside in plugin libraries.
      It might be possible to add some of these opcodes statically to the
      Csound pNaCl library in the future.</li></ul>

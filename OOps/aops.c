@@ -243,7 +243,18 @@ LOGCLX(or,||)
 KK(addkk,+)
 KK(subkk,-)
 KK(mulkk,*)
-KK(divkk,/)
+//KK(divkk,/)
+int divkk(CSOUND *csound, AOP *p)
+{
+    MYFLT div = *p->b;
+    IGN(csound);
+    if (div!=FL(0.0)) {
+      *p->r = *p->a / div;
+      return OK;
+    }
+    else
+      return csound->PerfError(csound, p->h.insdshead, Str("Division by zero"));
+}
 
 MYFLT MOD(MYFLT a, MYFLT bb)
 {
@@ -344,7 +355,34 @@ int modka(CSOUND *csound, AOP *p)
 AK(addak,+)
 AK(subak,-)
 AK(mulak,*)
-AK(divak,/)
+//AK(divak,/)
+int divak(CSOUND *csound, AOP *p) {
+    uint32_t n, nsmps = CS_KSMPS;  
+    if (LIKELY(nsmps != 1)) {      
+      MYFLT   *r, *a, b;           
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early  = p->h.insdshead->ksmps_no_end;
+      r = p->r;                    
+      a = p->a;                    
+      b = *p->b;
+      if (UNLIKELY(b==FL(0.0)))
+        return csound->PerfError(csound, p->h.insdshead, Str("Division by zero"));
+      if (UNLIKELY(offset))        
+        memset(r, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {       
+        nsmps -= early;            
+        memset(&r[nsmps], '\0', early*sizeof(MYFLT)); \
+      }                            
+      for (n=offset; n<nsmps; n++) 
+        r[n] = a[n] / b;          
+      return OK;                   
+    }                              
+    else {                         
+      p->r[0] = p->a[0] / *p->b;  
+      return OK;                   
+    }                              
+}
+
 
 /* ********COULD BE IMPROVED******** */
 int modak(CSOUND *csound, AOP *p)
