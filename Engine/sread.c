@@ -813,28 +813,20 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
       salcblk(csound);          /* build a line structure; init bp,nxp  */
     again:
       switch (STA(op)) {         /*  and dispatch on opcodes             */
-      case 'i':
-      case 'f':
-      case 'a':
-      case 'q':
-        ifa(csound);
-        break;
-      case 'w':
-        STA(warpin)++;
-        copypflds(csound);
-        break;
       case 'y':
-        ifa(csound);
-        //printf("set seed in score\n");
         {
           char  *p = &(STA(bp)->text[1]);
           char q;
-          char *old_nxp = STA(nxp)-2;
-          while (isblank(*p)) p++;
+          //char *old_nxp = STA(nxp)-2;
+          //printf("text=%s<<\n", STA(bp)->text);
           /* Measurement shows isdigit and 3 cases is about 30% */
           /* faster than use of strchr (measured on Suse9.3)    */
           /*         if (strchr("+-.0123456789", *p) != NULL) { */
-          q = *p;
+          while ((q=getscochar(csound,1))!='\n') *p++ = q;
+          *p = '\0';
+          //printf("text=%s<<\n", STA(bp)->text);
+          p = &(STA(bp)->text[1]);
+          while (isblank(q=*p)) p++;
           if (isdigit(q) || q=='+' || q=='-' || q=='.') {
             double  tt;
             char    *tmp = p;
@@ -850,14 +842,22 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             csound->randSeed1 = tmp+1;
             printf("seed from clock %d\n", csound->randSeed1);
           }
-          flushlin(csound);
-          // Really we need to remove this line totally but this did not work
-          STA(op) = getop(csound);
-          STA(nxp) = old_nxp;
-          *STA(nxp)++ = STA(op); /* Undo this line */
-          STA(nxp)++;
+          //printf("cleaning up\n");
+          break;
+          //q = STA(op) = getop(csound);
+          //printf("next op = %c(%.2x)\n", q, q);
+          //goto again;
         }
-        goto again;
+      case 'i':
+      case 'f':
+      case 'a':
+      case 'q':
+        ifa(csound);
+        break;
+      case 'w':
+        STA(warpin)++;
+        copypflds(csound);
+        break;
       case 't':
         copypflds(csound);
         break;
@@ -1198,7 +1198,9 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
       case -1:
         break;
       default:
-        csound->Message(csound,Str("sread is confused on legal opcodes\n"));
+        csound->Message(csound,
+                        Str("sread is confused on legal opcodes %c(%.2x)\n"),
+                        STA(op), STA(op));
         break;
       }
     }
