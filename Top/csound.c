@@ -1651,7 +1651,7 @@ int kperf_debug(CSOUND *csound)
             data->bkpt_anchor->next = bkpt_node;
         }
       }
-      if (command == CSDEBUG_CMD_CONTINUE) {
+      if (command == CSDEBUG_CMD_CONTINUE && data->status == CSDEBUG_STATUS_STOPPED) {
         data->status = CSDEBUG_STATUS_CONTINUE;
       }
     }
