@@ -423,7 +423,7 @@ static inline double csoundUndenormalizeDouble(double x)
 # define CS_SSCANF cs_sscanf
 /* #endif */
 
-#ifndef HAVE_STRLCAT
+#if !defined(HAVE_STRLCAT) && !defined(strlcat)
 size_t strlcat(char *dst, const char *src, size_t siz);
 #endif
 
