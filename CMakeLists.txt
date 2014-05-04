@@ -282,10 +282,6 @@ option(BUILD_TESTS "Build for release" ON)
 
 set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
-# This needs to be here since _everybody_ needs this flag
-if(USE_DOUBLE)
-    add_definitions("-DUSE_DOUBLE")
-endif(USE_DOUBLE)
 check_c_compiler_flag(-fvisibility=hidden HAS_VISIBILITY_HIDDEN)
 check_cxx_compiler_flag(-fvisibility=hidden HAS_CXX_VISIBILITY_HIDDEN)
 if (HAS_VISIBILITY_HIDDEN)
@@ -875,6 +871,7 @@ endif()
 
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 if(NEW_PARSER_DEBUG)
     message(STATUS "Building with new parser debugging")
@@ -907,7 +904,7 @@ add_subdirectory(include)
 if(APPLE)
     string(REGEX REPLACE "([^;]+)(;|$)" "include/\\1\\2" csheaders "${csheaders}")
     file(GLOB H_headers "${CMAKE_CURRENT_SOURCE_DIR}/H/*.h")
-    set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers}")
+    set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h")
 endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
@@ -922,7 +919,7 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
 if(APPLE)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
-    set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER "${csheaders}")
+    set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER "${csheaders};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h")
 endif()
 
 # This copies libsndfile into the framework and sets the install names

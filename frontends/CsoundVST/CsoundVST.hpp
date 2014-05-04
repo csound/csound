@@ -29,6 +29,7 @@
 #include <mmsystem.h>
 #endif
 #include "public.sdk/source/vst2.x/audioeffectx.h"
+#include <float-version.h>
 #include <CppSound.hpp>
 #include <list>
 

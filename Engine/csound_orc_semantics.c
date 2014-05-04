@@ -283,7 +283,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         else
           if (UNLIKELY(tree->right->type != LABEL_TOKEN))
             synterr(csound,
-                    Str("Use of i() with expression not permitted\n"));
+                    Str("Use of i() with expression not permitted on line %d\n"),
+                    tree->line);
       }
 
       if (tree->type == T_FUNCTION) {
@@ -300,7 +301,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         if (UNLIKELY(out == 0)) {
           synterr(csound, Str("error: opcode '%s' for expression with arg "
-                              "types %s not found, line %d \n"),
+                              "types %s not found, line %d\n"),
                   opname, argTypeRight, tree->line);
           do_baktrace(csound, tree->locn);
           return NULL;
