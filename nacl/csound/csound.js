@@ -246,6 +246,18 @@ var csound = (function() {
    }
 
   /**
+   * Sets the value of a table position
+   *
+   * @param {string} num The table to be set.
+   * @param {string} pos The pos to set.
+   * @param {string} value The value to set.
+   */
+    function SetTable(num, pos, value){
+    var mess = 'setTable:' + num + ':' + pos + ':';
+    csound.module.postMessage(mess + value);
+   }
+
+  /**
    * Sets the value of a string channel in Csound
    *
    * @param {string} name The channel to be set.
@@ -360,6 +372,7 @@ var csound = (function() {
     CompileOrc: CompileOrc,
     ReadScore: ReadScore,
     Event: Event,
+    SetTable : SetTable,
     SetChannel: SetChannel,
     CopyToLocal: CopyToLocal,
     CopyUrlToLocal: CopyUrlToLocal,
