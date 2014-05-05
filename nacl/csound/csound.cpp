@@ -360,6 +360,7 @@ void CsoundInstance::PlayCsound() {
     csoundSetOption(csound, (char *) "-k689.0625");
     csoundSetOption(csound, (char *) "--0dbfs=1");
     csoundSetOption(csound, (char *) "-b1024");
+    csoundSetOption(csound, (char *) "--nodisplays");
     csoundSetOption(csound, (char *) "--daemon");
     csoundStart(csound);
     compiled = true;

@@ -7,7 +7,7 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
 <!-- html --> 
 <meta name="src" content="pnacl_csound.tex"> 
-<meta name="date" content="2014-05-02 23:09:00"> 
+<meta name="date" content="2014-05-05 17:17:00"> 
 <link rel="stylesheet" type="text/css" href="pnacl_csound.css"> 
 </head><body 
 >
@@ -23,7 +23,7 @@
 <div class="author" ><span 
 class="cmr-12">Victor Lazzarini</span></div><br />
 <div class="date" ><span 
-class="cmr-12">May 2, 2014</span></div>
+class="cmr-12">May 5, 2014</span></div>
    </div>
    <h3 class="sectionHead"><span class="titlemark">1   </span> <a 
  id="x1-10001"></a>Introduction</h3>
@@ -144,11 +144,20 @@ class="cmtt-10x-x-109">csound.Event(s) </span>- sends in the line events contain
 class="cmtt-10x-x-109">csound.SetChannel(name, value) </span>- sends the control channel <span 
 class="cmti-10x-x-109">name</span>
      the value <span 
-class="cmti-10x-x-109">value</span>, both arguments being strings.</li></ul>
-<!--l. 88--><p class="noindent" >
+class="cmti-10x-x-109">value</span>, both arguments being strings.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">csound.RequestTable(num) </span>- requests the table data for table <span 
+class="cmti-10x-x-109">num</span>.
+     The &#8220;Table::Complete&#8221; message is issued on completion.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">csound.GetTableData() </span>- returns the most recently requested table
+     data as an ArrayObject.</li></ul>
+<!--l. 93--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.2   </span> <a 
  id="x1-80003.2"></a>Filesystem functions</h4>
-<!--l. 90--><p class="noindent" >In order to facilitate access to files, the following filesystem functions can be
+<!--l. 95--><p class="noindent" >In order to facilitate access to files, the following filesystem functions can be
 used:
      <ul class="itemize1">
      <li class="itemize"><span 
@@ -177,14 +186,14 @@ class="cmti-10x-x-109">src</span>. The &#8220;Complete&#8221; message is issued 
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.GetFileData() </span>- returns the most recently requested file data
      as an ArrayObject.</li></ul>
-<!--l. 103--><p class="noindent" >
-   <h4 class="subsectionHead"><span class="titlemark">3.3   </span> <a 
- id="x1-90003.3"></a>Callbacks</h4>
-<!--l. 105--><p class="noindent" >The csound.js module will call the following window functions when it
-starts:
                                                                      
 
                                                                      
+<!--l. 108--><p class="noindent" >
+   <h4 class="subsectionHead"><span class="titlemark">3.3   </span> <a 
+ id="x1-90003.3"></a>Callbacks</h4>
+<!--l. 110--><p class="noindent" >The csound.js module will call the following window functions when it
+starts:
      <ul class="itemize1">
      <li class="itemize"><span 
 class="cmtt-10x-x-109">function moduleDidLoad()</span>: this is called as soon as the module is
@@ -198,7 +207,7 @@ class="cmtt-10x-x-109">function handleMessage(message)</span>: called when there
      <li class="itemize"><span 
 class="cmtt-10x-x-109">function attachListeners()</span>:  this  is  called  when  listeners  for
      different events are to be attached.</li></ul>
-<!--l. 114--><p class="indent" >   You should implement these functions in your HTML page script, in order to
+<!--l. 119--><p class="indent" >   You should implement these functions in your HTML page script, in order to
 use the Csound javascript interface. In addition to the above, Csound javascript
 module messages are always sent to the HTML element with id=&#8216;console&#8217;, which
 is normally of type <span 
@@ -206,14 +215,14 @@ class="cmmi-10x-x-109">&#x003C;</span>div<span
 class="cmmi-10x-x-109">&#x003E; </span>or <span 
 class="cmmi-10x-x-109">&#x003C;</span>textarea<span 
 class="cmmi-10x-x-109">&#x003E;</span>.
-<!--l. 118--><p class="noindent" >
+<!--l. 123--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">3.4   </span> <a 
  id="x1-100003.4"></a>Example</h4>
-<!--l. 120--><p class="noindent" >Here is a minimal HTML example showing the use of Csound
-   <!--l. 122--><div class="lstinputlisting">
+<!--l. 125--><p class="noindent" >Here is a minimal HTML example showing the use of Csound
+   <!--l. 127--><div class="lstinputlisting">
 <a 
  id="x1-10001"></a>
-<!--l. 122--><p class="indent" >   <span 
+<!--l. 127--><p class="indent" >   <span 
 class="cmtt-10x-x-109">, </span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
  id="x1-10002r1"></a></span><span 
@@ -845,17 +854,17 @@ class="cmtt-9">html</span><span
 class="cmtt-9">&#x003E;</span>
    
    </div>
-<!--l. 124--><p class="noindent" >
+<!--l. 129--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">4   </span> <a 
  id="x1-110004"></a>Limitations</h3>
-<!--l. 126--><p class="noindent" >The following limitations apply:
+<!--l. 131--><p class="noindent" >The following limitations apply:
+                                                                     
+
+                                                                     
      <ul class="itemize1">
      <li class="itemize">no  MIDI  in  the  NaCl  module.  However,  it  might  be  possible  to
      implement MIDI in javascript, and using the csound.js functions, send
      data to Csound, and respond to MIDI NOTE messages.
-                                                                     
-
-                                                                     
      </li>
      <li class="itemize">no  plugins,  as  pNaCl  does  not  support  dlopen()  and  friends.  This
      means some opcodes are not available as they reside in plugin libraries.
