@@ -83,7 +83,11 @@ The ``finished render" message is issued on completion.
 \item {\tt csound.ReadScore(s)} - reads the score in the string s (with preprocessing support)
 \item {\tt csound.Event(s)} - sends in the line events contained in the string s (no preprocessing)
 \item {\tt csound.SetChannel(name, value)} - sends the control channel
-  \emph{name} the value \emph{value}, both arguments being strings.
+  \emph{name} the value \emph{value}.
+\item {\tt csound.SetStrinhChannel(name, string)} - sends the string channel
+  \emph{name} the string \emph{string}.
+\item {\tt csound.SetTable(num, pos, value)} - sets the table
+  \emph{name} at index \emph{pos} the value \emph{value}.
 \item {\tt csound.RequestTable(num)} - requests the table data for
   table \emph{num}. The ``Table::Complete" message is issued on completion. 
 \item {\tt csound.GetTableData()} - returns the most recently
