@@ -54,6 +54,7 @@ namespace {
   const char* const kCopyId = "copyToLocal";
   const char* const kCopyUrlId = "copyUrlToLocal";
   const char* const kGetFileId = "getFile";
+  const char* const kGetTableId = "getTable";
   const char* const kCsdId = "csd";
   const char* const kRenderId = "render";
   static const char kMessageArgumentSeparator = ':';
@@ -292,6 +293,7 @@ void* compileThreadFunc(void *data) {
   char *argv[] = {(char *)"csound", p->GetCsd(), (char *)"-+rtaudio=null"}; 
   MYFLT sr = 0.0;
   if(csoundCompile(csound,3,argv) == 0){
+    p->PostMessage("Compiled");
   if(p->StartDAC())
     p->isCompiled(true);
   else {
@@ -496,6 +498,27 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
     if (sep_pos != std::string::npos) {      
       std::string string_arg = message.substr(sep_pos + 1);
       GetFileFromLocalAsync((char *)string_arg.c_str()); 
+    }
+    }
+    else if (message.find(kGetTableId) == 0) {
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {   
+        
+      std::string svalue = message.substr(sep_pos + 1);
+      std::istringstream stream(svalue);
+      MYFLT tab;
+      if(stream >> tab){
+	int len = csoundTableLength(csound, tab); 
+        if(len > 0){
+          PostMessage("ReadingTable:");
+          pp::VarArrayBuffer v2 = pp::VarArrayBuffer(len*sizeof(MYFLT));
+          void *dest = v2.Map();
+          csoundTableCopyOut(csound, tab, (MYFLT*) dest);
+          v2.Unmap();    
+          PostMessage(v2);
+          PostMessage("Table::Complete");
+	}
+      } 
     }
   } else {
     PostMessage("message not handled: ");

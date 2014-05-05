@@ -113,6 +113,18 @@ var csound = (function() {
         csoundhook.addEventListener('message', handleMessage, true);
    }
 
+  var tableData = null;
+  function handleTableMessage(event) {
+      updateStatus("fetching table data\n");
+      tableData = event.data;
+      updateStatus("finished fetching table data\n");
+        var csoundhook= document.getElementById('engine');
+        csoundhook.removeEventListener('message', handleTableMessage, true);
+        csoundhook.addEventListener('message', handleMessage, true);
+   }
+
+
+
   /**
    * handles messages by passing them to the window handler
    *
@@ -126,6 +138,11 @@ var csound = (function() {
           var csoundhook= document.getElementById('engine');
           csoundhook.removeEventListener('message', handleMessage, true);
           csoundhook.addEventListener('message', handleFileMessage, true);
+	}
+        else if(event.data == "ReadingTable:"){
+          var csoundhook= document.getElementById('engine');
+          csoundhook.removeEventListener('message', handleMessage, true);
+          csoundhook.addEventListener('message', handleTableMessage, true);
 	}
        else 
        window.handleMessage(event);
@@ -296,6 +313,24 @@ var csound = (function() {
        return fileData;
    }
 
+  /**
+   * Requests the data from a table
+   * module sends "Complete" message when done.
+   *
+   * @param {string} url  The file name
+   */
+   function RequestTable(num) {
+     csound.module.postMessage("getTable:" + num);
+   }
+
+  /**
+   * Returns the most recently requested table data.
+   *
+   */
+   function GetTableData(){
+       return tableData;
+   }
+
    function input_ok(s) {
     csound.module.postMessage({input: s.getAudioTracks()[0]});
    }
@@ -331,6 +366,8 @@ var csound = (function() {
     RequestFileFromLocal: RequestFileFromLocal,
     GetFileData : GetFileData,
     RequestChannel: RequestChannel,
+    GetTableData : GetTableData,
+    RequestTable: RequestTable,
     SetStringChannel: SetStringChannel,
     StartInputAudio: StartInputAudio
   };
