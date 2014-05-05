@@ -82,7 +82,12 @@ The ``finished render" message is issued on completion.
 \item {\tt csound.CompileOrc(s)} - compiles the Csound code in the string s
 \item {\tt csound.ReadScore(s)} - reads the score in the string s (with preprocessing support)
 \item {\tt csound.Event(s)} - sends in the line events contained in the string s (no preprocessing)
-\item {\tt csound.SetChannel(name, value)} - sends the control channel \emph{name} the value \emph{value}, both arguments being strings.
+\item {\tt csound.SetChannel(name, value)} - sends the control channel
+  \emph{name} the value \emph{value}, both arguments being strings.
+\item {\tt csound.RequestTable(num)} - requests the table data for
+  table \emph{num}. The ``Table::Complete" message is issued on completion. 
+\item {\tt csound.GetTableData()} - returns the most recently
+  requested table data as an ArrayObject. 
 \end{itemize}
 
 \subsection{Filesystem functions}
