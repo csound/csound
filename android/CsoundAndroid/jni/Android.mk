@@ -135,6 +135,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/cpumeter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gendy.c \
 $(CSOUND_SRC_ROOT)/Opcodes/tl/sc_noise.c \
 $(CSOUND_SRC_ROOT)/Top/argdecode.c \
+$(CSOUND_SRC_ROOT)/Top/csdebug.c \
 $(CSOUND_SRC_ROOT)/Top/cscore_internal.c \
 $(CSOUND_SRC_ROOT)/Top/cscorfns.c \
 $(CSOUND_SRC_ROOT)/Top/csmodule.c \
@@ -253,10 +254,11 @@ LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc
 
 # For building without plugins, but with support for plugins that may depend on GNU STL, use:
 
-LOCAL_SHARED_LIBRARIES += gnustl_shared sndfile 
+LOCAL_SHARED_LIBRARIES += gnustl_shared sndfile
+#LOCAL_STATIC_LIBRARIES += sndfile
+
 
 include $(BUILD_SHARED_LIBRARY)
-
 $(call import-module,libsndfile-android/jni)
 #$(call import-module,libstdutil/jni)
 #$(call import-module,libfluidsynth/jni)

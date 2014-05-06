@@ -357,6 +357,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       strncpy(msg, Str("No real-time audio configurations found"), MSGLEN);
       goto err_return_msg;
     }
+
     /* now set the various hardware parameters: */
     /* access method, */
     if (snd_pcm_hw_params_set_access(dev->handle, hw_params,
@@ -393,13 +394,14 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     {
       unsigned int target = dev->srate;
       if (snd_pcm_hw_params_set_rate_near(dev->handle, hw_params,
-                                          (unsigned int *) &dev->srate, 0) < 0) {
+                                          (unsigned int *) &dev->srate, 0) < 0){
         strncpy(msg, Str("Unable to set sample rate on soundcard"), MSGLEN);
         goto err_return_msg;
       }
       if (dev->srate!=target)
         p->MessageS(p, CSOUNDMSG_WARNING, " *** rate set to %d\n", dev->srate);
     }
+    csound->system_sr(csound, (MYFLT) dev->srate);
     /* buffer size, */
     if (dev->buffer_smps == 0)
       dev->buffer_smps = 1024;
@@ -447,10 +449,11 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       goto err_return_msg;
     }
     /* print settings */
+
     if (p->GetMessageLevel(p) != 0)
-      p->Message(p, Str("ALSA %s: total buffer size: %d, period size: %d\n"),
+      p->Message(p, Str("ALSA %s: total buffer size: %d, period size: %d \n"),
                  (play ? "output" : "input"),
-                 dev->buffer_smps, dev->period_smps);
+                 dev->buffer_smps, dev->period_smps, dev->srate);
     /* now set software parameters */
     n = (play ? dev->buffer_smps : 1);
     if (snd_pcm_sw_params_current(dev->handle, sw_params) < 0
@@ -509,8 +512,8 @@ static void list_devices(CSOUND *csound)
            And line return at the end*/
         csound->Message(csound, " \"hw:%i,%i\" - %s",card, num, temp );
       }
+      fclose(f);
     }
-    fclose(f);
     free(line);
     free(line_);
 }
@@ -547,15 +550,15 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
              even though list[n].device_name is 64 chars long */
           strncpy(list[n].device_name, temp, 10);
           list[n].device_name[10] = '\0';
-          sprintf(tmp, "%shw:%i,%i", isOutput ? "dac:" : "adc:", card, num);
+          snprintf(tmp, 64, "%shw:%i,%i", isOutput ? "dac:" : "adc:", card, num);
           strncpy(list[n].device_id, tmp, 16);
           list[n].max_nchnls = -1;
           list[n].isOutput = isOutput;
         }
         n++;
       }
+      fclose(f);
     }
-    fclose(f);
     free(line);
     free(line_);
     return n;
@@ -781,12 +784,16 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
 
     (*userData) = NULL;
     olddev = NULL;
-    if (devName[0] == 'a') {
+    if (devName==NULL) {
+      csound->Message(csound, Str("ALSA midi: no string\n"));
+      exit(1);                  /* what should happen here???????? */
+    }
+    else if (devName[0] == 'a') {
       csound->Message(csound, Str("ALSA midi: Using all devices.\n"));
       card = -1;
       if (snd_card_next(&card) >= 0 && card >= 0) {
         do {
-          sprintf(name, "hw:%d", card);
+          snprintf(name, 32, "hw:%d", card);
           if (snd_ctl_open(&ctl, name, 0) >= 0) {
             device = -1;
             for (;;) {
@@ -796,7 +803,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
               if (device < 0) {
                 break;
               }
-              sprintf(name, "hw:%d,%d", card, device);
+              snprintf(name, 32, "hw:%d,%d", card, device);
               newdev = open_midi_device(csound, name);
               if (newdev != NULL) {   /* Device opened successfully */
                 numdevs++;
@@ -823,7 +830,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
         snd_ctl_close(ctl);
       }
     }
-    else if (devName != NULL && devName[0] != '\0') {
+    else if (devName[0] != '\0') {
       dev = open_midi_device(csound, devName);
       if (dev == NULL) {
         free(name);
@@ -932,7 +939,8 @@ static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
       s = devName;
     err = snd_rawmidi_open(NULL, &dev, s, SND_RAWMIDI_NONBLOCK);
     if (err != 0) {
-      csound->ErrorMsg(csound, Str("ALSA: error opening MIDI output device '%s'"));
+      csound->ErrorMsg(csound,
+                       Str("ALSA: error opening MIDI output device '%s'"),s);
       return 0;
     }
     csound->Message(csound, Str("ALSA: opened MIDI output device '%s'\n"), s);
@@ -1563,7 +1571,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
       int device;
       int err;
 
-      sprintf(name, "hw:%d", card);
+      snprintf(name, 32, "hw:%d", card);
       if ((err = snd_ctl_open(&ctl, name, 0)) < 0) {
         csound->ErrorMsg(csound, Str("cannot open control for card %d: %s"),
                          card, snd_strerror(err));
@@ -1625,7 +1633,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
               if (list) {
                 char devid[32];
                 strncpy(list[count].device_name, name, 31);
-                sprintf(devid, "hw:%d,%d", card, device);
+                snprintf(devid, 32, "hw:%d,%d", card, device);
                 strncpy(list[count].device_id, devid, 63);
                 strncpy(list[count].interface_name, devid, 31);
                 strncpy(list[count].midi_module, "alsaraw", 8);
@@ -1637,7 +1645,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
               if (list) {
                 char devid[64];
                 strncpy(list[count].device_name, name, 63);
-                sprintf(devid, "hw:%d,%d", card, device);
+                snprintf(devid, 64, "hw:%d,%d", card, device);
                 strncpy(list[count].device_id, devid, 63);
                 strncpy(list[count].interface_name, devid, 31);
                 strncpy(list[count].midi_module, "alsaraw", 8);
@@ -1651,7 +1659,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
               if (list) {
                 char devid[64];
                 strncpy(list[count].device_name, sub_name, 63);
-                sprintf(devid, "hw:%d,%d,%d", card, device,sub);
+                snprintf(devid, 64, "hw:%d,%d,%d", card, device,sub);
                 strncpy(list[count].device_id, devid, 63);
                 strncpy(list[count].midi_module, "alsaraw", 8);
                 list[count].isOutput = isOutput;
@@ -1662,7 +1670,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
               if (list) {
                 char devid[64];
                 strncpy(list[count].device_name, sub_name, 63);
-                sprintf(devid, "hw:%d,%d,%d", card, device,sub);
+                snprintf(devid, 64, "hw:%d,%d,%d", card, device,sub);
                 strncpy(list[count].device_id, devid, 63);
                 strncpy(list[count].midi_module, "alsaraw", 8);
                 list[count].isOutput = isOutput;
@@ -1738,7 +1746,7 @@ int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
                     snd_seq_port_info_get_name(pinfo), 63);
             strncpy(list[numdevs].interface_name,
                     snd_seq_client_info_get_name(cinfo), 63);
-            sprintf(list[numdevs].device_id, "hw:%d,%d",
+            snprintf(list[numdevs].device_id, 64, "hw:%d,%d",
                     snd_seq_client_info_get_client(cinfo),
                     snd_seq_port_info_get_port(pinfo));
           }

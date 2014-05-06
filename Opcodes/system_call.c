@@ -56,6 +56,7 @@ static int call_system(CSOUND *csound, SYSTEM *p)
 }
 
 #else
+#include <unistd.h>
 
 static int call_system(CSOUND *csound, SYSTEM *p)
 {

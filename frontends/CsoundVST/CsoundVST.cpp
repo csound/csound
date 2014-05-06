@@ -296,8 +296,6 @@ uintptr_t CsoundVST::performanceThreadRoutine()
     std::string buffer = getCommand();
     csoundVstFltk->commandInput->value(buffer.c_str());
   }
-  //exportForPerformance();
-  //Message("Saved as: '%s' and '%s'.\n", getOrcFilename().c_str(), getScoFilename().c_str());
   reset();
   // FLTK flags is the sum of any of the following values:
   //   1:  disable widget opcodes by setting up dummy opcodes instead
@@ -335,6 +333,8 @@ uintptr_t CsoundVST::performanceThreadRoutine()
           reset();
           stop();
         }
+        int initialDelayFrames = GetKsmps();
+        setInitialDelay(initialDelayFrames);
     } else {
       Message("Classic performance.\n");
       perform();

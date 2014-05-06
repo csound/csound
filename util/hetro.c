@@ -25,6 +25,9 @@
 #include "soundio.h"
 #include <math.h>
 
+#ifndef WIN32
+#include <unistd.h>
+#endif
 #define INCSDIF 1
 
 #if INCSDIF
@@ -230,7 +233,8 @@ static int hetro(CSOUND *csound, int argc, char **argv)
           break;
         case '-':
           FIND(Str("no log file"));
-          while (*s++); s--;
+          while (*s++)
+               ; s--;
           break;
         default:
           return quit(csound, Str("Invalid switch option"));
@@ -254,7 +258,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
                                     &thishet->beg_time, &thishet->input_dur,
                                     &thishet->sr, channel)) == NULL) {
       char errmsg[256];
-      sprintf(errmsg, Str("Cannot open %s"), thishet->infilnam);
+      snprintf(errmsg, 256, Str("Cannot open %s"), thishet->infilnam);
       return quit(csound, errmsg);
     }
     nsamps = p->getframes;
@@ -265,7 +269,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
                                             thishet->auxp, nsamps, p)) <= 0) {
       char errmsg[256];
       csound->Message(csound, "smpsin = %ld\n", (long) thishet->smpsin);
-      sprintf(errmsg, Str("Read error on %s\n"), thishet->infilnam);
+      snprintf(errmsg, 256, Str("Read error on %s\n"), thishet->infilnam);
       return quit(csound, errmsg);
     }
     thishet->sr = (MYFLT) p->sr;                /* sr now from open  */
@@ -747,7 +751,7 @@ static int filedump(HET *thishet, CSOUND *csound)
                       h, mpoints, fpoints, pkamp);
     }
     csound->Message(csound,Str("wrote %ld bytes to %s\n"),
-                    lenfil, thishet->outfilnam);
+                    (long)lenfil, thishet->outfilnam);
     csound->Free(csound, magout);
     csound->Free(csound, frqout);
     csound->Free(csound, TIME);
@@ -861,7 +865,7 @@ static int writesdif(CSOUND *csound, HET *thishet)
       /* 64-bit alignment can be relied upon here, so no need to calc padding */
     }
     csound->Message(csound,
-                    Str("wrote %ld 1TRC frames to %s\n"),
+                    Str("wrote %d 1TRC frames to %s\n"),
                     thishet->num_pts, thishet->outfilnam);
     SDIF_CloseWrite(sdiffile);
     return 1;

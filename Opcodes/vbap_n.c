@@ -265,7 +265,7 @@ int vbap_init(CSOUND *csound, VBAP *p)
       p->spread = p->out_array[cnt+3];
       p->layout = p->out_array[cnt+4];
     }
-    sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
+    snprintf(name, 24, "vbap_ls_table_%d", (int)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
 
     if (ls_table==NULL)
@@ -329,7 +329,7 @@ int vbap_init_a(CSOUND *csound, VBAPA *p)
     char name[24];
 
     cnt = p->q.number = p->tabout->sizes[0];
-    sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
+    snprintf(name, 24, "vbap_ls_table_%d", (int)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
 
     if (ls_table==NULL)

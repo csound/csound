@@ -124,7 +124,7 @@ void MidiOpen(CSOUND *csound)
     OPARMS  *O = csound->oparms;
     int     err;
     /* First set up buffers. */
-    p->Midevtblk = (MEVENT*) mcalloc(csound, sizeof(MEVENT));
+    p->Midevtblk = (MEVENT*) csound->Calloc(csound, sizeof(MEVENT));
     p->sexp = 0;
     /* Then open device... */
     if (O->Midiin) {
@@ -282,12 +282,11 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
             if (parnum == 0)
               fval = (MYFLT) (mep->dat2 - 64);
             else fval = mep->dat2;
-            if (dsctl_map != NULL) {
-              fp = (MYFLT*) &(dsctl_map[parnum*2]);
-              if (*fp != FL(0.0)) {
-                MYFLT xx = (fval * *fp++);
-                fval = xx + *fp;                /* optionally map */
-              }
+            //            if (dsctl_map != NULL) { always true
+            fp = (MYFLT*) &(dsctl_map[parnum*2]);
+            if (*fp != FL(0.0)) {
+              MYFLT xx = (fval * *fp++);
+              fval = xx + *fp;                /* optionally map */
             }
             csound->Message(csound, Str("CHAN %d DRUMKEY %d not in keylst, "
                                         "PARAM %d NOT UPDATED\n"),
@@ -325,7 +324,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       else if (n == 126) {                      /* MONO mode */
         if (chn->monobas == NULL) {
           MONPCH *mnew, *mend;
-          chn->monobas = (MONPCH *)mcalloc(csound, (long)sizeof(MONPCH) * 8);
+          chn->monobas = (MONPCH *)csound->Calloc(csound, (long)sizeof(MONPCH) * 8);
           mnew = chn->monobas;  mend = mnew + 8;
           do {
             mnew->pch = -1;
@@ -335,7 +334,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       }
       else if (n == 127) {                      /* POLY mode */
         if (chn->monobas != NULL) {
-          mfree(csound, (char *)chn->monobas);
+          csound->Free(csound, (char *)chn->monobas);
           chn->monobas = NULL;
         }
         chn->mono = 0;
@@ -381,7 +380,8 @@ void m_chn_init_all(CSOUND *csound)
     for (chan = (int16) 0; chan < (int16) 16; chan++) {
       /* alloc a midi control blk for midi channel */
       /*  & assign default instrument number       */
-      csound->m_chnbp[chan] = chn = (MCHNBLK*) mcalloc(csound, sizeof(MCHNBLK));
+      csound->m_chnbp[chan] =
+        chn = (MCHNBLK*) csound->Calloc(csound, sizeof(MCHNBLK));
       n = (int) chan + 1;
       /* if corresponding instrument exists, assign as insno, */
       if (csound->engineState.instrtxtp &&

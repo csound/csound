@@ -455,7 +455,7 @@ int deltap(CSOUND *csound, DELTAP *p)
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1; /* RWD fix */
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
@@ -487,7 +487,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
@@ -549,7 +549,7 @@ int deltapn(CSOUND *csound, DELTAP *p)
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
@@ -562,9 +562,9 @@ int deltapn(CSOUND *csound, DELTAP *p)
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
       for (n=offset; n<nsmps; n++) {
-        if (UNLIKELY(tap >= endp ))
+        while (UNLIKELY(tap >= endp ))
           tap -= q->npts;
-        if (UNLIKELY(tap < begp))
+        while (UNLIKELY(tap < begp))
           tap += q->npts;
         ar[n] = *tap;
         tap++;
@@ -707,7 +707,7 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
 
     if (UNLIKELY(q->auxch.auxp == NULL)) goto err1; /* RWD fix */
     out1 = p->ar; del = p->adlt;
-    if (UNLIKELY(offset)) memset(out1, '0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out1, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));

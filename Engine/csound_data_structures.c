@@ -30,7 +30,7 @@ extern "C" {
 /* FUNCTIONS FOR CONS_CELL */
 
 PUBLIC CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons) {
-    CONS_CELL* cell = mmalloc(csound, sizeof(CONS_CELL));
+    CONS_CELL* cell = csound->Malloc(csound, sizeof(CONS_CELL));
 
     cell->value = val;
     cell->next = cons;
@@ -70,7 +70,7 @@ PUBLIC void cs_cons_free(CSOUND* csound, CONS_CELL* head) {
 
     while(current != NULL) {
         next = current->next;
-        mfree(csound, current);
+        csound->Free(csound, current);
         current = next;
     }
 }
@@ -86,8 +86,8 @@ PUBLIC void cs_cons_free_complete(CSOUND* csound, CONS_CELL* head) {
 
     while(current != NULL) {
         next = current->next;
-        mfree(csound, current->value);
-        mfree(csound, current);
+        csound->Free(csound, current->value);
+        csound->Free(csound, current);
         current = next;
     }
 }
@@ -95,7 +95,7 @@ PUBLIC void cs_cons_free_complete(CSOUND* csound, CONS_CELL* head) {
 /* FUNCTION FOR HASH SET */
 
 PUBLIC CS_HASH_TABLE* cs_hash_table_create(CSOUND* csound) {
-    return (CS_HASH_TABLE*) mcalloc(csound, sizeof(CS_HASH_TABLE));
+    return (CS_HASH_TABLE*) csound->Calloc(csound, sizeof(CS_HASH_TABLE));
 }
 
 static unsigned int cs_name_hash(char *s)
@@ -163,7 +163,8 @@ char* cs_hash_table_put_no_key_copy(CSOUND* csound,
     CS_HASH_TABLE_ITEM* item = hashTable->buckets[index];
 
     if (item == NULL) {
-        CS_HASH_TABLE_ITEM* newItem = mmalloc(csound, sizeof(CS_HASH_TABLE_ITEM));
+        CS_HASH_TABLE_ITEM* newItem = csound->Malloc(csound,
+                                                     sizeof(CS_HASH_TABLE_ITEM));
         newItem->key = key;
         newItem->value = value;
         newItem->next = NULL;
@@ -175,7 +176,7 @@ char* cs_hash_table_put_no_key_copy(CSOUND* csound,
                 item->value = value;
                 return item->key;
             } else if(item->next == NULL) {
-                CS_HASH_TABLE_ITEM* newItem = mmalloc(csound,
+                CS_HASH_TABLE_ITEM* newItem = csound->Malloc(csound,
                                                       sizeof(CS_HASH_TABLE_ITEM));
                 newItem->key = key;
                 newItem->value = value;
@@ -219,11 +220,11 @@ PUBLIC void cs_hash_table_remove(CSOUND* csound,
         if (strcmp(key, item->key) == 0) {
             if (previous == NULL) {
                 hashTable->buckets[index] = NULL;
-                mfree(csound, item);
+                csound->Free(csound, item);
                 return;
             } else {
                 previous->next = item->next;
-                mfree(csound, item);
+                csound->Free(csound, item);
             }
         }
         previous = item;
@@ -287,12 +288,12 @@ PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {
 
         while(item != NULL) {
             CS_HASH_TABLE_ITEM* next = item->next;
-            mfree(csound, item->key);
-            mfree(csound, item);
+            csound->Free(csound, item->key);
+            csound->Free(csound, item);
             item = next;
         }
     }
-    mfree(csound, hashTable);
+    csound->Free(csound, hashTable);
 }
 
 PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
@@ -304,13 +305,13 @@ PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTabl
 
         while(item != NULL) {
             CS_HASH_TABLE_ITEM* next = item->next;
-            mfree(csound, item->key);
-            mfree(csound, item->value);
-            mfree(csound, item);
+            csound->Free(csound, item->key);
+            csound->Free(csound, item->value);
+            csound->Free(csound, item);
             item = next;
         }
     }
-    mfree(csound, hashTable);
+    csound->Free(csound, hashTable);
 }
 
 PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
@@ -322,13 +323,17 @@ PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable
 
         while(item != NULL) {
             CS_HASH_TABLE_ITEM* next = item->next;
-            mfree(csound, item->key);
-            mfree(csound, item->value);
-            mfree(csound, item);
+            csound->Free(csound, item->key);
+            
+            /* NOTE: This needs to be free, not csound->Free.
+               To use mfree on keys, use cs_hash_table_mfree_complete 
+               TODO: Check if this is even necessary anymore... */
+            free(item->value);
+            csound->Free(csound, item);
             item = next;
         }
     }
-    mfree(csound, hashTable);
+    csound->Free(csound, hashTable);
 }
 
 

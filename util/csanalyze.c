@@ -37,6 +37,7 @@ void usage() {
 
 
 int main(int argc, char** argv) {
+    CSOUND* csound;
 
     header();
 
@@ -47,9 +48,8 @@ int main(int argc, char** argv) {
 
     printf("Input File: %s", argv[1]);
 
-    CSOUND* csound = csoundCreate(NULL);
+    csound = csoundCreate(NULL);
 
-
-
+    printf("csound=%p\n", csound);
     return 0;
 }

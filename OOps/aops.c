@@ -243,7 +243,18 @@ LOGCLX(or,||)
 KK(addkk,+)
 KK(subkk,-)
 KK(mulkk,*)
-KK(divkk,/)
+//KK(divkk,/)
+int divkk(CSOUND *csound, AOP *p)
+{
+    MYFLT div = *p->b;
+    IGN(csound);
+    if (div!=FL(0.0)) {
+      *p->r = *p->a / div;
+      return OK;
+    }
+    else
+      return csound->PerfError(csound, p->h.insdshead, Str("Division by zero"));
+}
 
 MYFLT MOD(MYFLT a, MYFLT bb)
 {
@@ -344,7 +355,34 @@ int modka(CSOUND *csound, AOP *p)
 AK(addak,+)
 AK(subak,-)
 AK(mulak,*)
-AK(divak,/)
+//AK(divak,/)
+int divak(CSOUND *csound, AOP *p) {
+    uint32_t n, nsmps = CS_KSMPS;  
+    if (LIKELY(nsmps != 1)) {      
+      MYFLT   *r, *a, b;           
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early  = p->h.insdshead->ksmps_no_end;
+      r = p->r;                    
+      a = p->a;                    
+      b = *p->b;
+      if (UNLIKELY(b==FL(0.0)))
+        return csound->PerfError(csound, p->h.insdshead, Str("Division by zero"));
+      if (UNLIKELY(offset))        
+        memset(r, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {       
+        nsmps -= early;            
+        memset(&r[nsmps], '\0', early*sizeof(MYFLT)); \
+      }                            
+      for (n=offset; n<nsmps; n++) 
+        r[n] = a[n] / b;          
+      return OK;                   
+    }                              
+    else {                         
+      p->r[0] = p->a[0] / *p->b;  
+      return OK;                   
+    }                              
+}
+
 
 /* ********COULD BE IMPROVED******** */
 int modak(CSOUND *csound, AOP *p)
@@ -1805,6 +1843,7 @@ inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
 
       CSOUND_SPOUT_SPINLOCK
       if (!csound->spoutactive) {
+
         for (j=0; j<nsmps; j++) {
           for (i=0; i<n; i++) {
             CS_SPOUT[k + i] = (j<offset||j>early) ? FL(0.0) : p->asig[i][j];
@@ -1817,7 +1856,9 @@ inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
         csound->spoutactive = 1;
       }
       else {
-        for (j=offset; j<early; j++) {
+        //if(offset) printf("offset = %d, %d nsmps\n", offset, nsmps);
+        // no need to offset as the data is already offset in the asig
+        for (j=0; j<early; j++) {
           for (i=0; i<n; i++) {
             CS_SPOUT[k + i] += p->asig[i][j];
           }
@@ -1885,7 +1926,8 @@ int outarr(CSOUND *csound, OUTARRAY *p)
         csound->spoutactive = 1;
       }
       else {
-        for (j=offset; j<early; j++) {
+        /* no need to offset data is already offset in the buffer*/
+        for (j=0; j<early; j++) {
           for (i=0; i<n; i++) {
             CS_SPOUT[k + i] += data[j+i*ksmps];
           }
@@ -1949,7 +1991,8 @@ int outch(CSOUND *csound, OUTCH *p)
       }
       else {
         sp = CS_SPOUT + (ch - 1);
-        for (n=offset; n<early; n++) {
+        /* no need to offset */
+        for (n=0; n<early; n++) {
           /* if (n>=offset)*/ *sp += apn[n];
           sp += nchnls;
         }
@@ -2061,7 +2104,7 @@ int outRange_i(CSOUND *csound, OUTRANGE *p)
 int outRange(CSOUND *csound, OUTRANGE *p)
 {
     int j;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
+    //uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int nchnls = csound->GetNchnls(csound);
@@ -2081,7 +2124,8 @@ int outRange(CSOUND *csound, OUTRANGE *p)
 
     if (!csound->spoutactive) {
       memset(CS_SPOUT, 0, nsmps * nchnls * sizeof(MYFLT));
-      for (n=offset; n<nsmps-early; n++) {
+      /* no need to offset */
+      for (n=0; n<nsmps-early; n++) {
         int i;
         MYFLT *sptemp = sp;
         for (i=0; i < narg; i++)
@@ -2091,7 +2135,7 @@ int outRange(CSOUND *csound, OUTRANGE *p)
       csound->spoutactive = 1;
     }
     else {
-      for (n=offset; n<nsmps-early; n++) {
+      for (n=0; n<nsmps-early; n++) {
         int i;
         MYFLT *sptemp = sp;
         for (i=0; i < narg; i++)

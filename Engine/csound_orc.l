@@ -46,9 +46,6 @@ ORCTOKEN *make_token(CSOUND *, char *s);
 ORCTOKEN *make_label(CSOUND *, char *s);
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
-//extern int udoflag;
-//extern int namedInstrFlag;
-//YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
 #include "parse_param.h"
 
 #define YY_EXTRA_TYPE  PARSE_PARM *
@@ -77,7 +74,7 @@ STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
 LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
-IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*"\n"?
+IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*("\n")?
 XIDENT          0|[aijkftKOVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
@@ -487,7 +484,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 {FILE}          { BEGIN(src); }
 
 <src>[ \t]*     /* eat the whitespace */
-<src>{FNAME}    { PARM->locn = atoi(yytext); }
+<src>{FNAME}    { PARM->locn = atoll(yytext); }
 <src>"\n"       { BEGIN(INITIAL); }
 
 
@@ -547,9 +544,7 @@ ORCTOKEN *new_token(CSOUND *csound, int type)
 ORCTOKEN *make_token(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, STRING_TOKEN);
-    int len = strlen(s);
-    ans->lexeme = (char*)mcalloc(csound, len + 1);
-    strcpy(ans->lexeme, s);
+    ans->lexeme = cs_strdup(csound, s);
     return ans;
 }
 
@@ -622,7 +617,7 @@ char *csound_orcget_current_pointer(void *yyscanner)
     return yyg->yy_c_buf_p;
 }
 
-int csound_orcget_locn(void *yyscanner)
+uint64_t csound_orcget_locn(void *yyscanner)
 {
 //    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return PARM->locn;
