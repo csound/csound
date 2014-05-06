@@ -197,7 +197,7 @@ OENTRY opcodlst_1[] = {
   { "##add.ii",  S(AOP),0,    1,      "i",    "ii",   addkk                   },
   { "##sub.ii",  S(AOP),0,    1,      "i",    "ii",   subkk                   },
   { "##mul.ii",  S(AOP),0,    1,      "i",    "ii",   mulkk                   },
-  { "##div.ii",  S(AOP),0,    1,      "i",    "ii",   divii                   },
+  { "##div.ii",  S(AOP),0,    1,      "i",    "ii",   divkk                   },
   { "##mod.ii",  S(AOP),0,    1,      "i",    "ii",   modkk                   },
   { "##add.kk",  S(AOP),0,    2,      "k",    "kk",   NULL,   addkk           },
   { "##sub.kk",  S(AOP),0,    2,      "k",    "kk",   NULL,   subkk           },
