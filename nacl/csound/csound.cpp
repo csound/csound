@@ -54,6 +54,8 @@ namespace {
   const char* const kCopyId = "copyToLocal";
   const char* const kCopyUrlId = "copyUrlToLocal";
   const char* const kGetFileId = "getFile";
+  const char* const kGetTableId = "getTable";
+  const char* const kSetTableId = "setTable";
   const char* const kCsdId = "csd";
   const char* const kRenderId = "render";
   static const char kMessageArgumentSeparator = ':';
@@ -292,6 +294,7 @@ void* compileThreadFunc(void *data) {
   char *argv[] = {(char *)"csound", p->GetCsd(), (char *)"-+rtaudio=null"}; 
   MYFLT sr = 0.0;
   if(csoundCompile(csound,3,argv) == 0){
+    p->PostMessage("Compiled");
   if(p->StartDAC())
     p->isCompiled(true);
   else {
@@ -358,6 +361,7 @@ void CsoundInstance::PlayCsound() {
     csoundSetOption(csound, (char *) "-k689.0625");
     csoundSetOption(csound, (char *) "--0dbfs=1");
     csoundSetOption(csound, (char *) "-b1024");
+    csoundSetOption(csound, (char *) "--nodisplays");
     csoundSetOption(csound, (char *) "--daemon");
     csoundStart(csound);
     compiled = true;
@@ -467,6 +471,30 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
       PostMessage(mess);
       return;  
     }
+  } else if(message.find(kSetTableId) == 0){
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {
+      std::string string_arg = message.substr(sep_pos + 1);
+      sep_pos = string_arg.find_first_of(kMessageArgumentSeparator);
+      if (sep_pos != std::string::npos){
+       std::string table = string_arg.substr(0, sep_pos);
+       std::string string_arg2 = string_arg.substr(sep_pos + 1);
+       sep_pos = string_arg2.find_first_of(kMessageArgumentSeparator);
+       if (sep_pos != std::string::npos) {
+         std::string index = string_arg2.substr(0, sep_pos);
+         std::string svalue = string_arg2.substr(sep_pos + 1);
+         std::istringstream tstream(table);
+         std::istringstream istream(index);
+         std::istringstream stream(svalue);
+         int tab, ndx;
+         MYFLT val;
+         if (stream >> val && tstream >> tab && istream >> ndx) {
+           csoundTableSet(csound, tab, ndx, val);
+           return;
+         }
+       }
+      }
+    }
   } else if (message.find(kCopyId) == 0) {
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
     if (sep_pos != std::string::npos) {      
@@ -496,6 +524,27 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
     if (sep_pos != std::string::npos) {      
       std::string string_arg = message.substr(sep_pos + 1);
       GetFileFromLocalAsync((char *)string_arg.c_str()); 
+    }
+    }
+    else if (message.find(kGetTableId) == 0) {
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {   
+        
+      std::string svalue = message.substr(sep_pos + 1);
+      std::istringstream stream(svalue);
+      MYFLT tab;
+      if(stream >> tab){
+	int len = csoundTableLength(csound, tab); 
+        if(len > 0){
+          PostMessage("ReadingTable:");
+          pp::VarArrayBuffer v2 = pp::VarArrayBuffer(len*sizeof(MYFLT));
+          void *dest = v2.Map();
+          csoundTableCopyOut(csound, tab, (MYFLT*) dest);
+          v2.Unmap();    
+          PostMessage(v2);
+          PostMessage("Table::Complete");
+	}
+      } 
     }
   } else {
     PostMessage("message not handled: ");
