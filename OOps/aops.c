@@ -256,6 +256,18 @@ int divkk(CSOUND *csound, AOP *p)
       return csound->PerfError(csound, p->h.insdshead, Str("Division by zero"));
 }
 
+int divii(CSOUND *csound, AOP *p)
+{
+    MYFLT div = *p->b;
+    IGN(csound);
+    if (div!=FL(0.0)) {
+      *p->r = *p->a / div;
+      return OK;
+    }
+    else
+      return csound->InitError(csound, Str("Division by zero"));
+}
+
 MYFLT MOD(MYFLT a, MYFLT bb)
 {
     if (UNLIKELY(bb==FL(0.0))) return FL(0.0);
