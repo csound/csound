@@ -75,7 +75,7 @@ int     and(CSOUND *, void *), or(CSOUND *, void *);
 int     conval(CSOUND *, void *), aconval(CSOUND *, void *);
 int     addkk(CSOUND *, void *), subkk(CSOUND *, void *);
 int     mulkk(CSOUND *, void *), divkk(CSOUND *, void *);
-int     modkk(CSOUND *, void *);
+int     divii(CSOUND *, void *), modkk(CSOUND *, void *);
 int     addka(CSOUND *, void *), subka(CSOUND *, void *);
 int     mulka(CSOUND *, void *), divka(CSOUND *, void *);
 int     modka(CSOUND *, void *);
