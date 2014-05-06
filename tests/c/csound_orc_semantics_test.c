@@ -35,7 +35,7 @@ int clean_suite1(void)
 }
 
 void test_find_opcode2(void) {
-    int i;
+//    int i;
     CSOUND* csound = csoundCreate(NULL);
 
     OENTRIES* entries = find_opcode2(csound, "=");
