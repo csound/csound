@@ -52,10 +52,20 @@ static void choose_ls_tuplets(CSOUND *csound, ls lss[CHANNELS],
 static void sort_2D_lss(ls lss[CHANNELS], int sorted_lss[CHANNELS],
                         int ls_amount);
 
+static inline MYFLT vec_prod(CART_VEC v1, CART_VEC v2)
+{
+    return (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z);
+}
+
+static inline MYFLT vec_length(CART_VEC v1)
+{
+    return SQRT(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z);
+}
+
 static MYFLT *create_ls_table(CSOUND *csound, size_t cnt, int ind)
 {
     char name[24];
-    sprintf(name, "vbap_ls_table_%d", ind);
+    snprintf(name, 24, "vbap_ls_table_%d", ind);
     csound->DestroyGlobalVariable(csound, name);
     if (UNLIKELY(csound->CreateGlobalVariable(csound, name,
                                               cnt * sizeof(MYFLT)) != 0)) {
@@ -475,16 +485,6 @@ void vec_mean(CART_VEC v1, CART_VEC v2, CART_VEC *v3)
     v3->x=(v1.x+v2.x)*FL(0.5);
     v3->y=(v1.y+v2.y)*FL(0.5);
     v3->z=(v1.z+v2.z)*FL(0.5);
-}
-
-MYFLT vec_length(CART_VEC v1)
-{
-    return SQRT(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z);
-}
-
-MYFLT vec_prod(CART_VEC v1, CART_VEC v2)
-{
-    return (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z);
 }
 
 void cross_prod(CART_VEC v1,CART_VEC v2,

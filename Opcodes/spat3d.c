@@ -860,10 +860,10 @@ static int    spat3dt(CSOUND *csound, SPAT3D *p)
     wmax = 0; while (++wmax < (int32) p->bs)
       ir[wmax] = (sizeof(MYFLT) < 8 ? FL(1.0e-24) : FL(1.0e-48));
 
-    if (*(p->args[8]) == FL(0.0))           /* clear ftable (if enabled) */
+    if (*(p->args[8]) == FL(0.0)) {          /* clear ftable (if enabled) */
       wmax = -1; while (++wmax < p->outftlnth)
         p->outft[wmax] = FL(0.0);
-
+    } /* braces added by JPff -- REVIEW */
     /* render IR */
 
     spat3dt_wall_perf(p, ir, (SPAT3D_WALL *) p->ws.auxp);

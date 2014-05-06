@@ -166,9 +166,13 @@ void test_audio_modules(void)
             csoundSetRTAudioModule(csound, name);
             csoundSetOutput(csound, "dac", NULL, NULL);
             int ret = csoundStart(csound);
-            CU_ASSERT(ret == 0);
-            ret = csoundPerform(csound);
-            CU_ASSERT(ret > 0);
+            if (strcmp(name, "jack") != 0) { // Jack module would fail this test if jack is not running
+              CU_ASSERT(ret == 0);
+            }
+            if (ret == 0) {
+              ret = csoundPerform(csound);
+              CU_ASSERT(ret > 0);
+            }
             csoundReset(csound);
         }
     }

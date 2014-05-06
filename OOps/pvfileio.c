@@ -450,7 +450,7 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
       return -1;
     }
     p = pvsys_getFileHandle(csound, fd);
-    pname = (char *) mmalloc(csound, strlen(filename) + 1);
+    pname = (char *) csound->Malloc(csound, strlen(filename) + 1);
     strcpy(pname, filename);
     p->customWindow = NULL;
 
@@ -476,16 +476,16 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
     p->pvdata.fAnalysisRate   = (float) srate / (float) p->pvdata.dwOverlap;
     p->pvdata.fWindowParam    = winparam;
     if (fWindow != NULL) {
-      p->customWindow = mmalloc(csound, dwWinlen * sizeof(float));
+      p->customWindow = csound->Malloc(csound, dwWinlen * sizeof(float));
       memcpy(p->customWindow, fWindow, dwWinlen * sizeof(float));
     }
 
     p->fd = csound->FileOpen2(csound, &(p->fp), CSFILE_STD, filename, "wb",
                                "", CSFTYPE_PVCEX, 0);
     if (UNLIKELY(p->fd == NULL)) {
-      mfree(csound, pname);
+      csound->Free(csound, pname);
       if (p->customWindow)
-        mfree(csound, p->customWindow);
+        csound->Free(csound, p->customWindow);
       free(p);
       PVFILETABLE[fd] = NULL;
       csound->pvErrorCode = -7;
@@ -495,10 +495,10 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
 
     if (pvoc_writeheader(csound, p) != 0) {
       csound->FileClose(csound, p->fd);
-      remove(p->name);
-      mfree(csound, p->name);
+      (void)remove(p->name);
+      csound->Free(csound, p->name);
       if (p->customWindow)
-        mfree(csound, p->customWindow);
+        csound->Free(csound, p->customWindow);
       free(p);
       PVFILETABLE[fd] = NULL;
       return -1;
@@ -539,16 +539,16 @@ int pvoc_openfile(CSOUND *csound,
       PVFILETABLE[fd] = NULL;
       return -1;
     }
-    pname = (char*) mmalloc(csound, strlen(filename) + 1);
+    pname = (char*) csound->Malloc(csound, strlen(filename) + 1);
     strcpy(pname, filename);
     p->name = pname;
     p->readonly = 1;
 
     if (UNLIKELY(pvoc_readheader(csound, p, &wfpx) != 0)) {
       csound->FileClose(csound, p->fd);
-      mfree(csound, p->name);
+      csound->Free(csound, p->name);
       if (p->customWindow)
-        mfree(csound, p->customWindow);
+        csound->Free(csound, p->customWindow);
       free(p);
       PVFILETABLE[fd] = NULL;
       return -1;
@@ -684,7 +684,7 @@ static int pvoc_readheader(CSOUND *csound, PVOCFILE *p,
           csound->pvErrorCode = -23;
           return -1;
         }
-        p->customWindow = mmalloc(csound, p->pvdata.dwWinlen * sizeof(float));
+        p->customWindow = csound->Malloc(csound, p->pvdata.dwWinlen * sizeof(float));
         if (UNLIKELY(pvoc_readWindow(p,
                                      p->customWindow, p->pvdata.dwWinlen) != 0)) {
           csound->pvErrorCode = -24;
@@ -872,9 +872,9 @@ int pvoc_closefile(CSOUND *csound, int ofd)
 
     csound->FileClose(csound, p->fd);
     if (p->to_delete && !p->readonly)
-      remove(p->name);
-    mfree(csound, p->name);
-    mfree(csound, p->customWindow);
+      (void)remove(p->name);
+    csound->Free(csound, p->name);
+    csound->Free(csound, p->customWindow);
     free(p);
     PVFILETABLE[ofd] = NULL;
 

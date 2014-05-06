@@ -601,7 +601,7 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
     if (csound->lprdaddr == NULL ||
         csound->currentLPCSlot >= csound->max_lpc_slot) {
       csound->max_lpc_slot = csound->currentLPCSlot + MAX_LPC_SLOT;
-      csound->lprdaddr = mrealloc(csound,
+      csound->lprdaddr = csound->ReAlloc(csound,
                                   csound->lprdaddr,
                                   csound->max_lpc_slot * sizeof(LPREAD*));
     }
@@ -662,10 +662,12 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
                                  Str("insufficient args and no file header"));
       }
     }
-    /* Check  pole number */
-    if (UNLIKELY(p->npoles > MAXPOLES)) {
-      return csound->InitError(csound, Str("npoles > MAXPOLES"));
-    }
+    /* Check pole number */
+    csound->AuxAlloc(csound, (int32)(p->npoles*8*sizeof(MYFLT)), &p->aux);
+    p->kcoefs = (MYFLT*)p->aux.auxp;
+    /* if (UNLIKELY(p->npoles > MAXPOLES)) { */
+    /*   return csound->InitError(csound, Str("npoles > MAXPOLES")); */
+    /* } */
     /* Look for total frame data size (file size - header) */
     totvals = (mfp->length - p->headlen)/sizeof(MYFLT);
     /* Store the size of a frame in integer */
@@ -862,9 +864,13 @@ int lpread(CSOUND *csound, LPREAD *p)
     int32    nn, framphase;
     MYFLT   fract;
     int     i, status;
-    MYFLT   poleMagn1[MAXPOLES], polePhas1[MAXPOLES];
-    MYFLT   poleMagn2[MAXPOLES], polePhas2[MAXPOLES];
-    MYFLT   interMagn[MAXPOLES], interPhas[MAXPOLES];
+    MYFLT   *poleMagn1 = p->kcoefs + 2*p->npoles;
+    MYFLT   *polePhas1 = poleMagn1 + p->npoles;
+    MYFLT   *poleMagn2 = polePhas1 + p->npoles;
+    MYFLT   *polePhas2 = poleMagn2 + p->npoles;
+    MYFLT   *interMagn = polePhas2 + p->npoles;
+    MYFLT   *interPhas = interMagn + p->npoles;
+
 
     if (UNLIKELY(p->mfp==NULL)) {
       return csound->PerfError(csound, p->h.insdshead,
@@ -945,6 +951,7 @@ int lpformantset(CSOUND *csound, LPFORM *p)
    /* connect to previously loaded lpc analysis */
    /* get adr lpread struct */
     p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
+    csound->AuxAlloc(csound, p->lpread->npoles*sizeof(MYFLT), &p->aux);
     return OK;
 }
 
@@ -952,7 +959,8 @@ int lpformant(CSOUND *csound, LPFORM *p)
 {
     LPREAD *q = p->lpread;
     MYFLT   *coefp, sr = csound->esr;
-    MYFLT   cfs[MAXPOLES/2], bws[MAXPOLES/2];
+    MYFLT   *cfs = (MYFLT*)p->aux.auxp;
+    MYFLT   *bws = cfs+p->lpread->npoles/2;
     int     i, j, ndx = *p->kfor;
     double  pm,pp;
 
@@ -964,7 +972,7 @@ int lpformant(CSOUND *csound, LPFORM *p)
         cfs[j] = pp*sr/TWOPI;
         /* if (pm > 1.0) csound->Message(csound,
                                         Str("warning unstable pole %f\n"), pm); */
-        bws[j] = -log(pm)*sr/PI;
+        bws[j] = -LOG(pm)*sr/PI;
       }
     }
     else {
@@ -974,7 +982,8 @@ int lpformant(CSOUND *csound, LPFORM *p)
       return NOTOK;
     }
 
-    j = (ndx < 1 ? 1 : (ndx >= MAXPOLES/2 ? MAXPOLES/2 : ndx)) - 1;
+    j = (ndx < 1 ? 1 :
+         (ndx >= p->lpread->npoles/2 ? p->lpread->npoles/2 : ndx)) - 1;
     if (bws[j] > sr/2 || isnan(bws[j])) bws[j] = sr/2;
     if (bws[j] < 1.0) bws[j] = 1.0;
     if (cfs[j] > sr/2 || isnan(cfs[j])) cfs[j] = sr/2;
@@ -1000,8 +1009,9 @@ int lprsnset(CSOUND *csound, LPRESON *p)
    /* get adr lpread struct */
     p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
 
+    csound->AuxAlloc(csound, (int32)((q->npoles<<1)*sizeof(MYFLT)), &p->aux);
    /* Initialize pointer to circulat buffer (for filtering) */
-    p->circjp = p->circbuf;
+    p->circjp = p->circbuf = (MYFLT*)p->aux.auxp;
     p->jp2lim = p->circbuf + (q->npoles << 1);  /* npoles det circbuflim */
     return OK;
 }
@@ -1110,6 +1120,9 @@ int lpfrsnset(CSOUND *csound, LPFRESON *p)
     p->prvratio = FL(1.0);
     p->d = FL(0.0);
     p->prvout = FL(0.0);
+    csound->AuxAlloc(csound, (int32)(p->lpread->npoles*sizeof(MYFLT)), &p->aux);
+    p->past = (MYFLT*)p->aux.auxp;
+
     return OK;
 }
 
@@ -1344,7 +1357,7 @@ int lpslotset(CSOUND *csound, LPSLOT *p)
     else {
       if (n >= csound->max_lpc_slot) {
         csound->max_lpc_slot = n + MAX_LPC_SLOT;
-        csound->lprdaddr = mrealloc(csound,
+        csound->lprdaddr = csound->ReAlloc(csound,
                                     csound->lprdaddr,
                                     csound->max_lpc_slot * sizeof(LPREAD**));
       }
@@ -1382,6 +1395,8 @@ int lpitpset(CSOUND *csound, LPINTERPOL *p)
 #endif
 
     p->npoles = p->lp1->npoles;
+    csound->AuxAlloc(csound, (int32)(p->npoles*8*sizeof(MYFLT)), &p->aux);
+    p->kcoefs = (MYFLT*)p->aux.auxp;
     p->storePoles = 1;
     ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = (LPREAD*) p;
     return OK;
@@ -1391,9 +1406,12 @@ int lpinterpol(CSOUND *csound, LPINTERPOL *p)
 {
     int     i,status;
     MYFLT   *cp,*cp1,*cp2;
-    MYFLT   poleMagn1[MAXPOLES], polePhas1[MAXPOLES];
-    MYFLT   poleMagn2[MAXPOLES], polePhas2[MAXPOLES];
-    MYFLT   interMagn[MAXPOLES], interPhas[MAXPOLES];
+    MYFLT   *poleMagn1 = p->kcoefs + 2*p->npoles;
+    MYFLT   *polePhas1 = poleMagn1 + p->npoles;
+    MYFLT   *poleMagn2 = polePhas1 + p->npoles;
+    MYFLT   *polePhas2 = poleMagn2 + p->npoles;
+    MYFLT   *interMagn = polePhas2 + p->npoles;
+    MYFLT   *interPhas = interMagn + p->npoles;
 
     /* RWD: guessing this... */
     if (UNLIKELY(p->lp1==NULL || p->lp2==NULL)) {

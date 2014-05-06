@@ -1,0 +1,34 @@
+language: cpp
+compiler:
+      - gcc
+#      - clang
+env:
+      global:
+           - secure: "pOICMBtfwljj450Vht1D2/XvtUm07edkbiUI0+PCnfuwiwBFJyqY919whZu+CrplQvkVS+RzvxT3wpgkVccflo0uvNJ7NwfKksRqrUKwTp59nGIwjUsnDjI3YkxOQyxIdIPsSm3bUxXVy/Jge0v6vzvbbPXKxyAxKsupnUBYOwM="
+           - OMP_NUM_THREADS=4
+           - VERBOSE=1
+before_install:
+      - sudo apt-get update -qq
+install:
+      # Have an uptodate libc6
+      - sudo apt-get install -qq libc6-dev
+      - sudo apt-get install -qq cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev python-dev puredata-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libboost-dev libboost-serialization-dev libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev
+before_script:
+        - mkdir -p build
+script:
+  - "[ ${COVERITY_SCAN_BRANCH} == 1 ] || (cd $TRAVIS_BUILD_DIR/build && cmake .. -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON && make && make test)"
+
+addons:
+      coverity_scan:
+          project:
+              name: "csound/csound"
+              description: "A user-programmable and user-extensible sound processing language and software synthesizer"
+          notification_email: csound-devel@lists.sourceforge.net
+          build_command_prepend: "mkdir -p $TRAVIS_BUILD_DIR/build && cd $TRAVIS_BUILD_DIR/build && cmake .."
+          build_command: "make -C $TRAVIS_BUILD_DIR/build"
+          branch_pattern: coverity_scan
+
+notifications:
+      email:
+          recipients:
+              - csound-devel@lists.sourceforge.net

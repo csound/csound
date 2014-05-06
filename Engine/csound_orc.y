@@ -191,7 +191,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                                          INTEGER_TOKEN, (ORCTOKEN *)$1), $3); }
           | label ',' instlist
               {
-                  csp_orc_sa_instr_add(csound, strdup(((ORCTOKEN *)$1)->lexeme));
+                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$1)->lexeme);
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST,
                                make_leaf(csound, LINE,LOCN,
                                          T_IDENT, (ORCTOKEN *)$1), $3); }
@@ -200,7 +200,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                   TREE *ans;
                   ans = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$2);
                   ans->rate = (int) '+';
-                  csp_orc_sa_instr_add(csound, strdup(((ORCTOKEN *)$2)->lexeme));
+                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$2)->lexeme);
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST, ans, $4); }
           | '+' label
               {
@@ -705,22 +705,13 @@ ifac      : ident               { $$ = $1; }
           | '(' expr ')'      { $$ = $2;  }
           | '(' expr error    { $$ = NULL;  }
           | '(' error         { $$ = NULL; }
-          | identb exprlist ')'
+          | opcode exprlist ')'
             {
                 
                 $1->left = NULL;
                 $1->right = $2;
 		$1->type = T_FUNCTION;
                 
-                $$ = $1;
-            }
-          | opcode ':' identb exprlist ')'
-            {
-                $1->left = NULL;
-                $1->right = $4;
-		$1->type = T_FUNCTION;
-                $1->value->optype = $3->value->lexeme;
-		
                 $$ = $1;
             }
           | opcode ':' opcodeb exprlist ')'   /* this is need because a & k are also opcodes */

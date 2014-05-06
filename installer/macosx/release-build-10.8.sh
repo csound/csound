@@ -1,9 +1,10 @@
 #!/bin/sh
 
-export MANUAL_DIR=`pwd`/../../../manual6
-export PACKAGE_NAME=csound6.02.0-OSX10.9-x86_64.pkg
-export DMG_DIR="Csound 6.02.0"
-export DMG_NAME="csound6.02.0-OSX10.9-x86_64.dmg"
+export MANUAL_DIR=`pwd`/../../../manual
+export CS_VERSION="6.03.0"
+export PACKAGE_NAME=csound${CS_VERSION}-OSX10.9-universal.pkg
+export DMG_DIR="Csound ${CS_VERSION}"
+export DMG_NAME="csound${CS_VERSION}-OSX10.9-universal.dmg"
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
 
@@ -38,7 +39,7 @@ fi
 #BUILD DOUBLES CSOUND
 echo "Building Csound (double)..."
 cd csound6
-cp ../../../../Custom.cmake .
+cp ../../Custom_10.9.cmake Custom.cmake 
 
 #/usr/local/bin/scons -j2 &> ../csound5_build_log.txt
 mkdir build
