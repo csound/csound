@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export CS_TILDE_VERSION=1.1.2-beta
+export CS_TILDE_VERSION=1.1.2
 export MANUAL_DIR=`pwd`/../../../manual6
 export ISCC="/c/Program Files (x86)/Inno Setup 5/ISCC.exe"
 # If arg2 passed in, will cd into that dir and rebuild, otherwise

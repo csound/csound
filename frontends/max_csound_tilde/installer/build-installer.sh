@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export CS_TILDE_VERSION=1.1.2-beta
+export CS_TILDE_VERSION=1.1.2
 export MANUAL_DIR=`pwd`/../../../manual6
 export PACKAGE_NAME=csound~_${CS_TILDE_VERSION}.pkg
 export DMG_DIR="csound~_${CS_TILDE_VERSION}"
