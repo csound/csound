@@ -1,0 +1,412 @@
+@import url(http://fonts.googleapis.com/css?family=Lato:300,700);
+body {
+
+	margin:0;
+	padding:0;
+	border:0;			/* This removes the border around the viewport in old versions of IE */
+	width:100%;
+	text-shadow: 0 2px 0 rgba(255,255,255,0.7);
+	background: #333 url(../images/bgnoise_lg.jpg);
+	min-width:600px;		/* Minimum width of layout - remove line if not required */
+	/* The min-width property does not work in old versions of Internet Explorer */
+	font-family:"Lato", Calibri, Arial, sans-serif;
+	font-weight:300;
+	font-size:90%;
+}
+a {
+	color:#333;
+	text-decoration:none;
+}
+a:hover {
+	color:#33343;
+
+	text-decoration:none;
+}
+#header a {
+
+	text-decoration:none;
+}
+h1 {
+	margin: 0.8em 0 0.5em 4em;
+	color: #333;
+	font-weight: normal;
+	font-family: 'Orienta', sans-serif;
+	font-size: 56px;
+	line-height: 40px;
+	counter-increment: section-1;
+	counter-reset: section-2 section-3 section-4;
+
+}
+
+h2 {
+	margin: 0.8em 0 0.5em 0;
+	color: #333;
+	font-weight: normal;
+	font-family: 'Orienta', sans-serif;
+	font-size: 30px;
+	line-height: 40px;
+	counter-increment: section-2;
+	counter-reset: section-3 section-4;
+	border-bottom: 1px solid #fff;
+	box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+	padding-bottom: 10px;
+
+}
+
+h3 {
+	margin: 0.8em 0 0.5em 0;
+	color: #333;
+	font-weight: normal;
+	font-family: 'Orienta', sans-serif;
+	font-size: 24px;
+	line-height: 40px;
+	counter-increment: section-3;
+	counter-reset: section-4;
+
+}
+
+li, h4 {
+	margin: 0.8em -0em 0.5em -2em;
+	color: #333;
+	font-weight: normal;
+	font-family: 'Orienta', sans-serif;
+	font-size: 18px;
+	line-height: 20px;
+	counter-increment: section-4;
+	list-style-type:none;
+
+}
+
+p {
+	margin:.4em 0 .8em 0;
+	padding:0;
+	font-size: 16px;
+	line-height: 1.4;
+	text-align: justify;
+}
+img {
+	margin:10px 0 5px;
+}
+
+/* Header styles */
+#header {
+	clear:both;
+	float:left;
+	width:100%;
+	height:6em;
+}
+#header {
+	border-bottom:0px solid #000;
+}
+#header p,
+#header h1,
+#header h2 {
+	padding:.4em 15px 0 15px;
+	margin:0;
+	text-align:center;
+}
+#header ul {
+	clear:left;
+	float:left;
+	width:100%;
+	list-style:none;
+	margin:10px 0 0 0;
+	padding:0;
+}
+#header ul li {
+	display:inline;
+	list-style:none;
+	margin:0;
+	padding:0;
+}
+#header ul li a {
+	display:block;
+	float:left;
+	margin:0 0 0 1px;
+	padding:3px 10px;
+	text-align:center;
+	background:#eee;
+	color:#000;
+	text-decoration:none;
+	position:relative;
+	left:15px;
+	line-height:1.3em;
+}
+#header ul li a:hover {
+	background:#369;
+	color:#fff;
+}
+#header ul li a.active,
+#header ul li a.active:hover {
+	color:#fff;
+	background:#000;
+	font-weight:bold;
+}
+#header ul li a span {
+	display:block;
+}
+/* 'widths' sub menu */
+#layoutdims {
+	clear:both;
+	background:#eee;
+	border-top:4px solid #000;
+	margin:0;
+	padding:6px 15px !important;
+	text-align:right;
+}
+/* column container */
+.colmask {
+	position:relative;	/* This fixes the IE7 overflow hidden bug */
+	clear:both;
+	float:left;
+	width:100%;			/* width of whole page */
+	overflow:hidden;		/* This chops off any overhanging divs */
+}
+/* common column settings */
+.colright,
+.colmid,
+.colleft {
+	float:left;
+	width:100%;			/* width of page */
+	position:relative;
+}
+.col1,
+.col2,
+.col3 {
+	float:left;
+	position:relative;
+	padding:0 0 1em 0;	/* no left and right padding on columns, we just make them narrower instead 
+	only padding top and bottom is included here, make it whatever value you need */
+overflow:hidden;
+}
+/* 3 Column settings */
+.threecol {
+}
+.threecol .colmid {
+	right:25%;			/* width of the right column */
+}
+.threecol .colleft {
+	right:50%;			/* width of the middle column */
+}
+.threecol .col1 {
+	width:66%;			/* width of center column content (column width minus padding on either side) */
+	left:92%;			/* 100% plus left padding of center column */
+}
+.threecol .col2 {
+	width:11%;			/* Width of left column content (column width minus padding on either side) */
+	left:11%;			/* width of (right column) plus (center column left and right padding) plus (left column left padding) */
+}
+.threecol .col3 {
+	width:12%;			/* Width of right column content (column width minus padding on either side) */
+	left:83%;			/* Please make note of the brackets here:
+	(100% - left column width) plus (center column left and right padding) plus (left column left and right padding) plus (right column left padding) */
+}
+/* Footer styles */
+#footer {
+	clear:both;
+	float:left;
+	width:100%;
+	border-top:0px solid #000;
+}
+#footer p {
+	padding:10px;
+	margin:0;
+}
+.button
+{        
+	display: inline-block;
+	white-space: nowrap;
+	background-color: #ccc;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#eee), to(#ccc));
+	background-image: -webkit-linear-gradient(top, #eee, #ccc);
+	background-image: -moz-linear-gradient(top, #eee, #ccc);
+	background-image: -ms-linear-gradient(top, #eee, #ccc);
+	background-image: -o-linear-gradient(top, #eee, #ccc);
+	background-image: linear-gradient(top, #eee, #ccc);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#eeeeee', EndColorStr='#cccccc');
+	border: 1px solid #777;
+	padding: 0 1.5em;
+	margin: 0.5em;
+	font: bold 1em/2em Arial, Helvetica;
+	text-decoration: none;
+	color: #333;
+	text-shadow: 0 1px 0 rgba(255,255,255,.8);
+	-moz-border-radius: .2em;
+	-webkit-border-radius: .2em;
+	border-radius: .2em;
+	-moz-box-shadow: 0 0 1px 1px rgba(255,255,255,.8) inset, 0 1px 0 rgba(0,0,0,.3);
+	-webkit-box-shadow: 0 0 1px 1px rgba(255,255,255,.8) inset, 0 1px 0 rgba(0,0,0,.3);
+	box-shadow: 0 0 1px 1px rgba(255,255,255,.8) inset, 0 1px 0 rgba(0,0,0,.3);
+}
+
+.button:hover
+{
+	background-color: #ddd;        
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#fafafa), to(#ddd));
+	background-image: -webkit-linear-gradient(top, #fafafa, #ddd);
+	background-image: -moz-linear-gradient(top, #fafafa, #ddd);
+	background-image: -ms-linear-gradient(top, #fafafa, #ddd);
+	background-image: -o-linear-gradient(top, #fafafa, #ddd);
+	background-image: linear-gradient(top, #fafafa, #ddd);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#fafafa', EndColorStr='#dddddd');        
+}
+
+.button {
+	background-image: -moz-linear-gradient(top, #ffffff, #dbdbdb);
+	background-image: -webkit-gradient(linear,left top,left bottom,
+	color-stop(0, #ffffff),color-stop(1, #dbdbdb));
+	border: 1px solid #fff;
+	box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.4);
+	border-radius: 4px;
+	padding: 5px 15px;
+	text-decoration: none;
+	text-shadow: #fff 0 1px 0;
+	color: #000;
+	line-height: 12px;
+	font-size: 12px;
+	font-weight: normal;
+	font-family: "Orienta"
+}
+
+.button:hover {
+	background-image: -moz-linear-gradient(top, #ffffff, #eeeeee);
+	background-image: -webkit-gradient(linear,left top,left bottom,
+	color-stop(0, #ffffff),color-stop(1, #eeeeee));
+	color: #000;
+}
+.button:active {
+	background-image: -moz-linear-gradient(top, #dbdbdb, #ffffff);
+	background-image: -webkit-gradient(linear,left top,left bottom,
+	color-stop(0, #dbdbdb),color-stop(1, #ffffff));
+	text-shadow: 0px -1px 0 rgba(255, 255, 255, 0.5);
+}
+.CodeMirror {
+
+	border: 1px solid #000000;                          
+	height: 580px;
+	border-radius:5px;
+	font-size:15px;
+}
+input.switch:empty
+{
+
+	margin-left: -999px;
+}
+
+input.switch:empty ~ label
+{
+	text-shadow:0px 0px 0px #000;
+	position: relative;
+	float: left;
+	line-height: 1.6em;
+	text-indent: 4em;
+	margin: 0.2em 0;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+input.switch:empty ~ label:before, 
+input.switch:empty ~ label:after
+{
+	position: absolute;
+	text-shadow:0px 0px 0px #000;
+	display: block;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	content: '\2718';
+	width: 3.6em;
+	text-indent: 2.4em;
+	color: #900;
+	background-color: #c33;
+	border-radius: 0.3em;
+	box-shadow: inset 0 0.2em 0 rgba(0,0,0,0.3);
+}
+
+input.switch:empty ~ label:after
+{
+
+	text-shadow:0px 0px 0px #000;
+	content: ' ';
+	width: 1.4em;
+	top: 0.1em;
+	bottom: 0.1em;
+	text-align: center;
+	text-indent: 0;
+	margin-left: 0.1em;
+	color: #f88;
+	background-color: #fff;
+	border-radius: 0.15em;
+	box-shadow: inset 0 -0.2em 0 rgba(0,0,0,0.2);
+	-webkit-transition: all 100ms ease-in;
+	transition: all 100ms ease-in;
+}
+
+/* toggle on */
+input.switch:checked ~ label:before
+{
+	text-shadow:0px 0px 0px #000;
+	content: '\2714';
+	text-indent: 0.5em;
+	color: #6f6;
+	background-color: #393;
+}
+
+input.switch:checked ~ label:after
+{
+	margin-left: 2.1em;
+	text-shadow:0px 0px 0px #000;
+	color: #6c6;
+}
+
+/* focus styles */
+input.switch:focus ~ label
+{
+	color: #000;
+	text-shadow:0px 0px 0px #000;
+}
+
+input.switch:focus ~ label:before
+{
+	box-shadow: 0 0 0 0px #000;
+	text-shadow:0px 0px 0px #000;
+}
+
+
+input.switch:focus ~ label:after
+{
+	box-shadow: 0 0 0 0px #000;
+	text-shadow:0px 0px 0px #000;
+}
+input.switch:active ~ label
+{
+	text-shadow:0px 0px 0px #000;
+}
+input.switch:active ~ label:before
+{
+	text-shadow:0px 0px 0px #000;
+}
+
+input.switch:active ~ label:after
+{
+	text-shadow:0px 0px 0px #000;
+}
+
+input.switch:link ~ label
+{
+	text-shadow:0px 0px 0px #000;
+}
+input.switch:link ~ label:before
+{
+	text-shadow:0px 0px 0px #000;
+}
+
+input.switch:link ~ label:after
+{
+	text-shadow:0px 0px 0px #000;
+}
+
+
