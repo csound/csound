@@ -2,6 +2,14 @@ Csound for iOS ChangeLog
 
 This ChangeLog shows changes specific to Csound for iOS. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
 
+6.03.0 - xxxx-xx-xx
+
+* Added information about required Frameworks to Csound for iOS Documentation
+
+6.02.0.1 - 2014-01-20
+
+* recompiled with target iOS version of 6.1 
+
 6.02.0 - 2014-01-06
 
 * fixed issue when using Audio Input, audio was overrided to go to Speaker

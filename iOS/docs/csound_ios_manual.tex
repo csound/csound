@@ -7,6 +7,8 @@
 \usepackage{caption}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{comment}
 
 
 %\DeclareCaptionFont{white}{\color{white}}
@@ -89,6 +91,31 @@ Csound for iOS was chosen to be delivered as pre-compiled libraries and headers 
 
 After selecting ``Add files'' the csound-iOS folders should now be a part of your project.  You will now be able to reference reference both the standard Csound C API as well as the Objective-C CsoundObj API from your project code.
 
+Additionally, you will need to add the following Frameworks to your main project:
+
+\begin{itemize}
+  \item CoreMidi.framework 
+  \item CoreMotion.framework 
+  \item AudioToolbox.framework 
+  \item CoreAudio.framework 
+  \item AVFoundation.framework 
+  \item QuartzCore.framework 
+  \item UIKit.framework 
+  \item Foundation.framework 
+  \item CoreGraphics.framework 
+\end{itemize}
+
+You can do this by selecting the main project node in the Project Navigator, then in the properties go to ``Build Phases'' and under ``Link Binary with Libraries'' use the + button to add the Frameworks. (You can refer to the the Csound iOS Examples project for these Frameworks.) 
+
+When complete, your project's Frameworks node should look like Figure \ref{fig:frameworks}.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics{images/frameworks}
+\end{center}
+\caption{Required Frameworks for Csound for iOS}\label{fig:frameworks}
+\end{figure}
+
 %======
 
 \section{Introduction to the API}
@@ -106,7 +133,12 @@ The CsoundObj API revolves around the Objective-C CsoundObj class. This class co
 
 To communicate to and from a host program with Csound, you will most likely use \textbf{chnset} and \textbf{chnget} opcodes. These opcodes will allow you to read from and write values to a named channel.  Your host program will also be writing to and reading from these same channels.  As a byproduct of using named channels, your CSD will be portable to work on other platforms (Desktop, Android); porting over apps to/from iOS then will only involve redoing the application and UI code, while your audio engine (Csound) should ``just work.'' 
 
- 
+\subsubsection{CsOptions}
+
+Csound will use the CsOptions you provide.  A standard set of flags to use are ``{\tt -odac -dm0 -+msg\_color=0}''. This will tell Csound to play to dac in realtime, turn off displays, use message level 0, and turn of message colors.  This will minimize messages going out to the console or to your message handler if you set one.  You may also need ``{\tt -iadc}'' if your project uses audio input. (You can always consult the Csound Examples project to see what CsOptions are used in the CSD's for that project.)  
+
+\emph{Note: In Csound 5 for iOS, it was previously required to set \linebreak ``{\tt -+rtaudio=null}'' when using audio, and ``{\tt -+rtmidi=null}'' when using MIDI. This is no longer required for Csound 6 for iOS.}
+
 
 \subsection{CsoundValueCacheable for Communicating with Csound}
 

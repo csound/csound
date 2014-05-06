@@ -119,7 +119,7 @@ if(BUILD_WINSOUND)
     set(WINSOUND_H ${CMAKE_CURRENT_BINARY_DIR}/winsound.h)
     set_source_files_properties(${WINSOUND_CXX} GENERATED)
     set_source_files_properties(${WINSOUND_H} GENERATED)
-    add_custom_target(winsound_fl COMMAND fluid -c -o ${WINSOUND_CXX} -h $ --{WINSOUND_H} ${WINSOUND_FL})
+    add_custom_target(winsound_fl COMMAND fluid -c -o ${WINSOUND_CXX} -h  ${WINSOUND_H} ${WINSOUND_FL})
 
     set(WINSOUND_SRCS ${WINSOUND_CXX} winsound/main.cxx)
 
@@ -133,6 +133,10 @@ if(BUILD_WINSOUND)
 
 endif()
 
+# debugger command line app
+make_executable(csdebugger debugger/csdebugger.cpp "${CSOUNDLIB}")
+
+# Others
 add_subdirectory(CsoundAC)
 add_subdirectory(CsoundVST)
 add_subdirectory(max_csound_tilde)

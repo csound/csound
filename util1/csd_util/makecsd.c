@@ -339,7 +339,11 @@ int main(int argc, char **argv)
       /* copy options file if specified */
       convert_txt_file(optname, outfile);
       /* hack: remove blank line from end of options */
-      fflush(outfile); fseek(outfile, -1L, SEEK_END);
+      fflush(outfile);
+      if (fseek(outfile, -1L, SEEK_END)<0) {
+        fprintf(stderr, "makecsd: seek failed\n");
+        exit(1);
+      }
     }
     else if (i >= nr_infiles) {
       fprintf(outfile, "\n");   /* put blank line if there are no options */

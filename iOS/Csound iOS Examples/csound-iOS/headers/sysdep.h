@@ -34,7 +34,7 @@ typedef void *locale_t;
 /* this checks for 64BIT builds */
 #if defined(__MACH__) || defined(LINUX)
 #include <limits.h>
-#if ( __WORDSIZE == 64 )
+#if ( __WORDSIZE == 64 ) || defined(__x86_64__) || defined(__amd64__)
 #define B64BIT
 #endif
 #endif
@@ -422,5 +422,9 @@ static inline double csoundUndenormalizeDouble(double x)
 # define CS_SPRINTF cs_sprintf
 # define CS_SSCANF cs_sscanf
 /* #endif */
+
+#if !defined(HAVE_STRLCAT) && !defined(strlcat)
+size_t strlcat(char *dst, const char *src, size_t siz);
+#endif
 
 #endif  /* CSOUND_SYSDEP_H */

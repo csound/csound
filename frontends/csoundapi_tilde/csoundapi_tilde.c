@@ -81,9 +81,11 @@ static MYFLT get_channel_value(t_csoundapi *x, char *channel);
 static channelname *create_channel(channelname *ch, char *channel);
 static void destroy_channels(channelname *ch);
 static void in_channel_value_callback(CSOUND *csound,
-                                      const char *name, void *val, const void *channelType);
+                                      const char *name,
+                                      void *val, const void *channelType);
 static void out_channel_value_callback(CSOUND *csound,
-                                       const char *name, void *val, const void *channelType);
+                                       const char *name,
+                                       void *val, const void *channelType);
 static void csoundapi_event(t_csoundapi *x, t_symbol *s,
                             int argc, t_atom *argv);
 static void csoundapi_run(t_csoundapi *x, t_floatarg f);
@@ -596,8 +598,8 @@ void *thread_func(void *p){
 
       orc = (char *) malloc(size+1);
       fseek(fp, 0, SEEK_SET);
-      fread(orc,1,size,fp);
-      csoundCompileOrc(pp->csound, orc);
+      if(fread(orc,1,size,fp) > 0)
+        csoundCompileOrc(pp->csound, orc);
       fclose(fp);
       free(orc);
     } else post("csound6~: could not open %s \n", pp->orc);

@@ -100,7 +100,8 @@ static int envext(CSOUND *csound, int argc, char **argv)
     } while (--argc);
 
     /* Read sound file */
-    if ((infd = SCsndgetset(csound, &p, inputfile))==NULL) {
+    if (UNLIKELY(inputfile==NULL ||
+                 (infd = SCsndgetset(csound, &p, inputfile))==NULL)) {
       csound->Message(csound,Str("%s: error while opening %s"), argv[0], inputfile);
       return 1;
     }
@@ -119,7 +120,7 @@ SCsndgetset(CSOUND *csound, SOUNDIN **pp, char *inputfile)
     *pp = p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
-    strcpy(p->sfname, inputfile);
+    strncpy(p->sfname, inputfile, MAXSNDNAME-1);
     if ((infd = csound->sndgetset(csound, p)) == 0) /*open sndfil, do skiptime*/
       return(0);
     p->getframes = p->framesrem;

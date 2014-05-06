@@ -63,6 +63,7 @@
    J              "             "         -1
    V              "             "          .5
    P              "             "          1
+   W       begins indef list of Strings (any count)
    y       begins indef list of aargs (any count)
    z       begins indef list of kargs (any count)
    Z       begins alternating kakaka...list (any count)    */
@@ -75,7 +76,7 @@
  s       deprecated (use a or k as required)
  X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
  N       multiple args (a, k, i, or S-rate)
- F       multiple args (f-rate)
+ F       multiple args (f-rate)#
  */
 
 
@@ -387,7 +388,7 @@ OENTRY opcodlst_1[] = {
   { "linenr.a", S(LINENR),0,  5,      "a",    "aiii", lnrset, NULL,linenr  },
   { "linenr.x", S(LINENR),0,  5,      "a",    "kiii", lnrset, NULL,linenr  },
   { "envlpx", S(ENVLPX), TR, 3,     "k","kiiiiiio", evxset, knvlpx, NULL },
-  { "envlpxr", S(ENVLPR),TR, 3,     "k","aiiiiioo", evrset, knvlpxr, NULL },
+  { "envlpxr", S(ENVLPR),TR, 3,     "k","kiiiiioo", evrset, knvlpxr, NULL },
   { "envlpx.a", S(ENVLPX), TR, 5,     "a","kiiiiiio", evxset, NULL,envlpx  },
   { "envlpxr.a", S(ENVLPR),TR, 5,     "a","aiiiiioo", evrset, NULL,envlpxr },
   { "envlpx.x", S(ENVLPX), TR, 5,     "a","kiiiiiio", evxset, NULL,envlpx  },
@@ -543,7 +544,7 @@ OENTRY opcodlst_1[] = {
   { "print",  S(PRINTV),WR, 1,      "",     "m",    printv                  },
   { "display",S(DSPLAY),0,  7,      "",     "xioo", dspset, kdsplay,dsplay  },
   { "pvsdisp",S(FSIGDISP),0,  3,      "",     "foo", fdspset, fdsplay,NULL },
-  { "dispfft",S(DSPFFT),0,  7,      "",     "xiiooo",fftset,kdspfft,dspfft  },
+  { "dispfft",S(DSPFFT),0,  7,      "",     "xiiooooo",fftset,kdspfft,dspfft  },
   { "dumpk",  S(KDUMP),0,   3,      "",     "kSii", kdmpset_S,kdump           },
   { "dumpk2", S(KDUMP2),0,  3,      "",     "kkSii",kdmp2set_S,kdump2         },
   { "dumpk3", S(KDUMP3),0,  3,      "",     "kkkSii",kdmp3set_S,kdump3        },
@@ -757,6 +758,7 @@ OENTRY opcodlst_1[] = {
     (SUBR)printkset, (SUBR)printk, NULL },
   { "printks",S(PRINTKS),WR, 3,   "",   "SiM",
     (SUBR)printksset_S,(SUBR)printks, NULL },
+  { "printks2", sizeof(PRINTK3),0, 3, "", "Sk", (SUBR)printk3set, (SUBR)printk3 },
   { "printks.i",S(PRINTKS),WR, 3,   "",   "iiM",
     (SUBR)printksset,(SUBR)printks, NULL },
   { "prints",S(PRINTS),0,   1,   "",   "SM",   (SUBR)printsset_S, NULL, NULL },
@@ -822,12 +824,12 @@ OENTRY opcodlst_1[] = {
   { "event_i", S(LINEVENT),0,1,     "",     "Sim",  eventOpcodeI, NULL, NULL  },
   { "event.S", S(LINEVENT),0,  2,     "",    "SSz",  NULL, eventOpcode_S, NULL   },
   { "event_i.S", S(LINEVENT),0,1,     "",    "SSm",  eventOpcodeI_S, NULL, NULL  },
-  { "instance", S(LINEVENT2),0,2,     "k",  "kkz",  NULL, instanceOpcode, NULL   },
-  { "instance.i", S(LINEVENT2),0,1,   "i",  "iiim",  instanceOpcode, NULL, NULL  },
-  { "instance.kS", S(LINEVENT2),0, 2, "k",  "SSz",  NULL, instanceOpcode_S, NULL },
-  { "instance.S", S(LINEVENT2),0, 1,  "i",  "Siim",  instanceOpcode_S, NULL, NULL},
-  { "kill", S(KILLOP),0,1,     "",     "i", kill_instance, NULL, NULL  },
-  { "kill.k", S(KILLOP),0,2,     "",     "k", NULL, kill_instance, NULL},
+  { "nstance", S(LINEVENT2),0,2,     "k",  "kkz",  NULL, instanceOpcode, NULL   },
+  { "nstance.i", S(LINEVENT2),0,1,   "i",  "iiim",  instanceOpcode, NULL, NULL  },
+  { "nstance.kS", S(LINEVENT2),0, 2, "k",  "SSz",  NULL, instanceOpcode_S, NULL },
+  { "nstance.S", S(LINEVENT2),0, 1,  "i",  "Siim",  instanceOpcode_S, NULL, NULL},
+  { "turnoff.i", S(KILLOP),0,1,     "",     "i", kill_instance, NULL, NULL  },
+  { "turnoff.k", S(KILLOP),0,2,     "",     "k", NULL, kill_instance, NULL},
   { "lfo", S(LFO),0,         3,     "k",    "kko",  lfoset,   lfok,   NULL   },
   { "lfo.a", S(LFO),0,         5,     "a",    "kko",  lfoset,  NULL,   lfoa    },
   { "oscils",   S(OSCILS),0, 5,     "a", "iiio",
@@ -1146,6 +1148,7 @@ OENTRY opcodlst_1[] = {
   { "ftresizei", S(RESIZE), TB, 1, "i", "ii", (SUBR) resize_table, NULL, NULL },
   { "ftresize",  S(RESIZE), TB, 2, "k", "kk", NULL, (SUBR) resize_table, NULL },
   { "compileorc",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_orc_i, NULL, NULL },
+  { "compilecsd",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_csd_i, NULL, NULL },
   { "compilestr",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_str_i, NULL, NULL },
   { "evalstr",  S(COMPILE), 0, 1, "i", "S",  (SUBR) eval_str_i, NULL, NULL },
   { "evalstr",  S(COMPILE), 0, 2, "k", "Sk",  NULL, (SUBR) eval_str_k, NULL },

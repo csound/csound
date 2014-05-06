@@ -20,9 +20,9 @@
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.02.0-vst"
+#define MyAppMinVersion "6.03.0-vst"
 #else
-#define MyAppMinVersion "6.02.0"
+#define MyAppMinVersion "6.03.0"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
@@ -130,7 +130,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName=Csound 6
 AllowNoIcons=yes
-LicenseFile=readme-csound6.txt
+LicenseFile=README.md
 ;InfoBeforeFile=readme-csound6.txt
 OutputDir=installer\windows
 OutputBaseFilename=Setup_{#MyAppName}_{#MyAppMinVersion}
@@ -142,6 +142,7 @@ SourceDir={#MySourceDir}
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
+Source: "*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "{#MyMinGwBinDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 ; No idea why this other name is needed.
@@ -203,6 +204,7 @@ Source: "vst4cs.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Compone
 Source: "widgets.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 
 Source: "{#MyCsoundQtBinDir}CsoundQt-d-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyCsoundQtBinDir}..\src\Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core 
 Source: "{#MyQtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
@@ -217,9 +219,9 @@ Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreve
 Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
 
 ; Ignore the unspeakably stupid libtool crap.
-Source: {#MyPortAudioSourceDir}\lib\.libs\*.dll; DestDir: "{#APP_BIN}"; Components: core 
-Source: {#MyPortAudioSourceDir}\bin\.libs\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
-Source: {#MyPortAudioSourceDir}\bin\.libs\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
+; Source: {#MyPortAudioSourceDir}\lib\.libs\*.dll; DestDir: "{#APP_BIN}"; Components: core 
+Source: {#MyPortAudioSourceDir}\bin\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
+Source: {#MyPortAudioSourceDir}\bin\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
 ; Required by pre-built portaudio_x86.dll (built with MSVC).
 Source: "C:\Windows\system32\msvcr110.dll"; DestDir: "{#APP_BIN}"; Components: core  
 
@@ -247,8 +249,8 @@ Source: frontends/CsoundAC/*.hpp; DestDir: "{#APP_INCLUDE}\csoundac"; Flags: ign
 
 Source: {#MyManualSourceDir}html\*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs;  Components: core 
 
-Source: "doc\csound\html\*.*"; DestDir: "{#APP_APIREF}/csound"; Flags: ignoreversion recursesubdirs;  Components: core 
-Source: "doc\csoundac\html\*.*"; DestDir: "{#APP_APIREF}/csoundac"; Flags: ignoreversion recursesubdirs;  Components: core 
+Source: "doc\doxygen\csound\html\*.*"; DestDir: "{#APP_APIREF}/csound"; Flags: ignoreversion recursesubdirs;  Components: core 
+Source: "doc\doxygen\csoundac\html\*.*"; DestDir: "{#APP_APIREF}/csoundac"; Flags: ignoreversion recursesubdirs;  Components: core 
 
 Source: "examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav"; Flags: ignoreversion recursesubdirs;  Components: core 
 
@@ -258,6 +260,8 @@ Source: "{#MyLibStkSourceDir}rawwaves\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ig
 Source: {#MyCsoundTutorialSourceDir}tutorial.pdf; DestDir: "{#APP_TUTORIAL}"; Flags: ignoreversion recursesubdirs;  Components: core 
 Source: {#MyCsoundAcTutorialSourceDir}Csound_Algorithmic_Composition_Tutorial.pdf; DestDir: "{#APP_TUTORIAL}"; Flags: ignoreversion recursesubdirs;  Components: core 
 Source: {#MyCsoundAcTutorialSourceDir}code\*.*; DestDir: "{#APP_TUTORIAL}code\"; Excludes: "*.wav"; Flags: ignoreversion recursesubdirs;  Components: core 
+
+Source: "doc\csound_system_documentation\*.pdf"; DestDir:"{#APP_APIREF}"; Flags: ignoreversion; Components: core
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}";  Components: core;  

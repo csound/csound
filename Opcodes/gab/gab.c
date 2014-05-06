@@ -128,8 +128,11 @@ static int fastabw(CSOUND *csound, FASTAB *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
+    FUNC *ftp = csound->FTnp2Find(csound, p->xfn);
+    p->table = ftp->ftable;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
+
 
     if (UNLIKELY(early)) nsmps -= early;
     if (p->xmode) {
@@ -228,6 +231,8 @@ static int fastab(CSOUND *csound, FASTAB *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
+    FUNC *ftp = csound->FTnp2Find(csound, p->xfn);
+    p->table = ftp->ftable;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
     if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
@@ -569,7 +574,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
 static int exitnow(CSOUND *csound, EXITNOW *p)
 {
     (void) p;
-    csound->LongJmp(csound, 0);
+    csound->LongJmp(csound, MYFLT2LRND(*p->retval));
     return OK;  /* compiler only */
 }
 
@@ -893,7 +898,7 @@ OENTRY gab_localops[] = {
                             (SUBR) nlalp_set, NULL, (SUBR) nlalp   },
   { "adsynt2",S(ADSYNT2),TR, 5,    "a",     "kkiiiio",
                             (SUBR) adsynt2_set, NULL, (SUBR)adsynt2 },
-  { "exitnow",S(EXITNOW),   0, 1,    "",  "", (SUBR) exitnow, NULL, NULL },
+  { "exitnow",S(EXITNOW),   0, 1,    "",  "o", (SUBR) exitnow, NULL, NULL },
 /* { "zr_i",  S(ZKR),     0, 1,  "i",  "i",  (SUBR)zread, NULL, NULL}, */
 /* { "zr_k",  S(ZKR),     0, 2,  "k",  "k",  NULL, (SUBR)zread, NULL}, */
 /* { "zr_a",  S(ZAR),     0, 5,  "a",  "a",  (SUBR)zaset, NULL, (SUBR)zar}, */
