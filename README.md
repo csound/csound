@@ -1,5 +1,5 @@
 # CSOUND AND CSOUND VST
-Version 6.03
+Version 6.03.1
 
 [![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
 
