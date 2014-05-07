@@ -1,3 +1,9 @@
+# When the minimum required version is bumped to >= 2.8.12, remove this line,
+# remove all occurences of LINK_INTERFACE_LIBRARIES, and modify all target_link_libraries
+# to be PRIVATE (eg, target_link_libraries(${CSOUNDLIB} PRIVATE ...) )
+# This silences a cmake warning about a variable name change
+set(CMAKE_POLICY_DEFAULT_CMP0022 OLD)
+
 cmake_minimum_required(VERSION 2.8.3)
 
 project (Csound)
