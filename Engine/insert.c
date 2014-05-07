@@ -1247,6 +1247,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     else
       memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(MYFLT));
 
+
     /* do init pass for this instr */
     p->ip->init_done = 0;
     csound->curip = lcurip;
@@ -1255,8 +1256,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       (*csound->ids->iopadr)(csound, csound->ids);
       csound->ids = csound->ids->nxti;
       }
-    p->ip->init_done = 1;
-
+     p->ip->init_done = 1;
     /* copy length related parameters back to caller instr */
     parent_ip->relesing = lcurip->relesing;
     parent_ip->offbet = lcurip->offbet;
