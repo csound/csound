@@ -25,5 +25,5 @@
    currently implemented only for OSX
 */
 
-/* #undef USE_DOUBLE */
+#define USE_DOUBLE 
 
