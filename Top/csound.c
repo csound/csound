@@ -2142,7 +2142,7 @@ extern void midifile_rewind_score(CSOUND *csound);    /* midifile.c */
 PUBLIC void csoundRewindScore(CSOUND *csound)
 {
     musmon_rewind_score(csound);
-    midifile_rewind_score(csound);
+    if(csound->oparms->FMidiname != NULL) midifile_rewind_score(csound);
 }
 
 PUBLIC void csoundSetCscoreCallback(CSOUND *p,
