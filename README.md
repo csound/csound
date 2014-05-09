@@ -1,4 +1,4 @@
-# CSOUND AND CSOUND VST
+# CSOUND
 Version 6.03.1
 
 [![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
@@ -7,15 +7,13 @@ A user-programmable and user-extensible sound processing language
 and software synthesizer.
 
 Csound is copyright (c) 1991 Barry Vercoe, John ffitch.
-CsoundVST is copyright (c) 2001 by Michael Gogins.
-VST PlugIn Interface Technology by Steinberg Soft- und Hardware GmbH
 
-Csound and CsoundVST are free software; you can redistribute them
+Csound is free software; you can redistribute them
 and/or modify them under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
 version 2.1 of the License, or (at your option) any later version.
 
-Csound and CsoundVST are distributed in the hope that they will be useful,
+Csound is distributed in the hope that they will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
@@ -32,18 +30,6 @@ the exploration of Csound, especially because CsoundQt has an extensive menu
 of built-in examples that show off Csound's capabilities. Many musicians make 
 CsoundQt their main Csound environment, although there are other excellent 
 environments. CsoundQt runs not only Csound code, but also Python scripts.
-
-CsoundVST is a VST plugin version of Csound. Please see "A Csound Tutorial"
-herein for instructions on use. CsoundVST does not support custom VST GUIs,
-but allows the Csound orchestra to be edited and saved in the VST host.
-
-The tutorial/tutorial.pdf file is an illustrated tutorial of how to 
-find, install, configure, and use Csound. To get started with 
-real-time MIDI performance, for example, see Section 2.1.3.
-
-The tutorial/Csound_Algorithmic_Composition_Tutorial.pdf is an illutrated
-tutorial of how to use CsoundAC to do algorithmic composition (score
-generation). This tutorial includes several complete pieces.
 
 The examples directory contains numerous working Csound orchestras and 
 even complete pieces. The examples/Boulanger_Examples directory contains
