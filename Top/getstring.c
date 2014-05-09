@@ -45,6 +45,10 @@ int closedir(DIR*);
 
 #define CSSTRNGS_VERSION 0x2000
 #include <locale.h>
+#ifdef GNU_GETTEXT
+#include <libintl.h>
+#endif
+
 #ifndef GNU_GETTEXT
 void init_getstring(void *cs)
 {
