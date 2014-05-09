@@ -15,14 +15,14 @@
 ; I hope to change this soon.
 
 ; Uncomment the following line to build for Cabbage, CsoundVST, and vst4cs.
-#define CSOUNDVST
+;#define CSOUNDVST
 
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.03.0-vst"
+#define MyAppMinVersion "6.03.1-vst"
 #else
-#define MyAppMinVersion "6.03.0"
+#define MyAppMinVersion "6.03.1"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
@@ -249,8 +249,8 @@ Source: frontends/CsoundAC/*.hpp; DestDir: "{#APP_INCLUDE}\csoundac"; Flags: ign
 
 Source: {#MyManualSourceDir}html\*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs;  Components: core 
 
-Source: "doc\csound\html\*.*"; DestDir: "{#APP_APIREF}/csound"; Flags: ignoreversion recursesubdirs;  Components: core 
-Source: "doc\csoundac\html\*.*"; DestDir: "{#APP_APIREF}/csoundac"; Flags: ignoreversion recursesubdirs;  Components: core 
+Source: "doc\doxygen\csound\html\*.*"; DestDir: "{#APP_APIREF}/csound"; Flags: ignoreversion recursesubdirs;  Components: core 
+Source: "doc\doxygen\csoundac\html\*.*"; DestDir: "{#APP_APIREF}/csoundac"; Flags: ignoreversion recursesubdirs;  Components: core 
 
 Source: "examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav"; Flags: ignoreversion recursesubdirs;  Components: core 
 
