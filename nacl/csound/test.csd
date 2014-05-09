@@ -15,15 +15,33 @@ sr     = 44100
 kr     = 4410
 ksmps  = 10
 nchnls = 2
-
+0dbfs=1
+i1 ftgen 1,0,2048,10,1
 instr 1 ;Simple sine at 440Hz
-a1	oscili 10000,440, 1
+a1	oscili 0.5,440, 1
 outs a1, a1
 endin
 
 </CsInstruments>
 <CsScore>
-f1 0 4096 10 1
+
 i1 0 30
 </CsScore>
 </CsoundSynthesizer>
+<bsbPanel>
+ <label>Widgets</label>
+ <objectName/>
+ <x>100</x>
+ <y>100</y>
+ <width>320</width>
+ <height>240</height>
+ <visible>true</visible>
+ <uuid/>
+ <bgcolor mode="nobackground">
+  <r>255</r>
+  <g>255</g>
+  <b>255</b>
+ </bgcolor>
+</bsbPanel>
+<bsbPresets>
+</bsbPresets>
