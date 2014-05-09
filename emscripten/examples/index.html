@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<link href='http://fonts.googleapis.com/css?family=Orienta' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="codemirror/theme/eclipse.css">
+<link rel="stylesheet" href="stylesheets/index.css">
+<script src="javascripts/jquery.js" type="text/javascript"></script>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Csound Emscripten</title>
+<script src="javascripts/libcsound.js"></script>
+<script src="javascripts/CsoundObj.js"></script>
+<script src="codemirror/lib/codemirror.js"></script>
+
+<script src="codemirror/mode/javascript/javascript.js"></script>
+<script src="javascripts/fileToString.js"></script>
+<script src="javascripts/jquery.js"></script>
+<script>
+
+
+var csoundObj = new CsoundObj();
+
+var csdFileReader = new FileReader();
+var testFilePath = "test.csd";
+var textEditor;
+csdFileReader.onloadend = function()
+{
+	var data = new Uint8Array(csdFileReader.result);
+	var stream = FS.open(testFilePath, 'w+');
+	FS.write(stream, data, 0, data.length, 0);
+	FS.close(stream);
+	csoundObj.compileCSD(testFilePath);
+}
+compile = function()
+{
+	editorText = textEditor.getValue();
+	textBlob = new Blob([editorText], {type:"text/plain"});
+	csdFileReader.readAsArrayBuffer(textBlob);
+}
+
+perform = function()
+{
+	csoundObj.startAudioCallback();
+}
+
+stop = function()
+{
+	csoundObj.stopAudioCallback();
+}
+
+var fileReader = new FileReader();
+
+var file;
+
+
+fileReader.onload = (function(theFile) {
+		     return function(e) {
+
+		     console.log("Opened File %s", file.name);
+		     FS.createDataFile('/', file.name, e.target.result, true, false);
+		     };
+		     })(file)
+
+function handleFileSelect(evt) {
+
+	var files = evt.target.files;
+	file = files[0];
+	console.log(file.name);
+
+	fileReader.readAsBinaryString(file);
+}
+
+FS.createDataFile('/', testFilePath, null, true, true);
+
+function setEditorContentsFromFile(filePath)
+{
+	fileString = fileToString(filePath);
+	textEditor.setValue(fileString);
+}
+
+var indexFilePath = "index.txt"
+
+function loadContent(elementSelector, sourceUrl) {
+
+	$(""+elementSelector+"").load(""+sourceUrl+"");
+}
+</script>
+</head>
+<body>
+
+<div id="header">
+	<h1><a class="headerlink" href="javascript:loadContent('#widgets', 'blank.html');setEditorContentsFromFile(&quot;index.txt&quot;);">Csound Emscripten</a></h1>
+</div>
+<div class="colmask threecol">
+	<div class="colmid">
+		<div class="colleft">
+			<div class="col1">
+
+				<button class="button" onclick="compile();">Compile</button>
+				<button class="button" onclick="perform();">Perform</button>
+				<button class="button" onclick="stop();">Stop</button>
+
+				<textarea id="editor"></textarea> 
+				<script>
+textEditor = CodeMirror.fromTextArea(document.getElementById("editor"),
+				     {lineWrapping:true, theme:"eclipse",lineNumbers: true,matchBrackets: true,mode: "htmlmixed"});
+setEditorContentsFromFile("index.txt");
+				</script>
+			</div>
+			<div class="col2">
+				<h2>Tests</h2>
+				<ul>
+					<li><a href="javascript:loadContent('#widgets', 'tests/test1.html');setEditorContentsFromFile(&quot;tests/test1.csd&quot;);">Simple Test</a><li>
+					<li><a href="javascript:loadContent('#widgets', 'tests/test2.html');setEditorContentsFromFile(&quot;tests/test2.csd&quot;);">Audio File Test</a><li>
+					<li><a href="javascript:loadContent('#widgets', 'tests/test3.html');setEditorContentsFromFile(&quot;tests/test3.csd&quot;);">Mic Input Test</a><li>
+					<li><a href="javascript:loadContent('#widgets', 'tests/test4.html');setEditorContentsFromFile(&quot;tests/test4.csd&quot;);">Widget Test</a><li>
+				</ul>
+			</div>
+			<div class="col3">
+				<h2>Widgets</h2>
+
+				<div id="widgets">
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="footer">
+
+</div>
+
+</body>
+</html>

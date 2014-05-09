@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<!--
+ Csound pnacl table display example
+ Copyright (C) 2014 V Lazzarini
+-->
+<head>
+ <title> Simple Table Display Example</title>
+ <script type="text/javascript" src="csound.js"></script>
+ <script type="text/javascript">
+
+ // called by csound.js
+ function moduleDidLoad() {
+  csound.Play();
+  csound.CompileOrc(
+  "i1 ftgen 1,0,2048,10,1 \n" +
+  "schedule 1,0,-1 \n" +
+  "instr 1 \n" +
+  "a1 oscili 0.5, 440, 1 \n" +
+  "outs a1,a1 \n" +
+  "endin");
+  window.setTimeout(readTable,50);
+ }
+
+ function handleMessage(message) {
+  var mess = message.data;
+  var messField = document.getElementById("mess")
+   if(mess == "Table::Complete"){
+      console.log(mess);
+      displayTable();
+      return;
+  } 
+   messField.innerText += mess;
+ }
+
+  function displayTable(){
+   var tab = new Float64Array(csound.GetTableData());
+   var i = 0;
+   var j = 0;
+   var c=document.getElementById("cnvs");
+   var ctx=c.getContext("2d");
+   while(i < tab.length) {
+   ctx.fillStyle="#0000FF";
+   ctx.fillRect(j,-tab[i]*64+64,1,1);
+   i += tab.length/512.;
+   j+=1;
+}
+ }
+
+ function readTable() {
+   csound.RequestTable(1);
+ }
+ </script>
+</head>
+<body>
+<canvas class="cnvs" id="cnvs" width="512" height="128" style="border:1px solid#000000;">
+</canvas>
+ </p>
+  <div id="mess"> </div>
+   <div id="console"></div>
+  <!--pNaCl csound module-->
+  <div id="engine"></div>
+</body>
+</html>

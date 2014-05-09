@@ -1040,7 +1040,8 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
     int   type, mode, err;
     controlChannelHints_t hints;
     hints.attributes = NULL;
-    hints.dflt = FL(0.0);
+    hints.max = hints.min = hints.dflt = FL(0.0);
+    hints.x = hints.y = hints.height = hints.width = 0;
 
     mode = (int)MYFLT2LRND(*(p->imode));
     if (UNLIKELY(mode < 1 || mode > 3))
