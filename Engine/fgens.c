@@ -1352,6 +1352,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
         ff->flen++;
         nextval(infile);
       } while (!feof(infile));
+      ff->flen--; // overshoots by 1
       csoundMessage(csound, Str("%ld elements in %s\n"),
                     (long) ff->flen, ff->e.strarg);
       rewind(infile);
@@ -1363,9 +1364,18 @@ static int gen23(FGDATA *ff, FUNC *ftp)
     fp = ftp->ftable;
     j = 0;
     while (!feof(infile) && j < ff->flen) fp[j++] = nextval(infile);
+    nextval(infile); // overshot value
     if (UNLIKELY(!feof(infile)))
       csound->Warning(csound, Str("Numbers after table full in GEN23"));
     csound->FileClose(csound, fd);
+    // if (def) 
+    {
+      MYFLT *tab = ftp->ftable;
+      tab[ff->flen] = tab[0];  /* guard point */
+      ftp->flen -= 1;  /* exclude guard point */
+      ftresdisp(ff, ftp);       /* VL: 11.01.05  for deferred alloc tables */
+    }
+
 
     return OK;
 }
