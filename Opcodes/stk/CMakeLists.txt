@@ -1,6 +1,9 @@
 option(BUILD_STK_OPCODES "Build the stk opcodes" ON)
 
 if(BUILD_STK_OPCODES)
+    if(DEFAULT_STK_RAWWAVE_PATH)
+        set(rawwave_path "-DDEFAULT_RAWWAVE_PATH=\\\"${DEFAULT_STK_RAWWAVE_PATH}\\\"")
+    endif()
     find_library(STK_LIBRARY stk)
     if(STK_LIBRARY)
         find_path(STK_INCLUDE_DIR Stk.h
@@ -12,6 +15,7 @@ if(BUILD_STK_OPCODES)
             include_directories(${STK_INCLUDE_DIR})
 
             make_plugin(stk-ops stkOpcodes.cpp ${STK_LIBRARY})
+            add_compiler_flags(${rawwave_path} TARGETS stk-ops)
 
             set_target_properties(stk-ops PROPERTIES
                 OUTPUT_NAME stk)
@@ -68,6 +72,7 @@ if(BUILD_STK_OPCODES)
             endif()
 
             add_compiler_flags(${stkdefs} TARGETS stk)
+            add_compiler_flags(${rawwave_path} TARGETS stk)
 
         endif()
     endif()
