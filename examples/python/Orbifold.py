@@ -1,5 +1,5 @@
 '''
-Copyright 2005 by Michael Gogins.
+Copyright 2005, 22013, 2014 by Michael Gogins.
 
 A concise geometric approach to common operations
 in pragmatic music theory,
@@ -14,32 +14,32 @@ Voice-leading space is an orbifold of chords
 with one dimension per voice, voices ordered by pitch,
 pitch measured in tones per octave,
 and a modulus equal to the range of the voices.
-I.e., it is a complete Tonnetz.
-Root progressions are motions more or less 
-up and down the 'columns' of identically 
-structured chords. The closest voice-leadings are 
+I.e., it is a complete ChordSpace3.
+Root progressions are motions more or less
+up and down the 'columns' of identically
+structured chords. The closest voice-leadings are
 between the closest chords in the space.
-The 'best' voice-leadings are closest first 
-by 'smoothness,' and then  by 'parsimony.' 
-See Dmitri Tymoczko, 
+The 'best' voice-leadings are closest first
+by 'smoothness,' and then  by 'parsimony.'
+See Dmitri Tymoczko,
 _The Geometry of Musical Chords_, 2005
 (Princeton University).
 
-This script also demonstrates the triadic 
+This script also demonstrates the triadic
 neo-Riemannian transformations
-of leading-tone exchange (press l), 
-parallel (press p),  
+of leading-tone exchange (press l),
+parallel (press p),
 relative (press r),
-and dominant (press d) progression. 
-See Alissa S. Crans, Thomas M. Fiore, and Raymon Satyendra, 
-_Musical Actions of Dihedral Groups_, 2008 
+and dominant (press d) progression.
+See Alissa S. Crans, Thomas M. Fiore, and Raymon Satyendra,
+_Musical Actions of Dihedral Groups_, 2008
 (arXiv:0711.1873v2).
 
 You can do plain old transpositions
 by pressing 1, 2, 3, 4, 5, or 6.
 
-You can move each voice independently with the arrow keys: 
-up arrow to move voice 1 up 1 semitone (shift for down), 
+You can move each voice independently with the arrow keys:
+up arrow to move voice 1 up 1 semitone (shift for down),
 right arrow to move voice 2 in the same way,
 down arrow to move voice 3.
 
@@ -56,7 +56,7 @@ import threading
 import copy
 import collections
 from visual import *
-from numpy import *
+#from numpy import *
 #import Image
 #import ImageGrab
 #import ImageOps
@@ -72,7 +72,7 @@ This is to enable using the lower subspace of chords to represent pitches,
 and the higher subspace to represent other properties of music;
 e.g. [0:4] can be a tetrachord, [4:8] durations, [8:12] loudnesses, and so on.
 '''
-class Tonnetz(object):
+class ChordSpace3(object):
     def __init__(self, voiceCount=3, cubeOctaveCount=2,octaveCount=3, tonesPerOctave=12, isCube=False, isPrism=False, isNormalPrism = False, debug=False):
         self.N = voiceCount
         self.octaveCount = octaveCount
@@ -108,7 +108,7 @@ class Tonnetz(object):
         chord[voice] = chord[voice] + interval
         chord = tuple(self.bounceInside(chord))
         return chord
-    ''' 
+    '''
     Do a root progression by tranposition.
     '''
     def pT(self, chord, interval):
@@ -406,7 +406,7 @@ class Tonnetz(object):
         c[0:self.N] = r
         if self.debug:
             print c
-        return c  
+        return c
     def bounceInside(self, chord):
         inversions = self.inversions(chord)
         if self.debug:
@@ -492,10 +492,10 @@ class Tonnetz(object):
     def label(self, chord):
         c = array(chord[0:self.N])
         return 'C   %s\nT   %s\n0   %s\n1   %s\n0-1 %s\nSum %f' % (c, self.tones(c), self.zeroForm(c), self.firstInversion(c), self.zeroFormFirstInversion(chord), sum(chord[0:self.N]))
-        
-class TonnetzModel(Tonnetz):
+
+class ChordSpace3Model(ChordSpace3):
     def __init__(self, octaveCount=1, tonesPerOctave=12, isCube=False, isPrism=True, isNormalPrism=False, doCycle=False, showFirstInversion=False, doConnect=False, enableCsound=False, debug=False, showUnordered=False):
-        Tonnetz.__init__(self, 3, octaveCount=octaveCount, tonesPerOctave=tonesPerOctave, isCube=isCube, isPrism=isPrism, isNormalPrism=isNormalPrism, debug=debug)
+        ChordSpace3.__init__(self, 3, octaveCount=octaveCount, tonesPerOctave=tonesPerOctave, isCube=isCube, isPrism=isPrism, isNormalPrism=isNormalPrism, debug=debug)
         self.trichords = {}
         self.balls = {}
         self.ballsForChordTypes = {}
@@ -549,7 +549,7 @@ class TonnetzModel(Tonnetz):
                                 self.setColor(ball)
                                 ball.name = self.label(trichord)
                                 ball.label = label(pos = trichord,  text = ball.name, height = 11, box = 2, opacity = 0.3, linecolor=(0.5,0.5,0.5), visible = 0, line = 2, xoffset = -20, yoffset = 20)
-        
+
                             else:
                                 self.balls[trichord].radius = self.normalPrismRadius
         if self.doConnect:
@@ -559,7 +559,7 @@ class TonnetzModel(Tonnetz):
                 self.connect(trichord, self.sort((trichord[0], trichord[1], trichord[2] + 1.0)))
                 self.connect(trichord, self.sort((trichord[0] - 1.0, trichord[1], trichord[2])))
                 self.connect(trichord, self.sort((trichord[0], trichord[1] - 1.0, trichord[2])))
-                self.connect(trichord, self.sort((trichord[0], trichord[1], trichord[2] - 1.0)))                  
+                self.connect(trichord, self.sort((trichord[0], trichord[1], trichord[2] - 1.0)))
     def setColor(self, ball):
         z = tuple(self.zeroFormFirstInversion(ball.trichord))
         if z in self.ballsForChordTypes:
@@ -624,16 +624,17 @@ class TonnetzModel(Tonnetz):
             self.csound.inputMessage(note2)
             self.csound.inputMessage(note3)
         print
-        
+
     def run(self):
         pickedBall = None
         oldBall = None
         movingChord = ( 0, 4, 7)
         translation = (1,1,1)
         while scene.visible:
+            rate(100)
             movingChord = tuple(self.sort(movingChord))
             if scene.kb.keys:
-                k = scene.kb.getkey() 
+                k = scene.kb.getkey()
                 print 'key: %s' % k
                 if   k == 'up':
                     movingBall = self.balls[movingChord]
@@ -715,7 +716,7 @@ class TonnetzModel(Tonnetz):
                     movingBall.label.visible = 1
                     self.playBall(movingBall)
                     oldBall = movingBall
-                elif k in ('1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b'):                    
+                elif k in ('1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b'):
                     movingBall = self.balls[movingChord]
                     movingBall.label.visible = 0
                     if k == 'a':
@@ -775,7 +776,6 @@ def runModel(model):
     scene.autocenter = 1
     sort(model.firstInversions)
     if model.enableCsound:
-        model.csound.setPythonMessageCallback()
         model.csound.setOrchestra('''
 sr=44100
 ksmps=100
@@ -785,7 +785,7 @@ iafno ftgen 3, 		0, 	4097, 	10, 	1, .4, .2, .1, .1, .05
 iafno ftgen 41, 	0, 	65537, 	10, 	1 ; Sine wave.
 iafno ftgen 42, 	0, 	65537, 	11, 	1 ; Cosine wave. Get that noise down on the most widely used table!
 
-instr 2 
+instr 2
 ; INITIALIZATION
 ioctave         =                       p4 / 12.0 + 3.0
 iattack 		= 			0.01
@@ -805,7 +805,7 @@ ivibefn 		= 			42
 ifrequency 		= 			cpsoct(ioctave)
 iamplitude 		= 			ampdb(p5) * 20.0
 ijunk6 			= 			p6
-; Constant-power pan.	
+; Constant-power pan.
 ipi 			= 			4.0 * taninv(1.0)
 iradians 		= 			p7 * ipi / 2.0
 itheta 			= 			iradians / 2.0
@@ -828,11 +828,11 @@ endin
             f0 6000
             e
             ''')
-        #model.csound.setCommand('csound -h -d -r 48000 -k 1000 -m128 -b1000 -B1000 -odac')
+        model.csound.setCommand('csound -h -d -r 48000 -k 1000 -m128 -b1000 -B1000 -odac')
         #gc.disable()
-        #model.csound.compile()
-        #performanceThread = csnd6.CsoundPerformanceThread(model.csound)
-        #performanceThread.Play()
+        model.csound.compile()
+        performanceThread = csnd6.CsoundPerformanceThread(model.csound)
+        performanceThread.Play()
     fg = (1,1,1)
     arrowcolor = (0.7,0.7,0.7)
     size = model.getTessitura() * 1.125
@@ -853,24 +853,24 @@ endin
     if model.enableCsound:
         performanceThread.Stop()
         print 'Csound finished.'
-print 'Program finished.'
-    
+
 
 if __name__ == '__main__':
     #scene.fullscreen = False
     #scene.width = 300 * 7
     #scene.height = 300 * 5
-    # Tonnetz for trichords
-    model = TonnetzModel(octaveCount=1, doCycle=False, doConnect=True, isPrism=True, enableCsound=True)
+    # ChordSpace3 for trichords
+    model = ChordSpace3Model(octaveCount=1, doCycle=False, doConnect=True, isPrism=True, enableCsound=True)
     # Ranged chord space
-    #model = TonnetzModel(octaveCount=2, doCycle=False, doConnect=False, isCube=True, isPrism=False)
-    # Tonnetz in ranged chord space
-    #model = TonnetzModel(octaveCount=1, doCycle=True, doConnect=False, isPrism=True, isCube=True)
+    #model = ChordSpace3Model(octaveCount=2, doCycle=False, doConnect=False, isCube=True, isPrism=False)
+    # ChordSpace3 in ranged chord space
+    #model = ChordSpace3Model(octaveCount=1, doCycle=True, doConnect=False, isPrism=True, isCube=True)
     # Voice-leading space
-    #model = TonnetzModel(octaveCount=3, doCycle=True, doConnect=False, isPrism=True, isNormalPrism=False)
+    #model = ChordSpace3Model(octaveCount=3, doCycle=True, doConnect=False, isPrism=True, isNormalPrism=False)
     # Normal chord space
-    #model = TonnetzModel(octaveCount=3, doCycle=False, doConnect=False, isPrism=False, isNormalPrism=True)
+    #model = ChordSpace3Model(octaveCount=3, doCycle=False, doConnect=False, isPrism=False, isNormalPrism=True)
     # Normal chord space in voice-leading space
-    #model = TonnetzModel(octaveCount=3, doCycle=False, doConnect=False, isPrism=True, isNormalPrism=True)
+    #model = ChordSpace3Model(octaveCount=3, doCycle=False, doConnect=False, isPrism=True, isNormalPrism=True)
     runModel(model)
+    print 'Program finished.'
 
