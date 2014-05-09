@@ -601,7 +601,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
@@ -1030,7 +1030,7 @@ int alpass(CSOUND *csound, COMB *p)
     xp = p->pntr;
     endp = (MYFLT *) p->auxch.endp;
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
@@ -1134,7 +1134,7 @@ int reverb(CSOUND *csound, REVERB *p)
     endp = (MYFLT *) p->auxch.endp;
 
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
