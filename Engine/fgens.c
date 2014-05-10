@@ -1352,6 +1352,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
         ff->flen++;
         nextval(infile);
       } while (!feof(infile));
+      ff->flen--; // overshoots by 1
       csoundMessage(csound, Str("%ld elements in %s\n"),
                     (long) ff->flen, ff->e.strarg);
       rewind(infile);
@@ -1363,9 +1364,18 @@ static int gen23(FGDATA *ff, FUNC *ftp)
     fp = ftp->ftable;
     j = 0;
     while (!feof(infile) && j < ff->flen) fp[j++] = nextval(infile);
+    nextval(infile); // overshot value
     if (UNLIKELY(!feof(infile)))
       csound->Warning(csound, Str("Numbers after table full in GEN23"));
     csound->FileClose(csound, fd);
+    // if (def) 
+    {
+      MYFLT *tab = ftp->ftable;
+      tab[ff->flen] = tab[0];  /* guard point */
+      ftp->flen -= 1;  /* exclude guard point */
+      ftresdisp(ff, ftp);       /* VL: 11.01.05  for deferred alloc tables */
+    }
+
 
     return OK;
 }
@@ -2508,7 +2518,7 @@ static int gen01(FGDATA *ff, FUNC *ftp)
       ftp->gen01args.iskptim = ff->e.p[6];
       ftp->gen01args.iformat = ff->e.p[7];
       ftp->gen01args.channel = ff->e.p[8];
-      strncpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ);
+      strncpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ-1);
       return OK;
     }
     return gen01raw(ff, ftp);
@@ -2735,7 +2745,7 @@ static int gen43(FGDATA *ff, FUNC *ftp)
 
     filno = &ff->e.p[5];
     if (ISSTRCOD(ff->e.p[5]))
-      strncpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME);
+      strncpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME-1);
     else
       csound->strarg2name(csound, filename, filno, "pvoc.", 0);
 
@@ -2822,7 +2832,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       else if ((filno= (int32) MYFLT2LRND(ff->e.p[5])) >= 0 &&
                filno <= csound->strsmax &&
                csound->strsets && csound->strsets[filno])
-        strncpy(sfname, csound->strsets[filno], 1024);
+        strncpy(sfname, csound->strsets[filno], 1023);
       else
         snprintf(sfname, 1024, "soundin.%d", filno);   /* soundin.filno */
     }
@@ -2957,7 +2967,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
       ftp->gen01args.iskptim = ff->e.p[6];
       ftp->gen01args.iformat = ff->e.p[7];
       ftp->gen01args.channel = ff->e.p[8];
-      strncpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ);
+      strncpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ-1);
       return OK;
     }
     return gen49raw(ff, ftp);

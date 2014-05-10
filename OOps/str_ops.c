@@ -339,6 +339,7 @@ sprintf_opcode_(CSOUND *csound,
         maxChars = str->size - len;
         strseg[i] = '\0';
         if (UNLIKELY(numVals <= 0)) {
+          free(strseg);
           return StrOp_ErrMsg(p, "insufficient arguments for format");
         }
         numVals--;
@@ -394,6 +395,7 @@ sprintf_opcode_(CSOUND *csound,
           break;
         case 's':
           if (((STRINGDAT*)parm)->data == str->data) {
+            free(strseg);
             return StrOp_ErrMsg(p, "output argument may not be "
                                    "the same as any of the input args");
           }
@@ -409,6 +411,7 @@ sprintf_opcode_(CSOUND *csound,
           n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
           break;
         default:
+          free(strseg);
           return StrOp_ErrMsg(p, "invalid format string");
         }
         if (n < 0 || n >= maxChars) {
