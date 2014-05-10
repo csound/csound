@@ -807,13 +807,13 @@ extern long mp3in_localops_init(CSOUND *, void *);
 extern long sockrecv_localops_init(CSOUND *, void *);
 #endif
 extern long afilts_localops_init(CSOUND *, void *);
+extern long pinker_localops_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
 extern int sfont_ModuleInit(CSOUND *csound);
 extern int sfont_ModuleCreate(CSOUND *csound);
 extern int newgabopc_ModuleInit(CSOUND *csound);
-
 
 const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  bilbar_localops_init, vosim_localops_init,
@@ -843,6 +843,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 #endif
                                  gendy_localops_init,
                                  scnoise_localops_init, afilts_localops_init,
+                                 pinker_localops_init,
                                  NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);
