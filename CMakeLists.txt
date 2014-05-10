@@ -632,6 +632,7 @@ set(libcsound_SRCS
     Opcodes/compress.c
     Opcodes/eqfil.c
     Opcodes/Vosim.c
+    Opcodes/pinker.c
     Opcodes/pitch.c
     Opcodes/pitch0.c
     Opcodes/spectra.c
