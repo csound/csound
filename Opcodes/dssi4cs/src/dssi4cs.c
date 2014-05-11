@@ -481,8 +481,8 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       if (*p->iverbose != 0)
         info(csound, DSSIPlugin_);
     }
+    dlclose(PluginLibrary);
     return OK;
-    /* Does this code leak memory from PluginLibrary? -- REVIEW NEEDED */
 }
 
 /****************************************************************************
