@@ -78,7 +78,7 @@ int main(int argc, char **argv)
             hdr.framrate, hdr.srate, hdr.duration);
     str = (char *)malloc((size_t)(hdr.headersize-sizeof(LPHEADER)+4));
     if( str == NULL) exit(1);
-    if (UNLIKELY(fread(&hdr, sizeof(char),
+    if (UNLIKELY(fread(&str, sizeof(char),
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=
                  hdr.headersize-sizeof(LPHEADER)+4)){
       fprintf(stderr, "Read failure\n");
