@@ -30,6 +30,7 @@
 #include "channel.h" 
 #include "midi.h"
 #include "util.h"
+#undef Str
 #ifdef _USE_BOOST_SERIALIZATION
 	#include <boost/property_tree/ptree.hpp>
 	#include <boost/property_tree/xml_parser.hpp>
