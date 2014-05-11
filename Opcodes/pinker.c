@@ -1,13 +1,39 @@
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// New Shade of Pink
-// (c) 2014 Stefan Stenzel 
-// stefan at waldorfmusic.de
-//  
 // Terms of use:
 // Use for any purpose. If used in a commercial product, you should give me one.  
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // some temporary bias required for hack on floats
-#define PINK_BIAS   440.0f                      
+
+/* 
+    pink.c
+
+    New Shade of Pink
+    (c) 2014 Stefan Stenzel 
+    stefan at waldorfmusic.de
+    Terms of use:
+    Use for any purpose. If used in a commercial product, you should give me one.  
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    some temporary bias required for hack on floats
+
+    Implemented in Csound by John ffitch
+    Copyright (C) 2014 Stefan Stenzel, John ffitch
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
 #include "csoundCore.h"       /*                              PINKER.C         */
 
 typedef struct {
@@ -16,10 +42,12 @@ typedef struct {
   int   inc;
   int   dec;
   int32 accu;
-  int   lfsr;
+  int32 lfsr;
   unsigned char cnt;
   int offset;
 } PINKER;
+
+#define PINK_BIAS   440.0f                      
 
 static int instance_cnt = 0;
 
@@ -34,9 +62,9 @@ static int instance_cnt = 0;
 #define FA8(n)  FA(n),FA(n+1),FA(n+2),FA(n+3),FA(n+4),FA(n+5),FA(n+6),FA(n+7)   
 #define FB8(n)  FB(n),FB(n+1),FB(n+2),FB(n+3),FB(n+4),FB(n+5),FB(n+6),FB(n+7)   
 
-static const MYFLT pfira[64] = {FA8(0) ,FA8(8), FA8(16),FA8(24),
+static const float pfira[64] = {FA8(0) ,FA8(8), FA8(16),FA8(24),
                                 FA8(32),FA8(40),FA8(48),FA8(56)}; // 1st FIR lookup table 
-static const MYFLT pfirb[64] = {FB8(0), FB8(8),FB8(16), FB8(24),
+static const float pfirb[64] = {FB8(0), FB8(8), FB8(16),FB8(24),
                                 FB8(32),FB8(40),FB8(48),FB8(56)}; // 2nd FIR lookup table  
             
 // bitreversed lookup table
@@ -44,10 +72,10 @@ static const MYFLT pfirb[64] = {FB8(0), FB8(8),FB8(16), FB8(24),
 
 static const unsigned char pnmask[256] = 
 {
-    PM16(0),PM16(0x08),PM16(0x04),PM16(0x08),
-    PM16(2),PM16(0x08),PM16(0x04),PM16(0x08),
-    PM16(1),PM16(0x08),PM16(0x04),PM16(0x08),
-    PM16(2),PM16(0x08),PM16(0x04),PM16(0x08)
+    PM16(0x00),PM16(0x08),PM16(0x04),PM16(0x08),
+    PM16(0x02),PM16(0x08),PM16(0x04),PM16(0x08),
+    PM16(0x01),PM16(0x08),PM16(0x04),PM16(0x08),
+    PM16(0x02),PM16(0x08),PM16(0x04),PM16(0x08)
 };
 
 static const int ind[] = {     0, 0x0800, 0x0400, 0x0800,
@@ -55,12 +83,12 @@ static const int ind[] = {     0, 0x0800, 0x0400, 0x0800,
                           0x0100, 0x0800, 0x0400, 0x0800,
                           0x0200, 0x0800, 0x0400, 0x0800};
 
-static int pink_perf(CSOUND* csound, PINKER *p)// generate samples of pink noise
+static int pink_perf(CSOUND* csound, PINKER *p) /* generate samples of pink noise */
 {
     int inc    =   p->inc;
     int dec    =   p->dec;
     int32 accu =   p->accu;
-    int lfsr   =   p->lfsr;
+    int32 lfsr   =   p->lfsr;
     int cnt    =   p->cnt;
     int bit;
     int n, nn, nsmps = csound->ksmps;
