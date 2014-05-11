@@ -50,10 +50,10 @@ else
 fi
 
 # OpenSoundControl
-OSC_REPO=git://liblo.git.sourceforge.net/gitroot/liblo/liblo
-if [ -e liblo ]; then
-  echo "fluidsynth-osc already exists, doing a pull to get the latest";
-  cd liblo;
+OSC_REPO=http://bitbucket.org/kunstmusik/liblo-android.git
+if [ -e liblo-android ]; then
+  echo "liblo-android already exists, doing a pull to get the latest";
+  cd liblo-android;
   git pull;
   cd ..;
 else
