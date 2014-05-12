@@ -73,9 +73,10 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
           pvResult = dlopen(pcBuffer, iFlag);
 
           csound->Free(csound, pcBuffer);
-          if (pvResult != NULL)
+          if (pvResult != NULL) {
+            free(pcLADSPAPath);
             return pvResult;
-          
+          }
           pcStart = pcEnd;
           if (*pcStart == ':')
             pcStart++;
