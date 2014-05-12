@@ -107,7 +107,8 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     ATSSTRUCT         *atsh;
     int               i;
 
-    strncpy(opname, csound->GetOpcodeName(p), 64);   /* opcode name */
+    strncpy(opname, csound->GetOpcodeName(p), 63);   /* opcode name */
+    opname[63]='\0';
     for (i = 0; opname[i] != '\0'; i++)
       opname[i] = toupper(opname[i]);           /* converted to upper case */
 
