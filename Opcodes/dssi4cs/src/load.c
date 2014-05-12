@@ -45,6 +45,11 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
          to search. */
       pcLADSPAPath = getenv("LADSPA_PATH");
       pcDSSIPath = getenv("DSSI_PATH");
+      if (!pcLADSPAPath) {
+        csound->Message(csound,
+                        "DSSI4CS: LADSPA_PATH environment variable not set.\n");
+        pcLADSPAPath = "/usr/lib/ladspa/";
+    }
       if (pcDSSIPath) {
         int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
         char *tmp = (char*)malloc(len);
