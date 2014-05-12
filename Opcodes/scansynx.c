@@ -300,7 +300,7 @@ static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
     else {                      /* New format matrix */
       char filnam[256];
       MEMFIL *mfp;
-      strncpy(filnam, ((STRINGDAT *) p->i_f)->data, 256);
+      strncpy(filnam, ((STRINGDAT *) p->i_f)->data, 255);filnam[255]='\0';
       /* readfile if reqd */
       if (UNLIKELY((mfp =
                     csound->ldmemfile2withCB(csound, filnam,
