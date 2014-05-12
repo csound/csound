@@ -437,6 +437,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
       else fputs(buffer, scof);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
+    free(extname);
     return FALSE;
 }
 
