@@ -192,6 +192,7 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
 
     if (tcgetattr(fd, &toptions) < 0) {
       perror("init_serialport: Couldn't get term attributes");
+      close(fd);
       return -1;
     }
     switch(baud) {

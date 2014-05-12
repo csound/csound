@@ -956,6 +956,7 @@ static void
       psDirectoryEntry = readdir(psDirectory);
       if (!psDirectoryEntry) {
         closedir(psDirectory);
+        closedir(pvPluginHandle);
         return;
       }
 
@@ -984,6 +985,7 @@ static void
         else {
           /* It was a library, but not a LADSPA one. Unload it. */
           dlclose(pcFilename);
+          closedir(pvPluginHandle);
           csound->Free(csound, pcFilename);
         }
       }
