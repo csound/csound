@@ -20,6 +20,13 @@
 #ifndef CSOUNDFILE_H
 #define CSOUNDFILE_H
 
+#undef MYFLT
+#ifdef USE_DOUBLE
+#define MYFLT double
+#else
+#define MYFLT float
+#endif
+
 #if defined(_MSC_VER) && !defined(__GNUC__)
 #pragma warning(disable: 4786)
 #endif
