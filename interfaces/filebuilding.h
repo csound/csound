@@ -58,6 +58,7 @@
 #ifdef SWIG
 #define CS_PRINTF2
 #define CS_PRINTF3
+#include "float-version.h"
 #ifndef __MYFLT_DEF
 #define __MYFLT_DEF
 #ifndef USE_DOUBLE
