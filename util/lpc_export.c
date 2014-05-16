@@ -77,7 +77,7 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
     fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
-    if (UNLIKELY(hdr.npoles<=0)) return 1;
+    if (UNLIKELY(hdr.npoles<=0)) { fclose(inf); fclose(outf); return 1; }
     str = (char *)csound->Malloc(csound,hdr.headersize-sizeof(LPHEADER)+4);
     if (UNLIKELY(fread(&hdr, sizeof(char),
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=

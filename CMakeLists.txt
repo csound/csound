@@ -38,7 +38,14 @@ if(USE_DOUBLE)
 else()
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
 endif()
-set(PYTHON_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
+
+
+execute_process (
+     COMMAND python -c
+     "import site, sys; sys.stdout.write(site.getusersitepackages())"
+     OUTPUT_VARIABLE PYTHON_MODULE_INSTALL_DIR
+   )
+
 set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LOCALE_INSTALL_DIR "share/locale")
@@ -333,9 +340,8 @@ endif()
 
 if(APPLE)
     if(BUILD_INSTALLER)
-	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
+       	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
     else()
-        get_filename_component(PYTHON_MODULE_INSTALL_DIR "~/Library/Python/2.7/lib/python/site-packages" ABSOLUTE)
         get_filename_component(JAVA_MODULE_INSTALL_DIR "~/Library/Java/Extensions" ABSOLUTE)
         get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
     endif()
@@ -632,6 +638,7 @@ set(libcsound_SRCS
     Opcodes/compress.c
     Opcodes/eqfil.c
     Opcodes/Vosim.c
+    Opcodes/pinker.c
     Opcodes/pitch.c
     Opcodes/pitch0.c
     Opcodes/spectra.c

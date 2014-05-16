@@ -446,7 +446,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     if (p->GetMessageLevel(p) != 0)
       p->Message(p, Str("ALSA %s: total buffer size: %d, period size: %d \n"),
                  (play ? "output" : "input"),
-                 dev->buffer_smps, dev->period_smps, dev->srate);
+                 dev->buffer_smps, dev->period_smps /*, dev->srate*/);
     /* now set software parameters */
     n = (play ? dev->buffer_smps : 1);
     if (snd_pcm_sw_params_current(dev->handle, sw_params) < 0
