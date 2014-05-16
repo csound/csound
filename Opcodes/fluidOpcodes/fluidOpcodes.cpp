@@ -800,6 +800,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
 
       for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
         fluid_synth_t *fluidSynth = fluidSynths[i];
+        //csound->Message(csound, "deleting engine %p \n", fluidSynth);
         fluid_settings_t *fluidSettings = fluid_synth_get_settings(fluidSynth);
         delete_fluid_synth(fluidSynth);
         delete_fluid_settings(fluidSettings);
