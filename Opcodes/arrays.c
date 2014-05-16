@@ -1461,6 +1461,40 @@ int perf_logarray(CSOUND *csound, FFT *p){
   return OK;
 }
 
+int init_rtoc(CSOUND *csound, FFT *p){
+    int   N = p->in->sizes[0];
+    tabensure(csound, p->out, N*2);
+    return OK;
+}
+
+int perf_rtoc(CSOUND *csound, FFT *p){
+  int i,j, end = p->out->sizes[0];
+  MYFLT *in, *out;
+  in = p->in->data;
+  out = p->out->data;
+  for(i=0,j=0;i<end;i+=2,j++){
+    out[i] = in[j];
+    out[i+1] = FL(0.0);
+  }
+  return OK;
+}
+
+int init_ctor(CSOUND *csound, FFT *p){
+    int   N = p->in->sizes[0];
+    tabensure(csound, p->out, N/2);
+    return OK;
+}
+
+
+int perf_ctor(CSOUND *csound, FFT *p){
+  int i,j, end = p->out->sizes[0];
+  MYFLT *in, *out;
+  in = p->in->data;
+  out = p->out->data;
+  for(i=0,j=0;j<end;i+=2,j++)
+    out[j] = in[i];
+  return OK;
+}
 
 
 // reverse, scramble, mirror, stutter, rotate, ...
@@ -1642,7 +1676,9 @@ static OENTRY arrayvars_localops[] =
     {"rphs", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_rmags, (SUBR) perf_rphs, NULL},
     {"mags", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_mags, (SUBR) perf_mags, NULL}, 
     {"phs", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_mags, (SUBR) perf_phs, NULL},
-    {"log", sizeof(FFT), 0, 3, "k[]","k[]o", (SUBR) init_logarray, (SUBR) perf_logarray, NULL}
+    {"log", sizeof(FFT), 0, 3, "k[]","k[]o", (SUBR) init_logarray, (SUBR) perf_logarray, NULL},
+    {"r2c", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_rtoc, (SUBR) perf_rtoc, NULL}, 
+    {"c2r", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_ctor, (SUBR) perf_ctor, NULL},
 };
 
 LINKAGE_BUILTIN(arrayvars_localops)
