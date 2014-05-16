@@ -481,8 +481,8 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       if (*p->iverbose != 0)
         info(csound, DSSIPlugin_);
     }
+    dlclose(PluginLibrary);
     return OK;
-    /* Does this code leak memory from PluginLibrary? -- REVIEW NEEDED */
 }
 
 /****************************************************************************
@@ -956,6 +956,7 @@ static void
       psDirectoryEntry = readdir(psDirectory);
       if (!psDirectoryEntry) {
         closedir(psDirectory);
+        closedir(pvPluginHandle);
         return;
       }
 
@@ -984,6 +985,7 @@ static void
         else {
           /* It was a library, but not a LADSPA one. Unload it. */
           dlclose(pcFilename);
+          closedir(pvPluginHandle);
           csound->Free(csound, pcFilename);
         }
       }
