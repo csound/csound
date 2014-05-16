@@ -1787,7 +1787,7 @@ static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     /* get a pointer to the beginning of the data */
     p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
     /* get increments for the partials */
-
+  
     switch (type) {
     case 1:
       p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
@@ -1879,7 +1879,7 @@ static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     for (i = 0; i < (int) *p->iptls; i++) {
       randiats_setup(csound, freqs[i], &(p->randinoise[i]));
     }
-
+   
     return OK;
 }
 
@@ -2013,7 +2013,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
     if (frame == p->maxFr) {
       if (p->firstband == -1) { /* there is no noise data */
         if (p->swapped == 1) {
-          for (i = (int) *p->iptloffset; i < (int) *p->iptls;
+          for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
                i += (int) *p->iptlincr) {
             oscbuf->amp = bswap(frm_0 + 1 + i * (int) p->partialinc);  /* amp */
             oscbuf->freq = bswap(frm_0 + 2 + i * (int) p->partialinc); /* freq */
@@ -2021,7 +2021,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
           }
         }
         else {
-          for (i = (int) *p->iptloffset; i < (int) *p->iptls;
+          for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
                i += (int) *p->iptlincr) {
             oscbuf->amp = *(frm_0 + 1 + i * (int) p->partialinc);    /* amp */
             oscbuf->freq = *(frm_0 + 2 + i * (int) p->partialinc);   /* freq */
@@ -2031,7 +2031,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
       }
       else {
         if (p->swapped == 1) {
-          for (i = (int) *p->iptloffset; i < (int) *p->iptls;
+          for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
                i += (int) *p->iptlincr) {
             oscbuf->amp = bswap(frm_0 + 1 + i * (int) p->partialinc);  /* amp */
             oscbuf->freq = bswap(frm_0 + 2 + i * (int) p->partialinc); /* freq */
@@ -2041,7 +2041,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
           }
         }
         else {
-          for (i = (int) *p->iptloffset; i < (int) *p->iptls;
+          for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
                i += (int) *p->iptlincr) {
             oscbuf->amp = *(frm_0 + 1 + i * (int) p->partialinc);    /* amp */
             oscbuf->freq = *(frm_0 + 2 + i * (int) p->partialinc);   /* freq */
@@ -2059,7 +2059,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
 
     if (p->firstband == -1) {   /* there is no noise data */
       if (p->swapped == 1) {
-        for (i = (int) *p->iptloffset; i < (int) *p->iptls;
+        for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
              i += (int) *p->iptlincr) {
           frm0amp = bswap(frm_0 + 1 + i * (int) p->partialinc);
           frm1amp = bswap(frm_1 + 1 + i * (int) p->partialinc);
@@ -2071,7 +2071,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
         }
       }
       else {
-        for (i = (int) *p->iptloffset; i < (int) *p->iptls;
+        for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
              i += (int) *p->iptlincr) {
           frm0amp = *(frm_0 + 1 + i * (int) p->partialinc);
           frm1amp = *(frm_1 + 1 + i * (int) p->partialinc);
@@ -2085,7 +2085,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
     }
     else {
       if (p->swapped == 1) {
-        for (i = (int) *p->iptloffset; i < (int) *p->iptls;
+        for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
              i += (int) *p->iptlincr) {
           frm0amp = bswap(frm_0 + 1 + i * (int) p->partialinc);
           frm1amp = bswap(frm_1 + 1 + i * (int) p->partialinc);
@@ -2102,7 +2102,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
         }
       }
       else {
-        for (i = (int) *p->iptloffset; i < (int) *p->iptls;
+        for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
              i += (int) *p->iptlincr) {
           frm0amp = *(frm_0 + 1 + i * (int) p->partialinc);
           frm1amp = *(frm_1 + 1 + i * (int) p->partialinc);
