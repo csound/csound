@@ -1245,6 +1245,7 @@ typedef struct _fft {
   ARRAYDAT *out;
   ARRAYDAT *in, *in2; 
   MYFLT b;
+  AUXCH mem;
 } FFT;
 
 
@@ -1496,6 +1497,35 @@ int perf_ctor(CSOUND *csound, FFT *p){
   return OK;
 }
 
+int init_window(CSOUND *csound, FFT *p){
+   int   N = p->in->sizes[0];
+   int   i,type = (int) *((MYFLT *) p->in2);
+   MYFLT *w;
+   tabensure(csound, p->out, N);
+   if(p->mem.auxp == 0 || p->mem.size < N*sizeof(MYFLT))
+     csound->AuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
+   w = (MYFLT *) p->mem.auxp;
+   switch(type){
+   case 0:
+     for(i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*2*PI/N);
+     break;
+   case 1:
+   default:
+     for(i=0; i<N; i++) w[i] = 0.5 - 0.5*cos(i*2*PI/N);
+   }
+   return OK;
+}
+
+int perf_window(CSOUND *csound, FFT *p){
+  int i,end = p->out->sizes[0];
+  MYFLT *in, *out, *w;
+  in = p->in->data;
+  out = p->out->data;
+  w = (MYFLT *) p->mem.auxp;
+  for(i=0;i<end;i++)
+    out[i] = in[i]*w[i];
+  return OK;
+}
 
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
@@ -1679,6 +1709,7 @@ static OENTRY arrayvars_localops[] =
     {"log", sizeof(FFT), 0, 3, "k[]","k[]o", (SUBR) init_logarray, (SUBR) perf_logarray, NULL},
     {"r2c", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_rtoc, (SUBR) perf_rtoc, NULL}, 
     {"c2r", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_ctor, (SUBR) perf_ctor, NULL},
+    {"window", sizeof(FFT), 0, 3, "k[]","k[]p", (SUBR) init_window, (SUBR) perf_window, NULL}
 };
 
 LINKAGE_BUILTIN(arrayvars_localops)
