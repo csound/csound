@@ -1244,6 +1244,7 @@ typedef struct _fft {
   OPDS h;
   ARRAYDAT *out;
   ARRAYDAT *in, *in2; 
+  MYFLT b;
 } FFT;
 
 
@@ -1436,6 +1437,31 @@ int perf_phs(CSOUND *csound, FFT *p){
   return OK;
 }
 
+int init_logarray(CSOUND *csound, FFT *p){
+    tabensure(csound, p->out, p->out->sizes[0]);
+    if(*((MYFLT *)p->in2))
+      p->b = 1/log(*((MYFLT *)p->in2));
+     else
+       p->b = FL(0.0);
+    return OK;
+}
+
+int perf_logarray(CSOUND *csound, FFT *p){
+  int i, end = p->out->sizes[0];
+  MYFLT bas = p->b;
+  MYFLT *in, *out;
+  in = p->in->data;
+  out = p->out->data;
+  if(bas) 
+   for(i=0;i<end;i++)
+     out[i] = log(in[i])*bas;
+  else
+   for(i=0;i<end;i++)
+     out[i] = log(in[i]);
+  return OK;
+}
+
+
 
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
@@ -1615,7 +1641,8 @@ static OENTRY arrayvars_localops[] =
     {"rmags", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_rmags, (SUBR) perf_rmags, NULL}, 
     {"rphs", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_rmags, (SUBR) perf_rphs, NULL},
     {"mags", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_mags, (SUBR) perf_mags, NULL}, 
-    {"phs", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_mags, (SUBR) perf_phs, NULL}
+    {"phs", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_mags, (SUBR) perf_phs, NULL},
+    {"log", sizeof(FFT), 0, 3, "k[]","k[]o", (SUBR) init_logarray, (SUBR) perf_logarray, NULL}
 };
 
 LINKAGE_BUILTIN(arrayvars_localops)
