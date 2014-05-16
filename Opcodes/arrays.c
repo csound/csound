@@ -1527,6 +1527,70 @@ int perf_window(CSOUND *csound, FFT *p){
   return OK;
 }
 
+#include "pstream.h"
+
+typedef struct _pvsceps {
+    OPDS    h;
+    ARRAYDAT  *out;
+    PVSDAT  *fin;
+    MYFLT   *coefs;
+    uint32  lastframe;
+} PVSCEPS;
+
+int pvsceps_init(CSOUND *csound, PVSCEPS *p){
+   int N = p->fin->N;
+   if(isPowerOfTwo(N))
+     tabensure(csound, p->out, N);
+    else
+     return csound->InitError(csound, "non-pow-of-two case not implemented yet \n");
+  p->lastframe = 0;
+  return OK;
+}
+
+int pvsceps_perf(CSOUND *csound, PVSCEPS *p){
+
+  if (p->lastframe < p->fin->framecount) {
+    int N = p->fin->N;
+    int i;
+    MYFLT *ceps = p->out->data;
+    MYFLT coefs = *p->coefs;
+    float *fin = (float *) p->fin->frame.auxp;
+    for(i=0; i < N; i+=2){
+      ceps[i] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
+      ceps[i+1] = 0.f;
+    }
+    csound->InverseComplexFFT(csound, ceps, N/2);
+    if(coefs)
+      // lifter coefs
+     for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
+    p->lastframe = p->fin->framecount;
+  }
+  return OK;
+}
+
+int init_iceps(CSOUND *csound, FFT *p){
+     int N = p->in->sizes[0];
+     if(isPowerOfTwo(N))
+      tabensure(csound, p->out, N+2);
+     else
+      return csound->InitError(csound, "non-pow-of-two case not implemented yet \n");
+     return OK;
+}
+
+int perf_iceps(CSOUND *csound, FFT *p){
+  int N = p->in->sizes[0], i; 
+   MYFLT *spec = p->out->data;
+   memcpy(spec, p->in->data, N*sizeof(MYFLT));   
+   csound->ComplexFFT(csound,spec,N/2);
+   for(i=0; i < N; i+=2){
+     spec[i] = exp(spec[i]);
+     spec[i+1] = 0.0;
+   }
+   spec[N] = spec[N-1];
+   spec[N+1] = 0.0;
+   return OK;
+}
+
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
 //          randomly repeats (holds) values based on a probability parameter
@@ -1709,7 +1773,9 @@ static OENTRY arrayvars_localops[] =
     {"log", sizeof(FFT), 0, 3, "k[]","k[]o", (SUBR) init_logarray, (SUBR) perf_logarray, NULL},
     {"r2c", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_rtoc, (SUBR) perf_rtoc, NULL}, 
     {"c2r", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_ctor, (SUBR) perf_ctor, NULL},
-    {"window", sizeof(FFT), 0, 3, "k[]","k[]p", (SUBR) init_window, (SUBR) perf_window, NULL}
+    {"window", sizeof(FFT), 0, 3, "k[]","k[]p", (SUBR) init_window, (SUBR) perf_window, NULL},
+    {"pvsceps", sizeof(PVSCEPS), 0, 3, "k[]","fo", (SUBR) pvsceps_init, (SUBR) pvsceps_perf, NULL},
+    {"iceps", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_iceps, (SUBR) init_iceps, NULL}
 };
 
 LINKAGE_BUILTIN(arrayvars_localops)
