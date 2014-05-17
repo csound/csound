@@ -1404,9 +1404,10 @@ static int fprintf_set_S(CSOUND *csound, FPRINTF *p){
 }
 
 /* perform a sprintf-style format -- matt ingalls */
-static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
+void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
 {
     char strseg[8192];
+    int len = 8192;
     int i = 0, j = 0;
     char *segwaiting = 0;
 
@@ -1418,7 +1419,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
 
           switch (*segwaiting) {
           case '%':
-            snprintf(outstring, 8192, "%%");
+            snprintf(outstring, len, "%%");
             j--;
             break;
           case 'd':
@@ -1428,21 +1429,21 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
           case 'X':
           case 'u':
           case 'c':
-            snprintf(outstring, 8192, strseg, (int) MYFLT2LRND(*kvals[j]));
+            snprintf(outstring, len, strseg, (int) MYFLT2LRND(*kvals[j]));
             break;
           case 'h':
-            snprintf(outstring, 8192, strseg, (int16) MYFLT2LRND(*kvals[j]));
+            snprintf(outstring, len, strseg, (int16) MYFLT2LRND(*kvals[j]));
             break;
           case 'l':
-            snprintf(outstring, 8192, strseg, (int32) MYFLT2LRND(*kvals[j]));
+            snprintf(outstring, len, strseg, (int32) MYFLT2LRND(*kvals[j]));
             break;
 
           default:
-            snprintf(outstring, 8192, strseg, *kvals[j]);
+            snprintf(outstring, len, strseg, *kvals[j]);
             break;
           }
+          len -= strlen(outstring);
           outstring += strlen(outstring);
-
           i = 0;
           segwaiting = 0;
 
@@ -1469,7 +1470,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
       if (segwaiting) {
         switch (*segwaiting) {
           case '%':
-            strncpy(outstring, "%%", 8192);
+            strncpy(outstring, "%%", len);
             j--;
             break;
         case 'd':
@@ -1479,22 +1480,22 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
         case 'X':
         case 'u':
         case 'c':
-          snprintf(outstring, 8192, strseg, (int) MYFLT2LRND(*kvals[j]));
+          snprintf(outstring, len, strseg, (int) MYFLT2LRND(*kvals[j]));
           break;
         case 'h':
-          snprintf(outstring, 8192, strseg, (int16) MYFLT2LRND(*kvals[j]));
+          snprintf(outstring, len, strseg, (int16) MYFLT2LRND(*kvals[j]));
           break;
         case 'l':
-          snprintf(outstring, 8192, strseg, (long) MYFLT2LRND(*kvals[j]));
+          snprintf(outstring, len, strseg, (long) MYFLT2LRND(*kvals[j]));
           break;
 
         default:
-          snprintf(outstring, 8192, strseg, *kvals[j]);
+          snprintf(outstring, len, strseg, *kvals[j]);
           break;
         }
       }
       else
-        snprintf(outstring, 8192, "%s", strseg);
+        snprintf(outstring, len, "%s", strseg);
     }
 }
 

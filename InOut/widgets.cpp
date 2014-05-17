@@ -2252,6 +2252,7 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
     csound->Free(csound, command);
 #elif defined(WIN32)
     {
+#undef strtok_r // undefine from pthread.h on Windows
       char *th;
       char *v[40];
       int i = 0;
