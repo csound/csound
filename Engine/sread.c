@@ -35,32 +35,6 @@
 //#define MARGS   (3)
 //#define MACDEBUG (1)
 
-/* typedef struct S_MACRO {          /\* To store active macros *\/ */
-/*     char        *name;          /\* Use is by name *\/ */
-/*     int         acnt;           /\* Count of arguments *\/ */
-/*     CORFIL      *body;          /\* The text of the macro *\/ */
-/*     struct S_MACRO *next;         /\* Chain of active macros *\/ */
-/*     int         margs;          /\* ammount of space for args *\/ */
-/*     char        *arg[MARGS];    /\* With these arguments *\/ */
-/* } S_MACRO; */
-
-/* typedef struct in_stack_s {     /\* Stack of active inputs *\/ */
-/*     int16       is_marked_repeat;/\* 1 if this input created by 'n' stmnt *\/ */
-/*     int16       args;                 /\* Argument count for macro *\/ */
-/*     CORFIL      *cf;                  /\* In core file *\/ */
-/*     void        *fd;                  /\* for closing stream *\/ */
-/*     S_MACRO       *mac; */
-/*     int         line; */
-/* } IN_STACK; */
-
-/* typedef struct marked_sections { */
-/*     char        *name; */
-/*     int32       posit; */
-/*     int         line; */
-/*     char        *file; */
-/* } MARKED_SECTIONS; */
-
-
 static void print_input_backtrace(CSOUND *csound, int needLFs,
                                   void (*msgfunc)(CSOUND*, const char*, ...));
 static  void    copylin(CSOUND *), copypflds(CSOUND *);
