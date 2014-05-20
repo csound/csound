@@ -1298,20 +1298,18 @@ int perf_irfft(CSOUND *csound, FFT *p){
 
 int init_rfftmult(CSOUND *csound, FFT *p){
     int   N = p->in->sizes[0];
-    if (N != p->in2->sizes[0])
-      return csound->InitError(csound, Str("array sizes do not match\n"));
-    if(isPowerOfTwo(N))
+    if(N != p->in2->sizes[0])
+     return csound->InitError(csound, "array sizes do not match\n");
+    /*if(isPowerOfTwo(N))*/
      tabensure(csound, p->out, N);
-    else
-      return csound->InitError(csound,
-                               Str("non-pow-of-two case not implemented yet\n"));
+    /* else
+       return csound->InitError(csound, "non-pow-of-two case not implemented yet \n");*/
     return OK;
 }
 
 int perf_rfftmult(CSOUND *csound, FFT *p){
-  int N = p->out->sizes[0];
-  if (isPowerOfTwo(N))
-    csound->RealFFTMult(csound,p->out->data,p->in->data,p->in2->data,N,1);
+  int N = p->out->sizes[0];  
+  csound->RealFFTMult(csound,p->out->data,p->in->data,p->in2->data,N,1);
   return OK;
 }
 
@@ -1380,36 +1378,6 @@ int perf_poltorect(CSOUND *csound, FFT *p){
     out[i] = in[i]*cos(in[i+1]);
     out[i+1] = in[i]*sin(in[i+1]);
   }
-  return OK;
-}
-
-int init_rmags(CSOUND *csound, FFT *p){
-    int   N = p->in->sizes[0];
-    tabensure(csound, p->out, N/2+1);
-    return OK;
-}
-
-int perf_rmags(CSOUND *csound, FFT *p){
-  int i,j, end = p->out->sizes[0]-1;
-  MYFLT *in, *out;
-  in = p->in->data;
-  out = p->out->data;
-  for(i=2,j=1;j<end;i+=2,j++)
-    out[j] = sqrt(in[i]*in[i] + in[i+1]*in[i+1]);
-  out[0] = in[0];
-  out[end] = in[1];
-  return OK;
-}
-
-int perf_rphs(CSOUND *csound, FFT *p){
-  int i,j, end = p->out->sizes[0]-1;
-  MYFLT *in, *out;
-  in = p->in->data;
-  out = p->out->data;
-  for(i=2,j=1;j<end;i+=2,j++)
-    out[j] = atan2(in[i+1],in[i]);
-  out[0] = 0;
-  out[end] = 0;
   return OK;
 }
 
@@ -1594,6 +1562,103 @@ int perf_iceps(CSOUND *csound, FFT *p){
    return OK;
 }
 
+int rows_init(CSOUND *csound, FFT *p){
+  if(p->in->dimensions == 2){
+    int siz = p->in->sizes[1];
+    tabensure(csound, p->out, siz);    
+    return OK;
+  }
+  else 
+   return csound->InitError(csound,
+        "in array not 2-dimensional\n");
+}
+
+int rows_perf(CSOUND *csound, FFT *p){
+  int start = *((MYFLT *)p->in2);
+  if(start < p->in->sizes[0]) {
+   int bytes =  p->in->sizes[1]*sizeof(MYFLT);
+   start *= p->in->sizes[1];
+   memcpy(p->out->data,p->in->data+start,bytes);
+   return OK;
+  }
+  else return csound->PerfError(csound,  p->h.insdshead,
+        "requested row is out of range\n");
+}
+
+int cols_init(CSOUND *csound, FFT *p){
+  if(p->in->dimensions == 2){
+    int siz = p->in->sizes[0];
+    tabensure(csound, p->out, siz);    
+    return OK;
+  }
+  else 
+   return csound->InitError(csound,
+        "in array not 2-dimensional\n");
+}
+
+int cols_perf(CSOUND *csound, FFT *p){
+  int start = *((MYFLT *)p->in2);
+  if(start < p->in->sizes[1]) {
+   int j,i,len =  p->in->sizes[0];
+   for(j=0,i=start; j < len; i+=len, j++)
+     p->out->data[j] = p->in->data[i];
+   return OK;
+  }
+  else return csound->PerfError(csound,  p->h.insdshead,
+        "requested col is out of range\n");
+}
+
+static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p, int rows, int columns)
+{
+    if (p->data==NULL || p->dimensions == 0 ||
+        (p->dimensions==2 && (p->sizes[0] < rows || p->sizes[1] < columns))) {
+      size_t ss;
+      if(p->data == NULL) {
+          CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+          p->arrayMemberSize = var->memBlockSize;
+      }
+      ss = p->arrayMemberSize*rows*columns;
+      if (p->data==NULL) {
+         p->data = (MYFLT*)csound->Calloc(csound, ss);
+         p->dimensions = 2;
+         p->sizes = (int*)csound->Malloc(csound, sizeof(int)*2);
+      }
+      else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+      p->sizes[0] = rows;  p->sizes[1] = columns;
+    }
+}
+
+int set_rows_init(CSOUND *csound, FFT *p){
+    int sizs = p->in->sizes[0];
+    int row = *((MYFLT *)p->in2);
+    tabensure2D(csound, p->out, row+1, sizs);    
+    return OK;
+}
+
+int set_rows_perf(CSOUND *csound, FFT *p){
+   int start = *((MYFLT *)p->in2);
+   int bytes =  p->in->sizes[0]*sizeof(MYFLT);
+   start *= p->out->sizes[1];
+   memcpy(p->out->data+start,p->in->data,bytes);
+   return OK;
+}
+
+int set_cols_init(CSOUND *csound, FFT *p){
+    int siz = p->in->sizes[0];
+    int col = *((MYFLT *)p->in2);
+    tabensure2D(csound, p->out, siz, col+1);    
+    return OK;
+}
+
+int set_cols_perf(CSOUND *csound, FFT *p){
+   int start = *((MYFLT *)p->in2);
+   int j,i,len =  p->out->sizes[0];
+   for(j=0,i=start; j < len; i+=len, j++)
+     p->out->data[i] = p->in->data[j];
+   return OK;
+}
+
+
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
 //          randomly repeats (holds) values based on a probability parameter
@@ -1769,32 +1834,22 @@ static OENTRY arrayvars_localops[] =
     {"cmplxprod", sizeof(FFT), 0, 3, "k[]","k[]k[]",
                              (SUBR) init_rfftmult, (SUBR) perf_rfftmult, NULL},
     {"fft", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_fft, (SUBR) perf_fft, NULL},
-    {"ifft", sizeof(FFT), 0, 3, "k[]","k[]",
-                                     (SUBR) init_ifft, (SUBR) perf_ifft, NULL},
-    {"rect2pol", sizeof(FFT), 0, 3, "k[]","k[]",
-                           (SUBR) init_recttopol, (SUBR) perf_recttopol, NULL},
-    {"pol2rect", sizeof(FFT), 0, 3, "k[]","k[]",
-                           (SUBR) init_recttopol, (SUBR) perf_poltorect, NULL},
-    {"rmags", sizeof(FFT), 0, 3, "k[]","k[]",
-                                   (SUBR) init_rmags, (SUBR) perf_rmags, NULL},
-    {"rphs", sizeof(FFT), 0, 3, "k[]","k[]",
-                                    (SUBR) init_rmags, (SUBR) perf_rphs, NULL},
-    {"mags", sizeof(FFT), 0, 3, "k[]","k[]",
-                                     (SUBR) init_mags, (SUBR) perf_mags, NULL},
-    {"phs", sizeof(FFT), 0, 3, "k[]","k[]",
-                                      (SUBR) init_mags, (SUBR) perf_phs, NULL},
-    {"log", sizeof(FFT), 0, 3, "k[]","k[]o",
-                             (SUBR) init_logarray, (SUBR) perf_logarray, NULL},
-    {"r2c", sizeof(FFT), 0, 3, "k[]","k[]",
-                                     (SUBR) init_rtoc, (SUBR) perf_rtoc, NULL},
-    {"c2r", sizeof(FFT), 0, 3, "k[]","k[]",
-                                     (SUBR) init_ctor, (SUBR) perf_ctor, NULL},
-    {"window", sizeof(FFT), 0, 3, "k[]","k[]p",
-                                 (SUBR) init_window, (SUBR) perf_window, NULL},
-    {"pvsceps", sizeof(PVSCEPS), 0, 3, "k[]","fo",
-                               (SUBR) pvsceps_init, (SUBR) pvsceps_perf, NULL},
-    {"iceps", sizeof(FFT), 0, 3, "k[]","k[]",
-                                   (SUBR) init_iceps, (SUBR) init_iceps, NULL}
+    {"ifft", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_ifft, (SUBR) perf_ifft, NULL},
+    {"rect2pol", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_recttopol, (SUBR) perf_recttopol, NULL},
+    {"pol2rect", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_recttopol, (SUBR) perf_poltorect, NULL},
+    {"mags", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_mags, (SUBR) perf_mags, NULL}, 
+    {"phs", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_mags, (SUBR) perf_phs, NULL},
+    {"log", sizeof(FFT), 0, 3, "k[]","k[]o", (SUBR) init_logarray, (SUBR) perf_logarray, NULL},
+    {"r2c", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_rtoc, (SUBR) perf_rtoc, NULL}, 
+    {"c2r", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_ctor, (SUBR) perf_ctor, NULL},
+    {"window", sizeof(FFT), 0, 3, "k[]","k[]p", (SUBR) init_window, (SUBR) perf_window, NULL},
+    {"pvsceps", sizeof(PVSCEPS), 0, 3, "k[]","fo", (SUBR) pvsceps_init, (SUBR) pvsceps_perf, NULL},
+    {"iceps", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_iceps, (SUBR) init_iceps, NULL},
+    {"getrow", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) rows_init, (SUBR) rows_perf, NULL}, 
+    {"getcol", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) cols_init, (SUBR) cols_perf, NULL},
+    {"setrow", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) set_rows_init, (SUBR) set_rows_perf, NULL},     
+    {"setcol", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) set_cols_init, (SUBR) set_cols_perf, NULL}
+
 };
 
 LINKAGE_BUILTIN(arrayvars_localops)
