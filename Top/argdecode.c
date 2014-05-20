@@ -1463,7 +1463,7 @@ PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format
     if (type != NULL) {
       int i=0;
       while ((typename = file_type_map[i].format) != NULL) {
-        if(!strcmp(type,typename)) break;
+        if (!strcmp(type,typename)) break;
         i++;
       }
       if (typename != NULL) {
