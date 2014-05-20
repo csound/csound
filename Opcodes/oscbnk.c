@@ -375,8 +375,6 @@ static int oscbnkset(CSOUND *csound, OSCBNK *p)
     p->osc = (OSCBNK_OSC *) p->auxdata.auxp;
 
     memset(p->outft, 0, p->outft_len*sizeof(MYFLT));
-    /* i = 0; while (i++ < p->outft_len)       /\* clear output ftable *\/ */
-    /*   p->outft[i] = FL(0.0); */
 
     /* initialise oscillators */
 

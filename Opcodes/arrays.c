@@ -1236,27 +1236,27 @@ static int ina(CSOUND *csound, OUTA *p)
     return OK;
 }
 
-/* 
-  transform operations  
+/*
+  transform operations
 */
 
 typedef struct _fft {
   OPDS h;
   ARRAYDAT *out;
-  ARRAYDAT *in, *in2; 
+  ARRAYDAT *in, *in2;
   MYFLT b;
   AUXCH mem;
 } FFT;
 
 
-int isPowerOfTwo (unsigned int x) {
+static int isPowerOfTwo (unsigned int x) {
   return ((x != 0) && !(x & (x - 1)));
 }
 
 
 int init_rfft(CSOUND *csound, FFT *p){
     int   N = p->in->sizes[0];
-    if(isPowerOfTwo(N))
+    if (isPowerOfTwo(N))
      tabensure(csound, p->out,N);
     else
      tabensure(csound, p->out, N+2);
@@ -1266,7 +1266,7 @@ int init_rfft(CSOUND *csound, FFT *p){
 int perf_rfft(CSOUND *csound, FFT *p){
   int N = p->out->sizes[0];
   memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
-  if(isPowerOfTwo(N))    
+  if (isPowerOfTwo(N))
     csound->RealFFT(csound,p->out->data,N);
   else{
     p->out->data[N] = FL(0.0);
@@ -1277,7 +1277,7 @@ int perf_rfft(CSOUND *csound, FFT *p){
 
 int init_irfft(CSOUND *csound, FFT *p){
     int   N = p->in->sizes[0];
-    if(isPowerOfTwo(N))
+    if (isPowerOfTwo(N))
      tabensure(csound, p->out, N);
     else
      tabensure(csound, p->out, N+2);
@@ -1287,7 +1287,7 @@ int init_irfft(CSOUND *csound, FFT *p){
 int perf_irfft(CSOUND *csound, FFT *p){
   int N = p->out->sizes[0];
   memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
-  if(isPowerOfTwo(N))    
+  if (isPowerOfTwo(N))
     csound->InverseRealFFT(csound,p->out->data,N);
   else{
     p->out->data[N] = FL(0.0);
@@ -1308,8 +1308,7 @@ int init_rfftmult(CSOUND *csound, FFT *p){
 }
 
 int perf_rfftmult(CSOUND *csound, FFT *p){
-  int N = p->out->sizes[0];
-  /*if(isPowerOfTwo(N))*/    
+  int N = p->out->sizes[0];  
   csound->RealFFTMult(csound,p->out->data,p->in->data,p->in2->data,N,1);
   return OK;
 }
@@ -1327,9 +1326,9 @@ int init_fft(CSOUND *csound, FFT *p){
 int perf_fft(CSOUND *csound, FFT *p){
   int N2 = p->in->sizes[0];
   memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
-  if(isPowerOfTwo(N2))    
+  if (isPowerOfTwo(N2))
     csound->ComplexFFT(csound,p->out->data,N2/2);
-  else{
+  else {
     csoundComplexFFTnp2(csound,p->out->data,N2/2);
   }
   return OK;
@@ -1344,9 +1343,9 @@ int init_ifft(CSOUND *csound, FFT *p){
 int perf_ifft(CSOUND *csound, FFT *p){
   int N2 = p->out->sizes[0];
   memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
-  if(isPowerOfTwo(N2))    
+  if (isPowerOfTwo(N2))
     csound->InverseComplexFFT(csound,p->out->data,N2/2);
-  else{
+  else {
     csoundInverseComplexFFTnp2(csound,p->out->data,N2/2);
   }
   return OK;
@@ -1363,8 +1362,8 @@ int perf_recttopol(CSOUND *csound, FFT *p){
   MYFLT *in, *out;
   in = p->in->data;
   out = p->out->data;
-  for(i=2;i<end;i+=2){
-    out[i] = sqrt(in[i]*in[i] + in[i+1]*in[i+1]); 
+  for (i=2;i<end;i+=2 ){
+    out[i] = sqrt(in[i]*in[i] + in[i+1]*in[i+1]);
     out[i+1] = atan2(in[i+1],in[i]);
   }
   return OK;
@@ -1381,7 +1380,6 @@ int perf_poltorect(CSOUND *csound, FFT *p){
   }
   return OK;
 }
-
 
 int init_mags(CSOUND *csound, FFT *p){
     int   N = p->in->sizes[0];
@@ -1424,7 +1422,7 @@ int perf_logarray(CSOUND *csound, FFT *p){
   MYFLT *in, *out;
   in = p->in->data;
   out = p->out->data;
-  if(bas) 
+  if(bas)
    for(i=0;i<end;i++)
      out[i] = log(in[i])*bas;
   else
@@ -1513,7 +1511,8 @@ int pvsceps_init(CSOUND *csound, PVSCEPS *p){
    if(isPowerOfTwo(N))
      tabensure(csound, p->out, N);
     else
-     return csound->InitError(csound, "non-pow-of-two case not implemented yet \n");
+     return csound->InitError(csound,
+                              Str("non-pow-of-two case not implemented yet\n"));
   p->lastframe = 0;
   return OK;
 }
@@ -1544,14 +1543,15 @@ int init_iceps(CSOUND *csound, FFT *p){
      if(isPowerOfTwo(N))
       tabensure(csound, p->out, N+2);
      else
-      return csound->InitError(csound, "non-pow-of-two case not implemented yet \n");
+      return csound->InitError(csound,
+                               Str("non-pow-of-two case not implemented yet\n"));
      return OK;
 }
 
 int perf_iceps(CSOUND *csound, FFT *p){
-  int N = p->in->sizes[0], i; 
+  int N = p->in->sizes[0], i;
    MYFLT *spec = p->out->data;
-   memcpy(spec, p->in->data, N*sizeof(MYFLT));   
+   memcpy(spec, p->in->data, N*sizeof(MYFLT));
    csound->ComplexFFT(csound,spec,N/2);
    for(i=0; i < N; i+=2){
      spec[i] = exp(spec[i]);
@@ -1827,9 +1827,12 @@ static OENTRY arrayvars_localops[] =
     { "lenarray.kx", sizeof(TABQUERY1), 0, 2, "k", ".[]", NULL, (SUBR) tablength },
     { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa},
     { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina},
-    {"rfft", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_rfft, (SUBR) perf_rfft, NULL},
-    {"irfft", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_irfft, (SUBR) perf_irfft, NULL},
-    {"cmplxprod", sizeof(FFT), 0, 3, "k[]","k[]k[]", (SUBR) init_rfftmult, (SUBR) perf_rfftmult, NULL},
+    {"rfft", sizeof(FFT), 0, 3, "k[]","k[]",
+                                     (SUBR) init_rfft, (SUBR) perf_rfft, NULL},
+    {"irfft", sizeof(FFT), 0, 3, "k[]","k[]",
+                                   (SUBR) init_irfft, (SUBR) perf_irfft, NULL},
+    {"cmplxprod", sizeof(FFT), 0, 3, "k[]","k[]k[]",
+                             (SUBR) init_rfftmult, (SUBR) perf_rfftmult, NULL},
     {"fft", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_fft, (SUBR) perf_fft, NULL},
     {"ifft", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_ifft, (SUBR) perf_ifft, NULL},
     {"rect2pol", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_recttopol, (SUBR) perf_recttopol, NULL},
@@ -1844,8 +1847,9 @@ static OENTRY arrayvars_localops[] =
     {"iceps", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_iceps, (SUBR) init_iceps, NULL},
     {"getrow", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) rows_init, (SUBR) rows_perf, NULL}, 
     {"getcol", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) cols_init, (SUBR) cols_perf, NULL},
-    {"setrow", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) set_rows_init, (SUBR) set_rows_perf, NULL}, 
+    {"setrow", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) set_rows_init, (SUBR) set_rows_perf, NULL},     
     {"setcol", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) set_cols_init, (SUBR) set_cols_perf, NULL}
+
 };
 
 LINKAGE_BUILTIN(arrayvars_localops)
