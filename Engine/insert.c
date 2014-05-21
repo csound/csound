@@ -2303,12 +2303,12 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
 
     if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[insno] == NULL)) {
-      csoundLockMutex(csound->API_lock);
+      csoundUnlockMutex(csound->API_lock);
       return CSOUND_ERROR;
     }
 
     if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
-      csoundLockMutex(csound->API_lock);
+      csoundUnlockMutex(csound->API_lock);
       return CSOUND_ERROR;
     }
     ip = &(csound->actanchor);
@@ -2316,7 +2316,7 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
 
     while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
     if (UNLIKELY(ip == NULL)) {
-      csoundLockMutex(csound->API_lock);
+      csoundUnlockMutex(csound->API_lock);
       return CSOUND_ERROR;
     }
     do {                        /* This loop does not terminate in mode=0 */
