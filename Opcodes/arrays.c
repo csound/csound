@@ -1684,6 +1684,8 @@ int shiftin_perf(CSOUND *csound, FFT *p){
 
 int shiftout_init(CSOUND *csound, FFT *p){
   p->n = 0;    
+  if((uint)p->in->sizes[0] < CS_KSMPS)
+    return csound->InitError(csound, "input array too small\n");
   return OK;
 }
 
