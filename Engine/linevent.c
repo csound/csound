@@ -117,7 +117,8 @@ void RTclose(CSOUND *csound)
           close(csound->Linefd);
 #if !defined(DOSGCC) && !defined(WIN32)
         else
-          fcntl(csound->Linefd, F_SETFL, STA(stdmode));
+          if (UNLIKELY(fcntl(csound->Linefd, F_SETFL, STA(stdmode))))
+            csoundDie(csound, Str("Failed to set file status\n"));
 #endif
       }
 //csound->Free(csound, csound->lineventGlobals);

@@ -85,6 +85,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/bilbar.c \
 $(CSOUND_SRC_ROOT)/Opcodes/compress.c \
 $(CSOUND_SRC_ROOT)/Opcodes/eqfil.c \
 $(CSOUND_SRC_ROOT)/Opcodes/Vosim.c \
+$(CSOUND_SRC_ROOT)/Opcodes/pinker.c \
 $(CSOUND_SRC_ROOT)/Opcodes/pitch.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pitch0.c   \
 $(CSOUND_SRC_ROOT)/Opcodes/spectra.c  \
