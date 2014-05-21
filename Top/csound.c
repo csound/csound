@@ -1591,8 +1591,7 @@ int kperf_debug(CSOUND *csound)
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     debug_command_t command;
     command = CSDEBUG_CMD_NONE;
-    if (!data || data->status != CSDEBUG_STATUS_STOPPED)
-    {
+    if (!data || data->status != CSDEBUG_STATUS_STOPPED) {
       /* update orchestra time */
       csound->kcounter = ++(csound->global_kcounter);
       csound->icurTime += csound->ksmps;
@@ -1614,11 +1613,11 @@ int kperf_debug(CSOUND *csound)
       if (UNLIKELY(!csoundYield(csound))) csound->LongJmp(csound, 1);
     }
     if (data) {
-        csoundReadCircularBuffer(csound, data->cmd_buffer, &command, 1);
+      csoundReadCircularBuffer(csound, data->cmd_buffer, &command, 1);
     }
-    bkpt_node_t *bkpt_node;
     /* process new breakpoints */
     if (data) {
+      bkpt_node_t *bkpt_node;
       while (csoundReadCircularBuffer(csound,
                                       data->bkpt_buffer, &bkpt_node, 1) == 1) {
         if (bkpt_node->mode == CSDEBUG_BKPT_CLEAR_ALL) {
