@@ -277,9 +277,14 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       // Deal with odd case if i(expressions)
       if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
         //print_tree(csound, "i()", tree);
-        if (UNLIKELY(tree->right->type != LABEL_TOKEN))
-          synterr(csound,
-                  Str("Use of i() with expression not permitted\n"));
+        if (tree->right->type == T_ARRAY &&
+            tree->right->left->type == T_IDENT &&
+            tree->right->right->type == INTEGER_TOKEN) {}
+        else
+          if (UNLIKELY(tree->right->type != LABEL_TOKEN))
+            synterr(csound,
+                    Str("Use of i() with expression not permitted on line %d\n"),
+                    tree->line);
       }
 
       if (tree->type == T_FUNCTION) {
@@ -296,7 +301,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         if (UNLIKELY(out == 0)) {
           synterr(csound, Str("error: opcode '%s' for expression with arg "
-                              "types %s not found, line %d \n"),
+                              "types %s not found, line %d\n"),
                   opname, argTypeRight, tree->line);
           do_baktrace(csound, tree->locn);
           return NULL;
@@ -347,9 +352,11 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                               "types %s not found, line %d \n"),
                   opname, inArgTypes, tree->line);
           do_baktrace(csound, tree->locn);
+          free(inArgTypes);
           return NULL;
         }
 
+        free(inArgTypes);
         return cs_strdup(csound, out);
 
       } else {

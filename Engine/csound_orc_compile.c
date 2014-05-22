@@ -263,6 +263,10 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     int n = tp->inlist->count;
     char *s;
     int nreqd = argsRequired(ep->intypes);
+
+    if(nreqd == -1) /* argsRequired failed */
+      return;
+
     char **types = splitArgs(csound, ep->intypes);
     //int lgprevdef = 0;
     char      tfound = '\0', treqd;

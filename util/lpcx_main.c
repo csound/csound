@@ -78,19 +78,21 @@ int main(int argc, char **argv)
             hdr.framrate, hdr.srate, hdr.duration);
     str = (char *)malloc((size_t)(hdr.headersize-sizeof(LPHEADER)+4));
     if( str == NULL) exit(1);
-    if (UNLIKELY(fread(&hdr, sizeof(char),
+    if (UNLIKELY(fread(&str, sizeof(char),
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=
                  hdr.headersize-sizeof(LPHEADER)+4)){
       fprintf(stderr, "Read failure\n");
       exit(1);
     }
+    if (UNLIKELY(hdr.headersize>100)) hdr.headersize = 101;
     for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);
+    if (UNLIKELY(hdr.headersize > 100)) 
     putc('\n', outf);
     if (hdr.npoles+hdr.nvals > 0 && hdr.npoles > 0) {
       coef = (MYFLT *)malloc((hdr.npoles+hdr.nvals)*sizeof(MYFLT));
       for (i = 0; i<floor(hdr.framrate*hdr.duration); i++) {
-        if (UNLIKELY(fread(&coef[0], sizeof(MYFLT), hdr.npoles,inf) != hdr.npoles)) {
+        if (UNLIKELY(fread(coef, sizeof(MYFLT), hdr.npoles,inf) != hdr.npoles)) {
           fprintf(stderr, "Read failure\n");
           exit(1);
         }

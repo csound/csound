@@ -301,6 +301,7 @@
 ./Opcodes/physmod.c
 ./Opcodes/physutil.c
 ./Opcodes/physutil.h
+./Opcodes/pinker.c
 ./Opcodes/pitch.c
 ./Opcodes/pitch.h
 ./Opcodes/pitch0.c
@@ -424,6 +425,7 @@
 ./Top/argdecode.c
 ./Top/cscore_internal.c
 ./Top/cscorfns.c
+./Top/csdebug.c
 ./Top/csmodule.c
 ./Top/csound.c
 ./Top/getstring.c
@@ -525,6 +527,7 @@
 ./frontends/CsoundVST/ScoreGeneratorVstUi.h
 ./frontends/CsoundVST/csoundvst_main.cpp
 ./frontends/CsoundVST/pyrun.c
+./frontends/debugger/csdebugger.cpp
 ./frontends/csladspa/csladspa.cpp
 ./frontends/csladspa/ladspa.h
 ./frontends/csound/csound_main.c
@@ -537,6 +540,7 @@
 ./include/cfgvar.h
 ./include/cs_par_structs.h
 ./include/cscore.h
+./include/csdebug.h
 ./include/csdl.h
 ./include/csound.h
 ./include/csound.hpp
@@ -545,7 +549,6 @@
 ./include/csound_type_system.h
 ./include/cwindow.h
 ./include/csound_data_structures.h
-./include/float-version-double.h
 ./include/float-version.h
 ./include/interlocks.h
 ./include/msg_attr.h

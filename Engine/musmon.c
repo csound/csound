@@ -31,6 +31,8 @@
 #include <math.h>
 #include "corfile.h"
 
+#include "csdebug.h"
+
 #define SEGAMPS AMPLMSG
 #define SORMSG  RNGEMSG
 
@@ -351,11 +353,15 @@ int musmon(CSOUND *csound)
     if(csound->realtime_audio_flag && csound->init_pass_loop == 0){
       extern void *init_pass_thread(void *);
       pthread_attr_t attr;
-      csound->init_pass_loop = 1;
       csound->init_pass_threadlock = csoundCreateMutex(0);
+      csoundLockMutex(csound->init_pass_threadlock);
+      csound->init_pass_loop = 1;
+      csoundUnlockMutex(csound->init_pass_threadlock);
+      csound->init_pass_loop = 1;
       pthread_attr_init(&attr);
       //pthread_attr_setstacksize(&attr, 1048576);
       pthread_create(&csound->init_pass_thread,&attr,init_pass_thread, csound);
+
     }
 
 
@@ -892,6 +898,11 @@ int sensevents(CSOUND *csound)
     OPARMS  *O = csound->oparms;
     int     retval, sensType;
     int     conn, *sinp;
+
+    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
+    if (data && data->status == CSDEBUG_STATUS_STOPPED) {
+        return 0; /* don't process events if we're in debug mode and stopped */
+    }
 
     if (UNLIKELY(csound->MTrkend && O->termifend)) {   /* end of MIDI file:  */
       deactivate_all_notes(csound);
