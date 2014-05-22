@@ -388,7 +388,7 @@ OENTRY opcodlst_1[] = {
   { "linenr.a", S(LINENR),0,  5,      "a",    "aiii", lnrset, NULL,linenr  },
   { "linenr.x", S(LINENR),0,  5,      "a",    "kiii", lnrset, NULL,linenr  },
   { "envlpx", S(ENVLPX), TR, 3,     "k","kiiiiiio", evxset, knvlpx, NULL },
-  { "envlpxr", S(ENVLPR),TR, 3,     "k","aiiiiioo", evrset, knvlpxr, NULL },
+  { "envlpxr", S(ENVLPR),TR, 3,     "k","kiiiiioo", evrset, knvlpxr, NULL },
   { "envlpx.a", S(ENVLPX), TR, 5,     "a","kiiiiiio", evxset, NULL,envlpx  },
   { "envlpxr.a", S(ENVLPR),TR, 5,     "a","aiiiiioo", evrset, NULL,envlpxr },
   { "envlpx.x", S(ENVLPX), TR, 5,     "a","kiiiiiio", evxset, NULL,envlpx  },

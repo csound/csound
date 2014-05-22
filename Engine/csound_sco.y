@@ -73,8 +73,10 @@ extern int csound_orcget_locn(void *);
 extern int csound_orcget_lineno(void *);
 #define csound 0
 %}
-%token NP
-%token PP
+%token T_NP
+%token T_PP
+%token T_CNP
+%token T_CPP
 %%
 
 scoline           : statement 
@@ -115,18 +117,21 @@ arg       : NUMBER_TOKEN { $$ = parm->fval;}
           | INTEGER_TOKEN { $$ = (MYFLT)parm->ival;}
           | STRING_TOKEN {}
           | '[' exp ']' { $$ = $2; }
-          | NP
-          | PP
+          | T_NP
+          | T_PP
+          | T_CNP
+          | T_CPP
+          ;
 
 exp       : exp '+' exp             { $$ = $1 + $3; }
           | exp '+' error
           | exp '-' exp             { $$ = $1 - $3; }
           | exp '-' error
           | '-' exp %prec S_UMINUS  { $$ = - $2; }
-          | '-' error           {  }
+          | '-' error               {  }
           | '+' exp %prec S_UMINUS  { $$ = $2; }
-          | '+' error           {  }
-| term                { $$ = $1; }
+          | '+' error               {  }
+          | term                    { $$ = $1; }
           ;
 
 term      : exp '*' exp    { $$ = $1 * $3; }

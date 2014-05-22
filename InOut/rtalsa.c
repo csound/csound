@@ -26,18 +26,11 @@
 #ifndef _ISOC99_SOURCE
 #define _ISOC99_SOURCE 1
 #endif
-#ifndef _POSIX_SOURCE
-#define _POSIX_SOURCE 1
-#endif
 #ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 1
+#define _POSIX_C_SOURCE 200112L
 #endif
 #ifndef _BSD_SOURCE
 #define _BSD_SOURCE 1
-#endif
-
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 1
 #endif
 
 #include "csdl.h"
@@ -453,7 +446,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     if (p->GetMessageLevel(p) != 0)
       p->Message(p, Str("ALSA %s: total buffer size: %d, period size: %d \n"),
                  (play ? "output" : "input"),
-                 dev->buffer_smps, dev->period_smps, dev->srate);
+                 dev->buffer_smps, dev->period_smps /*, dev->srate*/);
     /* now set software parameters */
     n = (play ? dev->buffer_smps : 1);
     if (snd_pcm_sw_params_current(dev->handle, sw_params) < 0

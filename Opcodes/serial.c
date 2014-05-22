@@ -192,6 +192,7 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
 
     if (tcgetattr(fd, &toptions) < 0) {
       perror("init_serialport: Couldn't get term attributes");
+      close(fd);
       return -1;
     }
     switch(baud) {
@@ -380,7 +381,8 @@ int serialWrite_S(CSOUND *csound, SERIALWRITE *p)
 #ifndef WIN32
     if (UNLIKELY(write((int)*p->port,
                        ((STRINGDAT*)p->toWrite)->data,
-                       ((STRINGDAT*)p->toWrite)->size))<0)
+                       ((STRINGDAT*)p->toWrite)->size))!=
+        ((STRINGDAT*)p->toWrite)->size) /* Does Windows write behave correctly? */
         return NOTOK;
 #else
       int nbytes;

@@ -1,3 +1,9 @@
+# When the minimum required version is bumped to >= 2.8.12, remove this line,
+# remove all occurences of LINK_INTERFACE_LIBRARIES, and modify all target_link_libraries
+# to be PRIVATE (eg, target_link_libraries(${CSOUNDLIB} PRIVATE ...) )
+# This silences a cmake warning about a variable name change
+set(CMAKE_POLICY_DEFAULT_CMP0022 OLD)
+
 cmake_minimum_required(VERSION 2.8.3)
 
 project (Csound)
@@ -32,7 +38,14 @@ if(USE_DOUBLE)
 else()
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
 endif()
-set(PYTHON_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
+
+
+execute_process (
+     COMMAND python -c
+     "import site, sys; sys.stdout.write(site.getusersitepackages())"
+     OUTPUT_VARIABLE PYTHON_MODULE_INSTALL_DIR
+   )
+
 set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LOCALE_INSTALL_DIR "share/locale")
@@ -282,10 +295,6 @@ option(BUILD_TESTS "Build for release" ON)
 
 set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
-# This needs to be here since _everybody_ needs this flag
-if(USE_DOUBLE)
-    add_definitions("-DUSE_DOUBLE")
-endif(USE_DOUBLE)
 check_c_compiler_flag(-fvisibility=hidden HAS_VISIBILITY_HIDDEN)
 check_cxx_compiler_flag(-fvisibility=hidden HAS_CXX_VISIBILITY_HIDDEN)
 if (HAS_VISIBILITY_HIDDEN)
@@ -306,8 +315,9 @@ if(APPLE)
     set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
   endif()
 
-   if(EXISTS ${CMAKE_OSX_SYSROOT})
+  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*") 
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
+    message(STATUS "OSX: Setting Depolyment Target to 10.7")
   endif()
 
 endif()
@@ -330,9 +340,8 @@ endif()
 
 if(APPLE)
     if(BUILD_INSTALLER)
-	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
+       	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
     else()
-        get_filename_component(PYTHON_MODULE_INSTALL_DIR "~/Library/Python/2.7/lib/python/site-packages" ABSOLUTE)
         get_filename_component(JAVA_MODULE_INSTALL_DIR "~/Library/Java/Extensions" ABSOLUTE)
         get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
     endif()
@@ -410,7 +419,7 @@ if(NOT PTHREAD_LIBRARY AND WIN32)
     find_library(PTHREAD_LIBRARY pthreadGC2)
 endif()
 
-if(NOT PTHREAD_LIBRARY)
+if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
     message(FATAL_ERROR "Csound requires the pthread library")
 endif()
 
@@ -524,6 +533,7 @@ include_directories(./Engine)
 include_directories(./)
 
 #checking pthread functions
+if(PTHREAD_LIBRARY)
 check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
 check_function_exists(pthread_barrier_init PTHREAD_BARRIER_INIT_EXISTS)
 
@@ -533,6 +543,7 @@ endif()
 
 if(PTHREAD_BARRIER_INIT_EXISTS)
    list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
+endif()
 endif()
 
 
@@ -627,6 +638,7 @@ set(libcsound_SRCS
     Opcodes/compress.c
     Opcodes/eqfil.c
     Opcodes/Vosim.c
+    Opcodes/pinker.c
     Opcodes/pitch.c
     Opcodes/pitch0.c
     Opcodes/spectra.c
@@ -678,6 +690,7 @@ set(libcsound_SRCS
     Opcodes/tl/sc_noise.c
     Opcodes/afilters.c
     Top/argdecode.c
+    Top/csdebug.c
     Top/cscore_internal.c
     Top/cscorfns.c
     Top/csmodule.c
@@ -871,6 +884,7 @@ endif()
 
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 if(NEW_PARSER_DEBUG)
     message(STATUS "Building with new parser debugging")
@@ -903,7 +917,7 @@ add_subdirectory(include)
 if(APPLE)
     string(REGEX REPLACE "([^;]+)(;|$)" "include/\\1\\2" csheaders "${csheaders}")
     file(GLOB H_headers "${CMAKE_CURRENT_SOURCE_DIR}/H/*.h")
-    set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers}")
+    set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h")
 endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
@@ -918,7 +932,7 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
 if(APPLE)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
-    set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER "${csheaders}")
+    set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER "${csheaders};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h")
 endif()
 
 # This copies libsndfile into the framework and sets the install names
@@ -1024,9 +1038,15 @@ install(TARGETS ${CSOUNDLIB}
     ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
     FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 
-set(libcsound_LIBS
+if(EMSCRIPTEN) 
+  include_directories(emscripten/deps/libsndfile-1.0.25/src/)
+  set(libcsound_LIBS
+    ${LIBSNDFILE_LIBRARY})
+else()
+  set(libcsound_LIBS
     ${LIBSNDFILE_LIBRARY}
     ${PTHREAD_LIBRARY})
+endif()
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")

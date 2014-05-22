@@ -85,6 +85,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/bilbar.c \
 $(CSOUND_SRC_ROOT)/Opcodes/compress.c \
 $(CSOUND_SRC_ROOT)/Opcodes/eqfil.c \
 $(CSOUND_SRC_ROOT)/Opcodes/Vosim.c \
+$(CSOUND_SRC_ROOT)/Opcodes/pinker.c \
 $(CSOUND_SRC_ROOT)/Opcodes/pitch.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pitch0.c   \
 $(CSOUND_SRC_ROOT)/Opcodes/spectra.c  \
@@ -135,6 +136,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/cpumeter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gendy.c \
 $(CSOUND_SRC_ROOT)/Opcodes/tl/sc_noise.c \
 $(CSOUND_SRC_ROOT)/Top/argdecode.c \
+$(CSOUND_SRC_ROOT)/Top/csdebug.c \
 $(CSOUND_SRC_ROOT)/Top/cscore_internal.c \
 $(CSOUND_SRC_ROOT)/Top/cscorfns.c \
 $(CSOUND_SRC_ROOT)/Top/csmodule.c \
