@@ -740,12 +740,15 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     /* IV - Jan 27 2005: --expression-opt */
+    /* NOTE these do nothing */
     else if (!(strcmp (s, "expression-opt"))) {
-      O->expr_opt = 1;
+      //O->expr_opt = 1;
+      csound->Warning(csound, Str("option expresson-opt has no affect\n"));
       return 1;
     }
     else if (!(strcmp (s, "no-expression-opt"))) {
-      O->expr_opt = 0;
+      //O->expr_opt = 0;
+      csound->Warning(csound, Str("option no-expresson-opt has no affect\n"));
       return 1;
     }
     else if (!(strncmp (s, "env:", 4))) {
@@ -965,7 +968,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
       }
     else if (!(strncmp(s, "get-system-sr",13))){
-      if(O->outfilename && 
+      if(O->outfilename &&
         !(strncmp(O->outfilename, "dac",3))) {
       /* these are default values to get the
          backend to open successfully */
@@ -1460,7 +1463,7 @@ PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format
     if (type != NULL) {
       int i=0;
       while ((typename = file_type_map[i].format) != NULL) {
-        if(!strcmp(type,typename)) break;
+        if (!strcmp(type,typename)) break;
         i++;
       }
       if (typename != NULL) {

@@ -742,8 +742,8 @@ int table_mix(CSOUND *csound, TABLMIX *p) {
       }
       else p1 &= ftp1->lenmask;
       if (np22) {
-        while(p2 < 0) p2 += len2;
-        while(p2 >= len2) p1 -= len2;
+        while (p2 < 0) p2 += len2;
+        while (p2 >= len2) p2 -= len2;
       }
       else p2 &= ftp2->lenmask;
       func[p0] = func1[p1]*g1 + func2[p2]*g2;

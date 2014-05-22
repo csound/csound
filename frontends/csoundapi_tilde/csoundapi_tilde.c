@@ -81,9 +81,11 @@ static MYFLT get_channel_value(t_csoundapi *x, char *channel);
 static channelname *create_channel(channelname *ch, char *channel);
 static void destroy_channels(channelname *ch);
 static void in_channel_value_callback(CSOUND *csound,
-                                      const char *name, void *val, const void *channelType);
+                                      const char *name,
+                                      void *val, const void *channelType);
 static void out_channel_value_callback(CSOUND *csound,
-                                       const char *name, void *val, const void *channelType);
+                                       const char *name,
+                                       void *val, const void *channelType);
 static void csoundapi_event(t_csoundapi *x, t_symbol *s,
                             int argc, t_atom *argv);
 static void csoundapi_run(t_csoundapi *x, t_floatarg f);

@@ -12,3 +12,4 @@ cd ..
 export HEADER_DIR="$OUT_DIR/headers/"
 echo "HEADER_DIR: $HEADER_DIR"
 cp include/*.h* "$HEADER_DIR"
+rm "$HEADER_DIR/float-version.h.in"

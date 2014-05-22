@@ -119,23 +119,23 @@ endif()
 
 set(CSMXO_DIR ${CSMXO_OUT_DIR}/csound~.mxo)
 
-add_custom_command(TARGET csound~.mxo
+add_custom_command(TARGET ${MAX_OUTPUT_LIB} 
   POST_BUILD
   COMMAND rm ARGS -rf ${CSMXO_DIR}) 
 
-add_custom_command(TARGET csound~.mxo
+add_custom_command(TARGET ${MAX_OUTPUT_LIB} 
   POST_BUILD
-  COMMAND mv ARGS -f ${CSMXO_OUT_DIR}/csound~.mxo.framework ${CSMXO_DIR}) 
+  COMMAND cp ARGS -r ${CSMXO_OUT_DIR}/csound~.mxo.framework ${CSMXO_DIR}) 
 
-add_custom_command(TARGET csound~.mxo
+add_custom_command(TARGET ${MAX_OUTPUT_LIB}
   POST_BUILD
   COMMAND mv ARGS -f ${CSMXO_DIR}/csound~.mxo  ${CSMXO_DIR}/csound~) 
 
-add_custom_command(TARGET csound~.mxo
+add_custom_command(TARGET ${MAX_OUTPUT_LIB}
   POST_BUILD
   COMMAND sed ARGS 's/csound~.mxo/csound~/g' ${CSMXO_DIR}/Resources/Info.plist > ${CSMXO_DIR}/Resources/Info2.plist) 
 
-add_custom_command(TARGET csound~.mxo
+add_custom_command(TARGET ${MAX_OUTPUT_LIB} 
   POST_BUILD
   COMMAND mv ARGS -f ${CSMXO_DIR}/Resources/Info2.plist ${CSMXO_DIR}/Resources/Info.plist) 
 

@@ -173,7 +173,8 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
         p->r->size = strlen(newVal) + 1;
 
     }
-    else {strcpy((char*) p->r->data, newVal);
+    else {
+      strcpy((char*) p->r->data, newVal);
       // printf("str:%p %p \n", p->r, p->r->data);
     }
 
@@ -338,6 +339,7 @@ sprintf_opcode_(CSOUND *csound,
         maxChars = str->size - len;
         strseg[i] = '\0';
         if (UNLIKELY(numVals <= 0)) {
+          free(strseg);
           return StrOp_ErrMsg(p, "insufficient arguments for format");
         }
         numVals--;
@@ -393,10 +395,11 @@ sprintf_opcode_(CSOUND *csound,
           break;
         case 's':
           if (((STRINGDAT*)parm)->data == str->data) {
+            free(strseg);
             return StrOp_ErrMsg(p, "output argument may not be "
                                    "the same as any of the input args");
           }
-          if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= maxChars) {
+          if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= (unsigned)maxChars) {
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data,
                                         str->size  + ((STRINGDAT*)parm)->size +
@@ -408,6 +411,7 @@ sprintf_opcode_(CSOUND *csound,
           n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
           break;
         default:
+          free(strseg);
           return StrOp_ErrMsg(p, "invalid format string");
         }
         if (n < 0 || n >= maxChars) {

@@ -29,7 +29,9 @@
 #define CSOUNDCORE_H
 
 #include "sysdep.h"
+#ifndef EMSCRIPTEN
 #include <pthread.h>
+#endif
 #include "cs_par_structs.h"
 #include <stdarg.h>
 #include <setjmp.h>
@@ -195,7 +197,7 @@ typedef struct {
     int     RTevents, Midiin, FMidiin, RMidiin;
     int     ringbell, termifend;
     int     rewrt_hdr, heartbeat, gen01defer;
-    int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
+    //    int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
     float   sr_override, kr_override;
     int     nchnls_override, nchnls_i_override;
     char    *infilename, *outfilename;
@@ -815,6 +817,11 @@ typedef struct {
   extern const uint32_t csScoSortMask;
   extern const uint32_t csMidiScoMask;
   extern const uint32_t csPlayScoMask;
+
+/* kperf function protoypes. Used by the debugger to switch between debug
+ * and nodebug kperf functions */
+  int kperf_nodebug(CSOUND *csound);
+  int kperf_debug(CSOUND *csound);
 
 #endif  /* __BUILDING_LIBCSOUND */
 
@@ -1669,6 +1676,8 @@ typedef struct NAME__ {
     int           info_message_request;
     int           modules_loaded;
     MYFLT         _system_sr;
+    void*         csdebug_data; /* debugger data */
+    int (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug and nodebug function */
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

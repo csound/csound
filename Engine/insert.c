@@ -1247,6 +1247,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     else
       memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(MYFLT));
 
+
     /* do init pass for this instr */
     p->ip->init_done = 0;
     csound->curip = lcurip;
@@ -1255,8 +1256,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       (*csound->ids->iopadr)(csound, csound->ids);
       csound->ids = csound->ids->nxti;
       }
-    p->ip->init_done = 1;
-
+     p->ip->init_done = 1;
     /* copy length related parameters back to caller instr */
     parent_ip->relesing = lcurip->relesing;
     parent_ip->offbet = lcurip->offbet;
@@ -1582,7 +1582,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
 
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
-    if (!p->ip)                                         /* loop to last opds */
+    /* if (!p->ip) */                                   /* loop to last opds */
       while (CS_PDS->nxtp)CS_PDS = CS_PDS->nxtp;
     return OK;
 }
@@ -1963,7 +1963,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     /* restore globals */
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
-    if (!p->ip) {                                    /* loop to last opds */
+    /* if (!p->ip) */ {                   /* loop to last opds */
       while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
     }
     return OK;
@@ -2303,12 +2303,12 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
 
     if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[insno] == NULL)) {
-      csoundLockMutex(csound->API_lock);
+      csoundUnlockMutex(csound->API_lock);
       return CSOUND_ERROR;
     }
 
     if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
-      csoundLockMutex(csound->API_lock);
+      csoundUnlockMutex(csound->API_lock);
       return CSOUND_ERROR;
     }
     ip = &(csound->actanchor);
@@ -2316,7 +2316,7 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
 
     while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
     if (UNLIKELY(ip == NULL)) {
-      csoundLockMutex(csound->API_lock);
+      csoundUnlockMutex(csound->API_lock);
       return CSOUND_ERROR;
     }
     do {                        /* This loop does not terminate in mode=0 */

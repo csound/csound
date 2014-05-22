@@ -137,6 +137,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/cpumeter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gendy.c \
 $(CSOUND_SRC_ROOT)/Opcodes/tl/sc_noise.c \
 $(CSOUND_SRC_ROOT)/Top/argdecode.c \
+$(CSOUND_SRC_ROOT)/Top/csdebug.c \
 $(CSOUND_SRC_ROOT)/Top/cscore_internal.c \
 $(CSOUND_SRC_ROOT)/Top/cscorfns.c \
 $(CSOUND_SRC_ROOT)/Top/csmodule.c \
