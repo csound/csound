@@ -1683,8 +1683,9 @@ int shiftin_perf(CSOUND *csound, FFT *p){
 
 
 int shiftout_init(CSOUND *csound, FFT *p){
-  p->n = 0;    
-  if((uint)p->in->sizes[0] < CS_KSMPS)
+  int siz = p->in->sizes[0];
+  p->n = ((int)*((MYFLT *)p->in2) % siz);   
+  if((uint) siz < CS_KSMPS)
     return csound->InitError(csound, "input array too small\n");
   return OK;
 }
@@ -1897,7 +1898,7 @@ static OENTRY arrayvars_localops[] =
     {"setrow", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) set_rows_init, (SUBR) set_rows_perf, NULL},     
     {"setcol", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) set_cols_init, (SUBR) set_cols_perf, NULL},
     {"shiftin", sizeof(FFT), 0, 5, "k[]","a", (SUBR) shiftin_init, NULL, (SUBR) shiftin_perf},     
-    {"shiftout", sizeof(FFT), 0, 5, "a","k[]", (SUBR) shiftout_init, NULL, (SUBR) shiftout_perf}
+    {"shiftout", sizeof(FFT), 0, 5, "a","k[]o", (SUBR) shiftout_init, NULL, (SUBR) shiftout_perf}
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)
