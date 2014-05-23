@@ -430,7 +430,7 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
 {
     MYFLT **argp = p->argums;
     char  filename[MAXNAME];
-    int   nargs = csound->GetInputArgCnt(p) - 2;
+    int   nargs = csound->GetInputArgCnt(p) - 3;
     FILE  *file = NULL;
     int   (*err_func)(CSOUND *, INSDS *, const char *, ...);
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
@@ -465,8 +465,8 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
         FUNC *ftp;
-
-        if ((ftp = ft_func(csound, *argp)) != NULL) {
+        //csound->Message(csound, "saving table %f \n", **argp);
+        if ( *argp && (ftp = ft_func(csound, *argp)) != NULL) {
           MYFLT *table = ftp->ftable;
           int32 flen = ftp->flen;
           int n;
@@ -485,7 +485,7 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
         FUNC *ftp;
-
+       
         if ((ftp = ft_func(csound, *argp)) != NULL) {
           int32 flen = ftp->flen;
           int32 j;
