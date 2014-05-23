@@ -1345,8 +1345,9 @@ int init_ifft(CSOUND *csound, FFT *p){
 int perf_ifft(CSOUND *csound, FFT *p){
   int N2 = p->out->sizes[0];
   memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
-  if (isPowerOfTwo(N2))
+  if (isPowerOfTwo(N2)){
     csound->InverseComplexFFT(csound,p->out->data,N2/2);
+  }
   else {
     csoundInverseComplexFFTnp2(csound,p->out->data,N2/2);
   }
@@ -1361,31 +1362,60 @@ int init_recttopol(CSOUND *csound, FFT *p){
 
 int perf_recttopol(CSOUND *csound, FFT *p){
   int i, end = p->out->sizes[0];
-  MYFLT *in, *out;
+  MYFLT *in, *out, mag, ph;
   in = p->in->data;
   out = p->out->data;
   for (i=2;i<end;i+=2 ){
-    out[i] = sqrt(in[i]*in[i] + in[i+1]*in[i+1]);
-    out[i+1] = atan2(in[i+1],in[i]);
+    mag = sqrt(in[i]*in[i] + in[i+1]*in[i+1]);
+    ph = atan2(in[i+1],in[i]);
+    out[i] = mag; out[i+1] = ph;
   }
   return OK;
 }
 
 int perf_poltorect(CSOUND *csound, FFT *p){
   int i, end = p->out->sizes[0];
-  MYFLT *in, *out;
+  MYFLT *in, *out, re, im;
   in = p->in->data;
   out = p->out->data;
   for(i=2;i<end;i+=2){
-    out[i] = in[i]*cos(in[i+1]);
-    out[i+1] = in[i]*sin(in[i+1]);
+   re = in[i]*cos(in[i+1]);
+   im = in[i]*sin(in[i+1]);
+   out[i] = re; out[i+1] = im;
   }
+  return OK;
+}
+
+int init_poltorect2(CSOUND *csound, FFT *p){
+  if(p->in2->sizes[0] == p->in->sizes[0]){
+  int   N = p->in2->sizes[0]-1;
+  tabensure(csound, p->out, N*2);
+  return OK;
+  } else return csound->InitError(csound, 
+    "in array sizes do not match: %d and %d\n", 
+      p->in2->sizes[0],p->in->sizes[0]);
+}
+
+
+int perf_poltorect2(CSOUND *csound, FFT *p){
+  int i,j, end = p->in->sizes[0]-1;
+  MYFLT *mags, *phs, *out, re, im;
+  mags = p->in->data;
+  phs = p->in2->data;
+  out = p->out->data;
+  for(i=2,j=1;j<end;i+=2, j++){
+   re = mags[j]*cos(phs[j]);
+   im = mags[j]*sin(phs[j]);
+   out[i] = re; out[i+1] = im;
+  }
+  out[0] = mags[0];
+  out[1] = mags[end];
   return OK;
 }
 
 int init_mags(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
-  tabensure(csound, p->out, N/2);
+  tabensure(csound, p->out, N/2+1);
   return OK;
 }
 
@@ -1394,8 +1424,10 @@ int perf_mags(CSOUND *csound, FFT *p){
   MYFLT *in, *out;
   in = p->in->data;
   out = p->out->data;
-  for(i=0,j=0;j<end;i+=2,j++)
+  for(i=2,j=1;j<end-1;i+=2,j++)
     out[j] = sqrt(in[i]*in[i] + in[i+1]*in[i+1]);
+  out[0] = in[0];
+  out[end] = in[1];
   return OK;
 }
 
@@ -1707,6 +1739,15 @@ int shiftout_perf(CSOUND *csound, FFT *p){
   return OK;
 }
 
+int scalarset(CSOUND *csound, FFT *p){
+  uint siz = 0 , dim = p->out->dimensions, i;
+  MYFLT val = *((MYFLT *)p->in);
+  for(i=0; i < dim; i++)
+    siz += p->out->sizes[i];
+  for(i=0; i < siz; i++)
+    p->out->data[i] = val;
+  return OK;
+}
 
 
 // reverse, scramble, mirror, stutter, rotate, ...
@@ -1887,6 +1928,7 @@ static OENTRY arrayvars_localops[] =
     {"ifft", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_ifft, (SUBR) perf_ifft, NULL},
     {"rect2pol", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_recttopol, (SUBR) perf_recttopol, NULL},
     {"pol2rect", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_recttopol, (SUBR) perf_poltorect, NULL},
+    {"pol2rect", sizeof(FFT), 0, 3, "k[]","k[]k[]", (SUBR) init_poltorect2, (SUBR) perf_poltorect2, NULL},
     {"mags", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_mags, (SUBR) perf_mags, NULL}, 
     {"phs", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_mags, (SUBR) perf_phs, NULL},
     {"log", sizeof(FFT), 0, 3, "k[]","k[]o", (SUBR) init_logarray, (SUBR) perf_logarray, NULL},
@@ -1900,7 +1942,8 @@ static OENTRY arrayvars_localops[] =
     {"setrow", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) set_rows_init, (SUBR) set_rows_perf, NULL},     
     {"setcol", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) set_cols_init, (SUBR) set_cols_perf, NULL},
     {"shiftin", sizeof(FFT), 0, 5, "k[]","a", (SUBR) shiftin_init, NULL, (SUBR) shiftin_perf},     
-    {"shiftout", sizeof(FFT), 0, 5, "a","k[]o", (SUBR) shiftout_init, NULL, (SUBR) shiftout_perf}
+    {"shiftout", sizeof(FFT), 0, 5, "a","k[]o", (SUBR) shiftout_init, NULL, (SUBR) shiftout_perf},
+    {"=.k", sizeof(FFT), 0, 5, "k[]","k", (SUBR) scalarset, (SUBR) scalarset}
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)
