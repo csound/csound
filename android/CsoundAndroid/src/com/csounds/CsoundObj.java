@@ -397,7 +397,7 @@ public class CsoundObj {
 			int recBufferSize = csound.GetKsmps();
 			int bufferSize = recBufferSize * nchnls;
 			short[] samples = new short[bufferSize];
-			float multiplier = Short.MAX_VALUE / csound.Get0dBFS();
+			float multiplier = (float) (Short.MAX_VALUE / csound.Get0dBFS());
 			float recMultiplier = 1 / multiplier;
 			Log.d("CsoundObj", "Multiplier: " + multiplier + " : "
 					+ recMultiplier);

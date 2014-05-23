@@ -2,7 +2,7 @@ HOW TO BUILD CSOUND 6 FOR ANDROID
 =================================
 
 Michael Gogins, Steven Yi
-5 July 2013
+22 May 2014
 
 Csound 6 for Android includes the Csound library for Android, the Csound6
 app front end for the library, an app containing several demos of the
@@ -70,8 +70,7 @@ with the plugin libraries.
 2. build-all.sh: This script will go through all of the plugin libraries
 and call ndk-build to build them, as well as go into the CsoundAndroid folder
 to build libcsound.  After running this script, all native parts of Csound
-will be compiled.
-
+should be compiled.
 
 MANUALLY BUILDING THE CSOUND PROJECTS
 =====================================
