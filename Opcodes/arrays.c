@@ -1244,6 +1244,7 @@ typedef struct _fft {
   OPDS h;
   ARRAYDAT *out;
   ARRAYDAT *in, *in2;
+  MYFLT *f;
   MYFLT b;
   int n;
   AUXCH mem;
@@ -1469,7 +1470,7 @@ int perf_ctor(CSOUND *csound, FFT *p){
 
 int init_window(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
-  int   i,type = (int) *((MYFLT *) p->in2);
+  int   i,type = (int) *p->f;
   MYFLT *w;
   tabensure(csound, p->out, N);
   if(p->mem.auxp == 0 || p->mem.size < N*sizeof(MYFLT))
@@ -1487,13 +1488,14 @@ int init_window(CSOUND *csound, FFT *p){
 }
 
 int perf_window(CSOUND *csound, FFT *p){
-  int i,end = p->out->sizes[0];
+  int i,end = p->out->sizes[0], off = *((MYFLT *)p->in2);
   MYFLT *in, *out, *w;
   in = p->in->data;
   out = p->out->data;
   w = (MYFLT *) p->mem.auxp;
+  if(off) off = end - off;
   for(i=0;i<end;i++)
-    out[i] = in[i]*w[i];
+    out[i] = in[i]*w[(i+off)%end];
   return OK;
 }
 
@@ -1890,7 +1892,7 @@ static OENTRY arrayvars_localops[] =
     {"log", sizeof(FFT), 0, 3, "k[]","k[]o", (SUBR) init_logarray, (SUBR) perf_logarray, NULL},
     {"r2c", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_rtoc, (SUBR) perf_rtoc, NULL}, 
     {"c2r", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_ctor, (SUBR) perf_ctor, NULL},
-    {"window", sizeof(FFT), 0, 3, "k[]","k[]p", (SUBR) init_window, (SUBR) perf_window, NULL},
+    {"window", sizeof(FFT), 0, 3, "k[]","k[]Op", (SUBR) init_window, (SUBR) perf_window, NULL},
     {"pvsceps", sizeof(PVSCEPS), 0, 3, "k[]","fo", (SUBR) pvsceps_init, (SUBR) pvsceps_perf, NULL},
     {"iceps", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_iceps, (SUBR) init_iceps, NULL},
     {"getrow", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) rows_init, (SUBR) rows_perf, NULL}, 
