@@ -1749,6 +1749,16 @@ int scalarset(CSOUND *csound, FFT *p){
   return OK;
 }
 
+int unwrap(CSOUND *csound, FFT *p){
+  int i,siz = p->in->sizes[0];
+  MYFLT *phs = p->out->data;
+  for(i=0; i < siz; i++){
+    while(phs[i] >= PI) phs[i] -= 2*PI;
+    while(phs[i] < -PI) phs[i] += 2*PI;
+  }
+  return OK;
+}
+
 
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
@@ -1943,7 +1953,8 @@ static OENTRY arrayvars_localops[] =
     {"setcol", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) set_cols_init, (SUBR) set_cols_perf, NULL},
     {"shiftin", sizeof(FFT), 0, 5, "k[]","a", (SUBR) shiftin_init, NULL, (SUBR) shiftin_perf},     
     {"shiftout", sizeof(FFT), 0, 5, "a","k[]o", (SUBR) shiftout_init, NULL, (SUBR) shiftout_perf},
-    {"=.k", sizeof(FFT), 0, 5, "k[]","k", (SUBR) scalarset, (SUBR) scalarset}
+    {"unwrap", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_recttopol, (SUBR) unwrap},
+    {"=.k", sizeof(FFT), 0, 3, "k[]","k", (SUBR) scalarset, (SUBR) scalarset}
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)
