@@ -83,9 +83,13 @@ PUBLIC void csoundDebugStart(CSOUND *csound)
 PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int skip)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    assert(data);
+    if (!data) {
+      csound->Warning(csound, Str("csoundSetBreakpoint: Can't set breakpoint. Debugger is not initialized."));
+      return;
+    }
     if (line < 0) {
-        csound->Warning(csound, Str("Negative line for breakpoint invalid."));
+      csound->Warning(csound, Str("Negative line for breakpoint invalid."));
+      return;
     }
     bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t));
     newpoint->line = line;
@@ -99,9 +103,13 @@ PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int skip)
 PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    assert(data);
+    if (!data) {
+      csound->Warning(csound,
+                      Str("csoundRemoveBreakpoint: Can't remove breakpoint. Debugger is not initialized."));
+      return;
+    }
     if (line < 0) {
-        csound->Warning(csound, Str ("Negative line for breakpoint invalid."));
+      csound->Warning(csound, Str ("Negative line for breakpoint invalid."));
     }
     bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t));
     newpoint->line = line;
@@ -113,6 +121,11 @@ PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line)
 PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int skip)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
+    if (!data) {
+      csound->Warning(csound,
+                      Str("csoundRemoveBreakpoint: Can't remove breakpoint. Debugger is not initialized."));
+      return;
+    }
     assert(data);
     bkpt_node_t *newpoint = (bkpt_node_t *) malloc(sizeof(bkpt_node_t));
     newpoint->line = -1;
