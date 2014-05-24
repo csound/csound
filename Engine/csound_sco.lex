@@ -70,6 +70,8 @@ FILE            ^[ \t]*"#source"
 FNAME           [a-zA-Z0-9/:.+-_]+
 NPX             "np^"${INTGR}
 PPX             "pp^"${INTGR}
+CNPX            "NP^"${INTGR}
+CPPX            "PP^"${INTGR}
 
 %x line
 %x src
@@ -84,6 +86,10 @@ PPX             "pp^"${INTGR}
 "\n"            { csound_scoset_lineno(1+csound_scoget_lineno(yyscanner),
                                        yyscanner);
                   return '\n'; }
+${NPX}          { return T_NP; }
+${PPX}          { return T_PP; }
+${CNPX}         { return T_CNP; }
+${CPPX}         { return T_CPP; }
 "a"             { return yytext[0];}
 "b"             { return yytext[0];}
 "e"             { return yytext[0];}
@@ -96,7 +102,10 @@ PPX             "pp^"${INTGR}
 "s"             { return yytext[0];}
 "t"             { return yytext[0];}
 "v"             { return yytext[0];}
+"w"             { return yytext[0];}
 "x"             { return yytext[0];}
+"y"             { return yytext[0];}
+"z"             { return yytext[0];}
 "("             { return '('; }
 ")"             { return ')'; }
 "["             { return '['; }

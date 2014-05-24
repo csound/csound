@@ -5,7 +5,7 @@
 	<TITLE></TITLE>
 	<META NAME="GENERATOR" CONTENT="LibreOffice 4.0.1.2 (Windows)">
 	<META NAME="CREATED" CONTENT="20130611;20113632">
-	<META NAME="CHANGED" CONTENT="20130701;21222712">
+	<META NAME="CHANGED" CONTENT="20140522;21084935">
 	<STYLE TYPE="text/css">
 	<!--
 		@page { size: 8.5in 11in; margin: 0.79in }
@@ -24,12 +24,12 @@
 </HEAD>
 <BODY LANG="en-US" LINK="#000080" VLINK="#800000" DIR="LTR">
 <H1 CLASS="western" ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in">
-User Guide<BR>Csound 6 for Android 
+User Guide<BR>Csound 6.03.2 for Android 
 </H1>
 <P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>Michael
 Gogins</B></I></P>
-<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>1
-July 2013</B></I></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>22
+May 2014</B></I></P>
 <P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><BR>
 </P>
 <H1 CLASS="western" STYLE="margin-top: 0.08in; margin-bottom: 0in">Introduction</H1>
@@ -69,6 +69,11 @@ frequently used plugin opcodes:</P>
 	foreign function interface that is capable of loading any shared
 	library that Android permits, and calling any exported function in
 	that library.</P>
+	<LI><P STYLE="margin-top: 0.08in; margin-bottom: 0in">The scanned
+	synthesis opcodes.</P>
+	<LI><P STYLE="margin-top: 0.08in; margin-bottom: 0in">The Open Sound
+	Control (OSC) opcodes which allow Csound to communicate over
+	networks with other software in a low-latency and flexible manner.</P>
 </UL>
 <H1 CLASS="western" STYLE="margin-top: 0.08in; margin-bottom: 0in">User
 Interface</H1>
@@ -172,14 +177,13 @@ and log some informative messages during Csound's performance (<FONT FACE="Couri
 between <FONT FACE="Courier New, monospace">&lt;CsInstruments&gt;</FONT>
 and <FONT FACE="Courier New, monospace">&lt;/CsInstruments&gt;</FONT>
 and type the following text:</P>
-<PRE CLASS="western">
-sr = 44100
+<PRE CLASS="western">sr = 44100
 ksmps = 10
 nchnls = 1
-<BR><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">instr 1</SPAN></SPAN></FONT></FONT></FONT></SPAN>
+<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt">instr 1</FONT></FONT></FONT>
 asignal oscil 10000, 440
-<FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">out </SPAN></SPAN></FONT></FONT><FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">asignal</SPAN></SPAN></FONT></FONT>
-<FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">endin</SPAN></SPAN></FONT></FONT></PRE><P STYLE="margin-top: 0.08in; margin-bottom: 0in">
+<SPAN STYLE="font-variant: normal"><FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">out asignal</SPAN></SPAN></FONT></FONT></SPAN>
+<FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt">endin</FONT></FONT></PRE><P STYLE="margin-top: 0.08in; margin-bottom: 0in">
 <BR>This is just about the simplest possible Csound orchestra. The
 orchestra header specifies an audio signal sampling rate of 44,100
 frames per second, with 10 audio frames per control signal sample,
@@ -189,7 +193,7 @@ oscillator. It plays a loud tone at concert A.</P>
 between <FONT FACE="Courier New, monospace">&lt;CsScore&gt;</FONT>
 and <FONT FACE="Courier New, monospace">&lt;/CsScore&gt;</FONT> and
 type:</P>
-<PRE CLASS="western" STYLE="margin-top: 0.08in">i1 0 5</PRE><P STYLE="margin-top: 0.08in; margin-bottom: 0in">
+<PRE CLASS="western" STYLE="margin-top: 0.08in; margin-bottom: 0.08in">i1 0 5</PRE><P STYLE="margin-top: 0.08in; margin-bottom: 0in">
 This means play instrument 1 starting at time 0 for 5 seconds.</P>
 <P STYLE="margin-top: 0.08in; margin-bottom: 0in">Press the text
 editor's <B>Save</B> button and then its <B>Quit</B> button.</P>
