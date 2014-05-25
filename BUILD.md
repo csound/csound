@@ -212,7 +212,7 @@ doing it.
 
 -   `cd libsndfile-1.0.25 `
 
--   `./configure --prefix=HOME`
+-   `./configure --prefix=4HOME`
 
 -   `make install `
 
@@ -262,7 +262,7 @@ HOME/include. The plugin dir is in \$HOME/lib/csound/plugins64-6.0.
 
 ### Dependencies List
 
-If the dependency you are adding uses ./configure, you can the same parameters to it as explained in step 2. If it uses cmake, you can use the same parameters as in step 5. After adding dependencies to your $HOME directories, you can run cmake again to re-build Csound. Check the printed output to see if the added dependency has switched on the build of the desired component.
+If the dependency you are adding uses ./configure, you can use the same parameters to it as explained in step 2. If it uses cmake, you can use the same parameters as in step 5. After adding dependencies to your $HOME directories, you can run cmake again to re-build Csound. Check the printed output to see if the added dependency has switched on the build of the desired component.
 
 #### OSC opcodes
 
