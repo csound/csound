@@ -284,8 +284,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
               (tree->right->right->value->lexeme[0] == 'p' ||
                tree->right->right->value->lexeme[0] == 'i' ||
                (tree->right->right->value->lexeme[0] == 'g' &&
-                (tree->right->right->value->lexeme[0] == 'p' ||
-                 tree->right->right->value->lexeme[0] == 'i')))))){}
+                tree->right->right->value->lexeme[1] == 'i'))))){}
         else
           if (UNLIKELY(tree->right->type != LABEL_TOKEN))
             synterr(csound,
