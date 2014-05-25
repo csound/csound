@@ -1538,7 +1538,7 @@ typedef struct _pvsceps {
   ARRAYDAT  *out;
   PVSDAT  *fin;
   MYFLT   *coefs;
-  uint32  lastframe;
+  uint32_t  lastframe;
 } PVSCEPS;
 
 int pvsceps_init(CSOUND *csound, PVSCEPS *p){
@@ -1729,7 +1729,7 @@ int shiftin_init(CSOUND *csound, FFT *p){
 }
 
 int shiftin_perf(CSOUND *csound, FFT *p){
-  uint siz =  p->out->sizes[0], n = p->n;
+  uint32_t  siz =  p->out->sizes[0], n = p->n;
   MYFLT *in = ((MYFLT *) p->in);
   if(n + CS_KSMPS < siz) {
     memcpy(p->out->data+n,in,CS_KSMPS*sizeof(MYFLT));
@@ -1747,13 +1747,13 @@ int shiftin_perf(CSOUND *csound, FFT *p){
 int shiftout_init(CSOUND *csound, FFT *p){
   int siz = p->in->sizes[0];
   p->n = ((int)*((MYFLT *)p->in2) % siz);   
-  if((uint) siz < CS_KSMPS)
+  if((uint32_t) siz < CS_KSMPS)
     return csound->InitError(csound, "input array too small\n");
   return OK;
 }
 
 int shiftout_perf(CSOUND *csound, FFT *p){
-  uint siz =  p->in->sizes[0], n = p->n;
+  uint32_t siz =  p->in->sizes[0], n = p->n;
   MYFLT *out = ((MYFLT *) p->out);
   if(n + CS_KSMPS < siz) {
     memcpy(out,p->in->data+n,CS_KSMPS*sizeof(MYFLT));
@@ -1768,7 +1768,7 @@ int shiftout_perf(CSOUND *csound, FFT *p){
 }
 
 int scalarset(CSOUND *csound, FFT *p){
-  uint siz = 0 , dim = p->out->dimensions, i;
+  uint32_t siz = 0 , dim = p->out->dimensions, i;
   MYFLT val = *((MYFLT *)p->in);
   for(i=0; i < dim; i++)
     siz += p->out->sizes[i];
