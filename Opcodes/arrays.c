@@ -1538,7 +1538,7 @@ typedef struct _pvsceps {
   ARRAYDAT  *out;
   PVSDAT  *fin;
   MYFLT   *coefs;
-  uint32  lastframe;
+  uint32_t  lastframe;
 } PVSCEPS;
 
 int pvsceps_init(CSOUND *csound, PVSCEPS *p){
@@ -1573,27 +1573,55 @@ int pvsceps_perf(CSOUND *csound, PVSCEPS *p){
   return OK;
 }
 
-int init_iceps(CSOUND *csound, FFT *p){
-  int N = p->in->sizes[0];
+
+int init_ceps(CSOUND *csound, FFT *p){
+  int N = p->in->sizes[0]-1;
   if(isPowerOfTwo(N))
-    tabensure(csound, p->out, N+2);
+    tabensure(csound, p->out, 2*N+2);
+  else
+    return csound->InitError(csound,
+	  Str("non-pow-of-two case not implemented yet\n"));
+  return OK;
+}
+
+
+int perf_ceps(CSOUND *csound, FFT *p){
+  int siz = p->out->sizes[0], i, j;
+    MYFLT *ceps = p->out->data;
+    MYFLT coefs = *((MYFLT *)p->in2);
+    MYFLT *mags = (MYFLT *) p->in->data;
+    for(j=i=0; i < siz; i++, j+=2){
+      ceps[j] = log(mags[i] > 0.0 ? mags[i] : 1e-20);
+      ceps[j+1] = 0.f;
+    }
+    csound->InverseComplexFFT(csound, ceps, siz/2-1);
+    if(coefs)
+      // lifter coefs
+      for (i=coefs; i < siz-coefs; i++) ceps[i] = 0.0;
+  return OK;
+}
+
+int init_iceps(CSOUND *csound, FFT *p){
+  int N = p->in->sizes[0]-2;
+  if(isPowerOfTwo(N))
+    tabensure(csound, p->out, N/2+1);
   else
     return csound->InitError(csound,
 			     Str("non-pow-of-two case not implemented yet\n"));
+  if(p->mem.auxp == NULL || p->mem.size < (N+2)*sizeof(MYFLT))
+    csound->AuxAlloc(csound, (N+2)*sizeof(MYFLT), &p->mem);
   return OK;
 }
 
 int perf_iceps(CSOUND *csound, FFT *p){
-  int N = p->in->sizes[0], i;
-  MYFLT *spec = p->out->data;
-  memcpy(spec, p->in->data, N*sizeof(MYFLT));
-  csound->ComplexFFT(csound,spec,N/2);
-  for(i=0; i < N; i+=2){
-    spec[i] = exp(spec[i]);
-    spec[i+1] = 0.0;
+  int siz = p->in->sizes[0], i, j;
+  MYFLT *spec = (MYFLT *)p->mem.auxp;
+  MYFLT *out = p->out->data;
+  memcpy(spec, p->in->data, siz*sizeof(MYFLT));
+  csound->ComplexFFT(csound,spec,siz/2-1);
+  for(i=j=0; i < siz; i+=2, j++){
+    out[j] = exp(spec[i]);
   }
-  spec[N] = spec[N-1];
-  spec[N+1] = 0.0;
   return OK;
 }
 
@@ -1701,7 +1729,7 @@ int shiftin_init(CSOUND *csound, FFT *p){
 }
 
 int shiftin_perf(CSOUND *csound, FFT *p){
-  uint siz =  p->out->sizes[0], n = p->n;
+  uint32_t  siz =  p->out->sizes[0], n = p->n;
   MYFLT *in = ((MYFLT *) p->in);
   if(n + CS_KSMPS < siz) {
     memcpy(p->out->data+n,in,CS_KSMPS*sizeof(MYFLT));
@@ -1719,13 +1747,13 @@ int shiftin_perf(CSOUND *csound, FFT *p){
 int shiftout_init(CSOUND *csound, FFT *p){
   int siz = p->in->sizes[0];
   p->n = ((int)*((MYFLT *)p->in2) % siz);   
-  if((uint) siz < CS_KSMPS)
+  if((uint32_t) siz < CS_KSMPS)
     return csound->InitError(csound, "input array too small\n");
   return OK;
 }
 
 int shiftout_perf(CSOUND *csound, FFT *p){
-  uint siz =  p->in->sizes[0], n = p->n;
+  uint32_t siz =  p->in->sizes[0], n = p->n;
   MYFLT *out = ((MYFLT *) p->out);
   if(n + CS_KSMPS < siz) {
     memcpy(out,p->in->data+n,CS_KSMPS*sizeof(MYFLT));
@@ -1740,7 +1768,7 @@ int shiftout_perf(CSOUND *csound, FFT *p){
 }
 
 int scalarset(CSOUND *csound, FFT *p){
-  uint siz = 0 , dim = p->out->dimensions, i;
+  uint32_t siz = 0 , dim = p->out->dimensions, i;
   MYFLT val = *((MYFLT *)p->in);
   for(i=0; i < dim; i++)
     siz += p->out->sizes[i];
@@ -1946,7 +1974,8 @@ static OENTRY arrayvars_localops[] =
     {"c2r", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_ctor, (SUBR) perf_ctor, NULL},
     {"window", sizeof(FFT), 0, 3, "k[]","k[]Op", (SUBR) init_window, (SUBR) perf_window, NULL},
     {"pvsceps", sizeof(PVSCEPS), 0, 3, "k[]","fo", (SUBR) pvsceps_init, (SUBR) pvsceps_perf, NULL},
-    {"iceps", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_iceps, (SUBR) init_iceps, NULL},
+    {"iceps", sizeof(FFT), 0, 3, "k[]","k[]", (SUBR) init_iceps, (SUBR) perf_iceps, NULL},
+    {"ceps", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) init_ceps, (SUBR) perf_ceps, NULL},
     {"getrow", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) rows_init, (SUBR) rows_perf, NULL}, 
     {"getcol", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) cols_init, (SUBR) cols_perf, NULL},
     {"setrow", sizeof(FFT), 0, 3, "k[]","k[]k", (SUBR) set_rows_init, (SUBR) set_rows_perf, NULL},     
