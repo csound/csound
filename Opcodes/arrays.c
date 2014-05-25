@@ -1427,7 +1427,7 @@ int perf_mags(CSOUND *csound, FFT *p){
   for(i=2,j=1;j<end-1;i+=2,j++)
     out[j] = sqrt(in[i]*in[i] + in[i+1]*in[i+1]);
   out[0] = in[0];
-  out[end] = in[1];
+  out[end-1] = in[1];
   return OK;
 }
 
