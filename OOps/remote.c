@@ -108,11 +108,16 @@ static int getIpAddress(char *ipaddr)
 
     fd = socket(AF_INET,SOCK_DGRAM, 0);
     if (fd >= 0) {
+      char *dev = getenv("CS_ETHER");
+      if (dev)
+        strncpy(ifr.ifr_name, dev, IFNAMSIZ-1);
+      else {
 #ifdef MACOSX
-      strncpy(ifr.ifr_name, "en0", IFNAMSIZ-1);
+        strncpy(ifr.ifr_name, "en0", IFNAMSIZ-1);
 #else
-      strncpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
+        strncpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
 #endif
+      }
       ifr.ifr_name[IFNAMSIZ-1] = '\0';
       if (ioctl(fd, SIOCGIFADDR, &ifr) == 0) {
         char *local;
@@ -262,7 +267,6 @@ void remote_Cleanup(CSOUND *csound)
 static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
 {
     int rfd, i;
-
     SOCK *sop = ST(socksout), *sop_end = sop + MAXREMOTES;
     do {
       if (ipadrs == sop->adr)                      /* if socket already exists */
@@ -281,7 +285,6 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
 #else
     inet_aton((const char *)ipadrs, &(ST(to_addr).sin_addr));
 #endif
-    /*    ST(to_addr).sin_port = htons((int) REMOT_PORT); */
     ST(to_addr).sin_port = htons((int) ST(remote_port)); /* port we will listen on,
                                                             network byte order */
     for (i=0; i<10; i++){
