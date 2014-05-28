@@ -1071,7 +1071,7 @@ endif()
 
 if(LINUX)
     message(STATUS "Building on Linux")
-    add_definitions(-DLINUX -DPIPES -D_GNU_SOURCE)
+    add_definitions(-DLINUX -DPIPES -D_GNU_SOURCE -DHAVE_SOCKETS)
     list(APPEND libcsound_LIBS m dl)
 endif()
 
