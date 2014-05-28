@@ -126,6 +126,7 @@ endif()
 
 check_deps(BUILD_OSC_OPCODES LIBLO_LIBRARY OSC_HEADER)
 if(BUILD_OSC_OPCODES)
+   message(STATUS "OSC OPCODES!!!!!!")
     make_plugin(osc OSC.c)
     if(WIN32)
       target_link_libraries(osc ${LIBLO_LIBRARY} pthread wsock32 ws2_32)
