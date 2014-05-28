@@ -225,7 +225,6 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
 }
 
 /* RESET routine for cleaning up */
-
 static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
 {
     int i;
