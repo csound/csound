@@ -34,6 +34,9 @@
     #endif
     #include <sys/socket.h>
     #include <netinet/in.h>
+    #ifdef MACOSX
+      #include <net/if.h>
+    #endif
     #ifdef LINUX
       #include <linux/if.h>
     #endif
