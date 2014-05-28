@@ -64,12 +64,12 @@ typedef struct {
 /* these functions are exported to entry*.c */
 
 #ifndef CSOUND_OSCILS_C
-extern int oscils_set (void*);
-extern int oscils (void*);
-extern int lphasor_set (void*);
-extern int lphasor (void*);
-extern int tablexkt_set (void*);
-extern int tablexkt (void*);
+extern int oscils_set (CSOUND *, void*);
+extern int oscils (CSOUND *, void*);
+extern int lphasor_set (CSOUND *, void*);
+extern int lphasor (CSOUND *, void*);
+extern int tablexkt_set (CSOUND *, void*);
+extern int tablexkt (CSOUND *, void*);
 #endif
 
 #endif              /* CSOUND_OSCILS_H */
