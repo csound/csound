@@ -475,7 +475,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       break;
     case T_FUNCTION:
       {
-        char* outtype;
+        char *outtype, *outtype_internal;
         op = cs_strdup(csound, root->value->lexeme);
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "Found OP: %s\n", op);
@@ -505,7 +505,10 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
                           root->value->lexeme, root->value->optype, line);
           outtype = "i";
         }
-        outarg = create_out_arg(csound, outtype, typeTable);
+          
+        outtype_internal = convert_external_to_internal(csound, outtype);
+          
+        outarg = create_out_arg(csound, outtype_internal, typeTable);
 
       }
       break;
