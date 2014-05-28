@@ -936,7 +936,7 @@ void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
     }
     else {
       if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))) {
-        csound->Warning(csound, Str("csoundRealFFTnp2(): invalid FFT size"));
+        csound->Warning(csound, Str("csoundRealFFTnp2(): invalid FFT size, %d"), FFTsize);
         return;
       }
       buf[FFTsize] = buf[FFTsize + 1] = FL(0.0);

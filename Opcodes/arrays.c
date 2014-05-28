@@ -1258,6 +1258,8 @@ static int isPowerOfTwo (unsigned int x) {
 
 int init_rfft(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
+  if(p->in->dimensions > 1) 
+    return csound->InitError(csound, "rfft: only one-dimensional arrays allowed");
   if (isPowerOfTwo(N))
     tabensure(csound, p->out,N);
   else
@@ -1279,6 +1281,8 @@ int perf_rfft(CSOUND *csound, FFT *p){
 
 int init_irfft(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
+ if(p->in->dimensions > 1) 
+    return csound->InitError(csound, "irfft: only one-dimensional arrays allowed");
   if (isPowerOfTwo(N))
     tabensure(csound, p->out, N);
   else
@@ -1321,6 +1325,8 @@ void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize);
 
 int init_fft(CSOUND *csound, FFT *p){
   int   N2 = p->in->sizes[0];
+ if(p->in->dimensions > 1) 
+    return csound->InitError(csound, "fft: only one-dimensional arrays allowed");
   tabensure(csound,p->out,N2);
   return OK;
 }
@@ -1338,6 +1344,8 @@ int perf_fft(CSOUND *csound, FFT *p){
 
 int init_ifft(CSOUND *csound, FFT *p){
   int   N2 = p->in->sizes[0];
+   if(p->in->dimensions > 1) 
+    return csound->InitError(csound, "ifft: only one-dimensional arrays allowed");
   tabensure(csound, p->out, N2);
   return OK;
 }
