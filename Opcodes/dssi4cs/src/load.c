@@ -49,7 +49,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
         csound->Message(csound,
                         "DSSI4CS: LADSPA_PATH environment variable not set.\n");
         pcLADSPAPath = "/usr/lib/ladspa/";
-    }
+      }
       if (pcDSSIPath) {
         int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
         char *tmp = (char*)malloc(len);
@@ -88,7 +88,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
         }
       }
     }
-    free(pcLADSPAPath);
+    //free(pcLADSPAPath);
     /* As a last ditch effort, check if filename does not end with
        ".so". In this case, add this suffix and recurse. */
     iEndsInSO = 0;
