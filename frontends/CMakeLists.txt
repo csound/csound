@@ -136,6 +136,10 @@ endif()
 # debugger command line app
 make_executable(csdebugger debugger/csdebugger.cpp "${CSOUNDLIB}")
 
+# icsound interactive python API
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/icsound/icsound.py
+            DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
+
 # Others
 add_subdirectory(CsoundAC)
 add_subdirectory(CsoundVST)
