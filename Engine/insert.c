@@ -1963,7 +1963,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     /* restore globals */
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
-    /* if (!p->ip) */ {                   /* loop to last opds */
+    if (!p->ip)  {                   /* loop to last opds */
       while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
     }
     return OK;
