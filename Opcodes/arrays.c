@@ -1251,7 +1251,7 @@ typedef struct _fft {
 } FFT;
 
 
-static int isPowerOfTwo (unsigned int x) {
+static unsigned int isPowerOfTwo (unsigned int x) {
     return ((x != 0) && !(x & (x - 1)));
 }
 
