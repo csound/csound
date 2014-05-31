@@ -293,6 +293,7 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
         csound->Message(csound, Str("---> Could not connect \n"));
       else goto conok;
     }
+    close(rfd);
     return csound->InitError(csound,
                              Str("---> Failed all attempts to connect. \n"));
 
@@ -440,7 +441,7 @@ int insremot(CSOUND *csound, INSREMOT *p)
       /* if client is this adrs */
       MYFLT   **argp = p->insno;
       int rfd = 0;
-      if ((rfd = CLopen(csound, (char *)p->str2->data)) <= 0)
+      if ((rfd = CLopen(csound, (char *)p->str2->data)) < 0)
         /* open port to remote */
         return NOTOK;
       for (nargs -= 2; nargs--; ) {
@@ -519,7 +520,7 @@ int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
       MYFLT   **argp = p->chnum;
       int  rfd;
         /* open port to remote */
-      if (UNLIKELY((rfd = CLopen(csound, (char *)p->str2->data)) <= 0))
+      if (UNLIKELY((rfd = CLopen(csound, (char *)p->str2->data)) < 0))
         return NOTOK;
       for (nargs -= 2; nargs--; ) {
         int16 chnum = (int16)**argp++;               /* & for each channel   */
