@@ -71,6 +71,10 @@ class icsound:
         global cur_ics
         cur_ics = self
 
+    def __del__(self):
+        if self._csPerf:
+            self.stop_engine()
+
     def start_engine(self, sr = 44100, ksmps = 64, nchnls = 2, zerodbfs=1.0, dacout = '', adcin = None):
         ''' Start the csound engine on a separate thread'''
         if self._cs and self._csPerf:
@@ -207,11 +211,15 @@ class icsound:
                 table.append(tabarray[i])
         return table
         
-    def plot_table(self, tabnum):
-        '''Plot a Csound f-table using matplotlib'''
+    def plot_table(self, tabnum, reuse=False):
+        '''Plot a Csound f-table using matplotlib. If reuse is True, then the
+        graph is plotted in existing axes'''
         table_data = self.get_table_data(tabnum)
         table_length = len(table_data)
-        fig, ax = subplots(figsize=(10, 6))
+        if not reuse:
+            fig, ax = subplots(figsize=(10, 6))
+        else:
+            ax = gca()
         ax.hlines(0, 0, table_length)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
@@ -219,7 +227,7 @@ class icsound:
         ax.set_xticks(xrange(0, table_length + 1, int(table_length / 4)))
         ax.xaxis.set_ticks_position('bottom')
         ax.yaxis.set_ticks_position('left')
-        ax.plot(table_data, color='black', lw=2)        
+        ax.plot(table_data, color='black', lw=2)
         xlim(0, table_length - 1)
         
     def set_channel(self, channel, value):
