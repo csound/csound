@@ -24,8 +24,15 @@
 #ifndef CSOUND_CSPERFTHREAD_HPP
 #define CSOUND_CSPERFTHREAD_HPP
 
+
 class CsoundPerformanceThreadMessage;
 class CsPerfThread_PerformScore;
+
+#ifdef SWIG
+%include <std_string.i>
+#else
+#include <string>
+#endif
 
 /**
  * CsoundPerformanceThread(Csound *)
@@ -83,6 +90,15 @@ struct PUBLIC pycallbackdata {
 };
 #endif
 
+typedef struct {
+    void *cbuf;
+    void *sfile;
+    void *thread;
+    bool running;
+    pthread_cond_t condvar;
+    pthread_mutex_t mutex;
+} recordData_t;
+
 class PUBLIC CsoundPerformanceThread {
  private:
     CSOUND  *csound;
@@ -94,7 +110,8 @@ class PUBLIC CsoundPerformanceThread {
     void    *perfThread;
     int     paused;
     int     status;
-    void *    cdata;
+    void    *cdata;
+    recordData_t recordData;
     int  running;
     void (*processcallback)(void *cdata);
     int  Perform();
@@ -151,6 +168,15 @@ class PUBLIC CsoundPerformanceThread {
      * Stops performance (cannot be continued).
      */
     void Stop();
+    /**
+     * Starts recording the output from Csound. The sample rate and number
+     * of channels are taken directly from the running Csound instance.
+     */
+    void Record(std::string filename, int numbufs = 4);
+    /**
+     * Stops recording and closes audio file.
+     */
+    void StopRecord();
     /**
      * Sends a score event of type 'opcod' (e.g. 'i' for a note event), with
      * 'pcnt' p-fields in array 'p' (p[0] is p1). If absp2mode is non-zero,
