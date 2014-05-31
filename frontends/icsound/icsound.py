@@ -41,6 +41,25 @@ except:
     print("ctypes not available. Some operations will be slow or unavailble.")
     use_ctypes = False
 
+try:
+    from IPython.core.magic import (register_line_magic, register_cell_magic,
+                                    register_line_cell_magic)
+    @register_cell_magic
+    def csound(line, cell):
+        "Csound Code cell"
+        global cur_ics
+        cell_ics = None
+        if not cur_ics:
+            print("No active icsound engine")
+            return
+        cur_ics.send_code(str(cell))
+        return
+        #return line, cell
+except:
+    print("IPython module not available, not adding csound magic.")
+
+cur_ics = None
+
 class icsound:
     def __init__(self):
         self._cs = None
@@ -49,8 +68,11 @@ class icsound:
         self._log = ''
         self._verbose = False
         self._myfltsize = csnd6.csoundGetSizeOfMYFLT()
+        global cur_ics
+        cur_ics = self
 
     def start_engine(self, sr = 44100, ksmps = 64, nchnls = 2, zerodbfs=1.0, dacout = '', adcin = None):
+        ''' Start the csound engine on a separate thread'''
         if self._cs and self._csPerf:
             print("icsound: Csound already running")
             return
@@ -75,8 +97,11 @@ class icsound:
         self._flush_messges()
 
     def stop_engine(self):
-        '''Stop Csound thread'''
-        # FIXME this is crashing occasionally, why?
+        '''Stop Csound engine thread'''
+
+        if not self._csPerf:
+            print("Engine is not running.")
+            return
         self._csPerf.Stop()
         
         for i in range(self._cs.GetMessageCnt()):
@@ -202,13 +227,25 @@ class icsound:
         self._cs.SetChannel(channel, value)
         
     def get_channel(self, channel):
+        '''Get a named channel value'''
         return self._cs.GetChannel(channel)
         
+    def start_record(self, filename, numbufs=4):
+        '''Start recording the output from csound into an audio file.
+        The number of channels and sampling rate of the audio file are
+        determined by the running csound engine.'''
+        return self._csPerf.Record(filename, numbufs)
+
+    def stop_record(self):
+        '''Stop recording and close audio file'''
+        return self._csPerf.StopRecord()
+
     def print_log(self):
         '''Print the complete log of the current instance of Csound.'''
         print(self._log)
 
     def set_verbose(self,verbose=True):
+        '''Enable or disable debug messages by the icsound module'''
         self._verbose = verbose
 
     def _flush_messges(self):
@@ -224,7 +261,6 @@ class icsound:
 # modify table data
 # set python callback
 # play numpy array directly
-# have a way to save an audio file
 # implement setting adc and dac devices for engine
 # get interfaces list
 # get_table_data set limits (min, max)
