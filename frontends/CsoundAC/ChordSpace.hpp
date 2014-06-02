@@ -1310,7 +1310,7 @@ public:
 		} else {
 			note.setPan(getPan(voice));
 		}
-                return;
+                return note;
 	}
 	/**
 	 * Returns an individual note for each voice of the chord.
@@ -2010,7 +2010,7 @@ inline SILENCE_PUBLIC Chord gather(Score &score, double startTime, double endTim
 		chord.setPitch(voice, *it);
 		voice++;
 	}
-        return;
+        return chord;
 }
 
 inline SILENCE_PUBLIC int octavewiseRevoicings(const Chord &chord, double range = OCTAVE()) {
