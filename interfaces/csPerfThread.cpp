@@ -477,8 +477,15 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
     recordData.cbuf = NULL;
     recordData.sfile = NULL;
     recordData.thread = NULL;
+#ifndef MACOSX
     recordData.mutex = PTHREAD_MUTEX_INITIALIZER;
     recordData.condvar = PTHREAD_COND_INITIALIZER;
+#else
+    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    static pthread_cond_t cond =  PTHREAD_COND_INITIALIZER;
+    recordData.mutex = mutex;
+    recordData.condvar = cond;
+#endif
     recordData.running = false;
 
     perfThread = csoundCreateThread(csoundPerformanceThread_, (void*) this);
