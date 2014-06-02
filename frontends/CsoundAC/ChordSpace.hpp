@@ -465,14 +465,23 @@ SILENCE_PUBLIC std::vector<std::string> split(std::string);
 // Equivalence relations are implemented first as template functions at namespace scope,
 // and then as class member functions delegating to the corresponding namespace functions.
 
-template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC bool isNormal(const Chord &chord, double range, double g);
-template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC bool isNormal(const Chord &chord, double range);
+template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC bool isNormal(const Chord &chord,
+                                                                double range, double g);
+template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC bool isNormal(const Chord &chord,
+                                                                double range);
 template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC bool isNormal(const Chord &chord);
-template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC bool isEquivalent(const Chord &a, const Chord &b, double range, double g);
-template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC bool isEquivalent(const Chord &a, const Chord &b, double range);
-template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC bool isEquivalent(const Chord &a, const Chord &b);
-template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC Chord normalize(const Chord &chord, double range, double g);
-template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC Chord normalize(const Chord &chord, double range);
+template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC bool isEquivalent(const Chord &a,
+                                                                    const Chord &b,
+                                                                    double range, double g);
+template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC bool isEquivalent(const Chord &a,
+                                                                    const Chord &b,
+                                                                    double range);
+template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC bool isEquivalent(const Chord &a,
+                                                                    const Chord &b);
+template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC Chord normalize(const Chord &chord,
+                                                                  double range, double g);
+template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC Chord normalize(const Chord &chord,
+                                                                  double range);
 template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC Chord normalize(const Chord &chord);
 
 template<int EQUIVALENCE_RELATION> SILENCE_PUBLIC std::set<Chord> allNormalizedFundamentalDomain(int voices, double range, double g);
@@ -1301,6 +1310,7 @@ public:
 		} else {
 			note.setPan(getPan(voice));
 		}
+                return;
 	}
 	/**
 	 * Returns an individual note for each voice of the chord.
@@ -2000,6 +2010,7 @@ inline SILENCE_PUBLIC Chord gather(Score &score, double startTime, double endTim
 		chord.setPitch(voice, *it);
 		voice++;
 	}
+        return;
 }
 
 inline SILENCE_PUBLIC int octavewiseRevoicings(const Chord &chord, double range = OCTAVE()) {
