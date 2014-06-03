@@ -32,6 +32,7 @@ int linset(CSOUND *csound, LINE *p)
    double       dur;
     if ((dur = *p->idur) > FL(0.0)) {
       p->incr = (*p->ib - *p->ia) / dur * csound->onedsr;
+      p->kincr = p->incr*CS_KSMPS;
       p->val = *p->ia;
     }
     return OK;
@@ -40,7 +41,7 @@ int linset(CSOUND *csound, LINE *p)
 int kline(CSOUND *csound, LINE *p)
 {
     *p->xr = p->val;            /* rslt = val   */
-    p->val += (p->incr*CS_KSMPS);          /* val += incr  */
+    p->val += p->kincr;          /* val += incr  */
     return OK;
 }
 
@@ -79,7 +80,8 @@ int expset(CSOUND *csound, EXPON *p)
       a = *p->ia;
       b = *p->ib;
       if (LIKELY((a * b) > FL(0.0))) {
-        p->mlt = POWER(b/a, CS_ONEDKR/dur);
+        p->mlt = POWER(b/a, csound->onedsr/dur);
+        p->kmlt = POWER(b/a, CS_ONEDKR/dur);
         p->val = a;
       }
       else if (a == FL(0.0))
@@ -94,13 +96,13 @@ int expset(CSOUND *csound, EXPON *p)
 int kexpon(CSOUND *csound, EXPON *p)
 {
     *p->xr = p->val;            /* rslt = val   */
-    p->val *= p->mlt;           /* val *= mlt  */
+    p->val *= p->kmlt;           /* val *= mlt  */
     return OK;
 }
 
 int expon(CSOUND *csound, EXPON *p)
 {
-    double val, mlt, inc, nxtval;
+    double val, mlt;//, inc;//, nxtval;
     MYFLT *ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -108,20 +110,21 @@ int expon(CSOUND *csound, EXPON *p)
 
     val = p->val;
     mlt = p->mlt;
-    nxtval = val * mlt;
+    // nxtval = val * mlt;
     ar = p->xr;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    inc = nxtval - val;
-    inc /= (nsmps - offset);   /* increment per sample */
+    //inc = nxtval - val;
+    //inc /= (nsmps - offset);   /* increment per sample */
     for (n=offset; n<nsmps; n++) {
       ar[n] = (MYFLT)val;
-      val += inc;               /* interp val for ksmps */
+      val *= mlt;               /* interp val for ksmps */
     }
-    p->val = nxtval;            /* store next value */
+    // p->val = nxtval;            /* store next value */
+    p->val = val;
     return OK;
 }
 
@@ -151,6 +154,8 @@ int lsgset(CSOUND *csound, LINSEG *p)
       double dur = (double)**argp++;
       segp->nxtpt = (double)**argp++;
       if (UNLIKELY((segp->cnt = (int32)(dur * CS_EKR + FL(0.5))) < 0))
+        segp->cnt = 0;
+      if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
         segp->cnt = 0;
       segp++;
     } while (--nsegs);
@@ -241,16 +246,17 @@ int linseg(CSOUND *csound, LINSEG *p)
           val = p->curval = segp->nxtpt;  /* nonlen = discontin */
           goto chk1;
         }                                 /*   poslen = new slope */
-        p->curinc = (segp->nxtpt - val) / segp->cnt;
-        p->curainc = p->curinc * CS_ONEDKSMPS;
+        p->curainc = (segp->nxtpt - val) / segp->acnt;
+        // p->curainc = p->curinc * CS_ONEDKSMPS;
       }
-      p->curval = val + p->curinc;        /* advance the cur val  */
+      // p->curval = val + p->curinc;        /* advance the cur val  */
       if (UNLIKELY((ainc = p->curainc) == FL(0.0)))
         goto putk;
       for (n=offset; n<nsmps; n++) {
         rs[n] = (MYFLT)val;
         val += ainc;
       }
+       p->curval = val;
     }
     else {                      /* no more segments */
     putk:
@@ -437,16 +443,17 @@ int linsegr(CSOUND *csound, LINSEG *p)
           val = p->curval = segp->nxtpt;    /*   reload & rechk  */
           goto chk2;
         }                                   /*   else get new slope */
-        p->curinc = (segp->nxtpt - val) / segp->cnt;
-        p->curainc = p->curinc * CS_ONEDKSMPS;
+        p->curainc = (segp->nxtpt - val) / segp->acnt;
+        // p->curainc = p->curinc * CS_ONEDKSMPS;
       }
-      p->curval = val + p->curinc;          /* advance the cur val  */
+      //p->curval = val + p->curainc*CS_KSMPS;          /* advance the cur val  */
       if ((ainc = p->curainc) == FL(0.0))
         goto putk;
       for (n=offset; n<nsmps; n++) {
         rs[n] = val;
         val += ainc;
       }
+      p->curval = val;
     }
     else {
     putk:
@@ -487,6 +494,9 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
       segp->val = val;
       segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
       segp->cnt = (int32) (d + FL(0.5));
+      d = dur * csound->esr;
+      segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
+      segp->acnt = (int32) (d + FL(0.5));
     } while (--nsegs);
     segp->cnt = MAXPOS;         /* set last cntr to infin */
     return OK;
@@ -537,6 +547,9 @@ int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
       segp->val = val;
       segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
       segp->cnt = (int32) (d + FL(0.5));
+      d = dur * csound->esr;
+      segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
+      segp->acnt = (int32) (d + FL(0.5));
     } while (--nsegs);
     segp->cnt = MAXPOS;         /* set last cntr to infin */
     return OK;
@@ -588,6 +601,9 @@ int xsgset2b(CSOUND *csound, EXPSEG2 *p)
         segp->val = val;
         segp->mlt = POWER((nxtval / val), FL(1.0)/d);
         segp->cnt = (int32) (d + FL(0.5));
+         d = dur * csound->esr;
+         segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
+         segp->acnt = (int32) (d + FL(0.5));
 /*       } */
 /*       else break;               /\*  .. til 0 dur or done *\/ */
     } while (--nsegs);
@@ -635,6 +651,9 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
         segp->val = val;
         segp->mlt = POWER((nxtval / val), FL(1.0)/d);
         segp->cnt = (int32) (d + FL(0.5));
+        d = dur * csound->esr;
+        segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
+        segp->acnt = (int32) (d + FL(0.5));
 /*       } */
 /*       else break;               /\*  .. til 0 dur or done *\/ */
     } while (--nsegs);
@@ -771,13 +790,15 @@ int expseg(CSOUND *csound, EXXPSEG *p)
     while (--segp->cnt < 0)
       p->cursegp = ++segp;
     val = segp->val;
-    nxtval = val * segp->mlt;
-    li = (nxtval - val) / (nsmps-offset);
+    //nxtval = val * segp->mlt;
+    //li = (nxtval - val) / (nsmps-offset);
     for (n=offset; n<nsmps; n++) {
       rs[n] = val;
-      val += li;
+      //val += li;
+      val *= segp->amlt;
     }
-    segp->val = nxtval;
+    //segp->val = nxtval;
+    segp->val = val;
     return OK;
  err1:
     return csound->PerfError(csound, p->h.insdshead,
@@ -946,13 +967,14 @@ int expsegr(CSOUND *csound, EXPSEG *p)
           p->curamlt = POWER(p->curmlt, FL(1.0)/(MYFLT)(nsmps-offset));
         }
       }
-      p->curval = val * p->curmlt;        /* advance the cur val  */
+      //p->curval = val * p->curmlt;        /* advance the cur val  */
       if ((amlt = p->curamlt) == FL(1.0))
         goto putk;
       for (n=offset; n<nsmps; n++) {
         rs[n] = val;
         val *= amlt;
       }
+      p->curval = val;
     }
     else {
     putk:
@@ -988,6 +1010,33 @@ int lnnset(CSOUND *csound, LINEN *p)
     return OK;
 }
 
+int alnnset(CSOUND *csound, LINEN *p)
+{
+    MYFLT a,b,dur;
+
+    if ((dur = *p->idur) > FL(0.0)) {
+      p->cnt1 = (int32)(*p->iris * CS_ESR + FL(0.5));
+      if (p->cnt1 > (int32)0) {
+        p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
+        p->val = FL(0.0);
+      }
+      else p->inc1 = p->val = FL(1.0);
+      a = dur * CS_ESR + FL(0.5);
+      b = *p->idec * CS_ESR + FL(0.5);
+      if ((int32) b > 0) {
+        p->cnt2 = (int32) (a - b);
+        p->inc2 = FL(1.0) /  b;
+      }
+      else {
+        p->inc2 = FL(1.0);
+        p->cnt2 = (int32) a;
+      }
+      p->lin1 = FL(0.0);
+      p->lin2 = FL(1.0);
+    }
+    return OK;
+}
+
 int klinen(CSOUND *csound, LINEN *p)
 {
     MYFLT fact = FL(1.0);
@@ -1007,6 +1056,56 @@ int klinen(CSOUND *csound, LINEN *p)
     return OK;
 }
 
+int linen(CSOUND *csound, LINEN *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t flag=0, n, nsmps = CS_KSMPS;
+    MYFLT *rs,*sg,val;
+
+    val = p->val;
+    rs = p->rslt;
+    sg = p->sig;
+
+    if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    }
+
+    for (n=offset; n<nsmps; n++) {
+    if (p->cnt1 > 0) {
+      flag = 1;
+      val = p->lin1;
+      p->lin1 += p->inc1;
+      p->cnt1--;
+    }
+    if (p->cnt2 <= 0) {
+      flag = 1;
+      val = p->lin2;
+      p->lin2 -= p->inc2;
+    }
+    else p->cnt2--;
+
+    if (flag) {
+      if (p->XINCODE) 
+          rs[n] = sg[n] * val;
+      else 
+          rs[n] = *sg * val;
+      }
+    else {
+      if (p->XINCODE) 
+	rs[n] = sg[n];
+      else rs[n] = *sg;
+      }
+    }
+    p->val = val;
+    return OK;
+}
+
+
+
+#if 0
 int linen(CSOUND *csound, LINEN *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1063,6 +1162,8 @@ int linen(CSOUND *csound, LINEN *p)
     }
     return OK;
 }
+#endif
+
 
 int lnrset(CSOUND *csound, LINENR *p)
 {
@@ -1087,6 +1188,30 @@ int lnrset(CSOUND *csound, LINENR *p)
     return OK;
 }
 
+int alnrset(CSOUND *csound, LINENR *p)
+{
+    p->cnt1 = (int32)(*p->iris * CS_ESR);
+    if (p->cnt1 > 0L) {
+      p->inc1 = FL(1.0) / (MYFLT)p->cnt1;
+      p->val = FL(0.0);
+    }
+    else p->inc1 = p->val = FL(1.0);
+    if (*p->idec > FL(0.0)) {
+      int relestim = (int)(*p->idec * CS_EKR + FL(0.5));
+      if (relestim > p->h.insdshead->xtratim) 
+        p->h.insdshead->xtratim = relestim;
+      if (UNLIKELY(*p->iatdec <= FL(0.0))) {
+        return csound->InitError(csound, Str("non-positive iatdec"));
+      }
+      else p->mlt2 = POWER(*p->iatdec, csound->onedsr / *p->idec);
+    }
+    else p->mlt2 = FL(1.0);
+    p->lin1 = FL(0.0);
+    p->val2 = FL(1.0);
+    return OK;
+}
+
+
 int klinenr(CSOUND *csound, LINENR *p)
 {
     MYFLT fact = FL(1.0);
@@ -1104,6 +1229,51 @@ int klinenr(CSOUND *csound, LINENR *p)
     return OK;
 }
 
+int linenr(CSOUND *csound, LINENR *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t flag=0, n, nsmps = CS_KSMPS;
+    MYFLT *rs,*sg,val;
+
+    val = p->val;
+    rs = p->rslt;
+    sg = p->sig;
+    if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+       nsmps -= early;
+       memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    
+    for (n=offset; n<nsmps; n++) {
+    if (p->cnt1 > 0L) {
+      flag = 1;
+      val = p->lin1;
+      p->lin1 += p->inc1;
+      p->cnt1--;
+    }
+    if (p->h.insdshead->relesing) {
+      flag = 1;
+      val = p->val2;
+      p->val2 *= p->mlt2;
+    }
+    if (flag) {
+      if (p->XINCODE) 
+          rs[n] = sg[n] * val;
+      else 
+          rs[n] = *sg * val;
+      }
+    else {
+      if (p->XINCODE) rs[n] = sg[n]; 
+      else rs[n] = *sg;
+      }
+    }
+    p->val = val;
+    p->val2 = val;
+    return OK;
+}
+
+#if 0
 int linenr(CSOUND *csound, LINENR *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1161,6 +1331,8 @@ int linenr(CSOUND *csound, LINENR *p)
     }
     return OK;
 }
+#endif
+
 
 int evxset(CSOUND *csound, ENVLPX *p)
 {
