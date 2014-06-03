@@ -466,3 +466,5 @@ int lprdset_S(CSOUND *csound, void *p);
 int pvsfreadset_S(CSOUND *csound, void *p);
 int alnnset(CSOUND *csound, void *p);
 int alnrset(CSOUND *csound, void *p);
+int aevxset(CSOUND *csound, void *p);
+int aevrset(CSOUND *csound, void *p);
