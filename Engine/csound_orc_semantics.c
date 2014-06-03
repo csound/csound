@@ -198,32 +198,33 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
     return NULL;
 }
 
-static inline int isirate(TREE *t)
+static int isirate(/*CSOUND *csound,*/ TREE *t)
 {
     //print_tree(csound, "isirate",  t);
-    if (t->left->type != T_IDENT) return 0;
-    if (t->right->type == INTEGER_TOKEN) {
+    if (t->type == INTEGER_TOKEN) {
+      //printf("integer case\n");
     }
-    else {
-      if (t->right->type != T_IDENT) return 0;
-      if (t->right->value->lexeme[0] != 'p' &&
-          t->right->value->lexeme[0] != 'i' &&
-          (t->right->value->lexeme[0] != 'g' ||
-           t->right->value->lexeme[1] != 'i')) return 0;
-    }
-    //print_tree(csound, "recurse",  t->right->next);
-    t = t->right->next;
-    while (t) {
-      //printf("t=%p t->type=%d\n", t, t->type);
-      if (t->type == INTEGER_TOKEN) { t = t->next; continue; }
-      if (t->type != T_IDENT) return 0;
+    else if (t->type == T_IDENT) {
+      //printf("identifier case\n");
       if (t->value->lexeme[0] != 'p' &&
           t->value->lexeme[0] != 'i' &&
           (t->value->lexeme[0] != 'g' ||
            t->value->lexeme[1] != 'i')) return 0;
+      return 1;
+    }
+    else if (t->type == T_ARRAY) {
+      //printf("array case\n");
+      if (isirate(/*csound, */t->right)==0) return 0;
+    }
+    else return 0;
+    //print_tree(csound, "loop",  t->next);
+    t = t->next;
+    while (t) {
+      //printf("t=%p t->type=%d\n", t, t->type);
+      if (isirate(/*csound,*/ t)==0) return 0;
       t = t->next;
     }
-    return 1;      
+    return 1;
 }
 
 /* This function gets arg type with checking type table */
@@ -304,7 +305,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       // Deal with odd case if i(expressions)
       if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
         //print_tree(csound, "i()", tree);
-        if (tree->right->type == T_ARRAY && isirate(tree->right)) {
+        if (tree->right->type == T_ARRAY &&
+            tree->right->left->type == T_IDENT &&
+            isirate(/*csound,*/ tree->right->right)) {
           //printf("OK\n");
         }
         else
