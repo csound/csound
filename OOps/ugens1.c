@@ -1446,6 +1446,145 @@ int knvlpx(CSOUND *csound, ENVLPX *p)
                              Str("envlpx(krate): not initialised"));
 }
 
+int aevxset(CSOUND *csound, ENVLPX *p)
+{
+    FUNC        *ftp;
+    MYFLT       ixmod, iatss, idur, prod, diff, asym, nk, denom, irise;
+    int32       cnt1;
+
+    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
+      return NOTOK;
+    p->ftp = ftp;
+    if ((idur = *p->idur) > FL(0.0)) {
+      if (UNLIKELY((iatss = FABS(*p->iatss)) == FL(0.0))) {
+        return csound->InitError(csound, "iatss = 0");
+      }
+      if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
+        if (UNLIKELY(FABS(ixmod) > FL(0.95))) {
+          return csound->InitError(csound, Str("ixmod out of range."));
+        }
+        ixmod = -SIN(SIN(ixmod));
+        prod = ixmod * iatss;
+        diff = ixmod - iatss;
+        denom = diff + prod + FL(1.0);
+        if (denom == FL(0.0))
+          asym = FHUND;
+        else {
+          asym = FL(2.0) * prod / denom;
+          if (FABS(asym) > FHUND)
+            asym = FHUND;
+        }
+        iatss = (iatss - asym) / (FL(1.0) - asym);
+        asym = asym* *(ftp->ftable + ftp->flen); /* +1 */
+      }
+      else asym = FL(0.0);
+      if ((irise = *p->irise) > FL(0.0)) {
+        p->phs = 0;
+        p->ki = (int32) ((FMAXLEN / CS_ESR )/ irise);
+        p->val = *ftp->ftable;
+      }
+      else {
+        p->phs = -1;
+        p->val = *(ftp->ftable + ftp->flen)-asym;
+        irise = FL(0.0);  /* in case irise < 0 */
+      }
+      if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
+        return csound->InitError(csound, Str("rise func ends with zero"));
+      }
+      cnt1 = (int32) ((idur - irise - *p->idec) * CS_ESR);
+      if (cnt1 < 0L) {
+        cnt1 = 0;
+        nk = CS_ESR;
+      }
+      else {
+        if (*p->iatss < FL(0.0) || cnt1 <= 4L)
+          nk = CS_ESR;
+        else nk = (MYFLT) cnt1;
+      }
+      p->mlt1 = POWER(iatss, (FL(1.0)/nk));
+      if (*p->idec > FL(0.0)) {
+        if (UNLIKELY(*p->iatdec <= FL(0.0))) {
+          return csound->InitError(csound, Str("non-positive iatdec"));
+        }
+        p->mlt2 = POWER(*p->iatdec, (csound->onedsr / *p->idec));
+      }
+      p->cnt1 = cnt1;
+      p->asym = asym;
+    }
+    return OK;
+}
+
+
+int envlpx(CSOUND *csound, ENVLPX *p)
+{
+    int32       phs;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    long pos, lobits, lomask;
+    MYFLT      fact, *xamp, *rslt, val, asym, mlt, mlt2, v1, fract, *ftab, lodiv;
+   
+    xamp = p->xamp;
+    rslt = p->rslt;
+    val  = p->val;
+    mlt = p->mlt1;
+    mlt2 = p->mlt2;
+    asym = p->asym;
+
+    if (UNLIKELY(p->ftp==NULL)) 
+       return csound->PerfError(csound, p->h.insdshead,
+                             Str("envlpx(krate): not initialised"));
+    ftab = p->ftp->ftable;
+    lobits = p->ftp->lobits;
+    lomask = p->ftp->lomask;
+    lodiv  = p->ftp->lodiv;
+    if (UNLIKELY(ftab[p->ftp->flen] == 0.0)) 
+       return csound->PerfError(csound, p->h.insdshead,
+                             Str("envlpx rise func ends with zero"));
+
+    if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
+    }
+
+
+    for (n=offset; n<nsmps;n++) {
+
+     if ((phs = p->phs) >= 0L) {
+       fract = ((phs) & lomask) * lodiv;
+       pos = (long) (phs >> lobits);
+       v1 = ftab[pos+1];
+       fact = (v1 + (ftab[pos] - v1) * fract);
+       phs += p->ki;
+       if (phs >= MAXLEN) { 
+        val = ftab[p->ftp->flen]; 
+        val -= p->asym;
+        phs = -1;
+      }
+      p->phs = phs;
+    }
+    else {
+      fact = val;
+      if (p->cnt1 > 0L) {
+        val *= mlt;
+        fact += asym;
+        p->cnt1--;
+        if (p->cnt1 == 0L)
+          val += asym;
+      }
+      else val *= mlt2;
+    }
+    if (p->XINCODE)                        
+        rslt[n] = xamp[n] * fact;
+    else 
+        rslt[n] = *xamp * fact;
+    }
+    p->val = val;
+    return OK;
+}
+
+#if 0
 int envlpx(CSOUND *csound, ENVLPX *p)
 {
     FUNC        *ftp;
@@ -1511,6 +1650,8 @@ int envlpx(CSOUND *csound, ENVLPX *p)
     return csound->PerfError(csound, p->h.insdshead,
                              Str("envlpx rise func ends with zero"));
 }
+#endif
+
 
 int evrset(CSOUND *csound, ENVLPR *p)
 {
@@ -1571,6 +1712,66 @@ int evrset(CSOUND *csound, ENVLPR *p)
     return OK;
 }
 
+int aevrset(CSOUND *csound, ENVLPR *p)
+{
+    FUNC        *ftp;
+    MYFLT       ixmod, iatss, prod, diff, asym, denom, irise;
+
+    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
+      return NOTOK;
+    p->ftp = ftp;
+    if (UNLIKELY((iatss = FABS(*p->iatss)) == FL(0.0))) {
+      return csound->InitError(csound, "iatss = 0");
+    }
+    if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
+      if (UNLIKELY(FABS(ixmod) > FL(0.95))) {
+        return csound->InitError(csound, Str("ixmod out of range."));
+      }
+      ixmod = -SIN(SIN(ixmod));
+      prod  = ixmod * iatss;
+      diff  = ixmod - iatss;
+      denom = diff + prod + FL(1.0);
+      if (denom == FL(0.0))
+        asym = FHUND;
+      else {
+        asym = FL(2.0) * prod / denom;
+        if (FABS(asym) > FHUND)
+          asym = FHUND;
+      }
+      iatss = (iatss - asym) / (FL(1.0) - asym);
+      asym = asym * *(ftp->ftable + ftp->flen); /* +1 */
+    }
+    else asym = FL(0.0);
+    if ((irise = *p->irise) > FL(0.0)) {
+      p->phs = 0;
+      p->ki = (int32) ((FMAXLEN / CS_ESR)/ irise);
+      p->val = *ftp->ftable;
+    }
+    else {
+      p->phs = -1;
+      p->val = *(ftp->ftable + ftp->flen)-asym;
+      /* irise = FL(0.0); */          /* in case irise < 0 */
+    }
+    if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
+      return csound->InitError(csound, Str("rise func ends with zero"));
+    }
+    p->mlt1 = POWER(iatss, csound->onedsr);
+    if (*p->idec > FL(0.0)) {
+      int32 rlscnt = (int32)(*p->idec * CS_EKR + FL(0.5));
+      if ((p->rindep = (int32)*p->irind))
+        p->rlscnt = rlscnt;
+      else if (rlscnt > p->h.insdshead->xtratim)
+        p->h.insdshead->xtratim = (int)rlscnt;
+      if (UNLIKELY((p->atdec = *p->iatdec) <= FL(0.0) )) {
+        return csound->InitError(csound, Str("non-positive iatdec"));
+      }
+    }
+    p->asym = asym;
+    p->rlsing = 0;
+    return OK;
+}
+
+
 int knvlpxr(CSOUND *csound, ENVLPR *p)
 {
     MYFLT  fact;
@@ -1612,6 +1813,84 @@ int knvlpxr(CSOUND *csound, ENVLPR *p)
     return OK;
 }
 
+int envlpxr(CSOUND *csound, ENVLPR *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    int32  rlscnt;
+    long lobits, lomask, pos, phs = p->phs;
+    MYFLT fact, *xamp, *rslt, val, asym, mlt, mlt2, v1, fract, *ftab, lodiv;
+   
+    xamp = p->xamp;
+    rslt = p->rslt;
+    val  = p->val;
+    mlt = p->mlt1;
+    mlt2 = p->mlt2;
+    asym = p->asym;
+
+    if (UNLIKELY(p->ftp==NULL)) 
+       return csound->PerfError(csound, p->h.insdshead,
+                             Str("envlpx(krate): not initialised"));
+    ftab = p->ftp->ftable;
+    lobits = p->ftp->lobits;
+    lomask = p->ftp->lomask;
+    lodiv  = p->ftp->lodiv;
+    if (UNLIKELY(ftab[p->ftp->flen] == 0.0)) 
+       return csound->PerfError(csound, p->h.insdshead,
+                             Str("envlpx rise func ends with zero"));
+
+    if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
+    }
+
+   for (n=offset; n<nsmps; n++) {
+
+    if (!p->rlsing) {                   /* if not in reles seg  */
+      if (p->h.insdshead->relesing) {
+        p->rlsing = 1;                  /*   if new flag, set mlt2 */
+        rlscnt = (p->rindep) ? p->rlscnt : p->h.insdshead->xtratim;
+        rlscnt *= CS_KSMPS;
+        if (rlscnt)
+          p->mlt2 = POWER(p->atdec, FL(1.0)/rlscnt);
+        else p->mlt2 = FL(1.0);
+      }
+      if (p->phs >= 0) {                /* do fn rise for seg 1 */
+       fract = ((phs) & lomask) * lodiv;
+       pos = (long) (phs >> lobits);
+       v1 = ftab[pos+1];
+       fact = (v1 + (ftab[pos] - v1) * fract);
+       phs += p->ki;
+       if (phs >= MAXLEN) { 
+        val = ftab[p->ftp->flen]; 
+        val -= p->asym;
+        phs = -1;
+      }
+      p->phs = phs;
+      }
+      else {
+        fact = val + asym;
+        val *= mlt;
+        if (p->rlsing)
+          val += asym;
+      }
+    }
+    else
+      fact = val *= p->mlt2;     /* else do seg 3 decay  */
+ 
+    if (p->XINCODE) 
+        rslt[n] = xamp[n] * fact;
+    else 
+        rslt[n] = *xamp * fact;
+   }
+   p->val = val;
+    return OK;
+}
+
+
+#if 0
 int envlpxr(CSOUND *csound, ENVLPR *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1681,6 +1960,8 @@ int envlpxr(CSOUND *csound, ENVLPR *p)
     }
     return OK;
 }
+#endif
+
 
 int csgset(CSOUND *csound, COSSEG *p)
 {
