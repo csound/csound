@@ -2006,6 +2006,7 @@ int csgset(CSOUND *csound, COSSEG *p)
     p->curcnt = sp->cnt;
     }
 //printf("incx, y1,y2 = %g, %f, %f\n", p->inc, p->y1, p->y2);
+    p->val = p->y1;
     return OK;
 }
 
@@ -2020,6 +2021,16 @@ int csgset_bkpt(CSOUND *csound, COSSEG *p)
     cnt = p->curcnt;
     nsegs = p->segsrem-1;
     segp = p->cursegp;
+    if(p->XOUTCODE)
+    do {
+      if (UNLIKELY(cnt > segp->acnt))
+        return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
+      segp->acnt -= cnt;
+      cnt += segp->acnt;
+      segp++;
+      bkpt++;
+    } while (--nsegs);
+    else
     do {
       //csound->Message(csound, "%d/ %d: %d, %d ", nsegs, bkpt, cnt, segp->cnt);
       if (UNLIKELY(cnt > segp->cnt))
@@ -2030,6 +2041,7 @@ int csgset_bkpt(CSOUND *csound, COSSEG *p)
       segp++;
       bkpt++;
     } while (--nsegs);
+ 
     return OK;
 }
 
