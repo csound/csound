@@ -62,7 +62,7 @@ typedef struct {
         SEG     *cursegp;
         int32   nsegs;
         int32   segsrem, curcnt;
-        double  y1, y2, x, inc;
+        double  y1, y2, x, inc, val;
         AUXCH   auxch;
         int32   xtra;
 } COSSEG;

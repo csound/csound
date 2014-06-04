@@ -932,8 +932,9 @@ int expsegr(CSOUND *csound, EXPSEG *p)
       memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
     }
                       /* sav the cur value    */
+    val = p->curval; 
     for (n=offset; n<nsmps; n++) {
-     val = p->curval; 
+     
     if (p->segsrem) {                   /* if no more segs putk */
       SEG *segp;
       if (p->h.insdshead->relesing && p->segsrem > 1) {
@@ -964,7 +965,6 @@ int expsegr(CSOUND *csound, EXPSEG *p)
           p->curamlt = POWER(p->curmlt, FL(1.0)/(MYFLT)(nsmps-offset));
         }
       }
-      //p->curval = val * p->curmlt;        /* advance the cur val  */
        if ((amlt = p->curamlt) == FL(1.0)) goto putk;
         rs[n] = val;
         val *= amlt;
@@ -973,9 +973,8 @@ int expsegr(CSOUND *csound, EXPSEG *p)
     putk:
       rs[n] =  val;
     }
-     p->curval = val;
     }
-
+    p->curval = val;
     return OK;
 }
 
@@ -1971,7 +1970,7 @@ int csgset(CSOUND *csound, COSSEG *p)
     //printf("nsegs = %d\n", nsegs);
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (unsigned int)p->auxch.size) {
-      csound->AuxAlloc(csound, (int32)nsegs*sizeof(SEG), &p->auxch);
+      csound->AuxAlloc(csound, (int32)(1+nsegs)*sizeof(SEG), &p->auxch);
       p->cursegp = 1+(segp = (SEG *) p->auxch.auxp);
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
     }
@@ -1988,18 +1987,24 @@ int csgset(CSOUND *csound, COSSEG *p)
       segp->nxtpt = (double)**argp++;
       if (UNLIKELY((segp->cnt = (int32)(dur * CS_EKR + FL(0.5))) < 0))
         segp->cnt = 0;
-      if (UNLIKELY((segp->cnt = (int32)(dur * CS_ESR)) < 0))
+      if (UNLIKELY((segp->acnt = (int32)(dur * CS_ESR)) < 0))
         segp->acnt = 0;
 
-      //printf("%d(%p): cnt=%d nxtpt=%f\n",
-      //       p->segsrem-nsegs, segp, segp->cnt, segp->nxtpt);
+      printf("i: %d(%p): cnt=%d nxtpt=%f\n",
+           p->segsrem-nsegs, segp, segp->cnt, segp->nxtpt);
       segp++;
     } while (--nsegs);
     p->y1 = y1;
     p->y2 = y2 = sp->nxtpt;
     p->x = 0.0;
+    if(p->XOUTCODE) {
+      p->inc = (y2!=y1 ? 1.0/(sp->acnt) : 0.0);
+       p->curcnt = sp->acnt;
+    }
+    else {
     p->inc = (y2!=y1 ? 1.0/(sp->cnt) : 0.0);
     p->curcnt = sp->cnt;
+    }
 //printf("incx, y1,y2 = %g, %f, %f\n", p->inc, p->y1, p->y2);
     return OK;
 }
@@ -2089,7 +2094,7 @@ int cosseg(CSOUND *csound, COSSEG *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    double inc = p->inc/(nsmps-offset);
+    double inc = p->inc;///(nsmps-offset);
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
 
@@ -2099,7 +2104,7 @@ int cosseg(CSOUND *csound, COSSEG *p)
       memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-    
+   for (n=offset; n<nsmps; n++) {
     if (LIKELY(p->segsrem)) {             /* if no more segs putk */
       if (--p->curcnt <= 0) {             /*  if done cur segment */
         SEG *segp = p->cursegp;
@@ -2109,35 +2114,26 @@ int cosseg(CSOUND *csound, COSSEG *p)
           p->y2 = val2 = segp->nxtpt;
           goto putk;                      /*      put endval      */
         }
-        //printf("new seg: %d %f\n", segp->cnt, segp->nxtpt);
         val2 = p->y2 = segp->nxtpt;          /* Base of next segment */
         p->inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
-        //inc /= nsmps;
         x = 0.0;
         p->cursegp = segp+1;              /*   else find the next */
-        if (UNLIKELY(!(p->curcnt = segp->cnt))) {
+        if (UNLIKELY(!(p->curcnt = segp->acnt))) {
           val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
           p->inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
-          //inc /= nsmps;
-          //printf("zero length: incx, y1,y2 = %f, %f, %f\n", inc, val1, val2);
           goto chk1;
         }                                 /*   poslen = new slope */
-        //printf("New segment incx, y1,y2 = %g, %f, %f\n", inc, val1, val2);
       }
-      for (n=offset; n<nsmps; n++) {
         double mu2 = (1.0-cos(x*PI))*0.5;
         rs[n] = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
         x += inc;
-        //if (x>1 || x<0) printf("x=%f out of range\n", x);
       }
-    }
     else {
     putk:
-      //printf("ending at %f\n", val1);
-      for (n=offset; n<nsmps; n++) {
-        rs[n] = (MYFLT)val1;
-      }
+      rs[n] = (MYFLT)val1;
+      
     }
+   }
     p->inc = inc;
     p->x = x;
     return OK;
@@ -2209,8 +2205,77 @@ int cosseg(CSOUND *csound, COSSEG *p)
     return csound->PerfError(csound, p->h.insdshead,
                              Str("cosseg: not initialised (arate)\n"));
 }
+
 #endif
 
+int cossegr(CSOUND *csound, COSSEG *p)
+{
+  double val1 = p->y1, val2 = p->y2, x = p->x, val = p->val;
+    MYFLT *rs = p->rslt;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t n, nsmps = CS_KSMPS;
+    double inc = p->inc;
+
+    memset(rs, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
+
+   for (n=offset; n<nsmps; n++) {
+    if (LIKELY(p->segsrem)) {             /* if no more segs putk */
+      SEG *segp = p->cursegp;
+      if (p->h.insdshead->relesing && p->segsrem > 1) {
+        while (p->segsrem > 1) {            /* release flag new:    */
+          segp = ++p->cursegp;              /*   go to last segment */
+          p->segsrem--;
+        }
+	segp--;                                 /*   get univ relestim  */
+        segp->acnt = (p->xtra >=0 ? p->xtra : p->h.insdshead->xtratim)*CS_KSMPS;
+        //p->y1 = val1 = val2;
+	p->y1 = val1 = val;
+	//printf("%d(%p): cnt=%d strt= %f nxtpt=%f\n",
+	//	p->segsrem, segp, segp->cnt,val1, segp->nxtpt);
+        goto newi;                          /*   and set new curinc */
+      }
+      if (--p->curcnt <= 0) {             /*  if done cur segment */
+      chk1:
+        p->y1 = val1 = val2;
+        if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
+          p->y2 = val2 = segp->nxtpt;
+          goto putk;                      /*      put endval      */
+        }
+      newi:
+        //printf("new seg: %d %f\n", segp->cnt, segp->nxtpt);
+        val2 = p->y2 = segp->nxtpt;          /* Base of next segment */
+        inc =p->inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
+        x = 0.0;
+        p->cursegp = segp+1;              /*   else find the next */
+        if (UNLIKELY(!(p->curcnt = segp->acnt))) {
+          val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
+	  inc = p->inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
+          goto chk1;
+        }                                 /*   poslen = new slope */
+        //printf("New segment incx, y1,y2 = %g, %f, %f\n", inc, val1, val2);
+      }
+        double mu2 = (1.0-cos(x*PI))*0.5;
+        val = rs[n] = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
+        x += inc;
+        //if (x>1 || x<0) printf("x=%f out of range\n", x);
+      }
+    else {
+    putk:
+        rs[n] = (MYFLT)val1;
+    }
+   }
+    p->inc = inc;
+    p->x = x;
+    p->val = val;
+    return OK;
+ err1:
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("cossegr: not initialised (arate)\n"));
+}
+
+
+#if 0
 int cossegr(CSOUND *csound, COSSEG *p)
 {
     double val1 = p->y1, val2 = p->y2, x = p->x;
@@ -2275,11 +2340,11 @@ int cossegr(CSOUND *csound, COSSEG *p)
     return csound->PerfError(csound, p->h.insdshead,
                              Str("cossegr: not initialised (arate)\n"));
 }
-
+#endif
 
 int kcssegr(CSOUND *csound, COSSEG *p)
 {
-    double val1 = p->y1, val2 = p->y2, x = p->x;
+  double val1 = p->y1, val2 = p->y2, x = p->x, val = p->val;
     double inc = p->inc;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;          /* RWD fix */
@@ -2290,8 +2355,10 @@ int kcssegr(CSOUND *csound, COSSEG *p)
         while (p->segsrem > 1) {           /* reles flag new:      */
           segp = ++p->cursegp;             /*   go to last segment */
           p->segsrem--;
-        }                                  /*   get univ relestim  */
+        } 
+        segp--;                             /*   get univ relestim  */
         segp->cnt = p->xtra>= 0 ? p->xtra : p->h.insdshead->xtratim;
+        p->y1 = val1 = val;
         goto newi;                         /*   and set new curinc */
       }
       if (--p->curcnt <= 0) {             /*  if done cur segment */
@@ -2314,7 +2381,7 @@ int kcssegr(CSOUND *csound, COSSEG *p)
       }
       {
         double mu2 = (1.0-cos(x*PI))*0.5;
-        *p->rslt = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
+        val = *p->rslt = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
         x += inc;
       }
     }
@@ -2323,6 +2390,7 @@ int kcssegr(CSOUND *csound, COSSEG *p)
         *p->rslt = (MYFLT)val1;
     }
     p->x = x;
+    p->val = val;
     return OK;
  err1:
     return csound->InitError(csound, Str("cosseg not initialised (krate)\n"));
