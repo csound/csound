@@ -284,7 +284,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     }
 
     /* new code for sample-accurate timing, not for tied notes */
-    if (O->sampleAccurate & !tie) {
+    if (O->sampleAccurate && !tie) {
       int64_t start_time_samps, start_time_kcycles;
       double duration_samps;
       start_time_samps = (int64_t) (ip->p2 * csound->esr);
@@ -292,10 +292,13 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       start_time_kcycles = start_time_samps/csound->ksmps;
       ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
       //printf("ksmps offset = %d \n",  ip->ksmps_offset);
+      /* with no p3 or xtratim values, can't set the sample accur duration */
+      if(ip->p3 > 0 && ip->xtratim == 0)
       ip->no_end = csound->ksmps -
         ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;
       /* the ksmps_no_end field is initially 0, set to no_end in the last
          perf cycle */
+      else ip->no_end = 0;
       ip->ksmps_no_end = 0;
       /* if (ip->no_end) { */
       /*   //        printf(">>>> %d\n",((int)duration_samps+ip->ksmps_offset)); */
@@ -322,11 +325,11 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       ip->offtim = p2 + (double) ip->p3;
       //csound->Message(csound, "%lf\n", ip->offtim);
       /* csound->Message(csound, "ip->offtim = %lf -> ", ip->offtim); */
-      if (O->sampleAccurate && !tie) /* ceil for sample-accurate ending */
+      if (O->sampleAccurate && !tie  && ip->p3 > 0 && ip->xtratim == 0) /* ceil for sample-accurate ending */
         ip->offtim = CEIL(ip->offtim*csound->ekr) / csound->ekr;
       else /* normal : round */
         ip->offtim = FLOOR(ip->offtim * csound->ekr +0.5)/csound->ekr;
-      // csound->Message(csound, "%lf\n", ip->offtim);
+      //csound->Message(csound, "%lf\n", ip->offtim);
       if (O->Beatmode) {
         p2 = ((p2*csound->esr - csound->icurTime) / csound->ibeatTime)
           + csound->curBeat;
@@ -1963,7 +1966,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     /* restore globals */
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
-    /* if (!p->ip) */ {                   /* loop to last opds */
+    if (!p->ip)  {                   /* loop to last opds */
       while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
     }
     return OK;
