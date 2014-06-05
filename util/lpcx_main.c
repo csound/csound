@@ -37,6 +37,8 @@
 #endif
 #include "lpc.h"
 
+#define Str(x) x
+
 void lpc_export_usage(void)
 {
     printf(Str("usage: lpc_export lpc_file cstext-file\n"));
