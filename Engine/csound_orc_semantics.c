@@ -198,6 +198,34 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
     return NULL;
 }
 
+static int isirate(/*CSOUND *csound,*/ TREE *t)
+{                  /* check that argument is an i-rate constant or variable */
+    //print_tree(csound, "isirate",  t);
+    if (t->type == INTEGER_TOKEN) {
+      //printf("integer case\n");
+      return 1;
+    }
+    else if (t->type == T_IDENT) {
+      //printf("identifier case\n");
+      if (t->value->lexeme[0] != 'p' &&
+          t->value->lexeme[0] != 'i' &&
+          (t->value->lexeme[0] != 'g' ||
+           t->value->lexeme[1] != 'i')) return 0;
+      return 1;
+    }
+    else if (t->type == T_ARRAY) {
+      //printf("array case\n");
+      if (isirate(/*csound, */t->right)==0) return 0;
+      t = t->next;
+      while (t) {
+        //printf("t=%p t->type=%d\n", t, t->type);
+        if (isirate(/*csound,*/ t)==0) return 0;
+        t = t->next;
+      }
+      return 1;
+    }
+    else return 0;
+}
 
 /* This function gets arg type with checking type table */
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
@@ -279,12 +307,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         //print_tree(csound, "i()", tree);
         if (tree->right->type == T_ARRAY &&
             tree->right->left->type == T_IDENT &&
-            (tree->right->right->type == INTEGER_TOKEN ||
-             (tree->right->right->type == T_IDENT &&
-              (tree->right->right->value->lexeme[0] == 'p' ||
-               tree->right->right->value->lexeme[0] == 'i' ||
-               (tree->right->right->value->lexeme[0] == 'g' &&
-                tree->right->right->value->lexeme[1] == 'i'))))) { /* OK */
+            isirate(/*csound,*/ tree->right->right)) {
+          //printf("OK array case\n");
         }
         else
           if (UNLIKELY(tree->right->type != LABEL_TOKEN))
