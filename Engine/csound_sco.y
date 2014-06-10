@@ -31,8 +31,9 @@
 #include <stdio.h>
 #include <math.h>
 #include "score_param.h"
-    extern void csound_scoerror(SCORE_PARM *, void *, void *, const char*);
-    //extern int csound_scolex(TREE**, CSOUND *, void *);
+extern void csound_scoerror(SCORE_PARM *, void *,
+                            CSOUND *, ScoreTree *, const char*);
+
 #define LINE csound_scoget_lineno()
 #define LOCN csound_scoget_locn()
 extern int csound_orcget_locn(void *);
@@ -69,7 +70,7 @@ static ListItem* makelist(CSOUND *csound, double car, ListItem* cdr);
 %token INTEGER_TOKEN
 %token NUMBER_TOKEN
 
-%start scolines
+%start scofile
 %left S_AND S_OR
 %left '|'
 %left '&'
@@ -96,7 +97,10 @@ static ListItem* makelist(CSOUND *csound, double car, ListItem* cdr);
 %pure_parser
 %error-verbose
 %parse-param { CSOUND * csound }
+%parse-param { ScoreTree * scoTree }
 %%
+scofile           : scolines { *scoTree = *$1;}
+                  ;
 
 scoline           : statement 
                         {
@@ -226,7 +230,7 @@ lyyerror(YYLTYPE t, char *s, ...)
 #endif
 
 void
-csound_scoerror(SCORE_PARM *parm, void *yyg, void *cs, const char* s)
+csound_scoerror(SCORE_PARM *parm, void *yyg, CSOUND *cs, ScoreTree *t, const char* s)
 {
     fprintf(stderr, s);
 }
