@@ -2443,3 +2443,5 @@ int kcssegr(CSOUND *csound, COSSEG *p)
  err1:
     return csound->InitError(csound, Str("cosseg not initialised (krate)\n"));
 }
+
+
