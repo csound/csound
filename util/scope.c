@@ -1,6 +1,6 @@
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
-#include "std_util.h"                                   /*  HETRO.C   */
+#include "std_util.h"                                   /*  SCOPE.C   */
 #include "corfile.h"
 #include "score_param.h"
 
@@ -11,7 +11,7 @@ extern void csound_prsset_extra(void *, void *);
 extern void csound_prslex(CSOUND*, void*);
 extern void csound_prslex_destroy(void *);
 extern void csound_sco_scan_buffer (const char *, size_t, void*);
-extern int csound_scoparse(SCORE_PARM *, void *, CSOUND*, TREE*);
+extern int csound_scoparse(SCORE_PARM *, void *, CSOUND*, ScoreTree*);
 extern void csound_scolex_init(void *);
 extern void csound_scoset_extra(void *, void *);
 extern void csound_scoset_lineno(int, void*);
@@ -22,7 +22,7 @@ static int scope(CSOUND *csound, int argc, char **argv)
 #ifdef SCORE_PARSER
     {
       PRS_PARM  qq;
-      int len=100, p=0, n;
+      int n;
       char buff[1024];
       FILE *ff;
       /* Pre-process */
