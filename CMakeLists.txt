@@ -842,6 +842,7 @@ set_source_files_properties(${LEX_OUT} GENERATED)
 
 if(SCORE_PARSER)
     add_custom_target(NewScoParser echo "Creating sco_parser.c")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSCORE_PARSER")
     set(NewScoParser OFF)
 
     set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
