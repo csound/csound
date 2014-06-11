@@ -817,7 +817,7 @@ int expseg(CSOUND *csound, EXXPSEG *p)
     }
     for (n=offset; n<nsmps; n++) {
     segp = p->cursegp;
-    /* if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /\* RWD fix *\/ */
+   if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     while (--segp->acnt < 0) 
        p->cursegp = ++segp; 
     rs[n] = segp->val; 
@@ -2008,6 +2008,7 @@ int csgset(CSOUND *csound, COSSEG *p)
       csound->AuxAlloc(csound, (int32)(1+nsegs)*sizeof(SEG), &p->auxch);
       p->cursegp = 1+(segp = (SEG *) p->auxch.auxp);
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
+      segp[nsegs-1].acnt = MAXPOS;
     }
     sp = segp;
     argp = p->argums;
@@ -2442,3 +2443,5 @@ int kcssegr(CSOUND *csound, COSSEG *p)
  err1:
     return csound->InitError(csound, Str("cosseg not initialised (krate)\n"));
 }
+
+
