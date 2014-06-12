@@ -844,7 +844,6 @@ if(SCORE_PARSER)
     message(STATUS "SCORE PARSER being built")
     add_custom_target(NewScoParser echo "Creating sco_parser.c")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSCORE_PARSER")
-    set(NewScoParser ON)
 
     set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
     set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
@@ -855,6 +854,10 @@ if(SCORE_PARSER)
     set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
     set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
 
+    ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c")
+    ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")
+    ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c")
+    
     add_custom_command(
         SOURCE ${LEX_SCOSRC}
         COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT}
@@ -875,12 +878,14 @@ if(SCORE_PARSER)
         DEPENDS ${LEX_SCOOUT}
         OUTPUTS ${YACC_SCOOUT})
 
+    ##set(NewScoParser ON)
     list(APPEND libcsound_SRCS
-        ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEXSCO_OUT} Engine/scope.c)
+        ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT} Engine/scope.c)
 
     set_source_files_properties(${YACC_SCOOUT} GENERATED)
     set_source_files_properties(${LEX_SCOOUT} GENERATED)
     set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
+
 else()
     message(STATUS "Not building with score parser")
 endif()
