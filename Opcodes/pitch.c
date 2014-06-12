@@ -1690,6 +1690,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
       p->cursegp = segp = (NSEG *) p->auxch.auxp;
     }
     segp[nsegs-1].cnt = MAXPOS;       /* set endcount for safety */
+    segp[nsegs-1].acnt = MAXPOS;       /* set endcount for safety */
     argp = p->argums;
     val = **argp++;
     if (**argp <= FL(0.0)) return OK; /* if idur1 <= 0, skip init  */
@@ -1887,6 +1888,7 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
       p->cursegp = segp = (NSEG *) p->auxch.auxp;
     }
     segp[nsegs-1].cnt = MAXPOS;       /* set endcount for safety */
+    segp[nsegs-1].acnt = MAXPOS;       /* set endcount for safety */
     argp = p->argums;
     val = (double)**argp++;
     if (UNLIKELY(**argp <= FL(0.0))) return OK; /* if idur1 <= 0, skip init  */

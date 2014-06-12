@@ -126,9 +126,13 @@ extern "C" {
         int sampsread;
         do {
             sampsread = csoundReadCircularBuffer(NULL, recordData->cbuf, buf, bufsize);
-
+#ifdef USE_DOUBLE
             sf_write_double((SNDFILE *) recordData->sfile,
                             buf, sampsread);
+#else
+            sf_write_float((SNDFILE *) recordData->sfile,
+                            buf, sampsread)
+#endif
         } while(sampsread != 0);
         pthread_mutex_unlock(&recordData->mutex);
     }

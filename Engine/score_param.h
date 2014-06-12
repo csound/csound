@@ -1,6 +1,18 @@
 #ifndef __SCORE_PARAM_H
 #define __SCORE_PARAM_H
 
+
+typedef struct ListItem {
+  double           val;
+  struct ListItem *args;
+} ListItem;
+
+typedef struct ScoreTree{
+  int       op;
+  ListItem *args;
+  struct ScoreTree *next;
+} ScoreTree;
+
 #define MARGS   (3)
 #define MAX_INCLUDE_DEPTH 100
 struct MACRO;
