@@ -315,6 +315,8 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     segp->nxtpt = FL(1.0);
     if (UNLIKELY((segp->cnt = (int32)(dur * CS_EKR + FL(0.5))) == 0))
       segp->cnt = 0;
+    if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
+        segp->acnt = 0;
     segp++;
                                 /* Decay */
     dur = *argp[1];
@@ -323,6 +325,8 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     segp->nxtpt = *argp[2];
     if (UNLIKELY((segp->cnt = (int32)(dur * CS_EKR + FL(0.5))) == 0))
       segp->cnt = 0;
+   if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
+        segp->acnt = 0;
     segp++;
                                 /* Sustain */
     /* Should use p3 from score, but how.... */
@@ -331,11 +335,15 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     segp->nxtpt = *argp[2];
     if (UNLIKELY((segp->cnt = (int32)(dur * CS_EKR + FL(0.5))) == 0))
       segp->cnt = 0;
+    if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
+        segp->acnt = 0;
     segp++;
                                 /* Release */
     segp->nxtpt = FL(0.0);
     if (UNLIKELY((segp->cnt = (int32)(release * CS_EKR + FL(0.5))) == 0))
       segp->cnt = 0;
+    if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
+        segp->acnt = 0;
     if (midip) {
       relestim = (p->cursegp + p->segsrem - 1)->cnt;
       p->xtra = relestim;
@@ -499,6 +507,7 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
       segp->acnt = (int32) (d + FL(0.5));
     } while (--nsegs);
     segp->cnt = MAXPOS;         /* set last cntr to infin */
+    segp->acnt = MAXPOS;         /* set last cntr to infin */
     return OK;
 
  experr:
@@ -552,6 +561,7 @@ int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
       segp->acnt = (int32) (d + FL(0.5));
     } while (--nsegs);
     segp->cnt = MAXPOS;         /* set last cntr to infin */
+    segp->acnt = MAXPOS;
     return OK;
 
  experr:
@@ -608,6 +618,7 @@ int xsgset2b(CSOUND *csound, EXPSEG2 *p)
 /*       else break;               /\*  .. til 0 dur or done *\/ */
     } while (--nsegs);
     segp->cnt = MAXPOS;         /* set last cntr to infin */
+     segp->acnt = MAXPOS;
     return OK;
 
  experr:
@@ -658,6 +669,7 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
 /*       else break;               /\*  .. til 0 dur or done *\/ */
     } while (--nsegs);
     segp->cnt = MAXPOS;         /* set last cntr to infin */
+    segp->acnt = MAXPOS;
     return OK;
 
  experr:
@@ -734,21 +746,40 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     segp[0].val = FL(0.001);   /* Like zero start, but exponential */
     segp[0].mlt = FL(1.0);
     segp[0].cnt = (int32) (delay*CS_EKR + FL(0.5));
+    segp[0].amlt =  FL(1.0);
+    segp[0].acnt = (int32) (delay*CS_ESR + FL(0.5));
     dur = attack*CS_EKR;
     segp[1].val = FL(0.001);
     segp[1].mlt = POWER(FL(1000.0), FL(1.0)/dur);
     segp[1].cnt = (int32) (dur + FL(0.5));
+    dur = attack*CS_ESR;
+    segp[1].amlt = POWER(FL(1000.0), FL(1.0)/dur);
+    segp[1].acnt = (int32) (dur + FL(0.5));
+
     dur = decay*CS_EKR;
     segp[2].val = FL(1.0);
     segp[2].mlt = POWER(*argp[2], FL(1.0)/dur);
     segp[2].cnt = (int32) (dur + FL(0.5));
+    dur = decay*CS_ESR;
+    segp[2].amlt = POWER(FL(1000.0), FL(1.0)/dur);
+    segp[2].acnt = (int32) (dur + FL(0.5));
+
     segp[3].val = *argp[2];
     segp[3].mlt = FL(1.0);
     segp[3].cnt = (int32) (sus*CS_EKR + FL(0.5));
+
+    segp[3].amlt = FL(1.0);
+    segp[3].acnt = (int32) (sus*CS_ESR + FL(0.5));
+    
     dur = release*CS_EKR;
     segp[4].val = *argp[2];
     segp[4].mlt = POWER(FL(0.001)/(*argp[2]), FL(1.0)/dur);
     segp[4].cnt = MAXPOS; /*(int32) (dur + FL(0.5)); */
+
+    dur = release*CS_ESR;
+    segp[4].amlt = POWER(FL(0.001)/(*argp[2]), FL(1.0)/dur);
+    segp[4].acnt = MAXPOS; /*(int32) (dur + FL(0.5)); */
+
     return OK;
 }
 
@@ -786,11 +817,11 @@ int expseg(CSOUND *csound, EXXPSEG *p)
     }
     for (n=offset; n<nsmps; n++) {
     segp = p->cursegp;
-    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
-    while (--segp->acnt < 0)
-      p->cursegp = ++segp;
-      rs[n] = segp->val;
-      segp->val *= segp->amlt;
+   if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
+    while (--segp->acnt < 0) 
+       p->cursegp = ++segp; 
+    rs[n] = segp->val; 
+       segp->val *= segp->amlt; 
     }
     return OK;
  err1:
@@ -872,12 +903,16 @@ int mxdsrset(CSOUND *csound, EXPSEG *p)
     attack -= FL(0.001);
     segp[0].nxtpt = FL(0.001);
     segp[0].cnt = (int32) (delay*CS_EKR + FL(0.5));
+    segp[0].acnt = (int32) (delay*CS_ESR + FL(0.5));
     segp[1].nxtpt = FL(1.0);
     segp[1].cnt = (int32) (attack*CS_EKR + FL(0.5));
+    segp[1].acnt = (int32) (attack*CS_ESR + FL(0.5));
     segp[2].nxtpt = *argp[2];
     segp[2].cnt = (int32) (decay*CS_EKR + FL(0.5));
+    segp[2].acnt = (int32) (decay*CS_ESR + FL(0.5));
     segp[3].nxtpt = FL(0.001);
     segp[3].cnt = (int32) (rel*CS_EKR + FL(0.5));
+    segp[3].acnt = (int32) (rel*CS_ESR + FL(0.5));
     relestim = (int)(p->cursegp + p->segsrem - 1)->cnt;
     p->xtra = (int32)(*argp[5] * CS_EKR + FL(0.5));     /* Release time?? */
     if (relestim > p->h.insdshead->xtratim)
@@ -1973,6 +2008,7 @@ int csgset(CSOUND *csound, COSSEG *p)
       csound->AuxAlloc(csound, (int32)(1+nsegs)*sizeof(SEG), &p->auxch);
       p->cursegp = 1+(segp = (SEG *) p->auxch.auxp);
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
+      segp[nsegs-1].acnt = MAXPOS;
     }
     sp = segp;
     argp = p->argums;
@@ -2407,3 +2443,5 @@ int kcssegr(CSOUND *csound, COSSEG *p)
  err1:
     return csound->InitError(csound, Str("cosseg not initialised (krate)\n"));
 }
+
+
