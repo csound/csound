@@ -96,10 +96,6 @@ static int pink_perf(CSOUND* csound, PINKER *p) /* generate samples of pink nois
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int mask;
-    union {
-      float f;
-      int32 n;
-    } xx;
     float yy;
     MYFLT *out = p->ar;
     int loffset = p->offset;
