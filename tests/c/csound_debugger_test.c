@@ -10,6 +10,7 @@
 #include "csdebug.h"
 #include "CUnit/Basic.h"
 
+extn void csoundSetBreakpoint(CSOUND *, int, int);
 
 int init_suite1(void)
 {

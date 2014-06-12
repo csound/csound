@@ -15,7 +15,7 @@ extern void csound_scoset_extra(void *, void *);
 extern void csound_scoset_lineno(int, void*);
 extern void csound_scolex_destroy(void *);
 
-static int scope(CSOUND *csound, int argc, char **argv)
+int scope(CSOUND *csound, int argc, char **argv)
 {
 #ifdef SCORE_PARSER
     {
@@ -66,7 +66,7 @@ static int scope(CSOUND *csound, int argc, char **argv)
       csound_sco_scan_buffer(corfile_body(csound->expanded_sco),
                              corfile_tell(csound->expanded_sco), pp.yyscanner);
       err = csound_scoparse(&pp, pp.yyscanner, csound, scoTree);
-      corfil_rm(&csound->expanded_sco);
+      corfile_rm(&csound->expanded_sco);
       if (LIKELY(err == 0))
         csound->Message(csound, "Parsing successful!\n");
     }
