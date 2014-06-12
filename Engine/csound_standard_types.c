@@ -77,19 +77,19 @@ void string_copy_value(void* csound, void* dest, void* src) {
     }
 }
 
-static int array_get_num_members(ARRAYDAT* aSrc) {
+static size_t array_get_num_members(ARRAYDAT* aSrc) {
     int i, retVal = 0;
     
-    if(aSrc->dimensions <= 0) {
-        return retVal;
+    if (aSrc->dimensions <= 0) {
+      return retVal;
     }
     
     retVal = aSrc->sizes[0];
     
     for (i = 1; i < aSrc->dimensions; i++) {
-        retVal *= aSrc->sizes[i];
+      retVal *= aSrc->sizes[i];
     }
-    return retVal;
+    return (size_t)retVal;
 }
 
 void array_copy_value(void* csound, void* dest, void* src) {
@@ -98,7 +98,7 @@ void array_copy_value(void* csound, void* dest, void* src) {
     CSOUND* cs = (CSOUND*)csound;
     size_t j;
     int memMyfltSize;
-    int arrayNumMembers;
+    size_t arrayNumMembers;
     
     arrayNumMembers = array_get_num_members(aSrc);
     memMyfltSize = aSrc->arrayMemberSize / sizeof(MYFLT);
