@@ -875,7 +875,7 @@ if(SCORE_PARSER)
         OUTPUTS ${YACC_SCOOUT})
 
     list(APPEND libcsound_SRCS
-        ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEXSCO_OUT})
+        ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEXSCO_OUT} Engine/scope.c)
 
     set_source_files_properties(${YACC_SCOOUT} GENERATED)
     set_source_files_properties(${LEX_SCOOUT} GENERATED)
