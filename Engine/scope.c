@@ -1,6 +1,4 @@
-#define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
-#include "std_util.h"                                   /*  SCOPE.C   */
 #include "corfile.h"
 #include "score_param.h"
 
@@ -48,8 +46,8 @@ static int scope(CSOUND *csound, int argc, char **argv)
       snprintf(buff, 1024, "#source %d\n",
                qq.lstack[0] = file_to_int(csound, csound->scorename));
       corfile_puts(buff, csound->expanded_sco);
-      //snprintf(buff, 1024, "#line %d\n", csound->scoLineOffset);
-      //corfile_puts(buff, csound->expanded_sco);
+      snprintf(buff, 1024, "#line %d\n", csound->scoLineOffset);
+      corfile_puts(buff, csound->expanded_sco);
       qq.line = 1;
       csound_prslex(csound, qq.yyscanner);
       csound->DebugMsg(csound, "yielding >>%s<<\n",
@@ -68,7 +66,7 @@ static int scope(CSOUND *csound, int argc, char **argv)
       csound_sco_scan_buffer(corfile_body(csound->expanded_sco),
                              corfile_tell(csound->expanded_sco), pp.yyscanner);
       err = csound_scoparse(&pp, pp.yyscanner, csound, scoTree);
-      corfile_rm(&csound->expanded_sco);
+      corfil_rm(&csound->expanded_sco);
       if (LIKELY(err == 0))
         csound->Message(csound, "Parsing successful!\n");
     }
@@ -76,7 +74,7 @@ static int scope(CSOUND *csound, int argc, char **argv)
     return 0;
 }
 
-
+#if 0
 /* module interface */
 
 PUBLIC int scope_init_(CSOUND *csound)
@@ -88,3 +86,5 @@ PUBLIC int scope_init_(CSOUND *csound)
     }
     return retval;
 }
+#endif
+
