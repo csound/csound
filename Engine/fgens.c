@@ -213,6 +213,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
         return -1;
       }
       *ftpp = ftp;
+      ftp->e = *evtblkp;       /* assigning evtblk */
       return 0;
     }
     /* if user flen given */
@@ -265,7 +266,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     /* VL 11.01.05 for deferred GEN01, it's called in gen01raw */
     ftresdisp(&ff, ftp);                        /* rescale and display      */
     *ftpp = ftp;
-
+    ftp->e = *evtblkp;                          /* assigning evtblk */
     return 0;
 }
 

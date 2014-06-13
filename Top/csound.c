@@ -3261,6 +3261,15 @@ static void csoundTableSetInternal(CSOUND *csound,
     csound->flist[table]->ftable[index] = value;
 }
 
+PUBLIC void* csoundTableGetEvtblk(CSOUND *csound, int table)
+{
+    /* check if table is valid */
+    if(csoundTableLength(csound, table)!=-1)
+        return &(csound->flist[table]->e);
+    else
+        return NULL;
+}
+
 PUBLIC void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
 {
     /* in realtime mode init pass is executed in a separate thread, so

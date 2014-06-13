@@ -629,6 +629,8 @@ typedef struct {
     GEN01ARGS gen01args;
     /** table data (flen + 1 MYFLT values) */
     MYFLT   *ftable;
+    /** EVTBLK **/
+    EVTBLK  e;
   } FUNC;
 
   typedef struct {
