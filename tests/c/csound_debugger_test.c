@@ -10,6 +10,8 @@
 #include "csdebug.h"
 #include "CUnit/Basic.h"
 
+/* added by JPff -- should be in .h file? */
+extern void csoundSetBreakpoint(CSOUND *, int, int);
 
 int init_suite1(void)
 {

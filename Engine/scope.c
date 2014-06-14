@@ -1,6 +1,4 @@
-#define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
-#include "std_util.h"                                   /*  HETRO.C   */
 #include "corfile.h"
 #include "score_param.h"
 
@@ -11,18 +9,18 @@ extern void csound_prsset_extra(void *, void *);
 extern void csound_prslex(CSOUND*, void*);
 extern void csound_prslex_destroy(void *);
 extern void csound_sco_scan_buffer (const char *, size_t, void*);
-extern int csound_scoparse(SCORE_PARM *, void *, CSOUND*, TREE*);
+extern int csound_scoparse(SCORE_PARM *, void *, CSOUND*, ScoreTree*);
 extern void csound_scolex_init(void *);
 extern void csound_scoset_extra(void *, void *);
 extern void csound_scoset_lineno(int, void*);
 extern void csound_scolex_destroy(void *);
 
-static int scope(CSOUND *csound, int argc, char **argv)
+int scope(CSOUND *csound)
 {
 #ifdef SCORE_PARSER
     {
       PRS_PARM  qq;
-      int len=100, p=0, n;
+      int n;
       char buff[1024];
       FILE *ff;
       /* Pre-process */
@@ -30,13 +28,6 @@ static int scope(CSOUND *csound, int argc, char **argv)
       csound->scorestr = corfile_create_w();
       csound_prslex_init(&qq.yyscanner);
       csound_prsset_extra(&qq, qq.yyscanner);
-      csound->scorename = argv[1];
-      ff = fopen(csound->scorename, "r");
-      if (ff==NULL) {
-        csound->Message(csound, "no input\n");
-        exit(1);
-      }
-      memset(buff, '\0', 1024);
       while ((n = fread(buff, 1, 1023, ff))) {
         corfile_puts(buff, csound->scorestr);
         memset(buff, '\0', 1024);
@@ -48,8 +39,8 @@ static int scope(CSOUND *csound, int argc, char **argv)
       snprintf(buff, 1024, "#source %d\n",
                qq.lstack[0] = file_to_int(csound, csound->scorename));
       corfile_puts(buff, csound->expanded_sco);
-      //snprintf(buff, 1024, "#line %d\n", csound->scoLineOffset);
-      //corfile_puts(buff, csound->expanded_sco);
+      snprintf(buff, 1024, "#line %d\n", csound->scoLineOffset);
+      corfile_puts(buff, csound->expanded_sco);
       qq.line = 1;
       csound_prslex(csound, qq.yyscanner);
       csound->DebugMsg(csound, "yielding >>%s<<\n",
@@ -76,15 +67,3 @@ static int scope(CSOUND *csound, int argc, char **argv)
     return 0;
 }
 
-
-/* module interface */
-
-PUBLIC int scope_init_(CSOUND *csound)
-{
-    int retval = csound->AddUtility(csound, "scope", scope);
-    if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "scope",
-                                             Str("Test utility for score parser"));
-    }
-    return retval;
-}

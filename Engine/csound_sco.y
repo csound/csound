@@ -54,7 +54,7 @@ static ListItem* makelist(CSOUND *csound, double car, ListItem* cdr);
   int    oper;
   double val;
   ScoreTree *t;
-  ListItem  *l
+  ListItem  *l;
 }
 
 %type <oper> opcode
