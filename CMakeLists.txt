@@ -580,6 +580,7 @@ set(libcsound_SRCS
     Engine/musmon.c
     Engine/namedins.c
     Engine/rdscor.c
+    Engine/scope.c
     Engine/scsort.c
     Engine/scxtract.c
     Engine/sort.c
@@ -880,7 +881,7 @@ if(SCORE_PARSER)
 
     ##set(NewScoParser ON)
     list(APPEND libcsound_SRCS
-        ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT} Engine/scope.c)
+        ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
 
     set_source_files_properties(${YACC_SCOOUT} GENERATED)
     set_source_files_properties(${LEX_SCOOUT} GENERATED)

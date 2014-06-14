@@ -782,6 +782,15 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
     rtncod = 0;
     salcinit(csound);           /* init the mem space for this section  */
 
+    if (csound->score_parser) {
+      extern int scope(CSOUND*);
+      printf("**********************************************************\n");
+      printf("*******************EXPERIMENTAL CODE**********************\n");
+      printf("**********************************************************\n");
+      scope(csound);
+      exit(0);
+    }
+
     while ((STA(op) = getop(csound)) != EOF) { /* read next op from scorefile */
       rtncod = 1;
       salcblk(csound);          /* build a line structure; init bp,nxp  */

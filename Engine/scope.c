@@ -15,9 +15,9 @@ extern void csound_scoset_extra(void *, void *);
 extern void csound_scoset_lineno(int, void*);
 extern void csound_scolex_destroy(void *);
 
-int scope(CSOUND *csound, int argc, char **argv)
-{
 #ifdef SCORE_PARSER
+int scope(CSOUND *csound)
+{
     {
       PRS_PARM  qq;
       int n;
@@ -28,13 +28,6 @@ int scope(CSOUND *csound, int argc, char **argv)
       csound->scorestr = corfile_create_w();
       csound_prslex_init(&qq.yyscanner);
       csound_prsset_extra(&qq, qq.yyscanner);
-      csound->scorename = argv[1];
-      ff = fopen(csound->scorename, "r");
-      if (ff==NULL) {
-        csound->Message(csound, "no input\n");
-        exit(1);
-      }
-      memset(buff, '\0', 1024);
       while ((n = fread(buff, 1, 1023, ff))) {
         corfile_puts(buff, csound->scorestr);
         memset(buff, '\0', 1024);
@@ -70,21 +63,7 @@ int scope(CSOUND *csound, int argc, char **argv)
       if (LIKELY(err == 0))
         csound->Message(csound, "Parsing successful!\n");
     }
-#endif     
     return 0;
 }
-
-#if 0
-/* module interface */
-
-PUBLIC int scope_init_(CSOUND *csound)
-{
-    int retval = csound->AddUtility(csound, "scope", scope);
-    if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "scope",
-                                             Str("Test utility for score parser"));
-    }
-    return retval;
-}
-#endif
+#endif     
 
