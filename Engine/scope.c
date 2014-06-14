@@ -15,9 +15,9 @@ extern void csound_scoset_extra(void *, void *);
 extern void csound_scoset_lineno(int, void*);
 extern void csound_scolex_destroy(void *);
 
-#ifdef SCORE_PARSER
 int scope(CSOUND *csound)
 {
+#ifdef SCORE_PARSER
     {
       PRS_PARM  qq;
       int n;
@@ -63,7 +63,7 @@ int scope(CSOUND *csound)
       if (LIKELY(err == 0))
         csound->Message(csound, "Parsing successful!\n");
     }
+#endif     
     return 0;
 }
-#endif     
 
