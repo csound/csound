@@ -590,7 +590,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       PARM->llocn = PARM->locn;
       corfile_puts(bb, csound->expanded_sco);
     }
-    if (strstr(buffer, "://")) return cf = copyurl_corefile(csound, buffer, 1);
+    if (strstr(buffer, "://")) cf = copy_url_corefile(csound, buffer, 1);
     else                       cf = copy_to_corefile(csound, buffer, "INCDIR", 1);
     if (cf == NULL)
       csound->Die(csound,
