@@ -33,7 +33,8 @@
 #include "score_param.h"
 extern void csound_scoerror(SCORE_PARM *, void *,
                             CSOUND *, ScoreTree *, const char*);
-
+extern int csound_scolex(ScoreTree**, CSOUND *, void *);
+ 
 #define LINE csound_scoget_lineno()
 #define LOCN csound_scoget_locn()
 extern int csound_orcget_locn(void *);
