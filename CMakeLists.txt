@@ -870,7 +870,7 @@ if(SCORE_PARSER)
         SOURCE ${PRELEX_SCOSRC}
         COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
         TARGET NewScoParser
-        OUTPUTS ${PRELEXSCO_OUT})
+        OUTPUTS ${PRELEX_SCOOUT})
 
     add_custom_command(
         SOURCE ${YACC_SCOSRC}
