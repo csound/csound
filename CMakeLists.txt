@@ -580,6 +580,7 @@ set(libcsound_SRCS
     Engine/musmon.c
     Engine/namedins.c
     Engine/rdscor.c
+    Engine/scope.c
     Engine/scsort.c
     Engine/scxtract.c
     Engine/sort.c
@@ -841,8 +842,10 @@ set_source_files_properties(${LEX_OUT} GENERATED)
 # Handling New Score Parser
 
 if(SCORE_PARSER)
+    message(STATUS "SCORE PARSER being built")
     add_custom_target(NewScoParser echo "Creating sco_parser.c")
-    set(NewScoParser OFF)
+    #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSCORE_PARSER")
+    list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
 
     set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
     set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
@@ -853,6 +856,10 @@ if(SCORE_PARSER)
     set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
     set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
 
+    ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c")
+    ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")
+    ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c")
+    
     add_custom_command(
         SOURCE ${LEX_SCOSRC}
         COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT}
@@ -861,23 +868,26 @@ if(SCORE_PARSER)
 
     add_custom_command(
         SOURCE ${PRELEX_SCOSRC}
-        COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
+        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t -d ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
         TARGET NewScoParser
-        OUTPUTS ${PRELEXSCO_OUT})
+        OUTPUTS ${PRELEX_SCOOUT})
 
     add_custom_command(
         SOURCE ${YACC_SCOSRC}
         COMMAND ${BISON_EXECUTABLE}
-        ARGS -pcsound_sco -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
+        ARGS -pcsound_sco -t -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
         TARGET NewScoParser
         DEPENDS ${LEX_SCOOUT}
         OUTPUTS ${YACC_SCOOUT})
 
+    ##set(NewScoParser ON)
     list(APPEND libcsound_SRCS
-        ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEXSCO_OUT})
+        ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
 
     set_source_files_properties(${YACC_SCOOUT} GENERATED)
     set_source_files_properties(${LEX_SCOOUT} GENERATED)
+    set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
+
 else()
     message(STATUS "Not building with score parser")
 endif()

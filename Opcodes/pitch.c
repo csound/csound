@@ -1690,6 +1690,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
       p->cursegp = segp = (NSEG *) p->auxch.auxp;
     }
     segp[nsegs-1].cnt = MAXPOS;       /* set endcount for safety */
+    segp[nsegs-1].acnt = MAXPOS;       /* set endcount for safety */
     argp = p->argums;
     val = **argp++;
     if (**argp <= FL(0.0)) return OK; /* if idur1 <= 0, skip init  */
@@ -1703,7 +1704,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
       MYFLT alpha = **argp++;
       MYFLT nxtval = **argp++;
       MYFLT d = dur * CS_ESR;
-      if ((segp->cnt = (int32)MYFLT2LONG(d)) < 0)
+      if ((segp->acnt = segp->cnt = (int32)MYFLT2LONG(d)) < 0)
         segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
@@ -1829,7 +1830,8 @@ int trnseg(CSOUND *csound, TRANSEG *p)
       nsmps -= early;
       memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
     }
-    val = p->curval;                      /* sav the cur value    */
+   val = p->curval;                      /* sav the cur value    */
+   for (n=offset; n<nsmps; n++) {
     if (p->segsrem) {                     /* if no more segs putk */
       if (--p->curcnt <= 0) {             /*  if done cur segment */
         segp = p->cursegp;
@@ -1839,7 +1841,7 @@ int trnseg(CSOUND *csound, TRANSEG *p)
           goto putk;                      /*      put endval      */
         }
         p->cursegp = ++segp;              /*   else find the next */
-        if (!(p->curcnt = segp->cnt)) {
+        if (!(p->curcnt = segp->acnt)) {
           val = p->curval = segp->nxtpt;  /*   nonlen = discontin */
           goto chk1;
         }                                 /*   poslen = new slope */
@@ -1849,26 +1851,22 @@ int trnseg(CSOUND *csound, TRANSEG *p)
         p->curval = val;
       }
       if (p->alpha == FL(0.0)) {
-        for (n=offset; n<nsmps; n++) {
           rs[n] = val;
           val += p->curinc;
         }
-      }
       else {
-        for (n=offset; n<nsmps; n++) {
           rs[n] = val;
           p->curx += p->alpha;
           val = segp->val + p->curinc *
             (FL(1.0) - EXP(p->curx));
-        }
-      }
-      p->curval = val;
-      return OK;
-putk:
-      for (n=offset; n<nsmps; n++) {
-        rs[n] = val;
-      }
+       }
     }
+    else{
+    putk:
+        rs[n] = val;
+    }
+   }
+    p->curval = val;
     return OK;
 }
 
@@ -1890,6 +1888,7 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
       p->cursegp = segp = (NSEG *) p->auxch.auxp;
     }
     segp[nsegs-1].cnt = MAXPOS;       /* set endcount for safety */
+    segp[nsegs-1].acnt = MAXPOS;       /* set endcount for safety */
     argp = p->argums;
     val = (double)**argp++;
     if (UNLIKELY(**argp <= FL(0.0))) return OK; /* if idur1 <= 0, skip init  */
@@ -1903,7 +1902,7 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
       MYFLT alpha = **argp++;
       MYFLT nxtval = **argp++;
       MYFLT d = dur * CS_ESR;
-      if ((segp->cnt = (int32)(d + FL(0.5))) < 0)
+      if ((segp->acnt = segp->cnt = (int32)(d + FL(0.5))) < 0)
         segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
@@ -2013,6 +2012,7 @@ int trnsegr(CSOUND *csound, TRANSEG *p)
       memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
     }
     val = p->curval;                      /* sav the cur value    */
+   for (n=offset; n<nsmps; n++) {
     if (LIKELY(p->segsrem)) {             /* if no more segs putk */
       NSEG  *segp;
       if (p->h.insdshead->relesing && p->segsrem > 1) {
@@ -2022,12 +2022,12 @@ int trnsegr(CSOUND *csound, TRANSEG *p)
         }                                 /*   get univ relestim  */
         segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
         if (segp->alpha == FL(0.0)) {
-          segp->c1 = (p->finalval-val)/segp->cnt;
+          segp->c1 = (p->finalval-val)/segp->acnt;
         }
         else {
           /* this is very wrong */
           segp->c1 = (p->finalval - val)/(FL(1.0) - EXP(p->lastalpha));
-          segp->alpha = p->lastalpha/segp->cnt;
+          segp->alpha = p->lastalpha/segp->acnt;
           segp->val = val;
         }
         goto newm;                        /*   and set new curmlt */
@@ -2042,7 +2042,7 @@ int trnsegr(CSOUND *csound, TRANSEG *p)
         }
         segp = ++p->cursegp;              /*   else find the next */
       newm:
-       if (!(p->curcnt = segp->cnt)) {
+       if (!(p->curcnt = segp->acnt)) {
           val = p->curval = segp->nxtpt;  /*   nonlen = discontin */
           goto chk1;
         }                                 /*   poslen = new slope */
@@ -2052,26 +2052,23 @@ int trnsegr(CSOUND *csound, TRANSEG *p)
         p->curval = val;
       }
       if (p->alpha == FL(0.0)) {
-        for (n=offset; n<nsmps; n++) {
           rs[n] = val;
           val += p->curinc;
-        }
       }
       else {
         segp = p->cursegp;
-        for (n=offset; n<nsmps; n++) {
           rs[n] = val;
           p->curx += p->alpha;
           val = segp->val + p->curinc * (FL(1.0) - EXP(p->curx));
-        }
-      }
-      p->curval = val;
-      return OK;
-    putk:
-      for (n=offset; n<nsmps; n++) {
-        rs[n] = val;
       }
     }
+    else {
+    putk:
+        rs[n] = val;
+    }
+   }
+   p->curval = val;
+
     return OK;
 }
 

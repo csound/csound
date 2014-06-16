@@ -1,4 +1,40 @@
-_comment(yyscan_t);
+%{
+
+ /*
+    csound_prs.l:
+
+    Copyright (C) 2013
+    John ffitch
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include "csoundCore.h"
+#include "corfile.h"
+#include "score_param.h"
+
+#define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
+static void comment(yyscan_t);
+static void do_comment(yyscan_t);
 static void do_include(CSOUND *, int, yyscan_t);
 static void do_macro_arg(CSOUND *, char *, yyscan_t);
 static void do_macro(CSOUND *, char *, yyscan_t);
@@ -12,7 +48,8 @@ static void csound_prs_line(CORFIL*, yyscan_t);
 #define PARM    yyget_extra(yyscanner)
 
 #define YY_USER_INIT {csound_prs_scan_string(csound->scorestr->body, yyscanner); \
-    csound_prsset_lineno(csound->orcLineOffset, yyscanner); yyg->yy_flex_debug_r=1;}
+    csound_prsset_lineno(csound->orcLineOffset, yyscanner); yyg->yy_flex_debug_r=1;\
+    PARM->macro_stack_size = 0; PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;}
 %}
 %option reentrant
 %option noyywrap
@@ -332,13 +369,15 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                   int n;
                   csound->DebugMsg(csound,"*********Leaving buffer %p\n", YY_CURRENT_BUFFER);
                   yypop_buffer_state(yyscanner);
-                  PARM->depth--;
+                  printf("depth = %d\n", PARM->depth);
                   if (UNLIKELY(PARM->depth > 1024))
                     csound->Die(csound, Str("unexpected EOF"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
-                  csound->DebugMsg(csound,"%s(%d): loc=%d; lastloc=%d\n", __FILE__, __LINE__,
-                         PARM->llocn, PARM->locn);
+                  csound->DebugMsg(csound,"%s(%d): loc=%d; lastloc=%d\n",
+                                   __FILE__, __LINE__,
+                                   PARM->llocn, PARM->locn);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
+                  PARM->depth--;
                   /* csound->DebugMsg(csound,"End of input; popping to %p\n", */
                   /*         YY_CURRENT_BUFFER); */
                   csound_prs_line(csound->expanded_sco, yyscanner);
@@ -554,7 +593,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       PARM->llocn = PARM->locn;
       corfile_puts(bb, csound->expanded_sco);
     }
-    if (strstr(buffer, "://")) return cf = copyurl_corefile(csound, buffer, 1);
+    if (strstr(buffer, "://")) cf = copy_url_corefile(csound, buffer, 1);
     else                       cf = copy_to_corefile(csound, buffer, "INCDIR", 1);
     if (cf == NULL)
       csound->Die(csound,
