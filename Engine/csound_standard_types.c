@@ -77,33 +77,54 @@ void string_copy_value(void* csound, void* dest, void* src) {
     }
 }
 
+static size_t array_get_num_members(ARRAYDAT* aSrc) {
+    int i, retVal = 0;
+    
+    if (aSrc->dimensions <= 0) {
+      return retVal;
+    }
+    
+    retVal = aSrc->sizes[0];
+    
+    for (i = 1; i < aSrc->dimensions; i++) {
+      retVal *= aSrc->sizes[i];
+    }
+    return (size_t)retVal;
+}
 
 void array_copy_value(void* csound, void* dest, void* src) {
     ARRAYDAT* aDest = (ARRAYDAT*)dest;
     ARRAYDAT* aSrc = (ARRAYDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
-    size_t size, j;
-    int i;
+    size_t j;
     int memMyfltSize;
+    size_t arrayNumMembers;
     
-    // TODO - this is heavy handed to reallocate memory every time,
-    // should rewrite like string_copy_value to just copy values if
-    // there is enough memory
+    arrayNumMembers = array_get_num_members(aSrc);
+    memMyfltSize = aSrc->arrayMemberSize / sizeof(MYFLT);
 
-    aDest->arrayMemberSize = aSrc->arrayMemberSize;
-    memMyfltSize = aDest->arrayMemberSize / sizeof(MYFLT);
-    aDest->dimensions = aSrc->dimensions;
-    aDest->sizes = cs->Malloc(cs, sizeof(int) * aSrc->dimensions);
-    memcpy(aDest->sizes, aSrc->sizes, sizeof(int) * aSrc->dimensions);
-    aDest->arrayType = aSrc->arrayType;
-
-    size = aDest->sizes[0];
-    for (i = 1; i < aDest->dimensions; i++) {
-      size *= aDest->sizes[i];
+    if(aDest->data == NULL ||
+       aSrc->arrayMemberSize != aDest->arrayMemberSize ||
+       aSrc->dimensions != aDest->dimensions ||
+       aSrc->arrayType != aDest->arrayType ||
+       arrayNumMembers != array_get_num_members(aDest)) {
+        
+        aDest->arrayMemberSize = aSrc->arrayMemberSize;
+        aDest->dimensions = aSrc->dimensions;
+        if(aDest->sizes != NULL) {
+            cs->Free(cs, aDest->sizes);
+        }
+        aDest->sizes = cs->Malloc(cs, sizeof(int) * aSrc->dimensions);
+        memcpy(aDest->sizes, aSrc->sizes, sizeof(int) * aSrc->dimensions);
+        aDest->arrayType = aSrc->arrayType;
+        
+        if(aDest->data != NULL) {
+            cs->Free(cs, aDest->data);
+        }
+        aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * arrayNumMembers);
     }
-
-    aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * size);
-    for (j = 0; j < size; j++) {
+    
+    for (j = 0; j < arrayNumMembers; j++) {
         int index = j * memMyfltSize;
         aDest->arrayType->copyValue(csound,
                                     aDest->data + index, aSrc->data + index);
