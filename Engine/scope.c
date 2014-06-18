@@ -25,25 +25,21 @@ int scope(CSOUND *csound)
       FILE *ff;
       /* Pre-process */
       memset(&qq, '\0', sizeof(PRS_PARM));
-      csound->scorestr = corfile_create_w();
       csound_prslex_init(&qq.yyscanner);
       csound_prsset_extra(&qq, qq.yyscanner);
-      while ((n = fread(buff, 1, 1023, ff))) {
-        corfile_puts(buff, csound->scorestr);
-        memset(buff, '\0', 1024);
-      }
-      corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
-      corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
-
+      printf("depth = %d\n", qq.depth);
+      
       csound->expanded_sco = corfile_create_w();
-      snprintf(buff, 1024, "#source %d\n",
-               qq.lstack[0] = file_to_int(csound, csound->scorename));
-      corfile_puts(buff, csound->expanded_sco);
+      /* snprintf(buff, 1024, "#source %d\n", */
+      /*          qq.lstack[0] = file_to_int(csound, csound->scorename)); */
+      /* corfile_puts(buff, csound->expanded_sco); */
       snprintf(buff, 1024, "#line %d\n", csound->scoLineOffset);
       corfile_puts(buff, csound->expanded_sco);
       qq.line = 1;
       csound_prslex(csound, qq.yyscanner);
       csound->DebugMsg(csound, "yielding >>%s<<\n",
+                       corfile_body(csound->expanded_sco));
+      printf("yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
       csound_prslex_destroy(qq.yyscanner);
       corfile_rm(&csound->scorestr);
@@ -51,6 +47,7 @@ int scope(CSOUND *csound)
     {
       ScoreTree* scoTree = (ScoreTree *)csound->Calloc(csound, sizeof(ScoreTree));
       SCORE_PARM  pp;
+      extern int csound_scodebug;
       int err;
       /* Parse */
       memset(&pp, '\0', sizeof(SCORE_PARM));
@@ -58,6 +55,7 @@ int scope(CSOUND *csound)
       csound_scoset_extra(&pp, pp.yyscanner);
       csound_sco_scan_buffer(corfile_body(csound->expanded_sco),
                              corfile_tell(csound->expanded_sco), pp.yyscanner);
+      csound_scodebug = 1;      
       err = csound_scoparse(&pp, pp.yyscanner, csound, scoTree);
       corfile_rm(&csound->expanded_sco);
       if (LIKELY(err == 0))

@@ -362,8 +362,14 @@ static int createScore(CSOUND *csound, FILE *unf)
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = buffer;
       while (*p == ' ' || *p == '\t') p++;
-      if (strstr(p, "</CsScore>") == p)
+      if (strstr(p, "</CsScore>") == p) {
+#ifdef SCORE_PARSER
+        corfile_puts("\n#exit\n", csound->scorestr);
+        corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
+        corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
+#endif
         return TRUE;
+      }
       else
         corfile_puts(buffer, csound->scorestr);
     }
