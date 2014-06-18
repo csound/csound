@@ -868,14 +868,14 @@ if(SCORE_PARSER)
 
     add_custom_command(
         SOURCE ${PRELEX_SCOSRC}
-        COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
+        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t -d ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
         TARGET NewScoParser
-        OUTPUTS ${PRELEXSCO_OUT})
+        OUTPUTS ${PRELEX_SCOOUT})
 
     add_custom_command(
         SOURCE ${YACC_SCOSRC}
         COMMAND ${BISON_EXECUTABLE}
-        ARGS -pcsound_sco -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
+        ARGS -pcsound_sco -t -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
         TARGET NewScoParser
         DEPENDS ${LEX_SCOOUT}
         OUTPUTS ${YACC_SCOOUT})
