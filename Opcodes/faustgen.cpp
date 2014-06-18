@@ -178,6 +178,7 @@ struct faustcompile {
   STRINGDAT *args;
   MYFLT     *stacksize;
   llvm_dsp_factory *factory;
+  pthread_mutex_t *lock;
 };
 
 char **parse_cmd(char *str, int *argc){
@@ -243,7 +244,7 @@ void *init_faustcompile_thread(void *pp) {
   std::string err_msg;
   char *cmd = (char *) malloc(p->args->size + 8);
   int ret;
-
+ 
   strcpy(cmd, p->args->data);
 #ifdef USE_DOUBLE
   strcat(cmd, " -double");
@@ -251,10 +252,16 @@ void *init_faustcompile_thread(void *pp) {
   const char **argv = (const char **) parse_cmd(cmd, &argc);
   const char* varname = "::factory";
 
+  //Need to protect this 
 
+  csound->LockMutex(p->lock);
+  //csound->Message(csound, "lock %p\n", p->lock);
   factory = createDSPFactoryFromString("faustop",
                                        (const char *) p->code->data,argc, argv,
                              "", err_msg, 3);
+  //csound->Message(csound, "unlock %p\n", p->lock);
+  csound->UnlockMutex(p->lock);
+
   if(factory == NULL) {
     csound->Message(csound,
                     Str("\nFaust compilation problem:\nline %s\n"),
@@ -293,6 +300,7 @@ void *init_faustcompile_thread(void *pp) {
   free(argv);
   free(cmd);
   free(pp);
+
   return NULL;
 }
 
@@ -304,6 +312,15 @@ int init_faustcompile(CSOUND *csound, faustcompile *p){
   data->csound = csound;
   data->p = p;
   *p->hptr = -1;
+
+  p->lock = (pthread_mutex_t *) csound->QueryGlobalVariable(csound,"::faustlock::");
+  if(p->lock == NULL) {
+    csound->CreateGlobalVariable(csound,"::faustlock::", sizeof(pthread_mutex_t));
+    p->lock = (pthread_mutex_t *) csound->QueryGlobalVariable(csound,"::faustlock::");
+    pthread_mutex_init(p->lock, NULL);
+    //csound->Message(csound, "lock created %p\n", p->lock);
+  }
+
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, *p->stacksize*MBYTE);
   pthread_create(&thread, &attr,init_faustcompile_thread, data);
