@@ -397,7 +397,7 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
                             "Check above messages for Faust compiler errors\n"));
 
   fobjp = (faustobj **) csound->QueryGlobalVariable(csound,"::factory");
-  if(fobj == NULL)
+  if(fobjp == NULL)
     return csound->InitError(csound,
                              Str("no factory available\n"));
   fobj = *fobjp;
@@ -426,15 +426,24 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
   }
   else {
     fdsp = *pfdsp;
+    if(fdsp != NULL){
     while(fdsp->nxt){
       fdsp = fdsp->nxt;
     }
-
     fdsp->nxt = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
     fdsp->nxt->cnt = fdsp->cnt+1;
     fdsp = fdsp->nxt;
     fdsp->obj = dsp;
     fdsp->ctls = ctls;
+    }
+    else {
+    fdsp = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
+    fdsp->obj = dsp;
+    fdsp->ctls = ctls;
+    fdsp->nxt = NULL;
+    fdsp->cnt = 0;
+    *pfdsp = fdsp;
+    } 
   }
 
   p->factory = NULL;  // this opcode does not own the factory
