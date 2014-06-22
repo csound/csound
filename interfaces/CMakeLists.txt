@@ -16,7 +16,7 @@ if(BUILD_CXX_INTERFACE)
         csPerfThread.cpp
         cs_glue.cpp
         filebuilding.cpp)
-    set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY})
+      set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} ${PTHREAD_LIBRARY})
     set(libcsnd6_CFLAGS "")
     list(APPEND libcsnd6_LIBS ${CSOUNDLIB})
 
