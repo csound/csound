@@ -24,6 +24,7 @@
 #ifndef CSOUND_CSPERFTHREAD_HPP
 #define CSOUND_CSPERFTHREAD_HPP
 
+#include <pthread.h>
 
 class CsoundPerformanceThreadMessage;
 class CsPerfThread_PerformScore;
