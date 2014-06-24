@@ -14,7 +14,7 @@ extern void csound_scolex_init(void *);
 extern void csound_scoset_extra(void *, void *);
 extern void csound_scoset_lineno(int, void*);
 extern void csound_scolex_destroy(void *);
-
+extern uint8_t file_to_int(CSOUND*, const char*);
 int scope(CSOUND *csound)
 {
 #ifdef SCORE_PARSER
@@ -30,9 +30,11 @@ int scope(CSOUND *csound)
       printf("depth = %d\n", qq.depth);
       
       csound->expanded_sco = corfile_create_w();
-      /* snprintf(buff, 1024, "#source %d\n", */
-      /*          qq.lstack[0] = file_to_int(csound, csound->scorename)); */
-      /* corfile_puts(buff, csound->expanded_sco); */
+      snprintf(buff, 1024, "#source %d\n",
+               qq.lstack[0] = file_to_int(csound,
+                                          csound->scorename?
+                                          csound->scorename:"**unknown**"));
+      corfile_puts(buff, csound->expanded_sco);
       snprintf(buff, 1024, "#line %d\n", csound->scoLineOffset);
       corfile_puts(buff, csound->expanded_sco);
       qq.line = 1;

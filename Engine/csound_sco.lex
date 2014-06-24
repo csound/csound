@@ -85,7 +85,7 @@ CPPX            "PP^"${INTGR}
  }
 "\n"            { csound_scoset_lineno(1+csound_scoget_lineno(yyscanner),
                                        yyscanner);
-                  return '\n'; }
+                  return NEWLINE; }
 ${NPX}          { return T_NP; }
 ${PPX}          { return T_PP; }
 ${CNPX}         { return T_CNP; }
