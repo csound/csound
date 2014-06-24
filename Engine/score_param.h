@@ -7,10 +7,12 @@ typedef struct ListItem {
   struct ListItem *args;
 } ListItem;
 
-typedef struct ScoreTree{
-  int       op;
-  ListItem *args;
+typedef struct ScoreTree {
+  int              op;
+  ListItem         *args;
   struct ScoreTree *next;
+  int              line;
+  int              locn;
 } ScoreTree;
 
 #define MARGS   (3)
