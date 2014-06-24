@@ -867,9 +867,9 @@ void csound_prs_line(CORFIL* cf, void *yyscanner)
       int locn = PARM->locn;
       int llocn = PARM->llocn;
       if (locn != llocn) {
-      char bb[80];
-      sprintf(bb, "#source %d\n", locn);
-      corfile_puts(bb, cf);
+        char bb[80];
+        sprintf(bb, "#source %d\n", locn);
+        corfile_puts(bb, cf);
       }
       PARM->llocn = locn;
       if (n!=PARM->line+1) {
