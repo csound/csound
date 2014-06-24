@@ -265,7 +265,19 @@ public class CsoundAppActivity extends Activity implements
 		}
 	}
 
-	/** Called when the activity is first created. */
+	/** Called when the activity is first created. 
+	 *  TO DO:
+	 *  Enable <CsXmlLayout> element in CSD file to carry layout template,
+	 *  dynamically create widgets and wire them up to channels. If there 
+	 *  is no such element or it fails to parse, the current behavior will
+	 *  obtain. The layout and wiring will happen every the Csound orchestra
+	 *  is compiled.
+	 *  
+	 *  If you have all your Views in a LinearLayout or an other container 
+	 *  that extends ViewGroup you can use the functions getChildCount() 
+	 *  and getChildAt(int) and iterate through all of the contained views.
+	 *  
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
