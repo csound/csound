@@ -13,6 +13,7 @@ cp -f ../pluginlibs/signalflowgraph/libs/armeabi/*.so libs/armeabi/
 cp -f ../pluginlibs/LuaCsound/libs/armeabi/*.so libs/armeabi/
 cp -f ../pluginlibs/libscansyn/libs/armeabi/*.so libs/armeabi/
 cp -f ../pluginlibs/libOSC/libs/armeabi/*.so libs/armeabi/
+cp -f ../pluginlibs/doppler/libs/armeabi/*.so libs/armeabi/
 
 cp -f ../pluginlibs/libfluidsynth/libs/armeabi-v7a/libfluidOpcodes.so libs/armeabi-v7a/
 cp -f ../pluginlibs/libstdutil/libs/armeabi-v7a/libstdutil.so libs/armeabi-v7a/
@@ -20,6 +21,7 @@ cp -f ../pluginlibs/signalflowgraph/libs/armeabi-v7a/libsignalflowgraph.so libs/
 cp -f ../pluginlibs/LuaCsound/libs/armeabi-v7a/libLuaCsound.so libs/armeabi-v7a/
 cp -f ../pluginlibs/libscansyn/libs/armeabi-v7a/*.so libs/armeabi-v7a/
 cp -f ../pluginlibs/libOSC/libs/armeabi-v7a/*.so libs/armeabi-v7a/
+cp -f ../pluginlibs/doppler/libs/armeabi-v7a/*.so libs/armeabi-v7a/
 
 rm -f libs/armeabi/libsndfile.so
 rm -f libs/armeabi-v7a/libsndfile.so
