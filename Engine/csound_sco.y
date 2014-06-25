@@ -88,9 +88,6 @@
 %token T_HIGHEST
 %pure_parser
 %error-verbose
- //%parse-param { CSOUND * csound }
-
-/* NOTE: Perhaps should use %union feature of bison */
 
 %token T_NP
 %token T_PP
@@ -101,7 +98,7 @@
 %parse-param { CSOUND * csound }
 %parse-param { ScoreTree * scoTree }
 %%
-scofile           : scolines { *scoTree = *$1;}
+scofile           : scolines { printf("result %p\n", $1); *scoTree = *$1;}
                   ;
 
 scoline           : statement 
@@ -118,11 +115,7 @@ scolines          : scoline scolines
                         {
                             $$ = makesco1(csound, $1, $2);
                         }
-                  | scoline scolines NEWLINE
-                        {
-                            $$ = makesco1(csound, $1, $2);
-                        }
-                  |  {  }
+                  |  { $$ = NULL; }
                   ;
 
 statement         : opcode arglist NEWLINE
