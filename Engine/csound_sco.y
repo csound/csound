@@ -31,16 +31,18 @@
 #include <stdio.h>
 #include <math.h>
 #include "score_param.h"
-extern void csound_scoerror(SCORE_PARM *, void *,
+    extern void csound_scoerror(SCORE_PARM *, void *,
                             CSOUND *, ScoreTree *, const char*);
-
-#define LINE csound_scoget_lineno()
-#define LOCN csound_scoget_locn()
-extern int csound_orcget_locn(void *);
-extern int csound_orcget_lineno(void *);
-static ScoreTree* makesco(CSOUND *csound, int op, ListItem* car, ScoreTree* cdr);
-static ScoreTree* makesco1(CSOUND *csound, ScoreTree* car, ScoreTree* cdr);
-static ListItem* makelist(CSOUND *csound, double car, ListItem* cdr);
+    extern int csound_scolex(ScoreTree**, CSOUND *, void *);
+ 
+#define LINE csound_scoget_lineno(scanner)
+#define LOCN csound_scoget_locn(scanner)
+    extern int csound_scoget_locn(void *);
+    extern int csound_scoget_lineno(void *);
+    static ScoreTree* makesco(CSOUND *csound, int op, ListItem* car,
+                              ScoreTree* cdr, int, int);
+    static ScoreTree* makesco1(CSOUND *csound, ScoreTree* car, ScoreTree* cdr);
+    static ListItem* makelist(CSOUND *csound, double car, ListItem* cdr);
 
 %}
 
@@ -54,7 +56,7 @@ static ListItem* makelist(CSOUND *csound, double car, ListItem* cdr);
   int    oper;
   double val;
   ScoreTree *t;
-  ListItem  *l
+  ListItem  *l;
 }
 
 %type <oper> opcode
@@ -86,9 +88,6 @@ static ListItem* makelist(CSOUND *csound, double car, ListItem* cdr);
 %token T_HIGHEST
 %pure_parser
 %error-verbose
- //%parse-param { CSOUND * csound }
-
-/* NOTE: Perhaps should use %union feature of bison */
 
 %token T_NP
 %token T_PP
@@ -99,14 +98,14 @@ static ListItem* makelist(CSOUND *csound, double car, ListItem* cdr);
 %parse-param { CSOUND * csound }
 %parse-param { ScoreTree * scoTree }
 %%
-scofile           : scolines { *scoTree = *$1;}
+scofile           : scolines { printf("result %p\n", $1); *scoTree = *$1;}
                   ;
 
 scoline           : statement 
                         {
                             $$ = $1;
                         }
-                  | '{' scolines '}'
+                  | '{' scolines '}' NEWLINE
                   {
                       $$ = $2;
                   }
@@ -116,13 +115,13 @@ scolines          : scoline scolines
                         {
                             $$ = makesco1(csound, $1, $2);
                         }
-                  |  {  }
+                  |  { $$ = NULL; }
                   ;
 
 statement         : opcode arglist NEWLINE
                   {
                       printf("op=%c\n", $1);
-                      $$ = makesco(csound, $1, $2, NULL);
+                      $$ = makesco(csound, $1, NULL, NULL, LINE,LOCN);
                   }
                   ;
 
@@ -229,10 +228,30 @@ lyyerror(YYLTYPE t, char *s, ...)
 
 #endif
 
+extern void do_baktrace(CSOUND *csound, uint64_t files);
+extern char *csound_scoget_text ( void *scanner );
+extern char *csound_scoget_current_pointer(void *yyscanner);
+
 void
-csound_scoerror(SCORE_PARM *parm, void *yyg, CSOUND *cs, ScoreTree *t, const char* s)
+csound_scoerror(SCORE_PARM *parm, void *yyscanner, CSOUND *cs, ScoreTree *t,
+                const char* str)
 {
-    fprintf(stderr, s);
+    char ch;
+    char *p = csound_scoget_current_pointer(yyscanner)-1;
+    int line = csound_scoget_lineno(yyscanner);
+    uint64_t files = csound_scoget_locn(yyscanner);
+    if (*p=='\0') line--;
+    cs->Message(cs, Str("\nerror: %s  (token \"%s\")"),
+                    str, csound_scoget_text(yyscanner));
+    do_baktrace(cs, files);
+    cs->Message(cs, Str(" line %d:\n>>>"), line);
+    while ((ch=*--p) != '\n' && ch != '\0');
+    do {
+      ch = *++p;
+      if (ch == '\n') break;
+      cs->Message(cs, "%c", ch);
+    } while (ch != '\n' && ch != '\0');
+    cs->Message(cs, " <<<\n");
 }
 
 int csound_scowrap()
@@ -243,12 +262,15 @@ int csound_scowrap()
     return (1);
 }
 
-static ScoreTree* makesco(CSOUND *csound, int op, ListItem* car, ScoreTree* cdr)
+static ScoreTree* makesco(CSOUND *csound, int op, ListItem* car, ScoreTree* cdr,
+                          int line, int locn)
 {
     ScoreTree* a = (ScoreTree*)csound->Malloc(csound, sizeof(ScoreTree));
     a->op = op;
     a->args = car;
     a->next = cdr;
+    a->line = line;
+    a->locn  = locn;
     return a;
 }
 
