@@ -27,6 +27,7 @@
 ./Engine/pools.c
 ./Engine/rdscor.c
 ./Engine/scope.c
+./Engine/score_param.h
 ./Engine/scsort.c
 ./Engine/scxtract.c
 ./Engine/sort.c

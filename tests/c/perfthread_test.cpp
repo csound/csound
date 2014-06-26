@@ -13,6 +13,10 @@ int clean_suite1(void)
     return 0;
 }
 
+#if defined(__WINNT__)
+    #include <Windows.h>
+#endif
+
 void test_perfthread(void)
 {
     const char  *instrument =
@@ -62,7 +66,11 @@ void test_record(void)
     csound.Start();
     performanceThread1.Play();
     performanceThread1.Record("testrec.wav");
+#if !defined(__WINNT__)
     sleep(1);
+#else
+    Sleep(1000);
+#endif
     performanceThread1.StopRecord();
     performanceThread1.Join();
     csound.Cleanup();
