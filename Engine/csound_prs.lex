@@ -48,7 +48,7 @@ static void csound_prs_line(CORFIL*, yyscan_t);
 #define PARM    yyget_extra(yyscanner)
 
 #define YY_USER_INIT {csound_prs_scan_string(csound->scorestr->body, yyscanner); \
-    csound_prsset_lineno(csound->orcLineOffset, yyscanner); yyg->yy_flex_debug_r=1;\
+    csound_prsset_lineno(csound->scoLineOffset, yyscanner); yyg->yy_flex_debug_r=1;\
     PARM->macro_stack_size = 0; PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;}
 %}
 %option reentrant
@@ -89,16 +89,23 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 {CONT}          { csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
                                        yyscanner);
                 }
-{NEWLINE}       { csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
-                                       yyscanner);
-                  corfile_putc('\n', csound->expanded_sco); 
-                  csound_prs_line(csound->expanded_sco, yyscanner);
+{NEWLINE}       {
+                 { int n = csound_prsget_lineno(yyscanner)+1;
+                   csound_prsset_lineno(n, yyscanner);
+                   csound_prs_line(csound->expanded_sco, yyscanner);
+                   if (csound->expanded_sco->body[csound->expanded_sco->p-1]!='\n')
+                     corfile_putc('\n', csound->expanded_sco); 
+                 }
                 }
 "//"            {
                   if (PARM->isString != 1) {
+                    int n = csound_prsget_lineno(yyscanner)+1;
+                    int ch;
                     comment(yyscanner);
-                    corfile_putc('\n', csound->expanded_sco); 
+                    csound_prsset_lineno(n, yyscanner);
                     csound_prs_line(csound->expanded_sco, yyscanner);
+                    if (csound->expanded_sco->body[csound->expanded_sco->p-1]!='\n')
+                      corfile_putc('\n', csound->expanded_sco); 
                   }
                   else {
                     corfile_puts(yytext, csound->expanded_sco);
@@ -107,13 +114,15 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 ";"             {
                   if (PARM->isString != 1) {
                     comment(yyscanner); 
-                    corfile_putc('\n', csound->expanded_sco); 
+                    csound_prsset_lineno(csound_prsget_lineno(yyscanner)+1,
+                                         yyscanner);
                     csound_prs_line(csound->expanded_sco, yyscanner);
+                    if (csound->expanded_sco->body[csound->expanded_sco->p-1]!='\n')
+                      corfile_putc('\n', csound->expanded_sco);
                   }
                   else {
                     corfile_puts(yytext, csound->expanded_sco);
                   }
-                  //corfile_putline(csound_prsget_lineno(yyscanner), csound->expanded_sco);
                 }
 {STCOM}         {
                   if (PARM->isString != 1)
@@ -361,7 +370,9 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                   do_include(csound, yytext[0], yyscanner);
                   BEGIN(INITIAL);
                 }
-#exit           { corfile_putc('\0', csound->expanded_sco);
+#exit           {
+                  corfile_puts("#exit\n", csound->expanded_sco);
+                  corfile_putc('\0', csound->expanded_sco);
                   corfile_putc('\0', csound->expanded_sco);
                   return 0;}
 <<EOF>>         {
@@ -384,7 +395,8 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   csound_prsset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  csound->DebugMsg(csound,"%s(%d): line now %d at %d\n", __FILE__, __LINE__,
+                  csound->DebugMsg(csound,"%s(%d): line now %d at %d\n",
+                                   __FILE__, __LINE__,
                          csound_prsget_lineno(yyscanner), PARM->macro_stack_ptr);
                   /* csound->DebugMsg(csound,"n=%d\n", n); */
                   if (n!=0) {
@@ -450,10 +462,11 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 
 {IFDEF}         {
                   if (PARM->isString != 1) {
+                    int n = csound_prsget_lineno(yyscanner)+1;
                     PARM->isIfndef = (yytext[3] == 'n');  /* #ifdef or #ifndef */
-                    csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
-                                         yyscanner);
-                    corfile_putc('\n', csound->expanded_sco);
+                    if (csound->expanded_sco->body[csound->expanded_sco->p-1]!='\n')
+                      corfile_putc('\n', csound->expanded_sco);
+                    csound_prsset_lineno(n, yyscanner);
                     csound_prs_line(csound->expanded_sco, yyscanner);
                     BEGIN(ifdef);
                   }
@@ -477,9 +490,12 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                       csound->LongJmp(csound, 1);
                     }
                     PARM->ifdefStack->isElse = 1;
-                    csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
-                                         yyscanner);
-                    corfile_putc('\n', csound->expanded_sco);
+                    {
+                      int n = csound_prsget_lineno(yyscanner)+1;
+                      if (csound->expanded_sco->body[csound->expanded_sco->p-1]!='\n')
+                        corfile_putc('\n', csound->expanded_sco);
+                      csound_prsset_lineno(n, yyscanner);
+                    }
                     csound_prs_line(csound->expanded_sco, yyscanner);
                     do_ifdef_skip_code(csound, yyscanner);
                   }
@@ -495,9 +511,12 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                       csound->LongJmp(csound, 1);
                     }
                     PARM->ifdefStack = pp->prv;
-                    csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
-                                         yyscanner);
-                    corfile_putc('\n', csound->expanded_sco);
+                    {
+                      int n = csound_prsget_lineno(yyscanner)+1;
+                      if (csound->expanded_sco->body[csound->expanded_sco->p-1]!='\n')
+                        corfile_putc('\n', csound->expanded_sco);
+                      csound_prsset_lineno(n, yyscanner);
+                    }
                     csound_prs_line(csound->expanded_sco, yyscanner);
                     mfree(csound, pp);
                   }
@@ -874,6 +893,7 @@ void csound_prs_line(CORFIL* cf, void *yyscanner)
       PARM->llocn = locn;
       if (n!=PARM->line+1) {
         char bb[80];
+        printf("old line %d, new %d\n", PARM->line+1, n); 
         sprintf(bb, "#line %d\n", n);
         corfile_puts(bb, cf);
       }
