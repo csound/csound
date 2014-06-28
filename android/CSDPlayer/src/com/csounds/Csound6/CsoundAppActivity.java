@@ -3,12 +3,21 @@ package com.csounds.Csound6;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -19,6 +28,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -30,12 +40,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
@@ -48,6 +60,7 @@ import com.csounds.CsoundObjCompletionListener;
 import csnd6.Csound;
 import csnd6.CsoundCallbackWrapper;
 
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 @SuppressWarnings("unused")
 public class CsoundAppActivity extends Activity implements
 		CsoundObjCompletionListener, CsoundObj.MessagePoster {
@@ -61,6 +74,8 @@ public class CsoundAppActivity extends Activity implements
 	CsoundObj csound = null;
 	File csd = null;
 	Button pad = null;
+	WebView webLayout = null;
+	LinearLayout channelsLayout = null;
 	ArrayList<SeekBar> sliders = new ArrayList<SeekBar>();
 	ArrayList<Button> buttons = new ArrayList<Button>();
 	ArrayList<String> str = new ArrayList<String>();
@@ -76,6 +91,8 @@ public class CsoundAppActivity extends Activity implements
 	private ScrollView messageScrollView = null;
 	String errorMessage = null;
 	String csdTemplate = null;
+	String html5Page = null;
+	URL baseUrl = null;
 	PackageInfo packageInfo = null;
 	// Csound environment variables managed on Android.
 	static String OPCODE6DIR = null;
@@ -86,20 +103,20 @@ public class CsoundAppActivity extends Activity implements
 	WebView webview = null;
 
 	static {
-		
+
 		int result = 0;
 		try {
 			java.lang.System.loadLibrary("gnustl_shared");
-		} catch (Throwable e){
+		} catch (Throwable e) {
 			java.lang.System.err
-			.println("Csound6: gnustl_shared native code library failed to load.\n");
+					.println("Csound6: gnustl_shared native code library failed to load.\n");
 			java.lang.System.err.println(e.toString());
 		}
 		try {
 			java.lang.System.loadLibrary("sndfile");
 		} catch (Throwable e) {
 			java.lang.System.err
-			.println("Csound6: sndfile native code library failed to load.\n");
+					.println("Csound6: sndfile native code library failed to load.\n");
 			java.lang.System.err.println(e.toString());
 		}
 		try {
@@ -109,16 +126,16 @@ public class CsoundAppActivity extends Activity implements
 					.println("Csound6: csoundandroid native code library failed to load.\n"
 							+ e);
 			java.lang.System.err.println(e.toString());
-			//java.lang.System.exit(1);
+			// java.lang.System.exit(1);
 		}
 		try {
-			result = csnd6.csnd.csoundInitialize(csnd6.csnd.CSOUNDINIT_NO_ATEXIT);
+			result = csnd6.csnd
+					.csoundInitialize(csnd6.csnd.CSOUNDINIT_NO_ATEXIT);
 		} catch (Throwable e) {
-			java.lang.System.err
-					.println("Csound6: csoundInitialize failed.\n"
-							+ e);
+			java.lang.System.err.println("Csound6: csoundInitialize failed.\n"
+					+ e);
 			java.lang.System.err.println(e.toString());
-			//java.lang.System.exit(1);
+			// java.lang.System.exit(1);
 		}
 	}
 
@@ -171,9 +188,9 @@ public class CsoundAppActivity extends Activity implements
 			goToUrl("http://www.csounds.com/");
 			return true;
 		case R.id.itemSettings:
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);			
-            return true;
+			Intent intent = new Intent(this, SettingsActivity.class);
+			startActivity(intent);
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -213,7 +230,6 @@ public class CsoundAppActivity extends Activity implements
 		startActivity(launchBrowser);
 	}
 
-	
 	private void displayLog() {
 		try {
 			Process process = Runtime.getRuntime().exec(
@@ -237,10 +253,79 @@ public class CsoundAppActivity extends Activity implements
 		super.setTitle(fullTitle);
 	}
 
+	private String getTestHtml() {
+		try {
+			InputStream is = getAssets().open("test_html");
+			int size;
+			size = is.available();
+			byte[] buffer = new byte[size];
+			is.read(buffer);
+			is.close();
+			return new String(buffer);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * Opens the CSD and searches for a <CsHtml5> element. If found, hide the
+	 * channelsLayout, show the webLayout, and set the contents of the CsHtml5
+	 * element as the content of the Web view.
+	 */
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+	protected void parseWebLayout() {
+		try {
+			FileReader in = new FileReader(csd);
+			StringBuilder contents = new StringBuilder();
+			char[] buffer = new char[4096];
+			int read = 0;
+			do {
+				contents.append(buffer, 0, read);
+				read = in.read(buffer);
+			} while (read >= 0);
+			String csdText = contents.toString();
+			int start = csdText.indexOf("<CsHtml5>") + 9;
+			int end = csdText.indexOf("</CsHtml5>");
+			if (!(start == -1 || end == -1)) {
+				String page = csdText.substring(start, end);
+				if (page.length() > 1) {
+					webLayout.setVisibility(View.VISIBLE);
+					channelsLayout.setVisibility(View.GONE);
+					WebSettings settings = webLayout.getSettings();
+					// Page itself must specify utf-8 in meta tag?
+					settings.setDefaultTextEncodingName("utf-8");
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+						settings.setAllowUniversalAccessFromFileURLs(true);
+						settings.setAllowFileAccessFromFileURLs(true);
+					}
+					settings.setJavaScriptEnabled(true);
+					File basePath = csd.getParentFile();
+					baseUrl = basePath.toURI().toURL();
+					html5Page = getTestHtml();
+					webLayout.loadDataWithBaseURL(baseUrl.toString(), html5Page,
+							"text/html", "utf-8", null);
+				}
+			} else {
+				webLayout.onPause();
+				webLayout.pauseTimers();
+				webLayout.setVisibility(View.GONE);
+				channelsLayout.setVisibility(View.VISIBLE);
+			}
+			View mainLayout = findViewById(R.id.mainLayout);
+			mainLayout.invalidate();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private void OnFileChosen(File file) {
 		Log.d("FILE CHOSEN", file.getAbsolutePath());
 		csd = file;
 		setTitle(csd.getName());
+		parseWebLayout();
 	}
 
 	@Override
@@ -265,18 +350,35 @@ public class CsoundAppActivity extends Activity implements
 		}
 	}
 
-	/** Called when the activity is first created. 
-	 *  TO DO:
-	 *  Enable <CsXmlLayout> element in CSD file to carry layout template,
-	 *  dynamically create widgets and wire them up to channels. If there 
-	 *  is no such element or it fails to parse, the current behavior will
-	 *  obtain. The layout and wiring will happen every the Csound orchestra
-	 *  is compiled.
-	 *  
-	 *  If you have all your Views in a LinearLayout or an other container 
-	 *  that extends ViewGroup you can use the functions getChildCount() 
-	 *  and getChildAt(int) and iterate through all of the contained views.
-	 *  
+	/**
+	 * Called when the activity is first created.
+	 * 
+	 * TO DO:
+	 * 
+	 * Enable a <CsHtml5> element in the CSD file to carry an HTML 5 Web page
+	 * and associated JavaScript. When the csd is loaded, if the CsHtml5 element
+	 * is found, its content will be loaded into a WebView that will replace the
+	 * widget layouts in the main view of the Csound6 app.
+	 * 
+	 * The "main menu" buttons (New, Open, Edit, Run/Stop) will remain, as will
+	 * the scrolling Csound message display.
+	 * 
+	 * The JavaScript context of this WebView will contain references to the
+	 * live CsoundObj object. This will enable the JavaScript on
+	 * the page to control Csound, including sending and receiving control
+	 * channel values.
+	 * 
+	 * Because the JavaScript runs in a separate thread, and because the Java
+	 * objects accessed by JavaScript must have the @JavascriptInterface
+	 * annotation, I will have to see how much adapter code will need to be
+	 * written to enable this. Probably need to use this or else restrict to
+	 * targetSdkVersion 16 (maximum to run without these annotations). But I
+	 * seem to have 19 the least feasible SDK version.
+	 * 
+	 * if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1){
+	 * JavascriptInterface js = new JavascriptInterface(){ ... }; }
+	 * 
+	 * I note that SWIG 3 now targets v8.
 	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -291,7 +393,8 @@ public class CsoundAppActivity extends Activity implements
 		}
 		PreferenceManager.setDefaultValues(this, R.xml.settings, false);
 		OPCODE6DIR = getBaseContext().getApplicationInfo().nativeLibraryDir;
-		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		SharedPreferences sharedPreferences = PreferenceManager
+				.getDefaultSharedPreferences(this);
 		OPCODE6DIR = sharedPreferences.getString("OPCODE6DIR", OPCODE6DIR);
 		SSDIR = packageInfo.applicationInfo.dataDir + "/samples";
 		SSDIR = sharedPreferences.getString("SSDIR", SSDIR);
@@ -370,6 +473,10 @@ public class CsoundAppActivity extends Activity implements
 		});
 		messageTextView = (TextView) findViewById(R.id.messageTextView);
 		messageScrollView = (ScrollView) findViewById(R.id.messageScrollView);
+		channelsLayout = (LinearLayout) findViewById(R.id.channelsLayout);
+		// channelsLayout.setVisibility(View.GONE);
+		webLayout = (WebView) findViewById(R.id.webLayout);
+		webLayout.setVisibility(View.GONE);
 		sliders.add((SeekBar) findViewById(R.id.seekBar1));
 		sliders.add((SeekBar) findViewById(R.id.seekBar2));
 		sliders.add((SeekBar) findViewById(R.id.seekBar3));
@@ -413,6 +520,13 @@ public class CsoundAppActivity extends Activity implements
 					csnd6.csndJNI.csoundSetGlobalEnv("SADIR", SADIR);
 					csnd6.csndJNI.csoundSetGlobalEnv("INCDIR", INCDIR);
 					csound = new CsoundObj();
+					// Push this into the JavaScript context.
+					webLayout.addJavascriptInterface(csound, "csound");
+					// It will not be in scope until the page is reloaded.
+					if (html5Page != null){
+						webLayout.loadDataWithBaseURL(baseUrl.toString(), html5Page,
+								"text/html", "utf-8", null);
+					}
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
 					postMessageClear("Csound is starting...\n");
