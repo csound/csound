@@ -30,6 +30,7 @@ int scope(CSOUND *csound)
       printf("depth = %d\n", qq.depth);
       
       csound->expanded_sco = corfile_create_w();
+      printf("Input:\n%s<<<n", corfile_body(csound->sreadStatics.str->cf));
       snprintf(buff, 1024, "#source %d\n",
                qq.lstack[0] = file_to_int(csound,
                                           csound->scorename?
@@ -62,6 +63,14 @@ int scope(CSOUND *csound)
       corfile_rm(&csound->expanded_sco);
       if (LIKELY(err == 0))
         csound->Message(csound, "Parsing successful!\n");
+      {
+        ScoreTree* s = scoTree;
+        while (s) {
+          printf("(%d,%s): opode = %c\n",
+                 s->line, csound->filedir[s->locn&0xff], s->op);
+          s = s->next;
+        }
+      }
     }
 #endif     
     return 0;

@@ -60,13 +60,14 @@ static SCOTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
 
 STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
-INTGR           [0-9]+
-NUMBER          [0-9]+\.?[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
+INTGR           -?[0-9]+
+NUMBER          -?[0-9]+\.?[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
 WHITE           [ \t]+
 OPTWHITE        [ \t]*
 CONT            \\[ \t]*(;.*)?\n
-LINE            ^[ \t]*"#line"
-FILE            ^[ \t]*"#source"
+LINE            "#line"
+FILE            "#source"
+EXIT            "#exit"
 FNAME           [a-zA-Z0-9/:.+-_]+
 NPX             "np^"${INTGR}
 PPX             "pp^"${INTGR}
@@ -83,8 +84,8 @@ CPPX            "PP^"${INTGR}
 {CONT}          { csound_scoset_lineno(1+csound_scoget_lineno(yyscanner),
                                        yyscanner);
  }
-"\n"            { csound_scoset_lineno(1+csound_scoget_lineno(yyscanner),
-                                       yyscanner);
+"\n"            { int n = csound_scoget_lineno(yyscanner)+1;
+                  csound_scoset_lineno(n, yyscanner);
                   return NEWLINE; }
 ${NPX}          { return T_NP; }
 ${PPX}          { return T_PP; }
@@ -151,7 +152,8 @@ ${CPPX}         { return T_CPP; }
 {LINE}          { BEGIN(line); }
 
 <line>[ \t]*     /* eat the whitespace */
-<line>{INTGR}   { csound_scoset_lineno(atoi(yytext), yyscanner); }
+<line>{INTGR}   { csound_scoset_lineno(atoi(yytext), yyscanner);
+  printf("set line to %d (%s)\n", csound_scoget_lineno(yyscanner), yytext); }
 <line>"\n"      {BEGIN(INITIAL);}
 
 {FILE}          { BEGIN(src); }
@@ -160,6 +162,8 @@ ${CPPX}         { return T_CPP; }
 <src>{FNAME}    { PARM->locn = atoi(yytext); }
 <src>"\n"       { BEGIN(INITIAL); }
 
+
+{EXIT}          { yyterminate(); }
 
 <<EOF>>         {
                   yyterminate();
