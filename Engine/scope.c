@@ -27,10 +27,10 @@ int scope(CSOUND *csound)
       memset(&qq, '\0', sizeof(PRS_PARM));
       csound_prslex_init(&qq.yyscanner);
       csound_prsset_extra(&qq, qq.yyscanner);
-      printf("depth = %d\n", qq.depth);
+      //printf("depth = %d\n", qq.depth);
       
       csound->expanded_sco = corfile_create_w();
-      printf("Input:\n%s<<<n", corfile_body(csound->sreadStatics.str->cf));
+      //printf("Input:\n%s<<<n", corfile_body(csound->sreadStatics.str->cf));
       snprintf(buff, 1024, "#source %d\n",
                qq.lstack[0] = file_to_int(csound,
                                           csound->scorename?
@@ -41,8 +41,6 @@ int scope(CSOUND *csound)
       qq.line = 1;
       csound_prslex(csound, qq.yyscanner);
       csound->DebugMsg(csound, "yielding >>%s<<\n",
-                       corfile_body(csound->expanded_sco));
-      printf("yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
       csound_prslex_destroy(qq.yyscanner);
       corfile_rm(&csound->scorestr);
@@ -58,7 +56,7 @@ int scope(CSOUND *csound)
       csound_scoset_extra(&pp, pp.yyscanner);
       csound_sco_scan_buffer(corfile_body(csound->expanded_sco),
                              corfile_tell(csound->expanded_sco), pp.yyscanner);
-      csound_scodebug = 1;      
+      csound_scodebug = 0;      
       err = csound_scoparse(&pp, pp.yyscanner, csound, scoTree);
       corfile_rm(&csound->expanded_sco);
       if (LIKELY(err == 0))
