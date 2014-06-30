@@ -86,12 +86,17 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 
 %%
 
-{CONT}          { csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
-                                       yyscanner);
+{CONT}          {  int n = csound_prsget_lineno(yyscanner)+1;
+                   csound_prsset_lineno(n, yyscanner);
+                   //printf("cont case: %d\n", n);
+                   csound_prs_line(csound->expanded_sco, yyscanner);
+                   if (csound->expanded_sco->body[csound->expanded_sco->p-1]!='\n')
+                     corfile_putc('\n', csound->expanded_sco);
                 }
 {NEWLINE}       {
-                 { int n = csound_prsget_lineno(yyscanner)+1;
+                {  int n = csound_prsget_lineno(yyscanner)+1;
                    csound_prsset_lineno(n, yyscanner);
+                   //printf("newline: %d\n", n);
                    csound_prs_line(csound->expanded_sco, yyscanner);
                    if (csound->expanded_sco->body[csound->expanded_sco->p-1]!='\n')
                      corfile_putc('\n', csound->expanded_sco); 
@@ -100,8 +105,8 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 "//"            {
                   if (PARM->isString != 1) {
                     int n = csound_prsget_lineno(yyscanner)+1;
-                    int ch;
                     comment(yyscanner);
+                    //printf("comment++: %d\n", n);
                     csound_prsset_lineno(n, yyscanner);
                     csound_prs_line(csound->expanded_sco, yyscanner);
                     if (csound->expanded_sco->body[csound->expanded_sco->p-1]!='\n')
@@ -116,6 +121,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                     comment(yyscanner); 
                     csound_prsset_lineno(csound_prsget_lineno(yyscanner)+1,
                                          yyscanner);
+                    //printf("comment: %d\n", csound_prsget_lineno(yyscanner));
                     csound_prs_line(csound->expanded_sco, yyscanner);
                     if (csound->expanded_sco->body[csound->expanded_sco->p-1]!='\n')
                       corfile_putc('\n', csound->expanded_sco);
@@ -380,7 +386,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                   int n;
                   csound->DebugMsg(csound,"*********Leaving buffer %p\n", YY_CURRENT_BUFFER);
                   yypop_buffer_state(yyscanner);
-                  printf("depth = %d\n", PARM->depth);
+                  //printf("depth = %d\n", PARM->depth);
                   if (UNLIKELY(PARM->depth > 1024))
                     csound->Die(csound, Str("unexpected EOF"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
@@ -545,7 +551,6 @@ void comment(yyscan_t yyscanner)              /* Skip until nextline */
         YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
           YY_BUFFER_EOF_PENDING;
     }
-    csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),yyscanner);
 }
 
 void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
@@ -893,7 +898,7 @@ void csound_prs_line(CORFIL* cf, void *yyscanner)
       PARM->llocn = locn;
       if (n!=PARM->line+1) {
         char bb[80];
-        printf("old line %d, new %d\n", PARM->line+1, n); 
+        //printf("old line %d, new %d\n", PARM->line+1, n); 
         sprintf(bb, "#line %d\n", n);
         corfile_puts(bb, cf);
       }
