@@ -49,7 +49,7 @@
         android:id="@+id/channelsLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" >
-
+        
         <SeekBar
             android:id="@+id/seekBar1"
             style="@style/csoundSeekBar"
@@ -129,6 +129,7 @@
             <Button
                 android:id="@+id/button1"
                 style="@style/csoundButtonStyle"
+                android:textAppearance="?android:attr/textAppearanceSmall"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -137,6 +138,7 @@
             <Button
                 android:id="@+id/button2"
                 style="@style/csoundButtonStyle"
+                android:textAppearance="?android:attr/textAppearanceSmall" 
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -144,6 +146,7 @@
 
             <Button
                 android:id="@+id/button3"
+                android:textAppearance="?android:attr/textAppearanceSmall" 
                 style="@style/csoundButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
@@ -152,6 +155,7 @@
 
             <Button
                 android:id="@+id/button4"
+                android:textAppearance="?android:attr/textAppearanceSmall" 
                 style="@style/csoundButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
@@ -161,6 +165,7 @@
             <Button
                 android:id="@+id/button5"
                 style="@style/csoundButtonStyle"
+                android:textAppearance="?android:attr/textAppearanceSmall" 
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -179,14 +184,14 @@
     <WebView
         android:id="@+id/webLayout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:layout_height="wrap_content"/>
 
     <ScrollView
         android:id="@+id/messageScrollView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" >
+        android:layout_weight="1"
+        android:layout_height="0dp">
 
         <TextView
             android:id="@+id/messageTextView"

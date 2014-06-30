@@ -213,6 +213,11 @@ public class CsoundObj {
 	}
 
 	@JavascriptInterface
+	public void readScore(String score) {
+		readScore(score);
+	}
+
+	@JavascriptInterface
 	public void addCompletionListener(CsoundObjCompletionListener listener) {
 		completionListeners.add(listener);
 	}
