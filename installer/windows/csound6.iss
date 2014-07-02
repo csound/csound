@@ -27,7 +27,7 @@
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
-#define MyMinGwBinDir "D:\Qt5.3.0\Tools\mingw482_32\bin\"
+#define MyMinGwBinDir "D:\Qt5.3.0\5.3\mingw482_32\bin\"
 ; If you are not Michael Gogins, change this to your MSys /bin/ directory.
 #define MyMSysBinDir "D:\msys\bin\"
 ; If you are not Michael Gogins, change this to your MSys /usr/local/ directory.
@@ -147,9 +147,9 @@ Source: "*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 Source: "{#MyMinGwBinDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 ; No idea why this other name is needed.
 Source: "{#MyMSysBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv.dll"; Components: core;
-Source: "{#MyMSysBinDir}icuin52.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyMSysBinDir}icuuc52.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyMSysBinDir}icudt52.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyMinGwBinDir}icuin52.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyMinGwBinDir}icuuc52.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyMinGwBinDir}icudt52.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyMSysUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;

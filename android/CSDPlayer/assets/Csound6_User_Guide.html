@@ -5,7 +5,7 @@
 	<TITLE></TITLE>
 	<META NAME="GENERATOR" CONTENT="LibreOffice 4.0.1.2 (Windows)">
 	<META NAME="CREATED" CONTENT="20130611;20113632">
-	<META NAME="CHANGED" CONTENT="20140630;14162275">
+	<META NAME="CHANGED" CONTENT="20140702;9392027">
 	<STYLE TYPE="text/css">
 	<!--
 		@page { size: 8.5in 11in; margin: 0.79in }
@@ -32,8 +32,8 @@ User Guide<BR>Csound 6.03.3 for Android
 </H1>
 <P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>Michael
 Gogins</B></I></P>
-<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>30
-June 2014</B></I></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>2
+July 2014</B></I></P>
 <P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><BR>
 </P>
 <H1 CLASS="western" STYLE="margin-top: 0.08in; margin-bottom: 0in">Introduction</H1>
@@ -52,8 +52,8 @@ developed. It has many advanced features for sound synthesis
 including user-designable instruments, an easy to learn programming
 language with a type system, several phase vocoders, several sample
 players, a plethora of digital oscillators, filters, and envelope
-generators, transparent multi-threading for high performance, and an
-embedded Lua just-in-time compiler.</P>
+generators, transparent multi-threading for high performance on
+multi-core systems, and an embedded Lua just-in-time compiler.</P>
 <P STYLE="margin-top: 0.08in; margin-bottom: 0in">The Csound app is
 by Victor Lazzarini, Steven Yi, Michael Gogins, and others. The app
 contains virtually all of Csound, including some of the more
@@ -78,6 +78,8 @@ frequently used plugin opcodes:</P>
 	<LI><P STYLE="margin-top: 0.08in; margin-bottom: 0in">The Open Sound
 	Control (OSC) opcodes which allow Csound to communicate over
 	networks with other software in a low-latency and flexible manner.</P>
+	<LI><P STYLE="margin-top: 0.08in; margin-bottom: 0in">The Doppler
+	opcode.</P>
 </UL>
 <H1 CLASS="western" STYLE="margin-top: 0.08in; margin-bottom: 0in">User
 Interface</H1>
@@ -113,7 +115,7 @@ runs.The menu buttons perform the following functions:
 	filesystem.</P>
 </UL>
 <P STYLE="margin-top: 0.08in; margin-bottom: 0in">There are actually
-two types of widget areas: one with pre-defined widgets, and one with
+two types of widget area: one with pre-defined widgets, and one with
 user-defined widgets. 
 </P>
 <H2 CLASS="western">Predefined Widgets</H2>
@@ -143,26 +145,26 @@ widgets are defined in a new <FONT FACE="Courier New, monospace">&lt;CsHtml5&gt;
 element of the CSD file. This can in principle contain any valid
 HTML5 code, including document elements, JavaScript, and styles.
 JavaScript event handlers can be attached to any elements, including
-range inputs (sliders). Such event handlers can call  Java methods of
+range inputs (sliders). Such event handlers can call Java methods of
 the <FONT FACE="Courier New, monospace">CsoundAppActivity</FONT>
 application object (<FONT FACE="Courier New, monospace">csoundApp</FONT>)
-and the <FONT FACE="Courier New, monospace">Csound</FONT><FONT FACE="Courier New, monospace">Obj</FONT>
-object (<FONT FACE="Courier New, monospace">csound</FONT>), for
-example to get or set control channel values, or to send new score
-events to Csound.</P>
+and the <FONT FACE="Courier New, monospace">CsoundObj</FONT> object
+(<FONT FACE="Courier New, monospace">csound</FONT>), for example to
+get or set control channel values, or to send new score events to
+Csound.</P>
 <P STYLE="margin-top: 0.08in; margin-bottom: 0in">The ability to send
 score events to Csound from JavaScript means that JavaScript can be
 used as a high-level programming language in the CSD file for the
-purposes of algorithmic composition, even interactive composition.</P>
-<P STYLE="margin-top: 0.08in; margin-bottom: 0in">All methods
-callable from <FONT FACE="Courier New, monospace">CsoundAppActivity</FONT>
-and <FONT FACE="Courier New, monospace">Csound</FONT><FONT FACE="Courier New, monospace">Obj</FONT>are
-marked with the <FONT FACE="Courier New, monospace">@JavascriptInterface</FONT>
+purposes of algorithmic composition, even interactive composition.
+All methods callable from <FONT FACE="Courier New, monospace">CsoundAppActivity</FONT>
+and <FONT FACE="Courier New, monospace">CsoundObj</FONT>are marked
+with the <FONT FACE="Courier New, monospace">@JavascriptInterface</FONT>
 attribute in the Csound for Android source code. For a basic example
 of a user-defined widget setup, see the <FONT FACE="Courier New, monospace">Drone-HTML5.csd</FONT>
 example file. Here is a snippet showing a slider's <FONT FACE="Courier New, monospace">onInput</FONT>
-event handler setting a Csound control channel:</P>
-<PRE CLASS="western" STYLE="page-break-inside: avoid; page-break-before: auto"><BR>&lt;script&gt;
+event handler setting a Csound control channel:<BR><BR>
+</P>
+<PRE CLASS="western" STYLE="page-break-inside: avoid; page-break-before: auto; page-break-after: auto">&lt;script&gt;
 function gk_Reverb_FeedbackUpdate(value) {
 var numberValue = parseFloat(value)
 csoundApp.setControlChannel('gk_Reverb_Feedback', numberValue);
