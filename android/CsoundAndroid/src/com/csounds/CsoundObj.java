@@ -35,6 +35,7 @@ import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.util.Log;
+import android.webkit.JavascriptInterface;
 import android.widget.Button;
 import android.widget.SeekBar;
 
@@ -88,22 +89,27 @@ public class CsoundObj {
 		}
 	}
 
+	@JavascriptInterface
 	public boolean isAudioInEnabled() {
 		return audioInEnabled;
 	}
 
+	@JavascriptInterface
 	public void setAudioInEnabled(boolean audioInEnabled) {
 		this.audioInEnabled = audioInEnabled;
 	}
 
+	@JavascriptInterface
 	public boolean isMessageLoggingEnabled() {
 		return messageLoggingEnabled;
 	}
 
+	@JavascriptInterface
 	public void setMessageLoggingEnabled(boolean messageLoggingEnabled) {
 		this.messageLoggingEnabled = messageLoggingEnabled;
 	}
 
+	@JavascriptInterface
 	public CsoundValueCacheable addSlider(SeekBar seekBar, String channelName,
 			double min, double max) {
 		CachedSlider cachedSlider = new CachedSlider(seekBar, channelName, min,
@@ -112,6 +118,7 @@ public class CsoundObj {
 		return cachedSlider;
 	}
 
+	@JavascriptInterface
 	public CsoundValueCacheable addButton(Button button, String channelName,
 			int type) {
 		CachedButton cachedButton = new CachedButton(button, channelName, type);
@@ -119,24 +126,29 @@ public class CsoundObj {
 		return cachedButton;
 	}
 
+	@JavascriptInterface
 	public CsoundValueCacheable addButton(Button button, String channelName) {
 		CachedButton cachedButton = new CachedButton(button, channelName);
 		addValueCacheable(cachedButton);
 		return cachedButton;
 	}
 
+	@JavascriptInterface
 	public Csound getCsound() {
 		return csound;
 	}
 
+	@JavascriptInterface
 	public boolean isMuted() {
 		return muted;
 	}
 
+	@JavascriptInterface
 	public void setMuted(boolean muted) {
 		this.muted = muted;
 	}
 
+	@JavascriptInterface
 	public void addValueCacheable(CsoundValueCacheable valueCacheable) {
 		if (!stopped)
 			valueCacheable.setup(this);
@@ -145,22 +157,26 @@ public class CsoundObj {
 		}
 	}
 
+	@JavascriptInterface
 	public synchronized void inputMessage(String mess) {
 		String message = new String(mess);
 		scoreMessages.add(message);
 	}
 
+	@JavascriptInterface
 	public synchronized void removeValueCacheable(
 			CsoundValueCacheable valueCacheable) {
 		valuesCache.remove(valueCacheable);
 	}
 
+	@JavascriptInterface
 	public CsoundValueCacheable enableAccelerometer(Context context) {
 		CachedAccelerometer accelerometer = new CachedAccelerometer(context);
 		addValueCacheable(accelerometer);
 		return accelerometer;
 	}
 
+	@JavascriptInterface
 	public CsoundMYFLTArray getInputChannelPtr(String channelName, 
 			controlChannelType channelType) {
 		
@@ -176,6 +192,7 @@ public class CsoundObj {
 		return ptr;
 	}
 
+	@JavascriptInterface
 	public CsoundMYFLTArray getOutputChannelPtr(String channelName, 
 			controlChannelType channelType) {
 		int channelSize = (channelType == controlChannelType.CSOUND_AUDIO_CHANNEL) ?
@@ -190,14 +207,22 @@ public class CsoundObj {
 		return ptr;
 	}
 	
+	@JavascriptInterface
 	public void sendScore(String score) {
 		inputMessage(score);
 	}
 
+	@JavascriptInterface
+	public void readScore(String score) {
+		readScore(score);
+	}
+
+	@JavascriptInterface
 	public void addCompletionListener(CsoundObjCompletionListener listener) {
 		completionListeners.add(listener);
 	}
 
+	@JavascriptInterface
 	public void startCsound(final File csdFile) {
 		stopped = false;
 		thread = new Thread() {
@@ -212,18 +237,22 @@ public class CsoundObj {
 		thread.start();
 	}
 
+	@JavascriptInterface
 	public void togglePause() {
 		pause = !pause;
 	}
 
+	@JavascriptInterface
 	public void pause() {
 		pause = true;
 	}
 
+	@JavascriptInterface
 	public void play() {
 		pause = false;
 	}
 
+	@JavascriptInterface
 	public synchronized void stopCsound() {
 		stopped = true;
 		if(thread != null) {
@@ -237,14 +266,17 @@ public class CsoundObj {
 		}
 	}
 
+	@JavascriptInterface
 	public int getNumChannels() {
 		return csound.GetNchnls();
 	}
 
+	@JavascriptInterface
 	public int getKsmps() {
 		return csound.GetKsmps();
 	}
 
+	@JavascriptInterface
 	public int getError() {
 		return retVal;
 	}
