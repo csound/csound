@@ -1661,6 +1661,12 @@ extern "C" {
     PUBLIC MYFLT csoundTableGet(CSOUND *, int table, int index);
 
     /**
+     * Returns the EVTBLK structure that was used to first create
+     * the table. Returns NULL is table is not valid
+     */
+    PUBLIC void* csoundTableGetEvtblk(CSOUND *csound, int table);
+
+    /**
      * Sets the value of a slot in a function table.
      * The table number and index are assumed to be valid.
      */
