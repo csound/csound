@@ -308,7 +308,7 @@ QNAN		"qnan"[ \t]*\(
                    MACRO     *mm = PARM->macros;
                    char      *mname;
                    int c, i, j;
-                   /* csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext); */
+                   csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext);
                    yytext[yyleng-1] = '\0';
                    while (mm != NULL) {  /* Find the definition */
                      csound->DebugMsg(csound,"Check %s against %s\n", yytext+1, mm->name);
@@ -352,7 +352,7 @@ QNAN		"qnan"[ \t]*\(
                      nn->next = PARM->macros;
                      PARM->macros = nn;
                    }
-                   /* csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body); */
+                   csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
                    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
                      PARM->alt_stack =
                        (MACRON*)
@@ -841,11 +841,11 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       csound->Message(csound, Str("macro error\n"));
     }
     free(mname);
-    while (c!='#') c = input(yyscanner);
+    while (c!='#') c = input(yyscanner); /* skip to start of body */
     mm->acnt = arg;
     i = 0;
     mm->body = (char*) mmalloc(csound, 100);
-    while ((c = input(yyscanner)) != '#') {
+    while ((c = input(yyscanner)) != '#') { /* read body */
       if (UNLIKELY(c == EOF))
         csound->Die(csound, Str("define macro with args: unexpected EOF"));
       mm->body[i++] = c;
@@ -856,7 +856,7 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         if (UNLIKELY(i >= size))
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
-      if (UNLIKELY(c == '\n')) {
+      if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
         corfile_putc('\n', csound->expanded_orc);
         csound_pre_line(csound->expanded_orc, yyscanner);
@@ -891,7 +891,7 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
         if (UNLIKELY(i >= size))
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
-      if (UNLIKELY(c == '\n')) {
+      if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
         corfile_putc('\n', csound->expanded_orc);
         csound_pre_line(csound->expanded_orc, yyscanner);
@@ -931,7 +931,7 @@ void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
         mfree(csound, nn->arg[i]);
       mm->next = nn->next; mfree(csound, nn);
     }
-    while ((c=input(yyscanner)) != '\n' && c != EOF); /* ignore rest of line */
+    while ((c=input(yyscanner)) != '\n' && c != EOF && c != '\r'); /* ignore rest of line */
     csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
 }
 
@@ -954,7 +954,7 @@ void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
     if (pp->isSkip)
       do_ifdef_skip_code(csound, yyscanner);
     else
-      while ((c = input(yyscanner)) != '\n' && c != EOF);
+      while ((c = input(yyscanner)) != '\n' && c != '\r' && c != EOF);
 }
 
 void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
@@ -966,7 +966,7 @@ void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
     pp = PARM->ifdefStack;
     c = input(yyscanner);
     for (;;) {
-      while (c!='\n') {
+      while (c!='\n' && c!= '\r') {
         if (UNLIKELY(c == EOF)) {
           csound->Message(csound, Str("Unmatched #if%sdef\n"),
                           PARM->isIfndef ? "n" : "");
@@ -1004,7 +1004,7 @@ void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
       }
     }
     free(buf);
-    while (c != '\n' && c != EOF) c = input(yyscanner);
+    while (c != '\n' && c != EOF && c != '\r') c = input(yyscanner);
 }
 
 static void add_math_const_macro(CSOUND *csound, PRE_PARM* qq,
