@@ -266,7 +266,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     ftresdisp(&ff, ftp);                        /* rescale and display      */
     *ftpp = ftp;
     /* keep original arguments, from GEN number  */
-    ftp->argcnt = ff.e.pcnt - 4;
+    ftp->argcnt = ff.e.pcnt - 3;
     memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*ftp->argcnt);
     return 0;
 }
