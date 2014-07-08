@@ -254,8 +254,8 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
-                     csound->DebugMsg(csound, "alt_stack now %d long\n",
-                                      PARM->macro_stack_size);
+                     /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
+                     /*                  PARM->macro_stack_size); */
                    }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
@@ -263,13 +263,13 @@ QNAN		"qnan"[ \t]*\(
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    csound->DebugMsg(csound,"Push %p macro stack; new body #%s#\n",
                                     PARM->macros, mm->body);
-                   csound->DebugMsg(csound,"Push buffer %p -> ", YY_CURRENT_BUFFER);
+                   /* csound->DebugMsg(csound,"Push buffer %p -> ", YY_CURRENT_BUFFER); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
                    PARM->lstack[++PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
-                   csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER);
+                   /* csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER); */
                   }
 {MACRONAMED}    {
                    MACRO     *mm = PARM->macros;
@@ -290,8 +290,8 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
-                     csound->DebugMsg(csound, "alt_stack now %d long\n",
-                                      PARM->macro_stack_size);
+                     /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
+                     /*                  PARM->macro_stack_size); */
                    }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
@@ -302,7 +302,7 @@ QNAN		"qnan"[ \t]*\(
                    PARM->lstack[++PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
-                   csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER);
+                   /* csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER); */
                  }
 {MACRONAMEA}    {
                    MACRO     *mm = PARM->macros;
@@ -358,9 +358,9 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
-                     csound->DebugMsg(csound,
-                                      "macro_stack extends alt_stack to %d long\n",
-                                      PARM->macro_stack_size);
+                     /* csound->DebugMsg(csound, */
+                     /*                  "macro_stack extends alt_stack to %d long\n", */
+                     /*                  PARM->macro_stack_size); */
                    }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = PARM->macros->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
@@ -431,8 +431,8 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
-                     csound->DebugMsg(csound, "alt_stack now %d long\n",
-                                      PARM->macro_stack_size);
+                     /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
+                     /*                  PARM->macro_stack_size); */
                    }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = PARM->macros->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
@@ -485,8 +485,8 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
-                     csound->DebugMsg(csound, "alt_stack now %d long\n",
-                                      PARM->macro_stack_size);
+                     /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
+                     /*                  PARM->macro_stack_size); */
                   }
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
@@ -517,8 +517,9 @@ QNAN		"qnan"[ \t]*\(
                     }
                     y->next = x;
                   }
-                  csound->DebugMsg(csound,"End of input segment: macro pop %p -> %p\n",
-                             y, PARM->macros);
+                  csound->DebugMsg(csound,
+                                   "End of input segment: macro pop %p -> %p\n",
+                                   y, PARM->macros);
                   csound_pre_line(csound->orchstr, yyscanner);
                 }
 {DEFINE}        {
@@ -785,8 +786,8 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
                                   sizeof(MACRON)*(PARM->macro_stack_size+=10));
-      csound->DebugMsg(csound, "alt_stack now %d long, \n",
-                       PARM->macro_stack_size);
+      /* csound->DebugMsg(csound, "alt_stack now %d long, \n", */
+      /*                  PARM->macro_stack_size); */
     }
     csound->DebugMsg(csound,"%s(%d): stacking line %d at %d\n", __FILE__, __LINE__,
            csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
