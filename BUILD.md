@@ -249,7 +249,7 @@ there.
 
 -   `cd build `
 
--   `cmake -DCMAKE_INSTALL_PREFIX=HOME ..`
+-   `cmake -DCMAKE_INSTALL_PREFIX=$HOME ..`
 
 -   `make install `
 
@@ -257,8 +257,8 @@ there.
 
 This builds a basic system. If you add dependencies to your HOME directories,
 then you can run make again to build them. The csound command-line frontend will
-be installed in HOME/bin, the libraries in HOME/lib and the include files in
-HOME/include. The plugin dir is in \$HOME/lib/csound/plugins64-6.0.
+be installed in $HOME/bin, the libraries in $HOME/lib and the include files in
+$HOME/include. The plugin dir is in $HOME/lib/csound/plugins64-6.0.
 
 ### Dependencies List
 
