@@ -192,9 +192,9 @@ terminal. $ $
 
 -   `mkdir src`
 
--   `export LD_LIBRARY_PATH=HOME/lib:LD_LIBRARY_PATH `
+-   `export LD_LIBRARY_PATH=$HOME/lib:LD_LIBRARY_PATH `
 
-(this last command can be added to your HOME/.profile file for convenience)
+(this last command can be added to your $HOME/.profile file for convenience)
 
 ### 2) get and install libsndfile 
 
@@ -212,7 +212,7 @@ doing it.
 
 -   `cd libsndfile-1.0.25 `
 
--   `./configure --prefix=4HOME`
+-   `./configure --prefix=$HOME`
 
 -   `make install `
 

@@ -1695,7 +1695,7 @@ extern "C" {
      * and returns the number of arguments used.
      * If the table does not exist, *argsPtr is set to NULL and
      * -1 is returned.
-     * NB: the argument list starts with the GEN number and is followed
+     * NB: the argument list starts with the GEN number and is followed by
      * its parameters. eg. f 1 0 1024 10 1 0.5  yields the list {10.0,1.0,0.5}
      */
     PUBLIC int csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum);
