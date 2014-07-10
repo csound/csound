@@ -1734,6 +1734,18 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         while (c != '\n' && c != EOF)
           c = getscochar(csound, 1); /* ignore rest of line */
       }
+#ifdef SCORE_PARSER
+      else if (c=='e') {
+        if (UNLIKELY(!check_preproc_name(csound, "exit"))) {
+          csound->Message(csound, "Not #exit");
+          flushlin(csound);
+          free(mname);
+          goto srch;
+        }
+        while (c != '\n' && c != EOF)
+          c = getscochar(csound, 1); /* ignore rest of line */
+      }
+#endif
       else {
         sreaderr(csound, Str("unknown # option"));
         flushlin(csound);
