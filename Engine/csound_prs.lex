@@ -237,10 +237,12 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                    MACRO     *mm = PARM->macros;
                    char      *mname;
                    int c, i, j;
-                   /* csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext); */
+                   /* csound->DebugMsg(csound,"Macro with arguments call %s\n",
+                      yytext); */
                    yytext[yyleng-1] = '\0';
                    while (mm != NULL) {  /* Find the definition */
-                     csound->DebugMsg(csound,"Check %s against %s\n", yytext+1, mm->name);
+                     csound->DebugMsg(csound,"Check %s against %s\n",
+                                      yytext+1, mm->name);
                      if (!(strcmp(yytext+1, mm->name)))
                        break;
                      mm = mm->next;
@@ -305,10 +307,12 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                    MACRO     *mm = PARM->macros;
                    char      *mname;
                    int c, i, j;
-                   /* csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext); */
+                   /* csound->DebugMsg(csound,"Macro with arguments call %s\n",
+                      yytext); */
                    yytext[yyleng-2] = '\0';
                    while (mm != NULL) {  /* Find the definition */
-                     csound->DebugMsg(csound,"Check %s against %s\n", yytext+1, mm->name);
+                     csound->DebugMsg(csound,"Check %s against %s\n",
+                                      yytext+1, mm->name);
                      if (!(strcmp(yytext+1, mm->name)))
                        break;
                      mm = mm->next;
@@ -427,8 +431,9 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                     }
                     y->next = x;
                   }
-                  /* csound->DebugMsg(csound,"End of input segment: macro pop %p -> %p\n", */
-                  /*            y, PARM->macros); */
+                  /* csound->DebugMsg(csound,
+                               "End of input segment: macro pop %p -> %p\n",
+                               y, PARM->macros); */
                   csound_prs_line(csound->scorestr, yyscanner);
                 }
 {DEFINE}        {
@@ -580,7 +585,7 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
           unput(c);
         csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),yyscanner);
       }
-      else if (UNLIKELY(c=='\n')) {
+      else if (UNLIKELY(c=='\n' || c=='\r')) {
         csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),yyscanner);
       }
       if (c == EOF) {
@@ -603,7 +608,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       p++;
     }
     buffer[p] = '\0';
-    while ((c=input(yyscanner))!='\n');
+    while ((c=input(yyscanner))!='\n' && c!='\r');
     if (PARM->depth++>=1024) {
       csound->Die(csound, Str("Includes nested too deeply"));
     }
@@ -690,7 +695,7 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         if (UNLIKELY(i >= size))
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
-      if (UNLIKELY(c == '\n')) {
+      if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),yyscanner);
         corfile_putc('\n', csound->expanded_sco);
         csound_prs_line(csound->expanded_sco, yyscanner);
@@ -725,7 +730,7 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
         if (UNLIKELY(i >= size))
           mm->body = mrealloc(csound, mm->body, size += 100);
       }
-      if (UNLIKELY(c == '\n')) {
+      if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),yyscanner);
         corfile_putc('\n', csound->expanded_sco);
         csound_prs_line(csound->expanded_sco, yyscanner);
@@ -765,7 +770,8 @@ void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
         mfree(csound, nn->arg[i]);
       mm->next = nn->next; mfree(csound, nn);
     }
-    while ((c=input(yyscanner)) != '\n' && c != EOF); /* ignore rest of line */
+    /* ignore rest of line */
+    while ((c=input(yyscanner)) != '\n' && c != '\r'&& c != EOF);
     csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),yyscanner);
 }
 
@@ -788,7 +794,7 @@ void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
     if (pp->isSkip)
       do_ifdef_skip_code(csound, yyscanner);
     else
-      while ((c = input(yyscanner)) != '\n' && c != EOF);
+      while ((c = input(yyscanner)) != '\n' && c != '\r' && c != EOF);
 }
 
 void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
@@ -800,7 +806,7 @@ void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
     pp = PARM->ifdefStack;
     c = input(yyscanner);
     for (;;) {
-      while (c!='\n') {
+      while (c!='\n' && c != '\r') {
         if (UNLIKELY(c == EOF)) {
           csound->Message(csound, Str("Unmatched #if%sdef\n"),
                           PARM->isIfndef ? "n" : "");
@@ -838,7 +844,7 @@ void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
       }
     }
     free(buf);
-    while (c != '\n' && c != EOF) c = input(yyscanner);
+    while (c != '\n' && c != '\r' && c != EOF) c = input(yyscanner);
 }
 
 void cs_init_smacros(CSOUND *csound, PRS_PARM *qq, NAMES *nn)

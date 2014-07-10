@@ -625,6 +625,10 @@ typedef struct {
     int32    nchanls;
     /** table number */
     int32    fno;
+    /** args  */
+    MYFLT args[PMAX - 4];
+    /** arg count */
+    int argcnt;
     /** GEN01 parameters */
     GEN01ARGS gen01args;
     /** table data (flen + 1 MYFLT values) */
