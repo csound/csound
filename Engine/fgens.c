@@ -265,7 +265,9 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     /* VL 11.01.05 for deferred GEN01, it's called in gen01raw */
     ftresdisp(&ff, ftp);                        /* rescale and display      */
     *ftpp = ftp;
-
+    /* keep original arguments, from GEN number  */
+    ftp->argcnt = ff.e.pcnt - 3;
+    memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*ftp->argcnt);
     return 0;
 }
 
@@ -2420,6 +2422,22 @@ PUBLIC int csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum)
 
  err_return:
     *tablePtr = (MYFLT*) NULL;
+    return -1;
+}
+
+PUBLIC int csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum)
+{
+    FUNC    *ftp;
+    if (UNLIKELY((unsigned int) (tableNum - 1) >= (unsigned int) csound->maxfnum))
+      goto err_return;
+    ftp = csound->flist[tableNum];
+    if (UNLIKELY(ftp == NULL))
+      goto err_return;
+    *argsPtr = ftp->args;
+    return (int) ftp->argcnt;
+
+ err_return:
+    *argsPtr = (MYFLT*) NULL;
     return -1;
 }
 
