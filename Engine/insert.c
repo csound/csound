@@ -31,6 +31,7 @@
 #include "namedins.h"   /* IV - Oct 31 2002 */
 #include "pstream.h"
 #include "interlocks.h"
+#include "csound_standard_types.h"
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
@@ -103,7 +104,8 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     INSTRTXT  *tp;
     INSDS     *ip, *prvp, *nxtp;
     OPARMS    *O = csound->oparms;
-    int tie=0;
+    CS_VAR_MEM *pfields;
+    int tie=0, i;
 
     if (UNLIKELY(csound->advanceCnt))
       return 0;
@@ -204,15 +206,24 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->prvact = prvp;
     prvp->nxtact = ip;
     ip->actflg++;                   /*    and mark the instr active */
+    
+    pfields = (CS_VAR_MEM*)&ip->p0_type;
+    
     {
       int    n;
       MYFLT  *flp, *fep;
 
     init:
       if (tp->psetdata) {
+        int i;
+        CS_VAR_MEM* pfields = (CS_VAR_MEM*) &ip->p0_type;
         MYFLT *pdat = tp->psetdata + 2;
         int32 nn = tp->pmax - 2;             /*   put cur vals in pflds */
-        memcpy(&ip->p3, pdat, sizeof(MYFLT)*nn);
+
+        for (i = 0; i < nn; i++) {
+          CS_VAR_MEM* pfield = (pfields + i + 3);
+          pfield->memBlock = *(pdat + i);
+        }
       }
       if (UNLIKELY((n = tp->pmax) != newevtp->pcnt && !tp->psetdata)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
@@ -229,13 +240,25 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       else
         ip->offbet = -1.0;
       flp = &ip->p1;
-      fep = &newevtp->p[1];
+      fep = &newevtp->p[0];
       if (UNLIKELY(O->odebug))
         csound->Message(csound, "psave beg at %p\n", (void*) flp);
+      
       if (n > newevtp->pcnt) n = newevtp->pcnt; /* IV - Oct 20 2002 */
-      memcpy(flp, fep, n * sizeof(MYFLT)); flp += n;
-      if (n < tp->pmax && tp->psetdata==NULL)
-        memset(flp, 0, (tp->pmax - n) * sizeof(MYFLT));
+      
+      for (i = 1; i < n + 1; i++) {
+        CS_VAR_MEM* pfield = pfields + i;
+        pfield->varType = (CS_TYPE*)&CS_VAR_TYPE_P;
+        pfield->memBlock = fep[i];
+      }
+      
+      if (n < tp->pmax && tp->psetdata==NULL) {
+        for (i = 0; i < tp->pmax - n; i++) {
+          CS_VAR_MEM* pfield = pfields + i + n;
+          pfield->varType = (CS_TYPE*)&CS_VAR_TYPE_P;
+          pfield->memBlock = 0;
+        }
+      }
       if (UNLIKELY(O->odebug))
         csound->Message(csound, "   ending at %p\n", (void*) flp);
     }
@@ -369,6 +392,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     INSTRTXT  *tp;
     INSDS     *ip, **ipp, *prvp, *nxtp;
     OPARMS    *O = csound->oparms;
+    CS_VAR_MEM *pfields;
 
     if (UNLIKELY(csound->advanceCnt))
       return 0;
@@ -468,56 +492,61 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ip->kicvt = csound->kicvt;
     //#endif
     ip->pds = NULL;
+    pfields = (CS_VAR_MEM*)&ip->p0_type;
+    
     if (tp->psetdata != NULL) {
-      MYFLT *pfld = &ip->p3;              /* if pset data present */
+      int i;
       MYFLT *pdat = tp->psetdata + 2;
       int32 nn = tp->pmax - 2;             /*   put cur vals in pflds */
-      memcpy(pfld, pdat, nn*sizeof(MYFLT));
+
+      for (i = 0; i < nn; i++) {
+        CS_VAR_MEM* pfield = (pfields + i + 3);
+        pfield->memBlock = *(pdat + i);
+      }
     }
+    
 
     /* MIDI channel message note on routing overrides pset: */
 
     if (O->midiKey) {
-      int pfield = O->midiKey;
-      int index = pfield - 1;
-      MYFLT *pfields = &ip->p1;
+      int pfield_index = O->midiKey;
+      CS_VAR_MEM* pfield = (pfields + pfield_index);
       MYFLT value = (MYFLT) ip->m_pitch;
-      pfields[index] = value;
+      pfield->memBlock = value;
+       
       if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiKey:         pfield: %3d  value: %3d\n",
-                        pfield, (int) pfields[index]);
+                        pfield_index, (int) pfield->memBlock);
       }
     }
     else if (O->midiKeyCps) {
-      int pfield = O->midiKeyCps;
-      int index = pfield - 1;
-      MYFLT *pfields = &ip->p1;
+      int pfield_index = O->midiKeyCps;
+      CS_VAR_MEM* pfield = (pfields + pfield_index);
       MYFLT value = (MYFLT) ip->m_pitch;
       value = value / FL(12.0) + FL(3.0);
       value = value * OCTRES;
       value = (MYFLT) CPSOCTL((int32) value);
-      pfields[index] = value;
+      pfield->memBlock = value;
+        
       if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiKeyCps:      pfield: %3d  value: %3d\n",
-                        pfield, (int) pfields[index]);
+                        pfield_index, (int) pfield->memBlock);
       }
     }
     else if (O->midiKeyOct) {
-      int pfield = O->midiKeyOct;
-      int index = pfield - 1;
-      MYFLT *pfields = &ip->p1;
+      int pfield_index = O->midiKeyOct;
+      CS_VAR_MEM* pfield = (pfields + pfield_index);
       MYFLT value = (MYFLT) ip->m_pitch;
       value = value / FL(12.0) + FL(3.0);
-      pfields[index] = value;
+      pfield->memBlock = value;
       if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiKeyOct:      pfield: %3d  value: %3d\n",
-                        pfield, (int) pfields[index]);
+                        pfield_index, (int) pfield->memBlock);
       }
     }
     else if (O->midiKeyPch) {
-      int pfield = O->midiKeyPch;
-      int index = pfield - 1;
-      MYFLT *pfields = &ip->p1;
+      int pfield_index = O->midiKeyPch;
+      CS_VAR_MEM* pfield = (pfields + pfield_index);
       MYFLT value = (MYFLT) ip->m_pitch;
       double octave = 0;
       double fraction = 0.0;
@@ -525,34 +554,32 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       fraction = modf(value, &octave);
       fraction *= 0.12;
       value = octave + fraction;
-      pfields[index] = value;
+      pfield->memBlock = value;
       if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiKeyPch:      pfield: %3d  value: %3d\n",
-                        pfield, (int) pfields[index]);
+                        pfield_index, (int) pfield->memBlock);
       }
     }
     if (O->midiVelocity) {
-      int pfield = O->midiVelocity;
-      int index = pfield - 1;
-      MYFLT *pfields = &ip->p1;
+      int pfield_index = O->midiVelocity;
+      CS_VAR_MEM* pfield = (pfields + pfield_index);
       MYFLT value = (MYFLT) ip->m_veloc;
-      pfields[index] = value;
+      pfield->memBlock = value;
       if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiVelocity:    pfield: %3d  value: %3d\n",
-                        pfield, (int) pfields[index]);
+                        pfield_index, (int) pfield->memBlock);
       }
     }
     else if (O->midiVelocityAmp) {
-      int pfield = O->midiVelocityAmp;
-      int index = pfield - 1;
-      MYFLT *pfields = &ip->p1;
+      int pfield_index = O->midiVelocityAmp;
+      CS_VAR_MEM* pfield = (pfields + pfield_index);
       MYFLT value = (MYFLT) ip->m_veloc;
       value = value * value / FL(16239.0);
       value = value * csound->e0dbfs;
-      pfields[index] = value;
+      pfield->memBlock = value;
       if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %3d\n",
-                        pfield, (int)pfields[index]);
+                        pfield_index, (int)pfield->memBlock);
       }
     }
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -2000,15 +2027,17 @@ static void instance(CSOUND *csound, int insno)
     OPTXT     *optxt;
     OPDS      *opds, *prvids, *prvpds;
     const OENTRY  *ep;
-    int       n, /*cnt, */pextent, pextra;
+    int       i, n, pextent, pextra, pextrab;
     char      *nxtopds, *opdslim;
-    MYFLT     **argpp, *lclbas, /* *gbloffbas,*/ *lcloffbas;
+    MYFLT     **argpp, *lclbas;
+    CS_VAR_MEM *lcloffbas; // start of pfields
     char*     opMemStart;
 
     OPARMS    *O = csound->oparms;
     int       odebug = O->odebug;
     ARG*      arg;
     int       argStringCount;
+    CS_VARIABLE* current;
 
     tp = csound->engineState.instrtxtp[insno];
     n = 3;
@@ -2019,10 +2048,14 @@ static void instance(CSOUND *csound, int insno)
     if (O->midiVelocity>n) n = O->midiVelocity;
     if (O->midiVelocityAmp>n) n = O->midiVelocityAmp;
     pextra = n-3;
+    pextrab = ((i = tp->pmax - 3L) > 0 ? (int) i * sizeof(CS_VAR_MEM) : 0);
     /* alloc new space,  */
-    pextent = sizeof(INSDS) + tp->pextrab + pextra*sizeof(MYFLT *);
+    pextent = sizeof(INSDS) + pextrab + pextra*sizeof(CS_VAR_MEM *);
     ip = (INSDS*) csound->Calloc(csound,
-                          (size_t) pextent + tp->varPool->poolSize + tp->opdstot);
+                          (size_t) pextent + tp->varPool->poolSize +
+                                 (tp->varPool->varCount * sizeof(MYFLT)) +
+                                 (tp->varPool->varCount * sizeof(CS_VARIABLE*)) +
+                                 tp->opdstot);
     ip->csound = csound;
     ip->m_chnbp = (MCHNBLK*) NULL;
     ip->instr = tp;
@@ -2051,11 +2084,12 @@ static void instance(CSOUND *csound, int insno)
     }
 
     /* gbloffbas = csound->globalVarPool; */
-    lcloffbas = &ip->p0;
+    lcloffbas = (CS_VAR_MEM*)&ip->p0_type;
     lclbas = (MYFLT*) ((char*) ip + pextent);   /* split local space */
     initializeVarPool(lclbas, tp->varPool);
 
-    opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize;
+    opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize +
+                (tp->varPool->varCount * sizeof(MYFLT));
     opdslim = nxtopds + tp->opdstot;
     if (UNLIKELY(odebug))
       csound->Message(csound,
@@ -2063,6 +2097,14 @@ static void instance(CSOUND *csound, int insno)
                       insno, ip, lclbas, nxtopds);
     optxt = (OPTXT*) tp;
     prvids = prvpds = (OPDS*) ip;
+    
+    /* initialize vars for CS_TYPE */
+    for (current = tp->varPool->head; current != NULL; current = current->next) {
+        char* ptr = (char*)(lclbas + current->memBlockIndex);
+        CS_TYPE** typePtr = (CS_TYPE**)(ptr - sizeof(CS_TYPE*));
+        *typePtr = current->varType;
+    }
+    
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
       TEXT *ttp = &optxt->t;
       ep = ttp->oentry;
@@ -2132,9 +2174,8 @@ static void instance(CSOUND *csound, int insno)
           fltp = lclbas + var->memBlockIndex;
         }
         else if (arg->type == ARG_PFIELD) {
-          /* VL 1.1.13 - changed lclbas to
-             lcloffbas so p-fields can be assigned to */
-          fltp = lcloffbas + arg->index;
+          CS_VAR_MEM* pfield = lcloffbas + arg->index;
+          fltp = &(pfield->memBlock);
         }
         else {
           csound->Message(csound, "FIXME: Unhandled out-arg type: %d\n",
@@ -2155,13 +2196,15 @@ static void instance(CSOUND *csound, int insno)
       for (; arg != NULL; n++, arg = arg->next) {
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
         if (arg->type == ARG_CONSTANT) {
-          argpp[n] = csound->engineState.constantsPool->values + arg->index;
+          CS_VAR_MEM *varMem = &csound->engineState.constantsPool->values[arg->index];
+          argpp[n] = &varMem->memBlock;
         }
         else if (arg->type == ARG_STRING) {
           argpp[n] = (MYFLT*)(arg->argPtr);
         }
         else if (arg->type == ARG_PFIELD) {
-          argpp[n] = lcloffbas + arg->index;
+          CS_VAR_MEM* pfield = lcloffbas + arg->index;
+          argpp[n] = &(pfield->memBlock);
         }
         else if (arg->type == ARG_GLOBAL) {
           argpp[n] =  (MYFLT *) var->memBlock; /*gbloffbas + var->memBlockIndex; */
