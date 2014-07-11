@@ -62,6 +62,11 @@ extern "C" {
         void *memBlock;
     } CS_VARIABLE;
 
+    typedef struct csvarmem {
+        CS_TYPE* varType;
+        MYFLT memBlock;
+    } CS_VAR_MEM;
+    
 //    typedef struct cstypeinstance {
 //        CS_TYPE* varType;
 //        CS_VARIABLE* (*createVariable)(void*, void*);
@@ -100,6 +105,7 @@ extern "C" {
         CS_VARIABLE* tail;
         int poolSize;
         struct csvarpool* parent;
+        int varCount;
     } CS_VAR_POOL;
 
     PUBLIC CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound);
