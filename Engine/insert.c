@@ -988,7 +988,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
 {
     OPDS    *saved_ids = csound->ids;
     INSDS   *saved_curip = csound->curip;
-    MYFLT   *flp;
+    CS_VAR_MEM   *pfield;
     int     n, init_op, inarg_ofs;
     INSDS  *pip = p->h.insdshead;
 
@@ -1061,13 +1061,13 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
     p->ip->reinitflag = saved_curip->reinitflag;
 
     /* copy remainder of pfields */
-    flp = &p->ip->p3 + 1;
+    pfield = (CS_VAR_MEM*)&p->ip->p3_type;
     /* by default all inputs are i-rate mapped to p-fields */
     if (UNLIKELY(p->INOCOUNT >
                  (unsigned int)(csound->engineState.instrtxtp[instno]->pmax + 1)))
       return csoundInitError(csound, Str("subinstr: too many p-fields"));
     for (n = 1; (unsigned int) n < p->INOCOUNT; n++)
-      *flp++ = *p->ar[inarg_ofs + n];
+      (pfield + n)->memBlock = *p->ar[inarg_ofs + n];
 
     /* allocate memory for a temporary store of spout buffers */
     if (!init_op && !(pip->reinitflag | pip->tieflag))
@@ -1265,8 +1265,9 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
         if ((i = csound->engineState.instrtxtp[parent_ip->insno]->pmax) > pcnt) {
           if (i > n) i = n;
           /* copy next block of p-fields */
-          memcpy(&(lcurip->p1) + pcnt, &(parent_ip->p1) + pcnt,
-                 (size_t) ((i - pcnt) * sizeof(MYFLT)));
+          memcpy(&(lcurip->p1_type) + pcnt, &(parent_ip->p1_type) + pcnt,
+                 (size_t) ((i - pcnt) * sizeof(CS_VAR_MEM)));
+        
           pcnt = i;
         }
         /* top level instr reached */
@@ -1275,8 +1276,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       }
     }
     else
-      memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(MYFLT));
-
+      memcpy(&(lcurip->p1_type), &(parent_ip->p1_type), 3 * sizeof(CS_VAR_MEM));
+    
 
     /* do init pass for this instr */
     p->ip->init_done = 0;
@@ -1609,7 +1610,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
         pbuf += csound->nchnls;
       }
     }
-
+    
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     /* if (!p->ip) */                                   /* loop to last opds */
