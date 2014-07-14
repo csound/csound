@@ -320,7 +320,11 @@ static int delete_channel_db(CSOUND *csound, void *p)
           if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
             csound->Free(csound, entry->hints.attributes);
           }
-          csound->Free(csound, entry->data);
+          /* SY - 2014.07.14 - Don't free entry->data and rely on Csound memory db 
+            to free it; fixes issue with RTTI and chnexport of a global var, which
+            maps to the CS_VAR_MEM's memblock, which is not what is allocated; other
+           vars will be freed since they were Calloc'd */
+/*          csound->Free(csound, entry->data); */
           entry->datasize = 0;
           values = values->next;
       }
