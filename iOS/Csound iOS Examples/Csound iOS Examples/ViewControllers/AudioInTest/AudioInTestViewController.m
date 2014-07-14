@@ -47,11 +47,12 @@
         self.csound.useAudioInput = YES;
         [self.csound addCompletionListener:self];
     
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         
-        [self.csound addSlider:_mLeftDelayTimeSlider forChannelName:@"leftDelayTime"];
-        [self.csound addSlider:_mLeftFeedbackSlider forChannelName:@"leftFeedback"];
-        [self.csound addSlider:_mRightDelayTimeSlider forChannelName:@"rightDelayTime"];
-        [self.csound addSlider:_mRightFeedbackSlider forChannelName:@"rightFeedback"];
+        [csoundUI addSlider:_mLeftDelayTimeSlider forChannelName:@"leftDelayTime"];
+        [csoundUI addSlider:_mLeftFeedbackSlider forChannelName:@"leftFeedback"];
+        [csoundUI addSlider:_mRightDelayTimeSlider forChannelName:@"rightDelayTime"];
+        [csoundUI addSlider:_mRightFeedbackSlider forChannelName:@"rightFeedback"];
         
         [self.csound startCsound:tempFile];
         

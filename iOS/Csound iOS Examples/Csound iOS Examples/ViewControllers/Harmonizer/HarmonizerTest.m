@@ -48,8 +48,11 @@
         self.csound.useAudioInput = YES;
         [self.csound addCompletionListener:self];
         
-        [self.csound addSlider:mHarmPitchSlider forChannelName:@"slider"];
-        [self.csound addSlider:mGainSlider forChannelName:@"gain"];
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+        
+        [csoundUI addSlider:mHarmPitchSlider forChannelName:@"slider"];
+        [csoundUI addSlider:mGainSlider forChannelName:@"gain"];
+        
         [self.csound startCsound:tempFile];
         
 	} else {

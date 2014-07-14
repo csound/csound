@@ -46,9 +46,11 @@
         self.csound = [[CsoundObj alloc] init];
         [self.csound addCompletionListener:self];
         
-        [self.csound enableAccelerometer];
-        [self.csound enableAttitude];
-        [self.csound enableGyroscope];
+        CsoundMotion *csoundMotion = [[CsoundMotion alloc] initWithCsoundObj:self.csound];
+        
+        [csoundMotion enableAccelerometer];
+        [csoundMotion enableAttitude];
+        [csoundMotion enableGyroscope];
         
         [self.csound startCsound:tempFile];
         

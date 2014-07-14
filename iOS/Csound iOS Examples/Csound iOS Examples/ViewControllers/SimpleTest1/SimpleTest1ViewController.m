@@ -45,7 +45,10 @@
         
         self.csound = [[CsoundObj alloc] init];
         [self.csound addCompletionListener:self];
-        [self.csound addSlider:mSlider forChannelName:@"slider"];
+        
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+        [csoundUI addSlider:mSlider forChannelName:@"slider"];
+        
         [self.csound startCsound:tempFile];
         
 	} else {
