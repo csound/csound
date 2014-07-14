@@ -24,15 +24,8 @@
  */
 
 #import "CsoundObj.h"
-#import "CachedSlider.h"
-#import "CachedButton.h"
-#import "CachedSwitch.h"
-#import "CachedAccelerometer.h"
-#import "CachedGyroscope.h"
-#import "CachedAttitude.h"
 #import "CsoundValueCacheable.h"
 #import "CsoundMIDI.h"
-
 
 OSStatus  Csound_Render(void *inRefCon,
                         AudioUnitRenderActionFlags *ioActionFlags,
@@ -53,108 +46,31 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
 @synthesize outputURL;
 @synthesize midiInEnabled = mMidiInEnabled;
-@synthesize motionManager = mMotionManager;
 
 - (id)init
 {
     self = [super init];
     if (self) {
 		mCsData.shouldMute = false;
-        valuesCache = [[NSMutableArray alloc] init];
+        _valuesCache = [[NSMutableArray alloc] init];
         completionListeners = [[NSMutableArray alloc] init];
         mMidiInEnabled = NO;
-        self.motionManager = [[CMMotionManager alloc] init];
         _useAudioInput = NO;
     }
     
     return self;
 }
 
--(id<CsoundValueCacheable>)addSwitch:(UISwitch*)uiSwitch forChannelName:(NSString*)channelName {
-    CachedSwitch* cachedSwitch = [[CachedSwitch alloc] init:uiSwitch
-                                                channelName:channelName];
-    [valuesCache addObject:cachedSwitch];
-	
-    return cachedSwitch;
-}
-
--(id<CsoundValueCacheable>)addSlider:(UISlider*)uiSlider forChannelName:(NSString*)channelName {
-    
-    CachedSlider* cachedSlider = [[CachedSlider alloc] init:uiSlider
-                                                channelName:channelName];
-    [valuesCache addObject:cachedSlider];
-    
-    return cachedSlider;
-}
-
--(id<CsoundValueCacheable>)addButton:(UIButton*)uiButton forChannelName:(NSString*)channelName {
-    CachedButton* cachedButton = [[CachedButton alloc] init:uiButton
-                                                channelName:channelName];
-    [valuesCache addObject:cachedButton];
-    return cachedButton;
-}
-
 -(void)addValueCacheable:(id<CsoundValueCacheable>)valueCacheable {
     if (valueCacheable != nil) {
-        [valuesCache addObject:valueCacheable];
+        [_valuesCache addObject:valueCacheable];
     }
 }
 
 -(void)removeValueCaheable:(id<CsoundValueCacheable>)valueCacheable {
-	if (valueCacheable != nil && [valuesCache containsObject:valueCacheable]) {
-		[valuesCache removeObject:valueCacheable];
+	if (valueCacheable != nil && [_valuesCache containsObject:valueCacheable]) {
+		[_valuesCache removeObject:valueCacheable];
 	}
-}
-
--(id<CsoundValueCacheable>)enableAccelerometer {
-    
-    if (!mMotionManager.accelerometerAvailable) {
-        NSLog(@"Accelerometer not available");
-        return nil;
-    }
-    
-    CachedAccelerometer* accelerometer = [[CachedAccelerometer alloc] init:mMotionManager];
-    [valuesCache addObject:accelerometer];
-    
-    
-    mMotionManager.accelerometerUpdateInterval = 1 / 100.0; // 100 hz
-    
-    [mMotionManager startAccelerometerUpdates];
-	
-	return accelerometer;
-}
-
--(id<CsoundValueCacheable>)enableGyroscope {
-    
-    if (!mMotionManager.isGyroAvailable) {
-        NSLog(@"Gyroscope not available");
-        return nil;
-    }
-    
-    CachedGyroscope* gyro = [[CachedGyroscope alloc] init:mMotionManager];
-    [valuesCache addObject:gyro];
-    
-    mMotionManager.gyroUpdateInterval = 1 / 100.0; // 100 hz
-    
-    [mMotionManager startGyroUpdates];
-	
-	return gyro;
-}
-
--(id<CsoundValueCacheable>)enableAttitude {
-    if (!mMotionManager.isDeviceMotionAvailable) {
-        NSLog(@"Attitude not available");
-        return nil;
-    }
-    
-    CachedAttitude* attitude = [[CachedAttitude alloc] init:mMotionManager];
-    [valuesCache addObject:attitude];
-    
-    mMotionManager.deviceMotionUpdateInterval = 1 / 100.0; // 100hz
-    
-    [mMotionManager startDeviceMotionUpdates];
-	
-	return attitude;
 }
 
 #pragma mark -
@@ -448,8 +364,8 @@ OSStatus  Csound_Render(void *inRefCon,
         
         /* SETUP VALUE CACHEABLE */
         
-        for (int i = 0; i < valuesCache.count; i++) {
-            id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+        for (int i = 0; i < _valuesCache.count; i++) {
+            id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
             [cachedValue setup:self];
         }
         
@@ -460,8 +376,8 @@ OSStatus  Csound_Render(void *inRefCon,
         }
         
         /* SET VALUES FROM CACHE */
-        for (int i = 0; i < valuesCache.count; i++) {
-			id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+        for (int i = 0; i < _valuesCache.count; i++) {
+			id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
 			[cachedValue updateValuesToCsound];
 		}
         
@@ -474,8 +390,8 @@ OSStatus  Csound_Render(void *inRefCon,
         
         /* CLEANUP VALUE CACHEABLE */
         
-        for (int i = 0; i < valuesCache.count; i++) {
-            id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+        for (int i = 0; i < _valuesCache.count; i++) {
+            id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
             [cachedValue cleanup];
         }
         
@@ -484,11 +400,6 @@ OSStatus  Csound_Render(void *inRefCon,
         for (id<CsoundObjCompletionListener> listener in completionListeners) {
             [listener csoundObjComplete:self];
         }
-        
-        [mMotionManager stopAccelerometerUpdates];
-        [mMotionManager stopGyroUpdates];
-        [mMotionManager stopDeviceMotionUpdates];
-        
     }
 }
 
@@ -520,15 +431,15 @@ OSStatus  Csound_Render(void *inRefCon,
 			mCsData.nchnls = csoundGetNchnls(cs);
 			mCsData.bufframes = (csoundGetOutputBufferSize(cs))/mCsData.nchnls;
 			mCsData.running = true;
-            mCsData.valuesCache = valuesCache;
+            mCsData.valuesCache = _valuesCache;
             mCsData.useAudioInput = _useAudioInput;
             AudioStreamBasicDescription format;
             OSStatus err;
             
             /* SETUP VALUE CACHEABLE */
             
-            for (int i = 0; i < valuesCache.count; i++) {
-                id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+            for (int i = 0; i < _valuesCache.count; i++) {
+                id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
                 [cachedValue setup:self];
             }
            
@@ -671,8 +582,8 @@ OSStatus  Csound_Render(void *inRefCon,
         
         /* CLEANUP VALUE CACHEABLE */
         
-        for (int i = 0; i < valuesCache.count; i++) {
-            id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
+        for (int i = 0; i < _valuesCache.count; i++) {
+            id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
             [cachedValue cleanup];
         }
         
@@ -681,11 +592,6 @@ OSStatus  Csound_Render(void *inRefCon,
         for (id<CsoundObjCompletionListener> listener in completionListeners) {
             [listener csoundObjComplete:self];
         }
-        
-        [mMotionManager stopAccelerometerUpdates];
-        [mMotionManager stopGyroUpdates];
-        [mMotionManager stopDeviceMotionUpdates];
-        
 	}
 }
 

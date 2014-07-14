@@ -25,6 +25,8 @@
 
 #import <UIKit/UIKit.h>
 #import "CsoundObj.h"
+#import "CsoundUI.h"
+#import "CsoundMotion.h"
 
 @interface BaseCsoundViewController : UIViewController <UISplitViewControllerDelegate> {
     CsoundObj* mCsound;
