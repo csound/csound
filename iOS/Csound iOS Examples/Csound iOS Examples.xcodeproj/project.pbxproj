@@ -7,6 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C41F0A8F1973607B00997479 /* audiofiletest.csd in Resources */ = {isa = PBXBuildFile; fileRef = C41F0A8E1973607B00997479 /* audiofiletest.csd */; };
+		C41F0A91197360AF00997479 /* recordTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = C41F0A90197360AF00997479 /* recordTest.csd */; };
+		C41F0A93197360CD00997479 /* pitchshifter.csd in Resources */ = {isa = PBXBuildFile; fileRef = C41F0A92197360CD00997479 /* pitchshifter.csd */; };
+		C41F0A991973612A00997479 /* consoleoutput.csd in Resources */ = {isa = PBXBuildFile; fileRef = C41F0A951973612A00997479 /* consoleoutput.csd */; };
+		C41F0A9A1973612A00997479 /* ConsoleOutputViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0A971973612A00997479 /* ConsoleOutputViewController.m */; };
+		C41F0A9B1973612A00997479 /* ConsoleOutputViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C41F0A981973612A00997479 /* ConsoleOutputViewController.xib */; };
+		C41F0A9E197361C400997479 /* UIControlXY.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0A9D197361C400997479 /* UIControlXY.m */; };
+		C41F0AA1197361D200997479 /* UIKnob.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0AA0197361D200997479 /* UIKnob.m */; };
+		C41F0AA41973620C00997479 /* LevelMeterView.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0AA31973620C00997479 /* LevelMeterView.m */; };
 		F604B21618288A9E00C7C552 /* libcsound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F604B21518288A9E00C7C552 /* libcsound.a */; };
 		F632065E16ADA58500F17AE2 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = F632065C16ADA58500F17AE2 /* Default.png */; };
 		F632065F16ADA58500F17AE2 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F632065D16ADA58500F17AE2 /* Default-568h@2x.png */; };
@@ -34,18 +43,9 @@
 		F6B646EF14D34CB4005F786B /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6B646ED14D34CB4005F786B /* CoreMotion.framework */; };
 		F6B6474814D353A7005F786B /* AudioFileTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B646F314D353A7005F786B /* AudioFileTestViewController.m */; };
 		F6B6474914D353A7005F786B /* AudioFileTestViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = F6B646F414D353A7005F786B /* AudioFileTestViewController.xib */; };
-		F6B6474B14D353A7005F786B /* audiofiletest.csd in Resources */ = {isa = PBXBuildFile; fileRef = F6B646F714D353A7005F786B /* audiofiletest.csd */; };
 		F6B6474C14D353A7005F786B /* audioInTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = F6B646F814D353A7005F786B /* audioInTest.csd */; };
 		F6B6474D14D353A7005F786B /* AudioInTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B646FA14D353A7005F786B /* AudioInTestViewController.m */; };
 		F6B6474E14D353A7005F786B /* AudioInTestViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = F6B646FB14D353A7005F786B /* AudioInTestViewController.xib */; };
-		F6B6474F14D353A7005F786B /* consoleoutput.csd in Resources */ = {isa = PBXBuildFile; fileRef = F6B646FC14D353A7005F786B /* consoleoutput.csd */; };
-		F6B6475014D353A7005F786B /* ConsoleOutputViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B646FE14D353A7005F786B /* ConsoleOutputViewController.m */; };
-		F6B6475114D353A7005F786B /* ConsoleOutputViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = F6B646FF14D353A7005F786B /* ConsoleOutputViewController.xib */; };
-		F6B6475214D353A7005F786B /* LevelMeterView.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6470114D353A7005F786B /* LevelMeterView.m */; };
-		F6B6475314D353A7005F786B /* pitchshifter.csd in Resources */ = {isa = PBXBuildFile; fileRef = F6B6470214D353A7005F786B /* pitchshifter.csd */; };
-		F6B6475414D353A7005F786B /* recordTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = F6B6470314D353A7005F786B /* recordTest.csd */; };
-		F6B6475514D353A7005F786B /* UIControlXY.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6470514D353A7005F786B /* UIControlXY.m */; };
-		F6B6475614D353A7005F786B /* UIKnob.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6470714D353A7005F786B /* UIKnob.m */; };
 		F6B6475714D353A7005F786B /* BaseCsoundViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6470914D353A7005F786B /* BaseCsoundViewController.m */; };
 		F6B6475814D353A7005F786B /* buttonTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = F6B6470B14D353A7005F786B /* buttonTest.csd */; };
 		F6B6475914D353A7005F786B /* ButtonTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6470D14D353A7005F786B /* ButtonTestViewController.m */; };
@@ -99,6 +99,19 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C41F0A8E1973607B00997479 /* audiofiletest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = audiofiletest.csd; sourceTree = "<group>"; };
+		C41F0A90197360AF00997479 /* recordTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = recordTest.csd; sourceTree = "<group>"; };
+		C41F0A92197360CD00997479 /* pitchshifter.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = pitchshifter.csd; sourceTree = "<group>"; };
+		C41F0A951973612A00997479 /* consoleoutput.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = consoleoutput.csd; sourceTree = "<group>"; };
+		C41F0A961973612A00997479 /* ConsoleOutputViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConsoleOutputViewController.h; sourceTree = "<group>"; };
+		C41F0A971973612A00997479 /* ConsoleOutputViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConsoleOutputViewController.m; sourceTree = "<group>"; };
+		C41F0A981973612A00997479 /* ConsoleOutputViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ConsoleOutputViewController.xib; sourceTree = "<group>"; };
+		C41F0A9C197361C400997479 /* UIControlXY.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIControlXY.h; sourceTree = "<group>"; };
+		C41F0A9D197361C400997479 /* UIControlXY.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIControlXY.m; sourceTree = "<group>"; };
+		C41F0A9F197361D200997479 /* UIKnob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIKnob.h; sourceTree = "<group>"; };
+		C41F0AA0197361D200997479 /* UIKnob.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIKnob.m; sourceTree = "<group>"; };
+		C41F0AA21973620C00997479 /* LevelMeterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LevelMeterView.h; path = "Csound iOS Examples/ViewControllers/RecordTest/LevelMeterView.h"; sourceTree = SOURCE_ROOT; };
+		C41F0AA31973620C00997479 /* LevelMeterView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LevelMeterView.m; path = "Csound iOS Examples/ViewControllers/RecordTest/LevelMeterView.m"; sourceTree = SOURCE_ROOT; };
 		F604B21518288A9E00C7C552 /* libcsound.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcsound.a; sourceTree = "<group>"; };
 		F632065C16ADA58500F17AE2 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		F632065D16ADA58500F17AE2 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
@@ -134,23 +147,10 @@
 		F6B646F214D353A7005F786B /* AudioFileTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioFileTestViewController.h; sourceTree = "<group>"; };
 		F6B646F314D353A7005F786B /* AudioFileTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioFileTestViewController.m; sourceTree = "<group>"; };
 		F6B646F414D353A7005F786B /* AudioFileTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AudioFileTestViewController.xib; sourceTree = "<group>"; };
-		F6B646F714D353A7005F786B /* audiofiletest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = audiofiletest.csd; path = ../AudioInTest/audiofiletest.csd; sourceTree = "<group>"; };
 		F6B646F814D353A7005F786B /* audioInTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = audioInTest.csd; sourceTree = "<group>"; };
 		F6B646F914D353A7005F786B /* AudioInTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioInTestViewController.h; sourceTree = "<group>"; };
 		F6B646FA14D353A7005F786B /* AudioInTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioInTestViewController.m; sourceTree = "<group>"; };
 		F6B646FB14D353A7005F786B /* AudioInTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AudioInTestViewController.xib; sourceTree = "<group>"; };
-		F6B646FC14D353A7005F786B /* consoleoutput.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = consoleoutput.csd; sourceTree = "<group>"; };
-		F6B646FD14D353A7005F786B /* ConsoleOutputViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConsoleOutputViewController.h; sourceTree = "<group>"; };
-		F6B646FE14D353A7005F786B /* ConsoleOutputViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConsoleOutputViewController.m; sourceTree = "<group>"; };
-		F6B646FF14D353A7005F786B /* ConsoleOutputViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ConsoleOutputViewController.xib; sourceTree = "<group>"; };
-		F6B6470014D353A7005F786B /* LevelMeterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LevelMeterView.h; sourceTree = "<group>"; };
-		F6B6470114D353A7005F786B /* LevelMeterView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LevelMeterView.m; sourceTree = "<group>"; };
-		F6B6470214D353A7005F786B /* pitchshifter.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = pitchshifter.csd; sourceTree = "<group>"; };
-		F6B6470314D353A7005F786B /* recordTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = recordTest.csd; sourceTree = "<group>"; };
-		F6B6470414D353A7005F786B /* UIControlXY.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIControlXY.h; sourceTree = "<group>"; };
-		F6B6470514D353A7005F786B /* UIControlXY.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIControlXY.m; sourceTree = "<group>"; };
-		F6B6470614D353A7005F786B /* UIKnob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIKnob.h; sourceTree = "<group>"; };
-		F6B6470714D353A7005F786B /* UIKnob.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIKnob.m; sourceTree = "<group>"; };
 		F6B6470814D353A7005F786B /* BaseCsoundViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseCsoundViewController.h; sourceTree = "<group>"; };
 		F6B6470914D353A7005F786B /* BaseCsoundViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseCsoundViewController.m; sourceTree = "<group>"; };
 		F6B6470B14D353A7005F786B /* buttonTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = buttonTest.csd; sourceTree = "<group>"; };
@@ -272,6 +272,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C41F0A941973612A00997479 /* ConsoleOutput */ = {
+			isa = PBXGroup;
+			children = (
+				C41F0A951973612A00997479 /* consoleoutput.csd */,
+				C41F0A961973612A00997479 /* ConsoleOutputViewController.h */,
+				C41F0A971973612A00997479 /* ConsoleOutputViewController.m */,
+				C41F0A981973612A00997479 /* ConsoleOutputViewController.xib */,
+			);
+			path = ConsoleOutput;
+			sourceTree = "<group>";
+		};
 		F6968A4B16B07A9D0089C462 /* TrappedGenerator */ = {
 			isa = PBXGroup;
 			children = (
@@ -358,6 +369,7 @@
 				F6B646F114D353A7005F786B /* AudioFileTest */,
 				F6B646F514D353A7005F786B /* AudioInTest */,
 				F6B6470A14D353A7005F786B /* ButtonTest */,
+				C41F0A941973612A00997479 /* ConsoleOutput */,
 				F6B6470F14D353A7005F786B /* CsoundHaiku4 */,
 				F6B6471414D353A7005F786B /* HardwareTest */,
 				F6B6471914D353A7005F786B /* Harmonizer */,
@@ -377,11 +389,13 @@
 		F6B646F114D353A7005F786B /* AudioFileTest */ = {
 			isa = PBXGroup;
 			children = (
-				F6B646F714D353A7005F786B /* audiofiletest.csd */,
+				C41F0A8E1973607B00997479 /* audiofiletest.csd */,
 				F6EE378A16AD67C50050820E /* testAudioFile.aif */,
 				F6B646F214D353A7005F786B /* AudioFileTestViewController.h */,
 				F6B646F314D353A7005F786B /* AudioFileTestViewController.m */,
 				F6B646F414D353A7005F786B /* AudioFileTestViewController.xib */,
+				C41F0A9F197361D200997479 /* UIKnob.h */,
+				C41F0AA0197361D200997479 /* UIKnob.m */,
 			);
 			path = AudioFileTest;
 			sourceTree = "<group>";
@@ -393,18 +407,6 @@
 				F6B646F914D353A7005F786B /* AudioInTestViewController.h */,
 				F6B646FA14D353A7005F786B /* AudioInTestViewController.m */,
 				F6B646FB14D353A7005F786B /* AudioInTestViewController.xib */,
-				F6B646FC14D353A7005F786B /* consoleoutput.csd */,
-				F6B646FD14D353A7005F786B /* ConsoleOutputViewController.h */,
-				F6B646FE14D353A7005F786B /* ConsoleOutputViewController.m */,
-				F6B646FF14D353A7005F786B /* ConsoleOutputViewController.xib */,
-				F6B6470014D353A7005F786B /* LevelMeterView.h */,
-				F6B6470114D353A7005F786B /* LevelMeterView.m */,
-				F6B6470214D353A7005F786B /* pitchshifter.csd */,
-				F6B6470314D353A7005F786B /* recordTest.csd */,
-				F6B6470414D353A7005F786B /* UIControlXY.h */,
-				F6B6470514D353A7005F786B /* UIControlXY.m */,
-				F6B6470614D353A7005F786B /* UIKnob.h */,
-				F6B6470714D353A7005F786B /* UIKnob.m */,
 			);
 			path = AudioInTest;
 			sourceTree = "<group>";
@@ -491,9 +493,14 @@
 		F6B6472F14D353A7005F786B /* PitchShifter */ = {
 			isa = PBXGroup;
 			children = (
+				C41F0A92197360CD00997479 /* pitchshifter.csd */,
 				F6B6473014D353A7005F786B /* PitchShifterViewController.h */,
 				F6B6473114D353A7005F786B /* PitchShifterViewController.m */,
 				F6B6473214D353A7005F786B /* PitchShifterViewController.xib */,
+				C41F0AA21973620C00997479 /* LevelMeterView.h */,
+				C41F0AA31973620C00997479 /* LevelMeterView.m */,
+				C41F0A9C197361C400997479 /* UIControlXY.h */,
+				C41F0A9D197361C400997479 /* UIControlXY.m */,
 			);
 			path = PitchShifter;
 			sourceTree = "<group>";
@@ -501,6 +508,7 @@
 		F6B6473314D353A7005F786B /* RecordTest */ = {
 			isa = PBXGroup;
 			children = (
+				C41F0A90197360AF00997479 /* recordTest.csd */,
 				F6B6473414D353A7005F786B /* RecordTestViewController.h */,
 				F6B6473514D353A7005F786B /* RecordTestViewController.m */,
 				F6B6473614D353A7005F786B /* RecordTestViewController.xib */,
@@ -661,7 +669,7 @@
 		F6B6465014D348E4005F786B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0510;
 			};
 			buildConfigurationList = F6B6465314D348E4005F786B /* Build configuration list for PBXProject "Csound iOS Examples" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -691,18 +699,16 @@
 				F6B6467D14D348E5005F786B /* DetailViewController_iPhone.xib in Resources */,
 				F6B6468014D348E5005F786B /* DetailViewController_iPad.xib in Resources */,
 				F6B6474914D353A7005F786B /* AudioFileTestViewController.xib in Resources */,
-				F6B6474B14D353A7005F786B /* audiofiletest.csd in Resources */,
 				F6B6474C14D353A7005F786B /* audioInTest.csd in Resources */,
+				C41F0A93197360CD00997479 /* pitchshifter.csd in Resources */,
+				C41F0A91197360AF00997479 /* recordTest.csd in Resources */,
 				F6B6474E14D353A7005F786B /* AudioInTestViewController.xib in Resources */,
-				F6B6474F14D353A7005F786B /* consoleoutput.csd in Resources */,
-				F6B6475114D353A7005F786B /* ConsoleOutputViewController.xib in Resources */,
-				F6B6475314D353A7005F786B /* pitchshifter.csd in Resources */,
-				F6B6475414D353A7005F786B /* recordTest.csd in Resources */,
 				F6B6475814D353A7005F786B /* buttonTest.csd in Resources */,
 				F6B6475A14D353A7005F786B /* ButtonTestViewController.xib in Resources */,
 				F6B6475C14D353A7005F786B /* CsoundHaiku4ViewController.xib in Resources */,
 				F6B6475D14D353A7005F786B /* IV.csd in Resources */,
 				F6B6475E14D353A7005F786B /* hardwareTest.csd in Resources */,
+				C41F0A9B1973612A00997479 /* ConsoleOutputViewController.xib in Resources */,
 				F6B6476014D353A7005F786B /* HardwareTestViewController.xib in Resources */,
 				F6B6476114D353A7005F786B /* harmonizer.csd in Resources */,
 				F6B6476314D353A7005F786B /* HarmonizerTest.xib in Resources */,
@@ -716,6 +722,7 @@
 				F6B6477114D353A7005F786B /* RecordTestViewController.xib in Resources */,
 				F6B6477314D353A7005F786B /* SimpleTest1ViewController.xib in Resources */,
 				F6B6477414D353A7005F786B /* test.csd in Resources */,
+				C41F0A8F1973607B00997479 /* audiofiletest.csd in Resources */,
 				F6B6477614D353A7005F786B /* SimpleTest2ViewController.xib in Resources */,
 				F6B6477714D353A7005F786B /* test2.csd in Resources */,
 				F6B6477914D353A7005F786B /* Waveviewtest.csd in Resources */,
@@ -726,6 +733,7 @@
 				F632066116ADA59B00F17AE2 /* Default@2x.png in Resources */,
 				F6968A4E16B07AC90089C462 /* trapped.csd in Resources */,
 				F6968A5816B07BA00089C462 /* TrappedGeneratorViewController.xib in Resources */,
+				C41F0A991973612A00997479 /* consoleoutput.csd in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -739,13 +747,10 @@
 				F6B6466A14D348E5005F786B /* main.m in Sources */,
 				F6B6466E14D348E5005F786B /* AppDelegate.m in Sources */,
 				F6B6467114D348E5005F786B /* MasterViewController.m in Sources */,
+				C41F0AA41973620C00997479 /* LevelMeterView.m in Sources */,
 				F6B6467414D348E5005F786B /* DetailViewController.m in Sources */,
 				F6B6474814D353A7005F786B /* AudioFileTestViewController.m in Sources */,
 				F6B6474D14D353A7005F786B /* AudioInTestViewController.m in Sources */,
-				F6B6475014D353A7005F786B /* ConsoleOutputViewController.m in Sources */,
-				F6B6475214D353A7005F786B /* LevelMeterView.m in Sources */,
-				F6B6475514D353A7005F786B /* UIControlXY.m in Sources */,
-				F6B6475614D353A7005F786B /* UIKnob.m in Sources */,
 				F6B6475714D353A7005F786B /* BaseCsoundViewController.m in Sources */,
 				F6B6475914D353A7005F786B /* ButtonTestViewController.m in Sources */,
 				F6B6475B14D353A7005F786B /* CsoundHaiku4ViewController.m in Sources */,
@@ -753,6 +758,7 @@
 				F6B6476214D353A7005F786B /* HarmonizerTest.m in Sources */,
 				F6B6476414D353A7005F786B /* IntroductionViewController.m in Sources */,
 				F6B6476614D353A7005F786B /* CsoundVirtualKeyboard.m in Sources */,
+				C41F0A9E197361C400997479 /* UIControlXY.m in Sources */,
 				F6B6476814D353A7005F786B /* MidiTestViewController.m in Sources */,
 				F6B6476C14D353A7005F786B /* MultiTouchXYViewController.m in Sources */,
 				F6B6476E14D353A7005F786B /* PitchShifterViewController.m in Sources */,
@@ -760,7 +766,9 @@
 				F6B6477214D353A7005F786B /* SimpleTest1ViewController.m in Sources */,
 				F6B6477514D353A7005F786B /* SimpleTest2ViewController.m in Sources */,
 				F6B6477814D353A7005F786B /* Waveview.m in Sources */,
+				C41F0AA1197361D200997479 /* UIKnob.m in Sources */,
 				F6B6477A14D353A7005F786B /* WaveviewViewController.m in Sources */,
+				C41F0A9A1973612A00997479 /* ConsoleOutputViewController.m in Sources */,
 				F6B647BA14D353D2005F786B /* CsoundObj.m in Sources */,
 				F6B647BB14D353D2005F786B /* CsoundMIDI.m in Sources */,
 				F6B647BC14D353D2005F786B /* MidiWidgetsManager.m in Sources */,
@@ -826,9 +834,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -844,11 +853,15 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				ONLY_ACTIVE_ARCH = YES;
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
@@ -860,9 +873,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -871,9 +885,12 @@
 				COPY_PHASE_STRIP = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
