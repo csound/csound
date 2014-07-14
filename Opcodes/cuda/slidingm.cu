@@ -350,17 +350,17 @@ void threadblock(int device, int n, int *nblocks, int *nthreads)
 
   nb = 1 + (n - 1)/nt;
 
-  // more blocks than procs
-  if (nb >= 2*nproc) {
-    nt *= 2; // 64 threads
-    nb = 1 + (n - 1)/nt;
-  }
+   // more blocks than procs
+   if (nb >= 2*nproc) {
+      nt *= 2; // 64 threads
+      nb = 1 + (n - 1)/nt;
+   }
 
-  // still more blocks than procs
-  if (nb >= 2*nproc) {
-    nt *= 2; // 128 threads
-    nb = 1 + (n - 1)/nt;
-  }
+  // // still more blocks than procs
+   if (nb >= 2*nproc) {
+     nt *= 2; // 128 threads
+     nb = 1 + (n - 1)/nt;
+   }
 
   if (nblocks) *nblocks = nb;
   if (nthreads) *nthreads = nt;  

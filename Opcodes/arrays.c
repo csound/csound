@@ -1280,11 +1280,11 @@ int perf_rfft(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int init_irfft(CSOUND *csound, FFT *p){
+int init_rifft(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
  if(p->in->dimensions > 1) 
     return csound->InitError(csound, 
-       "irfft: only one-dimensional arrays allowed");
+       "rifft: only one-dimensional arrays allowed");
   if (isPowerOfTwo(N))
     tabensure(csound, p->out, N);
   else
@@ -1292,7 +1292,7 @@ int init_irfft(CSOUND *csound, FFT *p){
   return OK;
 }
 
-int perf_irfft(CSOUND *csound, FFT *p){
+int perf_rifft(CSOUND *csound, FFT *p){
     int N = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
     if (isPowerOfTwo(N))
@@ -1349,7 +1349,7 @@ int init_ifft(CSOUND *csound, FFT *p){
   int   N2 = p->in->sizes[0];
    if(p->in->dimensions > 1) 
     return csound->InitError(csound,
-       "ifft: only one-dimensional arrays allowed");
+       "fftinv: only one-dimensional arrays allowed");
   tabensure(csound, p->out, N2);
   return OK;
 }
@@ -1971,13 +1971,13 @@ static OENTRY arrayvars_localops[] =
     { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina},
     {"rfft", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_rfft, (SUBR) perf_rfft, NULL},
-    {"irfft", sizeof(FFT), 0, 3, "k[]","k[]",
-     (SUBR) init_irfft, (SUBR) perf_irfft, NULL},
+    {"rifft", sizeof(FFT), 0, 3, "k[]","k[]",
+     (SUBR) init_rifft, (SUBR) perf_rifft, NULL},
     {"cmplxprod", sizeof(FFT), 0, 3, "k[]","k[]k[]",
      (SUBR) init_rfftmult, (SUBR) perf_rfftmult, NULL},
     {"fft", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_fft, (SUBR) perf_fft, NULL},
-    {"ifft", sizeof(FFT), 0, 3, "k[]","k[]",
+    {"fftinv", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_ifft, (SUBR) perf_ifft, NULL},
     {"rect2pol", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_recttopol, (SUBR) perf_recttopol, NULL},
