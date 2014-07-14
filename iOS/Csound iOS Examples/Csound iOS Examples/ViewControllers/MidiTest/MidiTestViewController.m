@@ -64,14 +64,16 @@
         
         self.csound = [[CsoundObj alloc] init];
         [self.csound addCompletionListener:self];
-                
-        [self.csound addSlider:mCutoffSlider forChannelName:@"cutoff"];        
-        [self.csound addSlider:mResonanceSlider forChannelName:@"resonance"];                
         
-        [self.csound addSlider:mAttackSlider forChannelName:@"attack"];
-        [self.csound addSlider:mDecaySlider forChannelName:@"decay"];
-        [self.csound addSlider:mSustainSlider forChannelName:@"sustain"];
-        [self.csound addSlider:mReleaseSlider forChannelName:@"release"];
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+        
+        [csoundUI addSlider:mCutoffSlider forChannelName:@"cutoff"];
+        [csoundUI addSlider:mResonanceSlider forChannelName:@"resonance"];
+        
+        [csoundUI addSlider:mAttackSlider forChannelName:@"attack"];
+        [csoundUI addSlider:mDecaySlider forChannelName:@"decay"];
+        [csoundUI addSlider:mSustainSlider forChannelName:@"sustain"];
+        [csoundUI addSlider:mReleaseSlider forChannelName:@"release"];
         
         [self.csound setMidiInEnabled:YES];
         
