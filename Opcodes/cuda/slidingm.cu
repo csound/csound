@@ -35,7 +35,7 @@
 #include <inttypes.h>
 #include <sys/time.h>
 
-typedef double real;
+typedef float real;
 #define real(x) x
 #define PI (M_PI)
 #define TWO_PI (2.0*M_PI)
@@ -175,7 +175,7 @@ __global__ void window(complex Foutw[/*N*nbatch*/],
 
 __device__ real mod2Pi(real x)
 {
-  x = fmod(x, TWO_PI);
+  x = fmod(x, (real)TWO_PI);
   if (x > PI) return x - TWO_PI;
   if (x <= -PI) return x + TWO_PI;
   return x;
@@ -196,42 +196,56 @@ __global__ void reconstruct(complex f[/*nbatch*N*/], real s[/*nbatch*/], int N)
   if (k >= nbatch) return;
 
   // N even
-#ifdef REFLECT
-  for (bin = 0; bin < N; bin += 2) {
-    sum += Re(F[bin]) - Re(F[bin + 1]);
-  }
-#elif 1
+// #ifdef REFLECT
+//   for (bin = 0; bin < N; bin += 2) {
+//     sum += Re(F[bin]) - Re(F[bin + 1]);
+//   }
+// #elif 1
   for (bin = 0; bin < N; bin += 2) {
     real v0 = bin <= N2 ? Re(F[bin]) : Re(F[N - bin]);
     real v1 = bin <  N2 ? Re(F[bin + 1]) : Re(F[N - bin - 1]);
     sum += v0 - v1;
   }
-#elif 1
-  for (bin = 1; bin < N2; bin++) {
-    F[N - bin] = conjugate(F[bin]);
-  }
-  for (bin = 0; bin < N; bin += 2) {
-    sum += Re(F[bin]) - Re(F[bin + 1]);
-  }
-#else
-  if (N2 & 1) {  // N/2 odd
-    for (bin = 1; bin < N2; bin += 2) {
-      sum += R(F[bin + 1]) - Re(F[bin]);
-    }
-    sum *= real(2.0);
-    sum += Re(F[0]) - Re(F[N2]);
-  }
-  else { // N/2 even
-    for (bin = 1; bin < N2-1; bin += 2) {
-      sum += R(F[bin + 1]) - Re(F[bin]);
-    }
-    sum -= Re(F[N2-1]);
-    sum *= real(2.0);
-    sum += Re(F[0]) + Re(F[N2]);
-  }
-#endif
+// #elif 1
+//   for (bin = 1; bin < N2; bin++) {
+//     F[N - bin] = conjugate(F[bin]);
+//   }
+//   for (bin = 0; bin < N; bin += 2) {
+//     sum += Re(F[bin]) - Re(F[bin + 1]);
+//   }
+// #else
+//   if (N2 & 1) {  // N/2 odd
+//     for (bin = 1; bin < N2; bin += 2) {
+//       sum += R(F[bin + 1]) - Re(F[bin]);
+//     }
+//     sum *= real(2.0);
+//     sum += Re(F[0]) - Re(F[N2]);
+//   }
+//   else { // N/2 even
+//     for (bin = 1; bin < N2-1; bin += 2) {
+//       sum += R(F[bin + 1]) - Re(F[bin]);
+//     }
+//     sum -= Re(F[N2-1]);
+//     sum *= real(2.0);
+//     sum += Re(F[0]) + Re(F[N2]);
+//   }
+// #endif
 
   s[k] = sum/N;
+}
+
+__global__ void reconstruct2(complex f[/*nbatch*N*/], real s[/*nbatch*/], int N)
+{
+  int n = blockIdx.x * blockDim.x + threadIdx.x, N2 = N/2;
+  int k = n/N2;
+  int bin = (n%N2)*2;
+  complex *F = &f[offset*k];
+
+  if (n >= nbatch*N2) return;
+
+  real v0 = bin <= N2 ? Re(F[bin]) : Re(F[N - bin]);
+  real v1 = bin <  N2 ? Re(F[bin + 1]) : Re(F[N - bin - 1]);
+  atomicAdd(&s[k],v0-v1); 
 }
 
 __device__ phasor convert(complex f, real &oldiphase, int bin, int N)
@@ -464,10 +478,14 @@ void cuinit(CSOUND *csound,
   // index of oldest sample
   p->ptr = 0;
   
+#ifdef SERIAL_RECONSTRUCT
   threadblock(device, p->nbtch, &p->rblocks, &p->rthreads);
+#else
+  threadblock(device, p->nbtch*(nbins2), &p->rblocks, &p->rthreads);
+#endif
   threadblock(device, (nbins2+1), &p->nblocks, &p->nthreads);
 
-  if(csound->GetDebug(csound)) {
+  // if(csound->GetDebug(csound)) {
   csound->Message(csound, "%d bins, %d actual\n", p->nbins, nbins2 + 1);
   csound->Message(csound, "csize = %d -> %d bytes, offset %d elements\n", (int) (p->nbins*sizeof(complex)),
 	 csize, off);
@@ -482,7 +500,7 @@ void cuinit(CSOUND *csound,
 	 (int)ceil((double)p->nblocks/deviceProp.multiProcessorCount));
   csound->Message(csound, "reconstruct using %d blocks of %d threads = %d\n", p->rblocks, p->rthreads,
 	 p->rblocks*p->rthreads);
-  }
+  //}
 }
 
 int cushutdown(CSOUND *csound, void *pp)
@@ -536,13 +554,21 @@ void cuprocess(SPV *p, real in[/*nbatch*/], real out[/*nbatch*/],
   fmsyn<<<p->nblocks,p->nthreads>>>(p->dinphase, p->dFout, p->dfm, p->doutphase, p->nbins);
 
   // reuse ddeltas array
+#ifdef SERIAL_RECONSTRUCT
   reconstruct<<<p->rblocks,p->rthreads>>>(p->dFout, p->ddeltas, p->nbins);
-  cudaDeviceSynchronize(); CHK(reconstruct);
-
+#else
+  reconstruct2<<<p->rblocks,p->rthreads>>>(p->dFout, p->ddeltas, p->nbins);
+#endif
+  CHK(reconstruct);
   // is is faster to transfer to pinned memory then copy; or just
   // transfer directly to out?
   CUDA(cudaMemcpy, out, p->ddeltas, p->nbtch*sizeof(real),
        cudaMemcpyDeviceToHost);
+
+#ifndef SERIAL_RECONSTRUCT
+  for(b=0; b < p->nbtch; b++) out[b] /= p->nbins;
+#endif
+
 }
 
 
