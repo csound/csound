@@ -1,32 +1,33 @@
 //
-//  CsoundHaiku4Controller.m
+//  CsoundHaiku4WindowController.m
 //  Csound OSX Examples
 //
-//  Created by Aurelius Prochazka on 7/13/14.
+//  Created by Aurelius Prochazka on 7/14/14.
 //
 //
 
-#import "CsoundHaiku4Controller.h"
+#import "CsoundHaiku4WindowController.h"
 #import "CsoundObj.h"
 
-@interface CsoundHaiku4Controller() {
+@interface CsoundHaiku4WindowController() {
     CsoundObj* csound;
 }
 @end
 
 
-@implementation CsoundHaiku4Controller
+@implementation CsoundHaiku4WindowController
 
 - (IBAction)startPlayCSDFile:(id)sender {
 	NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"IV" ofType:@"csd"];
 	
 	csound = [[CsoundObj alloc] init];
 	[csound startCsound:tempFile];
-
+    
 }
 
 - (IBAction)stopPlayCSDFile:(id)sender {
     [csound stopCsound];
 }
+
 
 @end

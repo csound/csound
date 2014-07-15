@@ -24,27 +24,70 @@
  */
 
 #import "ButtonTestWindowController.h"
+#import "CsoundObj.h"
+#import "CsoundUI.h"
 
-@interface ButtonTestWindowController ()
+@interface ButtonTestWindowController () <CsoundObjCompletionListener> {
+    CsoundObj* csound;
+}
+@property (strong) IBOutlet NSButton *startStopButton;
+@property (strong) IBOutlet NSButton *valueButton;
+@property (strong) IBOutlet NSSlider *durationSlider;
+@property (strong) IBOutlet NSSlider *attackSlider;
+@property (strong) IBOutlet NSSlider *decaySlider;
+@property (strong) IBOutlet NSSlider *sustainSlider;
+@property (strong) IBOutlet NSSlider *releaseSlider;
 
 @end
 
 @implementation ButtonTestWindowController
 
-- (id)initWithWindow:(NSWindow *)window
-{
-    self = [super initWithWindow:window];
-    if (self) {
-        // Initialization code here.
-    }
-    return self;
+-(IBAction) eventButtonHit:(id)sender {
+    NSString *score = [NSString stringWithFormat:@"i2 0 %f", [_durationSlider floatValue]];
+    NSLog(score);
+    [csound sendScore:score];
 }
 
-- (void)windowDidLoad
-{
-    [super windowDidLoad];
+-(IBAction) toggleOnOff:(id)component {
     
-    // Implement this method to handle any initialization after your window controller's window has been loaded from its nib file.
+	if(([self.startStopButton.title isEqualToString:@"Start"]) ) {
+        
+        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"buttonTest" ofType:@"csd"];
+        NSLog(@"FILE PATH: %@", tempFile);
+        
+		[csound stopCsound];
+        
+        csound = [[CsoundObj alloc] init];
+        [csound addCompletionListener:self];
+        
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
+        
+        //AURE[csoundUI addB
+        
+        [csoundUI addSlider:_durationSlider forChannelName:@"duration"];
+        [csoundUI addSlider:_attackSlider forChannelName:@"attack"];
+        [csoundUI addSlider:_decaySlider forChannelName:@"decay"];
+        [csoundUI addSlider:_sustainSlider forChannelName:@"sustain"];
+        [csoundUI addSlider:_releaseSlider forChannelName:@"release"];
+        
+        [csound startCsound:tempFile];
+        
+	} else {
+        [csound stopCsound];
+    }
 }
+
+
+
+#pragma mark CsoundObjCompletionListener
+
+-(void)csoundObjDidStart:(CsoundObj *)csoundObj {
+    self.startStopButton.title = @"Stop";
+}
+
+-(void)csoundObjComplete:(CsoundObj *)csoundObj {
+	self.startStopButton.title = @"Start";
+}
+
 
 @end
