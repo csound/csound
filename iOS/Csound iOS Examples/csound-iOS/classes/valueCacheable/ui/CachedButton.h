@@ -29,12 +29,12 @@
 @interface CachedButton : BaseValueCacheable {
     float cachedValue;
     float* channelPtr;
-    NSString* mChannelName;    
-    UIButton* mButton;
+    NSString *mChannelName;    
+    UIButton *mButton;
 }
 
-@property (nonatomic, strong) NSString* channelName;
+@property (nonatomic, strong) NSString *channelName;
 
--(CachedButton*)init:(UIButton*)button channelName:(NSString*)channelName;
+-(CachedButton*)init:(UIButton *)button channelName:(NSString *)channelName;
 
 @end

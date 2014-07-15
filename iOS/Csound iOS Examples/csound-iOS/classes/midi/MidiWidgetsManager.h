@@ -28,7 +28,7 @@
 #import <CoreMIDI/CoreMIDI.h>
 
 @interface MidiWidgetsManager : NSObject {
-    NSMutableArray* mWidgetWrappers;
+    NSMutableArray  *mWidgetWrappers;
     MIDIClientRef mclient;
 }
 
@@ -37,7 +37,8 @@
 -(void)openMidiIn;
 -(void)closeMidiIn;
 
--(void)addSlider:(UISlider*)slider forControllerNumber:(int)controllerNumber;
--(void)addMidiWidgetWrapper:(id<MidiWidgetWrapper>)wrapper forControllerNumber:(int)controllerNumber;
+-(void)addSlider:(UISlider *)slider forControllerNumber:(int)controllerNumber;
+-(void)addMidiWidgetWrapper:(id<MidiWidgetWrapper>)wrapper
+        forControllerNumber:(int)controllerNumber;
 
 @end

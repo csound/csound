@@ -27,14 +27,14 @@
 
 @interface SimpleTest2ViewController : BaseCsoundViewController<CsoundObjCompletionListener> {
     
-    IBOutlet UISlider* mRateSlider;
-    IBOutlet UISlider* mDurationSlider;
+    IBOutlet UISlider *mRateSlider;
+    IBOutlet UISlider *mDurationSlider;
 
-    IBOutlet UISlider* mAttackSlider;
-    IBOutlet UISlider* mDecaySlider;
-    IBOutlet UISlider* mSustainSlider;
-    IBOutlet UISlider* mReleaseSlider;
-    IBOutlet UISwitch* mSwitch;
+    IBOutlet UISlider *mAttackSlider;
+    IBOutlet UISlider *mDecaySlider;
+    IBOutlet UISlider *mSustainSlider;
+    IBOutlet UISlider *mReleaseSlider;
+    IBOutlet UISwitch *mSwitch;
 }
 
 -(IBAction) toggleOnOff:(id)component;

@@ -26,9 +26,10 @@
 #import <Foundation/Foundation.h>
 
 @class CsoundObj;
+
 @protocol CsoundValueCacheable <NSObject>
 
--(void)setup:(CsoundObj*)csoundObj;
+-(void)setup:(CsoundObj *)csoundObj;
 -(void)updateValuesToCsound;
 -(void)updateValuesFromCsound;
 -(void)cleanup;

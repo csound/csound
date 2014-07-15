@@ -31,15 +31,15 @@
 @interface MidiTestViewController  : BaseCsoundViewController <CsoundObjCompletionListener,
 		CsoundVirtualKeyboardDelegate> {
 			
-    IBOutlet UISlider* mAttackSlider;
-    IBOutlet UISlider* mDecaySlider;
-    IBOutlet UISlider* mSustainSlider;
-    IBOutlet UISlider* mReleaseSlider;
+    IBOutlet UISlider *mAttackSlider;
+    IBOutlet UISlider *mDecaySlider;
+    IBOutlet UISlider *mSustainSlider;
+    IBOutlet UISlider *mReleaseSlider;
     
-    IBOutlet UISlider* mCutoffSlider;
-    IBOutlet UISlider* mResonanceSlider;
+    IBOutlet UISlider *mCutoffSlider;
+    IBOutlet UISlider *mResonanceSlider;
     
-    IBOutlet UISwitch* mSwitch;
+    IBOutlet UISwitch *mSwitch;
     MidiWidgetsManager* widgetsManager;
 			
 }

@@ -122,7 +122,7 @@
 		C41F0AB219737CC700997479 /* CachedGyroscope.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CachedGyroscope.m; path = motion/CachedGyroscope.m; sourceTree = "<group>"; };
 		C41F0AB319737CC700997479 /* CsoundMotion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CsoundMotion.h; path = motion/CsoundMotion.h; sourceTree = "<group>"; };
 		C41F0AB419737CC700997479 /* CsoundMotion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CsoundMotion.m; path = motion/CsoundMotion.m; sourceTree = "<group>"; };
-		C41F0AB919737CD300997479 /* CachedButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CachedButton.h; path = ui/CachedButton.h; sourceTree = "<group>"; };
+		C41F0AB919737CD300997479 /* CachedButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = CachedButton.h; path = ui/CachedButton.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		C41F0ABA19737CD300997479 /* CachedButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CachedButton.m; path = ui/CachedButton.m; sourceTree = "<group>"; };
 		C41F0ABB19737CD300997479 /* CachedSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CachedSlider.h; path = ui/CachedSlider.h; sourceTree = "<group>"; };
 		C41F0ABC19737CD300997479 /* CachedSlider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CachedSlider.m; path = ui/CachedSlider.m; sourceTree = "<group>"; };
@@ -172,7 +172,7 @@
 		F6B6470814D353A7005F786B /* BaseCsoundViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseCsoundViewController.h; sourceTree = "<group>"; };
 		F6B6470914D353A7005F786B /* BaseCsoundViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseCsoundViewController.m; sourceTree = "<group>"; };
 		F6B6470B14D353A7005F786B /* buttonTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = buttonTest.csd; sourceTree = "<group>"; };
-		F6B6470C14D353A7005F786B /* ButtonTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ButtonTestViewController.h; sourceTree = "<group>"; };
+		F6B6470C14D353A7005F786B /* ButtonTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = ButtonTestViewController.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		F6B6470D14D353A7005F786B /* ButtonTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ButtonTestViewController.m; sourceTree = "<group>"; };
 		F6B6470E14D353A7005F786B /* ButtonTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ButtonTestViewController.xib; sourceTree = "<group>"; };
 		F6B6471014D353A7005F786B /* CsoundHaiku4ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsoundHaiku4ViewController.h; sourceTree = "<group>"; };

@@ -32,8 +32,8 @@
     [super viewDidLoad];
 }
 
--(IBAction) toggleOnOff:(id)component {
-	UISwitch* uiswitch = (UISwitch*)component;
+-(IBAction)toggleOnOff:(id)component {
+	UISwitch *uiswitch = (UISwitch *)component;
 	NSLog(@"Status: %d", [uiswitch isOn]);
     
 	if(uiswitch.on) {

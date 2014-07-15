@@ -44,8 +44,8 @@
 
 -(void)csoundObjComplete:(CsoundObj*)csoundObj {
     
-    NSString* title = @"Render Complete";
-    NSString* message = @"File generated as trapped.wav in application Documents Folder";
+    NSString *title = @"Render Complete";
+    NSString *message = @"File generated as trapped.wav in application Documents Folder";
     
     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:title
                                                     message:message
