@@ -34,7 +34,7 @@
     self.cacheDirty = YES;
 }
 
--(id)init:(UIButton*)button channelName:(NSString*)channelName {
+-(id)init:(UIButton *)button channelName:(NSString *)channelName {
     if (self = [super init]) {
         self.channelName = channelName;
         mButton = button;

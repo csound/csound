@@ -84,7 +84,7 @@ typedef struct {
 
 #pragma mark -
 
--(void)sendScore:(NSString*)score;
+-(void)sendScore:(NSString *)score;
 
 #pragma mark -
 
@@ -94,7 +94,7 @@ typedef struct {
 
 -(void)startCsound:(NSString *)csdFilePath;
 -(void)startCsound:(NSString *)csdFilePath recordToURL:(NSURL *)outputURL;
--(void)startCsoundToDisk:(NSString *)csdFilePath outputFile:(NSString*)outputFile;
+-(void)startCsoundToDisk:(NSString *)csdFilePath outputFile:(NSString *)outputFile;
 -(void)recordToURL:(NSURL *)outputURL;
 -(void)stopRecording;
 -(void)stopCsound;

@@ -28,7 +28,7 @@
 
 @interface HardwareTestViewController : BaseCsoundViewController<CsoundObjCompletionListener> {
     
-    IBOutlet UISwitch* mSwitch;
+    IBOutlet UISwitch *mSwitch;
 }
 
 -(IBAction) toggleOnOff:(id)component;

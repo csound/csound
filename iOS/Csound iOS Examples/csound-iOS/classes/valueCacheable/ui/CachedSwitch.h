@@ -28,11 +28,12 @@
 
 @interface CachedSwitch : BaseValueCacheable
     @property float cachedValue;
-    @property float* channelPtr;
-    @property (unsafe_unretained) NSString* channelName;
-    @property (unsafe_unretained) UISwitch* mSwitch;
+    @property float *channelPtr;
+    @property (unsafe_unretained) NSString *channelName;
+    @property (unsafe_unretained) UISwitch *mSwitch;
 
 
--(CachedSwitch*)init:(UISwitch*)uiSwitch channelName:(NSString*)channelName;
+-(CachedSwitch*)init:(UISwitch *)uiSwitch
+         channelName:(NSString *)channelName;
 
 @end

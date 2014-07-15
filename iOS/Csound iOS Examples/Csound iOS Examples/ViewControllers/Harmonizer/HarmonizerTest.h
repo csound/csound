@@ -29,10 +29,10 @@
 
 @interface HarmonizerTest : BaseCsoundViewController<CsoundObjCompletionListener> {
     
-    IBOutlet UISlider* mHarmPitchSlider;
-    IBOutlet UISlider* mGainSlider;    
+    IBOutlet UISlider *mHarmPitchSlider;
+    IBOutlet UISlider *mGainSlider;    
     
-    IBOutlet UISwitch* mSwitch;
+    IBOutlet UISwitch *mSwitch;
 }
 
 -(IBAction) toggleOnOff:(id)component;

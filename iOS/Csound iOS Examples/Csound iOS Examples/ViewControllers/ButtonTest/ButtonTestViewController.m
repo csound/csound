@@ -32,13 +32,13 @@
 }
 
 -(IBAction) eventButtonHit:(id)sender {
-    NSString* score = [NSString stringWithFormat:@"i2 0 %f", [mDurationSlider value]];
+    NSString *score = [NSString stringWithFormat:@"i2 0 %f", [mDurationSlider value]];
 
     [mCsound sendScore:score];
 }
 
 -(IBAction) toggleOnOff:(id)component {
-	UISwitch* uiswitch = (UISwitch*)component;
+	UISwitch *uiswitch = (UISwitch *)component;
 	NSLog(@"Status: %d", [uiswitch isOn]);
     
 	if(uiswitch.on) {

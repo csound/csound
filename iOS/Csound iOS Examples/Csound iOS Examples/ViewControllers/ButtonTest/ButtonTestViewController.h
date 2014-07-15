@@ -27,16 +27,16 @@
 #import "BaseCsoundViewController.h"
 
 @interface ButtonTestViewController : BaseCsoundViewController<CsoundObjCompletionListener> {
-    IBOutlet UIButton* mValueButton;
-    IBOutlet UIButton* mEventButton;
+    IBOutlet UIButton *mValueButton;
+    IBOutlet UIButton *mEventButton;
     
-    IBOutlet UISlider* mDurationSlider;
+    IBOutlet UISlider *mDurationSlider;
 
-    IBOutlet UISlider* mAttackSlider;
-    IBOutlet UISlider* mDecaySlider;
-    IBOutlet UISlider* mSustainSlider;
-    IBOutlet UISlider* mReleaseSlider;
-    IBOutlet UISwitch* mSwitch;
+    IBOutlet UISlider *mAttackSlider;
+    IBOutlet UISlider *mDecaySlider;
+    IBOutlet UISlider *mSustainSlider;
+    IBOutlet UISlider *mReleaseSlider;
+    IBOutlet UISwitch *mSwitch;
 }
 
 -(IBAction) toggleOnOff:(id)component;

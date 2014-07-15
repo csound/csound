@@ -44,7 +44,7 @@
     
 }
 
--(void)setup:(CsoundObj*)csoundObj {
+-(void)setup:(CsoundObj *)csoundObj {
     
 }
 

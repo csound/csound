@@ -30,11 +30,11 @@
 @synthesize channelName = mChannelName;
 
 -(void)updateValueCache:(id)sender {
-    cachedValue = ((UISlider*)sender).value;
+    cachedValue = ((UISlider *)sender).value;
     self.cacheDirty = YES;
 }
 
--(CachedSlider*)init:(UISlider*)slider channelName:(NSString*)channelName {
+-(CachedSlider *)init:(UISlider *)slider channelName:(NSString *)channelName {
     if (self = [super init]) {
         mSlider = slider;
         self.channelName = channelName;
@@ -42,7 +42,7 @@
     return self;
 }
 
--(void)setup:(CsoundObj*)csoundObj {
+-(void)setup:(CsoundObj *)csoundObj {
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
     cachedValue = mSlider.value;
