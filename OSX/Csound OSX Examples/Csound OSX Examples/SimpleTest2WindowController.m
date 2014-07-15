@@ -44,6 +44,7 @@
         [csound startCsound:tempFile];
         
 	} else {
+        NSLog(@"try to stop csound");
         [csound stopCsound];
     }
 }
