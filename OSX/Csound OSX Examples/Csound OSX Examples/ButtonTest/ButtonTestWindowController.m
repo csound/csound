@@ -44,7 +44,6 @@
 
 -(IBAction) eventButtonHit:(id)sender {
     NSString *score = [NSString stringWithFormat:@"i2 0 %f", [_durationSlider floatValue]];
-    NSLog(score);
     [csound sendScore:score];
 }
 

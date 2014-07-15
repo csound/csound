@@ -43,18 +43,12 @@
 #pragma mark CsoundObjCompletionListener
 
 -(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-    NSLog(@"Got here1");
     self.toggleOnOffButton.title = @"Stop";
 }
 
 -(void)csoundObjComplete:(CsoundObj *)csoundObj {
-    NSLog(@"Got here");
+    NSLog(@"Csound finished");
 	self.toggleOnOffButton.title = @"Start";
 }
-- (IBAction)sliderMoved:(id)sender {
-    //    *channelPtr = cachedValue;
-    //    self.cacheDirty = NO;
-}
-
 
 @end
