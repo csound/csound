@@ -22,7 +22,7 @@
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="283" y="348" width="480" height="292"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1178"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1578"/>
             <view key="contentView" id="NrR-Z6-1pD">
                 <rect key="frame" x="0.0" y="0.0" width="480" height="292"/>
                 <autoresizingMask key="autoresizingMask"/>
@@ -76,29 +76,29 @@
                         </textFieldCell>
                     </textField>
                     <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fKq-dp-1tt">
-                        <rect key="frame" x="89" y="185" width="373" height="20"/>
+                        <rect key="frame" x="89" y="185" width="373" height="21"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <sliderCell key="cell" state="on" alignment="left" minValue="0.5" maxValue="4" doubleValue="1.5" tickMarkPosition="above" sliderType="linear" id="sqs-Wv-QdQ"/>
+                        <sliderCell key="cell" continuous="YES" state="on" alignment="left" minValue="0.5" maxValue="4" doubleValue="1.5" tickMarkPosition="above" sliderType="linear" id="sqs-Wv-QdQ"/>
                     </slider>
                     <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IkN-EP-mFE">
-                        <rect key="frame" x="20" y="129" width="442" height="20"/>
+                        <rect key="frame" x="20" y="129" width="442" height="21"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <sliderCell key="cell" state="on" alignment="left" maxValue="2" doubleValue="0.050000000000000003" tickMarkPosition="above" sliderType="linear" id="VMv-nb-d3p"/>
+                        <sliderCell key="cell" continuous="YES" state="on" alignment="left" maxValue="2" doubleValue="0.050000000000000003" tickMarkPosition="above" sliderType="linear" id="VMv-nb-d3p"/>
                     </slider>
                     <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="1lw-oa-hSW">
-                        <rect key="frame" x="20" y="98" width="442" height="20"/>
+                        <rect key="frame" x="20" y="98" width="442" height="21"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <sliderCell key="cell" state="on" alignment="left" minValue="0.5" maxValue="2" doubleValue="0.5" tickMarkPosition="above" sliderType="linear" id="C64-pp-J7b"/>
+                        <sliderCell key="cell" continuous="YES" state="on" alignment="left" minValue="0.5" maxValue="2" doubleValue="0.5" tickMarkPosition="above" sliderType="linear" id="C64-pp-J7b"/>
                     </slider>
                     <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gXz-dQ-d0D">
-                        <rect key="frame" x="20" y="64" width="442" height="20"/>
+                        <rect key="frame" x="20" y="64" width="442" height="21"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <sliderCell key="cell" state="on" alignment="left" maxValue="1" doubleValue="0.69999999999999996" tickMarkPosition="above" sliderType="linear" id="WY2-vj-tUZ"/>
+                        <sliderCell key="cell" continuous="YES" state="on" alignment="left" maxValue="1" doubleValue="0.69999999999999996" tickMarkPosition="above" sliderType="linear" id="WY2-vj-tUZ"/>
                     </slider>
                     <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EVy-7p-itT">
-                        <rect key="frame" x="20" y="32" width="442" height="20"/>
+                        <rect key="frame" x="20" y="32" width="442" height="21"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <sliderCell key="cell" state="on" alignment="left" maxValue="4" doubleValue="2" tickMarkPosition="above" sliderType="linear" id="qBh-zL-AmX"/>
+                        <sliderCell key="cell" continuous="YES" state="on" alignment="left" maxValue="4" doubleValue="2" tickMarkPosition="above" sliderType="linear" id="qBh-zL-AmX"/>
                     </slider>
                 </subviews>
             </view>
