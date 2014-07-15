@@ -30,8 +30,8 @@
 
 - (instancetype)initWithCsoundObj:(CsoundObj *)csound;
 
--(id<CsoundValueCacheable>)enableAccelerometer;
--(id<CsoundValueCacheable>)enableGyroscope;
--(id<CsoundValueCacheable>)enableAttitude;
+-(void)enableAccelerometer;
+-(void)enableGyroscope;
+-(void)enableAttitude;
 
 @end

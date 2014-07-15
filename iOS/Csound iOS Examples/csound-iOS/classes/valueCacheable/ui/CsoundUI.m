@@ -29,6 +29,8 @@
 #import "CachedButton.h"
 #import "CachedSwitch.h"
 
+//AURE #import "CSDSlider.h"
+
 @interface CsoundUI () {
     CsoundObj *csoundObj;
 }
@@ -44,33 +46,36 @@
     return self;
 }
 
--(id<CsoundValueCacheable>)addSwitch:(UISwitch *)uiSwitch
-                      forChannelName:(NSString *)channelName
+-(void)addSwitch:(UISwitch *)uiSwitch
+  forChannelName:(NSString *)channelName
 {
     CachedSwitch* cachedSwitch = [[CachedSwitch alloc] init:uiSwitch
                                                 channelName:channelName];
     [csoundObj.valuesCache addObject:cachedSwitch];
-	
-    return cachedSwitch;
 }
 
--(id<CsoundValueCacheable>)addSlider:(UISlider*)uiSlider
-                      forChannelName:(NSString *)channelName
+-(void)addSlider:(UISlider*)uiSlider
+  forChannelName:(NSString *)channelName
 {
     CachedSlider* cachedSlider = [[CachedSlider alloc] init:uiSlider
                                                 channelName:channelName];
     [csoundObj.valuesCache addObject:cachedSlider];
-    
-    return cachedSlider;
 }
+// AURE
+//-(void)addSlider:(UISlider*)uiSlider
+//  forChannelName:(NSString *)channelName
+//{
+//    CSDSlider* csdSlider = [[CSDSlider alloc] init:uiSlider
+//                                       channelName:channelName];
+//    [csoundObj.valuesCache addObject:csdSlider];
+//}
 
--(id<CsoundValueCacheable>)addButton:(UIButton *)uiButton
-                      forChannelName:(NSString *)channelName
+-(void)addButton:(UIButton *)uiButton
+  forChannelName:(NSString *)channelName
 {
     CachedButton* cachedButton = [[CachedButton alloc] init:uiButton
                                                 channelName:channelName];
     [csoundObj.valuesCache addObject:cachedButton];
-    return cachedButton;
 }
 
 @end
