@@ -33,7 +33,7 @@
 	BOOL tableLoaded;
 	float cachedValue;
 	float* channelPtr;
-	NSString* mChannelName;
+	NSString *mChannelName;
 	CGFloat lastY;
 	NSInteger ksmps, sr;
 	CsoundObj *csObj;

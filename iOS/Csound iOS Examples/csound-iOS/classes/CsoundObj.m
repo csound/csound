@@ -37,7 +37,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
 @interface CsoundObj()
 
--(void)runCsound:(NSString*)csdFilePath;
+-(void)runCsound:(NSString *)csdFilePath;
 -(void)runCsoundToDisk:(NSArray*)paths;
 
 @end
@@ -132,7 +132,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
     return mCsData.aunit;
 }
 
--(float*)getInputChannelPtr:(NSString*)channelName channelType:(controlChannelType)channelType
+-(float*)getInputChannelPtr:(NSString *)channelName channelType:(controlChannelType)channelType
 {
     float *value;
     csoundGetChannelPtr(mCsData.cs, &value, [channelName cStringUsingEncoding:NSASCIIStringEncoding],
@@ -276,7 +276,7 @@ OSStatus  Csound_Render(void *inRefCon,
     }
 }
 
--(void)startCsound:(NSString*)csdFilePath {
+-(void)startCsound:(NSString *)csdFilePath {
 	mCsData.shouldRecord = false;
     [self performSelectorInBackground:@selector(runCsound:) withObject:csdFilePath];
 }
@@ -287,7 +287,7 @@ OSStatus  Csound_Render(void *inRefCon,
 	[self performSelectorInBackground:@selector(runCsound:) withObject:csdFilePath];
 }
 
--(void)startCsoundToDisk:(NSString*)csdFilePath outputFile:(NSString*)outputFile {
+-(void)startCsoundToDisk:(NSString *)csdFilePath outputFile:(NSString *)outputFile {
 	mCsData.shouldRecord = false;
     
     [self performSelectorInBackground:@selector(runCsoundToDisk:)
@@ -403,7 +403,7 @@ OSStatus  Csound_Render(void *inRefCon,
     }
 }
 
--(void)runCsound:(NSString*)csdFilePath {
+-(void)runCsound:(NSString *)csdFilePath {
 	
     @autoreleasepool {
 		CSOUND *cs;

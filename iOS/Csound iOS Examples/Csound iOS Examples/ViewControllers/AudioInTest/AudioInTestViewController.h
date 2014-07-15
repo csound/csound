@@ -28,12 +28,12 @@
 
 @interface AudioInTestViewController  : BaseCsoundViewController<CsoundObjCompletionListener>
 
-@property (weak, nonatomic) IBOutlet UISlider* mLeftDelayTimeSlider;
-@property (weak, nonatomic) IBOutlet UISlider* mLeftFeedbackSlider;
-@property (weak, nonatomic) IBOutlet UISlider* mRightDelayTimeSlider;
-@property (weak, nonatomic) IBOutlet UISlider* mRightFeedbackSlider;
+@property (weak, nonatomic) IBOutlet UISlider *mLeftDelayTimeSlider;
+@property (weak, nonatomic) IBOutlet UISlider *mLeftFeedbackSlider;
+@property (weak, nonatomic) IBOutlet UISlider *mRightDelayTimeSlider;
+@property (weak, nonatomic) IBOutlet UISlider *mRightFeedbackSlider;
     
-@property (weak, nonatomic) IBOutlet UISwitch* mSwitch;
+@property (weak, nonatomic) IBOutlet UISwitch *mSwitch;
 
 
 -(IBAction) toggleOnOff:(id)component;

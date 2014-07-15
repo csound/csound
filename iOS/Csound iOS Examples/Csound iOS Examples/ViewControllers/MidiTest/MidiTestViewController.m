@@ -52,7 +52,7 @@
 }
 
 -(IBAction) toggleOnOff:(id)component {
-	UISwitch* uiswitch = (UISwitch*)component;
+	UISwitch *uiswitch = (UISwitch *)component;
 	NSLog(@"Status: %d", [uiswitch isOn]);
     
 	if(uiswitch.on) {

@@ -27,11 +27,11 @@
 
 @implementation CachedGyroscope
 
-static NSString* CS_GYRO_X = @"gyroX";
-static NSString* CS_GYRO_Y = @"gyroY";
-static NSString* CS_GYRO_Z = @"gyroZ";
+static NSString *CS_GYRO_X = @"gyroX";
+static NSString *CS_GYRO_Y = @"gyroY";
+static NSString *CS_GYRO_Z = @"gyroZ";
 
--(id)init:(CMMotionManager*)manager {
+-(id)init:(CMMotionManager *)manager {
     if (self = [super init]) {
         mManager = manager;
     }

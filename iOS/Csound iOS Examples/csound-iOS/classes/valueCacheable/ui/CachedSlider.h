@@ -30,12 +30,12 @@
 @interface CachedSlider : BaseValueCacheable {
     float cachedValue;
     float* channelPtr;
-    NSString* mChannelName;
-    UISlider* mSlider;
+    NSString *mChannelName;
+    UISlider *mSlider;
 }
 
-@property (nonatomic, strong) NSString* channelName;
+@property (nonatomic, strong) NSString *channelName;
 
--(CachedSlider*)init:(UISlider*)slider channelName:(NSString*)channelName;
+-(CachedSlider *)init:(UISlider*)slider channelName:(NSString *)channelName;
 
 @end
