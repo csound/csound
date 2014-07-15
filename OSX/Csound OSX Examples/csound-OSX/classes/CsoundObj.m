@@ -412,7 +412,7 @@ OSStatus  Csound_Render(void *inRefCon,
         csoundSetMessageCallback(cs, messageCallback);
         csoundSetHostData(cs, (__bridge void *)(self));
         
-        //AURE    if (mMidiInEnabled) {
+        //    if (mMidiInEnabled) {
         //        [CsoundMIDI setMidiInCallbacks:cs];
         //    }
         

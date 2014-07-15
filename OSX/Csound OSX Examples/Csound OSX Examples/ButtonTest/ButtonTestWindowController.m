@@ -61,8 +61,6 @@
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
         
-        //AURE[csoundUI addB
-        
         [csoundUI addSlider:_durationSlider forChannelName:@"duration"];
         [csoundUI addSlider:_attackSlider forChannelName:@"attack"];
         [csoundUI addSlider:_decaySlider forChannelName:@"decay"];
