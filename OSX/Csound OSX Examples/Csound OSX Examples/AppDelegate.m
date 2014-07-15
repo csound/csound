@@ -25,9 +25,15 @@
 
 #import "AppDelegate.h"
 #import "ButtonTestWindowController.h"
+#import "CsoundHaiku4WindowController.h"
+#import "SimpleTest1WindowController.h"
+#import "SimpleTest2WindowController.h"
 
 @interface AppDelegate() {
-    ButtonTestWindowController *buttonTestVC;
+    ButtonTestWindowController *buttonTestWC;
+    CsoundHaiku4WindowController *csoundHaiku4WC;
+    SimpleTest1WindowController *simpleTest1WC;
+    SimpleTest2WindowController *simpleTest2WC;
 }
 
 @end
@@ -39,8 +45,21 @@
     // Insert code here to initialize your application
 }
 - (IBAction)loadButtonTest:(id)sender {
-    buttonTestVC = [[ButtonTestWindowController alloc] initWithWindowNibName:@"ButtonTestWindowController"];
-    [buttonTestVC window];
+    buttonTestWC = [[ButtonTestWindowController alloc] initWithWindowNibName:@"ButtonTestWindowController"];
+    [buttonTestWC window];
 }
+- (IBAction)loadCsoundHaiku4:(id)sender {
+    csoundHaiku4WC = [[CsoundHaiku4WindowController alloc] initWithWindowNibName:@"CsoundHaiku4WindowController"];
+    [csoundHaiku4WC window];
+}
+- (IBAction)loadSimpleTest1:(id)sender {
+    simpleTest1WC = [[SimpleTest1WindowController alloc] initWithWindowNibName:@"SimpleTest1WindowController"];
+    [simpleTest1WC window];
+}
+- (IBAction)loadSimpleTest2:(id)sender {
+    simpleTest2WC = [[SimpleTest2WindowController alloc] initWithWindowNibName:@"SimpleTest2WindowController"];
+    [simpleTest2WC window];
+}
+
 
 @end

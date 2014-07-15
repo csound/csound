@@ -23,9 +23,9 @@ endin
 
 instr 2
 
-print p3
+;print p3
 
-iattack chnget "attack" 
+iattack chnget "attack"
 idecay chnget "decay" 
 isustain chnget "sustain" 
 irelease chnget "release" 
