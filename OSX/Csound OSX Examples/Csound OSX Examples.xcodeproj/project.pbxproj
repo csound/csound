@@ -28,6 +28,11 @@
 		C41F0B851973A82B00997479 /* CsoundUI.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0B831973A82B00997479 /* CsoundUI.m */; };
 		C41F0B871973AB5500997479 /* IV.csd in Resources */ = {isa = PBXBuildFile; fileRef = C41F0B861973AB5500997479 /* IV.csd */; };
 		C41F0B891973AB5C00997479 /* test.csd in Resources */ = {isa = PBXBuildFile; fileRef = C41F0B881973AB5C00997479 /* test.csd */; };
+		C4F2B9CB19747A78006EE12F /* SimpleTest2Controller.m in Sources */ = {isa = PBXBuildFile; fileRef = C4F2B9CA19747A78006EE12F /* SimpleTest2Controller.m */; };
+		C4F2B9D019749CBD006EE12F /* test2.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4F2B9CF19749CBD006EE12F /* test2.csd */; };
+		C4F2B9D81974A2C3006EE12F /* buttonTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4F2B9D71974A2C3006EE12F /* buttonTest.csd */; };
+		C4F2B9DE1974AB7B006EE12F /* ButtonTestWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4F2B9DC1974AB7B006EE12F /* ButtonTestWindowController.m */; };
+		C4F2B9DF1974AB7B006EE12F /* ButtonTestWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C4F2B9DD1974AB7B006EE12F /* ButtonTestWindowController.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -67,6 +72,13 @@
 		C41F0B831973A82B00997479 /* CsoundUI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CsoundUI.m; path = valueCacheable/ui/CsoundUI.m; sourceTree = "<group>"; };
 		C41F0B861973AB5500997479 /* IV.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = IV.csd; path = CsoundHaiku4/IV.csd; sourceTree = "<group>"; };
 		C41F0B881973AB5C00997479 /* test.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test.csd; path = SimpleTest1/test.csd; sourceTree = "<group>"; };
+		C4F2B9C919747A78006EE12F /* SimpleTest2Controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SimpleTest2Controller.h; path = SimpleTest2/SimpleTest2Controller.h; sourceTree = "<group>"; };
+		C4F2B9CA19747A78006EE12F /* SimpleTest2Controller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SimpleTest2Controller.m; path = SimpleTest2/SimpleTest2Controller.m; sourceTree = "<group>"; };
+		C4F2B9CF19749CBD006EE12F /* test2.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test2.csd; path = SimpleTest2/test2.csd; sourceTree = "<group>"; };
+		C4F2B9D71974A2C3006EE12F /* buttonTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = buttonTest.csd; path = ButtonTest/buttonTest.csd; sourceTree = "<group>"; };
+		C4F2B9DB1974AB7B006EE12F /* ButtonTestWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ButtonTestWindowController.h; path = ButtonTest/ButtonTestWindowController.h; sourceTree = "<group>"; };
+		C4F2B9DC1974AB7B006EE12F /* ButtonTestWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ButtonTestWindowController.m; path = ButtonTest/ButtonTestWindowController.m; sourceTree = "<group>"; };
+		C4F2B9DD1974AB7B006EE12F /* ButtonTestWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = ButtonTestWindowController.xib; path = ButtonTest/ButtonTestWindowController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -207,8 +219,10 @@
 		C41F0B761973A0CE00997479 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				C4F2B9D41974A297006EE12F /* ButtonTest */,
 				C41F0B6F19739ADE00997479 /* CsoundHaiku4 */,
 				C41F0B751973A0B200997479 /* SimpleTest1 */,
+				C4F2B9CC19747A7E006EE12F /* SimpleTest2 */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -223,6 +237,27 @@
 			);
 			name = "User Interface";
 			path = ..;
+			sourceTree = "<group>";
+		};
+		C4F2B9CC19747A7E006EE12F /* SimpleTest2 */ = {
+			isa = PBXGroup;
+			children = (
+				C4F2B9CF19749CBD006EE12F /* test2.csd */,
+				C4F2B9C919747A78006EE12F /* SimpleTest2Controller.h */,
+				C4F2B9CA19747A78006EE12F /* SimpleTest2Controller.m */,
+			);
+			name = SimpleTest2;
+			sourceTree = "<group>";
+		};
+		C4F2B9D41974A297006EE12F /* ButtonTest */ = {
+			isa = PBXGroup;
+			children = (
+				C4F2B9D71974A2C3006EE12F /* buttonTest.csd */,
+				C4F2B9DB1974AB7B006EE12F /* ButtonTestWindowController.h */,
+				C4F2B9DC1974AB7B006EE12F /* ButtonTestWindowController.m */,
+				C4F2B9DD1974AB7B006EE12F /* ButtonTestWindowController.xib */,
+			);
+			name = ButtonTest;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -276,13 +311,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C4F2B9D81974A2C3006EE12F /* buttonTest.csd in Resources */,
 				C41F0B891973AB5C00997479 /* test.csd in Resources */,
+				C4F2B9DF1974AB7B006EE12F /* ButtonTestWindowController.xib in Resources */,
 				C41F0ADC19738B8F00997479 /* InfoPlist.strings in Resources */,
 				C41F0AEA19738B8F00997479 /* Images.xcassets in Resources */,
 				C41F0B611973913D00997479 /* LICENSE.TXT in Resources */,
 				C41F0AE219738B8F00997479 /* Credits.rtf in Resources */,
 				C41F0AE819738B8F00997479 /* MainMenu.xib in Resources */,
 				C41F0B871973AB5500997479 /* IV.csd in Resources */,
+				C4F2B9D019749CBD006EE12F /* test2.csd in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -296,11 +334,13 @@
 				C41F0AE519738B8F00997479 /* AppDelegate.m in Sources */,
 				C41F0B5F1973913D00997479 /* CsoundObj.m in Sources */,
 				C41F0ADE19738B8F00997479 /* main.m in Sources */,
+				C4F2B9CB19747A78006EE12F /* SimpleTest2Controller.m in Sources */,
 				C41F0B841973A82B00997479 /* CachedSlider.m in Sources */,
 				C41F0B601973913D00997479 /* BaseValueCacheable.m in Sources */,
 				C41F0B6E19739A4B00997479 /* CsoundHaiku4Controller.m in Sources */,
 				C41F0B851973A82B00997479 /* CsoundUI.m in Sources */,
 				C41F0B741973A09E00997479 /* SimpleTest1Controller.m in Sources */,
+				C4F2B9DE1974AB7B006EE12F /* ButtonTestWindowController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -479,6 +519,7 @@
 				C41F0B0119738B8F00997479 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
