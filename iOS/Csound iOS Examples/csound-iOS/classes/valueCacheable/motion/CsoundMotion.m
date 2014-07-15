@@ -49,11 +49,10 @@
     return self;
 }
 
--(id<CsoundValueCacheable>)enableAccelerometer {
+- (void)enableAccelerometer {
     
     if (!mMotionManager.accelerometerAvailable) {
         NSLog(@"Accelerometer not available");
-        return nil;
     }
     
     CachedAccelerometer* accelerometer = [[CachedAccelerometer alloc] init:mMotionManager];
@@ -63,15 +62,12 @@
     mMotionManager.accelerometerUpdateInterval = 1 / 100.0; // 100 hz
     
     [mMotionManager startAccelerometerUpdates];
-	
-	return accelerometer;
 }
 
--(id<CsoundValueCacheable>)enableGyroscope {
+- (void)enableGyroscope {
     
     if (!mMotionManager.isGyroAvailable) {
         NSLog(@"Gyroscope not available");
-        return nil;
     }
     
     CachedGyroscope* gyro = [[CachedGyroscope alloc] init:mMotionManager];
@@ -80,14 +76,11 @@
     mMotionManager.gyroUpdateInterval = 1 / 100.0; // 100 hz
     
     [mMotionManager startGyroUpdates];
-	
-	return gyro;
 }
 
--(id<CsoundValueCacheable>)enableAttitude {
+- (void)enableAttitude {
     if (!mMotionManager.isDeviceMotionAvailable) {
         NSLog(@"Attitude not available");
-        return nil;
     }
     
     CachedAttitude* attitude = [[CachedAttitude alloc] init:mMotionManager];
@@ -96,8 +89,6 @@
     mMotionManager.deviceMotionUpdateInterval = 1 / 100.0; // 100hz
     
     [mMotionManager startDeviceMotionUpdates];
-	
-	return attitude;
 }
 
 -(void)csoundObjDidStart:(CsoundObj *)csoundObj {
