@@ -23,8 +23,13 @@
 
 */
 
+#import <AudioToolbox/ExtendedAudioFile.h>
+#import <AudioToolbox/AudioConverter.h>
+#import <AudioToolbox/AudioServices.h>
 #import <AudioUnit/AudioUnit.h>
-#include "csound.h"
+#import <AVFoundation/AVFoundation.h>
+#import <Foundation/Foundation.h>
+#import "csound.h"
 
 typedef struct csdata_ {
 	CSOUND *cs;
@@ -36,7 +41,7 @@ typedef struct csdata_ {
 	bool shouldRecord;
 	bool shouldMute;
     bool useAudioInput;
-//AURE	ExtAudioFileRef file;
+	ExtAudioFileRef file;
 	AudioUnit *aunit;
      __unsafe_unretained NSMutableArray *valuesCache;
 } csdata;
@@ -79,7 +84,7 @@ typedef struct {
 
 #pragma mark -
 
--(void)sendScore:(NSString*)score;
+-(void)sendScore:(NSString *)score;
 
 #pragma mark -
 
@@ -89,9 +94,9 @@ typedef struct {
 
 -(void)startCsound:(NSString *)csdFilePath;
 -(void)startCsound:(NSString *)csdFilePath recordToURL:(NSURL *)outputURL;
--(void)startCsoundToDisk:(NSString *)csdFilePath outputFile:(NSString*)outputFile;
-//AURE -(void)recordToURL:(NSURL *)outputURL;
-//AURE -(void)stopRecording;
+-(void)startCsoundToDisk:(NSString *)csdFilePath outputFile:(NSString *)outputFile;
+-(void)recordToURL:(NSURL *)outputURL;
+-(void)stopRecording;
 -(void)stopCsound;
 -(void)muteCsound;
 -(void)unmuteCsound;
