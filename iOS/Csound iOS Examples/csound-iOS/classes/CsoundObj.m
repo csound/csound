@@ -175,8 +175,6 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 
 #pragma mark Csound Code
 
-
-
 OSStatus  Csound_Render(void *inRefCon,
                         AudioUnitRenderActionFlags *ioActionFlags,
                         const AudioTimeStamp *inTimeStamp,
@@ -255,14 +253,14 @@ OSStatus  Csound_Render(void *inRefCon,
 
 
 -(void)handleInterruption:(NSNotification*)notification {
-   
+    
     NSDictionary *interuptionDict = notification.userInfo;
     NSUInteger interuptionType = (NSUInteger)[interuptionDict
                                               valueForKey:AVAudioSessionInterruptionTypeKey];
     
-    NSError* error;
+    NSError *error;
     BOOL success;
-   
+    
     if (mCsData.running) {
         if (interuptionType == AVAudioSessionInterruptionTypeBegan) {
             AudioOutputUnitStop(*(mCsData.aunit));
@@ -362,20 +360,20 @@ OSStatus  Csound_Render(void *inRefCon,
             (char*)[[paths objectAtIndex:0] cStringUsingEncoding:NSASCIIStringEncoding], "-o", (char*)[[paths objectAtIndex:1] cStringUsingEncoding:NSASCIIStringEncoding]};
         int ret = csoundCompile(cs, 4, argv);
         
-        /* SETUP VALUE CACHEABLE */
+        // SETUP VALUE CACHEABLE
         
         for (int i = 0; i < _valuesCache.count; i++) {
             id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
             [cachedValue setup:self];
         }
         
-        /* NOTIFY COMPLETION LISTENERS*/
+        // NOTIFY COMPLETION LISTENERS
         
         for (id<CsoundObjCompletionListener> listener in completionListeners) {
             [listener csoundObjDidStart:self];
         }
         
-        /* SET VALUES FROM CACHE */
+        // SET VALUES FROM CACHE
         for (int i = 0; i < _valuesCache.count; i++) {
 			id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
 			[cachedValue updateValuesToCsound];
@@ -388,14 +386,14 @@ OSStatus  Csound_Render(void *inRefCon,
             csoundDestroy(cs);
         }
         
-        /* CLEANUP VALUE CACHEABLE */
+        // CLEANUP VALUE CACHEABLE
         
         for (int i = 0; i < _valuesCache.count; i++) {
             id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
             [cachedValue cleanup];
         }
         
-        /* NOTIFY COMPLETION LISTENERS*/
+        // NOTIFY COMPLETION LISTENERS
         
         for (id<CsoundObjCompletionListener> listener in completionListeners) {
             [listener csoundObjComplete:self];
@@ -436,21 +434,21 @@ OSStatus  Csound_Render(void *inRefCon,
             AudioStreamBasicDescription format;
             OSStatus err;
             
-            /* SETUP VALUE CACHEABLE */
+            // SETUP VALUE CACHEABLE
             
             for (int i = 0; i < _valuesCache.count; i++) {
                 id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
                 [cachedValue setup:self];
             }
-           
+            
             
             /* Audio Session handler */
             AVAudioSession* session = [AVAudioSession sharedInstance];
-           
+            
             if (_useAudioInput) {
                 success = [session setCategory:AVAudioSessionCategoryPlayAndRecord
-                          withOptions:(AVAudioSessionCategoryOptionMixWithOthers |
-                                       AVAudioSessionCategoryOptionDefaultToSpeaker)
+                                   withOptions:(AVAudioSessionCategoryOptionMixWithOthers |
+                                                AVAudioSessionCategoryOptionDefaultToSpeaker)
                                          error:&error];
             } else {
                 success = [session setCategory:AVAudioSessionCategoryPlayback
@@ -459,7 +457,7 @@ OSStatus  Csound_Render(void *inRefCon,
             }
             
             
-//            success = [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
+            //            success = [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
             
             Float32 preferredBufferSize = mCsData.bufframes / csoundGetSr(cs);
             [session setPreferredIOBufferDuration:preferredBufferSize error:&error];
@@ -474,14 +472,13 @@ OSStatus  Csound_Render(void *inRefCon,
                                                      selector:@selector(handleInterruption:)
                                                          name:AVAudioSessionInterruptionNotification
                                                        object:session];
-             
+            
 			AudioComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_RemoteIO, kAudioUnitManufacturer_Apple, 0, 0};
 			AudioComponent HALOutput = AudioComponentFindNext(NULL, &cd);
 			
 			AudioUnit csAUHAL;
 			err = AudioComponentInstanceNew(HALOutput, &csAUHAL);
             
-			
 			if(!err) {
                 
                 mCsData.aunit = &csAUHAL;
@@ -580,20 +577,19 @@ OSStatus  Csound_Render(void *inRefCon,
 		
         mCsData.running = false;
         
-        /* CLEANUP VALUE CACHEABLE */
+        // CLEANUP VALUE CACHEABLE
         
         for (int i = 0; i < _valuesCache.count; i++) {
             id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
             [cachedValue cleanup];
         }
         
-        /* NOTIFY COMPLETION LISTENERS*/
+        // NOTIFY COMPLETION LISTENERS
         
         for (id<CsoundObjCompletionListener> listener in completionListeners) {
             [listener csoundObjComplete:self];
         }
 	}
 }
-
 
 @end
