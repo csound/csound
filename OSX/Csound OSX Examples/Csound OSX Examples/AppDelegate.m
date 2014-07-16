@@ -25,12 +25,14 @@
 
 #import "AppDelegate.h"
 #import "ButtonTestWindowController.h"
+#import "ConsoleOutputWindowController.h"
 #import "CsoundHaiku4WindowController.h"
 #import "SimpleTest1WindowController.h"
 #import "SimpleTest2WindowController.h"
 
 @interface AppDelegate() {
     ButtonTestWindowController *buttonTestWC;
+    ConsoleOutputWindowController *consoleOutputWC;
     CsoundHaiku4WindowController *csoundHaiku4WC;
     SimpleTest1WindowController *simpleTest1WC;
     SimpleTest2WindowController *simpleTest2WC;
@@ -47,6 +49,10 @@
 - (IBAction)loadButtonTest:(id)sender {
     buttonTestWC = [[ButtonTestWindowController alloc] initWithWindowNibName:@"ButtonTestWindowController"];
     [buttonTestWC window];
+}
+- (IBAction)loadConsoleOutput:(id)sender {
+    consoleOutputWC = [[ConsoleOutputWindowController alloc] initWithWindowNibName:@"ConsoleOutputWindowController"];
+    [consoleOutputWC window];
 }
 - (IBAction)loadCsoundHaiku4:(id)sender {
     csoundHaiku4WC = [[CsoundHaiku4WindowController alloc] initWithWindowNibName:@"CsoundHaiku4WindowController"];

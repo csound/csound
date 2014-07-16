@@ -26,6 +26,9 @@
 		C41F0B851973A82B00997479 /* CsoundUI.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0B831973A82B00997479 /* CsoundUI.m */; };
 		C41F0B871973AB5500997479 /* IV.csd in Resources */ = {isa = PBXBuildFile; fileRef = C41F0B861973AB5500997479 /* IV.csd */; };
 		C41F0B891973AB5C00997479 /* test.csd in Resources */ = {isa = PBXBuildFile; fileRef = C41F0B881973AB5C00997479 /* test.csd */; };
+		C4EBCDE519761D6A00A7C7C1 /* ConsoleOutputWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4EBCDE319761D6A00A7C7C1 /* ConsoleOutputWindowController.m */; };
+		C4EBCDE619761D6A00A7C7C1 /* ConsoleOutputWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDE419761D6A00A7C7C1 /* ConsoleOutputWindowController.xib */; };
+		C4EBCDEB1976504200A7C7C1 /* consoleoutput.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDEA1976504200A7C7C1 /* consoleoutput.csd */; };
 		C4F2B9D019749CBD006EE12F /* test2.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4F2B9CF19749CBD006EE12F /* test2.csd */; };
 		C4F2B9D81974A2C3006EE12F /* buttonTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4F2B9D71974A2C3006EE12F /* buttonTest.csd */; };
 		C4F2B9DE1974AB7B006EE12F /* ButtonTestWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4F2B9DC1974AB7B006EE12F /* ButtonTestWindowController.m */; };
@@ -72,6 +75,10 @@
 		C41F0B831973A82B00997479 /* CsoundUI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CsoundUI.m; path = valueCacheable/ui/CsoundUI.m; sourceTree = "<group>"; };
 		C41F0B861973AB5500997479 /* IV.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = IV.csd; path = CsoundHaiku4/IV.csd; sourceTree = "<group>"; };
 		C41F0B881973AB5C00997479 /* test.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test.csd; path = SimpleTest1/test.csd; sourceTree = "<group>"; };
+		C4EBCDE219761D6A00A7C7C1 /* ConsoleOutputWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConsoleOutputWindowController.h; path = ConsoleOutput/ConsoleOutputWindowController.h; sourceTree = "<group>"; };
+		C4EBCDE319761D6A00A7C7C1 /* ConsoleOutputWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ConsoleOutputWindowController.m; path = ConsoleOutput/ConsoleOutputWindowController.m; sourceTree = "<group>"; };
+		C4EBCDE419761D6A00A7C7C1 /* ConsoleOutputWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = ConsoleOutputWindowController.xib; path = ConsoleOutput/ConsoleOutputWindowController.xib; sourceTree = "<group>"; };
+		C4EBCDEA1976504200A7C7C1 /* consoleoutput.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = consoleoutput.csd; path = ConsoleOutput/consoleoutput.csd; sourceTree = "<group>"; };
 		C4F2B9CF19749CBD006EE12F /* test2.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test2.csd; path = SimpleTest2/test2.csd; sourceTree = "<group>"; };
 		C4F2B9D71974A2C3006EE12F /* buttonTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = buttonTest.csd; path = ButtonTest/buttonTest.csd; sourceTree = "<group>"; };
 		C4F2B9DB1974AB7B006EE12F /* ButtonTestWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ButtonTestWindowController.h; path = ButtonTest/ButtonTestWindowController.h; sourceTree = "<group>"; };
@@ -231,6 +238,7 @@
 			isa = PBXGroup;
 			children = (
 				C4F2B9D41974A297006EE12F /* ButtonTest */,
+				C4EBCDE719761D7200A7C7C1 /* ConsoleOutput */,
 				C41F0B6F19739ADE00997479 /* CsoundHaiku4 */,
 				C41F0B751973A0B200997479 /* SimpleTest1 */,
 				C4F2B9CC19747A7E006EE12F /* SimpleTest2 */,
@@ -250,6 +258,17 @@
 			);
 			name = "User Interface";
 			path = ..;
+			sourceTree = "<group>";
+		};
+		C4EBCDE719761D7200A7C7C1 /* ConsoleOutput */ = {
+			isa = PBXGroup;
+			children = (
+				C4EBCDEA1976504200A7C7C1 /* consoleoutput.csd */,
+				C4EBCDE219761D6A00A7C7C1 /* ConsoleOutputWindowController.h */,
+				C4EBCDE319761D6A00A7C7C1 /* ConsoleOutputWindowController.m */,
+				C4EBCDE419761D6A00A7C7C1 /* ConsoleOutputWindowController.xib */,
+			);
+			name = ConsoleOutput;
 			sourceTree = "<group>";
 		};
 		C4F2B9CC19747A7E006EE12F /* SimpleTest2 */ = {
@@ -335,8 +354,10 @@
 				C41F0B611973913D00997479 /* LICENSE.TXT in Resources */,
 				C4F2B9EE1974C6A7006EE12F /* SimpleTest2WindowController.xib in Resources */,
 				C41F0AE219738B8F00997479 /* Credits.rtf in Resources */,
+				C4EBCDE619761D6A00A7C7C1 /* ConsoleOutputWindowController.xib in Resources */,
 				C41F0AE819738B8F00997479 /* MainMenu.xib in Resources */,
 				C41F0B871973AB5500997479 /* IV.csd in Resources */,
+				C4EBCDEB1976504200A7C7C1 /* consoleoutput.csd in Resources */,
 				C4F2B9D019749CBD006EE12F /* test2.csd in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -354,6 +375,7 @@
 				C41F0ADE19738B8F00997479 /* main.m in Sources */,
 				C4F2B9E31974C476006EE12F /* CsoundHaiku4WindowController.m in Sources */,
 				C41F0B841973A82B00997479 /* CachedSlider.m in Sources */,
+				C4EBCDE519761D6A00A7C7C1 /* ConsoleOutputWindowController.m in Sources */,
 				C41F0B601973913D00997479 /* BaseValueCacheable.m in Sources */,
 				C4F2B9E81974C693006EE12F /* SimpleTest1WindowController.m in Sources */,
 				C4F2B9F41974DA7F006EE12F /* CachedButton.m in Sources */,
