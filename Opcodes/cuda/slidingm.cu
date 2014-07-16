@@ -2,7 +2,7 @@
 /*
     slindingm.cu:
 
-    Copyright (C) 2014 Russell Bradford, Victoi Lazzarini, John ffitch
+    Copyright (C) 2014 Russell Bradford, Victor Lazzarini, John ffitch
 
     This file is part of Csound.
 
@@ -34,10 +34,10 @@
 #include <math.h>
 #include <inttypes.h>
 #include <sys/time.h>
+#include <csdl.h>
 
-typedef double real;
+typedef float real;
 #define real(x) x
-#define PI (M_PI)
 #define TWO_PI (2.0*M_PI)
 
 
@@ -55,6 +55,7 @@ typedef double real;
 #define A HannA
 #define B2 (HannB/real(2.0))
 #define WINDOW
+#define RB
 
 typedef double2 complex;
 typedef double2 phasor;
@@ -68,16 +69,16 @@ __constant__ int offset;
 __constant__ int nbatch;
 
 
-#define CUDA(name, args ...) { name(args); checkcuda(#name, __LINE__); }
-#define CHK(name) checkcuda(#name, __LINE__)
+#define CUDA(name, args ...) { name(args); checkcuda(csound, #name, __LINE__); }
+#define CHK(name) checkcuda(csound, #name, __LINE__)
 #define NEXT(p) p += offset
 
-void checkcuda(char* name, int line)
+void checkcuda(CSOUND *csound, char* name, int line)
 {
   cudaError_t err = cudaGetLastError();
 
   if (err) {
-    fprintf(stderr, "%s: %s\nLine: %d\n", name, cudaGetErrorString(err), line);
+    csound->Message(csound, "%s: %s\nLine: %d\n", name, cudaGetErrorString(err), line);
     exit(1);
   }
 }
@@ -116,18 +117,20 @@ __global__ void slide(real deltas[/*nbatch*/], complex Fin[/*N*/],
     Fi = Im(f);
     f = (complex){ Fr*c - Fi*s, Fi*c + Fr*s };
     Fout[k] = f;
-#ifdef REFLECT
-    if (bin > 0) {
-      Fout[N - k] = conjugate(f);
-    }
-#endif
-
     NEXT(Fout);
   }
-
   Fin[k] = f;
 }
 
+__device__ real mod2Pi(real x)
+{
+  x = fmod(x, (real)TWO_PI);
+  if (x > PI) return x - TWO_PI;
+  if (x <= -PI) return x + TWO_PI;
+  return x;
+}
+
+#ifdef RB
 // below is one thread per bin, as per other kernels
 // data is spread across blocks, but there is no sync across blocks
 // thus cannot do in-place window
@@ -147,13 +150,8 @@ __global__ void window(complex Foutw[/*N*nbatch*/],
   for (b = 0; b < nbatch; b++) {
     F = Foutw[k];
     // conjugate reflection at edges
-#ifdef REFLECT
-    Fp1 = Foutw[k + 1];
-#else
     Fp1 = k < N2 ? Foutw[k + 1] : conjugate(Foutw[N2-1]);
-#endif
     Fm1 = k > 0 ? Foutw[k - 1] : conjugate(Foutw[1]);
-
     Fr = A*Re(F) + B2*(Re(Fm1) + Re(Fp1));
     Fi = A*Im(F) + B2*(Im(Fm1) + Im(Fp1));
 
@@ -161,24 +159,9 @@ __global__ void window(complex Foutw[/*N*nbatch*/],
     Im(f) = Fi;
     Fout[k] = f;
 
-#ifdef REFLECT
-    if (k > 0) {
-      Im(f) = -Fi;
-      Fout[N - k] = f;
-    }
-#endif
-
     NEXT(Fout);
     NEXT(Foutw);
   }
-}
-
-__device__ real mod2Pi(real x)
-{
-  x = fmod(x, TWO_PI);
-  if (x > PI) return x - TWO_PI;
-  if (x <= -PI) return x + TWO_PI;
-  return x;
 }
 
 // parallel across channels*batches
@@ -194,45 +177,59 @@ __global__ void reconstruct(complex f[/*nbatch*N*/], real s[/*nbatch*/], int N)
   int bin, N2 = N/2;
 
   if (k >= nbatch) return;
-
-  // N even
-#ifdef REFLECT
-  for (bin = 0; bin < N; bin += 2) {
-    sum += Re(F[bin]) - Re(F[bin + 1]);
-  }
-#elif 1
   for (bin = 0; bin < N; bin += 2) {
     real v0 = bin <= N2 ? Re(F[bin]) : Re(F[N - bin]);
     real v1 = bin <  N2 ? Re(F[bin + 1]) : Re(F[N - bin - 1]);
     sum += v0 - v1;
   }
-#elif 1
-  for (bin = 1; bin < N2; bin++) {
-    F[N - bin] = conjugate(F[bin]);
-  }
-  for (bin = 0; bin < N; bin += 2) {
-    sum += Re(F[bin]) - Re(F[bin + 1]);
-  }
-#else
-  if (N2 & 1) {  // N/2 odd
-    for (bin = 1; bin < N2; bin += 2) {
-      sum += R(F[bin + 1]) - Re(F[bin]);
-    }
-    sum *= real(2.0);
-    sum += Re(F[0]) - Re(F[N2]);
-  }
-  else { // N/2 even
-    for (bin = 1; bin < N2-1; bin += 2) {
-      sum += R(F[bin + 1]) - Re(F[bin]);
-    }
-    sum -= Re(F[N2-1]);
-    sum *= real(2.0);
-    sum += Re(F[0]) + Re(F[N2]);
-  }
-#endif
-
   s[k] = sum/N;
 }
+
+#else
+// this parallelises across N*nbatch
+__global__ void window(complex Foutw[/*N*nbatch*/],
+		       complex Fout[/*N*nbatch*/], int N)
+{
+  int n = blockIdx.x * blockDim.x + threadIdx.x;
+  int N2 = N/2;
+  int s = n/N;
+  int k = n%N;
+  complex F, Fm1, Fp1, f;
+  real Fr, Fi;
+  Foutw += s*offset;
+  Fout += s*offset;
+
+  // in the last block
+  if (n > N*nbatch) return;
+
+    F = Foutw[k];
+    Fp1 = k < N2 ? Foutw[k + 1] : conjugate(Foutw[N2-1]);
+    Fm1 = k > 0 ? Foutw[k - 1] : conjugate(Foutw[1]);
+
+    Fr = A*Re(F) + B2*(Re(Fm1) + Re(Fp1));
+    Fi = A*Im(F) + B2*(Im(Fm1) + Im(Fp1));
+
+    Re(f) = Fr;
+    Im(f) = Fi;
+    Fout[k] = f;
+}
+
+// this parallelises across N2*nbatch
+__global__ void reconstruct(complex f[/*nbatch*N*/], real s[/*nbatch*/], int N)
+{
+  int n = blockIdx.x * blockDim.x + threadIdx.x, N2 = N/2;
+  int k = n/N2;
+  int bin = (n%N2)*2;
+  complex *F = &f[offset*k];
+
+  if (n >= nbatch*N2) return;
+
+  real v0 = bin <= N2 ? Re(F[bin]) : Re(F[N - bin]);
+  real v1 = bin <  N2 ? Re(F[bin + 1]) : Re(F[N - bin - 1]);
+  atomicAdd(&s[k],v0-v1); 
+}
+#endif
+
 
 __device__ phasor convert(complex f, real &oldiphase, int bin, int N)
 {
@@ -307,10 +304,6 @@ __global__ void fmsyn(real inphase[/*N*/], complex F[/*nbatch*N*/],
     // ignore imag part
     val = unconvert(pha, oldophase, N); // updates oldophase
     Re(F[k]) = val;
-#ifdef REFLECT
-    if (bin > 0) Re(F[N - k]) = val;
-#endif
-
     NEXT(F);
   }
 
@@ -336,28 +329,26 @@ void threadblock(int device, int n, int *nblocks, int *nthreads)
 
   nb = 1 + (n - 1)/nt;
 
-  // more blocks than procs
-  if (nb >= 2*nproc) {
-    nt *= 2; // 64 threads
-    nb = 1 + (n - 1)/nt;
-  }
+   // more blocks than procs
+   if (nb >= 2*nproc) {
+      nt *= 2; // 64 threads
+      nb = 1 + (n - 1)/nt;
+   }
 
-  // still more blocks than procs
-  if (nb >= 2*nproc) {
-    nt *= 2; // 128 threads
-    nb = 1 + (n - 1)/nt;
-  }
+  // // still more blocks than procs
+   if (nb >= 2*nproc) {
+     nt *= 2; // 128 threads
+     nb = 1 + (n - 1)/nt;
+   }
 
   if (nblocks) *nblocks = nb;
   if (nthreads) *nthreads = nt;  
 }
 
-#include <csdl.h>
-
 typedef struct _SPV {
   OPDS h;
   MYFLT *out, *in, *shift, *iN;
-  int nbins, ptr, nbtch, nblocks, nthreads, rblocks, rthreads;
+  int nbins, ptr, nbtch, nblocks, nblocks1, nthreads, nthreads1, rblocks, rthreads;
   real *deltas, *ddeltas, *dinphase, *doutphase, *dfm;
   real *sine, *cosine;
   complex *dFin, *dFout, *dFoutw;
@@ -367,7 +358,7 @@ typedef struct _SPV {
 } SPV;
 
 
-void init_tables(SPV *p, int nbins)
+void init_tables(CSOUND *csound, SPV *p, int nbins)
 {
   int k;
   real s[nbins], c[nbins];
@@ -412,12 +403,10 @@ void cuinit(CSOUND *csound,
 
  if (!csound->QueryGlobalVariable(csound, "::cusliding::init")) {
   csound->CreateGlobalVariable(csound, "::cusliding::init",1);
-  csound->Message(csound, "Sliding PV: using doubles on device %s (capability %d.%d)\n", deviceProp.name,
+  csound->Message(csound, "Sliding PV: using floats on device %s (capability %d.%d)\n", deviceProp.name,
   	 deviceProp.major, deviceProp.minor);
   // global constants
   CUDA(cudaMemcpyToSymbol, offset, &off, sizeof(int));
-  //CUDA(cudaMemcpyToSymbol, N, &p->nbins, sizeof(int));
-  //CUDA(cudaMemcpyToSymbol, N2, &nbins2, sizeof(int));
   CUDA(cudaMemcpyToSymbol, nbatch, &p->nbtch, sizeof(int));
   CUDA(cudaMemcpyToSymbol, binbandwidth, &binbw, sizeof(real));
   CUDA(cudaMemcpyToSymbol, nyquist, &nyq, sizeof(real));
@@ -459,12 +448,17 @@ void cuinit(CSOUND *csound,
     return;
   }
 
-  init_tables(p, p->nbins);
+  init_tables(csound, p, p->nbins);
 
   // index of oldest sample
   p->ptr = 0;
   
+#ifdef RB
   threadblock(device, p->nbtch, &p->rblocks, &p->rthreads);
+#else
+  threadblock(device, p->nbtch*(nbins2), &p->rblocks, &p->rthreads);
+  threadblock(device, p->nbtch*nbins, &p->nblocks1, &p->nthreads1);
+#endif
   threadblock(device, (nbins2+1), &p->nblocks, &p->nthreads);
 
   if(csound->GetDebug(csound)) {
@@ -475,7 +469,7 @@ void cuinit(CSOUND *csound,
   csound->Message(csound, "period %d samples (%g sec)\n", p->nbtch, (real)p->nbtch/p->srate);
   csound->Message(csound, "%d multiprocessors\n", deviceProp.multiProcessorCount);
   csound->Message(csound, "%d blocks with %d threads = %d\n", p->nblocks, p->nthreads,
-	 p->nblocks*p->nthreads);
+	 p->nblocks1*p->nthreads);
   csound->Message(csound, "%d idle threads in last block\n", p->nblocks*p->nthreads - 
 	 (nbins2 + 1));
   csound->Message(csound, "%d blocks per SM\n",
@@ -509,7 +503,7 @@ int cushutdown(CSOUND *csound, void *pp)
 }
 
 // in samples with channels muxed 0 1 2 0 1 2 ...
-void cuprocess(SPV *p, real in[/*nbatch*/], real out[/*nbatch*/],
+void cuprocess(CSOUND *csound, SPV *p, real in[/*nbatch*/], real out[/*nbatch*/],
 	        real fm[/*nbatch*/])
 {
   int b;
@@ -528,7 +522,11 @@ void cuprocess(SPV *p, real in[/*nbatch*/], real out[/*nbatch*/],
   cudaDeviceSynchronize(); CHK(slide);
 
   // Foutw and Fout must be separate to avoid data race
+#ifdef RB
   window<<<p->nblocks,p->nthreads>>>(p->dFoutw, p->dFout, p->nbins);
+#else
+  window<<<p->nblocks1,p->nthreads1>>>(p->dFoutw, p->dFout, p->nbins);
+#endif
   cudaDeviceSynchronize(); CHK(window);
 
   CUDA(cudaMemcpy, p->dfm, fm, p->nbtch*sizeof(real), cudaMemcpyHostToDevice);
@@ -537,12 +535,16 @@ void cuprocess(SPV *p, real in[/*nbatch*/], real out[/*nbatch*/],
 
   // reuse ddeltas array
   reconstruct<<<p->rblocks,p->rthreads>>>(p->dFout, p->ddeltas, p->nbins);
-  cudaDeviceSynchronize(); CHK(reconstruct);
-
+  CHK(reconstruct);
   // is is faster to transfer to pinned memory then copy; or just
   // transfer directly to out?
   CUDA(cudaMemcpy, out, p->ddeltas, p->nbtch*sizeof(real),
        cudaMemcpyDeviceToHost);
+
+#ifndef RB
+  for(b=0; b < p->nbtch; b++) out[b] /= p->nbins;
+#endif
+
 }
 
 
@@ -570,7 +572,7 @@ int spv_perf(CSOUND *csound, SPV *p) {
     p->fm[count] = p->shift[n];
     count++;
     if(count == NBATCH) {
-      cuprocess(p,p->framesin,p->framesout,p->fm);
+      cuprocess(csound, p,p->framesin,p->framesout,p->fm);
       count = 0;
     }
     

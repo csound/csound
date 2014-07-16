@@ -25,6 +25,7 @@ check_include_file_cxx(gmm/gmm.h GMM_HEADER)
 check_include_file_cxx(eigen3/E.h GMM_HEADER)
 check_include_file(lo/lo.h OSC_HEADER)
 find_library(LIBLO_LIBRARY lo)
+find_package(ZLIB)
 find_package(PNG)
 set(PYTHON_INCLUDE_DIRS /usr/include/Python2.7)
 set(Python_ADDITIONAL_VERSIONS 2.7)
@@ -35,6 +36,7 @@ if(NOT LUAJIT_LIBRARY)
     find_library(LUAJIT_LIBRARY luajit-5.1)
 endif()
 find_path(LUA_H_PATH luajit-2.0/lua.h)
+include_directories(${LUA_H_PATH})
 
 check_include_file(wiiuse.h WIIUSE_H)
 find_library(WIIUSE_LIB wiiuse)
@@ -85,7 +87,7 @@ endif()
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
 
-check_deps(BUILD_CHUA_OPCODES Boost_FOUND)
+check_deps(BUILD_CHUA_OPCODES Boost_INCLUDE_DIRS)
 if(BUILD_CHUA_OPCODES)
     include_directories(${Boost_INCLUDE_DIRS})
     make_plugin(chua chua/ChuaOscillator.cpp)
@@ -189,7 +191,7 @@ if(BUILD_FAUST_OPCODES)
     add_compiler_flags("-DFAUSTFLOAT=double "  TARGETS faustcsound)
     target_link_libraries(faustcsound ${FAUST_LIBRARY} -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
    endif()
- 
+
   include_directories(${LLVM_INCLUDE_DIRS})
 endif()
 
