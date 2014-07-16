@@ -35,7 +35,6 @@
 	
 	[self.csound stopCsound];
 	self.csound = [[CsoundObj alloc] init];
-	[self.csound addCompletionListener:self];
 	
 	[self.csound setMessageCallback:@selector(messageCallback:) withListener:self];
 	
@@ -66,15 +65,6 @@
     }
 }
 
-#pragma mark - CsoundObj Listener
-
-- (void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
-
-- (void)csoundObjComplete:(CsoundObj *)csoundObj {
-}
-
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -82,23 +72,6 @@
         self.title = @"Console Output";
     }
     return self;
-}
-
-#pragma mark - View lifecycle
-
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-}
-
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);
 }
 
 
