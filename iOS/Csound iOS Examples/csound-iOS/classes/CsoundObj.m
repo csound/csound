@@ -215,7 +215,7 @@ OSStatus  Csound_Render(void *inRefCon,
             }
         }
         if(!ret) {
-            ret = csoundPerformKsmps(cs);
+            ret = csoundPerformKsmps(cdata->cs);
         } else {
             cdata->running = false;
         }
