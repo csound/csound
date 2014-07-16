@@ -25,7 +25,7 @@
 
 #import "BaseCsoundViewController.h"
 
-@interface ConsoleOutputViewController : BaseCsoundViewController <CsoundObjCompletionListener>
+@interface ConsoleOutputViewController : BaseCsoundViewController
 {
 	IBOutlet UITextView *mTextView;
 }

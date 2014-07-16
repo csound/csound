@@ -402,6 +402,7 @@
 			children = (
 				F6B6470814D353A7005F786B /* BaseCsoundViewController.h */,
 				F6B6470914D353A7005F786B /* BaseCsoundViewController.m */,
+				F6B6471E14D353A7005F786B /* Introduction */,
 				F6B646F114D353A7005F786B /* AudioFileTest */,
 				F6B646F514D353A7005F786B /* AudioInTest */,
 				F6B6470A14D353A7005F786B /* ButtonTest */,
@@ -409,7 +410,6 @@
 				F6B6470F14D353A7005F786B /* CsoundHaiku4 */,
 				F6B6471414D353A7005F786B /* HardwareTest */,
 				F6B6471914D353A7005F786B /* Harmonizer */,
-				F6B6471E14D353A7005F786B /* Introduction */,
 				F6B6472214D353A7005F786B /* MidiTest */,
 				F6B6472A14D353A7005F786B /* MultiTouchXY */,
 				F6B6472F14D353A7005F786B /* PitchShifter */,
@@ -461,10 +461,10 @@
 		F6B6470F14D353A7005F786B /* CsoundHaiku4 */ = {
 			isa = PBXGroup;
 			children = (
+				F6B6471314D353A7005F786B /* IV.csd */,
 				F6B6471014D353A7005F786B /* CsoundHaiku4ViewController.h */,
 				F6B6471114D353A7005F786B /* CsoundHaiku4ViewController.m */,
 				F6B6471214D353A7005F786B /* CsoundHaiku4ViewController.xib */,
-				F6B6471314D353A7005F786B /* IV.csd */,
 			);
 			path = CsoundHaiku4;
 			sourceTree = "<group>";
