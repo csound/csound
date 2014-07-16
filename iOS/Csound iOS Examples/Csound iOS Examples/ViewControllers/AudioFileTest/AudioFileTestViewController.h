@@ -27,7 +27,7 @@
 #import "BaseCsoundViewController.h"
 #import "UIKnob.h"
 
-@interface AudioFileTestViewController : BaseCsoundViewController <CsoundObjCompletionListener>
+@interface AudioFileTestViewController : BaseCsoundViewController
 
 @property (weak, nonatomic)	IBOutlet UIButton *mPlayButton;
 @property (weak, nonatomic)	IBOutlet UIKnob	  *mPitchKnob;
