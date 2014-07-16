@@ -1074,3 +1074,14 @@ strlcat(char *dst, const char *src, size_t siz)
     return (dlen + (s - src));  /* count does not include NUL */
 }
 #endif
+
+
+/* Debugging opcode for testing runtime type identification */
+int print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
+    char* ptr = (char*)p->inVar;
+    
+    CS_TYPE* varType = *(CS_TYPE**)(ptr - sizeof(CS_TYPE*));
+    csound->Message(csound, "Variable Type: %s\n", varType->varTypeName);
+
+    return OK;
+}
