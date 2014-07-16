@@ -55,10 +55,6 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
                       ENGINE_STATE *engineState);
 int check_instr_name(char *s);
 
-/* NOTE: these assume that sizeof(MYFLT) is either 4 or 8 */
-#define Wfloats (((int) sizeof(SPECDAT) + 7) / (int) sizeof(MYFLT))
-#define Pfloats (((int) sizeof(PVSDAT) + 7) / (int) sizeof(MYFLT))
-
 #ifdef FLOAT_COMPARE
 #undef FLOAT_COMPARE
 #endif
@@ -485,8 +481,12 @@ void addGlobalVariable(CSOUND *csound,
 {
     CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
                                             type, name, typeArg);
+    CS_VAR_MEM *varMem =csound->Malloc(csound, sizeof(CS_TYPE*) + var->memBlockSize);
+    
     csoundAddVariable(csound, engineState->varPool, var);
-    var->memBlock = (void *) csound->Malloc(csound, var->memBlockSize);
+    
+    varMem->varType = var->varType;
+    var->memBlock = &varMem->memBlock;
     if (var->initializeVariableMemory != NULL) {
       var->initializeVariableMemory(var, var->memBlock);
     }
@@ -1261,9 +1261,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     for (count = 0; count < engineState->constantsPool->count; count++) {
       if (csound->oparms->odebug)
         csound->Message(csound, Str(" merging constants %d) %f\n"),
-                        count, engineState->constantsPool->values[count]);
+                        count, engineState->constantsPool->values[count].memBlock);
       myflt_pool_find_or_add(csound, current_state->constantsPool,
-                             engineState->constantsPool->values[count]);
+                             engineState->constantsPool->values[count].memBlock);
     }
     CS_VARIABLE* gVar = engineState->varPool->head;
     while (gVar != NULL) {
@@ -1427,7 +1427,9 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     var = typeTable->globalPool->head;
     while(var != NULL) {
-      var->memBlock = (void *) csound->Calloc(csound, var->memBlockSize);
+      CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, sizeof(CS_TYPE*) + var->memBlockSize);
+      varMem->varType = var->varType;
+      var->memBlock = &varMem->memBlock;
       if (var->initializeVariableMemory != NULL) {
         var->initializeVariableMemory(var, (MYFLT *)(var->memBlock));
       } else  memset(var->memBlock , 0, var->memBlockSize);
@@ -1801,7 +1803,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
             switch (inArgs->type) {
               case ARG_CONSTANT:
 
-                *fp1++ = engineState->constantsPool->values[inArgs->index];
+                *fp1++ = engineState->constantsPool->values[inArgs->index].memBlock;
                 break;
 
 //                      case ARG_LOCAL:
@@ -1885,7 +1887,10 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
 
       arg->index = myflt_pool_find_or_addc(csound, engineState->constantsPool, s);
     } else if (c == '"') {
-      STRINGDAT *str = csound->Calloc(csound, sizeof(STRINGDAT));
+      CS_VAR_MEM* varMem = csound->Calloc(csound, sizeof(CS_TYPE*) + sizeof(STRINGDAT));
+      STRINGDAT *str = (STRINGDAT*)&varMem->memBlock;
+      
+      varMem->varType = (CS_TYPE*)&CS_VAR_TYPE_S;
       arg->type = ARG_STRING;
       temp = csound->Calloc(csound, strlen(s) + 1);
       unquote_string(temp, s);
@@ -2006,7 +2011,7 @@ void debugPrintCsound(CSOUND* csound)
     count = 0;
     for(count = 0; count < csound->engineState.constantsPool->count; count++) {
       csound->Message(csound, "    %d) %f\n",
-                      count, csound->engineState.constantsPool->values[count]);
+                      count, csound->engineState.constantsPool->values[count].memBlock);
     }
 
     csound->Message(csound, "Global Variables:\n");

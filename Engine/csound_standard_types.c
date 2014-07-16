@@ -26,8 +26,6 @@
 #include "pstream.h"
 #include <stdlib.h>
 
-//#define Wfloats (((int) sizeof(SPECDAT) + 7) / (int) sizeof(MYFLT))
-//#define Pfloats (((int) sizeof(PVSDAT) + 7) / (int) sizeof(MYFLT))
 
 /* MEMORY COPYING FUNCTIONS */
 
@@ -189,7 +187,7 @@ CS_VARIABLE* createWsig(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = sizeof(MYFLT) * ((sizeof(SPECDAT) + 7) / sizeof(MYFLT));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(SPECDAT));
     var->initializeVariableMemory = &varInitMemory;
     return var;
 }
@@ -198,7 +196,7 @@ CS_VARIABLE* createFsig(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = sizeof(MYFLT) * ((sizeof(PVSDAT) + 7) / sizeof(MYFLT));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(PVSDAT));
     var->initializeVariableMemory = &varInitMemory;
     return var;
 }
@@ -212,7 +210,7 @@ CS_VARIABLE* createString(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = sizeof(MYFLT) * ((sizeof(STRINGDAT) + 7) / sizeof(MYFLT));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(STRINGDAT));
     return var;
 }
 
@@ -222,7 +220,7 @@ CS_VARIABLE* createArray(void* csnd, void* p) {
 
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-    var->memBlockSize = sizeof(MYFLT) * ((sizeof(ARRAYDAT) + 7 ) / sizeof(MYFLT));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(ARRAYDAT));
     var->initializeVariableMemory = &arrayInitMemory;
 
     if (state) { // NB: this function is being called with p=NULL
