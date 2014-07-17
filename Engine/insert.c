@@ -104,7 +104,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     INSTRTXT  *tp;
     INSDS     *ip, *prvp, *nxtp;
     OPARMS    *O = csound->oparms;
-    CS_VAR_MEM *pfields;
+    CS_VAR_MEM *pfields = NULL;        /* *** was uninitialised *** */
     int tie=0, i;
 
     if (UNLIKELY(csound->advanceCnt))
