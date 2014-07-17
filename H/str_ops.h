@@ -138,6 +138,11 @@ typedef struct {
     STRINGDAT   *Ssrc2;
 } STRINDEX_OP;
 
+typedef struct {
+    OPDS    h;
+    MYFLT   *inVar;
+} PRINT_TYPE_OP;
+    
 /*
 *********These are not correct for csound 6 as they omit the flags field********
  {  "strset",   S(STRSET_OP),   1,  "",     "iS",
@@ -234,9 +239,11 @@ int     strlower_opcode(CSOUND *, void *);
 int     getcfg_opcode(CSOUND *, void *);
 int     strindex_opcode(CSOUND *, void *);
 int     strrindex_opcode(CSOUND *, void *);
-  int str_changed(CSOUND *csound, STRCHGD *p);
-  int str_changed_k(CSOUND *csound, STRCHGD *p);
-  int str_from_url(CSOUND *csound, STRCPY_OP *p);
+int     str_changed(CSOUND *csound, STRCHGD *p);
+int     str_changed_k(CSOUND *csound, STRCHGD *p);
+int     str_from_url(CSOUND *csound, STRCPY_OP *p);
+
+int     print_type_opcode(CSOUND*, void*);
 
 #endif      /* CSOUND_STR_OPS_C */
 
