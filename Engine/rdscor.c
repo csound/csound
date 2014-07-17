@@ -23,11 +23,17 @@
 
 #include "csoundCore.h"         /*                  RDSCORSTR.C */
 #include "corfile.h"
+#include "insert.h"
 
 char* get_arg_string(CSOUND *csound, MYFLT p)
 {
     int32 n;
-    char *ss = csound->ids->insdshead->strarg;  /* look at this instr's strarg */
+    char *ss;
+    INSDS* ip = csound->ids->insdshead;
+    while (ip->opcod_iobufs != NULL) {
+        ip = ((OPCOD_IOBUFS*)ip->opcod_iobufs)->parent_ip;
+    }
+    ss = ip->strarg;  /* look at this instr's strarg */
     union {
       MYFLT d;
       int32 i;
