@@ -27,7 +27,7 @@
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
-#define MyMinGwBinDir "D:\Qt5.3.0\5.3\mingw482_32\bin\"
+#define MyMinGwLibDir "D:\Qt5.3.0\Tools\mingw482_32\i686-w64-mingw32\lib\"
 ; If you are not Michael Gogins, change this to your MSys /bin/ directory.
 #define MyMSysBinDir "D:\msys\bin\"
 ; If you are not Michael Gogins, change this to your MSys /usr/local/ directory.
@@ -57,7 +57,7 @@
 ; If you are not Michael Gogins, change this to your OSC library dll directory.
 #define MyLibLoSourceDir "D:\msys\local\src\liblo-0.26\"
 ; If you are not Michael Gogins, change this to your STK dll directory.
-#define MyLibStkSourceDir "D:\msys\local\src\stk-4.4.4\"
+#define MyLibStkSourceDir "D:\msys\local\src\stk-4.5.0\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
 #define MyCsoundQtBinDir "C:\Users\mike\qutecsound-code\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
@@ -144,12 +144,13 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 Source: "*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "{#MyMinGwBinDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyMinGwLibDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 ; No idea why this other name is needed.
 Source: "{#MyMSysBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv.dll"; Components: core;
-Source: "{#MyMinGwBinDir}icuin52.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyMinGwBinDir}icuuc52.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyMinGwBinDir}icudt52.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}icuin52.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}icuuc52.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}icudt52.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyMinGwLibDir}libgomp-1.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyMSysUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
