@@ -3856,6 +3856,8 @@ double csoundGetOffTime(void *p)
  */
 MYFLT *csoundGetPFields(void *p)
 {
+    
+    /* FIXME - this is no longer valid, should return CS_VAR_MEM* and use ->p0_type */
     return (MYFLT*) &(((OPDS*) p)->insdshead->p0);
 }
 

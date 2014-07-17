@@ -24,6 +24,9 @@ set(APIVERSION "6.0")
 
 # Relative install paths
 set(EXECUTABLE_INSTALL_DIR "bin")
+set(LUA_H_PATH "")
+
+
 
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
