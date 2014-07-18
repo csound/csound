@@ -10,28 +10,24 @@
 #import "CsoundObj.h"
 #import "CsoundUI.h"
 
-@interface AudioFileTestWindowController () {
+@interface AudioFileTestWindowController () <CsoundObjListener> {
     CsoundObj *csound;
 }
-
 @property (strong) IBOutlet NSSlider *pitchSlider;
+
 @end
 
 @implementation AudioFileTestWindowController
 
-- (id)initWithWindow:(NSWindow *)window
-{
-    self = [super initWithWindow:window];
-    if (self) {
-
-        csound = [[CsoundObj alloc] init];
-        NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"audiofiletest" ofType:@"csd"];
-        
-        CsoundUI *csoundUI = [[CsoundUI alloc] init];
-        [csoundUI addSlider:self.pitchSlider forChannelName:@"pitch" ];
-        [csound startCsound:csdPath];
-    }
-    return self;
+- (void)windowDidLoad {
+    NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"audiofiletest" ofType:@"csd"];
+    csound = [[CsoundObj alloc] init];
+    [csound addListener:self];
+    
+    CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
+    [csoundUI addSlider:_pitchSlider forChannelName:@"pitch"];
+    
+    [csound startCsound:csdPath];
 }
 
 - (IBAction)play:(NSButton *)sender
@@ -39,7 +35,15 @@
 	NSString *audioFilePath = [[NSBundle mainBundle] pathForResource:@"testAudioFile"
 															  ofType:@"aif"];
 	NSString *score = [NSString stringWithFormat:@"i1 0 1 \"%@\"", audioFilePath];
+    NSLog(@"Sending Score %@", score);
     [csound sendScore:score];
+}
+
+- (void)csoundObjStarted:(CsoundObj *)csoundObj {
+    NSLog(@"Csound Started");
+}
+- (void)csoundObjCompleted:(CsoundObj *)csoundObj {
+    NSLog(@"Csound Completed");
 }
 
 
