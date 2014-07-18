@@ -132,17 +132,17 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
     return mCsData.aunit;
 }
 
--(float*)getInputChannelPtr:(NSString *)channelName channelType:(controlChannelType)channelType
+-(double*)getInputChannelPtr:(NSString *)channelName channelType:(controlChannelType)channelType
 {
-    float *value;
+    double *value;
     csoundGetChannelPtr(mCsData.cs, &value, [channelName cStringUsingEncoding:NSASCIIStringEncoding],
                         channelType | CSOUND_INPUT_CHANNEL);
     return value;
 }
 
--(float*)getOutputChannelPtr:(NSString *)channelName channelType:(controlChannelType)channelType
+-(double*)getOutputChannelPtr:(NSString *)channelName channelType:(controlChannelType)channelType
 {
-	float *value;
+    double *value;
 	csoundGetChannelPtr(mCsData.cs, &value, [channelName cStringUsingEncoding:NSASCIIStringEncoding],
                         channelType | CSOUND_OUTPUT_CHANNEL);
 	return value;
@@ -152,8 +152,8 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
     if (!mCsData.running) {
         return nil;
     }
-    CSOUND* csound = [self getCsound];
-    float* spout = csoundGetSpout(csound);
+    CSOUND *csound = [self getCsound];
+    double *spout = csoundGetSpout(csound);
     int nchnls = csoundGetNchnls(csound);
     int ksmps = csoundGetKsmps(csound);
     NSData* data = [NSData dataWithBytes:spout length:(nchnls * ksmps * sizeof(MYFLT))];
@@ -184,7 +184,7 @@ OSStatus  Csound_Render(void *inRefCon,
 {
     csdata *cdata = (csdata *) inRefCon;
     int ret = cdata->ret, nchnls = cdata->nchnls;
-    float coef = (float) INT_MAX / csoundGet0dBFS(cdata->cs);
+    double coef = (double)INT_MAX* 0.00000001 / csoundGet0dBFS(cdata->cs);
     CSOUND *cs = cdata->cs;
     
     int i,j,k;
@@ -224,7 +224,7 @@ OSStatus  Csound_Render(void *inRefCon,
 			buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
 			if (cdata->shouldMute == false) {
 				for(j=0; j < ksmps; j++){
-					buffer[j+i*ksmps] = (AudioUnitSampleType) lrintf(spout[j*nchnls+k]*coef) ;
+					buffer[j+i*ksmps] = (AudioUnitSampleType) lrintl(spout[j*nchnls+k]*coef) ;
 				}
 			} else {
 				memset(buffer, 0, sizeof(AudioUnitSampleType) * inNumberFrames);
@@ -404,8 +404,8 @@ OSStatus  Csound_Render(void *inRefCon,
 	
     @autoreleasepool {
         CSOUND *cs;
-        NSError *error;
-        BOOL success;
+        // NSError *error;
+        // BOOL success;
         
         cs = csoundCreate(NULL);
         csoundSetHostImplementedAudioIO(cs, 1, 0);

@@ -88,18 +88,18 @@ typedef struct {
 
 #pragma mark -
 
--(void)addCompletionListener:(id<CsoundObjCompletionListener>)listener;
+-(void)addCompletionListener:(id<CsoundObjCompletionListener>)listener; // addListener
 
 #pragma mark -
 
--(void)startCsound:(NSString *)csdFilePath;
--(void)startCsound:(NSString *)csdFilePath recordToURL:(NSURL *)outputURL;
--(void)startCsoundToDisk:(NSString *)csdFilePath outputFile:(NSString *)outputFile;
+-(void)startCsound:(NSString *)csdFilePath; //start
+-(void)startCsound:(NSString *)csdFilePath recordToURL:(NSURL *)outputURL; //investigate
+-(void)startCsoundToDisk:(NSString *)csdFilePath outputFile:(NSString *)outputFile; //investigate
 -(void)recordToURL:(NSURL *)outputURL;
 -(void)stopRecording;
--(void)stopCsound;
--(void)muteCsound;
--(void)unmuteCsound;
+-(void)stopCsound; //stop
+-(void)muteCsound; //mute
+-(void)unmuteCsound; //unmute
 
 // -(void)handleInterruption:(NSNotification*)notification;
 
@@ -108,11 +108,11 @@ typedef struct {
 
 /** get a float* output channel that maps to a channel name and type, where type is 
  CSOUND_AUDIO_CHANNEL, CSOUND_CONTROL_CHANNEL, etc. */
--(float*)getInputChannelPtr:(NSString *)channelName channelType:(controlChannelType)channelType;
+-(double *)getInputChannelPtr:(NSString *)channelName channelType:(controlChannelType)channelType;
 
 /** get a float* output channel that maps to a channel name and type, where type is 
  CSOUND_AUDIO_CHANNEL, CSOUND_CONTROL_CHANNEL, etc. */
--(float*)getOutputChannelPtr:(NSString *)channelName channelType:(controlChannelType)channelType;
+-(double *)getOutputChannelPtr:(NSString *)channelName channelType:(controlChannelType)channelType;
 
 -(NSData*)getOutSamples;
 -(int)getNumChannels;
