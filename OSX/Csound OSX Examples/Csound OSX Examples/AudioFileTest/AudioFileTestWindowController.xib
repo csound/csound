@@ -6,7 +6,7 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="AudioFileTestWindowController">
             <connections>
-                <outlet property="pitchSlider" destination="T2N-Wz-4G8" id="2Mr-hn-rvQ"/>
+                <outlet property="pitchSlider" destination="Z1p-Dt-GWS" id="Hke-5h-BdO"/>
                 <outlet property="window" destination="F0z-JX-Cv5" id="gIp-Ho-8D9"/>
             </connections>
         </customObject>
@@ -15,19 +15,14 @@
         <window title="Audio File Test" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" animationBehavior="default" id="F0z-JX-Cv5">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="196" y="240" width="339" height="71"/>
+            <rect key="contentRect" x="196" y="240" width="230" height="67"/>
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1578"/>
             <view key="contentView" id="se5-gp-TjO">
-                <rect key="frame" x="0.0" y="0.0" width="339" height="71"/>
+                <rect key="frame" x="0.0" y="0.0" width="230" height="67"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="T2N-Wz-4G8">
-                        <rect key="frame" x="150" y="28" width="171" height="21"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <sliderCell key="cell" state="on" alignment="left" minValue="0.5" maxValue="2" doubleValue="1" tickMarkPosition="above" sliderType="linear" id="vnN-H2-wAN"/>
-                    </slider>
                     <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vn0-na-5AL">
-                        <rect key="frame" x="11" y="23" width="65" height="32"/>
+                        <rect key="frame" x="11" y="19" width="65" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="push" title="Play" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="oAM-cH-A9j">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -38,7 +33,7 @@
                         </connections>
                     </button>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="J37-hy-yUW">
-                        <rect key="frame" x="111" y="33" width="35" height="17"/>
+                        <rect key="frame" x="111" y="29" width="35" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Pitch" id="gbX-S8-iVO">
                             <font key="font" metaFont="system"/>
@@ -46,6 +41,11 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
+                    <slider horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Z1p-Dt-GWS">
+                        <rect key="frame" x="172" y="20" width="32" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <sliderCell key="cell" continuous="YES" state="on" alignment="left" minValue="0.5" maxValue="2" doubleValue="1" tickMarkPosition="above" numberOfTickMarks="6" sliderType="circular" id="qZ9-1u-JOo"/>
+                    </slider>
                 </subviews>
             </view>
             <connections>

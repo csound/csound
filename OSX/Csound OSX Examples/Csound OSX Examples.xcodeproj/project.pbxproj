@@ -30,8 +30,9 @@
 		C4EBCDEB1976504200A7C7C1 /* consoleoutput.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDEA1976504200A7C7C1 /* consoleoutput.csd */; };
 		C4EBCDEF1976636D00A7C7C1 /* AudioFileTestWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4EBCDED1976636D00A7C7C1 /* AudioFileTestWindowController.m */; };
 		C4EBCDF01976636D00A7C7C1 /* AudioFileTestWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDEE1976636D00A7C7C1 /* AudioFileTestWindowController.xib */; };
-		C4EBCDF5197663A100A7C7C1 /* audiofiletest.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDF4197663A100A7C7C1 /* audiofiletest.csd */; };
 		C4EBCDFA1976F4A700A7C7C1 /* CsoundLib64.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C41F0B6A1973927900997479 /* CsoundLib64.framework */; };
+		C4EBCDFB1978C7E700A7C7C1 /* testAudioFile.aif in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDF71976654800A7C7C1 /* testAudioFile.aif */; };
+		C4EBCDFD1978C9E000A7C7C1 /* audiofiletest.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDFC1978C9E000A7C7C1 /* audiofiletest.csd */; };
 		C4F2B9D019749CBD006EE12F /* test2.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4F2B9CF19749CBD006EE12F /* test2.csd */; };
 		C4F2B9D81974A2C3006EE12F /* buttonTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4F2B9D71974A2C3006EE12F /* buttonTest.csd */; };
 		C4F2B9DE1974AB7B006EE12F /* ButtonTestWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4F2B9DC1974AB7B006EE12F /* ButtonTestWindowController.m */; };
@@ -85,9 +86,9 @@
 		C4EBCDEC1976636D00A7C7C1 /* AudioFileTestWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AudioFileTestWindowController.h; path = AudioFileTest/AudioFileTestWindowController.h; sourceTree = "<group>"; };
 		C4EBCDED1976636D00A7C7C1 /* AudioFileTestWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AudioFileTestWindowController.m; path = AudioFileTest/AudioFileTestWindowController.m; sourceTree = "<group>"; };
 		C4EBCDEE1976636D00A7C7C1 /* AudioFileTestWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = AudioFileTestWindowController.xib; path = AudioFileTest/AudioFileTestWindowController.xib; sourceTree = "<group>"; };
-		C4EBCDF4197663A100A7C7C1 /* audiofiletest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = audiofiletest.csd; path = AudioFileTest/audiofiletest.csd; sourceTree = "<group>"; };
 		C4EBCDF71976654800A7C7C1 /* testAudioFile.aif */ = {isa = PBXFileReference; lastKnownFileType = file; name = testAudioFile.aif; path = AudioFileTest/testAudioFile.aif; sourceTree = "<group>"; };
 		C4EBCDF81976F3BC00A7C7C1 /* CsoundLib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CsoundLib.framework; path = ../../../../../../../Library/Frameworks/CsoundLib.framework; sourceTree = "<group>"; };
+		C4EBCDFC1978C9E000A7C7C1 /* audiofiletest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = audiofiletest.csd; path = AudioFileTest/audiofiletest.csd; sourceTree = "<group>"; };
 		C4F2B9CF19749CBD006EE12F /* test2.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test2.csd; path = SimpleTest2/test2.csd; sourceTree = "<group>"; };
 		C4F2B9D71974A2C3006EE12F /* buttonTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = buttonTest.csd; path = ButtonTest/buttonTest.csd; sourceTree = "<group>"; };
 		C4F2B9DB1974AB7B006EE12F /* ButtonTestWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ButtonTestWindowController.h; path = ButtonTest/ButtonTestWindowController.h; sourceTree = "<group>"; };
@@ -285,7 +286,7 @@
 		C4EBCDF11976637200A7C7C1 /* AudioFileTest */ = {
 			isa = PBXGroup;
 			children = (
-				C4EBCDF4197663A100A7C7C1 /* audiofiletest.csd */,
+				C4EBCDFC1978C9E000A7C7C1 /* audiofiletest.csd */,
 				C4EBCDF71976654800A7C7C1 /* testAudioFile.aif */,
 				C4EBCDEC1976636D00A7C7C1 /* AudioFileTestWindowController.h */,
 				C4EBCDED1976636D00A7C7C1 /* AudioFileTestWindowController.m */,
@@ -372,6 +373,7 @@
 				C41F0B891973AB5C00997479 /* test.csd in Resources */,
 				C4F2B9E41974C476006EE12F /* CsoundHaiku4WindowController.xib in Resources */,
 				C4F2B9E91974C693006EE12F /* SimpleTest1WindowController.xib in Resources */,
+				C4EBCDFB1978C7E700A7C7C1 /* testAudioFile.aif in Resources */,
 				C4F2B9DF1974AB7B006EE12F /* ButtonTestWindowController.xib in Resources */,
 				C41F0ADC19738B8F00997479 /* InfoPlist.strings in Resources */,
 				C41F0AEA19738B8F00997479 /* Images.xcassets in Resources */,
@@ -379,7 +381,7 @@
 				C4F2B9EE1974C6A7006EE12F /* SimpleTest2WindowController.xib in Resources */,
 				C41F0AE219738B8F00997479 /* Credits.rtf in Resources */,
 				C4EBCDE619761D6A00A7C7C1 /* ConsoleOutputWindowController.xib in Resources */,
-				C4EBCDF5197663A100A7C7C1 /* audiofiletest.csd in Resources */,
+				C4EBCDFD1978C9E000A7C7C1 /* audiofiletest.csd in Resources */,
 				C41F0AE819738B8F00997479 /* MainMenu.xib in Resources */,
 				C41F0B871973AB5500997479 /* IV.csd in Resources */,
 				C4EBCDEB1976504200A7C7C1 /* consoleoutput.csd in Resources */,
