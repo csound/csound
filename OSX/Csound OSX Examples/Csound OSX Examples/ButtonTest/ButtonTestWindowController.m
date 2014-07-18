@@ -27,7 +27,7 @@
 #import "CsoundObj.h"
 #import "CsoundUI.h"
 
-@interface ButtonTestWindowController () <CsoundObjCompletionListener> {
+@interface ButtonTestWindowController () <CsoundObjListener> {
     CsoundObj* csound;
 }
 @property (strong) IBOutlet NSButton *startStopButton;
@@ -57,7 +57,7 @@
 		[csound stopCsound];
         
         csound = [[CsoundObj alloc] init];
-        [csound addCompletionListener:self];
+        [csound addListener:self];
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
         
@@ -78,13 +78,13 @@
 
 
 
-#pragma mark CsoundObjCompletionListener
+#pragma mark CsoundObjListener
 
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
+-(void)csoundObjStarted:(CsoundObj *)csoundObj {
     self.startStopButton.title = @"Stop";
 }
 
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	self.startStopButton.title = @"Start";
 }
 

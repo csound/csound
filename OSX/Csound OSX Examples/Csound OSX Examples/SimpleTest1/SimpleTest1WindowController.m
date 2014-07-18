@@ -7,9 +7,11 @@
 //
 
 #import "SimpleTest1WindowController.h"
+
+#import "CsoundObj.h"
 #import "CsoundUI.h"
 
-@interface SimpleTest1WindowController() {
+@interface SimpleTest1WindowController() <CsoundObjListener> {
     CsoundObj* csound;
 }
 @property (strong) IBOutlet NSButton *toggleOnOffButton;
@@ -24,7 +26,7 @@
         
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];
         csound = [[CsoundObj alloc] init];
-        [csound addCompletionListener:self];
+        [csound addListener:self];
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
         [csoundUI addSlider:_slider forChannelName:@"slider"];
@@ -36,13 +38,13 @@
     }
 }
 
-#pragma mark CsoundObjCompletionListener
+#pragma mark CsoundObjListener
 
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
+-(void)csoundObjStarted:(CsoundObj *)csoundObj {
     self.toggleOnOffButton.title = @"Stop";
 }
 
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
     NSLog(@"Csound finished");
 	self.toggleOnOffButton.title = @"Start";
 }

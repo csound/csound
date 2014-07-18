@@ -7,8 +7,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "CsoundObj.h"
 
-@interface SimpleTest2WindowController : NSWindowController<CsoundObjCompletionListener>
+@interface SimpleTest2WindowController : NSWindowController
 
 @end

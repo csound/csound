@@ -28,7 +28,7 @@
 #import "MIDIWidgetsManager.h"
 #import "CsoundVirtualKeyboard.h"
 
-@interface MidiTestViewController  : BaseCsoundViewController <CsoundObjCompletionListener,
+@interface MidiTestViewController  : BaseCsoundViewController <CsoundObjListener,
 		CsoundVirtualKeyboardDelegate> {
 			
     IBOutlet UISlider *mAttackSlider;

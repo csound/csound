@@ -26,7 +26,7 @@
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface CsoundMotion : NSObject<CsoundObjCompletionListener>
+@interface CsoundMotion : NSObject<CsoundObjListener>
 
 - (instancetype)initWithCsoundObj:(CsoundObj *)csound;
 

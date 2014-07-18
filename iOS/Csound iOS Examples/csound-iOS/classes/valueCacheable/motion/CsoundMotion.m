@@ -91,11 +91,9 @@
     [mMotionManager startDeviceMotionUpdates];
 }
 
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
+#pragma mark CsoundObjListener
 
-
-- (void)csoundObjComplete:(CsoundObj *)csoundObj {
+- (void)csoundObjCompleted:(CsoundObj *)csoundObj {
     [mMotionManager stopAccelerometerUpdates];
     [mMotionManager stopGyroUpdates];
     [mMotionManager stopDeviceMotionUpdates];

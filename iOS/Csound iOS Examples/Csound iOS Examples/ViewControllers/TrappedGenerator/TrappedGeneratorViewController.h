@@ -8,7 +8,7 @@
 
 #import "BaseCsoundViewController.h"
 
-@interface TrappedGeneratorViewController : BaseCsoundViewController<CsoundObjCompletionListener> 
+@interface TrappedGeneratorViewController : BaseCsoundViewController<CsoundObjListener> 
 
 -(IBAction)generateTrappedToDocumentsFolder:(id)sender;
 

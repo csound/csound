@@ -53,7 +53,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
     if (self) {
 		mCsData.shouldMute = false;
         _valuesCache = [[NSMutableArray alloc] init];
-        completionListeners = [[NSMutableArray alloc] init];
+        listeners = [[NSMutableArray alloc] init];
         mMidiInEnabled = NO;
         _useAudioInput = NO;
     }
@@ -113,8 +113,8 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 
 #pragma mark -
 
--(void)addCompletionListener:(id<CsoundObjCompletionListener>)listener {
-    [completionListeners addObject:listener];
+-(void)addCompletionListener:(id<CsoundObjListener>)listener {
+    [listeners addObject:listener];
 }
 
 
@@ -367,10 +367,12 @@ OSStatus  Csound_Render(void *inRefCon,
             [cachedValue setup:self];
         }
         
-        // NOTIFY COMPLETION LISTENERS
+        // NOTIFY LISTENERS
         
-        for (id<CsoundObjCompletionListener> listener in completionListeners) {
-            [listener csoundObjDidStart:self];
+        for (id<CsoundObjListener> listener in listeners) {
+            if ([listener respondsToSelector:@selector(csoundObjStarted:)]) {
+                [listener csoundObjStarted:self];
+            }
         }
         
         // SET VALUES FROM CACHE
@@ -393,10 +395,12 @@ OSStatus  Csound_Render(void *inRefCon,
             [cachedValue cleanup];
         }
         
-        // NOTIFY COMPLETION LISTENERS
+        // NOTIFY LISTENERS
         
-        for (id<CsoundObjCompletionListener> listener in completionListeners) {
-            [listener csoundObjComplete:self];
+        for (id<CsoundObjListener> listener in listeners) {
+            if ([listener respondsToSelector:@selector(csoundObjCompleted:)]) {
+                [listener csoundObjCompleted:self];
+            }
         }
     }
 }
@@ -551,10 +555,12 @@ OSStatus  Csound_Render(void *inRefCon,
                         
                         err = AudioOutputUnitStart(csAUHAL);
 						
-						/* NOTIFY COMPLETION LISTENERS*/
+						// NOTIFY LISTENERS
 						
-						for (id<CsoundObjCompletionListener> listener in completionListeners) {
-							[listener csoundObjDidStart:self];
+						for (id<CsoundObjListener> listener in listeners) {
+                            if ([listener respondsToSelector:@selector(csoundObjStarted:)]) {
+                                [listener csoundObjStarted:self];
+                            }
 						}
                         
                         if(!err) {
@@ -584,10 +590,12 @@ OSStatus  Csound_Render(void *inRefCon,
             [cachedValue cleanup];
         }
         
-        // NOTIFY COMPLETION LISTENERS
+        // NOTIFY LISTENERS
         
-        for (id<CsoundObjCompletionListener> listener in completionListeners) {
-            [listener csoundObjComplete:self];
+        for (id<CsoundObjListener> listener in listeners) {
+            if ([listener respondsToSelector:@selector(csoundObjCompleted:)]) {
+                [listener csoundObjCompleted:self];
+            }
         }
 	}
 }
