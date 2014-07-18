@@ -28,7 +28,6 @@
 	if([self.startStopButton.title isEqualToString:@"Start"]) {
         
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test2" ofType:@"csd"];
-        NSLog(@"FILE PATH: %@", tempFile);
         
         csound = [[CsoundObj alloc] init];
         [csound addCompletionListener:self];

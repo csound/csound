@@ -27,16 +27,14 @@
 
 @implementation CachedSlider
 
-@synthesize channelName = mChannelName;
-
 -(void)updateValueCache:(id)sender {
-    cachedValue = ((NSSlider *)sender).floatValue;
+    cachedValue = ((NSSlider *)sender).doubleValue;
     self.cacheDirty = YES;
 }
 
 -(CachedSlider*)init:(NSSlider*)slider channelName:(NSString*)channelName {
     if (self = [super init]) {
-        mSlider = slider;
+        self.slider = slider;
         self.channelName = channelName;
     }
     return self;
@@ -45,23 +43,24 @@
 -(void)setup:(CsoundObj*)csoundObj {
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
-    cachedValue = mSlider.floatValue;
+    cachedValue = self.slider.doubleValue;
     self.cacheDirty = YES;
-    [mSlider setTarget:self];
-    [mSlider setAction:@selector(updateValueCache:)];
+    [self.slider setTarget:self];
+    [self.slider setAction:@selector(updateValueCache:)];
 }
 
 
 -(void)updateValuesToCsound {
     if (self.cacheDirty) {
         *channelPtr = cachedValue;
+        NSLog(@"sending %f", *channelPtr);
         self.cacheDirty = NO;
     }
 }
 
 -(void)cleanup {
-    [mSlider setTarget:nil];
-    [mSlider setAction:nil];
+    [self.slider setTarget:nil];
+    [self.slider setAction:nil];
 }
 
 
