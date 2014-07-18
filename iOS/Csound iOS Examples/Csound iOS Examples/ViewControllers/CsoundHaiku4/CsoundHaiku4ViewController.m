@@ -40,18 +40,8 @@
 	[self.csound stopCsound];
 	
 	self.csound = [[CsoundObj alloc] init];
-	[self.csound addCompletionListener:self];
 	
 	[self.csound startCsound:tempFile];
-}
-
-
-#pragma mark CsoundObjCompletionListener
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
 }
 
 @end

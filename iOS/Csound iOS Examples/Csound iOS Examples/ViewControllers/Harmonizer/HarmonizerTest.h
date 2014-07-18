@@ -27,7 +27,7 @@
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
 
-@interface HarmonizerTest : BaseCsoundViewController<CsoundObjCompletionListener> {
+@interface HarmonizerTest : BaseCsoundViewController<CsoundObjListener> {
     
     IBOutlet UISlider *mHarmPitchSlider;
     IBOutlet UISlider *mGainSlider;    

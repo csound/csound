@@ -100,13 +100,13 @@
     return [localDocDirURL URLByAppendingPathComponent:@"recording.wav"];
 }
 
-#pragma mark CsoundObjCompletionListener
+#pragma mark CsoundObjListener
 
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
+-(void)csoundObjStarted:(CsoundObj *)csoundObj {
 	[self.csound recordToURL:[self recordingURL]];
 }
 
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[_mSwitch setOn:NO animated:YES];
     _mPlayer = nil;
 	_mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];

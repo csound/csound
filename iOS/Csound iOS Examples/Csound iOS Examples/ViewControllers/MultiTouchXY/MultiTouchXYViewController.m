@@ -51,21 +51,12 @@
 	[self.csound stopCsound];
 	
 	self.csound = [[CsoundObj alloc] init];
-	[self.csound addCompletionListener:self];
 	
 	[self.csound addValueCacheable:self];
 	
 	[self.csound startCsound:tempFile];
 }
 
-
-#pragma mark CsoundObjCompletionListener
-
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
-}
 
 #pragma mark ValueCacheable
 

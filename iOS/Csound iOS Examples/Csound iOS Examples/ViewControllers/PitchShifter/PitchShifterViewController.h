@@ -26,7 +26,7 @@
 #import "BaseCsoundViewController.h"
 #import "UIControlXY.h"
 
-@interface PitchShifterViewController : BaseCsoundViewController <CsoundObjCompletionListener>
+@interface PitchShifterViewController : BaseCsoundViewController
 {
 	IBOutlet UISwitch		*mSwitch;
 	IBOutlet UIControlXY	*mXYControl;

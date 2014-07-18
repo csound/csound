@@ -35,7 +35,6 @@
 		[self.csound stopCsound];
 		self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
-		[self.csound addCompletionListener:self];
 		
 		[self.csound addValueCacheable:mXYControl];
 		
@@ -45,13 +44,7 @@
 	}
 }
 
-#pragma mark - CsoundObj Listener
-
-- (void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
-
-- (void)csoundObjComplete:(CsoundObj *)csoundObj {
+- (void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[mSwitch setOn:NO animated:YES];
 }
 

@@ -26,7 +26,7 @@
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
 
-@interface SimpleTest1ViewController : BaseCsoundViewController<CsoundObjCompletionListener> {
+@interface SimpleTest1ViewController : BaseCsoundViewController<CsoundObjListener> {
     IBOutlet UISlider *mSlider;
     IBOutlet UISwitch *mSwitch;
 }

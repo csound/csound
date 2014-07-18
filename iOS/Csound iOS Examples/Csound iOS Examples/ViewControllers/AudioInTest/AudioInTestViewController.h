@@ -26,7 +26,7 @@
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
 
-@interface AudioInTestViewController  : BaseCsoundViewController<CsoundObjCompletionListener>
+@interface AudioInTestViewController  : BaseCsoundViewController<CsoundObjListener>
 
 @property (weak, nonatomic) IBOutlet UISlider *mLeftDelayTimeSlider;
 @property (weak, nonatomic) IBOutlet UISlider *mLeftFeedbackSlider;

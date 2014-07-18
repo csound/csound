@@ -26,7 +26,7 @@
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
 
-@interface ButtonTestViewController : BaseCsoundViewController<CsoundObjCompletionListener> {
+@interface ButtonTestViewController : BaseCsoundViewController<CsoundObjListener> {
     IBOutlet UIButton *mValueButton;
     IBOutlet UIButton *mEventButton;
     

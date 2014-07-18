@@ -56,15 +56,15 @@ typedef struct {
 @class CsoundObj;
 @protocol CsoundValueCacheable;
 
-@protocol CsoundObjCompletionListener 
-
--(void)csoundObjDidStart:(CsoundObj*)csoundObj;
--(void)csoundObjComplete:(CsoundObj*)csoundObj;
+@protocol CsoundObjListener <NSObject>
+@optional
+-(void)csoundObjStarted:(CsoundObj*)csoundObj;
+-(void)csoundObjCompleted:(CsoundObj*)csoundObj;
 
 @end
 
 @interface CsoundObj : NSObject {
-    NSMutableArray *completionListeners;
+    NSMutableArray *listeners;
     csdata mCsData;
     BOOL mMidiInEnabled;
 	NSURL *outputURL;
@@ -88,7 +88,7 @@ typedef struct {
 
 #pragma mark -
 
--(void)addCompletionListener:(id<CsoundObjCompletionListener>)listener;
+-(void)addCompletionListener:(id<CsoundObjListener>)listener;
 
 #pragma mark -
 
