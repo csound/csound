@@ -8,6 +8,7 @@
 
 #import "CsoundUI.h"
 
+#import "CachedButton.h"
 #import "CachedSlider.h"
 
 @interface CsoundUI () {
@@ -24,10 +25,21 @@
     return self;
 }
 
-
--(id<CsoundValueCacheable>)addSlider:(NSSlider*)uiSlider forChannelName:(NSString*)channelName {
+-(id<CsoundValueCacheable>)addButton:(NSButton *)button
+                      forChannelName:(NSString *)channelName
+{
     
-    CachedSlider* cachedSlider = [[CachedSlider alloc] init:uiSlider
+    CachedButton *cachedButton = [[CachedButton alloc] init:button
+                                                channelName:channelName];
+    [csoundObj.valuesCache addObject:cachedButton];
+    
+    return cachedButton;
+}
+
+-(id<CsoundValueCacheable>)addSlider:(NSSlider *)slider
+                      forChannelName:(NSString *)channelName
+{
+    CachedSlider* cachedSlider = [[CachedSlider alloc] init:slider
                                                 channelName:channelName];
     [csoundObj.valuesCache addObject:cachedSlider];
     

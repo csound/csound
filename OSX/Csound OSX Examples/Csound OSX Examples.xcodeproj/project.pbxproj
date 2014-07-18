@@ -21,7 +21,6 @@
 		C41F0B651973922900997479 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C41F0B641973922900997479 /* AudioUnit.framework */; };
 		C41F0B671973923700997479 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C41F0B661973923700997479 /* AVFoundation.framework */; };
 		C41F0B691973924500997479 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C41F0B681973924500997479 /* CoreMIDI.framework */; };
-		C41F0B6B1973927900997479 /* CsoundLib64.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C41F0B6A1973927900997479 /* CsoundLib64.framework */; };
 		C41F0B841973A82B00997479 /* CachedSlider.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0B811973A82B00997479 /* CachedSlider.m */; };
 		C41F0B851973A82B00997479 /* CsoundUI.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0B831973A82B00997479 /* CsoundUI.m */; };
 		C41F0B871973AB5500997479 /* IV.csd in Resources */ = {isa = PBXBuildFile; fileRef = C41F0B861973AB5500997479 /* IV.csd */; };
@@ -32,6 +31,7 @@
 		C4EBCDEF1976636D00A7C7C1 /* AudioFileTestWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4EBCDED1976636D00A7C7C1 /* AudioFileTestWindowController.m */; };
 		C4EBCDF01976636D00A7C7C1 /* AudioFileTestWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDEE1976636D00A7C7C1 /* AudioFileTestWindowController.xib */; };
 		C4EBCDF5197663A100A7C7C1 /* audiofiletest.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDF4197663A100A7C7C1 /* audiofiletest.csd */; };
+		C4EBCDFA1976F4A700A7C7C1 /* CsoundLib64.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C41F0B6A1973927900997479 /* CsoundLib64.framework */; };
 		C4F2B9D019749CBD006EE12F /* test2.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4F2B9CF19749CBD006EE12F /* test2.csd */; };
 		C4F2B9D81974A2C3006EE12F /* buttonTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4F2B9D71974A2C3006EE12F /* buttonTest.csd */; };
 		C4F2B9DE1974AB7B006EE12F /* ButtonTestWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4F2B9DC1974AB7B006EE12F /* ButtonTestWindowController.m */; };
@@ -87,6 +87,7 @@
 		C4EBCDEE1976636D00A7C7C1 /* AudioFileTestWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = AudioFileTestWindowController.xib; path = AudioFileTest/AudioFileTestWindowController.xib; sourceTree = "<group>"; };
 		C4EBCDF4197663A100A7C7C1 /* audiofiletest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = audiofiletest.csd; path = AudioFileTest/audiofiletest.csd; sourceTree = "<group>"; };
 		C4EBCDF71976654800A7C7C1 /* testAudioFile.aif */ = {isa = PBXFileReference; lastKnownFileType = file; name = testAudioFile.aif; path = AudioFileTest/testAudioFile.aif; sourceTree = "<group>"; };
+		C4EBCDF81976F3BC00A7C7C1 /* CsoundLib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CsoundLib.framework; path = ../../../../../../../Library/Frameworks/CsoundLib.framework; sourceTree = "<group>"; };
 		C4F2B9CF19749CBD006EE12F /* test2.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test2.csd; path = SimpleTest2/test2.csd; sourceTree = "<group>"; };
 		C4F2B9D71974A2C3006EE12F /* buttonTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = buttonTest.csd; path = ButtonTest/buttonTest.csd; sourceTree = "<group>"; };
 		C4F2B9DB1974AB7B006EE12F /* ButtonTestWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ButtonTestWindowController.h; path = ButtonTest/ButtonTestWindowController.h; sourceTree = "<group>"; };
@@ -110,7 +111,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C41F0B6B1973927900997479 /* CsoundLib64.framework in Frameworks */,
+				C4EBCDFA1976F4A700A7C7C1 /* CsoundLib64.framework in Frameworks */,
 				C41F0B631973921C00997479 /* AudioToolbox.framework in Frameworks */,
 				C41F0B651973922900997479 /* AudioUnit.framework in Frameworks */,
 				C41F0B671973923700997479 /* AVFoundation.framework in Frameworks */,
@@ -143,6 +144,7 @@
 		C41F0AD019738B8F00997479 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C4EBCDF81976F3BC00A7C7C1 /* CsoundLib.framework */,
 				C41F0B6A1973927900997479 /* CsoundLib64.framework */,
 				C41F0B681973924500997479 /* CoreMIDI.framework */,
 				C41F0B661973923700997479 /* AVFoundation.framework */,

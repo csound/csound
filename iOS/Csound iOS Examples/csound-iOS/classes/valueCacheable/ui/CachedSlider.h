@@ -29,7 +29,7 @@
 
 @interface CachedSlider : BaseValueCacheable {
     float cachedValue;
-    float* channelPtr;
+    float *channelPtr;
     NSString *mChannelName;
     UISlider *mSlider;
 }

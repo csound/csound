@@ -13,6 +13,10 @@
 
 - (instancetype)initWithCsoundObj:(CsoundObj *)csound;
 
--(id<CsoundValueCacheable>)addSlider:(NSSlider*)uiSlider forChannelName:(NSString*)channelName;
+-(id<CsoundValueCacheable>)addButton:(NSButton *)button
+                      forChannelName:(NSString *)channelName;
+
+-(id<CsoundValueCacheable>)addSlider:(NSSlider*)slider
+                      forChannelName:(NSString*)channelName;
 
 @end
