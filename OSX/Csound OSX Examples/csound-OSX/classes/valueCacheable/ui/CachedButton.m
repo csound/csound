@@ -37,7 +37,7 @@
 -(id)init:(NSButton *)button channelName:(NSString *)channelName {
     if (self = [super init]) {
         self.channelName = channelName;
-        mButton = button;
+        self.button = button;
     }
     return self;
 }
@@ -48,7 +48,8 @@
     self.cacheDirty = YES;
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
-//AURE    [mButton addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventTouchDown];
+    [self.button setTarget:self];
+    [self.button setAction:@selector(updateValueCache:)];
 }
 
 
@@ -62,7 +63,8 @@
 }
 
 -(void)cleanup {
-//AURE    [mButton removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventTouchDown];
+    [self.button setTarget:nil];
+    [self.button setAction:nil];
 }
 
 

@@ -61,11 +61,13 @@
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
         
+        [csoundUI addButton:self.valueButton forChannelName:@"button1"];
+        
         [csoundUI addSlider:_durationSlider forChannelName:@"duration"];
-        [csoundUI addSlider:_attackSlider forChannelName:@"attack"];
-        [csoundUI addSlider:_decaySlider forChannelName:@"decay"];
-        [csoundUI addSlider:_sustainSlider forChannelName:@"sustain"];
-        [csoundUI addSlider:_releaseSlider forChannelName:@"release"];
+        [csoundUI addSlider:_attackSlider   forChannelName:@"attack"];
+        [csoundUI addSlider:_decaySlider    forChannelName:@"decay"];
+        [csoundUI addSlider:_sustainSlider  forChannelName:@"sustain"];
+        [csoundUI addSlider:_releaseSlider  forChannelName:@"release"];
         
         [csound startCsound:tempFile];
         

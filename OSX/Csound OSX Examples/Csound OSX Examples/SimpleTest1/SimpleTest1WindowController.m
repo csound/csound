@@ -11,8 +11,6 @@
 
 @interface SimpleTest1WindowController() {
     CsoundObj* csound;
-    NSButton *_toggleOnOffButton;
-    NSSlider *_slider;
 }
 @property (strong) IBOutlet NSButton *toggleOnOffButton;
 @property (strong) IBOutlet NSSlider *slider;
@@ -25,8 +23,6 @@
 	if([self.toggleOnOffButton.title isEqualToString:@"Start"]) {
         
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];
-        NSLog(@"FILE PATH: %@", tempFile);
-        
         csound = [[CsoundObj alloc] init];
         [csound addCompletionListener:self];
         

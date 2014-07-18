@@ -27,13 +27,12 @@
 #import "CsoundObj.h"
 
 @interface CachedButton : BaseValueCacheable {
-    float cachedValue;
-    float* channelPtr;
-    NSString *mChannelName;    
-    NSButton *mButton;
+    double cachedValue;
+    double *channelPtr;
 }
 
 @property (nonatomic, strong) NSString *channelName;
+@property (nonatomic, strong) NSButton *button;
 
 -(CachedButton*)init:(NSButton *)button channelName:(NSString *)channelName;
 

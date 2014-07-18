@@ -28,14 +28,13 @@
 #import "CsoundObj.h"
 
 @interface CachedSlider : BaseValueCacheable {
-    float cachedValue;
-    float* channelPtr;
-    NSString* mChannelName;
-    NSSlider* mSlider;
+    double cachedValue;
+    double *channelPtr;
 }
 
-@property (nonatomic, strong) NSString* channelName;
+@property (nonatomic, strong) NSString *channelName;
+@property (nonatomic, strong) NSSlider *slider;
 
--(instancetype)init:(NSSlider*)slider channelName:(NSString*)channelName;
+-(instancetype)init:(NSSlider *)slider channelName:(NSString *)channelName;
 
 @end
