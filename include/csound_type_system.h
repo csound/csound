@@ -46,6 +46,11 @@ extern "C" {
         struct cstype** unionTypes;
     } CS_TYPE;
 
+    typedef struct csvarmem {
+        CS_TYPE* varType;
+        MYFLT memBlock;
+    } CS_VAR_MEM;
+    
     typedef struct csvariable {
         char* varName;
         CS_TYPE* varType;
@@ -59,13 +64,9 @@ extern "C" {
         CS_TYPE* subType;
         void (*updateMemBlockSize)(void*, struct csvariable*);
         void (*initializeVariableMemory)(struct csvariable*, MYFLT*);
-        void *memBlock;
+        CS_VAR_MEM *memBlock;
     } CS_VARIABLE;
 
-    typedef struct csvarmem {
-        CS_TYPE* varType;
-        MYFLT memBlock;
-    } CS_VAR_MEM;
     
 //    typedef struct cstypeinstance {
 //        CS_TYPE* varType;

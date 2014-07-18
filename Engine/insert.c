@@ -2170,7 +2170,7 @@ static void instance(CSOUND *csound, int insno)
         MYFLT *fltp;
         CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
         if (arg->type == ARG_GLOBAL) {
-          fltp = (MYFLT *) var->memBlock; /* gbloffbas + var->memBlockIndex; */
+          fltp = &(var->memBlock->memBlock); /* gbloffbas + var->memBlockIndex; */
         }
         else if (arg->type == ARG_LOCAL) {
           fltp = lclbas + var->memBlockIndex;
@@ -2209,7 +2209,7 @@ static void instance(CSOUND *csound, int insno)
           argpp[n] = &(pfield->memBlock);
         }
         else if (arg->type == ARG_GLOBAL) {
-          argpp[n] =  (MYFLT *) var->memBlock; /*gbloffbas + var->memBlockIndex; */
+          argpp[n] =  &(var->memBlock->memBlock); /*gbloffbas + var->memBlockIndex; */
         }
         else if (arg->type == ARG_LOCAL){
           argpp[n] = lclbas + var->memBlockIndex;
@@ -2231,13 +2231,15 @@ static void instance(CSOUND *csound, int insno)
     CS_VARIABLE* var = csoundFindVariableWithName(csound,
                                                   ip->instr->varPool, "ksmps");
     if (var) {
-      var->memBlock = lclbas + var->memBlockIndex;
-      *((MYFLT *)(var->memBlock)) = csound->ksmps;
+      char* temp = (char*)(lclbas + var->memBlockIndex);
+      var->memBlock = (CS_VAR_MEM*)(temp - sizeof(CS_TYPE*));
+      var->memBlock->memBlock = csound->ksmps;
     }
     var = csoundFindVariableWithName(csound, ip->instr->varPool, "kr");
     if (var) {
-      var->memBlock = lclbas + var->memBlockIndex;
-      *((MYFLT *)(var->memBlock)) = csound->ekr;
+      char* temp = (char*)(lclbas + var->memBlockIndex);
+      var->memBlock = (CS_VAR_MEM*)(temp - sizeof(CS_TYPE*));
+      var->memBlock->memBlock = csound->ekr;
     }
 
     if (UNLIKELY(nxtopds > opdslim))

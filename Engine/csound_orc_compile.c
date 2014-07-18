@@ -486,9 +486,9 @@ void addGlobalVariable(CSOUND *csound,
     csoundAddVariable(csound, engineState->varPool, var);
     
     varMem->varType = var->varType;
-    var->memBlock = &varMem->memBlock;
+    var->memBlock = varMem;
     if (var->initializeVariableMemory != NULL) {
-      var->initializeVariableMemory(var, var->memBlock);
+      var->initializeVariableMemory(var, &varMem->memBlock);
     }
 }
 
@@ -1429,10 +1429,10 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     while(var != NULL) {
       CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, sizeof(CS_TYPE*) + var->memBlockSize);
       varMem->varType = var->varType;
-      var->memBlock = &varMem->memBlock;
+      var->memBlock = varMem;
       if (var->initializeVariableMemory != NULL) {
-        var->initializeVariableMemory(var, (MYFLT *)(var->memBlock));
-      } else  memset(var->memBlock , 0, var->memBlockSize);
+        var->initializeVariableMemory(var, &varMem->memBlock);
+      } else  memset(&varMem->memBlock , 0, var->memBlockSize);
       var = var->next;
     }
 
@@ -1632,18 +1632,18 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
       CS_VARIABLE *var;
       var = csoundFindVariableWithName(csound, engineState->varPool, "sr");
-      *((MYFLT *)(var->memBlock)) = csound->esr;
+      var->memBlock->memBlock = csound->esr;
       var = csoundFindVariableWithName(csound, engineState->varPool, "kr");
-      *((MYFLT *)(var->memBlock)) = csound->ekr;
+      var->memBlock->memBlock = csound->ekr;
       var = csoundFindVariableWithName(csound, engineState->varPool, "ksmps");
-      *((MYFLT *)(var->memBlock)) = csound->ksmps;
+      var->memBlock->memBlock = csound->ksmps;
       var = csoundFindVariableWithName(csound, engineState->varPool, "nchnls");
-      *((MYFLT *)(var->memBlock)) = csound->nchnls;
+      var->memBlock->memBlock = csound->nchnls;
       if (csound->inchnls<0) csound->inchnls = csound->nchnls;
       var = csoundFindVariableWithName(csound, engineState->varPool, "nchnls_i");
-      *((MYFLT *)(var->memBlock)) = csound->inchnls;
+      var->memBlock->memBlock = csound->inchnls;
       var = csoundFindVariableWithName(csound, engineState->varPool, "0dbfs");
-      *((MYFLT *)(var->memBlock)) = csound->e0dbfs;
+      var->memBlock->memBlock = csound->e0dbfs;
 
 
     }
