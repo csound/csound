@@ -31,7 +31,7 @@
     
     self.csound = [[CsoundObj alloc] init];
     
-    [self.csound addCompletionListener:self];
+    [self.csound addListener:self];
     [self.csound startCsoundToDisk:csdPath outputFile:localFilePath];
     
 }
