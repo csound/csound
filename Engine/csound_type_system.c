@@ -260,16 +260,16 @@ void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
       char* ptr = (char*)current->memBlock;
         
       if (ptr != NULL) {
-        varMem = (CS_VAR_MEM*)(ptr - sizeof(CS_TYPE*));
+        CS_VAR_MEM** temp = (CS_VAR_MEM**)(ptr - sizeof(CS_TYPE*));
+        varMem = *temp;
       }
         
       if(current->updateMemBlockSize != NULL) {
         current->updateMemBlockSize(csound, current);
       }
-       
       varMem =
         (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound,varMem,
-                                             sizeof(CS_VAR_MEM*) + current->memBlockSize);
+                                             sizeof(CS_TYPE*) + current->memBlockSize);
       current->memBlock = &varMem->memBlock;
       pool->poolSize += current->memBlockSize;
       current = current->next;
