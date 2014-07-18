@@ -113,7 +113,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 
 #pragma mark -
 
--(void)addCompletionListener:(id<CsoundObjListener>)listener {
+-(void)addListener:(id<CsoundObjListener>)listener {
     [listeners addObject:listener];
 }
 

@@ -44,7 +44,7 @@
     if (self) {
         csoundObj = csound;
         mMotionManager = [[CMMotionManager alloc] init];
-        [csoundObj addCompletionListener:self];
+        [csoundObj addListener:self];
     }
     return self;
 }

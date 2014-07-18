@@ -46,7 +46,7 @@
         
         self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
-        [self.csound addCompletionListener:self];
+        [self.csound addListener:self];
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         

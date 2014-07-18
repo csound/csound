@@ -44,7 +44,7 @@
 		[self.csound stopCsound];
         
         self.csound = [[CsoundObj alloc] init];
-        [self.csound addCompletionListener:self];
+        [self.csound addListener:self];
         
         CsoundMotion *csoundMotion = [[CsoundMotion alloc] initWithCsoundObj:self.csound];
         
