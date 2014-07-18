@@ -88,7 +88,7 @@ typedef struct {
 
 #pragma mark -
 
--(void)addCompletionListener:(id<CsoundObjListener>)listener;
+-(void)addListener:(id<CsoundObjListener>)listener;
 
 #pragma mark -
 
