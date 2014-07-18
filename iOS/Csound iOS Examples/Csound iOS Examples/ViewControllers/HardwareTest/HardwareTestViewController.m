@@ -60,12 +60,9 @@
 }
 
 
-#pragma mark CsoundObjCompletionListener
+#pragma mark CsoundObjListener
 
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[mSwitch setOn:NO animated:YES];
 }
 

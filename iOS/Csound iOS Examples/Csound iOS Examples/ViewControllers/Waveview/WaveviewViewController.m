@@ -39,25 +39,11 @@
 	NSLog(@"FILE PATH: %@", tempFile);
 	
 	[self.csound stopCsound];
-	
-	
-	
 	self.csound = [[CsoundObj alloc] init];
-	[self.csound addCompletionListener:self];
 	
 	[self.csound  addValueCacheable:waveview];
 	
 	[self.csound startCsound:tempFile];
-}
-
-
-
-#pragma mark CsoundObjCompletionListener
-
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
 }
 
 @end

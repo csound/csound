@@ -26,7 +26,7 @@
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
 
-@interface HardwareTestViewController : BaseCsoundViewController<CsoundObjCompletionListener> {
+@interface HardwareTestViewController : BaseCsoundViewController<CsoundObjListener> {
     
     IBOutlet UISwitch *mSwitch;
 }

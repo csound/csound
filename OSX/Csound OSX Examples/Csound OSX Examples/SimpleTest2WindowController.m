@@ -7,9 +7,10 @@
 //
 
 #import "SimpleTest2WindowController.h"
+#import "CsoundObj.h"
 #import "CsoundUI.h"
 
-@interface SimpleTest2WindowController() {
+@interface SimpleTest2WindowController() <CsoundObjListener> {
     CsoundObj* csound;
 }
 @property (strong) IBOutlet NSButton *startStopButton;
@@ -30,7 +31,7 @@
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test2" ofType:@"csd"];
         
         csound = [[CsoundObj alloc] init];
-        [csound addCompletionListener:self];
+        [csound addListener:self];
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
         [csoundUI addSlider:_rateSlider     forChannelName:@"noteRate"];
@@ -48,13 +49,13 @@
     }
 }
 
-#pragma mark CsoundObjCompletionListener
+#pragma mark CsoundObjListener
 
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
+-(void)csoundObjStarted:(CsoundObj *)csoundObj {
     self.startStopButton.title = @"Stop";
 }
 
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	self.startStopButton.title = @"Start";
 }
 

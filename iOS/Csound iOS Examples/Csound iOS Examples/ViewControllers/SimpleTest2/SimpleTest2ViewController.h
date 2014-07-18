@@ -25,7 +25,7 @@
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
 
-@interface SimpleTest2ViewController : BaseCsoundViewController<CsoundObjCompletionListener> {
+@interface SimpleTest2ViewController : BaseCsoundViewController<CsoundObjListener> {
     
     IBOutlet UISlider *mRateSlider;
     IBOutlet UISlider *mDurationSlider;
