@@ -31,6 +31,7 @@
 #include "namedins.h"   /* IV - Oct 31 2002 */
 #include "pstream.h"
 #include "interlocks.h"
+#include "csound_type_system.h"
 #include "csound_standard_types.h"
 
 static  void    showallocs(CSOUND *);
@@ -2103,7 +2104,7 @@ static void instance(CSOUND *csound, int insno)
     /* initialize vars for CS_TYPE */
     for (current = tp->varPool->head; current != NULL; current = current->next) {
         char* ptr = (char*)(lclbas + current->memBlockIndex);
-        CS_TYPE** typePtr = (CS_TYPE**)(ptr - sizeof(CS_TYPE*));
+        CS_TYPE** typePtr = (CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
         *typePtr = current->varType;
     }
     
@@ -2232,13 +2233,13 @@ static void instance(CSOUND *csound, int insno)
                                                   ip->instr->varPool, "ksmps");
     if (var) {
       char* temp = (char*)(lclbas + var->memBlockIndex);
-      var->memBlock = (CS_VAR_MEM*)(temp - sizeof(CS_TYPE*));
+      var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
       var->memBlock->memBlock = csound->ksmps;
     }
     var = csoundFindVariableWithName(csound, ip->instr->varPool, "kr");
     if (var) {
       char* temp = (char*)(lclbas + var->memBlockIndex);
-      var->memBlock = (CS_VAR_MEM*)(temp - sizeof(CS_TYPE*));
+      var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
       var->memBlock->memBlock = csound->ekr;
     }
 
