@@ -253,8 +253,9 @@ void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool)
 
 void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;
-    pool->poolSize = 0;
     CS_VAR_MEM* varMem = NULL;
+    size_t memSize;
+    pool->poolSize = 0;
 
     while (current != NULL) {
       varMem = current->memBlock;
@@ -262,9 +263,11 @@ void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
       if(current->updateMemBlockSize != NULL) {
         current->updateMemBlockSize(csound, current);
       }
+    
+      memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + current->memBlockSize;
       varMem =
         (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound,varMem,
-                                             sizeof(CS_TYPE*) + current->memBlockSize);
+                                             memSize);
       current->memBlock = varMem;
       pool->poolSize += current->memBlockSize;
       current = current->next;

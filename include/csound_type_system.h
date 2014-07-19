@@ -51,6 +51,8 @@ extern "C" {
         MYFLT memBlock;
     } CS_VAR_MEM;
     
+#define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(MYFLT))
+    
     typedef struct csvariable {
         char* varName;
         CS_TYPE* varType;
