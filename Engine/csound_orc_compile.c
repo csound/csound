@@ -481,7 +481,8 @@ void addGlobalVariable(CSOUND *csound,
 {
     CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
                                             type, name, typeArg);
-    CS_VAR_MEM *varMem =csound->Malloc(csound, sizeof(CS_TYPE*) + var->memBlockSize);
+    size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
+    CS_VAR_MEM *varMem = csound->Malloc(csound, memSize);
     
     csoundAddVariable(csound, engineState->varPool, var);
     
@@ -1427,7 +1428,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
     var = typeTable->globalPool->head;
     while(var != NULL) {
-      CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, sizeof(CS_TYPE*) + var->memBlockSize);
+      size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
+      CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
       varMem->varType = var->varType;
       var->memBlock = varMem;
       if (var->initializeVariableMemory != NULL) {
@@ -1887,7 +1889,8 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
 
       arg->index = myflt_pool_find_or_addc(csound, engineState->constantsPool, s);
     } else if (c == '"') {
-      CS_VAR_MEM* varMem = csound->Calloc(csound, sizeof(CS_TYPE*) + sizeof(STRINGDAT));
+      size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + sizeof(STRINGDAT);
+      CS_VAR_MEM* varMem = csound->Calloc(csound, memSize);
       STRINGDAT *str = (STRINGDAT*)&varMem->memBlock;
       
       varMem->varType = (CS_TYPE*)&CS_VAR_TYPE_S;
