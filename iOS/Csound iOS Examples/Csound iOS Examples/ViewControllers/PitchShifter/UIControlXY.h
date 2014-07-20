@@ -2,7 +2,7 @@
  
  UIControlXY.h:
  
- Copyright (C) 2011 Thomas Hass
+ Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -29,9 +29,7 @@
 
 @interface UIControlXY : UIControl <CsoundValueCacheable>
 {
-    Float32 xValue, yValue;
     CGRect circleRect;
-    CGFloat circleDiameter;
 	
 	// Value Cacheable
 	BOOL mCacheDirty;
@@ -40,8 +38,8 @@
 }
 
 @property (assign) BOOL cacheDirty;
-@property (nonatomic, readwrite, setter = setXValue:) Float32 xValue;
-@property (nonatomic, readwrite, setter = setYValue:) Float32 yValue;
-@property (nonatomic, readwrite, setter = setCircleDiameter:) CGFloat circleDiameter;
+@property (nonatomic, readwrite) Float32 xValue;
+@property (nonatomic, readwrite) Float32 yValue;
+@property (nonatomic, readwrite) CGFloat circleDiameter;
 
 @end

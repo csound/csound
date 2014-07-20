@@ -2,7 +2,7 @@
  
  CachedSlider.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -27,8 +27,6 @@
 
 @implementation CachedSlider
 
-@synthesize channelName = mChannelName;
-
 -(void)updateValueCache:(id)sender {
     cachedValue = ((UISlider *)sender).value;
     self.cacheDirty = YES;
@@ -36,7 +34,7 @@
 
 -(CachedSlider *)init:(UISlider *)slider channelName:(NSString *)channelName {
     if (self = [super init]) {
-        mSlider = slider;
+        self.slider = slider;
         self.channelName = channelName;
     }
     return self;
@@ -45,9 +43,9 @@
 -(void)setup:(CsoundObj *)csoundObj {
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
-    cachedValue = mSlider.value;
+    cachedValue = self.slider.value;
     self.cacheDirty = YES;
-    [mSlider addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
+    [self.slider addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
     
 }
 
@@ -60,7 +58,7 @@
 }
 
 -(void)cleanup {
-    [mSlider removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
+    [self.slider removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
 }
 
 

@@ -2,7 +2,7 @@
  
  ConsoleOutputViewController.m:
  
- Copyright (C) 2011 Thomas Hass
+ Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -26,8 +26,6 @@
 #import "ConsoleOutputViewController.h"
 
 @implementation ConsoleOutputViewController
-
-@synthesize currentMessage = mCurrentMessage;
 
 - (IBAction)run:(UIButton *)sender
 {

@@ -2,7 +2,7 @@
  
  UIControlXY.m:
  
- Copyright (C) 2011 Thomas Hass
+ Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -35,11 +35,6 @@
 
 @implementation UIControlXY
 
-@synthesize cacheDirty = mCacheDirty;
-@synthesize xValue;
-@synthesize yValue;
-@synthesize circleDiameter;
-
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -50,8 +45,8 @@
                                 frame.size.height - 30.0f - borderWidth, 
                                 30.0f, 
                                 30.0f);
-        xValue = 0.0f;
-        yValue = 0.0f;
+        _xValue = 0.0f;
+        _yValue = 0.0f;
         shouldTrack = NO;
     }
     return self;
@@ -67,22 +62,22 @@
                                 self.frame.size.height - 30.0f - borderWidth, 
                                 30.0f, 
                                 30.0f);
-        xValue = 0.0f;
-        yValue = 0.0f;
+        _xValue = 0.0f;
+        _yValue = 0.0f;
     }
     return self;
 }
 
 - (void)setXValue:(Float32)xValue_
 {
-    xValue = xValue_;
+    _xValue = xValue_;
         
     // Limit it
     CGFloat minX = borderWidth;
     CGFloat maxX = self.frame.size.width - borderWidth - circleRect.size.width;
     
     // Redraw
-    CGFloat xPosition = xValue * (maxX - minX);
+    CGFloat xPosition = _xValue * (maxX - minX);
     circleRect.origin.x = xPosition + borderWidth;
     
     [self setNeedsDisplay];
@@ -91,12 +86,12 @@
 
 - (void)setYValue:(Float32)yValue_
 {
-    yValue = yValue_;
+    _yValue = yValue_;
     
     CGFloat minY = borderWidth;
     CGFloat maxY = self.frame.size.height - borderWidth - circleRect.size.height;
     
-    CGFloat yPosition = yValue * (maxY - minY);
+    CGFloat yPosition = _yValue * (maxY - minY);
     yPosition = maxY - yPosition;
     circleRect.origin.y = yPosition;
     
@@ -139,8 +134,8 @@
         circleRect.origin.y = location.y;
         
         // Update values
-        xValue = location.x / maxX;
-        yValue = 1.0f - location.y / maxY;
+        _xValue = location.x / maxX;
+        _yValue = 1.0f - location.y / maxY;
         
         shouldTrack = YES;
     //}
@@ -174,18 +169,13 @@
         circleRect.origin.y = location.y;
         
         // Update values
-        xValue = location.x / maxX;
-        yValue = 1.0f - location.y / maxY;
+        _xValue = location.x / maxX;
+        _yValue = 1.0f - location.y / maxY;
     }
     
     [self setNeedsDisplay];
     [self sendActionsForControlEvents:UIControlEventValueChanged];
     return YES;
-}
-
-- (void)cancelTrackingWithEvent:(UIEvent *)event
-{
-    
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
@@ -230,8 +220,8 @@
 {
 	channelPtrX = [csoundObj getInputChannelPtr:@"mix" channelType:CSOUND_CONTROL_CHANNEL];
 	channelPtrY = [csoundObj getInputChannelPtr:@"pitch" channelType:CSOUND_CONTROL_CHANNEL];
-    cachedValueX = xValue;
-	cachedValueY = yValue;
+    cachedValueX = _xValue;
+	cachedValueY = _yValue;
     self.cacheDirty = YES;
     [self addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
 }

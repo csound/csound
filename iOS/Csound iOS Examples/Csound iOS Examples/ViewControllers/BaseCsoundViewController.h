@@ -2,7 +2,7 @@
  
  BaseCsoundViewController.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -28,9 +28,7 @@
 #import "CsoundUI.h"
 #import "CsoundMotion.h"
 
-@interface BaseCsoundViewController : UIViewController <UISplitViewControllerDelegate> {
-    CsoundObj* mCsound;
-}
+@interface BaseCsoundViewController : UIViewController <UISplitViewControllerDelegate>
 
 @property (nonatomic, strong) CsoundObj* csound;
 @property (strong, nonatomic) id detailItem;

@@ -2,7 +2,7 @@
  
  BaseValueCacheable.m:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -26,8 +26,6 @@
 #import "BaseValueCacheable.h"
 
 @implementation BaseValueCacheable
-
-@synthesize cacheDirty = mCacheDirty;
 
 -(BOOL)isCacheDirty {
     return NO;
