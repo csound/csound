@@ -533,8 +533,6 @@
 				F6B6473014D353A7005F786B /* PitchShifterViewController.h */,
 				F6B6473114D353A7005F786B /* PitchShifterViewController.m */,
 				F6B6473214D353A7005F786B /* PitchShifterViewController.xib */,
-				C41F0AA21973620C00997479 /* LevelMeterView.h */,
-				C41F0AA31973620C00997479 /* LevelMeterView.m */,
 				C41F0A9C197361C400997479 /* UIControlXY.h */,
 				C41F0A9D197361C400997479 /* UIControlXY.m */,
 			);
@@ -548,6 +546,8 @@
 				F6B6473414D353A7005F786B /* RecordTestViewController.h */,
 				F6B6473514D353A7005F786B /* RecordTestViewController.m */,
 				F6B6473614D353A7005F786B /* RecordTestViewController.xib */,
+				C41F0AA21973620C00997479 /* LevelMeterView.h */,
+				C41F0AA31973620C00997479 /* LevelMeterView.m */,
 			);
 			path = RecordTest;
 			sourceTree = "<group>";

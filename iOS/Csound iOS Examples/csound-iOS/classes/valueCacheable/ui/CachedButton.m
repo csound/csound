@@ -2,7 +2,8 @@
  
  CachedButton.m:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
+
  
  This file is part of Csound for iOS.
  
@@ -26,9 +27,6 @@
 
 @implementation CachedButton
 
-@synthesize channelName = mChannelName;
-
-
 -(void)updateValueCache:(id)sender {
     cachedValue = 1;
     self.cacheDirty = YES;
@@ -37,18 +35,18 @@
 -(id)init:(UIButton *)button channelName:(NSString *)channelName {
     if (self = [super init]) {
         self.channelName = channelName;
-        mButton = button;
+        self.button = button;
     }
     return self;
 }
 
 
 -(void)setup:(CsoundObj*)csoundObj {
-    cachedValue = mButton.selected ? 1 : 0;
+    cachedValue = self.button.selected ? 1 : 0;
     self.cacheDirty = YES;
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
-    [mButton addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventTouchDown];
+    [self.button addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventTouchDown];
 }
 
 
@@ -62,7 +60,7 @@
 }
 
 -(void)cleanup {
-    [mButton removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventTouchDown];
+    [self.button removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventTouchDown];
 }
 
 

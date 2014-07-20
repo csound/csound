@@ -44,9 +44,6 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
 @implementation CsoundObj
 
-@synthesize outputURL;
-@synthesize midiInEnabled = mMidiInEnabled;
-
 - (id)init
 {
     self = [super init];
@@ -54,7 +51,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 		mCsData.shouldMute = false;
         _valuesCache = [[NSMutableArray alloc] init];
         listeners = [[NSMutableArray alloc] init];
-        mMidiInEnabled = NO;
+        _midiInEnabled = NO;
         _useAudioInput = NO;
     }
     
@@ -418,7 +415,7 @@ OSStatus  Csound_Render(void *inRefCon,
 		csoundSetMessageCallback(cs, messageCallback);
 		csoundSetHostData(cs, (__bridge void *)(self));
         
-        if (mMidiInEnabled) {
+        if (_midiInEnabled) {
             [CsoundMIDI setMidiInCallbacks:cs];
         }
         

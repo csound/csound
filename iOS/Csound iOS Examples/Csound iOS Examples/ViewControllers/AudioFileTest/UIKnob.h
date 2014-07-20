@@ -2,7 +2,7 @@
  
  UIKnob.h:
  
- Copyright (C) 2011 Thomas Hass
+ Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -30,11 +30,6 @@
 
 @interface UIKnob : UIControl <CsoundValueCacheable>
 {
-    Float32 value;
-    Float32 defaultValue;
-    Float32 minimumValue;
-    Float32 maximumValue;
-	
 	// Value Cacheable
 	BOOL mCacheDirty;
 	float cachedValue;

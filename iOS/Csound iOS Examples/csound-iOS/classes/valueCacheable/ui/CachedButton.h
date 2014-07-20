@@ -2,7 +2,7 @@
  
  CachedButton.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -29,11 +29,10 @@
 @interface CachedButton : BaseValueCacheable {
     float cachedValue;
     float* channelPtr;
-    NSString *mChannelName;    
-    UIButton *mButton;
 }
 
 @property (nonatomic, strong) NSString *channelName;
+@property (nonatomic, strong) UIButton *button;
 
 -(CachedButton*)init:(UIButton *)button channelName:(NSString *)channelName;
 

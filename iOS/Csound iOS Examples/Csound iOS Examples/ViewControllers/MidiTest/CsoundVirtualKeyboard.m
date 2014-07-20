@@ -35,8 +35,6 @@ static const int kTotalNumKeys = 25;
 
 @implementation CsoundVirtualKeyboard
 
-@synthesize keyboardDelegate = mKeyboardDelegate;
-
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -164,11 +162,11 @@ static const int kTotalNumKeys = 25;
 			
 			keyDown[i] = keyDownState;
 			
-			if (mKeyboardDelegate != nil) {
+			if (_keyboardDelegate != nil) {
 				if (keyDownState) {
-					[mKeyboardDelegate keyDown:self keyNum:i];
+					[_keyboardDelegate keyDown:self keyNum:i];
 				} else {
-					[mKeyboardDelegate keyUp:self keyNum:i];
+					[_keyboardDelegate keyUp:self keyNum:i];
 				}
 			}
 		}
