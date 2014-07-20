@@ -2,9 +2,9 @@
  
  CsoundObj.h:
  
- Copyright (C) 2011 Steven Yi, Victor Lazzarini
+ Copyright (C) 2014 Steven Yi, Victor Lazzarini, Aurelius Prochazka
  
- This file is part of Csound for iOS.
+ This file is part of Csound for OS X.
  
  The Csound for iOS Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
