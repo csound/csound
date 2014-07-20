@@ -21,12 +21,12 @@
 	NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"IV" ofType:@"csd"];
 	
 	csound = [[CsoundObj alloc] init];
-	[csound startCsound:tempFile];
+	[csound play:tempFile];
     
 }
 
 - (IBAction)stopPlayCSDFile:(id)sender {
-    [csound stopCsound];
+    [csound stop];
 }
 
 

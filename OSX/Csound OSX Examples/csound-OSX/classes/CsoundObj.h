@@ -90,14 +90,16 @@ typedef struct {
 
 #pragma mark -
 
--(void)startCsound:(NSString *)csdFilePath; //start
--(void)startCsound:(NSString *)csdFilePath recordToURL:(NSURL *)outputURL; //investigate
--(void)startCsoundToDisk:(NSString *)csdFilePath outputFile:(NSString *)outputFile; //investigate
+-(void)play:(NSString *)csdFilePath;
+-(void)stop;
+-(void)mute;
+-(void)unmute;
+
+// Recording
+-(void)record:(NSString *)csdFilePath toURL:(NSURL *)outputURL;
+-(void)record:(NSString *)csdFilePath toFile:(NSString *)outputFile;
 -(void)recordToURL:(NSURL *)outputURL;
 -(void)stopRecording;
--(void)stopCsound; //stop
--(void)muteCsound; //mute
--(void)unmuteCsound; //unmute
 
 // -(void)handleInterruption:(NSNotification*)notification;
 

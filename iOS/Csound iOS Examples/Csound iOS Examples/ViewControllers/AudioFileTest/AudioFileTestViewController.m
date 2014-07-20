@@ -49,13 +49,13 @@
 	[_mPitchKnob setMaximumValue:2.0f];
 	[_mPitchKnob setValue:1.0f];
 	[self.csound addValueCacheable:_mPitchKnob];
-	[self.csound startCsound:csdPath];
+	[self.csound play:csdPath];
 }
 
 - (void)viewDidUnload
 {
     [super viewDidUnload];
-    [self.csound stopCsound];
+    [self.csound stop];
 }
 
 

@@ -60,7 +60,7 @@
     
     [super viewWillDisappear:animated];
     
-    [self.csound stopCsound];
+    [self.csound stop];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation

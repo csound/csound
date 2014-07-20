@@ -32,15 +32,15 @@
 	if (sender.on) {
 		NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"pitchshifter" ofType:@"csd"];
 		
-		[self.csound stopCsound];
+		[self.csound stop];
 		self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
 		
 		[self.csound addValueCacheable:mXYControl];
 		
-		[self.csound startCsound:tempFile];
+		[self.csound play:tempFile];
 	} else {
-		[self.csound stopCsound];
+		[self.csound stop];
 	}
 }
 

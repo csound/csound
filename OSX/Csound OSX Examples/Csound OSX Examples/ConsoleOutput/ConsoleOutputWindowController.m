@@ -30,7 +30,7 @@
 	
 	NSString *csdPath = nil;
 	csdPath = [[NSBundle mainBundle] pathForResource:@"consoleoutput" ofType:@"csd"];
-	[csound startCsound:csdPath];
+	[csound play:csdPath];
 }
 
 - (void)updateUIWithNewMessage:(NSString *)newMessage

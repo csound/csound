@@ -54,7 +54,7 @@
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"buttonTest" ofType:@"csd"];
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[csound stopCsound];
+		[csound stop];
         
         csound = [[CsoundObj alloc] init];
         [csound addListener:self];
@@ -69,10 +69,10 @@
         [csoundUI addSlider:_sustainSlider  forChannelName:@"sustain"];
         [csoundUI addSlider:_releaseSlider  forChannelName:@"release"];
         
-        [csound startCsound:tempFile];
+        [csound play:tempFile];
         
 	} else {
-        [csound stopCsound];
+        [csound stop];
     }
 }
 

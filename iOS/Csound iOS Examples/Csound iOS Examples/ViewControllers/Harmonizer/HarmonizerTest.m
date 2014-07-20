@@ -42,7 +42,7 @@
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"harmonizer" ofType:@"csd"];  
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[self.csound stopCsound];
+		[self.csound stop];
         
         self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
@@ -53,10 +53,10 @@
         [csoundUI addSlider:mHarmPitchSlider forChannelName:@"slider"];
         [csoundUI addSlider:mGainSlider forChannelName:@"gain"];
         
-        [self.csound startCsound:tempFile];
+        [self.csound play:tempFile];
         
 	} else {
-        [self.csound stopCsound];
+        [self.csound stop];
     }
 }
 
