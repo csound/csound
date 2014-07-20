@@ -26,9 +26,6 @@
 
 @implementation CachedButton
 
-@synthesize channelName = mChannelName;
-
-
 -(void)updateValueCache:(id)sender {
     cachedValue = 1;
     self.cacheDirty = YES;

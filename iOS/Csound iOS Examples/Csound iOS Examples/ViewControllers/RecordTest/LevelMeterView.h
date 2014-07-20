@@ -30,10 +30,8 @@
 
 @interface LevelMeterView : UIView <CsoundValueCacheable>
 {
-	BOOL mCacheDirty;
 	float cachedValue;
     float* channelPtr;
-    NSString *mChannelName;
 	CGFloat lastY;
 	NSInteger ksmps, sr;
 }

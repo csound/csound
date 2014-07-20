@@ -2,7 +2,7 @@
  
  MidiWidgetsManager.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -28,7 +28,6 @@
 #import <CoreMIDI/CoreMIDI.h>
 
 @interface MidiWidgetsManager : NSObject {
-    NSMutableArray  *mWidgetWrappers;
     MIDIClientRef mclient;
 }
 

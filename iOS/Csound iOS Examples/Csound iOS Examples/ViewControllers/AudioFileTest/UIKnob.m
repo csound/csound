@@ -2,7 +2,7 @@
  
  UIKnob.m:
  
- Copyright (C) 2011 Thomas Hass
+ Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -35,20 +35,14 @@
 
 @implementation UIKnob
 
-@synthesize cacheDirty = mCacheDirty;
-@synthesize value;
-@synthesize defaultValue;
-@synthesize minimumValue;
-@synthesize maximumValue;
-
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
         [self setBackgroundColor:[UIColor clearColor]];
-        defaultValue = value = 0.0f;
-        minimumValue = 0.0f;
-        maximumValue = 1.0f;
+        _defaultValue = _value = 0.0f;
+        _minimumValue = 0.0f;
+        _maximumValue = 1.0f;
         angle = 0;
     }
     return self;
@@ -59,9 +53,9 @@
     self = [super initWithCoder:aDecoder];
     if (self) {
         [self setBackgroundColor:[UIColor clearColor]];
-        defaultValue = value = 0.0f;
-        minimumValue = 0.0f;
-        maximumValue = 1.0f;
+        _defaultValue = _value = 0.0f;
+        _minimumValue = 0.0f;
+        _maximumValue = 1.0f;
         angle = 0;
     }
     return self;
@@ -70,8 +64,8 @@
 /* This method is inaccurate */
 - (void)setValue:(Float32)value_
 {
-    value = value_;
-    angle = (value/maximumValue) * 270.0f;
+    _value = value_;
+    angle = (_value/_maximumValue) * 270.0f;
     [self setNeedsDisplay];
 }
 
@@ -85,7 +79,7 @@
     } else {
         angle -= angle > 0 ? 5 : 0;
     }
-    value = minimumValue + angle/270.0f * (maximumValue - minimumValue);
+    _value = _minimumValue + angle/270.0f * (_maximumValue - _minimumValue);
     lastTouchPoint = touchPoint;
     [self setNeedsDisplay];
     [self sendActionsForControlEvents:UIControlEventValueChanged];
@@ -100,7 +94,7 @@
     } else {
         angle -= angle > 0 ? 5 : 0;
     }
-    value = minimumValue + angle/270.0f * (maximumValue - minimumValue);
+    _value = _minimumValue + angle/270.0f * (_maximumValue - _minimumValue);
     lastTouchPoint = touchPoint;
     [self setNeedsDisplay];
     [self sendActionsForControlEvents:UIControlEventValueChanged];
@@ -154,7 +148,7 @@
 - (void)setup:(CsoundObj *)csoundObj
 {
 	channelPtr = [csoundObj getInputChannelPtr:@"pitch" channelType:CSOUND_CONTROL_CHANNEL];
-    cachedValue = value;
+    cachedValue = _value;
     self.cacheDirty = YES;
     [self addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
 }

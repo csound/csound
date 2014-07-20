@@ -2,7 +2,7 @@
  
  CachedSlider.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -30,11 +30,10 @@
 @interface CachedSlider : BaseValueCacheable {
     float cachedValue;
     float *channelPtr;
-    NSString *mChannelName;
-    UISlider *mSlider;
 }
 
 @property (nonatomic, strong) NSString *channelName;
+@property (nonatomic, strong) UISlider *slider;
 
 -(CachedSlider *)init:(UISlider*)slider channelName:(NSString *)channelName;
 

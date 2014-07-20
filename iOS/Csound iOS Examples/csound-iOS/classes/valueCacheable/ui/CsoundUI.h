@@ -2,7 +2,7 @@
  
  CsoundUI.h:
  
- Copyright (C) 2011 Steven Yi, Victor Lazzarini, Aurelius Prochazka
+ Copyright (C) 2014 Steven Yi, Victor Lazzarini, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  

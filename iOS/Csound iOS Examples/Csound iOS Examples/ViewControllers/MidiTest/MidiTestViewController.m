@@ -2,7 +2,7 @@
  
  MidiTestViewController.m:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -31,12 +31,12 @@
     
     widgetsManager = [[MidiWidgetsManager alloc] init];
     
-    [widgetsManager addSlider:mAttackSlider forControllerNumber:11];
-    [widgetsManager addSlider:mDecaySlider forControllerNumber:12];
+    [widgetsManager addSlider:mAttackSlider  forControllerNumber:11];
+    [widgetsManager addSlider:mDecaySlider   forControllerNumber:12];
     [widgetsManager addSlider:mSustainSlider forControllerNumber:13];
     [widgetsManager addSlider:mReleaseSlider forControllerNumber:14];
     
-    [widgetsManager addSlider:mCutoffSlider forControllerNumber:15];
+    [widgetsManager addSlider:mCutoffSlider    forControllerNumber:15];
     [widgetsManager addSlider:mResonanceSlider forControllerNumber:16];
     
     [widgetsManager openMidiIn];
@@ -67,11 +67,11 @@
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         
-        [csoundUI addSlider:mCutoffSlider forChannelName:@"cutoff"];
+        [csoundUI addSlider:mCutoffSlider    forChannelName:@"cutoff"];
         [csoundUI addSlider:mResonanceSlider forChannelName:@"resonance"];
         
-        [csoundUI addSlider:mAttackSlider forChannelName:@"attack"];
-        [csoundUI addSlider:mDecaySlider forChannelName:@"decay"];
+        [csoundUI addSlider:mAttackSlider  forChannelName:@"attack"];
+        [csoundUI addSlider:mDecaySlider   forChannelName:@"decay"];
         [csoundUI addSlider:mSustainSlider forChannelName:@"sustain"];
         [csoundUI addSlider:mReleaseSlider forChannelName:@"release"];
         
@@ -85,7 +85,7 @@
 }
 
 -(IBAction) midiPanic:(id)component {
-    [mCsound sendScore:@"i\"allNotesOff\" 0 1"];
+    [self.csound sendScore:@"i\"allNotesOff\" 0 1"];
 }
 
 
@@ -101,12 +101,12 @@
 
 -(void)keyUp:(CsoundVirtualKeyboard*)keybd keyNum:(int)keyNum {
 	int midikey = 60 + keyNum;
-	[mCsound sendScore:[NSString stringWithFormat:@"i-1.%003d 0 0", midikey]];	
+	[self.csound sendScore:[NSString stringWithFormat:@"i-1.%003d 0 0", midikey]];
 }
 
 -(void)keyDown:(CsoundVirtualKeyboard*)keybd keyNum:(int)keyNum {
 	int midikey = 60 + keyNum;
-	[mCsound sendScore:[NSString stringWithFormat:@"i1.%003d 0 -2 %d 0", midikey, midikey]];
+	[self.csound sendScore:[NSString stringWithFormat:@"i1.%003d 0 -2 %d 0", midikey, midikey]];
 }
 
 

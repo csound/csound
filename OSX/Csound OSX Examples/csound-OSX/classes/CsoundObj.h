@@ -66,8 +66,6 @@ typedef struct {
 @interface CsoundObj : NSObject {
     NSMutableArray *listeners;
     csdata mCsData;
-    BOOL mMidiInEnabled;
-	NSURL *outputURL;
 	id  mMessageListener;
 }
 
