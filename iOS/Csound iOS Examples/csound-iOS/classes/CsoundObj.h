@@ -2,7 +2,7 @@
  
  CsoundObj.h:
  
- Copyright (C) 2011 Steven Yi, Victor Lazzarini
+ Copyright (C) 2014 Steven Yi, Victor Lazzarini, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
