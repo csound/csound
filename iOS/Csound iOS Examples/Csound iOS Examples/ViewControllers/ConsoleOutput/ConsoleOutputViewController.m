@@ -31,14 +31,14 @@
 {
 	mTextView.text = @"";
 	
-	[self.csound stopCsound];
+	[self.csound stop];
 	self.csound = [[CsoundObj alloc] init];
 	
 	[self.csound setMessageCallback:@selector(messageCallback:) withListener:self];
 	
 	NSString *csdPath = nil;
 	csdPath = [[NSBundle mainBundle] pathForResource:@"consoleoutput" ofType:@"csd"];
-	[self.csound startCsound:csdPath];
+	[self.csound play:csdPath];
 }
 
 - (void)updateUIWithNewMessage:(NSString *)newMessage

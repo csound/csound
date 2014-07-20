@@ -42,7 +42,7 @@
         
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"recordTest" ofType:@"csd"];  
         
-		[self.csound stopCsound];
+		[self.csound stop];
         self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
         [self.csound addListener:self];
@@ -51,10 +51,10 @@
 		[csoundUI addSlider:_mGainSlider forChannelName:@"gain"];
         
 		[_mLevelMeter addToCsoundObj:self.csound forChannelName:@"meter"];
-		[self.csound startCsound:tempFile];
+		[self.csound play:tempFile];
 	} else {
 		[self.csound stopRecording];
-        [self.csound stopCsound];
+        [self.csound stop];
     }
 }
 

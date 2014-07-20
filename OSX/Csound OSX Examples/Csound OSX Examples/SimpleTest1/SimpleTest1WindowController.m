@@ -31,10 +31,10 @@
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
         [csoundUI addSlider:_slider forChannelName:@"slider"];
         
-        [csound startCsound:tempFile];
+        [csound play:tempFile];
         
 	} else {
-        [csound stopCsound];
+        [csound stop];
     }
 }
 

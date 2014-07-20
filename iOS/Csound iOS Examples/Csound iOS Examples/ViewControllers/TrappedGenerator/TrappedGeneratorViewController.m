@@ -27,13 +27,12 @@
     NSString *localFilePath = [documentsDirectory stringByAppendingPathComponent:@"trapped.wav"];
     NSLog(@"OUTPUT: %@", localFilePath);
     
-    [self.csound stopCsound];
+    [self.csound stop];
     
     self.csound = [[CsoundObj alloc] init];
     
     [self.csound addListener:self];
-    [self.csound startCsoundToDisk:csdPath outputFile:localFilePath];
-    
+    [self.csound record:csdPath toFile:localFilePath];    
 }
 
 #pragma mark CsoundObjListener

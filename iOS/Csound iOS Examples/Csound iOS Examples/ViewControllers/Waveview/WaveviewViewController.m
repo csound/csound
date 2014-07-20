@@ -38,12 +38,12 @@
 	NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"Waveviewtest" ofType:@"csd"];  
 	NSLog(@"FILE PATH: %@", tempFile);
 	
-	[self.csound stopCsound];
+	[self.csound stop];
 	self.csound = [[CsoundObj alloc] init];
 	
 	[self.csound  addValueCacheable:waveview];
 	
-	[self.csound startCsound:tempFile];
+	[self.csound play:tempFile];
 }
 
 @end
