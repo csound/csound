@@ -41,11 +41,11 @@
         [csoundUI addSlider:_sustainSlider  forChannelName:@"sustain"];
         [csoundUI addSlider:_releaseSlider  forChannelName:@"release"];
         
-        [csound startCsound:tempFile];
+        [csound play:tempFile];
         
 	} else {
         NSLog(@"try to stop csound");
-        [csound stopCsound];
+        [csound stop];
     }
 }
 

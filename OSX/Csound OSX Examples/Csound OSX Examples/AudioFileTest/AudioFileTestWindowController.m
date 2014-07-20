@@ -27,7 +27,7 @@
     CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
     [csoundUI addSlider:_pitchSlider forChannelName:@"pitch"];
     
-    [csound startCsound:csdPath];
+    [csound play:csdPath];
 }
 
 - (IBAction)play:(NSButton *)sender

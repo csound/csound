@@ -60,7 +60,7 @@
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"midiTest" ofType:@"csd"];  
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[self.csound stopCsound];
+		[self.csound stop];
         
         self.csound = [[CsoundObj alloc] init];
         [self.csound addListener:self];
@@ -77,10 +77,10 @@
         
         [self.csound setMidiInEnabled:YES];
         
-        [self.csound startCsound:tempFile];
+        [self.csound play:tempFile];
         
 	} else {
-        [self.csound stopCsound];
+        [self.csound stop];
     }
 }
 

@@ -41,7 +41,7 @@
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"audioInTest" ofType:@"csd"];  
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[self.csound stopCsound];
+		[self.csound stop];
         
         self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
@@ -54,10 +54,10 @@
         [csoundUI addSlider:_mRightDelayTimeSlider forChannelName:@"rightDelayTime"];
         [csoundUI addSlider:_mRightFeedbackSlider forChannelName:@"rightFeedback"];
         
-        [self.csound startCsound:tempFile];
+        [self.csound play:tempFile];
         
 	} else {
-        [self.csound stopCsound];
+        [self.csound stop];
     }
 }
 

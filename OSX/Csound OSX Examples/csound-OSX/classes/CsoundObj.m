@@ -270,19 +270,21 @@ OSStatus  Csound_Render(void *inRefCon,
 //    }
 //}
 
--(void)startCsound:(NSString *)csdFilePath {
+-(void)play:(NSString *)csdFilePath {
 	mCsData.shouldRecord = false;
     [self performSelectorInBackground:@selector(runCsound:) withObject:csdFilePath];
 }
 
--(void)startCsound:(NSString *)csdFilePath recordToURL:(NSURL *)outputURL_{
+- (void)record:(NSString *)csdFilePath toURL:(NSURL *)outputURL
+{
 	mCsData.shouldRecord = true;
-	self.outputURL = outputURL_;
+	self.outputURL = outputURL;
 	[self performSelectorInBackground:@selector(runCsound:) withObject:csdFilePath];
 }
 
--(void)startCsoundToDisk:(NSString *)csdFilePath outputFile:(NSString *)outputFile {
-	mCsData.shouldRecord = false;
+- (void)record:(NSString *)csdFilePath toFile:(NSString *)outputFile
+{
+    mCsData.shouldRecord = false;
     
     [self performSelectorInBackground:@selector(runCsoundToDisk:)
                            withObject:[NSMutableArray arrayWithObjects:csdFilePath, outputFile, nil]];
@@ -324,21 +326,21 @@ OSStatus  Csound_Render(void *inRefCon,
     mCsData.shouldRecord = true;
 }
 
--(void)stopRecording
+- (void)stopRecording
 {
     mCsData.shouldRecord = false;
     ExtAudioFileDispose(mCsData.file);
 }
 
--(void)stopCsound {
+- (void)stop {
     mCsData.running = false;
 }
 
--(void)muteCsound{
+- (void)mute {
 	mCsData.shouldMute = true;
 }
 
--(void)unmuteCsound{
+- (void)unmute {
 	mCsData.shouldMute = false;
 }
 
