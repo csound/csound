@@ -232,7 +232,6 @@
 		F6B6478714D353D2005F786B /* SliderMidiWidgetWrapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SliderMidiWidgetWrapper.m; sourceTree = "<group>"; };
 		F6B6478914D353D2005F786B /* BaseValueCacheable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseValueCacheable.h; sourceTree = "<group>"; };
 		F6B6478A14D353D2005F786B /* BaseValueCacheable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseValueCacheable.m; sourceTree = "<group>"; };
-		F6B6479714D353D2005F786B /* CsoundValueCacheable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsoundValueCacheable.h; sourceTree = "<group>"; };
 		F6B647A414D353D2005F786B /* cfgvar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cfgvar.h; sourceTree = "<group>"; };
 		F6B647A514D353D2005F786B /* CppSound.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = CppSound.hpp; sourceTree = "<group>"; };
 		F6B647A614D353D2005F786B /* cscore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cscore.h; sourceTree = "<group>"; };
@@ -627,7 +626,6 @@
 			children = (
 				F6B6478914D353D2005F786B /* BaseValueCacheable.h */,
 				F6B6478A14D353D2005F786B /* BaseValueCacheable.m */,
-				F6B6479714D353D2005F786B /* CsoundValueCacheable.h */,
 				C41F0AAC19736DB600997479 /* Device Motion */,
 				C41F0AAB19736DA800997479 /* User Interface */,
 			);
