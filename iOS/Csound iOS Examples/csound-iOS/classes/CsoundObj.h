@@ -1,4 +1,4 @@
-/* 
+/*
  
  CsoundObj.h:
  
@@ -9,26 +9,23 @@
  The Csound for iOS Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.   
-
+ version 2.1 of the License, or (at your option) any later version.
+ 
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU Lesser General Public License for more details.
-
+ 
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
  02111-1307 USA
-
-*/
+ 
+ */
 
 #import <AudioToolbox/ExtendedAudioFile.h>
-#import <AudioToolbox/AudioConverter.h>
-#import <AudioToolbox/AudioServices.h>
 #import <AudioUnit/AudioUnit.h>
-#import <AVFoundation/AVFoundation.h>
-#import <Foundation/Foundation.h>
+
 #import "csound.h"
 
 typedef struct csdata_ {
@@ -43,7 +40,7 @@ typedef struct csdata_ {
     bool useAudioInput;
 	ExtAudioFileRef file;
 	AudioUnit *aunit;
-     __unsafe_unretained NSMutableArray *valuesCache;
+    __unsafe_unretained NSMutableArray *valuesCache;
 } csdata;
 
 typedef struct {
@@ -53,72 +50,89 @@ typedef struct {
 	va_list valist;
 } Message;
 
+// -----------------------------------------------------------------------------
+#  pragma mark - Protocols (Cacheable Values and Listeners)
+// -----------------------------------------------------------------------------
+
 @class CsoundObj;
-@protocol CsoundValueCacheable;
+
+@protocol CsoundValueCacheable <NSObject>
+- (void)setup:(CsoundObj*)csoundObj;
+- (void)cleanup;
+- (void)updateValuesToCsound;   // Should be optional
+- (void)updateValuesFromCsound; // Should be optional
+@end
 
 @protocol CsoundObjListener <NSObject>
 @optional
--(void)csoundObjStarted:(CsoundObj*)csoundObj;
--(void)csoundObjCompleted:(CsoundObj*)csoundObj;
-
+- (void)csoundObjStarted:(CsoundObj*)csoundObj;
+- (void)csoundObjCompleted:(CsoundObj*)csoundObj;
 @end
 
-@interface CsoundObj : NSObject {
-    NSMutableArray *listeners;
-    csdata mCsData;
-	id  mMessageListener;
-}
+// -----------------------------------------------------------------------------
+#  pragma mark - CsoundObj Interface
+// -----------------------------------------------------------------------------
 
-@property (nonatomic, strong) NSMutableArray *valuesCache;
-@property (assign) SEL mMessageCallback;
+@interface CsoundObj : NSObject
+
 @property (nonatomic, strong) NSURL *outputURL;
 @property (assign) BOOL midiInEnabled;
 @property (assign) BOOL useAudioInput;
 
-#pragma mark - ValueCacheable Methods
+- (void)sendScore:(NSString *)score;
 
--(void)addValueCacheable:(id<CsoundValueCacheable>)valueCacheable;
--(void)removeValueCaheable:(id<CsoundValueCacheable>)valueCacheable;
+- (void)play:(NSString *)csdFilePath;
+- (void)stop;
+- (void)mute;
+- (void)unmute;
 
-#pragma mark -
+// -----------------------------------------------------------------------------
+#  pragma mark - Recording
+// -----------------------------------------------------------------------------
 
--(void)sendScore:(NSString *)score;
+- (void)record:(NSString *)csdFilePath toURL:(NSURL *)outputURL;
+- (void)record:(NSString *)csdFilePath toFile:(NSString *)outputFile;
+- (void)recordToURL:(NSURL *)outputURL;
+- (void)stopRecording;
 
-#pragma mark -
 
--(void)addListener:(id<CsoundObjListener>)listener;
+// -----------------------------------------------------------------------------
+#  pragma mark - Value Cache
+// -----------------------------------------------------------------------------
 
-#pragma mark -
+@property (nonatomic, strong) NSMutableArray *valuesCache;
+- (void)addValueCacheable:(id<CsoundValueCacheable>)valueCacheable;
+- (void)removeValueCaheable:(id<CsoundValueCacheable>)valueCacheable;
 
--(void)play:(NSString *)csdFilePath;
--(void)stop;
--(void)mute;
--(void)unmute;
+// -----------------------------------------------------------------------------
+#  pragma mark - Listeners and Messages
+// -----------------------------------------------------------------------------
 
-// Recording
--(void)record:(NSString *)csdFilePath toURL:(NSURL *)outputURL;
--(void)record:(NSString *)csdFilePath toFile:(NSString *)outputFile;
--(void)recordToURL:(NSURL *)outputURL;
--(void)stopRecording;
+@property (assign) SEL messageCallbackSelector;
+- (void)addListener:(id<CsoundObjListener>)listener;
+- (void)setMessageCallback:(SEL)method withListener:(id)listener;
+- (void)performMessageCallback:(NSValue *)infoObj;
 
--(void)handleInterruption:(NSNotification*)notification;
 
--(CSOUND*)getCsound;
--(AudioUnit*)getAudioUnit;
+// -----------------------------------------------------------------------------
+#  pragma mark - Csound Internals / Advanced Methods
+// -----------------------------------------------------------------------------
+
+- (CSOUND *)getCsound;
+- (AudioUnit *)getAudioUnit;
 
 // get input or output that maps to a channel name and type, where type is
 // CSOUND_AUDIO_CHANNEL, CSOUND_CONTROL_CHANNEL, etc.
-- (float *)getInputChannelPtr:(NSString *)channelName
+- (MYFLT *)getInputChannelPtr:(NSString *)channelName
                   channelType:(controlChannelType)channelType;
-- (float *)getOutputChannelPtr:(NSString *)channelName
+- (MYFLT *)getOutputChannelPtr:(NSString *)channelName
                    channelType:(controlChannelType)channelType;
 
--(NSData*)getOutSamples;
--(int)getNumChannels;
--(int)getKsmps;
+- (NSData *)getOutSamples;
+- (int)getNumChannels;
+- (int)getKsmps;
 
--(void)setMessageCallback:(SEL)method withListener:(id)listener;
--(void)performMessageCallback:(NSValue *)infoObj;
+- (void)handleInterruption:(NSNotification*)notification;
 
 @end
 
