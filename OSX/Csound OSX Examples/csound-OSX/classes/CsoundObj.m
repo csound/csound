@@ -310,7 +310,6 @@ OSStatus  Csound_Render(void *inRefCon,
 {
     csdata *cdata = (csdata *) inRefCon;
     int ret = cdata->ret, nchnls = cdata->nchnls;
-    MYFLT coef = (MYFLT)INT_MAX / csoundGet0dBFS(cdata->cs);
     CSOUND *cs = cdata->cs;
     
     int i,j,k;
@@ -336,7 +335,7 @@ OSStatus  Csound_Render(void *inRefCon,
             for (k = 0; k < nchnls; k++){
                 buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
                 for(j=0; j < ksmps; j++){
-                    spin[j*nchnls+k] =(1./coef)*buffer[j+i*ksmps];
+                    spin[j*nchnls+k] = buffer[j+i*ksmps];
                 }
             }
         }
@@ -350,7 +349,7 @@ OSStatus  Csound_Render(void *inRefCon,
 			buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
 			if (cdata->shouldMute == false) {
 				for(j=0; j < ksmps; j++){
-					buffer[j+i*ksmps] = (AudioUnitSampleType) lrintl(spout[j*nchnls+k]*coef) ;
+					buffer[j+i*ksmps] = (AudioUnitSampleType) spout[j*nchnls+k];
 				}
 			} else {
 				memset(buffer, 0, sizeof(AudioUnitSampleType) * inNumberFrames);
