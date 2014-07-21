@@ -24,7 +24,6 @@
  */
 
 #import <UIKit/UIKit.h>
-#import "CsoundValueCacheable.h"
 #import "CsoundObj.h"
 
 @interface Waveview : UIView <CsoundValueCacheable>

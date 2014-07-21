@@ -25,7 +25,6 @@
 
 #import <UIKit/UIKit.h>
 #import "CsoundObj.h"
-#import "CsoundValueCacheable.h"
 
 @interface UIControlXY : UIControl <CsoundValueCacheable>
 {

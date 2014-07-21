@@ -26,7 +26,7 @@
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
 #import <CoreGraphics/CoreGraphics.h>
-#import "CsoundValueCacheable.h"
+#import "CsoundObj.h"
 
 @interface UIKnob : UIControl <CsoundValueCacheable>
 {
