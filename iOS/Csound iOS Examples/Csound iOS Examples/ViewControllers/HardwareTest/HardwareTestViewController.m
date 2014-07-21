@@ -2,7 +2,7 @@
  
  HardwareTestViewController.m:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -38,7 +38,8 @@
     
 	if(uiswitch.on) {
         
-        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"hardwareTest" ofType:@"csd"];  
+        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"hardwareTest"
+                                                             ofType:@"csd"];
         NSLog(@"FILE PATH: %@", tempFile);
         
 		[self.csound stop];

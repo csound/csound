@@ -2,7 +2,7 @@
  
  AudioInTestViewController.m:
  
- Copyright (C) 2011 Steven Yi, Victor Lazzarini
+ Copyright (C) 2014 Steven Yi, Victor Lazzarini, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -38,7 +38,8 @@
     
 	if(uiswitch.on) {
         
-        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"audioInTest" ofType:@"csd"];  
+        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"audioInTest"
+                                                             ofType:@"csd"];
         NSLog(@"FILE PATH: %@", tempFile);
         
 		[self.csound stop];
@@ -49,10 +50,10 @@
     
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         
-        [csoundUI addSlider:_mLeftDelayTimeSlider forChannelName:@"leftDelayTime"];
-        [csoundUI addSlider:_mLeftFeedbackSlider forChannelName:@"leftFeedback"];
+        [csoundUI addSlider:_mLeftDelayTimeSlider  forChannelName:@"leftDelayTime"];
+        [csoundUI addSlider:_mLeftFeedbackSlider   forChannelName:@"leftFeedback"];
         [csoundUI addSlider:_mRightDelayTimeSlider forChannelName:@"rightDelayTime"];
-        [csoundUI addSlider:_mRightFeedbackSlider forChannelName:@"rightFeedback"];
+        [csoundUI addSlider:_mRightFeedbackSlider  forChannelName:@"rightFeedback"];
         
         [self.csound play:tempFile];
         
