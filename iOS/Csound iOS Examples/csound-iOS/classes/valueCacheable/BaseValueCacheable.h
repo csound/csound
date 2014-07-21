@@ -25,7 +25,6 @@
 
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
-#import "CsoundValueCacheable.h"
 
 @interface BaseValueCacheable : NSObject<CsoundValueCacheable>
 
