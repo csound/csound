@@ -26,7 +26,6 @@
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
 #import "CsoundObj.h"
-#import "CsoundValueCacheable.h"
 
 @interface LevelMeterView : UIView <CsoundValueCacheable>
 {

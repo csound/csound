@@ -25,7 +25,7 @@
 
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
-#import "CsoundValueCacheable.h"
+#import "CsoundObj.h"
 
 @interface MultiTouchXYViewController  : BaseCsoundViewController 
 	<CsoundValueCacheable> {
