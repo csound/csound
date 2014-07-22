@@ -4,7 +4,7 @@
 </CsOptions>
 <CsInstruments>
 
-ksmps = 64
+ksmps = 128
 0dbfs = 1
 
 instr 1
@@ -17,7 +17,7 @@ endin
 
 </CsInstruments>
 <CsScore>
-i1 0 10 1 1022
+i1 0 60 1 512
 ;i1 0 5 0.5 1024
 </CsScore>
 </CsoundSynthesizer>
