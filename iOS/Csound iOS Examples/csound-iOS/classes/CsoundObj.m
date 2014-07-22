@@ -185,7 +185,9 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 - (void)updateAllValuesToCsound {
     for (int i = 0; i < _valuesCache.count; i++) {
         id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
-        [cachedValue updateValuesToCsound];
+        if ([cachedValue respondsToSelector:@selector(updateValuesToCsound)]) {
+            [cachedValue updateValuesToCsound];
+        }
     }
 }
 
@@ -278,8 +280,8 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
     if (!mCsData.running) {
         return nil;
     }
-    CSOUND* csound = [self getCsound];
-    float* spout = csoundGetSpout(csound);
+    CSOUND *csound = [self getCsound];
+    float *spout = csoundGetSpout(csound);
     int nchnls = csoundGetNchnls(csound);
     int ksmps = csoundGetKsmps(csound);
     NSData* data = [NSData dataWithBytes:spout length:(nchnls * ksmps * sizeof(MYFLT))];
@@ -328,7 +330,9 @@ OSStatus  Csound_Render(void *inRefCon,
 		
 		for (int i = 0; i < cache.count; i++) {
 			id<CsoundValueCacheable> cachedValue = [cache objectAtIndex:i];
-			[cachedValue updateValuesToCsound];
+            if ([cachedValue respondsToSelector:@selector(updateValuesToCsound)]) {
+                [cachedValue updateValuesToCsound];
+            }
 		}
         
 		/* performance */
@@ -359,7 +363,9 @@ OSStatus  Csound_Render(void *inRefCon,
         
         for (int i = 0; i < cache.count; i++) {
             id<CsoundValueCacheable> cachedValue = [cache objectAtIndex:i];
-            [cachedValue updateValuesFromCsound];
+            if ([cachedValue respondsToSelector:@selector(updateValuesFromCsound)]) {
+                [cachedValue updateValuesFromCsound];
+            }
         }
     }
 	
@@ -573,7 +579,7 @@ OSStatus  Csound_Render(void *inRefCon,
 	}
 }
 
-- (void)handleInterruption:(NSNotification*)notification {
+- (void)handleInterruption:(NSNotification *)notification {
     
     NSDictionary *interuptionDict = notification.userInfo;
     NSUInteger interuptionType = (NSUInteger)[interuptionDict

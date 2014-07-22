@@ -185,7 +185,9 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 - (void)updateAllValuesToCsound {
     for (int i = 0; i < _valuesCache.count; i++) {
         id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
-        [cachedValue updateValuesToCsound];
+        if ([cachedValue respondsToSelector:@selector(updateValuesToCsound)]) {
+            [cachedValue updateValuesToCsound];
+        }
     }
 }
 
@@ -193,7 +195,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 #  pragma mark - Listeners and Messages
 // -----------------------------------------------------------------------------
 
--(void)addListener:(id<CsoundObjListener>)listener {
+- (void)addListener:(id<CsoundObjListener>)listener {
     [listeners addObject:listener];
 }
 
@@ -244,14 +246,14 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 #  pragma mark - Csound Internals / Advanced Methods
 // -----------------------------------------------------------------------------
 
--(CSOUND*)getCsound {
+- (CSOUND *)getCsound {
     if (!mCsData.running) {
         return NULL;
     }
     return mCsData.cs;
 }
 
--(AudioUnit*)getAudioUnit {
+- (AudioUnit *)getAudioUnit {
     if (!mCsData.running) {
         return NULL;
     }
@@ -274,7 +276,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 	return value;
 }
 
--(NSData*)getOutSamples {
+- (NSData *)getOutSamples {
     if (!mCsData.running) {
         return nil;
     }
@@ -286,13 +288,13 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
     return data;
 }
 
--(int)getNumChannels {
+- (int)getNumChannels {
     if (!mCsData.running) {
         return -1;
     }
     return csoundGetNchnls(mCsData.cs);
 }
--(int)getKsmps {
+- (int)getKsmps {
     if (!mCsData.running) {
         return -1;
     }
@@ -327,7 +329,9 @@ OSStatus  Csound_Render(void *inRefCon,
 		
 		for (int i = 0; i < cache.count; i++) {
 			id<CsoundValueCacheable> cachedValue = [cache objectAtIndex:i];
-			[cachedValue updateValuesToCsound];
+            if ([cachedValue respondsToSelector:@selector(updateValuesToCsound)]) {
+                [cachedValue updateValuesToCsound];
+            }
 		}
         
 		/* performance */
@@ -358,7 +362,9 @@ OSStatus  Csound_Render(void *inRefCon,
         
 		for (int i = 0; i < cache.count; i++) {
 			id<CsoundValueCacheable> cachedValue = [cache objectAtIndex:i];
-			[cachedValue updateValuesFromCsound];
+            if ([cachedValue respondsToSelector:@selector(updateValuesFromCsound)]) {
+                [cachedValue updateValuesFromCsound];
+            }
 		}
     }
 	
@@ -402,7 +408,7 @@ OSStatus  Csound_Render(void *inRefCon,
     }
 }
 
--(void)runCsound:(NSString *)csdFilePath {
+- (void)runCsound:(NSString *)csdFilePath {
 	
     @autoreleasepool {
         CSOUND *cs;
@@ -571,27 +577,5 @@ OSStatus  Csound_Render(void *inRefCon,
         [self notifyListenersOfCompletion];
     }
 }
-
-//-(void)handleInterruption:(NSNotification*)notification {
-//
-//    NSDictionary *interuptionDict = notification.userInfo;
-//    NSUInteger interuptionType = (NSUInteger)[interuptionDict
-//                                              valueForKey:AVAudioSessionInterruptionTypeKey];
-//
-//    NSError* error;
-//    BOOL success;
-//
-//    if (mCsData.running) {
-//        if (interuptionType == AVAudioSessionInterruptionTypeBegan) {
-//            AudioOutputUnitStop(*(mCsData.aunit));
-//        } else if (interuptionType == kAudioSessionEndInterruption) {
-//            // make sure we are again the active session
-//            success = [[AVAudioSession sharedInstance] setActive:YES error:&error];
-//            if(success) {
-//                AudioOutputUnitStart(*(mCsData.aunit));
-//            }
-//        }
-//    }
-//}
 
 @end

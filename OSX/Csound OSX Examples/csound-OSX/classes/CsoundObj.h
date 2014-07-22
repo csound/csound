@@ -59,8 +59,9 @@ typedef struct {
 @protocol CsoundValueCacheable <NSObject>
 - (void)setup:(CsoundObj*)csoundObj;
 - (void)cleanup;
-- (void)updateValuesToCsound;   // Should be optional
-- (void)updateValuesFromCsound; // Should be optional
+@optional
+- (void)updateValuesFromCsound;
+- (void)updateValuesToCsound;
 @end
 
 @protocol CsoundObjListener <NSObject>
@@ -86,7 +87,10 @@ typedef struct {
 - (void)mute;
 - (void)unmute;
 
-// Recording
+// -----------------------------------------------------------------------------
+#  pragma mark - Recording
+// -----------------------------------------------------------------------------
+
 - (void)record:(NSString *)csdFilePath toURL:(NSURL *)outputURL;
 - (void)record:(NSString *)csdFilePath toFile:(NSString *)outputFile;
 - (void)recordToURL:(NSURL *)outputURL;
@@ -128,8 +132,6 @@ typedef struct {
 - (NSData *)getOutSamples;
 - (int)getNumChannels;
 - (int)getKsmps;
-
-// - (void)handleInterruption:(NSNotification*)notification;
 
 @end
 
