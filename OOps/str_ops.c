@@ -1080,7 +1080,7 @@ strlcat(char *dst, const char *src, size_t siz)
 int print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
     char* ptr = (char*)p->inVar;
     
-    CS_TYPE* varType = *(CS_TYPE**)(ptr - sizeof(CS_TYPE*));
+    CS_TYPE* varType = *(CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
     csound->Message(csound, "Variable Type: %s\n", varType->varTypeName);
 
     return OK;
