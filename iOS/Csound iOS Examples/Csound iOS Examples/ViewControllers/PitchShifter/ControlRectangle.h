@@ -1,6 +1,6 @@
 /* 
  
- UIControlXY.h:
+ ControlRectangle.h:
  
  Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
@@ -26,7 +26,7 @@
 #import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
-@interface UIControlXY : UIControl <CsoundValueCacheable>
+@interface ControlRectangle : UIControl <CsoundValueCacheable>
 {
     CGRect circleRect;
 	

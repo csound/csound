@@ -13,8 +13,8 @@
 		C41F0A991973612A00997479 /* consoleoutput.csd in Resources */ = {isa = PBXBuildFile; fileRef = C41F0A951973612A00997479 /* consoleoutput.csd */; };
 		C41F0A9A1973612A00997479 /* ConsoleOutputViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0A971973612A00997479 /* ConsoleOutputViewController.m */; };
 		C41F0A9B1973612A00997479 /* ConsoleOutputViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C41F0A981973612A00997479 /* ConsoleOutputViewController.xib */; };
-		C41F0A9E197361C400997479 /* UIControlXY.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0A9D197361C400997479 /* UIControlXY.m */; };
-		C41F0AA1197361D200997479 /* UIKnob.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0AA0197361D200997479 /* UIKnob.m */; };
+		C41F0A9E197361C400997479 /* ControlRectangle.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0A9D197361C400997479 /* ControlRectangle.m */; };
+		C41F0AA1197361D200997479 /* ControlKnob.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0AA0197361D200997479 /* ControlKnob.m */; };
 		C41F0AA41973620C00997479 /* LevelMeterView.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0AA31973620C00997479 /* LevelMeterView.m */; };
 		C41F0AB519737CC700997479 /* CachedAccelerometer.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0AAE19737CC700997479 /* CachedAccelerometer.m */; };
 		C41F0AB619737CC700997479 /* CachedAttitude.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0AB019737CC700997479 /* CachedAttitude.m */; };
@@ -108,10 +108,10 @@
 		C41F0A961973612A00997479 /* ConsoleOutputViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConsoleOutputViewController.h; sourceTree = "<group>"; };
 		C41F0A971973612A00997479 /* ConsoleOutputViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConsoleOutputViewController.m; sourceTree = "<group>"; };
 		C41F0A981973612A00997479 /* ConsoleOutputViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ConsoleOutputViewController.xib; sourceTree = "<group>"; };
-		C41F0A9C197361C400997479 /* UIControlXY.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIControlXY.h; sourceTree = "<group>"; };
-		C41F0A9D197361C400997479 /* UIControlXY.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIControlXY.m; sourceTree = "<group>"; };
-		C41F0A9F197361D200997479 /* UIKnob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIKnob.h; sourceTree = "<group>"; };
-		C41F0AA0197361D200997479 /* UIKnob.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIKnob.m; sourceTree = "<group>"; };
+		C41F0A9C197361C400997479 /* ControlRectangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControlRectangle.h; sourceTree = "<group>"; };
+		C41F0A9D197361C400997479 /* ControlRectangle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ControlRectangle.m; sourceTree = "<group>"; };
+		C41F0A9F197361D200997479 /* ControlKnob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControlKnob.h; sourceTree = "<group>"; };
+		C41F0AA0197361D200997479 /* ControlKnob.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ControlKnob.m; sourceTree = "<group>"; };
 		C41F0AA21973620C00997479 /* LevelMeterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LevelMeterView.h; path = "Csound iOS Examples/ViewControllers/RecordTest/LevelMeterView.h"; sourceTree = SOURCE_ROOT; };
 		C41F0AA31973620C00997479 /* LevelMeterView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LevelMeterView.m; path = "Csound iOS Examples/ViewControllers/RecordTest/LevelMeterView.m"; sourceTree = SOURCE_ROOT; };
 		C41F0AAD19737CC700997479 /* CachedAccelerometer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CachedAccelerometer.h; path = motion/CachedAccelerometer.h; sourceTree = "<group>"; };
@@ -429,8 +429,8 @@
 				F6B646F214D353A7005F786B /* AudioFileTestViewController.h */,
 				F6B646F314D353A7005F786B /* AudioFileTestViewController.m */,
 				F6B646F414D353A7005F786B /* AudioFileTestViewController.xib */,
-				C41F0A9F197361D200997479 /* UIKnob.h */,
-				C41F0AA0197361D200997479 /* UIKnob.m */,
+				C41F0A9F197361D200997479 /* ControlKnob.h */,
+				C41F0AA0197361D200997479 /* ControlKnob.m */,
 			);
 			path = AudioFileTest;
 			sourceTree = "<group>";
@@ -532,8 +532,8 @@
 				F6B6473014D353A7005F786B /* PitchShifterViewController.h */,
 				F6B6473114D353A7005F786B /* PitchShifterViewController.m */,
 				F6B6473214D353A7005F786B /* PitchShifterViewController.xib */,
-				C41F0A9C197361C400997479 /* UIControlXY.h */,
-				C41F0A9D197361C400997479 /* UIControlXY.m */,
+				C41F0A9C197361C400997479 /* ControlRectangle.h */,
+				C41F0A9D197361C400997479 /* ControlRectangle.m */,
 			);
 			path = PitchShifter;
 			sourceTree = "<group>";
@@ -788,7 +788,7 @@
 				C41F0AC319737CD400997479 /* CachedSwitch.m in Sources */,
 				F6B6476414D353A7005F786B /* IntroductionViewController.m in Sources */,
 				F6B6476614D353A7005F786B /* CsoundVirtualKeyboard.m in Sources */,
-				C41F0A9E197361C400997479 /* UIControlXY.m in Sources */,
+				C41F0A9E197361C400997479 /* ControlRectangle.m in Sources */,
 				F6B6476814D353A7005F786B /* MidiTestViewController.m in Sources */,
 				F6B6476C14D353A7005F786B /* MultiTouchXYViewController.m in Sources */,
 				C41F0AC119737CD400997479 /* CachedButton.m in Sources */,
@@ -798,7 +798,7 @@
 				F6B6477214D353A7005F786B /* SimpleTest1ViewController.m in Sources */,
 				F6B6477514D353A7005F786B /* SimpleTest2ViewController.m in Sources */,
 				F6B6477814D353A7005F786B /* Waveview.m in Sources */,
-				C41F0AA1197361D200997479 /* UIKnob.m in Sources */,
+				C41F0AA1197361D200997479 /* ControlKnob.m in Sources */,
 				F6B6477A14D353A7005F786B /* WaveviewViewController.m in Sources */,
 				C41F0A9A1973612A00997479 /* ConsoleOutputViewController.m in Sources */,
 				F6B647BA14D353D2005F786B /* CsoundObj.m in Sources */,

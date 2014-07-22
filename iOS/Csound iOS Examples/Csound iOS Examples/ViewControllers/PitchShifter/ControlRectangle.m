@@ -1,6 +1,6 @@
 /* 
  
- UIControlXY.m:
+ ControlRectangle.m:
  
  Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
@@ -24,16 +24,16 @@
  */
 
 
-#import "UIControlXY.h"
+#import "ControlRectangle.h"
 
-@interface UIControlXY ()
+@interface ControlRectangle ()
 {
     CGFloat borderWidth;
     BOOL shouldTrack;
 }
 @end
 
-@implementation UIControlXY
+@implementation ControlRectangle
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -228,8 +228,8 @@
 
 - (void)updateValueCache:(id)sender
 {
-	cachedValueX = ((UIControlXY*)sender).xValue;
-	cachedValueY = ((UIControlXY*)sender).yValue;
+	cachedValueX = ((ControlRectangle *)sender).xValue;
+	cachedValueY = ((ControlRectangle *)sender).yValue;
     self.cacheDirty = YES;
 }
 
