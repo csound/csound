@@ -1,6 +1,6 @@
 /* 
  
- UIKnob.m:
+ ControlKnob.m:
  
  Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
@@ -23,17 +23,17 @@
  
  */
 
-#import "UIKnob.h"
+#import "ControlKnob.h"
 #import "CsoundObj.h"
 
-@interface UIKnob ()
+@interface ControlKnob ()
 {
 	CGFloat angle;
     CGPoint lastTouchPoint;
 }
 @end
 
-@implementation UIKnob
+@implementation ControlKnob
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -155,7 +155,7 @@
 
 - (void)updateValueCache:(id)sender
 {
-	cachedValue = ((UIKnob*)sender).value;
+	cachedValue = ((ControlKnob *)sender).value;
     self.cacheDirty = YES;
 }
 
