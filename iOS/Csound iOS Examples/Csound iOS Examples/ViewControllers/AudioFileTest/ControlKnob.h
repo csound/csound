@@ -1,6 +1,6 @@
 /* 
  
- UIKnob.h:
+ ControlKnob.h:
  
  Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
@@ -28,7 +28,7 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import "CsoundObj.h"
 
-@interface UIKnob : UIControl <CsoundValueCacheable>
+@interface ControlKnob : UIControl <CsoundValueCacheable>
 {
 	// Value Cacheable
 	BOOL mCacheDirty;

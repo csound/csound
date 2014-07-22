@@ -2,7 +2,7 @@
  
  AudioFileTestViewController.h:
  
- Copyright (C) 2011 Thomas Hass
+ Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -25,15 +25,15 @@
 
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
-#import "UIKnob.h"
+#import "ControlKnob.h"
 
 @interface AudioFileTestViewController : BaseCsoundViewController
 
 @property (weak, nonatomic)	IBOutlet UIButton *mPlayButton;
-@property (weak, nonatomic)	IBOutlet UIKnob	  *mPitchKnob;
+@property (weak, nonatomic)	IBOutlet ControlKnob *mPitchKnob;
 @property (weak, nonatomic)	IBOutlet UILabel *mPitchLabel;
 
 - (IBAction)play:(UIButton *)sender;
-- (IBAction)changePitch:(UIKnob *)sender;
+- (IBAction)changePitch:(ControlKnob *)sender;
 
 @end
