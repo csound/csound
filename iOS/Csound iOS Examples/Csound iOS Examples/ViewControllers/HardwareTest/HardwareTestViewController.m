@@ -2,7 +2,7 @@
  
  HardwareTestViewController.m:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -33,37 +33,37 @@
 }
 
 -(IBAction) toggleOnOff:(id)component {
-	UISwitch* uiswitch = (UISwitch*)component;
+	UISwitch *uiswitch = (UISwitch *)component;
 	NSLog(@"Status: %d", [uiswitch isOn]);
     
 	if(uiswitch.on) {
         
-        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"hardwareTest" ofType:@"csd"];  
+        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"hardwareTest"
+                                                             ofType:@"csd"];
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[self.csound stopCsound];
+		[self.csound stop];
         
         self.csound = [[CsoundObj alloc] init];
-        [self.csound addCompletionListener:self];
+        [self.csound addListener:self];
         
-        [self.csound enableAccelerometer];
-        [self.csound enableAttitude];
-        [self.csound enableGyroscope];
+        CsoundMotion *csoundMotion = [[CsoundMotion alloc] initWithCsoundObj:self.csound];
         
-        [self.csound startCsound:tempFile];
+        [csoundMotion enableAccelerometer];
+        [csoundMotion enableAttitude];
+        [csoundMotion enableGyroscope];
+        
+        [self.csound play:tempFile];
         
 	} else {
-        [self.csound stopCsound];
+        [self.csound stop];
     }
 }
 
 
-#pragma mark CsoundObjCompletionListener
+#pragma mark CsoundObjListener
 
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[mSwitch setOn:NO animated:YES];
 }
 

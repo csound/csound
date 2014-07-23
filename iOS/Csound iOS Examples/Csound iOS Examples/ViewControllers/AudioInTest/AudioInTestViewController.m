@@ -2,7 +2,7 @@
  
  AudioInTestViewController.m:
  
- Copyright (C) 2011 Steven Yi, Victor Lazzarini
+ Copyright (C) 2014 Steven Yi, Victor Lazzarini, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -32,42 +32,41 @@
     [super viewDidLoad];
 }
 
--(IBAction) toggleOnOff:(id)component {
-	UISwitch* uiswitch = (UISwitch*)component;
+-(IBAction)toggleOnOff:(id)component {
+	UISwitch *uiswitch = (UISwitch *)component;
 	NSLog(@"Status: %d", [uiswitch isOn]);
     
 	if(uiswitch.on) {
         
-        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"audioInTest" ofType:@"csd"];  
+        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"audioInTest"
+                                                             ofType:@"csd"];
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[self.csound stopCsound];
+		[self.csound stop];
         
         self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
-        [self.csound addCompletionListener:self];
+        [self.csound addListener:self];
     
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         
-        [self.csound addSlider:_mLeftDelayTimeSlider forChannelName:@"leftDelayTime"];
-        [self.csound addSlider:_mLeftFeedbackSlider forChannelName:@"leftFeedback"];
-        [self.csound addSlider:_mRightDelayTimeSlider forChannelName:@"rightDelayTime"];
-        [self.csound addSlider:_mRightFeedbackSlider forChannelName:@"rightFeedback"];
+        [csoundUI addSlider:_mLeftDelayTimeSlider  forChannelName:@"leftDelayTime"];
+        [csoundUI addSlider:_mLeftFeedbackSlider   forChannelName:@"leftFeedback"];
+        [csoundUI addSlider:_mRightDelayTimeSlider forChannelName:@"rightDelayTime"];
+        [csoundUI addSlider:_mRightFeedbackSlider  forChannelName:@"rightFeedback"];
         
-        [self.csound startCsound:tempFile];
+        [self.csound play:tempFile];
         
 	} else {
-        [self.csound stopCsound];
+        [self.csound stop];
     }
 }
 
 
 
-#pragma mark CsoundObjCompletionListener
+#pragma mark CsoundObjListener
 
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[_mSwitch setOn:NO animated:YES];
 }
 @end
