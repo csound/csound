@@ -35,23 +35,26 @@
 }
 
 -(IBAction) toggleOnOff:(id)component {
-	UISwitch* uiswitch = (UISwitch*)component;
+	UISwitch *uiswitch = (UISwitch *)component;
 	NSLog(@"Status: %d", [uiswitch isOn]);
     
 	if(uiswitch.on) {
         
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"recordTest" ofType:@"csd"];  
         
-		[self.csound stopCsound];
+		[self.csound stop];
         self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
-        [self.csound addCompletionListener:self];
-		[self.csound addSlider:_mGainSlider forChannelName:@"gain"];
+        [self.csound addListener:self];
+        
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+		[csoundUI addSlider:_mGainSlider forChannelName:@"gain"];
+        
 		[_mLevelMeter addToCsoundObj:self.csound forChannelName:@"meter"];
-		[self.csound startCsound:tempFile];
+		[self.csound play:tempFile];
 	} else {
 		[self.csound stopRecording];
-        [self.csound stopCsound];
+        [self.csound stop];
     }
 }
 
@@ -97,13 +100,13 @@
     return [localDocDirURL URLByAppendingPathComponent:@"recording.wav"];
 }
 
-#pragma mark CsoundObjCompletionListener
+#pragma mark CsoundObjListener
 
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
+-(void)csoundObjStarted:(CsoundObj *)csoundObj {
 	[self.csound recordToURL:[self recordingURL]];
 }
 
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[_mSwitch setOn:NO animated:YES];
     _mPlayer = nil;
 	_mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];

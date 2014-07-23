@@ -2,7 +2,7 @@
  
  PitchShifterViewController.h:
  
- Copyright (C) 2011 Thomas Hass
+ Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -24,12 +24,12 @@
  */
 
 #import "BaseCsoundViewController.h"
-#import "UIControlXY.h"
+#import "ControlRectangle.h"
 
-@interface PitchShifterViewController : BaseCsoundViewController <CsoundObjCompletionListener>
+@interface PitchShifterViewController : BaseCsoundViewController
 {
-	IBOutlet UISwitch		*mSwitch;
-	IBOutlet UIControlXY	*mXYControl;
+	IBOutlet UISwitch *mSwitch;
+	IBOutlet ControlRectangle *mXYControl;
 }
 
 - (IBAction)toggleOnOff:(UISwitch *)sender;
