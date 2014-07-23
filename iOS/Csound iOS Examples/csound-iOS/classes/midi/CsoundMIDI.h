@@ -28,6 +28,6 @@
 
 @interface CsoundMIDI : NSObject
 
-+(void)setMidiInCallbacks:(CSOUND*)csound;
++(void)setMidiInCallbacks:(CSOUND *)csound;
 
 @end

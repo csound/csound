@@ -33,7 +33,7 @@
 }
 
 -(IBAction) toggleOnOff:(id)component {
-	UISwitch* uiswitch = (UISwitch*)component;
+	UISwitch *uiswitch = (UISwitch *)component;
 	NSLog(@"Status: %d", [uiswitch isOn]);
     
 	if(uiswitch.on) {
@@ -41,26 +41,24 @@
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];  
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[self.csound stopCsound];
+		[self.csound stop];
         
         self.csound = [[CsoundObj alloc] init];
-        [self.csound addCompletionListener:self];
-        [self.csound addSlider:mSlider forChannelName:@"slider"];
-        [self.csound startCsound:tempFile];
+        [self.csound addListener:self];
+        
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+        [csoundUI addSlider:mSlider forChannelName:@"slider"];
+        
+        [self.csound play:tempFile];
         
 	} else {
-        [self.csound stopCsound];
+        [self.csound stop];
     }
 }
 
+#pragma mark CsoundObjListener
 
-
-#pragma mark CsoundObjCompletionListener
-
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[mSwitch setOn:NO animated:YES];
 }
 

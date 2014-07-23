@@ -2,7 +2,7 @@
  
  BaseValueCacheable.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -25,11 +25,8 @@
 
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
-#import "CsoundValueCacheable.h"
 
-@interface BaseValueCacheable : NSObject<CsoundValueCacheable> {
-    BOOL mCacheDirty;
-}
+@interface BaseValueCacheable : NSObject<CsoundValueCacheable>
 
 @property (assign) BOOL cacheDirty;
 
