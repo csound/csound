@@ -277,14 +277,14 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     int         nsegs;
     MYFLT       **argp = p->argums;
     double      dur;
-    MYFLT       len = csound->curip->p3;
+    MYFLT       len = csound->curip->p3.value;
     MYFLT       release = *argp[3];
     int32       relestim;
 
     if (UNLIKELY(len<=FL(0.0))) len = FL(100000.0); /* MIDI case set int32 */
     len -= release;         /* len is time remaining */
     if (UNLIKELY(len<FL(0.0))) { /* Odd case of release time greater than dur */
-      release = csound->curip->p3; len = FL(0.0);
+      release = csound->curip->p3.value; len = FL(0.0);
     }
     nsegs = 6;          /* DADSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
@@ -717,7 +717,7 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     XSEG    *segp;
     int     nsegs;
     MYFLT   **argp = p->argums;
-    MYFLT   len = csound->curip->p3;
+    MYFLT   len = csound->curip->p3.value;
     MYFLT   delay = *argp[4], attack = *argp[0], decay = *argp[1];
     MYFLT   sus, dur;
     MYFLT   release = *argp[3];
@@ -725,7 +725,7 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     if (len<FL(0.0)) len = FL(100000.0); /* MIDI case set long */
     len -= release;                      /* len is time remaining */
     if (len<FL(0.0)) { /* Odd case of release time greater than dur */
-      release = csound->curip->p3; len = FL(0.0);
+      release = csound->curip->p3.value; len = FL(0.0);
     }
     nsegs = 5;          /* DXDSR */
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||

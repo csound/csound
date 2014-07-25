@@ -523,14 +523,10 @@ typedef struct {
     MYFLT  *lclbas;  /* base for variable memory pool */
     char   *strarg;       /* string argument */
     /* Copy of required p-field values for quick access */
-    CS_TYPE*    p0_type;
-    MYFLT       p0;
-    CS_TYPE*    p1_type;
-    MYFLT       p1;
-    CS_TYPE*    p2_type;
-    MYFLT       p2;
-    CS_TYPE*    p3_type;
-    MYFLT       p3;
+    CS_VAR_MEM  p0;
+    CS_VAR_MEM  p1;
+    CS_VAR_MEM  p2;
+    CS_VAR_MEM  p3;
   } INSDS;
 
 #define CS_KSMPS     (p->h.insdshead->ksmps)

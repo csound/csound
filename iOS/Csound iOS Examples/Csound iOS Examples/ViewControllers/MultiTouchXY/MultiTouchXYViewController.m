@@ -48,24 +48,15 @@
 	NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"multiTouchXY" ofType:@"csd"];  
 	NSLog(@"FILE PATH: %@", tempFile);
 	
-	[self.csound stopCsound];
+	[self.csound stop];
 	
 	self.csound = [[CsoundObj alloc] init];
-	[self.csound addCompletionListener:self];
 	
 	[self.csound addValueCacheable:self];
 	
-	[self.csound startCsound:tempFile];
+	[self.csound play:tempFile];
 }
 
-
-#pragma mark CsoundObjCompletionListener
-
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
-}
 
 #pragma mark ValueCacheable
 
