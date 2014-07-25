@@ -224,7 +224,7 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
     do {                        /* This loop does not terminate in mode=0 */
       nip = ip->nxtact;
       if (((mode & 8) && ip->offtim >= 0.0) ||
-          ((mode & 4) && ip->p1 != p1) ||
+          ((mode & 4) && ip->p1.value != p1) ||
           (allow_release && ip->relesing)) {
         ip = nip;
         continue;
