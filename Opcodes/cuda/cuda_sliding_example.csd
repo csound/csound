@@ -4,11 +4,11 @@
 </CsOptions>
 <CsInstruments>
 
-ksmps = 128
+ksmps = 64
 0dbfs = 1
 
 instr 1
-asig = diskin:a("flutec3.wav",1,0,1)
+asig,adp diskin "metheny.wav",1,0,1
 amod = p4; oscil:a(2,3)
 asig2 = cudasliding(asig,amod,p5)
 asig = linenr(asig2,0.005,0.01,0.01)    

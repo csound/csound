@@ -9,7 +9,8 @@ ksmps = 64
 
 instr 1
 ifftsize = 1024
-ihopsize = 256:a("flutec3.wav",1,0,1)
+ihopsize = 256
+asig = diskin2:a("flutec3.wav",1,0,1)
 fsig = cudanal(asig, 
                ifftsize, 
                ihopsize, 
