@@ -2210,7 +2210,7 @@ int lpf18db(CSOUND *csound, LPF18 *p)
 int wavesetset(CSOUND *csound, BARRI *p)
 {
     if (*p->len == FL(0.0))
-      p->length = 1 + (int)(p->h.insdshead->p3 * CS_ESR * FL(0.5));
+      p->length = 1 + (int)(p->h.insdshead->p3.value * CS_ESR * FL(0.5));
     else
       p->length = 1 + (int)*p->len;
     if (UNLIKELY(p->length <= 1)) p->length = (int)CS_ESR;

@@ -34,7 +34,7 @@
 }
 
 -(IBAction) toggleOnOff:(id)component {
-	UISwitch* uiswitch = (UISwitch*)component;
+	UISwitch *uiswitch = (UISwitch *)component;
 	NSLog(@"Status: %d", [uiswitch isOn]);
     
 	if(uiswitch.on) {
@@ -42,29 +42,29 @@
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"harmonizer" ofType:@"csd"];  
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[self.csound stopCsound];
+		[self.csound stop];
         
         self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
-        [self.csound addCompletionListener:self];
+        [self.csound addListener:self];
         
-        [self.csound addSlider:mHarmPitchSlider forChannelName:@"slider"];
-        [self.csound addSlider:mGainSlider forChannelName:@"gain"];
-        [self.csound startCsound:tempFile];
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+        
+        [csoundUI addSlider:mHarmPitchSlider forChannelName:@"slider"];
+        [csoundUI addSlider:mGainSlider forChannelName:@"gain"];
+        
+        [self.csound play:tempFile];
         
 	} else {
-        [self.csound stopCsound];
+        [self.csound stop];
     }
 }
 
 
 
-#pragma mark CsoundObjCompletionListener
+#pragma mark CsoundObjListener
 
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[mSwitch setOn:NO animated:YES];
 }
 

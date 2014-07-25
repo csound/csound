@@ -26,9 +26,9 @@
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
 
-@interface SimpleTest1ViewController : BaseCsoundViewController<CsoundObjCompletionListener> {
-    IBOutlet UISlider* mSlider;
-    IBOutlet UISwitch* mSwitch;
+@interface SimpleTest1ViewController : BaseCsoundViewController<CsoundObjListener> {
+    IBOutlet UISlider *mSlider;
+    IBOutlet UISwitch *mSwitch;
 }
 
 -(IBAction) toggleOnOff:(id)component;

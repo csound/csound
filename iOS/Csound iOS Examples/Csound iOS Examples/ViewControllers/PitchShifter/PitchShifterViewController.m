@@ -2,7 +2,7 @@
  
  PitchShifterViewController.m:
  
- Copyright (C) 2011 Thomas Hass
+ Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -32,26 +32,19 @@
 	if (sender.on) {
 		NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"pitchshifter" ofType:@"csd"];
 		
-		[self.csound stopCsound];
+		[self.csound stop];
 		self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
-		[self.csound addCompletionListener:self];
 		
 		[self.csound addValueCacheable:mXYControl];
 		
-		[self.csound startCsound:tempFile];
+		[self.csound play:tempFile];
 	} else {
-		[self.csound stopCsound];
+		[self.csound stop];
 	}
 }
 
-#pragma mark - CsoundObj Listener
-
-- (void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
-
-- (void)csoundObjComplete:(CsoundObj *)csoundObj {
+- (void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[mSwitch setOn:NO animated:YES];
 }
 
