@@ -1726,7 +1726,7 @@ int kperf_debug(CSOUND *csound)
             } else { /* check if we have arrived at an instrument breakpoint */
               bkpt_node_t *bp_node = data->bkpt_anchor->next;
               while (bp_node) {
-                if (bp_node->instr == ip->p1) {
+                if (bp_node->instr == ip->p1.value) {
                   if (bp_node->count < 2) {
                     /* skip of 0 or 1 has the same effect */
                     data->debug_instr_ptr = ip;
@@ -3866,7 +3866,7 @@ MYFLT *csoundGetPFields(void *p)
  */
 int csoundGetInstrumentNumber(void *p)
 {
-    return (int) ((OPDS*) p)->insdshead->p1;
+    return (int) ((OPDS*) p)->insdshead->p1.value;
 }
 
 typedef struct csMsgStruct_ {
