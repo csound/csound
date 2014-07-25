@@ -48,7 +48,7 @@ extern "C" {
 
     typedef struct csvarmem {
         CS_TYPE* varType;
-        MYFLT memBlock;
+        MYFLT value;
     } CS_VAR_MEM;
     
 #define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(MYFLT))
