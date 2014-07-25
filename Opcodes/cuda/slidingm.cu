@@ -36,7 +36,14 @@
 #include <sys/time.h>
 #include <csdl.h>
 
+//#define RB
+
+#ifndef RB
 typedef float real;
+#else
+typedef double real;
+#endif
+
 #define real(x) x
 #define TWO_PI (2.0*M_PI)
 #define NBATCH (256)
@@ -53,7 +60,7 @@ typedef float real;
 #define A HannA
 #define B2 (HannB/real(2.0))
 #define WINDOW
-//#define RB
+
 
 typedef double2 complex;
 typedef double2 phasor;
@@ -194,6 +201,9 @@ __global__ void reconstruct(complex f[/*nbatch*N*/], real s[/*nbatch*/], int N)
 }
 
 #else
+// the code below depends on fast single-precision
+// atomic addition
+
 // this parallelises across N*nbatch
 __global__ void window(complex Foutw[/*N*nbatch*/],
 		       complex Fout[/*N*nbatch*/], int N)
@@ -424,8 +434,13 @@ void cuinit(CSOUND *csound,
 
   if (!csound->QueryGlobalVariable(csound, "::cusliding::init")) {
     csound->CreateGlobalVariable(csound, "::cusliding::init",1);
+#ifndef RB
     csound->Message(csound, "Sliding PV: using floats on device %s (capability %d.%d)\n", deviceProp.name,
 		    deviceProp.major, deviceProp.minor);
+#else
+    csound->Message(csound, "Sliding PV: using doubles on device %s (capability %d.%d)\n", deviceProp.name,
+		    deviceProp.major, deviceProp.minor); 
+#endif
     // global constants
     CUDA(cudaMemcpyToSymbol, offset, &off, sizeof(int));
     CUDA(cudaMemcpyToSymbol, nbatch, &p->nbtch, sizeof(int));
