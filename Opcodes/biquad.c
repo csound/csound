@@ -33,6 +33,7 @@
 //#include "csdl.h"
 #include <math.h>
 #include "biquad.h"
+#include "csound_standard_types.h"
 
 /***************************************************************************/
 /* The biquadratic filter computes the digital filter two x components and */
@@ -398,6 +399,14 @@ static int distort(CSOUND *csound, DISTORT *p)
 /* Coded by Hans Mikelson November 1998                                    */
 /***************************************************************************/
 
+CS_TYPE* csoundGetTypeForArg(void* argPtr) {
+    char* ptr = (char*)argPtr;
+    CS_TYPE* varType = *(CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
+    return varType;
+}
+
+#define IS_ASIG_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_A)
+
 static int vcoset(CSOUND *csound, VCO *p)
 {
     /* Number of bytes in the delay */
@@ -417,8 +426,9 @@ static int vcoset(CSOUND *csound, VCO *p)
       printf("Initial value of lphs set to zero\n");
       p->lphs = 0;
     }
-    p->ampcod = (XINARG1) ? 1 : 0;
-    p->cpscod = (XINARG2) ? 1 : 0;
+    
+    p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
+    p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
 
     if (*p->iskip==FL(0.0)) {
       p->ynm1 = (*p->wave == FL(1.0)) ? -FL(0.5) : FL(0.0);
