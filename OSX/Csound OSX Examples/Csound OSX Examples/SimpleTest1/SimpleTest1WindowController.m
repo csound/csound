@@ -24,14 +24,14 @@
     
 	if([self.toggleOnOffButton.title isEqualToString:@"Start"]) {
         
-        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];
+        NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];
         csound = [[CsoundObj alloc] init];
         [csound addListener:self];
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
         [csoundUI addSlider:_slider forChannelName:@"slider"];
         
-        [csound play:tempFile];
+        [csound play:csdFile];
         
 	} else {
         [csound stop];

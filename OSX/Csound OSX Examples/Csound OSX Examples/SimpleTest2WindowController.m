@@ -28,7 +28,7 @@
     
 	if([self.startStopButton.title isEqualToString:@"Start"]) {
         
-        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test2" ofType:@"csd"];
+        NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"test2" ofType:@"csd"];
         
         csound = [[CsoundObj alloc] init];
         [csound addListener:self];
@@ -41,7 +41,7 @@
         [csoundUI addSlider:_sustainSlider  forChannelName:@"sustain"];
         [csoundUI addSlider:_releaseSlider  forChannelName:@"release"];
         
-        [csound play:tempFile];
+        [csound play:csdFile];
         
 	} else {
         NSLog(@"try to stop csound");
