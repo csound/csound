@@ -38,8 +38,8 @@
     
 	if(uiswitch.on) {
         
-        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];  
-        NSLog(@"FILE PATH: %@", tempFile);
+        NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];
+        NSLog(@"FILE PATH: %@", csdFile);
         
 		[self.csound stop];
         
@@ -49,7 +49,7 @@
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         [csoundUI addSlider:mSlider forChannelName:@"slider"];
         
-        [self.csound play:tempFile];
+        [self.csound play:csdFile];
         
 	} else {
         [self.csound stop];

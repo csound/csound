@@ -6,9 +6,9 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="AudioFileTestViewController">
             <connections>
-                <outlet property="mPitchKnob" destination="14" id="15"/>
-                <outlet property="mPitchLabel" destination="9" id="11"/>
-                <outlet property="mPlayButton" destination="3" id="4"/>
+                <outlet property="pitchKnob" destination="14" id="gL2-ZG-eZh"/>
+                <outlet property="pitchLabel" destination="9" id="GLL-HQ-6QH"/>
+                <outlet property="playButton" destination="3" id="oVn-Ez-39A"/>
                 <outlet property="view" destination="1" id="6"/>
             </connections>
         </placeholder>
