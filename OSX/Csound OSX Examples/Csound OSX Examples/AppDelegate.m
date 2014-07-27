@@ -26,6 +26,7 @@
 #import "AppDelegate.h"
 
 #import "AudioFileTestWindowController.h"
+#import "AudioInTestWindowController.h"
 #import "ButtonTestWindowController.h"
 #import "ConsoleOutputWindowController.h"
 #import "CsoundHaiku4WindowController.h"
@@ -34,6 +35,7 @@
 
 @interface AppDelegate() {
     AudioFileTestWindowController *audioFileTestWC;
+    AudioInTestWindowController *audioInTestWC;
     ButtonTestWindowController *buttonTestWC;
     ConsoleOutputWindowController *consoleOutputWC;
     CsoundHaiku4WindowController *csoundHaiku4WC;
@@ -52,6 +54,10 @@
 - (IBAction)loadAudioFileTest:(id)sender {
     audioFileTestWC = [[AudioFileTestWindowController alloc] initWithWindowNibName:@"AudioFileTestWindowController"];
     [audioFileTestWC window];
+}
+- (IBAction)loadAudioInTest:(id)sender {
+    audioInTestWC = [[AudioInTestWindowController alloc] initWithWindowNibName:@"AudioInTestWindowController"];
+    [audioInTestWC window];
 }
 - (IBAction)loadButtonTest:(id)sender {
     buttonTestWC = [[ButtonTestWindowController alloc] initWithWindowNibName:@"ButtonTestWindowController"];

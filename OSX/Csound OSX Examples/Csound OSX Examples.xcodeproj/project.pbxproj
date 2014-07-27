@@ -25,6 +25,9 @@
 		C41F0B851973A82B00997479 /* CsoundUI.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0B831973A82B00997479 /* CsoundUI.m */; };
 		C41F0B871973AB5500997479 /* IV.csd in Resources */ = {isa = PBXBuildFile; fileRef = C41F0B861973AB5500997479 /* IV.csd */; };
 		C41F0B891973AB5C00997479 /* test.csd in Resources */ = {isa = PBXBuildFile; fileRef = C41F0B881973AB5C00997479 /* test.csd */; };
+		C478097E1984C164000FD79F /* audioInTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = C478097A1984C164000FD79F /* audioInTest.csd */; };
+		C47809841984C18E000FD79F /* AudioInTestWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C47809821984C18E000FD79F /* AudioInTestWindowController.m */; };
+		C47809851984C18E000FD79F /* AudioInTestWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C47809831984C18E000FD79F /* AudioInTestWindowController.xib */; };
 		C4EBCDE519761D6A00A7C7C1 /* ConsoleOutputWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4EBCDE319761D6A00A7C7C1 /* ConsoleOutputWindowController.m */; };
 		C4EBCDE619761D6A00A7C7C1 /* ConsoleOutputWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDE419761D6A00A7C7C1 /* ConsoleOutputWindowController.xib */; };
 		C4EBCDEB1976504200A7C7C1 /* consoleoutput.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDEA1976504200A7C7C1 /* consoleoutput.csd */; };
@@ -78,6 +81,10 @@
 		C41F0B831973A82B00997479 /* CsoundUI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CsoundUI.m; path = valueCacheable/ui/CsoundUI.m; sourceTree = "<group>"; };
 		C41F0B861973AB5500997479 /* IV.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = IV.csd; path = CsoundHaiku4/IV.csd; sourceTree = "<group>"; };
 		C41F0B881973AB5C00997479 /* test.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test.csd; path = SimpleTest1/test.csd; sourceTree = "<group>"; };
+		C478097A1984C164000FD79F /* audioInTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = audioInTest.csd; sourceTree = "<group>"; };
+		C47809811984C18E000FD79F /* AudioInTestWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioInTestWindowController.h; sourceTree = "<group>"; };
+		C47809821984C18E000FD79F /* AudioInTestWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioInTestWindowController.m; sourceTree = "<group>"; };
+		C47809831984C18E000FD79F /* AudioInTestWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AudioInTestWindowController.xib; sourceTree = "<group>"; };
 		C4EBCDE219761D6A00A7C7C1 /* ConsoleOutputWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConsoleOutputWindowController.h; path = ConsoleOutput/ConsoleOutputWindowController.h; sourceTree = "<group>"; };
 		C4EBCDE319761D6A00A7C7C1 /* ConsoleOutputWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ConsoleOutputWindowController.m; path = ConsoleOutput/ConsoleOutputWindowController.m; sourceTree = "<group>"; };
 		C4EBCDE419761D6A00A7C7C1 /* ConsoleOutputWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = ConsoleOutputWindowController.xib; path = ConsoleOutput/ConsoleOutputWindowController.xib; sourceTree = "<group>"; };
@@ -245,6 +252,7 @@
 			isa = PBXGroup;
 			children = (
 				C4EBCDF11976637200A7C7C1 /* AudioFileTest */,
+				C47809791984C164000FD79F /* AudioInTest */,
 				C4F2B9D41974A297006EE12F /* ButtonTest */,
 				C4EBCDE719761D7200A7C7C1 /* ConsoleOutput */,
 				C41F0B6F19739ADE00997479 /* CsoundHaiku4 */,
@@ -266,6 +274,17 @@
 			);
 			name = "User Interface";
 			path = ..;
+			sourceTree = "<group>";
+		};
+		C47809791984C164000FD79F /* AudioInTest */ = {
+			isa = PBXGroup;
+			children = (
+				C478097A1984C164000FD79F /* audioInTest.csd */,
+				C47809811984C18E000FD79F /* AudioInTestWindowController.h */,
+				C47809821984C18E000FD79F /* AudioInTestWindowController.m */,
+				C47809831984C18E000FD79F /* AudioInTestWindowController.xib */,
+			);
+			path = AudioInTest;
 			sourceTree = "<group>";
 		};
 		C4EBCDE719761D7200A7C7C1 /* ConsoleOutput */ = {
@@ -366,8 +385,10 @@
 			files = (
 				C4EBCDF01976636D00A7C7C1 /* AudioFileTestWindowController.xib in Resources */,
 				C4F2B9D81974A2C3006EE12F /* buttonTest.csd in Resources */,
+				C47809851984C18E000FD79F /* AudioInTestWindowController.xib in Resources */,
 				C41F0B891973AB5C00997479 /* test.csd in Resources */,
 				C4F2B9E41974C476006EE12F /* CsoundHaiku4WindowController.xib in Resources */,
+				C478097E1984C164000FD79F /* audioInTest.csd in Resources */,
 				C4F2B9E91974C693006EE12F /* SimpleTest1WindowController.xib in Resources */,
 				C4EBCDFB1978C7E700A7C7C1 /* testAudioFile.aif in Resources */,
 				C4F2B9DF1974AB7B006EE12F /* ButtonTestWindowController.xib in Resources */,
@@ -395,6 +416,7 @@
 				C4F2B9ED1974C6A7006EE12F /* SimpleTest2WindowController.m in Sources */,
 				C41F0AE519738B8F00997479 /* AppDelegate.m in Sources */,
 				C41F0B5F1973913D00997479 /* CsoundObj.m in Sources */,
+				C47809841984C18E000FD79F /* AudioInTestWindowController.m in Sources */,
 				C41F0ADE19738B8F00997479 /* main.m in Sources */,
 				C4F2B9E31974C476006EE12F /* CsoundHaiku4WindowController.m in Sources */,
 				C41F0B841973A82B00997479 /* CachedSlider.m in Sources */,
