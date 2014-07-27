@@ -51,8 +51,7 @@
     
 	if(([self.startStopButton.title isEqualToString:@"Start"]) ) {
         
-        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"buttonTest" ofType:@"csd"];
-        NSLog(@"FILE PATH: %@", tempFile);
+        NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"buttonTest" ofType:@"csd"];
         
 		[csound stop];
         
@@ -69,7 +68,7 @@
         [csoundUI addSlider:_sustainSlider  forChannelName:@"sustain"];
         [csoundUI addSlider:_releaseSlider  forChannelName:@"release"];
         
-        [csound play:tempFile];
+        [csound play:csdFile];
         
 	} else {
         [csound stop];

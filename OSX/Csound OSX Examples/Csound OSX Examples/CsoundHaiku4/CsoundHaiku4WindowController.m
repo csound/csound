@@ -18,10 +18,10 @@
 @implementation CsoundHaiku4WindowController
 
 - (IBAction)startPlayCSDFile:(id)sender {
-	NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"IV" ofType:@"csd"];
+	NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"IV" ofType:@"csd"];
 	
 	csound = [[CsoundObj alloc] init];
-	[csound play:tempFile];
+	[csound play:csdFile];
     
 }
 
