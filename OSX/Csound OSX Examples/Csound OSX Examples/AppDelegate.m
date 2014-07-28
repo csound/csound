@@ -30,6 +30,7 @@
 #import "ButtonTestWindowController.h"
 #import "ConsoleOutputWindowController.h"
 #import "CsoundHaiku4WindowController.h"
+#import "HarmonizerWindowController.h"
 #import "SimpleTest1WindowController.h"
 #import "SimpleTest2WindowController.h"
 
@@ -39,6 +40,7 @@
     ButtonTestWindowController *buttonTestWC;
     ConsoleOutputWindowController *consoleOutputWC;
     CsoundHaiku4WindowController *csoundHaiku4WC;
+    HarmonizerWindowController *harmonizerWC;
     SimpleTest1WindowController *simpleTest1WC;
     SimpleTest2WindowController *simpleTest2WC;
 }
@@ -70,6 +72,10 @@
 - (IBAction)loadCsoundHaiku4:(id)sender {
     csoundHaiku4WC = [[CsoundHaiku4WindowController alloc] initWithWindowNibName:@"CsoundHaiku4WindowController"];
     [csoundHaiku4WC window];
+}
+- (IBAction)loadHarmonizer:(id)sender {
+    harmonizerWC = [[HarmonizerWindowController alloc] initWithWindowNibName:@"HarmonizerWindowController"];
+    [harmonizerWC window];
 }
 - (IBAction)loadSimpleTest1:(id)sender {
     simpleTest1WC = [[SimpleTest1WindowController alloc] initWithWindowNibName:@"SimpleTest1WindowController"];
