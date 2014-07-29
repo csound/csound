@@ -227,7 +227,7 @@ typedef struct {
         MYFLT   *ar, *rangeMin, *rangeMax, *cpsMin, *cpsMax;
         double  si;
         double  phs;
-        int initflag, cod;
+        int initflag, rangeMin_cod, rangeMax_cod;
         MYFLT   num0, num1, num2, df0, df1,c3, c2;
 } RANDOM3;
 

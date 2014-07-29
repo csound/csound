@@ -1227,7 +1227,7 @@ int phsorbnk(CSOUND *csound, PHSORBNK *p)
       nsmps -= early;
       memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
     }
-    if (p->XINCODE) {
+    if (IS_ASIG_ARG(p->xcps)) {
       MYFLT *cps = p->xcps;
       for (n=offset; n<nsmps; n++) {
         incr = (double)(cps[n] * csound->onedsr);
@@ -1283,7 +1283,7 @@ int pinkset(CSOUND *csound, PINKISH *p)
     }
     /* User range scaling can be a- or k-rate for Gardner, a-rate only
        for filter */
-    if (XINARG1) {
+    if (IS_ASIG_ARG(p->xin)) {
       p->ampinc = 1;
     }
     else {
@@ -2080,7 +2080,7 @@ int varicolset(CSOUND *csound, VARI *p)
     p->lastbeta = *p->beta;
     p->sq1mb2 = SQRT(FL(1.0)-p->lastbeta * p->lastbeta);
     p->ampmod = FL(0.785)/(FL(1.0)+p->lastbeta);
-    p->ampinc = XINARG1 ? 1 : 0;
+    p->ampinc = IS_ASIG_ARG(p->kamp) ? 1 : 0;
     return OK;
 }
 
@@ -2164,9 +2164,9 @@ int lpf18db(CSOUND *csound, LPF18 *p)
       MYFLT ax1  = lastin;
       MYFLT ay11 = ay1;
       MYFLT ay31 = ay2;
-      fco        = (XINARG2 ? p->fco[n] : *p->fco);
-      res        = (XINARG3 ? p->res[n] : *p->res);
-      dist       = (double)(XINARG4 ? p->dist[n] : *p->dist);
+      fco        = (IS_ASIG_ARG(p->fco) ? p->fco[n] : *p->fco);
+      res        = (IS_ASIG_ARG(p->res) ? p->res[n] : *p->res);
+      dist       = (double)(IS_ASIG_ARG(p->dist) ? p->dist[n] : *p->dist);
       if (fco != lfc || flag) {
         lfc = fco;
         kfcn = FL(2.0) * fco * csound->onedsr;

@@ -301,9 +301,6 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         continue;                     /*      chk it later */
       }
       tfound = argtyp2(s);     /* else get arg type */
-      if (tfound == 'a' && n < 31) /* JMC added for FOG */
-                                   /* 4 for FOF, 8 for FOG; expanded to 15  */
-        tp->xincod |= (1 << n);
       if (tfound == 'S' && n < 31)
         tp->xincod_str |= (1 << n);
     }
@@ -321,8 +318,6 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     while (n--) {                                     /* outargs:  */
       s = tp->outlist->arg[n];
       tfound = argtyp2(s);                     /*  found    */
-      if (tfound == 'a' && n < 31)
-        tp->xoutcod |= (1 << n);
       if (tfound == 'S' && n < 31)
         tp->xoutcod_str |= (1 << n);
     }
