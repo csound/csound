@@ -138,7 +138,7 @@ static int getIpAddress(char *ipaddr)
         }
       }
     }
-    close(fd);
+    if (fd>=0) close(fd);
     return ret;
 #endif
 }
