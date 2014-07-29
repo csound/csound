@@ -270,7 +270,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->init_done = 1;
 #endif
     if (O->Beatmode)
-    ip->p2.value = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
+    ip->p2.value     = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
     ip->offtim       = (double) ip->p3.value;         /* & duplicate p3 for now */
     ip->m_chnbp      = (MCHNBLK*) NULL;
     ip->xtratim      = 0;
@@ -278,7 +278,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->m_sust       = 0;
     ip->nxtolap      = NULL;
     ip->opcod_iobufs = NULL;
-    ip->strarg = newevtp->strarg;  /* copy strarg so it does not get lost */
+    ip->strarg       = newevtp->strarg;  /* copy strarg so it does not get lost */
 #ifdef HAVE_ATOMIC_BUILTIN
     __sync_lock_test_and_set((int*)&ip->init_done,0);
 #else
@@ -317,7 +317,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
       //printf("ksmps offset = %d \n",  ip->ksmps_offset);
       /* with no p3 or xtratim values, can't set the sample accur duration */
-      if(ip->p3.value > 0 && ip->xtratim == 0)
+      if (ip->p3.value > 0 && ip->xtratim == 0)
       ip->no_end = csound->ksmps -
         ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;
       /* the ksmps_no_end field is initially 0, set to no_end in the last
@@ -1583,7 +1583,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
         start += csound->nchnls;
       }
       ip->ksmps_offset = offset;
-      if (early){
+      if (early) {
         n -= (early*csound->nchnls);
         ip->ksmps_no_end = early % lksmps;
       }
@@ -1597,7 +1597,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
               CS_PDS = CS_PDS->insdshead->pds;
               CS_PDS->insdshead->pds = NULL;
             }
-          }while ((CS_PDS = CS_PDS->nxtp));
+          } while ((CS_PDS = CS_PDS->nxtp));
         }
         ip->kcounter++;
       }
@@ -1608,7 +1608,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
       for (pbuf = ip->spout + chan, frame = 0;
            frame < nsmps; frame++) {
         p->ar[chan][frame] = *pbuf;
-	//printf("%f \n", p->ar[chan][frame]);
+        //printf("%f \n", p->ar[chan][frame]);
         pbuf += csound->nchnls;
       }
     }
@@ -1616,7 +1616,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip)                                   /* loop to last opds */
-     while (CS_PDS->nxtp)CS_PDS = CS_PDS->nxtp;
+      while (CS_PDS->nxtp)CS_PDS = CS_PDS->nxtp;
     return OK;
 }
 
@@ -1688,7 +1688,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
             int count = src->sizes[0];
             int j;
-            if(src->dimensions > 1) {
+            if (src->dimensions > 1) {
                 for (j = 0; j < src->dimensions; j++) {
                     count *= src->sizes[j];
                 }
@@ -1729,7 +1729,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
             int count = src->sizes[0];
             int j;
-            if(src->dimensions > 1) {
+            if (src->dimensions > 1) {
               for (j = 0; j < src->dimensions; j++) {
                 count *= src->sizes[j];
               }
@@ -1783,7 +1783,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
             int count = src->sizes[0];
             int j;
-            if(src->dimensions > 1) {
+            if (src->dimensions > 1) {
                 for (j = 0; j < src->dimensions; j++) {
                     count *= src->sizes[j];
                 }
@@ -1825,7 +1825,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
               ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
               int count = src->sizes[0];
               int j;
-              if(src->dimensions > 1) {
+              if (src->dimensions > 1) {
                   for (j = 0; j < src->dimensions; j++) {
                       count *= src->sizes[j];
                   }
@@ -1877,13 +1877,13 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             ARRAYDAT* outDat = (ARRAYDAT*)out;
             int count = outDat->sizes[0];
             int j;
-            if(outDat->dimensions > 1) {
+            if (outDat->dimensions > 1) {
                 for (j = 0; j < outDat->dimensions; j++) {
                     count *= outDat->sizes[j];
                 }
             }
 
-            if(offset) {
+            if (offset) {
               for (j = 0; j < count; j++) {
                 int memberOffset = j * (outDat->arrayMemberSize / sizeof(MYFLT));
                 MYFLT* outMem = outDat->data + memberOffset;
@@ -1891,7 +1891,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
               }
             }
 
-            if(early) {
+            if (early) {
               for (j = 0; j < count; j++) {
                 int memberOffset = j * (outDat->arrayMemberSize / sizeof(MYFLT));
                 MYFLT* outMem = outDat->data + memberOffset;
