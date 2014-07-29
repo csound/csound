@@ -725,9 +725,9 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
       switch ((int) MYFLT2LRND(*p->iflag)) {
       case 1:
         {     /* with prefix (i-statement, p1, p2 and p3) */
-          int     p1 = (int) p->h.insdshead->p1;
+          int     p1 = (int) p->h.insdshead->p1.value;
           double  p2 = (double) CS_KCNT * CS_ONEDKR;
-          double  p3 = p->h.insdshead->p3;
+          double  p3 = p->h.insdshead->p3.value;
           if (p3 > FL(0.0))
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
           else
@@ -738,10 +738,10 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
         if (pp->fout_kreset == 0)
           pp->fout_kreset = CS_KCNT;
         {
-          int p1 = (int) p->h.insdshead->p1;
+          int p1 = (int) p->h.insdshead->p1.value;
           double p2 = (double) (CS_KCNT - pp->fout_kreset)
                       * CS_ONEDKR;
-          double p3 = p->h.insdshead->p3;
+          double p3 = p->h.insdshead->p3.value;
           if (p3 > FL(0.0))
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
           else
@@ -802,7 +802,7 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
       switch ((int) MYFLT2LRND(*p->iflag)) {
       case 1:
         {     /* whith prefix (i-statement, p1, p2 and p3) */
-          int p1 = (int) p->h.insdshead->p1;
+          int p1 = (int) p->h.insdshead->p1.value;
           double p2 = p->counter * CS_ONEDKR;
           double p3 = (double) (CS_KCNT - p->counter)
                       * CS_ONEDKR;
@@ -811,7 +811,7 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
         break;
       case 2: /* with prefix (start at 0 time) */
         {
-          int p1 = (int) p->h.insdshead->p1;
+          int p1 = (int) p->h.insdshead->p1.value;
           double p2 = (p->counter - pp->fout_kreset) * CS_ONEDKR;
           double p3 = (double) (CS_KCNT - p->counter)
                       * CS_ONEDKR;

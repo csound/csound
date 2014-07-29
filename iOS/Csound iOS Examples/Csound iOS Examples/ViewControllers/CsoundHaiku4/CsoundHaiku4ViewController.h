@@ -26,6 +26,6 @@
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
 
-@interface CsoundHaiku4ViewController : BaseCsoundViewController<CsoundObjCompletionListener>
+@interface CsoundHaiku4ViewController : BaseCsoundViewController
 
 @end

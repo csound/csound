@@ -33,9 +33,9 @@ int foscset(CSOUND *csound, FOSC *p)
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->cphs = p->mphs = (int32)(*p->iphs * FMAXLEN);
-      p->ampcod = (XINARG1) ? 1 : 0;
-      p->carcod = (XINARG3) ? 1 : 0;
-      p->modcod = (XINARG4) ? 1 : 0;
+      p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
+      p->carcod = IS_ASIG_ARG(p->xcar) ? 1 : 0;
+      p->modcod = IS_ASIG_ARG(p->xmod) ? 1 : 0;
       return OK;
     }
     return NOTOK;
@@ -72,7 +72,7 @@ int foscil(CSOUND *csound, FOSC *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-    if (p->XINCODE) {
+    if (p->ampcod || p->carcod || p->modcod) {
       for (n=offset;n<nsmps;n++) {
         if (p->ampcod) amp = ampp[n];
         if (p->carcod) xcar = carp[n];
@@ -149,7 +149,7 @@ int foscili(CSOUND *csound, FOSC *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    if (p->XINCODE) {
+    if (p->ampcod || p->carcod || p->modcod) {
       for (n=offset;n<nsmps;n++) {
         if (p->ampcod)  amp = ampp[n];
         if (p->carcod)  xcar = carp[n];
@@ -395,7 +395,7 @@ int loscil(CSOUND *csound, LOSC *p)
       inc = -inc;
     xamp = p->xamp;
     xx = *xamp;
-    aamp = (p->XINCODE) ? 1 : 0;
+    aamp = IS_ASIG_ARG(p->xamp) ? 1 : 0;
     if (p->seg1) {                      /* if still segment 1  */
       beg = p->beg1;
       end = p->end1;
@@ -605,7 +605,7 @@ int loscil3(CSOUND *csound, LOSC *p)
       inc = -inc;
     xamp = p->xamp;
     xx = *xamp;
-    aamp = (p->XINCODE) ? 1 : 0;
+    aamp = IS_ASIG_ARG(p->xamp) ? 1 : 0;
     if (p->seg1) {                      /* if still segment 1  */
       beg = p->beg1;
       end = p->end1;

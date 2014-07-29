@@ -2,7 +2,7 @@
  
  MidiWidgetsManager.m:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -30,14 +30,12 @@ void MidiWidgetsManagerReadProc(const MIDIPacketList *pktlist, void *refcon, voi
 
 @implementation MidiWidgetsManager
 
-@synthesize widgetWrappers = mWidgetWrappers;
-
 -(id)init {
     if(self = [super init]) {
-        mWidgetWrappers = [[NSMutableArray alloc] init];
+        _widgetWrappers = [[NSMutableArray alloc] init];
         
         for (int i = 0; i < 128; i++) {
-            [mWidgetWrappers addObject:[NSNull null]];
+            [_widgetWrappers addObject:[NSNull null]];
         }
         
     }
@@ -58,7 +56,7 @@ void MidiWidgetsManagerReadProc(const MIDIPacketList *pktlist, void *refcon, voi
          return;
      }
     
-    [mWidgetWrappers replaceObjectAtIndex:controllerNumber withObject:wrapper];
+    [_widgetWrappers replaceObjectAtIndex:controllerNumber withObject:wrapper];
 }
 
 

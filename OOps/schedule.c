@@ -297,7 +297,7 @@ int triginset(CSOUND *csound, TRIGINSTR *p)
     p->kadjust = -1;      /* Set kcounter offset for perf-time */
     /* Catch p3==0 (i-time only) event triggerings. */
     if (csound->global_kcounter > 0 &&
-        *p->trigger != FL(0.0) && p->h.insdshead->p3 == 0)
+        *p->trigger != FL(0.0) && p->h.insdshead->p3.value == 0)
       ktriginstr_(csound, p,0);
     return OK;
 }
@@ -320,7 +320,7 @@ int triginset_S(CSOUND *csound, TRIGINSTR *p)
     p->kadjust = -1;      /* Set kcounter offset for perf-time */
     /* Catch p3==0 (i-time only) event triggerings. */
     if (csound->global_kcounter > 0 &&
-        *p->trigger != FL(0.0) && p->h.insdshead->p3 == 0)
+        *p->trigger != FL(0.0) && p->h.insdshead->p3.value == 0)
       ktriginstr_(csound, p, 1);
     return OK;
 }

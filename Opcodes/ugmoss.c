@@ -505,7 +505,7 @@ static int vcombset(CSOUND *csound, VCOMB *p)
     p->rvt = FL(0.0);
     p->lpt = FL(0.0);
     p->g   = FL(0.0);
-    p->lpta = (XINARG3) ? 1 : 0;
+    p->lpta = IS_ASIG_ARG(p->xlpt) ? 1 : 0;
     if (*p->insmps == 0) p->maxlpt = *p->imaxlpt * CS_ESR;
     else p->maxlpt = *p->imaxlpt;
     return OK;

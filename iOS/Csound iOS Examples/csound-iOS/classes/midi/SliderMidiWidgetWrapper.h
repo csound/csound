@@ -27,7 +27,7 @@
 #import "MidiWidgetWrapper.h"
 
 @interface SliderMidiWidgetWrapper : NSObject <MidiWidgetWrapper> {
-    UISlider* mSlider;
+    UISlider *mSlider;
 }
 
 -(id)init:(UISlider*)slider;
