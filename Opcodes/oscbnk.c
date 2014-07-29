@@ -1435,7 +1435,7 @@ static int osckts(CSOUND *csound, OSCKTS *p)
 
     /* copy object data to local variables */
     ft = p->ft;
-    a_amp = (XINARG1 ? 1 : 0); a_cps = (XINARG2 ? 1 : 0);
+    a_amp = (IS_ASIG_ARG(p->xamp) ? 1 : 0); a_cps = (IS_ASIG_ARG(p->xcps) ? 1 : 0);
     phs = p->phs; ar = p->ar; xcps = p->xcps; xamp = p->xamp; async = p->async;
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     if (!a_cps) {
@@ -1944,7 +1944,7 @@ static int vco2ft(CSOUND *csound, VCO2FT *p)
 
 static int vco2set(CSOUND *csound, VCO2 *p)
 {
-    int     mode, tnum;
+    int     mode, tnum, i;
     int     tnums[8] = { 0, 0, 1, 2, 1, 3, 4, 5 };
     int     modes[8] = { 0, 1, 2, 0, 0, 0, 0, 0 };
     MYFLT   x;
@@ -1956,6 +1956,7 @@ static int vco2set(CSOUND *csound, VCO2 *p)
       p->vco2_tables = &(pp->vco2_tables);
     }
     /* check number of args */
+//    printf("INOCOUNT: %d\n", p->INOCOUNT);
     if (UNLIKELY(p->INOCOUNT > 6)) {
       return csound->InitError(csound, Str("vco2: too many input arguments"));
     }
@@ -1969,9 +1970,13 @@ static int vco2set(CSOUND *csound, VCO2 *p)
       return csound->InitError(csound,
                                Str("vco2: insufficient required arguments"));
     }
-    if (UNLIKELY(p->XINCODE)) {
-      return csound->InitError(csound, Str("vco2: invalid argument type"));
-    }
+   
+    //FIXME
+    
+//    if (UNLIKELY(p->XINCODE)) {
+//      return csound->InitError(csound, Str("vco2: invalid argument type"));
+//    }
+    
     /* select table array and algorithm, according to waveform */
     tnum = tnums[(mode & 14) >> 1];
     p->mode = modes[(mode & 14) >> 1];
@@ -2579,6 +2584,7 @@ static const OENTRY localops[] = {
     { "vco2ft",     sizeof(VCO2FT),     TW, 3,      "k",    "kov",
             (SUBR) vco2ftset, (SUBR) vco2ft, (SUBR) NULL                },
     { "vco2",       sizeof(VCO2),       TR, 5,      "a",    "kkoM",
+//    { "vco2",       sizeof(VCO2),       TR, 5,      "a",    "kkoOOo",
             (SUBR) vco2set, (SUBR) NULL, (SUBR) vco2                    },
     { "denorm",     sizeof(DENORMS),   0,  4,      "",     "y",
             (SUBR) NULL, (SUBR) NULL, (SUBR) denorms                    },

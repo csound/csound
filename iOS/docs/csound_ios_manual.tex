@@ -145,13 +145,12 @@ Csound will use the CsOptions you provide.  A standard set of flags to use are `
 The CsoundObj API has been created to ease communication with Csound by using objects that implement the CsoundValueCacheable protocol.  The protocol definition is as follows:
 
 \begin{lstlisting}[caption=CsoundValueCacheable Protocol Definition]
-@protocol CsoundValueCacheable
-
--(void)setup:(CsoundObj*)csoundObj;
--(void)updateValuesToCsound;
--(void)updateValuesFromCsound;
--(void)cleanup;
-
+@protocol CsoundValueCacheable <NSObject>
+- (void)setup:(CsoundObj*)csoundObj;
+- (void)cleanup;
+@optional
+- (void)updateValuesFromCsound;
+- (void)updateValuesToCsound;
 @end
 \end{lstlisting}
 
@@ -163,7 +162,7 @@ CsoundValueCacheables are used to both read values from Csound as well as write 
 \item \textbf{cleanup} - this method is called after Csound has completed its run and should be used by CsoundValueCacheables to free up any allocated data and remove references to channel pointers.
 \end{itemize}
 
-By using CsoundValueCacheables, CsoundObj functionality can be extended to communicate with as many items as you would like. The Csound for iOS API contains pre-made wrapper classes for common UI classes (UISlider, UIButton, UISwitch) as well as hardware sensors (Accelerometer, Attitude, Gyroscope).  CsoundObj has helper methods for the CsoundValueCacheables that come with the CsoundObj API, as well as the generic \textbf{addCsoundValueCacheable} and \textbf{removeCsoundValueCacheable} methods for adding custom CsoundValueCacheables. Please consult these classes as well as their use in context within the Csound for iOS Examples project.
+By using CsoundValueCacheables, CsoundObj functionality can be extended to communicate with as many items as you would like. Included with Csound for iOS is the CsoundUI which contains pre-made wrapper classes for common UI classes (UISlider, UIButton, UISwitch) and similarly, CsoundMotion provides wrapper for hardware sensors (Accelerometer, Attitude, Gyroscope).  CsoundObj has helper methods for the CsoundValueCacheables that come with the CsoundObj API, as well as the generic \textbf{addCsoundValueCacheable} and \textbf{removeCsoundValueCacheable} methods for adding custom CsoundValueCacheables. Please consult these classes as well as their use in context within the Csound for iOS Examples project.
 
 
 %======
@@ -172,7 +171,7 @@ By using CsoundValueCacheables, CsoundObj functionality can be extended to commu
 
 \subsection{Binding Widgets to CsoundObj}
 
-The CsoundObj API contains the following methods for binding widgets:
+The CsoundUI API contains the following methods for binding widgets:
 
 \begin{lstlisting}[caption=Methods for Widget Binding]
 -(id<CsoundValueCacheable>)addSwitch:(UISwitch*)uiSwitch forChannelName:(NSString*)channelName;
@@ -207,10 +206,10 @@ This alternative to direct MIDI input to Csound allows for MIDI mapping without 
 
 \subsection{Accelerometer, Gyroscope, Attitude}
 
-CsoundObj has built-in support for three of the more commonly used hardware sensors on iOS devices: Accelerometer, Gyroscope, and Attitude. CsoundObj has the following methods to enable these features:
+CsoundMotion has built-in support for three of the more commonly used hardware sensors on iOS devices: Accelerometer, Gyroscope, and Attitude. CsoundMotion has the following methods to enable these features:
 
 
-\begin{lstlisting}[caption=CsoundObj Hardware Sensor Methods]
+\begin{lstlisting}[caption=CsoundMotion Hardware Sensor Methods]
 -(id<CsoundValueCacheable>)enableAccelerometer;
 -(id<CsoundValueCacheable>)enableGyroscope;
 -(id<CsoundValueCacheable>)enableAttitude; 
@@ -257,25 +256,29 @@ Simple example that plays ascending notes.  The pitch of the notes can be altere
 
 \begin{lstlisting}[caption=Example code showing configuring and starting a CsoundObj]
 -(IBAction) toggleOnOff:(id)component {
-    UISwitch* uiswitch = (UISwitch*)component;
-    NSLog(@"Status: %d", [uiswitch isOn]);
+  UISwitch *uiswitch = (UISwitch *)component;
+  NSLog(@"Status: %d", [uiswitch isOn]);
     
-    if(uiswitch.on) {
-      
-        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];  
-        NSLog(@"FILE PATH: %@", tempFile);
+  if(uiswitch.on) {
         
-        [self.csound stopCsound];
+        NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];
+        NSLog(@"FILE PATH: %@", csdFile);
+        
+    [self.csound stop];
         
         self.csound = [[CsoundObj alloc] init];
-    [self.csound addCompletionListener:self];
-        [self.csound addSlider:mSlider forChannelName:@"slider"];
-        [self.csound startCsound:tempFile];
+        [self.csound addListener:self];
         
-    } else {
-        [self.csound stopCsound];
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+        [csoundUI addSlider:mSlider forChannelName:@"slider"];
+        
+        [self.csound play:csdFile];
+        
+  } else {
+        [self.csound stop];
     }
 }
+
 \end{lstlisting}
 
 \subsection{Simple Test 2}
@@ -377,19 +380,18 @@ This examples demonstrates a technique of finding the URL of an AIFF file that i
 \begin{lstlisting}[caption=CsoundObj setup code]
 - (void)viewDidLoad
 {
-    [super viewDidLoad];
-    self.csound = [[CsoundObj alloc] init];
-    [self.csound addCompletionListener:self];
-    NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"audiofiletest" ofType:@"csd"];
-    [mPitchKnob setMinimumValue:0.5f];
-    [mPitchKnob setMaximumValue:2.0f];
-    [mPitchKnob setValue:1.0f];
-    [self.csound addValueCacheable:mPitchKnob];
-    [self.csound startCsound:csdPath];
+  [super viewDidLoad];
+  self.csound = [[CsoundObj alloc] init];
+  NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"audiofiletest" ofType:@"csd"];
+  [self.pitchKnob setMinimumValue:0.5f];
+  [self.pitchKnob setMaximumValue:2.0f];
+  [self.pitchKnob setValue:1.0f];
+  [self.csound addValueCacheable:self.pitchKnob];
+  [self.csound play:csdPath];
 }
 \end{lstlisting}
 
-The UIKnob widget is custom UIView that is also a CsoundValueCacheable.  It uses a hardcoded Csound channel called "pitch".  After the CsoundObj object is setup and started, performance of the audio file is done in the callback to the Play button press:
+The ControlKnob widget is custom UIView that is also a CsoundValueCacheable.  It uses a hardcoded Csound channel called "pitch".  After the CsoundObj object is setup and started, performance of the audio file is done in the callback to the Play button press:
 
 \begin{lstlisting}[caption=Play button callback code]
 - (IBAction)play:(UIButton *)sender
@@ -432,7 +434,7 @@ Note: after the message is formatted and converted into an Objective-C NSString 
 
 \subsection{Pitch Shifter}
 
-This example uses the PVS opcodes to perform pitch shifting on a signal coming in from the microphone on the device.  It uses a custom UIControlXY widget that allows controlling the mix of the wet and dry signal along the x-axis and the amount of pitch shifting along the y-axis.  
+This example uses the PVS opcodes to perform pitch shifting on a signal coming in from the microphone on the device.  It uses a custom ControlRectangle widget that allows controlling the mix of the wet and dry signal along the x-axis and the amount of pitch shifting along the y-axis.  
 
 %======
 

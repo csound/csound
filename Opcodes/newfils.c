@@ -457,8 +457,8 @@ static int statevar_process(CSOUND *csound,statevar *p)
     f = p->oldf;
 
     for (i=offset; i<nsmps; i++) {
-      MYFLT fr = (XINARG2 ? freq[i] : *freq);
-      MYFLT rs = (XINARG3 ? res[i] : *res);
+      MYFLT fr = (IS_ASIG_ARG(p->freq) ? freq[i] : *freq);
+      MYFLT rs = (IS_ASIG_ARG(p->res) ? res[i] : *res);
       if (p->oldfreq != fr|| p->oldres != rs) {
         f = 2.0*sin(fr*(double)csound->pidsr/ostimes);
         q = 1.0/rs;
@@ -524,9 +524,9 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (i=offset;i<nsmps;i++) {
-      MYFLT frq = XINARG2 ? freq[i] : *freq;
-      MYFLT rs = XINARG3 ? ris[i] : *ris;
-      MYFLT dc = XINARG4 ? dec[i] : *dec;
+      MYFLT frq = IS_ASIG_ARG(p->freq) ? freq[i] : *freq;
+      MYFLT rs = IS_ASIG_ARG(p->ris) ? ris[i] : *ris;
+      MYFLT dc = IS_ASIG_ARG(p->dec) ? dec[i] : *dec;
       if (frq != lfrq || rs != lrs || dc != ldc) {
         lfrq = frq; lrs = rs; ldc = dc;
         ang = (double)csound->tpidsr*frq;         /* pole angle */

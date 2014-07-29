@@ -2,7 +2,7 @@
  
  BaseCsoundViewController.m:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -29,8 +29,6 @@
 @end
 
 @implementation BaseCsoundViewController
-
-@synthesize csound = mCsound;
 
 #pragma mark - Managing the detail item
 
@@ -62,7 +60,7 @@
     
     [super viewWillDisappear:animated];
     
-    [mCsound stopCsound];
+    [self.csound stop];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation

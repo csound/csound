@@ -91,7 +91,7 @@ static int wguide1set (CSOUND *csound, WGUIDE1 *p)
     p->c1 = p->prvhp = FL(0.0);
     p->c2 = FL(1.0);
     p->yt1 = FL(0.0);
-    p->xdelcod = (XINARG2) ? 1 : 0;
+    p->xdelcod = IS_ASIG_ARG(p->xdel) ? 1 : 0;
     return OK;
 }
 
@@ -194,8 +194,8 @@ static int wguide2set (CSOUND *csound, WGUIDE2 *p)
     p->yt1_2 = FL(0.0);
 
     p->old_out=FL(0.0);
-    p->xdel1cod = (XINARG2) ? 1 : 0;
-    p->xdel2cod = (XINARG3) ? 1 : 0;
+    p->xdel1cod = IS_ASIG_ARG(p->xdel1) ? 1 : 0;
+    p->xdel2cod = IS_ASIG_ARG(p->xdel2) ? 1 : 0;
 
     if (UNLIKELY(p->xdel1cod != p->xdel2cod))
       return csound->InitError(csound, Str(
