@@ -1413,7 +1413,7 @@ inline static int nodePerf(CSOUND *csound, int index)
 
 unsigned long kperfThread(void * cs)
 {
-    INSDS *start;
+    //INSDS *start;
     CSOUND *csound = (CSOUND *)cs;
     void *threadId;
     int index;
@@ -1424,11 +1424,11 @@ unsigned long kperfThread(void * cs)
     threadId = csound->GetCurrentThreadID();
     index = getThreadIndex(csound, threadId);
     numThreads = csound->oparms->numThreads;
-    start = NULL;
+    //start = NULL;
     csound->Message(csound,
                     Str("Multithread performance: insno: %3d  thread %d of "
                         "%d starting.\n"),
-                    start ? start->insno : -1,
+                    /* start ? start->insno : */ -1,
                     index,
                     numThreads);
     if (index < 0) {
