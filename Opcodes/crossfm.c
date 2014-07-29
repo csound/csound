@@ -45,10 +45,10 @@ int xfmset(CSOUND *csound, CROSSFM *p)
       p->phase2 = *p->iphs2;
       p->sig2 = FL(0.0);
     }
-    p->frq1adv = (XINARG1) ? 1 : 0;
-    p->frq2adv = (XINARG2) ? 1 : 0;
-    p->ndx1adv = (XINARG3) ? 1 : 0;
-    p->ndx2adv = (XINARG4) ? 1 : 0;
+    p->frq1adv = IS_ASIG_ARG(p->xfrq1) ? 1 : 0;
+    p->frq2adv = IS_ASIG_ARG(p->xfrq2) ? 1 : 0;
+    p->ndx1adv = IS_ASIG_ARG(p->xndx1) ? 1 : 0;
+    p->ndx2adv = IS_ASIG_ARG(p->xndx2) ? 1 : 0;
     return OK;
 }
 

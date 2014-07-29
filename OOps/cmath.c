@@ -351,8 +351,8 @@ int exprndiset(CSOUND *csound, PRANDI *p)
     p->num2 = exprand(csound, *p->arg1);
     p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     p->phs = 0;
-    p->ampcod = (XINARG1) ? 1 : 0;      /* (not used by krandi) */
-    p->cpscod = (XINARG2) ? 1 : 0;
+    p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krandi) */
+    p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
     return OK;
 }
 
@@ -509,8 +509,8 @@ int gaussiset(CSOUND *csound, PRANDI *p)
     p->num2 = gaussrand(csound, *p->arg1);
     p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     p->phs = 0;
-    p->ampcod = (XINARG1) ? 1 : 0;      /* (not used by krandi) */
-    p->cpscod = (XINARG2) ? 1 : 0;
+    p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krandi) */
+    p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
     return OK;
 }
 
@@ -607,8 +607,8 @@ int cauchyiset(CSOUND *csound, PRANDI *p)
     p->num2 = cauchrand(csound, *p->arg1);
     p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     p->phs = 0;
-    p->ampcod = (XINARG1) ? 1 : 0;      /* (not used by krandi) */
-    p->cpscod = (XINARG2) ? 1 : 0;
+    p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krandi) */
+    p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
     return OK;
 }
 

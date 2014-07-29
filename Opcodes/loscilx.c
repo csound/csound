@@ -308,7 +308,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       }
     }
     p->enableWarp = 0;
-    if (csound->GetInputArgAMask(p))
+    if (IS_ASIG_ARG(p->xamp))
       p->arateXamp = ~((int) 0);        /* used as a bit mask */
     else
       p->arateXamp = 0;

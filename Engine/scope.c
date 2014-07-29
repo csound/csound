@@ -20,9 +20,7 @@ int scope(CSOUND *csound)
 #ifdef SCORE_PARSER
     {
       PRS_PARM  qq;
-      int n;
       char buff[1024];
-      FILE *ff;
       /* Pre-process */
       memset(&qq, '\0', sizeof(PRS_PARM));
       csound_prslex_init(&qq.yyscanner);
