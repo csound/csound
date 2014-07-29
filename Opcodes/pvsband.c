@@ -99,10 +99,10 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
         int change = 0;
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
-        if (XINARG2) lowcut = p->klowcut[n], change = 1;
-        if (XINARG3) lowbnd = p->klowbnd[n], change = 1;
-        if (XINARG4) higbnd = p->khigbnd[n], change = 1;
-        if (XINARG5) higcut = p->khigcut[n], change = 1;
+        if (IS_ASIG_ARG(p->klowcut)) lowcut = p->klowcut[n], change = 1;
+        if (IS_ASIG_ARG(p->klowbnd)) lowbnd = p->klowbnd[n], change = 1;
+        if (IS_ASIG_ARG(p->khigbnd)) higbnd = p->khigbnd[n], change = 1;
+        if (IS_ASIG_ARG(p->khigcut)) higcut = p->khigcut[n], change = 1;
         if (change) {
           if (lowcut<FL(0.0)) lowcut = FL(0.0);
           if (lowbnd<lowcut) lowbnd = lowcut;
@@ -207,10 +207,10 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
         int change = 0;
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
-        if (XINARG2) lowcut = p->klowcut[n], change = 1;
-        if (XINARG3) lowbnd = p->klowbnd[n], change = 1;
-        if (XINARG4) higbnd = p->khigbnd[n], change = 1;
-        if (XINARG5) higcut = p->khigcut[n], change = 1;
+        if (IS_ASIG_ARG(p->klowcut)) lowcut = p->klowcut[n], change = 1;
+        if (IS_ASIG_ARG(p->klowbnd)) lowbnd = p->klowbnd[n], change = 1;
+        if (IS_ASIG_ARG(p->khigbnd)) higbnd = p->khigbnd[n], change = 1;
+        if (IS_ASIG_ARG(p->khigcut)) higcut = p->khigcut[n], change = 1;
         if (change) {
           if (lowcut<FL(0.0)) lowcut = FL(0.0);
           if (lowbnd<lowcut) lowbnd = lowcut;

@@ -242,12 +242,11 @@ static const CSOUND cenviron_ = {
     intpow,
     type2string,
     /* arguments to opcodes */
+    csoundGetTypeForArg,
     csoundGetInputArgCnt,
-    csoundGetInputArgAMask,
     csoundGetInputArgSMask,
     csoundGetInputArgName,
     csoundGetOutputArgCnt,
-    csoundGetOutputArgAMask,
     csoundGetOutputArgSMask,
     csoundGetOutputArgName,
     get_arg_string,
@@ -493,7 +492,7 @@ static const CSOUND cenviron_ = {
           NULL, NULL, NULL, NULL,
           0,
           NULL,
-          0,0,0,0,0,0,0},
+          0,0,0,0,0},
         0,0,0,
         0,
         NULL,
@@ -3671,6 +3670,14 @@ char *csoundGetOpcodeName(void *p)
     return ((OPDS*) p)->optext->t.oentry->opname;
 }
 
+/** Returns the CS_TYPE for an opcode's arg pointer */
+
+CS_TYPE* csoundGetTypeForArg(void* argPtr) {
+    char* ptr = (char*)argPtr;
+    CS_TYPE* varType = *(CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
+    return varType;
+}
+
 /**
  * Returns the number of input arguments for opcode 'p'.
  */
@@ -3679,16 +3686,6 @@ int csoundGetInputArgCnt(void *p)
     return (int) ((OPDS*) p)->optext->t.inArgCount;
 }
 
-/**
- * Returns a binary value of which bit 0 is set if the first input
- * argument is a-rate, bit 1 is set if the second input argument is
- * a-rate, and so on.
- * Only the first 31 arguments are guaranteed to be reported correctly.
- */
-unsigned long csoundGetInputArgAMask(void *p)
-{
-    return (unsigned long) ((unsigned int) ((OPDS*) p)->optext->t.xincod);
-}
 
 /**
  * Returns a binary value of which bit 0 is set if the first input
@@ -3718,17 +3715,6 @@ char *csoundGetInputArgName(void *p, int n)
 int csoundGetOutputArgCnt(void *p)
 {
     return (int) ((OPDS*) p)->optext->t.outArgCount;
-}
-
-/**
- * Returns a binary value of which bit 0 is set if the first output
- * argument is a-rate, bit 1 is set if the second output argument is
- * a-rate, and so on.
- * Only the first 31 arguments are guaranteed to be reported correctly.
- */
-unsigned long csoundGetOutputArgAMask(void *p)
-{
-    return (unsigned long) ((unsigned int) ((OPDS*) p)->optext->t.xoutcod);
 }
 
 /**

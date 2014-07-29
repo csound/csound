@@ -79,8 +79,8 @@ static int svf(CSOUND *csound, SVF *p)
       memset(&band[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT fco = XINARG2 ? kfco[n] : *kfco;
-      MYFLT q = XINARG3 ? kq[n] : *kq;
+      MYFLT fco = IS_ASIG_ARG(p->kfco) ? kfco[n] : *kfco;
+      MYFLT q = IS_ASIG_ARG(p->kq) ? kq[n] : *kq;
       if (fco != lfco || q != lq) {
         lfco = fco; lq = q;
         /* calculate frequency and Q coefficients */
@@ -253,8 +253,8 @@ static int resonr(CSOUND *csound, RESONZ *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT cf = XINARG2 ? kcf[n] : *kcf;
-      MYFLT bw = XINARG3 ? kbw[n] : *kbw;
+      MYFLT cf = IS_ASIG_ARG(p->kcf) ? kcf[n] : *kcf;
+      MYFLT bw = IS_ASIG_ARG(p->kbw) ? kbw[n] : *kbw;
       if (cf != lcf || bw != lbw) {
         lcf = cf; lbw = bw;
         r = exp((double)(bw * csound->mpidsr));
@@ -320,8 +320,8 @@ static int resonz(CSOUND *csound, RESONZ *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT cf = XINARG2 ? kcf[n] : *kcf;
-      MYFLT bw = XINARG3 ? kbw[n] : *kbw;
+      MYFLT cf = IS_ASIG_ARG(p->kcf) ? kcf[n] : *kcf;
+      MYFLT bw = IS_ASIG_ARG(p->kbw) ? kbw[n] : *kbw;
       if (cf != lcf || bw != lbw) {
         lcf = cf; lbw = bw;
         r = exp(-(double)(bw * csound->pidsr));

@@ -136,14 +136,11 @@ char *csoundGetOpcodeName(void *p);
  */
 int csoundGetInputArgCnt(void *p);
 
-/**
- * Returns a binary value of which bit 0 is set if the first input
- * argument is a-rate, bit 1 is set if the second input argument is
- * a-rate, and so on.
- * Only the first 31 arguments are guaranteed to be reported correctly.
- */
-unsigned long csoundGetInputArgAMask(void *p);
+    
+/** Returns the CS_TYPE for an opcode's arg pointer */
 
+CS_TYPE* csoundGetTypeForArg(void* argPtr);
+    
 /**
  * Returns a binary value of which bit 0 is set if the first input
  * argument is a string, bit 1 is set if the second input argument is
@@ -161,14 +158,6 @@ char *csoundGetInputArgName(void *p, int n);
  * Returns the number of output arguments for opcode 'p'.
  */
 int csoundGetOutputArgCnt(void *p);
-
-/**
- * Returns a binary value of which bit 0 is set if the first output
- * argument is a-rate, bit 1 is set if the second output argument is
- * a-rate, and so on.
- * Only the first 31 arguments are guaranteed to be reported correctly.
- */
-unsigned long csoundGetOutputArgAMask(void *p);
 
 /**
  * Returns a binary value of which bit 0 is set if the first output
