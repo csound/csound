@@ -39,7 +39,7 @@ try:
     import ctypes
     use_ctypes = True
 except:
-    print("ctypes not available. Some operations will be slow or unavailble.")
+    print("ctypes not available. Some operations will be slow or unavailable.")
     use_ctypes = False
 
 try:
@@ -84,7 +84,7 @@ class icsound:
         self._client_port = port
     
     def start_engine(self, sr = 44100, ksmps = 64, nchnls = 2, zerodbfs=1.0,
-                     dacout = 'dac', adcin = None, port=12894):
+                     dacout = 'dac', adcin = None, port=None):
         ''' Start the csound engine on a separate thread'''
         if self._cs and self._csPerf:
             print("icsound: Csound already running")
@@ -119,7 +119,9 @@ class icsound:
         self._flush_messages()
         
         if(self._csPerf.GetStatus() == 0):
-            print("Csound server started. Listening to port %i"%port)
+            print("Csound server started.")
+            if port:
+                print("Listening to port %i"%port)
         else:
             print("Error starting server. Maybe port is in use?")
 
@@ -352,13 +354,15 @@ class icsound:
 if __name__ == "__main__":
     print("Please use import icsound")
     cs = icsound()
-    cs.start_server()
+    cs.start_engine()
     
     import time
-    time.sleep(10)
+    time.sleep(1)
 
     #cs.make_table(5, 1024, 10, 1)
     #cs.fill_table(2, (1,2,3,4,5,2))
     #gen_table(1, 0, 8192, 10, *(map(lambda x: 1.0 / (x + 1), range(16 + 1))))
+    
+    print("About to stop.")
     cs.stop_engine()
     print("Done.")

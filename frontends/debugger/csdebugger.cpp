@@ -62,7 +62,12 @@ int main(int argc, char *argv[])
     cout << "Csound filename: " << argv[1] << '\n';
     cout << "Instr number:" << argv[2] << '\n';
 
-    csoundSetInstrumentBreakpoint(csound->GetCsound(), 1.1, ksmpsOffset);
+    double instr = atof(argv[2]);
+    if (instr >= 1.0) {
+        csoundSetInstrumentBreakpoint(csound->GetCsound(), instr, ksmpsOffset);
+    } else {
+        cout << "Invalid instrument breakpoint: " << instr;
+    }
     csound->Perform();
 
     csoundDebuggerClean(csound->GetCsound());
