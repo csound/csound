@@ -320,7 +320,8 @@ sprintf_opcode_(CSOUND *csound,
 
 
     strseg = malloc(siz);
-
+    i = 0;
+    
     while (1) {
       if (UNLIKELY(i >= siz)) {
         // return StrOp_ErrMsg(p, "format string too long");
