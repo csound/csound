@@ -123,8 +123,8 @@ static int moogvcfset(CSOUND *csound, MOOGVCF *p)
       p->xnm1 = p->y1nm1 = p->y2nm1 = p->y3nm1 = 0.0;
       p->y1n  = p->y2n   = p->y3n   = p->y4n   = 0.0;
     }
-    p->fcocod = (XINARG2) ? 1 : 0;
-    p->rezcod = (XINARG3) ? 1 : 0;
+    p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
+    p->rezcod = IS_ASIG_ARG(p->res) ? 1 : 0;
     if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->e0dbfs;
 
     return OK;
@@ -220,8 +220,8 @@ static int rezzyset(CSOUND *csound, REZZY *p)
     if (*p->iskip==FL(0.0)) {
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0; /* Initialize to zero */
     }
-    p->fcocod = (XINARG2) ? 1 : 0;
-    p->rezcod = (XINARG3) ? 1 : 0;
+    p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
+    p->rezcod = IS_ASIG_ARG(p->rez) ? 1 : 0;
 
     return OK;
 } /* end rezzyset(p) */
@@ -399,13 +399,7 @@ static int distort(CSOUND *csound, DISTORT *p)
 /* Coded by Hans Mikelson November 1998                                    */
 /***************************************************************************/
 
-CS_TYPE* csoundGetTypeForArg(void* argPtr) {
-    char* ptr = (char*)argPtr;
-    CS_TYPE* varType = *(CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
-    return varType;
-}
 
-#define IS_ASIG_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_A)
 
 static int vcoset(CSOUND *csound, VCO *p)
 {
@@ -1130,8 +1124,8 @@ static int tbvcfset(CSOUND *csound, TBVCF *p)
     if (*p->iskip==FL(0.0)) {
       p->y = p->y1 = p->y2 = 0.0;
     }
-    p->fcocod = (XINARG2) ? 1 : 0;
-    p->rezcod = (XINARG3) ? 1 : 0;
+    p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
+    p->rezcod = IS_ASIG_ARG(p->res) ? 1 : 0;
     return OK;
 }
 
@@ -1210,8 +1204,8 @@ static int bqrezset(CSOUND *csound, REZZY *p)
     if (*p->iskip==FL(0.0)) {
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;  /* Initialise to zero */
     }
-    p->fcocod = (XINARG2) ? 1 : 0;
-    p->rezcod = (XINARG3) ? 1 : 0;
+    p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
+    p->rezcod = IS_ASIG_ARG(p->rez) ? 1 : 0;
 
     return OK;
 } /* end rezzyset(p) */
@@ -1388,8 +1382,8 @@ static int mode(CSOUND *csound, MODE *p)
       memset(&p->aout[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT kfq = XINARG2 ? p->kfreq[n] : *p->kfreq;
-      MYFLT kq  = XINARG3 ? p->kq[n] : *p->kq;
+      MYFLT kfq = IS_ASIG_ARG(p->kfreq) ? p->kfreq[n] : *p->kfreq;
+      MYFLT kq  = IS_ASIG_ARG(p->kq) ? p->kq[n] : *p->kq;
       if (lfq != kfq || lq != kq) {
         double kfreq  = kfq*TWOPI;
         double kalpha = (CS_ESR/kfreq);

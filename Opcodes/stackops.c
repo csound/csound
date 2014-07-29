@@ -190,16 +190,15 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
 {
     CSOUND  *csound;
     int     i, argCnt, argCnt_i, argCnt_p, aMask, sMask, curOffs_i, curOffs_p;
+    MYFLT** args = p->args;
 
     csound = ((OPDS*) p)->insdshead->csound;
     if (!isOutput) {
       argCnt = csound->GetInputArgCnt(p);
-      aMask = csound->GetInputArgAMask(p);
       sMask = csound->GetInputArgSMask(p);
     }
     else {
       argCnt = csound->GetOutputArgCnt(p);
-      aMask = csound->GetOutputArgAMask(p);
       sMask = csound->GetOutputArgSMask(p);
     }
     if (UNLIKELY(argCnt > 31))
@@ -209,7 +208,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
     argCnt_p = 0;
     for (i = 0; i < argCnt; i++) {
       int   maskVal = (1 << i);
-      if (aMask & maskVal) {
+      if (IS_ASIG_ARG(args[i])) {
         argMap[0] |= maskVal;
         argCnt_p++;
       }
@@ -244,7 +243,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
       int   maskVal = (1 << i);
       if (argMap[0] & maskVal) {
         /* performance time types */
-        if (aMask & maskVal) {
+        if (IS_ASIG_ARG(args[i])) {
           argMap[i + 3] = (curOffs_p | CS_STACK_A);
           curOffs_p += ((int) sizeof(MYFLT) * CS_KSMPS);
         }

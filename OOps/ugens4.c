@@ -35,8 +35,8 @@ int bzzset(CSOUND *csound, BUZZ *p)
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = (int32)(*p->iphs * FL(0.5) * FMAXLEN);
-      p->ampcod = (XINARG1) ? 1 : 0;
-      p->cpscod = (XINARG2) ? 1 : 0;
+      p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
+      p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
       p->reported = 0;          /* No errors yet */
       return OK;
     }
@@ -109,8 +109,8 @@ int gbzset(CSOUND *csound, GBUZZ *p)
         p->lphs = (int32)(*p->iphs * FMAXLEN);
         p->prvr = FL(0.0);
       }
-      p->ampcod = (XINARG1) ? 1 : 0;
-      p->cpscod = (XINARG2) ? 1 : 0;
+      p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
+      p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
       p->reported = 0;
       p->last = FL(1.0);
       return OK;
@@ -487,7 +487,7 @@ int rndset(CSOUND *csound, RAND *p)
           p->rand = ((int16)(*p->iseed * FL(32768.0)))&0xffff;
       }
     }
-    p->ampcod = (XINARG1) ? 1 : 0;      /* (not used by krand) */
+    p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krand) */
     return OK;
 }
 
@@ -601,8 +601,8 @@ int rhset(CSOUND *csound, RANDH *p)
       }
       p->phs = 0;                               /*      & phs           */
     }
-    p->ampcod = (XINARG1) ? 1 : 0;      /* (not used by krandh) */
-    p->cpscod = (XINARG2) ? 1 : 0;
+    p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krandh) */
+    p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
     return OK;
 }
 
@@ -725,8 +725,8 @@ int riset(CSOUND *csound, RANDI *p)
       p->phs = 0;                               /*      & clear phs     */
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;  /* & diff     */
     }
-    p->ampcod = (XINARG1) ? 1 : 0;      /* (not used by krandi) */
-    p->cpscod = (XINARG2) ? 1 : 0;
+    p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krandi) */
+    p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
     return OK;
 }
 

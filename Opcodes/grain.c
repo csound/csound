@@ -68,9 +68,9 @@ static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
     d +=  (int)(CS_ESR * *p->imkglen) + CS_KSMPS;
     p->y = d;
 
-    p->ampadv = (XINARG1) ? 1 : 0;
-    p->lfradv = (XINARG2) ? 1 : 0;
-    p->dnsadv = (XINARG3) ? 1 : 0;
+    p->ampadv = IS_ASIG_ARG(p->xamp) ? 1 : 0;
+    p->lfradv = IS_ASIG_ARG(p->xlfr) ? 1 : 0;
+    p->dnsadv = IS_ASIG_ARG(p->xdns) ? 1 : 0;
     return OK;
 }
 
