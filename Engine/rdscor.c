@@ -214,7 +214,8 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                       }
                       e->c.extra = new;
                       e->c.extra[0] = PMAX-2;
-                      q = e->c.extra;
+                      e->c.extra[1] = *pp;
+                      q = &e->c.extra[1];
                       while ((corfile_getc(csound->scstr) != '\n') &&
                              (scanflt(csound, &q[c++]))) {
                         if (c > (int) e->c.extra[0]) {
