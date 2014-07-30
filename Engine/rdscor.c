@@ -218,7 +218,9 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                       q = &e->c.extra[1];
                       while ((corfile_getc(csound->scstr) != '\n') &&
                              (scanflt(csound, &q[c++]))) {
-                        if (c > (int) e->c.extra[0]) {
+                        if (c >= (int) e->c.extra[0]) {
+                          /* printf("last values(%p): %f %f %f\n", */
+                          /*        q, q[c-3], q[c-2], q[c-1]); */
                           csound->DebugMsg(csound,
                                            "and more extra p-fields [%d](%d)%d\n",
                                            c, (int) e->c.extra[0],
@@ -229,11 +231,13 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                                              sizeof(MYFLT)*((int) e->c.extra[0]+
                                                             PMAX));
                           if (new==NULL) {
-                            fprintf(stderr, "Out of Mdemory\n");
+                            fprintf(stderr, "Out of Memory\n");
                             exit(7);
                           }
-                          q = e->c.extra = new;
-                          e->c.extra[0] = e->c.extra[0]+PMAX-1;
+                          new[0] = e->c.extra[0]+PMAX;
+                          e->c.extra = new; q = &new[1];
+                          /* printf("%p(%d) values: %f %f %f\n", (int)new[0], */
+                          /*        q, q[c-3], q[c-2], q[c-1]); */
                         }
                       }
                       e->c.extra[0] = c;
