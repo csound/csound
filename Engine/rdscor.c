@@ -207,7 +207,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                       csound->DebugMsg(csound, "Extra p-fields (%d %d %d %d)\n",
                                        (int)e->p[1],(int)e->p[2],
                                        (int)e->p[3],(int)e->p[4]);
-                      new = (MYFLT*)realloc(e->c.extra,sizeof(MYFLT)*PMAX);
+                      new = (MYFLT*)malloc(sizeof(MYFLT)*PMAX);
                       if (new==NULL) {
                         fprintf(stderr, Str("Out of Memory\n"));
                         exit(7);
@@ -218,7 +218,8 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                       q = &e->c.extra[1];
                       while ((corfile_getc(csound->scstr) != '\n') &&
                              (scanflt(csound, &q[c++]))) {
-                        if (c >= (int) e->c.extra[0]) {
+                        if (c+1 >= (int) e->c.extra[0]) {
+                          int size = (int)e->c.extra[0]+PMAX;
                           /* printf("last values(%p): %f %f %f\n", */
                           /*        q, q[c-3], q[c-2], q[c-1]); */
                           csound->DebugMsg(csound,
@@ -227,14 +228,12 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                                            (int)sizeof(MYFLT)*
                                                    ((int)e->c.extra[0]+PMAX));
                           new =
-                            (MYFLT *)realloc(e->c.extra,
-                                             sizeof(MYFLT)*((int) e->c.extra[0]+
-                                                            PMAX));
+                            (MYFLT *)realloc(e->c.extra, sizeof(MYFLT)*size);
                           if (new==NULL) {
                             fprintf(stderr, "Out of Memory\n");
                             exit(7);
                           }
-                          new[0] = e->c.extra[0]+PMAX;
+                          new[0] = size;
                           e->c.extra = new; q = &new[1];
                           /* printf("%p(%d) values: %f %f %f\n", (int)new[0], */
                           /*        q, q[c-3], q[c-2], q[c-1]); */

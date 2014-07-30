@@ -1944,7 +1944,7 @@ static int vco2ft(CSOUND *csound, VCO2FT *p)
 
 static int vco2set(CSOUND *csound, VCO2 *p)
 {
-    int     mode, tnum, i;
+    int     mode, tnum;
     int     tnums[8] = { 0, 0, 1, 2, 1, 3, 4, 5 };
     int     modes[8] = { 0, 1, 2, 0, 0, 0, 0, 0 };
     MYFLT   x;
