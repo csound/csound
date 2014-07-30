@@ -189,7 +189,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
                                                 int isOutput)
 {
     CSOUND  *csound;
-    int     i, argCnt, argCnt_i, argCnt_p, aMask, sMask, curOffs_i, curOffs_p;
+    int     i, argCnt, argCnt_i, argCnt_p, sMask, curOffs_i, curOffs_p;
     MYFLT** args = p->args;
 
     csound = ((OPDS*) p)->insdshead->csound;
