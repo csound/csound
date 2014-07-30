@@ -1508,8 +1508,8 @@ static int gen27(FGDATA *ff, FUNC *ftp)
     valp = &ff->e.p[5];
     fp = ftp->ftable;
     finp = fp + ff->flen;
-    /* printf("valp=%p end=%p extra=%p\n", */
-    /*        valp, &ff->e.p[PMAX-1], &(ff->e.c.extra[1])); */
+    //printf("valp=%p end=%p extra=%p\n",
+    //       valp, &ff->e.p[PMAX-1], &(ff->e.c.extra[1]));
     x2 = *valp++; y2 = *valp++;
     do {
       x1 = x2; y1 = y2;
