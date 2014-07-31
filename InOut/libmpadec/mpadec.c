@@ -213,6 +213,7 @@ static int decode_header(mpadec_t mpadec, uint32_t header)
     if (mpa->frame.frame_size < (mpa->hsize + mpa->ssize))
       mpa->frame.frame_size = mpa->hsize + mpa->ssize;
     mpa->dsize = mpa->frame.frame_size - (mpa->hsize + mpa->ssize);
+
     return TRUE;
 }
 
@@ -221,8 +222,8 @@ static uint32_t sync_buffer(mpadec_t mpadec)
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     register uint8_t *buf = mpa->next_byte;
     uint32_t retval = 0, i = mpa->bytes_left;
-
     if (mpa->state == MPADEC_STATE_START) {
+      buf += 128; i -= 128;
       while (i >= 4) {
         register uint32_t tmp = (buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
         if (((tmp & 0xFFE00000) == 0xFFE00000) &&
@@ -231,7 +232,9 @@ static uint32_t sync_buffer(mpadec_t mpadec)
           if (mpa->config.dblsync) {
             if (decode_header(mpa, tmp)) {
               if ((i < (mpa->frame.frame_size + 4)) ||
-                  (mpa->free_format && !mpa->prev_frame_size)) break;
+		  (mpa->free_format && !mpa->prev_frame_size)) { 
+                break;
+              }
               else {
                 register uint32_t tmp2 =
                   (buf[mpa->frame.frame_size]<<24)     |
@@ -257,6 +260,7 @@ static uint32_t sync_buffer(mpadec_t mpadec)
           }
         }
         buf++; i--;
+       
       }
     } else {
       while (i >= 4) {

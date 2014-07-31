@@ -72,6 +72,19 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       mp3->stream_size -= mp3->stream_offset;
       if (length && (length < mp3->stream_size)) mp3->stream_size = length;
     } else mp3->stream_size = length;
+    // check for ID3 tag
+    {
+      char hdr[10];
+      lseek(fd, 0, SEEK_SET);
+      r = read(fd, &hdr, 10);
+      if(hdr[0] == 'I' && hdr[1] == 'D' && hdr[2] == '3'){
+       /* A*2^21+B*2^14+C*2^7+D=A*2097152+B*16384+C*128+D*/
+       mp3->stream_offset = hdr[6]*2097152+hdr[7]*16384+hdr[8]*128+hdr[9] + 10;
+       fprintf(stderr, "==== found ID3 tag, skipping %d bytes ==== \n", 
+               mp3->stream_offset);
+       tmp = lseek(fd, mp3->stream_offset, SEEK_SET);
+     } else tmp = lseek(fd, mp3->stream_offset, SEEK_SET);
+    }
     r = read(fd, mp3->in_buffer, 4);
     if (r < 4) {
       mp3dec_reset(mp3);
@@ -117,8 +130,22 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
                         NULL, 0, &mp3->in_buffer_offset, NULL);
       mp3->in_buffer_used -= mp3->in_buffer_offset;
       if (r != MPADEC_RETCODE_OK) {
+	/* this is a fix for ID3 tag at the start of a file */
+	/* while(r == 7) { /\* NO SYNC, read more data *\/ */
+        /*   int32_t n = sizeof(mp3->in_buffer); */
+        /*   if (mp3->stream_size && (n > mp3->stream_size)) */
+        /*      n = (int32_t)mp3->stream_size; */
+        /*      n = read(fd, mp3->in_buffer, n); */
+        /*      if (n <= 0){ n = 0; break; } /\* EOF *\/ */
+        /*      mp3->stream_position = mp3->in_buffer_used = n;  */
+        /*      r = mpadec_decode(mp3->mpadec, mp3->in_buffer, mp3->in_buffer_used, */
+        /*                 NULL, 0, &mp3->in_buffer_offset, NULL); */
+        /*      mp3->in_buffer_used -= mp3->in_buffer_offset; */
+	/* } */
+        // if (r != MPADEC_RETCODE_OK) {
         mp3dec_reset(mp3);
         return MP3DEC_RETCODE_NOT_MPEG_STREAM;
+	//}
       }
     }
     if ((mpadec_get_info(mp3->mpadec, &mp3->mpainfo,

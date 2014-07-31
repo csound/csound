@@ -277,14 +277,14 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     int         nsegs;
     MYFLT       **argp = p->argums;
     double      dur;
-    MYFLT       len = csound->curip->p3;
+    MYFLT       len = csound->curip->p3.value;
     MYFLT       release = *argp[3];
     int32       relestim;
 
     if (UNLIKELY(len<=FL(0.0))) len = FL(100000.0); /* MIDI case set int32 */
     len -= release;         /* len is time remaining */
     if (UNLIKELY(len<FL(0.0))) { /* Odd case of release time greater than dur */
-      release = csound->curip->p3; len = FL(0.0);
+      release = csound->curip->p3.value; len = FL(0.0);
     }
     nsegs = 6;          /* DADSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
@@ -717,7 +717,7 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     XSEG    *segp;
     int     nsegs;
     MYFLT   **argp = p->argums;
-    MYFLT   len = csound->curip->p3;
+    MYFLT   len = csound->curip->p3.value;
     MYFLT   delay = *argp[4], attack = *argp[0], decay = *argp[1];
     MYFLT   sus, dur;
     MYFLT   release = *argp[3];
@@ -725,7 +725,7 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     if (len<FL(0.0)) len = FL(100000.0); /* MIDI case set long */
     len -= release;                      /* len is time remaining */
     if (len<FL(0.0)) { /* Odd case of release time greater than dur */
-      release = csound->curip->p3; len = FL(0.0);
+      release = csound->curip->p3.value; len = FL(0.0);
     }
     nsegs = 5;          /* DXDSR */
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
@@ -1118,13 +1118,13 @@ int linen(CSOUND *csound, LINEN *p)
     else p->cnt2--;
 
     if (flag) {
-      if (p->XINCODE)
+      if (IS_ASIG_ARG(p->sig))
           rs[n] = sg[n] * val;
       else
           rs[n] = *sg * val;
       }
     else {
-      if (p->XINCODE)
+      if (IS_ASIG_ARG(p->sig))
         rs[n] = sg[n];
       else rs[n] = *sg;
       }
@@ -1288,13 +1288,13 @@ int linenr(CSOUND *csound, LINENR *p)
       p->val2 *= p->mlt2;
     }
     if (flag) {
-      if (p->XINCODE)
+      if (IS_ASIG_ARG(p->sig))
           rs[n] = sg[n] * val;
       else
           rs[n] = *sg * val;
       }
     else {
-      if (p->XINCODE) rs[n] = sg[n];
+      if (IS_ASIG_ARG(p->sig)) rs[n] = sg[n];
       else rs[n] = *sg;
       }
     }
@@ -1605,7 +1605,7 @@ int envlpx(CSOUND *csound, ENVLPX *p)
       }
       else val *= mlt2;
     }
-    if (p->XINCODE)
+    if (IS_ASIG_ARG(p->xamp))
         rslt[n] = xamp[n] * fact;
     else
         rslt[n] = *xamp * fact;
@@ -1910,7 +1910,7 @@ int envlpxr(CSOUND *csound, ENVLPR *p)
     else
       fact = val *= p->mlt2;     /* else do seg 3 decay  */
 
-    if (p->XINCODE)
+    if (IS_ASIG_ARG(p->xamp))
         rslt[n] = xamp[n] * fact;
     else
         rslt[n] = *xamp * fact;
@@ -2033,7 +2033,7 @@ int csgset(CSOUND *csound, COSSEG *p)
     p->y1 = y1;
     p->y2 = y2 = sp->nxtpt;
     p->x = 0.0;
-    if(p->XOUTCODE) {
+    if(IS_ASIG_ARG(p->rslt)) {
       p->inc = (y2!=y1 ? 1.0/(sp->acnt) : 0.0);
        p->curcnt = sp->acnt;
     }
@@ -2057,7 +2057,7 @@ int csgset_bkpt(CSOUND *csound, COSSEG *p)
     cnt = p->curcnt;
     nsegs = p->segsrem-1;
     segp = p->cursegp;
-    if(p->XOUTCODE)
+    if(IS_ASIG_ARG(p->rslt))
     do {
       if (UNLIKELY(cnt > segp->acnt))
         return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);

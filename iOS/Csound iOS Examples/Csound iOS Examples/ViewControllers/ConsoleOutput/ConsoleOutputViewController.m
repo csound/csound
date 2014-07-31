@@ -2,7 +2,7 @@
  
  ConsoleOutputViewController.m:
  
- Copyright (C) 2011 Thomas Hass
+ Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -27,21 +27,18 @@
 
 @implementation ConsoleOutputViewController
 
-@synthesize currentMessage = mCurrentMessage;
-
 - (IBAction)run:(UIButton *)sender
 {
 	mTextView.text = @"";
 	
-	[self.csound stopCsound];
+	[self.csound stop];
 	self.csound = [[CsoundObj alloc] init];
-	[self.csound addCompletionListener:self];
 	
 	[self.csound setMessageCallback:@selector(messageCallback:) withListener:self];
 	
 	NSString *csdPath = nil;
 	csdPath = [[NSBundle mainBundle] pathForResource:@"consoleoutput" ofType:@"csd"];
-	[self.csound startCsound:csdPath];
+	[self.csound play:csdPath];
 }
 
 - (void)updateUIWithNewMessage:(NSString *)newMessage
@@ -66,15 +63,6 @@
     }
 }
 
-#pragma mark - CsoundObj Listener
-
-- (void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
-
-- (void)csoundObjComplete:(CsoundObj *)csoundObj {
-}
-
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -82,23 +70,6 @@
         self.title = @"Console Output";
     }
     return self;
-}
-
-#pragma mark - View lifecycle
-
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-}
-
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);
 }
 
 

@@ -106,13 +106,17 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     char port[8];
     char *pp = port;
     char *hh;
+    int i;
 
     /* with too many args, XINCODE may not work correctly */
     if (UNLIKELY(p->INOCOUNT > 31))
       return csound->InitError(csound, Str("Too many arguments to OSCsend"));
     /* a-rate arguments are not allowed */
-    if (UNLIKELY(p->XINCODE))
-      return csound->InitError(csound, Str("No a-rate arguments allowed"));
+    for (i = 0; i < p->INOCOUNT; i++) {
+      if (csound->GetTypeForArg(p->arg[i])) {
+        return csound->InitError(csound, Str("No a-rate arguments allowed"));
+      }
+    }
 
     if (*p->port<0)
       pp = NULL;

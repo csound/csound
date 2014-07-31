@@ -69,7 +69,7 @@ static int pan2run(CSOUND *csound, PAN2 *p)
       {
         MYFLT kangl = PI_F*FL(0.5) * *p->pan;
         for (n=offset; n<nsmps; n++) {
-          if (XINARG2) kangl = PI_F*FL(0.5) * p->pan[n];
+          if (IS_ASIG_ARG(p->pan)) kangl = PI_F*FL(0.5) * p->pan[n];
           ar[n] = ain[n] * SIN(kangl);
         al[n] = ain[n] * COS(kangl);
         }
@@ -79,7 +79,7 @@ static int pan2run(CSOUND *csound, PAN2 *p)
       {
         MYFLT kangl = *p->pan;
         for (n=offset; n<nsmps; n++) {
-          if (XINARG2) kangl = p->pan[n];
+          if (IS_ASIG_ARG(p->pan)) kangl = p->pan[n];
           ar[n] = ain[n] * SQRT(kangl);
           al[n] = ain[n] * SQRT(FL(1.0)-kangl);
         }
@@ -89,7 +89,7 @@ static int pan2run(CSOUND *csound, PAN2 *p)
       {
         MYFLT kangl = *p->pan;
         for (n=offset; n<nsmps; n++) {
-          if (XINARG2) kangl = p->pan[n];
+          if (IS_ASIG_ARG(p->pan)) kangl = p->pan[n];
           ar[n] = ain[n] * kangl;
           al[n] = ain[n] * (FL(1.0)-kangl);
         }
@@ -99,7 +99,7 @@ static int pan2run(CSOUND *csound, PAN2 *p)
       {
         MYFLT kangl = *p->pan, cc, ss, l, r;
         for (n=offset; n<nsmps; n++) {
-          if (XINARG2) kangl = p->pan[n];
+          if (IS_ASIG_ARG(p->pan)) kangl = p->pan[n];
           cc = COS(PI*kangl*FL(0.5));
           ss = SIN(PI*kangl*FL(0.5));
           l = SQRT2*(cc+ss)*0.5;

@@ -159,7 +159,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                 }
 {MACRONAME}     {
                    MACRO     *mm, *mfound=NULL;
-                   int       i, len, mlen;
+                   unsigned int i, len, mlen;
                    //print_csound_prsdata(csound, "Macro call", yyscanner);
                    len = strlen(yytext)-1;
                    mlen = 0;
@@ -168,7 +168,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                      while (mm != NULL) {
                        if (!(strncmp(yytext+1, mm->name, i))) {
                          mfound = mm;
-                         mlen = i;
+                         mlen = (unsigned)i;
                          if (strlen(mm->name) == mlen)
                            goto cont;
                        }
