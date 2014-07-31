@@ -225,9 +225,9 @@ PUBLIC debug_instr_t *csoundDebugGetInstrInstances(CSOUND *csound)
         debug_instr->lclbas = insds->lclbas;
         debug_instr->varPoolHead = insds->instr->varPool->head;
         debug_instr->instrptr = (void *) insds;
-        debug_instr->p1 = insds->p1;
-        debug_instr->p2 = insds->p2;
-        debug_instr->p3 = insds->p3;
+        debug_instr->p1 = insds->p1.value;
+        debug_instr->p2 = insds->p2.value;
+        debug_instr->p3 = insds->p3.value;
         debug_instr->kcounter = insds->kcounter;
         debug_instr->next = NULL;
         insds = insds->nxtact;
@@ -248,9 +248,9 @@ debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound)
     debug_instr->lclbas = insds->lclbas;
     debug_instr->varPoolHead = insds->instr->varPool->head;
     debug_instr->instrptr = data->debug_instr_ptr;
-    debug_instr->p1 = insds->p1;
-    debug_instr->p2 = insds->p2;
-    debug_instr->p3 = insds->p3;
+    debug_instr->p1 = insds->p1.value;
+    debug_instr->p2 = insds->p2.value;
+    debug_instr->p3 = insds->p3.value;
     debug_instr->kcounter = insds->kcounter;
     debug_instr->next = NULL;
     return debug_instr;

@@ -2,7 +2,7 @@
  
  ButtonTestViewController.m:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -32,13 +32,13 @@
 }
 
 -(IBAction) eventButtonHit:(id)sender {
-    NSString* score = [NSString stringWithFormat:@"i2 0 %f", [mDurationSlider value]];
+    NSString *score = [NSString stringWithFormat:@"i2 0 %f", [mDurationSlider value]];
 
-    [mCsound sendScore:score];
+    [self.csound sendScore:score];
 }
 
 -(IBAction) toggleOnOff:(id)component {
-	UISwitch* uiswitch = (UISwitch*)component;
+	UISwitch *uiswitch = (UISwitch *)component;
 	NSLog(@"Status: %d", [uiswitch isOn]);
     
 	if(uiswitch.on) {
@@ -46,34 +46,31 @@
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"buttonTest" ofType:@"csd"];  
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[self.csound stopCsound];
+		[self.csound stop];
         
         self.csound = [[CsoundObj alloc] init];
-        [self.csound addCompletionListener:self];
+        [self.csound addListener:self];
         
-        [self.csound addButton:mValueButton forChannelName:@"button1"];
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         
-        [self.csound addSlider:mDurationSlider forChannelName:@"duration"];        
-        [self.csound addSlider:mAttackSlider forChannelName:@"attack"];
-        [self.csound addSlider:mDecaySlider forChannelName:@"decay"];
-        [self.csound addSlider:mSustainSlider forChannelName:@"sustain"];
-        [self.csound addSlider:mReleaseSlider forChannelName:@"release"];
+        [csoundUI addButton:mValueButton forChannelName:@"button1"];
         
-        [self.csound startCsound:tempFile];
+        [csoundUI addSlider:mDurationSlider forChannelName:@"duration"];
+        [csoundUI addSlider:mAttackSlider   forChannelName:@"attack"];
+        [csoundUI addSlider:mDecaySlider    forChannelName:@"decay"];
+        [csoundUI addSlider:mSustainSlider  forChannelName:@"sustain"];
+        [csoundUI addSlider:mReleaseSlider  forChannelName:@"release"];
+        
+        [self.csound play:tempFile];
         
 	} else {
-        [self.csound stopCsound];
+        [self.csound stop];
     }
 }
 
+#pragma mark CsoundObjListener
 
-
-#pragma mark CsoundObjCompletionListener
-
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[mSwitch setOn:NO animated:YES];
 }
 

@@ -26,7 +26,7 @@ int myflt_pool_indexof(MYFLT_POOL* pool, MYFLT value) {
     int i;
 
     for (i = 0; i < pool->count; i++) {
-        if(pool->values[i].memBlock == value) {
+        if(pool->values[i].value == value) {
             retVal = i;
             break;
         }
@@ -47,7 +47,7 @@ int myflt_pool_find_or_add(CSOUND* csound, MYFLT_POOL* pool, MYFLT value) {
         }
         index = pool->count;
         pool->values[index].varType = (CS_TYPE*)&CS_VAR_TYPE_C;
-        pool->values[index].memBlock = value;
+        pool->values[index].value = value;
 
         pool->count++;
     }

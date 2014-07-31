@@ -27,12 +27,12 @@
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
 
-@interface HarmonizerTest : BaseCsoundViewController<CsoundObjCompletionListener> {
+@interface HarmonizerTest : BaseCsoundViewController<CsoundObjListener> {
     
-    IBOutlet UISlider* mHarmPitchSlider;
-    IBOutlet UISlider* mGainSlider;    
+    IBOutlet UISlider *mHarmPitchSlider;
+    IBOutlet UISlider *mGainSlider;    
     
-    IBOutlet UISwitch* mSwitch;
+    IBOutlet UISwitch *mSwitch;
 }
 
 -(IBAction) toggleOnOff:(id)component;
