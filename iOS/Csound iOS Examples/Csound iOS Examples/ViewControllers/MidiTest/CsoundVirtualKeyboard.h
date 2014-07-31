@@ -34,7 +34,6 @@
 	NSMutableSet* currentTouches;
 	CGRect keyRects[25];
 	CGFloat lastWidth;
-	id<CsoundVirtualKeyboardDelegate> mKeyboardDelegate;
 }
 
 @property(nonatomic,strong) IBOutlet id<CsoundVirtualKeyboardDelegate> keyboardDelegate;

@@ -804,7 +804,7 @@ int printk(CSOUND *csound, PRINTK *p)
        * printv() in disprep.c.
        */
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
-                               (int)p->h.insdshead->p1);
+                               (int)p->h.insdshead->p1.value);
       csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
                                csound->icurTime/csound->esr);
       /* Print spaces and then the value we want to read.   */
@@ -1192,7 +1192,7 @@ int printk2(CSOUND *csound, PRINTK2 *p)
 
     if (p->oldvalue != value) {
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%d ",
-                                               (int)p->h.insdshead->p1);
+                                               (int)p->h.insdshead->p1.value);
       if (p->pspace > 0) {
         char  s[128];   /* p->pspace is limited to 120 in printk2set() above */
         memset(s, ' ', (size_t) p->pspace);

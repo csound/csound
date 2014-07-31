@@ -1,25 +1,25 @@
 // -*- c++ -*-
 /*
-    slindingm.cu:
+  slindingm.cu:
 
-    Copyright (C) 2014 Russell Bradford, Victor Lazzarini, John ffitch
+  Copyright (C) 2014 Russell Bradford, Victor Lazzarini, John ffitch
 
-    This file is part of Csound.
+  This file is part of Csound.
 
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
 */
 // slindingm.cu
 // experimental cuda opcodes
@@ -36,12 +36,17 @@
 #include <sys/time.h>
 #include <csdl.h>
 
+//#define RB
+
+#ifndef RB
 typedef float real;
+#else
+typedef double real;
+#endif
+
 #define real(x) x
 #define TWO_PI (2.0*M_PI)
-
-
-#define NBATCH (512)
+#define NBATCH (256)
 
 #define Re(z) ((z).x)
 #define Im(z) ((z).y)
@@ -55,7 +60,7 @@ typedef float real;
 #define A HannA
 #define B2 (HannB/real(2.0))
 #define WINDOW
-#define RB
+
 
 typedef double2 complex;
 typedef double2 phasor;
@@ -81,6 +86,16 @@ void checkcuda(CSOUND *csound, char* name, int line)
     csound->Message(csound, "%s: %s\nLine: %d\n", name, cudaGetErrorString(err), line);
     exit(1);
   }
+}
+
+__device__ double atomicAdd(double* address, double val) { 
+  unsigned long long int* address_as_ull = (unsigned long long int*)address; 
+  unsigned long long int old = *address_as_ull, assumed; 
+  do { assumed = old; 
+    old = atomicCAS(address_as_ull, 
+		    assumed, __double_as_longlong(val + __longlong_as_double(assumed))); 
+  } while (assumed != old); 
+  return __longlong_as_double(old); 
 }
 
 __device__ complex conjugate(complex z)
@@ -164,7 +179,7 @@ __global__ void window(complex Foutw[/*N*nbatch*/],
   }
 }
 
-// parallel across channels*batches
+// parallel across batches
 // <<<nbatch/256,256>>>
 // what is memory access pattern?
 // small array sum, so not worth a tree reduction?
@@ -186,6 +201,9 @@ __global__ void reconstruct(complex f[/*nbatch*N*/], real s[/*nbatch*/], int N)
 }
 
 #else
+// the code below depends on fast single-precision
+// atomic addition
+
 // this parallelises across N*nbatch
 __global__ void window(complex Foutw[/*N*nbatch*/],
 		       complex Fout[/*N*nbatch*/], int N)
@@ -202,16 +220,16 @@ __global__ void window(complex Foutw[/*N*nbatch*/],
   // in the last block
   if (n > N*nbatch) return;
 
-    F = Foutw[k];
-    Fp1 = k < N2 ? Foutw[k + 1] : conjugate(Foutw[N2-1]);
-    Fm1 = k > 0 ? Foutw[k - 1] : conjugate(Foutw[1]);
+  F = Foutw[k];
+  Fp1 = k < N2 ? Foutw[k + 1] : conjugate(Foutw[N2-1]);
+  Fm1 = k > 0 ? Foutw[k - 1] : conjugate(Foutw[1]);
 
-    Fr = A*Re(F) + B2*(Re(Fm1) + Re(Fp1));
-    Fi = A*Im(F) + B2*(Im(Fm1) + Im(Fp1));
+  Fr = A*Re(F) + B2*(Re(Fm1) + Re(Fp1));
+  Fi = A*Im(F) + B2*(Im(Fm1) + Im(Fp1));
 
-    Re(f) = Fr;
-    Im(f) = Fi;
-    Fout[k] = f;
+  Re(f) = Fr;
+  Im(f) = Fi;
+  Fout[k] = f;
 }
 
 // this parallelises across N2*nbatch
@@ -259,16 +277,16 @@ __device__ phasor convert(complex f, real &oldiphase, int bin, int N)
 
 __device__ phasor harmonic_shift(phasor pha, real fm)
 {
-   real sfreq;
+  real sfreq;
 
-   // tweak the freq using fm
-   // same across all channels
-   sfreq = Theta(pha)*fm;
+  // tweak the freq using fm
+  // same across all channels
+  sfreq = Theta(pha)*fm;
 
-   if (sfreq >= nyquist || sfreq <= -nyquist) R(pha) = real(0.0);
-   Theta(pha) = sfreq;
+  if (sfreq >= nyquist || sfreq <= -nyquist) R(pha) = real(0.0);
+  Theta(pha) = sfreq;
 
-   return pha;
+  return pha;
 }
 
 __device__ real unconvert(phasor pha, real &oldophase, int N)
@@ -321,7 +339,7 @@ void threadblock(int device, int n, int *nblocks, int *nthreads)
   int nt, nb, nproc;
   cudaDeviceProp deviceProp;
 
-  // printf("%d threads needed\n", n);
+  //printf("%d threads needed\n", n);
 
   cudaGetDeviceProperties(&deviceProp, device);
   nt = deviceProp.warpSize; // usually 32 threads
@@ -329,17 +347,18 @@ void threadblock(int device, int n, int *nblocks, int *nthreads)
 
   nb = 1 + (n - 1)/nt;
 
-   // more blocks than procs
-   if (nb >= 2*nproc) {
-      nt *= 2; // 64 threads
-      nb = 1 + (n - 1)/nt;
-   }
-
+  
+  //more blocks than procs
+  if (nb >= 2*nproc) {
+    nt *= 2; // 64 threads
+    nb = 1 + (n - 1)/nt;
+  }
+   
   // // still more blocks than procs
-   if (nb >= 2*nproc) {
-     nt *= 2; // 128 threads
-     nb = 1 + (n - 1)/nt;
-   }
+  if (nb >= 2*nproc) {
+    nt *= 2; // 128 threads
+    nb = 1 + (n - 1)/nt;
+  }
 
   if (nblocks) *nblocks = nb;
   if (nthreads) *nthreads = nt;  
@@ -353,7 +372,8 @@ typedef struct _SPV {
   real *sine, *cosine;
   complex *dFin, *dFout, *dFoutw;
   real *samples, srate;
-  real framesin[NBATCH], framesout[NBATCH], fm[NBATCH];
+  real *framesin, *framesout, *fm;
+  AUXCH aframesfm, aframesout, aframesin;
   uint32_t count;
 } SPV;
 
@@ -379,6 +399,17 @@ void cuinit(CSOUND *csound,
   real binbw, nyq;
   cudaDeviceProp deviceProp;
 
+  if(!p->aframesin.auxp || p->aframesin.size < sizeof(real)*NBATCH) 
+    csound->AuxAlloc(csound, sizeof(real)*NBATCH, &p->aframesin);
+  if(!p->aframesout.auxp || p->aframesout.size < sizeof(real)*NBATCH) 
+    csound->AuxAlloc(csound, sizeof(real)*NBATCH, &p->aframesout);
+  if(!p->aframesfm.auxp || p->aframesfm.size < sizeof(real)*NBATCH) 
+    csound->AuxAlloc(csound, sizeof(real)*NBATCH, &p->aframesfm);
+
+  p->framesin = (real *) p->aframesin.auxp;
+  p->framesout = (real *) p->aframesout.auxp;
+  p->fm = (real *) p->aframesfm.auxp;
+
   p->nbins = nbins;
   nbins2 = nbins/2;
   p->nbtch = nframes;
@@ -398,18 +429,23 @@ void cuinit(CSOUND *csound,
 
   if (off != rsize/sizeof(real)) {
     csound->InitError(csound, "Something weird happening with offsets at line %d\n",
-	    __LINE__);
+		      __LINE__);
   }
 
- if (!csound->QueryGlobalVariable(csound, "::cusliding::init")) {
-  csound->CreateGlobalVariable(csound, "::cusliding::init",1);
-  csound->Message(csound, "Sliding PV: using floats on device %s (capability %d.%d)\n", deviceProp.name,
-  	 deviceProp.major, deviceProp.minor);
-  // global constants
-  CUDA(cudaMemcpyToSymbol, offset, &off, sizeof(int));
-  CUDA(cudaMemcpyToSymbol, nbatch, &p->nbtch, sizeof(int));
-  CUDA(cudaMemcpyToSymbol, binbandwidth, &binbw, sizeof(real));
-  CUDA(cudaMemcpyToSymbol, nyquist, &nyq, sizeof(real));
+  if (!csound->QueryGlobalVariable(csound, "::cusliding::init")) {
+    csound->CreateGlobalVariable(csound, "::cusliding::init",1);
+#ifndef RB
+    csound->Message(csound, "Sliding PV: using floats on device %s (capability %d.%d)\n", deviceProp.name,
+		    deviceProp.major, deviceProp.minor);
+#else
+    csound->Message(csound, "Sliding PV: using doubles on device %s (capability %d.%d)\n", deviceProp.name,
+		    deviceProp.major, deviceProp.minor); 
+#endif
+    // global constants
+    CUDA(cudaMemcpyToSymbol, offset, &off, sizeof(int));
+    CUDA(cudaMemcpyToSymbol, nbatch, &p->nbtch, sizeof(int));
+    CUDA(cudaMemcpyToSymbol, binbandwidth, &binbw, sizeof(real));
+    CUDA(cudaMemcpyToSymbol, nyquist, &nyq, sizeof(real));
 
   }
   // N complexes
@@ -462,20 +498,20 @@ void cuinit(CSOUND *csound,
   threadblock(device, (nbins2+1), &p->nblocks, &p->nthreads);
 
   if(csound->GetDebug(csound)) {
-  csound->Message(csound, "%d bins, %d actual\n", p->nbins, nbins2 + 1);
-  csound->Message(csound, "csize = %d -> %d bytes, offset %d elements\n", (int) (p->nbins*sizeof(complex)),
-	 csize, off);
-  csound->Message(csound, "%gHz bin bandwidth, Nyquist %gHz\n", binbw, nyq);
-  csound->Message(csound, "period %d samples (%g sec)\n", p->nbtch, (real)p->nbtch/p->srate);
-  csound->Message(csound, "%d multiprocessors\n", deviceProp.multiProcessorCount);
-  csound->Message(csound, "%d blocks with %d threads = %d\n", p->nblocks, p->nthreads,
-	 p->nblocks1*p->nthreads);
-  csound->Message(csound, "%d idle threads in last block\n", p->nblocks*p->nthreads - 
-	 (nbins2 + 1));
-  csound->Message(csound, "%d blocks per SM\n",
-	 (int)ceil((double)p->nblocks/deviceProp.multiProcessorCount));
-  csound->Message(csound, "reconstruct using %d blocks of %d threads = %d\n", p->rblocks, p->rthreads,
-	 p->rblocks*p->rthreads);
+    csound->Message(csound, "%d bins, %d actual\n", p->nbins, nbins2 + 1);
+    csound->Message(csound, "csize = %d -> %d bytes, offset %d elements\n", (int) (p->nbins*sizeof(complex)),
+		    csize, off);
+    csound->Message(csound, "%gHz bin bandwidth, Nyquist %gHz\n", binbw, nyq);
+    csound->Message(csound, "period %d samples (%g sec)\n", p->nbtch, (real)p->nbtch/p->srate);
+    csound->Message(csound, "%d multiprocessors\n", deviceProp.multiProcessorCount);
+    csound->Message(csound, "%d blocks with %d threads = %d\n", p->nblocks, p->nthreads,
+		    p->nblocks1*p->nthreads);
+    csound->Message(csound, "%d idle threads in last block\n", p->nblocks*p->nthreads - 
+		    (nbins2 + 1));
+    csound->Message(csound, "%d blocks per SM\n",
+		    (int)ceil((double)p->nblocks/deviceProp.multiProcessorCount));
+    csound->Message(csound, "reconstruct using %d blocks of %d threads = %d\n", p->rblocks, p->rthreads,
+		    p->rblocks*p->rthreads);
   }
 }
 
@@ -497,14 +533,14 @@ int cushutdown(CSOUND *csound, void *pp)
   csound->Free(csound, p->deltas);
 
   if(csound->GetDebug(csound))
-      csound->Message(csound, "cuda shutdown\n");
+    csound->Message(csound, "cuda shutdown\n");
 
   return OK;
 }
 
 // in samples with channels muxed 0 1 2 0 1 2 ...
 void cuprocess(CSOUND *csound, SPV *p, real in[/*nbatch*/], real out[/*nbatch*/],
-	        real fm[/*nbatch*/])
+	       real fm[/*nbatch*/])
 {
   int b;
 
@@ -549,9 +585,9 @@ void cuprocess(CSOUND *csound, SPV *p, real in[/*nbatch*/], real out[/*nbatch*/]
 
 
 int spv_init(CSOUND *csound, SPV *p) {
-   cuinit(csound,p,NBATCH,*p->iN,0);
-   csound->RegisterDeinitCallback(csound, p, cushutdown);
-   return OK;
+  cuinit(csound,p,NBATCH,*p->iN,0);
+  csound->RegisterDeinitCallback(csound, p, cushutdown);
+  return OK;
 }
 
 int spv_perf(CSOUND *csound, SPV *p) {

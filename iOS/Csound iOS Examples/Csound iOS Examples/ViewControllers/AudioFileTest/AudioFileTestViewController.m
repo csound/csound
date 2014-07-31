@@ -2,7 +2,7 @@
  
  AudioFileTestViewController.m:
  
- Copyright (C) 2011 Thomas Hass
+ Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -35,34 +35,27 @@
     [self.csound sendScore:score];
 }
 
-- (IBAction)changePitch:(UIKnob *)sender
+- (IBAction)changePitch:(ControlKnob *)sender
 {
-	[_mPitchLabel setText:[NSString stringWithFormat:@"%.2f", [sender value]]];
-}
-
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
-- (void)csoundObjComplete:(CsoundObj *)csoundObj {
+	[self.pitchLabel setText:[NSString stringWithFormat:@"%.2f", [sender value]]];
 }
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 	self.csound = [[CsoundObj alloc] init];
-	[self.csound addCompletionListener:self];
 	NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"audiofiletest" ofType:@"csd"];
-	[_mPitchKnob setMinimumValue:0.5f];
-	[_mPitchKnob setMaximumValue:2.0f];
-	[_mPitchKnob setValue:1.0f];
-	[self.csound addValueCacheable:_mPitchKnob];
-	[self.csound startCsound:csdPath];
+	[self.pitchKnob setMinimumValue:0.5f];
+	[self.pitchKnob setMaximumValue:2.0f];
+	[self.pitchKnob setValue:1.0f];
+	[self.csound addValueCacheable:self.pitchKnob];
+	[self.csound play:csdPath];
 }
 
 - (void)viewDidUnload
 {
     [super viewDidUnload];
-    [self.csound stopCsound];
+    [self.csound stop];
 }
 
 

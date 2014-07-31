@@ -63,7 +63,7 @@ int tabler_init(CSOUND *csound, TABL *p) {
 
 int tabl_setup(CSOUND *csound, TABL *p) {
 
-   if (UNLIKELY(p->XOUTCODE  && p->XINCODE != p->XOUTCODE)) {
+   if (UNLIKELY(csoundGetTypeForArg(p->ndx) != csoundGetTypeForArg(p->sig))) {
       if (CS_KSMPS != 1)
         return csound->InitError(csound,
                                  Str("table: index type inconsistent with output"));
@@ -410,7 +410,7 @@ int table3r_audio(CSOUND *csound, TABL *p)
 
 int tablkt_setup(CSOUND *csound, TABL *p) {
 
-   if (UNLIKELY(p->XOUTCODE && p->XINCODE != p->XOUTCODE)) {
+   if (UNLIKELY(csoundGetTypeForArg(p->ndx) != csoundGetTypeForArg(p->sig))) {
       if (CS_KSMPS != 1)
         return
           csound->InitError(csound,
