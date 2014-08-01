@@ -25,15 +25,24 @@
 
 #import "CsoundGyroscopeBinding.h"
 
+@interface CsoundGyroscopeBinding ()  {
+    float *channelPtrX;
+    float *channelPtrY;
+    float *channelPtrZ;
+    
+    CMMotionManager* manager;
+}
+@end
+
 @implementation CsoundGyroscopeBinding
 
 static NSString *CS_GYRO_X = @"gyroX";
 static NSString *CS_GYRO_Y = @"gyroY";
 static NSString *CS_GYRO_Z = @"gyroZ";
 
--(id)init:(CMMotionManager *)manager {
+-(id)init:(CMMotionManager *)cmManager {
     if (self = [super init]) {
-        mManager = manager;
+        manager = cmManager;
     }
     return self;
 }
@@ -46,17 +55,17 @@ static NSString *CS_GYRO_Z = @"gyroZ";
     channelPtrZ = [csoundObj getInputChannelPtr:CS_GYRO_Z
                                     channelType:CSOUND_CONTROL_CHANNEL];
 
-    *channelPtrX = mManager.gyroData.rotationRate.x;
-    *channelPtrY = mManager.gyroData.rotationRate.y;
-    *channelPtrZ = mManager.gyroData.rotationRate.z;    
+    *channelPtrX = manager.gyroData.rotationRate.x;
+    *channelPtrY = manager.gyroData.rotationRate.y;
+    *channelPtrZ = manager.gyroData.rotationRate.z;
 
 }
 
 -(void)updateValuesToCsound {
     @autoreleasepool {
-        *channelPtrX = mManager.gyroData.rotationRate.x;
-        *channelPtrY = mManager.gyroData.rotationRate.y;
-        *channelPtrZ = mManager.gyroData.rotationRate.z;  
+        *channelPtrX = manager.gyroData.rotationRate.x;
+        *channelPtrY = manager.gyroData.rotationRate.y;
+        *channelPtrZ = manager.gyroData.rotationRate.z;
     }
 }
 

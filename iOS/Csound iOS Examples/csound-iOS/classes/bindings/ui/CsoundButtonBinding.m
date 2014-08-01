@@ -40,7 +40,7 @@
     channelValue = 1;
 }
 
--(instancetype)init:(UIButton *)button channelName:(NSString *)channelName
+-(instancetype)initButton:(UIButton *)button channelName:(NSString *)channelName
 {
     if (self = [super init]) {
         self.channelName = channelName;

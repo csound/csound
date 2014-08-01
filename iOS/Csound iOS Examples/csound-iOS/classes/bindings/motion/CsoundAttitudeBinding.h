@@ -27,13 +27,7 @@
 #import <CoreMotion/CoreMotion.h>
 #import "CsoundObj.h"
 
-@interface CsoundAttitudeBinding : NSObject<CsoundDataBinding>  {
-    float *channelPtrRoll;
-    float *channelPtrPitch;
-    float *channelPtrYaw;
-    
-    CMMotionManager* mManager;
-}
+@interface CsoundAttitudeBinding : NSObject<CsoundDataBinding>
 
 -(id)init:(CMMotionManager *)manager;
 
