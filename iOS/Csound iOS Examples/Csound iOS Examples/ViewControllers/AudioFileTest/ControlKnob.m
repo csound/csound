@@ -167,11 +167,6 @@
     }
 }
 
-- (void)updateValuesFromCsound
-{
-	
-}
-
 - (void)cleanup
 {
 	[self removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
