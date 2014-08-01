@@ -1,6 +1,6 @@
 /* 
  
- CsoundSliderBinder.m:
+ CsoundSliderBinding.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -23,9 +23,9 @@
  
  */
 
-#import "CsoundSliderBinder.h"
+#import "CsoundSliderBinding.h"
 
-@interface CsoundSliderBinder() {
+@interface CsoundSliderBinding() {
     float channelValue;
     float *channelPtr;
 }
@@ -35,7 +35,7 @@
 
 @end
 
-@implementation CsoundSliderBinder
+@implementation CsoundSliderBinding
 
 -(void)updateChannelValue:(id)sender {
     channelValue = ((UISlider *)sender).value;

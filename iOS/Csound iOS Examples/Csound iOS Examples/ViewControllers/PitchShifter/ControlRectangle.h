@@ -26,7 +26,7 @@
 #import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
-@interface ControlRectangle : UIControl <CsoundDataBinder>
+@interface ControlRectangle : UIControl <CsoundDataBinding>
 
 @property (nonatomic, readwrite) Float32 xValue;
 @property (nonatomic, readwrite) Float32 yValue;

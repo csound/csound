@@ -56,7 +56,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
     self = [super init];
     if (self) {
 		mCsData.shouldMute = false;
-        _dataBinders = [[NSMutableArray alloc] init];
+        _dataBindings = [[NSMutableArray alloc] init];
         listeners = [[NSMutableArray alloc] init];
         _midiInEnabled = NO;
         _useAudioInput = NO;
@@ -154,47 +154,47 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 }
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Data Binders
+#  pragma mark - Data Bindings
 // -----------------------------------------------------------------------------
 
-- (void)addDataBinder:(id<CsoundDataBinder>)dataBinder
+- (void)addDataBinding:(id<CsoundDataBinding>)dataBinding
 {
-    if (dataBinder != nil) {
-        [_dataBinders addObject:dataBinder];
+    if (dataBinding != nil) {
+        [_dataBindings addObject:dataBinding];
     }
 }
 
-- (void)removeDataBinder:(id<CsoundDataBinder>)dataBinder
+- (void)removeDataBinding:(id<CsoundDataBinding>)dataBinding
 {
-	if (dataBinder != nil && [_dataBinders containsObject:dataBinder]) {
-		[_dataBinders removeObject:dataBinder];
+	if (dataBinding != nil && [_dataBindings containsObject:dataBinding]) {
+		[_dataBindings removeObject:dataBinding];
 	}
 }
 
-- (void)setupDataBinders
+- (void)setupDataBindings
 {
-    for (int i = 0; i < _dataBinders.count; i++) {
-        id<CsoundDataBinder> dataBinder = [_dataBinders objectAtIndex:i];
-        [dataBinder setup:self];
+    for (int i = 0; i < _dataBindings.count; i++) {
+        id<CsoundDataBinding> dataBinding = [_dataBindings objectAtIndex:i];
+        [dataBinding setup:self];
     }
 }
 
-- (void)cleanupDataBinders
+- (void)cleanupDataBindings
 {
-    for (int i = 0; i < _dataBinders.count; i++) {
-        id<CsoundDataBinder> dataBinder = [_dataBinders objectAtIndex:i];
-        if ([dataBinder respondsToSelector:@selector(cleanup)]) {
-            [dataBinder cleanup];
+    for (int i = 0; i < _dataBindings.count; i++) {
+        id<CsoundDataBinding> dataBinding = [_dataBindings objectAtIndex:i];
+        if ([dataBinding respondsToSelector:@selector(cleanup)]) {
+            [dataBinding cleanup];
         }
     }
 }
 
 - (void)updateAllValuesToCsound
 {
-    for (int i = 0; i < _dataBinders.count; i++) {
-        id<CsoundDataBinder> dataBinder = [_dataBinders objectAtIndex:i];
-        if ([dataBinder respondsToSelector:@selector(updateValuesToCsound)]) {
-            [dataBinder updateValuesToCsound];
+    for (int i = 0; i < _dataBindings.count; i++) {
+        id<CsoundDataBinding> dataBinding = [_dataBindings objectAtIndex:i];
+        if ([dataBinding respondsToSelector:@selector(updateValuesToCsound)]) {
+            [dataBinding updateValuesToCsound];
         }
     }
 }
@@ -337,9 +337,9 @@ OSStatus  Csound_Render(void *inRefCon,
     for(i=0; i < slices; i++){
 		
 		for (int i = 0; i < cache.count; i++) {
-			id<CsoundDataBinder> dataBinder = [cache objectAtIndex:i];
-            if ([dataBinder respondsToSelector:@selector(updateValuesToCsound)]) {
-                [dataBinder updateValuesToCsound];
+			id<CsoundDataBinding> dataBinding = [cache objectAtIndex:i];
+            if ([dataBinding respondsToSelector:@selector(updateValuesToCsound)]) {
+                [dataBinding updateValuesToCsound];
             }
 		}
         
@@ -370,9 +370,9 @@ OSStatus  Csound_Render(void *inRefCon,
 		}
         
         for (int i = 0; i < cache.count; i++) {
-            id<CsoundDataBinder> dataBinder = [cache objectAtIndex:i];
-            if ([dataBinder respondsToSelector:@selector(updateValuesFromCsound)]) {
-                [dataBinder updateValuesFromCsound];
+            id<CsoundDataBinding> dataBinding = [cache objectAtIndex:i];
+            if ([dataBinding respondsToSelector:@selector(updateValuesFromCsound)]) {
+                [dataBinding updateValuesFromCsound];
             }
         }
     }
@@ -401,7 +401,7 @@ OSStatus  Csound_Render(void *inRefCon,
             (char*)[[paths objectAtIndex:0] cStringUsingEncoding:NSASCIIStringEncoding], "-o", (char*)[[paths objectAtIndex:1] cStringUsingEncoding:NSASCIIStringEncoding]};
         int ret = csoundCompile(cs, 4, argv);
         
-        [self setupDataBinders];
+        [self setupDataBindings];
         [self notifyListenersOfStartup];
         
         [self updateAllValuesToCsound];
@@ -412,7 +412,7 @@ OSStatus  Csound_Render(void *inRefCon,
             csoundDestroy(cs);
         }
         
-        [self cleanupDataBinders];
+        [self cleanupDataBindings];
         [self notifyListenersOfCompletion];
     }
 }
@@ -445,12 +445,12 @@ OSStatus  Csound_Render(void *inRefCon,
 			mCsData.nchnls = csoundGetNchnls(cs);
 			mCsData.bufframes = (csoundGetOutputBufferSize(cs))/mCsData.nchnls;
 			mCsData.running = true;
-            mCsData.valuesCache = _dataBinders;
+            mCsData.valuesCache = _dataBindings;
             mCsData.useAudioInput = _useAudioInput;
             AudioStreamBasicDescription format;
             OSStatus err;
             
-            [self setupDataBinders];
+            [self setupDataBindings];
             
             /* Audio Session handler */
             AVAudioSession* session = [AVAudioSession sharedInstance];
@@ -582,7 +582,7 @@ OSStatus  Csound_Render(void *inRefCon,
 		
         mCsData.running = false;
         
-        [self cleanupDataBinders];
+        [self cleanupDataBindings];
         [self notifyListenersOfCompletion];
 	}
 }

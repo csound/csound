@@ -127,7 +127,7 @@ While the CsoundObj API has been designed to ease things for iOS development and
 
 \section{Using the CsoundObj API}
 
-The CsoundObj API revolves around the Objective-C CsoundObj class. This class contains a CSOUND* struct pointer and has methods for running Csound, as well as convenience methods to help aid developers in connecting elements to Csound. By itself, CsoundObj can take in a CSD file and render it.  By using CsoundDataBinders, objects can interact to read values from and write values to Csound.  Beyond that, extended features can be accessed by using the Csound C API together with the CSOUND* struct.
+The CsoundObj API revolves around the Objective-C CsoundObj class. This class contains a CSOUND* struct pointer and has methods for running Csound, as well as convenience methods to help aid developers in connecting elements to Csound. By itself, CsoundObj can take in a CSD file and render it.  By using CsoundDataBindings, objects can interact to read values from and write values to Csound.  Beyond that, extended features can be accessed by using the Csound C API together with the CSOUND* struct.
 
 \subsection{Designing Csound CSD projects to work with Hosts}
 
@@ -140,12 +140,12 @@ Csound will use the CsOptions you provide.  A standard set of flags to use are `
 \emph{Note: In Csound 5 for iOS, it was previously required to set \linebreak ``{\tt -+rtaudio=null}'' when using audio, and ``{\tt -+rtmidi=null}'' when using MIDI. This is no longer required for Csound 6 for iOS.}
 
 
-\subsection{CsoundDataBinder for Communicating with Csound}
+\subsection{CsoundDataBinding for Communicating with Csound}
 
-The CsoundObj API has been created to ease communication with Csound by using objects that implement the CsoundDataBinder protocol.  The protocol definition is as follows:
+The CsoundObj API has been created to ease communication with Csound by using objects that implement the CsoundDataBinding protocol.  The protocol definition is as follows:
 
-\begin{lstlisting}[caption=CsoundDataBinder Protocol Definition]
-@protocol CsoundDataBinder <NSObject>
+\begin{lstlisting}[caption=CsoundDataBinding Protocol Definition]
+@protocol CsoundDataBinding <NSObject>
 - (void)setup:(CsoundObj*)csoundObj;
 @optional
 - (void)cleanup;
@@ -154,15 +154,15 @@ The CsoundObj API has been created to ease communication with Csound by using ob
 @end
 \end{lstlisting}
 
-CsoundDataBinders are used to both read values from Csound as well as write values to Csound.  The lifecycle of CsoundDataBinders is as follows:
+CsoundDataBindings are used to both read values from Csound as well as write values to Csound.  The lifecycle of CsoundDataBindings is as follows:
 
 \begin{itemize}
-\item \textbf{setup} - this method is called after Csound's compile call but before the main performance loop. CsoundDataBinders should use this method to create any channel pointers and any other values they will need during performance.
+\item \textbf{setup} - this method is called after Csound's compile call but before the main performance loop. CsoundDataBindings should use this method to create any channel pointers and any other values they will need during performance.
 \item \textbf{updateValuesToCsound} and \textbf{updateValuesFromCsound} - these methods are called during the Csound performance loop. \textbf{updateValuesToCsound} is called before each call to csoundPerformKsmps, while \textbf{updateValuesFromCsound} is called after each call.
-\item \textbf{cleanup} - this method is called after Csound has completed its run and should be used by CsoundDataBinders to free up any allocated data and remove references to channel pointers.
+\item \textbf{cleanup} - this method is called after Csound has completed its run and should be used by CsoundDataBindings to free up any allocated data and remove references to channel pointers.
 \end{itemize}
 
-By using CsoundDataBinders, CsoundObj functionality can be extended to communicate with as many items as you would like. Included with Csound for iOS is the CsoundUI which contains pre-made wrapper classes for common UI classes (UISlider, UIButton, UISwitch) and similarly, CsoundMotion provides wrapper for hardware sensors (Accelerometer, Attitude, Gyroscope).  CsoundObj has helper methods for the CsoundDataBinders that come with the CsoundObj API, as well as the generic \textbf{addDataBinder} and \textbf{removeDataBinder} methods for adding custom CsoundDataBinders. Please consult these classes as well as their use in context within the Csound for iOS Examples project.
+By using CsoundDataBindings, CsoundObj functionality can be extended to communicate with as many items as you would like. Included with Csound for iOS is the CsoundUI which contains pre-made wrapper classes for common UI classes (UISlider, UIButton, UISwitch) and similarly, CsoundMotion provides wrapper for hardware sensors (Accelerometer, Attitude, Gyroscope).  CsoundObj has helper methods for the CsoundDataBindings that come with the CsoundObj API, as well as the generic \textbf{addDataBinding} and \textbf{removeDataBinding} methods for adding custom CsoundDataBindings. Please consult these classes as well as their use in context within the Csound for iOS Examples project.
 
 
 %======
@@ -174,12 +174,12 @@ By using CsoundDataBinders, CsoundObj functionality can be extended to communica
 The CsoundUI API contains the following methods for binding widgets:
 
 \begin{lstlisting}[caption=Methods for Widget Binding]
--(id<CsoundDataBinder>)addSwitch:(UISwitch*)uiSwitch forChannelName:(NSString*)channelName;
--(id<CsoundDataBinder>)addSlider:(UISlider*)uiSlider forChannelName:(NSString*)channelName;
--(id<CsoundDataBinder>)addButton:(UIButton*)uiButton forChannelName:(NSString*)channelName;
+-(id<CsoundDataBinding>)addSwitch:(UISwitch*)uiSwitch forChannelName:(NSString*)channelName;
+-(id<CsoundDataBinding>)addSlider:(UISlider*)uiSlider forChannelName:(NSString*)channelName;
+-(id<CsoundDataBinding>)addButton:(UIButton*)uiButton forChannelName:(NSString*)channelName;
 \end{lstlisting}
 
-These methods allow for easy binding of UISwitches, UISliders, and UIButtons, and return the CsoundDataBinder that was created to wrap the widget. If the design of your app requires that you remove a widget from being used with CsoundObj, you can use the returned CsoundDataBinder and pass it to the removeDataBinder method. To bind your own custom widgets, you will need to create your own CsoundDataBinder.  There are examples of both using the convenience widget binding methods as well as custom CsoundDataBinder in the Csound for iOS Examples project.
+These methods allow for easy binding of UISwitches, UISliders, and UIButtons, and return the CsoundDataBinding that was created to wrap the widget. If the design of your app requires that you remove a widget from being used with CsoundObj, you can use the returned CsoundDataBinding and pass it to the removeDataBinding method. To bind your own custom widgets, you will need to create your own CsoundDataBinding.  There are examples of both using the convenience widget binding methods as well as custom CsoundDataBinding in the Csound for iOS Examples project.
 
 %======
 
@@ -210,12 +210,12 @@ CsoundMotion has built-in support for three of the more commonly used hardware s
 
 
 \begin{lstlisting}[caption=CsoundMotion Hardware Sensor Methods]
--(id<CsoundDataBinder>)enableAccelerometer;
--(id<CsoundDataBinder>)enableGyroscope;
--(id<CsoundDataBinder>)enableAttitude;
+-(id<CsoundDataBinding>)enableAccelerometer;
+-(id<CsoundDataBinding>)enableGyroscope;
+-(id<CsoundDataBinding>)enableAttitude;
 \end{lstlisting}
 
-When these features are enabled, CsoundDataBinders that wrap the sensors will send values into Csound via hardcoded channels:
+When these features are enabled, CsoundDataBindings that wrap the sensors will send values into Csound via hardcoded channels:
 
 \begin{itemize}
 
@@ -337,7 +337,7 @@ This example shows using hardware sensors.  For this example, the accelerometer 
 
 \subsection{Record Test}
 
-This example demonstrates the recording feature of CsoundObj.  It also includes a custom metering widget that implements \textbf{CsoundDataBinder} to read values from Csound.  Note that the \textbf{updateValuesFromCsound} reads the minimum necessary values from Csound and then continues further calculations off the audio callback thread where \textbf{updateValuesFromCsound} is called.  It is important to minimize the amount of processing done in the audio callback thread and to push all processing to another thread.  This can be done using the standard \textbf{performSelector} method; upon completing calculations, updates to the UI will need to be done on the main thread, which is done here using \textbf{performSelectorOnMainThread}.  This pattern is common in audio processing applications.
+This example demonstrates the recording feature of CsoundObj.  It also includes a custom metering widget that implements \textbf{CsoundDataBinding} to read values from Csound.  Note that the \textbf{updateValuesFromCsound} reads the minimum necessary values from Csound and then continues further calculations off the audio callback thread where \textbf{updateValuesFromCsound} is called.  It is important to minimize the amount of processing done in the audio callback thread and to push all processing to another thread.  This can be done using the standard \textbf{performSelector} method; upon completing calculations, updates to the UI will need to be done on the main thread, which is done here using \textbf{performSelectorOnMainThread}.  This pattern is common in audio processing applications.
 
 \subsection{Multitouch XY}
 
@@ -345,7 +345,7 @@ This example demonstrates a multitouch performance surface. The multi-touch code
 
 \subsection{Waveview}
 
-This example demonstrates using a CsoundDataBinder to read an f-table from Csound and displaying that table.  Note that the WaveView's code is doing some optimization to check if it has already loaded.  It is also checking that the table itself has completed loading before trying to grab any values for the table.
+This example demonstrates using a CsoundDataBinding to read an f-table from Csound and displaying that table.  Note that the WaveView's code is doing some optimization to check if it has already loaded.  It is also checking that the table itself has completed loading before trying to grab any values for the table.
 
 \begin{lstlisting}[caption=Waveview code demonstrating reading f-tables from Csound]
 - (void)updateValuesFromCsound
@@ -386,12 +386,12 @@ This examples demonstrates a technique of finding the URL of an AIFF file that i
   [self.pitchKnob setMinimumValue:0.5f];
   [self.pitchKnob setMaximumValue:2.0f];
   [self.pitchKnob setValue:1.0f];
-  [self.csound addDataBinder:self.pitchKnob];
+  [self.csound addDataBinding:self.pitchKnob];
   [self.csound play:csdPath];
 }
 \end{lstlisting}
 
-The ControlKnob widget is custom UIView that is also a CsoundDataBinder.  It uses a hardcoded Csound channel called "pitch".  After the CsoundObj object is setup and started, performance of the audio file is done in the callback to the Play button press:
+The ControlKnob widget is custom UIView that is also a CsoundDataBinding.  It uses a hardcoded Csound channel called "pitch".  After the CsoundObj object is setup and started, performance of the audio file is done in the callback to the Play button press:
 
 \begin{lstlisting}[caption=Play button callback code]
 - (IBAction)play:(UIButton *)sender

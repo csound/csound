@@ -1,6 +1,6 @@
 /* 
  
- CsoundButtonBinder.m:
+ CsoundButtonBinding.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
 
@@ -23,9 +23,9 @@
  02111-1307 USA
  
  */
-#import "CsoundButtonBinder.h"
+#import "CsoundButtonBinding.h"
 
-@interface CsoundButtonBinder () {
+@interface CsoundButtonBinding () {
     float channelValue;
     float *channelPtr;
 }
@@ -34,7 +34,7 @@
 @property (nonatomic, strong) UIButton *button;
 @end
 
-@implementation CsoundButtonBinder
+@implementation CsoundButtonBinding
 
 -(void)updateChannelValue:(id)sender {
     channelValue = 1;

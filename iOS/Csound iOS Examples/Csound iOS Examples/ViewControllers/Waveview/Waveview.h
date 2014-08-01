@@ -26,7 +26,7 @@
 #import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
-@interface Waveview : UIView <CsoundDataBinder>
+@interface Waveview : UIView <CsoundDataBinding>
 {
 	BOOL tableLoaded;
 	float *channelPtr;
