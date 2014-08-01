@@ -28,6 +28,6 @@
 
 @interface CsoundSwitchBinding : NSObject<CsoundDataBinding>
 
--(instancetype)init:(UISwitch *)uiSwitch channelName:(NSString *)channelName;
+-(instancetype)initSwitch:(UISwitch *)uiSwitch channelName:(NSString *)channelName;
 
 @end

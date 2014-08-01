@@ -25,6 +25,15 @@
 
 #import "CsoundAccelerometerBinding.h"
 
+@interface CsoundAccelerometerBinding () {
+    float *channelPtrX;
+    float *channelPtrY;
+    float *channelPtrZ;
+    
+    CMMotionManager* manager;
+}
+@end
+
 @implementation CsoundAccelerometerBinding
 
 static NSString *CS_ACCEL_X = @"accelerometerX";

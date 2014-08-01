@@ -47,25 +47,28 @@
 -(void)addButton:(UIButton *)uiButton
   forChannelName:(NSString *)channelName
 {
-    CsoundButtonBinding *buttonBinding = [[CsoundButtonBinding alloc] init:uiButton
-                                                            channelName:channelName];
-    [csoundObj.dataBindings addObject:buttonBinding];
+    CsoundButtonBinding *buttonBinding;
+    buttonBinding = [[CsoundButtonBinding alloc] initButton:uiButton
+                                                channelName:channelName];
+    [csoundObj addDataBinding:buttonBinding];
 }
 
 -(void)addSlider:(UISlider *)uiSlider
   forChannelName:(NSString *)channelName
 {
-    CsoundSliderBinding *sliderBinding = [[CsoundSliderBinding alloc] init:uiSlider
-                                                            channelName:channelName];
-    [csoundObj.dataBindings addObject:sliderBinding];
+    CsoundSliderBinding *sliderBinding;
+    sliderBinding = [[CsoundSliderBinding alloc] initSlider:uiSlider
+                                                channelName:channelName];
+    [csoundObj addDataBinding:sliderBinding];
 }
 
 -(void)addSwitch:(UISwitch *)uiSwitch
   forChannelName:(NSString *)channelName
 {
-    CsoundSwitchBinding *switchBinding = [[CsoundSwitchBinding alloc] init:uiSwitch
-                                                            channelName:channelName];
-    [csoundObj.dataBindings addObject:switchBinding];
+    CsoundSwitchBinding *switchBinding;
+    switchBinding = [[CsoundSwitchBinding alloc] initSwitch:uiSwitch
+                                                channelName:channelName];
+    [csoundObj addDataBinding:switchBinding];
 }
 
 

@@ -27,13 +27,7 @@
 #import <CoreMotion/Coremotion.h>
 #import "CsoundObj.h"
 
-@interface CsoundAccelerometerBinding : NSObject<CsoundDataBinding, UIAccelerometerDelegate> {
-    float *channelPtrX;
-    float *channelPtrY;
-    float *channelPtrZ;
-        
-    CMMotionManager* manager;
-}
+@interface CsoundAccelerometerBinding : NSObject<CsoundDataBinding, UIAccelerometerDelegate>
 
 -(id)init:(CMMotionManager *)manager;
 
