@@ -27,6 +27,6 @@
 
 @interface CsoundButtonBinding : NSObject<CsoundDataBinding>
 
--(instancetype)init:(UIButton *)button channelName:(NSString *)channelName;
+-(instancetype)initButton:(UIButton *)button channelName:(NSString *)channelName;
 
 @end

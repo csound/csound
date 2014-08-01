@@ -38,7 +38,7 @@
     self.channelValue = ((UISwitch *)sender).on ? 1 : 0;
 }
 
--(instancetype)init:(UISwitch *)uiSwitch channelName:(NSString *)channelName
+-(instancetype)initSwitch:(UISwitch *)uiSwitch channelName:(NSString *)channelName
 {
     if (self = [super init]) {
         self.switcher = uiSwitch;

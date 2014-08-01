@@ -28,6 +28,6 @@
 
 @interface CsoundSliderBinding : NSObject<CsoundDataBinding> 
 
--(instancetype)init:(UISlider*)slider channelName:(NSString *)channelName;
+-(instancetype)initSlider:(UISlider*)slider channelName:(NSString *)channelName;
 
 @end

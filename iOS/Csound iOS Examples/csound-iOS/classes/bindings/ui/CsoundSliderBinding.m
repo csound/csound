@@ -41,7 +41,7 @@
     channelValue = ((UISlider *)sender).value;
 }
 
--(instancetype)init:(UISlider *)slider channelName:(NSString *)channelName
+-(instancetype)initSlider:(UISlider *)slider channelName:(NSString *)channelName
 {
     if (self = [super init]) {
         self.slider = slider;

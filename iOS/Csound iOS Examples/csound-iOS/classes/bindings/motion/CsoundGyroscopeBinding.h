@@ -27,13 +27,7 @@
 #import <CoreMotion/CoreMotion.h>
 #import "CsoundObj.h"
 
-@interface CsoundGyroscopeBinding : NSObject<CsoundDataBinding>  {
-    float *channelPtrX;
-    float *channelPtrY;
-    float *channelPtrZ;
-
-    CMMotionManager* mManager;
-}
+@interface CsoundGyroscopeBinding : NSObject<CsoundDataBinding>  
 
 -(id)init:(CMMotionManager *)manager;
 
