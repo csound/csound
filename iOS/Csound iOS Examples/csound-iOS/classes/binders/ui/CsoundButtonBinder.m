@@ -52,25 +52,25 @@
 
 -(void)setup:(CsoundObj*)csoundObj
 {
-    cachedValue = self.button.selected ? 1 : 0;
+    channelValue = self.button.selected ? 1 : 0;
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
     [self.button addTarget:self
-                    action:@selector(updateValueCache:)
+                    action:@selector(updateChannelValue:)
           forControlEvents:UIControlEventTouchDown];
 }
 
 
 -(void)updateValuesToCsound
 {
-    *channelPtr = cachedValue;
-    cachedValue = 0;
+    *channelPtr = channelValue;
+    channelValue = 0;
 }
 
 -(void)cleanup
 {
     [self.button removeTarget:self
-                       action:@selector(updateValueCache:)
+                       action:@selector(updateChannelValue:)
              forControlEvents:UIControlEventTouchDown];
 }
 
