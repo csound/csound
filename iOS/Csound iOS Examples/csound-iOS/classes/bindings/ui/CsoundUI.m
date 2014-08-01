@@ -26,6 +26,7 @@
 #import "CsoundUI.h"
 
 #import "CsoundButtonBinding.h"
+#import "CsoundMomentaryButtonBinding.h"
 #import "CsoundSliderBinding.h"
 #import "CsoundSwitchBinding.h"
 
@@ -69,6 +70,15 @@
     switchBinding = [[CsoundSwitchBinding alloc] initSwitch:uiSwitch
                                                 channelName:channelName];
     [csoundObj addDataBinding:switchBinding];
+}
+
+-(void)addMomentaryButton:(UIButton *)uiButton
+           forChannelName:(NSString *)channelName
+{
+    CsoundMomentaryButtonBinding *momentaryButtonBinding;
+    momentaryButtonBinding = [[CsoundMomentaryButtonBinding alloc] initButton:uiButton
+                                                                  channelName:channelName];
+    [csoundObj addDataBinding:momentaryButtonBinding];
 }
 
 
