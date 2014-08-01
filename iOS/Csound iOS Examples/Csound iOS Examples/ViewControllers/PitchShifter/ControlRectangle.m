@@ -28,6 +28,11 @@
 
 @interface ControlRectangle ()
 {
+    CGRect circleRect;
+	
+	float xChannelValue, yChannelValue;
+    float *xChannelPtr, *yChannelPtr;
+
     CGFloat borderWidth;
     BOOL shouldTrack;
 }

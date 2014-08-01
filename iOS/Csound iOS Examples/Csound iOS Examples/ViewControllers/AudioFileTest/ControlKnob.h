@@ -29,12 +29,7 @@
 #import "CsoundObj.h"
 
 @interface ControlKnob : UIControl <CsoundDataBinder>
-{
-	float cachedValue;
-    float *channelPtr;
-}
 
-@property (assign) BOOL cacheDirty;
 @property (nonatomic, readwrite, setter = setValue:) Float32 value;
 @property (nonatomic, readwrite) Float32 defaultValue;
 @property (nonatomic, readwrite) Float32 minimumValue;
