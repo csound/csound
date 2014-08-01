@@ -1,6 +1,6 @@
 /* 
  
- CsoundAccelerometerBinder.m:
+ CsoundGyroscopeBinding.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -23,39 +23,40 @@
  
  */
 
-#import "CsoundAccelerometerBinder.h"
+#import "CsoundGyroscopeBinding.h"
 
-@implementation CsoundAccelerometerBinder
+@implementation CsoundGyroscopeBinding
 
-static NSString *CS_ACCEL_X = @"accelerometerX";
-static NSString *CS_ACCEL_Y = @"accelerometerY";
-static NSString *CS_ACCEL_Z = @"accelerometerZ";
+static NSString *CS_GYRO_X = @"gyroX";
+static NSString *CS_GYRO_Y = @"gyroY";
+static NSString *CS_GYRO_Z = @"gyroZ";
 
--(id)init:(CMMotionManager *)cmManager {
+-(id)init:(CMMotionManager *)manager {
     if (self = [super init]) {
-        manager = cmManager;
+        mManager = manager;
     }
     return self;
 }
 
 -(void)setup:(CsoundObj*)csoundObj {
-    channelPtrX = [csoundObj getInputChannelPtr:CS_ACCEL_X
+    channelPtrX = [csoundObj getInputChannelPtr:CS_GYRO_X
                                     channelType:CSOUND_CONTROL_CHANNEL];
-    channelPtrY = [csoundObj getInputChannelPtr:CS_ACCEL_Y
+    channelPtrY = [csoundObj getInputChannelPtr:CS_GYRO_Y
                                     channelType:CSOUND_CONTROL_CHANNEL];
-    channelPtrZ = [csoundObj getInputChannelPtr:CS_ACCEL_Z
+    channelPtrZ = [csoundObj getInputChannelPtr:CS_GYRO_Z
                                     channelType:CSOUND_CONTROL_CHANNEL];
-    
-    *channelPtrX = manager.accelerometerData.acceleration.x;
-    *channelPtrY = manager.accelerometerData.acceleration.y;
-    *channelPtrZ = manager.accelerometerData.acceleration.z;
+
+    *channelPtrX = mManager.gyroData.rotationRate.x;
+    *channelPtrY = mManager.gyroData.rotationRate.y;
+    *channelPtrZ = mManager.gyroData.rotationRate.z;    
+
 }
 
 -(void)updateValuesToCsound {
     @autoreleasepool {
-        *channelPtrX = manager.accelerometerData.acceleration.x;
-        *channelPtrY = manager.accelerometerData.acceleration.y;
-        *channelPtrZ = manager.accelerometerData.acceleration.z;   
+        *channelPtrX = mManager.gyroData.rotationRate.x;
+        *channelPtrY = mManager.gyroData.rotationRate.y;
+        *channelPtrZ = mManager.gyroData.rotationRate.z;  
     }
 }
 

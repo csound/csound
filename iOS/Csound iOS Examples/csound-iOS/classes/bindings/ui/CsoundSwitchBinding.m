@@ -1,6 +1,6 @@
 /*
  
- CsoundSwitchBinder.m:
+ CsoundSwitchBinding.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -23,16 +23,16 @@
  
  */
 
-#import "CsoundSwitchBinder.h"
+#import "CsoundSwitchBinding.h"
 
-@interface CsoundSwitchBinder()
+@interface CsoundSwitchBinding()
 @property float channelValue;
 @property float *channelPtr;
 @property (unsafe_unretained) NSString *channelName;
 @property (unsafe_unretained) UISwitch *switcher;
 @end
 
-@implementation CsoundSwitchBinder
+@implementation CsoundSwitchBinding
 
 -(void)updateChannelValue:(id)sender {
     self.channelValue = ((UISwitch *)sender).on ? 1 : 0;

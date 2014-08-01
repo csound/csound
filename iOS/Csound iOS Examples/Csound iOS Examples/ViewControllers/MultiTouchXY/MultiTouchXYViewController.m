@@ -52,13 +52,13 @@
 	
 	self.csound = [[CsoundObj alloc] init];
 	
-	[self.csound addDataBinder:self];
+	[self.csound addDataBinding:self];
 	
 	[self.csound play:tempFile];
 }
 
 
-#pragma mark Csound Data Binder
+#pragma mark Csound Data Binding
 
 -(void)setup:(CsoundObj*)csoundObj {
 

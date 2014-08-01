@@ -27,9 +27,9 @@
 
 #import <CoreMotion/CoreMotion.h>
 
-#import "CsoundAccelerometerBinder.h"
-#import "CsoundAttitudeBinder.h"
-#import "CsoundGyroscopeBinder.h"
+#import "CsoundAccelerometerBinding.h"
+#import "CsoundAttitudeBinding.h"
+#import "CsoundGyroscopeBinding.h"
 
 @interface CsoundMotion () {
     CMMotionManager* mMotionManager;
@@ -55,8 +55,8 @@
         NSLog(@"Accelerometer not available");
     }
     
-    CsoundAccelerometerBinder  *accelerometer = [[CsoundAccelerometerBinder alloc] init:mMotionManager];
-    [csoundObj.dataBinders addObject:accelerometer];
+    CsoundAccelerometerBinding  *accelerometer = [[CsoundAccelerometerBinding alloc] init:mMotionManager];
+    [csoundObj.dataBindings addObject:accelerometer];
     
     
     mMotionManager.accelerometerUpdateInterval = 1 / 100.0; // 100 hz
@@ -70,8 +70,8 @@
         NSLog(@"Gyroscope not available");
     }
     
-    CsoundGyroscopeBinder *gyro = [[CsoundGyroscopeBinder alloc] init:mMotionManager];
-    [csoundObj.dataBinders addObject:gyro];
+    CsoundGyroscopeBinding *gyro = [[CsoundGyroscopeBinding alloc] init:mMotionManager];
+    [csoundObj.dataBindings addObject:gyro];
     
     mMotionManager.gyroUpdateInterval = 1 / 100.0; // 100 hz
     
@@ -83,8 +83,8 @@
         NSLog(@"Attitude not available");
     }
     
-    CsoundAttitudeBinder *attitude = [[CsoundAttitudeBinder alloc] init:mMotionManager];
-    [csoundObj.dataBinders addObject:attitude];
+    CsoundAttitudeBinding *attitude = [[CsoundAttitudeBinding alloc] init:mMotionManager];
+    [csoundObj.dataBindings addObject:attitude];
     
     mMotionManager.deviceMotionUpdateInterval = 1 / 100.0; // 100hz
     

@@ -1,6 +1,6 @@
 /* 
  
- CsoundGyroscopeBinder.m:
+ CsoundAccelerometerBinding.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -23,40 +23,39 @@
  
  */
 
-#import "CsoundGyroscopeBinder.h"
+#import "CsoundAccelerometerBinding.h"
 
-@implementation CsoundGyroscopeBinder
+@implementation CsoundAccelerometerBinding
 
-static NSString *CS_GYRO_X = @"gyroX";
-static NSString *CS_GYRO_Y = @"gyroY";
-static NSString *CS_GYRO_Z = @"gyroZ";
+static NSString *CS_ACCEL_X = @"accelerometerX";
+static NSString *CS_ACCEL_Y = @"accelerometerY";
+static NSString *CS_ACCEL_Z = @"accelerometerZ";
 
--(id)init:(CMMotionManager *)manager {
+-(id)init:(CMMotionManager *)cmManager {
     if (self = [super init]) {
-        mManager = manager;
+        manager = cmManager;
     }
     return self;
 }
 
 -(void)setup:(CsoundObj*)csoundObj {
-    channelPtrX = [csoundObj getInputChannelPtr:CS_GYRO_X
+    channelPtrX = [csoundObj getInputChannelPtr:CS_ACCEL_X
                                     channelType:CSOUND_CONTROL_CHANNEL];
-    channelPtrY = [csoundObj getInputChannelPtr:CS_GYRO_Y
+    channelPtrY = [csoundObj getInputChannelPtr:CS_ACCEL_Y
                                     channelType:CSOUND_CONTROL_CHANNEL];
-    channelPtrZ = [csoundObj getInputChannelPtr:CS_GYRO_Z
+    channelPtrZ = [csoundObj getInputChannelPtr:CS_ACCEL_Z
                                     channelType:CSOUND_CONTROL_CHANNEL];
-
-    *channelPtrX = mManager.gyroData.rotationRate.x;
-    *channelPtrY = mManager.gyroData.rotationRate.y;
-    *channelPtrZ = mManager.gyroData.rotationRate.z;    
-
+    
+    *channelPtrX = manager.accelerometerData.acceleration.x;
+    *channelPtrY = manager.accelerometerData.acceleration.y;
+    *channelPtrZ = manager.accelerometerData.acceleration.z;
 }
 
 -(void)updateValuesToCsound {
     @autoreleasepool {
-        *channelPtrX = mManager.gyroData.rotationRate.x;
-        *channelPtrY = mManager.gyroData.rotationRate.y;
-        *channelPtrZ = mManager.gyroData.rotationRate.z;  
+        *channelPtrX = manager.accelerometerData.acceleration.x;
+        *channelPtrY = manager.accelerometerData.acceleration.y;
+        *channelPtrZ = manager.accelerometerData.acceleration.z;   
     }
 }
 

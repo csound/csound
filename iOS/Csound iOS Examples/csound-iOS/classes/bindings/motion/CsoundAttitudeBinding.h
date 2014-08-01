@@ -1,6 +1,6 @@
 /* 
  
- CsoundAccelerometerBinder.h:
+ CsoundAttitudeBinding.h:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -24,15 +24,15 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <CoreMotion/Coremotion.h>
+#import <CoreMotion/CoreMotion.h>
 #import "CsoundObj.h"
 
-@interface CsoundAccelerometerBinder : NSObject<CsoundDataBinder, UIAccelerometerDelegate> {
-    float *channelPtrX;
-    float *channelPtrY;
-    float *channelPtrZ;
-        
-    CMMotionManager* manager;
+@interface CsoundAttitudeBinding : NSObject<CsoundDataBinding>  {
+    float *channelPtrRoll;
+    float *channelPtrPitch;
+    float *channelPtrYaw;
+    
+    CMMotionManager* mManager;
 }
 
 -(id)init:(CMMotionManager *)manager;
