@@ -376,6 +376,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       /* INITIAL SETUP */
       tp->oentry = (OENTRY*)root->markup;
       tp->opcod = strsav_string(csound, engineState, tp->oentry->opname);
+      tp->linenum = root->line;
       ip->mdepends |= tp->oentry->flags;
       ip->opdstot += tp->oentry->dsblksiz;
 
