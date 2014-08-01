@@ -40,7 +40,6 @@ INSTR *instr;
 
 int main(int argc, char **argv)
 {
-    int i;
     char buf[80];
     time_t timep;
     struct tm tm;
