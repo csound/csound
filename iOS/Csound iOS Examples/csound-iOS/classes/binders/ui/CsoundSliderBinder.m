@@ -54,18 +54,22 @@
 {
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
-    cachedValue = self.slider.value;
-    [self.slider addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
+    channelValue = self.slider.value;
+    [self.slider addTarget:self
+                    action:@selector(updateChannelValue:)
+          forControlEvents:UIControlEventValueChanged];
     
 }
 
 
 -(void)updateValuesToCsound {
-    *channelPtr = cachedValue;
+    *channelPtr = channelValue;
 }
 
 -(void)cleanup {
-    [self.slider removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
+    [self.slider removeTarget:self
+                       action:@selector(updateChannelValue:)
+             forControlEvents:UIControlEventValueChanged];
 }
 
 
