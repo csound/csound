@@ -30,7 +30,6 @@
 {
     CGRect circleRect;
 	
-	// Value Cacheable
 	BOOL mCacheDirty;
 	float cachedValueX, cachedValueY;
     float *channelPtrX, *channelPtrY;
