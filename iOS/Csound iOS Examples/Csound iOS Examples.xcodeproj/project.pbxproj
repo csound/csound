@@ -25,6 +25,7 @@
 		C486A141198BA8DB00E19281 /* CsoundSwitchBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = C486A138198BA8DB00E19281 /* CsoundSwitchBinding.m */; };
 		C486A142198BA8DB00E19281 /* CsoundUI.m in Sources */ = {isa = PBXBuildFile; fileRef = C486A13A198BA8DB00E19281 /* CsoundUI.m */; };
 		C486A145198BF06700E19281 /* CsoundMomentaryButtonBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = C486A144198BF06700E19281 /* CsoundMomentaryButtonBinding.m */; };
+		C486A148198BF32E00E19281 /* CsoundLabelBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = C486A147198BF32E00E19281 /* CsoundLabelBinding.m */; };
 		F604B21618288A9E00C7C552 /* libcsound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F604B21518288A9E00C7C552 /* libcsound.a */; };
 		F632065E16ADA58500F17AE2 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = F632065C16ADA58500F17AE2 /* Default.png */; };
 		F632065F16ADA58500F17AE2 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F632065D16ADA58500F17AE2 /* Default-568h@2x.png */; };
@@ -132,6 +133,8 @@
 		C486A13A198BA8DB00E19281 /* CsoundUI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CsoundUI.m; sourceTree = "<group>"; };
 		C486A143198BF06700E19281 /* CsoundMomentaryButtonBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsoundMomentaryButtonBinding.h; sourceTree = "<group>"; };
 		C486A144198BF06700E19281 /* CsoundMomentaryButtonBinding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CsoundMomentaryButtonBinding.m; sourceTree = "<group>"; };
+		C486A146198BF32E00E19281 /* CsoundLabelBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsoundLabelBinding.h; sourceTree = "<group>"; };
+		C486A147198BF32E00E19281 /* CsoundLabelBinding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CsoundLabelBinding.m; sourceTree = "<group>"; };
 		F604B21518288A9E00C7C552 /* libcsound.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcsound.a; sourceTree = "<group>"; };
 		F632065C16ADA58500F17AE2 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		F632065D16ADA58500F17AE2 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
@@ -321,6 +324,8 @@
 				C486A13A198BA8DB00E19281 /* CsoundUI.m */,
 				C486A133198BA8DB00E19281 /* CsoundButtonBinding.h */,
 				C486A134198BA8DB00E19281 /* CsoundButtonBinding.m */,
+				C486A146198BF32E00E19281 /* CsoundLabelBinding.h */,
+				C486A147198BF32E00E19281 /* CsoundLabelBinding.m */,
 				C486A143198BF06700E19281 /* CsoundMomentaryButtonBinding.h */,
 				C486A144198BF06700E19281 /* CsoundMomentaryButtonBinding.m */,
 				C486A135198BA8DB00E19281 /* CsoundSliderBinding.h */,
@@ -793,6 +798,7 @@
 				C486A141198BA8DB00E19281 /* CsoundSwitchBinding.m in Sources */,
 				F6B6476814D353A7005F786B /* MidiTestViewController.m in Sources */,
 				F6B6476C14D353A7005F786B /* MultiTouchXYViewController.m in Sources */,
+				C486A148198BF32E00E19281 /* CsoundLabelBinding.m in Sources */,
 				C486A13E198BA8DB00E19281 /* CsoundMotion.m in Sources */,
 				F6B6476E14D353A7005F786B /* PitchShifterViewController.m in Sources */,
 				F6B6477014D353A7005F786B /* RecordTestViewController.m in Sources */,

@@ -1,10 +1,10 @@
 /*
  
- CsoundUI.h:
+ CsoundLabelBinding.h:
  
- Copyright (C) 2014 Steven Yi, Victor Lazzarini, Aurelius Prochazka
+ Copyright (C) 2014 Aurelius Prochazka
  
- This file is part of Csound iOS Examples.
+ This file is part of Csound for iOS.
  
  The Csound for iOS Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
@@ -22,18 +22,11 @@
  02111-1307 USA
  
  */
-
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface CsoundUI : NSObject
+@interface CsoundLabelBinding : NSObject<CsoundDataBinding>
 
-- (instancetype)initWithCsoundObj:(CsoundObj *)csound;
-
-- (void)addLabel:(UILabel *)uiLabel    forChannelName:(NSString *)channelName;
-- (void)addButton:(UIButton *)uiButton forChannelName:(NSString *)channelName;
-- (void)addSlider:(UISlider*)uiSlider  forChannelName:(NSString *)channelName;
-- (void)addSwitch:(UISwitch *)uiSwitch forChannelName:(NSString *)channelName;
-- (void)addMomentaryButton:(UIButton *)uiButton forChannelName:(NSString *)channelName;
+-(instancetype)initLabel:(UILabel *)label channelName:(NSString *)channelName;
 
 @end
