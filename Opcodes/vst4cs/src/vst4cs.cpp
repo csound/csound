@@ -450,7 +450,7 @@ extern "C" {
     size_t vstHandle = (size_t) *p->iVSThandle;
     p->vstPlugin = vstPlugins()[vstHandle];
     p->startTime = getCurrentTime(csound);
-    double onTime = double(p->h.insdshead->p2);
+    double onTime = double(p->h.insdshead->p2.value);
     double deltaTime = onTime - getCurrentTime(csound);
     int deltaFrames = 0;
     if (deltaTime > 0) {
@@ -458,7 +458,7 @@ extern "C" {
     }
     // Use the warped p3 to schedule the note off message.
     if (*p->iDuration > FL(0.0)) {
-      p->offTime = p->startTime + p->h.insdshead->p3;
+      p->offTime = p->startTime + double(p->h.insdshead->p3.value);
       // In case of real-time performance with indefinite p3...
     } else if (*p->iDuration == FL(0.0)) {
       if (csound->GetDebug(csound)) {
