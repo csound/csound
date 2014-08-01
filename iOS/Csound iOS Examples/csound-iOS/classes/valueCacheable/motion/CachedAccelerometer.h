@@ -24,10 +24,10 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "BaseValueCacheable.h"
 #import <CoreMotion/Coremotion.h>
+#import "CsoundObj.h"
 
-@interface CachedAccelerometer : BaseValueCacheable<UIAccelerometerDelegate> {
+@interface CachedAccelerometer : NSObject<CsoundValueCacheable, UIAccelerometerDelegate> {
     float* channelPtrX;
     float* channelPtrY;
     float* channelPtrZ;
