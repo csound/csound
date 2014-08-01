@@ -28,10 +28,8 @@
 
 @interface Waveview : UIView <CsoundDataBinder>
 {
-	BOOL mCacheDirty;
 	BOOL tableLoaded;
-	float cachedValue;
-	float* channelPtr;
+	float *channelPtr;
 	NSString *mChannelName;
 	CGFloat lastY;
 	NSInteger ksmps, sr;
@@ -43,7 +41,6 @@
 	
 }
 
-@property (assign) BOOL cacheDirty;
 @property (nonatomic, strong) NSString *channelName;
 
 @end
