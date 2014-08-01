@@ -24,6 +24,7 @@
 		C486A140198BA8DB00E19281 /* CsoundSliderBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = C486A136198BA8DB00E19281 /* CsoundSliderBinding.m */; };
 		C486A141198BA8DB00E19281 /* CsoundSwitchBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = C486A138198BA8DB00E19281 /* CsoundSwitchBinding.m */; };
 		C486A142198BA8DB00E19281 /* CsoundUI.m in Sources */ = {isa = PBXBuildFile; fileRef = C486A13A198BA8DB00E19281 /* CsoundUI.m */; };
+		C486A145198BF06700E19281 /* CsoundMomentaryButtonBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = C486A144198BF06700E19281 /* CsoundMomentaryButtonBinding.m */; };
 		F604B21618288A9E00C7C552 /* libcsound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F604B21518288A9E00C7C552 /* libcsound.a */; };
 		F632065E16ADA58500F17AE2 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = F632065C16ADA58500F17AE2 /* Default.png */; };
 		F632065F16ADA58500F17AE2 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F632065D16ADA58500F17AE2 /* Default-568h@2x.png */; };
@@ -129,6 +130,8 @@
 		C486A138198BA8DB00E19281 /* CsoundSwitchBinding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CsoundSwitchBinding.m; sourceTree = "<group>"; };
 		C486A139198BA8DB00E19281 /* CsoundUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsoundUI.h; sourceTree = "<group>"; };
 		C486A13A198BA8DB00E19281 /* CsoundUI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CsoundUI.m; sourceTree = "<group>"; };
+		C486A143198BF06700E19281 /* CsoundMomentaryButtonBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsoundMomentaryButtonBinding.h; sourceTree = "<group>"; };
+		C486A144198BF06700E19281 /* CsoundMomentaryButtonBinding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CsoundMomentaryButtonBinding.m; sourceTree = "<group>"; };
 		F604B21518288A9E00C7C552 /* libcsound.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcsound.a; sourceTree = "<group>"; };
 		F632065C16ADA58500F17AE2 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		F632065D16ADA58500F17AE2 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
@@ -318,6 +321,8 @@
 				C486A13A198BA8DB00E19281 /* CsoundUI.m */,
 				C486A133198BA8DB00E19281 /* CsoundButtonBinding.h */,
 				C486A134198BA8DB00E19281 /* CsoundButtonBinding.m */,
+				C486A143198BF06700E19281 /* CsoundMomentaryButtonBinding.h */,
+				C486A144198BF06700E19281 /* CsoundMomentaryButtonBinding.m */,
 				C486A135198BA8DB00E19281 /* CsoundSliderBinding.h */,
 				C486A136198BA8DB00E19281 /* CsoundSliderBinding.m */,
 				C486A137198BA8DB00E19281 /* CsoundSwitchBinding.h */,
@@ -512,9 +517,9 @@
 		F6B6472214D353A7005F786B /* MidiTest */ = {
 			isa = PBXGroup;
 			children = (
+				F6B6472514D353A7005F786B /* midiTest.csd */,
 				F6B6472314D353A7005F786B /* CsoundVirtualKeyboard.h */,
 				F6B6472414D353A7005F786B /* CsoundVirtualKeyboard.m */,
-				F6B6472514D353A7005F786B /* midiTest.csd */,
 				F6B6472614D353A7005F786B /* MidiTestViewController.h */,
 				F6B6472714D353A7005F786B /* MidiTestViewController.m */,
 				F6B6472814D353A7005F786B /* MidiTestViewController.xib */,
@@ -563,10 +568,10 @@
 		F6B6473714D353A7005F786B /* SimpleTest1 */ = {
 			isa = PBXGroup;
 			children = (
+				F6B6473B14D353A7005F786B /* test.csd */,
 				F6B6473814D353A7005F786B /* SimpleTest1ViewController.h */,
 				F6B6473914D353A7005F786B /* SimpleTest1ViewController.m */,
 				F6B6473A14D353A7005F786B /* SimpleTest1ViewController.xib */,
-				F6B6473B14D353A7005F786B /* test.csd */,
 			);
 			path = SimpleTest1;
 			sourceTree = "<group>";
@@ -574,10 +579,10 @@
 		F6B6473C14D353A7005F786B /* SimpleTest2 */ = {
 			isa = PBXGroup;
 			children = (
+				F6B6474014D353A7005F786B /* test2.csd */,
 				F6B6473D14D353A7005F786B /* SimpleTest2ViewController.h */,
 				F6B6473E14D353A7005F786B /* SimpleTest2ViewController.m */,
 				F6B6473F14D353A7005F786B /* SimpleTest2ViewController.xib */,
-				F6B6474014D353A7005F786B /* test2.csd */,
 			);
 			path = SimpleTest2;
 			sourceTree = "<group>";
@@ -585,9 +590,9 @@
 		F6B6474114D353A7005F786B /* Waveview */ = {
 			isa = PBXGroup;
 			children = (
+				F6B6474414D353A7005F786B /* Waveviewtest.csd */,
 				F6B6474214D353A7005F786B /* Waveview.h */,
 				F6B6474314D353A7005F786B /* Waveview.m */,
-				F6B6474414D353A7005F786B /* Waveviewtest.csd */,
 				F6B6474514D353A7005F786B /* WaveviewViewController.h */,
 				F6B6474614D353A7005F786B /* WaveviewViewController.m */,
 				F6B6474714D353A7005F786B /* WaveviewViewController.xib */,
@@ -777,6 +782,7 @@
 				C486A13B198BA8DB00E19281 /* CsoundAccelerometerBinding.m in Sources */,
 				F6B6475714D353A7005F786B /* BaseCsoundViewController.m in Sources */,
 				F6B6475914D353A7005F786B /* ButtonTestViewController.m in Sources */,
+				C486A145198BF06700E19281 /* CsoundMomentaryButtonBinding.m in Sources */,
 				C486A13D198BA8DB00E19281 /* CsoundGyroscopeBinding.m in Sources */,
 				F6B6475B14D353A7005F786B /* CsoundHaiku4ViewController.m in Sources */,
 				F6B6475F14D353A7005F786B /* HardwareTestViewController.m in Sources */,
