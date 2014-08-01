@@ -30,10 +30,8 @@
 
 @interface ControlKnob : UIControl <CsoundDataBinder>
 {
-	// Value Cacheable
-	BOOL mCacheDirty;
 	float cachedValue;
-    float* channelPtr;
+    float *channelPtr;
 }
 
 @property (assign) BOOL cacheDirty;
