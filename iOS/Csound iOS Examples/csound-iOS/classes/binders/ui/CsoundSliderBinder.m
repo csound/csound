@@ -1,6 +1,6 @@
 /* 
  
- CachedSlider.h:
+ CsoundSliderBinder.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -23,15 +23,16 @@
  
  */
 
-#import "CachedSlider.h"
+#import "CsoundSliderBinder.h"
 
-@implementation CachedSlider
+@implementation CsoundSliderBinder
 
 -(void)updateValueCache:(id)sender {
     cachedValue = ((UISlider *)sender).value;
 }
 
--(CachedSlider *)init:(UISlider *)slider channelName:(NSString *)channelName {
+-(instancetype)init:(UISlider *)slider channelName:(NSString *)channelName
+{
     if (self = [super init]) {
         self.slider = slider;
         self.channelName = channelName;
@@ -39,7 +40,8 @@
     return self;
 }
 
--(void)setup:(CsoundObj *)csoundObj {
+-(void)setup:(CsoundObj *)csoundObj
+{
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
     cachedValue = self.slider.value;

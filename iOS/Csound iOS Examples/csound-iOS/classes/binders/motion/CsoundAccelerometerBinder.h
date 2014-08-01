@@ -1,8 +1,8 @@
 /* 
  
- CachedGyroscope.h:
+ CsoundAccelerometerBinder.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -24,15 +24,15 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <CoreMotion/CoreMotion.h>
+#import <CoreMotion/Coremotion.h>
 #import "CsoundObj.h"
 
-@interface CachedGyroscope : NSObject<CsoundValueCacheable>  {
-    float* channelPtrX;
-    float* channelPtrY;
-    float* channelPtrZ;
-
-    CMMotionManager* mManager;
+@interface CsoundAccelerometerBinder : NSObject<CsoundDataBinder, UIAccelerometerDelegate> {
+    float *channelPtrX;
+    float *channelPtrY;
+    float *channelPtrZ;
+        
+    CMMotionManager* manager;
 }
 
 -(id)init:(CMMotionManager *)manager;

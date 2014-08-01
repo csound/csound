@@ -48,7 +48,7 @@
 
 - (void)addToCsoundObj:(CsoundObj *)csoundObj forChannelName:(NSString *)channelName_
 {
-	[csoundObj addValueCacheable:self];
+	[csoundObj addDataBinder:self];
 	self.channelName = channelName_;
 }
 
