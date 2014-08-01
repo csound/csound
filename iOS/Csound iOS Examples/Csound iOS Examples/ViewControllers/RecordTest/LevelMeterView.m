@@ -50,7 +50,7 @@
 {
 	self = [super initWithCoder:aDecoder];
 	if (self) {
-		cachedValue = 0.0f;
+		channelValue = 0.0f;
 		lastY = -100;
 	}
 	return self;
@@ -115,7 +115,7 @@
 	CGContextFillPath(context);
 	
 	// Draw the rest of the rects.
-	for (int y = 12.0f; y < height * cachedValue - 12.0f; y += squareHeight + 5.0f) {
+	for (int y = 12.0f; y < height * channelValue - 12.0f; y += squareHeight + 5.0f) {
 		if (y < (height * 0.7f)) {
 			CGContextSetFillColorWithColor(context, greenColor);
 		} else if ((y < height * 0.9f)) {
@@ -155,14 +155,9 @@
 	ksmps = csoundGetKsmps(cs);
 }
 
--(void)updateValuesToCsound
-{
-	//...
-}
-
 -(void)updateValuesFromCsound
 {
-	cachedValue = fabs(*channelPtr);
+	channelValue = fabs(*channelPtr);
 	
 	static NSInteger count = 0;
 	if (count % ((sr/ksmps)/20) == 0) {
@@ -176,7 +171,7 @@
 
 - (void)cleanup
 {
-	cachedValue = 0;
+	channelValue = 0;
 	lastY = -100;
 	[self setNeedsDisplay];
 }

@@ -49,23 +49,23 @@
 
 -(void)setup:(CsoundObj*)csoundObj
 {
-    self.cachedValue = self.mSwitch.on ? 1 : 0;
+    self.channelValue = self.switcher.on ? 1 : 0;
     self.channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                         channelType:CSOUND_CONTROL_CHANNEL];
-    [self.mSwitch addTarget:self
-                     action:@selector(updateValueCache:)
-           forControlEvents:UIControlEventValueChanged];
+    [self.switcher addTarget:self
+                      action:@selector(updateChannelValue:)
+            forControlEvents:UIControlEventValueChanged];
 }
 
 
 -(void)updateValuesToCsound {
-    *self.channelPtr = self.cachedValue;
+    *self.channelPtr = self.channelValue;
 }
 
 -(void)cleanup {
-    [self.mSwitch removeTarget:self
-                        action:@selector(updateValueCache:)
-              forControlEvents:UIControlEventValueChanged];
+    [self.switcher removeTarget:self
+                         action:@selector(updateChannelValue:)
+               forControlEvents:UIControlEventValueChanged];
 }
 
 @end
