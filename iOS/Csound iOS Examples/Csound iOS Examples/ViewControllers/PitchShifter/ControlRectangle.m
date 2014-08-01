@@ -219,7 +219,7 @@
     CGColorSpaceRelease(colorSpace);
 }
 
-#pragma mark - Csound Data Binder
+#pragma mark - Csound Data Binding
 
 - (void)setup:(CsoundObj *)csoundObj
 {

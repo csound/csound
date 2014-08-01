@@ -25,9 +25,9 @@
 
 #import "CsoundUI.h"
 
-#import "CsoundButtonBinder.h"
-#import "CsoundSliderBinder.h"
-#import "CsoundSwitchBinder.h"
+#import "CsoundButtonBinding.h"
+#import "CsoundSliderBinding.h"
+#import "CsoundSwitchBinding.h"
 
 @interface CsoundUI () {
     CsoundObj *csoundObj;
@@ -47,25 +47,25 @@
 -(void)addButton:(UIButton *)uiButton
   forChannelName:(NSString *)channelName
 {
-    CsoundButtonBinder *buttonBinder = [[CsoundButtonBinder alloc] init:uiButton
+    CsoundButtonBinding *buttonBinding = [[CsoundButtonBinding alloc] init:uiButton
                                                             channelName:channelName];
-    [csoundObj.dataBinders addObject:buttonBinder];
+    [csoundObj.dataBindings addObject:buttonBinding];
 }
 
 -(void)addSlider:(UISlider *)uiSlider
   forChannelName:(NSString *)channelName
 {
-    CsoundSliderBinder *sliderBinder = [[CsoundSliderBinder alloc] init:uiSlider
+    CsoundSliderBinding *sliderBinding = [[CsoundSliderBinding alloc] init:uiSlider
                                                             channelName:channelName];
-    [csoundObj.dataBinders addObject:sliderBinder];
+    [csoundObj.dataBindings addObject:sliderBinding];
 }
 
 -(void)addSwitch:(UISwitch *)uiSwitch
   forChannelName:(NSString *)channelName
 {
-    CsoundSwitchBinder *switchBinder = [[CsoundSwitchBinder alloc] init:uiSwitch
+    CsoundSwitchBinding *switchBinding = [[CsoundSwitchBinding alloc] init:uiSwitch
                                                             channelName:channelName];
-    [csoundObj.dataBinders addObject:switchBinder];
+    [csoundObj.dataBindings addObject:switchBinding];
 }
 
 

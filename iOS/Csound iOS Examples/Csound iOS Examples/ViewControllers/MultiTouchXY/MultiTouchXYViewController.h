@@ -28,7 +28,7 @@
 #import "CsoundObj.h"
 
 @interface MultiTouchXYViewController  : BaseCsoundViewController 
-	<CsoundDataBinder> {
+	<CsoundDataBinding> {
 	
 		int touchIds[10];
 		float touchX[10];

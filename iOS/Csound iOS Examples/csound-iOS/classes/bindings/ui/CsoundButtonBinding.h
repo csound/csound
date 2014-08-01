@@ -1,6 +1,6 @@
 /* 
  
- CsoundSliderBinder.h:
+ CsoundButtonBinding.h:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -22,12 +22,11 @@
  02111-1307 USA
  
  */
-
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface CsoundSliderBinder : NSObject<CsoundDataBinder> 
+@interface CsoundButtonBinding : NSObject<CsoundDataBinding>
 
--(instancetype)init:(UISlider*)slider channelName:(NSString *)channelName;
+-(instancetype)init:(UIButton *)button channelName:(NSString *)channelName;
 
 @end

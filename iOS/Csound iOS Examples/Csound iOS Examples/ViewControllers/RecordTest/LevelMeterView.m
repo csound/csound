@@ -58,7 +58,7 @@
 
 - (void)addToCsoundObj:(CsoundObj *)csoundObj forChannelName:(NSString *)channelName_
 {
-	[csoundObj addDataBinder:self];
+	[csoundObj addDataBinding:self];
 	self.channelName = channelName_;
 }
 
@@ -145,7 +145,7 @@
 	count++;
 }
 
-#pragma mark - Csound Data Binder
+#pragma mark - Csound Data Binding
 
 -(void)setup:(CsoundObj*)csoundObj
 {

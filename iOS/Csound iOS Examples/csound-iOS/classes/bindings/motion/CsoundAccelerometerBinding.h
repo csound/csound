@@ -1,6 +1,6 @@
 /* 
  
- CsoundGyroscopeBinder.h:
+ CsoundAccelerometerBinding.h:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -24,15 +24,15 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <CoreMotion/CoreMotion.h>
+#import <CoreMotion/Coremotion.h>
 #import "CsoundObj.h"
 
-@interface CsoundGyroscopeBinder : NSObject<CsoundDataBinder>  {
+@interface CsoundAccelerometerBinding : NSObject<CsoundDataBinding, UIAccelerometerDelegate> {
     float *channelPtrX;
     float *channelPtrY;
     float *channelPtrZ;
-
-    CMMotionManager* mManager;
+        
+    CMMotionManager* manager;
 }
 
 -(id)init:(CMMotionManager *)manager;

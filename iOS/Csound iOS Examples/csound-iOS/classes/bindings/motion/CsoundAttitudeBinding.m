@@ -1,6 +1,6 @@
 /* 
  
- CsoundAttitudeBinder.m:
+ CsoundAttitudeBinding.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -23,9 +23,9 @@
  
  */
 
-#import "CsoundAttitudeBinder.h"
+#import "CsoundAttitudeBinding.h"
 
-@implementation CsoundAttitudeBinder
+@implementation CsoundAttitudeBinding
 
 static NSString *CS_ATTITUDE_ROLL = @"attitudeRoll";
 static NSString *CS_ATTITUDE_PITCH = @"attitudePitch";

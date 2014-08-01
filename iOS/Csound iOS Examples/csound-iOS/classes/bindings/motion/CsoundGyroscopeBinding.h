@@ -1,6 +1,6 @@
 /* 
  
- CsoundButtonBinder.h:
+ CsoundGyroscopeBinding.h:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -22,11 +22,19 @@
  02111-1307 USA
  
  */
+
 #import <Foundation/Foundation.h>
+#import <CoreMotion/CoreMotion.h>
 #import "CsoundObj.h"
 
-@interface CsoundButtonBinder : NSObject<CsoundDataBinder>
+@interface CsoundGyroscopeBinding : NSObject<CsoundDataBinding>  {
+    float *channelPtrX;
+    float *channelPtrY;
+    float *channelPtrZ;
 
--(instancetype)init:(UIButton *)button channelName:(NSString *)channelName;
+    CMMotionManager* mManager;
+}
+
+-(id)init:(CMMotionManager *)manager;
 
 @end

@@ -51,12 +51,12 @@ typedef struct {
 } Message;
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Protocols (Data Binders and Listeners)
+#  pragma mark - Protocols (Data Bindings and Listeners)
 // -----------------------------------------------------------------------------
 
 @class CsoundObj;
 
-@protocol CsoundDataBinder <NSObject>
+@protocol CsoundDataBinding <NSObject>
 - (void)setup:(CsoundObj*)csoundObj;
 @optional
 - (void)cleanup;
@@ -101,9 +101,9 @@ typedef struct {
 #  pragma mark - Data Binding
 // -----------------------------------------------------------------------------
 
-@property (nonatomic, strong) NSMutableArray *dataBinders;
-- (void)addDataBinder:(id<CsoundDataBinder>)dataBinder;
-- (void)removeDataBinder:(id<CsoundDataBinder>)dataBinder;
+@property (nonatomic, strong) NSMutableArray *dataBindings;
+- (void)addDataBinding:(id<CsoundDataBinding>)dataBinding;
+- (void)removeDataBinding:(id<CsoundDataBinding>)dataBinding;
 
 // -----------------------------------------------------------------------------
 #  pragma mark - Listeners and Messages
