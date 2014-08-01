@@ -162,10 +162,16 @@ void test_bkpt_instrument(void)
     csoundDestroy(csound);
 }
 
+int count = 0;
 static void brkpt_cb5(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
     debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
-    CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "oscils");
+    if (count == 0) {
+        CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "oscils");
+    } else if (count == 1) {
+        CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "line");
+    }
+    count++;
 }
 
 void test_line_breakpoint(void)
@@ -185,9 +191,11 @@ void test_line_breakpoint(void)
     csoundSetBreakpoint(csound, 5, 1, 0);
 
     csoundPerformKsmps(csound);
+    csoundSetBreakpoint(csound, 4, 1, 0);
 
     csoundDebuggerClean(csound);
     csoundDestroy(csound);
+    CU_ASSERT_EQUAL(count, 1);
 }
 
 
