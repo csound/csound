@@ -27,15 +27,7 @@
 #import "CsoundObj.h"
 
 @interface ControlRectangle : UIControl <CsoundDataBinder>
-{
-    CGRect circleRect;
-	
-	BOOL mCacheDirty;
-	float cachedValueX, cachedValueY;
-    float *channelPtrX, *channelPtrY;
-}
 
-@property (assign) BOOL cacheDirty;
 @property (nonatomic, readwrite) Float32 xValue;
 @property (nonatomic, readwrite) Float32 yValue;
 @property (nonatomic, readwrite) CGFloat circleDiameter;
