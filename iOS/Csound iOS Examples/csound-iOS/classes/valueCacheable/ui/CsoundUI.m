@@ -29,8 +29,6 @@
 #import "CachedButton.h"
 #import "CachedSwitch.h"
 
-//AURE #import "CSDSlider.h"
-
 @interface CsoundUI () {
     CsoundObj *csoundObj;
 }
@@ -54,21 +52,13 @@
     [csoundObj.valuesCache addObject:cachedSwitch];
 }
 
--(void)addSlider:(UISlider*)uiSlider
+-(void)addSlider:(UISlider *)uiSlider
   forChannelName:(NSString *)channelName
 {
     CachedSlider* cachedSlider = [[CachedSlider alloc] init:uiSlider
                                                 channelName:channelName];
     [csoundObj.valuesCache addObject:cachedSlider];
 }
-// AURE
-//-(void)addSlider:(UISlider*)uiSlider
-//  forChannelName:(NSString *)channelName
-//{
-//    CSDSlider* csdSlider = [[CSDSlider alloc] init:uiSlider
-//                                       channelName:channelName];
-//    [csoundObj.valuesCache addObject:csdSlider];
-//}
 
 -(void)addButton:(UIButton *)uiButton
   forChannelName:(NSString *)channelName
