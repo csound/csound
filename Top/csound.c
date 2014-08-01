@@ -102,6 +102,7 @@ extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
+inline void processDebugBuffers(CSOUND *csound, debug_command_t command, csdebug_data_t *data);
 
 extern OENTRY opcodlst_1[];
 
@@ -1612,49 +1613,11 @@ int kperf_debug(CSOUND *csound)
       csound->evt_poll_cnt = csound->evt_poll_maxcnt;
       if (UNLIKELY(!csoundYield(csound))) csound->LongJmp(csound, 1);
     }
-    if (data) {
-      csoundReadCircularBuffer(csound, data->cmd_buffer, &command, 1);
-    }
-    /* process new breakpoints */
-    if (data) {
-      bkpt_node_t *bkpt_node;
-      while (csoundReadCircularBuffer(csound,
-                                      data->bkpt_buffer, &bkpt_node, 1) == 1) {
-        if (bkpt_node->mode == CSDEBUG_BKPT_CLEAR_ALL) {
-          bkpt_node_t *n;
-          while (data->bkpt_anchor->next) {
-            n = data->bkpt_anchor->next;
-            data->bkpt_anchor->next = n->next;
-            free(n); /* FIXME this should be moved from kperf to a
-                        non-realtime context */
-          }
-          free(bkpt_node);
-        } else if (bkpt_node->mode == CSDEBUG_BKPT_DELETE) {
-          bkpt_node_t *n = data->bkpt_anchor->next;
-          bkpt_node_t *prev = data->bkpt_anchor;
-          while (n) {
-            if (n->line == bkpt_node->line && n->instr == bkpt_node->instr) {
-              prev->next = n->next;
-              free(n); /* FIXME this should be moved from kperf to a
-                          non-realtime context */
-              n = prev->next;
-              continue;
-            }
-            prev = n;
-            n = n->next;
-          }
-          free(bkpt_node); /* FIXME move to non rt context */
-        } else {
-            // FIXME sort list to optimize
-            bkpt_node->next = data->bkpt_anchor->next;
-            data->bkpt_anchor->next = bkpt_node;
-        }
-      }
-      if (command == CSDEBUG_CMD_CONTINUE && data->status == CSDEBUG_STATUS_STOPPED) {
-        data->status = CSDEBUG_STATUS_CONTINUE;
-      }
-    }
 
+    ip = csound->actanchor.nxtact;
+    if (data) { /* process new breakpoints and commands*/
+      processDebugCommands(csound, command, data, ip);
+    }
     if (!data || data->status != CSDEBUG_STATUS_STOPPED)
     {
       /* for one kcnt: */
@@ -1664,10 +1627,17 @@ int kperf_debug(CSOUND *csound)
       /* clear spout */
       memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
     }
-    ip = csound->actanchor.nxtact;
 
-    if (ip != NULL) { // FIXME debugger should also be able to stop
-                      // even if no instruments are on
+    if(data->status == CSDEBUG_STATUS_CONTINUE) {
+      if (data->debug_instr_ptr) {
+        /* if not NULL, resume from last active */
+        ip = data->debug_instr_ptr;
+        data->debug_instr_ptr = NULL;
+      }
+      data->status = CSDEBUG_STATUS_RUNNING;
+    }
+
+    if (ip != NULL && (data->status == CSDEBUG_STATUS_RUNNING) ) {
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
@@ -1704,60 +1674,60 @@ int kperf_debug(CSOUND *csound)
 #endif
 
           if (done == 1) {/* if init-pass has been done */
-          if(data) {
-            if(data->status == CSDEBUG_STATUS_CONTINUE) {
-              if (data->debug_instr_ptr) {
-                /* if not NULL, resume from last active */
-                ip = data->debug_instr_ptr;
-                data->debug_instr_ptr = NULL;
-              } else {
-                ip = NULL;
-                continue;
-              }
-              data->status = CSDEBUG_STATUS_RUNNING;
-            } else if(data->status == CSDEBUG_STATUS_STOPPED) {
-              return 0;
-            } else if (command == CSDEBUG_CMD_STOP) {
-              data->debug_instr_ptr = ip;
-              data->status = CSDEBUG_STATUS_STOPPED;
-              csoundDebuggerBreakpointReached(csound);
-              return 0;
-            } else { /* check if we have arrived at an instrument breakpoint */
-              bkpt_node_t *bp_node = data->bkpt_anchor->next;
-              while (bp_node) {
-                if (bp_node->instr == ip->p1.value) {
-                  if (bp_node->count < 2) {
-                    /* skip of 0 or 1 has the same effect */
-                    data->debug_instr_ptr = ip;
-                    data->status = CSDEBUG_STATUS_STOPPED;
-                    csoundDebuggerBreakpointReached(csound);
-                    bp_node->count = bp_node->skip;
-                    return 0;
-                  } else {
-                    bp_node->count--;
-                  }
+            /* check if we have arrived at an instrument breakpoint */
+            bkpt_node_t *bp_node = data->bkpt_anchor->next;
+            while (bp_node && ip) {
+              if (bp_node->instr == ip->p1.value && (bp_node->line == -1) ) {
+                if (bp_node->count < 2) {
+                  /* skip of 0 or 1 has the same effect */
+                  data->debug_instr_ptr = ip;
+                  data->debug_opcode_ptr = NULL;
+                  data->status = CSDEBUG_STATUS_STOPPED;
+                  csoundDebuggerBreakpointReached(csound);
+                  bp_node->count = bp_node->skip;
+                  return 0;
+                } else {
+                  bp_node->count--;
                 }
-                bp_node = bp_node->next;
               }
+              bp_node = bp_node->next;
             }
-          }
             OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
             ip->spout = csound->spout;
             ip->kcounter =  csound->kcounter;
             if(ip->ksmps == csound->ksmps) {
               while ((opstart = opstart->nxtp) != NULL) {
+                  /* check if we have arrived at a line breakpoint */
+                  int linenum = opstart->optext->t.linenum;
+                  bkpt_node_t *bp_node = data->bkpt_anchor->next;
+                  while (bp_node) {
+                    if (bp_node->instr == ip->p1.value || (ip->p1.value == 0)) {
+                      if (bp_node->line == linenum) {
+                        if (bp_node->count < 2) { /* skip of 0 or 1 has the same effect */
+                          data->debug_instr_ptr = ip;
+                          data->debug_opcode_ptr = opstart;
+                          data->status = CSDEBUG_STATUS_STOPPED;
+                          csoundDebuggerBreakpointReached(csound);
+                          bp_node->count = bp_node->skip;
+                          return 0;
+                        } else {
+                          bp_node->count--;
+                        }
+                      }
+                    }
+                    bp_node = bp_node->next;
+                  }
                 opstart->insdshead->pds = opstart;
                 (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
-            } else {
+            } else { /* when instrument has local ksmps */
               int i, n = csound->nspout, start = 0;
               int lksmps = ip->ksmps;
               int incr = csound->nchnls*lksmps;
               int offset =  ip->ksmps_offset;
               int early = ip->ksmps_no_end;
-              OPDS  *opstart;
               ip->spin = csound->spin;
               ip->spout = csound->spout;
               ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
@@ -1778,7 +1748,28 @@ int kperf_debug(CSOUND *csound)
 
                for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opstart = (OPDS*) ip;
+                  /* check if we have arrived at a line breakpoint */
+
                   while ((opstart = opstart->nxtp) != NULL && ip->actflg) {
+                      int linenum = opstart->optext->t.linenum;
+                      bkpt_node_t *bp_node = data->bkpt_anchor->next;
+                      while (bp_node) {
+                        if (bp_node->instr == ip->p1.value || (ip->p1.value == 0)) {
+                          if (bp_node->line == linenum) {
+                            if (bp_node->count < 2) { /* skip of 0 or 1 has the same effect */
+                              data->debug_instr_ptr = ip;
+                              data->debug_opcode_ptr = opstart;
+                              data->status = CSDEBUG_STATUS_STOPPED;
+                              csoundDebuggerBreakpointReached(csound);
+                              bp_node->count = bp_node->skip;
+                              return 0;
+                            } else {
+                              bp_node->count--;
+                            }
+                          }
+                        }
+                        bp_node = bp_node->next;
+                      }
                     opstart->insdshead->pds = opstart;
                     (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
@@ -1861,7 +1852,7 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
       }
     } while (csound->kperf(csound));
     csoundUnlockMutex(csound->API_lock);
-      return 0;
+    return 0;
 }
 
 static int csoundPerformKsmpsInternal(CSOUND *csound)

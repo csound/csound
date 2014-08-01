@@ -10,9 +10,6 @@
 #include "csdebug.h"
 #include "CUnit/Basic.h"
 
-/* added by JPff -- should be in .h file? */
-extern void csoundSetBreakpoint(CSOUND *, int, int);
-
 int init_suite1(void)
 {
     return 0;
@@ -31,12 +28,13 @@ void test_debugger_init(void)
     csoundDebuggerClean(csound);
     csoundDestroy(csound);
 }
+
 void test_add_bkpt(void)
 {
     CSOUND* csound = csoundCreate(NULL);
     csoundDebuggerInit(csound);
-    csoundSetBreakpoint(csound, 3, 0);
-    csoundSetBreakpoint(csound, 5, 0);
+    csoundSetBreakpoint(csound, 3, 0, 0);
+    csoundSetBreakpoint(csound, 5, 1, 0);
     csoundSetInstrumentBreakpoint(csound, 3.4, 0);
     csoundSetInstrumentBreakpoint(csound, 1.1, 0);
     csoundClearBreakpoints(csound);
@@ -58,7 +56,6 @@ void test_add_callback(void)
     csoundDebuggerClean(csound);
     csoundDestroy(csound);
 }
-
 
 void test_breakpoint_once(void)
 {
@@ -165,6 +162,35 @@ void test_bkpt_instrument(void)
     csoundDestroy(csound);
 }
 
+static void brkpt_cb5(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
+{
+    debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
+    CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "oscils");
+}
+
+void test_line_breakpoint(void)
+{
+    CSOUND* csound = csoundCreate(NULL);
+    csoundCompileOrc(csound, "instr 1\n"
+                     "Svar init \"hello\"\n"
+                     "ksig line 0, p3, 1\n"
+                     "ksig2 line 1, p3, 0\n"
+                     "asig3 oscils 0.5, 440, 0.5\n"
+                     "endin\n");
+
+    csoundInputMessage(csound, "i 1 0  1.1 440");
+    csoundStart(csound);
+    csoundDebuggerInit(csound);
+    csoundSetBreakpointCallback(csound, brkpt_cb5, NULL);
+    csoundSetBreakpoint(csound, 5, 1, 0);
+
+    csoundPerformKsmps(csound);
+
+    csoundDebuggerClean(csound);
+    csoundDestroy(csound);
+}
+
+
 int main()
 {
     CU_pSuite pSuite = NULL;
@@ -181,15 +207,15 @@ int main()
     }
     
     /* add the tests to the suite */
-    if (NULL == CU_add_test(pSuite, "Test Breakpoint instrument", test_bkpt_instrument)
-         ||(NULL == CU_add_test(pSuite, "Test variables", test_variables)
+    if ( (NULL == CU_add_test(pSuite, "Test Line breakpoints", test_line_breakpoint))
+         || (NULL == CU_add_test(pSuite, "Test Breakpoint instrument", test_bkpt_instrument))
+         ||(NULL == CU_add_test(pSuite, "Test variables", test_variables))
          || (NULL == CU_add_test(pSuite, "Test debugger init", test_debugger_init))
          || (NULL == CU_add_test(pSuite, "Test add breakpoint", test_add_bkpt))
          || (NULL == CU_add_test(pSuite, "Test add callback", test_add_callback))
          || (NULL == CU_add_test(pSuite, "Test breakpoint", test_breakpoint_once))
          || (NULL == CU_add_test(pSuite, "Test breakpoint remove", test_breakpoint_remove))
          )
-        )
     {
         CU_cleanup_registry();
         return CU_get_error();
