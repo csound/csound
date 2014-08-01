@@ -73,6 +73,7 @@ typedef struct debug_instr_s {
 
 typedef struct debug_opcode_s {
     char opname[16];
+    int line;
     // TODO: Fill opcode linked list
     struct debug_opcode_s *next;
     struct debug_opcode_s *prev;
