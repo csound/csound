@@ -25,13 +25,7 @@
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface CsoundButtonBinder : NSObject<CsoundDataBinder> {
-    float cachedValue;
-    float* channelPtr;
-}
-
-@property (nonatomic, strong) NSString *channelName;
-@property (nonatomic, strong) UIButton *button;
+@interface CsoundButtonBinder : NSObject<CsoundDataBinder>
 
 -(instancetype)init:(UIButton *)button channelName:(NSString *)channelName;
 

@@ -25,13 +25,23 @@
 
 #import "LevelMeterView.h"
 
+@interface LevelMeterView () {
+	float channelValue;
+    float *channelPtr;
+	CGFloat lastY;
+	NSInteger ksmps, sr;
+}
+@property (nonatomic, strong) NSString *channelName;
+
+@end
+
 @implementation LevelMeterView
 
 - (id)initWithFrame:(CGRect)frame
 {
 	self = [super initWithFrame:frame];
 	if (self) {
-		cachedValue = 0.0f;
+		channelValue = 0.0f;
 	}
 	return self;
 }

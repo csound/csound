@@ -25,16 +25,23 @@
 
 #import "CsoundSwitchBinder.h"
 
+@interface CsoundSwitchBinder()
+@property float channelValue;
+@property float *channelPtr;
+@property (unsafe_unretained) NSString *channelName;
+@property (unsafe_unretained) UISwitch *switcher;
+@end
+
 @implementation CsoundSwitchBinder
 
--(void)updateValueCache:(id)sender {
-    self.cachedValue = ((UISwitch *)sender).on ? 1 : 0;
+-(void)updateChannelValue:(id)sender {
+    self.channelValue = ((UISwitch *)sender).on ? 1 : 0;
 }
 
 -(instancetype)init:(UISwitch *)uiSwitch channelName:(NSString *)channelName
 {
     if (self = [super init]) {
-        self.mSwitch = uiSwitch;
+        self.switcher = uiSwitch;
         self.channelName = channelName;
     }
     return self;
