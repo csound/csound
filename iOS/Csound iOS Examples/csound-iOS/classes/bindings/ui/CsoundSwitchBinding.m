@@ -25,9 +25,10 @@
 
 #import "CsoundSwitchBinding.h"
 
-@interface CsoundSwitchBinding()
-@property float channelValue;
-@property float *channelPtr;
+@interface CsoundSwitchBinding() {
+    float channelValue;
+    float *channelPtr;
+}
 @property (unsafe_unretained) NSString *channelName;
 @property (unsafe_unretained) UISwitch *switcher;
 @end
@@ -35,7 +36,7 @@
 @implementation CsoundSwitchBinding
 
 -(void)updateChannelValue:(id)sender {
-    self.channelValue = ((UISwitch *)sender).on ? 1 : 0;
+    channelValue = ((UISwitch *)sender).on ? 1 : 0;
 }
 
 -(instancetype)initSwitch:(UISwitch *)uiSwitch channelName:(NSString *)channelName
@@ -49,9 +50,9 @@
 
 -(void)setup:(CsoundObj*)csoundObj
 {
-    self.channelValue = self.switcher.on ? 1 : 0;
-    self.channelPtr = [csoundObj getInputChannelPtr:self.channelName
-                                        channelType:CSOUND_CONTROL_CHANNEL];
+    channelValue = self.switcher.on ? 1 : 0;
+    channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                   channelType:CSOUND_CONTROL_CHANNEL];
     [self.switcher addTarget:self
                       action:@selector(updateChannelValue:)
             forControlEvents:UIControlEventValueChanged];
@@ -59,7 +60,7 @@
 
 
 -(void)updateValuesToCsound {
-    *self.channelPtr = self.channelValue;
+    *channelPtr = channelValue;
 }
 
 -(void)cleanup {
