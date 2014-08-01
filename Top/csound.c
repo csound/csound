@@ -1702,7 +1702,7 @@ int kperf_debug(CSOUND *csound)
                   int linenum = opstart->optext->t.linenum;
                   bkpt_node_t *bp_node = data->bkpt_anchor->next;
                   while (bp_node) {
-                    if (bp_node->instr == ip->p1.value || (ip->p1.value == 0)) {
+                    if (bp_node->instr == ip->p1.value || (bp_node->instr == 0)) {
                       if (bp_node->line == linenum) {
                         if (bp_node->count < 2) { /* skip of 0 or 1 has the same effect */
                           data->debug_instr_ptr = ip;
@@ -1754,7 +1754,7 @@ int kperf_debug(CSOUND *csound)
                       int linenum = opstart->optext->t.linenum;
                       bkpt_node_t *bp_node = data->bkpt_anchor->next;
                       while (bp_node) {
-                        if (bp_node->instr == ip->p1.value || (ip->p1.value == 0)) {
+                        if (bp_node->instr == ip->p1.value || (bp_node->instr == 0)) {
                           if (bp_node->line == linenum) {
                             if (bp_node->count < 2) { /* skip of 0 or 1 has the same effect */
                               data->debug_instr_ptr = ip;
