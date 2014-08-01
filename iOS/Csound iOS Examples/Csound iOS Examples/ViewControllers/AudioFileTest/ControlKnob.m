@@ -28,9 +28,13 @@
 
 @interface ControlKnob ()
 {
+    float channelValue;
+    float *channelPtr;
+
 	CGFloat angle;
     CGPoint lastTouchPoint;
 }
+
 @end
 
 @implementation ControlKnob
