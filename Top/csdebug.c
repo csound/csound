@@ -278,6 +278,7 @@ debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound)
     }
     debug_opcode_t *opcode_list = csound->Malloc(csound, sizeof(debug_opcode_t));
     strncpy(opcode_list->opname, op->optext->t.opcod, 16);
+    opcode_list->line = op->optext->t.linenum;
     return opcode_list;
 }
 
