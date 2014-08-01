@@ -1,6 +1,6 @@
 /* 
  
- ControlRectangle.m:
+ ControlXYGrid.m:
  
  Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
@@ -24,9 +24,9 @@
  */
 
 
-#import "ControlRectangle.h"
+#import "ControlXYGrid.h"
 
-@interface ControlRectangle ()
+@interface ControlXYGrid ()
 {
     CGRect circleRect;
 	
@@ -38,7 +38,7 @@
 }
 @end
 
-@implementation ControlRectangle
+@implementation ControlXYGrid
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -234,8 +234,8 @@
 
 - (void)updateChannelValues:(id)sender
 {
-	xChannelValue = ((ControlRectangle *)sender).xValue;
-	yChannelValue = ((ControlRectangle *)sender).yValue;
+	xChannelValue = ((ControlXYGrid *)sender).xValue;
+	yChannelValue = ((ControlXYGrid *)sender).yValue;
 }
 
 - (void)updateValuesToCsound
