@@ -174,12 +174,13 @@ By using CsoundDataBindings, CsoundObj functionality can be extended to communic
 The CsoundUI API contains the following methods for binding widgets:
 
 \begin{lstlisting}[caption=Methods for Widget Binding]
--(id<CsoundDataBinding>)addSwitch:(UISwitch*)uiSwitch forChannelName:(NSString*)channelName;
--(id<CsoundDataBinding>)addSlider:(UISlider*)uiSlider forChannelName:(NSString*)channelName;
--(id<CsoundDataBinding>)addButton:(UIButton*)uiButton forChannelName:(NSString*)channelName;
+- (void)addButton:(UIButton *)uiButton forChannelName:(NSString *)channelName;
+- (void)addSlider:(UISlider*)uiSlider  forChannelName:(NSString *)channelName;
+- (void)addSwitch:(UISwitch *)uiSwitch forChannelName:(NSString *)channelName;
+- (void)addMomentaryButton:(UIButton *)uiButton forChannelName:(NSString *)channelName;
 \end{lstlisting}
 
-These methods allow for easy binding of UISwitches, UISliders, and UIButtons, and return the CsoundDataBinding that was created to wrap the widget. If the design of your app requires that you remove a widget from being used with CsoundObj, you can use the returned CsoundDataBinding and pass it to the removeDataBinding method. To bind your own custom widgets, you will need to create your own CsoundDataBinding.  There are examples of both using the convenience widget binding methods as well as custom CsoundDataBinding in the Csound for iOS Examples project.
+These methods allow for easy binding of UISwitches, UISliders, and UIButtons (two different types of buttons), and return the CsoundDataBinding that was created to wrap the widget. If the design of your app requires that you remove a widget from being used with CsoundObj, you can use the returned CsoundDataBinding and pass it to the removeDataBinding method. To bind your own custom widgets, you will need to create your own CsoundDataBinding.  There are examples of both using the convenience widget binding methods as well as custom CsoundDataBinding in the Csound for iOS Examples project.
 
 %======
 
@@ -291,7 +292,7 @@ This is a generative music example that contains a number of sliders that affect
 This example uses a CSD based on the one used for Simple Test 2, but depends on the user to trigger a button to generate each note.  The two buttons in this example show two different ways in which to integrate buttons with CsoundObj:
 
 \begin{enumerate}
-\item Using CsoundObj's \textbf{addButton} method, which will setup a k-rate channel for Csound.  The value will be 0 when the button is not pressed, and will be 1 for one ksmps period when a button is pressed (it returns to 0 the following ksmps period).
+\item Using CsoundObj's \textbf{addMomentaryButton:forChannelName:} method, which will setup a k-rate channel for Csound.  The value will be 0 when the button is not pressed, and will be 1 for one ksmps period when a button is pressed (it returns to 0 the following ksmps period).
 \item Using a standard button callback, the callback will create a string score and send that to Csound using CsoundObj's \textbf{sendScore} method. (See code below.)
 \end{enumerate}
 
