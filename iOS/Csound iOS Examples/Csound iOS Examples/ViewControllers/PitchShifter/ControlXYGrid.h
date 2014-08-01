@@ -1,6 +1,6 @@
 /* 
  
- ControlRectangle.h:
+ ControlXYGrid.h:
  
  Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
@@ -26,7 +26,7 @@
 #import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
-@interface ControlRectangle : UIControl <CsoundDataBinding>
+@interface ControlXYGrid : UIControl <CsoundDataBinding>
 
 @property (nonatomic, readwrite) Float32 xValue;
 @property (nonatomic, readwrite) Float32 yValue;
