@@ -162,7 +162,7 @@ CsoundDataBindings are used to both read values from Csound as well as write val
 \item \textbf{cleanup} - this method is called after Csound has completed its run and should be used by CsoundDataBindings to free up any allocated data and remove references to channel pointers.
 \end{itemize}
 
-By using CsoundDataBindings, CsoundObj functionality can be extended to communicate with as many items as you would like. Included with Csound for iOS is the CsoundUI which contains pre-made wrapper classes for common UI classes (UISlider, UIButton, UISwitch) and similarly, CsoundMotion provides wrapper for hardware sensors (Accelerometer, Attitude, Gyroscope).  CsoundObj has helper methods for the CsoundDataBindings that come with the CsoundObj API, as well as the generic \textbf{addDataBinding} and \textbf{removeDataBinding} methods for adding custom CsoundDataBindings. Please consult these classes as well as their use in context within the Csound for iOS Examples project.
+By using CsoundDataBindings, CsoundObj functionality can be extended to communicate with as many items as you would like. Included with Csound for iOS is the CsoundUI which contains pre-made wrapper classes for common UI classes (UILabel, UIButton, UISlider, UISwitch) and similarly, CsoundMotion provides wrapper for hardware sensors (Accelerometer, Attitude, Gyroscope).  CsoundObj has helper methods for the CsoundDataBindings that come with the CsoundObj API, as well as the generic \textbf{addDataBinding} and \textbf{removeDataBinding} methods for adding custom CsoundDataBindings. Please consult these classes as well as their use in context within the Csound for iOS Examples project.
 
 
 %======
@@ -174,13 +174,15 @@ By using CsoundDataBindings, CsoundObj functionality can be extended to communic
 The CsoundUI API contains the following methods for binding widgets:
 
 \begin{lstlisting}[caption=Methods for Widget Binding]
+- (void)addLabel:(UILabel *)uiLabel    forChannelName:(NSString *)channelName;
 - (void)addButton:(UIButton *)uiButton forChannelName:(NSString *)channelName;
 - (void)addSlider:(UISlider*)uiSlider  forChannelName:(NSString *)channelName;
 - (void)addSwitch:(UISwitch *)uiSwitch forChannelName:(NSString *)channelName;
 - (void)addMomentaryButton:(UIButton *)uiButton forChannelName:(NSString *)channelName;
+
 \end{lstlisting}
 
-These methods allow for easy binding of UISwitches, UISliders, and UIButtons (two different types of buttons), and return the CsoundDataBinding that was created to wrap the widget. If the design of your app requires that you remove a widget from being used with CsoundObj, you can use the returned CsoundDataBinding and pass it to the removeDataBinding method. To bind your own custom widgets, you will need to create your own CsoundDataBinding.  There are examples of both using the convenience widget binding methods as well as custom CsoundDataBinding in the Csound for iOS Examples project.
+These methods allow for easy binding of UILabels, UISliders, UISwitches, and UIButtons (two different types of buttons), and return the CsoundDataBinding that was created to wrap the widget. If the design of your app requires that you remove a widget from being used with CsoundObj, you can use the returned CsoundDataBinding and pass it to the removeDataBinding method. To bind your own custom widgets, you will need to create your own CsoundDataBinding.  There are examples of both using the convenience widget binding methods as well as custom CsoundDataBinding in the Csound for iOS Examples project.
 
 %======
 
