@@ -26,13 +26,7 @@
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface CsoundSliderBinder : NSObject<CsoundDataBinder> {
-    float cachedValue;
-    float *channelPtr;
-}
-
-@property (nonatomic, strong) NSString *channelName;
-@property (nonatomic, strong) UISlider *slider;
+@interface CsoundSliderBinder : NSObject<CsoundDataBinder> 
 
 -(instancetype)init:(UISlider*)slider channelName:(NSString *)channelName;
 

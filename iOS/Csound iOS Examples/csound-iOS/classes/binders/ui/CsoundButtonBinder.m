@@ -25,10 +25,19 @@
  */
 #import "CsoundButtonBinder.h"
 
+@interface CsoundButtonBinder () {
+    float channelValue;
+    float *channelPtr;
+}
+
+@property (nonatomic, strong) NSString *channelName;
+@property (nonatomic, strong) UIButton *button;
+@end
+
 @implementation CsoundButtonBinder
 
--(void)updateValueCache:(id)sender {
-    cachedValue = 1;
+-(void)updateChannelValue:(id)sender {
+    channelValue = 1;
 }
 
 -(instancetype)init:(UIButton *)button channelName:(NSString *)channelName

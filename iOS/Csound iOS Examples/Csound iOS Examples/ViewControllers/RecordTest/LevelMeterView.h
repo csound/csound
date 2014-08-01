@@ -28,16 +28,8 @@
 #import "CsoundObj.h"
 
 @interface LevelMeterView : UIView <CsoundDataBinder>
-{
-	float cachedValue;
-    float* channelPtr;
-	CGFloat lastY;
-	NSInteger ksmps, sr;
-}
 
-@property (assign) BOOL cacheDirty;
-@property (nonatomic, strong) NSString *channelName;
-
-- (void)addToCsoundObj:(CsoundObj *)csoundObj forChannelName:(NSString *)channelName;
+- (void)addToCsoundObj:(CsoundObj *)csoundObj
+        forChannelName:(NSString *)channelName;
 
 @end
