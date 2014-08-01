@@ -58,7 +58,7 @@
 }
 
 
-#pragma mark ValueCacheable
+#pragma mark Csound Data Binder
 
 -(void)setup:(CsoundObj*)csoundObj {
 

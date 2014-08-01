@@ -214,7 +214,7 @@
     CGColorSpaceRelease(colorSpace);
 }
 
-#pragma mark - Value Cacheable
+#pragma mark - Csound Data Binder
 
 - (void)setup:(CsoundObj *)csoundObj
 {
