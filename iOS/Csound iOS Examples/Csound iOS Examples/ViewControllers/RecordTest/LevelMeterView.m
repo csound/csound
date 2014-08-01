@@ -135,7 +135,7 @@
 	count++;
 }
 
-#pragma mark - ValueCachable
+#pragma mark - Csound Data Binder
 
 -(void)setup:(CsoundObj*)csoundObj
 {

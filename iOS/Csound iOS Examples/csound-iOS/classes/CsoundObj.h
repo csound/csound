@@ -51,7 +51,7 @@ typedef struct {
 } Message;
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Protocols (Cacheable Values and Listeners)
+#  pragma mark - Protocols (Data Binders and Listeners)
 // -----------------------------------------------------------------------------
 
 @class CsoundObj;
