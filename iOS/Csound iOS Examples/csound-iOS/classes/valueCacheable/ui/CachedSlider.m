@@ -29,7 +29,6 @@
 
 -(void)updateValueCache:(id)sender {
     cachedValue = ((UISlider *)sender).value;
-    self.cacheDirty = YES;
 }
 
 -(CachedSlider *)init:(UISlider *)slider channelName:(NSString *)channelName {
@@ -44,17 +43,13 @@
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
     cachedValue = self.slider.value;
-    self.cacheDirty = YES;
     [self.slider addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
     
 }
 
 
 -(void)updateValuesToCsound {
-    if (self.cacheDirty) {
-        *channelPtr = cachedValue;
-        self.cacheDirty = NO;
-    }
+    *channelPtr = cachedValue;
 }
 
 -(void)cleanup {

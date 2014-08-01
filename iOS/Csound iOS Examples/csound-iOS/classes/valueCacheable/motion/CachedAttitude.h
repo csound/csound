@@ -25,9 +25,9 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreMotion/CoreMotion.h>
-#import "BaseValueCacheable.h"
+#import "CsoundObj.h"
 
-@interface CachedAttitude : BaseValueCacheable {
+@interface CachedAttitude : NSObject<CsoundValueCacheable>  {
     float* channelPtrRoll;
     float* channelPtrPitch;
     float* channelPtrYaw;

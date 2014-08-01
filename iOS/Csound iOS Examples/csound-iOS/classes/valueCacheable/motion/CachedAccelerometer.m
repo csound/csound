@@ -48,9 +48,7 @@ static NSString *CS_ACCEL_Z = @"accelerometerZ";
     
     *channelPtrX = manager.accelerometerData.acceleration.x;
     *channelPtrY = manager.accelerometerData.acceleration.y;
-    *channelPtrZ = manager.accelerometerData.acceleration.z;    
-    
-    self.cacheDirty = YES;
+    *channelPtrZ = manager.accelerometerData.acceleration.z;
 }
 
 -(void)updateValuesToCsound {

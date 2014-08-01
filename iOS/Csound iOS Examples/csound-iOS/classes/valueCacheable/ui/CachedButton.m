@@ -29,7 +29,6 @@
 
 -(void)updateValueCache:(id)sender {
     cachedValue = 1;
-    self.cacheDirty = YES;
 }
 
 -(id)init:(UIButton *)button channelName:(NSString *)channelName {
@@ -43,7 +42,6 @@
 
 -(void)setup:(CsoundObj*)csoundObj {
     cachedValue = self.button.selected ? 1 : 0;
-    self.cacheDirty = YES;
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
     [self.button addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventTouchDown];
@@ -51,12 +49,7 @@
 
 
 -(void)updateValuesToCsound {
-    if (self.cacheDirty) {
-        *channelPtr = cachedValue;
-        
-        self.cacheDirty = (cachedValue == 1);
-        cachedValue = 0;
-    }
+    *channelPtr = cachedValue;
 }
 
 -(void)cleanup {
