@@ -29,7 +29,6 @@
 
 -(void)updateValueCache:(id)sender {
     self.cachedValue = ((UISwitch *)sender).on ? 1 : 0;
-    self.cacheDirty = YES;
 }
 
 -(CachedSwitch*)init:(UISwitch *)uiSwitch
@@ -43,7 +42,6 @@
 
 -(void)setup:(CsoundObj*)csoundObj {
     self.cachedValue = self.mSwitch.on ? 1 : 0;
-    self.cacheDirty = YES;
     self.channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                         channelType:CSOUND_CONTROL_CHANNEL];
     [self.mSwitch addTarget:self
@@ -53,10 +51,7 @@
 
 
 -(void)updateValuesToCsound {
-    if (self.cacheDirty) {
-        *self.channelPtr = self.cachedValue;
-        self.cacheDirty = NO;
-    }
+    *self.channelPtr = self.cachedValue;
 }
 
 -(void)cleanup {

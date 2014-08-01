@@ -24,10 +24,9 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "BaseValueCacheable.h"
 #import "CsoundObj.h"
 
-@interface CachedSlider : BaseValueCacheable {
+@interface CachedSlider : NSObject<CsoundValueCacheable> {
     float cachedValue;
     float *channelPtr;
 }

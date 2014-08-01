@@ -24,9 +24,9 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "BaseValueCacheable.h"
+#import "CsoundObj.h"
 
-@interface CachedSwitch : BaseValueCacheable
+@interface CachedSwitch : NSObject<CsoundValueCacheable> 
     @property float cachedValue;
     @property float *channelPtr;
     @property (unsafe_unretained) NSString *channelName;

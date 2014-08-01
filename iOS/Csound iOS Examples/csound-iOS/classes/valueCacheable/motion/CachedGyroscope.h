@@ -25,9 +25,9 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreMotion/CoreMotion.h>
-#import "BaseValueCacheable.h"
+#import "CsoundObj.h"
 
-@interface CachedGyroscope : BaseValueCacheable {
+@interface CachedGyroscope : NSObject<CsoundValueCacheable>  {
     float* channelPtrX;
     float* channelPtrY;
     float* channelPtrZ;

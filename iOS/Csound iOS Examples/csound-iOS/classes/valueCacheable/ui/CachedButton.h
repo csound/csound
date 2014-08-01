@@ -23,10 +23,9 @@
  
  */
 #import <Foundation/Foundation.h>
-#import "BaseValueCacheable.h"
 #import "CsoundObj.h"
 
-@interface CachedButton : BaseValueCacheable {
+@interface CachedButton : NSObject<CsoundValueCacheable> {
     float cachedValue;
     float* channelPtr;
 }
