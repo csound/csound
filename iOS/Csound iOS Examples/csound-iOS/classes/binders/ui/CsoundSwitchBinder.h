@@ -1,15 +1,15 @@
-/* 
+/*
  
- CachedAttitude.h:
+ CsoundSwitchBinder.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
  The Csound for iOS Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.   
+ version 2.1 of the License, or (at your option) any later version.
  
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,17 +24,15 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <CoreMotion/CoreMotion.h>
 #import "CsoundObj.h"
 
-@interface CachedAttitude : NSObject<CsoundValueCacheable>  {
-    float* channelPtrRoll;
-    float* channelPtrPitch;
-    float* channelPtrYaw;
-    
-    CMMotionManager* mManager;
-}
+@interface CsoundSwitchBinder : NSObject<CsoundDataBinder>
+@property float cachedValue;
+@property float *channelPtr;
+@property (unsafe_unretained) NSString *channelName;
+@property (unsafe_unretained) UISwitch *mSwitch;
 
--(id)init:(CMMotionManager *)manager;
+
+-(instancetype)init:(UISwitch *)uiSwitch channelName:(NSString *)channelName;
 
 @end

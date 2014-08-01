@@ -48,7 +48,7 @@
 	[self.pitchKnob setMinimumValue:0.5f];
 	[self.pitchKnob setMaximumValue:2.0f];
 	[self.pitchKnob setValue:1.0f];
-	[self.csound addValueCacheable:self.pitchKnob];
+	[self.csound addDataBinder:self.pitchKnob];
 	[self.csound play:csdPath];
 }
 

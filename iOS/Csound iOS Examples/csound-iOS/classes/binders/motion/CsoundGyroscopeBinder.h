@@ -1,6 +1,6 @@
 /* 
  
- CachedSlider.h:
+ CsoundGyroscopeBinder.h:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -24,16 +24,17 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <CoreMotion/CoreMotion.h>
 #import "CsoundObj.h"
 
-@interface CachedSlider : NSObject<CsoundValueCacheable> {
-    float cachedValue;
-    float *channelPtr;
+@interface CsoundGyroscopeBinder : NSObject<CsoundDataBinder>  {
+    float *channelPtrX;
+    float *channelPtrY;
+    float *channelPtrZ;
+
+    CMMotionManager* mManager;
 }
 
-@property (nonatomic, strong) NSString *channelName;
-@property (nonatomic, strong) UISlider *slider;
-
--(CachedSlider *)init:(UISlider*)slider channelName:(NSString *)channelName;
+-(id)init:(CMMotionManager *)manager;
 
 @end

@@ -26,7 +26,7 @@
 #import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
-@interface ControlRectangle : UIControl <CsoundValueCacheable>
+@interface ControlRectangle : UIControl <CsoundDataBinder>
 {
     CGRect circleRect;
 	

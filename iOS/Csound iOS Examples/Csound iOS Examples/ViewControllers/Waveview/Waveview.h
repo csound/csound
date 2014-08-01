@@ -26,7 +26,7 @@
 #import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
-@interface Waveview : UIView <CsoundValueCacheable>
+@interface Waveview : UIView <CsoundDataBinder>
 {
 	BOOL mCacheDirty;
 	BOOL tableLoaded;

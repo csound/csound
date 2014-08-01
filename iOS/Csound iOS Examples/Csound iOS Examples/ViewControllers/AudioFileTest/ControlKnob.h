@@ -28,7 +28,7 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import "CsoundObj.h"
 
-@interface ControlKnob : UIControl <CsoundValueCacheable>
+@interface ControlKnob : UIControl <CsoundDataBinder>
 {
 	// Value Cacheable
 	BOOL mCacheDirty;

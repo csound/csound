@@ -25,9 +25,9 @@
 
 #import "CsoundUI.h"
 
-#import "CachedSlider.h"
-#import "CachedButton.h"
-#import "CachedSwitch.h"
+#import "CsoundButtonBinder.h"
+#import "CsoundSliderBinder.h"
+#import "CsoundSwitchBinder.h"
 
 @interface CsoundUI () {
     CsoundObj *csoundObj;
@@ -44,28 +44,29 @@
     return self;
 }
 
--(void)addSwitch:(UISwitch *)uiSwitch
+-(void)addButton:(UIButton *)uiButton
   forChannelName:(NSString *)channelName
 {
-    CachedSwitch* cachedSwitch = [[CachedSwitch alloc] init:uiSwitch
-                                                channelName:channelName];
-    [csoundObj.valuesCache addObject:cachedSwitch];
+    CsoundButtonBinder *cachedButton = [[CsoundButtonBinder alloc] init:uiButton
+                                                            channelName:channelName];
+    [csoundObj.dataBinders addObject:cachedButton];
 }
 
 -(void)addSlider:(UISlider *)uiSlider
   forChannelName:(NSString *)channelName
 {
-    CachedSlider* cachedSlider = [[CachedSlider alloc] init:uiSlider
-                                                channelName:channelName];
-    [csoundObj.valuesCache addObject:cachedSlider];
+    CsoundSliderBinder *cachedSlider = [[CsoundSliderBinder alloc] init:uiSlider
+                                                            channelName:channelName];
+    [csoundObj.dataBinders addObject:cachedSlider];
 }
 
--(void)addButton:(UIButton *)uiButton
+-(void)addSwitch:(UISwitch *)uiSwitch
   forChannelName:(NSString *)channelName
 {
-    CachedButton* cachedButton = [[CachedButton alloc] init:uiButton
-                                                channelName:channelName];
-    [csoundObj.valuesCache addObject:cachedButton];
+    CsoundSwitchBinder *cachedSwitch = [[CsoundSwitchBinder alloc] init:uiSwitch
+                                                            channelName:channelName];
+    [csoundObj.dataBinders addObject:cachedSwitch];
 }
+
 
 @end

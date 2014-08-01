@@ -1,16 +1,15 @@
-/* 
+/*
  
- CachedButton.m:
+ CsoundSwitchBinder.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
-
  
  This file is part of Csound for iOS.
  
  The Csound for iOS Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.   
+ version 2.1 of the License, or (at your option) any later version.
  
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,43 +22,43 @@
  02111-1307 USA
  
  */
-#import "CachedButton.h"
 
-@implementation CachedButton
+#import "CsoundSwitchBinder.h"
+
+@implementation CsoundSwitchBinder
 
 -(void)updateValueCache:(id)sender {
-    cachedValue = 1;
+    self.cachedValue = ((UISwitch *)sender).on ? 1 : 0;
 }
 
--(id)init:(UIButton *)button channelName:(NSString *)channelName {
+-(instancetype)init:(UISwitch *)uiSwitch channelName:(NSString *)channelName
+{
     if (self = [super init]) {
+        self.mSwitch = uiSwitch;
         self.channelName = channelName;
-        self.button = button;
     }
     return self;
 }
 
-
--(void)setup:(CsoundObj*)csoundObj {
-    cachedValue = self.button.selected ? 1 : 0;
-    channelPtr = [csoundObj getInputChannelPtr:self.channelName
-                                   channelType:CSOUND_CONTROL_CHANNEL];
-    [self.button addTarget:self
-                    action:@selector(updateValueCache:)
-          forControlEvents:UIControlEventTouchDown];
+-(void)setup:(CsoundObj*)csoundObj
+{
+    self.cachedValue = self.mSwitch.on ? 1 : 0;
+    self.channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                        channelType:CSOUND_CONTROL_CHANNEL];
+    [self.mSwitch addTarget:self
+                     action:@selector(updateValueCache:)
+           forControlEvents:UIControlEventValueChanged];
 }
 
 
 -(void)updateValuesToCsound {
-    *channelPtr = cachedValue;
-    cachedValue = 0;
+    *self.channelPtr = self.cachedValue;
 }
 
 -(void)cleanup {
-    [self.button removeTarget:self
-                       action:@selector(updateValueCache:)
-             forControlEvents:UIControlEventTouchDown];
+    [self.mSwitch removeTarget:self
+                        action:@selector(updateValueCache:)
+              forControlEvents:UIControlEventValueChanged];
 }
-
 
 @end
