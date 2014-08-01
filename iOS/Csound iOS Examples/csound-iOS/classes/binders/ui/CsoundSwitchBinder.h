@@ -27,11 +27,6 @@
 #import "CsoundObj.h"
 
 @interface CsoundSwitchBinder : NSObject<CsoundDataBinder>
-@property float cachedValue;
-@property float *channelPtr;
-@property (unsafe_unretained) NSString *channelName;
-@property (unsafe_unretained) UISwitch *mSwitch;
-
 
 -(instancetype)init:(UISwitch *)uiSwitch channelName:(NSString *)channelName;
 

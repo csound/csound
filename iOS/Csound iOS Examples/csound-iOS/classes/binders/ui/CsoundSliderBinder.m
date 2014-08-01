@@ -25,10 +25,20 @@
 
 #import "CsoundSliderBinder.h"
 
+@interface CsoundSliderBinder() {
+    float channelValue;
+    float *channelPtr;
+}
+
+@property (nonatomic, strong) NSString *channelName;
+@property (nonatomic, strong) UISlider *slider;
+
+@end
+
 @implementation CsoundSliderBinder
 
--(void)updateValueCache:(id)sender {
-    cachedValue = ((UISlider *)sender).value;
+-(void)updateChannelValue:(id)sender {
+    channelValue = ((UISlider *)sender).value;
 }
 
 -(instancetype)init:(UISlider *)slider channelName:(NSString *)channelName
