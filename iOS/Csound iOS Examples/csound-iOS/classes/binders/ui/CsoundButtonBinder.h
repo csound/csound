@@ -1,8 +1,8 @@
 /* 
  
- CachedSwitch.h:
+ CsoundButtonBinder.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -22,18 +22,17 @@
  02111-1307 USA
  
  */
-
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface CachedSwitch : NSObject<CsoundValueCacheable> 
-    @property float cachedValue;
-    @property float *channelPtr;
-    @property (unsafe_unretained) NSString *channelName;
-    @property (unsafe_unretained) UISwitch *mSwitch;
+@interface CsoundButtonBinder : NSObject<CsoundDataBinder> {
+    float cachedValue;
+    float* channelPtr;
+}
 
+@property (nonatomic, strong) NSString *channelName;
+@property (nonatomic, strong) UIButton *button;
 
--(CachedSwitch*)init:(UISwitch *)uiSwitch
-         channelName:(NSString *)channelName;
+-(instancetype)init:(UIButton *)button channelName:(NSString *)channelName;
 
 @end

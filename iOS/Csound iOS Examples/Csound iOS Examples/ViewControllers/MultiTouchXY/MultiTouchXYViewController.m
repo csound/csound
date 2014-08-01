@@ -52,7 +52,7 @@
 	
 	self.csound = [[CsoundObj alloc] init];
 	
-	[self.csound addValueCacheable:self];
+	[self.csound addDataBinder:self];
 	
 	[self.csound play:tempFile];
 }

@@ -1,8 +1,8 @@
 /* 
  
- CachedAccelerometer.h:
+ CsoundSliderBinder.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -24,17 +24,16 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <CoreMotion/Coremotion.h>
 #import "CsoundObj.h"
 
-@interface CachedAccelerometer : NSObject<CsoundValueCacheable, UIAccelerometerDelegate> {
-    float* channelPtrX;
-    float* channelPtrY;
-    float* channelPtrZ;
-        
-    CMMotionManager* manager;
+@interface CsoundSliderBinder : NSObject<CsoundDataBinder> {
+    float cachedValue;
+    float *channelPtr;
 }
 
--(id)init:(CMMotionManager *)manager;
+@property (nonatomic, strong) NSString *channelName;
+@property (nonatomic, strong) UISlider *slider;
+
+-(instancetype)init:(UISlider*)slider channelName:(NSString *)channelName;
 
 @end
