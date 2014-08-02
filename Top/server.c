@@ -66,6 +66,7 @@ static uintptr_t udp_recv(void *pdata)
   }
   csound->Message(csound, "UDP server on port %d stopped\n",port);
   csound->Free(csound, orchestra);
+  // csound->Message(csound, "orchestra dealloc\n");
   return (uintptr_t) 0;
 
 }
@@ -110,9 +111,9 @@ int UDPServerClose(CSOUND *csound)
     ssize_t ret;
     const char *mess = "##close##"; 
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-    do{
+    //do{
     ret = sendto(p->sock,mess,sizeof(mess)+1,0,to,sizeof(p->server_addr)); 
-    } while(ret != -1);
+    //} while(ret != -1);
     csoundJoinThread(p->thrid);
 #ifndef WIN32
     close(p->sock);
