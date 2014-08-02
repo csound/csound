@@ -1616,6 +1616,10 @@ int kperf_debug(CSOUND *csound)
 
     ip = csound->actanchor.nxtact;
     if (data) { /* process new breakpoints and commands*/
+      /* *** Need forward reference to work *** */
+      extern void processDebugCommands(CSOUND *, debug_command_t,
+                                       csdebug_data_t *, void *);
+      
       processDebugCommands(csound, command, data, ip);
     }
     if (!data || data->status != CSDEBUG_STATUS_STOPPED)
