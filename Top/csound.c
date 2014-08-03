@@ -3225,7 +3225,6 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
                                       Str("Ignore <CsOptions> in CSD files"
                                           " (default: no)"), NULL);
-
 }
 
 PUBLIC int csoundGetDebug(CSOUND *csound)
