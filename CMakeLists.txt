@@ -883,7 +883,6 @@ if(SCORE_PARSER)
         DEPENDS ${LEX_SCOOUT}
         OUTPUTS ${YACC_SCOOUT})
 
-    ##set(NewScoParser ON)
     list(APPEND libcsound_SRCS
         ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
 
