@@ -340,8 +340,10 @@ PUBLIC void csoundDebugFreeVariables(CSOUND *csound, debug_variable_t *varHead)
         csound->Free(csound, oldvar);
     }
 }
-
-inline void processDebugCommands(CSOUND *csound, debug_command_t command, csdebug_data_t *data, void *ip_ptr)
+#ifndef __clang__
+inline 
+#endif
+void processDebugCommands(CSOUND *csound, debug_command_t command, csdebug_data_t *data, void *ip_ptr)
 {
     assert(data);
     INSDS *ip = (INSDS *) ip_ptr;
