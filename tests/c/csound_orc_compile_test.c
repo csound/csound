@@ -144,6 +144,27 @@ void test_reuse(void)
     csoundDestroy(csound);
 }
 
+void test_linenum(void)
+{
+    CSOUND  *csound;
+    int     result;
+    char  *instrument =
+            "instr 1 \n"
+            "k1 expon p4, p3, p4*0.001 \n"
+            "a1 randi  k1, p5   \n"
+            "out  a1   \n"
+            "endin \n";
+
+    csound = csoundCreate(NULL);
+    csoundSetOption(csound,"-odac");
+    TREE *tree = csoundParseOrc(csound, instrument);
+
+    CU_ASSERT_EQUAL(tree->next->line, 0);
+
+    /* delete Csound instance */
+    csoundDestroy(csound);
+}
+
 
 
 int main() {
@@ -164,7 +185,8 @@ int main() {
     if ((NULL == CU_add_test(pSuite, "Test argsRequired", test_args_required)) ||
             (NULL == CU_add_test(pSuite, "Test splitArgs", test_split_args)) ||
             (NULL == CU_add_test(pSuite, "Test Compilation", test_compile)) ||
-            (NULL == CU_add_test(pSuite, "Test Reuse Instance", test_reuse))) {
+            (NULL == CU_add_test(pSuite, "Test Reuse Instance", test_reuse)) ||
+        (NULL == CU_add_test(pSuite, "Test Line Numbers", test_linenum))) {
         CU_cleanup_registry();
         return CU_get_error();
     }
