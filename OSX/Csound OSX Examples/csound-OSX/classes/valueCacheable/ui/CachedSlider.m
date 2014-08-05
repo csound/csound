@@ -53,7 +53,6 @@
 -(void)updateValuesToCsound {
     if (self.cacheDirty) {
         *channelPtr = cachedValue;
-        NSLog(@"sending %f", *channelPtr);
         self.cacheDirty = NO;
     }
 }
