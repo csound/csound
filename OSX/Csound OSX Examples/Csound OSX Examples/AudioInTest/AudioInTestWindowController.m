@@ -1,6 +1,6 @@
 /*
  
- ButtonTestWindowController.m:
+ AudioInTestWindowController.m:
  
  Copyright (C) 2014 Aurelius Prochazka
  
@@ -23,55 +23,40 @@
  
  */
 
-#import "ButtonTestWindowController.h"
+#import "AudioInTestWindowController.h"
 
-@interface ButtonTestWindowController () <CsoundObjListener>
-
+@interface AudioInTestWindowController () <CsoundObjListener>
 @property (strong) IBOutlet NSButton *startStopButton;
-@property (strong) IBOutlet NSButton *valueButton;
-@property (strong) IBOutlet NSSlider *durationSlider;
-@property (strong) IBOutlet NSSlider *attackSlider;
-@property (strong) IBOutlet NSSlider *decaySlider;
-@property (strong) IBOutlet NSSlider *sustainSlider;
-@property (strong) IBOutlet NSSlider *releaseSlider;
+@property (strong) IBOutlet NSSlider *leftDelaySlider;
+@property (strong) IBOutlet NSSlider *leftFeedbackSlider;
+@property (strong) IBOutlet NSSlider *rightDelaySlider;
+@property (strong) IBOutlet NSSlider *rightFeedbackSlider;
 
 @end
 
-@implementation ButtonTestWindowController
+@implementation AudioInTestWindowController
 
--(IBAction) eventButtonHit:(id)sender {
-    NSString *score = [NSString stringWithFormat:@"i2 0 %f", [_durationSlider floatValue]];
-    [self.csound sendScore:score];
-}
 
--(IBAction) toggleOnOff:(id)component {
-    
-	if(([self.startStopButton.title isEqualToString:@"Start"]) ) {
+- (IBAction)toggleStartStop:(id)sender {
+    if([self.startStopButton.title isEqualToString:@"Start"]) {
         
-        NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"buttonTest" ofType:@"csd"];
-        
-		[self.csound stop];
+        NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"audioInTest" ofType:@"csd"];
         
         [self.csound addListener:self];
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         
-        [csoundUI addButton:self.valueButton forChannelName:@"button1"];
-        
-        [csoundUI addSlider:_durationSlider forChannelName:@"duration"];
-        [csoundUI addSlider:_attackSlider   forChannelName:@"attack"];
-        [csoundUI addSlider:_decaySlider    forChannelName:@"decay"];
-        [csoundUI addSlider:_sustainSlider  forChannelName:@"sustain"];
-        [csoundUI addSlider:_releaseSlider  forChannelName:@"release"];
+        [csoundUI addSlider:self.leftDelaySlider     forChannelName:@"leftDelayTime"];
+        [csoundUI addSlider:self.leftFeedbackSlider  forChannelName:@"leftFeedback"];
+        [csoundUI addSlider:self.rightDelaySlider    forChannelName:@"rightDelayTime"];
+        [csoundUI addSlider:self.rightFeedbackSlider forChannelName:@"rightFeedback"];
         
         [self.csound play:csdFile];
-        
 	} else {
         [self.csound stop];
     }
+
 }
-
-
 
 #pragma mark CsoundObjListener
 
@@ -82,6 +67,5 @@
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	self.startStopButton.title = @"Start";
 }
-
 
 @end
