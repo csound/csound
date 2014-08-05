@@ -25,14 +25,11 @@
 
 #import "SimpleTest1WindowController.h"
 
-#import "CsoundObj.h"
-#import "CsoundUI.h"
+@interface SimpleTest1WindowController() <CsoundObjListener>
 
-@interface SimpleTest1WindowController() <CsoundObjListener> {
-    CsoundObj* csound;
-}
 @property (strong) IBOutlet NSButton *toggleOnOffButton;
 @property (strong) IBOutlet NSSlider *slider;
+
 @end
 
 @implementation SimpleTest1WindowController
@@ -42,23 +39,25 @@
 	if([self.toggleOnOffButton.title isEqualToString:@"Start"]) {
         
         NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];
-        csound = [[CsoundObj alloc] init];
-        [csound addListener:self];
+
+        [self.csound addListener:self];
         
-        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         [csoundUI addSlider:_slider forChannelName:@"slider"];
         
-        [csound play:csdFile];
+        [self.csound play:csdFile];
         
 	} else {
-        [csound stop];
+        [self.csound stop];
     }
 }
 
 #pragma mark CsoundObjListener
 
 -(void)csoundObjStarted:(CsoundObj *)csoundObj {
+    NSLog(@"Csound started");
     self.toggleOnOffButton.title = @"Stop";
+    [self.toggleOnOffButton setNeedsDisplay];
 }
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
