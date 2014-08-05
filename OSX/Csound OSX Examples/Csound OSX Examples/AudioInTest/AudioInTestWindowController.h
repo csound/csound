@@ -1,6 +1,6 @@
 /*
  
- ConsoleOutputWindowController.h:
+ AudioInTestWindowController.h:
  
  Copyright (C) 2014 Aurelius Prochazka
  
@@ -26,6 +26,6 @@
 #import <Cocoa/Cocoa.h>
 #import "BaseCsoundWindowController.h"
 
-@interface ConsoleOutputWindowController : BaseCsoundWindowController
+@interface AudioInTestWindowController : BaseCsoundWindowController 
 
 @end
