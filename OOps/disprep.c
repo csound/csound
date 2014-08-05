@@ -38,7 +38,7 @@ int printv(CSOUND *csound, PRINTV *p)
     MYFLT  **valp = p->iargs;
 
     csound->MessageS(csound, CSOUNDMSG_ORCH,
-                     "instr %d:", (int) p->h.insdshead->p1);
+                     "instr %d:", (int) p->h.insdshead->p1.value);
     while (nargs--) {
       csound->MessageS(csound, CSOUNDMSG_ORCH,
                        "  %s = %5.3f", *txtp++, **valp++);
@@ -58,7 +58,7 @@ int fdspset(CSOUND *csound, FSIGDISP *p){
       csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->fdata);
     }
     snprintf(strmsg, 256, Str("instr %d, pvs-signal %s:"),
-            (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0]);
+            (int) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0]);
     dispset(csound, &p->dwindow, (MYFLT*) p->fdata.auxp, p->size, strmsg,
                     (int) *p->flag, Str("display"));
     p->lastframe = 0;
@@ -115,7 +115,7 @@ int dspset(CSOUND *csound, DSPLAY *p)
     p->nxtp = (MYFLT *) auxp;
     p->pntcnt = npts;
     snprintf(strmsg, 256, Str("instr %d, signal %s:"),
-                    (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0]);
+                    (int) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0]);
     dispset(csound, &p->dwindow, (MYFLT*) auxp, bufpts, strmsg,
                     (int) *p->iwtflg, Str("display"));
     return OK;
@@ -289,7 +289,7 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
                                                             * sizeof(MYFLT));
       }
       snprintf(strmsg, 256, Str("instr %d, signal %s, fft (%s):"),
-                      (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
+                      (int) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
                       p->dbout ? Str("db") : Str("mag"));
       if(maxbin == 0) maxbin = p->ncoefs;
       if(minbin > maxbin) minbin = 0;
@@ -514,7 +514,7 @@ int tempeset(CSOUND *csound, TEMPEST *p)
       p->stmemnow = p->stmemp + nptsm1;
     }
     if (p->dtimcnt && !(p->dwindow.windid)) {  /* init to display stmem & exp */
-      snprintf(strmsg, 256, "instr %d tempest:", (int) p->h.insdshead->p1);
+      snprintf(strmsg, 256, "instr %d tempest:", (int) p->h.insdshead->p1.value);
       dispset(csound, &p->dwindow, p->stmemp, (int32)npts * 2, strmsg, 0,
                       Str("tempest"));
       p->dwindow.danflag = 1;                    /* for mid-scale axis */

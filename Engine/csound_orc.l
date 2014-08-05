@@ -622,3 +622,22 @@ uint64_t csound_orcget_locn(void *yyscanner)
 //    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return PARM->locn;
 }
+
+void csound_orcput_ilocn(void *yyscanner, uint64_t num, uint64_t fil)
+{
+//    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+    PARM->iline = num;
+    PARM->ilocn = fil;
+}
+
+uint64_t csound_orcget_iline(void *yyscanner)
+{
+//    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+    return PARM->iline;
+}
+
+uint64_t csound_orcget_ilocn(void *yyscanner)
+{
+//    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+    return PARM->ilocn;
+}

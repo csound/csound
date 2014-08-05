@@ -307,8 +307,12 @@ sprintf_opcode_(CSOUND *csound,
     const char  *segwaiting = NULL;
     int     maxChars, siz = strlen(fmt) + numVals*7 + 1;
 
-    if (UNLIKELY((int) ((OPDS*) p)->optext->t.xincod != 0))
-      return StrOp_ErrMsg(p, "a-rate argument not allowed");
+    for (i = 0; i < numVals; i++) {
+      if (UNLIKELY(IS_ASIG_ARG(kvals[i]))) {
+        return StrOp_ErrMsg(p, "a-rate argument not allowed");
+      }
+    }
+    
     if (UNLIKELY((int) ((OPDS*) p)->optext->t.inArgCount > 31)){
       StrOp_ErrMsg(p, "too many arguments");
       return NOTOK;
@@ -316,7 +320,8 @@ sprintf_opcode_(CSOUND *csound,
 
 
     strseg = malloc(siz);
-
+    i = 0;
+    
     while (1) {
       if (UNLIKELY(i >= siz)) {
         // return StrOp_ErrMsg(p, "format string too long");

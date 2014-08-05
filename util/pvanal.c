@@ -823,7 +823,7 @@ static void chan_split(CSOUND *csound, const MYFLT *inbuf, MYFLT **chbuf,
 {
     long i,j,len;
     MYFLT ampfac;
-    MYFLT *buf_c[MAXPVXCHANS];
+    MYFLT *buf_c[MAXPVXCHANS] = { NULL };
 
     const MYFLT *p_inbuf = inbuf;
 
@@ -835,7 +835,7 @@ static void chan_split(CSOUND *csound, const MYFLT *inbuf, MYFLT **chbuf,
 
     for (i = len;i;--i)
       for (j=0;j < chans;j++)
-        *(buf_c[j]++) = ampfac * *p_inbuf++;
+        *(buf_c[j]++) = ampfac * *p_inbuf++; /* ** this line is odd ** */
 
 }
 

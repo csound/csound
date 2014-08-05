@@ -71,6 +71,14 @@ typedef struct debug_instr_s {
     struct debug_instr_s *next;
 } debug_instr_t;
 
+typedef struct debug_opcode_s {
+    char opname[16];
+    int line;
+    // TODO: Fill opcode linked list
+    struct debug_opcode_s *next;
+    struct debug_opcode_s *prev;
+} debug_opcode_t;
+
 typedef struct debug_variable_s {
     const char *name;
     const char *typeName;
@@ -82,6 +90,7 @@ typedef struct {
     debug_instr_t *breakpointInstr;
     debug_variable_t *instrVarList;
     debug_instr_t *instrListHead;
+    debug_opcode_t *currentOpcode;
 } debug_bkpt_info_t;
 
 
@@ -153,6 +162,7 @@ typedef struct csdebug_data_s {
     breakpoint_cb_t bkpt_cb;
     void *cb_data;
     void *debug_instr_ptr; /* != NULL when stopped at a breakpoint. Holds INSDS * */
+    void *debug_opcode_ptr; /* != NULL when stopped at a line breakpoint. Holds OPDS * */
 } csdebug_data_t;
 
 /** Intialize debugger facilities
@@ -173,11 +183,20 @@ PUBLIC void csoundDebuggerInit(CSOUND *csound);
 */
 PUBLIC void csoundDebuggerClean(CSOUND *csound);
 
-/*
- * Not yet implemented, so hidden for now
-PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int skip);
-PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line);
+/** Set a breakpoint on a particular line
+ *
+ * @param csound A Csound instance
+ * @param line The line on which to set a breakpoint
+ * @param instr When set to 0, the line number refers to the line number in the score. When a number is given, it should refer to an instrument that has been compiled on the fly using csoundParseOrc().
+ * @param skip number of control blocks to skip
+ *
 */
+PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int instr, int skip);
+
+/** Remove a previously set line breakpoint
+ *
+*/
+PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line, int instr);
 
 /** Set a breakpoint for an instrument number
  *
@@ -250,6 +269,8 @@ PUBLIC void csoundDebugStop(CSOUND *csound);
  * Returns a linked list of allocated instrument instances
  * csoundDebugFreeInstrInstances() must be called on the list once it is no
  * longer needed.
+ * This function is not thread safe and should only be called while the csound
+ * engine is stopped at a breakpoint.
  */
 PUBLIC debug_instr_t *csoundDebugGetInstrInstances(CSOUND *csound);
 

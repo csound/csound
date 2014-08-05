@@ -301,9 +301,6 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         continue;                     /*      chk it later */
       }
       tfound = argtyp2(s);     /* else get arg type */
-      if (tfound == 'a' && n < 31) /* JMC added for FOG */
-                                   /* 4 for FOF, 8 for FOG; expanded to 15  */
-        tp->xincod |= (1 << n);
       if (tfound == 'S' && n < 31)
         tp->xincod_str |= (1 << n);
     }
@@ -321,8 +318,6 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     while (n--) {                                     /* outargs:  */
       s = tp->outlist->arg[n];
       tfound = argtyp2(s);                     /*  found    */
-      if (tfound == 'a' && n < 31)
-        tp->xoutcod |= (1 << n);
       if (tfound == 'S' && n < 31)
         tp->xoutcod_str |= (1 << n);
     }
@@ -381,6 +376,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       /* INITIAL SETUP */
       tp->oentry = (OENTRY*)root->markup;
       tp->opcod = strsav_string(csound, engineState, tp->oentry->opname);
+      tp->linenum = root->line;
       ip->mdepends |= tp->oentry->flags;
       ip->opdstot += tp->oentry->dsblksiz;
 
@@ -489,7 +485,7 @@ void addGlobalVariable(CSOUND *csound,
     varMem->varType = var->varType;
     var->memBlock = varMem;
     if (var->initializeVariableMemory != NULL) {
-      var->initializeVariableMemory(var, &varMem->memBlock);
+      var->initializeVariableMemory(var, &varMem->value);
     }
 }
 
@@ -1262,9 +1258,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     for (count = 0; count < engineState->constantsPool->count; count++) {
       if (csound->oparms->odebug)
         csound->Message(csound, Str(" merging constants %d) %f\n"),
-                        count, engineState->constantsPool->values[count].memBlock);
+                        count, engineState->constantsPool->values[count].value);
       myflt_pool_find_or_add(csound, current_state->constantsPool,
-                             engineState->constantsPool->values[count].memBlock);
+                             engineState->constantsPool->values[count].value);
     }
     CS_VARIABLE* gVar = engineState->varPool->head;
     while (gVar != NULL) {
@@ -1433,8 +1429,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       varMem->varType = var->varType;
       var->memBlock = varMem;
       if (var->initializeVariableMemory != NULL) {
-        var->initializeVariableMemory(var, &varMem->memBlock);
-      } else  memset(&varMem->memBlock , 0, var->memBlockSize);
+        var->initializeVariableMemory(var, &varMem->value);
+      } else  memset(&varMem->value , 0, var->memBlockSize);
       var = var->next;
     }
 
@@ -1634,18 +1630,18 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
       CS_VARIABLE *var;
       var = csoundFindVariableWithName(csound, engineState->varPool, "sr");
-      var->memBlock->memBlock = csound->esr;
+      var->memBlock->value = csound->esr;
       var = csoundFindVariableWithName(csound, engineState->varPool, "kr");
-      var->memBlock->memBlock = csound->ekr;
+      var->memBlock->value = csound->ekr;
       var = csoundFindVariableWithName(csound, engineState->varPool, "ksmps");
-      var->memBlock->memBlock = csound->ksmps;
+      var->memBlock->value = csound->ksmps;
       var = csoundFindVariableWithName(csound, engineState->varPool, "nchnls");
-      var->memBlock->memBlock = csound->nchnls;
+      var->memBlock->value = csound->nchnls;
       if (csound->inchnls<0) csound->inchnls = csound->nchnls;
       var = csoundFindVariableWithName(csound, engineState->varPool, "nchnls_i");
-      var->memBlock->memBlock = csound->inchnls;
+      var->memBlock->value = csound->inchnls;
       var = csoundFindVariableWithName(csound, engineState->varPool, "0dbfs");
-      var->memBlock->memBlock = csound->e0dbfs;
+      var->memBlock->value = csound->e0dbfs;
 
 
     }
@@ -1805,7 +1801,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
             switch (inArgs->type) {
               case ARG_CONSTANT:
 
-                *fp1++ = engineState->constantsPool->values[inArgs->index].memBlock;
+                *fp1++ = engineState->constantsPool->values[inArgs->index].value;
                 break;
 
 //                      case ARG_LOCAL:
@@ -1891,7 +1887,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
     } else if (c == '"') {
       size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + sizeof(STRINGDAT);
       CS_VAR_MEM* varMem = csound->Calloc(csound, memSize);
-      STRINGDAT *str = (STRINGDAT*)&varMem->memBlock;
+      STRINGDAT *str = (STRINGDAT*)&varMem->value;
       
       varMem->varType = (CS_TYPE*)&CS_VAR_TYPE_S;
       arg->type = ARG_STRING;
@@ -2014,7 +2010,7 @@ void debugPrintCsound(CSOUND* csound)
     count = 0;
     for(count = 0; count < csound->engineState.constantsPool->count; count++) {
       csound->Message(csound, "    %d) %f\n",
-                      count, csound->engineState.constantsPool->values[count].memBlock);
+                      count, csound->engineState.constantsPool->values[count].value);
     }
 
     csound->Message(csound, "Global Variables:\n");

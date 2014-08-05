@@ -162,14 +162,15 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       return fterror(&ff, Str("insufficient gen arguments"));
     }
     if (ff.e.pcnt>PMAX) {
-#ifdef BETA
+      //#ifdef BETA
       csound->DebugMsg(csound, "T%d/%d(%d): x=%p memcpy from %p to %p length %d\n",
               (int)evtblkp->p[1], (int)evtblkp->p[4], ff.e.pcnt, evtblkp->c.extra,
               &(ff.e.p[2]), &(evtblkp->p[2]), sizeof(MYFLT) * PMAX);
-#endif
+      //#endif
       memcpy(&(ff.e.p[2]), &(evtblkp->p[2]), sizeof(MYFLT) * (PMAX-2));
-      ff.e.c.extra = (MYFLT*)malloc(sizeof(MYFLT) * evtblkp->c.extra[0]);
-      memcpy(ff.e.c.extra, evtblkp->c.extra, sizeof(MYFLT) * evtblkp->c.extra[0]);
+      ff.e.c.extra = (MYFLT*)malloc(sizeof(MYFLT) * (evtblkp->c.extra[0]+1));
+      memcpy(ff.e.c.extra, evtblkp->c.extra,
+             sizeof(MYFLT) * (evtblkp->c.extra[0]+1));
     }
     else
       memcpy(&(ff.e.p[2]), &(evtblkp->p[2]),
@@ -267,7 +268,11 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     *ftpp = ftp;
     /* keep original arguments, from GEN number  */
     ftp->argcnt = ff.e.pcnt - 3;
-    memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*ftp->argcnt);
+    {  /* Note this does not handle extened args -- JPff */
+      int size=ftp->argcnt;
+      if (size>PMAX) size=PMAX;
+      memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*size);
+    }
     return 0;
 }
 
@@ -1491,7 +1496,7 @@ static int gen27(FGDATA *ff, FUNC *ftp)
 {
     int     nsegs;
     MYFLT   *valp, *fp, *finp;
-    MYFLT   x1, x2, y1, y2, seglen, incr;
+    MYFLT   x1, x2, y1, y2, yy, seglen, incr;
     int     nargs = ff->e.pcnt - 4;
     CSOUND  *csound = ff->csound;
     int nsw = 1;
@@ -1503,40 +1508,49 @@ static int gen27(FGDATA *ff, FUNC *ftp)
     valp = &ff->e.p[5];
     fp = ftp->ftable;
     finp = fp + ff->flen;
+    //printf("valp=%p end=%p extra=%p\n",
+    //       valp, &ff->e.p[PMAX-1], &(ff->e.c.extra[1]));
+    x2 = *valp++; y2 = *valp++;
     do {
-      x1 = *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
-        nsw =0, valp = &(ff->e.c.extra[1]);
-      y1 = *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
-        nsw =0, valp = &(ff->e.c.extra[1]);
+      x1 = x2; y1 = y2;
       x2 = *valp++;
-      if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+      if (UNLIKELY(nsw && valp>&ff->e.p[PMAX-1])) {
+        //printf("extend: valp=%p extra=%p\n", valp, &(ff->e.c.extra[1]));
         nsw =0, valp = &(ff->e.c.extra[1]);
+        //printf("extendx2: valp=%p\n", valp);
+      }
+      //if (nsw==0) printf("extend: valp=%p\n", valp);
       if (LIKELY(nsegs > 1)) {
         y2 =  *valp++;
-        if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
+        if (UNLIKELY(nsw && valp>&ff->e.p[PMAX-1])) {
+          //printf("extendy2: valp=%p extra=%p\n", valp, &(ff->e.c.extra[1]));
           nsw =0, valp = &(ff->e.c.extra[1]);
+          //printf("extend: valp=%p\n", valp);
+        }
       }
-      else
+      else {
         y2 = *valp;
+        //printf("end of list: valp = %p x1,y1,x2,y2 = %f,%f,%f,%f\n",
+        //       valp, x1, y1, x2, y2);
+      }
       if (UNLIKELY(x2 < x1)) goto gn27err;
       if (UNLIKELY(x1 > ff->flen || x2 > ff->flen)) goto gn27err2;
       seglen = x2-x1;
       incr = (y2 - y1) / seglen;
+      yy = y1;
       while (seglen--) {
-        *fp++ = y1;
-        y1 += incr;
+        *fp++ = yy;
+        yy += incr;
         if (fp > finp)
           return OK;
       }
-      valp -= 2;
     } while (--nsegs);
     if (fp == finp)                     /* if 2**n pnts, add guardpt */
       *fp = y1;
     return OK;
 
  gn27err:
+    printf("nsegs=%d x1,y1 = %f,%f x2,y2 = %f,%f\n", nsegs, x1, y1, x2, y2);
     return fterror(ff, Str("x coordinates must all be in increasing order:"));
  gn27err2:
     return fterror(ff, Str("x coordinate greater than function size:"));
