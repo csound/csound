@@ -62,10 +62,10 @@ static int fofset0(CSOUND *csound, FOFS *p, int flag)
         p->prvsmps = (int32)0;
         p->preamp = FL(1.0);
       } /* end of legato code */
-      p->xincod   = (p->XINCODE & 0x7) ? 1 : 0;
-      p->ampcod   = (XINARG1) ? 1 : 0;
-      p->fundcod  = (XINARG2) ? 1 : 0;
-      p->formcod  = (XINARG3) ? 1 : 0;
+      p->ampcod   = IS_ASIG_ARG(p->xamp) ? 1 : 0;
+      p->fundcod  = IS_ASIG_ARG(p->xfund) ? 1 : 0;
+      p->formcod  = IS_ASIG_ARG(p->xform) ? 1 : 0;
+      p->xincod   = p->ampcod || p->fundcod || p->formcod;
       if (flag)
         p->fmtmod = (*p->ifmode == FL(0.0)) ? 0 : 1;
     }

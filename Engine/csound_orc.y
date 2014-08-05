@@ -214,14 +214,16 @@ instlist  : INTEGER_TOKEN ',' instlist
           ;
 
 instrdecl : INSTR_TOKEN
-                { namedInstrFlag = 1; }
+                { namedInstrFlag = 1; csound_orcput_ilocn(scanner, LINE, LOCN); }
             instlist NEWLINE
                 { namedInstrFlag = 0;
                   csp_orc_sa_instr_add_tree(csound, $3);
                 }
             statementlist ENDIN_TOKEN NEWLINE
                 {
-                    $$ = make_node(csound, LINE,LOCN, INSTR_TOKEN, $3, $6);
+                    $$ = make_node(csound, csound_orcget_iline(scanner),
+                                   csound_orcget_ilocn(scanner), INSTR_TOKEN,
+                                   $3, $6);
                     csp_orc_sa_instr_finalize(csound);
                 }
           | INSTR_TOKEN NEWLINE error

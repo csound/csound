@@ -161,7 +161,7 @@ int lphasor(CSOUND *csound, LPHASOR *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      if (XINARG1) trns = (double)xtrns[n];
+      if (IS_ASIG_ARG(p->xtrns)) trns = (double)xtrns[n];
       ar[n] = (MYFLT) phs;
       phs += (p->dir ? trns : -trns);
       if (loop_mode) {
@@ -267,7 +267,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     }
     for (n=offset; n<nsmps; n++) {
       ndx = (double)*xndx;
-      if (XINARG1) xndx++;
+      if (IS_ASIG_ARG(p->xndx)) xndx++;
       /* calculate table index */
       if (!(p->raw_ndx)) {
         ndx += (double)*(p->ixoff);

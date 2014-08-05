@@ -131,7 +131,7 @@ extern "C" {
                             buf, sampsread);
 #else
             sf_write_float((SNDFILE *) recordData->sfile,
-			   buf, sampsread);
+                           buf, sampsread);
 #endif
         } while(sampsread != 0);
         pthread_mutex_unlock(&recordData->mutex);
