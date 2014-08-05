@@ -31,6 +31,7 @@
 		C47809881985EF27000FD79F /* harmonizer.csd in Resources */ = {isa = PBXBuildFile; fileRef = C47809871985EF27000FD79F /* harmonizer.csd */; };
 		C478098C1985EF3C000FD79F /* HarmonizerWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C478098A1985EF3C000FD79F /* HarmonizerWindowController.m */; };
 		C478098D1985EF3C000FD79F /* HarmonizerWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C478098B1985EF3C000FD79F /* HarmonizerWindowController.xib */; };
+		C4B5D43319914B350072A430 /* BaseCsoundWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4B5D43219914B350072A430 /* BaseCsoundWindowController.m */; };
 		C4EBCDE519761D6A00A7C7C1 /* ConsoleOutputWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4EBCDE319761D6A00A7C7C1 /* ConsoleOutputWindowController.m */; };
 		C4EBCDE619761D6A00A7C7C1 /* ConsoleOutputWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDE419761D6A00A7C7C1 /* ConsoleOutputWindowController.xib */; };
 		C4EBCDEB1976504200A7C7C1 /* consoleoutput.csd in Resources */ = {isa = PBXBuildFile; fileRef = C4EBCDEA1976504200A7C7C1 /* consoleoutput.csd */; };
@@ -92,6 +93,8 @@
 		C47809891985EF3C000FD79F /* HarmonizerWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HarmonizerWindowController.h; sourceTree = "<group>"; };
 		C478098A1985EF3C000FD79F /* HarmonizerWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HarmonizerWindowController.m; sourceTree = "<group>"; };
 		C478098B1985EF3C000FD79F /* HarmonizerWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = HarmonizerWindowController.xib; sourceTree = "<group>"; };
+		C4B5D43119914B350072A430 /* BaseCsoundWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseCsoundWindowController.h; sourceTree = "<group>"; };
+		C4B5D43219914B350072A430 /* BaseCsoundWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseCsoundWindowController.m; sourceTree = "<group>"; };
 		C4EBCDE219761D6A00A7C7C1 /* ConsoleOutputWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConsoleOutputWindowController.h; path = ConsoleOutput/ConsoleOutputWindowController.h; sourceTree = "<group>"; };
 		C4EBCDE319761D6A00A7C7C1 /* ConsoleOutputWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ConsoleOutputWindowController.m; path = ConsoleOutput/ConsoleOutputWindowController.m; sourceTree = "<group>"; };
 		C4EBCDE419761D6A00A7C7C1 /* ConsoleOutputWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = ConsoleOutputWindowController.xib; path = ConsoleOutput/ConsoleOutputWindowController.xib; sourceTree = "<group>"; };
@@ -258,6 +261,8 @@
 		C41F0B761973A0CE00997479 /* Window Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				C4B5D43119914B350072A430 /* BaseCsoundWindowController.h */,
+				C4B5D43219914B350072A430 /* BaseCsoundWindowController.m */,
 				C4EBCDF11976637200A7C7C1 /* AudioFileTest */,
 				C47809791984C164000FD79F /* AudioInTest */,
 				C4F2B9D41974A297006EE12F /* ButtonTest */,
@@ -444,6 +449,7 @@
 				C4EBCDE519761D6A00A7C7C1 /* ConsoleOutputWindowController.m in Sources */,
 				C41F0B601973913D00997479 /* BaseValueCacheable.m in Sources */,
 				C4EBCDEF1976636D00A7C7C1 /* AudioFileTestWindowController.m in Sources */,
+				C4B5D43319914B350072A430 /* BaseCsoundWindowController.m in Sources */,
 				C4F2B9E81974C693006EE12F /* SimpleTest1WindowController.m in Sources */,
 				C4F2B9F41974DA7F006EE12F /* CachedButton.m in Sources */,
 				C41F0B851973A82B00997479 /* CsoundUI.m in Sources */,

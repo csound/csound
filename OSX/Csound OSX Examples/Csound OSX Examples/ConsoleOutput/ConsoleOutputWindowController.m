@@ -24,11 +24,10 @@
  */
 
 #import "ConsoleOutputWindowController.h"
-#import "CsoundObj.h"
 
-@interface ConsoleOutputWindowController () {
-    CsoundObj *csound;
-}
+
+@interface ConsoleOutputWindowController ()
+
 @property (strong) IBOutlet NSTextView *consoleOutputTextView;
 @property (nonatomic, strong) NSString *currentMessage;
 
@@ -40,14 +39,11 @@
 {
 	_consoleOutputTextView.string = @"";
 	
-
-	csound = [[CsoundObj alloc] init];
-
-	[csound setMessageCallback:@selector(messageCallback:) withListener:self];
+	[self.csound setMessageCallback:@selector(messageCallback:) withListener:self];
 	
 	NSString *csdPath = nil;
 	csdPath = [[NSBundle mainBundle] pathForResource:@"consoleoutput" ofType:@"csd"];
-	[csound play:csdPath];
+	[self.csound play:csdPath];
 }
 
 - (void)updateUIWithNewMessage:(NSString *)newMessage

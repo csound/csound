@@ -24,7 +24,8 @@
  */
 
 #import <Cocoa/Cocoa.h>
+#import "BaseCsoundWindowController.h"
 
-@interface HarmonizerWindowController : NSWindowController
+@interface HarmonizerWindowController : BaseCsoundWindowController  
 
 @end

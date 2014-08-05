@@ -25,26 +25,18 @@
 
 
 #import "CsoundHaiku4WindowController.h"
-#import "CsoundObj.h"
-
-@interface CsoundHaiku4WindowController() {
-    CsoundObj* csound;
-}
-@end
-
 
 @implementation CsoundHaiku4WindowController
 
 - (IBAction)startPlayCSDFile:(id)sender {
 	NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"IV" ofType:@"csd"];
 	
-	csound = [[CsoundObj alloc] init];
-	[csound play:csdFile];
+	[self.csound play:csdFile];
     
 }
 
 - (IBAction)stopPlayCSDFile:(id)sender {
-    [csound stop];
+    [self.csound stop];
 }
 
 

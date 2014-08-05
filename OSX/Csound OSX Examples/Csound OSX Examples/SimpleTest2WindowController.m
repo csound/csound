@@ -24,12 +24,9 @@
  */
 
 #import "SimpleTest2WindowController.h"
-#import "CsoundObj.h"
-#import "CsoundUI.h"
 
-@interface SimpleTest2WindowController() <CsoundObjListener> {
-    CsoundObj* csound;
-}
+@interface SimpleTest2WindowController() <CsoundObjListener>
+
 @property (strong) IBOutlet NSButton *startStopButton;
 @property (strong) IBOutlet NSSlider *rateSlider;
 @property (strong) IBOutlet NSSlider *durationSlider;
@@ -47,10 +44,9 @@
         
         NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"test2" ofType:@"csd"];
         
-        csound = [[CsoundObj alloc] init];
-        [csound addListener:self];
+        [self.csound addListener:self];
         
-        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         [csoundUI addSlider:_rateSlider     forChannelName:@"noteRate"];
         [csoundUI addSlider:_durationSlider forChannelName:@"duration"];
         [csoundUI addSlider:_attackSlider   forChannelName:@"attack"];
@@ -58,11 +54,11 @@
         [csoundUI addSlider:_sustainSlider  forChannelName:@"sustain"];
         [csoundUI addSlider:_releaseSlider  forChannelName:@"release"];
         
-        [csound play:csdFile];
+        [self.csound play:csdFile];
         
 	} else {
         NSLog(@"try to stop csound");
-        [csound stop];
+        [self.csound stop];
     }
 }
 

@@ -24,12 +24,8 @@
  */
 
 #import "AudioInTestWindowController.h"
-#import "CsoundObj.h"
-#import "CsoundUI.h"
 
-@interface AudioInTestWindowController () <CsoundObjListener> {
-    CsoundObj* csound;
-}
+@interface AudioInTestWindowController () <CsoundObjListener>
 @property (strong) IBOutlet NSButton *startStopButton;
 @property (strong) IBOutlet NSSlider *leftDelaySlider;
 @property (strong) IBOutlet NSSlider *leftFeedbackSlider;
@@ -46,21 +42,18 @@
         
         NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"audioInTest" ofType:@"csd"];
         
-        csound = [[CsoundObj alloc] init];
-        csound.useAudioInput = YES;
-        [csound addListener:self];
+        [self.csound addListener:self];
         
-        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         
         [csoundUI addSlider:self.leftDelaySlider     forChannelName:@"leftDelayTime"];
         [csoundUI addSlider:self.leftFeedbackSlider  forChannelName:@"leftFeedback"];
         [csoundUI addSlider:self.rightDelaySlider    forChannelName:@"rightDelayTime"];
         [csoundUI addSlider:self.rightFeedbackSlider forChannelName:@"rightFeedback"];
         
-        [csound play:csdFile];
-        
+        [self.csound play:csdFile];
 	} else {
-        [csound stop];
+        [self.csound stop];
     }
 
 }
