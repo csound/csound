@@ -24,12 +24,8 @@
  */
 
 #import "HarmonizerWindowController.h"
-#import "CsoundObj.h"
-#import "CsoundUI.h"
 
-@interface HarmonizerWindowController ()<CsoundObjListener> {
-    CsoundObj* csound;
-}
+@interface HarmonizerWindowController ()<CsoundObjListener>
 
 @property (strong) IBOutlet NSButton *startStopButton;
 @property (strong) IBOutlet NSSlider *harmonyPitchSlider;
@@ -45,19 +41,16 @@
         
         NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"harmonizer" ofType:@"csd"];
         
-        csound = [[CsoundObj alloc] init];
-        csound.useAudioInput = YES;
-        [csound addListener:self];
+        [self.csound addListener:self];
         
-        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         
         [csoundUI addSlider:self.harmonyPitchSlider forChannelName:@"slider"];
         [csoundUI addSlider:self.gainSlider         forChannelName:@"gain"];
         
-        [csound play:csdFile];
-        
+        [self.csound play:csdFile];
 	} else {
-        [csound stop];
+        [self.csound stop];
     }
 }
 

@@ -24,7 +24,8 @@
  */
 
 #import <Cocoa/Cocoa.h>
+#import "BaseCsoundWindowController.h"
 
-@interface CsoundHaiku4WindowController : NSWindowController
+@interface CsoundHaiku4WindowController : BaseCsoundWindowController
 
 @end

@@ -24,12 +24,9 @@
  */
 
 #import "ButtonTestWindowController.h"
-#import "CsoundObj.h"
-#import "CsoundUI.h"
 
-@interface ButtonTestWindowController () <CsoundObjListener> {
-    CsoundObj* csound;
-}
+@interface ButtonTestWindowController () <CsoundObjListener>
+
 @property (strong) IBOutlet NSButton *startStopButton;
 @property (strong) IBOutlet NSButton *valueButton;
 @property (strong) IBOutlet NSSlider *durationSlider;
@@ -44,7 +41,7 @@
 
 -(IBAction) eventButtonHit:(id)sender {
     NSString *score = [NSString stringWithFormat:@"i2 0 %f", [_durationSlider floatValue]];
-    [csound sendScore:score];
+    [self.csound sendScore:score];
 }
 
 -(IBAction) toggleOnOff:(id)component {
@@ -53,12 +50,11 @@
         
         NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"buttonTest" ofType:@"csd"];
         
-		[csound stop];
+		[self.csound stop];
         
-        csound = [[CsoundObj alloc] init];
-        [csound addListener:self];
+        [self.csound addListener:self];
         
-        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:csound];
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         
         [csoundUI addButton:self.valueButton forChannelName:@"button1"];
         
@@ -68,10 +64,10 @@
         [csoundUI addSlider:_sustainSlider  forChannelName:@"sustain"];
         [csoundUI addSlider:_releaseSlider  forChannelName:@"release"];
         
-        [csound play:csdFile];
+        [self.csound play:csdFile];
         
 	} else {
-        [csound stop];
+        [self.csound stop];
     }
 }
 

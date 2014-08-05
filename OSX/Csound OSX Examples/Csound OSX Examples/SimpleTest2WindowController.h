@@ -24,7 +24,8 @@
  */
 
 #import <Cocoa/Cocoa.h>
+#import "BaseCsoundWindowController.h"
 
-@interface SimpleTest2WindowController : NSWindowController
+@interface SimpleTest2WindowController : BaseCsoundWindowController
 
 @end
