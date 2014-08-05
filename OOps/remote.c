@@ -138,7 +138,7 @@ static int getIpAddress(char *ipaddr)
         }
       }
     }
-    close(fd);
+    if (fd>=0) close(fd);
     return ret;
 #endif
 }
@@ -447,9 +447,11 @@ int insremot(CSOUND *csound, INSREMOT *p)
       for (nargs -= 2; nargs--; ) {
         int16 insno = (int16)**argp++;     /* & for each insno */
         if (UNLIKELY(insno <= 0)) {
+          close(rfd);
           return csound->InitError(csound, Str("illegal instr no"));
         }
         if (UNLIKELY(ST(insrfd)[insno])) {
+          close(rfd);
           return csound->InitError(csound, Str("insno already remote"));
         }
         ST(insrfd)[insno] = rfd;   /*  record file descriptor   */
@@ -525,14 +527,16 @@ int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
       for (nargs -= 2; nargs--; ) {
         int16 chnum = (int16)**argp++;               /* & for each channel   */
         if (UNLIKELY(chnum <= 0 || chnum > 16)) {    /* THESE ARE MIDCHANS+1 */
+          close(rfd);
           return csound->InitError(csound, Str("illegal channel no"));
         }
         if (UNLIKELY(ST(chnrfd)[chnum])) {
+          close(rfd);
           return csound->InitError(csound, Str("channel already remote"));
         }
         ST(chnrfd)[chnum] = rfd;                      /* record file descriptor */
-                }
-                ST(chnrfd_list)[ST(chnrfd_count)++] = rfd;   /* and make a list */
+      }
+      ST(chnrfd_list)[ST(chnrfd_count)++] = rfd;   /* and make a list */
     }
     else if (!strcmp(ST(ipadrs), (char *)p->str2->data)) {
       /* if server is this adrs */

@@ -1522,7 +1522,7 @@ static int jitters_set(CSOUND *csound, JITTERS *p)
     p->num2     = BiRandGab;
     p->df1      = FL(0.0);
     p->initflag = 1;
-    p->cod      = (XINARG1) ? 1 : 0;
+    p->cod      = IS_ASIG_ARG(p->amp) ? 1 : 0;
     p->phs      = 0;
     return OK;
 }
@@ -1789,7 +1789,7 @@ static int randomi_set(CSOUND *csound, RANDOMI *p)
         p->num1 = p->num2 = FL(0.0);
         p->dfdmax = FL(0.0);
     }
-    p->cpscod = (XINARG2) ? 1 : 0;
+    p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
     return OK;
 }
 
@@ -1858,7 +1858,7 @@ static int randomh_set(CSOUND *csound, RANDOMH *p)
     default: /* old behaviour as developped by Gabriel */
         p->num1 = FL(0.0);
     }
-    p->cpscod = (XINARG2) ? 1 : 0;
+    p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
     return OK;
 }
 
@@ -1912,7 +1912,8 @@ static int random3_set(CSOUND *csound, RANDOM3 *p)
     p->num2     = randGab;
     p->df1      = FL(0.0);
     p->initflag = 1;
-    p->cod      = (XINARG1) ? 1 : 0;
+    p->rangeMin_cod = IS_ASIG_ARG(p->rangeMin);
+    p->rangeMax_cod = IS_ASIG_ARG(p->rangeMin);
     p->phs      = 0.0;
     return OK;
 }
@@ -1952,6 +1953,7 @@ static int random3(CSOUND *csound, RANDOM3 *p)
 
 static int random3a(CSOUND *csound, RANDOM3 *p)
 {
+    int         rangeMin_cod = p->rangeMin_cod, rangeMax_cod = p->rangeMax_cod;
     MYFLT       x, c3=p->c3, c2=p->c2;
     MYFLT       f0 = p->num0, df0 = p->df0;
     MYFLT       *ar = p->ar, *rangeMin = p->rangeMin;
@@ -1960,7 +1962,6 @@ static int random3a(CSOUND *csound, RANDOM3 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int         cod = p->cod;
     double      phs = p->phs, si = p->si;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -1994,10 +1995,8 @@ static int random3a(CSOUND *csound, RANDOM3 *p)
       x = (MYFLT) phs;
       ar[n] = (((c3 * x + c2) * x + df0) * x + f0) *
         (*rangeMax - *rangeMin) + *rangeMin;
-      if (cod) {
-        rangeMin++;
-        rangeMax++;
-      }
+      if (rangeMin_cod) rangeMin++;
+      if (rangeMax_cod) rangeMax++;
     }
     p->phs = phs;
     p->si  = si;

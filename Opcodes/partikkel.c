@@ -320,7 +320,7 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
     init_pool(&p->gpool, (unsigned)*p->max_grains);
 
     /* find out which of the xrate parameters are arate */
-    p->grainfreq_arate = csound->GetInputArgAMask(p) & 1 ? 1 : 0;
+    p->grainfreq_arate = IS_ASIG_ARG(p->grainfreq) ? 1 : 0;
     p->out_of_voices_warning = 0; /* reset user warning indicator */
     csound->SeedRandMT(&p->randstate, NULL, csound->GetRandomSeedFromTime());
     return OK;

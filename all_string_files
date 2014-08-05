@@ -435,6 +435,7 @@
 ./Top/new_opts.c
 ./Top/one_file.c
 ./Top/opcode.c
+./Top/server.c
 ./Top/threads.c
 ./Top/threadsafe.c
 ./Top/utility.c
