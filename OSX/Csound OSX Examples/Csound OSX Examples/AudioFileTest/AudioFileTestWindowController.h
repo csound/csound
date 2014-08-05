@@ -7,7 +7,8 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "BaseCsoundWindowController.h"
 
-@interface AudioFileTestWindowController : NSWindowController
+@interface AudioFileTestWindowController : BaseCsoundWindowController
 
 @end
