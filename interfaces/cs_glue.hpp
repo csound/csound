@@ -538,12 +538,12 @@ class PUBLIC CsoundMidiInputBuffer {
      * Sends a MIDI message, 'msg' is calculated as follows:
      *   STATUS + DATA1 * 256 + DATA2 * 65536
      */
-    void SendMessage(int msg);
+    void SendMidiMessage(int msg);
     /**
      * Sends a MIDI message; 'channel' should be in the range 1 to 16,
      * and data1 and data2 should be in the range 0 to 127.
      */
-    void SendMessage(int status, int channel, int data1, int data2);
+    void SendMidiMessage(int status, int channel, int data1, int data2);
     /**
      * Sends a note-on message on 'channel' (1 to 16) for 'key' (0 to 127)
      * with 'velocity' (0 to 127).

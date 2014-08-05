@@ -850,7 +850,7 @@ CsoundMidiInputBuffer::~CsoundMidiInputBuffer()
  *   STATUS + DATA1 * 256 + DATA2 * 65536
  */
 
-void CsoundMidiInputBuffer::SendMessage(int msg)
+void CsoundMidiInputBuffer::SendMidiMessage(int msg)
 {
     int   nBytes = (int) midiMessageByteCnt[(msg & (int) 0xF8) >> 3];
 
@@ -881,7 +881,7 @@ void CsoundMidiInputBuffer::SendMessage(int msg)
  * and data1 and data2 should be in the range 0 to 127.
  */
 
-void CsoundMidiInputBuffer::SendMessage(int status, int channel,
+void CsoundMidiInputBuffer::SendMidiMessage(int status, int channel,
                                         int data1, int data2)
 {
     int   nBytes = (int) midiMessageByteCnt[(status & (int) 0xF8) >> 3];
@@ -919,7 +919,7 @@ void CsoundMidiInputBuffer::SendMessage(int status, int channel,
 
 void CsoundMidiInputBuffer::SendNoteOn(int channel, int key, int velocity)
 {
-    SendMessage((int) 0x90, channel, key, velocity);
+    SendMidiMessage((int) 0x90, channel, key, velocity);
 }
 
 /**
@@ -929,7 +929,7 @@ void CsoundMidiInputBuffer::SendNoteOn(int channel, int key, int velocity)
 
 void CsoundMidiInputBuffer::SendNoteOff(int channel, int key, int velocity)
 {
-    SendMessage((int) 0x80, channel, key, velocity);
+    SendMidiMessage((int) 0x80, channel, key, velocity);
 }
 
 /**
@@ -939,7 +939,7 @@ void CsoundMidiInputBuffer::SendNoteOff(int channel, int key, int velocity)
 
 void CsoundMidiInputBuffer::SendNoteOff(int channel, int key)
 {
-    SendMessage((int) 0x90, channel, key, 0);
+    SendMidiMessage((int) 0x90, channel, key, 0);
 }
 
 /**
@@ -950,7 +950,7 @@ void CsoundMidiInputBuffer::SendNoteOff(int channel, int key)
 void CsoundMidiInputBuffer::SendPolyphonicPressure(int channel, int key,
                                                    int value)
 {
-    SendMessage((int) 0xA0, channel, key, value);
+    SendMidiMessage((int) 0xA0, channel, key, value);
 }
 
 /**
@@ -960,7 +960,7 @@ void CsoundMidiInputBuffer::SendPolyphonicPressure(int channel, int key,
 
 void CsoundMidiInputBuffer::SendControlChange(int channel, int ctl, int value)
 {
-    SendMessage((int) 0xB0, channel, ctl, value);
+    SendMidiMessage((int) 0xB0, channel, ctl, value);
 }
 
 /**
@@ -969,7 +969,7 @@ void CsoundMidiInputBuffer::SendControlChange(int channel, int ctl, int value)
 
 void CsoundMidiInputBuffer::SendProgramChange(int channel, int pgm)
 {
-    SendMessage((int) 0xC0, channel, pgm - 1, 0);
+    SendMidiMessage((int) 0xC0, channel, pgm - 1, 0);
 }
 
 /**
@@ -978,7 +978,7 @@ void CsoundMidiInputBuffer::SendProgramChange(int channel, int pgm)
 
 void CsoundMidiInputBuffer::SendChannelPressure(int channel, int value)
 {
-    SendMessage((int) 0xD0, channel, value, 0);
+    SendMidiMessage((int) 0xD0, channel, value, 0);
 }
 
 /**
@@ -987,7 +987,7 @@ void CsoundMidiInputBuffer::SendChannelPressure(int channel, int value)
 
 void CsoundMidiInputBuffer::SendPitchBend(int channel, int value)
 {
-    SendMessage((int) 0xE0, channel,
+    SendMidiMessage((int) 0xE0, channel,
                 (value + 8192) & (int) 0x7F,
                 ((value + 8192) >> 7) & (int) 0x7F);
 }
