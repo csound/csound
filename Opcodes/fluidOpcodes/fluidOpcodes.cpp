@@ -195,7 +195,9 @@ public:
             toa(iFluidSynth, fluidSynth);
             listPresets = (int) *iListPresets;
 
-            if(csound->GetInputArgSMask(this))
+            CS_TYPE* argType = csound->GetTypeForArg(iFilename);
+            
+            if(strcmp("S", argType->varTypeName) == 0)
               filename = csound->Strdup(csound, ((STRINGDAT *)iFilename)->data);
              else
              filename = csound->strarg2name(csound,

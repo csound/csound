@@ -2286,10 +2286,9 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     INSTRTXT  *ip;
     INSDS     *active;
     INSTRTXT  *txtp;
-    int isNamedInstr = (int) csound->GetInputArgSMask(p);
 
-    if (isNamedInstr)
-      n = csound->strarg2insno(csound, ((STRINGDAT *)p->insno)->data, isNamedInstr);
+    if (IS_STR_ARG(p->insno))
+      n = csound->strarg2insno(csound, ((STRINGDAT *)p->insno)->data, 1);
     else
       n = (int) (*p->insno + FL(0.5));
 

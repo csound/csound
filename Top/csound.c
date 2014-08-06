@@ -245,10 +245,8 @@ static const CSOUND cenviron_ = {
     /* arguments to opcodes */
     csoundGetTypeForArg,
     csoundGetInputArgCnt,
-    csoundGetInputArgSMask,
     csoundGetInputArgName,
     csoundGetOutputArgCnt,
-    csoundGetOutputArgSMask,
     csoundGetOutputArgName,
     get_arg_string,
     strarg2insno,
@@ -493,7 +491,7 @@ static const CSOUND cenviron_ = {
           NULL, NULL, NULL, NULL,
           0,
           NULL,
-          0,0,0,0,0},
+          0,0,0},
         0,0,0,
         0,
         NULL,
@@ -3682,17 +3680,6 @@ int csoundGetInputArgCnt(void *p)
 
 
 /**
- * Returns a binary value of which bit 0 is set if the first input
- * argument is a string, bit 1 is set if the second input argument is
- * a string, and so on.
- * Only the first 31 arguments are guaranteed to be reported correctly.
- */
-unsigned long csoundGetInputArgSMask(void *p)
-{
-    return (unsigned long) ((unsigned int) ((OPDS*) p)->optext->t.xincod_str);
-}
-
-/**
  * Returns the name of input argument 'n' (counting from 0) for opcode 'p'.
  */
 char *csoundGetInputArgName(void *p, int n)
@@ -3709,17 +3696,6 @@ char *csoundGetInputArgName(void *p, int n)
 int csoundGetOutputArgCnt(void *p)
 {
     return (int) ((OPDS*) p)->optext->t.outArgCount;
-}
-
-/**
- * Returns a binary value of which bit 0 is set if the first output
- * argument is a string, bit 1 is set if the second output argument is
- * a string, and so on.
- * Only the first 31 arguments are guaranteed to be reported correctly.
- */
-unsigned long csoundGetOutputArgSMask(void *p)
-{
-    return (unsigned long) ((unsigned int) ((OPDS*) p)->optext->t.xoutcod_str);
 }
 
 /**
