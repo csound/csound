@@ -170,7 +170,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         SWIG_ADD_MODULE(luaCsnd6 lua lua_interface.i)
         SWIG_LINK_LIBRARIES(luaCsnd6 ${swiglua_LIBS})
 
-        include_directories(${LUA_H_PATH}/luajit-2.0)
+        include_directories(${LUA_H_PATH})
 
       	if(APPLE)
             set_target_properties(${SWIG_MODULE_luaCsnd6_REAL_NAME} PROPERTIES
