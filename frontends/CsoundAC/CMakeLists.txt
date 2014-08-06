@@ -15,7 +15,7 @@ find_library(LUAJIT_LIBRARY luajit)
 if(NOT LUAJIT_LIBRARY)
     find_library(LUAJIT_LIBRARY luajit-5.1)
 endif()
-find_path(LUA_H_PATH lua.h)
+find_path(LUA_H_PATH luajit-2.0/lua.h)
 
 find_library(PORTSMF_LIBRARY portSMF)
 
@@ -25,7 +25,7 @@ find_file(EIGEN_DENSE eigen3/Eigen/Dense)
 
 check_deps(BUILD_CSOUND_AC Boost_INCLUDE_DIRS BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN_DENSE)
 check_deps(BUILD_CSOUND_AC_PYTHON_INTERFACE SWIG_FOUND PYTHONLIBS_FOUND EIGEN_DENSE)
-check_deps(BUILD_CSOUND_AC_LUA_INTERFACE SWIG_FOUND LUAJIT_LIBRARY EIGEN_DENSE)
+check_deps(BUILD_CSOUND_AC_LUA_INTERFACE SWIG_FOUND LUAJIT_LIBRARY LUA_H_PATH EIGEN_DENSE)
 
 if(BUILD_CSOUND_AC)
     include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
@@ -139,7 +139,7 @@ if(BUILD_CSOUND_AC)
 
     if(BUILD_CSOUND_AC_LUA_INTERFACE)
         message(STATUS "Building CsoundAC Lua interface")
-        include_directories(${LUA_H_PATH})
+        include_directories(${LUA_H_PATH}/luajit-2.0)
 
         SET_SOURCE_FILES_PROPERTIES(luaCsoundAC.i
             PROPERTIES CPLUSPLUS ON

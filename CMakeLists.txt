@@ -24,6 +24,7 @@ set(APIVERSION "6.0")
 
 # Relative install paths
 set(EXECUTABLE_INSTALL_DIR "bin")
+set(LUA_H_PATH "")
 
 
 
@@ -317,7 +318,7 @@ if(APPLE)
     set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
   endif()
 
-  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*")
+  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*") 
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
     message(STATUS "OSX: Setting Depolyment Target to 10.7")
   endif()
@@ -861,7 +862,7 @@ if(SCORE_PARSER)
     ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c")
     ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")
     ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c")
-
+    
     add_custom_command(
         SOURCE ${LEX_SCOSRC}
         COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT}
@@ -1049,7 +1050,7 @@ install(TARGETS ${CSOUNDLIB}
     ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
     FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 
-if(EMSCRIPTEN)
+if(EMSCRIPTEN) 
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
   set(libcsound_LIBS
     ${LIBSNDFILE_LIBRARY})
