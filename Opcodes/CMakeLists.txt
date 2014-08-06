@@ -35,7 +35,7 @@ find_library(LUAJIT_LIBRARY luajit)
 if(NOT LUAJIT_LIBRARY)
     find_library(LUAJIT_LIBRARY luajit-5.1)
 endif()
-find_path(LUA_H_PATH luajit-2.0/lua.h)
+find_path(LUA_H_PATH lua.h)
 include_directories(${LUA_H_PATH})
 
 check_include_file(wiiuse.h WIIUSE_H)
