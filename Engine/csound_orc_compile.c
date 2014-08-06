@@ -301,8 +301,6 @@ void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
         continue;                     /*      chk it later */
       }
       tfound = argtyp2(s);     /* else get arg type */
-      if (tfound == 'S' && n < 31)
-        tp->xincod_str |= (1 << n);
     }
     csound->Free(csound, types);
 }
@@ -318,8 +316,6 @@ void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
     while (n--) {                                     /* outargs:  */
       s = tp->outlist->arg[n];
       tfound = argtyp2(s);                     /*  found    */
-      if (tfound == 'S' && n < 31)
-        tp->xoutcod_str |= (1 << n);
     }
     csound->Free(csound, types);
 }
