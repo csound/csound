@@ -15,7 +15,7 @@ find_library(LUAJIT_LIBRARY luajit)
 if(NOT LUAJIT_LIBRARY)
     find_library(LUAJIT_LIBRARY luajit-5.1)
 endif()
-find_path(LUA_H_PATH lua.h)
+find_path(LUA_H_PATH lua.h PATH_SUFFIXES luajit-2.0)
 
 find_library(PORTSMF_LIBRARY portSMF)
 
