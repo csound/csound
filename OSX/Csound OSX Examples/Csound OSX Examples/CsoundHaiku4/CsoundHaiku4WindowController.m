@@ -1,32 +1,42 @@
-//
-//  CsoundHaiku4WindowController.m
-//  Csound OSX Examples
-//
-//  Created by Aurelius Prochazka on 7/14/14.
-//
-//
+/*
+ 
+ CsoundHaiku4WindowController.m:
+ 
+ Copyright (C) 2014 Aurelius Prochazka
+ 
+ This file is part of Csound OSX Examples.
+ 
+ The Csound for iOS Library is free software; you can redistribute it
+ and/or modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ Csound is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with Csound; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ 02111-1307 USA
+ 
+ */
+
 
 #import "CsoundHaiku4WindowController.h"
-#import "CsoundObj.h"
-
-@interface CsoundHaiku4WindowController() {
-    CsoundObj* csound;
-}
-@end
-
 
 @implementation CsoundHaiku4WindowController
 
 - (IBAction)startPlayCSDFile:(id)sender {
-	NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"IV" ofType:@"csd"];
+	NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"IV" ofType:@"csd"];
 	
-	csound = [[CsoundObj alloc] init];
-	[csound play:tempFile];
+	[self.csound play:csdFile];
     
 }
 
 - (IBAction)stopPlayCSDFile:(id)sender {
-    [csound stop];
+    [self.csound stop];
 }
 
 

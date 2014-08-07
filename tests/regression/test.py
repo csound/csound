@@ -52,7 +52,8 @@ def runTest():
         ["bugst.csd", " "],
         ["bugtrans.csd", " "],
         ["bugbra.csd", " "],
-        ["bugy.csd", "y in score"]
+        ["bugy.csd", "y in score"],
+        ["bugbigargs.csd", "many arguments in score"]
     ]
 
     output = ""
