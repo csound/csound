@@ -52,6 +52,8 @@ typedef struct parse_parm_s {
     MACRO           *macros;
     char            *xstrbuff;
     int             xstrptr,xstrmax;
+    uint64_t        iline;      /* Line number for start of instrument */
+    uint64_t        ilocn;      /* and location */
 } PARSE_PARM;
 
 void    cs_init_math_constants_macros(CSOUND*, PRE_PARM*);
@@ -60,4 +62,7 @@ void    cs_init_omacros(CSOUND*, PRE_PARM*, NAMES*);
 uint64_t make_location(PRE_PARM *);
 extern uint8_t file_to_int(CSOUND*, const char*);
 
+extern void csound_orcput_ilocn(void *, uint64_t, uint64_t);
+extern uint64_t csound_orcget_iline(void *);
+extern uint64_t csound_orcget_ilocn(void *);
 #endif

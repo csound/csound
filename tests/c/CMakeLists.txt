@@ -72,6 +72,14 @@ add_test(NAME testDebugger
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/c/
         COMMAND $<TARGET_FILE:testDebugger> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
 
+
+add_executable(testEngine engine_test.c)
+target_link_libraries(testEngine ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread)
+add_test(NAME testEngine
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/c/
+        COMMAND $<TARGET_FILE:testEngine> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
+
+
 endif(BUILD_TESTS)
 
 
