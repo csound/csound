@@ -94,7 +94,7 @@ int kschedule(CSOUND *csound, WSCHED *p)
       }
       p->todo =0;
       pp.flag = 1;
-       if(csoundGetInputArgSMask(p) & 2){
+       if(IS_STR_ARG(p->which)){
           return eventOpcode_(csound, &pp, 1, 'i');
        }
        else {
