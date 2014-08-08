@@ -588,7 +588,7 @@ static int guiro(CSOUND *csound, GUIRO *p)
       MYFLT finalZ2      = p->finalZ2;
       MYFLT gains0       = p->gains0;
       MYFLT gains1       = p->gains1;
-      MYFLT amp          = *p->amp;
+      MYFLT amp          = *p->amp*csound->e0dbfs;
       if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         nsmps -= early;
