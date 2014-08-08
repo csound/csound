@@ -12425,7 +12425,7 @@ msgstr "Données non conformes\n"
 
 #: util/lpcx_main.c:82
 msgid "corrupt header\n"
-msgstr "en-tête altérée\n"
+msgstr "en-tête altéré\n"
 
 #: util/mixer.c:48
 #, c-format
