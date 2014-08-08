@@ -204,7 +204,7 @@ static int cabasaset(CSOUND *csound, CABASA *p)
     p->coeffs1 = CABA_RESON * CABA_RESON;
     p->coeffs0 = - CABA_RESON * FL(2.0) * COS(CABA_CENTER_FREQ * csound->tpidsr);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy = *p->amp * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     p->last_num = FL(0.0);
     return OK;
@@ -310,7 +310,7 @@ static int sekereset(CSOUND *csound, SEKERE *p)
     p->coeffs0 = - SEKE_RESON * FL(2.0) *
       COS(SEKE_CENTER_FREQ * csound->tpidsr);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy = *p->amp * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     p->last_num = FL(0.0);
     return OK;
@@ -391,7 +391,7 @@ static int sekere(CSOUND *csound, SEKERE *p)
 /*          ar[n] = 0.0f; */
 /*        } */
     }
-    printf("%d/%d:\n", offset, early);
+    //printf("%d/%d:\n", offset, early);
     p->shakeEnergy = shakeEnergy;
     p->sndLevel = sndLevel;
     p->outputs0 = outputs0;
