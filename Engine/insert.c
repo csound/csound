@@ -208,13 +208,14 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     prvp->nxtact = ip;
     ip->actflg++;                   /*    and mark the instr active */
     
-    pfields = (CS_VAR_MEM*)&ip->p0;
     
     {
       int    n;
       MYFLT  *flp, *fep;
 
     init:
+        
+      pfields = (CS_VAR_MEM*)&ip->p0;
       if (tp->psetdata) {
         int i;
         CS_VAR_MEM* pfields = (CS_VAR_MEM*) &ip->p0;
