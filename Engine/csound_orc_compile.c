@@ -55,6 +55,8 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
                       ENGINE_STATE *engineState);
 int check_instr_name(char *s);
 
+extern const char* SYNTHESIZED_ARG;
+
 #ifdef FLOAT_COMPARE
 #undef FLOAT_COMPARE
 #endif
@@ -390,6 +392,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
         tp->outlist = (ARGLST*) csound->ReAlloc(csound, tp->outlist, m);
         tp->outlist->count = outcount;
 
+        tp->inArgCount = 0;
 
         for (inargs = root->right; inargs != NULL; inargs = inargs->next) {
           /* INARGS */
@@ -404,6 +407,9 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
           else {
             lgbuild(csound, ip, arg, 1, engineState);
           }
+          if (inargs->markup != &SYNTHESIZED_ARG) {
+            tp->inArgCount++;
+          }
         }
       }
       /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
@@ -416,6 +422,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
           tp->outlist->arg[argcount++] = strsav_string(csound, engineState, arg);
         }
         set_xincod(csound, tp, ep);
+        
+        tp->outArgCount = 0;
 
         /* OUTARGS */
         for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
@@ -429,7 +437,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
             csound->DebugMsg(csound, "Arg: %s\n", arg);
             lgbuild(csound, ip, arg, 0, engineState);
           }
-
+          tp->outArgCount++;
         }
         set_xoutcod(csound, tp, ep);
 
@@ -1737,7 +1745,6 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
             arg->next = NULL;
           }
         }
-        ttp->outArgCount = argCount(ttp->outArgs);
       }
       if ((inlist = ttp->inlist) == NULL || !inlist->count)
         ttp->inArgs = NULL;
@@ -1770,8 +1777,6 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
             arg->next = NULL;
           }
         }
-
-        ttp->inArgCount = argCount(ttp->inArgs);
 
         if (ttp->oentry == pset) {
           MYFLT* fp1;
