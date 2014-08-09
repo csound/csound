@@ -58,6 +58,8 @@ char* convert_internal_to_external(CSOUND* csound, char* arg);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
 void do_baktrace(CSOUND *csound, uint64_t files);
 
+const char* SYNTHESIZED_ARG = "_synthesized";
+
 char* cs_strdup(CSOUND* csound, char* str) {
     size_t len;
     char* retVal;
@@ -2200,6 +2202,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           case 'o':
             temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                              make_int(csound, "0"));
+            temp->markup = &SYNTHESIZED_ARG;
             if (l->right==NULL) l->right = temp;
             else appendToTree(csound, l->right, temp);
             break;
@@ -2207,12 +2210,14 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           case 'p':
             temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                              make_int(csound, "1"));
+            temp->markup = &SYNTHESIZED_ARG;
             if (l->right==NULL) l->right = temp;
             else appendToTree(csound, l->right, temp);
             break;
           case 'q':
             temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                              make_int(csound, "10"));
+            temp->markup = &SYNTHESIZED_ARG;
             if (l->right==NULL) l->right = temp;
             else appendToTree(csound, l->right, temp);
             break;
@@ -2221,12 +2226,14 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           case 'v':
             temp = make_leaf(csound, l->line, l->locn, NUMBER_TOKEN,
                              make_num(csound, ".5"));
+            temp->markup = &SYNTHESIZED_ARG;
             if (l->right==NULL) l->right = temp;
             else appendToTree(csound, l->right, temp);
             break;
           case 'h':
             temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                              make_int(csound, "127"));
+            temp->markup = &SYNTHESIZED_ARG;
             if (l->right==NULL) l->right = temp;
             else appendToTree(csound, l->right, temp);
             break;
@@ -2234,6 +2241,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           case 'j':
             temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                              make_int(csound, "-1"));
+            temp->markup = &SYNTHESIZED_ARG;
             if (l->right==NULL) l->right = temp;
             else appendToTree(csound, l->right, temp);
             break;

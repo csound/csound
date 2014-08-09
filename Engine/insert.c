@@ -1164,7 +1164,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     instno = inm->instno;
     tp = csound->engineState.instrtxtp[instno];
     /* set local ksmps if defined by user */
-    n = p->OUTOCOUNT + p->INOCOUNT - 1;
+    n = p->OUTOCOUNT + p->INCOUNT - 1;
 
     if (*(p->ar[n]) != FL(0.0)) {
       i = (unsigned int) *(p->ar[n]);
@@ -2053,7 +2053,7 @@ static void instance(CSOUND *csound, int insno)
     pextra = n-3;
     pextrab = ((i = tp->pmax - 3L) > 0 ? (int) i * sizeof(CS_VAR_MEM) : 0);
     /* alloc new space,  */
-    pextent = sizeof(INSDS) + pextrab + pextra*sizeof(CS_VAR_MEM *);
+    pextent = sizeof(INSDS) + pextrab + pextra*sizeof(CS_VAR_MEM);
     ip = (INSDS*) csound->Calloc(csound,
                           (size_t) pextent + tp->varPool->poolSize +
                                  (tp->varPool->varCount * sizeof(MYFLT)) +
