@@ -68,6 +68,7 @@ typedef struct debug_instr_s {
     void *instrptr;
     MYFLT p1, p2, p3;
     int kcounter;
+    int line;
     struct debug_instr_s *next;
 } debug_instr_t;
 
