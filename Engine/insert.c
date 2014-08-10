@@ -256,7 +256,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       
       if (n < tp->pmax && tp->psetdata==NULL) {
         for (i = 0; i < tp->pmax - n; i++) {
-          CS_VAR_MEM* pfield = pfields + i + n;
+          CS_VAR_MEM* pfield = pfields + i + n + 1;
           pfield->varType = (CS_TYPE*)&CS_VAR_TYPE_P;
           pfield->value = 0;
         }
