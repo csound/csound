@@ -166,17 +166,13 @@ int count = 0;
 static void brkpt_cb5(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
     debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
-    if (count == 0) {
-        CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "oscils");
-    } else if (count == 1) {
-        CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "line");
-    }
     count++;
 }
 
-void test_line_breakpoint(void)
+void test_line_breakpoint_add_remove(void)
 {
     CSOUND* csound = csoundCreate(NULL);
+    count = 0;
     csoundCompileOrc(csound, "instr 1\n"
                      "Svar init \"hello\"\n"
                      "ksig line 0, p3, 1\n"
@@ -189,13 +185,75 @@ void test_line_breakpoint(void)
     csoundDebuggerInit(csound);
     csoundSetBreakpointCallback(csound, brkpt_cb5, NULL);
     csoundSetBreakpoint(csound, 5, 1, 0);
-
     csoundPerformKsmps(csound);
-    csoundSetBreakpoint(csound, 4, 1, 0);
+    csoundDebugContinue(csound);
+    csoundPerformKsmps(csound); // This block performs
+    csoundPerformKsmps(csound); // This block breaks
+
+    csoundRemoveBreakpoint(csound, 5, 1);
+    csoundPerformKsmps(csound);
+    csoundPerformKsmps(csound);
+    csoundPerformKsmps(csound);
+    csoundPerformKsmps(csound);
+    csoundPerformKsmps(csound);
 
     csoundDebuggerClean(csound);
     csoundDestroy(csound);
-    CU_ASSERT_EQUAL(count, 1);
+    CU_ASSERT_EQUAL(count, 2);
+}
+
+static void brkpt_cb6(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
+{
+    debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
+    if (count == 0) {
+        CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "oscils");
+    } else if (count == 1) {
+        CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "line");
+    } else if (count == 2) {
+        CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "oscils");
+    }
+    count++;
+}
+
+void test_line_breakpoint(void)
+{
+    CSOUND* csound = csoundCreate(NULL);
+    count = 0;
+    csoundCompileOrc(csound, "instr 1\n"
+                     "Svar init \"hello\"\n"
+                     "ksig line 0, p3, 1\n"
+                     "ksig2 line 1, p3, 0\n"
+                     "asig3 oscils 0.5, 440, 0.5\n"
+                     "endin\n");
+
+    csoundInputMessage(csound, "i 1 0  1.1 440");
+    csoundStart(csound);
+    csoundDebuggerInit(csound);
+    csoundSetBreakpointCallback(csound, brkpt_cb6, NULL);
+    csoundSetBreakpoint(csound, 5, 1, 0);
+    csoundPerformKsmps(csound);
+
+    csoundDebugContinue(csound);
+    csoundPerformKsmps(csound);
+    csoundSetBreakpoint(csound, 4, 1, 0);
+    csoundPerformKsmps(csound);
+
+    csoundDebugContinue(csound);
+    csoundPerformKsmps(csound);
+    csoundRemoveBreakpoint(csound, 4, 1);
+    csoundPerformKsmps(csound);
+
+    csoundDebugContinue(csound);
+    csoundSetBreakpoint(csound, 1, 1, 0); // This breakpoint shouldn't be triggered as it's an init opcode
+    csoundPerformKsmps(csound);
+
+    csoundDebugContinue(csound);
+    csoundSetBreakpoint(csound, 2, 2, 0); // This breakpoint shouldn't be triggered as instr 2 is not defined
+    csoundPerformKsmps(csound);
+
+    csoundDebuggerClean(csound);
+    csoundDestroy(csound);
+    CU_ASSERT_EQUAL(count, 2);
 }
 
 
@@ -216,6 +274,7 @@ int main()
     
     /* add the tests to the suite */
     if ( (NULL == CU_add_test(pSuite, "Test Line breakpoints", test_line_breakpoint))
+         || (NULL == CU_add_test(pSuite, "Test Line breakpoints add/remove", test_line_breakpoint_add_remove))
          || (NULL == CU_add_test(pSuite, "Test Breakpoint instrument", test_bkpt_instrument))
          ||(NULL == CU_add_test(pSuite, "Test variables", test_variables))
          || (NULL == CU_add_test(pSuite, "Test debugger init", test_debugger_init))
