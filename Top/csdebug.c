@@ -270,6 +270,12 @@ debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound)
     debug_instr->p3 = insds->p3.value;
     debug_instr->kcounter = insds->kcounter;
     debug_instr->next = NULL;
+    OPDS* opstart = (OPDS*) data->debug_instr_ptr;
+    if (opstart->nxtp) {
+      debug_instr->line = opstart->nxtp->optext->t.linenum;
+    } else {
+      debug_instr->line = 0;
+    }
     return debug_instr;
 }
 
@@ -351,20 +357,21 @@ PUBLIC void csoundDebugFreeVariables(CSOUND *csound, debug_variable_t *varHead)
         csound->Free(csound, oldvar);
     }
 }
+
 #ifndef __clang__
 inline
 #endif
-void processDebugCommands(CSOUND *csound, debug_command_t command,
-                          csdebug_data_t *data, void *ip_ptr)
+void processDebugCommands(CSOUND *csound, csdebug_data_t *data, void *ip_ptr)
 {
     assert(data);
+    debug_command_t command = CSDEBUG_CMD_NONE;
     INSDS *ip = (INSDS *) ip_ptr;
-    if (command == CSDEBUG_CMD_STOP) {
+    csoundReadCircularBuffer(csound, data->cmd_buffer, &command, 1);
+    if (command == CSDEBUG_CMD_STOP && data->status != CSDEBUG_STATUS_STOPPED) {
       data->debug_instr_ptr = ip;
       data->status = CSDEBUG_STATUS_STOPPED;
       csoundDebuggerBreakpointReached(csound);
     }
-    csoundReadCircularBuffer(csound, data->cmd_buffer, &command, 1);
     bkpt_node_t *bkpt_node;
     while (csoundReadCircularBuffer(csound,
                                     data->bkpt_buffer, &bkpt_node, 1) == 1) {

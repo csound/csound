@@ -102,7 +102,8 @@ extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
-inline void processDebugBuffers(CSOUND *csound, debug_command_t command, csdebug_data_t *data);
+extern void processDebugCommands(CSOUND *,
+                                 csdebug_data_t *, void *);
 
 extern OENTRY opcodlst_1[];
 
@@ -1584,12 +1585,46 @@ int kperf_nodebug(CSOUND *csound)
     return 0;
 }
 
+inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, OPDS  *opstart, INSDS *ip)
+{
+    while ((opstart = opstart->nxtp) != NULL) {
+        /* check if we have arrived at a line breakpoint */
+        bkpt_node_t *bp_node = data->bkpt_anchor->next;
+        if (data->debug_opcode_ptr) {
+          opstart = data->debug_opcode_ptr;
+        }
+        int linenum = opstart->optext->t.linenum;
+        while (bp_node) {
+          if (bp_node->instr == ip->p1.value || (bp_node->instr == 0)) {
+            if (bp_node->line == linenum) { /* line matches */
+              if (bp_node->count < 2) { /* skip of 0 or 1 has the same effect */
+                if (data->debug_opcode_ptr != opstart) { /* did we just stop here */
+                  data->debug_instr_ptr = ip;
+                  data->debug_opcode_ptr = opstart;
+                  data->status = CSDEBUG_STATUS_STOPPED;
+                  csoundDebuggerBreakpointReached(csound);
+                  bp_node->count = bp_node->skip;
+                  return;
+                } else {
+                  data->debug_opcode_ptr = NULL; /* if just stopped here, continue */
+                }
+              } else {
+                bp_node->count--;
+              }
+            }
+          }
+          bp_node = bp_node->next;
+        }
+      opstart->insdshead->pds = opstart;
+      (*opstart->opadr)(csound, opstart); /* run each opcode */
+      opstart = opstart->insdshead->pds;
+    }
+}
+
 int kperf_debug(CSOUND *csound)
 {
     INSDS *ip;
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    debug_command_t command;
-    command = CSDEBUG_CMD_NONE;
     if (!data || data->status != CSDEBUG_STATUS_STOPPED) {
       /* update orchestra time */
       csound->kcounter = ++(csound->global_kcounter);
@@ -1614,12 +1649,9 @@ int kperf_debug(CSOUND *csound)
 
     ip = csound->actanchor.nxtact;
     if (data) { /* process new breakpoints and commands*/
-      /* *** Need forward reference to work *** */
-      extern void processDebugCommands(CSOUND *, debug_command_t,
-                                       csdebug_data_t *, void *);
-      
-      processDebugCommands(csound, command, data, ip);
+      processDebugCommands(csound, data, ip);
     }
+    // TODO: Should this section be avoided in CSDEBUG_STATUS_CONTINUE?
     if (!data || data->status != CSDEBUG_STATUS_STOPPED)
     {
       /* for one kcnt: */
@@ -1699,31 +1731,7 @@ int kperf_debug(CSOUND *csound)
             ip->spout = csound->spout;
             ip->kcounter =  csound->kcounter;
             if(ip->ksmps == csound->ksmps) {
-              while ((opstart = opstart->nxtp) != NULL) {
-                  /* check if we have arrived at a line breakpoint */
-                  int linenum = opstart->optext->t.linenum;
-                  bkpt_node_t *bp_node = data->bkpt_anchor->next;
-                  while (bp_node) {
-                    if (bp_node->instr == ip->p1.value || (bp_node->instr == 0)) {
-                      if (bp_node->line == linenum) {
-                        if (bp_node->count < 2) { /* skip of 0 or 1 has the same effect */
-                          data->debug_instr_ptr = ip;
-                          data->debug_opcode_ptr = opstart;
-                          data->status = CSDEBUG_STATUS_STOPPED;
-                          csoundDebuggerBreakpointReached(csound);
-                          bp_node->count = bp_node->skip;
-                          return 0;
-                        } else {
-                          bp_node->count--;
-                        }
-                      }
-                    }
-                    bp_node = bp_node->next;
-                  }
-                opstart->insdshead->pds = opstart;
-                (*opstart->opadr)(csound, opstart); /* run each opcode */
-                opstart = opstart->insdshead->pds;
-              }
+                opcode_perf_debug(csound, data, opstart, ip);
             } else { /* when instrument has local ksmps */
               int i, n = csound->nspout, start = 0;
               int lksmps = ip->ksmps;
@@ -1750,32 +1758,7 @@ int kperf_debug(CSOUND *csound)
 
                for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opstart = (OPDS*) ip;
-                  /* check if we have arrived at a line breakpoint */
-
-                  while ((opstart = opstart->nxtp) != NULL && ip->actflg) {
-                      int linenum = opstart->optext->t.linenum;
-                      bkpt_node_t *bp_node = data->bkpt_anchor->next;
-                      while (bp_node) {
-                        if (bp_node->instr == ip->p1.value || (bp_node->instr == 0)) {
-                          if (bp_node->line == linenum) {
-                            if (bp_node->count < 2) { /* skip of 0 or 1 has the same effect */
-                              data->debug_instr_ptr = ip;
-                              data->debug_opcode_ptr = opstart;
-                              data->status = CSDEBUG_STATUS_STOPPED;
-                              csoundDebuggerBreakpointReached(csound);
-                              bp_node->count = bp_node->skip;
-                              return 0;
-                            } else {
-                              bp_node->count--;
-                            }
-                          }
-                        }
-                        bp_node = bp_node->next;
-                      }
-                    opstart->insdshead->pds = opstart;
-                    (*opstart->opadr)(csound, opstart); /* run each opcode */
-                    opstart = opstart->insdshead->pds;
-                  }
+                  opcode_perf_debug(csound, data, opstart, ip);
                   ip->kcounter++;
                 }
             }
