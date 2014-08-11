@@ -436,8 +436,9 @@ static int tabdiv(CSOUND *csound, TABARITH *p)
     for (i=0; i<size; i++)
       if (LIKELY(r->data[i]!=0))
         ans->data[i] = l->data[i] / r->data[i];
-      else return csound->PerfError(csound, p->h.insdshead,
-                                    Str("division by zero in array-var"));
+      else
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("division by zero in array-var at index %d"), i);
     return OK;
 }
 
@@ -698,8 +699,9 @@ static int tabiarem(CSOUND *csound, TABARITH2 *p)
     if (ans->sizes[0]<size) size = ans->sizes[0];
     for (i=0; i<size; i++) {
       if (UNLIKELY(l->data[i]==FL(0.0)))
-        return csound->PerfError(csound, p->h.insdshead,
-                                 Str("division by zero in array-var"));
+        return
+          csound->PerfError(csound, p->h.insdshead,
+                            Str("division by zero in array-var at index %d"), i);
       else
         ans->data[i] = MOD(r,l->data[i]);
     }
