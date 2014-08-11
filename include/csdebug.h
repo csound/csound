@@ -109,7 +109,7 @@ typedef enum {
 typedef enum {
     CSDEBUG_STATUS_RUNNING,
     CSDEBUG_STATUS_STOPPED,
-    CSDEBUG_STATUS_CONTINUE
+    CSDEBUG_STATUS_NEXT
 } debug_status_t;
 
 typedef struct bkpt_node_s {
@@ -247,8 +247,14 @@ PUBLIC void csoundSetBreakpointCallback(CSOUND *csound, breakpoint_cb_t bkpt_cb,
 /* Not implemented yet, so not exposed in the API
 PUBLIC void csoundDebugStepOver(CSOUND *csound);
 PUBLIC void csoundDebugStepInto(CSOUND *csound);
-PUBLIC void csoundDebugNext(CSOUND *csound);
 */
+
+/** Continue execution and break at next instrument instance
+ *
+ * Call this function to continue execution but automatically stop at next instrument
+ * instance.
+ */
+PUBLIC void csoundDebugNext(CSOUND *csound);
 
 /** Continue execution from breakpoint
  *

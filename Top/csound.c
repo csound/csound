@@ -102,8 +102,6 @@ extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
-extern void processDebugCommands(CSOUND *,
-                                 csdebug_data_t *, void *);
 
 extern OENTRY opcodlst_1[];
 
@@ -1585,8 +1583,9 @@ int kperf_nodebug(CSOUND *csound)
     return 0;
 }
 
-inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, OPDS  *opstart, INSDS *ip)
+inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, INSDS *ip)
 {
+    OPDS  *opstart = (OPDS*) ip;
     while ((opstart = opstart->nxtp) != NULL) {
         /* check if we have arrived at a line breakpoint */
         bkpt_node_t *bp_node = data->bkpt_anchor->next;
@@ -1596,7 +1595,7 @@ inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, OPDS  *opsta
         int linenum = opstart->optext->t.linenum;
         while (bp_node) {
           if (bp_node->instr == ip->p1.value || (bp_node->instr == 0)) {
-            if (bp_node->line == linenum) { /* line matches */
+            if ((bp_node->line + 1) == linenum) { /* line matches */
               if (bp_node->count < 2) { /* skip of 0 or 1 has the same effect */
                 if (data->debug_opcode_ptr != opstart) { /* did we just stop here */
                   data->debug_instr_ptr = ip;
@@ -1618,6 +1617,43 @@ inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, OPDS  *opsta
       opstart->insdshead->pds = opstart;
       (*opstart->opadr)(csound, opstart); /* run each opcode */
       opstart = opstart->insdshead->pds;
+    }
+}
+
+inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data)
+{
+    bkpt_node_t *bkpt_node;
+    while (csoundReadCircularBuffer(csound,
+                                    data->bkpt_buffer, &bkpt_node, 1) == 1) {
+      if (bkpt_node->mode == CSDEBUG_BKPT_CLEAR_ALL) {
+        bkpt_node_t *n;
+        while (data->bkpt_anchor->next) {
+          n = data->bkpt_anchor->next;
+          data->bkpt_anchor->next = n->next;
+          csound->Free(csound, n); /* TODO this should be moved from kperf to a
+                      non-realtime context */
+        }
+        csound->Free(csound, bkpt_node);
+      } else if (bkpt_node->mode == CSDEBUG_BKPT_DELETE) {
+        bkpt_node_t *n = data->bkpt_anchor->next;
+        bkpt_node_t *prev = data->bkpt_anchor;
+        while (n) {
+          if (n->line == bkpt_node->line && n->instr == bkpt_node->instr) {
+            prev->next = n->next;
+            csound->Free(csound, n); /* TODO this should be moved from kperf to a
+                        non-realtime context */
+            n = prev->next;
+            continue;
+          }
+          prev = n;
+          n = n->next;
+        }
+        csound->Free(csound, bkpt_node); /* TODO move to non rt context */
+      } else {
+          // FIXME sort list to optimize
+          bkpt_node->next = data->bkpt_anchor->next;
+          data->bkpt_anchor->next = bkpt_node;
+      }
     }
 }
 
@@ -1647,12 +1683,11 @@ int kperf_debug(CSOUND *csound)
       if (UNLIKELY(!csoundYield(csound))) csound->LongJmp(csound, 1);
     }
 
-    ip = csound->actanchor.nxtact;
-    if (data) { /* process new breakpoints and commands*/
-      processDebugCommands(csound, data, ip);
+    if (data) { /* process new breakpoints*/
+      process_debug_buffers(csound, data);
     }
-    // TODO: Should this section be avoided in CSDEBUG_STATUS_CONTINUE?
-    if (!data || data->status != CSDEBUG_STATUS_STOPPED)
+
+    if (!data || data->status == CSDEBUG_STATUS_RUNNING)
     {
       /* for one kcnt: */
       if (csound->oparms_.sfread)         /*   if audio_infile open  */
@@ -1662,16 +1697,29 @@ int kperf_debug(CSOUND *csound)
       memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
     }
 
-    if(data->status == CSDEBUG_STATUS_CONTINUE) {
-      if (data->debug_instr_ptr) {
-        /* if not NULL, resume from last active */
-        ip = data->debug_instr_ptr;
-        data->debug_instr_ptr = NULL;
+    ip = csound->actanchor.nxtact;
+    /* Process debugger commands */
+    debug_command_t command = CSDEBUG_CMD_NONE;
+    if (data) {
+      csoundReadCircularBuffer(csound, data->cmd_buffer, &command, 1);
+      if (command == CSDEBUG_CMD_STOP && data->status != CSDEBUG_STATUS_STOPPED) {
+        data->debug_instr_ptr = ip;
+        data->status = CSDEBUG_STATUS_STOPPED;
+        csoundDebuggerBreakpointReached(csound);
       }
-      data->status = CSDEBUG_STATUS_RUNNING;
+      if (command == CSDEBUG_CMD_CONTINUE && data->status == CSDEBUG_STATUS_STOPPED) {
+        if (data->debug_instr_ptr) {
+          /* if not NULL, resume from last active */
+          ip = data->debug_instr_ptr;
+          data->debug_instr_ptr = NULL;
+        }
+        data->status = CSDEBUG_STATUS_RUNNING;
+      }
+      if (command == CSDEBUG_CMD_NEXT && data->status == CSDEBUG_STATUS_STOPPED) {
+          data->status = CSDEBUG_STATUS_NEXT;
+      }
     }
-
-    if (ip != NULL && (data->status == CSDEBUG_STATUS_RUNNING) ) {
+    if (ip != NULL && (data->status != CSDEBUG_STATUS_STOPPED) ) {
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
@@ -1708,9 +1756,22 @@ int kperf_debug(CSOUND *csound)
 #endif
 
           if (done == 1) {/* if init-pass has been done */
+            /* check if next command pending and we are on the first instrument in the chain */
+            if (data &&  data->status == CSDEBUG_STATUS_NEXT) {
+                if (data->debug_instr_ptr == NULL) {
+                    data->debug_instr_ptr = ip;
+                    data->debug_opcode_ptr = NULL;
+                    data->status = CSDEBUG_STATUS_STOPPED;
+                    csoundDebuggerBreakpointReached(csound);
+                    return 0;
+                } else {
+                    ip = data->debug_instr_ptr;
+                    data->debug_instr_ptr = NULL;
+                }
+            }
             /* check if we have arrived at an instrument breakpoint */
             bkpt_node_t *bp_node = data->bkpt_anchor->next;
-            while (bp_node && ip) {
+            while (bp_node && data->status != CSDEBUG_STATUS_NEXT) {
               if (bp_node->instr == ip->p1.value && (bp_node->line == -1) ) {
                 if (bp_node->count < 2) {
                   /* skip of 0 or 1 has the same effect */
@@ -1726,12 +1787,11 @@ int kperf_debug(CSOUND *csound)
               }
               bp_node = bp_node->next;
             }
-            OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
             ip->spout = csound->spout;
             ip->kcounter =  csound->kcounter;
             if(ip->ksmps == csound->ksmps) {
-                opcode_perf_debug(csound, data, opstart, ip);
+                opcode_perf_debug(csound, data, ip);
             } else { /* when instrument has local ksmps */
               int i, n = csound->nspout, start = 0;
               int lksmps = ip->ksmps;
@@ -1757,8 +1817,7 @@ int kperf_debug(CSOUND *csound)
                   }
 
                for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
-                  opstart = (OPDS*) ip;
-                  opcode_perf_debug(csound, data, opstart, ip);
+                  opcode_perf_debug(csound, data, ip);
                   ip->kcounter++;
                 }
             }
@@ -1766,6 +1825,15 @@ int kperf_debug(CSOUND *csound)
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0;  /* reset end of loop samples */
           ip = ip->nxtact; /* but this does not allow for all deletions */
+          if (data && data->status == CSDEBUG_STATUS_NEXT) {
+            data->debug_instr_ptr = ip; /* we have reached the next instrument. Break */
+            data->debug_opcode_ptr = NULL;
+            if (ip != NULL) { /* must defer break until next kperf */
+              data->status = CSDEBUG_STATUS_STOPPED;
+              csoundDebuggerBreakpointReached(csound);
+              return 0;
+            }
+          }
         }
       }
     }
