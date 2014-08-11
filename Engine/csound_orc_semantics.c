@@ -106,7 +106,7 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
     case '/':
       return "##div";
     case '^':
-      return "pow";
+      return "##pow";
     case S_UMINUS:
       return "##mul";
     case '|':

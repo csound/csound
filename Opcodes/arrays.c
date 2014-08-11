@@ -2,7 +2,6 @@
   arrays.c:
 
   Copyright (C) 2011,2012 John ffitch, Steven Yi
-
   This file is part of Csound.
 
   The Csound Library is free software; you can redistribute it
@@ -462,6 +461,33 @@ static int tabrem(CSOUND *csound, TABARITH *p)
     return OK;
 }
 
+static int tabpow(CSOUND *csound, TABARITH *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *l   = p->left;
+    ARRAYDAT *r   = p->right;
+    int   size    = ans->sizes[0];
+    int   i;
+    MYFLT tmp;
+
+    if (UNLIKELY(p->ans->data == NULL ||
+                 p->left->data== NULL || p->right->data==NULL))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("array-variable not initialised"));
+
+    if (l->sizes[0]<size) size = l->sizes[0];
+    if (r->sizes[0]<size) size = r->sizes[0];
+    for (i=0; i<size; i++)
+      if (LIKELY(l->data[i]>=0) || MODF(r->data[i],&tmp)==FL(0.0))
+        ans->data[i] = POWER(l->data[i],r->data[i]);
+      else
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("undefined power in array-var at index %d"),
+                                    i);
+    return OK;
+}
+
+
 #define IIARRAY(opcode,fn)                              \
   static int opcode(CSOUND *csound, TABARITH *p)        \
   {                                                     \
@@ -474,6 +500,7 @@ IIARRAY(tabsubi,tabsub)
 IIARRAY(tabmulti,tabmult)
 IIARRAY(tabdivi,tabdiv)
 IIARRAY(tabremi,tabrem)
+IIARRAY(tabpowi,tabpow)
 
 // Add array and scalar
 static int tabiadd(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l, MYFLT r, void *p)
@@ -679,6 +706,61 @@ static int tabiarem(CSOUND *csound, TABARITH2 *p)
     return OK;
 }
 
+// K[] pow K
+static int tabaipow(CSOUND *csound, TABARITH1 *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *l   = p->left;
+    MYFLT r     = *p->right;
+    int size    = ans->sizes[0];
+    int i;
+    MYFLT tmp;
+    int intcase = (MODF(r,&tmp)==FL(0.0));
+
+    if (UNLIKELY(p->ans->data == NULL || p->left->data== NULL))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("array-variable not initialised"));
+
+    if (l->sizes[0]<size) size = l->sizes[0];
+    if (ans->sizes[0]<size) size = ans->sizes[0];
+    for (i=0; i<size; i++)
+      if (intcase || LIKELY(l->data[i]>=0))
+        ans->data[i] = POWER(l->data[i], r);
+      else
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("undefined power in array-var at index %d"),
+                                    i);
+    return OK;
+}
+
+// K ^ K[]
+static int tabiapow(CSOUND *csound, TABARITH2 *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *l   = p->right;
+    MYFLT r     = *p->left;
+    int size    = ans->sizes[0];
+    int i;
+    MYFLT tmp;
+    int poscase = (r>=FL(0.0));
+
+    if (UNLIKELY(ans->data == NULL || l->data== NULL))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("array-variable not initialised"));
+
+    if (l->sizes[0]<size) size = l->sizes[0];
+    if (ans->sizes[0]<size) size = ans->sizes[0];
+    for (i=0; i<size; i++) {
+      if (LIKELY(poscase || MODF(l->data[i],&tmp)==FL(0.0)))
+        ans->data[i] = POWER(r,l->data[i]);
+      else
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("undefined power in array-var at index %d"),
+                                    i);
+    }
+    return OK;
+}
+
 #define IiARRAY(opcode,fn)                              \
   static int opcode(CSOUND *csound, TABARITH1 *p)       \
   {                                                     \
@@ -691,6 +773,7 @@ IiARRAY(tabaisubi,tabaisub)
 IiARRAY(tabaimulti,tabaimult)
 IiARRAY(tabaidivi,tabaidiv)
 IiARRAY(tabairemi,tabairem)
+IiARRAY(tabaipowi,tabaipow)
 
 #define iIARRAY(opcode,fn)                              \
   static int opcode(CSOUND *csound, TABARITH2 *p)       \
@@ -704,6 +787,7 @@ iIARRAY(tabiasubi,tabiasub)
 iIARRAY(tabiamulti,tabiamult)
 iIARRAY(tabiadivi,tabiadiv)
 iIARRAY(tabiaremi,tabiarem)
+iIARRAY(tabiapowi,tabiapow)
 
 
 
@@ -1901,6 +1985,20 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset1, (SUBR)tabairem },
     {"##rem.k[",  sizeof(TABARITH2),0,  3, "k[]", "kk[]",
      (SUBR)tabarithset2, (SUBR)tabiarem },
+    {"##pow.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
+     (SUBR)tabarithset,(SUBR)tabpow },
+    {"##pow.[i]",  sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
+     (SUBR)tabpowi },
+    {"##pow.[i",  sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
+     (SUBR)tabarithset1, (SUBR)tabaipow },
+    {"##pow.i[",  sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
+     (SUBR)tabarithset2, (SUBR)tabiapow },
+    {"##pow.[p",  sizeof(TABARITH1), 0, 1, "i[]", "i[]i", (SUBR)tabaipowi },
+    {"##pow.p[",  sizeof(TABARITH2), 0, 1, "i[]", "ii[]", (SUBR)tabiapowi },
+    {"##pow.[k",  sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
+     (SUBR)tabarithset1, (SUBR)tabaipow },
+    {"##pow.k[",  sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
+     (SUBR)tabarithset2, (SUBR)tabiapow },
     { "maxtab", 0xffff},
     { "maxtab.k",sizeof(TABQUERY),_QQ, 3, "kz", "k[]",
       (SUBR) tabqset, (SUBR) tabmax },
