@@ -38,7 +38,11 @@ void csoundDebuggerBreakpointReached(CSOUND *csound)
     bkpt_info.currentOpcode = csoundDebugGetCurrentOpcodeList(csound);
     bkpt_info.instrVarList = csoundDebugGetVariables(csound,
                                                      bkpt_info.breakpointInstr);
-    data->bkpt_cb(csound, &bkpt_info, data->cb_data);
+    if (data->bkpt_cb) {
+      data->bkpt_cb(csound, &bkpt_info, data->cb_data);
+    } else {
+      csoundMessage(csound, Str("Breakpoint callback not set. Breakpoint Reached."));
+    }
     // TODO: These free operations could be moved to a low priority context
     csoundDebugFreeInstrInstances(csound, bkpt_info.breakpointInstr);
     csoundDebugFreeInstrInstances(csound, bkpt_info.instrListHead);
@@ -57,6 +61,7 @@ PUBLIC void csoundDebuggerInit(CSOUND *csound)
     data->bkpt_anchor->next = NULL;
     data->debug_instr_ptr = NULL;
     data->debug_opcode_ptr = NULL;
+    data->bkpt_cb = NULL;
     data->status = CSDEBUG_STATUS_RUNNING;
     data->bkpt_buffer = csoundCreateCircularBuffer(csound,
                                                    64, sizeof(bkpt_node_t **));
