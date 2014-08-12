@@ -264,6 +264,7 @@ typedef struct {
   OPDS h;
   MYFLT  *ans;
   ARRAYDAT *tab;
+  MYFLT  *opt;
 } TABQUERY1;
 
 typedef struct {
@@ -1230,8 +1231,10 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
 
 int tablength(CSOUND *csound, TABQUERY1 *p)
 {
-    if (UNLIKELY(p->tab==NULL || p->tab->dimensions!=1)) *p->ans = -FL(1.0);
-    else *p->ans = p->tab->sizes[0];
+    int opt = (int)*p->opt;
+    if (UNLIKELY(p->tab==NULL || opt>p->tab->dimensions)) *p->ans = -FL(1.0);
+    else if (UNLIKELY(opt<=0)) *p->ans = p->tab->dimensions;
+    else *p->ans = p->tab->sizes[opt-1];
     return OK;
 }
 
@@ -2061,12 +2064,11 @@ static OENTRY arrayvars_localops[] =
       (SUBR) ftab2tab, (SUBR) ftab2tab },
     { "copya2ftab.i", sizeof(TABCOPY), TW, 1, "", "i[]i", (SUBR) tab2ftab },
     { "copyf2array.i", sizeof(TABCOPY), TR, 1, "", "i[]i", (SUBR) ftab2tab },
-    { "lentab", 0xffff},
-    { "lentab.i", sizeof(TABQUERY1), _QQ, 1, "i", "k[]", (SUBR) tablength },
-    { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]", NULL, (SUBR) tablength },
-    { "lenarray.ix", sizeof(TABQUERY1), 0, 1, "i", ".[]", (SUBR) tablength },
-    { "lenarray.kx", sizeof(TABQUERY1), 0, 2, "k", ".[]",
-      NULL, (SUBR) tablength },
+    /* { "lentab", 0xffff}, */
+    { "lentab.i", sizeof(TABQUERY1), _QQ, 1, "i", "k[]p", (SUBR) tablength },
+    { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]p", NULL, (SUBR) tablength },
+    { "lenarray.ix", sizeof(TABQUERY1), 0, 1, "i", ".[]p", (SUBR) tablength },
+    { "lenarray.kx", sizeof(TABQUERY1), 0, 2, "k", ".[]p", NULL, (SUBR)tablength },
     { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa},
     { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina},
     {"rfft", sizeof(FFT), 0, 3, "k[]","k[]",
