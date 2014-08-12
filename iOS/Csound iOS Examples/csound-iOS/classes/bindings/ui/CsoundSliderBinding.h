@@ -1,10 +1,10 @@
 /* 
  
- ControlRectangle.h:
+ CsoundSliderBinding.h:
  
- Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
- This file is part of Csound iOS Examples.
+ This file is part of Csound for iOS.
  
  The Csound for iOS Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
@@ -23,22 +23,11 @@
  
  */
 
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface ControlRectangle : UIControl <CsoundValueCacheable>
-{
-    CGRect circleRect;
-	
-	// Value Cacheable
-	BOOL mCacheDirty;
-	float cachedValueX, cachedValueY;
-    float *channelPtrX, *channelPtrY;
-}
+@interface CsoundSliderBinding : NSObject<CsoundDataBinding> 
 
-@property (assign) BOOL cacheDirty;
-@property (nonatomic, readwrite) Float32 xValue;
-@property (nonatomic, readwrite) Float32 yValue;
-@property (nonatomic, readwrite) CGFloat circleDiameter;
+-(instancetype)initSlider:(UISlider*)slider channelName:(NSString *)channelName;
 
 @end

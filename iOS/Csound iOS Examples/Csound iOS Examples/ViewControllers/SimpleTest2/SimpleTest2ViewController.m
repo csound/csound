@@ -25,6 +25,28 @@
 
 #import "SimpleTest2ViewController.h"
 
+@interface SimpleTest2ViewController() {
+    IBOutlet UISwitch *onOffSwitch;
+    
+    IBOutlet UISlider *rateSlider;
+    IBOutlet UISlider *durationSlider;
+    IBOutlet UILabel *rateLabel;
+    IBOutlet UILabel *durationLabel;
+    
+    IBOutlet UISlider *attackSlider;
+    IBOutlet UISlider *decaySlider;
+    IBOutlet UISlider *sustainSlider;
+    IBOutlet UISlider *releaseSlider;
+    
+    IBOutlet UILabel *attackLabel;
+    IBOutlet UILabel *decayLabel;
+    IBOutlet UILabel *sustainLabel;
+    IBOutlet UILabel *releaseLabel;
+    
+}
+
+@end
+
 @implementation SimpleTest2ViewController
 
 -(void)viewDidLoad {
@@ -47,12 +69,19 @@
         [self.csound addListener:self];
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
-        [csoundUI addSlider:mRateSlider forChannelName:@"noteRate"];
-        [csoundUI addSlider:mDurationSlider forChannelName:@"duration"];
-        [csoundUI addSlider:mAttackSlider forChannelName:@"attack"];
-        [csoundUI addSlider:mDecaySlider forChannelName:@"decay"];
-        [csoundUI addSlider:mSustainSlider forChannelName:@"sustain"];
-        [csoundUI addSlider:mReleaseSlider forChannelName:@"release"];
+        [csoundUI addSlider:rateSlider     forChannelName:@"noteRate"];
+        [csoundUI addSlider:durationSlider forChannelName:@"duration"];
+        [csoundUI addSlider:attackSlider   forChannelName:@"attack"];
+        [csoundUI addSlider:decaySlider    forChannelName:@"decay"];
+        [csoundUI addSlider:sustainSlider  forChannelName:@"sustain"];
+        [csoundUI addSlider:releaseSlider  forChannelName:@"release"];
+        
+        [csoundUI addLabel:rateLabel     forChannelName:@"noteRate"];
+        [csoundUI addLabel:durationLabel forChannelName:@"duration"];
+        [csoundUI addLabel:attackLabel   forChannelName:@"attack"];
+        [csoundUI addLabel:decayLabel    forChannelName:@"decay"];
+        [csoundUI addLabel:sustainLabel  forChannelName:@"sustain"];
+        [csoundUI addLabel:releaseLabel  forChannelName:@"release"];
         
         [self.csound play:tempFile];
         
@@ -66,6 +95,6 @@
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[mSwitch setOn:NO animated:YES];
+	[onOffSwitch setOn:NO animated:YES];
 }
 @end

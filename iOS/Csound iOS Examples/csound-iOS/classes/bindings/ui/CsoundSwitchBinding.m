@@ -1,6 +1,6 @@
-/* 
+/*
  
- CachedSlider.h:
+ CsoundSwitchBinding.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -9,7 +9,7 @@
  The Csound for iOS Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.   
+ version 2.1 of the License, or (at your option) any later version.
  
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,43 +23,50 @@
  
  */
 
-#import "CachedSlider.h"
+#import "CsoundSwitchBinding.h"
 
-@implementation CachedSlider
+@interface CsoundSwitchBinding() {
+    float channelValue;
+    float *channelPtr;
+}
+@property (unsafe_unretained) NSString *channelName;
+@property (unsafe_unretained) UISwitch *switcher;
+@end
 
--(void)updateValueCache:(id)sender {
-    cachedValue = ((UISlider *)sender).value;
-    self.cacheDirty = YES;
+@implementation CsoundSwitchBinding
+
+-(void)updateChannelValue:(id)sender {
+    channelValue = ((UISwitch *)sender).on ? 1 : 0;
 }
 
--(CachedSlider *)init:(UISlider *)slider channelName:(NSString *)channelName {
+-(instancetype)initSwitch:(UISwitch *)uiSwitch channelName:(NSString *)channelName
+{
     if (self = [super init]) {
-        self.slider = slider;
+        self.switcher = uiSwitch;
         self.channelName = channelName;
     }
     return self;
 }
 
--(void)setup:(CsoundObj *)csoundObj {
+-(void)setup:(CsoundObj*)csoundObj
+{
+    channelValue = self.switcher.on ? 1 : 0;
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
-    cachedValue = self.slider.value;
-    self.cacheDirty = YES;
-    [self.slider addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
-    
+    [self.switcher addTarget:self
+                      action:@selector(updateChannelValue:)
+            forControlEvents:UIControlEventValueChanged];
 }
 
 
 -(void)updateValuesToCsound {
-    if (self.cacheDirty) {
-        *channelPtr = cachedValue;
-        self.cacheDirty = NO;
-    }
+    *channelPtr = channelValue;
 }
 
 -(void)cleanup {
-    [self.slider removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
+    [self.switcher removeTarget:self
+                         action:@selector(updateChannelValue:)
+               forControlEvents:UIControlEventValueChanged];
 }
-
 
 @end

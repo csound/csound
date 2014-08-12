@@ -1,8 +1,8 @@
 /* 
  
- CachedAttitude.h:
+ CsoundGyroscopeBinding.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -25,15 +25,9 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreMotion/CoreMotion.h>
-#import "BaseValueCacheable.h"
+#import "CsoundObj.h"
 
-@interface CachedAttitude : BaseValueCacheable {
-    float* channelPtrRoll;
-    float* channelPtrPitch;
-    float* channelPtrYaw;
-    
-    CMMotionManager* mManager;
-}
+@interface CsoundGyroscopeBinding : NSObject<CsoundDataBinding>  
 
 -(id)init:(CMMotionManager *)manager;
 
