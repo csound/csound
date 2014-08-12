@@ -1583,7 +1583,7 @@ int kperf_nodebug(CSOUND *csound)
     return 0;
 }
 
-inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, INSDS *ip)
+static inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, INSDS *ip)
 {
     OPDS  *opstart = (OPDS*) ip;
     while ((opstart = opstart->nxtp) != NULL) {
@@ -1620,7 +1620,7 @@ inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, INSDS *ip)
     }
 }
 
-inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data)
+static inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data)
 {
     bkpt_node_t *bkpt_node;
     while (csoundReadCircularBuffer(csound,
