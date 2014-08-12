@@ -36,7 +36,7 @@
 		self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
 		
-		[self.csound addValueCacheable:mXYControl];
+		[self.csound addDataBinding:mXYControl];
 		
 		[self.csound play:tempFile];
 	} else {
@@ -50,15 +50,6 @@
 
 #pragma mark - Lifecycle
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
-	self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-	if (self) {
-		
-	}
-	return self;
-}
-
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -66,21 +57,6 @@
 	
 	[mXYControl setXValue:1.0f];
 	[mXYControl setYValue:0.5f];
-}
-
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    if (interfaceOrientation == UIInterfaceOrientationLandscapeLeft ||
-        interfaceOrientation == UIInterfaceOrientationLandscapeRight) {
-        return YES;
-    } else {
-        return NO;
-    }
 }
 
 

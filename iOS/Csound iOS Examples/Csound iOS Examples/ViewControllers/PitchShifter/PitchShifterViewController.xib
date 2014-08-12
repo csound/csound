@@ -16,7 +16,7 @@
             <rect key="frame" x="0.0" y="0.0" width="320" height="480"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <view contentMode="scaleToFill" id="4" customClass="ControlRectangle">
+                <view contentMode="scaleToFill" id="4" customClass="ControlXYGrid">
                     <rect key="frame" x="20" y="116" width="280" height="344"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                     <subviews>
