@@ -1,8 +1,8 @@
 /* 
  
- CachedAccelerometer.m:
+ CsoundGyroscopeBinding.m:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -23,13 +23,22 @@
  
  */
 
-#import "CachedAccelerometer.h"
+#import "CsoundGyroscopeBinding.h"
 
-@implementation CachedAccelerometer
+@interface CsoundGyroscopeBinding ()  {
+    float *channelPtrX;
+    float *channelPtrY;
+    float *channelPtrZ;
+    
+    CMMotionManager* manager;
+}
+@end
 
-static NSString *CS_ACCEL_X = @"accelerometerX";
-static NSString *CS_ACCEL_Y = @"accelerometerY";
-static NSString *CS_ACCEL_Z = @"accelerometerZ";
+@implementation CsoundGyroscopeBinding
+
+static NSString *CS_GYRO_X = @"gyroX";
+static NSString *CS_GYRO_Y = @"gyroY";
+static NSString *CS_GYRO_Z = @"gyroZ";
 
 -(id)init:(CMMotionManager *)cmManager {
     if (self = [super init]) {
@@ -39,25 +48,24 @@ static NSString *CS_ACCEL_Z = @"accelerometerZ";
 }
 
 -(void)setup:(CsoundObj*)csoundObj {
-    channelPtrX = [csoundObj getInputChannelPtr:CS_ACCEL_X
+    channelPtrX = [csoundObj getInputChannelPtr:CS_GYRO_X
                                     channelType:CSOUND_CONTROL_CHANNEL];
-    channelPtrY = [csoundObj getInputChannelPtr:CS_ACCEL_Y
+    channelPtrY = [csoundObj getInputChannelPtr:CS_GYRO_Y
                                     channelType:CSOUND_CONTROL_CHANNEL];
-    channelPtrZ = [csoundObj getInputChannelPtr:CS_ACCEL_Z
+    channelPtrZ = [csoundObj getInputChannelPtr:CS_GYRO_Z
                                     channelType:CSOUND_CONTROL_CHANNEL];
-    
-    *channelPtrX = manager.accelerometerData.acceleration.x;
-    *channelPtrY = manager.accelerometerData.acceleration.y;
-    *channelPtrZ = manager.accelerometerData.acceleration.z;    
-    
-    self.cacheDirty = YES;
+
+    *channelPtrX = manager.gyroData.rotationRate.x;
+    *channelPtrY = manager.gyroData.rotationRate.y;
+    *channelPtrZ = manager.gyroData.rotationRate.z;
+
 }
 
 -(void)updateValuesToCsound {
     @autoreleasepool {
-        *channelPtrX = manager.accelerometerData.acceleration.x;
-        *channelPtrY = manager.accelerometerData.acceleration.y;
-        *channelPtrZ = manager.accelerometerData.acceleration.z;   
+        *channelPtrX = manager.gyroData.rotationRate.x;
+        *channelPtrY = manager.gyroData.rotationRate.y;
+        *channelPtrZ = manager.gyroData.rotationRate.z;
     }
 }
 

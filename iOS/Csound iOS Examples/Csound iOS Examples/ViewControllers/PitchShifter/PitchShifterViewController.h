@@ -24,12 +24,12 @@
  */
 
 #import "BaseCsoundViewController.h"
-#import "ControlRectangle.h"
+#import "ControlXYGrid.h"
 
 @interface PitchShifterViewController : BaseCsoundViewController
 {
 	IBOutlet UISwitch *mSwitch;
-	IBOutlet ControlRectangle *mXYControl;
+	IBOutlet ControlXYGrid *mXYControl;
 }
 
 - (IBAction)toggleOnOff:(UISwitch *)sender;

@@ -28,15 +28,8 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import "CsoundObj.h"
 
-@interface ControlKnob : UIControl <CsoundValueCacheable>
-{
-	// Value Cacheable
-	BOOL mCacheDirty;
-	float cachedValue;
-    float* channelPtr;
-}
+@interface ControlKnob : UIControl <CsoundDataBinding>
 
-@property (assign) BOOL cacheDirty;
 @property (nonatomic, readwrite, setter = setValue:) Float32 value;
 @property (nonatomic, readwrite) Float32 defaultValue;
 @property (nonatomic, readwrite) Float32 minimumValue;
