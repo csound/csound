@@ -25,6 +25,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -146,6 +147,11 @@ public class CsoundAppActivity extends Activity implements
 			}
 		});
 	}
+	
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+	}	
 
 	protected void writeTemplateFile() {
 		File root = Environment.getExternalStorageDirectory();
@@ -270,6 +276,7 @@ public class CsoundAppActivity extends Activity implements
 				contents.append(buffer, 0, read);
 				read = in.read(buffer);
 			} while (read >= 0);
+			in.close();
 			String csdText = contents.toString();
 			int start = csdText.indexOf("<CsHtml5>") + 9;
 			int end = csdText.indexOf("</CsHtml5>");
@@ -281,6 +288,8 @@ public class CsoundAppActivity extends Activity implements
 					WebSettings settings = webLayout.getSettings();
 					// Page itself must specify utf-8 in meta tag?
 					settings.setDefaultTextEncodingName("utf-8");
+					settings.setDomStorageEnabled(true);
+					settings.setDatabaseEnabled(true);
 					settings.setBuiltInZoomControls(true);
 					settings.setDisplayZoomControls(false);
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
