@@ -1232,7 +1232,8 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
 int tablength(CSOUND *csound, TABQUERY1 *p)
 {
     int opt = (int)*p->opt;
-    if (UNLIKELY(p->tab==NULL || opt>p->tab->dimensions)) *p->ans = -FL(1.0);
+    if (UNLIKELY(p->tab==NULL || opt>p->tab->dimensions))
+      *p->ans = -FL(1.0);
     else if (UNLIKELY(opt<=0)) *p->ans = p->tab->dimensions;
     else *p->ans = p->tab->sizes[opt-1];
     return OK;
