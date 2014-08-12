@@ -1,6 +1,6 @@
 /* 
  
- BaseValueCacheable.m:
+ CsoundAccelerometerBinding.h:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -23,27 +23,12 @@
  
  */
 
-#import "BaseValueCacheable.h"
+#import <Foundation/Foundation.h>
+#import <CoreMotion/Coremotion.h>
+#import "CsoundObj.h"
 
-@implementation BaseValueCacheable
+@interface CsoundAccelerometerBinding : NSObject<CsoundDataBinding, UIAccelerometerDelegate>
 
--(BOOL)isCacheDirty {
-    return NO;
-}
-
--(void)updateValuesToCsound {
-}
-
--(void)updateValuesFromCsound {
-    
-}
-
--(void)cleanup {
-    
-}
-
--(void)setup:(CsoundObj *)csoundObj {
-    
-}
+-(id)init:(CMMotionManager *)manager;
 
 @end

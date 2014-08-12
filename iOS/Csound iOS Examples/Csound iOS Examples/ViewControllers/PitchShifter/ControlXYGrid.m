@@ -1,6 +1,6 @@
 /* 
  
- ControlRectangle.m:
+ ControlXYGrid.m:
  
  Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
@@ -24,16 +24,21 @@
  */
 
 
-#import "ControlRectangle.h"
+#import "ControlXYGrid.h"
 
-@interface ControlRectangle ()
+@interface ControlXYGrid ()
 {
+    CGRect circleRect;
+	
+	float xChannelValue, yChannelValue;
+    float *xChannelPtr, *yChannelPtr;
+
     CGFloat borderWidth;
     BOOL shouldTrack;
 }
 @end
 
-@implementation ControlRectangle
+@implementation ControlXYGrid
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -214,42 +219,37 @@
     CGColorSpaceRelease(colorSpace);
 }
 
-#pragma mark - Value Cacheable
+#pragma mark - Csound Data Binding
 
 - (void)setup:(CsoundObj *)csoundObj
 {
-	channelPtrX = [csoundObj getInputChannelPtr:@"mix" channelType:CSOUND_CONTROL_CHANNEL];
-	channelPtrY = [csoundObj getInputChannelPtr:@"pitch" channelType:CSOUND_CONTROL_CHANNEL];
-    cachedValueX = _xValue;
-	cachedValueY = _yValue;
-    self.cacheDirty = YES;
-    [self addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
+	xChannelPtr = [csoundObj getInputChannelPtr:@"mix"   channelType:CSOUND_CONTROL_CHANNEL];
+	yChannelPtr = [csoundObj getInputChannelPtr:@"pitch" channelType:CSOUND_CONTROL_CHANNEL];
+    xChannelValue = _xValue;
+	yChannelValue = _yValue;
+    [self addTarget:self
+             action:@selector(updateChannelValues:)
+   forControlEvents:UIControlEventValueChanged];
 }
 
-- (void)updateValueCache:(id)sender
+- (void)updateChannelValues:(id)sender
 {
-	cachedValueX = ((ControlRectangle *)sender).xValue;
-	cachedValueY = ((ControlRectangle *)sender).yValue;
-    self.cacheDirty = YES;
+	xChannelValue = ((ControlXYGrid *)sender).xValue;
+	yChannelValue = ((ControlXYGrid *)sender).yValue;
 }
 
 - (void)updateValuesToCsound
 {
-	if (self.cacheDirty) {
-        *channelPtrX = cachedValueX;
-		*channelPtrY = cachedValueY;
-        self.cacheDirty = NO;
-    }
-}
+    *xChannelPtr = xChannelValue;
+    *yChannelPtr = yChannelValue;
 
-- (void)updateValuesFromCsound
-{
-	
 }
 
 - (void)cleanup
 {
-	[self removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
+	[self removeTarget:self
+                action:@selector(updateChannelValues:)
+      forControlEvents:UIControlEventValueChanged];
 }
 
 @end

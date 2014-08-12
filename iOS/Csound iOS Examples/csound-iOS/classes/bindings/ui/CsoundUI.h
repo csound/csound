@@ -30,8 +30,10 @@
 
 - (instancetype)initWithCsoundObj:(CsoundObj *)csound;
 
-- (void)addSwitch:(UISwitch *)uiSwitch forChannelName:(NSString *)channelName;
-- (void)addSlider:(UISlider*)uiSlider  forChannelName:(NSString *)channelName;
+- (void)addLabel:(UILabel *)uiLabel    forChannelName:(NSString *)channelName;
 - (void)addButton:(UIButton *)uiButton forChannelName:(NSString *)channelName;
+- (void)addSlider:(UISlider*)uiSlider  forChannelName:(NSString *)channelName;
+- (void)addSwitch:(UISwitch *)uiSwitch forChannelName:(NSString *)channelName;
+- (void)addMomentaryButton:(UIButton *)uiButton forChannelName:(NSString *)channelName;
 
 @end
