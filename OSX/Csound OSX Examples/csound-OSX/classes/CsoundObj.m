@@ -175,10 +175,13 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
         [cachedValue setup:self];
     }
 }
+
 - (void)cleanupValueCache {
     for (int i = 0; i < _valuesCache.count; i++) {
         id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
-        [cachedValue cleanup];
+        if ([cachedValue respondsToSelector:@selector(cleanup)]) {
+            [cachedValue cleanup];
+        }
     }
 }
 
