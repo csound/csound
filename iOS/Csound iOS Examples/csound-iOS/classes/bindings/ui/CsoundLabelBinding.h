@@ -1,15 +1,15 @@
-/* 
+/*
  
- CachedSwitch.h:
+ CsoundLabelBinding.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
  The Csound for iOS Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.   
+ version 2.1 of the License, or (at your option) any later version.
  
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,18 +22,11 @@
  02111-1307 USA
  
  */
-
 #import <Foundation/Foundation.h>
-#import "BaseValueCacheable.h"
+#import "CsoundObj.h"
 
-@interface CachedSwitch : BaseValueCacheable
-    @property float cachedValue;
-    @property float *channelPtr;
-    @property (unsafe_unretained) NSString *channelName;
-    @property (unsafe_unretained) UISwitch *mSwitch;
+@interface CsoundLabelBinding : NSObject<CsoundDataBinding>
 
-
--(CachedSwitch*)init:(UISwitch *)uiSwitch
-         channelName:(NSString *)channelName;
+-(instancetype)initLabel:(UILabel *)label channelName:(NSString *)channelName;
 
 @end

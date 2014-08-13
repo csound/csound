@@ -469,7 +469,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                              root->right, typeTable);
       break;
     case '^':
-      strncpy(op, "pow", 80);
+      strncpy(op, "##pow", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;

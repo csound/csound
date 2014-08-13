@@ -58,8 +58,8 @@ typedef struct {
 
 @protocol CsoundValueCacheable <NSObject>
 - (void)setup:(CsoundObj*)csoundObj;
-- (void)cleanup;
 @optional
+- (void)cleanup;
 - (void)updateValuesFromCsound;
 - (void)updateValuesToCsound;
 @end
