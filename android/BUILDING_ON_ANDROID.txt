@@ -43,15 +43,15 @@ facility to set the environment variables that are used by the Android build:
 
 echo "Configure for Android/ARM, armeabi-v7a (ARMv7 VFP), Android 2.3.3)..."
 
-export SDK=/d/Android/adt-bundle-windows-x86-20130514/sdk
-export NDK=/d/Android/android-ndk-r9b
+export SDK=/d/android/adt-bundle-windows-x86-20140702
+export NDK=/d/Android/android-ndk-r10
 export ANDROID_NDK_ROOT=$NDK
-export CSOUND_HOME=/c/Users/new/csound-csound6-git
+export CSOUND_HOME=/c/Users/mike/csound-csound6-git
 export NDK_MODULE_PATH=${CSOUND_HOME}/android/pluginlibs
 export PATH=${PATH}:$NDK_MODULE_PATH
-export NDKABI=9
+export NDKABI=19
 export NDKVER=$NDK/toolchains/arm-linux-androideabi-4.8
-export NDKP=$NDKVER/prebuilt/windows/bin/arm-linux-androideabi-
+export NDKP=$NDKVER/prebuilt/windows-x86_64/bin/arm-linux-androideabi-
 export NDKF="--sysroot $NDK/platforms/android-$NDKABI/arch-arm"
 export NDKARCH="-march=armv7-a -mfloat-abi=softfp -Wl,--fix-cortex-a8"
 

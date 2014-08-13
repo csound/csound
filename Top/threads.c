@@ -211,7 +211,7 @@ PUBLIC uintptr_t csoundJoinThread(void *thread)
     }
 }
 
-#if !defined(ANDROID) && (defined(LINUX) || defined(__HAIKU__) || defined(WIN32))
+#if !defined(ANDROID) && (/*defined(LINUX) ||*/ defined(__HAIKU__) || defined(WIN32))
 
 PUBLIC void *csoundCreateThreadLock(void)
 {

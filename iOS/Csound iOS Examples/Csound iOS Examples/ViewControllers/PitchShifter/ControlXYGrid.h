@@ -1,10 +1,10 @@
 /* 
  
- CachedSlider.h:
+ ControlXYGrid.h:
  
- Copyright (C) 2014 Steven Yi, Aurelius Prochazka
+ Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
  
- This file is part of Csound for iOS.
+ This file is part of Csound iOS Examples.
  
  The Csound for iOS Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
@@ -23,18 +23,13 @@
  
  */
 
-#import <Foundation/Foundation.h>
-#import "BaseValueCacheable.h"
+#import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
-@interface CachedSlider : BaseValueCacheable {
-    float cachedValue;
-    float *channelPtr;
-}
+@interface ControlXYGrid : UIControl <CsoundDataBinding>
 
-@property (nonatomic, strong) NSString *channelName;
-@property (nonatomic, strong) UISlider *slider;
-
--(CachedSlider *)init:(UISlider*)slider channelName:(NSString *)channelName;
+@property (nonatomic, readwrite) Float32 xValue;
+@property (nonatomic, readwrite) Float32 yValue;
+@property (nonatomic, readwrite) CGFloat circleDiameter;
 
 @end

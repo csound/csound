@@ -370,8 +370,8 @@ public class CsoundObj {
 				cacheable.setup(this);
 			}
 
-			int channelConfig = (csound.GetNchnls() == 2) ? AudioFormat.CHANNEL_CONFIGURATION_STEREO
-					: AudioFormat.CHANNEL_CONFIGURATION_MONO;
+			int channelConfig = (csound.GetNchnls() == 2) ? AudioFormat.CHANNEL_OUT_STEREO
+					: AudioFormat.CHANNEL_OUT_MONO;
 
 			int channelInConfig = AudioFormat.CHANNEL_IN_MONO;
 
