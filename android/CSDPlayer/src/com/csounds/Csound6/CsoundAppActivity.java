@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -362,6 +363,8 @@ public class CsoundAppActivity extends Activity implements
 		} catch (NameNotFoundException e) {
 			e.printStackTrace();
 		}
+		final AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+		audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
 		PreferenceManager.setDefaultValues(this, R.xml.settings, false);
 		OPCODE6DIR = getBaseContext().getApplicationInfo().nativeLibraryDir;
 		SharedPreferences sharedPreferences = PreferenceManager
@@ -510,6 +513,10 @@ public class CsoundAppActivity extends Activity implements
 					// the page.
 					parseWebLayout();
 					postMessageClear("Csound is starting...\n");
+					String framesPerBuffer = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);	
+					postMessage("Android sample frames per audio buffer: " + framesPerBuffer + "\n");
+					String framesPerSecond = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);	
+					postMessage("Android sample frames per second: " + framesPerSecond + "\n");
 					// Make sure this stuff really got packaged.
 					String samples[] = null;
 					try {
