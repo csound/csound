@@ -38,7 +38,11 @@ void csoundDebuggerBreakpointReached(CSOUND *csound)
     bkpt_info.currentOpcode = csoundDebugGetCurrentOpcodeList(csound);
     bkpt_info.instrVarList = csoundDebugGetVariables(csound,
                                                      bkpt_info.breakpointInstr);
-    data->bkpt_cb(csound, &bkpt_info, data->cb_data);
+    if (data->bkpt_cb) {
+      data->bkpt_cb(csound, &bkpt_info, data->cb_data);
+    } else {
+      csoundMessage(csound, Str("Breakpoint callback not set. Breakpoint Reached."));
+    }
     // TODO: These free operations could be moved to a low priority context
     csoundDebugFreeInstrInstances(csound, bkpt_info.breakpointInstr);
     csoundDebugFreeInstrInstances(csound, bkpt_info.instrListHead);
@@ -57,6 +61,7 @@ PUBLIC void csoundDebuggerInit(CSOUND *csound)
     data->bkpt_anchor->next = NULL;
     data->debug_instr_ptr = NULL;
     data->debug_opcode_ptr = NULL;
+    data->bkpt_cb = NULL;
     data->status = CSDEBUG_STATUS_RUNNING;
     data->bkpt_buffer = csoundCreateCircularBuffer(csound,
                                                    64, sizeof(bkpt_node_t **));
@@ -104,8 +109,11 @@ PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int instr, int skip)
     }
     bkpt_node_t *newpoint =
       (bkpt_node_t *) csound->Malloc(csound, sizeof(bkpt_node_t));
-    newpoint->line = line - 1;
+    newpoint->line = line;
     newpoint->instr = instr;
+    if (instr != 0) {
+      newpoint->line--; /* hack! */
+    }
     newpoint->skip = skip;
     newpoint->count = skip;
     newpoint->mode = CSDEBUG_BKPT_LINE;
@@ -270,6 +278,12 @@ debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound)
     debug_instr->p3 = insds->p3.value;
     debug_instr->kcounter = insds->kcounter;
     debug_instr->next = NULL;
+    OPDS* opstart = (OPDS*) data->debug_instr_ptr;
+    if (opstart->nxtp) {
+      debug_instr->line = opstart->nxtp->optext->t.linenum;
+    } else {
+      debug_instr->line = 0;
+    }
     return debug_instr;
 }
 
@@ -351,54 +365,4 @@ PUBLIC void csoundDebugFreeVariables(CSOUND *csound, debug_variable_t *varHead)
         csound->Free(csound, oldvar);
     }
 }
-#ifndef __clang__
-inline
-#endif
-void processDebugCommands(CSOUND *csound, debug_command_t command,
-                          csdebug_data_t *data, void *ip_ptr)
-{
-    assert(data);
-    INSDS *ip = (INSDS *) ip_ptr;
-    if (command == CSDEBUG_CMD_STOP) {
-      data->debug_instr_ptr = ip;
-      data->status = CSDEBUG_STATUS_STOPPED;
-      csoundDebuggerBreakpointReached(csound);
-    }
-    csoundReadCircularBuffer(csound, data->cmd_buffer, &command, 1);
-    bkpt_node_t *bkpt_node;
-    while (csoundReadCircularBuffer(csound,
-                                    data->bkpt_buffer, &bkpt_node, 1) == 1) {
-      if (bkpt_node->mode == CSDEBUG_BKPT_CLEAR_ALL) {
-        bkpt_node_t *n;
-        while (data->bkpt_anchor->next) {
-          n = data->bkpt_anchor->next;
-          data->bkpt_anchor->next = n->next;
-          csound->Free(csound, n); /* TODO this should be moved from kperf to a
-                      non-realtime context */
-        }
-        csound->Free(csound, bkpt_node);
-      } else if (bkpt_node->mode == CSDEBUG_BKPT_DELETE) {
-        bkpt_node_t *n = data->bkpt_anchor->next;
-        bkpt_node_t *prev = data->bkpt_anchor;
-        while (n) {
-          if (n->line == bkpt_node->line && n->instr == bkpt_node->instr) {
-            prev->next = n->next;
-            csound->Free(csound, n); /* TODO this should be moved from kperf to a
-                        non-realtime context */
-            n = prev->next;
-            continue;
-          }
-          prev = n;
-          n = n->next;
-        }
-        csound->Free(csound, bkpt_node); /* TODO move to non rt context */
-      } else {
-          // FIXME sort list to optimize
-          bkpt_node->next = data->bkpt_anchor->next;
-          data->bkpt_anchor->next = bkpt_node;
-      }
-    }
-    if (command == CSDEBUG_CMD_CONTINUE && data->status == CSDEBUG_STATUS_STOPPED) {
-      data->status = CSDEBUG_STATUS_CONTINUE;
-    }
-}
+
