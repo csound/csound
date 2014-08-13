@@ -105,7 +105,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 
 if(NOT APPLE)
-  set_target_properties(${MAX_OUBPUT_LIB} 
+  set_target_properties(${MAX_OUTPUT_LIB} 
 	  PROPERTIES LINK_FLAGS "-static-libc++ -static-libgcc")
 
 endif()
