@@ -89,6 +89,7 @@ int pnum(char *s)        /* check a char string for pnum format  */
     return(-1);
 }
 
+#if 0
 static int argCount(ARG* arg)
 {
     int retVal = -1;
@@ -101,6 +102,7 @@ static int argCount(ARG* arg)
     }
     return retVal;
 }
+#endif
 
 /* get size of string in MYFLT units */
 static inline int strlen_to_samples(const char *s)
