@@ -151,26 +151,32 @@ std::ostream &operator << (std::ostream &stream, const EVTBLK &a)
   }
   return stream;
 }
-/*
 
-  bool operator < (const EVTBLK &a, const EVTBLK &b)
-  {
+/*
+bool operator < (const EVTBLK &a, const EVTBLK &b)
+{
   //std::cerr << "comparing: " << a << " to: " << b << std::endl;
   if (a.opcod < b.opcod) {
-  return true;
+    return true;
   }
   size_t n = std::min(a.pcnt, b.pcnt);
   for (size_t i = 0; i < n; i++) {
-  if (a.p[i] < b.p[i]) {
-  return true;
-  }
+    if (ISSTRCOD(a.p[i]) && ISSTRCOD(a.p[i])) {
+        if (std::strcmp(a.strarg, b.strarg) < 0) {
+            return true;
+        }
+    }
+    if (a.p[i] < b.p[i]) {
+        return true;
+    }
   }
   if (a.pcnt < b.pcnt) {
-  return true;
+    return true;
   }
   return false;
-  }
+}
 */
+
 /**
  * A wrapper to get proper C++ value
  * semantics for a map key.
@@ -197,12 +203,22 @@ struct EventBlock {
     return *this;
   }
   bool operator < (const EventBlock &other) const {
-    int comparison = std::memcmp(&evtblk, &other.evtblk, sizeof(EVTBLK));
-    if (comparison < 0) {
-      return true;
-    } else {
+      int count = std::min(evtblk.pcnt, other.evtblk.pcnt);
+      for (int i = 0; i < count; ++i) {
+        if (evtblk.p[i] < other.evtblk.p[i]) {
+            return true;
+        }
+      }
+      if (evtblk.pcnt < other.evtblk.pcnt) {
+          return true;
+      }
+      if (evtblk.strarg != 0 && other.evtblk.strarg != 0) {
+          int result = std::strcmp(evtblk.strarg, other.evtblk.strarg);
+          if (result < 0) {
+              return true;
+          }
+      }
       return false;
-    }
   }
 };
 
