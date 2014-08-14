@@ -104,6 +104,12 @@ include_directories(${MSP_INCLUDES_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
 
+if(NOT APPLE)
+  set_target_properties(${MAX_OUTPUT_LIB} 
+	  PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc")
+
+endif()
+
 if(APPLE)
 
 include_directories(${CORE_SERVICES_FRAMEWORK}/Frameworks/CarbonCore.framework/Headers)
