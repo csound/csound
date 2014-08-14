@@ -1,8 +1,8 @@
 /* 
  
- CachedAccelerometer.h:
+ CsoundButtonBinding.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound for iOS.
  
@@ -22,19 +22,11 @@
  02111-1307 USA
  
  */
-
 #import <Foundation/Foundation.h>
-#import "BaseValueCacheable.h"
-#import <CoreMotion/Coremotion.h>
+#import "CsoundObj.h"
 
-@interface CachedAccelerometer : BaseValueCacheable<UIAccelerometerDelegate> {
-    float* channelPtrX;
-    float* channelPtrY;
-    float* channelPtrZ;
-        
-    CMMotionManager* manager;
-}
+@interface CsoundButtonBinding : NSObject<CsoundDataBinding>
 
--(id)init:(CMMotionManager *)manager;
+-(instancetype)initButton:(UIButton *)button channelName:(NSString *)channelName;
 
 @end
