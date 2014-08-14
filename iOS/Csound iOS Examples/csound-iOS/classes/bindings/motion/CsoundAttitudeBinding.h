@@ -1,6 +1,6 @@
 /* 
  
- CachedButton.h:
+ CsoundAttitudeBinding.h:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -22,18 +22,13 @@
  02111-1307 USA
  
  */
+
 #import <Foundation/Foundation.h>
-#import "BaseValueCacheable.h"
+#import <CoreMotion/CoreMotion.h>
 #import "CsoundObj.h"
 
-@interface CachedButton : BaseValueCacheable {
-    float cachedValue;
-    float* channelPtr;
-}
+@interface CsoundAttitudeBinding : NSObject<CsoundDataBinding>
 
-@property (nonatomic, strong) NSString *channelName;
-@property (nonatomic, strong) UIButton *button;
-
--(CachedButton*)init:(UIButton *)button channelName:(NSString *)channelName;
+-(id)init:(CMMotionManager *)manager;
 
 @end

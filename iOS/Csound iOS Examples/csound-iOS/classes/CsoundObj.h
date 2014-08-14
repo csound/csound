@@ -51,15 +51,15 @@ typedef struct {
 } Message;
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Protocols (Cacheable Values and Listeners)
+#  pragma mark - Protocols (Data Bindings and Listeners)
 // -----------------------------------------------------------------------------
 
 @class CsoundObj;
 
-@protocol CsoundValueCacheable <NSObject>
+@protocol CsoundDataBinding <NSObject>
 - (void)setup:(CsoundObj*)csoundObj;
-- (void)cleanup;
 @optional
+- (void)cleanup;
 - (void)updateValuesFromCsound;
 - (void)updateValuesToCsound;
 @end
@@ -98,12 +98,12 @@ typedef struct {
 
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Value Cache
+#  pragma mark - Data Binding
 // -----------------------------------------------------------------------------
 
-@property (nonatomic, strong) NSMutableArray *valuesCache;
-- (void)addValueCacheable:(id<CsoundValueCacheable>)valueCacheable;
-- (void)removeValueCaheable:(id<CsoundValueCacheable>)valueCacheable;
+@property (nonatomic, strong) NSMutableArray *dataBindings;
+- (void)addDataBinding:(id<CsoundDataBinding>)dataBinding;
+- (void)removeDataBinding:(id<CsoundDataBinding>)dataBinding;
 
 // -----------------------------------------------------------------------------
 #  pragma mark - Listeners and Messages
