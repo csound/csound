@@ -797,6 +797,21 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
     return make_leaf(csound, -1, 0, LABEL_TOKEN, make_label(csound, label));
 }
 
+void handle_negative_number(CSOUND* csound, TREE* root) {
+  if (root->type == S_UMINUS &&
+      (root->right->type == INTEGER_TOKEN || root->right->type == NUMBER_TOKEN)) {
+    int len = strlen(root->right->value->lexeme);
+    char* negativeNumber = csound->Malloc(csound, len + 2);
+    negativeNumber[0] = '-';
+    strcpy(negativeNumber + 1, root->right->value->lexeme);
+    negativeNumber[len + 2] = '\0';
+    root->type = root->right->type;
+    root->value = root->right->type == INTEGER_TOKEN ?
+      make_int(csound, negativeNumber) : make_num(csound, negativeNumber);
+    root->value->lexeme = negativeNumber;
+  }
+}
+
 /* returns the head of a list of TREE* nodes, expanding all RHS
    expressions into statements prior to the original statement line,
    and LHS expressions (array sets) after the original statement
@@ -819,6 +834,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
         TREE *newArgTree;
         TREE *expressionNodes;
         int is_bool = 0;
+        handle_negative_number(csound, currentArg);
         if (is_expression_node(currentArg) ||
             (is_bool = is_boolean_expression_node(currentArg))) {
             char * newArg;
