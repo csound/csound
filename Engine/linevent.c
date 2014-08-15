@@ -39,7 +39,7 @@
 # endif
 #endif
 
-//#define LBUFSIZ   32768
+#define LBUFSIZ1 32768
 #define LF        '\n'
 
 /* typedef struct { */
@@ -60,7 +60,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     /* csound->lineventGlobals = (LINEVENT_GLOBALS*) */
     /*                            csound->Calloc(csound, */
     /*                            sizeof(LINEVENT_GLOBALS)); */
-    STA(linebufsiz) = LBUFSIZ;
+    STA(linebufsiz) = LBUFSIZ1;
     STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
@@ -145,9 +145,11 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
       STA(Linebuf) = (char *) csound->ReAlloc(csound,
                                               (void *) STA(Linebuf), reallocsize);
       STA(linebufsiz) = reallocsize;
+      // csound->Message(csound, "realloc: %d\n", reallocsize);
       STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
+      STA(Linep) = STA(Linebuf);
     } else if (STA(Linebuf)==NULL) {
-       STA(linebufsiz) = LBUFSIZ;
+       STA(linebufsiz) = LBUFSIZ1;
        STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
     }
     if(STA(Linebuf) == NULL) return 1;
@@ -181,7 +183,8 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       int extralloc = STA(Linep) + size - STA(Linebufend);
-      if ((n=linevent_alloc(csound, STA(linebufsiz) + extralloc ), 0) != 0) {
+      // csound->Message(csound, "extralloc: %d %d %d\n", extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
+      if ((n=linevent_alloc(csound, (STA(linebufsiz) + extralloc) ), 0) != 0) {
         csoundErrorMsg(csound, Str("LineBuffer Overflow - "
                                    "Input Data has been Lost"));
         return;
