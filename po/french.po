@@ -1117,9 +1117,8 @@ msgid "stdmode = %.8x Linefd = %d\n"
 msgstr "stdmode = %.8x Linefd = %d\n"
 
 #: Engine/linevent.c:121
-#, fuzzy
 msgid "Failed to set file status\n"
-msgstr "L'ouverture du fichier de sortie %s a échoué\n"
+msgstr "Echec de la fixation de l'état du fichier\n"
 
 #: Engine/linevent.c:185
 msgid "LineBuffer Overflow - Input Data has been Lost"
@@ -4274,9 +4273,9 @@ msgstr ""
 "erreur - le paramètre n de tfr a plus de 15 facteurs : %d"
 
 #: OOps/mxfft.c:939
-#, fuzzy, c-format
+#, c-format
 msgid "csoundRealFFTnp2(): invalid FFT size, %d"
-msgstr "csoundRealFFTnp2() : taille de TFR non valide"
+msgstr "csoundRealFFTnp2() : taille de TFR non valide, %d"
 
 #: OOps/mxfft.c:962 OOps/mxfft.c:974
 msgid "csoundInverseRealFFTnp2(): invalid FFT size"
@@ -4881,7 +4880,6 @@ msgid "created socket \n"
 msgstr "socket créé \n"
 
 #: OOps/remote.c:349
-#, fuzzy
 msgid "setting socket option to reuse the address\n"
 msgstr "réglage de l'option du socket pour réutiliser l'adresse \n"
 
@@ -5974,9 +5972,8 @@ msgid "map fn not found at k rate"
 msgstr "fn de map introuvable au taux-k"
 
 #: Opcodes/arrays.c:1562 Opcodes/arrays.c:1595 Opcodes/arrays.c:1622
-#, fuzzy
 msgid "non-pow-of-two case not implemented yet\n"
-msgstr "SDFT pas encore implémentée"
+msgstr "non puissance de deux pas encore implémentée\n"
 
 #: Opcodes/babo.c:743
 #, c-format
@@ -6116,7 +6113,7 @@ msgstr "La lecture de /proc/stat a échoué"
 
 #: Opcodes/cross2.c:318
 msgid "cross2: length must be at least 1"
-msgstr ""
+msgstr "cross2 : la longueur doit valoir au moins 1"
 
 #: Opcodes/crossfm.c:34
 msgid "crossfm: ftable not found"
@@ -8800,9 +8797,8 @@ msgid "sendto failed"
 msgstr "sendto a échoué"
 
 #: Opcodes/socksend.c:215
-#, fuzzy
 msgid "string truncated in socksend"
-msgstr "    Chaîne tronquée\n"
+msgstr "chaîne tronquée dans socksend"
 
 #: Opcodes/socksend.c:374
 #, c-format
@@ -10603,16 +10599,20 @@ msgstr "cscoreFileGetCurrent : pas de pointeur de fichier courant"
 msgid ""
 "csoundSetBreakpoint: cannot set breakpoint. Debugger is not initialized."
 msgstr ""
+"csoundSetBreakpoint : impossible de fixer le point d'arrêt. "
+"Le débogueur n'est pas initialisé."
 
 #: Top/csdebug.c:102
 msgid "csoundSetBreakpoint: line > 0 for breakpoint."
-msgstr ""
+msgstr "csoundSetBreakpoint : ligne > 0 pour un point d'arrêt."
 
 #: Top/csdebug.c:120 Top/csdebug.c:140
 msgid ""
 "csoundRemoveBreakpoint: cannot remove breakpoint. Debugger is not "
 "initialized."
 msgstr ""
+"csoundRemoveBreakpoint : impossible d'enlever le point d'arrêt. "
+"Le débogueur n'est pas initialisé."
 
 #: Top/csdebug.c:125
 msgid "Negative line for breakpoint invalid."
@@ -12416,19 +12416,16 @@ msgstr ""
 "traduction du fichier texte en fichier de codage de prédiction linéaire"
 
 #: util/lpci_main.c:84
-#, fuzzy
 msgid "memory allocation failure\n"
-msgstr "échec de l'allocation mémoire"
+msgstr "échec de l'allocation mémoire\n"
 
 #: util/lpci_main.c:90
-#, fuzzy
 msgid "Ill formed data\n"
-msgstr "Fichier CV non conforme\n"
+msgstr "Données non conformes\n"
 
 #: util/lpcx_main.c:82
-#, fuzzy
 msgid "corrupt header\n"
-msgstr "impossible d'écrire l'en-tête"
+msgstr "en-tête altéré\n"
 
 #: util/mixer.c:48
 #, c-format
@@ -13025,9 +13022,8 @@ msgstr ""
 "temporelle"
 
 #: util/srconv.c:383
-#, fuzzy
 msgid "srconv: tvlen <= 0 "
-msgstr "srconv : tvlen = 0 "
+msgstr "srconv : tvlen <= 0 "
 
 #: util/srconv.c:397
 msgid "srconv: too few x-y pairs in time-vary function file"

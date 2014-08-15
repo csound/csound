@@ -437,7 +437,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     MYFLT frac0, frac1, *etab;
     int loop_end = p->lend, loop_start = p->lstart,
       crossfade = p->cfade, len;
-    MYFLT count = p->count,fadein, fadeout;
+    MYFLT count = p->count, fadein, fadeout;
     int *firsttime = &p->firsttime, elen, mode=p->mode,
         init = p->init, ijump = *p->ijump;
     uint32 tndx0, tndx1;
@@ -484,7 +484,6 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
       if(*p->crossfade > 0.0)
        crossfade = (int) (*p->crossfade*sr);
       p->ostart = *p->loop_start; p->oend = *p->loop_end;
-
       if (mode == 1) {
         ndx[0] = (double) loop_end;
         ndx[1] = (double) loop_end;
@@ -494,6 +493,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
       else if (mode == 2) {
         ndx[1] = (double) loop_start - FL(1.0);
         p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
+        
       }
       else {
         ndx[1] = (double) loop_start;
@@ -575,14 +575,14 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           out[i] += amp*fadein*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
           ndx[0] += pitch;
           count  += pitch;
-        }
+        } 
         else if (ndx[0] < loop_end - crossfade) {
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
           out[i] = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
           ndx[0] += pitch;
           init = 0;
-          if (ndx[0] >= loop_end - crossfade) {
+          if (ndx[0] >= loop_end - crossfade) { 
             ndx[1] = (double) loop_end;
             count = 0;
           }
@@ -610,10 +610,10 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           frac1 = ndx[1] - tndx1;
           out[i] = amp*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
           ndx[1] -= pitch;
-          if (ndx[1] <= loop_start + crossfade) {
+	 if (ndx[1] <= loop_start + crossfade) {
             ndx[0] = (double) loop_start;
-            count = 0;
-          }
+            count = 0;    
+	  }   
         }
         else if (ndx[1] > loop_start) {
           if (etab==NULL) fadeout = FL(1.0) - count/crossfade;
@@ -637,6 +637,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
               loopsize/2-1 : crossfade;
             p->oend = *p->loop_end;
             p->ostart = *p->loop_start;
+            ndx[0] = (double) loop_start;
+            count = 0;
           }
         }
       }

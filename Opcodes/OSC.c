@@ -106,7 +106,7 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     char port[8];
     char *pp = port;
     char *hh;
-    int i;
+    unsigned int i;
 
     /* with too many args, XINCODE may not work correctly */
     if (UNLIKELY(p->INOCOUNT > 31))
