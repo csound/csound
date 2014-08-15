@@ -52,7 +52,7 @@
     CsoundLabelBinding *labelBinding;
     labelBinding = [[CsoundLabelBinding alloc] initLabel:uiLabel
                                              channelName:channelName];
-    [csoundObj addDataBinding:labelBinding];
+    [csoundObj addBinding:labelBinding];
 }
 
 
@@ -62,7 +62,7 @@
     CsoundButtonBinding *buttonBinding;
     buttonBinding = [[CsoundButtonBinding alloc] initButton:uiButton
                                                 channelName:channelName];
-    [csoundObj addDataBinding:buttonBinding];
+    [csoundObj addBinding:buttonBinding];
 }
 
 - (void)addSlider:(UISlider *)uiSlider
@@ -71,7 +71,7 @@
     CsoundSliderBinding *sliderBinding;
     sliderBinding = [[CsoundSliderBinding alloc] initSlider:uiSlider
                                                 channelName:channelName];
-    [csoundObj addDataBinding:sliderBinding];
+    [csoundObj addBinding:sliderBinding];
 }
 
 - (void)addSwitch:(UISwitch *)uiSwitch
@@ -80,7 +80,7 @@
     CsoundSwitchBinding *switchBinding;
     switchBinding = [[CsoundSwitchBinding alloc] initSwitch:uiSwitch
                                                 channelName:channelName];
-    [csoundObj addDataBinding:switchBinding];
+    [csoundObj addBinding:switchBinding];
 }
 
 - (void)addMomentaryButton:(UIButton *)uiButton
@@ -89,7 +89,7 @@
     CsoundMomentaryButtonBinding *momentaryButtonBinding;
     momentaryButtonBinding = [[CsoundMomentaryButtonBinding alloc] initButton:uiButton
                                                                   channelName:channelName];
-    [csoundObj addDataBinding:momentaryButtonBinding];
+    [csoundObj addBinding:momentaryButtonBinding];
 }
 
 

@@ -26,7 +26,7 @@
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface CsoundSliderBinding : NSObject<CsoundDataBinding> 
+@interface CsoundSliderBinding : NSObject<CsoundBinding> 
 
 -(instancetype)initSlider:(UISlider*)slider channelName:(NSString *)channelName;
 
