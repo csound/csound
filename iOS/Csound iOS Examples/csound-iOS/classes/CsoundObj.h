@@ -51,13 +51,13 @@ typedef struct {
 } Message;
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Protocols (Data Bindings and Listeners)
+#  pragma mark - Protocols (Bindings and Listeners)
 // -----------------------------------------------------------------------------
 
 @class CsoundObj;
 
 @protocol CsoundBinding <NSObject>
-- (void)setup:(CsoundObj*)csoundObj;
+- (void)setup:(CsoundObj *)csoundObj;
 @optional
 - (void)cleanup;
 - (void)updateValuesFromCsound;
