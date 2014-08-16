@@ -145,9 +145,9 @@
 	count++;
 }
 
-#pragma mark - Csound Data Binding
+#pragma mark - Csound Binding
 
--(void)setup:(CsoundObj*)csoundObj
+-(void)setup:(CsoundObj *)csoundObj
 {
 	channelPtr = [csoundObj getOutputChannelPtr:self.channelName channelType:CSOUND_AUDIO_CHANNEL];
 	CSOUND *cs = [csoundObj getCsound];

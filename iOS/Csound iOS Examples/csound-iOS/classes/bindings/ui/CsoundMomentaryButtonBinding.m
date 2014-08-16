@@ -36,10 +36,6 @@
 
 @implementation CsoundMomentaryButtonBinding
 
--(void)updateChannelValue:(id)sender {
-    channelValue = 1;
-}
-
 -(instancetype)initButton:(UIButton *)button channelName:(NSString *)channelName
 {
     if (self = [super init]) {
@@ -49,8 +45,11 @@
     return self;
 }
 
+-(void)updateChannelValue:(id)sender {
+    channelValue = 1;
+}
 
--(void)setup:(CsoundObj*)csoundObj
+-(void)setup:(CsoundObj *)csoundObj
 {
     channelValue = self.button.selected ? 1 : 0;
     channelPtr = [csoundObj getInputChannelPtr:self.channelName

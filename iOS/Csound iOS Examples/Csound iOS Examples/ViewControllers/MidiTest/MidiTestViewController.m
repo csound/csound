@@ -99,12 +99,12 @@
 
 #pragma mark CsoundVirtualKeyboardDelegate
 
--(void)keyUp:(CsoundVirtualKeyboard*)keybd keyNum:(int)keyNum {
+-(void)keyUp:(CsoundVirtualKeyboard *)keybd keyNum:(int)keyNum {
 	int midikey = 60 + keyNum;
 	[self.csound sendScore:[NSString stringWithFormat:@"i-1.%003d 0 0", midikey]];
 }
 
--(void)keyDown:(CsoundVirtualKeyboard*)keybd keyNum:(int)keyNum {
+-(void)keyDown:(CsoundVirtualKeyboard *)keybd keyNum:(int)keyNum {
 	int midikey = 60 + keyNum;
 	[self.csound sendScore:[NSString stringWithFormat:@"i1.%003d 0 -2 %d 0", midikey, midikey]];
 }

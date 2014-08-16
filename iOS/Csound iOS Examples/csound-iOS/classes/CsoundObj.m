@@ -284,7 +284,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 	return value;
 }
 
-- (NSData*)getOutSamples {
+- (NSData *)getOutSamples {
     if (!mCsData.running) {
         return nil;
     }

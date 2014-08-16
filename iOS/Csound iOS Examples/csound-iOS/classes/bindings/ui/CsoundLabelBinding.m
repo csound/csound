@@ -45,7 +45,7 @@
 }
 
 
--(void)setup:(CsoundObj*)csoundObj
+-(void)setup:(CsoundObj *)csoundObj
 {
     channelPtr = [csoundObj getOutputChannelPtr:self.channelName
                                     channelType:CSOUND_CONTROL_CHANNEL];

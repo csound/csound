@@ -37,10 +37,6 @@
 
 @implementation CsoundSliderBinding
 
--(void)updateChannelValue:(id)sender {
-    channelValue = ((UISlider *)sender).value;
-}
-
 -(instancetype)initSlider:(UISlider *)slider channelName:(NSString *)channelName
 {
     if (self = [super init]) {
@@ -48,6 +44,10 @@
         self.channelName = channelName;
     }
     return self;
+}
+
+-(void)updateChannelValue:(id)sender {
+    channelValue = ((UISlider *)sender).value;
 }
 
 -(void)setup:(CsoundObj *)csoundObj
