@@ -35,7 +35,7 @@
 }
 
 
--(void)setValueSelector:(NSNumber*)value {
+-(void)setValueSelector:(NSNumber *)value {
     [mSlider setValue:[value floatValue] animated:YES];
     [mSlider sendActionsForControlEvents:UIControlEventValueChanged];
 

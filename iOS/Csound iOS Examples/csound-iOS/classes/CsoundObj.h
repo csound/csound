@@ -66,8 +66,8 @@ typedef struct {
 
 @protocol CsoundObjListener <NSObject>
 @optional
-- (void)csoundObjStarted:(CsoundObj*)csoundObj;
-- (void)csoundObjCompleted:(CsoundObj*)csoundObj;
+- (void)csoundObjStarted:(CsoundObj *)csoundObj;
+- (void)csoundObjCompleted:(CsoundObj *)csoundObj;
 @end
 
 // -----------------------------------------------------------------------------
@@ -98,7 +98,7 @@ typedef struct {
 
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Data Binding
+#  pragma mark - Binding
 // -----------------------------------------------------------------------------
 
 @property (nonatomic, strong) NSMutableArray *bindings;

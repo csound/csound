@@ -97,7 +97,7 @@
 	return -1;
 }
 
-- (int) getTouchId:(UITouch*)touch {
+- (int) getTouchId:(UITouch *)touch {
 	for (int i = 0; i < 10; i++) {
 		if (touchArray[i] == touch) {
 			return i;
