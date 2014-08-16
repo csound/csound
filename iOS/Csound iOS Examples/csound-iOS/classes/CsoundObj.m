@@ -154,7 +154,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 }
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Data Bindings
+#  pragma mark - Bindings
 // -----------------------------------------------------------------------------
 
 - (void)addBinding:(id<CsoundBinding>)binding
