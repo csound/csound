@@ -58,9 +58,9 @@
 }
 
 
-#pragma mark Csound Data Binding
+#pragma mark Csound Binding
 
--(void)setup:(CsoundObj*)csoundObj {
+-(void)setup:(CsoundObj *)csoundObj {
 
 	for (int i = 0; i < 10; i++) {
 		touchXPtr[i] = [csoundObj getInputChannelPtr:[NSString stringWithFormat:@"touch.%d.x", i, nil]
