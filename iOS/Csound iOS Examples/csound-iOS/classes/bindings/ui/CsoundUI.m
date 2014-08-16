@@ -56,8 +56,7 @@
 }
 
 
-- (void)addButton:(UIButton *)uiButton
-   forChannelName:(NSString *)channelName
+- (void)addButton:(UIButton *)uiButton forChannelName:(NSString *)channelName
 {
     CsoundButtonBinding *buttonBinding;
     buttonBinding = [[CsoundButtonBinding alloc] initButton:uiButton
@@ -65,8 +64,7 @@
     [csoundObj addBinding:buttonBinding];
 }
 
-- (void)addSlider:(UISlider *)uiSlider
-   forChannelName:(NSString *)channelName
+- (void)addSlider:(UISlider *)uiSlider forChannelName:(NSString *)channelName
 {
     CsoundSliderBinding *sliderBinding;
     sliderBinding = [[CsoundSliderBinding alloc] initSlider:uiSlider
@@ -74,8 +72,7 @@
     [csoundObj addBinding:sliderBinding];
 }
 
-- (void)addSwitch:(UISwitch *)uiSwitch
-   forChannelName:(NSString *)channelName
+- (void)addSwitch:(UISwitch *)uiSwitch forChannelName:(NSString *)channelName
 {
     CsoundSwitchBinding *switchBinding;
     switchBinding = [[CsoundSwitchBinding alloc] initSwitch:uiSwitch
@@ -83,8 +80,7 @@
     [csoundObj addBinding:switchBinding];
 }
 
-- (void)addMomentaryButton:(UIButton *)uiButton
-            forChannelName:(NSString *)channelName
+- (void)addMomentaryButton:(UIButton *)uiButton forChannelName:(NSString *)channelName
 {
     CsoundMomentaryButtonBinding *momentaryButtonBinding;
     momentaryButtonBinding = [[CsoundMomentaryButtonBinding alloc] initButton:uiButton

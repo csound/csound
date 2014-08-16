@@ -47,7 +47,7 @@ static NSString *CS_ATTITUDE_YAW   = @"attitudeYaw";
     return self;
 }
 
--(void)setup:(CsoundObj*)csoundObj {
+-(void)setup:(CsoundObj *)csoundObj {
     channelPtrRoll = [csoundObj getInputChannelPtr:CS_ATTITUDE_ROLL
                                        channelType:CSOUND_CONTROL_CHANNEL];
     channelPtrPitch = [csoundObj getInputChannelPtr:CS_ATTITUDE_PITCH
