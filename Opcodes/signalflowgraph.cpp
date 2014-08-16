@@ -152,30 +152,38 @@ std::ostream &operator << (std::ostream &stream, const EVTBLK &a)
   return stream;
 }
 
-/*
 bool operator < (const EVTBLK &a, const EVTBLK &b)
 {
-  //std::cerr << "comparing: " << a << " to: " << b << std::endl;
+  // std::cerr << "comparing: " << a << " to: " << b << std::endl;
   if (a.opcod < b.opcod) {
     return true;
   }
   size_t n = std::min(a.pcnt, b.pcnt);
-  for (size_t i = 0; i < n; i++) {
+  char *stringA = a.strarg;
+  char *stringB = b.strarg;
+  int stringsCount = std::min(a.scnt, b.scnt);
+  for (size_t i = 0, stringCount = 0; i < n; i++) {
     if (ISSTRCOD(a.p[i]) && ISSTRCOD(a.p[i])) {
-        if (std::strcmp(a.strarg, b.strarg) < 0) {
+        stringCount++;
+        if (std::strcmp(stringA, stringB) < 0) {
             return true;
         }
-    }
-    if (a.p[i] < b.p[i]) {
+        if (stringCount < stringsCount) {
+            stringA += strnlen(stringA, SSTRSIZ);
+            stringB += strnlen(stringB, SSTRSIZ);
+        }
+    } else if (a.p[i] < b.p[i]) {
         return true;
     }
   }
   if (a.pcnt < b.pcnt) {
     return true;
   }
+  if (a.scnt < b.scnt) {
+    return true;
+  }
   return false;
 }
-*/
 
 /**
  * A wrapper to get proper C++ value
@@ -203,22 +211,7 @@ struct EventBlock {
     return *this;
   }
   bool operator < (const EventBlock &other) const {
-      int count = std::min(evtblk.pcnt, other.evtblk.pcnt);
-      for (int i = 0; i < count; ++i) {
-        if (evtblk.p[i] < other.evtblk.p[i]) {
-            return true;
-        }
-      }
-      if (evtblk.pcnt < other.evtblk.pcnt) {
-          return true;
-      }
-      if (evtblk.strarg != 0 && other.evtblk.strarg != 0) {
-          int result = std::strcmp(evtblk.strarg, other.evtblk.strarg);
-          if (result < 0) {
-              return true;
-          }
-      }
-      return false;
+      return evtblk < other.evtblk;
   }
 };
 
