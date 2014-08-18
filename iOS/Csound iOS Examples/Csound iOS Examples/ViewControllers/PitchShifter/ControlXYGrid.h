@@ -26,7 +26,7 @@
 #import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
-@interface ControlXYGrid : UIControl <CsoundDataBinding>
+@interface ControlXYGrid : UIControl <CsoundBinding>
 
 @property (nonatomic, readwrite) Float32 xValue;
 @property (nonatomic, readwrite) Float32 yValue;

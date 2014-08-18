@@ -291,13 +291,13 @@
 			path = ConsoleOutput;
 			sourceTree = "<group>";
 		};
-		C486A128198BA8DB00E19281 /* Data Bindings */ = {
+		C486A128198BA8DB00E19281 /* Bindings */ = {
 			isa = PBXGroup;
 			children = (
 				C486A129198BA8DB00E19281 /* Device Motion */,
 				C486A132198BA8DB00E19281 /* User Interface */,
 			);
-			name = "Data Bindings";
+			name = Bindings;
 			path = bindings;
 			sourceTree = "<group>";
 		};
@@ -620,7 +620,7 @@
 			children = (
 				F6B6477E14D353D2005F786B /* CsoundObj.h */,
 				F6B6477F14D353D2005F786B /* CsoundObj.m */,
-				C486A128198BA8DB00E19281 /* Data Bindings */,
+				C486A128198BA8DB00E19281 /* Bindings */,
 				F6B6478014D353D2005F786B /* midi */,
 			);
 			path = classes;

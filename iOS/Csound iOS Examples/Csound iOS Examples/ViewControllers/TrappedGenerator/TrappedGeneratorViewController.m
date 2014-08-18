@@ -55,10 +55,10 @@
 #pragma mark CsoundObjListener
 
 
--(void)csoundObjStarted:(CsoundObj*)csoundObj {
+-(void)csoundObjStarted:(CsoundObj *)csoundObj {
 }
 
--(void)csoundObjCompleted:(CsoundObj*)csoundObj {
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
     
     NSString *title = @"Render Complete";
     NSString *message = @"File generated as trapped.wav in application Documents Folder";

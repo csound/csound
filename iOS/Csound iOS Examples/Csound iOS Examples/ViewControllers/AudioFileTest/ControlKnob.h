@@ -28,7 +28,7 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import "CsoundObj.h"
 
-@interface ControlKnob : UIControl <CsoundDataBinding>
+@interface ControlKnob : UIControl <CsoundBinding>
 
 @property (nonatomic, readwrite, setter = setValue:) Float32 value;
 @property (nonatomic, readwrite) Float32 defaultValue;
