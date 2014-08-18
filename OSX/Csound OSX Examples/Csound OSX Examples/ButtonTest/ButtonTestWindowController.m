@@ -56,7 +56,7 @@
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         
-        [csoundUI addButton:self.valueButton forChannelName:@"button1"];
+        [csoundUI addMomentaryButton:self.valueButton forChannelName:@"button1"];
         
         [csoundUI addSlider:_durationSlider forChannelName:@"duration"];
         [csoundUI addSlider:_attackSlider   forChannelName:@"attack"];

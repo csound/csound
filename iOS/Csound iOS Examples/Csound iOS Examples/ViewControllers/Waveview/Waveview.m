@@ -75,7 +75,7 @@
 	}
 }
 
-- (void)setup:(CsoundObj*)csoundObj
+- (void)setup:(CsoundObj *)csoundObj
 {
 	tableLoaded = NO;
 	csObj = csoundObj;
