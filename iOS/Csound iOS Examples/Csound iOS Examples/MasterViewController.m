@@ -252,14 +252,14 @@
 //	    }
 //        [self.navigationController pushViewController:self.detailViewController animated:YES];
         [self.navigationController pushViewController:controller animated:YES];
-        [(UITableView*)self.view deselectRowAtIndexPath:indexPath animated:YES];
+        [(UITableView *)self.view deselectRowAtIndexPath:indexPath animated:YES];
         
     } else {
         
-        AppDelegate* appDelegate = [UIApplication sharedApplication].delegate;
-        UISplitViewController* splitViewController = appDelegate.splitViewController;
+        AppDelegate *appDelegate = [UIApplication sharedApplication].delegate;
+        UISplitViewController *splitViewController = appDelegate.splitViewController;
         
-        BaseCsoundViewController* currentDetail = (BaseCsoundViewController*)splitViewController.delegate;
+        BaseCsoundViewController *currentDetail = (BaseCsoundViewController *)splitViewController.delegate;
         
         if(currentDetail.navigationItem.leftBarButtonItem != nil) {
             controller.navigationItem.leftBarButtonItem = currentDetail.navigationItem.leftBarButtonItem;
