@@ -23,6 +23,7 @@
  02111-1307 USA
  
  */
+
 #import "CsoundButtonBinding.h"
 
 @interface CsoundButtonBinding () {
@@ -36,14 +37,6 @@
 
 @implementation CsoundButtonBinding
 
--(void)updateChannelValueButtonIsDown:(id)sender {
-    channelValue = 1;
-}
-
--(void)updateChannelValueButtonIsUp:(id)sender {
-    channelValue = 0;
-}
-
 -(instancetype)initButton:(UIButton *)button channelName:(NSString *)channelName
 {
     if (self = [super init]) {
@@ -53,8 +46,15 @@
     return self;
 }
 
+-(void)updateChannelValueButtonIsDown:(id)sender {
+    channelValue = 1;
+}
 
--(void)setup:(CsoundObj*)csoundObj
+-(void)updateChannelValueButtonIsUp:(id)sender {
+    channelValue = 0;
+}
+
+-(void)setup:(CsoundObj *)csoundObj
 {
     channelValue = self.button.selected ? 1 : 0;
     channelPtr = [csoundObj getInputChannelPtr:self.channelName

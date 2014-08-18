@@ -26,10 +26,8 @@
 #import "CsoundUI.h"
 
 #import "CsoundButtonBinding.h"
-#import "CsoundLabelBinding.h"
 #import "CsoundMomentaryButtonBinding.h"
 #import "CsoundSliderBinding.h"
-#import "CsoundSwitchBinding.h"
 
 @interface CsoundUI () {
     CsoundObj *csoundObj;
@@ -46,47 +44,28 @@
     return self;
 }
 
-- (void)addLabel:(UILabel *)uiLabel
-  forChannelName:(NSString *)channelName
-{
-    CsoundLabelBinding *labelBinding;
-    labelBinding = [[CsoundLabelBinding alloc] initLabel:uiLabel
-                                             channelName:channelName];
-    [csoundObj addBinding:labelBinding];
-}
-
-
-- (void)addButton:(UIButton *)uiButton forChannelName:(NSString *)channelName
+- (void)addButton:(NSButton *)button forChannelName:(NSString *)channelName
 {
     CsoundButtonBinding *buttonBinding;
-    buttonBinding = [[CsoundButtonBinding alloc] initButton:uiButton
+    buttonBinding = [[CsoundButtonBinding alloc] initButton:button
                                                 channelName:channelName];
     [csoundObj addBinding:buttonBinding];
 }
 
-- (void)addSlider:(UISlider *)uiSlider forChannelName:(NSString *)channelName
+- (void)addSlider:(NSSlider *)slider forChannelName:(NSString *)channelName
 {
     CsoundSliderBinding *sliderBinding;
-    sliderBinding = [[CsoundSliderBinding alloc] initSlider:uiSlider
+    sliderBinding = [[CsoundSliderBinding alloc] initSlider:slider
                                                 channelName:channelName];
     [csoundObj addBinding:sliderBinding];
 }
 
-- (void)addSwitch:(UISwitch *)uiSwitch forChannelName:(NSString *)channelName
-{
-    CsoundSwitchBinding *switchBinding;
-    switchBinding = [[CsoundSwitchBinding alloc] initSwitch:uiSwitch
-                                                channelName:channelName];
-    [csoundObj addBinding:switchBinding];
-}
-
-- (void)addMomentaryButton:(UIButton *)uiButton forChannelName:(NSString *)channelName
+- (void)addMomentaryButton:(NSButton *)button forChannelName:(NSString *)channelName
 {
     CsoundMomentaryButtonBinding *momentaryButtonBinding;
-    momentaryButtonBinding = [[CsoundMomentaryButtonBinding alloc] initButton:uiButton
+    momentaryButtonBinding = [[CsoundMomentaryButtonBinding alloc] initButton:button
                                                                   channelName:channelName];
     [csoundObj addBinding:momentaryButtonBinding];
 }
-
 
 @end

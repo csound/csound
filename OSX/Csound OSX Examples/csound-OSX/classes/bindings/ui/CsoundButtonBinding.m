@@ -23,46 +23,50 @@
  02111-1307 USA
  
  */
-#import "CsoundLabelBinding.h"
 
-@interface CsoundLabelBinding () {
-    float *channelPtr;
+#import "CsoundButtonBinding.h"
+
+@interface CsoundButtonBinding () {
+    MYFLT channelValue;
+    MYFLT *channelPtr;
 }
 
 @property (nonatomic, strong) NSString *channelName;
-@property (nonatomic, strong) UILabel *label;
+@property (nonatomic, strong) NSButton *button;
 @end
 
-@implementation CsoundLabelBinding
+@implementation CsoundButtonBinding
 
--(instancetype)initLabel:(UILabel *)label channelName:(NSString *)channelName
+-(id)initButton:(NSButton *)button channelName:(NSString *)channelName
 {
     if (self = [super init]) {
         self.channelName = channelName;
-        self.label = label;
+        self.button = button;
     }
     return self;
 }
 
+-(void)updateChannelValueButtonStateChanged:(id)sender {
+    channelValue = self.button.state;
+}
 
 -(void)setup:(CsoundObj *)csoundObj
 {
-    channelPtr = [csoundObj getOutputChannelPtr:self.channelName
-                                    channelType:CSOUND_CONTROL_CHANNEL];
+    channelValue = self.button.state;
+    channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                   channelType:CSOUND_CONTROL_CHANNEL];
+    [self.button setTarget:self];
+    [self.button setAction:@selector(updateChannelValueButtonStateChanged:)];
 }
 
-
--(void)updateValuesFromCsound
+-(void)updateValuesToCsound
 {
-    [self performSelectorOnMainThread:@selector(updateLabelText:)
-                           withObject:nil
-                        waitUntilDone:NO];
+    *channelPtr = channelValue;
 }
 
--(void)updateLabelText:(id)sender
-{
-    self.label.text = [NSString stringWithFormat:@"%f", *channelPtr];
-    [self.label setNeedsDisplay];
+-(void)cleanup {
+    [self.button setTarget:nil];
+    [self.button setAction:nil];
 }
 
 

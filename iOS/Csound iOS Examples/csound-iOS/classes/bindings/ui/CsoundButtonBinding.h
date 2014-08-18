@@ -22,10 +22,11 @@
  02111-1307 USA
  
  */
+
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface CsoundButtonBinding : NSObject<CsoundDataBinding>
+@interface CsoundButtonBinding : NSObject<CsoundBinding>
 
 -(instancetype)initButton:(UIButton *)button channelName:(NSString *)channelName;
 

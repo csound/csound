@@ -30,7 +30,7 @@
 
 @interface BaseCsoundViewController : UIViewController <UISplitViewControllerDelegate>
 
-@property (nonatomic, strong) CsoundObj* csound;
+@property (nonatomic, strong) CsoundObj *csound;
 @property (strong, nonatomic) id detailItem;
 @property (strong, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
 @property (strong, nonatomic) UIPopoverController *masterPopoverController;

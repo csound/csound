@@ -51,13 +51,13 @@ typedef struct {
 } Message;
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Protocols (Cacheable Values and Listeners)
+#  pragma mark - Protocols (Bindings and Listeners)
 // -----------------------------------------------------------------------------
 
 @class CsoundObj;
 
-@protocol CsoundValueCacheable <NSObject>
-- (void)setup:(CsoundObj*)csoundObj;
+@protocol CsoundBinding <NSObject>
+- (void)setup:(CsoundObj *)csoundObj;
 @optional
 - (void)cleanup;
 - (void)updateValuesFromCsound;
@@ -66,9 +66,10 @@ typedef struct {
 
 @protocol CsoundObjListener <NSObject>
 @optional
-- (void)csoundObjStarted:(CsoundObj*)csoundObj;
-- (void)csoundObjCompleted:(CsoundObj*)csoundObj;
+- (void)csoundObjStarted:(CsoundObj *)csoundObj;
+- (void)csoundObjCompleted:(CsoundObj *)csoundObj;
 @end
+
 
 // -----------------------------------------------------------------------------
 #  pragma mark - CsoundObj Interface
@@ -98,12 +99,12 @@ typedef struct {
 
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Value Cache
+#  pragma mark - Binding
 // -----------------------------------------------------------------------------
 
-@property (nonatomic, strong) NSMutableArray *valuesCache;
-- (void)addValueCacheable:(id<CsoundValueCacheable>)valueCacheable;
-- (void)removeValueCaheable:(id<CsoundValueCacheable>)valueCacheable;
+@property (nonatomic, strong) NSMutableArray *bindings;
+- (void)addBinding:(id<CsoundBinding>)binding;
+- (void)removeBinding:(id<CsoundBinding>)binding;
 
 // -----------------------------------------------------------------------------
 #  pragma mark - Listeners and Messages

@@ -41,7 +41,7 @@
 	[self.csound stop];
 	self.csound = [[CsoundObj alloc] init];
 	
-	[self.csound  addDataBinding:waveview];
+	[self.csound  addBinding:waveview];
 	
 	[self.csound play:tempFile];
 }
