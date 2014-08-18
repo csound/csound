@@ -1,8 +1,9 @@
 /*
  
- CachedSlider.h:
+ CsoundMomentaryButtonBinding.m:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
+ 
  
  This file is part of Csound for iOS.
  
@@ -22,44 +23,50 @@
  02111-1307 USA
  
  */
+#import "CsoundMomentaryButtonBinding.h"
 
-#import "CachedSlider.h"
-
-@implementation CachedSlider
-
--(void)updateValueCache:(id)sender {
-    cachedValue = ((NSSlider *)sender).doubleValue;
-    self.cacheDirty = YES;
+@interface CsoundMomentaryButtonBinding () {
+    MYFLT channelValue;
+    MYFLT *channelPtr;
 }
 
--(CachedSlider*)init:(NSSlider*)slider channelName:(NSString*)channelName {
+@property (nonatomic, strong) NSString *channelName;
+@property (nonatomic, strong) NSButton *button;
+@end
+
+@implementation CsoundMomentaryButtonBinding
+
+-(instancetype)initButton:(NSButton *)button channelName:(NSString *)channelName
+{
     if (self = [super init]) {
-        self.slider = slider;
         self.channelName = channelName;
+        self.button = button;
     }
     return self;
 }
 
--(void)setup:(CsoundObj*)csoundObj {
-    channelPtr = [csoundObj getInputChannelPtr:self.channelName
-                                   channelType:CSOUND_CONTROL_CHANNEL];
-    cachedValue = self.slider.doubleValue;
-    self.cacheDirty = YES;
-    [self.slider setTarget:self];
-    [self.slider setAction:@selector(updateValueCache:)];
+-(void)updateChannelValue:(id)sender {
+    channelValue = 1;
 }
 
+-(void)setup:(CsoundObj *)csoundObj
+{
+    channelValue = self.button.state;
+    channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                   channelType:CSOUND_CONTROL_CHANNEL];
+    [self.button setTarget:self];
+    [self.button setAction:@selector(updateChannelValue:)];
+}
 
--(void)updateValuesToCsound {
-    if (self.cacheDirty) {
-        *channelPtr = cachedValue;
-        self.cacheDirty = NO;
-    }
+-(void)updateValuesToCsound
+{
+    *channelPtr = channelValue;
+    channelValue = 0;
 }
 
 -(void)cleanup {
-    [self.slider setTarget:nil];
-    [self.slider setAction:nil];
+    [self.button setTarget:nil];
+    [self.button setAction:nil];
 }
 
 
