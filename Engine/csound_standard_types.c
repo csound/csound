@@ -49,8 +49,10 @@ void fsig_copy_value(void* csound, void* dest, void* src) {
     PVSDAT *fsigin = (PVSDAT*) src;
     int N = fsigin->N;
     memcpy(dest, src, sizeof(PVSDAT) - sizeof(AUXCH));
-    if(fsigout->frame.auxp == NULL || fsigout->frame.size < (N + 2) * sizeof(float))
-      ((CSOUND *)csound)->AuxAlloc(csound, (N + 2) * sizeof(float), &fsigout->frame);
+    if(fsigout->frame.auxp == NULL ||
+       fsigout->frame.size < (N + 2) * sizeof(float))
+      ((CSOUND *)csound)->AuxAlloc(csound,
+                                   (N + 2) * sizeof(float), &fsigout->frame);
     memcpy(fsigout->frame.auxp, fsigin->frame.auxp, (N + 2) * sizeof(float));
 }
 
@@ -77,13 +79,13 @@ void string_copy_value(void* csound, void* dest, void* src) {
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {
     int i, retVal = 0;
-    
+
     if (aSrc->dimensions <= 0) {
       return retVal;
     }
-    
+
     retVal = aSrc->sizes[0];
-    
+
     for (i = 1; i < aSrc->dimensions; i++) {
       retVal *= aSrc->sizes[i];
     }
@@ -97,7 +99,7 @@ void array_copy_value(void* csound, void* dest, void* src) {
     size_t j;
     int memMyfltSize;
     size_t arrayNumMembers;
-    
+
     arrayNumMembers = array_get_num_members(aSrc);
     memMyfltSize = aSrc->arrayMemberSize / sizeof(MYFLT);
 
@@ -106,7 +108,7 @@ void array_copy_value(void* csound, void* dest, void* src) {
        aSrc->dimensions != aDest->dimensions ||
        aSrc->arrayType != aDest->arrayType ||
        arrayNumMembers != array_get_num_members(aDest)) {
-        
+
         aDest->arrayMemberSize = aSrc->arrayMemberSize;
         aDest->dimensions = aSrc->dimensions;
         if(aDest->sizes != NULL) {
@@ -115,19 +117,19 @@ void array_copy_value(void* csound, void* dest, void* src) {
         aDest->sizes = cs->Malloc(cs, sizeof(int) * aSrc->dimensions);
         memcpy(aDest->sizes, aSrc->sizes, sizeof(int) * aSrc->dimensions);
         aDest->arrayType = aSrc->arrayType;
-        
+
         if(aDest->data != NULL) {
             cs->Free(cs, aDest->data);
         }
         aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * arrayNumMembers);
     }
-    
+
     for (j = 0; j < arrayNumMembers; j++) {
         int index = j * memMyfltSize;
         aDest->arrayType->copyValue(csound,
                                     aDest->data + index, aSrc->data + index);
     }
-    
+
 }
 
 /* MEM SIZE UPDATING FUNCTIONS */
