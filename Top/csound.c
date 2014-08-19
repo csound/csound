@@ -3463,7 +3463,7 @@ void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
 
 //#define HAVE_RDTSC  1
 
-/* ------------------------------------ */
+/* ------------------------------------ */ 
 
 #if defined(HAVE_RDTSC)
 #if !(defined(LINUX) && defined(__GNUC__) && defined(__i386__))
@@ -3493,7 +3493,6 @@ static int getTimeResolution(void)
     while (fgets(buf, 256, f) != NULL) {
       int     i;
       char    *s = (char*) buf - 1;
-
       buf[255] = '\0';          /* safety */
       if (strlen(buf) < 9)
         continue;                       /* too short, skip */
