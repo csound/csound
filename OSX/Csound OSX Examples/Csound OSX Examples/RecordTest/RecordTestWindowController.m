@@ -39,8 +39,7 @@
                                                         ofType:@"csd"];
 
     if ([self.recordButton.title isEqualToString:@"Record"]) {
-//        [self.csound record:csdFile toURL:[self recordingURL]];
-        [self.csound play:csdFile];
+        [self.csound record:csdFile toURL:[self recordingURL]];
         self.recordButton.title = @"Stop";
     } else {
         [self.csound stopRecording];
@@ -57,6 +56,8 @@
 - (IBAction)playOrStop:(id)sender
 {
     if ([self.playButton.title isEqualToString:@"Play"]) {
+        self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];
+        [self.audioPlayer setDelegate:self];
         [self.audioPlayer setCurrentTime:0];
         [self.audioPlayer play];
         self.playButton.title = @"Stop";
@@ -87,7 +88,7 @@
 #pragma mark CsoundObjListener
 
 -(void)csoundObjStarted:(CsoundObj *)csoundObj {
-	[self.csound recordToURL:[self recordingURL]];
+//	[self.csound recordToURL:[self recordingURL]];
 }
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
