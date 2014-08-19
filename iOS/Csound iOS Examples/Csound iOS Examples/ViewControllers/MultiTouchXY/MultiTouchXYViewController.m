@@ -52,15 +52,15 @@
 	
 	self.csound = [[CsoundObj alloc] init];
 	
-	[self.csound addDataBinding:self];
+	[self.csound addBinding:self];
 	
 	[self.csound play:tempFile];
 }
 
 
-#pragma mark Csound Data Binding
+#pragma mark Csound Binding
 
--(void)setup:(CsoundObj*)csoundObj {
+-(void)setup:(CsoundObj *)csoundObj {
 
 	for (int i = 0; i < 10; i++) {
 		touchXPtr[i] = [csoundObj getInputChannelPtr:[NSString stringWithFormat:@"touch.%d.x", i, nil]
@@ -97,7 +97,7 @@
 	return -1;
 }
 
-- (int) getTouchId:(UITouch*)touch {
+- (int) getTouchId:(UITouch *)touch {
 	for (int i = 0; i < 10; i++) {
 		if (touchArray[i] == touch) {
 			return i;

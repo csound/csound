@@ -36,7 +36,7 @@
 		self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
 		
-		[self.csound addDataBinding:mXYControl];
+		[self.csound addBinding:mXYControl];
 		
 		[self.csound play:tempFile];
 	} else {

@@ -43,8 +43,8 @@ void MidiWidgetsManagerReadProc(const MIDIPacketList *pktlist, void *refcon, voi
 }
 
 
--(void)addSlider:(UISlider*)slider forControllerNumber:(int)controllerNumber {
-    SliderMidiWidgetWrapper* wrapper = [[SliderMidiWidgetWrapper alloc] init:slider];
+-(void)addSlider:(UISlider *)slider forControllerNumber:(int)controllerNumber {
+    SliderMidiWidgetWrapper *wrapper = [[SliderMidiWidgetWrapper alloc] init:slider];
     [self addMidiWidgetWrapper:wrapper forControllerNumber:controllerNumber];
 }
 
