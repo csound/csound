@@ -132,11 +132,11 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
     err = ExtAudioFileCreateWithURL(fileURL, kAudioFileWAVEType, &destFormat, NULL, kAudioFileFlags_EraseFile, &(mCsData.file));
     if (err == noErr) {
         // Get the stream format from the AU...
-        UInt32 propSize = sizeof(AudioStreamBasicDescription);
-        AudioUnitGetProperty(*(mCsData.aunit), kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &clientFormat, &propSize);
-        // ...and set it as the client format for the audio file. The file will use this
-        // format to perform any necessary conversions when asked to read or write.
-        ExtAudioFileSetProperty(mCsData.file, kExtAudioFileProperty_ClientDataFormat, sizeof(clientFormat), &clientFormat);
+//        UInt32 propSize = sizeof(AudioStreamBasicDescription);
+//        AudioUnitGetProperty(*(mCsData.aunit), kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &clientFormat, &propSize);
+//        // ...and set it as the client format for the audio file. The file will use this
+//        // format to perform any necessary conversions when asked to read or write.
+//        ExtAudioFileSetProperty(mCsData.file, kExtAudioFileProperty_ClientDataFormat, sizeof(clientFormat), &clientFormat);
         // Warm the file up.
         ExtAudioFileWriteAsync(mCsData.file, 0, NULL);
     } else {
@@ -429,7 +429,7 @@ OSStatus  Csound_Render(void *inRefCon,
         mCsData.running = true;
         
         if(!ret) {
-            
+            float coef = (float) SHRT_MAX / csoundGet0dBFS(cs);
             mCsData.cs = cs;
             mCsData.ret = ret;
             mCsData.nchnls = csoundGetNchnls(cs);
@@ -438,8 +438,19 @@ OSStatus  Csound_Render(void *inRefCon,
             mCsData.valuesCache = _valuesCache;
             mCsData.useAudioInput = _useAudioInput;
             
+            MYFLT* spout = csoundGetSpout(cs);
+            AudioBufferList bufferList;
+            bufferList.mNumberBuffers = 1;
+            
             [self setupValueCache];
             [self notifyListenersOfStartup];
+           
+            if (mCsData.shouldRecord) {
+                [self recordToURL:self.outputURL];
+                bufferList.mBuffers[0].mNumberChannels = mCsData.nchnls;
+                bufferList.mBuffers[0].mDataByteSize = mCsData.nchnls * csoundGetKsmps(cs) * 2; // 16-bit PCM output
+                bufferList.mBuffers[0].mData = malloc(sizeof(short) * mCsData.nchnls * csoundGetKsmps(cs));
+            }
             
             while (!mCsData.ret && mCsData.running) {
                 for (int i = 0; i < _valuesCache.count; i++) {
@@ -452,6 +463,18 @@ OSStatus  Csound_Render(void *inRefCon,
                 }
                 
                 mCsData.ret = csoundPerformKsmps(mCsData.cs);
+               
+                // Write to file.
+                if (mCsData.shouldRecord) {
+                    short* data = (short*)bufferList.mBuffers[0].mData;
+                    for (int i = 0; i < csoundGetKsmps(cs) * mCsData.nchnls; i++) {
+                        data[i] = (short)lrintf(spout[i] * coef);
+                    }
+                    OSStatus err = ExtAudioFileWriteAsync(mCsData.file, csoundGetKsmps(cs), &bufferList);
+                    if (err != noErr) {
+                        printf("***Error writing to file: %d\n", (int)err);
+                    }
+                }
                 
                 for (int i = 0; i < _valuesCache.count; i++) {
                     id<CsoundValueCacheable> cachedValue =
@@ -463,6 +486,11 @@ OSStatus  Csound_Render(void *inRefCon,
                 }
             }
         }
+       
+        if (mCsData.shouldRecord) {
+            ExtAudioFileDispose(mCsData.file);
+        }
+        
         csoundDestroy(cs);
         
         mCsData.running = false;
