@@ -20,11 +20,13 @@
 #ifndef CSOUNDFILE_H
 #define CSOUNDFILE_H
 
+#if 0
 #undef MYFLT
 #ifdef USE_DOUBLE
 #define MYFLT double
 #else
 #define MYFLT float
+#endif
 #endif
 
 #if defined(_MSC_VER) && !defined(__GNUC__)

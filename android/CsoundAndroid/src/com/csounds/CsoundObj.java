@@ -82,9 +82,12 @@ public class CsoundObj {
 		completionListeners = new ArrayList<CsoundObjCompletionListener>();
 		scoreMessages = new ArrayList<String>();
 		this.useAudioTrack = useAudioTrack;
+	
 		if (useAudioTrack) {
+			//Log.d("CsoundObj", "audio track");
 			csound = new Csound();
 		} else {
+			//Log.d("CsoundObj", "opensl");
 			csound = new AndroidCsound();
 		}
 	}
@@ -227,11 +230,17 @@ public class CsoundObj {
 		stopped = false;
 		thread = new Thread() {
 			public void run() {
+				
 				setPriority(Thread.MAX_PRIORITY);
-				if (useAudioTrack == false)
+				if (useAudioTrack == false){
+					//Log.d("CsoundObj", "USING OPENSL");
 					runCsoundOpenSL(csdFile);
-				else
+					
+				}
+				else{
+					//Log.d("CsoundObj", "USING AUDIO TRACK");
 					runCsoundAudioTrack(csdFile);
+				}
 			}
 		};
 		thread.start();
