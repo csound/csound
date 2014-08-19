@@ -51,7 +51,10 @@ find_library(LUAJIT_LIBRARY luajit)
 if(NOT LUAJIT_LIBRARY)
     find_library(LUAJIT_LIBRARY luajit-5.1)
 endif()
-find_path(LUA_H_PATH luajit-2.0/lua.h)
+if(NOT LUAJIT_LIBRARY AND WIN32)
+    find_library(LUAJIT_LIBRARY lua51)
+endif()
+find_path(LUA_H_PATH lua.h PATH_SUFFIXES luajit-2.0)
 
 MESSAGE(STATUS ${PYTHON_LIBRARY})
 
@@ -171,7 +174,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         SWIG_ADD_MODULE(luaCsnd6 lua lua_interface.i)
         SWIG_LINK_LIBRARIES(luaCsnd6 ${swiglua_LIBS})
 
-        include_directories(${LUA_H_PATH}/luajit-2.0)
+        include_directories(${LUA_H_PATH})
 
       	if(APPLE)
             set_target_properties(${SWIG_MODULE_luaCsnd6_REAL_NAME} PROPERTIES

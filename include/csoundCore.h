@@ -84,6 +84,7 @@ typedef struct {
 #define INOCOUNT    ORTXT.inArgCount
 #define OUTOCOUNT   ORTXT.outArgCount
 #define IS_ASIG_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_A)
+#define IS_STR_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_S)
     
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
@@ -218,10 +219,10 @@ typedef struct {
   } ARGLST;
 
   typedef struct arg {
-          int type;
-          void* argPtr;
-          int index;
-          struct arg* next;
+    int type;
+    void* argPtr;
+    int index;
+    struct arg* next;
   } ARG;
 //  typedef struct argoffs {
 //    int     count;
@@ -266,8 +267,6 @@ typedef struct {
     unsigned int inArgCount;
     ARG     *outArgs;
     unsigned int outArgCount;
-    int     xincod_str;     /* Type switch for string arguments */
-    int     xoutcod_str;
     char    intype;         /* Type of first input argument (g,k,a,w etc) */
     char    pftype;         /* Type of output argument (k,a etc) */
   } TEXT;
@@ -973,10 +972,8 @@ typedef struct NAME__ {
     /**@{ */
     CS_TYPE *(*GetTypeForArg)(void *p);
     int (*GetInputArgCnt)(void *p);
-    unsigned long (*GetInputArgSMask)(void *p);
     char *(*GetInputArgName)(void *p, int n);
     int (*GetOutputArgCnt)(void *p);
-    unsigned long (*GetOutputArgSMask)(void *p);
     char *(*GetOutputArgName)(void *p, int n);
     char *(*GetString)(CSOUND *, MYFLT);
     int32 (*strarg2insno)(CSOUND *, void *p, int is_string);

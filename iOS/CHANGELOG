@@ -6,7 +6,7 @@ This ChangeLog shows changes specific to Csound for iOS. For changes relevant to
 
 * Added information about required Frameworks to Csound for iOS Documentation
 
-* API Change 
+* API Change
 
   Basic interface to Csound was simplified by removing the redundant appearance of Csound in method names:
 
@@ -23,12 +23,14 @@ This ChangeLog shows changes specific to Csound for iOS. For changes relevant to
   Hardware-specific methods were moved to the CsoundMotion class.  Import CsoundMotion.h to use.
   User-interface specific methods were moved to the CsoundUI class.  Import CsoundUI.h to use them.
 
-  Protocol CsoundValueCacheable - updating values to and from Csound are both optional (but at least one should be implemented)
+  Protocol CsoundValueCacheable =>CsoundBinding - updating values to and from Csound are both optional (but at least one should be implemented)
   Protocol CsoundObjCompletionListener => CsoundObjListener - name changed, all methods optional, respond to whatever Csound events you like
+
+  Added new CsoundBindings for Label and Button (old Button functionality is now in MomentaryButton)
 
 6.02.0.1 - 2014-01-20
 
-* recompiled with target iOS version of 6.1 
+* recompiled with target iOS version of 6.1
 
 6.02.0 - 2014-01-06
 
@@ -48,7 +50,7 @@ i386, x86_64
 
 6.01.0 - 2013-09-09
 
-* Fixed MIDI input not working (added missing call to csoundSetHostImplementedMIDIIO) 
+* Fixed MIDI input not working (added missing call to csoundSetHostImplementedMIDIIO)
 
 * Projects that require audio input in addition to audio output now must set
 the useAudioInput flag to YES on CsoundObj before running.  This flag affects
@@ -59,12 +61,12 @@ Bluetooth audio devices to be used with your project.
 
 6.00.1 - 2013-08-06
 
-* Bug #26: CsoundObj.m: modified getInputChannelPtr and getOutputChannelPtr to require passing in the channelType (i.e. CSOUND_CONTROL_CHANNEL, CSOUND_AUDIO_CHANNEL); previously getInputChannelPtr was hardcoded for only control channels and getOutputChannelPtr was hardcoded for only audio channels.  This is a non-backwards compatible change.  To update previous project, add "channelType:CSOUND_CONTROL_CHANNEL" when calling getInputChannelPtr and "channelType:CSOUND_AUDIO_CHANNEL" when calling getOutputChannelPtr.  
+* Bug #26: CsoundObj.m: modified getInputChannelPtr and getOutputChannelPtr to require passing in the channelType (i.e. CSOUND_CONTROL_CHANNEL, CSOUND_AUDIO_CHANNEL); previously getInputChannelPtr was hardcoded for only control channels and getOutputChannelPtr was hardcoded for only audio channels.  This is a non-backwards compatible change.  To update previous project, add "channelType:CSOUND_CONTROL_CHANNEL" when calling getInputChannelPtr and "channelType:CSOUND_AUDIO_CHANNEL" when calling getOutputChannelPtr.
 
 
 6.00.0 - 2013-07-10
 
-* The Csound API and SDK for iOS has been changed to use Automatic Resource Counting (ARC).  All projects using Csound 6 for iOS will require the use of ARC. The Csound for iOS Examples project shows how to use ARC compliant code with Csound.  Users with existing Csound 5-based iOS projects can use the "Edit->Refactor->Convert to Objective-C ARC..." wizard to help with updating their projects to use ARC. 
+* The Csound API and SDK for iOS has been changed to use Automatic Resource Counting (ARC).  All projects using Csound 6 for iOS will require the use of ARC. The Csound for iOS Examples project shows how to use ARC compliant code with Csound.  Users with existing Csound 5-based iOS projects can use the "Edit->Refactor->Convert to Objective-C ARC..." wizard to help with updating their projects to use ARC.
 
 For more information about ARC, consult the "Transitioning to ARC Release Notes" on Apple's Developer website at
 https://developer.apple.com/library/ios/#releasenotes/ObjectiveC/RN-TransitioningToARC/

@@ -17,17 +17,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -mtune=core2")
 ## also to test multicore
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W -Wno-missing-field-initializers -Wno-unused-parameter -mtune=core2 -DJPFF")
 
-include(CheckCCompilerFlag)
-check_c_compiler_flag(-ftree-vectorize HAS_TREE_VECTORISE)
-if (HAS_TREE_VECTORISE)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ftree-vectorize")
-endif()
-
-check_c_compiler_flag(-ffast-math HAS_FAST_MATH)
-if (HAS_FAST_MATH)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffast-math")
-endif()
-
 if(WIN32)
     list(APPEND CMAKE_SYSTEM_INCLUDE_PATH 
 	    "c:/work/libsndfile-1_0_17")

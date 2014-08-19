@@ -151,26 +151,40 @@ std::ostream &operator << (std::ostream &stream, const EVTBLK &a)
   }
   return stream;
 }
-/*
 
-  bool operator < (const EVTBLK &a, const EVTBLK &b)
-  {
-  //std::cerr << "comparing: " << a << " to: " << b << std::endl;
+bool operator < (const EVTBLK &a, const EVTBLK &b)
+{
+  // std::cerr << "comparing: " << a << " to: " << b << std::endl;
   if (a.opcod < b.opcod) {
-  return true;
+    return true;
   }
   size_t n = std::min(a.pcnt, b.pcnt);
-  for (size_t i = 0; i < n; i++) {
-  if (a.p[i] < b.p[i]) {
-  return true;
-  }
+  char *stringA = a.strarg;
+  char *stringB = b.strarg;
+  int stringsCount = std::min(a.scnt, b.scnt);
+  for (size_t i = 0, stringCount = 0; i < n; i++) {
+    if (ISSTRCOD(a.p[i]) && ISSTRCOD(a.p[i])) {
+        stringCount++;
+        if (std::strcmp(stringA, stringB) < 0) {
+            return true;
+        }
+        if (stringCount < stringsCount) {
+            stringA += strnlen(stringA, SSTRSIZ);
+            stringB += strnlen(stringB, SSTRSIZ);
+        }
+    } else if (a.p[i] < b.p[i]) {
+        return true;
+    }
   }
   if (a.pcnt < b.pcnt) {
-  return true;
+    return true;
+  }
+  if (a.scnt < b.scnt) {
+    return true;
   }
   return false;
-  }
-*/
+}
+
 /**
  * A wrapper to get proper C++ value
  * semantics for a map key.
@@ -197,12 +211,7 @@ struct EventBlock {
     return *this;
   }
   bool operator < (const EventBlock &other) const {
-    int comparison = std::memcmp(&evtblk, &other.evtblk, sizeof(EVTBLK));
-    if (comparison < 0) {
-      return true;
-    } else {
-      return false;
-    }
+      return evtblk < other.evtblk;
   }
 };
 

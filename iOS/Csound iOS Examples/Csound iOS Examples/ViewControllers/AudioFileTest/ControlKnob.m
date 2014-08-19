@@ -28,9 +28,13 @@
 
 @interface ControlKnob ()
 {
+    float channelValue;
+    float *channelPtr;
+
 	CGFloat angle;
     CGPoint lastTouchPoint;
 }
+
 @end
 
 @implementation ControlKnob
@@ -143,38 +147,32 @@
     CGColorSpaceRelease(colorSpace);
 }
 
-#pragma mark - Value Cacheable
+#pragma mark - Csound Binding
 
 - (void)setup:(CsoundObj *)csoundObj
 {
 	channelPtr = [csoundObj getInputChannelPtr:@"pitch" channelType:CSOUND_CONTROL_CHANNEL];
-    cachedValue = _value;
-    self.cacheDirty = YES;
-    [self addTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
+    channelValue = _value;
+    [self addTarget:self
+             action:@selector(updateChannelValue:)
+   forControlEvents:UIControlEventValueChanged];
 }
 
-- (void)updateValueCache:(id)sender
+- (void)updateChannelValue:(id)sender
 {
-	cachedValue = ((ControlKnob *)sender).value;
-    self.cacheDirty = YES;
+	channelValue = ((ControlKnob *)sender).value;
 }
 
 - (void)updateValuesToCsound
 {
-	if (self.cacheDirty) {
-        *channelPtr = cachedValue;
-        self.cacheDirty = NO;
-    }
-}
-
-- (void)updateValuesFromCsound
-{
-	
+	*channelPtr = channelValue;
 }
 
 - (void)cleanup
 {
-	[self removeTarget:self action:@selector(updateValueCache:) forControlEvents:UIControlEventValueChanged];
+	[self removeTarget:self
+                action:@selector(updateChannelValue:)
+      forControlEvents:UIControlEventValueChanged];
 }
 
 @end
