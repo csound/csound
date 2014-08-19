@@ -183,7 +183,8 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       int extralloc = STA(Linep) + size - STA(Linebufend);
-      // csound->Message(csound, "extralloc: %d %d %d\n", extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
+      // csound->Message(csound, "extralloc: %d %d %d\n",
+      //                 extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
       if ((n=linevent_alloc(csound, (STA(linebufsiz) + extralloc) ), 0) != 0) {
         csoundErrorMsg(csound, Str("LineBuffer Overflow - "
                                    "Input Data has been Lost"));

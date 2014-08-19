@@ -357,7 +357,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
           arg = outargs->value->lexeme;
           tp->outlist->arg[argcount++] = strsav_string(csound, engineState, arg);
         }
-        
+
         tp->outArgCount = 0;
 
         /* OUTARGS */
@@ -417,9 +417,9 @@ void addGlobalVariable(CSOUND *csound,
                                             type, name, typeArg);
     size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
     CS_VAR_MEM *varMem = csound->Malloc(csound, memSize);
-    
+
     csoundAddVariable(csound, engineState->varPool, var);
-    
+
     varMem->varType = var->varType;
     var->memBlock = varMem;
     if (var->initializeVariableMemory != NULL) {
@@ -1823,7 +1823,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + sizeof(STRINGDAT);
       CS_VAR_MEM* varMem = csound->Calloc(csound, memSize);
       STRINGDAT *str = (STRINGDAT*)&varMem->value;
-      
+
       varMem->varType = (CS_TYPE*)&CS_VAR_TYPE_S;
       arg->type = ARG_STRING;
       temp = csound->Calloc(csound, strlen(s) + 1);
