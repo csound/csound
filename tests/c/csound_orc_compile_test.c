@@ -147,7 +147,7 @@ void test_reuse(void)
 void test_linenum(void)
 {
     CSOUND  *csound;
-    int     result;
+    //int     result;
     char  *instrument =
             "instr 1 \n"
             "k1 expon p4, p3, p4*0.001 \n"

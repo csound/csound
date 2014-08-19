@@ -189,17 +189,15 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
                                                 int isOutput)
 {
     CSOUND  *csound;
-    int     i, argCnt, argCnt_i, argCnt_p, sMask, curOffs_i, curOffs_p;
+    int     i, argCnt, argCnt_i, argCnt_p, curOffs_i, curOffs_p;
     MYFLT** args = p->args;
 
     csound = ((OPDS*) p)->insdshead->csound;
     if (!isOutput) {
       argCnt = csound->GetInputArgCnt(p);
-      sMask = csound->GetInputArgSMask(p);
     }
     else {
       argCnt = csound->GetOutputArgCnt(p);
-      sMask = csound->GetOutputArgSMask(p);
     }
     if (UNLIKELY(argCnt > 31))
       return csoundStack_Error(p, Str("too many arguments"));
@@ -212,7 +210,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
         argMap[0] |= maskVal;
         argCnt_p++;
       }
-      else if (sMask & maskVal) {
+      else if (IS_STR_ARG(args[i])) {
         argCnt_i++;
       }
       else {
@@ -254,7 +252,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
       }
       else {
         /* init time types */
-        if (sMask & maskVal) {
+        if (IS_STR_ARG(args[i])) {
           argMap[i + 3] = (curOffs_i | CS_STACK_S);
           curOffs_i += (int) sizeof(STRINGDAT);
             /* curOffs_i = csoundStack_Align(curOffs_i);*/
