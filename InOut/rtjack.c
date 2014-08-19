@@ -513,7 +513,9 @@ static void openJackStreams(RtJackGlobals *p)
         if (UNLIKELY(jack_connect(p->client, dev_final,
                                   jack_port_name(p->inPorts[i])) != 0)) {
           //rtJack_Error(csound, -1, Str("error connecting input ports"));
-          csound->Warning(csound, "not autoconnecting input channel %d \n(needs manual connection)", i+1);
+          csound->Warning(csound,
+                          Str("not autoconnecting input channel %d \n"
+                              "(needs manual connection)"), i+1);
         }
       }
       *sp = (char) 0;
@@ -545,7 +547,8 @@ static void openJackStreams(RtJackGlobals *p)
         if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
                          dev_final) != 0) {
           //rtJack_Error(csound, -1, Str("error connecting output ports"));
-          csound->Warning(csound, "not autoconnecting input channel %d \n(needs manual connection)", i+1);
+          csound->Warning(csound, Str("not autoconnecting input channel %d \n"
+                                      "(needs manual connection)"), i+1);
 
         }
       }
