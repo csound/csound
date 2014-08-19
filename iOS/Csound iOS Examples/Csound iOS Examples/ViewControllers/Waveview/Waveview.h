@@ -26,12 +26,10 @@
 #import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
-@interface Waveview : UIView <CsoundValueCacheable>
+@interface Waveview : UIView <CsoundBinding>
 {
-	BOOL mCacheDirty;
 	BOOL tableLoaded;
-	float cachedValue;
-	float* channelPtr;
+	float *channelPtr;
 	NSString *mChannelName;
 	CGFloat lastY;
 	NSInteger ksmps, sr;
@@ -43,7 +41,6 @@
 	
 }
 
-@property (assign) BOOL cacheDirty;
 @property (nonatomic, strong) NSString *channelName;
 
 @end

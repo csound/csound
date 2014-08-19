@@ -2,7 +2,6 @@
   arrays.c:
 
   Copyright (C) 2011,2012 John ffitch, Steven Yi
-
   This file is part of Csound.
 
   The Csound Library is free software; you can redistribute it
@@ -265,6 +264,7 @@ typedef struct {
   OPDS h;
   MYFLT  *ans;
   ARRAYDAT *tab;
+  MYFLT  *opt;
 } TABQUERY1;
 
 typedef struct {
@@ -437,8 +437,9 @@ static int tabdiv(CSOUND *csound, TABARITH *p)
     for (i=0; i<size; i++)
       if (LIKELY(r->data[i]!=0))
         ans->data[i] = l->data[i] / r->data[i];
-      else return csound->PerfError(csound, p->h.insdshead,
-                                    Str("division by zero in array-var"));
+      else
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("division by zero in array-var at index %d"), i);
     return OK;
 }
 
@@ -462,6 +463,33 @@ static int tabrem(CSOUND *csound, TABARITH *p)
     return OK;
 }
 
+static int tabpow(CSOUND *csound, TABARITH *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *l   = p->left;
+    ARRAYDAT *r   = p->right;
+    int   size    = ans->sizes[0];
+    int   i;
+    MYFLT tmp;
+
+    if (UNLIKELY(p->ans->data == NULL ||
+                 p->left->data== NULL || p->right->data==NULL))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("array-variable not initialised"));
+
+    if (l->sizes[0]<size) size = l->sizes[0];
+    if (r->sizes[0]<size) size = r->sizes[0];
+    for (i=0; i<size; i++)
+      if (LIKELY(l->data[i]>=0) || MODF(r->data[i],&tmp)==FL(0.0))
+        ans->data[i] = POWER(l->data[i],r->data[i]);
+      else
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("undefined power in array-var at index %d"),
+                                    i);
+    return OK;
+}
+
+
 #define IIARRAY(opcode,fn)                              \
   static int opcode(CSOUND *csound, TABARITH *p)        \
   {                                                     \
@@ -474,6 +502,7 @@ IIARRAY(tabsubi,tabsub)
 IIARRAY(tabmulti,tabmult)
 IIARRAY(tabdivi,tabdiv)
 IIARRAY(tabremi,tabrem)
+IIARRAY(tabpowi,tabpow)
 
 // Add array and scalar
 static int tabiadd(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l, MYFLT r, void *p)
@@ -671,10 +700,66 @@ static int tabiarem(CSOUND *csound, TABARITH2 *p)
     if (ans->sizes[0]<size) size = ans->sizes[0];
     for (i=0; i<size; i++) {
       if (UNLIKELY(l->data[i]==FL(0.0)))
-        return csound->PerfError(csound, p->h.insdshead,
-                                 Str("division by zero in array-var"));
+        return
+          csound->PerfError(csound, p->h.insdshead,
+                            Str("division by zero in array-var at index %d"), i);
       else
         ans->data[i] = MOD(r,l->data[i]);
+    }
+    return OK;
+}
+
+// K[] pow K
+static int tabaipow(CSOUND *csound, TABARITH1 *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *l   = p->left;
+    MYFLT r     = *p->right;
+    int size    = ans->sizes[0];
+    int i;
+    MYFLT tmp;
+    int intcase = (MODF(r,&tmp)==FL(0.0));
+
+    if (UNLIKELY(p->ans->data == NULL || p->left->data== NULL))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("array-variable not initialised"));
+
+    if (l->sizes[0]<size) size = l->sizes[0];
+    if (ans->sizes[0]<size) size = ans->sizes[0];
+    for (i=0; i<size; i++)
+      if (intcase || LIKELY(l->data[i]>=0))
+        ans->data[i] = POWER(l->data[i], r);
+      else
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("undefined power in array-var at index %d"),
+                                    i);
+    return OK;
+}
+
+// K ^ K[]
+static int tabiapow(CSOUND *csound, TABARITH2 *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *l   = p->right;
+    MYFLT r     = *p->left;
+    int size    = ans->sizes[0];
+    int i;
+    MYFLT tmp;
+    int poscase = (r>=FL(0.0));
+
+    if (UNLIKELY(ans->data == NULL || l->data== NULL))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("array-variable not initialised"));
+
+    if (l->sizes[0]<size) size = l->sizes[0];
+    if (ans->sizes[0]<size) size = ans->sizes[0];
+    for (i=0; i<size; i++) {
+      if (LIKELY(poscase || MODF(l->data[i],&tmp)==FL(0.0)))
+        ans->data[i] = POWER(r,l->data[i]);
+      else
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("undefined power in array-var at index %d"),
+                                    i);
     }
     return OK;
 }
@@ -691,6 +776,7 @@ IiARRAY(tabaisubi,tabaisub)
 IiARRAY(tabaimulti,tabaimult)
 IiARRAY(tabaidivi,tabaidiv)
 IiARRAY(tabairemi,tabairem)
+IiARRAY(tabaipowi,tabaipow)
 
 #define iIARRAY(opcode,fn)                              \
   static int opcode(CSOUND *csound, TABARITH2 *p)       \
@@ -704,6 +790,7 @@ iIARRAY(tabiasubi,tabiasub)
 iIARRAY(tabiamulti,tabiamult)
 iIARRAY(tabiadivi,tabiadiv)
 iIARRAY(tabiaremi,tabiarem)
+iIARRAY(tabiapowi,tabiapow)
 
 
 
@@ -1144,8 +1231,11 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
 
 int tablength(CSOUND *csound, TABQUERY1 *p)
 {
-    if (UNLIKELY(p->tab==NULL || p->tab->dimensions!=1)) *p->ans = -FL(1.0);
-    else *p->ans = p->tab->sizes[0];
+    int opt = (int)*p->opt;
+    if (UNLIKELY(p->tab==NULL || opt>p->tab->dimensions))
+      *p->ans = -FL(1.0);
+    else if (UNLIKELY(opt<=0)) *p->ans = p->tab->dimensions;
+    else *p->ans = p->tab->sizes[opt-1];
     return OK;
 }
 
@@ -1901,6 +1991,20 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset1, (SUBR)tabairem },
     {"##rem.k[",  sizeof(TABARITH2),0,  3, "k[]", "kk[]",
      (SUBR)tabarithset2, (SUBR)tabiarem },
+    {"##pow.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
+     (SUBR)tabarithset,(SUBR)tabpow },
+    {"##pow.[i]",  sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
+     (SUBR)tabpowi },
+    {"##pow.[i",  sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
+     (SUBR)tabarithset1, (SUBR)tabaipow },
+    {"##pow.i[",  sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
+     (SUBR)tabarithset2, (SUBR)tabiapow },
+    {"##pow.[p",  sizeof(TABARITH1), 0, 1, "i[]", "i[]i", (SUBR)tabaipowi },
+    {"##pow.p[",  sizeof(TABARITH2), 0, 1, "i[]", "ii[]", (SUBR)tabiapowi },
+    {"##pow.[k",  sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
+     (SUBR)tabarithset1, (SUBR)tabaipow },
+    {"##pow.k[",  sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
+     (SUBR)tabarithset2, (SUBR)tabiapow },
     { "maxtab", 0xffff},
     { "maxtab.k",sizeof(TABQUERY),_QQ, 3, "kz", "k[]",
       (SUBR) tabqset, (SUBR) tabmax },
@@ -1961,12 +2065,11 @@ static OENTRY arrayvars_localops[] =
       (SUBR) ftab2tab, (SUBR) ftab2tab },
     { "copya2ftab.i", sizeof(TABCOPY), TW, 1, "", "i[]i", (SUBR) tab2ftab },
     { "copyf2array.i", sizeof(TABCOPY), TR, 1, "", "i[]i", (SUBR) ftab2tab },
-    { "lentab", 0xffff},
-    { "lentab.i", sizeof(TABQUERY1), _QQ, 1, "i", "k[]", (SUBR) tablength },
-    { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]", NULL, (SUBR) tablength },
-    { "lenarray.ix", sizeof(TABQUERY1), 0, 1, "i", ".[]", (SUBR) tablength },
-    { "lenarray.kx", sizeof(TABQUERY1), 0, 2, "k", ".[]",
-      NULL, (SUBR) tablength },
+    /* { "lentab", 0xffff}, */
+    { "lentab.i", sizeof(TABQUERY1), _QQ, 1, "i", "k[]p", (SUBR) tablength },
+    { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]p", NULL, (SUBR) tablength },
+    { "lenarray.ix", sizeof(TABQUERY1), 0, 1, "i", ".[]p", (SUBR) tablength },
+    { "lenarray.kx", sizeof(TABQUERY1), 0, 2, "k", ".[]p", NULL, (SUBR)tablength },
     { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa},
     { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina},
     {"rfft", sizeof(FFT), 0, 3, "k[]","k[]",

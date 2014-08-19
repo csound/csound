@@ -55,6 +55,8 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
                       ENGINE_STATE *engineState);
 int check_instr_name(char *s);
 
+extern const char* SYNTHESIZED_ARG;
+
 #ifdef FLOAT_COMPARE
 #undef FLOAT_COMPARE
 #endif
@@ -87,6 +89,7 @@ int pnum(char *s)        /* check a char string for pnum format  */
     return(-1);
 }
 
+#if 0
 static int argCount(ARG* arg)
 {
     int retVal = -1;
@@ -99,6 +102,7 @@ static int argCount(ARG* arg)
     }
     return retVal;
 }
+#endif
 
 /* get size of string in MYFLT units */
 static inline int strlen_to_samples(const char *s)
@@ -254,76 +258,6 @@ char** splitArgs(CSOUND* csound, char* argString)
     return args;
 }
 
-void set_xincod(CSOUND *csound, TEXT *tp, OENTRY *ep)
-{
-    int n = tp->inlist->count;
-    char *s;
-    int nreqd = argsRequired(ep->intypes);
-
-    if(nreqd == -1) /* argsRequired failed */
-      return;
-
-    char **types = splitArgs(csound, ep->intypes);
-    //int lgprevdef = 0;
-    char      tfound = '\0', treqd;
-
-    if (n > nreqd) {
-      if ((treqd = *types[nreqd-1]) == 'n') {  /* indef args: */
-        int incnt = -1;                       /* Should count args */
-        if (!(incnt & 01))                    /* require odd */
-          synterr(csound, Str("missing or extra arg"));
-      }       /* IV - Sep 1 2002: added 'M' */
-      else if (treqd != 'm' && treqd != 'z' && treqd != 'y' &&
-               treqd != 'Z' && treqd != 'M' && treqd != 'N' &&
-               treqd != '*' && treqd != 'I' && treqd != 'W') /* else any no */
-        synterr(csound, Str("too many input args\n"));
-    }
-
-    while (n--) {                     /* inargs:   */
-      s = tp->inlist->arg[n];
-
-      if (n >= nreqd) {               /* det type required */
-        switch (*types[nreqd-1]) {
-        case 'M':
-        case 'W':
-        case 'N':
-        case 'Z':
-        case 'y':
-        case 'I':
-        case 'z':   treqd = *types[nreqd-1]; break;
-        default:    treqd = 'i';    /*   (indef in-type) */
-        }
-      }
-      else treqd = *types[n];          /*       or given)   */
-      if (treqd == 'l') {             /* if arg takes lbl  */
-        csound->DebugMsg(csound, "treqd = l");
-        //        lblrequest(csound, s);        /*      req a search */
-        continue;                     /*      chk it later */
-      }
-      tfound = argtyp2(s);     /* else get arg type */
-      if (tfound == 'S' && n < 31)
-        tp->xincod_str |= (1 << n);
-    }
-    csound->Free(csound, types);
-}
-
-
-void set_xoutcod(CSOUND *csound, TEXT *tp, OENTRY *ep)
-{
-    int n = tp->outlist->count;
-    char *s;
-    char **types = splitArgs(csound, ep->outypes);
-    char      tfound = '\0';
-
-    while (n--) {                                     /* outargs:  */
-      s = tp->outlist->arg[n];
-      tfound = argtyp2(s);                     /*  found    */
-      if (tfound == 'S' && n < 31)
-        tp->xoutcod_str |= (1 << n);
-    }
-    csound->Free(csound, types);
-}
-
 
 OENTRY* find_opcode(CSOUND*, char*);
 /**
@@ -394,6 +328,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
         tp->outlist = (ARGLST*) csound->ReAlloc(csound, tp->outlist, m);
         tp->outlist->count = outcount;
 
+        tp->inArgCount = 0;
 
         for (inargs = root->right; inargs != NULL; inargs = inargs->next) {
           /* INARGS */
@@ -408,6 +343,9 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
           else {
             lgbuild(csound, ip, arg, 1, engineState);
           }
+          if (inargs->markup != &SYNTHESIZED_ARG) {
+            tp->inArgCount++;
+          }
         }
       }
       /* VERIFY ARG LISTS MATCH OPCODE EXPECTED TYPES */
@@ -419,7 +357,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
           arg = outargs->value->lexeme;
           tp->outlist->arg[argcount++] = strsav_string(csound, engineState, arg);
         }
-        set_xincod(csound, tp, ep);
+        
+        tp->outArgCount = 0;
 
         /* OUTARGS */
         for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
@@ -433,9 +372,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
             csound->DebugMsg(csound, "Arg: %s\n", arg);
             lgbuild(csound, ip, arg, 0, engineState);
           }
-
+          tp->outArgCount++;
         }
-        set_xoutcod(csound, tp, ep);
 
         if (root->right != NULL) {
           if (ep->intypes[0] != 'l') {     /* intype defined by 1st inarg */
@@ -1741,7 +1679,6 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
             arg->next = NULL;
           }
         }
-        ttp->outArgCount = argCount(ttp->outArgs);
       }
       if ((inlist = ttp->inlist) == NULL || !inlist->count)
         ttp->inArgs = NULL;
@@ -1774,8 +1711,6 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
             arg->next = NULL;
           }
         }
-
-        ttp->inArgCount = argCount(ttp->inArgs);
 
         if (ttp->oentry == pset) {
           MYFLT* fp1;

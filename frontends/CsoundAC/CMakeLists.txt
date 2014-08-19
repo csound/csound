@@ -15,7 +15,10 @@ find_library(LUAJIT_LIBRARY luajit)
 if(NOT LUAJIT_LIBRARY)
     find_library(LUAJIT_LIBRARY luajit-5.1)
 endif()
-find_path(LUA_H_PATH luajit-2.0/lua.h)
+if(NOT LUAJIT_LIBRARY AND WIN32)
+    find_library(LUAJIT_LIBRARY lua51)
+endif()
+find_path(LUA_H_PATH lua.h PATH_SUFFIXES luajit-2.0)
 
 find_library(PORTSMF_LIBRARY portSMF)
 
@@ -139,7 +142,7 @@ if(BUILD_CSOUND_AC)
 
     if(BUILD_CSOUND_AC_LUA_INTERFACE)
         message(STATUS "Building CsoundAC Lua interface")
-        include_directories(${LUA_H_PATH}/luajit-2.0)
+        include_directories(${LUA_H_PATH})
 
         SET_SOURCE_FILES_PROPERTIES(luaCsoundAC.i
             PROPERTIES CPLUSPLUS ON

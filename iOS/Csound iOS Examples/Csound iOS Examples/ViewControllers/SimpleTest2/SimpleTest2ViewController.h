@@ -2,7 +2,7 @@
  
  SimpleTest2ViewController.h:
  
- Copyright (C) 2011 Steven Yi, Victor Lazzarini
+ Copyright (C) 2011 Steven Yi, Victor Lazzarini, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -25,19 +25,6 @@
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
 
-@interface SimpleTest2ViewController : BaseCsoundViewController<CsoundObjListener> {
-    
-    IBOutlet UISlider *mRateSlider;
-    IBOutlet UISlider *mDurationSlider;
-
-    IBOutlet UISlider *mAttackSlider;
-    IBOutlet UISlider *mDecaySlider;
-    IBOutlet UISlider *mSustainSlider;
-    IBOutlet UISlider *mReleaseSlider;
-    IBOutlet UISwitch *mSwitch;
-}
-
--(IBAction) toggleOnOff:(id)component;
-
+@interface SimpleTest2ViewController : BaseCsoundViewController<CsoundObjListener>
 
 @end
