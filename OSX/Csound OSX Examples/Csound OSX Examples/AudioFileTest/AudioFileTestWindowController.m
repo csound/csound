@@ -4,9 +4,9 @@
  
  Copyright (C) 2014 Aurelius Prochazka
  
- This file is part of Csound iOS Examples.
+ This file is part of Csound OSX Examples.
  
- The Csound for iOS Library is free software; you can redistribute it
+ The Csound for OSX Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
