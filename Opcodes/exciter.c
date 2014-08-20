@@ -202,7 +202,7 @@ inline void set_distort(CSOUND *csound, EXCITER *p)
 }
 
 
-void params_changed(CSOUND *csound, EXCITER *p)
+inline void params_changed(CSOUND *csound, EXCITER *p)
 {
     // set the params of all filters
     if (*p->pfreq != p->freq_old) {
@@ -235,6 +235,7 @@ int exciter_perf(CSOUND *csound, EXCITER *p)
       nsmps -= early;
       memset(&p->aout[nsmps], '\0', early*sizeof(MYFLT));
     }
+    params_changed(csound, p);
    // process
     for (n = offset; n<nsmps; n++) {
       // cycle through samples
