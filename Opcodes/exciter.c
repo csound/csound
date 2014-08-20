@@ -35,30 +35,36 @@ typedef struct {
   MYFLT *pfreq;
   MYFLT *pceil;
   MYFLT *pceil_active;
-  // ~Internals
+  MYFLT *pblend;
+  MYFLT *pdrive;  
+  // Internals
   MYFLT freq_old, ceil_old, ceil_active_old;
-  double hp1[7];
-  double hp2[7];
-  double hp3[7];
-  double hp4[7];
-  double lp1[7];
-  double lp2[7];
+  // biquad data
+  double hp1[7], hp2[7], hp3[7], hp4[7];
+  double lp1[7],  lp2[7];
+  double rs1[7], rs2[7], rs3[7], rs4[7];
   double rdrive, rbdr, kpa, kpb, kna, knb, ap, an, imr, kc, srct, sq, pwrq;
   int over;
   double prev_med, prev_out;
+  double blend_old, drive_old;
 } EXCITER;
 
-int exciter_init(CSOUND *csound, EXCITER *p)
+void resample_set_params(CSOUND *csound, EXCITER *p);
+
+static int exciter_init(CSOUND *csound, EXCITER *p)
 {
     p->freq_old =  p->ceil_old = p->ceil_active_old = FL(0.0);
     p->hp1[5] = p->hp2[5] = p->hp3[5] = p->hp4[5] = 0.0;
     p->hp1[6] = p->hp2[6] = p->hp3[6] = p->hp4[6] = 0.0;
     p->lp1[5] = p->lp2[5] = 0.0;
     p->lp1[6] = p->lp2[6] = 0.0;
+    p->rs1[5] = p->rs2[5] = p->rs3[5] = p->rs4[5] = 0.0;
+    p->rs1[6] = p->rs2[6] = p->rs3[6] = p->rs4[6] = 0.0;
     p->rdrive = p->rbdr = p->kpa = p->kpb = p->kna = p->knb = p->ap =
       p->an = p->imr = p->kc = p->srct = p->sq = p->pwrq = p->prev_med =
       p->prev_out = 0.0;
     p->over = csound->GetSr(csound) * 2 > 96000 ? 1 : 2;
+    resample_set_params(csound, p);
     return OK;
 }
 
@@ -92,7 +98,8 @@ inline void set_hp_rbj(CSOUND *csound, double hp[], double fc, double q)
     return;
 }
 
-inline void set_lp_rbj(CSOUND *csound, double lp[], double fc, double q)
+inline void set_lp_rbj(CSOUND *csound,
+                       double *lp, double fc, double q, double gain)
 {
     double omega=(2.0*M_PI*fc/csound->GetSr(csound));
     double sn=sin(omega);
@@ -100,10 +107,40 @@ inline void set_lp_rbj(CSOUND *csound, double lp[], double fc, double q)
     double alpha=(sn/(2*q));
     double inv=(1.0/(1.0+alpha));
 
-    lp[2] = lp[0] =  (inv*(1.0 - cs)*0.5);
+    lp[2] = lp[0] =  gain*(inv*(1.0 - cs)*0.5);
     lp[1] =  lp[0]+lp[0];
     lp[3] =  (-2.0*cs*inv);
     lp[4] =  ((1.0 - alpha)*inv);
+}
+
+void resample_set_params(CSOUND *csound, EXCITER *p)
+{
+    double srate   = csound->GetSr(csound);
+    double ff = 25000.0;
+    if (srate>50000) ff = srate*0.5;
+    // set all filters
+    set_lp_rbj(csound, p->rs1, ff, 0.8, srate * 2);
+    memcpy(p->rs2, p->rs1, 5*sizeof(double));
+    memcpy(p->rs3, p->rs1, 5*sizeof(double));
+    memcpy(p->rs4, p->rs1, 5*sizeof(double));
+}
+
+void upsample(EXCITER *p, double *tmp, double sample)
+{
+    tmp[0] = process(p->rs1,sample);
+    tmp[0] = process(p->rs2,sample);
+    tmp[1] = process(p->rs1,sample);
+    tmp[1] = process(p->rs2,sample);
+    return;
+}
+
+double downsample(EXCITER *p, double *sample)
+{
+    sample[0] = process(p->rs1, sample[0]);
+    sample[0] = process(p->rs2, sample[0]);
+    sample[1] = process(p->rs3, sample[1]);
+    sample[1] = process(p->rs4, sample[1]);
+    return sample[0];
 }
 
 static inline double M(float x)
@@ -119,10 +156,11 @@ static inline double D(float x)
 
 inline double distort(EXCITER *p, double in)
 {
-    double samples[2] = upsample((double)in);
-    int o;
-    for (o = 0; o < p->over; o++) {
-      double proc = samples[o];
+    double samples[2];
+    int i;
+    upsample(p, samples, in);
+    for (i = 0; i < p->over; i++) {
+      double proc = samples[i];
       double med;
       if (proc >= 0.0) {
         med = (D(p->ap + proc * (p->kpa - proc)) + p->kpb) * p->pwrq;
@@ -132,10 +170,35 @@ inline double distort(EXCITER *p, double in)
       proc = p->srct * (med - p->prev_med + p->prev_out);
       p->prev_med = M(med);
       p->prev_out = M(proc);
-      samples[o] = proc;
+      samples[i] = proc;
     }
-    double out = (double)downsample(samples);
-    return out;
+    return downsample(p, samples);
+}
+
+inline void set_distort(CSOUND *csound, EXCITER *p)
+{
+    // set distortion coeffs
+    if ((p->drive_old != *p->pdrive) || (p->blend_old != *p->pblend)) {
+        p->rdrive = 12.0 / *p->pdrive;
+        p->rbdr = p->rdrive / (10.5 - *p->pblend) * 780.0 / 33.0;
+        p->kpa = D(2.0 * (p->rdrive*p->rdrive) - 1.0) + 1.0;
+        p->kpb = (2.0 - p->kpa) / 2.0;
+        p->ap = ((p->rdrive*p->rdrive) - p->kpa + 1.0) / 2.0;
+        p->kc = p->kpa / D(2.0 * D(2.0 * (p->rdrive*p->rdrive) - 1.0) -
+                           2.0 * p->rdrive*p-> rdrive);
+
+        p->srct = (0.1f * csound->GetSr(csound)) /
+          (0.1f * csound->GetSr(csound) + 1.0);
+        p->sq = p->kc*p->kc + 1.0;
+        p->knb = -1.0 * p->rbdr / D(p->sq);
+        p->kna = 2.0 * p->kc * p->rbdr / D(p->sq);
+        p->an = p->rbdr*p->rbdr / p->sq;
+        p->imr = 2.0 * p->knb + D(2.0 * p->kna + 4.0 * p->an - 1.0);
+        p->pwrq = 2.0 / (p->imr + 1.0);
+
+        p->drive_old = *p->pdrive;
+        p->blend_old = *p->pblend;
+    }
 }
 
 
@@ -151,13 +214,13 @@ void params_changed(CSOUND *csound, EXCITER *p)
     }
     // set the params of all filters
     if (*p->pceil != p->ceil_old || *p->pceil_active != p->ceil_active_old ) {
-      set_lp_rbj(csound, p->lp1, *p->pceil, 0.707);
+      set_lp_rbj(csound, p->lp1, *p->pceil, 0.707, 1.0);
       memcpy(p->lp2, p->lp1, 5*sizeof(double));
       p->ceil_old = *p->pceil;
       p->ceil_active_old = *p->pceil_active;
     }
     // set distortion
-    set_distort(p);
+    set_distort(csound, p);
 }
 
 int exciter_perf(CSOUND *csound, EXCITER *p)
@@ -195,7 +258,7 @@ int exciter_perf(CSOUND *csound, EXCITER *p)
 #define S(x)    sizeof(x)
 
 static OENTRY excite_localops[] = {
-  { "exciter", S(EXCITER),   0, 5, "a", "akk",
+  { "exciter", S(EXCITER),   0, 5, "a", "akkkkk",
                              (SUBR)exciter_init, NULL, (SUBR)exciter_perf },
 };
 
