@@ -30,6 +30,6 @@
     UISlider *mSlider;
 }
 
--(id)init:(UISlider*)slider;
+-(id)init:(UISlider *)slider;
 
 @end

@@ -6,7 +6,7 @@
  
  This file is part of Csound for OS X.
  
- The Csound for iOS Library is free software; you can redistribute it
+ The Csound for OSX Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
@@ -56,7 +56,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
     self = [super init];
     if (self) {
 		mCsData.shouldMute = false;
-        _valuesCache = [[NSMutableArray alloc] init];
+        _bindings = [[NSMutableArray alloc] init];
         listeners = [[NSMutableArray alloc] init];
         _midiInEnabled = NO;
         _useAudioInput = NO;
@@ -132,11 +132,11 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
     err = ExtAudioFileCreateWithURL(fileURL, kAudioFileWAVEType, &destFormat, NULL, kAudioFileFlags_EraseFile, &(mCsData.file));
     if (err == noErr) {
         // Get the stream format from the AU...
-        UInt32 propSize = sizeof(AudioStreamBasicDescription);
-        AudioUnitGetProperty(*(mCsData.aunit), kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &clientFormat, &propSize);
-        // ...and set it as the client format for the audio file. The file will use this
-        // format to perform any necessary conversions when asked to read or write.
-        ExtAudioFileSetProperty(mCsData.file, kExtAudioFileProperty_ClientDataFormat, sizeof(clientFormat), &clientFormat);
+//        UInt32 propSize = sizeof(AudioStreamBasicDescription);
+//        AudioUnitGetProperty(*(mCsData.aunit), kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &clientFormat, &propSize);
+//        // ...and set it as the client format for the audio file. The file will use this
+//        // format to perform any necessary conversions when asked to read or write.
+//        ExtAudioFileSetProperty(mCsData.file, kExtAudioFileProperty_ClientDataFormat, sizeof(clientFormat), &clientFormat);
         // Warm the file up.
         ExtAudioFileWriteAsync(mCsData.file, 0, NULL);
     } else {
@@ -154,42 +154,47 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 }
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Value Cache
+#  pragma mark - Bindings
 // -----------------------------------------------------------------------------
 
-- (void)addValueCacheable:(id<CsoundValueCacheable>)valueCacheable {
-    if (valueCacheable != nil) {
-        [_valuesCache addObject:valueCacheable];
+- (void)addBinding:(id<CsoundBinding>)binding
+{
+    if (binding != nil) {
+        [_bindings addObject:binding];
     }
 }
 
-- (void)removeValueCaheable:(id<CsoundValueCacheable>)valueCacheable {
-	if (valueCacheable != nil && [_valuesCache containsObject:valueCacheable]) {
-		[_valuesCache removeObject:valueCacheable];
+- (void)removeBinding:(id<CsoundBinding>)binding
+{
+	if (binding != nil && [_bindings containsObject:binding]) {
+		[_bindings removeObject:binding];
 	}
 }
 
-- (void)setupValueCache {
-    for (int i = 0; i < _valuesCache.count; i++) {
-        id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
-        [cachedValue setup:self];
+- (void)setupBindings
+{
+    for (int i = 0; i < _bindings.count; i++) {
+        id<CsoundBinding> binding = [_bindings objectAtIndex:i];
+        [binding setup:self];
     }
 }
 
-- (void)cleanupValueCache {
-    for (int i = 0; i < _valuesCache.count; i++) {
-        id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
-        if ([cachedValue respondsToSelector:@selector(cleanup)]) {
-            [cachedValue cleanup];
+- (void)cleanupBindings
+{
+    for (int i = 0; i < _bindings.count; i++) {
+        id<CsoundBinding> binding = [_bindings objectAtIndex:i];
+        if ([binding respondsToSelector:@selector(cleanup)]) {
+            [binding cleanup];
         }
     }
 }
 
-- (void)updateAllValuesToCsound {
-    for (int i = 0; i < _valuesCache.count; i++) {
-        id<CsoundValueCacheable> cachedValue = [_valuesCache objectAtIndex:i];
-        if ([cachedValue respondsToSelector:@selector(updateValuesToCsound)]) {
-            [cachedValue updateValuesToCsound];
+- (void)updateAllValuesToCsound
+{
+    for (int i = 0; i < _bindings.count; i++) {
+        id<CsoundBinding> binding = [_bindings objectAtIndex:i];
+        if ([binding respondsToSelector:@selector(updateValuesToCsound)]) {
+            [binding updateValuesToCsound];
         }
     }
 }
@@ -331,9 +336,9 @@ OSStatus  Csound_Render(void *inRefCon,
     for(i=0; i < slices; i++){
 		
 		for (int i = 0; i < cache.count; i++) {
-			id<CsoundValueCacheable> cachedValue = [cache objectAtIndex:i];
-            if ([cachedValue respondsToSelector:@selector(updateValuesToCsound)]) {
-                [cachedValue updateValuesToCsound];
+			id<CsoundBinding> binding = [cache objectAtIndex:i];
+            if ([binding respondsToSelector:@selector(updateValuesToCsound)]) {
+                [binding updateValuesToCsound];
             }
 		}
         
@@ -364,9 +369,9 @@ OSStatus  Csound_Render(void *inRefCon,
 		}
         
 		for (int i = 0; i < cache.count; i++) {
-			id<CsoundValueCacheable> cachedValue = [cache objectAtIndex:i];
-            if ([cachedValue respondsToSelector:@selector(updateValuesFromCsound)]) {
-                [cachedValue updateValuesFromCsound];
+			id<CsoundBinding> binding = [cache objectAtIndex:i];
+            if ([binding respondsToSelector:@selector(updateValuesFromCsound)]) {
+                [binding updateValuesFromCsound];
             }
 		}
     }
@@ -395,7 +400,7 @@ OSStatus  Csound_Render(void *inRefCon,
             (char*)[[paths objectAtIndex:0] cStringUsingEncoding:NSASCIIStringEncoding], "-o", (char*)[[paths objectAtIndex:1] cStringUsingEncoding:NSASCIIStringEncoding]};
         int ret = csoundCompile(cs, 4, argv);
         
-        [self setupValueCache];
+        [self setupBindings];
         [self notifyListenersOfStartup];
         
         [self updateAllValuesToCsound];
@@ -406,7 +411,7 @@ OSStatus  Csound_Render(void *inRefCon,
             csoundDestroy(cs);
         }
         
-        [self cleanupValueCache];
+        [self cleanupBindings];
         [self notifyListenersOfCompletion];
     }
 }
@@ -432,45 +437,71 @@ OSStatus  Csound_Render(void *inRefCon,
         mCsData.running = true;
         
         if(!ret) {
-            
+            float coef = (float) SHRT_MAX / csoundGet0dBFS(cs);
             mCsData.cs = cs;
             mCsData.ret = ret;
             mCsData.nchnls = csoundGetNchnls(cs);
             mCsData.bufframes = (csoundGetOutputBufferSize(cs))/mCsData.nchnls;
             mCsData.running = true;
-            mCsData.valuesCache = _valuesCache;
+            mCsData.valuesCache = _bindings;
             mCsData.useAudioInput = _useAudioInput;
             
-            [self setupValueCache];
+            MYFLT* spout = csoundGetSpout(cs);
+            AudioBufferList bufferList;
+            bufferList.mNumberBuffers = 1;
+
+            [self setupBindings];
+
             [self notifyListenersOfStartup];
+           
+            if (mCsData.shouldRecord) {
+                [self recordToURL:self.outputURL];
+                bufferList.mBuffers[0].mNumberChannels = mCsData.nchnls;
+                bufferList.mBuffers[0].mDataByteSize = mCsData.nchnls * csoundGetKsmps(cs) * 2; // 16-bit PCM output
+                bufferList.mBuffers[0].mData = malloc(sizeof(short) * mCsData.nchnls * csoundGetKsmps(cs));
+            }
             
             while (!mCsData.ret && mCsData.running) {
-                for (int i = 0; i < _valuesCache.count; i++) {
-                    id<CsoundValueCacheable> cachedValue =
-                    [_valuesCache objectAtIndex:i];
-                    if ([cachedValue
-                         respondsToSelector:@selector(updateValuesToCsound)]) {
-                        [cachedValue updateValuesToCsound];
+                for (int i = 0; i < _bindings.count; i++) {
+                    id<CsoundBinding> binding = [_bindings objectAtIndex:i];
+                    if ([binding respondsToSelector:@selector(updateValuesToCsound)]) {
+                        [binding updateValuesToCsound];
                     }
                 }
                 
                 mCsData.ret = csoundPerformKsmps(mCsData.cs);
+               
+                // Write to file.
+                if (mCsData.shouldRecord) {
+                    short* data = (short*)bufferList.mBuffers[0].mData;
+                    for (int i = 0; i < csoundGetKsmps(cs) * mCsData.nchnls; i++) {
+                        data[i] = (short)lrintf(spout[i] * coef);
+                    }
+                    OSStatus err = ExtAudioFileWriteAsync(mCsData.file, csoundGetKsmps(cs), &bufferList);
+                    if (err != noErr) {
+                        printf("***Error writing to file: %d\n", (int)err);
+                    }
+                }
                 
-                for (int i = 0; i < _valuesCache.count; i++) {
-                    id<CsoundValueCacheable> cachedValue =
-                    [_valuesCache objectAtIndex:i];
-                    if ([cachedValue
-                         respondsToSelector:@selector(updateValuesFromCsound)]) {
-                        [cachedValue updateValuesFromCsound];
+                for (int i = 0; i < _bindings.count; i++) {
+                    id<CsoundBinding> binding =
+                    [_bindings objectAtIndex:i];
+                    if ([binding respondsToSelector:@selector(updateValuesFromCsound)]) {
+                        [binding updateValuesFromCsound];
                     }
                 }
             }
         }
+       
+        if (mCsData.shouldRecord) {
+            ExtAudioFileDispose(mCsData.file);
+        }
+        
         csoundDestroy(cs);
         
         mCsData.running = false;
         
-        [self cleanupValueCache];
+        [self cleanupBindings];
         [self notifyListenersOfCompletion];
         
         

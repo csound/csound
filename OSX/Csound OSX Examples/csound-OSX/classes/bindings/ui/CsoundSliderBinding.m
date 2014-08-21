@@ -1,12 +1,12 @@
 /*
  
- CachedSlider.h:
+ CsoundSliderBinding.m:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
- This file is part of Csound for iOS.
+ This file is part of Csound for OSX.
  
- The Csound for iOS Library is free software; you can redistribute it
+ The Csound for OSX Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
@@ -23,16 +23,22 @@
  
  */
 
-#import "CachedSlider.h"
+#import "CsoundSliderBinding.h"
 
-@implementation CachedSlider
-
--(void)updateValueCache:(id)sender {
-    cachedValue = ((NSSlider *)sender).doubleValue;
-    self.cacheDirty = YES;
+@interface CsoundSliderBinding() {
+    MYFLT channelValue;
+    MYFLT *channelPtr;
 }
 
--(CachedSlider*)init:(NSSlider*)slider channelName:(NSString*)channelName {
+@property (nonatomic, strong) NSString *channelName;
+@property (nonatomic, strong) NSSlider *slider;
+
+@end
+
+@implementation CsoundSliderBinding
+
+-(instancetype)initSlider:(NSSlider *)slider channelName:(NSString *)channelName
+{
     if (self = [super init]) {
         self.slider = slider;
         self.channelName = channelName;
@@ -40,21 +46,21 @@
     return self;
 }
 
--(void)setup:(CsoundObj*)csoundObj {
-    channelPtr = [csoundObj getInputChannelPtr:self.channelName
-                                   channelType:CSOUND_CONTROL_CHANNEL];
-    cachedValue = self.slider.doubleValue;
-    self.cacheDirty = YES;
-    [self.slider setTarget:self];
-    [self.slider setAction:@selector(updateValueCache:)];
+-(void)updateChannelValue:(id)sender {
+    channelValue = ((NSSlider *)sender).doubleValue;
 }
 
+-(void)setup:(CsoundObj *)csoundObj
+{
+    channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                   channelType:CSOUND_CONTROL_CHANNEL];
+    channelValue = self.slider.doubleValue;
+    [self.slider setTarget:self];
+    [self.slider setAction:@selector(updateChannelValue:)];
+}
 
 -(void)updateValuesToCsound {
-    if (self.cacheDirty) {
-        *channelPtr = cachedValue;
-        self.cacheDirty = NO;
-    }
+    *channelPtr = channelValue;
 }
 
 -(void)cleanup {

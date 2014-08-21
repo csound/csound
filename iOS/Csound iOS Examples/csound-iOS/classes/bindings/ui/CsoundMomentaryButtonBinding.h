@@ -25,7 +25,7 @@
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface CsoundMomentaryButtonBinding : NSObject<CsoundDataBinding>
+@interface CsoundMomentaryButtonBinding : NSObject<CsoundBinding>
 
 -(instancetype)initButton:(UIButton *)button channelName:(NSString *)channelName;
 

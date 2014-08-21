@@ -1,15 +1,15 @@
-/* 
+/*
  
- CachedButton.h:
+ CsoundUI.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Victor Lazzarini, Aurelius Prochazka
  
- This file is part of Csound for iOS.
+ This file is part of Csound OSX Examples.
  
- The Csound for iOS Library is free software; you can redistribute it
+ The Csound for OSX Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.   
+ version 2.1 of the License, or (at your option) any later version.
  
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,18 +22,16 @@
  02111-1307 USA
  
  */
+
 #import <Foundation/Foundation.h>
-#import "BaseValueCacheable.h"
 #import "CsoundObj.h"
 
-@interface CachedButton : BaseValueCacheable {
-    double cachedValue;
-    double *channelPtr;
-}
+@interface CsoundUI : NSObject
 
-@property (nonatomic, strong) NSString *channelName;
-@property (nonatomic, strong) NSButton *button;
+- (instancetype)initWithCsoundObj:(CsoundObj *)csound;
 
--(CachedButton*)init:(NSButton *)button channelName:(NSString *)channelName;
+- (void)addButton:(NSButton *)button forChannelName:(NSString *)channelName;
+- (void)addSlider:(NSSlider*)slider  forChannelName:(NSString *)channelName;
+- (void)addMomentaryButton:(NSButton *)button forChannelName:(NSString *)channelName;
 
 @end
