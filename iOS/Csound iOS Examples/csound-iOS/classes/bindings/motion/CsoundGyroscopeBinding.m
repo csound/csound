@@ -47,7 +47,7 @@ static NSString *CS_GYRO_Z = @"gyroZ";
     return self;
 }
 
--(void)setup:(CsoundObj*)csoundObj {
+-(void)setup:(CsoundObj *)csoundObj {
     channelPtrX = [csoundObj getInputChannelPtr:CS_GYRO_X
                                     channelType:CSOUND_CONTROL_CHANNEL];
     channelPtrY = [csoundObj getInputChannelPtr:CS_GYRO_Y

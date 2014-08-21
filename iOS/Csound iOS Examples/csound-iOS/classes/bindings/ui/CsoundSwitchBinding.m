@@ -48,7 +48,7 @@
     return self;
 }
 
--(void)setup:(CsoundObj*)csoundObj
+-(void)setup:(CsoundObj *)csoundObj
 {
     channelValue = self.switcher.on ? 1 : 0;
     channelPtr = [csoundObj getInputChannelPtr:self.channelName

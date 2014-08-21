@@ -610,10 +610,10 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           frac1 = ndx[1] - tndx1;
           out[i] = amp*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
           ndx[1] -= pitch;
-	 if (ndx[1] <= loop_start + crossfade) {
+          if (ndx[1] <= loop_start + crossfade) {
             ndx[0] = (double) loop_start;
             count = 0;    
-	  }   
+          }   
         }
         else if (ndx[1] > loop_start) {
           if (etab==NULL) fadeout = FL(1.0) - count/crossfade;

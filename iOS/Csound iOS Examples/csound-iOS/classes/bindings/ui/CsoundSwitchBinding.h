@@ -26,7 +26,7 @@
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface CsoundSwitchBinding : NSObject<CsoundDataBinding>
+@interface CsoundSwitchBinding : NSObject<CsoundBinding>
 
 -(instancetype)initSwitch:(UISwitch *)uiSwitch channelName:(NSString *)channelName;
 

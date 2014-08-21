@@ -3461,9 +3461,9 @@ void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
 /* could in fact work under any x86/GCC system, but do not   */
 /* know how to query the actual CPU frequency ...            */
 
-#define HAVE_RDTSC  1
+//#define HAVE_RDTSC  1
 
-/* ------------------------------------ */
+/* ------------------------------------ */ 
 
 #if defined(HAVE_RDTSC)
 #if !(defined(LINUX) && defined(__GNUC__) && defined(__i386__))
@@ -3493,7 +3493,6 @@ static int getTimeResolution(void)
     while (fgets(buf, 256, f) != NULL) {
       int     i;
       char    *s = (char*) buf - 1;
-
       buf[255] = '\0';          /* safety */
       if (strlen(buf) < 9)
         continue;                       /* too short, skip */
@@ -3508,6 +3507,7 @@ static int getTimeResolution(void)
         s++;
       } while (*s == ' ' || *s == '\t');    /* skip white space */
       i = CS_SSCANF(s, "%lf", &timeResolutionSeconds);
+
       if (i < 1 || timeResolutionSeconds < 1.0) {
         timeResolutionSeconds = -1.0;       /* invalid entry */
         continue;

@@ -27,7 +27,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import "CsoundObj.h"
 
-@interface LevelMeterView : UIView <CsoundDataBinding>
+@interface LevelMeterView : UIView <CsoundBinding>
 
 - (void)addToCsoundObj:(CsoundObj *)csoundObj
         forChannelName:(NSString *)channelName;

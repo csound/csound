@@ -1049,7 +1049,7 @@ int str_from_url(CSOUND *csound, STRCPY_OP *p)
 }
 #endif
 
-#ifndef HAVE_STRLCAT
+#if !defined(HAVE_STRLCAT) && !defined(strlcat)
 /* Direct from BSD sources */
 size_t
 strlcat(char *dst, const char *src, size_t siz)

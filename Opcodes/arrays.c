@@ -97,8 +97,9 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
     int inArgCount = p->INOCOUNT;
 
     if (UNLIKELY(inArgCount == 0))
-      return csound->InitError(csound,
-                               Str("Error: no sizes set for array initialization"));
+      return
+        csound->InitError(csound,
+                          Str("Error: no sizes set for array initialization"));
 
     arrayDat->dimensions = inArgCount;
     arrayDat->sizes = csound->Calloc(csound, sizeof(int) * inArgCount);
@@ -438,8 +439,9 @@ static int tabdiv(CSOUND *csound, TABARITH *p)
       if (LIKELY(r->data[i]!=0))
         ans->data[i] = l->data[i] / r->data[i];
       else
-        return csound->PerfError(csound, p->h.insdshead,
-                                 Str("division by zero in array-var at index %d"), i);
+        return
+          csound->PerfError(csound, p->h.insdshead,
+                            Str("division by zero in array-var at index %d"), i);
     return OK;
 }
 
@@ -1348,8 +1350,8 @@ static unsigned int isPowerOfTwo (unsigned int x) {
 
 int init_rfft(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
-  if(p->in->dimensions > 1) 
-    return csound->InitError(csound, 
+  if(p->in->dimensions > 1)
+    return csound->InitError(csound,
      "rfft: only one-dimensional arrays allowed");
   if (isPowerOfTwo(N))
     tabensure(csound, p->out,N);
@@ -1372,8 +1374,8 @@ int perf_rfft(CSOUND *csound, FFT *p){
 
 int init_rifft(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
- if(p->in->dimensions > 1) 
-    return csound->InitError(csound, 
+ if(p->in->dimensions > 1)
+    return csound->InitError(csound,
        "rifft: only one-dimensional arrays allowed");
   if (isPowerOfTwo(N))
     tabensure(csound, p->out, N);
@@ -1401,7 +1403,8 @@ int init_rfftmult(CSOUND *csound, FFT *p){
     /*if(isPowerOfTwo(N))*/
     tabensure(csound, p->out, N);
     /* else
-       return csound->InitError(csound, "non-pow-of-two case not implemented yet \n");*/
+       return 
+         csound->InitError(csound, "non-pow-of-two case not implemented yet \n");*/
     return OK;
 }
 
@@ -1417,7 +1420,7 @@ void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize);
 
 int init_fft(CSOUND *csound, FFT *p){
   int   N2 = p->in->sizes[0];
- if(p->in->dimensions > 1) 
+ if(p->in->dimensions > 1)
     return csound->InitError(csound,
       "fft: only one-dimensional arrays allowed");
   tabensure(csound,p->out,N2);
@@ -1437,7 +1440,7 @@ int perf_fft(CSOUND *csound, FFT *p){
 
 int init_ifft(CSOUND *csound, FFT *p){
   int   N2 = p->in->sizes[0];
-   if(p->in->dimensions > 1) 
+   if(p->in->dimensions > 1)
     return csound->InitError(csound,
        "fftinv: only one-dimensional arrays allowed");
   tabensure(csound, p->out, N2);
