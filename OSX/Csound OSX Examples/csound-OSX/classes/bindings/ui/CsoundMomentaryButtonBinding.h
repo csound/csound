@@ -1,15 +1,15 @@
-/* 
+/*
  
- BaseValueCacheable.h:
+ CsoundMomentaryButtonBinding.h:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
- This file is part of Csound for iOS.
+ This file is part of Csound for OSX.
  
- The Csound for iOS Library is free software; you can redistribute it
+ The Csound for OSX Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.   
+ version 2.1 of the License, or (at your option) any later version.
  
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,12 +22,11 @@
  02111-1307 USA
  
  */
-
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface BaseValueCacheable : NSObject<CsoundValueCacheable> 
+@interface CsoundMomentaryButtonBinding : NSObject<CsoundBinding>
 
-@property (assign) BOOL cacheDirty;
+-(instancetype)initButton:(NSButton *)button channelName:(NSString *)channelName;
 
 @end

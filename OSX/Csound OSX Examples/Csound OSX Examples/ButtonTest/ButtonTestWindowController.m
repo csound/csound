@@ -6,7 +6,7 @@
  
  This file is part of Csound OSX Examples.
  
- The Csound for iOS Library is free software; you can redistribute it
+ The Csound for OSX Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
@@ -56,7 +56,7 @@
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
         
-        [csoundUI addButton:self.valueButton forChannelName:@"button1"];
+        [csoundUI addMomentaryButton:self.valueButton forChannelName:@"button1"];
         
         [csoundUI addSlider:_durationSlider forChannelName:@"duration"];
         [csoundUI addSlider:_attackSlider   forChannelName:@"attack"];

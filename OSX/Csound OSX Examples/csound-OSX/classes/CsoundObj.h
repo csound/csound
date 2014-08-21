@@ -6,7 +6,7 @@
  
  This file is part of Csound for OS X.
  
- The Csound for iOS Library is free software; you can redistribute it
+ The Csound for OSX Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
@@ -51,13 +51,13 @@ typedef struct {
 } Message;
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Protocols (Cacheable Values and Listeners)
+#  pragma mark - Protocols (Bindings and Listeners)
 // -----------------------------------------------------------------------------
 
 @class CsoundObj;
 
-@protocol CsoundValueCacheable <NSObject>
-- (void)setup:(CsoundObj*)csoundObj;
+@protocol CsoundBinding <NSObject>
+- (void)setup:(CsoundObj *)csoundObj;
 @optional
 - (void)cleanup;
 - (void)updateValuesFromCsound;
@@ -66,9 +66,10 @@ typedef struct {
 
 @protocol CsoundObjListener <NSObject>
 @optional
-- (void)csoundObjStarted:(CsoundObj*)csoundObj;
-- (void)csoundObjCompleted:(CsoundObj*)csoundObj;
+- (void)csoundObjStarted:(CsoundObj *)csoundObj;
+- (void)csoundObjCompleted:(CsoundObj *)csoundObj;
 @end
+
 
 // -----------------------------------------------------------------------------
 #  pragma mark - CsoundObj Interface
@@ -98,12 +99,12 @@ typedef struct {
 
 
 // -----------------------------------------------------------------------------
-#  pragma mark - Value Cache
+#  pragma mark - Binding
 // -----------------------------------------------------------------------------
 
-@property (nonatomic, strong) NSMutableArray *valuesCache;
-- (void)addValueCacheable:(id<CsoundValueCacheable>)valueCacheable;
-- (void)removeValueCaheable:(id<CsoundValueCacheable>)valueCacheable;
+@property (nonatomic, strong) NSMutableArray *bindings;
+- (void)addBinding:(id<CsoundBinding>)binding;
+- (void)removeBinding:(id<CsoundBinding>)binding;
 
 // -----------------------------------------------------------------------------
 #  pragma mark - Listeners and Messages

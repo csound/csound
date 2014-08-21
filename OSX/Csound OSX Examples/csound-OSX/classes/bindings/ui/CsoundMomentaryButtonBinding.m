@@ -1,15 +1,16 @@
-/* 
+/*
  
- CachedButton.m:
+ CsoundMomentaryButtonBinding.m:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
- This file is part of Csound for iOS.
  
- The Csound for iOS Library is free software; you can redistribute it
+ This file is part of Csound for OSX.
+ 
+ The Csound for OSX Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.   
+ version 2.1 of the License, or (at your option) any later version.
  
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,16 +23,21 @@
  02111-1307 USA
  
  */
-#import "CachedButton.h"
+#import "CsoundMomentaryButtonBinding.h"
 
-@implementation CachedButton
-
--(void)updateValueCache:(id)sender {
-    cachedValue = 1;
-    self.cacheDirty = YES;
+@interface CsoundMomentaryButtonBinding () {
+    MYFLT channelValue;
+    MYFLT *channelPtr;
 }
 
--(id)init:(NSButton *)button channelName:(NSString *)channelName {
+@property (nonatomic, strong) NSString *channelName;
+@property (nonatomic, strong) NSButton *button;
+@end
+
+@implementation CsoundMomentaryButtonBinding
+
+-(instancetype)initButton:(NSButton *)button channelName:(NSString *)channelName
+{
     if (self = [super init]) {
         self.channelName = channelName;
         self.button = button;
@@ -39,24 +45,23 @@
     return self;
 }
 
+-(void)updateChannelValue:(id)sender {
+    channelValue = 1;
+}
 
--(void)setup:(CsoundObj*)csoundObj {
-    cachedValue = 0;
-    self.cacheDirty = YES;
+-(void)setup:(CsoundObj *)csoundObj
+{
+    channelValue = self.button.state;
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
     [self.button setTarget:self];
-    [self.button setAction:@selector(updateValueCache:)];
+    [self.button setAction:@selector(updateChannelValue:)];
 }
 
-
--(void)updateValuesToCsound {
-    if (self.cacheDirty) {
-        *channelPtr = cachedValue;
-        
-        self.cacheDirty = (cachedValue == 1);
-        cachedValue = 0;
-    }
+-(void)updateValuesToCsound
+{
+    *channelPtr = channelValue;
+    channelValue = 0;
 }
 
 -(void)cleanup {

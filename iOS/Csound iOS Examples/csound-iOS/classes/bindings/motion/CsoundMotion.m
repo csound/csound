@@ -56,7 +56,7 @@
     }
     
     CsoundAccelerometerBinding  *accelerometer = [[CsoundAccelerometerBinding alloc] init:motionManager];
-    [csoundObj addDataBinding:accelerometer];
+    [csoundObj addBinding:accelerometer];
     
     
     motionManager.accelerometerUpdateInterval = 1 / 100.0; // 100 hz
@@ -71,7 +71,7 @@
     }
     
     CsoundGyroscopeBinding *gyro = [[CsoundGyroscopeBinding alloc] init:motionManager];
-    [csoundObj addDataBinding:gyro];
+    [csoundObj addBinding:gyro];
     
     motionManager.gyroUpdateInterval = 1 / 100.0; // 100 hz
     
@@ -84,7 +84,7 @@
     }
     
     CsoundAttitudeBinding *attitude = [[CsoundAttitudeBinding alloc] init:motionManager];
-    [csoundObj addDataBinding:attitude];
+    [csoundObj addBinding:attitude];
     
     motionManager.deviceMotionUpdateInterval = 1 / 100.0; // 100hz
     

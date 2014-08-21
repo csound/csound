@@ -242,17 +242,17 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
       return CSOUND_ERROR;
     /* load library */
 /*  #if defined(LINUX) */
-    //      printf("About to open library '%s'\n", libraryPath);
+    //printf("About to open library '%s'\n", libraryPath);
 /* #endif */
     err = csoundOpenLibrary(&h, libraryPath);
     if (UNLIKELY(err)) {
       char ERRSTR[256];
-#if !(defined(NACL)) && defined(LINUX)
+ #if !(defined(NACL)) && defined(LINUX)
       snprintf(ERRSTR, 256, Str("could not open library '%s' (%s)"),
-                      libraryPath, dlerror());
+               libraryPath, dlerror());
  #else
       snprintf(ERRSTR, 256, Str("could not open library '%s' (%d)"),
-                      libraryPath, err);
+               libraryPath, err);
  #endif
       if (csound->delayederrormessages == NULL) {
         csound->delayederrormessages = malloc(strlen(ERRSTR)+1);

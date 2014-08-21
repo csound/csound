@@ -25,7 +25,7 @@
 #import <Foundation/Foundation.h>
 #import "CsoundObj.h"
 
-@interface CsoundLabelBinding : NSObject<CsoundDataBinding>
+@interface CsoundLabelBinding : NSObject<CsoundBinding>
 
 -(instancetype)initLabel:(UILabel *)label channelName:(NSString *)channelName;
 
