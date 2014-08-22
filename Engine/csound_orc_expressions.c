@@ -802,7 +802,7 @@ void handle_negative_number(CSOUND* csound, TREE* root) {
   if (root->type == S_UMINUS &&
       (root->right->type == INTEGER_TOKEN || root->right->type == NUMBER_TOKEN)) {
     int len = strlen(root->right->value->lexeme);
-    char* negativeNumber = csound->Malloc(csound, len + 2);
+    char* negativeNumber = csound->Malloc(csound, len + 3);
     negativeNumber[0] = '-';
     strcpy(negativeNumber + 1, root->right->value->lexeme);
     negativeNumber[len + 2] = '\0';
