@@ -13,7 +13,7 @@ option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
 option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
 option(BUILD_FAUST_OPCODES "Build the Faust opcodes" OFF)
 option(BUILD_VST4CS_OPCODES "Build the vst4cs opcodes" OFF)
-option(BUILD_EXCITER_OPCODES "Build the exciter opcode" OFF)
+option(BUILD_EXCITER_OPCODES "Build the exciter opcode" ON)
 
 find_package(Boost)
 check_include_file(ladspa.h LADSPA_H)
