@@ -53,19 +53,6 @@ extern int csound_orcget_lineno(void*);
 /* from csound_orc_compile.c */
 extern char** splitArgs(CSOUND* csound, char* argString);
 
-int get_opcode_type(OENTRY *ep)
-{
-    int retVal = 0;
-
-    if (ep->outypes == NULL || strlen(ep->outypes) == 0) {
-      retVal = T_OPCODE0;
-    }
-    else {
-      retVal = T_OPCODE;
-    }
-    return retVal;
-}
-
 void init_symbtab(CSOUND *csound)
 {
     OENTRY *ep;
@@ -97,7 +84,7 @@ void init_symbtab(CSOUND *csound)
         if (ep->dsblksiz < 0xfffb) {
           shortName = get_opcode_short_name(csound, ep->opname);
 
-          add_token(csound, shortName, get_opcode_type(ep));
+                add_token(csound, shortName, 0);
 
           if (shortName != ep->opname) {
             csound->Free(csound, shortName);
@@ -118,15 +105,15 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     ORCTOKEN *a = cs_hash_table_get(csound, csound->symbtab, s);
 
     ORCTOKEN *ans;
-    if (a!=NULL) {
-      if (type == a->type) return a;
-      if (UNLIKELY((type!=T_FUNCTION || a->type!=T_OPCODE)))
-        csound->Warning(csound,
-                        Str("Type confusion for %s (%d,%d), replacing\n"),
-                        s, type, a->type);
-      a->type = type;
-      return a;
-    }
+//    if (a!=NULL) {
+//      if (type == a->type) return a;
+//      if ((type!=T_FUNCTION || a->type!=T_OPCODE))
+//        csound->Warning(csound,
+//                        Str("Type confusion for %s (%d,%d), replacing\n"),
+//                        s, type, a->type);
+//      a->type = type;
+//      return a;
+//    }
     ans = new_token(csound, T_IDENT);
     ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
     strcpy(ans->lexeme, s);
@@ -136,13 +123,6 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
 
     return ans;
 }
-
-/* static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val) */
-/* { */
-/*     ORCTOKEN *ans = add_token(csound, s, type); */
-/*     ans->value = val; */
-/*     return ans; */
-/* } */
 
 int isUDOArgList(char *s)
 {
@@ -591,18 +571,6 @@ int add_udo_definition(CSOUND *csound, char *opname,
       newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
                                        + strlen(intypes) + 2);
       newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
-
-      if (strcmp(outtypes, "0")==0) {
-        add_token(csound, opname, T_OPCODE0);
-      } else {
-        add_token(csound, opname, T_OPCODE);
-      }
-
-    }
-
-    //printf("****Calling parse_opcode_args\n");
-    if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
-      return -3;
 
     return 0;
 }
