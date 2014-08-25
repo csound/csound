@@ -88,8 +88,25 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
 {
     TREE *last;
     //print_tree(csound, "Verify", root);
-    if (root->right && root->right->type != T_INSTLIST) {
-      if (root->type == T_OPCODE || root->type == T_OPCODE0) {
+    // if (root->right && root->right->type != T_INSTLIST) {
+    if (root->right) {
+        if (root->type == T_OPCALL || root->type == T_OPCALL) {
+            last = root->right;
+            while (last->next) {
+                /* we optimize the i() functions in the opcode */
+                if (last->next->type == T_FUNCTION &&
+                    (strcmp(last->next->value->lexeme, "i") == 0)) {
+                    TREE *temp = optimize_ifun(csound, last->next);
+                    temp->next = last->next->next;
+                    last->next = temp;
+                }
+                last = last->next;
+            }
+        }
+        if (root->right->type == T_FUNCTION &&
+            (strcmp(root->right->value->lexeme, "i") == 0)) {  /* i() function */
+            root->right = optimize_ifun(csound, root->right);
+        }
         last = root->right;
         while (last->next) {
           /* we optimize the i() functions in the opcode */

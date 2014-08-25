@@ -344,24 +344,6 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   (*lvalp)->type = KGOTO_TOKEN;
                   return KGOTO_TOKEN; };
 
-"sr"            { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = SRATE_TOKEN;
-                  return SRATE_TOKEN; }
-"kr"            { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = KRATE_TOKEN;
-                  return KRATE_TOKEN; }
-"ksmps"         { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = KSMPS_TOKEN;
-                  return KSMPS_TOKEN; }
-"nchnls"        { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = NCHNLS_TOKEN;
-                  return NCHNLS_TOKEN; }
-"nchnls_i"      { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = NCHNLSI_TOKEN;
-                  return NCHNLSI_TOKEN; }
-"A4"            { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = A4_TOKEN;
-                  return A4_TOKEN; }
 "instr"         {
                   namedInstrFlag = 1;
                   return INSTR_TOKEN;
@@ -498,10 +480,10 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                 }
 
 "0dbfs"         { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = ZERODBFS_TOKEN;
+                  (*lvalp)->type = T_IDENT;
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
-                  return ZERODBFS_TOKEN; }
-{IDENTB}        { if (UNLIKELY(strchr(yytext, '\n')))
+                  return T_IDENT; }
+{IDENTB}        { if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                   *strrchr(yytext, '(') = '\0';
