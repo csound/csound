@@ -37,6 +37,7 @@
 
 char *csound_orcget_text ( void *scanner );
 int is_label(char* ident, CONS_CELL* labelList);
+int is_reserved(char* varName);
 
 extern int csound_orcget_locn(void *);
 extern  char argtyp2(char*);
@@ -447,21 +448,18 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       return cs_strdup(csound, "c");                              /* const */
     case STRING_TOKEN:
       return cs_strdup(csound, "S");                /* quoted String */
-    case SRATE_TOKEN:
-    case KRATE_TOKEN:
-    case KSMPS_TOKEN:
-    case ZERODBFS_TOKEN:
-    case NCHNLS_TOKEN:
-    case NCHNLSI_TOKEN:
-      return cs_strdup(csound, "r");                              /* rsvd */
     case LABEL_TOKEN:
       //FIXME: Need to review why label token is used so much in parser,
       //for now treat as T_IDENT
     case T_ARRAY_IDENT:
     case T_IDENT:
-
+            
       s = tree->value->lexeme;
 
+      if (is_reserved(s)) {
+        return cs_strdup(csound, "r");                              /* rsvd */
+      }
+            
       if (is_label(s, typeTable->labelList)) {
         return cs_strdup(csound, "l");
       }
@@ -1457,6 +1455,15 @@ int is_label(char* ident, CONS_CELL* labelList) {
     return 0;
 }
 
+int is_reserved(char* varname) {
+    return (strcmp("sr", varname) == 0 ||
+            strcmp("kr", varname) == 0 ||
+            strcmp("ksmps", varname) == 0 ||
+            strcmp("0dbfs", varname) == 0 ||
+            strcmp("nchnls", varname) == 0 ||
+            strcmp("nchnls_i", varname) == 0);
+}
+
 int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
     char* outArg;
@@ -1909,24 +1916,6 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
                       l->line, csound->filedir[(l->locn)&0xff]); break;
     case KGOTO_TOKEN:
       csound->Message(csound,"KGOTO_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0xff]); break;
-    case SRATE_TOKEN:
-      csound->Message(csound,"SRATE_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0xff]); break;
-    case KRATE_TOKEN:
-      csound->Message(csound,"KRATE_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0xff]); break;
-    case ZERODBFS_TOKEN:
-      csound->Message(csound,"ZERODFFS_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0xff]); break;
-    case KSMPS_TOKEN:
-      csound->Message(csound,"KSMPS_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0xff]); break;
-    case NCHNLS_TOKEN:
-      csound->Message(csound,"NCHNLS_TOKEN:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0xff]); break;
-    case NCHNLSI_TOKEN:
-      csound->Message(csound,"NCHNLSI_TOKEN:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
     case INSTR_TOKEN:
       csound->Message(csound,"INSTR_TOKEN:(%d:%s)\n",

@@ -142,107 +142,107 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
                     Str("Inserting Parallelism Constructs into AST\n"));
 
     TREE *anchor = NULL;
-
-    TREE *current = root;
-    TREE *previous = NULL;
-    INSTR_SEMANTICS *instr = NULL;
-
-    while (current != NULL) {
-      switch(current->type) {
-      case INSTR_TOKEN:
-        if (current->left->type == T_INSTLIST) {
-          instr =
-            csp_orc_sa_instr_get_by_name(csound,
-                                               current->left->left->value->lexeme);
-        }
-        else {
-          instr = csp_orc_sa_instr_get_by_name(csound,
-                                               current->left->value->lexeme);
-        }
-        if (instr->read_write->count > 0 &&
-            instr->read->count == 0 &&
-            instr->write->count == 0) {
-          csound->Message(csound, Str("Instr %d needs locks"), instr->insno);
-          //print_tree(csound, "before locks", root);
-          current->right = csp_locks_insert(csound, current->right);
-          //print_tree(csound, "after locks", root);
-        }
-        break;
-
-      case UDO_TOKEN:
-      case IF_TOKEN:
-        break;
-
-      case '=':
-        /*if (current->type == '=')*/
-        {
-          struct set_t *left = csp_orc_sa_globals_find(csound, current->left);
-          struct set_t *right = csp_orc_sa_globals_find(csound, current->right);
-          struct set_t *new = NULL;
-          csp_set_union(csound, left, right, &new);
-          /* add locks if this is a read-write global variable
-           * that is same global read and written in this operation */
-          if (left->count == 1 && right->count == 1 && new->count == 1) {
-            char *global_var = NULL;
-            struct global_var_lock_t *gvar;
-            char buf[8];
-            ORCTOKEN *lock_tok, *unlock_tok, *var_tok, *var0_tok;;
-            TREE *lock_leaf, *unlock_leaf;
-
-            csp_set_get_num(new, 0, (void **)&global_var);
-            gvar       = global_var_lock_find(csound, global_var);
-            lock_tok   = lookup_token(csound, "##globallock");
-            unlock_tok = lookup_token(csound, "##globalunlock");
-            snprintf(buf, 8, "%i", gvar->index);
-            var_tok    = make_int(csound, buf);
-            var0_tok   = make_int(csound, buf);
-
-            lock_leaf  = make_leaf(csound, current->line, current->locn,
-                                   T_OPCODE, lock_tok);
-            lock_leaf->right = make_leaf(csound, current->line, current->locn,
-                                         INTEGER_TOKEN, var_tok);
-            unlock_leaf = make_leaf(csound, current->line, current->locn,
-                                    T_OPCODE, unlock_tok);
-            unlock_leaf->right = make_leaf(csound, current->line, current->locn,
-                                           INTEGER_TOKEN, var0_tok);
-
-            if (previous == NULL) {
-              //TREE *old_current = lock_leaf;
-              lock_leaf->next = current;
-              unlock_leaf->next = current->next;
-              current->next = unlock_leaf;
-              current = unlock_leaf;
-              //print_tree(csound, "changed to\n", lock_leaf);
-            }
-            else {
-              previous->next = lock_leaf;
-              lock_leaf->next = current;
-              unlock_leaf->next = current->next;
-              current->next = unlock_leaf;
-              current = unlock_leaf;
-              //print_tree(csound, "changed-1 to\n", lock_leaf);
-            }
-          }
-
-          csp_set_dealloc(csound, &new);
-          csp_set_dealloc(csound, &left);
-          csp_set_dealloc(csound, &right);
-       }
-      default:
-        break;
-      }
-
-      if (anchor == NULL) {
-        anchor = current;
-      }
-
-      previous = current;
-      current = current->next;
-
-    }
-
-    csound->Message(csound,
-                    Str("[End Inserting Parallelism Constructs into AST]\n"));
+//
+//    TREE *current = root;
+//    TREE *previous = NULL;
+//    INSTR_SEMANTICS *instr = NULL;
+//
+//    while (current != NULL) {
+//      switch(current->type) {
+//      case INSTR_TOKEN:
+//        if (current->left->type == T_INSTLIST) {
+//          instr =
+//            csp_orc_sa_instr_get_by_name(csound,
+//                                               current->left->left->value->lexeme);
+//        }
+//        else {
+//          instr = csp_orc_sa_instr_get_by_name(csound,
+//                                               current->left->value->lexeme);
+//        }
+//        if (instr->read_write->count > 0 &&
+//            instr->read->count == 0 &&
+//            instr->write->count == 0) {
+//          csound->Message(csound, Str("Instr %d needs locks"), instr->insno);
+//          //print_tree(csound, "before locks", root);
+//          current->right = csp_locks_insert(csound, current->right);
+//          //print_tree(csound, "after locks", root);
+//        }
+//        break;
+//
+//      case UDO_TOKEN:
+//      case IF_TOKEN:
+//        break;
+//
+//      case '=':
+//        /*if (current->type == '=')*/
+//        {
+//          struct set_t *left = csp_orc_sa_globals_find(csound, current->left);
+//          struct set_t *right = csp_orc_sa_globals_find(csound, current->right);
+//          struct set_t *new = NULL;
+//          csp_set_union(csound, left, right, &new);
+//          /* add locks if this is a read-write global variable
+//           * that is same global read and written in this operation */
+//          if (left->count == 1 && right->count == 1 && new->count == 1) {
+//            char *global_var = NULL;
+//            struct global_var_lock_t *gvar;
+//            char buf[8];
+//            ORCTOKEN *lock_tok, *unlock_tok, *var_tok, *var0_tok;;
+//            TREE *lock_leaf, *unlock_leaf;
+//
+//            csp_set_get_num(new, 0, (void **)&global_var);
+//            gvar       = global_var_lock_find(csound, global_var);
+//            lock_tok   = lookup_token(csound, "##globallock");
+//            unlock_tok = lookup_token(csound, "##globalunlock");
+//            snprintf(buf, 8, "%i", gvar->index);
+//            var_tok    = make_int(csound, buf);
+//            var0_tok   = make_int(csound, buf);
+//
+//            lock_leaf  = make_leaf(csound, current->line, current->locn,
+//                                   T_OPCODE, lock_tok);
+//            lock_leaf->right = make_leaf(csound, current->line, current->locn,
+//                                         INTEGER_TOKEN, var_tok);
+//            unlock_leaf = make_leaf(csound, current->line, current->locn,
+//                                    T_OPCODE, unlock_tok);
+//            unlock_leaf->right = make_leaf(csound, current->line, current->locn,
+//                                           INTEGER_TOKEN, var0_tok);
+//
+//            if (previous == NULL) {
+//              //TREE *old_current = lock_leaf;
+//              lock_leaf->next = current;
+//              unlock_leaf->next = current->next;
+//              current->next = unlock_leaf;
+//              current = unlock_leaf;
+//              //print_tree(csound, "changed to\n", lock_leaf);
+//            }
+//            else {
+//              previous->next = lock_leaf;
+//              lock_leaf->next = current;
+//              unlock_leaf->next = current->next;
+//              current->next = unlock_leaf;
+//              current = unlock_leaf;
+//              //print_tree(csound, "changed-1 to\n", lock_leaf);
+//            }
+//          }
+//
+//          csp_set_dealloc(csound, &new);
+//          csp_set_dealloc(csound, &left);
+//          csp_set_dealloc(csound, &right);
+//       }
+//      default:
+//        break;
+//      }
+//
+//      if (anchor == NULL) {
+//        anchor = current;
+//      }
+//
+//      previous = current;
+//      current = current->next;
+//
+//    }
+//
+//    csound->Message(csound,
+//                    Str("[End Inserting Parallelism Constructs into AST]\n"));
 
     return anchor;
 }

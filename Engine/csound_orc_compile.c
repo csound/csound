@@ -295,8 +295,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     case GOTO_TOKEN:
     case IGOTO_TOKEN:
     case KGOTO_TOKEN:
-    case T_OPCODE:
-    case T_OPCODE0:
+    case T_OPCALL:
     case '=':
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound,
@@ -509,25 +508,25 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
           /* modify otran defaults*/
           /* removed assignments to csound->tran_* */
-          if (current->left->type == SRATE_TOKEN) {
+          if (strcmp("sr", current->left->value->lexeme) == 0) {
             sr = val;
           }
-          else if (current->left->type == KRATE_TOKEN) {
+          else if (strcmp("kr", current->left->value->lexeme) == 0) {
             kr = val;
           }
-          else if (current->left->type == KSMPS_TOKEN) {
+          else if (strcmp("ksmps", current->left->value->lexeme) == 0) {
             uval = (val<=0 ? 1u : (unsigned int)val);
             ksmps = uval;
           }
-          else if (current->left->type == NCHNLS_TOKEN) {
+          else if (strcmp("nchnls", current->left->value->lexeme) == 0) {
             uval = (val<=0 ? 1u : (unsigned int)val);
             nchnls = uval;
           }
-          else if (current->left->type == NCHNLSI_TOKEN) {
+          else if (strcmp("nchnls_i", current->left->value->lexeme) == 0) {
             uval = (val<=0 ? 1u : (unsigned int)val);
             inchnls = uval;
           }
-          else if (current->left->type == ZERODBFS_TOKEN) {
+          else if (strcmp("0dbfs", current->left->value->lexeme) == 0) {
             _0dbfs = val;
           }
 
@@ -1387,36 +1386,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         /* Handle Inserting into CSOUND here by checking ids (name or
          * numbered) and using new insert_instrtxt?
          */
-        /* Temporarily using the following code */
-        if (current->left->type == INTEGER_TOKEN) { /* numbered instrument, eg.:
-                                                       instr 1
-                                                    */
-          int32 instrNum = (int32)current->left->value->value;
-          insert_instrtxt(csound, instrtxt, instrNum, engineState);
-
-        }
-        else if (current->left->type == T_IDENT){ /* named instrument, eg.:
-                                                       instr Hello
-                                                    */
-               int32  insno_priority = -1L;
-                char *c;
-                c = current->left->value->lexeme;
-
-                if (UNLIKELY(current->left->rate == (int) '+')) {
-                  insno_priority--;
-                }
-                if (UNLIKELY(!check_instr_name(c))) {
-                  synterr(csound, Str("invalid name for instrument"));
-                }
-                named_instr_alloc(csound,c,instrtxt, insno_priority,
-                                  engineState);
-                instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
-                strcpy(instrtxt->insname, c);
-        }
-        else if (current->left->type == T_INSTLIST) {
-                                                    /* list of instr names, eg:
-                                                       instr Hello, 1, 2
-                                                    */
           TREE *p =  current->left;
           while (p) {
             if (PARSER_DEBUG) print_tree(csound, "Top of loop\n", p);
@@ -1471,7 +1440,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
             }
             p = p->right;
           }
-        }
         break;
       case UDO_TOKEN:
         /* csound->Message(csound, "UDO found\n"); */
@@ -1498,8 +1466,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
          */
 
         break;
-      case T_OPCODE:
-      case T_OPCODE0:
+      case T_OPCALL:
       case LABEL:
         break;
 

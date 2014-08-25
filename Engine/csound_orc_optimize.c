@@ -85,8 +85,9 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
     double lval, rval;
     //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
     //print_tree(csound, "Verify", root);
-    if (root->right && root->right->type != T_INSTLIST) {
-        if (root->type == T_OPCODE || root->type == T_OPCODE0) {
+//    if (root->right && root->right->type != T_INSTLIST) {
+    if (root->right) {
+        if (root->type == T_OPCALL || root->type == T_OPCALL) {
             last = root->right;
             while (last->next) {
                 /* we optimize the i() functions in the opcode */

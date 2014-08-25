@@ -170,9 +170,9 @@ TREE * create_opcode_token(CSOUND *csound, char* op)
 {
     TREE *ans = create_empty_token(csound);
 
-    ans->type = T_OPCODE;
+//    ans->type = T_OPCODE;
     ans->value = make_token(csound, op);
-    ans->value->type = T_OPCODE;
+//    ans->value->type = T_OPCODE;
 
     return ans;
 }

@@ -46,11 +46,6 @@
 %token LABEL_TOKEN
 %token IF_TOKEN
 
-%token T_OPCODE0
-%token T_OPCODE0B
-%token T_OPCODE
-%token T_OPCODEB
-
 %token UDO_TOKEN
 %token UDOSTART_DEFINITION
 %token UDOEND_TOKEN
@@ -59,8 +54,9 @@
 
 %token T_ERROR
 
+%token T_OPCALL
 %token T_FUNCTION
-%token T_FUNCTIONB
+%token T_ASSIGNMENT
 
 %token INSTR_TOKEN
 %token ENDIN_TOKEN
@@ -68,15 +64,10 @@
 %token KGOTO_TOKEN
 %token IGOTO_TOKEN
 
-%token SRATE_TOKEN
-%token KRATE_TOKEN
-%token KSMPS_TOKEN
-%token NCHNLS_TOKEN
-%token NCHNLSI_TOKEN
-%token ZERODBFS_TOKEN
 %token STRING_TOKEN
 %token T_IDENT
-%token T_IDENTB
+%token T_TYPED_IDENT
+%token T_PLUS_IDENT
 
 %token INTEGER_TOKEN
 %token NUMBER_TOKEN
@@ -90,7 +81,6 @@
 %token DO_TOKEN
 %token OD_TOKEN
 
-%token T_INSTLIST
 %token S_ELIPSIS
 %token T_ARRAY
 %token T_ARRAY_IDENT
@@ -103,7 +93,7 @@
 %nonassoc THEN_TOKEN ITHEN_TOKEN KTHEN_TOKEN ELSE_TOKEN /* NOT SURE IF THIS IS NECESSARY */
 %left '|'
 %left '&'
-%left S_LT S_GT S_LEQ S_GEQ S_EQ S_NEQ
+%left S_LT S_GT S_LE S_GE S_EQ S_NEQ
 %left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
 %left '+' '-'
 %left '*' '/' '%'
@@ -159,88 +149,58 @@
 %}
 %%
 
-orcfile           : rootstatement
-                        {
-                            if ($1 != NULL)
-                              *astTree = *((TREE *)$1);
-                            csound->synterrcnt = csound_orcnerrs;
-                            //print_tree(csound, "ALL", $1);
-                        }
-                  ;
+/* TODO
+  
+ - add csp_orc_sa_instr_add calls in later csp analyze phase
 
-rootstatement     : rootstatement topstatement
-                        {
-                        $$ = appendToTree(csound, $1, $2);
-                        }
-                  | rootstatement instrdecl
-                        {
-                        $$ = appendToTree(csound, $1, $2);
-                        }
-                  | rootstatement udodecl
-                        {
-                        $$ = appendToTree(csound, $1, $2);
-                        }
-                  | topstatement
-                  | instrdecl
-                  | udodecl
-                  ;
+*/
 
-instlist  : INTEGER_TOKEN ',' instlist
-          { $$ = make_node(csound, LINE, LOCN, T_INSTLIST,
-                               make_leaf(csound, LINE,LOCN,
-                                         INTEGER_TOKEN, (ORCTOKEN *)$1), $3); }
-          | label ',' instlist
-              {
-                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$1)->lexeme);
-                  $$ = make_node(csound,LINE,LOCN, T_INSTLIST,
-                               make_leaf(csound, LINE,LOCN,
-                                         T_IDENT, (ORCTOKEN *)$1), $3); }
-          | '+' label ',' instlist
-              {
-                  TREE *ans;
-                  ans = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$2);
-                  ans->rate = (int) '+';
-                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$2)->lexeme);
-                  $$ = make_node(csound,LINE,LOCN, T_INSTLIST, ans, $4); }
-          | '+' label
-              {
-                  TREE *ans;
-                  ans = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$2);
-                  ans->rate = (int) '+';
-                  $$ = ans; }
-          | INTEGER_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
-                                           INTEGER_TOKEN, (ORCTOKEN *)$1); }
-          | label { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
+orcfile : root_statement_list
+          {
+              if ($1 != NULL)
+                *astTree = *((TREE *)$1);
+              csound->synterrcnt = csound_orcnerrs;
+              //print_tree(csound, "ALL", $1);
+          }
           ;
 
-instrdecl : INSTR_TOKEN
-                { namedInstrFlag = 1; csound_orcput_ilocn(scanner, LINE, LOCN); }
-            instlist NEWLINE
-                { namedInstrFlag = 0;
-                  csp_orc_sa_instr_add_tree(csound, $3);
-                }
-            statementlist ENDIN_TOKEN NEWLINE
-                {
-                    $$ = make_node(csound, csound_orcget_iline(scanner),
-                                   csound_orcget_ilocn(scanner), INSTR_TOKEN,
-                                   $3, $6);
-                    csp_orc_sa_instr_finalize(csound);
-                }
-          | INSTR_TOKEN NEWLINE error
-                {
-                    namedInstrFlag = 0;
-                    csound->Message(csound, Str("No number following instr\n"));
-                    csp_orc_sa_instr_finalize(csound);
-                }
+root_statement_list : root_statement_list root_statement
+                      { $$ = appendToTree(csound, $1, $2); }
+                    | root_statement
+                    ;
+
+root_statement : statement
+               | instr_definition
+               | udo_definition
+               ;
+
+/* Data declarations */
+
+instr_definition : INSTR_TOKEN instr_id_list NEWLINE 
+                    { csound_orcput_ilocn(scanner, LINE, LOCN); }
+                  statement_list ENDIN_TOKEN NEWLINE
+                 {  $$ = make_node(csound, csound_orcget_iline(scanner),
+                                  csound_orcget_ilocn(scanner), INSTR_TOKEN,
+                                  $2, $5); }
+                | INSTR_TOKEN NEWLINE error
+                   { csound->Message(csound, Str("No number following instr\n")); }
+                ;
+    
+
+instr_id_list : instr_id_list ',' instr_id
+                  { $$ = appendToTree(csound, $1, $3); }
+              | instr_id
+              ;
+
+instr_id : integer 
+          | identifier
+          | plus_identifier
           ;
+         
 
-udoname   : T_IDENT    { $$ = (TREE *)$1; }
-          | T_OPCODE   { $$ = (TREE *)$1; }
-          | T_OPCODE0  { $$ = (TREE *)$1; }
-
-udodecl   : UDOSTART_DEFINITION
+udo_definition   : UDOSTART_DEFINITION
                                                 { udoflag = -2; }
-                  udoname
+                 identifier 
                                                 { udoflag = -1; }
                   ','
                                                 { udoflag = 0;}
@@ -249,12 +209,12 @@ udodecl   : UDOSTART_DEFINITION
               ',' UDO_ARGS_TOKEN NEWLINE
               {
                 udoflag = 2;
-                add_udo_definition(csound,
-                        ((ORCTOKEN *)$3)->lexeme,
-                        ((ORCTOKEN *)$7)->lexeme,
-                        ((ORCTOKEN *)$10)->lexeme);
+                /*add_udo_definition(csound,*/
+                /*        ((ORCTOKEN *)$3)->lexeme,*/
+                /*        ((ORCTOKEN *)$7)->lexeme,*/
+                /*        ((ORCTOKEN *)$10)->lexeme);*/
               }
-              statementlist UDOEND_TOKEN NEWLINE
+              statement_list UDOEND_TOKEN NEWLINE
               {
                 TREE *udoTop = make_leaf(csound, LINE,LOCN, UDO_TOKEN,
                                          (ORCTOKEN *)NULL);
@@ -283,289 +243,270 @@ udodecl   : UDOSTART_DEFINITION
             ;
 
 
-statementlist : statementlist statement
+/* Opcode and Function calls */
+
+
+
+/* opcall is a slightly ambiguous rule.  We use it to catch no out-arg function calls, as well as old-style opcode line calls. While slightly ambiguous, it does only match valid code. The ambiguity is resolved by the semantic analyzer.  */
+
+opcall  : identifier NEWLINE
+          { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
+            $$->left = $1; 
+          }
+        | out_arg_list expr_list NEWLINE 
+          { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
+            $$->left = $1; 
+            $$->right = $2; 
+          }
+        | out_arg_list '(' ')' NEWLINE
+          { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
+            $$->left = $1; 
+            $$->right = $2; 
+          }
+        | out_arg_list identifier expr_list NEWLINE
+          { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
+            $$->left = $1; 
+            $$->right = $2; 
+            $$->next = $3;
+          }
+        ;
+
+
+function_call : typed_identifier '(' expr_list ')'
+              { $$ = $1;
+                $1->type = T_FUNCTION;
+                $1->right = $3; }
+             | typed_identifier '(' ')'
+              { $$ = $1;
+                $1->type = T_FUNCTION; }
+             | identifier '(' expr_list ')'
+              { $$ = $1;
+                $1->type = T_FUNCTION;
+                $1->right = $3; }
+             | identifier '(' ')'
+              { $$ = $1;
+                $1->type = T_FUNCTION; }
+             ;
+
+statement_list : statement_list statement
                 {
                     $$ = appendToTree(csound, (TREE *)$1, (TREE *)$2);
                 }
-                | /* null */          { $$ = NULL; }
+                | statement
                 ;
 
-topstatement : rident '=' expr NEWLINE
+statement : out_arg_list assignment expr NEWLINE
                 {
-
-                  TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
-                  ans->left = (TREE *)$1;
-                  ans->right = (TREE *)$3;
-                  $$ = ans;
-                }
-                | statement { $$ = $1; }
-
-             ;
-
-statement : ident '=' expr NEWLINE
-                {
-                  TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
-                  ans->left = (TREE *)$1;
-                  ans->right = (TREE *)$3;
-                  $$ = ans;
-                  csp_orc_sa_global_read_write_add_list(csound,
-                                    csp_orc_sa_globals_find(csound, ans->left),
-                                    csp_orc_sa_globals_find(csound, ans->right));
-                }
-          | ident S_ADDIN expr NEWLINE
-                { 
-                  TREE *ans = make_leaf(csound,LINE,LOCN, '=',
-                                        make_token(csound, "="));
-                  ORCTOKEN *repeat = make_token(csound, $1->value->lexeme);
-                  ans->left = (TREE *)$1;
-                  ans->right = make_node(csound,LINE,LOCN, '+', 
-                                         make_leaf(csound,LINE,LOCN, 
-                                                   $1->value->type, repeat),
-                                         (TREE *)$3);
-                  //print_tree(csound, "+=", ans);
-                  $$ = ans;
-                  csp_orc_sa_global_read_write_add_list1(csound,
-                                    csp_orc_sa_globals_find(csound, ans->left),
-                                    csp_orc_sa_globals_find(csound, ans->right));
-                }
-          | ident S_SUBIN expr NEWLINE
-                { 
-                  TREE *ans = make_leaf(csound,LINE,LOCN, '=',
-                                        make_token(csound, "="));
-                  ORCTOKEN *repeat = make_token(csound, $1->value->lexeme);
-                  ans->left = (TREE *)$1;
-                  ans->right = make_node(csound,LINE,LOCN, '-', 
-                                         make_leaf(csound,LINE,LOCN, 
-                                                   $1->value->type, repeat),
-                                         (TREE *)$3);
-                  //print_tree(csound, "-=", ans);
-                  $$ = ans;
-                  csp_orc_sa_global_read_write_add_list1(csound,
-                                    csp_orc_sa_globals_find(csound, ans->left),
-                                    csp_orc_sa_globals_find(csound, ans->right));
-                }
-          | ident S_MULIN expr NEWLINE
-                { 
-                  TREE *ans = make_leaf(csound,LINE,LOCN, '=',
-                                        make_token(csound, "="));
-                  ORCTOKEN *repeat = make_token(csound, $1->value->lexeme);
-                  ans->left = (TREE *)$1;
-                  ans->right = make_node(csound,LINE,LOCN, '*', 
-                                         make_leaf(csound,LINE,LOCN, 
-                                                   $1->value->type, repeat),
-                                         (TREE *)$3);
-                  //print_tree(csound, "-=", ans);
-                  $$ = ans;
-                  csp_orc_sa_global_read_write_add_list(csound,
-                                    csp_orc_sa_globals_find(csound, ans->left),
-                                    csp_orc_sa_globals_find(csound, ans->right));
-                }
-          | ident S_DIVIN expr NEWLINE
-                { 
-                  TREE *ans = make_leaf(csound,LINE,LOCN, '=',
-                                        make_token(csound, "="));
-                  ORCTOKEN *repeat = make_token(csound, $1->value->lexeme);
-                  ans->left = (TREE *)$1;
-                  ans->right = make_node(csound,LINE,LOCN, '/', 
-                                         make_leaf(csound,LINE,LOCN, 
-                                                   $1->value->type, repeat),
-                                         (TREE *)$3);
-                  //print_tree(csound, "-=", ans);
-                  $$ = ans;
-                  csp_orc_sa_global_read_write_add_list(csound,
-                                    csp_orc_sa_globals_find(csound, ans->left),
-                                    csp_orc_sa_globals_find(csound, ans->right));
-                }
-          | arrayexpr '=' expr NEWLINE
-	  {
-              TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
-              ans->left = (TREE *)$1;
-              ans->right = (TREE *)$3;
-              $$ = ans; 
-
-          }
-          | arrayident '=' expr NEWLINE
-	  {
-              TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
-              ans->left = (TREE *)$1;
-              ans->right = (TREE *)$3;
-              $$ = ans; 
-
-          }
-
-          | ans opcode exprlist NEWLINE
-                {
-                  $2->left = $1;
-                  $2->right = $3;
-                  $2->value->optype = NULL;
                   $$ = $2;
-                  
-                  csp_orc_sa_global_read_write_add_list(csound,
-                                    csp_orc_sa_globals_find(csound, $2->left),
-                                    csp_orc_sa_globals_find(csound, $2->right));
-                  csp_orc_sa_interlocks(csound, $2->value);
-                  query_deprecated_opcode(csound, $2->value);
+                  $$->left = (TREE *)$1;
+                  $$->right = (TREE *)$3;
                 }
-
-           | opcode0  exprlist NEWLINE
-                {
-                  ((TREE *)$1)->left = NULL;
-                  ((TREE *)$1)->right = (TREE *)$2;
-                  $1->value->optype = NULL;
-                  $$ = $1;
-                  csp_orc_sa_global_read_add_list(csound,
-                                  csp_orc_sa_globals_find(csound,
-                                                          $1->right));
-                  csp_orc_sa_interlocks(csound, $1->value);
-                  query_deprecated_opcode(csound, $1->value);
-                }
-            | opcode0b exprlist ')' NEWLINE   /* VL: added this to allow general func ops with no answers */
-                {
-                  ((TREE *)$1)->left = NULL;
-                  ((TREE *)$1)->right = (TREE *)$2;
-                  $1->value->optype = NULL;
-                  $$ = $1;
-                  
-                  csp_orc_sa_global_read_add_list(csound,
-                                  csp_orc_sa_globals_find(csound,
-                                                          $1->right));
-                  
-                  csp_orc_sa_interlocks(csound, $1->value);
-                  query_deprecated_opcode(csound, $1->value);
-                 
-                }
-          | LABEL_TOKEN
-                {
-		  //printf("label %s\n", ((ORCTOKEN *)$1)->lexeme);
-                    $$ = make_leaf(csound,LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1);
-                }
-          | goto label NEWLINE
+          | opcall
+          | goto identifier NEWLINE
                 {
                     $1->left = NULL;
-                    $1->right = make_leaf(csound, LINE,LOCN,
-                                          LABEL_TOKEN, (ORCTOKEN *)$2);
+                    $1->right = $2;
                     $$ = $1;
                 }
-          | IF_TOKEN bexpr goto label NEWLINE
-                {
-                    $3->left = NULL;
-                    $3->right = make_leaf(csound, LINE,LOCN,
-                                          LABEL_TOKEN, (ORCTOKEN *)$4);
-                    $$ = make_node(csound,LINE,LOCN, IF_TOKEN, $2, $3);
-                }
-          | ifthen
-          | UNTIL_TOKEN bexpr DO_TOKEN statementlist OD_TOKEN
-              {
-                  $$ = make_leaf(csound,LINE,LOCN, UNTIL_TOKEN, (ORCTOKEN *)$1);
-                  $$->left = $2;
-                  $$->right = $4;
-              }
-          | NEWLINE { $$ = NULL; }
-          ;
-ans       : ident               { $$ = $1; }
-          | arrayident		{ $$ = $1; }
-          | arrayexpr		{ $$ = $1; }
-          | T_IDENT error       
-              { csound->Message(csound,
-                      "Unexpected untyped word %s when expecting a variable\n", 
-                      ((ORCTOKEN*)$1)->lexeme);
-                $$ = NULL;
-              }
-          | ans ',' ident     { $$ = appendToTree(csound, $1, $3); }
-          | ans ',' T_IDENT error  
-              { csound->Message(csound,
-                      "Unexpected untyped word %s when expecting a variable\n", 
-                               ((ORCTOKEN*)$3)->lexeme);
-                $$ = appendToTree(csound, $1, NULL);
-              }
-          | ans ',' arrayident     { $$ = appendToTree(csound, $1, $3); }
-          | ans ',' arrayexpr     { $$ = appendToTree(csound, $1, $3); }
+
+          | if_goto
+          | if_then
+          | until
+          | LABEL_TOKEN NEWLINE
+            { $$ = make_leaf(csound, LINE, LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
+          | NEWLINE
+            { $$ = NULL; }
           ;
 
-arrayexpr :  arrayexpr '[' iexp ']'
+
+if_goto : IF_TOKEN expr goto T_IDENT NEWLINE
+              {
+                  $3->left = NULL;
+                  $3->right = make_leaf(csound, LINE,LOCN,
+                                        T_IDENT, (ORCTOKEN *)$4);
+                  $$ = make_node(csound,LINE,LOCN, IF_TOKEN, $2, $3);
+              }
+        ;
+
+if_then : if_then_base ENDIF_TOKEN NEWLINE
+          { $$ = $1; }
+        | if_then_base ELSE_TOKEN statement_list ENDIF_TOKEN NEWLINE
+          { $$ = $1;
+            $$->next = make_node(csound,LINE,LOCN, ELSE_TOKEN, NULL, $3); }
+        | if_then_base elseif_list ENDIF_TOKEN NEWLINE
+          { $$ = $1;
+            $$->next = make_node(csound,LINE,LOCN, ELSE_TOKEN, NULL, $3); }
+        | if_then_base elseif_list ELSE_TOKEN statement_list ENDIF_TOKEN NEWLINE
+          { $$ = $1;
+            $$->next = $2;
+            appendToTree(csound, $2, $4); }
+        ;
+
+if_then_base : IF_TOKEN expr then NEWLINE statement_list
+              { $3->right = $5;
+                $$ = make_node(csound,LINE,LOCN, IF_TOKEN, $2, $3); }
+              ;
+
+elseif_list : elseif_list elseif
+              { $$ = appendToTree(csound, $1, $2); } 
+            | elseif
+            ;
+
+elseif : ELSEIF_TOKEN expr then NEWLINE statement_list
+            { $3->right = $5;
+              $$ = make_node(csound,LINE,LOCN, ELSEIF_TOKEN, $2, $3); }
+       ;
+
+until : UNTIL_TOKEN expr DO_TOKEN statement_list OD_TOKEN
+              { $$ = make_leaf(csound,LINE,LOCN, UNTIL_TOKEN, (ORCTOKEN *)$1);
+                $$->left = $2;
+                $$->right = $4; }
+      ;
+
+/* Expressions */
+
+expr_list : expr_list ',' expr
+              { $$ = appendToTree(csound, $1, $3); } 
+         | expr
+         ;
+
+expr    : function_call
+        | '(' expr ')'
+          { $$ = $2 ; }
+        | '(' expr error    { $$ = NULL;  }
+        | '(' error         { $$ = NULL; }
+        | ternary_expr
+        | unary_expr
+        | binary_expr
+        | identifier 
+        | integer 
+        | number 
+        | string
+        | array_expr
+        ;
+
+
+array_expr :  array_expr '[' expr ']'
           {
             appendToTree(csound, $1->right, $3);
             $$ = $1;
           }
-          | ident '[' iexp ']' 
+          | identifier '[' expr ']' 
           { 
            char* arrayName = $1->value->lexeme;
             $$ = make_node(csound, LINE, LOCN, T_ARRAY, 
-	   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3); 
-
+          	   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3);
           }
           ;
 
-ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
+
+ternary_expr : expr '?' expr ':' expr %prec '?'
+            { $$ = make_node(csound,LINE,LOCN, '?', $1,
+                             make_node(csound, LINE,LOCN, ':', $3, $5)); }
+          | expr '?' expr ':' error
+          | expr '?' expr error
+          | expr '?' error
+          ;
+
+unary_expr : '~' expr %prec S_UMINUS
+            { $$ = make_node(csound, LINE,LOCN, '~', NULL, $2);}
+        | '~' error         { $$ = NULL; }
+        | '!' expr %prec S_UNOT { $$ = make_node(csound, LINE,LOCN,
+                                                    S_UNOT, $2, NULL); }
+        | '!' error           { $$ = NULL; }
+        | '-' expr %prec S_UMINUS
           {
-            $3->right = $5;
-            $$ = make_node(csound,LINE,LOCN, IF_TOKEN, $2, $3);
-            //print_tree(csound, "if-endif", $$);
+              $$ = make_node(csound,LINE,LOCN, S_UMINUS, NULL, $2);
           }
-          | IF_TOKEN bexpr then NEWLINE statementlist ELSE_TOKEN
-                                        statementlist ENDIF_TOKEN NEWLINE
+        | '-' error           { $$ = NULL; }
+        | '+' expr %prec S_UMINUS
           {
-            $3->right = $5;
-            $3->next = make_node(csound,LINE,LOCN, ELSE_TOKEN, NULL, $7);
-            $$ = make_node(csound,LINE,LOCN, IF_TOKEN, $2, $3);
-            //print_tree(csound, "if-else", $$);
-
+              $$ = $2;
           }
-        | IF_TOKEN bexpr then NEWLINE statementlist elseiflist ENDIF_TOKEN NEWLINE
-          {
-            if (UNLIKELY(PARSER_DEBUG))
-                csound->Message(csound, "IF-ELSEIF FOUND!\n");
-            $3->right = $5;
-            $3->next = $6;
-            $$ = make_node(csound, LINE,LOCN, IF_TOKEN, $2, $3);
-            //print_tree(csound, "if-elseif\n", $$);
+        | '+' error           { $$ = NULL; }
+        ;
+
+binary_expr : expr '+' expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
+          | expr '+' error
+          | expr '-' expr  { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
+          | expr '-' error
+          | expr S_LE expr      { $$ = make_node(csound, LINE,LOCN, S_LE, $1, $3); }
+          | expr S_LE error
+          | expr S_GE expr      { $$ = make_node(csound, LINE,LOCN, S_GE, $1, $3); }
+          | expr S_GE error
+          | expr S_NEQ expr     { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $3); }
+          | expr S_NEQ error
+          | expr S_EQ expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
+          | expr S_EQ error
+          | expr S_GT expr      { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $3); }
+          | expr S_GT error
+          | expr S_LT expr      { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $3); }
+          | expr S_LT error
+          | expr S_AND expr   { $$ = make_node(csound, LINE,LOCN, S_AND, $1, $3); }
+          | expr S_AND error
+          | expr S_OR expr    { $$ = make_node(csound, LINE,LOCN, S_OR, $1, $3); }
+          | expr S_OR error
+          | expr '*' expr    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
+          | expr '*' error
+          | expr '/' expr    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
+          | expr '/' error
+          | expr '^' expr    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
+          | expr '^' error
+          | expr '%' expr    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
+          | expr '%' error
+          | expr '|' expr        { $$ = make_node(csound, LINE,LOCN, '|', $1, $3); }
+          | expr '|' error
+          | expr '&' expr        { $$ = make_node(csound, LINE,LOCN, '&', $1, $3); }
+          | expr '&' error
+          | expr '#' expr        { $$ = make_node(csound, LINE,LOCN, '#', $1, $3); }
+          | expr '#' error
+          | expr S_BITSHIFT_LEFT expr   
+                 { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_LEFT, $1, $3); }
+          | expr S_BITSHIFT_LEFT error
+          | expr S_BITSHIFT_RIGHT expr
+                 { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_RIGHT, $1, $3); }
+          | expr S_BITSHIFT_RIGHT error
+          ;
+
+
+out_arg_list : out_arg_list ',' out_arg
+              { $$ = appendToTree(csound, $1, $2); }
+             | out_arg
+             ;
+
+out_arg : identifier 
+        | typed_identifier 
+        | array_identifier
+        | array_expr
+        ;
+
+
+array_identifier: array_identifier '[' ']' {          
+            appendToTree(csound, $1->right, 
+	             make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[")));
+            $$ = $1;
           }
-          | IF_TOKEN bexpr then NEWLINE statementlist elseiflist ELSE_TOKEN
-            statementlist ENDIF_TOKEN NEWLINE
-          {
-            TREE * tempLastNode;
-
-            $3->right = $5;
-            $3->next = $6;
-
-            $$ = make_node(csound, LINE,LOCN, IF_TOKEN, $2, $3);
-
-            tempLastNode = $$;
-
-            while (tempLastNode->right!=NULL && tempLastNode->right->next!=NULL) {
-                tempLastNode = tempLastNode->right->next;
-            }
-
-            tempLastNode->right->next = make_node(csound, LINE,LOCN,
-                                                  ELSE_TOKEN, NULL, $8);
-            //print_tree(csound, "IF TREE", $$);
+          | identifier '[' ']' {
+            $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, $1); 
+	          $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
           }
           ;
 
-elseiflist : elseiflist elseif
-            {
-                TREE * tempLastNode = $1;
 
-                while (tempLastNode->right!=NULL &&
-                       tempLastNode->right->next!=NULL) {
-                    tempLastNode = tempLastNode->right->next;
-                }
 
-                tempLastNode->right->next = $2;
-                $$ = $1;
-            }
-            | elseif { $$ = $1; }
-           ;
+/* ORCTOKEN wrappings and simplifications */
 
-elseif    : ELSEIF_TOKEN bexpr then NEWLINE statementlist
-            {
-                if (UNLIKELY(PARSER_DEBUG))
-                  csound->Message(csound, "ELSEIF FOUND!\n");
-                $3->right = $5;
-                $$ = make_node(csound,LINE,LOCN, ELSEIF_TOKEN, $2, $3);
-                //print_tree(csound, "ELSEIF", $$);
-            }
-          ;
+assignment : '='
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, (ORCTOKEN *)$1); }
+              | S_ADDIN
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, (ORCTOKEN *)$1); }
+              | S_SUBIN
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, (ORCTOKEN *)$1); }
+              | S_DIVIN
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, (ORCTOKEN *)$1); }
+              | S_MULIN
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, (ORCTOKEN *)$1); }
+              ;
 
 then      : THEN_TOKEN
             { $$ = make_leaf(csound,LINE,LOCN, THEN_TOKEN, (ORCTOKEN *)$1); }
@@ -583,244 +524,30 @@ goto  : GOTO_TOKEN
             { $$ = make_leaf(csound,LINE,LOCN, IGOTO_TOKEN, (ORCTOKEN *)$1); }
           ;
 
-/* Allow all words as a label */
-label : T_OPCODE    { $$ = (TREE *)$1; }
-      | T_OPCODE0   { $$ = (TREE *)$1; }
-      | T_FUNCTION  { $$ = (TREE *)$1; }
-      | T_IDENT     { $$ = (TREE *)$1; } 
-      | IF_TOKEN    { $$ = (TREE *)$1; }
-      | THEN_TOKEN  { $$ = (TREE *)$1; }
-      | ITHEN_TOKEN { $$ = (TREE *)$1; }
-      | KTHEN_TOKEN { $$ = (TREE *)$1; }
-      | ELSEIF_TOKEN { $$ = (TREE *)$1; }
-      | ENDIF_TOKEN { $$ = (TREE *)$1; }
-      | UNTIL_TOKEN { $$ = (TREE *)$1; }
-      | DO_TOKEN    { $$ = (TREE *)$1; }
-      | OD_TOKEN    { $$ = (TREE *)$1; }
-      | INTEGER_TOKEN { $$ = (TREE *)$1; }
-      | ENDIN_TOKEN { $$ = (TREE *)$1; }
-      ;
+string : STRING_TOKEN 
+        { $$ = make_leaf(csound, LINE,LOCN, STRING_TOKEN, (ORCTOKEN *)$1); }
+        ;
+ 
 
+number : NUMBER_TOKEN
+       { $$ = make_leaf(csound, LINE,LOCN, NUMBER_TOKEN, (ORCTOKEN *)$1); }
+       ;
 
-exprlist  : exprlist ',' expr
-                {
-                    /* $$ = make_node(',', $1, $3); */
-                    $$ = appendToTree(csound, $1, $3);
-		    
-                }
-          | exprlist ',' label
-                {
-                    /* $$ = make_node(',', $1, $3); */
-                    $$ = appendToTree(csound, $1,
-                                      make_leaf(csound, LINE,LOCN,
-                                                LABEL_TOKEN, (ORCTOKEN *)$3));
-                }
-          | exprlist ',' error 
-          | expr { $$ = $1; }
-          | bexpr { $$ = $1; }
-          | T_IDENT { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1);  }
-          | T_OPCODE   { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
-          | T_FUNCTION { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
-          | /* null */          { $$ = NULL; }
-          ;
+integer : INTEGER_TOKEN
+        { $$ = make_leaf(csound, LINE, LOCN, INTEGER_TOKEN, (ORCTOKEN *)$1); }
+        ;
 
+plus_identifier : T_PLUS_IDENT
+        { $$ = make_leaf(csound, LINE, LOCN, T_PLUS_IDENT, (ORCTOKEN *)$1); }
+        ;
 
-bexpr     : '(' bexpr ')'       { $$ = $2; }
-          | expr S_LE expr      { $$ = make_node(csound, LINE,LOCN, S_LE, $1, $3); }
-          | expr S_LE error
-          | expr S_GE expr      { $$ = make_node(csound, LINE,LOCN, S_GE, $1, $3); }
-          | expr S_GE error
-          | expr S_NEQ expr     { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $3); }
-          | expr S_NEQ error
-          | expr S_EQ expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
-          | expr S_EQ error
-          | expr '=' expr       { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
-          | expr '=' error
-          | expr S_GT expr      { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $3); }
-          | expr S_GT error
-          | expr S_LT expr      { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $3); }
-          | expr S_LT error
-          | bexpr S_AND bexpr   { $$ = make_node(csound, LINE,LOCN, S_AND, $1, $3); }
-          | bexpr S_AND error
-          | bexpr S_OR bexpr    { $$ = make_node(csound, LINE,LOCN, S_OR, $1, $3); }
-          | bexpr S_OR error
-          | '!' bexpr %prec S_UNOT { $$ = make_node(csound, LINE,LOCN,
-                                                    S_UNOT, $2, NULL); }
-          | '!' error           { $$ = NULL; }
-          ;
+typed_identifier : T_TYPED_IDENT
+        { $$ = make_leaf(csound, LINE, LOCN, T_TYPED_IDENT, (ORCTOKEN *)$1); }
+        ;
 
-expr      : bexpr '?' expr ':' expr %prec '?'
-            { $$ = make_node(csound,LINE,LOCN, '?', $1,
-                             make_node(csound, LINE,LOCN, ':', $3, $5)); }
-          | bexpr '?' expr ':' error
-          | bexpr '?' expr error
-          | bexpr '?' error
-          | iexp                { $$ = $1; }
-          ;
-
-iexp      : iexp '+' iexp   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
-          | iexp '+' error
-          | iexp '-' iexp  { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
-          | iexp '-' error
-          | '-' iexp %prec S_UMINUS
-            {
-                $$ = make_node(csound,LINE,LOCN, S_UMINUS, NULL, $2);
-            }
-          | '-' error           { $$ = NULL; }
-          | '+' iexp %prec S_UMINUS
-            {
-                $$ = $2;
-            }
-          | '+' error           { $$ = NULL; }
-          | iterm               { $$ = $1; }
-          ;
-
-iterm     : iexp '*' iexp    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
-          | iexp '*' error
-          | iexp '/' iexp    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
-          | iexp '/' error
-          | iexp '^' iexp    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
-          | iexp '^' error
-          | iexp '%' iexp    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
-          | iexp '%' error
-          | ifac                { $$ = $1;  }
-          ;
-
-ifac      : ident               { $$ = $1; }
-          | constant            { $$ = $1; }
-          | arrayexpr		{ $$ = $1; }
-          | iexp '|' iexp        { $$ = make_node(csound, LINE,LOCN, '|', $1, $3); }
-          | iexp '|' error
-          | iexp '&' iexp        { $$ = make_node(csound, LINE,LOCN, '&', $1, $3); }
-          | iexp '&' error
-          | iexp '#' iexp        { $$ = make_node(csound, LINE,LOCN, '#', $1, $3); }
-          | iexp '#' error
-          | iexp S_BITSHIFT_LEFT iexp   
-                 { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_LEFT, $1, $3); }
-          | iexp S_BITSHIFT_LEFT error
-          | iexp S_BITSHIFT_RIGHT iexp
-                 { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_RIGHT, $1, $3); }
-          | iexp S_BITSHIFT_RIGHT error
-          | '~' iexp %prec S_UMINUS
-            { $$ = make_node(csound, LINE,LOCN, '~', NULL, $2);}
-          | '~' error         { $$ = NULL; }
-          | '(' expr ')'      { $$ = $2;  }
-          | '(' expr error    { $$ = NULL;  }
-          | '(' error         { $$ = NULL; }
-          | opcode exprlist ')'
-            {
-                
-                $1->left = NULL;
-                $1->right = $2;
-		$1->type = T_FUNCTION;
-                
-                $$ = $1;
-            }
-          | opcode ':' opcodeb exprlist ')'   /* this is need because a & k are also opcodes */
-            {
-                $1->left = NULL;
-                $1->right = $4;
-		$1->type = T_FUNCTION;
-                $1->value->optype = $3->value->lexeme;
-		
-                $$ = $1;
-            }
-          | opcodeb exprlist ')'
-            {
-                $1->left = NULL;
-                $1->right = $2;
-		$1->type = T_FUNCTION;
-                $1->value->optype = NULL;
-       
-                $$ = $1;
-                //print_tree(csound, "FUNCTION CALL", $$);
-            }
-          
-          | identb error
-          | opcodeb error
-          ;
-
-rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
-                                             SRATE_TOKEN, (ORCTOKEN *)$1); }
-          | KRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
-                                             KRATE_TOKEN, (ORCTOKEN *)$1); }
-          | KSMPS_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
-                                             KSMPS_TOKEN, (ORCTOKEN *)$1); }
-          | NCHNLS_TOKEN    { $$ = make_leaf(csound, LINE,LOCN,
-                                             NCHNLS_TOKEN, (ORCTOKEN *)$1); }
-          | NCHNLSI_TOKEN   { $$ = make_leaf(csound, LINE,LOCN,
-                                             NCHNLSI_TOKEN, (ORCTOKEN *)$1); }
-          | ZERODBFS_TOKEN  { $$ = make_leaf(csound, LINE,LOCN,
-                                             ZERODBFS_TOKEN, (ORCTOKEN *)$1); }
-          ;
-
-
-arrayident: arrayident '[' ']' {          
-            appendToTree(csound, $1->right, 
-	         make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[")));
-            $$ = $1;
-          }
-          | ident '[' ']' {
-            $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, make_token(csound, $1->value->lexeme)); 
-	    $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
-          };
-
-ident : T_IDENT { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
-identb : T_IDENTB { $$ = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$1); }
-
-constant  : INTEGER_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
-                                           INTEGER_TOKEN, (ORCTOKEN *)$1); }
-          | NUMBER_TOKEN  { $$ = make_leaf(csound, LINE,LOCN,
-                                           NUMBER_TOKEN, (ORCTOKEN *)$1); }
-          | STRING_TOKEN  { $$ = make_leaf(csound, LINE,LOCN,
-                                           STRING_TOKEN, (ORCTOKEN *)$1); }
-          | SRATE_TOKEN   { $$ = make_leaf(csound, LINE,LOCN,
-                                           SRATE_TOKEN, (ORCTOKEN *)$1); }
-          | KRATE_TOKEN   { $$ = make_leaf(csound, LINE,LOCN,
-                                           KRATE_TOKEN, (ORCTOKEN *)$1); }
-          | KSMPS_TOKEN   { $$ = make_leaf(csound, LINE,LOCN,
-                                           KSMPS_TOKEN, (ORCTOKEN *)$1); }
-          | NCHNLS_TOKEN  { $$ = make_leaf(csound, LINE,LOCN,
-                                           NCHNLS_TOKEN, (ORCTOKEN *)$1); }
-          | NCHNLSI_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
-                                           NCHNLSI_TOKEN, (ORCTOKEN *)$1); }
-          | ZERODBFS_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
-                                            ZERODBFS_TOKEN, (ORCTOKEN *)$1); }
-          ;
-
-opcode0   : T_OPCODE0
-            {
-	      if (UNLIKELY(PARSER_DEBUG))
-                  csound->Message(csound, "opcode0 $1=%p (%s)\n",
-                                  $1,((ORCTOKEN *)$1)->lexeme );
-                $$ = make_leaf(csound,LINE,LOCN, T_OPCODE0, (ORCTOKEN *)$1);
-                
-
-            }
-          ;
-
-opcode0b  : T_OPCODE0B
-            {
-	      if (UNLIKELY(PARSER_DEBUG))
-                  csound->Message(csound, "opcode0b $1=%p (%s)\n",
-                                  $1,((ORCTOKEN *)$1)->lexeme );
-                $$ = make_leaf(csound,LINE,LOCN, T_OPCODE0, (ORCTOKEN *)$1);
-                
-
-            }
-          ;
-
-opcode    : T_OPCODE
-                 { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
-          | T_FUNCTION
-                 { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
-          ;
-
-opcodeb   : T_OPCODEB 
-                 { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
-          | T_FUNCTIONB
-                 { $$ = make_leaf(csound,LINE,LOCN, T_OPCODE, (ORCTOKEN *)$1); }
-          ;
+identifier : T_IDENT
+        { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, (ORCTOKEN *)$1); }
+        ;
 
 %%
 
