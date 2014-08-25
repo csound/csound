@@ -1934,20 +1934,11 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case S_APPLY:
       csound->Message(csound,"S_APPLY:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
-    case T_OPCODE0:
-      csound->Message(csound,"T_OPCODE0: %s\n",
-                      l->value->lexeme); break;
-    case T_OPCODE:
-      csound->Message(csound,"T_OPCODE: %s\n",
-                      l->value->lexeme); break;
     case T_FUNCTION:
       csound->Message(csound,"T_FUNCTION: %s\n",
                       l->value->lexeme); break;
     case S_UMINUS:
       csound->Message(csound,"S_UMINUS:(%d:%s)\n",
-                      l->line, csound->filedir[(l->locn)&0xff]); break;
-    case T_INSTLIST:
-      csound->Message(csound,"T_INSTLIST:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
     default:
       csound->Message(csound,"unknown:%d(%d:%s)\n",
@@ -2050,18 +2041,6 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"IGOTO_TOKEN\""); break;
     case KGOTO_TOKEN:
       csound->Message(csound,"name=\"KGOTO_TOKEN\""); break;
-    case SRATE_TOKEN:
-      csound->Message(csound,"name=\"SRATE_TOKEN\""); break;
-    case KRATE_TOKEN:
-      csound->Message(csound,"name=\"KRATE_TOKEN\""); break;
-    case ZERODBFS_TOKEN:
-      csound->Message(csound,"name=\"ZERODBFS_TOKEN\""); break;
-    case KSMPS_TOKEN:
-      csound->Message(csound,"name=\"KSMPS_TOKEN\""); break;
-    case NCHNLS_TOKEN:
-      csound->Message(csound,"name=\"NCHNLS_TOKEN\""); break;
-    case NCHNLSI_TOKEN:
-      csound->Message(csound,"name=\"NCHNLSI_TOKEN\""); break;
     case INSTR_TOKEN:
       csound->Message(csound,"name=\"INSTR_TOKEN\""); break;
     case STRING_TOKEN:
@@ -2088,19 +2067,11 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_ANDTHEN\""); break;
     case S_APPLY:
       csound->Message(csound,"name=\"S_APPLY\""); break;
-    case T_OPCODE0:
-      csound->Message(csound,"name=\"T_OPCODE0\" opname0=\"%s\"",
-                      l->value->lexeme); break;
-    case T_OPCODE:
-      csound->Message(csound,"name=\"T_OPCODE\" opname=\"%s\"",
-                      l->value->lexeme); break;
     case T_FUNCTION:
       csound->Message(csound,"name=\"T_FUNCTION\" fname=\"%s\"",
                       l->value->lexeme); break;
     case S_UMINUS:
       csound->Message(csound,"name=\"S_UMINUS\""); break;
-    case T_INSTLIST:
-      csound->Message(csound,"name=\"T_INSTLIST\""); break;
     case UDO_TOKEN:
       csound->Message(csound,"name=\"UDO_TOKEN\""); break;
     case UDO_ANS_TOKEN:
