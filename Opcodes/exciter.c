@@ -1,7 +1,7 @@
 /*
     exciter.c:
 
-    Copyright (C) 2014 by John ffitch after Markus Schmidt
+    Copyright (C) 2014 by John ffitch after Markus Schmidt (calf)
 
     This file is part of Csound.
 
@@ -34,15 +34,16 @@ typedef struct {
   MYFLT *ain;
   MYFLT *pfreq;
   MYFLT *pceil;
-  MYFLT *pceil_active;
-  MYFLT *pblend;
   MYFLT *pdrive;  
+  MYFLT *pblend;
   // Internals
-  MYFLT freq_old, ceil_old, ceil_active_old;
+  MYFLT freq_old, ceil_old;
   // biquad data
   double hp1[7], hp2[7], hp3[7], hp4[7];
   double lp1[7],  lp2[7];
+  // resampler
   double rs00[7], rs01[7], rs10[7], rs11[7];
+  // distortion
   double rdrive, rbdr, kpa, kpb, kna, knb, ap, an, imr, kc, srct, sq, pwrq;
   int over;
   double prev_med, prev_out;
@@ -105,7 +106,7 @@ inline void set_lp_rbj(double lp[7], double fc, double q, double sr)
 
 static int exciter_init(CSOUND *csound, EXCITER *p)
 {
-    p->freq_old =  p->ceil_old = p->ceil_active_old = FL(0.0);
+    p->freq_old =  p->ceil_old = FL(0.0);
     p->hp1[5] = p->hp2[5] = p->hp3[5] = p->hp4[5] = 0.0;
     p->hp1[6] = p->hp2[6] = p->hp3[6] = p->hp4[6] = 0.0;
     p->lp1[5] = p->lp2[5] = 0.0;
@@ -222,7 +223,7 @@ inline void set_distort(CSOUND *csound, EXCITER *p)
 inline void params_changed(CSOUND *csound, EXCITER *p)
 {
     // set the params of all filters
-    if (*p->pfreq != p->freq_old) {
+    if (UNLIKELY(*p->pfreq != p->freq_old)) {
       set_hp_rbj(csound, p->hp1, *p->pfreq, 0.707);
       memcpy(p->hp2, p->hp1, 5*sizeof(double));
       memcpy(p->hp3, p->hp1, 5*sizeof(double));
@@ -230,11 +231,10 @@ inline void params_changed(CSOUND *csound, EXCITER *p)
       p->freq_old = *p->pfreq;
     }
     // set the params of all filters
-    if (*p->pceil != p->ceil_old || *p->pceil_active != p->ceil_active_old ) {
+    if (UNLIKELY(*p->pceil != p->ceil_old)) {
       set_lp_rbj(p->lp1, *p->pceil, 0.707, (double)csound->GetSr(csound));
       memcpy(p->lp2, p->lp1, 5*sizeof(double));
       p->ceil_old = *p->pceil;
-      p->ceil_active_old = *p->pceil_active;
     }
     // set distortion
     set_distort(csound, p);
@@ -266,10 +266,8 @@ int exciter_perf(CSOUND *csound, EXCITER *p)
       // all post filters in chain
       out = process(p->hp4, process(p->hp3, in)); 
                 
-      if (p->ceil_active_old > FL(0.5)) {
-        // all H/P post filters in chain (surely LP - JPff)
-        out = process(p->lp1, process(p->lp2,out));
-      }
+      // all H/P post filters in chain (surely LP - JPff)
+      out = process(p->lp1, process(p->lp2,out));
       p->aout[n] = out*zerodb;
     } // cycle through samples
     return OK;
@@ -278,7 +276,7 @@ int exciter_perf(CSOUND *csound, EXCITER *p)
 #define S(x)    sizeof(x)
 
 static OENTRY excite_localops[] = {
-  { "exciter", S(EXCITER),   0, 5, "a", "akkkkk",
+  { "exciter", S(EXCITER),   0, 5, "a", "akkkk",
                              (SUBR)exciter_init, NULL, (SUBR)exciter_perf },
 };
 
