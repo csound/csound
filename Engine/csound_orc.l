@@ -74,7 +74,7 @@ STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
 LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
-IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*("\n")?
+TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*(:[a-zA-Z_][a-zA-Z0-9_]*)?
 XIDENT          0|[aijkftKOVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
@@ -433,13 +433,11 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   (*lvalp)->type = T_IDENT;
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
                   return T_IDENT; }
-{IDENTB}        { if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                  *strrchr(yytext, '(') = '\0';
-                  *lvalp = lookup_token(csound, yytext, yyscanner);
-                  return (*lvalp)->type+1; }
 {IDENT}         { *lvalp = lookup_token(csound, yytext, yyscanner);
+                  /* csound->Message(csound,"%s -> %d\n",
+                                     yytext, (*lvalp)->type); */
+                  return (*lvalp)->type; }
+{TYPED_IDENTIFIER} { *lvalp = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }

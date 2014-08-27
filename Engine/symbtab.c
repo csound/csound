@@ -173,16 +173,16 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
       }
     }
 
-    a = cs_hash_table_get(csound, symbtab, s);
-
-    if (a != NULL) {
-      ans = (ORCTOKEN*)csound->Malloc(csound, sizeof(ORCTOKEN));
-      memcpy(ans, a, sizeof(ORCTOKEN));
-      ans->next = NULL;
-      ans->lexeme = (char *)csound->Malloc(csound, strlen(a->lexeme) + 1);
-      strcpy(ans->lexeme, a->lexeme);
-      return ans;
-    }
+//    a = cs_hash_table_get(csound, symbtab, s);
+//
+//    if (a != NULL) {
+//      ans = (ORCTOKEN*)csound->Malloc(csound, sizeof(ORCTOKEN));
+//      memcpy(ans, a, sizeof(ORCTOKEN));
+//      ans->next = NULL;
+//      ans->lexeme = (char *)csound->Malloc(csound, strlen(a->lexeme) + 1);
+//      strcpy(ans->lexeme, a->lexeme);
+//      return ans;
+//    }
 
     ans = new_token(csound, T_IDENT);
     ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));

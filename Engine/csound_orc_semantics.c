@@ -1329,6 +1329,22 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     return 1;
 }
 
+/* Analyze and restructures the statement node into an opcode call structure. T
+ * This function will reform the tree such that the top node will contain the name of an opcode,
+ * the ->left will hold out-args, and ->right will hold in-args.  This function does not try to
+ * expand any statements or do any semantic verification, but reshapes trees so that they can all
+ * go through the verify_opcode function.  This is due to the ambiguous nature of Csound opcode
+ * call syntax.
+ *
+ * To note, this function requires that the typeTable be passed in. This is because variables
+ * can (now) have names that shadow opcode names.  Lookup needs to give priority to an identifier
+ * being a variable over being an opcode. This maintains future proofing so that if an opcode
+ * is later introduced with the same name as a variable in an older project, the older project
+ * will continue to work.
+ */
+TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
+    return NULL;
+}
 
 /*
  * Verifies:
@@ -1350,6 +1366,8 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       return 0;
     }
 
+    print_tree(csound, "Verifying Opcode: Left\n", root->left);
+    print_tree(csound, "Verifying Opcode: Right\n", root->right);
     add_args(csound, root->left, typeTable);
 
     opcodeName = root->value->lexeme;
@@ -1629,6 +1647,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         break;
 
       default:
+        current = convert_statement_to_opcall(csound, current, typeTable);
+              
+        if (current == NULL) {
+          return 0;
+        }
+              
         if(!verify_opcode(csound, current, typeTable)) {
           return 0;
         }
@@ -2099,7 +2123,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
 //    case T_TREM:
 //      csound->Message(csound,"name=\"T_TREM\""); break;
     default:
-      csound->Message(csound,"name=\"unknown\"(%d)", l->type);
+      csound->Message(csound,"name=\"unknown(%d)\"", l->type);
     }
 
     csound->Message(csound, " loc=\"%d:%s\">\n",
