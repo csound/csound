@@ -423,7 +423,7 @@ static int sandset(CSOUND *csound, SEKERE *p)
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
-    p->last_num = FL(0.0);
+    p->last_num = FL(128.0);
     return OK;
 }
 
@@ -450,7 +450,7 @@ static int stixset(CSOUND *csound, SEKERE *p)
                                 /* Note On */
     p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
-    p->last_num = FL(0.0);
+    p->last_num = FL(30.0);
     return OK;
 }
 
@@ -656,6 +656,7 @@ static int tambourset(CSOUND *csound, TAMBOURINE *p)
 {
     MYFLT temp;
 
+    p->shake_maxSave = FL(0.0);
     p->sndLevel = FL(0.0);
     p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
                - (int)(CS_EKR * *p->dettack);
@@ -800,6 +801,7 @@ static int tambourine(CSOUND *csound, TAMBOURINE *p)
 static int bambooset(CSOUND *csound, BAMBOO *p)
 {
     MYFLT temp;
+    p->shake_maxSave = FL(0.0);
 
     p->sndLevel = FL(0.0);
     p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
@@ -978,7 +980,8 @@ static int wuterset(CSOUND *csound, WUTER *p)
     p->shake_damp      = FL(0.0);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     p->shake_maxSave = FL(0.0);
-    p->num_objects = p->finalZ0 = p->finalZ1 = p->finalZ2 = FL(0.0);
+    p->num_objects = 10;        /* Bug fix by JPff 2014/08/27 */
+    p->finalZ0 = p->finalZ1 = p->finalZ2 = FL(0.0);
     return OK;
 }
 
@@ -1122,6 +1125,7 @@ static int sleighset(CSOUND *csound, SLEIGHBELLS *p)
 {
     MYFLT temp;
 
+    p->shake_maxSave = FL(0.0);
     p->sndLevel = FL(0.0);
     p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
                - (int)(CS_EKR * *p->dettack);
