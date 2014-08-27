@@ -329,7 +329,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     case IGOTO_TOKEN:
     case KGOTO_TOKEN:
     case T_OPCALL:
-    case '=':
+    case T_ASSIGNMENT:
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound,
                         "create_opcode: Found node for opcode %s\n",
@@ -542,7 +542,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
 
-        if (current->type == '='
+        if (current->type == T_ASSIGNMENT
             && strcmp(oentry->opname, "=.r") == 0) {
 
           //FIXME - perhaps should add check as it was in
@@ -772,50 +772,51 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 **/
 INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
                                    ENGINE_STATE *engineState,
-                                   CS_VAR_POOL *varPool) {
-  INSTRTXT *ip;
-  OPTXT *op;
-  TREE *current;
+                                   CS_VAR_POOL* varPool)
+{
+    INSTRTXT *ip;
+    OPTXT *op;
+    TREE *current;
 
-  // csound->inZero = 1;
-  find_or_add_constant(csound, engineState->constantsPool, "0", 0);
+    myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
 
-  ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
-  ip->varPool = varPool;
-  op = (OPTXT *)ip;
+    ip = (INSTRTXT *) csound->Calloc(csound, sizeof(INSTRTXT));
+    ip->varPool = varPool;
+    op = (OPTXT *)ip;
 
-  current = root;
+    current = root;
 
-  /* initialize */
-  // ip->mdepends = 0;
-  ip->opdstot = 0;
-  ip->pmax = 3L;
+    /* initialize */
+    ip->mdepends = 0;
+    ip->opdstot = 0;
+    ip->pmax = 3L;
 
-  /* start chain */
-  ip->t.oentry = find_opcode(csound, "instr");
-  /*  to hold global assigns */
-  ip->t.opcod = strsav_string(csound, engineState, "instr");
+    /* start chain */
+    ip->t.oentry = find_opcode(csound, "instr");
+    /*  to hold global assigns */
+    ip->t.opcod = strsav_string(csound, engineState, "instr");
 
-  /* The following differs from otran and needs review.  otran keeps a
-   * nulllist to point to for empty lists, while this is creating a new list
-   * regardless
-   */
-  ip->t.outlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
-  ip->t.outlist->count = 0;
-  ip->t.inlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
-  ip->t.inlist->count = 1;
+    /* The following differs from otran and needs review.  otran keeps a
+     * nulllist to point to for empty lists, while this is creating a new list
+     * regardless
+     */
+    ip->t.outlist = (ARGLST *) csound->Malloc(csound, sizeof(ARGLST));
+    ip->t.outlist->count = 0;
+    ip->t.inlist = (ARGLST *) csound->Malloc(csound, sizeof(ARGLST));
+    ip->t.inlist->count = 1;
 
-  ip->t.inlist->arg[0] = strsav_string(csound, engineState, "0");
+    ip->t.inlist->arg[0] = strsav_string(csound, engineState, "0");
 
-  while (current != NULL) {
-    if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
-      OENTRY *oentry = (OENTRY *)current->markup;
-      if (UNLIKELY(PARSER_DEBUG))
-        csound->Message(csound, "In INSTR GLOBAL: %s\n",
-                        current->value->lexeme);
-      if (UNLIKELY(current->type == '=' && strcmp(oentry->opname, "=.r") == 0))
-        csound->Warning(csound, Str("system constants can only be set once\n"));
-      else {
+    while (current != NULL) {
+      if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
+        OENTRY* oentry = (OENTRY*)current->markup;
+        if (UNLIKELY(PARSER_DEBUG))
+          csound->Message(csound,
+                          "In INSTR GLOBAL: %s\n", current->value->lexeme);
+        if (current->type == T_ASSIGNMENT
+            && strcmp(oentry->opname, "=.r") == 0)
+         csound->Warning(csound, "system constants can only be set once\n");
+        else {
         op->nxtop = create_opcode(csound, current, ip, engineState);
         op = last_optxt(op);
       }
@@ -1664,7 +1665,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
   }
 
       switch (current->type) {
-      case '=':
+      case T_ASSIGNMENT:
         /* csound->Message(csound, "Assignment found\n"); */
         break;
       case INSTR_TOKEN:
