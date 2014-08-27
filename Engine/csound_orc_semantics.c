@@ -1341,8 +1341,63 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
  * being a variable over being an opcode. This maintains future proofing so that if an opcode
  * is later introduced with the same name as a variable in an older project, the older project
  * will continue to work.
+ *
+ * For further reference, please see the rule for statement and opcall in Engine/csound_orc.y.
  */
 TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
+    int leftCount, rightCount;
+    
+    if (root->type == T_ASSIGNMENT) {
+        // i.e. a = func(a + b)
+        return root;
+    }
+    
+    if (root->type != T_OPCALL) {
+        synterr(csound,
+              Str("Internal Error: convert_statement_to_opcall received a non T_OPCALL TREE\n"));
+        return NULL;
+    }
+    
+    if (root->value != NULL) {
+        /* Already processed T_OPCALL, return as-is */
+        return root;
+    }
+   
+    if (root->left == NULL) {
+        synterr(csound,
+              Str("Internal Error: convert_statement_to_opcall received an empty OPCALL\n"));
+        return NULL;
+    }
+   
+    if (root->left->type == T_OPCALL && root->right == NULL) {
+        /* i.e. asig oscil 0.25, 440 */
+        root->left->next = root->next;
+        return root->left;
+    } else if(root->right == NULL) {
+        /* this branch catches this part of opcall rule: out_arg_list '(' ')' NEWLINE */
+
+        if (tree_arg_list_count(root->left) != 1) {
+            synterr(csound,
+              Str("Internal Error: convert_statement_to_opcall received invalid OPCALL\n"));
+        }
+        root->left->next = root->next;
+        root->left->type = T_OPCALL;
+        return root->left;
+    }
+   
+    if (root->right == NULL) {
+        synterr(csound,
+                Str("Internal Error: convert_statement_to_opcall received invalid OPCALL\n"));
+        return NULL;
+    }
+    
+    /* Now need to disambiguate the rule : out_arg_list expr_list NEWLINE */
+
+    leftCount = tree_arg_list_count(root->left);
+    rightCount = tree_arg_list_count(root->right);
+    
+    printf("ARG COUNTS: %d %d\n", leftCount, rightCount);
+    
     return NULL;
 }
 
@@ -1648,6 +1703,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
       default:
         current = convert_statement_to_opcall(csound, current, typeTable);
+              
+        if (previous != NULL) {
+          previous->next = current;
+        }
               
         if (current == NULL) {
           return 0;
@@ -2004,7 +2063,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     case '^':
     case '(':
     case ')':
-    case '=':
+    case T_ASSIGNMENT:
     case '|':
     case '&':
     case '#':

@@ -296,7 +296,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     case IGOTO_TOKEN:
     case KGOTO_TOKEN:
     case T_OPCALL:
-    case '=':
+    case T_ASSIGNMENT:
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound,
                         "create_opcode: Found node for opcode %s\n",
@@ -494,7 +494,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
 
-        if (current->type == '='
+        if (current->type == T_ASSIGNMENT
             && strcmp(oentry->opname, "=.r") == 0) {
 
           //FIXME - perhaps should add check as it was in
@@ -695,7 +695,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound,
                           "In INSTR GLOBAL: %s\n", current->value->lexeme);
-        if (current->type == '='
+        if (current->type == T_ASSIGNMENT
             && strcmp(oentry->opname, "=.r") == 0)
          csound->Warning(csound, "system constants can only be set once\n");
         else {
@@ -1374,7 +1374,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     while (current != NULL) {
 
       switch (current->type) {
-      case '=':
+      case T_ASSIGNMENT:
         /* csound->Message(csound, "Assignment found\n"); */
         break;
       case INSTR_TOKEN:

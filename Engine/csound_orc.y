@@ -261,13 +261,14 @@ opcall  : identifier NEWLINE
         | out_arg_list '(' ')' NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
             $$->left = $1; 
-            $$->right = $2; 
+            /*$$->right = $2; */
           }
         | out_arg_list identifier expr_list NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
-            $$->left = $1; 
-            $$->right = $2; 
-            $$->next = $3;
+            $$->left = $2; 
+            $2->type = T_OPCALL;
+            $2->left = $1; 
+            $2->right = $3;
           }
         ;
 
@@ -332,14 +333,22 @@ if_then : if_then_base ENDIF_TOKEN NEWLINE
           { $$ = $1; }
         | if_then_base ELSE_TOKEN statement_list ENDIF_TOKEN NEWLINE
           { $$ = $1;
-            $$->next = make_node(csound,LINE,LOCN, ELSE_TOKEN, NULL, $3); }
+            $$->right->next = make_node(csound,LINE,LOCN, ELSE_TOKEN, NULL, $3); }
         | if_then_base elseif_list ENDIF_TOKEN NEWLINE
           { $$ = $1;
-            $$->next = make_node(csound,LINE,LOCN, ELSE_TOKEN, NULL, $3); }
+            $$->right->next = make_node(csound,LINE,LOCN, ELSE_TOKEN, NULL, $3); }
         | if_then_base elseif_list ELSE_TOKEN statement_list ENDIF_TOKEN NEWLINE
-          { $$ = $1;
-            $$->next = $2;
-            appendToTree(csound, $2, $4); }
+          { TREE * tempLastNode;
+            $$ = $1;
+            $$->right->next = $2;
+            
+            tempLastNode = $$;
+
+            while (tempLastNode->right!=NULL && tempLastNode->right->next!=NULL) {
+              tempLastNode = tempLastNode->right->next;
+            }
+            tempLastNode->right->next = make_node(csound, LINE,LOCN, ELSE_TOKEN, NULL, $4);
+            }
         ;
 
 if_then_base : IF_TOKEN expr then NEWLINE statement_list
@@ -348,8 +357,14 @@ if_then_base : IF_TOKEN expr then NEWLINE statement_list
               ;
 
 elseif_list : elseif_list elseif
-              { $$ = appendToTree(csound, $1, $2); } 
-            | elseif
+              { TREE * tempLastNode = $1;
+                while (tempLastNode->right!=NULL &&
+                  tempLastNode->right->next!=NULL) {
+                  tempLastNode = tempLastNode->right->next;
+                }
+                tempLastNode->right->next = $2;
+                $$ = $1; }
+            | elseif { $$ = $1; }
             ;
 
 elseif : ELSEIF_TOKEN expr then NEWLINE statement_list
