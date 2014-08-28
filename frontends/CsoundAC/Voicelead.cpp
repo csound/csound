@@ -858,7 +858,11 @@ namespace csound
         if (!modulusFound) {
           modulusFound = true;
           modulus = V;
-          V_ = V % modulus;
+          if (modulus == 0) {
+            V_ = V;
+          } else {
+            V_ = V % modulus;
+          }
           goto found;
         }
         break;
