@@ -50,7 +50,7 @@ typedef struct {
   double blend_old, drive_old;
 } EXCITER;
 
-inline double process(double st[7], double in)
+static inline double process(double st[7], double in)
 {
     double tmp = in - st[5] * st[3] - st[6] * st[4];
     double out = tmp * st[0] + st[5] * st[1] + st[6] * st[2];
@@ -63,7 +63,7 @@ inline double process(double st[7], double in)
      * @param fc     resonant frequency
      * @param q      resonance (gain at fc)
      */
-inline void set_hp_rbj(CSOUND *csound, double hp[7], double fc, double q)
+static inline void set_hp_rbj(CSOUND *csound, double hp[7], double fc, double q)
 {
     double omega= (TWOPI*fc/(double)csound->GetSr(csound));
     double sn=sin(omega);
@@ -78,7 +78,7 @@ inline void set_hp_rbj(CSOUND *csound, double hp[7], double fc, double q)
     return;
 }
 
-inline void set_lp_rbj(double lp[7], double fc, double q, double sr)
+static inline void set_lp_rbj(double lp[7], double fc, double q, double sr)
 {
     double omega=(TWOPI*fc/sr);
     double sn=sin(omega);
@@ -166,7 +166,7 @@ static inline double D(double x)
     return (x > 0.00000001f) ? sqrt(x) : 0.0f;
 }
 
-inline double distort(EXCITER *p, double in)
+static inline double distort(EXCITER *p, double in)
 {
     double samples[2];
     int i;
@@ -189,7 +189,7 @@ inline double distort(EXCITER *p, double in)
     return downsample(p, samples);
 }
 
-inline void set_distort(CSOUND *csound, EXCITER *p)
+static inline void set_distort(CSOUND *csound, EXCITER *p)
 {
     // set distortion coeffs
     if ((p->drive_old != *p->pdrive) || (p->blend_old != *p->pblend)) {
@@ -220,7 +220,7 @@ inline void set_distort(CSOUND *csound, EXCITER *p)
 }
 
 
-inline void params_changed(CSOUND *csound, EXCITER *p)
+static inline void params_changed(CSOUND *csound, EXCITER *p)
 {
     // set the params of all filters
     if (UNLIKELY(*p->pfreq != p->freq_old)) {
