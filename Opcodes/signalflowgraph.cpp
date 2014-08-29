@@ -1312,8 +1312,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
             result = csound->InitError(csound, Str("ftgenonce error"));
           }
           if (func) {
-            EventBlock b = eventBlock;
-            functionTablesForCsoundsForEvtblks[csound].emplace(b, func->fno);
+            functionTablesForCsoundsForEvtblks[csound][eventBlock] = func->fno;
             *ifno = (MYFLT) func->fno;
             warn(csound, "ftgenonce: created new func: %d\n", func->fno);
             // std::cerr << "ftgenonce: created new func:" << evtblk << std::endl;
