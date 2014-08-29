@@ -659,6 +659,7 @@ namespace csound
       }
     else
       {
+        delete pthread;
         return 0;
       }
   }
@@ -674,6 +675,7 @@ namespace csound
       }
     else
       {
+        delete pthread_mutex;
         return 0;
       }
   }

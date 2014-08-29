@@ -505,9 +505,9 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
                           root->value->lexeme, root->value->optype, line);
           outtype = "i";
         }
-          
+
         outtype_internal = convert_external_to_internal(csound, outtype);
-          
+
         outarg = create_out_arg(csound, outtype_internal, typeTable);
 
       }
@@ -644,7 +644,8 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
       csound->Message(csound, "Creating boolean expression\n");
     /* HANDLE SUB EXPRESSIONS */
     if (is_boolean_expression_node(root->left)) {
-      anchor = create_boolean_expression(csound, root->left, line, locn, typeTable);
+      anchor = create_boolean_expression(csound, root->left,
+                                         line, locn, typeTable);
       last = anchor;
       while (last->next != NULL) {
         last = last->next;
@@ -801,7 +802,7 @@ void handle_negative_number(CSOUND* csound, TREE* root) {
   if (root->type == S_UMINUS &&
       (root->right->type == INTEGER_TOKEN || root->right->type == NUMBER_TOKEN)) {
     int len = strlen(root->right->value->lexeme);
-    char* negativeNumber = csound->Malloc(csound, len + 2);
+    char* negativeNumber = csound->Malloc(csound, len + 3);
     negativeNumber[0] = '-';
     strcpy(negativeNumber + 1, root->right->value->lexeme);
     negativeNumber[len + 2] = '\0';
