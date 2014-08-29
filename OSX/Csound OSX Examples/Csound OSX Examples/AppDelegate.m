@@ -6,7 +6,7 @@
  
  This file is part of Csound OSX Examples.
  
- The Csound for iOS Library is free software; you can redistribute it
+ The Csound for OSX Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
@@ -31,18 +31,20 @@
 #import "ConsoleOutputWindowController.h"
 #import "CsoundHaiku4WindowController.h"
 #import "HarmonizerWindowController.h"
+#import "RecordTestWindowController.h"
 #import "SimpleTest1WindowController.h"
 #import "SimpleTest2WindowController.h"
 
 @interface AppDelegate() {
     AudioFileTestWindowController *audioFileTestWC;
-    AudioInTestWindowController *audioInTestWC;
-    ButtonTestWindowController *buttonTestWC;
+    AudioInTestWindowController   *audioInTestWC;
+    ButtonTestWindowController    *buttonTestWC;
     ConsoleOutputWindowController *consoleOutputWC;
-    CsoundHaiku4WindowController *csoundHaiku4WC;
-    HarmonizerWindowController *harmonizerWC;
-    SimpleTest1WindowController *simpleTest1WC;
-    SimpleTest2WindowController *simpleTest2WC;
+    CsoundHaiku4WindowController  *csoundHaiku4WC;
+    HarmonizerWindowController    *harmonizerWC;
+    RecordTestWindowController    *recorsTestWC;
+    SimpleTest1WindowController   *simpleTest1WC;
+    SimpleTest2WindowController   *simpleTest2WC;
 }
 
 @end
@@ -76,6 +78,10 @@
 - (IBAction)loadHarmonizer:(id)sender {
     harmonizerWC = [[HarmonizerWindowController alloc] initWithWindowNibName:@"HarmonizerWindowController"];
     [harmonizerWC window];
+}
+- (IBAction)loadRecordTest:(id)sender {
+    recorsTestWC = [[RecordTestWindowController alloc] initWithWindowNibName:@"RecordTestWindowController"];
+    [recorsTestWC window];
 }
 - (IBAction)loadSimpleTest1:(id)sender {
     simpleTest1WC = [[SimpleTest1WindowController alloc] initWithWindowNibName:@"SimpleTest1WindowController"];
