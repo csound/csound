@@ -2153,6 +2153,7 @@ int lpf18db(CSOUND *csound, LPF18 *p)
     int   flag = 1;
     MYFLT lfc=0, lrs=0, kres=0, kfcn=0, kp=0, kp1=0,  kp1h=0;
     double lds = 0.0;
+    MYFLT zerodb = csound->e0dbfs;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -2187,12 +2188,12 @@ int lpf18db(CSOUND *csound, LPF18 *p)
         value = 1.0+(dist*(1.5+2.0*(double)kres*(1.0-(double)kfcn)));
       }
       flag = 0;
-      lastin     = ain[n] - TANH(kres*aout);
+      lastin     = ain[n]/zerodb - TANH(kres*aout);
       ay1        = kp1h * (lastin + ax1) - kp*ay1;
       ay2        = kp1h * (ay1 + ay11) - kp*ay2;
       aout       = kp1h * (ay2 + ay31) - kp*aout;
 
-      ar[n] = TANH(aout*value);
+      ar[n] = TANH(aout*value)*zerodb;
     }
     p->ay1 = ay1;
     p->ay2 = ay2;

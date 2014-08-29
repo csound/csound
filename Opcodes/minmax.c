@@ -364,6 +364,8 @@ static OENTRY minmax_localops[] = {
     {"minabs.a", S(MINMAX), 0, 4, "a", "ay", NULL, NULL, (SUBR) MinAbs_arate},
     {"max.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) Max_krate, NULL},
     {"min.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) Min_krate, NULL},
+    {"max.i", S(MINMAX), 0, 1, "i", "im", (SUBR) Max_krate, NULL, NULL},
+    {"min.i", S(MINMAX), 0, 1, "i", "im", (SUBR) Min_krate, NULL, NULL},
     {"maxabs.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) MaxAbs_krate, NULL},
     {"minabs.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) MinAbs_krate, NULL}
 };
