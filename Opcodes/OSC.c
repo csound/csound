@@ -112,8 +112,9 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     if (UNLIKELY(p->INOCOUNT > 31))
       return csound->InitError(csound, Str("Too many arguments to OSCsend"));
     /* a-rate arguments are not allowed */
-    for (i = 0; i < p->INOCOUNT; i++) {
-      if (csound->GetTypeForArg(p->arg[i])) {
+    for (i = 0; i < p->INOCOUNT - 5; i++) {
+      CS_TYPE* argType = csound->GetTypeForArg(p->arg[i]);
+      if (strcmp("a", argType->varTypeName) == 0) {
         return csound->InitError(csound, Str("No a-rate arguments allowed"));
       }
     }
