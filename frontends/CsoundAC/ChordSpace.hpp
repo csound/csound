@@ -265,11 +265,11 @@ inline SILENCE_PUBLIC void print(const char *format,...) {
  * Returns n!
  */
 inline SILENCE_PUBLIC double factorial(double n) {
-	if (n == 0) {
-		return 1;
-	} else {
-		return n * factorial(n = 1.0);
-	}
+    double result = 1.0;
+    for (int i = 0; i <= n; ++i) {
+        result = result * i;
+    }
+    return result;
 }
 
 inline SILENCE_PUBLIC double EPSILON() {
@@ -370,12 +370,12 @@ inline SILENCE_PUBLIC double I(double pitch, double center = 0.0) {
  * according to the Euclidean definition.
  */
 inline SILENCE_PUBLIC double modulo(double dividend, double divisor) {
-	double quotient;
+	double quotient = dividend / divisor;
 	if (divisor < 0.0) {
-		quotient = std::ceil(dividend / divisor);
+		quotient = std::ceil(quotient);
 	}
 	if (divisor > 0.0) {
-		quotient = std::floor(dividend / divisor);
+		quotient = std::floor(quotient);
 	}
 	double remainder = dividend - (quotient * divisor);
 	return remainder;
@@ -2991,7 +2991,7 @@ inline SILENCE_PUBLIC Chord octavewiseRevoicing(const Chord &chord, int revoicin
     Chord origin = csound::normalize<EQUIVALENCE_RELATION_RP>(chord, OCTAVE(), 1.0);
 	Chord revoicing = origin;
     int revoicingI = 0;
-    for (;;) {
+    while (true) {
         if (debug) {
             print("octavewiseRevoicing %d (%d) of %s in range %7.3f: %5d: %s\n",
                 revoicingNumber,
@@ -3020,7 +3020,7 @@ inline SILENCE_PUBLIC int indexForOctavewiseRevoicing(const Chord &chord, double
     Chord origin = csound::normalize<EQUIVALENCE_RELATION_RP>(chord, OCTAVE(), 1.0);
 	Chord revoicing = origin;
     int revoicingI = 0;
-    for (;;) {
+    while (true) {
         if (debug) {
             print("indexForOctavewiseRevoicing of %s in range %7.3f: %5d of %5d: %s\n",
                 chord.toString().c_str(),

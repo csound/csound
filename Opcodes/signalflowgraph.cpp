@@ -102,17 +102,20 @@
  * array operations are not ready for prime time at a-rate.
  */
 
-#include "OpcodeBase.hpp"
-#include <pstream.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
+#include "OpcodeBase.hpp"
+#include <pstream.h>
 #include "text.h"
+
+#define SIGNALFLOWGRAPH_DEBUG 0
 
 namespace csound {
 
@@ -134,15 +137,6 @@ struct FtGenOnce;
 static void* cs_sfg_ftables = 0;
 static void* cs_sfg_ports = 0;
 
-#if defined(ISSTRCOD)
-#undef ISSTRCOD
-#endif
-
-static bool ISSTRCOD(MYFLT myflt)
-{
-    return std::isnan(myflt);
-}
-
 std::ostream &operator << (std::ostream &stream, const EVTBLK &a)
 {
   stream << a.opcod;
@@ -150,39 +144,6 @@ std::ostream &operator << (std::ostream &stream, const EVTBLK &a)
     stream << " " << a.p[i];
   }
   return stream;
-}
-
-bool operator < (const EVTBLK &a, const EVTBLK &b)
-{
-  // std::cerr << "comparing: " << a << " to: " << b << std::endl;
-  if (a.opcod < b.opcod) {
-    return true;
-  }
-  size_t n = std::min(a.pcnt, b.pcnt);
-  char *stringA = a.strarg;
-  char *stringB = b.strarg;
-  int stringsCount = std::min(a.scnt, b.scnt);
-  for (size_t i = 0, stringCount = 0; i < n; i++) {
-    if (ISSTRCOD(a.p[i]) && ISSTRCOD(a.p[i])) {
-        stringCount++;
-        if (std::strcmp(stringA, stringB) < 0) {
-            return true;
-        }
-        if (stringCount < stringsCount) {
-            stringA += strnlen(stringA, SSTRSIZ);
-            stringB += strnlen(stringB, SSTRSIZ);
-        }
-    } else if (a.p[i] < b.p[i]) {
-        return true;
-    }
-  }
-  if (a.pcnt < b.pcnt) {
-    return true;
-  }
-  if (a.scnt < b.scnt) {
-    return true;
-  }
-  return false;
 }
 
 /**
@@ -195,10 +156,10 @@ struct EventBlock {
     std::memset(&evtblk, 0, sizeof(EVTBLK));
   }
   EventBlock(const EVTBLK &other) {
-    *this = other;
+    std::memcpy(&evtblk, &other, sizeof(EVTBLK));
   }
   EventBlock(const EventBlock &other) {
-    *this = other;
+    std::memcpy(&evtblk, &other.evtblk, sizeof(EVTBLK));
   }
   virtual ~EventBlock() {
   }
@@ -210,10 +171,31 @@ struct EventBlock {
     std::memcpy(&evtblk, &other.evtblk, sizeof(EVTBLK));
     return *this;
   }
-  bool operator < (const EventBlock &other) const {
-      return evtblk < other.evtblk;
-  }
 };
+
+/*
+The logic here is a bit tricky. If p5 is NaN then it indicates a string.
+The bytewise comparison will be equality for that pfield even if the
+strings are different. So if two EVTBLKs seem equal but contain strings,
+the strings also have to be compared. There is at most one string.
+*/
+bool operator < (const EventBlock &a, const EventBlock &b) {
+    int n = std::max(a.evtblk.pcnt, b.evtblk.pcnt);
+    bool result = true;
+    if (std::memcmp(&a.evtblk.p[0], &b.evtblk.p[0], sizeof(MYFLT) * n) < 0) {
+        result = true;
+    } else {
+        result = false;
+    }
+    if (result == true && a.evtblk.strarg) {
+        if (std::strcmp(a.evtblk.strarg, b.evtblk.strarg) < 0) {
+            result = true;
+        } else {
+            result = false;
+        }
+    }
+    return result;
+}
 
 // Identifiers are always "sourcename:outletname" and "sinkname:inletname",
 // or "sourcename:idname:outletname" and "sinkname:inletname."
@@ -1029,17 +1011,18 @@ struct Connect : public OpcodeBase<Connect> {
   STRINGDAT *Soutlet;
   MYFLT  *Sink;
   STRINGDAT *Sinlet;
+  MYFLT *gain;
   int init(CSOUND *csound) {
 //#pragma omp critical (cs_sfg_ports)
     csound->LockMutex(cs_sfg_ports);
     {
       std::string sourceOutletId = csound->strarg2name(csound,
                                                        (char *) 0,
-                                                       ((ISSTRCOD(*Source)) ?
+                                                       ((std::isnan(*Source)) ?
                                                        csound->GetString(csound,*Source) :
                                                         (char *)Source),
                                                        (char *)"",
-                                                       ISSTRCOD(*Source));
+                                                       std::isnan(*Source));
       sourceOutletId += ":";
       sourceOutletId += csound->strarg2name(csound,
                                             (char *) 0,
@@ -1049,11 +1032,11 @@ struct Connect : public OpcodeBase<Connect> {
 
       std::string sinkInletId = csound->strarg2name(csound,
                                                     (char *) 0,
-                                                    ((ISSTRCOD(*Sink)) ?
+                                                    ((std::isnan(*Sink)) ?
                                                        csound->GetString(csound,*Sink) :
                                                         (char *)Sink),
                                                        (char *)"",
-                                                       ISSTRCOD(*Sink));
+                                                       std::isnan(*Sink));
       sinkInletId += ":";
       sinkInletId += csound->strarg2name(csound,
                                          (char *) 0,
@@ -1076,17 +1059,18 @@ struct Connecti : public OpcodeBase<Connecti> {
   STRINGDAT *Soutlet;
   STRINGDAT *Sink;
   STRINGDAT *Sinlet;
+  MYFLT *gain;
   int init(CSOUND *csound) {
 //#pragma omp critical (cs_sfg_ports)
     csound->LockMutex(cs_sfg_ports);
     {
       std::string sourceOutletId = csound->strarg2name(csound,
                                                        (char *) 0,
-                                                       ((ISSTRCOD(*Source)) ?
+                                                       ((std::isnan(*Source)) ?
                                                        csound->GetString(csound,*Source) :
                                                         (char *)Source),
                                                        (char *)"",
-                                                       ISSTRCOD(*Source));
+                                                       std::isnan(*Source));
       sourceOutletId += ":";
       sourceOutletId += csound->strarg2name(csound,
                                             (char *) 0,
@@ -1121,6 +1105,7 @@ struct Connectii : public OpcodeBase<Connectii> {
   STRINGDAT *Soutlet;
   MYFLT *Sink;
   STRINGDAT *Sinlet;
+  MYFLT *gain;
   int init(CSOUND *csound) {
 //#pragma omp critical (cs_sfg_ports)
     csound->LockMutex(cs_sfg_ports);
@@ -1139,11 +1124,11 @@ struct Connectii : public OpcodeBase<Connectii> {
       std::string sinkInletId =
         csound->strarg2name(csound,
                             (char *) 0,
-                            ((ISSTRCOD(*Sink)) ?
+                            ((std::isnan(*Sink)) ?
                              csound->GetString(csound,*Sink) :
                              (char *)Sink),
                             (char *)"",
-                            ISSTRCOD(*Sink));;
+                            std::isnan(*Sink));;
       sinkInletId += ":";
       sinkInletId += csound->strarg2name(csound,
                                          (char *) 0,
@@ -1167,6 +1152,7 @@ struct ConnectS : public OpcodeBase<ConnectS> {
   STRINGDAT *Soutlet;
   STRINGDAT *Sink;
   STRINGDAT *Sinlet;
+  MYFLT *gain;
   int init(CSOUND *csound) {
 //#pragma omp critical (cs_sfg_ports)
     csound->LockMutex(cs_sfg_ports);
@@ -1286,7 +1272,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
   MYFLT *argums[VARGMAX];
   EventBlock eventBlock;
   int init(CSOUND *csound) {
-    int result;
+    int result = OK;
 //#pragma omp critical (cs_ftables)
     csound->LockMutex(cs_sfg_ftables);
     {
@@ -1294,6 +1280,7 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
       *ifno = FL(0.0);
       EVTBLK &evtblk = eventBlock.evtblk;
       std::memset(&evtblk, 0, sizeof(EVTBLK));
+      // ifno ftgenonce ipfno, ip2dummy, ip4size, ip5gen, ip6arga, ip7argb,...
       evtblk.opcod = 'f';
       evtblk.strarg = 0;
       evtblk.p[0] = FL(0.0);
@@ -1316,12 +1303,12 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
         // otherwise, look up and return the already created function table's number.
         if(functionTablesForCsoundsForEvtblks[csound].find(eventBlock) != functionTablesForCsoundsForEvtblks[csound].end()) {
           *ifno = functionTablesForCsoundsForEvtblks[csound][eventBlock];
-          // warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
+          warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
           // std::cerr << "ftgenonce: re-using existing func:" << evtblk << std::endl;
         } else {
           FUNC *func = 0;
-          n = csound->hfgens(csound, &func, &evtblk, 1);
-          if (UNLIKELY(n != 0)) {
+          int status = csound->hfgens(csound, &func, &evtblk, 1);
+          if (UNLIKELY(status != 0)) {
             result = csound->InitError(csound, Str("ftgenonce error"));
           }
           if (func) {
@@ -1329,11 +1316,20 @@ struct FtGenOnce : public OpcodeBase<FtGenOnce> {
             *ifno = (MYFLT) func->fno;
             warn(csound, "ftgenonce: created new func: %d\n", func->fno);
             // std::cerr << "ftgenonce: created new func:" << evtblk << std::endl;
+            if(functionTablesForCsoundsForEvtblks[csound].find(eventBlock) == functionTablesForCsoundsForEvtblks[csound].end()) {
+#if (SIGNALFLOWGRAPH_DEBUG == 1)
+                std::fprintf(stderr, "Oops! inserted but not found.\n");
+#endif
+            }
+          } else {
+#if (SIGNALFLOWGRAPH_DEBUG == 1)
+            std::fprintf(stderr, "Oops! New but not created.\n");
+#endif
           }
         }
     }
     csound->UnlockMutex(cs_sfg_ftables);
-    return OK;
+    return result;
   }
 };
 
@@ -1368,14 +1364,10 @@ struct FtGenOnceS : public OpcodeBase<FtGenOnceS> {
       evtblk.p[2] = evtblk.p2orig = FL(0.0);
       evtblk.p[3] = evtblk.p3orig = *p3;
       evtblk.p[4] = *p4;
-      int n = 0;
-
-        n = (int) evtblk.p[4];
-        evtblk.p[5] = SSTRCOD;
-        if (n < 0) n = -n;
-
-        // Only GEN 1, 23, 28, or 43 can take strings.
-        switch (n) {
+      evtblk.p[5] = SSTRCOD;
+      int gen = (int) std::fabs(evtblk.p[4]);
+      // Only GEN 1, 23, 28, or 43 can take strings.
+      switch (gen) {
         case 1:
         case 23:
         case 28:
@@ -1384,11 +1376,10 @@ struct FtGenOnceS : public OpcodeBase<FtGenOnceS> {
           break;
         default:
           result = csound->InitError(csound, Str("ftgen string arg not allowed"));
-        }
-
+      }
       if (result == OK) {
         evtblk.pcnt = (int16) csound->GetInputArgCnt(this);
-        n = evtblk.pcnt - 5;
+        int n = evtblk.pcnt - 5;
         if (n > 0) {
           MYFLT **argp = argums;
           MYFLT *fp = &evtblk.p[0] + 6;
@@ -1398,16 +1389,15 @@ struct FtGenOnceS : public OpcodeBase<FtGenOnceS> {
         }
         // If the arguments have not been used before for this instance of Csound,
         // create a new function table and store the arguments and table number;
-        // otherwise look up and return the already created function table's number.
-        if(functionTablesForCsoundsForEvtblks[csound].find(eventBlock) !=
-           functionTablesForCsoundsForEvtblks[csound].end()) {
+        // otherwise, look up and return the already created function table's number.
+        if(functionTablesForCsoundsForEvtblks[csound].find(eventBlock) != functionTablesForCsoundsForEvtblks[csound].end()) {
           *ifno = functionTablesForCsoundsForEvtblks[csound][eventBlock];
-          // warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
+          warn(csound, "ftgenonce: re-using existing func: %f\n", *ifno);
           // std::cerr << "ftgenonce: re-using existing func:" << evtblk << std::endl;
         } else {
           FUNC *func = 0;
-          n = csound->hfgens(csound, &func, &evtblk, 1);
-          if (UNLIKELY(n != 0)) {
+          int status = csound->hfgens(csound, &func, &evtblk, 1);
+          if (UNLIKELY(status != 0)) {
             result = csound->InitError(csound, Str("ftgenonce error"));
           }
           if (func) {
@@ -1420,7 +1410,7 @@ struct FtGenOnceS : public OpcodeBase<FtGenOnceS> {
       }
     }
     csound->UnlockMutex(cs_sfg_ftables);
-    return OK;
+    return result;
   }
 };
 
@@ -1555,7 +1545,7 @@ extern "C"
       0,
       1,
       (char *)"",
-      (char *)"iSiS",
+      (char *)"iSiSp",
       (SUBR)&Connect::init_,
       0,
       0
@@ -1566,7 +1556,7 @@ extern "C"
       0,
       1,
       (char *)"",
-      (char *)"iSSS",
+      (char *)"iSSSp",
       (SUBR)&Connecti::init_,
       0,
       0
@@ -1577,7 +1567,7 @@ extern "C"
       0,
       1,
       (char *)"",
-      (char *)"SSiS",
+      (char *)"SSiSp",
       (SUBR)&Connectii::init_,
       0,
       0
@@ -1588,7 +1578,7 @@ extern "C"
       0,
       1,
       (char *)"",
-      (char *)"SSSS",
+      (char *)"SSSSp",
       (SUBR)&ConnectS::init_,
       0,
       0
