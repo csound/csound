@@ -110,8 +110,8 @@ cd ..
 fi
 
 # LIBLO 
-if [ ! -f liblo-0.26/.complete ]; then
-cd liblo-0.26 
+if [ ! -f liblo-0.28/.complete ]; then
+cd liblo-0.28 
 ./configure CFLAGS="$C_FLAGS" --disable-dependency-tracking 
 make 
 sudo make install
