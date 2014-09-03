@@ -26,6 +26,6 @@
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
 
-@interface InstrumentEditorViewController : BaseCsoundViewController<CsoundObjListener>
+@interface InstrumentEditorViewController : BaseCsoundViewController
 
 @end

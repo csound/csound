@@ -48,12 +48,4 @@
     [self.csound sendScore:score];
 }
 
-#pragma mark CsoundObjListener
-
--(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-    NSLog(@"finished");
-}
-
-
-
 @end
