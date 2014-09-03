@@ -31,20 +31,22 @@
 #import "ConsoleOutputWindowController.h"
 #import "CsoundHaiku4WindowController.h"
 #import "HarmonizerWindowController.h"
+#import "InstrumentEditorWindowController.h"
 #import "RecordTestWindowController.h"
 #import "SimpleTest1WindowController.h"
 #import "SimpleTest2WindowController.h"
 
 @interface AppDelegate() {
-    AudioFileTestWindowController *audioFileTestWC;
-    AudioInTestWindowController   *audioInTestWC;
-    ButtonTestWindowController    *buttonTestWC;
-    ConsoleOutputWindowController *consoleOutputWC;
-    CsoundHaiku4WindowController  *csoundHaiku4WC;
-    HarmonizerWindowController    *harmonizerWC;
-    RecordTestWindowController    *recorsTestWC;
-    SimpleTest1WindowController   *simpleTest1WC;
-    SimpleTest2WindowController   *simpleTest2WC;
+    AudioFileTestWindowController    *audioFileTestWC;
+    AudioInTestWindowController      *audioInTestWC;
+    ButtonTestWindowController       *buttonTestWC;
+    ConsoleOutputWindowController    *consoleOutputWC;
+    CsoundHaiku4WindowController     *csoundHaiku4WC;
+    HarmonizerWindowController       *harmonizerWC;
+    InstrumentEditorWindowController *instrumentEditorWC;
+    RecordTestWindowController       *recorsTestWC;
+    SimpleTest1WindowController      *simpleTest1WC;
+    SimpleTest2WindowController      *simpleTest2WC;
 }
 
 @end
@@ -78,6 +80,10 @@
 - (IBAction)loadHarmonizer:(id)sender {
     harmonizerWC = [[HarmonizerWindowController alloc] initWithWindowNibName:@"HarmonizerWindowController"];
     [harmonizerWC window];
+}
+- (IBAction)loadInstrumentEditor:(id)sender {
+    instrumentEditorWC = [[InstrumentEditorWindowController alloc] initWithWindowNibName:@"InstrumentEditorWindowController"];
+    [instrumentEditorWC window];
 }
 - (IBAction)loadRecordTest:(id)sender {
     recorsTestWC = [[RecordTestWindowController alloc] initWithWindowNibName:@"RecordTestWindowController"];
