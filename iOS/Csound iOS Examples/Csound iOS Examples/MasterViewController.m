@@ -34,6 +34,7 @@
 #import "AudioInTestViewController.h"
 #import "HarmonizerTest.h"
 #import "HardwareTestViewController.h"
+#import "InstrumentEditorViewController.h"
 #import "CsoundHaiku4ViewController.h"
 #import "RecordTestViewController.h"
 #import "MultiTouchXYViewController.h"
@@ -55,7 +56,7 @@
             self.preferredContentSize = CGSizeMake(320.0, 600.0);
         }
         testNames = [NSMutableArray arrayWithObjects:@"Simple Test 1", @"Simple Test 2", 
-                      @"Button Test", @"MIDI Test", @"Ping Pong Delay", @"Harmonizer", @"Hardware Test", @"Csound Haiku 4", @"Record Test", @"Multitouch XY", @"Waveview", @"Audio File Test", @"Console Output", @"Pitch Shifter", @"TrappedGenerator",nil];
+                      @"Button Test", @"MIDI Test", @"Ping Pong Delay", @"Harmonizer", @"Hardware Test", @"Csound Haiku 4", @"Record Test", @"Multitouch XY", @"Waveview", @"Audio File Test", @"Console Output", @"Pitch Shifter", @"Trapped Generator",@"Instrument Editor", nil];
     }
     return self;
 }
@@ -241,6 +242,9 @@
             break;
         case 14:
 			controller = [[TrappedGeneratorViewController alloc] initWithNibName:@"TrappedGeneratorViewController" bundle:nil];
+			break;
+        case 15:
+			controller = [[InstrumentEditorViewController  alloc] initWithNibName:@"InstrumentEditorViewController" bundle:nil];
 			break;
 		default:
             break;
