@@ -83,6 +83,7 @@ typedef struct {
 - (void)sendScore:(NSString *)score;
 
 - (void)play:(NSString *)csdFilePath;
+- (void)updateOrchestra:(NSString *)orchestraString;
 - (void)stop;
 - (void)mute;
 - (void)unmute;
