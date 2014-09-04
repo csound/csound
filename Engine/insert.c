@@ -1655,8 +1655,9 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     this_instr->ksmps_offset = 0;
     this_instr->ksmps_no_end = 0;
 
-
-    /* copy inputs */
+    if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
+      do {
+       /* copy inputs */
     current = inm->in_arg_pool->head;
     for (i = 0; i < inm->inchns; i++) {
       // this hardcoded type check for non-perf time vars needs to change
@@ -1674,10 +1675,6 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
       }
       current = current->next;
     }
-
-    if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
-      do {
-
         /* copy a-sig inputs, accounting for offset */
         current = inm->in_arg_pool->head;
         for (i = 0; i < inm->inchns; i++) {

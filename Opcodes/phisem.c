@@ -488,7 +488,6 @@ static int guiroset(CSOUND *csound, GUIRO *p)
     p->res_freq2 = FL(0.0);
 
     p->baseGain = FL(0.0);
-    p->decayScale = FL(0.0);
 
     p->sndLevel = FL(0.0);
     p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)

@@ -185,11 +185,16 @@ bool operator < (const EventBlock &a, const EventBlock &b) {
     if (std::memcmp(&a.evtblk.p[0], &b.evtblk.p[0], sizeof(MYFLT) * n) < 0) {
         result = true;
     } else {
-        result = false;
-    }
-    if (result == true && a.evtblk.strarg) {
-        if (std::strcmp(a.evtblk.strarg, b.evtblk.strarg) < 0) {
+        if (a.evtblk.strarg != 0 && b.evtblk.strarg == 0) {
             result = true;
+        } else if (a.evtblk.strarg == 0 && b.evtblk.strarg != 0) {
+            result = false;
+        } else  if (a.evtblk.strarg != 0 && b.evtblk.strarg == 0) {
+            if (std::strcmp(a.evtblk.strarg, b.evtblk.strarg) < 0) {
+                result = true;
+            } else {
+                result = false;
+            }
         } else {
             result = false;
         }

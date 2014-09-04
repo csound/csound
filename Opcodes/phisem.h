@@ -70,7 +70,6 @@ typedef struct Cabasa {
     int32       num_objects;
     MYFLT       last_num;
     MYFLT       totalEnergy;
-    MYFLT       decayScale;
     int         kloop;
 } CABASA;
 
@@ -100,7 +99,6 @@ typedef struct Sekere {
     MYFLT       finalZ0;
     MYFLT       finalZ1;
     MYFLT       finalZ2;
-    MYFLT       decayScale;
     int         kloop;
 } SEKERE;
 
