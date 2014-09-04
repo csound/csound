@@ -26,6 +26,9 @@
 		C45DCDAB199F289900A667B6 /* CsoundSliderBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = C45DCDA7199F289900A667B6 /* CsoundSliderBinding.m */; };
 		C45DCDAC199F289900A667B6 /* CsoundUI.m in Sources */ = {isa = PBXBuildFile; fileRef = C45DCDA9199F289900A667B6 /* CsoundUI.m */; };
 		C45DCDAF199F3E9600A667B6 /* CsoundMomentaryButtonBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = C45DCDAE199F3E9600A667B6 /* CsoundMomentaryButtonBinding.m */; };
+		C46B769719B6FE33000D4F95 /* InstrumentEditorWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C46B769519B6FE33000D4F95 /* InstrumentEditorWindowController.m */; };
+		C46B769819B6FE33000D4F95 /* InstrumentEditorWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C46B769619B6FE33000D4F95 /* InstrumentEditorWindowController.xib */; };
+		C46B769B19B6FF11000D4F95 /* instrumentEditor.csd in Resources */ = {isa = PBXBuildFile; fileRef = C46B769A19B6FF11000D4F95 /* instrumentEditor.csd */; };
 		C478097E1984C164000FD79F /* audioInTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = C478097A1984C164000FD79F /* audioInTest.csd */; };
 		C47809841984C18E000FD79F /* AudioInTestWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = C47809821984C18E000FD79F /* AudioInTestWindowController.m */; };
 		C47809851984C18E000FD79F /* AudioInTestWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C47809831984C18E000FD79F /* AudioInTestWindowController.xib */; };
@@ -90,6 +93,10 @@
 		C45DCDA9199F289900A667B6 /* CsoundUI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CsoundUI.m; sourceTree = "<group>"; };
 		C45DCDAD199F3E9600A667B6 /* CsoundMomentaryButtonBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsoundMomentaryButtonBinding.h; sourceTree = "<group>"; };
 		C45DCDAE199F3E9600A667B6 /* CsoundMomentaryButtonBinding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CsoundMomentaryButtonBinding.m; sourceTree = "<group>"; };
+		C46B769419B6FE33000D4F95 /* InstrumentEditorWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = InstrumentEditorWindowController.h; path = InstrumentEditor/InstrumentEditorWindowController.h; sourceTree = "<group>"; };
+		C46B769519B6FE33000D4F95 /* InstrumentEditorWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = InstrumentEditorWindowController.m; path = InstrumentEditor/InstrumentEditorWindowController.m; sourceTree = "<group>"; };
+		C46B769619B6FE33000D4F95 /* InstrumentEditorWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = InstrumentEditorWindowController.xib; path = InstrumentEditor/InstrumentEditorWindowController.xib; sourceTree = "<group>"; };
+		C46B769A19B6FF11000D4F95 /* instrumentEditor.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = instrumentEditor.csd; path = InstrumentEditor/instrumentEditor.csd; sourceTree = "<group>"; };
 		C478097A1984C164000FD79F /* audioInTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = audioInTest.csd; sourceTree = "<group>"; };
 		C47809811984C18E000FD79F /* AudioInTestWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioInTestWindowController.h; sourceTree = "<group>"; };
 		C47809821984C18E000FD79F /* AudioInTestWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioInTestWindowController.m; sourceTree = "<group>"; };
@@ -266,6 +273,7 @@
 				C4EBCDE719761D7200A7C7C1 /* ConsoleOutput */,
 				C41F0B6F19739ADE00997479 /* CsoundHaiku4 */,
 				C47809861985EF27000FD79F /* Harmonizer */,
+				C46B769919B6FE3B000D4F95 /* InstrumentEditor */,
 				C4B5D4341991A26C0072A430 /* RecordTest */,
 				C41F0B751973A0B200997479 /* SimpleTest1 */,
 				C4F2B9CC19747A7E006EE12F /* SimpleTest2 */,
@@ -296,6 +304,17 @@
 			);
 			name = "User Interface";
 			path = ui;
+			sourceTree = "<group>";
+		};
+		C46B769919B6FE3B000D4F95 /* InstrumentEditor */ = {
+			isa = PBXGroup;
+			children = (
+				C46B769A19B6FF11000D4F95 /* instrumentEditor.csd */,
+				C46B769419B6FE33000D4F95 /* InstrumentEditorWindowController.h */,
+				C46B769519B6FE33000D4F95 /* InstrumentEditorWindowController.m */,
+				C46B769619B6FE33000D4F95 /* InstrumentEditorWindowController.xib */,
+			);
+			name = InstrumentEditor;
 			sourceTree = "<group>";
 		};
 		C47809791984C164000FD79F /* AudioInTest */ = {
@@ -427,12 +446,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C46B769B19B6FF11000D4F95 /* instrumentEditor.csd in Resources */,
 				C4EBCDF01976636D00A7C7C1 /* AudioFileTestWindowController.xib in Resources */,
 				C4F2B9D81974A2C3006EE12F /* buttonTest.csd in Resources */,
 				C47809851984C18E000FD79F /* AudioInTestWindowController.xib in Resources */,
 				C41F0B891973AB5C00997479 /* test.csd in Resources */,
 				C478098D1985EF3C000FD79F /* HarmonizerWindowController.xib in Resources */,
 				C4F2B9E41974C476006EE12F /* CsoundHaiku4WindowController.xib in Resources */,
+				C46B769819B6FE33000D4F95 /* InstrumentEditorWindowController.xib in Resources */,
 				C478097E1984C164000FD79F /* audioInTest.csd in Resources */,
 				C4F2B9E91974C693006EE12F /* SimpleTest1WindowController.xib in Resources */,
 				C4EBCDFB1978C7E700A7C7C1 /* testAudioFile.aif in Resources */,
@@ -474,6 +495,7 @@
 				C4EBCDE519761D6A00A7C7C1 /* ConsoleOutputWindowController.m in Sources */,
 				C4EBCDEF1976636D00A7C7C1 /* AudioFileTestWindowController.m in Sources */,
 				C4B5D43A1991A26C0072A430 /* RecordTestWindowController.m in Sources */,
+				C46B769719B6FE33000D4F95 /* InstrumentEditorWindowController.m in Sources */,
 				C4B5D43319914B350072A430 /* BaseCsoundWindowController.m in Sources */,
 				C4F2B9E81974C693006EE12F /* SimpleTest1WindowController.m in Sources */,
 				C4F2B9DE1974AB7B006EE12F /* ButtonTestWindowController.m in Sources */,

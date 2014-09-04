@@ -16,6 +16,9 @@
 		C41F0A9E197361C400997479 /* ControlXYGrid.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0A9D197361C400997479 /* ControlXYGrid.m */; };
 		C41F0AA1197361D200997479 /* ControlKnob.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0AA0197361D200997479 /* ControlKnob.m */; };
 		C41F0AA41973620C00997479 /* LevelMeterView.m in Sources */ = {isa = PBXBuildFile; fileRef = C41F0AA31973620C00997479 /* LevelMeterView.m */; };
+		C46B769019B5C0A1000D4F95 /* InstrumentEditorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C46B768E19B5C0A1000D4F95 /* InstrumentEditorViewController.m */; };
+		C46B769119B5C0A1000D4F95 /* InstrumentEditorViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = C46B768F19B5C0A1000D4F95 /* InstrumentEditorViewController.xib */; };
+		C46B769319B5C604000D4F95 /* instrumentEditor.csd in Resources */ = {isa = PBXBuildFile; fileRef = C46B769219B5C604000D4F95 /* instrumentEditor.csd */; };
 		C486A13B198BA8DB00E19281 /* CsoundAccelerometerBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = C486A12B198BA8DB00E19281 /* CsoundAccelerometerBinding.m */; };
 		C486A13C198BA8DB00E19281 /* CsoundAttitudeBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = C486A12D198BA8DB00E19281 /* CsoundAttitudeBinding.m */; };
 		C486A13D198BA8DB00E19281 /* CsoundGyroscopeBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = C486A12F198BA8DB00E19281 /* CsoundGyroscopeBinding.m */; };
@@ -115,6 +118,10 @@
 		C41F0AA0197361D200997479 /* ControlKnob.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ControlKnob.m; sourceTree = "<group>"; };
 		C41F0AA21973620C00997479 /* LevelMeterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LevelMeterView.h; path = "Csound iOS Examples/ViewControllers/RecordTest/LevelMeterView.h"; sourceTree = SOURCE_ROOT; };
 		C41F0AA31973620C00997479 /* LevelMeterView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LevelMeterView.m; path = "Csound iOS Examples/ViewControllers/RecordTest/LevelMeterView.m"; sourceTree = SOURCE_ROOT; };
+		C46B768D19B5C0A1000D4F95 /* InstrumentEditorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = InstrumentEditorViewController.h; path = InstrumentEditor/InstrumentEditorViewController.h; sourceTree = "<group>"; };
+		C46B768E19B5C0A1000D4F95 /* InstrumentEditorViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = InstrumentEditorViewController.m; path = InstrumentEditor/InstrumentEditorViewController.m; sourceTree = "<group>"; };
+		C46B768F19B5C0A1000D4F95 /* InstrumentEditorViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = InstrumentEditorViewController.xib; path = InstrumentEditor/InstrumentEditorViewController.xib; sourceTree = "<group>"; };
+		C46B769219B5C604000D4F95 /* instrumentEditor.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = instrumentEditor.csd; path = InstrumentEditor/instrumentEditor.csd; sourceTree = "<group>"; };
 		C486A12A198BA8DB00E19281 /* CsoundAccelerometerBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsoundAccelerometerBinding.h; sourceTree = "<group>"; };
 		C486A12B198BA8DB00E19281 /* CsoundAccelerometerBinding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CsoundAccelerometerBinding.m; sourceTree = "<group>"; };
 		C486A12C198BA8DB00E19281 /* CsoundAttitudeBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsoundAttitudeBinding.h; sourceTree = "<group>"; };
@@ -291,6 +298,17 @@
 			path = ConsoleOutput;
 			sourceTree = "<group>";
 		};
+		C46B768919B5BF23000D4F95 /* InstrumentEditor */ = {
+			isa = PBXGroup;
+			children = (
+				C46B768D19B5C0A1000D4F95 /* InstrumentEditorViewController.h */,
+				C46B768E19B5C0A1000D4F95 /* InstrumentEditorViewController.m */,
+				C46B768F19B5C0A1000D4F95 /* InstrumentEditorViewController.xib */,
+				C46B769219B5C604000D4F95 /* instrumentEditor.csd */,
+			);
+			name = InstrumentEditor;
+			sourceTree = "<group>";
+		};
 		C486A128198BA8DB00E19281 /* Bindings */ = {
 			isa = PBXGroup;
 			children = (
@@ -427,6 +445,7 @@
 				C41F0A941973612A00997479 /* ConsoleOutput */,
 				F6B6470F14D353A7005F786B /* CsoundHaiku4 */,
 				F6B6471414D353A7005F786B /* HardwareTest */,
+				C46B768919B5BF23000D4F95 /* InstrumentEditor */,
 				F6B6471914D353A7005F786B /* Harmonizer */,
 				F6B6472214D353A7005F786B /* MidiTest */,
 				F6B6472A14D353A7005F786B /* MultiTouchXY */,
@@ -733,10 +752,12 @@
 				F6B6474914D353A7005F786B /* AudioFileTestViewController.xib in Resources */,
 				F6B6474C14D353A7005F786B /* audioInTest.csd in Resources */,
 				C41F0A93197360CD00997479 /* pitchshifter.csd in Resources */,
+				C46B769319B5C604000D4F95 /* instrumentEditor.csd in Resources */,
 				C41F0A91197360AF00997479 /* recordTest.csd in Resources */,
 				F6B6474E14D353A7005F786B /* AudioInTestViewController.xib in Resources */,
 				F6B6475814D353A7005F786B /* buttonTest.csd in Resources */,
 				F6B6475A14D353A7005F786B /* ButtonTestViewController.xib in Resources */,
+				C46B769119B5C0A1000D4F95 /* InstrumentEditorViewController.xib in Resources */,
 				F6B6475C14D353A7005F786B /* CsoundHaiku4ViewController.xib in Resources */,
 				F6B6475D14D353A7005F786B /* IV.csd in Resources */,
 				F6B6475E14D353A7005F786B /* hardwareTest.csd in Resources */,
@@ -814,6 +835,7 @@
 				F6B647BA14D353D2005F786B /* CsoundObj.m in Sources */,
 				F6B647BB14D353D2005F786B /* CsoundMIDI.m in Sources */,
 				F6B647BC14D353D2005F786B /* MidiWidgetsManager.m in Sources */,
+				C46B769019B5C0A1000D4F95 /* InstrumentEditorViewController.m in Sources */,
 				F6B647BD14D353D2005F786B /* SliderMidiWidgetWrapper.m in Sources */,
 				F6968A5716B07BA00089C462 /* TrappedGeneratorViewController.m in Sources */,
 			);

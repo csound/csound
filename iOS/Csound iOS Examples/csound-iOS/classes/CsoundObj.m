@@ -69,15 +69,24 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 #  pragma mark - CsoundObj Interface
 // -----------------------------------------------------------------------------
 
-- (void)sendScore:(NSString *)score {
+- (void)sendScore:(NSString *)score
+{
     if (mCsData.cs != NULL) {
         csoundReadScore(mCsData.cs, (char*)[score cStringUsingEncoding:NSASCIIStringEncoding]);
     }
 }
 
-- (void)play:(NSString *)csdFilePath {
+- (void)play:(NSString *)csdFilePath
+{
 	mCsData.shouldRecord = false;
     [self performSelectorInBackground:@selector(runCsound:) withObject:csdFilePath];
+}
+
+- (void)updateOrchestra:(NSString *)orchestraString
+{
+    if (mCsData.cs != NULL) {
+        csoundCompileOrc(mCsData.cs, (char*)[orchestraString cStringUsingEncoding:NSASCIIStringEncoding]);
+    }
 }
 
 - (void)stop {
@@ -207,14 +216,16 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
     [listeners addObject:listener];
 }
 
-- (void)notifyListenersOfStartup {
+- (void)notifyListenersOfStartup
+{
     for (id<CsoundObjListener> listener in listeners) {
         if ([listener respondsToSelector:@selector(csoundObjStarted:)]) {
             [listener csoundObjStarted:self];
         }
     }
 }
-- (void)notifyListenersOfCompletion {
+- (void)notifyListenersOfCompletion
+{
     for (id<CsoundObjListener> listener in listeners) {
         if ([listener respondsToSelector:@selector(csoundObjCompleted:)]) {
             [listener csoundObjCompleted:self];
@@ -254,14 +265,16 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 #  pragma mark - Csound Internals / Advanced Methods
 // -----------------------------------------------------------------------------
 
-- (CSOUND *)getCsound {
+- (CSOUND *)getCsound
+{
     if (!mCsData.running) {
         return NULL;
     }
     return mCsData.cs;
 }
 
-- (AudioUnit *)getAudioUnit {
+- (AudioUnit *)getAudioUnit
+{
     if (!mCsData.running) {
         return NULL;
     }
@@ -284,7 +297,8 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 	return value;
 }
 
-- (NSData *)getOutSamples {
+- (NSData *)getOutSamples
+{
     if (!mCsData.running) {
         return nil;
     }
@@ -296,13 +310,16 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
     return data;
 }
 
-- (int)getNumChannels {
+- (int)getNumChannels
+{
     if (!mCsData.running) {
         return -1;
     }
     return csoundGetNchnls(mCsData.cs);
 }
-- (int)getKsmps {
+
+- (int)getKsmps
+{
     if (!mCsData.running) {
         return -1;
     }
@@ -389,8 +406,8 @@ OSStatus  Csound_Render(void *inRefCon,
     return 0;
 }
 
-- (void)runCsoundToDisk:(NSArray *)paths {
-	
+- (void)runCsoundToDisk:(NSArray *)paths
+{
     @autoreleasepool {
         
         CSOUND *cs;
@@ -417,8 +434,8 @@ OSStatus  Csound_Render(void *inRefCon,
     }
 }
 
-- (void)runCsound:(NSString *)csdFilePath {
-	
+- (void)runCsound:(NSString *)csdFilePath
+{
     @autoreleasepool {
 		CSOUND *cs;
         NSError* error;
@@ -587,8 +604,8 @@ OSStatus  Csound_Render(void *inRefCon,
 	}
 }
 
-- (void)handleInterruption:(NSNotification *)notification {
-    
+- (void)handleInterruption:(NSNotification *)notification
+{
     NSDictionary *interuptionDict = notification.userInfo;
     NSUInteger interuptionType = (NSUInteger)[interuptionDict
                                               valueForKey:AVAudioSessionInterruptionTypeKey];
