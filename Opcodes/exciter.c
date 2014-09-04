@@ -30,32 +30,33 @@
 
 typedef struct {
   OPDS        h;
-  MYFLT *aout;
-  MYFLT *ain;
-  MYFLT *pfreq;
-  MYFLT *pceil;
-  MYFLT *pdrive;  
-  MYFLT *pblend;
+  MYFLT       *aout;
+  MYFLT       *ain;
+  MYFLT       *pfreq;
+  MYFLT       *pceil;
+  MYFLT       *pdrive;  
+  MYFLT       *pblend;
   // Internals
-  MYFLT freq_old, ceil_old;
+  MYFLT       freq_old, ceil_old;
   // biquad data
-  double hp1[7], hp2[7], hp3[7], hp4[7];
-  double lp1[7],  lp2[7];
+  double      hp1[7], hp2[7], hp3[7], hp4[7];
+  double      lp1[7],  lp2[7];
   // resampler
-  double rs00[7], rs01[7], rs10[7], rs11[7];
+  double      rs00[7], rs01[7], rs10[7], rs11[7];
   // distortion
-  double rdrive, rbdr, kpa, kpb, kna, knb, ap, an, imr, kc, srct, sq, pwrq;
-  int over;
-  double prev_med, prev_out;
-  double blend_old, drive_old;
+  double      rdrive, rbdr, kpa, kpb, kna, knb, ap, an, imr, kc, srct, sq, pwrq;
+  int         over;
+  double      prev_med, prev_out;
+  double      blend_old, drive_old;
 } EXCITER;
 
-static inline double process(double st[7], double in)
+static inline double process(double st[7], double in/*, char *s */)
 {
     double tmp = in - st[5] * st[3] - st[6] * st[4];
     double out = tmp * st[0] + st[5] * st[1] + st[6] * st[2];
     st[6] = st[5];
     st[5] = tmp;
+    /* printf("%s: %f -> %f; %f %f\n", s, in, out, st[5], st[6]); */
     return out;
 }
 
@@ -75,6 +76,7 @@ static inline void set_hp_rbj(CSOUND *csound, double hp[7], double fc, double q)
     hp[1]/*a1*/ =  -2.0 * hp[0];
     hp[3]/*b1*/ =  (-2.0*cs*inv);
     hp[4]/*b2*/ =  ((1.0 - alpha)*inv);
+    /* printf("hp_rbj: %f %f %f %f %f\n", hp[0], hp[1], hp[2], hp[3], hp[4]); */
     return;
 }
 
@@ -86,23 +88,15 @@ static inline void set_lp_rbj(double lp[7], double fc, double q, double sr)
     double alpha=(sn/(2*q));
     double inv=(1.0/(1.0+alpha));
 
+    /* printf("fc = %f q = %f sr = %f: %f\n", fc, q, sr, TWOPI*fc/sr); */
+    /* printf("omega = %f, sn = %f, cs = %f, alpha = %f, inv = %f\n", */
+    /*        omega, sn, cs, alpha, inv); */
     lp[2] = lp[0] =  inv*(1.0 - cs)*0.5;
     lp[1] =  lp[0]+lp[0];
     lp[3] =  (-2.0*cs*inv);
     lp[4] =  ((1.0 - alpha)*inv);
+    /* printf("lp_rbj: %f %f %f %f %f\n", lp[0], lp[1], lp[2], lp[3], lp[4]); */
 }
-
-/* void resample_set_params(CSOUND *csound, EXCITER *p) */
-/* { */
-/*     double srate   = csound->GetSr(csound); */
-/*     double ff = 25000.0; */
-/*     if (srate>50000) ff = srate*0.5; */
-/*     // set all filters */
-/*     set_lp_rbj(csound, p->rs00, ff, 0.8, srate * 2); */
-/*     memcpy(p->rs01, p->rs00, 5*sizeof(double)); */
-/*     memcpy(p->rs10, p->rs00, 5*sizeof(double)); */
-/*     memcpy(p->rs11, p->rs00, 5*sizeof(double)); */
-/* } */
 
 static int exciter_init(CSOUND *csound, EXCITER *p)
 {
@@ -148,37 +142,42 @@ void upsample(EXCITER *p, double *tmp, double sample)
 
 double downsample(EXCITER *p, double *sample)
 {
-    sample[0] = process(p->rs00, sample[0]);
-    sample[0] = process(p->rs01, sample[0]);
+    //printf("downsample: %f %f ->", sample[0], sample[1]);
+    sample[0] = process(p->rs10, sample[0]);
+    sample[0] = process(p->rs11, sample[0]);
     sample[1] = process(p->rs10, sample[1]);
     sample[1] = process(p->rs11, sample[1]);
+    //printf(" %f\n", sample[0]);
     return sample[0];
 }
 
 static inline double M(double x)
 {
-    return (fabs(x) > 0.00000001f) ? x : 0.0f;
+    return (fabs(x) > 0.00000001) ? x : 0.0;
 }
 
 static inline double D(double x)
 {
     x = fabs(x);
-    return (x > 0.00000001f) ? sqrt(x) : 0.0f;
+    return (x > 0.00000001) ? sqrt(x) : 0.0;
 }
 
 static inline double distort(EXCITER *p, double in)
 {
-    double samples[2];
+    double samples[2], ans;
     int i;
+    double ap = p->ap, an = p->an, kpa = p->kpa, kna = p->kna,
+          kpb = p->kpb, knb = p->knb, pwrq = p->pwrq;
+    //printf("in: %f\n", in);
     upsample(p, samples, in);
     for (i = 0; i < p->over; i++) {
       double proc = samples[i];
       double med;
       //printf("%d: %f-> ", i, proc);
       if (proc >= 0.0) {
-        med = (D(p->ap + proc * (p->kpa - proc)) + p->kpb) * p->pwrq;
+        med = (D(ap + proc * (kpa - proc)) + kpb) * pwrq;
       } else {
-        med = (D(p->an - proc * (p->kna + proc)) + p->knb) * p->pwrq * (-1.0);
+        med = - (D(an - proc * (kna + proc)) + knb) * pwrq;
       }
       proc = p->srct * (med - p->prev_med + p->prev_out);
       //printf("%f\n", proc);
@@ -186,8 +185,18 @@ static inline double distort(EXCITER *p, double in)
       p->prev_out = M(proc);
       samples[i] = proc;
     }
-    return downsample(p, samples);
+    ans = downsample(p, samples);
+    //printf("out: %f\n", ans);
+    return ans;
 }
+
+
+
+
+
+
+
+
 
 static inline void set_distort(CSOUND *csound, EXCITER *p)
 {
@@ -212,7 +221,8 @@ static inline void set_distort(CSOUND *csound, EXCITER *p)
       p->an = p->rbdr*p->rbdr / p->sq;
       p->imr = 2.0 * p->knb + D(2.0 * p->kna + 4.0 * p->an - 1.0);
       p->pwrq = 2.0 / (p->imr + 1.0);
-      /* printf("params: rdrive\trbdr\tkpa\tkpb\tkna\tknb\tap\tan\timr\tkc\tsrct\tsq\tpwrq\n"); */
+      /* printf("params: rdrive\trbdr\tkpa\tkpb\tkna\tknb\tap\tan"
+                "\timr\tkc\tsrct\tsq\tpwrq\n"); */
       /* printf("\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", */
       /*        p->rdrive, p->rbdr, p->kpa, p->kpb, p->kna, p->knb, p->ap, p->an, */
       /*        p->imr, p->kc, p->srct, p->sq, p->pwrq); */
@@ -248,7 +258,7 @@ int exciter_perf(CSOUND *csound, EXCITER *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT zerodb = csound->Get0dBFS(csound);
  
-     if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&p->aout[nsmps], '\0', early*sizeof(MYFLT));
@@ -260,14 +270,15 @@ int exciter_perf(CSOUND *csound, EXCITER *p)
       double out, in, out1;
       in = (double)p->ain[n]/zerodb;
       // all pre filters in chain
+      //printf("**** %f ****\n", in);
       out1 = process(p->hp2, process(p->hp1, in));
       out = distort(p, out1);      // saturate
       //printf("after distort %f -> %f -> %f\n", in, out1, out);
       // all post filters in chain
-      out = process(p->hp4, process(p->hp3, in)); 
+      out = process(p->hp4, process(p->hp3, out)); 
                 
       // all H/P post filters in chain (surely LP - JPff)
-      out = process(p->lp1, process(p->lp2,out));
+      out = process(p->lp1, process(p->lp2, out));
       p->aout[n] = out*zerodb;
     } // cycle through samples
     return OK;
