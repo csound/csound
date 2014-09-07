@@ -258,7 +258,6 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         print_tree(csound, "AST - INITIAL\n", astTree);
       }
 
-      print_tree(csound, "AST - INITIAL\n", astTree);
       typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
 
