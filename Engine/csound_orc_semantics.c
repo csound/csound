@@ -60,6 +60,7 @@ char* convert_external_to_internal(CSOUND* csound, char* arg);
 void do_baktrace(CSOUND *csound, uint64_t files);
 
 const char* SYNTHESIZED_ARG = "_synthesized";
+const char* UNARY_PLUS = "_unary_plus";
 
 char* cs_strdup(CSOUND* csound, char* str) {
     size_t len;
@@ -1301,6 +1302,11 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       case LABEL_TOKEN:
       case T_IDENT:
         varName = current->value->lexeme;
+            
+        if (is_reserved(varName)) {
+          // skip reserved vars, these are handled elsewhere
+          break;
+        }
 
         if (*varName == 't') { /* Support legacy t-vars */
           add_array_arg(csound, varName, 1, typeTable);
@@ -1327,6 +1333,44 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     }
 
     return 1;
+}
+
+TREE* get_initial_unary_operator(TREE* tree) {
+    if (tree == NULL) return NULL;
+    
+    TREE* current = tree;
+    while (current->left != NULL) {
+        current = current->left;
+    }
+    if (current->type == S_UMINUS || current->markup == &UNARY_PLUS) {
+        return current;
+    }
+    return NULL;
+}
+
+TREE* get_left_parent(TREE* root, TREE* node) {
+    TREE* current = root;
+    while (current != NULL) {
+        if (current->left == node) {
+            return current;
+        }
+        current = current->left;
+    }
+    return NULL;
+}
+
+TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* unary_op) {
+    TREE* retVal;
+    new_left->type = T_IDENT;
+   
+    if (unary_op->type == S_UMINUS) {
+        retVal = make_node(csound, unary_op->line, unary_op->locn, '-', new_left, unary_op->right);
+    } else {
+        retVal = make_node(csound, unary_op->line, unary_op->locn, '+', new_left, unary_op);
+        unary_op->markup = NULL;
+    }
+    
+    return retVal;
 }
 
 /* Analyze and restructures the statement node into an opcode call structure. T
@@ -1370,9 +1414,35 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
     }
    
     if (root->left->type == T_OPCALL && root->right == NULL) {
+        
+        TREE* top = root->left;
+        TREE* unary_op = get_initial_unary_operator(top->right);
+        
+        if (top->left->next == NULL && unary_op != NULL) {
+            /* i.e. outs a1 + a2 + a3, a4, + a5 + a6 */
+           
+            TREE* newTop = top->left;
+            newTop->next = root->next;
+            newTop->type = T_OPCALL;
+            
+            if (top->right == unary_op) {
+                newTop->right = convert_unary_op_to_binary(csound, top, unary_op);
+                newTop->right->next = unary_op->next;
+                unary_op->next = NULL;
+            } else {
+                TREE* unary_op_parent = get_left_parent(top->right, unary_op);
+                newTop->right = top->right;
+                unary_op_parent->left = convert_unary_op_to_binary(csound, top, unary_op);
+            }
+            top->right = top->left = top->next = NULL;
+            
+            return newTop;
+        }
+        
         /* i.e. asig oscil 0.25, 440 */
-        root->left->next = root->next;
-        return root->left;
+        top->next = root->next;
+        return top;
+            
     } else if(root->right == NULL) {
         /* this branch catches this part of opcall rule: out_arg_list '(' ')' NEWLINE */
 
@@ -1395,8 +1465,32 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
 
     leftCount = tree_arg_list_count(root->left);
     rightCount = tree_arg_list_count(root->right);
+   
+    if (leftCount > 1 && rightCount > 1) {
+        synterr(csound,
+                Str("Internal Error: convert_statement_to_opcall received invalid OPCALL\n"));
+        return NULL;
+    }
+   
+//    printf("ARG COUNTS: %d %d\n", leftCount, rightCount);
     
-    printf("ARG COUNTS: %d %d\n", leftCount, rightCount);
+    if (leftCount == 1 && rightCount == 1) {
+        synterr(csound,
+                Str("Internal Error: not yet implemented op op\n"));
+        return NULL;
+    } else if (leftCount == 1) {
+        TREE* newTop = root->left;
+        newTop->type = T_OPCALL;
+        newTop->next = root->next;
+        newTop->right = root->right;
+        return newTop;
+    } else {
+        TREE* newTop = root->right;
+        newTop->type = T_OPCALL;
+        newTop->next = root->next;
+        newTop->left = root->left;
+        return newTop;
+    }
     
     return NULL;
 }
@@ -1421,8 +1515,8 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       return 0;
     }
 
-    print_tree(csound, "Verifying Opcode: Left\n", root->left);
-    print_tree(csound, "Verifying Opcode: Right\n", root->right);
+//    print_tree(csound, "Verifying Opcode: Left\n", root->left);
+//    print_tree(csound, "Verifying Opcode: Right\n", root->right);
     add_args(csound, root->left, typeTable);
 
     opcodeName = root->value->lexeme;
@@ -1618,6 +1712,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     TREE *current = root;
     TREE *previous = NULL;
     TREE* newRight;
+    TREE* transformed;
 
     CONS_CELL* parentLabelList = typeTable->labelList;
     typeTable->labelList = get_label_list(csound, root);
@@ -1702,11 +1797,13 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         break;
 
       default:
-        current = convert_statement_to_opcall(csound, current, typeTable);
+        transformed = convert_statement_to_opcall(csound, current, typeTable);
               
-        if (previous != NULL) {
-          previous->next = current;
+        if (transformed != current && previous != NULL) {
+          previous->next = transformed;
         }
+              
+        current = transformed;
               
         if (current == NULL) {
           return 0;

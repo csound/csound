@@ -21,7 +21,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-%pure_parser
+%pure-parser
 %parse-param {PARSE_PARM *parm}
 %parse-param {void *scanner}
 %lex-param { CSOUND * csound }
@@ -88,9 +88,10 @@
 %token T_MAPK
 
 %start orcfile
+
+/* Precedence Rules */
 %left '?'
 %left S_AND S_OR
-%nonassoc THEN_TOKEN ITHEN_TOKEN KTHEN_TOKEN ELSE_TOKEN /* NOT SURE IF THIS IS NECESSARY */
 %left '|'
 %left '&'
 %left S_LT S_GT S_LE S_GE S_EQ S_NEQ
@@ -99,14 +100,11 @@
 %left '*' '/' '%'
 %left '^'
 %left '#'
-%right '~'
 %right S_UNOT
 %right S_UMINUS
-%right S_ATAT
-%right S_AT
 %token S_GOTO
 %token T_HIGHEST
-%pure_parser
+
 %error-verbose
 %parse-param { CSOUND * csound }
 %parse-param { TREE * astTree }
@@ -146,6 +144,7 @@
     extern int csound_orcget_locn(void *);
     extern int csound_orcget_lineno(void *);
     extern ORCTOKEN *make_string(CSOUND *, char *);
+    extern char* UNARY_PLUS;
 %}
 %%
 
@@ -245,9 +244,7 @@ udo_definition   : UDOSTART_DEFINITION
 
 /* Opcode and Function calls */
 
-
-
-/* opcall is a slightly ambiguous rule.  We use it to catch no out-arg function calls, as well as old-style opcode line calls. While slightly ambiguous, it does only match valid code. The ambiguity is resolved by the semantic analyzer.  */
+/* opcall is an ambiguous rule.  We use it to catch no out-arg function calls, as well as old-style opcode line calls. While ambiguous, it *should* only match valid code. The ambiguity is resolved by the semantic analyzer.  */
 
 opcall  : identifier NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
@@ -298,9 +295,19 @@ statement_list : statement_list statement
 
 statement : out_arg_list assignment expr NEWLINE
                 {
-                  $$ = $2;
+                  $$ = (TREE *)$2;
                   $$->left = (TREE *)$1;
-                  $$->right = (TREE *)$3;
+
+                  if($2->right != NULL) {
+                    TREE* op = $2->right;
+                    $2->right = NULL;
+                    op->right = (TREE *)$3;
+                    op->left = make_leaf(csound, LINE, LOCN, $1->type, 
+                                  make_token(csound, $1->value->lexeme));
+                    $$->right = op;
+                  } else {
+                    $$->right = (TREE *)$3;
+                  }
                 }
           | opcall
           | goto identifier NEWLINE
@@ -437,6 +444,9 @@ unary_expr : '~' expr %prec S_UMINUS
         | '+' expr %prec S_UMINUS
           {
               $$ = $2;
+              /* added to left for disambiguation of opcall in semantic analyzer */
+              /*$2->next = make_leaf(csound, LINE, LOCN, '+', (ORCTOKEN *) $1); */
+              $2->markup = &UNARY_PLUS;
           }
         | '+' error           { $$ = NULL; }
         ;
@@ -502,7 +512,8 @@ array_identifier: array_identifier '[' ']' {
             $$ = $1;
           }
           | identifier '[' ']' {
-            $$ = make_leaf(csound, LINE, LOCN, T_ARRAY_IDENT, $1); 
+            $$ = $1; 
+            $1->type = T_ARRAY_IDENT;
 	          $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
           }
           ;
@@ -512,15 +523,23 @@ array_identifier: array_identifier '[' ']' {
 /* ORCTOKEN wrappings and simplifications */
 
 assignment : '='
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, (ORCTOKEN *)$1); }
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=")); }
               | S_ADDIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, (ORCTOKEN *)$1); }
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=")); 
+                  $$->right = make_leaf(csound, LINE, LOCN, '+', make_token(csound, "+")); 
+                }
               | S_SUBIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, (ORCTOKEN *)$1); }
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=")); 
+                  $$->right = make_leaf(csound, LINE, LOCN, '-', make_token(csound, "-")); 
+                }
               | S_DIVIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, (ORCTOKEN *)$1); }
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=")); 
+                  $$->right = make_leaf(csound, LINE, LOCN, '/', make_token(csound, "/")); 
+                }
               | S_MULIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, (ORCTOKEN *)$1); }
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=")); 
+                  $$->right = make_leaf(csound, LINE, LOCN, '*', make_token(csound, "*")); 
+                }
               ;
 
 then      : THEN_TOKEN
