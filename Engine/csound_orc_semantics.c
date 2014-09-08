@@ -2079,8 +2079,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       default:
         transformed = convert_statement_to_opcall(csound, current, typeTable);
 
-        if (transformed != current && previous != NULL) {
-          previous->next = transformed;
+        if (transformed != current) {
+          current = transformed;
+          if (previous != NULL) {
+            previous->next = current;
+          }
+          continue;
         }
 
         current = transformed;
@@ -2099,6 +2103,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           if (previous != NULL) {
               previous->next = current;
           }
+
           continue;
         } else {
           handle_optional_args(csound, current);
