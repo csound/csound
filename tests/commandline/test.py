@@ -176,14 +176,11 @@ def runTest():
         out = ""
         if (retVal == 0) == (expectedResult == 0):
             testPass += 1
-            out = "[pass] - "
         else:
             testFail += 1
-            out = "[FAIL] - "
+            out = "[FAIL] - Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult)
+            print out
 
-        out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult
-)
-        print out
         output += "%s\n"%("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
         output += "%s\n\n"%("=" * 80)
