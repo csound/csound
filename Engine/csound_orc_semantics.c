@@ -59,6 +59,9 @@ char* convert_internal_to_external(CSOUND* csound, char* arg);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
 void do_baktrace(CSOUND *csound, uint64_t files);
 
+extern int add_udo_definition(CSOUND *csound, char *opname,
+                              char *outtypes, char *intypes);
+
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
 
@@ -1391,7 +1394,10 @@ TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* unary_op)
 TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     int leftCount, rightCount;
     
-    if (root->type == T_ASSIGNMENT) {
+    if (root->type == T_ASSIGNMENT ||
+        root->type == GOTO_TOKEN ||
+        root->type == KGOTO_TOKEN ||
+        root->type == IGOTO_TOKEN) {
         // i.e. a = func(a + b)
         return root;
     }
@@ -1475,9 +1481,21 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
 //    printf("ARG COUNTS: %d %d\n", leftCount, rightCount);
     
     if (leftCount == 1 && rightCount == 1) {
-        synterr(csound,
-                Str("Internal Error: not yet implemented op op\n"));
-        return NULL;
+        TREE* newTop;
+        if(find_opcode(csound, root->right->value->lexeme) != NULL) {
+            newTop = root->right;
+            newTop->type = T_OPCALL;
+            newTop->left = root->left;
+            newTop->next = root->next;
+            root->next = NULL;
+        } else {
+            newTop = root->left;
+            newTop->type = T_OPCALL;
+            newTop->right = root->right;
+            newTop->next = root->next;
+            root->next = NULL;
+        }
+        return newTop;
     } else if (leftCount == 1) {
         TREE* newTop = root->left;
         newTop->type = T_OPCALL;
@@ -1745,6 +1763,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         break;
       case UDO_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
+              
+        add_udo_definition(csound,
+                           root->value->lexeme,
+                           root->left->left->value->lexeme,
+                           root->left->right->value->lexeme);
+ 
 
         typeTable->localPool = csoundCreateVarPool(csound);
         current->markup = typeTable->localPool;
