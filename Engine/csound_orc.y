@@ -343,7 +343,7 @@ if_then : if_then_base ENDIF_TOKEN NEWLINE
             $$->right->next = make_node(csound,LINE,LOCN, ELSE_TOKEN, NULL, $3); }
         | if_then_base elseif_list ENDIF_TOKEN NEWLINE
           { $$ = $1;
-            $$->right->next = make_node(csound,LINE,LOCN, ELSE_TOKEN, NULL, $3); }
+            $$->right->next = $2; }
         | if_then_base elseif_list ELSE_TOKEN statement_list ENDIF_TOKEN NEWLINE
           { TREE * tempLastNode;
             $$ = $1;
