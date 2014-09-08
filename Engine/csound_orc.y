@@ -218,7 +218,7 @@ udo_definition   : UDOSTART_DEFINITION
                 TREE *udoTop = make_leaf(csound, LINE,LOCN, UDO_TOKEN,
                                          (ORCTOKEN *)NULL);
                 TREE *ident = make_leaf(csound, LINE,LOCN, T_IDENT,
-                                        (ORCTOKEN *)$3);
+                                        $3->value);
                 TREE *udoAns = make_leaf(csound, LINE,LOCN, UDO_ANS_TOKEN,
                                          (ORCTOKEN *)$7);
                 TREE *udoArgs = make_leaf(csound, LINE,LOCN, UDO_ARGS_TOKEN,

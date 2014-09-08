@@ -1765,9 +1765,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
               
         add_udo_definition(csound,
-                           root->value->lexeme,
-                           root->left->left->value->lexeme,
-                           root->left->right->value->lexeme);
+                           current->left->value->lexeme,
+                           current->left->left->value->lexeme,
+                           current->left->right->value->lexeme);
  
 
         typeTable->localPool = csoundCreateVarPool(csound);
