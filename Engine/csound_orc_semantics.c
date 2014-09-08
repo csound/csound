@@ -1493,7 +1493,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
     
     if (leftCount == 1 && rightCount == 1) {
         TREE* newTop;
-        if(find_opcode(csound, root->right->value->lexeme) != NULL) {
+        if(root->right->type == T_IDENT && find_opcode(csound, root->right->value->lexeme) != NULL) {
             newTop = root->right;
             newTop->type = T_OPCALL;
             newTop->left = root->left;
