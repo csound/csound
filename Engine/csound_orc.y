@@ -320,7 +320,7 @@ statement : out_arg_list assignment expr NEWLINE
           | if_goto
           | if_then
           | until
-          | LABEL_TOKEN NEWLINE
+          | LABEL_TOKEN 
             { $$ = make_leaf(csound, LINE, LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | NEWLINE
             { $$ = NULL; }
