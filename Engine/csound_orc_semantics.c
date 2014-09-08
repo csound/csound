@@ -1425,9 +1425,20 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
         TREE* unary_op = get_initial_unary_operator(top->right);
         
         if (top->left->next == NULL && unary_op != NULL) {
+            TREE* newTop;
+           
+            /* i.e. ksubst init -1 */
+            /* TODO - this should check if it's a var first */
+            if (find_opcode(csound, top->value->lexeme) != NULL) {
+                top->next = root->next;
+                root->next = NULL;
+                return top;
+            }
+            
+            
             /* i.e. outs a1 + a2 + a3, a4, + a5 + a6 */
            
-            TREE* newTop = top->left;
+            newTop = top->left;
             newTop->next = root->next;
             newTop->type = T_OPCALL;
             
