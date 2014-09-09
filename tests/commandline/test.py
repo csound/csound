@@ -95,7 +95,7 @@ def runTest():
         ["test38.csd", "Testing simple macro"],
         ["test39.csd", "Testing macro with argument"],
         ["test40.csd", "Testing i^j"],
-        ["test41.csd", "if statement with = instead of =="],
+        ["test41.csd", "if statement with = instead of == gives a failure", 1],
         ["test42.csd", "extended string"],
 	["test44.csd", "expected failure with in-arg given to in opcode", 1],
 	["test45.csd", "if-goto with expression in boolean comparison"],
