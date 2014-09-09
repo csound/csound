@@ -495,7 +495,7 @@ binary_expr : expr '+' expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); 
 
 
 out_arg_list : out_arg_list ',' out_arg
-              { $$ = appendToTree(csound, $1, $2); }
+              { $$ = appendToTree(csound, $1, $3); }
              | out_arg
              ;
 
