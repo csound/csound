@@ -291,6 +291,7 @@ statement_list : statement_list statement
                     $$ = appendToTree(csound, (TREE *)$1, (TREE *)$2);
                 }
                 | statement
+                | { $$ = NULL; }
                 ;
 
 statement : out_arg_list assignment expr NEWLINE
