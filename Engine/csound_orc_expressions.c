@@ -386,6 +386,9 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
     TREE *anchor = NULL, *last;
     TREE * opTree, *current, *newArgList;
     OENTRIES* opentries;
+    char *brkt;
+    CS_VARIABLE* var;
+    
     /* HANDLE SUB EXPRESSIONS */
 
     if (root->type=='?') return create_cond_expression(csound, root, line,
@@ -562,30 +565,38 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       }
       break;
     case T_ARRAY:
+        {
+        char* outype;
         strncpy(op, "##array_get", 80);
-
-        char* leftArgType =
-          get_arg_string_from_tree(csound, root->left, typeTable);
-
-        //FIXME: this is sort of hackish as it's checking and arg
-        // string; should use a function to get the CS_TYPE of the var
-        // instead
-        if (strlen(leftArgType) > 1 && leftArgType[1] == '[') {
-          outarg = create_out_arg(csound,
-                                  get_array_sub_type(csound,
-                                                     root->left->value->lexeme),
-                                  typeTable);
+            
+        char *varBaseName = strtok_r(root->left->value->lexeme, ":", &brkt);
+          
+        if (*varBaseName == 'g') {
+            var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                             varBaseName);
+            if(var == NULL)
+                var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                                 varBaseName);
+        } else
+            var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                             varBaseName);
+          
+        if (var == NULL) {
+            synterr(csound,
+                    Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
+            return NULL;
         } else {
-
-          opentries = find_opcode2(csound, op);
-
-          char* rightArgType = get_arg_string_from_tree(csound, root->right,
-                                                        typeTable);
-
-          char* argString = strcat(leftArgType, rightArgType);
-
-          char* outype = resolve_opcode_get_outarg(csound, opentries,
-                                                         argString);
+            if (var->varType == &CS_VAR_TYPE_ARRAY) {
+                outype = strdup(var->subType->varTypeName);
+            } else if (var->varType == &CS_VAR_TYPE_A) {
+                outype = "k";
+            } else {
+              synterr(csound,
+                   Str("invalid array type %s line %d\n"), var->varType->varTypeName, current->line);
+              return NULL;
+            }
+        }
+            
 
           if (outype == NULL) {
             return NULL;
@@ -896,45 +907,35 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
       TREE* temp;
 
       if (currentArg->type == T_ARRAY) {
-          char *outType;
-          char* leftArgType =
-            get_arg_string_from_tree(csound, currentArg->left, typeTable);
-
-          //FIXME: this is sort of hackish as it's checking and arg
-          // string; should use a function to get the CS_TYPE of the
-          // var instead
-          if (strlen(leftArgType) > 1 && leftArgType[1] == '[') {
-              outType = get_array_sub_type(csound,
-                                currentArg->left->value->lexeme);
-          }
-          else {
-            // FIXME - this is hardcoded to "k" for now.  The problem
-            // here is that this body of code is essentially looking
-            // for what type to use for the synthesized in-type.  I
-            // think the solution is to use the types from the opcode
-            // that this LHS array_set is being used with, but this is
-            // not implemented.
-
-//              OENTRIES* opentries = find_opcode2(csound, "##array_set");
-//
-//              char* rightArgType = get_arg_string_from_tree(csound,
-//                                                            currentArg->right,
-//                                                            typeTable);
-//
-//              char* argString = strcat(leftArgType, rightArgType);
-//              argString = strcat(argString, "k");
-// FIXME - this is hardcoding a k input for what would be the in arg type
-//
-//              outType = resolve_opcode_get_outarg(csound, opentries,
-//                                                       argString);
-
-              outType = "k";
-              // free(argString);
-
-//              if (outType == NULL) {
-//                  return NULL;
-//              }
-
+          char *outType, *brkt;
+          CS_VARIABLE* var;
+          
+          char *varBaseName = strtok_r(currentArg->left->value->lexeme, ":", &brkt);
+          
+          if (*varBaseName == 'g') {
+              var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                               varBaseName);
+              if(var == NULL)
+                  var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                                   varBaseName);
+          } else
+              var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                               varBaseName);
+          
+          if (var == NULL) {
+              synterr(csound,
+                      Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
+              return NULL;
+          } else {
+              if (var->varType == &CS_VAR_TYPE_ARRAY) {
+                  outType = strdup(var->subType->varTypeName);
+              } else if (var->varType == &CS_VAR_TYPE_A) {
+                  outType = "k";
+              } else {
+                  synterr(csound,
+                          Str("invalid array type %s line %d\n"), var->varType->varTypeName, current->line);
+                  return NULL;
+              }
           }
 
         temp = create_ans_token(csound,

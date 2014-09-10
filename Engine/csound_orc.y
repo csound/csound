@@ -517,6 +517,11 @@ array_identifier: array_identifier '[' ']' {
             $1->type = T_ARRAY_IDENT;
 	          $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
           }
+          | typed_identifier '[' ']' {
+            $$ = $1; 
+            $1->type = T_ARRAY_IDENT;
+	          $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
+          }
           ;
 
 
