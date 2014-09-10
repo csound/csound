@@ -251,45 +251,42 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     char* t;
     //CS_TYPE* type;
     CS_VARIABLE* var;
+    char* brkt;
+    char* varBaseName;
 
     if (is_expression_node(tree)) {
       TREE* nodeToCheck = tree;
 
       if (tree->type == T_ARRAY) {
-        char* leftArgType = get_arg_type2(csound, tree->left, typeTable);
 
-        //FIXME - should use CS_TYPE and not interrogate string
-        if (leftArgType[0] == '[') {
-          return get_array_sub_type(csound, tree->left->value->lexeme);
-        }
-        else {
-          char* rightArgType = get_arg_string_from_tree(csound, tree->right,
-                                                        typeTable);
+        varBaseName = strtok_r(tree->left->value->lexeme, ":", &brkt);
 
-          leftArgType =
-            csound->ReAlloc(csound, leftArgType,
-                            strlen(leftArgType) + strlen(rightArgType) + 1);
-          char* argString = strcat(leftArgType, rightArgType);
+        if (*varBaseName == 'g') {
+          var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                           varBaseName);
+          if(var == NULL)
+            var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                             varBaseName);
+        } else
+          var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                           varBaseName);
 
-          OENTRIES* opentries = find_opcode2(csound, "##array_get");
-          char* outype = resolve_opcode_get_outarg(csound,
-                                                   opentries,
-                                                   argString);
-
-          csound->Free(csound, opentries);
-          if (UNLIKELY(outype == NULL)) {
-            synterr(csound,
-                    Str("unable to find array operator for "
-                        "types %s line %d\n"),
-                    argString, tree->line);
-            do_baktrace(csound, tree->locn);
-            return NULL;
+        if (var == NULL) {
+          synterr(csound,
+                  Str("unable to find array operator for var %s line %d\n"), varBaseName, tree->line);
+          return NULL;
+        } else {
+          if (var->varType == &CS_VAR_TYPE_ARRAY) {
+            return strdup(var->subType->varTypeName);
+          } else if (var->varType == &CS_VAR_TYPE_A) {
+            return strdup("k");
           }
 
-          csound->Free(csound, leftArgType);
-          csound->Free(csound, rightArgType);
-          return cs_strdup(csound, outype);
+          synterr(csound,
+                  Str("invalid array type %s line %d\n"), var->varType->varTypeName, tree->line);
+          return NULL;
         }
+
       }
 
       if (tree->type == '?') {
@@ -526,6 +523,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       if (pnum(s) >= 0)
         return cs_strdup(csound, "p");                           /* pnum */
 
+      varBaseName = strtok_r(s, ":", &brkt);
+
       if (*s == '#')
         s++;
 
@@ -540,14 +539,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       if (*s == 'g') {
         var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                         tree->value->lexeme);
-        if (var == NULL)
+                                         varBaseName);
+        if(var == NULL)
           var = csoundFindVariableWithName(csound, typeTable->globalPool,
-                                           tree->value->lexeme);
-        //printf("var: %p %s\n", var, var->varName);
+                                           varBaseName);
       } else
         var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                         tree->value->lexeme);
+                                         varBaseName);
 
       if (UNLIKELY(var == NULL)) {
         synterr(csound, Str("Variable '%s' used before defined\n"
@@ -1299,43 +1297,53 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
     char argLetter[2];
     ARRAY_VAR_INIT varInit;
     void* typeArg = NULL;
+    char *brkt; /* used with strtok_r */
 
-    t = varName;
+    char* varBase = strtok_r(varName, ":", &brkt);
+    char* typedIdentArg = strtok_r(NULL, ":", &brkt);
+
+
+    t = varBase;
     if (*t == '#') t++;
     pool = (*t == 'g') ? typeTable->globalPool : typeTable->localPool;
 
-    var = csoundFindVariableWithName(csound, pool, varName);
+    var = csoundFindVariableWithName(csound, pool, varBase);
     if (var == NULL) {
-      t = varName;
-      argLetter[1] = 0;
+      if (typedIdentArg != NULL) {
+        argLetter[0] = typedIdentArg[0];
+      } else {
+        t = varBase;
+        argLetter[1] = 0;
 
-      if (*t == '#') t++;
-      if (*t == 'g') t++;
+        if (*t == '#') t++;
+        if (*t == 'g') t++;
 
-      if (*t == '[' || *t == 't') { /* Support legacy t-vars */
-        int dimensions = 1;
-        CS_TYPE* varType;
-        char* b = t + 1;
+        if (*t == '[' || *t == 't') { /* Support legacy t-vars */
+          int dimensions = 1;
+          CS_TYPE* varType;
+          char* b = t + 1;
 
-        while (*b == '[') {
-          b++;
-          dimensions++;
+          while(*b == '[') {
+            b++;
+            dimensions++;
+          }
+          argLetter[0] = (*b == 't') ? 'k' : *b; /* Support legacy t-vars */
+
+          varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+
+          varInit.dimensions = dimensions;
+          varInit.type = varType;
+          typeArg = &varInit;
         }
-        argLetter[0] = (*b == 't') ? 'k' : *b; /* Support legacy t-vars */
 
-        varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
-
-        varInit.dimensions = dimensions;
-        varInit.type = varType;
-        typeArg = &varInit;
+        argLetter[0] = (*t == 't') ? '[' : *t; /* Support legacy t-vars */
       }
 
-      argLetter[0] = (*t == 't') ? '[' : *t; /* Support legacy t-vars */
 
       type = csoundGetTypeForVarName(csound->typePool, argLetter);
 
       var = csoundCreateVariable(csound, csound->typePool,
-                                 type, varName, typeArg);
+                                 type, varBase, typeArg);
       csoundAddVariable(csound, pool, var);
     } else {
       //TODO - implement reference count increment
@@ -1353,19 +1361,28 @@ void add_array_arg(CSOUND* csound, char* varName, int dimensions,
     ARRAY_VAR_INIT varInit;
     void* typeArg = NULL;
 
+    char *brkt; /* used with strtok_r */
+
+    char* varBase = strtok_r(varName, ":", &brkt);
+    char* typedIdentArg = strtok_r(NULL, ":", &brkt);
+
     pool = (*varName == 'g') ? typeTable->globalPool : typeTable->localPool;
 
-    var = csoundFindVariableWithName(csound, pool, varName);
+    var = csoundFindVariableWithName(csound, pool, varBase);
     if (var == NULL) {
       CS_TYPE* varType;
 
-      t = varName;
-      argLetter[1] = 0;
+      if (typedIdentArg != NULL) {
+        argLetter[0] = typedIdentArg[0];
+      } else {
+        t = varBase;
+        argLetter[1] = 0;
 
-      if (*t == '#') t++;
-      if (*t == 'g') t++;
+        if (*t == '#') t++;
+        if (*t == 'g') t++;
 
-      argLetter[0] = (*t == 't') ? 'k' : *t; /* Support legacy t-vars */
+        argLetter[0] = (*t == 't') ? 'k' : *t; /* Support legacy t-vars */
+      }
 
       varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
 
@@ -1375,7 +1392,7 @@ void add_array_arg(CSOUND* csound, char* varName, int dimensions,
 
       var = csoundCreateVariable(csound, csound->typePool,
                                  (CS_TYPE*) &CS_VAR_TYPE_ARRAY,
-                                 varName, typeArg);
+                                 varBase, typeArg);
       csoundAddVariable(csound, pool, var);
     } else {
       //TODO - implement reference count increment
@@ -1406,8 +1423,10 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       case LABEL_TOKEN:
       case T_IDENT:
+      case T_TYPED_IDENT:
         varName = current->value->lexeme;
 
+        /* TODO - This needs to check if someone put in sr:k or ksmps:i or something like that */
         if (is_reserved(varName)) {
           // skip reserved vars, these are handled elsewhere
           break;

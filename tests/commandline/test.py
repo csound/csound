@@ -35,12 +35,12 @@ def showHelp():
     in the command "--show-ui" like so:
 
     ./test.py --show-ui
-    
-    The test suite defaults to using the new parser.  To use the old parser for 
+
+    The test suite defaults to using the new parser.  To use the old parser for
     the tests, use "--old-parser" in the command like so:
-    
+
     ./test.py --show-ui --old-parser
-    
+
     """
 
     print message
@@ -116,7 +116,7 @@ def runTest():
 	["test_arrays_string.csd", "test string-array"],
 	["test_arrays_string2.csd", "test simple string-array assignment"],
 	["test_asig_as_array.csd", "test using a-sig with array get/set syntax"],
-	["test_arrays_negative_dimension_fail.csd", 
+	["test_arrays_negative_dimension_fail.csd",
              "test expected failure with negative dimension size and array", 1],
 
 	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],
@@ -137,7 +137,7 @@ def runTest():
 	["test_udo_2d_array.csd", "test udo with 2d-array"],
         ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
         ["test_array_function_call.csd", "test synthesizing an array arg from a function-call"],
-        ["prints_number_no_crash.csd", "test prints does not crash when given a number arguments"],
+        ["test_explicit_types.csd", "test typed identifiers (i.e. signals:a[], sigLeft:a)"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -185,7 +185,7 @@ def runTest():
             command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
             print command
             retVal = os.system(command)
-  
+
         out = ""
         if (retVal == 0) == (expectedResult == 0):
             testPass += 1
@@ -241,7 +241,7 @@ if __name__ == "__main__":
                 print csoundExecutable
             elif arg.startswith("--opcode6dir64="):
                 os.environ['OPCODE6DIR64'] = arg[15:]
-                print os.environ['OPCODE6DIR64'] 
+                print os.environ['OPCODE6DIR64']
     results = runTest()
     if (showUIatClose):
         showUI(results)
