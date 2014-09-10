@@ -291,7 +291,14 @@ statement_list : statement_list statement
                     $$ = appendToTree(csound, (TREE *)$1, (TREE *)$2);
                 }
                 | statement
-                | { $$ = NULL; }
+                | { 
+                    /* This rule allows for empty statement lists, but
+                    in turn causes a lot of shift/reduce errors to be
+                    reported.  The parser works with this, but we should
+                    perhaps look at expanding the other rules to work 
+                    without statement_list in them. */
+                    $$ = NULL; 
+                  }
                 ;
 
 statement : out_arg_list assignment expr NEWLINE
