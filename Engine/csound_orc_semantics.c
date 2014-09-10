@@ -321,7 +321,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           //printf("OK array case\n");
         }
         else
-          if (UNLIKELY(tree->right->type != LABEL_TOKEN))
+          if (UNLIKELY(is_expression_node(tree->right)))
             synterr(csound,
                     Str("Use of i() with expression not permitted on line %d\n"),
                     tree->line);
