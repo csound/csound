@@ -173,33 +173,42 @@ struct EventBlock {
   }
 };
 
-/*
-The logic here is a bit tricky. If p5 is NaN then it indicates a string.
-The bytewise comparison will be equality for that pfield even if the
-strings are different. So if two EVTBLKs seem equal but contain strings,
-the strings also have to be compared. There is at most one string.
-*/
 bool operator < (const EventBlock &a, const EventBlock &b) {
     int n = std::max(a.evtblk.pcnt, b.evtblk.pcnt);
-    bool result = true;
-    if (std::memcmp(&a.evtblk.p[0], &b.evtblk.p[0], sizeof(MYFLT) * n) < 0) {
-        result = true;
-    } else {
-        if (a.evtblk.strarg != 0 && b.evtblk.strarg == 0) {
-            result = true;
-        } else if (a.evtblk.strarg == 0 && b.evtblk.strarg != 0) {
-            result = false;
-        } else  if (a.evtblk.strarg != 0 && b.evtblk.strarg == 0) {
-            if (std::strcmp(a.evtblk.strarg, b.evtblk.strarg) < 0) {
-                result = true;
-            } else {
-                result = false;
+    for (int i = 0; i < n; ++i) {
+        //std::fprintf(stderr, "0x%p[%3d/%3d]: %9.4f  0x%p[%3d/%3d]: %9.4f\n", &a, i, a.evtblk.pcnt, a.evtblk.p[i], &b, i, b.evtblk.pcnt, b.evtblk.p[i]);
+        if ((std::isnan(a.evtblk.p[i]) == true) || (std::isnan(b.evtblk.p[i]) == true)) {
+            if ((std::isnan(a.evtblk.p[i]) == true) && (std::isnan(b.evtblk.p[i]) == false)) {
+                //std::fprintf(stderr, "<\n\n");
+                return true;
             }
-        } else {
-            result = false;
+            if ((std::isnan(a.evtblk.p[i]) == false) && (std::isnan(b.evtblk.p[i]) == true)) {
+                //std::fprintf(stderr, ">=\n\n");
+                return false;
+            }
+            if ((std::isnan(a.evtblk.p[i]) == true) && (std::isnan(b.evtblk.p[i]) == true)) {
+                if (std::strcmp(a.evtblk.strarg, b.evtblk.strarg) < 0) {
+                    //std::fprintf(stderr, "<\n\n");
+                    return true;
+                }
+            }
         }
+        if (a.evtblk.p[i] < b.evtblk.p[i]) {
+            //std::fprintf(stderr, "<\n\n");
+            return true;
+        }
+        if (a.evtblk.p[i] > b.evtblk.p[i]) {
+            //std::fprintf(stderr, ">=\n\n");
+            return false;
+        }
+
     }
-    return result;
+    //if (a.evtblk.pcnt < b.evtblk.pcnt) {
+    //    std::fprintf(stderr, "<\n\n");
+    //    return true;
+    //}
+    //std::fprintf(stderr, ">=\n\n");
+    return false;
 }
 
 // Identifiers are always "sourcename:outletname" and "sinkname:inletname",

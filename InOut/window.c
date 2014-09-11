@@ -176,7 +176,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     else if (pol == (int16)NEGPOL && max > FL(0.0)) pol = (int16)BIPOL;
     wdptr->polarity = pol;
 
-    csound->Message(csound, " calling draw callback \n");
+    if(O.odebug) csound->Message(csound, " calling draw callback \n");
     /* now graph the function */
     csound->csoundDrawGraphCallback_(csound, wdptr);
 

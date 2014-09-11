@@ -1658,27 +1658,21 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
       do {
        /* copy inputs */
-    current = inm->in_arg_pool->head;
-    for (i = 0; i < inm->inchns; i++) {
-      // this hardcoded type check for non-perf time vars needs to change
-      //to use generic code...
-      // skip a-vars for now, handle uniquely within performance loop
-      if (current->varType != &CS_VAR_TYPE_I &&
-          current->varType != &CS_VAR_TYPE_b &&
-          current->varType != &CS_VAR_TYPE_A &&
-          current->subType != &CS_VAR_TYPE_I &&
-          current->subType != &CS_VAR_TYPE_A) {
-        // This one checks if an array has a subtype of 'i'
-        void* in = (void*)external_ptrs[i + inm->outchns];
-        void* out = (void*)internal_ptrs[i + inm->outchns];
-        current->varType->copyValue(csound, out, in);
-      }
-      current = current->next;
-    }
-        /* copy a-sig inputs, accounting for offset */
         current = inm->in_arg_pool->head;
         for (i = 0; i < inm->inchns; i++) {
-          if (current->varType == &CS_VAR_TYPE_A) {
+          // this hardcoded type check for non-perf time vars needs to change
+          //to use generic code...
+          // skip a-vars for now, handle uniquely within performance loop
+          if (current->varType != &CS_VAR_TYPE_I &&
+              current->varType != &CS_VAR_TYPE_b &&
+              current->varType != &CS_VAR_TYPE_A &&
+              current->subType != &CS_VAR_TYPE_I &&
+              current->subType != &CS_VAR_TYPE_A) {
+            // This one checks if an array has a subtype of 'i'
+            void* in = (void*)external_ptrs[i + inm->outchns];
+            void* out = (void*)internal_ptrs[i + inm->outchns];
+            current->varType->copyValue(csound, out, in);
+          } else if (current->varType == &CS_VAR_TYPE_A) {
             MYFLT* in = (void*)external_ptrs[i + inm->outchns];
             MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
             *out = *(in + ofs);
@@ -1773,7 +1767,19 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         size_t asigSize = (this_instr->ksmps * sizeof(MYFLT));
         current = inm->in_arg_pool->head;
         for (i = 0; i < inm->inchns; i++) {
-          if (current->varType == &CS_VAR_TYPE_A) {
+          // this hardcoded type check for non-perf time vars needs to change
+          //to use generic code...
+          // skip a-vars for now, handle uniquely within performance loop
+          if (current->varType != &CS_VAR_TYPE_I &&
+              current->varType != &CS_VAR_TYPE_b &&
+              current->varType != &CS_VAR_TYPE_A &&
+              current->subType != &CS_VAR_TYPE_I &&
+              current->subType != &CS_VAR_TYPE_A) {
+            // This one checks if an array has a subtype of 'i'
+            void* in = (void*)external_ptrs[i + inm->outchns];
+            void* out = (void*)internal_ptrs[i + inm->outchns];
+            current->varType->copyValue(csound, out, in);
+          } else if (current->varType == &CS_VAR_TYPE_A) {
             MYFLT* in = (void*)external_ptrs[i + inm->outchns];
             MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
             memcpy(out, in + ofs, asigSize);
