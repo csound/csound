@@ -30,12 +30,15 @@ typedef struct {
   // results
       MYFLT       *out1, *out2, *out3;
   // inputs
-      MYFLT       *in1, *in2, *in3, *in4, *in5, *in6;
+      MYFLT       *ain1, *ain2, *ain3, *ain4, *in5, *in6;
   // Internal
       MYFLT       so, sx, sd, xo;
       MYFLT       c1, c2, c3;
-  
+      // vactro  model
+      MYFLT       s1p;
 } BUCHLA;
+
+#define clip(a,b,c) (a<b ? b : a>c ? c : a)
 
 int poly_LPG_init(CSOUND* csound, BUCHLA *p)
 {
@@ -54,20 +57,19 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (*p->in5 >= 0.5)
+    if (*p->in5 != FL(0.0))
       c3 = 4.7e-09;
     else
       c3 = 0.0;
 
     //r1 = 1e3;
-    rf = *p->in2;
+    rf = *p->ain2;               /* does this need to be audio? */
     //rf = 30e3;
-    r3 = *p->in3;
+    r3 = *p->ain3;               /* does this need to be audio? */
 
     max_res = 1.0*(2.0 *p->c1*r3+(p->c2+c3)*(r3+rf))/(c3*r3);
-    a =clip(*p->in4,0.0,max_res);
     //a = in4* max_res;
-    x = p->in1;
+    x = p->ain1;
     out1 = p->out1;
     out2 = p->out2;
     out3 = p->out3;
@@ -101,10 +103,11 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
       memset(&out3[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-    if (*p->in6 > 0.5) {
+    if (*p->in6 != FL(0.0)) {
       double txo2 = tanh_xo*tanh_xo;
-      Dmas = 1.0/(1.0-Dx*(f*f*b3*Do*a1 + b4*f*a*(1.0-txo2)*Do*a1 - b4));
       for (n=offset; n<nsmps; n++) {
+        a = clip(p->ain4[n],0.0,max_res);
+        Dmas = 1.0/(1.0-Dx*(f*f*b3*Do*a1 + b4*f*a*(1.0-txo2)*Do*a1 - b4));
         yx =(p->sx + f*b1*x[n] + f*b3*Do*p->so + f*b4*(p->sd+(1.0/f)*a*(tanh_xo - p->xo*(1.0-txo2))) +
              b4*a*(1.0-txo2)*Do*p->so)*Dx*Dmas;
         yo =(p->so+f*a2*yx)*Do;
@@ -119,8 +122,9 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
       }
     }
     else /* if (in6 < 0.5) */ {
-      Dmas = 1.0/(1.0-Dx*(f*f*b3*Do*a1 + b4*f*a*Do*a1 - b4));
       for (n=offset; n<nsmps; n++) {
+        a = clip(p->ain4[n],0.0,max_res);
+        Dmas = 1.0/(1.0-Dx*(f*f*b3*Do*a1 + b4*f*a*Do*a1 - b4));
         yx = (p->sx + f*b1*x[n] + f*b3*Do*p->so + f*b4*p->sd + b4*a*Do*p->so)*Dx*Dmas;
         yo = (p->so+f*a1*yx)*Do;
         yd = p->sd + (1.0/f)*(a*yo-yx) ;
@@ -135,3 +139,10 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     return OK;
 }
 
+#define S       sizeof
+
+static OENTRY buchla_localops[] = {
+  { "buchla", S(BUCHLA), 0, 5, "aaa", "aaaaPP", (SUBR)poly_LPG_init, NULL, (SUBR)poly_LPG_perf }
+};
+
+LINKAGE_BUILTIN(buchla_localops)
