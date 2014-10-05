@@ -1379,7 +1379,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
     {
       MYFLT *tab = ftp->ftable;
       tab[ff->flen] = tab[0];  /* guard point */
-      ftp->flen -= 1;  /* exclude guard point */
+      //ftp->flen -= 1;  /* exclude guard point */
       ftresdisp(ff, ftp);       /* VL: 11.01.05  for deferred alloc tables */
     }
 
