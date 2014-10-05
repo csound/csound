@@ -243,8 +243,10 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
       }
 
      /* Check that the size is good */
-      if (UNLIKELY(f->flen < len*len))
+      if (UNLIKELY(f->flen < len*len)) {
+        //printf("len = %d len*len = %d flen = %d\n", len, len*len, f->flen);
         return csound->InitError(csound, Str("scanu: Spring matrix is too small"));
+      }
 
       /* Setup an easier addressing scheme */
       csound->AuxAlloc(csound, len*len * sizeof(MYFLT), &p->aux_f);
