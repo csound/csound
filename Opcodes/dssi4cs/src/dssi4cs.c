@@ -957,7 +957,7 @@ static void
       psDirectoryEntry = readdir(psDirectory);
       if (!psDirectoryEntry) {
         closedir(psDirectory);
-        if (pvPluginHandle) closedir(pvPluginHandle);
+        //if (pvPluginHandle) closedir(pvPluginHandle);
         return;
       }
 
@@ -981,14 +981,14 @@ static void
              it to the callback function. */
           fCallbackFunction(csound,
                             pcFilename, pvPluginHandle, fDescriptorFunction);
-          csound->Free(csound, pcFilename);
         }
         else {
           /* It was a library, but not a LADSPA one. Unload it. */
-          dlclose(pcFilename);
-          closedir(pvPluginHandle); pvPluginHandle = NULL;
-          csound->Free(csound, pcFilename);
+          dlclose(pvPluginHandle);
+          pvPluginHandle = NULL;
+          //csound->Free(csound, pcFilename);
         }
+        csound->Free(csound, pcFilename);
       }
     }
 }
@@ -1008,7 +1008,11 @@ LADSPAPluginSearch(CSOUND *csound,
     if (!pcLADSPAPath) {
       csound->Message(csound,
                       "DSSI4CS: LADSPA_PATH environment variable not set.\n");
+#ifdef LIB64
+      pcLADSPAPath = "/usr/lib64/ladspa/";
+#else
       pcLADSPAPath = "/usr/lib/ladspa/";
+#endif
     }
     if (!pcDSSIPath) {
       csound->Message(csound,
@@ -1089,7 +1093,7 @@ int dssilist(CSOUND * csound, DSSILIST * p)
         strcpy(nn, pcLADSPAPath);
         strcat(nn, ":");
         strcat(nn, pcDSSIPath);
-        free(pcLADSPAPath);
+        //free(pcLADSPAPath);
         pcLADSPAPath = nn;
       }
       else pcLADSPAPath = strdup(pcDSSIPath);
