@@ -1331,7 +1331,7 @@ static MYFLT nextval(FILE *f)
       return (MYFLT)d;
     }
     while (isspace(c)) c = getc(f);       /* Whitespace */
-    if (c==';' || c=='#') {               /* Comment */
+    if (c==';' || c=='#' || c=='<') {     /* Comment and tag*/
       while ((c = getc(f)) != '\n');
     }
     goto top;
@@ -1346,6 +1346,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
     FILE    *infile;
     void    *fd;
     int     j;
+    MYFLT   tmp;
 
     fd = csound->FileOpen2(csound, &infile, CSFILE_STD, ff->e.strarg, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
@@ -1371,9 +1372,10 @@ static int gen23(FGDATA *ff, FUNC *ftp)
     fp = ftp->ftable;
     j = 0;
     while (!feof(infile) && j < ff->flen) fp[j++] = nextval(infile);
-    nextval(infile); // overshot value
+    tmp = nextval(infile); // overshot value
     if (UNLIKELY(!feof(infile)))
-      csound->Warning(csound, Str("Numbers after table full in GEN23"));
+      csound->Warning(csound,
+                      Str("Number(s) after table full in GEN23, starting %f"), tmp);
     csound->FileClose(csound, fd);
     // if (def) 
     {
