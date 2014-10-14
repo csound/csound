@@ -34,7 +34,7 @@ typedef struct {
   // Internal
       MYFLT       so, sx, sd, xo;
       MYFLT       c1, c2, c3;
-      // vactro  model
+      // vactro model
       MYFLT       s1p;
 } BUCHLA;
 
@@ -139,10 +139,73 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     return OK;
 }
 
+typedef struct {
+      OPDS        h;
+      MYFLT       *out;
+      MYFLT       *inp;
+      double      s1;
+      double      a_base;
+} VACTROL;
+
+int vactrol_init(CSOUND *csound, VACTROL* p)
+{
+    p->s1 = 00;
+    p->a_base = 1000.0*M_PI/(csound->GetSr(csound));
+    return OK;
+}
+
+int vactrol_perf(CSOUND *csound, VACTROL* p)
+{
+    double s1 = p->s1;
+    double a_base = p->a_base; 
+    //double T_DOWN = 3e3; // Fall time
+#define T_DOWN (3.0e3)
+    //double T_UP = 20.0; // Rise time
+#define T_UP (20.0)
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT *in = p->inp;
+    MYFLT *out = p->out;
+    double e0db = csound->Get0dBFS(csound);;
+    
+    if (UNLIKELY(offset)) {
+      memset(out, '\0', offset*sizeof(MYFLT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+
+    for (n=offset; n<nsmps; n++) {
+      double t_down = 10.0 + T_DOWN*(1-0.9*s1);
+      double a_down = a_base /t_down;
+      double dsl = (double)in[n]/e0db - s1;
+      double x,y;
+      double t_up = 1.0 + T_UP*(1.0-0.999*s1);
+      double a_up = a_base /t_up;
+
+      if (dsl >= 0.0)
+        x = dsl*a_up/(1.0+a_up);
+      else
+        x = dsl*a_down/(1.0+a_down);
+      y = x + dsl;
+      printf("s1 = %f dsl = %f x = %f y = %f\n", s1, dsl, x, y);
+      s1 =  y + x;
+      out[n] = (MYFLT)y*e0db;
+    }
+    p->s1 = s1;
+    
+    return OK;
+}
+
+
+
 #define S       sizeof
 
 static OENTRY buchla_localops[] = {
-  { "buchla", S(BUCHLA), 0, 5, "aaa", "aaaaPP", (SUBR)poly_LPG_init, NULL, (SUBR)poly_LPG_perf }
+  { "buchla", S(BUCHLA), 0, 5, "aaa", "aaaaPP", (SUBR)poly_LPG_init, NULL, (SUBR)poly_LPG_perf },
+  { "vactrol", S(VACTROL), 0, 5, "a", "a", (SUBR)vactrol_init, NULL, (SUBR)vactrol_perf }
 };
 
 LINKAGE_BUILTIN(buchla_localops)
