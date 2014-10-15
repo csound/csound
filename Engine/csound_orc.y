@@ -87,6 +87,7 @@
 %token ELSE_TOKEN
 %token ENDIF_TOKEN
 %token UNTIL_TOKEN
+%token WHILE_TOKEN
 %token DO_TOKEN
 %token OD_TOKEN
 
@@ -457,6 +458,12 @@ statement : ident '=' expr NEWLINE
           | UNTIL_TOKEN bexpr DO_TOKEN statementlist OD_TOKEN
               {
                   $$ = make_leaf(csound,LINE,LOCN, UNTIL_TOKEN, (ORCTOKEN *)$1);
+                  $$->left = $2;
+                  $$->right = $4;
+              }
+          | WHILE_TOKEN bexpr DO_TOKEN statementlist OD_TOKEN
+              {
+                  $$ = make_leaf(csound,LINE,LOCN, WHILE_TOKEN, (ORCTOKEN *)$1);
                   $$->left = $2;
                   $$->right = $4;
               }
