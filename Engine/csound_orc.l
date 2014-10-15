@@ -318,6 +318,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "until"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = UNTIL_TOKEN;
                   return UNTIL_TOKEN; }
+"while"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = WHILE_TOKEN;
+                  return WHILE_TOKEN; }
 "do"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = DO_TOKEN;
                   return DO_TOKEN; }

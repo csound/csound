@@ -1427,6 +1427,7 @@ CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
 
       case ELSE_TOKEN:
       case UNTIL_TOKEN:
+      case WHILE_TOKEN:
         ret = get_label_list(csound, current->right);
         head = cs_cons_append(head, ret);
         break;
@@ -1523,7 +1524,7 @@ int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
     if (UNLIKELY(outArg == NULL || (*outArg != 'b' && *outArg != 'B'))) {
       synterr(csound,
-              Str("expression for until statement not a boolean "
+              Str("expression for until/while statement not a boolean "
                   "expression, line %d\n"),
               root->line);
       do_baktrace(csound, root->locn);
@@ -1606,11 +1607,13 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         continue;
 
       case UNTIL_TOKEN:
+      case WHILE_TOKEN:
         if (!verify_until_statement(csound, current, typeTable)) {
           return 0;
         }
 
-        current = expand_until_statement(csound, current, typeTable);
+        current = expand_until_statement(csound, current,
+                                         typeTable, current->type==WHILE_TOKEN);
 
         if (previous != NULL) {
           previous->next = current;
@@ -1895,6 +1898,9 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case UNTIL_TOKEN:
       csound->Message(csound,"UNTIL_TOKEN:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
+    case WHILE_TOKEN:
+      csound->Message(csound,"WHILE_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case DO_TOKEN:
       csound->Message(csound,"DO_TOKEN:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
@@ -2051,6 +2057,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"ELSE_TOKEN\""); break;
     case UNTIL_TOKEN:
       csound->Message(csound,"name=\"UNTIL_TOKEN\""); break;
+    case WHILE_TOKEN:
+      csound->Message(csound,"name=\"WHILE_TOKEN\""); break;
     case DO_TOKEN:
       csound->Message(csound,"name=\"DO_TOKEN\""); break;
     case OD_TOKEN:
