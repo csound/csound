@@ -34,7 +34,7 @@
 #include <iostream>
 #include <iterator>
 #include <map>
-#include <Score.hpp>
+#include "Score.hpp"
 #include <set>
 #include <sstream>
 #include <vector>
