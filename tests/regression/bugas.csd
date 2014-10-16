@@ -7,14 +7,14 @@
    instr 1 ;works
 
 ;create array and fill with numbers 1..10
-kArr[] fillarray 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-         printf  "%s", 1, "\ninstr 1:\n"
+   kArr[] fillarray 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+          printf  "%s", 1, "\ninstr 1:\n"
 
 ;print content
-kndx    =       0
-   until kndx == lenarray(kArr) do
+   kndx    =       0
+   while kndx != lenarray(kArr) do
          printf  "kArr[%d] = %f\n", kndx+1, kndx, kArr[kndx]
-kndx += 1
+   kndx += 1
 od
 
 ;turnoff
