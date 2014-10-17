@@ -189,7 +189,7 @@ int vactrol_perf(CSOUND *csound, VACTROL* p)
         x = dsl*a_up/(1.0+a_up);
       else
         x = dsl*a_down/(1.0+a_down);
-      y = x + dsl;
+      y = x + s1;
       printf("s1 = %f dsl = %f x = %f y = %f\n", s1, dsl, x, y);
       s1 =  y + x;
       out[n] = (MYFLT)y*e0db;
