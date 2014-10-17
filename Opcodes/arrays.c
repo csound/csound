@@ -1908,6 +1908,7 @@ static OENTRY arrayvars_localops[] =
     { "array.k", sizeof(TABFILL), _QQ, 1, "k[]", "m", (SUBR)tabfill     },
     { "array.i", sizeof(TABFILL), _QQ, 1, "i[]", "m", (SUBR)tabfill     },
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", "i[]im", (SUBR)array_set },
+    { "##array_init", sizeof(ARRAY_SET), 0, 1, "", ".[]im", (SUBR)array_set },
     { "##array_set.k0", sizeof(ARRAY_SET), 0, 2, "", "k[]kz",
       NULL, (SUBR)array_set },
     { "##array_set.i2", sizeof(ARRAY_SET), 0, 3, "", ".[].m",
