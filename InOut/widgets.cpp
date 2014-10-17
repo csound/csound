@@ -24,6 +24,7 @@
 #if defined(WIN32)
 #include <FL/Fl_Output.H>
 #endif
+#include <unistd.h>
 #include <csound.h>
 #include "widglobals.h"
 #include <FL/x.H>
