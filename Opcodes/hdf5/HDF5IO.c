@@ -1190,4 +1190,32 @@ void HDF5Read_openDatasets(CSOUND *csound, HDF5Read *self)
     }
 }
 
+static OENTRY localops[] = {
+    
+    {
+        .opname = "hdf5write",
+        .dsblksiz = sizeof(HDF5Write),
+        .thread = 3,
+        .outypes = "",
+        .intypes = "*",
+        .iopadr = (SUBR)HDF5Write_initialise,
+        .kopadr = (SUBR)HDF5Write_process,
+        .aopadr = NULL
+    },
+    {
+        .opname = "hdf5read",
+        .dsblksiz = sizeof(HDF5Read),
+        .thread = 3,
+        .outypes = "*",
+        .intypes = "*",
+        .iopadr = (SUBR)HDF5Read_initialise,
+        .kopadr = (SUBR)HDF5Read_process,
+        .aopadr = NULL
+    }
+};
+
+
+LINKAGE
+
+
 
