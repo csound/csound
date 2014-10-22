@@ -39,10 +39,10 @@ import android.webkit.JavascriptInterface;
 import android.widget.Button;
 import android.widget.SeekBar;
 
-import com.csounds.bindings.CsoundAccelerometerBinding;
-import com.csounds.bindings.CsoundButtonBinding;
-import com.csounds.bindings.CsoundSliderBinding;
 import com.csounds.bindings.CsoundBinding;
+import com.csounds.bindings.motion.CsoundAccelerometerBinding;
+import com.csounds.bindings.ui.CsoundButtonBinding;
+import com.csounds.bindings.ui.CsoundSliderBinding;
 
 import csnd6.AndroidCsound;
 import csnd6.Csound;
@@ -113,30 +113,6 @@ public class CsoundObj {
 	}
 
 	@JavascriptInterface
-	public CsoundBinding addSlider(SeekBar seekBar, String channelName,
-			double min, double max) {
-		CsoundSliderBinding cachedSlider = new CsoundSliderBinding(seekBar, channelName, min,
-				max);
-		addBinding(cachedSlider);
-		return cachedSlider;
-	}
-
-	@JavascriptInterface
-	public CsoundBinding addButton(Button button, String channelName,
-			int type) {
-		CsoundButtonBinding cachedButton = new CsoundButtonBinding(button, channelName, type);
-		addBinding(cachedButton);
-		return cachedButton;
-	}
-
-	@JavascriptInterface
-	public CsoundBinding addButton(Button button, String channelName) {
-		CsoundButtonBinding cachedButton = new CsoundButtonBinding(button, channelName);
-		addBinding(cachedButton);
-		return cachedButton;
-	}
-
-	@JavascriptInterface
 	public Csound getCsound() {
 		return csound;
 	}
@@ -172,12 +148,6 @@ public class CsoundObj {
 		bindings.remove(binding);
 	}
 
-	@JavascriptInterface
-	public CsoundBinding enableAccelerometer(Context context) {
-		CsoundAccelerometerBinding accelerometer = new CsoundAccelerometerBinding(context);
-		addBinding(accelerometer);
-		return accelerometer;
-	}
 
 	@JavascriptInterface
 	public CsoundMYFLTArray getInputChannelPtr(String channelName, 

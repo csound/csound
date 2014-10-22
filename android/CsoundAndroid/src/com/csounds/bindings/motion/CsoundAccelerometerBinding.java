@@ -23,7 +23,7 @@
  
  */
 
-package com.csounds.bindings;
+package com.csounds.bindings.motion;
 
 import java.util.List;
 
@@ -35,6 +35,7 @@ import android.hardware.SensorManager;
 import android.util.Log;
 
 import com.csounds.CsoundObj;
+import com.csounds.bindings.AbstractBinding;
 
 import csnd6.CsoundMYFLTArray;
 import csnd6.controlChannelType;
