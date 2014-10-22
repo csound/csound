@@ -56,8 +56,8 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
-import com.csounds.CsoundObjCompletionListener;
-import com.csounds.valueCacheable.CsoundValueCacheable;
+import com.csounds.CsoundObjListener;
+import com.csounds.bindings.CsoundBinding;
 
 import csnd6.Csound;
 import csnd6.CsoundMYFLTArray;
@@ -66,7 +66,7 @@ import csnd6.controlChannelType;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 @SuppressWarnings("unused")
 public class CsoundAppActivity extends Activity implements
-		CsoundObjCompletionListener, CsoundObj.MessagePoster {
+		CsoundObjListener, CsoundObj.MessagePoster {
 	Uri templateUri = null;
 	Button newButton = null;
 	Button openButton = null;
@@ -139,8 +139,10 @@ public class CsoundAppActivity extends Activity implements
 			// java.lang.System.exit(1);
 		}
 	}
+	
+	public void csoundObjStarted(CsoundObj csoundObj) {}
 
-	public void csoundObjComplete(CsoundObj csoundObj) {
+	public void csoundObjCompleted(CsoundObj csoundObj) {
 		runOnUiThread(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);
@@ -331,7 +333,7 @@ public class CsoundAppActivity extends Activity implements
 	protected void onDestroy() {
 		super.onDestroy();
 		try {
-			csound.stopCsound();
+			csound.stop();
 		} catch (Exception e) {
 			Log.e("error", "could not stop csound");
 		}
@@ -533,7 +535,7 @@ public class CsoundAppActivity extends Activity implements
 					}
 					csound.addButton(pad, "trackpad", 1);
 					csound.enableAccelerometer(CsoundAppActivity.this);
-					csound.addCompletionListener(CsoundAppActivity.this);
+					csound.addListener(CsoundAppActivity.this);
 					csound.startCsound(csd);
 					// Make sure these are still set after starting.
 					String getOPCODE6DIR = csnd6.csndJNI.csoundGetEnv(0,
@@ -547,7 +549,7 @@ public class CsoundAppActivity extends Activity implements
 											+ csound.getCsound()
 													.GetEnv("SSDIR") + "\n");
 				} else {
-					csound.stopCsound();
+					csound.stop();
 					postMessage("Csound has been stopped.\n");
 				}
 			}
