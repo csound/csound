@@ -35,13 +35,13 @@ import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
-import com.csounds.CsoundObjCompletionListener;
+import com.csounds.CsoundObjListener;
+import com.csounds.bindings.CsoundBinding;
 import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
-import com.csounds.valueCacheable.CsoundValueCacheable;
 
 public class SimpleTest2Activity extends BaseCsoundActivity implements
-		CsoundObjCompletionListener {
+		CsoundObjListener {
 
 	ToggleButton startStopButton = null;
 
@@ -94,13 +94,13 @@ public class SimpleTest2Activity extends BaseCsoundActivity implements
 
 							csoundObj.startCsound(f);
 						} else {
-							csoundObj.stopCsound();
+							csoundObj.stop();
 						}
 
 					}
 				});
 
-		csoundObj.addValueCacheable(new CsoundValueCacheable() {
+		csoundObj.addBinding(new CsoundBinding() {
 
 			public void updateValuesToCsound() {
 				// TODO Auto-generated method stub
@@ -122,7 +122,9 @@ public class SimpleTest2Activity extends BaseCsoundActivity implements
 		});
 	}
 
-	public void csoundObjComplete(CsoundObj csoundObj) {
+	public void csoundObjStarted(CsoundObj csoundObj) {}
+	
+	public void csoundObjCompleted(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);

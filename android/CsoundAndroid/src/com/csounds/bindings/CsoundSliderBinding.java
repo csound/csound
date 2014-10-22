@@ -23,7 +23,7 @@
  
  */
 
-package com.csounds.valueCacheable;
+package com.csounds.bindings;
 
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -33,7 +33,7 @@ import com.csounds.CsoundObj;
 import csnd6.CsoundMYFLTArray;
 import csnd6.controlChannelType;
 
-public class CachedSlider extends AbstractValueCacheable{
+public class CsoundSliderBinding extends AbstractBinding{
 	private SeekBar seekBar;
 	private String channelName;
 	private CsoundObj csoundObj;
@@ -41,7 +41,7 @@ public class CachedSlider extends AbstractValueCacheable{
 	boolean cacheDirty = true;
 	CsoundMYFLTArray ptr = null;
 
-	public CachedSlider(SeekBar seekBar, String channelName, double min, double max) {
+	public CsoundSliderBinding(SeekBar seekBar, String channelName, double min, double max) {
 		this.seekBar = seekBar;
 		this.channelName = channelName;
 		this.minValue = min;

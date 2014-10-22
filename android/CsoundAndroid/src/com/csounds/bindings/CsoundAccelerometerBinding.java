@@ -23,7 +23,7 @@
  
  */
 
-package com.csounds.valueCacheable;
+package com.csounds.bindings;
 
 import java.util.List;
 
@@ -39,7 +39,7 @@ import com.csounds.CsoundObj;
 import csnd6.CsoundMYFLTArray;
 import csnd6.controlChannelType;
 
-public class CachedAccelerometer extends AbstractValueCacheable implements SensorEventListener {
+public class CsoundAccelerometerBinding extends AbstractBinding implements SensorEventListener {
 
 	private static final String CS_ACCEL_X = "accelerometerX";
 	private static final String CS_ACCEL_Y = "accelerometerY";
@@ -56,7 +56,7 @@ public class CachedAccelerometer extends AbstractValueCacheable implements Senso
 	SensorManager sensorManager;
 	Sensor sensor;
 	
-	public CachedAccelerometer(Context context) {
+	public CsoundAccelerometerBinding(Context context) {
 		this.context = context;
 		x = y = z = 0;
 	}
