@@ -23,12 +23,13 @@
  
  */
 
-package com.csounds.bindings;
+package com.csounds.bindings.ui;
 
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import com.csounds.CsoundObj;
+import com.csounds.bindings.AbstractBinding;
 
 import csnd6.CsoundMYFLTArray;
 import csnd6.controlChannelType;

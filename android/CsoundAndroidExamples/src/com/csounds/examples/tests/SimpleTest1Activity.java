@@ -37,6 +37,7 @@ import android.widget.ToggleButton;
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjListener;
 import com.csounds.bindings.CsoundBinding;
+import com.csounds.bindings.ui.CsoundUI;
 import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
 
@@ -59,7 +60,9 @@ public class SimpleTest1Activity extends BaseCsoundActivity implements CsoundObj
 				if(isChecked) {
 					String csd = getResourceFileAsString(R.raw.test);
 					File f = createTempFile(csd);
-					csoundObj.addSlider(fSlider, "slider", 0.,
+					CsoundUI csoundUI = new CsoundUI(csoundObj);
+
+					csoundUI.addSlider(fSlider, "slider", 0.,
 							1.);
 					csoundObj.addListener(SimpleTest1Activity.this);
 					csoundObj.startCsound(f);
