@@ -35,12 +35,12 @@ import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
-import com.csounds.CsoundObjCompletionListener;
+import com.csounds.CsoundObjListener;
+import com.csounds.bindings.CsoundBinding;
 import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
-import com.csounds.valueCacheable.CsoundValueCacheable;
 
-public class SimpleTest1Activity extends BaseCsoundActivity implements CsoundObjCompletionListener {
+public class SimpleTest1Activity extends BaseCsoundActivity implements CsoundObjListener {
 
 	ToggleButton startStopButton = null;
 	SeekBar fSlider;
@@ -61,10 +61,10 @@ public class SimpleTest1Activity extends BaseCsoundActivity implements CsoundObj
 					File f = createTempFile(csd);
 					csoundObj.addSlider(fSlider, "slider", 0.,
 							1.);
-					csoundObj.addCompletionListener(SimpleTest1Activity.this);
+					csoundObj.addListener(SimpleTest1Activity.this);
 					csoundObj.startCsound(f);
 				} else {
-					csoundObj.stopCsound();
+					csoundObj.stop();
 				}
 				
 			}
@@ -72,7 +72,7 @@ public class SimpleTest1Activity extends BaseCsoundActivity implements CsoundObj
 		
 	
 		
-		csoundObj.addValueCacheable(new CsoundValueCacheable() {
+		csoundObj.addBinding(new CsoundBinding() {
 			
 			public void updateValuesToCsound() {
 				// TODO Auto-generated method stub
@@ -94,7 +94,9 @@ public class SimpleTest1Activity extends BaseCsoundActivity implements CsoundObj
 		});
 	}
 
-	public void csoundObjComplete(CsoundObj csoundObj) {
+	public void csoundObjStarted(CsoundObj csoundObj) {} 
+	
+	public void csoundObjCompleted(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);

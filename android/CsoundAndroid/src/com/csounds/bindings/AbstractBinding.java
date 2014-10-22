@@ -1,12 +1,12 @@
 /* 
  
- CsoundObjectCompletionListener.java:
+ AbstractValueCacheable.java:
  
  Copyright (C) 2011 Victor Lazzarini, Steven Yi
  
- This file is part of Csound.
+ This file is part of Csound Android Examples.
  
- Csound is free software; you can redistribute it
+ The Csound Android Examples is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.   
@@ -23,8 +23,19 @@
  
  */
 
-package com.csounds;
+package com.csounds.bindings;
 
-public interface CsoundObjCompletionListener {
-	public void csoundObjComplete(CsoundObj csoundObj);
+import com.csounds.CsoundObj;
+
+public abstract class AbstractBinding implements CsoundBinding {
+
+	public abstract void setup(CsoundObj csoundObj);
+	
+	public void updateValuesToCsound() {
+	}
+
+	public void updateValuesFromCsound() {
+	}
+
+	public abstract void cleanup();
 }

@@ -34,12 +34,12 @@ import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
-import com.csounds.CsoundObjCompletionListener;
+import com.csounds.CsoundObjListener;
 import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
 
 public class PingPongDelayActivity extends BaseCsoundActivity implements
-		CsoundObjCompletionListener {
+		CsoundObjListener {
 
 	ToggleButton startStopButton = null;
 
@@ -87,7 +87,7 @@ public class PingPongDelayActivity extends BaseCsoundActivity implements
 							csoundObj.setAudioInEnabled(true);
 							csoundObj.startCsound(f);
 						} else {
-							csoundObj.stopCsound();
+							csoundObj.stop();
 						}
 
 					}
@@ -95,7 +95,9 @@ public class PingPongDelayActivity extends BaseCsoundActivity implements
 
 	}
 
-	public void csoundObjComplete(CsoundObj csoundObj) {
+	public void csoundObjStarted(CsoundObj csoundObj) {} 
+	
+	public void csoundObjCompleted(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);
