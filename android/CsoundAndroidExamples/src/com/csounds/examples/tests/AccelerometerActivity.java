@@ -35,6 +35,7 @@ import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjListener;
+import com.csounds.bindings.motion.CsoundMotion;
 import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
 
@@ -60,7 +61,8 @@ public class AccelerometerActivity extends BaseCsoundActivity implements
 							String csd = getResourceFileAsString(R.raw.hardware_test);
 							File f = createTempFile(csd);
 
-							csoundObj.enableAccelerometer(AccelerometerActivity.this);
+							CsoundMotion csoundMotion = new CsoundMotion(csoundObj);
+							csoundMotion.enableAccelerometer(AccelerometerActivity.this);
 							
 							csoundObj.startCsound(f);
 						} else {

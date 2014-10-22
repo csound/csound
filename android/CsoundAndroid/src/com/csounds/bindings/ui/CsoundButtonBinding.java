@@ -23,7 +23,7 @@
  
  */
 
-package com.csounds.bindings;
+package com.csounds.bindings.ui;
 
 import android.view.MotionEvent;
 import android.view.View;
@@ -32,8 +32,9 @@ import android.view.View.OnTouchListener;
 import android.widget.Button;
 
 import com.csounds.CsoundObj;
-import csnd6.controlChannelType;
+import com.csounds.bindings.AbstractBinding;
 
+import csnd6.controlChannelType;
 import csnd6.CsoundMYFLTArray;
 
 public class CsoundButtonBinding extends AbstractBinding {

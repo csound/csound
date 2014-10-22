@@ -8,12 +8,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -57,11 +54,10 @@ import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjListener;
-import com.csounds.bindings.CsoundBinding;
+import com.csounds.bindings.motion.CsoundMotion;
+import com.csounds.bindings.ui.CsoundUI;
 
 import csnd6.Csound;
-import csnd6.CsoundMYFLTArray;
-import csnd6.controlChannelType;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 @SuppressWarnings("unused")
@@ -75,6 +71,7 @@ public class CsoundAppActivity extends Activity implements
 	MenuItem helpItem = null;
 	MenuItem aboutItem = null;
 	CsoundObj csound = null;
+	CsoundUI csoundUI = null;
 	File csd = null;
 	Button pad = null;
 	WebView webLayout = null;
@@ -504,6 +501,7 @@ public class CsoundAppActivity extends Activity implements
 					csnd6.csndJNI.csoundSetGlobalEnv("SADIR", SADIR);
 					csnd6.csndJNI.csoundSetGlobalEnv("INCDIR", INCDIR);
 					csound = new CsoundObj();
+					csoundUI = new CsoundUI(csound);
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
 					webLayout.addJavascriptInterface(csound, "csound");
@@ -529,12 +527,13 @@ public class CsoundAppActivity extends Activity implements
 					String channelName;
 					for (int i = 0; i < 5; i++) {
 						channelName = "slider" + (i + 1);
-						csound.addSlider(sliders.get(i), channelName, 0., 1.);
+						csoundUI.addSlider(sliders.get(i), channelName, 0., 1.);
 						channelName = "butt" + (i + 1);
-						csound.addButton(buttons.get(i), channelName, 1);
+						csoundUI.addButton(buttons.get(i), channelName, 1);
 					}
-					csound.addButton(pad, "trackpad", 1);
-					csound.enableAccelerometer(CsoundAppActivity.this);
+					csoundUI.addButton(pad, "trackpad", 1);
+					CsoundMotion motion = new CsoundMotion(csound);
+					motion.enableAccelerometer(CsoundAppActivity.this);
 					csound.addListener(CsoundAppActivity.this);
 					csound.startCsound(csd);
 					// Make sure these are still set after starting.
