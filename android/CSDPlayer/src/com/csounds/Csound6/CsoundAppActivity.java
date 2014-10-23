@@ -59,10 +59,10 @@ import com.csounds.bindings.ui.CsoundUI;
 
 import csnd6.Csound;
 
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 @SuppressWarnings("unused")
-public class CsoundAppActivity extends Activity implements
-		CsoundObjListener, CsoundObj.MessagePoster {
+public class CsoundAppActivity extends Activity implements CsoundObjListener,
+		CsoundObj.MessagePoster {
 	Uri templateUri = null;
 	Button newButton = null;
 	Button openButton = null;
@@ -70,7 +70,7 @@ public class CsoundAppActivity extends Activity implements
 	ToggleButton startStopButton = null;
 	MenuItem helpItem = null;
 	MenuItem aboutItem = null;
-	CsoundObj csound = null;
+	JSCsoundObj csound = null;
 	CsoundUI csoundUI = null;
 	File csd = null;
 	Button pad = null;
@@ -136,8 +136,9 @@ public class CsoundAppActivity extends Activity implements
 			// java.lang.System.exit(1);
 		}
 	}
-	
-	public void csoundObjStarted(CsoundObj csoundObj) {}
+
+	public void csoundObjStarted(CsoundObj csoundObj) {
+	}
 
 	public void csoundObjCompleted(CsoundObj csoundObj) {
 		runOnUiThread(new Runnable() {
@@ -147,11 +148,11 @@ public class CsoundAppActivity extends Activity implements
 			}
 		});
 	}
-	
+
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-	}	
+	}
 
 	protected void writeTemplateFile() {
 		File root = Environment.getExternalStorageDirectory();
@@ -500,7 +501,7 @@ public class CsoundAppActivity extends Activity implements
 					csnd6.csndJNI.csoundSetGlobalEnv("SSDIR", SSDIR);
 					csnd6.csndJNI.csoundSetGlobalEnv("SADIR", SADIR);
 					csnd6.csndJNI.csoundSetGlobalEnv("INCDIR", INCDIR);
-					csound = new CsoundObj();
+					csound = new JSCsoundObj();
 					csoundUI = new CsoundUI(csound);
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
@@ -513,10 +514,14 @@ public class CsoundAppActivity extends Activity implements
 					// the page.
 					parseWebLayout();
 					postMessageClear("Csound is starting...\n");
-					String framesPerBuffer = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);	
-					postMessage("Android sample frames per audio buffer: " + framesPerBuffer + "\n");
-					String framesPerSecond = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);	
-					postMessage("Android sample frames per second: " + framesPerSecond + "\n");
+					String framesPerBuffer = audioManager
+							.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+					postMessage("Android sample frames per audio buffer: "
+							+ framesPerBuffer + "\n");
+					String framesPerSecond = audioManager
+							.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+					postMessage("Android sample frames per second: "
+							+ framesPerSecond + "\n");
 					// Make sure this stuff really got packaged.
 					String samples[] = null;
 					try {
