@@ -34,12 +34,13 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
-import com.csounds.CsoundObjCompletionListener;
+import com.csounds.CsoundObjListener;
+import com.csounds.bindings.motion.CsoundMotion;
 import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
 
 public class AccelerometerActivity extends BaseCsoundActivity implements
-		CsoundObjCompletionListener {
+		CsoundObjListener {
 	
 	ToggleButton startStopButton = null;
 
@@ -60,11 +61,12 @@ public class AccelerometerActivity extends BaseCsoundActivity implements
 							String csd = getResourceFileAsString(R.raw.hardware_test);
 							File f = createTempFile(csd);
 
-							csoundObj.enableAccelerometer(AccelerometerActivity.this);
+							CsoundMotion csoundMotion = new CsoundMotion(csoundObj);
+							csoundMotion.enableAccelerometer(AccelerometerActivity.this);
 							
 							csoundObj.startCsound(f);
 						} else {
-							csoundObj.stopCsound();
+							csoundObj.stop();
 						}
 
 					}
@@ -72,7 +74,9 @@ public class AccelerometerActivity extends BaseCsoundActivity implements
 
 	}
 
-	public void csoundObjComplete(CsoundObj csoundObj) {
+	public void csoundObjStarted(CsoundObj csoundObj) {}
+	
+	public void csoundObjCompleted(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);

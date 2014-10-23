@@ -1,6 +1,6 @@
 /* 
  
- AbstractValueCacheable.java:
+ CsoundValueCacheable.java:
  
  Copyright (C) 2011 Victor Lazzarini, Steven Yi
  
@@ -23,19 +23,18 @@
  
  */
 
-package com.csounds.valueCacheable;
+package com.csounds.bindings;
 
 import com.csounds.CsoundObj;
 
-public abstract class AbstractValueCacheable implements CsoundValueCacheable {
-
-	public abstract void setup(CsoundObj csoundObj);
+public interface CsoundBinding {
 	
-	public void updateValuesToCsound() {
-	}
-
-	public void updateValuesFromCsound() {
-	}
-
-	public abstract void cleanup();
+	public void setup(CsoundObj csoundObj);
+	
+	public void updateValuesToCsound();
+	
+	public void updateValuesFromCsound();
+	
+	public void cleanup();
+	
 }

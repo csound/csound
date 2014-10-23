@@ -34,12 +34,13 @@ import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
-import com.csounds.CsoundObjCompletionListener;
+import com.csounds.CsoundObjListener;
+import com.csounds.bindings.ui.CsoundUI;
 import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
 
 public class PingPongDelayActivity extends BaseCsoundActivity implements
-		CsoundObjCompletionListener {
+		CsoundObjListener {
 
 	ToggleButton startStopButton = null;
 
@@ -75,19 +76,20 @@ public class PingPongDelayActivity extends BaseCsoundActivity implements
 							String csd = getResourceFileAsString(R.raw.ping_pong_delay);
 							File f = createTempFile(csd);
 
-							csoundObj.addSlider(leftDelaySlider,
+							CsoundUI csoundUI = new CsoundUI(csoundObj);
+							csoundUI.addSlider(leftDelaySlider,
 									"leftDelayTime", 50, 3000);
-							csoundObj.addSlider(leftFeedbackSlider,
+							csoundUI.addSlider(leftFeedbackSlider,
 									"leftFeedback", 0, .8);
-							csoundObj.addSlider(rightDelaySlider,
+							csoundUI.addSlider(rightDelaySlider,
 									"rightDelayTime", 50, 3000);
-							csoundObj.addSlider(rightFeedbackSlider,
+							csoundUI.addSlider(rightFeedbackSlider,
 									"rightFeedback", 0, .8);
 
 							csoundObj.setAudioInEnabled(true);
 							csoundObj.startCsound(f);
 						} else {
-							csoundObj.stopCsound();
+							csoundObj.stop();
 						}
 
 					}
@@ -95,7 +97,9 @@ public class PingPongDelayActivity extends BaseCsoundActivity implements
 
 	}
 
-	public void csoundObjComplete(CsoundObj csoundObj) {
+	public void csoundObjStarted(CsoundObj csoundObj) {} 
+	
+	public void csoundObjCompleted(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);
