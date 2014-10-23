@@ -23,7 +23,7 @@
  
  */
 
-package com.csounds.valueCacheable;
+package com.csounds.bindings.ui;
 
 import android.view.MotionEvent;
 import android.view.View;
@@ -32,11 +32,12 @@ import android.view.View.OnTouchListener;
 import android.widget.Button;
 
 import com.csounds.CsoundObj;
-import csnd6.controlChannelType;
+import com.csounds.bindings.AbstractBinding;
 
+import csnd6.controlChannelType;
 import csnd6.CsoundMYFLTArray;
 
-public class CachedButton extends AbstractValueCacheable {
+public class CsoundButtonBinding extends AbstractBinding {
 
 	private CsoundObj csoundObj;
 	private Button button;
@@ -48,13 +49,13 @@ public class CachedButton extends AbstractValueCacheable {
 	boolean selected = false;
 	boolean cacheDirty = false;
 	
-	public CachedButton(Button button, String channelName){
+	public CsoundButtonBinding(Button button, String channelName){
 		this.button = button;
 		this.channelName = channelName;
 		this.type = 0; 
 	}
 	
-	public CachedButton(Button button, String channelName, int type) {
+	public CsoundButtonBinding(Button button, String channelName, int type) {
 		this.button = button;
 		this.channelName = channelName;
 		this.type = type;
