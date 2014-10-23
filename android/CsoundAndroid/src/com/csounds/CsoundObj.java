@@ -55,9 +55,11 @@ public class CsoundObj {
 	public interface MessagePoster {
 		/** Clear the message display and post the message. */
 		public void postMessageClear(String message);
+
 		/** Append the message to the message display. */
 		public void postMessage(String message);
 	};
+
 	private Csound csound;
 	private ArrayList<CsoundBinding> bindings;
 	private ArrayList<CsoundObjListener> listeners;
@@ -82,52 +84,52 @@ public class CsoundObj {
 		listeners = new ArrayList<CsoundObjListener>();
 		scoreMessages = new ArrayList<String>();
 		this.useAudioTrack = useAudioTrack;
-	
+
 		if (useAudioTrack) {
-			//Log.d("CsoundObj", "audio track");
+			// Log.d("CsoundObj", "audio track");
 			csound = new Csound();
 		} else {
-			//Log.d("CsoundObj", "opensl");
+			// Log.d("CsoundObj", "opensl");
 			csound = new AndroidCsound();
 		}
 	}
 
-	@JavascriptInterface
 	public boolean isAudioInEnabled() {
 		return audioInEnabled;
 	}
 
-	@JavascriptInterface
 	public void setAudioInEnabled(boolean audioInEnabled) {
 		this.audioInEnabled = audioInEnabled;
 	}
 
-	@JavascriptInterface
 	public boolean isMessageLoggingEnabled() {
 		return messageLoggingEnabled;
 	}
 
-	@JavascriptInterface
 	public void setMessageLoggingEnabled(boolean messageLoggingEnabled) {
 		this.messageLoggingEnabled = messageLoggingEnabled;
 	}
 
-	@JavascriptInterface
 	public Csound getCsound() {
 		return csound;
 	}
 
-	@JavascriptInterface
 	public boolean isMuted() {
 		return muted;
 	}
 
-	@JavascriptInterface
 	public void setMuted(boolean muted) {
 		this.muted = muted;
 	}
 
-	@JavascriptInterface
+	public boolean isPaused() {
+		return pause;
+	}
+
+	public boolean isStopped() {
+		return stopped;
+	}
+
 	public void addBinding(CsoundBinding binding) {
 		if (!stopped)
 			binding.setup(this);
@@ -136,27 +138,22 @@ public class CsoundObj {
 		}
 	}
 
-	@JavascriptInterface
 	public synchronized void inputMessage(String mess) {
 		String message = new String(mess);
 		scoreMessages.add(message);
 	}
 
-	@JavascriptInterface
-	public synchronized void removeBinding(
-			CsoundBinding binding) {
+	public synchronized void removeBinding(CsoundBinding binding) {
 		bindings.remove(binding);
 	}
 
-
-	@JavascriptInterface
-	public CsoundMYFLTArray getInputChannelPtr(String channelName, 
+	public CsoundMYFLTArray getInputChannelPtr(String channelName,
 			controlChannelType channelType) {
-		
-		int channelSize = (channelType == controlChannelType.CSOUND_AUDIO_CHANNEL) ?
-				getCsound().GetKsmps() : 1;
+
+		int channelSize = (channelType == controlChannelType.CSOUND_AUDIO_CHANNEL) ? getCsound()
+				.GetKsmps() : 1;
 		CsoundMYFLTArray ptr = new CsoundMYFLTArray(channelSize);
-		
+
 		getCsound().GetChannelPtr(
 				ptr.GetPtr(),
 				channelName,
@@ -165,13 +162,12 @@ public class CsoundObj {
 		return ptr;
 	}
 
-	@JavascriptInterface
-	public CsoundMYFLTArray getOutputChannelPtr(String channelName, 
+	public CsoundMYFLTArray getOutputChannelPtr(String channelName,
 			controlChannelType channelType) {
-		int channelSize = (channelType == controlChannelType.CSOUND_AUDIO_CHANNEL) ?
-				getCsound().GetKsmps() : 1;
+		int channelSize = (channelType == controlChannelType.CSOUND_AUDIO_CHANNEL) ? getCsound()
+				.GetKsmps() : 1;
 		CsoundMYFLTArray ptr = new CsoundMYFLTArray(channelSize);
-		
+
 		getCsound().GetChannelPtr(
 				ptr.GetPtr(),
 				channelName,
@@ -179,41 +175,35 @@ public class CsoundObj {
 						| controlChannelType.CSOUND_OUTPUT_CHANNEL.swigValue());
 		return ptr;
 	}
-	
-	@JavascriptInterface
+
 	public void sendScore(String score) {
 		inputMessage(score);
 	}
 
-	@JavascriptInterface
 	public void readScore(String score) {
 		sendScore(score);
 	}
-	
-	@JavascriptInterface
+
 	public void updateOrchestra(String orchestraString) {
 		csound.CompileOrc(orchestraString);
 	}
 
-	@JavascriptInterface
 	public void addListener(CsoundObjListener listener) {
 		listeners.add(listener);
 	}
 
-	@JavascriptInterface
 	public void startCsound(final File csdFile) {
 		stopped = false;
 		thread = new Thread() {
 			public void run() {
-				
+
 				setPriority(Thread.MAX_PRIORITY);
-				if (useAudioTrack == false){
-					//Log.d("CsoundObj", "USING OPENSL");
+				if (useAudioTrack == false) {
+					// Log.d("CsoundObj", "USING OPENSL");
 					runCsoundOpenSL(csdFile);
-					
-				}
-				else{
-					//Log.d("CsoundObj", "USING AUDIO TRACK");
+
+				} else {
+					// Log.d("CsoundObj", "USING AUDIO TRACK");
 					runCsoundAudioTrack(csdFile);
 				}
 			}
@@ -221,25 +211,21 @@ public class CsoundObj {
 		thread.start();
 	}
 
-	@JavascriptInterface
 	public void togglePause() {
 		pause = !pause;
 	}
 
-	@JavascriptInterface
 	public void pause() {
 		pause = true;
 	}
 
-	@JavascriptInterface
 	public void play() {
 		pause = false;
 	}
 
-	@JavascriptInterface
 	public synchronized void stop() {
 		stopped = true;
-		if(thread != null) {
+		if (thread != null) {
 			try {
 				thread.join();
 				thread = null;
@@ -250,17 +236,14 @@ public class CsoundObj {
 		}
 	}
 
-	@JavascriptInterface
 	public int getNumChannels() {
 		return csound.GetNchnls();
 	}
 
-	@JavascriptInterface
 	public int getKsmps() {
 		return csound.GetKsmps();
 	}
 
-	@JavascriptInterface
 	public int getError() {
 		return retVal;
 	}
@@ -292,7 +275,7 @@ public class CsoundObj {
 			for (CsoundBinding cacheable : bindings) {
 				cacheable.updateValuesToCsound();
 			}
-			
+
 			for (CsoundObjListener listener : listeners) {
 				listener.csoundObjStarted(this);
 			}
