@@ -107,6 +107,7 @@ class PUBLIC CsoundPerformanceThread {
     void    *queueLock;         // this is actually a mutex
     void    *pauseLock;
     void    *flushLock;
+    void    *recordLock;
     void    *perfThread;
     int     paused;
     int     status;
@@ -118,11 +119,15 @@ class PUBLIC CsoundPerformanceThread {
     void csPerfThread_constructor(CSOUND *);
     void QueueMessage(CsoundPerformanceThreadMessage *);
  public:
-    int isRunning() { return running;}
 #ifdef SWIGPYTHON
   PyThreadState *_tstate;
   pycallbackdata pydata;
 #endif
+  /**
+   * Returns 1 if the performance thread is running, 0 otherwise
+   */
+  int isRunning() { return running;}
+
   /**
   * Returns the process callback as a void pointer
   */
@@ -172,7 +177,7 @@ class PUBLIC CsoundPerformanceThread {
      * Starts recording the output from Csound. The sample rate and number
      * of channels are taken directly from the running Csound instance.
      */
-    void Record(std::string filename, int numbufs = 4);
+    void Record(std::string filename, int samplebits = 16, int numbufs = 4);
     /**
      * Stops recording and closes audio file.
      */
