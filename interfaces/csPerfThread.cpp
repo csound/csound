@@ -49,6 +49,15 @@ class CsoundPerformanceThreadMessage {
     {
       return &(pt_->recordData);
     }
+    void lockRecord()
+    {
+        csoundLockMutex(pt_->recordLock);
+    }
+    void unlockRecord()
+    {
+        csoundUnlockMutex(pt_->recordLock);
+    }
+
     void QueueMessage(CsoundPerformanceThreadMessage *msg)
     {
       pt_->QueueMessage(msg);
@@ -144,15 +153,21 @@ class CsPerfThreadMsg_Record: public CsoundPerformanceThreadMessage {
 public:
     CsPerfThreadMsg_Record(CsoundPerformanceThread *pt,
                            std::string filename,
+                           int samplebits = 16,
                            int numbufs = 4)
     : CsoundPerformanceThreadMessage(pt)
     {
         this->filename = filename;
+        CsoundPerformanceThreadMessage::lockRecord();
+        recordData_t *recordData = CsoundPerformanceThreadMessage::getRecordData();
+        if (recordData->running) {
+            CsoundPerformanceThreadMessage::unlockRecord();
+            return;
+        }
         CSOUND * csound = pt_->GetCsound();
         if (!csound) {
             return;
         }
-        recordData_t *recordData = CsoundPerformanceThreadMessage::getRecordData();
         int bufsize = csoundGetOutputBufferSize(csound)
                 * csoundGetNchnls(csound) * numbufs;
         recordData->cbuf = csoundCreateCircularBuffer(csound,
@@ -167,7 +182,20 @@ public:
         SF_INFO sf_info;
         sf_info.samplerate = csoundGetSr(csound);
         sf_info.channels = csoundGetNchnls(csound);
-        sf_info.format = SF_FORMAT_PCM_16 | SF_FORMAT_WAV;
+        switch (samplebits) {
+        case 32:
+            sf_info.format = SF_FORMAT_FLOAT;
+            break;
+        case 24:
+            sf_info.format = SF_FORMAT_PCM_24;
+            break;
+        case 16:
+        default:
+            sf_info.format = SF_FORMAT_PCM_16;
+            break;
+        }
+
+        sf_info.format |= SF_FORMAT_WAV;
 
         recordData->sfile = (void *) sf_open(filename.c_str(),
                                                  SFM_WRITE,
@@ -177,16 +205,24 @@ public:
           csoundDestroyCircularBuffer(csound, recordData->cbuf);
           return;
         }
+        sf_command((SNDFILE *) recordData->sfile, SFC_SET_CLIPPING,
+                   NULL, SF_TRUE);
+
         recordData->running = true;
         recordData->thread = csoundCreateThread(recordThread_, (void*) recordData);
+
+
+        CsoundPerformanceThreadMessage::unlockRecord();
     }
     int run()
     {
       return 0;
     }
-    ~CsPerfThreadMsg_Record() {}
+    ~CsPerfThreadMsg_Record() {
+    }
 private:
     std::string filename;
+
 };
 
 class CsPerfThreadMsg_StopRecord: public CsoundPerformanceThreadMessage {
@@ -195,12 +231,16 @@ public:
     : CsoundPerformanceThreadMessage(pt) {}
     int run()
     {
+
+      CsoundPerformanceThreadMessage::lockRecord();
       recordData_t *recordData = CsoundPerformanceThreadMessage::getRecordData();
       if (recordData->running) {
           recordData->running = false;
           csoundJoinThread(recordData->thread);
           sf_close((SNDFILE *) recordData->sfile);
       }
+
+      CsoundPerformanceThreadMessage::unlockRecord();
 
       return 0;
     }
@@ -368,7 +408,7 @@ int CsoundPerformanceThread::Perform()
             lastMessage = (CsoundPerformanceThreadMessage*) 0;
           // process and destroy message
           retval = msg->run();
-          delete msg;
+          delete msg; // TODO: This should be moved out of the Perform function
         } while (!retval);
         if (paused)
           csoundWaitThreadLock(pauseLock, (size_t) 0);
@@ -391,12 +431,20 @@ int CsoundPerformanceThread::Perform()
       if (recordData.running) {
           MYFLT *spout = csoundGetSpout(csound);
           int len = csoundGetKsmps(csound) * csoundGetNchnls(csound);
+          if (csoundGet0dBFS(csound) != 1.0) {
+              MYFLT zdbfs = csoundGet0dBFS(csound);
+              MYFLT *modspout = spout;
+              for (int i = 0; i < len; i++) {
+                  *modspout /= zdbfs;
+                  modspout++;
+              }
+          }
           int written = csoundWriteCircularBuffer(NULL, recordData.cbuf, spout, len);
           if (written != len) {
               csoundMessage(csound, "perfThread record buffer overrun.");
           }
       }
-      pthread_cond_signal(&recordData.condvar);
+      pthread_cond_signal(&recordData.condvar); // Needs to be outside the if for the case where stop record was requested
     } while (!retval);
  endOfPerf:
     status = retval;
@@ -456,6 +504,7 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
     queueLock = (void*) 0;
     pauseLock = (void*) 0;
     flushLock = (void*) 0;
+    recordLock = (void *) 0;
     perfThread = (void*) 0;
     paused = 1;
     status = CSOUND_MEMORY;
@@ -471,6 +520,9 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
     flushLock = csoundCreateThreadLock();
     if (!flushLock)
       return;
+    recordLock = csoundCreateMutex(0);
+    if (!recordLock)
+      return;
     try {
       lastMessage = new CsPerfThreadMsg_Pause(this);
     }
@@ -481,11 +533,10 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
     recordData.cbuf = NULL;
     recordData.sfile = NULL;
     recordData.thread = NULL;
+    recordData.running = false;
 
     pthread_mutex_init(&recordData.mutex, NULL);
     pthread_cond_init(&recordData.condvar, NULL);
-
-    recordData.running = false;
 
     perfThread = csoundCreateThread(csoundPerformanceThread_, (void*) this);
     if (perfThread)
@@ -568,9 +619,12 @@ void CsoundPerformanceThread::Stop()
     QueueMessage(new CsPerfThreadMsg_Stop(this));
 }
 
-void CsoundPerformanceThread::Record(std::string filename, int numbufs)
+void CsoundPerformanceThread::Record(std::string filename,
+                                     int samplebits,
+                                     int numbufs)
 {
-    QueueMessage(new CsPerfThreadMsg_Record(this, filename, numbufs));
+    QueueMessage(new CsPerfThreadMsg_Record(this, filename,
+                                            samplebits, numbufs));
 }
 
 void CsoundPerformanceThread::StopRecord()
