@@ -71,6 +71,7 @@ public class CsoundObj {
 	int retVal = 0;
 	private boolean pause = false;
 	private CsoundCallbackWrapper callbacks;
+	private  Object mLock = new Object();
 	public MessagePoster messagePoster = null;
 
 	public CsoundObj() {
@@ -155,21 +156,25 @@ public class CsoundObj {
 	public void addValueCacheable(CsoundValueCacheable valueCacheable) {
 		if (!stopped)
 			valueCacheable.setup(this);
-		synchronized (this) {
+		synchronized (mLock) {
 			valuesCache.add(valueCacheable);
 		}
 	}
 
 	@JavascriptInterface
-	public synchronized void inputMessage(String mess) {
+	public /* synchronized */ void inputMessage(String mess) {
+		synchronized (mLock) {
 		String message = new String(mess);
 		scoreMessages.add(message);
+		}
 	}
 
 	@JavascriptInterface
-	public synchronized void removeValueCacheable(
+	public /* synchronized */ void removeValueCacheable(
 			CsoundValueCacheable valueCacheable) {
+		synchronized (mLock) {
 		valuesCache.remove(valueCacheable);
+		}
 	}
 
 	@JavascriptInterface
@@ -318,7 +323,7 @@ public class CsoundObj {
 				cacheable.updateValuesToCsound();
 			}
 			while (csound.PerformKsmps() == 0 && !stopped) {
-				synchronized (this) {
+				synchronized (mLock) {
 					for (CsoundValueCacheable cacheable : valuesCache) {
 						cacheable.updateValuesFromCsound();
 					}
