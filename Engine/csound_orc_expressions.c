@@ -844,7 +844,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
         if (is_expression_node(currentArg) ||
             (is_bool = is_boolean_expression_node(currentArg))) {
             char * newArg;
-            //if (UNLIKELY(PARSER_DEBUG))
+            if (UNLIKELY(PARSER_DEBUG))
                 csound->Message(csound, "Found Expression.\n");
             if (is_bool == 0) {
                 expressionNodes =
@@ -867,7 +867,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
 
             newArg = last->left->value->lexeme;
 
-            //if (UNLIKELY(PARSER_DEBUG))
+            if (UNLIKELY(PARSER_DEBUG))
                 csound->Message(csound, "New Arg: %s\n", newArg);
 
             /* handle arg replacement of currentArg here */
