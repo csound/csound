@@ -8,12 +8,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -56,17 +53,16 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
-import com.csounds.CsoundObjCompletionListener;
-import com.csounds.valueCacheable.CsoundValueCacheable;
+import com.csounds.CsoundObjListener;
+import com.csounds.bindings.motion.CsoundMotion;
+import com.csounds.bindings.ui.CsoundUI;
 
 import csnd6.Csound;
-import csnd6.CsoundMYFLTArray;
-import csnd6.controlChannelType;
 
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 @SuppressWarnings("unused")
-public class CsoundAppActivity extends Activity implements
-		CsoundObjCompletionListener, CsoundObj.MessagePoster {
+public class CsoundAppActivity extends Activity implements CsoundObjListener,
+		CsoundObj.MessagePoster {
 	Uri templateUri = null;
 	Button newButton = null;
 	Button openButton = null;
@@ -74,7 +70,8 @@ public class CsoundAppActivity extends Activity implements
 	ToggleButton startStopButton = null;
 	MenuItem helpItem = null;
 	MenuItem aboutItem = null;
-	CsoundObj csound = null;
+	JSCsoundObj csound = null;
+	CsoundUI csoundUI = null;
 	File csd = null;
 	Button pad = null;
 	WebView webLayout = null;
@@ -140,7 +137,10 @@ public class CsoundAppActivity extends Activity implements
 		}
 	}
 
-	public void csoundObjComplete(CsoundObj csoundObj) {
+	public void csoundObjStarted(CsoundObj csoundObj) {
+	}
+
+	public void csoundObjCompleted(CsoundObj csoundObj) {
 		runOnUiThread(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);
@@ -148,11 +148,11 @@ public class CsoundAppActivity extends Activity implements
 			}
 		});
 	}
-	
+
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-	}	
+	}
 
 	protected void writeTemplateFile() {
 		File root = Environment.getExternalStorageDirectory();
@@ -331,7 +331,7 @@ public class CsoundAppActivity extends Activity implements
 	protected void onDestroy() {
 		super.onDestroy();
 		try {
-			csound.stopCsound();
+			csound.stop();
 		} catch (Exception e) {
 			Log.e("error", "could not stop csound");
 		}
@@ -501,7 +501,8 @@ public class CsoundAppActivity extends Activity implements
 					csnd6.csndJNI.csoundSetGlobalEnv("SSDIR", SSDIR);
 					csnd6.csndJNI.csoundSetGlobalEnv("SADIR", SADIR);
 					csnd6.csndJNI.csoundSetGlobalEnv("INCDIR", INCDIR);
-					csound = new CsoundObj();
+					csound = new JSCsoundObj();
+					csoundUI = new CsoundUI(csound);
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
 					webLayout.addJavascriptInterface(csound, "csound");
@@ -513,10 +514,14 @@ public class CsoundAppActivity extends Activity implements
 					// the page.
 					parseWebLayout();
 					postMessageClear("Csound is starting...\n");
-					String framesPerBuffer = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);	
-					postMessage("Android sample frames per audio buffer: " + framesPerBuffer + "\n");
-					String framesPerSecond = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);	
-					postMessage("Android sample frames per second: " + framesPerSecond + "\n");
+					String framesPerBuffer = audioManager
+							.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+					postMessage("Android sample frames per audio buffer: "
+							+ framesPerBuffer + "\n");
+					String framesPerSecond = audioManager
+							.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+					postMessage("Android sample frames per second: "
+							+ framesPerSecond + "\n");
 					// Make sure this stuff really got packaged.
 					String samples[] = null;
 					try {
@@ -527,13 +532,14 @@ public class CsoundAppActivity extends Activity implements
 					String channelName;
 					for (int i = 0; i < 5; i++) {
 						channelName = "slider" + (i + 1);
-						csound.addSlider(sliders.get(i), channelName, 0., 1.);
+						csoundUI.addSlider(sliders.get(i), channelName, 0., 1.);
 						channelName = "butt" + (i + 1);
-						csound.addButton(buttons.get(i), channelName, 1);
+						csoundUI.addButton(buttons.get(i), channelName, 1);
 					}
-					csound.addButton(pad, "trackpad", 1);
-					csound.enableAccelerometer(CsoundAppActivity.this);
-					csound.addCompletionListener(CsoundAppActivity.this);
+					csoundUI.addButton(pad, "trackpad", 1);
+					CsoundMotion motion = new CsoundMotion(csound);
+					motion.enableAccelerometer(CsoundAppActivity.this);
+					csound.addListener(CsoundAppActivity.this);
 					csound.startCsound(csd);
 					// Make sure these are still set after starting.
 					String getOPCODE6DIR = csnd6.csndJNI.csoundGetEnv(0,
@@ -547,7 +553,7 @@ public class CsoundAppActivity extends Activity implements
 											+ csound.getCsound()
 													.GetEnv("SSDIR") + "\n");
 				} else {
-					csound.stopCsound();
+					csound.stop();
 					postMessage("Csound has been stopped.\n");
 				}
 			}

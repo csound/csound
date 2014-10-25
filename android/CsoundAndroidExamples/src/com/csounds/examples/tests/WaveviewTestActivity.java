@@ -35,9 +35,9 @@ import android.view.View;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
+import com.csounds.bindings.CsoundBinding;
 import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
-import com.csounds.valueCacheable.CsoundValueCacheable;
 
 import csnd6.Csound;
 import csnd6.CsoundMYFLTArray;
@@ -58,13 +58,13 @@ public class WaveviewTestActivity extends BaseCsoundActivity {
 		String csd = getResourceFileAsString(R.raw.waveviewtest);
 		File f = createTempFile(csd);
 
-		csoundObj.addValueCacheable(view);
+		csoundObj.addBinding(view);
 
 		csoundObj.startCsound(f);
 
 	}
 
-	class WaveView extends View implements CsoundValueCacheable {
+	class WaveView extends View implements CsoundBinding {
 
 		boolean tableLoaded = false;
 		CsoundObj csoundObj = null;
