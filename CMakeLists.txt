@@ -416,14 +416,21 @@ else()
 endif()
 
 find_library(PTHREAD_LIBRARY pthread)
+find_library(PTHREAD_STATIC_LIBRARY pthread.a)
 
 if(NOT PTHREAD_LIBRARY AND WIN32)
     find_library(PTHREAD_LIBRARY pthreadGC2)
 endif()
 
+if(NOT PTHREAD_STATIC_LIBRARY AND WIN32)
+    find_library(PTHREAD_STATIC_LIBRARY pthreadGC2.a)
+endif()
+
 if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
     message(FATAL_ERROR "Csound requires the pthread library")
 endif()
+
+message(STATUS "PTHREAD STATIC LIBRARY: ${PTHREAD_STATIC_LIBRARY}")
 
 set(CMAKE_REQUIRED_INCLUDES pthread.h)
 set(CMAKE_REQUIRED_LIBRARIES pthread)
