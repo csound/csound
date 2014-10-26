@@ -73,6 +73,7 @@ public class CsoundObj {
 	int retVal = 0;
 	private boolean pause = false;
 	private CsoundCallbackWrapper callbacks;
+	private  Object mLock = new Object();
 	public MessagePoster messagePoster = null;
 
 	public CsoundObj() {
@@ -133,18 +134,21 @@ public class CsoundObj {
 	public void addBinding(CsoundBinding binding) {
 		if (!stopped)
 			binding.setup(this);
-		synchronized (this) {
+		synchronized (mLock) {
 			bindings.add(binding);
 		}
 	}
-
-	public synchronized void inputMessage(String mess) {
+	@JavascriptInterface
+	public /*synchronized*/ void inputMessage(String mess) {
+        synchronized (mLock) {
 		String message = new String(mess);
 		scoreMessages.add(message);
+		}
 	}
 
-	public synchronized void removeBinding(CsoundBinding binding) {
-		bindings.remove(binding);
+	public /*synchronized*/ void removeBinding(CsoundBinding binding) {
+	synchronized (mLock){ bindings.remove(binding); }
+
 	}
 
 	public CsoundMYFLTArray getInputChannelPtr(String channelName,
@@ -280,7 +284,8 @@ public class CsoundObj {
 				listener.csoundObjStarted(this);
 			}
 			while (csound.PerformKsmps() == 0 && !stopped) {
-				synchronized (this) {
+
+				synchronized (mLock) {
 					for (CsoundBinding cacheable : bindings) {
 						cacheable.updateValuesFromCsound();
 					}
