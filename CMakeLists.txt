@@ -416,14 +416,9 @@ else()
 endif()
 
 find_library(PTHREAD_LIBRARY pthread)
-find_library(PTHREAD_STATIC_LIBRARY pthread.a)
 
 if(NOT PTHREAD_LIBRARY AND WIN32)
     find_library(PTHREAD_LIBRARY pthreadGC2)
-endif()
-
-if(NOT PTHREAD_STATIC_LIBRARY AND WIN32)
-    find_library(PTHREAD_STATIC_LIBRARY pthreadGC2.a)
 endif()
 
 if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
