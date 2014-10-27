@@ -578,13 +578,13 @@ static int nested_repeat(CSOUND *csound)                /* gab A9*/
           c[j]=' ';
           c[j+1]='\0';
         }
-        if (csound->oparms->msglevel & TIMEMSG)
+        if (csound->oparms->odebug/*csound->oparms->msglevel & TIMEMSG*/)
           csound->Message(csound,Str("%s Nested LOOP terminated, level:%d\n"),
                           c,STA(repeat_index));
 
       }
       else {
-        if (csound->oparms->msglevel & TIMEMSG)
+        if (csound->oparms->odebug/*csound->oparms->msglevel & TIMEMSG*/)
           csound->Message(csound,Str("External LOOP terminated, level:%d\n"),
                           STA(repeat_index));
       }
@@ -631,12 +631,12 @@ static int nested_repeat(CSOUND *csound)                /* gab A9*/
           c[j]=' ';
           c[j+1]='\0';
         }
-        if (csound->oparms->msglevel & TIMEMSG)
+        if (csound->oparms->odebug/*csound->oparms->msglevel & TIMEMSG*/)
           csound->Message(csound,Str("%s  Nested LOOP section (%d) Level:%d\n"),
                           c, i, STA(repeat_index));
       }
       else {
-        if (csound->oparms->msglevel & TIMEMSG)
+        if (csound->oparms->odebug/*csound->oparms->msglevel & TIMEMSG*/)
           csound->Message(csound,Str(" External LOOP section (%d) Level:%d\n"),
                           i, STA(repeat_index));
       }
@@ -943,13 +943,13 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
               st[j] = ' ';
               st[j+1] = '\0';
             }
-            if (csound->oparms->msglevel & TIMEMSG)
+            if (csound->oparms->odebug/*csound->oparms->msglevel & TIMEMSG*/)
               csound->Message(csound, Str("%s Nested LOOP=%d Level:%d\n"),
                               st, STA(repeat_cnt_n)[STA(repeat_index)],
                               STA(repeat_index));
           }
           else {
-            if (csound->oparms->msglevel & TIMEMSG)
+            if (csound->oparms->odebug/*csound->oparms->msglevel & TIMEMSG*/)
               csound->Message(csound, Str("External LOOP=%d Level:%d\n"),
                               STA(repeat_cnt_n)[STA(repeat_index)],
                               STA(repeat_index));
