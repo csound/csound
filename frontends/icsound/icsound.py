@@ -291,14 +291,14 @@ class icsound:
             return
         return self._cs.GetChannel(channel)
         
-    def start_record(self, filename, numbufs=4):
+    def start_record(self, filename, samplebits = 16, numbufs=4):
         '''Start recording the output from csound into an audio file.
         The number of channels and sampling rate of the audio file are
         determined by the running csound engine.'''
         if self._client_addr:
             print("Operation not supported for client interface")
             return
-        return self._csPerf.Record(filename, numbufs)
+        return self._csPerf.Record(filename, samplebits, numbufs)
 
     def stop_record(self):
         '''Stop recording and close audio file'''
