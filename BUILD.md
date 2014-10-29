@@ -4,7 +4,7 @@ Csound Build Instructions
 Build instructions for building Csound from the source packages for the
 following operating systems
 
--   [Debian/Ubuntu Linux[("debian")]
+-   [Debian/Ubuntu Linux(#debian")
 
 -   Mac OS X using Homebrew
 
