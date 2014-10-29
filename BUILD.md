@@ -4,7 +4,7 @@ Csound Build Instructions
 Build instructions for building Csound from the source packages for the
 following operating systems
 
--   [Debian/Ubuntu Linux(#debian")
+-   [Debian/Ubuntu Linux(#debian)
 
 -   Mac OS X using Homebrew
 
@@ -21,9 +21,8 @@ for amendments and updates
 
 
 
-Debian/Ubuntu 
+Debian/Ubuntu <a name="debian">
 --------------
-### <a name="debian">
 
 The following instructions will explain how to configure, compile, and install
 Csound 6 on Debian and Ubuntu systems.
@@ -77,7 +76,7 @@ set of folders.
 
 
 
-Mac OS X using Homebrew
+Mac OS X using Homebrew <a name="OSXHomebrew">
 -----------------------
 
 ### Introduction 
@@ -162,7 +161,7 @@ This is a known issue and will be looked into.
 
 
 
-General Linux without Root access
+General Linux without Root access <a name="generalLinux">
 ---------------------------------
 
 These are generic instructions to build on any Linux system with no root access.
@@ -316,7 +315,7 @@ swig - http://www.swig.org/ Python headers / library - http://www.python.org
 swig - http://www.swig.org/ Java SDK - http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
 
-Raspberry Pi Standard Distro 
+Raspberry Pi Standard Distro <a name="raspian">
 -----------------------------
 
 ### (Raspian Wheezy)
@@ -367,7 +366,7 @@ If you want to use the csnd6 Python library, add the following line to .bashrc:
 
 
 
-Fedora 18
+Fedora 18 <a name="fedora">
 ---------
 
 ### Introduction 
@@ -526,8 +525,8 @@ should get the help message.
 
 
 
-Windows MinGW32
-----------------------------
+Windows MinGW32 <a name="minge32">
+---------------
 A basic working knowledge of the Windows command prompt is assumed. Further instructions for Windows can be found in their own document at the following link [Csound Windows Build Doc][1]
 
 [1]: <https://github.com/csound/csound/blob/develop/How_to_Build_Csound_on_Windows.doc>
