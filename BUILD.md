@@ -14,7 +14,7 @@ following operating systems
 
 -   [Fedora 18](#fedora)
 
--   [Windows (Mingw)](#mingw32)
+-   [Windows (Mingw32)](#mingw32)
 
 Instructions compiled by Dominic Melville contact via dcamelville at gmail.com
 for amendments and updates
@@ -525,7 +525,7 @@ should get the help message.
 
 
 
-Windows MinGW32 <a name="mingw32">
+Windows (mingw32) <a name="mingw32">
 ---------------
 A basic working knowledge of the Windows command prompt is assumed. Further instructions for Windows can be found in their own document at the following link [Csound Windows Build Doc][1]
 
