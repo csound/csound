@@ -4,7 +4,7 @@ Csound Build Instructions
 Build instructions for building Csound from the source packages for the
 following operating systems
 
--   Debian/Ubuntu Linux
+-   [Debian/Ubuntu Linux[("debian")]
 
 -   Mac OS X using Homebrew
 
@@ -23,6 +23,7 @@ for amendments and updates
 
 Debian/Ubuntu 
 --------------
+### <a name="debian">
 
 The following instructions will explain how to configure, compile, and install
 Csound 6 on Debian and Ubuntu systems.
