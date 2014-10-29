@@ -4,17 +4,17 @@ Csound Build Instructions
 Build instructions for building Csound from the source packages for the
 following operating systems
 
--   [Debian/Ubuntu Linux(#debian)
+-   [Debian/Ubuntu Linux](#debian)
 
--   Mac OS X using Homebrew
+-   [Mac OS X using Homebrew](#osxHomebrew)
 
--   General Instructions for Linux without Root access
+-   [General Instructions for Linux without Root access](#generalLinux)
 
--   Raspberry PI standard OS
+-   [Raspberry PI standard OS](#raspian)
 
--   Fedora 18
+-   [Fedora 18](#fedora)
 
--   Windows (Mingw)
+-   [Windows (Mingw)](#mingw32)
 
 Instructions compiled by Dominic Melville contact via dcamelville at gmail.com
 for amendments and updates
