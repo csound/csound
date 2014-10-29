@@ -525,7 +525,7 @@ should get the help message.
 
 
 
-Windows MinGW32 <a name="minge32">
+Windows MinGW32 <a name="mingw32">
 ---------------
 A basic working knowledge of the Windows command prompt is assumed. Further instructions for Windows can be found in their own document at the following link [Csound Windows Build Doc][1]
 
