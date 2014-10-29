@@ -6,7 +6,7 @@ following operating systems
 
 -   [Debian/Ubuntu Linux](#debian)
 
--   [Mac OS X using Homebrew](#osxHomebrew)
+-   [Mac OS X using Homebrew](#OSXHomebrew)
 
 -   [General Instructions for Linux without Root access](#generalLinux)
 
