@@ -24,19 +24,22 @@
                                                         /* buchla.c */
 #include "csdl.h"
 
+#define clip(a,b,c) (a<b ? b : a>c ? c : a)
+
+#ifdef JPFF
 
 typedef struct {
       OPDS        h;
   // results
       MYFLT       *out1, *out2, *out3;
   // inputs
-      MYFLT       *ain1, *ain2, *ain3, *ain4, *in5, *in6;
+      MYFLT       *ain1, *ain2, *knt, *ain3, *ain4, *in5, *in6;
   // Internal
       MYFLT       so, sx, sd, xo;
       double      f;
 } BUCHLA;
 
-#define clip(a,b,c) (a<b ? b : a>c ? c : a)
+static double kontrolconvert(CSOUND *csound, double in1, double in2);
 
 int poly_LPG_init(CSOUND* csound, BUCHLA *p)
 {
@@ -49,7 +52,7 @@ int poly_LPG_init(CSOUND* csound, BUCHLA *p)
 
 int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
 {
-    double c3, rf, r3, max_res, a, f=p->f, a1, a2, b1, b2, b3, b4;
+    double c3, r3, rf, max_res, a, f=p->f, a1, a2, b1, b2, b3, b4;
     double Dmas, yx, yo, yd, tanh_xo, Dx, Do;
     MYFLT *x, *out1, *out2, *out3;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -62,12 +65,10 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
       c3 = 0.0;
 
     //r1 = 1e3;
-    rf = *p->ain2;               /* from a vactrol operation */
-    //rf = 30e3;
+    //
+    //#define rf (30.e3)
     r3 = *p->ain3;               /* does this need to be audio? */
 
-    max_res = 1.0*(2.0*C1*r3+(C2+c3)*(r3+rf))/(c3*r3);
-    //a = in4* max_res;
     x = p->ain1;
     out1 = p->out1;
     out2 = p->out2;
@@ -76,11 +77,6 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     f = 0.5/csound->GetSr(csound);
     //f = 2*pi * (in2+1e-3)*0.5/samplerate;
 
-    a1 =  1.0/(C1*rf);
-    a2 = -(1/rf+1/r3)/C1;
-    b1 =  1.0/(rf*C2);
-    b2 = -2.0/(rf*C2);
-    b3 =  1.0/(rf*C2);
     b4 =  c3/C2;
 
     tanh_xo= tanh(p->xo);
@@ -103,7 +99,14 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     if (*p->in6 != FL(0.0)) {
       double txo2 = tanh_xo*tanh_xo;
       for (n=offset; n<nsmps; n++) {
+        max_res = 1.0*(2.0*C1*r3+(C2+c3)*(r3+rf))/(c3*r3);
+        rf = kontrolconvert(csound, p->ain2[n], *p->knt); /* from a vactrol operation WRONG */
         a = clip(p->ain4[n],0.0,max_res);
+        a1 =  1.0/(C1*rf);
+        a2 = -(1/rf+1/r3)/C1;
+        b1 =  1.0/(rf*C2);
+        b2 = -2.0/(rf*C2);
+        b3 =  1.0/(rf*C2);
         Dmas = 1.0/(1.0-Dx*(f*f*b3*Do*a1 + b4*f*a*(1.0-txo2)*Do*a1 - b4));
         yx =(p->sx + f*b1*x[n] + f*b3*Do*p->so +
             f*b4*(p->sd+(1.0/f)*a*(tanh_xo - p->xo*(1.0-txo2))) +
@@ -123,6 +126,13 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     }
     else /* if (in6 < 0.5) */ {
       for (n=offset; n<nsmps; n++) {
+        max_res = 1.0*(2.0*C1*r3+(C2+c3)*(r3+rf))/(c3*r3);
+        rf = kontrolconvert(csound, p->ain2[n], *p->knt); /* from a vactrol operation WRONG */
+        a1 =  1.0/(C1*rf);
+        a2 = -(1/rf+1/r3)/C1;
+        b1 =  1.0/(rf*C2);
+        b2 = -2.0/(rf*C2);
+        b3 =  1.0/(rf*C2);
         a = clip(p->ain4[n],0.0,max_res);
         Dmas = 1.0/(1.0-Dx*(f*f*b3*Do*a1 + b4*f*a*Do*a1 - b4));
         yx = (p->sx + f*b1*x[n] + f*b3*Do*p->so + 
@@ -139,6 +149,7 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     }
     return OK;
 }
+#endif
 
 typedef struct {
       OPDS        h;
@@ -195,7 +206,6 @@ int vactrol_perf(CSOUND *csound, VACTROL* p)
       else
         x = dsl*a_down/(1.0+a_down);
       y = x + s1;
-      printf("s1 = %f dsl = %f x = %f y = %f\n", s1, dsl, x, y);
       s1 =  y + x;
       out[n] = (MYFLT)y*e0db;
     }
@@ -204,13 +214,102 @@ int vactrol_perf(CSOUND *csound, VACTROL* p)
     return OK;
 }
 
+#ifdef JPFF
+
+//Nonlinear control circuit maps V_b to R_f (Vactrol Resistance)
+
+static double kontrolconvert(CSOUND *csound, double in1, double in2)
+{
+    double R6, R1, R2, alpha, beta, bound1;
+    double offset = 0.9999*in2 + 0.0001;
+    double zerodb = csound->Get0dBFS(csound);
+    double V3, Ia, If, Ifbound1, Ifbound2, Ifbound3;
+    double Vb = in1/zerodb;
+    
+#define scale (0.48) // This value is tuned for appropriate input range.
+    // Constants
+#define A (3.4645912)
+#define B (1136.2129956)
+#define G (2.0e5)
+#define Ifmax (40.0e-3)
+#define Ifmin (10.1e-6)
+#define R2max (10.0e3)
+#define R3 (150.0e3)
+#define R4 (470.0e3)
+#define R5 (100.0e3)
+#define R6max (20.0e3)
+#define R7 (33.0e3)
+#define R8 (4.7e3)
+#define R9 (470)
+#define VB (3.9)
+#define VF (0.7)
+#define VT (26.0e-3)
+#define Vs (15.0)
+#define k0 (1.468e2)
+#define k1 (4.9202e-1)
+#define k2 (4.1667e-4)
+#define k3 (7.3915e-9)
+#define kl (6.3862)
+#define n (3.9696)
+    
+#define gamma (0.0001)
+
+    R6 = scale * R6max;
+
+    alpha = 1 + (R6+R7) * (1/R3 + 1/R5);
+    beta = ((1/alpha) - 1)/(R6 + R7) - 1/R8;
+
+    bound1 = 600* alpha *n*VT/(G*(R6+R7-1/(alpha*beta))); 
+    
+    //Inputs
+    R1 = (1-offset)*R2max;
+    R2 = offset*R2max;
+            
+    Ia = Vb/R5 + Vs/(R3*(1+R1/R2));
+      
+    if (Ia <= -bound1) {
+      V3 = -Ia/(alpha*beta);
+    }
+    else if ( Ia < bound1) {
+      double x, w;
+      x = G*Ia*(R6+R7-1/(alpha*beta))/(alpha*n*VT);
+      w = k0 + k1*x + k2*x*x+ k3*x*x*x;
+      V3 = -(alpha/G)*n*VT*w - Ia/(alpha*beta);
+    }
+    else {
+      V3 = kl*alpha/G*n*VT-Ia*(R6+R7);
+    }
+
+    Ifbound1 = alpha*(Ifmin - beta*V3);
+    Ifbound2 = VB/(R6+R7);
+    Ifbound3 = (gamma*G*VB + alpha*R9*(VB*beta+Ifmax))/(gamma*G*(R6+R7) + R9);
+
+    if (Ia <= Ifbound1) {
+      If = Ifmin;
+    }
+    else if (Ia <= Ifbound2) {
+      If = beta * V3 + Ia/alpha;
+    }
+    else if (Ia <= Ifbound3) {
+      If = gamma * G *(Ia*(R6+R7) - VB)/(alpha*R9) - beta*VB + Ia/alpha;
+    }
+    else {
+      If = Ifmax;
+    }
+      
+    return (B + A / pow(If,1.4));
+}
+ 
+#endif
 
 
 #define S       sizeof
 
 static OENTRY buchla_localops[] = {
-  { "buchla", S(BUCHLA), 0, 5, "aaa", "aaaaPP",
-                                 (SUBR)poly_LPG_init, NULL, (SUBR)poly_LPG_perf },
+#ifdef JPFF
+  { "buchla", S(BUCHLA), 0, 5, "aaa", "aakaaPP",
+                            (SUBR)poly_LPG_init, NULL, (SUBR)poly_LPG_perf },
+#endif
   { "vactrol", S(VACTROL), 0, 5, "a", "ajj",
                                  (SUBR)vactrol_init, NULL, (SUBR)vactrol_perf }
 };
