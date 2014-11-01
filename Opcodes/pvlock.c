@@ -136,6 +136,7 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
     MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
     int *framecnt;
     int curframe = p->curframe, decim = p->decim;
+    double scaling = (8/decim)/3.;
 
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -305,7 +306,7 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
           framecnt[i]++;
         }
         /* scale output */
-        out[n] *= amp*(1./3.);
+        out[n] *= amp*scaling;
       }
       cnt++;
     }
@@ -350,6 +351,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
     MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
     int *framecnt, curframe = p->curframe;
     int decim = p->decim;
+    double scaling = (8/decim)/3.;
 
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -531,7 +533,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
           out[n] += outframe[framecnt[i]];
           framecnt[i]++;
         }
-        out[n] *= amp/3.;
+        out[n] *= amp*scaling;
       }
       cnt++;
     }
