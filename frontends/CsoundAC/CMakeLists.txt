@@ -91,6 +91,10 @@ if(BUILD_CSOUND_AC)
     if(USE_SYSTEM_PORTSMF)
         target_link_libraries(libCsoundAC ${PORTSMF_LIBRARY})
     endif()
+    if(HAVE_UNISTD_H)
+      set_target_properties(libCsoundAC PROPERTIES
+        COMPILE_FLAGS "-DHAVE_UNISTD_H")
+    endif()
 
     if(MUSICXML_LIBRARY)
         target_link_libraries(libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
