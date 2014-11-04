@@ -1568,7 +1568,7 @@ int kperf_nodebug(CSOUND *csound)
                   ip->kcounter++;
                 }
             }
-          }
+          } /*else csound->Message(csound, "time %f \n", csound->kcounter/csound->ekr);*/
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0; /* reset end of loop samples */
           ip = nxt; /* but this does not allow for all deletions */
