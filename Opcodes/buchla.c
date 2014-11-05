@@ -34,7 +34,7 @@ typedef struct {
       MYFLT       *out1;
       //MYFLT     *out2, *out3;
   // inputs
-      MYFLT       *ain1, *ain2, *knt, *kin3, *ain4, *kin5, *kin6;
+      MYFLT       *ain1, *aenv, *knt, *kin3, *ain4, *ksw5, *ksw6;
   // Internal
       MYFLT       so, sx, sd, xo;
       double      f;
@@ -62,7 +62,7 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT e0dbfs = csound->Get0dBFS(csound);
 
-    if (*p->kin5 != FL(0.0))
+    if (*p->ksw5 != FL(0.0))
       c3 = 4.7e-09;
     else
       c3 = 0.0;
@@ -96,10 +96,11 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
       /* memset(&out3[nsmps], '\0', early*sizeof(MYFLT)); */
     }
 
-    if (*p->kin6 != FL(0.0)) {
+    if (*p->ksw6 != FL(0.0)) {
       double txo2 = tanh_xo*tanh_xo;
+      double knt = *p->knt;
       for (n=offset; n<nsmps; n++) {
-        rf = kontrolconvert(csound, (double)p->ain2[n], (double)*p->knt);
+        rf = kontrolconvert(csound, (double)p->aenv[n], knt);
         max_res = 1.0*(2.0*C1*r3+(C2+c3)*(r3+rf))/(c3*r3);
         a = clip(p->ain4[n],0.0,max_res);
         a1 =  1.0/(C1*rf);
@@ -126,9 +127,10 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
         /* out3[n] = (MYFLT)yd; */
       }
     }
-    else /* if (kin6 < 0.5) */ {
+    else /* if (ksw6 < 0.5) */ {
+      double knt = *p->knt;
       for (n=offset; n<nsmps; n++) {
-        rf = kontrolconvert(csound, p->ain2[n], *p->knt); /* from a vactrol operation WRONG */
+        rf = kontrolconvert(csound, (double)p->aenv[n], knt);
         max_res = 1.0*(2.0*C1*r3+(C2+c3)*(r3+rf))/(c3*r3);
         a1 =  1.0/(C1*rf);
         a2 = -(1/rf+1/r3)/C1;
