@@ -26,7 +26,7 @@
 
 #define clip(a,b,c) (a<b ? b : a>c ? c : a)
 
-#ifdef JPFF
+//#ifdef JPFF
 
 typedef struct {
       OPDS        h;
@@ -42,9 +42,12 @@ typedef struct {
 
 static double kontrolconvert(CSOUND *csound, double in1, double in2);
 
+static int warn = 0;
 int poly_LPG_init(CSOUND* csound, BUCHLA *p)
 {
     p->so = p->sx = p->sd = p->xo = 0.0;
+    if (warn==0) csound->Message(csound, "**** Experimental code ****\n");
+    warn++;
 #define C1 (1e-09)
 #define C2 (2.2e-10)
     p->f = 0.5/csound->GetSr(csound);
@@ -77,7 +80,6 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     /* out2 = p->out2; */
     /* out3 = p->out3; */
 
-    f = 0.5/csound->GetSr(csound);
     //f = 2*pi * (in2+1e-3)*0.5/samplerate;
 
     b4 =  c3/C2;
@@ -155,7 +157,7 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     }
     return OK;
 }
-#endif
+//#endif
 
 typedef struct {
       OPDS        h;
@@ -220,7 +222,7 @@ int vactrol_perf(CSOUND *csound, VACTROL* p)
     return OK;
 }
 
-#ifdef JPFF
+//#ifdef JPFF
 
 //Nonlinear control circuit maps V_b to R_f (Vactrol Resistance)
 
@@ -307,16 +309,16 @@ static double kontrolconvert(CSOUND *csound, double in1, double in2)
     //printf("%f,%f (%f/%f/%f) -> %f\n", in1, in2, A, B, pow(If, 1.4),  ans);
     return ans;
 }
-#endif
+//#endif
 
 
 #define S       sizeof
 
 static OENTRY buchla_localops[] = {
-#ifdef JPFF
+  //#ifdef JPFF
   { "buchla", S(BUCHLA), 0, 5, "a", "aakkaPP",
                             (SUBR)poly_LPG_init, NULL, (SUBR)poly_LPG_perf },
-#endif
+  //#endif
   { "vactrol", S(VACTROL), 0, 5, "a", "ajj",
                                  (SUBR)vactrol_init, NULL, (SUBR)vactrol_perf }
 };
