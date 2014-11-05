@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+ 
+    <title>Csound 6 Environment</title>
+    <options customize="both" allow-external-scripts="no"/>
+    <domains enable_anywhere="true" enable_localSystem="true"/>
+    <background file="background.tiff" scaling="proportional" alignment="bottomleft" />
+    <welcome file="Welcome.rtf" />
+    <readme file="ReadMe.rtf" />
+    <license file="License.rtf" />
+
+    <!-- <pkg-ref id="com.csound.csound6Environment.csoundApps"/> -->
+    <pkg-ref id="com.csound.csound6Environment.csoundApps64"/>
+    <!-- <pkg-ref id="com.csound.csound6Environment.supportLibs"/> -->
+    <!-- <pkg-ref id="com.csound.csound6Environment.csoundLib"/> -->
+    <pkg-ref id="com.csound.csound6Environment.csoundLib64"/>
+    <choices-outline>
+	    <!-- <line choice="com.csound.csound6Environment.csoundApps"/> -->
+            <line choice="com.csound.csound6Environment.csoundApps64"/>
+	    <!-- <line
+	    choice="com.csound.csound6Environment.supportLibs"/> -->
+	    <!-- <line choice="com.csound.csound6Environment.csoundLib"/> -->
+            <line choice="com.csound.csound6Environment.csoundLib64"/>
+    </choices-outline>
+
+    <!--    <choice id="com.csound.csound6Environment.csoundApps" 
+	visible="true"
+	title="Csound Command Line Applications (floats)">
+        <pkg-ref id="com.csound.csound6Environment.csoundApps"/>
+    </choice> -->
+    <choice id="com.csound.csound6Environment.csoundApps64"
+	visible="true"
+	title="Csound Command Line Applications (doubles)">
+        <pkg-ref id="com.csound.csound6Environment.csoundApps64"/>
+    </choice>
+    <!-- <choice id="com.csound.csound6Environment.supportLibs" 
+	visible="true"
+	title="Support Libraries">
+        <pkg-ref id="com.csound.csound6Environment.supportLibs"/>
+    </choice> -->
+    <!--    <choice id="com.csound.csound6Environment.csoundLib" 
+	visible="true"
+	title="Csound Library (floats)">
+        <pkg-ref id="com.csound.csound6Environment.csoundLib"/>
+    </choice> -->
+    <choice id="com.csound.csound6Environment.csoundLib64" 
+	visible="true"
+	title="Csound Library (doubles)">
+        <pkg-ref id="com.csound.csound6Environment.csoundLib64"/>
+    </choice>
+
+    <!-- <pkg-ref id="com.csound.csound6Environment.csoundApps" version="1" onConclusion="none" auth="root">CsoundApps.pkg</pkg-ref> -->
+    <pkg-ref id="com.csound.csound6Environment.csoundApps64" version="1" onConclusion="none" auth="root">CsoundApps64.pkg</pkg-ref>
+     <!--  <pkg-ref id="com.csound.csound6Environment.supportLibs"
+	  version="1" onConclusion="none"  auth="root">SupportLibs.pkg</pkg-ref> -->
+    <!-- <pkg-ref id="com.csound.csound6Environment.csoundLib" version="1" onConclusion="none" auth="root">CsoundLib.pkg</pkg-ref> -->
+    <pkg-ref id="com.csound.csound6Environment.csoundLib64" version="1" onConclusion="none" auth="root">CsoundLib64.pkg</pkg-ref>
+</installer-gui-script>
