@@ -439,7 +439,7 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
 {
     MYFLT **argp = p->argums;
     char  filename[MAXNAME];
-    int   nargs = csound->GetInputArgCnt(p) - 3;
+    int   nargs = csound->GetInputArgCnt(p) - 2; // this used to be -3 VL:06.11.14
     FILE  *file = NULL;
     int   (*err_func)(CSOUND *, INSDS *, const char *, ...);
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
@@ -447,6 +447,7 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
 
     if (strncmp(csound->GetOpcodeName(p), "ftsave", 6) != 0) {
       nargs--;
+      // printf("ftsave\n");
       ft_func = csound->FTFindP;
       err_func = csound->PerfError;
     }
