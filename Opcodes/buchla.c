@@ -26,7 +26,7 @@
 
 #define clip(a,b,c) (a<b ? b : a>c ? c : a)
 
-#ifdef JPFF
+//#ifdef JPFF
 
 typedef struct {
       OPDS        h;
@@ -34,7 +34,7 @@ typedef struct {
       MYFLT       *out1;
       //MYFLT     *out2, *out3;
   // inputs
-      MYFLT       *ain1, *ain2, *knt, *kin3, *ain4, *kin5, *kin6;
+      MYFLT       *ain1, *aenv, *knt, *kin3, *ain4, *ksw5, *ksw6;
   // Internal
       MYFLT       so, sx, sd, xo;
       double      f;
@@ -42,9 +42,12 @@ typedef struct {
 
 static double kontrolconvert(CSOUND *csound, double in1, double in2);
 
+static int warn = 0;
 int poly_LPG_init(CSOUND* csound, BUCHLA *p)
 {
     p->so = p->sx = p->sd = p->xo = 0.0;
+    if (warn==0) csound->Message(csound, "**** Experimental code ****\n");
+    warn++;
 #define C1 (1e-09)
 #define C2 (2.2e-10)
     p->f = 0.5/csound->GetSr(csound);
@@ -62,7 +65,7 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT e0dbfs = csound->Get0dBFS(csound);
 
-    if (*p->kin5 != FL(0.0))
+    if (*p->ksw5 != FL(0.0))
       c3 = 4.7e-09;
     else
       c3 = 0.0;
@@ -77,7 +80,6 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     /* out2 = p->out2; */
     /* out3 = p->out3; */
 
-    f = 0.5/csound->GetSr(csound);
     //f = 2*pi * (in2+1e-3)*0.5/samplerate;
 
     b4 =  c3/C2;
@@ -96,10 +98,11 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
       /* memset(&out3[nsmps], '\0', early*sizeof(MYFLT)); */
     }
 
-    if (*p->kin6 != FL(0.0)) {
+    if (*p->ksw6 != FL(0.0)) {
       double txo2 = tanh_xo*tanh_xo;
+      double knt = *p->knt;
       for (n=offset; n<nsmps; n++) {
-        rf = kontrolconvert(csound, (double)p->ain2[n], (double)*p->knt);
+        rf = kontrolconvert(csound, (double)p->aenv[n], knt);
         max_res = 1.0*(2.0*C1*r3+(C2+c3)*(r3+rf))/(c3*r3);
         a = clip(p->ain4[n],0.0,max_res);
         a1 =  1.0/(C1*rf);
@@ -126,9 +129,10 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
         /* out3[n] = (MYFLT)yd; */
       }
     }
-    else /* if (kin6 < 0.5) */ {
+    else /* if (ksw6 < 0.5) */ {
+      double knt = *p->knt;
       for (n=offset; n<nsmps; n++) {
-        rf = kontrolconvert(csound, p->ain2[n], *p->knt); /* from a vactrol operation WRONG */
+        rf = kontrolconvert(csound, (double)p->aenv[n], knt);
         max_res = 1.0*(2.0*C1*r3+(C2+c3)*(r3+rf))/(c3*r3);
         a1 =  1.0/(C1*rf);
         a2 = -(1/rf+1/r3)/C1;
@@ -153,7 +157,7 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     }
     return OK;
 }
-#endif
+//#endif
 
 typedef struct {
       OPDS        h;
@@ -218,7 +222,7 @@ int vactrol_perf(CSOUND *csound, VACTROL* p)
     return OK;
 }
 
-#ifdef JPFF
+//#ifdef JPFF
 
 //Nonlinear control circuit maps V_b to R_f (Vactrol Resistance)
 
@@ -305,16 +309,16 @@ static double kontrolconvert(CSOUND *csound, double in1, double in2)
     //printf("%f,%f (%f/%f/%f) -> %f\n", in1, in2, A, B, pow(If, 1.4),  ans);
     return ans;
 }
-#endif
+//#endif
 
 
 #define S       sizeof
 
 static OENTRY buchla_localops[] = {
-#ifdef JPFF
+  //#ifdef JPFF
   { "buchla", S(BUCHLA), 0, 5, "a", "aakkaPP",
                             (SUBR)poly_LPG_init, NULL, (SUBR)poly_LPG_perf },
-#endif
+  //#endif
   { "vactrol", S(VACTROL), 0, 5, "a", "ajj",
                                  (SUBR)vactrol_init, NULL, (SUBR)vactrol_perf }
 };
