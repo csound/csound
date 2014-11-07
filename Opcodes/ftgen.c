@@ -439,19 +439,18 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
 {
     MYFLT **argp = p->argums;
     char  filename[MAXNAME];
-    int   nargs = csound->GetInputArgCnt(p) - 2; // this used to be -3 VL:06.11.14
+    int   nargs = csound->GetInputArgCnt(p) - 3;
     FILE  *file = NULL;
     int   (*err_func)(CSOUND *, INSDS *, const char *, ...);
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
     void  *fd;
 
-    if (strncmp(csound->GetOpcodeName(p), "ftsave", 6) != 0) {
-      nargs--;
-      // printf("ftsave\n");
+    if (strncmp(csound->GetOpcodeName(p), "ftsave.", 7) != 0) {
       ft_func = csound->FTFindP;
       err_func = csound->PerfError;
     }
     else {
+      nargs = csound->GetInputArgCnt(p) - 2;
       ft_func = csound->FTnp2Find;
       err_func = myInitError;
     }
