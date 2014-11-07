@@ -228,7 +228,7 @@ int vactrol_perf(CSOUND *csound, VACTROL* p)
 
 static double kontrolconvert(CSOUND *csound, double in1, double in2)
 {
-    double R6, R1, R2, alpha, beta, bound1;
+    double R1, R2;
     double offset = 0.9999*in2 + 0.0001;
     double zerodb = csound->Get0dBFS(csound);
     double V3, Ia, If, Ifbound1, Ifbound2, Ifbound3;
@@ -263,16 +263,16 @@ static double kontrolconvert(CSOUND *csound, double in1, double in2)
     
 #define gamma (0.0001)
 
-    R6 = scale * R6max;
+#define R6 (scale * R6max)
 
-    alpha = 1 + (R6+R7) * (1/R3 + 1/R5);
-    beta = ((1/alpha) - 1)/(R6 + R7) - 1/R8;
+#define alpha (1.0 + (R6+R7) * (1/R3 + 1/R5))
+#define beta  (((1/alpha) - 1)/(R6 + R7) - 1/R8)
 
-    bound1 = 600* alpha *n*VT/(G*(R6+R7-1/(alpha*beta))); 
+#define bound1 (600* alpha *n*VT/(G*(R6+R7-1/(alpha*beta))))
 
     //Inputs
-    R1 = (1-offset)*R2max;
-    R2 = offset*R2max;
+    R1 = (1-offset);
+    R2 = offset;
             
     Ia = Vb/R5 + Vs/(R3*(1+R1/R2));
 
