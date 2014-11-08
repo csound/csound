@@ -29,38 +29,14 @@ translated to a native binary by the browser. To check whether your version of C
  {\tt chrome://nacl }
 \\
 
-Porting Csound to pNaCl involved three steps, following the SDK installation:
-\\
-\begin{enumerate}
-\item Building libsndfile as a pNaCl library
-\item Build Csound as a pNaCl library
-\item Developing the pNaCl module to provide an interface to the Csound library
-\end{enumerate}
-
-
-\section{Building Csound for pNaCl}
-
-\subsection{Building the libraries}
-
-With the NaCl SDK installed, and the NACL\_SDK\_ROOT set as per installation instructions and the libsndfile-nacl sources
-(\url{https://www.dropbox.com/s/ezfo9rmo5wtzptz/libsndfile-nacl.tar.gz}),
-you can use the make command to build libsndfile. To build the Csound library, run  the build.sh script in the ./nacl subdirectory 
-of the Csound 6 sources. When libraries are built, they are added to the SDK, and made readily available for applications to be
-built with them.
-
-\subsection{Building the pNaCl Csound module}
-
-Once the libraries are built, you can run make in the ./nacl/csound subdirectory of the Csound sources. This will build the
-nacl module in  pnacl/Release. There is a package.sh that can be used to copy and package all the relevant files for 
-HTML5 development. This package is self-contained, i.e. it does not have any dependencies, and it can be expanded
-elsewhere in your project application folders. 
-
+A binary package for PNaCl-Csound can be found in the Csound releases \url{http://sourceforge.net/projects/csound/files/csound6}
 
 \subsection{Running the example application}
 
-NaCl pages need to be served over http, which means they will not work when opened as local files. You need to start a local server,
-and this can be done with the python script httpd.py found in the \$NACL\_SDK\_ROOT/tools directory. If you start this script 
-in the top level directory of the pNaCl Csound package, then the example will be found at the {\tt http://localhost:5103} address.
+NaCl pages need to be served over http, which means they will not work
+when opened as local files. For this you will need a http server. A
+minimal one, written in Python, can be found in the NaCl SDK 
+\url{https://developer.chrome.com/native-client/sdk/download}.
 
 \section{Csound pNaCl module reference}
 

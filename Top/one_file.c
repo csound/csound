@@ -757,6 +757,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     int   started = FALSE;
     int   r;
     char    buffer[CSD_MAX_LINE_LEN];
+    int endtag_found = 0;
 
     /* Need to open in binary to deal with MIDI and the like. */
     fd = csoundFileOpenWithType(csound, &unf, CSFILE_STD, name, "rb", NULL,
@@ -783,6 +784,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       }
       else if (strstr(p, "</CsoundSynthesizer>") == p ||
                strstr(p, "</CsoundSynthesiser>") == p) {
+        endtag_found = 1;
         if (csound->scorestr != NULL)
           corfile_flush(csound->scorestr);
         *pname = STA(orcname);
@@ -870,6 +872,11 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       csound->oparms->FMidiin = 1;
     }
     csoundFileClose(csound, fd);
+    if(endtag_found == 0) {
+    csoundMessage(csound,
+		  Str("Could not find </CsoundSynthesizer> tag in CSD file.\n"));
+     result = FALSE;
+    }
     return result;
 }
 
