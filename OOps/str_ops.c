@@ -892,8 +892,9 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
 #endif
     char        buf[32];
 
-
-    ((char*) p->Sdst->data)[0] = '\0';
+    p->Sdst->data = csound->Calloc(csound,32);
+    p->Sdst->size = 32;
+    //((char*) p->Sdst->data)[0] = '\0';
     buf[0] = '\0';
     s = &(buf[0]);
     switch (opt) {
