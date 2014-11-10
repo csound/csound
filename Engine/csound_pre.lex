@@ -816,6 +816,9 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       mname[i++] = '_';
       if (UNLIKELY(i==mlen))
           mname = (char *)realloc(mname, mlen+=40);
+      mname[i++] = '_';
+      if (UNLIKELY(i==mlen))
+          mname = (char *)realloc(mname, mlen+=40);
       while (isspace((c = input(yyscanner))));
 
       while (isNameChar(c, i)) {
@@ -847,12 +850,12 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       if (UNLIKELY(c == EOF))
         csound->Die(csound, Str("define macro with args: unexpected EOF"));
       if (c=='$') {             /* munge macro name? */
-        int n = strlen(name0)+3;
+        int n = strlen(name0)+4;
         if (UNLIKELY(i+n >= size))
           mm->body = mrealloc(csound, mm->body, size += 100);
         mm->body[i] = '$'; mm->body[i+1] = '_';
         strcpy(&mm->body[i+2], name0);
-        mm->body[i + n - 1] = '_';
+        mm->body[i + n - 2] = '_'; mm->body[i + n - 1] = '_';
         i+=n;
         continue;
       }
@@ -1145,6 +1148,7 @@ MACRO *find_definition(MACRO *mmo, char *s)
     if (mm == NULL) {
       mm = mmo;
       s++;                      /* skip _ */
+      while (*s++!='_') { if (*s=='\0') return NULL; }
       while (*s++!='_') { if (*s=='\0') return NULL; }
       //printf("now try looking for %s\n", s);
       while (mm != NULL) {  /* Find the definition */
