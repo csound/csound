@@ -874,7 +874,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     csoundFileClose(csound, fd);
     if(endtag_found == 0) {
     csoundMessage(csound,
-		  Str("Could not find </CsoundSynthesizer> tag in CSD file.\n"));
+                  Str("Could not find </CsoundSynthesizer> tag in CSD file.\n"));
      result = FALSE;
     }
     return result;
