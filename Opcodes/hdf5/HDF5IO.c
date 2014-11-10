@@ -1032,7 +1032,8 @@ void HDF5Read_initialiseHDF5Dataset(CSOUND *csound, HDF5Read *self,
     HDF5ERROR(dataset->datasetID);
 }
 
-// Check opcode read types are compatible with the types written to the hdf5 dataset
+// Check opcode read types are compatible with the types written to
+// the hdf5 dataset 
 //
 // Get the written type from the hdf5 file
 // If the opcode read type for the dataset is an array and the write
@@ -1247,7 +1248,6 @@ void HDF5Read_initialiseScalarOutput(CSOUND *csound, HDF5Read *self,
         dataset->elementCount = 1;
       }
     } else {
-        
       hsize_t arrayDimensions[1] = {1};
       hsize_t offset[1] = {0};
       HDF5Read_readData(csound, self, dataset, offset,
