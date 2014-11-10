@@ -86,8 +86,8 @@ static int sinit(CSOUND *csound, DATASPACE *p)
       csound->AuxAlloc(csound, size, &p->framecount[i]);
     {
       int k=0;
-      for(k=0; k < decim; k++){
-	((int *)(p->framecount[i].auxp))[k] = k*N;
+      for (k=0; k < decim; k++) {
+        ((int *)(p->framecount[i].auxp))[k] = k*N;
       }
     }
     size = decim*sizeof(MYFLT)*N;
