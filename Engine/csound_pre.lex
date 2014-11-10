@@ -1148,8 +1148,9 @@ MACRO *find_definition(MACRO *mmo, char *s)
     if (mm == NULL) {
       mm = mmo;
       s++;                      /* skip _ */
+    looking:
       while (*s++!='_') { if (*s=='\0') return NULL; }
-      while (*s++!='_') { if (*s=='\0') return NULL; }
+      if (*s++!='_') { s--; goto looking; }
       //printf("now try looking for %s\n", s);
       while (mm != NULL) {  /* Find the definition */
         //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
