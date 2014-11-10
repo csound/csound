@@ -301,7 +301,7 @@ void HDF5Write_writeData(CSOUND *csound, HDF5Write *self,
     HDF5ERROR(filespace);
     HDF5ERROR(H5Sselect_hyperslab(filespace, H5S_SELECT_SET, dataset->offset,
                                   NULL, dataset->chunkDimensions, NULL));
-    hid_t memspace  = H5Screate_simple(dataset->rank,bb
+    hid_t memspace  = H5Screate_simple(dataset->rank,
                                        dataset->chunkDimensions, NULL);
     HDF5ERROR(memspace);
     HDF5ERROR(H5Dwrite(dataset->datasetID, self->hdf5File->floatSize,
@@ -474,7 +474,7 @@ void HDF5Write_checkArgumentSanity(CSOUND *csound, const HDF5Write *self)
             
         csound->Die(csound,
                     Str("hdf5write: Error, unable to identify type of "
-                        "argument %zd", i));
+                        "argument %zd"), i);
       }
     }
 }
