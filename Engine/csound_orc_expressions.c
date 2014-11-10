@@ -915,7 +915,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
           if (strlen(leftArgType) > 1 && leftArgType[1] == '[') {
               outType = get_array_sub_type(csound,
                                 currentArg->left->value->lexeme);
-	      if (init) outType = "i";
+              if (init) outType = "i";
           }
           else {
             // FIXME - this is hardcoded to "k" for now.  The problem
@@ -937,7 +937,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
 //              outType = resolve_opcode_get_outarg(csound, opentries,
 //                                                       argString);
 
-	    outType = init ? "i":"k";
+            outType = init ? "i":"k";
               // free(argString);
 
 //              if (outType == NULL) {
@@ -958,8 +958,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
         temp->next = currentArg->next;
 
         TREE* arraySet = create_opcode_token(csound,
-					     (init ? "##array_init":
-					             "##array_set"));
+                                             (init ? "##array_init":
+                                                     "##array_set"));
         arraySet->right = currentArg->left;
         arraySet->right->next =
           make_leaf(csound, temp->line, temp->locn,
@@ -969,7 +969,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
           currentArg->right; // TODO - check if this handles expressions
 
         anchor = appendToTree(csound, anchor, arraySet);
-	//print_tree(csound, "anchor", anchor);
+        //print_tree(csound, "anchor", anchor);
         currentArg = temp;
 
       }

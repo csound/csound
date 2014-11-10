@@ -377,13 +377,13 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
           if(ftp->flen < header.flen){
              if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
              goto err;
-	  }
-	}
+          }
+        }
         else {
          if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
           goto err;
          ftp = ft_func(csound, &fno_f);
-	}
+        }
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT));
         memset(ftp->ftable, 0, sizeof(MYFLT) * (ftp->flen + 1));
         for (j = 0; j <= ftp->flen; j++) {

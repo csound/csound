@@ -1414,7 +1414,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                   synterr(csound, Str("invalid name for instrument"));
                 }
                 //named_instr_alloc(csound,c,instrtxt, insno_priority,
-		//                engineState,0);
+                //                engineState,0);
                 /* VL 10.10.14: check for redefinition */
                 if (UNLIKELY(!named_instr_alloc(csound, c,
                                                 instrtxt, insno_priority,
