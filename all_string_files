@@ -252,6 +252,8 @@
 ./Opcodes/grain4.c
 ./Opcodes/grain4.h
 ./Opcodes/harmon.c
+./Opcodes/hdf5/HDF5IO.c
+./Opcodes/hdf5/HDF5IO.h
 ./Opcodes/hrtfearly.c
 ./Opcodes/hrtferX.c
 ./Opcodes/hrtferx.h
