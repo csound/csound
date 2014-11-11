@@ -54,6 +54,7 @@
 ./H/dumpf.h
 ./H/entry1.h
 ./H/envvar.h
+./H/extract.h
 ./H/fftlib.h
 ./H/fgens.h
 ./H/insert.h
@@ -67,6 +68,7 @@
 ./H/mp3dec.h
 ./H/mp3dec_internal.h
 ./H/mpadec.h
+./H/mpadec_internal.h
 ./H/namedins.h
 ./H/new_opts.h
 ./H/oload.h
@@ -96,6 +98,16 @@
 ./InOut/circularbuffer.c
 ./InOut/cmidi.c
 ./InOut/ipmidi.c
+./InOut/libmpadec/layer1.c
+./InOut/libmpadec/layer2.c
+./InOut/libmpadec/layer3.c
+./InOut/libmpadec/mp3dec.c
+./InOut/libmpadec/mp3dec_internal.h
+./InOut/libmpadec/mpadec.c
+./InOut/libmpadec/mpadec_config.h
+./InOut/libmpadec/mpadec_internal.h
+./InOut/libmpadec/synth.c
+./InOut/libmpadec/tables.c
 ./InOut/libsnd.c
 ./InOut/libsnd_u.c
 ./InOut/midifile.c
@@ -187,6 +199,7 @@
 ./Opcodes/bowedbar.c
 ./Opcodes/bowedbar.h
 ./Opcodes/brass.h
+./Opcodes/buchla.c
 ./Opcodes/butter.c
 ./Opcodes/cellular.c
 ./Opcodes/chua/ChuaOscillator.cpp
@@ -215,6 +228,7 @@
 ./Opcodes/dssi4cs/src/load.c
 ./Opcodes/dssi4cs/src/utils.h
 ./Opcodes/eqfil.c
+./Opcodes/exciter.c
 ./Opcodes/fareygen.c
 ./Opcodes/fareyseq.c
 ./Opcodes/faustgen.cpp
@@ -289,10 +303,12 @@
 ./Opcodes/moog1.c
 ./Opcodes/moog1.h
 ./Opcodes/mp3in.c
+./Opcodes/newarray.c
 ./Opcodes/newfils.c
 ./Opcodes/newfils.h
 ./Opcodes/nlfilt.c
 ./Opcodes/nlfilt.h
+./Opcodes/opencl/cladsynth.c
 ./Opcodes/oscbnk.c
 ./Opcodes/oscbnk.h
 ./Opcodes/p5glove.c

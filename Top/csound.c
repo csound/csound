@@ -1601,6 +1601,7 @@ static inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, INSDS
                   data->debug_instr_ptr = ip;
                   data->debug_opcode_ptr = opstart;
                   data->status = CSDEBUG_STATUS_STOPPED;
+                  data->cur_bkpt = bp_node;
                   csoundDebuggerBreakpointReached(csound);
                   bp_node->count = bp_node->skip;
                   return;
@@ -1683,7 +1684,7 @@ int kperf_debug(CSOUND *csound)
       if (UNLIKELY(!csoundYield(csound))) csound->LongJmp(csound, 1);
     }
 
-    if (data) { /* process new breakpoints*/
+    if (data) { /* process debug commands*/
       process_debug_buffers(csound, data);
     }
 
@@ -1708,12 +1709,13 @@ int kperf_debug(CSOUND *csound)
         csoundDebuggerBreakpointReached(csound);
       }
       if (command == CSDEBUG_CMD_CONTINUE && data->status == CSDEBUG_STATUS_STOPPED) {
+        if (data->cur_bkpt->skip <= 2) data->cur_bkpt->count = 2;
+        data->status = CSDEBUG_STATUS_RUNNING;
         if (data->debug_instr_ptr) {
           /* if not NULL, resume from last active */
           ip = data->debug_instr_ptr;
           data->debug_instr_ptr = NULL;
         }
-        data->status = CSDEBUG_STATUS_RUNNING;
       }
       if (command == CSDEBUG_CMD_NEXT && data->status == CSDEBUG_STATUS_STOPPED) {
           data->status = CSDEBUG_STATUS_NEXT;
@@ -1777,6 +1779,7 @@ int kperf_debug(CSOUND *csound)
                   /* skip of 0 or 1 has the same effect */
                   data->debug_instr_ptr = ip;
                   data->debug_opcode_ptr = NULL;
+                  data->cur_bkpt = bp_node;
                   data->status = CSDEBUG_STATUS_STOPPED;
                   csoundDebuggerBreakpointReached(csound);
                   bp_node->count = bp_node->skip;
