@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2014-08-03 18:55+0100\n"
+"PO-Revision-Date: 2014-11-10 22:48+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (USA)\n"
 "Language: \n"
@@ -6978,7 +6978,7 @@ msgstr ""
 
 #: Opcodes/hdf5/HDF5IO.c:598
 msgid "This should not happen, exiting"
-msgstr ""
+msgstr "This shouldn't happen, exiting"
 
 #: Opcodes/hdf5/HDF5IO.c:967
 msgid "hdf5read: Error, more input arguments than output arguments, exiting"
@@ -6992,7 +6992,7 @@ msgstr ""
 #, c-format
 msgid ""
 "hdf5read: Error, input argument %zd does not appear to be a string, exiting"
-msgstr ""
+msgstr "hdf5read: Error, input argument %zd doesn't appear to be a string, exiting"
 
 #: Opcodes/hdf5/HDF5IO.c:995
 #, c-format
@@ -7011,7 +7011,7 @@ msgstr ""
 
 #: Opcodes/hdf5/HDF5IO.c:1026
 msgid "hdf5read: Error, dataset does not exist or cannot be found in file"
-msgstr ""
+msgstr "hdf5read: Error, dataset doesn't exist or can't be found in file"
 
 #: Opcodes/hdf5/HDF5IO.c:1094
 msgid "hdf5read: Unable to read saved type of dataset, exiting"
