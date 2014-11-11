@@ -5663,30 +5663,32 @@ msgstr ""
 msgid "bformdec1 output array not initilised"
 msgstr ""
 
-#: Opcodes/arrays.c:102
+#: Opcodes/arrays.c:102 Opcodes/newarray.c:102
 msgid "Error: no sizes set for array initialization"
 msgstr ""
 
-#: Opcodes/arrays.c:159
+#: Opcodes/arrays.c:159 Opcodes/newarray.c:159
 msgid "Error: no indexes set for array set\n"
 msgstr ""
 
-#: Opcodes/arrays.c:164 Opcodes/arrays.c:211
+#: Opcodes/arrays.c:164 Opcodes/arrays.c:211 Opcodes/newarray.c:164
+#: Opcodes/newarray.c:211
 #, c-format
 msgid "Array dimension %d out of range for dimensions %d\n"
 msgstr ""
 
 #: Opcodes/arrays.c:171 Opcodes/arrays.c:180 Opcodes/arrays.c:218
-#: Opcodes/arrays.c:226
+#: Opcodes/arrays.c:226 Opcodes/newarray.c:171 Opcodes/newarray.c:180
+#: Opcodes/newarray.c:218 Opcodes/newarray.c:226
 #, c-format
 msgid "Array index %d out of range (0,%d) for dimension %d\n"
 msgstr ""
 
-#: Opcodes/arrays.c:208
+#: Opcodes/arrays.c:208 Opcodes/newarray.c:208
 msgid "Error: no indexes set for array get"
 msgstr ""
 
-#: Opcodes/arrays.c:291
+#: Opcodes/arrays.c:291 Opcodes/newarray.c:290
 msgid "Dimensions do not match in array arithmetic"
 msgstr ""
 
@@ -5698,12 +5700,22 @@ msgstr ""
 #: Opcodes/arrays.c:679 Opcodes/arrays.c:699 Opcodes/arrays.c:727
 #: Opcodes/arrays.c:754 Opcodes/arrays.c:803 Opcodes/arrays.c:809
 #: Opcodes/arrays.c:820 Opcodes/arrays.c:851 Opcodes/arrays.c:882
-#: Opcodes/arrays.c:903 Opcodes/arrays.c:975 Opcodes/pvsbasic.c:2371
-#: Opcodes/pvsbasic.c:2413
+#: Opcodes/arrays.c:903 Opcodes/arrays.c:975 Opcodes/newarray.c:298
+#: Opcodes/newarray.c:323 Opcodes/newarray.c:341 Opcodes/newarray.c:355
+#: Opcodes/newarray.c:375 Opcodes/newarray.c:412 Opcodes/newarray.c:433
+#: Opcodes/newarray.c:456 Opcodes/newarray.c:477 Opcodes/newarray.c:513
+#: Opcodes/newarray.c:551 Opcodes/newarray.c:571 Opcodes/newarray.c:588
+#: Opcodes/newarray.c:629 Opcodes/newarray.c:652 Opcodes/newarray.c:675
+#: Opcodes/newarray.c:695 Opcodes/newarray.c:722 Opcodes/newarray.c:749
+#: Opcodes/newarray.c:786 Opcodes/newarray.c:809 Opcodes/newarray.c:858
+#: Opcodes/newarray.c:864 Opcodes/newarray.c:875 Opcodes/newarray.c:906
+#: Opcodes/newarray.c:937 Opcodes/newarray.c:958 Opcodes/newarray.c:1030
+#: Opcodes/pvsbasic.c:2371 Opcodes/pvsbasic.c:2413
 msgid "array-variable not initialised"
 msgstr ""
 
-#: Opcodes/arrays.c:318 Opcodes/arrays.c:336
+#: Opcodes/arrays.c:318 Opcodes/arrays.c:336 Opcodes/newarray.c:317
+#: Opcodes/newarray.c:335
 msgid "Dimension does not match in array arithmetic"
 msgstr ""
 
@@ -5713,57 +5725,64 @@ msgid "division by zero in array-var at index %d"
 msgstr ""
 
 #: Opcodes/arrays.c:489 Opcodes/arrays.c:736 Opcodes/arrays.c:763
+#: Opcodes/newarray.c:486 Opcodes/newarray.c:731 Opcodes/newarray.c:758
+#: Opcodes/newarray.c:818
 #, c-format
 msgid "undefined power in array-var at index %d"
 msgstr ""
 
 #: Opcodes/arrays.c:630 Opcodes/arrays.c:653 Opcodes/arrays.c:676
+#: Opcodes/newarray.c:441 Opcodes/newarray.c:626 Opcodes/newarray.c:649
+#: Opcodes/newarray.c:672 Opcodes/newarray.c:702
 msgid "division by zero in array-var"
 msgstr ""
 
-#: Opcodes/arrays.c:885
+#: Opcodes/arrays.c:885 Opcodes/newarray.c:940
 msgid "array-variable not a vector"
 msgstr ""
 
-#: Opcodes/arrays.c:978
+#: Opcodes/arrays.c:978 Opcodes/newarray.c:1033
 msgid "array-variable dimensions do not match"
 msgstr ""
 
-#: Opcodes/arrays.c:980
+#: Opcodes/arrays.c:980 Opcodes/newarray.c:1035
 msgid "array-variable types do not match"
 msgstr ""
 
 #: Opcodes/arrays.c:1027 Opcodes/arrays.c:1180 Opcodes/arrays.c:1216
-#: Opcodes/arrays.c:1219
+#: Opcodes/arrays.c:1219 Opcodes/newarray.c:1082 Opcodes/newarray.c:1235
+#: Opcodes/newarray.c:1271 Opcodes/newarray.c:1274
 msgid "array-var not initialised"
 msgstr ""
 
-#: Opcodes/arrays.c:1030 Opcodes/arrays.c:1088
+#: Opcodes/arrays.c:1030 Opcodes/arrays.c:1088 Opcodes/newarray.c:1085
+#: Opcodes/newarray.c:1143
 msgid "No table for copy2ftab"
 msgstr ""
 
-#: Opcodes/arrays.c:1059
+#: Opcodes/arrays.c:1059 Opcodes/newarray.c:1114
 msgid "inconsistent start, end and increment parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:1119
+#: Opcodes/arrays.c:1119 Opcodes/newarray.c:1174
 msgid "inconsistent start, end parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:1122
+#: Opcodes/arrays.c:1122 Opcodes/newarray.c:1177
 msgid "slice larger than original size"
 msgstr ""
 
-#: Opcodes/arrays.c:1193
+#: Opcodes/arrays.c:1193 Opcodes/newarray.c:1248
 #, c-format
 msgid "%s not found"
 msgstr ""
 
-#: Opcodes/arrays.c:1224
+#: Opcodes/arrays.c:1224 Opcodes/newarray.c:1279
 msgid "map fn not found at k rate"
 msgstr ""
 
 #: Opcodes/arrays.c:1655 Opcodes/arrays.c:1688 Opcodes/arrays.c:1715
+#: Opcodes/newarray.c:1706 Opcodes/newarray.c:1739 Opcodes/newarray.c:1766
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr ""
 
@@ -6949,54 +6968,54 @@ msgstr ""
 msgid "HDF5IO: Illegal size for floating point type, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:462
+#: Opcodes/hdf5/HDF5IO.c:469
 msgid ""
 "hdf5write: Error, first argument does not appear to be a string, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:476
+#: Opcodes/hdf5/HDF5IO.c:483
 #, c-format
 msgid "hdf5write: Error, unable to identify type of argument %zd"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:598
+#: Opcodes/hdf5/HDF5IO.c:606
 msgid "This should not happen, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:967
+#: Opcodes/hdf5/HDF5IO.c:980
 msgid "hdf5read: Error, more input arguments than output arguments, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:973
+#: Opcodes/hdf5/HDF5IO.c:986
 msgid "hdf5read: Error, more output arguments than input arguments, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:990
+#: Opcodes/hdf5/HDF5IO.c:1003
 #, c-format
 msgid ""
 "hdf5read: Error, input argument %zd does not appear to be a string, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:995
+#: Opcodes/hdf5/HDF5IO.c:1008
 #, c-format
 msgid "hdf5read: Error, input argument %zd type is unknown, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:1001
+#: Opcodes/hdf5/HDF5IO.c:1014
 #, c-format
 msgid "hdf5read: Error, output argument %zd appears to be a string, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:1006
+#: Opcodes/hdf5/HDF5IO.c:1019
 #, c-format
 msgid "hdf5read: Error, output argument %zd type is unknown, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:1026
+#: Opcodes/hdf5/HDF5IO.c:1039
 msgid "hdf5read: Error, dataset does not exist or cannot be found in file"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:1094
+#: Opcodes/hdf5/HDF5IO.c:1108
 msgid "hdf5read: Unable to read saved type of dataset, exiting"
 msgstr ""
 
@@ -7348,6 +7367,10 @@ msgstr ""
 #: Opcodes/mp3in.c:157
 #, c-format
 msgid "mp3in: file sample rate (%d) != orchestra sr (%d)\n"
+msgstr ""
+
+#: Opcodes/newarray.c:794
+msgid "undefined power in array-var"
 msgstr ""
 
 #: Opcodes/nlfilt.c:130
@@ -10288,187 +10311,187 @@ msgstr ""
 msgid "Bad ThreadId"
 msgstr ""
 
-#: Top/csound.c:1887 Top/csound.c:1919 Top/csound.c:1947 Top/csound.c:1983
-#: Top/csound.c:4140
+#: Top/csound.c:1890 Top/csound.c:1922 Top/csound.c:1950 Top/csound.c:1986
+#: Top/csound.c:4143
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 
-#: Top/csound.c:1903 Top/csound.c:1932
+#: Top/csound.c:1906 Top/csound.c:1935
 msgid "Score finished in csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1926 Top/csound.c:4147
+#: Top/csound.c:1929 Top/csound.c:4150
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1954
+#: Top/csound.c:1957
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:1992
+#: Top/csound.c:1995
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2000
+#: Top/csound.c:2003
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2011
+#: Top/csound.c:2014
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2295
+#: Top/csound.c:2298
 msgid "WARNING: "
 msgstr ""
 
-#: Top/csound.c:2437
+#: Top/csound.c:2440
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2438
+#: Top/csound.c:2441
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2467 Top/csound.c:2504
+#: Top/csound.c:2470 Top/csound.c:2507
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2471 Top/csound.c:2508
+#: Top/csound.c:2474 Top/csound.c:2511
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2625
+#: Top/csound.c:2628
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2630 Top/csound.c:2664
+#: Top/csound.c:2633 Top/csound.c:2667
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2633 Top/csound.c:2667
+#: Top/csound.c:2636 Top/csound.c:2670
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2659
+#: Top/csound.c:2662
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2681
+#: Top/csound.c:2684
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:2843
+#: Top/csound.c:2846
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:2865
+#: Top/csound.c:2868
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3006 Top/main.c:354
+#: Top/csound.c:3009 Top/main.c:354
 msgid "setting dummy interface\n"
 msgstr ""
 
-#: Top/csound.c:3088
+#: Top/csound.c:3091
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:3110
+#: Top/csound.c:3113
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:3126
+#: Top/csound.c:3129
 msgid "Failed during csoundLoadModules"
-msgstr ""
-
-#: Top/csound.c:3141
-#, c-format
-msgid "Csound version %s beta (float samples) %s\n"
 msgstr ""
 
 #: Top/csound.c:3144
 #, c-format
-msgid "Csound version %s (float samples) %s\n"
+msgid "Csound version %s beta (float samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3149
+#: Top/csound.c:3147
 #, c-format
-msgid "Csound version %s beta (double samples) %s\n"
+msgid "Csound version %s (float samples) %s\n"
 msgstr ""
 
 #: Top/csound.c:3152
 #, c-format
+msgid "Csound version %s beta (double samples) %s\n"
+msgstr ""
+
+#: Top/csound.c:3155
+#, c-format
 msgid "Csound version %s (double samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3183
+#: Top/csound.c:3186
 msgid "Real time audio module name"
 msgstr ""
 
-#: Top/csound.c:3208
+#: Top/csound.c:3211
 msgid "Real time MIDI module name"
 msgstr ""
 
-#: Top/csound.c:3213
+#: Top/csound.c:3216
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:3219
+#: Top/csound.c:3222
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:3227
+#: Top/csound.c:3230
 msgid "Title tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3233
+#: Top/csound.c:3236
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3239
+#: Top/csound.c:3242
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3244
+#: Top/csound.c:3247
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3251
+#: Top/csound.c:3254
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3256
+#: Top/csound.c:3259
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3266
+#: Top/csound.c:3269
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:3272
+#: Top/csound.c:3275
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:3279
+#: Top/csound.c:3282
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3488
+#: Top/csound.c:3491
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:3518
+#: Top/csound.c:3521
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:4039
+#: Top/csound.c:4042
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:4070
+#: Top/csound.c:4073
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 
