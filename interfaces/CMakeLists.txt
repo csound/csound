@@ -16,7 +16,7 @@ if(BUILD_CXX_INTERFACE)
         csPerfThread.cpp
         cs_glue.cpp
         filebuilding.cpp)
-      set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} ${PTHREAD_LIBRARY})
+      set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} )
     set(libcsnd6_CFLAGS "")
     list(APPEND libcsnd6_LIBS ${CSOUNDLIB})
 
@@ -83,7 +83,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         if(WIN32)
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd6)
         else()
-            # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python 
+            # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
         endif()
 # Had:     	    SWIG_FLAGS "-threads"
