@@ -1,2 +1,2 @@
 #!/bin/sh
-cp dist/*.js examples/javascripts
+cp dist/* examples/javascripts
