@@ -26,4 +26,5 @@ cd ..
 rm -rf dist
 mkdir dist
 cp build/libcsound.js dist/
+cp build/libcsound.js.mem dist/
 cp src/CsoundObj.js dist/
