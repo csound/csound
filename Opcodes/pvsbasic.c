@@ -184,7 +184,9 @@ typedef struct {
   CSOUND *csound;
   void *cb;
   int async;
+#ifndef __EMSCRIPTEN__
   pthread_t thread;
+#endif
   int N;
   uint32 lastframe;
 }PVSFWRITE;
@@ -194,11 +196,13 @@ void *pvs_io_thread(void *pp);
 static int pvsfwrite_destroy(CSOUND *csound, void *pp)
 {
   PVSFWRITE *p = (PVSFWRITE *) pp;
+#ifndef __EMSCRIPTEN__
   if(p->async){
     p->async = 0;
     pthread_join(p->thread, NULL);
     csound->DestroyCircularBuffer(csound, p->cb);
   }
+#endif
   csound->PVOC_CloseFile(csound,p->pvfile);
   return OK;
 }
@@ -228,7 +232,7 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
       return csound->InitError(csound,
                                Str("pvsfwrite: could not open file %s\n"),
                                fname);
-
+#ifndef __EMSCRIPTEN__
     if(csound->realtime_audio_flag) {
       int bufframes = 16;
       p->csound = csound;
@@ -242,7 +246,9 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
                                            sizeof(MYFLT));
       pthread_create(&p->thread, NULL, pvs_io_thread, (void *) p);
       p->async = 1;
-    } else{
+    } else
+#endif
+    {
       p->async = 0;
     }
     csound->RegisterDeinitCallback(csound, p, pvsfwrite_destroy);

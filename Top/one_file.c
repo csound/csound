@@ -62,10 +62,10 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 {
 #define   nBytes (256)
     char lbuf[256];
-#if defined(LINUX) || defined(__MACH__)
-    struct stat tmp;
-#elif defined(WIN32)
+#if defined(WIN32)
     struct _stat tmp;
+#else
+    struct stat tmp;
 #endif
     do {
 #ifndef WIN32
@@ -114,11 +114,11 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
           } while (lbuf[i] != '\0');
       }
 #endif
-#if defined(LINUX) || defined(__MACH__)
+#if defined(WIN32)
+    } while (_stat(lbuf, &tmp) == 0);
+#else
       /* if the file already exists, try again */
     } while (stat(lbuf, &tmp) == 0);
-#elif defined(WIN32)
-    } while (_stat(lbuf, &tmp) == 0);
 #endif
     return strdup(lbuf);
 }

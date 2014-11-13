@@ -1111,6 +1111,11 @@ if(WIN32)
     add_definitions(-DWIN32)
 endif()
 
+check_function_exists(strlcat HAVE_STRLCAT)
+if(HAVE_STRTOK_R)
+    add_definitions(-DHAVE_STRLCAT)
+endif()
+
 # Locale-aware reading and printing
 check_function_exists(strtok_r HAVE_STRTOK_R)
 check_function_exists(strtod_l HAVE_STRTOD_L)

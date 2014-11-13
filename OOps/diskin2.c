@@ -390,6 +390,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
       memset(p->aOut_buf, 0, n);
       p->aOut_bufsize = CS_KSMPS;
 
+#ifndef __EMSCRIPTEN__
       if ((top=(DISKIN_INST **)csound->QueryGlobalVariable(csound,
                                                        "DISKIN_INST")) == NULL){
         csound->CreateGlobalVariable(csound, "DISKIN_INST", sizeof(DISKIN_INST *));
@@ -399,7 +400,9 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
         csound->CreateGlobalVariable(csound, "DISKIN_THREAD_START", sizeof(int));
         current = *top;
       }
-      else {
+      else 
+#endif
+      {
         current = *top;
         while(current->nxt != NULL) { /* find next empty slot in chain */
           current = current->nxt;
@@ -411,6 +414,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
       current->diskin = p;
       current->nxt = NULL;
 
+#ifndef __EMSCRIPTEN__
       if( *(start = csound->QueryGlobalVariable(csound,
                                                 "DISKIN_THREAD_START")) == 0) {
         void *diskin_io_thread(void *p);
@@ -419,6 +423,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
                                                                 "DISKIN_PTHREAD"),
                        NULL, diskin_io_thread, *top);
       }
+#endif
       csound->RegisterDeinitCallback(csound, p, diskin2_async_deinit);
       p->async = 1;
 
@@ -467,6 +472,7 @@ int diskin2_async_deinit(CSOUND *csound,  void *p){
    if(prv == NULL) *top = current->nxt;
    else prv->nxt = current->nxt;
 
+#ifndef __EMSCRIPTEN__
    if(*top == NULL) {
      int *start; pthread_t *pt;
 
@@ -479,6 +485,7 @@ int diskin2_async_deinit(CSOUND *csound,  void *p){
      csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START");
      csound->DestroyGlobalVariable(csound, "DISKIN_INST");
    }
+#endif
    csound->Free(csound, current);
    csound->DestroyCircularBuffer(csound, ((DISKIN2 *)p)->cb);
 
@@ -1491,6 +1498,7 @@ int diskin2_async_deinit_array(CSOUND *csound,  void *p){
    if(prv == NULL) *top = current->nxt;
    else prv->nxt = current->nxt;
 
+#ifndef __EMSCRIPTEN__
    if(*top == NULL) {
      int *start; pthread_t *pt;
 
@@ -1504,6 +1512,8 @@ int diskin2_async_deinit_array(CSOUND *csound,  void *p){
      csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START_ARRAY");
      csound->DestroyGlobalVariable(csound, "DISKIN_INST_ARRAY");
    }
+#endif
+
    csound->Free(csound, current);
    csound->DestroyCircularBuffer(csound, ((DISKIN2_ARRAY *)p)->cb);
 
@@ -1861,6 +1871,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
       memset(p->aOut_buf, 0, n);
       p->aOut_bufsize = CS_KSMPS;
 
+#ifndef __EMSCRIPTEN__
       if ((top=(DISKIN_INST **)
            csound->QueryGlobalVariable(csound,
                                        "DISKIN_INST_ARRAY")) == NULL){
@@ -1875,7 +1886,9 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
                                      "DISKIN_THREAD_START_ARRAY", sizeof(int));
         current = *top;
       }
-      else {
+      else 
+#endif
+      {
         current = *top;
         while(current->nxt != NULL) { /* find next empty slot in chain */
           current = current->nxt;
@@ -1887,6 +1900,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
       current->diskin =  (DISKIN2 *) p;
       current->nxt = NULL;
 
+#ifndef __EMSCRIPTEN__
       if (*(start =
             csound->QueryGlobalVariable(csound,
                                         "DISKIN_THREAD_START_ARRAY")) == 0) {
@@ -1896,6 +1910,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
                                                        "DISKIN_PTHREAD_ARRAY"),
                        NULL, diskin_io_thread_array, *top);
       }
+#endif
       csound->RegisterDeinitCallback(csound, (DISKIN2 *) p,
                                      diskin2_async_deinit_array);
       p->async = 1;
