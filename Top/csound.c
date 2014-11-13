@@ -917,7 +917,7 @@ static void destroy_all_instances(void)
 
 #if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \
                          !defined(__HAIKU__) && !defined(__BEOS__) && \
-                         !defined(__MACH__))
+                         !defined(__MACH__) && !defined(__EMSCRIPTEN__))
 static char *signal_to_string(int sig)
 {
     switch(sig) {
