@@ -1112,7 +1112,7 @@ if(WIN32)
 endif()
 
 check_function_exists(strlcat HAVE_STRLCAT)
-if(HAVE_STRTOK_R)
+if(HAVE_STRLCAT)
     add_definitions(-DHAVE_STRLCAT)
 endif()
 
