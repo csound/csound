@@ -166,7 +166,7 @@ static int fastabk(CSOUND *csound, FASTAB *p)
     else
       i = (int) *p->xndx;
     if (UNLIKELY(i > p->tablen || i<0)) {
-      return csound->PerfError(csound, p->h.insdshead, Str("tab off end"));
+      return csound->PerfError(csound, p->h.insdshead, Str("tab off end %i"), i);
     }
     *p->rslt =  p->table[i];
     return OK;
@@ -245,7 +245,7 @@ static int fastab(CSOUND *csound, FASTAB *p)
       for (i=offset; i<nsmps; i++) {
         int n = (int) (ndx[i] * xbmul);
         if (UNLIKELY(n > p->tablen || n<0)) {
-          return csound->PerfError(csound, p->h.insdshead, Str("tab off end"));
+          return csound->PerfError(csound, p->h.insdshead, Str("tab off end %d"),n);
         }
         rslt[i] = tab[n];
       }
@@ -254,7 +254,7 @@ static int fastab(CSOUND *csound, FASTAB *p)
       for (i=offset; i<nsmps; i++) {
         int n = (int) ndx[i];
         if (UNLIKELY(n > p->tablen || n<0)) {
-          return csound->PerfError(csound, p->h.insdshead, Str("tab off end"));
+          return csound->PerfError(csound, p->h.insdshead, Str("tab off end %d"),n);
         }
         rslt[i] = tab[n];
       }
