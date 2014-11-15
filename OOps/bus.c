@@ -1429,6 +1429,21 @@ int invalset_S(CSOUND *csound, INVAL *p)
     return OK;
 }
 
+int invalsetgo(CSOUND *csound, INVAL *p)
+{
+    int ans = invalset(csound, p);
+    if (ans==OK) ans = kinval(csound, p);
+    return ans;
+}
+
+int invalsetSgo(CSOUND *csound, INVAL *p)
+{
+    int ans = invalset_S(csound, p);
+    if (ans==OK) ans = kinval(csound, p);
+    return ans;
+}
+    
+
 int invalset_string(CSOUND *csound, INVAL *p)
 {
     int   err;
@@ -1610,3 +1625,18 @@ int outvalset(CSOUND *csound, OUTVAL *p)
 
     return OK;
 }
+
+int outvalsetgo(CSOUND *csound, OUTVAL *p)
+{
+    int ans = outvalset(csound,p);
+    if (ans==OK) ans = koutval(csound,p);
+    return ans;
+}
+
+int outvalsetSgo(CSOUND *csound, OUTVAL *p)
+{
+    int ans = outvalset_S(csound,p);
+    if (ans==OK) ans = koutval(csound,p);
+    return ans;
+}
+
