@@ -13,7 +13,7 @@ msgstr ""
 "PO-Revision-Date: 2014-11-13 14:13+0000\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
-"Language: \n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -312,9 +312,9 @@ msgid "invalid name for instrument"
 msgstr "nom d'instrument non valide"
 
 #: Engine/csound_orc_compile.c:1422
-#, fuzzy, c-format
+#, c-format
 msgid "instr %s redefined\n"
-msgstr "instr %s redéfini"
+msgstr "instr %s redéfini\n"
 
 #: Engine/csound_orc_compile.c:1454 Engine/csound_orc_compile.c:1477
 #, c-format
@@ -474,10 +474,11 @@ msgid "Line: %d\n"
 msgstr "Ligne : %d\n"
 
 #: Engine/csound_orc_semantics.c:1527
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "expression for until/while statement not a boolean expression, line %d\n"
-msgstr "l'expression de l'instruction until n'est pas booléenne, ligne %d\n"
+msgstr ""
+"l'expression de l'instruction until/while n'est pas booléenne, ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:1684
 #, c-format
@@ -683,9 +684,9 @@ msgid "%ld elements in %s\n"
 msgstr "%ld éléments dans %s\n"
 
 #: Engine/fgens.c:1378
-#, fuzzy, c-format
+#, c-format
 msgid "Number(s) after table full in GEN23, starting %f"
-msgstr "Encore des nombres à lire alors que la table est pleine dans GEN23"
+msgstr "Nombre(s) alors que la table est pleine dans GEN23, %f démarre"
 
 #: Engine/fgens.c:1415
 msgid "table size must be the same of source table"
@@ -3156,6 +3157,8 @@ msgid ""
 "not autoconnecting input channel %d \n"
 "(needs manual connection)"
 msgstr ""
+"pas de connexion automatique du canal d'entrée %d\n"
+"(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:590
 msgid "must specify a device name, not a number"
@@ -5936,7 +5939,7 @@ msgstr "Les dimensions ne correspondent pas dans l'arithmétique des tableaux"
 #: Opcodes/newarray.c:937 Opcodes/newarray.c:958 Opcodes/newarray.c:1030
 #: Opcodes/pvsbasic.c:2377 Opcodes/pvsbasic.c:2419
 msgid "array-variable not initialised"
-msgstr "array-variable : non initialisé"
+msgstr "tableau : non initialisé"
 
 #: Opcodes/arrays.c:318 Opcodes/arrays.c:336 Opcodes/newarray.c:317
 #: Opcodes/newarray.c:335
@@ -5944,40 +5947,40 @@ msgid "Dimension does not match in array arithmetic"
 msgstr "La dimension ne correspond pas dans l'arithmétique des tableaux"
 
 #: Opcodes/arrays.c:444 Opcodes/arrays.c:707
-#, fuzzy, c-format
+#, c-format
 msgid "division by zero in array-var at index %d"
-msgstr "division par zéro dans la array-var"
+msgstr "division par zéro dans le tableau à l'indice %d"
 
 #: Opcodes/arrays.c:489 Opcodes/arrays.c:736 Opcodes/arrays.c:763
 #: Opcodes/newarray.c:486 Opcodes/newarray.c:731 Opcodes/newarray.c:758
 #: Opcodes/newarray.c:818
 #, c-format
 msgid "undefined power in array-var at index %d"
-msgstr ""
+msgstr "puissance indéfinie dans le tableau à l'indice %d"
 
 #: Opcodes/arrays.c:630 Opcodes/arrays.c:653 Opcodes/arrays.c:676
 #: Opcodes/newarray.c:441 Opcodes/newarray.c:626 Opcodes/newarray.c:649
 #: Opcodes/newarray.c:672 Opcodes/newarray.c:702
 msgid "division by zero in array-var"
-msgstr "division par zéro dans la array-var"
+msgstr "division par zéro dans le tableau"
 
 #: Opcodes/arrays.c:885 Opcodes/newarray.c:940
 msgid "array-variable not a vector"
-msgstr "array-variable pas un vecteur"
+msgstr "tableau pas un vecteur"
 
 #: Opcodes/arrays.c:978 Opcodes/newarray.c:1033
 msgid "array-variable dimensions do not match"
-msgstr "les dimensions de la variable array ne correspondent pas"
+msgstr "les dimensions du tableau ne correspondent pas"
 
 #: Opcodes/arrays.c:980 Opcodes/newarray.c:1035
 msgid "array-variable types do not match"
-msgstr "les types de variable array ne correspondent pas"
+msgstr "les types du tableau ne correspondent pas"
 
 #: Opcodes/arrays.c:1027 Opcodes/arrays.c:1180 Opcodes/arrays.c:1216
 #: Opcodes/arrays.c:1219 Opcodes/newarray.c:1082 Opcodes/newarray.c:1235
 #: Opcodes/newarray.c:1271 Opcodes/newarray.c:1274
 msgid "array-var not initialised"
-msgstr "variable array : non initialisée"
+msgstr "tableau non initialisée"
 
 #: Opcodes/arrays.c:1030 Opcodes/arrays.c:1088 Opcodes/newarray.c:1085
 #: Opcodes/newarray.c:1143
@@ -6501,7 +6504,7 @@ msgid "tabw off end"
 msgstr "tabw hors-limite"
 
 #: Opcodes/gab/gab.c:169
-#, fuzzy, c-format
+#, c-format
 msgid "tab off end %i"
 msgstr "tab hors-limite %i"
 
@@ -6523,9 +6526,9 @@ msgid "tabw_i off end"
 msgstr "tabw_i hors-limite"
 
 #: Opcodes/gab/gab.c:248 Opcodes/gab/gab.c:257
-#, fuzzy, c-format
+#, c-format
 msgid "tab off end %d"
-msgstr "tab hors-limite"
+msgstr "tab hors-limite %d"
 
 #: Opcodes/gab/gab.c:270
 msgid "tab_init: incorrect table number"
@@ -7250,66 +7253,65 @@ msgid "harmon234: out of range\n"
 msgstr "harmon234 : hors limites\n"
 
 #: Opcodes/hdf5/HDF5IO.c:160
-#, fuzzy
 msgid "hdf5read: Error, file doesn't exist"
-msgstr ""
-"\n"
-"pvsys : le fichier n'existe pas"
+msgstr "hdf5read : erreur, le fichier n'existe pas"
 
 #: Opcodes/hdf5/HDF5IO.c:181
 msgid "HDF5IO: Illegal size for floating point type, exiting"
-msgstr ""
+msgstr "HDF5IO : taille illégale pour un type flottant, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:469
 msgid ""
 "hdf5write: Error, first argument does not appear to be a string, exiting"
 msgstr ""
+"hdf5write : erreur, le premier argument doit être une chaîne de caractères, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:483
 #, c-format
 msgid "hdf5write: Error, unable to identify type of argument %zd"
-msgstr ""
+msgstr "hdf5write : erreur, impossible d'identifier le type de l'argument %zd"
 
 #: Opcodes/hdf5/HDF5IO.c:606
 msgid "This should not happen, exiting"
-msgstr ""
+msgstr "Ceci ne devrait pas arriver, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:980
 msgid "hdf5read: Error, more input arguments than output arguments, exiting"
-msgstr ""
+msgstr "hdf5read : erreur, plus d'arguments en entrée qu'en sortie, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:986
 msgid "hdf5read: Error, more output arguments than input arguments, exiting"
-msgstr ""
+msgstr "hdf5read : erreur, plus d'arguments en sortie qu'en entrée, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1003
 #, c-format
 msgid ""
 "hdf5read: Error, input argument %zd does not appear to be a string, exiting"
 msgstr ""
+"hdf5read : erreur, l'arg d'entrée %zd n'est pas une chaîne de caractères, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1008
 #, c-format
 msgid "hdf5read: Error, input argument %zd type is unknown, exiting"
-msgstr ""
+msgstr "hdf5read : erreur, l'arg d'entrée %zd est de type inconnu, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1014
 #, c-format
 msgid "hdf5read: Error, output argument %zd appears to be a string, exiting"
-msgstr ""
+msgstr "hdf5read : erreur, l'arg de sortie %zd est une chaîne de caractères, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1019
 #, c-format
 msgid "hdf5read: Error, output argument %zd type is unknown, exiting"
-msgstr ""
+msgstr "hdf5read : erreur, l'arg de sortie %zd est de type inconnu, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1039
 msgid "hdf5read: Error, dataset does not exist or cannot be found in file"
-msgstr ""
+msgstr "hdf5read : erreur, ensemble de données inexistant ou introuvable dans le fichier"
 
 #: Opcodes/hdf5/HDF5IO.c:1108
 msgid "hdf5read: Unable to read saved type of dataset, exiting"
-msgstr ""
+msgstr "hdf5read : erreur, impossible de lire le type de l'ensemble de données, abandon"
 
 #: Opcodes/hrtfearly.c:301 Opcodes/hrtfopcodes.c:262
 #: Opcodes/hrtfopcodes.c:1447 Opcodes/hrtfreverb.c:283
@@ -7707,9 +7709,8 @@ msgstr ""
 "mp3in : taux d'échantillonnage du fichier (%d) != sr de l'orchestre (%d)\n"
 
 #: Opcodes/newarray.c:794
-#, fuzzy
 msgid "undefined power in array-var"
-msgstr "division par zéro dans la array-var"
+msgstr "puissance indéfinie dans le tableau"
 
 #: Opcodes/nlfilt.c:130
 msgid "nlfilt: not initialised"
@@ -10704,14 +10705,10 @@ msgid "cscoreFileGetCurrent: no fp current"
 msgstr "cscoreFileGetCurrent : pas de pointeur de fichier courant"
 
 #: Top/csdebug.c:44
-#, fuzzy
 msgid "Breakpoint callback not set. Breakpoint Reached."
-msgstr ""
-"csoundSetBreakpoint : impossible de fixer le point d'arrêt. Le débogueur "
-"n'est pas initialisé."
+msgstr "Fonction de point d'arrêt non définie. Point d'arrêt atteint."
 
 #: Top/csdebug.c:102
-#, fuzzy
 msgid ""
 "csoundSetBreakpoint: cannot set breakpoint. Debugger is not initialised."
 msgstr ""
@@ -10723,7 +10720,6 @@ msgid "csoundSetBreakpoint: line > 0 for breakpoint."
 msgstr "csoundSetBreakpoint : ligne > 0 pour un point d'arrêt."
 
 #: Top/csdebug.c:128 Top/csdebug.c:148
-#, fuzzy
 msgid ""
 "csoundRemoveBreakpoint: cannot remove breakpoint. Debugger is not "
 "initialised."
@@ -11363,10 +11359,8 @@ msgstr ""
 "La balise <CsoundSynthesizer> n'a pas été trouvée dans le fichier CSD.\n"
 
 #: Top/one_file.c:877
-#, fuzzy
 msgid "Could not find </CsoundSynthesizer> tag in CSD file.\n"
-msgstr ""
-"La balise <CsoundSynthesizer> n'a pas été trouvée dans le fichier CSD.\n"
+msgstr "Balise <CsoundSynthesizer> introuvable dans le fichier CSD.\n"
 
 #: Top/opcode.c:159
 msgid "Error creating opcode list"
@@ -13524,10 +13518,10 @@ msgstr "scot : %d erreurs.\n"
 #~ msgstr "Erreur en ouvrant le répertoire de plugin : %s"
 
 #~ msgid "tvar not initialised"
-#~ msgstr "array-variable : non initialisé"
+#~ msgstr "tableau non initialisé"
 
 #~ msgid "t-variable not initialised"
-#~ msgstr "t-variable non initialisée"
+#~ msgstr "tableau non initialisée"
 
 #~ msgid "mtable: incorrect table number"
 #~ msgstr "mtable : numéro de table incorrect"
