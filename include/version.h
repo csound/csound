@@ -24,7 +24,7 @@
 #ifndef CSOUND_VERSION_H
 #define CSOUND_VERSION_H
 
-#define VERSION "6.03.2"
+#define VERSION "6.04"
 
 /* Define to the full name of this package. */
 #define CS_PACKAGE_NAME     "Csound"
