@@ -30,16 +30,16 @@ CsoundObj = function()
 	//Wrap C functions
 	var _new = cwrap('CsoundObj_new', 'number', null);
 	var _compileCSD = cwrap('CsoundObj_compileCSD', null, ['number','string', 'number', 'number', 'number']);
-	var _process = cwrap('CsoundObj_process', 'number', ['number', 'number', 'number', 'number']);
-	var _getKsmps = cwrap('CsoundObj_getKsmps', 'number', 'number');
-	var _getNchnls = cwrap('CsoundObj_getNchnls', 'number', 'number');
-	var _getNchnlsInput = cwrap('CsoundObj_getNchnlsInput', 'number', 'number');
+	var _process = cwrap('CsoundObj_process', ['number'], ['number', 'number', 'number', 'number']);
+	var _getKsmps = cwrap('CsoundObj_getKsmps', ['number'], ['number']);
+	var _getNchnls = cwrap('CsoundObj_getNchnls',['number'], ['number']);
+	var _getNchnlsInput = cwrap('CsoundObj_getNchnlsInput', ['number'], ['number']);
 	var _setUsingAudioInput = cwrap('CsoundObj_setUsingAudioInput', null, ['number', 'number']);
-	var _stop = cwrap('CsoundObj_stop', null, 'number');
-	var _reset = cwrap('CsoundObj_reset', null, 'number');
+	var _stop = cwrap('CsoundObj_stop', null, ['number']);
+	var _reset = cwrap('CsoundObj_reset', null, ['number']);
 	var _setControlChannel = cwrap('CsoundObj_setControlChannel', null, ['number', 'string', 'number']);
-	var _compileOrc = cwrap('CsoundObj_compileOrc', 'number', ['number', 'string']);
-	var _readScore = Module.cwrap('CsoundObj_readScore', 'number', ['number', 'string']);
+	var _compileOrc = cwrap('CsoundObj_compileOrc', ['number'], ['number', 'string']);
+	var _readScore = Module.cwrap('CsoundObj_readScore', ['number'], ['number', 'string']);
 	//Create instance of CsoundObj C structure
 	var _self = _new();
 	var csoundControlChannels = new Array();
