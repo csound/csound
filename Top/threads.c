@@ -540,7 +540,9 @@ PUBLIC void csoundDestroyMutex(void *mutex_)
 
 static CS_NOINLINE void notImplementedWarning_(const char *name)
 {
-    fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
+#ifndef __EMSCRIPTEN__
+  fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
+#endif
 }
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
