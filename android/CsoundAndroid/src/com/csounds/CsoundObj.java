@@ -28,7 +28,6 @@ package com.csounds;
 import java.io.File;
 import java.util.ArrayList;
 
-import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -36,13 +35,8 @@ import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
-import android.widget.Button;
-import android.widget.SeekBar;
 
 import com.csounds.bindings.CsoundBinding;
-import com.csounds.bindings.motion.CsoundAccelerometerBinding;
-import com.csounds.bindings.ui.CsoundButtonBinding;
-import com.csounds.bindings.ui.CsoundSliderBinding;
 
 import csnd6.AndroidCsound;
 import csnd6.Csound;
@@ -73,7 +67,7 @@ public class CsoundObj {
 	int retVal = 0;
 	private boolean pause = false;
 	private CsoundCallbackWrapper callbacks;
-	private  Object mLock = new Object();
+	private Object mLock = new Object();
 	public MessagePoster messagePoster = null;
 
 	public CsoundObj() {
@@ -138,17 +132,19 @@ public class CsoundObj {
 			bindings.add(binding);
 		}
 	}
+
 	@JavascriptInterface
-	public /*synchronized*/ void inputMessage(String mess) {
-        synchronized (mLock) {
-		String message = new String(mess);
-		scoreMessages.add(message);
+	public/* synchronized */void inputMessage(String mess) {
+		synchronized (mLock) {
+			String message = new String(mess);
+			scoreMessages.add(message);
 		}
 	}
 
-	public /*synchronized*/ void removeBinding(CsoundBinding binding) {
-	synchronized (mLock){ bindings.remove(binding); }
-
+	public/* synchronized */void removeBinding(CsoundBinding binding) {
+		synchronized (mLock) {
+			bindings.remove(binding);
+		}
 	}
 
 	public CsoundMYFLTArray getInputChannelPtr(String channelName,
@@ -193,9 +189,17 @@ public class CsoundObj {
 	}
 
 	public void addListener(CsoundObjListener listener) {
-		listeners.add(listener);
+		synchronized(mLock) {
+			listeners.add(listener);
+		}
 	}
 
+	public void removeListener(CsoundObjListener listener) {
+		synchronized(mLock) {
+			listeners.remove(listener);
+		}
+	}
+	
 	public void startCsound(final File csdFile) {
 		stopped = false;
 		thread = new Thread() {
@@ -272,28 +276,36 @@ public class CsoundObj {
 		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundObj", "Return Value2: " + retVal);
 		if (retVal == 0) {
-			for (CsoundBinding cacheable : bindings) {
+			for (int i = 0; i < bindings.size(); i++) {
+				CsoundBinding cacheable = bindings.get(i);
 				cacheable.setup(this);
 			}
 			stopped = false;
-			for (CsoundBinding cacheable : bindings) {
+			for (int i = 0; i < bindings.size(); i++) {
+				CsoundBinding cacheable = bindings.get(i);
 				cacheable.updateValuesToCsound();
 			}
 
-			for (CsoundObjListener listener : listeners) {
+			for (int i = 0; i < listeners.size(); i++) {
+				CsoundObjListener listener = listeners.get(i);
 				listener.csoundObjStarted(this);
 			}
 			while (csound.PerformKsmps() == 0 && !stopped) {
 
 				synchronized (mLock) {
-					for (CsoundBinding cacheable : bindings) {
+					CsoundBinding cacheable;
+					String mess;
+					for (int i = 0; i < bindings.size(); i++) {
+						cacheable = bindings.get(i);
 						cacheable.updateValuesFromCsound();
 					}
-					for (String mess : scoreMessages) {
+					for (int i = 0; i < scoreMessages.size(); i++) {
+						mess = scoreMessages.get(i);
 						csound.InputMessage(mess);
 					}
 					scoreMessages.clear();
-					for (CsoundBinding cacheable : bindings) {
+					for (int i = 0; i < bindings.size(); i++) {
+						cacheable = bindings.get(i);
 						cacheable.updateValuesToCsound();
 					}
 				}
@@ -308,17 +320,23 @@ public class CsoundObj {
 			csound.Cleanup();
 			csound.Reset();
 
-			for (CsoundBinding cacheable : bindings) {
-				cacheable.cleanup();
-			}
-
-			for (CsoundObjListener listener : listeners) {
-				listener.csoundObjCompleted(this);
+			synchronized (mLock) {
+				for (int i = 0; i < bindings.size(); i++) {
+					CsoundBinding cacheable = bindings.get(i);
+					cacheable.cleanup();
+				}
+				for (int i = 0; i < listeners.size(); i++) {
+					CsoundObjListener listener = listeners.get(i);
+					listener.csoundObjCompleted(this);
+				}
 			}
 
 		} else {
-			for (CsoundObjListener listener : listeners) {
-				listener.csoundObjCompleted(this);
+			synchronized (mLock) {
+				for (int i = 0; i < listeners.size(); i++) {
+					CsoundObjListener listener = listeners.get(i);
+					listener.csoundObjCompleted(this);
+				}
 			}
 		}
 	}
@@ -342,10 +360,12 @@ public class CsoundObj {
 		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundObj", "Return Value2: " + retVal);
 		if (retVal == 0) {
-			for (CsoundBinding cacheable : bindings) {
-				cacheable.setup(this);
+			synchronized (mLock) {
+				for (int i = 0; i < bindings.size(); i++) {
+					CsoundBinding cacheable = bindings.get(i);
+					cacheable.setup(this);
+				}
 			}
-
 			int channelConfig = (csound.GetNchnls() == 2) ? AudioFormat.CHANNEL_OUT_STEREO
 					: AudioFormat.CHANNEL_OUT_MONO;
 
@@ -440,15 +460,18 @@ public class CsoundObj {
 					audioTrack.write(samples, 0, bufferSize);
 					counter = 0;
 				}
-				synchronized (this) {
-					for (CsoundBinding cacheable : bindings) {
+				synchronized (mLock) {
+					for (int i = 0; i < bindings.size(); i++) {
+						CsoundBinding cacheable = bindings.get(i);
 						cacheable.updateValuesFromCsound();
 					}
-					for (String mess : scoreMessages) {
+					for (int i = 0; i < scoreMessages.size(); i++) {
+						String mess = scoreMessages.get(i);
 						csound.InputMessage(mess);
 					}
 					scoreMessages.clear();
-					for (CsoundBinding cacheable : bindings) {
+					for (int i = 0; i < bindings.size(); i++) {
+						CsoundBinding cacheable = bindings.get(i);
 						cacheable.updateValuesToCsound();
 					}
 				}
@@ -483,15 +506,22 @@ public class CsoundObj {
 			csound.Stop();
 			csound.Cleanup();
 			csound.Reset();
-			for (CsoundBinding cacheable : bindings) {
-				cacheable.cleanup();
-			}
-			for (CsoundObjListener listener : listeners) {
-				listener.csoundObjCompleted(this);
+			synchronized (mLock) {
+				for (int i = 0; i < bindings.size(); i++) {
+					CsoundBinding cacheable = bindings.get(i);
+					cacheable.cleanup();
+				}
+				for (int i = 0; i < listeners.size(); i++) {
+					CsoundObjListener listener = listeners.get(i);
+					listener.csoundObjCompleted(this);
+				}
 			}
 		} else {
-			for (CsoundObjListener listener : listeners) {
-				listener.csoundObjCompleted(this);
+			synchronized (mLock) {
+				for (int i = 0; i < listeners.size(); i++) {
+					CsoundObjListener listener = listeners.get(i);
+					listener.csoundObjCompleted(this);
+				}
 			}
 		}
 	}
