@@ -41,6 +41,6 @@ for i in `ls ../cache | grep -v zip`; do
   tar xzvf ../cache/$i 
 done
 
-svn co https://portmedia.svn.sourceforge.net/svnroot/portmedia/portmidi/trunk portmidi-svn
+svn co https://svn.code.sf.net/p/portmedia/code/portmidi/trunk portmidi-svn
 
 cp -r flac-1.2.1 flac-1.2.1-i386
