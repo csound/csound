@@ -18,35 +18,41 @@
 <script src="javascripts/jquery.js"></script>
 <script>
 
+function createCsoundInstance() {
+    
+    csoundObj = new CsoundObj();
+    
+};
 
-var csoundObj = new CsoundObj();
+
+var csoundObj;
 
 var csdFileReader = new FileReader();
 var testFilePath = "test.csd";
 var textEditor;
 csdFileReader.onloadend = function()
 {
-	var data = new Uint8Array(csdFileReader.result);
-	var stream = FS.open(testFilePath, 'w+');
-	FS.write(stream, data, 0, data.length, 0);
-	FS.close(stream);
-	csoundObj.compileCSD(testFilePath);
+var data = new Uint8Array(csdFileReader.result);
+var stream = FS.open(testFilePath, 'w+');
+FS.write(stream, data, 0, data.length, 0);
+FS.close(stream);
+csoundObj.compileCSD(testFilePath);
 }
 compile = function()
 {
-	editorText = textEditor.getValue();
-	textBlob = new Blob([editorText], {type:"text/plain"});
-	csdFileReader.readAsArrayBuffer(textBlob);
+editorText = textEditor.getValue();
+textBlob = new Blob([editorText], {type:"text/plain"});
+csdFileReader.readAsArrayBuffer(textBlob);
 }
 
 perform = function()
 {
-	csoundObj.startAudioCallback();
+csoundObj.startAudioCallback();
 }
 
 stop = function()
 {
-	csoundObj.stopAudioCallback();
+csoundObj.stopAudioCallback();
 }
 
 var fileReader = new FileReader();
@@ -55,36 +61,37 @@ var file;
 
 
 fileReader.onload = (function(theFile) {
-		     return function(e) {
+return function(e) {
 
-		     console.log("Opened File %s", file.name);
-		     FS.createDataFile('/', file.name, e.target.result, true, false);
-		     };
-		     })(file)
+console.log("Opened File %s", file.name);
+FS.createDataFile('/', file.name, e.target.result, true, false);
+};
+})(file)
 
 function handleFileSelect(evt) {
 
-	var files = evt.target.files;
-	file = files[0];
-	console.log(file.name);
+var files = evt.target.files;
+file = files[0];
+console.log(file.name);
 
-	fileReader.readAsBinaryString(file);
+fileReader.readAsBinaryString(file);
 }
 
 FS.createDataFile('/', testFilePath, null, true, true);
 
 function setEditorContentsFromFile(filePath)
 {
-	fileString = fileToString(filePath);
-	textEditor.setValue(fileString);
+fileString = fileToString(filePath);
+textEditor.setValue(fileString);
 }
 
 var indexFilePath = "index.txt"
 
 function loadContent(elementSelector, sourceUrl) {
 
-	$(""+elementSelector+"").load(""+sourceUrl+"");
+$(""+elementSelector+"").load(""+sourceUrl+"");
 }
+
 </script>
 </head>
 <body>
@@ -97,6 +104,7 @@ function loadContent(elementSelector, sourceUrl) {
 		<div class="colleft">
 			<div class="col1">
 
+                <button class="button" onclick="createCsoundInstance();">Instantiate</button>
 				<button class="button" onclick="compile();">Compile</button>
 				<button class="button" onclick="perform();">Perform</button>
 				<button class="button" onclick="stop();">Stop</button>
