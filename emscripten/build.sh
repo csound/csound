@@ -19,7 +19,7 @@ emcc -s LINKABLE=1 ../src/CsoundObj.c -I../../include -Iinclude -o CsoundObj.bc
 # !/bin/bash
 
 # build_libcsound64.js.sh
-emcc -O2 -s LINKABLE=1 -s ASM_JS=1 -s VERBOSE=1 -s EXPORTED_FUNCTIONS="['_CsoundObj_new', '_CsoundObj_compileCSD', '_CsoundObj_process', '_CsoundObj_compileOrc', '_CsoundObj_readScore', '_CsoundObj_test', '_CsoundObj_getKsmps','_CsoundObj_getNchnls', '_CsoundObj_getNchnlsInput', '_CsoundObj_stop', '_CsoundObj_reset', '_CsoundObj_start', '_CsoundObj_setControlChannel', '_CsoundObj_setUsingAudioInput']"  CsoundObj.bc libcsound64.a ../deps/libsndfile-1.0.25/src/.libs/libsndfile.a -o libcsound.js
+emcc -O3 --post-js ../src/post.js -s LINKABLE=1 -s ASM_JS=1 -s VERBOSE=1 -s EXPORTED_FUNCTIONS="['_CsoundObj_new', '_CsoundObj_compileCSD', '_CsoundObj_process', '_CsoundObj_compileOrc', '_CsoundObj_readScore', '_CsoundObj_test', '_CsoundObj_getKsmps','_CsoundObj_getNchnls', '_CsoundObj_getNchnlsInput', '_CsoundObj_stop', '_CsoundObj_reset', '_CsoundObj_start', '_CsoundObj_setControlChannel', '_CsoundObj_setUsingAudioInput']"  CsoundObj.bc libcsound64.a ../deps/libsndfile-1.0.25/src/.libs/libsndfile.a -o libcsound.js
 
 
 cd ..
