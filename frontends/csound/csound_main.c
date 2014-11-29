@@ -23,10 +23,11 @@
 
 #include "csound.h"
 #include <stdio.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
-#ifdef HAVE_UNISTD_H
+#if defined(HAVE_UNISTD_H) || defined(MACOSX)
 #include <unistd.h>
 #endif
 #ifdef GNU_GETTEXT
@@ -66,6 +67,185 @@ static void msg_callback(CSOUND *csound,
 static void nomsg_callback(CSOUND *csound,
   int attr, const char *format, va_list args){ return; }
 
+
+#if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \
+                         !defined(__HAIKU__) && !defined(__BEOS__) && \
+                         !defined(__MACH__) && !defined(__EMSCRIPTEN__))
+static char *signal_to_string(int sig)
+{
+    switch(sig) {
+#ifdef SIGHUP
+    case SIGHUP:
+      return "Hangup";
+#endif
+#ifdef SIGINT
+    case SIGINT:
+      return "Interrupt";
+#endif
+#ifdef SIGQUIT
+    case SIGQUIT:
+      return "Quit";
+#endif
+#ifdef SIGILL
+    case SIGILL:
+      return "Illegal instruction";
+#endif
+#ifdef SIGTRAP
+    case SIGTRAP:
+      return "Trace trap";
+#endif
+#ifdef SIGABRT
+    case SIGABRT:
+      return "Abort";
+#endif
+#ifdef SIGBUS
+    case SIGBUS:
+      return "BUS error";
+#endif
+#ifdef SIGFPE
+    case SIGFPE:
+      return "Floating-point exception";
+#endif
+#ifdef SIGUSR1
+    case SIGUSR1:
+      return "User-defined signal 1";
+#endif
+#ifdef SIGSEGV
+    case SIGSEGV:
+      return "Segmentation violation";
+#endif
+#ifdef SIGUSR2
+    case SIGUSR2:
+      return "User-defined signal 2";
+#endif
+#ifdef SIGPIPE
+    case SIGPIPE:
+      return "Broken pipe";
+#endif
+#ifdef SIGALRM
+    case SIGALRM:
+      return "Alarm clock";
+#endif
+#ifdef SIGTERM
+    case SIGTERM:
+      return "Termination";
+#endif
+#ifdef SIGSTKFLT
+    case SIGSTKFLT:
+      return "???";
+#endif
+#ifdef SIGCHLD
+    case SIGCHLD:
+      return "Child status has changed";
+#endif
+#ifdef SIGCONT
+    case SIGCONT:
+      return "Continue";
+#endif
+#ifdef SIGSTOP
+    case SIGSTOP:
+      return "Stop, unblockable";
+#endif
+#ifdef SIGTSTP
+    case SIGTSTP:
+      return "Keyboard stop";
+#endif
+#ifdef SIGTTIN
+    case SIGTTIN:
+      return "Background read from tty";
+#endif
+#ifdef SIGTTOU
+    case SIGTTOU:
+      return "Background write to tty";
+#endif
+#ifdef SIGURG
+    case SIGURG:
+      return "Urgent condition on socket ";
+#endif
+#ifdef SIGXCPU
+    case SIGXCPU:
+      return "CPU limit exceeded";
+#endif
+#ifdef SIGXFSZ
+    case SIGXFSZ:
+      return "File size limit exceeded ";
+#endif
+#ifdef SIGVTALRM
+    case SIGVTALRM:
+      return "Virtual alarm clock ";
+#endif
+#ifdef SIGPROF
+    case SIGPROF:
+      return "Profiling alarm clock";
+#endif
+#ifdef SIGWINCH
+    case SIGWINCH:
+      return "Window size change ";
+#endif
+#ifdef SIGIO
+    case SIGIO:
+      return "I/O now possible";
+#endif
+#ifdef SIGPWR
+    case SIGPWR:
+      return "Power failure restart";
+#endif
+    default:
+      return "???";
+    }
+}
+
+static void psignal(int sig, char *str)
+{
+    fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
+}
+#elif defined(__BEOS__)
+static void psignal(int sig, char *str)
+{
+    fprintf(stderr, "%s: %s\n", str, strsignal(sig));
+}
+#endif
+
+static CSOUND *_csound = NULL;
+static int _result = 0;
+static void signal_handler(int sig)
+{
+#if defined(SIGPIPE)
+    if (sig == (int) SIGPIPE) {
+      psignal(sig, "Csound ignoring SIGPIPE");
+      return;
+    }
+#endif
+    psignal(sig, "\ncsound command");
+    if ((sig == (int) SIGINT || sig == (int) SIGTERM)) {
+      if(_csound) csoundStop(_csound);
+      _result = -1;
+      return;
+    }
+    exit(1);
+}
+
+static const int sigs[] = {
+#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__)
+  SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT, SIGBUS,
+  SIGFPE, SIGSEGV, SIGPIPE, SIGTERM, SIGXCPU, SIGXFSZ,
+#elif defined(WIN32)
+  SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM,
+#elif defined(__EMX__)
+  SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS, SIGFPE,
+  SIGUSR1, SIGSEGV, SIGUSR2, SIGPIPE, SIGTERM, SIGCHLD,
+#endif
+  -1
+};
+
+static void install_signal_handler(void)
+{
+    unsigned int i;
+    for (i = 0; sigs[i] >= 0; i++) {
+      signal(sigs[i], signal_handler);
+    }
+}
+
 int main(int argc, char **argv)
 {
     CSOUND  *csound;
@@ -74,7 +254,9 @@ int main(int argc, char **argv)
 #ifdef GNU_GETTEXT
     const char* lang;
 #endif
-
+    install_signal_handler();
+    csoundInitialize(CSOUNDINIT_NO_SIGNAL_HANDLER);
+    
     /* set stdout to non buffering if not outputing to console window */
     if (!isatty(fileno(stdout))) {
 #if !defined(WIN32)
@@ -128,16 +310,22 @@ int main(int argc, char **argv)
 
     /*  Create Csound. */
     csound = csoundCreate(NULL);
+    _csound = csound;
 
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
 
      if(!result) csoundPerform(csound);
+
     /* delete Csound instance */
      csoundDestroy(csound);
+     _csound = NULL;
     /* close log file */
     if (logFile != NULL)
       fclose(logFile);
+
+    if(result == 0 && _result != 0) result = _result;
+    // printf("csound returned with value: %d \n", result); 
 #if 0
     /* remove global configuration variables, if there are any */
     csoundDeleteAllGlobalConfigurationVariables();
