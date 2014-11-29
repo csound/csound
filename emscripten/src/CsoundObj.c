@@ -25,28 +25,26 @@ CsoundObj *CsoundObj_new()
 
 void CsoundObj_compileCSD(CsoundObj *self,
 		char *filePath,
-		uint32_t samplerate,
-		double controlrate,
-		uint32_t bufferSize)
-{ 
-	char samplerateArgument[10] = {0};
-	char controlrateArgument[10] = {0};
-	char bufferSizeArgument[10] = {0};
+		uint32_t samplerate)
+{
+	char samplerateArgument[20] = {0};
+	char controlrateArgument[20] = {0};
+	char bufferSizeArgument[20] = {0};
+    double controlRate = (double)samplerate/256.;
 	sprintf((char *)&samplerateArgument, "-r %d", samplerate);
-	sprintf((char *)&controlrateArgument, "-k %f", controlrate);
-	sprintf((char *)&bufferSizeArgument, "-b %d", bufferSize);
+	sprintf((char *)&controlrateArgument, "-k %f", controlRate);
+	sprintf((char *)&bufferSizeArgument, "-b %d", 256);
 
-	char *argv[5] = {
+	char *argv[6] = {
 		"csound",
+        "-odac",
 		samplerateArgument,
 		controlrateArgument,
 		bufferSizeArgument,
 		filePath
 	};
-
-	printf("File name is %s\n", filePath);
-
-	int result = csoundCompile(self->csound, 5, argv);
+    
+	int result = csoundCompile(self->csound, 6, argv);
 
 	if (result == 0) {
 
