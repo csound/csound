@@ -188,10 +188,10 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 			}
 			return true;
 		case R.id.itemHelp:
-			goToUrl("http://www.csounds.com/manual/html/index.html");
+			goToUrl("http://csound.github.io/docs/manual/indexframes.html");
 			return true;
 		case R.id.itemAbout:
-			goToUrl("http://www.csounds.com/");
+			goToUrl("http://csound.github.io/");
 			return true;
 		case R.id.itemSettings:
 			Intent intent = new Intent(this, SettingsActivity.class);
