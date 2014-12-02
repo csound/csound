@@ -1365,8 +1365,8 @@ msgstr "\t... fait\n"
 msgid "playing from cscore.srt\n"
 msgstr "exécution à partir de cscore.srt\n"
 
-#: Engine/musmon.c:347 Engine/musmon.c:509 Engine/musmon.c:1137
-#: Engine/musmon.c:1349
+#: Engine/musmon.c:347 Engine/musmon.c:507 Engine/musmon.c:1135
+#: Engine/musmon.c:1347
 #, c-format
 msgid "SECTION %d:\n"
 msgstr "SECTION %d :\n"
@@ -1376,11 +1376,11 @@ msgstr "SECTION %d :\n"
 msgid "%c\tbeep!\n"
 msgstr "%c\tsignal sonore !\n"
 
-#: Engine/musmon.c:462
+#: Engine/musmon.c:460
 msgid "end of score.\t\t   overall amps:"
 msgstr "fin de la partition.\t\t   amplitudes maximales :"
 
-#: Engine/musmon.c:473
+#: Engine/musmon.c:471
 msgid ""
 "\n"
 "\t   overall samples out of range:"
@@ -1388,7 +1388,7 @@ msgstr ""
 "\n"
 "\t   Nombre d'échantillons hors limites :"
 
-#: Engine/musmon.c:477
+#: Engine/musmon.c:475
 #, c-format
 msgid ""
 "\n"
@@ -1397,108 +1397,108 @@ msgstr ""
 "\n"
 "%d erreurs dans l'exécution\n"
 
-#: Engine/musmon.c:479
+#: Engine/musmon.c:477
 msgid "end of performance"
 msgstr "fin de l'exécution"
 
-#: Engine/musmon.c:492
+#: Engine/musmon.c:490
 msgid "no sound written to disk\n"
 msgstr "aucun son n'a été écrit sur le disque\n"
 
-#: Engine/musmon.c:585 Engine/musmon.c:631
+#: Engine/musmon.c:583 Engine/musmon.c:629
 msgid "\t number of samples out of range:"
 msgstr "\t nombre d'échantillons hors limites :"
 
-#: Engine/musmon.c:624
+#: Engine/musmon.c:622
 #, c-format
 msgid "end of section %d\t sect peak amps:"
 msgstr "fin de la section %d\tamplitudes maximales de la section :"
 
-#: Engine/musmon.c:626
+#: Engine/musmon.c:624
 msgid "end of lplay event list\t      peak amps:"
 msgstr "fin de la liste d'évènements lplay\t      amplitudes maximales :"
 
-#: Engine/musmon.c:691 Engine/musmon.c:718
+#: Engine/musmon.c:689 Engine/musmon.c:716
 #, c-format
 msgid " - note deleted. instr %s undefined"
 msgstr " - note affacée. instr %s non défini"
 
-#: Engine/musmon.c:695
+#: Engine/musmon.c:693
 #, c-format
 msgid "Setting instrument %s %s\n"
 msgstr "Lancement de l'instrument  %s %s\n"
 
-#: Engine/musmon.c:696 Engine/musmon.c:710
+#: Engine/musmon.c:694 Engine/musmon.c:708
 msgid "off"
 msgstr "arrêt"
 
-#: Engine/musmon.c:696 Engine/musmon.c:710
+#: Engine/musmon.c:694 Engine/musmon.c:708
 msgid "on"
 msgstr "marche"
 
-#: Engine/musmon.c:705 Engine/musmon.c:747
+#: Engine/musmon.c:703 Engine/musmon.c:745
 #, c-format
 msgid " - note deleted. instr %d(%d) undefined"
 msgstr " - note affacée. instr %d(%d) non défini"
 
-#: Engine/musmon.c:709
+#: Engine/musmon.c:707
 #, c-format
 msgid "Setting instrument %d %s\n"
 msgstr "Lancement de l'instrument %d %s\n"
 
-#: Engine/musmon.c:737
+#: Engine/musmon.c:735
 #, c-format
 msgid " - note deleted.  i%d (%s) had %d init errors"
 msgstr " - note affacée.  i%d (%s) a eu %d erreurs d'initialisation"
 
-#: Engine/musmon.c:768
+#: Engine/musmon.c:766
 #, c-format
 msgid " - note deleted.  i%d had %d init errors"
 msgstr " - note affacée.  i%d a eu %d erreurs d'initialisation"
 
-#: Engine/musmon.c:789
+#: Engine/musmon.c:787
 #, c-format
 msgid "time advanced %5.3f beats by score request\n"
 msgstr "le temps a avancé de %5.3f pulsations à la demande de la partition\n"
 
-#: Engine/musmon.c:807
+#: Engine/musmon.c:805
 #, c-format
 msgid "\t\t   T%7.3f - note deleted. "
 msgstr "\t\t   T%7.3f - note affacée. "
 
-#: Engine/musmon.c:811
+#: Engine/musmon.c:809
 #, c-format
 msgid "instr %s had %d init errors\n"
 msgstr "l'instr %s a eu %d erreurs d'initialisation\n"
 
-#: Engine/musmon.c:814
+#: Engine/musmon.c:812
 #, c-format
 msgid "instr %d had %d init errors\n"
 msgstr "l'instr %d a eu %d erreurs d'initialisation\n"
 
-#: Engine/musmon.c:911
+#: Engine/musmon.c:909
 msgid "terminating.\n"
 msgstr "terminaison.\n"
 
-#: Engine/musmon.c:998
+#: Engine/musmon.c:996
 #, c-format
 msgid "error in score.  illegal opcode %c (ASCII %d)\n"
 msgstr "erreur dans la partition.  L'opcode %c (ASCII %d) est illégal\n"
 
-#: Engine/musmon.c:1261
+#: Engine/musmon.c:1259
 msgid "insert_score_event(): invalid instrument number or name\n"
 msgstr "insert_score_event() : numéro ou nom d'instrument non valide\n"
 
-#: Engine/musmon.c:1281
+#: Engine/musmon.c:1279
 #, c-format
 msgid "insert_score_event(): unknown opcode: %c\n"
 msgstr "insert_score_event() : opcode inconnu : %c\n"
 
-#: Engine/musmon.c:1304
+#: Engine/musmon.c:1302
 msgid "insert_score_event(): insufficient p-fields\n"
 msgstr "insert_score_event() : pas assez de p-champs\n"
 
-#: Engine/musmon.c:1358
+#: Engine/musmon.c:1356
 msgid "cannot rewind score: no score in memory \n"
 msgstr "impossible de reprendre la partition : pas de partition en mémoire\n"
 
@@ -3970,11 +3970,11 @@ msgstr "compileorc : impossible de lire %s\n"
 msgid "diskin2: invalid number of channels"
 msgstr "diskin2 : nombre de canaux non valide"
 
-#: OOps/diskin2.c:289 OOps/diskin2.c:1755
+#: OOps/diskin2.c:289 OOps/diskin2.c:1745
 msgid "diskin2: unknown sample format"
 msgstr "diskin2 : format d'échantillon inconnu"
 
-#: OOps/diskin2.c:304 OOps/diskin2.c:1770
+#: OOps/diskin2.c:304 OOps/diskin2.c:1760
 #, c-format
 msgid "diskin2: %s: failed to open file"
 msgstr "diskin2 : %s: l'ouverture du fichier a échoué"
@@ -3986,14 +3986,14 @@ msgstr ""
 "diskin2 : le nombre d'arguments en sortie est en contradiction avec le "
 "nombre de canaux du fichier"
 
-#: OOps/diskin2.c:346 OOps/diskin2.c:1827
+#: OOps/diskin2.c:346 OOps/diskin2.c:1817
 #, c-format
 msgid "diskin2: warning: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 "diskin2 : avertissement: taux d'échantillonnage (%d) du fichier != sr (%d) "
 "de l'orchestre\n"
 
-#: OOps/diskin2.c:432 OOps/diskin2.c:1920
+#: OOps/diskin2.c:427 OOps/diskin2.c:1905
 #, c-format
 msgid ""
 "diskin2: opened (asynchronously) '%s':\n"
@@ -4002,7 +4002,7 @@ msgstr ""
 "diskin2 : '%s' ouvert (asynchrone) :\n"
 "          %d Hz, %d voix, %ld trames d'échantillons\n"
 
-#: OOps/diskin2.c:446 OOps/diskin2.c:1934
+#: OOps/diskin2.c:441 OOps/diskin2.c:1919
 #, c-format
 msgid ""
 "diskin2: opened '%s':\n"
@@ -4011,30 +4011,30 @@ msgstr ""
 "diskin2 : '%s' ouvert :\n"
 "          %d Hz, %d voix, %ld trames d'échantillons\n"
 
-#: OOps/diskin2.c:527 OOps/diskin2.c:713 OOps/diskin2.c:909
-#: OOps/diskin2.c:1539 OOps/diskin2.c:1966 OOps/diskin2.c:2159
+#: OOps/diskin2.c:520 OOps/diskin2.c:706 OOps/diskin2.c:902
+#: OOps/diskin2.c:1529 OOps/diskin2.c:1951 OOps/diskin2.c:2144
 msgid "diskin2: not initialised"
 msgstr "diskin2 : non initialisé"
 
-#: OOps/diskin2.c:693 OOps/diskin2.c:884 OOps/diskin2.c:1710
-#: OOps/diskin2.c:2132
+#: OOps/diskin2.c:686 OOps/diskin2.c:877 OOps/diskin2.c:1700
+#: OOps/diskin2.c:2117
 msgid "diskin2: file descriptor closed or invalid\n"
 msgstr "diskin2 : descripteur de fichier fermé ou non valide\n"
 
-#: OOps/diskin2.c:1017
+#: OOps/diskin2.c:1010
 msgid "soundin: invalid number of channels"
 msgstr "soundin : nombre de canaux non valide"
 
-#: OOps/diskin2.c:1039
+#: OOps/diskin2.c:1032
 msgid "soundin: unknown sample format"
 msgstr "soundin : format d'échantillon inconnu"
 
-#: OOps/diskin2.c:1060
+#: OOps/diskin2.c:1053
 #, c-format
 msgid "soundin: %s: failed to open file"
 msgstr "soundin : %s : l'ouverture du fichier a échoué"
 
-#: OOps/diskin2.c:1068
+#: OOps/diskin2.c:1061
 #, c-format
 msgid ""
 "soundin: opened '%s':\n"
@@ -4043,51 +4043,51 @@ msgstr ""
 "soundin: '%s' ouvert :\n"
 "         %d Hz, %d voix, %ld trames d'échantillons\n"
 
-#: OOps/diskin2.c:1078
+#: OOps/diskin2.c:1071
 msgid ""
 "soundin: number of output args inconsistent with number of file channels"
 msgstr ""
 "soundin : le nombre d'arguments en sortie est en contradiction avec le "
 "nombre de canaux du fichier"
 
-#: OOps/diskin2.c:1087
+#: OOps/diskin2.c:1080
 #, c-format
 msgid "soundin: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr "soundin : taux d'échantillonnage (%d) != sr (%d) de l'orchestre\n"
 
-#: OOps/diskin2.c:1136
+#: OOps/diskin2.c:1129
 msgid "soundin: not initialised"
 msgstr "soundin : non initialisé"
 
-#: OOps/diskin2.c:1219
+#: OOps/diskin2.c:1212
 #, c-format
 msgid "%s is deprecated; use fout instead\n"
 msgstr "%s est obsolète ; utiliser plutôt fout\n"
 
-#: OOps/diskin2.c:1256
+#: OOps/diskin2.c:1249
 #, c-format
 msgid "%s: invalid sample format: %d"
 msgstr "%s : format d'échantillon non valide : %d"
 
-#: OOps/diskin2.c:1261
+#: OOps/diskin2.c:1254
 #, c-format
 msgid "%s cannot open %s"
 msgstr "%s ne peut pas ouvrir %s"
 
-#: OOps/diskin2.c:1273
+#: OOps/diskin2.c:1266
 #, c-format
 msgid "%s: opening RAW outfile %s\n"
 msgstr "%s : ouverture du fichier RAW %s en sortie\n"
 
-#: OOps/diskin2.c:1298
+#: OOps/diskin2.c:1291
 msgid "soundout: not initialised"
 msgstr "soundout : non initialisé"
 
-#: OOps/diskin2.c:1320
+#: OOps/diskin2.c:1313
 msgid "soundouts: not initialised"
 msgstr "soundouts : non initialisé"
 
-#: OOps/diskin2.c:1796
+#: OOps/diskin2.c:1786
 msgid "diskin2: output array too small"
 msgstr "diskin2 : tableau de sortie trop petit"
 
@@ -5937,7 +5937,7 @@ msgstr "Les dimensions ne correspondent pas dans l'arithmétique des tableaux"
 #: Opcodes/newarray.c:786 Opcodes/newarray.c:809 Opcodes/newarray.c:858
 #: Opcodes/newarray.c:864 Opcodes/newarray.c:875 Opcodes/newarray.c:906
 #: Opcodes/newarray.c:937 Opcodes/newarray.c:958 Opcodes/newarray.c:1030
-#: Opcodes/pvsbasic.c:2377 Opcodes/pvsbasic.c:2419
+#: Opcodes/pvsbasic.c:2371 Opcodes/pvsbasic.c:2413
 msgid "array-variable not initialised"
 msgstr "tableau : non initialisé"
 
@@ -6224,36 +6224,36 @@ msgstr ""
 msgid "insufficient arguments for fareytable"
 msgstr "arguments insuffisants pour une table de Farey"
 
-#: Opcodes/fareyseq.c:252 Opcodes/fareyseq.c:302
+#: Opcodes/fareyseq.c:251 Opcodes/fareyseq.c:301
 #, c-format
 msgid "Farey: Table no. < 1 dft=%.2f  sft=%.2f"
 msgstr "Farey : No de table < 1 dft=%.2f  sft=%.2f"
 
-#: Opcodes/fareyseq.c:257
+#: Opcodes/fareyseq.c:256
 #, c-format
 msgid "Farey: Filter type < 1 dft=%.2f  sft=%.2f"
 msgstr "Farey : Type de filtre < 1 dft=%.2f  sft=%.2f"
 
-#: Opcodes/fareyseq.c:272 Opcodes/fareyseq.c:320
+#: Opcodes/fareyseq.c:271 Opcodes/fareyseq.c:319
 #, c-format
 msgid "Farey: Destination dft table %.2f not found."
 msgstr "Farey : Table dft de destination %.2f introuvable"
 
-#: Opcodes/fareyseq.c:283 Opcodes/fareyseq.c:331
+#: Opcodes/fareyseq.c:282 Opcodes/fareyseq.c:330
 #, c-format
 msgid "Farey: Source sft table %.2f not found."
 msgstr "Farey : Table sft source %.2f introuvable"
 
-#: Opcodes/fareyseq.c:307
+#: Opcodes/fareyseq.c:306
 msgid "Farey: Filter type < 1"
 msgstr "Farey : Type de filtre < 1"
 
-#: Opcodes/fareyseq.c:446 Opcodes/fareyseq.c:467
+#: Opcodes/fareyseq.c:445 Opcodes/fareyseq.c:466
 #, c-format
 msgid "Table no. < 1 sft=%.2f"
 msgstr "Numéro de table < 1 sft=%.2f"
 
-#: Opcodes/fareyseq.c:454 Opcodes/fareyseq.c:476
+#: Opcodes/fareyseq.c:453 Opcodes/fareyseq.c:475
 #, c-format
 msgid "Source sft table %.2f not found."
 msgstr "La table %.2f de la source sft n'a pas été trouvée"
@@ -6503,10 +6503,10 @@ msgstr "fastab : numéro de table incorrect"
 msgid "tabw off end"
 msgstr "tabw hors-limite"
 
-#: Opcodes/gab/gab.c:169
-#, c-format
-msgid "tab off end %i"
-msgstr "tab hors-limite %i"
+#: Opcodes/gab/gab.c:169 Opcodes/gab/gab.c:248 Opcodes/gab/gab.c:257
+#, fuzzy
+msgid "tab off end"
+msgstr "tabw hors-limite"
 
 #: Opcodes/gab/gab.c:195
 msgid "tab_i: incorrect table number"
@@ -6524,11 +6524,6 @@ msgstr "tabw_i : numéro de table incorrect"
 #: Opcodes/gab/gab.c:223
 msgid "tabw_i off end"
 msgstr "tabw_i hors-limite"
-
-#: Opcodes/gab/gab.c:248 Opcodes/gab/gab.c:257
-#, c-format
-msgid "tab off end %d"
-msgstr "tab hors-limite %d"
 
 #: Opcodes/gab/gab.c:270
 msgid "tab_init: incorrect table number"
@@ -7264,7 +7259,8 @@ msgstr "HDF5IO : taille illégale pour un type flottant, abandon"
 msgid ""
 "hdf5write: Error, first argument does not appear to be a string, exiting"
 msgstr ""
-"hdf5write : erreur, le premier argument doit être une chaîne de caractères, abandon"
+"hdf5write : erreur, le premier argument doit être une chaîne de caractères, "
+"abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:483
 #, c-format
@@ -7288,7 +7284,8 @@ msgstr "hdf5read : erreur, plus d'arguments en sortie qu'en entrée, abandon"
 msgid ""
 "hdf5read: Error, input argument %zd does not appear to be a string, exiting"
 msgstr ""
-"hdf5read : erreur, l'arg d'entrée %zd n'est pas une chaîne de caractères, abandon"
+"hdf5read : erreur, l'arg d'entrée %zd n'est pas une chaîne de caractères, "
+"abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1008
 #, c-format
@@ -7298,7 +7295,8 @@ msgstr "hdf5read : erreur, l'arg d'entrée %zd est de type inconnu, abandon"
 #: Opcodes/hdf5/HDF5IO.c:1014
 #, c-format
 msgid "hdf5read: Error, output argument %zd appears to be a string, exiting"
-msgstr "hdf5read : erreur, l'arg de sortie %zd est une chaîne de caractères, abandon"
+msgstr ""
+"hdf5read : erreur, l'arg de sortie %zd est une chaîne de caractères, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1019
 #, c-format
@@ -7307,11 +7305,15 @@ msgstr "hdf5read : erreur, l'arg de sortie %zd est de type inconnu, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1039
 msgid "hdf5read: Error, dataset does not exist or cannot be found in file"
-msgstr "hdf5read : erreur, ensemble de données inexistant ou introuvable dans le fichier"
+msgstr ""
+"hdf5read : erreur, ensemble de données inexistant ou introuvable dans le "
+"fichier"
 
 #: Opcodes/hdf5/HDF5IO.c:1108
 msgid "hdf5read: Unable to read saved type of dataset, exiting"
-msgstr "hdf5read : erreur, impossible de lire le type de l'ensemble de données, abandon"
+msgstr ""
+"hdf5read : erreur, impossible de lire le type de l'ensemble de données, "
+"abandon"
 
 #: Opcodes/hrtfearly.c:301 Opcodes/hrtfopcodes.c:262
 #: Opcodes/hrtfopcodes.c:1447 Opcodes/hrtfreverb.c:283
@@ -7614,7 +7616,7 @@ msgid "loscilx: invalid number of output arguments"
 msgstr "loscilx : nombre d'arguments de sortie non valide"
 
 #: Opcodes/loscilx.c:209 Opcodes/loscilx.c:238 Opcodes/pvlock.c:166
-#: Opcodes/pvlock.c:391 Opcodes/pvlock.c:674 Opcodes/pvsbasic.c:572
+#: Opcodes/pvlock.c:391 Opcodes/pvlock.c:674 Opcodes/pvsbasic.c:566
 msgid ""
 "number of output arguments inconsistent with number of sound file channels"
 msgstr ""
@@ -8265,13 +8267,13 @@ msgstr "PVOC debuf : une trame est passée\n"
 msgid "pvcross: not initialised"
 msgstr "pvcross : non initialisé"
 
-#: Opcodes/pvlock.c:72 Opcodes/pvsbasic.c:486
+#: Opcodes/pvlock.c:72 Opcodes/pvsbasic.c:480
 msgid "invalid number of output arguments"
 msgstr "nombre d'arguments de sortie non valide"
 
-#: Opcodes/pvlock.c:843 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:690
-#: Opcodes/pvsbasic.c:1016 Opcodes/pvsbasic.c:1229 Opcodes/pvsbasic.c:1335
-#: Opcodes/pvsbasic.c:1564 Opcodes/pvsbasic.c:1777 Opcodes/pvsbasic.c:1951
+#: Opcodes/pvlock.c:843 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:684
+#: Opcodes/pvsbasic.c:1010 Opcodes/pvsbasic.c:1223 Opcodes/pvsbasic.c:1329
+#: Opcodes/pvsbasic.c:1558 Opcodes/pvsbasic.c:1771 Opcodes/pvsbasic.c:1945
 #: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:664
 msgid "Unsafe to have same fsig as in and out"
 msgstr "Il est risqué d'avoir le même fsig en entrée et en sortie"
@@ -8297,94 +8299,94 @@ msgstr "pvsband : non initialisé"
 msgid "pvsgain: signal format must be amp-phase or amp-freq."
 msgstr "pvsgain : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/pvsbasic.c:223 Opcodes/pvsbasic.c:343
+#: Opcodes/pvsbasic.c:219 Opcodes/pvsbasic.c:337
 msgid "SDFT Not implemented in this case yet"
 msgstr "SDFT pas encore implémentée dans ce cas"
 
-#: Opcodes/pvsbasic.c:233
+#: Opcodes/pvsbasic.c:229
 #, c-format
 msgid "pvsfwrite: could not open file %s\n"
 msgstr "pvsfwrite : impossible d'ouvrir le fichier %s\n"
 
-#: Opcodes/pvsbasic.c:295
+#: Opcodes/pvsbasic.c:289
 msgid "pvsfwrite: could not write data\n"
 msgstr "pvsfwrite : impossible d'écrire les données\n"
 
-#: Opcodes/pvsbasic.c:347
+#: Opcodes/pvsbasic.c:341
 #, c-format
 msgid "pvsdiskin: could not open file %s\n"
 msgstr "pvsdiskin : impossible d'ouvrir le fichier %s\n"
 
-#: Opcodes/pvsbasic.c:721
+#: Opcodes/pvsbasic.c:715
 msgid "pvsfreeze: signal format must be amp-phase or amp-freq."
 msgstr "pvsfreeze : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/pvsbasic.c:798
+#: Opcodes/pvsbasic.c:792
 msgid "pvsosc does not work while sliding"
 msgstr "pvsosc ne travaille pas lors du glissement"
 
-#: Opcodes/pvsbasic.c:1046
+#: Opcodes/pvsbasic.c:1040
 msgid "pvsmooth: signal format must be amp-phase or amp-freq."
 msgstr "pvsmooth : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/pvsbasic.c:1163
+#: Opcodes/pvsbasic.c:1157
 msgid "pvsmix: signal format must be amp-phase or amp-freq."
 msgstr "pvsmix : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/pvsbasic.c:1219
+#: Opcodes/pvsbasic.c:1213
 msgid "pvsmix: formats are different."
 msgstr "pvsmix : les formats sont différents"
 
-#: Opcodes/pvsbasic.c:1232
+#: Opcodes/pvsbasic.c:1226
 msgid "pvsfilter: signal format must be amp-phase or amp-freq."
 msgstr "pvsfilter : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/pvsbasic.c:1311
+#: Opcodes/pvsbasic.c:1305
 msgid "pvsfilter: not initialised"
 msgstr "pvsfilter : non initialisé"
 
-#: Opcodes/pvsbasic.c:1314
+#: Opcodes/pvsbasic.c:1308
 msgid "pvsfilter: formats are different."
 msgstr "pvsfilter : les formats sont différents"
 
-#: Opcodes/pvsbasic.c:1541
+#: Opcodes/pvsbasic.c:1535
 msgid "pvscale: not initialised"
 msgstr "pvscale : non initialisé"
 
-#: Opcodes/pvsbasic.c:1754
+#: Opcodes/pvsbasic.c:1748
 msgid "pvshift: not initialised"
 msgstr "pvshift : non initialisé"
 
-#: Opcodes/pvsbasic.c:1936
+#: Opcodes/pvsbasic.c:1930
 msgid "pvswarp: not initialised"
 msgstr "pvswarp : non initialisé"
 
-#: Opcodes/pvsbasic.c:1953
+#: Opcodes/pvsbasic.c:1947
 msgid "pvsblur does not work sliding yet"
 msgstr "pvsblur ne traite pas encore le glissement"
 
-#: Opcodes/pvsbasic.c:2091
+#: Opcodes/pvsbasic.c:2085
 msgid "pvsblur: not initialised"
 msgstr "pvsblur : non initialisé"
 
-#: Opcodes/pvsbasic.c:2127
+#: Opcodes/pvsbasic.c:2121
 msgid "pvstencil: signal format must be amp-phase or amp-freq."
 msgstr "pvstencil : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/pvsbasic.c:2135
+#: Opcodes/pvsbasic.c:2129
 msgid "pvstencil: ftable needs to equal the number of bins"
 msgstr "pvstencil : la ftable doit égaler le nombre de bins"
 
-#: Opcodes/pvsbasic.c:2216
+#: Opcodes/pvsbasic.c:2210
 msgid "pvstencil: not initialised"
 msgstr "pvstencil : non initialisé"
 
-#: Opcodes/pvsbasic.c:2282
+#: Opcodes/pvsbasic.c:2276
 #, c-format
 msgid "could not find table number %d\n"
 msgstr "la table %d est introuvable\n"
 
-#: Opcodes/pvsbasic.c:2374
+#: Opcodes/pvsbasic.c:2368
 msgid "pvs2tab: signal format must be amp-phase or amp-freq."
 msgstr "pvs2tab : le format du signal doit être amp-phase ou amp-fréq."
 
@@ -13479,6 +13481,12 @@ msgstr "traitement scot terminé\n"
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr "scot : %d erreurs.\n"
+
+#~ msgid "tab off end %i"
+#~ msgstr "tab hors-limite %i"
+
+#~ msgid "tab off end %d"
+#~ msgstr "tab hors-limite %d"
 
 #~ msgid "missing or extra arg"
 #~ msgstr "argument manquant ou en trop"
