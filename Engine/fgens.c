@@ -269,12 +269,11 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     /* keep original arguments, from GEN number  */
     ftp->argcnt = ff.e.pcnt - 3;
     {  /* Note this does not handle extened args -- JPff */
-      int size=ftp->argcnt, k;
+      int size=ftp->argcnt;
       if (size>PMAX) size=PMAX;
-      
       memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*size);
-      for(k=0; k < size; k++)
-      csound->Message(csound, "%f \n", ftp->args[k]);
+      /*for(k=0; k < size; k++)
+	csound->Message(csound, "%f \n", ftp->args[k]);*/
     }
     return 0;
 }
@@ -2749,11 +2748,11 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     /* save arguments */
     ftp->argcnt = ff->e.pcnt - 3;
     {  /* Note this does not handle extened args -- JPff */
-      int size=ftp->argcnt, k;
+      int size=ftp->argcnt;
       if (size>PMAX) size=PMAX;
       memcpy(ftp->args, &(ff->e.p[4]), sizeof(MYFLT)*size);
-      for(k=0; k < size; k++)
-      csound->Message(csound, "%f \n", ftp->args[k]);
+      /* for(k=0; k < size; k++)
+	 csound->Message(csound, "%f \n", ftp->args[k]);*/
     }
     return OK;
 }
