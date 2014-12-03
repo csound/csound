@@ -1,23 +1,24 @@
-;Mic Input Test
 <CsoundSynthesizer>
 <CsOptions>
+-odac
 </CsOptions>
 <CsInstruments>
-
+nchnls = 2
 0dbfs = 1
-nchnls = 1
+ksmps = 256
+sr = 44100
 
-instr 1
+instr VCO2
 
-	a1 in 
-	out a1 
+    aVar oscili 0.2, 100, 1
+    outs aVar, aVar
 endin
+
 
 </CsInstruments>
 <CsScore>
-
-i1 0 4
+f1 0 128 10 1
+i "VCO2" 0 1
 
 </CsScore>
 </CsoundSynthesizer>
-

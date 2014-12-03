@@ -3,24 +3,50 @@
 #import <stdlib.h>
 #import <string.h>
 #import <stdio.h>
+#import <stdbool.h>
+#import <emscripten.h>
 
 typedef struct _CsoundObj
 {
 	CSOUND *csound;
-	double *csoundOut;
-	double *csoundIn;
+	uint32_t frameCount;
 	uint32_t zerodBFS;
-	int useAudioInput;
+	bool useAudioInput;
+	bool printLog;
 } CsoundObj;
 
-CsoundObj *CsoundObj_new()
+static void CsoundObj_messageCallback(CSOUND *cs, int attr, const char *format, va_list valist);
+
+
+CsoundObj *CsoundObj_new(int bufferSize, bool printLog)
 {
 	CsoundObj *self = calloc(1, sizeof(CsoundObj));
+	self->frameCount = 256;
 	self->csound = csoundCreate(NULL);
 	self->useAudioInput = 0;
-	csoundSetHostImplementedAudioIO(self->csound, 1, 0);
-
+	self->printLog = printLog;
+	csoundSetHostImplementedAudioIO(self->csound, 1, bufferSize);
+	csoundSetMessageCallback(self->csound, CsoundObj_messageCallback);
+	csoundSetHostData(self->csound, self);
 	return self;
+}
+
+static void CsoundObj_messageCallback(CSOUND *csound, int attr, const char *format, va_list valist)
+{
+	CsoundObj *self = csoundGetHostData(csound); 
+
+	if (self->printLog == false) {
+
+		return;
+	}
+
+	char buffer[4096];
+	static int newLine = 1;
+	int i;
+	buffer[4095] = 0;
+	i = vsnprintf(buffer, 4095, format, valist);
+	printf(newLine ? "Csound: %s" : "%s", buffer);
+	newLine=(i > 0 && i < 4095 && buffer[i - 1] == '\n') ? 1 : 0;
 }
 
 void CsoundObj_compileCSD(CsoundObj *self,
@@ -30,39 +56,29 @@ void CsoundObj_compileCSD(CsoundObj *self,
 	char samplerateArgument[20] = {0};
 	char controlrateArgument[20] = {0};
 	char bufferSizeArgument[20] = {0};
-    double controlRate = (double)samplerate/256.;
+	double controlRate = (double)samplerate/(double)self->frameCount;
 	sprintf((char *)&samplerateArgument, "-r %d", samplerate);
 	sprintf((char *)&controlrateArgument, "-k %f", controlRate);
 	sprintf((char *)&bufferSizeArgument, "-b %d", 256);
 
 	char *argv[6] = {
 		"csound",
-        "-odac",
+		"-odac",
 		samplerateArgument,
 		controlrateArgument,
 		bufferSizeArgument,
 		filePath
 	};
-    
+
 	int result = csoundCompile(self->csound, 6, argv);
 
-	if (result == 0) {
-
-		printf("success\n");
-		self->csoundIn = csoundGetSpin(self->csound);
-		self->csoundOut = csoundGetSpout(self->csound);
-		self->zerodBFS = csoundGet0dBFS(self->csound);
-	}
-	else {
+	if (result != 0) {
 
 		printf("compilation failed\n");
 	}
 }
 
-int CsoundObj_process(CsoundObj *self,
-		int inNumberFrames,
-		double *inputBuffer,
-		double *outputBuffer)
+int CsoundObj_process(CsoundObj *self, MYFLT *input, MYFLT *output)
 {
 	int result = csoundPerformKsmps(self->csound);
 
@@ -71,70 +87,27 @@ int CsoundObj_process(CsoundObj *self,
 		int outputChannelCount = csoundGetNchnls(self->csound);
 		int inputChannelCount = csoundGetNchnlsInput(self->csound);
 
-		self->csoundOut = csoundGetSpout(self->csound);
-		self->csoundIn = csoundGetSpin(self->csound);
+		MYFLT *csoundOut = csoundGetSpout(self->csound);
+		MYFLT *csoundIn = csoundGetSpin(self->csound);
 
-		if (self->useAudioInput == 1) {
-
-			memcpy(self->csoundIn, inputBuffer, sizeof(double) * inNumberFrames);
-		}
-
-		memcpy(outputBuffer, self->csoundOut, sizeof(double) * inNumberFrames * outputChannelCount);
-//		printf("csoundOut =%f outputBuffer = %f\n", self->csoundOut[0], outputBuffer[0]);
+		memcpy(output, csoundOut, sizeof(MYFLT) * self->frameCount * outputChannelCount);
 	}
 
-	return result;
-}
-uint32_t CsoundObj_compileOrc(CsoundObj *self, const char *string)
-{
-	int returnValue = csoundCompileOrc(self->csound, (char *) string);	
-	csoundStart(self->csound);
-	return returnValue;
-}
-
-uint32_t CsoundObj_readScore(CsoundObj *self, const char *string)
-{
-	return csoundReadScore(self->csound, (char *)string);
-}
-
-uint32_t CsoundObj_getKsmps(CsoundObj *self)
-{
-	return csoundGetKsmps(self->csound);
-}
-
-uint32_t CsoundObj_getNchnls(CsoundObj *self)
-{
-	return csoundGetNchnls(self->csound);
-}
-
-uint32_t CsoundObj_getNchnlsInput(CsoundObj *self)
-{
-	return csoundGetNchnlsInput(self->csound);
-}
-
-void CsoundObj_start(CsoundObj *self)
-{
-	csoundStart(self->csound);
-}
-
-void CsoundObj_stop(CsoundObj *self)
-{
-	csoundStop(self->csound);
+	return result;	
 }
 
 void CsoundObj_reset(CsoundObj *self)
 {
+	csoundCleanup(self->csound);
 	csoundReset(self->csound);
 }
 
-void CsoundObj_setUsingAudioInput(CsoundObj *self, int value)
+int CsoundObj_getInputChannelCount(CsoundObj *self)
 {
-	self->useAudioInput = value;	
+	return csoundGetNchnlsInput(self->csound);
 }
 
-void CsoundObj_setControlChannel(CsoundObj *self,
-		const char *name,
-		double value)
+int CsoundObj_getOutputChannelCount(CsoundObj *self)
 {
-	csoundSetControlChannel(self->csound, name, value);
+	return csoundGetNchnls(self->csound);
 }
