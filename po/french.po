@@ -6504,9 +6504,8 @@ msgid "tabw off end"
 msgstr "tabw hors-limite"
 
 #: Opcodes/gab/gab.c:169 Opcodes/gab/gab.c:248 Opcodes/gab/gab.c:257
-#, fuzzy
 msgid "tab off end"
-msgstr "tabw hors-limite"
+msgstr "tab hors-limite"
 
 #: Opcodes/gab/gab.c:195
 msgid "tab_i: incorrect table number"
