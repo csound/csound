@@ -2,7 +2,7 @@ Csound for Android ChangeLog
 
 This ChangeLog shows changes specific to Csound for Android. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
 
-6.04.0 - 2014-xx-xx
+6.04.0 - 2014-12-01
 
 * Android API updated: 
 	* CsoundValueCacheable interface changed to CsoundBinding
