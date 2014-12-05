@@ -82,10 +82,10 @@ static int scsnu_hammer(CSOUND *csound, PSCSNU *p, MYFLT pos, MYFLT sgn)
     i2 = (int)(p->len*pos+fi->flen/2);
     for (i = i1 ; i < 0 ; i++) {
 #ifdef XALL
-      p->x2[p->len-i-1] += sgn * *f;
-      p->x3[p->len-i-1] += sgn * *f;
+      p->x2[p->len+i] += sgn * *f;
+      p->x3[p->len+i] += sgn * *f;
 #endif
-      p->x1[p->len-i-1] += sgn * *f++;
+      p->x1[p->len+i] += sgn * *f++;
     }
     for (; i < p->len && i < i2 ; i++) {
 #ifdef XALL
@@ -243,8 +243,10 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
       }
 
      /* Check that the size is good */
-      if (UNLIKELY(f->flen < len*len))
+      if (UNLIKELY(f->flen < len*len)) {
+        //printf("len = %d len*len = %d flen = %d\n", len, len*len, f->flen);
         return csound->InitError(csound, Str("scanu: Spring matrix is too small"));
+      }
 
       /* Setup an easier addressing scheme */
       csound->AuxAlloc(csound, len*len * sizeof(MYFLT), &p->aux_f);

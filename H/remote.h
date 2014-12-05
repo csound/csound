@@ -25,16 +25,26 @@
 #define CSOUND_REMOTE_H
 
 #ifdef HAVE_SOCKETS
-#ifdef WIN32
-#include <winsock2.h>
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-#endif
-#endif
+  #ifdef WIN32
+    #include <winsock2.h>
+  #else
+    #include <sys/ioctl.h>
+    #ifdef __HAIKU__
+      #include <sys/sockio.h>
+    #endif
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #ifdef MACOSX
+      #include <net/if.h>
+    #endif
+    #ifdef LINUX
+      #include <linux/if.h>
+    #endif
+    #include <arpa/inet.h>
+    #ifdef HAVE_UNISTD_H
+    #  include <unistd.h>
+    #endif
+  #endif
 #endif /* HAVE_SOCKETS */
 
 #include <stdlib.h>

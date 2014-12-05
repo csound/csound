@@ -36,7 +36,7 @@ using boost::io::group;
 
 namespace csound
 {
-  Lindenmayer::Lindenmayer() : iterationCount(0), angle(1.0)
+  Lindenmayer::Lindenmayer() : iterationCount(0), angle(1.0), beganAt(0), endedAt(0), elapsed(0)
   {
   }
 

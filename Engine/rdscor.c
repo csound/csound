@@ -23,11 +23,17 @@
 
 #include "csoundCore.h"         /*                  RDSCORSTR.C */
 #include "corfile.h"
+#include "insert.h"
 
 char* get_arg_string(CSOUND *csound, MYFLT p)
 {
     int32 n;
-    char *ss = csound->ids->insdshead->strarg;  /* look at this instr's strarg */
+    char *ss;
+    INSDS* ip = csound->ids->insdshead;
+    while (ip->opcod_iobufs != NULL) {
+        ip = ((OPCOD_IOBUFS*)ip->opcod_iobufs)->parent_ip;
+    }
+    ss = ip->strarg;  /* look at this instr's strarg */
     union {
       MYFLT d;
       int32 i;
@@ -201,32 +207,36 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                       csound->DebugMsg(csound, "Extra p-fields (%d %d %d %d)\n",
                                        (int)e->p[1],(int)e->p[2],
                                        (int)e->p[3],(int)e->p[4]);
-                      new = (MYFLT*)realloc(e->c.extra,sizeof(MYFLT)*PMAX);
+                      new = (MYFLT*)malloc(sizeof(MYFLT)*PMAX);
                       if (new==NULL) {
                         fprintf(stderr, Str("Out of Memory\n"));
                         exit(7);
                       }
                       e->c.extra = new;
                       e->c.extra[0] = PMAX-2;
-                      q = e->c.extra;
+                      e->c.extra[1] = *pp;
+                      q = &e->c.extra[1];
                       while ((corfile_getc(csound->scstr) != '\n') &&
                              (scanflt(csound, &q[c++]))) {
-                        if (c > (int) e->c.extra[0]) {
+                        if (c+1 >= (int) e->c.extra[0]) {
+                          int size = (int)e->c.extra[0]+PMAX;
+                          /* printf("last values(%p): %f %f %f\n", */
+                          /*        q, q[c-3], q[c-2], q[c-1]); */
                           csound->DebugMsg(csound,
                                            "and more extra p-fields [%d](%d)%d\n",
                                            c, (int) e->c.extra[0],
                                            (int)sizeof(MYFLT)*
                                                    ((int)e->c.extra[0]+PMAX));
                           new =
-                            (MYFLT *)realloc(e->c.extra,
-                                             sizeof(MYFLT)*((int) e->c.extra[0]+
-                                                            PMAX));
+                            (MYFLT *)realloc(e->c.extra, sizeof(MYFLT)*size);
                           if (new==NULL) {
-                            fprintf(stderr, "Out of Mdemory\n");
+                            fprintf(stderr, "Out of Memory\n");
                             exit(7);
                           }
-                          q = e->c.extra = new;
-                          e->c.extra[0] = e->c.extra[0]+PMAX-1;
+                          new[0] = size;
+                          e->c.extra = new; q = &new[1];
+                          /* printf("%p(%d) values: %f %f %f\n", (int)new[0], */
+                          /*        q, q[c-3], q[c-2], q[c-1]); */
                         }
                       }
                       e->c.extra[0] = c;

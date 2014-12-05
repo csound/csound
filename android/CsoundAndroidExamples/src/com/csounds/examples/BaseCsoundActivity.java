@@ -42,7 +42,7 @@ import com.csounds.CsoundObj;
 
 public class BaseCsoundActivity extends Activity {
 	
-	protected CsoundObj csoundObj = new CsoundObj();
+	protected CsoundObj csoundObj = new CsoundObj(false);
 	protected Handler handler = new Handler();
 	
 	
@@ -56,7 +56,7 @@ public class BaseCsoundActivity extends Activity {
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
-		csoundObj.stopCsound();
+		csoundObj.stop();
 		
 	}
 	

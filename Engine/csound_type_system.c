@@ -194,6 +194,21 @@ CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int index) {
     return current;
 }
 
+//int csoundGetVariableIndex(CS_VAR_POOL* pool, CS_VARIABLE* var) {
+//    CS_VARIABLE* current = pool->head;
+//    int index = 0;
+//    
+//    if (current == NULL) {
+//        return -1;
+//    }
+//    
+//    for (index = 0; current != NULL; index++) {
+//        if (current == var) {
+//            return index;
+//        }
+//    }
+//    return -1;
+//}
 
 int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
   if(var != NULL) {
@@ -208,8 +223,9 @@ int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
     // may need to revise this; var pools are accessed as MYFLT*,
     // so need to ensure all memory is aligned to sizeof(MYFLT)
     // boundaries maybe should align block size here to +7 before dividing?
-    var->memBlockIndex = pool->poolSize / sizeof(MYFLT);
+    var->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) + (pool->varCount + 1);
     pool->poolSize += var->memBlockSize;
+    pool->varCount += 1;
     return 0;
   } else return -1;
 }
@@ -217,6 +233,7 @@ int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
 void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool)
 {
     CS_VARIABLE* current = pool->head;
+    int varCount = 1;
     pool->poolSize = 0;
 
     while (current != NULL) {
@@ -226,24 +243,32 @@ void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool)
         current->updateMemBlockSize(csound, current);
       }
 
-      current->memBlockIndex = pool->poolSize / sizeof(MYFLT);
+      current->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) + varCount;
       pool->poolSize += current->memBlockSize;
 
       current = current->next;
+      varCount++;
     }
 }
 
 void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;
+    CS_VAR_MEM* varMem = NULL;
+    size_t memSize;
     pool->poolSize = 0;
 
     while (current != NULL) {
+      varMem = current->memBlock;
+        
       if(current->updateMemBlockSize != NULL) {
         current->updateMemBlockSize(csound, current);
       }
-      current->memBlock =
-        (MYFLT *)((CSOUND *)csound)->ReAlloc(csound,current->memBlock,
-                                             current->memBlockSize);
+    
+      memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + current->memBlockSize;
+      varMem =
+        (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound,varMem,
+                                             memSize);
+      current->memBlock = varMem;
       pool->poolSize += current->memBlockSize;
       current = current->next;
     }
@@ -264,12 +289,14 @@ void deleteVarPoolMemory(void* csnd, CS_VAR_POOL* pool) {
 
 void initializeVarPool(MYFLT* memBlock, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;
-
+    int varNum = 1;
+    
     while (current != NULL) {
       if (current->initializeVariableMemory != NULL) {
         current->initializeVariableMemory(current,
                                           memBlock + current->memBlockIndex);
       }
+      varNum++;
       current = current->next;
     }
 }

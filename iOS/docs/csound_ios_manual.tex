@@ -20,7 +20,7 @@
 \captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
 
 \lstset{ %
-language=[Objective]C, 
+language=[Objective]C,
 %breakindent=40pt,
 basicstyle=\ttfamily\footnotesize,       % the size of the fonts that are used for the code
 %numbers=left,                   % where to put the line-numbers
@@ -56,9 +56,9 @@ escapeinside={\%*}{*)},          % if you want to add a comment within your code
 
 \section{Introduction}
 
-Welcome to Csound for iOS! This document will discuss the details about using Csound for iOS.  
+Welcome to Csound for iOS! This document will discuss the details about using Csound for iOS.
 
-For those with knowledge of Csound, hopefully you will see that the value of your knowledge is only enhanced by offering a new platform on which to create musical software and works. 
+For those with knowledge of Csound, hopefully you will see that the value of your knowledge is only enhanced by offering a new platform on which to create musical software and works.
 
 \subsection{Regarding the Csound for iOS Examples Project}
 
@@ -66,7 +66,7 @@ This documentation covers discussion of the Csound for iOS API.  Users intereste
 
 \subsection{Regarding the LGPL License}
 
-The Csound for iOS includes Csound and \href{http://mega-nerd.com/libsndfile/}{libsndfile}. These are distributed as static libraries. Users of the Csound for iOS API must comply with the licensing requirements of the GNU Lesser General Public License v2.1, which both libraries use. Please carefully review the license files that accompany each project (you can view a generic version of the LGPL v2.1 license at \href{http://www.gnu.org/licenses/lgpl-2.1.html}{http://www.gnu.org/licenses/lgpl-2.1.html}). 
+The Csound for iOS includes Csound and \href{http://mega-nerd.com/libsndfile/}{libsndfile}. These are distributed as static libraries. Users of the Csound for iOS API must comply with the licensing requirements of the GNU Lesser General Public License v2.1, which both libraries use. Please carefully review the license files that accompany each project (you can view a generic version of the LGPL v2.1 license at \href{http://www.gnu.org/licenses/lgpl-2.1.html}{http://www.gnu.org/licenses/lgpl-2.1.html}).
 
 %======
 
@@ -79,7 +79,7 @@ The Csound for iOS library is distributed as a Zip release from the Csound Sourc
 \item C Headers for the Csound C API
 \item Objective-C CsoundObj API source
 \item Documentation
-\end{itemize} 
+\end{itemize}
 
 Csound for iOS was chosen to be delivered as pre-compiled libraries and headers for easy inclusion into projects.  After starting a new project, do the following:
 
@@ -94,18 +94,18 @@ After selecting ``Add files'' the csound-iOS folders should now be a part of you
 Additionally, you will need to add the following Frameworks to your main project:
 
 \begin{itemize}
-  \item CoreMidi.framework 
-  \item CoreMotion.framework 
-  \item AudioToolbox.framework 
-  \item CoreAudio.framework 
-  \item AVFoundation.framework 
-  \item QuartzCore.framework 
-  \item UIKit.framework 
-  \item Foundation.framework 
-  \item CoreGraphics.framework 
+  \item CoreMidi.framework
+  \item CoreMotion.framework
+  \item AudioToolbox.framework
+  \item CoreAudio.framework
+  \item AVFoundation.framework
+  \item QuartzCore.framework
+  \item UIKit.framework
+  \item Foundation.framework
+  \item CoreGraphics.framework
 \end{itemize}
 
-You can do this by selecting the main project node in the Project Navigator, then in the properties go to ``Build Phases'' and under ``Link Binary with Libraries'' use the + button to add the Frameworks. (You can refer to the the Csound iOS Examples project for these Frameworks.) 
+You can do this by selecting the main project node in the Project Navigator, then in the properties go to ``Build Phases'' and under ``Link Binary with Libraries'' use the + button to add the Frameworks. (You can refer to the the Csound iOS Examples project for these Frameworks.)
 
 When complete, your project's Frameworks node should look like Figure \ref{fig:frameworks}.
 
@@ -127,43 +127,42 @@ While the CsoundObj API has been designed to ease things for iOS development and
 
 \section{Using the CsoundObj API}
 
-The CsoundObj API revolves around the Objective-C CsoundObj class. This class contains a CSOUND* struct pointer and has methods for running Csound, as well as convenience methods to help aid developers in connecting elements to Csound. By itself, CsoundObj can take in a CSD file and render it.  By using CsoundValueCacheables, objects can interact to read values from and write values to Csound.  Beyond that, extended features can be accessed by using the Csound C API together with the CSOUND* struct.
+The CsoundObj API revolves around the Objective-C CsoundObj class. This class contains a CSOUND* struct pointer and has methods for running Csound, as well as convenience methods to help aid developers in connecting elements to Csound. By itself, CsoundObj can take in a CSD file and render it.  By using CsoundBindings, objects can interact to read values from and write values to Csound.  Beyond that, extended features can be accessed by using the Csound C API together with the CSOUND* struct.
 
 \subsection{Designing Csound CSD projects to work with Hosts}
 
-To communicate to and from a host program with Csound, you will most likely use \textbf{chnset} and \textbf{chnget} opcodes. These opcodes will allow you to read from and write values to a named channel.  Your host program will also be writing to and reading from these same channels.  As a byproduct of using named channels, your CSD will be portable to work on other platforms (Desktop, Android); porting over apps to/from iOS then will only involve redoing the application and UI code, while your audio engine (Csound) should ``just work.'' 
+To communicate to and from a host program with Csound, you will most likely use \textbf{chnset} and \textbf{chnget} opcodes. These opcodes will allow you to read from and write values to a named channel.  Your host program will also be writing to and reading from these same channels.  As a byproduct of using named channels, your CSD will be portable to work on other platforms (Desktop, Android); porting over apps to/from iOS then will only involve redoing the application and UI code, while your audio engine (Csound) should ``just work.''
 
 \subsubsection{CsOptions}
 
-Csound will use the CsOptions you provide.  A standard set of flags to use are ``{\tt -odac -dm0 -+msg\_color=0}''. This will tell Csound to play to dac in realtime, turn off displays, use message level 0, and turn of message colors.  This will minimize messages going out to the console or to your message handler if you set one.  You may also need ``{\tt -iadc}'' if your project uses audio input. (You can always consult the Csound Examples project to see what CsOptions are used in the CSD's for that project.)  
+Csound will use the CsOptions you provide.  A standard set of flags to use are ``{\tt -odac -dm0 -+msg\_color=0}''. This will tell Csound to play to dac in realtime, turn off displays, use message level 0, and turn of message colors.  This will minimize messages going out to the console or to your message handler if you set one.  You may also need ``{\tt -iadc}'' if your project uses audio input. (You can always consult the Csound Examples project to see what CsOptions are used in the CSD's for that project.)
 
 \emph{Note: In Csound 5 for iOS, it was previously required to set \linebreak ``{\tt -+rtaudio=null}'' when using audio, and ``{\tt -+rtmidi=null}'' when using MIDI. This is no longer required for Csound 6 for iOS.}
 
 
-\subsection{CsoundValueCacheable for Communicating with Csound}
+\subsection{CsoundBinding for Communicating with Csound}
 
-The CsoundObj API has been created to ease communication with Csound by using objects that implement the CsoundValueCacheable protocol.  The protocol definition is as follows:
+The CsoundObj API has been created to ease communication with Csound by using objects that implement the CsoundBinding protocol.  The protocol definition is as follows:
 
-\begin{lstlisting}[caption=CsoundValueCacheable Protocol Definition]
-@protocol CsoundValueCacheable
-
--(void)setup:(CsoundObj*)csoundObj;
--(void)updateValuesToCsound;
--(void)updateValuesFromCsound;
--(void)cleanup;
-
+\begin{lstlisting}[caption=CsoundBinding Protocol Definition]
+@protocol CsoundBinding <NSObject>
+- (void)setup:(CsoundObj*)csoundObj;
+@optional
+- (void)cleanup;
+- (void)updateValuesFromCsound;
+- (void)updateValuesToCsound;
 @end
 \end{lstlisting}
 
-CsoundValueCacheables are used to both read values from Csound as well as write values to Csound.  The lifecycle of CsoundValueCacheables is as follows:
+CsoundBindings are used to both read values from Csound as well as write values to Csound.  The lifecycle of CsoundBindings is as follows:
 
 \begin{itemize}
-\item \textbf{setup} - this method is called after Csound's compile call but before the main performance loop. CsoundValueCacheables should use this method to cache any channel pointers and any other values they will need during performance.
-\item \textbf{updateValuesToCsound} and \textbf{updateValuesFromCsound} - these methods are called during the Csound performance loop. \textbf{updateValuesToCsound} is called before each call to csoundPerformKsmps, while \textbf{updateValuesFromCsound} is called after each call. 
-\item \textbf{cleanup} - this method is called after Csound has completed its run and should be used by CsoundValueCacheables to free up any allocated data and remove references to channel pointers.
+\item \textbf{setup} - this method is called after Csound's compile call but before the main performance loop. CsoundBindings should use this method to create any channel pointers and any other values they will need during performance.
+\item \textbf{updateValuesToCsound} and \textbf{updateValuesFromCsound} - these methods are called during the Csound performance loop. \textbf{updateValuesToCsound} is called before each call to csoundPerformKsmps, while \textbf{updateValuesFromCsound} is called after each call.
+\item \textbf{cleanup} - this method is called after Csound has completed its run and should be used by CsoundBindings to free up any allocated data and remove references to channel pointers.
 \end{itemize}
 
-By using CsoundValueCacheables, CsoundObj functionality can be extended to communicate with as many items as you would like. The Csound for iOS API contains pre-made wrapper classes for common UI classes (UISlider, UIButton, UISwitch) as well as hardware sensors (Accelerometer, Attitude, Gyroscope).  CsoundObj has helper methods for the CsoundValueCacheables that come with the CsoundObj API, as well as the generic \textbf{addCsoundValueCacheable} and \textbf{removeCsoundValueCacheable} methods for adding custom CsoundValueCacheables. Please consult these classes as well as their use in context within the Csound for iOS Examples project.
+By using CsoundBindings, CsoundObj functionality can be extended to communicate with as many items as you would like. Included with Csound for iOS is the CsoundUI which contains pre-made wrapper classes for common UI classes (UILabel, UIButton, UISlider, UISwitch) and similarly, CsoundMotion provides wrapper for hardware sensors (Accelerometer, Attitude, Gyroscope).  CsoundObj has helper methods for the CsoundBindings that come with the CsoundObj API, as well as the generic \textbf{addBinding} and \textbf{removeBinding} methods for adding custom CsoundBindings. Please consult these classes as well as their use in context within the Csound for iOS Examples project.
 
 
 %======
@@ -172,51 +171,54 @@ By using CsoundValueCacheables, CsoundObj functionality can be extended to commu
 
 \subsection{Binding Widgets to CsoundObj}
 
-The CsoundObj API contains the following methods for binding widgets:
+The CsoundUI API contains the following methods for binding widgets:
 
 \begin{lstlisting}[caption=Methods for Widget Binding]
--(id<CsoundValueCacheable>)addSwitch:(UISwitch*)uiSwitch forChannelName:(NSString*)channelName;
--(id<CsoundValueCacheable>)addSlider:(UISlider*)uiSlider forChannelName:(NSString*)channelName;
--(id<CsoundValueCacheable>)addButton:(UIButton*)uiButton forChannelName:(NSString*)channelName; 
+- (void)addLabel:(UILabel *)uiLabel    forChannelName:(NSString *)channelName;
+- (void)addButton:(UIButton *)uiButton forChannelName:(NSString *)channelName;
+- (void)addSlider:(UISlider*)uiSlider  forChannelName:(NSString *)channelName;
+- (void)addSwitch:(UISwitch *)uiSwitch forChannelName:(NSString *)channelName;
+- (void)addMomentaryButton:(UIButton *)uiButton forChannelName:(NSString *)channelName;
+
 \end{lstlisting}
 
-These methods allow for easy binding of UISwitches, UISliders, and UIButtons, and return the CsoundValueCacheable that was created to wrap the widget. If the design of your app requires that you remove a widget from being used with CsoundObj, you can use the returned CsoundValueCacheable and pass it to the removeCsoundValueCacheable method. To bind your own custom widgets, you will need to create your own CsoundValueCacheable.  There are examples of both using the convenience widget binding methods as well as custom CsoundValueCacheables in the Csound for iOS Examples project.
+These methods allow for easy binding of UILabels, UISliders, UISwitches, and UIButtons (two different types of buttons), and return the CsoundBinding that was created to wrap the widget. If the design of your app requires that you remove a widget from being used with CsoundObj, you can use the returned CsoundBinding and pass it to the removeBinding method. To bind your own custom widgets, you will need to create your own CsoundBinding.  There are examples of both using the convenience widget binding methods as well as custom CsoundBinding in the Csound for iOS Examples project.
 
 %======
 
 \section{Interfacing with Hardware}
 \subsection{Audio Input and Output}
 
-CsoundObj has been designed to connect everything necessary for audio input and output from Csound to CoreAudio.  Enabling input and output depends on what commandline arguments are given when running Csound.  The commandline arguments should be supplied as part of the CSD's \textbf{CsOptions} section.  To enable audio output, use \textbf{-o dac} and to enable audio input, use \textbf{-i adc}. 
+CsoundObj has been designed to connect everything necessary for audio input and output from Csound to CoreAudio.  Enabling input and output depends on what commandline arguments are given when running Csound.  The commandline arguments should be supplied as part of the CSD's \textbf{CsOptions} section.  To enable audio output, use \textbf{-o dac} and to enable audio input, use \textbf{-i adc}.
 
 \subsection{MIDI Hardware Input}
 
-MIDI input is supported in two ways: directly to Csound, or indirectly via Widgets. 
+MIDI input is supported in two ways: directly to Csound, or indirectly via Widgets.
 
 \subsubsection{Direct MIDI input to Csound}
 
 CsoundObj has a property called \textbf{midiInEnabled}.  By default this value is set to NO; setting it to YES will enable MIDI input from CoreMIDI directly into Csound. This will allow using Csound's MIDI handling and opcodes to respond to note and controller data from hardware MIDI devices connected to your device (currently limited to iPad devices).  The Csound for iOS Examples project contains an example called \emph{MIDI Test} which demonstrates a project that is setup to handle MIDI coming from a hardware keyboard.
 
-Note, this flag is read when CsoundObj begins a Csound run.  Setting this to YES while CsoundObj is currently rendering will have no effect. 
+Note, this flag is read when CsoundObj begins a Csound run.  Setting this to YES while CsoundObj is currently rendering will have no effect.
 
 \subsubsection{Using MidiWidgetsManager to Control Widgets}
 
-For MIDI controller data, rather than handle it directly in Csound, you can use the MidiWidgetsManager to map data from channels to UI Widgets.  The MidiWidgetsManager uses \textbf{MidiWidgetWrappers} to handle mapping of controller data and setting values on widgets.  Currently, the MidiWidgetsManager only has one built-in MidiWidgetWrapper for UISlider. To map values to custom widgets, you will need to create your own implementations of MidiWidgetWrappers. 
+For MIDI controller data, rather than handle it directly in Csound, you can use the MidiWidgetsManager to map data from channels to UI Widgets.  The MidiWidgetsManager uses \textbf{MidiWidgetWrappers} to handle mapping of controller data and setting values on widgets.  Currently, the MidiWidgetsManager only has one built-in MidiWidgetWrapper for UISlider. To map values to custom widgets, you will need to create your own implementations of MidiWidgetWrappers.
 
-This alternative to direct MIDI input to Csound allows for MIDI mapping without a CsoundObj instance actively rendering. In terms of architecture, MIDI values will map to Widgets, and the values within the Widgets are what will be connected with Csound.  By using this design, the values in the widget will be the primary source of values across the system and no synchronization of values is required, whether modified by MIDI or touch input. 
+This alternative to direct MIDI input to Csound allows for MIDI mapping without a CsoundObj instance actively rendering. In terms of architecture, MIDI values will map to Widgets, and the values within the Widgets are what will be connected with Csound.  By using this design, the values in the widget will be the primary source of values across the system and no synchronization of values is required, whether modified by MIDI or touch input.
 
 \subsection{Accelerometer, Gyroscope, Attitude}
 
-CsoundObj has built-in support for three of the more commonly used hardware sensors on iOS devices: Accelerometer, Gyroscope, and Attitude. CsoundObj has the following methods to enable these features:
+CsoundMotion has built-in support for three of the more commonly used hardware sensors on iOS devices: Accelerometer, Gyroscope, and Attitude. CsoundMotion has the following methods to enable these features:
 
 
-\begin{lstlisting}[caption=CsoundObj Hardware Sensor Methods]
--(id<CsoundValueCacheable>)enableAccelerometer;
--(id<CsoundValueCacheable>)enableGyroscope;
--(id<CsoundValueCacheable>)enableAttitude; 
+\begin{lstlisting}[caption=CsoundMotion Hardware Sensor Methods]
+-(id<CsoundBinding>)enableAccelerometer;
+-(id<CsoundBinding>)enableGyroscope;
+-(id<CsoundBinding>)enableAttitude;
 \end{lstlisting}
 
-When these features are enabled, CsoundValueCacheables that wrap the sensors will send values into Csound via hardcoded channels:
+When these features are enabled, CsoundBindings that wrap the sensors will send values into Csound via hardcoded channels:
 
 \begin{itemize}
 
@@ -227,23 +229,23 @@ When these features are enabled, CsoundValueCacheables that wrap the sensors wil
 \item accelerometerZ
 \end{itemize}
 
-\item Gyroscope 
+\item Gyroscope
 \begin{itemize}
 \item gyroX
 \item gyroY
 \item gyroZ
 \end{itemize}
 
-\item Attitude 
+\item Attitude
 \begin{itemize}
 \item attitudeRoll
 \item attitudePitch
 \item attitudeYaw
 \end{itemize}
 
-\end{itemize} 
+\end{itemize}
 
-Once a sensor has been enabled, you can access those values in Csound using \textbf{chnget}. For further study, please see the \emph{Hardware Test} example in the Examples project. 
+Once a sensor has been enabled, you can access those values in Csound using \textbf{chnget}. For further study, please see the \emph{Hardware Test} example in the Examples project.
 
 %======
 
@@ -257,30 +259,34 @@ Simple example that plays ascending notes.  The pitch of the notes can be altere
 
 \begin{lstlisting}[caption=Example code showing configuring and starting a CsoundObj]
 -(IBAction) toggleOnOff:(id)component {
-    UISwitch* uiswitch = (UISwitch*)component;
-    NSLog(@"Status: %d", [uiswitch isOn]);
-    
-    if(uiswitch.on) {
-      
-        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];  
-        NSLog(@"FILE PATH: %@", tempFile);
-        
-        [self.csound stopCsound];
-        
+  UISwitch *uiswitch = (UISwitch *)component;
+  NSLog(@"Status: %d", [uiswitch isOn]);
+
+  if(uiswitch.on) {
+
+        NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];
+        NSLog(@"FILE PATH: %@", csdFile);
+
+    [self.csound stop];
+
         self.csound = [[CsoundObj alloc] init];
-    [self.csound addCompletionListener:self];
-        [self.csound addSlider:mSlider forChannelName:@"slider"];
-        [self.csound startCsound:tempFile];
-        
-    } else {
-        [self.csound stopCsound];
+        [self.csound addListener:self];
+
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+        [csoundUI addSlider:mSlider forChannelName:@"slider"];
+
+        [self.csound play:csdFile];
+
+  } else {
+        [self.csound stop];
     }
 }
+
 \end{lstlisting}
 
 \subsection{Simple Test 2}
 
-This is a generative music example that contains a number of sliders that affect the rate of notes generated, the duration of notes, and the ADSR envelope for each note. 
+This is a generative music example that contains a number of sliders that affect the rate of notes generated, the duration of notes, and the ADSR envelope for each note.
 
 
 \subsection{Button Test}
@@ -288,7 +294,7 @@ This is a generative music example that contains a number of sliders that affect
 This example uses a CSD based on the one used for Simple Test 2, but depends on the user to trigger a button to generate each note.  The two buttons in this example show two different ways in which to integrate buttons with CsoundObj:
 
 \begin{enumerate}
-\item Using CsoundObj's \textbf{addButton} method, which will setup a k-rate channel for Csound.  The value will be 0 when the button is not pressed, and will be 1 for one ksmps period when a button is pressed (it returns to 0 the following ksmps period). 
+\item Using CsoundObj's \textbf{addMomentaryButton:forChannelName:} method, which will setup a k-rate channel for Csound.  The value will be 0 when the button is not pressed, and will be 1 for one ksmps period when a button is pressed (it returns to 0 the following ksmps period).
 \item Using a standard button callback, the callback will create a string score and send that to Csound using CsoundObj's \textbf{sendScore} method. (See code below.)
 \end{enumerate}
 
@@ -301,7 +307,7 @@ This example uses a CSD based on the one used for Simple Test 2, but depends on 
 }
 \end{lstlisting}
 
-Note that the second method will read the value from the duration slider when creating the note, while the first method handles reading the duration from the channel within the CSD code. 
+Note that the second method will read the value from the duration slider when creating the note, while the first method handles reading the duration from the channel within the CSD code.
 
 \subsection{MIDI Test}
 
@@ -309,24 +315,24 @@ This example shows a number of different techniques:
 
 \begin{enumerate}
 \item In the \textbf{viewDidLoad}, a \textbf{MidiWidgetsManager} is created and used to map MIDI controller values to sliders.
-\item MIDI keyboard and controller input is also routed to Csound using CsoundObj's \textbf{setMidiInEnabled} method. This allows using standard Csound MIDI programming within the context of a Csound for iOS project. (This has been tested on iPad 1 and 2, using a Korg NanoKey connected via Apple USB Camera Connection kit, as well as with MIDI keyboards hooked up to an Alesis I/O Dock.) 
-\item A custom multi-touch virtual keyboard widget demonstrates how to track the different touches, map them to keyboard keys, and use \textbf{sendScore} to turn on and off notes. 
+\item MIDI keyboard and controller input is also routed to Csound using CsoundObj's \textbf{setMidiInEnabled} method. This allows using standard Csound MIDI programming within the context of a Csound for iOS project. (This has been tested on iPad 1 and 2, using a Korg NanoKey connected via Apple USB Camera Connection kit, as well as with MIDI keyboards hooked up to an Alesis I/O Dock.)
+\item A custom multi-touch virtual keyboard widget demonstrates how to track the different touches, map them to keyboard keys, and use \textbf{sendScore} to turn on and off notes.
 \end{enumerate}
 
 For those interested in making virtual instruments, this example may be useful to use as a starting point for your own projects.
 
 \subsection{Ping Pong Delay}
 
-This example shows processing audio input in realtime, using a Ping Pong Delay. The use of audio input is controlled by the standard Csound flag \textbf{-i adc} that is found in the CSD's \textbf{CsOptions} section.  
+This example shows processing audio input in realtime, using a Ping Pong Delay. The use of audio input is controlled by the standard Csound flag \textbf{-i adc} that is found in the CSD's \textbf{CsOptions} section.
 
 
 \subsection{Harmonizer}
 
-This example highlights the same techniques as the Ping Pong Delay, but shows using Csound's streaming Phase Vocoder to create a harmonizer effect. 
+This example highlights the same techniques as the Ping Pong Delay, but shows using Csound's streaming Phase Vocoder to create a harmonizer effect.
 
 \subsection{Hardware Test}
 
-This example shows using hardware sensors.  For this example, the accelerometer is enabled and values are read by the CSD to affect the pitch of a vco2 oscillator, as well as cutoff and resonance of a moogladder filter. 
+This example shows using hardware sensors.  For this example, the accelerometer is enabled and values are read by the CSD to affect the pitch of a vco2 oscillator, as well as cutoff and resonance of a moogladder filter.
 
 \subsection{Csound Haiku 4}
 
@@ -334,15 +340,15 @@ This example shows using hardware sensors.  For this example, the accelerometer 
 
 \subsection{Record Test}
 
-This example demonstrates the recording feature of CsoundObj.  It also includes a custom metering widget that implements \textbf{CsoundValueCacheable} to read values from Csound.  Note that the \textbf{updateValuesFromCsound} reads the minimum necessary values from Csound and then continues further calculations off the audio callback thread where \textbf{updateValuesFromCsound} is called.  It is important to minimize the amount of processing done in the audio callback thread and to push all processing to another thread.  This can be done using the standard \textbf{performSelector} method; upon completing calculations, updates to the UI will need to be done on the main thread, which is done here using \textbf{performSelectorOnMainThread}.  This pattern is common in audio processing applications. 
+This example demonstrates the recording feature of CsoundObj.  It also includes a custom metering widget that implements \textbf{CsoundBinding} to read values from Csound.  Note that the \textbf{updateValuesFromCsound} reads the minimum necessary values from Csound and then continues further calculations off the audio callback thread where \textbf{updateValuesFromCsound} is called.  It is important to minimize the amount of processing done in the audio callback thread and to push all processing to another thread.  This can be done using the standard \textbf{performSelector} method; upon completing calculations, updates to the UI will need to be done on the main thread, which is done here using \textbf{performSelectorOnMainThread}.  This pattern is common in audio processing applications.
 
 \subsection{Multitouch XY}
 
-This example demonstrates a multitouch performance surface. The multi-touch code maps each touch down and up to a note on and off.  It also sends continous x and y values to Csound.  The Csound programming in the CSD shows a technique for doing individual per-note control data mapping by dynamically assigning what channels of data each note should read from. 
+This example demonstrates a multitouch performance surface. The multi-touch code maps each touch down and up to a note on and off.  It also sends continous x and y values to Csound.  The Csound programming in the CSD shows a technique for doing individual per-note control data mapping by dynamically assigning what channels of data each note should read from.
 
 \subsection{Waveview}
 
-This example demonstrates using a CsoundValueCacheable to read an f-table from Csound and displaying that table.  Note that the WaveView's code is doing some optimization to check if it has already loaded.  It is also checking that the table itself has completed loading before trying to grab any values for the table. 
+This example demonstrates using a CsoundBinding to read an f-table from Csound and displaying that table.  Note that the WaveView's code is doing some optimization to check if it has already loaded.  It is also checking that the table itself has completed loading before trying to grab any values for the table.
 
 \begin{lstlisting}[caption=Waveview code demonstrating reading f-tables from Csound]
 - (void)updateValuesFromCsound
@@ -353,7 +359,7 @@ This example demonstrates using a CsoundValueCacheable to read an f-table from C
         CSOUND *cs = [csObj getCsound];
         sr = csoundGetSr(cs);
         ksmps = csoundGetKsmps(cs);
-        
+
         if ((tableLength = csoundTableLength(cs, 1)) > 0) {
 
             table = malloc(tableLength * sizeof(MYFLT));
@@ -377,19 +383,18 @@ This examples demonstrates a technique of finding the URL of an AIFF file that i
 \begin{lstlisting}[caption=CsoundObj setup code]
 - (void)viewDidLoad
 {
-    [super viewDidLoad];
-    self.csound = [[CsoundObj alloc] init];
-    [self.csound addCompletionListener:self];
-    NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"audiofiletest" ofType:@"csd"];
-    [mPitchKnob setMinimumValue:0.5f];
-    [mPitchKnob setMaximumValue:2.0f];
-    [mPitchKnob setValue:1.0f];
-    [self.csound addValueCacheable:mPitchKnob];
-    [self.csound startCsound:csdPath];
+  [super viewDidLoad];
+  self.csound = [[CsoundObj alloc] init];
+  NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"audiofiletest" ofType:@"csd"];
+  [self.pitchKnob setMinimumValue:0.5f];
+  [self.pitchKnob setMaximumValue:2.0f];
+  [self.pitchKnob setValue:1.0f];
+  [self.csound addBinding:self.pitchKnob];
+  [self.csound play:csdPath];
 }
 \end{lstlisting}
 
-The UIKnob widget is custom UIView that is also a CsoundValueCacheable.  It uses a hardcoded Csound channel called "pitch".  After the CsoundObj object is setup and started, performance of the audio file is done in the callback to the Play button press:
+The ControlKnob widget is custom UIView that is also a CsoundBinding.  It uses a hardcoded Csound channel called "pitch".  After the CsoundObj object is setup and started, performance of the audio file is done in the callback to the Play button press:
 
 \begin{lstlisting}[caption=Play button callback code]
 - (IBAction)play:(UIButton *)sender
@@ -400,7 +405,7 @@ The UIKnob widget is custom UIView that is also a CsoundValueCacheable.  It uses
 }
 \end{lstlisting}
 
-This code finds the path for the \emph{audiofiletest.aif} file that is included with the project, and uses that value to construct a score statement to send to Csound. 
+This code finds the path for the \emph{audiofiletest.aif} file that is included with the project, and uses that value to construct a score statement to send to Csound.
 
 \subsection{Console Output}
 
@@ -428,16 +433,16 @@ The message callback selector handles formatting the Csound message using typica
 }
 \end{lstlisting}
 
-Note: after the message is formatted and converted into an Objective-C NSString from a C char*, a \textbf{performSelectorOnMainThread} is used to update the UI with the message text.  The callback from Csound will not be on the main thread. This step is therefore required as all modifications to the user interface must be done on the main thread. 
+Note: after the message is formatted and converted into an Objective-C NSString from a C char*, a \textbf{performSelectorOnMainThread} is used to update the UI with the message text.  The callback from Csound will not be on the main thread. This step is therefore required as all modifications to the user interface must be done on the main thread.
 
 \subsection{Pitch Shifter}
 
-This example uses the PVS opcodes to perform pitch shifting on a signal coming in from the microphone on the device.  It uses a custom UIControlXY widget that allows controlling the mix of the wet and dry signal along the x-axis and the amount of pitch shifting along the y-axis.  
+This example uses the PVS opcodes to perform pitch shifting on a signal coming in from the microphone on the device.  It uses a custom ControlXYGrid widget that allows controlling the mix of the wet and dry signal along the x-axis and the amount of pitch shifting along the y-axis.
 
 %======
 
 \section{Conclusion}
 
-We hope that this document has helped you to become familiar with the design and usage of the Csound for iOS API. The example Objective-C and Csound CSD code should hopefully give you a good starting point for your own musical projects, and we encourage you to take these examples and run with it.  We look forward to hearing your questions and feedback on this API, and most of all, look forward to seeing what you will create with all of this.  Best of luck and enjoy! 
+We hope that this document has helped you to become familiar with the design and usage of the Csound for iOS API. The example Objective-C and Csound CSD code should hopefully give you a good starting point for your own musical projects, and we encourage you to take these examples and run with it.  We look forward to hearing your questions and feedback on this API, and most of all, look forward to seeing what you will create with all of this.  Best of luck and enjoy!
 
 \end{document}

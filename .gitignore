@@ -147,6 +147,7 @@ installer/macosx/201*
 
 ## Generated Doxygen
 doc/html
+doc/doxygen
 
 #Generated files if running in-source CMake build
 cmake_install.cmake
@@ -188,3 +189,10 @@ nacl/csound_orcparse.c
 nacl/csound_orcparse.h
 nacl/csound_prelex.c
 nacl/pnacl
+
+# Xcode
+xcshareddata/
+*.xcuserstate
+*.xccheckout
+project.xcworkspace/
+xcuserdata/

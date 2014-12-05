@@ -31,7 +31,7 @@
 #include <fstream>
 #include <sstream>
 
-#include <allegro.h>
+#include "allegro.h"
 
 #if defined(HAVE_MUSICXML2)
 #if defined(EXP)

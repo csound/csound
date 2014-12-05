@@ -2,7 +2,7 @@
  
  SimpleTest1ViewController.m:
  
- Copyright (C) 2011 Steven Yi, Victor Lazzarini
+ Copyright (C) 2014 Steven Yi, Victor Lazzarini, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -25,6 +25,13 @@
 
 #import "SimpleTest1ViewController.h"
 
+@interface SimpleTest1ViewController() {
+    IBOutlet UISlider *uiSlider;
+    IBOutlet UISwitch *uiSwitch;
+    IBOutlet UILabel *uiLabel;
+}
+@end
+
 @implementation SimpleTest1ViewController
 
 -(void)viewDidLoad {
@@ -32,36 +39,35 @@
     [super viewDidLoad];
 }
 
--(IBAction) toggleOnOff:(id)component {
-	UISwitch* uiswitch = (UISwitch*)component;
-	NSLog(@"Status: %d", [uiswitch isOn]);
+-(IBAction) toggleOnOff:(id)sender {
+	NSLog(@"Status: %d", [uiSwitch isOn]);
     
-	if(uiswitch.on) {
+	if(uiSwitch.on) {
         
-        NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];  
-        NSLog(@"FILE PATH: %@", tempFile);
+        NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];
+        NSLog(@"FILE PATH: %@", csdFile);
         
-		[self.csound stopCsound];
+		[self.csound stop];
         
         self.csound = [[CsoundObj alloc] init];
-        [self.csound addCompletionListener:self];
-        [self.csound addSlider:mSlider forChannelName:@"slider"];
-        [self.csound startCsound:tempFile];
+        [self.csound addListener:self];
+        
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+        [csoundUI addLabel:uiLabel forChannelName:@"slider"];
+        [csoundUI addSlider:uiSlider forChannelName:@"slider"];
+        
+        [self.csound play:csdFile];
         
 	} else {
-        [self.csound stopCsound];
+        [self.csound stop];
     }
 }
 
+#pragma mark CsoundObjListener
 
-
-#pragma mark CsoundObjCompletionListener
-
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
-	[mSwitch setOn:NO animated:YES];
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
+	[uiSwitch setOn:NO animated:YES];
+    uiLabel.text = @"";
 }
 
 

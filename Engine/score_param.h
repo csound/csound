@@ -1,6 +1,20 @@
 #ifndef __SCORE_PARAM_H
 #define __SCORE_PARAM_H
 
+
+typedef struct ListItem {
+  double           val;
+  struct ListItem *args;
+} ListItem;
+
+typedef struct ScoreTree {
+  int              op;
+  ListItem         *args;
+  struct ScoreTree *next;
+  int              line;
+  int              locn;
+} ScoreTree;
+
 #define MARGS   (3)
 #define MAX_INCLUDE_DEPTH 100
 struct MACRO;
@@ -33,8 +47,9 @@ typedef struct IFDEFSTACK_ {
 typedef struct prs_parm_s {
     void            *yyscanner;
     MACRO           *macros;
-    MACRON alt_stack[MAX_INCLUDE_DEPTH];
+    MACRON          *alt_stack; //[MAX_INCLUDE_DEPTH];
     unsigned int macro_stack_ptr;
+    unsigned int macro_stack_size;
     IFDEFSTACK      *ifdefStack;
     unsigned char   isIfndef;
     unsigned char   isString;
@@ -42,7 +57,7 @@ typedef struct prs_parm_s {
     uint32_t        locn;
     uint32_t        llocn;
     uint16_t        depth;
-    uint8_t         lstack[1024];
+    uint16_t        lstack[1024];
 } PRS_PARM;
 
 typedef struct scotoken_s {

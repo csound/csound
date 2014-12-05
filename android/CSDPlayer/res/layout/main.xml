@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainLayout"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:textSize="12sp"    
-    android:orientation="vertical" >
+    android:layout_height="fill_parent" >
 
-    <LinearLayout
+    <TableRow
+        android:id="@+id/tableRow1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="0dp" >
+        android:layout_height="wrap_content" >
 
         <Button
             android:id="@+id/newButton"
@@ -16,6 +15,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.25"
+            android:minHeight="36dip"
+            android:tag="csound:newButton"
             android:text="@string/New" />
 
         <Button
@@ -24,6 +25,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.25"
+            android:minHeight="36dip"
+            android:tag="csound:openButton"
             android:text="@string/Open" />
 
         <Button
@@ -32,6 +35,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.25"
+            android:minHeight="36dip"
             android:text="@string/Edit" />
 
         <ToggleButton
@@ -40,17 +44,17 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.25"
+            android:minHeight="36dip"
             android:textOff="@string/Start"
             android:textOn="@string/Stop" />
 
-    </LinearLayout>
+    </TableRow>
 
-    <LinearLayout
-        android:id="@+id/linearLayout1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" >
-
+    <TableLayout
+        android:id="@+id/channelsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+        
         <SeekBar
             android:id="@+id/seekBar1"
             style="@style/csoundSeekBar"
@@ -121,74 +125,94 @@
             android:layout_height="wrap_content"
             android:text="@string/slider5"
             android:textAppearance="?android:attr/textAppearanceSmall" />
-    </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/LinearLayout02"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
+        <TableRow
+            android:id="@+id/tableRow2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/button1"
+                style="@style/csoundButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:minHeight="36dp"
+                android:text="@string/butt1"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+
+            <Button
+                android:id="@+id/button2"
+                style="@style/csoundButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:minHeight="36dp"
+                android:text="@string/butt2"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+
+            <Button
+                android:id="@+id/button3"
+                style="@style/csoundButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:minHeight="36dp"
+                android:text="@string/butt3"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+
+            <Button
+                android:id="@+id/button4"
+                style="@style/csoundButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:minHeight="36dp"
+                android:text="@string/butt4"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+
+            <Button
+                android:id="@+id/button5"
+                style="@style/csoundButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:minHeight="36dp"
+                android:text="@string/butt5"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        </TableRow>
 
         <Button
-            android:id="@+id/button1"
+            android:id="@+id/pad"
             style="@style/csoundButtonStyle"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="@string/butt1" />
+            android:layout_width="match_parent"
+            android:layout_height="96dp"
+            android:layout_marginTop="-5dip"
+            android:text="@string/trackpad" />
+    </TableLayout>
 
-        <Button
-            android:id="@+id/button2"
-            style="@style/csoundButtonStyle"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="@string/butt2" />
-
-        <Button
-            android:id="@+id/button3"
-            style="@style/csoundButtonStyle"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="@string/butt3" />
-
-        <Button
-            android:id="@+id/button4"
-            style="@style/csoundButtonStyle"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="@string/butt4" />
-
-        <Button
-            android:id="@+id/button5"
-            style="@style/csoundButtonStyle"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="@string/butt5" />
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/pad"
-        style="@style/csoundButtonStyle"
+    <WebView
+        android:id="@+id/webLayout"
         android:layout_width="match_parent"
-        android:layout_height="134dp"
-        android:layout_marginTop="-5dip"
-        android:text="@string/trackpad" />
+        android:layout_weight="1"
+        android:layout_height="wrap_content"/>
 
     <ScrollView
         android:id="@+id/messageScrollView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="0dp"
+        android:layout_weight="2" >
 
         <TextView
             android:id="@+id/messageTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minLines="6"
             android:textColor="#00ff00"
-    		android:textSize="10sp"    
+            android:textSize="10sp"
             android:typeface="monospace" />
+
     </ScrollView>
 
-</LinearLayout>
+</TableLayout>

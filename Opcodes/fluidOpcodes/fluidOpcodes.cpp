@@ -195,7 +195,9 @@ public:
             toa(iFluidSynth, fluidSynth);
             listPresets = (int) *iListPresets;
 
-            if(csound->GetInputArgSMask(this))
+            CS_TYPE* argType = csound->GetTypeForArg(iFilename);
+            
+            if(strcmp("S", argType->varTypeName) == 0)
               filename = csound->Strdup(csound, ((STRINGDAT *)iFilename)->data);
              else
              filename = csound->strarg2name(csound,
@@ -795,16 +797,18 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
 #pragma omp critical (critical_section_fluidopcodes)
     {
-      std::vector<fluid_synth_t *> &fluidSynths =
-        getFluidSynthsForCsoundInstances()[csound];
+      std::map<CSOUND *, std::vector<fluid_synth_t *> > &fluidEngines = getFluidSynthsForCsoundInstances();
+      std::vector<fluid_synth_t *> &fluidSynths = fluidEngines[csound];
 
       for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
         fluid_synth_t *fluidSynth = fluidSynths[i];
+        //csound->Message(csound, "deleting engine %p \n", fluidSynth);
         fluid_settings_t *fluidSettings = fluid_synth_get_settings(fluidSynth);
         delete_fluid_synth(fluidSynth);
         delete_fluid_settings(fluidSettings);
       }
       fluidSynths.clear();
+      fluidEngines.erase(csound);
     }
     return 0;
 }

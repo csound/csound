@@ -172,11 +172,13 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
       r = mp3dec_decode(mpa, p->buf, mpainfo.decoded_sample_size*xx, &p->bufused);
     }
     p->r = r;
+    if(p->initDone == -1)
+       csound->RegisterDeinitCallback(csound, p,
+                                   (int (*)(CSOUND*, void*)) mp3in_cleanup);
     /* done initialisation */
     p->initDone = -1;
     p->pos = 0;
-    csound->RegisterDeinitCallback(csound, p,
-                                   (int (*)(CSOUND*, void*)) mp3in_cleanup);
+
     return OK;
 }
 

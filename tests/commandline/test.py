@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-# Csound5 Test Suite
-# By Steven Yi<stevenyi at gmail dot com>
+# Csound Test Suite
+# By Steven Yi <stevenyi at gmail dot com>
 
 import os
 import sys
@@ -133,6 +133,7 @@ def runTest():
 	["test_udo_a_array.csd", "test udo with a-array"],
 	["test_udo_2d_array.csd", "test udo with 2d-array"],
         ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
+        ["test_array_function_call.csd", "test synthesizing an array arg from a function-call"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],

@@ -230,8 +230,9 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin_;
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
-
-    if(csound->GetInputArgSMask(p))
+    CS_TYPE* argType = csound->GetTypeForArg(p->iplugin);
+    
+    if(strcmp("S", argType->varTypeName) == 0)
       strncpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME-1);
     else
       csound->strarg2name(csound, dssiFilename, ISSTRCOD(*p->iplugin) ?
@@ -481,8 +482,8 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       if (*p->iverbose != 0)
         info(csound, DSSIPlugin_);
     }
+    dlclose(PluginLibrary);
     return OK;
-    /* Does this code leak memory from PluginLibrary? -- REVIEW NEEDED */
 }
 
 /****************************************************************************
@@ -956,6 +957,7 @@ static void
       psDirectoryEntry = readdir(psDirectory);
       if (!psDirectoryEntry) {
         closedir(psDirectory);
+        //if (pvPluginHandle) closedir(pvPluginHandle);
         return;
       }
 
@@ -979,13 +981,14 @@ static void
              it to the callback function. */
           fCallbackFunction(csound,
                             pcFilename, pvPluginHandle, fDescriptorFunction);
-          csound->Free(csound, pcFilename);
         }
         else {
           /* It was a library, but not a LADSPA one. Unload it. */
-          dlclose(pcFilename);
-          csound->Free(csound, pcFilename);
+          dlclose(pvPluginHandle);
+          pvPluginHandle = NULL;
+          //csound->Free(csound, pcFilename);
         }
+        csound->Free(csound, pcFilename);
       }
     }
 }
@@ -1005,7 +1008,11 @@ LADSPAPluginSearch(CSOUND *csound,
     if (!pcLADSPAPath) {
       csound->Message(csound,
                       "DSSI4CS: LADSPA_PATH environment variable not set.\n");
+#ifdef LIB64
+      pcLADSPAPath = "/usr/lib64/ladspa/";
+#else
       pcLADSPAPath = "/usr/lib/ladspa/";
+#endif
     }
     if (!pcDSSIPath) {
       csound->Message(csound,
@@ -1086,7 +1093,7 @@ int dssilist(CSOUND * csound, DSSILIST * p)
         strcpy(nn, pcLADSPAPath);
         strcat(nn, ":");
         strcat(nn, pcDSSIPath);
-        free(pcLADSPAPath);
+        //free(pcLADSPAPath);
         pcLADSPAPath = nn;
       }
       else pcLADSPAPath = strdup(pcDSSIPath);

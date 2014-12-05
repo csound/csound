@@ -414,7 +414,7 @@ static int pconvset_(CSOUND *csound, PCONVOLVE *p, int stringname)
     }
     else {
       IRfile.getframes = IRfile.framesrem;
-      if (UNLIKELY(IRfile.sr==0)) csound->InitError(csound, Str("SR zero"));
+      if (UNLIKELY(IRfile.sr==0)) return csound->InitError(csound, Str("SR zero"));
       ainput_dur = (MYFLT) IRfile.getframes / IRfile.sr;
       }
 

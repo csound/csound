@@ -27,22 +27,26 @@
 /* Somewhat revised from the original.  Pete G. Nov 2012
    More correct, I think, but I could be wrong... (:-/)
 */
-#ifdef HAVE_SOCKETS
-  #ifndef WIN32
-    #include <sys/ioctl.h>
-    #ifdef LINUX
-      #include <linux/if.h>
-    #endif
-    #ifdef __HAIKU__
-      #include <sys/sockio.h>
-    #endif
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <arpa/inet.h>
-    extern int inet_aton (const char *, struct in_addr *);
-    #include <net/if.h>
-  #endif /* not WIN32 */
-#endif /* HAVE_SOCKETS */
+
+/* #ifdef HAVE_SOCKETS */
+/*   #ifndef WIN32 */
+/*     #include <sys/ioctl.h> */
+/*     #ifdef LINUX */
+/*       #include <linux/if.h> */
+/*     #endif */
+/*     #ifdef __HAIKU__ */
+/*       #include <sys/sockio.h> */
+/*     #endif */
+/*     #include <sys/socket.h> */
+/*     #include <netinet/in.h> */
+/*     #include <arpa/inet.h> */
+/*     extern int inet_aton (const char *, struct in_addr *); */
+/*     #include <net/if.h> */
+/*   #else */
+/*     #include <winsock2.h> */
+/*   #endif /\* not WIN32 *\/ */
+/* #endif /\* HAVE_SOCKETS *\/ */
+
 
 #define MAXREMOTES 10
 
@@ -52,6 +56,8 @@ void remote_Cleanup(CSOUND *csound);
 
 void remoteRESET(CSOUND *csound)
 {
+    /* Recover space */
+    if (csound->remoteGlobals) csound->Free(csound, csound->remoteGlobals);
     csound->remoteGlobals = NULL;
 }
 
@@ -102,30 +108,37 @@ static int getIpAddress(char *ipaddr)
 
     fd = socket(AF_INET,SOCK_DGRAM, 0);
     if (fd >= 0) {
+      char *dev = getenv("CS_ETHER");
+      if (dev)
+        strncpy(ifr.ifr_name, dev, IFNAMSIZ-1);
+      else {
 #ifdef MACOSX
-      strcpy(ifr.ifr_name, "en0");
+        strncpy(ifr.ifr_name, "en0", IFNAMSIZ-1);
 #else
-      strcpy(ifr.ifr_name, "eth0");
+        strncpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
 #endif
+      }
+      ifr.ifr_name[IFNAMSIZ-1] = '\0';
       if (ioctl(fd, SIOCGIFADDR, &ifr) == 0) {
         char *local;
         local = inet_ntoa(((struct sockaddr_in *)(&ifr.ifr_addr))->sin_addr);
         strcpy(ipaddr, local);
-        printf("IP for remote: %s\n", ipaddr);
+        printf("IP for remote: %s: %s\n", ifr.ifr_name, ipaddr);
         ret = 0;
       }
       else {
-        strcpy(ifr.ifr_name, "wlan0");
-      if (ioctl(fd, SIOCGIFADDR, &ifr) == 0) {
-        char *local;
-        local = inet_ntoa(((struct sockaddr_in *)(&ifr.ifr_addr))->sin_addr);
-        strcpy(ipaddr, local);
-          printf("IP for remote: %s\n", ipaddr);
-        ret = 0;
+        strncpy(ifr.ifr_name, "wlan0", IFNAMSIZ-1);
+        ifr.ifr_name[IFNAMSIZ-1] = '\0';
+        if (ioctl(fd, SIOCGIFADDR, &ifr) == 0) {
+          char *local;
+          local = inet_ntoa(((struct sockaddr_in *)(&ifr.ifr_addr))->sin_addr);
+          strcpy(ipaddr, local);
+          printf("IP for remote: %s: %s\n", ifr.ifr_name, ipaddr);
+          ret = 0;
+        }
       }
     }
-    }
-    close(fd);
+    if (fd>=0) close(fd);
     return ret;
 #endif
 }
@@ -142,7 +155,7 @@ static int callox(CSOUND *csound)
       csound->remoteGlobals = csound->Calloc(csound, sizeof(REMOTE_GLOBALS));
       if (UNLIKELY(csound->remoteGlobals == NULL)) {
         csound->Message(csound, Str("insufficient memory to initialise remote"
-                        " globals."));
+                                    " globals."));
         goto error;
       }
       ST(remote_port) = REMOT_PORT;
@@ -151,14 +164,14 @@ static int callox(CSOUND *csound)
     ST(socksout) = (SOCK*)csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(SOCK));
     if (UNLIKELY(ST(socksout) == NULL)) {
       csound->Message(csound, Str("insufficient memory to initialise outgoing "
-                      "socket table."));
+                                  "socket table."));
       goto error;
     }
 
     ST(socksin) = (int*) csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(int));
     if (UNLIKELY(ST(socksin) == NULL)) {
       csound->Message(csound, Str("insufficient memory to initialise incoming "
-                      "socket table."));
+                                  "socket table."));
       goto error;
     }
 
@@ -166,7 +179,7 @@ static int callox(CSOUND *csound)
       (int*) csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(int));
     if (UNLIKELY(ST(insrfd_list) == NULL)) {
       csound->Message(csound, Str("insufficient memory to initialise "
-                      "insrfd_list."));
+                                  "insrfd_list."));
       goto error;
     }
 
@@ -174,28 +187,28 @@ static int callox(CSOUND *csound)
       (int*) csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(int));
     if (UNLIKELY(ST(chnrfd_list) == NULL)) {
       csound->Message(csound, Str("insufficient memory to initialise "
-                      "chnrfd_list."));
+                                  "chnrfd_list."));
       goto error;
     }
 
     ST(insrfd) = (int*) csound->Calloc(csound,(size_t)129 * sizeof(int));
     if (UNLIKELY(ST(insrfd) == NULL)) {
       csound->Message(csound, Str("insufficient memory to initialise "
-                      "insrfd table."));
+                                  "insrfd table."));
       goto error;
     }
 
     ST(chnrfd) = (int*) csound->Calloc(csound,(size_t)17 * sizeof(int));
     if (UNLIKELY(ST(chnrfd) == NULL)) {
       csound->Message(csound, Str("insufficient memory to initialise "
-                      "chnrfd table."));
+                                  "chnrfd table."));
       goto error;
     }
 
     ST(ipadrs) = (char*) csound->Calloc(csound,(size_t)15 * sizeof(char));
     if (UNLIKELY(ST(ipadrs) == NULL)) {
       csound->Message(csound, Str("insufficient memory to initialise "
-                      "local ip address."));
+                                  "local ip address."));
       goto error;
     }
 
@@ -254,7 +267,6 @@ void remote_Cleanup(CSOUND *csound)
 static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
 {
     int rfd, i;
-
     SOCK *sop = ST(socksout), *sop_end = sop + MAXREMOTES;
     do {
       if (ipadrs == sop->adr)                      /* if socket already exists */
@@ -273,7 +285,6 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
 #else
     inet_aton((const char *)ipadrs, &(ST(to_addr).sin_addr));
 #endif
-    /*    ST(to_addr).sin_port = htons((int) REMOT_PORT); */
     ST(to_addr).sin_port = htons((int) ST(remote_port)); /* port we will listen on,
                                                             network byte order */
     for (i=0; i<10; i++){
@@ -282,6 +293,7 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
         csound->Message(csound, Str("---> Could not connect \n"));
       else goto conok;
     }
+    close(rfd);
     return csound->InitError(csound,
                              Str("---> Failed all attempts to connect. \n"));
 
@@ -327,15 +339,14 @@ static int SVopen(CSOUND *csound)
     /* set the addresse to be reusable */
     if (UNLIKELY( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR,
 #ifdef WIN32
-                    (const char *)&opt,
+                             (const char *)&opt,
 #else
-                    &opt,
+                             &opt,
 #endif
                              sizeof(opt)) < 0 ))
-
       return
         csound->InitError(csound,
-                          Str("setting socket option to reuse the addresse \n"));
+                          Str("setting socket option to reuse the address\n"));
 
     memset(&(ST(to_addr)), 0, sizeof(ST(to_addr)));    /* clear sock mem */
     ST(local_addr).sin_family = AF_INET;               /* set as INET address */
@@ -355,7 +366,7 @@ static int SVopen(CSOUND *csound)
       return csound->InitError(csound, Str("bind failed"));
     }
     if (UNLIKELY(listen(socklisten, 5) < 0)) {    /* start the socket listening
-                                           for new connections -- may wait */
+                                                for new connections -- may wait */
       return csound->InitError(csound, Str("listen failed"));
     }
     clilen = sizeof(ST(local_addr));  /* FIX THIS FOR MULTIPLE CLIENTS !!!!!!!*/
@@ -380,7 +391,7 @@ int SVrecv(CSOUND *csound, int conn, void *data, int length)
     IGN(csound);
 #ifdef WIN32 /* VL, 12/10/06: I'm guessing here. If someone knows better, fix it */
 #define MSG_DONTWAIT  0
-   int clilen = sizeof(from);
+    int clilen = sizeof(from);
 #else
     socklen_t clilen = sizeof(from);
 #endif
@@ -430,15 +441,17 @@ int insremot(CSOUND *csound, INSREMOT *p)
       /* if client is this adrs */
       MYFLT   **argp = p->insno;
       int rfd = 0;
-      if ((rfd = CLopen(csound, (char *)p->str2->data)) <= 0)
+      if ((rfd = CLopen(csound, (char *)p->str2->data)) < 0)
         /* open port to remote */
         return NOTOK;
       for (nargs -= 2; nargs--; ) {
         int16 insno = (int16)**argp++;     /* & for each insno */
         if (UNLIKELY(insno <= 0)) {
+          close(rfd);
           return csound->InitError(csound, Str("illegal instr no"));
         }
         if (UNLIKELY(ST(insrfd)[insno])) {
+          close(rfd);
           return csound->InitError(csound, Str("insno already remote"));
         }
         ST(insrfd)[insno] = rfd;   /*  record file descriptor   */
@@ -509,19 +522,21 @@ int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
       MYFLT   **argp = p->chnum;
       int  rfd;
         /* open port to remote */
-      if (UNLIKELY((rfd = CLopen(csound, (char *)p->str2->data)) <= 0))
+      if (UNLIKELY((rfd = CLopen(csound, (char *)p->str2->data)) < 0))
         return NOTOK;
       for (nargs -= 2; nargs--; ) {
         int16 chnum = (int16)**argp++;               /* & for each channel   */
         if (UNLIKELY(chnum <= 0 || chnum > 16)) {    /* THESE ARE MIDCHANS+1 */
+          close(rfd);
           return csound->InitError(csound, Str("illegal channel no"));
         }
         if (UNLIKELY(ST(chnrfd)[chnum])) {
+          close(rfd);
           return csound->InitError(csound, Str("channel already remote"));
         }
         ST(chnrfd)[chnum] = rfd;                      /* record file descriptor */
-                }
-                ST(chnrfd_list)[ST(chnrfd_count)++] = rfd;   /* and make a list */
+      }
+      ST(chnrfd_list)[ST(chnrfd_count)++] = rfd;   /* and make a list */
     }
     else if (!strcmp(ST(ipadrs), (char *)p->str2->data)) {
       /* if server is this adrs */

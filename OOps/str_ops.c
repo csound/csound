@@ -307,8 +307,12 @@ sprintf_opcode_(CSOUND *csound,
     const char  *segwaiting = NULL;
     int     maxChars, siz = strlen(fmt) + numVals*7 + 1;
 
-    if (UNLIKELY((int) ((OPDS*) p)->optext->t.xincod != 0))
-      return StrOp_ErrMsg(p, "a-rate argument not allowed");
+    for (i = 0; i < numVals; i++) {
+      if (UNLIKELY(IS_ASIG_ARG(kvals[i]))) {
+        return StrOp_ErrMsg(p, "a-rate argument not allowed");
+      }
+    }
+    
     if (UNLIKELY((int) ((OPDS*) p)->optext->t.inArgCount > 31)){
       StrOp_ErrMsg(p, "too many arguments");
       return NOTOK;
@@ -316,7 +320,8 @@ sprintf_opcode_(CSOUND *csound,
 
 
     strseg = malloc(siz);
-
+    i = 0;
+    
     while (1) {
       if (UNLIKELY(i >= siz)) {
         // return StrOp_ErrMsg(p, "format string too long");
@@ -339,6 +344,7 @@ sprintf_opcode_(CSOUND *csound,
         maxChars = str->size - len;
         strseg[i] = '\0';
         if (UNLIKELY(numVals <= 0)) {
+          free(strseg);
           return StrOp_ErrMsg(p, "insufficient arguments for format");
         }
         numVals--;
@@ -394,6 +400,7 @@ sprintf_opcode_(CSOUND *csound,
           break;
         case 's':
           if (((STRINGDAT*)parm)->data == str->data) {
+            free(strseg);
             return StrOp_ErrMsg(p, "output argument may not be "
                                    "the same as any of the input args");
           }
@@ -409,6 +416,7 @@ sprintf_opcode_(CSOUND *csound,
           n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
           break;
         default:
+          free(strseg);
           return StrOp_ErrMsg(p, "invalid format string");
         }
         if (n < 0 || n >= maxChars) {
@@ -884,8 +892,9 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
 #endif
     char        buf[32];
 
-
-    ((char*) p->Sdst->data)[0] = '\0';
+    p->Sdst->data = csound->Calloc(csound,32);
+    p->Sdst->size = 32;
+    //((char*) p->Sdst->data)[0] = '\0';
     buf[0] = '\0';
     s = &(buf[0]);
     switch (opt) {
@@ -1041,7 +1050,7 @@ int str_from_url(CSOUND *csound, STRCPY_OP *p)
 }
 #endif
 
-#ifndef HAVE_STRLCAT
+#if !defined(HAVE_STRLCAT) && !defined(strlcat)
 /* Direct from BSD sources */
 size_t
 strlcat(char *dst, const char *src, size_t siz)
@@ -1071,3 +1080,14 @@ strlcat(char *dst, const char *src, size_t siz)
     return (dlen + (s - src));  /* count does not include NUL */
 }
 #endif
+
+
+/* Debugging opcode for testing runtime type identification */
+int print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
+    char* ptr = (char*)p->inVar;
+    
+    CS_TYPE* varType = *(CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
+    csound->Message(csound, "Variable Type: %s\n", varType->varTypeName);
+
+    return OK;
+}

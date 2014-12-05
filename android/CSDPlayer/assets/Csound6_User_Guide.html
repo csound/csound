@@ -5,7 +5,7 @@
 	<TITLE></TITLE>
 	<META NAME="GENERATOR" CONTENT="LibreOffice 4.0.1.2 (Windows)">
 	<META NAME="CREATED" CONTENT="20130611;20113632">
-	<META NAME="CHANGED" CONTENT="20130701;21222712">
+	<META NAME="CHANGED" CONTENT="20140702;9392027">
 	<STYLE TYPE="text/css">
 	<!--
 		@page { size: 8.5in 11in; margin: 0.79in }
@@ -17,6 +17,10 @@
 		PRE.western { font-family: "Courier New", monospace; font-size: 10pt }
 		PRE.cjk { font-family: "NSimSun", monospace; font-size: 10pt }
 		PRE.ctl { font-family: "Courier New", monospace; font-size: 10pt }
+		H2 { margin-bottom: 0.08in; page-break-after: avoid }
+		H2.western { font-family: "Arial", sans-serif; font-size: 14pt; font-style: italic; font-weight: bold }
+		H2.cjk { font-family: "Microsoft YaHei"; font-size: 14pt; font-style: italic; font-weight: bold }
+		H2.ctl { font-family: "Mangal"; font-size: 14pt; font-style: italic; font-weight: bold }
 		A:link { color: #000080; so-language: zxx; text-decoration: underline }
 		A:visited { color: #800000; so-language: zxx; text-decoration: underline }
 	-->
@@ -24,12 +28,12 @@
 </HEAD>
 <BODY LANG="en-US" LINK="#000080" VLINK="#800000" DIR="LTR">
 <H1 CLASS="western" ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in">
-User Guide<BR>Csound 6 for Android 
+User Guide<BR>Csound 6.03.3 for Android 
 </H1>
 <P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>Michael
 Gogins</B></I></P>
-<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>1
-July 2013</B></I></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>2
+July 2014</B></I></P>
 <P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><BR>
 </P>
 <H1 CLASS="western" STYLE="margin-top: 0.08in; margin-bottom: 0in">Introduction</H1>
@@ -48,8 +52,8 @@ developed. It has many advanced features for sound synthesis
 including user-designable instruments, an easy to learn programming
 language with a type system, several phase vocoders, several sample
 players, a plethora of digital oscillators, filters, and envelope
-generators, transparent multi-threading for high performance, and an
-embedded Lua just-in-time compiler.</P>
+generators, transparent multi-threading for high performance on
+multi-core systems, and an embedded Lua just-in-time compiler.</P>
 <P STYLE="margin-top: 0.08in; margin-bottom: 0in">The Csound app is
 by Victor Lazzarini, Steven Yi, Michael Gogins, and others. The app
 contains virtually all of Csound, including some of the more
@@ -69,13 +73,21 @@ frequently used plugin opcodes:</P>
 	foreign function interface that is capable of loading any shared
 	library that Android permits, and calling any exported function in
 	that library.</P>
+	<LI><P STYLE="margin-top: 0.08in; margin-bottom: 0in">The scanned
+	synthesis opcodes.</P>
+	<LI><P STYLE="margin-top: 0.08in; margin-bottom: 0in">The Open Sound
+	Control (OSC) opcodes which allow Csound to communicate over
+	networks with other software in a low-latency and flexible manner.</P>
+	<LI><P STYLE="margin-top: 0.08in; margin-bottom: 0in">The Doppler
+	opcode.</P>
 </UL>
 <H1 CLASS="western" STYLE="margin-top: 0.08in; margin-bottom: 0in">User
 Interface</H1>
 <P STYLE="margin-top: 0.08in; margin-bottom: 0in">Csound6 has a
-preset user interface consisting of four menu buttons, five sliders,
-five click buttons, a trackpad, and three context menu help buttons.
-The menu buttons perform the following functions: 
+preset user interface consisting a row of menu buttons, a widget
+area, three context menu help buttons, and a scrolling display at the
+bottom of the screen that prints messages output by Csound as it
+runs.The menu buttons perform the following functions: 
 </P>
 <UL>
 	<LI><P STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>New</B></I>
@@ -102,6 +114,11 @@ The menu buttons perform the following functions:
 	which should be a valid Linux pathname in the user's storage
 	filesystem.</P>
 </UL>
+<P STYLE="margin-top: 0.08in; margin-bottom: 0in">There are actually
+two types of widget area: one with pre-defined widgets, and one with
+user-defined widgets. 
+</P>
+<H2 CLASS="western">Predefined Widgets</H2>
 <P STYLE="margin-top: 0.08in; margin-bottom: 0in">The widgets are
 assigned control channel names <FONT FACE="Courier New, monospace">slider1</FONT>
 through <FONT FACE="Courier New, monospace">slider5</FONT>, <FONT FACE="Courier New, monospace">butt1</FONT>
@@ -119,9 +136,41 @@ opcode, like this:
 </P>
 <P STYLE="margin-top: 0.08in; margin-bottom: 0in"><FONT FACE="Courier New, monospace">kslider1_value
 chnget &ldquo;slider1&rdquo;</FONT></P>
-<P STYLE="margin-top: 0.08in; margin-bottom: 0in">The area below the
-trackpad prints messages output by Csound as it runs.</P>
-<H1 CLASS="western" STYLE="margin-top: 0.08in; margin-bottom: 0in"><IMG SRC="Csound6_User_Guide_html_773f6605.png" NAME="graphics1" ALIGN=LEFT HSPACE=19 VSPACE=19 WIDTH=297 HEIGHT=586 BORDER=0><BR CLEAR=LEFT>Examples</H1>
+<P STYLE="margin-top: 0.08in; margin-bottom: 0in"><BR>
+</P>
+<H2 CLASS="western"><IMG SRC="Csound6_User_Guide_html_773f6605.png" NAME="graphics1" ALIGN=LEFT HSPACE=19 VSPACE=19 WIDTH=297 HEIGHT=586 BORDER=0><BR CLEAR=LEFT>User-Defined
+Widgets</H2>
+<P STYLE="margin-top: 0.08in; margin-bottom: 0in">User-defined
+widgets are defined in a new <FONT FACE="Courier New, monospace">&lt;CsHtml5&gt;</FONT>
+element of the CSD file. This can in principle contain any valid
+HTML5 code, including document elements, JavaScript, and styles.
+JavaScript event handlers can be attached to any elements, including
+range inputs (sliders). Such event handlers can call Java methods of
+the <FONT FACE="Courier New, monospace">CsoundAppActivity</FONT>
+application object (<FONT FACE="Courier New, monospace">csoundApp</FONT>)
+and the <FONT FACE="Courier New, monospace">CsoundObj</FONT> object
+(<FONT FACE="Courier New, monospace">csound</FONT>), for example to
+get or set control channel values, or to send new score events to
+Csound.</P>
+<P STYLE="margin-top: 0.08in; margin-bottom: 0in">The ability to send
+score events to Csound from JavaScript means that JavaScript can be
+used as a high-level programming language in the CSD file for the
+purposes of algorithmic composition, even interactive composition.
+All methods callable from <FONT FACE="Courier New, monospace">CsoundAppActivity</FONT>
+and <FONT FACE="Courier New, monospace">CsoundObj</FONT>are marked
+with the <FONT FACE="Courier New, monospace">@JavascriptInterface</FONT>
+attribute in the Csound for Android source code. For a basic example
+of a user-defined widget setup, see the <FONT FACE="Courier New, monospace">Drone-HTML5.csd</FONT>
+example file. Here is a snippet showing a slider's <FONT FACE="Courier New, monospace">onInput</FONT>
+event handler setting a Csound control channel:<BR><BR>
+</P>
+<PRE CLASS="western" STYLE="page-break-inside: avoid; page-break-before: auto; page-break-after: auto">&lt;script&gt;
+function gk_Reverb_FeedbackUpdate(value) {
+var numberValue = parseFloat(value)
+csoundApp.setControlChannel('gk_Reverb_Feedback', numberValue);
+}
+&lt;/script&gt;</PRE><H1 CLASS="western" STYLE="margin-top: 0.08in; margin-bottom: 0in">
+Examples</H1>
 <P STYLE="margin-top: 0.08in; margin-bottom: 0in">On Csound's
 SourceForge page, in the Files section, there is an archive of
 examples for the Csound6 app. Not all of these examples use the
@@ -172,14 +221,13 @@ and log some informative messages during Csound's performance (<FONT FACE="Couri
 between <FONT FACE="Courier New, monospace">&lt;CsInstruments&gt;</FONT>
 and <FONT FACE="Courier New, monospace">&lt;/CsInstruments&gt;</FONT>
 and type the following text:</P>
-<PRE CLASS="western">
-sr = 44100
+<PRE CLASS="western">sr = 44100
 ksmps = 10
 nchnls = 1
-<BR><SPAN STYLE="font-variant: normal"><FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">instr 1</SPAN></SPAN></FONT></FONT></FONT></SPAN>
+<FONT COLOR="#000000"><FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt">instr 1</FONT></FONT></FONT>
 asignal oscil 10000, 440
-<FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">out </SPAN></SPAN></FONT></FONT><FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">asignal</SPAN></SPAN></FONT></FONT>
-<FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt"><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">endin</SPAN></SPAN></FONT></FONT></PRE><P STYLE="margin-top: 0.08in; margin-bottom: 0in">
+<FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt">out asignal</FONT></FONT>
+<FONT FACE="Courier New, monospace"><FONT SIZE=2 STYLE="font-size: 9pt">endin</FONT></FONT></PRE><P STYLE="margin-top: 0.08in; margin-bottom: 0in">
 <BR>This is just about the simplest possible Csound orchestra. The
 orchestra header specifies an audio signal sampling rate of 44,100
 frames per second, with 10 audio frames per control signal sample,
@@ -189,7 +237,7 @@ oscillator. It plays a loud tone at concert A.</P>
 between <FONT FACE="Courier New, monospace">&lt;CsScore&gt;</FONT>
 and <FONT FACE="Courier New, monospace">&lt;/CsScore&gt;</FONT> and
 type:</P>
-<PRE CLASS="western" STYLE="margin-top: 0.08in">i1 0 5</PRE><P STYLE="margin-top: 0.08in; margin-bottom: 0in">
+<PRE CLASS="western" STYLE="margin-top: 0.08in; margin-bottom: 0.08in">i1 0 5</PRE><P STYLE="margin-top: 0.08in; margin-bottom: 0in">
 This means play instrument 1 starting at time 0 for 5 seconds.</P>
 <P STYLE="margin-top: 0.08in; margin-bottom: 0in">Press the text
 editor's <B>Save</B> button and then its <B>Quit</B> button.</P>

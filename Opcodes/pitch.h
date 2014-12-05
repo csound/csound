@@ -180,7 +180,7 @@ typedef struct {
 } IMPULSE;
 
 typedef struct {
-        int32   cnt;
+        int32   cnt,acnt;
         MYFLT   alpha;
         MYFLT   val, nxtpt;
         MYFLT   c1;

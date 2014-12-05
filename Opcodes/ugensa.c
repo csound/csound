@@ -65,10 +65,10 @@ static int fogset(CSOUND *csound, FOGS *p)
         p->prvsmps   = 0;
         p->preamp    = FL(1.0);
       }
-      p->xincod    = (p->XINCODE & 0xF) ? 1 : 0;
-      p->ampcod    = (XINARG1) ? 1 : 0;
-      p->fundcod   = (XINARG2) ? 1 : 0;
-      p->formcod   = (XINARG3) ? 1 : 0;
+      p->ampcod   = IS_ASIG_ARG(p->xamp) ? 1 : 0;
+      p->fundcod  = IS_ASIG_ARG(p->xdens) ? 1 : 0;
+      p->formcod  = IS_ASIG_ARG(p->xtrans) ? 1 : 0;
+      p->xincod   = p->ampcod || p->fundcod || p->formcod;
 /* p->speedcod  = (p->XINCODE & 0x8) ? 1 : 0; */ /*out for phs version of fog*/
       p->fmtmod    = (*p->itmode == 0.0) ? 0 : 1;
     }

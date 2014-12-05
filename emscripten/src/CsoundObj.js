@@ -29,17 +29,17 @@ CsoundObj = function()
 
 	//Wrap C functions
 	var _new = cwrap('CsoundObj_new', 'number', null);
-	var _compileCSD = cwrap('CsoundObj_compileCSD', null, ['number','string', 'number', 'number', 'number']);
-	var _process = cwrap('CsoundObj_process', 'number', ['number', 'number', 'number', 'number']);
-	var _getKsmps = cwrap('CsoundObj_getKsmps', 'number', 'number');
-	var _getNchnls = cwrap('CsoundObj_getNchnls', 'number', 'number');
-	var _getNchnlsInput = cwrap('CsoundObj_getNchnlsInput', 'number', 'number');
+	var _compileCSD = cwrap('CsoundObj_compileCSD', null, ['number','string', 'number']);
+	var _process = cwrap('CsoundObj_process', ['number'], ['number', 'number', 'number', 'number']);
+	var _getKsmps = cwrap('CsoundObj_getKsmps', ['number'], ['number']);
+	var _getNchnls = cwrap('CsoundObj_getNchnls',['number'], ['number']);
+	var _getNchnlsInput = cwrap('CsoundObj_getNchnlsInput', ['number'], ['number']);
 	var _setUsingAudioInput = cwrap('CsoundObj_setUsingAudioInput', null, ['number', 'number']);
-	var _stop = cwrap('CsoundObj_stop', null, 'number');
-	var _reset = cwrap('CsoundObj_reset', null, 'number');
+	var _stop = cwrap('CsoundObj_stop', null, ['number']);
+	var _reset = cwrap('CsoundObj_reset', null, ['number']);
 	var _setControlChannel = cwrap('CsoundObj_setControlChannel', null, ['number', 'string', 'number']);
-	var _compileOrc = cwrap('CsoundObj_compileOrc', 'number', ['number', 'string']);
-	var _readScore = Module.cwrap('CsoundObj_readScore', 'number', ['number', 'string']);
+	var _compileOrc = cwrap('CsoundObj_compileOrc', ['number'], ['number', 'string']);
+	var _readScore = Module.cwrap('CsoundObj_readScore', ['number'], ['number', 'string']);
 	//Create instance of CsoundObj C structure
 	var _self = _new();
 	var csoundControlChannels = new Array();
@@ -82,7 +82,7 @@ CsoundObj = function()
 	var outputChannelCount;
 	var inputChannelCount;
 	var samplerate = audioContext.sampleRate;
-	var framesPerCallback = 256;
+	var framesPerCallback = 256.000;
 	var krate = samplerate / framesPerCallback;
 	var useAudioInput = false;
 	var scriptProcessor;
@@ -106,7 +106,7 @@ CsoundObj = function()
 
 	this.compileCSD = function(fileName)
 	{       _reset(_self);
-		_compileCSD(_self, fileName, samplerate, krate, framesPerCallback);
+		_compileCSD(_self, fileName, samplerate);
 		outputChannelCount = _getNchnls(_self);
 		inputChannelCount = _getNchnlsInput(_self);
 

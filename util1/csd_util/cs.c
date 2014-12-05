@@ -239,7 +239,7 @@ void find_files(char *name)
         fprintf(stderr, "cs: not enough memory\n"); exit(-1);
       }
       strcpy(csdname, dir_name);
-      strcat(csdname, s);
+      strncat(csdname, s, 255); csdname[255] = '\0';
       csdmatch = n;
     }
     /* now find orchestra or score */
@@ -540,7 +540,7 @@ int main(int argc, char **argv)
     fprintf(stderr, "\n");
     /* program name */
     split_filename(cs_argv[0], tmp, tmp2);
-    strcpy(tmp, cs_argv[0]);                    /* with path */
+    strncpy(tmp, cs_argv[0], 255); tmp[255] = '\0'; /* with path */
     cs_argv[0] = tmp2;                          /* and without it */
     /* free all memory */
     if (orcname != NULL) free(orcname);

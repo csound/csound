@@ -48,13 +48,23 @@ static  int     deinit_udpRecv(CSOUND *csound, void *pdata);
 
 typedef struct {
     OPDS    h;
-  MYFLT   *asig;
-  STRINGDAT *ipaddress;
- MYFLT *port;
+    MYFLT   *asig;
+    STRINGDAT *ipaddress;
+    MYFLT *port;
     AUXCH   aux, tmp;
     int     sock, conn;
     struct sockaddr_in server_addr;
 } SOCKRECVT;
+
+typedef struct {
+    OPDS    h;
+    STRINGDAT *kstr;
+    STRINGDAT *ipaddress;
+    MYFLT *port;
+    AUXCH   aux, tmp;
+    int     sock, conn;
+    struct sockaddr_in server_addr;
+} SOCKRECVS;
 
 typedef struct {
     OPDS    h;

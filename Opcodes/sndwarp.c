@@ -85,9 +85,9 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
       /* exp[i].section = i+1;  *//* section number just used for debugging! */
 
     }
-    p->ampcode = (XINARG1) ? 1 : 0;
-    p->timewarpcode = (XINARG2) ? 1 : 0;
-    p->resamplecode = (XINARG3) ? 1 : 0;
+    p->ampcode = IS_ASIG_ARG(p->xamp) ? 1 : 0;
+    p->timewarpcode = IS_ASIG_ARG(p->xtimewarp) ? 1 : 0;
+    p->resamplecode = IS_ASIG_ARG(p->xresample) ? 1 : 0;
     return OK;
 }
 
@@ -255,9 +255,9 @@ static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
       /* exp[i].section = i+1;  *//* section number just used for debugging! */
 
     }
-    p->ampcode = (XINARG1) ? 1 : 0;
-    p->timewarpcode = (XINARG2) ? 1 : 0;
-    p->resamplecode = (XINARG3) ? 1 : 0;
+    p->ampcode = IS_ASIG_ARG(p->xamp) ? 1 : 0;
+    p->timewarpcode = IS_ASIG_ARG(p->xtimewarp) ? 1 : 0;
+    p->resamplecode = IS_ASIG_ARG(p->xresample) ? 1 : 0;
     return OK;
 }
 

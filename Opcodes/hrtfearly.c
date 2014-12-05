@@ -314,8 +314,8 @@ static int early_init(CSOUND *csound, early *p)
     }
 
     /* copy in string name...*/
-    strncpy(filel, (char*) p->ifilel->data, MAXNAME);
-    strncpy(filer, (char*) p->ifiler->data, MAXNAME);
+    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1); filel[MAXNAME-1]='\0';
+    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1); filer[MAXNAME-1]='\0';
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,

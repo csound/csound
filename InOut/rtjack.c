@@ -508,12 +508,14 @@ static void openJackStreams(RtJackGlobals *p)
       dev_final = dev;
       sp = strchr(dev_final, '\0');
       if (!isalpha(dev_final[0])) dev_final++;
-
       for (i = 0; i < p->nChannels; i++) {
         snprintf(sp, 128-(dev-sp), "%d", i + 1);
         if (UNLIKELY(jack_connect(p->client, dev_final,
                                   jack_port_name(p->inPorts[i])) != 0)) {
-          rtJack_Error(csound, -1, Str("error connecting input ports"));
+          //rtJack_Error(csound, -1, Str("error connecting input ports"));
+          csound->Warning(csound,
+                          Str("not autoconnecting input channel %d \n"
+                              "(needs manual connection)"), i+1);
         }
       }
       *sp = (char) 0;
@@ -544,7 +546,10 @@ static void openJackStreams(RtJackGlobals *p)
         snprintf(sp, 128-(dev-sp), "%d", i + 1);
         if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
                          dev_final) != 0) {
-          rtJack_Error(csound, -1, Str("error connecting output ports"));
+          //rtJack_Error(csound, -1, Str("error connecting output ports"));
+          csound->Warning(csound, Str("not autoconnecting input channel %d \n"
+                                      "(needs manual connection)"), i+1);
+
         }
       }
       *sp = (char) 0;

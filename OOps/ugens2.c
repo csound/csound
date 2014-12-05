@@ -84,7 +84,7 @@ int ephsor(CSOUND *csound, EPHSOR *p)
     }
     aphs = p->aphs;
     phase = p->curphs;
-    if (p->XINCODE) {
+    if (IS_ASIG_ARG(p->xcps)) {
       MYFLT *cps = p->xcps;
       for (n=offset; n<nsmps; n++) {
         incr = (double)(cps[n] * onedsr);
@@ -152,7 +152,7 @@ int phsor(CSOUND *csound, PHSOR *p)
       memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
     }
     phase = p->curphs;
-    if (p->XINCODE) {
+    if (IS_ASIG_ARG(p->xcps)) {
       MYFLT *cps = p->xcps;
       for (n=offset; n<nsmps; n++) {
         incr = (double)(cps[n] * onedsr);

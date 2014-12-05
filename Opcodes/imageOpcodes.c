@@ -407,8 +407,7 @@ static int imagecreate (CSOUND *csound, IMGCREATE * p)
 
 static int imageload (CSOUND *csound, IMGLOAD * p)
 {
-    char filename[255];
-
+    char filename[256];
     Images *pimages;
     Image *img;
 
@@ -419,7 +418,7 @@ static int imageload (CSOUND *csound, IMGLOAD * p)
       (Image **) csound->ReAlloc(csound, pimages->images,
                                  sizeof(Image *) * pimages->cnt);
 
-    strncpy(filename, (char*) (p->ifilnam->data), 254);
+    strncpy(filename, (char*) (p->ifilnam->data), 255);filename[255]='\0';
 
     img = __doOpenImage(filename, csound);
 
@@ -611,7 +610,7 @@ static int imagesave (CSOUND *csound, IMGSAVE * p)
     Image *img;
     char filename[256];
 
-    strncpy(filename, (char*) (p->ifilnam->data), 256);
+    strncpy(filename, (char*) (p->ifilnam->data), 255);filename[255]='\0';
 
     pimages = (Images *) csound->QueryGlobalVariable(csound,
                                                      "imageOpcodes.images");

@@ -37,6 +37,8 @@
 #endif
 #include "lpc.h"
 
+#define Str(x) x
+
 void lpc_import_usage(void)
 {
     printf("Usage: lpc_import cstext_file lpc_file\n");
@@ -76,15 +78,16 @@ int main(int argc, char **argv)
     fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
-    if (UNLIKELY(hdr.npoles<0 || hdr.headersize < sizeof(LPHEADER)-4)) return 1;
+    if (UNLIKELY(hdr.headersize < sizeof(LPHEADER)-4) || hdr.headersize>1024) return 1;
     str = (char *)malloc(hdr.headersize-sizeof(LPHEADER)+4);
     if (str==NULL) {
-      printf("memory allocation failure\n");
+      printf(Str("memory allocation failure\n"));
       exit(1);
     }
+    
     if (hdr.headersize-sizeof(LPHEADER)+4 !=
         fread(&str, sizeof(char), hdr.headersize-sizeof(LPHEADER)+4, inf)) {
-      printf("Ill formed data\n");
+      printf(Str("Ill formed data\n"));
       exit(1);
     }
     for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)

@@ -35,32 +35,6 @@
 //#define MARGS   (3)
 //#define MACDEBUG (1)
 
-/* typedef struct S_MACRO {          /\* To store active macros *\/ */
-/*     char        *name;          /\* Use is by name *\/ */
-/*     int         acnt;           /\* Count of arguments *\/ */
-/*     CORFIL      *body;          /\* The text of the macro *\/ */
-/*     struct S_MACRO *next;         /\* Chain of active macros *\/ */
-/*     int         margs;          /\* ammount of space for args *\/ */
-/*     char        *arg[MARGS];    /\* With these arguments *\/ */
-/* } S_MACRO; */
-
-/* typedef struct in_stack_s {     /\* Stack of active inputs *\/ */
-/*     int16       is_marked_repeat;/\* 1 if this input created by 'n' stmnt *\/ */
-/*     int16       args;                 /\* Argument count for macro *\/ */
-/*     CORFIL      *cf;                  /\* In core file *\/ */
-/*     void        *fd;                  /\* for closing stream *\/ */
-/*     S_MACRO       *mac; */
-/*     int         line; */
-/* } IN_STACK; */
-
-/* typedef struct marked_sections { */
-/*     char        *name; */
-/*     int32       posit; */
-/*     int         line; */
-/*     char        *file; */
-/* } MARKED_SECTIONS; */
-
-
 static void print_input_backtrace(CSOUND *csound, int needLFs,
                                   void (*msgfunc)(CSOUND*, const char*, ...));
 static  void    copylin(CSOUND *), copypflds(CSOUND *);
@@ -604,13 +578,13 @@ static int nested_repeat(CSOUND *csound)                /* gab A9*/
           c[j]=' ';
           c[j+1]='\0';
         }
-        if (csound->oparms->msglevel & TIMEMSG)
+        if (csound->oparms->odebug/*csound->oparms->msglevel & TIMEMSG*/)
           csound->Message(csound,Str("%s Nested LOOP terminated, level:%d\n"),
                           c,STA(repeat_index));
 
       }
       else {
-        if (csound->oparms->msglevel & TIMEMSG)
+        if (csound->oparms->odebug/*csound->oparms->msglevel & TIMEMSG*/)
           csound->Message(csound,Str("External LOOP terminated, level:%d\n"),
                           STA(repeat_index));
       }
@@ -657,12 +631,12 @@ static int nested_repeat(CSOUND *csound)                /* gab A9*/
           c[j]=' ';
           c[j+1]='\0';
         }
-        if (csound->oparms->msglevel & TIMEMSG)
+        if (csound->oparms->odebug/*csound->oparms->msglevel & TIMEMSG*/)
           csound->Message(csound,Str("%s  Nested LOOP section (%d) Level:%d\n"),
                           c, i, STA(repeat_index));
       }
       else {
-        if (csound->oparms->msglevel & TIMEMSG)
+        if (csound->oparms->odebug/*csound->oparms->msglevel & TIMEMSG*/)
           csound->Message(csound,Str(" External LOOP section (%d) Level:%d\n"),
                           i, STA(repeat_index));
       }
@@ -807,6 +781,16 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
     csound->sectcnt++;
     rtncod = 0;
     salcinit(csound);           /* init the mem space for this section  */
+#ifdef SCORE_PARSER
+    if (csound->score_parser) {
+      extern int scope(CSOUND*);
+      printf("**********************************************************\n");
+      printf("*******************EXPERIMENTAL CODE**********************\n");
+      printf("**********************************************************\n");
+      scope(csound);
+      exit(0);
+    }
+#endif
 
     while ((STA(op) = getop(csound)) != EOF) { /* read next op from scorefile */
       rtncod = 1;
@@ -959,13 +943,13 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
               st[j] = ' ';
               st[j+1] = '\0';
             }
-            if (csound->oparms->msglevel & TIMEMSG)
+            if (csound->oparms->odebug/*csound->oparms->msglevel & TIMEMSG*/)
               csound->Message(csound, Str("%s Nested LOOP=%d Level:%d\n"),
                               st, STA(repeat_cnt_n)[STA(repeat_index)],
                               STA(repeat_index));
           }
           else {
-            if (csound->oparms->msglevel & TIMEMSG)
+            if (csound->oparms->odebug/*csound->oparms->msglevel & TIMEMSG*/)
               csound->Message(csound, Str("External LOOP=%d Level:%d\n"),
                               STA(repeat_cnt_n)[STA(repeat_index)],
                               STA(repeat_index));
@@ -1750,6 +1734,18 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         while (c != '\n' && c != EOF)
           c = getscochar(csound, 1); /* ignore rest of line */
       }
+#ifdef SCORE_PARSER
+      else if (c=='e') {
+        if (UNLIKELY(!check_preproc_name(csound, "exit"))) {
+          csound->Message(csound, "Not #exit");
+          flushlin(csound);
+          free(mname);
+          goto srch;
+        }
+        while (c != '\n' && c != EOF)
+          c = getscochar(csound, 1); /* ignore rest of line */
+      }
+#endif
       else {
         sreaderr(csound, Str("unknown # option"));
         flushlin(csound);

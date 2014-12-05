@@ -1,6 +1,7 @@
 
 #include "csoundCore.h"
 #include "pools.h"
+#include "csound_standard_types.h"
 
 /* MYFLT POOL */
 
@@ -8,7 +9,7 @@ MYFLT_POOL* myflt_pool_create(CSOUND* csound) {
     MYFLT_POOL* pool = csound->Malloc(csound, sizeof(MYFLT_POOL));
     pool->count = 0;
     pool->max = POOL_SIZE;
-    pool->values = csound->Calloc(csound, sizeof(MYFLT) * POOL_SIZE);
+    pool->values = csound->Calloc(csound, sizeof(CS_VAR_MEM) * POOL_SIZE);
 
     return pool;
 }
@@ -25,7 +26,7 @@ int myflt_pool_indexof(MYFLT_POOL* pool, MYFLT value) {
     int i;
 
     for (i = 0; i < pool->count; i++) {
-        if(pool->values[i] == value) {
+        if(pool->values[i].value == value) {
             retVal = i;
             break;
         }
@@ -42,10 +43,11 @@ int myflt_pool_find_or_add(CSOUND* csound, MYFLT_POOL* pool, MYFLT value) {
             pool->max += POOL_SIZE;
             pool->values = csound->ReAlloc(csound, pool->values,
                                            pool->max * sizeof
-                                           (MYFLT));
+                                           (CS_VAR_MEM));
         }
         index = pool->count;
-        pool->values[index] = value;
+        pool->values[index].varType = (CS_TYPE*)&CS_VAR_TYPE_C;
+        pool->values[index].value = value;
 
         pool->count++;
     }

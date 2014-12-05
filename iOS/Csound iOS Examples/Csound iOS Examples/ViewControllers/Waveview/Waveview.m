@@ -25,12 +25,8 @@
 
 #import "Waveview.h"
 #import "CsoundObj.h"
-#import "csound.h"
 
 @implementation Waveview
-
-@synthesize channelName = mChannelName;
-@synthesize cacheDirty = mCacheDirty;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -79,7 +75,7 @@
 	}
 }
 
-- (void)setup:(CsoundObj*)csoundObj
+- (void)setup:(CsoundObj *)csoundObj
 {
 	tableLoaded = NO;
 	csObj = csoundObj;
