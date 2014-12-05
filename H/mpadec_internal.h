@@ -181,9 +181,9 @@ struct mpadec_t {
   mpadec_tables_t tables;
   uint32_t synth_bufoffs;
   uint8_t hybrid_block[4];
-  MYFLT hybrid_in[2][SBLIMIT][SSLIMIT];
-  MYFLT hybrid_out[2][SSLIMIT][SBLIMIT];
-  MYFLT hybrid_buffers[2][2][SBLIMIT*SSLIMIT];
+  MYFLT hybrid_in[2][SBLIMIT+1][SSLIMIT];
+  MYFLT hybrid_out[2][SSLIMIT+1][SBLIMIT];
+  MYFLT hybrid_buffers[2][2][SBLIMIT*SSLIMIT+SBLIMIT+SSLIMIT];
   MYFLT synth_buffers[2][2][0x110];
 };
 

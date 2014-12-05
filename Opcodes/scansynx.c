@@ -53,9 +53,6 @@
 #include <math.h>
 #include "cwindow.h"
 
-/* #undef CS_KSMPS */
-/* #define CS_KSMPS (csound->GetKsmps(csound)) */
-
 /* Order of interpolation of scanning */
 /* Either 1, 2 (linear), 3 (cubic) or 4 (quadratic) */
 
@@ -130,14 +127,17 @@ static int scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
     f  = fi->ftable;
     i1 = (int)(len*pos - fi->flen/2);
     i2 = (int)(len*pos + fi->flen/2);
+    //printf("tab=%f len=%d i1=%d i2=%d\n", tab, len, i1, i2);///
     for (i = i1 ; i < 0 ; i++) {
+      //printf("0: writing index %d (%d)\n", len+i, i);
 #ifdef XALL
-      p->x2[len-i-1] += sgn * *f;
-      p->x3[len-i-1] += sgn * *f;
+      p->x2[len+i] += sgn * *f;
+      p->x3[len+i] += sgn * *f;
 #endif
-      p->x1[len-i-1] += sgn * *f++;
+      p->x1[len+i] += sgn * *f++;
     }
     for (; i < len && i < i2 ; i++) {
+      //printf("1: writing index %d\n", i);
 #ifdef XALL
       p->x2[i] += sgn * *f;
       p->x3[i] += sgn * *f;
@@ -145,6 +145,7 @@ static int scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
       p->x1[i] += sgn * *f++;
     }
     for (; i < i2 ; i++) {
+      //printf("2: writing index %d (%d)\n", i-len, i);
 #ifdef XALL
       p->x2[i-len] += sgn * *f;
       p->x3[i-len] += sgn * *f;
@@ -300,7 +301,7 @@ static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
     else {                      /* New format matrix */
       char filnam[256];
       MEMFIL *mfp;
-      strncpy(filnam, ((STRINGDAT *) p->i_f)->data, 256);
+      strncpy(filnam, ((STRINGDAT *) p->i_f)->data, 255);filnam[255]='\0';
       /* readfile if reqd */
       if (UNLIKELY((mfp =
                     csound->ldmemfile2withCB(csound, filnam,
@@ -334,13 +335,15 @@ static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
         p->f = (char*)p->aux_f.auxp;
 #else
         csound->AuxAlloc(csound,
-                         1L+(len*len*sizeof(int32))/BITS_PER_UNIT, &p->aux_f);
+                         BITS_PER_UNIT+(len*len*sizeof(int32))/BITS_PER_UNIT,
+                         &p->aux_f);
         p->f = (uint32*)p->aux_f.auxp;
 #endif
         while (pp < mfp->endp) {
           if (strncmp(pp, NMATRIXLF, NMATLENLF)==0) break;
           if (strncmp(pp, NMATRIXCRLF, NMATLENCRLF)==0) break;
-          if (2 != sscanf(pp, "%d %d", &i, &j)) break;
+          if (1 != sscanf(pp, "%d", &i)) break;
+          if (1 != sscanf(pp, "%d", &j)) break;
 #ifdef USING_CHAR
           p->f[i*len+j] = 1;
 #else
@@ -374,13 +377,18 @@ static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
 #endif
 
     /* Initialize them ... */
-    for (i = 0 ; i != len ; i++) {
-      p->x0[i] = p->x1[i] = p->x2[i]= p->ext[i] = FL(0.0);
+/*     for (i = 0 ; i != len ; i++) { */
+/*       p->x0[i] = p->x1[i] = p->x2[i]= p->ext[i] = FL(0.0); */
+/* #if PHASE_INTERP == 3 */
+/*       p->x3[i] = FL(0.0); */
+/* #endif */
+/*     } */
 #if PHASE_INTERP == 3
-      p->x3[i] = FL(0.0);
+    memset(p->x0, 0, 6*len*sizeof(MYFLT));
+#else
+    memset(p->x0, 0, 5*len*sizeof(MYFLT));
 #endif
-    }
-
+           
     /* ... according to scheme */
     if ((int)*p->i_init < 0) {
       int res;

@@ -33,6 +33,7 @@
 //#include "csdl.h"
 #include <math.h>
 #include "biquad.h"
+#include "csound_standard_types.h"
 
 /***************************************************************************/
 /* The biquadratic filter computes the digital filter two x components and */
@@ -122,8 +123,8 @@ static int moogvcfset(CSOUND *csound, MOOGVCF *p)
       p->xnm1 = p->y1nm1 = p->y2nm1 = p->y3nm1 = 0.0;
       p->y1n  = p->y2n   = p->y3n   = p->y4n   = 0.0;
     }
-    p->fcocod = (XINARG2) ? 1 : 0;
-    p->rezcod = (XINARG3) ? 1 : 0;
+    p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
+    p->rezcod = IS_ASIG_ARG(p->res) ? 1 : 0;
     if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->e0dbfs;
 
     return OK;
@@ -143,7 +144,8 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
     double dmax = 1.0/max;
     double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
     double y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
-
+    MYFLT zerodb = csound->e0dbfs;
+    
     in      = p->in;
     out     = p->out;
     fcoptr  = p->fco;
@@ -181,7 +183,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
         scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor */
         k     = res*scale;
       }
-      xn = (double)in[n] * dmax/csound->e0dbfs;
+      xn = (double)in[n] * dmax/zerodb;
       xn = xn - k * y4n; /* Inverted feed back for corner peaking */
 
       /* Four cascaded onepole filters (bilinear transform) */
@@ -202,7 +204,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
       y1nm1 = y1n;      /* Update Y1n-1 */
       y2nm1 = y2n;      /* Update Y2n-1 */
       y3nm1 = y3n;      /* Update Y3n-1 */
-      out[n]   = (MYFLT)(y4n * max * csound->e0dbfs);
+      out[n]   = (MYFLT)(y4n * max * zerodb);
     }
     p->xnm1 = xnm1; p->y1nm1 = y1nm1; p->y2nm1 = y2nm1; p->y3nm1 = y3nm1;
     p->y1n  = y1n;  p->y2n  = y2n; p->y3n = y3n; p->y4n = y4n;
@@ -219,8 +221,8 @@ static int rezzyset(CSOUND *csound, REZZY *p)
     if (*p->iskip==FL(0.0)) {
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0; /* Initialize to zero */
     }
-    p->fcocod = (XINARG2) ? 1 : 0;
-    p->rezcod = (XINARG3) ? 1 : 0;
+    p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
+    p->rezcod = IS_ASIG_ARG(p->rez) ? 1 : 0;
 
     return OK;
 } /* end rezzyset(p) */
@@ -398,6 +400,8 @@ static int distort(CSOUND *csound, DISTORT *p)
 /* Coded by Hans Mikelson November 1998                                    */
 /***************************************************************************/
 
+
+
 static int vcoset(CSOUND *csound, VCO *p)
 {
     /* Number of bytes in the delay */
@@ -417,8 +421,9 @@ static int vcoset(CSOUND *csound, VCO *p)
       printf("Initial value of lphs set to zero\n");
       p->lphs = 0;
     }
-    p->ampcod = (XINARG1) ? 1 : 0;
-    p->cpscod = (XINARG2) ? 1 : 0;
+    
+    p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
+    p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
 
     if (*p->iskip==FL(0.0)) {
       p->ynm1 = (*p->wave == FL(1.0)) ? -FL(0.5) : FL(0.0);
@@ -1120,8 +1125,8 @@ static int tbvcfset(CSOUND *csound, TBVCF *p)
     if (*p->iskip==FL(0.0)) {
       p->y = p->y1 = p->y2 = 0.0;
     }
-    p->fcocod = (XINARG2) ? 1 : 0;
-    p->rezcod = (XINARG3) ? 1 : 0;
+    p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
+    p->rezcod = IS_ASIG_ARG(p->res) ? 1 : 0;
     return OK;
 }
 
@@ -1200,8 +1205,8 @@ static int bqrezset(CSOUND *csound, REZZY *p)
     if (*p->iskip==FL(0.0)) {
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;  /* Initialise to zero */
     }
-    p->fcocod = (XINARG2) ? 1 : 0;
-    p->rezcod = (XINARG3) ? 1 : 0;
+    p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
+    p->rezcod = IS_ASIG_ARG(p->rez) ? 1 : 0;
 
     return OK;
 } /* end rezzyset(p) */
@@ -1378,8 +1383,8 @@ static int mode(CSOUND *csound, MODE *p)
       memset(&p->aout[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT kfq = XINARG2 ? p->kfreq[n] : *p->kfreq;
-      MYFLT kq  = XINARG3 ? p->kq[n] : *p->kq;
+      MYFLT kfq = IS_ASIG_ARG(p->kfreq) ? p->kfreq[n] : *p->kfreq;
+      MYFLT kq  = IS_ASIG_ARG(p->kq) ? p->kq[n] : *p->kq;
       if (lfq != kfq || lq != kq) {
         double kfreq  = kfq*TWOPI;
         double kalpha = (CS_ESR/kfreq);

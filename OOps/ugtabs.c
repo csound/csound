@@ -63,7 +63,7 @@ int tabler_init(CSOUND *csound, TABL *p) {
 
 int tabl_setup(CSOUND *csound, TABL *p) {
 
-   if (UNLIKELY(p->XOUTCODE  && p->XINCODE != p->XOUTCODE)) {
+   if (UNLIKELY(IS_ASIG_ARG(p->ndx) != IS_ASIG_ARG(p->sig))) {
       if (CS_KSMPS != 1)
         return csound->InitError(csound,
                                  Str("table: index type inconsistent with output"));
@@ -410,7 +410,7 @@ int table3r_audio(CSOUND *csound, TABL *p)
 
 int tablkt_setup(CSOUND *csound, TABL *p) {
 
-   if (UNLIKELY(p->XOUTCODE && p->XINCODE != p->XOUTCODE)) {
+   if (UNLIKELY(IS_ASIG_ARG(p->ndx) != IS_ASIG_ARG(p->sig))) {
       if (CS_KSMPS != 1)
         return
           csound->InitError(csound,
@@ -742,8 +742,8 @@ int table_mix(CSOUND *csound, TABLMIX *p) {
       }
       else p1 &= ftp1->lenmask;
       if (np22) {
-        while(p2 < 0) p2 += len2;
-        while(p2 >= len2) p1 -= len2;
+        while (p2 < 0) p2 += len2;
+        while (p2 >= len2) p2 -= len2;
       }
       else p2 &= ftp2->lenmask;
       func[p0] = func1[p1]*g1 + func2[p2]*g2;

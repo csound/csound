@@ -69,7 +69,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-    if (XINARG2) {          /*      if delay is a-rate      */
+    if (IS_ASIG_ARG(p->adel)) {          /*      if delay is a-rate      */
       for (nn=offset; nn<nsmps; nn++) {
         MYFLT  fv1, fv2;
         int32   v1, v2;
@@ -162,7 +162,7 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-    if (XINARG2) {              /*      if delay is a-rate      */
+    if (IS_ASIG_ARG(p->adel)) {              /*      if delay is a-rate      */
       for (nn=offset; nn<nsmps; nn++) {
         MYFLT  fv1;
         int32   v0, v1, v2, v3;

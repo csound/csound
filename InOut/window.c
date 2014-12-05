@@ -79,6 +79,7 @@ void dispinit(CSOUND *csound)
       csound->csoundKillGraphCallback_ = DummyFn2;
     }
     else {
+      if(csound->csoundDrawGraphCallback_ == NULL){ // if callbacks are not set by host
       csound->Message(csound, Str("graphics %s, ascii substituted\n"),
                       ((O.graphsoff || O.postscript) ?
                        Str("suppressed")
@@ -86,6 +87,7 @@ void dispinit(CSOUND *csound)
       csound->csoundMakeGraphCallback_ = MakeAscii;
       csound->csoundDrawGraphCallback_ = DrawAscii;
       csound->csoundKillGraphCallback_ = KillAscii;
+      }
     }
     csound->csoundExitGraphCallback_ = DummyFn3;
 }
@@ -174,7 +176,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     else if (pol == (int16)NEGPOL && max > FL(0.0)) pol = (int16)BIPOL;
     wdptr->polarity = pol;
 
-
+    if(O.odebug) csound->Message(csound, " calling draw callback \n");
     /* now graph the function */
     csound->csoundDrawGraphCallback_(csound, wdptr);
 

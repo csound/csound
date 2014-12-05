@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="4514" systemVersion="13A603" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="5056" systemVersion="13E28" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3747"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
     </dependencies>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="SimpleTest2ViewController">
             <connections>
-                <outlet property="mAttackSlider" destination="8" id="16"/>
-                <outlet property="mDecaySlider" destination="10" id="17"/>
-                <outlet property="mDurationSlider" destination="20" id="22"/>
-                <outlet property="mRateSlider" destination="6" id="15"/>
-                <outlet property="mReleaseSlider" destination="12" id="19"/>
-                <outlet property="mSustainSlider" destination="11" id="18"/>
-                <outlet property="mSwitch" destination="5" id="13"/>
+                <outlet property="attackLabel" destination="VTe-DK-wBr" id="Okj-Lj-MUB"/>
+                <outlet property="attackSlider" destination="8" id="33y-QW-Pcw"/>
+                <outlet property="decayLabel" destination="dbx-bA-CRM" id="e5g-YH-o50"/>
+                <outlet property="decaySlider" destination="10" id="Tz1-Pg-CB6"/>
+                <outlet property="durationLabel" destination="w0d-pd-dhE" id="Xrn-Wd-Gq5"/>
+                <outlet property="durationSlider" destination="20" id="5YG-gD-jbU"/>
+                <outlet property="onOffSwitch" destination="5" id="8q6-4m-YUq"/>
+                <outlet property="rateLabel" destination="2hE-ip-xBi" id="3da-6b-uiC"/>
+                <outlet property="rateSlider" destination="6" id="93G-22-zbi"/>
+                <outlet property="releaseLabel" destination="Sci-0t-P4s" id="xfw-oB-Ct1"/>
+                <outlet property="releaseSlider" destination="12" id="b4g-mf-N4a"/>
+                <outlet property="sustainLabel" destination="9LU-lw-wzP" id="b7c-fz-Ndf"/>
+                <outlet property="sustainSlider" destination="11" id="wyJ-ni-6zT"/>
                 <outlet property="view" destination="1" id="3"/>
             </connections>
         </placeholder>
@@ -51,15 +57,15 @@
                     <nil key="highlightedColor"/>
                 </label>
                 <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.05000000074505806" minValue="0.05000000074505806" maxValue="2" id="10">
-                    <rect key="frame" x="18" y="268" width="284" height="29"/>
+                    <rect key="frame" x="18" y="278" width="284" height="29"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                 </slider>
                 <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.69999998807907104" minValue="0.0" maxValue="1" id="11">
-                    <rect key="frame" x="18" y="298" width="284" height="29"/>
+                    <rect key="frame" x="18" y="318" width="284" height="29"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                 </slider>
                 <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="2" minValue="0.0" maxValue="4" id="12">
-                    <rect key="frame" x="18" y="328" width="284" height="29"/>
+                    <rect key="frame" x="18" y="358" width="284" height="29"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                 </slider>
                 <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="1.5" minValue="0.5" maxValue="4" id="20">
@@ -71,6 +77,42 @@
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="1.5" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="w0d-pd-dhE">
+                    <rect key="frame" x="227" y="140" width="73" height="16"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="1.5" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="2hE-ip-xBi">
+                    <rect key="frame" x="227" y="108" width="73" height="16"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0.05" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="VTe-DK-wBr">
+                    <rect key="frame" x="227" y="227" width="73" height="16"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0.05" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="dbx-bA-CRM">
+                    <rect key="frame" x="227" y="268" width="73" height="16"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0.7" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="9LU-lw-wzP">
+                    <rect key="frame" x="227" y="306" width="73" height="16"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="2.0" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Sci-0t-P4s">
+                    <rect key="frame" x="227" y="349" width="73" height="16"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="11"/>
                     <nil key="highlightedColor"/>
                 </label>
             </subviews>

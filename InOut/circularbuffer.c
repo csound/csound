@@ -64,6 +64,7 @@ static int checkspace(circular_buffer *p, int writeCheck){
 
 int csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int items)
 {
+    IGN(csound);
     if (p == NULL) return 0;
     {
       int remaining;
@@ -71,7 +72,6 @@ int csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int items)
       int elemsize = ((circular_buffer *)p)->elemsize;
       int i=0, rp = ((circular_buffer *)p)->rp;
       char *buffer = ((circular_buffer *)p)->buffer;
-      IGN(csound);
       if ((remaining = checkspace(p, 0)) == 0) {
         return 0;
       }
@@ -83,80 +83,86 @@ int csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int items)
           rp = 0;
         }
       }
+#ifdef HAVE_ATOMIC_BUILTIN
+      __sync_lock_test_and_set(&((circular_buffer *)p)->rp,rp);
+#else
       ((circular_buffer *)p)->rp = rp;
+#endif
       return itemsread;
     }
 }
 
 int csoundPeekCircularBuffer(CSOUND *csound, void *p, void *out, int items)
 {
+    IGN(csound);
     if (p == NULL) return 0;
-    {
-      int remaining;
-      int itemsread, numelem = ((circular_buffer *)p)->numelem;
-      int elemsize = ((circular_buffer *)p)->elemsize;
-      int i=0, rp = ((circular_buffer *)p)->rp;
-      char *buffer = ((circular_buffer *)p)->buffer;
-      IGN(csound);
-      if ((remaining = checkspace(p, 0)) == 0) {
+    int remaining;
+    int itemsread, numelem = ((circular_buffer *)p)->numelem;
+    int elemsize = ((circular_buffer *)p)->elemsize;
+    int i=0, rp = ((circular_buffer *)p)->rp;
+    char *buffer = ((circular_buffer *)p)->buffer;
+    if ((remaining = checkspace(p, 0)) == 0) {
         return 0;
-      }
-      itemsread = items > remaining ? remaining : items;
-      for(i=0; i < itemsread; i++){
+    }
+    itemsread = items > remaining ? remaining : items;
+    for(i=0; i < itemsread; i++){
         memcpy((char *) out + (i * elemsize),
                &(buffer[elemsize * rp++]),  elemsize);
         if (rp == numelem) {
-          rp = 0;
+            rp = 0;
         }
-      }
-      return itemsread;
     }
+    return itemsread;
 }
 
 void csoundFlushCircularBuffer(CSOUND *csound, void *p)
 {
-  if (p == NULL) return;
-    {
-      int remaining;
-      int itemsread, numelem = ((circular_buffer *)p)->numelem;
-      int i=0, rp = ((circular_buffer *)p)->rp;
-      //MYFLT *buffer = ((circular_buffer *)p)->buffer;
-      IGN(csound);
-      if ((remaining = checkspace(p, 0)) == 0) {
+    IGN(csound);
+    if (p == NULL) return;
+    int remaining;
+    int itemsread, numelem = ((circular_buffer *)p)->numelem;
+    int i=0, rp = ((circular_buffer *)p)->rp;
+    //MYFLT *buffer = ((circular_buffer *)p)->buffer;
+    if ((remaining = checkspace(p, 0)) == 0) {
         return;
-      }
-      itemsread = numelem > remaining ? remaining: numelem;
-      for (i=0; i < itemsread; i++){
+    }
+    itemsread = numelem > remaining ? remaining: numelem;
+    for (i=0; i < itemsread; i++){
         rp++;
         if(rp == numelem) rp = 0;
-      }
-      ((circular_buffer *)p)->rp = rp;
     }
+#ifdef HAVE_ATOMIC_BUILTIN
+      __sync_lock_test_and_set(&((circular_buffer *)p)->rp,rp);
+#else
+      ((circular_buffer *)p)->rp = rp;
+#endif
 }
 
 
 int csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int items)
 {
+    IGN(csound);
     if (p == NULL) return 0;
-    {
-      int remaining;
-      int itemswrite, numelem = ((circular_buffer *)p)->numelem;
-      int elemsize = ((circular_buffer *)p)->elemsize;
-      int i=0, wp = ((circular_buffer *)p)->wp;
-      char *buffer = ((circular_buffer *)p)->buffer;
-      IGN(csound);
-      if ((remaining = checkspace(p, 1)) == 0) {
+    int remaining;
+    int itemswrite, numelem = ((circular_buffer *)p)->numelem;
+    int elemsize = ((circular_buffer *)p)->elemsize;
+    int i=0, wp = ((circular_buffer *)p)->wp;
+    char *buffer = ((circular_buffer *)p)->buffer;
+    if ((remaining = checkspace(p, 1)) == 0) {
         return 0;
-      }
-      itemswrite = items > remaining ? remaining : items;
-      for(i=0; i < itemswrite; i++){
-        memcpy(&(buffer[elemsize * wp++]),
-               ((char *) in) + (i * elemsize),  elemsize);
-        if(wp == numelem) wp = 0;
-      }
-      ((circular_buffer *)p)->wp = wp;
-      return itemswrite;
     }
+    itemswrite = items > remaining ? remaining : items;
+    for(i=0; i < itemswrite; i++){
+        memcpy(&(buffer[elemsize * wp++]),
+                ((char *) in) + (i * elemsize),  elemsize);
+        if(wp == numelem) wp = 0;
+    }
+#ifdef HAVE_ATOMIC_BUILTIN
+      __sync_lock_test_and_set(&((circular_buffer *)p)->wp,wp);
+#else
+      ((circular_buffer *)p)->wp = wp;
+#endif
+    return itemswrite;
 }
 
 void csoundDestroyCircularBuffer(CSOUND *csound, void *p){

@@ -28,7 +28,7 @@
 #import "Waveview.h"
 #import "BaseCsoundViewController.h"
 #import "CsoundObj.h"
-@interface WaveviewViewController : BaseCsoundViewController <CsoundObjCompletionListener>
+@interface WaveviewViewController : BaseCsoundViewController
 {
     
     IBOutlet Waveview *waveview;

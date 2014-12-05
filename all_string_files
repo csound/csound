@@ -26,6 +26,8 @@
 ./Engine/parse_param.h
 ./Engine/pools.c
 ./Engine/rdscor.c
+./Engine/scope.c
+./Engine/score_param.h
 ./Engine/scsort.c
 ./Engine/scxtract.c
 ./Engine/sort.c
@@ -52,6 +54,7 @@
 ./H/dumpf.h
 ./H/entry1.h
 ./H/envvar.h
+./H/extract.h
 ./H/fftlib.h
 ./H/fgens.h
 ./H/insert.h
@@ -65,6 +68,7 @@
 ./H/mp3dec.h
 ./H/mp3dec_internal.h
 ./H/mpadec.h
+./H/mpadec_internal.h
 ./H/namedins.h
 ./H/new_opts.h
 ./H/oload.h
@@ -94,6 +98,16 @@
 ./InOut/circularbuffer.c
 ./InOut/cmidi.c
 ./InOut/ipmidi.c
+./InOut/libmpadec/layer1.c
+./InOut/libmpadec/layer2.c
+./InOut/libmpadec/layer3.c
+./InOut/libmpadec/mp3dec.c
+./InOut/libmpadec/mp3dec_internal.h
+./InOut/libmpadec/mpadec.c
+./InOut/libmpadec/mpadec_config.h
+./InOut/libmpadec/mpadec_internal.h
+./InOut/libmpadec/synth.c
+./InOut/libmpadec/tables.c
 ./InOut/libsnd.c
 ./InOut/libsnd_u.c
 ./InOut/midifile.c
@@ -185,6 +199,7 @@
 ./Opcodes/bowedbar.c
 ./Opcodes/bowedbar.h
 ./Opcodes/brass.h
+./Opcodes/buchla.c
 ./Opcodes/butter.c
 ./Opcodes/cellular.c
 ./Opcodes/chua/ChuaOscillator.cpp
@@ -213,6 +228,7 @@
 ./Opcodes/dssi4cs/src/load.c
 ./Opcodes/dssi4cs/src/utils.h
 ./Opcodes/eqfil.c
+./Opcodes/exciter.c
 ./Opcodes/fareygen.c
 ./Opcodes/fareyseq.c
 ./Opcodes/faustgen.cpp
@@ -250,6 +266,8 @@
 ./Opcodes/grain4.c
 ./Opcodes/grain4.h
 ./Opcodes/harmon.c
+./Opcodes/hdf5/HDF5IO.c
+./Opcodes/hdf5/HDF5IO.h
 ./Opcodes/hrtfearly.c
 ./Opcodes/hrtferX.c
 ./Opcodes/hrtferx.h
@@ -285,10 +303,12 @@
 ./Opcodes/moog1.c
 ./Opcodes/moog1.h
 ./Opcodes/mp3in.c
+./Opcodes/newarray.c
 ./Opcodes/newfils.c
 ./Opcodes/newfils.h
 ./Opcodes/nlfilt.c
 ./Opcodes/nlfilt.h
+./Opcodes/opencl/cladsynth.c
 ./Opcodes/oscbnk.c
 ./Opcodes/oscbnk.h
 ./Opcodes/p5glove.c
@@ -301,6 +321,7 @@
 ./Opcodes/physmod.c
 ./Opcodes/physutil.c
 ./Opcodes/physutil.h
+./Opcodes/pinker.c
 ./Opcodes/pitch.c
 ./Opcodes/pitch.h
 ./Opcodes/pitch0.c
@@ -432,6 +453,7 @@
 ./Top/new_opts.c
 ./Top/one_file.c
 ./Top/opcode.c
+./Top/server.c
 ./Top/threads.c
 ./Top/threadsafe.c
 ./Top/utility.c

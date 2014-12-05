@@ -282,8 +282,8 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
       ar = p->ar;
 
       for (n=offset;n<nsmps;n++) {
-        MYFLT fco = (XINARG2 ? kfco[n] : *kfco);
-        MYFLT res = (XINARG3 ? kres[n] : *kres);
+        MYFLT fco = (IS_ASIG_ARG(p->kfco) ? kfco[n] : *kfco);
+        MYFLT res = (IS_ASIG_ARG(p->kres) ? kres[n] : *kres);
         if (p->okf != fco || p->okr != res) { /* Only if changed */
           b = FL(10.0) / (res * SQRT(fco)) - FL(1.0);
           k = FL(1000.0) / fco;

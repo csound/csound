@@ -75,7 +75,7 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
       csound->AuxAlloc(csound, rail_len*sizeof(MYFLT),&p->up_data);
       upper_rail->data = (MYFLT*)p->up_data.auxp;
     }
-    else upper_rail->data = NULL;
+    //    else upper_rail->data = NULL;
     upper_rail->pointer = upper_rail->data;
     upper_rail->end = upper_rail->data + rail_len - 1;
 

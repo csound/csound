@@ -1,3 +1,9 @@
+# When the minimum required version is bumped to >= 2.8.12, remove this line,
+# remove all occurences of LINK_INTERFACE_LIBRARIES, and modify all target_link_libraries
+# to be PRIVATE (eg, target_link_libraries(${CSOUNDLIB} PRIVATE ...) )
+# This silences a cmake warning about a variable name change
+set(CMAKE_POLICY_DEFAULT_CMP0022 OLD)
+
 cmake_minimum_required(VERSION 2.8.3)
 
 project (Csound)
@@ -19,6 +25,8 @@ set(APIVERSION "6.0")
 # Relative install paths
 set(EXECUTABLE_INSTALL_DIR "bin")
 
+
+
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
     set(LIBRARY_INSTALL_DIR "lib64")
@@ -32,7 +40,14 @@ if(USE_DOUBLE)
 else()
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
 endif()
-set(PYTHON_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
+
+
+execute_process (
+     COMMAND python -c
+     "import site, sys; sys.stdout.write(site.getusersitepackages())"
+     OUTPUT_VARIABLE PYTHON_MODULE_INSTALL_DIR
+   )
+
 set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LOCALE_INSTALL_DIR "share/locale")
@@ -240,8 +255,11 @@ if(WIN32)
         wsock32)
 
 if(NOT MSVC)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libgcc -static")
+set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
+
 endif()
 
 
@@ -302,7 +320,7 @@ if(APPLE)
     set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
   endif()
 
-  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*") 
+  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
     message(STATUS "OSX: Setting Depolyment Target to 10.7")
   endif()
@@ -327,9 +345,8 @@ endif()
 
 if(APPLE)
     if(BUILD_INSTALLER)
-	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
+       	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
     else()
-        get_filename_component(PYTHON_MODULE_INSTALL_DIR "~/Library/Python/2.7/lib/python/site-packages" ABSOLUTE)
         get_filename_component(JAVA_MODULE_INSTALL_DIR "~/Library/Java/Extensions" ABSOLUTE)
         get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
     endif()
@@ -410,6 +427,8 @@ endif()
 if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
     message(FATAL_ERROR "Csound requires the pthread library")
 endif()
+
+message(STATUS "PTHREAD STATIC LIBRARY: ${PTHREAD_STATIC_LIBRARY}")
 
 set(CMAKE_REQUIRED_INCLUDES pthread.h)
 set(CMAKE_REQUIRED_LIBRARIES pthread)
@@ -568,6 +587,7 @@ set(libcsound_SRCS
     Engine/musmon.c
     Engine/namedins.c
     Engine/rdscor.c
+    Engine/scope.c
     Engine/scsort.c
     Engine/scxtract.c
     Engine/sort.c
@@ -626,6 +646,7 @@ set(libcsound_SRCS
     Opcodes/compress.c
     Opcodes/eqfil.c
     Opcodes/Vosim.c
+    Opcodes/pinker.c
     Opcodes/pitch.c
     Opcodes/pitch0.c
     Opcodes/spectra.c
@@ -828,8 +849,10 @@ set_source_files_properties(${LEX_OUT} GENERATED)
 # Handling New Score Parser
 
 if(SCORE_PARSER)
+    message(STATUS "SCORE PARSER being built")
     add_custom_target(NewScoParser echo "Creating sco_parser.c")
-    set(NewScoParser OFF)
+    #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSCORE_PARSER")
+    list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
 
     set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
     set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
@@ -840,6 +863,10 @@ if(SCORE_PARSER)
     set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
     set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
 
+    ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c")
+    ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")
+    ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c")
+
     add_custom_command(
         SOURCE ${LEX_SCOSRC}
         COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT}
@@ -848,23 +875,25 @@ if(SCORE_PARSER)
 
     add_custom_command(
         SOURCE ${PRELEX_SCOSRC}
-        COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
+        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t -d ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
         TARGET NewScoParser
-        OUTPUTS ${PRELEXSCO_OUT})
+        OUTPUTS ${PRELEX_SCOOUT})
 
     add_custom_command(
         SOURCE ${YACC_SCOSRC}
         COMMAND ${BISON_EXECUTABLE}
-        ARGS -pcsound_sco -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
+        ARGS -pcsound_sco -t -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
         TARGET NewScoParser
         DEPENDS ${LEX_SCOOUT}
         OUTPUTS ${YACC_SCOOUT})
 
     list(APPEND libcsound_SRCS
-        ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEXSCO_OUT})
+        ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
 
     set_source_files_properties(${YACC_SCOOUT} GENERATED)
     set_source_files_properties(${LEX_SCOOUT} GENERATED)
+    set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
+
 else()
     message(STATUS "Not building with score parser")
 endif()
@@ -1025,7 +1054,7 @@ install(TARGETS ${CSOUNDLIB}
     ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
     FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 
-if(EMSCRIPTEN) 
+if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
   set(libcsound_LIBS
     ${LIBSNDFILE_LIBRARY})
@@ -1052,13 +1081,23 @@ if(USE_GETTEXT)
         list(APPEND libcsound_LIBS ${LIBINTL_LIBRARY})
     endif()
     list(APPEND libcsound_CFLAGS -DGNU_GETTEXT)
+    if(NOT DEFINED CSOUND_TEXTDOMAIN AND BUILD_RELEASE AND (LINUX))
+        file(TO_NATIVE_PATH "${CMAKE_INSTALL_PREFIX}/${LOCALE_INSTALL_DIR}" CSOUND_TEXTDOMAIN)
+    endif()
+    if(CSOUND_TEXTDOMAIN)
+        message(STATUS "Setting textdomain to ${CSOUND_TEXTDOMAIN}")
+        set_source_files_properties(Top/getstring.c PROPERTIES
+            COMPILE_FLAGS -DCSOUND_TEXTDOMAIN=\\\"${CSOUND_TEXTDOMAIN}\\\")
+    else()
+        message(STATUS "Not setting textdomain")
+    endif()
 else()
     message(STATUS "Not using localization")
 endif()
 
 if(LINUX)
     message(STATUS "Building on Linux")
-    add_definitions(-DLINUX -DPIPES -D_GNU_SOURCE)
+    add_definitions(-DLINUX -DPIPES -D_GNU_SOURCE -DHAVE_SOCKETS)
     list(APPEND libcsound_LIBS m dl)
 endif()
 
@@ -1070,6 +1109,11 @@ endif()
 
 if(WIN32)
     add_definitions(-DWIN32)
+endif()
+
+check_function_exists(strlcat HAVE_STRLCAT)
+if(HAVE_STRLCAT)
+    add_definitions(-DHAVE_STRLCAT)
 endif()
 
 # Locale-aware reading and printing

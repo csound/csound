@@ -16,7 +16,7 @@ if(BUILD_CXX_INTERFACE)
         csPerfThread.cpp
         cs_glue.cpp
         filebuilding.cpp)
-    set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY})
+      set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} )
     set(libcsnd6_CFLAGS "")
     list(APPEND libcsnd6_LIBS ${CSOUNDLIB})
 
@@ -51,7 +51,10 @@ find_library(LUAJIT_LIBRARY luajit)
 if(NOT LUAJIT_LIBRARY)
     find_library(LUAJIT_LIBRARY luajit-5.1)
 endif()
-find_path(LUA_H_PATH luajit-2.0/lua.h)
+if(NOT LUAJIT_LIBRARY AND WIN32)
+    find_library(LUAJIT_LIBRARY lua51)
+endif()
+find_path(LUA_H_PATH lua.h PATH_SUFFIXES luajit-2.0)
 
 MESSAGE(STATUS ${PYTHON_LIBRARY})
 
@@ -80,7 +83,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         if(WIN32)
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd6)
         else()
-            # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python 
+            # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
         endif()
 # Had:     	    SWIG_FLAGS "-threads"
@@ -118,6 +121,8 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         # The java package needs this unset or it will litter us with .java files
         unset(CMAKE_SWIG_OUTDIR)
         INCLUDE_DIRECTORIES(${JNI_INCLUDE_DIRS})
+
+       message(STATUS "JNI INCLUDE set to ${JNI_INCLUDE_DIRS}")
 
       	if(LINUX)
             set(swigjava_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
@@ -171,7 +176,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         SWIG_ADD_MODULE(luaCsnd6 lua lua_interface.i)
         SWIG_LINK_LIBRARIES(luaCsnd6 ${swiglua_LIBS})
 
-        include_directories(${LUA_H_PATH}/luajit-2.0)
+        include_directories(${LUA_H_PATH})
 
       	if(APPLE)
             set_target_properties(${SWIG_MODULE_luaCsnd6_REAL_NAME} PROPERTIES

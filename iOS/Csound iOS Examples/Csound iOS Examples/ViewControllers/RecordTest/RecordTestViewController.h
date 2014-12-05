@@ -28,7 +28,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import "LevelMeterView.h"
 
-@interface RecordTestViewController : BaseCsoundViewController <CsoundObjCompletionListener, AVAudioPlayerDelegate>
+@interface RecordTestViewController : BaseCsoundViewController <CsoundObjListener, AVAudioPlayerDelegate>
 
 @property (unsafe_unretained) IBOutlet UISwitch *mSwitch;
 @property (unsafe_unretained) IBOutlet UISlider *mGainSlider;

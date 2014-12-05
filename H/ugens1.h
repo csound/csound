@@ -26,22 +26,22 @@
 typedef struct {
         OPDS    h;
         MYFLT   *xr, *ia, *idur, *ib;
-        double   val, incr;
+         double   val, incr, kincr;
 } LINE;
 
 typedef struct {
         OPDS    h;
         MYFLT   *xr, *ia, *idur, *ib;
-       double   val, mlt;
+        double   val, mlt, kmlt;
 } EXPON;
 
 typedef struct {
-        int32   cnt;
-        MYFLT  val, mlt;
+        int32  cnt, acnt;
+         MYFLT  val, mlt, amlt;
 } XSEG;
 
 typedef struct {
-        int32   cnt;
+        int32   cnt, acnt;
         double  nxtpt;
 } SEG;
 
@@ -62,7 +62,7 @@ typedef struct {
         SEG     *cursegp;
         int32   nsegs;
         int32   segsrem, curcnt;
-        double  y1, y2, x, inc;
+        double  y1, y2, x, inc, val;
         AUXCH   auxch;
         int32   xtra;
 } COSSEG;

@@ -804,7 +804,7 @@ int printk(CSOUND *csound, PRINTK *p)
        * printv() in disprep.c.
        */
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
-                               (int)p->h.insdshead->p1);
+                               (int)p->h.insdshead->p1.value);
       csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
                                csound->icurTime/csound->esr);
       /* Print spaces and then the value we want to read.   */
@@ -962,95 +962,95 @@ int printksset(CSOUND *csound, PRINTKS *p){
 
 
 /* perform a sprintf-style format  -- matt ingalls */
-void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
-{
-    char strseg[8192];
-    int i = 0, j = 0;
-    char *segwaiting = 0;
-    while (*fmt) {
-      if (*fmt == '%') {
-        /* if already a segment waiting, then lets print it */
-        if (segwaiting) {
-          MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]);
-          /* printf("***xx = %f (int)(xx+.5)=%d round=%d mode=%d\n", */
-          /*        xx, (int)(xx+.5), MYFLT2LRND(xx), fegetround()); */
-          strseg[i] = '\0';
+/* void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals) */
+/* { */
+/*     char strseg[8192]; */
+/*     int i = 0, j = 0; */
+/*     char *segwaiting = 0; */
+/*     while (*fmt) { */
+/*       if (*fmt == '%') { */
+/*         /\* if already a segment waiting, then lets print it *\/ */
+/*         if (segwaiting) { */
+/*           MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]); */
+/*           /\* printf("***xx = %f (int)(xx+.5)=%d round=%d mode=%d\n", *\/ */
+/*           /\*        xx, (int)(xx+.5), MYFLT2LRND(xx), fegetround()); *\/ */
+/*           strseg[i] = '\0'; */
 
-          switch (*segwaiting) {
-          case 'd':
-          case 'i':
-          case 'o':
-          case 'x':
-          case 'X':
-          case 'u':
-          case 'c':
-            snprintf(outstring, 8196, strseg, (int)MYFLT2LRND(xx));
-            break;
-          case 'h':
-            snprintf(outstring, 8196, strseg, (int16)MYFLT2LRND(xx));
-            break;
-          case 'l':
-            snprintf(outstring, 8196, strseg, (int32)MYFLT2LRND(xx));
-            break;
+/*           switch (*segwaiting) { */
+/*           case 'd': */
+/*           case 'i': */
+/*           case 'o': */
+/*           case 'x': */
+/*           case 'X': */
+/*           case 'u': */
+/*           case 'c': */
+/*             snprintf(outstring, 8196, strseg, (int)MYFLT2LRND(xx)); */
+/*             break; */
+/*           case 'h': */
+/*             snprintf(outstring, 8196, strseg, (int16)MYFLT2LRND(xx)); */
+/*             break; */
+/*           case 'l': */
+/*             snprintf(outstring, 8196, strseg, (int32)MYFLT2LRND(xx)); */
+/*             break; */
 
-          default:
-            CS_SPRINTF(outstring, strseg, xx);
-            break;
-          }
-          outstring += strlen(outstring);
+/*           default: */
+/*             CS_SPRINTF(outstring, strseg, xx); */
+/*             break; */
+/*           } */
+/*           outstring += strlen(outstring); */
 
-          i = 0;
-          segwaiting = 0;
+/*           i = 0; */
+/*           segwaiting = 0; */
 
-          /* prevent potential problems if user didnt give enough input params */
-          if (j < numVals-1)
-            j++;
-        }
+/*           /\* prevent potential problems if user didnt give enough input params *\/ */
+/*           if (j < numVals-1) */
+/*             j++; */
+/*         } */
 
-        /* copy the '%' */
-        strseg[i++] = *fmt++;
+/*         /\* copy the '%' *\/ */
+/*         strseg[i++] = *fmt++; */
 
-        /* find the format code */
-        segwaiting = fmt;
-        while (*segwaiting && !isalpha(*segwaiting))
-          segwaiting++;
-      }
-      else
-        strseg[i++] = *fmt++;
-    }
+/*         /\* find the format code *\/ */
+/*         segwaiting = fmt; */
+/*         while (*segwaiting && !isalpha(*segwaiting)) */
+/*           segwaiting++; */
+/*       } */
+/*       else */
+/*         strseg[i++] = *fmt++; */
+/*     } */
 
-    if (i) {
-      strseg[i] = '\0';
-      if (segwaiting) {
-        MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]);
-           /* printf("***xx = %f (int)(xx+.5)=%d round=%d mode=%d\n", */
-           /*       xx, (int)(xx+.5), MYFLT2LRND(xx), fegetround()); */
-       switch (*segwaiting) {
-        case 'd':
-        case 'i':
-        case 'o':
-        case 'x':
-        case 'X':
-        case 'u':
-        case 'c':
-          snprintf(outstring, 8196, strseg, (int)MYFLT2LRND(xx));
-          break;
-        case 'h':
-          snprintf(outstring, 8196, strseg, (int16)MYFLT2LRND(xx));
-          break;
-        case 'l':
-          snprintf(outstring, 8196, strseg, (int32)MYFLT2LRND(xx));
-          break;
+/*     if (i) { */
+/*       strseg[i] = '\0'; */
+/*       if (segwaiting) { */
+/*         MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]); */
+/*            /\* printf("***xx = %f (int)(xx+.5)=%d round=%d mode=%d\n", *\/ */
+/*            /\*       xx, (int)(xx+.5), MYFLT2LRND(xx), fegetround()); *\/ */
+/*        switch (*segwaiting) { */
+/*         case 'd': */
+/*         case 'i': */
+/*         case 'o': */
+/*         case 'x': */
+/*         case 'X': */
+/*         case 'u': */
+/*         case 'c': */
+/*           snprintf(outstring, 8196, strseg, (int)MYFLT2LRND(xx)); */
+/*           break; */
+/*         case 'h': */
+/*           snprintf(outstring, 8196, strseg, (int16)MYFLT2LRND(xx)); */
+/*           break; */
+/*         case 'l': */
+/*           snprintf(outstring, 8196, strseg, (int32)MYFLT2LRND(xx)); */
+/*           break; */
 
-        default:
-          CS_SPRINTF(outstring, strseg, xx);
-          break;
-        }
-      }
-      else
-        snprintf(outstring, 8196, "%s", strseg);
-    }
-}
+/*         default: */
+/*           CS_SPRINTF(outstring, strseg, xx); */
+/*           break; */
+/*         } */
+/*       } */
+/*       else */
+/*         snprintf(outstring, 8196, "%s", strseg); */
+/*     } */
+/* } */
 
 /*************************************/
 
@@ -1192,7 +1192,7 @@ int printk2(CSOUND *csound, PRINTK2 *p)
 
     if (p->oldvalue != value) {
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%d ",
-                                               (int)p->h.insdshead->p1);
+                                               (int)p->h.insdshead->p1.value);
       if (p->pspace > 0) {
         char  s[128];   /* p->pspace is limited to 120 in printk2set() above */
         memset(s, ' ', (size_t) p->pspace);

@@ -3,12 +3,16 @@ package com.csounds.Csound6;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -18,7 +22,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Configuration;
+import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -30,27 +37,32 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
-import com.csounds.CsoundObjCompletionListener;
+import com.csounds.CsoundObjListener;
+import com.csounds.bindings.motion.CsoundMotion;
+import com.csounds.bindings.ui.CsoundUI;
 
 import csnd6.Csound;
-import csnd6.CsoundCallbackWrapper;
 
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 @SuppressWarnings("unused")
-public class CsoundAppActivity extends Activity implements
-		CsoundObjCompletionListener, CsoundObj.MessagePoster {
+public class CsoundAppActivity extends Activity implements CsoundObjListener,
+		CsoundObj.MessagePoster {
 	Uri templateUri = null;
 	Button newButton = null;
 	Button openButton = null;
@@ -58,9 +70,12 @@ public class CsoundAppActivity extends Activity implements
 	ToggleButton startStopButton = null;
 	MenuItem helpItem = null;
 	MenuItem aboutItem = null;
-	CsoundObj csound = null;
+	JSCsoundObj csound = null;
+	CsoundUI csoundUI = null;
 	File csd = null;
 	Button pad = null;
+	WebView webLayout = null;
+	LinearLayout channelsLayout = null;
 	ArrayList<SeekBar> sliders = new ArrayList<SeekBar>();
 	ArrayList<Button> buttons = new ArrayList<Button>();
 	ArrayList<String> str = new ArrayList<String>();
@@ -76,6 +91,8 @@ public class CsoundAppActivity extends Activity implements
 	private ScrollView messageScrollView = null;
 	String errorMessage = null;
 	String csdTemplate = null;
+	String html5Page = null;
+	URL baseUrl = null;
 	PackageInfo packageInfo = null;
 	// Csound environment variables managed on Android.
 	static String OPCODE6DIR = null;
@@ -84,22 +101,20 @@ public class CsoundAppActivity extends Activity implements
 	static String SADIR = null;
 	static String INCDIR = null;
 	WebView webview = null;
-
 	static {
-		
 		int result = 0;
 		try {
 			java.lang.System.loadLibrary("gnustl_shared");
-		} catch (Throwable e){
+		} catch (Throwable e) {
 			java.lang.System.err
-			.println("Csound6: gnustl_shared native code library failed to load.\n");
+					.println("Csound6: gnustl_shared native code library failed to load.\n");
 			java.lang.System.err.println(e.toString());
 		}
 		try {
 			java.lang.System.loadLibrary("sndfile");
 		} catch (Throwable e) {
 			java.lang.System.err
-			.println("Csound6: sndfile native code library failed to load.\n");
+					.println("Csound6: sndfile native code library failed to load.\n");
 			java.lang.System.err.println(e.toString());
 		}
 		try {
@@ -109,26 +124,34 @@ public class CsoundAppActivity extends Activity implements
 					.println("Csound6: csoundandroid native code library failed to load.\n"
 							+ e);
 			java.lang.System.err.println(e.toString());
-			//java.lang.System.exit(1);
+			// java.lang.System.exit(1);
 		}
 		try {
-			result = csnd6.csnd.csoundInitialize(csnd6.csnd.CSOUNDINIT_NO_ATEXIT);
+			result = csnd6.csnd
+					.csoundInitialize(csnd6.csnd.CSOUNDINIT_NO_ATEXIT);
 		} catch (Throwable e) {
-			java.lang.System.err
-					.println("Csound6: csoundInitialize failed.\n"
-							+ e);
+			java.lang.System.err.println("Csound6: csoundInitialize failed.\n"
+					+ e);
 			java.lang.System.err.println(e.toString());
-			//java.lang.System.exit(1);
+			// java.lang.System.exit(1);
 		}
 	}
 
-	public void csoundObjComplete(CsoundObj csoundObj) {
+	public void csoundObjStarted(CsoundObj csoundObj) {
+	}
+
+	public void csoundObjCompleted(CsoundObj csoundObj) {
 		runOnUiThread(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);
 				postMessage("Csound has finished.\n");
 			}
 		});
+	}
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
 	}
 
 	protected void writeTemplateFile() {
@@ -165,24 +188,26 @@ public class CsoundAppActivity extends Activity implements
 			}
 			return true;
 		case R.id.itemHelp:
-			goToUrl("http://www.csounds.com/manual/html/index.html");
+			goToUrl("http://csound.github.io/docs/manual/indexframes.html");
 			return true;
 		case R.id.itemAbout:
-			goToUrl("http://www.csounds.com/");
+			goToUrl("http://csound.github.io/");
 			return true;
 		case R.id.itemSettings:
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);			
-            return true;
+			Intent intent = new Intent(this, SettingsActivity.class);
+			startActivity(intent);
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
 	}
 
+	@JavascriptInterface
 	public void postMessage(String message_) {
 		postMessageClear_(message_, false);
 	}
 
+	@JavascriptInterface
 	public void postMessageClear(String message_) {
 		postMessageClear_(message_, true);
 	}
@@ -213,7 +238,6 @@ public class CsoundAppActivity extends Activity implements
 		startActivity(launchBrowser);
 	}
 
-	
 	private void displayLog() {
 		try {
 			Process process = Runtime.getRuntime().exec(
@@ -237,17 +261,77 @@ public class CsoundAppActivity extends Activity implements
 		super.setTitle(fullTitle);
 	}
 
+	/**
+	 * Opens the CSD and searches for a <CsHtml5> element. If found, hide the
+	 * channelsLayout, show the webLayout, and set the contents of the CsHtml5
+	 * element as the content of the Web view.
+	 */
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+	protected void parseWebLayout() {
+		try {
+			FileReader in = new FileReader(csd);
+			StringBuilder contents = new StringBuilder();
+			char[] buffer = new char[4096];
+			int read = 0;
+			do {
+				contents.append(buffer, 0, read);
+				read = in.read(buffer);
+			} while (read >= 0);
+			in.close();
+			String csdText = contents.toString();
+			int start = csdText.indexOf("<CsHtml5>") + 9;
+			int end = csdText.indexOf("</CsHtml5>");
+			if (!(start == -1 || end == -1)) {
+				html5Page = csdText.substring(start, end);
+				if (html5Page.length() > 1) {
+					webLayout.setVisibility(View.VISIBLE);
+					channelsLayout.setVisibility(View.GONE);
+					WebSettings settings = webLayout.getSettings();
+					// Page itself must specify utf-8 in meta tag?
+					settings.setDefaultTextEncodingName("utf-8");
+					settings.setDomStorageEnabled(true);
+					settings.setDatabaseEnabled(true);
+					settings.setBuiltInZoomControls(true);
+					settings.setDisplayZoomControls(false);
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+						settings.setAllowFileAccessFromFileURLs(true);
+						settings.setAllowUniversalAccessFromFileURLs(true);
+					}
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+						settings.setJavaScriptEnabled(true);
+					}
+					File basePath = csd.getParentFile();
+					baseUrl = basePath.toURI().toURL();
+					webLayout.loadDataWithBaseURL(baseUrl.toString(),
+							html5Page, "text/html", "utf-8", null);
+				}
+			} else {
+				webLayout.onPause();
+				webLayout.pauseTimers();
+				webLayout.setVisibility(View.GONE);
+				channelsLayout.setVisibility(View.VISIBLE);
+			}
+			View mainLayout = findViewById(R.id.mainLayout);
+			mainLayout.invalidate();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private void OnFileChosen(File file) {
 		Log.d("FILE CHOSEN", file.getAbsolutePath());
 		csd = file;
 		setTitle(csd.getName());
+		parseWebLayout();
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		try {
-			csound.stopCsound();
+			csound.stop();
 		} catch (Exception e) {
 			Log.e("error", "could not stop csound");
 		}
@@ -265,7 +349,9 @@ public class CsoundAppActivity extends Activity implements
 		}
 	}
 
-	/** Called when the activity is first created. */
+	/**
+	 * Called when the activity is first created.
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -277,9 +363,12 @@ public class CsoundAppActivity extends Activity implements
 		} catch (NameNotFoundException e) {
 			e.printStackTrace();
 		}
+		final AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+		audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
 		PreferenceManager.setDefaultValues(this, R.xml.settings, false);
 		OPCODE6DIR = getBaseContext().getApplicationInfo().nativeLibraryDir;
-		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		SharedPreferences sharedPreferences = PreferenceManager
+				.getDefaultSharedPreferences(this);
 		OPCODE6DIR = sharedPreferences.getString("OPCODE6DIR", OPCODE6DIR);
 		SSDIR = packageInfo.applicationInfo.dataDir + "/samples";
 		SSDIR = sharedPreferences.getString("SSDIR", SSDIR);
@@ -358,6 +447,19 @@ public class CsoundAppActivity extends Activity implements
 		});
 		messageTextView = (TextView) findViewById(R.id.messageTextView);
 		messageScrollView = (ScrollView) findViewById(R.id.messageScrollView);
+		channelsLayout = (LinearLayout) findViewById(R.id.channelsLayout);
+		// By default, the WebView is not shown, and the channels layout is
+		// shown.
+		webLayout = (WebView) findViewById(R.id.webLayout);
+		webLayout.setWebViewClient(new WebViewClient() {
+			public void onReceivedError(WebView view, int errorCode,
+					String description, String failingUrl) {
+				Toast.makeText(CsoundAppActivity.this,
+						"WebView error! " + description, Toast.LENGTH_SHORT)
+						.show();
+			}
+		});
+		webLayout.setVisibility(View.GONE);
 		sliders.add((SeekBar) findViewById(R.id.seekBar1));
 		sliders.add((SeekBar) findViewById(R.id.seekBar2));
 		sliders.add((SeekBar) findViewById(R.id.seekBar3));
@@ -393,20 +495,33 @@ public class CsoundAppActivity extends Activity implements
 									+ "\n");
 						}
 					}
-					// Evidently, this has to be set before
-					// the very first Csound object is created.
+					// This must be set before the Csound object is created.
 					csnd6.csndJNI.csoundSetGlobalEnv("OPCODE6DIR", OPCODE6DIR);
 					csnd6.csndJNI.csoundSetGlobalEnv("SFDIR", SFDIR);
 					csnd6.csndJNI.csoundSetGlobalEnv("SSDIR", SSDIR);
 					csnd6.csndJNI.csoundSetGlobalEnv("SADIR", SADIR);
 					csnd6.csndJNI.csoundSetGlobalEnv("INCDIR", INCDIR);
-					csound = new CsoundObj();
+					csound = new JSCsoundObj();
+					csoundUI = new CsoundUI(csound);
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
+					webLayout.addJavascriptInterface(csound, "csound");
+					webLayout.addJavascriptInterface(CsoundAppActivity.this,
+							"csoundApp");
+					// Csound will not be in scope of any JavaScript on the page
+					// until
+					// the page is reloaded. Also, we want to show any edits to
+					// the page.
+					parseWebLayout();
 					postMessageClear("Csound is starting...\n");
-					// csound.getCsound().SetGlobalEnv("OPCODE6DIR",
-					// OPCODE6DIR);
-					// csound.getCsound().SetGlobalEnv("SSDIR", SSDIR);
+					String framesPerBuffer = audioManager
+							.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+					postMessage("Android sample frames per audio buffer: "
+							+ framesPerBuffer + "\n");
+					String framesPerSecond = audioManager
+							.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+					postMessage("Android sample frames per second: "
+							+ framesPerSecond + "\n");
 					// Make sure this stuff really got packaged.
 					String samples[] = null;
 					try {
@@ -417,13 +532,14 @@ public class CsoundAppActivity extends Activity implements
 					String channelName;
 					for (int i = 0; i < 5; i++) {
 						channelName = "slider" + (i + 1);
-						csound.addSlider(sliders.get(i), channelName, 0., 1.);
+						csoundUI.addSlider(sliders.get(i), channelName, 0., 1.);
 						channelName = "butt" + (i + 1);
-						csound.addButton(buttons.get(i), channelName, 1);
+						csoundUI.addButton(buttons.get(i), channelName, 1);
 					}
-					csound.addButton(pad, "trackpad", 1);
-					csound.enableAccelerometer(CsoundAppActivity.this);
-					csound.addCompletionListener(CsoundAppActivity.this);
+					csoundUI.addButton(pad, "trackpad", 1);
+					CsoundMotion motion = new CsoundMotion(csound);
+					motion.enableAccelerometer(CsoundAppActivity.this);
+					csound.addListener(CsoundAppActivity.this);
 					csound.startCsound(csd);
 					// Make sure these are still set after starting.
 					String getOPCODE6DIR = csnd6.csndJNI.csoundGetEnv(0,
@@ -437,7 +553,7 @@ public class CsoundAppActivity extends Activity implements
 											+ csound.getCsound()
 													.GetEnv("SSDIR") + "\n");
 				} else {
-					csound.stopCsound();
+					csound.stop();
 					postMessage("Csound has been stopped.\n");
 				}
 			}
@@ -472,7 +588,6 @@ public class CsoundAppActivity extends Activity implements
 							&& !sel.isHidden();
 				}
 			};
-
 			String[] fList = path.list(filter);
 			fileList = new Item[fList.length];
 			for (int i = 0; i < fList.length; i++) {
@@ -570,5 +685,29 @@ public class CsoundAppActivity extends Activity implements
 		}
 		dialog = builder.show();
 		return dialog;
+	}
+
+	@JavascriptInterface
+	public void setControlChannel(String channelName, double value) {
+		if (csound != null) {
+			Csound csound_ = csound.getCsound();
+			if (csound_ != null) {
+				// This call is thread-safe.
+				csound_.SetChannel(channelName, value);
+			}
+		}
+	}
+
+	@JavascriptInterface
+	public double getControlChannel(String channelName) {
+		double value = 0;
+		if (csound != null) {
+			Csound csound_ = csound.getCsound();
+			if (csound_ != null) {
+				// This call is thread-safe.
+				value = csound_.GetChannel(channelName);
+			}
+		}
+		return value;
 	}
 }

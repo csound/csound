@@ -13,6 +13,10 @@ int clean_suite1(void)
     return 0;
 }
 
+#if defined(__WINNT__)
+    #include <Windows.h>
+#endif
+
 void test_perfthread(void)
 {
     const char  *instrument =
@@ -43,6 +47,35 @@ void test_perfthread(void)
     csound.Reset();
 }
 
+void test_record(void)
+{
+    const char  *instrument =
+            "0dbfs = 1.0\n"
+            "ksmps = 64\n"
+            "instr 1 \n"
+            "a1 line 0, p3, 0.5   \n"
+            "out  a1   \n"
+            "endin \n";
+
+    Csound csound;
+    CsoundPerformanceThread performanceThread1(csound.GetCsound());
+    csound.SetOption((char*)"-otestplay.wav");
+    csound.SetOption((char*)"-W");
+    csound.CompileOrc(instrument);
+    csound.ReadScore((char*)"i 1 0  3 0.5 5000\n");
+    csound.Start();
+    performanceThread1.Play();
+    performanceThread1.Record("testrec.wav");
+#if !defined(__WINNT__)
+    sleep(1);
+#else
+    Sleep(1000);
+#endif
+    performanceThread1.StopRecord();
+    performanceThread1.Join();
+    csound.Cleanup();
+    csound.Reset();
+}
 
 int main()
 {
@@ -60,8 +93,8 @@ int main()
     }
 
     /* add the tests to the suite */
-    if ((NULL == CU_add_test(pSuite, "Test Performance Thread", test_perfthread))
-//            || (NULL == CU_add_test(pSuite, "Test reuse", test_reuse))
+    if ((NULL == CU_add_test(pSuite, "Test Record", test_record))
+            || (NULL == CU_add_test(pSuite, "Test Performance Thread", test_perfthread))
         )
     {
         CU_cleanup_registry();

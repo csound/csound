@@ -355,33 +355,33 @@ AK(subak,-)
 AK(mulak,*)
 //AK(divak,/)
 int divak(CSOUND *csound, AOP *p) {
-    uint32_t n, nsmps = CS_KSMPS;  
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT b = *p->b;
-    if (LIKELY(nsmps != 1)) {      
-      MYFLT   *r, *a;           
+    if (LIKELY(nsmps != 1)) {
+      MYFLT   *r, *a;
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
-      r = p->r;                    
-      a = p->a;                    
+      r = p->r;
+      a = p->a;
       b = *p->b;
       if (UNLIKELY(b==FL(0.0)))
         csound->Warning(csound, Str("Division by zero"));
-      if (UNLIKELY(offset))        
+      if (UNLIKELY(offset))
         memset(r, '\0', offset*sizeof(MYFLT));
-      if (UNLIKELY(early)) {       
-        nsmps -= early;            
+      if (UNLIKELY(early)) {
+        nsmps -= early;
         memset(&r[nsmps], '\0', early*sizeof(MYFLT)); \
-      }                            
-      for (n=offset; n<nsmps; n++) 
-        r[n] = a[n] / b;          
-      return OK;                   
-    }                              
-    else {                         
+      }
+      for (n=offset; n<nsmps; n++)
+        r[n] = a[n] / b;
+      return OK;
+    }
+    else {
       if (UNLIKELY(b==FL(0.0)))
         csound->Warning(csound, Str("Division by zero"));
-      p->r[0] = p->a[0] / b;  
-      return OK;                   
-    }                              
+      p->r[0] = p->a[0] / b;
+      return OK;
+    }
 }
 
 

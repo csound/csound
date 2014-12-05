@@ -2,7 +2,7 @@
  
  SimpleTest2ViewController.h:
  
- Copyright (C) 2011 Steven Yi, Victor Lazzarini
+ Copyright (C) 2014 Steven Yi, Victor Lazzarini, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -25,6 +25,28 @@
 
 #import "SimpleTest2ViewController.h"
 
+@interface SimpleTest2ViewController() {
+    IBOutlet UISwitch *onOffSwitch;
+    
+    IBOutlet UISlider *rateSlider;
+    IBOutlet UISlider *durationSlider;
+    IBOutlet UILabel *rateLabel;
+    IBOutlet UILabel *durationLabel;
+    
+    IBOutlet UISlider *attackSlider;
+    IBOutlet UISlider *decaySlider;
+    IBOutlet UISlider *sustainSlider;
+    IBOutlet UISlider *releaseSlider;
+    
+    IBOutlet UILabel *attackLabel;
+    IBOutlet UILabel *decayLabel;
+    IBOutlet UILabel *sustainLabel;
+    IBOutlet UILabel *releaseLabel;
+    
+}
+
+@end
+
 @implementation SimpleTest2ViewController
 
 -(void)viewDidLoad {
@@ -33,7 +55,7 @@
 }
 
 -(IBAction) toggleOnOff:(id)component {
-	UISwitch* uiswitch = (UISwitch*)component;
+	UISwitch *uiswitch = (UISwitch *)component;
 	NSLog(@"Status: %d", [uiswitch isOn]);
     
 	if(uiswitch.on) {
@@ -41,33 +63,38 @@
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test2" ofType:@"csd"];  
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[self.csound stopCsound];
+		[self.csound stop];
         
         self.csound = [[CsoundObj alloc] init];
-        [self.csound addCompletionListener:self];
+        [self.csound addListener:self];
         
-        [self.csound addSlider:mRateSlider forChannelName:@"noteRate"];
-        [self.csound addSlider:mDurationSlider forChannelName:@"duration"];        
-        [self.csound addSlider:mAttackSlider forChannelName:@"attack"];
-        [self.csound addSlider:mDecaySlider forChannelName:@"decay"];
-        [self.csound addSlider:mSustainSlider forChannelName:@"sustain"];
-        [self.csound addSlider:mReleaseSlider forChannelName:@"release"];
+        CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+        [csoundUI addSlider:rateSlider     forChannelName:@"noteRate"];
+        [csoundUI addSlider:durationSlider forChannelName:@"duration"];
+        [csoundUI addSlider:attackSlider   forChannelName:@"attack"];
+        [csoundUI addSlider:decaySlider    forChannelName:@"decay"];
+        [csoundUI addSlider:sustainSlider  forChannelName:@"sustain"];
+        [csoundUI addSlider:releaseSlider  forChannelName:@"release"];
         
-        [self.csound startCsound:tempFile];
+        [csoundUI addLabel:rateLabel     forChannelName:@"noteRate"];
+        [csoundUI addLabel:durationLabel forChannelName:@"duration"];
+        [csoundUI addLabel:attackLabel   forChannelName:@"attack"];
+        [csoundUI addLabel:decayLabel    forChannelName:@"decay"];
+        [csoundUI addLabel:sustainLabel  forChannelName:@"sustain"];
+        [csoundUI addLabel:releaseLabel  forChannelName:@"release"];
+        
+        [self.csound play:tempFile];
         
 	} else {
-        [self.csound stopCsound];
+        [self.csound stop];
     }
 }
 
 
 
-#pragma mark CsoundObjCompletionListener
+#pragma mark CsoundObjListener
 
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
-	[mSwitch setOn:NO animated:YES];
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj {
+	[onOffSwitch setOn:NO animated:YES];
 }
 @end

@@ -58,6 +58,8 @@ char* convert_internal_to_external(CSOUND* csound, char* arg);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
 void do_baktrace(CSOUND *csound, uint64_t files);
 
+const char* SYNTHESIZED_ARG = "_synthesized";
+
 char* cs_strdup(CSOUND* csound, char* str) {
     size_t len;
     char* retVal;
@@ -104,7 +106,7 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
     case '/':
       return "##div";
     case '^':
-      return "pow";
+      return "##pow";
     case S_UMINUS:
       return "##mul";
     case '|':
@@ -198,6 +200,34 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
     return NULL;
 }
 
+static int isirate(/*CSOUND *csound,*/ TREE *t)
+{                  /* check that argument is an i-rate constant or variable */
+    //print_tree(csound, "isirate",  t);
+    if (t->type == INTEGER_TOKEN) {
+      //printf("integer case\n");
+      return 1;
+    }
+    else if (t->type == T_IDENT) {
+      //printf("identifier case\n");
+      if (t->value->lexeme[0] != 'p' &&
+          t->value->lexeme[0] != 'i' &&
+          (t->value->lexeme[0] != 'g' ||
+           t->value->lexeme[1] != 'i')) return 0;
+      return 1;
+    }
+    else if (t->type == T_ARRAY) {
+      //printf("array case\n");
+      if (isirate(/*csound, */t->right)==0) return 0;
+      t = t->next;
+      while (t) {
+        //printf("t=%p t->type=%d\n", t, t->type);
+        if (isirate(/*csound,*/ t)==0) return 0;
+        t = t->next;
+      }
+      return 1;
+    }
+    else return 0;
+}
 
 /* This function gets arg type with checking type table */
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
@@ -279,7 +309,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         //print_tree(csound, "i()", tree);
         if (tree->right->type == T_ARRAY &&
             tree->right->left->type == T_IDENT &&
-            tree->right->right->type == INTEGER_TOKEN) {}
+            isirate(/*csound,*/ tree->right->right)) {
+          //printf("OK array case\n");
+        }
         else
           if (UNLIKELY(tree->right->type != LABEL_TOKEN))
             synterr(csound,
@@ -352,9 +384,11 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                               "types %s not found, line %d \n"),
                   opname, inArgTypes, tree->line);
           do_baktrace(csound, tree->locn);
+          free(inArgTypes);
           return NULL;
         }
 
+        free(inArgTypes);
         return cs_strdup(csound, out);
 
       } else {
@@ -1393,6 +1427,7 @@ CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
 
       case ELSE_TOKEN:
       case UNTIL_TOKEN:
+      case WHILE_TOKEN:
         ret = get_label_list(csound, current->right);
         head = cs_cons_append(head, ret);
         break;
@@ -1489,7 +1524,7 @@ int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
     if (UNLIKELY(outArg == NULL || (*outArg != 'b' && *outArg != 'B'))) {
       synterr(csound,
-              Str("expression for until statement not a boolean "
+              Str("expression for until/while statement not a boolean "
                   "expression, line %d\n"),
               root->line);
       do_baktrace(csound, root->locn);
@@ -1572,11 +1607,13 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         continue;
 
       case UNTIL_TOKEN:
+      case WHILE_TOKEN:
         if (!verify_until_statement(csound, current, typeTable)) {
           return 0;
         }
 
-        current = expand_until_statement(csound, current, typeTable);
+        current = expand_until_statement(csound, current,
+                                         typeTable, current->type==WHILE_TOKEN);
 
         if (previous != NULL) {
           previous->next = current;
@@ -1861,6 +1898,9 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case UNTIL_TOKEN:
       csound->Message(csound,"UNTIL_TOKEN:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
+    case WHILE_TOKEN:
+      csound->Message(csound,"WHILE_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case DO_TOKEN:
       csound->Message(csound,"DO_TOKEN:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
@@ -2017,6 +2057,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"ELSE_TOKEN\""); break;
     case UNTIL_TOKEN:
       csound->Message(csound,"name=\"UNTIL_TOKEN\""); break;
+    case WHILE_TOKEN:
+      csound->Message(csound,"name=\"WHILE_TOKEN\""); break;
     case DO_TOKEN:
       csound->Message(csound,"name=\"DO_TOKEN\""); break;
     case OD_TOKEN:
@@ -2168,6 +2210,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           case 'o':
             temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                              make_int(csound, "0"));
+            temp->markup = &SYNTHESIZED_ARG;
             if (l->right==NULL) l->right = temp;
             else appendToTree(csound, l->right, temp);
             break;
@@ -2175,12 +2218,14 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           case 'p':
             temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                              make_int(csound, "1"));
+            temp->markup = &SYNTHESIZED_ARG;
             if (l->right==NULL) l->right = temp;
             else appendToTree(csound, l->right, temp);
             break;
           case 'q':
             temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                              make_int(csound, "10"));
+            temp->markup = &SYNTHESIZED_ARG;
             if (l->right==NULL) l->right = temp;
             else appendToTree(csound, l->right, temp);
             break;
@@ -2189,12 +2234,14 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           case 'v':
             temp = make_leaf(csound, l->line, l->locn, NUMBER_TOKEN,
                              make_num(csound, ".5"));
+            temp->markup = &SYNTHESIZED_ARG;
             if (l->right==NULL) l->right = temp;
             else appendToTree(csound, l->right, temp);
             break;
           case 'h':
             temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                              make_int(csound, "127"));
+            temp->markup = &SYNTHESIZED_ARG;
             if (l->right==NULL) l->right = temp;
             else appendToTree(csound, l->right, temp);
             break;
@@ -2202,6 +2249,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           case 'j':
             temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                              make_int(csound, "-1"));
+            temp->markup = &SYNTHESIZED_ARG;
             if (l->right==NULL) l->right = temp;
             else appendToTree(csound, l->right, temp);
             break;

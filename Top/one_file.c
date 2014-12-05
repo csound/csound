@@ -62,10 +62,10 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 {
 #define   nBytes (256)
     char lbuf[256];
-#if defined(LINUX) || defined(__MACH__)
-    struct stat tmp;
-#elif defined(WIN32)
+#if defined(WIN32)
     struct _stat tmp;
+#else
+    struct stat tmp;
 #endif
     do {
 #ifndef WIN32
@@ -114,11 +114,11 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
           } while (lbuf[i] != '\0');
       }
 #endif
-#if defined(LINUX) || defined(__MACH__)
+#if defined(WIN32)
+    } while (_stat(lbuf, &tmp) == 0);
+#else
       /* if the file already exists, try again */
     } while (stat(lbuf, &tmp) == 0);
-#elif defined(WIN32)
-    } while (_stat(lbuf, &tmp) == 0);
 #endif
     return strdup(lbuf);
 }
@@ -362,8 +362,14 @@ static int createScore(CSOUND *csound, FILE *unf)
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = buffer;
       while (*p == ' ' || *p == '\t') p++;
-      if (strstr(p, "</CsScore>") == p)
+      if (strstr(p, "</CsScore>") == p) {
+#ifdef SCORE_PARSER
+        corfile_puts("\n#exit\n", csound->scorestr);
+        corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
+        corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
+#endif
         return TRUE;
+      }
       else
         corfile_puts(buffer, csound->scorestr);
     }
@@ -392,7 +398,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
       return FALSE;
     }
     *q = '\0';
-    strncpy(prog, p+5, 256); /* after "<CsExScore " */
+    strncpy(prog, p+5, 255); prog[255]='\0';/* after "<CsExScore " */
     /* Generate score name */
     if (STA(sconame)) free(STA(sconame));
     STA(sconame) = csoundTmpFileName(csound, ".sco");
@@ -437,6 +443,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
       else fputs(buffer, scof);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
+    free(extname);
     return FALSE;
 }
 
@@ -584,7 +591,7 @@ static int createFile(CSOUND *csound, char *buffer, FILE *unf)
       q = strchr(p, '>');
     if (q) *q='\0';
     //  printf("p=>>%s<<\n", p);
-    strncpy(filename, p, 256);
+    strncpy(filename, p, 255); filename[255]='\0';
 //sscanf(buffer, "<CsFileB filename=\"%s\">", filename);
 //    if (filename[0] != '\0' &&
 //       filename[strlen(filename) - 1] == '>' &&
@@ -636,7 +643,7 @@ static int createFilea(CSOUND *csound, char *buffer, FILE *unf)
       q = strchr(p, '>');
     if (q) *q='\0';
     //  printf("p=>>%s<<\n", p);
-    strncpy(filename, p, 256);
+    strncpy(filename, p, 255); filename[255]='\0';
     if (UNLIKELY((smpf = fopen(filename, "r")) != NULL)) {
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), filename);
@@ -750,6 +757,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     int   started = FALSE;
     int   r;
     char    buffer[CSD_MAX_LINE_LEN];
+    int endtag_found = 0;
 
     /* Need to open in binary to deal with MIDI and the like. */
     fd = csoundFileOpenWithType(csound, &unf, CSFILE_STD, name, "rb", NULL,
@@ -776,6 +784,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       }
       else if (strstr(p, "</CsoundSynthesizer>") == p ||
                strstr(p, "</CsoundSynthesiser>") == p) {
+        endtag_found = 1;
         if (csound->scorestr != NULL)
           corfile_flush(csound->scorestr);
         *pname = STA(orcname);
@@ -863,6 +872,11 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       csound->oparms->FMidiin = 1;
     }
     csoundFileClose(csound, fd);
+    if(endtag_found == 0) {
+    csoundMessage(csound,
+                  Str("Could not find </CsoundSynthesizer> tag in CSD file.\n"));
+     result = FALSE;
+    }
     return result;
 }
 

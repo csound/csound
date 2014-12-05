@@ -11,10 +11,10 @@ endif()
 
 check_c_compiler_flag(-ffast-math HAS_FAST_MATH)
 check_cxx_compiler_flag(-ffast-math HAS_CXX_FAST_MATH)
-if (HAS_FAST_MATH)
+if (HAS_FAST_MATH AND NOT MINGW)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffast-math")
 endif()
-if (HAS_CXX_FAST_MATH)
+if (HAS_CXX_FAST_MATH AND NOT MINGW)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 endif()
 

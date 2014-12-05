@@ -184,7 +184,9 @@ typedef struct {
   CSOUND *csound;
   void *cb;
   int async;
+#ifndef __EMSCRIPTEN__
   pthread_t thread;
+#endif
   int N;
   uint32 lastframe;
 }PVSFWRITE;
@@ -194,11 +196,13 @@ void *pvs_io_thread(void *pp);
 static int pvsfwrite_destroy(CSOUND *csound, void *pp)
 {
   PVSFWRITE *p = (PVSFWRITE *) pp;
+#ifndef __EMSCRIPTEN__
   if(p->async){
     p->async = 0;
     pthread_join(p->thread, NULL);
     csound->DestroyCircularBuffer(csound, p->cb);
   }
+#endif
   csound->PVOC_CloseFile(csound,p->pvfile);
   return OK;
 }
@@ -228,7 +232,7 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
       return csound->InitError(csound,
                                Str("pvsfwrite: could not open file %s\n"),
                                fname);
-
+#ifndef __EMSCRIPTEN__
     if(csound->realtime_audio_flag) {
       int bufframes = 16;
       p->csound = csound;
@@ -242,7 +246,9 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
                                            sizeof(MYFLT));
       pthread_create(&p->thread, NULL, pvs_io_thread, (void *) p);
       p->async = 1;
-    } else{
+    } else
+#endif
+    {
       p->async = 0;
     }
     csound->RegisterDeinitCallback(csound, p, pvsfwrite_destroy);
@@ -1077,13 +1083,13 @@ static int pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
         fout = (CMPLX*) p->fout->frame.auxp +NB*n;
         fin = (CMPLX*) p->fin->frame.auxp +NB*n;
         del = (CMPLX*) p->del.auxp +NB*n;
-        if (XINARG2) {
+        if (IS_ASIG_ARG(p->kfra)) {
           ffa = (double)  p->kfra[n];
           ffa = ffa < 0.0 ? 0.0 : (ffa > 1.0 ? 1.0 : ffa);
           costh1 = 2.0 - cos(PI * ffa);
           coef1 = sqrt(costh1 * costh1 - 1.0) - costh1;
         }
-        if (XINARG3) {
+        if (IS_ASIG_ARG(p->kfrf)) {
           ffr = (double)  p->kfrf[n];
           ffr = ffr < 0.0 ? 0.0 : (ffr > 1.0 ? 1.0 : ffr);
           costh2 = 2.0 - cos(PI * ffr);
@@ -1277,7 +1283,7 @@ static int pvsfilter(CSOUND *csound, PVSFILTER *p)
         fin = (CMPLX *)p->fin->frame.auxp + NB*n;
         fout = (CMPLX *)p->fout->frame.auxp + NB*n;
         fil = (CMPLX *)p->fil->frame.auxp + NB*n;
-        if (XINARG3) {
+        if (IS_ASIG_ARG(p->kdepth)) {
           kdepth = p->kdepth[n] >= FL(0.0) ?
             (p->kdepth[n] <= FL(1.0) ? p->kdepth[n]*g : g) : FL(0.0);
           dirgain = (FL(1.0) - kdepth)*g;
@@ -1395,7 +1401,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 
         fout[0] = fin[0];
         fout[NB-1] = fin[NB-1];
-        if (XINARG2) {
+        if (IS_ASIG_ARG(p->kscal)) {
           pscal = FABS(p->kscal[n]);
         }
         if (keepform)
@@ -1626,7 +1632,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         fout[0] = fin[0];
         fout[NB-1] = fin[NB-1];
-        if (XINARG2) {
+        if (IS_ASIG_ARG(p->kshift)) {
           pshift = (p->kshift)[n];
         }
         for (i = 1; i < NB-1; i++) {

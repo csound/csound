@@ -45,6 +45,11 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
          to search. */
       pcLADSPAPath = getenv("LADSPA_PATH");
       pcDSSIPath = getenv("DSSI_PATH");
+      if (!pcLADSPAPath) {
+        csound->Message(csound,
+                        "DSSI4CS: LADSPA_PATH environment variable not set.\n");
+        pcLADSPAPath = "/usr/lib/ladspa/";
+      }
       if (pcDSSIPath) {
         int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
         char *tmp = (char*)malloc(len);
@@ -73,16 +78,17 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
           pvResult = dlopen(pcBuffer, iFlag);
 
           csound->Free(csound, pcBuffer);
-          if (pvResult != NULL)
+          if (pvResult != NULL) {
+            free(pcLADSPAPath);
             return pvResult;
-          
+          }
           pcStart = pcEnd;
           if (*pcStart == ':')
             pcStart++;
         }
       }
     }
-    free(pcLADSPAPath);
+    //free(pcLADSPAPath);
     /* As a last ditch effort, check if filename does not end with
        ".so". In this case, add this suffix and recurse. */
     iEndsInSO = 0;

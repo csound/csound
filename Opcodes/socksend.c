@@ -39,9 +39,9 @@ extern  int     inet_aton(const char *cp, struct in_addr *inp);
 
 typedef struct {
     OPDS    h;
-  MYFLT   *asig;
-  STRINGDAT *ipaddress;
-  MYFLT *port, *buffersize;
+    MYFLT   *asig;
+    STRINGDAT *ipaddress;
+    MYFLT *port, *buffersize;
     MYFLT   *format;
     AUXCH   aux;
     int     sock;
@@ -52,9 +52,22 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-  MYFLT   *asigl, *asigr;
-  STRINGDAT *ipaddress;
-MYFLT *port, *buffersize;
+    STRINGDAT *str;
+    STRINGDAT *ipaddress;
+    MYFLT *port, *buffersize;
+    MYFLT   *format;
+    AUXCH   aux;
+    int     sock;
+    int     bsize, wp;
+    int     ff, bwidth;
+    struct sockaddr_in server_addr;
+} SOCKSENDT;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *asigl, *asigr;
+    STRINGDAT *ipaddress;
+    MYFLT *port, *buffersize;
     MYFLT   *format;
     AUXCH   aux;
     int     sock;
@@ -166,26 +179,49 @@ static int send_send_k(CSOUND *csound, SOCKSEND *p)
     int     ff = p->ff;
 
 
-      if (p->wp == buffersize) {
-        /* send the package when we have a full buffer */
-        if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
-                            sizeof(p->server_addr)) < 0)) {
-          return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
-        }
-        p->wp = 0;
+    if (p->wp == buffersize) {
+      /* send the package when we have a full buffer */
+      if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
+                          sizeof(p->server_addr)) < 0)) {
+        return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
       }
-      if (ff) { // Scale for 0dbfs and make LE
-        int16 val = (int16)((32768.0* (*ksig))/csound->e0dbfs);
-        union cheat {
-          char  benchar[2];
-          int16 bensht;
-        } ch;
-        ch.benchar[0] = 0xFF & val;
-        ch.benchar[1] = 0xFF & (val >> 8);
-        outs[p->wp] = ch.bensht;
-      }
-      else out[p->wp++] = *ksig;
+      p->wp = 0;
+    }
+    if (ff) { // Scale for 0dbfs and make LE
+      int16 val = (int16)((32768.0* (*ksig))/csound->e0dbfs);
+      union cheat {
+        char  benchar[2];
+        int16 bensht;
+      } ch;
+      ch.benchar[0] = 0xFF & val;
+      ch.benchar[1] = 0xFF & (val >> 8);
+      outs[p->wp] = ch.bensht;
+    }
+    else out[p->wp++] = *ksig;
 
+    return OK;
+}
+
+static int send_send_Str(CSOUND *csound, SOCKSENDT *p)
+{
+    const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+
+    int     buffersize = p->bsize;
+    char    *out = (char *) p->aux.auxp;
+    char    *q = p->str->data;
+    int     len = p->str->size;
+
+    if (len>=buffersize) {
+      csound->Warning(csound, Str("string truncated in socksend"));
+      len = buffersize-1;
+    }
+    memcpy(out, q, len);
+    memset(out+len, 0, buffersize-len);
+    /* send the package with the string each time */
+    if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
+                        sizeof(p->server_addr)) < 0)) {
+      return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
+    }
     return OK;
 }
 
@@ -360,10 +396,12 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
 #define S(x)    sizeof(x)
 
 static OENTRY socksend_localops[] = {
-  { "socksend", S(SOCKSEND), 0, 5, "", "aSiio", (SUBR) init_send, NULL,
+  { "socksend.a", S(SOCKSEND), 0, 5, "", "aSiio", (SUBR) init_send, NULL,
     (SUBR) send_send },
-   { "socksend_k", S(SOCKSEND), 0, 3, "", "kSiio", (SUBR) init_send,
+   { "socksend.k", S(SOCKSEND), 0, 3, "", "kSiio", (SUBR) init_send,
      (SUBR) send_send_k, NULL },
+   { "socksend.S", S(SOCKSENDT), 0, 3, "", "SSiio", (SUBR) init_send,
+     (SUBR) send_send_Str, NULL },
   { "socksends", S(SOCKSENDS), 0, 5, "", "aaSiio", (SUBR) init_sendS, NULL,
     (SUBR) send_sendS },
   { "stsend", S(SOCKSEND), 0, 5, "", "aSi", (SUBR) init_ssend, NULL,

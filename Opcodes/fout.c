@@ -725,9 +725,9 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
       switch ((int) MYFLT2LRND(*p->iflag)) {
       case 1:
         {     /* with prefix (i-statement, p1, p2 and p3) */
-          int     p1 = (int) p->h.insdshead->p1;
+          int     p1 = (int) p->h.insdshead->p1.value;
           double  p2 = (double) CS_KCNT * CS_ONEDKR;
-          double  p3 = p->h.insdshead->p3;
+          double  p3 = p->h.insdshead->p3.value;
           if (p3 > FL(0.0))
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
           else
@@ -738,10 +738,10 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
         if (pp->fout_kreset == 0)
           pp->fout_kreset = CS_KCNT;
         {
-          int p1 = (int) p->h.insdshead->p1;
+          int p1 = (int) p->h.insdshead->p1.value;
           double p2 = (double) (CS_KCNT - pp->fout_kreset)
                       * CS_ONEDKR;
-          double p3 = p->h.insdshead->p3;
+          double p3 = p->h.insdshead->p3.value;
           if (p3 > FL(0.0))
             fprintf(rfil, "i %i %f %f ", p1, p2, p3);
           else
@@ -802,7 +802,7 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
       switch ((int) MYFLT2LRND(*p->iflag)) {
       case 1:
         {     /* whith prefix (i-statement, p1, p2 and p3) */
-          int p1 = (int) p->h.insdshead->p1;
+          int p1 = (int) p->h.insdshead->p1.value;
           double p2 = p->counter * CS_ONEDKR;
           double p3 = (double) (CS_KCNT - p->counter)
                       * CS_ONEDKR;
@@ -811,7 +811,7 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
         break;
       case 2: /* with prefix (start at 0 time) */
         {
-          int p1 = (int) p->h.insdshead->p1;
+          int p1 = (int) p->h.insdshead->p1.value;
           double p2 = (p->counter - pp->fout_kreset) * CS_ONEDKR;
           double p3 = (double) (CS_KCNT - p->counter)
                       * CS_ONEDKR;
@@ -1404,9 +1404,10 @@ static int fprintf_set_S(CSOUND *csound, FPRINTF *p){
 }
 
 /* perform a sprintf-style format -- matt ingalls */
-static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
+void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
 {
     char strseg[8192];
+    int len = 8192;
     int i = 0, j = 0;
     char *segwaiting = 0;
 
@@ -1418,7 +1419,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
 
           switch (*segwaiting) {
           case '%':
-            snprintf(outstring, 8192, "%%");
+            snprintf(outstring, len, "%%");
             j--;
             break;
           case 'd':
@@ -1428,21 +1429,21 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
           case 'X':
           case 'u':
           case 'c':
-            snprintf(outstring, 8192, strseg, (int) MYFLT2LRND(*kvals[j]));
+            snprintf(outstring, len, strseg, (int) MYFLT2LRND(*kvals[j]));
             break;
           case 'h':
-            snprintf(outstring, 8192, strseg, (int16) MYFLT2LRND(*kvals[j]));
+            snprintf(outstring, len, strseg, (int16) MYFLT2LRND(*kvals[j]));
             break;
           case 'l':
-            snprintf(outstring, 8192, strseg, (int32) MYFLT2LRND(*kvals[j]));
+            snprintf(outstring, len, strseg, (int32) MYFLT2LRND(*kvals[j]));
             break;
 
           default:
-            snprintf(outstring, 8192, strseg, *kvals[j]);
+            snprintf(outstring, len, strseg, *kvals[j]);
             break;
           }
+          len -= strlen(outstring);
           outstring += strlen(outstring);
-
           i = 0;
           segwaiting = 0;
 
@@ -1469,7 +1470,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
       if (segwaiting) {
         switch (*segwaiting) {
           case '%':
-            strncpy(outstring, "%%", 8192);
+            strncpy(outstring, "%%", len);
             j--;
             break;
         case 'd':
@@ -1479,22 +1480,22 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals)
         case 'X':
         case 'u':
         case 'c':
-          snprintf(outstring, 8192, strseg, (int) MYFLT2LRND(*kvals[j]));
+          snprintf(outstring, len, strseg, (int) MYFLT2LRND(*kvals[j]));
           break;
         case 'h':
-          snprintf(outstring, 8192, strseg, (int16) MYFLT2LRND(*kvals[j]));
+          snprintf(outstring, len, strseg, (int16) MYFLT2LRND(*kvals[j]));
           break;
         case 'l':
-          snprintf(outstring, 8192, strseg, (long) MYFLT2LRND(*kvals[j]));
+          snprintf(outstring, len, strseg, (long) MYFLT2LRND(*kvals[j]));
           break;
 
         default:
-          snprintf(outstring, 8192, strseg, *kvals[j]);
+          snprintf(outstring, len, strseg, *kvals[j]);
           break;
         }
       }
       else
-        snprintf(outstring, 8192, "%s", strseg);
+        snprintf(outstring, len, "%s", strseg);
     }
 }
 

@@ -2,7 +2,7 @@
  
  MidiTestViewController.h:
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -28,18 +28,18 @@
 #import "MIDIWidgetsManager.h"
 #import "CsoundVirtualKeyboard.h"
 
-@interface MidiTestViewController  : BaseCsoundViewController <CsoundObjCompletionListener,
+@interface MidiTestViewController  : BaseCsoundViewController <CsoundObjListener,
 		CsoundVirtualKeyboardDelegate> {
 			
-    IBOutlet UISlider* mAttackSlider;
-    IBOutlet UISlider* mDecaySlider;
-    IBOutlet UISlider* mSustainSlider;
-    IBOutlet UISlider* mReleaseSlider;
+    IBOutlet UISlider *mAttackSlider;
+    IBOutlet UISlider *mDecaySlider;
+    IBOutlet UISlider *mSustainSlider;
+    IBOutlet UISlider *mReleaseSlider;
     
-    IBOutlet UISlider* mCutoffSlider;
-    IBOutlet UISlider* mResonanceSlider;
+    IBOutlet UISlider *mCutoffSlider;
+    IBOutlet UISlider *mResonanceSlider;
     
-    IBOutlet UISwitch* mSwitch;
+    IBOutlet UISwitch *mSwitch;
     MidiWidgetsManager* widgetsManager;
 			
 }

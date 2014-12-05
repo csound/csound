@@ -43,6 +43,63 @@ extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 /* IV - Feb 19 2005 */
 
+#ifdef EXPERIMENTAL
+static FILE *logFile = NULL;
+
+void msg_callback(CSOUND *csound,
+                         int attr, const char *format, va_list args)
+{
+    (void) csound;
+    if ((attr & CSOUNDMSG_TYPE_MASK) != CSOUNDMSG_REALTIME) {
+      vfprintf(logFile, format, args);
+      fflush(logFile);
+      return;
+     }
+    #if defined(WIN32) || defined(MAC)
+    switch (attr & CSOUNDMSG_TYPE_MASK) {
+        case CSOUNDMSG_ERROR:
+        case CSOUNDMSG_WARNING:
+        case CSOUNDMSG_REALTIME:
+        break;
+      default:
+        vfprintf(logFile, format, args);
+        return;
+    }
+    #endif
+
+    vfprintf(stderr, format, args);
+}
+
+void nomsg_callback(CSOUND *csound,
+  int attr, const char *format, va_list args){ return; }
+
+void do_logging(char *s)
+{
+    int nomessages = 0;
+    if (logFile) return;
+    if (!strcmp(s, "NULL") || !strcmp(s, "null"))
+      nomessages = 1;
+    else if ((logFile = fopen(s, "w")) == NULL) {
+      fprintf(stderr, "Error opening log file '%s': %s\n",
+              s, strerror(errno));
+      exit(1);
+    }
+    /* if logging to file, set message callback */
+    if (logFile != NULL)
+      csoundSetDefaultMessageCallback(msg_callback);
+    else if (nomessages)
+      csoundSetDefaultMessageCallback(nomsg_callback);
+}
+
+void end_logging(void)
+{
+    if (logFile != NULL)
+      fclose(logFile);
+}
+#else
+#define do_logging(x) {}
+#endif
+
 static inline void set_stdin_assign(CSOUND *csound, int type, int state)
 {
     if (state)
@@ -712,6 +769,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     else if (!(strncmp (s, "logfile=", 8))) {
       s += 8;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no log file"));
+      do_logging(s);
       return 1;
     }
     /* -r N */
@@ -933,28 +991,32 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strcmp(s, "new-parser")) ||
              !(strcmp(s, "old-parser"))) {
-        return 1;  /* ignore flag, this is here for backwards compatibility */
+      return 1;  /* ignore flag, this is here for backwards compatibility */
+    }
+    else if (!(strcmp(s, "sco-parser"))) {
+      csound->score_parser = 1;
+      return 1;  /* Try new parser */
     }
     else if (!(strcmp(s, "daemon"))) {
-        O->daemon = 1;
-        return 1;
+      O->daemon = 1;
+      return 1;
     }
     else if (!(strncmp(s, "port=",5))) {
-        s += 5;
-        O->daemon = atoi(s);
-        return 1;
+      s += 5;
+      O->daemon = atoi(s);
+      return 1;
     }
     else if (!(strncmp(s, "vbr-quality=",12))) {
-        s += 12;
-        O->quality = atof(s);
-        return 1;
+      s += 12;
+      O->quality = atof(s);
+      return 1;
       }
     else if (!(strncmp(s, "devices",7))) {
       csoundLoadExternals(csound);
       if (csoundInitModules(csound) != 0)
-              csound->LongJmp(csound, 1);
-      if(*(s+7) == '='){
-        if(!strncmp(s+8,"in", 2)) {
+        csound->LongJmp(csound, 1);
+      if (*(s+7) == '='){
+        if (!strncmp(s+8,"in", 2)) {
           list_audio_devices(csound, 0);
         }
         else if(!strncmp(s+8,"out", 2))
@@ -968,19 +1030,19 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
       }
     else if (!(strncmp(s, "get-system-sr",13))){
-      if(O->outfilename &&
-        !(strncmp(O->outfilename, "dac",3))) {
-      /* these are default values to get the
-         backend to open successfully */
-      set_output_format(O, 'f');
-      O->inbufsamps = O->outbufsamps = 256;
-      O->oMaxLag = 1024;
-      csoundLoadExternals(csound);
-      if (csoundInitModules(csound) != 0)
-              csound->LongJmp(csound, 1);
-      sfopenout(csound);
-      csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
-      sfcloseout(csound);
+      if (O->outfilename &&
+          !(strncmp(O->outfilename, "dac",3))) {
+        /* these are default values to get the
+           backend to open successfully */
+        set_output_format(O, 'f');
+        O->inbufsamps = O->outbufsamps = 256;
+        O->oMaxLag = 1024;
+        csoundLoadExternals(csound);
+        if (csoundInitModules(csound) != 0)
+          csound->LongJmp(csound, 1);
+        sfopenout(csound);
+        csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
+        sfcloseout(csound);
       }
       csound->info_message_request = 1;
       return 1;
@@ -1024,7 +1086,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             FIND(Str("no utility name"));
             {
               int retval = csoundRunUtility(csound, s, argc, argv);
-              if(retval) {
+              if (retval) {
                   csound->info_message_request = 1;
                   csound->orchname = NULL;
                   goto end;
@@ -1268,6 +1330,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             break;
           case 'O':
             FIND(Str("no log file"));
+            do_logging(s);
             while (*s++)
               ; s--; /* semicolon on separate line to silence warning */
             break;
@@ -1463,7 +1526,7 @@ PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format
     if (type != NULL) {
       int i=0;
       while ((typename = file_type_map[i].format) != NULL) {
-        if(!strcmp(type,typename)) break;
+        if (!strcmp(type,typename)) break;
         i++;
       }
       if (typename != NULL) {
