@@ -83,8 +83,10 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
       return NOTOK; /* not reached */
     }
 
-    if (!strcmp("HRTFcompact", p->ifilno->data))
-      strncpy(filename, p->ifilno->data, MAXNAME);
+    if (!strcmp("HRTFcompact", p->ifilno->data)) {
+      strncpy(filename, p->ifilno->data, MAXNAME-1);
+      filename[MAXNAME-1] = '\0';
+    }
     else {
       csound->Message(csound, Str("\nLast argument must be the string "
                                   "'HRTFcompact' ...correcting.\n"));

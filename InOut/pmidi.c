@@ -160,7 +160,7 @@ static int start_portmidi(CSOUND *csound)
       csound->ErrorMsg(csound, Str(errMsg));
       return -1;
     }
-    csound_global_mutex_unlock();
+    //csound_global_mutex_unlock();
     return csound->RegisterResetCallback(csound, NULL, stop_portmidi);
 }
 
@@ -174,7 +174,7 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
       return 0;
 
   cnt = portMidi_getDeviceCount(isOutput);
-  if(list == NULL) return cnt;
+  if (list == NULL) return cnt;
   for (i = 0; i < cnt; i++) {
       info = portMidi_getDeviceInfo(i, isOutput);
       strncpy(list[i].device_name, info->name, 63);
@@ -421,7 +421,7 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
       return 0;
     n = 0;
     do {
-      int time = csound->GetCurrentTimeSamples(csound)/csound->GetSr(csound);
+      //int time = csound->GetCurrentTimeSamples(csound)/csound->GetSr(csound);
       //printf("jitter: %d \n",
       //       Pt_Time(NULL) - (int)(1000*time/csound->GetSr(csound)));
       st = (int)*(mbuf++);

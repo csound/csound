@@ -21,11 +21,48 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
+%{
+#ifndef NULL
+#define NULL 0L
+#endif
+#include "csoundCore.h"
+#include <ctype.h>
+#include <string.h>
+#include <stdio.h>
+#include <math.h>
+#include "score_param.h"
+    extern void csound_scoerror(SCORE_PARM *, void *,
+                            CSOUND *, ScoreTree *, const char*);
+    extern int csound_scolex(ScoreTree**, CSOUND *, void *);
+ 
+#define LINE csound_scoget_lineno(scanner)
+#define LOCN csound_scoget_locn(scanner)
+    extern int csound_scoget_locn(void *);
+    extern int csound_scoget_lineno(void *);
+    static ScoreTree* makesco(CSOUND *csound, int op, ListItem* car,
+                              ScoreTree* cdr, int, int);
+    static ScoreTree* makesco1(CSOUND *csound, ScoreTree* car, ScoreTree* cdr);
+    static ListItem* makelist(CSOUND *csound, double car, ListItem* cdr);
+
+%}
+
 %pure_parser
 %parse-param {SCORE_PARM *parm}
 %parse-param {void *scanner}
 %lex-param { CSOUND * csound }
 %lex-param {yyscan_t *scanner}
+
+%union {
+  int    oper;
+  double val;
+  ScoreTree *t;
+  ListItem  *l;
+}
+
+%type <oper> opcode
+%type <val> arg exp term fac constant
+%type <t> scoline scolines statement
+%type <l> arglist
 
 %token NEWLINE
 
@@ -35,7 +72,7 @@
 %token INTEGER_TOKEN
 %token NUMBER_TOKEN
 
-%start scolines
+%start scofile
 %left S_AND S_OR
 %left '|'
 %left '&'
@@ -51,82 +88,75 @@
 %token T_HIGHEST
 %pure_parser
 %error-verbose
- //%parse-param { CSOUND * csound }
 
-/* NOTE: Perhaps should use %union feature of bison */
-
-%{
-#ifndef NULL
-#define NULL 0L
-#endif
-#include "csoundCore.h"
-#include <ctype.h>
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
-#include "score_param.h"
-extern void csound_scoerror(SCORE_PARM *, void *, const char*);
-    //extern int csound_scolex(TREE**, CSOUND *, void *);
-#define LINE csound_scoget_lineno()
-#define LOCN csound_scoget_locn()
-extern int csound_orcget_locn(void *);
-extern int csound_orcget_lineno(void *);
-#define csound 0
-%}
-%token NP
-%token PP
+%token T_NP
+%token T_PP
+%token T_CNP
+%token T_CPP
+%pure_parser
+%error-verbose
+%parse-param { CSOUND * csound }
+%parse-param { ScoreTree * scoTree }
 %%
+scofile           : scolines { printf("result %p\n", $1); *scoTree = *$1;}
+                  ;
 
 scoline           : statement 
                         {
-
+                            $$ = $1;
                         }
-                  | '{' scolines '}'
+                  | '{' scolines '}' NEWLINE
                   {
+                      $$ = $2;
                   }
                   ;
 
 scolines          : scoline scolines
                         {
-
+                            $$ = makesco1(csound, $1, $2);
                         }
-                  |  {  }
+                  |  { $$ = NULL; }
                   ;
 
-statement         : op arglist NEWLINE
+statement         : opcode arglist NEWLINE
                   {
-                      printf("op=%c\n");
+                      printf("op=%c\n", $1);
+                      $$ = makesco(csound, $1, NULL, NULL, LINE,LOCN);
                   }
                   ;
 
-op                : 'i'    { $$ = $1; }
-                  | 'f'    { $$ = $1; }
-                  | 'a'    { $$ = $1; }
-                  | 'e'    { $$ = $1; }
-                  | 's'    { $$ = $1; }
-                  | 't'    { $$ = $1; }
+opcode            : 'i'    { $$ = 'i'; }
+                  | 'f'    { $$ = 'f'; }
+                  | 'a'    { $$ = 'a'; }
+                  | 'e'    { $$ = 'e'; }
+                  | 's'    { $$ = 's'; }
+                  | 't'    { $$ = 't'; }
                   ;
 
-arglist           : arg arglist {}
-                  |             { parm->arglist = NULL; }
+arglist           : arg arglist { $$ = makelist(csound,
+                                                $1, $2);}
+                  |             { $$ = NULL; }
                   ;
 
 arg       : NUMBER_TOKEN { $$ = parm->fval;}
           | INTEGER_TOKEN { $$ = (MYFLT)parm->ival;}
           | STRING_TOKEN {}
           | '[' exp ']' { $$ = $2; }
-          | NP
-          | PP
+          | T_NP        { $$ = nan("1"); }
+          | T_PP        { $$ = nan("2"); }
+          | T_CNP       { $$ = nan("3"); }
+          | T_CPP       { $$ = nan("4"); }
+          ;
 
 exp       : exp '+' exp             { $$ = $1 + $3; }
           | exp '+' error
           | exp '-' exp             { $$ = $1 - $3; }
           | exp '-' error
           | '-' exp %prec S_UMINUS  { $$ = - $2; }
-          | '-' error           {  }
+          | '-' error               {  }
           | '+' exp %prec S_UMINUS  { $$ = $2; }
-          | '+' error           {  }
-| term                { $$ = $1; }
+          | '+' error               {  }
+          | term                    { $$ = $1; }
           ;
 
 term      : exp '*' exp    { $$ = $1 * $3; }
@@ -135,7 +165,7 @@ term      : exp '*' exp    { $$ = $1 * $3; }
           | exp '/' error
           | exp '^' exp    { $$ = pow($1, $3); }
           | exp '^' error
-          | exp '%' exp    { $$ = $1 % $3; }
+          | exp '%' exp    { $$ = (double)((int)$1 % (int)$3); }
           | exp '%' error
           | fac            { $$ = $1; }
           ;
@@ -198,10 +228,30 @@ lyyerror(YYLTYPE t, char *s, ...)
 
 #endif
 
+extern void do_baktrace(CSOUND *csound, uint64_t files);
+extern char *csound_scoget_text ( void *scanner );
+extern char *csound_scoget_current_pointer(void *yyscanner);
+
 void
-csound_scoerror(SCORE_PARM *parm, void *yyg, const char* s)
+csound_scoerror(SCORE_PARM *parm, void *yyscanner, CSOUND *cs, ScoreTree *t,
+                const char* str)
 {
-    fprintf(stderr, s);
+    char ch;
+    char *p = csound_scoget_current_pointer(yyscanner)-1;
+    int line = csound_scoget_lineno(yyscanner);
+    uint64_t files = csound_scoget_locn(yyscanner);
+    if (*p=='\0') line--;
+    cs->Message(cs, Str("\nerror: %s  (token \"%s\")"),
+                    str, csound_scoget_text(yyscanner));
+    do_baktrace(cs, files);
+    cs->Message(cs, Str(" line %d:\n>>>"), line);
+    while ((ch=*--p) != '\n' && ch != '\0');
+    do {
+      ch = *++p;
+      if (ch == '\n') break;
+      cs->Message(cs, "%c", ch);
+    } while (ch != '\n' && ch != '\0');
+    cs->Message(cs, " <<<\n");
 }
 
 int csound_scowrap()
@@ -210,6 +260,32 @@ int csound_scowrap()
     printf("\n === END OF INPUT ===\n");
 #endif
     return (1);
+}
+
+static ScoreTree* makesco(CSOUND *csound, int op, ListItem* car, ScoreTree* cdr,
+                          int line, int locn)
+{
+    ScoreTree* a = (ScoreTree*)csound->Malloc(csound, sizeof(ScoreTree));
+    a->op = op;
+    a->args = car;
+    a->next = cdr;
+    a->line = line;
+    a->locn  = locn;
+    return a;
+}
+
+static ScoreTree* makesco1(CSOUND *csound, ScoreTree* car, ScoreTree* cdr)
+{
+    car->next = cdr;
+    return car;
+}
+
+static ListItem* makelist(CSOUND *csound, double car, ListItem* cdr)
+{
+    ListItem* a = (ListItem*)csound->Malloc(csound, sizeof(ListItem));
+    a->val = car;
+    a->args = cdr;
+    return a;
 }
 
 #if 0

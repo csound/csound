@@ -25,10 +25,10 @@
 
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
-#import "CsoundValueCacheable.h"
+#import "CsoundObj.h"
 
 @interface MultiTouchXYViewController  : BaseCsoundViewController 
-	<CsoundObjCompletionListener, CsoundValueCacheable> {
+	<CsoundBinding> {
 	
 		int touchIds[10];
 		float touchX[10];

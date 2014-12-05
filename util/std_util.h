@@ -43,9 +43,6 @@ extern int scale_init_(CSOUND *);
 extern int sndinfo_init_(CSOUND *);
 extern int srconv_init_(CSOUND *);
 extern int xtrct_init_(CSOUND *);
-//#ifdef JPFF
-extern int scope_init_(CSOUND *);
-//#endif
 
 #endif  /* CSOUND_STD_UTIL_H */
 

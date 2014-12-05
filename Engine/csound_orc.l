@@ -318,6 +318,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "until"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = UNTIL_TOKEN;
                   return UNTIL_TOKEN; }
+"while"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = WHILE_TOKEN;
+                  return WHILE_TOKEN; }
 "do"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = DO_TOKEN;
                   return DO_TOKEN; }
@@ -621,4 +624,23 @@ uint64_t csound_orcget_locn(void *yyscanner)
 {
 //    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return PARM->locn;
+}
+
+void csound_orcput_ilocn(void *yyscanner, uint64_t num, uint64_t fil)
+{
+//    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+    PARM->iline = num;
+    PARM->ilocn = fil;
+}
+
+uint64_t csound_orcget_iline(void *yyscanner)
+{
+//    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+    return PARM->iline;
+}
+
+uint64_t csound_orcget_ilocn(void *yyscanner)
+{
+//    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+    return PARM->ilocn;
 }

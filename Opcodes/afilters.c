@@ -597,8 +597,8 @@ static int bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
     //butter_filter(nsmps, offset, in, out, p->a);
     for (nn=offset; nn<nsmps; nn++) {
       MYFLT bw, fr;
-      bw = (XINARG3 ? p->kbw[nn] : *p->kbw);
-      fr = (XINARG2 ? p->kfo[nn] : *p->kfo);
+      bw = (IS_ASIG_ARG(p->kbw) ? p->kbw[nn] : *p->kbw);
+      fr = (IS_ASIG_ARG(p->kfo) ? p->kfo[nn] : *p->kfo);
       if (bw != p->lkb || fr != p->lkf) {
         double c, d;
         p->lkf = fr;
@@ -646,8 +646,8 @@ static int bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
 
     for (nn=offset; nn<nsmps; nn++) {
       MYFLT bw, fr;
-      bw = (XINARG3 ? p->kbw[nn] : *p->kbw);
-      fr = (XINARG2 ? p->kfo[nn] : *p->kfo);
+      bw = (IS_ASIG_ARG(p->kbw) ? p->kbw[nn] : *p->kbw);
+      fr = (IS_ASIG_ARG(p->kfo) ? p->kfo[nn] : *p->kfo);
       if (bw != p->lkb || fr != p->lkf) {
         double c, d;
         p->lkf = fr;

@@ -51,7 +51,7 @@ extern void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
 extern void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 
-void checkOptions(CSOUND *csound)
+static void checkOptions(CSOUND *csound)
 {
     const char  *csrcname;
     const char  *home_dir;
@@ -345,9 +345,6 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
                                 "before starting again \n");
        return CSOUND_ERROR;
     }
-
-
-
 
    { /* test for dummy module request */
     char *s;

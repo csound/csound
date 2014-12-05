@@ -443,7 +443,7 @@ int SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
     syncout = p->asyncout;
     syncin = p->asyncin;
     phase = p->curphase;
-    cpsIsARate = (csound->GetInputArgAMask(p) & 1); /* check first input arg rate */
+    cpsIsARate = IS_ASIG_ARG(p->xcps); /* check first input arg rate */
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;

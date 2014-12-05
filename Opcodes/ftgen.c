@@ -372,9 +372,18 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
         /* WARNING! skips header.gen01args.strarg from saving/loading
            in text format */
         header.fno = (int32) fno;
-        if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
+        if (fno_f == fno) {
+          ftp = ft_func(csound, &fno_f);
+          if(ftp->flen < header.flen){
+             if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
+             goto err;
+          }
+        }
+        else {
+         if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
           goto err;
-        ftp = ft_func(csound, &fno_f);
+         ftp = ft_func(csound, &fno_f);
+        }
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT));
         memset(ftp->ftable, 0, sizeof(MYFLT) * (ftp->flen + 1));
         for (j = 0; j <= ftp->flen; j++) {
@@ -430,18 +439,18 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
 {
     MYFLT **argp = p->argums;
     char  filename[MAXNAME];
-    int   nargs = csound->GetInputArgCnt(p) - 2;
+    int   nargs = csound->GetInputArgCnt(p) - 3;
     FILE  *file = NULL;
     int   (*err_func)(CSOUND *, INSDS *, const char *, ...);
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
     void  *fd;
 
-    if (strncmp(csound->GetOpcodeName(p), "ftsave", 6) != 0) {
-      nargs--;
+    if (strncmp(csound->GetOpcodeName(p), "ftsave.", 7) != 0) {
       ft_func = csound->FTFindP;
       err_func = csound->PerfError;
     }
     else {
+      nargs = csound->GetInputArgCnt(p) - 2;
       ft_func = csound->FTnp2Find;
       err_func = myInitError;
     }
@@ -465,8 +474,8 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
         FUNC *ftp;
-
-        if ((ftp = ft_func(csound, *argp)) != NULL) {
+        //csound->Message(csound, "saving table %f \n", **argp);
+        if ( *argp && (ftp = ft_func(csound, *argp)) != NULL) {
           MYFLT *table = ftp->ftable;
           int32 flen = ftp->flen;
           int n;
@@ -485,7 +494,7 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
         FUNC *ftp;
-
+       
         if ((ftp = ft_func(csound, *argp)) != NULL) {
           int32 flen = ftp->flen;
           int32 j;

@@ -1,5 +1,5 @@
 '''
-Copyright 2005 by Michael Gogins.
+Copyright 2005, 22013, 2014 by Michael Gogins.
 
 A concise geometric approach to common operations
 in pragmatic music theory,
@@ -14,32 +14,32 @@ Voice-leading space is an orbifold of chords
 with one dimension per voice, voices ordered by pitch,
 pitch measured in tones per octave,
 and a modulus equal to the range of the voices.
-I.e., it is a complete Tonnetz.
-Root progressions are motions more or less 
-up and down the 'columns' of identically 
-structured chords. The closest voice-leadings are 
+I.e., it is a complete ChordSpace3.
+Root progressions are motions more or less
+up and down the 'columns' of identically
+structured chords. The closest voice-leadings are
 between the closest chords in the space.
-The 'best' voice-leadings are closest first 
-by 'smoothness,' and then  by 'parsimony.' 
-See Dmitri Tymoczko, 
+The 'best' voice-leadings are closest first
+by 'smoothness,' and then  by 'parsimony.'
+See Dmitri Tymoczko,
 _The Geometry of Musical Chords_, 2005
 (Princeton University).
 
-This script also demonstrates the triadic 
+This script also demonstrates the triadic
 neo-Riemannian transformations
-of leading-tone exchange (press l), 
-parallel (press p),  
+of leading-tone exchange (press l),
+parallel (press p),
 relative (press r),
-and dominant (press d) progression. 
-See Alissa S. Crans, Thomas M. Fiore, and Raymon Satyendra, 
-_Musical Actions of Dihedral Groups_, 2008 
+and dominant (press d) progression.
+See Alissa S. Crans, Thomas M. Fiore, and Raymon Satyendra,
+_Musical Actions of Dihedral Groups_, 2008
 (arXiv:0711.1873v2).
 
 You can do plain old transpositions
 by pressing 1, 2, 3, 4, 5, or 6.
 
-You can move each voice independently with the arrow keys: 
-up arrow to move voice 1 up 1 semitone (shift for down), 
+You can move each voice independently with the arrow keys:
+up arrow to move voice 1 up 1 semitone (shift for down),
 right arrow to move voice 2 in the same way,
 down arrow to move voice 3.
 
@@ -56,7 +56,7 @@ import threading
 import copy
 import collections
 from visual import *
-from numpy import *
+#from numpy import *
 #import Image
 #import ImageGrab
 #import ImageOps
@@ -72,7 +72,7 @@ This is to enable using the lower subspace of chords to represent pitches,
 and the higher subspace to represent other properties of music;
 e.g. [0:4] can be a tetrachord, [4:8] durations, [8:12] loudnesses, and so on.
 '''
-class Tonnetz(object):
+class ChordSpace3(object):
     def __init__(self, voiceCount=3, cubeOctaveCount=2,octaveCount=3, tonesPerOctave=12, isCube=False, isPrism=False, isNormalPrism = False, debug=False):
         self.N = voiceCount
         self.octaveCount = octaveCount
@@ -108,7 +108,7 @@ class Tonnetz(object):
         chord[voice] = chord[voice] + interval
         chord = tuple(self.bounceInside(chord))
         return chord
-    ''' 
+    '''
     Do a root progression by tranposition.
     '''
     def pT(self, chord, interval):
@@ -406,7 +406,7 @@ class Tonnetz(object):
         c[0:self.N] = r
         if self.debug:
             print c
-        return c  
+        return c
     def bounceInside(self, chord):
         inversions = self.inversions(chord)
         if self.debug:
@@ -492,10 +492,10 @@ class Tonnetz(object):
     def label(self, chord):
         c = array(chord[0:self.N])
         return 'C   %s\nT   %s\n0   %s\n1   %s\n0-1 %s\nSum %f' % (c, self.tones(c), self.zeroForm(c), self.firstInversion(c), self.zeroFormFirstInversion(chord), sum(chord[0:self.N]))
-        
-class TonnetzModel(Tonnetz):
+
+class ChordSpace3Model(ChordSpace3):
     def __init__(self, octaveCount=1, tonesPerOctave=12, isCube=False, isPrism=True, isNormalPrism=False, doCycle=False, showFirstInversion=False, doConnect=False, enableCsound=False, debug=False, showUnordered=False):
-        Tonnetz.__init__(self, 3, octaveCount=octaveCount, tonesPerOctave=tonesPerOctave, isCube=isCube, isPrism=isPrism, isNormalPrism=isNormalPrism, debug=debug)
+        ChordSpace3.__init__(self, 3, octaveCount=octaveCount, tonesPerOctave=tonesPerOctave, isCube=isCube, isPrism=isPrism, isNormalPrism=isNormalPrism, debug=debug)
         self.trichords = {}
         self.balls = {}
         self.ballsForChordTypes = {}
@@ -549,7 +549,7 @@ class TonnetzModel(Tonnetz):
                                 self.setColor(ball)
                                 ball.name = self.label(trichord)
                                 ball.label = label(pos = trichord,  text = ball.name, height = 11, box = 2, opacity = 0.3, linecolor=(0.5,0.5,0.5), visible = 0, line = 2, xoffset = -20, yoffset = 20)
-        
+
                             else:
                                 self.balls[trichord].radius = self.normalPrismRadius
         if self.doConnect:
@@ -559,7 +559,7 @@ class TonnetzModel(Tonnetz):
                 self.connect(trichord, self.sort((trichord[0], trichord[1], trichord[2] + 1.0)))
                 self.connect(trichord, self.sort((trichord[0] - 1.0, trichord[1], trichord[2])))
                 self.connect(trichord, self.sort((trichord[0], trichord[1] - 1.0, trichord[2])))
-                self.connect(trichord, self.sort((trichord[0], trichord[1], trichord[2] - 1.0)))                  
+                self.connect(trichord, self.sort((trichord[0], trichord[1], trichord[2] - 1.0)))
     def setColor(self, ball):
         z = tuple(self.zeroFormFirstInversion(ball.trichord))
         if z in self.ballsForChordTypes:
@@ -615,25 +615,26 @@ class TonnetzModel(Tonnetz):
     def playBall(self, pickedBall):
         pickedBall.label.visible = 1
         print pickedBall.name
-        note1 = "i 2 0 4 %d 70 0 -.75" % (60 + pickedBall.pos[0])
+        note1 = "i 1 0 4 %d 70 0 -.75" % (60 + pickedBall.pos[0])
         note2 = "i 2 0 4 %d 70 0  .0"  % (60 + pickedBall.pos[1])
-        note3 = "i 2 0 4 %d 70 0  .75" % (60 + pickedBall.pos[2])
+        note3 = "i 3 0 4 %d 70 0  .75" % (60 + pickedBall.pos[2])
         print '%s\n%s\n%s' % (note1, note2, note3)
         if self.enableCsound:
             self.csound.inputMessage(note1)
             self.csound.inputMessage(note2)
             self.csound.inputMessage(note3)
         print
-        
+
     def run(self):
         pickedBall = None
         oldBall = None
         movingChord = ( 0, 4, 7)
         translation = (1,1,1)
         while scene.visible:
+            rate(100)
             movingChord = tuple(self.sort(movingChord))
             if scene.kb.keys:
-                k = scene.kb.getkey() 
+                k = scene.kb.getkey()
                 print 'key: %s' % k
                 if   k == 'up':
                     movingBall = self.balls[movingChord]
@@ -715,7 +716,7 @@ class TonnetzModel(Tonnetz):
                     movingBall.label.visible = 1
                     self.playBall(movingBall)
                     oldBall = movingBall
-                elif k in ('1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b'):                    
+                elif k in ('1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b'):
                     movingBall = self.balls[movingChord]
                     movingBall.label.visible = 0
                     if k == 'a':
@@ -775,64 +776,243 @@ def runModel(model):
     scene.autocenter = 1
     sort(model.firstInversions)
     if model.enableCsound:
-        model.csound.setPythonMessageCallback()
         model.csound.setOrchestra('''
-sr=44100
-ksmps=100
-nchnls=2
+sr                              =                       44100
+ksmps                           =                       100
+nchnls                          =                       2
 
-iafno ftgen 3, 		0, 	4097, 	10, 	1, .4, .2, .1, .1, .05
-iafno ftgen 41, 	0, 	65537, 	10, 	1 ; Sine wave.
-iafno ftgen 42, 	0, 	65537, 	11, 	1 ; Cosine wave. Get that noise down on the most widely used table!
+                                connect                 "FenderRhodesModel",    "out", "Reverberation", "in"
+                                connect                 "FMWaterBell",          "out", "Reverberation", "in"
+                                connect                 "Xing",                 "out", "Reverberation", "in"
+                                connect                 "Reverberation",        "out", "MasterOutput", "in"
 
-instr 2 
-; INITIALIZATION
-ioctave         =                       p4 / 12.0 + 3.0
-iattack 		= 			0.01
-idecay			=			2.0
-isustain 		= 			p3
-irelease 		= 			0.125
-p3			    = 			iattack + idecay + isustain + irelease
-iindex 			= 			1
-icrossfade 		= 			3
-ivibedepth 		= 			0.02
-iviberate 		= 			4.8
-ifn1 			= 			41
-ifn2 			= 			3
-ifn3 			= 			3
-ifn4 			= 			41
-ivibefn 		= 			42
-ifrequency 		= 			cpsoct(ioctave)
-iamplitude 		= 			ampdb(p5) * 20.0
-ijunk6 			= 			p6
-; Constant-power pan.	
-ipi 			= 			4.0 * taninv(1.0)
-iradians 		= 			p7 * ipi / 2.0
-itheta 			= 			iradians / 2.0
-; Translate angle in [-1, 1] to left and right gain factors.
-irightgain 		= 			sqrt(2.0) / 2.0 * (cos(itheta) + sin(itheta)) * iamplitude
-ileftgain 		= 			sqrt(2.0) / 2.0 * (cos(itheta) - sin(itheta)) * iamplitude
-ijunk8 			= 			p8
-ijunk9 			= 			p9
-ijunk10 		= 			p10
-ijunk11 		= 			p11
-; AUDIO
-adecay0 		expsegr 	1.0, iattack, 2.0, idecay, 1.1, isustain, 1.001, irelease, 1.0, irelease, 1.0
-adecay			=			adecay0 - 1.0
-asignal			fmrhode 	0.1, ifrequency, iindex, icrossfade, ivibedepth, iviberate, ifn1, ifn2, ifn3, ifn4, ivibefn
-			    outs 		ileftgain * asignal * adecay, irightgain * asignal * adecay
-endin
+                                alwayson                "Reverberation"
+                                alwayson                "MasterOutput"
+
+gkFenderRhodesModelGain         init                    0
+gkFenderRhodesModelGainCorrection init                  60
+                                instr                   FenderRhodesModel
+                                //////////////////////////////////////////////////////
+                                // Original by Perry Cook.
+                                // Adapted by Michael Gogins.
+                                //////////////////////////////////////////////////////
+i_instrument                    =                       p1
+i_time                          =                       p2
+i_duration                      =                       p3
+i_midikey                       =                       p4
+i_midivelocity                  =                       p5
+i_phase                         =                       p6
+i_pan                           =                       p7
+i_depth                         =                       p8
+i_height                        =                       p9
+i_pitchclassset                 =                       p10
+i_homogeneity                   =                       p11
+iattack                         =                       0.01
+isustain                        =                       p3
+irelease                        =                       0.125
+p3                              =                       isustain + iattack + irelease
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+iindex                          =                       4
+icrossfade                      =                       3
+ivibedepth                      =                       0.2
+iviberate                       =                       6
+isine                           ftgenonce               0, 0, 65536,    10,     1
+icosine                         ftgenonce               0, 0, 65536,    11,     1
+icookblank                      ftgenonce               0, 0, 65536,     10,     0 ; Blank wavetable for some Cook FM opcodes.
+ifn1                            =                       isine
+ifn2                            =                       icosine
+ifn3                            =                       isine
+ifn4                            =                       icookblank
+ivibefn                         =                       isine
+ifrequency                      =                       cpsmidinn(i_midikey)
+asignal                         fmrhode                 1, ifrequency, iindex, icrossfade, ivibedepth, iviberate, ifn1, ifn2, ifn3, ifn4, ivibefn
+kdbgain                         =                       gkFenderRhodesModelGainCorrection + (gkFenderRhodesModelGain - 0.5) * 100.0
+kiamplitude                     =                       ampdb(i_midivelocity) * pow(10, kdbgain / 20)
+aoutleft, aoutright		        pan2			        asignal * adeclick * kiamplitude, i_pan
+aout[]                          init                    2
+aout[0]                         =                       aoutleft
+aout[1]                         =                       aoutright
+                                outletv                 "out",  aout
+                                endin
+
+gkFMWaterBellGain               init                    0.0
+gkFMWaterBellGainCorrection     init                    50.0
+                                instr                   FMWaterBell
+                                //////////////////////////////////////////////
+                                // Original by Steven Yi.
+                                // Adapted by Michael Gogins.
+                                //////////////////////////////////////////////
+i_instrument                    =                       p1
+i_time                          =                       p2
+i_duration                      =                       p3
+i_midikey                       =                       p4
+i_midivelocity                  =                       p5
+i_phase                         =                       p6
+i_pan                           =                       p7
+i_depth                         =                       p8
+i_height                        =                       p9
+i_pitchclassset                 =                       p10
+i_homogeneity                   =                       p11
+ipch                            =                       cpsmidinn(i_midikey)
+iamplitude                      =                       ampdb(i_midivelocity)
+ipch2                           =                       ipch
+kpchline 	                    line                    ipch, i_duration, ipch2
+iamp 	                        =                       2
+ienvType	                    =                       2
+kenv 	                        init 	                0
+                                if ienvType == 0 kgoto env0  ; adsr
+                                if ienvType == 1 kgoto env1  ; pyramid
+                                if ienvType == 2 kgoto env2  ; ramp
+env0:
+kenv	                        adsr	                .3, .2, .9, .5
+                                kgoto                   endEnvelope
+env1:
+kenv 	                        linseg	                0, i_duration * .5, 1, i_duration * .5, 0
+                                kgoto                   endEnvelope
+env2:
+kenv	                        linseg 	                0, i_duration - .1, 1, .1, 0
+kgoto                           endEnvelope
+endEnvelope:
+kc1                             =                       5
+kc2                             =                       5
+kvdepth                         =                       0.005
+kvrate                          =                       6
+icosine                  	    ftgenonce               0, 0, 65536, 11, 1
+ifn1                            =                       icosine
+ifn2                            =                       icosine
+ifn3                            =                       icosine
+ifn4                            =                       icosine
+ivfn                            =                       icosine
+asignal                         fmbell	                iamp, kpchline, kc1, kc2, kvdepth, kvrate, ifn1, ifn2, ifn3, ifn4, ivfn
+iattack                         =                       0.003
+isustain                        =                       p3
+irelease                        =                       0.06
+p3                              =                       isustain + iattack + irelease
+adeclick                        linsegr                 0.0, iattack, 1.0, isustain, 1.0, irelease, 0.0
+kdbgain                         =                       gkFMWaterBellGainCorrection + (gkFMWaterBellGain - 0.5) * 100.0
+kiamplitude                     =                       ampdb(i_midivelocity) * pow(10, kdbgain / 20)
+aoutleft, aoutright		        pan2			        asignal * adeclick * kiamplitude, i_pan
+aout[] init 2
+aout[0] = aoutleft
+aout[1] = aoutright
+                                outletv                 "out",  aout
+                                endin
+
+gkXingGain                      init                    0.0
+gkXingGainCorrection            init                    60.0
+                                instr                   Xing
+                                //////////////////////////////////////////////
+                                // Original by Andrew Horner.
+                                // Adapted by Michael Gogins.
+                                // p4 pitch in octave.pch
+                                // original pitch        = A6
+                                // range                 = C6 - C7
+                                // extended range        = F4 - C7
+                                //////////////////////////////////////////////
+insno           		        =                       p1
+itime           		        =                       p2
+iduration       		        =                       p3
+ikey            		        =                       p4
+ivelocity                       =                       p5
+iphase                          =                       p6
+ipan                            =                       p7
+idepth                          =                       p8
+iheight                         =                       p9
+ipcs                            =                       p10
+ihomogeneity                    =                       p11
+kgain			    	        =                       1.25
+iHz                             =                       cpsmidinn(ikey)
+kHz                             =                       k(iHz)
+iattack                         =                       (440.0 / iHz) * 0.01
+                                print                   iHz, iattack
+isustain                        =                       p3
+irelease                        =                       .3
+p3                              =                       iattack + isustain + irelease
+iduration                       =                       p3
+iamplitude                      =                       ampdb(ivelocity).
+isine                           ftgenonce               0, 0, 65536,    10,     1
+kfreq                           =                       cpsmidinn(ikey)
+iamp                            =                       1
+inorm                           =                       32310
+aamp1                           linseg                  0,.001,5200,.001,800,.001,3000,.0025,1100,.002,2800,.0015,1500,.001,2100,.011,1600,.03,1400,.95,700,1,320,1,180,1,90,1,40,1,20,1,12,1,6,1,3,1,0,1,0
+adevamp1                        linseg                  0, .05, .3, iduration - .05, 0
+adev1                           poscil                  adevamp1, 6.7, isine, .8
+amp1                            =                       aamp1 * (1 + adev1)
+aamp2                           linseg                  0,.0009,22000,.0005,7300,.0009,11000,.0004,5500,.0006,15000,.0004,5500,.0008,2200,.055,7300,.02,8500,.38,5000,.5,300,.5,73,.5,5.,5,0,1,1
+adevamp2                        linseg                  0,.12,.5,iduration-.12,0
+adev2                           poscil                  adevamp2, 10.5, isine, 0
+amp2                            =                       aamp2 * (1 + adev2)
+aamp3                           linseg                  0,.001,3000,.001,1000,.0017,12000,.0013,3700,.001,12500,.0018,3000,.0012,1200,.001,1400,.0017,6000,.0023,200,.001,3000,.001,1200,.0015,8000,.001,1800,.0015,6000,.08,1200,.2,200,.2,40,.2,10,.4,0,1,0
+adevamp3                        linseg                  0, .02, .8, iduration - .02, 0
+adev3                           poscil                  adevamp3, 70, isine ,0
+amp3                            =                       aamp3 * (1 + adev3)
+awt1                            poscil                  amp1, kfreq, isine
+awt2                            poscil                  amp2, 2.7 * kfreq, isine
+awt3                            poscil                  amp3, 4.95 * kfreq, isine
+asig                            =                       awt1 + awt2 + awt3
+arel                            linenr                  1,0, iduration, .06
+; asignal                         =                       asig * arel * (iamp / inorm) * iamplitude * kgain
+asignal                         =                       asig * (iamp / inorm) * kgain
+adeclick                        linsegr                 0, iattack, 1, isustain, 1, irelease, 0
+kdbgain                         =                       gkXingGainCorrection + (gkXingGain - 0.5) * 100.0
+kiamplitude                     =                       ampdb(ivelocity) * pow(10, kdbgain / 20)
+aoutleft, aoutright		        pan2			        asignal * adeclick * kiamplitude, ipan
+aout[] init 2
+aout[0] = aoutleft
+aout[1] = aoutright
+                                outletv                 "out",  aout
+                                endin
+
+
+gkReverberationEnabled          init                    1
+gkReverberationDelay            init                    0.4
+gkReverberationWet          	init                    0.25
+                                instr                   Reverberation
+                                //////////////////////////////////////////////
+                                // By Michael Gogins.
+                                //////////////////////////////////////////////
+ain[]                           init 2
+ain                             inletv                  "in"
+ainleft                         =                       ain[0]
+ainright                        =                       ain[1]
+if (gkReverberationEnabled == 1) then
+aoutleft                        =                       ainleft
+aoutright                       =                       ainright
+kdry				            =			            1.0 - gkReverberationWet
+else
+awetleft, awetright             reverbsc                ainleft, ainright, gkReverberationDelay, 18000.0
+aoutleft			            =			            ainleft *  kdry + awetleft  * gkReverberationWet
+aoutright			            =			            ainright * kdry + awetright * gkReverberationWet
+endif
+aout[]                          init                    2
+aout[0]                         =                       aoutleft
+aout[1]                         =                       aoutright
+                                outletv                 "out", aout
+                                endin
+
+gkMasterLevel                   init                    1.0
+                                instr                   MasterOutput
+                                //////////////////////////////////////////////
+                                // By Michael Gogins.
+                                //////////////////////////////////////////////
+ain[]                           init 2
+ain                             inletv                  "in"
+ain[0]                          =                       gkMasterLevel * ain[0]
+ain[1]                          =                       gkMasterLevel * ain[1]
+                                out                     ain
+                                endin
+
             ''')
         model.csound.setScore('''
             f1 0 8192 10 1
             f0 6000
             e
             ''')
-        #model.csound.setCommand('csound -h -d -r 48000 -k 1000 -m128 -b1000 -B1000 -odac')
+        model.csound.setCommand('csound -h -d -r 48000 -k 1000 -m227 -b1000 -B1000 -odac')
         #gc.disable()
-        #model.csound.compile()
-        #performanceThread = csnd6.CsoundPerformanceThread(model.csound)
-        #performanceThread.Play()
+        model.csound.compile()
+        performanceThread = csnd6.CsoundPerformanceThread(model.csound)
+        performanceThread.Play()
     fg = (1,1,1)
     arrowcolor = (0.7,0.7,0.7)
     size = model.getTessitura() * 1.125
@@ -853,24 +1033,24 @@ endin
     if model.enableCsound:
         performanceThread.Stop()
         print 'Csound finished.'
-print 'Program finished.'
-    
+
 
 if __name__ == '__main__':
     #scene.fullscreen = False
     #scene.width = 300 * 7
     #scene.height = 300 * 5
-    # Tonnetz for trichords
-    model = TonnetzModel(octaveCount=1, doCycle=False, doConnect=True, isPrism=True, enableCsound=True)
+    # ChordSpace3 for trichords
+    model = ChordSpace3Model(octaveCount=1, doCycle=False, doConnect=True, isPrism=True, enableCsound=True)
     # Ranged chord space
-    #model = TonnetzModel(octaveCount=2, doCycle=False, doConnect=False, isCube=True, isPrism=False)
-    # Tonnetz in ranged chord space
-    #model = TonnetzModel(octaveCount=1, doCycle=True, doConnect=False, isPrism=True, isCube=True)
+    #model = ChordSpace3Model(octaveCount=2, doCycle=False, doConnect=False, isCube=True, isPrism=False)
+    # ChordSpace3 in ranged chord space
+    #model = ChordSpace3Model(octaveCount=1, doCycle=True, doConnect=False, isPrism=True, isCube=True)
     # Voice-leading space
-    #model = TonnetzModel(octaveCount=3, doCycle=True, doConnect=False, isPrism=True, isNormalPrism=False)
+    #model = ChordSpace3Model(octaveCount=3, doCycle=True, doConnect=False, isPrism=True, isNormalPrism=False)
     # Normal chord space
-    #model = TonnetzModel(octaveCount=3, doCycle=False, doConnect=False, isPrism=False, isNormalPrism=True)
+    #model = ChordSpace3Model(octaveCount=3, doCycle=False, doConnect=False, isPrism=False, isNormalPrism=True)
     # Normal chord space in voice-leading space
-    #model = TonnetzModel(octaveCount=3, doCycle=False, doConnect=False, isPrism=True, isNormalPrism=True)
+    #model = ChordSpace3Model(octaveCount=3, doCycle=False, doConnect=False, isPrism=True, isNormalPrism=True)
     runModel(model)
+    print 'Program finished.'
 

@@ -24,47 +24,10 @@
 #if defined(WIN32)
 #include <FL/Fl_Output.H>
 #endif
+#include <unistd.h>
 #include <csound.h>
 #include "widglobals.h"
 #include <FL/x.H>
-
-#if !defined(cs_strtok_r)
-static char* cs_strtok_r(char* str, char* delim, char** nextp) {
-#ifdef HAVE_STRTOK_R
-    return strtok_r(str, delim, nextp);
-#else
-    /*
-     * public domain strtok_r() by Charlie Gordon
-     *
-     *   from comp.lang.c  9/14/2007
-     *
-     *      http://groups.google.com/group/comp.lang.c/msg/2ab1ecbb86646684
-     *
-     *     (Declaration that it's public domain):
-     *      http://groups.google.com/group/comp.lang.c/msg/7c7b39328fefab9c
-     */
-    char *ret;
-    if (str == NULL)
-    {
-        str = *nextp;
-    }
-    str += strspn(str, delim);
-    if (*str == '\0')
-    {
-        return NULL;
-    }
-    ret = str;
-    str += strcspn(str, delim);
-    if (*str)
-    {
-        *str++ = '\0';
-    }
-    *nextp = str;
-    return ret;
-#endif
-}
-
-#endif
 
 Fl_Font FONT_TABLE[] = { FL_HELVETICA,                  FL_HELVETICA,
                          FL_HELVETICA_BOLD,             FL_HELVETICA_ITALIC,
@@ -2290,16 +2253,17 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
     csound->Free(csound, command);
 #elif defined(WIN32)
     {
+#undef strtok_r // undefine from pthread.h on Windows
       char *th;
       char *v[40];
       int i = 0;
 
       strcpy(command, p->commandString);
-      char *tok = cs_strtok_r(command, " ", &th);
+      char *tok = csound->strtok_r(command,(char *) " ", &th);
 
       if(tok != NULL) {
         v[i++] = tok;
-        while((tok = cs_strtok_r(NULL, " ", &th)) != NULL) {
+        while((tok = csound->strtok_r(NULL,(char *) " ", &th)) != NULL) {
           v[i++] = tok;
         }
         v[i] = NULL;

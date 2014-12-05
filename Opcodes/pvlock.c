@@ -64,6 +64,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
     p->hsize = N/decim;
     p->cnt = p->hsize;
     p->curframe = 0;
+    p->pos = 0;
 
     nchans = p->nchans;
 
@@ -83,8 +84,12 @@ static int sinit(CSOUND *csound, DATASPACE *p)
     size = decim*sizeof(int);
     if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
       csound->AuxAlloc(csound, size, &p->framecount[i]);
-    else
-      memset(p->framecount[i].auxp,0,size);
+    {
+      int k=0;
+      for (k=0; k < decim; k++) {
+        ((int *)(p->framecount[i].auxp))[k] = k*N;
+      }
+    }
     size = decim*sizeof(MYFLT)*N;
     if (p->outframe[i].auxp == NULL || p->outframe[i].size < size)
       csound->AuxAlloc(csound, size, &p->outframe[i]);
@@ -131,6 +136,7 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
     MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
     int *framecnt;
     int curframe = p->curframe, decim = p->decim;
+    double scaling = (8/decim)/3.;
 
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -300,7 +306,7 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
           framecnt[i]++;
         }
         /* scale output */
-        out[n] *= amp*(2./3.);
+        out[n] *= amp*scaling;
       }
       cnt++;
     }
@@ -320,7 +326,7 @@ static int sinit2(CSOUND *csound, DATASPACE *p)
     for (i=0; i < p->nchans; i++)
     if (p->nwin[i].auxp == NULL || p->nwin[i].size < size)
       csound->AuxAlloc(csound, size, &p->nwin[i]);
-    p->pos = *p->offset*CS_ESR + p->hsize;
+    p->pos = *p->offset*CS_ESR - p->hsize;
     p->tscale  = 0;
     p->accum = 0;
     return OK;
@@ -345,6 +351,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
     MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
     int *framecnt, curframe = p->curframe;
     int decim = p->decim;
+    double scaling = (8/decim)/3.;
 
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -526,7 +533,7 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
           out[n] += outframe[framecnt[i]];
           framecnt[i]++;
         }
-        out[n] *= amp*(2./3.);
+        out[n] *= amp*scaling;
       }
       cnt++;
     }

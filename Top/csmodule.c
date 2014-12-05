@@ -242,17 +242,17 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
       return CSOUND_ERROR;
     /* load library */
 /*  #if defined(LINUX) */
-    //      printf("About to open library '%s'\n", libraryPath);
+    //printf("About to open library '%s'\n", libraryPath);
 /* #endif */
     err = csoundOpenLibrary(&h, libraryPath);
     if (UNLIKELY(err)) {
       char ERRSTR[256];
-#if !(defined(NACL)) && defined(LINUX)
+ #if !(defined(NACL)) && defined(LINUX)
       snprintf(ERRSTR, 256, Str("could not open library '%s' (%s)"),
-                      libraryPath, dlerror());
+               libraryPath, dlerror());
  #else
       snprintf(ERRSTR, 256, Str("could not open library '%s' (%d)"),
-                      libraryPath, err);
+               libraryPath, err);
  #endif
       if (csound->delayederrormessages == NULL) {
         csound->delayederrormessages = malloc(strlen(ERRSTR)+1);
@@ -364,7 +364,7 @@ static int csoundCheckOpcodeDeny(const char *fname)
     /* printf("DEBUG %s(%d): check fname=%s\n", __FILE__, __LINE__, fname); */
     /* printf("DEBUG %s(%d): list %s\n", __FILE__, __LINE__, list); */
     if (list==NULL) return 0;
-    strncpy(buff, fname, 256);
+    strncpy(buff, fname, 255); buff[255]='\0';
     strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
     p = strdup(list);
     deny = cs_strtok_r(p, ",", &th);
@@ -807,13 +807,13 @@ extern long mp3in_localops_init(CSOUND *, void *);
 extern long sockrecv_localops_init(CSOUND *, void *);
 #endif
 extern long afilts_localops_init(CSOUND *, void *);
+extern long pinker_localops_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
 extern int sfont_ModuleInit(CSOUND *csound);
 extern int sfont_ModuleCreate(CSOUND *csound);
 extern int newgabopc_ModuleInit(CSOUND *csound);
-
 
 const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  bilbar_localops_init, vosim_localops_init,
@@ -843,6 +843,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 #endif
                                  gendy_localops_init,
                                  scnoise_localops_init, afilts_localops_init,
+                                 pinker_localops_init,
                                  NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);

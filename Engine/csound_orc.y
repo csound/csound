@@ -87,6 +87,7 @@
 %token ELSE_TOKEN
 %token ENDIF_TOKEN
 %token UNTIL_TOKEN
+%token WHILE_TOKEN
 %token DO_TOKEN
 %token OD_TOKEN
 
@@ -137,9 +138,21 @@
 #include "namedins.h"
 
 #include "csound_orc.h"
+#include "parse_param.h"
+
+#ifndef __EMSCRIPTEN__
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
-#include "parse_param.h"
+#else
+#define csp_orc_sa_instr_add(a,b)
+#define csp_orc_sa_instr_add_tree(a,b)
+#define csp_orc_sa_instr_finalize(a)
+#define csp_orc_sa_global_read_write_add_list(a,b,c)
+#define csp_orc_sa_globals_find(a,b)
+#define csp_orc_sa_global_read_write_add_list1(a,b,c)
+#define csp_orc_sa_interlocks(a, b)
+#define csp_orc_sa_global_read_add_list(a,b) 
+#endif
 
 #define udoflag csound->parserUdoflag
 
@@ -214,14 +227,16 @@ instlist  : INTEGER_TOKEN ',' instlist
           ;
 
 instrdecl : INSTR_TOKEN
-                { namedInstrFlag = 1; }
+                { namedInstrFlag = 1; csound_orcput_ilocn(scanner, LINE, LOCN); }
             instlist NEWLINE
                 { namedInstrFlag = 0;
                   csp_orc_sa_instr_add_tree(csound, $3);
                 }
             statementlist ENDIN_TOKEN NEWLINE
                 {
-                    $$ = make_node(csound, LINE,LOCN, INSTR_TOKEN, $3, $6);
+                    $$ = make_node(csound, csound_orcget_iline(scanner),
+                                   csound_orcget_ilocn(scanner), INSTR_TOKEN,
+                                   $3, $6);
                     csp_orc_sa_instr_finalize(csound);
                 }
           | INSTR_TOKEN NEWLINE error
@@ -455,6 +470,12 @@ statement : ident '=' expr NEWLINE
           | UNTIL_TOKEN bexpr DO_TOKEN statementlist OD_TOKEN
               {
                   $$ = make_leaf(csound,LINE,LOCN, UNTIL_TOKEN, (ORCTOKEN *)$1);
+                  $$->left = $2;
+                  $$->right = $4;
+              }
+          | WHILE_TOKEN bexpr DO_TOKEN statementlist OD_TOKEN
+              {
+                  $$ = make_leaf(csound,LINE,LOCN, WHILE_TOKEN, (ORCTOKEN *)$1);
                   $$->left = $2;
                   $$->right = $4;
               }

@@ -34,6 +34,7 @@
 #import "AudioInTestViewController.h"
 #import "HarmonizerTest.h"
 #import "HardwareTestViewController.h"
+#import "InstrumentEditorViewController.h"
 #import "CsoundHaiku4ViewController.h"
 #import "RecordTestViewController.h"
 #import "MultiTouchXYViewController.h"
@@ -45,8 +46,6 @@
 
 @implementation MasterViewController
 
-@synthesize detailViewController = _detailViewController;
-
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -57,7 +56,7 @@
             self.preferredContentSize = CGSizeMake(320.0, 600.0);
         }
         testNames = [NSMutableArray arrayWithObjects:@"Simple Test 1", @"Simple Test 2", 
-                      @"Button Test", @"MIDI Test", @"Ping Pong Delay", @"Harmonizer", @"Hardware Test", @"Csound Haiku 4", @"Record Test", @"Multitouch XY", @"Waveview", @"Audio File Test", @"Console Output", @"Pitch Shifter", @"TrappedGenerator",nil];
+                      @"Button Test", @"MIDI Test", @"Ping Pong Delay", @"Harmonizer", @"Hardware Test", @"Csound Haiku 4", @"Record Test", @"Multitouch XY", @"Waveview", @"Audio File Test", @"Console Output", @"Pitch Shifter", @"Trapped Generator",@"Instrument Editor", nil];
     }
     return self;
 }
@@ -244,6 +243,9 @@
         case 14:
 			controller = [[TrappedGeneratorViewController alloc] initWithNibName:@"TrappedGeneratorViewController" bundle:nil];
 			break;
+        case 15:
+			controller = [[InstrumentEditorViewController  alloc] initWithNibName:@"InstrumentEditorViewController" bundle:nil];
+			break;
 		default:
             break;
     }
@@ -254,14 +256,14 @@
 //	    }
 //        [self.navigationController pushViewController:self.detailViewController animated:YES];
         [self.navigationController pushViewController:controller animated:YES];
-        [(UITableView*)self.view deselectRowAtIndexPath:indexPath animated:YES];
+        [(UITableView *)self.view deselectRowAtIndexPath:indexPath animated:YES];
         
     } else {
         
-        AppDelegate* appDelegate = [UIApplication sharedApplication].delegate;
-        UISplitViewController* splitViewController = appDelegate.splitViewController;
+        AppDelegate *appDelegate = [UIApplication sharedApplication].delegate;
+        UISplitViewController *splitViewController = appDelegate.splitViewController;
         
-        BaseCsoundViewController* currentDetail = (BaseCsoundViewController*)splitViewController.delegate;
+        BaseCsoundViewController *currentDetail = (BaseCsoundViewController *)splitViewController.delegate;
         
         if(currentDetail.navigationItem.leftBarButtonItem != nil) {
             controller.navigationItem.leftBarButtonItem = currentDetail.navigationItem.leftBarButtonItem;

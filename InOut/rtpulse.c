@@ -98,11 +98,12 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
     int pulserror;
 
     pulse = (pulse_params *) malloc(sizeof(pulse_params));
-    pulse->buf = (float *) malloc(sizeof(float)* parm->bufSamp_SW);
     *(csound->GetRtPlayUserData(csound))  = (void *) pulse;
     pulse->spec.rate = csound->GetSr(csound);
     pulse->spec.channels = csound->GetNchnls(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
+    pulse->buf =
+      (float *) malloc(sizeof(float)*parm->bufSamp_SW * pulse->spec.channels);
 
     /*
       attr.maxlength = parm->bufSamp_HW;
@@ -193,11 +194,12 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
     int pulserror;
 
     pulse = (pulse_params *) malloc(sizeof(pulse_params));
-    pulse->buf = (float *) malloc(sizeof(float)* parm->bufSamp_SW);
     *(csound->GetRtRecordUserData(csound))  = (void *) pulse;
     pulse->spec.rate = csound->GetSr(csound);
-    pulse->spec.channels = csound->GetNchnls(csound);
+    pulse->spec.channels = csound->GetNchnls_i(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
+    pulse->buf =
+      (float *) malloc(sizeof(float)* parm->bufSamp_SW * pulse->spec.channels);
 
     /*
       attr.maxlength = parm->bufSamp_HW;
@@ -247,7 +249,8 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes)
     bufsiz = nbytes/sizeof(MYFLT);
     buf = pulse->buf;
 
-    if (UNLIKELY(pa_simple_read(pulse->ps, buf, nbytes, &pulserror) < 0)) {
+    if (UNLIKELY(pa_simple_read(pulse->ps, buf,
+                                bufsiz*sizeof(float), &pulserror) < 0)) {
       csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                        pa_strerror(pulserror));
       return -1;

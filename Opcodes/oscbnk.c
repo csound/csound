@@ -375,8 +375,6 @@ static int oscbnkset(CSOUND *csound, OSCBNK *p)
     p->osc = (OSCBNK_OSC *) p->auxdata.auxp;
 
     memset(p->outft, 0, p->outft_len*sizeof(MYFLT));
-    /* i = 0; while (i++ < p->outft_len)       /\* clear output ftable *\/ */
-    /*   p->outft[i] = FL(0.0); */
 
     /* initialise oscillators */
 
@@ -1437,7 +1435,7 @@ static int osckts(CSOUND *csound, OSCKTS *p)
 
     /* copy object data to local variables */
     ft = p->ft;
-    a_amp = (XINARG1 ? 1 : 0); a_cps = (XINARG2 ? 1 : 0);
+    a_amp = (IS_ASIG_ARG(p->xamp) ? 1 : 0); a_cps = (IS_ASIG_ARG(p->xcps) ? 1 : 0);
     phs = p->phs; ar = p->ar; xcps = p->xcps; xamp = p->xamp; async = p->async;
     lobits = p->lobits; mask = p->mask; pfrac = p->pfrac;
     if (!a_cps) {
@@ -1971,9 +1969,13 @@ static int vco2set(CSOUND *csound, VCO2 *p)
       return csound->InitError(csound,
                                Str("vco2: insufficient required arguments"));
     }
-    if (UNLIKELY(p->XINCODE)) {
-      return csound->InitError(csound, Str("vco2: invalid argument type"));
-    }
+   
+    //FIXME
+    
+//    if (UNLIKELY(p->XINCODE)) {
+//      return csound->InitError(csound, Str("vco2: invalid argument type"));
+//    }
+    
     /* select table array and algorithm, according to waveform */
     tnum = tnums[(mode & 14) >> 1];
     p->mode = modes[(mode & 14) >> 1];
@@ -2580,7 +2582,8 @@ static const OENTRY localops[] = {
             (SUBR) vco2ftset, (SUBR) NULL, (SUBR) NULL                  },
     { "vco2ft",     sizeof(VCO2FT),     TW, 3,      "k",    "kov",
             (SUBR) vco2ftset, (SUBR) vco2ft, (SUBR) NULL                },
-    { "vco2",       sizeof(VCO2),       TR, 5,      "a",    "kkoM",
+//    { "vco2",       sizeof(VCO2),       TR, 5,      "a",    "kkoM",
+    { "vco2",       sizeof(VCO2),       TR, 5,      "a",    "kkoOOo",
             (SUBR) vco2set, (SUBR) NULL, (SUBR) vco2                    },
     { "denorm",     sizeof(DENORMS),   0,  4,      "",     "y",
             (SUBR) NULL, (SUBR) NULL, (SUBR) denorms                    },

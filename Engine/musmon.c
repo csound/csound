@@ -349,17 +349,21 @@ int musmon(CSOUND *csound)
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
 
-
+#ifndef __EMSCRIPTEN__
     if(csound->realtime_audio_flag && csound->init_pass_loop == 0){
       extern void *init_pass_thread(void *);
       pthread_attr_t attr;
-      csound->init_pass_loop = 1;
       csound->init_pass_threadlock = csoundCreateMutex(0);
+      csoundLockMutex(csound->init_pass_threadlock);
+      csound->init_pass_loop = 1;
+      csoundUnlockMutex(csound->init_pass_threadlock);
+      csound->init_pass_loop = 1;
       pthread_attr_init(&attr);
       //pthread_attr_setstacksize(&attr, 1048576);
       pthread_create(&csound->init_pass_thread,&attr,init_pass_thread, csound);
-    }
 
+    }
+#endif
 
     /* since we are running in components, we exit here to playevents later */
     return 0;
@@ -431,6 +435,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       xturnoff_now(csound, csound->engineState.instrtxtp[0]->instance);
     delete_pending_rt_events(csound);
 
+#ifndef __EMSCRIPTEN__
     if(csound->init_pass_loop == 1) {
       csoundLockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 0;
@@ -439,6 +444,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       csoundDestroyMutex(csound->init_pass_threadlock);
       csound->init_pass_threadlock = 0;
     }
+#endif
 
     while (csound->freeEvtNodes != NULL) {
       p = (void*) csound->freeEvtNodes;

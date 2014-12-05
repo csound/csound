@@ -48,28 +48,19 @@
 	NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"multiTouchXY" ofType:@"csd"];  
 	NSLog(@"FILE PATH: %@", tempFile);
 	
-	[self.csound stopCsound];
+	[self.csound stop];
 	
 	self.csound = [[CsoundObj alloc] init];
-	[self.csound addCompletionListener:self];
 	
-	[self.csound addValueCacheable:self];
+	[self.csound addBinding:self];
 	
-	[self.csound startCsound:tempFile];
+	[self.csound play:tempFile];
 }
 
 
-#pragma mark CsoundObjCompletionListener
+#pragma mark Csound Binding
 
--(void)csoundObjDidStart:(CsoundObj *)csoundObj {
-}
-
--(void)csoundObjComplete:(CsoundObj *)csoundObj {
-}
-
-#pragma mark ValueCacheable
-
--(void)setup:(CsoundObj*)csoundObj {
+-(void)setup:(CsoundObj *)csoundObj {
 
 	for (int i = 0; i < 10; i++) {
 		touchXPtr[i] = [csoundObj getInputChannelPtr:[NSString stringWithFormat:@"touch.%d.x", i, nil]
@@ -106,7 +97,7 @@
 	return -1;
 }
 
-- (int) getTouchId:(UITouch*)touch {
+- (int) getTouchId:(UITouch *)touch {
 	for (int i = 0; i < 10; i++) {
 		if (touchArray[i] == touch) {
 			return i;

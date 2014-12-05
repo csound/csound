@@ -713,6 +713,10 @@ extern "C"
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
       const char *path = csound->GetEnv(csound, "RAWWAVE_PATH");
+#ifdef DEFAULT_RAWWAVE_PATH
+    if(!path)
+        path = DEFAULT_RAWWAVE_PATH;
+#endif
     if(!path)
       {
         csound->ErrorMsg(csound,

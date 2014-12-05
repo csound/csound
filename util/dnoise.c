@@ -564,9 +564,10 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     if ((L%2) == 0)
       Leven = 1;
 
-    if (M < 7)
+    if (M < 7) {
       csound->Message(csound, Str("dnoise: warning - M is too small\n"));
-
+      exit(~1);
+    }
     if (D == 0)
       D = M / 8;
 

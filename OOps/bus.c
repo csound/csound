@@ -320,7 +320,11 @@ static int delete_channel_db(CSOUND *csound, void *p)
           if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
             csound->Free(csound, entry->hints.attributes);
           }
-          csound->Free(csound, entry->data);
+          /* SY - 2014.07.14 - Don't free entry->data and rely on Csound memory db 
+            to free it; fixes issue with RTTI and chnexport of a global var, which
+            maps to the CS_VAR_MEM's memblock, which is not what is allocated; other
+           vars will be freed since they were Calloc'd */
+/*          csound->Free(csound, entry->data); */
           entry->datasize = 0;
           values = values->next;
       }
@@ -1040,7 +1044,8 @@ int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
     int   type, mode, err;
     controlChannelHints_t hints;
     hints.attributes = NULL;
-    hints.dflt = FL(0.0);
+    hints.max = hints.min = hints.dflt = FL(0.0);
+    hints.x = hints.y = hints.height = hints.width = 0;
 
     mode = (int)MYFLT2LRND(*(p->imode));
     if (UNLIKELY(mode < 1 || mode > 3))
@@ -1424,6 +1429,21 @@ int invalset_S(CSOUND *csound, INVAL *p)
     return OK;
 }
 
+int invalsetgo(CSOUND *csound, INVAL *p)
+{
+    int ans = invalset(csound, p);
+    if (ans==OK) ans = kinval(csound, p);
+    return ans;
+}
+
+int invalsetSgo(CSOUND *csound, INVAL *p)
+{
+    int ans = invalset_S(csound, p);
+    if (ans==OK) ans = kinval(csound, p);
+    return ans;
+}
+    
+
 int invalset_string(CSOUND *csound, INVAL *p)
 {
     int   err;
@@ -1605,3 +1625,18 @@ int outvalset(CSOUND *csound, OUTVAL *p)
 
     return OK;
 }
+
+int outvalsetgo(CSOUND *csound, OUTVAL *p)
+{
+    int ans = outvalset(csound,p);
+    if (ans==OK) ans = koutval(csound,p);
+    return ans;
+}
+
+int outvalsetSgo(CSOUND *csound, OUTVAL *p)
+{
+    int ans = outvalset_S(csound,p);
+    if (ans==OK) ans = koutval(csound,p);
+    return ans;
+}
+

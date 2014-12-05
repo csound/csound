@@ -429,8 +429,8 @@ unsigned int CountCSD(char **csdnames)
   src = getenv("LADSPA_PATH");
 #endif
 
-  if(src) {
-    strncpy(ladspa_path, src, 1024);
+  if (src) {
+    strncpy(ladspa_path, src, 1023);
     ladspa_path[1023] = '\0';
   }
 
@@ -446,7 +446,8 @@ unsigned int CountCSD(char **csdnames)
 #endif
     if(indx!=string::npos){
       dip = opendir(path.substr(0,indx).c_str());
-      strncpy(ladspa_path, path.substr(0,indx).c_str(), 1024);
+      strncpy(ladspa_path, path.substr(0,indx).c_str(), 1023);
+      ladspa_path[1023] = '\0';
     }
     else dip = opendir(ladspa_path);
   }

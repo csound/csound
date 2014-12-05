@@ -106,13 +106,17 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     char port[8];
     char *pp = port;
     char *hh;
+    unsigned int i;
 
     /* with too many args, XINCODE may not work correctly */
     if (UNLIKELY(p->INOCOUNT > 31))
       return csound->InitError(csound, Str("Too many arguments to OSCsend"));
     /* a-rate arguments are not allowed */
-    if (UNLIKELY(p->XINCODE))
-      return csound->InitError(csound, Str("No a-rate arguments allowed"));
+    for (i = 0; i < p->INOCOUNT-5; i++) {
+      if (strcmp("a", csound->GetTypeForArg(p->arg[i])->varTypeName) == 0) {
+        return csound->InitError(csound, Str("No a-rate arguments allowed"));
+      }
+    }
 
     if (*p->port<0)
       pp = NULL;
@@ -138,6 +142,18 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
        4) char
        5) table as blob
     */
+    char port[8];
+    char *pp = port;
+    char *hh;
+
+    if (*p->port<0)
+      pp = NULL;
+    else
+      snprintf(port, 8, "%d", (int) MYFLT2LRND(*p->port));
+    hh = (char*) p->host->data;
+    if (*hh=='\0') hh = NULL;
+    p->addr = lo_address_new(hh, pp);
+
     if (p->cnt++ ==0 || *p->kwhen!=p->last) {
       int i=0;
       int msk = 0x20;           /* First argument */
@@ -152,6 +168,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
           lo_message_add_int32(msg, (int32_t) MYFLT2LRND(*arg[i]));
           break;
         case 'l':
+	case 'h':
           lo_message_add_int64(msg, (int64_t) MYFLT2LRND(*arg[i]));
           break;
         case 'c':
@@ -225,7 +242,6 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
 }
 
 /* RESET routine for cleaning up */
-
 static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
 {
     int i;
@@ -401,7 +417,14 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
     ports[n].oplst = NULL;
     snprintf(buff, 32, "%d", (int) *(p->port));
     ports[n].thread = lo_server_thread_new(buff, OSC_error);
-    lo_server_thread_start(ports[n].thread);
+    if (ports[n].thread==NULL)
+      return csound->InitError(csound,
+                               Str("cannot start OSC listener on port %s\n"),
+                               buff);
+    if (lo_server_thread_start(ports[n].thread)<0)
+      return csound->InitError(csound,
+                               Str("cannot start OSC listener on port %s\n"),
+                               buff);
     pp->ports = ports;
     pp->nPorts = n + 1;
     csound->Warning(csound, Str("OSC listener #%d started on port %s\n"), n, buff);
@@ -561,7 +584,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "OSCsend", S(OSCSEND), 0, 3, "", "kSiSSN", (SUBR)osc_send_set, (SUBR)osc_send },
+{ "OSCsend", S(OSCSEND), 0, 3, "", "kSkSSN", (SUBR)osc_send_set, (SUBR)osc_send },
 { "OSCinit", S(OSCINIT), 0, 1, "i", "i", (SUBR)osc_listener_init },
 { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSSN", (SUBR)OSC_list_init, (SUBR)OSC_list}
 };

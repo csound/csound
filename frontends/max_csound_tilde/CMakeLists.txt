@@ -2,9 +2,9 @@ if(MAX_SDK_ROOT)
   message(STATUS "Building csound~ for Max/MSP")
   message(STATUS "  MAX_SDK_ROOT: ${MAX_SDK_ROOT}")
 
-set(MAX_INCLUDES_DIR 
+set(MAX_INCLUDES_DIR
   "${MAX_SDK_ROOT}/c74support/max-includes")
-set(MSP_INCLUDES_DIR 
+set(MSP_INCLUDES_DIR
   "${MAX_SDK_ROOT}/c74support/msp-includes")
 
 
@@ -35,7 +35,7 @@ if(APPLE)
 else()
   check_deps(BUILD_MAX_CSOUND_TILDE
     MAX_AUDIO_FRAMEWORK MAX_API_FRAMEWORK
-    Boost_FOUND LIBSNDFILE_LIBRARY)
+    Boost_INCLUDE_DIRS LIBSNDFILE_LIBRARY)
 endif()
 
 #message("${MAX_AUDIO_FRAMEWORK} : ${MAX_API_FRAMEWORK} : ${CORE_SERVICES_FRAMEWORK} : ${LIBSNDFILE_LIBRARY}")
@@ -43,17 +43,17 @@ endif()
 if(BUILD_MAX_CSOUND_TILDE)
 
 set(max_csound_tilde_SRCS
-  src/Args.cpp    
-  src/atom_buffer.cpp   
-  src/channel.cpp   
-  src/csound~.cpp   
-  src/CsoundObject.cpp  
-  src/CsoundTable.cpp   
-  src/Lock.cpp    
-  src/memory.cpp    
-  src/message_buffer.cpp  
+  src/Args.cpp
+  src/atom_buffer.cpp
+  src/channel.cpp
+  src/csound~.cpp
+  src/CsoundObject.cpp
+  src/CsoundTable.cpp
+  src/Lock.cpp
+  src/memory.cpp
+  src/message_buffer.cpp
   src/midi.cpp
-  src/PatchScripter.cpp 
+  src/PatchScripter.cpp
   src/sequencer.cpp
   src/util.cpp)
 
@@ -63,22 +63,22 @@ if(NOT APPLE)
 endif()
 
 set(max_csound_tilde_headers
-  src/Args.h      
-  src/atom_buffer.h   
-  src/channel.h   
-  src/csound~.h   
-  src/CsoundObject.h    
-  src/CsoundTable.h   
-  src/definitions.h   
-  src/eksepshun.h   
-  src/includes.h    
-  src/Lock.h      
-  src/max_headers.h   
-  src/memory.h    
+  src/Args.h
+  src/atom_buffer.h
+  src/channel.h
+  src/csound~.h
+  src/CsoundObject.h
+  src/CsoundTable.h
+  src/definitions.h
+  src/eksepshun.h
+  src/includes.h
+  src/Lock.h
+  src/max_headers.h
+  src/memory.h
   src/message_buffer.h
   src/midi.h
-  src/Parser.h    
-  src/PatchScripter.h   
+  src/Parser.h
+  src/PatchScripter.h
   src/sequencer.h
   src/util.h)
 
@@ -86,7 +86,7 @@ set(maxcs_SRCS "${max_csound_tilde_SRCS};${max_csound_tilde_headers}")
 
 #message("${maxcs_SRCS}")
 
-#set_source_files_properties(${maxcs_SRCS} PROPERTIES 
+#set_source_files_properties(${maxcs_SRCS} PROPERTIES
 #                              COMPILE_FLAGS "-x objective-c++")
 
 if(APPLE)
@@ -96,13 +96,19 @@ else()
 endif()
 
 add_library(${MAX_OUTPUT_LIB} SHARED ${maxcs_SRCS})
-target_link_libraries(${MAX_OUTPUT_LIB} 
+target_link_libraries(${MAX_OUTPUT_LIB}
   ${MAX_API_FRAMEWORK} ${MAX_AUDIO_FRAMEWORK}
   ${LIBSNDFILE_LIBRARY} ${CSOUNDLIB})
 include_directories(${MAX_INCLUDES_DIR})
 include_directories(${MSP_INCLUDES_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
+
+if(NOT APPLE)
+  set_target_properties(${MAX_OUTPUT_LIB} 
+	  PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc")
+
+endif()
 
 if(APPLE)
 
@@ -111,7 +117,7 @@ include_directories(${LAUNCH_SERVICES_FRAMEWORK}/Headers)
 target_link_libraries(${MAX_OUTPUT_LIB} ${CORE_SERVICES_FRAMEWORK})
 set_target_properties(${MAX_OUTPUT_LIB} PROPERTIES FRAMEWORK YES)
 
-if(${CMAKE_GENERATOR} STREQUAL "Xcode") 
+if(${CMAKE_GENERATOR} STREQUAL "Xcode")
   set(CSMXO_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 else()
   set(CSMXO_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR})
@@ -119,25 +125,25 @@ endif()
 
 set(CSMXO_DIR ${CSMXO_OUT_DIR}/csound~.mxo)
 
-add_custom_command(TARGET ${MAX_OUTPUT_LIB} 
+add_custom_command(TARGET ${MAX_OUTPUT_LIB}
   POST_BUILD
-  COMMAND rm ARGS -rf ${CSMXO_DIR}) 
-
-add_custom_command(TARGET ${MAX_OUTPUT_LIB} 
-  POST_BUILD
-  COMMAND cp ARGS -r ${CSMXO_OUT_DIR}/csound~.mxo.framework ${CSMXO_DIR}) 
+  COMMAND rm ARGS -rf ${CSMXO_DIR})
 
 add_custom_command(TARGET ${MAX_OUTPUT_LIB}
   POST_BUILD
-  COMMAND mv ARGS -f ${CSMXO_DIR}/csound~.mxo  ${CSMXO_DIR}/csound~) 
+  COMMAND cp ARGS -r ${CSMXO_OUT_DIR}/csound~.mxo.framework ${CSMXO_DIR})
 
 add_custom_command(TARGET ${MAX_OUTPUT_LIB}
   POST_BUILD
-  COMMAND sed ARGS 's/csound~.mxo/csound~/g' ${CSMXO_DIR}/Resources/Info.plist > ${CSMXO_DIR}/Resources/Info2.plist) 
+  COMMAND mv ARGS -f ${CSMXO_DIR}/csound~.mxo  ${CSMXO_DIR}/csound~)
 
-add_custom_command(TARGET ${MAX_OUTPUT_LIB} 
+add_custom_command(TARGET ${MAX_OUTPUT_LIB}
   POST_BUILD
-  COMMAND mv ARGS -f ${CSMXO_DIR}/Resources/Info2.plist ${CSMXO_DIR}/Resources/Info.plist) 
+  COMMAND sed ARGS 's/csound~.mxo/csound~/g' ${CSMXO_DIR}/Resources/Info.plist > ${CSMXO_DIR}/Resources/Info2.plist)
+
+add_custom_command(TARGET ${MAX_OUTPUT_LIB}
+  POST_BUILD
+  COMMAND mv ARGS -f ${CSMXO_DIR}/Resources/Info2.plist ${CSMXO_DIR}/Resources/Info.plist)
 
 # Ugh, adding this here as using the long one from C74's
 # SDK causes Xcode 5 to crash
@@ -151,7 +157,7 @@ set_target_properties(${MAX_OUTPUT_LIB} PROPERTIES
   SUFFIX .mxe
   )
 
-target_link_libraries(${MAX_OUTPUT_LIB} 
+target_link_libraries(${MAX_OUTPUT_LIB}
   ${PTHREAD_LIBRARY})
 
 endif(APPLE)

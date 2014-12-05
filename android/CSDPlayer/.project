@@ -3,6 +3,7 @@
 	<name>Csound6</name>
 	<comment></comment>
 	<projects>
+		<project>CsoundAndroid</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

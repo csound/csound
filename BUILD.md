@@ -4,28 +4,24 @@ Csound Build Instructions
 Build instructions for building Csound from the source packages for the
 following operating systems
 
--   Debian/Ubuntu Linux
+-   [Debian/Ubuntu Linux](#debian)
 
--   Mac OS X using Homebrew
+-   [Mac OS X using Homebrew](#OSXHomebrew)
 
--   General Instructions for Linux without Root access
+-   [General Instructions for Linux without Root access](#generalLinux)
 
--   Raspberry PI standard OS
+-   [Raspberry PI standard OS](#raspian)
 
--   Fedora 18
+-   [Fedora 18](#fedora)
 
-Instructions for Windows can be found in their own document at the link below
-
-[Csound Windows Build Doc][1]
-
-[1]: <https://github.com/csound/csound/blob/develop/How_to_Build_Csound_on_Windows.doc>
+-   [Windows (Mingw32)](#mingw32)
 
 Instructions compiled by Dominic Melville contact via dcamelville at gmail.com
 for amendments and updates
 
 
 
-Debian/Ubuntu 
+Debian/Ubuntu <a name="debian">
 --------------
 
 The following instructions will explain how to configure, compile, and install
@@ -80,7 +76,7 @@ set of folders.
 
 
 
-Mac OS X using Homebrew
+Mac OS X using Homebrew <a name="OSXHomebrew">
 -----------------------
 
 ### Introduction 
@@ -165,7 +161,7 @@ This is a known issue and will be looked into.
 
 
 
-General Linux without Root access
+General Linux without Root access <a name="generalLinux">
 ---------------------------------
 
 These are generic instructions to build on any Linux system with no root access.
@@ -192,9 +188,9 @@ terminal. $ $
 
 -   `mkdir src`
 
--   `export LD_LIBRARY_PATH=HOME/lib:LD_LIBRARY_PATH `
+-   `export LD_LIBRARY_PATH=$HOME/lib:LD_LIBRARY_PATH `
 
-(this last command can be added to your HOME/.profile file for convenience)
+(this last command can be added to your $HOME/.profile file for convenience)
 
 ### 2) get and install libsndfile 
 
@@ -212,7 +208,7 @@ doing it.
 
 -   `cd libsndfile-1.0.25 `
 
--   `./configure --prefix=HOME`
+-   `./configure --prefix=$HOME`
 
 -   `make install `
 
@@ -249,7 +245,7 @@ there.
 
 -   `cd build `
 
--   `cmake -DCMAKE_INSTALL_PREFIX=HOME ..`
+-   `cmake -DCMAKE_INSTALL_PREFIX=$HOME ..`
 
 -   `make install `
 
@@ -257,12 +253,12 @@ there.
 
 This builds a basic system. If you add dependencies to your HOME directories,
 then you can run make again to build them. The csound command-line frontend will
-be installed in HOME/bin, the libraries in HOME/lib and the include files in
-HOME/include. The plugin dir is in \$HOME/lib/csound/plugins64-6.0.
+be installed in $HOME/bin, the libraries in $HOME/lib and the include files in
+$HOME/include. The plugin dir is in $HOME/lib/csound/plugins64-6.0.
 
 ### Dependencies List
 
-If the dependency you are adding uses ./configure, you can the same parameters to it as explained in step 2. If it uses cmake, you can use the same parameters as in step 5. After adding dependencies to your $HOME directories, you can run cmake again to re-build Csound. Check the printed output to see if the added dependency has switched on the build of the desired component.
+If the dependency you are adding uses ./configure, you can use the same parameters to it as explained in step 2. If it uses cmake, you can use the same parameters as in step 5. After adding dependencies to your $HOME directories, you can run cmake again to re-build Csound. Check the printed output to see if the added dependency has switched on the build of the desired component.
 
 #### OSC opcodes
 
@@ -319,7 +315,7 @@ swig - http://www.swig.org/ Python headers / library - http://www.python.org
 swig - http://www.swig.org/ Java SDK - http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
 
-Raspberry Pi Standard Distro 
+Raspberry Pi Standard Distro <a name="raspian">
 -----------------------------
 
 ### (Raspian Wheezy)
@@ -370,7 +366,7 @@ If you want to use the csnd6 Python library, add the following line to .bashrc:
 
 
 
-Fedora 18
+Fedora 18 <a name="fedora">
 ---------
 
 ### Introduction 
@@ -528,3 +524,70 @@ Testing As a basic test, just try typing csound at a command prompt, and you
 should get the help message.
 
 
+
+Windows (mingw32) <a name="mingw32">
+---------------
+A basic working knowledge of the Windows command prompt is assumed. Further instructions for Windows can be found in their own document at the following link [Csound Windows Build Doc][1]
+
+[1]: <https://github.com/csound/csound/blob/develop/How_to_Build_Csound_on_Windows.doc>
+
+### Steps (Vanilla build)
+
+1. Download and install MSYS (http://downloads.sourceforge.net/mingw/MSYS-1.0.11.exe)
+2. Download and install MinGW (http://sourceforge.net/projects/mingwbuilds).
+    -When installing choose architecture i686, or x32.
+3. Download and install Git(http://git-scm.com/download/win)
+4. Download and install libsndfile (32bit) (http://www.mega-nerd.com/libsndfile/)
+5. Download and install cmake (http://www.cmake.org/download/)
+
+Open the Windows command prompt and cd to a folder you wish to create your Csound repository in. Then run:
+
+`git clone https://github.com/csound/csound.git`
+`cd csound`
+`mkdir build`
+`cd build`
+
+The run cmake-gui from the command line:
+
+`cmake-gui`
+
+To the right of 'Where is the source code:' in cmake-gui browse for the Csound source directory. Underneath it, at the "Where to build the binaries" select the newly created build directory. Now type sndfile into the search field and you should see a few cmake entries concerned with libsndfile. Browse for the correct include folder and library file; libsndfile-1.dll. With this done hit configure. At this point you may be greeted with a cmake-gui dialogue asking which generator to use. Select the "MinGW Makefiles" generator. If the configuration command fails you may need to set the CMAKE_C_COMPILER and CMAKE_CXX_COMPILER entries. Simply click the add entry button and add two new FILEPATH entries, CMAKE_C_COMPILER should point towards your installed gcc.exe, and CMAKE_CXX_COMPILER should point towards g++.exe. These files are found in your MinGW/bin directory.  
+
+Go back to the command prompt and from your build directory run:
+
+`mingw32-make`
+
+If everything went Ok, you will now have binaries for most vanilla build of Csound possible. Keep reading if you wish to extend this basic build.
+
+### Steps (adding realtime audio and MIDI)
+
+1. Download portaudio (http://portaudio.com/).
+2. Open MSYS shell and cd to portaudio directory. Then run
+3. './configure'
+4. 'make'
+
+If you wish to build with support for ASIO run the following command, replacing the path to your ASIO SDK with your own.
+
+'./configure --with-host_os=mingw --with-winapi=asio [--with-asiodir=/usr/local/asiosdk2]'
+'make'
+
+If make has any problems, you can try adding the following directories to your ASIOSDK folders:
+ASIOSDK2.3\host\pc\.libs
+C:\SDKs\ASIOSDK2.3\host\.libs
+ASIOSDK2.3\common\.libs
+
+5. Download and portmidi (http://portmedia.sourceforge.net.), Open command prompt and cd to portmidi directory
+6. `mkdir build`
+7. `cd build`
+8. `cmake ../ -G "Mingw Makefiles"`
+9. `mingw32-make`
+
+9. Open up cmake once more and make sure the Csound cmake configuration is open. Then search for entries with portaudio and portmidi in them. Browse for the correct include directories for each, and select the libportaudio-2.dll, and libportmidi.dll libraries. Then run configure and generate.
+10. Open the command prompt and cd to the Csound build directory. Then run
+`mingw32-make`
+
+Download and install cmake
+Run cmake from the csound dir and configure Csound to build using MinGW Makefiles. For this minimal you'll need to disable quite a few features.
+Run generate.
+cd to csound build directory and run mingw32-make
+ 

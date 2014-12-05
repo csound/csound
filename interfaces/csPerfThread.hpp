@@ -27,6 +27,13 @@
 class CsoundPerformanceThreadMessage;
 class CsPerfThread_PerformScore;
 
+#ifdef SWIG
+%include <std_string.i>
+#else
+#include <string>
+#include <pthread.h>
+#endif
+
 /**
  * CsoundPerformanceThread(Csound *)
  * CsoundPerformanceThread(CSOUND *)
@@ -83,6 +90,15 @@ struct PUBLIC pycallbackdata {
 };
 #endif
 
+typedef struct {
+    void *cbuf;
+    void *sfile;
+    void *thread;
+    bool running;
+    pthread_cond_t condvar;
+    pthread_mutex_t mutex;
+} recordData_t;
+
 class PUBLIC CsoundPerformanceThread {
  private:
     CSOUND  *csound;
@@ -91,21 +107,27 @@ class PUBLIC CsoundPerformanceThread {
     void    *queueLock;         // this is actually a mutex
     void    *pauseLock;
     void    *flushLock;
+    void    *recordLock;
     void    *perfThread;
     int     paused;
     int     status;
-    void *    cdata;
+    void    *cdata;
+    recordData_t recordData;
     int  running;
     void (*processcallback)(void *cdata);
     int  Perform();
     void csPerfThread_constructor(CSOUND *);
     void QueueMessage(CsoundPerformanceThreadMessage *);
  public:
-    int isRunning() { return running;}
 #ifdef SWIGPYTHON
   PyThreadState *_tstate;
   pycallbackdata pydata;
 #endif
+  /**
+   * Returns 1 if the performance thread is running, 0 otherwise
+   */
+  int isRunning() { return running;}
+
   /**
   * Returns the process callback as a void pointer
   */
@@ -151,6 +173,15 @@ class PUBLIC CsoundPerformanceThread {
      * Stops performance (cannot be continued).
      */
     void Stop();
+    /**
+     * Starts recording the output from Csound. The sample rate and number
+     * of channels are taken directly from the running Csound instance.
+     */
+    void Record(std::string filename, int samplebits = 16, int numbufs = 4);
+    /**
+     * Stops recording and closes audio file.
+     */
+    void StopRecord();
     /**
      * Sends a score event of type 'opcod' (e.g. 'i' for a note event), with
      * 'pcnt' p-fields in array 'p' (p[0] is p1). If absp2mode is non-zero,

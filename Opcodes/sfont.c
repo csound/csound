@@ -120,7 +120,8 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
       csound->ErrorMsg(csound, Str("Sfload: cannot use globals"));
       return;
     }
-    strncpy(soundFont->name, csound->GetFileName(fd), 256);
+    strncpy(soundFont->name, csound->GetFileName(fd), 255);
+    soundFont->name[255]='\0';
     if (UNLIKELY(chunk_read(fil, &soundFont->chunk.main_chunk)<0))
       csound->Message(csound, Str("sfont: failed to read file\n"));
     csound->FileClose(csound, fd);
@@ -467,7 +468,7 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j = p->spltNum, arate;
+    int      j = p->spltNum;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop= p->startloop, *endloop= p->endloop,
           *tinc = p->ti;
@@ -478,12 +479,11 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
       *release = p->release, *attr = p->attr;
 
 
-    arate = (p->XINCODE) ? 1 : 0;
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) nsmps -= early;
 
-    if (arate) {
+    if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
@@ -535,7 +535,7 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
         release++; tinc++; env++; attr++; decr++;
       }
     }
-    if (arate) {
+    if (IS_ASIG_ARG(p->xamp)) {
       MYFLT *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
@@ -558,7 +558,7 @@ static int SfPlay3(CSOUND *csound, SFPLAY *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j = p->spltNum, arate;
+    int      j = p->spltNum;
     SHORT **base = p->base;
     DWORD *end = p->end,  *startloop = p->startloop,
           *endloop = p->endloop, *tinc = p->ti;
@@ -567,13 +567,12 @@ static int SfPlay3(CSOUND *csound, SFPLAY *p)
     MYFLT *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
           *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
           *release = p->release, *attr = p->attr;
-    arate = (p->XINCODE) ? 1 : 0;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) nsmps -= early;
 
-    if (arate) {
+    if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
@@ -625,7 +624,7 @@ static int SfPlay3(CSOUND *csound, SFPLAY *p)
       }
     }
 
-    if (arate) {
+    if (IS_ASIG_ARG(p->xamp)) {
       MYFLT *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
@@ -742,7 +741,7 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j = p->spltNum, arate;
+    int      j = p->spltNum;
     SHORT **base = p->base;
     DWORD *end= p->end, *startloop= p->startloop, *endloop= p->endloop,
           *tinc = p->ti;
@@ -752,12 +751,10 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
           *decay = p->decay, *sustain= p->sustain, *release = p->release,
           *attr = p->attr;
 
-    arate = (p->XINCODE) ? 1 : 0;
-
     memset(out1, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) nsmps -= early;
 
-    if (arate) {
+    if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
@@ -809,7 +806,7 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
         release++; tinc++; env++; attr++; decr++;
       }
     }
-    if (arate) {
+    if (IS_ASIG_ARG(p->xamp)) {
       MYFLT *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
@@ -830,7 +827,7 @@ static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j = p->spltNum, arate;
+    int      j = p->spltNum;
     SHORT  **base = p->base;
     DWORD   *end = p->end,  *startloop = p->startloop,
             *endloop = p->endloop, *tinc = p->ti;
@@ -840,11 +837,9 @@ static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
           *decay = p->decay, *sustain= p->sustain, *release = p->release,
           *attr = p->attr;
 
-    arate = (p->XINCODE) ? 1 : 0;
-
     memset(out1, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) nsmps -= early;
-    if (arate) {
+    if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
@@ -896,7 +891,7 @@ static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
         release++; tinc++; env++; attr++; decr++;
       }
     }
-    if (arate) {
+    if (IS_ASIG_ARG(p->xamp)) {
       MYFLT *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
@@ -1005,7 +1000,7 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j = p->spltNum, arate;
+    int      j = p->spltNum;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop,
           *endloop= p->endloop, *tinc = p->ti;
@@ -1015,13 +1010,11 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
           *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
           *release = p->release, *attr = p->attr;
 
-    arate = (p->XINCODE) ? 1 : 0;
-
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) nsmps -= early;
 
-    if (arate) {
+    if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
@@ -1074,7 +1067,7 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
       }
     }
 
-    if (arate) {
+    if (IS_ASIG_ARG(p->xamp)) {
       MYFLT *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
@@ -1097,7 +1090,7 @@ static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j = p->spltNum, arate;
+    int      j = p->spltNum;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop,
           *endloop= p->endloop, *tinc = p->ti;
@@ -1108,13 +1101,11 @@ static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
       *decay = p->decay, *sustain= p->sustain, *release = p->release,
       *attr = p->attr;
 
-    arate = (p->XINCODE) ? 1 : 0;
-
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) nsmps -= early;
 
-    if (arate) {
+    if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
@@ -1167,7 +1158,7 @@ static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
       }
     }
 
-    if (arate) {
+    if (IS_ASIG_ARG(p->xamp)) {
       MYFLT *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
@@ -1271,7 +1262,7 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
      uint32_t n, nsmps = CS_KSMPS;
-    int      j = p->spltNum, arate;
+    int      j = p->spltNum;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop, *endloop= p->endloop,
       *tinc = p->ti;
@@ -1282,12 +1273,10 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
       *decay = p->decay, *sustain= p->sustain, *release = p->release,
       *attr = p->attr;
 
-    arate = (p->XINCODE) ? 1 : 0;
-
     memset(out1, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) nsmps -= early;
 
-    if (arate) {
+    if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
@@ -1339,7 +1328,7 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
         release++; tinc++; env++; attr++; decr++;
       }
     }
-    if (arate) {
+    if (IS_ASIG_ARG(p->xamp)) {
       MYFLT *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
@@ -1360,7 +1349,7 @@ static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j = p->spltNum, arate;
+    int      j = p->spltNum;
     SHORT **base = p->base;
     DWORD *end= p->end,  *startloop= p->startloop,
           *endloop= p->endloop, *tinc = p->ti;
@@ -1370,12 +1359,10 @@ static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
       *decay = p->decay, *sustain= p->sustain, *release = p->release,
       *attr = p->attr;
 
-    arate = (p->XINCODE) ? 1 : 0;
-
     memset(out1, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) nsmps -= early;
 
-    if (arate) {
+    if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
         double looplength = *endloop - *startloop;
         MYFLT *freq = p->xfreq;
@@ -1427,7 +1414,7 @@ static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
         release++; tinc++; env++; attr++; decr++;
       }
     }
-    if (arate) {
+    if (IS_ASIG_ARG(p->xamp)) {
       MYFLT *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];

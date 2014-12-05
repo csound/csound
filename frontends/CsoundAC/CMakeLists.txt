@@ -15,7 +15,10 @@ find_library(LUAJIT_LIBRARY luajit)
 if(NOT LUAJIT_LIBRARY)
     find_library(LUAJIT_LIBRARY luajit-5.1)
 endif()
-find_path(LUA_H_PATH luajit-2.0/lua.h)
+if(NOT LUAJIT_LIBRARY AND WIN32)
+    find_library(LUAJIT_LIBRARY lua51)
+endif()
+find_path(LUA_H_PATH lua.h PATH_SUFFIXES luajit-2.0)
 
 find_library(PORTSMF_LIBRARY portSMF)
 
@@ -23,7 +26,7 @@ find_library(PORTSMF_LIBRARY portSMF)
 
 find_file(EIGEN_DENSE eigen3/Eigen/Dense)
 
-check_deps(BUILD_CSOUND_AC Boost_FOUND BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN_DENSE)
+check_deps(BUILD_CSOUND_AC Boost_INCLUDE_DIRS BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN_DENSE)
 check_deps(BUILD_CSOUND_AC_PYTHON_INTERFACE SWIG_FOUND PYTHONLIBS_FOUND EIGEN_DENSE)
 check_deps(BUILD_CSOUND_AC_LUA_INTERFACE SWIG_FOUND LUAJIT_LIBRARY LUA_H_PATH EIGEN_DENSE)
 
@@ -88,6 +91,10 @@ if(BUILD_CSOUND_AC)
     if(USE_SYSTEM_PORTSMF)
         target_link_libraries(libCsoundAC ${PORTSMF_LIBRARY})
     endif()
+    if(HAVE_UNISTD_H)
+      set_target_properties(libCsoundAC PROPERTIES
+        COMPILE_FLAGS "-DHAVE_UNISTD_H")
+    endif()
 
     if(MUSICXML_LIBRARY)
         target_link_libraries(libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
@@ -121,7 +128,7 @@ if(BUILD_CSOUND_AC)
 
 
   	    if(APPLE)
-            set_target_properties(${SWIG_MODULE_CsoundAC_REAL_NAME} PROPERTIES 
+            set_target_properties(${SWIG_MODULE_CsoundAC_REAL_NAME} PROPERTIES
                 LINK_FLAGS "-undefined dynamic_lookup")
        	endif()
 
@@ -139,7 +146,7 @@ if(BUILD_CSOUND_AC)
 
     if(BUILD_CSOUND_AC_LUA_INTERFACE)
         message(STATUS "Building CsoundAC Lua interface")
-        include_directories(${LUA_H_PATH}/luajit-2.0)
+        include_directories(${LUA_H_PATH})
 
         SET_SOURCE_FILES_PROPERTIES(luaCsoundAC.i
             PROPERTIES CPLUSPLUS ON
@@ -153,7 +160,7 @@ if(BUILD_CSOUND_AC)
 
 
   	    if(APPLE)
-            set_target_properties(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PROPERTIES 
+            set_target_properties(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PROPERTIES
                 LINK_FLAGS "-undefined dynamic_lookup")
        	endif()
 

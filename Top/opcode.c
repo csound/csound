@@ -60,7 +60,7 @@ static int opcode_cmp_func(const void *a, const void *b)
 
 PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
 {
-    void    *lst;
+    void    *lst = NULL;
     OENTRY  *ep;
     char    *s;
     size_t  nBytes = (size_t) 0;
@@ -157,6 +157,7 @@ void list_opcodes(CSOUND *csound, int level)
     cnt = csoundNewOpcodeList(csound, &lst);
     if (UNLIKELY(cnt <= 0)) {
       csound->ErrorMsg(csound, Str("Error creating opcode list"));
+      free(lst);
       return;
     }
     csound->Message(csound, Str("%d opcodes\n"), cnt);
