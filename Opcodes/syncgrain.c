@@ -629,7 +629,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
               items = sf_read_MYFLT(p->sf,datap,hdatasize);
               if (items < hdatasize) {
                 sf_seek(p->sf,items-hdatasize,SEEK_END);
-                items = sf_read_MYFLT(p->sf,datap+items,hdatasize-items);
+                (void) sf_read_MYFLT(p->sf,datap+items,hdatasize-items);
               }
               for (n=0; n < chans; n++)
                 datap[hdatasize+n] = datap[hdatasize-chans+n];

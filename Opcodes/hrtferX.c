@@ -179,7 +179,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     flip = 0;
 
         /* Convert elevation in degrees to elevation array index. */
-    el_index = ROUND((elev - MIN_ELEV) / ELEV_INC);
+    el_index = ROUND((double)(elev - MIN_ELEV) / ELEV_INC);
     if (el_index < 0)
       el_index = 0;
     else if (el_index >= N_ELEV)
