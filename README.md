@@ -1,7 +1,7 @@
 # CSOUND
-Version 6.03.2
+Version 6.04.0
 
-[![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound) 
+[![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
 ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg)
 
 A user-programmable and user-extensible sound processing language
@@ -26,23 +26,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 # GETTING STARTED
 
-CsoundQt, a graphical shell for Csound, makes an excellent place to begin 
-the exploration of Csound, especially because CsoundQt has an extensive menu 
-of built-in examples that show off Csound's capabilities. Many musicians make 
-CsoundQt their main Csound environment, although there are other excellent 
+CsoundQt, a graphical shell for Csound, makes an excellent place to begin
+the exploration of Csound, especially because CsoundQt has an extensive menu
+of built-in examples that show off Csound's capabilities. Many musicians make
+CsoundQt their main Csound environment, although there are other excellent
 environments. CsoundQt runs not only Csound code, but also Python scripts.
 
-The examples directory contains numerous working Csound orchestras and 
+The examples directory contains numerous working Csound orchestras and
 even complete pieces. The examples/Boulanger_Examples directory contains
 hundreds of working Csound orchestras.
 
-The doc/manual/html/indexframes.html file is the front page to the 
+The doc/manual/html/indexframes.html file is the front page to the
 Csound Reference Manual.
 
-This version of Csound is programmable in Python, Java, Lua, and LISP, 
-and scores can be generated in these languages. 
+This version of Csound is programmable in Python, Java, Lua, and LISP,
+and scores can be generated in these languages.
 
-The doc/manual/api/index.html file is the front page to the C/C++ 
+The doc/manual/api/index.html file is the front page to the C/C++
 Csound and Csound API application programming interfaces reference,
 but it is also helpful when programming Csound in other languages.
 
