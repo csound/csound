@@ -732,7 +732,7 @@ ifac      : ident               { $$ = $1; }
                 $1->left = NULL;
                 $1->right = $2;
 		$1->type = T_FUNCTION;
-                
+
                 $$ = $1;
             }
           | opcode ':' opcodeb exprlist ')'   /* this is need because a & k are also opcodes */

@@ -1966,6 +1966,9 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case T_INSTLIST:
       csound->Message(csound,"T_INSTLIST:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
+    case '[':
+      csound->Message(csound,"[:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     default:
       csound->Message(csound,"unknown:%d(%d:%s)\n",
                       l->type, l->line, csound->filedir[(l->locn)&0xff]);
