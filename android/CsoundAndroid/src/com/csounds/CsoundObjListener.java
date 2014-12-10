@@ -1,12 +1,12 @@
 /* 
  
- CsoundValueCacheable.java:
+ CsoundObjectCompletionListener.java:
  
  Copyright (C) 2011 Victor Lazzarini, Steven Yi
  
- This file is part of Csound Android Examples.
+ This file is part of Csound.
  
- The Csound Android Examples is free software; you can redistribute it
+ Csound is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.   
@@ -23,18 +23,9 @@
  
  */
 
-package com.csounds.valueCacheable;
+package com.csounds;
 
-import com.csounds.CsoundObj;
-
-public interface CsoundValueCacheable {
-	
-	public void setup(CsoundObj csoundObj);
-	
-	public void updateValuesToCsound();
-	
-	public void updateValuesFromCsound();
-	
-	public void cleanup();
-	
+public interface CsoundObjListener {
+	public void csoundObjStarted(CsoundObj csoundObj);
+	public void csoundObjCompleted(CsoundObj csoundObj);
 }

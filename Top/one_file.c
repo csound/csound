@@ -62,10 +62,10 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 {
 #define   nBytes (256)
     char lbuf[256];
-#if defined(LINUX) || defined(__MACH__)
-    struct stat tmp;
-#elif defined(WIN32)
+#if defined(WIN32)
     struct _stat tmp;
+#else
+    struct stat tmp;
 #endif
     do {
 #ifndef WIN32
@@ -114,11 +114,11 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
           } while (lbuf[i] != '\0');
       }
 #endif
-#if defined(LINUX) || defined(__MACH__)
+#if defined(WIN32)
+    } while (_stat(lbuf, &tmp) == 0);
+#else
       /* if the file already exists, try again */
     } while (stat(lbuf, &tmp) == 0);
-#elif defined(WIN32)
-    } while (_stat(lbuf, &tmp) == 0);
 #endif
     return strdup(lbuf);
 }
@@ -757,6 +757,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     int   started = FALSE;
     int   r;
     char    buffer[CSD_MAX_LINE_LEN];
+    int endtag_found = 0;
 
     /* Need to open in binary to deal with MIDI and the like. */
     fd = csoundFileOpenWithType(csound, &unf, CSFILE_STD, name, "rb", NULL,
@@ -783,6 +784,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       }
       else if (strstr(p, "</CsoundSynthesizer>") == p ||
                strstr(p, "</CsoundSynthesiser>") == p) {
+        endtag_found = 1;
         if (csound->scorestr != NULL)
           corfile_flush(csound->scorestr);
         *pname = STA(orcname);
@@ -870,6 +872,11 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       csound->oparms->FMidiin = 1;
     }
     csoundFileClose(csound, fd);
+    if(endtag_found == 0) {
+    csoundMessage(csound,
+                  Str("Could not find </CsoundSynthesizer> tag in CSD file.\n"));
+     result = FALSE;
+    }
     return result;
 }
 

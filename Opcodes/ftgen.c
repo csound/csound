@@ -372,9 +372,18 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
         /* WARNING! skips header.gen01args.strarg from saving/loading
            in text format */
         header.fno = (int32) fno;
-        if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
+        if (fno_f == fno) {
+          ftp = ft_func(csound, &fno_f);
+          if(ftp->flen < header.flen){
+             if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
+             goto err;
+          }
+        }
+        else {
+         if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
           goto err;
-        ftp = ft_func(csound, &fno_f);
+         ftp = ft_func(csound, &fno_f);
+        }
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT));
         memset(ftp->ftable, 0, sizeof(MYFLT) * (ftp->flen + 1));
         for (j = 0; j <= ftp->flen; j++) {
@@ -436,12 +445,12 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
     void  *fd;
 
-    if (strncmp(csound->GetOpcodeName(p), "ftsave", 6) != 0) {
-      nargs--;
+    if (strncmp(csound->GetOpcodeName(p), "ftsave.", 7) != 0) {
       ft_func = csound->FTFindP;
       err_func = csound->PerfError;
     }
     else {
+      nargs = csound->GetInputArgCnt(p) - 2;
       ft_func = csound->FTnp2Find;
       err_func = myInitError;
     }

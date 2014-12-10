@@ -168,6 +168,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
           lo_message_add_int32(msg, (int32_t) MYFLT2LRND(*arg[i]));
           break;
         case 'l':
+	case 'h':
           lo_message_add_int64(msg, (int64_t) MYFLT2LRND(*arg[i]));
           break;
         case 'c':
@@ -416,7 +417,14 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
     ports[n].oplst = NULL;
     snprintf(buff, 32, "%d", (int) *(p->port));
     ports[n].thread = lo_server_thread_new(buff, OSC_error);
-    lo_server_thread_start(ports[n].thread);
+    if (ports[n].thread==NULL)
+      return csound->InitError(csound,
+                               Str("cannot start OSC listener on port %s\n"),
+                               buff);
+    if (lo_server_thread_start(ports[n].thread)<0)
+      return csound->InitError(csound,
+                               Str("cannot start OSC listener on port %s\n"),
+                               buff);
     pp->ports = ports;
     pp->nPorts = n + 1;
     csound->Warning(csound, Str("OSC listener #%d started on port %s\n"), n, buff);

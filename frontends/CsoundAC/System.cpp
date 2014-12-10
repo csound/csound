@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#if defined(HAVE_UNISTD_H)
+#if defined(HAVE_UNISTD_H) || defined(MACOSX)
 #include <unistd.h>
 #endif
 

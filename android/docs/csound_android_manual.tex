@@ -106,7 +106,7 @@ While the CsoundObj API has been designed to ease things for Android OS developm
 
 \section{Using the CsoundObj API}
 
-The CsoundObj API revolves around the Java CsoundObj class. This class contains a Csound Object and has methods for running Csound, as well as convenience methods to help aid developers in connecting elements to Csound. By itself, CsoundObj can take in a CSD file and render it.  By using CsoundValueCacheables, objects can interact to read values from and write values to Csound.  Beyond that, extended features can be accessed by using the Csound C API together with the Csound object.
+The CsoundObj API revolves around the Java CsoundObj class. This class contains a Csound Object and has methods for running Csound, as well as convenience methods to help aid developers in connecting elements to Csound. By itself, CsoundObj can take in a CSD file and render it.  By using CsoundBindings, objects can interact to read values from and write values to Csound.  Beyond that, extended features can be accessed by using the Csound C API together with the Csound object.
 
 \subsection{Designing Csound CSD projects to work with Hosts}
 
@@ -119,11 +119,11 @@ Csound will use the CsOptions you provide.  A standard set of flags to use are `
 \emph{Note: In Csound5 for Android, it was previously required to set \linebreak ``{\tt -+rtaudio=null}'' when using audio. This is no longer required for Csound 6 for Android.}
  
 
-\subsection{CsoundValueCacheable for Communicating with Csound}
+\subsection{CsoundBinding for Communicating with Csound}
 
-The CsoundObj API has been created to ease communication with Csound by using objects that implement the CsoundValueCacheable protocol.  The protocol definition is as follows:
+The CsoundObj API has been created to ease communication with Csound by using objects that implement the CsoundBinding interface.  The interface definition is as follows:
 
-\begin{lstlisting}[caption=CsoundValueCacheable Protocol Definition]
+\begin{lstlisting}[caption=CsoundBinding interface Definition]
 
 public void setup(CsoundObj csoundObj);
 	
@@ -135,15 +135,15 @@ public void cleanup();
 
 \end{lstlisting}
 
-CsoundValueCacheables are used to both read values from Csound as well as write values to Csound.  The lifecycle of CsoundValueCacheables is as follows:
+CsoundBindings are used to both read values from Csound as well as write values to Csound.  The lifecycle of CsoundBindings is as follows:
 
 \begin{itemize}
-\item \textbf{setup} - this has now been changed. This method is called after Csound's compile call but before the main performance loop. CsoundValueCacheables should use this method to cache any channel pointers and any other values they will need during performance.
+\item \textbf{setup} - this has now been changed. This method is called after Csound's compile call but before the main performance loop. CsoundBindings should use this method to cache any channel pointers and any other values they will need during performance.
 \item \textbf{updateValuesToCsound} and \textbf{updateValuesFromCsound} - these methods are called during the Csound performance loop. \textbf{updateValuesToCsound} is called before each call to csoundPerformKsmps, while \textbf{updateValuesFromCsound} is called after each call. 
-\item \textbf{cleanup} - this method is called after Csound has completed its run and should be used by CsoundValueCacheables to free up any allocated data and remove references to channel pointers.
+\item \textbf{cleanup} - this method is called after Csound has completed its run and should be used by CsoundBindings to free up any allocated data and remove references to channel pointers.
 \end{itemize}
 
-By using CsoundValueCacheables, CsoundObj functionality can be extended to communicate with as many items as you would like. The Csound for the Android API contains pre-made wrapper classes for common UI classes (UISlider, UIButton, UISwitch) as well as hardware sensors (Accelerometer, Attitude, Gyroscope).  CsoundObj has helper methods for the CsoundValueCacheables that come with the CsoundObj API, as well as the generic \textbf{addCsoundValueCacheable} and \textbf{removeCsoundValueCacheable} methods for adding custom CsoundValueCacheables. Please consult these classes as well as their use in context within the Csound for Android Examples project.
+By using CsoundBindings, CsoundObj functionality can be extended to communicate with as many items as you would like. The Csound for the Android API contains pre-made wrapper classes for common UI classes (Slider, Button) as well as hardware sensors (Accelerometer).  CsoundObj has helper methods for the CsoundBindings that come with the CsoundObj API, as well as the generic \textbf{addBinding} and \textbf{removeBinding} methods for adding custom CsoundBindings. Please consult these classes as well as their use in context within the Csound for Android Examples project.
 
 
 %======
@@ -155,11 +155,11 @@ By using CsoundValueCacheables, CsoundObj functionality can be extended to commu
 The CsoundObj API contains the following methods for binding widgets:
 
 \begin{lstlisting}[caption=Methods for Widget Binding]
-public CsoundValueCacheable addButton(Button button, String channelName))
-public CsoundValueCacheable addButton(Button button, String channelName,int type)
-public CsoundValueCacheable addSlider(SeekBar seekBar, String channelName, double min, double max)}
+public CsoundBinding addButton(Button button, String channelName))
+public CsoundBinding addButton(Button button, String channelName,int type)
+public CsoundBinding addSlider(SeekBar seekBar, String channelName, double min, double max)}
 
-These methods allow for easy binding of UISeekBars, and UIButtons, and return the CsoundValueCacheable that was created to wrap the widget. If the design of your app requires that you remove a widget from being used with CsoundObj, you can use the returned CsoundValueCacheable and pass it to the removeCsoundValueCacheable method. To bind your own custom widgets, you will need to create your own CsoundValueCacheable.  There are examples of both using the convenience widget binding methods as well as custom CsoundValueCacheables in the Csound for Android Examples project.
+These methods allow for easy binding of UISeekBars, and UIButtons, and return the CsoundBinding that was created to wrap the widget. If the design of your app requires that you remove a widget from being used with CsoundObj, you can use the returned CsoundBinding and pass it to the removeCsoundBinding method. To bind your own custom widgets, you will need to create your own CsoundBinding.  There are examples of both using the convenience widget binding methods as well as custom CsoundBindings in the Csound for Android Examples project.
 \end{lstlisting}
 %======
 
@@ -174,11 +174,11 @@ CsoundObj has built-in support for use of the accelerometer found in android dev
 
 
 \begin{lstlisting}[caption=CsoundObj Accelerometer Method]
-public CsoundValueCacheable enableAccelerometer(Context context)
+public CsoundBinding enableAccelerometer(Context context)
 ]
 \end{lstlisting}
 
-When the feature is enabled, CsoundValueCacheables that wrap the sensor will send values into Csound via hardcoded channels:
+When the feature is enabled, CsoundBindings that wrap the sensor will send values into Csound via hardcoded channels:
 
 \begin{itemize}
 
@@ -210,7 +210,7 @@ public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 					File f = createTempFile(csd);
 					csoundObj.addSlider(fSlider, "slider", 0.,
 							1.);
-					csoundObj.addCompletionListener(SimpleTest1Activity.this);
+					csoundObj.addListener(SimpleTest1Activity.this);
 					csoundObj.startCsound(f);
 				} else {
 					csoundObj.stopCsound();
@@ -266,7 +266,7 @@ This example demonstrates a multitouch performance surface. The multi-touch code
 
 \subsection{Waveview}
 
-This example demonstrates using a CsoundValueCacheable to read an f-table from Csound and displaying that table.  Note that the WaveView's code is doing some optimization to check if it has already loaded.  It is also checking that the table itself has completed loading before trying to grab any values for the table. 
+This example demonstrates using a CsoundBinding to read an f-table from Csound and displaying that table.  Note that the WaveView's code is doing some optimization to check if it has already loaded.  It is also checking that the table itself has completed loading before trying to grab any values for the table. 
 
 \begin{lstlisting}[caption=Waveview code demonstrating reading f-tables from Csound]
 		public void updateValuesFromCsound() {

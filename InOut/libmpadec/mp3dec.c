@@ -77,13 +77,14 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       char hdr[10];
       lseek(fd, 0, SEEK_SET);
       r = read(fd, &hdr, 10);
-      if(hdr[0] == 'I' && hdr[1] == 'D' && hdr[2] == '3'){
-       /* A*2^21+B*2^14+C*2^7+D=A*2097152+B*16384+C*128+D*/
-       mp3->stream_offset = hdr[6]*2097152+hdr[7]*16384+hdr[8]*128+hdr[9] + 10;
-       fprintf(stderr, "==== found ID3 tag, skipping %d bytes ==== \n", 
-               mp3->stream_offset);
-       tmp = lseek(fd, mp3->stream_offset, SEEK_SET);
-     } else tmp = lseek(fd, mp3->stream_offset, SEEK_SET);
+      if (hdr[0] == 'I' && hdr[1] == 'D' && hdr[2] == '3') {
+        /* A*2^21+B*2^14+C*2^7+D=A*2097152+B*16384+C*128+D*/
+        mp3->stream_offset = hdr[6]*2097152+hdr[7]*16384+hdr[8]*128+hdr[9] + 10;
+        fprintf(stderr, "==== found ID3 tag, skipping %ld bytes ==== \n", 
+                mp3->stream_offset);
+        (void) lseek(fd, mp3->stream_offset, SEEK_SET);
+      }
+      else (void) lseek(fd, mp3->stream_offset, SEEK_SET);
     }
     r = read(fd, mp3->in_buffer, 4);
     if (r < 4) {
@@ -92,7 +93,8 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
               MP3DEC_RETCODE_NOT_MPEG_STREAM);
     } else mp3->in_buffer_used = r;
     if (mp3->flags & MP3DEC_FLAG_SEEKABLE)
-      tmp = lseek(fd, mp3->stream_offset, SEEK_SET); else tmp = -1;
+      tmp = lseek(fd, mp3->stream_offset, SEEK_SET);
+    else tmp = -1;
     if (tmp < 0) {
       int32_t n = sizeof(mp3->in_buffer) - mp3->in_buffer_used;
       mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;
@@ -102,7 +104,8 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       if (n < 0) n = 0;
       mp3->in_buffer_used += n;
       mp3->stream_position = mp3->in_buffer_used;
-    } else {
+    }
+    else {
       int32_t n = sizeof(mp3->in_buffer);
       if (mp3->stream_size && (n > mp3->stream_size))
         n = (int32_t)mp3->stream_size;

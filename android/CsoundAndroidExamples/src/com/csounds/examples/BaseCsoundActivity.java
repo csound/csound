@@ -56,7 +56,7 @@ public class BaseCsoundActivity extends Activity {
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
-		csoundObj.stopCsound();
+		csoundObj.stop();
 		
 	}
 	

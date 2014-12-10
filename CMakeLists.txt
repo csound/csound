@@ -255,8 +255,11 @@ if(WIN32)
         wsock32)
 
 if(NOT MSVC)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libgcc -static")
+set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
+
 endif()
 
 
@@ -424,6 +427,8 @@ endif()
 if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
     message(FATAL_ERROR "Csound requires the pthread library")
 endif()
+
+message(STATUS "PTHREAD STATIC LIBRARY: ${PTHREAD_STATIC_LIBRARY}")
 
 set(CMAKE_REQUIRED_INCLUDES pthread.h)
 set(CMAKE_REQUIRED_LIBRARIES pthread)
@@ -1104,6 +1109,11 @@ endif()
 
 if(WIN32)
     add_definitions(-DWIN32)
+endif()
+
+check_function_exists(strlcat HAVE_STRLCAT)
+if(HAVE_STRLCAT)
+    add_definitions(-DHAVE_STRLCAT)
 endif()
 
 # Locale-aware reading and printing

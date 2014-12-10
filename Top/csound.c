@@ -60,7 +60,7 @@
 #include "cs_par_dispatch.h"
 #include "csound_orc_semantics.h"
 
-#if defined(linux) || defined(__HAIKU__) || defined(EMSCRIPTEN)
+#if defined(linux) || defined(__HAIKU__) || defined(__EMSCRIPTEN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
 #endif
 
@@ -917,7 +917,7 @@ static void destroy_all_instances(void)
 
 #if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \
                          !defined(__HAIKU__) && !defined(__BEOS__) && \
-                         !defined(__MACH__))
+                         !defined(__MACH__) && !defined(__EMSCRIPTEN__))
 static char *signal_to_string(int sig)
 {
     switch(sig) {
@@ -1568,7 +1568,7 @@ int kperf_nodebug(CSOUND *csound)
                   ip->kcounter++;
                 }
             }
-          }
+          } /*else csound->Message(csound, "time %f \n", csound->kcounter/csound->ekr);*/
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0; /* reset end of loop samples */
           ip = nxt; /* but this does not allow for all deletions */
@@ -1601,6 +1601,7 @@ static inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, INSDS
                   data->debug_instr_ptr = ip;
                   data->debug_opcode_ptr = opstart;
                   data->status = CSDEBUG_STATUS_STOPPED;
+                  data->cur_bkpt = bp_node;
                   csoundDebuggerBreakpointReached(csound);
                   bp_node->count = bp_node->skip;
                   return;
@@ -1683,7 +1684,7 @@ int kperf_debug(CSOUND *csound)
       if (UNLIKELY(!csoundYield(csound))) csound->LongJmp(csound, 1);
     }
 
-    if (data) { /* process new breakpoints*/
+    if (data) { /* process debug commands*/
       process_debug_buffers(csound, data);
     }
 
@@ -1708,18 +1709,19 @@ int kperf_debug(CSOUND *csound)
         csoundDebuggerBreakpointReached(csound);
       }
       if (command == CSDEBUG_CMD_CONTINUE && data->status == CSDEBUG_STATUS_STOPPED) {
+        if (data->cur_bkpt->skip <= 2) data->cur_bkpt->count = 2;
+        data->status = CSDEBUG_STATUS_RUNNING;
         if (data->debug_instr_ptr) {
           /* if not NULL, resume from last active */
           ip = data->debug_instr_ptr;
           data->debug_instr_ptr = NULL;
         }
-        data->status = CSDEBUG_STATUS_RUNNING;
       }
       if (command == CSDEBUG_CMD_NEXT && data->status == CSDEBUG_STATUS_STOPPED) {
           data->status = CSDEBUG_STATUS_NEXT;
       }
     }
-    if (ip != NULL && (data->status != CSDEBUG_STATUS_STOPPED) ) {
+    if (ip != NULL && data != NULL && (data->status != CSDEBUG_STATUS_STOPPED) ) {
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
@@ -1777,6 +1779,7 @@ int kperf_debug(CSOUND *csound)
                   /* skip of 0 or 1 has the same effect */
                   data->debug_instr_ptr = ip;
                   data->debug_opcode_ptr = NULL;
+                  data->cur_bkpt = bp_node;
                   data->status = CSDEBUG_STATUS_STOPPED;
                   csoundDebuggerBreakpointReached(csound);
                   bp_node->count = bp_node->skip;
@@ -1825,8 +1828,9 @@ int kperf_debug(CSOUND *csound)
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0;  /* reset end of loop samples */
           ip = ip->nxtact; /* but this does not allow for all deletions */
-          if (data && data->status == CSDEBUG_STATUS_NEXT) {
-            data->debug_instr_ptr = ip; /* we have reached the next instrument. Break */
+          if (/*data &&*/ data->status == CSDEBUG_STATUS_NEXT) {
+            data->debug_instr_ptr = ip; /* we have reached the next
+                                           instrument. Break */
             data->debug_opcode_ptr = NULL;
             if (ip != NULL) { /* must defer break until next kperf */
               data->status = CSDEBUG_STATUS_STOPPED;

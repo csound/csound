@@ -35,13 +35,14 @@ import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
-import com.csounds.CsoundObjCompletionListener;
+import com.csounds.CsoundObjListener;
+import com.csounds.bindings.CsoundBinding;
+import com.csounds.bindings.ui.CsoundUI;
 import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
-import com.csounds.valueCacheable.CsoundValueCacheable;
 
 public class SimpleTest2Activity extends BaseCsoundActivity implements
-		CsoundObjCompletionListener {
+		CsoundObjListener {
 
 	ToggleButton startStopButton = null;
 
@@ -83,24 +84,25 @@ public class SimpleTest2Activity extends BaseCsoundActivity implements
 							String csd = getResourceFileAsString(R.raw.test2);
 							File f = createTempFile(csd);
 
-							csoundObj.addSlider(noteRateSlider, "noteRate", 1,
+							CsoundUI csoundUI = new CsoundUI(csoundObj);
+							csoundUI.addSlider(noteRateSlider, "noteRate", 1,
 									4);
-							csoundObj.addSlider(durationSlider, "duration", .5,
+							csoundUI.addSlider(durationSlider, "duration", .5,
 									4);
-							csoundObj.addSlider(attackSlider, "attack", 0, 2);
-							csoundObj.addSlider(decaySlider, "decay", .05, 2);
-							csoundObj.addSlider(sustainSlider, "sustain", 0, 1);
-							csoundObj.addSlider(releaseSlider, "release", 0, 4);
+							csoundUI.addSlider(attackSlider, "attack", 0, 2);
+							csoundUI.addSlider(decaySlider, "decay", .05, 2);
+							csoundUI.addSlider(sustainSlider, "sustain", 0, 1);
+							csoundUI.addSlider(releaseSlider, "release", 0, 4);
 
 							csoundObj.startCsound(f);
 						} else {
-							csoundObj.stopCsound();
+							csoundObj.stop();
 						}
 
 					}
 				});
 
-		csoundObj.addValueCacheable(new CsoundValueCacheable() {
+		csoundObj.addBinding(new CsoundBinding() {
 
 			public void updateValuesToCsound() {
 				// TODO Auto-generated method stub
@@ -122,7 +124,9 @@ public class SimpleTest2Activity extends BaseCsoundActivity implements
 		});
 	}
 
-	public void csoundObjComplete(CsoundObj csoundObj) {
+	public void csoundObjStarted(CsoundObj csoundObj) {}
+	
+	public void csoundObjCompleted(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);

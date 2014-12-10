@@ -78,6 +78,7 @@
 %token ELSE_TOKEN
 %token ENDIF_TOKEN
 %token UNTIL_TOKEN
+%token WHILE_TOKEN
 %token DO_TOKEN
 %token OD_TOKEN
 
@@ -125,9 +126,21 @@
 #include "namedins.h"
 
 #include "csound_orc.h"
+#include "parse_param.h"
+
+#ifndef __EMSCRIPTEN__
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
-#include "parse_param.h"
+#else
+#define csp_orc_sa_instr_add(a,b)
+#define csp_orc_sa_instr_add_tree(a,b)
+#define csp_orc_sa_instr_finalize(a)
+#define csp_orc_sa_global_read_write_add_list(a,b,c)
+#define csp_orc_sa_globals_find(a,b)
+#define csp_orc_sa_global_read_write_add_list1(a,b,c)
+#define csp_orc_sa_interlocks(a, b)
+#define csp_orc_sa_global_read_add_list(a,b) 
+#endif
 
 #define udoflag csound->parserUdoflag
 
@@ -324,10 +337,10 @@ statement : out_arg_list assignment expr NEWLINE
                     $1->right = $2;
                     $$ = $1;
                 }
-
           | if_goto
           | if_then
           | until
+          | while 
           | LABEL_TOKEN 
             { $$ = make_leaf(csound, LINE, LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | NEWLINE
@@ -388,6 +401,12 @@ elseif : ELSEIF_TOKEN expr then NEWLINE statement_list
        ;
 
 until : UNTIL_TOKEN expr DO_TOKEN statement_list OD_TOKEN
+              { $$ = make_leaf(csound,LINE,LOCN, UNTIL_TOKEN, (ORCTOKEN *)$1);
+                $$->left = $2;
+                $$->right = $4; }
+      ;
+
+while : WHILE_TOKEN expr DO_TOKEN statement_list OD_TOKEN
               { $$ = make_leaf(csound,LINE,LOCN, UNTIL_TOKEN, (ORCTOKEN *)$1);
                 $$->left = $2;
                 $$->right = $4; }
