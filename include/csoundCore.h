@@ -202,7 +202,7 @@ typedef struct {
     int     midiKey, midiKeyCps, midiKeyOct, midiKeyPch;
     int     midiVelocity, midiVelocityAmp;
     int     noDefaultPaths;  /* syy - Oct 25, 2006: for disabling relative paths
-                              from files */
+                                from files */
     int     numThreads;
     int     syntaxCheckOnly;
     int     useCsdLineCounts;
@@ -304,6 +304,7 @@ typedef struct {
     char    *insname;               /* instrument name */
     int     instcnt;                /* Count number of instances ever */
     int     isNew;                  /* is this a new definition */
+    int     nocheckpcnt;            /* Control checks on pcnt */ 
   } INSTRTXT;
 
   typedef struct namedInstr {

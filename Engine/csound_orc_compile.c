@@ -466,7 +466,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
     ip->mdepends = 0;
     ip->opdstot = 0;
-
+    ip->nocheckpcnt = 0;
 
     ip->pmax = 3L;
 
@@ -711,6 +711,17 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     return ip;
 }
 
+int tree_contains_fn_p(CSOUND *csound, TREE* t)
+{
+    //print_tree(csound, "\ntree_contains_fn_p", t);
+    while (t!=NULL) {
+      if (t->type == T_OPCODE && strcmp(t->value->lexeme, "p")==0) return 1;
+      if (t->left  && tree_contains_fn_p(csound, t->left)) return 1;
+      if (t->right && tree_contains_fn_p(csound, t->right)) return 1;
+      t = t->next;
+    }
+    return 0;
+}
 
 /**
  * Create an Instrument (INSTRTXT) from the AST node given. Called from
@@ -730,7 +741,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
     statements = root->right;
     ip->mdepends = 0;
     ip->opdstot = 0;
-
+    ip->nocheckpcnt = tree_contains_fn_p(csound, root->right);
     ip->pmax = 3L;
 
     /* Initialize */

@@ -602,7 +602,8 @@ void *thread_func(void *p){
         csoundCompileOrc(pp->csound, orc);
       fclose(fp);
       free(orc);
-    } else post("csound6~: could not open %s \n", pp->orc);
+    }
+    else post("csound6~: could not open %s \n", pp->orc);
 
     free(orcfile);
     return NULL;

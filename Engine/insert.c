@@ -227,7 +227,9 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
           pfield->value = *(pdat + i);
         }
       }
-      if (UNLIKELY((n = tp->pmax) != newevtp->pcnt && !tp->psetdata)) {
+      if (UNLIKELY((tp->nocheckpcnt == 0) &&
+                   (n = tp->pmax) != newevtp->pcnt &&
+                   !tp->psetdata)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
           csoundWarning(csound, Str("instr %s uses %d p-fields but is given %d"),
