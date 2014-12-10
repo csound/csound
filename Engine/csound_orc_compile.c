@@ -829,18 +829,18 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
   return ip;
 }
 
-int tree_contains_fn_p(CSOUND *csound, TREE *t) {
-  // print_tree(csound, "\ntree_contains_fn_p", t);
-  while (t != NULL) {
-    if (t->type == T_OPCODE && strcmp(t->value->lexeme, "p") == 0)
-      return 1;
-    if (t->left && tree_contains_fn_p(csound, t->left))
-      return 1;
-    if (t->right && tree_contains_fn_p(csound, t->right))
-      return 1;
-    t = t->next;
-  }
-  return 0;
+int tree_contains_fn_p(CSOUND *csound, TREE* t)
+{
+    //print_tree(csound, "\ntree_contains_fn_p", t);
+    while (t!=NULL) {
+      // FIXME - this does not work with the structure in parser3 branch.  Rework
+      // into area where opcodes/functions are resolved
+    //  if (t->type == T_OPCODE && strcmp(t->value->lexeme, "p")==0) return 1;
+      if (t->left  && tree_contains_fn_p(csound, t->left)) return 1;
+      if (t->right && tree_contains_fn_p(csound, t->right)) return 1;
+      t = t->next;
+    }
+    return 0;
 }
 
 /**
