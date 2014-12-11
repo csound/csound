@@ -1,35 +1,35 @@
-k*
+/*      
     ftgen.c:
-
+        
     Copyright (C) 1991, 1994, 1995, 1998, 2000, 2004
                   Barry Vercoe, John ffitch, Paris Smaragdis,
                   Gabriel Maldonado, Richard Karpen, Greg Sullivan,
                   Pete Moss, Istvan Varga, Victor Lazzarini
-
+        
     This file is part of Csound.
-
+        
     The Csound Library is free software; you can redistribute it
     and/or modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
     version 2.1 of the License, or (at your option) any later version.
-
+        
     Csound is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-
+        
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
-*/
-
+*/      
+        
 #include "stdopcod.h"
 #include <ctype.h>
 #include <stdarg.h>
 #include "soundio.h"
 #include <math.h>
-
+        
 typedef struct {
     OPDS    h;
     MYFLT   *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX];
