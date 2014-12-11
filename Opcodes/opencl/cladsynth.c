@@ -164,9 +164,11 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
      char name[128];
      clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, 128, name, NULL);
      csound->Message(csound, "available platform[%d] %s\n",i, name);
-     err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 32-devs, &device_ids[devs], &num);
+     err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL,
+                          32-devs, &device_ids[devs], &num);
     if (err != CL_SUCCESS)
-     csound->InitError(csound, "failed to find an OpenCL device! %s \n", cl_error_string(err));
+     csound->InitError(csound, "failed to find an OpenCL device! %s \n",
+                       cl_error_string(err));
     }
     devs += num;
   }
@@ -176,7 +178,8 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   char name[128];
   cl_device_type type;
   clGetDeviceInfo(device_ids[i], CL_DEVICE_NAME, 128, name, NULL);
-  clGetDeviceInfo(device_ids[i], CL_DEVICE_TYPE, sizeof(cl_device_type), &type, NULL);
+  clGetDeviceInfo(device_ids[i], CL_DEVICE_TYPE, sizeof(cl_device_type),
+                  &type, NULL);
   if(type & CL_DEVICE_TYPE_CPU)
   csound->Message(csound, "available CPU[device %d] %s\n",i, name);
   else  if(type & CL_DEVICE_TYPE_GPU)
@@ -206,7 +209,8 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
                              cl_error_string(err));
     // Create the compute program from the source buffer
     //
-    program = clCreateProgramWithSource(context, 1, (const char **) &code, NULL, &err);
+    program = clCreateProgramWithSource(context, 1, (const char **) &code,
+                                        NULL, &err);
     if (!program)
        return csound->InitError(csound, "Failed to create compute program! %s\n",
                              cl_error_string(err));
@@ -218,19 +222,22 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
         char buffer[2048];
         csound->Message(csound, "Failed to build program executable! %s\n",
                              cl_error_string(err));
-        clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+        clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG,
+                              sizeof(buffer), buffer, &len);
         return csound->InitError(csound, "%s\n", buffer);
     }
 
     kernel1 = clCreateKernel(program, "sample", &err);
     if (!kernel1 || err != CL_SUCCESS)
-      return csound->InitError(csound, "Failed to create sample compute kernel! %s\n",
-                             cl_error_string(err));
+      return csound->InitError(csound,
+                               "Failed to create sample compute kernel! %s\n",
+                               cl_error_string(err));
 
    kernel2 = clCreateKernel(program, "update", &err);
     if (!kernel2 || err != CL_SUCCESS)
-      return csound->InitError(csound,"Failed to create update compute kernel! %s\n",
-                             cl_error_string(err));
+      return csound->InitError(csound,
+                               "Failed to create update compute kernel! %s\n",
+                               cl_error_string(err));
 
   char name[128];
   clGetDeviceInfo(device_id, CL_DEVICE_NAME, 128, name, NULL);
@@ -251,7 +258,8 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   p->out = clCreateBuffer(context,0, asize, NULL, NULL);
   p->frame =   clCreateBuffer(context, CL_MEM_READ_ONLY, fpsize, NULL, NULL);
   p->ph =  clCreateBuffer(context,0, ipsize, NULL, NULL);
-  p->amps =  clCreateBuffer(context,0,(p->bins > p->vsamps ? p->bins : p->vsamps)*sizeof(cl_float), NULL, NULL);
+  p->amps =  clCreateBuffer(context,0,(p->bins > p->vsamps ? p->bins :
+                                       p->vsamps)*sizeof(cl_float), NULL, NULL);
 
   // memset needed?
 

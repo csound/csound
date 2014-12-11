@@ -196,7 +196,7 @@ public:
             listPresets = (int) *iListPresets;
 
             CS_TYPE* argType = csound->GetTypeForArg(iFilename);
-            
+
             if(strcmp("S", argType->varTypeName) == 0)
               filename = csound->Strdup(csound, ((STRINGDAT *)iFilename)->data);
              else

@@ -1969,13 +1969,13 @@ static int vco2set(CSOUND *csound, VCO2 *p)
       return csound->InitError(csound,
                                Str("vco2: insufficient required arguments"));
     }
-   
+
     //FIXME
-    
+
 //    if (UNLIKELY(p->XINCODE)) {
 //      return csound->InitError(csound, Str("vco2: invalid argument type"));
 //    }
-    
+
     /* select table array and algorithm, according to waveform */
     tnum = tnums[(mode & 14) >> 1];
     p->mode = modes[(mode & 14) >> 1];
