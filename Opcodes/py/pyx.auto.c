@@ -334,7 +334,7 @@ static int pyevali_irate(CSOUND *csound, PYEVAL *p)
        *py_initialize_done == 0)
       return NOTOK;
     strncpy(source, (char*) p->string->data, 1023);source[1023]='\0';
-    
+
     result = eval_string_in_given_context(source, 0);
     if (result == NULL) {
       return pyErrMsg(p, "python exception");
