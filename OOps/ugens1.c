@@ -770,7 +770,7 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
 
     segp[3].amlt = FL(1.0);
     segp[3].acnt = (int32) (sus*CS_ESR + FL(0.5));
-    
+
     dur = release*CS_EKR;
     segp[4].val = *argp[2];
     segp[4].mlt = POWER(FL(0.001)/(*argp[2]), FL(1.0)/dur);
@@ -818,10 +818,10 @@ int expseg(CSOUND *csound, EXXPSEG *p)
     for (n=offset; n<nsmps; n++) {
     segp = p->cursegp;
    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
-    while (--segp->acnt < 0) 
-       p->cursegp = ++segp; 
-    rs[n] = segp->val; 
-       segp->val *= segp->amlt; 
+    while (--segp->acnt < 0)
+       p->cursegp = ++segp;
+    rs[n] = segp->val;
+       segp->val *= segp->amlt;
     }
     return OK;
  err1:
@@ -2113,5 +2113,3 @@ int kcssegr(CSOUND *csound, COSSEG *p)
  err1:
     return csound->InitError(csound, Str("cosseg not initialised (krate)\n"));
 }
-
-

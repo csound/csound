@@ -36,7 +36,7 @@ static void II_decode_bitalloc(mpadec_t mpadec, uint8_t *bit_alloc,
     unsigned i, step, sblimit2, sblimit = mpa->frame.sblimit;
     uint32_t crclen = mpa->bytes_left;
     uint8_t scfsi_buf[2*SBLIMIT];
-    
+
     if (mpa->frame.channels > 1) {
       unsigned jsbound = mpa->frame.jsbound;
       sblimit2 = sblimit << 1;
@@ -75,7 +75,7 @@ static void II_decode_bitalloc(mpadec_t mpadec, uint8_t *bit_alloc,
     for (i = sblimit2; i; i--) {
       if (*ba++) {
         switch (*scfsi++) {
-        case 0:  
+        case 0:
           scf[0] = (uint8_t)GETBITS(6);
           scf[1] = (uint8_t)GETBITS(6);
           scf[2] = (uint8_t)GETBITS(6);
@@ -187,11 +187,11 @@ void decode_layer2(mpadec_t mpadec, uint8_t *buffer)
           { 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
         { { 0, 3, 3, 3, 3, 3, 3, 0, 0, 0, 1, 1, 1, 1, 1, 0 },
           { 0, 3, 3, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 } } };
-    
+
     mpa->error = FALSE;
     mpa->bits_left = 0;
     if (mpa->frame.LSF) table = 4;
-    else 
+    else
       table =
         translate[mpa->frame.frequency_index]
                  [2 - mpa->frame.channels][mpa->frame.bitrate_index];
@@ -237,4 +237,3 @@ void decode_layer2(mpadec_t mpadec, uint8_t *buffer)
       mpa->reservoir_size = 0;
     }
 }
-

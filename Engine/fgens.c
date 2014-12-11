@@ -273,7 +273,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       if (size>PMAX) size=PMAX;
       memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*size);
       /*for(k=0; k < size; k++)
-	csound->Message(csound, "%f \n", ftp->args[k]);*/
+        csound->Message(csound, "%f \n", ftp->args[k]);*/
     }
     return 0;
 }
@@ -1379,7 +1379,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
       csound->Warning(csound,
                       Str("Number(s) after table full in GEN23, starting %f"), tmp);
     csound->FileClose(csound, fd);
-    // if (def) 
+    // if (def)
     {
       MYFLT *tab = ftp->ftable;
       tab[ff->flen] = tab[0];  /* guard point */
@@ -2752,7 +2752,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       if (size>PMAX) size=PMAX;
       memcpy(ftp->args, &(ff->e.p[4]), sizeof(MYFLT)*size);
       /* for(k=0; k < size; k++)
-	 csound->Message(csound, "%f \n", ftp->args[k]);*/
+         csound->Message(csound, "%f \n", ftp->args[k]);*/
     }
     return OK;
 }

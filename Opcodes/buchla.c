@@ -143,7 +143,7 @@ int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
         Dx =  1.0/(1.0-b2*f);
         Do =  1.0/(1.0-a2*f);
         Dmas = 1.0/(1.0-Dx*(f*f*b3*Do*a1 + b4*f*a*Do*a1 - b4));
-        yx = (p->sx + f*b1*x[n] + f*b3*Do*p->so + 
+        yx = (p->sx + f*b1*x[n] + f*b3*Do*p->so +
               f*b4*p->sd + b4*a*Do*p->so)*Dx*Dmas;
         yo = (p->so+f*a1*yx)*Do;
         yd = p->sd + (1.0/f)*(a*yo-yx) ;
@@ -175,15 +175,15 @@ int vactrol_init(CSOUND *csound, VACTROL* p)
 {
     p->s1 = 0;
     p->a_base = 1000.0*M_PI/(csound->GetSr(csound));
-    p->t_down = *p->down<FL(0.0) ? 3.0e3 : (double)*p->down; 
-    p->t_up   = *p->up<FL(0.0) ? 20.0 : (double)*p->up; 
+    p->t_down = *p->down<FL(0.0) ? 3.0e3 : (double)*p->down;
+    p->t_up   = *p->up<FL(0.0) ? 20.0 : (double)*p->up;
     return OK;
 }
 
 int vactrol_perf(CSOUND *csound, VACTROL* p)
 {
     double s1 = p->s1;
-    double a_base = p->a_base; 
+    double a_base = p->a_base;
     double T_DOWN = p->t_down; // Fall time
     double T_UP   = p->t_up; // Rise time
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -192,7 +192,7 @@ int vactrol_perf(CSOUND *csound, VACTROL* p)
     MYFLT *in = p->inp;
     MYFLT *out = p->out;
     double e0db = csound->Get0dBFS(csound);
-    
+
     if (UNLIKELY(offset)) {
       memset(out, '\0', offset*sizeof(MYFLT));
     }
@@ -218,7 +218,7 @@ int vactrol_perf(CSOUND *csound, VACTROL* p)
       out[n] = (MYFLT)y*e0db; /* JPff extra scale */
     }
     p->s1 = s1;
-    
+
     return OK;
 }
 
@@ -260,7 +260,7 @@ static double kontrolconvert(CSOUND *csound, double in1, double in2)
 #define k3 (7.3915e-9)
 #define kl (6.3862)
 #define n (3.9696)
-    
+
 #define gamma (0.0001)
 
 #define R6 (scale * R6max)
@@ -273,7 +273,7 @@ static double kontrolconvert(CSOUND *csound, double in1, double in2)
     //Inputs
     R1 = (1-offset);
     R2 = offset;
-            
+
     Ia = Vb/R5 + Vs/(R3*(1+R1/R2));
 
     if (Ia <= -bound1) {
@@ -304,7 +304,7 @@ static double kontrolconvert(CSOUND *csound, double in1, double in2)
     else {
       If = Ifmax;
     }
-      
+
     ans = (B + A / pow(If,1.4));
     //printf("%f,%f (%f/%f/%f) -> %f\n", in1, in2, A, B, pow(If, 1.4),  ans);
     return ans;

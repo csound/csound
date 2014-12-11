@@ -643,7 +643,7 @@ OSStatus  Csound_Render(void *inRefCon,
     IGN(ioActionFlags);
     IGN(inTimeStamp);
     IGN(inBusNumber);
-         
+
 
     n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
     for (k = 0; k < onchnls; k++) {

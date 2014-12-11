@@ -168,7 +168,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
           lo_message_add_int32(msg, (int32_t) MYFLT2LRND(*arg[i]));
           break;
         case 'l':
-	case 'h':
+        case 'h':
           lo_message_add_int64(msg, (int64_t) MYFLT2LRND(*arg[i]));
           break;
         case 'c':

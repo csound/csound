@@ -142,7 +142,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *inVar;
 } PRINT_TYPE_OP;
-    
+
 /*
 *********These are not correct for csound 6 as they omit the flags field********
  {  "strset",   S(STRSET_OP),   1,  "",     "iS",
@@ -252,4 +252,3 @@ int     print_type_opcode(CSOUND*, void*);
 #endif
 
 #endif      /* CSOUND_STR_OPS_H */
-
