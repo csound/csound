@@ -172,7 +172,8 @@ struct mpadec_t {
   mp3tag_info_t tag_info;
   uint32_t synth_size;
   FLOAT replay_gain;
-  void (*synth_func)(void *mpadec, FLOAT block[SBLIMIT], int channel, uint8_t *buffer);
+  void (*synth_func)(void *mpadec, FLOAT block[SBLIMIT],
+                     int channel, uint8_t *buffer);
   uint32_t reservoir_size;
   uint8_t reservoir[2048];
   frameinfo_t frame;
@@ -207,6 +208,8 @@ struct mpadec2_t {
   uint8_t out_buffer[8*1152];
 };
 
-#define GETBITS(n) ((mpa->bits_left >= (uint8_t)(n)) ? ((mpa->bit_buffer >> (mpa->bits_left -= (uint8_t)(n))) & bitmask[n]) : getbits(mpa, n))
+#define GETBITS(n) ((mpa->bits_left >= (uint8_t)(n)) \
+                    ? ((mpa->bit_buffer >> (mpa->bits_left -= \
+                       (uint8_t)(n))) & bitmask[n]) : getbits(mpa, n))
 
 #endif
