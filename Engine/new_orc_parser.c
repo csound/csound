@@ -251,7 +251,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                             csound->synterrcnt, csound->synterrcnt==1?"":"s");
           else if (csound->synterrcnt)
                csound->Message(csound, "Parsing failed to syntax errors\n");
-          else 
+          else
             csound->Message(csound, "Parsing failed due no input!\n");
           goto ending;
       }

@@ -79,14 +79,15 @@ void dispinit(CSOUND *csound)
       csound->csoundKillGraphCallback_ = DummyFn2;
     }
     else {
-      if(csound->csoundDrawGraphCallback_ == NULL){ // if callbacks are not set by host
-      csound->Message(csound, Str("graphics %s, ascii substituted\n"),
-                      ((O.graphsoff || O.postscript) ?
-                       Str("suppressed")
-                       : Str("not supported on this terminal")));
-      csound->csoundMakeGraphCallback_ = MakeAscii;
-      csound->csoundDrawGraphCallback_ = DrawAscii;
-      csound->csoundKillGraphCallback_ = KillAscii;
+      if (csound->csoundDrawGraphCallback_ == NULL){
+        // if callbacks are not set by host
+        csound->Message(csound, Str("graphics %s, ascii substituted\n"),
+                        ((O.graphsoff || O.postscript) ?
+                         Str("suppressed")
+                         : Str("not supported on this terminal")));
+        csound->csoundMakeGraphCallback_ = MakeAscii;
+        csound->csoundDrawGraphCallback_ = DrawAscii;
+        csound->csoundKillGraphCallback_ = KillAscii;
       }
     }
     csound->csoundExitGraphCallback_ = DummyFn3;
@@ -164,7 +165,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     if (wdptr->absflag  || absmax > wdptr->oabsmax)
      wdptr->oabsmax = absmax;           /* & absmax over life of win */
 
-    
+
 
     pol = wdptr->polarity;     /* adjust polarity flg for life of win */
     if (pol == (int16)NOPOL)  {

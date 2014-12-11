@@ -121,7 +121,7 @@ static int III_get_scale_factors(mpadec_t mpadec, grinfo_t *gr_info, int32_t *sc
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     register grinfo_t *grinfo = gr_info;
     int numbits = 0;
-    static uint8_t slen[2][16] = 
+    static uint8_t slen[2][16] =
       { {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4},
         {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3} };
     static uint8_t stab[3][6][4] =
@@ -131,7 +131,7 @@ static int III_get_scale_factors(mpadec_t mpadec, grinfo_t *gr_info, int32_t *sc
           {12,12,12,0 } , {12, 9, 9,6 } , { 15,12,9,0} } ,
         { { 6, 9, 9,9 } , { 6, 9,12,6 } , { 15,18,0,0} ,
           { 6,15,12,0 } , { 6,12, 9,6 } , {  6,18,9,0} } };
-    
+
     if (!mpa->frame.LSF) {
       int i, num0 = slen[0][grinfo->scalefac_compress],
               num1 = slen[1][grinfo->scalefac_compress];
@@ -193,14 +193,16 @@ static int III_get_scale_factors(mpadec_t mpadec, grinfo_t *gr_info, int32_t *sc
     return numbits;
 }
 
-static int III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info, MYFLT xr[SBLIMIT][SSLIMIT], int32_t *scf, int part2bits)
+static int III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
+                              MYFLT xr[SBLIMIT][SSLIMIT], int32_t *scf,
+                              int part2bits)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     register grinfo_t *grinfo = gr_info;
     int shift = 1 + grinfo->scalefac_scale, l[3], l3;
     int part2remain = grinfo->part2_3_length - part2bits;
     MYFLT *xrptr = (MYFLT *)xr; int32_t *me;
-    static uint8_t pretab1[22] = 
+    static uint8_t pretab1[22] =
       { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 3, 3, 3, 2, 0 };
     static uint8_t pretab2[22] =
       { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -809,7 +811,7 @@ static void dct12(register MYFLT *in, register MYFLT *out1,
 }
 
 static void III_hybrid(mpadec_t mpadec, grinfo_t *gr_info,
-                       MYFLT fs_in[SBLIMIT][SSLIMIT], 
+                       MYFLT fs_in[SBLIMIT][SSLIMIT],
                        MYFLT ts_out[SSLIMIT][SBLIMIT], int channel)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
@@ -860,7 +862,7 @@ void decode_layer3(mpadec_t mpadec, uint8_t *buffer)
     uint8_t *saved_next_byte = mpa->next_byte;
     uint32_t saved_bytes_left = mpa->bytes_left;
     int32_t dbits, scalefacs[2][39];
-    int ch, gr, ss, i_stereo, ms_stereo, single, channels, 
+    int ch, gr, ss, i_stereo, ms_stereo, single, channels,
       granules = mpa->frame.LSF ? 1 : 2;
 
     mpa->error = FALSE;
@@ -961,13 +963,13 @@ void decode_layer3(mpadec_t mpadec, uint8_t *buffer)
         }
         if (!single) {
           register unsigned i;
-          MYFLT *in0 = (MYFLT *)(mpa->hybrid_in[0]), 
+          MYFLT *in0 = (MYFLT *)(mpa->hybrid_in[0]),
                 *in1 = (MYFLT *)(mpa->hybrid_in[1]);
           for (i = 0; i < SSLIMIT*grinfo->maxb; i++, in0++)
             *in0 = (*in0 + *in1++);
         } else if (single == 2) {
           register unsigned i;
-          MYFLT *in0 = (MYFLT *)(mpa->hybrid_in[0]), 
+          MYFLT *in0 = (MYFLT *)(mpa->hybrid_in[0]),
                 *in1 = (MYFLT *)(mpa->hybrid_in[1]);
           for (i = 0; i < SSLIMIT*grinfo->maxb; i++, in0++) *in0 = *in1++;
         }
@@ -1023,4 +1025,3 @@ void decode_layer3(mpadec_t mpadec, uint8_t *buffer)
       }
     }
 }
-
