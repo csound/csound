@@ -160,6 +160,7 @@ typedef struct csdebug_data_s {
     void *cmd_buffer; /* for passing commands to the running engine */
     debug_status_t status;
     bkpt_node_t *bkpt_anchor; /* linked list for breakpoints */
+    bkpt_node_t *cur_bkpt; /* current breakpoint where we are stopped */
     breakpoint_cb_t bkpt_cb;
     void *cb_data;
     void *debug_instr_ptr; /* != NULL when stopped at a breakpoint. Holds INSDS * */

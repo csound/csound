@@ -1229,7 +1229,7 @@ static int i_infile_(CSOUND *csound, I_INFILE *p, int istring)
       if (fseek(fp, p->currpos * sizeof(float) * nargs, SEEK_SET)<0) return NOTOK;
       p->currpos++;
       for (j = 0; j < nargs; j++) {
-        if (fread(args[j], sizeof(float), 1, fp));
+        if (fp == fread(args[j], sizeof(float), 1, fp));
         else {
           p->flag = 0;
           *(args[j]) = FL(0.0);
