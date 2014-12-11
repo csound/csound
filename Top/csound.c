@@ -621,7 +621,8 @@ static const CSOUND cenviron_ = {
     FL(0.0), FL(0.0), FL(0.0),  /*  prvbt, curbt, nxtbt */
     FL(0.0), FL(0.0),       /*  curp2, nxtim        */
     0,              /*  cyclesRemaining     */
-    { 0, NULL, NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
+    { 0, NULL, NULL, '\0', 0, FL(0.0),
+      FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
     NULL,           /*  memalloc_db         */
     (MGLOBAL*) NULL, /* midiGlobals         */
     NULL,           /*  envVarDB            */
@@ -1721,7 +1722,7 @@ int kperf_debug(CSOUND *csound)
           data->status = CSDEBUG_STATUS_NEXT;
       }
     }
-    if (ip != NULL && (data->status != CSDEBUG_STATUS_STOPPED) ) {
+    if (ip != NULL && data != NULL && (data->status != CSDEBUG_STATUS_STOPPED) ) {
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
@@ -1828,8 +1829,9 @@ int kperf_debug(CSOUND *csound)
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0;  /* reset end of loop samples */
           ip = ip->nxtact; /* but this does not allow for all deletions */
-          if (data && data->status == CSDEBUG_STATUS_NEXT) {
-            data->debug_instr_ptr = ip; /* we have reached the next instrument. Break */
+          if (/*data &&*/ data->status == CSDEBUG_STATUS_NEXT) {
+            data->debug_instr_ptr = ip; /* we have reached the next
+                                           instrument. Break */
             data->debug_opcode_ptr = NULL;
             if (ip != NULL) { /* must defer break until next kperf */
               data->status = CSDEBUG_STATUS_STOPPED;
