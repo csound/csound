@@ -231,7 +231,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
     CS_TYPE* argType = csound->GetTypeForArg(p->iplugin);
-    
+
     if(strcmp("S", argType->varTypeName) == 0)
       strncpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME-1);
     else

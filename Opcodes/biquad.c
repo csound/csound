@@ -145,7 +145,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
     double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
     double y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
     MYFLT zerodb = csound->e0dbfs;
-    
+
     in      = p->in;
     out     = p->out;
     fcoptr  = p->fco;
@@ -421,7 +421,7 @@ static int vcoset(CSOUND *csound, VCO *p)
       printf("Initial value of lphs set to zero\n");
       p->lphs = 0;
     }
-    
+
     p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
     p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
 
