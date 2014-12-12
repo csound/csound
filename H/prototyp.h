@@ -136,11 +136,11 @@ char *csoundGetOpcodeName(void *p);
  */
 int csoundGetInputArgCnt(void *p);
 
-    
+
 /** Returns the CS_TYPE for an opcode's arg pointer */
 
 CS_TYPE* csoundGetTypeForArg(void* argPtr);
-    
+
 /**
  * Returns a binary value of which bit 0 is set if the first input
  * argument is a string, bit 1 is set if the second input argument is
@@ -288,4 +288,3 @@ int csoundDeleteAllConfigurationVariables(CSOUND *);
 #endif
 
 #endif  /* __BUILDING_LIBCSOUND && !_CSOUND_PROTO_H */
-

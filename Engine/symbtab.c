@@ -495,7 +495,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
     inm->intypes = intypes;
     inm->outtypes = outtypes;
     inm->in_arg_pool = csoundCreateVarPool(csound);
-    inm->out_arg_pool = csoundCreateVarPool(csound); 
+    inm->out_arg_pool = csoundCreateVarPool(csound);
 
     inm->prv = csound->opcodeInfo;
     csound->opcodeInfo = inm;
