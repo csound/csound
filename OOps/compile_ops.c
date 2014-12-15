@@ -49,7 +49,11 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
 
     orc = (char *) csound->Calloc(csound, size+1);
     fseek(fp, 0, SEEK_SET);
-    (void)fread(orc,1,size,fp);
+    if (UNLIKELY(fread(orc,1,size,fp)!=size)) {
+      fclose(fp);
+      csound->Free(csound,orc);
+      return NOTOK;
+    }
     *p->res = (MYFLT)(csoundCompileOrc(csound, orc));
     fclose(fp);
     csound->Free(csound,orc);
@@ -57,8 +61,8 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
 }
 
 int compile_csd_i(CSOUND *csound, COMPILE *p){
-  *p->res = (MYFLT) csoundCompileCsd(csound, ((STRINGDAT *)p->str)->data);
-   return OK;
+    *p->res = (MYFLT) csoundCompileCsd(csound, ((STRINGDAT *)p->str)->data);
+    return OK;
 }
 
 int compile_str_i(CSOUND *csound, COMPILE *p){

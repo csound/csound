@@ -33,36 +33,38 @@ extern void set_channel_data_ptr(CSOUND *csound, const char *name,
                                  void *ptr, int newSize);
 
 void csoundInputMessage(CSOUND *csound, const char *message){
-  csoundLockMutex(csound->API_lock);
-  csoundInputMessageInternal(csound, message);
-  csoundUnlockMutex(csound->API_lock);
+    csoundLockMutex(csound->API_lock);
+    csoundInputMessageInternal(csound, message);
+    csoundUnlockMutex(csound->API_lock);
 }
 
 void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *ptable){
-  int len;
-  MYFLT *ftab;
+    int len;
+    MYFLT *ftab;
 
-  csoundLockMutex(csound->API_lock);
-  /* in realtime mode init pass is executed in a separate thread, so
-     we need to protect it */
-  if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
-  len = csoundGetTable(csound, &ftab, table);
-  memcpy(ptable, ftab, (size_t) (len*sizeof(MYFLT)));
-  if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
-  csoundUnlockMutex(csound->API_lock);
+    csoundLockMutex(csound->API_lock);
+    /* in realtime mode init pass is executed in a separate thread, so
+       we need to protect it */
+    if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
+    len = csoundGetTable(csound, &ftab, table);
+    if (len>0x0fffffff) len = 0x0fffffff; // As coverity is unhappy
+    memcpy(ptable, ftab, (size_t) (len*sizeof(MYFLT)));
+    if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
+    csoundUnlockMutex(csound->API_lock);
 }
 
 void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *ptable){
-  int len;
-  MYFLT *ftab;
- csoundLockMutex(csound->API_lock);
-  /* in realtime mode init pass is executed in a separate thread, so
-     we need to protect it */
- if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
-  len = csoundGetTable(csound, &ftab, table);
-  memcpy(ftab, ptable, (size_t) (len*sizeof(MYFLT)));
-  if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
-  csoundUnlockMutex(csound->API_lock);
+    int len;
+    MYFLT *ftab;
+    csoundLockMutex(csound->API_lock);
+    /* in realtime mode init pass is executed in a separate thread, so
+       we need to protect it */
+    if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
+    len = csoundGetTable(csound, &ftab, table);
+    if (len>0x0fffffff) len = 0x0fffffff; // As coverity is unhappy
+    memcpy(ftab, ptable, (size_t) (len*sizeof(MYFLT)));
+    if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
+    csoundUnlockMutex(csound->API_lock);
 }
 
 MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
@@ -173,8 +175,8 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
 
 void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
 {
-  MYFLT  *pstring;
-  char *chstring;
+    MYFLT  *pstring;
+    char *chstring;
     int n2;
     if (csoundGetChannelPtr(csound, &pstring, name,
                            CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
