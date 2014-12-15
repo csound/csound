@@ -24,6 +24,7 @@
 #include "csound.h"
 //#include "cs_glue.h"
 #include "csound.hpp"
+#include "csdl.h"
 #include "cs_glue.hpp"
 
 extern "C" {
@@ -438,7 +439,7 @@ CsoundUtilityList::~CsoundUtilityList()
  * returned by csoundGetChannelPtr()), optionally limiting the length to
  * maxLen - 1 characters.
  */
-
+// FIXME - this is broken and does not work with STRINGDAT
 void CsoundMYFLTArray::SetStringValue(const char *s, int maxLen)
 {
     if (p) {
@@ -461,7 +462,7 @@ void CsoundMYFLTArray::SetStringValue(const char *s, int maxLen)
 
 const char * CsoundMYFLTArray::GetStringValue()
 {
-    return (char*) p;
+    return ((STRINGDAT*) p)->data;
 }
 
 /**
