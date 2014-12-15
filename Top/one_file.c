@@ -421,23 +421,26 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
         snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
         if (UNLIKELY(system(sys) != 0)) {
           csoundErrorMsg(csound, Str("External generation failed"));
-          remove(extname);
-          remove(STA(sconame));
+          if (UNLIKELY(remove(extname) || remove(STA(sconame))))
+            csoundErrorMsg(csound, Str("and cannot remove"));
           return FALSE;
         }
-        remove(extname);
+        if (UNLIKELY(remove(extname)))
+          csoundErrorMsg(csound, Str("and cannot remove %s"), extname);
         if (csound->scorestr == NULL)
           csound->scorestr = corfile_create_w();
         fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, STA(sconame),
                                     "r", NULL, CSFTYPE_SCORE, 0);
         if (UNLIKELY(fd == NULL)) {
-          remove(STA(sconame));
+          if (UNLIKELY(remove(STA(sconame))))
+            csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
           return FALSE;
         }
         while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, scof)!= NULL)
           corfile_puts(buffer, csound->scorestr);
         csoundFileClose(csound, fd);
-        remove(STA(sconame));
+          if (UNLIKELY(remove(STA(sconame))))
+            csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
         return TRUE;
       }
       else fputs(buffer, scof);

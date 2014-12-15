@@ -797,7 +797,8 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
 #pragma omp critical (critical_section_fluidopcodes)
     {
-      std::map<CSOUND *, std::vector<fluid_synth_t *> > &fluidEngines = getFluidSynthsForCsoundInstances();
+      std::map<CSOUND *, std::vector<fluid_synth_t *> > &fluidEngines =
+                                      getFluidSynthsForCsoundInstances();
       std::vector<fluid_synth_t *> &fluidSynths = fluidEngines[csound];
 
       for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
