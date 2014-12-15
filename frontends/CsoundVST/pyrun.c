@@ -296,15 +296,18 @@ typedef struct swig_const_info {
 
 #ifdef SWIG_NOINCLUDE
 
-SWIGEXPORT(PyObject *)        SWIG_newvarlink();
-SWIGEXPORT(void)              SWIG_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
-SWIGEXPORT(int)               SWIG_ConvertPtr(PyObject *, void **, swig_type_info *, int);
-SWIGEXPORT(int)               SWIG_ConvertPacked(PyObject *, void *, int sz, swig_type_info *, int);
-SWIGEXPORT(char *)            SWIG_PackData(char *c, void *, int);
-SWIGEXPORT(char *)            SWIG_UnpackData(char *c, void *, int);
-SWIGEXPORT(PyObject *)        SWIG_NewPointerObj(void *, swig_type_info *,int own);
-SWIGEXPORT(PyObject *)        SWIG_NewPackedObj(void *, int sz, swig_type_info *);
-SWIGEXPORT(void)              SWIG_InstallConstants(PyObject *d, swig_const_info constants[]);
+SWIGEXPORT(PyObject *)  SWIG_newvarlink();
+SWIGEXPORT(void)        SWIG_addvarlink(PyObject *, char *, PyObject *(*)(void),
+                                        int (*)(PyObject *));
+SWIGEXPORT(int)         SWIG_ConvertPtr(PyObject *, void **, swig_type_info *, int);
+SWIGEXPORT(int)         SWIG_ConvertPacked(PyObject *, void *, int sz,
+                                           swig_type_info *, int);
+SWIGEXPORT(char *)      SWIG_PackData(char *c, void *, int);
+SWIGEXPORT(char *)      SWIG_UnpackData(char *c, void *, int);
+SWIGEXPORT(PyObject *)  SWIG_NewPointerObj(void *, swig_type_info *,int own);
+SWIGEXPORT(PyObject *)  SWIG_NewPackedObj(void *, int sz, swig_type_info *);
+SWIGEXPORT(void)        SWIG_InstallConstants(PyObject *d,
+                                              swig_const_info constants[]);
 #else
 
 /* -----------------------------------------------------------------------------
@@ -549,7 +552,8 @@ type_error:
 
 /* Convert a packed value value */
 SWIGRUNTIME(int)
-SWIG_ConvertPacked(PyObject *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
+SWIG_ConvertPacked(PyObject *obj, void *ptr, int sz,
+                   swig_type_info *ty, int flags) {
   swig_type_info *tc;
   char  *c;
 
@@ -650,7 +654,8 @@ SWIG_InstallConstants(PyObject *d, swig_const_info constants[]) {
       obj = SWIG_NewPointerObj(constants[i].pvalue, *(constants[i]).ptype,0);
       break;
     case SWIG_PY_BINARY:
-      obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype));
+      obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue,
+                              *(constants[i].ptype));
       break;
     default:
       obj = 0;
