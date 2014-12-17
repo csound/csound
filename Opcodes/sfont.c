@@ -116,10 +116,10 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
       return;
     }
     soundFont = &globals->sfArray[globals->currSFndx];
-    if (UNLIKELY(soundFont==NULL)){
-      csound->ErrorMsg(csound, Str("Sfload: cannot use globals"));
-      return;
-    }
+    /* if (UNLIKELY(soundFont==NULL)){ */
+    /*   csound->ErrorMsg(csound, Str("Sfload: cannot use globals")); */
+    /*   return; */
+    /* } */
     strncpy(soundFont->name, csound->GetFileName(fd), 255);
     soundFont->name[255]='\0';
     if (UNLIKELY(chunk_read(fil, &soundFont->chunk.main_chunk)<0))

@@ -15,6 +15,8 @@ int clean_suite1(void)
 
 #if defined(__WINNT__)
     #include <Windows.h>
+#else
+    #include "unistd.h"
 #endif
 
 void test_perfthread(void)

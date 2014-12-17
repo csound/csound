@@ -400,7 +400,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
         csound->CreateGlobalVariable(csound, "DISKIN_THREAD_START", sizeof(int));
         current = *top;
       }
-      else 
+      else
 #endif
       {
         current = *top;
@@ -1886,7 +1886,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
                                      "DISKIN_THREAD_START_ARRAY", sizeof(int));
         current = *top;
       }
-      else 
+      else
 #endif
       {
         current = *top;

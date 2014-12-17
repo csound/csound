@@ -1002,7 +1002,7 @@ int printksset(CSOUND *csound, PRINTKS *p){
 /*           i = 0; */
 /*           segwaiting = 0; */
 
-/*           /\* prevent potential problems if user didnt give enough input params *\/ */
+/* // prevent potential problems if user didnt give enough input params */
 /*           if (j < numVals-1) */
 /*             j++; */
 /*         } */
