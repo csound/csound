@@ -637,7 +637,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
           *(++bp) = (char)getc(ifd);
         } while (isdigit(*bp) ||
                  *bp=='-' || *bp=='+' || *bp=='.' || *bp=='e' ||*bp=='E');
-        fseek(ifd, -1L, SEEK_CUR);
+        ungetc(*bp, ifd); //fseek(ifd, -1L, SEEK_CUR);
         *bp = '\0';
 #ifndef USE_DOUBLE
         CS_SSCANF(inbuf,"%f", kp);

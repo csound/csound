@@ -1403,7 +1403,7 @@ int init_rfftmult(CSOUND *csound, FFT *p){
     /*if(isPowerOfTwo(N))*/
     tabensure(csound, p->out, N);
     /* else
-       return 
+       return
          csound->InitError(csound, "non-pow-of-two case not implemented yet \n");*/
     return OK;
 }

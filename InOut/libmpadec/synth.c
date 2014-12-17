@@ -613,7 +613,7 @@ static void synth_full24lmm(mpadec_t mpadec, MYFLT *bandptr,
 
 #define synth_full24lsm synth_full24lmm
 
-static void synth_full24lms(mpadec_t mpadec, MYFLT *bandptr, 
+static void synth_full24lms(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
   int i;
@@ -623,7 +623,7 @@ static void synth_full24lms(mpadec_t mpadec, MYFLT *bandptr,
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 6) {
     int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = ((uint8_t *)out)[3] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = ((uint8_t *)out)[4] = (uint8_t)(tmp >> 8);
@@ -662,7 +662,7 @@ static void synth_full24bmm(mpadec_t mpadec, MYFLT *bandptr,
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 3) {
     int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
@@ -682,7 +682,7 @@ static void synth_full24bms(mpadec_t mpadec, MYFLT *bandptr,
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 6) {
     int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = ((uint8_t *)out)[5] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = ((uint8_t *)out)[4] = (uint8_t)(tmp >> 8);
@@ -701,7 +701,7 @@ static void synth_full24bss(mpadec_t mpadec, MYFLT *bandptr,
   if (channel) out += 3;
   for (i = 0; i < SBLIMIT; i++, out += 6) {
     int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[2] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
@@ -711,7 +711,7 @@ static void synth_full24bss(mpadec_t mpadec, MYFLT *bandptr,
 
 /* 32 bit , little-endian */
 
-static void synth_full32lmm(mpadec_t mpadec, MYFLT *bandptr, 
+static void synth_full32lmm(mpadec_t mpadec, MYFLT *bandptr,
                             int channel, uint8_t *buffer)
 {
   int i;
@@ -721,7 +721,7 @@ static void synth_full32lmm(mpadec_t mpadec, MYFLT *bandptr,
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out++) {
     int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; 
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
@@ -742,7 +742,7 @@ static void synth_full32lms(mpadec_t mpadec, MYFLT *bandptr,
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 2) {
     int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; 
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[0] = ((uint8_t *)out)[4] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = ((uint8_t *)out)[5] = (uint8_t)(tmp >> 8);
@@ -804,7 +804,7 @@ static void synth_full32bms(mpadec_t mpadec, MYFLT *bandptr,
   synth_full(mpadec, bandptr, channel, buf);
   for (i = 0; i < SBLIMIT; i++, out += 2) {
     int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; 
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = ((uint8_t *)out)[7] = (uint8_t)tmp;
     ((uint8_t *)out)[2] = ((uint8_t *)out)[6] = (uint8_t)(tmp >> 8);
@@ -824,7 +824,7 @@ static void synth_full32bss(mpadec_t mpadec, MYFLT *bandptr,
   if (channel) out++;
   for (i = 0; i < SBLIMIT; i++, out += 2) {
     int64_t tmp = LLROUND(buf[i]);
-    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF; 
+    if (tmp > 0x7FFFFFFF) tmp = 0x7FFFFFFF;
     else if (tmp < (-0x7FFFFFFF - 1)) tmp = (-0x7FFFFFFF - 1);
     ((uint8_t *)out)[3] = (uint8_t)tmp;
     ((uint8_t *)out)[2] = (uint8_t)(tmp >> 8);
@@ -1128,7 +1128,7 @@ static void synth_half24lss(mpadec_t mpadec, MYFLT *bandptr,
   if (channel) out += 3;
   for (i = 0; i < SBLIMIT/2; i++, out += 6) {
     int32_t tmp = LROUND(buf[i]);
-    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF; 
+    if (tmp > 0x7FFFFF) tmp = 0x7FFFFF;
     else if (tmp < -0x800000) tmp = -0x800000;
     ((uint8_t *)out)[0] = (uint8_t)tmp;
     ((uint8_t *)out)[1] = (uint8_t)(tmp >> 8);
@@ -1473,4 +1473,3 @@ void *synth_table[2][2][4][4] = {
       { synth_half32bmm,  synth_half32bms,  synth_half32bsm,  synth_half32bss  },
       { synth_half32fbmm, synth_half32fbms, synth_half32fbsm, synth_half32fbss } } }
 };
-
