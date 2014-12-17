@@ -127,7 +127,7 @@ int openSLPlayOpen(open_sl_params *params)
   SLuint32 sr = params->outParm.sampleRate;
 
   // configure audio source
-  SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
+  SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_BUFFERQUEUE, 2};
 
   switch(sr){
 
@@ -194,7 +194,7 @@ int openSLPlayOpen(open_sl_params *params)
   SLDataSink audioSnk = {&loc_outmix, NULL};
 
   // create audio player
-  const SLInterfaceID ids1[] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE};
+  const SLInterfaceID ids1[] = {SL_IID_BUFFERQUEUE};
   const SLboolean req1[] = {SL_BOOLEAN_TRUE};
   result = (*params->engineEngine)->CreateAudioPlayer(params->engineEngine, &(params->bqPlayerObject), &audioSrc, &audioSnk,
 						      1, ids1, req1);
@@ -209,7 +209,7 @@ int openSLPlayOpen(open_sl_params *params)
   if(result != SL_RESULT_SUCCESS) goto end_openaudio;
 
   // get the buffer queue interface
-  result = (*params->bqPlayerObject)->GetInterface(params->bqPlayerObject, SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
+  result = (*params->bqPlayerObject)->GetInterface(params->bqPlayerObject, SL_IID_BUFFERQUEUE,
 						   &(params->bqPlayerBufferQueue));
   if(result != SL_RESULT_SUCCESS) goto end_openaudio;
 
@@ -233,7 +233,7 @@ int openSLPlayOpen(open_sl_params *params)
 
 int openSLInitOutParams(open_sl_params *params){
   CSOUND *csound = params->csound;
-  params->outBufSamples  = csound->GetOutputBufferSize(csound);
+  params->outBufSamples  = params->outParm.bufSamp_SW*csound->GetNchnls(csound);
   if((params->outputBuffer = (MYFLT *) calloc(params->outBufSamples, sizeof(MYFLT))) == NULL){
     csound->Message(csound, "memory allocation failure in opensl module \n");
     goto err_return;
@@ -241,6 +241,8 @@ int openSLInitOutParams(open_sl_params *params){
   if((params->outcb = csoundCreateCircularBuffer(csound, params->outParm.bufSamp_HW*csound->GetNchnls(csound), sizeof(MYFLT))) == NULL) {
     return -1; 
   }
+
+  csound->Message(csound, "HW buffersize = %d, SW = %d \n", params->outParm.bufSamp_HW, params->outParm.bufSamp_SW);
   memset(params->outputBuffer, 0, params->outBufSamples*sizeof(MYFLT));
   return OK;
 
@@ -415,7 +417,7 @@ int openSLRecOpen(open_sl_params *params){
 
 int openSLInitInParams(open_sl_params *params){
   CSOUND *csound = params->csound;
-  params->inBufSamples  = csound->GetInputBufferSize(csound);
+  params->inBufSamples  = params->inParm.bufSamp_SW*csound->GetNchnls(csound);
   if((params->inputBuffer = (MYFLT *)calloc(params->inBufSamples, sizeof(MYFLT))) == NULL){
     csound->Message(params->csound, "memory allocation failure in opensl module \n");
     return -1;
