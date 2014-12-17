@@ -388,7 +388,7 @@ static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
 #else
     memset(p->x0, 0, 5*len*sizeof(MYFLT));
 #endif
-           
+
     /* ... according to scheme */
     if ((int)*p->i_init < 0) {
       int res;
@@ -758,4 +758,3 @@ int scansynx_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

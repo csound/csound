@@ -494,7 +494,7 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
         FUNC *ftp;
-       
+
         if ((ftp = ft_func(csound, *argp)) != NULL) {
           int32 flen = ftp->flen;
           int32 j;

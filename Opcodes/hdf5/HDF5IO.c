@@ -406,7 +406,7 @@ int HDF5Write_process(CSOUND *csound, HDF5Write *self)
 //
 // Check that the datasets exist
 // Iterate through the datasets, if a-rate, set the size to be the
-// same as current offset 
+// same as current offset
 // Set the set extent of the dataset to the size
 // Close the datasets, then close the file
 
@@ -743,7 +743,7 @@ void HDF5Write_createDatasets(CSOUND *csound, HDF5Write *self)
 // Check that input == output arguments and input arguments are strings,
 // output not strings
 // Register the finish callback to close the hdf5 file when
-// performance is finished 
+// performance is finished
 // Check csound is running in sample accurate mode
 // Get the path string from the first argument
 // Open the hdf5 file then open the hdf5 datasets
