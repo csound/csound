@@ -232,7 +232,7 @@ static uint32_t sync_buffer(mpadec_t mpadec)
           if (mpa->config.dblsync) {
             if (decode_header(mpa, tmp)) {
               if ((i < (mpa->frame.frame_size + 4)) ||
-		  (mpa->free_format && !mpa->prev_frame_size)) { 
+                  (mpa->free_format && !mpa->prev_frame_size)) {
                 break;
               }
               else {
@@ -260,7 +260,7 @@ static uint32_t sync_buffer(mpadec_t mpadec)
           }
         }
         buf++; i--;
-       
+
       }
     } else {
       while (i >= 4) {
@@ -298,7 +298,7 @@ static int first_frame(mpadec_t mpadec)
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     int i, skip = FALSE;
     uint32_t framesize; MYFLT scale;
-    
+
     if (mpa->frame.channels > 1)
       i = ((mpa->config.mode == MPADEC_CONFIG_STEREO) ||
            (mpa->config.mode == MPADEC_CONFIG_AUTO)) ? 3 : 2;
@@ -481,9 +481,12 @@ int mpadec_configure(mpadec_t mpadec, mpadec_config_t *cfg)
 
     if (mpa && (mpa->size == sizeof(struct mpadec_t))) {
       if (!cfg) return MPADEC_RETCODE_INVALID_PARAMETERS;
-      if ((cfg->quality > MPADEC_CONFIG_HALF_QUALITY) || (cfg->mode > MPADEC_CONFIG_CHANNEL2) ||
-          (cfg->format > MPADEC_CONFIG_FLOAT) || (cfg->endian > MPADEC_CONFIG_BIG_ENDIAN) ||
-          (cfg->replaygain > MPADEC_CONFIG_REPLAYGAIN_CUSTOM)) return MPADEC_RETCODE_INVALID_PARAMETERS;
+      if ((cfg->quality > MPADEC_CONFIG_HALF_QUALITY) ||
+          (cfg->mode > MPADEC_CONFIG_CHANNEL2) ||
+          (cfg->format > MPADEC_CONFIG_FLOAT) ||
+          (cfg->endian > MPADEC_CONFIG_BIG_ENDIAN) ||
+          (cfg->replaygain > MPADEC_CONFIG_REPLAYGAIN_CUSTOM))
+        return MPADEC_RETCODE_INVALID_PARAMETERS;
       mpa->config.quality = cfg->quality;
       mpa->config.mode = cfg->mode;
       mpa->config.format = cfg->format;
@@ -499,9 +502,11 @@ int mpadec_configure(mpadec_t mpadec, mpadec_config_t *cfg)
         if (mpa->tag_info.flags) {
           if (mpa->config.replaygain == MPADEC_CONFIG_REPLAYGAIN_RADIO) {
             mpa->config.gain = ((MYFLT)mpa->tag_info.replay_gain[0])/10.0;
-          } else if (mpa->config.replaygain == MPADEC_CONFIG_REPLAYGAIN_AUDIOPHILE) {
-            mpa->config.gain = ((MYFLT)mpa->tag_info.replay_gain[1])/10.0;
           }
+          else
+            if (mpa->config.replaygain == MPADEC_CONFIG_REPLAYGAIN_AUDIOPHILE) {
+              mpa->config.gain = ((MYFLT)mpa->tag_info.replay_gain[1])/10.0;
+            }
         }
       }
       mpa->replay_gain = pow(10.0, mpa->config.gain/20.0);
@@ -512,13 +517,18 @@ int mpadec_configure(mpadec_t mpadec, mpadec_config_t *cfg)
       default:                  scale = 0x8000; break;
       }
       sblimit = SBLIMIT >> mpa->config.quality;
-      if (mpa->config.replaygain != MPADEC_CONFIG_REPLAYGAIN_NONE) scale *= mpa->replay_gain;
+      if (mpa->config.replaygain != MPADEC_CONFIG_REPLAYGAIN_NONE)
+        scale *= mpa->replay_gain;
       init_tables(mpa, scale, sblimit);
       if ((mpa->state > MPADEC_STATE_START) && mpa->header) {
         decode_header(mpa, mpa->header);
-        if (mpa->frame.channels < 2) i = (mpa->config.mode == MPADEC_CONFIG_STEREO) ? 1 : 0;
-        else i = ((mpa->config.mode == MPADEC_CONFIG_STEREO) || (mpa->config.mode == MPADEC_CONFIG_AUTO)) ? 3 : 2;
-        mpa->synth_func = synth_table[mpa->config.quality][mpa->config.endian][mpa->config.format][i];
+        if (mpa->frame.channels < 2)
+          i = (mpa->config.mode == MPADEC_CONFIG_STEREO) ? 1 : 0;
+        else i = ((mpa->config.mode == MPADEC_CONFIG_STEREO) ||
+                  (mpa->config.mode == MPADEC_CONFIG_AUTO)) ? 3 : 2;
+        mpa->synth_func =
+          synth_table[mpa->config.quality][mpa->config.endian]
+          [mpa->config.format][i];
         mpa->sample_size = mpa->frame.decoded_channels;
         switch (mpa->config.format) {
         case MPADEC_CONFIG_24BIT: mpa->sample_size *= 3; break;
@@ -536,7 +546,8 @@ int mpadec_get_info(mpadec_t mpadec, void *info, int info_type)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
 
-    if (!mpa || (mpa->size != sizeof(struct mpadec_t))) return MPADEC_RETCODE_INVALID_HANDLE;
+    if (!mpa || (mpa->size != sizeof(struct mpadec_t)))
+      return MPADEC_RETCODE_INVALID_HANDLE;
     if (!info) return MPADEC_RETCODE_INVALID_PARAMETERS;
     if (info_type == MPADEC_INFO_CONFIG) {
       register mpadec_config_t *cfg = (mpadec_config_t *)info;
@@ -577,7 +588,8 @@ int mpadec_get_info(mpadec_t mpadec, void *info, int info_type)
         inf->decoded_frame_samples = mpa->frame.decoded_samples;
         if (mpa->tag_info.flags & 1) {
           inf->frames = mpa->tag_info.frames;
-          inf->duration = (mpa->tag_info.frames*mpa->frame.frame_samples + (mpa->frame.frequency >> 1))/mpa->frame.frequency;
+          inf->duration = (mpa->tag_info.frames*mpa->frame.frame_samples +
+                           (mpa->frame.frequency >> 1))/mpa->frame.frequency;
         } else {
           inf->frames = 0;
           inf->duration = 0;
@@ -587,7 +599,9 @@ int mpadec_get_info(mpadec_t mpadec, void *info, int info_type)
     return MPADEC_RETCODE_OK;
 }
 
-int mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t *dstbuf, uint32_t dstsize, uint32_t *srcused, uint32_t *dstused)
+int mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
+                  uint8_t *dstbuf, uint32_t dstsize, uint32_t *srcused,
+                  uint32_t *dstused)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     int retcode = MPADEC_RETCODE_OK;
@@ -596,9 +610,11 @@ int mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t *d
     if (srcused) *srcused = 0;
     if (dstused) *dstused = 0;
     if (!dstbuf) dstsize = 0;
-    if (!mpa || (mpa->size != sizeof(struct mpadec_t))) return MPADEC_RETCODE_INVALID_HANDLE;
+    if (!mpa || (mpa->size != sizeof(struct mpadec_t)))
+      return MPADEC_RETCODE_INVALID_HANDLE;
     if (mpa->state < MPADEC_STATE_START) return MPADEC_RETCODE_BAD_STATE;
-    if (!srcbuf || ((mpa->state > MPADEC_STATE_START) && !dstbuf )) return MPADEC_RETCODE_INVALID_PARAMETERS;
+    if (!srcbuf || ((mpa->state > MPADEC_STATE_START) && !dstbuf ))
+      return MPADEC_RETCODE_INVALID_PARAMETERS;
     mpa->next_byte = srcbuf;
     mpa->bytes_left = srcsize;
     while (mpa->bytes_left >= 4) {
@@ -610,16 +626,20 @@ int mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t *d
         break;
       }
       decode_header(mpa, mpa->header);
-      if ((mpa->bytes_left < mpa->frame.frame_size) || (mpa->free_format && !mpa->prev_frame_size)) {
+      if ((mpa->bytes_left < mpa->frame.frame_size) ||
+          (mpa->free_format && !mpa->prev_frame_size)) {
         retcode =  MPADEC_RETCODE_NEED_MORE_DATA;
         break;
       }
       if (mpa->state == MPADEC_STATE_START) {
         if (first_frame(mpa)) continue;
-      } else if ((mpa->frame.layer == 3) && (mpa->frame.frame_size >= (mpa->ssize + 12))) {
+      } else if ((mpa->frame.layer == 3) &&
+                 (mpa->frame.frame_size >= (mpa->ssize + 12))) {
         register uint8_t *buf = mpa->next_byte + 4 + mpa->ssize;
-        if (((buf[0] == 'X') && (buf[1] == 'i') && (buf[2] == 'n') && (buf[3] == 'g')) ||
-            ((buf[0] == 'I') && (buf[1] == 'n') && (buf[2] == 'f') && (buf[3] == 'o'))) {
+        if (((buf[0] == 'X') && (buf[1] == 'i') &&
+             (buf[2] == 'n') && (buf[3] == 'g')) ||
+            ((buf[0] == 'I') && (buf[1] == 'n') &&
+             (buf[2] == 'f') && (buf[3] == 'o'))) {
           mpa->next_byte += mpa->frame.frame_size;
           mpa->bytes_left -= mpa->frame.frame_size;
           continue;
@@ -662,7 +682,8 @@ int mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t *d
           decoded_size -= mpa->frame.decoded_size - tmp;
           mpa->skip_samples = 0;
         }
-      } else if ((mpa->padding_samples) && (mpa->decoded_samples > mpa->padding_start)) {
+      } else if ((mpa->padding_samples) &&
+                 (mpa->decoded_samples > mpa->padding_start)) {
         uint32_t tmp = mpa->decoded_samples - mpa->padding_start;
         if (tmp > mpa->padding_samples) tmp = mpa->padding_samples;
         mpa->padding_start += tmp;
@@ -676,8 +697,10 @@ int mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t *d
   }
   if (srcused) *srcused = srcsize - mpa->bytes_left;
   if (dstused) *dstused = decoded_size;
-  if ((retcode == MPADEC_RETCODE_OK) && mpa->bytes_left) retcode = MPADEC_RETCODE_NEED_MORE_DATA;
-  if (!dstbuf && (retcode == MPADEC_RETCODE_BUFFER_TOO_SMALL)) retcode = MPADEC_RETCODE_OK;
+  if ((retcode == MPADEC_RETCODE_OK) && mpa->bytes_left)
+    retcode = MPADEC_RETCODE_NEED_MORE_DATA;
+  if (!dstbuf && (retcode == MPADEC_RETCODE_BUFFER_TOO_SMALL))
+    retcode = MPADEC_RETCODE_OK;
   return retcode;
 }
 
@@ -698,7 +721,8 @@ char *mpadec_error(int code)
 
 mpadec2_t mpadec2_init(void)
 {
-  register struct mpadec2_t *mpa = (struct mpadec2_t *)malloc(sizeof(struct mpadec2_t));
+  register struct mpadec2_t *mpa =
+    (struct mpadec2_t *)malloc(sizeof(struct mpadec2_t));
 
   if (!mpa) return NULL;
   mpa->size = sizeof(struct mpadec2_t);
@@ -753,7 +777,8 @@ int mpadec2_configure(mpadec2_t mpadec, mpadec_config_t *cfg)
 {
   register struct mpadec2_t *mpa = (struct mpadec2_t *)mpadec;
 
-  if (!mpa || (mpa->size != sizeof(struct mpadec2_t))) return MPADEC_RETCODE_INVALID_HANDLE;
+  if (!mpa || (mpa->size != sizeof(struct mpadec2_t)))
+    return MPADEC_RETCODE_INVALID_HANDLE;
   mpa->out_buffer_offset = mpa->out_buffer_used = 0;
   return (mpadec_configure(mpa->mpadec, cfg));
 }
@@ -762,18 +787,22 @@ int mpadec2_get_info(mpadec2_t mpadec, void *info, int info_type)
 {
   register struct mpadec2_t *mpa = (struct mpadec2_t *)mpadec;
 
-  if (!mpa || (mpa->size != sizeof(struct mpadec2_t))) return MPADEC_RETCODE_INVALID_HANDLE;
+  if (!mpa || (mpa->size != sizeof(struct mpadec2_t)))
+    return MPADEC_RETCODE_INVALID_HANDLE;
   return (mpadec_get_info(mpa->mpadec, info, info_type));
 }
 
-int mpadec2_decode(mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t *dstbuf, uint32_t dstsize, uint32_t *dstused)
+int mpadec2_decode(mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
+                   uint8_t *dstbuf, uint32_t dstsize, uint32_t *dstused)
 {
   register struct mpadec2_t *mpa = (struct mpadec2_t *)mpadec;
   uint32_t n, src_used, dst_used; int r;
 
   if (dstused) *dstused = 0;
-  if (!mpa || (mpa->size != sizeof(struct mpadec2_t))) return MPADEC_RETCODE_INVALID_HANDLE;
-  if (((struct mpadec_t *)mpa->mpadec)->state < MPADEC_STATE_START) return MPADEC_RETCODE_BAD_STATE;
+  if (!mpa || (mpa->size != sizeof(struct mpadec2_t)))
+    return MPADEC_RETCODE_INVALID_HANDLE;
+  if (((struct mpadec_t *)mpa->mpadec)->state < MPADEC_STATE_START)
+    return MPADEC_RETCODE_BAD_STATE;
   if (srcbuf && srcsize) {
     struct mpabuffer_t *last = mpa->buffers, *buf;
     if (last) {
@@ -814,13 +843,16 @@ int mpadec2_decode(mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t 
       if (dstused) *dstused += n;
     }
     if (!dstsize) break;
-    if (mpa->in_buffer_used && mpa->in_buffer_offset) memmove(mpa->in_buffer, mpa->in_buffer + mpa->in_buffer_offset, mpa->in_buffer_used);
+    if (mpa->in_buffer_used && mpa->in_buffer_offset)
+      memmove(mpa->in_buffer,
+              mpa->in_buffer + mpa->in_buffer_offset, mpa->in_buffer_used);
     mpa->in_buffer_offset = 0;
     while (buf && (mpa->in_buffer_used < sizeof(mpa->in_buffer))) {
       if (buf->used) {
         n = sizeof(mpa->in_buffer) - mpa->in_buffer_used;
         if (n > buf->used) n = buf->used;
-        memcpy(mpa->in_buffer + mpa->in_buffer_offset + mpa->in_buffer_used, buf->buffer + buf->offset, n);
+        memcpy(mpa->in_buffer + mpa->in_buffer_offset + mpa->in_buffer_used,
+               buf->buffer + buf->offset, n);
         buf->offset += n;
         buf->used -= n;
         mpa->in_buffer_used += n;
@@ -832,7 +864,8 @@ int mpadec2_decode(mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t 
       }
     }
     mpa->buffers = buf;
-    r = mpadec_decode(mpa->mpadec, mpa->in_buffer + mpa->in_buffer_offset, mpa->in_buffer_used, dstbuf, dstsize, &src_used, &dst_used);
+    r = mpadec_decode(mpa->mpadec, mpa->in_buffer + mpa->in_buffer_offset,
+                      mpa->in_buffer_used, dstbuf, dstsize, &src_used, &dst_used);
     mpa->in_buffer_offset += src_used;
     mpa->in_buffer_used -= src_used;
     dstbuf += dst_used;
@@ -840,7 +873,9 @@ int mpadec2_decode(mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t 
     if (dstused) *dstused += dst_used;
     if (r == MPADEC_RETCODE_BUFFER_TOO_SMALL) {
       mpa->out_buffer_offset = mpa->out_buffer_used = 0;
-      mpadec_decode(mpa->mpadec, mpa->in_buffer + mpa->in_buffer_offset, mpa->in_buffer_used, mpa->out_buffer, sizeof(mpa->out_buffer), &src_used, &mpa->out_buffer_used);
+      mpadec_decode(mpa->mpadec, mpa->in_buffer + mpa->in_buffer_offset,
+                    mpa->in_buffer_used, mpa->out_buffer, sizeof(mpa->out_buffer),
+                    &src_used, &mpa->out_buffer_used);
       mpa->in_buffer_offset += src_used;
       mpa->in_buffer_used -= src_used;
       if (!mpa->out_buffer_used) break;
@@ -848,4 +883,3 @@ int mpadec2_decode(mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize, uint8_t 
   }
   return MPADEC_RETCODE_OK;
 }
-

@@ -26,7 +26,7 @@ int scope(CSOUND *csound)
       csound_prslex_init(&qq.yyscanner);
       csound_prsset_extra(&qq, qq.yyscanner);
       //printf("depth = %d\n", qq.depth);
-      
+
       csound->expanded_sco = corfile_create_w();
       //printf("Input:\n%s<<<n", corfile_body(csound->sreadStatics.str->cf));
       snprintf(buff, 1024, "#source %d\n",
@@ -54,7 +54,7 @@ int scope(CSOUND *csound)
       csound_scoset_extra(&pp, pp.yyscanner);
       csound_sco_scan_buffer(corfile_body(csound->expanded_sco),
                              corfile_tell(csound->expanded_sco), pp.yyscanner);
-      csound_scodebug = 0;      
+      csound_scodebug = 0;
       err = csound_scoparse(&pp, pp.yyscanner, csound, scoTree);
       corfile_rm(&csound->expanded_sco);
       if (LIKELY(err == 0))
@@ -68,7 +68,6 @@ int scope(CSOUND *csound)
         }
       }
     }
-#endif     
+#endif
     return 0;
 }
-

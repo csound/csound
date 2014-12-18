@@ -801,7 +801,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
       int NB = 1+N/2;
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t n, nsmps = CS_KSMPS;
-    
+
       p->fout->NB = NB;
       p->fout->sliding = 1;
       if (p->fout->frame.auxp == NULL ||
