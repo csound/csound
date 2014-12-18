@@ -320,7 +320,7 @@ static int delete_channel_db(CSOUND *csound, void *p)
           if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
             csound->Free(csound, entry->hints.attributes);
           }
-          /* SY - 2014.07.14 - Don't free entry->data and rely on Csound memory db 
+          /* SY - 2014.07.14 - Don't free entry->data and rely on Csound memory db
             to free it; fixes issue with RTTI and chnexport of a global var, which
             maps to the CS_VAR_MEM's memblock, which is not what is allocated; other
            vars will be freed since they were Calloc'd */
@@ -1386,7 +1386,8 @@ int invalset_string_S(CSOUND *csound, INVAL *p)
     p->channelType = &CS_VAR_TYPE_S;
     type = CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr), (char*) p->channelName.auxp,
+    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr),
+                              (char*) p->channelName.auxp,
                               type);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
@@ -1416,7 +1417,8 @@ int invalset_S(CSOUND *csound, INVAL *p)
     p->channelType = &CS_VAR_TYPE_K;
     type = CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr), (char*) p->channelName.auxp,
+    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr),
+                              (char*) p->channelName.auxp,
                               type);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
@@ -1442,7 +1444,7 @@ int invalsetSgo(CSOUND *csound, INVAL *p)
     if (ans==OK) ans = kinval(csound, p);
     return ans;
 }
-    
+
 
 int invalset_string(CSOUND *csound, INVAL *p)
 {
@@ -1456,7 +1458,8 @@ int invalset_string(CSOUND *csound, INVAL *p)
     p->channelType = &CS_VAR_TYPE_S;
     type = CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr), (char*) p->channelName.auxp,
+    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr),
+                              (char*) p->channelName.auxp,
                               type);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
@@ -1482,7 +1485,8 @@ int invalset(CSOUND *csound, INVAL *p)
     p->channelType = &CS_VAR_TYPE_K;
     type = CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr), (char*) p->channelName.auxp,
+    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr),
+                              (char*) p->channelName.auxp,
                               type);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
@@ -1639,4 +1643,3 @@ int outvalsetSgo(CSOUND *csound, OUTVAL *p)
     if (ans==OK) ans = koutval(csound,p);
     return ans;
 }
-

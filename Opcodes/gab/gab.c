@@ -199,8 +199,7 @@ static int fastabi(CSOUND *csound, FASTAB *p)
     else
       i = (int32) *p->xndx;
     if (UNLIKELY(i >= (int32)ftp->flen || i<0)) {
-      return csound->PerfError(csound, p->h.insdshead,
-                               Str("tab_i off end: table number: %d\n"),
+      return csound->InitError(csound, Str("tab_i off end: table number: %d\n"),
                                (int) *p->xfn);
     }
     *p->rslt =  ftp->ftable[i];

@@ -93,7 +93,7 @@ int main(int argc, char **argv)
     if (UNLIKELY(hdr.headersize>100)) hdr.headersize = 101;
     for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);
-    if (UNLIKELY(hdr.headersize > 100)) 
+    if (UNLIKELY(hdr.headersize > 100))
       putc('\n', outf);
     if (hdr.npoles+hdr.nvals > 0 && hdr.npoles > 0) {
       coef = (MYFLT *)malloc((hdr.npoles+hdr.nvals)*sizeof(MYFLT));
