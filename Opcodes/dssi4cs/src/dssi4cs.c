@@ -32,6 +32,7 @@
 #endif
 #define DSSI4CS_MAX_NUM_EVENTS 128
 
+#if !defined(HAVE_STRLCAT) && !defined(strlcat)
 size_t
 strlcat(char *dst, const char *src, size_t siz)
 {
@@ -59,6 +60,7 @@ strlcat(char *dst, const char *src, size_t siz)
 
     return (dlen + (s - src));  /* count does not include NUL */
 }
+#endif
 
 //static const char   *version = "0.1alpha";
 
@@ -231,7 +233,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
     CS_TYPE* argType = csound->GetTypeForArg(p->iplugin);
-    
+
     if(strcmp("S", argType->varTypeName) == 0)
       strncpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME-1);
     else

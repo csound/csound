@@ -324,9 +324,9 @@ PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable
         while(item != NULL) {
             CS_HASH_TABLE_ITEM* next = item->next;
             csound->Free(csound, item->key);
-            
+
             /* NOTE: This needs to be free, not csound->Free.
-               To use mfree on keys, use cs_hash_table_mfree_complete 
+               To use mfree on keys, use cs_hash_table_mfree_complete
                TODO: Check if this is even necessary anymore... */
             free(item->value);
             csound->Free(csound, item);

@@ -77,7 +77,7 @@ int seedrand(CSOUND *csound, PRAND *p)
 {
     uint32_t  seedVal = (uint32_t)0;
     int32 xx = (int32)((double)*p->out + 0.5);
-    
+
     if (xx > FL(0.0))
       seedVal = (uint32_t)xx;
     else if (xx==0) {

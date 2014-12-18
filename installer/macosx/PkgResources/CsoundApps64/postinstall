@@ -3,5 +3,10 @@
 #/usr/local/bin/Reza -i APPL -o /usr/local/bin/cswish /usr/local/bin/cs5.r
 
 #/bin/ln -sF /Library/Frameworks/CsoundLib64.framework/Versions/Current/TclTk/tclcsound.dylib /usr/local/lib/tclcsound.dylib
+
+if [ ! -d "/usr/local/lib" ]; then
+  /bin/mkdir /usr/local/lib
+fi
+
 /bin/ln -sF /Library/Frameworks/CsoundLib64.framework/Versions/Current/libcsnd6.6.0.dylib /usr/local/lib/libcsnd6.6.0.dylib
 /bin/ln -sF /Library/Frameworks/CsoundLib64.framework/Versions/Current/libCsoundAC.6.0.dylib /usr/local/lib/libCsoundAC.6.0.dylib

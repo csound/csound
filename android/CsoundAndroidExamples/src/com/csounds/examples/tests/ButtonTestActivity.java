@@ -28,6 +28,7 @@ package com.csounds.examples.tests;
 import java.io.File;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -42,6 +43,9 @@ import com.csounds.CsoundObjListener;
 import com.csounds.bindings.ui.CsoundUI;
 import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
+
+import android.content.Context;
+import android.media.AudioManager;
 
 public class ButtonTestActivity extends BaseCsoundActivity implements
 		CsoundObjListener {
@@ -60,6 +64,17 @@ public class ButtonTestActivity extends BaseCsoundActivity implements
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		
+		
+	
+		/*AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		String sampleRate = am.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+		String framesPerBuffer =
+		am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+
+		Log.d("CSOUNDAPP", sampleRate);
+		Log.d("CSOUNDAPP", framesPerBuffer);
+		*/
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.button_test);
 
