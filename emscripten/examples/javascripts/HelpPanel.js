@@ -39,13 +39,11 @@ define('HelpPanel', [], function() {
 
 				stack.push(elementText);
 				helpTextDiv.innerHTML = stack[stack.length - 1];
-				console.log(stack);
 			}
 
 			element.onmouseleave = function(e) {
 				stack.pop();
 				helpTextDiv.innerHTML = stack[stack.length - 1];
-				console.log(stack);
 			}
 
 		}
