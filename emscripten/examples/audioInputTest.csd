@@ -1,24 +1,22 @@
 <CsoundSynthesizer>
 <CsOptions>
--odac
+-o dac -+rtmidi=null -+rtaudio=null -d -+msg_color=0 -M0 -m0
 </CsOptions>
 <CsInstruments>
 nchnls = 2
+nchnls_i = 1
 0dbfs = 1
-ksmps = 256
-sr = 44100
 
-instr VCO2
+instr Input
 
-    aVar oscili 0.2, 100, 1
-    outs aVar, aVar
+	aIn in
+	outs aIn, aIn
 endin
 
 
 </CsInstruments>
 <CsScore>
-f1 0 128 10 1
-i "VCO2" 0 1
+i "Input" 0 10
 
 </CsScore>
 </CsoundSynthesizer>
