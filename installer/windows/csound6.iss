@@ -15,14 +15,14 @@
 ; I hope to change this soon.
 
 ; Uncomment the following line to build for Cabbage, CsoundVST, and vst4cs.
-;#define CSOUNDVST
+#define CSOUNDVST
 
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.04.rc0-vst"
+#define MyAppMinVersion "6.04.0-vst"
 #else
-#define MyAppMinVersion "6.04.rc0"
+#define MyAppMinVersion "6.04.0"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
