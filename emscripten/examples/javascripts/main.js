@@ -1,42 +1,83 @@
-//Module['noExitRuntime'] = true;
-//Module['_main'] = function() {
+/*
+ * C S O U N D
+ *
+ * L I C E N S E
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
-	const csdFileName = "input.csd";
-	const csound = new CsoundObj(true);
+require.config({
+	shim : {
+		"bootstrap" : { "deps" :['jquery']  },
+		"libcsound":"libcsound"
 
-	var uploadCSD = function(evt) {
-
-		var fileReader = new FileReader();
-		var files = evt.target.files;
-		file = files[0];
-		fileReader.readAsBinaryString(file);
-
-		fileReader.onload = function(e) {
-
-			FS.createDataFile('/', csdFileName, e.target.result, true, false);
-		}
+	},
+	paths: {
+		ace: "ace",
+		"jquery" : "jquery",
+		"bootstrap" :  "bootstrap.min" ,
+		"libcsound":"libcsound"	
 	}
+});
 
-	document.getElementById('files').addEventListener('change', uploadCSD, false);
-	document.getElementById('Compile').addEventListener('click', compile, false);
+require(["jquery", "bootstrap", "libcsound", "InputPanel", "ConsolePanel", "FileManager", "FilePanel", "HelpPanel", "EditorPanel"], main);
 
-	function compile() {
 
-		csound.compileCSD(csdFileName);
-	}
-	
-	document.getElementById('Start').addEventListener('click', start, false);
+function main() {
 
-	function start() {
+	var ConsolePanel = require('ConsolePanel');
+	var HelpPanel = require('HelpPanel');
+	var EditorPanel = require('EditorPanel');
+	var FilePanel = require('FilePanel');
+	var InputPanel = require('InputPanel');
+	Module['noExitRuntime'] = true;
 
-		csound.start();
-	}
+	Module['_main'] = function() {
 
-	document.getElementById('Stop').addEventListener('click', stop, false);
+		var consolePanel = new ConsolePanel();
+		consolePanel.print("Welcome to Csound Emscripten!");
 
-	function stop() {
+		Module['print'] = Module['printErr'] = consolePanel.print 
+		const csound = new CsoundObj();
 
-		csound.stop();
-	}
-//};
+		var inputPanel = new InputPanel(csound);
+		var allowedFileExtensions = ["csd", "wav", "orc"];
+		const fileManager = new FileManager(allowedFileExtensions, Module["print"]);
+
+		var editorPanel = new EditorPanel(csound, fileManager);
+		var filePanel = new FilePanel(fileManager, editorPanel.onClickFunction);
+		var fileUploadedCallback = function() {
+
+			filePanel.populateList();
+		};
+
+		fileManager.fileUploadFromServer("controlInputTest.csd", fileUploadedCallback);
+		fileManager.fileUploadFromServer("test.orc", fileUploadedCallback);
+		fileManager.fileUploadFromServer("audioInputTest.csd", fileUploadedCallback);
+		fileManager.fileUploadFromServer("Boulanger-Trapped_in_Convert.csd", fileUploadedCallback);
+		
+		fileUploadedCallback = function() {
+
+			filePanel.populateList();
+			filePanel.fileLinks[0].click();
+		};
+
+		fileManager.fileUploadFromServer("midiInputTest.csd", fileUploadedCallback);
+
+
+		var helpPanel = new HelpPanel(editorPanel.orcEditorDiv, editorPanel.scoEditorDiv, filePanel.fileNameDiv);
+	};
+};
 
