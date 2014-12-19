@@ -1,14 +1,40 @@
-var CsoundObj = function(printLog) {
+/*
+ * C S O U N D
+ *
+ * L I C E N S E
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ */
+
+var CsoundObj = function() {
 
 	var that = this;
-	var _new = cwrap('CsoundObj_new', ['number'], ['number', 'number']);
+	var _new = cwrap('CsoundObj_new', ['number'], null);
 	var _compileCSD = cwrap('CsoundObj_compileCSD', null, ['number', 'string', 'number']);
-	var _process = cwrap('CsoundObj_process', ['number'], ['number', 'number', 'number']);
+	var _evaluateCode = cwrap('CsoundObj_evaluateCode', ['number'], ['number', 'string']);
+	var _readScore = cwrap('CsoundObj_readScore', ['number'], ['number', 'string']);
 	var _reset = cwrap('CsoundObj_reset', null, ['number']);
+	var _getOutputBuffer = cwrap('CsoundObj_getOutputBuffer', ['number'], ['number']);
+	var _getInputBuffer = cwrap('CsoundObj_getInputBuffer', ['number'], ['number']);
+	var _getControlChannel = cwrap('CsoundObj_getControlChannel', ['number'], ['number', 'string']);
+	var _setControlChannel = cwrap('CsoundObj_setControlChannel', null, ['number', 'string', 'number']);
+	var _getKsmps = cwrap('CsoundObj_getKsmps', ['number'], ['number']);
+	var _performKsmps = cwrap('CsoundObj_performKsmps', ['number'], ['number']);
+	var _render = cwrap('CsoundObj_render', null, ['number']);
 	var _getInputChannelCount = cwrap('CsoundObj_getInputChannelCount', ['number'], ['number']);
 	var _getOutputChannelCount = cwrap('CsoundObj_getOutputChannelCount', ['number'], ['number']);
-	var bufferSize = 256.;
-	var _self = _new(bufferSize, printLog);
+	var _getZerodBFS = cwrap('CsoundObj_getZerodBFS', ['number'], ['number']);
+	var _setMidiCallbacks = cwrap('CsoundObj_setMidiCallbacks', null, ['number']);
+	var _pushMidiMessage = cwrap('CsoundObj_pushMidiMessage', null, ['number', 'number', 'number', 'number']);
+	var bufferSize = 256;
+	var _self = _new();
 
 	var getAudioContext = function() {
 
@@ -22,84 +48,205 @@ var CsoundObj = function(printLog) {
 		}
 	};
 
+	var microphoneNode = null;
+
+	this.disableAudioInput = function (){
+
+		microphoneNode = null;
+	}
+
+	this.enableAudioInput = function(audioInputCallback) {
+
+		window.navigator = window.navigator || {};
+		navigator.getUserMedia = navigator.getUserMedia||navigator.webkitGetUserMedia ||navigator.mozGetUserMedia||null;
+
+		if (navigator.getUserMedia === null) {
+
+			Module['print']("Audio Input not supported in this browser");
+			audioInputCallback(false);
+		}	
+		else{
+			function onSuccess(stream) {
+
+				microphoneNode = audioContext.createMediaStreamSource(stream);	
+				audioInputCallback(true);
+			};
+			function onFailure(error) {
+
+				microphoneNode = null;	
+				audioInputCallback(false);
+				Module['print']("Could not initialise audio input, error:" +  error); 
+			};
+			navigator.getUserMedia({audio:true}, onSuccess, onFailure);
+		}		
+
+	};
+
+	this.enableMidiInput = function(midiInputCallback) {
+
+		var handleMidiInput = function(event) {
+
+			_pushMidiMessage(_self, event.data[0], event.data[1], event.data[2]);	
+		};
+
+		var midiSuccess = function(midiInterface) {
+
+			var inputs = midiInterface.inputs.values();
+
+			for (var input = inputs.next(); input && !input.done; input = inputs.next() ){
+
+				input = input.value;
+				input.onmidimessage = handleMidiInput;
+			}
+			_setMidiCallbacks(_self);
+			midiInputCallback(true);
+		};
+
+		var midiFail = function(error) {
+
+			Module['print']("MIDI failed to start, error:" + error);
+			midiInputCallback(false);
+		};
+		if (navigator.requestMIDIAccess) {
+
+			navigator.requestMIDIAccess().then(midiSuccess, midiFail);
+		}
+		else {
+
+			Module['print']("MIDI not supported in this browser");
+			midiInputCallback(false);
+		}	
+	};
+
+
 	var audioContext = getAudioContext();
 	var samplerate = audioContext.sampleRate;
+	var compiled = false;
 
 	this.compileCSD = function(filePath) {
 
-		_compileCSD(_self, filePath, 44100);
+		_compileCSD(_self, filePath, samplerate);
+		compiled = true;
 	};
+
+	this.render = function(filePath) {
+
+		that.reset();
+		that.compileCSD(filePath);
+		_render(_self);
+		compiled = false;
+	}
+
+	this.evaluateCode = function(codeString) {
+
+		_evaluateCode(_self, codeString);
+	};
+
+	this.readScore = function(scoreString) {
+
+		_readScore(_self, scoreString);
+	};
+
+	this.setControlChannel = function(channelName, value) {
+
+		_setControlChannel(_self, channelName, value);
+	};
+
+	this.getControlChannel = function(channelName) {
+
+		return _getControlChannel(_self, channelName);
+	};
+
+
 
 	var getAudioProcessNode = function() {
 
 		var inputChannelCount = _getInputChannelCount(_self);
 		var outputChannelCount = _getOutputChannelCount(_self);
-
 		var audioProcessNode = audioContext.createScriptProcessor(bufferSize, inputChannelCount, outputChannelCount);
 		audioProcessNode.inputCount = inputChannelCount;
 		audioProcessNode.outputCount = outputChannelCount;
 		return audioProcessNode;
 	};
 
-	var inputBuffer;
-	var outputBuffer;
-
-	var allocateIOBuffer = function(channelCount) {
-
-		var buffer = {};	
-		var floatArray = new Float64Array(bufferSize * channelCount);
-		var numBytes = floatArray.length * floatArray.BYTES_PER_ELEMENT;
-
-
-		buffer.memoryPointer = Module._calloc(numBytes);
-
-		buffer.heapBytes = new Uint8Array(Module.HEAPU8.buffer, buffer.memoryPointer, numBytes);
-		buffer.heapFloats = new Float64Array(buffer.heapBytes.buffer, buffer.heapBytes.byteOffset, floatArray.length);
-		return buffer;
-	};
-
-	var audioProcessNode;
-
-
 	this.start = function() {
 
-		audioProcessNode = getAudioProcessNode();
-		inputBuffer = allocateIOBuffer(audioProcessNode.inputCount);
-		outputBuffer = allocateIOBuffer(audioProcessNode.outputCount);
+		var audioProcessNode = getAudioProcessNode();
+
+		var ksmps = _getKsmps(_self);
+		var inputChannelCount = audioProcessNode.inputCount;
 		var outputChannelCount = audioProcessNode.outputCount;
-		audioProcessNode.onaudioprocess = function(e) {
+		var outputPointer = _getOutputBuffer(_self);	
+		var csoundOutputBuffer = new Float32Array(Module.HEAP8.buffer, outputPointer, ksmps * outputChannelCount);
+		var contextOutputBuffer;
 
-			console.log("processing");
+		if (microphoneNode !== null) {
 
-			result = _process(_self, inputBuffer.heapBytes.byteOffset, outputBuffer.heapBytes.byteOffset);
+			if (inputChannelCount >= microphoneNode.numberOfInputs) {
 
-			if (result != 0) {
-				audioProcessNode.disconnect();
-				audioProcessNode.onaudioprocess = null;
-
-				_reset(_self);
+				microphoneNode.connect(audioProcessNode);
 			}
+			else {
 
-			for (i = 0; i < outputChannelCount; ++i) {
-
-				for (j = 0; j < bufferSize; ++j) {
-
-					e.outputBuffer.getChannelData(i)[j] = outputBuffer.heapFloats[j * outputChannelCount + i];
-				}	
+				alert("Insufficient number of Csound inputs: nchnls_i, not starting");
+				return;
 			}
-
 		}
 
 		audioProcessNode.connect(audioContext.destination);
+		var inputPointer = _getInputBuffer(_self);	
+		var csoundInputBuffer = new Float32Array(Module.HEAP8.buffer, inputPointer, ksmps * inputChannelCount);
+		var zerodBFS = _getZerodBFS(_self);
+		audioProcessNode.onaudioprocess = function(e) {
+
+			if (microphoneNode !== null) {
+
+				for (var i = 0; i < inputChannelCount; ++i) {
+
+					contextInputBuffer = e.inputBuffer.getChannelData(i);
+					for (var j = 0; j < ksmps; ++j) {
+
+						csoundInputBuffer[j + ksmps * i] = contextInputBuffer[j] * zerodBFS;
+					}
+				}
+			}
+
+			var result = _performKsmps(_self);
+
+			if (result != 0) {
+
+				compiled = false;
+				that.stop();	
+			}
+
+			for (var i = 0; i < outputChannelCount; ++i) {
+
+				contextOutputBuffer = e.outputBuffer.getChannelData(i);
+
+				for (var j = 0; j < ksmps; ++j) {
+
+					contextOutputBuffer[j] = csoundOutputBuffer[j * outputChannelCount + i] / zerodBFS;
+				}	
+			}
+
+		};
+
+		that.stop = function() {
+
+			if (microphoneNode !== null) {
+
+				microphoneNode.disconnect();
+			}
+
+			audioProcessNode.disconnect();
+			audioProcessNode.onaudioprocess = null;
+		};
 	};
 
-	this.stop = function() {
+	this.reset = function() {
 
-		console.log("stop");
-		audioProcessNode.disconnect();
-		audioProcessNode.onaudioprocess = null;
-		//Module._free(outputBuffer.heapBytes.byteOffset);
-		//Module._free(inputBuffer.heapBytes.byteOffset);
-	}
+		_reset(_self);		
+		compiled = false;
+	};
 };
 
