@@ -220,35 +220,13 @@ QNAN		"qnan"[ \t]*\(
                   corfile_puts(yytext, csound->expanded_orc);
                 }
 {MACRONAME}     {
-                   MACRO     *mm, *mfound=NULL;
-                   unsigned int i, len, mlen;
-                   //print_csound_predata(csound, "Macro call", yyscanner);
-                   len = strlen(yytext)-1;
-                   mlen = 0;
-                   for (i=len; i>0; i--) { /* Find the definition */
-                     mm = PARM->macros;
-                     //mm = find_definition(PARM->macros, yytext+1);
-                     while (mm != NULL) {
-                       if (!(strncmp(yytext+1, mm->name, i))) {
-                         mfound = mm;
-                         mlen = i;
-                         if (strlen(mm->name) == mlen)
-                           goto cont;
-                       }
-                       mm = mm->next;
-                     }
-                   }
-                   cont:
-                   mm = mfound;
+                   MACRO     *mm = PARM->macros;
+                   mm = find_definition(mm, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      csound->LongJmp(csound, 1);
                    }
-                   if (mlen<len) yyless(mlen+1);
                    /* Need to read from macro definition */
-                   /* csound->DebugMsg(csound, "found macro %s\nstack ptr = %d\n", */
-                   /*         yytext+1, PARM->macro_stack_ptr); */
-                   /* print_csound_predata(csound, "macro found", yyscanner); */
                    /* ??fiddle with buffers I guess */
                    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
                      PARM->alt_stack =
@@ -262,16 +240,13 @@ QNAN		"qnan"[ \t]*\(
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
                      csound_preget_lineno(yyscanner);
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-                   csound->DebugMsg(csound,"Push %p macro stack; new body #%s#\n",
-                                    PARM->macros, mm->body);
-                   /* csound->DebugMsg(csound,"Push buffer %p -> ", YY_CURRENT_BUFFER); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
                    PARM->lstack[++PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
                    /* csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER); */
-                  }
+                }
 {MACRONAMED}    {
                    MACRO     *mm = PARM->macros;
                    yytext[yyleng-1] = '\0';
