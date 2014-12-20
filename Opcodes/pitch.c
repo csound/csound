@@ -1193,7 +1193,7 @@ int kphsorbnk(CSOUND *csound, PHSORBNK *p)
     *p->sr = (MYFLT)(phs = curphs[index]);
     if (UNLIKELY((phs += *p->xcps * csound->onedkr) >= 1.0))
       phs -= 1.0;
-    else if (UNLIKELY(phs < 1.0))
+    else if (UNLIKELY(phs < 0.0))
       phs += 1.0;
     curphs[index] = phs;
     return OK;
