@@ -506,7 +506,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     if (p->pamp.auxp==NULL ||
         p->pamp.size < (uint32_t)(sizeof(MYFLT)*p->count))
       csound->AuxAlloc(csound, sizeof(MYFLT)*p->count, &p->pamp);
-    else                        /* AuxAlloc clear anyway */
+    else if (iphs >= 0)   /* AuxAlloc clear anyway */
       memset(p->pamp.auxp, 0, sizeof(MYFLT)*p->count);
     /* count = (int)*p->icnt; */
     /* do { */
