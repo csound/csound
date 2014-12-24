@@ -1690,7 +1690,7 @@ extern "C" {
     PUBLIC int csoundGetTable(CSOUND *, MYFLT **tablePtr, int tableNum);
 
     /**
-     * Stores pointer to the arguments used to generate 
+     * Stores pointer to the arguments used to generate
      * function table 'tableNum' in *argsPtr,
      * and returns the number of arguments used.
      * If the table does not exist, *argsPtr is set to NULL and

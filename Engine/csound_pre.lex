@@ -454,7 +454,8 @@ QNAN		"qnan"[ \t]*\(
                                        yyscanner);
                   /* csound->DebugMsg(csound,"%s(%d): line now %d at %d\n", */
                   /*                  __FILE__, __LINE__, */
-                  /*        csound_preget_lineno(yyscanner), PARM->macro_stack_ptr); */
+                  /*        csound_preget_lineno(yyscanner), */
+                  /*        PARM->macro_stack_ptr); */
                   /* csound->DebugMsg(csound,"n=%d\n", n); */
                   if (n!=0) {
                     /* We need to delete n macros starting with y */
