@@ -85,7 +85,7 @@ typedef struct {
 #define OUTOCOUNT   ORTXT.outArgCount
 #define IS_ASIG_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_A)
 #define IS_STR_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_S)
-    
+
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
@@ -304,7 +304,7 @@ typedef struct {
     char    *insname;               /* instrument name */
     int     instcnt;                /* Count number of instances ever */
     int     isNew;                  /* is this a new definition */
-    int     nocheckpcnt;            /* Control checks on pcnt */ 
+    int     nocheckpcnt;            /* Control checks on pcnt */
   } INSTRTXT;
 
   typedef struct namedInstr {
@@ -1673,7 +1673,8 @@ typedef struct NAME__ {
     int           modules_loaded;
     MYFLT         _system_sr;
     void*         csdebug_data; /* debugger data */
-    int (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug and nodebug function */
+    int (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug
+                               and nodebug function */
     int           score_parser;
     /*struct CSOUND_ **self;*/
     /**@}*/
