@@ -1,4 +1,4 @@
-/*%
+/*
     ugens1.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
@@ -244,6 +244,7 @@ int linseg(CSOUND *csound, LINSEG *p)
           goto putk;                      /*      put endval      */
         }
         p->cursegp = ++segp;              /*   else find the next */
+        //printf("newseg: nxtpt=%f acnt=%d\n", segp->nxtpt, segp->acnt);
         if (UNLIKELY(!(p->curcnt = segp->acnt))) {
           val = p->curval = segp->nxtpt;  /* nonlen = discontin */
           goto chk1;
@@ -307,6 +308,7 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     segp->nxtpt = FL(0.0);
     if ((segp->cnt = (int32)(dur * CS_EKR + FL(0.5))) == 0)
       segp->cnt = 0;
+    //printf("delay: dur=%f cnt=%d\n", dur, segp->cnt);
     segp++;
                                 /* Attack */
     dur = *argp[0];
@@ -317,6 +319,7 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
       segp->cnt = 0;
     if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
         segp->acnt = 0;
+    //printf("attack: dur=%f cnt=%d acnt=%d\n", dur, segp->cnt, segp->acnt);
     segp++;
                                 /* Decay */
     dur = *argp[1];
@@ -325,8 +328,9 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     segp->nxtpt = *argp[2];
     if (UNLIKELY((segp->cnt = (int32)(dur * CS_EKR + FL(0.5))) == 0))
       segp->cnt = 0;
-   if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
-        segp->acnt = 0;
+    if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
+      segp->acnt = 0;
+    //printf("decay: dur=%f cnt=%d acnt=%d\n", dur, segp->cnt, segp->acnt);
     segp++;
                                 /* Sustain */
     /* Should use p3 from score, but how.... */
@@ -337,13 +341,15 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
       segp->cnt = 0;
     if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
         segp->acnt = 0;
+    //printf("sustain: dur=%f cnt=%d acnt=%d\n", dur, segp->cnt, segp->acnt);
     segp++;
                                 /* Release */
     segp->nxtpt = FL(0.0);
     if (UNLIKELY((segp->cnt = (int32)(release * CS_EKR + FL(0.5))) == 0))
       segp->cnt = 0;
-    if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
+    if (UNLIKELY((segp->acnt = (int32)(release * csound->esr + FL(0.5))) < 0))
         segp->acnt = 0;
+    //printf("release: dur=%f cnt=%d acnt=%d\n", dur, segp->cnt, segp->acnt);
     if (midip) {
       relestim = (p->cursegp + p->segsrem - 1)->cnt;
       p->xtra = relestim;
