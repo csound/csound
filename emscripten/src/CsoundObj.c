@@ -108,7 +108,6 @@ float CsoundObj_getControlChannel(CsoundObj *self, const char *channelName) {
 
 	int *error = NULL;
 	float returnValue = csoundGetControlChannel(self->csound, channelName, error);
-
 	if (error != NULL) {
 
 		printf("CsoundObj.getControlChannel: Error %d\n", *error);
@@ -166,6 +165,17 @@ int CsoundObj_getOutputChannelCount(CsoundObj *self)
 	return csoundGetNchnls(self->csound);
 }
 
+int CsoundObj_getTableLength(CsoundObj *self, int tableNumber)
+{
+	return csoundGetTable(self->csound, NULL, tableNumber);
+}
+
+float *CsoundObj_getTable(CsoundObj *self, int tableNumber)
+{
+	float *tablePointer;
+	csoundGetTable(self->csound, &tablePointer, tableNumber);
+	return tablePointer;
+}
 void CsoundObj_pushMidiMessage(CsoundObj *self, unsigned char status, unsigned char data1, unsigned char data2)
 {
 	self->midiCallbackData->midiData[self->midiCallbackData->p].status = status;
