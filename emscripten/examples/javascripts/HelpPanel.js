@@ -30,7 +30,7 @@ define('HelpPanel', [], function() {
 
 			var element = document.getElementById(elementID);
 			registerHelpTextWithElement(element, elementText);
-		}
+		};
 
 		function registerHelpTextWithElement(element, elementText) {
 			
@@ -46,7 +46,7 @@ define('HelpPanel', [], function() {
 				helpTextDiv.innerHTML = stack[stack.length - 1];
 			}
 
-		}
+		};
 
 		registerHelpTextWithID("CSDEditor", "Use this panel to view and edit .csd files, when the .csd is ready to run press the compile then the perform buttons");
 		registerHelpTextWithID("CSDEditorButton", "Show the CSD Editor in the Editor Panel");
