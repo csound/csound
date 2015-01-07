@@ -192,21 +192,22 @@ SDIFresult SDIFmem_ReadFrameContents(SDIF_FrameHeader *head, FILE *f,
       sz = SDIF_GetMatrixDataSize(&(matrix->header));
 
       if (sz == 0) {
-        matrix->data = 0;
+        matrix->data = NULL;
       }
       else {
         matrix->data = (*my_malloc)(sz);
-        if (matrix->data == 0) {
+        if (matrix->data == NULL) {
           SDIFmem_FreeFrame(result);
           return ESDIF_OUT_OF_MEMORY;
         }
       }
-
-      if ((r = SDIF_ReadMatrixData(matrix->data, f,
-                                   &(matrix->header)))!=ESDIF_SUCCESS) {
-        SDIFmem_FreeFrame(result);
-        return r;
-      }
+      /* COVERITY: what is sz=0?  dereferences null */
+      if (sz != 0)
+        if ((r = SDIF_ReadMatrixData(matrix->data, f,
+                                     &(matrix->header)))!=ESDIF_SUCCESS) {
+          SDIFmem_FreeFrame(result);
+          return r;
+        }
     }
     *putithere = result;
     return ESDIF_SUCCESS;
