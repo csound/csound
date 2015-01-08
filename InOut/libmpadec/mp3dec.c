@@ -73,18 +73,16 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       if (length && (length < mp3->stream_size)) mp3->stream_size = length;
     } else mp3->stream_size = length;
     // check for ID3 tag
-    {
+    if (lseek(fd, 0, SEEK_SET)==0) {
       char hdr[10];
-      lseek(fd, 0, SEEK_SET);
       r = read(fd, &hdr, 10);
       if (hdr[0] == 'I' && hdr[1] == 'D' && hdr[2] == '3') {
         /* A*2^21+B*2^14+C*2^7+D=A*2097152+B*16384+C*128+D*/
         mp3->stream_offset = hdr[6]*2097152+hdr[7]*16384+hdr[8]*128+hdr[9] + 10;
         fprintf(stderr, "==== found ID3 tag, skipping %ld bytes ==== \n",
                 mp3->stream_offset);
-        (void) lseek(fd, mp3->stream_offset, SEEK_SET);
       }
-      else (void) lseek(fd, mp3->stream_offset, SEEK_SET);
+      (void) lseek(fd, mp3->stream_offset, SEEK_SET);
     }
     r = read(fd, mp3->in_buffer, 4);
     if (r < 4) {

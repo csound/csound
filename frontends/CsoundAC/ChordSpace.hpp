@@ -2013,21 +2013,22 @@ inline SILENCE_PUBLIC Chord gather(Score &score, double startTime, double endTim
         return chord;
 }
 
-inline SILENCE_PUBLIC int octavewiseRevoicings(const Chord &chord, double range = OCTAVE()) {
+inline SILENCE_PUBLIC int octavewiseRevoicings(const Chord &chord,
+                                               double range = OCTAVE()) {
     Chord origin = chord.eOP();
-	Chord odometer = origin;
-	// Enumerate the permutations.
-	int voicings = 0;
-	while (next(odometer, origin, range, OCTAVE())) {
-		voicings = voicings + 1;
-	}
-	if (debug) {
-		print("octavewiseRevoicings: chord:    %s\n", chord.toString().c_str());
-		print("octavewiseRevoicings: eop:      %s\n", chord.eOP().toString().c_str());
-		print("octavewiseRevoicings: odometer: %s\n", odometer.toString().c_str());
-		print("octavewiseRevoicings: voicings: %5d\n", voicings);
-	}
-	return voicings;
+    Chord odometer = origin;
+    // Enumerate the permutations.
+    int voicings = 0;
+    while (next(odometer, origin, range, OCTAVE())) {
+      voicings = voicings + 1;
+    }
+    if (debug) {
+      print("octavewiseRevoicings: chord:    %s\n", chord.toString().c_str());
+      print("octavewiseRevoicings: eop:      %s\n", chord.eOP().toString().c_str());
+      print("octavewiseRevoicings: odometer: %s\n", odometer.toString().c_str());
+      print("octavewiseRevoicings: voicings: %5d\n", voicings);
+    }
+    return voicings;
 }
 
 SILENCE_PUBLIC Chord octavewiseRevoicing(const Chord &chord, int revoicingNumber_, double range, bool debug=false);
@@ -2986,10 +2987,10 @@ inline std::string Chord::information() const {
 	}
 
 inline SILENCE_PUBLIC Chord octavewiseRevoicing(const Chord &chord, int revoicingNumber_, double range, bool debug) {
-	int revoicingN = octavewiseRevoicings(chord, range);
-	int revoicingNumber = revoicingNumber_ % revoicingN;
+    int revoicingN = octavewiseRevoicings(chord, range);
+    int revoicingNumber = revoicingNumber_ % revoicingN;
     Chord origin = csound::normalize<EQUIVALENCE_RELATION_RP>(chord, OCTAVE(), 1.0);
-	Chord revoicing = origin;
+    Chord revoicing = origin;
     int revoicingI = 0;
     while (true) {
         if (debug) {
