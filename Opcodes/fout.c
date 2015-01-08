@@ -500,14 +500,12 @@ static int outfile_set_A(CSOUND *csound, OUTFILEA *p)
     else {
       p->guard_pos = 512 * len;
       buf_reqd = (1 + (int)(512 / CS_KSMPS)) * p->guard_pos;
+      // Or......
+      //buf_reqd = (1 + (int)(512 / CS_KSMPS)) * CS_KSMPS * len;
     }
-    if (CS_KSMPS >= 512)
-        buf_reqd = CS_KSMPS * len;
-      else
-        buf_reqd = (1 + (int)(512 / CS_KSMPS)) * CS_KSMPS * len;
-     if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
-        csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
-      }
+    if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
+      csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
+    }
     p->f.bufsize =  p->buf.size;
     sfinfo.channels = len;
     n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
@@ -1229,7 +1227,7 @@ static int i_infile_(CSOUND *csound, I_INFILE *p, int istring)
       if (fseek(fp, p->currpos * sizeof(float) * nargs, SEEK_SET)<0) return NOTOK;
       p->currpos++;
       for (j = 0; j < nargs; j++) {
-        if (fp == fread(args[j], sizeof(float), 1, fp));
+        if (1 == fread(args[j], sizeof(float), 1, fp));
         else {
           p->flag = 0;
           *(args[j]) = FL(0.0);

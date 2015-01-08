@@ -655,6 +655,7 @@ int mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
     }
     mpa->next_byte += mpa->hsize;
     mpa->bytes_left -= mpa->hsize;
+    /* ??Check dstbuf non NULL?? */
     switch (mpa->frame.layer) {
       case 1: decode_layer1(mpa, dstbuf); break;
       case 2: decode_layer2(mpa, dstbuf); break;
