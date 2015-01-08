@@ -201,7 +201,7 @@ SDIFresult SDIFmem_ReadFrameContents(SDIF_FrameHeader *head, FILE *f,
           return ESDIF_OUT_OF_MEMORY;
         }
       }
-      /* COVERITY: what is sz=0?  dereferences null */
+      /* COVERITY: what if sz=0?  dereferences null */
       if (sz != 0)
         if ((r = SDIF_ReadMatrixData(matrix->data, f,
                                      &(matrix->header)))!=ESDIF_SUCCESS) {
