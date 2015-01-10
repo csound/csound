@@ -271,8 +271,8 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     {  /* Note this does not handle extened args -- JPff */
       int size=ftp->argcnt;
       if (size>PMAX) size=PMAX;
-      printf("size = %d -> %d ftp->args = %p\n",
-             size, sizeof(MYFLT)*(size-4), ftp->args);
+      /* printf("size = %d -> %d ftp->args = %p\n", */
+      /*        size, sizeof(MYFLT)*(size-4), ftp->args); */
       memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*size); /* is this right? */
       /*for(k=0; k < size; k++)
         csound->Message(csound, "%f \n", ftp->args[k]);*/
