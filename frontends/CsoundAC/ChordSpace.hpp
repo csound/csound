@@ -2823,36 +2823,37 @@ public:
 		for (double t = 0.0; t < OCTAVE(); t += g) {
 			Chord normalOPTg_t = normalOPTg.T(t);
             normalOPTg_t = csound::normalize<EQUIVALENCE_RELATION_RP>(normalOPTg_t, OCTAVE(), g);
-			if (printme) {
-                print("normalOPTg_t:   %s    %f\n", normalOPTg_t.toString().c_str(), t);
-			}
-			if (normalOPTg_t == normalOP) {
-				if (printme) {
-					print("equals\n");
-				}
-				T_ = t;
-				break;
-			}
+            if (printme) {
+              print("normalOPTg_t:   %s    %f\n", normalOPTg_t.toString().c_str(), t);
+            }
+            if (normalOPTg_t == normalOP) {
+              if (printme) {
+                print("equals\n");
+              }
+              T_ = t;
+              break;
+            }
 		}
 		// Breaks here, this form may not be indexed.
 		// Try iterating over opttis and comparing eO, eP, eT, eI separately.
 		// Alternatively, put in same index for equivalent opttis.
 		Chord normalOPTgI = csound::normalize<EQUIVALENCE_RELATION_RPTgI>(chord, OCTAVE(), g);
-        std::map<Chord, int>::const_iterator it = indexesForOpttis.find(normalOPTgI);
-        if (it == indexesForOpttis.end()) {
-            csound::print("normalOPTgI %s not found!\n");
-        }
-		int P_ = it->second;
-		if (printme) {
-			print("normalOPTgI:    %s    %d\n", normalOPTgI.toString().c_str(), P_);
-		}
-		int I_;
-        if (normalOPTg == normalOPTgI) {
-			I_ = 0;
- 		} else {
-			I_ = 1;
-        }
-		int V_ = indexForOctavewiseRevoicing(chord, range, printme);
+                std::map<Chord, int>::const_iterator it = indexesForOpttis.find(normalOPTgI);
+                if (it == indexesForOpttis.end()) {
+                  csound::print("normalOPTgI %s not found!\n");
+                  // **FIXME** fall through here means it is out of range so it->second?
+                }
+                int P_ = it->second;
+                if (printme) {
+                  print("normalOPTgI:    %s    %d\n", normalOPTgI.toString().c_str(), P_);
+                }
+                int I_;
+                if (normalOPTg == normalOPTgI) {
+                  I_ = 0;
+                } else {
+                  I_ = 1;
+                }
+        int V_ = indexForOctavewiseRevoicing(chord, range, printme);
         if (V_ == -1) {
             V_ = 0;
         }
