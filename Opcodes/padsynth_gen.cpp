@@ -39,7 +39,8 @@ static MYFLT profile(MYFLT fi, MYFLT bwi)
 };
 
 extern "C" {
-
+#define ROOT2 FL(1.41421356237309504880168872421)
+  
     /**
      * This function computes a Csound "sound sample" function table
      * using Nasca's "padsynth" algorithm implemented in C++.
@@ -125,7 +126,7 @@ extern "C" {
             maximum = 1e-5;
         }
         for (int i = 0; i < N; ++i) {
-            ftp->ftable[i] /= maximum * 1.4142;
+            ftp->ftable[i] /= maximum * ROOT2;
         }
         return OK;
     }
