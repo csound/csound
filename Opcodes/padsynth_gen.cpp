@@ -1,7 +1,7 @@
 /*
- fareygen.c:
+ padsynt_gen.cpp:
 
- Copyright (C) 2010 Georg Boenn
+ Copyright (C) 2015 Michael Gogins after Paul Nasca
 
  This file is part of Csound.
 
