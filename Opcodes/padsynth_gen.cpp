@@ -54,8 +54,8 @@ extern "C" {
         csound->Message(csound, "p2_score_time: %9.4f\n", p2_score_time);
         int N = ff->flen;
         csound->Message(csound, "N: %9.4f\n", N);
-        const char *p4_gen_id = ((STRINGDAT *)(&ff->e.p[4]))->data;
-        csound->Message(csound, "p4_gen_id: %s\n", p4_gen_id);
+        //const char *p4_gen_id = ((STRINGDAT *)(&ff->e.p[4]))->data;
+        csound->Message(csound, "p4_gen_id: %d\n", (int)(ff->e.p[4]));
         MYFLT p5_fundamental_frequency = ff->e.p[5];
         csound->Message(csound, "p5_fundamental_frequency: %9.4f\n", p5_fundamental_frequency);
         MYFLT p6_partial_bandwith = ff->e.p[6];
