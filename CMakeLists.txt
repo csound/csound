@@ -191,7 +191,7 @@ include(cmake/CompilerOptimizations.cmake)
 endif()
 
 if(APPLE)
-set(OSX_VERSION " ")
+    set(OSX_VERSION " ")
 endif()
 
 # Include this after the install path definitions so we can override them here.
@@ -202,6 +202,10 @@ if(CUSTOM_CMAKE)
     include(${CUSTOM_CMAKE})
 else()
     message(STATUS "Not using Custom.cmake file.")
+endif()
+
+if(APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -stdlib=libc++")
 endif()
 
 
@@ -272,7 +276,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 else()
     set(LINUX NO)
 endif()
-
 ## USER OPTIONS ##
 
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
