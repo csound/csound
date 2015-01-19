@@ -2988,7 +2988,7 @@ inline std::string Chord::information() const {
 	}
 
 inline SILENCE_PUBLIC Chord octavewiseRevoicing(const Chord &chord, int revoicingNumber_, double range, bool debug) {
-    int revoicingN = octavewiseRevoicings(chord, range);
+    int revoicingN = octavewiseRevoicings(chord, range); // answer could be zero -- JPff
     int revoicingNumber = revoicingNumber_ % revoicingN;
     Chord origin = csound::normalize<EQUIVALENCE_RELATION_RP>(chord, OCTAVE(), 1.0);
     Chord revoicing = origin;
