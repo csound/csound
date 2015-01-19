@@ -1,7 +1,7 @@
 /*
  padsynt_gen.cpp:
 
- Copyright (C) 2015 Michael Gogins after Paul Nasca
+ Copyright (C) 2015 Michael Gogins after Nasca O Paul
 
  This file is part of Csound.
 
@@ -40,7 +40,7 @@ static MYFLT profile(MYFLT fi, MYFLT bwi)
 
 extern "C" {
 #define ROOT2 FL(1.41421356237309504880168872421)
-  
+
   /**
    * This function computes a Csound "sound sample" function table
    * using Nasca's "padsynth" algorithm implemented in C++.
