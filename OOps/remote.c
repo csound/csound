@@ -368,7 +368,7 @@ static int SVopen(CSOUND *csound)
     }
     if (UNLIKELY(listen(socklisten, 5) < 0)) {    /* start the socket listening
                                                 for new connections -- may wait */
-      shutdown(socklisten, SHUT_RD);      
+      shutdown(socklisten, SHUT_RD);
       return csound->InitError(csound, Str("listen failed"));
     }
     clilen = sizeof(ST(local_addr));  /* FIX THIS FOR MULTIPLE CLIENTS !!!!!!!*/

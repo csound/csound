@@ -832,7 +832,7 @@ int expseg(CSOUND *csound, EXXPSEG *p)
         //printf("seg: val=%f amlt=%f\n", segp->val,segp->amlt );
         p->cursegp = ++segp;
         //printf("nxtseg: val=%f amlt=%f acnt=%d\n",
-        //       segp->val,segp->amlt,segp->acnt);        
+        //       segp->val,segp->amlt,segp->acnt);
       }
       rs[n] = segp->val;
       segp->val *= segp->amlt;

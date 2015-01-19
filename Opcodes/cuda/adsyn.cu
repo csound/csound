@@ -56,7 +56,7 @@ static int init_cudadsyn(CSOUND *csound, CUDADSYN *p){
   blockspt = deviceProp.maxThreadsPerBlock;
   if(deviceProp.major < 2)
    csound->InitError(csound,
-       "this opcode requires device capability 2.0 minimum. Device is %d.%d\n", 
+       "this opcode requires device capability 2.0 minimum. Device is %d.%d\n",
         deviceProp.major, deviceProp.minor );
 
   p->bins = (p->fsig->N)/2;
@@ -88,7 +88,7 @@ static int init_cudadsyn(CSOUND *csound, CUDADSYN *p){
   if(p->out_.auxp == NULL ||
      p->out_.size < asize)
     csound->AuxAlloc(csound, asize , &p->out_);
- 
+
   csound->RegisterDeinitCallback(csound, p, destroy_cudadsyn);
   p->count = 0;
   return OK;
@@ -96,7 +96,7 @@ static int init_cudadsyn(CSOUND *csound, CUDADSYN *p){
 
 __global__ void sample(float *out, float *frame, float pitch, int64_t *ph,
                        float *amps, int vsize, float sr) {
-  
+
   int t = (threadIdx.x + blockIdx.x*blockDim.x);
   int n =  t%vsize;  /* sample index */
   int h = t/vsize;  /* bin index */
@@ -156,7 +156,7 @@ static int perf_cudadsyn(CSOUND *csound, CUDADSYN *p){
                                                 p->previous,
                                                 vsamps,
                                                 csound->GetSr(csound));
-      
+
       count = vsamps;
     }
     asig[n] = (MYFLT) out_[vsamps - count];
