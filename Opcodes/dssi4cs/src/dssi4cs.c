@@ -1034,9 +1034,10 @@ LADSPAPluginSearch(CSOUND *csound,
         pcEnd++;
 
       pcBuffer = csound->Malloc(csound, 1 + (pcEnd - pcStart));
-      if (pcEnd > pcStart)
-        strlcpy(pcBuffer, pcStart, 1+ pcEnd - pcStart);
-
+      if (pcEnd > pcStart) {
+        strncpy(pcBuffer, pcStart, pcEnd - pcStart);
+        pcBuffer[pcEnd - pcStart] = '\0';
+      }
       LADSPADirectoryPluginSearch(csound, pcBuffer, fCallbackFunction);
       csound->Free(csound, pcBuffer);
 
