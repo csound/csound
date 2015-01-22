@@ -204,9 +204,10 @@ else()
     message(STATUS "Not using Custom.cmake file.")
 endif()
 
-if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -stdlib=libc++")
-endif()
+# VL this is breaking CUDA compilation. It's not necessary
+#if(APPLE)
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -stdlib=libc++")
+#endif()
 
 
 if(WIN32 AND NOT MSVC)
