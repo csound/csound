@@ -246,7 +246,6 @@ public:
     }
     ~CsPerfThreadMsg_StopRecord(){}
 private:
-    bool start;
 };
 
 
