@@ -2033,7 +2033,7 @@ int trnsegr(CSOUND *csound, TRANSEG *p)
         goto newm;                        /*   and set new curmlt */
       }
       if (--p->curcnt <= 0) {             /*  if done cur segment */
-        segp = p->cursegp;
+        //segp = p->cursegp;              /* overwritten later -- coverity */
       chk1:
         if (p->segsrem == 2) goto putk;     /*   seg Y rpts lastval */
         if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
