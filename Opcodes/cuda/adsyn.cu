@@ -184,3 +184,4 @@ static OENTRY localops[] = {
 extern "C" {
   LINKAGE
 }
+
