@@ -228,7 +228,7 @@ private:
 class CsPerfThreadMsg_StopRecord: public CsoundPerformanceThreadMessage {
 public:
     CsPerfThreadMsg_StopRecord(CsoundPerformanceThread *pt)
-    : CsoundPerformanceThreadMessage(pt) {}
+      : CsoundPerformanceThreadMessage(pt) {}
     int run()
     {
 
@@ -246,7 +246,6 @@ public:
     }
     ~CsPerfThreadMsg_StopRecord(){}
 private:
-    bool start;
 };
 
 
