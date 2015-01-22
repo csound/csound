@@ -56,8 +56,11 @@ void Alg_atoms::expand()
     maxlen += (maxlen >> 2); // add 25%
     Alg_attribute *new_atoms = new Alg_attribute[maxlen];
     // now do copy
-    memcpy(new_atoms, atoms, len * sizeof(Alg_attribute));
-    if (atoms) delete[] atoms;
+    // **** Suggested fix -- JPff
+    if (atoms) {
+      memcpy(new_atoms, atoms, len * sizeof(Alg_attribute));
+      delete[] atoms;
+    }
     atoms = new_atoms;
 }
 
