@@ -44,7 +44,7 @@
 
 
 
-static int chunk_read(FILE *f, CHUNK *chunk);
+static int chunk_read(CSOUND *, FILE *f, CHUNK *chunk);
 static void fill_SfPointers(CSOUND *);
 static int  fill_SfStruct(CSOUND *);
 static void layerDefaults(layerType *layer);
@@ -79,18 +79,18 @@ int sfont_ModuleDestroy(CSOUND *csound)
     for (j=0; j<globals->currSFndx; j++) {
       for (k=0; k< sfArray[j].presets_num; k++) {
         for (l=0; l<sfArray[j].preset[k].layers_num; l++) {
-          free(sfArray[j].preset[k].layer[l].split);
+          csound->Free(csound, sfArray[j].preset[k].layer[l].split);
         }
-        free(sfArray[j].preset[k].layer);
+        csound->Free(csound, sfArray[j].preset[k].layer);
       }
-      free(sfArray[j].preset);
+      csound->Free(csound, sfArray[j].preset);
       for (l=0; l< sfArray[j].instrs_num; l++) {
-        free(sfArray[j].instr[l].split);
+        csound->Free(csound, sfArray[j].instr[l].split);
       }
-      free(sfArray[j].instr);
-      free(sfArray[j].chunk.main_chunk.ckDATA);
+      csound->Free(csound, sfArray[j].instr);
+      csound->Free(csound, sfArray[j].chunk.main_chunk.ckDATA);
     }
-    free(sfArray);
+    csound->Free(csound, sfArray);
     globals->currSFndx = 0;
     csound->Free(csound, globals->presetp);
     csound->Free(csound, globals->sampleBase);
@@ -122,13 +122,12 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
     /* } */
     strncpy(soundFont->name, csound->GetFileName(fd), 255);
     soundFont->name[255]='\0';
-    if (UNLIKELY(chunk_read(fil, &soundFont->chunk.main_chunk)<0))
+    if (UNLIKELY(chunk_read(csound, fil, &soundFont->chunk.main_chunk)<0))
       csound->Message(csound, Str("sfont: failed to read file\n"));
     csound->FileClose(csound, fd);
     globals->soundFont = soundFont;
     fill_SfPointers(csound);
-    if (fill_SfStruct(csound))
-      csound->ErrorMsg(csound, Str("Cannot load; out of memory"));
+    fill_SfStruct(csound);
 }
 
 static int compare(presetType * elem1, presetType *elem2)
@@ -1508,8 +1507,7 @@ static int fill_SfStruct(CSOUND *csound)
 
     size = phdrChunk->ckSize / sizeof(sfPresetHeader);
     soundFont->presets_num = size;
-    preset = (presetType *) malloc(size * sizeof(presetType));
-    if (preset==NULL) csound->ErrorMsg(csound, Str("Cannot load: out of memory"));
+    preset = (presetType *) csound->Malloc(csound, size * sizeof(presetType));
     for (j=0; j < size; j++) {
       preset[j].name = phdr[j].achPresetName;
       if (strcmp(preset[j].name,"EOP")==0) {
@@ -1531,10 +1529,9 @@ static int fill_SfStruct(CSOUND *csound)
           }
         }
       }
-      preset[j].layers_num=layer_num;
-      preset[j].layer = (layerType *) malloc ( layer_num * sizeof(layerType));
-      if (preset[j].layer==NULL)
-        csound->ErrorMsg(csound, Str("Cannot load: out of memory"));
+      preset[j].layers_num = layer_num;
+      preset[j].layer =
+        (layerType *) csound->Malloc(csound, layer_num * sizeof(layerType));
       for (k=0; k <layer_num; k++) {
         layerDefaults(&preset[j].layer[k]);
       }
@@ -1558,7 +1555,7 @@ static int fill_SfStruct(CSOUND *csound)
               ibag_num = inst[layer->num +1].wInstBagNdx - first_ibag;
               split_num = 0;
               for (l=0; l < ibag_num; l++) {
-                mStart =        ibag[l+first_ibag].wInstGenNdx;
+                mStart = ibag[l+first_ibag].wInstGenNdx;
                 mEnd = ibag[l+first_ibag+1].wInstGenNdx;
                 for (m=mStart; m < mEnd; m++) {
                   if (igen[m].sfGenOper == sampleID) {
@@ -1567,9 +1564,8 @@ static int fill_SfStruct(CSOUND *csound)
                 }
               }
               layer->splits_num = split_num;
-              layer->split = (splitType *) malloc ( split_num * sizeof(splitType));
-              if (layer->split==NULL)
-                csound->ErrorMsg(csound, Str("Cannot load: out of memory"));
+              layer->split =
+                (splitType *) csound->Malloc(csound, split_num * sizeof(splitType));
               for (l=0; l<split_num; l++) {
                 splitDefaults(&layer->split[l]);
               }
@@ -1642,7 +1638,7 @@ static int fill_SfStruct(CSOUND *csound)
                         split->num= num;
                         split->sample = &shdr[num];
                         if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
-                          free(preset);
+                          csound->Free(csound, preset);
                           csound->ErrorMsg(csound, Str("SoundFont file \"%s\" "
                                                        "contains ROM samples !\n"
                                                        "At present time only RAM "
@@ -1785,8 +1781,7 @@ static int fill_SfStruct(CSOUND *csound)
       instrType *instru;
       size = soundFont->chunk.instChunk->ckSize / sizeof(sfInst);
       soundFont->instrs_num = size;
-      instru = (instrType *) malloc(size * sizeof(layerType));
-      if (instru==NULL) csound->ErrorMsg(csound, Str("Cannot load: out of memory"));
+      instru = (instrType *) csound->Malloc(csound, size * sizeof(layerType));
       for (j=0; j < size; j++) {
 #define UNUSE 0x7fffffff
         int GsampleModes=UNUSE, GcoarseTune=UNUSE, GfineTune=UNUSE;
@@ -1812,9 +1807,8 @@ static int fill_SfStruct(CSOUND *csound)
           }
         }
         instru[j].splits_num = split_num;
-        instru[j].split = (splitType *) malloc ( split_num * sizeof(splitType));
-        if (instru[j].split==NULL)
-          csound->ErrorMsg(csound, Str("Cannot load: out of memory"));
+        instru[j].split =
+          (splitType *) csound->Malloc(csound, split_num * sizeof(splitType));
         for (l=0; l<split_num; l++) {
           splitDefaults(&instru[j].split[l]);
         }
@@ -1885,7 +1879,7 @@ static int fill_SfStruct(CSOUND *csound)
                   split->num= num;
                   split->sample = &shdr[num];
                   if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
-                    free(instru);
+                    csound->Free(csound, instru);
                     csound->ErrorMsg(csound, Str("SoundFont file \"%s\" contains "
                                             "ROM samples !\n"
                                             "At present time only RAM samples "
@@ -2003,14 +1997,14 @@ static void splitDefaults(splitType *split)
     split->pan                = 0;
 }
 
-static int chunk_read(FILE *fil, CHUNK *chunk)
+static int chunk_read(CSOUND *csound, FILE *fil, CHUNK *chunk)
 {
     if (UNLIKELY(4 != fread(chunk->ckID,1,4, fil)))
       return 0;
     if (UNLIKELY(1 != fread(&chunk->ckSize,4,1,fil)))
       return 0;
     ChangeByteOrder("d", (char *)&chunk->ckSize, 4);
-    chunk->ckDATA = (BYTE *) malloc( chunk->ckSize);
+    chunk->ckDATA = (BYTE *) csound->Malloc(csound, chunk->ckSize);
     if (chunk->ckDATA==NULL)
       return 0;
     return fread(chunk->ckDATA,1,chunk->ckSize,fil);
@@ -2603,9 +2597,7 @@ int sfont_ModuleCreate(CSOUND *csound)
       return csound->InitError(csound,
                                Str("error... could not create sfont globals\n"));
 
-    globals->sfArray = (SFBANK *) malloc(MAX_SFONT*sizeof(SFBANK));
-    if (globals->sfArray==NULL)
-      csound->ErrorMsg(csound, Str("Cannot load: out of memory"));
+    globals->sfArray = (SFBANK *) csound->Malloc(csound, MAX_SFONT*sizeof(SFBANK));
     globals->presetp =
       (presetType **) csound->Malloc(csound, MAX_SFPRESET *sizeof(presetType *));
     globals->sampleBase =
