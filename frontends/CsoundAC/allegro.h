@@ -436,7 +436,7 @@ typedef class Alg_beat {
 public:
     Alg_beat(double t, double b) {
         time = t; beat = b; }
-    Alg_beat() {};
+    Alg_beat() { time = beat = 0.0}; /* To avoiud warnings */
     double time;
     double beat;
 } *Alg_beat_ptr;
