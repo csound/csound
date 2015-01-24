@@ -384,7 +384,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
           nsmpso = 0;
         }
         else {
-          int j = 0;
+          uint32 j = 0;
                   /* account for circular reference */
           for (i = outfront; i < BUF_LEN; i++, j++) {
             *aLeft++  = (j<offset || j>early) ? FL(0.0) : outl[i];
@@ -401,7 +401,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
         }
       }
       else {
-        int j = 0;
+        uint32 j = 0;
         if ((outfront+nsmpso) < BUF_LEN) {
           for (i = 0; i < outcount; i++, j++) {
             *aLeft++  =  (j<offset || j>early) ? FL(0.0) : outl[outfront + i];
@@ -443,7 +443,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
 }
 
 static OENTRY hrtferX_localops[] = {
-  { "hrtfer",   sizeof(HRTFER), 0, 5, "aa", "akkS",
+  { "hrtfer",   sizeof(HRTFER), _QQ, 5, "aa", "akkS",
                                 (SUBR)hrtferxkSet, NULL, (SUBR)hrtferxk},
 };
 
