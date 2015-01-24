@@ -69,7 +69,7 @@ static const int elevation_data[N_ELEV] = {56, 60, 72, 72, 72, 72, 72,
 
 static int hrtferxkSet(CSOUND *csound, HRTFER *p)
 {
-    int    i; /* standard loop counter */
+    /* int    i; /* standard loop counter */
     char   filename[MAXNAME];
     int    bytrev_test;
     MEMFIL *mfp;
@@ -120,21 +120,27 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
         /* initialize right result buffer */
         /* initialize left output buffer */
         /* initialize right output buffer */
-    for (i=0; i<BUF_LEN; i++)   {
-      p->x[i]                  = FL(0.0);
-      p->yl[i]                 = FL(0.0);
-      p->yr[i]                 = FL(0.0);
-      p->outl[i]               = FL(0.0);
-      p->outr[i]               = FL(0.0);
-    }
-
+    /* for (i=0; i<BUF_LEN; i++)   { */
+    /*   p->x[i]                  = FL(0.0); */
+    /*   p->yl[i]                 = FL(0.0); */
+    /*   p->yr[i]                 = FL(0.0); */
+    /*   p->outl[i]               = FL(0.0); */
+    /*   p->outr[i]               = FL(0.0); */
+    /* } */
+    memset(p->x, 0, BUF_LEN*sizeof(MYFLT));
+    memset(p->yl, 0, BUF_LEN*sizeof(MYFLT));
+    memset(p->yr, 0, BUF_LEN*sizeof(MYFLT));
+    memset(p->outl, 0, BUF_LEN*sizeof(MYFLT));
+    memset(p->outr, 0, BUF_LEN*sizeof(MYFLT));
+    
         /* initialize left overlap buffer */
         /* initialize right overlap buffer */
-    for (i=0; i<FILT_LENm1; i++) {
-      p->bl[i] = FL(0.0);
-      p->br[i] = FL(0.0);
-    }
-
+    /* for (i=0; i<FILT_LENm1; i++) { */
+    /*   p->bl[i] = FL(0.0); */
+    /*   p->br[i] = FL(0.0); */
+    /* } */
+    memset(p->bl, 0, FILT_LENm1*sizeof(MYFLT));
+    memset(p->br, 0, FILT_LENm1*sizeof(MYFLT));
     return OK;
 }
 
@@ -303,12 +309,12 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
 
                 /* reading in audio into x */
       if (incount == 0) {
-        for (ii = 0; ii < toread; ii++)
-          x[ii] = (ii<offset||ii>early ? FL(0.0) : aIn[ii]);
+        for (i = 0; i < toread; i++)
+          x[i] = *aIn++;
       }
       else {
-        for (ii = incount; ii<(incount + toread); ii++)
-          x[ii] = (ii<offset||ii>early ? FL(0.0) : aIn[ii]);
+        for (i = incount; i<(incount + toread); i++)
+          x[i] = *aIn++;
       }
 
           /* update counters for amount of audio read */
@@ -378,26 +384,28 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
           nsmpso = 0;
         }
         else {
+          int j = 0;
                   /* account for circular reference */
-          for (i = outfront; i < BUF_LEN; i++) {
-            *aLeft++  =  outl[i];
-            *aRight++ =  outr[i];
+          for (i = outfront; i < BUF_LEN; i++, j++) {
+            *aLeft++  = (j<offset || j>early) ? FL(0.0) : outl[i];
+            *aRight++ = (j<offset || j>early) ? FL(0.0) : outr[i];
           }
           outcount -= nsmpso;
           nsmpso -= (BUF_LEN - outfront);
-          for (i = 0; i < nsmpso; i++) {
-            *aLeft++  =  outl[i];
-            *aRight++ =  outr[i];
+          for (i = 0; i < nsmpso; i++, j++) {
+            *aLeft++  = (j<offset || j>early) ? FL(0.0) : outl[i];
+            *aRight++ = (j<offset || j>early) ? FL(0.0) : outr[i];
           }
           outfront = nsmpso;
           nsmpso = 0;
         }
       }
       else {
+        int j = 0;
         if ((outfront+nsmpso) < BUF_LEN) {
-          for (i = 0; i < outcount; i++) {
-            *aLeft++  =  outl[outfront + i];
-            *aRight++ =  outr[outfront + i];
+          for (i = 0; i < outcount; i++, j++) {
+            *aLeft++  =  (j<offset || j>early) ? FL(0.0) : outl[outfront + i];
+            *aRight++ =  (j<offset || j>early) ? FL(0.0) : outr[outfront + i];
           }
           nsmpso   -= outcount;
           outfront += outcount;
@@ -405,15 +413,15 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
         }
         else {
           /* account for circular reference */
-          for (i = outfront; i < BUF_LEN; i++) {
-            *aLeft++  =  outl[i];
-            *aRight++ =  outr[i];
+          for (i = outfront; i < BUF_LEN; i++, j++) {
+            *aLeft++  =  (j<offset || j>early) ? FL(0.0) : outl[i];
+            *aRight++ =  (j<offset || j>early) ? FL(0.0) : outr[i];
           }
           nsmpso   -= outcount;
           outcount -= (BUF_LEN - outfront);
-          for (i = 0; i < outcount; i++) {
-            *aLeft++  =  outl[i];
-            *aRight++ =  outr[i];
+          for (i = 0; i < outcount; i++, j++) {
+            *aLeft++  =  (j<offset || j>early) ? FL(0.0) : outl[i];
+            *aRight++ =  (j<offset || j>early) ? FL(0.0) : outr[i];
           }
           outfront = outcount;
           outcount = 0;
