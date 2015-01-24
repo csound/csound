@@ -966,7 +966,7 @@ static void
       pcFilename =
         csound->Malloc(csound,
                        slen = (lDirLength + strlen(psDirectoryEntry->d_name) + 2));
-      strncpy(pcFilename, pcDirectory, slen);
+      strncpy(pcFilename, pcDirectory, slen); /*pcFilename[slen-1] = '\0';*/
       if (iNeedSlash)
         strlcat(pcFilename, "/",slen);
       strlcat(pcFilename, psDirectoryEntry->d_name, slen);
