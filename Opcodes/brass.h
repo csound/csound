@@ -97,7 +97,7 @@ MYFLT LipFilt_lastOut(LipFilt*);
 
 /* ---------------------------------------------------------------------- */
 typedef struct BRASS {
-    OPDS    h;
+    OPDS        h;
     MYFLT       *ar;                  /* Output */
     MYFLT       *amp, *frequency;
     MYFLT       *liptension, *dettack;
@@ -117,6 +117,7 @@ typedef struct BRASS {
     MYFLT       lipTarget;
     MYFLT       frq;            /* Remember previous value */
     MYFLT       lipT;           /* and lip tension */
+    MYFLT       limit;
     int         kloop;
 } BRASS;
 
