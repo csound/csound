@@ -45,8 +45,6 @@ typedef void *locale_t;
 #endif
 #endif
 
-
-
 #ifdef HAVE_GCC3
 #  undef HAVE_GCC3
 #endif

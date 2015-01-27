@@ -928,6 +928,7 @@ void *diskin_io_thread(void *p){
   int wakeup = 1000*current->csound->ksmps/current->csound->esr;
   int *start =
     current->csound->QueryGlobalVariable(current->csound,"DISKIN_THREAD_START");
+  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   while(*start){
     current = (DISKIN_INST *) p;
     csoundSleep(wakeup > 0 ? wakeup : 1);
@@ -1717,6 +1718,7 @@ void *diskin_io_thread_array(void *p){
   int *start =
     current->csound->QueryGlobalVariable(current->csound,
                                          "DISKIN_THREAD_START_ARRAY");
+  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   while(*start){
     current = (DISKIN_INST *) p;
     csoundSleep(wakeup > 0 ? wakeup : 1);

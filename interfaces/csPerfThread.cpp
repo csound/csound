@@ -129,6 +129,7 @@ extern "C" {
     int retval = 0;
     const int bufsize = 4096;
     MYFLT buf[bufsize];
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     while (recordData->running) {
         pthread_mutex_lock(&recordData->mutex);
         pthread_cond_wait(&recordData->condvar, &recordData->mutex);
@@ -489,6 +490,7 @@ extern "C" {
   static uintptr_t csoundPerformanceThread_(void *userData)
   {
     CsPerfThread_PerformScore p(userData);
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     // perform the score
     int retval = p.Perform();
     // return positive value if stopped or end of score, and negative on error

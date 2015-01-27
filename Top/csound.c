@@ -1136,6 +1136,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
 {
     CSOUND        *csound;
     csInstance_t  *p;
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
     if (init_done != 1) {
       if (csoundInitialize(0) < 0) return NULL;
@@ -1417,6 +1418,7 @@ unsigned long kperfThread(void * cs)
     void *threadId;
     int index;
     int numThreads;
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
     csound->WaitBarrier(csound->barrier2);
 

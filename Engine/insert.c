@@ -2428,6 +2428,8 @@ void *init_pass_thread(void *p){
     INSDS *ip;
     int done;
     float wakeup = (1000*csound->ksmps/csound->esr);
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+    
     while (csound->init_pass_loop) {
 
 #if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
