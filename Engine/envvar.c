@@ -1461,6 +1461,7 @@ void *file_iothread(void *p){
   int res = 1;
   CSOUND *csound = p;
   int wakeup = (int) (1000*csound->ksmps/csound->esr);
+  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   if(wakeup == 0) wakeup = 1;
   while(res){
     csoundSleep(wakeup);
