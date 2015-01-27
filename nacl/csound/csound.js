@@ -159,7 +159,7 @@ var csound = (function() {
     if (opt_message) {
       statusText = 'Csound: ' + opt_message + '\n';
     }
-    var statusField = document.getElementById('console2');
+    var statusField = document.getElementById('console');
     if (statusField) {
         var fieldType = statusField.tagName.toLowerCase();
         if(fieldType == 'div') {
