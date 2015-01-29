@@ -5789,9 +5789,9 @@ msgid "OSC deinitiatised\n"
 msgstr "OSC dé-initialisé\n"
 
 #: Opcodes/OSC.c:422 Opcodes/OSC.c:426
-#, fuzzy, c-format
+#, c-format
 msgid "cannot start OSC listener on port %s\n"
-msgstr "Ecouteur OSC #%d démarré sur le port %s\n"
+msgstr "impossible de démarrer l'écouteur OSC sur le port %s\n"
 
 #: Opcodes/OSC.c:430
 #, c-format
@@ -7900,7 +7900,7 @@ msgstr ""
 
 #: Opcodes/physmod.c:375 Opcodes/physmod.c:586 Opcodes/physmod.c:877
 msgid "frequency too low, set to minimum"
-msgstr ""
+msgstr "fréquence trop basse, fixée au minimum"
 
 #: Opcodes/physmod.c:504
 msgid "No table for wgbow vibrato"
@@ -11265,14 +11265,13 @@ msgid "External generation failed"
 msgstr "La génération externe a échoué"
 
 #: Top/one_file.c:425
-#, fuzzy
 msgid "and cannot remove"
-msgstr "impossible de réouvrir %s"
+msgstr "et effaçage impossible"
 
 #: Top/one_file.c:429 Top/one_file.c:436 Top/one_file.c:443
-#, fuzzy, c-format
+#, c-format
 msgid "and cannot remove %s"
-msgstr "impossible de réouvrir %s"
+msgstr "et impossible d'effacer %s"
 
 #: Top/one_file.c:487
 #, c-format
