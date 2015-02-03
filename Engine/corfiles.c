@@ -296,8 +296,7 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
     corfile_putc('\0', mm);     /* For use in bison/flex */
     corfile_putc('\0', mm);     /* For use in bison/flex */
     if (fromScore) corfile_flush(mm);
-    if (chunk.memory)
-      free (chunk.memory);
+    free (chunk.memory);
 
     curl_global_cleanup();
     return mm;

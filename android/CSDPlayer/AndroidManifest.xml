@@ -4,7 +4,7 @@
     android:versionCode="1"
     android:versionName="1.1" 
     android:installLocation="auto">
-    <uses-sdk android:minSdkVersion="10"
+    <uses-sdk android:minSdkVersion="17"
               android:targetSdkVersion="20"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>

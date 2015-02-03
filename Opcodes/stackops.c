@@ -625,15 +625,16 @@ static int pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
  /* ------------------------------------------------------------------------ */
 
 static OENTRY stackops_localops[] = {
-  { "stack",  sizeof(STACK_OPCODE), SK|_QQ, 1,  "",                                "i",
+  { "stack",  sizeof(STACK_OPCODE), SK|_QQ, 1,  "",   "i",
       (SUBR) stack_opcode_init, (SUBR) NULL,                      (SUBR) NULL },
-  { "push",   sizeof(PUSH_OPCODE),  SK|_QQ, 3,  "",                                "N",
+  { "push",   sizeof(PUSH_OPCODE),  SK|_QQ, 3,  "",   "N",
       (SUBR) push_opcode_init,  (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "pop",    sizeof(POP_OPCODE),   SK|_QQ, 3,  "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
+  { "pop",    sizeof(POP_OPCODE),   SK|_QQ, 3,
+                                   "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
       (SUBR) pop_opcode_init,   (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "push_f", sizeof(PUSH_OPCODE),  SK|_QQ, 3,  "",                                "f",
+  { "push_f", sizeof(PUSH_OPCODE),  SK|_QQ, 3,  "",   "f",
       (SUBR) push_f_opcode_init, (SUBR) notinit_opcode_stub_perf, (SUBR) NULL },
-  { "pop_f",  sizeof(POP_OPCODE),   SK|_QQ, 3,  "f",                               "",
+  { "pop_f",  sizeof(POP_OPCODE),   SK|_QQ, 3,  "f",   "",
       (SUBR) pop_f_opcode_init,  (SUBR) notinit_opcode_stub_perf, (SUBR) NULL }
 };
 

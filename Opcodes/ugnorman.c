@@ -1787,7 +1787,7 @@ static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     /* get a pointer to the beginning of the data */
     p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
     /* get increments for the partials */
-  
+
     switch (type) {
     case 1:
       p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
@@ -1879,7 +1879,7 @@ static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     for (i = 0; i < (int) *p->iptls; i++) {
       randiats_setup(csound, freqs[i], &(p->randinoise[i]));
     }
-   
+
     return OK;
 }
 

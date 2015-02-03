@@ -227,7 +227,10 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
           pfield->value = *(pdat + i);
         }
       }
-      if (UNLIKELY((n = tp->pmax) != newevtp->pcnt && !tp->psetdata)) {
+      n = tp->pmax;
+      if (UNLIKELY((tp->nocheckpcnt == 0) &&
+                   n != newevtp->pcnt &&
+                   !tp->psetdata)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
           csoundWarning(csound, Str("instr %s uses %d p-fields but is given %d"),
@@ -2425,6 +2428,8 @@ void *init_pass_thread(void *p){
     INSDS *ip;
     int done;
     float wakeup = (1000*csound->ksmps/csound->esr);
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+    
     while (csound->init_pass_loop) {
 
 #if defined(MACOSX) || defined(LINUX) || defined(HAIKU)

@@ -31,7 +31,7 @@
 #include <fstream>
 #include <sstream>
 
-#include <allegro.h>
+#include "allegro.h"
 
 #if defined(HAVE_MUSICXML2)
 #if defined(EXP)
@@ -1178,7 +1178,7 @@ int Score::indexAfterTime(double time_)
 double Score::indexToTime(size_t index)
 {
     double time_ = DBL_MAX;
-    if (index >= 0 && index < size()) {
+    if (/* index >= 0 && */ index < size()) {
         time_ = (*this)[index].getTime();
     }
     return time_;

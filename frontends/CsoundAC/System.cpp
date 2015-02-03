@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#if defined(HAVE_UNISTD_H)
+#if defined(HAVE_UNISTD_H) || defined(MACOSX)
 #include <unistd.h>
 #endif
 
@@ -503,7 +503,7 @@ namespace csound
     if (bufsize <= 0) return 0;
     if (len >= bufsize) len = bufsize-1;
     memcpy(d, s, len);
-    d[len] = 0;
+    d[len] = '\0';
     return ret;
   }
 
