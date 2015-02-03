@@ -24,6 +24,7 @@ int clean_suite1(void)
 void test_debugger_init(void)
 {
     CSOUND* csound = csoundCreate(NULL);
+    csoundCreateMessageBuffer(csound, 0);
     csoundDebuggerInit(csound);
     csoundDebuggerClean(csound);
     csoundDestroy(csound);
@@ -32,6 +33,7 @@ void test_debugger_init(void)
 void test_add_bkpt(void)
 {
     CSOUND* csound = csoundCreate(NULL);
+    csoundCreateMessageBuffer(csound, 0);
     csoundDebuggerInit(csound);
     csoundSetBreakpoint(csound, 3, 0, 0);
     csoundSetBreakpoint(csound, 5, 1, 0);
@@ -51,6 +53,7 @@ static void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdat
 void test_add_callback(void)
 {
     CSOUND* csound = csoundCreate(NULL);
+    csoundCreateMessageBuffer(csound, 0);
     csoundDebuggerInit(csound);
     csoundSetBreakpointCallback(csound, brkpt_cb, NULL);
     csoundDebuggerClean(csound);
@@ -62,6 +65,7 @@ void test_breakpoint_once(void)
     int i;
     int break_count = 0;
     CSOUND* csound = csoundCreate(NULL);
+    csoundCreateMessageBuffer(csound, 0);
     csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n");
     csoundInputMessage(csound, "i 1.1 0   1 440");
     csoundStart(csound);
@@ -92,6 +96,7 @@ void test_breakpoint_remove(void)
     int i;
     int break_count = 0;
     CSOUND* csound = csoundCreate(NULL);
+    csoundCreateMessageBuffer(csound, 0);
     csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n");
     csoundInputMessage(csound, "i 1.1 0   1 440");
     csoundInputMessage(csound, "i 1.2 0   1 880");
@@ -100,12 +105,18 @@ void test_breakpoint_remove(void)
     csoundDebuggerInit(csound);
     csoundSetBreakpointCallback(csound, brkpt_cb2, (void *) &break_count);
     csoundSetInstrumentBreakpoint(csound, 1.1, 0);
-    csoundSetInstrumentBreakpoint(csound, 1.2, 0);
 
-    for (i = 0; i < 1000; i++) {
+    for (i = 0; i < 10; i++) {
         csoundPerformKsmps(csound);
+        csoundDebugContinue(csound);
     }
-    CU_ASSERT(break_count == 2);
+
+    csoundRemoveInstrumentBreakpoint(csound, 1.1);
+    for (i = 0; i < 10; i++) {
+        csoundPerformKsmps(csound);
+        csoundDebugContinue(csound);
+    }
+    CU_ASSERT(break_count == 1);
 
     csoundDebuggerClean(csound);
     csoundDestroy(csound);
@@ -115,15 +126,20 @@ static void brkpt_cb3(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
 {
     debug_variable_t *vars = bkpt_info->instrVarList;
 
-    CU_ASSERT_EQUAL(*((MYFLT *)vars->data), 2.5);
-    CU_ASSERT(*((MYFLT *)vars->next->data) == 3.5);
-    CU_ASSERT(*((MYFLT *)vars->next->next->data)== 0.5);
-    CU_ASSERT_STRING_EQUAL((char *) vars->next->next->next->data, "hello");
+    MYFLT data = *((MYFLT *)vars->data);
+    CU_ASSERT_EQUAL(data, 2.5);
+    data = *((MYFLT *)vars->next->data);
+    CU_ASSERT(data == 3.5);
+    data = *((MYFLT *)vars->next->next->data);
+    CU_ASSERT(data== 0.5);
+    char *str = (char *) vars->next->next->next->data;
+    CU_ASSERT_STRING_EQUAL(str, "hello");
 }
 
 void test_variables(void)
 {
     CSOUND* csound = csoundCreate(NULL);
+    csoundCreateMessageBuffer(csound, 0);
     csoundCompileOrc(csound, "instr 1\n ivar init 2.5\n kvar init 3.5\n asig init 0.5\nSvar init \"hello\"\n endin\n");
     csoundInputMessage(csound, "i 1 0  1 440");
     csoundStart(csound);
@@ -149,6 +165,7 @@ static void brkpt_cb4(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
 void test_bkpt_instrument(void)
 {
     CSOUND* csound = csoundCreate(NULL);
+    csoundCreateMessageBuffer(csound, 0);
     csoundCompileOrc(csound, "instr 1\n Svar init \"hello\"\n endin\n");
     csoundInputMessage(csound, "i 1 0  1.1 440");
     csoundStart(csound);
@@ -172,6 +189,7 @@ static void brkpt_cb5(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
 void test_line_breakpoint_add_remove(void)
 {
     CSOUND* csound = csoundCreate(NULL);
+    csoundCreateMessageBuffer(csound, 0);
     count = 0;
     csoundCompileOrc(csound, "instr 1\n"
                      "Svar init \"hello\"\n"
@@ -218,6 +236,7 @@ static void brkpt_cb6(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
 void test_line_breakpoint(void)
 {
     CSOUND* csound = csoundCreate(NULL);
+    csoundCreateMessageBuffer(csound, 0);
     count = 0;
     csoundCompileOrc(csound, "instr 1\n"
                      "Svar init \"hello\"\n"
@@ -252,7 +271,9 @@ void test_line_breakpoint(void)
     csoundPerformKsmps(csound);
 
     csoundDebuggerClean(csound);
+
     csoundDestroy(csound);
+
     CU_ASSERT_EQUAL(count, 2);
 }
 
@@ -263,9 +284,10 @@ static void brkpt_cb7(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
     CU_ASSERT(debug_opcode->line == *line);
     if (*line == 5) {
         CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "line");
-    }
-    if (*line == 6) {
+    } else if (*line == 6) {
         CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "oscils");
+    } else {
+        CU_ASSERT(0 == 1); // Wrong line number
     }
     count++;
 }
@@ -275,12 +297,13 @@ void test_line_breakpoint_orc_file(void)
     FILE *f = fopen("debug.orc", "w");
     CU_ASSERT_PTR_NOT_NULL(f);
 
-    const char *orc = "\ninstr 1\n"
-            "Svar init \"hello\"\n"
-            "ksig line 0, p3, 1\n"
-            "ksig2 line 1, p3, 0\n"
-            "asig3 oscils 0.5, 440, 0.5\n"
-            "endin\n";
+    const char *orc = "\n"
+                      "instr 1\n"
+                      "Svar init \"hello\"\n"
+                      "ksig line 0, p3, 1\n"
+                      "ksig2 line 1, p3, 0\n"
+                      "asig3 oscils 0.5, 440, 0.5\n"
+                      "endin\n";
     fprintf(f, "%s", orc);
     fclose(f);
     f = fopen("debug.sco", "w");
@@ -291,22 +314,29 @@ void test_line_breakpoint_orc_file(void)
     fclose(f);
     count = 0;
     CSOUND* csound = csoundCreate(NULL);
+
+    csoundCreateMessageBuffer(csound, 0);
     const char* argv[] = {"csound", "debug.orc", "debug.sco"};
     csoundCompile(csound, 3, (char **) argv);
 
     csoundDebuggerInit(csound);
-    int line = 6;
+    int line = 5;
     csoundSetBreakpointCallback(csound, brkpt_cb7, &line);
     csoundSetBreakpoint(csound, line, 0, 0);
     csoundPerformKsmps(csound);
+    csoundDebugContinue(csound);
     csoundRemoveBreakpoint(csound, line, 0);
     csoundPerformKsmps(csound);
+    csoundDebugContinue(csound);
     csoundPerformKsmps(csound);
+    csoundDebugContinue(csound);
     csoundPerformKsmps(csound);
+    csoundDebugContinue(csound);
 
-    line = 5;
+    line = 6;
     csoundSetBreakpoint(csound, line, 0, 0);
     csoundPerformKsmps(csound);
+    csoundDebugContinue(csound);
 //    csoundPerformKsmps(csound);
 
     csoundDebuggerClean(csound);
@@ -317,6 +347,7 @@ void test_line_breakpoint_orc_file(void)
 void test_no_callback(void)
 {
     CSOUND* csound = csoundCreate(NULL);
+    csoundCreateMessageBuffer(csound, 0);
     csoundStart(csound);
     csoundDebuggerInit(csound);
     csoundSetInstrumentBreakpoint(csound, 1, 0);
@@ -352,28 +383,45 @@ static void brkpt_cb8(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
     count++;
 }
 
+
+static void brkpt_cb9(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
+{
+    debug_variable_t *vars = bkpt_info->instrVarList;
+    MYFLT val = -1;
+    while (vars) {
+        if (strcmp(vars->name, "kvar") == 0) {
+            val = *((MYFLT *) vars->data);
+            break;
+        }
+        vars = vars->next;
+    }
+    CU_ASSERT_DOUBLE_EQUAL(val, 10, 0.000001);
+}
+
 void test_next(void)
 {
     CSOUND* csound = csoundCreate(NULL);
+    csoundCreateMessageBuffer(csound, 0);
     count = 0;
     csoundCompileOrc(csound, "instr 1\n"
-                     "Svar init \"hello\"\n"
-                     "ksig line 0, p3, 1\n"
-                     "ksig2 line 1, p3, 0\n"
-                     "asig3 oscils 0.5, 440, 0.5\n"
-                     "endin\n");
+                             "Svar init \"hello\"\n"
+                             "ksig line 0, p3, 1\n"
+                             "ksig2 line 1, p3, 0\n"
+                             "asig3 oscils 0.5, 440, 0.5\n"
+                             "endin\n");
     csoundCompileOrc(csound, "instr 30\n"
-                     "Svar init \"hello\"\n"
-                     "ksig line 0, p3, 1\n"
-                     "ksig2 line 1, p3, 0\n"
-                     "asig3 oscils 0.5, 440, 0.5\n"
-                     "endin\n");
+                             "kvar init 10\n"
+                             "kvar = kvar + 1\n"
+                             "ksig2 line 1, p3, 0\n"
+                             "kvar = kvar + 1\n"
+                             "endin\n");
 
-    csoundInputMessage(csound, "i 1 0  1.1");
-    csoundInputMessage(csound, "i 1.2 0  1.1");
-    csoundInputMessage(csound, "i 30.1 0  1.1");
-    csoundInputMessage(csound, "i 30 0  1.1");
-    csoundInputMessage(csound, "i 1.3 0  1.1");
+    csoundInputMessage(csound, "i 1 0  0.1");
+    csoundInputMessage(csound, "i 1.2 0  0.1");
+    csoundInputMessage(csound, "i 30.1 0  0.01");
+    csoundInputMessage(csound, "i 30 0  0.01");
+    csoundInputMessage(csound, "i 30 1  0.11");
+    csoundInputMessage(csound, "i 1.3 0  0.1");
 
     csoundStart(csound);
     csoundDebuggerInit(csound);
@@ -381,19 +429,42 @@ void test_next(void)
     csoundSetInstrumentBreakpoint(csound, 1.2, 0);
     csoundPerformKsmps(csound);
     csoundPerformKsmps(csound);
-    csoundPerformKsmps(csound);
+    csoundPerformKsmps(csound);  // Only the first call should have effect as we have already stopped
 
     csoundDebugNext(csound);
     csoundPerformKsmps(csound);
-    csoundPerformKsmps(csound);
+    csoundPerformKsmps(csound); // Ignored
     csoundDebugNext(csound);
     csoundPerformKsmps(csound);
-    csoundPerformKsmps(csound);
+    csoundPerformKsmps(csound); // Ignored
     csoundDebugNext(csound);
     csoundPerformKsmps(csound);
-    csoundPerformKsmps(csound);
+    csoundPerformKsmps(csound); // Ignored
     csoundDebugNext(csound);
     csoundPerformKsmps(csound);
+    csoundPerformKsmps(csound); // Ignored
+    csoundRemoveInstrumentBreakpoint(csound, 1.2);
+    csoundDebugContinue(csound);
+
+    int i;
+    for (i = 0; i < 200; i++) {
+        csoundPerformKsmps(csound);
+    }
+
+    csoundSetBreakpointCallback(csound, brkpt_cb9, NULL);
+    csoundSetInstrumentBreakpoint(csound, 30.1, 0);
+    for (i = 0; i < 1000; i++) {
+        csoundPerformKsmps(csound);
+    }
+
+    /* step to next line */
+    csoundDebugNext(csound);
+    csoundPerformKsmps(csound);
+    /* step to next line */
+    csoundDebugNext(csound);
+    csoundPerformKsmps(csound);
+    /* step to next line */
+    csoundDebugNext(csound);
     csoundPerformKsmps(csound);
 
     csoundDebuggerClean(csound);

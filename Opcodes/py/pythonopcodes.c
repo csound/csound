@@ -120,9 +120,10 @@ eval_string_in_given_context(char *string, PyObject *private)
 static PyObject *
 exec_file_in_given_context(CSOUND* cs, char *filename, PyObject *private)
 {
-    FILE      *file;
-    PyObject  *result, *module, *public;
-    void      *fd;
+    PyObject  *result, *module, *public, *pyFileObj;
+    char      *fullpath;
+
+    fullpath = cs->FindInputFile(cs, filename, NULL);
 
     module = PyImport_AddModule("__main__");
     if (module == NULL) {
@@ -130,16 +131,14 @@ exec_file_in_given_context(CSOUND* cs, char *filename, PyObject *private)
       return NULL;
     }
     public = PyModule_GetDict(module);
-    fd = cs->FileOpen2(cs, &file, CSFILE_STD, filename, "r",
-                       "", CSFTYPE_SCRIPT_TEXT, 0);
-    if (fd == NULL) {
+    pyFileObj = PyFile_FromString(fullpath, "r");
+    if (pyFileObj == NULL) {
       PyErr_Format(PyExc_RuntimeError,
                    "couldn't open script file %s", filename);
       return NULL;
     }
-    result = PyRun_File(file, filename, Py_file_input,
+    result = PyRun_File(PyFile_AsFile(pyFileObj), fullpath, Py_file_input,
                     public, private ? private : public);
-    cs->FileClose(cs, fd);
     return result;
 }
 

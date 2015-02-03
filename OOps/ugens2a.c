@@ -72,7 +72,7 @@ static int itblchk(CSOUND *csound, TABLE *p)
 
 int tblset(CSOUND *csound, TABLE *p)
 {
-    if (UNLIKELY(csoundGetTypeForArg(p->rslt) != csoundGetTypeForArg(p->xndx))) {
+    if (UNLIKELY(IS_ASIG_ARG(p->rslt) != IS_ASIG_ARG(p->xndx))) {
       const char  *opname = csound->GetOpcodeName(p);
       const char  *msg = Str("%s: table index type inconsistent with output");
       if (UNLIKELY(CS_KSMPS == 1))

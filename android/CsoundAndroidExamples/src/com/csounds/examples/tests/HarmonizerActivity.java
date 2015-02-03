@@ -34,13 +34,14 @@ import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
-import com.csounds.CsoundObjCompletionListener;
+import com.csounds.CsoundObjListener;
+import com.csounds.bindings.ui.CsoundUI;
 import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
 
 
 public class HarmonizerActivity extends BaseCsoundActivity implements
-		CsoundObjCompletionListener {
+		CsoundObjListener {
 
 	ToggleButton startStopButton = null;
 
@@ -72,15 +73,16 @@ public class HarmonizerActivity extends BaseCsoundActivity implements
 							String csd = getResourceFileAsString(R.raw.harmonizer);
 							File f = createTempFile(csd);
 
-							csoundObj.addSlider(harmonyPitchSlider,
+							CsoundUI csoundUI = new CsoundUI(csoundObj);
+							csoundUI.addSlider(harmonyPitchSlider,
 									"slider", 0, 1);
-							csoundObj.addSlider(gainSlider,
+							csoundUI.addSlider(gainSlider,
 									"gain", .5, 3);
 							
 							csoundObj.setAudioInEnabled(true);
 							csoundObj.startCsound(f);
 						} else {
-							csoundObj.stopCsound();
+							csoundObj.stop();
 						}
 
 					}
@@ -88,7 +90,9 @@ public class HarmonizerActivity extends BaseCsoundActivity implements
 
 	}
 
-	public void csoundObjComplete(CsoundObj csoundObj) {
+	public void csoundObjStarted(CsoundObj csoundObj) {}
+	
+	public void csoundObjCompleted(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);

@@ -9,8 +9,7 @@
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
+    and/or modify it under the terms of the Foundation; either
     version 2.1 of the License, or (at your option) any later version.
 
     Csound is distributed in the hope that it will be useful,
@@ -53,6 +52,7 @@ void csound_pre_line(CORFIL*, yyscan_t);
     yyg->yy_flex_debug_r=1; PARM->macro_stack_size = 0;                 \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
   }
+ MACRO *find_definition(MACRO *, char *);
 %}
 %option reentrant
 %option noyywrap
@@ -220,34 +220,13 @@ QNAN		"qnan"[ \t]*\(
                   corfile_puts(yytext, csound->expanded_orc);
                 }
 {MACRONAME}     {
-                   MACRO     *mm, *mfound=NULL;
-                   unsigned int i, len, mlen;
-                   //print_csound_predata(csound, "Macro call", yyscanner);
-                   len = strlen(yytext)-1;
-                   mlen = 0;
-                   for (i=len; i>0; i--) { /* Find the definition */
-                     mm = PARM->macros;
-                     while (mm != NULL) {
-                       if (!(strncmp(yytext+1, mm->name, i))) {
-                         mfound = mm;
-                         mlen = i;
-                         if (strlen(mm->name) == mlen)
-                           goto cont;
-                       }
-                       mm = mm->next;
-                     }
-                   }
-                   cont:
-                   mm = mfound;
+                   MACRO     *mm = PARM->macros;
+                   mm = find_definition(mm, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      csound->LongJmp(csound, 1);
                    }
-                   if (mlen<len) yyless(mlen+1);
                    /* Need to read from macro definition */
-                   /* csound->DebugMsg(csound, "found macro %s\nstack ptr = %d\n", */
-                   /*         yytext+1, PARM->macro_stack_ptr); */
-                   /* print_csound_predata(csound, "macro found", yyscanner); */
                    /* ??fiddle with buffers I guess */
                    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
                      PARM->alt_stack =
@@ -261,24 +240,17 @@ QNAN		"qnan"[ \t]*\(
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
                      csound_preget_lineno(yyscanner);
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-                   csound->DebugMsg(csound,"Push %p macro stack; new body #%s#\n",
-                                    PARM->macros, mm->body);
-                   /* csound->DebugMsg(csound,"Push buffer %p -> ", YY_CURRENT_BUFFER); */
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
                    PARM->lstack[++PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
                    /* csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER); */
-                  }
+                }
 {MACRONAMED}    {
                    MACRO     *mm = PARM->macros;
                    yytext[yyleng-1] = '\0';
-                   while (mm != NULL) {  /* Find the definition */
-                     if (!(strcmp(yytext+1, mm->name)))
-                       break;
-                     mm = mm->next;
-                   }
+                   mm = find_definition(mm, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      csound->LongJmp(csound, 1);
@@ -310,12 +282,7 @@ QNAN		"qnan"[ \t]*\(
                    int c, i, j;
                    csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext);
                    yytext[yyleng-1] = '\0';
-                   while (mm != NULL) {  /* Find the definition */
-                     csound->DebugMsg(csound,"Check %s against %s\n", yytext+1, mm->name);
-                     if (!(strcmp(yytext+1, mm->name)))
-                       break;
-                     mm = mm->next;
-                   }
+                   mm = find_definition(PARM->macros, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      csound->LongJmp(csound, 1);
@@ -382,13 +349,7 @@ QNAN		"qnan"[ \t]*\(
                    csound->DebugMsg(csound,"Macro with arguments call %s\n",
                                        yytext);
                    yytext[yyleng-2] = '\0';
-                   while (mm != NULL) {  /* Find the definition */
-                     csound->DebugMsg(csound,"Check %s against %s\n",
-                                      yytext+1, mm->name);
-                     if (!(strcmp(yytext+1, mm->name)))
-                       break;
-                     mm = mm->next;
-                   }
+                   mm = find_definition(PARM->macros, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      csound->LongJmp(csound, 1);
@@ -473,9 +434,9 @@ QNAN		"qnan"[ \t]*\(
                   if (UNLIKELY(PARM->depth > 1024))
                     csound->Die(csound, Str("unexpected EOF"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
-                  csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n",
-                                   __FILE__, __LINE__,
-                         PARM->llocn, PARM->locn);
+                  /* csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n", */
+                  /*                  __FILE__, __LINE__, */
+                  /*        PARM->llocn, PARM->locn); */
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   /* csound->DebugMsg(csound,"End of input; popping to %p\n", */
                   /*         YY_CURRENT_BUFFER); */
@@ -491,9 +452,10 @@ QNAN		"qnan"[ \t]*\(
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  csound->DebugMsg(csound,"%s(%d): line now %d at %d\n",
-                                   __FILE__, __LINE__,
-                         csound_preget_lineno(yyscanner), PARM->macro_stack_ptr);
+                  /* csound->DebugMsg(csound,"%s(%d): line now %d at %d\n", */
+                  /*                  __FILE__, __LINE__, */
+                  /*        csound_preget_lineno(yyscanner), */
+                  /*        PARM->macro_stack_ptr); */
                   /* csound->DebugMsg(csound,"n=%d\n", n); */
                   if (n!=0) {
                     /* We need to delete n macros starting with y */
@@ -813,13 +775,27 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     int   arg = 0, i, c;
     int   size = 100;
     int mlen = 40;
+    char *q = name0;
     char *mname = malloc(mlen);
     mm->margs = MARGS;    /* Initial size */
     mm->name = (char*)mmalloc(csound, strlen(name0) + 1);
     strcpy(mm->name, name0);
     do {
-      while (isspace((c = input(yyscanner))));
       i = 0;
+      q = name0;
+      mname[i++] = '_';
+      while ((c = *q++)) {
+        mname[i++] = c;
+        if (UNLIKELY(i==mlen))
+          mname = (char *)realloc(mname, mlen+=40);
+      }
+      mname[i++] = '_';
+      if (UNLIKELY(i==mlen))
+          mname = (char *)realloc(mname, mlen+=40);
+      mname[i++] = '_';
+      if (UNLIKELY(i==mlen))
+          mname = (char *)realloc(mname, mlen+=40);
+      while (isspace((c = input(yyscanner))));
 
       while (isNameChar(c, i)) {
         mname[i++] = c;
@@ -849,6 +825,16 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     while ((c = input(yyscanner)) != '#') { /* read body */
       if (UNLIKELY(c == EOF))
         csound->Die(csound, Str("define macro with args: unexpected EOF"));
+      if (c=='$') {             /* munge macro name? */
+        int n = strlen(name0)+4;
+        if (UNLIKELY(i+n >= size))
+          mm->body = mrealloc(csound, mm->body, size += 100);
+        mm->body[i] = '$'; mm->body[i+1] = '_';
+        strcpy(&mm->body[i+2], name0);
+        mm->body[i + n - 2] = '_'; mm->body[i + n - 1] = '_';
+        i+=n;
+        continue;
+      }
       mm->body[i++] = c=='\r'?'\n':c;
       if (UNLIKELY(i >= size))
         mm->body = mrealloc(csound, mm->body, size += 100);
@@ -1125,7 +1111,34 @@ void do_function(char *text, CORFIL *cf)
     }
     return;
 }
- 
+
+MACRO *find_definition(MACRO *mmo, char *s)
+{
+    MACRO *mm = mmo;
+    //printf("****Looking for %s\n", s);
+    while (mm != NULL) {  /* Find the definition */
+      //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
+      if (!(strcmp(s, mm->name))) break;
+      mm = mm->next;
+    }
+    if (mm == NULL) {
+      mm = mmo;
+      s++;                      /* skip _ */
+    looking:
+      while (*s++!='_') { if (*s=='\0') return NULL; }
+      if (*s++!='_') { s--; goto looking; }
+      //printf("now try looking for %s\n", s);
+      while (mm != NULL) {  /* Find the definition */
+        //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
+        if (!(strcmp(s, mm->name))) break;
+        mm = mm->next;
+      }
+    }
+    //if (mm) printf("found body #%s#\n****\n", mm->body);
+    return mm;
+}
+
+
 #if 0
 static void print_csound_predata(CSOUND *csound, char *mesg, void *yyscanner)
 {

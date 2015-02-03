@@ -1379,6 +1379,7 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
       phs = OSCBNK_PHS2INT(v);
     }
     /* convert phase modulation to frequency modulation */
+    v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) / (nsmps-offset); /* VL moved the line from below to here */
     p->old_phs = *(p->kphs);
     frq = (frq + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;
     /* read from table with interpolation */
@@ -1387,7 +1388,7 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) / (nsmps-offset);
+    //v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) / (nsmps-offset);  /* VL this result is never used */
     for (nn=offset; nn<nsmps; nn++) {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((int32) (phs & mask)) * pfrac;
@@ -1969,13 +1970,13 @@ static int vco2set(CSOUND *csound, VCO2 *p)
       return csound->InitError(csound,
                                Str("vco2: insufficient required arguments"));
     }
-   
+
     //FIXME
-    
+
 //    if (UNLIKELY(p->XINCODE)) {
 //      return csound->InitError(csound, Str("vco2: invalid argument type"));
 //    }
-    
+
     /* select table array and algorithm, according to waveform */
     tnum = tnums[(mode & 14) >> 1];
     p->mode = modes[(mode & 14) >> 1];

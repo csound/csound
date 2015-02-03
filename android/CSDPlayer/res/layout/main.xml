@@ -15,6 +15,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.25"
+            android:minHeight="36dip"
             android:tag="csound:newButton"
             android:text="@string/New" />
 
@@ -24,6 +25,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.25"
+            android:minHeight="36dip"
             android:tag="csound:openButton"
             android:text="@string/Open" />
 
@@ -33,6 +35,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.25"
+            android:minHeight="36dip"
             android:text="@string/Edit" />
 
         <ToggleButton
@@ -41,8 +44,10 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="0.25"
+            android:minHeight="36dip"
             android:textOff="@string/Start"
             android:textOn="@string/Stop" />
+
     </TableRow>
 
     <TableLayout
@@ -129,54 +134,60 @@
             <Button
                 android:id="@+id/button1"
                 style="@style/csoundButtonStyle"
-                android:textAppearance="?android:attr/textAppearanceSmall"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="@string/butt1" />
+                android:minHeight="36dp"
+                android:text="@string/butt1"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <Button
                 android:id="@+id/button2"
                 style="@style/csoundButtonStyle"
-                android:textAppearance="?android:attr/textAppearanceSmall" 
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="@string/butt2" />
+                android:minHeight="36dp"
+                android:text="@string/butt2"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <Button
                 android:id="@+id/button3"
-                android:textAppearance="?android:attr/textAppearanceSmall" 
                 style="@style/csoundButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="@string/butt3" />
+                android:minHeight="36dp"
+                android:text="@string/butt3"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <Button
                 android:id="@+id/button4"
-                android:textAppearance="?android:attr/textAppearanceSmall" 
                 style="@style/csoundButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="@string/butt4" />
+                android:minHeight="36dp"
+                android:text="@string/butt4"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <Button
                 android:id="@+id/button5"
                 style="@style/csoundButtonStyle"
-                android:textAppearance="?android:attr/textAppearanceSmall" 
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="@string/butt5" />
+                android:minHeight="36dp"
+                android:text="@string/butt5"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+
         </TableRow>
 
         <Button
             android:id="@+id/pad"
             style="@style/csoundButtonStyle"
             android:layout_width="match_parent"
-            android:layout_height="134dp"
+            android:layout_height="96dp"
             android:layout_marginTop="-5dip"
             android:text="@string/trackpad" />
     </TableLayout>
@@ -190,16 +201,18 @@
     <ScrollView
         android:id="@+id/messageScrollView"
         android:layout_width="match_parent"
-        android:layout_weight="1"
-        android:layout_height="0dp">
+        android:layout_height="0dp"
+        android:layout_weight="2" >
 
         <TextView
             android:id="@+id/messageTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minLines="6"
             android:textColor="#00ff00"
             android:textSize="10sp"
             android:typeface="monospace" />
+
     </ScrollView>
 
 </TableLayout>

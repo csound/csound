@@ -312,7 +312,7 @@ sprintf_opcode_(CSOUND *csound,
         return StrOp_ErrMsg(p, "a-rate argument not allowed");
       }
     }
-    
+
     if (UNLIKELY((int) ((OPDS*) p)->optext->t.inArgCount > 31)){
       StrOp_ErrMsg(p, "too many arguments");
       return NOTOK;
@@ -321,7 +321,7 @@ sprintf_opcode_(CSOUND *csound,
 
     strseg = malloc(siz);
     i = 0;
-    
+
     while (1) {
       if (UNLIKELY(i >= siz)) {
         // return StrOp_ErrMsg(p, "format string too long");
@@ -892,8 +892,9 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
 #endif
     char        buf[32];
 
-
-    ((char*) p->Sdst->data)[0] = '\0';
+    p->Sdst->data = csound->Calloc(csound,32);
+    p->Sdst->size = 32;
+    //((char*) p->Sdst->data)[0] = '\0';
     buf[0] = '\0';
     s = &(buf[0]);
     switch (opt) {
@@ -1084,7 +1085,7 @@ strlcat(char *dst, const char *src, size_t siz)
 /* Debugging opcode for testing runtime type identification */
 int print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
     char* ptr = (char*)p->inVar;
-    
+
     CS_TYPE* varType = *(CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
     csound->Message(csound, "Variable Type: %s\n", varType->varTypeName);
 

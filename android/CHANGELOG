@@ -2,6 +2,19 @@ Csound for Android ChangeLog
 
 This ChangeLog shows changes specific to Csound for Android. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
 
+6.04.0 - 2014-12-01
+
+* Android API updated: 
+	* CsoundValueCacheable interface changed to CsoundBinding
+	* CsoundCompletionListener interface changed to CsoundListener,
+	csoundRenderStarted function added to interface
+  * methods renamed: addValueCacheable => addBinding, addCompletionListener =>
+	addListener
+  * CsoundObj methods for adding UI and motion bindings moved to CsoundMotion
+	and CsoundUI classes
+	* binding classes reorganized into com.csounds.bindings.ui and
+	com.csounds.bindings.motion
+
 
 6.00.1 - 2013-08-06
 

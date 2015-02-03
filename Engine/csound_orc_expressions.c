@@ -211,8 +211,13 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
       strncpy(op, "cngoto", 8);
       break;
     default:
-      if (type) strncpy(op, "ckgoto", 8);
-      else strncpy(op, "cggoto", 8);
+      switch (type) {
+      case 1: strncpy(op, "ckgoto", 8); break;
+      case 0x8001: strncpy(op, "cngoto", 8); break;
+      case 0: strncpy(op, "cggoto", 8); break;
+      case 0x8000: strncpy(op, "cingoto", 8); break;
+      default: printf("Whooops %d\n", type);
+      }
     }
 
     opTree = create_opcode_token(csound, op);
@@ -891,7 +896,11 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
     // handle LHS expressions (i.e. array-set's)
     previousArg = NULL;
     currentArg = current->left;
-
+    int init = 0;
+    if (strcmp("init", current->value->lexeme)==0) {
+      //print_tree(csound, "init",current);
+      init = 1;
+      }
     while (currentArg != NULL) {
       TREE* temp;
 
@@ -906,6 +915,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
           if (strlen(leftArgType) > 1 && leftArgType[1] == '[') {
               outType = get_array_sub_type(csound,
                                 currentArg->left->value->lexeme);
+              if (init) outType = "i";
           }
           else {
             // FIXME - this is hardcoded to "k" for now.  The problem
@@ -914,7 +924,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
             // think the solution is to use the types from the opcode
             // that this LHS array_set is being used with, but this is
             // not implemented.
-
 //              OENTRIES* opentries = find_opcode2(csound, "##array_set");
 //
 //              char* rightArgType = get_arg_string_from_tree(csound,
@@ -928,7 +937,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
 //              outType = resolve_opcode_get_outarg(csound, opentries,
 //                                                       argString);
 
-              outType = "k";
+            outType = init ? "i":"k";
               // free(argString);
 
 //              if (outType == NULL) {
@@ -948,7 +957,9 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
         }
         temp->next = currentArg->next;
 
-        TREE* arraySet = create_opcode_token(csound, "##array_set");
+        TREE* arraySet = create_opcode_token(csound,
+                                             (init ? "##array_init":
+                                                     "##array_set"));
         arraySet->right = currentArg->left;
         arraySet->right->next =
           make_leaf(csound, temp->line, temp->locn,
@@ -958,7 +969,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
           currentArg->right; // TODO - check if this handles expressions
 
         anchor = appendToTree(csound, anchor, arraySet);
-
+        //print_tree(csound, "anchor", anchor);
         currentArg = temp;
 
       }
@@ -1124,7 +1135,8 @@ TREE* expand_if_statement(CSOUND* csound,
    4. insert statements
    5. add goto token that goes to top label
    6. end label */
-TREE* expand_until_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
+TREE* expand_until_statement(CSOUND* csound, TREE* current,
+                             TYPE_TABLE* typeTable, int dowhile)
 {
     TREE* anchor = NULL;
     TREE* expressionNodes = NULL;
@@ -1163,9 +1175,10 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTabl
       create_goto_token(csound,
                         last->left->value->lexeme,
                         labelEnd,
-                        gotoType);
+                        gotoType+0x8000*dowhile);
     gotoToken->next = tempRight;
     gotoToken->right->next = labelEnd;
+
 
     last = appendToTree(csound, last, gotoToken);
     last = tree_tail(last);
@@ -1183,7 +1196,6 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTabl
 
 
     labelEnd->next = current->next;
-
     return anchor;
 }
 

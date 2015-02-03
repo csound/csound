@@ -43,6 +43,63 @@ extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 /* IV - Feb 19 2005 */
 
+#ifdef EXPERIMENTAL
+static FILE *logFile = NULL;
+
+void msg_callback(CSOUND *csound,
+                         int attr, const char *format, va_list args)
+{
+    (void) csound;
+    if ((attr & CSOUNDMSG_TYPE_MASK) != CSOUNDMSG_REALTIME) {
+      vfprintf(logFile, format, args);
+      fflush(logFile);
+      return;
+     }
+    #if defined(WIN32) || defined(MAC)
+    switch (attr & CSOUNDMSG_TYPE_MASK) {
+        case CSOUNDMSG_ERROR:
+        case CSOUNDMSG_WARNING:
+        case CSOUNDMSG_REALTIME:
+        break;
+      default:
+        vfprintf(logFile, format, args);
+        return;
+    }
+    #endif
+
+    vfprintf(stderr, format, args);
+}
+
+void nomsg_callback(CSOUND *csound,
+  int attr, const char *format, va_list args){ return; }
+
+void do_logging(char *s)
+{
+    int nomessages = 0;
+    if (logFile) return;
+    if (!strcmp(s, "NULL") || !strcmp(s, "null"))
+      nomessages = 1;
+    else if ((logFile = fopen(s, "w")) == NULL) {
+      fprintf(stderr, "Error opening log file '%s': %s\n",
+              s, strerror(errno));
+      exit(1);
+    }
+    /* if logging to file, set message callback */
+    if (logFile != NULL)
+      csoundSetDefaultMessageCallback(msg_callback);
+    else if (nomessages)
+      csoundSetDefaultMessageCallback(nomsg_callback);
+}
+
+void end_logging(void)
+{
+    if (logFile != NULL)
+      fclose(logFile);
+}
+#else
+#define do_logging(x) {}
+#endif
+
 static inline void set_stdin_assign(CSOUND *csound, int type, int state)
 {
     if (state)
@@ -712,6 +769,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     else if (!(strncmp (s, "logfile=", 8))) {
       s += 8;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no log file"));
+      do_logging(s);
       return 1;
     }
     /* -r N */
@@ -1272,6 +1330,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             break;
           case 'O':
             FIND(Str("no log file"));
+            do_logging(s);
             while (*s++)
               ; s--; /* semicolon on separate line to silence warning */
             break;
