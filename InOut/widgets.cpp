@@ -24,6 +24,7 @@
 #if defined(WIN32)
 #include <FL/Fl_Output.H>
 #endif
+#include <unistd.h>
 #include <csound.h>
 #include "widglobals.h"
 #include <FL/x.H>
@@ -302,6 +303,7 @@ int Fl_Knob::handle(int  event)
     switch (event) {
     case FL_PUSH:
       handle_push();
+      return 1;                 // CHECKME ***JPff added this; is that right?***
     case FL_DRAG:
       {
         int mx = Fl::event_x()-ox-ww/2;

@@ -28,6 +28,7 @@ package com.csounds.examples.tests;
 import java.io.File;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -38,12 +39,16 @@ import android.widget.SeekBar;
 import android.widget.ToggleButton;
 
 import com.csounds.CsoundObj;
-import com.csounds.CsoundObjCompletionListener;
+import com.csounds.CsoundObjListener;
+import com.csounds.bindings.ui.CsoundUI;
 import com.csounds.examples.BaseCsoundActivity;
 import com.csounds.examples.R;
 
+import android.content.Context;
+import android.media.AudioManager;
+
 public class ButtonTestActivity extends BaseCsoundActivity implements
-		CsoundObjCompletionListener {
+		CsoundObjListener {
 	
 	ToggleButton startStopButton = null;
 
@@ -59,6 +64,17 @@ public class ButtonTestActivity extends BaseCsoundActivity implements
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		
+		
+	
+		/*AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		String sampleRate = am.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+		String framesPerBuffer =
+		am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+
+		Log.d("CSOUNDAPP", sampleRate);
+		Log.d("CSOUNDAPP", framesPerBuffer);
+		*/
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.button_test);
 
@@ -88,14 +104,15 @@ public class ButtonTestActivity extends BaseCsoundActivity implements
 							String csd = getResourceFileAsString(R.raw.button_test);
 							File f = createTempFile(csd);
 
-							csoundObj.addSlider(durationSlider, "duration", .5,
+							CsoundUI csoundUI = new CsoundUI(csoundObj);
+							csoundUI.addSlider(durationSlider, "duration", .5,
 									4);
-							csoundObj.addSlider(attackSlider, "attack", 0, 2);
-							csoundObj.addSlider(decaySlider, "decay", .05, 2);
-							csoundObj.addSlider(sustainSlider, "sustain", 0, 1);
-							csoundObj.addSlider(releaseSlider, "release", 0, 4);
+							csoundUI.addSlider(attackSlider, "attack", 0, 2);
+							csoundUI.addSlider(decaySlider, "decay", .05, 2);
+							csoundUI.addSlider(sustainSlider, "sustain", 0, 1);
+							csoundUI.addSlider(releaseSlider, "release", 0, 4);
 
-							csoundObj.addButton(valueButton, "button1");
+							csoundUI.addButton(valueButton, "button1");
 							
 //							eventButton.setOnClickListener(new OnClickListener() {
 //								
@@ -138,15 +155,18 @@ public class ButtonTestActivity extends BaseCsoundActivity implements
 							
 							csoundObj.startCsound(f);
 						} else {
-							csoundObj.stopCsound();
+							csoundObj.stop();
 						}
 
 					}
 				});
 
 	}
+	
+	
+	public void csoundObjStarted(CsoundObj csoundObj) {}
 
-	public void csoundObjComplete(CsoundObj csoundObj) {
+	public void csoundObjCompleted(CsoundObj csoundObj) {
 		handler.post(new Runnable() {
 			public void run() {
 				startStopButton.setChecked(false);

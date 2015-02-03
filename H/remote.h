@@ -27,6 +27,11 @@
 #ifdef HAVE_SOCKETS
   #ifdef WIN32
     #include <winsock2.h>
+    #ifndef SHUT_RDWR
+      #define SHUT_RD   0x00
+      #define SHUT_WR   0x01
+      #define SHUT_RDWR 0x02
+    #endif
   #else
     #include <sys/ioctl.h>
     #ifdef __HAIKU__

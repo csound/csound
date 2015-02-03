@@ -32,6 +32,7 @@
 #endif
 #define DSSI4CS_MAX_NUM_EVENTS 128
 
+#if !defined(HAVE_STRLCAT) && !defined(strlcat)
 size_t
 strlcat(char *dst, const char *src, size_t siz)
 {
@@ -59,6 +60,7 @@ strlcat(char *dst, const char *src, size_t siz)
 
     return (dlen + (s - src));  /* count does not include NUL */
 }
+#endif
 
 //static const char   *version = "0.1alpha";
 
@@ -231,7 +233,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
     CS_TYPE* argType = csound->GetTypeForArg(p->iplugin);
-    
+
     if(strcmp("S", argType->varTypeName) == 0)
       strncpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME-1);
     else
@@ -957,14 +959,14 @@ static void
       psDirectoryEntry = readdir(psDirectory);
       if (!psDirectoryEntry) {
         closedir(psDirectory);
-        if (pvPluginHandle) closedir(pvPluginHandle);
+        //if (pvPluginHandle) closedir(pvPluginHandle);
         return;
       }
 
       pcFilename =
         csound->Malloc(csound,
                        slen = (lDirLength + strlen(psDirectoryEntry->d_name) + 2));
-      strncpy(pcFilename, pcDirectory, slen);
+      strncpy(pcFilename, pcDirectory, slen); /*pcFilename[slen-1] = '\0';*/
       if (iNeedSlash)
         strlcat(pcFilename, "/",slen);
       strlcat(pcFilename, psDirectoryEntry->d_name, slen);
@@ -981,14 +983,14 @@ static void
              it to the callback function. */
           fCallbackFunction(csound,
                             pcFilename, pvPluginHandle, fDescriptorFunction);
-          csound->Free(csound, pcFilename);
         }
         else {
           /* It was a library, but not a LADSPA one. Unload it. */
-          dlclose(pcFilename);
-          closedir(pvPluginHandle); pvPluginHandle = NULL;
-          csound->Free(csound, pcFilename);
+          dlclose(pvPluginHandle);
+          pvPluginHandle = NULL;
+          //csound->Free(csound, pcFilename);
         }
+        csound->Free(csound, pcFilename);
       }
     }
 }
@@ -1008,7 +1010,11 @@ LADSPAPluginSearch(CSOUND *csound,
     if (!pcLADSPAPath) {
       csound->Message(csound,
                       "DSSI4CS: LADSPA_PATH environment variable not set.\n");
+#ifdef LIB64
+      pcLADSPAPath = "/usr/lib64/ladspa/";
+#else
       pcLADSPAPath = "/usr/lib/ladspa/";
+#endif
     }
     if (!pcDSSIPath) {
       csound->Message(csound,
@@ -1028,9 +1034,10 @@ LADSPAPluginSearch(CSOUND *csound,
         pcEnd++;
 
       pcBuffer = csound->Malloc(csound, 1 + (pcEnd - pcStart));
-      if (pcEnd > pcStart)
-        strncpy(pcBuffer, pcStart, 1+ pcEnd - pcStart);
-
+      if (pcEnd > pcStart) {
+        strncpy(pcBuffer, pcStart, pcEnd - pcStart);
+        pcBuffer[pcEnd - pcStart] = '\0';
+      }
       LADSPADirectoryPluginSearch(csound, pcBuffer, fCallbackFunction);
       csound->Free(csound, pcBuffer);
 
@@ -1089,7 +1096,7 @@ int dssilist(CSOUND * csound, DSSILIST * p)
         strcpy(nn, pcLADSPAPath);
         strcat(nn, ":");
         strcat(nn, pcDSSIPath);
-        free(pcLADSPAPath);
+        //free(pcLADSPAPath);
         pcLADSPAPath = nn;
       }
       else pcLADSPAPath = strdup(pcDSSIPath);

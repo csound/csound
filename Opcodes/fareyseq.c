@@ -29,6 +29,7 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 #include <math.h>
+#include <time.h>
 
 const int MAX_PFACTOR = 16;
 const int MAX_PRIMES = 1229;

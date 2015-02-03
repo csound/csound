@@ -78,10 +78,26 @@ int main(int argc, char *argv[])
 
  return 0;
 }
+*/
 
+#ifdef __SSE__
+ #ifndef _MM_DENORMALS_ZERO_ON
+  #include <xmmintrin.h>
+  #define _MM_DENORMALS_ZERO_MASK   0x0040
+  #define _MM_DENORMALS_ZERO_ON     0x0040
+  #define _MM_DENORMALS_ZERO_OFF    0x0000
+  #define _MM_SET_DENORMALS_ZERO_MODE(mode)                                   \
+            _mm_setcsr((_mm_getcsr() & ~_MM_DENORMALS_ZERO_MASK) | (mode))
+   #define _MM_GET_DENORMALS_ZERO_MODE()                                       \
+            (_mm_getcsr() & _MM_DENORMALS_ZERO_MASK)
+ #endif
+#else
+  #define _MM_DENORMALS_ZERO_MASK   0
+  #define _MM_DENORMALS_ZERO_ON     0
+  #define _MM_DENORMALS_ZERO_OFF    0
+  #define _MM_SET_DENORMALS_ZERO_MODE(mode)  
+#endif
 
-
- */
 
 #ifdef SWIGPYTHON
 struct PUBLIC pycallbackdata {
@@ -107,6 +123,7 @@ class PUBLIC CsoundPerformanceThread {
     void    *queueLock;         // this is actually a mutex
     void    *pauseLock;
     void    *flushLock;
+    void    *recordLock;
     void    *perfThread;
     int     paused;
     int     status;
@@ -118,11 +135,15 @@ class PUBLIC CsoundPerformanceThread {
     void csPerfThread_constructor(CSOUND *);
     void QueueMessage(CsoundPerformanceThreadMessage *);
  public:
-    int isRunning() { return running;}
 #ifdef SWIGPYTHON
   PyThreadState *_tstate;
   pycallbackdata pydata;
 #endif
+  /**
+   * Returns 1 if the performance thread is running, 0 otherwise
+   */
+  int isRunning() { return running;}
+
   /**
   * Returns the process callback as a void pointer
   */
@@ -172,7 +193,7 @@ class PUBLIC CsoundPerformanceThread {
      * Starts recording the output from Csound. The sample rate and number
      * of channels are taken directly from the running Csound instance.
      */
-    void Record(std::string filename, int numbufs = 4);
+    void Record(std::string filename, int samplebits = 16, int numbufs = 4);
     /**
      * Stops recording and closes audio file.
      */
@@ -212,5 +233,6 @@ class PUBLIC CsoundPerformanceThread {
     friend class CsoundPerformanceThreadMessage;
     friend class CsPerfThread_PerformScore;
 };
+
 
 #endif  // CSOUND_CSPERFTHREAD_HPP

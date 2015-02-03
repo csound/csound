@@ -19,8 +19,10 @@ Install MinGW/MSys from mingw.org. See How_to_Build_Csound_on_Windows.doc in
 the Csound 6 Git repository for how to set up the MinGW tools. On Linux, just
 install recent gcc/g++ packages. For OS X, install Xcode.
 
-Install the Android SDK from http://developer.android.com/sdk/index.html.
-Use the Eclipse version.
+Install the Android Developer Toolkit (ADT) from
+http://developer.android.com/sdk/index.html. Use the Eclipse version.
+Please note, if you have dificulty updating the ADT, see this:
+http://stackoverflow.com/questions/26551030/android-studio-updating-android-5-0-sdk-a-folder-failed-to-be-moved
 
 Install the Android Native Development Kit (NDK) from
 http://developer.android.com/tools/sdk/ndk/index.html.
