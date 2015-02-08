@@ -35,6 +35,7 @@
 #import "RecordTestWindowController.h"
 #import "SimpleTest1WindowController.h"
 #import "SimpleTest2WindowController.h"
+#import "TrappedGeneratorWindowController.h"
 
 @interface AppDelegate() {
     AudioFileTestWindowController    *audioFileTestWC;
@@ -47,6 +48,7 @@
     RecordTestWindowController       *recorsTestWC;
     SimpleTest1WindowController      *simpleTest1WC;
     SimpleTest2WindowController      *simpleTest2WC;
+    TrappedGeneratorWindowController *trappedWC;
 }
 
 @end
@@ -96,6 +98,10 @@
 - (IBAction)loadSimpleTest2:(id)sender {
     simpleTest2WC = [[SimpleTest2WindowController alloc] initWithWindowNibName:@"SimpleTest2WindowController"];
     [simpleTest2WC window];
+}
+- (IBAction)loadTrappedGenerator:(id)sender {
+    trappedWC = [[TrappedGeneratorWindowController alloc] initWithWindowNibName:@"TrappedGeneratorWindowController"];
+    [trappedWC window];
 }
 
 
