@@ -1,6 +1,6 @@
 /*
  
- TrappedGeneratorViewController.m:
+ TrappedGeneratorWindowController.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -23,18 +23,13 @@
  
  */
 
-#import "TrappedGeneratorViewController.h"
+#import "TrappedGeneratorWindowController.h"
 
-@interface TrappedGeneratorViewController ()
+@interface TrappedGeneratorWindowController() <CsoundObjListener>
 
 @end
 
-@implementation TrappedGeneratorViewController
-
-- (void)viewDidLoad {
-    self.title = @"Trapped Generator";
-    [super viewDidLoad];
-}
+@implementation TrappedGeneratorWindowController
 
 - (IBAction)generateTrappedToDocumentsFolder:(id)sender {
     NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"trapped" ofType:@"csd"];
@@ -49,29 +44,14 @@
     self.csound = [[CsoundObj alloc] init];
     
     [self.csound addListener:self];
-    [self.csound record:csdPath toFile:localFilePath];    
+    [self.csound record:csdPath toFile:localFilePath];
 }
 
 #pragma mark CsoundObjListener
 
-
-- (void)csoundObjStarted:(CsoundObj *)csoundObj {
-}
-
 - (void)csoundObjCompleted:(CsoundObj *)csoundObj {
-    
-    NSString *title = @"Render Complete";
-    NSString *message = @"File generated as trapped.wav in application Documents Folder";
-    
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
-                                                    message:message
-                                                   delegate:nil
-                                          cancelButtonTitle:@"Dismiss"
-                                          otherButtonTitles:nil];
-                      
-    [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:NO];
-
+    self.statusTextField.textColor = [NSColor blueColor];
+    self.statusTextField.stringValue = @"DONE! Check your Documents Folder.";
 }
-
 
 @end
