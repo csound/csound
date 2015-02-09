@@ -27,19 +27,6 @@
 #import "CsoundObj.h"
 
 @interface Waveview : UIView <CsoundBinding>
-{
-	BOOL tableLoaded;
-	float *channelPtr;
-	NSString *mChannelName;
-	CGFloat lastY;
-	NSInteger ksmps, sr;
-	CsoundObj *csObj;
-	MYFLT *table;
-	int tableLength;
-	MYFLT *displayData;
-	int dataRatio;
-	
-}
 
 @property (nonatomic, strong) NSString *channelName;
 
