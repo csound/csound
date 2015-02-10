@@ -54,20 +54,6 @@ CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName) {
     return NULL;
 }
 
-CS_TYPE* csoundGetTypeForVarName(TYPE_POOL* pool, char* varName) {
-    CS_TYPE_ITEM* current = pool->head;
-    char temp[2];
-    temp[0] = varName[0];
-    temp[1] = 0;
-    while (current != NULL) {
-      if (strcmp(temp, current->cstype->varTypeName) == 0) {
-        return current->cstype;
-      }
-      current = current->next;
-    }
-    return NULL;
-}
-
 int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance)
 {
     CS_TYPE_ITEM* item;
@@ -93,6 +79,28 @@ int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance
 
     return 1;
 }
+
+CS_VARIABLE* createStructVar(void* cs, void* p) {
+    CSOUND* csound = (CSOUND*)cs;
+    CS_TYPE* type = (CS_TYPE*)p;
+    
+    if (type == NULL) {
+        csound->Message(csound, "ERROR: no type given for struct creation\n");
+        return NULL;
+    }
+    
+    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+    IGN(p);
+    var->memBlockSize = sizeof (MYFLT);
+    
+        //FIXME - implement
+    return var;
+}
+
+void copyStructVar(void* csound, void* dest, void* src) {
+        //FIXME - implement
+}
+
 
 /* VAR POOL FUNCTIONS */
 

@@ -51,6 +51,7 @@ extern "C" {
         struct csvariable* (*createVariable)(void*, void*);
         void (*copyValue)(void* csound, void* dest, void* src);
         CONS_CELL* members;
+        int userDefinedType;
     } CS_TYPE;
 
     typedef struct csvarmem {
@@ -101,9 +102,11 @@ extern "C" {
                                              CS_TYPE* type, char* name,
                                              void* typeArg);
     PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
-    PUBLIC CS_TYPE* csoundGetTypeForVarName(TYPE_POOL* pool, char* typeName);
 
-
+    
+    CS_VARIABLE* createStructVar(void* cs, void* p);
+    void copyStructVar(void* csound, void* dest, void* src);
+    
     /* Csound Variable Pool - essentially a map<string,csvar>
        CSOUND contains one for global memory, InstrDef and UDODef
        contain a pool for local memory
