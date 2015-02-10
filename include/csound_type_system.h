@@ -37,6 +37,13 @@ extern "C" {
 #define CS_ARG_TYPE_OUT 2
 
     struct csvariable;
+    struct cstype;
+
+    typedef struct type_members {
+        char* memberName;
+        struct cstype* type;
+        int memIndex;
+    } TYPE_MEMBER;
 
     typedef struct cstype {
         char* varTypeName;
@@ -44,8 +51,7 @@ extern "C" {
         int argtype; // used to denote if allowed as in-arg, out-arg, or both
         struct csvariable* (*createVariable)(void*, void*);
         void (*copyValue)(void* csound, void* dest, void* src);
-        struct cstype** unionTypes;
-        void (*freeVariableMemory)(void* csound, void* varMem);
+        CONS_CELL* members;
     } CS_TYPE;
 
     typedef struct csvarmem {

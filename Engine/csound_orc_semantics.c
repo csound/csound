@@ -1902,79 +1902,36 @@ int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     return 1;
 }
 
-/** Verifies if xin and xout statements are correct for UDO
-   needs to check:
-     xin/xout number of args matches UDO input/output arg specifications
-     xin/xout statements exist if UDO in and out args are not 0 */
-int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
-    if (udoTree->right == NULL) {
-      return 1;
-    }
-    TREE* outArgsTree = udoTree->left->left;
-    TREE* inArgsTree = udoTree->left->right;
-    TREE* current = udoTree->right;
-    TREE* xinArgs = NULL;
-    TREE* xoutArgs = NULL;
-    char* inArgs = inArgsTree->value->lexeme;
-    char* outArgs = outArgsTree->value->lexeme;
-    unsigned int i;
+int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
+    CS_TYPE* type = csound->Calloc(csound, sizeof(CS_TYPE));
+    TREE* current = structDefTree->right;
 
-    for (i = 0; i < strlen(inArgs);i++) {
-      if (inArgs[i] == 'K') {
-        inArgs[i] = 'k';
-      }
-    }
+    type->varTypeName = cs_strdup(csound, structDefTree->left->value->lexeme);
+    type->varDescription = "user-defined struct";
 
-    for (i = 0; i < strlen(outArgs);i++) {
-      if (outArgs[i] == 'K') {
-        outArgs[i] = 'k';
-      }
-    }
-
+    // FIXME: Values are appended in reverse order of definition
     while (current != NULL) {
-      if (current->value != NULL) {
-        if (strcmp("xin", current->value->lexeme) == 0) {
-          if (UNLIKELY(xinArgs != NULL)) {
-            synterr(csound,
-                    Str("Multiple xin statements found. "
-                        "Only one is allowed."));
-            return 0;
-          }
-          xinArgs = current->left;
+        TYPE_MEMBER* member = csound->Calloc(csound, sizeof(TYPE_MEMBER));
+        char* memberName = current->value->lexeme;
+        char *brkt; /* used with strtok_r */
+        char* memBase = strtok_r(memberName, ":", &brkt);
+        char* typedIdentArg = strtok_r(NULL, ":", &brkt);
+
+        if (typedIdentArg == NULL) {
+            typedIdentArg = cs_strndup(csound, memBase, 1);
         }
-        if (strcmp("xout", current->value->lexeme) == 0) {
-          if (UNLIKELY(xoutArgs != NULL)) {
-            synterr(csound,
-                    Str("Multiple xout statements found. "
-                        "Only one is allowed."));
-            return 0;
-          }
-          xoutArgs = current->right;
-        }
-      }
-      current = current->next;
+
+        member->memberName = memBase;
+        member->type = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
+
+        csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
+
+        type->members = cs_cons(csound, member, type->members);
+        current = current->next;
     }
 
-    char* inArgsFound = get_arg_string_from_tree(csound, xinArgs, typeTable);
-    char* outArgsFound = get_arg_string_from_tree(csound, xoutArgs, typeTable);
-
-
-    if (!check_in_args(csound, inArgsFound, inArgs)) {
-      if (UNLIKELY(!(strcmp("0", inArgs) == 0 && xinArgs == NULL))) {
-        synterr(csound,
-                Str("invalid xin statement for UDO: defined '%s', found '%s'\n"),
-                inArgs, inArgsFound);
+    if(!csoundAddVariableType(csound, csound->typePool, type)) {
         return 0;
-      }
-    }
-
-    if (!check_in_args(csound, outArgsFound, outArgs)) {
-      if (UNLIKELY(!(strcmp("0", outArgs) == 0 && xoutArgs == NULL))) {
-        synterr(csound,
-                Str("invalid xout statement for UDO: defined '%s', found '%s'\n"),
-                outArgs, outArgsFound);
-        return 0;
-      }
     }
 
     return 1;
@@ -2001,13 +1958,19 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       switch(current->type) {
       case STRUCT_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "Struct definition found\n");
-              csound->Message(csound, "%s: ", current->left->value->lexeme);
-              TREE* args = current->right;
-              while (args != NULL) {
-                csound->Message(csound, "%s ", args->value->lexeme);
-                args = args->next;
-              }
-              csound->Message(csound, "\n");
+//        csound->Message(csound, "%s: ", current->left->value->lexeme);
+//        TREE* args = current->right;
+//        while (args != NULL) {
+//          csound->Message(csound, "%s ", args->value->lexeme);
+//          args = args->next;
+//        }
+//        csound->Message(csound, "\n");
+        if(!add_struct_definition(csound, current)) {
+            csound->ErrorMsg(csound,
+                             "Error: Unable to define new struct type: %s\n",
+                             current->left->value->lexeme);
+            return NULL;
+        }
         break;
       case INSTR_TOKEN:
         csound->inZero = 0;
