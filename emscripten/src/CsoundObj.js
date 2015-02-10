@@ -30,6 +30,8 @@ var CsoundObj = function() {
 	var _render = cwrap('CsoundObj_render', null, ['number']);
 	var _getInputChannelCount = cwrap('CsoundObj_getInputChannelCount', ['number'], ['number']);
 	var _getOutputChannelCount = cwrap('CsoundObj_getOutputChannelCount', ['number'], ['number']);
+	var _getTableLength = cwrap('CsoundObj_getTableLength', ['number'], ['number', 'number']);
+	var _getTable = cwrap('CsoundObj_getTable', ['number'], ['number', 'number']);
 	var _getZerodBFS = cwrap('CsoundObj_getZerodBFS', ['number'], ['number']);
 	var _setMidiCallbacks = cwrap('CsoundObj_setMidiCallbacks', null, ['number']);
 	var _pushMidiMessage = cwrap('CsoundObj_pushMidiMessage', null, ['number', 'number', 'number', 'number']);
@@ -157,7 +159,13 @@ var CsoundObj = function() {
 		return _getControlChannel(_self, channelName);
 	};
 
+	this.getTable = function(tableNumber) {
 
+		var tableLength = _getTableLength(_self, tableNumber);
+		var tablePointer = _getTable(_self, tableNumber);	
+		var table = new Float32Array(Module.HEAP8.buffer, tablePointer, tableLength);
+		return table;
+	};
 
 	var getAudioProcessNode = function() {
 

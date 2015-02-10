@@ -2013,21 +2013,22 @@ inline SILENCE_PUBLIC Chord gather(Score &score, double startTime, double endTim
         return chord;
 }
 
-inline SILENCE_PUBLIC int octavewiseRevoicings(const Chord &chord, double range = OCTAVE()) {
+inline SILENCE_PUBLIC int octavewiseRevoicings(const Chord &chord,
+                                               double range = OCTAVE()) {
     Chord origin = chord.eOP();
-	Chord odometer = origin;
-	// Enumerate the permutations.
-	int voicings = 0;
-	while (next(odometer, origin, range, OCTAVE())) {
-		voicings = voicings + 1;
-	}
-	if (debug) {
-		print("octavewiseRevoicings: chord:    %s\n", chord.toString().c_str());
-		print("octavewiseRevoicings: eop:      %s\n", chord.eOP().toString().c_str());
-		print("octavewiseRevoicings: odometer: %s\n", odometer.toString().c_str());
-		print("octavewiseRevoicings: voicings: %5d\n", voicings);
-	}
-	return voicings;
+    Chord odometer = origin;
+    // Enumerate the permutations.
+    int voicings = 0;
+    while (next(odometer, origin, range, OCTAVE())) {
+      voicings = voicings + 1;
+    }
+    if (debug) {
+      print("octavewiseRevoicings: chord:    %s\n", chord.toString().c_str());
+      print("octavewiseRevoicings: eop:      %s\n", chord.eOP().toString().c_str());
+      print("octavewiseRevoicings: odometer: %s\n", odometer.toString().c_str());
+      print("octavewiseRevoicings: voicings: %5d\n", voicings);
+    }
+    return voicings;
 }
 
 SILENCE_PUBLIC Chord octavewiseRevoicing(const Chord &chord, int revoicingNumber_, double range, bool debug=false);
@@ -2822,36 +2823,37 @@ public:
 		for (double t = 0.0; t < OCTAVE(); t += g) {
 			Chord normalOPTg_t = normalOPTg.T(t);
             normalOPTg_t = csound::normalize<EQUIVALENCE_RELATION_RP>(normalOPTg_t, OCTAVE(), g);
-			if (printme) {
-                print("normalOPTg_t:   %s    %f\n", normalOPTg_t.toString().c_str(), t);
-			}
-			if (normalOPTg_t == normalOP) {
-				if (printme) {
-					print("equals\n");
-				}
-				T_ = t;
-				break;
-			}
+            if (printme) {
+              print("normalOPTg_t:   %s    %f\n", normalOPTg_t.toString().c_str(), t);
+            }
+            if (normalOPTg_t == normalOP) {
+              if (printme) {
+                print("equals\n");
+              }
+              T_ = t;
+              break;
+            }
 		}
 		// Breaks here, this form may not be indexed.
 		// Try iterating over opttis and comparing eO, eP, eT, eI separately.
 		// Alternatively, put in same index for equivalent opttis.
 		Chord normalOPTgI = csound::normalize<EQUIVALENCE_RELATION_RPTgI>(chord, OCTAVE(), g);
-        std::map<Chord, int>::const_iterator it = indexesForOpttis.find(normalOPTgI);
-        if (it == indexesForOpttis.end()) {
-            csound::print("normalOPTgI %s not found!\n");
-        }
-		int P_ = it->second;
-		if (printme) {
-			print("normalOPTgI:    %s    %d\n", normalOPTgI.toString().c_str(), P_);
-		}
-		int I_;
-        if (normalOPTg == normalOPTgI) {
-			I_ = 0;
- 		} else {
-			I_ = 1;
-        }
-		int V_ = indexForOctavewiseRevoicing(chord, range, printme);
+                std::map<Chord, int>::const_iterator it = indexesForOpttis.find(normalOPTgI);
+                if (it == indexesForOpttis.end()) {
+                  csound::print("normalOPTgI %s not found!\n");
+                  // **FIXME** fall through here means it is out of range so it->second?
+                }
+                int P_ = it->second;
+                if (printme) {
+                  print("normalOPTgI:    %s    %d\n", normalOPTgI.toString().c_str(), P_);
+                }
+                int I_;
+                if (normalOPTg == normalOPTgI) {
+                  I_ = 0;
+                } else {
+                  I_ = 1;
+                }
+        int V_ = indexForOctavewiseRevoicing(chord, range, printme);
         if (V_ == -1) {
             V_ = 0;
         }
@@ -2986,10 +2988,10 @@ inline std::string Chord::information() const {
 	}
 
 inline SILENCE_PUBLIC Chord octavewiseRevoicing(const Chord &chord, int revoicingNumber_, double range, bool debug) {
-	int revoicingN = octavewiseRevoicings(chord, range);
-	int revoicingNumber = revoicingNumber_ % revoicingN;
+    int revoicingN = octavewiseRevoicings(chord, range); // answer could be zero -- JPff
+    int revoicingNumber = revoicingNumber_ % revoicingN;
     Chord origin = csound::normalize<EQUIVALENCE_RELATION_RP>(chord, OCTAVE(), 1.0);
-	Chord revoicing = origin;
+    Chord revoicing = origin;
     int revoicingI = 0;
     while (true) {
         if (debug) {

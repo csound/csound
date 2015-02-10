@@ -966,7 +966,7 @@ static void
       pcFilename =
         csound->Malloc(csound,
                        slen = (lDirLength + strlen(psDirectoryEntry->d_name) + 2));
-      strncpy(pcFilename, pcDirectory, slen);
+      strncpy(pcFilename, pcDirectory, slen); /*pcFilename[slen-1] = '\0';*/
       if (iNeedSlash)
         strlcat(pcFilename, "/",slen);
       strlcat(pcFilename, psDirectoryEntry->d_name, slen);
@@ -1034,9 +1034,10 @@ LADSPAPluginSearch(CSOUND *csound,
         pcEnd++;
 
       pcBuffer = csound->Malloc(csound, 1 + (pcEnd - pcStart));
-      if (pcEnd > pcStart)
-        strncpy(pcBuffer, pcStart, 1+ pcEnd - pcStart);
-
+      if (pcEnd > pcStart) {
+        strncpy(pcBuffer, pcStart, pcEnd - pcStart);
+        pcBuffer[pcEnd - pcStart] = '\0';
+      }
       LADSPADirectoryPluginSearch(csound, pcBuffer, fCallbackFunction);
       csound->Free(csound, pcBuffer);
 

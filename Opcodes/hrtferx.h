@@ -27,8 +27,8 @@
 
 typedef struct {
   OPDS  h;
-  MYFLT         *aLeft, *aRight,             /* outputs  */
-    *aIn, *kAz, *kElev;
+  MYFLT         *aLeft, *aRight;             /* outputs  */
+  MYFLT         *aIn, *kAz, *kElev;          /* inputs   */
   STRINGDAT     *ifilno; /* and inputs */
   MEMFIL        *mfp;                        /* file pointer */
   int16         *fpbegin;
@@ -39,7 +39,4 @@ typedef struct {
   MYFLT         outl[BUF_LEN], outr[BUF_LEN];
   MYFLT         x[BUF_LEN], yl[BUF_LEN], yr[BUF_LEN];
   MYFLT         bl[FILT_LENm1], br[FILT_LENm1];
-#ifdef CLICKS
-  MYFLT         rampup[FILT_LEN], rampdown[FILT_LEN];
-#endif
 } HRTFER;

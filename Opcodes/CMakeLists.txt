@@ -65,6 +65,7 @@ make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
 
 make_plugin(fareygen fareygen.c)
+make_plugin(padsynth padsynth_gen.cpp)
 
 make_plugin(cellular cellular.c)
 

@@ -1136,6 +1136,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
 {
     CSOUND        *csound;
     csInstance_t  *p;
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
     if (init_done != 1) {
       if (csoundInitialize(0) < 0) return NULL;
@@ -1417,6 +1418,7 @@ unsigned long kperfThread(void * cs)
     void *threadId;
     int index;
     int numThreads;
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
     csound->WaitBarrier(csound->barrier2);
 
@@ -1766,7 +1768,8 @@ int kperf_debug(CSOUND *csound)
           if (done == 1) {/* if init-pass has been done */
             /* check if next command pending and we are on the
                first instrument in the chain */
-            if (data &&  data->status == CSDEBUG_STATUS_NEXT) {
+            /* coverity says data already dereferenced by here */
+            if (/*data &&*/  data->status == CSDEBUG_STATUS_NEXT) {
                 if (data->debug_instr_ptr == NULL) {
                     data->debug_instr_ptr = ip;
                     data->debug_opcode_ptr = NULL;

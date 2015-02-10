@@ -154,11 +154,19 @@
  */
 
 #if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG)
-#  define PUBLIC        __declspec(dllexport)
+#  if defined(__BUILDING_LIBCSOUND)
+#    define PUBLIC          __declspec(dllexport)
+#    define PUBLIC_DATA     __declspec(dllexport)
+#  else
+#    define PUBLIC          __declspec(dllexport)
+#    define PUBLIC_DATA     __declspec(dllimport)
+#  endif
 #elif defined(__GNUC__) && (__GNUC__ >= 4) /* && !defined(__MACH__) */
-#  define PUBLIC    __attribute__ ( (visibility("default")) )
+#  define PUBLIC            __attribute__ ( (visibility("default")) )
+#  define PUBLIC_DATA       __attribute__ ( (visibility("default")) )
 #else
 #  define PUBLIC
+#  define PUBLIC_DATA
 #endif
 
 #if defined(MSVC)
@@ -1690,7 +1698,7 @@ extern "C" {
     PUBLIC int csoundGetTable(CSOUND *, MYFLT **tablePtr, int tableNum);
 
     /**
-     * Stores pointer to the arguments used to generate 
+     * Stores pointer to the arguments used to generate
      * function table 'tableNum' in *argsPtr,
      * and returns the number of arguments used.
      * If the table does not exist, *argsPtr is set to NULL and

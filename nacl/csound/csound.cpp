@@ -67,7 +67,7 @@ namespace {
   const double kDefaultFrequency = 440.0;
   const double kPi = 3.141592653589;
   const double kTwoPi = 2.0 * kPi;
-  const uint32_t kSampleFrameCount =512u;
+  const uint32_t kSampleFrameCount = 128u;
   const uint32_t kChannels = 2u;
 }  // namespace
 
@@ -410,10 +410,13 @@ bool CsoundInstance::StartDAC(){
 		  pp::AudioConfig(this, PP_AUDIOSAMPLERATE_44100, frames),
 		  CsoundCallback,
 		  this);
-  int cbufsiz = kSampleFrameCount*csoundGetNchnls(csound)*4;
+  int cbufsiz = frames*csoundGetNchnls(csound)*4;
   circularBuffer = csoundCreateCircularBuffer(csound, cbufsiz, sizeof(short));
   // FIXME: this assumes input will be at max 2 channels
   input_buffer = new short[csoundGetKsmps(csound)*2];
+  // char mess[64];
+  // sprintf(mess, "buffsize: %d",frames);
+  // PostMessage(mess);
   dac.StartPlayback();
   return true;
 }
@@ -492,7 +495,7 @@ void CsoundInstance::PlayCsound() {
     csoundSetOption(csound, (char *) "-r44100");
     csoundSetOption(csound, (char *) "-k689.0625");
     csoundSetOption(csound, (char *) "--0dbfs=1");
-    csoundSetOption(csound, (char *) "-b1024");
+    //csoundSetOption(csound, (char *) "-b1024");
     csoundSetOption(csound, (char *) "--nodisplays");
     csoundSetOption(csound, (char *) "--daemon");
     csoundStart(csound);

@@ -436,7 +436,7 @@ typedef class Alg_beat {
 public:
     Alg_beat(double t, double b) {
         time = t; beat = b; }
-    Alg_beat() {};
+    Alg_beat() { time = beat = 0.0;}; /* To avoiud warnings */
     double time;
     double beat;
 } *Alg_beat_ptr;
@@ -1009,7 +1009,7 @@ public:
     int channel_offset_per_track; // used to encode track_num into channel
     Alg_tracks track_list;       // array of Alg_events
     Alg_time_sigs time_sig;
-    int beat_x;
+    //int beat_x;
     void basic_initialization() {
         error = alg_no_error;
         units_are_seconds = true; type = 's';

@@ -216,7 +216,7 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
       case 0x8001: strncpy(op, "cngoto", 8); break;
       case 0: strncpy(op, "cggoto", 8); break;
       case 0x8000: strncpy(op, "cingoto", 8); break;
-      default: printf("Whoops %d\n", type);
+      default: printf("Whooops %d\n", type);
       }
     }
 
