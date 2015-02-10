@@ -1,6 +1,6 @@
 /*
  
- TrappedGeneratorViewController.h:
+ TrappedGeneratorWindowController.h:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  
@@ -23,10 +23,12 @@
  
  */
 
-#import "BaseCsoundViewController.h"
+#import <Cocoa/Cocoa.h>
+#import "BaseCsoundWindowController.h"
 
-@interface TrappedGeneratorViewController : BaseCsoundViewController<CsoundObjListener> 
+@interface TrappedGeneratorWindowController : BaseCsoundWindowController
 
 - (IBAction)generateTrappedToDocumentsFolder:(id)sender;
+@property (strong) IBOutlet NSTextField *statusTextField;
 
 @end
