@@ -58,6 +58,7 @@
 %token T_FUNCTION
 %token T_ASSIGNMENT
 
+%token STRUCT_TOKEN
 %token INSTR_TOKEN
 %token ENDIN_TOKEN
 %token GOTO_TOKEN
@@ -188,9 +189,23 @@ root_statement_list : root_statement_list root_statement
 root_statement : statement
                | instr_definition
                | udo_definition
+               | struct_definition
                ;
 
 /* Data declarations */
+
+struct_definition : STRUCT_TOKEN identifier struct_arg_list
+                  { $$ = make_node(csound,LINE,LOCN, STRUCT_TOKEN, $2, $3); }
+                  ;
+
+struct_arg_list : struct_arg_list ',' struct_arg
+                { $$ = appendToTree(csound, $1, $3); }
+                | struct_arg
+                ;
+
+struct_arg : identifier
+        | typed_identifier
+        | array_identifier;
 
 instr_definition : INSTR_TOKEN instr_id_list NEWLINE
                     { csound_orcput_ilocn(scanner, LINE, LOCN); }
@@ -305,13 +320,13 @@ statement_list : statement_list statement
                     $$ = appendToTree(csound, (TREE *)$1, (TREE *)$2);
                 }
                 | statement
-                | { 
+                | {
                     /* This rule allows for empty statement lists, but
                     in turn causes a lot of shift/reduce errors to be
                     reported.  The parser works with this, but we should
-                    perhaps look at expanding the other rules to work 
+                    perhaps look at expanding the other rules to work
                     without statement_list in them. */
-                    $$ = NULL; 
+                    $$ = NULL;
                   }
                 ;
 
@@ -343,7 +358,7 @@ statement : out_arg_list assignment expr NEWLINE
           | if_goto
           | if_then
           | until
-          | LABEL_TOKEN 
+          | LABEL_TOKEN
             { $$ = make_leaf(csound, LINE, LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | NEWLINE
             { $$ = NULL; }
@@ -538,7 +553,7 @@ array_identifier: array_identifier '[' ']' {
 	          $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
           }
           | typed_identifier '[' ']' {
-            $$ = $1; 
+            $$ = $1;
             $1->type = T_ARRAY_IDENT;
 	          $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
           }
