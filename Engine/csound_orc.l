@@ -340,7 +340,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "kgoto"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = KGOTO_TOKEN;
                   return KGOTO_TOKEN; };
-
+"struct"        {
+                  return STRUCT_TOKEN;
+                }
 "instr"         {
                   namedInstrFlag = 1;
                   return INSTR_TOKEN;

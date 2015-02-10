@@ -58,6 +58,7 @@
 %token T_FUNCTION
 %token T_ASSIGNMENT
 
+%token STRUCT_TOKEN
 %token INSTR_TOKEN
 %token ENDIN_TOKEN
 %token GOTO_TOKEN
@@ -184,9 +185,23 @@ root_statement_list : root_statement_list root_statement
 root_statement : statement
                | instr_definition
                | udo_definition
+               | struct_definition
                ;
 
 /* Data declarations */
+
+struct_definition : STRUCT_TOKEN identifier struct_arg_list
+                  { $$ = make_node(csound,LINE,LOCN, STRUCT_TOKEN, $2, $3); }
+                  ;
+
+struct_arg_list : struct_arg_list ',' struct_arg
+                { $$ = appendToTree(csound, $1, $3); }
+                | struct_arg
+                ;
+
+struct_arg : identifier 
+        | typed_identifier 
+        | array_identifier;
 
 instr_definition : INSTR_TOKEN instr_id_list NEWLINE 
                     { csound_orcput_ilocn(scanner, LINE, LOCN); }

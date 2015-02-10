@@ -1777,6 +1777,16 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     while (current != NULL) {
       switch(current->type) {
+      case STRUCT_TOKEN:
+        if (PARSER_DEBUG) csound->Message(csound, "Struct definition found\n");
+              csound->Message(csound, "%s: ", current->left->value->lexeme);
+              TREE* args = current->right;
+              while (args != NULL) {
+                csound->Message(csound, "%s ", args->value->lexeme);
+                args = args->next;
+              }
+              csound->Message(csound, "\n");
+        break;
       case INSTR_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
         typeTable->localPool = csoundCreateVarPool(csound);
