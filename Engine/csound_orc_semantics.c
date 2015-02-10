@@ -1310,7 +1310,8 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
     var = csoundFindVariableWithName(csound, pool, varBase);
     if (var == NULL) {
       if (typedIdentArg != NULL) {
-        argLetter[0] = typedIdentArg[0];
+        type = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
+        typeArg = type;
       } else {
         t = varBase;
         argLetter[1] = 0;
@@ -1337,10 +1338,9 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
         }
 
         argLetter[0] = (*t == 't') ? '[' : *t; /* Support legacy t-vars */
+
+        type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
       }
-
-
-      type = csoundGetTypeForVarName(csound->typePool, argLetter);
 
       var = csoundCreateVariable(csound, csound->typePool,
                                  type, varBase, typeArg);
@@ -1905,9 +1905,15 @@ int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     CS_TYPE* type = csound->Calloc(csound, sizeof(CS_TYPE));
     TREE* current = structDefTree->right;
+    int index = 0;
+    char temp[256];
 
     type->varTypeName = cs_strdup(csound, structDefTree->left->value->lexeme);
     type->varDescription = "user-defined struct";
+    type->argtype = CS_ARG_TYPE_BOTH;
+    type->createVariable = createStructVar;
+    type->copyValue = copyStructVar;
+    type->userDefinedType = 1;
 
     // FIXME: Values are appended in reverse order of definition
     while (current != NULL) {
@@ -1933,6 +1939,19 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     if(!csoundAddVariableType(csound, csound->typePool, type)) {
         return 0;
     }
+
+    OENTRY* oentry = csound->Calloc(csound, sizeof(OENTRY));
+    cs_sprintf(temp, "init.%s", type->varTypeName);
+    oentry->opname = cs_strdup(csound, temp);
+    oentry->thread = 1;
+
+    /* FIXME - this is not yet implemented */
+    cs_sprintf(temp, ":%s;", type->varTypeName);
+    oentry->outypes = cs_strdup(csound, temp);
+    cs_sprintf(temp, ":%s;", type->varTypeName);
+    oentry->intypes = cs_strdup(csound, temp);
+
+    csoundAppendOpcodes(csound, oentry, 1);
 
     return 1;
 }

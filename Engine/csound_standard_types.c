@@ -313,58 +313,51 @@ void array_free_var_mem(void* csnd, void* p) {
 
 /* STANDARD TYPE DEFINITIONS */
 const CS_TYPE CS_VAR_TYPE_A = {
-  "a", "audio rate vector", CS_ARG_TYPE_BOTH, createAsig, asig_copy_value,
-  NULL, NULL
+  "a", "audio rate vector", CS_ARG_TYPE_BOTH, createAsig, asig_copy_value, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_K = {
-  "k", "control rate var", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value,
-  NULL, NULL
+  "k", "control rate var", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_I = {
-  "i", "init time var", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value,
-  NULL, NULL
+  "i", "init time var", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_S = {
-    "S", "String var", CS_ARG_TYPE_BOTH, createString, string_copy_value,
-    NULL, string_free_var_mem
+    "S", "String var", CS_ARG_TYPE_BOTH, createString, string_copy_value, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_P = {
-  "p", "p-field", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value,
-  NULL, NULL
+  "p", "p-field", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_R = {
-  "r", "reserved symbol", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value,
-  NULL, NULL
+  "r", "reserved symbol", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_C = {
-  "c", "constant", CS_ARG_TYPE_IN, createMyflt, myflt_copy_value, NULL, NULL
+  "c", "constant", CS_ARG_TYPE_IN, createMyflt, myflt_copy_value, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_W = {
-  "w", "spectral", CS_ARG_TYPE_BOTH, createWsig, wsig_copy_value, NULL, NULL
+  "w", "spectral", CS_ARG_TYPE_BOTH, createWsig, wsig_copy_value, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_F = {
-  "f", "f-sig", CS_ARG_TYPE_BOTH, createFsig, fsig_copy_value, NULL, NULL
+  "f", "f-sig", CS_ARG_TYPE_BOTH, createFsig, fsig_copy_value, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_B = {
-  "B", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL, NULL
+  "B", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_b = {
-  "b", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL, NULL
+  "b", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_ARRAY = {
-   "[", "array", CS_ARG_TYPE_BOTH, createArray, array_copy_value,
-    NULL, array_free_var_mem
+   "[", "array", CS_ARG_TYPE_BOTH, createArray, array_copy_value, NULL, 0
 };
 
 
