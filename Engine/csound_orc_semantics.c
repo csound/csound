@@ -1762,6 +1762,43 @@ int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     return 1;
 }
 
+
+int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
+    CS_TYPE* type = csound->Calloc(csound, sizeof(CS_TYPE));
+    TREE* current = structDefTree->right;
+    
+    type->varTypeName = cs_strdup(csound, structDefTree->left->value->lexeme);
+    type->varDescription = "user-defined struct";
+
+    // FIXME: Values are appended in reverse order of definition
+    while (current != NULL) {
+        TYPE_MEMBER* member = csound->Calloc(csound, sizeof(TYPE_MEMBER));
+        char* memberName = current->value->lexeme;
+        char *brkt; /* used with strtok_r */
+        char* memBase = strtok_r(memberName, ":", &brkt);
+        char* typedIdentArg = strtok_r(NULL, ":", &brkt);
+        
+        if (typedIdentArg == NULL) {
+            typedIdentArg = cs_strndup(csound, memBase, 1);
+        }
+        
+        member->memberName = memBase;
+        member->type = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
+        
+        csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
+        
+        type->members = cs_cons(csound, member, type->members);
+        current = current->next;
+    }
+    
+    if(!csoundAddVariableType(csound, csound->typePool, type)) {
+        return 0;
+    }
+    
+    
+    return 1;
+}
+
 TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 {
     TREE *anchor = NULL;
@@ -1779,13 +1816,19 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       switch(current->type) {
       case STRUCT_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "Struct definition found\n");
-              csound->Message(csound, "%s: ", current->left->value->lexeme);
-              TREE* args = current->right;
-              while (args != NULL) {
-                csound->Message(csound, "%s ", args->value->lexeme);
-                args = args->next;
-              }
-              csound->Message(csound, "\n");
+//        csound->Message(csound, "%s: ", current->left->value->lexeme);
+//        TREE* args = current->right;
+//        while (args != NULL) {
+//          csound->Message(csound, "%s ", args->value->lexeme);
+//          args = args->next;
+//        }
+//        csound->Message(csound, "\n");
+        if(!add_struct_definition(csound, current)) {
+            csound->ErrorMsg(csound,
+                             "Error: Unable to define new struct type: %s\n",
+                             current->left->value->lexeme);
+            return NULL;
+        }
         break;
       case INSTR_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
