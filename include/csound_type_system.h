@@ -103,9 +103,12 @@ extern "C" {
                                              void* typeArg);
     PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
 
+    // FIXME - This needs to be placed somewhere else...
+   
     
     CS_VARIABLE* createStructVar(void* cs, void* p);
     void copyStructVar(void* csound, void* dest, void* src);
+    
     
     /* Csound Variable Pool - essentially a map<string,csvar>
        CSOUND contains one for global memory, InstrDef and UDODef

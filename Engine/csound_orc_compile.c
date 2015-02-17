@@ -188,14 +188,23 @@ int argsRequired(char* argString)
     if (t != NULL) {
       while (*t != '\0') {
         retVal++;
-        t++;
-        while (*t == '[') {
-          t++;
-          if (*t != ']') {
-            // ERROR HERE, unmatched array identifier, perhaps should report...
-            return -1;
+          
+        if (*t == ':') {
+          while (*t != ';') {
+            t++;
           }
           t++;
+        } else {
+          
+          t++;
+          while (*t == '[') {
+            t++;
+            if (*t != ']') {
+               // ERROR HERE, unmatched array identifier, perhaps should report...
+              return -1;
+            }
+            t++;
+          }
         }
       }
     }
@@ -215,7 +224,14 @@ char** splitArgs(CSOUND* csound, char* argString)
         char* part;
         int dimensions = 0;
 
-        if (*(t + 1) == '[') {
+        if (*t == ':') {
+          t++;
+          char* end = strchr(t, ';');
+          int len = (end - t);
+          //FIXME - needs to check if invalid arg string given...
+          part = cs_strndup(csound, t, len);
+          t += len + 1;
+        } else if (*(t + 1) == '[') {
           char* start = t;
           int len = 1;
           int j;
@@ -489,7 +505,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
     while (current != NULL) {
       unsigned int uval;
-      if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
+      if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN && current->type != STRUCT_TOKEN) {
         OENTRY* oentry = (OENTRY*)current->markup;
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
@@ -690,7 +706,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     ip->t.inlist->arg[0] = strsav_string(csound, engineState, "0");
 
     while (current != NULL) {
-      if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
+      if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN && current->type != STRUCT_TOKEN) {
         OENTRY* oentry = (OENTRY*)current->markup;
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound,
@@ -1486,6 +1502,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         break;
       case T_OPCALL:
       case LABEL:
+      case STRUCT_TOKEN:
         break;
 
       default:
