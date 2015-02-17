@@ -101,7 +101,6 @@ void copyStructVar(void* csound, void* dest, void* src) {
         //FIXME - implement
 }
 
-
 /* VAR POOL FUNCTIONS */
 
 

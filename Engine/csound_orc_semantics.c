@@ -1114,7 +1114,19 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     int argsLen = 0;
 
     while (current != NULL) {
-      char* argType = get_arg_type2(csound, current, typeTable);
+        char* argType = get_arg_type2(csound, current, typeTable);
+        //FIXME - fix if argType is NULL and remove the below hack
+        if(argType == NULL) {
+            argsLen += 1;
+            argTypes[index++] = "@";
+        } else {
+            int argLen = strlen(argType);
+            int adjust = (argLen > 1 && '[' != *argType) ? 2 : 0;
+            argType = convert_internal_to_external(csound, argType);
+            argsLen += argLen + adjust;
+            argTypes[index++] = argType;
+
+        }
 
       //FIXME - fix if argType is NULL and remove the below hack
       if (argType == NULL) {
@@ -1133,16 +1145,22 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     char* temp = argString;
 
     for (i = 0; i < len; i++) {
-      int size = strlen(argTypes[i]);
-      memcpy(temp, argTypes[i], size);
-      temp += size;
-      csound->Free(csound, argTypes[i]);
+        int size = strlen(argTypes[i]);
+        if (size > 1 && strchr(argTypes[i], '[') == 0) {
+//            printf("UserDefined Type found...\n");
+            *temp = ':';
+            memcpy(temp + 1, argTypes[i], size);
+            *(temp + 1 + size) = ';';
+            temp += 2 + size;
+        } else {
+          memcpy(temp, argTypes[i], size);
+        }
+        temp += size;
     }
 
 
     argString[argsLen] = '\0';
-
-    csound->Free(csound, argTypes);
+    //    printf("ARG STRING: %s\n", argString);
     return argString;
 
 }
@@ -1902,6 +1920,17 @@ int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     return 1;
 }
 
+typedef struct csstructvar {
+  OPDS h;
+  MYFLT* out;
+  MYFLT* inArgs[128];
+} INIT_STRUCT_VAR;
+
+int initStructVar(CSOUND* csound, INIT_STRUCT_VAR* p) {
+    csound->Message(csound, "Initializing Struct...\n");
+    return CSOUND_SUCCESS;
+}
+
 int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     CS_TYPE* type = csound->Calloc(csound, sizeof(CS_TYPE));
     TREE* current = structDefTree->right;
@@ -1940,18 +1969,43 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
         return 0;
     }
 
-    OENTRY* oentry = csound->Calloc(csound, sizeof(OENTRY));
+    OENTRY oentry;
+    memset(temp, 0, 256);
     cs_sprintf(temp, "init.%s", type->varTypeName);
-    oentry->opname = cs_strdup(csound, temp);
-    oentry->thread = 1;
+    oentry.opname = cs_strdup(csound, temp);
+    oentry.dsblksiz = sizeof(INIT_STRUCT_VAR);
+    oentry.flags = 0;
+    oentry.thread = 1;
+    oentry.iopadr = initStructVar;
+    oentry.kopadr = NULL;
+    oentry.aopadr = NULL;
+    oentry.useropinfo = NULL;
 
     /* FIXME - this is not yet implemented */
+    memset(temp, 0, 256);
     cs_sprintf(temp, ":%s;", type->varTypeName);
-    oentry->outypes = cs_strdup(csound, temp);
-    cs_sprintf(temp, ":%s;", type->varTypeName);
-    oentry->intypes = cs_strdup(csound, temp);
+    oentry.outypes = cs_strdup(csound, temp);
 
-    csoundAppendOpcodes(csound, oentry, 1);
+    CONS_CELL* member = type->members;
+    while (member != NULL) {
+        char* memberTypeName = ((TYPE_MEMBER*)member->value)->type->varTypeName;
+        int len = strlen(memberTypeName);
+
+        if (len == 1) {
+          temp[index++] = *memberTypeName;
+        } else {
+          temp[index++] = ':';
+          memcpy(temp + index, memberTypeName, len);
+          index += len;
+          temp[index++] = ';';
+        }
+
+        member = member->next;
+    }
+    temp[index] = 0;
+    oentry.intypes = cs_strdup(csound, temp);
+
+    csoundAppendOpcodes(csound, &oentry, 1);
 
     return 1;
 }

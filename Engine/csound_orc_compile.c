@@ -209,19 +209,31 @@ static OPTXT *last_optxt(OPTXT *optxt) {
 */
 
 /** Counts number of args in argString, taking into account array identifiers */
-int argsRequired(char *argString) {
-  int retVal = 0;
-  char *t = argString;
+int argsRequired(char* argString)
+{
+    int retVal = 0;
+    char* t = argString;
 
-  if (t != NULL) {
-    while (*t != '\0') {
-      retVal++;
-      t++;
-      while (*t == '[') {
-        t++;
-        if (*t != ']') {
-          // ERROR HERE, unmatched array identifier, perhaps should report...
-          return -1;
+    if (t != NULL) {
+      while (*t != '\0') {
+        retVal++;
+
+        if (*t == ':') {
+          while (*t != ';') {
+            t++;
+          }
+          t++;
+        } else {
+
+          t++;
+          while (*t == '[') {
+            t++;
+            if (*t != ']') {
+               // ERROR HERE, unmatched array identifier, perhaps should report...
+              return -1;
+            }
+            t++;
+          }
         }
         t++;
       }
@@ -230,25 +242,40 @@ int argsRequired(char *argString) {
   return retVal;
 }
 
-/** Splits args in argString into char**, taking into account array identifiers
- */
-char **splitArgs(CSOUND *csound, char *argString) {
-  int argCount = argsRequired(argString);
-  char **args = csound->Malloc(csound, sizeof(char *) * (argCount + 1));
-  // printf("alloc %p\n", args);
-  char *t = argString;
-  int i = 0;
+/** Splits args in argString into char**, taking into account array identifiers */
+char** splitArgs(CSOUND* csound, char* argString)
+{
+    int argCount = argsRequired(argString);
+    char** args = csound->Malloc(csound, sizeof(char*) * (argCount + 1));
+    char* t = argString;
+    int i = 0;
 
-  if (t != NULL) {
-    while (*t != '\0') {
-      char *part;
-      int dimensions = 0;
+    if (t != NULL) {
+      while (*t != '\0' ) {
+        char* part;
+        int dimensions = 0;
 
-      if (*(t + 1) == '[') {
-        char *start = t;
-        int len = 1;
-        int j;
-        t++;
+        if (*t == ':') {
+          t++;
+          char* end = strchr(t, ';');
+          int len = (end - t);
+          //FIXME - needs to check if invalid arg string given...
+          part = cs_strndup(csound, t, len);
+          t += len + 1;
+        } else if (*(t + 1) == '[') {
+          char* start = t;
+          int len = 1;
+          int j;
+          t++;
+
+          while (*t == '[') {
+            t++;
+            len++;
+
+            if (*t != ']') {
+               // ERROR HERE, unmatched array identifier, perhaps should report...
+               return NULL;
+            }
 
         while (*t == '[') {
           t++;
@@ -537,7 +564,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
     while (current != NULL) {
       unsigned int uval;
-      if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
+      if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN && current->type != STRUCT_TOKEN) {
         OENTRY* oentry = (OENTRY*)current->markup;
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
@@ -808,7 +835,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     ip->t.inlist->arg[0] = strsav_string(csound, engineState, "0");
 
     while (current != NULL) {
-      if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN) {
+      if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN && current->type != STRUCT_TOKEN) {
         OENTRY* oentry = (OENTRY*)current->markup;
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound,
@@ -1766,6 +1793,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
         break;
       case T_OPCALL:
       case LABEL:
+      case STRUCT_TOKEN:
         break;
 
       default:
