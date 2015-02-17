@@ -119,7 +119,7 @@ static int hm234set(CSOUND *csound, HARMON234 *p)
     }
     //p->minoct = minoct;
     p->sicvt = FL(65536.0) * csound->onedsr;
-    printf("sicvt = %f\n", p->sicvt);
+    //printf("sicvt = %f\n", p->sicvt);
     //    p->polarity = (int16)*p->ipolarity;
     p->poslead = 0;
     p->inp1 = p->bufp;
@@ -132,7 +132,7 @@ static int hm234set(CSOUND *csound, HARMON234 *p)
     p->pbufcnt = 0;
     p->vocamp = FL(0.0);                        /* begin unvoiced */
     p->ampinc = FL(10.0) * csound->onedsr;      /* .1 sec lin ramp for uv to v */
-    printf("ampinc = %f\n", p->ampinc);
+    //printf("ampinc = %f\n", p->ampinc);
     p->switching = 0;
     return OK;
 }
@@ -147,7 +147,7 @@ static int harmon234(CSOUND *csound, HARMON234 *p)
     int16       nsmps = CS_KSMPS, oflow = 0;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    print_data(p, 1);
+    //print_data(p, 1);
     
     if ((koct = *p->koct) != p->prvoct) {               /* if new pitch estimate */
       if (koct >= p->minoct) {                          /*   above requested low */
@@ -175,7 +175,7 @@ static int harmon234(CSOUND *csound, HARMON234 *p)
     //for (srcp = q->asig, nsmps = CS_KSMPS; nsmps--; )
     //  *inp1++ = *inp2++ = *srcp++;              /* dbl store the wavform */
 
-    print_data(p, 2);
+    //print_data(p, 2);
     if (koct >= p->minoct) {                    /* PERIODIC: find the pulse */
       MYFLT     val0, *buf0, *p0, *plim, *x;
       int16     period, triprd, xdist;
@@ -333,7 +333,7 @@ static int harmon234(CSOUND *csound, HARMON234 *p)
       }
       p->curpuls = NULL;                        /* start no new pulses */
     }
-    print_data(p, 3);
+    //print_data(p, 3);
     /* HARMONIZER */
     for (vdp=p->vocdat; vdp<p->vlim; vdp++)     /* get new frequencies  */
       vdp->phsinc = (int32)(*vdp->kfrq * p->sicvt);
@@ -400,7 +400,7 @@ static int harmon234(CSOUND *csound, HARMON234 *p)
       p->inp1 = inp1;
       p->inp2 = inp2;
     }
-    print_data(p, 4);
+    //print_data(p, 4);
     return OK;
 }
 
@@ -423,11 +423,11 @@ int harm3set(CSOUND *csound, HARMON234 *p)
     vdp->kfrq = p->kfrq2;       vdp->phase = 0; vdp++;
     vdp->kfrq = p->kfrq3;       vdp->phase = 0; vdp++;
     p->vlim = vdp;
-    printf("mode, lowest, polar = %p,%p,%p\n", p->icpsmode, p->ilowest, p->ipolarity);
+    //printf("mode, lowest, polar = %p,%p,%p\n", p->icpsmode, p->ilowest, p->ipolarity);
     p->polarity = (int16)*p->ilowest;
     p->minoct = *p->icpsmode;
     p->cpsmode = (*p->kfrq4 != FL(0.0));
-    printf("mode, lowest, polar = (%d,%f,%d)\n", p->cpsmode, p->minoct, p->ipolarity);
+    //printf("mode, lowest, polar = (%d,%f,%d)\n", p->cpsmode, p->minoct, p->ipolarity);
     return hm234set(csound, p);
 }
 
