@@ -264,6 +264,8 @@ static int harmset(CSOUND *csound, HARMON *p)
       int32 nbufsmps = nbufs * CS_KSMPS;
       int32 maxprd = (int32)(CS_ESR / minfrq);
       int32 totalsiz = nbufsmps * 5 + maxprd; /* Surely 5! not 4 */
+      /* printf("init: nbufs = %d; nbufsmps = %d; maxprd = %d; totalsiz = %d\n", */
+      /*        nbufs, nbufsmps, maxprd, totalsiz);       */
       csound->AuxAlloc(csound, (size_t)totalsiz * sizeof(MYFLT), &p->auxch);
       p->bufp = (MYFLT *) p->auxch.auxp;
       p->midp = p->bufp + nbufsmps;        /* each >= maxprd * 3 */
@@ -275,9 +277,11 @@ static int harmset(CSOUND *csound, HARMON *p)
       p->lomaxdist = maxprd;
       p->minfrq = minfrq;
     }
-    if ((p->autoktim = MYFLT2LONG(*p->iptrkprd * CS_EKR)) < 1)
+    if ((p->autoktim = (int)/*MYFLT2LONG*/(*p->iptrkprd * CS_EKR)) < 1)
       p->autoktim = 1;
     p->autokcnt = 1;              /* init for immediate autocorr attempt */
+    printf("ekr = %f iptrk = %f, autocnt = %d; autotim = %d\n",
+           CS_EKR, *p->iptrkprd, p->autokcnt, p->autoktim);
     p->lsicvt = FL(65536.0) * csound->onedsr;
     p->cpsmode = ((*p->icpsmode != FL(0.0)));
     p->inp1 = p->bufp;
@@ -298,6 +302,9 @@ static int harmset(CSOUND *csound, HARMON *p)
     return OK;
 }
 
+#if 0
+static int cycle = 0;
+#endif
 static int harmon(CSOUND *csound, HARMON *p)
 {
     MYFLT *src1, *src2, *src3, *inp1, *inp2, *outp;
@@ -310,6 +317,15 @@ static int harmon(CSOUND *csound, HARMON *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
+    outp = p->ar;
+#if 0
+    if (early || offset) printf("early=%d, offet=%d\n", early, offset);
+#endif
+    if (UNLIKELY(offset)) memset(outp, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&outp[nsmps], '\0', early*sizeof(MYFLT));
+    }
     inp1 = p->inp1;
     inp2 = p->inp2;
     inq1 = p->inq1;
@@ -338,18 +354,21 @@ static int harmon(CSOUND *csound, HARMON *p)
     }
     c1 = p->c1;
     c2 = p->c2;
+    //printf("cycle %d\n", ++cycle);
     for (src1 = p->asig, n = offset; n<nsmps; n++) {
-      inp1[n] = inp2[n] = src1[n];            /* dbl store the wavform */
+      *inp1++ = *inp2++ = src1[n];            /* dbl store the wavform */
+      //printf("src[%d] = %f\n", n, src1[n]);
       if (src1[n] > FL(0.0))
         qval = c1 * src1[n] + c2 * qval;      /*  & its half-wave rect */
       else qval = c2 * qval;
-      inq1[n] = inq2[n] = qval;
+      *inq1++ = *inq2++ = qval;
     }
     if (!(--p->autokcnt)) {                   /* if time for new autocorr  */
       MYFLT *mid1, *mid2, *src4;
       MYFLT *autop, *maxp;
       MYFLT dsum, dinv, win, windec, maxval;
       int32  dist;
+      //printf("AUTOCORRELATE min/max = %d,%d\n",p->mindist, p->maxdist);
       p->autokcnt = p->autoktim;
       mid2 = inp2 - p->max2dist;
       mid1 = mid2 - 1;
@@ -361,6 +380,7 @@ static int harmon(CSOUND *csound, HARMON *p)
         src2 = mid2;  src4 = mid2 + dist;
         for (win = FL(1.0), windec = dinv, nn = dist; nn--; ) {
           dsum += win * (*src1 * *src3 + *src2 * *src4);
+          //printf("dsum = %f from %f %f %f %f\n", dsum, *src1, *src2, *src3, *src4);
           src1--; src2++; src3--; src4++;
           win -= windec;
         }
@@ -370,19 +390,21 @@ static int harmon(CSOUND *csound, HARMON *p)
       maxp = autop = p->autobuf;
       endp = autop + p->maxdist - p->mindist;
       while (autop < endp) {
+        //printf("newval, maxval = %f, %f\n", *autop, maxval);
         if (*autop > maxval) {          /* max autocorr gives new period */
           maxval = *autop;
           maxp = autop;
 #if 0
-          csound->Message(csound, "new maxval %f at %ld\n", maxval, (long)maxp);
+          csound->Message(csound, "new maxval %f at %p\n", maxval, (long)maxp);
 #endif
         }
         autop++;
       }
+      //printf("**** maxval = %f ****\n", maxval);
       period = p->mindist + maxp - p->autobuf;
       if (period != p->period) {
 #if 0
-        csound->Message(csound, "New period\n");
+        csound->Message(csound, "New period %d %d\n", period, p->period);
 #endif
         p->period = period;
         if (!p->cpsmode)
@@ -431,12 +453,6 @@ static int harmon(CSOUND *csound, HARMON *p)
     phase2 = p->phase2;
     phsinc1 = (int32)(*p->kfrq1 * p->lsicvt);
     phsinc2 = (int32)(*p->kfrq2 * p->lsicvt);
-    outp = p->ar;
-    if (UNLIKELY(offset)) memset(outp, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&outp[nsmps], '\0', early*sizeof(MYFLT));
-    }
     for (n=offset; n<nsmps; n++) {
       MYFLT sum;
       if (src1 != NULL) {
