@@ -458,6 +458,7 @@ void CsoundObject::Stop()
 		ScopedLock k(m_lock);
 //		if(m_compiled)
 //		{
+   		csoundStop(m_csound);
 			csoundCleanup(m_csound);
 			csoundReset(m_csound);
 			m_compiled = false;
