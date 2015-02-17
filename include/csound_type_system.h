@@ -38,12 +38,6 @@ extern "C" {
     struct csvariable;
     struct cstype;
     
-    typedef struct type_members {
-        char* memberName;
-        struct cstype* type;
-        int memIndex;
-    } TYPE_MEMBER;
-    
     typedef struct cstype {
         char* varTypeName;
         char* varDescription;

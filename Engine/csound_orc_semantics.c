@@ -1748,13 +1748,41 @@ int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
 
 typedef struct csstructvar {
+  CS_VAR_MEM** members;
+} CS_STRUCT_VAR;
+
+typedef struct initstructvar {
   OPDS h;
   MYFLT* out;
   MYFLT* inArgs[128];
 } INIT_STRUCT_VAR;
 
-int initStructVar(CSOUND* csound, INIT_STRUCT_VAR* p) {
-    csound->Message(csound, "Initializing Struct...\n");
+int initStructVar(CSOUND* csound, void* p) {
+    INIT_STRUCT_VAR* init = (INIT_STRUCT_VAR*)p;
+    CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)init->out;
+    CS_TYPE* type = csoundGetTypeForArg(init->out);
+    CONS_CELL* members = type->members;
+    int len = cs_cons_length(members);
+    int i;
+    
+    structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
+    
+//    csound->Message(csound, "Initializing Struct...\n");
+//    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+
+    for (i = 0; i < len; i++) {
+      CS_VARIABLE* var = members->value;
+      size_t size = (sizeof(CS_VAR_MEM) - sizeof(MYFLT)) + var->memBlockSize;
+      CS_VAR_MEM* mem = csound->Calloc(csound, size);
+      if (var->initializeVariableMemory != NULL) {
+        var->initializeVariableMemory(var, &mem->value);
+      }
+      var->varType->copyValue(csound, &mem->value, init->inArgs[i]);
+      structVar->members[i] = mem;
+      
+      members = members->next;
+    }
+    
     return CSOUND_SUCCESS;
 }
 
@@ -1774,7 +1802,6 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
 
     // FIXME: Values are appended in reverse order of definition
     while (current != NULL) {
-        TYPE_MEMBER* member = csound->Calloc(csound, sizeof(TYPE_MEMBER));
         char* memberName = current->value->lexeme;
         char *brkt; /* used with strtok_r */
         char* memBase = strtok_r(memberName, ":", &brkt);
@@ -1784,12 +1811,15 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
             typedIdentArg = cs_strndup(csound, memBase, 1);
         }
         
-        member->memberName = memBase;
-        member->type = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
+        memberName = cs_strdup(csound, memBase);
+        CS_TYPE* memberType = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
+        CS_VARIABLE* var = memberType->createVariable(csound, type);
+        var->varName = memberName;
+        var->varType = memberType;
         
         csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
         
-        type->members = cs_cons(csound, member, type->members);
+        type->members = cs_cons(csound, var, type->members);
         current = current->next;
     }
     
@@ -1816,7 +1846,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   
     CONS_CELL* member = type->members;
     while (member != NULL) {
-        char* memberTypeName = ((TYPE_MEMBER*)member->value)->type->varTypeName;
+        char* memberTypeName = ((CS_VARIABLE*)member->value)->varType->varTypeName;
         int len = strlen(memberTypeName);
         
         if (len == 1) {
