@@ -157,6 +157,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                      return '?';
                    }
 ":"             { return ':'; }
+"."             { return '.'; }
 ","{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),

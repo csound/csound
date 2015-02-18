@@ -288,7 +288,7 @@ typedef struct {
     unsigned int inArgCount;
     ARG     *outArgs;
     unsigned int outArgCount;
-    char    intype;         /* Type of first input argument (g,k,a,w etc) */
+//    char    intype;         /* Type of first input argument (g,k,a,w etc) */
     char    pftype;         /* Type of output argument (k,a etc) */
   } TEXT;
 

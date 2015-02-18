@@ -86,6 +86,7 @@
 %token S_ELIPSIS
 %token T_ARRAY
 %token T_ARRAY_IDENT
+%token STRUCT_EXPR
 %token T_MAPI
 %token T_MAPK
 
@@ -447,6 +448,7 @@ expr    : function_call
         | number 
         | string
         | array_expr
+        | struct_expr
         ;
 
 
@@ -463,6 +465,12 @@ array_expr :  array_expr '[' expr ']'
           }
           ;
 
+struct_expr : struct_expr '.' identifier
+            {  $$ = $1;
+               appendToTree(csound, $1->right, $3); }
+            | identifier '.' identifier
+            {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); }
+            ;
 
 ternary_expr : expr '?' expr ':' expr %prec '?'
             { $$ = make_node(csound,LINE,LOCN, '?', $1,
@@ -545,6 +553,7 @@ out_arg : identifier
         | typed_identifier 
         | array_identifier
         | array_expr
+        | struct_expr
         ;
 
 

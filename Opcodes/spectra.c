@@ -107,7 +107,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
                       Str("spectrum: %s window, %s out, making tables ...\n"),
                       (hanning) ? "hanning":"hamming", outstring[p->dbout]);
 
-      if (p->h.optext->t.intype == 'k') {
+      if (csoundGetTypeForArg(p->signal) == &CS_VAR_TYPE_K) {
         dwnp->srate = CS_EKR;            /* define the srate */
         p->nsmps = 1;
       }
@@ -117,7 +117,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
       }
       hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
       oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
-      if (p->h.optext->t.intype != 'k') {     /* for sr sampling:           */
+      if (csoundGetTypeForArg(p->signal) != &CS_VAR_TYPE_K) {     /* for sr sampling:           */
         oct = ((int)(oct*12.0 + 0.5)) / 12.0; /*     semitone round to A440 */
         hicps = pow(2.0, oct) * ONEPT;        /*     cpsoct()               */
       }

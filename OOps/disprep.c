@@ -86,7 +86,7 @@ int dspset(CSOUND *csound, DSPLAY *p)
     char   *auxp;
     char   strmsg[256];
 
-    if (p->h.optext->t.intype == 'k')
+    if (csoundGetTypeForArg(p->signal) == &CS_VAR_TYPE_K)
       npts = (int32)(*p->iprd * CS_EKR);
     else npts = (int32)(*p->iprd * csound->esr);
     if (UNLIKELY(npts <= 0)) {
@@ -254,7 +254,7 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
     if (UNLIKELY(window_size < 1L || (window_size & (window_size - 1L)) != 0L)) {
       return csound->InitError(csound, Str("window size must be power of two"));
     }
-    if (p->h.optext->t.intype == 'k')
+    if (csoundGetTypeForArg(p->signal) == &CS_VAR_TYPE_K)
       step_size = (int32)(*p->iprd * CS_EKR);
     else step_size = (int32)(*p->iprd * csound->esr);
     if (UNLIKELY(step_size <= 0)) {

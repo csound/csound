@@ -369,7 +369,11 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
         OENTRY *ep = tp->oentry;
         int argcount = 0;
         for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
-          arg = outargs->value->lexeme;
+            if (outargs->type == STRUCT_EXPR) {
+              arg = outargs->left->value->lexeme;
+            } else {
+              arg = outargs->value->lexeme;
+            }
           tp->outlist->arg[argcount++] = strsav_string(csound, engineState, arg);
         }
 
@@ -378,7 +382,11 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
         /* OUTARGS */
         for (outargs = root->left; outargs != NULL; outargs = outargs->next) {
 
-          arg = outargs->value->lexeme;
+          if (outargs->type == STRUCT_EXPR) {
+            arg = outargs->left->value->lexeme;
+          } else {
+            arg = outargs->value->lexeme;
+          }
 
           if ((n = pnum(arg)) >= 0) {
             if (n > ip->pmax)  ip->pmax = n;
@@ -390,20 +398,22 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
           tp->outArgCount++;
         }
 
-        if (root->right != NULL) {
-          if (ep->intypes[0] != 'l') {     /* intype defined by 1st inarg */
-            tp->intype = argtyp2( tp->inlist->arg[0]);
-          }
-          else  {
-            tp->intype = 'l';          /*   (unless label)  */
-          }
-        }
-
         if (root->left != NULL) {      /* pftype defined by outarg */
-          tp->pftype = argtyp2( root->left->value->lexeme);
+          if (root->left->type == STRUCT_EXPR) {
+            tp->pftype = '_';
+          } else {
+            tp->pftype = argtyp2( root->left->value->lexeme);
+          }
         }
         else {                            /*    else by 1st inarg     */
-          tp->pftype = tp->intype;
+          if (root->right != NULL) {
+            if (ep->intypes[0] != 'l') {     /* intype defined by 1st inarg */
+              tp->pftype = argtyp2( tp->inlist->arg[0]);
+            }
+            else  {
+              tp->pftype = 'l';          /*   (unless label)  */
+            }
+          }
         }
       }
       break;
