@@ -244,6 +244,31 @@ static int isirate(/*CSOUND *csound,*/ TREE *t)
     else return 0;
 }
 
+CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName, char* varBaseName, TYPE_TABLE* typeTable) {
+    CS_VARIABLE* var = NULL;
+
+    /* VL: 16/01/2014
+     in a second compilation, the
+     typeTable->globalPool is incorrect and will not
+     contain the correct addresses of global variables,
+     which are stored correctly in the engineState.varPool.
+     Ideally we should remove typeTable->globalPool and only use
+     the varPool in the engineState
+     */
+
+    if (*varName == 'g') {
+        var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                         varBaseName);
+        if(var == NULL)
+            var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                             varBaseName);
+    } else {
+        var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                         varBaseName);
+    }
+    return var;
+}
+
 /* This function gets arg type with checking type table */
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
@@ -261,15 +286,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         varBaseName = strtok_r(tree->left->value->lexeme, ":", &brkt);
 
-        if (*varBaseName == 'g') {
-          var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                           varBaseName);
-          if(var == NULL)
-            var = csoundFindVariableWithName(csound, typeTable->globalPool,
-                                             varBaseName);
-        } else
-          var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                           varBaseName);
+        var = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
 
         if (var == NULL) {
           synterr(csound,
@@ -528,24 +545,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       if (*s == '#')
         s++;
 
-      /* VL: 16/01/2014
-         in a second compilation, the
-         typeTable->globalPool is incorrect and will not
-         contain the correct addresses of global variables,
-         which are stored correctly in the engineState.varPool.
-         Ideally we should remove typeTable->globalPool and only use
-         the varPool in the engineState
-      */
-
-      if (*s == 'g') {
-        var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                         varBaseName);
-        if(var == NULL)
-          var = csoundFindVariableWithName(csound, typeTable->globalPool,
-                                           varBaseName);
-      } else
-        var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                         varBaseName);
+      var = find_var_from_pools(csound, s, varBaseName, typeTable);
 
       if (UNLIKELY(var == NULL)) {
         synterr(csound, Str("Variable '%s' used before defined\n"
@@ -567,6 +567,39 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return cs_strdup(csound, var->varType->varTypeName);
       }
 
+    case STRUCT_EXPR:
+      s = tree->left->value->lexeme;
+      var = find_var_from_pools(csound, s, s, typeTable);
+
+      if (UNLIKELY(var == NULL)) {
+        synterr(csound, Str("Variable '%s' used before defined\n"), s);
+        do_baktrace(csound, tree->locn);
+        return NULL;
+      }
+
+      tree = tree->right;
+      while (tree != NULL) {
+        s = tree->value->lexeme;
+          CONS_CELL* cell = var->varType->members;
+          CS_VARIABLE* nextVar = NULL;
+          while (cell != NULL) {
+            CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
+            if (!strcmp(member->varName, s)) {
+              nextVar = member;
+              break;
+            }
+            cell = cell->next;
+          }
+          if (nextVar == NULL) {
+            synterr(csound, Str("No member '%s' found for variable 'xxx'\n"), s);
+            do_baktrace(csound, tree->locn);
+            return NULL;
+          }
+          var = nextVar;
+        tree = tree->next;
+      }
+
+      return cs_strdup(csound, var->varType->varTypeName);
 
     case T_ARRAY:
 
@@ -1123,22 +1156,12 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
             int argLen = strlen(argType);
             int adjust = (argLen > 1 && '[' != *argType) ? 2 : 0;
             argType = convert_internal_to_external(csound, argType);
+            argLen = strlen(argType);
             argsLen += argLen + adjust;
             argTypes[index++] = argType;
-
         }
 
-      //FIXME - fix if argType is NULL and remove the below hack
-      if (argType == NULL) {
-        argsLen += 1;
-        argTypes[index++] = cs_strdup(csound, "@");
-      } else {
-        argType = convert_internal_to_external(csound, argType);
-        argsLen += strlen(argType);
-        argTypes[index++] = argType;
-      }
-
-      current = current->next;
+        current = current->next;
     }
 
     argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
@@ -1147,7 +1170,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     for (i = 0; i < len; i++) {
         int size = strlen(argTypes[i]);
         if (size > 1 && strchr(argTypes[i], '[') == 0) {
-//            printf("UserDefined Type found...\n");
+          // printf("UserDefined Type found...\n");
             *temp = ':';
             memcpy(temp + 1, argTypes[i], size);
             *(temp + 1 + size) = ';';
@@ -1988,9 +2011,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
         CS_VARIABLE* var = memberType->createVariable(csound, type);
         var->varName = memberName;
         var->varType = memberType;
-
-        csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
-
+        // csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
         type->members = cs_cons(csound, var, type->members);
         current = current->next;
     }

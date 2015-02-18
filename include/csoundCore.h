@@ -300,16 +300,16 @@ typedef struct CORFIL {
   typedef struct text {
     uint16_t        linenum;        /* Line num in orch file (currently buggy!)  */
     uint64_t        locn;           /* and location */
-    OENTRY          *oentry;
-    char            *opcod;         /* Pointer to opcode name in global pool */
-    ARGLST          *inlist;        /* Input args (pointer to item in name list) */
-    ARGLST          *outlist;
-    ARG             *inArgs;        /* Input args (index into list of values) */
-    unsigned int    inArgCount;
-    ARG             *outArgs;
-    unsigned        int outArgCount;
-    char            intype;         /* Type of first input argument (g,k,a,w etc) */
-    char            pftype;         /* Type of output argument (k,a etc) */
+    OENTRY* oentry;
+    char    *opcod;         /* Pointer to opcode name in global pool */
+    ARGLST  *inlist;        /* Input args (pointer to item in name list) */
+    ARGLST  *outlist;
+    ARG     *inArgs;        /* Input args (index into list of values) */
+    unsigned int inArgCount;
+    ARG     *outArgs;
+    unsigned int outArgCount;
+    //    char    intype;         /* Type of first input argument (g,k,a,w etc) */
+    char    pftype;         /* Type of output argument (k,a etc) */
   } TEXT;
 
 
