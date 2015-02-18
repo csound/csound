@@ -1,5 +1,3 @@
-#pragma GCC diagnostic ignored "-Wwrite-strings"
-
 #include "assert.h"
 #include "stdlib.h"
 #include "string.h"
@@ -311,8 +309,8 @@ bool Alg_reader::parse()
                 } else {
                     line_parser.get_nonspace_quoted(field);
                     pk = line_parser.peek();
-                    // attributes are parsed as two adjacent nonspace_quoted
-                    // tokens so we have to conditionally call
+                    // attributes are parsed as two adjacent nonspace_quoted 
+                    // tokens so we have to conditionally call 
                     // get_nonspace_quoted() again
                     if (pk && !isspace(pk)) {
                         string field2;
@@ -337,7 +335,7 @@ bool Alg_reader::parse()
             //   C4 -- OK, key is 60, pitch is 60
             //   <nothing> -- OK, key and pitch from before
             //   K200 P60 -- ok, pitch is 60
-            //   K200 with neither P60 nor C4 uses
+            //   K200 with neither P60 nor C4 uses 
             //       pitch from before
 
             // figure out what the key/instance is:
@@ -535,7 +533,7 @@ double Alg_reader::parse_dur(string &field, double base)
         string real_string = field.substr(1, last - 1);
         dur = atof(real_string.c_str());
         // convert dur from seconds to beats
-        dur = seq->get_time_map()->time_to_beat(base + dur) -
+        dur = seq->get_time_map()->time_to_beat(base + dur) - 
               seq->get_time_map()->time_to_beat(base);
     } else if (p = strchr(durs, toupper(field[1]))) {
         dur = duration_lookup[p - durs];
@@ -551,7 +549,7 @@ double Alg_reader::parse_dur(string &field, double base)
 }
 
 
-double Alg_reader::parse_after_dur(double dur, string &field,
+double Alg_reader::parse_after_dur(double dur, string &field, 
                                    int n, double base)
 {
     if ((int) field.length() == n) {
@@ -582,8 +580,8 @@ double Alg_reader::parse_after_dur(double dur, string &field,
 struct loud_lookup_struct {
     char *str;
     int val;
-} loud_lookup[] = { {"FFF", 127}, {"FF", 120}, {"F", 110}, {"MF", 100},
-                    {"MP", 90}, {"P", 80}, {"PP", 70}, {"PPP", 60},
+} loud_lookup[] = { {"FFF", 127}, {"FF", 120}, {"F", 110}, {"MF", 100}, 
+                    {"MP", 90}, {"P", 80}, {"PP", 70}, {"PPP", 60}, 
                     {NULL, 0} };
 
 
@@ -708,10 +706,10 @@ bool Alg_reader::parse_val(Alg_parameter_ptr param, string &s, int i)
         string r = s.substr(i + 1, len - i - 2);
         param->a = symbol_table.insert_string(r.c_str());
     } else if (param->attr_type() == 'l') {
-        if (streql(s.c_str() + i, "true") ||
+        if (streql(s.c_str() + i, "true") || 
             streql(s.c_str() + i, "t")) {
             param->l = true;
-        } else if (streql(s.c_str() + i, "false") ||
+        } else if (streql(s.c_str() + i, "false") || 
                    streql(s.c_str() + i, "nil")) {
             param->l = false;
         } else return false;

@@ -117,7 +117,7 @@ void decode_layer1(mpadec_t mpadec, uint8_t *buffer)
     MYFLT fraction[2][SBLIMIT];
     uint8_t bit_alloc[2*SBLIMIT];
     uint8_t scalefac[2*SBLIMIT];
-    
+
     mpa->error = FALSE;
     mpa->bits_left = 0;
     mpa->frame.jsbound =
@@ -152,4 +152,3 @@ void decode_layer1(mpadec_t mpadec, uint8_t *buffer)
       mpa->reservoir_size = 0;
     }
 }
-

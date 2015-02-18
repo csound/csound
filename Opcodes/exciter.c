@@ -34,7 +34,7 @@ typedef struct {
   MYFLT       *ain;
   MYFLT       *pfreq;
   MYFLT       *pceil;
-  MYFLT       *pdrive;  
+  MYFLT       *pdrive;
   MYFLT       *pblend;
   // Internals
   MYFLT       freq_old, ceil_old;
@@ -71,7 +71,7 @@ static inline void set_hp_rbj(CSOUND *csound, double hp[7], double fc, double q)
     double cs=cos(omega);
     double alpha=(double)(sn/(2.0*q));
     double inv=(double)(1.0/(1.0+alpha));
-    
+
     hp[2]/*a2*/ = hp[0]/*a0*/ =  (inv*(1.0 + cs)*0.5);
     hp[1]/*a1*/ =  -2.0 * hp[0];
     hp[3]/*b1*/ =  (-2.0*cs*inv);
@@ -257,7 +257,7 @@ int exciter_perf(CSOUND *csound, EXCITER *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT zerodb = csound->Get0dBFS(csound);
- 
+
     if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -275,8 +275,8 @@ int exciter_perf(CSOUND *csound, EXCITER *p)
       out = distort(p, out1);      // saturate
       //printf("after distort %f -> %f -> %f\n", in, out1, out);
       // all post filters in chain
-      out = process(p->hp4, process(p->hp3, out)); 
-                
+      out = process(p->hp4, process(p->hp3, out));
+
       // all H/P post filters in chain (surely LP - JPff)
       out = process(p->lp1, process(p->lp2, out));
       p->aout[n] = out*zerodb;
@@ -292,4 +292,3 @@ static OENTRY excite_localops[] = {
 };
 
 LINKAGE_BUILTIN(excite_localops)
-

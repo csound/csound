@@ -170,7 +170,8 @@ public:
       smoothingFilter = new RCLowpassFilter();
       smoothingFilter->initialize(sampleRate,
                                   smoothingFilterCutoff, targetPosition);
-      warn(csound, "Doppler::kontrol: sizeof(MYFLT):         %10d\n", sizeof(MYFLT));
+      warn(csound, "Doppler::kontrol: sizeof(MYFLT):         %10d\n",
+                    sizeof(MYFLT));
       warn(csound, "Doppler::kontrol: PI:                    %10.3f\n", pi);
       warn(csound, "Doppler::kontrol: this:                  %10p\n", this);
       warn(csound, "Doppler::kontrol: sampleRate:            %10.3f\n", sampleRate);

@@ -138,9 +138,21 @@
 #include "namedins.h"
 
 #include "csound_orc.h"
+#include "parse_param.h"
+
+#ifndef __EMSCRIPTEN__
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
-#include "parse_param.h"
+#else
+#define csp_orc_sa_instr_add(a,b)
+#define csp_orc_sa_instr_add_tree(a,b)
+#define csp_orc_sa_instr_finalize(a)
+#define csp_orc_sa_global_read_write_add_list(a,b,c)
+#define csp_orc_sa_globals_find(a,b)
+#define csp_orc_sa_global_read_write_add_list1(a,b,c)
+#define csp_orc_sa_interlocks(a, b)
+#define csp_orc_sa_global_read_add_list(a,b) 
+#endif
 
 #define udoflag csound->parserUdoflag
 
@@ -720,7 +732,7 @@ ifac      : ident               { $$ = $1; }
                 $1->left = NULL;
                 $1->right = $2;
 		$1->type = T_FUNCTION;
-                
+
                 $$ = $1;
             }
           | opcode ':' opcodeb exprlist ')'   /* this is need because a & k are also opcodes */

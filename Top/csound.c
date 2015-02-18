@@ -60,7 +60,7 @@
 #include "cs_par_dispatch.h"
 #include "csound_orc_semantics.h"
 
-#if defined(linux) || defined(__HAIKU__) || defined(EMSCRIPTEN)
+#if defined(linux) || defined(__HAIKU__) || defined(__EMSCRIPTEN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
 #endif
 
@@ -621,7 +621,8 @@ static const CSOUND cenviron_ = {
     FL(0.0), FL(0.0), FL(0.0),  /*  prvbt, curbt, nxtbt */
     FL(0.0), FL(0.0),       /*  curp2, nxtim        */
     0,              /*  cyclesRemaining     */
-    { 0, NULL, NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
+    { 0, NULL, NULL, '\0', 0, FL(0.0),
+      FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
     NULL,           /*  memalloc_db         */
     (MGLOBAL*) NULL, /* midiGlobals         */
     NULL,           /*  envVarDB            */
@@ -917,7 +918,7 @@ static void destroy_all_instances(void)
 
 #if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \
                          !defined(__HAIKU__) && !defined(__BEOS__) && \
-                         !defined(__MACH__))
+                         !defined(__MACH__) && !defined(__EMSCRIPTEN__))
 static char *signal_to_string(int sig)
 {
     switch(sig) {
@@ -1135,6 +1136,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
 {
     CSOUND        *csound;
     csInstance_t  *p;
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
     if (init_done != 1) {
       if (csoundInitialize(0) < 0) return NULL;
@@ -1416,6 +1418,7 @@ unsigned long kperfThread(void * cs)
     void *threadId;
     int index;
     int numThreads;
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
     csound->WaitBarrier(csound->barrier2);
 
@@ -1568,7 +1571,9 @@ int kperf_nodebug(CSOUND *csound)
                   ip->kcounter++;
                 }
             }
-          } /*else csound->Message(csound, "time %f \n", csound->kcounter/csound->ekr);*/
+          }
+          /*else csound->Message(csound, "time %f \n",
+                                 csound->kcounter/csound->ekr);*/
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0; /* reset end of loop samples */
           ip = nxt; /* but this does not allow for all deletions */
@@ -1583,7 +1588,8 @@ int kperf_nodebug(CSOUND *csound)
     return 0;
 }
 
-static inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, INSDS *ip)
+static inline void opcode_perf_debug(CSOUND *csound,
+                                     csdebug_data_t *data, INSDS *ip)
 {
     OPDS  *opstart = (OPDS*) ip;
     while ((opstart = opstart->nxtp) != NULL) {
@@ -1605,8 +1611,9 @@ static inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, INSDS
                   csoundDebuggerBreakpointReached(csound);
                   bp_node->count = bp_node->skip;
                   return;
-                } else {
-                  data->debug_opcode_ptr = NULL; /* if just stopped here, continue */
+                }
+                else {
+                  data->debug_opcode_ptr = NULL; /* if just stopped here-continue */
                 }
               } else {
                 bp_node->count--;
@@ -1708,7 +1715,8 @@ int kperf_debug(CSOUND *csound)
         data->status = CSDEBUG_STATUS_STOPPED;
         csoundDebuggerBreakpointReached(csound);
       }
-      if (command == CSDEBUG_CMD_CONTINUE && data->status == CSDEBUG_STATUS_STOPPED) {
+      if (command == CSDEBUG_CMD_CONTINUE &&
+          data->status == CSDEBUG_STATUS_STOPPED) {
         if (data->cur_bkpt->skip <= 2) data->cur_bkpt->count = 2;
         data->status = CSDEBUG_STATUS_RUNNING;
         if (data->debug_instr_ptr) {
@@ -1721,7 +1729,7 @@ int kperf_debug(CSOUND *csound)
           data->status = CSDEBUG_STATUS_NEXT;
       }
     }
-    if (ip != NULL && (data->status != CSDEBUG_STATUS_STOPPED) ) {
+    if (ip != NULL && data != NULL && (data->status != CSDEBUG_STATUS_STOPPED) ) {
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
@@ -1758,8 +1766,10 @@ int kperf_debug(CSOUND *csound)
 #endif
 
           if (done == 1) {/* if init-pass has been done */
-            /* check if next command pending and we are on the first instrument in the chain */
-            if (data &&  data->status == CSDEBUG_STATUS_NEXT) {
+            /* check if next command pending and we are on the
+               first instrument in the chain */
+            /* coverity says data already dereferenced by here */
+            if (/*data &&*/  data->status == CSDEBUG_STATUS_NEXT) {
                 if (data->debug_instr_ptr == NULL) {
                     data->debug_instr_ptr = ip;
                     data->debug_opcode_ptr = NULL;
@@ -1828,8 +1838,9 @@ int kperf_debug(CSOUND *csound)
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0;  /* reset end of loop samples */
           ip = ip->nxtact; /* but this does not allow for all deletions */
-          if (data && data->status == CSDEBUG_STATUS_NEXT) {
-            data->debug_instr_ptr = ip; /* we have reached the next instrument. Break */
+          if (/*data &&*/ data->status == CSDEBUG_STATUS_NEXT) {
+            data->debug_instr_ptr = ip; /* we have reached the next
+                                           instrument. Break */
             data->debug_opcode_ptr = NULL;
             if (ip != NULL) { /* must defer break until next kperf */
               data->status = CSDEBUG_STATUS_STOPPED;
@@ -3076,7 +3087,7 @@ PUBLIC void csoundReset(CSOUND *csound)
      pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
      pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
     #endif
-     if(O->odebug) 
+     if(O->odebug)
         csound->Message(csound,"init spinlocks\n");
     }
 
@@ -3466,7 +3477,7 @@ void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
 
 //#define HAVE_RDTSC  1
 
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 
 #if defined(HAVE_RDTSC)
 #if !(defined(LINUX) && defined(__GNUC__) && defined(__i386__))
@@ -3870,8 +3881,9 @@ double csoundGetOffTime(void *p)
  */
 MYFLT *csoundGetPFields(void *p)
 {
-    
-    /* FIXME - this is no longer valid, should return CS_VAR_MEM* and use ->p0_type */
+
+    /* FIXME - this is no longer valid, should return CS_VAR_MEM*
+       and use ->p0_type */
     return (MYFLT*) &(((OPDS*) p)->insdshead->p0);
 }
 
@@ -4164,4 +4176,3 @@ PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
 //#ifdef __cplusplus
 //}
 //#endif
-

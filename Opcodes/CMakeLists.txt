@@ -65,6 +65,11 @@ make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
 
 make_plugin(fareygen fareygen.c)
+make_plugin(padsynth padsynth_gen.cpp)
+if(APPLE)
+  set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11 -stdlib=libc++"
+    LINK_FLAGS "-std=gnu++11 -stdlib=libc++")
+endif()
 
 make_plugin(cellular cellular.c)
 
