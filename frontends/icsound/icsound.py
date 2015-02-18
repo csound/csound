@@ -71,6 +71,7 @@ class icsound:
         self._myfltsize = csnd6.csoundGetSizeOfMYFLT()
         self._client_addr = None
         self._client_port = None
+        self._buffersize = None
         global cur_ics
         cur_ics = self
 
@@ -84,7 +85,7 @@ class icsound:
         self._client_port = port
     
     def start_engine(self, sr = 44100, ksmps = 64, nchnls = 2, zerodbfs=1.0,
-                     dacout = 'dac', adcin = None, port=None):
+                     dacout = 'dac', adcin = None, port=None, buffersize=None):
         ''' Start the csound engine on a separate thread'''
         if self._cs and self._csPerf:
             print("icsound: Csound already running")
@@ -103,10 +104,14 @@ class icsound:
         self._cs = csnd6.Csound()
         self._cs.CreateMessageBuffer(0)
         self._cs.SetOption('-o' + self._dacout)
+        self._buffersize = buffersize
         if self._adcin:
             self._cs.SetOption('-i' + self._adcin)
         if port:
             self._cs.SetOption("--port=%i"%port)
+        if self._buffersize:
+            self._cs.SetOption('-B' + str(self._buffersize))
+            self._cs.SetOption('-b' + str(self._buffersize))
         self._cs.CompileOrc(
         '''sr = %i
         ksmps = %i
