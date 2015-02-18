@@ -298,6 +298,7 @@ int modkk(CSOUND *csound, AOP *p)
     }                                                  \
   }
 
+
 KA(addka,+)
 KA(subka,-)
 KA(mulka,*)
@@ -423,6 +424,41 @@ int modak(CSOUND *csound, AOP *p)
     }                                           \
     for (n=offset; n<nsmps; n++)                \
       r[n] = a[n] OP b[n];                      \
+    return OK;                                  \
+  }                                             \
+    else {                                      \
+      *p->r = *p->a OP *p->b;                    \
+      return OK;                                \
+    }                                           \
+  }
+
+
+/* VL
+   experimental code using SIMD for operations
+*/
+typedef double v2d __attribute__ ((vector_size (128)));
+#define AA_VECTOR(OPNAME,OP)                           \
+  int OPNAME(CSOUND *csound, AOP *p) {          \
+  MYFLT   *r, *a, *b;                           \
+  v2d     rv, av, bv;                           \
+  uint32_t n, nsmps = CS_KSMPS;                 \
+  if (LIKELY(nsmps!=1)) {                       \
+    uint32_t offset = p->h.insdshead->ksmps_offset;       \
+    uint32_t early  = p->h.insdshead->ksmps_no_end;  \
+    r = p->r;                                   \
+    a = p->a;                                   \
+    b = p->b;                                   \
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT)); \
+    if (UNLIKELY(early)) {                      \
+      nsmps -= early;                           \
+      memset(&r[nsmps], '\0', early*sizeof(MYFLT)); \
+    }                                           \
+    for (n=offset; n<nsmps; n+=2){              \
+       memcpy(&av,&a[n],2*sizeof(MYFLT));       \
+       memcpy(&bv,&b[n],2*sizeof(MYFLT));       \
+       rv = av OP bv;                  \
+       memcpy(&r[n],&rv,2*sizeof(MYFLT));       \
+    }                                           \
     return OK;                                  \
   }                                             \
     else {                                      \

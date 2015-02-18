@@ -75,6 +75,7 @@ typedef struct FLUTE {
     MYFLT       outputGain;
     MYFLT       kloop;
     MYFLT       lastamp;
+    MYFLT       limit;
 } FLUTE;
 
 #endif

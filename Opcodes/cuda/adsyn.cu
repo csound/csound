@@ -1,8 +1,28 @@
 // -*- c++ -*-
-// adsyn.cu
-// experimental cuda opcodes
-//
-// V Lazzarini, 2013
+/* adsyn.cu
+   experimental cuda opcodes
+
+  (c) Victor Lazzarini, 2013
+
+  based on M Puckette's pitch tracking algorithm.
+
+  This file is part of Csound.
+
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
+*/
 
 #include <csdl.h>
 #include <pstream.h>
@@ -36,7 +56,7 @@ static int init_cudadsyn(CSOUND *csound, CUDADSYN *p){
   blockspt = deviceProp.maxThreadsPerBlock;
   if(deviceProp.major < 2)
    csound->InitError(csound,
-       "this opcode requires device capability 2.0 minimum. Device is %d.%d\n", 
+       "this opcode requires device capability 2.0 minimum. Device is %d.%d\n",
         deviceProp.major, deviceProp.minor );
 
   p->bins = (p->fsig->N)/2;
@@ -68,7 +88,7 @@ static int init_cudadsyn(CSOUND *csound, CUDADSYN *p){
   if(p->out_.auxp == NULL ||
      p->out_.size < asize)
     csound->AuxAlloc(csound, asize , &p->out_);
- 
+
   csound->RegisterDeinitCallback(csound, p, destroy_cudadsyn);
   p->count = 0;
   return OK;
@@ -76,7 +96,7 @@ static int init_cudadsyn(CSOUND *csound, CUDADSYN *p){
 
 __global__ void sample(float *out, float *frame, float pitch, int64_t *ph,
                        float *amps, int vsize, float sr) {
-  
+
   int t = (threadIdx.x + blockIdx.x*blockDim.x);
   int n =  t%vsize;  /* sample index */
   int h = t/vsize;  /* bin index */
@@ -136,7 +156,7 @@ static int perf_cudadsyn(CSOUND *csound, CUDADSYN *p){
                                                 p->previous,
                                                 vsamps,
                                                 csound->GetSr(csound));
-      
+
       count = vsamps;
     }
     asig[n] = (MYFLT) out_[vsamps - count];
@@ -164,3 +184,4 @@ static OENTRY localops[] = {
 extern "C" {
   LINKAGE
 }
+

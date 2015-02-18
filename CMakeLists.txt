@@ -191,7 +191,7 @@ include(cmake/CompilerOptimizations.cmake)
 endif()
 
 if(APPLE)
-set(OSX_VERSION " ")
+    set(OSX_VERSION " ")
 endif()
 
 # Include this after the install path definitions so we can override them here.
@@ -203,6 +203,11 @@ if(CUSTOM_CMAKE)
 else()
     message(STATUS "Not using Custom.cmake file.")
 endif()
+
+# VL this is breaking CUDA compilation. It's not necessary
+#if(APPLE)
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -stdlib=libc++")
+#endif()
 
 
 if(WIN32 AND NOT MSVC)
@@ -268,10 +273,10 @@ endif(WIN32)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     set(LINUX YES)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 else()
     set(LINUX NO)
 endif()
-
 ## USER OPTIONS ##
 
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
@@ -305,7 +310,7 @@ check_cxx_compiler_flag(-fvisibility=hidden HAS_CXX_VISIBILITY_HIDDEN)
 if (HAS_VISIBILITY_HIDDEN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 endif()
-if (HAS_CXX_VISBILITY_HIDDEN)
+if (HAS_CXX_VISIBILITY_HIDDEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
 
@@ -1109,6 +1114,11 @@ endif()
 
 if(WIN32)
     add_definitions(-DWIN32)
+endif()
+
+check_function_exists(strlcat HAVE_STRLCAT)
+if(HAVE_STRLCAT)
+    add_definitions(-DHAVE_STRLCAT)
 endif()
 
 # Locale-aware reading and printing

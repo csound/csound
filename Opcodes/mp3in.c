@@ -51,7 +51,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *ir;
     MYFLT   *iFileCode;
-    
+
 } MP3LEN;
 
 int mp3in_cleanup(CSOUND *csound, MP3IN *p)

@@ -57,7 +57,8 @@ void PUBLIC gatherArgs(int argc, const char **argv, std::string &commandLine)
     }
 }
 
-void PUBLIC scatterArgs(const std::string buffer, std::vector<std::string> &args, std::vector<char *> &argv)
+void PUBLIC scatterArgs(const std::string buffer,
+                        std::vector<std::string> &args, std::vector<char *> &argv)
 {
   std::string separators = " \t\n\r";
   args.clear();
@@ -119,10 +120,13 @@ std::string PUBLIC &trimQuotes(std::string &value)
 /**
  *       Returns true if definition is a valid Csound instrument definition block.
  *       Also returns the part before the instr number, the instr number,
- *       the name (all text after the first comment on the same line as the instr number),
+ *       the name (all text after the first comment on the same line as 
+ *       the instr number),
  *       and the part after the instr number, all by reference.
  */
-bool PUBLIC parseInstrument(const std::string &definition, std::string &preNumber, std::string &id, std::string &name, std::string &postNumber);
+bool PUBLIC parseInstrument(const std::string &definition, std::string &preNumber,
+                            std::string &id, std::string &name,
+                            std::string &postNumber);
 
 char staticBuffer[0x1000];
 
@@ -216,15 +220,18 @@ int CsoundFile::save(std::string filename) const
 {
   int returnValue = false;
   std::ofstream stream(filename.c_str(), std::ios::binary);
-  if(!((filename.find(".orc") == filename.npos) && (filename.find(".ORC") == filename.npos)))
+  if(!((filename.find(".orc") == filename.npos) &&
+       (filename.find(".ORC") == filename.npos)))
     {
       returnValue += exportOrchestra(stream);
     }
-  else if(!((filename.find(".sco") == filename.npos) && (filename.find(".SCO") == filename.npos)))
+  else if(!((filename.find(".sco") == filename.npos) &&
+            (filename.find(".SCO") == filename.npos)))
     {
       returnValue += exportScore(stream);
     }
-  else if(!((filename.find(".mid") == filename.npos) && (filename.find(".MID") == filename.npos)))
+  else if(!((filename.find(".mid") == filename.npos) &&
+            (filename.find(".MID") == filename.npos)))
     {
       returnValue += exportMidifile(stream);
     }
@@ -275,7 +282,8 @@ int CsoundFile::save(std::ostream &stream) const
   public:
     long tpq;
     double tempo;
-    CsoundFileMidiWriter(CsoundFile *csoundFile_) : tpq(1000), tempo(1.0), csoundFile(*csoundFile_)
+    CsoundFileMidiWriter(CsoundFile *csoundFile_) : tpq(1000), tempo(1.0),
+                                                    csoundFile(*csoundFile_)
     {
       csoundFile.removeScore();
     }
@@ -288,7 +296,8 @@ int CsoundFile::save(std::ostream &stream) const
     virtual void endPart (long date)
     {
     }
-    virtual void newNote (long start_, int insno_, float key_, int velocity_, int duration_)
+    virtual void newNote (long start_, int insno_, float key_,
+                          int velocity_, int duration_)
     {
       double insno = double(insno_ + 1.0);
       double start = double(start_) / double(tpq) * tempo;
@@ -328,20 +337,24 @@ int CsoundFile::importFile(std::string filename)
       return false;
     }
   std::ifstream stream(filename.c_str(), std::ios::binary);
-  if((filename.find(".orc")   != filename.npos) || (filename.find(".ORC")    != filename.npos))
+  if((filename.find(".orc")    != filename.npos) ||
+     (filename.find(".ORC")    != filename.npos))
     {
       returnValue += importOrchestra(stream);
     }
-  else if((filename.find(".sco") != filename.npos) || (filename.find(".SCO") != filename.npos))
+  else if((filename.find(".sco") != filename.npos) ||
+          (filename.find(".SCO") != filename.npos))
     {
       returnValue += importScore(stream);
     }
-  else if((filename.find(".mid") != filename.npos) || (filename.find(".MID") != filename.npos))
+  else if((filename.find(".mid") != filename.npos) ||
+          (filename.find(".MID") != filename.npos))
     {
       returnValue += importMidifile(stream);
     }
 #if defined(HAVE_MUSICXML2)
-  else if((filename.find(".xml") != filename.npos) || (filename.find(".XML") != filename.npos))
+  else if((filename.find(".xml") != filename.npos) ||
+          (filename.find(".XML") != filename.npos))
     {
       score.erase();
       xmlreader xmlReader;
@@ -355,13 +368,17 @@ int CsoundFile::importFile(std::string filename)
       if (sxmlElement) {
         // Create a CsoundFileMidiWriter that is attached to this Score.
         CsoundFileMidiWriter csoundFileMidiWriter(this);
-        // Create a midicontextvisitor, which calls into an abstract midiwriter interface,
-        // which is attached to our CsoundFileMidiWriter, which implements that midiwriter interface.
-        midicontextvisitor midicontextvisitor_(csoundFileMidiWriter.tpq, &csoundFileMidiWriter);
+        // Create a midicontextvisitor, which calls into an abstract
+        // midiwriter interface, which is attached to our
+        // CsoundFileMidiWriter, which implements that midiwriter
+        // interface.
+        midicontextvisitor midicontextvisitor_(csoundFileMidiWriter.tpq,
+                                               &csoundFileMidiWriter);
         // Create an xml_tree_browser that is attached to our midicontextvisitor.
         xml_tree_browser xmlTreeBrowser(&midicontextvisitor_);
-        // The xml_tree_browser will carry the midicontextvisitor to all the elements
-        // of the document tree, in the proper order, calling newNote as appropriate.
+        // The xml_tree_browser will carry the midicontextvisitor to
+        // all the elements of the document tree, in the proper order,
+        // calling newNote as appropriate.
         xmlTreeBrowser.browse(*sxmlElement);
       }
     }
@@ -512,7 +529,8 @@ void CsoundFile::removeCommand()
 std::string CsoundFile::getOrcFilename() const
 {
   std::string buffer;
-  scatterArgs(command, const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
+  scatterArgs(command, const_cast< std::vector<std::string> & >(args),
+              const_cast< std::vector<char *> &>(argv));
   if(args.size() >= 3)
     {
       buffer = args[args.size() - 2];
@@ -523,7 +541,8 @@ std::string CsoundFile::getOrcFilename() const
 std::string CsoundFile::getScoFilename() const
 {
   std::string buffer;
-  scatterArgs(command, const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
+  scatterArgs(command, const_cast< std::vector<std::string> & >(args),
+              const_cast< std::vector<char *> &>(argv));
   if(args.size() >= 3)
     {
       buffer = args[args.size() - 1];
@@ -534,7 +553,8 @@ std::string CsoundFile::getScoFilename() const
 std::string CsoundFile::getMidiFilename() const
 {
   std::string buffer;
-  scatterArgs(command, const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
+  scatterArgs(command, const_cast< std::vector<std::string> & >(args),
+              const_cast< std::vector<char *> &>(argv));
   for(int i = 1, n = args.size() - 2; i < n; i++)
     {
       std::string buffer = args[i];
@@ -668,45 +688,60 @@ void CsoundFile::removeMidifile()
   midifile.resize(0);
 }
 
-void CsoundFile::addNote(double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8, double p9, double p10, double p11)
+void CsoundFile::addNote(double p1, double p2, double p3, double p4,
+                         double p5, double p6, double p7, double p8,
+                         double p9, double p10, double p11)
 {
   char note[0x100];
-  sprintf(note, "i %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g", p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11);
+  sprintf(note, "i %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g"
+          " %-.10g %-.10g %-.10g", p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11);
   addScoreLine(note);
 }
 
-void CsoundFile::addNote(double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8, double p9, double p10)
+void CsoundFile::addNote(double p1, double p2, double p3, double p4,
+                         double p5, double p6, double p7, double p8,
+                         double p9, double p10)
 {
   char note[0x100];
-  sprintf(note, "i %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g", p1, p2, p3, p4, p5, p6, p7, p8, p9, p10);
+  sprintf(note, "i %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g"
+          " %-.10g %-.10g", p1, p2, p3, p4, p5, p6, p7, p8, p9, p10);
   addScoreLine(note);
 }
 
-void CsoundFile::addNote(double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8, double p9)
+void CsoundFile::addNote(double p1, double p2, double p3, double p4,
+                         double p5, double p6, double p7, double p8,
+                         double p9)
 {
   char note[0x100];
-  sprintf(note, "i %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g", p1, p2, p3, p4, p5, p6, p7, p8, p9);
+  sprintf(note, "i %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g",
+          p1, p2, p3, p4, p5, p6, p7, p8, p9);
   addScoreLine(note);
 }
 
-void CsoundFile::addNote(double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8)
+void CsoundFile::addNote(double p1, double p2, double p3, double p4,
+                         double p5, double p6, double p7, double p8)
 {
   char note[0x100];
-  sprintf(note, "i %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g", p1, p2, p3, p4, p5, p6, p7, p8);
+  sprintf(note, "i %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g",
+          p1, p2, p3, p4, p5, p6, p7, p8);
   addScoreLine(note);
 }
 
-void CsoundFile::addNote(double p1, double p2, double p3, double p4, double p5, double p6, double p7)
+void CsoundFile::addNote(double p1, double p2, double p3, double p4,
+                         double p5, double p6, double p7)
 {
   char note[0x100];
-  sprintf(note, "i %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g", p1, p2, p3, p4, p5, p6, p7);
+  sprintf(note, "i %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g",
+          p1, p2, p3, p4, p5, p6, p7);
   addScoreLine(note);
 }
 
-void CsoundFile::addNote(double p1, double p2, double p3, double p4, double p5, double p6)
+void CsoundFile::addNote(double p1, double p2, double p3, double p4,
+                         double p5, double p6)
 {
   char note[0x100];
-  sprintf(note, "i %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g", p1, p2, p3, p4, p5, p6);
+  sprintf(note, "i %-.10g %-.10g %-.10g %-.10g %-.10g %-.10g",
+          p1, p2, p3, p4, p5, p6);
   addScoreLine(note);
 }
 
@@ -787,7 +822,8 @@ int CsoundFile::getInstrumentCount() const
           return index;
         }
       endDefinition += 6;
-      std::string definition = orchestra.substr(beginDefinition, endDefinition - beginDefinition);
+      std::string definition = orchestra.substr(beginDefinition,
+                                                endDefinition - beginDefinition);
       std::string pre;
       std::string id;
       std::string name;
@@ -822,7 +858,8 @@ bool CsoundFile::getInstrument(int number, std::string &definition_) const
           return false;
         }
       endDefinition += 6;
-      std::string definition = orchestra.substr(beginDefinition, endDefinition - beginDefinition);
+      std::string definition = orchestra.substr(beginDefinition,
+                                                endDefinition - beginDefinition);
       std::string pre;
       std::string id;
       std::string name;
@@ -896,7 +933,8 @@ std::map<int, std::string> CsoundFile::getInstrumentNames() const
           return instrumentNames;
         }
       endDefinition += 6;
-      std::string definition = orchestra.substr(beginDefinition, endDefinition - beginDefinition);
+      std::string definition = orchestra.substr(beginDefinition,
+                                                endDefinition - beginDefinition);
       std::string pre;
       std::string id;
       std::string name;
@@ -926,7 +964,8 @@ std::map<int, std::string> CsoundFile::getInstrumentNames() const
 //                      return false;
 //              }
 //              endDefinition += 6;
-//              std::string definition = orchestra.substr(beginDefinition, endDefinition - beginDefinition);
+//              std::string definition = orchestra.substr(beginDefinition,
+//                                                 endDefinition - beginDefinition);
 //              std::string pre;
 //              std::string id;
 //              std::string name;
@@ -963,7 +1002,8 @@ bool CsoundFile::getInstrument(std::string name_, std::string &definition_) cons
           return false;
         }
       endDefinition += 6;
-      std::string definition = orchestra.substr(beginDefinition, endDefinition - beginDefinition);
+      std::string definition = orchestra.substr(beginDefinition,
+                                                endDefinition - beginDefinition);
       std::string pre;
       std::string id;
       std::string name;
@@ -999,7 +1039,8 @@ double CsoundFile::getInstrumentNumber(std::string name_) const
           return false;
         }
       endDefinition += 6;
-      std::string definition = orchestra.substr(beginDefinition, endDefinition - beginDefinition);
+      std::string definition = orchestra.substr(beginDefinition,
+                                                endDefinition - beginDefinition);
       std::string pre;
       std::string id;
       std::string name;
@@ -1090,7 +1131,9 @@ int CsoundFile::importArrangement(std::istream &stream)
 
 int CsoundFile::exportArrangement(std::ostream &stream) const
 {
-  for(std::vector<std::string>::const_iterator it = arrangement.begin(); it != arrangement.end(); ++it)
+  for(std::vector<std::string>::const_iterator it = arrangement.begin();
+      it != arrangement.end();
+      ++it)
     {
       stream << (*it).c_str() << std::endl;
     }
@@ -1136,9 +1179,11 @@ int CsoundFile::exportArrangementForPerformance(std::ostream &stream) const
               std::string preNumber;
               std::string id;
               std::string postNumber;
-              if(parseInstrument(definition, preNumber, id, instrumentName, postNumber))
+              if(parseInstrument(definition, preNumber, id,
+                                 instrumentName, postNumber))
                 {
-                  stream << std::endl << "instr " << (i + 1) << " ; " << instrumentName << std::endl << postNumber << std::endl;
+                  stream << std::endl << "instr " << (i + 1) <<
+                    " ; " << instrumentName << std::endl << postNumber << std::endl;
                   stream.flush();
                 }
             }

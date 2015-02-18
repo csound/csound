@@ -303,6 +303,7 @@ int Fl_Knob::handle(int  event)
     switch (event) {
     case FL_PUSH:
       handle_push();
+      return 1;                 // CHECKME ***JPff added this; is that right?***
     case FL_DRAG:
       {
         int mx = Fl::event_x()-ox-ww/2;

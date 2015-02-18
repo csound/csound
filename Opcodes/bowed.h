@@ -77,6 +77,7 @@ typedef struct BOWED {
     MYFLT       lastfreq;
     MYFLT       lastbeta;
     MYFLT       lastamp;
+    MYFLT       limit;
     int         kloop;
 } BOWED;
 

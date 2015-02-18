@@ -197,11 +197,11 @@ CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int index) {
 //int csoundGetVariableIndex(CS_VAR_POOL* pool, CS_VARIABLE* var) {
 //    CS_VARIABLE* current = pool->head;
 //    int index = 0;
-//    
+//
 //    if (current == NULL) {
 //        return -1;
 //    }
-//    
+//
 //    for (index = 0; current != NULL; index++) {
 //        if (current == var) {
 //            return index;
@@ -259,11 +259,11 @@ void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
 
     while (current != NULL) {
       varMem = current->memBlock;
-        
+
       if(current->updateMemBlockSize != NULL) {
         current->updateMemBlockSize(csound, current);
       }
-    
+
       memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + current->memBlockSize;
       varMem =
         (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound,varMem,
@@ -290,7 +290,7 @@ void deleteVarPoolMemory(void* csnd, CS_VAR_POOL* pool) {
 void initializeVarPool(MYFLT* memBlock, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;
     int varNum = 1;
-    
+
     while (current != NULL) {
       if (current->initializeVariableMemory != NULL) {
         current->initializeVariableMemory(current,
