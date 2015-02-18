@@ -1154,7 +1154,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
             argTypes[index++] = "@";
         } else {
             int argLen = strlen(argType);
-            int adjust = (argLen > 1 && '[' != *argType) ? 2 : 0;
+            int adjust = (argLen > 1 && argType[argLen - 1] != ']') ? 2 : 0;
             argType = convert_internal_to_external(csound, argType);
             argLen = strlen(argType);
             argsLen += argLen + adjust;
@@ -1171,20 +1171,20 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
         int size = strlen(argTypes[i]);
         if (size > 1 && strchr(argTypes[i], '[') == 0) {
           // printf("UserDefined Type found...\n");
-            *temp = ':';
-            memcpy(temp + 1, argTypes[i], size);
-            *(temp + 1 + size) = ';';
-            temp += 2 + size;
+          *temp = ':';
+          memcpy(temp + 1, argTypes[i], size);
+          *(temp + 1 + size) = ';';
+          temp += 2 + size;
         } else {
           memcpy(temp, argTypes[i], size);
+          temp += size;
         }
-        temp += size;
     }
 
 
     argString[argsLen] = '\0';
-    //    printf("ARG STRING: %s\n", argString);
     return argString;
+
 
 }
 
