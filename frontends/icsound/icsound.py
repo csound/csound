@@ -79,6 +79,17 @@ class icsound:
         if self._csPerf:
             self.stop_engine()
 
+    def list_interfaces(self, output = True):
+        if not use_ctypes:
+            print("ctypes is required to run list_devices()")
+            return
+        if not self._cs:
+            print("Start the engine before calling list_interfaces()")
+            return
+        numdevs = csnd6.csoundGetAudioDevList(self._cs.GetCsound(), None,
+                                              1 if output else 0)
+        print("%i interfaces available:"%numdevs)
+        
     
     def start_client(self, address='127.0.0.1', port=12894):
         self._client_addr = address
