@@ -110,15 +110,6 @@ static int argCount(ARG* arg)
 }
 #endif
 
-/* get size of string in MYFLT units */
-/*static inline int strlen_to_samples(const char *s)
-  {
-  int n = (int) strlen(s);
-  n = (n + (int) sizeof(MYFLT)) / (int) sizeof(MYFLT);
-  return n;
-  }
-*/
-
 /* convert string constant */
 void unquote_string(char *dst, const char *src) {
   int i, j, n = (int)strlen(src) - 1;
@@ -197,16 +188,6 @@ static OPTXT *last_optxt(OPTXT *optxt) {
   }
   return current;
 }
-
-/**
- * Append OPTXT op2 to end of OPTXT chain op1
- */
-/*
-  static inline void append_optxt(OPTXT *op1, OPTXT *op2)
-  {
-  last_optxt(op1)->nxtop = op2;
-  }
-*/
 
 /** Counts number of args in argString, taking into account array identifiers */
 int argsRequired(char* argString)
