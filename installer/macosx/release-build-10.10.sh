@@ -230,7 +230,6 @@ cp /usr/local/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libfluidsynth.1.dylib $SUPPORT_LIBS_DIR
 cp /usr/local/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
-# not sure which opcode etc is dependent on this luajit lib
 cp /usr/local/lib/libluajit-5.1.2.0.2.dylib $SUPPORT_LIBS_DIR 
 
 #cp -L /usr/local/lib/libmpadec.dylib $SUPPORT_LIBS_DIR
@@ -296,6 +295,8 @@ install_name_tool -change libportmidi.dylib @loader_path/../../../../libs/libpor
 
 
 install_name_tool -change libCsoundAC.6.0.dylib /usr/local/lib/libCsoundAC.6.0.dylib $CSOUND_AC_PYLIB
+install_name_tool -change /usr/local/lib/libluajit-5.1.2.0.2.dylib @loader_path/../../../../libs/libluajit-5.1.2.0.2.dylib  $FRAMEWORK64_DIR/$LUA_DIR/luaCsnd6.so 
+install_name_tool -change /usr/local/lib/libluajit-5.1.2.0.2.dylib @loader_path/../../../../libs/libluajit-5.1.2.0.2.dylib  $FRAMEWORK64_DIR/$LUA_DIR/luaCsoundAC.so
 
 echo "...setting permissions..."
 

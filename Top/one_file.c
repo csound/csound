@@ -62,10 +62,10 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 {
 #define   nBytes (256)
     char lbuf[256];
-#if defined(LINUX) || defined(__MACH__)
-    struct stat tmp;
-#elif defined(WIN32)
+#if defined(WIN32)
     struct _stat tmp;
+#else
+    struct stat tmp;
 #endif
     do {
 #ifndef WIN32
@@ -114,11 +114,11 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
           } while (lbuf[i] != '\0');
       }
 #endif
-#if defined(LINUX) || defined(__MACH__)
+#if defined(WIN32)
+    } while (_stat(lbuf, &tmp) == 0);
+#else
       /* if the file already exists, try again */
     } while (stat(lbuf, &tmp) == 0);
-#elif defined(WIN32)
-    } while (_stat(lbuf, &tmp) == 0);
 #endif
     return strdup(lbuf);
 }
@@ -421,23 +421,26 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
         snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
         if (UNLIKELY(system(sys) != 0)) {
           csoundErrorMsg(csound, Str("External generation failed"));
-          remove(extname);
-          remove(STA(sconame));
+          if (UNLIKELY(remove(extname) || remove(STA(sconame))))
+            csoundErrorMsg(csound, Str("and cannot remove"));
           return FALSE;
         }
-        remove(extname);
+        if (UNLIKELY(remove(extname)))
+          csoundErrorMsg(csound, Str("and cannot remove %s"), extname);
         if (csound->scorestr == NULL)
           csound->scorestr = corfile_create_w();
         fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, STA(sconame),
                                     "r", NULL, CSFTYPE_SCORE, 0);
         if (UNLIKELY(fd == NULL)) {
-          remove(STA(sconame));
+          if (UNLIKELY(remove(STA(sconame))))
+            csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
           return FALSE;
         }
         while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, scof)!= NULL)
           corfile_puts(buffer, csound->scorestr);
         csoundFileClose(csound, fd);
-        remove(STA(sconame));
+          if (UNLIKELY(remove(STA(sconame))))
+            csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
         return TRUE;
       }
       else fputs(buffer, scof);

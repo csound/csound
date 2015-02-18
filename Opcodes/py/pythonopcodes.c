@@ -131,7 +131,7 @@ exec_file_in_given_context(CSOUND* cs, char *filename, PyObject *private)
       return NULL;
     }
     public = PyModule_GetDict(module);
-    pyFileObj = PyFile_FromString(fullpath, "r"); 
+    pyFileObj = PyFile_FromString(fullpath, "r");
     if (pyFileObj == NULL) {
       PyErr_Format(PyExc_RuntimeError,
                    "couldn't open script file %s", filename);

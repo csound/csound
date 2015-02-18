@@ -1295,7 +1295,9 @@ void close_all_files(CSOUND *csound)
     while (csound->open_files != NULL)
       csoundFileClose(csound, csound->open_files);
     if (csound->file_io_start) {
+#ifndef __EMSCRIPTEN__
         pthread_join(csound->file_io_thread, NULL);
+#endif
         if (csound->file_io_threadlock != NULL)
          csound->DestroyThreadLock(csound->file_io_threadlock);
     }
@@ -1339,6 +1341,7 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
                      const char *name, void *param, const char *env,
                                    int csFileType, int buffsize, int isTemporary)
 {
+#ifndef __EMSCRIPTEN__
     CSFILE *p;
     if ((p = (CSFILE *) csoundFileOpenWithType(csound,fd,type,name,param,env,
                                                csFileType,isTemporary)) == NULL)
@@ -1366,6 +1369,9 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
       return NULL;
     }
     return (void *) p;
+#else
+    return NULL;
+#endif
 }
 
 unsigned int csoundReadAsync(CSOUND *csound, void *handle,
@@ -1455,6 +1461,7 @@ void *file_iothread(void *p){
   int res = 1;
   CSOUND *csound = p;
   int wakeup = (int) (1000*csound->ksmps/csound->esr);
+  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   if(wakeup == 0) wakeup = 1;
   while(res){
     csoundSleep(wakeup);

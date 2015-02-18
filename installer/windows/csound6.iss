@@ -58,10 +58,12 @@
 #define MyLibLoSourceDir "D:\msys\local\src\liblo-0.26\"
 ; If you are not Michael Gogins, change this to your STK dll directory.
 #define MyLibStkSourceDir "D:\msys\local\src\stk-4.5.0\"
+; If you are not Michael Gogins, change this to your CsoundQt repository directory.
+#define MyCsoundQtDir "D:\CsoundQt\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
-#define MyCsoundQtBinDir "C:\Users\mike\qutecsound-code\bin\"
+#define MyCsoundQtBinDir "C:\Users\restore\build-qcs-Desktop_Qt_5_4_0_MSVC2013_32bit-Release\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
-#define MyQtSdkBinDir "D:\Qt5.3.0\5.3\mingw482_32\bin\"
+#define MyQtSdkBinDir "D:\Qt5.4.0\5.4\msvc2013\bin\"
 ; If you are not Michael Gogins, change this to your unzipped cabbage-master directory.
 #define MyCabbageDir "D:\cabbage-master\"
 
@@ -147,10 +149,10 @@ Source: "*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 Source: "{#MyMinGwLibDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 ; No idea why this other name is needed.
 Source: "{#MyMSysBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv.dll"; Components: core;
-Source: "{#MyQtSdkBinDir}icuin52.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyQtSdkBinDir}icuuc52.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyQtSdkBinDir}icudt52.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyMinGwLibDir}libgomp-1.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}icuin53.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}icuuc53.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}icudt53.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;Source: "{#MyMinGwLibDir}libgomp-1.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyMSysUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -178,6 +180,7 @@ Source: "{#MyCabbageDir}Docs\*"; DestDir: "{#APP_BIN}\Docs"; Flags: ignoreversio
 
 Source: "LuaCsound.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "ampmidid.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "buchla.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "cellular.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "chua.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "cs_date.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
@@ -191,6 +194,7 @@ Source: "ipmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Compone
 Source: "linear_algebra.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "mixer.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "osc.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "padsynth.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "platerev.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "pmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "py.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: python;
@@ -209,7 +213,7 @@ Source: "vst4cs.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Compone
 Source: "widgets.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 
 Source: "{#MyCsoundQtBinDir}CsoundQt-d-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyCsoundQtBinDir}..\src\Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core 
+Source: "{#MyCsoundQtDir}Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core 
 Source: "{#MyQtSdkBinDir}Qt5Core.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Gui.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Network.dll"; DestDir: "{#APP_BIN}"; Components: core;
@@ -219,10 +223,14 @@ Source: "{#MyQtSdkBinDir}Qt5Quick.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5QuickWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyQtSdkBinDir}..\plugins\accessible\qtaccessiblewidgets.dll"; DestDir: "{#APP_BIN}\plugins\accessible"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5WebEngine.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5WebEngineCore.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5WebEngineWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;Source: "{#MyQtSdkBinDir}..\plugins\accessible\qtaccessiblewidgets.dll"; DestDir: "{#APP_BIN}\plugins\accessible"; Components: core;
 Source: "{#MyQtSdkBinDir}..\plugins\imageformats\*.dll"; DestDir: "{#APP_BIN}\plugins\imageformats"; Components: core;
 Source: "{#MyQtSdkBinDir}..\plugins\platforms\qwindows.dll"; DestDir: "{#APP_BIN}\platforms"; Components: core;
 Source: "{#MyQtSdkBinDir}..\plugins\printsupport\windowsprintersupport.dll"; DestDir: "{#APP_BIN}\plugins\printsupport"; Components: core;
+Source: "D:\msys\local\opt\pthreads-w32-2-9-1-release\Pre-built.2\dll\x86\pthreadVC2.dll"; DestDir: "{#APP_BIN}"; Components: core;
 
 Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
