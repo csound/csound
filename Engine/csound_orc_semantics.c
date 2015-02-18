@@ -1594,14 +1594,6 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     leftArgString = get_arg_string_from_tree(csound, left, typeTable);
     rightArgString = get_arg_string_from_tree(csound, right, typeTable);
 
-    if (!strcmp(opcodeName, "xin")) {
-      int nreqd = tree_arg_list_count(root->right);
-
-      if (nreqd > OPCODENUMOUTS_LOW) {
-        opcodeName = (nreqd > OPCODENUMOUTS_HIGH) ? "##xin256" : "##xin64";
-      }
-    }
-
     OENTRIES* entries = find_opcode2(csound, opcodeName);
     if (UNLIKELY(entries == NULL || entries->count == 0)) {
       synterr(csound, Str("Unable to find opcode with name: %s\n"),
