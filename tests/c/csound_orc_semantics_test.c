@@ -22,7 +22,7 @@ extern bool check_in_arg(char* found, char* required);
 extern bool check_in_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
 extern bool check_out_arg(char* found, char* required);
 extern bool check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
-
+extern char* get_struct_expr_string(CSOUND* csound, TREE* structTree);
 
 int init_suite1(void)
 {
@@ -111,8 +111,7 @@ void test_find_opcode_new(void) {
     CSOUND* csound = csoundCreate(NULL);
     CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, "##error", "i", "i"));
     CU_ASSERT_PTR_NULL(find_opcode_new(csound, "##error", NULL, "i"));
-    CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, "##xin64", "i", NULL));
-    CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, "##xin256", "i", NULL));
+    CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, "xin", "i", NULL));
     CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, "##userOpcode", NULL, NULL));
     CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, "##array_set", NULL, "k[]k"));
     CU_ASSERT_PTR_NOT_NULL(find_opcode_new(csound, ">=", "B", "kc"));
@@ -258,6 +257,36 @@ void test_check_out_args(void) {
     CU_ASSERT_TRUE(check_out_args(csound, "a", "aX"));    
 }
 
+void test_get_struct_expr_string(void) {
+    CSOUND* csound = csoundCreate(NULL);
+    TREE* top = csound->Calloc(csound, sizeof(TREE));
+    TREE* left = csound->Calloc(csound, sizeof(TREE));
+    TREE* right = csound->Calloc(csound, sizeof(TREE));
+    TREE* next = csound->Calloc(csound, sizeof(TREE));
+    
+    top->left = left;
+    top->right = right;
+    
+    left->value = csound->Calloc(csound, sizeof(ORCTOKEN));
+    right->value = csound->Calloc(csound, sizeof(ORCTOKEN));
+    
+    left->value->lexeme = "test";
+    right->value->lexeme = "member";
+    
+    CU_ASSERT_STRING_EQUAL(get_struct_expr_string(csound, top), "test.member");
+   
+    top->markup = NULL;
+    next->value = csound->Calloc(csound, sizeof(ORCTOKEN));
+    next->value->lexeme = "submember";
+    
+    right->next = next;
+    
+    
+    CU_ASSERT_STRING_EQUAL(get_struct_expr_string(csound, top), "test.member.submember");
+
+    csoundDestroy(csound);
+}
+
 int main()
 {
     CU_pSuite pSuite = NULL;
@@ -281,6 +310,7 @@ int main()
         || (NULL == CU_add_test(pSuite, "Test check_out_args()", test_check_out_args))
         || (NULL == CU_add_test(pSuite, "Test check_in_arg()", test_check_in_arg))
         || (NULL == CU_add_test(pSuite, "Test check_in_args()", test_check_in_args))
+        || (NULL == CU_add_test(pSuite, "Test get_struct_expr_string()", test_get_struct_expr_string))
         )
     {
         CU_cleanup_registry();

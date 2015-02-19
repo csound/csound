@@ -33,6 +33,7 @@
 #include "interlocks.h"
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
+#include "csound_orc_semantics.h"
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
@@ -2098,7 +2099,7 @@ static void instance(CSOUND *csound, int insno)
     /* gbloffbas = csound->globalVarPool; */
     lcloffbas = (CS_VAR_MEM*)&ip->p0;
     lclbas = (MYFLT*) ((char*) ip + pextent);   /* split local space */
-    initializeVarPool(lclbas, tp->varPool);
+    initializeVarPool(csound, lclbas, tp->varPool);
 
     opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize +
                 (tp->varPool->varCount * sizeof(MYFLT));
@@ -2184,6 +2185,30 @@ static void instance(CSOUND *csound, int insno)
         }
         else if (arg->type == ARG_LOCAL) {
           fltp = lclbas + var->memBlockIndex;
+            
+          if (arg->structPath != NULL) {
+            char* path = cs_strdup(csound, arg->structPath);
+            char *next, *th;
+            CS_TYPE* type = csoundGetTypeForArg(fltp);
+            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
+             
+            next = cs_strtok_r(path, ".", &th);
+            while (next != NULL) {
+              CONS_CELL* members = type->members;
+              int i = 0;
+              while(members != NULL) {
+                CS_VARIABLE* member = (CS_VARIABLE*)members->value;
+                  if (!strcmp(member->varName, next)) {
+                    fltp = &(structVar->members[i]->value);
+                    break;
+                  }
+                    
+                i++;
+                members = members->next;
+              }
+              next = cs_strtok_r(NULL, ".", &th);
+            }
+          }
         }
         else if (arg->type == ARG_PFIELD) {
           CS_VAR_MEM* pfield = lcloffbas + arg->index;
@@ -2224,6 +2249,31 @@ static void instance(CSOUND *csound, int insno)
         }
         else if (arg->type == ARG_LOCAL){
           argpp[n] = lclbas + var->memBlockIndex;
+            
+          
+          if (arg->structPath != NULL) {
+            char* path = cs_strdup(csound, arg->structPath);
+            char *next, *th;
+            CS_TYPE* type = csoundGetTypeForArg(argpp[n]);
+            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)argpp[n];
+             
+            next = cs_strtok_r(path, ".", &th);
+            while (next != NULL) {
+              CONS_CELL* members = type->members;
+              int i = 0;
+              while(members != NULL) {
+                CS_VARIABLE* member = (CS_VARIABLE*)members->value;
+                  if (!strcmp(member->varName, next)) {
+                    argpp[n] = &(structVar->members[i]->value);
+                    break;
+                  }
+                    
+                i++;
+                members = members->next;
+              }
+              next = cs_strtok_r(NULL, ".", &th);
+            }
+          }
         }
         else if (arg->type == ARG_LABEL) {
           argpp[n] = (MYFLT*)(opMemStart +
