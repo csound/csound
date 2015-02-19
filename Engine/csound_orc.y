@@ -340,13 +340,11 @@ statement : out_arg_list assignment expr NEWLINE
                     TREE* op = $2->right;
                     $2->right = NULL;
                     op->right = (TREE *)$3;
-                    op->left = make_leaf(csound, LINE, LOCN, $1->type,
-                                  make_token(csound, $1->value->lexeme));
+                    op->left = copy_node(csound, $1);
                     $$->right = op;
                   } else {
                     $$->right = (TREE *)$3;
                   }
->>>>>>> ce62c05fa... worked on tree reshaping for T_OPCALL nodes
                 }
           | opcall
           | goto identifier NEWLINE
