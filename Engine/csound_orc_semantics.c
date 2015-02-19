@@ -2174,6 +2174,30 @@ TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast)
 
 
 /* USED BY PARSER TO ASSEMBLE TREE NODES */
+
+TREE* copy_node(CSOUND* csound, TREE* tree) {
+    TREE *ans = NULL;
+   
+    if(tree != NULL) {
+        ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
+        if (UNLIKELY(ans==NULL)) {
+          /* fprintf(stderr, "Out of memory\n"); */
+          exit(1);
+        }
+        ans->type = tree->type;
+        ans->left = (tree->left == NULL) ? NULL : copy_node(csound, tree->left);
+        ans->right = (tree->right == NULL) ? NULL : copy_node(csound, tree->right);
+        ans->value = (tree->value == NULL) ? NULL : make_token(csound, tree->value->lexeme);
+        ans->next = (tree->next == NULL) ? NULL : copy_node(csound, tree->next);
+        ans->len = tree->len;
+        ans->rate = tree->rate;
+        ans->line = tree->line;
+        ans->locn  = tree->locn;
+        ans->markup = NULL;
+    }
+    return ans;
+}
+
 TREE* make_node(CSOUND *csound, int line, int locn, int type,
                 TREE* left, TREE* right)
 {

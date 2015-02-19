@@ -32,6 +32,7 @@ TREE* make_leaf(CSOUND *, int, int, int, ORCTOKEN*);
 ORCTOKEN* make_int(CSOUND *,char *);
 ORCTOKEN* make_num(CSOUND *,char *);
 ORCTOKEN *make_token(CSOUND *csound, char *s);
+TREE* copy_node(CSOUND*, TREE*);
 /*void instr0(CSOUND *, ORCTOKEN*, TREE*, TREE*);*/
 /* extern TREE* statement_list; */
 /* double get_num(TREE*); */
