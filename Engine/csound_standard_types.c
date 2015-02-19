@@ -151,14 +151,12 @@ void array_copy_value(void* csound, void* dest, void* src) {
 
 /* MEM SIZE UPDATING FUNCTIONS */
 
-void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
-    CSOUND* cs = (CSOUND*)csound;
-    int ksmps = cs->ksmps;
-    var->memBlockSize = CS_FLOAT_ALIGN(ksmps * sizeof (MYFLT));
+void updateAsigMemBlock(CSOUND* csound, CS_VARIABLE* var) {
+    int ksmps = csound->ksmps;
+    var->memBlockSize = ksmps * sizeof (MYFLT);
 }
 
-void varInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
-    IGN(csound);
+void varInitMemory(CSOUND* csound, CS_VARIABLE* var, MYFLT* memblock) {
     memset(memblock, 0, var->memBlockSize);
 }
 
@@ -244,6 +242,10 @@ CS_VARIABLE* createFsig(void* cs, void* p) {
     return var;
 }
 
+void arrayInitMemory(CSOUND* csound, CS_VARIABLE* var, MYFLT* memblock) {
+    ARRAYDAT* dat = (ARRAYDAT*)memblock;
+    dat->arrayType = var->subType;
+}
 
 CS_VARIABLE* createString(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;

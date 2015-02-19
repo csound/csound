@@ -274,6 +274,7 @@ typedef struct CORFIL {
     int type;
     void* argPtr;
     int index;
+    char* structPath;
     struct arg* next;
   } ARG;
 //  typedef struct argoffs {

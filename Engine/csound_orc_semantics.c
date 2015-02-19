@@ -1935,10 +1935,6 @@ int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     return 1;
 }
 
-typedef struct csstructvar {
-  CS_VAR_MEM** members;
-} CS_STRUCT_VAR;
-
 typedef struct initstructvar {
   OPDS h;
   MYFLT* out;
@@ -1949,30 +1945,68 @@ int initStructVar(CSOUND* csound, void* p) {
     INIT_STRUCT_VAR* init = (INIT_STRUCT_VAR*)p;
     CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)init->out;
     CS_TYPE* type = csoundGetTypeForArg(init->out);
+    int len = cs_cons_length(type->members);
+    int i;
+
+//    csound->Message(csound, "Initializing Struct...\n");
+//    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+
+    for (i = 0; i < len; i++) {
+      CS_VAR_MEM* mem = structVar->members[i];
+      mem->varType->copyValue(csound, &mem->value, init->inArgs[i]);
+    }
+
+    return CSOUND_SUCCESS;
+}
+
+void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
+    CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
+    CS_TYPE* type = var->varType;
     CONS_CELL* members = type->members;
     int len = cs_cons_length(members);
     int i;
 
     structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
 
-//    csound->Message(csound, "Initializing Struct...\n");
-//    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+    //    csound->Message(csound, "Initializing Struct...\n");
+    //    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
 
     for (i = 0; i < len; i++) {
-      CS_VARIABLE* var = members->value;
-      size_t size = (sizeof(CS_VAR_MEM) - sizeof(MYFLT)) + var->memBlockSize;
-      CS_VAR_MEM* mem = csound->Calloc(csound, size);
-      if (var->initializeVariableMemory != NULL) {
-        var->initializeVariableMemory(var, &mem->value);
-      }
-      var->varType->copyValue(csound, &mem->value, init->inArgs[i]);
-      structVar->members[i] = mem;
+        CS_VARIABLE* var = members->value;
+        size_t size = (sizeof(CS_VAR_MEM) - sizeof(MYFLT)) + var->memBlockSize;
+        CS_VAR_MEM* mem = csound->Calloc(csound, size);
+        if (var->initializeVariableMemory != NULL) {
+            var->initializeVariableMemory(csound, var, &mem->value);
+        }
+        mem->varType = var->varType;
+        structVar->members[i] = mem;
 
-      members = members->next;
+        members = members->next;
+    }
+}
+
+CS_VARIABLE* createStructVar(void* cs, void* p) {
+    CSOUND* csound = (CSOUND*)cs;
+    CS_TYPE* type = (CS_TYPE*)p;
+
+    if (type == NULL) {
+        csound->Message(csound, "ERROR: no type given for struct creation\n");
+        return NULL;
     }
 
-    return CSOUND_SUCCESS;
+    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+    IGN(p);
+    var->memBlockSize = sizeof(CS_STRUCT_VAR);
+    var->initializeVariableMemory = initializeStructVar;
+
+    //FIXME - implement
+    return var;
 }
+
+void copyStructVar(void* csound, void* dest, void* src) {
+        //FIXME - implement
+}
+
 
 int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     CS_TYPE* type = csound->Calloc(csound, sizeof(CS_TYPE));
@@ -2382,7 +2416,7 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
     ans->line = line;
     ans->locn  = locn;
     ans->markup = NULL;
-    //printf("make node %p %p %p\n", ans, ans->left, ans->right);
+
     //csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
     return ans;
 }
@@ -2405,10 +2439,8 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     ans->line = line;
     ans->locn  = locn;
     ans->markup = NULL;
-    //if (ans->value)
-    // printf("make leaf %p %p (%s)\n", ans, ans->value, ans->value->lexeme);
-    csound->DebugMsg(csound, "csound_orc_semantics(%d) line = %d\n",
-                     __LINE__, line);
+
+    csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
     return ans;
 }
 

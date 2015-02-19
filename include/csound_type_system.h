@@ -44,7 +44,7 @@ extern "C" {
         char* varDescription;
         int argtype; // used to denote if allowed as in-arg, out-arg, or both
         struct csvariable* (*createVariable)(void*, void*);
-        void (*copyValue)(void* csound, void* dest, void* src);
+        void (*copyValue)(CSOUND* csound, void* dest, void* src);
         CONS_CELL* members;
         int userDefinedType;
     } CS_TYPE;
@@ -71,18 +71,10 @@ extern "C" {
         int refCount;
         struct csvariable* next;
         CS_TYPE* subType;
-        void (*updateMemBlockSize)(void*, struct csvariable*);
-      void (*initializeVariableMemory)(void*,struct csvariable*, MYFLT*);
+        void (*updateMemBlockSize)(CSOUND*, struct csvariable*);
+        void (*initializeVariableMemory)(CSOUND*, struct csvariable*, MYFLT*);
         CS_VAR_MEM *memBlock;
     } CS_VARIABLE;
-
-
-//    typedef struct cstypeinstance {
-//        CS_TYPE* varType;
-//        CS_VARIABLE* (*createVariable)(void*, void*);
-//        void* args ;
-//        struct cstypeinstance* next;
-//    } CS_TYPE_INSTANCE;
 
     typedef struct cstypeitem {
       CS_TYPE* cstype;
@@ -97,17 +89,10 @@ extern "C" {
        Returns if variable type redefined */
     PUBLIC int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool,
                                      CS_TYPE* typeInstance);
-    PUBLIC CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
+    PUBLIC CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
                                              CS_TYPE* type, char* name,
                                              void* typeArg);
     PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
-
-    // FIXME - This needs to be placed somewhere else...
-
-
-    CS_VARIABLE* createStructVar(void* cs, void* p);
-    void copyStructVar(void* csound, void* dest, void* src);
-
 
     /* Csound Variable Pool - essentially a map<string,csvar>
        CSOUND contains one for global memory, InstrDef and UDODef
@@ -132,9 +117,10 @@ extern "C" {
                                                    const char* name);
     PUBLIC int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool,
                                  CS_VARIABLE* var);
-    PUBLIC void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
-    PUBLIC void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
-    PUBLIC void initializeVarPool(void *csound, MYFLT* memBlock, CS_VAR_POOL* pool);
+
+    PUBLIC void recalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
+    PUBLIC void reallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
+    PUBLIC void initializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool);
 
 #ifdef  __cplusplus
 }
