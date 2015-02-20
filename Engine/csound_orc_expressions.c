@@ -39,8 +39,8 @@ extern char* resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
 extern  char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                        TYPE_TABLE* typeTable);
-extern void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable);
-extern void add_array_arg(CSOUND* csound, char* varName, int dimensions,
+extern void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTable);
+extern void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensions,
                           TYPE_TABLE* typeTable);
 
 extern char* get_array_sub_type(CSOUND* csound, char*);
@@ -90,9 +90,9 @@ char *create_out_arg(CSOUND *csound, char* outype, int argCount,
     }
 
     if (*outype == '[') {
-        add_array_arg(csound, s, 1, typeTable);
+        add_array_arg(csound, s, NULL, 1, typeTable);
     } else {
-        add_arg(csound, s, typeTable);
+        add_arg(csound, s, NULL, typeTable);
     }
 
     return s;
@@ -709,7 +709,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
         char* outype;
         strncpy(op, "##array_get", 80);
 
-        char *varBaseName = strtok_r(root->left->value->lexeme, ":", &brkt);
+        char *varBaseName = root->left->value->lexeme;
 
         if (*varBaseName == 'g') {
             var = csoundFindVariableWithName(csound, csound->engineState.varPool,
@@ -924,7 +924,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
                                argtyp2( root->left->value->lexeme) =='B' ||
                                argtyp2( root->right->value->lexeme)=='B');
 
-    add_arg(csound, outarg, typeTable);
+    add_arg(csound, outarg, NULL, typeTable);
     opTree = create_opcode_token(csound, op);
     opTree->right = root->left;
     opTree->right->next = root->right;
@@ -1122,7 +1122,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
           char *outType, *brkt;
           CS_VARIABLE* var;
 
-          char *varBaseName = strtok_r(currentArg->left->value->lexeme, ":", &brkt);
+          char *varBaseName = currentArg->left->value->lexeme;
 
           if (*varBaseName == 'g') {
               var = csoundFindVariableWithName(csound, csound->engineState.varPool,
