@@ -422,7 +422,7 @@ until : UNTIL_TOKEN expr DO_TOKEN statement_list OD_TOKEN
       ;
 
 while : WHILE_TOKEN expr DO_TOKEN statement_list OD_TOKEN
-              { $$ = make_leaf(csound,LINE,LOCN, UNTIL_TOKEN, (ORCTOKEN *)$1);
+              { $$ = make_leaf(csound,LINE,LOCN, WHILE_TOKEN, (ORCTOKEN *)$1);
                 $$->left = $2;
                 $$->right = $4; }
       ;
