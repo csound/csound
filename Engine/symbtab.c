@@ -185,9 +185,18 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 //    }
 
     ans = new_token(csound, T_IDENT);
-    ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
-    strcpy(ans->lexeme, s);
-
+  
+    if (strchr(s, ':') != NULL) {
+        char* th;
+        char* baseName = strtok_r(s, ":", &th);
+        char* annotation = strtok_r(NULL, ":", &th);
+        ans->lexeme = cs_strdup(csound, baseName);
+        ans->optype = cs_strdup(csound, annotation);
+        type = T_TYPED_IDENT;
+    } else {
+        ans->lexeme = cs_strdup(csound, s);
+    }
+        
     if (udoflag == -2 || namedInstrFlag == 1) {
         return ans;
     }

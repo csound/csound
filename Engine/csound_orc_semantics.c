@@ -266,14 +266,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     char* t;
     //CS_TYPE* type;
     CS_VARIABLE* var;
-    char* brkt;
     char* varBaseName;
 
     if (is_expression_node(tree)) {
       TREE* nodeToCheck = tree;
 
       if (tree->type == T_ARRAY) {
-        varBaseName = strtok_r(tree->left->value->lexeme, ":", &brkt);
+        varBaseName = tree->left->value->lexeme;
        
         var = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
           
@@ -501,7 +500,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       if (pnum(s) >= 0)
         return cs_strdup(csound, "p");                           /* pnum */
 
-      varBaseName = strtok_r(s, ":", &brkt);
+      varBaseName = s;
             
       if (*s == '#')
         s++;
@@ -1209,7 +1208,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
     return 1;
 }
 
-void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
+void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTable) {
 
     CS_TYPE* type;
     CS_VARIABLE* var;
@@ -1220,21 +1219,17 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
     void* typeArg = NULL;
     char *brkt; /* used with strtok_r */
     
-    char* varBase = strtok_r(varName, ":", &brkt);
-    char* typedIdentArg = strtok_r(NULL, ":", &brkt);
-    
-    
-    t = varBase;
+    t = varName;
     if (*t == '#') t++;
     pool = (*t == 'g') ? typeTable->globalPool : typeTable->localPool;
     
-    var = csoundFindVariableWithName(csound, pool, varBase);
+    var = csoundFindVariableWithName(csound, pool, varName);
     if (var == NULL) {
-      if (typedIdentArg != NULL) {
-        type = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
+      if (annotation != NULL) {
+        type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
         typeArg = type;
       } else {
-        t = varBase;
+        t = varName;
         argLetter[1] = 0;
 
         if (*t == '#') t++;
@@ -1264,7 +1259,7 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
       }
 
       var = csoundCreateVariable(csound, csound->typePool,
-                                 type, varBase, typeArg);
+                                 type, varName, typeArg);
       csoundAddVariable(csound, pool, var);
     } else {
       //TODO - implement reference count increment
@@ -1272,7 +1267,7 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
 
 }
 
-void add_array_arg(CSOUND* csound, char* varName, int dimensions,
+void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensions,
                    TYPE_TABLE* typeTable) {
 
     CS_VARIABLE* var;
@@ -1282,21 +1277,16 @@ void add_array_arg(CSOUND* csound, char* varName, int dimensions,
     ARRAY_VAR_INIT varInit;
     void* typeArg = NULL;
 
-    char *brkt; /* used with strtok_r */
-    
-    char* varBase = strtok_r(varName, ":", &brkt);
-    char* typedIdentArg = strtok_r(NULL, ":", &brkt);
-    
     pool = (*varName == 'g') ? typeTable->globalPool : typeTable->localPool;
 
-    var = csoundFindVariableWithName(csound, pool, varBase);
+    var = csoundFindVariableWithName(csound, pool, varName);
     if (var == NULL) {
       CS_TYPE* varType;
 
-      if (typedIdentArg != NULL) {
-        argLetter[0] = typedIdentArg[0];
+      if (annotation != NULL) {
+        argLetter[0] = annotation[0];
       } else {
-        t = varBase;
+        t = varName;
         argLetter[1] = 0;
           
         if (*t == '#') t++;
@@ -1313,7 +1303,7 @@ void add_array_arg(CSOUND* csound, char* varName, int dimensions,
 
       var = csoundCreateVariable(csound, csound->typePool,
                                  (CS_TYPE*) &CS_VAR_TYPE_ARRAY,
-                                 varBase, typeArg);
+                                 varName, typeArg);
       csoundAddVariable(csound, pool, var);
     } else {
       //TODO - implement reference count increment
@@ -1337,7 +1327,7 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       switch (current->type) {
       case T_ARRAY_IDENT:
         varName = current->value->lexeme;
-        add_array_arg(csound, varName,
+        add_array_arg(csound, varName, current->value->optype,
                       tree_arg_list_count(current->right), typeTable);
 
         break;
@@ -1354,9 +1344,9 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         }
 
         if (*varName == 't') { /* Support legacy t-vars */
-          add_array_arg(csound, varName, 1, typeTable);
+          add_array_arg(csound, varName, "k", 1, typeTable);
         } else {
-          add_arg(csound, varName, typeTable);
+          add_arg(csound, varName, current->value->optype, typeTable);
         }
 
         break;
@@ -1364,7 +1354,7 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       case T_ARRAY:
         varName = current->left->value->lexeme;
         // FIXME - this needs to work for array and a-names
-        add_arg(csound, varName, typeTable);
+        add_arg(csound, varName, NULL, typeTable);
         break;
 
       default:
@@ -1875,18 +1865,16 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     // FIXME: Values are appended in reverse order of definition
     while (current != NULL) {
         char* memberName = current->value->lexeme;
-        char *brkt; /* used with strtok_r */
-        char* memBase = strtok_r(memberName, ":", &brkt);
-        char* typedIdentArg = strtok_r(NULL, ":", &brkt);
+        char* typedIdentArg = current->value->optype;
         
         if (typedIdentArg == NULL) {
-            typedIdentArg = cs_strndup(csound, memBase, 1);
+            typedIdentArg = cs_strndup(csound, memberName, 1);
         }
         
-        memberName = cs_strdup(csound, memBase);
+        memberName = cs_strdup(csound, memberName);
         CS_TYPE* memberType = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
         CS_VARIABLE* var = memberType->createVariable(csound, type);
-        var->varName = memberName;
+        var->varName = cs_strdup(csound, memberName);
         var->varType = memberType;
         
 //        csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
