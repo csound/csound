@@ -1571,7 +1571,22 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
     }
 
     if (root->value != NULL) {
+        /* xout exp(0) */
+        if (root->left != NULL &&
+                root->left->type == T_IDENT &&
+                find_opcode(csound, root->left->value->lexeme) != NULL) {
+            TREE* top = root->left;
+            root->left = NULL;
+            top->right = root;
+            top->next = root->next;
+            root->next = NULL;
+            top->type = T_OPCALL;
+            top->right->type = T_FUNCTION;
+            return top;
+        }
+
         /* Already processed T_OPCALL, return as-is */
+
         return root;
     }
 
@@ -2003,7 +2018,7 @@ CS_VARIABLE* createStructVar(void* cs, void* p) {
     return var;
 }
 
-void copyStructVar(void* csound, void* dest, void* src) {
+void copyStructVar(CSOUND* csound, void* dest, void* src) {
         //FIXME - implement
 }
 
@@ -2400,7 +2415,7 @@ TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast)
 
 TREE* copy_node(CSOUND* csound, TREE* tree) {
     TREE *ans = NULL;
-   
+
     if(tree != NULL) {
         ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
         if (UNLIKELY(ans==NULL)) {

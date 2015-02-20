@@ -138,6 +138,7 @@ def runTest():
         ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
         ["test_array_function_call.csd", "test synthesizing an array arg from a function-call"],
         ["test_explicit_types.csd", "test typed identifiers (i.e. signals:a[], sigLeft:a)"],
+        ["test_parser3_opcall_ambiguities.csd", "test T_OPCALL ambiguities"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -150,16 +151,10 @@ def runTest():
         ["arrays/arrays_S_global.csd", "global S[]"],
     ]
 
-
-    udoTests = [["udo/fail_no_xin.csd", "fail due to no xin", 1],
-        ["udo/fail_no_xout.csd", "fail due to no xout", 1],
-        ["udo/fail_invalid_xin.csd", "fail due to invalid xin", 1],
-        ["udo/fail_invalid_xout.csd", "fail due to invalid xout", 1],
-        ["udo/test_udo_xout_const.csd", "Constants as xout inputs work"],
+    structTests = [["structs/test_structs.csd", "basic struct test"],
     ]
 
-    tests += arrayTests
-    tests += udoTests
+    tests += arrayTests + structTests
 
     output = ""
     tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '/tmp/csound_test_output.txt'
