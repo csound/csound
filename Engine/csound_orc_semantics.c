@@ -1443,7 +1443,8 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
         // i.e. a = func(a + b)
         return root;
     }
-    
+   
+//    print_tree(csound, "TEST\n", root);
     if (root->type != T_OPCALL) {
         synterr(csound,
               Str("Internal Error: convert_statement_to_opcall received a non T_OPCALL TREE\n"));
@@ -1451,7 +1452,22 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
     }
     
     if (root->value != NULL) {
+        /* xout exp(0) */
+        if (root->left != NULL &&
+                root->left->type == T_IDENT &&
+                find_opcode(csound, root->left->value->lexeme) != NULL) {
+            TREE* top = root->left;
+            root->left = NULL;
+            top->right = root;
+            top->next = root->next;
+            root->next = NULL;
+            top->type = T_OPCALL;
+            top->right->type = T_FUNCTION;
+            return top;
+        }
+        
         /* Already processed T_OPCALL, return as-is */
+        
         return root;
     }
    
@@ -1838,7 +1854,7 @@ CS_VARIABLE* createStructVar(void* cs, void* p) {
     return var;
 }
 
-void copyStructVar(void* csound, void* dest, void* src) {
+void copyStructVar(CSOUND* csound, void* dest, void* src) {
         //FIXME - implement
 }
 

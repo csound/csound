@@ -1922,7 +1922,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
         csound->Message(csound, Str("Missing local arg: %s\n"), s);
       }
     }
-    printf("ARG TYPE %d\n", arg->type);
+//    printf("ARG TYPE %d\n", arg->type);
     /*    csound->Message(csound, " [%s -> %d (%x)]\n", s, indx, indx); */
     return arg;
 }
