@@ -422,6 +422,13 @@ until : UNTIL_TOKEN expr DO_TOKEN statement_list OD_TOKEN
                 $$->right = $4; }
       ;
 
+while : WHILE_TOKEN expr DO_TOKEN statement_list OD_TOKEN
+              { $$ = make_leaf(csound,LINE,LOCN, WHILE_TOKEN, (ORCTOKEN *)$1);
+                $$->left = $2;
+                $$->right = $4; }
+      ;
+
+
 /* Expressions */
 
 expr_list : expr_list ',' expr
