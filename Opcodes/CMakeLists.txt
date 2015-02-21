@@ -69,6 +69,9 @@ make_plugin(padsynth padsynth_gen.cpp)
 if(APPLE)
   set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11 -stdlib=libc++"
     LINK_FLAGS "-std=gnu++11 -stdlib=libc++")
+elseif(LINUX)
+  set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11"
+    LINK_FLAGS "-std=gnu++11")
 endif()
 
 make_plugin(cellular cellular.c)
