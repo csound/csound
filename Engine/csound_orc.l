@@ -44,7 +44,6 @@ ORCTOKEN *make_int(CSOUND *, char *);
 ORCTOKEN *make_num(CSOUND *, char *);
 ORCTOKEN *make_token(CSOUND *, char *s);
 ORCTOKEN *make_label(CSOUND *, char *s);
-#define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
 #include "parse_param.h"
 
@@ -86,6 +85,7 @@ EXSTR           "}}"
 LINE            ^[ \t]*"#line"
 FILE            ^[ \t]*"#source"
 FNAME           [a-zA-Z0-9/:.+-_]+
+SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 %x line
 %x src
 %x xstr
@@ -93,198 +93,46 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 %x udoarg
 
 %%
-"\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
+<*>"\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
 
 {CONT}          { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
                 }
-"\n"            { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+<INITIAL>"\n"            { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
                   return NEWLINE; }
-"("{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '('; 
-                }
-")"             { return ')'; }
-"["{OPTWHITE}"\n"? { if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '[';
-                }
-"]"             { return ']'; }
-"+"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '+';
-                   }
-"-"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '-';
-                   }
-"*"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '*';
-                   }
-"/"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '/';
-                   }
-"%"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '%';
-                   }
-"\^"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '^';
-                   }
-"?"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '?';
-                   }
-":"             { return ':'; }
-"."             { return '.'; }
-","{OPTWHITE}"\n"? {
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return ','; 
-                   }
-"!"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '!'; }
-"->"               { return S_ELIPSIS; }
-"!="{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_NEQ; }
-"&&"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_AND; }
-"||"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_OR; }
-"<<"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_BITSHIFT_LEFT; }
-">>"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_BITSHIFT_RIGHT; }
-"<"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_LT; }
-"<="{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_LE; }
-"=="{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_EQ; }
-"+="{OPTWHITE}"\n"? {  
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_ADDIN; }
-"-="{OPTWHITE}"\n"? {  
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_SUBIN; }
-"*="{OPTWHITE}"\n"? {  
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_MULIN; }
-"/="{OPTWHITE}"\n"? {  
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_DIVIN; }
-"="{OPTWHITE}"\n"? {   
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     *lvalp = make_token(csound, "=");
-                     (*lvalp)->type = '=';
-                     return '='; }
-">"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_GT; }
-">="{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return S_GE; }
-"|"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '|'; }
-"&"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '&'; }
-"#"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '#'; }
-"¬"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '~'; }
-"~"{OPTWHITE}"\n"? { 
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return '~'; }
+
+{SYMBOL}     { return *yytext;}
+
+"->"            { return S_ELIPSIS; }
+
+"!="            { return S_NEQ; }
+"&&"            { return S_AND; }
+"||"            { return S_OR; }
+"<<"            { return S_BITSHIFT_LEFT; }
+">>"            { return S_BITSHIFT_RIGHT; }
+"<"             { return S_LT; }
+"<="            { return S_LE; }
+"=="            { return S_EQ; }
+"+="            { return S_ADDIN; }
+"-="            { return S_SUBIN; }
+"*="            { return S_MULIN; }
+"/="            { return S_DIVIN; }
+"="             { *lvalp = make_token(csound, "=");
+                  (*lvalp)->type = '=';
+                  return '='; }
+">"             { return S_GT; }
+">="            { return S_GE; }
+"|"             { return '|'; }
+"&"             { return '&'; }
+"#"             { return '#'; }
+"¬"             { return '~'; }
+"~"             { return '~'; }
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
 "@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return INTEGER_TOKEN; }
 "@i"            { return T_MAPI; }
 "@k"            { return T_MAPK; }
 "if"            { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = IF_TOKEN;
-                  return IF_TOKEN; }
-"if("{OPTWHITE}"\n"? { 
-                  if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                  *lvalp = make_token(csound, yytext);
-                  unput('(');
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
 "then"          { *lvalp = make_token(csound, yytext);
@@ -297,14 +145,6 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   (*lvalp)->type = KTHEN_TOKEN;
                   return KTHEN_TOKEN; }
 "elseif"        { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = ELSEIF_TOKEN;
-                  return ELSEIF_TOKEN; }
-"elseif("{OPTWHITE}"\n"? { 
-                  if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                  unput('(');
-                  *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
 "else"          { *lvalp = make_token(csound, yytext);
@@ -351,17 +191,6 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "endin"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ENDIN_TOKEN;
                   return ENDIN_TOKEN; }
-"opcode"        { BEGIN(udodef);
-                  return UDOSTART_DEFINITION;
-                }
-"endop"         {
-                  *lvalp = new_token(csound, UDOEND_TOKEN); return UDOEND_TOKEN;
-                }
-
-{LABEL}         { char *pp = yytext;
-                  while (*pp==' ' || *pp=='\t') pp++;
-                  *lvalp = make_label(csound, pp); return LABEL_TOKEN;
-                }
 
 "\{\{"          {
                   PARM->xstrbuff = (char *)malloc(128);
@@ -371,7 +200,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   BEGIN(xstr);
                 }
 
-<xstr>"}}"   {
+<xstr>{
+  
+  "}}"   {
                   BEGIN(INITIAL);
                   PARM->xstrbuff[PARM->xstrptr++] = '"';
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
@@ -381,7 +212,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   return STRING_TOKEN;
                 }
 
-<xstr>"\n"     { /* The next two should be one case but I cannot get that to work */
+  "\n"     { /* The next two should be one case but I cannot get that to work */
                   if (PARM->xstrptr+2==PARM->xstrmax) {
                       PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
@@ -392,8 +223,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                 }
 
-<xstr>"\r"     { }
-<xstr>.         { if (PARM->xstrptr+2==PARM->xstrmax) {
+  .         { if (PARM->xstrptr+2==PARM->xstrmax) {
                       PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                       csound->DebugMsg(csound,"Extending xstr buffer\n");
@@ -402,28 +232,56 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                 }
+}
 
-<udodef>{WHITE} { } 
-<udodef>{IDENT} { BEGIN(udoarg);
+{LABEL}         { char *pp = yytext;
+                  while (*pp==' ' || *pp=='\t') pp++;
+                  *lvalp = make_label(csound, pp); return LABEL_TOKEN;
+                }
+
+
+"opcode"        { BEGIN(udodef);
+                  return UDOSTART_DEFINITION;
+                }
+"endop"         {
+                  *lvalp = new_token(csound, UDOEND_TOKEN); return UDOEND_TOKEN;
+                }
+
+
+<udodef>{
+
+
+  {IDENT}/[ \t]*\( { BEGIN(INITIAL);
+                    *lvalp = lookup_token(csound, yytext, yyscanner);
+                    csound->Message(csound, ">>>> NEW UDO DEF <<<<<<<\n");
+                    /* csound->Message(csound,"%s -> %d\n",
+                                       yytext, (*lvalp)->type); */
+                    return (*lvalp)->type; }
+
+
+  {IDENT} { BEGIN(udoarg);
+                    csound->Message(csound, ">>>> OLD UDO DEF <<<<<<<\n");
+                    *lvalp = lookup_token(csound, yytext, yyscanner);
+                    /* csound->Message(csound,"%s -> %d\n",
+                                       yytext, (*lvalp)->type); */
+                    return (*lvalp)->type; }
+
+
+}
+
+<udoarg>{
+  ","     { return ','; }
+ {XIDENT} { BEGIN(udoarg);
                   *lvalp = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
+                  (*lvalp)->type = UDO_IDENT;
                   return (*lvalp)->type; }
-<udoarg>","{OPTWHITE}"\n"? {
-                     if (strchr(yytext, '\n'))
-                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                            yyscanner);
-                     return ','; 
-                   }
-<udoarg>{XIDENT} { BEGIN(udoarg);
-                  *lvalp = lookup_token(csound, yytext, yyscanner);
-                  /* csound->Message(csound,"%s -> %d\n",
-                                     yytext, (*lvalp)->type); */
-                  return (*lvalp)->type; }
-<udoarg>"\n"     { BEGIN(INITIAL);
+  "\n"     { BEGIN(INITIAL);
                    csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                         yyscanner);
                   return NEWLINE; }
+}
 
 
 {STRCONST}      { *lvalp = make_string(csound, yytext); return (STRING_TOKEN); }
@@ -448,33 +306,35 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
 {INTGR}         {
-                    if (udoflag == 0) {
-                        *lvalp = make_string(csound, yytext);
-                        (*lvalp)->type = UDO_ANS_TOKEN;
-                    } else if (udoflag == 1) {
-                        *lvalp = make_string(csound, yytext);
-                        (*lvalp)->type = UDO_ARGS_TOKEN;
-                    } else {
+                    /*if (udoflag == 0) {*/
+                    /*    *lvalp = make_string(csound, yytext);*/
+                    /*    (*lvalp)->type = UDO_ANS_TOKEN;*/
+                    /*} else if (udoflag == 1) {*/
+                    /*    *lvalp = make_string(csound, yytext);*/
+                    /*    (*lvalp)->type = UDO_ARGS_TOKEN;*/
+                    /*} else {*/
                         *lvalp = make_int(csound, yytext); return (INTEGER_TOKEN);
-                    }
+                    /*}*/
 
                     csound->Message(csound,"%d\n", (*lvalp)->type);
                     return ((*lvalp)->type);
                 }
 {NUMBER}        { *lvalp = make_num(csound, yytext); return (NUMBER_TOKEN); }
-{WHITE}         { }
+<*>{WHITE}         { }
 
 {LINE}          { BEGIN(line); }
 
-<line>[ \t]*     /* eat the whitespace */
-<line>{INTGR}   { csound_orcset_lineno(atoi(yytext), yyscanner); }
-<line>"\n"      {BEGIN(INITIAL);}
+<line>{
+  {INTGR}   { csound_orcset_lineno(atoi(yytext), yyscanner); }
+  "\n"      {BEGIN(INITIAL);}
+}
 
 {FILE}          { BEGIN(src); }
 
-<src>[ \t]*     /* eat the whitespace */
-<src>{FNAME}    { PARM->locn = atoll(yytext); }
-<src>"\n"       { BEGIN(INITIAL); }
+<src>{
+  {FNAME}    { PARM->locn = atoll(yytext); }
+  "\n"       { BEGIN(INITIAL); }
+}
 
 
 <<EOF>>         {

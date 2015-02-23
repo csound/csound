@@ -852,7 +852,6 @@ static const CSOUND cenviron_ = {
     0,              /* orcLineOffset */
     0,              /* scoLineOffset */
     NULL,           /* csdname */
-    -1,             /*  parserUdoflag */
     0,              /*  parserNamedInstrFlag */
     0,              /*  tran_nchnlsi */
     0,              /* Count of score strings */

@@ -51,6 +51,7 @@
 %token UDOEND_TOKEN
 %token UDO_ANS_TOKEN
 %token UDO_ARGS_TOKEN
+%token UDO_IDENT
 
 %token T_ERROR
 
@@ -144,8 +145,6 @@
 #define csp_orc_sa_global_read_add_list(a,b) 
 #endif
 
-#define udoflag csound->parserUdoflag
-
 #define namedInstrFlag csound->parserNamedInstrFlag
 
     extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
@@ -226,33 +225,16 @@ instr_id : integer
           ;
          
 
-udo_definition   : UDOSTART_DEFINITION
-                                                { udoflag = -2; }
-                 identifier 
-                                                { udoflag = -1; }
-                  ','
-                                                { udoflag = 0;}
-              UDO_ANS_TOKEN
-                        { udoflag = 1; }
-              ',' UDO_ARGS_TOKEN NEWLINE
-              {
-                udoflag = 2;
-                /*add_udo_definition(csound,*/
-                /*        ((ORCTOKEN *)$3)->lexeme,*/
-                /*        ((ORCTOKEN *)$7)->lexeme,*/
-                /*        ((ORCTOKEN *)$10)->lexeme);*/
-              }
-              statement_list UDOEND_TOKEN NEWLINE
+udo_definition   : UDOSTART_DEFINITION identifier ',' UDO_IDENT ',' UDO_IDENT NEWLINE 
+                   statement_list UDOEND_TOKEN NEWLINE
               {
                 TREE *udoTop = make_leaf(csound, LINE,LOCN, UDO_TOKEN,
                                          (ORCTOKEN *)NULL);
-                TREE *ident = make_leaf(csound, LINE,LOCN, T_IDENT,
-                                        $3->value);
+                TREE *ident = $2;        
                 TREE *udoAns = make_leaf(csound, LINE,LOCN, UDO_ANS_TOKEN,
-                                         (ORCTOKEN *)$7);
+                                         (ORCTOKEN *)$4);
                 TREE *udoArgs = make_leaf(csound, LINE,LOCN, UDO_ARGS_TOKEN,
-                                          (ORCTOKEN *)$10);
-                udoflag = -1;
+                                          (ORCTOKEN *)$6);
                 if (UNLIKELY(PARSER_DEBUG))
                   csound->Message(csound, "UDO COMPLETE\n");
 
@@ -260,13 +242,24 @@ udo_definition   : UDOSTART_DEFINITION
                 ident->left = udoAns;
                 ident->right = udoArgs;
 
-                udoTop->right = (TREE *)$13;
+                udoTop->right = (TREE *)$8;
 
                 $$ = udoTop;
 
                 if (UNLIKELY(PARSER_DEBUG))
                   print_tree(csound, "UDO\n", (TREE *)$$);
 
+              }
+              | UDOSTART_DEFINITION identifier '(' out_arg_list ')' ':' '(' out_arg_list ')' NEWLINE 
+                statement_list UDOEND_TOKEN NEWLINE 
+              {
+                TREE *udoTop = make_leaf(csound, LINE, LOCN, UDO_TOKEN, 
+                                        (ORCTOKEN*)NULL);
+                $$ = udoTop; 
+                udoTop->left = $2;
+                $2->left = $4;
+                $2->right = $8;
+                $$->right = $11;
               }
             ;
 
