@@ -3248,7 +3248,7 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       Str("Copyright tag in output soundfile"
                                           " (no spaces)"), NULL);
     csoundCreateConfigurationVariable(csound, "id_scopyright",
-                                      csound->SF_id_scopyright,
+                                      &csound->SF_id_scopyright,
                                       CSOUNDCFG_INTEGER, 0, NULL, &max_len,
                                       Str("Short Copyright tag in"
                                           " output soundfile"), NULL);
