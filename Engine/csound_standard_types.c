@@ -29,22 +29,22 @@
 
 /* MEMORY COPYING FUNCTIONS */
 
-void myflt_copy_value(void* csound, void* dest, void* src) {
+void myflt_copy_value(CSOUND* csound, void* dest, void* src) {
     MYFLT* f1 = (MYFLT*)dest;
     MYFLT* f2 = (MYFLT*)src;
     *f1 = *f2;
 }
 
-void asig_copy_value(void* csound, void* dest, void* src) {
+void asig_copy_value(CSOUND* csound, void* dest, void* src) {
     memcpy(dest, src, sizeof(MYFLT) * ((CSOUND*)csound)->ksmps);
 }
 
-void wsig_copy_value(void* csound, void* dest, void* src) {
+void wsig_copy_value(CSOUND* csound, void* dest, void* src) {
     memcpy(dest, src, sizeof(SPECDAT));
     //TODO - check if this needs to copy SPECDAT's DOWNDAT member and AUXCH
 }
 
-void fsig_copy_value(void* csound, void* dest, void* src) {
+void fsig_copy_value(CSOUND* csound, void* dest, void* src) {
     PVSDAT *fsigout = (PVSDAT*) dest;
     PVSDAT *fsigin = (PVSDAT*) src;
     int N = fsigin->N;
@@ -57,7 +57,7 @@ void fsig_copy_value(void* csound, void* dest, void* src) {
 }
 
 
-void string_copy_value(void* csound, void* dest, void* src) {
+void string_copy_value(CSOUND* csound, void* dest, void* src) {
     STRINGDAT* sDest = (STRINGDAT*)dest;
     STRINGDAT* sSrc = (STRINGDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
@@ -92,7 +92,7 @@ static size_t array_get_num_members(ARRAYDAT* aSrc) {
     return (size_t)retVal;
 }
 
-void array_copy_value(void* csound, void* dest, void* src) {
+void array_copy_value(CSOUND* csound, void* dest, void* src) {
     ARRAYDAT* aDest = (ARRAYDAT*)dest;
     ARRAYDAT* aSrc = (ARRAYDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
