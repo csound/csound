@@ -577,6 +577,7 @@ static char* copyrightcode(int n)
 {
       char* a[] = {
         "All Rights Reserved\n",
+        "Creative Commons Attribution-NonCommercial-NoDerivatives\nCC BY-NC-ND\n)"
         "Creative Commons Attribution-NonCommercial-ShareAlike\nCC BY-NC-SA\n",
         "Creative Commons Attribution-NonCommercial\nCC BY-NC\n",
         "Creative Commons Attribution-NoDerivatives\nCC BY-ND\n",
