@@ -1762,7 +1762,6 @@ typedef struct _message_queue_t_ {
     int           scoLineOffset; /* 1 less than 1st score line in the CSD */
     char*         csdname;
   /* original CSD name; do not free() */
-    int           parserUdoflag;
     int           parserNamedInstrFlag;
     int           tran_nchnlsi;
     int           scnt;         /* Count of strings */

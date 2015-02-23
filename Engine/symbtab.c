@@ -43,7 +43,6 @@
 // VL moved to csound struct
 //CS_HASH_TABLE* symbtab;
 
-#define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
@@ -124,32 +123,32 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     return ans;
 }
 
-int isUDOArgList(char *s)
-{
-    int len = strlen(s) - 1;
-
-    while (len >= 0) {
-      if (UNLIKELY(strchr("aijkftKOJVPopS[]0", s[len]) == NULL)) {
-        /* printf("Invalid char '%c' in '%s'", *p, s); */
-        return 0;
-      }
-      len--;
-    }
-    return 1;
-}
-
-int isUDOAnsList(char *s)
-{
-    int len = strlen(s) - 1;
-
-    while (len >= 0) {
-      if (UNLIKELY(strchr("aikftSK[]0", s[len]) == NULL)) {
-        return 0;
-      }
-      len--;
-    }
-    return 1;
-}
+//int isUDOArgList(char *s)
+//{
+//    int len = strlen(s) - 1;
+//
+//    while (len >= 0) {
+//      if (UNLIKELY(strchr("aijkftKOVPopS[]0", s[len]) == NULL)) {
+//        /* printf("Invalid char '%c' in '%s'", *p, s); */
+//        return 0;
+//      }
+//      len--;
+//    }
+//    return 1;
+//}
+//
+//int isUDOAnsList(char *s)
+//{
+//    int len = strlen(s) - 1;
+//
+//    while (len >= 0) {
+//      if (UNLIKELY(strchr("aikftSK[]0", s[len]) == NULL)) {
+//        return 0;
+//      }
+//      len--;
+//    }
+//    return 1;
+//}
 
 ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {
@@ -161,24 +160,6 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Looking up token for: %s\n", s);
 
-    if (udoflag == 0) {
-      if (isUDOAnsList(s)) {
-        ans = new_token(csound, UDO_ANS_TOKEN);
-        ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
-        strcpy(ans->lexeme, s);
-        return ans;
-      }
-    }
-
-    if (udoflag == 1) {
-      if (UNLIKELY(csound->oparms->odebug)) printf("Found UDO Arg List\n");
-      if (isUDOArgList(s)) {
-        ans = new_token(csound, UDO_ARGS_TOKEN);
-        ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
-        strcpy(ans->lexeme, s);
-        return ans;
-      }
-    }
 
 //    a = cs_hash_table_get(csound, symbtab, s);
 //
@@ -192,7 +173,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 //    }
 
     ans = new_token(csound, T_IDENT);
-  
+
     if (strchr(s, ':') != NULL) {
         char* th;
         char* baseName = strtok_r(s, ":", &th);
@@ -203,8 +184,9 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     } else {
         ans->lexeme = cs_strdup(csound, s);
     }
-        
-    if (udoflag == -2 || namedInstrFlag == 1) {
+
+//    if (udoflag == -2 || namedInstrFlag == 1) {
+    if (namedInstrFlag == 1) {
         return ans;
     }
 
