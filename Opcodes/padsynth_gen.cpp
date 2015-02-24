@@ -92,24 +92,11 @@ The parameters of the function table statement are:
 
     p9      Number specifying the shape of the bandwidth profile:
 
-             1  triangle
-             2  pulse
-             3  saw
-             4  power
-             5  gaussian
-             6  diode
-             7  absolute sine
-             8  pulse sine
-             9  stretched sine
-            10  chirp
-            11  absoute stretched sine
-            12  chebyshev
-            13  square root
-            14  spike
-            15  circle
+             1  Gaussian
+             2  Square
+             3  Exponential
 
-    p10     Profile function parameter (0 to 1, use 0.5 to get the
-            default behavior).
+    p10     Profile function parameter.
 
     p11-pN  The amplitudes of the partials (may be 0).
 
@@ -145,9 +132,34 @@ static void warn(CSOUND *csound, const char *format,...)
     }
 }
 
-#define FUNC(b) MYFLT profile_function_ ## b(MYFLT x, MYFLT a)
+static MYFLT profile(int shape, MYFLT x, MYFLT a)
+{
+    MYFLT y = 0;
+    switch(shape) {
+    case 1:
+        y = std::exp(-(x * x) * a);
+        break;
+    case 2:
+        y = std::exp(-(x * x) * a);
+        if(y < a) {
+            y = 0.0;
+        } else {
+            y = 1.0;
+        }
+        break;
+    case 3:
+        y = std::exp(-(std::fabs(x)) * std::sqrt(a));
+        break;
+    }
+    return y;
+}
 
-static MYFLT profile_function_pulse(MYFLT x, MYFLT a)
+#if 0
+// Keep this stuff around, it might come in handy later.
+
+#define FUNC(b) MYFLT base_function_ ## b(MYFLT x, MYFLT a)
+
+static MYFLT base_function_pulse(MYFLT x, MYFLT a)
 {
     return (std::fmod(x, 1.0) < a) ? -1.0 : 1.0;
 }
@@ -347,9 +359,9 @@ FUNC(circle)
     return y;
 }
 
-typedef MYFLT (*profile_function_t)(MYFLT, MYFLT);
+typedef MYFLT (*base_function_t)(MYFLT, MYFLT);
 
-static profile_function_t get_profile_function(int index)
+static base_function_t get_base_function(int index)
 {
     if(!index) {
         return NULL;
@@ -360,27 +372,50 @@ static profile_function_t get_profile_function(int index)
     }
 
     index--;
-    profile_function_t functions[] = {
-        profile_function_triangle,
-        profile_function_pulse,
-        profile_function_saw,
-        profile_function_power,
-        profile_function_gauss,
-        profile_function_diode,
-        profile_function_abssine,
-        profile_function_pulsesine,
-        profile_function_stretchsine,
-        profile_function_chirp,
-        profile_function_absstretchsine,
-        profile_function_chebyshev,
-        profile_function_sqr,
-        profile_function_spike,
-        profile_function_circle,
+    base_function_t functions[] = {
+        base_function_triangle,
+        base_function_pulse,
+        base_function_saw,
+        base_function_power,
+        base_function_gauss,
+        base_function_diode,
+        base_function_abssine,
+        base_function_pulsesine,
+        base_function_stretchsine,
+        base_function_chirp,
+        base_function_absstretchsine,
+        base_function_chebyshev,
+        base_function_sqr,
+        base_function_spike,
+        base_function_circle,
     };
     return functions[index];
 }
 
+#endif
+
 extern "C" {
+
+    /*
+    Original code:
+
+        for (nh=1; nh<number_harmonics; nh++) { //for each harmonic
+        REALTYPE bw_Hz;//bandwidth of the current harmonic measured in Hz
+        REALTYPE bwi;
+        REALTYPE fi;
+        REALTYPE rF=f*relF(nh);
+
+        bw_Hz=(pow(2.0,bw/1200.0)-1.0)*f*pow(relF(nh),bwscale);
+
+        bwi=bw_Hz/(2.0*samplerate);
+        fi=rF/samplerate;
+        for (i=0; i<N/2; i++) { //here you can optimize, by avoiding to compute the profile for the full frequency (usually it's zero or very close to zero)
+            REALTYPE hprofile;
+            hprofile=profile((i/(REALTYPE)N)-fi,bwi);
+            freq_amp[i]+=hprofile*A[nh];
+        };
+    };
+    */
 
 #define ROOT2 FL(1.41421356237309504880168872421)
 
@@ -399,7 +434,7 @@ extern "C" {
         MYFLT p7_partial_bandwidth_scale_factor = ff->e.p[7];
         MYFLT p8_harmonic_stretch = ff->e.p[8];
         int p9_profile_shape = (int) ff->e.p[9];
-        profile_function_t profile_function = get_profile_function(p9_profile_shape);
+        //base_function_t base_function = get_base_function(p9_profile_shape);
         int p10_profile_parameter = (int) ff->e.p[10];
         MYFLT samplerate = csound->GetSr(csound);
         log(csound, "samplerate:                  %12d\n", (int) samplerate);
@@ -415,7 +450,7 @@ extern "C" {
             p7_partial_bandwidth_scale_factor);
         log(csound, "p8_harmonic_stretch:                 %9.4f\n", p8_harmonic_stretch);
         log(csound, "p9_profile_shape:            %12d\n", p9_profile_shape);
-        log(csound, "profile_function:      0x%16p\n", profile_function);
+        //log(csound, "profile_function:   0x%16p\n", base_function);
         log(csound, "p10_profile_parameter:               %9.4f\n", p10_profile_parameter);
         // The amplitudes of each partial are in pfield 11 and higher.
         // N.B.: The partials are indexed starting from 1.
@@ -452,7 +487,8 @@ extern "C" {
             for (int band_sample_index = band_sample_start; band_sample_index < band_sample_end; ++band_sample_index) {
                 if (band_sample_index >= 0 && band_sample_index < complexN) {
                     MYFLT fft_sample_index_normalized = ((MYFLT) band_sample_index) / ((MYFLT) complexN);
-                    MYFLT profile_sample = profile_function(fft_sample_index_normalized - frequency_sample_index_normalized, p10_profile_parameter);
+                    //MYFLT profile_sample = base_function(fft_sample_index_normalized - frequency_sample_index_normalized, p10_profile_parameter);
+                    MYFLT profile_sample = profile(p9_profile_shape, fft_sample_index_normalized - frequency_sample_index_normalized, p10_profile_parameter);
                     MYFLT real = profile_sample * A[partialI];
                     spectrum[band_sample_index] += real;
                 }
