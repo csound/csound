@@ -20,9 +20,15 @@ opcode testop_new():()
   prints "HELLO WORLD 2\n"
 endop
 
-/*opcode myadd_new(ival):(i)*/
-/*  return ival + 1*/
-/*endop*/
+opcode myadd_new(ival):(i)
+  prints "In myadd_new\n"
+  xout ival + 1
+endop
+
+
+opcode myadd_new2(value0:i):(i)
+  xout value0 + 1
+endop
 
 instr 1	
  
@@ -31,8 +37,12 @@ testop_new()
 ival = myadd(4)
 print ival 
 
-/*ival2 = myadd_new(4)*/
-/*print ival2 */
+ival2 = myadd_new(4)
+print ival2 
+
+
+ival3 = myadd_new2(4)
+print ival3 
 
 turnoff
 

@@ -8,6 +8,10 @@ nchnls	=	2
 
 struct MyType imaginary:k, real:k, kimaginary, kreal
 
+opcode processMyType(in:MyType):()
+  /*xout 3*/
+endop
+
 instr 1	
 
 var0:MyType init 1, 2, 3, 4 
