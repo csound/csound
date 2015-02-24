@@ -393,23 +393,6 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
     map_args(opc->intypes);
     map_args(opc->outypes);
-//    /* count the number of arguments, and check types */
-//      default:
-//        synterr(csound, Str("invalid input type for opcode %s"), inm->name);
-//        err++; i--;
-//      }
-//      i++; types++;
-//      if (UNLIKELY(i > OPCODENUMOUTS_MAX)) {
-//        synterr(csound, Str("too many input args for opcode %s"), inm->name);
-//        csound->LongJmp(csound, 1);
-//      }
-//    }
-//      default:
-//        synterr(csound, Str("invalid output type for opcode %s"), inm->name);
-//        err++; i--;
-//      }
-//      i++; types++;
-//    }
 
     return err;
 }

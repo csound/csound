@@ -61,6 +61,7 @@ void do_baktrace(CSOUND *csound, uint64_t files);
 
 extern int add_udo_definition(CSOUND *csound, char *opname,
                               char *outtypes, char *intypes);
+extern TREE * create_opcode_token(CSOUND *csound, char* op);
 
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
@@ -2048,16 +2049,27 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                                top->value->lexeme,
                                top->left->value->lexeme,
                                top->right->value->lexeme);
+            
         } else {
-            printf(">>> NEW STYLE UDO FOUND <<<\n");
-            char* leftArgString = get_out_types_from_tree(csound, current->left->left);
-            char* rightArgString = get_in_types_from_tree(csound, current->left->right, typeTable);
-            top->left->markup = cs_strdup(csound, leftArgString);
-            top->right->markup = cs_strdup(csound, rightArgString);
+//            printf(">>> NEW STYLE UDO FOUND <<<\n");
+            if(current->left->right != NULL && *current->left->right->value->lexeme != '0') {
+                add_args(csound, current->left->right, typeTable);
+            }
+            char* outArgString = get_out_types_from_tree(csound, current->left->left);
+            char* inArgString = get_in_types_from_tree(csound, current->left->right, typeTable);
+            if (*inArgString != '0') {
+                TREE* statements = current->right;
+                TREE* xin = create_opcode_token(csound, "xin");
+                xin->left = copy_node(csound, current->left->right);
+                xin->next = statements;
+                current->right = xin;
+            }
+            top->left->markup = cs_strdup(csound, outArgString);
+            top->right->markup = cs_strdup(csound, inArgString);
             add_udo_definition(csound,
                                current->left->value->lexeme,
-                               leftArgString,
-                               rightArgString);
+                               outArgString,
+                               inArgString);
         }
 
         typeTable->localPool = csoundCreateVarPool(csound);
@@ -2261,7 +2273,13 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
         ans->type = tree->type;
         ans->left = (tree->left == NULL) ? NULL : copy_node(csound, tree->left);
         ans->right = (tree->right == NULL) ? NULL : copy_node(csound, tree->right);
-        ans->value = (tree->value == NULL) ? NULL : make_token(csound, tree->value->lexeme);
+        if (tree->value != NULL) {
+            ans->value = make_token(csound, tree->value->lexeme);
+            ans->value->optype = tree->value->optype;
+        } else {
+            ans->value = NULL;
+        }
+            
         ans->next = (tree->next == NULL) ? NULL : copy_node(csound, tree->next);
         ans->len = tree->len;
         ans->rate = tree->rate;
