@@ -86,6 +86,7 @@ SLINE           "#sline "
 FILE            ^[ \t]*"#source"
 FNAME           [a-zA-Z0-9/:.+-_]+
 SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
+
 %x line
 %x sline
 %x src
@@ -255,14 +256,14 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 
   {IDENT}/[ \t]*\( { BEGIN(INITIAL);
                     *lvalp = lookup_token(csound, yytext, yyscanner);
-                    csound->Message(csound, ">>>> NEW UDO DEF <<<<<<<\n");
-                    /* csound->Message(csound,"%s -> %d\n",
-                                       yytext, (*lvalp)->type); */
+                    /*csound->Message(csound, ">>>> NEW UDO DEF <<<<<<<\n");*/
+                    /*csound->Message(csound,"%s -> %d\n",*/
+                    /*                   yytext, (*lvalp)->type); */
                     return (*lvalp)->type; }
 
 
   {IDENT} { BEGIN(udoarg);
-                    csound->Message(csound, ">>>> OLD UDO DEF <<<<<<<\n");
+                    /*csound->Message(csound, ">>>> OLD UDO DEF <<<<<<<\n");*/
                     *lvalp = lookup_token(csound, yytext, yyscanner);
                     /* csound->Message(csound,"%s -> %d\n",
                                        yytext, (*lvalp)->type); */
