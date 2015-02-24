@@ -136,6 +136,7 @@ def runTest():
         ["test_array_function_call.csd", "test synthesizing an array arg from a function-call"],
         ["test_explicit_types.csd", "test typed identifiers (i.e. signals:a[], sigLeft:a)"],
         ["test_parser3_opcall_ambiguities.csd", "test T_OPCALL ambiguities"],
+        ["test_new_udo_syntax.csd", "test new-style UDO syntax"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -152,7 +153,7 @@ def runTest():
     structTests = [["structs/test_structs.csd", "basic struct test"],
     ]
 
-    tests += arrayTests + structTests
+    #tests += arrayTests + structTests
 
     output = ""
     tempfile = "/tmp/csound_test_output.txt"

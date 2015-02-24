@@ -250,19 +250,24 @@ udo_definition   : UDOSTART_DEFINITION identifier ',' UDO_IDENT ',' UDO_IDENT NE
                   print_tree(csound, "UDO\n", (TREE *)$$);
 
               }
-              | UDOSTART_DEFINITION identifier '(' out_arg_list ')' ':' '(' out_arg_list ')' NEWLINE 
+              | UDOSTART_DEFINITION identifier udo_arg_list ':' udo_arg_list NEWLINE 
                 statement_list UDOEND_TOKEN NEWLINE 
               {
                 TREE *udoTop = make_leaf(csound, LINE, LOCN, UDO_TOKEN, 
                                         (ORCTOKEN*)NULL);
                 $$ = udoTop; 
                 udoTop->left = $2;
-                $2->left = $4;
-                $2->right = $8;
-                $$->right = $11;
+                $2->left = $5;
+                $2->right = $3;
+                $$->right = $7;
               }
             ;
 
+udo_arg_list : '(' out_arg_list ')'
+             { $$ = $2 }
+             | '(' ')' 
+             { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, "0")); }
+             ;
 
 /* Opcode and Function calls */
 

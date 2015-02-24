@@ -1515,8 +1515,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         prvinstxt = prvinstxt->nxtinstxt = instrtxt;
         opname = current->left->value->lexeme;
         OPCODINFO *opinfo = find_opcode_info(csound, opname,
-                                             current->left->left->value->lexeme,
-                                             current->left->right->value->lexeme);
+                                             current->left->left->markup,
+                                             current->left->right->markup);
 
         if (UNLIKELY(opinfo == NULL)) {
           csound->Message(csound,
@@ -1836,7 +1836,7 @@ static void setupArgForVarName(CSOUND* csound, ARG* arg, CS_VAR_POOL* varPool, c
     if(delimit != NULL) {
         char *baseName = cs_strndup(csound, varName, delimit - varName);
         char *structPath = cs_strdup(csound, delimit + 1);
-        printf("B %s P %s\n", baseName, structPath);
+//        printf("B %s P %s\n", baseName, structPath);
         
         arg->argPtr = csoundFindVariableWithName(csound, varPool, baseName);
         arg->structPath = structPath;

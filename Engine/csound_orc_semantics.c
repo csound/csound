@@ -519,7 +519,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       } else {
         return cs_strdup(csound, var->varType->varTypeName);
       }
-
+    case T_TYPED_IDENT:
+      return cs_strdup(csound, tree->value->optype);
     case STRUCT_EXPR:
       s = tree->left->value->lexeme;
       var = find_var_from_pools(csound, s, s, typeTable);
@@ -1091,6 +1092,60 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
 
 }
 
+
+/* Used by new UDO syntax, expects tree's with value->lexeme as type names */
+char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
+    int len = tree_arg_list_count(tree);
+
+    if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
+        return cs_strdup(csound, "0");
+    }
+    return get_arg_string_from_tree(csound, tree, typeTable);
+}
+
+/* Used by new UDO syntax, expects tree's with value->lexeme as type names */
+char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
+
+    int len = tree_arg_list_count(tree);
+    int i;
+
+    if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
+        return cs_strdup(csound, "0");
+    }
+
+    char** argTypes = csound->Malloc(csound, len * sizeof(char*));
+    char* argString = NULL;
+    TREE* current = tree;
+    int argsLen = 0;
+    i = 0;
+
+    while (current != NULL) {
+        char* argType = current->value->lexeme;
+        int len = strlen(argType);
+        argsLen += (len > 1) ? len + 2 : 1;
+        current = current->next;
+        argTypes[i] = argType;
+    }
+
+    argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
+    char* temp = argString;
+
+    for (i = 0; i < len; i++) {
+        int size = strlen(argTypes[i]);
+        if (size > 1) {
+          *temp = ':';
+          memcpy(temp + 1, argTypes[i], size);
+          *(temp + 1 + size) = ';';
+          temp += 2 + size;
+        } else {
+          memcpy(temp, argTypes[i], size);
+          temp += size;
+        }
+    }
+
+    argString[argsLen] = '\0';
+    return argString;
+}
 
 
 OENTRY* find_opcode_new(CSOUND* csound, char* opname,
@@ -1935,6 +1990,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     TREE *previous = NULL;
     TREE* newRight;
     TREE* transformed;
+    TREE* top;
 
     CONS_CELL* parentLabelList = typeTable->labelList;
     typeTable->labelList = get_label_list(csound, root);
@@ -1983,12 +2039,26 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         break;
       case UDO_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
-              
-        add_udo_definition(csound,
-                           current->left->value->lexeme,
-                           current->left->left->value->lexeme,
-                           current->left->right->value->lexeme);
- 
+            
+        top = current->left;
+        if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
+            top->left->markup = cs_strdup(csound, top->left->value->lexeme);
+            top->right->markup = cs_strdup(csound, top->right->value->lexeme);
+            add_udo_definition(csound,
+                               top->value->lexeme,
+                               top->left->value->lexeme,
+                               top->right->value->lexeme);
+        } else {
+            printf(">>> NEW STYLE UDO FOUND <<<\n");
+            char* leftArgString = get_out_types_from_tree(csound, current->left->left);
+            char* rightArgString = get_in_types_from_tree(csound, current->left->right, typeTable);
+            top->left->markup = cs_strdup(csound, leftArgString);
+            top->right->markup = cs_strdup(csound, rightArgString);
+            add_udo_definition(csound,
+                               current->left->value->lexeme,
+                               leftArgString,
+                               rightArgString);
+        }
 
         typeTable->localPool = csoundCreateVarPool(csound);
         current->markup = typeTable->localPool;
