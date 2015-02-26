@@ -454,7 +454,7 @@ int32_t tablkt_setup(CSOUND *csound, TABL *p);
 int32_t diskin_init(CSOUND *csound, DISKIN2 *p);
 int32_t diskin_init_S(CSOUND *csound, DISKIN2 *p);
 int32_t inch1_set(CSOUND *csound, void *p);
-int32_t inch_opcode1(CSOUND *csound, void *p);
+int32_t inch_opcode1(CSOUND *csound, INCH1 *p);
 int32_t adset_S(CSOUND *csound, void *p);
 int32_t lprdset_S(CSOUND *csound, void *p);
 int32_t pvsfreadset_S(CSOUND *csound, void *p);

@@ -8,8 +8,13 @@ nchnls	=	2
 
 struct MyType imaginary:k, real:k, kimaginary, kreal
 
-opcode processMyType(in:MyType):()
-  /*xout 3*/
+opcode processMyType(in:MyType):(MyType)
+  retVal:MyType init 0, 0, 0, 0
+  retVal.imaginary = in.imaginary + 1 
+  retVal.real = in.real + 1 
+  retVal.kimaginary = in.kimaginary + 1
+  retVal.kreal = in.kreal + 1 
+  xout retVal
 endop
 
 instr 1	
@@ -27,7 +32,13 @@ var0.real += 2
 var0.kimaginary += 3 
 var0.kreal += 4 
 
+var2:MyType processMyType var0
+
+; this does not work yet...
+;var2:MyType = processMyType(var0)
+
 printks "i %d r %d ki %d kr %d\n", 0.2, var0.imaginary, var0.real, var0.kimaginary, var0.kreal
+printks "\ti %d r %d ki %d kr %d\n", 0.2, var2.imaginary, var2.real, var2.kimaginary, var2.kreal
 
 endin
 

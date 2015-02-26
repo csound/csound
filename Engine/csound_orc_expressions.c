@@ -73,6 +73,7 @@ TREE* tree_tail(TREE* node) {
 char *create_out_arg(CSOUND *csound, char* outype, int argCount,
                      TYPE_TABLE* typeTable)
 {
+
     char* s = (char *)csound->Malloc(csound, 16);
 
     switch(*outype) {
@@ -93,6 +94,19 @@ char *create_out_arg(CSOUND *csound, char* outype, int argCount,
         add_array_arg(csound, s, NULL, 1, typeTable);
     } else {
         add_arg(csound, s, NULL, typeTable);
+    } else {
+        if (*outype == '[') {
+            // piggyback on tcount
+            snprintf(s, 16, "#%c%d[]", outype[1], csound->tcount++);
+            add_array_arg(csound, s, NULL, 1, typeTable);
+        } else if(*outype == ':') {
+            char* argType = cs_strndup(csound, outype + 1, strlen(outype) - 2);
+            snprintf(s, 256, "#%s%d", argType, csound->tcount++);
+            add_arg(csound, s, argType, typeTable);
+        } else {
+            csound->Warning(csound, "ERROR: unknown outype found for out arg synthesis: %s\n", outype);
+            return NULL;
+        }
     }
 
     return s;
