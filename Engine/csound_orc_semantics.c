@@ -363,8 +363,17 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           do_baktrace(csound, tree->locn);
           return NULL;
         }
-
-        return cs_strdup(csound, out);
+         
+          if (argsRequired(out) == 1) {
+              char** args = splitArgs(csound, out);
+              return cs_strdup(csound, args[0]);
+          }
+        
+          synterr(csound, Str("error: opcode '%s' for expression with arg "
+                              "types %s returns out-args != 1, line %d\n"),
+                  opname, argTypeRight, tree->line);
+          do_baktrace(csound, tree->locn);
+          return NULL;
 
       }
 
@@ -1901,6 +1910,7 @@ CS_VARIABLE* createStructVar(void* cs, void* p) {
 }
 
 void copyStructVar(CSOUND* csound, void* dest, void* src) {
+    printf("TEST\n");
         //FIXME - implement
 }
 
@@ -2275,7 +2285,7 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
         ans->right = (tree->right == NULL) ? NULL : copy_node(csound, tree->right);
         if (tree->value != NULL) {
             ans->value = make_token(csound, tree->value->lexeme);
-            ans->value->optype = tree->value->optype;
+            ans->value->optype = cs_strdup(csound, tree->value->optype);
         } else {
             ans->value = NULL;
         }
