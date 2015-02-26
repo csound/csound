@@ -52,6 +52,7 @@
 %token UDO_ANS_TOKEN
 %token UDO_ARGS_TOKEN
 %token UDO_IDENT
+%token VOID_TOKEN
 
 %token T_ERROR
 
@@ -250,7 +251,7 @@ udo_definition   : UDOSTART_DEFINITION identifier ',' UDO_IDENT ',' UDO_IDENT NE
                   print_tree(csound, "UDO\n", (TREE *)$$);
 
               }
-              | UDOSTART_DEFINITION identifier udo_arg_list ':' udo_arg_list NEWLINE 
+              | UDOSTART_DEFINITION identifier udo_arg_list ':' udo_out_arg_list NEWLINE 
                 statement_list UDOEND_TOKEN NEWLINE 
               {
                 TREE *udoTop = make_leaf(csound, LINE, LOCN, UDO_TOKEN, 
@@ -268,6 +269,24 @@ udo_arg_list : '(' out_arg_list ')'
              | '(' ')' 
              { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, "0")); }
              ;
+
+udo_out_arg_list : '(' out_type_list ')'
+             { $$ = $2 }
+             | '(' ')' 
+             { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, "0")); }
+             | VOID_TOKEN 
+             { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, "0")); }
+             | out_type
+             ;
+
+out_type_list : out_type_list ',' out_type
+              { $$ = appendToTree(csound, $1, $3); }
+             | out_type
+             ;
+
+out_type : identifier 
+        | array_identifier
+        ;
 
 /* Opcode and Function calls */
 

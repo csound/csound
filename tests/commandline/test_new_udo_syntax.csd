@@ -25,24 +25,35 @@ opcode myadd_new(ival):(i)
   xout ival + 1
 endop
 
-
 opcode myadd_new2(value0:i):(i)
   xout value0 + 1
+endop
+
+opcode test_void():void
+  prints "HELLO WORLD : VOID\n"
+endop
+
+opcode test_single_out_type(value:i):i
+  xout value + 1
 endop
 
 instr 1	
  
 testop()
 testop_new()
+test_void()
+
 ival = myadd(4)
 print ival 
 
 ival2 = myadd_new(4)
 print ival2 
 
-
 ival3 = myadd_new2(4)
 print ival3 
+
+ival4 = test_single_out_type(4)
+print ival4 
 
 turnoff
 

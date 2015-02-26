@@ -192,7 +192,7 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 "endin"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ENDIN_TOKEN;
                   return ENDIN_TOKEN; }
-
+"void"          { return VOID_TOKEN; }
 "\{\{"          {
                   PARM->xstrbuff = (char *)malloc(128);
                   PARM->xstrptr = 0; PARM->xstrmax = 128;
