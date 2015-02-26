@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "csoundCore.h"
+#include "aops.h"
 
 int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;
@@ -295,4 +296,23 @@ void debug_print_varpool(CSOUND* csound, CS_VAR_POOL* pool) {
                       gVar->varName, gVar->varType->varTypeName);
       gVar = gVar->next;
     }
+}
+
+/* GENERIC VARIABLE COPYING */
+
+
+int copyVarGeneric(CSOUND *csound, void *p) {
+    ASSIGN* assign = (ASSIGN*)p;
+    CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
+    CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
+    
+    if(typeR != typeA) {
+        csound->Warning(csound,
+                        Str("error: = opcode given variables with two different types: %s : %s\n"),
+                        typeR->varTypeName, typeA->varTypeName);
+        return NOTOK;
+    }
+    
+    typeR->copyValue(csound, assign->r, assign->a);
+    return OK;
 }

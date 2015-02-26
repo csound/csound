@@ -1910,8 +1910,24 @@ CS_VARIABLE* createStructVar(void* cs, void* p) {
 }
 
 void copyStructVar(CSOUND* csound, void* dest, void* src) {
-    printf("TEST\n");
-        //FIXME - implement
+    CS_TYPE* typeDest = csoundGetTypeForArg(dest);
+    CS_TYPE* typeSrc = csoundGetTypeForArg(src);
+    CS_STRUCT_VAR* varDest = (CS_STRUCT_VAR*)dest;
+    CS_STRUCT_VAR* varSrc = (CS_STRUCT_VAR*)src;
+    int i, count;
+    
+    if (typeDest != typeSrc) {
+        csound->Warning(csound, "ERROR: different types given for copy struct var: %s : %s\n",
+                        typeDest->varTypeName, typeSrc->varTypeName);
+        return;
+    }
+
+    count = cs_cons_length(typeDest->members);
+    for (i = 0; i < count; i++) {
+        CS_VAR_MEM* d = varDest->members[i];
+        CS_VAR_MEM* s = varSrc->members[i];
+        d->varType->copyValue(csound, &d->value, &s->value);
+    }
 }
 
 

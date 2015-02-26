@@ -153,7 +153,7 @@ def runTest():
     structTests = [["structs/test_structs.csd", "basic struct test"],
     ]
 
-    #tests += arrayTests + structTests
+    tests += arrayTests + structTests
 
     output = ""
     tempfile = "/tmp/csound_test_output.txt"
