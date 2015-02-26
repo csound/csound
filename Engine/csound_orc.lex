@@ -70,9 +70,10 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option stdout
 %option 8bit
 
-LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:([ \t\n]+|$)  /* VL: added extra checks for after the colon */
+STRCONST        \"(\\.|[^\"])*\"
+STRCONSTe       \"(\\.|[^\"])*$
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
-TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*(:[a-zA-Z_][a-zA-Z0-9_]*)?
+TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*
 XIDENT          0|[aijkftKOVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
@@ -103,8 +104,6 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 <INITIAL>"\n"            { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
                   return NEWLINE; }
-
-{SYMBOL}     { return *yytext;}
 
 "->"            { return S_ELIPSIS; }
 
@@ -237,11 +236,10 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
                 }
 }
 
-{LABEL}         { char *pp = yytext;
+{IDENT}:/[ \t\n]  { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
                   *lvalp = make_label(csound, pp); return LABEL_TOKEN;
                 }
-
 
 "opcode"        { BEGIN(udodef);
                   return UDOSTART_DEFINITION;
@@ -354,19 +352,13 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
 {INTGR}         {
-                    /*if (udoflag == 0) {*/
-                    /*    *lvalp = make_string(csound, yytext);*/
-                    /*    (*lvalp)->type = UDO_ANS_TOKEN;*/
-                    /*} else if (udoflag == 1) {*/
-                    /*    *lvalp = make_string(csound, yytext);*/
-                    /*    (*lvalp)->type = UDO_ARGS_TOKEN;*/
-                    /*} else {*/
-                        *lvalp = make_int(csound, yytext); return (INTEGER_TOKEN);
-                    /*}*/
-
-                    csound->Message(csound,"%d\n", (*lvalp)->type);
+                    *lvalp = make_int(csound, yytext); return (INTEGER_TOKEN);
+                    /*csound->Message(csound,"%d\n", (*lvalp)->type);*/
                     return ((*lvalp)->type);
                 }
+
+{SYMBOL}     { return *yytext;}
+
 {NUMBER}        { *lvalp = make_num(csound, yytext); return (NUMBER_TOKEN); }
 <*>{WHITE}         { }
 
