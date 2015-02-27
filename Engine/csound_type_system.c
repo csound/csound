@@ -92,7 +92,7 @@ CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound) {
 }
 
 void csoundFreeVarPool(CSOUND* csound, CS_VAR_POOL* pool) {
-    cs_hash_table_mfree_complete(csound, pool->table);
+    if(pool->table) cs_hash_table_mfree_complete(csound, pool->table);
     csound->Free(csound, pool);
 }
 

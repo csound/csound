@@ -1,11 +1,12 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -i adc -d -+msg_color=0 -m0 -b128 -B1024
+-o dac -i adc -d -+msg_color=0 -m0 -b256 -B512
+
 </CsOptions>
 <CsInstruments>
 nchnls=2
 0dbfs=1
-ksmps=32
+ksmps=64
 sr = 44100
 
 seed 0

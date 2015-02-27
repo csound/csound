@@ -1623,6 +1623,7 @@ typedef struct NAME__ {
     char          *SF_csd_licence;
     char          *SF_id_title;
     char          *SF_id_copyright;
+    int           SF_id_scopyright;
     char          *SF_id_software;
     char          *SF_id_artist;
     char          *SF_id_comment;

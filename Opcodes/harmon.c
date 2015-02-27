@@ -56,25 +56,29 @@ typedef struct {
         int16   pbufcnt, maxprd, pulslen, switching;
         AUXCH   auxch;
         int     hmrngflg;
-} HARMON234;
+} HARM234;
 
-static void print_data(HARMON234* p, int x)
+static void print_data(HARM234* p, int x)
 {
     printf("DATA %d\n=======\n", x);
-    printf("nbufsmps, n2bufsmps, period, cpsmode, polarity, poslead = (%d,%d,%d,%d,%d,%d,%d\n",
-           p->nbufsmps, p->n2bufsmps, p->period, p->cpsmode, p->polarity, p->poslead);
+    printf("nbufsmps, n2bufsmps, period, cpsmode, polarity, poslead "
+           "= (%d,%d,%d,%d,%d,%d,%d\n",
+           p->nbufsmps, p->n2bufsmps, p->period, p->cpsmode, p->polarity,
+           p->poslead);
     printf("prvoct, minoct, sicvt = %f, %f, %f\n", p->prvoct, p->minoct, p->sicvt);
     //MYFLT   *bufp, *midp, *inp1, *inp2;
     //MYFLT   *pulsbuf[4], *sigmoid, *curpuls;
-    printf("vocamp, vocinc, ampinc = %f, %f, %f\n", p->vocamp, p->vocinc, p->ampinc);
+    printf("vocamp, vocinc, ampinc = %f, %f, %f\n",
+           p->vocamp, p->vocinc, p->ampinc);
     //PULDAT  puldat[PULMAX], *endp, *limp;
     //VOCDAT  vocdat[VOCMAX], *vlim;
-    printf("pbufcnt, maxprd, pulslen, switching = %d, %d, %d, %d, %d\n", p->pbufcnt, p->maxprd, p->pulslen, p->switching, p->hmrngflg);
+    printf("pbufcnt, maxprd, pulslen, switching = %d, %d, %d, %d, %d\n",
+           p->pbufcnt, p->maxprd, p->pulslen, p->switching, p->hmrngflg);
     //AUXCH   auxch;
     //int     hmrngflg;
     printf("pulse: %p %p %p %p; %d %d %d %d\n",
            p->puldat[0].srcp, p->puldat[1].srcp,
-           p->puldat[2].srcp, p->puldat[3].srcp, 
+           p->puldat[2].srcp, p->puldat[3].srcp,
            p->puldat[0].cntr, p->puldat[1].cntr,
            p->puldat[2].cntr, p->puldat[3].cntr);
     printf("voc: (%p %d %d) (%p %d %d) (%p %d %d) (%p %d %d)\n",
@@ -89,7 +93,7 @@ static void print_data(HARMON234* p, int x)
 #define SLEN    256
 #define LCNT    75
 
-static int hm234set(CSOUND *csound, HARMON234 *p)
+static int hm234set(CSOUND *csound, HARM234 *p)
 {
     MYFLT minoct = p->minoct;
     p->hmrngflg = 0;
@@ -137,7 +141,7 @@ static int hm234set(CSOUND *csound, HARMON234 *p)
     return OK;
 }
 
-static int harmon234(CSOUND *csound, HARMON234 *p)
+static int harmon234(CSOUND *csound, HARM234 *p)
 {
     MYFLT       *outp, *dirp;
     MYFLT       *inp1, *inp2;
@@ -148,7 +152,7 @@ static int harmon234(CSOUND *csound, HARMON234 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     //print_data(p, 1);
-    
+
     if ((koct = *p->koct) != p->prvoct) {               /* if new pitch estimate */
       if (koct >= p->minoct) {                          /*   above requested low */
         MYFLT cps = POWER(FL(2.0), koct) * ONEPT;     /*   recalc pulse period */
@@ -361,7 +365,7 @@ static int harmon234(CSOUND *csound, HARMON234 *p)
       for (vdp=p->vocdat; vdp<p->vlim; vdp++)
         if (vdp->phsinc && (vdp->phase += vdp->phsinc) & (~0xFFFF)) {
           vdp->phase &= 0x0000FFFFL;
-        if (p->curpuls != NULL) {             /*      & pulses are current    */
+        if (p->curpuls != NULL) {               /*      & pulses are current    */
             if (endp < p->limp) {               /*      set one up              */
               endp->srcp = p->pulsbuf[p->pbufcnt];
               endp->cntr = p->pulslen;          /*  w. extended len     */
@@ -404,7 +408,7 @@ static int harmon234(CSOUND *csound, HARMON234 *p)
     return OK;
 }
 
-int harm2set(CSOUND *csound, HARMON234 *p)
+int harm2set(CSOUND *csound, HARM234 *p)
 {
     VOCDAT *vdp = p->vocdat;
     vdp->kfrq = p->kfrq1;       vdp->phase = 0; vdp++;
@@ -416,22 +420,24 @@ int harm2set(CSOUND *csound, HARMON234 *p)
     return hm234set(csound, p);
 }
 
-int harm3set(CSOUND *csound, HARMON234 *p)
+int harm3set(CSOUND *csound, HARM234 *p)
 {
     VOCDAT *vdp = p->vocdat;
     vdp->kfrq = p->kfrq1;       vdp->phase = 0; vdp++;
     vdp->kfrq = p->kfrq2;       vdp->phase = 0; vdp++;
     vdp->kfrq = p->kfrq3;       vdp->phase = 0; vdp++;
     p->vlim = vdp;
-    //printf("mode, lowest, polar = %p,%p,%p\n", p->icpsmode, p->ilowest, p->ipolarity);
+    //printf("mode, lowest, polar = %p,%p,%p\n",
+    //       p->icpsmode, p->ilowest, p->ipolarity);
     p->polarity = (int16)*p->ilowest;
     p->minoct = *p->icpsmode;
     p->cpsmode = (*p->kfrq4 != FL(0.0));
-    //printf("mode, lowest, polar = (%d,%f,%d)\n", p->cpsmode, p->minoct, p->ipolarity);
+    //printf("mode, lowest, polar = (%d,%f,%d)\n",
+    //       p->cpsmode, p->minoct, p->ipolarity);
     return hm234set(csound, p);
 }
 
-int harm4set(CSOUND *csound, HARMON234 *p)
+int harm4set(CSOUND *csound, HARM234 *p)
 {
     VOCDAT *vdp = p->vocdat;
     vdp->kfrq = p->kfrq1;       vdp->phase = 0; vdp++;
@@ -448,9 +454,9 @@ int harm4set(CSOUND *csound, HARMON234 *p)
 #define S(x)    sizeof(x)
 
 static OENTRY harmon_localops[] = {
-  { "harmon2",S(HARMON234),0,5, "a",  "akkkiip",  (SUBR)harm2set,NULL, (SUBR)harmon234 },
-  { "harmon3",S(HARMON234),0,5, "a",  "akkkkiip", (SUBR)harm3set,NULL, (SUBR)harmon234 },
-  { "harmon4",S(HARMON234),0,5, "a",  "akkkkkiip",(SUBR)harm4set,NULL, (SUBR)harmon234 },
+  { "harmon2",S(HARM234),0,5,"a","akkkiip",  (SUBR)harm2set,NULL, (SUBR)harmon234 },
+  { "harmon3",S(HARM234),0,5,"a","akkkkiip", (SUBR)harm3set,NULL, (SUBR)harmon234 },
+  { "harmon4",S(HARM234),0,5,"a","akkkkkiip",(SUBR)harm4set,NULL, (SUBR)harmon234 },
 };
 
 LINKAGE_BUILTIN(harmon_localops)
