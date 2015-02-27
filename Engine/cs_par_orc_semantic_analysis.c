@@ -213,13 +213,13 @@ void csp_orc_sa_interlocksf(CSOUND *csound, int code)
       struct set_t *ww = NULL;
       csp_set_alloc_string(csound, &ww);
       csp_set_alloc_string(csound, &rr);
-      if (code&ZR) csp_set_add(csound, rr, strdup("##zak"));
-      if (code&ZW) csp_set_add(csound, ww, strdup("##zak"));
-      if (code&TR) csp_set_add(csound, rr, strdup("##tab"));
-      if (code&TW) csp_set_add(csound, ww, strdup("##tab"));
-      if (code&CR) csp_set_add(csound, rr, strdup("##chn"));
-      if (code&CW) csp_set_add(csound, ww, strdup("##chn"));
-      if (code&WR) csp_set_add(csound, ww, strdup("##wri"));
+      if (code&ZR) csp_set_add(csound, rr, /*strdup*/("##zak"));
+      if (code&ZW) csp_set_add(csound, ww, /*strdup*/("##zak"));
+      if (code&TR) csp_set_add(csound, rr, /*strdup*/("##tab"));
+      if (code&TW) csp_set_add(csound, ww, /*strdup*/("##tab"));
+      if (code&CR) csp_set_add(csound, rr, /*strdup*/("##chn"));
+      if (code&CW) csp_set_add(csound, ww, /*strdup*/("##chn"));
+      if (code&WR) csp_set_add(csound, ww, /*strdup*/("##wri"));
       csp_orc_sa_global_read_write_add_list(csound, ww, rr);
       if (code&_QQ) csound->Message(csound, Str("opcode deprecated"));
     }
@@ -236,7 +236,7 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
 
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {
-    name = strdup(name);
+    //name = strdup(name); // JPff:  leaks: necessary??
     csound->inInstr = 1;
     if (csound->instRoot == NULL) {
       csound->instRoot = instr_semantics_alloc(csound, name);
