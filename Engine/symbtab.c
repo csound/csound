@@ -38,111 +38,12 @@
 #define PARSER_DEBUG (0)
 #endif
 
-// FIXME - this is global...
-CS_HASH_TABLE* symbtab;
-
 #define namedInstrFlag csound->parserNamedInstrFlag
 
-ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
-//static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val);
 extern int csound_orcget_lineno(void*);
 
 /* from csound_orc_compile.c */
 extern char** splitArgs(CSOUND* csound, char* argString);
-
-void init_symbtab(CSOUND *csound)
-{
-    OENTRY *ep;
-    CONS_CELL *top, *head, *items;
-
-    char *shortName;
-
-
-    symbtab = cs_hash_table_create(csound);
-    /* Now we need to populate with basic words */
-    /* Add token types for opcodes to symbtab.  If a polymorphic opcode
-     * definition is found (dsblksiz >= 0xfffb), look for implementations
-     * of that opcode to correctly mark the type of opcode it is (T_OPCODE,
-     * T_OPCODE0, or T_OPCODE00)
-     */
-
-    top = head = cs_hash_table_values(csound, csound->opcodes);
-
-    while (head != NULL) {
-        items = head->value;
-        while (items != NULL) {
-            ep = items->value;
-
-            if (ep->dsblksiz < 0xfffb) {
-                shortName = get_opcode_short_name(csound, ep->opname);
-
-                add_token(csound, shortName, 0);
-
-                if (shortName != ep->opname) {
-                    csound->Free(csound, shortName);
-                }
-            }
-            items = items->next;
-        }
-        head = head->next;
-    }
-
-
-    csound->Free(csound, top);
-}
-
-ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
-{
-    //printf("Hash value for %s: %i\n", s, h);
-
-    ORCTOKEN *a = cs_hash_table_get(csound, symbtab, s);
-
-    ORCTOKEN *ans;
-//    if (a!=NULL) {
-//      if (type == a->type) return a;
-//      if ((type!=T_FUNCTION || a->type!=T_OPCODE))
-//        csound->Warning(csound,
-//                        Str("Type confusion for %s (%d,%d), replacing\n"),
-//                        s, type, a->type);
-//      a->type = type;
-//      return a;
-//    }
-    ans = new_token(csound, T_IDENT);
-    ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
-    strcpy(ans->lexeme, s);
-    ans->type = type;
-
-    cs_hash_table_put(csound, symbtab, s, ans);
-
-    return ans;
-}
-
-//int isUDOArgList(char *s)
-//{
-//    int len = strlen(s) - 1;
-//
-//    while (len >= 0) {
-//      if (UNLIKELY(strchr("aijkftKOVPopS[]0", s[len]) == NULL)) {
-//        /* printf("Invalid char '%c' in '%s'", *p, s); */
-//        return 0;
-//      }
-//      len--;
-//    }
-//    return 1;
-//}
-//
-//int isUDOAnsList(char *s)
-//{
-//    int len = strlen(s) - 1;
-//
-//    while (len >= 0) {
-//      if (UNLIKELY(strchr("aikftSK[]0", s[len]) == NULL)) {
-//        return 0;
-//      }
-//      len--;
-//    }
-//    return 1;
-//}
 
 ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {
@@ -152,18 +53,6 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 
     if (PARSER_DEBUG)
       csound->Message(csound, "Looking up token for: %s\n", s);
-
-
-//    a = cs_hash_table_get(csound, symbtab, s);
-//
-//    if (a != NULL) {
-//      ans = (ORCTOKEN*)csound->Malloc(csound, sizeof(ORCTOKEN));
-//      memcpy(ans, a, sizeof(ORCTOKEN));
-//      ans->next = NULL;
-//      ans->lexeme = (char *)csound->Malloc(csound, strlen(a->lexeme) + 1);
-//      strcpy(ans->lexeme, a->lexeme);
-//      return ans;
-//    }
 
     ans = new_token(csound, T_IDENT);
   
@@ -187,11 +76,6 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 
     return ans;
 }
-
-
-//static int is_optional_udo_in_arg(char* argtype) {
-//    return strchr("jOPVop", *argtype) != NULL;
-//}
 
 static char* map_udo_in_arg_type(char* in) {
     if(strlen(in) == 1) {
