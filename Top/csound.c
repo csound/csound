@@ -762,6 +762,7 @@ static const CSOUND cenviron_ = {
     (char*) NULL,   /*  SF_csd_licence      */
     (char*) NULL,   /*  SF_id_title         */
     (char*) NULL,   /*  SF_id_copyright     */
+    -1,             /*  SF_id_scopyright    */
     (char*) NULL,   /*  SF_id_software      */
     (char*) NULL,   /*  SF_id_artist        */
     (char*) NULL,   /*  SF_id_comment       */
@@ -3246,6 +3247,11 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       CSOUNDCFG_STRING, 0, NULL, &max_len,
                                       Str("Copyright tag in output soundfile"
                                           " (no spaces)"), NULL);
+    csoundCreateConfigurationVariable(csound, "id_scopyright",
+                                      &csound->SF_id_scopyright,
+                                      CSOUNDCFG_INTEGER, 0, NULL, &max_len,
+                                      Str("Short Copyright tag in"
+                                          " output soundfile"), NULL);
     csound->SF_id_software = (char*) csound->SF_id_copyright + (int) i;
     csoundCreateConfigurationVariable(csound, "id_software",
                                       csound->SF_id_software,
