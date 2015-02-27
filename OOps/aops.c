@@ -453,11 +453,11 @@ typedef double v2d __attribute__ ((vector_size (128)));
       nsmps -= early;                           \
       memset(&r[nsmps], '\0', early*sizeof(MYFLT)); \
     }                                           \
-    for (n=offset; n<nsmps; n+=2){		\
-       memcpy(&av,&a[n],2*sizeof(MYFLT));	\
-       memcpy(&bv,&b[n],2*sizeof(MYFLT));     	\
+    for (n=offset; n<nsmps; n+=2){              \
+       memcpy(&av,&a[n],2*sizeof(MYFLT));       \
+       memcpy(&bv,&b[n],2*sizeof(MYFLT));       \
        rv = av OP bv;                  \
-       memcpy(&r[n],&rv,2*sizeof(MYFLT));    	\
+       memcpy(&r[n],&rv,2*sizeof(MYFLT));       \
     }                                           \
     return OK;                                  \
   }                                             \

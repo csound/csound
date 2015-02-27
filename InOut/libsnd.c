@@ -573,6 +573,22 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     STA(isfopen) = 1;
 }
 
+static char* copyrightcode(int n)
+{
+      char* a[] = {
+        "All Rights Reserved\n",
+        "Creative Commons Attribution-NonCommercial-NoDerivatives\nCC BY-NC-ND\n)"
+        "Creative Commons Attribution-NonCommercial-ShareAlike\nCC BY-NC-SA\n",
+        "Creative Commons Attribution-NonCommercial\nCC BY-NC\n",
+        "Creative Commons Attribution-NoDerivatives\nCC BY-ND\n",
+        "Creative Commons Attribution-ShareAlike\nCC BY-SA\n",
+        "Creative Commons Attribution\nCC BY\n",
+        "Licenced under BSD\n"
+      };
+      if (n>=7) n = 0;
+      return a[n];
+}             
+
 void sfopenout(CSOUND *csound)                  /* init for sound out       */
 {                                               /* (not called if nosound)  */
     OPARMS  *O = csound->oparms;
@@ -816,6 +832,14 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       s = csound->SF_id_copyright;
     if (s != NULL && *s != '\0')
       sf_set_string(STA(outfile), SF_STR_COPYRIGHT, s);
+    else if (csound->SF_id_scopyright>=0) {
+      char buff[256];
+      time_t tt = time(NULL);
+      strftime(buff, 256, "Copyright %Y: ", gmtime(&tt));
+      strncat(buff,copyrightcode(csound->SF_id_scopyright), 255);
+      buff[255] = '\0';
+      sf_set_string(STA(outfile), SF_STR_COPYRIGHT, buff);
+    }
     if ((s = csound->SF_id_software) != NULL && *s != '\0')
       sf_set_string(STA(outfile), SF_STR_SOFTWARE, s);
     if ((s = csound->SF_id_artist) != NULL && *s != '\0')
