@@ -1310,8 +1310,8 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
     /* VL - using csound->Free() seems to increase memory usage on
        successive calls, so I am restoring the hash table free
     */
-    cs_hash_table_mfree_complete(csound, engineState->stringPool);
-    csoundFreeVarPool(csound, engineState->varPool);
+     csound->Free(csound, engineState->stringPool);
+     csound->Free(csound, engineState->varPool);
     csound->Free(csound, engineState);
     return 0;
 }
