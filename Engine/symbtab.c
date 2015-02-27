@@ -39,7 +39,7 @@
 #endif
 
 // FIXME - this is global...
-CS_HASH_TABLE* symbtab = NULL;
+CS_HASH_TABLE* symbtab;// = NULL;
 
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
@@ -72,7 +72,7 @@ void init_symbtab(CSOUND *csound)
     char *shortName;
 
 
-    if(symbtab == NULL) {
+    // if(symbtab == NULL) {
       /* VL 27 02 2015 -- if symbtab exists, do not create it again
         to avoid memory consumption.
        */
@@ -105,7 +105,7 @@ void init_symbtab(CSOUND *csound)
         head = head->next;
     }
     csound->Free(csound, top);
-    }
+    // }
 }
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
