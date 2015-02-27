@@ -1567,12 +1567,12 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* run global i-time code */
       init0(csound);
       csound->ids = ids;
-      if(typeTable->instr0LocalPool != NULL) {
-            csoundFreeVarPool(csound, typeTable->instr0LocalPool);
-       }
-      if(typeTable->localPool != typeTable->instr0LocalPool) {
-            csoundFreeVarPool(csound, typeTable->localPool);
-      }
+      /* if(typeTable->instr0LocalPool != NULL) { */
+      /*       csoundFreeVarPool(csound, typeTable->instr0LocalPool); */
+      /*  } */
+      /* if(typeTable->localPool != typeTable->instr0LocalPool) { */
+      /*       csoundFreeVarPool(csound, typeTable->localPool); */
+      /* } */
     }
     else {
       /* first compilation */
@@ -1623,7 +1623,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
-    csound->Free(csound, typeTable);
+    //csound->Free(csound, typeTable);
     return CSOUND_SUCCESS;
 }
 
