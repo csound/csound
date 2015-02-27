@@ -1301,11 +1301,15 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
 
 int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
 {
-    /* FIXME: we need functions to deallocate stringPool, constantPool */
+
     csound->Free(csound, engineState->instrumentNames);
     myflt_pool_free(csound, engineState->constantsPool);
     /* purposely using csound->Free and not cs_hash_table_free as keys will have
      been merged into csound->engineState */
+
+    /* VL - using csound->Free() seems to increase memory usage on
+       successive calls, so I am restoring the hash table free
+    */
     cs_hash_table_mfree_complete(csound, engineState->stringPool);
     csoundFreeVarPool(csound, engineState->varPool);
     csound->Free(csound, engineState);
@@ -1563,7 +1567,12 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* run global i-time code */
       init0(csound);
       csound->ids = ids;
-      csoundFreeVarPool(csound, typeTable->instr0LocalPool);
+      if(typeTable->instr0LocalPool != NULL) {
+            csoundFreeVarPool(csound, typeTable->instr0LocalPool);
+       }
+      if(typeTable->localPool != typeTable->instr0LocalPool) {
+            csoundFreeVarPool(csound, typeTable->localPool);
+      }
     }
     else {
       /* first compilation */
