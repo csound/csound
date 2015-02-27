@@ -26,7 +26,8 @@
 #include <SLES/OpenSLES.h>
 #include "SLES/OpenSLES_Android.h"
 #include "csdl.h"
-#include <android/log.h> 
+#include <android/log.h>
+#include <stdint.h> 
 
 typedef struct OPEN_SL_PARAMS_ {
 
@@ -66,38 +67,65 @@ typedef struct OPEN_SL_PARAMS_ {
   csRtAudioParams outParm;
   csRtAudioParams inParm;
 
+  // stream time
+  __uint64_t *streamTime;
+
 } open_sl_params;
 
-#define CONV16BIT 32768
+#define CONV16BIT (32768)//./csoundGet0dBFS(csound))
 #define CONVMYFLT FL(1./32768.)
 
 // this callback handler is called every time a buffer finishes playing
 void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 {
   open_sl_params *p = (open_sl_params *) context;
-  int items = p->outBufSamples, i, r = 0;
+  int read=0,items = p->outBufSamples, i, r = 0;
   CSOUND *csound = p->csound;
   MYFLT *outputBuffer = p->outputBuffer;
   short *playBuffer = p->playBuffer;
-  csound->ReadCircularBuffer(csound,p->outcb,outputBuffer,items);
-  for(i=0;i < items; i++) 
+  //while(read==0){
+  read = csound->ReadCircularBuffer(csound,p->outcb,outputBuffer,items);
+  for(i=0;i < read; i++) 
     playBuffer[i] = (short) (outputBuffer[i]*CONV16BIT);
-  (*p->bqPlayerBufferQueue)->Enqueue(p->bqPlayerBufferQueue,playBuffer,items*sizeof(short));
+  //csound->Message(csound, "read: %d, items: %d - %d \n", read, items, items-read);
+  (*bq)->Enqueue(bq,playBuffer,items*sizeof(short));
+  //}
+  if(p->streamTime != NULL) (*p->streamTime) += (items/csound->GetNchnls(csound));
 }
 
-
-
+/* void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
+{
+  open_sl_params *p = (open_sl_params *) context;
+  CSOUND *csound = p->csound;
+  int items = p->outBufSamples,
+    i, r = 0;
+  MYFLT *outputBuffer = csoundGetOutputBuffer(csound);
+  short *playBuffer = p->playBuffer;
+  int ret = csoundPerformBuffer(csound);
+  if(ret==0){
+  for(i=0;i < items; i++) 
+    playBuffer[i] = (short) (outputBuffer[i]*CONV16BIT);
+  (*bq)->Enqueue(bq,playBuffer,items*sizeof(short));
+  if(p->streamTime != NULL) (*p->streamTime) += (items/csoundGetNchnls(csound));
+  }
+}
+void androidrtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes)
+{}
+*/
+#define MICROS 1000000
 /* put samples to DAC */
 void androidrtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes)
 {
   open_sl_params *p;
   int n = nbytes/sizeof(MYFLT);
-  int m = 0, l;
+  int m = 0, l, w = n;
+  MYFLT sr = csound->GetSr(csound);
   p = (open_sl_params *) *(csound->GetRtPlayUserData(csound));
   do{
-    l = csound->WriteCircularBuffer(csound,p->outcb,&buffer[m],n); 
+    l = csound->WriteCircularBuffer(csound,p->outcb,&buffer[m],n);
     m += l;
-    n -= l; 
+    n -= l;
+    //if(n) usleep(MICROS*w/sr);
   } while(n); 
 }
 
@@ -226,7 +254,7 @@ int openSLPlayOpen(open_sl_params *params)
   memset(params->playBuffer, 0, params->outBufSamples*sizeof(short));
   (*params->bqPlayerBufferQueue)->Enqueue(params->bqPlayerBufferQueue, 
     params->playBuffer,params->outBufSamples*sizeof(short));
- 
+
  end_openaudio:
   return result;
 }
@@ -271,10 +299,15 @@ int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm)
       return -1;
     }   
   }
-    
+ 
   memcpy(&(params->outParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtPlayUserData(p)) = (void*) params;
-    
+  if (p->CreateGlobalVariable(p, "::streamtime::", sizeof(__uint64_t))
+      == 0){
+   params->streamTime = (__int64_t *) p->QueryGlobalVariable(p, "::streamtime::");
+  *params->streamTime = 0;
+  } else params->streamTime = NULL;
+  
   returnVal = openSLInitOutParams(params);
   if(openSLPlayOpen(params) !=  SL_RESULT_SUCCESS) 
       returnVal = -1;

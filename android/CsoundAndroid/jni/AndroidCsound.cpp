@@ -10,12 +10,9 @@ extern void androidrtclose_(CSOUND *csound);
 
 static void androidMessageCallback(CSOUND*, int attr, const char *format, va_list valist) {
     char message[1024];
-
     vsnprintf(message, 1024, format, valist);
     __android_log_print(ANDROID_LOG_INFO,"AndroidCsound",message); 
 }
-
-
 }
 
 
@@ -33,4 +30,10 @@ void AndroidCsound::setOpenSlCallbacks() {
 
 int AndroidCsound::SetGlobalEnv(const char* name, const char* variable) {
     return csoundSetGlobalEnv(name, variable);
+}
+
+
+unsigned long AndroidCsound::getStreamTime(){
+  
+  return *((__uint64_t*) csoundQueryGlobalVariable(csound,"::streamtime::"));
 }

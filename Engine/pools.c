@@ -39,6 +39,7 @@ int myflt_pool_find_or_add(CSOUND* csound, MYFLT_POOL* pool, MYFLT value) {
     int index = myflt_pool_indexof(pool, value);
 
     if(index == -1) {
+     
         if (pool->count > 0 && pool->count % POOL_SIZE == 0) {
             pool->max += POOL_SIZE;
             pool->values = csound->ReAlloc(csound, pool->values,

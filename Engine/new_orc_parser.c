@@ -183,6 +183,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_orc));
       corfile_rm(&csound->orchstr);
+      
     }
     {
       TREE* astTree = (TREE *)csound->Calloc(csound, sizeof(TREE));
@@ -190,13 +191,16 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
 
+      
+ 
+
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
-
-      init_symbtab(csound);
+      init_symbtab(csound);    
 
       csound_orcdebug = O->odebug;
       csound_orclex_init(&pp.yyscanner);
+
 
       csound_orcset_extra(&pp, pp.yyscanner);
       csound_orc_scan_buffer(corfile_body(csound->expanded_orc),
@@ -205,6 +209,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
       err = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
       corfile_rm(&csound->expanded_orc);
+
+
       if (csound->synterrcnt) err = 3;
       if (LIKELY(err == 0)) {
         if(csound->oparms->odebug) csound->Message(csound, "Parsing successful!\n");
@@ -227,6 +233,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         print_tree(csound, "AST - INITIAL\n", astTree);
       }
       //print_tree(csound, "AST - INITIAL\n", astTree);
+
       typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
 
@@ -235,7 +242,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
-
+      
+   
       /**** THIS NEXT LINE IS WRONG AS err IS int WHILE FN RETURNS TREE* ****/
       astTree = verify_tree(csound, astTree, typeTable);
 //      csound->Free(csound, typeTable->instr0LocalPool);

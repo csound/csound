@@ -8,4 +8,5 @@ class PUBLIC AndroidCsound : public Csound {
 public:
     void setOpenSlCallbacks();
     int SetGlobalEnv(const char* name, const char* variable);
+    unsigned long getStreamTime();
 };
