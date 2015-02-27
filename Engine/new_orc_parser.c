@@ -59,8 +59,7 @@ extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
 extern int csound_orclex_init(void *);
 extern void csound_orcset_extra(void *, void *);
 extern void csound_orcset_lineno(int, void*);
-extern int csound_orclex_destroy(void *);
-extern void init_symbtab(CSOUND*);
+extern void csound_orclex_destroy(void *);
 extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
@@ -217,7 +216,6 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
-      init_symbtab(csound);
 
       csound_orcdebug = O->odebug;
       csound_orclex_init(&pp.yyscanner);
