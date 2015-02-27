@@ -300,7 +300,7 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
 
     if ((node->type == T_IDENT || node->type == LABEL_TOKEN) &&
         node->value->lexeme[0] == 'g') {
-      csp_set_add(csound, current_set, strdup(node->value->lexeme));
+      csp_set_add(csound, current_set, /*strdup*/(node->value->lexeme));
     }
 
     if (node->next != NULL) {
