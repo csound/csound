@@ -872,8 +872,8 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
     /* VL: 19-12-13
        an instrument varpool memory is allocated in the instrument block
        so deallocating the pool is not really right */
-    // deleteVarPoolMemory(csound, ip->varPool);
-     //csound->Free(csound, ip->varPool); /* need to delete the varPool memory */
+    //deleteVarPoolMemory(csound, ip->varPool);
+    //csound->Free(csound, ip->varPool); /* need to delete the varPool memory */
      csound->Free(csound, ip);
      if (csound->oparms->odebug)
        csound->Message(csound, Str("-- deleted instr from deadpool \n"));
@@ -1125,18 +1125,20 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
         }
         active = active->nxtinstance;
       }
+     
       /* no active instances */
       if (active == NULL || instrNum == 0) {
 
        if (csound->oparms->odebug)
        csound->Message(csound,
                        Str("no active instances of instr %d \n"), instrNum);
-        free_instrtxt(csound, engineState->instrtxtp[instrNum]);
+       free_instrtxt(csound, engineState->instrtxtp[instrNum]);
       }
+             
       /* err++; continue; */
     }
  end:
-
+     
     instrtxt->instance = instrtxt->act_instance = instrtxt->lst_instance = NULL;
     engineState->instrtxtp[instrNum] = instrtxt;
 
@@ -1210,12 +1212,13 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
                         current_state->stringPool, engineState->stringPool);
 
     for (count = 0; count < engineState->constantsPool->count; count++) {
-      if (csound->oparms->odebug)
+    if (csound->oparms->odebug)
         csound->Message(csound, Str(" merging constants %d) %f\n"),
                         count, engineState->constantsPool->values[count].value);
-      myflt_pool_find_or_add(csound, current_state->constantsPool,
-                             engineState->constantsPool->values[count].value);
+    myflt_pool_find_or_add(csound, current_state->constantsPool,
+                       engineState->constantsPool->values[count].value);
     }
+
     CS_VARIABLE* gVar = engineState->varPool->head;
     while (gVar != NULL) {
       CS_VARIABLE* var;
@@ -1303,8 +1306,8 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
     myflt_pool_free(csound, engineState->constantsPool);
     /* purposely using csound->Free and not cs_hash_table_free as keys will have
      been merged into csound->engineState */
-    csound->Free(csound, engineState->stringPool);
-    csound->Free(csound, engineState->varPool);
+    cs_hash_table_mfree_complete(csound, engineState->stringPool);
+    csoundFreeVarPool(csound, engineState->varPool);
     csound->Free(csound, engineState);
     return 0;
 }
@@ -1369,10 +1372,10 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                                     sizeof(INSTRTXT*));
        /* VL: allowing global code to be evaluated in
           subsequent compilations */
-      csound->instr0 = create_global_instrument(csound, current, engineState,
-                                          typeTable->instr0LocalPool);
-      insert_instrtxt(csound, csound->instr0, 0, engineState,1);
-      prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
+       csound->instr0 = create_global_instrument(csound, current, engineState,
+                                         typeTable->instr0LocalPool);
+        insert_instrtxt(csound, csound->instr0, 0, engineState,1);
+       prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
       //engineState->maxinsno = 1;
     }
 
@@ -1560,7 +1563,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* run global i-time code */
       init0(csound);
       csound->ids = ids;
-
+      csoundFreeVarPool(csound, typeTable->instr0LocalPool);
     }
     else {
       /* first compilation */
@@ -1611,7 +1614,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
-
+    csound->Free(csound, typeTable);
     return CSOUND_SUCCESS;
 }
 
@@ -1641,14 +1644,16 @@ PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str)
 */
 PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
 {
-    int retVal;
+    int retVal=1;
     TREE *root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
-      retVal = csoundCompileTree(csound, root);
+     retVal = csoundCompileTree(csound, root);
+     csoundDeleteTree(csound, root);
     }
-    else
-      return  CSOUND_ERROR;
-    csoundDeleteTree(csound, root);
+    else {
+     csoundDeleteTree(csound, root);
+     return  CSOUND_ERROR;
+    }
 
     if (UNLIKELY(csound->oparms->odebug))
       debugPrintCsound(csound);

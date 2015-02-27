@@ -28,6 +28,7 @@ package com.csounds;
 import java.io.File;
 import java.util.ArrayList;
 
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -69,6 +70,7 @@ public class CsoundObj {
 	private CsoundCallbackWrapper callbacks;
 	private Object mLock = new Object();
 	public MessagePoster messagePoster = null;
+	private long stime = 0;
 
 	public CsoundObj() {
 		this(false);
@@ -232,6 +234,7 @@ public class CsoundObj {
 	}
 
 	public synchronized void stop() {
+		//sendScore("e 0");
 		stopped = true;
 		if (thread != null) {
 			try {
@@ -291,7 +294,11 @@ public class CsoundObj {
 				listener.csoundObjStarted(this);
 			}
 			while (csound.PerformKsmps() == 0 && !stopped) {
-
+			
+			 stime += csound.GetKsmps();
+	         //Log.d("STREAM TIME", "time:" + ((AndroidCsound) csound).getStreamTime());
+	         //Log.d("STREAM TIME", "diff:" + (stime - ((AndroidCsound) csound).getStreamTime()));
+	        
 				synchronized (mLock) {
 					CsoundBinding cacheable;
 					String mess;
