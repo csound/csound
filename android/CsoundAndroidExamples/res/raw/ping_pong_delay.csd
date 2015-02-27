@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtmidi=null -d -+msg_color=0 -M0 -m0 -i adc
+-o dac -+rtmidi=null -d -+msg_color=0 -M0 -m0 -i adc -b128 -B512
 </CsOptions>
 <CsInstruments>
 nchnls=2
@@ -20,7 +20,7 @@ a1 init 0
 a2 init 0
 a1 vdelay3 asig+a2*klfeedback, kldelay, 3000
 a2 vdelay3 asig+a1*krfeedback, krdelay, 3000
-outs a2,a1
+outs a1,a2
 
 endin
 

@@ -39,7 +39,7 @@
 #endif
 
 // FIXME - this is global...
-CS_HASH_TABLE* symbtab;
+CS_HASH_TABLE* symbtab = NULL;
 
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
@@ -72,7 +72,11 @@ void init_symbtab(CSOUND *csound)
     char *shortName;
 
 
-    symbtab = cs_hash_table_create(csound);
+    if(symbtab == NULL) {
+      /* VL 27 02 2015 -- if symbtab exists, do not create it again
+        to avoid memory consumption.
+       */
+      symbtab = cs_hash_table_create(csound);
     /* Now we need to populate with basic words */
     /* Add token types for opcodes to symbtab.  If a polymorphic opcode
      * definition is found (dsblksiz >= 0xfffb), look for implementations
@@ -100,9 +104,8 @@ void init_symbtab(CSOUND *csound)
         }
         head = head->next;
     }
-
-
     csound->Free(csound, top);
+    }
 }
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
