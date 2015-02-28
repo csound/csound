@@ -225,8 +225,10 @@ int musmon(CSOUND *csound)
     memset(&(csound->evt), 0, sizeof(EVTBLK));
 
   /* run instr 0 inits */
-    if (UNLIKELY(init0(csound) != 0))
-    csoundDie(csound, Str("header init errors"));
+  /* moved to csoundCompileTree to allow for multiple
+	 compilations before csoundStart VL 28.2.15 */
+    // if (UNLIKELY(init0(csound) != 0))
+    //  csoundDie(csound, Str("header init errors"));
 
     /* kperf() will not call csoundYield() more than 250 times per second */
     csound->evt_poll_cnt    = 0;
@@ -1202,7 +1204,6 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       memcpy(e->evt.strarg, evt->strarg, p-evt->strarg+1 );
       e->evt.scnt = evt->scnt;
     }
-    e->evt.pinstance = evt->pinstance;
     e->evt.opcod = evt->opcod;
     e->evt.pcnt = evt->pcnt;
     p = &(e->evt.p[0]);

@@ -72,7 +72,8 @@ char* strsav_string(CSOUND* csound, ENGINE_STATE* engineState, char* key) {
                                          csound->engineState.stringPool, key);
 
     if (retVal == NULL) {
-        retVal = cs_hash_table_put_key(csound, engineState->stringPool, key);
+      //printf("strsav_string\n");
+      retVal = cs_hash_table_put_key(csound, engineState->stringPool, key);
     }
     return retVal;
 }
@@ -483,6 +484,7 @@ void addGlobalVariable(CSOUND *csound,
  * Create an Instrument (INSTRTXT) from the AST node given for use as
  * Instrument0. Called from csound_orc_compile.
  */
+
 INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                              ENGINE_STATE *engineState,
                              CS_VAR_POOL* varPool)
@@ -1259,14 +1261,14 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     INSTRTXT *current;
     int count;
 
-    cs_hash_table_merge(csound,
-                        current_state->stringPool, engineState->stringPool);
+    //cs_hash_table_merge(csound,
+    //                current_state->stringPool, engineState->stringPool);
 
     for (count = 0; count < engineState->constantsPool->count; count++) {
     if (csound->oparms->odebug)
         csound->Message(csound, Str(" merging constants %d) %f\n"),
                         count, engineState->constantsPool->values[count].value);
-    myflt_pool_find_or_add(csound, current_state->constantsPool,
+        myflt_pool_find_or_add(csound, current_state->constantsPool,
                        engineState->constantsPool->values[count].value);
     }
 
@@ -1357,12 +1359,9 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
     myflt_pool_free(csound, engineState->constantsPool);
     /* purposely using csound->Free and not cs_hash_table_free as keys will have
      been merged into csound->engineState */
-
-    /* VL - using csound->Free() seems to increase memory usage on
-       successive calls, so I am restoring the hash table free
-    */
-     csound->Free(csound, engineState->stringPool);
-     csound->Free(csound, engineState->varPool);
+    // csound->Free(csound, engineState->stringPool);
+     csoundFreeVarPool(csound, engineState->varPool);
+     csound->Free(csound, engineState->instrtxtp);
     csound->Free(csound, engineState);
     return 0;
 }
@@ -1418,7 +1417,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     }
     else {
       engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
-      engineState->stringPool = cs_hash_table_create(csound);
+      engineState->stringPool = csound->engineState.stringPool; //cs_hash_table_create(csound);
       engineState->constantsPool = myflt_pool_create(csound);
       engineState->varPool = typeTable->globalPool;
       prvinstxt = &(engineState->instxtanchor);
@@ -1429,7 +1428,9 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
           subsequent compilations */
        csound->instr0 = create_global_instrument(csound, current, engineState,
                                          typeTable->instr0LocalPool);
+    
         insert_instrtxt(csound, csound->instr0, 0, engineState,1);
+	
        prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
       //engineState->maxinsno = 1;
     }
@@ -1580,12 +1581,12 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* run global i-time code */
       init0(csound);
       csound->ids = ids;
-      /* if(typeTable->instr0LocalPool != NULL) { */
-      /*       csoundFreeVarPool(csound, typeTable->instr0LocalPool); */
-      /*  } */
-      /* if(typeTable->localPool != typeTable->instr0LocalPool) { */
-      /*       csoundFreeVarPool(csound, typeTable->localPool); */
-      /* } */
+      if(typeTable->instr0LocalPool != NULL) {
+            csoundFreeVarPool(csound, typeTable->instr0LocalPool);
+       }
+      if(typeTable->localPool != typeTable->instr0LocalPool) {
+            csoundFreeVarPool(csound, typeTable->localPool);
+      }
     }
     else {
       /* first compilation */
@@ -1629,14 +1630,17 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var = csoundFindVariableWithName(csound, engineState->varPool, "0dbfs");
       var->memBlock->value = csound->e0dbfs;
 
-
+      /* run instr 0 inits */
+      /* moved here from musmon to allow for multiple
+	 compilations before csoundStart VL 28.2.15 */
+      if (UNLIKELY(init0(csound) != 0))
+          csoundDie(csound, Str("header init errors"));
     }
-
     if (csound->init_pass_threadlock)
       csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
-    //csound->Free(csound, typeTable);
+    csound->Free(csound, typeTable);
     return CSOUND_SUCCESS;
 }
 

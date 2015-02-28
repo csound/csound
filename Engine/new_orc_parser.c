@@ -287,7 +287,18 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       newRoot->markup = typeTable;
       newRoot->next = astTree;
 
-
+      /* if(str!=NULL){ */
+      /* 	if (typeTable != NULL) { */
+      /*     csoundFreeVarPool(csound, typeTable->globalPool); */
+      /*     if(typeTable->instr0LocalPool != NULL) { */
+      /*       csoundFreeVarPool(csound, typeTable->instr0LocalPool); */
+      /*     } */
+      /*     if(typeTable->localPool != typeTable->instr0LocalPool) { */
+      /*       csoundFreeVarPool(csound, typeTable->localPool); */
+      /*     } */
+      /*     csound->Free(csound, typeTable); */
+      /*   } */
+      /* } */
       return newRoot;
     }
 }
