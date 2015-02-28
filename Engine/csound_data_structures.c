@@ -179,7 +179,7 @@ char* cs_hash_table_put_no_key_copy(CSOUND* csound,
                 CS_HASH_TABLE_ITEM* newItem = csound->Malloc(csound,
                                                       sizeof(CS_HASH_TABLE_ITEM));
                 newItem->key = key;
-                newItem->value = value;
+                 newItem->value = value;
                 newItem->next = NULL;
                 item->next = newItem;
                 return newItem->key;
@@ -277,8 +277,8 @@ PUBLIC void cs_hash_table_merge(CSOUND* csound,
             char* new_key = cs_hash_table_put_no_key_copy(csound, target, item->key, item->value);
             
             if(new_key != item->key) {
-                csound->Free(csound, item->key);
-            }
+                csound->Free(csound, item->key);		
+	      }
             
             csound->Free(csound, item);
             item = next;
