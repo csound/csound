@@ -72,7 +72,7 @@ char* strsav_string(CSOUND* csound, ENGINE_STATE* engineState, char* key) {
                                          csound->engineState.stringPool, key);
 
     if (retVal == NULL) {
-      //printf("strsav_string\n");
+      //printf("strsav_string: %s\n", key);
       retVal = cs_hash_table_put_key(csound, engineState->stringPool, key);
     }
     return retVal;
@@ -867,6 +867,8 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
     OPTXT *t = ip->nxtop;
     while (t) {
           OPTXT *s = t->nxtop;
+	  csound->Free(csound, t->t.outlist);
+          csound->Free(csound, t->t.inlist);
           csound->Free(csound, t);
           t = s;
         }
@@ -876,6 +878,10 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
        so deallocating the pool is not really right */
     //deleteVarPoolMemory(csound, ip->varPool);
     //csound->Free(csound, ip->varPool); /* need to delete the varPool memory */
+
+    csound->Free(csound, ip->t.outlist);
+    csound->Free(csound, ip->t.inlist);
+    
      csound->Free(csound, ip);
      if (csound->oparms->odebug)
        csound->Message(csound, Str("-- deleted instr from deadpool \n"));
@@ -1105,7 +1111,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       /* redefinition does not raise an error now, just a warning */
       /* unless we are not merging */
       if(!merge) synterr(csound, "instr %d redefined\n", instrNum);
-      if (instrNum && csound->oparms->odebug)
+       if (instrNum && csound->oparms->odebug)
         csound->Warning(csound,
                         Str("instr %ld redefined, replacing previous definition"),
                         instrNum);
