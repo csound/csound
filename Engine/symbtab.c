@@ -74,10 +74,11 @@ void init_symbtab(CSOUND *csound)
     char *shortName;
 
 
-    //if(csound->symbtab == NULL) {
+    if(csound->symbtab == NULL) {
       /* VL 27 02 2015 -- if symbtab exists, do not create it again
         to avoid memory consumption.
        */
+      //printf("init symbtab\n");
       csound->symbtab = cs_hash_table_create(csound);
     /* Now we need to populate with basic words */
     /* Add token types for opcodes to symbtab.  If a polymorphic opcode
@@ -107,7 +108,7 @@ void init_symbtab(CSOUND *csound)
         head = head->next;
     }
     csound->Free(csound, top);
-    //}
+    }
 }
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
