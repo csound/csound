@@ -3108,6 +3108,8 @@ PUBLIC void csoundReset(CSOUND *csound)
 
     csound->engineState.stringPool = cs_hash_table_create(csound);
     csound->engineState.constantsPool = myflt_pool_create(csound);
+    if(csound->symbtab != NULL) cs_hash_table_mfree_complete(csound, csound->symbtab);
+    csound->symbtab = NULL;
     csound->engineStatus |= CS_STATE_PRE;
     csound_aops_init_tables(csound);
     create_opcode_table(csound);
