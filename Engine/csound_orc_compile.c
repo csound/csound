@@ -1616,6 +1616,12 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var->memBlock->value = csound->inchnls;
       var = csoundFindVariableWithName(csound, engineState->varPool, "0dbfs");
       var->memBlock->value = csound->e0dbfs;
+
+      /* run instr 0 inits */
+      /* moved here from musmon to allow for multiple
+	 compilations before csoundStart VL 28.2.15 */
+      if (UNLIKELY(init0(csound) != 0))
+          csoundDie(csound, Str("header init errors"));
     }
     if (csound->init_pass_threadlock)
       csoundUnlockMutex(csound->init_pass_threadlock);
