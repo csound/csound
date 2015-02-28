@@ -1308,8 +1308,8 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
     /* purposely using csound->Free and not cs_hash_table_free as keys will have
      been merged into csound->engineState */
     csound->Free(csound, engineState->stringPool);
-    csoundFreeVarPool(csound, engineState->varPool);
-    csound->Free(csound, engineState->instrtxtp);
+     csoundFreeVarPool(csound, engineState->varPool);
+     //csound->Free(csound, engineState->instrtxtp);
     csound->Free(csound, engineState);
     return 0;
 }
