@@ -435,6 +435,7 @@ void addGlobalVariable(CSOUND *csound,
  * Create an Instrument (INSTRTXT) from the AST node given for use as
  * Instrument0. Called from csound_orc_compile.
  */
+
 INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                              ENGINE_STATE *engineState,
                              CS_VAR_POOL* varPool)
