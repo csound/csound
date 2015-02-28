@@ -38,8 +38,10 @@
 #define PARSER_DEBUG (0)
 #endif
 
+
 // FIXME - this is global...
-CS_HASH_TABLE* symbtab;// = NULL;
+// VL moved to csound struct
+//CS_HASH_TABLE* symbtab;
 
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
@@ -72,11 +74,12 @@ void init_symbtab(CSOUND *csound)
     char *shortName;
 
 
-    // if(symbtab == NULL) {
+    if(csound->symbtab == NULL) {
       /* VL 27 02 2015 -- if symbtab exists, do not create it again
         to avoid memory consumption.
        */
-      symbtab = cs_hash_table_create(csound);
+      //printf("init symbtab\n");
+      csound->symbtab = cs_hash_table_create(csound);
     /* Now we need to populate with basic words */
     /* Add token types for opcodes to symbtab.  If a polymorphic opcode
      * definition is found (dsblksiz >= 0xfffb), look for implementations
@@ -105,14 +108,14 @@ void init_symbtab(CSOUND *csound)
         head = head->next;
     }
     csound->Free(csound, top);
-    // }
+    }
 }
 
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
 {
     //printf("Hash value for %s: %i\n", s, h);
 
-    ORCTOKEN *a = cs_hash_table_get(csound, symbtab, s);
+    ORCTOKEN *a = cs_hash_table_get(csound, csound->symbtab, s);
 
     ORCTOKEN *ans;
     if (a!=NULL) {
@@ -129,7 +132,7 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     strcpy(ans->lexeme, s);
     ans->type = type;
 
-    cs_hash_table_put(csound, symbtab, s, ans);
+    cs_hash_table_put(csound, csound->symbtab, s, ans);
 
     return ans;
 }
@@ -196,7 +199,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
       }
     }
 
-    a = cs_hash_table_get(csound, symbtab, s);
+    a = cs_hash_table_get(csound, csound->symbtab, s);
 
     if (a != NULL) {
       ans = (ORCTOKEN*)csound->Malloc(csound, sizeof(ORCTOKEN));
