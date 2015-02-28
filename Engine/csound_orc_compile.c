@@ -1310,8 +1310,8 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
     /* VL - using csound->Free() seems to increase memory usage on
        successive calls, so I am restoring the hash table free
     */
-     csound->Free(csound, engineState->stringPool);
-     csound->Free(csound, engineState->varPool);
+    csound->Free(csound, engineState->stringPool);
+     csoundFreeVarPool(csound, engineState->varPool);
     csound->Free(csound, engineState);
     return 0;
 }
@@ -1378,7 +1378,9 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
           subsequent compilations */
        csound->instr0 = create_global_instrument(csound, current, engineState,
                                          typeTable->instr0LocalPool);
+    
         insert_instrtxt(csound, csound->instr0, 0, engineState,1);
+	
        prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
       //engineState->maxinsno = 1;
     }
