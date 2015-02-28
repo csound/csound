@@ -1208,8 +1208,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     INSTRTXT *current;
     int count;
 
-    cs_hash_table_merge(csound,
-                        current_state->stringPool, engineState->stringPool);
+    //cs_hash_table_merge(csound,
+    //                  current_state->stringPool, engineState->stringPool);
 
     for (count = 0; count < engineState->constantsPool->count; count++) {
     if (csound->oparms->odebug)
@@ -1310,7 +1310,7 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
     /* VL - using csound->Free() seems to increase memory usage on
        successive calls, so I am restoring the hash table free
     */
-    csound->Free(csound, engineState->stringPool);
+    // cs_hash_table_free(csound, engineState->stringPool);
     csoundFreeVarPool(csound, engineState->varPool); 
     csound->Free(csound, engineState);
     return 0;
@@ -1367,7 +1367,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     }
     else {
       engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
-      engineState->stringPool = cs_hash_table_create(csound);
+      engineState->stringPool = csound->engineState.stringPool;// cs_hash_table_create(csound);
       engineState->constantsPool = myflt_pool_create(csound);
       engineState->varPool = typeTable->globalPool;
       prvinstxt = &(engineState->instxtanchor);
