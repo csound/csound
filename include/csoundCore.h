@@ -1698,6 +1698,7 @@ typedef struct NAME__ {
     int (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug
                                and nodebug function */
     int           score_parser;
+    CS_HASH_TABLE* symbtab;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
