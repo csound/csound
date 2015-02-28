@@ -1625,7 +1625,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
-    //csound->Free(csound, typeTable);
+    csound->Free(csound, typeTable);
     return CSOUND_SUCCESS;
 }
 
