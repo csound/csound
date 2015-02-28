@@ -1311,7 +1311,7 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
        successive calls, so I am restoring the hash table free
     */
     csound->Free(csound, engineState->stringPool);
-    csoundFreeVarPool(csound, engineState->varPool);
+    csoundFreeVarPool(csound, engineState->varPool); 
     csound->Free(csound, engineState);
     return 0;
 }
