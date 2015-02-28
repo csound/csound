@@ -72,7 +72,8 @@ char* strsav_string(CSOUND* csound, ENGINE_STATE* engineState, char* key) {
                                          csound->engineState.stringPool, key);
 
     if (retVal == NULL) {
-        retVal = cs_hash_table_put_key(csound, engineState->stringPool, key);
+      //printf("strsav_string\n");
+      retVal = cs_hash_table_put_key(csound, engineState->stringPool, key);
     }
     return retVal;
 }
@@ -1208,14 +1209,14 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     INSTRTXT *current;
     int count;
 
-    //cs_hash_table_merge(csound,
-    //                  current_state->stringPool, engineState->stringPool);
+    cs_hash_table_merge(csound,
+                      current_state->stringPool, engineState->stringPool);
 
     for (count = 0; count < engineState->constantsPool->count; count++) {
     if (csound->oparms->odebug)
         csound->Message(csound, Str(" merging constants %d) %f\n"),
                         count, engineState->constantsPool->values[count].value);
-    myflt_pool_find_or_add(csound, current_state->constantsPool,
+        myflt_pool_find_or_add(csound, current_state->constantsPool,
                        engineState->constantsPool->values[count].value);
     }
 
@@ -1306,12 +1307,9 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
     myflt_pool_free(csound, engineState->constantsPool);
     /* purposely using csound->Free and not cs_hash_table_free as keys will have
      been merged into csound->engineState */
-
-    /* VL - using csound->Free() seems to increase memory usage on
-       successive calls, so I am restoring the hash table free
-    */
-    // cs_hash_table_free(csound, engineState->stringPool);
-    csoundFreeVarPool(csound, engineState->varPool); 
+    csound->Free(csound, engineState->stringPool);
+    csoundFreeVarPool(csound, engineState->varPool);
+    csound->Free(csound, engineState->instrtxtp);
     csound->Free(csound, engineState);
     return 0;
 }
@@ -1367,7 +1365,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     }
     else {
       engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
-      engineState->stringPool = csound->engineState.stringPool;// cs_hash_table_create(csound);
+      engineState->stringPool = cs_hash_table_create(csound);
       engineState->constantsPool = myflt_pool_create(csound);
       engineState->varPool = typeTable->globalPool;
       prvinstxt = &(engineState->instxtanchor);
@@ -1617,10 +1615,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var->memBlock->value = csound->inchnls;
       var = csoundFindVariableWithName(csound, engineState->varPool, "0dbfs");
       var->memBlock->value = csound->e0dbfs;
-
-
     }
-
     if (csound->init_pass_threadlock)
       csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
