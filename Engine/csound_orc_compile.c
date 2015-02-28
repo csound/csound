@@ -1309,7 +1309,7 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
      been merged into csound->engineState */
     csound->Free(csound, engineState->stringPool);
      csoundFreeVarPool(csound, engineState->varPool);
-     //csound->Free(csound, engineState->instrtxtp);
+     csound->Free(csound, engineState->instrtxtp);
     csound->Free(csound, engineState);
     return 0;
 }
