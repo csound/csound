@@ -19,7 +19,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MAc
     02111-1307 USA
 */
 
@@ -423,6 +423,7 @@ QNAN		"qnan"[ \t]*\(
                 }
 #exit           { corfile_putc('\0', csound->expanded_orc);
                   corfile_putc('\0', csound->expanded_orc);
+                  printf("break is %p\n", sbrk(0));
                   return 0;}
 <<EOF>>         {
                   MACRO *x, *y=NULL;
@@ -960,7 +961,7 @@ void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
           csound->LongJmp(csound, 1);
         }
         c = input(yyscanner);
-      }
+    }
       csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                            yyscanner);
       corfile_putc('\n', csound->expanded_orc);
