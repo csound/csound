@@ -632,7 +632,7 @@ static const CSOUND cenviron_ = {
     NULL,           /*  FFT_table_1         */
     NULL,           /*  FFT_table_2         */
     NULL, NULL, NULL, /* tseg, tpsave, tplim */
-    0, 0, 0, 0, 0, 0, /*  acount, kcount, icount, Bcount, bcount, tcount */
+    0, /*  synthArgCount */
     (MYFLT*) NULL,  /*  gbloffbas           */
 #if defined(WIN32) //&& (__GNUC_VERSION__ < 40800)
     (pthread_t){0, 0},   /* file_io_thread    */
