@@ -99,10 +99,10 @@ char *create_out_arg(CSOUND *csound, char* outype, int argCount, TYPE_TABLE* typ
  * returns outarg type
  */
 
-char * get_boolean_arg(CSOUND *csound, int type)
+char * get_boolean_arg(CSOUND *csound, TYPE_TABLE* typeTable, int type)
 {
     char* s = (char *)csound->Malloc(csound, 8);
-    snprintf(s, 8, "#%c%d", type?'B':'b',csound->synthArgCount++);
+    snprintf(s, 8, "#%c%d", type?'B':'b', typeTable->localPool->synthArgCount++);
 
     return s;
 }
@@ -326,7 +326,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     OENTRIES* entries = find_opcode2(csound, ":cond");
     outype = resolve_opcode_get_outarg(csound, entries, condInTypes);
 
-    outarg = create_out_arg(csound, outype, csound->synthArgCount++, typeTable);
+    outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
     opTree = create_opcode_token(csound, cs_strdup(csound, ":cond"));
     opTree->left = create_ans_token(csound, outarg);
     opTree->right = b;
@@ -356,7 +356,7 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
 
     outType = convert_external_to_internal(csound, outType);
 
-    return create_out_arg(csound, outType, csound->synthArgCount++, typeTable);
+    return create_out_arg(csound, outType, typeTable->localPool->synthArgCount++, typeTable);
 }
 
 /**
@@ -492,7 +492,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
         outtype_internal = convert_external_to_internal(csound, outtype);
 
-        outarg = create_out_arg(csound, outtype_internal, csound->synthArgCount++, typeTable);
+        outarg = create_out_arg(csound, outtype_internal,
+                                typeTable->localPool->synthArgCount++, typeTable);
 
       }
       break;
@@ -541,7 +542,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                                       typeTable);
         char* outype = resolve_opcode_get_outarg(csound, opentries,
                                                  rightArgType);
-        outarg = create_out_arg(csound, outype, csound->synthArgCount++, typeTable);
+        outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
 
       }
       break;
@@ -558,7 +559,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
           outarg = create_out_arg(csound,
                                   get_array_sub_type(csound,
                                                      root->left->value->lexeme),
-                                  csound->synthArgCount++,
+                                  typeTable->localPool->synthArgCount++,
                                   typeTable);
         } else {
 
@@ -575,7 +576,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
           if (outype == NULL) {
             return NULL;
           }
-          outarg = create_out_arg(csound, outype, csound->synthArgCount++, typeTable);
+          outarg = create_out_arg(csound, outype,
+                                  typeTable->localPool->synthArgCount++, typeTable);
 
         }
         break;
@@ -735,6 +737,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
 
     outarg = get_boolean_arg(
                  csound,
+                 typeTable,
                  argtyp2( root->left->value->lexeme) =='k' ||
                  argtyp2( root->right->value->lexeme)=='k' ||
                  argtyp2( root->left->value->lexeme) =='B' ||
@@ -927,7 +930,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
           }
 
         temp = create_ans_token(csound,
-                                create_out_arg(csound, outType, csound->synthArgCount++, typeTable));
+                                create_out_arg(csound, outType,
+                                               typeTable->localPool->synthArgCount++, typeTable));
 
         if (previousArg == NULL) {
           current->left = temp;
