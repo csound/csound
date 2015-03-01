@@ -99,27 +99,6 @@ char *create_out_arg(CSOUND *csound, char* outype, int argCount, TYPE_TABLE* typ
  * returns outarg type
  */
 
-//FIXME - need to remove using this function, should not be necessary with
-// using new type system code
-char *set_expression_type(CSOUND *csound, char * op, char arg1, char arg2,
-                          TYPE_TABLE* typeTable)
-{
-    char *outype, *s;
-    OENTRIES* oentries;
-
-    oentries = find_opcode2(csound, op);
-    char args[3] = { arg1, arg2, '\0' };
-
-    outype = resolve_opcode_get_outarg(csound, oentries, args);
-
-    s = create_out_arg(csound, outype, csound->synthArgCount++, typeTable);
-
-    if (UNLIKELY(PARSER_DEBUG))
-      csound->Message(csound, "SET_EXPRESSION_TYPE: %s : %s\n", op, s);
-
-    return s;
-}
-
 char * get_boolean_arg(CSOUND *csound, int type)
 {
     char* s = (char *)csound->Malloc(csound, 8);
