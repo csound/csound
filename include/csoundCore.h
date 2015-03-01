@@ -1474,7 +1474,7 @@ typedef struct NAME__ {
     /* statics from twarp.c should be TSEG* */
     void          *tseg, *tpsave, *tplim;
     /* Statics from express.c */
-    int           acount, kcount, icount, Bcount, bcount, tcount;
+    int           synthArgCount;
     MYFLT         *gbloffbas;       /* was static in oload.c */
     pthread_t    file_io_thread;
     int          file_io_start;
