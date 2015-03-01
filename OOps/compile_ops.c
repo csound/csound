@@ -61,12 +61,13 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
 }
 
 int compile_csd_i(CSOUND *csound, COMPILE *p){
+    csound->icount = csound->acount = csound->kcount =
+      csound->Bcount = csound->bcount = csound->tcount = 0;
     *p->res = (MYFLT) csoundCompileCsd(csound, ((STRINGDAT *)p->str)->data);
     return OK;
 }
 
 int compile_str_i(CSOUND *csound, COMPILE *p){
-    //csound->icount = 0;
     *p->res = (MYFLT)(csoundCompileOrc(csound, ((STRINGDAT *)p->str)->data));
     return OK;
 }
