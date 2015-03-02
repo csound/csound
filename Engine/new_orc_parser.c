@@ -290,7 +290,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         }
         return NULL;
       }
-
+      
       astTree = csound_orc_optimize(csound, astTree);
 
       // small hack: use an extra node as head of tree list to hold the
@@ -298,7 +298,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       newRoot = make_leaf(csound, 0, 0, 0, NULL);
       newRoot->markup = typeTable;
       newRoot->next = astTree;
-
+       
       /* if(str!=NULL){ */
       /* 	if (typeTable != NULL) { */
       /*     csoundFreeVarPool(csound, typeTable->globalPool); */
