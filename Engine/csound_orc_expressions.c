@@ -801,6 +801,35 @@ void handle_negative_number(CSOUND* csound, TREE* root) {
   }
 }
 
+
+void collapse_last_assigment(CSOUND* csound, TREE* anchor, TYPE_TABLE* typeTable) {
+    TREE *a, *b, *temp;
+    temp = anchor;
+    
+    if (temp == NULL || temp->next == NULL) {
+        return;
+    }
+   
+    while (temp->next != NULL) {
+        a = temp;
+        b = temp->next;
+        temp = temp->next;
+    }
+    
+    if (b == NULL || a->left == NULL ||
+        b->left == NULL || b->right == NULL) {
+        return;
+    }
+   
+    if (b->type == '=' &&
+        !strcmp(a->left->value->lexeme, b->right->value->lexeme) &&
+        get_arg_type2(csound, b->left, typeTable) == get_arg_type2(csound, b->right, typeTable)) {
+        a->left = b->left;
+        a->next = NULL;
+        csound->Free(csound, b);
+    }
+}
+
 /* returns the head of a list of TREE* nodes, expanding all RHS
    expressions into statements prior to the original statement line,
    and LHS expressions (array sets) after the original statement
@@ -962,6 +991,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
     }
 
     handle_optional_args(csound, current);
+    
+    collapse_last_assigment(csound, anchor, typeTable);
 
     appendToTree(csound, anchor, originalNext);
 
