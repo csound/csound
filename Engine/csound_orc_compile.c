@@ -208,9 +208,10 @@ char** splitArgs(CSOUND* csound, char* argString)
 {
     int argCount = argsRequired(argString);
     char** args = csound->Malloc(csound, sizeof(char*) * (argCount + 1));
+    // printf("alloc %p \n", args);
     char* t = argString;
     int i = 0;
-
+    	    
     if (t != NULL) {
       while (*t != '\0' ) {
         char* part;
@@ -235,7 +236,8 @@ char** splitArgs(CSOUND* csound, char* argString)
             len++;
             dimensions++;
           }
-          part = csound->Malloc(csound, sizeof(char) * (dimensions + 3));
+	  part = csound->Malloc(csound, sizeof(char) * (dimensions + 3));
+	  //printf("alloc %p \n", part);
           part[dimensions + 2] = '\0';
           part[dimensions + 1] = ']';
           part[dimensions] = *start;
@@ -245,6 +247,7 @@ char** splitArgs(CSOUND* csound, char* argString)
 
         } else {
           part = csound->Malloc(csound, sizeof(char) * 2);
+	  //printf("alloc %p \n", part);
           part[0] = *t;
           part[1] = '\0';
           t++;
@@ -888,13 +891,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
           csound->Free(csound, t);
           t = s;
         }
-    // myflt_pool_free(csound, ip->varPool);
-    /* VL: 19-12-13
-       an instrument varpool memory is allocated in the instrument block
-       so deallocating the pool is not really right */
-    //deleteVarPoolMemory(csound, ip->varPool);
-    //csound->Free(csound, ip->varPool); /* need to delete the varPool memory */
-
+ 
     csound->Free(csound, ip->t.outlist);
     csound->Free(csound, ip->t.inlist);
     
@@ -1834,7 +1831,11 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 
           csound->Message(csound, "\n");
         }
-
+        //printf("delete %p \n", argStringParts);
+	for(n=0; argStringParts[n] != NULL; n++) {
+	  //printf("delete %p \n", argStringParts[n]);
+	  csound->Free(csound, argStringParts[n]);
+	}
         csound->Free(csound, argStringParts);
       }
 
@@ -1892,7 +1893,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + sizeof(STRINGDAT);
       CS_VAR_MEM* varMem = csound->Calloc(csound, memSize);
       STRINGDAT *str = (STRINGDAT*)&varMem->value;
-      printf("create string %p: %s \n", arg, str->data);
+      //printf("create string %p: %s \n", arg, str->data);
       varMem->varType = (CS_TYPE*)&CS_VAR_TYPE_S;
       arg->type = ARG_STRING;
       temp = csound->Calloc(csound, strlen(s) + 1);
