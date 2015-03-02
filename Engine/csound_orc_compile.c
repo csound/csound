@@ -867,7 +867,23 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
     OPTXT *t = ip->nxtop;
     while (t) {
           OPTXT *s = t->nxtop;
+	  TEXT *ttp = &t->t;
+	  //printf("%s \n",  ttp->opcod);
+          ARG* current = ttp->outArgs;
+          while (current != NULL) {
+	      ARG *tmp = current;
+	      //printf("delete %p \n", tmp);
+	      current = current->next;
+	      csound->Free(csound, tmp);
+            } 
 	  csound->Free(csound, t->t.outlist);
+	  current = ttp->inArgs;
+            while (current  != NULL) {
+	      ARG *tmp = current;
+	      //printf("delete %p \n", tmp);
+	      current = current->next;
+	      csound->Free(csound, tmp);
+           }
           csound->Free(csound, t->t.inlist);
           csound->Free(csound, t);
           t = s;
@@ -1246,6 +1262,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
         /* when disposing of the engineState global vars, we do not
            delete the memBlock */
         var->memBlock = gVar->memBlock;
+	//csound->Message(csound, Str(" adding %d) %s:%s\n"), count,
+	//              gVar->varName, gVar->varType->varTypeName);
       }
       gVar = gVar->next;
     }
@@ -1749,12 +1767,16 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 
           if (ttp->inArgs == NULL) {
             ttp->inArgs = arg;
+	    //printf("yinarg %p -- opcode %s \n", arg, ttp->opcod);
           } else {
             ARG* current = ttp->inArgs;
+	    //printf("xinarg %p %p -- opcode %s \n", current, arg, ttp->opcod);
             while(current->next != NULL) {
-              current = current->next;
+	      //printf("inarg %p %p -- opcode %s \n", current, arg, ttp->opcod);
+              current = current->next; 
             }
             current->next = arg;
+            
             arg->next = NULL;
           }
         }
@@ -1864,13 +1886,13 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
     if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
         (c == '0' && strcmp(s, "0dbfs") != 0)) {
       arg->type = ARG_CONSTANT;
-
+      //printf("create constant %p: %c \n", arg, c);
       arg->index = myflt_pool_find_or_addc(csound, engineState->constantsPool, s);
     } else if (c == '"') {
       size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + sizeof(STRINGDAT);
       CS_VAR_MEM* varMem = csound->Calloc(csound, memSize);
       STRINGDAT *str = (STRINGDAT*)&varMem->value;
-
+      printf("create string %p: %s \n", arg, str->data);
       varMem->varType = (CS_TYPE*)&CS_VAR_TYPE_S;
       arg->type = ARG_STRING;
       temp = csound->Calloc(csound, strlen(s) + 1);
@@ -1902,16 +1924,18 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       //|| string_pool_indexof(csound->engineState.stringPool, s) > 0) {
       arg->type = ARG_GLOBAL;
       arg->argPtr = csoundFindVariableWithName(csound, engineState->varPool, s);
-
+      //printf("create global %p: %s \n", arg, s);
     }
     else {
       arg->type = ARG_LOCAL;
       arg->argPtr = csoundFindVariableWithName(csound, ip->varPool, s);
+      //printf("create local %p: %s \n", arg, s);
       if (arg->argPtr == NULL) {
         csound->Message(csound, Str("Missing local arg: %s\n"), s);
       }
     }
     /*    csound->Message(csound, " [%s -> %d (%x)]\n", s, indx, indx); */
+     
     return arg;
 }
 
