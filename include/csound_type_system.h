@@ -101,6 +101,7 @@ extern "C" {
         int poolSize;
         struct csvarpool* parent;
         int varCount;
+        int synthArgCount;
     } CS_VAR_POOL;
 
     PUBLIC CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound);

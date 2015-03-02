@@ -72,7 +72,7 @@ char* strsav_string(CSOUND* csound, ENGINE_STATE* engineState, char* key) {
                                          csound->engineState.stringPool, key);
 
     if (retVal == NULL) {
-      //printf("strsav_string\n");
+      //printf("strsav_string: %s\n", key);
       retVal = cs_hash_table_put_key(csound, engineState->stringPool, key);
     }
     return retVal;
@@ -918,6 +918,24 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
     OPTXT *t = ip->nxtop;
     while (t) {
           OPTXT *s = t->nxtop;
+	  TEXT *ttp = &t->t;
+	  //printf("%s \n",  ttp->opcod);
+          ARG* current = ttp->outArgs;
+          while (current != NULL) {
+	      ARG *tmp = current;
+	      //printf("delete %p \n", tmp);
+	      current = current->next;
+	      csound->Free(csound, tmp);
+            } 
+	  csound->Free(csound, t->t.outlist);
+	  current = ttp->inArgs;
+            while (current  != NULL) {
+	      ARG *tmp = current;
+	      //printf("delete %p \n", tmp);
+	      current = current->next;
+	      csound->Free(csound, tmp);
+           }
+          csound->Free(csound, t->t.inlist);
           csound->Free(csound, t);
           t = s;
         }
@@ -927,6 +945,10 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
        so deallocating the pool is not really right */
     //deleteVarPoolMemory(csound, ip->varPool);
     //csound->Free(csound, ip->varPool); /* need to delete the varPool memory */
+
+    csound->Free(csound, ip->t.outlist);
+    csound->Free(csound, ip->t.inlist);
+    
      csound->Free(csound, ip);
      if (csound->oparms->odebug)
        csound->Message(csound, Str("-- deleted instr from deadpool \n"));
@@ -1156,7 +1178,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       /* redefinition does not raise an error now, just a warning */
       /* unless we are not merging */
       if(!merge) synterr(csound, "instr %d redefined\n", instrNum);
-      if (instrNum && csound->oparms->odebug)
+       if (instrNum && csound->oparms->odebug)
         csound->Warning(csound,
                         Str("instr %ld redefined, replacing previous definition"),
                         instrNum);
@@ -1291,6 +1313,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
         /* when disposing of the engineState global vars, we do not
            delete the memBlock */
         var->memBlock = gVar->memBlock;
+	//csound->Message(csound, Str(" adding %d) %s:%s\n"), count,
+	//              gVar->varName, gVar->varType->varTypeName);
       }
       gVar = gVar->next;
     }
@@ -1756,12 +1780,16 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 
           if (ttp->inArgs == NULL) {
             ttp->inArgs = arg;
+	    //printf("yinarg %p -- opcode %s \n", arg, ttp->opcod);
           } else {
             ARG* current = ttp->inArgs;
+	    //printf("xinarg %p %p -- opcode %s \n", current, arg, ttp->opcod);
             while(current->next != NULL) {
-              current = current->next;
+	      //printf("inarg %p %p -- opcode %s \n", current, arg, ttp->opcod);
+              current = current->next; 
             }
             current->next = arg;
+            
             arg->next = NULL;
           }
         }
@@ -1886,13 +1914,13 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
     if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
         (c == '0' && strcmp(s, "0dbfs") != 0)) {
       arg->type = ARG_CONSTANT;
-
+      //printf("create constant %p: %c \n", arg, c);
       arg->index = myflt_pool_find_or_addc(csound, engineState->constantsPool, s);
     } else if (c == '"') {
       size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + sizeof(STRINGDAT);
       CS_VAR_MEM* varMem = csound->Calloc(csound, memSize);
       STRINGDAT *str = (STRINGDAT*)&varMem->value;
-
+      printf("create string %p: %s \n", arg, str->data);
       varMem->varType = (CS_TYPE*)&CS_VAR_TYPE_S;
       arg->type = ARG_STRING;
       temp = csound->Calloc(csound, strlen(s) + 1);
@@ -1923,7 +1951,6 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       // FIXME - figure out why string pool searched with gexist
       //|| string_pool_indexof(csound->engineState.stringPool, s) > 0) {
       arg->type = ARG_GLOBAL;
-                 
       setupArgForVarName(csound, arg, engineState->varPool, s);
                  
       if (arg->argPtr == NULL) {
@@ -1933,15 +1960,15 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
     else {
         
       arg->type = ARG_LOCAL;
-    
       setupArgForVarName(csound, arg, ip->varPool, s);
-      
+
       if (arg->argPtr == NULL) {
         csound->Message(csound, Str("Missing local arg: %s\n"), s);
       }
     }
 //    printf("ARG TYPE %d\n", arg->type);
     /*    csound->Message(csound, " [%s -> %d (%x)]\n", s, indx, indx); */
+     
     return arg;
 }
 

@@ -66,7 +66,6 @@ int compile_csd_i(CSOUND *csound, COMPILE *p){
 }
 
 int compile_str_i(CSOUND *csound, COMPILE *p){
-    //csound->icount = 0;
     *p->res = (MYFLT)(csoundCompileOrc(csound, ((STRINGDAT *)p->str)->data));
     return OK;
 }
