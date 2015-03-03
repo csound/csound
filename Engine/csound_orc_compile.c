@@ -1262,13 +1262,12 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
 	//          gVar->varName, gVar->varType->varTypeName);
          gVar = gVar->next;
       } else {
-	// if variable exists we copy its memblock
-	// this is only until we figure out how to delete
-	// a duplicate variable.
-       gVar->memBlock = var->memBlock;
-       //csound->Message(csound, Str(" not adding %d) %s:%s %p %p\n"), count,
-       //	       gVar->varName, var->varName, gVar->memBlock, var->memBlock);
+	// if variable exists we delete it
+	// csound->Message(csound, Str(" not adding %d) %s:%s %p %p\n"), count,
+       	//       gVar->varName, var->varName, gVar, var);
+       CS_VARIABLE *tmp = gVar;
        gVar = gVar->next;
+       csound->Free(csound, gVar);
       }
      	
     }
@@ -1953,7 +1952,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       //|| string_pool_indexof(csound->engineState.stringPool, s) > 0) {
       arg->type = ARG_GLOBAL;
       arg->argPtr = csoundFindVariableWithName(csound, engineState->varPool, s);
-      //printf("create global %p: %s \n", arg, s);
+      //printf("create global %p: %s \n", arg->argPtr, s);
     }
     else {
       arg->type = ARG_LOCAL;
