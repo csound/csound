@@ -252,11 +252,12 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                                         typeTable);
           char* argString = strcat(leftArgType, rightArgType);
 
+          OENTRIES* opentries = find_opcode2(csound, "##array_get");
           char* outype = resolve_opcode_get_outarg(csound,
-                                                   find_opcode2(csound,
-                                                                "##array_get"),
+                                                   opentries,
                                                    argString);
 
+          csound->Free(csound, opentries);
           if (UNLIKELY(outype == NULL)) {
             synterr(csound,
                     Str("unable to find array operator for "
@@ -288,10 +289,12 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         snprintf(condInTypes, 64, "%s%s%s", ans, arg1, arg2);
 
+        OENTRIES* opentries = find_opcode2(csound, ":cond");
         out = resolve_opcode_get_outarg(csound,
-                                        find_opcode2(csound, ":cond"),
+                                        opentries,
                                         condInTypes);
 
+        csound->Free(csound, opentries);
         if (UNLIKELY(out == NULL)) {
           synterr(csound,
                   Str("unable to find ternary operator for "
@@ -301,9 +304,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return NULL;
         }
 
-	csound->Free(csound, arg1);
+      	csound->Free(csound, arg1);
         csound->Free(csound, arg2);
-	csound->Free(csound, ans);
+    	csound->Free(csound, ans);
         return cs_strdup(csound, out);
 
       }
@@ -342,7 +345,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           do_baktrace(csound, tree->locn);
           return NULL;
         }
-        csound->Free(csound, argTypeRight); 
+        csound->Free(csound, argTypeRight);
+        csound->Free(csound, entries);
         return cs_strdup(csound, out);
 
       }
@@ -368,7 +372,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         OENTRIES* entries = find_opcode2(csound, opname);
 
-
         argTypeLeft = convert_internal_to_external(csound, argTypeLeft);
         argTypeRight = convert_internal_to_external(csound, argTypeRight);
 
@@ -382,7 +385,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         inArgTypes[len1 + len2] = '\0';
 
         out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
-
+        csound->Free(csound, entries);
+          
         if (UNLIKELY(out == NULL)) {
           synterr(csound, Str("error: opcode '%s' for expression with arg "
                               "types %s not found, line %d \n"),
@@ -392,8 +396,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return NULL;
         }
 
-	csound->Free(csound, argTypeLeft);
-	csound->Free(csound, argTypeRight);
+    	csound->Free(csound, argTypeLeft);
+    	csound->Free(csound, argTypeRight);
+          
         free(inArgTypes);
         return cs_strdup(csound, out);
 
@@ -433,7 +438,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       inArgTypes[len1 + len2] = '\0';
 
       out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
-
+      csound->Free(csound, entries);
+        
       if (UNLIKELY(out == NULL)) {
         synterr(csound, Str("error: boolean expression '%s' with arg "
                             "types %s not found, line %d \n"),
@@ -1402,6 +1408,9 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     if (UNLIKELY(entries == NULL || entries->count == 0)) {
       synterr(csound, Str("Unable to find opcode with name: %s\n"),
               root->value->lexeme);
+      if (entries != NULL) {
+        csound->Free(csound, entries);
+      }
       return 0;
     }
 
@@ -1423,12 +1432,18 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       csoundMessage(csound, Str("Line: %d\n"),
                     root->line);
       do_baktrace(csound, root->locn);
+        
+      csound->Free(csound, leftArgString);
+      csound->Free(csound, rightArgString);
+      csound->Free(csound, entries);
+        
       return 0;
     } else {
       root->markup = oentry;
     }
     csound->Free(csound, leftArgString);
     csound->Free(csound, rightArgString);
+    csound->Free(csound, entries);
     return 1;
 }
 

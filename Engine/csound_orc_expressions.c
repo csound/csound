@@ -336,6 +336,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     //csound->Free(csound, root->right); root->right = NULL;
     last->next = opTree;
     //    print_tree(csound, "Answer:\n", anchor);
+    csound->Free(csound, entries);
     return anchor;
 }
 
@@ -356,7 +357,8 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
 
     outType = convert_external_to_internal(csound, outType);
     csound->Free(csound, leftArgType);
-     csound->Free(csound, rightArgType);
+    csound->Free(csound, rightArgType);
+    csound->Free(csound, opentries);
     return create_out_arg(csound, outType, typeTable->localPool->synthArgCount++, typeTable);
 }
 
@@ -482,8 +484,11 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
           /* if there are type annotations */
           else outtype =
                  resolve_opcode_get_outarg(csound, opentries, inArgTypes);
-	  csound->Free(csound, inArgTypes);
+	      csound->Free(csound, inArgTypes);
         }
+     
+        csound->Free(csound, opentries);
+          
         if (outtype == NULL) {
           csound->Warning(csound,
                           Str("error: opcode %s with output type %s not found, "
@@ -543,7 +548,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                                       typeTable);
         char* outype = resolve_opcode_get_outarg(csound, opentries,
                                                  rightArgType);
-	csound->Free(csound, rightArgType);
+        csound->Free(csound, rightArgType);
+        csound->Free(csound, opentries);
         outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
 
       }
@@ -576,7 +582,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
           char* outype = resolve_opcode_get_outarg(csound, opentries,
                                                          argString);
           csound->Free(csound, rightArgType);
-	  csound->Free(csound, leftArgType);
+     	  csound->Free(csound, leftArgType);
+     	  csound->Free(csound, opentries);
           if (outype == NULL) {
             return NULL;
           }
