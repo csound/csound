@@ -1063,7 +1063,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
         //FIXME - fix if argType is NULL and remove the below hack
         if(argType == NULL) {
             argsLen += 1;
-            argTypes[index++] = "@";
+            argTypes[index++] = cs_strdup(csound, "@");
         } else {
             argType = convert_internal_to_external(csound, argType);
             argsLen += strlen(argType);
