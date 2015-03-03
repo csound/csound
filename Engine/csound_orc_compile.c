@@ -1416,7 +1416,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     while(var != NULL) {
       size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
       CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
-      printf("alloc %p -- %s\n", varMem, var->varName);
+      //printf("alloc %p -- %s\n", varMem, var->varName);
       varMem->varType = var->varType;
       var->memBlock = varMem;
       if (var->initializeVariableMemory != NULL) {
