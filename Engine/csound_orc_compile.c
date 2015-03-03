@@ -893,8 +893,8 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
  
     csound->Free(csound, ip->t.outlist);
     csound->Free(csound, ip->t.inlist);
-    
-     csound->Free(csound, ip);
+    //csound->Free(csound, ip->varPool);
+    csound->Free(csound, ip);
      if (csound->oparms->odebug)
        csound->Message(csound, Str("-- deleted instr from deadpool \n"));
 }
@@ -1262,14 +1262,11 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
 	//          gVar->varName, gVar->varType->varTypeName);
          gVar = gVar->next;
       } else {
-	// if variable exists we delete it
+	// if variable exists
 	// csound->Message(csound, Str(" not adding %d) %s:%s %p %p\n"), count,
-       	//       gVar->varName, var->varName, gVar, var);
-       CS_VARIABLE *tmp = gVar;
-       gVar = gVar->next;
-       csound->Free(csound, gVar);
-      }
-     	
+	//gVar->varName, var->varName, gVar, var);
+        gVar = gVar->next;
+      }	
     }
 
     /* merge opcodinfo */
