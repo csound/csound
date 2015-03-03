@@ -1263,9 +1263,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
          gVar = gVar->next;
       } else {
 	// if variable exists
-	// csound->Message(csound, Str(" not adding %d) %s:%s %p %p\n"), count,
-	//gVar->varName, var->varName, gVar, var);
-	//gVar->memBlock = var->memBlock;
+	// free variable mem block
+	// printf("free %p \n", gVar->memBlock);
+	csound->Free(csound, gVar->memBlock);
         gVar = gVar->next;
       }	
     }
@@ -1411,34 +1411,12 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       //engineState->maxinsno = 1;
     }
 
-    // VL 3.3.15:
-    // I've added a check here for existing global vars,
-    // so that we don't keep allocating new space
-    // but we still create CS_VARIABLES even if there are
-    // existing ones. So we need to fix this properly
-    
+  
+    // allocate memory for global vars
+    // if this variable already exists,
+    // memory will be freed on merge.
     var = typeTable->globalPool->head;
     while(var != NULL) {
-      CS_VARIABLE *tmp;
-      printf("%s \n", var->varType->varTypeName); 
-      if((tmp = csoundFindVariableWithName(csound,
-				    csound->engineState.varPool,
-					   var->varName))  != NULL){
-      if(!strcmp(var->varType->varTypeName, "array") || !strcmp(var->varType->varTypeName, "[")
-	 || tmp->memBlock == NULL) {
-      size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
-      CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
-      printf("alloc %p -- %s\n", varMem, var->varName);
-      varMem->varType = var->varType;
-      var->memBlock = varMem;
-      if (var->initializeVariableMemory != NULL) {
-        var->initializeVariableMemory(var, &varMem->value);
-      } else  memset(&varMem->value , 0, var->memBlockSize);
-      }  
-      else printf("not alloc %p -- %s\n", var->memBlock, var->varName);
-	var = var->next;
-      }
-      else {
       size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
       CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
       printf("alloc %p -- %s\n", varMem, var->varName);
@@ -1448,7 +1426,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         var->initializeVariableMemory(var, &varMem->value);
       } else  memset(&varMem->value , 0, var->memBlockSize);
         var = var->next;
-      }
     }
 
     
