@@ -893,7 +893,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
  
     csound->Free(csound, ip->t.outlist);
     csound->Free(csound, ip->t.inlist);
-    //csound->Free(csound, ip->varPool);
+    //csoundFreeVarPool(csound, ip->varPool);
     csound->Free(csound, ip);
      if (csound->oparms->odebug)
        csound->Message(csound, Str("-- deleted instr from deadpool \n"));
@@ -1267,6 +1267,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
 	// printf("free %p \n", gVar->memBlock);
 	// the CS_VARIABLE itself will be freed on engine_free()
 	csound->Free(csound, gVar->memBlock);
+	csound->Free(csound, gVar->varName);
         gVar = gVar->next;
       }	
     }
@@ -1382,7 +1383,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                                           typeTable->instr0LocalPool);
       cs_hash_table_put_key(csound, engineState->stringPool, "\"\"");
       prvinstxt = &(engineState->instxtanchor);
-       engineState->instrtxtp =
+      engineState->instrtxtp =
       (INSTRTXT **) csound->Calloc(csound, (1 + engineState->maxinsno)
                             * sizeof(INSTRTXT*));
        prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
@@ -1874,6 +1875,7 @@ static void lgbuild(CSOUND *csound, INSTRTXT* ip, char *s,
       temp = csound->Calloc(csound, strlen(s) + 1);
       unquote_string(temp, s);
       cs_hash_table_put_key(csound, engineState->stringPool, temp);
+      csound->Free(csound, temp);
     }
 }
 
@@ -1912,6 +1914,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       unquote_string(temp, s);
       str->data = cs_hash_table_get_key(csound,
                                         csound->engineState.stringPool, temp);
+      csound->Free(csound, temp);
       str->size = strlen(temp) + 1;
       arg->argPtr = str;
       if (str->data == NULL) {
