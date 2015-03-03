@@ -1265,6 +1265,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
 	// if variable exists
 	// csound->Message(csound, Str(" not adding %d) %s:%s %p %p\n"), count,
 	//gVar->varName, var->varName, gVar, var);
+	//gVar->memBlock = var->memBlock;
         gVar = gVar->next;
       }	
     }
@@ -1418,16 +1419,29 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     
     var = typeTable->globalPool->head;
     while(var != NULL) {
-      if(csoundFindVariableWithName(csound,
+      CS_VARIABLE *tmp;
+      printf("%s \n", var->varType->varTypeName); 
+      if((tmp = csoundFindVariableWithName(csound,
 				    csound->engineState.varPool,
-				       var->varName)){
-	//printf("not alloc %p -- %s\n", var->memBlock, var->varName);
+					   var->varName))  != NULL){
+      if(!strcmp(var->varType->varTypeName, "array") || !strcmp(var->varType->varTypeName, "[")
+	 || tmp->memBlock == NULL) {
+      size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
+      CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
+      printf("alloc %p -- %s\n", varMem, var->varName);
+      varMem->varType = var->varType;
+      var->memBlock = varMem;
+      if (var->initializeVariableMemory != NULL) {
+        var->initializeVariableMemory(var, &varMem->value);
+      } else  memset(&varMem->value , 0, var->memBlockSize);
+      }  
+      else printf("not alloc %p -- %s\n", var->memBlock, var->varName);
 	var = var->next;
       }
       else {
       size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
       CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
-      //printf("alloc %p -- %s\n", varMem, var->varName);
+      printf("alloc %p -- %s\n", varMem, var->varName);
       varMem->varType = var->varType;
       var->memBlock = varMem;
       if (var->initializeVariableMemory != NULL) {
