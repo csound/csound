@@ -355,7 +355,8 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
     if(outType == NULL) return NULL;
 
     outType = convert_external_to_internal(csound, outType);
-
+    csound->Free(csound, leftArgType);
+     csound->Free(csound, rightArgType);
     return create_out_arg(csound, outType, typeTable->localPool->synthArgCount++, typeTable);
 }
 
@@ -481,6 +482,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
           /* if there are type annotations */
           else outtype =
                  resolve_opcode_get_outarg(csound, opentries, inArgTypes);
+	  csound->Free(csound, inArgTypes);
         }
         if (outtype == NULL) {
           csound->Warning(csound,
@@ -491,7 +493,6 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
         }
 
         outtype_internal = convert_external_to_internal(csound, outtype);
-
         outarg = create_out_arg(csound, outtype_internal,
                                 typeTable->localPool->synthArgCount++, typeTable);
 
@@ -542,6 +543,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                                       typeTable);
         char* outype = resolve_opcode_get_outarg(csound, opentries,
                                                  rightArgType);
+	csound->Free(csound, rightArgType);
         outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
 
       }
@@ -556,6 +558,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
         // string; should use a function to get the CS_TYPE of the var
         // instead
         if (strlen(leftArgType) > 1 && leftArgType[1] == '[') {
+	  
           outarg = create_out_arg(csound,
                                   get_array_sub_type(csound,
                                                      root->left->value->lexeme),
@@ -569,13 +572,15 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                                         typeTable);
 
           char* argString = strcat(leftArgType, rightArgType);
-
+            
           char* outype = resolve_opcode_get_outarg(csound, opentries,
                                                          argString);
-
+          csound->Free(csound, rightArgType);
+	  csound->Free(csound, leftArgType);
           if (outype == NULL) {
             return NULL;
           }
+	  
           outarg = create_out_arg(csound, outype,
                                   typeTable->localPool->synthArgCount++, typeTable);
 
@@ -984,7 +989,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
         anchor = appendToTree(csound, anchor, arraySet);
         //print_tree(csound, "anchor", anchor);
         currentArg = temp;
-
+        csound->Free(csound, leftArgType);
       }
       previousArg = currentArg;
       currentArg = currentArg->next;
