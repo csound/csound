@@ -1016,7 +1016,17 @@ static void add_math_const_macro(CSOUND *csound, PRE_PARM* qq,
  */
 void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM* qq)
 {
-     qq->macros = NULL;
+    if (qq->macros) {
+      MACRO *mm = qq->macros;
+      while (mm) {
+        csound->Free(csound, mm->body);
+        csound->Free(csound, mm->name);
+        qq->macros = mm->next;
+        csound->Free(csound, mm);
+        mm = qq->macros;
+      }
+    }
+    qq->macros = NULL;
      add_math_const_macro(csound, qq, "E",     "2.71828182845904523536");
      add_math_const_macro(csound, qq, "LOG2E", "1.44269504088896340736");
      add_math_const_macro(csound, qq, "LOG10E","0.43429448190325182765");
