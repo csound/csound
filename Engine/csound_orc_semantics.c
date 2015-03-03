@@ -1081,10 +1081,13 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
         int size = strlen(argTypes[i]);
         memcpy(temp, argTypes[i], size);
         temp += size;
+	csound->Free(csound, argTypes[i]);
     }
 
+    
     argString[argsLen] = '\0';
-
+    
+    csound->Free(csound, argTypes);
     return argString;
 
 }
