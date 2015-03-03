@@ -423,7 +423,7 @@ QNAN		"qnan"[ \t]*\(
                 }
 #exit           { corfile_putc('\0', csound->expanded_orc);
                   corfile_putc('\0', csound->expanded_orc);
-                  printf("break is %p\n", sbrk(0));
+/* printf("break is %p\n", sbrk(0)); */
                   return 0;}
 <<EOF>>         {
                   MACRO *x, *y=NULL;

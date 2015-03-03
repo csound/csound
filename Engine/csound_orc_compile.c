@@ -1265,6 +1265,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
 	// if variable exists
 	// free variable mem block
 	// printf("free %p \n", gVar->memBlock);
+	// the CS_VARIABLE itself will be freed on engine_free()
 	csound->Free(csound, gVar->memBlock);
         gVar = gVar->next;
       }	
@@ -1332,12 +1333,8 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
 
     csound->Free(csound, engineState->instrumentNames);
     myflt_pool_free(csound, engineState->constantsPool);
-    /* purposely using csound->Free and not cs_hash_table_free as keys will have
-     been merged into csound->engineState */
-    // csound->Free(csound, engineState->stringPool);
-    //deleteVarPoolMemory(csound,  engineState->varPool);
-     csoundFreeVarPool(csound, engineState->varPool);
-     csound->Free(csound, engineState->instrtxtp);
+    csoundFreeVarPool(csound, engineState->varPool);
+    csound->Free(csound, engineState->instrtxtp);
     csound->Free(csound, engineState);
     return 0;
 }
