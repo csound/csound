@@ -353,12 +353,15 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
     strncpy(argString, leftArgType, 80);
     strlcat(argString, rightArgType, 80);
     outType = resolve_opcode_get_outarg(csound, opentries, argString);
-    if(outType == NULL) return NULL;
-
-    outType = convert_external_to_internal(csound, outType);
+    
+    csound->Free(csound, argString);
     csound->Free(csound, leftArgType);
     csound->Free(csound, rightArgType);
     csound->Free(csound, opentries);
+    
+    if(outType == NULL) return NULL;
+
+    outType = convert_external_to_internal(csound, outType);
     return create_out_arg(csound, outType, typeTable->localPool->synthArgCount++, typeTable);
 }
 
@@ -369,7 +372,7 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
 TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
                          TYPE_TABLE* typeTable)
 {
-    char *op, *outarg = NULL;
+    char op[80], *outarg = NULL;
     TREE *anchor = NULL, *last;
     TREE * opTree, *current, *newArgList;
     OENTRIES* opentries;
@@ -377,7 +380,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
     if (root->type=='?') return create_cond_expression(csound, root, line,
                                                        locn, typeTable);
-
+    memset(op, 0, 80);
     current = root->left;
     newArgList = NULL;
     while(current != NULL) {
@@ -427,8 +430,6 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
     }
     root->right = newArgList;
 
-    op = csound->Calloc(csound, 80);
-
     switch(root->type) {
     case '+':
       strncpy(op, "##add", 80);
@@ -463,7 +464,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
     case T_FUNCTION:
       {
         char *outtype, *outtype_internal;
-        op = cs_strdup(csound, root->value->lexeme);
+        int len = strlen(root->value->lexeme);
+        strncpy(op, root->value->lexeme, len);
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "Found OP: %s\n", op);
 
@@ -624,7 +626,6 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       }
       last->next = opTree;
     }
-    csound->Free(csound, op);
     return anchor;
 }
 
