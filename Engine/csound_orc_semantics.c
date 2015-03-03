@@ -265,7 +265,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             do_baktrace(csound, tree->locn);
             return NULL;
           }
-
+	  csound->Free(csound, leftArgType);
+          csound->Free(csound, rightArgType);
           return cs_strdup(csound, outype);
         }
       }
@@ -300,6 +301,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return NULL;
         }
 
+	csound->Free(csound, arg1);
+        csound->Free(csound, arg2);
+	csound->Free(csound, ans);
         return cs_strdup(csound, out);
 
       }
@@ -338,7 +342,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           do_baktrace(csound, tree->locn);
           return NULL;
         }
-
+        csound->Free(csound, argTypeRight); 
         return cs_strdup(csound, out);
 
       }
@@ -388,6 +392,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return NULL;
         }
 
+	csound->Free(csound, argTypeLeft);
+	csound->Free(csound, argTypeRight);
         free(inArgTypes);
         return cs_strdup(csound, out);
 
@@ -436,6 +442,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         free(inArgTypes);
         return NULL;
       }
+      
+      csound->Free(csound, argTypeLeft);
+      csound->Free(csound, argTypeRight);
       free(inArgTypes);
       return cs_strdup(csound, out);
 
@@ -1418,7 +1427,8 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     } else {
       root->markup = oentry;
     }
-
+    csound->Free(csound, leftArgString);
+    csound->Free(csound, rightArgString);
     return 1;
 }
 
