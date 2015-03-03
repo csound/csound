@@ -1259,9 +1259,18 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
            delete the memBlock */
         var->memBlock = gVar->memBlock;
 	//csound->Message(csound, Str(" adding %d) %s:%s\n"), count,
-	//            gVar->varName, gVar->varType->varTypeName);
+	//          gVar->varName, gVar->varType->varTypeName);
+         gVar = gVar->next;
+      } else {
+	// if variable exists we copy its memblock
+	// this is only until we figure out how to delete
+	// a duplicate variable.
+       gVar->memBlock = var->memBlock;
+       //csound->Message(csound, Str(" not adding %d) %s:%s %p %p\n"), count,
+       //	       gVar->varName, var->varName, gVar->memBlock, var->memBlock);
+       gVar = gVar->next;
       }
-      gVar = gVar->next;
+     	
     }
 
     /* merge opcodinfo */
@@ -1405,20 +1414,33 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       //engineState->maxinsno = 1;
     }
 
-    // VL 3.3.15 this appears to duplicate the alloc of
-    // global variables, so I have commented it out.
-    /* var = typeTable->globalPool->head; */
-    /* while(var != NULL) { */
-    /*   size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize; */
-    /*   CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize); */
-    /*   printf("alloc %p -- %s\n", varMem, var->varName); */
-    /*   varMem->varType = var->varType; */
-    /*   var->memBlock = varMem; */
-    /*   if (var->initializeVariableMemory != NULL) { */
-    /*     var->initializeVariableMemory(var, &varMem->value); */
-    /*   } else  memset(&varMem->value , 0, var->memBlockSize); */
-    /*   var = var->next; */
-    /* } */
+    // VL 3.3.15:
+    // I've added a check here for existing global vars,
+    // so that we don't keep allocating new space
+    // but we still create CS_VARIABLES even if there are
+    // existing ones. So we need to fix this properly
+    
+    var = typeTable->globalPool->head;
+    while(var != NULL) {
+      if(csoundFindVariableWithName(csound,
+				    csound->engineState.varPool,
+				       var->varName)){
+	//printf("not alloc %p -- %s\n", var->memBlock, var->varName);
+	var = var->next;
+      }
+      else {
+      size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
+      CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
+      //printf("alloc %p -- %s\n", varMem, var->varName);
+      varMem->varType = var->varType;
+      var->memBlock = varMem;
+      if (var->initializeVariableMemory != NULL) {
+        var->initializeVariableMemory(var, &varMem->value);
+      } else  memset(&varMem->value , 0, var->memBlockSize);
+        var = var->next;
+      }
+    }
+
     
     while (current != NULL) {
 
