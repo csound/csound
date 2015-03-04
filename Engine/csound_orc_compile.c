@@ -863,6 +863,8 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
         fdchclose(csound, active);
       if (active->auxchp != NULL)
         auxchfree(csound, active);
+      if(active->opcod_iobufs != NULL)
+	csound->Free(csound, active->opcod_iobufs);
       csound->Free(csound, active);
       active = nxt;
     }
@@ -893,7 +895,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
  
     csound->Free(csound, ip->t.outlist);
     csound->Free(csound, ip->t.inlist);
-    //csoundFreeVarPool(csound, ip->varPool);
+    csoundFreeVarPool(csound, ip->varPool);
     csound->Free(csound, ip);
      if (csound->oparms->odebug)
        csound->Message(csound, Str("-- deleted instr from deadpool \n"));
@@ -1599,15 +1601,15 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* run global i-time code */
       init0(csound);
       csound->ids = ids;
-      if(!csound->oparms->odebug){
-	// need to keep these to print debug info
-      if(typeTable->instr0LocalPool != NULL) {
-            csoundFreeVarPool(csound, typeTable->instr0LocalPool);
-       }
-      if(typeTable->localPool != typeTable->instr0LocalPool) {
-            csoundFreeVarPool(csound, typeTable->localPool);
-      }
-      }
+      /* if(!csound->oparms->odebug){ */
+      /* 	// need to keep these to print debug info */
+      /* if(typeTable->instr0LocalPool != NULL) { */
+      /*       csoundFreeVarPool(csound, typeTable->instr0LocalPool); */
+      /*  } */
+      /* if(typeTable->localPool != typeTable->instr0LocalPool) { */
+      /*       csoundFreeVarPool(csound, typeTable->localPool); */
+      /* } */
+      /* } */
     }
     else {
       /* first compilation */

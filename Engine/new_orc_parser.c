@@ -190,10 +190,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       TREE* newRoot;
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
-
       
- 
-
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
       init_symbtab(csound);    
@@ -209,7 +206,6 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
       err = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
       corfile_rm(&csound->expanded_orc);
-
 
       if (csound->synterrcnt) err = 3;
       if (LIKELY(err == 0)) {
