@@ -1169,9 +1169,10 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
 
           //FIXME - this feels like a hack
           if (*argType == 'c' || *argType == 'r' || *argType == 'p') {
+	    csound->Free(csound, argType);
             break;
           }
-
+          csound->Free(csound, argType);
           pool = (*varName == 'g') ?
             typeTable->globalPool : typeTable->localPool;
           var = csoundFindVariableWithName(csound, pool, varName);
@@ -1188,6 +1189,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
               return 0;
             }
           }
+
           break;
         case T_ARRAY:
           varName = current->left->value->lexeme;
@@ -1548,9 +1550,10 @@ int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
         outArg = get_arg_type2(csound, current->left, typeTable);
 
         if (outArg == NULL || (*outArg != 'b' && *outArg != 'B')) {
+	  csound->Free(csound, outArg);
           return 0;
         }
-
+        csound->Free(csound, outArg);
         current = (current->right == NULL) ? NULL : current->right->next;
       }
 
