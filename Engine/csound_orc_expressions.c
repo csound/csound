@@ -208,7 +208,7 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
     opTree->left = NULL;
     opTree->right = bVar;
     opTree->right->next = gotoNode->right;
-
+    csound->Free(csound, op);
     return opTree;
 }
 
@@ -223,7 +223,7 @@ TREE *create_simple_goto_token(CSOUND *csound, TREE *label, int type)
     opTree = create_opcode_token(csound, op);
     opTree->left = NULL;
     opTree->right = label;
-
+    csound->Free(csound, op);
     return opTree;
 }
 
@@ -772,6 +772,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
       }
       last->next = opTree;
     }
+    csound->Free(csound, outarg);
     csound->Free(csound, op);
     return anchor;
 }
@@ -787,17 +788,20 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
       csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
     token = make_token(csound, label);
     token->type = T_IDENT;
+    csound->Free(csound, label);
     return make_leaf(csound, -1, 0, T_IDENT, token);
 }
 
 TREE *create_synthetic_label(CSOUND *csound, int32 count)
 {
     char *label = (char *)csound->Calloc(csound, 20);
-
+    ORCTOKEN *token;
     snprintf(label, 20, "__synthetic_%ld:", (long)count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
-    return make_leaf(csound, -1, 0, LABEL_TOKEN, make_label(csound, label));
+    token = make_label(csound, label);
+    csound->Free(csound, label);
+    return make_leaf(csound, -1, 0, LABEL_TOKEN, token);
 }
 
 void handle_negative_number(CSOUND* csound, TREE* root) {
@@ -834,14 +838,17 @@ void collapse_last_assigment(CSOUND* csound, TREE* anchor, TYPE_TABLE* typeTable
         b->left == NULL || b->right == NULL) {
         return;
     }
-   
+    char *tmp1 = get_arg_type2(csound, b->left, typeTable);
+    char *tmp2 = get_arg_type2(csound, b->right, typeTable);
     if (b->type == '=' &&
         !strcmp(a->left->value->lexeme, b->right->value->lexeme) &&
-        get_arg_type2(csound, b->left, typeTable) == get_arg_type2(csound, b->right, typeTable)) {
+         tmp1 == tmp2) {
         a->left = b->left;
         a->next = NULL;
         csound->Free(csound, b);
     }
+    csound->Free(csound, tmp1);
+    csound->Free(csound, tmp2);
 }
 
 /* returns the head of a list of TREE* nodes, expanding all RHS
