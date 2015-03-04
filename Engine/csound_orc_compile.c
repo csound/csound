@@ -825,7 +825,6 @@ void close_instrument(CSOUND *csound, ENGINE_STATE* engineState, INSTRTXT * ip)
 {
     OPTXT * bp, *current;
     int n;
-
     bp = (OPTXT *) csound->Calloc(csound, (int32)sizeof(OPTXT));
 
     bp->t.oentry = find_opcode(csound, "endin");        /*  send an endin to */
