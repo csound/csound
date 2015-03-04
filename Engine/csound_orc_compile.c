@@ -894,6 +894,13 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
  
     csound->Free(csound, ip->t.outlist);
     csound->Free(csound, ip->t.inlist);
+    CS_VARIABLE *var = ip->varPool->head;
+    while(var != NULL){
+      CS_VARIABLE *tmp = var;
+      var = var->next;
+      csound->Free(csound, tmp->varName);
+    }
+    
     csoundFreeVarPool(csound, ip->varPool);
     csound->Free(csound, ip);
      if (csound->oparms->odebug)
@@ -1662,6 +1669,13 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
+    CONS_CELL *llist = typeTable->labelList; 
+      while(llist != NULL){
+        CONS_CELL *tmp = llist;
+        llist = llist->next;
+        csound->Free(csound, tmp->value);
+        csound->Free(csound, tmp);
+      }
     csound->Free(csound, typeTable);
     return CSOUND_SUCCESS;
 }
