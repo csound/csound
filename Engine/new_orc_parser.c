@@ -133,6 +133,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       PRE_PARM    qq;
       /* Preprocess */
       memset(&qq, 0, sizeof(PRE_PARM));
+      csp_orc_sa_print_list(csound);
       csound_prelex_init(&qq.yyscanner);
       csound_preset_extra(&qq, qq.yyscanner);
       qq.line = csound->orcLineOffset;
@@ -205,6 +206,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
       //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
       err = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
+      //csp_orc_sa_cleanup(csound);
       corfile_rm(&csound->expanded_orc);
 
       if (csound->synterrcnt) err = 3;
