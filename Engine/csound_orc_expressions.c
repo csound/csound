@@ -1105,6 +1105,7 @@ TREE* expand_if_statement(CSOUND* csound,
                     cs_strdup(csound,
                               labelEnd->value->lexeme),
                     typeTable->labelList);
+	  printf("allocate label %s\n", typeTable->labelList->value );
 
           gotoType = // checking for #B... var name
             (last->left->value->lexeme[1] == 'B');
@@ -1146,11 +1147,12 @@ TREE* expand_if_statement(CSOUND* csound,
         TREE *endLabel = create_synthetic_label(csound,
                                                 endLabelCounter);
         anchor = appendToTree(csound, anchor, endLabel);
-
+        
         typeTable->labelList = cs_cons(csound,
                                        cs_strdup(csound,
                                                  endLabel->value->lexeme),
                                        typeTable->labelList);
+	printf("allocate label %s\n", typeTable->labelList->value );
       }
 
       anchor = appendToTree(csound, anchor, current->next);
