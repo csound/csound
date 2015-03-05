@@ -1348,6 +1348,10 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
     return 0;
 }
 
+void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable){
+      cs_cons_free_complete(csound, typeTable->labelList);
+      csound->Free(csound, typeTable);
+}
 /**
  * Compile the given TREE node into structs
 
@@ -1587,6 +1591,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       csound->Warning(csound, Str("%d syntax errors in orchestra.  "
                               "compilation invalid\n"),
                   csound->synterrcnt);
+      free_typetable(csound, typeTable);
       return CSOUND_ERROR;
     }
 
@@ -1669,14 +1674,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
-    CONS_CELL *llist = typeTable->labelList; 
-      while(llist != NULL){
-        CONS_CELL *tmp = llist;
-        llist = llist->next;
-        csound->Free(csound, tmp->value);
-        csound->Free(csound, tmp);
-      }
-    csound->Free(csound, typeTable);
+    free_typetable(csound, typeTable);
     return CSOUND_SUCCESS;
 }
 
