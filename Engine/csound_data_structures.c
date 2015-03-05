@@ -31,7 +31,6 @@ extern "C" {
 
 PUBLIC CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons) {
     CONS_CELL* cell = csound->Malloc(csound, sizeof(CONS_CELL));
-
     cell->value = val;
     cell->next = cons;
 
