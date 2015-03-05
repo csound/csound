@@ -115,7 +115,7 @@ static void free_opcode_table(CSOUND* csound) {
 
         while(bucket != NULL) {
             head = bucket->value;
-            cs_cons_free(csound, head);
+            cs_cons_free_complete(csound, head);
             bucket = bucket->next;
         }
     }

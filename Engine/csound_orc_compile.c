@@ -201,9 +201,10 @@ char** splitArgs(CSOUND* csound, char* argString)
 {
     int argCount = argsRequired(argString);
     char** args = csound->Malloc(csound, sizeof(char*) * (argCount + 1));
+    // printf("alloc %p \n", args);
     char* t = argString;
     int i = 0;
-
+    	    
     if (t != NULL) {
       while (*t != '\0' ) {
         char* part;
@@ -235,7 +236,8 @@ char** splitArgs(CSOUND* csound, char* argString)
             len++;
             dimensions++;
           }
-          part = csound->Malloc(csound, sizeof(char) * (dimensions + 3));
+	  part = csound->Malloc(csound, sizeof(char) * (dimensions + 3));
+	  //printf("alloc %p \n", part);
           part[dimensions + 2] = '\0';
           part[dimensions + 1] = ']';
           part[dimensions] = *start;
@@ -245,6 +247,7 @@ char** splitArgs(CSOUND* csound, char* argString)
 
         } else {
           part = csound->Malloc(csound, sizeof(char) * 2);
+	  //printf("alloc %p \n", part);
           part[0] = *t;
           part[1] = '\0';
           t++;
@@ -467,7 +470,6 @@ void addGlobalVariable(CSOUND *csound,
                                             type, name, typeArg);
     size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
     CS_VAR_MEM *varMem = csound->Malloc(csound, memSize);
-
     csoundAddVariable(csound, engineState->varPool, var);
 
     varMem->varType = var->varType;
@@ -874,7 +876,6 @@ void close_instrument(CSOUND *csound, ENGINE_STATE* engineState, INSTRTXT * ip)
 {
     OPTXT * bp, *current;
     int n;
-
     bp = (OPTXT *) csound->Calloc(csound, (int32)sizeof(OPTXT));
 
     bp->t.oentry = find_opcode(csound, "endin");        /*  send an endin to */
@@ -912,6 +913,8 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
         fdchclose(csound, active);
       if (active->auxchp != NULL)
         auxchfree(csound, active);
+      if(active->opcod_iobufs != NULL)
+	csound->Free(csound, active->opcod_iobufs);
       csound->Free(csound, active);
       active = nxt;
     }
@@ -939,17 +942,18 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
           csound->Free(csound, t);
           t = s;
         }
-    // myflt_pool_free(csound, ip->varPool);
-    /* VL: 19-12-13
-       an instrument varpool memory is allocated in the instrument block
-       so deallocating the pool is not really right */
-    //deleteVarPoolMemory(csound, ip->varPool);
-    //csound->Free(csound, ip->varPool); /* need to delete the varPool memory */
-
+ 
     csound->Free(csound, ip->t.outlist);
     csound->Free(csound, ip->t.inlist);
+    CS_VARIABLE *var = ip->varPool->head;
+    while(var != NULL){
+      CS_VARIABLE *tmp = var;
+      var = var->next;
+      csound->Free(csound, tmp->varName);
+    }
     
-     csound->Free(csound, ip);
+    csoundFreeVarPool(csound, ip->varPool);
+    csound->Free(csound, ip);
      if (csound->oparms->odebug)
        csound->Message(csound, Str("-- deleted instr from deadpool \n"));
 }
@@ -1314,9 +1318,17 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
            delete the memBlock */
         var->memBlock = gVar->memBlock;
 	//csound->Message(csound, Str(" adding %d) %s:%s\n"), count,
-	//              gVar->varName, gVar->varType->varTypeName);
-      }
-      gVar = gVar->next;
+	//          gVar->varName, gVar->varType->varTypeName);
+         gVar = gVar->next;
+      } else {
+	// if variable exists
+	// free variable mem block
+	// printf("free %p \n", gVar->memBlock);
+	// the CS_VARIABLE itself will be freed on engine_free()
+	csound->Free(csound, gVar->memBlock);
+	csound->Free(csound, gVar->varName);
+        gVar = gVar->next;
+      }	
     }
 
     /* merge opcodinfo */
@@ -1381,15 +1393,16 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
 
     csound->Free(csound, engineState->instrumentNames);
     myflt_pool_free(csound, engineState->constantsPool);
-    /* purposely using csound->Free and not cs_hash_table_free as keys will have
-     been merged into csound->engineState */
-    // csound->Free(csound, engineState->stringPool);
-     csoundFreeVarPool(csound, engineState->varPool);
-     csound->Free(csound, engineState->instrtxtp);
+    csoundFreeVarPool(csound, engineState->varPool);
+    csound->Free(csound, engineState->instrtxtp);
     csound->Free(csound, engineState);
     return 0;
 }
 
+void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable){
+      cs_cons_free_complete(csound, typeTable->labelList);
+      csound->Free(csound, typeTable);
+}
 /**
  * Compile the given TREE node into structs
 
@@ -1433,7 +1446,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                                           typeTable->instr0LocalPool);
       cs_hash_table_put_key(csound, engineState->stringPool, "\"\"");
       prvinstxt = &(engineState->instxtanchor);
-       engineState->instrtxtp =
+      engineState->instrtxtp =
       (INSTRTXT **) csound->Calloc(csound, (1 + engineState->maxinsno)
                             * sizeof(INSTRTXT*));
        prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
@@ -1459,18 +1472,24 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       //engineState->maxinsno = 1;
     }
 
+  
+    // allocate memory for global vars
+    // if this variable already exists,
+    // memory will be freed on merge.
     var = typeTable->globalPool->head;
     while(var != NULL) {
       size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
       CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
+      //printf("alloc %p -- %s\n", varMem, var->varName);
       varMem->varType = var->varType;
       var->memBlock = varMem;
       if (var->initializeVariableMemory != NULL) {
         var->initializeVariableMemory(csound, var, &varMem->value);
       } else  memset(&varMem->value , 0, var->memBlockSize);
-      var = var->next;
+        var = var->next;
     }
 
+    
     while (current != NULL) {
 
       switch (current->type) {
@@ -1585,6 +1604,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       csound->Warning(csound, Str("%d syntax errors in orchestra.  "
                               "compilation invalid\n"),
                   csound->synterrcnt);
+      free_typetable(csound, typeTable);
       return CSOUND_ERROR;
     }
 
@@ -1605,12 +1625,15 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* run global i-time code */
       init0(csound);
       csound->ids = ids;
-      if(typeTable->instr0LocalPool != NULL) {
-            csoundFreeVarPool(csound, typeTable->instr0LocalPool);
-       }
-      if(typeTable->localPool != typeTable->instr0LocalPool) {
-            csoundFreeVarPool(csound, typeTable->localPool);
-      }
+      /* if(!csound->oparms->odebug){ */
+      /* 	// need to keep these to print debug info */
+      /* if(typeTable->instr0LocalPool != NULL) { */
+      /*       csoundFreeVarPool(csound, typeTable->instr0LocalPool); */
+      /*  } */
+      /* if(typeTable->localPool != typeTable->instr0LocalPool) { */
+      /*       csoundFreeVarPool(csound, typeTable->localPool); */
+      /* } */
+      /* } */
     }
     else {
       /* first compilation */
@@ -1664,7 +1687,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
-    csound->Free(csound, typeTable);
+    free_typetable(csound, typeTable);
     return CSOUND_SUCCESS;
 }
 
@@ -1847,7 +1870,11 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 
           csound->Message(csound, "\n");
         }
-
+        //printf("delete %p \n", argStringParts);
+	for(n=0; argStringParts[n] != NULL; n++) {
+	  //printf("delete %p \n", argStringParts[n]);
+	  csound->Free(csound, argStringParts[n]);
+	}
         csound->Free(csound, argStringParts);
       }
 
@@ -1874,6 +1901,7 @@ static void lgbuild(CSOUND *csound, INSTRTXT* ip, char *s,
       temp = csound->Calloc(csound, strlen(s) + 1);
       unquote_string(temp, s);
       cs_hash_table_put_key(csound, engineState->stringPool, temp);
+      csound->Free(csound, temp);
     }
 }
 
@@ -1920,13 +1948,14 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + sizeof(STRINGDAT);
       CS_VAR_MEM* varMem = csound->Calloc(csound, memSize);
       STRINGDAT *str = (STRINGDAT*)&varMem->value;
-      printf("create string %p: %s \n", arg, str->data);
+      //printf("create string %p: %s \n", arg, str->data);
       varMem->varType = (CS_TYPE*)&CS_VAR_TYPE_S;
       arg->type = ARG_STRING;
       temp = csound->Calloc(csound, strlen(s) + 1);
       unquote_string(temp, s);
       str->data = cs_hash_table_get_key(csound,
                                         csound->engineState.stringPool, temp);
+      csound->Free(csound, temp);
       str->size = strlen(temp) + 1;
       arg->argPtr = str;
       if (str->data == NULL) {

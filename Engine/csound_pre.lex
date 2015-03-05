@@ -41,7 +41,7 @@ void do_ifdef_skip_code(CSOUND *, yyscan_t);
 void do_function(char *, CORFIL*);
    // static void print_csound_predata(CSOUND *,char *,yyscan_t);
 void csound_pre_line(CORFIL*, yyscan_t);
-
+ static void delete_macros(CSOUND*, yyscan_t);
 #include "parse_param.h"
 
 #define YY_EXTRA_TYPE  PRE_PARM *
@@ -423,7 +423,7 @@ QNAN		"qnan"[ \t]*\(
                 }
 #exit           { corfile_putc('\0', csound->expanded_orc);
                   corfile_putc('\0', csound->expanded_orc);
-                  printf("break is %p\n", sbrk(0));
+                  delete_macros(csound, yyscanner);
                   return 0;}
 <<EOF>>         {
                   MACRO *x, *y=NULL;
@@ -995,6 +995,21 @@ void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
     while (c != '\n' && c != EOF && c != '\r') c = input(yyscanner);
 }
 
+static void delete_macros(CSOUND *csound, yyscan_t yyscanner)
+{
+    MACRO * qq = PARM->macros;
+    if (qq) {
+      MACRO *mm = qq;
+      while (mm) {
+        csound->Free(csound, mm->body);
+        csound->Free(csound, mm->name);
+        qq = mm->next;
+        csound->Free(csound, mm);
+        mm = qq;
+       }
+    }
+}
+
 static void add_math_const_macro(CSOUND *csound, PRE_PARM* qq,
                                  char * name, char *body)
 {
@@ -1016,7 +1031,7 @@ static void add_math_const_macro(CSOUND *csound, PRE_PARM* qq,
  */
 void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM* qq)
 {
-     qq->macros = NULL;
+    qq->macros = NULL;
      add_math_const_macro(csound, qq, "E",     "2.71828182845904523536");
      add_math_const_macro(csound, qq, "LOG2E", "1.44269504088896340736");
      add_math_const_macro(csound, qq, "LOG10E","0.43429448190325182765");

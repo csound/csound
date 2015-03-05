@@ -283,16 +283,15 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return NULL;
         } else {
           if (var->varType == &CS_VAR_TYPE_ARRAY) {
-            return strdup(var->subType->varTypeName);
+            return cs_strdup(csound, var->subType->varTypeName);
           } else if (var->varType == &CS_VAR_TYPE_A) {
-            return strdup("k");
+            return cs_strdup(csound, "k");
           }
             
           synterr(csound,
                   Str("invalid array type %s line %d\n"), var->varType->varTypeName, tree->line);
           return NULL;
         }
-          
       }
 
       if (tree->type == '?') {
@@ -312,10 +311,12 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         snprintf(condInTypes, 64, "%s%s%s", ans, arg1, arg2);
 
+        OENTRIES* opentries = find_opcode2(csound, ":cond");
         out = resolve_opcode_get_outarg(csound,
-                                        find_opcode2(csound, ":cond"),
+                                        opentries,
                                         condInTypes);
 
+        csound->Free(csound, opentries);
         if (UNLIKELY(out == NULL)) {
           synterr(csound,
                   Str("unable to find ternary operator for "
@@ -325,6 +326,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return NULL;
         }
 
+      	csound->Free(csound, arg1);
+        csound->Free(csound, arg2);
+    	csound->Free(csound, ans);
         return cs_strdup(csound, out);
 
       }
@@ -361,19 +365,27 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                               "types %s not found, line %d\n"),
                   opname, argTypeRight, tree->line);
           do_baktrace(csound, tree->locn);
+          csound->Free(csound, argTypeRight);
+          csound->Free(csound, entries);
           return NULL;
         }
-         
-          if (argsRequired(out) == 1) {
-              char** args = splitArgs(csound, out);
-              return cs_strdup(csound, args[0]);
-          }
+
+        if (argsRequired(out) == 1) {
+            char** args = splitArgs(csound, out);
+            char *ret = cs_strdup(csound, args[0]);
+            csound->Free(csound, argTypeRight);
+            csound->Free(csound, entries);
+            return ret;
+        }
         
-          synterr(csound, Str("error: opcode '%s' for expression with arg "
-                              "types %s returns out-args != 1, line %d\n"),
-                  opname, argTypeRight, tree->line);
-          do_baktrace(csound, tree->locn);
-          return NULL;
+        synterr(csound, Str("error: opcode '%s' for expression with arg "
+                            "types %s returns out-args != 1, line %d\n"),
+                opname, argTypeRight, tree->line);
+        do_baktrace(csound, tree->locn);
+
+        csound->Free(csound, argTypeRight);
+        csound->Free(csound, entries);
+        return NULL;
 
       }
 
@@ -398,7 +410,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         OENTRIES* entries = find_opcode2(csound, opname);
 
-
         argTypeLeft = convert_internal_to_external(csound, argTypeLeft);
         argTypeRight = convert_internal_to_external(csound, argTypeRight);
 
@@ -412,7 +423,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         inArgTypes[len1 + len2] = '\0';
 
         out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
-
+        csound->Free(csound, entries);
+          
         if (UNLIKELY(out == NULL)) {
           synterr(csound, Str("error: opcode '%s' for expression with arg "
                               "types %s not found, line %d \n"),
@@ -422,6 +434,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return NULL;
         }
 
+        csound->Free(csound, argTypeLeft);
+        csound->Free(csound, argTypeRight);
+          
         free(inArgTypes);
         return cs_strdup(csound, out);
 
@@ -461,7 +476,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       inArgTypes[len1 + len2] = '\0';
 
       out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
-
+      csound->Free(csound, entries);
+        
       if (UNLIKELY(out == NULL)) {
         synterr(csound, Str("error: boolean expression '%s' with arg "
                             "types %s not found, line %d \n"),
@@ -470,6 +486,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         free(inArgTypes);
         return NULL;
       }
+      
+      csound->Free(csound, argTypeLeft);
+      csound->Free(csound, argTypeRight);
       free(inArgTypes);
       return cs_strdup(csound, out);
 
@@ -810,8 +829,18 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
         }
 
       }
-
+      //printf("delete %p \n", argsFound);
+       int n;
+      	for(n=0; argsFound[n] != NULL; n++) {
+	  // printf("delete %p \n", argsFound[n]);
+	  csound->Free(csound, argsFound[n]);
+	}
       csound->Free(csound, argsFound);
+      //printf("delete %p \n", argsRequired);
+         	for(n=0; argsRequired[n] != NULL; n++) {
+		  //printf("delete %p \n", argsRequired[n]);
+	  csound->Free(csound, argsRequired[n]);
+	}
       csound->Free(csound, argsRequired);
 
       return returnVal;
@@ -927,8 +956,18 @@ int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
           returnVal = 1;
         }
       }
-
+      //printf("delete %p \n", argsFound);
+       int n;
+      	for(n=0; argsFound[n] != NULL; n++) {
+	  // printf("delete %p \n", argsFound[n]);
+	  csound->Free(csound, argsFound[n]);
+	}
       csound->Free(csound, argsFound);
+      //printf("delete %p \n", argsRequired);
+         	for(n=0; argsRequired[n] != NULL; n++) {
+		  //printf("delete %p \n", argsRequired[n]);
+	  csound->Free(csound, argsRequired[n]);
+	}
       csound->Free(csound, argsRequired);
 
       return returnVal;
@@ -1066,7 +1105,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
         //FIXME - fix if argType is NULL and remove the below hack
         if(argType == NULL) {
             argsLen += 1;
-            argTypes[index++] = "@";
+            argTypes[index++] = cs_strdup(csound, "@");
         } else {
             int argLen = strlen(argType);
             int adjust = (argLen > 1 && argType[argLen - 1] != ']') ? 2 : 0;
@@ -1093,13 +1132,13 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
         } else {
           memcpy(temp, argTypes[i], size);
           temp += size;
+          csound->Free(csound, argTypes[i]);
         }
     }
 
     argString[argsLen] = '\0';
+    csound->Free(csound, argTypes);
     return argString;
-    
-
 }
 
 
@@ -1218,9 +1257,10 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
 
           //FIXME - this feels like a hack
           if (*argType == 'c' || *argType == 'r' || *argType == 'p') {
+	    csound->Free(csound, argType);
             break;
           }
-
+          csound->Free(csound, argType);
           pool = (*varName == 'g') ?
             typeTable->globalPool : typeTable->localPool;
           var = csoundFindVariableWithName(csound, pool, varName);
@@ -1237,6 +1277,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
               return 0;
             }
           }
+
           break;
         case T_ARRAY:
           varName = current->left->value->lexeme;
@@ -1669,6 +1710,9 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     if (UNLIKELY(entries == NULL || entries->count == 0)) {
       synterr(csound, Str("Unable to find opcode with name: %s\n"),
               root->value->lexeme);
+      if (entries != NULL) {
+        csound->Free(csound, entries);
+      }
       return 0;
     }
 
@@ -1690,11 +1734,18 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       csoundMessage(csound, Str("Line: %d\n"),
                     root->line);
       do_baktrace(csound, root->locn);
+        
+      csound->Free(csound, leftArgString);
+      csound->Free(csound, rightArgString);
+      csound->Free(csound, entries);
+        
       return 0;
     } else {
       root->markup = oentry;
     }
-
+    csound->Free(csound, leftArgString);
+    csound->Free(csound, rightArgString);
+    csound->Free(csound, entries);
     return 1;
 }
 
@@ -1808,9 +1859,10 @@ int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
         outArg = get_arg_type2(csound, current->left, typeTable);
 
         if (outArg == NULL || (*outArg != 'b' && *outArg != 'B')) {
+	  csound->Free(csound, outArg);
           return 0;
         }
-
+        csound->Free(csound, outArg);
         current = (current->right == NULL) ? NULL : current->right->next;
       }
 
@@ -2046,7 +2098,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
         typeTable->localPool = csoundCreateVarPool(csound);
         current->markup = typeTable->localPool;
-
+        
         if (current->right) {
 
           newRight = verify_tree(csound, current->right, typeTable);
@@ -2800,6 +2852,13 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           incnt++;
         } while (incnt < nreqd);
       }
+      //      printf("delete %p \n", inArgParts);
+      int n;
+      	for(n=0; inArgParts[n] != NULL; n++) {
+	  //printf("delete %p \n", inArgParts[n]);
+	  csound->Free(csound, inArgParts[n]);
+	}
+      csound->Free(csound, inArgParts);
     }
 }
 
