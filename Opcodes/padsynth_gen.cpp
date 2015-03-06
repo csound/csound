@@ -36,8 +36,8 @@ richness of sound.
 First, the waveform is defined by the user as a series of harmonic partials.
 Then, bandwidth is added by independently spreading each partial of the
 original waveform from a single frequency across neighboring frequencies,
-according to a "profile" function, which might be a Guassian curve, a
-sinusoid, a chirp, a block of noise, and so on.
+according to a "profile" function: a Gaussian curve, a square, or a rising
+and then falling expontential.
 
 The partials of the original waveform may be considered to be samples in a
 discrete Fourier transform of the waveform. Normally there is not an exact
@@ -71,14 +71,14 @@ to generate the desired pitch from an oscillator using the function table, e.g.
 
 The parameters of the function table statement are:
 
-    p1      Function table number (if 0, will be generated).
+    p1      "padsynth"
 
     p2      Score time (usually 0).
 
     p3      Function table size (must be a power of 2, should be large,
             e.g. 2^18 == 262144).
 
-    p4      Function table number.
+    p4      Function table number (auto-generated if 0).
 
     p5      Fundamental frequency of the generated waveform
             (cycles per second).
@@ -132,15 +132,26 @@ static void warn(CSOUND *csound, const char *format,...)
     }
 }
 
-static MYFLT profile(int shape, MYFLT x, MYFLT a)
+static MYFLT profile_original(MYFLT fi, MYFLT bwi)
 {
+    MYFLT x=fi/bwi;
+    x*=x;
+    if (x>14.71280603) {
+        return 0.0;    //this avoids computing the e^(-x^2) where it's results are very close to zero
+    }
+    return exp(-x)/bwi;
+};
+
+static MYFLT profile(int shape, MYFLT fi, MYFLT bwi,  MYFLT a)
+{
+    MYFLT x = fi / bwi;
     MYFLT y = 0;
     switch(shape) {
     case 1:
-        y = std::exp(-(x * x) * a);
+        y = std::exp(-(x * x * a));
         break;
     case 2:
-        y = std::exp(-(x * x) * a);
+        y = std::exp(-(x * x * a));
         if(y < a) {
             y = 0.0;
         } else {
@@ -148,10 +159,10 @@ static MYFLT profile(int shape, MYFLT x, MYFLT a)
         }
         break;
     case 3:
-        y = std::exp(-(std::fabs(x)) * std::sqrt(a));
+        y = std::exp(-(std::fabs(x) * std::sqrt(a)));
         break;
     }
-    return y;
+    return y / bwi;
 }
 
 #if 0
@@ -399,22 +410,32 @@ extern "C" {
     /*
     Original code:
 
-        for (nh=1; nh<number_harmonics; nh++) { //for each harmonic
-        REALTYPE bw_Hz;//bandwidth of the current harmonic measured in Hz
-        REALTYPE bwi;
-        REALTYPE fi;
-        REALTYPE rF=f*relF(nh);
-
-        bw_Hz=(pow(2.0,bw/1200.0)-1.0)*f*pow(relF(nh),bwscale);
-
-        bwi=bw_Hz/(2.0*samplerate);
-        fi=rF/samplerate;
-        for (i=0; i<N/2; i++) { //here you can optimize, by avoiding to compute the profile for the full frequency (usually it's zero or very close to zero)
-            REALTYPE hprofile;
-            hprofile=profile((i/(REALTYPE)N)-fi,bwi);
-            freq_amp[i]+=hprofile*A[nh];
+        MYFLT PADsynth::profile(MYFLT fi, MYFLT bwi)
+        {
+            MYFLT x=fi/bwi;
+            x*=x;
+            if (x>14.71280603) {
+                return 0.0;    //this avoids computing the e^(-x^2) where it's results are very close to zero
+            }
+            return exp(-x)/bwi;
         };
-    };
+
+        for (nh=1; nh<number_harmonics; nh++) { //for each harmonic
+            MYFLT bw_Hz;//bandwidth of the current harmonic measured in Hz
+            MYFLT bwi;
+            MYFLT fi;
+            MYFLT rF=f*relF(nh);
+
+            bw_Hz=(pow(2.0,bw/1200.0)-1.0)*f*pow(relF(nh),bwscale);
+
+            bwi=bw_Hz/(2.0*samplerate);
+            fi=rF/samplerate;
+            for (i=0; i<N/2; i++) { //here you can optimize, by avoiding to compute the profile for the full frequency (usually it's zero or very close to zero)
+                MYFLT hprofile;
+                hprofile=profile((i/(MYFLT)N)-fi,bwi);
+                freq_amp[i]+=hprofile*A[nh];
+            };
+        };
     */
 
 #define ROOT2 FL(1.41421356237309504880168872421)
@@ -467,31 +488,26 @@ extern "C" {
         std::complex<MYFLT> *spectrum = (std::complex<MYFLT> *)ftp->ftable;
         int complexN = int(N / 2.0);
         for (int partialI = 1; partialI <= partialN; ++partialI) {
-            MYFLT partial_Hz = p5_fundamental_frequency * p8_harmonic_stretch * partialI;
-            MYFLT bandwidth_Hz = (std::pow(2.0, p6_partial_bandwidth / 1200.0) - 1.0) *
-                                 p5_fundamental_frequency * std::pow(p8_harmonic_stretch * partialI,
-                                         p7_partial_bandwidth_scale_factor);
-            MYFLT bandwidth_samples = bandwidth_Hz / samplerate * N;
+            MYFLT partial_Hz = p5_fundamental_frequency * p8_harmonic_stretch * ((MYFLT) partialI);
             MYFLT frequency_sample_index_normalized = partial_Hz / ((MYFLT) samplerate);
-            int partial_frequency_index = frequency_sample_index_normalized * N;
-            int band_sample_start = partial_frequency_index - (bandwidth_samples / 2.0);
-            int band_sample_end = band_sample_start + bandwidth_samples;
+            int partial_frequency_index = frequency_sample_index_normalized * ((MYFLT) N);
+            MYFLT bandwidth_Hz = (std::pow(2.0, p6_partial_bandwidth / 1200.0) - 1.0) *
+                                 p5_fundamental_frequency * std::pow(p8_harmonic_stretch * ((MYFLT) partialI),
+                                         p7_partial_bandwidth_scale_factor);
+            MYFLT bandwidth_samples = bandwidth_Hz / (2.0 * samplerate);
             log(csound,  "partial[%3d]:                        %9.4f\n", partialI, A[partialI]);
             warn(csound, "  partial_Hz:                        %9.4f\n", partial_Hz);
-            warn(csound, "  bandwidth_Hz:                      %9.4f\n", bandwidth_Hz);
-            warn(csound, "  bandwidth_samples:                 %9.4f\n", bandwidth_samples);
             warn(csound, "  frequency_sample_index_normalized: %9.4f\n", frequency_sample_index_normalized);
             warn(csound, "  partial_frequency_index:   %12d\n", partial_frequency_index);
-            warn(csound, "  band_sample_start:         %12d\n", band_sample_start);
-            warn(csound, "  band_sample_end:           %12d\n", band_sample_end);
-            for (int band_sample_index = band_sample_start; band_sample_index < band_sample_end; ++band_sample_index) {
-                if (band_sample_index >= 0 && band_sample_index < complexN) {
-                    MYFLT fft_sample_index_normalized = ((MYFLT) band_sample_index) / ((MYFLT) complexN);
-                    //MYFLT profile_sample = base_function(fft_sample_index_normalized - frequency_sample_index_normalized, p10_profile_parameter);
-                    MYFLT profile_sample = profile(p9_profile_shape, fft_sample_index_normalized - frequency_sample_index_normalized, p10_profile_parameter);
-                    MYFLT real = profile_sample * A[partialI];
-                    spectrum[band_sample_index] += real;
-                }
+            warn(csound, "  bandwidth_Hz:                      %9.4f\n", bandwidth_Hz);
+            warn(csound, "  bandwidth_samples:                 %9.4f\n", bandwidth_samples);
+            for (int fft_sample_index = 0; fft_sample_index < complexN; ++fft_sample_index) {
+                MYFLT fft_sample_index_normalized = ((MYFLT) fft_sample_index) / ((MYFLT) N);
+                MYFLT profile_sample_index_normalized = fft_sample_index_normalized - frequency_sample_index_normalized;
+                MYFLT profile_sample = profile(p9_profile_shape, profile_sample_index_normalized, bandwidth_samples, p10_profile_parameter);
+                //MYFLT profile_sample = profile_original(profile_sample_index_normalized, bandwidth_samples);
+                MYFLT real = profile_sample * A[partialI];
+                spectrum[fft_sample_index] += real;
             };
         };
         std::default_random_engine generator;
@@ -511,9 +527,6 @@ extern "C" {
                 maximum = std::fabs(ftp->ftable[i]);
                 //warn(csound, "maximum at %d: %f\n", i, maximum);
             }
-        }
-        if (maximum < 1e-5) {
-            maximum = 1e-5;
         }
         for (int i = 0; i < N; ++i) {
             ftp->ftable[i] /= maximum * ROOT2;
