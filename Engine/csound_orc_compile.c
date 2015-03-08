@@ -1206,8 +1206,8 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       }
      
       /* no active instances */
-      if (active == NULL || instrNum == 0) {
-
+      /* instr0 is freed elsewhere */
+      if (active == NULL  && instrNum != 0) {
        if (csound->oparms->odebug)
        csound->Message(csound,
                        Str("no active instances of instr %d \n"), instrNum);
@@ -1284,7 +1284,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
 {
     int i, end = engineState->maxinsno;
     ENGINE_STATE *current_state = &csound->engineState;
-    INSTRTXT *current;
+    INSTRTXT *current, *old_instr0;
     int count;
 
     //cs_hash_table_merge(csound,
@@ -1333,6 +1333,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
 
     /* merge opcodinfo */
     insert_opcodes(csound, csound->opcodeInfo, current_state);
+    old_instr0 = current_state->instrtxtp[0];
     insert_instrtxt(csound,engineState->instrtxtp[0],0,current_state,1);
     for (i=1; i < end; i++){
       current = engineState->instrtxtp[i];
@@ -1385,6 +1386,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       }
     }
     (&(current_state->instxtanchor))->nxtinstxt = csound->instr0;
+    /* now free old instr 0 */
+    free_instrtxt(csound, old_instr0);
     return 0;
 }
 
@@ -1458,7 +1461,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       engineState->constantsPool = myflt_pool_create(csound);
       engineState->varPool = typeTable->globalPool;
       prvinstxt = &(engineState->instxtanchor);
-       engineState->instrtxtp =
+      engineState->instrtxtp =
       (INSTRTXT **) csound->Calloc(csound, (1 + engineState->maxinsno) *
                                     sizeof(INSTRTXT*));
        /* VL: allowing global code to be evaluated in

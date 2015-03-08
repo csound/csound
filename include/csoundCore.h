@@ -280,17 +280,17 @@ typedef struct {
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
    */
   typedef struct text {
-    int     linenum;        /* Line num in orch file (currently buggy!)  */
-    OENTRY* oentry;
-    char    *opcod;         /* Pointer to opcode name in global pool */
-    ARGLST  *inlist;        /* Input args (pointer to item in name list) */
-    ARGLST  *outlist;
-    ARG     *inArgs;        /* Input args (index into list of values) */
-    unsigned int inArgCount;
-    ARG     *outArgs;
-    unsigned int outArgCount;
-//    char    intype;         /* Type of first input argument (g,k,a,w etc) */
-    char    pftype;         /* Type of output argument (k,a etc) */
+    int             linenum;        /* Line num in orch file (currently buggy!)  */
+    OENTRY          *oentry;
+    char            *opcod;         /* Pointer to opcode name in global pool */
+    ARGLST          *inlist;        /* Input args (pointer to item in name list) */
+    ARGLST          *outlist;
+    ARG             *inArgs;        /* Input args (index into list of values) */
+    unsigned int    inArgCount;
+    ARG             *outArgs;
+    unsigned        int outArgCount;
+//    char            intype;         /* Type of first input argument (g,k,a,w etc) */
+    char            pftype;         /* Type of output argument (k,a etc) */
   } TEXT;
 
 

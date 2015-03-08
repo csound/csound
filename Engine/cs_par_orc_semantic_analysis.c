@@ -72,6 +72,18 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
 void csp_orc_sa_cleanup(CSOUND *csound)
 {
     INSTR_SEMANTICS *current = csound->instRoot, *h = NULL;
+    csp_orc_sa_print_list(csound);
+    while (current != NULL) {
+
+      csp_set_dealloc(csound, &(current->read));
+      csp_set_dealloc(csound, &(current->write));
+      csp_set_dealloc(csound, &(current->read_write));
+
+      h = current;
+      current = current->next;
+      csound->Free(csound, h);
+    }
+    current = csound->instCurr;
     while (current != NULL) {
 
       csp_set_dealloc(csound, &(current->read));
@@ -86,6 +98,7 @@ void csp_orc_sa_cleanup(CSOUND *csound)
     csound->instCurr = NULL;
     csound->instRoot = NULL;
 }
+
 
 void csp_orc_sa_print_list(CSOUND *csound)
 {
@@ -123,7 +136,6 @@ void csp_orc_sa_global_read_write_add_list(CSOUND *csound,
     else {
       csp_orc_sa_global_write_add_list(csound, write);
       csp_orc_sa_global_read_add_list(csound, read);
-      /* csp_set_dealloc(csound, &new); */
     }
 }
 
@@ -143,11 +155,13 @@ void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
     else {
       struct set_t *new = NULL;
       csp_set_union(csound, write, read, &new);
+      printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, *new);
       if (write->count == 1 && read->count == 1 && new->count == 1) {
         /* this is a read_write list thing */
         struct set_t *new_read_write = NULL;
         csp_set_union(csound, csound->instCurr->read_write,
                       new, &new_read_write);
+        printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, *new_read_write);
         csp_set_dealloc(csound, &csound->instCurr->read_write);
         csound->instCurr->read_write = new_read_write;
       }
@@ -155,7 +169,6 @@ void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
         csp_orc_sa_global_write_add_list(csound, write);
         csp_orc_sa_global_read_add_list(csound, read);
       }
-
       csp_set_dealloc(csound, &new);
     }
 }
@@ -213,13 +226,13 @@ void csp_orc_sa_interlocksf(CSOUND *csound, int code)
       struct set_t *ww = NULL;
       csp_set_alloc_string(csound, &ww);
       csp_set_alloc_string(csound, &rr);
-      if (code&ZR) csp_set_add(csound, rr, /*strdup*/("##zak"));
-      if (code&ZW) csp_set_add(csound, ww, /*strdup*/("##zak"));
-      if (code&TR) csp_set_add(csound, rr, /*strdup*/("##tab"));
-      if (code&TW) csp_set_add(csound, ww, /*strdup*/("##tab"));
-      if (code&CR) csp_set_add(csound, rr, /*strdup*/("##chn"));
-      if (code&CW) csp_set_add(csound, ww, /*strdup*/("##chn"));
-      if (code&WR) csp_set_add(csound, ww, /*strdup*/("##wri"));
+      if (code&ZR) csp_set_add(csound, rr, "##zak");
+      if (code&ZW) csp_set_add(csound, ww, "##zak");
+      if (code&TR) csp_set_add(csound, rr, "##tab");
+      if (code&TW) csp_set_add(csound, ww, "##tab");
+      if (code&CR) csp_set_add(csound, rr, "##chn");
+      if (code&CW) csp_set_add(csound, ww, "##chn");
+      if (code&WR) csp_set_add(csound, ww, "##wri");
       csp_orc_sa_global_read_write_add_list(csound, ww, rr);
       if (code&_QQ) csound->Message(csound, Str("opcode deprecated"));
     }
@@ -294,7 +307,7 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
     left  = csp_orc_sa_globals_find(csound, node->left);
     right = csp_orc_sa_globals_find(csound, node->right);
     csp_set_union(csound, left, right, &current_set);
-
+    printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, current_set);
     csp_set_dealloc(csound, &left);
     csp_set_dealloc(csound, &right);
 
@@ -307,7 +320,7 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
       struct set_t *prev_set = current_set;
       struct set_t *next = csp_orc_sa_globals_find(csound, node->next);
       csp_set_union(csound, prev_set, next, &current_set);
-
+      printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, current_set);
       csp_set_dealloc(csound, &prev_set);
       csp_set_dealloc(csound, &next);
     }
