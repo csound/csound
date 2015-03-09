@@ -71,23 +71,31 @@ public class CsoundObj {
 	private Object mLock = new Object();
 	public MessagePoster messagePoster = null;
 	private long stime = 0;
+	private double systime = System.nanoTime()*1.0e-6;
+	private double startTime = System.nanoTime()*1.0e-6;
+	private boolean isAsync = true;
 
 	public CsoundObj() {
 		this(false);
 	}
+	
+	public CsoundObj(boolean useAudioTrack){
+		  this(useAudioTrack,true);
+	}
 
-	public CsoundObj(boolean useAudioTrack) {
+	public CsoundObj(boolean useAudioTrack, boolean isAsync) {
 		bindings = new ArrayList<CsoundBinding>();
 		listeners = new ArrayList<CsoundObjListener>();
 		scoreMessages = new ArrayList<String>();
 		this.useAudioTrack = useAudioTrack;
-
+        this.isAsync = isAsync;
+        
 		if (useAudioTrack) {
 			// Log.d("CsoundObj", "audio track");
 			csound = new Csound();
 		} else {
 			// Log.d("CsoundObj", "opensl");
-			csound = new AndroidCsound();
+			csound = new AndroidCsound(isAsync);
 		}
 	}
 
@@ -137,10 +145,12 @@ public class CsoundObj {
 
 	@JavascriptInterface
 	public/* synchronized */void inputMessage(String mess) {
+		if(isAsync){
 		synchronized (mLock) {
 			String message = new String(mess);
 			scoreMessages.add(message);
 		}
+		} else csound.InputMessage(mess);
 	}
 
 	public/* synchronized */void removeBinding(CsoundBinding binding) {
@@ -206,7 +216,6 @@ public class CsoundObj {
 		stopped = false;
 		thread = new Thread() {
 			public void run() {
-
 				setPriority(Thread.MAX_PRIORITY);
 				if (useAudioTrack == false) {
 					// Log.d("CsoundObj", "USING OPENSL");
@@ -223,19 +232,22 @@ public class CsoundObj {
 
 	public void togglePause() {
 		pause = !pause;
+		if (isAsync) ((AndroidCsound)csound).Pause(pause);
 	}
 
 	public void pause() {
 		pause = true;
+		if (isAsync) ((AndroidCsound)csound).Pause(pause);
 	}
 
 	public void play() {
 		pause = false;
+		if (isAsync) ((AndroidCsound)csound).Pause(pause);
 	}
 
 	public synchronized void stop() {
-		//sendScore("e 0");
 		stopped = true;
+
 		if (thread != null) {
 			try {
 				thread.join();
@@ -245,7 +257,9 @@ public class CsoundObj {
 				e.printStackTrace();
 			}
 		}
-	}
+	 } 
+ 
+	public boolean getAsyncStatus() { return isAsync; }
 
 	public int getNumChannels() {
 		return csound.GetNchnls();
@@ -262,6 +276,7 @@ public class CsoundObj {
 	/* Render Methods */
 
 	private void runCsoundOpenSL(File f) {
+		
 		((AndroidCsound) csound).setOpenSlCallbacks();
 		if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
@@ -278,6 +293,7 @@ public class CsoundObj {
 		}
 		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundObj", "Return Value2: " + retVal);
+		
 		if (retVal == 0) {
 			for (int i = 0; i < bindings.size(); i++) {
 				CsoundBinding cacheable = bindings.get(i);
@@ -293,35 +309,60 @@ public class CsoundObj {
 				CsoundObjListener listener = listeners.get(i);
 				listener.csoundObjStarted(this);
 			}
-			while (csound.PerformKsmps() == 0 && !stopped) {
 			
-			 stime += csound.GetKsmps();
-	         //Log.d("STREAM TIME", "time:" + ((AndroidCsound) csound).getStreamTime());
-	         //Log.d("STREAM TIME", "diff:" + (stime - ((AndroidCsound) csound).getStreamTime()));
-	        
-				synchronized (mLock) {
-					CsoundBinding cacheable;
-					String mess;
-					for (int i = 0; i < bindings.size(); i++) {
-						cacheable = bindings.get(i);
-						cacheable.updateValuesFromCsound();
-					}
-					for (int i = 0; i < scoreMessages.size(); i++) {
-						mess = scoreMessages.get(i);
-						csound.InputMessage(mess);
-					}
-					scoreMessages.clear();
-					for (int i = 0; i < bindings.size(); i++) {
-						cacheable = bindings.get(i);
-						cacheable.updateValuesToCsound();
-					}
-				}
-				while (pause)
-					try {
-						Thread.sleep(1);
+			startTime = System.nanoTime()*1.0e-6;
+			//double tmptime = startTime;
+			while(!stopped) {
+			 int ret = 0;
+             if(isAsync){
+            	 csound.PerformKsmps();
+            	 if(ret != 0) break;
+    			 stime += csound.GetKsmps();
+    		     
+    			 systime = System.nanoTime()*1.0e-6;
+    	         //Log.d("CsoundObj", "java time:" + (systime - startTime));
+    	         //Log.d("CsoundObj", "java diff:" + (systime - tmptime));
+    	         //tmptime = systime;
+    	       
+    				synchronized (mLock) {
+    					CsoundBinding cacheable;
+    					String mess;
+    					for (int i = 0; i < bindings.size(); i++) {
+    						cacheable = bindings.get(i);
+    						cacheable.updateValuesFromCsound();
+    					}
+    					for (int i = 0; i < scoreMessages.size(); i++) {
+    						mess = scoreMessages.get(i);
+    						csound.InputMessage(mess);
+    					}
+    					scoreMessages.clear();
+    					for (int i = 0; i < bindings.size(); i++) {
+    						cacheable = bindings.get(i);
+    						cacheable.updateValuesToCsound();
+    					}
+    				}
+    				while (pause)
+    					try {
+    						Thread.sleep(1);
+    					} catch (InterruptedException e) {
+    						e.printStackTrace();
+    					}
+             } else {
+            	 try {
+						Thread.sleep(100);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
+            	 
+             }
+			}
+			if (!isAsync) {
+				csound.InputMessage("e 0");
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 			csound.Stop();
 			csound.Cleanup();
@@ -346,7 +387,9 @@ public class CsoundObj {
 				}
 			}
 		}
+		
 	}
+	
 
 	private void runCsoundAudioTrack(File f) {
 		csound.SetHostImplementedAudioIO(1, 0);
