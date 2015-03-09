@@ -1405,6 +1405,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
        insert_instrtxt(csound, csound->instr0, 0, engineState,0);
     }
     else {
+      if(
+      
       engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
       engineState->stringPool = csound->engineState.stringPool; //cs_hash_table_create(csound);
       engineState->constantsPool = myflt_pool_create(csound);
@@ -1615,15 +1617,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* run global i-time code */
       init0(csound);
       csound->ids = ids;
-      /* if(!csound->oparms->odebug){ */
-      /* 	// need to keep these to print debug info */
-      /* if(typeTable->instr0LocalPool != NULL) { */
-      /*       csoundFreeVarPool(csound, typeTable->instr0LocalPool); */
-      /*  } */
-      /* if(typeTable->localPool != typeTable->instr0LocalPool) { */
-      /*       csoundFreeVarPool(csound, typeTable->localPool); */
-      /* } */
-      /* } */
       free_typetable(csound, typeTable);
     }
     else {
