@@ -62,14 +62,19 @@ public class CsoundButtonBinding extends AbstractBinding {
 	}
 	
 	@Override
-	public void setup(CsoundObj csoundObj) {
+	public void setup(final CsoundObj csoundObj) {
 		this.csoundObj = csoundObj;
 		
 		if(type == 0){	
 		button.setOnClickListener(new OnClickListener() {	
 			public void onClick(View v) {
+				if(csoundObj.getAsyncStatus()){
 				selected = true;
 				cacheDirty = true;
+				}
+				else {
+				csoundObj.getCsound().SetChannel(channelName, 1.0);
+				}
 			}
 		});
 		}
@@ -94,7 +99,12 @@ public class CsoundButtonBinding extends AbstractBinding {
 					if (selected){
 					xpos = event.getX()/v.getWidth();
 					ypos = 1. - (event.getY()/v.getHeight());
+			
 					} else xpos = ypos = 0.;
+					if(!csoundObj.getAsyncStatus()){
+					   csoundObj.getCsound().SetChannel(channelName + ".x", xpos);
+					   csoundObj.getCsound().SetChannel(channelName + ".y", ypos);
+					}
 					return true;
 				}
 			});

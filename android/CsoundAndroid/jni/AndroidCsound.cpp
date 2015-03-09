@@ -18,20 +18,36 @@ static void androidMessageCallback(CSOUND*, int attr, const char *format, va_lis
 
 void AndroidCsound::setOpenSlCallbacks() {
 
-    __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","set callbacks"); 
+    __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","==set callbacks"); 
     csoundSetPlayopenCallback(csound, androidplayopen_);
     csoundSetRecopenCallback(csound, androidrecopen_);
     csoundSetRtplayCallback(csound, androidrtplay_);
     csoundSetRtrecordCallback(csound, androidrtrecord_);
     csoundSetRtcloseCallback(csound, androidrtclose_);
     csoundSetMessageCallback(csound, androidMessageCallback);
-    __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","callbacks set"); 
+
+    if (this->CreateGlobalVariable("::async::", sizeof(int)) == 0) {
+      int *p = ((int *)csoundQueryGlobalVariable(csound,"::async::"));
+       *p = asyncProcess;
+    }
+
+    if (this->CreateGlobalVariable("::paused::", sizeof(int)) == 0) {
+       int *p = ((int *)csoundQueryGlobalVariable(csound,"::paused::"));
+       *p = 0;
+    }
+    
+    
+    __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","==callbacks set"); 
 };
 
 int AndroidCsound::SetGlobalEnv(const char* name, const char* variable) {
     return csoundSetGlobalEnv(name, variable);
 }
 
+void AndroidCsound::Pause(bool pause){
+   int *p = ((int *)csoundQueryGlobalVariable(csound,"::paused::"));
+   *p = pause ?  1  : 0;
+}
 
 unsigned long AndroidCsound::getStreamTime(){
   
