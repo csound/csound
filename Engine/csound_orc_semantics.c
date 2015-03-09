@@ -1531,9 +1531,22 @@ TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* unary_op)
  */
 TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     int leftCount, rightCount;
+   
+    if (root->type == T_ASSIGNMENT) {
+        /* Rewrite tree if line is "a1, a2 = func(arg, arg1)" to "a1, a2 func arg, arg1" */
+        TREE *right = root->right;
+        if (right->type == T_FUNCTION &&
+                right->left == NULL &&
+                right->next == NULL) {
+            right->next = root->next;
+            right->left = root->left;
+            right->type = T_OPCALL;
+            root = right;
+        }
+        return root;
+    }
     
-    if (root->type == T_ASSIGNMENT ||
-        root->type == GOTO_TOKEN ||
+    if (root->type == GOTO_TOKEN ||
         root->type == KGOTO_TOKEN ||
         root->type == IGOTO_TOKEN) {
         // i.e. a = func(a + b)
