@@ -1628,15 +1628,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* run global i-time code */
       init0(csound);
       csound->ids = ids;
-      /* if(!csound->oparms->odebug){ */
-      /* 	// need to keep these to print debug info */
-      /* if(typeTable->instr0LocalPool != NULL) { */
-      /*       csoundFreeVarPool(csound, typeTable->instr0LocalPool); */
-      /*  } */
-      /* if(typeTable->localPool != typeTable->instr0LocalPool) { */
-      /*       csoundFreeVarPool(csound, typeTable->localPool); */
-      /* } */
-      /* } */
+      free_typetable(csound, typeTable);
     }
     else {
       /* first compilation */
@@ -1679,18 +1671,11 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var->memBlock->value = csound->inchnls;
       var = csoundFindVariableWithName(csound, engineState->varPool, "0dbfs");
       var->memBlock->value = csound->e0dbfs;
-
-      /* run instr 0 inits */
-      /* moved here from musmon to allow for multiple
-	 compilations before csoundStart VL 28.2.15 */
-      if (UNLIKELY(init0(csound) != 0))
-          csoundDie(csound, Str("header init errors"));
     }
     if (csound->init_pass_threadlock)
       csoundUnlockMutex(csound->init_pass_threadlock);
     /* notify API lock  */
     csoundUnlockMutex(csound->API_lock);
-    free_typetable(csound, typeTable);
     return CSOUND_SUCCESS;
 }
 
