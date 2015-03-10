@@ -188,7 +188,6 @@ char* get_array_sub_type(CSOUND* csound, char* arrayName) {
 }
 
 char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
-
     int i, len = arrayVar->dimensions + 3;
     if (arrayVar->subType!=NULL) {
       char* retVal = csound->Malloc(csound, len);
@@ -1468,7 +1467,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensio
       CS_TYPE* varType;
 
       if (annotation != NULL) {
-        argLetter[0] = annotation[0];
+        varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
       } else {
         t = varName;
         argLetter[1] = 0;
@@ -1477,9 +1476,9 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensio
         if (*t == 'g') t++;
 
         argLetter[0] = (*t == 't') ? 'k' : *t; /* Support legacy t-vars */
-      }
 
-      varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+      }
 
       varInit.dimensions = dimensions;
       varInit.type = varType;
@@ -1621,6 +1620,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
             right->type = T_OPCALL;
             root = right;
         }
+
         return root;
     }
 
