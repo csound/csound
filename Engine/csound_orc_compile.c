@@ -1696,6 +1696,8 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     TREE *root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
      retVal = csoundCompileTree(csound, root);
+     // Sanitise semantic sets here
+     sanitize(csound);
      csoundDeleteTree(csound, root);
     }
     else {
