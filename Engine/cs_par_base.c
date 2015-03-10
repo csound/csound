@@ -289,7 +289,7 @@ int csp_set_alloc(CSOUND *csound, struct set_t **set,
     p->ele_eq_func = ele_eq_func;
     p->ele_print_func = ele_print_func;
     p->cache = NULL;
-    printf("csp_set_alloc: %p\n", p);
+    //printf("csp_set_alloc: %p\n", p);
     return CSOUND_SUCCESS;
 }
 
@@ -310,7 +310,7 @@ int csp_set_dealloc(CSOUND *csound, struct set_t **set)
       set_element_delloc(csound, &ele);
       ele = next;
     }
-    printf("csp_set_dealloc: %p\n", p);
+    //printf("csp_set_dealloc: %p\n", p);
     csound->Free(csound, p);
     *set = NULL;
 
@@ -330,7 +330,7 @@ static int set_element_alloc(CSOUND *csound,
     }
     memset(*set_element, 0, sizeof(struct set_element_t));
     strncpy((*set_element)->hdr, SET_ELEMENT_HDR, HDR_LEN);
-    (*set_element)->data = data;
+    (*set_element)->data = cs_strdup(csound, data);
 
     return CSOUND_SUCCESS;
 }
@@ -381,11 +381,13 @@ int csp_set_element_string_eq(struct set_element_t *ele1,
     return strcmp((char *)ele1->data, (char *)ele2->data) == 0;
 }
 
+#if 0
 int csp_set_element_ptr_eq(struct set_element_t *ele1,
                            struct set_element_t *ele2)
 {
     return (ele1->data == ele2->data);
 }
+#endif
 
 void csp_set_element_string_print(CSOUND *csound,
                                   struct set_element_t *ele)
