@@ -114,6 +114,7 @@ def runTest():
 	["test_arrays_multi.csd", "test multi-dimensionsl k-array, assigment to number and expression"],
 	["test_arrays_string.csd", "test string-array"],
 	["test_arrays_string2.csd", "test simple string-array assignment"],
+	["test_arrays_static_init.csd", "test arrays initialized with static initializer (i.e. kvals = [0,1,2])"],
 	["test_asig_as_array.csd", "test using a-sig with array get/set syntax"],
 	
 	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],

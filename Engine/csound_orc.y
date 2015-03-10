@@ -464,9 +464,14 @@ expr    : function_call
         | number 
         | string
         | array_expr
+        | static_array
         | struct_expr
         ;
 
+static_array : '[' expr_list ']' {
+            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "fillarray"));  
+            $$->right = $2;
+          } 
 
 array_expr :  array_expr '[' expr ']'
           {
