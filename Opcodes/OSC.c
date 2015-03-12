@@ -421,10 +421,11 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
       return csound->InitError(csound,
                                Str("cannot start OSC listener on port %s\n"),
                                buff);
-    if (lo_server_thread_start(ports[n].thread)<0)
-      return csound->InitError(csound,
-                               Str("cannot start OSC listener on port %s\n"),
-                               buff);
+    ///if (lo_server_thread_start(ports[n].thread)<0)
+    ///  return csound->InitError(csound,
+    ///                           Str("cannot start OSC listener on port %s\n"),
+    ///                           buff);
+    lo_server_thread_start(ports[n].thread);
     pp->ports = ports;
     pp->nPorts = n + 1;
     csound->Warning(csound, Str("OSC listener #%d started on port %s\n"), n, buff);
