@@ -129,6 +129,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
     int err;
     OPARMS *O = csound->oparms;
+    csound->parserNamedInstrFlag = 2;
     {
       PRE_PARM    qq;
       /* Preprocess */
