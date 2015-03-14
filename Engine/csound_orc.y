@@ -321,7 +321,8 @@ statement : ident '=' expr NEWLINE
                   ans->left = (TREE *)$1;
                   ans->right = (TREE *)$3;
                   $$ = ans;
-                  csp_orc_sa_global_read_write_add_list(csound,
+                  if (namedInstrFlag!=2)
+                    csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
                 }
@@ -337,7 +338,8 @@ statement : ident '=' expr NEWLINE
                                          (TREE *)$3);
                   //print_tree(csound, "+=", ans);
                   $$ = ans;
-                  csp_orc_sa_global_read_write_add_list1(csound,
+                  if (namedInstrFlag!=2)
+                      csp_orc_sa_global_read_write_add_list1(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
                 }
@@ -353,7 +355,8 @@ statement : ident '=' expr NEWLINE
                                          (TREE *)$3);
                   //print_tree(csound, "-=", ans);
                   $$ = ans;
-                  csp_orc_sa_global_read_write_add_list1(csound,
+                  if (namedInstrFlag!=2)
+                    csp_orc_sa_global_read_write_add_list1(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
                 }
@@ -369,7 +372,8 @@ statement : ident '=' expr NEWLINE
                                          (TREE *)$3);
                   //print_tree(csound, "-=", ans);
                   $$ = ans;
-                  csp_orc_sa_global_read_write_add_list(csound,
+                  if (namedInstrFlag!=2)
+                    csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
                 }
@@ -385,7 +389,8 @@ statement : ident '=' expr NEWLINE
                                          (TREE *)$3);
                   //print_tree(csound, "-=", ans);
                   $$ = ans;
-                  csp_orc_sa_global_read_write_add_list(csound,
+                  if (namedInstrFlag!=2)
+                    csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
                 }
@@ -413,10 +418,12 @@ statement : ident '=' expr NEWLINE
                   $2->value->optype = NULL;
                   $$ = $2;
                   
-                  csp_orc_sa_global_read_write_add_list(csound,
+                  if (namedInstrFlag!=2) {
+                    csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, $2->left),
                                     csp_orc_sa_globals_find(csound, $2->right));
-                  csp_orc_sa_interlocks(csound, $2->value);
+                    csp_orc_sa_interlocks(csound, $2->value);
+                  }
                   query_deprecated_opcode(csound, $2->value);
                 }
 
@@ -426,10 +433,12 @@ statement : ident '=' expr NEWLINE
                   ((TREE *)$1)->right = (TREE *)$2;
                   $1->value->optype = NULL;
                   $$ = $1;
-                  csp_orc_sa_global_read_add_list(csound,
+                  if (namedInstrFlag!=2) {
+                    csp_orc_sa_global_read_add_list(csound,
                                   csp_orc_sa_globals_find(csound,
                                                           $1->right));
-                  csp_orc_sa_interlocks(csound, $1->value);
+                    csp_orc_sa_interlocks(csound, $1->value);
+                  }
                   query_deprecated_opcode(csound, $1->value);
                 }
             | opcode0b exprlist ')' NEWLINE   /* VL: added this to allow general func ops with no answers */
@@ -439,11 +448,13 @@ statement : ident '=' expr NEWLINE
                   $1->value->optype = NULL;
                   $$ = $1;
                   
-                  csp_orc_sa_global_read_add_list(csound,
+                  if (namedInstrFlag!=2) {
+                    csp_orc_sa_global_read_add_list(csound,
                                   csp_orc_sa_globals_find(csound,
                                                           $1->right));
                   
                   csp_orc_sa_interlocks(csound, $1->value);
+                  }
                   query_deprecated_opcode(csound, $1->value);
                  
                 }
