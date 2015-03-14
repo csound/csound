@@ -1709,6 +1709,8 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     TREE *root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
      retVal = csoundCompileTree(csound, root);
+     // Sanitise semantic sets here
+     sanitize(csound);
      csoundDeleteTree(csound, root);
     }
     else {
@@ -1943,8 +1945,8 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       unquote_string(temp, s);
       str->data = cs_hash_table_get_key(csound,
                                         csound->engineState.stringPool, temp);
-      csound->Free(csound, temp);
       str->size = strlen(temp) + 1;
+      csound->Free(csound, temp);
       arg->argPtr = str;
       if (str->data == NULL) {
         str->data = cs_hash_table_put_key(csound, engineState->stringPool, temp);

@@ -69,50 +69,72 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
 //static INSTR_SEMANTICS *curr;
 //static INSTR_SEMANTICS *root;
 
-void csp_orc_sa_cleanup(CSOUND *csound)
+/* void csp_orc_sa_cleanup(CSOUND *csound) */
+/* { */
+/*     INSTR_SEMANTICS *current = csound-> instRoot, *h = NULL; */
+/*     csp_orc_sa_print_list(csound); */
+/*     while (current != NULL) { */
+
+/*       csp_set_dealloc(csound, &(current->read)); */
+/*       csp_set_dealloc(csound, &(current->write)); */
+/*       csp_set_dealloc(csound, &(current->read_write)); */
+
+/*       h = current; */
+/*       current = current->next; */
+/*       csound->Free(csound, h); */
+/*     } */
+/*     current = csound->instCurr; */
+/*     while (current != NULL) { */
+
+/*       csp_set_dealloc(csound, &(current->read)); */
+/*       csp_set_dealloc(csound, &(current->write)); */
+/*       csp_set_dealloc(csound, &(current->read_write)); */
+
+/*       h = current; */
+/*       current = current->next; */
+/*       csound->Free(csound, h); */
+/*     } */
+
+/*     csound->instCurr = NULL; */
+/*     csound->instRoot = NULL; */
+/* } */
+
+
+static void sanitise_set(CSOUND *csound, struct set_t* p)
 {
-    INSTR_SEMANTICS *current = csound->instRoot, *h = NULL;
-    csp_orc_sa_print_list(csound);
-    while (current != NULL) {
-
-      csp_set_dealloc(csound, &(current->read));
-      csp_set_dealloc(csound, &(current->write));
-      csp_set_dealloc(csound, &(current->read_write));
-
-      h = current;
-      current = current->next;
-      csound->Free(csound, h);
+    struct set_element_t *ele = p->head;
+    while (ele != NULL) {
+      ele->data = cs_strdup(csound, (char*)ele->data);
+      ele = ele->next;
     }
-    current = csound->instCurr;
-    while (current != NULL) {
-
-      csp_set_dealloc(csound, &(current->read));
-      csp_set_dealloc(csound, &(current->write));
-      csp_set_dealloc(csound, &(current->read_write));
-
-      h = current;
-      current = current->next;
-      csound->Free(csound, h);
-    }
-
-    csound->instCurr = NULL;
-    csound->instRoot = NULL;
 }
 
-
+void sanitize(CSOUND*csound)
+{
+    INSTR_SEMANTICS *p = csound->instRoot;
+    while (p) {
+      if (p->sanitized==0) {
+        sanitise_set(csound, p->read);
+        sanitise_set(csound, p->write);
+        sanitise_set(csound, p->read_write);
+        p->sanitized = 1;
+      }
+      p = p->next;
+    }
+}
 void csp_orc_sa_print_list(CSOUND *csound)
 {
     csound->Message(csound, "Semantic Analysis\n");
     INSTR_SEMANTICS *current = csound->instRoot;
     while (current != NULL) {
-      csound->Message(csound, "Instr: %s\n", current->name);
-      csound->Message(csound, "  read: ");
+      csound->Message(csound, "(%p)Instr: %s\n", current, current->name);
+      csound->Message(csound, "  read(%p): ", current->read);
       csp_set_print(csound, current->read);
 
-      csound->Message(csound, "  write: ");
+      csound->Message(csound, "  write:(%p) ", current->write);
       csp_set_print(csound, current->write);
 
-      csound->Message(csound, "  read_write: ");
+      csound->Message(csound, "  read_write(%p): ", current->read_write);
       csp_set_print(csound, current->read_write);
 
       current = current->next;
@@ -155,13 +177,13 @@ void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
     else {
       struct set_t *new = NULL;
       csp_set_union(csound, write, read, &new);
-      printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, *new);
+      //printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, *new);
       if (write->count == 1 && read->count == 1 && new->count == 1) {
         /* this is a read_write list thing */
         struct set_t *new_read_write = NULL;
         csp_set_union(csound, csound->instCurr->read_write,
                       new, &new_read_write);
-        printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, *new_read_write);
+        //printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, *new_read_write);
         csp_set_dealloc(csound, &csound->instCurr->read_write);
         csound->instCurr->read_write = new_read_write;
       }
@@ -249,14 +271,17 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
 
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {
-    //name = strdup(name); // JPff:  leaks: necessary??
+    name = strdup(name); // JPff:  leaks: necessary??
+    printf("csp_orc_sa_instr_add name=%s\n", name);
     csound->inInstr = 1;
     if (csound->instRoot == NULL) {
+      printf("instRoot id NULL\n");
       csound->instRoot = instr_semantics_alloc(csound, name);
       csound->instCurr = csound->instRoot;
     }
     else if (csound->instCurr == NULL) {
       INSTR_SEMANTICS *prev = csound->instRoot;
+      printf("instCurr NULL\n");
       csound->instCurr = prev->next;
       while (csound->instCurr != NULL) {
         prev = csound->instCurr;
@@ -266,6 +291,7 @@ void csp_orc_sa_instr_add(CSOUND *csound, char *name)
       csound->instCurr = prev->next;
     }
     else {
+      printf("othercase\n");
       csound->instCurr->next = instr_semantics_alloc(csound, name);
       csound->instCurr = csound->instCurr->next;
     }
@@ -307,7 +333,7 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
     left  = csp_orc_sa_globals_find(csound, node->left);
     right = csp_orc_sa_globals_find(csound, node->right);
     csp_set_union(csound, left, right, &current_set);
-    printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, current_set);
+    //printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, current_set);
     csp_set_dealloc(csound, &left);
     csp_set_dealloc(csound, &right);
 
@@ -320,7 +346,7 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
       struct set_t *prev_set = current_set;
       struct set_t *next = csp_orc_sa_globals_find(csound, node->next);
       csp_set_union(csound, prev_set, next, &current_set);
-      printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, current_set);
+      //printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, current_set);
       csp_set_dealloc(csound, &prev_set);
       csp_set_dealloc(csound, &next);
     }

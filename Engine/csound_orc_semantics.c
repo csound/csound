@@ -2408,7 +2408,7 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
 TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
 {
     TREE *ans;
-    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
+    ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);

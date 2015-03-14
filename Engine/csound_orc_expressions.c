@@ -132,6 +132,7 @@ TREE *create_empty_token(CSOUND *csound)
     ans->line = 0;
     ans->locn  = 0;
     ans->value = NULL;
+    ans->markup = NULL;
     return ans;
 }
 
@@ -334,7 +335,8 @@ static TREE *create_cond_expression(CSOUND *csound,
     OENTRIES* entries = find_opcode2(csound, ":cond");
     outype = resolve_opcode_get_outarg(csound, entries, condInTypes);
 
-    outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
+    outarg = create_out_arg(csound, outype,
+                            typeTable->localPool->synthArgCount++, typeTable);
     opTree = create_opcode_token(csound, cs_strdup(csound, ":cond"));
     opTree->left = create_ans_token(csound, outarg);
     opTree->right = b;
@@ -361,16 +363,17 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
     strncpy(argString, leftArgType, 80);
     strlcat(argString, rightArgType, 80);
     outType = resolve_opcode_get_outarg(csound, opentries, argString);
-    
+
     csound->Free(csound, argString);
     csound->Free(csound, leftArgType);
     csound->Free(csound, rightArgType);
     csound->Free(csound, opentries);
-    
+
     if(outType == NULL) return NULL;
 
     outType = convert_external_to_internal(csound, outType);
-    return create_out_arg(csound, outType, typeTable->localPool->synthArgCount++, typeTable);
+    return create_out_arg(csound, outType,
+                          typeTable->localPool->synthArgCount++, typeTable);
 }
 
 /**
@@ -497,11 +500,11 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
           /* if there are type annotations */
           else outtype =
                  resolve_opcode_get_outarg(csound, opentries, inArgTypes);
-	      csound->Free(csound, inArgTypes);
+          csound->Free(csound, inArgTypes);
         }
-     
+
         csound->Free(csound, opentries);
-          
+
         if (outtype == NULL) {
           csound->Warning(csound,
                           Str("error: opcode %s with output type %s not found, "
@@ -603,7 +606,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
           if (outype == NULL) {
             return NULL;
           }
-	  
+
           outarg = create_out_arg(csound, outype,
                                   typeTable->localPool->synthArgCount++, typeTable);
 
@@ -837,17 +840,17 @@ void handle_negative_number(CSOUND* csound, TREE* root) {
 void collapse_last_assigment(CSOUND* csound, TREE* anchor, TYPE_TABLE* typeTable) {
     TREE *a, *b, *temp;
     temp = anchor;
-    
+
     if (temp == NULL || temp->next == NULL) {
         return;
     }
-   
+
     while (temp->next != NULL) {
         a = temp;
         b = temp->next;
         temp = temp->next;
     }
-    
+
     if (b == NULL || a->left == NULL ||
         b->left == NULL || b->right == NULL) {
         return;
@@ -983,9 +986,11 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
               }
           }
 
-        temp = create_ans_token(csound,
-                                create_out_arg(csound, outType,
-                                               typeTable->localPool->synthArgCount++, typeTable));
+        temp =
+          create_ans_token(csound,
+                           create_out_arg(csound, outType,
+                                          typeTable->localPool->synthArgCount++,
+                                          typeTable));
 
         if (previousArg == NULL) {
           current->left = temp;
@@ -1015,7 +1020,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
     }
 
     handle_optional_args(csound, current);
-    
+
     collapse_last_assigment(csound, anchor, typeTable);
 
     appendToTree(csound, anchor, originalNext);
@@ -1108,7 +1113,7 @@ TREE* expand_if_statement(CSOUND* csound,
                     cs_strdup(csound,
                               labelEnd->value->lexeme),
                     typeTable->labelList);
-	  printf("allocate label %s\n", typeTable->labelList->value );
+          //printf("allocate label %s\n", typeTable->labelList->value );
 
           gotoType = // checking for #B... var name
             (last->left->value->lexeme[1] == 'B');
@@ -1150,12 +1155,12 @@ TREE* expand_if_statement(CSOUND* csound,
         TREE *endLabel = create_synthetic_label(csound,
                                                 endLabelCounter);
         anchor = appendToTree(csound, anchor, endLabel);
-        
+
         typeTable->labelList = cs_cons(csound,
                                        cs_strdup(csound,
                                                  endLabel->value->lexeme),
                                        typeTable->labelList);
-	printf("allocate label %s\n", typeTable->labelList->value );
+        //printf("allocate label %s\n", typeTable->labelList->value );
       }
 
       anchor = appendToTree(csound, anchor, current->next);
