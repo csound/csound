@@ -115,7 +115,9 @@ def runTest():
 	["test_arrays_string.csd", "test string-array"],
 	["test_arrays_string2.csd", "test simple string-array assignment"],
 	["test_asig_as_array.csd", "test using a-sig with array get/set syntax"],
-	
+	["test_arrays_negative_dimension_fail.csd", 
+             "test expected failure with negative dimension size and array", 1],
+
 	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],
 	["test_empty_instr.csd", "tests that empty instruments do not cause compiler issues"],
 	["test_empty_udo.csd", "tests that empty UDOs do not cause compiler issues"],

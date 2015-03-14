@@ -66,9 +66,11 @@ int compile_csd_i(CSOUND *csound, COMPILE *p){
 }
 
 int compile_str_i(CSOUND *csound, COMPILE *p){
-    printf("START\n");
+    void csp_orc_sa_print_list(CSOUND*);
+    //printf("START\n");
     *p->res = (MYFLT)(csoundCompileOrc(csound, ((STRINGDAT *)p->str)->data));
-    printf("END\n");
+    //printf("END\n");
+    //csp_orc_sa_print_list(csound);
     return OK;
 }
 
