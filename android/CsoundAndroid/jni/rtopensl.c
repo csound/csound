@@ -74,6 +74,7 @@ typedef struct OPEN_SL_PARAMS_ {
   // async flag;
   int async;
 
+  int run;
 } open_sl_params;
 
 #define CONV16BIT (32768)//./csoundGet0dBFS(csound))
@@ -84,6 +85,10 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 {
   open_sl_params *p = (open_sl_params *) context;
   CSOUND *csound = p->csound;
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  csound->Message(csound, "callback kcount, %d, %d.%06d\n", csound->GetKcounter(csound), ts.tv_sec, ts.tv_nsec/1000);
+  
   if(p->async){
     int read=0,items = p->outBufSamples, i, r = 0;
     MYFLT *outputBuffer = p->outputBuffer;
@@ -97,22 +102,24 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 
   else {
     int items = p->outBufSamples,
-      i, r = 0, ret = 0, paused;
+      i, r = 0, ret = 1, paused;
     MYFLT *outputBuffer = csoundGetOutputBuffer(csound);
     short *playBuffer = p->playBuffer;
     paused = *((int *) csoundQueryGlobalVariable(csound,"::paused::"));
-    if(paused) memset(playBuffer, 0, items*sizeof(short));
-    else ret = csoundPerformBuffer(csound);
+    memset(playBuffer, 0, items*sizeof(short));
+    if(!paused) ret = csoundPerformBuffer(csound);
+    else csound->Message(csound, "paused \n");
     if(ret==0){
       for(i=0;i < items; i++) 
 	playBuffer[i] = (short) (outputBuffer[i]*CONV16BIT);
+    }
       (*bq)->Enqueue(bq,playBuffer,items*sizeof(short));
       if(p->streamTime != NULL) (*p->streamTime) += (items/csoundGetNchnls(csound));
-    }
+      
   }
-  /*struct timespec ts;
-    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-    csound->Message(csound, "rr time = %f ms\n", 1e-6*ts.tv_nsec);*/
+  //struct timespec ts;
+  //  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+  //  csound->Message(csound, "rr time = %f ms\n", 1e-6*ts.tv_nsec);
 }
 
 #define MICROS 1000000
@@ -120,6 +127,7 @@ void androidrtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes)
 {
   open_sl_params *p =
     (open_sl_params *) *(csound->GetRtPlayUserData(csound));
+  
   if(p->async){
     int n = nbytes/sizeof(MYFLT);
     int m = 0, l, w = n;
@@ -142,13 +150,17 @@ SLresult openSLCreateEngine(open_sl_params *params)
   result = slCreateEngine(&(params->engineObject), 0, NULL, 0, NULL, NULL);
   if(result != SL_RESULT_SUCCESS) goto engine_end;
 
+  params->csound->Message(params->csound, Str("engineObject... \n"));
   // realize the engine 
   result = (*params->engineObject)->Realize(params->engineObject, SL_BOOLEAN_FALSE);
   if(result != SL_RESULT_SUCCESS) goto engine_end;
 
+  params->csound->Message(params->csound, Str("realized... \n"));
   // get the engine interface, which is needed in order to create other objects
   result = (*params->engineObject)->GetInterface(params->engineObject, SL_IID_ENGINE, &(params->engineEngine));
   if(result != SL_RESULT_SUCCESS) goto engine_end;
+
+  params->csound->Message(params->csound, Str("interface acquired... \n"));
 
  engine_end:
   return result;
@@ -163,7 +175,7 @@ int openSLPlayOpen(open_sl_params *params)
 
   // configure audio source
   SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_BUFFERQUEUE, 2};
-
+  params->csound->Message(params->csound, "==== sr=%d\n", sr);
   switch(sr){
 
   case 8000:
@@ -260,14 +272,6 @@ int openSLPlayOpen(open_sl_params *params)
   }
   params->csound->Message(params->csound, "playbuffer zero \n");
   memset(params->playBuffer, 0, params->outBufSamples*sizeof(short));
-  /* if(!params->async) { */
-  /*   if(csoundPerformBuffer(params->csound)){ */
-  /*     int i; */
-  /*     for(i=0;i < params->outBufSamples; i++)  */
-  /* 	params->playBuffer[i] = (short) ((params->csound->GetOutputBuffer(params->csound))[i]*CONV16BIT); */
-  /*   } */
-  /* } */
-   
   (*params->bqPlayerBufferQueue)->Enqueue(params->bqPlayerBufferQueue, 
 					  params->playBuffer,params->outBufSamples*sizeof(short));
  end_openaudio:
@@ -277,8 +281,7 @@ int openSLPlayOpen(open_sl_params *params)
 int openSLInitOutParams(open_sl_params *params){
   CSOUND *csound = params->csound;
   params->outBufSamples  = params->outParm.bufSamp_SW*csound->GetNchnls(csound);
-  if(params->async){
-    if((params->outputBuffer = (MYFLT *) csound->Calloc(csound, params->outBufSamples*sizeof(MYFLT))) == NULL){
+  if((params->outputBuffer = (MYFLT *) csound->Calloc(csound, params->outBufSamples*sizeof(MYFLT))) == NULL){
       csound->Message(csound, "memory allocation failure in opensl module \n");
       goto err_return;
     }
@@ -286,7 +289,6 @@ int openSLInitOutParams(open_sl_params *params){
       return -1; 
     }
     memset(params->outputBuffer, 0, params->outBufSamples*sizeof(MYFLT));
-  } 
   csound->Message(csound, "HW buffersize = %d, SW = %d \n", params->outParm.bufSamp_HW, params->outParm.bufSamp_SW);
 
   return OK;
@@ -302,7 +304,7 @@ int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm)
   CSOUND *p = csound;
   open_sl_params *params;
   int returnVal;
-
+  csound->Message(csound, Str("androidplayopen... \n"));
   params = (open_sl_params*) p->QueryGlobalVariable(p, "_openslGlobals");
   if (params == NULL) {
     if (p->CreateGlobalVariable(p, "_openslGlobals", sizeof(open_sl_params))
@@ -311,12 +313,14 @@ int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm)
     params = (open_sl_params*) p->QueryGlobalVariable(p, "_openslGlobals");
     memset(params, 0, sizeof(open_sl_params));
     params->csound = p;
+    csound->Message(csound, Str("about to start engine... \n"));
     if(openSLCreateEngine(params) != SL_RESULT_SUCCESS) {
       csound->Message(csound, Str("OpenSL: engine create error \n")); 
       return -1;
     }
     else csound->Message(csound, Str("OpenSL: engine create\n")); 
   }
+  params->run = 0;
   params->async =  *((int *)csoundQueryGlobalVariable(csound,"::async::"));
   memcpy(&(params->outParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtPlayUserData(p)) = (void*) params;
@@ -517,6 +521,7 @@ void androidrtclose_(CSOUND *csound)
   open_sl_params *params;
   params = (open_sl_params *) csound->QueryGlobalVariable(csound,
 							  "_openslGlobals");
+  params->run = 0;
   if (params == NULL)
     return;
 
@@ -583,10 +588,8 @@ void androidrtclose_(CSOUND *csound)
      
   *(csound->GetRtRecordUserData(csound)) = NULL;
   *(csound->GetRtPlayUserData(csound)) = NULL;
-  csound->DestroyGlobalVariable(csound, "::paused::");
-  csound->DestroyGlobalVariable(csound, "::async::");
-  csound->DestroyGlobalVariable(csound, "::streamtime::");
   csound->DestroyGlobalVariable(csound, "_openslGlobals");
+  csound->Message(csound, "CLOSING CSOUND RT AUDIO \n");
 
 }
 
