@@ -233,7 +233,7 @@ class CsoundInstance : public pp::Instance {
       PostMessage("Csound: audio input error...\n");
       return;
     }
-    
+     
     const char* data = static_cast<const char*>(buffer.GetDataBuffer());
     in_channels = buffer.GetNumberOfChannels();
     in_samples = buffer.GetNumberOfSamples();
@@ -241,6 +241,8 @@ class CsoundInstance : public pp::Instance {
     // push into circular buffer
     if(is_running){
       csoundWriteCircularBuffer(csound,circularBuffer,data,in_samples);
+      //PostMessage("Csound: audio input callback...\n");
+      if(!input_is_on)csoundMessage(csound, "input sr: %d \n", buffer.GetSampleRate());
       input_is_on = true;
     }
     // recycle buffer and schedule next one
@@ -275,14 +277,16 @@ class CsoundInstance : public pp::Instance {
 	for(n=0; n < buffsamps; n++) {
 	  if(count_ == 0) {
 	    // get data from circular buffer into spin
-	    if(instance->input_is_on){ 
-	      csoundReadCircularBuffer(csound_,instance->circularBuffer,buf,
-				       ksmps);
-	      for(i=j=0; i < ksmps*2; i+=2, j+=in_chans){
+	    if(instance->input_is_on){
+	      //instance->PostMessage("Csound: audio input read...\n");
+	       csoundReadCircularBuffer(csound_,instance->circularBuffer,buf,
+					in_chans*ksmps/csoundGetNchnls(csound_));
+	      if(spin != NULL)
+	      for(i=j=0; i < ksmps; i+=2, j+=in_chans){
 		spin[i] = buf[j]/scale;
 		if(in_chans > 1)
-		  spin[i+1] = buf[j+1]/scale;
-	      }
+		 spin[i+1] = buf[j+1]/scale;
+		 }
 	    }
 	    int ret = csoundPerformKsmps(csound_);
 	    if(ret != 0) {
@@ -403,8 +407,8 @@ bool CsoundInstance::StartDAC(){
   }
 
   int frames = 
-    pp::AudioConfig::RecommendSampleFrameCount(this,
-					       PP_AUDIOSAMPLERATE_44100, kSampleFrameCount);
+  pp::AudioConfig::RecommendSampleFrameCount(this,
+  				       PP_AUDIOSAMPLERATE_44100, kSampleFrameCount);
   dac = pp::Audio(
 		  this,
 		  pp::AudioConfig(this, PP_AUDIOSAMPLERATE_44100, frames),
@@ -414,9 +418,9 @@ bool CsoundInstance::StartDAC(){
   circularBuffer = csoundCreateCircularBuffer(csound, cbufsiz, sizeof(short));
   // FIXME: this assumes input will be at max 2 channels
   input_buffer = new short[csoundGetKsmps(csound)*2];
-  // char mess[64];
-  // sprintf(mess, "buffsize: %d",frames);
-  // PostMessage(mess);
+  char mess[64];
+  sprintf(mess, "buffsize: %d\n",frames);
+  PostMessage(mess);
   dac.StartPlayback();
   return true;
 }
@@ -490,6 +494,7 @@ void CsoundInstance::PlayCsound() {
   if(!compiled) {
     csoundSetHostImplementedAudioIO(csound,1,0);
     csoundSetOption(csound, (char *) "-odac");
+    csoundSetOption(csound, (char *) "-iadc");
     csoundSetOption(csound, (char *) "-M0");
     csoundSetOption(csound, (char *) "--nchnls=2");
     csoundSetOption(csound, (char *) "-r44100");

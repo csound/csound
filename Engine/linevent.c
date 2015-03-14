@@ -179,6 +179,12 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     int32  size = (int32) strlen(message);
     int n;
 
+    #ifdef ANDROID
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    csound->Message(csound, "input message kcount, %d, %d.%06d\n", csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
+    #endif
+    
     if ((n=linevent_alloc(csound, 0)) != 0) return;
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {

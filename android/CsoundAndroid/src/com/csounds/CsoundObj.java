@@ -94,7 +94,7 @@ public class CsoundObj {
 			// Log.d("CsoundObj", "audio track");
 			csound = new Csound();
 		} else {
-			// Log.d("CsoundObj", "opensl");
+			Log.d("CsoundObj", "creating new AndroidCsound: " + (isAsync ? 0 : 1));
 			csound = new AndroidCsound(isAsync);
 		}
 	}
@@ -232,22 +232,21 @@ public class CsoundObj {
 
 	public void togglePause() {
 		pause = !pause;
-		if (isAsync) ((AndroidCsound)csound).Pause(pause);
+		if (!isAsync) ((AndroidCsound)csound).Pause(pause);
 	}
 
 	public void pause() {
 		pause = true;
-		if (isAsync) ((AndroidCsound)csound).Pause(pause);
+		if (!isAsync) ((AndroidCsound)csound).Pause(pause);
 	}
 
 	public void play() {
 		pause = false;
-		if (isAsync) ((AndroidCsound)csound).Pause(pause);
+		if (!isAsync) ((AndroidCsound)csound).Pause(pause);
 	}
 
 	public synchronized void stop() {
 		stopped = true;
-
 		if (thread != null) {
 			try {
 				thread.join();
@@ -276,7 +275,7 @@ public class CsoundObj {
 	/* Render Methods */
 
 	private void runCsoundOpenSL(File f) {
-		
+		Log.d("CsoundObj", "THREAD START");
 		((AndroidCsound) csound).setOpenSlCallbacks();
 		if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
@@ -291,9 +290,9 @@ public class CsoundObj {
 			};
 			callbacks.SetMessageCallback();
 		}
+		if(!isAsync) this.pause();
 		retVal = csound.Compile(f.getAbsolutePath());
 		Log.d("CsoundObj", "Return Value2: " + retVal);
-		
 		if (retVal == 0) {
 			for (int i = 0; i < bindings.size(); i++) {
 				CsoundBinding cacheable = bindings.get(i);
@@ -312,6 +311,7 @@ public class CsoundObj {
 			
 			startTime = System.nanoTime()*1.0e-6;
 			//double tmptime = startTime;
+			if(!isAsync) this.play();
 			while(!stopped) {
 			 int ret = 0;
              if(isAsync){
@@ -364,10 +364,10 @@ public class CsoundObj {
 					e.printStackTrace();
 				}
 			}
-			csound.Stop();
-			csound.Cleanup();
+			//csound.Stop();
+			//csound.Cleanup();
 			csound.Reset();
-
+			
 			synchronized (mLock) {
 				for (int i = 0; i < bindings.size(); i++) {
 					CsoundBinding cacheable = bindings.get(i);
@@ -387,7 +387,7 @@ public class CsoundObj {
 				}
 			}
 		}
-		
+		Log.d("CsoundObj", "THREAD END");
 	}
 	
 
