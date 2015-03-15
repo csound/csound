@@ -120,7 +120,8 @@
 %pure_parser
 %error-verbose
 %parse-param { CSOUND * csound }
-%parse-param { TREE * astTree }
+%parse-param { TREE ** astTree }
+
 
 /* NOTE: Perhaps should use %union feature of bison */
 
@@ -174,10 +175,12 @@
 
 orcfile           : rootstatement
                         {
+			       
                             if ($1 != NULL)
-                              *astTree = *((TREE *)$1);
+                              *astTree = ((TREE *)$1);
                             csound->synterrcnt = csound_orcnerrs;
                             //print_tree(csound, "ALL", $1);
+			    
                         }
                   ;
 
@@ -193,8 +196,8 @@ rootstatement     : rootstatement topstatement
                         {
                         $$ = appendToTree(csound, $1, $2);
                         }
-                  | topstatement
-                  | instrdecl
+                  | topstatement 
+                  | instrdecl 
                   | udodecl
                   ;
 
@@ -299,8 +302,9 @@ udodecl   : UDOSTART_DEFINITION
 statementlist : statementlist statement
                 {
                     $$ = appendToTree(csound, (TREE *)$1, (TREE *)$2);
+		    
                 }
-                | /* null */          { $$ = NULL; }
+                | /* null */          { $$ = NULL;  }
                 ;
 
 topstatement : rident '=' expr NEWLINE
@@ -824,7 +828,7 @@ opcode0   : T_OPCODE0
                   csound->Message(csound, "opcode0 $1=%p (%s)\n",
                                   $1,((ORCTOKEN *)$1)->lexeme );
                 $$ = make_leaf(csound,LINE,LOCN, T_OPCODE0, (ORCTOKEN *)$1);
-                
+          
 
             }
           ;

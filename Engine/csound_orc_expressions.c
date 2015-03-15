@@ -629,6 +629,9 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       }
       last->next = opTree;
     }
+    // Free the node
+    // printf("freeing %p \n", root);
+    csound->Free(csound, root);
     csound->Free(csound, outarg);
     return anchor;
 }

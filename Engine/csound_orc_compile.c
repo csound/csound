@@ -106,12 +106,13 @@ static int argCount(ARG* arg)
 #endif
 
 /* get size of string in MYFLT units */
-static inline int strlen_to_samples(const char *s)
+/*static inline int strlen_to_samples(const char *s)
 {
     int n = (int) strlen(s);
     n = (n + (int) sizeof(MYFLT)) / (int) sizeof(MYFLT);
     return n;
 }
+*/
 
 /* convert string constant */
 static void unquote_string(char *dst, const char *src)
@@ -175,10 +176,12 @@ static OPTXT * last_optxt(OPTXT *optxt)
 /**
  * Append OPTXT op2 to end of OPTXT chain op1
  */
+/*
 static inline void append_optxt(OPTXT *op1, OPTXT *op2)
 {
     last_optxt(op1)->nxtop = op2;
 }
+*/
 
 /** Counts number of args in argString, taking into account array identifiers */
 int argsRequired(char* argString)
@@ -642,9 +645,10 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->onedsr = FL(1.0) / csound->esr;
     csound->onedkr = FL(1.0) / csound->ekr;
     csound->global_kcounter  = csound->kcounter;
-
+ 
     if (csound->ksmps != DFLT_KSMPS) {
       reallocateVarPoolMemory(csound, engineState->varPool);
+      //csound->Message(csound, "recalculate varpool\n");
     }
     close_instrument(csound, engineState, ip);
 
@@ -1683,7 +1687,7 @@ PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str)
 #endif
 }
 
-
+extern void sanitize(CSOUND *csound);
 /**
     Parse and compile an orchestra given on an string (OPTIONAL)
     if str is NULL the string is taken from the internal corfile
