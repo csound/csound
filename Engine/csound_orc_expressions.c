@@ -617,7 +617,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       opTree->right = root->right;
       opTree->left = create_ans_token(csound, outarg);
       opTree->line = line;
-      opTree->locn = locn;
+       opTree->locn = locn;
+      
      }
     if (anchor == NULL) {
       anchor = opTree;
@@ -629,9 +630,6 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       }
       last->next = opTree;
     }
-    // Free the node
-    // printf("freeing %p \n", root);
-    //csound->Free(csound, root);
     csound->Free(csound, outarg);
     return anchor;
 }
@@ -699,6 +697,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
     else if (is_expression_node(root->right)) {
       TREE * newRight = create_expression(csound, root->right, line,
                                           locn, typeTable);
+      
       if (anchor == NULL) {
         anchor = newRight;
       }
@@ -889,6 +888,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
                 expressionNodes =
                 create_expression(csound, currentArg,
                                   currentArg->line, currentArg->locn, typeTable);
+		// free discarded node
+		csound->Free(csound, currentArg);
             }
             else {
                 expressionNodes =
