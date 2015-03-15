@@ -1395,6 +1395,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     add_args(csound, root->left, typeTable);
 
     opcodeName = root->value->lexeme;
+    //printf("%p %p (%s) \n", root, root->value, opcodeName);
     leftArgString = get_arg_string_from_tree(csound, left, typeTable);
     rightArgString = get_arg_string_from_tree(csound, right, typeTable);
 
@@ -1591,8 +1592,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     TREE *previous = NULL;
     TREE* newRight;
 
+    
     CONS_CELL* parentLabelList = typeTable->labelList;
     typeTable->labelList = get_label_list(csound, root);
+
+    //if(root->value)
+    //printf("verify %p %p (%s) \n", root, root->value, root->value->lexeme);
 
     if (PARSER_DEBUG) csound->Message(csound, "Verifying AST\n");
 
@@ -1786,7 +1791,7 @@ TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast)
     while (current->next != NULL) {
       current = current->next;
     }
-
+        
     current->next = newlast;
 
     return first;
@@ -1812,6 +1817,8 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
     ans->rate = -1;
     ans->line = line;
     ans->locn  = locn;
+    
+    //printf("make node %p %p %p\n", ans, ans->left, ans->right);
     //csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
     return ans;
 }
@@ -1834,6 +1841,8 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     ans->line = line;
     ans->locn  = locn;
     ans->markup = NULL;
+    //if(ans->value)
+    // printf("make leaf %p %p (%s) \n", ans, ans->value, ans->value->lexeme);
     csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
     return ans;
 }
@@ -1842,12 +1851,14 @@ static void delete_tree(CSOUND *csound, TREE *l)
 {
     while (1) {
       TREE *old = l;
+      
       if (UNLIKELY(l==NULL)) {
         return;
-      }
+      } //else printf("l = %p\n", l);
+      
       if (l->value) {
         if (l->value->lexeme) {
-          //printf("Free %p (%s)\n", l->value->lexeme, l->value->lexeme);
+          //printf("Free %p %p (%s)\n", l, l->value, l->value->lexeme);
           csound->Free(csound, l->value->lexeme);
           //l->value->lexeme = NULL;
         }
@@ -1855,18 +1866,20 @@ static void delete_tree(CSOUND *csound, TREE *l)
         csound->Free(csound, l->value);
         //l->value = NULL;
       }
+      // printf("left %p right %p \n", l->left, l->right);
       delete_tree(csound, l->left);
       //l->left = NULL;
       delete_tree(csound, l->right);
       //l->right = NULL;
       l = l->next;
-      //printf("Free %p\n", old);
+      //printf("Free old %p next: %p\n", old, l);
       csound->Free(csound, old);
     }
 }
 
 PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree)
 {
+  //printf("Tree %p\n", tree);
   delete_tree(csound, tree);
 }
 
@@ -2046,7 +2059,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound, " ");
     }
 
-    csound->Message(csound, "<tree%s type=\"%d\" ", child[which], l->type);
+    csound->Message(csound, "<tree%s (%p : %p) type=\"%d\" ", child[which],l, l->value, l->type);
 
     switch (l->type) {
     case ',':
