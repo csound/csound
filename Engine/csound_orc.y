@@ -265,13 +265,13 @@ udo_definition   : UDOSTART_DEFINITION identifier ',' UDO_IDENT ',' UDO_IDENT NE
             ;
 
 udo_arg_list : '(' out_arg_list ')'
-             { $$ = $2 }
+             { $$ = $2;  }
              | '(' ')' 
              { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, "0")); }
              ;
 
 udo_out_arg_list : '(' out_type_list ')'
-             { $$ = $2 }
+             { $$ = $2; }
              | '(' ')' 
              { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, "0")); }
              | VOID_TOKEN 
