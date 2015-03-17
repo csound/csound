@@ -44,6 +44,7 @@ extern "C" {
         struct csvariable* (*createVariable)(void*, void*);
         void (*copyValue)(void* csound, void* dest, void* src);
         struct cstype** unionTypes;
+        void (*freeVariableMemory)(void* csound, void* varMem);
     } CS_TYPE;
 
     typedef struct csvarmem {
