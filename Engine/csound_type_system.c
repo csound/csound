@@ -280,8 +280,13 @@ void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
 void deleteVarPoolMemory(void* csnd, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head, *tmp;
     CSOUND *csound = (CSOUND *)csnd;
+    CS_TYPE* type;
     while (current != NULL) {
       tmp = current;
+      type = current->subType;
+      if (type->freeVariableMemory != NULL) {
+        type->freeVariableMemory(csound, current->memBlock);
+      }
       csound->Free(csound, current->memBlock);
       current = current->next;
       csound->Free(csound, tmp);
