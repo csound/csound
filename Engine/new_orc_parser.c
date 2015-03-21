@@ -54,7 +54,7 @@ extern void csound_prelex(CSOUND*, void*);
 extern void csound_prelex_destroy(void *);
 
 extern void csound_orc_scan_buffer (const char *, size_t, void*);
-extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE*);
+extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
 extern void csound_orclex_init(void *);
 extern void csound_orcset_extra(void *, void *);
 extern void csound_orcset_lineno(int, void*);
