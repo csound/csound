@@ -54,6 +54,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
                       ENGINE_STATE *engineState, int merge);
 int check_instr_name(char *s);
+extern void free_instr_var_memory(CSOUND*, INSDS*); 
 
 extern const char* SYNTHESIZED_ARG;
 
@@ -866,6 +867,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
         fdchclose(csound, active);
       if (active->auxchp != NULL)
         auxchfree(csound, active);
+      free_instr_var_memory(csound, active);
       if(active->opcod_iobufs != NULL)
 	csound->Free(csound, active->opcod_iobufs);
       csound->Free(csound, active);
