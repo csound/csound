@@ -266,7 +266,8 @@ static void sensLine(CSOUND *csound, void *userData)
           pcnt++;
           if (c == '"') {                       /* if find character string */
             if (e.strarg == NULL)
-              e.strarg = sstrp = csound->Malloc(csound, strsiz=SSTRSIZ);
+              e.strarg = csound->Malloc(csound, strsiz=SSTRSIZ);
+            sstrp = e.strarg;
             n = scnt;
             while (n-->0) sstrp += strlen(sstrp)+1;
             n = 0;
