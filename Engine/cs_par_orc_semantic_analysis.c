@@ -183,7 +183,8 @@ void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
         struct set_t *new_read_write = NULL;
         csp_set_union(csound, csound->instCurr->read_write,
                       new, &new_read_write);
-        //printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, *new_read_write);
+        //printf("Line: %d of cs_par_orc_semantics(%p)\n",
+        //       __LINE__, *new_read_write);
         csp_set_dealloc(csound, &csound->instCurr->read_write);
         csound->instCurr->read_write = new_read_write;
       }
