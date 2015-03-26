@@ -185,21 +185,21 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_orc));
       corfile_rm(&csound->orchstr);
-      
+
     }
     {
-      /* VL 15.3.2015 allocating memory here will cause 
+      /* VL 15.3.2015 allocating memory here will cause
          unwanted growth.
          We just pass a pointer, which will be allocated
-         by make leaf */ 
+         by make leaf */
       TREE* astTree;// = (TREE *)csound->Calloc(csound, sizeof(TREE));
       TREE* newRoot;
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
-      
+
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
-      init_symbtab(csound);    
+      init_symbtab(csound);
 
       csound_orcdebug = O->odebug;
       csound_orclex_init(&pp.yyscanner);
@@ -248,7 +248,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
-      
+
       /**** THIS NEXT LINE IS WRONG AS err IS int WHILE FN RETURNS TREE* ****/
       astTree = verify_tree(csound, astTree, typeTable);
 //      csound->Free(csound, typeTable->instr0LocalPool);
@@ -276,7 +276,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 //
       if (UNLIKELY(PARSER_DEBUG)) {
         print_tree(csound, "AST - AFTER VERIFICATION/EXPANSION\n", astTree);
-	}
+        }
 
     ending:
       csound_orclex_destroy(pp.yyscanner);
@@ -295,7 +295,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         }
         return NULL;
       }
-      
+
       astTree = csound_orc_optimize(csound, astTree);
 
       // small hack: use an extra node as head of tree list to hold the
@@ -303,9 +303,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       newRoot = make_leaf(csound, 0, 0, 0, NULL);
       newRoot->markup = typeTable;
       newRoot->next = astTree;
-       
+
       /* if(str!=NULL){ */
-      /* 	if (typeTable != NULL) { */
+      /*        if (typeTable != NULL) { */
       /*     csoundFreeVarPool(csound, typeTable->globalPool); */
       /*     if(typeTable->instr0LocalPool != NULL) { */
       /*       csoundFreeVarPool(csound, typeTable->instr0LocalPool); */
