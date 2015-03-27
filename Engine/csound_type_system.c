@@ -260,7 +260,7 @@ void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
     while (current != NULL) {
       varMem = current->memBlock;
       memSize = current->memBlockSize;
-	
+
       if(current->updateMemBlockSize != NULL) {
         current->updateMemBlockSize(csound, current);
       }
