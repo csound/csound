@@ -273,17 +273,18 @@ PUBLIC void cs_hash_table_merge(CSOUND* csound,
 
         while (item != NULL) {
             CS_HASH_TABLE_ITEM* next = item->next;
-            char* new_key = cs_hash_table_put_no_key_copy(csound, target, item->key, item->value);
-            
+            char* new_key =
+              cs_hash_table_put_no_key_copy(csound, target, item->key, item->value);
+
             if(new_key != item->key) {
-                csound->Free(csound, item->key);		
-	      }
-            
+                csound->Free(csound, item->key);
+              }
+
             csound->Free(csound, item);
             item = next;
         }
     }
-    
+
 }
 
 PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {

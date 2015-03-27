@@ -266,7 +266,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             do_baktrace(csound, tree->locn);
             return NULL;
           }
-	  csound->Free(csound, leftArgType);
+          csound->Free(csound, leftArgType);
           csound->Free(csound, rightArgType);
           return cs_strdup(csound, outype);
         }
@@ -304,9 +304,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return NULL;
         }
 
-      	csound->Free(csound, arg1);
+        csound->Free(csound, arg1);
         csound->Free(csound, arg2);
-    	csound->Free(csound, ans);
+        csound->Free(csound, ans);
         return cs_strdup(csound, out);
 
       }
@@ -386,7 +386,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
         csound->Free(csound, entries);
-          
+
         if (UNLIKELY(out == NULL)) {
           synterr(csound, Str("error: opcode '%s' for expression with arg "
                               "types %s not found, line %d \n"),
@@ -396,9 +396,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return NULL;
         }
 
-    	csound->Free(csound, argTypeLeft);
-    	csound->Free(csound, argTypeRight);
-          
+        csound->Free(csound, argTypeLeft);
+        csound->Free(csound, argTypeRight);
+
         free(inArgTypes);
         return cs_strdup(csound, out);
 
@@ -439,7 +439,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
       csound->Free(csound, entries);
-        
+
       if (UNLIKELY(out == NULL)) {
         synterr(csound, Str("error: boolean expression '%s' with arg "
                             "types %s not found, line %d \n"),
@@ -448,7 +448,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         free(inArgTypes);
         return NULL;
       }
-      
+
       csound->Free(csound, argTypeLeft);
       csound->Free(csound, argTypeRight);
       free(inArgTypes);
@@ -777,16 +777,16 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
       }
       //printf("delete %p \n", argsFound);
        int n;
-      	for(n=0; argsFound[n] != NULL; n++) {
-	  // printf("delete %p \n", argsFound[n]);
-	  csound->Free(csound, argsFound[n]);
-	}
+        for(n=0; argsFound[n] != NULL; n++) {
+          // printf("delete %p \n", argsFound[n]);
+          csound->Free(csound, argsFound[n]);
+        }
       csound->Free(csound, argsFound);
       //printf("delete %p \n", argsRequired);
-         	for(n=0; argsRequired[n] != NULL; n++) {
-		  //printf("delete %p \n", argsRequired[n]);
-	  csound->Free(csound, argsRequired[n]);
-	}
+                for(n=0; argsRequired[n] != NULL; n++) {
+                  //printf("delete %p \n", argsRequired[n]);
+          csound->Free(csound, argsRequired[n]);
+        }
       csound->Free(csound, argsRequired);
 
       return returnVal;
@@ -904,16 +904,16 @@ int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
       }
       //printf("delete %p \n", argsFound);
        int n;
-      	for(n=0; argsFound[n] != NULL; n++) {
-	  // printf("delete %p \n", argsFound[n]);
-	  csound->Free(csound, argsFound[n]);
-	}
+        for(n=0; argsFound[n] != NULL; n++) {
+          // printf("delete %p \n", argsFound[n]);
+          csound->Free(csound, argsFound[n]);
+        }
       csound->Free(csound, argsFound);
       //printf("delete %p \n", argsRequired);
-         	for(n=0; argsRequired[n] != NULL; n++) {
-		  //printf("delete %p \n", argsRequired[n]);
-	  csound->Free(csound, argsRequired[n]);
-	}
+                for(n=0; argsRequired[n] != NULL; n++) {
+                  //printf("delete %p \n", argsRequired[n]);
+          csound->Free(csound, argsRequired[n]);
+        }
       csound->Free(csound, argsRequired);
 
       return returnVal;
@@ -1096,12 +1096,12 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
         int size = strlen(argTypes[i]);
         memcpy(temp, argTypes[i], size);
         temp += size;
-	csound->Free(csound, argTypes[i]);
+        csound->Free(csound, argTypes[i]);
     }
 
-    
+
     argString[argsLen] = '\0';
-    
+
     csound->Free(csound, argTypes);
     return argString;
 
@@ -1169,7 +1169,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
 
           //FIXME - this feels like a hack
           if (*argType == 'c' || *argType == 'r' || *argType == 'p') {
-	    csound->Free(csound, argType);
+            csound->Free(csound, argType);
             break;
           }
           csound->Free(csound, argType);
@@ -1435,11 +1435,11 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       csoundMessage(csound, Str("Line: %d\n"),
                     root->line);
       do_baktrace(csound, root->locn);
-        
+
       csound->Free(csound, leftArgString);
       csound->Free(csound, rightArgString);
       csound->Free(csound, entries);
-        
+
       return 0;
     } else {
       root->markup = oentry;
@@ -1551,7 +1551,7 @@ int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
         outArg = get_arg_type2(csound, current->left, typeTable);
 
         if (outArg == NULL || (*outArg != 'b' && *outArg != 'B')) {
-	  csound->Free(csound, outArg);
+          csound->Free(csound, outArg);
           return 0;
         }
         csound->Free(csound, outArg);
@@ -1592,7 +1592,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     TREE *previous = NULL;
     TREE* newRight;
 
-    
+
     CONS_CELL* parentLabelList = typeTable->labelList;
     typeTable->labelList = get_label_list(csound, root);
 
@@ -1607,7 +1607,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
         typeTable->localPool = csoundCreateVarPool(csound);
         current->markup = typeTable->localPool;
-        
+
         if (current->right) {
 
           newRight = verify_tree(csound, current->right, typeTable);
@@ -1791,7 +1791,7 @@ TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast)
     while (current->next != NULL) {
       current = current->next;
     }
-        
+
     current->next = newlast;
 
     return first;
@@ -1817,7 +1817,7 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
     ans->rate = -1;
     ans->line = line;
     ans->locn  = locn;
-    
+
     //printf("make node %p %p %p\n", ans, ans->left, ans->right);
     //csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
     return ans;
@@ -1851,11 +1851,11 @@ static void delete_tree(CSOUND *csound, TREE *l)
 {
     while (1) {
       TREE *old = l;
-      
+
       if (UNLIKELY(l==NULL)) {
         return;
       } //else printf("l = %p\n", l);
-      
+
       if (l->value) {
         if (l->value->lexeme) {
           //printf("Free %p %p (%s)\n", l, l->value, l->value->lexeme);
@@ -2339,10 +2339,10 @@ void handle_optional_args(CSOUND *csound, TREE *l)
       }
       //      printf("delete %p \n", inArgParts);
       int n;
-      	for(n=0; inArgParts[n] != NULL; n++) {
-	  //printf("delete %p \n", inArgParts[n]);
-	  csound->Free(csound, inArgParts[n]);
-	}
+        for(n=0; inArgParts[n] != NULL; n++) {
+          //printf("delete %p \n", inArgParts[n]);
+          csound->Free(csound, inArgParts[n]);
+        }
       csound->Free(csound, inArgParts);
     }
 }
