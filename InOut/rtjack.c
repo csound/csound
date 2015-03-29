@@ -51,6 +51,11 @@ static inline void rtJack_Lock(CSOUND *csound, pthread_mutex_t *p)
     pthread_mutex_lock(p);
 }
 
+static inline int rtJack_LockTimeout(CSOUND *csound, void **p, size_t timeout)
+{
+  return csound->WaitThreadLock(*p, timeout);
+}
+
 static inline int rtJack_TryLock(CSOUND *csound, pthread_mutex_t *p)
 {
     (void) csound;
