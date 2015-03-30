@@ -108,12 +108,12 @@ msgstr "Pas assez de mémoire\n"
 
 #: Engine/corfiles.c:265
 msgid "not enough memory (realloc returned NULL)\n"
-msgstr ""
+msgstr "pas assez de mémoire (realloc a retourné NULL)\n"
 
 #: Engine/corfiles.c:291
 #, c-format
 msgid "curl_easy_perform() failed: %s\n"
-msgstr ""
+msgstr "échec de curl_easy_perform() : %s\n"
 
 #: Engine/cs_new_dispatch.c:155
 #, c-format
@@ -5910,9 +5910,8 @@ msgid "Error: no sizes set for array initialization"
 msgstr "Erreur : aucune dimension donnée à l'initialisation du tableau"
 
 #: Opcodes/arrays.c:108
-#, fuzzy
 msgid "Error: sizes must be > 0 for array initialization"
-msgstr "Erreur : aucune dimension donnée à l'initialisation du tableau"
+msgstr "Erreur : les tailles doivent être > 0 à l'initialisation d'un tableau"
 
 #: Opcodes/arrays.c:167 Opcodes/newarray.c:159
 msgid "Error: no indexes set for array set\n"
@@ -10996,9 +10995,8 @@ msgid "Copyright tag in output soundfile (no spaces)"
 msgstr "Champ copyright dans le fichier son de sortie (pas d'espaces)"
 
 #: Top/csound.c:3260
-#, fuzzy
 msgid "Short Copyright tag in output soundfile"
-msgstr "Champ copyright dans le fichier son de sortie (pas d'espaces)"
+msgstr "Champ copyright court dans le fichier son de sortie"
 
 #: Top/csound.c:3266
 msgid "Software tag in output soundfile (no spaces)"
@@ -11365,9 +11363,8 @@ msgid "Missing end tag </CsLicence>"
 msgstr "La balise fermante </CsLicence> est absente"
 
 #: Top/one_file.c:756
-#, fuzzy
 msgid "Missing end tag </CsShortLicence>"
-msgstr "La balise fermante </CsLicence> est absente"
+msgstr "La balise fermante </CsShortLicence> est absente"
 
 #: Top/one_file.c:788 Top/one_file.c:925
 #, c-format
