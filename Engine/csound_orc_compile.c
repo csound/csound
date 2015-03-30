@@ -1707,7 +1707,7 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
      csoundDeleteTree(csound, root);
     }
     else {
-     csoundDeleteTree(csound, root);
+      // csoundDeleteTree(csound, root);
      return  CSOUND_ERROR;
     }
 
