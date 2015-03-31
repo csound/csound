@@ -277,7 +277,22 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
     map_args(opc->intypes);
     map_args(opc->outypes);
-
+    
+    int n=0;
+    while(out_args[n] != NULL)  {
+          // printf("delete %p \n", argsFound[n]);
+          csound->Free(csound, in_args[n]);
+          n++;
+   }
+    csound->Free(csound, in_args);
+    n = 0;
+    while(out_args[n] != NULL)  {
+          // printf("delete %p \n", argsFound[n]);
+          csound->Free(csound, out_args[n]);
+          n++;
+   }
+    csound->Free(csound, out_args);
+    
     return err;
 }
 

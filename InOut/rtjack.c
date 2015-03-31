@@ -51,6 +51,11 @@ static inline void rtJack_Lock(CSOUND *csound, pthread_mutex_t *p)
     pthread_mutex_lock(p);
 }
 
+static inline int rtJack_LockTimeout(CSOUND *csound, void **p, size_t timeout)
+{
+  return csound->WaitThreadLock(*p, timeout);
+}
+
 static inline int rtJack_TryLock(CSOUND *csound, pthread_mutex_t *p)
 {
     (void) csound;
@@ -82,6 +87,12 @@ static inline void rtJack_Lock(CSOUND *csound, void **p)
 {
     csound->WaitThreadLockNoTimeout(*p);
 }
+
+static inline int rtJack_LockTimeout(CSOUND *csound, void **p, size_t timeout)
+{
+  return csound->WaitThreadLock(*p, timeout);
+}
+
 
 static inline int rtJack_TryLock(CSOUND *csound, void **p)
 {
@@ -792,8 +803,18 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     for (i = j = 0; i < nframes; i++) {
       if (bufpos == 0) {
         /* wait until there is enough data in ring buffer */
-        /* **** COVERITY: claims this is a double lock **** */
-        rtJack_Lock(csound, &(p->bufs[bufcnt]->csndLock));
+        /* VL 28.03.15 -- timeout after wait for 1 buffer
+           length */
+        int ret = rtJack_LockTimeout(csound, &(p->bufs[bufcnt]->csndLock),
+				     1000*(nframes/csound->GetSr(csound)));
+	if(ret) {
+          memset(inbuf_, 0, bytes_);
+	  OPARMS oparms;
+          csound->GetOParms(csound, &oparms);
+          if (oparms.msglevel & 4)
+             csound->Warning(csound, Str("rtjack: input audio timeout"));
+	  return bytes_;
+	}
       }
       /* copy audio data */
       for (k = 0; k < p->nChannels; k++)

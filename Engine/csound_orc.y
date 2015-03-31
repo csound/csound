@@ -112,7 +112,8 @@
 
 %error-verbose
 %parse-param { CSOUND * csound }
-%parse-param { TREE * astTree }
+%parse-param { TREE ** astTree }
+
 
 /* NOTE: Perhaps should use %union feature of bison */
 
@@ -172,7 +173,7 @@
 orcfile : root_statement_list
           {
               if ($1 != NULL)
-                *astTree = *((TREE *)$1);
+                *astTree = ((TREE *)$1);
               csound->synterrcnt = csound_orcnerrs;
               //print_tree(csound, "ALL", $1);
           }

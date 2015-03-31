@@ -71,6 +71,7 @@
 #include "csound_standard_types.h"
 
 #include "csdebug.h"
+#include <time.h>
 
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -88,7 +89,7 @@ static int  csoundPerformKsmpsInternal(CSOUND *csound);
 static void csoundTableSetInternal(CSOUND *csound, int table, int index,
                                    MYFLT value);
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
-static long csoundGetKcounter(CSOUND *csound);
+long csoundGetKcounter(CSOUND *csound);
 static void set_util_sr(CSOUND *csound, MYFLT sr);
 static void set_util_nchnls(CSOUND *csound, int nchnls);
 
@@ -1584,6 +1585,11 @@ int kperf_nodebug(CSOUND *csound)
       memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
     }
     csound->spoutran(csound); /* send to audio_out */
+    #ifdef ANDROID
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    csound->Message(csound, "kperf kcount, %d,%d.%06d\n", csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
+    #endif
     return 0;
 }
 
@@ -4140,7 +4146,7 @@ static INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
   return csound->engineState.instrtxtp;
 }
 
-static long csoundGetKcounter(CSOUND *csound){
+long csoundGetKcounter(CSOUND *csound){
   return csound->kcounter;
 }
 

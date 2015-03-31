@@ -54,7 +54,7 @@ extern void csound_prelex(CSOUND*, void*);
 extern void csound_prelex_destroy(void *);
 
 extern void csound_orc_scan_buffer (const char *, size_t, void*);
-extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE*);
+extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
 extern void csound_orclex_init(void *);
 extern void csound_orcset_extra(void *, void *);
 extern void csound_orcset_lineno(int, void*);
@@ -186,7 +186,11 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       corfile_rm(&csound->orchstr);
     }
     {
-      TREE* astTree = (TREE *)csound->Calloc(csound, sizeof(TREE));
+      /* VL 15.3.2015 allocating memory here will cause
+         unwanted growth.
+         We just pass a pointer, which will be allocated
+         by make leaf */
+      TREE* astTree = NULL;// = (TREE *)csound->Calloc(csound, sizeof(TREE));
       TREE* newRoot;
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
@@ -202,7 +206,10 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                              corfile_tell(csound->expanded_orc), pp.yyscanner);
 
       //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
-      err = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
+      //printf("%p \n", astTree);
+      err = csound_orcparse(&pp, pp.yyscanner, csound, &astTree);
+      //printf("%p \n", astTree);
+      // print_tree(csound, "AST - AFTER csound_orcparse()\n", astTree);
       //csp_orc_sa_cleanup(csound);
       corfile_rm(&csound->expanded_orc);
       if (csound->synterrcnt) err = 3;
@@ -223,9 +230,10 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         }
         goto ending;
       }
-      if (UNLIKELY(PARSER_DEBUG)) {
+       if (UNLIKELY(PARSER_DEBUG)) {
         print_tree(csound, "AST - INITIAL\n", astTree);
       }
+
       typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
 
@@ -262,7 +270,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 //
       if (UNLIKELY(PARSER_DEBUG)) {
         print_tree(csound, "AST - AFTER VERIFICATION/EXPANSION\n", astTree);
-      }
+        }
 
     ending:
       csound_orclex_destroy(pp.yyscanner);
@@ -291,7 +299,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       newRoot->next = astTree;
 
       /* if(str!=NULL){ */
-      /* 	if (typeTable != NULL) { */
+      /*        if (typeTable != NULL) { */
       /*     csoundFreeVarPool(csound, typeTable->globalPool); */
       /*     if(typeTable->instr0LocalPool != NULL) { */
       /*       csoundFreeVarPool(csound, typeTable->instr0LocalPool); */
@@ -302,6 +310,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       /*     csound->Free(csound, typeTable); */
       /*   } */
       /* } */
+
       return newRoot;
     }
 }

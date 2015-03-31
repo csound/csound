@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -d -+msg_color=0 -m0 -b512 -B1024
+-o dac -d -+msg_color=0 -m0 -b128 -B1024
 
 </CsOptions>
 <CsInstruments>
@@ -40,7 +40,7 @@ irelease chnget "release"
 ;ipchMul rnd31 .5, -0.5
 ;ipchMul = ipchMul + .5
 ;ipch = 100 + (1000 * ipchMul)
-ipch = 100 + rnd(1000)
+ipch = 1000 + rnd(1000)
 
 ;print iattack
 ;print idecay
@@ -48,7 +48,7 @@ ipch = 100 + rnd(1000)
 ;print irelease
 
 a2 linsegr 0, iattack, 1, idecay, isustain, irelease, 0
-a1 oscili a2, ipch, 1
+a1 oscili 1, ipch, 1
 outs a1*0.1,a1*0.1
 endin
 

@@ -247,25 +247,33 @@ void reallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
 
     while (current != NULL) {
       varMem = current->memBlock;
+      memSize = current->memBlockSize;
 
       if(current->updateMemBlockSize != NULL) {
         current->updateMemBlockSize(csound, current);
       }
-
-      memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + current->memBlockSize;
-      varMem =
-        (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound,varMem,
+      // VL 14-3-2015 only realloc if we need to
+      if(memSize < current->memBlockSize) {
+          memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + current->memBlockSize;
+          varMem =
+               (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound,varMem,
                                              memSize);
-      current->memBlock = varMem;
-      pool->poolSize += current->memBlockSize;
-      current = current->next;
+          current->memBlock = varMem;
+       }
+       pool->poolSize += current->memBlockSize;
+       current = current->next;
     }
 }
 
 void deleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head, *tmp;
+    CS_TYPE* type;
     while (current != NULL) {
       tmp = current;
+      type = current->subType;
+      if (type->freeVariableMemory != NULL) {
+        type->freeVariableMemory(csound, current->memBlock);
+      }
       csound->Free(csound, current->memBlock);
       current = current->next;
       csound->Free(csound, tmp);

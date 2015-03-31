@@ -67,7 +67,8 @@ TREE* tree_tail(TREE* node) {
     return t;
 }
 
-char *create_out_arg(CSOUND *csound, char* outype, int argCount, TYPE_TABLE* typeTable)
+char *create_out_arg(CSOUND *csound, char* outype, int argCount,
+                     TYPE_TABLE* typeTable)
 {
     char* s = (char *)csound->Malloc(csound, 256);
     if (strlen(outype) == 1) {
@@ -566,7 +567,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                                  rightArgType);
         csound->Free(csound, rightArgType);
         csound->Free(csound, opentries);
-        outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
+        outarg = create_out_arg(csound, outype,
+                                typeTable->localPool->synthArgCount++, typeTable);
 
       }
       break;
@@ -631,7 +633,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       opTree->right = root->right;
       opTree->left = create_ans_token(csound, outarg);
       opTree->line = line;
-      opTree->locn = locn;
+       opTree->locn = locn;
+
      }
     if (anchor == NULL) {
       anchor = opTree;
@@ -710,6 +713,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
     else if (is_expression_node(root->right)) {
       TREE * newRight = create_expression(csound, root->right, line,
                                           locn, typeTable);
+
       if (anchor == NULL) {
         anchor = newRight;
       }
@@ -900,6 +904,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
                 expressionNodes =
                 create_expression(csound, currentArg,
                                   currentArg->line, currentArg->locn, typeTable);
+                // free discarded node
+                csound->Free(csound, currentArg);
             }
             else {
                 expressionNodes =
