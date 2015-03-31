@@ -255,7 +255,7 @@ void array_free_var_mem(void* csnd, void* p) {
             MYFLT* mem = dat->data;
             size_t memMyfltSize = dat->arrayMemberSize / sizeof(MYFLT);
             int i, size = dat->sizes[0];
-            for (i = 0; i < dat->dimensions; i++) {
+            for (i = 1; i < dat->dimensions; i++) {
                 size *= dat->sizes[i];
             }
             size = MYFLT2LRND(size);
@@ -324,7 +324,7 @@ const CS_TYPE CS_VAR_TYPE_b = {
 };
 
 const CS_TYPE CS_VAR_TYPE_ARRAY = {
-   "[", "array", CS_ARG_TYPE_BOTH, createArray, array_copy_value, NULL, NULL
+   "[", "array", CS_ARG_TYPE_BOTH, createArray, array_copy_value, array_free_var_mem, NULL
 };
 
 
