@@ -124,7 +124,6 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
 {                                     /*      presumes good format if warped */
     MYFLT   *pp, *plim;
     int     c;
-    e->pinstance = NULL;
 
     if (csound->scstr == NULL ||
         csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */

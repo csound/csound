@@ -71,6 +71,7 @@ class icsound:
         self._myfltsize = csnd6.csoundGetSizeOfMYFLT()
         self._client_addr = None
         self._client_port = None
+        self._buffersize = None
         global cur_ics
         cur_ics = self
 
@@ -78,13 +79,24 @@ class icsound:
         if self._csPerf:
             self.stop_engine()
 
+    def list_interfaces(self, output = True):
+        if not use_ctypes:
+            print("ctypes is required to run list_devices()")
+            return
+        if not self._cs:
+            print("Start the engine before calling list_interfaces()")
+            return
+        numdevs = csnd6.csoundGetAudioDevList(self._cs.GetCsound(), None,
+                                              1 if output else 0)
+        print("%i interfaces available:"%numdevs)
+        
     
     def start_client(self, address='127.0.0.1', port=12894):
         self._client_addr = address
         self._client_port = port
     
     def start_engine(self, sr = 44100, ksmps = 64, nchnls = 2, zerodbfs=1.0,
-                     dacout = 'dac', adcin = None, port=None):
+                     dacout = 'dac', adcin = None, port=None, buffersize=None):
         ''' Start the csound engine on a separate thread'''
         if self._cs and self._csPerf:
             print("icsound: Csound already running")
@@ -103,10 +115,14 @@ class icsound:
         self._cs = csnd6.Csound()
         self._cs.CreateMessageBuffer(0)
         self._cs.SetOption('-o' + self._dacout)
+        self._buffersize = buffersize
         if self._adcin:
             self._cs.SetOption('-i' + self._adcin)
         if port:
             self._cs.SetOption("--port=%i"%port)
+        if self._buffersize:
+            self._cs.SetOption('-B' + str(self._buffersize))
+            self._cs.SetOption('-b' + str(self._buffersize))
         self._cs.CompileOrc(
         '''sr = %i
         ksmps = %i

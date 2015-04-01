@@ -61,7 +61,6 @@ public class SimpleTest1Activity extends BaseCsoundActivity implements CsoundObj
 					String csd = getResourceFileAsString(R.raw.test);
 					File f = createTempFile(csd);
 					CsoundUI csoundUI = new CsoundUI(csoundObj);
-
 					csoundUI.addSlider(fSlider, "slider", 0.,
 							1.);
 					csoundObj.addListener(SimpleTest1Activity.this);

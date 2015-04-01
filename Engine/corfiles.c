@@ -57,7 +57,7 @@ void corfile_putc(int c, CORFIL *f)
     if (f->p >= f->len) {
       new = (char*) realloc(f->body, f->len+=100);
       if (new==NULL) {
-        fprintf(stderr, "Out of Memory\n");
+        fprintf(stderr, Str("Out of Memory\n"));
         exit(7);
       }
       f->body = new;
@@ -78,7 +78,7 @@ void corfile_puts(const char *s, CORFIL *f)
       if (f->p >= f->len) {
         new = (char*) realloc(f->body, f->len+=100);
         if (new==NULL) {
-          fprintf(stderr, "Out of Memory\n");
+          fprintf(stderr, Str("Out of Memory\n"));
           exit(7);
         }
         f->body = new;
@@ -92,7 +92,7 @@ void corfile_puts(const char *s, CORFIL *f)
         if (f->p >= f->len) {
           new = (char*) realloc(f->body, f->len+=100);
           if (new==NULL) {
-            fprintf(stderr, "Out of Memory\n");
+            fprintf(stderr, Str("Out of Memory\n"));
             exit(7);
           }
           f->body = new;
@@ -108,7 +108,7 @@ void corfile_flush(CORFIL *f)
     f->len = strlen(f->body)+1;
     new = (char*)realloc(f->body, f->len);
     if (new==NULL) {
-      fprintf(stderr, "Out of Memory\n");
+      fprintf(stderr, Str("Out of Memory\n"));
       exit(7);
     }
     f->body = new;
@@ -262,7 +262,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   mem->memory = realloc(mem->memory, mem->size + realsize + 1);
   if (mem->memory == NULL) {
     /* out of memory! */
-    printf("not enough memory (realloc returned NULL)\n");
+    printf(Str("not enough memory (realloc returned NULL)\n"));
     return 0;
   }
 
@@ -288,7 +288,7 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
     n = curl_easy_perform(curl);
     if (n != CURLE_OK) {
-      csound->Die(csound, "curl_easy_perform() failed: %s\n",
+      csound->Die(csound, Str("curl_easy_perform() failed: %s\n"),
                   curl_easy_strerror(n));
     }
     curl_easy_cleanup(curl);

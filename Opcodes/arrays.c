@@ -101,6 +101,14 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
         csound->InitError(csound,
                           Str("Error: no sizes set for array initialization"));
 
+    for (i = 0; i < inArgCount; i++) {
+      if(MYFLT2LRND(*p->isizes[i]) <= 0) {
+        return
+          csound->InitError(csound,
+                          Str("Error: sizes must be > 0 for array initialization"));
+      }
+    }
+
     arrayDat->dimensions = inArgCount;
     arrayDat->sizes = csound->Calloc(csound, sizeof(int) * inArgCount);
     for (i = 0; i < inArgCount; i++) {
