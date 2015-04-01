@@ -102,7 +102,7 @@ msgid "(unknown error)"
 msgstr "(erreur inconnue)"
 
 #: Engine/corfiles.c:60 Engine/corfiles.c:81 Engine/corfiles.c:95
-#: Engine/corfiles.c:111 Engine/rdscor.c:211
+#: Engine/corfiles.c:111 Engine/fgens.c:1603 Engine/rdscor.c:211
 msgid "Out of Memory\n"
 msgstr "Pas assez de mémoire\n"
 
@@ -494,7 +494,25 @@ msgid ""
 msgstr ""
 "l'expression de l'instruction until/while n'est pas booléenne, ligne %d\n"
 
-#: Engine/csound_orc_semantics.c:1740
+#: Engine/csound_orc_semantics.c:1622
+msgid "Multiple xin statements found. Only one is allowed."
+msgstr ""
+
+#: Engine/csound_orc_semantics.c:1631
+msgid "Multiple xout statements found. Only one is allowed."
+msgstr ""
+
+#: Engine/csound_orc_semantics.c:1648
+#, c-format
+msgid "invalid xin statement for UDO: defined '%s', found '%s'\n"
+msgstr ""
+
+#: Engine/csound_orc_semantics.c:1657
+#, c-format
+msgid "invalid xout statement for UDO: defined '%s', found '%s'\n"
+msgstr ""
+
+#: Engine/csound_orc_semantics.c:1823
 #, c-format
 msgid ""
 "\n"
@@ -503,7 +521,7 @@ msgstr ""
 "\n"
 "erreur : %s (symbole \"%s\")"
 
-#: Engine/csound_orc_semantics.c:1743
+#: Engine/csound_orc_semantics.c:1826
 #, c-format
 msgid ""
 " line %d:\n"
@@ -512,12 +530,12 @@ msgstr ""
 " ligne %d :\n"
 ">>>"
 
-#: Engine/csound_orc_semantics.c:1758
+#: Engine/csound_orc_semantics.c:1841
 #, c-format
 msgid " from file %s (%d)\n"
 msgstr " depuis le fichier %s (%d)\n"
 
-#: Engine/csound_orc_semantics.c:2332
+#: Engine/csound_orc_semantics.c:2417
 #, c-format
 msgid "insufficient required arguments for opcode %s on line %d:\n"
 msgstr "arguments requis manquants pour l'opcode %s ligne %d :\n"
@@ -1134,40 +1152,45 @@ msgstr "stdmode = %.8x Linefd = %d\n"
 msgid "Failed to set file status\n"
 msgstr "Echec de la fixation de l'état du fichier\n"
 
-#: Engine/linevent.c:198
+#: Engine/linevent.c:185
+#, c-format
+msgid "input message kcount, %d, %d.%06d\n"
+msgstr ""
+
+#: Engine/linevent.c:199
 msgid "LineBuffer Overflow - Input Data has been Lost"
 msgstr "Dépassement du Tampon de Ligne - Les données en entrée sont perdues"
 
-#: Engine/linevent.c:255
+#: Engine/linevent.c:256
 #, c-format
 msgid "unknown opcode %c"
 msgstr "opcode %c inconnu"
 
-#: Engine/linevent.c:276
+#: Engine/linevent.c:277
 msgid "unmatched quotes"
 msgstr "guillemets non appariés"
 
-#: Engine/linevent.c:303
+#: Engine/linevent.c:304
 msgid "dot carry has no reference"
 msgstr "le point de report de valeur (carry) n'a pas de référence"
 
-#: Engine/linevent.c:308
+#: Engine/linevent.c:309
 msgid "cannot carry string p-field"
 msgstr "impossible de reporter un p-champ chaîne de caractères"
 
-#: Engine/linevent.c:319
+#: Engine/linevent.c:320
 msgid "too few pfields"
 msgstr "pas assez de p-champs"
 
-#: Engine/linevent.c:323
+#: Engine/linevent.c:324
 msgid "-L with negative p2 illegal"
 msgstr "-L avec un p2 négatif est illégal"
 
-#: Engine/linevent.c:334
+#: Engine/linevent.c:335
 msgid "too many pfields"
 msgstr "trop de p-champs"
 
-#: Engine/linevent.c:346
+#: Engine/linevent.c:347
 #, c-format
 msgid ""
 "illegal RT scoreline:\n"
@@ -1178,27 +1201,27 @@ msgstr ""
 "%s\n"
 "%*s"
 
-#: Engine/linevent.c:368
+#: Engine/linevent.c:369
 msgid "event: param 1 must be \"a\", \"i\", \"q\", \"f\", or \"e\""
 msgstr "event : le paramètre 1 doit être \"a\", \"i\", \"q\", \"f\", ou \"e\""
 
-#: Engine/linevent.c:370
+#: Engine/linevent.c:371
 msgid "event: string name is allowed only for \"i\" and \"q\" events"
 msgstr ""
 "event : un identifiant sous forme de chaîne n'est permis qu'avec les "
 "évènements \"i\" et \"q\""
 
-#: Engine/linevent.c:413
+#: Engine/linevent.c:414
 #, c-format
 msgid "event: error creating '%c' event"
 msgstr "event : erreur en créant l'évènement '%c'"
 
-#: Engine/linevent.c:477
+#: Engine/linevent.c:478
 #, c-format
 msgid "event_i: error creating '%c' event"
 msgstr "event_i: erreur en créant l'évènement '%c'"
 
-#: Engine/linevent.c:520
+#: Engine/linevent.c:521
 msgid "instance: error creating event"
 msgstr "instance : erreur en créant l'évènement"
 
@@ -3068,100 +3091,100 @@ msgstr "Module AuHAL : périphérique fermé\n"
 msgid "rtaudio: coreaaudio-AuHAL module enabled\n"
 msgstr "rtaudio : module AuHAL activé\n"
 
-#: InOut/rtjack.c:144
+#: InOut/rtjack.c:155
 msgid " *** WARNING: disabling --sched in freewheel mode\n"
 msgstr " *** AVERTISSEMENT : désactivation de --sched dans le mode freewheel\n"
 
-#: InOut/rtjack.c:187
+#: InOut/rtjack.c:198
 #, c-format
 msgid "(%d channels)\n"
 msgstr "(%d canaux)\n"
 
-#: InOut/rtjack.c:189
+#: InOut/rtjack.c:200
 msgid "(1 channel)\n"
 msgstr "(1 canal)\n"
 
-#: InOut/rtjack.c:228
+#: InOut/rtjack.c:239
 #, c-format
 msgid "The available JACK %s devices are:\n"
 msgstr "Les périphériques JACK %s disponibles sont :\n"
 
-#: InOut/rtjack.c:229 InOut/rtpa.c:183 InOut/rtpa.c:200
+#: InOut/rtjack.c:240 InOut/rtpa.c:183 InOut/rtpa.c:200
 msgid "output"
 msgstr "sortie"
 
-#: InOut/rtjack.c:229 InOut/rtpa.c:183 InOut/rtpa.c:200
+#: InOut/rtjack.c:240 InOut/rtpa.c:183 InOut/rtpa.c:200
 msgid "input"
 msgstr "entrée"
 
-#: InOut/rtjack.c:317 InOut/rtjack.c:330 InOut/rtjack.c:335 InOut/rtjack.c:599
-#: InOut/rtjack.c:639 InOut/rtjack.c:644 InOut/rtjack.c:668 InOut/rtjack.c:673
+#: InOut/rtjack.c:328 InOut/rtjack.c:341 InOut/rtjack.c:346 InOut/rtjack.c:610
+#: InOut/rtjack.c:650 InOut/rtjack.c:655 InOut/rtjack.c:679 InOut/rtjack.c:684
 #: InOut/rtwinmm.c:112 InOut/rtwinmm.c:316 Opcodes/ftgen.c:79
 msgid "memory allocation failure"
 msgstr "échec de l'allocation mémoire"
 
-#: InOut/rtjack.c:380
+#: InOut/rtjack.c:391
 msgid "error registering input ports"
 msgstr "erreur à l'enregistrement des ports d'entrée"
 
-#: InOut/rtjack.c:391
+#: InOut/rtjack.c:402
 msgid "error registering output ports"
 msgstr "erreur à l'enregistrement des ports de sortie"
 
-#: InOut/rtjack.c:408
+#: InOut/rtjack.c:419
 msgid "could not connect to JACK server"
 msgstr "impossible de se connecter au serveur JACK"
 
-#: InOut/rtjack.c:414
+#: InOut/rtjack.c:425
 msgid "invalid number of channels"
 msgstr "nombre de canaux non valide"
 
-#: InOut/rtjack.c:416
+#: InOut/rtjack.c:427
 msgid "invalid sample rate"
 msgstr "taux d'échantillonnage non valide"
 
-#: InOut/rtjack.c:418
+#: InOut/rtjack.c:429
 #, c-format
 msgid "sample rate %d does not match JACK sample rate %d"
 msgstr "taux d'échantillonnage %d pas conforme à celui de JACK %d"
 
-#: InOut/rtjack.c:424
+#: InOut/rtjack.c:435
 msgid "invalid period size (-b)"
 msgstr "taille de période non valide (-b)"
 
-#: InOut/rtjack.c:428
+#: InOut/rtjack.c:439
 msgid "invalid buffer size (-B)"
 msgstr "taille de tampon non valide (-B)"
 
-#: InOut/rtjack.c:431
+#: InOut/rtjack.c:442
 msgid "buffer size (-B) is too small"
 msgstr "taille de tampon (-B) trop petite"
 
-#: InOut/rtjack.c:468
+#: InOut/rtjack.c:479
 msgid "error setting sample rate callback"
 msgstr "erreur en fixant le callback du taux d'échantillonnage"
 
-#: InOut/rtjack.c:472
+#: InOut/rtjack.c:483
 msgid "error setting buffer size callback"
 msgstr "erreur en fixant le callback de la taille du tampon"
 
-#: InOut/rtjack.c:477
+#: InOut/rtjack.c:488
 msgid "error setting freewheel callback"
 msgstr "erreur en fixant le callback du freewheel"
 
-#: InOut/rtjack.c:480
+#: InOut/rtjack.c:491
 msgid "error setting xrun callback"
 msgstr "erreur en fixant le callback de xrun"
 
-#: InOut/rtjack.c:484
+#: InOut/rtjack.c:495
 msgid "error setting process callback"
 msgstr "erreur en fixant le callback de xrun"
 
-#: InOut/rtjack.c:488
+#: InOut/rtjack.c:499
 msgid "error activating JACK client"
 msgstr "erreur à l'activation du client JACK"
 
-#: InOut/rtjack.c:517 InOut/rtjack.c:550
+#: InOut/rtjack.c:528 InOut/rtjack.c:561
 #, c-format
 msgid ""
 "not autoconnecting input channel %d \n"
@@ -3170,68 +3193,73 @@ msgstr ""
 "pas de connexion automatique du canal d'entrée %d\n"
 "(il faut une connexion manuelle)"
 
-#: InOut/rtjack.c:590
+#: InOut/rtjack.c:601
 msgid "must specify a device name, not a number"
 msgstr "Il faut spécifier un nom de périphérique, pas un numéro"
 
-#: InOut/rtjack.c:596
+#: InOut/rtjack.c:607
 msgid "device name is too long"
 msgstr "le nom du périphérique est trop long"
 
-#: InOut/rtjack.c:609
+#: InOut/rtjack.c:620
 msgid "input and output parameters are not consistent"
 msgstr "les paramètres d'entrée et de sortie ne sont pas consistants"
 
-#: InOut/rtjack.c:613
+#: InOut/rtjack.c:624
 msgid "period size (-b) must be an integer multiple of ksmps"
 msgstr "la taille de la période (-b) doit être un multiple entier de ksmps"
 
-#: InOut/rtjack.c:617
+#: InOut/rtjack.c:628
 msgid "sample rate must be an integer"
 msgstr "le taux d'échantillonnage doit être entier"
 
-#: InOut/rtjack.c:754
+#: InOut/rtjack.c:765
 msgid "JACK sample rate changed"
 msgstr "le taux d'échantillonnage de JACK a changé"
 
-#: InOut/rtjack.c:757
+#: InOut/rtjack.c:768
 msgid "no connection to JACK server"
 msgstr "pas de connexion au serveur JACK"
 
-#: InOut/rtjack.c:765
+#: InOut/rtjack.c:776
 msgid " *** rtjack: connection to JACK server was lost, reconnecting..."
 msgstr ""
 " *** rtjack : la connexion au serveur JACK a été perdue, reconnexion..."
 
-#: InOut/rtjack.c:820 InOut/rtjack.c:866
+#: InOut/rtjack.c:815
+#, fuzzy
+msgid "rtjack: input audio timeout"
+msgstr "rtjack : xrun en audio temps réel"
+
+#: InOut/rtjack.c:841 InOut/rtjack.c:887
 msgid "rtjack: xrun in real time audio"
 msgstr "rtjack : xrun en audio temps réel"
 
-#: InOut/rtjack.c:1029
+#: InOut/rtjack.c:1050
 msgid "JACK real-time audio module for Csound by Istvan Varga\n"
 msgstr "Module audio JACK en temps réel pour Csound par Istvan Varga\n"
 
-#: InOut/rtjack.c:1033
+#: InOut/rtjack.c:1054
 msgid " *** rtjack: error allocating globals"
 msgstr " *** rtjack : erreur d'allocation des variables globales"
 
-#: InOut/rtjack.c:1060
+#: InOut/rtjack.c:1081
 msgid "JACK client name (default: csound6)"
 msgstr "Nom du client JACK (par défaut : csound6)"
 
-#: InOut/rtjack.c:1069
+#: InOut/rtjack.c:1090
 msgid "JACK input port name prefix (default: input)"
 msgstr "Préfixe du nom du port d'entrée de JACK (par défaut : input)"
 
-#: InOut/rtjack.c:1078
+#: InOut/rtjack.c:1099
 msgid "JACK output port name prefix (default: output)"
 msgstr "Préfixe du nom du port de sortie de JACK (par défaut : output)"
 
-#: InOut/rtjack.c:1085
+#: InOut/rtjack.c:1106
 msgid "Deprecated"
 msgstr "Obsolète"
 
-#: InOut/rtjack.c:1118
+#: InOut/rtjack.c:1139
 msgid "rtaudio: JACK module enabled\n"
 msgstr "rtaudio : module JACK activé\n"
 

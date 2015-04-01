@@ -824,7 +824,7 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
     INSTRTXT* instrDef = ip->instr;
     CS_VAR_POOL* pool = instrDef->varPool;
     CS_VARIABLE* current = pool->head;
-    
+
     while (current != NULL) {
         CS_TYPE* varType = current->varType;
         if (varType->freeVariableMemory != NULL) {
@@ -2443,7 +2443,7 @@ void *init_pass_thread(void *p){
     int done;
     float wakeup = (1000*csound->ksmps/csound->esr);
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-    
+
     while (csound->init_pass_loop) {
 
 #if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
