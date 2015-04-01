@@ -19,7 +19,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MAc
     02111-1307 USA
 */
 
@@ -41,7 +41,7 @@ void do_ifdef_skip_code(CSOUND *, yyscan_t);
 void do_function(char *, CORFIL*);
    // static void print_csound_predata(CSOUND *,char *,yyscan_t);
 void csound_pre_line(CORFIL*, yyscan_t);
-
+ static void delete_macros(CSOUND*, yyscan_t);
 #include "parse_param.h"
 
 #define YY_EXTRA_TYPE  PRE_PARM *
@@ -294,15 +294,15 @@ QNAN		"qnan"[ \t]*\(
                      char  term = (j == mm->acnt - 1 ? ')' : '\'');
  /* Compatability */
                      char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
-                     MACRO *nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
+                     MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
                      int   size = 100;
-                     nn->name = mmalloc(csound, strlen(mm->arg[j]) + 1);
+                     nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1);
                      csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
                      i = 0;
-                     nn->body = (char*) mmalloc(csound, 100);
+                     nn->body = (char*) csound->Malloc(csound, 100);
                      while ((c = input(yyscanner))!= term && c!=trm1) {
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
@@ -311,7 +311,7 @@ QNAN		"qnan"[ \t]*\(
                        }
                        nn->body[i++] = c;
                        if (UNLIKELY(i >= size))
-                         nn->body = mrealloc(csound, nn->body, size += 100);
+                         nn->body = csound->ReAlloc(csound, nn->body, size += 100);
                      }
                      nn->body[i] = '\0';
                      csound->Message(csound, "as...#%s#\n", nn->body);
@@ -361,15 +361,15 @@ QNAN		"qnan"[ \t]*\(
                      char  term = (j == mm->acnt - 1 ? ')' : '\'');
  /* Compatability */
                      char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
-                     MACRO *nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
+                     MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
                      int   size = 100;
-                     nn->name = mmalloc(csound, strlen(mm->arg[j]) + 1);
+                     nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1);
                      csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
                      i = 0;
-                     nn->body = (char*) mmalloc(csound, 100);
+                     nn->body = (char*) csound->Malloc(csound, 100);
                      while ((c = input(yyscanner))!= term && c!=trm1) {
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
@@ -378,7 +378,7 @@ QNAN		"qnan"[ \t]*\(
                        }
                        nn->body[i++] = c;
                        if (UNLIKELY(i >= size))
-                         nn->body = mrealloc(csound, nn->body, size += 100);
+                         nn->body = csound->ReAlloc(csound, nn->body, size += 100);
                      }
                      nn->body[i] = '\0';
                      csound->Message(csound, "as...#%s#\n", nn->body);
@@ -423,6 +423,7 @@ QNAN		"qnan"[ \t]*\(
                 }
 #exit           { corfile_putc('\0', csound->expanded_orc);
                   corfile_putc('\0', csound->expanded_orc);
+                  delete_macros(csound, yyscanner);
                   return 0;}
 <<EOF>>         {
                   MACRO *x, *y=NULL;
@@ -771,14 +772,14 @@ static inline int isNameChar(int c, int pos)
 
 void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
-    MACRO *mm = (MACRO*) mmalloc(csound, sizeof(MACRO));
+    MACRO *mm = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
     int   arg = 0, i, c;
     int   size = 100;
     int mlen = 40;
     char *q = name0;
     char *mname = malloc(mlen);
     mm->margs = MARGS;    /* Initial size */
-    mm->name = (char*)mmalloc(csound, strlen(name0) + 1);
+    mm->name = (char*)csound->Malloc(csound, strlen(name0) + 1);
     strcpy(mm->name, name0);
     do {
       i = 0;
@@ -804,10 +805,10 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         c = input(yyscanner);
       }
       mname[i] = '\0';
-      mm->arg[arg] = mmalloc(csound, i + 1);
+      mm->arg[arg] = csound->Malloc(csound, i + 1);
       strcpy(mm->arg[arg++], mname);
       if (UNLIKELY(arg >= mm->margs)) {
-        mm = (MACRO*) mrealloc(csound, mm, sizeof(MACRO)
+        mm = (MACRO*) csound->ReAlloc(csound, mm, sizeof(MACRO)
                                + mm->margs * sizeof(char*));
         mm->margs += MARGS;
       }
@@ -821,14 +822,14 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     while (c!='#') c = input(yyscanner); /* skip to start of body */
     mm->acnt = arg;
     i = 0;
-    mm->body = (char*) mmalloc(csound, 100);
+    mm->body = (char*) csound->Malloc(csound, 100);
     while ((c = input(yyscanner)) != '#') { /* read body */
       if (UNLIKELY(c == EOF))
         csound->Die(csound, Str("define macro with args: unexpected EOF"));
       if (c=='$') {             /* munge macro name? */
         int n = strlen(name0)+4;
         if (UNLIKELY(i+n >= size))
-          mm->body = mrealloc(csound, mm->body, size += 100);
+          mm->body = csound->ReAlloc(csound, mm->body, size += 100);
         mm->body[i] = '$'; mm->body[i+1] = '_';
         strcpy(&mm->body[i+2], name0);
         mm->body[i + n - 2] = '_'; mm->body[i + n - 1] = '_';
@@ -837,11 +838,11 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       }
       mm->body[i++] = c=='\r'?'\n':c;
       if (UNLIKELY(i >= size))
-        mm->body = mrealloc(csound, mm->body, size += 100);
+        mm->body = csound->ReAlloc(csound, mm->body, size += 100);
       if (c == '\\') {                    /* allow escaped # */
         mm->body[i++] = c = input(yyscanner);
         if (UNLIKELY(i >= size))
-          mm->body = mrealloc(csound, mm->body, size += 100);
+          mm->body = csound->ReAlloc(csound, mm->body, size += 100);
       }
       if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
@@ -856,27 +857,27 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
 
 void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
-    MACRO *mm = (MACRO*) mmalloc(csound, sizeof(MACRO));
+    MACRO *mm = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
     int   i, c;
     int   size = 100;
     mm->margs = MARGS;    /* Initial size */
     csound->DebugMsg(csound,"Macro definition for %s\n", name0);
-    mm->name = (char*)mmalloc(csound, strlen(name0) + 1);
+    mm->name = (char*)csound->Malloc(csound, strlen(name0) + 1);
     strcpy(mm->name, name0);
     mm->acnt = 0;
     i = 0;
     while ((c = input(yyscanner)) != '#');
-    mm->body = (char*) mmalloc(csound, 100);
+    mm->body = (char*) csound->Malloc(csound, 100);
     while ((c = input(yyscanner)) != '#') {
       if (UNLIKELY(c == EOF))
         csound->Die(csound, Str("define macro: unexpected EOF"));
       mm->body[i++] = c=='\r'?'\n':c;
       if (UNLIKELY(i >= size))
-        mm->body = mrealloc(csound, mm->body, size += 100);
+        mm->body = csound->ReAlloc(csound, mm->body, size += 100);
       if (c == '\\') {                    /* allow escaped # */
         mm->body[i++] = c = input(yyscanner);
         if (UNLIKELY(i >= size))
-          mm->body = mrealloc(csound, mm->body, size += 100);
+          mm->body = csound->ReAlloc(csound, mm->body, size += 100);
       }
       if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
@@ -927,7 +928,7 @@ void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
     int c;
     MACRO *mm;
     IFDEFSTACK *pp;
-    pp = (IFDEFSTACK*) mcalloc(csound, sizeof(IFDEFSTACK));
+    pp = (IFDEFSTACK*) csound->Calloc(csound, sizeof(IFDEFSTACK));
     pp->prv = PARM->ifdefStack;
     pp->isDef = PARM->isIfndef;
     for (mm = PARM->macros; mm != NULL; mm = mm->next) {
@@ -960,7 +961,7 @@ void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
           csound->LongJmp(csound, 1);
         }
         c = input(yyscanner);
-      }
+    }
       csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                            yyscanner);
       corfile_putc('\n', csound->expanded_orc);
@@ -994,19 +995,34 @@ void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
     while (c != '\n' && c != EOF && c != '\r') c = input(yyscanner);
 }
 
+static void delete_macros(CSOUND *csound, yyscan_t yyscanner)
+{
+    MACRO * qq = PARM->macros;
+    if (qq) {
+      MACRO *mm = qq;
+      while (mm) {
+        csound->Free(csound, mm->body);
+        csound->Free(csound, mm->name);
+        qq = mm->next;
+        csound->Free(csound, mm);
+        mm = qq;
+       }
+    }
+}
+
 static void add_math_const_macro(CSOUND *csound, PRE_PARM* qq,
                                  char * name, char *body)
 {
     MACRO *mm;
 
-    mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
-    mm->name = (char*) mcalloc(csound, strlen(name) + 3);
+    mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
+    mm->name = (char*) csound->Calloc(csound, strlen(name) + 3);
     sprintf(mm->name, "M_%s", name);
     mm->next = qq->macros;
     qq->macros = mm;
     mm->margs = MARGS;    /* Initial size */
     mm->acnt = 0;
-    mm->body = (char*) mcalloc(csound, strlen(body) + 1);
+    mm->body = (char*) csound->Calloc(csound, strlen(body) + 1);
     mm->body = strcpy(mm->body, body);
 }
 
@@ -1015,7 +1031,7 @@ static void add_math_const_macro(CSOUND *csound, PRE_PARM* qq,
  */
 void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM* qq)
 {
-     qq->macros = NULL;
+    qq->macros = NULL;
      add_math_const_macro(csound, qq, "E",     "2.71828182845904523536");
      add_math_const_macro(csound, qq, "LOG2E", "1.44269504088896340736");
      add_math_const_macro(csound, qq, "LOG10E","0.43429448190325182765");
@@ -1048,7 +1064,7 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
       if (UNLIKELY(s == NULL || s >= p)) {
         csound->Die(csound, Str("Invalid macro name for --omacro"));
       }
-      mname = (char*) mmalloc(csound, (p - s) + 1);
+      mname = (char*) csound->Malloc(csound, (p - s) + 1);
       strncpy(mname, s, p - s);
       mname[p - s] = '\0';
       /* check if macro is already defined */
@@ -1057,7 +1073,7 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
           break;
       }
       if (mm == NULL) {
-        mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
+        mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
         mm->name = mname;
         mm->next = qq->macros;
         qq->macros = mm;
@@ -1068,7 +1084,7 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
       mm->acnt = 0;
       if (*p != '\0')
         p++;
-      mm->body = (char*) mmalloc(csound, strlen(p) + 1);
+      mm->body = (char*) csound->Malloc(csound, strlen(p) + 1);
       strcpy(mm->body, p);
       nn = nn->next;
     }

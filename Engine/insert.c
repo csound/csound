@@ -385,9 +385,6 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, Str("instr %d now active:\n"), insno);
       showallocs(csound);
     }
-    if (newevtp->pinstance != NULL) {
-      *((MYFLT *)newevtp->pinstance) = (MYFLT) ((long) ip);
-    }
     return 0;
 }
 
@@ -822,6 +819,21 @@ void xturnoff_now(CSOUND *csound, INSDS *ip)
 
 extern void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt);
 
+
+void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
+    INSTRTXT* instrDef = ip->instr;
+    CS_VAR_POOL* pool = instrDef->varPool;
+    CS_VARIABLE* current = pool->head;
+
+    while (current != NULL) {
+        CS_TYPE* varType = current->varType;
+        if (varType->freeVariableMemory != NULL) {
+            varType->freeVariableMemory(csound, ip->lclbas + current->memBlockIndex);
+        }
+        current = current->next;
+    }
+}
+
 void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
 {
     INSTRTXT  *txtp;
@@ -844,6 +856,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
               fdchclose(csound, ip);
             if (ip->auxchp != NULL)
               auxchfree(csound, ip);
+            free_instr_var_memory(csound, ip);
             if ((nxtip = ip->nxtinstance) != NULL)
               nxtip->prvinstance = prvip;
             *prvnxtloc = nxtip;
@@ -2327,6 +2340,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
         fdchclose(csound, active);
       if (active->auxchp != NULL)
         auxchfree(csound, active);
+      free_instr_var_memory(csound, active);
       csound->Free(csound, active);
       active = nxt;
     }
@@ -2429,7 +2443,7 @@ void *init_pass_thread(void *p){
     int done;
     float wakeup = (1000*csound->ksmps/csound->esr);
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-    
+
     while (csound->init_pass_loop) {
 
 #if defined(MACOSX) || defined(LINUX) || defined(HAIKU)

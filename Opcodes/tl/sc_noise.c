@@ -23,6 +23,14 @@
     02111-1307 USA
 */
 
+/*
+        08.03.2015 gausstrig was fixed to properly work at k-time.
+        Also I added an optional feature related to the behavior
+  of very first impulse.
+
+        -- Gleb Rogozinsky
+*/
+
 #include "csoundCore.h"
 
 typedef struct {
@@ -33,7 +41,8 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *kamp, *kfrq, *kdev, *imode, frq0;
+/* 8.03.15 Added new option ifrst1   --Gleb R */
+        MYFLT   *out, *kamp, *kfrq, *kdev, *imode, *ifrst1, frq0;
         int32   count, rand, mmode;
 } GAUSSTRIG;
 
@@ -147,7 +156,34 @@ static int dust2_process_arate(CSOUND *csound, DUST *p)
 static int gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
 {
     p->rand  = csoundRand31(&csound->randSeed1);
-    p->count = 0;
+                if (*p->ifrst1 > FL(0.0)) {
+/* values less than FL(0.0) could be used in later versions as an offset in samples */
+                        int     nextsamps;
+                  MYFLT   nextcount, frq, dev, r1, r2;
+                  p->frq0 = *p->kfrq;
+                  frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
+                  dev = *p->kdev;
+
+                  nextsamps = (int)(csound->GetSr(csound) / frq);
+                  p->rand = csoundRand31(&p->rand);
+                  r1 = (MYFLT)p->rand * dv2_31;
+                  p->rand = csoundRand31(&p->rand);
+                  r2 = (MYFLT)p->rand * dv2_31;
+                  nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
+                  if (nextcount < FL(-1.0)) {
+                    MYFLT diff = FL(-1.0) - nextcount;
+                    nextcount  = (FL(1.0) < FL(-1.0) + diff ? FL(1.0) : FL(-1.0) + diff);
+                  }
+                  else if (nextcount > FL(1.0)) {
+                    MYFLT diff = nextcount - FL(1.0);
+                    nextcount  = (FL(-1.0) > FL(1.0) - diff ? FL(-1.0) : FL(1.0) - diff);
+                  }
+                  p->count = (int)(nextsamps + nextcount * dev * nextsamps);
+                }
+                else {
+/* GaussTrig UGen behavior */
+                        p->count = 0;
+                }
     /*
      * imode > 0 means better frequency modulation. If the frequency
      * changes, the delay before the next impulse is calculed again.
@@ -158,7 +194,41 @@ static int gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
     p->mmode = (*p->imode <= FL(0.0) ? 0 : 1);
     return OK;
 }
-
+/* a separate k-time init for proper work of gausstrig */
+static int gausstrig_initk(CSOUND* csound, GAUSSTRIG *p)
+{
+    p->rand  = csoundRand31(&csound->randSeed1);
+                if (*p->ifrst1 > FL(0.0)) {
+/* values less than FL(0.0) could be used in later versions as an offset in samples */
+                        int     nextsamps;
+      MYFLT   nextcount, frq, dev, r1, r2;
+      p->frq0 = *p->kfrq;
+      frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
+      dev = *p->kdev;
+/* this very line of k-time fix. Changed GetSt to GetKr */
+      nextsamps = (int)(csound->GetKr(csound) / frq);
+      p->rand = csoundRand31(&p->rand);
+      r1 = (MYFLT)p->rand * dv2_31;
+      p->rand = csoundRand31(&p->rand);
+      r2 = (MYFLT)p->rand * dv2_31;
+      nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
+      if (nextcount < FL(-1.0)) {
+        MYFLT diff = FL(-1.0) - nextcount;
+        nextcount  = (FL(1.0) < FL(-1.0) + diff ? FL(1.0) : FL(-1.0) + diff);
+      }
+      else if (nextcount > FL(1.0)) {
+        MYFLT diff = nextcount - FL(1.0);
+        nextcount  = (FL(-1.0) > FL(1.0) - diff ? FL(-1.0) : FL(1.0) - diff);
+      }
+      p->count = (int)(nextsamps + nextcount * dev * nextsamps);
+                }
+                else {
+/* GaussTrig UGen behavior */
+                        p->count = 0;
+                }
+    p->mmode = (*p->imode <= FL(0.0) ? 0 : 1);
+    return OK;
+}
 static int gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
 {
     if (p->count <= 0) {
@@ -167,7 +237,8 @@ static int gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
       p->frq0 = *p->kfrq;
       frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
       dev = *p->kdev;
-      nextsamps = (int)(csound->GetSr(csound) / frq);
+/* this very line of k-time fix. Changed GetSt to GetKr */
+      nextsamps = (int)(csound->GetKr(csound) / frq);
       p->rand = csoundRand31(&p->rand);
       r1 = (MYFLT)p->rand * dv2_31;
       p->rand = csoundRand31(&p->rand);
@@ -245,9 +316,9 @@ static OENTRY scnoise_localops[] = {
     (SUBR)dust_init, (SUBR)dust2_process_krate, NULL },
   { "dust2.a",     sizeof(DUST), 0,5, "a", "kk",
     (SUBR)dust_init, NULL, (SUBR)dust2_process_arate },
-  { "gausstrig.k", sizeof(GAUSSTRIG), 0,3, "k", "kkko",
-    (SUBR)gausstrig_init, (SUBR)gausstrig_process_krate, NULL },
-  { "gausstrig.a", sizeof(GAUSSTRIG), 0,5, "a", "kkko",
+  { "gausstrig.k", sizeof(GAUSSTRIG), 0,3, "k", "kkkoo",
+    (SUBR)gausstrig_initk, (SUBR)gausstrig_process_krate, NULL },
+  { "gausstrig.a", sizeof(GAUSSTRIG), 0,5, "a", "kkkoo",
     (SUBR)gausstrig_init, NULL, (SUBR)gausstrig_process_arate }
 };
 
