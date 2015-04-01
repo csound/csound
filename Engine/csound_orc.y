@@ -120,7 +120,8 @@
 %pure_parser
 %error-verbose
 %parse-param { CSOUND * csound }
-%parse-param { TREE * astTree }
+%parse-param { TREE ** astTree }
+
 
 /* NOTE: Perhaps should use %union feature of bison */
 
@@ -174,10 +175,12 @@
 
 orcfile           : rootstatement
                         {
+			       
                             if ($1 != NULL)
-                              *astTree = *((TREE *)$1);
+                              *astTree = ((TREE *)$1);
                             csound->synterrcnt = csound_orcnerrs;
                             //print_tree(csound, "ALL", $1);
+			    
                         }
                   ;
 
@@ -193,8 +196,8 @@ rootstatement     : rootstatement topstatement
                         {
                         $$ = appendToTree(csound, $1, $2);
                         }
-                  | topstatement
-                  | instrdecl
+                  | topstatement 
+                  | instrdecl 
                   | udodecl
                   ;
 
@@ -244,6 +247,7 @@ instrdecl : INSTR_TOKEN
                     namedInstrFlag = 0;
                     csound->Message(csound, Str("No number following instr\n"));
                     csp_orc_sa_instr_finalize(csound);
+                    $$ = NULL;
                 }
           ;
 
@@ -299,8 +303,9 @@ udodecl   : UDOSTART_DEFINITION
 statementlist : statementlist statement
                 {
                     $$ = appendToTree(csound, (TREE *)$1, (TREE *)$2);
+		    
                 }
-                | /* null */          { $$ = NULL; }
+                | /* null */          { $$ = NULL;  }
                 ;
 
 topstatement : rident '=' expr NEWLINE
@@ -321,7 +326,8 @@ statement : ident '=' expr NEWLINE
                   ans->left = (TREE *)$1;
                   ans->right = (TREE *)$3;
                   $$ = ans;
-                  csp_orc_sa_global_read_write_add_list(csound,
+                  if (namedInstrFlag!=2)
+                    csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
                 }
@@ -337,7 +343,8 @@ statement : ident '=' expr NEWLINE
                                          (TREE *)$3);
                   //print_tree(csound, "+=", ans);
                   $$ = ans;
-                  csp_orc_sa_global_read_write_add_list1(csound,
+                  if (namedInstrFlag!=2)
+                      csp_orc_sa_global_read_write_add_list1(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
                 }
@@ -353,7 +360,8 @@ statement : ident '=' expr NEWLINE
                                          (TREE *)$3);
                   //print_tree(csound, "-=", ans);
                   $$ = ans;
-                  csp_orc_sa_global_read_write_add_list1(csound,
+                  if (namedInstrFlag!=2)
+                    csp_orc_sa_global_read_write_add_list1(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
                 }
@@ -369,7 +377,8 @@ statement : ident '=' expr NEWLINE
                                          (TREE *)$3);
                   //print_tree(csound, "-=", ans);
                   $$ = ans;
-                  csp_orc_sa_global_read_write_add_list(csound,
+                  if (namedInstrFlag!=2)
+                    csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
                 }
@@ -385,7 +394,8 @@ statement : ident '=' expr NEWLINE
                                          (TREE *)$3);
                   //print_tree(csound, "-=", ans);
                   $$ = ans;
-                  csp_orc_sa_global_read_write_add_list(csound,
+                  if (namedInstrFlag!=2)
+                    csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
                 }
@@ -413,10 +423,12 @@ statement : ident '=' expr NEWLINE
                   $2->value->optype = NULL;
                   $$ = $2;
                   
-                  csp_orc_sa_global_read_write_add_list(csound,
+                  if (namedInstrFlag!=2) {
+                    csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, $2->left),
                                     csp_orc_sa_globals_find(csound, $2->right));
-                  csp_orc_sa_interlocks(csound, $2->value);
+                    csp_orc_sa_interlocks(csound, $2->value);
+                  }
                   query_deprecated_opcode(csound, $2->value);
                 }
 
@@ -426,10 +438,12 @@ statement : ident '=' expr NEWLINE
                   ((TREE *)$1)->right = (TREE *)$2;
                   $1->value->optype = NULL;
                   $$ = $1;
-                  csp_orc_sa_global_read_add_list(csound,
+                  if (namedInstrFlag!=2) {
+                    csp_orc_sa_global_read_add_list(csound,
                                   csp_orc_sa_globals_find(csound,
                                                           $1->right));
-                  csp_orc_sa_interlocks(csound, $1->value);
+                    csp_orc_sa_interlocks(csound, $1->value);
+                  }
                   query_deprecated_opcode(csound, $1->value);
                 }
             | opcode0b exprlist ')' NEWLINE   /* VL: added this to allow general func ops with no answers */
@@ -439,11 +453,13 @@ statement : ident '=' expr NEWLINE
                   $1->value->optype = NULL;
                   $$ = $1;
                   
-                  csp_orc_sa_global_read_add_list(csound,
+                  if (namedInstrFlag!=2) {
+                    csp_orc_sa_global_read_add_list(csound,
                                   csp_orc_sa_globals_find(csound,
                                                           $1->right));
                   
                   csp_orc_sa_interlocks(csound, $1->value);
+                  }
                   query_deprecated_opcode(csound, $1->value);
                  
                 }
@@ -634,7 +650,7 @@ exprlist  : exprlist ',' expr
                                       make_leaf(csound, LINE,LOCN,
                                                 LABEL_TOKEN, (ORCTOKEN *)$3));
                 }
-          | exprlist ',' error 
+          | exprlist ',' error { $$ = NULL; }
           | expr { $$ = $1; }
           | bexpr { $$ = $1; }
           | T_IDENT { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1);  }
@@ -646,23 +662,23 @@ exprlist  : exprlist ',' expr
 
 bexpr     : '(' bexpr ')'       { $$ = $2; }
           | expr S_LE expr      { $$ = make_node(csound, LINE,LOCN, S_LE, $1, $3); }
-          | expr S_LE error
+          | expr S_LE error     { $$ = NULL; }
           | expr S_GE expr      { $$ = make_node(csound, LINE,LOCN, S_GE, $1, $3); }
-          | expr S_GE error
+          | expr S_GE error     { $$ = NULL; }
           | expr S_NEQ expr     { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $3); }
-          | expr S_NEQ error
+          | expr S_NEQ error    { $$ = NULL; }
           | expr S_EQ expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
-          | expr S_EQ error
+          | expr S_EQ error     { $$ = NULL; }
           | expr '=' expr       { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
-          | expr '=' error
+          | expr '=' error      { $$ = NULL; }
           | expr S_GT expr      { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $3); }
-          | expr S_GT error
+          | expr S_GT error     { $$ = NULL; }
           | expr S_LT expr      { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $3); }
-          | expr S_LT error
+          | expr S_LT error     { $$ = NULL; }
           | bexpr S_AND bexpr   { $$ = make_node(csound, LINE,LOCN, S_AND, $1, $3); }
-          | bexpr S_AND error
+          | bexpr S_AND error   { $$ = NULL; }
           | bexpr S_OR bexpr    { $$ = make_node(csound, LINE,LOCN, S_OR, $1, $3); }
-          | bexpr S_OR error
+          | bexpr S_OR error    { $$ = NULL; }
           | '!' bexpr %prec S_UNOT { $$ = make_node(csound, LINE,LOCN,
                                                     S_UNOT, $2, NULL); }
           | '!' error           { $$ = NULL; }
@@ -671,16 +687,16 @@ bexpr     : '(' bexpr ')'       { $$ = $2; }
 expr      : bexpr '?' expr ':' expr %prec '?'
             { $$ = make_node(csound,LINE,LOCN, '?', $1,
                              make_node(csound, LINE,LOCN, ':', $3, $5)); }
-          | bexpr '?' expr ':' error
-          | bexpr '?' expr error
-          | bexpr '?' error
+          | bexpr '?' expr ':' error     { $$ = NULL; }
+          | bexpr '?' expr error { $$ = NULL; }
+          | bexpr '?' error     { $$ = NULL; }
           | iexp                { $$ = $1; }
           ;
 
 iexp      : iexp '+' iexp   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
-          | iexp '+' error
-          | iexp '-' iexp  { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
-          | iexp '-' error
+          | iexp '+' error  { $$ = NULL; }
+          | iexp '-' iexp   { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
+          | iexp '-' error  { $$ = NULL; }
           | '-' iexp %prec S_UMINUS
             {
                 $$ = make_node(csound,LINE,LOCN, S_UMINUS, NULL, $2);
@@ -695,13 +711,13 @@ iexp      : iexp '+' iexp   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
           ;
 
 iterm     : iexp '*' iexp    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
-          | iexp '*' error
+          | iexp '*' error   { $$ = NULL; }
           | iexp '/' iexp    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
-          | iexp '/' error
+          | iexp '/' error   { $$ = NULL; }
           | iexp '^' iexp    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
-          | iexp '^' error
+          | iexp '^' error   { $$ = NULL; }
           | iexp '%' iexp    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
-          | iexp '%' error
+          | iexp '%' error   { $$ = NULL; }
           | ifac                { $$ = $1;  }
           ;
 
@@ -709,17 +725,17 @@ ifac      : ident               { $$ = $1; }
           | constant            { $$ = $1; }
           | arrayexpr		{ $$ = $1; }
           | iexp '|' iexp        { $$ = make_node(csound, LINE,LOCN, '|', $1, $3); }
-          | iexp '|' error
+          | iexp '|' error       { $$ = NULL; }
           | iexp '&' iexp        { $$ = make_node(csound, LINE,LOCN, '&', $1, $3); }
-          | iexp '&' error
+          | iexp '&' error       { $$ = NULL; }
           | iexp '#' iexp        { $$ = make_node(csound, LINE,LOCN, '#', $1, $3); }
-          | iexp '#' error
+          | iexp '#' error       { $$ = NULL; }
           | iexp S_BITSHIFT_LEFT iexp   
                  { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_LEFT, $1, $3); }
-          | iexp S_BITSHIFT_LEFT error
+          | iexp S_BITSHIFT_LEFT error { $$ = NULL; }
           | iexp S_BITSHIFT_RIGHT iexp
                  { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_RIGHT, $1, $3); }
-          | iexp S_BITSHIFT_RIGHT error
+          | iexp S_BITSHIFT_RIGHT error { $$ = NULL; }
           | '~' iexp %prec S_UMINUS
             { $$ = make_node(csound, LINE,LOCN, '~', NULL, $2);}
           | '~' error         { $$ = NULL; }
@@ -755,8 +771,8 @@ ifac      : ident               { $$ = $1; }
                 //print_tree(csound, "FUNCTION CALL", $$);
             }
           
-          | identb error
-          | opcodeb error
+          | identb error    { $$ = NULL; }
+          | opcodeb error   { $$ = NULL; }
           ;
 
 rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
@@ -813,7 +829,7 @@ opcode0   : T_OPCODE0
                   csound->Message(csound, "opcode0 $1=%p (%s)\n",
                                   $1,((ORCTOKEN *)$1)->lexeme );
                 $$ = make_leaf(csound,LINE,LOCN, T_OPCODE0, (ORCTOKEN *)$1);
-                
+          
 
             }
           ;

@@ -71,6 +71,7 @@
 #include "csound_standard_types.h"
 
 #include "csdebug.h"
+#include <time.h>
 
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -88,7 +89,7 @@ static int  csoundPerformKsmpsInternal(CSOUND *csound);
 static void csoundTableSetInternal(CSOUND *csound, int table, int index,
                                    MYFLT value);
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
-static long csoundGetKcounter(CSOUND *csound);
+long csoundGetKcounter(CSOUND *csound);
 static void set_util_sr(CSOUND *csound, MYFLT sr);
 static void set_util_nchnls(CSOUND *csound, int nchnls);
 
@@ -115,7 +116,7 @@ static void free_opcode_table(CSOUND* csound) {
 
         while(bucket != NULL) {
             head = bucket->value;
-            cs_cons_free(csound, head);
+            cs_cons_free_complete(csound, head);
             bucket = bucket->next;
         }
     }
@@ -632,7 +633,6 @@ static const CSOUND cenviron_ = {
     NULL,           /*  FFT_table_1         */
     NULL,           /*  FFT_table_2         */
     NULL, NULL, NULL, /* tseg, tpsave, tplim */
-    0, 0, 0, 0, 0, 0, /*  acount, kcount, icount, Bcount, bcount, tcount */
     (MYFLT*) NULL,  /*  gbloffbas           */
 #if defined(WIN32) //&& (__GNUC_VERSION__ < 40800)
     (pthread_t){0, 0},   /* file_io_thread    */
@@ -762,6 +762,7 @@ static const CSOUND cenviron_ = {
     (char*) NULL,   /*  SF_csd_licence      */
     (char*) NULL,   /*  SF_id_title         */
     (char*) NULL,   /*  SF_id_copyright     */
+    -1,             /*  SF_id_scopyright    */
     (char*) NULL,   /*  SF_id_software      */
     (char*) NULL,   /*  SF_id_artist        */
     (char*) NULL,   /*  SF_id_comment       */
@@ -1585,6 +1586,11 @@ int kperf_nodebug(CSOUND *csound)
       memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
     }
     csound->spoutran(csound); /* send to audio_out */
+    #ifdef ANDROID
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    csound->Message(csound, "kperf kcount, %d,%d.%06d\n", csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
+    #endif
     return 0;
 }
 
@@ -3107,6 +3113,8 @@ PUBLIC void csoundReset(CSOUND *csound)
 
     csound->engineState.stringPool = cs_hash_table_create(csound);
     csound->engineState.constantsPool = myflt_pool_create(csound);
+    if(csound->symbtab != NULL) cs_hash_table_mfree_complete(csound, csound->symbtab);
+    csound->symbtab = NULL;
     csound->engineStatus |= CS_STATE_PRE;
     csound_aops_init_tables(csound);
     create_opcode_table(csound);
@@ -3246,6 +3254,11 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       CSOUNDCFG_STRING, 0, NULL, &max_len,
                                       Str("Copyright tag in output soundfile"
                                           " (no spaces)"), NULL);
+    csoundCreateConfigurationVariable(csound, "id_scopyright",
+                                      &csound->SF_id_scopyright,
+                                      CSOUNDCFG_INTEGER, 0, NULL, &max_len,
+                                      Str("Short Copyright tag in"
+                                          " output soundfile"), NULL);
     csound->SF_id_software = (char*) csound->SF_id_copyright + (int) i;
     csoundCreateConfigurationVariable(csound, "id_software",
                                       csound->SF_id_software,
@@ -4136,7 +4149,7 @@ static INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
   return csound->engineState.instrtxtp;
 }
 
-static long csoundGetKcounter(CSOUND *csound){
+long csoundGetKcounter(CSOUND *csound){
   return csound->kcounter;
 }
 

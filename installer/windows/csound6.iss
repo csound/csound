@@ -20,9 +20,9 @@
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.04.0-vst"
+#define MyAppMinVersion "6.05beta.0-vst"
 #else
-#define MyAppMinVersion "6.04.0"
+#define MyAppMinVersion "6.05beta.0"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
@@ -186,6 +186,7 @@ Source: "chua.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Component
 Source: "cs_date.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "csladspa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "doppler.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "exciter.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "fareygen.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "fluidOpcodes.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "fractalnoise.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;

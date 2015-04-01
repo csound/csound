@@ -65,7 +65,28 @@ make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
 
 make_plugin(fareygen fareygen.c)
-make_plugin(padsynth padsynth_gen.cpp)
+
+if(APPLE)
+  make_plugin(padsynth padsynth_gen.cpp)
+  set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11 -stdlib=libc++"
+    LINK_FLAGS "-std=gnu++11 -stdlib=libc++")
+elseif(LINUX)
+    include(CheckCXXCompilerFlag)
+    CHECK_CXX_COMPILER_FLAG("-std=gnu++11" COMPILER_SUPPORTS_CXX11)
+    CHECK_CXX_COMPILER_FLAG("-std=gnu++0x" COMPILER_SUPPORTS_CXX0X)
+    if(COMPILER_SUPPORTS_CXX11)
+        make_plugin(padsynth padsynth_gen.cpp)
+        set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11") 
+    elseif(COMPILER_SUPPORTS_CXX0X)
+        make_plugin(padsynth padsynth_gen.cpp)
+        set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++0x")
+    else()
+        message(STATUS "Not building padsynth as no C++11 support found.")
+    endif()
+else()
+    make_plugin(padsynth padsynth_gen.cpp)
+endif()
+
 
 make_plugin(cellular cellular.c)
 

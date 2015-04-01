@@ -53,11 +53,11 @@ target_link_libraries(testCircularBuffer ${CSOUNDLIB_STATIC} ${CUNIT_LIBRARY} pt
 add_test(NAME testCircularBuffer
         COMMAND $<TARGET_FILE:testCircularBuffer> minimal.csd ${TEST_ARGS})
 
-add_executable(testCscore cscore_tests.c)
-target_link_libraries(testCscore ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread)
-add_test(NAME testCscore
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/c/
-        COMMAND $<TARGET_FILE:testCscore> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
+#add_executable(testCscore cscore_tests.c)
+#target_link_libraries(testCscore ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread)
+#add_test(NAME testCscore
+#        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/c/
+#        COMMAND $<TARGET_FILE:testCscore> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
 
 include_directories(${CMAKE_SOURCE_DIR}/interfaces)
 add_executable(testPerfThread perfthread_test.cpp)
