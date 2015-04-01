@@ -806,15 +806,15 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
         /* VL 28.03.15 -- timeout after wait for 1 buffer
            length */
         int ret = rtJack_LockTimeout(csound, &(p->bufs[bufcnt]->csndLock),
-				     1000*(nframes/csound->GetSr(csound)));
-	if(ret) {
+                                     1000*(nframes/csound->GetSr(csound)));
+        if(ret) {
           memset(inbuf_, 0, bytes_);
-	  OPARMS oparms;
+          OPARMS oparms;
           csound->GetOParms(csound, &oparms);
           if (oparms.msglevel & 4)
              csound->Warning(csound, Str("rtjack: input audio timeout"));
-	  return bytes_;
-	}
+          return bytes_;
+        }
       }
       /* copy audio data */
       for (k = 0; k < p->nChannels; k++)
