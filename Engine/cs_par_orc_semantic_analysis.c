@@ -276,7 +276,7 @@ void csp_orc_sa_instr_add(CSOUND *csound, char *name)
     printf("csp_orc_sa_instr_add name=%s\n", name);
     csound->inInstr = 1;
     if (csound->instRoot == NULL) {
-      printf("instRoot id NULL\n");
+      //printf("instRoot id NULL\n");
       csound->instRoot = instr_semantics_alloc(csound, name);
       csound->instCurr = csound->instRoot;
     }
