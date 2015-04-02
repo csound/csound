@@ -97,7 +97,7 @@ void *mmallocDebug(CSOUND *csound, size_t size, char *file, int line)
     printf("Alloc %p (%d) %s:%d\n", ans, size, file, line);
     return ans;
 }
-      
+
 void *mcalloc(CSOUND *csound, size_t size)
 {
     void  *p;
@@ -135,7 +135,7 @@ void *mcallocDebug(CSOUND *csound, size_t size, char *file, int line)
     printf("Alloc %p (%d) %s:%d\n", ans, size, file, line);
     return ans;
 }
-      
+
 
 void mfree(CSOUND *csound, void *p)
 {

@@ -370,7 +370,7 @@ void m_chn_init_all(CSOUND *csound)
     MCHNBLK *chn;               /*  & assign corr instr n+1, else a default */
     int     defaultinsno, n;
     int16   chan;
-    
+
     defaultinsno = 0;
     while (csound->engineState.instrtxtp &&
            ++defaultinsno <= (int) csound->engineState.maxinsno &&
