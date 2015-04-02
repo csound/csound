@@ -145,6 +145,10 @@ static int tabfill(CSOUND *csound, TABFILL *p)
     size_t memMyfltSize;
     MYFLT  **valp = p->iargs;
     tabensure(csound, p->ans, nargs);
+    if(p->ans->dimensions > 1) {
+      return csound->InitError(csound,
+	 "fillarrray: multidimensional arrays not currently supported\n");
+    }
     memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
     for (i=0; i<nargs; i++) {
       p->ans->arrayType->copyValue(csound,
