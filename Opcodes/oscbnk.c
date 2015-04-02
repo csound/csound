@@ -1379,7 +1379,8 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
       phs = OSCBNK_PHS2INT(v);
     }
     /* convert phase modulation to frequency modulation */
-    v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) / (nsmps-offset); /* VL moved the line from below to here */
+ /* VL moved the line from below to here */
+    v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) / (nsmps-offset);
     p->old_phs = *(p->kphs);
     frq = (frq + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;
     /* read from table with interpolation */
@@ -1388,7 +1389,8 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    //v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) / (nsmps-offset);  /* VL this result is never used */
+    //v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) / (nsmps-offset);
+    /* VL this result is never used */
     for (nn=offset; nn<nsmps; nn++) {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((int32) (phs & mask)) * pfrac;

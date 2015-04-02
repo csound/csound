@@ -1412,7 +1412,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     }
     else {
       engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
-      engineState->stringPool = csound->engineState.stringPool; //cs_hash_table_create(csound);
+      engineState->stringPool = csound->engineState.stringPool;
+                                //cs_hash_table_create(csound);
       engineState->constantsPool = myflt_pool_create(csound);
       engineState->varPool = typeTable->globalPool;
       prvinstxt = &(engineState->instxtanchor);
