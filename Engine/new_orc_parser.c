@@ -192,7 +192,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
          unwanted growth.
          We just pass a pointer, which will be allocated
          by make leaf */
-      TREE* astTree;// = (TREE *)csound->Calloc(csound, sizeof(TREE));
+      TREE* astTree = NULL;// = (TREE *)csound->Calloc(csound, sizeof(TREE));
       TREE* newRoot;
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
