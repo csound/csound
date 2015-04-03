@@ -819,10 +819,10 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     for (i = j = 0; i < nframes; i++) {
       if (bufpos == 0) {
         /* wait until there is enough data in ring buffer */
-        /* VL 28.03.15 -- timeout after wait for 1 buffer
-           length */
+        /* VL 28.03.15 -- timeout after wait for 10 buffer
+           lengths */
         int ret = rtJack_LockTimeout(csound, &(p->bufs[bufcnt]->csndLock),
-                                     1000*(nframes/csound->GetSr(csound)));
+                                     10000*(nframes/csound->GetSr(csound)));
         if(ret) {
           memset(inbuf_, 0, bytes_);
           OPARMS oparms;
