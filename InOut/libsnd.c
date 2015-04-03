@@ -106,7 +106,7 @@ static void spoutsf(CSOUND *csound)
       }
       csound->libsndStatics.outbufrem = csound->oparms_.outbufsamps;
       if (spoutrem) {
-          goto nchk;
+        goto nchk;
       }
     }
     csound->libsndStatics.nframes = nframes;
@@ -587,7 +587,7 @@ static char* copyrightcode(int n)
       };
       if (n>=7) n = 0;
       return a[n];
-}             
+}
 
 void sfopenout(CSOUND *csound)                  /* init for sound out       */
 {                                               /* (not called if nosound)  */

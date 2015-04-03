@@ -145,6 +145,10 @@ static int tabfill(CSOUND *csound, TABFILL *p)
     size_t memMyfltSize;
     MYFLT  **valp = p->iargs;
     tabensure(csound, p->ans, nargs);
+    if(p->ans->dimensions > 2) {
+      return csound->InitError(csound,
+	 "fillarrray: arrays with dim > 2 not currently supported\n");
+    }
     memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
     for (i=0; i<nargs; i++) {
       p->ans->arrayType->copyValue(csound,
