@@ -52,7 +52,7 @@ static inline void rtJack_Lock(CSOUND *csound, pthread_mutex_t *p)
 }
 
 static inline int rtJack_LockTimeout(CSOUND *csound, pthread_mutex_t *p,
-                                     size_t milliseconds)               
+                                     size_t milliseconds)
 {
       struct timeval  tv;
       struct timespec ts;
@@ -61,7 +61,7 @@ static inline int rtJack_LockTimeout(CSOUND *csound, pthread_mutex_t *p,
       if (!retval)
         return retval;
       if (!milliseconds)
-        return retval; 
+        return retval;
       gettimeofday(&tv, NULL);
       s = milliseconds / (size_t) 1000;
       n = milliseconds - (s * (size_t) 1000);
@@ -70,7 +70,7 @@ static inline int rtJack_LockTimeout(CSOUND *csound, pthread_mutex_t *p,
       ts.tv_nsec = (long) (n < (size_t) 1000000000 ? n : n - 1000000000);
       ts.tv_sec = (time_t) (n < (size_t) 1000000000 ? s : s + 1);
       return pthread_mutex_timedlock(p, &ts);
-    
+
 }
 
 static inline int rtJack_TryLock(CSOUND *csound, pthread_mutex_t *p)

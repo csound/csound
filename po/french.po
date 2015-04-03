@@ -320,54 +320,54 @@ msgstr "fusion de l'instr %d \n"
 msgid "merging instr %s \n"
 msgstr "fusion de l'instr %s \n"
 
-#: Engine/csound_orc_compile.c:1485 Engine/csound_orc_compile.c:1520
-#: Engine/csound_orc_compile.c:1543
+#: Engine/csound_orc_compile.c:1486 Engine/csound_orc_compile.c:1521
+#: Engine/csound_orc_compile.c:1544
 msgid "invalid name for instrument"
 msgstr "nom d'instrument non valide"
 
-#: Engine/csound_orc_compile.c:1493
+#: Engine/csound_orc_compile.c:1494
 #, c-format
 msgid "instr %s redefined\n"
 msgstr "instr %s redéfini\n"
 
-#: Engine/csound_orc_compile.c:1525 Engine/csound_orc_compile.c:1548
+#: Engine/csound_orc_compile.c:1526 Engine/csound_orc_compile.c:1549
 #, c-format
 msgid "instr %s redefined"
 msgstr "instr %s redéfini"
 
-#: Engine/csound_orc_compile.c:1570
+#: Engine/csound_orc_compile.c:1571
 #, c-format
 msgid "ERROR: Could not find OPCODINFO for opname: %s\n"
 msgstr "ERREUR : impossible de trouver l'OPCODINFO pour : %s\n"
 
-#: Engine/csound_orc_compile.c:1591
+#: Engine/csound_orc_compile.c:1592
 #, c-format
 msgid "Unknown TREE node of type %d found in root.\n"
 msgstr "Noeud inconnu de type %d trouvé à la racine.\n"
 
-#: Engine/csound_orc_compile.c:1600
+#: Engine/csound_orc_compile.c:1601
 #, c-format
 msgid "%d syntax errors in orchestra.  compilation invalid\n"
 msgstr "%d erreurs de syntaxe dans l'orchestre. Compilation non valide\n"
 
-#: Engine/csound_orc_compile.c:1643
+#: Engine/csound_orc_compile.c:1644
 msgid "perf-pass statements illegal in header blk\n"
 msgstr "les instructions d'exécution sont interdites dans le bloc d'en-tête\n"
 
-#: Engine/csound_orc_compile.c:1816
+#: Engine/csound_orc_compile.c:1817
 msgid "i[fixme] pset args != pmax"
 msgstr "i[fixme] pset args != pmax"
 
-#: Engine/csound_orc_compile.c:1959
+#: Engine/csound_orc_compile.c:1960
 #, c-format
 msgid "Missing local arg: %s\n"
 msgstr "Argument local manquant : %s\n"
 
-#: Engine/csound_orc_compile.c:2019
+#: Engine/csound_orc_compile.c:2020
 msgid "**unrecorded**"
 msgstr "**non enregistré**"
 
-#: Engine/csound_orc_compile.c:2092
+#: Engine/csound_orc_compile.c:2093
 #, c-format
 msgid "Opcode \"%s\" is deprecated\n"
 msgstr "L'opcode \"%s\" est obsolète\n"
@@ -3091,100 +3091,100 @@ msgstr "Module AuHAL : périphérique fermé\n"
 msgid "rtaudio: coreaaudio-AuHAL module enabled\n"
 msgstr "rtaudio : module AuHAL activé\n"
 
-#: InOut/rtjack.c:155
+#: InOut/rtjack.c:172
 msgid " *** WARNING: disabling --sched in freewheel mode\n"
 msgstr " *** AVERTISSEMENT : désactivation de --sched dans le mode freewheel\n"
 
-#: InOut/rtjack.c:198
+#: InOut/rtjack.c:215
 #, c-format
 msgid "(%d channels)\n"
 msgstr "(%d canaux)\n"
 
-#: InOut/rtjack.c:200
+#: InOut/rtjack.c:217
 msgid "(1 channel)\n"
 msgstr "(1 canal)\n"
 
-#: InOut/rtjack.c:239
+#: InOut/rtjack.c:256
 #, c-format
 msgid "The available JACK %s devices are:\n"
 msgstr "Les périphériques JACK %s disponibles sont :\n"
 
-#: InOut/rtjack.c:240 InOut/rtpa.c:183 InOut/rtpa.c:200
+#: InOut/rtjack.c:257 InOut/rtpa.c:183 InOut/rtpa.c:200
 msgid "output"
 msgstr "sortie"
 
-#: InOut/rtjack.c:240 InOut/rtpa.c:183 InOut/rtpa.c:200
+#: InOut/rtjack.c:257 InOut/rtpa.c:183 InOut/rtpa.c:200
 msgid "input"
 msgstr "entrée"
 
-#: InOut/rtjack.c:328 InOut/rtjack.c:341 InOut/rtjack.c:346 InOut/rtjack.c:610
-#: InOut/rtjack.c:650 InOut/rtjack.c:655 InOut/rtjack.c:679 InOut/rtjack.c:684
+#: InOut/rtjack.c:345 InOut/rtjack.c:358 InOut/rtjack.c:363 InOut/rtjack.c:627
+#: InOut/rtjack.c:667 InOut/rtjack.c:672 InOut/rtjack.c:696 InOut/rtjack.c:701
 #: InOut/rtwinmm.c:112 InOut/rtwinmm.c:316 Opcodes/ftgen.c:79
 msgid "memory allocation failure"
 msgstr "échec de l'allocation mémoire"
 
-#: InOut/rtjack.c:391
+#: InOut/rtjack.c:408
 msgid "error registering input ports"
 msgstr "erreur à l'enregistrement des ports d'entrée"
 
-#: InOut/rtjack.c:402
+#: InOut/rtjack.c:419
 msgid "error registering output ports"
 msgstr "erreur à l'enregistrement des ports de sortie"
 
-#: InOut/rtjack.c:419
+#: InOut/rtjack.c:436
 msgid "could not connect to JACK server"
 msgstr "impossible de se connecter au serveur JACK"
 
-#: InOut/rtjack.c:425
+#: InOut/rtjack.c:442
 msgid "invalid number of channels"
 msgstr "nombre de canaux non valide"
 
-#: InOut/rtjack.c:427
+#: InOut/rtjack.c:444
 msgid "invalid sample rate"
 msgstr "taux d'échantillonnage non valide"
 
-#: InOut/rtjack.c:429
+#: InOut/rtjack.c:446
 #, c-format
 msgid "sample rate %d does not match JACK sample rate %d"
 msgstr "taux d'échantillonnage %d pas conforme à celui de JACK %d"
 
-#: InOut/rtjack.c:435
+#: InOut/rtjack.c:452
 msgid "invalid period size (-b)"
 msgstr "taille de période non valide (-b)"
 
-#: InOut/rtjack.c:439
+#: InOut/rtjack.c:456
 msgid "invalid buffer size (-B)"
 msgstr "taille de tampon non valide (-B)"
 
-#: InOut/rtjack.c:442
+#: InOut/rtjack.c:459
 msgid "buffer size (-B) is too small"
 msgstr "taille de tampon (-B) trop petite"
 
-#: InOut/rtjack.c:479
+#: InOut/rtjack.c:496
 msgid "error setting sample rate callback"
 msgstr "erreur en fixant le callback du taux d'échantillonnage"
 
-#: InOut/rtjack.c:483
+#: InOut/rtjack.c:500
 msgid "error setting buffer size callback"
 msgstr "erreur en fixant le callback de la taille du tampon"
 
-#: InOut/rtjack.c:488
+#: InOut/rtjack.c:505
 msgid "error setting freewheel callback"
 msgstr "erreur en fixant le callback du freewheel"
 
-#: InOut/rtjack.c:491
+#: InOut/rtjack.c:508
 msgid "error setting xrun callback"
 msgstr "erreur en fixant le callback de xrun"
 
-#: InOut/rtjack.c:495
+#: InOut/rtjack.c:512
 msgid "error setting process callback"
 msgstr "erreur en fixant le callback de xrun"
 
-#: InOut/rtjack.c:499
+#: InOut/rtjack.c:516
 msgid "error activating JACK client"
 msgstr "erreur à l'activation du client JACK"
 
-#: InOut/rtjack.c:528 InOut/rtjack.c:561
+#: InOut/rtjack.c:545 InOut/rtjack.c:578
 #, c-format
 msgid ""
 "not autoconnecting input channel %d \n"
@@ -3193,73 +3193,73 @@ msgstr ""
 "pas de connexion automatique du canal d'entrée %d\n"
 "(il faut une connexion manuelle)"
 
-#: InOut/rtjack.c:601
+#: InOut/rtjack.c:618
 msgid "must specify a device name, not a number"
 msgstr "Il faut spécifier un nom de périphérique, pas un numéro"
 
-#: InOut/rtjack.c:607
+#: InOut/rtjack.c:624
 msgid "device name is too long"
 msgstr "le nom du périphérique est trop long"
 
-#: InOut/rtjack.c:620
+#: InOut/rtjack.c:637
 msgid "input and output parameters are not consistent"
 msgstr "les paramètres d'entrée et de sortie ne sont pas consistants"
 
-#: InOut/rtjack.c:624
+#: InOut/rtjack.c:641
 msgid "period size (-b) must be an integer multiple of ksmps"
 msgstr "la taille de la période (-b) doit être un multiple entier de ksmps"
 
-#: InOut/rtjack.c:628
+#: InOut/rtjack.c:645
 msgid "sample rate must be an integer"
 msgstr "le taux d'échantillonnage doit être entier"
 
-#: InOut/rtjack.c:765
+#: InOut/rtjack.c:782
 msgid "JACK sample rate changed"
 msgstr "le taux d'échantillonnage de JACK a changé"
 
-#: InOut/rtjack.c:768
+#: InOut/rtjack.c:785
 msgid "no connection to JACK server"
 msgstr "pas de connexion au serveur JACK"
 
-#: InOut/rtjack.c:776
+#: InOut/rtjack.c:793
 msgid " *** rtjack: connection to JACK server was lost, reconnecting..."
 msgstr ""
 " *** rtjack : la connexion au serveur JACK a été perdue, reconnexion..."
 
-#: InOut/rtjack.c:815
+#: InOut/rtjack.c:832
 #, fuzzy
 msgid "rtjack: input audio timeout"
 msgstr "rtjack : xrun en audio temps réel"
 
-#: InOut/rtjack.c:841 InOut/rtjack.c:887
+#: InOut/rtjack.c:858 InOut/rtjack.c:904
 msgid "rtjack: xrun in real time audio"
 msgstr "rtjack : xrun en audio temps réel"
 
-#: InOut/rtjack.c:1050
+#: InOut/rtjack.c:1067
 msgid "JACK real-time audio module for Csound by Istvan Varga\n"
 msgstr "Module audio JACK en temps réel pour Csound par Istvan Varga\n"
 
-#: InOut/rtjack.c:1054
+#: InOut/rtjack.c:1071
 msgid " *** rtjack: error allocating globals"
 msgstr " *** rtjack : erreur d'allocation des variables globales"
 
-#: InOut/rtjack.c:1081
+#: InOut/rtjack.c:1098
 msgid "JACK client name (default: csound6)"
 msgstr "Nom du client JACK (par défaut : csound6)"
 
-#: InOut/rtjack.c:1090
+#: InOut/rtjack.c:1107
 msgid "JACK input port name prefix (default: input)"
 msgstr "Préfixe du nom du port d'entrée de JACK (par défaut : input)"
 
-#: InOut/rtjack.c:1099
+#: InOut/rtjack.c:1116
 msgid "JACK output port name prefix (default: output)"
 msgstr "Préfixe du nom du port de sortie de JACK (par défaut : output)"
 
-#: InOut/rtjack.c:1106
+#: InOut/rtjack.c:1123
 msgid "Deprecated"
 msgstr "Obsolète"
 
-#: InOut/rtjack.c:1139
+#: InOut/rtjack.c:1156
 msgid "rtaudio: JACK module enabled\n"
 msgstr "rtaudio : module JACK activé\n"
 
@@ -5941,40 +5941,44 @@ msgstr "Erreur : aucune dimension donnée à l'initialisation du tableau"
 msgid "Error: sizes must be > 0 for array initialization"
 msgstr "Erreur : les tailles doivent être > 0 à l'initialisation d'un tableau"
 
-#: Opcodes/arrays.c:167 Opcodes/newarray.c:159
+#: Opcodes/arrays.c:151
+msgid "fillarrray: arrays with dim > 2 not currently supported\n"
+msgstr ""
+
+#: Opcodes/arrays.c:173 Opcodes/newarray.c:159
 msgid "Error: no indexes set for array set\n"
 msgstr "Erreur : aucun indice fixé pour écrire dans le tableau\n"
 
-#: Opcodes/arrays.c:172 Opcodes/arrays.c:219 Opcodes/newarray.c:164
+#: Opcodes/arrays.c:178 Opcodes/arrays.c:225 Opcodes/newarray.c:164
 #: Opcodes/newarray.c:211
 #, c-format
 msgid "Array dimension %d out of range for dimensions %d\n"
 msgstr "La dimension %d du tableau est hors limites pour les dimensions %d\n"
 
-#: Opcodes/arrays.c:179 Opcodes/arrays.c:188 Opcodes/arrays.c:226
-#: Opcodes/arrays.c:234 Opcodes/newarray.c:171 Opcodes/newarray.c:180
+#: Opcodes/arrays.c:185 Opcodes/arrays.c:194 Opcodes/arrays.c:232
+#: Opcodes/arrays.c:240 Opcodes/newarray.c:171 Opcodes/newarray.c:180
 #: Opcodes/newarray.c:218 Opcodes/newarray.c:226
 #, c-format
 msgid "Array index %d out of range (0,%d) for dimension %d\n"
 msgstr "Indice %d du tableau hors limites (0,%d) pour la dimension %d\n"
 
-#: Opcodes/arrays.c:216 Opcodes/newarray.c:208
+#: Opcodes/arrays.c:222 Opcodes/newarray.c:208
 msgid "Error: no indexes set for array get"
 msgstr "Erreur : aucun indice fixé pour lire dans le tableau"
 
-#: Opcodes/arrays.c:299 Opcodes/newarray.c:290
+#: Opcodes/arrays.c:305 Opcodes/newarray.c:290
 msgid "Dimensions do not match in array arithmetic"
 msgstr "Les dimensions ne correspondent pas dans l'arithmétique des tableaux"
 
-#: Opcodes/arrays.c:307 Opcodes/arrays.c:332 Opcodes/arrays.c:350
-#: Opcodes/arrays.c:364 Opcodes/arrays.c:384 Opcodes/arrays.c:421
-#: Opcodes/arrays.c:442 Opcodes/arrays.c:467 Opcodes/arrays.c:488
-#: Opcodes/arrays.c:525 Opcodes/arrays.c:563 Opcodes/arrays.c:583
-#: Opcodes/arrays.c:600 Opcodes/arrays.c:641 Opcodes/arrays.c:664
-#: Opcodes/arrays.c:687 Opcodes/arrays.c:707 Opcodes/arrays.c:735
-#: Opcodes/arrays.c:762 Opcodes/arrays.c:811 Opcodes/arrays.c:817
-#: Opcodes/arrays.c:828 Opcodes/arrays.c:859 Opcodes/arrays.c:890
-#: Opcodes/arrays.c:911 Opcodes/arrays.c:983 Opcodes/newarray.c:298
+#: Opcodes/arrays.c:313 Opcodes/arrays.c:338 Opcodes/arrays.c:356
+#: Opcodes/arrays.c:370 Opcodes/arrays.c:390 Opcodes/arrays.c:427
+#: Opcodes/arrays.c:448 Opcodes/arrays.c:473 Opcodes/arrays.c:494
+#: Opcodes/arrays.c:531 Opcodes/arrays.c:569 Opcodes/arrays.c:589
+#: Opcodes/arrays.c:606 Opcodes/arrays.c:647 Opcodes/arrays.c:670
+#: Opcodes/arrays.c:693 Opcodes/arrays.c:713 Opcodes/arrays.c:741
+#: Opcodes/arrays.c:768 Opcodes/arrays.c:817 Opcodes/arrays.c:823
+#: Opcodes/arrays.c:834 Opcodes/arrays.c:865 Opcodes/arrays.c:896
+#: Opcodes/arrays.c:917 Opcodes/arrays.c:989 Opcodes/newarray.c:298
 #: Opcodes/newarray.c:323 Opcodes/newarray.c:341 Opcodes/newarray.c:355
 #: Opcodes/newarray.c:375 Opcodes/newarray.c:412 Opcodes/newarray.c:433
 #: Opcodes/newarray.c:456 Opcodes/newarray.c:477 Opcodes/newarray.c:513
@@ -5988,74 +5992,74 @@ msgstr "Les dimensions ne correspondent pas dans l'arithmétique des tableaux"
 msgid "array-variable not initialised"
 msgstr "tableau : non initialisé"
 
-#: Opcodes/arrays.c:326 Opcodes/arrays.c:344 Opcodes/newarray.c:317
+#: Opcodes/arrays.c:332 Opcodes/arrays.c:350 Opcodes/newarray.c:317
 #: Opcodes/newarray.c:335
 msgid "Dimension does not match in array arithmetic"
 msgstr "La dimension ne correspond pas dans l'arithmétique des tableaux"
 
-#: Opcodes/arrays.c:452 Opcodes/arrays.c:715
+#: Opcodes/arrays.c:458 Opcodes/arrays.c:721
 #, c-format
 msgid "division by zero in array-var at index %d"
 msgstr "division par zéro dans le tableau à l'indice %d"
 
-#: Opcodes/arrays.c:497 Opcodes/arrays.c:744 Opcodes/arrays.c:771
+#: Opcodes/arrays.c:503 Opcodes/arrays.c:750 Opcodes/arrays.c:777
 #: Opcodes/newarray.c:486 Opcodes/newarray.c:731 Opcodes/newarray.c:758
 #: Opcodes/newarray.c:818
 #, c-format
 msgid "undefined power in array-var at index %d"
 msgstr "puissance indéfinie dans le tableau à l'indice %d"
 
-#: Opcodes/arrays.c:638 Opcodes/arrays.c:661 Opcodes/arrays.c:684
+#: Opcodes/arrays.c:644 Opcodes/arrays.c:667 Opcodes/arrays.c:690
 #: Opcodes/newarray.c:441 Opcodes/newarray.c:626 Opcodes/newarray.c:649
 #: Opcodes/newarray.c:672 Opcodes/newarray.c:702
 msgid "division by zero in array-var"
 msgstr "division par zéro dans le tableau"
 
-#: Opcodes/arrays.c:893 Opcodes/newarray.c:940
+#: Opcodes/arrays.c:899 Opcodes/newarray.c:940
 msgid "array-variable not a vector"
 msgstr "tableau pas un vecteur"
 
-#: Opcodes/arrays.c:986 Opcodes/newarray.c:1033
+#: Opcodes/arrays.c:992 Opcodes/newarray.c:1033
 msgid "array-variable dimensions do not match"
 msgstr "les dimensions du tableau ne correspondent pas"
 
-#: Opcodes/arrays.c:988 Opcodes/newarray.c:1035
+#: Opcodes/arrays.c:994 Opcodes/newarray.c:1035
 msgid "array-variable types do not match"
 msgstr "les types du tableau ne correspondent pas"
 
-#: Opcodes/arrays.c:1035 Opcodes/arrays.c:1188 Opcodes/arrays.c:1224
-#: Opcodes/arrays.c:1227 Opcodes/newarray.c:1082 Opcodes/newarray.c:1235
+#: Opcodes/arrays.c:1041 Opcodes/arrays.c:1194 Opcodes/arrays.c:1230
+#: Opcodes/arrays.c:1233 Opcodes/newarray.c:1082 Opcodes/newarray.c:1235
 #: Opcodes/newarray.c:1271 Opcodes/newarray.c:1274
 msgid "array-var not initialised"
 msgstr "tableau non initialisée"
 
-#: Opcodes/arrays.c:1038 Opcodes/arrays.c:1096 Opcodes/newarray.c:1085
+#: Opcodes/arrays.c:1044 Opcodes/arrays.c:1102 Opcodes/newarray.c:1085
 #: Opcodes/newarray.c:1143
 msgid "No table for copy2ftab"
 msgstr "Pas de table pour copy2ftab"
 
-#: Opcodes/arrays.c:1067 Opcodes/newarray.c:1114
+#: Opcodes/arrays.c:1073 Opcodes/newarray.c:1114
 msgid "inconsistent start, end and increment parameters"
 msgstr "paramètres début, fin et incrément inconstistants"
 
-#: Opcodes/arrays.c:1127 Opcodes/newarray.c:1174
+#: Opcodes/arrays.c:1133 Opcodes/newarray.c:1174
 msgid "inconsistent start, end parameters"
 msgstr "paramètres début, fin inconsistants"
 
-#: Opcodes/arrays.c:1130 Opcodes/newarray.c:1177
+#: Opcodes/arrays.c:1136 Opcodes/newarray.c:1177
 msgid "slice larger than original size"
 msgstr "intervalle plus grand que la taille d'origine"
 
-#: Opcodes/arrays.c:1201 Opcodes/newarray.c:1248
+#: Opcodes/arrays.c:1207 Opcodes/newarray.c:1248
 #, c-format
 msgid "%s not found"
 msgstr "%s non trouvé"
 
-#: Opcodes/arrays.c:1232 Opcodes/newarray.c:1279
+#: Opcodes/arrays.c:1238 Opcodes/newarray.c:1279
 msgid "map fn not found at k rate"
 msgstr "fn de map introuvable au taux-k"
 
-#: Opcodes/arrays.c:1663 Opcodes/arrays.c:1696 Opcodes/arrays.c:1723
+#: Opcodes/arrays.c:1669 Opcodes/arrays.c:1702 Opcodes/arrays.c:1729
 #: Opcodes/newarray.c:1707 Opcodes/newarray.c:1740 Opcodes/newarray.c:1767
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr "non puissance de deux pas encore implémentée\n"
@@ -6499,7 +6503,7 @@ msgstr "Erreur en supprimant la ftable %d"
 msgid "ftgen string arg not allowed"
 msgstr "ftgen : argument chaîne interdit"
 
-#: Opcodes/ftgen.c:157 Opcodes/oscbnk.c:1818 Opcodes/oscbnk.c:1842
+#: Opcodes/ftgen.c:157 Opcodes/oscbnk.c:1820 Opcodes/oscbnk.c:1844
 msgid "ftgen error"
 msgstr "erreur de ftgen"
 
@@ -7806,84 +7810,84 @@ msgstr "grain3 nécessite plus de chevauchements"
 msgid "rnd31: not initialised"
 msgstr "rnd31 : non initialisé"
 
-#: Opcodes/oscbnk.c:1683
+#: Opcodes/oscbnk.c:1685
 #, c-format
 msgid "redefined table array for waveform %d\n"
 msgstr "redéfinition de la table pour la forme d'onde %d\n"
 
-#: Opcodes/oscbnk.c:1768
+#: Opcodes/oscbnk.c:1770
 #, c-format
 msgid "vco2init: invalid waveform number: %f"
 msgstr "vco2init : numéro de forme d'onde non valide : %f"
 
-#: Opcodes/oscbnk.c:1776
+#: Opcodes/oscbnk.c:1778
 msgid "vco2init: invalid base ftable number"
 msgstr "vco2init : numéro de la ftable de base non valide"
 
-#: Opcodes/oscbnk.c:1787
+#: Opcodes/oscbnk.c:1789
 msgid "vco2init: invalid partial number multiplier"
 msgstr "vco2init : multiplicateur du nombre d'harmoniques non valide"
 
-#: Opcodes/oscbnk.c:1796
+#: Opcodes/oscbnk.c:1798
 msgid "vco2init: invalid min table size"
 msgstr "vco2init : taille min de table non valide"
 
-#: Opcodes/oscbnk.c:1804
+#: Opcodes/oscbnk.c:1806
 msgid "vco2init: invalid max table size"
 msgstr "vco2init : taille max de table non valide"
 
-#: Opcodes/oscbnk.c:1826
+#: Opcodes/oscbnk.c:1828
 msgid "vco2init: invalid source ftable"
 msgstr "vco2init : ftable source non valide"
 
-#: Opcodes/oscbnk.c:1869
+#: Opcodes/oscbnk.c:1871
 msgid "vco2ft: table array not found for this waveform"
 msgstr ""
 "vco2ft : le tableau de tables pour cette forme d'onde n'a pas été trouvé"
 
-#: Opcodes/oscbnk.c:1941
+#: Opcodes/oscbnk.c:1943
 msgid "vco2ft: not initialised"
 msgstr "vco2ft : non initialisé"
 
-#: Opcodes/oscbnk.c:1961
+#: Opcodes/oscbnk.c:1963
 msgid "vco2: too many input arguments"
 msgstr "vco2 : trop d'arguments en entrée"
 
-#: Opcodes/oscbnk.c:1971
+#: Opcodes/oscbnk.c:1973
 msgid "vco2: insufficient required arguments"
 msgstr "vco2 : pas assez d'arguments requis"
 
-#: Opcodes/oscbnk.c:1989
+#: Opcodes/oscbnk.c:1991
 msgid "vco2: table array not found for user defined waveform"
 msgstr ""
 "vco2 : le tableau de tables pour la forme d'onde définie par l'utilisateur "
 "n'a pas été trouvé"
 
-#: Opcodes/oscbnk.c:2038
+#: Opcodes/oscbnk.c:2040
 msgid "vco2: not initialised"
 msgstr "vco2 : non initialisé"
 
-#: Opcodes/oscbnk.c:2202
+#: Opcodes/oscbnk.c:2204
 msgid "delayk: invalid delay time (must be >= 0)"
 msgstr "delayk : durée de délai non valide (doit être >= 0)"
 
-#: Opcodes/oscbnk.c:2220
+#: Opcodes/oscbnk.c:2222
 msgid "delayk: not initialised"
 msgstr "delayk : non initialisé"
 
-#: Opcodes/oscbnk.c:2243
+#: Opcodes/oscbnk.c:2245
 msgid "vdel_k: invalid max delay time (must be >= 0)"
 msgstr "vdel_k : durée de délai max non valide (doit être >= 0)"
 
-#: Opcodes/oscbnk.c:2262
+#: Opcodes/oscbnk.c:2264
 msgid "vdel_k: not initialised"
 msgstr "vdel_k : non initialisé"
 
-#: Opcodes/oscbnk.c:2268
+#: Opcodes/oscbnk.c:2270
 msgid "vdel_k: invalid delay time (must be >= 0)"
 msgstr "vdel_k : durée de délai non valide (doit être >= 0)"
 
-#: Opcodes/oscbnk.c:2540
+#: Opcodes/oscbnk.c:2542
 msgid "rbjeq: invalid filter type"
 msgstr "rbjeq : type de filtre non valide"
 
@@ -10875,200 +10879,200 @@ msgstr "Exécution multithread : insno : %3d  démarrage du thread %d sur %d.\n"
 msgid "Bad ThreadId"
 msgstr "Mauvais ThreadId"
 
-#: Top/csound.c:1907 Top/csound.c:1939 Top/csound.c:1967 Top/csound.c:2003
-#: Top/csound.c:4168
+#: Top/csound.c:1908 Top/csound.c:1940 Top/csound.c:1968 Top/csound.c:2004
+#: Top/csound.c:4170
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 "Csound n'est pas prêt pour l'exécution : csoundStart() n'a pas été appelée\n"
 
-#: Top/csound.c:1923 Top/csound.c:1952
+#: Top/csound.c:1924 Top/csound.c:1953
 msgid "Score finished in csoundPerformKsmps().\n"
 msgstr "La partition est finie dans csoundPerformKsmps().\n"
 
-#: Top/csound.c:1946 Top/csound.c:4175
+#: Top/csound.c:1947 Top/csound.c:4177
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr "Retour prématuré de csoundPerformKsmps().\n"
 
-#: Top/csound.c:1974
+#: Top/csound.c:1975
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr "Retour prématuré de csoundPerformBuffer().\n"
 
-#: Top/csound.c:2012
+#: Top/csound.c:2013
 msgid "Early return from csoundPerform().\n"
 msgstr "Retour prématuré de csoundPerform().\n"
 
-#: Top/csound.c:2020
+#: Top/csound.c:2021
 msgid "Score finished in csoundPerform().\n"
 msgstr "La partition est finie dans csoundPerform().\n"
 
-#: Top/csound.c:2031
+#: Top/csound.c:2032
 msgid "csoundPerform(): stopped.\n"
 msgstr "csoundPerform() : arrêté.\n"
 
-#: Top/csound.c:2315
+#: Top/csound.c:2316
 msgid "WARNING: "
 msgstr "AVERTISSEMENT : "
 
-#: Top/csound.c:2457
+#: Top/csound.c:2458
 msgid "rtdummy: failed to allocate globals"
 msgstr "rtdummy : l'allocation des variables globales a échoué"
 
-#: Top/csound.c:2458
+#: Top/csound.c:2459
 msgid "rtaudio: dummy module enabled\n"
 msgstr "rtaudio : module factice activé\n"
 
-#: Top/csound.c:2487 Top/csound.c:2524
+#: Top/csound.c:2488 Top/csound.c:2525
 msgid " *** error: rtaudio module set to empty string"
 msgstr " *** erreur : le module rtaudio est fixé par une chaîne vide"
 
-#: Top/csound.c:2491 Top/csound.c:2528
+#: Top/csound.c:2492 Top/csound.c:2529
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr " module rtaudio inconnu : '%s', utilisation d'un module factice"
 
-#: Top/csound.c:2645
+#: Top/csound.c:2646
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 "AVERTISSEMENT : l'entrée midi en temps réel est désactivée, utilisation de "
 "fonctions factices\n"
 
-#: Top/csound.c:2650 Top/csound.c:2684
+#: Top/csound.c:2651 Top/csound.c:2685
 msgid "error: -+rtmidi set to empty string"
 msgstr "erreur : -+rtmidi contient une chaîne vide"
 
-#: Top/csound.c:2653 Top/csound.c:2687
+#: Top/csound.c:2654 Top/csound.c:2688
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr "erreur : -+rtmidi='%s' : module inconnu"
 
-#: Top/csound.c:2679
+#: Top/csound.c:2680
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 "AVERTISSEMENT : la sortie midi en temps réel est désactivée, utilisation de "
 "fonctions factices\n"
 
-#: Top/csound.c:2701
+#: Top/csound.c:2702
 msgid "Unknown MIDI error"
 msgstr "Erreur MIDI inconnue"
 
-#: Top/csound.c:2863
+#: Top/csound.c:2864
 msgid "Failed to allocate new opcode entry."
 msgstr "Echec de l'allocation d'une nouvelle entrée d'opcode."
 
-#: Top/csound.c:2885
+#: Top/csound.c:2886
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr "Echec de l'allocation d'une entrée d'opcode pour %s."
 
-#: Top/csound.c:3026 Top/main.c:354
+#: Top/csound.c:3027 Top/main.c:354
 msgid "setting dummy interface\n"
 msgstr "mise en place d'une interface factice\n"
 
-#: Top/csound.c:3108
+#: Top/csound.c:3109
 msgid "Failed during csoundInitEnv"
 msgstr "Echec dans csoundInitEnv"
 
-#: Top/csound.c:3132
+#: Top/csound.c:3134
 msgid "Failed during csoundInitStaticModules"
 msgstr "Echec dans csoundInitStaticModules"
 
-#: Top/csound.c:3148
+#: Top/csound.c:3150
 msgid "Failed during csoundLoadModules"
 msgstr "Echec dans csoundLoadModules"
 
-#: Top/csound.c:3163
+#: Top/csound.c:3165
 #, c-format
 msgid "Csound version %s beta (float samples) %s\n"
 msgstr "Csound version %s beta (échantillons en format float) %s\n"
 
-#: Top/csound.c:3166
+#: Top/csound.c:3168
 #, c-format
 msgid "Csound version %s (float samples) %s\n"
 msgstr "Csound version %s (échantillons en format float) %s\n"
 
-#: Top/csound.c:3171
+#: Top/csound.c:3173
 #, c-format
 msgid "Csound version %s beta (double samples) %s\n"
 msgstr "Csound version %s beta (échantillons en format double) %s\n"
 
-#: Top/csound.c:3174
+#: Top/csound.c:3176
 #, c-format
 msgid "Csound version %s (double samples) %s\n"
 msgstr "Csound version %s (échantillons en format double) %s\n"
 
-#: Top/csound.c:3205
+#: Top/csound.c:3207
 msgid "Real time audio module name"
 msgstr "Nom du module audio en temps réel"
 
-#: Top/csound.c:3230
+#: Top/csound.c:3232
 msgid "Real time MIDI module name"
 msgstr "Nom du module MIDI en temps réel"
 
-#: Top/csound.c:3235
+#: Top/csound.c:3237
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 "Ignorer les évènements (autres que les changements de tempo) dans les pistes "
 "définies par le modèle"
 
-#: Top/csound.c:3241
+#: Top/csound.c:3243
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr "Ne pas traiter les contrôleurs MIDI spéciaux (pédale sustain, etc)"
 
-#: Top/csound.c:3249
+#: Top/csound.c:3251
 msgid "Title tag in output soundfile (no spaces)"
 msgstr "Champ titre dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3255
+#: Top/csound.c:3257
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr "Champ copyright dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3260
+#: Top/csound.c:3262
 msgid "Short Copyright tag in output soundfile"
 msgstr "Champ copyright court dans le fichier son de sortie"
 
-#: Top/csound.c:3266
+#: Top/csound.c:3268
 msgid "Software tag in output soundfile (no spaces)"
 msgstr "Champ du logiciel dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3271
+#: Top/csound.c:3273
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr "Champ artiste dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3278
+#: Top/csound.c:3280
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr "Champ commentaire dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3283
+#: Top/csound.c:3285
 msgid "Date tag in output soundfile (no spaces)"
 msgstr "Champ date dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3293
+#: Top/csound.c:3295
 msgid "Enable message attributes (colors etc.)"
 msgstr "Activer les attributs de message (couleurs, etc)"
 
-#: Top/csound.c:3299
+#: Top/csound.c:3301
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 "Démarrer la restitution de la partition au temps spécifié, en ignorant les "
 "évènements antérieurs"
 
-#: Top/csound.c:3306
+#: Top/csound.c:3308
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr "Ignorer <CsOptions> dans les fichiers CSD (non par défaut)"
 
-#: Top/csound.c:3515
+#: Top/csound.c:3517
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr "Impossible d'ouvrir /proc/cpuinfo. RDTSC n'est pas supporté.\n"
 
-#: Top/csound.c:3545
+#: Top/csound.c:3547
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr "Aucune entrée de fréq CPU valide n'a été trouvée dans /proc/cpuinfo.\n"
 
-#: Top/csound.c:4067
+#: Top/csound.c:4069
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr "csoundDestroyMessageBuffer : tampon de message non alloué."
 
-#: Top/csound.c:4098
+#: Top/csound.c:4100
 msgid "csound: internal error: message buffer overflow\n"
 msgstr "csound : erreur interne : dépassement du tampon de messages\n"
 
