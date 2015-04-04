@@ -222,7 +222,6 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
     }
 
     if ((eqmode = p->ieqmode) < 0) return;          /* EQ disabled  */
-
     /* modulate EQ */
 
     f = l = q = FL(0.0);
@@ -245,7 +244,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
 
     /* EQ code taken from biquad.c */
 
-    sq = SQRT(l+l);                   /* level     */
+    sq = l<FL(0.0) ? FL(0.0) : SQRT(l+l);                   /* level     */
     /* frequency */
     k = TAN(((eqmode == 2 ? (PI_F - f) : f) * FL(0.5)));
     kk = k * k; vk = l * k; vkk = l * kk; vkdq = vk / q;    /* Q         */
@@ -537,10 +536,13 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
             /* update phase */
             ph = (ph + f_i) & OSCBNK_PHSMSK;
           }
+          /* save EQ coeffs */
+          o->a1 = a1; o->a2 = a2;
+          o->b0 = b0; o->b1 = b1; o->b2 = b2;
         }
-        o->xnm1 = xnm1; o->xnm2 = xnm2; /* save EQ state */
-        o->ynm1 = ynm1; o->ynm2 = ynm2;
       }
+      o->xnm1 = xnm1; o->xnm2 = xnm2; /* save EQ state */
+      o->ynm1 = ynm1; o->ynm2 = ynm2;
       /* save amplitude and phase */
       o->osc_amp = a;
       o->osc_phs = ph;
