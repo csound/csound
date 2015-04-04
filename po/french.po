@@ -496,21 +496,21 @@ msgstr ""
 
 #: Engine/csound_orc_semantics.c:1622
 msgid "Multiple xin statements found. Only one is allowed."
-msgstr ""
+msgstr "Plusieurs instructions xin trouvées. Une seule est permise."
 
 #: Engine/csound_orc_semantics.c:1631
 msgid "Multiple xout statements found. Only one is allowed."
-msgstr ""
+msgstr "Plusieurs instructions xout trouvées. Une seule est permise."
 
 #: Engine/csound_orc_semantics.c:1648
 #, c-format
 msgid "invalid xin statement for UDO: defined '%s', found '%s'\n"
-msgstr ""
+msgstr "instruction xin non valide pour un UDO : '%s' défini, '%s' trouvé\n"
 
 #: Engine/csound_orc_semantics.c:1657
 #, c-format
 msgid "invalid xout statement for UDO: defined '%s', found '%s'\n"
-msgstr ""
+msgstr "instruction xout non valide pour un UDO : '%s' défini, '%s' trouvé\n"
 
 #: Engine/csound_orc_semantics.c:1823
 #, c-format
@@ -1155,7 +1155,7 @@ msgstr "Echec de la fixation de l'état du fichier\n"
 #: Engine/linevent.c:185
 #, c-format
 msgid "input message kcount, %d, %d.%06d\n"
-msgstr ""
+msgstr "message d'entrée kcount, %d, %d.%06d\n"
 
 #: Engine/linevent.c:199
 msgid "LineBuffer Overflow - Input Data has been Lost"
@@ -3227,9 +3227,8 @@ msgstr ""
 " *** rtjack : la connexion au serveur JACK a été perdue, reconnexion..."
 
 #: InOut/rtjack.c:832
-#, fuzzy
 msgid "rtjack: input audio timeout"
-msgstr "rtjack : xrun en audio temps réel"
+msgstr "rtjack : dépassement de temps sur l'entrée audio"
 
 #: InOut/rtjack.c:858 InOut/rtjack.c:904
 msgid "rtjack: xrun in real time audio"
@@ -5943,7 +5942,7 @@ msgstr "Erreur : les tailles doivent être > 0 à l'initialisation d'un tableau"
 
 #: Opcodes/arrays.c:151
 msgid "fillarrray: arrays with dim > 2 not currently supported\n"
-msgstr ""
+msgstr "fillarray : les tableaux de dim > 2 ne sont pas encore supportés\n"
 
 #: Opcodes/arrays.c:173 Opcodes/newarray.c:159
 msgid "Error: no indexes set for array set\n"
