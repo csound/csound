@@ -477,6 +477,7 @@ extern "C" {
         // N.B.: The partials are indexed starting from 1.
         int partialN = ff->e.pcnt - 10;
         std::vector<MYFLT> A(partialN + 1);
+        A[0] = FL(0.0);
         for (int partialI = 1; partialI <= partialN; ++partialI) {
             A[partialI] = ff->e.p[11 + partialI - 1];
         }
@@ -519,7 +520,7 @@ extern "C" {
             spectrum[complexI].imag(real * std::sin(random_phase));
         };
         spectrum[0].imag(0);
-        csound->InverseComplexFFT(csound, ftp->ftable, complexN);
+        csound->InverseRealFFT(csound, ftp->ftable, N);
         // Normalize,
         MYFLT maximum = FL(0.0);
         for (int i = 0; i < N; ++i) {
