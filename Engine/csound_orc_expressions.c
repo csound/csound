@@ -143,6 +143,7 @@ TREE *create_minus_token(CSOUND *csound)
     ans->next = NULL;
     ans->len = 0;
     ans->rate = -1;
+    ans->markup = NULL;
     ans->value = make_int(csound, "-1");
     return ans;
 }

@@ -1900,7 +1900,7 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
     ans->rate = -1;
     ans->line = line;
     ans->locn  = locn;
-
+    ans->markup = NULL;
     //printf("make node %p %p %p\n", ans, ans->left, ans->right);
     //csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
     return ans;
