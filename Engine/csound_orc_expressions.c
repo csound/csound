@@ -891,7 +891,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
                 create_expression(csound, currentArg,
                                   currentArg->line, currentArg->locn, typeTable);
                 // free discarded node
-                csound->Free(csound, currentArg);
+                //csound->Free(csound, currentArg);
             }
             else {
                 expressionNodes =
@@ -913,6 +913,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
                 csound->Message(csound, "New Arg: %s\n", newArg);
 
             /* handle arg replacement of currentArg here */
+            /* **** was a bug as currentArg could be freed above **** */
             nextArg = currentArg->next;
             newArgTree = create_ans_token(csound, newArg);
 
