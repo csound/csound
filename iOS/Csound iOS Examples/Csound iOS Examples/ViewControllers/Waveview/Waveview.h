@@ -2,7 +2,7 @@
  
  Waveview.h:
  
- Copyright (C) 2011 Steven Yi, Ed Costello
+ Copyright (C) 2015 Steven Yi, Ed Costello, Aurelius Prochazka
  
  This file is part of Csound iOS Examples.
  
@@ -29,5 +29,7 @@
 @interface Waveview : UIView <CsoundBinding>
 
 @property (nonatomic, strong) NSString *channelName;
+
+- (void)displayFTable:(int)fTableNum;
 
 @end
