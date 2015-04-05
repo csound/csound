@@ -30,6 +30,7 @@
 #import "CsoundObj.h"
 @interface WaveviewViewController : BaseCsoundViewController
 {
+    IBOutlet UILabel *titleLabel;
     
     IBOutlet Waveview *waveview;
 }
