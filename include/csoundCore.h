@@ -59,7 +59,7 @@
 #define _MM_DENORMALS_ZERO_MASK   0
 #define _MM_DENORMALS_ZERO_ON     0
 #define _MM_DENORMALS_ZERO_OFF    0
-#define _MM_SET_DENORMALS_ZERO_MODE(mode)  
+#define _MM_SET_DENORMALS_ZERO_MODE(mode)
 #endif
 #endif
 
