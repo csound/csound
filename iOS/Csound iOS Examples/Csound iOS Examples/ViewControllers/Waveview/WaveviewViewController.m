@@ -25,11 +25,16 @@
 
 #import "WaveviewViewController.h"
 
-@implementation WaveviewViewController
+@implementation WaveviewViewController {
+    int fTableIndex;
+    NSArray *fTables;
+}
 
 -(void)viewDidLoad {
     self.title = @"WaveviewTest";
     [super viewDidLoad];
+    fTableIndex = 0;
+    fTables = @[@"Sine", @"Exponential Curves", @"Data Points", @"Normalizing Function", @""];
 }
 
 -(void)viewDidAppear:(BOOL)animated {
@@ -44,6 +49,15 @@
 	[self.csound  addBinding:waveview];
 	
 	[self.csound play:tempFile];
+    
+}
+- (IBAction)incrementFTable:(id)sender {
+    fTableIndex++;
+    if (fTableIndex >= fTables.count) {
+        fTableIndex = 0;
+    }
+    titleLabel.text = fTables[fTableIndex];
+    [waveview displayFTable:fTableIndex+1];
 }
 
-@end
+ekend
