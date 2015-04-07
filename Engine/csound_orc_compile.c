@@ -1013,7 +1013,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
       /* no active instances */
       if (active == NULL) {
         if (csound->oparms->odebug)
-          csound->Message(csound, "no active instances \n");
+          csound->Message(csound, Str("no active instances \n"));
         free_instrtxt(csound, engineState->instrtxtp[inm->instno]);
         engineState->instrtxtp[inm->instno] = NULL;
       }
