@@ -621,7 +621,24 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
     double scal,esr;
     BIQUAD *biquad = p->fils;
     MYFLT *asig=p->asig,kd=*p->kd,klpf,klpfQ,klf,khf,kthresh;
-    MYFLT *freq=p->freq, *lock =p->lock;
+    MYFLT *freq=p->freq, *lock =p->lock, itmp = asig[0];
+    int itest = 0;
+  
+    _0dbfs = csound->e0dbfs;
+    ksmps = CS_KSMPS;
+    esr = CS_ESR;
+    scal = 2.0*csound->pidsr;
+
+    /* check for muted input & bypass */
+    for(i=0; i < ksmps; i++){
+      if(asig[i] != 0.0 && asig[i] != itmp) {
+        itest = 1;
+	break;
+      }
+      itmp = asig[i];
+    }
+    if(!itest) return OK;
+
 
     if (*p->klpf == 0) klpf = 20.0;
     else klpf = *p->klpf;
@@ -638,10 +655,7 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
     if (*p->kthresh == 0.0) kthresh= 0.001;
     else kthresh = *p->kthresh;
 
-    _0dbfs = csound->e0dbfs;
-    ksmps = CS_KSMPS;
-    esr = CS_ESR;
-    scal = 2.0*csound->pidsr;
+
 
     if (p->khf_o != khf) {
       update_coefs(csound, khf, 0.0, &biquad[0], LP1);
