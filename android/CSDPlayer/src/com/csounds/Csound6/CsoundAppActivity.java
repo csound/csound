@@ -4,11 +4,14 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -22,6 +25,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -168,6 +172,35 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 		}
 	}
 
+	private static void copyFile(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024];
+        int read;
+        while((read = in.read(buffer)) != -1){
+          out.write(buffer, 0, read);
+        }
+    }
+	
+	private boolean copyAsset(String fromAssetPath, String toPath) {
+		AssetManager assetManager = getAssets();
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+          in = assetManager.open(fromAssetPath);
+          new File(toPath).createNewFile();
+          out = new FileOutputStream(toPath);
+          copyFile(in, out);
+          in.close();
+          in = null;
+          out.flush();
+          out.close();
+          out = null;
+          return true;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -196,6 +229,121 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 		case R.id.itemSettings:
 			Intent intent = new Intent(this, SettingsActivity.class);
 			startActivity(intent);
+			return true;
+		case R.id.itemTrapped:
+		{
+			// Copy the asset to storage and set the filename.
+	        File outFile = new File(getExternalFilesDir(null), "trapped.csd");
+	        if (copyAsset("Csound6AndroidExamples/Boulanger/trapped.csd", outFile.getAbsolutePath()) == true) {
+	        	OnFileChosen(outFile);
+	        } 
+		}
+			return true;
+		case R.id.itemDroneIV:
+		{
+			// Copy the asset to storage and set the filename.
+	        File outFile = new File(getExternalFilesDir(null), "Drone-IV.csd");
+	        if (copyAsset("Csound6AndroidExamples/Gogins/Drone-IV.csd", outFile.getAbsolutePath()) == true) {
+	        	OnFileChosen(outFile);
+	        } 
+		}
+			return true;
+		case R.id.itemLuaScoregen:
+		{
+			// Copy the asset to storage and set the filename.
+	        File outFile = new File(getExternalFilesDir(null), "lua_scoregen.csd");
+	        if (copyAsset("Csound6AndroidExamples/Gogins/lua_scoregen.csd", outFile.getAbsolutePath()) == true) {
+	        	OnFileChosen(outFile);
+	        } 
+		}
+			return true;
+		case R.id.itemChimePad:
+		{
+			// Copy the asset to storage and set the filename.
+	        File outFile = new File(getExternalFilesDir(null), "0.wav");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/0.wav", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "1.wav");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/1.wav", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "2.wav");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/2.wav", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "3.wav");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/3.wav", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "4.wav");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/4.wav", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "5.wav");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/5.wav", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "10.wav");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/10.wav", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "11.wav");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/11.wav", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "12.wav");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/12.wav", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "13.wav");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/13.wav", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "14.wav");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/14.wav", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "15.wav");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/15.wav", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "ChimePadReadMe.txt");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/ChimePadReadMe.txt", outFile.getAbsolutePath()) == false) {
+	        	return true;
+	        } 
+	        outFile = new File(getExternalFilesDir(null), "ChimePad.csd");
+	        if (copyAsset("Csound6AndroidExamples/Hunkins/ChimePad/ChimePad.csd", outFile.getAbsolutePath()) == true) {
+	        	OnFileChosen(outFile);
+	        } 
+		}
+			return true;
+		case R.id.itemPartikkel:
+		{
+			// Copy the asset to storage and set the filename.
+	        File outFile = new File(getExternalFilesDir(null), "partikkel.csd");
+	        if (copyAsset("Csound6AndroidExamples/Khosravi/partikkel.csd", outFile.getAbsolutePath()) == true) {
+	        	OnFileChosen(outFile);
+	        } 
+		}
+			return true;
+		case R.id.itemXanadu:
+		{
+			// Copy the asset to storage and set the filename.
+	        File outFile = new File(getExternalFilesDir(null), "xanadu.csd");
+	        if (copyAsset("Csound6AndroidExamples/Kung/xanadu.csd", outFile.getAbsolutePath()) == true) {
+	        	OnFileChosen(outFile);
+	        } 
+		}
+			return true;
+		case R.id.itemKoanI:
+		{
+			// Copy the asset to storage and set the filename.
+	        File outFile = new File(getExternalFilesDir(null), "i.csd");
+	        if (copyAsset("Csound6AndroidExamples/McCurdy/i.csd", outFile.getAbsolutePath()) == true) {
+	        	OnFileChosen(outFile);
+	        } 
+		}
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
