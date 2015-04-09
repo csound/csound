@@ -232,6 +232,7 @@ typedef struct {
     MYFLT   e0dbfs_override;
     int     daemon;
     double  quality;        /* for ogg encoding */
+    int     ksmps_override;
   } OPARMS;
 
   typedef struct arglst {
