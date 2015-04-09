@@ -404,6 +404,7 @@ extern "C" {
     int     nchnls_i_override;  /* overriding number of in channels */
     MYFLT   e0dbfs_override;   /* overriding 0dbfs */
     int     daemon;  /* daemon mode */
+    int     ksmps_override; /* ksmps override */
   } CSOUND_PARAMS;
 
     /**

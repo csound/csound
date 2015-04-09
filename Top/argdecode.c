@@ -285,6 +285,7 @@ static const char *longUsageList[] = {
   Str_noop("--vbr-quality=Ft\t set quality of variable bit0rate compression"),
   Str_noop("--devices[=in|out] \t\t list available audio devices and exit"),
   Str_noop("--get-system-sr \t\t print system sr and exit"),
+  Str_noop("--ksmps=N \t\t override ksmps"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -614,6 +615,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 13;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no control rate"));
       O->kr_override = (float)atof(s);
+      return 1;
+    }
+    else if (!(strncmp(s, "ksmps=", 6))) {
+      s += 6;
+      if (UNLIKELY(*s=='\0')) dieu(csound, Str("no ksmps"));
+      O->ksmps_override = atoi(s);
       return 1;
     }
     /* -K */
@@ -1461,6 +1468,8 @@ PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
   oparms->nchnls_override = p->nchnls_override;
   oparms->nchnls_i_override = p->nchnls_i_override;
   oparms->e0dbfs_override = p->e0dbfs_override;
+  
+  if(p->ksmps_override > 0) oparms->ksmps_override = p->ksmps_override;
 }
 
 PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
@@ -1499,6 +1508,7 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
   p->heartbeat = oparms->heartbeat;
   p->ring_bell = oparms->ringbell;
   p->daemon = oparms->daemon;
+  p->ksmps_override = oparms->ksmps_override;
 }
 
 
