@@ -12,8 +12,8 @@ ksmps = 100
 nchnls = 2
 0dbfs = 5000000
 
-#define FLTK #fltk#
-#define CSOUNDQT0 #csoundqt#
+;#define FLTK #fltk#
+;#define CSOUNDQT0 #csoundqt#
 
 gkslider1 init 0
 gkslider2 init 0
@@ -746,7 +746,7 @@ aright inleta "inright"
 aleft *= gkMasterLevel
 aright *= gkMasterLevel
 outs aleft, aright
-fout "Drone-IV-performance.wav", 16, aleft, aright
+;fout "Drone-IV-performance.wav", 16, aleft, aright
 endin
 
 instr Controls
