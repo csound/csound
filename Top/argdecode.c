@@ -27,6 +27,7 @@
 #include <ctype.h>
 
 static void list_audio_devices(CSOUND *csound, int output);
+static void list_midi_devices(CSOUND *csound, int output);
 extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 #define FIND(MSG)   if (*s == '\0')  \
@@ -1036,6 +1037,24 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->info_message_request = 1;
       return 1;
       }
+     else if (!(strncmp(s, "midi-devices",12))) {
+      csoundLoadExternals(csound);
+      if (csoundInitModules(csound) != 0)
+        csound->LongJmp(csound, 1);
+      if (*(s+12) == '='){
+        if (!strncmp(s+13,"in", 2)) {
+          list_midi_devices(csound, 0);
+        }
+        else if(!strncmp(s+13,"out", 2))
+          list_midi_devices(csound,1);
+      }
+      else {
+        list_midi_devices(csound,0);
+        list_midi_devices(csound,1);
+      }
+      csound->info_message_request = 1;
+      return 1;
+      }
     else if (!(strncmp(s, "get-system-sr",13))){
       if (O->outfilename &&
           !(strncmp(O->outfilename, "dac",3))) {
@@ -1647,6 +1666,22 @@ static void list_audio_devices(CSOUND *csound, int output){
          else
            csound->Message(csound, "%d audio input devices \n", n);
          csoundGetAudioDevList(csound,devs,output);
+         for(i=0; i < n; i++)
+             csound->Message(csound, " %d: %s (%s)\n",
+                   i, devs[i].device_id, devs[i].device_name);
+         free(devs);
+}
+
+static void list_midi_devices(CSOUND *csound, int output){
+
+       int i,n = csoundGetMIDIDevList(csound,NULL, output);
+         CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *)
+             malloc(n*sizeof(CS_MIDIDEVICE));
+         if(output)
+          csound->Message(csound, "%d MIDI output devices \n", n);
+         else
+           csound->Message(csound, "%d MIDI input devices \n", n);
+         csoundGetMIDIDevList(csound,devs,output);
          for(i=0; i < n; i++)
              csound->Message(csound, " %d: %s (%s)\n",
                    i, devs[i].device_id, devs[i].device_name);
