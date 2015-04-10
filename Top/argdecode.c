@@ -284,6 +284,7 @@ static const char *longUsageList[] = {
   Str_noop("--port=N\t\t listen to UDP port N for instruments/orchestra "
            "code (implies --daemon)"),
   Str_noop("--vbr-quality=Ft\t set quality of variable bit0rate compression"),
+    Str_noop("--devices[=in|out] \t\t list available MIDI devices and exit"),
   Str_noop("--devices[=in|out] \t\t list available audio devices and exit"),
   Str_noop("--get-system-sr \t\t print system sr and exit"),
   Str_noop("--ksmps=N \t\t override ksmps"),
