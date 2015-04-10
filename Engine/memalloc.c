@@ -94,7 +94,7 @@ void *mmalloc(CSOUND *csound, size_t size)
 void *mmallocDebug(CSOUND *csound, size_t size, char *file, int line)
 {
     void *ans = mmalloc(csound,size);
-    printf("Alloc %p (%d) %s:%d\n", ans, size, file, line);
+    printf("Alloc %p (%ld) %s:%d\n", ans, size, file, line);
     return ans;
 }
 
@@ -132,7 +132,7 @@ void *mcalloc(CSOUND *csound, size_t size)
 void *mcallocDebug(CSOUND *csound, size_t size, char *file, int line)
 {
     void *ans = mcalloc(csound,size);
-    printf("Alloc %p (%d) %s:%d\n", ans, size, file, line);
+    printf("Alloc %p (%ld) %s:%d\n", ans, size, file, line);
     return ans;
 }
 
@@ -240,7 +240,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
 void *mreallocDebug(CSOUND *csound, void *oldp, size_t size, char *file, int line)
 {
     void *p = mrealloc(csound, oldp, size);
-    printf("Realloc %p->%p (%d) %s:%d\n", oldp, p, size, file, line);
+    printf("Realloc %p->%p (%ld) %s:%d\n", oldp, p, size, file, line);
     return p;
 }
 
