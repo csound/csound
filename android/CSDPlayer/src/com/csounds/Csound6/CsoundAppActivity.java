@@ -3,6 +3,7 @@ package com.csounds.Csound6;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -20,6 +21,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -70,6 +72,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 	Uri templateUri = null;
 	Button newButton = null;
 	Button openButton = null;
+	Button saveAsButton = null;
 	Button editButton = null;
 	ToggleButton startStopButton = null;
 	MenuItem helpItem = null;
@@ -576,11 +579,80 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 		});
 		openButton = (Button) findViewById(R.id.openButton);
 		openButton.setOnClickListener(new OnClickListener() {
-			@SuppressWarnings("deprecation")
 			public void onClick(View v) {
-				loadFileList();
-				showDialog(BROWSE_DIALOG);
-			}
+				//loadFileList();
+				//showDialog(BROWSE_DIALOG);
+			    //Create FileOpenDialog and register a callback
+			    SimpleFileDialog fileOpenDialog =  new SimpleFileDialog(
+			        CsoundAppActivity.this,
+			        "FileOpen..",
+			        new SimpleFileDialog.SimpleFileDialogListener()
+			        {
+			            @Override
+			            public void onChosenDir(String chosenDir) 
+			            {
+			                CsoundAppActivity.this.OnFileChosen(new File(chosenDir));
+			            }
+			        }
+			    );
+			    if (csd != null){
+			    	fileOpenDialog.default_file_name = csd.getAbsolutePath();
+			    } else {
+			    	fileOpenDialog.default_file_name = Environment.getExternalStorageDirectory().getAbsolutePath();
+			    }
+			    fileOpenDialog.chooseFile_or_Dir(fileOpenDialog.default_file_name);
+			}				
+		});
+		saveAsButton = (Button) findViewById(R.id.saveAsButton);
+		saveAsButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				//loadFileList();
+				//showDialog(BROWSE_DIALOG);
+			    //Create FileOpenDialog and register a callback
+			    SimpleFileDialog fileOpenDialog =  new SimpleFileDialog(
+			        CsoundAppActivity.this,
+			        "FileSave..",
+			        new SimpleFileDialog.SimpleFileDialogListener()
+			        {
+			            @Override
+			            public void onChosenDir(String chosenDir) 
+			            {
+			            	int index = chosenDir.indexOf("//");
+			            	if (index >= 0) {
+			            		chosenDir = chosenDir.substring(index + 1);
+			            	}
+			            	File newFile = new File(chosenDir);
+			            	if (csd.getAbsolutePath() == newFile.getAbsolutePath()) {
+			            		Context context = getApplicationContext();
+			            		CharSequence text = "The new file is the same as the old file!";
+			            		int duration = Toast.LENGTH_SHORT;
+			            		Toast toast = Toast.makeText(context, text, duration);
+			            		toast.show();			            		
+			            	} else {
+			                    try {
+			                        FileInputStream in = new FileInputStream(csd);
+			                        FileOutputStream out = new FileOutputStream(newFile);
+			                        copyFile(in, out);
+			                        in.close();
+			                        in = null;
+			                        out.flush();
+			                        out.close();
+			                        out = null;
+					                CsoundAppActivity.this.OnFileChosen(newFile);
+			                      } catch (Exception e) {
+			                          e.printStackTrace();
+			                      }			            		
+			            	}
+			            }
+			        }
+			    );
+			    if (csd != null){
+			    	fileOpenDialog.default_file_name = csd.getParent();
+			    } else {
+			    	fileOpenDialog.default_file_name = Environment.getExternalStorageDirectory().getAbsolutePath();
+			    }
+			    fileOpenDialog.chooseFile_or_Dir(fileOpenDialog.default_file_name);
+			}				
 		});
 		editButton = (Button) findViewById(R.id.editButton);
 		editButton.setOnClickListener(new OnClickListener() {

@@ -15,6 +15,7 @@ option(BUILD_FAUST_OPCODES "Build the Faust opcodes" OFF)
 option(BUILD_VST4CS_OPCODES "Build the vst4cs opcodes" OFF)
 option(BUILD_EXCITER_OPCODES "Build the exciter opcode" ON)
 option(BUILD_BUCHLA_OPCODES "Build the Buchla filter opcode" ON)
+option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 
 find_package(Boost)
 check_include_file(ladspa.h LADSPA_H)
@@ -66,6 +67,7 @@ make_plugin(fractalnoise tl/fractalnoise.cpp)
 
 make_plugin(fareygen fareygen.c)
 
+if(BUILD_PADSYNTH_OPCODES)
 if(APPLE)
   make_plugin(padsynth padsynth_gen.cpp)
   set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11 -stdlib=libc++"
@@ -85,6 +87,7 @@ elseif(LINUX)
     endif()
 else()
     make_plugin(padsynth padsynth_gen.cpp)
+endif()
 endif()
 
 
