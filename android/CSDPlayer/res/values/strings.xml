@@ -34,4 +34,5 @@
 </CsoundSynthesizer>]]>
 </string>
     <string name="settingsActivityTitle">Csound Settings</string>
+    <string name="Save_as">Save as...</string>
 </resources>
