@@ -452,7 +452,8 @@ unsigned int CountCSD(char **csdnames)
     }
     else dip = opendir(ladspa_path);
   }
-  if (dip == NULL){
+  if (dip == NULL) {
+    free(src);
     return 0;
   }
   while ((dit = readdir(dip))!=NULL)

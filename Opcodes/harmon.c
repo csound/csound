@@ -62,7 +62,7 @@ static void print_data(HARM234* p, int x)
 {
     printf("DATA %d\n=======\n", x);
     printf("nbufsmps, n2bufsmps, period, cpsmode, polarity, poslead "
-           "= (%d,%d,%d,%d,%d,%d,%d\n",
+           "= (%d,%d,%d,%d,%d,%d\n",
            p->nbufsmps, p->n2bufsmps, p->period, p->cpsmode, p->polarity,
            p->poslead);
     printf("prvoct, minoct, sicvt = %f, %f, %f\n", p->prvoct, p->minoct, p->sicvt);
