@@ -30,6 +30,16 @@
             android:text="@string/Open" />
 
         <Button
+            android:id="@+id/saveAsButton"
+            style="@style/csoundButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.25"
+            android:minHeight="36dip"
+            android:tag="csound:saveAsButton"
+            android:text="@string/Save_as" />
+
+        <Button
             android:id="@+id/editButton"
             style="@style/csoundButtonStyle"
             android:layout_width="0dp"
