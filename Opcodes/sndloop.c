@@ -716,7 +716,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
                                                      - tab[tndx1]));
          if(onchnls == 2){
 	    tndx1 += 1;
-            out[1] += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls]
+            out[1] += amp*fadeout*(tab[tndx1] + frac1*(tab[tndx1+nchnls]
 							- tab[tndx1]));
 	  }
           ndx[1] -= pitch;

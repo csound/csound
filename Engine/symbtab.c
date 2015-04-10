@@ -437,7 +437,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 //      i++; types++;
 //    }
     int n=0;
-    while(out_args[n] != NULL)  {
+    while(in_args[n] != NULL)  {
           // printf("delete %p \n", argsFound[n]);
           csound->Free(csound, in_args[n]);
           n++;
