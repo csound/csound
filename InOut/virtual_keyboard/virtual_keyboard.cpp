@@ -145,8 +145,6 @@ static int ReadMidiWindow(CSOUND *csound, FLTKKeyboardWindow *keyWin,
       *mbuf++ = (unsigned char)(0xC0 + channel); // Program Change
       *mbuf++ = (unsigned char)keyboardMapping->getCurrentProgram();
 
-      keyboardMapping->getCurrentProgram();
-
       count += 2;
 
       keyboardMapping->setPreviousProgram(keyboardMapping->getCurrentProgram());
