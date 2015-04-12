@@ -553,10 +553,20 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
         char* rightArgType = get_arg_string_from_tree(csound, root->right,
                                                       typeTable);
+
+        if (rightArgType == NULL) {
+          return NULL;
+        }
+
         char* outype = resolve_opcode_get_outarg(csound, opentries,
                                                  rightArgType);
         csound->Free(csound, rightArgType);
         csound->Free(csound, opentries);
+
+        if (outype == NULL) {
+          return NULL;
+        }
+
         outarg = create_out_arg(csound, outype,
                                 typeTable->localPool->synthArgCount++, typeTable);
 
