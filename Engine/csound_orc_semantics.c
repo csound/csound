@@ -2423,12 +2423,14 @@ void handle_optional_args(CSOUND *csound, TREE *l)
         } while (incnt < nreqd);
       }
       //      printf("delete %p \n", inArgParts);
-      int n;
+      if (inArgParts != NULL) {
+        int n;
         for(n=0; inArgParts[n] != NULL; n++) {
           //printf("delete %p \n", inArgParts[n]);
           csound->Free(csound, inArgParts[n]);
         }
-      csound->Free(csound, inArgParts);
+        csound->Free(csound, inArgParts);
+      }
     }
 }
 
