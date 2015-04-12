@@ -617,10 +617,10 @@ struct JackoState
              ++it) {
           result = jack_port_unregister(jackClient, it->second);
         }
-        result = jack_client_close(jackClient);
-        result = pthread_cond_destroy(&csoundCondition);
-        result = pthread_cond_destroy(&closeCondition);
-        result = pthread_mutex_destroy(&conditionMutex);
+        result |= jack_client_close(jackClient);
+        result |= pthread_cond_destroy(&csoundCondition);
+        result |= pthread_cond_destroy(&closeCondition);
+        result |= pthread_mutex_destroy(&conditionMutex);
         audioOutPorts.clear();
         audioInPorts.clear();
         midiInPorts.clear();
@@ -690,9 +690,9 @@ struct JackoState
         // While Jack is processing, wait here.
         // The Jack process callback will then call csoundPerformKsmps
         // until the Csound performance is complete.
-        result = pthread_mutex_lock(&conditionMutex);
-        result = pthread_cond_wait(&csoundCondition, &conditionMutex);
-        result = pthread_mutex_unlock(&conditionMutex);
+        result |= pthread_mutex_lock(&conditionMutex);
+        result |= pthread_cond_wait(&csoundCondition, &conditionMutex);
+        result |= pthread_mutex_unlock(&conditionMutex);
       }
       if (jackActive) {
         return 1;
