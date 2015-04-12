@@ -329,6 +329,11 @@ static TREE *create_cond_expression(CSOUND *csound,
     OENTRIES* entries = find_opcode2(csound, ":cond");
     outype = resolve_opcode_get_outarg(csound, entries, condInTypes);
 
+    if (outype == NULL) {
+      csound->Free(csound, entries);
+      return NULL;
+    }
+
     outarg = create_out_arg(csound, outype,
                             typeTable->localPool->synthArgCount++, typeTable);
     opTree = create_opcode_token(csound, cs_strdup(csound, ":cond"));
