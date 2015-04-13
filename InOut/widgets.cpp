@@ -1719,6 +1719,7 @@ extern "C" {
           if ((int) ST(snapshots)[group][k].fields.size() < j+1)
             ST(snapshots)[group][k].fields.resize(j+1);
           ST(snapshots)[group][k].is_empty = 0;
+          if (k<0) return NOTOK;
           VALUATOR_FIELD& fld = ST(snapshots)[group][k].fields[j];
           opc_orig = ((OPDS *) (v->opcode))->optext->t.opcod;
 
