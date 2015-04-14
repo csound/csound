@@ -48,7 +48,7 @@ public:
         track_number = -1; // no tracks started yet, 1st will be #0
         meta_channel = -1;
         port = 0;
-        diisiojs = 0; track  0; channel_offset = 0; // JPff fir coverity defects
+        diisiojs = 0; track = 0; channel_offset = 0; // JPff for coverity defects
     }
     // delete destroys the seq member as well, so set it to NULL if you
     // copied the pointer elsewhere
