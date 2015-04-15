@@ -172,7 +172,7 @@ void Alg_midifile_reader::Mf_eot()
 
 void Alg_midifile_reader::Mf_error(char *msg)
 {
-    fprintf(stdout, "Midifile reader error: %s\n", msg);
+    fprintf(stdout, (char*)"Midifile reader error: %s\n", msg);
 }
 
 
@@ -334,7 +334,7 @@ void Alg_midifile_reader::Mf_sysex(int len, unsigned char *msg)
 
 void Alg_midifile_reader::Mf_arbitrary(int len, unsigned char *msg)
 {
-    Mf_error("arbitrary data ignored");
+    Mf_error((char*)"arbitrary data ignored");
 }
 
 
@@ -350,7 +350,7 @@ void Alg_midifile_reader::Mf_metamisc(int type, int len, unsigned char *msg)
 
 void Alg_midifile_reader::Mf_seqnum(int n)
 {
-    Mf_error("seqnum data ignored");
+    Mf_error((char*)"seqnum data ignored");
 }
 
 

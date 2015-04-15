@@ -621,18 +621,18 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                                         / (MYFLT) csound->ekr)) + FL(0.5));
       }
       else {
-	csound->ksmps = (ensmps = O->ksmps_override);
+        csound->ksmps = (ensmps = O->ksmps_override);
         if(O->sr_override) {
           csound->ekr = O->sr_override / csound->ksmps;
-	  csound->esr = O->sr_override;
-	}
-	else if(O->kr_override) {
-	  csound->esr = O->kr_override * csound->ksmps;
+          csound->esr = O->sr_override;
+        }
+        else if(O->kr_override) {
+          csound->esr = O->kr_override * csound->ksmps;
           csound->ekr = O->kr_override;
-	}
+        }
         else {
          csound->ekr = csound->esr / csound->ksmps;
-	}
+        }
       }
       
       /* chk consistency one more time */
