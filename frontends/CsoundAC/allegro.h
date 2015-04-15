@@ -298,7 +298,8 @@ public:
     float loud;  // dynamic corresponding to MIDI velocity
     double dur;   // duration in seconds (normally to release point)
     Alg_parameters_ptr parameters; // attribute/value pair list
-    Alg_note() { type = 'n'; parameters = NULL; }
+    Alg_note() { type = 'n'; parameters = NULL;
+        pitch = loud = dur = -1;}
     void show();
 } *Alg_note_ptr;
 
@@ -958,6 +959,9 @@ public:
         note_off_flag = note_off;
         maxlen = len = 0;
         pending_events = NULL;
+        // silence coverity defects
+        events_ptr = NULL;
+        cookie = NULL; index = offset = -1;
     }
     // Normally, iteration is over the events in the one sequence used
     // to instatiate the iterator (see above), but with this method, you
@@ -1015,6 +1019,7 @@ public:
         units_are_seconds = true; type = 's';
         channel_offset_per_track = 0;
         add_track(0); // default is one empty track
+        pending = NULL;
     }
     Alg_seq() {
         basic_initialization();

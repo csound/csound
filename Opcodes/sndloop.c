@@ -341,12 +341,12 @@ static int flooper_init(CSOUND *csound, flooper *p)
     for (i=0; i < durs; i+=nchnls) {
       if (i < cfds) {
         buffer[i] = a*tab[i+starts];
-	if(nchnls == 2) buffer[i+1] = a*tab[i+starts+1];
+        if(nchnls == 2) buffer[i+1] = a*tab[i+starts+1];
         a += inc;
       }
       else {
-	buffer[i] = tab[i+starts];
-	if(nchnls == 2) buffer[i+1] = tab[i+starts+1];
+        buffer[i] = tab[i+starts];
+        if(nchnls == 2) buffer[i+1] = tab[i+starts+1];
       }
     }
     /*  crossfade section */
@@ -383,8 +383,8 @@ static int flooper_process(CSOUND *csound, flooper *p)
       nsmps -= early;
       memset(&aout[0][nsmps], '\0', early*sizeof(MYFLT));
       if(nchnls == 2) {
-	if (UNLIKELY(offset)) memset(aout[1], '\0', offset*sizeof(MYFLT));
-	memset(&aout[1][nsmps], '\0', early*sizeof(MYFLT));
+        if (UNLIKELY(offset)) memset(aout[1], '\0', offset*sizeof(MYFLT));
+        memset(&aout[1][nsmps], '\0', early*sizeof(MYFLT));
       }
     }
     
@@ -393,12 +393,12 @@ static int flooper_process(CSOUND *csound, flooper *p)
       frac = ndx - tndx;
       /* this is the start portion of the sound */
       if (ndx >= 0  && ndx < end && loop_off) {
-	tndx  *= nchnls;
+        tndx  *= nchnls;
         aout[0][i] = amp*(tab[tndx] + frac*(tab[tndx+nchnls] - tab[tndx]));
-	if(nchnls == 2){
-	  tndx += 1;
-	  aout[1][i] = amp*(tab[tndx] + frac*(tab[tndx+nchnls] - tab[tndx]));
-	}
+        if(nchnls == 2){
+          tndx += 1;
+          aout[1][i] = amp*(tab[tndx] + frac*(tab[tndx+nchnls] - tab[tndx]));
+        }
         ndx += pitch;
       }
       /* this is the loop section */
@@ -407,15 +407,15 @@ static int flooper_process(CSOUND *csound, flooper *p)
           while(ndx >= end) ndx -= end;
           /* wrap-around, if reading backwards */
           while (tndx < 0) tndx += durs;
-	  tndx = (int) ndx;
+          tndx = (int) ndx;
         }
         loop_off = 0;
-	tndx *= nchnls;
+        tndx *= nchnls;
         aout[0][i] = amp*(buffer[tndx] + frac*(buffer[tndx+nchnls] - buffer[tndx]));
-	if(nchnls == 2){
-	  tndx += 1;
+        if(nchnls == 2){
+          tndx += 1;
           aout[1][i] = amp*(buffer[tndx] + frac*(buffer[tndx+nchnls] - buffer[tndx]));
-	}
+        }
         ndx += pitch;
         while (ndx < 0) ndx += durs;
         while (ndx >= durs) ndx -= durs;
@@ -489,7 +489,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     
     if(p->nchnls != p->sfunc->nchanls){
        csound->Warning(csound,
-	  Str("function table channels do not match opcode outputs"));
+          Str("function table channels do not match opcode outputs"));
       }
     }
     tab = p->sfunc->ftable;
@@ -511,8 +511,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
       nsmps -= early;
       memset(&aout[0][nsmps], '\0', early*sizeof(MYFLT));
       if(onchnls == 2) {
-	if (UNLIKELY(offset)) memset(aout[1], '\0', offset*sizeof(MYFLT));
-	memset(&aout[1][nsmps], '\0', early*sizeof(MYFLT));
+        if (UNLIKELY(offset)) memset(aout[1], '\0', offset*sizeof(MYFLT));
+        memset(&aout[1][nsmps], '\0', early*sizeof(MYFLT));
       }
     }
 
@@ -564,13 +564,13 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
         tndx0 = (int) ndx[0];
         frac0 = ndx[0] - tndx0;
         if (ndx[0] > crossfade + loop_start) {
-	  tndx0 *= nchnls;
+          tndx0 *= nchnls;
           out[0] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
           if(onchnls == 2) {
             tndx0 += 1;
-	    out[1] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
-	  }
-	}
+            out[1] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          }
+        }
         else {
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
@@ -585,16 +585,16 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
             fadein = etab[elen - (int)fadeout];
             fadeout = etab[(int)fadeout];
           }
-	  tndx1 *= nchnls;
-	  tndx0 *= nchnls;
+          tndx1 *= nchnls;
+          tndx0 *= nchnls;
           out[0] = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]))
                         + fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1])));
           if(onchnls == 2) {
-	  tndx1 += 1;
-	  tndx0 += 1;
-	  out[1] = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]))
+          tndx1 += 1;
+          tndx0 += 1;
+          out[1] = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]))
                         + fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1])));
-	  }
+          }
           ndx[1]-=pitch;
           count-=pitch;
         }
@@ -620,17 +620,17 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
       }
       else if (mode==2) { /* back and forth */
         out[0] = 0.0;
-	if(onchnls == 2) out[1] = 0.0;
+        if(onchnls == 2) out[1] = 0.0;
         /* this is the forward reader */
         if (init && ndx[0] < loop_start + crossfade) {
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
-	  tndx0 *= nchnls;
+          tndx0 *= nchnls;
           out[0] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
-	  if(onchnls == 2){
+          if(onchnls == 2){
             tndx0 *= nchnls;
             out[1] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
-	  }
+          }
           ndx[0] += pitch;
         }
         else if (ndx[0] < loop_start + crossfade) {
@@ -638,24 +638,24 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           else fadein = etab[(int)(elen*count/crossfade)];
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
-	  tndx0 *= nchnls;
+          tndx0 *= nchnls;
           out[0] += amp*fadein*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
-	  if(onchnls == 2){
-	    tndx0 += 1;
+          if(onchnls == 2){
+            tndx0 += 1;
             out[1] += amp*fadein*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
-	  }
+          }
           ndx[0] += pitch;
           count  += pitch;
         }
         else if (ndx[0] < loop_end - crossfade) {
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
-	  tndx0 *= nchnls;
+          tndx0 *= nchnls;
           out[0] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
-	  if(onchnls == 2){
-	   tndx0 += 1;
+          if(onchnls == 2){
+           tndx0 += 1;
            out[1] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
-	  }
+          }
           ndx[0] += pitch;
           init = 0;
           if (ndx[0] >= loop_end - crossfade) {
@@ -668,12 +668,12 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           else  fadeout = etab[(int)(elen*(1.0 - count/crossfade))];
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
-	  tndx0 *= nchnls;
+          tndx0 *= nchnls;
           out[0] += amp*fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
-	  if(onchnls == 2){
-	   tndx0 += 1;
+          if(onchnls == 2){
+           tndx0 += 1;
            out[1] += amp*fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
-	  }
+          }
           ndx[0] += pitch;
           count  += pitch;
         }
@@ -683,23 +683,23 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           else fadein = etab[(int)(elen*count/crossfade)];
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
-	  tndx1 *= nchnls;
+          tndx1 *= nchnls;
           out[0] += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1]));
-	  if(onchnls == 2){
-	    tndx1 += 1;
+          if(onchnls == 2){
+            tndx1 += 1;
             out[1] += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1]));
-	  }
+          }
           ndx[1] -= pitch;
         }
         else if (ndx[1] > loop_start + crossfade) {
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
-	  tndx1 *= nchnls;
+          tndx1 *= nchnls;
           out[0] = amp*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1]));
-	 if(onchnls == 2){
-	    tndx1 += 1;
+         if(onchnls == 2){
+            tndx1 += 1;
             out[1] += amp*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1]));
-	  }
+          }
           ndx[1] -= pitch;
           if (ndx[1] <= loop_start + crossfade) {
             ndx[0] = (double) loop_start;
@@ -711,14 +711,14 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           else fadeout = etab[(int)(elen*(1.0 - count/crossfade))];
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
-	  tndx1 *= nchnls;
+          tndx1 *= nchnls;
           out[0] += amp*fadeout*(tab[tndx1] + frac1*(tab[tndx1+nchnls]
                                                      - tab[tndx1]));
          if(onchnls == 2){
-	    tndx1 += 1;
+            tndx1 += 1;
             out[1] += amp*fadeout*(tab[tndx1] + frac1*(tab[tndx1+nchnls]
-							- tab[tndx1]));
-	  }
+                                                        - tab[tndx1]));
+          }
           ndx[1] -= pitch;
           if (ndx[1] <= loop_start) {
             int loopsize;
@@ -744,12 +744,12 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
         tndx0 = (uint32) ndx[0];
         frac0 = ndx[0] - tndx0;
         if (ndx[0] < loop_end-crossfade) {
-	  tndx0 *= nchnls;
+          tndx0 *= nchnls;
           out[0] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
-	  if(onchnls == 2){
-	    tndx0 += 1;
+          if(onchnls == 2){
+            tndx0 += 1;
             out[1] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
-	  }
+          }
           if (ijump) ndx[1] = loop_start;
         }
         else {
@@ -764,20 +764,20 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
             fadeout = etab[elen - (int)fadein];
             fadein = etab[(int)fadein];
           }
-	  tndx1 *= nchnls;
-	  tndx0 *= nchnls;
+          tndx1 *= nchnls;
+          tndx0 *= nchnls;
           out[0] = amp*(fadeout*(tab[tndx0] +
                                  frac0*(tab[tndx0+nchnls] - tab[tndx0]))
                         + fadein*(tab[tndx1] +
                                   frac1*(tab[tndx1+nchnls] - tab[tndx1])));
-	  if(onchnls == 2){
-	    tndx1 += 1;
-	    tndx0 += 1;
+          if(onchnls == 2){
+            tndx1 += 1;
+            tndx0 += 1;
             out[1] = amp*(fadeout*(tab[tndx0] +
                                  frac0*(tab[tndx0+nchnls] - tab[tndx0]))
                         + fadein*(tab[tndx1] +
                                   frac1*(tab[tndx1+nchnls] - tab[tndx1])));
-	  }
+          }
           ndx[1]+=pitch;
           count+=pitch;
         }
