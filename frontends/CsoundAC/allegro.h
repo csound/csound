@@ -285,7 +285,8 @@ public:
 
     const char *GetDescription(); // computes a text description of this event
     // the result is in a static buffer, not thread-safe, just for debugging.
-    Alg_event() { selected = false; }
+    Alg_event() { selected = false;
+        type = key = chan = time = -1; }
     virtual ~Alg_event() {}
 } *Alg_event_ptr;
 
