@@ -850,7 +850,7 @@ int xsgrset(CSOUND *csound, EXPSEG *p)
     int     nsegs, n = 0;
     MYFLT   **argp, prvpt;
 
-    p->xtra = -1;
+    //p->xtra = -1;
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
@@ -878,6 +878,7 @@ int xsgrset(CSOUND *csound, EXPSEG *p)
       segp++;
     } while (--nsegs);
     relestim = (int)(p->cursegp + p->segsrem - 1)->cnt;
+    p->xtra = relestim;
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = relestim;
     return OK;

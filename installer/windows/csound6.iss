@@ -20,14 +20,14 @@
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.05beta.0-vst"
+#define MyAppMinVersion "6.05beta.1-vst"
 #else
-#define MyAppMinVersion "6.05beta.0"
+#define MyAppMinVersion "6.05beta.1"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
-#define MyMinGwLibDir "D:\Qt5.3.0\Tools\mingw482_32\i686-w64-mingw32\lib\"
+#define MyMinGwLibDir "D:\Qt\Qt5.4.1\Tools\mingw491_32\i686-w64-mingw32\lib\"
 ; If you are not Michael Gogins, change this to your MSys /bin/ directory.
 #define MyMSysBinDir "D:\msys\bin\"
 ; If you are not Michael Gogins, change this to your MSys /usr/local/ directory.
@@ -59,7 +59,7 @@
 ; If you are not Michael Gogins, change this to your STK dll directory.
 #define MyLibStkSourceDir "D:\msys\local\src\stk-4.5.0\"
 ; If you are not Michael Gogins, change this to your CsoundQt repository directory.
-#define MyCsoundQtDir "D:\CsoundQt\"
+#define MyCsoundQtDir "C:\Users\mike\qutecsound-code\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
 #define MyCsoundQtBinDir "C:\Users\restore\build-qcs-Desktop_Qt_5_4_0_MSVC2013_32bit-Release\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.

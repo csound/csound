@@ -2079,7 +2079,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
 }
 
 /** Verifies if xin and xout statements are correct for UDO
-   needs to check: 
+   needs to check:
      xin/xout number of args matches UDO input/output arg specifications
      xin/xout statements exist if UDO in and out args are not 0 */
 int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
@@ -2094,31 +2094,35 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
     char* inArgs = inArgsTree->value->lexeme;
     char* outArgs = outArgsTree->value->lexeme;
     int i;
-    
+
     for (i = 0; i < strlen(inArgs);i++) {
         if (inArgs[i] == 'K') {
             inArgs[i] = 'k';
         }
     }
-    
+
     for (i = 0; i < strlen(outArgs);i++) {
         if (outArgs[i] == 'K') {
             outArgs[i] = 'k';
         }
     }
-   
+
     while(current != NULL) {
         if (current->value != NULL) {
             if (strcmp("xin", current->value->lexeme) == 0) {
                 if(xinArgs != NULL) {
-                    synterr(csound, "Multiple xin statements found. Only one is allowed.");
+                    synterr(csound,
+                            Str("Multiple xin statements found. "
+                                "Only one is allowed."));
                     return 0;
                 }
                 xinArgs = current->left;
             }
             if (strcmp("xout", current->value->lexeme) == 0) {
                 if(xoutArgs != NULL) {
-                    synterr(csound, "Multiple xout statements found. Only one is allowed.");
+                    synterr(csound,
+                            Str("Multiple xout statements found. "
+                                "Only one is allowed."));
                     return 0;
                 }
                 xoutArgs = current->right;
@@ -2126,27 +2130,29 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
         }
         current = current->next;
     }
-   
+
     char* inArgsFound = get_arg_string_from_tree(csound, xinArgs, typeTable);
     char* outArgsFound = get_arg_string_from_tree(csound, xoutArgs, typeTable);
-  
-    
+
+
     if (!check_in_args(csound, inArgsFound, inArgs)) {
-        if (!(strcmp("0", inArgs) == 0 && xinArgs == NULL)) {
-            synterr(csound, "invalid xin statement for UDO: defined '%s', found '%s'\n",
-                    inArgs, inArgsFound);
-            return 0;
-        }
+      if (!(strcmp("0", inArgs) == 0 && xinArgs == NULL)) {
+        synterr(csound,
+                Str("invalid xin statement for UDO: defined '%s', found '%s'\n"),
+                inArgs, inArgsFound);
+        return 0;
+      }
     }
 
     if (!check_out_args(csound, outArgsFound, outArgs)) {
-        if (!(strcmp("0", outArgs) == 0 && xoutArgs == NULL)) {
-        synterr(csound, "invalid xout statement for UDO: defined '%s', found '%s'\n",
+      if (!(strcmp("0", outArgs) == 0 && xoutArgs == NULL)) {
+        synterr(csound,
+                Str("invalid xout statement for UDO: defined '%s', found '%s'\n"),
                 outArgs, outArgsFound);
         return 0;
-        }
+      }
     }
-    
+
     return 1;
 }
 
@@ -2256,11 +2262,11 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
             }
 
             current->right = newRight;
-            
+
             if(!verify_xin_xout(csound, current, typeTable)) {
               return 0;
             }
-            
+
             newRight = NULL;
         }
 
@@ -2484,6 +2490,7 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
     ans->line = line;
     ans->locn  = locn;
     ans->markup = NULL;
+    //printf("make node %p %p %p\n", ans, ans->left, ans->right);
     //csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
     return ans;
 }
@@ -2697,7 +2704,9 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound, " ");
     }
 
-    csound->Message(csound, "<tree%s (%p : %p) type=\"%d\" ", child[which],l, l->value, l->type);
+    csound->Message(csound,
+                    "<tree%s (%p : %p) type=\"%d\" ",
+                    child[which],l, l->value, l->type);
 
     switch (l->type) {
     case ',':
@@ -2956,12 +2965,14 @@ void handle_optional_args(CSOUND *csound, TREE *l)
         } while (incnt < nreqd);
       }
       //      printf("delete %p \n", inArgParts);
-      int n;
+      if (inArgParts != NULL) {
+        int n;
         for(n=0; inArgParts[n] != NULL; n++) {
           //printf("delete %p \n", inArgParts[n]);
           csound->Free(csound, inArgParts[n]);
         }
-      csound->Free(csound, inArgParts);
+        csound->Free(csound, inArgParts);
+      }
     }
 }
 

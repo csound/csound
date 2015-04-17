@@ -151,6 +151,7 @@ TREE *create_minus_token(CSOUND *csound)
     ans->next = NULL;
     ans->len = 0;
     ans->rate = -1;
+    ans->markup = NULL;
     ans->value = make_int(csound, "-1");
     return ans;
 }
@@ -335,6 +336,11 @@ static TREE *create_cond_expression(CSOUND *csound,
 
     OENTRIES* entries = find_opcode2(csound, ":cond");
     outype = resolve_opcode_get_outarg(csound, entries, condInTypes);
+
+    if (outype == NULL) {
+      csound->Free(csound, entries);
+      return NULL;
+    }
 
     outarg = create_out_arg(csound, outype,
                             typeTable->localPool->synthArgCount++, typeTable);
@@ -563,10 +569,20 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
         char* rightArgType = get_arg_string_from_tree(csound, root->right,
                                                       typeTable);
+
+        if (rightArgType == NULL) {
+          return NULL;
+        }
+
         char* outype = resolve_opcode_get_outarg(csound, opentries,
                                                  rightArgType);
         csound->Free(csound, rightArgType);
         csound->Free(csound, opentries);
+
+        if (outype == NULL) {
+          return NULL;
+        }
+
         outarg = create_out_arg(csound, outype,
                                 typeTable->localPool->synthArgCount++, typeTable);
 
@@ -899,20 +915,21 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
             (is_bool = is_boolean_expression_node(currentArg))) {
             char * newArg;
             if (UNLIKELY(PARSER_DEBUG))
-                csound->Message(csound, "Found Expression.\n");
+              csound->Message(csound, "Found Expression.\n");
             if (is_bool == 0) {
-                expressionNodes =
+              expressionNodes =
                 create_expression(csound, currentArg,
                                   currentArg->line, currentArg->locn, typeTable);
-                // free discarded node
-                csound->Free(csound, currentArg);
+              // free discarded node
             }
             else {
-                expressionNodes =
+              expressionNodes =
                 create_boolean_expression(csound, currentArg,
                                           currentArg->line, currentArg->locn,
                                           typeTable);
             }
+            nextArg = currentArg->next;
+            csound->Free(csound, currentArg);
 
             /* Set as anchor if necessary */
 
@@ -927,7 +944,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
                 csound->Message(csound, "New Arg: %s\n", newArg);
 
             /* handle arg replacement of currentArg here */
-            nextArg = currentArg->next;
+            /* **** was a bug as currentArg could be freed above **** */
+            //nextArg = currentArg->next;
             newArgTree = create_ans_token(csound, newArg);
 
             if (previousArg == NULL) {

@@ -37,6 +37,7 @@ static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
     ans->right = right;
     ans->next = NULL;
     ans->len = 0;
+    ans->markup = NULL;
     ans->rate = -1;
     return ans;
 }

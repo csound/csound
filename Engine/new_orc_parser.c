@@ -94,7 +94,7 @@ void add_include_udo_dir(CORFIL *xx)
     char buff[1024];
     if (dir) {
       DIR *udo = opendir(dir);
-      printf("** found CS_UDO_DIR=%s\n", dir);
+      printf(Str("** found CS_UDO_DIR=%s\n"), dir);
       if (udo) {
         struct dirent *f;
         //printf("**and it opens\n");
@@ -214,7 +214,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       corfile_rm(&csound->expanded_orc);
       if (csound->synterrcnt) err = 3;
       if (LIKELY(err == 0)) {
-        if(csound->oparms->odebug) csound->Message(csound, "Parsing successful!\n");
+        if(csound->oparms->odebug) csound->Message(csound,
+                                                   Str("Parsing successful!\n"));
       }
       else {
         if (err == 1){
@@ -254,12 +255,13 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       if (astTree == NULL || csound->synterrcnt){
           err = 3;
           if (astTree)
-            csound->Message(csound, "Parsing failed due to %d semantic error%s!\n",
+            csound->Message(csound,
+                            Str("Parsing failed due to %d semantic error%s!\n"),
                             csound->synterrcnt, csound->synterrcnt==1?"":"s");
           else if (csound->synterrcnt)
-               csound->Message(csound, "Parsing failed to syntax errors\n");
+            csound->Message(csound, Str("Parsing failed to syntax errors\n"));
           else
-            csound->Message(csound, "Parsing failed due no input!\n");
+            csound->Message(csound, Str("Parsing failed due no input!\n"));
           goto ending;
       }
       err = 0;

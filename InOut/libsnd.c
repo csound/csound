@@ -106,7 +106,7 @@ static void spoutsf(CSOUND *csound)
       }
       csound->libsndStatics.outbufrem = csound->oparms_.outbufsamps;
       if (spoutrem) {
-          goto nchk;
+        goto nchk;
       }
     }
     csound->libsndStatics.nframes = nframes;
@@ -577,7 +577,7 @@ static char* copyrightcode(int n)
 {
       char* a[] = {
         "All Rights Reserved\n",
-        "Creative Commons Attribution-NonCommercial-NoDerivatives\nCC BY-NC-ND\n)"
+        "Creative Commons Attribution-NonCommercial-NoDerivatives\nCC BY-NC-ND\n)",
         "Creative Commons Attribution-NonCommercial-ShareAlike\nCC BY-NC-SA\n",
         "Creative Commons Attribution-NonCommercial\nCC BY-NC\n",
         "Creative Commons Attribution-NoDerivatives\nCC BY-ND\n",
@@ -585,9 +585,9 @@ static char* copyrightcode(int n)
         "Creative Commons Attribution\nCC BY\n",
         "Licenced under BSD\n"
       };
-      if (n>=7) n = 0;
+      if (n>=8) n = 0;
       return a[n];
-}             
+}
 
 void sfopenout(CSOUND *csound)                  /* init for sound out       */
 {                                               /* (not called if nosound)  */

@@ -657,15 +657,30 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                       csound->esr, csound->ekr, csound->ksmps,
                       csound->nchnls, csound->e0dbfs);
 
-    if (O->sr_override) {        /* if command-line overrides, apply now */
+    if (O->sr_override || O->kr_override || O->ksmps_override) {   /* if command-line overrides, apply now */
       MYFLT ensmps;
-      csound->esr = (MYFLT) O->sr_override;
-      csound->ekr = (MYFLT) O->kr_override;
-      csound->ksmps = (int) ((ensmps = ((MYFLT) O->sr_override
-                                        / (MYFLT) O->kr_override)) + FL(0.5));
-      csound->Message(csound, Str("sample rate overrides: "
-                                  "esr = %7.4f, ekr = %7.4f, ksmps = %d\n"),
-                      csound->esr, csound->ekr, csound->ksmps);
+      
+      if(!O->ksmps_override){
+      csound->esr = (MYFLT) (O->sr_override ? O->sr_override : csound->esr);
+      csound->ekr = (MYFLT) (O->kr_override ? O->kr_override : csound->ekr);
+      csound->ksmps = (int) ((ensmps = ((MYFLT) csound->esr
+                                        / (MYFLT) csound->ekr)) + FL(0.5));
+      }
+      else {
+        csound->ksmps = (ensmps = O->ksmps_override);
+        if(O->sr_override) {
+          csound->ekr = O->sr_override / csound->ksmps;
+          csound->esr = O->sr_override;
+        }
+        else if(O->kr_override) {
+          csound->esr = O->kr_override * csound->ksmps;
+          csound->ekr = O->kr_override;
+        }
+        else {
+         csound->ekr = csound->esr / csound->ksmps;
+        }
+      }
+      
       /* chk consistency one more time */
       {
         char  s[256];
@@ -680,6 +695,9 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         if (UNLIKELY(FLOAT_COMPARE(csound->esr, (double) csound->ekr * ensmps)))
           csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
       }
+      csound->Message(csound, Str("sample rate overrides: "
+                                  "esr = %7.4f, ekr = %7.4f, ksmps = %d\n"),
+                      csound->esr, csound->ekr, csound->ksmps);
     }
 
     csound->tpidsr = TWOPI_F / csound->esr;               /* now set internal  */
@@ -1061,7 +1079,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
       /* no active instances */
       if (active == NULL) {
         if (csound->oparms->odebug)
-          csound->Message(csound, "no active instances \n");
+          csound->Message(csound, Str("no active instances \n"));
         free_instrtxt(csound, engineState->instrtxtp[inm->instno]);
         engineState->instrtxtp[inm->instno] = NULL;
       }
@@ -1460,7 +1478,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     }
     else {
       engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
-      engineState->stringPool = csound->engineState.stringPool; //cs_hash_table_create(csound);
+      engineState->stringPool = csound->engineState.stringPool;
+                                //cs_hash_table_create(csound);
       engineState->constantsPool = myflt_pool_create(csound);
       engineState->varPool = typeTable->globalPool;
       prvinstxt = &(engineState->instxtanchor);
