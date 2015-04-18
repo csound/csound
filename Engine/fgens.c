@@ -1316,8 +1316,8 @@ static MYFLT nextval(FILE *f)
     /* Read the next charcater; suppress multiple space and comments to a
        single space */
     int c;
-    c = getc(f);
  top:
+    c = getc(f);
     if (feof(f)) return NAN; /* Hope value is ignored */
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
       double d;                           /* A number starts */
@@ -1334,7 +1334,7 @@ static MYFLT nextval(FILE *f)
       }
       return (MYFLT)d;
     }
-    while (isspace(c)) c = getc(f);       /* Whitespace */
+    while (isspace(c) || c == ',') c = getc(f);       /* Whitespace */
     if (c==';' || c=='#' || c=='<') {     /* Comment and tag*/
       while ((c = getc(f)) != '\n');
     }
