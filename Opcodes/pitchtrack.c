@@ -633,7 +633,7 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
     for(i=0; i < ksmps; i++){
       if(asig[i] != 0.0 && asig[i] != itmp) {
         itest = 1;
-	break;
+        break;
       }
       itmp = asig[i];
     }

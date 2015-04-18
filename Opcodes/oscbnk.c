@@ -408,7 +408,7 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
     uint32   n, lobits, mask, ph, f_i;
     MYFLT   pfrac, pm, a, f, a1, a2, b0, b1, b2;
     MYFLT   k, a_d = FL(0.0), a1_d, a2_d, b0_d, b1_d, b2_d;
-    MYFLT   yn, xnm1, xnm2, ynm1, ynm2;
+    MYFLT   yn, xnm1 = FL(0.0), xnm2 = FL(0.0), ynm1 = FL(0.0), ynm2 = FL(0.0);
     OSCBNK_OSC      *o;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

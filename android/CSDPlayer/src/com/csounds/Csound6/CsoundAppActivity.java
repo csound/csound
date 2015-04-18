@@ -37,6 +37,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -584,7 +585,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 				//showDialog(BROWSE_DIALOG);
 			    //Create FileOpenDialog and register a callback
 			    SimpleFileDialog fileOpenDialog =  new SimpleFileDialog(
-			        CsoundAppActivity.this,
+			        new ContextThemeWrapper(CsoundAppActivity.this, R.style.csoundAlertDialogStyle),
 			        "FileOpen..",
 			        new SimpleFileDialog.SimpleFileDialogListener()
 			        {
@@ -610,7 +611,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 				//showDialog(BROWSE_DIALOG);
 			    //Create FileOpenDialog and register a callback
 			    SimpleFileDialog fileOpenDialog =  new SimpleFileDialog(
-			        CsoundAppActivity.this,
+			        new ContextThemeWrapper(CsoundAppActivity.this, R.style.csoundAlertDialogStyle),
 			        "FileSave..",
 			        new SimpleFileDialog.SimpleFileDialogListener()
 			        {
@@ -622,9 +623,9 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 			            		chosenDir = chosenDir.substring(index + 1);
 			            	}
 			            	File newFile = new File(chosenDir);
-			            	if (csd.getAbsolutePath() == newFile.getAbsolutePath()) {
+			            	if (csd.equals(newFile)) {
 			            		Context context = getApplicationContext();
-			            		CharSequence text = "The new file is the same as the old file!";
+			            		CharSequence text = "'Save as' aborted; the new file is the same as the old file!";
 			            		int duration = Toast.LENGTH_SHORT;
 			            		Toast toast = Toast.makeText(context, text, duration);
 			            		toast.show();			            		
