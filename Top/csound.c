@@ -1586,12 +1586,12 @@ int kperf_nodebug(CSOUND *csound)
       memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
     }
     csound->spoutran(csound); /* send to audio_out */
-    #ifdef ANDROID
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    csound->Message(csound, "kperf kcount, %d,%d.%06d\n",
-                    csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
-    #endif
+    //#ifdef ANDROID
+    //struct timespec ts;
+    //clock_gettime(CLOCK_MONOTONIC, &ts);
+    //csound->Message(csound, "kperf kcount, %d,%d.%06d\n",
+    //                csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
+    //#endif
     return 0;
 }
 
