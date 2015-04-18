@@ -583,7 +583,9 @@ void CsoundVST::synchronizeScore()
               SetScorePending(1);
               RewindScore();
               SetScoreOffsetSeconds(vstCurrentSampleBlockStart);
-            }
+              // This is a workaround to enable alwayson to stay on in the VST context.
+              csoundCompileOrc(csound, getOrchestra().c_str());
+             }
         }
     } else {
         if(getIsGo()) {

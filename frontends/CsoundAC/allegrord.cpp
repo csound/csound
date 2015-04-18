@@ -77,7 +77,10 @@ Alg_reader::Alg_reader(istream *a_file, Alg_seq_ptr new_seq)
     seq = new_seq;
     offset = 0.0;
     offset_found = false;
+    // to silence coverity defects
+    error_flag = false; 
 }
+
 
 
 Alg_error alg_read(istream &file, Alg_seq_ptr new_seq, double *offset_ptr)
