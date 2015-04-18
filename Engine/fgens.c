@@ -1318,6 +1318,7 @@ static MYFLT nextval(FILE *f)
     int c;
  top:
     c = getc(f);
+ top1:
     if (feof(f)) return NAN; /* Hope value is ignored */
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
       double d;                           /* A number starts */
@@ -1338,6 +1339,7 @@ static MYFLT nextval(FILE *f)
     if (c==';' || c=='#' || c=='<') {     /* Comment and tag*/
       while ((c = getc(f)) != '\n');
     }
+    if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') goto top1;
     goto top;
 }
 
