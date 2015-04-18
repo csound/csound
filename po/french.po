@@ -1560,7 +1560,7 @@ msgstr "impossible de trouver l'instrument ou l'opcode spécifié"
 #: Engine/new_orc_parser.c:98
 #, c-format
 msgid "** found CS_UDO_DIR=%s\n"
-msgstr ""
+msgstr "** trouvé CS_USO_DIR=%s\n"
 
 #: Engine/new_orc_parser.c:148
 #, c-format
@@ -1573,7 +1573,7 @@ msgstr "#ifdef non apparié\n"
 
 #: Engine/new_orc_parser.c:223
 msgid "Parsing successful!\n"
-msgstr ""
+msgstr "Analyse réussie !\n"
 
 #: Engine/new_orc_parser.c:227
 msgid "Parsing failed due to invalid input!\n"
@@ -1586,22 +1586,20 @@ msgstr "Echec de l'analyse par manque de méloire !\n"
 #: Engine/new_orc_parser.c:234
 #, c-format
 msgid "Parsing failed due to %d syntax error%s!\n"
-msgstr "Echec de l'analyse, %d erreur de syntaxe %s !\n"
+msgstr "Echec de l'analyse, %d erreurs de syntaxe %s !\n"
 
 #: Engine/new_orc_parser.c:265
-#, fuzzy, c-format
+#, c-format
 msgid "Parsing failed due to %d semantic error%s!\n"
-msgstr "Echec de l'analyse, %d erreur de syntaxe %s !\n"
+msgstr "Echec de l'analyse, %d erreurs sémantiques %s !\n"
 
 #: Engine/new_orc_parser.c:268
-#, fuzzy
-msgid "Parsing failed to syntax errors\n"
-msgstr "Echec de l'analyse, %d erreur de syntaxe %s !\n"
+msgid "Parsing failed to syntax erors\n"
+msgstr "Echec de l'analyse à cause d'erreurs de syntaxe\n"
 
 #: Engine/new_orc_parser.c:270
-#, fuzzy
 msgid "Parsing failed due no input!\n"
-msgstr "Echec de l'analyse à cause d'une entrée non valide !\n"
+msgstr "Echec de l'analyse par manque d'entrée !\n"
 
 #: Engine/new_orc_parser.c:286
 msgid "Stopping on parser failure"
@@ -8916,9 +8914,9 @@ msgid "function table not found\n"
 msgstr "table de fonction non trouvée\n"
 
 #: Opcodes/sndloop.c:320
-#, fuzzy
 msgid "function table channel count does not match output"
-msgstr "Le nombre de canaux de sortie ne correspond pas à la valeur de isetup."
+msgstr ""
+"Le nombre de canaux de tables de fonction ne correspond pas à la sortie"
 
 #: Opcodes/sndloop.c:323
 msgid "start time beyond end of table\n"
@@ -8930,7 +8928,7 @@ msgstr "table pas assez longue pour une boucle\n"
 
 #: Opcodes/sndloop.c:458 Opcodes/sndloop.c:492
 msgid "function table channels do not match opcode outputs"
-msgstr ""
+msgstr "les canaux de tables de fonction ne correspondent pas aux sorties"
 
 #: Opcodes/sndloop.c:486
 #, c-format
@@ -10525,10 +10523,9 @@ msgstr ""
 "--vbr-quality=Ft\t fixe la qualité du taux variable de compression bit0rate"
 
 #: Top/argdecode.c:287
-#, fuzzy
 msgid "--devices[=in|out] \t\t list available MIDI devices and exit"
 msgstr ""
-"--devices[=in|out] \t\t liste les périphériques audio disponibles et termine"
+"--devices[=in|out] \t\t liste les périphériques MIDI disponibles et termine"
 
 #: Top/argdecode.c:288
 msgid "--devices[=in|out] \t\t list available audio devices and exit"
@@ -10541,7 +10538,7 @@ msgstr "--get-system-sr \t\t affiche le sr du système et termine"
 
 #: Top/argdecode.c:290
 msgid "--ksmps=N \t\t override ksmps"
-msgstr ""
+msgstr "--ksmps=N \t\t écrase ksmps"
 
 #: Top/argdecode.c:292
 msgid "--help\t\t\tLong help"
@@ -10626,9 +10623,8 @@ msgid "no control rate"
 msgstr "pas de taux de contrôle"
 
 #: Top/argdecode.c:624
-#, fuzzy
 msgid "no ksmps"
-msgstr "ilen > ksmps"
+msgstr "pas de ksmps"
 
 #: Top/argdecode.c:638 Top/argdecode.c:1248
 msgid "no Linein score device_name"
