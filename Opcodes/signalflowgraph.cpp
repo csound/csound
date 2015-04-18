@@ -1241,11 +1241,12 @@ struct AlwaysOnS  : public OpcodeBase<AlwaysOnS> {
     EVTBLK evtblk;
     int init(CSOUND *csound)
     {
+        MYFLT offset = csound->GetScoreOffsetSeconds(csound);
         evtblk.opcod = 'i';
         evtblk.strarg = NULL;
         evtblk.p[0] = FL(0.0);
         evtblk.p[1] = csound->strarg2insno(csound, Sinstrument->data, 1);
-        evtblk.p[2] = evtblk.p2orig = FL(0.0);
+        evtblk.p[2] = evtblk.p2orig = offset;
         evtblk.p[3] = evtblk.p3orig = FL(-1.0);
         size_t inArgCount = csound->GetInputArgCnt(this);
         // Add 2, for hard-coded p2 and p3.
@@ -1257,7 +1258,7 @@ struct AlwaysOnS  : public OpcodeBase<AlwaysOnS> {
             evtblk.p[pfieldI] = *argums[argumI];
         }
         csound->insert_score_event(csound, &evtblk, FL(0.0));
-        return OK;
+		        return OK;
     }
 };
 
@@ -1278,11 +1279,12 @@ struct AlwaysOn  : public OpcodeBase<AlwaysOn> {
                              Sinstrument,
                              (char *)"",
                              (int) 0);
+	MYFLT offset = csound->GetScoreOffsetSeconds(csound);
         evtblk.opcod = 'i';
         evtblk.strarg = NULL;
         evtblk.p[0] = FL(0.0);
         evtblk.p[1] = *Sinstrument;
-        evtblk.p[2] = evtblk.p2orig = FL(0.0);
+        evtblk.p[2] = evtblk.p2orig = offset;
         evtblk.p[3] = evtblk.p3orig = FL(-1.0);
 
         size_t inArgCount = csound->GetInputArgCnt(this);
