@@ -167,7 +167,7 @@ target_link_libraries(${MAX_OUTPUT_LIB}
   ${PTHREAD_LIBRARY})
 
 target_link_libraries(${MAX_OUTPUT_LIB}
-  ${SNDFILE_LIBRARY})
+  ${LIBSNDFILE_LIBRARY})
 
 endif(APPLE)
 
