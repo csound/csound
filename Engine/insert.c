@@ -1008,18 +1008,22 @@ extern void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt);
 
 
 void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
-  INSTRTXT* instrDef = ip->instr;
-  CS_VAR_POOL* pool = instrDef->varPool;
-  CS_VARIABLE* current = pool->head;
+    INSTRTXT* instrDef = ip->instr;
+    CS_VAR_POOL* pool = instrDef->varPool;
+    CS_VARIABLE* current = pool->head;
 
-  while (current != NULL) {
-    CS_TYPE* varType = current->varType;
-    if (varType->freeVariableMemory != NULL) {
-      varType->freeVariableMemory(csound,
-                                  ip->lclbas + current->memBlockIndex);
+    if (ip->lclbas == NULL) {
+        // This seems to be the case when freeing instr 0...
+        return;
     }
-    current = current->next;
-  }
+
+    while (current != NULL) {
+        CS_TYPE* varType = current->varType;
+        if (varType->freeVariableMemory != NULL) {
+            varType->freeVariableMemory(csound, ip->lclbas + current->memBlockIndex);
+        }
+        current = current->next;
+    }
 }
 
 void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
