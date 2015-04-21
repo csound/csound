@@ -56,11 +56,11 @@ public class JSCsoundObj extends CsoundObj {
 	CsoundMotion csoundMotion = new CsoundMotion(this);
 
 	public JSCsoundObj() {
-		this(false);
+		super(false);
 	}
 
 	public JSCsoundObj(boolean useAudioTrack) {
-		super(useAudioTrack);
+		super(useAudioTrack, useAudioTrack);
 	}
 
 	@JavascriptInterface
