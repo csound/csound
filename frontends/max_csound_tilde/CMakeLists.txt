@@ -166,6 +166,9 @@ set_target_properties(${MAX_OUTPUT_LIB} PROPERTIES
 target_link_libraries(${MAX_OUTPUT_LIB}
   ${PTHREAD_LIBRARY})
 
+target_link_libraries(${MAX_OUTPUT_LIB}
+  ${SNDFILE_LIBRARY})
+
 endif(APPLE)
 
 endif()
