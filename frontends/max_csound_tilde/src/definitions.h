@@ -40,7 +40,9 @@
 #ifdef _WINDOWS
 	#define _USE_BOOST_SERIALIZATION 
 	typedef unsigned char byte;
+	#ifndef snprintf
 	#define snprintf _snprintf
+	#endif
 #endif
 
 #ifdef MACOSX
