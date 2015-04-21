@@ -826,6 +826,11 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
     CS_VAR_POOL* pool = instrDef->varPool;
     CS_VARIABLE* current = pool->head;
 
+    if (ip->lclbas == NULL) {
+        // This seems to be the case when freeing instr 0...
+        return;
+    }
+    
     while (current != NULL) {
         CS_TYPE* varType = current->varType;
         if (varType->freeVariableMemory != NULL) {
