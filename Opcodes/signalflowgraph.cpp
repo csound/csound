@@ -296,7 +296,7 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
     {
         std::vector<Outleta *> &aoutlets =
             aoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
-        auto thisoutlet = std::find(aoutlets.begin(), aoutlets.end(), this);
+        std::vector<Outleta *>::iterator thisoutlet = std::find(aoutlets.begin(), aoutlets.end(), this);
         aoutlets.erase(thisoutlet);
         warn(csound, "Removed instance 0x%x of %d instances of outleta %s\n",
              this, aoutlets.size(), sourceOutletId);
@@ -447,7 +447,7 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
     {
         std::vector<Outletk *> &koutlets =
             koutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
-        auto thisoutlet = std::find(koutlets.begin(), koutlets.end(), this);
+        std::vector<Outletk *>::iterator thisoutlet = std::find(koutlets.begin(), koutlets.end(), this);
         koutlets.erase(thisoutlet);
         warn(csound, "Removed 0x%x of %d instances of outletk %s\n",
              this, koutlets.size(), sourceOutletId);
@@ -584,7 +584,7 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
     {
         std::vector<Outletf *> &foutlets =
             foutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
-        auto thisoutlet = std::find(foutlets.begin(), foutlets.end(), this);
+        std::vector<Outletf *>::iterator thisoutlet = std::find(foutlets.begin(), foutlets.end(), this);
         foutlets.erase(thisoutlet);
         warn(csound, "Removed 0x%x of %d instances of outletf %s\n",
              this, foutlets.size(), sourceOutletId);
@@ -793,7 +793,7 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
     {
         std::vector<Outletv *> &voutlets =
             voutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
-        auto thisoutlet = std::find(voutlets.begin(), voutlets.end(), this);
+        std::vector<Outletv *>::iterator thisoutlet = std::find(voutlets.begin(), voutlets.end(), this);
         voutlets.erase(thisoutlet);
         warn(csound, "Removed 0x%x of %d instances of outletv %s\n",
              this, voutlets.size(), sourceOutletId);
@@ -963,7 +963,7 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
     {
         std::vector<Outletkid *> &koutlets =
             kidoutletsForCsoundsForSourceOutletIds[csound][sourceOutletId];
-        auto thisoutlet = std::find(koutlets.begin(), koutlets.end(), this);
+        std::vector<Outletkid *>::iterator thisoutlet = std::find(koutlets.begin(), koutlets.end(), this);
         koutlets.erase(thisoutlet);
         warn(csound, "Removed 0x%x of %d instances of outletkid %s\n",
              this, koutlets.size(), sourceOutletId);
