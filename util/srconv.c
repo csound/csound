@@ -107,7 +107,7 @@ static char set_output_format(CSOUND *csound, char c, char outformch, OPARMS *op
       break;
     case '8':
       oparms->outformat = AE_UNCH;  /* unsigned 8-bit soundfile */
-      break;
+     break;
     case 'f':
       oparms->outformat = AE_FLOAT; /* float soundfile */
       break;
@@ -220,6 +220,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     int         block = 0;
     char        err_msg[256];
 
+    O.outformat = AE_SHORT;
     /* csound->e0dbfs = csound->dbfs_to_float = FL(1.0);*/
 
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
@@ -436,7 +437,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     }
 
     if (O.outformat == 0)
-      O.outformat = p->format;
+      O.outformat = AE_SHORT;//p->format;
     O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
     if (O.filetyp == TYP_RAW) {
       O.sfheader = 0;
@@ -465,6 +466,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       memset(&sfinfo, 0, sizeof(SF_INFO));
       sfinfo.samplerate = (int) ((double) Rout + 0.5);
       sfinfo.channels = (int) p->nchanls;
+      //printf("filetyp=%x outformat=%x\n", O.filetyp, O.outformat);
       sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
       if (strcmp(O.outfilename, "stdout") != 0) {
         name = csound->FindOutputFile(csound, O.outfilename, "SFDIR");
@@ -478,6 +480,10 @@ static int srconv(CSOUND *csound, int argc, char **argv)
                                    csound->type2csfiletype(O.filetyp,
                                                            O.outformat),
                                    1, 0);
+        else {
+          snprintf(err_msg, 256, Str("libsndfile error: %s\n"), sf_strerror(NULL));
+          goto err_rtn_msg;
+        }
         csound->Free(csound, name);
       }
       else
