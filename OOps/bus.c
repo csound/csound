@@ -1392,9 +1392,10 @@ int invalset_string_S(CSOUND *csound, INVAL *p)
     if (UNLIKELY(err))
       return print_chn_err(p, err);
 
-    if ( ((STRINGDAT *)(p->value))->data == NULL) {
-      ((STRINGDAT *)(p->value))->data = csound->Calloc(csound, 128);
-      ((STRINGDAT *)(p->value))->size = 128;
+    if (((STRINGDAT *)(p->value))->data == NULL ||
+	  ((STRINGDAT *)(p->value))->size < 256) {
+      ((STRINGDAT *)(p->value))->data = csound->Calloc(csound, 256);
+      ((STRINGDAT *)(p->value))->size = 256;
     }
 
     /* grab input now for use during i-pass */
@@ -1583,7 +1584,8 @@ int outvalset_string(CSOUND *csound, OUTVAL *p)
     int type, err;
 
     /* convert numerical channel to string name */
-    csound->AuxAlloc(csound, 32, &p->channelName);
+    if(p->channelName.auxp == NULL)
+     csound->AuxAlloc(csound, 32, &p->channelName);
     snprintf((char*)p->channelName.auxp,  32, "%d",
             (int)MYFLT2LRND(*p->valID));
 
