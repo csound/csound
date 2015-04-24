@@ -1,5 +1,5 @@
 # CSOUND
-Version 6.04.0
+Version 6.05.0
 
 [![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
 ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg)
