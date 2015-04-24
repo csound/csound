@@ -586,7 +586,9 @@ void Sequencer::Write(const string & file)
 		}
 		else if(FILE_XML == file_type)
 		{
-			write_xml(file, top_pt, std::locale(), boost::property_tree::xml_parser::xml_writer_make_settings(' ', 4u));
+      boost::property_tree::xml_writer_settings<std::string> w(' ', 4); // Set indentation character and amount.
+      write_xml(file, top_pt, std::locale(), w);
+			//write_xml(file, top_pt, std::locale(), boost::property_tree::xml_parser::xml_writer_make_settings(' ', 4u));
 		}
 		object_post(m_obj, "Finished writing %s.", file.c_str());
 	}
