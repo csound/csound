@@ -46,7 +46,7 @@ make_executable(csound-bin "${CS_MAIN_SRCS}" "${CSOUNDLIB}" csound)
 
 message(STATUS "Building csLadspa")
 
-make_plugin_frontend(csladspa "csladspa/csladspa.cpp" "${CSOUNDLIB}")
+make_plugin_frontend(csladspa "csladspa/csladspa.cpp" "${CSOUNDLIB}" -static-libgcc -static)
 # We do not want the lib prefix
 set_target_properties(csladspa PROPERTIES PREFIX "")
 
