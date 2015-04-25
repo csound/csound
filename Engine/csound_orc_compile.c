@@ -1708,7 +1708,12 @@ PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str)
 #endif
 }
 
+#ifdef EMSCRIPTEN
+void sanitize(CSOUND *csound) {}
+#else
 extern void sanitize(CSOUND *csound);
+#endif
+
 /**
     Parse and compile an orchestra given on an string (OPTIONAL)
     if str is NULL the string is taken from the internal corfile
