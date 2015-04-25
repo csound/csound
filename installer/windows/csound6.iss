@@ -15,14 +15,14 @@
 ; I hope to change this soon.
 
 ; Uncomment the following line to build for Cabbage, CsoundVST, and vst4cs.
-#define CSOUNDVST
+; #define CSOUNDVST
 
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.05beta.1-vst"
+#define MyAppMinVersion "6.05-vst"
 #else
-#define MyAppMinVersion "6.05beta.1"
+#define MyAppMinVersion "6.05"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
@@ -61,7 +61,7 @@
 ; If you are not Michael Gogins, change this to your CsoundQt repository directory.
 #define MyCsoundQtDir "C:\Users\mike\qutecsound-code\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
-#define MyCsoundQtBinDir "C:\Users\mike\build-qcs-Desktop_Qt_5_4_0_MSVC2013_32bit-Release\bin"
+#define MyCsoundQtBinDir "C:\Users\mike\build-qcs-Desktop_Qt_5_4_0_MSVC2013_32bit-Release\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
 #define MyQtSdkBinDir "D:\Qt5.4.0\5.4\msvc2013\bin\"
 ; If you are not Michael Gogins, change this to your unzipped cabbage-master directory.
