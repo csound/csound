@@ -1395,7 +1395,7 @@ int invalset_string_S(CSOUND *csound, INVAL *p)
 
     if (out->data == NULL || out->size < 256) {
       if(out->data != NULL)
-	csound->Free(csound, out->data);
+        csound->Free(csound, out->data);
       out->data = csound->Calloc(csound, 256);
       out->size = 256;
     }
