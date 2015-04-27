@@ -238,13 +238,114 @@ var csound = (function() {
    * Sets the value of a control channel in Csound
    *
    * @param {string} name The channel to be set.
-   * @param {string} value The value to set the channel.
+   * @param {number} value The value to set the channel.
    */
   function SetChannel(name, value){
     var channel = 'channel:' + name + ':';
     csound.module.postMessage(channel + value);
    }
 
+
+  /**
+   * Sends in a MIDI message to Csound MIDI system
+   *
+   * @param {number} byte1 first midi byte (128-255)
+   * @param {number} byte2 second midi byte (0-127)
+   * @param {number} byte3 third midi byte (0-127)
+   */
+    function MIDIin(byte1, byte2, byte3){
+        if(byte1 < 128 || byte1 > 255) return;
+        if(byte2 < 0 || byte2 > 127) return;
+	if(byte3 < 0 || byte3 > 127) return;
+	var mess1 = 'midi:' + byte1;
+	var mess2 = ':' + byte2;
+	var mess3 = ':' + byte3;
+        csound.module.postMessage(mess1+mess2+mess3);
+    }
+    
+   /**
+   * Sends in a MIDI NOTEOFF message to Csound MIDI system
+   *
+   * @param {number} channel MIDI channel (1-16)
+   * @param {number} number MIDI note (0-127)
+   * @param {number} velocity MIDI velocity (0-127)
+   */ 
+    function NoteOff(channel,number,velocity){
+       if(channel > 0 && channel < 17)
+	csound.MIDIin(127+channel,number,velocity);
+    }
+
+  /**
+   * Sends in a MIDI NOTEON message to Csound MIDI system
+   *
+   * @param {number} channel MIDI channel (1-16)
+   * @param {number} number MIDI note (0-127)
+   * @param {number} velocity MIDI velocity (0-127)
+   */
+    function NoteOn(channel,number,velocity){
+      if(channel > 0 && channel < 17)
+	csound.MIDIin(143+channel,number,velocity);
+    }
+
+   /**
+   * Sends in a MIDI POLYAFT message to Csound MIDI system
+   *
+   * @param {number} channel MIDI channel (1-16)
+   * @param {number} number MIDI note (0-127)
+   * @param {number} aftertouch MIDI aftertouch (0-127)
+   */ 
+    function PolyAftertouch(channel,number,aftertouch){
+       if(channel > 0 && channel < 17)
+	csound.MIDIin(160+channel,number,aftertouch);
+    }
+   
+   /**
+   * Sends in a MIDI CONTROLCHANGE message to Csound MIDI system
+   *
+   * @param {number} channel MIDI channel (1-16)
+   * @param {number} control MIDI cc number (0-127)
+   * @param {number} amount  cc amount change (0-127)
+   */ 
+    function ControlChange(channel,control,amount){
+       if(channel > 0 && channel < 17)
+	  csound.MIDIin(176+channel,control,amount);
+    }
+    
+   /**
+   * Sends in a MIDI PROGRAMCHANGE message to Csound MIDI system
+   *
+   * @param {number} channel MIDI channel (1-16)
+   * @param {number} number MIDI pgm number (0-127)
+   */ 
+    function ProgramChange(channel,control){
+       if(channel > 0 && channel < 17)
+	  csound.MIDIin(192+channel,control,0);
+    }
+    
+   /**
+   * Sends in a MIDI MONOAFT message to Csound MIDI system
+   *
+   * @param {number} channel MIDI channel (1-16)
+   * @param {number} amount  aftertouch amount (0-127)
+   */ 
+    function Aftertouch(channel,amount){
+       if(channel > 0 && channel < 17)
+	  csound.MIDIin(208+channel,amount,0);
+    }    
+
+   /**
+   * Sends in a MIDI PITCHBEND message to Csound MIDI system
+   *
+   * @param {number} channel MIDI channel (1-16)
+   * @param {number} fine fine PB amount (LSB) (0-127)
+   * @param {number} coarse coarse PB amount (MSB) (0-127)
+   */ 
+    function PitchBend(channel,fine,coarse){
+       if(channel > 0 && channel < 17)
+	   csound.MIDIin(224+channel,fine,coarse);
+    }
+
+    
   /**
    * Sets the value of a table position
    *
@@ -281,7 +382,8 @@ var csound = (function() {
    */
   function RequestChannel(name){
     var channel = 'outchannel:' + name;
-    csound.module.postMessage(channel);
+    if(csound.module != null)
+      csound.module.postMessage(channel);
   }
 
   /**
@@ -329,7 +431,7 @@ var csound = (function() {
    * Requests the data from a table
    * module sends "Complete" message when done.
    *
-   * @param {string} url  The file name
+   * @param {number} num  The table number
    */
    function RequestTable(num) {
      csound.module.postMessage("getTable:" + num);
@@ -355,8 +457,9 @@ var csound = (function() {
    * Start default audio input
    *
    */
-   function StartInputAudio() {
-     navigator.webkitGetUserMedia({'audio': true},input_ok,input_fail);
+    function StartInputAudio() {
+     var constraints = {audio:  { mandatory: { echoCancellation: false }}}	
+     navigator.webkitGetUserMedia(constraints,input_ok,input_fail);
    }
 
    return {
@@ -382,7 +485,15 @@ var csound = (function() {
     GetTableData : GetTableData,
     RequestTable: RequestTable,
     SetStringChannel: SetStringChannel,
-    StartInputAudio: StartInputAudio
+    StartInputAudio: StartInputAudio,
+    MIDIin : MIDIin,
+    NoteOn : NoteOn,
+    NoteOff : NoteOff,
+    PolyAftertouch : PolyAftertouch,
+    ControlChange : ControlChange,
+    ProgramChange : ProgramChange,
+    Aftertouch : Aftertouch,
+    PitchBend : PitchBend   
   };
 
 }());

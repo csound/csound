@@ -37,10 +37,10 @@ typedef struct _csound
 
 	dvx::CsoundObject * cso; // Pointer to CsoundObject partner (think of it as an extension to t_csound).
 
-	int sr;					  // MSP sample rate.
+	long sr;					  // MSP sample rate.
 	float one_div_sr;		  // 1 / current MSP sample rate.
-	int vectorSize;			  // The current MSP vector size.
-	int numPerformArgs;		  // Used to keep track of # of args sent to our csound_perform() method.
+	long vectorSize;			  // The current MSP vector size.
+	long numPerformArgs;		  // Used to keep track of # of args sent to our csound_perform() method.
 	void *compiled_bang_outlet; // When a csd or orc/sco is successfully compiled, a bang is sent out this outlet.
 	void *done_bang_outlet;   // Whenever a Csound performances finishes, a bang is sent out this outlet.
 	void *midi_outlet;		  // An outlet for MIDI data output from Csound.
@@ -54,20 +54,20 @@ typedef struct _csound
 	// Max5 Attributes:
 
 	t_symbol *args;           // The arguments to a "csound" command.
-	int autostart;            // If true, compile Csound upon csound~ instance creation.
-	int bypass;			      // If true, then copy audio input to output without performing Csound.
-	int evenlyDivisible;	  // True if ksmps evenly divides Max vector size.
-	int input;                // If true, control messages will be processed.
-	int matchMaxSR;           // If true, Csound orchestra will be auto-recompiled to match Max sr.
-	int outputClockInterval;     // The ms interval for outputClock.
-	int messageOutputEnabled; // If true, then Csound messages will be output to the Max window.
-	int output;               // If true, output control messages will be sent.
-	int numInSignals;         // The # of input vectors for our external.
-	int numOutSignals;	      // The # of output vectors for our external.
-	int numInOutSignals;	  // The # of input/output vectors for our external. May not be consistent with numInSignals and numOutSignals.
-	int outputOverdrive;      // If true, then output values from Csound will be output immediately
+	long autostart;            // If true, compile Csound upon csound~ instance creation.
+	long bypass;			      // If true, then copy audio input to output without performing Csound.
+	long evenlyDivisible;	  // True if ksmps evenly divides Max vector size.
+	long input;                // If true, control messages will be processed.
+	long matchMaxSR;           // If true, Csound orchestra will be auto-recompiled to match Max sr.
+	long outputClockInterval;     // The ms interval for outputClock.
+	long messageOutputEnabled; // If true, then Csound messages will be output to the Max window.
+	long output;               // If true, output control messages will be sent.
+	long numInSignals;         // The # of input vectors for our external.
+	long numOutSignals;	      // The # of output vectors for our external.
+	long numInOutSignals;	  // The # of input/output vectors for our external. May not be consistent with numInSignals and numOutSignals.
+	long outputOverdrive;      // If true, then output values from Csound will be output immediately
 							  // (rather than at CSOUND_CLOCK_INTERVAL ms intervals).
-	int scale;                // Not used. This is here so that we can add the @scale attribute (to prevent error messages).
+	long scale;                // Not used. This is here so that we can add the @scale attribute (to prevent error messages).
 	
 } t_csound;
 

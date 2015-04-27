@@ -138,20 +138,21 @@ typedef struct _sndloop {
 
 typedef struct _flooper {
   OPDS h;
-  MYFLT *out;  /* output */
+  MYFLT *out[2];  /* output */
   MYFLT *amp, *pitch, *start, *dur, *cfd, *ifn;
   AUXCH buffer; /* loop memory */
   FUNC  *sfunc;  /* function table */
   int32 strts;   /* start in samples */
   int32  durs;   /* duration in samples */
   double  ndx;   /* table lookup ndx */
+  int nchnls;
   int   loop_off;
 } flooper;
 
 
 typedef struct _flooper2 {
   OPDS h;
-  MYFLT *out;  /* output */
+  MYFLT *out[2];  /* output */
   MYFLT *amp, *pitch, *loop_start, *loop_end,
     *crossfade, *ifn, *start, *imode, *ifn2, *iskip, *ijump;
   FUNC  *sfunc;  /* function table */
@@ -161,6 +162,7 @@ typedef struct _flooper2 {
   double  ndx[2];    /* table lookup ndx */
   int firsttime, init;
   MYFLT ostart, oend;
+  int nchnls;
 } flooper2;
 
 
@@ -300,7 +302,7 @@ static int flooper_init(CSOUND *csound, flooper *p)
     int32 cfds = (int32) (*(p->cfd)*CS_ESR);     /* fade in samps  */
     int32 starts = (int32) (*(p->start)*CS_ESR); /* start in samps */
     int32 durs = (int32)  (*(p->dur)*CS_ESR);    /* dur in samps   */
-    int32 len, i;
+    int32 len, i, nchnls;
 
     if (UNLIKELY(cfds > durs))
       return csound->InitError(csound,
@@ -312,7 +314,11 @@ static int flooper_init(CSOUND *csound, flooper *p)
       return csound->InitError(csound,Str("function table not found\n"));
     }
     tab = p->sfunc->ftable,  /* func table pointer */
-      len = p->sfunc->flen;    /* function table length */
+    len = p->sfunc->flen;    /* function table length */
+    nchnls = p->sfunc->nchanls;
+    if(nchnls != p->OUTCOUNT){
+     return csound->InitError(csound,Str("function table channel count does not match output"));
+    }
     if (UNLIKELY(starts > len)) {
       return csound->InitError(csound,Str("start time beyond end of table\n"));
     }
@@ -322,31 +328,40 @@ static int flooper_init(CSOUND *csound, flooper *p)
     }
 
     if (p->buffer.auxp==NULL ||
-        p->buffer.size<(durs+1)*sizeof(MYFLT)) /* allocate memory if necessary */
-      csound->AuxAlloc(csound,(durs+1)*sizeof(MYFLT), &p->buffer);
+        p->buffer.size<(durs+1)*sizeof(MYFLT)*nchnls) /* allocate memory if necessary */
+      csound->AuxAlloc(csound,(durs+1)*sizeof(MYFLT)*nchnls, &p->buffer);
 
     inc = (MYFLT)1/cfds;       /* fade envelope incr/decr */
     buffer = p->buffer.auxp;   /* loop memory */
-
+    
     /* we now write the loop into memory */
-    for (i=0; i < durs; i++) {
+    durs *= nchnls;
+    starts *= nchnls;
+    cfds *= nchnls;
+    for (i=0; i < durs; i+=nchnls) {
       if (i < cfds) {
         buffer[i] = a*tab[i+starts];
+        if(nchnls == 2) buffer[i+1] = a*tab[i+starts+1];
         a += inc;
       }
-      else buffer[i] = tab[i+starts];;
+      else {
+        buffer[i] = tab[i+starts];
+        if(nchnls == 2) buffer[i+1] = tab[i+starts+1];
+      }
     }
     /*  crossfade section */
-    for (i=0; i  < cfds; i++) {
+    for (i=0; i  < cfds; i+=nchnls) {
       buffer[i] += a*tab[i+starts+durs];
+      if(nchnls == 2) buffer[i+1] += a*tab[i+starts+durs+1];
       a -= inc;
     }
 
     buffer[durs] = buffer[0]; /* for wrap-around interpolation */
-    p->strts     = starts;
-    p->durs      = durs;
+    p->strts     = starts/nchnls;
+    p->durs      = durs/nchnls;
     p->ndx       = FL(0.0);   /* lookup index */
     p->loop_off  = 1;
+    p->nchnls = nchnls;
     return OK;
 }
 
@@ -356,36 +371,51 @@ static int flooper_process(CSOUND *csound, flooper *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int32 end = p->strts+p->durs, durs = p->durs;
-    MYFLT *out = p->out, *buffer = p->buffer.auxp;
+    MYFLT **aout = p->out, *buffer = p->buffer.auxp;
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
     MYFLT *tab = p->sfunc->ftable;
     double ndx = p->ndx;
     MYFLT  frac;
-    int tndx, loop_off = p->loop_off;
+    int tndx, loop_off = p->loop_off, nchnls = p->nchnls;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(aout[0], '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&aout[0][nsmps], '\0', early*sizeof(MYFLT));
+      if(nchnls == 2) {
+        if (UNLIKELY(offset)) memset(aout[1], '\0', offset*sizeof(MYFLT));
+        memset(&aout[1][nsmps], '\0', early*sizeof(MYFLT));
+      }
     }
+    
     for (i=offset; i < nsmps; i++) {
       tndx = (int) ndx;
       frac = ndx - tndx;
       /* this is the start portion of the sound */
       if (ndx >= 0  && ndx < end && loop_off) {
-        out[i] = amp*(tab[tndx] + frac*(tab[tndx+1] - tab[tndx]));
+        tndx  *= nchnls;
+        aout[0][i] = amp*(tab[tndx] + frac*(tab[tndx+nchnls] - tab[tndx]));
+        if(nchnls == 2){
+          tndx += 1;
+          aout[1][i] = amp*(tab[tndx] + frac*(tab[tndx+nchnls] - tab[tndx]));
+        }
         ndx += pitch;
       }
       /* this is the loop section */
       else {
         if (loop_off) {
           while(ndx >= end) ndx -= end;
-          tndx = (int) ndx;
           /* wrap-around, if reading backwards */
           while (tndx < 0) tndx += durs;
+          tndx = (int) ndx;
         }
         loop_off = 0;
-        out[i] = amp*(buffer[tndx] + frac*(buffer[tndx+1] - buffer[tndx]));
+        tndx *= nchnls;
+        aout[0][i] = amp*(buffer[tndx] + frac*(buffer[tndx+nchnls] - buffer[tndx]));
+        if(nchnls == 2){
+          tndx += 1;
+          aout[1][i] = amp*(buffer[tndx] + frac*(buffer[tndx+nchnls] - buffer[tndx]));
+        }
         ndx += pitch;
         while (ndx < 0) ndx += durs;
         while (ndx >= durs) ndx -= durs;
@@ -421,7 +451,12 @@ static int flooper2_init(CSOUND *csound, flooper2 *p)
       p->firsttime = 1;
       p->cfade = 1;
     }
-    
+
+    p->nchnls = (int)(p->OUTOCOUNT);
+    if(p->nchnls != p->sfunc->nchanls){
+      csound->Warning(csound,
+       Str("function table channels do not match opcode outputs"));
+    }
     return OK;
 }
 
@@ -430,7 +465,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    MYFLT *out = p->out, sr = CS_ESR;
+    MYFLT out[2], **aout = p->out, sr = CS_ESR;
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
     MYFLT *tab;
     double *ndx = p->ndx;
@@ -440,7 +475,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     MYFLT count = p->count, fadein, fadeout;
     int *firsttime = &p->firsttime, elen, mode=p->mode,
         init = p->init, ijump = *p->ijump;
-    uint32 tndx0, tndx1;
+    uint32 tndx0, tndx1, nchnls, onchnls = p->nchnls;
     FUNC *func;
     func = csound->FTnp2Find(csound, p->ifn);
 
@@ -451,6 +486,11 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
                                Str("table %d invalid\n"), (int) *p->ifn);
     if (p->ndx[0] >= p->sfunc->flen)
        p->ndx[0] = (double) p->sfunc->flen - 1.0;
+    
+    if(p->nchnls != p->sfunc->nchanls){
+       csound->Warning(csound,
+          Str("function table channels do not match opcode outputs"));
+      }
     }
     tab = p->sfunc->ftable;
     len = p->sfunc->flen;
@@ -466,9 +506,14 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
 
     /* loop parameters & check */
     if (pitch < FL(0.0)) pitch = FL(0.0);
+    if (UNLIKELY(offset)) memset(aout[0], '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&aout[0][nsmps], '\0', early*sizeof(MYFLT));
+      if(onchnls == 2) {
+        if (UNLIKELY(offset)) memset(aout[1], '\0', offset*sizeof(MYFLT));
+        memset(&aout[1][nsmps], '\0', early*sizeof(MYFLT));
+      }
     }
 
     if (*firsttime) {
@@ -493,7 +538,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
       else if (mode == 2) {
         ndx[1] = (double) loop_start - FL(1.0);
         p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
-        
+
       }
       else {
         ndx[1] = (double) loop_start;
@@ -512,13 +557,20 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
         p->oend = *p->loop_end;
       }
     }
-
+    onchnls = p->nchnls;
+    nchnls = p->sfunc->nchanls;
     for (i=offset; i < nsmps; i++) {
       if (mode == 1){ /* backwards */
         tndx0 = (int) ndx[0];
         frac0 = ndx[0] - tndx0;
-        if (ndx[0] > crossfade + loop_start)
-          out[i] = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+        if (ndx[0] > crossfade + loop_start) {
+          tndx0 *= nchnls;
+          out[0] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          if(onchnls == 2) {
+            tndx0 += 1;
+            out[1] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          }
+        }
         else {
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
@@ -533,8 +585,16 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
             fadein = etab[elen - (int)fadeout];
             fadeout = etab[(int)fadeout];
           }
-          out[i] = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]))
-                        + fadein*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1])));
+          tndx1 *= nchnls;
+          tndx0 *= nchnls;
+          out[0] = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]))
+                        + fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1])));
+          if(onchnls == 2) {
+          tndx1 += 1;
+          tndx0 += 1;
+          out[1] = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]))
+                        + fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1])));
+          }
           ndx[1]-=pitch;
           count-=pitch;
         }
@@ -559,12 +619,18 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
         }
       }
       else if (mode==2) { /* back and forth */
-        out[i] = 0;
+        out[0] = 0.0;
+        if(onchnls == 2) out[1] = 0.0;
         /* this is the forward reader */
         if (init && ndx[0] < loop_start + crossfade) {
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
-          out[i] = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+          tndx0 *= nchnls;
+          out[0] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          if(onchnls == 2){
+            tndx0 *= nchnls;
+            out[1] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          }
           ndx[0] += pitch;
         }
         else if (ndx[0] < loop_start + crossfade) {
@@ -572,17 +638,27 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           else fadein = etab[(int)(elen*count/crossfade)];
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
-          out[i] += amp*fadein*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+          tndx0 *= nchnls;
+          out[0] += amp*fadein*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          if(onchnls == 2){
+            tndx0 += 1;
+            out[1] += amp*fadein*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          }
           ndx[0] += pitch;
           count  += pitch;
-        } 
+        }
         else if (ndx[0] < loop_end - crossfade) {
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
-          out[i] = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+          tndx0 *= nchnls;
+          out[0] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          if(onchnls == 2){
+           tndx0 += 1;
+           out[1] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          }
           ndx[0] += pitch;
           init = 0;
-          if (ndx[0] >= loop_end - crossfade) { 
+          if (ndx[0] >= loop_end - crossfade) {
             ndx[1] = (double) loop_end;
             count = 0;
           }
@@ -592,7 +668,12 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           else  fadeout = etab[(int)(elen*(1.0 - count/crossfade))];
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
-          out[i] += amp*fadeout*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+          tndx0 *= nchnls;
+          out[0] += amp*fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          if(onchnls == 2){
+           tndx0 += 1;
+           out[1] += amp*fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          }
           ndx[0] += pitch;
           count  += pitch;
         }
@@ -602,26 +683,42 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           else fadein = etab[(int)(elen*count/crossfade)];
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
-          out[i] += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
+          tndx1 *= nchnls;
+          out[0] += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1]));
+          if(onchnls == 2){
+            tndx1 += 1;
+            out[1] += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1]));
+          }
           ndx[1] -= pitch;
         }
         else if (ndx[1] > loop_start + crossfade) {
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
-          out[i] = amp*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
+          tndx1 *= nchnls;
+          out[0] = amp*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1]));
+         if(onchnls == 2){
+            tndx1 += 1;
+            out[1] += amp*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1]));
+          }
           ndx[1] -= pitch;
           if (ndx[1] <= loop_start + crossfade) {
             ndx[0] = (double) loop_start;
-            count = 0;    
-          }   
+            count = 0;
+          }
         }
         else if (ndx[1] > loop_start) {
           if (etab==NULL) fadeout = FL(1.0) - count/crossfade;
           else fadeout = etab[(int)(elen*(1.0 - count/crossfade))];
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
-          out[i] += amp*fadeout*(tab[tndx1] + frac1*(tab[tndx1+1]
+          tndx1 *= nchnls;
+          out[0] += amp*fadeout*(tab[tndx1] + frac1*(tab[tndx1+nchnls]
                                                      - tab[tndx1]));
+         if(onchnls == 2){
+            tndx1 += 1;
+            out[1] += amp*fadeout*(tab[tndx1] + frac1*(tab[tndx1+nchnls]
+                                                        - tab[tndx1]));
+          }
           ndx[1] -= pitch;
           if (ndx[1] <= loop_start) {
             int loopsize;
@@ -643,11 +740,16 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
         }
       }
       else {  /* normal */
-        out[i] = 0;
+        out[0] = 0;
         tndx0 = (uint32) ndx[0];
         frac0 = ndx[0] - tndx0;
         if (ndx[0] < loop_end-crossfade) {
-          out[i] = amp*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]));
+          tndx0 *= nchnls;
+          out[0] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          if(onchnls == 2){
+            tndx0 += 1;
+            out[1] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          }
           if (ijump) ndx[1] = loop_start;
         }
         else {
@@ -662,10 +764,20 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
             fadeout = etab[elen - (int)fadein];
             fadein = etab[(int)fadein];
           }
-          out[i] = amp*(fadeout*(tab[tndx0] +
-                                 frac0*(tab[tndx0+1] - tab[tndx0]))
+          tndx1 *= nchnls;
+          tndx0 *= nchnls;
+          out[0] = amp*(fadeout*(tab[tndx0] +
+                                 frac0*(tab[tndx0+nchnls] - tab[tndx0]))
                         + fadein*(tab[tndx1] +
-                                  frac1*(tab[tndx1+1] - tab[tndx1])));
+                                  frac1*(tab[tndx1+nchnls] - tab[tndx1])));
+          if(onchnls == 2){
+            tndx1 += 1;
+            tndx0 += 1;
+            out[1] = amp*(fadeout*(tab[tndx0] +
+                                 frac0*(tab[tndx0+nchnls] - tab[tndx0]))
+                        + fadein*(tab[tndx1] +
+                                  frac1*(tab[tndx1+nchnls] - tab[tndx1])));
+          }
           ndx[1]+=pitch;
           count+=pitch;
         }
@@ -688,6 +800,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           count=0;
         }
       }
+      aout[0][i] = out[0];
+      if(onchnls == 2) aout[1][i] = out[1];
     }
 
     p->count = count;
@@ -1197,13 +1311,13 @@ static OENTRY localops[] = {
   {"sndloop", sizeof(sndloop),0, 5,
    "ak", "akkii", (SUBR)sndloop_init, NULL, (SUBR)sndloop_process},
   {"flooper", sizeof(flooper), TR, 5,
-   "a", "kkiiii", (SUBR)flooper_init, NULL, (SUBR)flooper_process},
+   "mm", "kkiiii", (SUBR)flooper_init, NULL, (SUBR)flooper_process},
   {"pvsarp", sizeof(pvsarp), 0,3,
    "f", "fkkk", (SUBR)pvsarp_init, (SUBR)pvsarp_process},
   {"pvsvoc", sizeof(pvsvoc), 0,3,
    "f", "ffkkO", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process},
   {"flooper2", sizeof(flooper2), TR, 5,
-   "a", "kkkkkiooooO", (SUBR)flooper2_init, NULL, (SUBR)flooper2_process},
+   "mm", "kkkkkiooooO", (SUBR)flooper2_init, NULL, (SUBR)flooper2_process},
   /* {"flooper3", sizeof(flooper3), TR, 5,
      "a", "kkkkkioooo", (SUBR)flooper3_init, NULL, (SUBR)flooper3_process},*/
  {"pvsmorph", sizeof(pvsvoc), 0,3,

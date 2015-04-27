@@ -42,7 +42,7 @@ public class CsoundSliderBinding extends AbstractBinding{
 	boolean cacheDirty = true;
 	CsoundMYFLTArray ptr = null;
 
-	public CsoundSliderBinding(SeekBar seekBar, String channelName, double min, double max) {
+	public CsoundSliderBinding(SeekBar seekBar, final String channelName, double min, double max) {
 		this.seekBar = seekBar;
 		this.channelName = channelName;
 		this.minValue = min;
@@ -70,6 +70,9 @@ public class CsoundSliderBinding extends AbstractBinding{
 					if(value != cachedValue) {
 						cachedValue = value;
 						cacheDirty = true;
+					}
+					if(!csoundObj.getAsyncStatus()){			
+						csoundObj.getCsound().SetChannel(channelName, value);
 					}
 				}
 				

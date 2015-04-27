@@ -163,7 +163,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     }
     if (ff.e.pcnt>PMAX) {
       //#ifdef BETA
-      csound->DebugMsg(csound, "T%d/%d(%d): x=%p memcpy from %p to %p length %d\n",
+      csound->DebugMsg(csound, "T%d/%d(%d): x=%p memcpy from %p to %p length %ld\n",
               (int)evtblkp->p[1], (int)evtblkp->p[4], ff.e.pcnt, evtblkp->c.extra,
               &(ff.e.p[2]), &(evtblkp->p[2]), sizeof(MYFLT) * PMAX);
       //#endif
@@ -270,8 +270,12 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     ftp->argcnt = ff.e.pcnt - 3;
     {  /* Note this does not handle extened args -- JPff */
       int size=ftp->argcnt;
-      if (size>PMAX) size=PMAX;
-      memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*size);
+      if (size>PMAX-4) size=PMAX-4;
+      /* printf("size = %d -> %d ftp->args = %p\n", */
+      /*        size, sizeof(MYFLT)*size, ftp->args); */
+      memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*size); /* is this right? */
+      /*for(k=0; k < size; k++)
+        csound->Message(csound, "%f \n", ftp->args[k]);*/
     }
     return 0;
 }
@@ -1312,8 +1316,9 @@ static MYFLT nextval(FILE *f)
     /* Read the next charcater; suppress multiple space and comments to a
        single space */
     int c;
-    c = getc(f);
  top:
+    c = getc(f);
+ top1:
     if (feof(f)) return NAN; /* Hope value is ignored */
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
       double d;                           /* A number starts */
@@ -1330,10 +1335,11 @@ static MYFLT nextval(FILE *f)
       }
       return (MYFLT)d;
     }
-    while (isspace(c)) c = getc(f);       /* Whitespace */
+    while (isspace(c) || c == ',') c = getc(f);       /* Whitespace */
     if (c==';' || c=='#' || c=='<') {     /* Comment and tag*/
       while ((c = getc(f)) != '\n');
     }
+    if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') goto top1;
     goto top;
 }
 
@@ -1377,7 +1383,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
       csound->Warning(csound,
                       Str("Number(s) after table full in GEN23, starting %f"), tmp);
     csound->FileClose(csound, fd);
-    // if (def) 
+    // if (def)
     {
       MYFLT *tab = ftp->ftable;
       tab[ff->flen] = tab[0];  /* guard point */
@@ -1596,7 +1602,7 @@ static int gen28(FGDATA *ff, FUNC *ftp)
           newy = (MYFLT*)realloc(y, arraysize*sizeof(MYFLT));
           newz = (MYFLT*)realloc(z, arraysize*sizeof(MYFLT));
           if (!newx || !newy || !newz) {
-            fprintf(stderr, "Out of Memory\n");
+            fprintf(stderr, Str("Out of Memory\n"));
             exit(7);
           }
           x = newx; y = newy; z = newz;
@@ -2624,8 +2630,9 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     if (p->channel == 0)                      /* snd is chan 1,2,..8 or all */
       p->channel = ALLCHNLS;
     p->analonly = 0;
-    if (UNLIKELY(ff->flen == 0 && (csound->oparms->msglevel & 7)))
+    if (UNLIKELY(ff->flen == 0 && (csound->oparms->msglevel & 7))){
       csoundMessage(csound, Str("deferred alloc\n"));
+    }
     if (UNLIKELY((fd = sndgetset(csound, p))==NULL)) {
       /* sndinset to open the file  */
       return fterror(ff, "Failed to open file");
@@ -2741,6 +2748,15 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       ftresdisp(ff, ftp);       /* VL: 11.01.05  for deferred alloc tables */
       tab[ff->flen] = tab[0];  /* guard point */
       ftp->flen -= 1;  /* exclude guard point */
+    }
+    /* save arguments */
+    ftp->argcnt = ff->e.pcnt - 3;
+    {  /* Note this does not handle extened args -- JPff */
+      int size=ftp->argcnt;
+      if (size>PMAX) size=PMAX;
+      memcpy(ftp->args, &(ff->e.p[4]), sizeof(MYFLT)*size);
+      /* for(k=0; k < size; k++)
+         csound->Message(csound, "%f \n", ftp->args[k]);*/
     }
     return OK;
 }

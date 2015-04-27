@@ -71,6 +71,7 @@
 #include "csound_standard_types.h"
 
 #include "csdebug.h"
+#include <time.h>
 
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -88,7 +89,7 @@ static int  csoundPerformKsmpsInternal(CSOUND *csound);
 static void csoundTableSetInternal(CSOUND *csound, int table, int index,
                                    MYFLT value);
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
-static long csoundGetKcounter(CSOUND *csound);
+long csoundGetKcounter(CSOUND *csound);
 static void set_util_sr(CSOUND *csound, MYFLT sr);
 static void set_util_nchnls(CSOUND *csound, int nchnls);
 
@@ -115,7 +116,7 @@ static void free_opcode_table(CSOUND* csound) {
 
         while(bucket != NULL) {
             head = bucket->value;
-            cs_cons_free(csound, head);
+            cs_cons_free_complete(csound, head);
             bucket = bucket->next;
         }
     }
@@ -621,7 +622,8 @@ static const CSOUND cenviron_ = {
     FL(0.0), FL(0.0), FL(0.0),  /*  prvbt, curbt, nxtbt */
     FL(0.0), FL(0.0),       /*  curp2, nxtim        */
     0,              /*  cyclesRemaining     */
-    { 0, NULL, NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
+    { 0, NULL, NULL, '\0', 0, FL(0.0),
+      FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
     NULL,           /*  memalloc_db         */
     (MGLOBAL*) NULL, /* midiGlobals         */
     NULL,           /*  envVarDB            */
@@ -631,7 +633,6 @@ static const CSOUND cenviron_ = {
     NULL,           /*  FFT_table_1         */
     NULL,           /*  FFT_table_2         */
     NULL, NULL, NULL, /* tseg, tpsave, tplim */
-    0, 0, 0, 0, 0, 0, /*  acount, kcount, icount, Bcount, bcount, tcount */
     (MYFLT*) NULL,  /*  gbloffbas           */
 #if defined(WIN32) //&& (__GNUC_VERSION__ < 40800)
     (pthread_t){0, 0},   /* file_io_thread    */
@@ -761,6 +762,7 @@ static const CSOUND cenviron_ = {
     (char*) NULL,   /*  SF_csd_licence      */
     (char*) NULL,   /*  SF_id_title         */
     (char*) NULL,   /*  SF_id_copyright     */
+    -1,             /*  SF_id_scopyright    */
     (char*) NULL,   /*  SF_id_software      */
     (char*) NULL,   /*  SF_id_artist        */
     (char*) NULL,   /*  SF_id_comment       */
@@ -1135,6 +1137,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
 {
     CSOUND        *csound;
     csInstance_t  *p;
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
     if (init_done != 1) {
       if (csoundInitialize(0) < 0) return NULL;
@@ -1416,6 +1419,7 @@ unsigned long kperfThread(void * cs)
     void *threadId;
     int index;
     int numThreads;
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
     csound->WaitBarrier(csound->barrier2);
 
@@ -1568,7 +1572,9 @@ int kperf_nodebug(CSOUND *csound)
                   ip->kcounter++;
                 }
             }
-          } /*else csound->Message(csound, "time %f \n", csound->kcounter/csound->ekr);*/
+          }
+          /*else csound->Message(csound, "time %f \n",
+                                 csound->kcounter/csound->ekr);*/
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0; /* reset end of loop samples */
           ip = nxt; /* but this does not allow for all deletions */
@@ -1580,10 +1586,17 @@ int kperf_nodebug(CSOUND *csound)
       memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
     }
     csound->spoutran(csound); /* send to audio_out */
+    //#ifdef ANDROID
+    //struct timespec ts;
+    //clock_gettime(CLOCK_MONOTONIC, &ts);
+    //csound->Message(csound, "kperf kcount, %d,%d.%06d\n",
+    //                csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
+    //#endif
     return 0;
 }
 
-static inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, INSDS *ip)
+static inline void opcode_perf_debug(CSOUND *csound,
+                                     csdebug_data_t *data, INSDS *ip)
 {
     OPDS  *opstart = (OPDS*) ip;
     while ((opstart = opstart->nxtp) != NULL) {
@@ -1605,8 +1618,9 @@ static inline void opcode_perf_debug(CSOUND *csound, csdebug_data_t *data, INSDS
                   csoundDebuggerBreakpointReached(csound);
                   bp_node->count = bp_node->skip;
                   return;
-                } else {
-                  data->debug_opcode_ptr = NULL; /* if just stopped here, continue */
+                }
+                else {
+                  data->debug_opcode_ptr = NULL; /* if just stopped here-continue */
                 }
               } else {
                 bp_node->count--;
@@ -1708,7 +1722,8 @@ int kperf_debug(CSOUND *csound)
         data->status = CSDEBUG_STATUS_STOPPED;
         csoundDebuggerBreakpointReached(csound);
       }
-      if (command == CSDEBUG_CMD_CONTINUE && data->status == CSDEBUG_STATUS_STOPPED) {
+      if (command == CSDEBUG_CMD_CONTINUE &&
+          data->status == CSDEBUG_STATUS_STOPPED) {
         if (data->cur_bkpt->skip <= 2) data->cur_bkpt->count = 2;
         data->status = CSDEBUG_STATUS_RUNNING;
         if (data->debug_instr_ptr) {
@@ -1721,7 +1736,7 @@ int kperf_debug(CSOUND *csound)
           data->status = CSDEBUG_STATUS_NEXT;
       }
     }
-    if (ip != NULL && (data->status != CSDEBUG_STATUS_STOPPED) ) {
+    if (ip != NULL && data != NULL && (data->status != CSDEBUG_STATUS_STOPPED) ) {
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
@@ -1758,8 +1773,10 @@ int kperf_debug(CSOUND *csound)
 #endif
 
           if (done == 1) {/* if init-pass has been done */
-            /* check if next command pending and we are on the first instrument in the chain */
-            if (data &&  data->status == CSDEBUG_STATUS_NEXT) {
+            /* check if next command pending and we are on the
+               first instrument in the chain */
+            /* coverity says data already dereferenced by here */
+            if (/*data &&*/  data->status == CSDEBUG_STATUS_NEXT) {
                 if (data->debug_instr_ptr == NULL) {
                     data->debug_instr_ptr = ip;
                     data->debug_opcode_ptr = NULL;
@@ -1828,8 +1845,9 @@ int kperf_debug(CSOUND *csound)
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0;  /* reset end of loop samples */
           ip = ip->nxtact; /* but this does not allow for all deletions */
-          if (data && data->status == CSDEBUG_STATUS_NEXT) {
-            data->debug_instr_ptr = ip; /* we have reached the next instrument. Break */
+          if (/*data &&*/ data->status == CSDEBUG_STATUS_NEXT) {
+            data->debug_instr_ptr = ip; /* we have reached the next
+                                           instrument. Break */
             data->debug_opcode_ptr = NULL;
             if (ip != NULL) { /* must defer break until next kperf */
               data->status = CSDEBUG_STATUS_STOPPED;
@@ -3076,7 +3094,7 @@ PUBLIC void csoundReset(CSOUND *csound)
      pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
      pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
     #endif
-     if(O->odebug) 
+     if(O->odebug)
         csound->Message(csound,"init spinlocks\n");
     }
 
@@ -3096,6 +3114,9 @@ PUBLIC void csoundReset(CSOUND *csound)
 
     csound->engineState.stringPool = cs_hash_table_create(csound);
     csound->engineState.constantsPool = myflt_pool_create(csound);
+    if (csound->symbtab != NULL)
+      cs_hash_table_mfree_complete(csound, csound->symbtab);
+    csound->symbtab = NULL;
     csound->engineStatus |= CS_STATE_PRE;
     csound_aops_init_tables(csound);
     create_opcode_table(csound);
@@ -3235,6 +3256,11 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       CSOUNDCFG_STRING, 0, NULL, &max_len,
                                       Str("Copyright tag in output soundfile"
                                           " (no spaces)"), NULL);
+    csoundCreateConfigurationVariable(csound, "id_scopyright",
+                                      &csound->SF_id_scopyright,
+                                      CSOUNDCFG_INTEGER, 0, NULL, &max_len,
+                                      Str("Short Copyright tag in"
+                                          " output soundfile"), NULL);
     csound->SF_id_software = (char*) csound->SF_id_copyright + (int) i;
     csoundCreateConfigurationVariable(csound, "id_software",
                                       csound->SF_id_software,
@@ -3466,7 +3492,7 @@ void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
 
 //#define HAVE_RDTSC  1
 
-/* ------------------------------------ */ 
+/* ------------------------------------ */
 
 #if defined(HAVE_RDTSC)
 #if !(defined(LINUX) && defined(__GNUC__) && defined(__i386__))
@@ -3870,8 +3896,9 @@ double csoundGetOffTime(void *p)
  */
 MYFLT *csoundGetPFields(void *p)
 {
-    
-    /* FIXME - this is no longer valid, should return CS_VAR_MEM* and use ->p0_type */
+
+    /* FIXME - this is no longer valid, should return CS_VAR_MEM*
+       and use ->p0_type */
     return (MYFLT*) &(((OPDS*) p)->insdshead->p0);
 }
 
@@ -4124,7 +4151,7 @@ static INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
   return csound->engineState.instrtxtp;
 }
 
-static long csoundGetKcounter(CSOUND *csound){
+long csoundGetKcounter(CSOUND *csound){
   return csound->kcounter;
 }
 
@@ -4164,4 +4191,3 @@ PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
 //#ifdef __cplusplus
 //}
 //#endif
-

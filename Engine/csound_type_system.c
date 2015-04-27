@@ -104,7 +104,7 @@ CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound) {
 }
 
 void csoundFreeVarPool(CSOUND* csound, CS_VAR_POOL* pool) {
-    cs_hash_table_mfree_complete(csound, pool->table);
+    if(pool->table) cs_hash_table_mfree_complete(csound, pool->table);
     csound->Free(csound, pool);
 }
 
@@ -197,11 +197,11 @@ CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int index) {
 //int csoundGetVariableIndex(CS_VAR_POOL* pool, CS_VARIABLE* var) {
 //    CS_VARIABLE* current = pool->head;
 //    int index = 0;
-//    
+//
 //    if (current == NULL) {
 //        return -1;
 //    }
-//    
+//
 //    for (index = 0; current != NULL; index++) {
 //        if (current == var) {
 //            return index;
@@ -259,26 +259,34 @@ void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
 
     while (current != NULL) {
       varMem = current->memBlock;
-        
+      memSize = current->memBlockSize;
+
       if(current->updateMemBlockSize != NULL) {
         current->updateMemBlockSize(csound, current);
       }
-    
-      memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + current->memBlockSize;
-      varMem =
-        (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound,varMem,
+      // VL 14-3-2015 only realloc if we need to
+      if(memSize < current->memBlockSize) {
+          memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + current->memBlockSize;
+          varMem =
+               (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound,varMem,
                                              memSize);
-      current->memBlock = varMem;
-      pool->poolSize += current->memBlockSize;
-      current = current->next;
+          current->memBlock = varMem;
+       }
+       pool->poolSize += current->memBlockSize;
+       current = current->next;
     }
 }
 
 void deleteVarPoolMemory(void* csnd, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head, *tmp;
     CSOUND *csound = (CSOUND *)csnd;
+    CS_TYPE* type;
     while (current != NULL) {
       tmp = current;
+      type = current->subType;
+      if (type->freeVariableMemory != NULL) {
+        type->freeVariableMemory(csound, current->memBlock);
+      }
       csound->Free(csound, current->memBlock);
       current = current->next;
       csound->Free(csound, tmp);
@@ -290,7 +298,7 @@ void deleteVarPoolMemory(void* csnd, CS_VAR_POOL* pool) {
 void initializeVarPool(MYFLT* memBlock, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;
     int varNum = 1;
-    
+
     while (current != NULL) {
       if (current->initializeVariableMemory != NULL) {
         current->initializeVariableMemory(current,

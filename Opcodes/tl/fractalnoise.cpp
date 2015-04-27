@@ -88,7 +88,7 @@ private:
   }
 
 public:
-  csUI() : UserInterface(), ctrlCount(0) {};
+  csUI() : UserInterface(), ctrlCount(0) { args[0] = args[2] = NULL; };
   virtual ~csUI() {};
 
   virtual void addButton(char* label, MYFLT* zone)
@@ -140,7 +140,7 @@ class dsp {
 protected:
   int fSamplingFreq;
 public:
-  dsp() {}
+  dsp() { fSamplingFreq = -1; }
   virtual ~dsp() {}
   virtual int getNumInputs() = 0;
   virtual int getNumOutputs() = 0;

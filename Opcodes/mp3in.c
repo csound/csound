@@ -51,7 +51,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *ir;
     MYFLT   *iFileCode;
-    
+
 } MP3LEN;
 
 int mp3in_cleanup(CSOUND *csound, MP3IN *p)
@@ -76,6 +76,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     int r;
     int skip;
 
+    if (p->OUTOCOUNT==1) config.mode = MPADEC_CONFIG_MONO;
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
       /* skip initialisation if requested */
@@ -213,7 +214,7 @@ int mp3in(CSOUND *csound, MP3IN *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      for (i=0; i<2; i++) {     /* stereo */
+      for (i=0; i<p->OUTOCOUNT; i++) {     /* stereo */
         MYFLT xx;
         short *bb = (short*)buffer;
         while (r != MP3DEC_RETCODE_OK || 2*pos >=  (int)p->bufused) {
@@ -314,8 +315,8 @@ int mp3len_S(CSOUND *csound, MP3LEN *p){
 #define S(x)    sizeof(x)
 
 static OENTRY mp3in_localops[] = {
-  {"mp3in",  S(MP3IN),  0, 5, "aa", "Soooo", (SUBR) mp3ininit_S, NULL, (SUBR) mp3in},
-  {"mp3in.i",  S(MP3IN),  0, 5, "aa", "ioooo", (SUBR) mp3ininit, NULL, (SUBR) mp3in},
+  {"mp3in",  S(MP3IN),  0, 5, "mm", "Soooo", (SUBR) mp3ininit_S, NULL, (SUBR) mp3in},
+  {"mp3in.i",  S(MP3IN),  0, 5, "mm", "ioooo", (SUBR) mp3ininit, NULL, (SUBR) mp3in},
   {"mp3len", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
   {"mp3len.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
   {"mp3sr", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},

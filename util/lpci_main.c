@@ -78,13 +78,14 @@ int main(int argc, char **argv)
     fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
-    if (UNLIKELY(hdr.headersize < sizeof(LPHEADER)-4) || hdr.headersize>1024) return 1;
+    if (UNLIKELY(hdr.headersize < sizeof(LPHEADER)-4) || hdr.headersize>1024)
+      return 1;
     str = (char *)malloc(hdr.headersize-sizeof(LPHEADER)+4);
     if (str==NULL) {
       printf(Str("memory allocation failure\n"));
       exit(1);
     }
-    
+
     if (hdr.headersize-sizeof(LPHEADER)+4 !=
         fread(&str, sizeof(char), hdr.headersize-sizeof(LPHEADER)+4, inf)) {
       printf(Str("Ill formed data\n"));
@@ -111,4 +112,3 @@ int main(int argc, char **argv)
     free(coef); free(str);
     return 0;
 }
-

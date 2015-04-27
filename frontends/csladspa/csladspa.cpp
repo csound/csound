@@ -28,6 +28,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <cstring>
 #include "csound.hpp"
 #include "ladspa.h"
 using namespace std;
@@ -421,12 +422,12 @@ unsigned int CountCSD(char **csdnames)
   int             i = 0;
   size_t    indx = 0;
   char ladspa_path[1024] = "";
-  const char *src = NULL;
+  char *src = NULL;
 
 #ifdef MACOSX
-  src = "/Library/Audio/Plug-Ins/LADSPA";
+  src = strdup("/Library/Audio/Plug-Ins/LADSPA");
 #else
-  src = getenv("LADSPA_PATH");
+  src = strdup(getenv("LADSPA_PATH"));
 #endif
 
   if (src) {
@@ -451,7 +452,8 @@ unsigned int CountCSD(char **csdnames)
     }
     else dip = opendir(ladspa_path);
   }
-  if (dip == NULL){
+  if (dip == NULL) {
+    free(src);
     return 0;
   }
   while ((dit = readdir(dip))!=NULL)
@@ -473,6 +475,7 @@ unsigned int CountCSD(char **csdnames)
         }
     }
   closedir(dip);
+  free(src);
   return i;
 }
 

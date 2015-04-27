@@ -436,6 +436,8 @@ Midifile_reader::Midifile_reader()
     Msgbuff = 0;      /* message buffer */
     Msgsize = 0;        /* Size of currently allocated Msg */
     Msgindex = 0;       /* index of next available location in Msg */
+
+    midifile_error = 0;         // JPff added for coverity defect
 }
 
 void Midifile_reader::finalize()

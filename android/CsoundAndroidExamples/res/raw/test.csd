@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -d 
+-o dac -d -B512 -b256
 </CsOptions>
 <CsInstruments>
 nchnls=1

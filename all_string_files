@@ -312,6 +312,7 @@
 ./Opcodes/oscbnk.c
 ./Opcodes/oscbnk.h
 ./Opcodes/p5glove.c
+./Opcodes/padsynth_gen.cpp
 ./Opcodes/pan2.c
 ./Opcodes/partials.c
 ./Opcodes/partikkel.c

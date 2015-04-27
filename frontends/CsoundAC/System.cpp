@@ -503,7 +503,7 @@ namespace csound
     if (bufsize <= 0) return 0;
     if (len >= bufsize) len = bufsize-1;
     memcpy(d, s, len);
-    d[len] = 0;
+    d[len] = '\0';
     return ret;
   }
 
