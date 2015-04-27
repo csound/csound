@@ -256,7 +256,7 @@ int main(int argc, char **argv)
 #endif
     install_signal_handler();
     csoundInitialize(CSOUNDINIT_NO_SIGNAL_HANDLER);
-    
+
     /* set stdout to non buffering if not outputing to console window */
     if (!isatty(fileno(stdout))) {
 #if !defined(WIN32)
@@ -325,7 +325,7 @@ int main(int argc, char **argv)
       fclose(logFile);
 
     if(result == 0 && _result != 0) result = _result;
-    // printf("csound returned with value: %d \n", result); 
+    // printf("csound returned with value: %d \n", result);
 #if 0
     /* remove global configuration variables, if there are any */
     csoundDeleteAllGlobalConfigurationVariables();

@@ -28,6 +28,6 @@
 #ifndef FLOAT_VERSION_H
 #define FLOAT_VERSION_H
 
-#cmakedefine USE_DOUBLE 
+#cmakedefine USE_DOUBLE
 
 #endif

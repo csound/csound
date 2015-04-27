@@ -1,21 +1,21 @@
 /*
     csound~ : A MaxMSP external interface for the Csound API.
-    
+
     Created by Davis Pyon on 2/4/06.
     Copyright 2006-2010 Davis Pyon. All rights reserved.
-    
+
     LICENSE AGREEMENT
-    
+
     This software is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
     version 2.1 of the License, or (at your option) any later version.
-    
+
     This software is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
-    
+
     You should have received a copy of the GNU Lesser General Public
     License along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -37,16 +37,17 @@
 #define MAX_ATOM_LIST_SIZE 32
 #define MIDI_MATRIX_SIZE 2048   // 16 * 128
 
+// INCORRECT
+// Should be platform AND compiler.
 #ifdef _WINDOWS
-	#define _USE_BOOST_SERIALIZATION 
+	#define _USE_BOOST_SERIALIZATION
 	typedef unsigned char byte;
-	#define snprintf _snprintf
 #endif
 
 #ifdef MACOSX
 	#ifndef PPC
 		// Sequencer uses boost.serialization which requires 1-byte bool (darwin ppc arch uses 4-byte bool).
-		#define _USE_BOOST_SERIALIZATION 
+		#define _USE_BOOST_SERIALIZATION
 	#endif
 	typedef unsigned char byte;
 	typedef unsigned int DWORD;

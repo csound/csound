@@ -285,7 +285,8 @@ public:
 
     const char *GetDescription(); // computes a text description of this event
     // the result is in a static buffer, not thread-safe, just for debugging.
-    Alg_event() { selected = false; }
+    Alg_event() { selected = false;
+        type = key = chan = time = -1; }
     virtual ~Alg_event() {}
 } *Alg_event_ptr;
 
@@ -298,7 +299,8 @@ public:
     float loud;  // dynamic corresponding to MIDI velocity
     double dur;   // duration in seconds (normally to release point)
     Alg_parameters_ptr parameters; // attribute/value pair list
-    Alg_note() { type = 'n'; parameters = NULL; }
+    Alg_note() { type = 'n'; parameters = NULL;
+        pitch = loud = dur = -1;}
     void show();
 } *Alg_note_ptr;
 
@@ -436,7 +438,7 @@ typedef class Alg_beat {
 public:
     Alg_beat(double t, double b) {
         time = t; beat = b; }
-    Alg_beat() {};
+    Alg_beat() { time = beat = 0.0;}; /* To avoiud warnings */
     double time;
     double beat;
 } *Alg_beat_ptr;
@@ -958,6 +960,9 @@ public:
         note_off_flag = note_off;
         maxlen = len = 0;
         pending_events = NULL;
+        // silence coverity defects
+        events_ptr = NULL;
+        cookie = NULL; index = offset = -1;
     }
     // Normally, iteration is over the events in the one sequence used
     // to instatiate the iterator (see above), but with this method, you
@@ -1009,12 +1014,13 @@ public:
     int channel_offset_per_track; // used to encode track_num into channel
     Alg_tracks track_list;       // array of Alg_events
     Alg_time_sigs time_sig;
-    int beat_x;
+    //int beat_x;
     void basic_initialization() {
         error = alg_no_error;
         units_are_seconds = true; type = 's';
         channel_offset_per_track = 0;
         add_track(0); // default is one empty track
+        pending = NULL;
     }
     Alg_seq() {
         basic_initialization();

@@ -101,6 +101,14 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
         csound->InitError(csound,
                           Str("Error: no sizes set for array initialization"));
 
+    for (i = 0; i < inArgCount; i++) {
+      if(MYFLT2LRND(*p->isizes[i]) <= 0) {
+        return
+          csound->InitError(csound,
+                          Str("Error: sizes must be > 0 for array initialization"));
+      }
+    }
+
     arrayDat->dimensions = inArgCount;
     arrayDat->sizes = csound->Calloc(csound, sizeof(int) * inArgCount);
     for (i = 0; i < inArgCount; i++) {
@@ -137,6 +145,12 @@ static int tabfill(CSOUND *csound, TABFILL *p)
     size_t memMyfltSize;
     MYFLT  **valp = p->iargs;
     tabensure(csound, p->ans, nargs);
+    if (p->ans->dimensions > 2) {
+      return
+        csound->InitError(csound,
+                          Str("fillarrray: arrays with dim > 2 not "
+                              "currently supported\n"));
+    }
     memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
     for (i=0; i<nargs; i++) {
       p->ans->arrayType->copyValue(csound,
@@ -1403,7 +1417,7 @@ int init_rfftmult(CSOUND *csound, FFT *p){
     /*if(isPowerOfTwo(N))*/
     tabensure(csound, p->out, N);
     /* else
-       return 
+       return
          csound->InitError(csound, "non-pow-of-two case not implemented yet \n");*/
     return OK;
 }

@@ -26,6 +26,19 @@
 
 #include "stdopcod.h"
 
+/*
+#ifdef  B64BIT
+#define MAXLEN     0x40000000
+#define FMAXLEN    ((MYFLT)(MAXLEN))
+#define PHMASK     0x3fffffff
+#else
+#define MAXLEN     0x1000000L
+#define FMAXLEN    ((MYFLT)(MAXLEN))
+#define PHMASK     0x0FFFFFFL
+#endif
+*/
+
+
 /* ---- oscbnk, grain2, and grain3 - written by Istvan Varga, 2001 ---- */
 
 #define OSCBNK_PHSMAX   0x80000000UL    /* max. phase   */

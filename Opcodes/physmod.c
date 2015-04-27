@@ -290,14 +290,19 @@ int fluteset(CSOUND *csound, FLUTE *p)
       return csound->InitError(csound, Str("No table for Flute"));
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
-      if (*p->lowestFreq!=FL(0.0))
+      if (*p->lowestFreq!=FL(0.0)) {
         length = (int32) (CS_ESR / *p->lowestFreq + FL(1.0));
-      else if (*p->frequency!=FL(0.0))
+        p->limit = *p->lowestFreq;
+      }
+      else if (*p->frequency!=FL(0.0)) {
         length = (int32) (CS_ESR / *p->frequency + FL(1.0));
+        p->limit = *p->frequency;
+      }
       else {
         csound->Warning(csound, Str("No base frequency for flute "
                                     "-- assumed to be 50Hz\n"));
         length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
+        p->limit = FL(50.0);
       }
       make_DLineL(csound, &p->boreDelay, length);
       length = length >> 1;        /* ??? really; yes from later version */
@@ -365,6 +370,10 @@ int flute(CSOUND *csound, FLUTE *p)
                                 /* Start SetFreq */
     if (p->lastFreq != *p->frequency) { /* It changed */
       p->lastFreq = *p->frequency;
+      if (p->limit>p->lastFreq) {
+        p->lastFreq = p->limit;
+        csound->Warning(csound, Str("frequency too low, set to minimum"));
+      }
       p->lastJet = *p->jetRatio;
       /* freq = (2/3)*p->frequency as we're overblowing here */
       /* but 1/(2/3) is 1.5 so multiply for speed */
@@ -495,14 +504,19 @@ int bowedset(CSOUND *csound, BOWED *p)
       return csound->InitError(csound, Str("No table for wgbow vibrato"));
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
-      if (*p->lowestFreq!=FL(0.0))
+      if (*p->lowestFreq!=FL(0.0)) {
         length = (int32) (CS_ESR / *p->lowestFreq + FL(1.0));
-      else if (*p->frequency!=FL(0.0))
+        p->limit = *p->lowestFreq;
+      }
+      else if (*p->frequency!=FL(0.0)) {
         length = (int32) (CS_ESR / *p->frequency + FL(1.0));
+        p->limit = *p->frequency;
+      }
       else {
         csound->Warning(csound, Str("unknown lowest frequency for bowed string "
                                     "-- assuming 50Hz\n"));
         length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
+        p->limit = FL(50.0);
       }
       make_DLineL(csound, &p->neckDelay, length);
       length = length >> 1; /* Unsure about this; seems correct in later code */
@@ -565,7 +579,12 @@ int bowed(CSOUND *csound, BOWED *p)
                                 /* Set Frequency if changed */
     if (p->lastfreq != *p->frequency) {
       /* delay - approx. filter delay */
-      p->lastfreq = *p->frequency;
+      if (p->limit<=*p->frequency)
+        p->lastfreq = *p->frequency;
+      else {
+        p->lastfreq = p->limit;
+        csound->Warning(csound, Str("frequency too low, set to minimum"));
+      }
       p->baseDelay = CS_ESR / p->lastfreq - FL(4.0);
       freq_changed = 1;
     }
@@ -779,14 +798,19 @@ int brassset(CSOUND *csound, BRASS *p)
     }
     p->frq = *p->frequency;     /* Remember */
     if (*p->lowestFreq>=FL(0.0)) {
-      if (*p->lowestFreq!=FL(0.0))
+      if (*p->lowestFreq!=FL(0.0)) {
         p->length = (int32) (CS_ESR / *p->lowestFreq + FL(1.0));
-      else if (p->frq!=FL(0.0))
+        p->limit = *p->lowestFreq;
+      }
+      else if (p->frq!=FL(0.0)) {
         p->length = (int32) (CS_ESR / p->frq + FL(1.0));
+        p->limit = p->frq;
+      }
       else {
         csound->Warning(csound, Str("No base frequency for brass "
                                     "-- assumed to be 50Hz\n"));
         p->length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
+        p->limit = FL(50.0);
       }
       make_DLineA(csound, &p->delayLine, p->length);
       make_LipFilt(&p->lipFilter);
@@ -848,6 +872,10 @@ int brass(CSOUND *csound, BRASS *p)
     }
     if (p->frq != *p->frequency) {             /* Set frequency if changed */
       p->frq = *p->frequency;
+      if (p->limit > p->frq) {
+        p->frq =p->limit;
+        csound->Warning(csound, Str("frequency too low, set to minimum"));
+      }
       p->slideTarget = (CS_ESR / p->frq * FL(2.0)) + FL(3.0);
                         /* fudge correction for filter delays */
        /*  we'll play a harmonic */

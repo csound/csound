@@ -34,6 +34,10 @@ void    *mmalloc(CSOUND *, size_t);
 void    *mcalloc(CSOUND *, size_t);
 void    *mrealloc(CSOUND *, void *, size_t);
 void    mfree(CSOUND *, void *);
+  void    *mmallocDebug(CSOUND *, size_t, char*, int);
+void    *mcallocDebug(CSOUND *, size_t, char*, int);
+void    *mreallocDebug(CSOUND *, void *, size_t, char*, int);
+void    mfreeDebug(CSOUND *, void *, char*, int);
 char    *cs_strdup(CSOUND*, char*);
 char    *cs_strndup(CSOUND*, char*, size_t);
 void    csoundAuxAlloc(CSOUND *, size_t, AUXCH *), auxchfree(CSOUND *, INSDS *);
@@ -136,11 +140,11 @@ char *csoundGetOpcodeName(void *p);
  */
 int csoundGetInputArgCnt(void *p);
 
-    
+
 /** Returns the CS_TYPE for an opcode's arg pointer */
 
 CS_TYPE* csoundGetTypeForArg(void* argPtr);
-    
+
 /**
  * Returns a binary value of which bit 0 is set if the first input
  * argument is a string, bit 1 is set if the second input argument is
@@ -288,4 +292,3 @@ int csoundDeleteAllConfigurationVariables(CSOUND *);
 #endif
 
 #endif  /* __BUILDING_LIBCSOUND && !_CSOUND_PROTO_H */
-

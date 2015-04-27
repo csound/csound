@@ -196,3 +196,5 @@ xcshareddata/
 *.xccheckout
 project.xcworkspace/
 xcuserdata/
+emscripten/examples/javascripts/CsoundObj.js
+emscripten/examples/javascripts/libcsound.js
