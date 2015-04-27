@@ -272,6 +272,7 @@ void *pvs_io_thread(void *pp){
   float  *frame = (float *) p->dframe.auxp;
   int  *on = &p->async;
   int lc,n, N2=p->N+2;
+  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   while (*on) {
       lc = csound->ReadCircularBuffer(csound, p->cb, buf, N2);
       if(lc)  {
@@ -801,7 +802,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
       int NB = 1+N/2;
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t n, nsmps = CS_KSMPS;
-    
+
       p->fout->NB = NB;
       p->fout->sliding = 1;
       if (p->fout->frame.auxp == NULL ||

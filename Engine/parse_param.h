@@ -49,7 +49,6 @@ typedef struct pre_parm_s {
 typedef struct parse_parm_s {
     void            *yyscanner;
     uint64_t        locn;
-    MACRO           *macros;
     char            *xstrbuff;
     int             xstrptr,xstrmax;
     uint64_t        iline;      /* Line number for start of instrument */

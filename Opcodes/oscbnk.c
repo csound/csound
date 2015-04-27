@@ -222,7 +222,6 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
     }
 
     if ((eqmode = p->ieqmode) < 0) return;          /* EQ disabled  */
-
     /* modulate EQ */
 
     f = l = q = FL(0.0);
@@ -245,7 +244,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
 
     /* EQ code taken from biquad.c */
 
-    sq = SQRT(l+l);                   /* level     */
+    sq = l<FL(0.0) ? FL(0.0) : SQRT(l+l);                   /* level     */
     /* frequency */
     k = TAN(((eqmode == 2 ? (PI_F - f) : f) * FL(0.5)));
     kk = k * k; vk = l * k; vkk = l * kk; vkdq = vk / q;    /* Q         */
@@ -409,7 +408,7 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
     uint32   n, lobits, mask, ph, f_i;
     MYFLT   pfrac, pm, a, f, a1, a2, b0, b1, b2;
     MYFLT   k, a_d = FL(0.0), a1_d, a2_d, b0_d, b1_d, b2_d;
-    MYFLT   yn, xnm1, xnm2, ynm1, ynm2;
+    MYFLT   yn, xnm1 = FL(0.0), xnm2 = FL(0.0), ynm1 = FL(0.0), ynm2 = FL(0.0);
     OSCBNK_OSC      *o;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -537,10 +536,13 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
             /* update phase */
             ph = (ph + f_i) & OSCBNK_PHSMSK;
           }
+          /* save EQ coeffs */
+          o->a1 = a1; o->a2 = a2;
+          o->b0 = b0; o->b1 = b1; o->b2 = b2;
         }
-        o->xnm1 = xnm1; o->xnm2 = xnm2; /* save EQ state */
-        o->ynm1 = ynm1; o->ynm2 = ynm2;
       }
+      o->xnm1 = xnm1; o->xnm2 = xnm2; /* save EQ state */
+      o->ynm1 = ynm1; o->ynm2 = ynm2;
       /* save amplitude and phase */
       o->osc_amp = a;
       o->osc_phs = ph;
@@ -1379,6 +1381,8 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
       phs = OSCBNK_PHS2INT(v);
     }
     /* convert phase modulation to frequency modulation */
+ /* VL moved the line from below to here */
+    v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) / (nsmps-offset);
     p->old_phs = *(p->kphs);
     frq = (frq + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;
     /* read from table with interpolation */
@@ -1387,7 +1391,8 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) / (nsmps-offset);
+    //v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) / (nsmps-offset);
+    /* VL this result is never used */
     for (nn=offset; nn<nsmps; nn++) {
       n = phs >> lobits;
       v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((int32) (phs & mask)) * pfrac;
@@ -1969,13 +1974,13 @@ static int vco2set(CSOUND *csound, VCO2 *p)
       return csound->InitError(csound,
                                Str("vco2: insufficient required arguments"));
     }
-   
+
     //FIXME
-    
+
 //    if (UNLIKELY(p->XINCODE)) {
 //      return csound->InitError(csound, Str("vco2: invalid argument type"));
 //    }
-    
+
     /* select table array and algorithm, according to waveform */
     tnum = tnums[(mode & 14) >> 1];
     p->mode = modes[(mode & 14) >> 1];

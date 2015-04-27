@@ -42,6 +42,8 @@
 #include <time.h>
 #include <csound.h>
 
+typedef unsigned char Byte;
+
 namespace {
   const char* const kPlaySoundId = "playCsound";
   const char* const kStopSoundId = "pauseCsound";
@@ -58,15 +60,121 @@ namespace {
   const char* const kSetTableId = "setTable";
   const char* const kCsdId = "csd";
   const char* const kRenderId = "render";
+  const char* const kMIDIId = "midi";
   static const char kMessageArgumentSeparator = ':';
   static const char kUrlArgumentSeparator = '#';
 
   const double kDefaultFrequency = 440.0;
   const double kPi = 3.141592653589;
   const double kTwoPi = 2.0 * kPi;
-  const uint32_t kSampleFrameCount =512u;
+  const uint32_t kSampleFrameCount = 128u;
   const uint32_t kChannels = 2u;
 }  // namespace
+
+/* MIDI message queue size */
+#define DSIZE 4096
+
+/* MIDI data struct */
+struct MIDIdata {
+  Byte status;
+  Byte data1;
+  Byte data2;
+  Byte flag;
+};
+
+/* user data for MIDI callbacks */
+struct cdata {
+  MIDIdata *mdata;
+  int p; int q;
+};
+
+/* csound MIDI input open callback, sets MIDI input queues etc */
+static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
+{
+  int k;
+  cdata **gdata;
+  if(csoundCreateGlobalVariable(csound, "_MIDI_DATA", sizeof(cdata *)) == 0) 
+    gdata = (cdata **) csoundQueryGlobalVariable(csound, "_MIDI_DATA");
+  else return -1;
+
+  MIDIdata *mdata = (MIDIdata *) malloc(DSIZE*sizeof(MIDIdata));
+  cdata *refcon = (cdata *) malloc(sizeof(cdata));
+  memset(mdata, 0, sizeof(MIDIdata)*DSIZE);
+  refcon->mdata = mdata;
+  refcon->p = 0;
+  refcon->q = 0;
+  *userData = (void*) refcon;
+  *gdata = refcon;
+
+  /* report success */
+  return 0;
+}
+
+/* csound MIDI input close callback */
+static int MidiInDeviceClose(CSOUND *csound, void *userData)
+{
+  cdata * data = (cdata *)userData;
+  if (data != NULL) {
+    free(data->mdata);
+    free(data);
+    csoundDestroyGlobalVariable(csound, "_MIDI_DATA");
+  }
+  return 0;
+}
+
+/* used to distinguish between 1 and 2-byte messages */
+static  const   int     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
+
+/* csound MIDI read callback, called every k-cycle */
+static int MidiDataRead(CSOUND *csound, void *userData,
+			unsigned char *mbuf, int nbytes)
+{
+  cdata *data = (cdata *)userData;
+  MIDIdata *mdata = data->mdata;
+  int *q = &data->q, st, d1, d2, n = 0;
+  
+
+  /* check if there is new data in circular queue */
+  while (mdata[*q].flag) {
+    st = (int) mdata[*q].status;
+    d1 = (int) mdata[*q].data1;
+    d2 = (int) mdata[*q].data2;
+    /* csoundMessage(csound, "read MIDI data: %d %d %d \n", st,d1,d2);*/
+    if (st < 0x80) goto next;
+    if (st >= 0xF0 &&
+	!(st == 0xF8 || st == 0xFA || st == 0xFB ||
+	  st == 0xFC || st == 0xFF)) goto next;
+
+    nbytes -= (datbyts[(st - 0x80) >> 4] + 1);
+    if (nbytes < 0) break;
+
+    /* write to csound midi buffer */
+    n += (datbyts[(st - 0x80) >> 4] + 1);
+    switch (datbyts[(st - 0x80) >> 4]) {
+    case 0:
+      *mbuf++ = (unsigned char) st;
+      break;
+    case 1:
+      *mbuf++ = (unsigned char) st;
+      *mbuf++ = (unsigned char) d1;
+      break;
+    case 2:
+      *mbuf++ = (unsigned char) st;
+      *mbuf++ = (unsigned char) d1;
+      *mbuf++ = (unsigned char) d2;
+      break;
+    }
+    /* mark as read */
+  next:
+    mdata[*q].flag = 0;
+    (*q)++;
+    if (*q==DSIZE) *q = 0;
+
+  }
+  /* return the number of bytes read */
+  return n;
+}
+
 
 
 struct UrlReader {
@@ -125,7 +233,7 @@ class CsoundInstance : public pp::Instance {
       PostMessage("Csound: audio input error...\n");
       return;
     }
-    
+     
     const char* data = static_cast<const char*>(buffer.GetDataBuffer());
     in_channels = buffer.GetNumberOfChannels();
     in_samples = buffer.GetNumberOfSamples();
@@ -133,12 +241,14 @@ class CsoundInstance : public pp::Instance {
     // push into circular buffer
     if(is_running){
       csoundWriteCircularBuffer(csound,circularBuffer,data,in_samples);
+      //PostMessage("Csound: audio input callback...\n");
+      if(!input_is_on)csoundMessage(csound, "input sr: %d \n", buffer.GetSampleRate());
       input_is_on = true;
     }
     // recycle buffer and schedule next one
     audio_input.RecycleBuffer(buffer);
     audio_input.GetBuffer(audio_callback_factory.NewCallbackWithOutput(
-        &CsoundInstance::OnGetInput));
+								       &CsoundInstance::OnGetInput));
 
   }
   
@@ -166,20 +276,22 @@ class CsoundInstance : public pp::Instance {
       if(spout != NULL) 
 	for(n=0; n < buffsamps; n++) {
 	  if(count_ == 0) {
-             // get data from circular buffer into spin
-             if(instance->input_is_on){ 
+	    // get data from circular buffer into spin
+	    if(instance->input_is_on){
+	      //instance->PostMessage("Csound: audio input read...\n");
 	       csoundReadCircularBuffer(csound_,instance->circularBuffer,buf,
-	          	 ksmps);
-		  for(i=j=0; i < ksmps*2; i+=2, j+=in_chans){
-		    spin[i] = buf[j]/scale;
-		  if(in_chans > 1)
-		    spin[i+1] = buf[j+1]/scale;
-	         }
-             }
+					in_chans*ksmps/csoundGetNchnls(csound_));
+	      if(spin != NULL)
+	      for(i=j=0; i < ksmps; i+=2, j+=in_chans){
+		spin[i] = buf[j]/scale;
+		if(in_chans > 1)
+		 spin[i+1] = buf[j+1]/scale;
+		 }
+	    }
 	    int ret = csoundPerformKsmps(csound_);
 	    if(ret != 0) {
-	       instance->isFinished(true);
-               return;
+	      instance->isFinished(true);
+	      return;
 	    }
 	    count_ = ksmps;
 	  }
@@ -189,9 +301,32 @@ class CsoundInstance : public pp::Instance {
       instance->count = count_;
     } else
       memset(samples,0,buffer_size);
-  } 
+  }
 
-  public:
+  /* sets the MIDI callbacks */
+  void MidiInit(CSOUND *csound) {
+    csoundSetExternalMidiInOpenCallback(csound, MidiInDeviceOpen);
+    csoundSetExternalMidiReadCallback(csound, MidiDataRead);
+    csoundSetExternalMidiInCloseCallback(csound, MidiInDeviceClose);
+    PostMessage("MIDI input initialized \n");
+  }
+
+  /* puts MIDI data in the circular queue */
+void PutMidiData(CSOUND *csound, Byte *mididata){
+  cdata *data = (cdata *) *((cdata **)csoundQueryGlobalVariable(csound, "_MIDI_DATA"));
+  int *p = &data->p;
+  MIDIdata *mdata = data->mdata;
+  memcpy(&mdata[*p], mididata, 3);
+  mdata[*p].flag = 1;
+  (*p)++;
+  if (*p == DSIZE) *p = 0;
+  /* PostMessage("MIDI data in: ");
+  char mess[1024];
+  sprintf(mess, "%d %d %d\n",mididata[0], mididata[1], mididata[2]);
+  PostMessage(mess); */
+}
+
+public:
   char *GetDestFileName(){ return dest; }
   void SetFileResult(int res){ fileResult = res; }
   char *GetSrcFileName(){ return from; }
@@ -209,9 +344,9 @@ class CsoundInstance : public pp::Instance {
 			  PPB_GetInterface get_browser_interface)
     : pp::Instance(instance),
       csound(NULL), count(0), fileResult(0), 
-    from(NULL), dest(NULL), csd(NULL), compiled(false), finished(false),
-    is_running(false), input_is_on(false),
-    audio_callback_factory(this)
+      from(NULL), dest(NULL), csd(NULL), compiled(false), finished(false),
+      is_running(false), input_is_on(false),
+      audio_callback_factory(this)
         
   {
     get_browser_interface_ = get_browser_interface;
@@ -235,8 +370,8 @@ bool CsoundInstance::Init(uint32_t argc,
 			  const char* argv[]) {
 
   csound = csoundCreate(NULL);
-  csoundCreateMessageBuffer(csound, 0); 
-  
+  MidiInit(csound);
+  csoundCreateMessageBuffer(csound, 0);  
   nacl_io_init_ppapi(pp_instance(),get_browser_interface_);
 
   // this is to prevent a segfault with Csound
@@ -258,33 +393,36 @@ bool CsoundInstance::Init(uint32_t argc,
 }
 
 bool CsoundInstance::StartDAC(){
-    MYFLT sr = csoundGetSr(csound);
-    PP_AudioSampleRate isr;
-    if(sr == 44100.) isr = PP_AUDIOSAMPLERATE_44100;
-    else if (sr == 48000.) isr = PP_AUDIOSAMPLERATE_48000;
-    else {
-      PostMessage("Csound error: unsupported SR \n");
-      return false;
-    }
-    if(csoundGetNchnls(csound) != 2) {
-      PostMessage("Csound error: only stereo output is supported \n");
-      return false;
-    }
+  MYFLT sr = csoundGetSr(csound);
+  PP_AudioSampleRate isr;
+  if(sr == 44100.) isr = PP_AUDIOSAMPLERATE_44100;
+  else if (sr == 48000.) isr = PP_AUDIOSAMPLERATE_48000;
+  else {
+    PostMessage("Csound error: unsupported SR \n");
+    return false;
+  }
+  if(csoundGetNchnls(csound) != 2) {
+    PostMessage("Csound error: only stereo output is supported \n");
+    return false;
+  }
 
-    int frames = 
-    pp::AudioConfig::RecommendSampleFrameCount(this,
-        PP_AUDIOSAMPLERATE_44100, kSampleFrameCount);
-    dac = pp::Audio(
+  int frames = 
+  pp::AudioConfig::RecommendSampleFrameCount(this,
+  				       PP_AUDIOSAMPLERATE_44100, kSampleFrameCount);
+  dac = pp::Audio(
 		  this,
 		  pp::AudioConfig(this, PP_AUDIOSAMPLERATE_44100, frames),
 		  CsoundCallback,
 		  this);
-    int cbufsiz = kSampleFrameCount*csoundGetNchnls(csound)*4;
-    circularBuffer = csoundCreateCircularBuffer(csound, cbufsiz, sizeof(short));
-    // FIXME: this assumes input will be at max 2 channels
-    input_buffer = new short[csoundGetKsmps(csound)*2];
-    dac.StartPlayback();
-    return true;
+  int cbufsiz = frames*csoundGetNchnls(csound)*4;
+  circularBuffer = csoundCreateCircularBuffer(csound, cbufsiz, sizeof(short));
+  // FIXME: this assumes input will be at max 2 channels
+  input_buffer = new short[csoundGetKsmps(csound)*2];
+  char mess[64];
+  sprintf(mess, "buffsize: %d\n",frames);
+  PostMessage(mess);
+  dac.StartPlayback();
+  return true;
 }
 
 void* compileThreadFunc(void *data) {
@@ -295,15 +433,15 @@ void* compileThreadFunc(void *data) {
   MYFLT sr = 0.0;
   if(csoundCompile(csound,3,argv) == 0){
     p->PostMessage("Compiled");
-  if(p->StartDAC())
-    p->isCompiled(true);
-  else {
+    if(p->StartDAC())
+      p->isCompiled(true);
+    else {
       free(csd);
-    return NULL;
+      return NULL;
+    }
   }
-  }
-     free(csd);
-   return NULL;
+  free(csd);
+  return NULL;
 }
 
 void* compileThreadFuncNoDAC(void *data) {
@@ -313,10 +451,10 @@ void* compileThreadFuncNoDAC(void *data) {
   char *argv[] = {(char *)"csound", p->GetCsd()}; 
   MYFLT sr = 0.0;
   int ret = csoundCompile(csound,2,argv);
-    while(csoundGetMessageCnt(csound)){
-	p->PostMessage(csoundGetFirstMessage(csound));
-	csoundPopFirstMessage(csound);
-    } 
+  while(csoundGetMessageCnt(csound)){
+    p->PostMessage(csoundGetFirstMessage(csound));
+    csoundPopFirstMessage(csound);
+  } 
   if(ret == 0) {
     p->isCompiled(true);
     while(csoundPerformKsmps(csound) == 0) {
@@ -327,27 +465,27 @@ void* compileThreadFuncNoDAC(void *data) {
     }
     csoundCleanup(csound); 
     while(csoundGetMessageCnt(csound)){
-	p->PostMessage(csoundGetFirstMessage(csound));
-	csoundPopFirstMessage(csound);
-   }
+      p->PostMessage(csoundGetFirstMessage(csound));
+      csoundPopFirstMessage(csound);
+    }
     p->PostMessage("finished render"); 
   }    
   free(csd);
-   return NULL;
+  return NULL;
 }
 
 
 void CsoundInstance::PlayCsd(char *c, bool dac) {
   if(!compiled){
-  csd = strdup(c);
-  pthread_t t;
-  if(dac)
-  pthread_create(&t, NULL, compileThreadFunc, this);
-  else
-  pthread_create(&t, NULL, compileThreadFuncNoDAC, this);
+    csd = strdup(c);
+    pthread_t t;
+    if(dac)
+      pthread_create(&t, NULL, compileThreadFunc, this);
+    else
+      pthread_create(&t, NULL, compileThreadFuncNoDAC, this);
   } else 
-  PostMessage("Csound is already started \n"
-	      "Refresh page to play a different CSD\n");
+    PostMessage("Csound is already started \n"
+		"Refresh page to play a different CSD\n");
 }
 
 
@@ -356,11 +494,13 @@ void CsoundInstance::PlayCsound() {
   if(!compiled) {
     csoundSetHostImplementedAudioIO(csound,1,0);
     csoundSetOption(csound, (char *) "-odac");
+    csoundSetOption(csound, (char *) "-iadc");
+    csoundSetOption(csound, (char *) "-M0");
     csoundSetOption(csound, (char *) "--nchnls=2");
     csoundSetOption(csound, (char *) "-r44100");
     csoundSetOption(csound, (char *) "-k689.0625");
     csoundSetOption(csound, (char *) "--0dbfs=1");
-    csoundSetOption(csound, (char *) "-b1024");
+    //csoundSetOption(csound, (char *) "-b1024");
     csoundSetOption(csound, (char *) "--nodisplays");
     csoundSetOption(csound, (char *) "--daemon");
     csoundStart(csound);
@@ -373,21 +513,21 @@ void CsoundInstance::PlayCsound() {
 
 void CsoundInstance::HandleMessage(const pp::Var& var_message) {
   if (!var_message.is_string()) {
-   if(!var_message.is_dictionary())
+    if(!var_message.is_dictionary())
       return;
-   if(!input_is_on) {
-    pp::VarDictionary var_dictionary_message(var_message);
-    pp::Var var_input = var_dictionary_message.Get("input");
-    if (!var_input.is_resource())
-      return;  
-    pp::Resource resource_input = var_input.AsResource();
-    audio_input  = pp::MediaStreamAudioTrack(resource_input);
-    audio_input.GetBuffer(audio_callback_factory.NewCallbackWithOutput(
-          &CsoundInstance::OnGetInput));
-    PostMessage("Csound: started audio input...\n");
-   } else {
-    PostMessage("Csound: audio input has started already...\n");
-   }
+    if(!input_is_on) {
+      pp::VarDictionary var_dictionary_message(var_message);
+      pp::Var var_input = var_dictionary_message.Get("input");
+      if (!var_input.is_resource())
+	return;  
+      pp::Resource resource_input = var_input.AsResource();
+      audio_input  = pp::MediaStreamAudioTrack(resource_input);
+      audio_input.GetBuffer(audio_callback_factory.NewCallbackWithOutput(
+									 &CsoundInstance::OnGetInput));
+      PostMessage("Csound: started audio input...\n");
+    } else {
+      PostMessage("Csound: audio input has started already...\n");
+    }
     return;
   }
   std::string message = var_message.AsString();
@@ -418,7 +558,8 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
     if (sep_pos != std::string::npos) {      
       std::string string_arg = message.substr(sep_pos + 1);
-      if(compiled) csoundCompileOrc(csound, (char *) string_arg.c_str()); 
+      if(compiled)
+      csoundCompileOrc(csound, (char *) string_arg.c_str()); 
       else PostMessage("engine has not started yet\n");
     }
   } else if (message.find(kScoreId) == 0) {
@@ -455,10 +596,10 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
       std::string channel = string_arg.substr(0, sep_pos);
       std::string svalue = string_arg.substr(sep_pos + 1);
       csoundSetStringChannel(csound,(char *)channel.c_str(),(char *)svalue.c_str());
-        return;
+      return;
     }
   }
-    else if(message.find(kChannelOutId) == 0){
+  else if(message.find(kChannelOutId) == 0){
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
     if (sep_pos != std::string::npos) {
       std::string string_arg = message.substr(sep_pos + 1);
@@ -477,22 +618,22 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
       std::string string_arg = message.substr(sep_pos + 1);
       sep_pos = string_arg.find_first_of(kMessageArgumentSeparator);
       if (sep_pos != std::string::npos){
-       std::string table = string_arg.substr(0, sep_pos);
-       std::string string_arg2 = string_arg.substr(sep_pos + 1);
-       sep_pos = string_arg2.find_first_of(kMessageArgumentSeparator);
-       if (sep_pos != std::string::npos) {
-         std::string index = string_arg2.substr(0, sep_pos);
-         std::string svalue = string_arg2.substr(sep_pos + 1);
-         std::istringstream tstream(table);
-         std::istringstream istream(index);
-         std::istringstream stream(svalue);
-         int tab, ndx;
-         MYFLT val;
-         if (stream >> val && tstream >> tab && istream >> ndx) {
-           csoundTableSet(csound, tab, ndx, val);
-           return;
-         }
-       }
+	std::string table = string_arg.substr(0, sep_pos);
+	std::string string_arg2 = string_arg.substr(sep_pos + 1);
+	sep_pos = string_arg2.find_first_of(kMessageArgumentSeparator);
+	if (sep_pos != std::string::npos) {
+	  std::string index = string_arg2.substr(0, sep_pos);
+	  std::string svalue = string_arg2.substr(sep_pos + 1);
+	  std::istringstream tstream(table);
+	  std::istringstream istream(index);
+	  std::istringstream stream(svalue);
+	  int tab, ndx;
+	  MYFLT val;
+	  if (stream >> val && tstream >> tab && istream >> ndx) {
+	    csoundTableSet(csound, tab, ndx, val);
+	    return;
+	  }
+	}
       }
     }
   } else if (message.find(kCopyId) == 0) {
@@ -525,11 +666,10 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
       std::string string_arg = message.substr(sep_pos + 1);
       GetFileFromLocalAsync((char *)string_arg.c_str()); 
     }
-    }
-    else if (message.find(kGetTableId) == 0) {
+  }
+  else if (message.find(kGetTableId) == 0) {
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
-    if (sep_pos != std::string::npos) {   
-        
+    if (sep_pos != std::string::npos) {           
       std::string svalue = message.substr(sep_pos + 1);
       std::istringstream stream(svalue);
       MYFLT tab;
@@ -546,11 +686,43 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
 	}
       } 
     }
-  } else {
-    PostMessage("message not handled: ");
-    PostMessage(message.c_str());
-    PostMessage("\n");
-  }
+  } else if (message.find(kMIDIId) == 0){     
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) { 
+      std::string string_arg1 = message.substr(sep_pos + 1);
+      sep_pos = string_arg1.find_first_of(kMessageArgumentSeparator);
+      if (sep_pos != std::string::npos) { 
+	std::string byte1 = string_arg1.substr(0, sep_pos);
+	std::string string_arg2 = string_arg1.substr(sep_pos + 1);
+	sep_pos = string_arg2.find_first_of(kMessageArgumentSeparator);
+	if (sep_pos != std::string::npos) { 
+	  std::string byte2 = string_arg2.substr(0, sep_pos);
+	  std::string byte3 = string_arg2.substr(sep_pos + 1);
+	  std::istringstream stream1(byte1);
+	  std::istringstream stream2(byte2);
+	  std::istringstream stream3(byte3);  
+	  MYFLT val;
+	  Byte midi[3];
+	  if (stream1 >> val) {
+	    midi[0] = (unsigned char) val;
+	  }
+	  if (stream2 >> val) {
+	    midi[1] = (unsigned char) val;
+	  }
+	  if (stream3 >> val) {
+	    midi[2] = (unsigned char) val;
+	  }
+	  PutMidiData(csound, midi);
+	  return;
+	} else return;
+      } else return;
+    } else return;
+}
+ else {
+   PostMessage("message not handled: ");
+   PostMessage(message.c_str());
+   PostMessage("\n");
+ }
 }
 
 void* fileThreadFunc(void *data){
@@ -608,20 +780,20 @@ void* fileReadThreadFunc(void *data){
   FILE *fp_in;
   p->PostMessage("Reading:");
   if((fp_in = fopen(p->GetSrcFileName(), "r"))!= NULL){
-      fseek(fp_in, 0, SEEK_END);      
-      long size = ftell(fp_in);
-      fseek(fp_in, 0 ,SEEK_SET); 
-      char *buffer = (char *) malloc(size);
-      long pos = 0, bytes =0;
-      while((bytes = 
-            fread(&buffer[pos],1,16384,fp_in)) 
-             != 0) pos += bytes;
-      fclose(fp_in);
-      pp::VarArrayBuffer v2 = pp::VarArrayBuffer(size);
-      void* pDst = v2.Map();
-      memcpy(pDst,buffer,size);
-      v2.Unmap();    
-      p->PostMessage(v2);
+    fseek(fp_in, 0, SEEK_END);      
+    long size = ftell(fp_in);
+    fseek(fp_in, 0 ,SEEK_SET); 
+    char *buffer = (char *) malloc(size);
+    long pos = 0, bytes =0;
+    while((bytes = 
+	   fread(&buffer[pos],1,16384,fp_in)) 
+	  != 0) pos += bytes;
+    fclose(fp_in);
+    pp::VarArrayBuffer v2 = pp::VarArrayBuffer(size);
+    void* pDst = v2.Map();
+    memcpy(pDst,buffer,size);
+    v2.Unmap();    
+    p->PostMessage(v2);
   }
   p->PostMessage("Complete");
   return NULL;
@@ -651,101 +823,101 @@ void* urlThreadFunc(void *data) {
   if((fp_out = fopen(local_name, "w"))!= NULL){
     int cnt = 0;
     while(cnt < d->bytes) {        
-        cnt += fwrite(&buffer[cnt],1,512,fp_out);
-      }
-      fclose(fp_out);
-      p->PostMessage(local_name);
-      p->PostMessage(": copied ");
-      p->PostMessage(pp::Var(cnt));
-      p->PostMessage(" bytes\n");	
-      }
-    free(local_name);
-    delete d;
-    p->PostMessage("Complete");
-    return NULL;
-  }
-
-  UrlReader *UrlReader::Create(pp::Instance *inst, char *path){
-    return new UrlReader(inst, path);
-  }
-
-  UrlReader::UrlReader(pp::Instance *inst, char *path) :
-    url(path), instance(inst),
-    url_request(inst), url_loader(inst), cc_factory(this), bytes(0) 
-    {
-      url_request.SetURL(url);
-      url_request.SetMethod("GET");
-      url_request.SetProperty(PP_URLREQUESTPROPERTY_ALLOWCROSSORIGINREQUESTS, pp::Var(true));
-      instance->PostMessage("UrlReader\n");
+      cnt += fwrite(&buffer[cnt],1,512,fp_out);
     }
+    fclose(fp_out);
+    p->PostMessage(local_name);
+    p->PostMessage(": copied ");
+    p->PostMessage(pp::Var(cnt));
+    p->PostMessage(" bytes\n");	
+  }
+  free(local_name);
+  delete d;
+  p->PostMessage("Complete");
+  return NULL;
+}
+
+UrlReader *UrlReader::Create(pp::Instance *inst, char *path){
+  return new UrlReader(inst, path);
+}
+
+UrlReader::UrlReader(pp::Instance *inst, char *path) :
+  url(path), instance(inst),
+  url_request(inst), url_loader(inst), cc_factory(this), bytes(0) 
+{
+  url_request.SetURL(url);
+  url_request.SetMethod("GET");
+  url_request.SetProperty(PP_URLREQUESTPROPERTY_ALLOWCROSSORIGINREQUESTS, pp::Var(true));
+  instance->PostMessage("UrlReader\n");
+}
   
-  void UrlReader::Start() {
-    pp::CompletionCallback cc =
-      cc_factory.NewCallback(&UrlReader::OnOpenUrl);
-    url_loader.Open(url_request,cc);
-  }
+void UrlReader::Start() {
+  pp::CompletionCallback cc =
+    cc_factory.NewCallback(&UrlReader::OnOpenUrl);
+  url_loader.Open(url_request,cc);
+}
 
-  void UrlReader::ReadBody(){
-    pp::CompletionCallback cc =
-      cc_factory.NewOptionalCallback(&UrlReader::OnRead);
-    int result;
-    do {
-      result = url_loader.ReadResponseBody(buffer,512,cc);
-      if(result > 0){
-	bytes += result;
-	int end = std::min(32768,result);
-	mem.insert(mem.end(), buffer, buffer+end);
-      }
-    }
-    while(result > 0);
-    if (result != PP_OK_COMPLETIONPENDING) {
-      cc.Run(result);
-    } 
-  }
-
-  void UrlReader::OnRead(int32_t result){
-    if (result == PP_OK){
-      pthread_t id;
-      pthread_create(&id, NULL, 
-		     &urlThreadFunc,(void*)this);
-      instance->PostMessage("...done\n");
-    }
-    else if (result > 0) {
+void UrlReader::ReadBody(){
+  pp::CompletionCallback cc =
+    cc_factory.NewOptionalCallback(&UrlReader::OnRead);
+  int result;
+  do {
+    result = url_loader.ReadResponseBody(buffer,512,cc);
+    if(result > 0){
       bytes += result;
       int end = std::min(32768,result);
       mem.insert(mem.end(), buffer, buffer+end);
-      ReadBody();
     }
   }
+  while(result > 0);
+  if (result != PP_OK_COMPLETIONPENDING) {
+    cc.Run(result);
+  } 
+}
 
-  void UrlReader::OnOpenUrl(int32_t result){    
-    if(result != PP_OK){
-      instance->PostMessage("URL open failed.\n");
-      return;
-    } 
-    instance->PostMessage("loading URL data into memory...\n");
+void UrlReader::OnRead(int32_t result){
+  if (result == PP_OK){
+    pthread_t id;
+    pthread_create(&id, NULL, 
+		   &urlThreadFunc,(void*)this);
+    instance->PostMessage("...done\n");
+  }
+  else if (result > 0) {
+    bytes += result;
+    int end = std::min(32768,result);
+    mem.insert(mem.end(), buffer, buffer+end);
     ReadBody();
   }
+}
 
-  void CsoundInstance::CopyFromURLToLocalAsync(char *URL,char *name){
-    if(dest) free(dest); 
-    dest = strdup(name);
-    UrlReader *r = UrlReader::Create(this, URL); 
-    PostMessage("created URL urlReader \n");
-    if(r != NULL) r->Start();
+void UrlReader::OnOpenUrl(int32_t result){    
+  if(result != PP_OK){
+    instance->PostMessage("URL open failed.\n");
+    return;
+  } 
+  instance->PostMessage("loading URL data into memory...\n");
+  ReadBody();
+}
+
+void CsoundInstance::CopyFromURLToLocalAsync(char *URL,char *name){
+  if(dest) free(dest); 
+  dest = strdup(name);
+  UrlReader *r = UrlReader::Create(this, URL); 
+  PostMessage("created URL urlReader \n");
+  if(r != NULL) r->Start();
+}
+
+class CsoundModule : public pp::Module {
+public:
+  CsoundModule() : pp::Module() {}
+  ~CsoundModule() {
   }
 
-  class CsoundModule : public pp::Module {
-  public:
-    CsoundModule() : pp::Module() {}
-    ~CsoundModule() {
-    }
+  virtual pp::Instance* CreateInstance(PP_Instance instance) {
+    return new CsoundInstance(instance, get_browser_interface());
+  }
+};
 
-    virtual pp::Instance* CreateInstance(PP_Instance instance) {
-      return new CsoundInstance(instance, get_browser_interface());
-    }
-  };
-
-  namespace pp {
-    Module* CreateModule() { return new CsoundModule(); }
-  }  
+namespace pp {
+  Module* CreateModule() { return new CsoundModule(); }
+}  

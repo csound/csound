@@ -78,10 +78,26 @@ int main(int argc, char *argv[])
 
  return 0;
 }
+*/
 
+#ifdef __SSE__
+ #ifndef _MM_DENORMALS_ZERO_ON
+  #include <xmmintrin.h>
+  #define _MM_DENORMALS_ZERO_MASK   0x0040
+  #define _MM_DENORMALS_ZERO_ON     0x0040
+  #define _MM_DENORMALS_ZERO_OFF    0x0000
+  #define _MM_SET_DENORMALS_ZERO_MODE(mode)                                   \
+            _mm_setcsr((_mm_getcsr() & ~_MM_DENORMALS_ZERO_MASK) | (mode))
+   #define _MM_GET_DENORMALS_ZERO_MODE()                                       \
+            (_mm_getcsr() & _MM_DENORMALS_ZERO_MASK)
+ #endif
+#else
+  #define _MM_DENORMALS_ZERO_MASK   0
+  #define _MM_DENORMALS_ZERO_ON     0
+  #define _MM_DENORMALS_ZERO_OFF    0
+  #define _MM_SET_DENORMALS_ZERO_MODE(mode)  
+#endif
 
-
- */
 
 #ifdef SWIGPYTHON
 struct PUBLIC pycallbackdata {
@@ -217,5 +233,6 @@ class PUBLIC CsoundPerformanceThread {
     friend class CsoundPerformanceThreadMessage;
     friend class CsPerfThread_PerformScore;
 };
+
 
 #endif  // CSOUND_CSPERFTHREAD_HPP

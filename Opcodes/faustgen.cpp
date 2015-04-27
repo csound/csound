@@ -244,7 +244,7 @@ void *init_faustcompile_thread(void *pp) {
   std::string err_msg;
   char *cmd = (char *) malloc(p->args->size + 8);
   int ret;
- 
+
   strcpy(cmd, p->args->data);
 #ifdef USE_DOUBLE
   strcat(cmd, " -double");
@@ -252,7 +252,7 @@ void *init_faustcompile_thread(void *pp) {
   const char **argv = (const char **) parse_cmd(cmd, &argc);
   const char* varname = "::factory";
 
-  //Need to protect this 
+  //Need to protect this
 
   csound->LockMutex(p->lock);
   //csound->Message(csound, "lock %p\n", p->lock);
@@ -316,7 +316,8 @@ int init_faustcompile(CSOUND *csound, faustcompile *p){
   p->lock = (pthread_mutex_t *) csound->QueryGlobalVariable(csound,"::faustlock::");
   if(p->lock == NULL) {
     csound->CreateGlobalVariable(csound,"::faustlock::", sizeof(pthread_mutex_t));
-    p->lock = (pthread_mutex_t *) csound->QueryGlobalVariable(csound,"::faustlock::");
+    p->lock =
+      (pthread_mutex_t *) csound->QueryGlobalVariable(csound,"::faustlock::");
     pthread_mutex_init(p->lock, NULL);
     //csound->Message(csound, "lock created %p\n", p->lock);
   }
@@ -460,7 +461,7 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
     fdsp->nxt = NULL;
     fdsp->cnt = 0;
     *pfdsp = fdsp;
-    } 
+    }
   }
 
   p->factory = NULL;  // this opcode does not own the factory

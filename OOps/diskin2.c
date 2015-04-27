@@ -400,7 +400,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
         csound->CreateGlobalVariable(csound, "DISKIN_THREAD_START", sizeof(int));
         current = *top;
       }
-      else 
+      else
 #endif
       {
         current = *top;
@@ -928,6 +928,7 @@ void *diskin_io_thread(void *p){
   int wakeup = 1000*current->csound->ksmps/current->csound->esr;
   int *start =
     current->csound->QueryGlobalVariable(current->csound,"DISKIN_THREAD_START");
+  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   while(*start){
     current = (DISKIN_INST *) p;
     csoundSleep(wakeup > 0 ? wakeup : 1);
@@ -1717,6 +1718,7 @@ void *diskin_io_thread_array(void *p){
   int *start =
     current->csound->QueryGlobalVariable(current->csound,
                                          "DISKIN_THREAD_START_ARRAY");
+  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   while(*start){
     current = (DISKIN_INST *) p;
     csoundSleep(wakeup > 0 ? wakeup : 1);
@@ -1886,7 +1888,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
                                      "DISKIN_THREAD_START_ARRAY", sizeof(int));
         current = *top;
       }
-      else 
+      else
 #endif
       {
         current = *top;

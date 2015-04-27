@@ -363,15 +363,18 @@ static int SVopen(CSOUND *csound)
     if (UNLIKELY(bind (socklisten,
               (struct sockaddr *) &ST(local_addr),
                        sizeof(ST(local_addr))) < 0)) {
+      shutdown(socklisten, SHUT_RD);
       return csound->InitError(csound, Str("bind failed"));
     }
     if (UNLIKELY(listen(socklisten, 5) < 0)) {    /* start the socket listening
                                                 for new connections -- may wait */
+      shutdown(socklisten, SHUT_RD);
       return csound->InitError(csound, Str("listen failed"));
     }
     clilen = sizeof(ST(local_addr));  /* FIX THIS FOR MULTIPLE CLIENTS !!!!!!!*/
     conn = accept(socklisten, (struct sockaddr *) &ST(local_addr), &clilen);
     if (UNLIKELY(conn < 0)) {
+      shutdown(socklisten, SHUT_RD);
       return csound->InitError(csound, Str("accept failed"));
     }
     else {
@@ -590,7 +593,6 @@ int insSendevt(CSOUND *csound, EVTBLK *evt, int rfd)
     EVTBLK *cpp = (EVTBLK *)bp->data;       /* align an EVTBLK struct */
     int nn;
     MYFLT *f, *g;
-    cpp->pinstance = NULL;
     cpp->strarg = NULL;                     /* copy the initial header */
     cpp->scnt = 0;
     cpp->opcod = evt->opcod;

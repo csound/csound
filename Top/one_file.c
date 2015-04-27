@@ -421,23 +421,26 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
         snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
         if (UNLIKELY(system(sys) != 0)) {
           csoundErrorMsg(csound, Str("External generation failed"));
-          remove(extname);
-          remove(STA(sconame));
+          if (UNLIKELY(remove(extname) || remove(STA(sconame))))
+            csoundErrorMsg(csound, Str("and cannot remove"));
           return FALSE;
         }
-        remove(extname);
+        if (UNLIKELY(remove(extname)))
+          csoundErrorMsg(csound, Str("and cannot remove %s"), extname);
         if (csound->scorestr == NULL)
           csound->scorestr = corfile_create_w();
         fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, STA(sconame),
                                     "r", NULL, CSFTYPE_SCORE, 0);
         if (UNLIKELY(fd == NULL)) {
-          remove(STA(sconame));
+          if (UNLIKELY(remove(STA(sconame))))
+            csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
           return FALSE;
         }
         while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, scof)!= NULL)
           corfile_puts(buffer, csound->scorestr);
         csoundFileClose(csound, fd);
-        remove(STA(sconame));
+          if (UNLIKELY(remove(STA(sconame))))
+            csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
         return TRUE;
       }
       else fputs(buffer, scof);
@@ -736,6 +739,24 @@ static int checkLicence(CSOUND *csound, FILE *unf)
     return FALSE;
 }
 
+static int checkShortLicence(CSOUND *csound, FILE *unf)
+{
+    int   type = 0;
+    char  buff[CSD_MAX_LINE_LEN];
+
+    csoundMessage(csound, Str("**** Licence Information ****\n"));
+    while (my_fgets(csound, buff, CSD_MAX_LINE_LEN, unf) != NULL) {
+      if (strstr(buff, "</CsShortLicence>") != NULL ||
+          strstr(buff, "</CsShortLicense>") != NULL) {
+        csound->SF_id_scopyright = type;
+        return TRUE;
+      }
+      type = atoi(buff);
+    }
+    csoundErrorMsg(csound, Str("Missing end tag </CsShortLicence>"));
+    return FALSE;
+}
+
 static int blank_buffer(CSOUND *csound, char *buffer)
 {
     const char *s;
@@ -853,6 +874,11 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
       else if (strstr(p, "<CsLicence>") == p ||
                strstr(p, "<CsLicense>") == p) {
         r = checkLicence(csound, unf);
+        result = r && result;
+      }
+      else if (strstr(p, "<CsShortLicence>") == p ||
+               strstr(p, "<CsSortLicense>") == p) {
+        r = checkShortLicence(csound, unf);
         result = r && result;
       }
       else if (blank_buffer(csound, buffer)) continue;

@@ -303,6 +303,7 @@ int Fl_Knob::handle(int  event)
     switch (event) {
     case FL_PUSH:
       handle_push();
+      return 1;                 // CHECKME ***JPff added this; is that right?***
     case FL_DRAG:
       {
         int mx = Fl::event_x()-ox-ww/2;
@@ -1715,6 +1716,7 @@ extern "C" {
             if (q >= (int) ST(AddrSetValue).size()) continue;
             v = &(ST(AddrSetValue)[q]);
           }
+          if (k<0) return NOTOK;
           if ((int) ST(snapshots)[group][k].fields.size() < j+1)
             ST(snapshots)[group][k].fields.resize(j+1);
           ST(snapshots)[group][k].is_empty = 0;

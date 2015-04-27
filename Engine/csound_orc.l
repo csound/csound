@@ -493,40 +493,6 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 
 <<EOF>>         {
                   yyterminate();
-                  /* int n; */
-                  /* csound->DebugMsg(csound,"Leaving buffer %p\n", YY_CURRENT_BUFFER); */
-                  /* yypop_buffer_state(yyscanner); */
-                  /* if ( !YY_CURRENT_BUFFER ) yyterminate(); */
-                  /* csound->DebugMsg(csound,"End of input; popping to %p\n", YY_CURRENT_BUFFER); */
-                  /* if (PARM->clearBufferAfterEOF) */
-                  /*   PARM->clearBufferAfterEOF = */
-                  /*     PARM->isInclude = 0; */
-                  /* n = PARM->alt_stack[--PARM->macro_stack_ptr].n; */
-                  /* csound->DebugMsg(csound,"n=%d\n", n); */
-                  /* if (n!=0) { */
-                  /*   /\* We need to delete n macros starting with y *\/ */
-                  /*   y = PARM->alt_stack[PARM->macro_stack_ptr].s; */
-                  /*   x = PARM->macros; */
-                  /*   if (x==y) { */
-                  /*     while (n>0) { */
-                  /*       mfree(csound, y->name); x=y->next; */
-                  /*       mfree(csound, y); y=x; n--; */
-                  /*     } */
-                  /*     PARM->macros = x; */
-                  /*   } */
-                  /*   else { */
-                  /*     MACRO *nxt = y->next; */
-                  /*     while (x->next != y) x = x->next; */
-                  /*     while (n>0) { */
-                  /*       nxt = y->next; */
-                  /*       mfree(csound, y->name); mfree(csound, y); y=nxt; n--; */
-                  /*     } */
-                  /*     x->next = nxt; */
-                  /*   } */
-                  /*   y->next = x; */
-                  /* } */
-                  /* /\* csound->DebugMsg(csound,"End of input segment: macro pop %p -> %p\n", */
-                  /*            y, PARM->macros); *\/ */
                 }
 
 %%
@@ -539,7 +505,7 @@ static inline int isNameChar(int c, int pos)
 
 ORCTOKEN *new_token(CSOUND *csound, int type)
 {
-    ORCTOKEN *ans = (ORCTOKEN*)mcalloc(csound, sizeof(ORCTOKEN));
+    ORCTOKEN *ans = (ORCTOKEN*)csound->Calloc(csound, sizeof(ORCTOKEN));
     ans->type = type;
     return ans;
 }
@@ -555,7 +521,7 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, LABEL_TOKEN);
     int len = strlen(s);
-    ans->lexeme = (char*)mcalloc(csound, len);
+    ans->lexeme = (char*)csound->Calloc(csound, len);
     strncpy(ans->lexeme, s, len - 1); /* Not the trailing colon */
     return ans;
 }
@@ -565,10 +531,10 @@ ORCTOKEN *make_string(CSOUND *csound, char *s)
     ORCTOKEN *ans = new_token(csound, STRING_TOKEN);
     int len = strlen(s);
 /* Keep the quote marks */
-    /* ans->lexeme = (char*)mcalloc(csound, len-1); */
+    /* ans->lexeme = (char*)csound->Calloc(csound, len-1); */
     /* strncpy(ans->lexeme, s+1, len-2); */
     /* ans->lexeme[len-2] = '\0';  */
-    ans->lexeme = (char*)mcalloc(csound, len + 1);
+    ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strcpy(ans->lexeme, s);
     return ans;
 }
@@ -586,7 +552,7 @@ ORCTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
     ans = new_token(csound, INTEGER_TOKEN);
     sprintf(buf, "%d", i+k);
     len = strlen(buf);
-    ans->lexeme = (char*)mcalloc(csound, len + 1);
+    ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strncpy(ans->lexeme, buf, len);
     ans->value = i;
     return ans;
@@ -597,7 +563,7 @@ ORCTOKEN *make_int(CSOUND *csound, char *s)
     int n = atoi(s);
     ORCTOKEN *ans = new_token(csound, INTEGER_TOKEN);
     int len = strlen(s);
-    ans->lexeme = (char*)mcalloc(csound, len + 1);
+    ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strncpy(ans->lexeme, s, len);
     ans->value = n;
     return ans;
@@ -608,7 +574,7 @@ ORCTOKEN *make_num(CSOUND *csound, char *s)
     double n = atof(s);
     ORCTOKEN *ans = new_token(csound, NUMBER_TOKEN);
     int len = strlen(s);
-    ans->lexeme = (char*)mcalloc(csound, len + 1);
+    ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strncpy(ans->lexeme, s, len);
     ans->fvalue = n;
     return ans;

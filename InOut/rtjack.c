@@ -51,6 +51,28 @@ static inline void rtJack_Lock(CSOUND *csound, pthread_mutex_t *p)
     pthread_mutex_lock(p);
 }
 
+static inline int rtJack_LockTimeout(CSOUND *csound, pthread_mutex_t *p,
+                                     size_t milliseconds)
+{
+      struct timeval  tv;
+      struct timespec ts;
+      register size_t n, s;
+      register int retval = pthread_mutex_trylock(p);
+      if (!retval)
+        return retval;
+      if (!milliseconds)
+        return retval;
+      gettimeofday(&tv, NULL);
+      s = milliseconds / (size_t) 1000;
+      n = milliseconds - (s * (size_t) 1000);
+      s += (size_t) tv.tv_sec;
+      n = (size_t) (((int) n * 1000 + (int) tv.tv_usec) * 1000);
+      ts.tv_nsec = (long) (n < (size_t) 1000000000 ? n : n - 1000000000);
+      ts.tv_sec = (time_t) (n < (size_t) 1000000000 ? s : s + 1);
+      return pthread_mutex_timedlock(p, &ts);
+
+}
+
 static inline int rtJack_TryLock(CSOUND *csound, pthread_mutex_t *p)
 {
     (void) csound;
@@ -82,6 +104,12 @@ static inline void rtJack_Lock(CSOUND *csound, void **p)
 {
     csound->WaitThreadLockNoTimeout(*p);
 }
+
+static inline int rtJack_LockTimeout(CSOUND *csound, void **p, size_t timeout)
+{
+  return csound->WaitThreadLock(*p, timeout);
+}
+
 
 static inline int rtJack_TryLock(CSOUND *csound, void **p)
 {
@@ -792,8 +820,18 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     for (i = j = 0; i < nframes; i++) {
       if (bufpos == 0) {
         /* wait until there is enough data in ring buffer */
-        /* **** COVERITY: claims this is a double lock **** */
-        rtJack_Lock(csound, &(p->bufs[bufcnt]->csndLock));
+        /* VL 28.03.15 -- timeout after wait for 10 buffer
+           lengths */
+        int ret = rtJack_LockTimeout(csound, &(p->bufs[bufcnt]->csndLock),
+                                     10000*(nframes/csound->GetSr(csound)));
+        if(ret) {
+          memset(inbuf_, 0, bytes_);
+          OPARMS oparms;
+          csound->GetOParms(csound, &oparms);
+          if (oparms.msglevel & 4)
+             csound->Warning(csound, Str("rtjack: input audio timeout"));
+          return bytes_;
+        }
       }
       /* copy audio data */
       for (k = 0; k < p->nChannels; k++)
