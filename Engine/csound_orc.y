@@ -162,7 +162,7 @@
     extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
     extern int csound_orclex(TREE**, CSOUND *, void *);
     extern void print_tree(CSOUND *, char *msg, TREE *);
-    extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE*, const char*);
+    extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE**, const char*);
     extern void add_udo_definition(CSOUND*, char *, char *, char *);
     extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LINE csound_orcget_lineno(scanner)
