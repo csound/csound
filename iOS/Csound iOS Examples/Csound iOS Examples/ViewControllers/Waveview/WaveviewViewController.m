@@ -60,4 +60,4 @@
     [waveview displayFTable:fTableIndex+1];
 }
 
-ekend
+@end

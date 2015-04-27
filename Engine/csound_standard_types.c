@@ -326,7 +326,7 @@ const CS_TYPE CS_VAR_TYPE_b = {
 
 const CS_TYPE CS_VAR_TYPE_ARRAY = {
    "[", "array", CS_ARG_TYPE_BOTH, createArray, array_copy_value,
-                 array_free_var_mem, NULL
+    NULL, array_free_var_mem
 };
 
 
