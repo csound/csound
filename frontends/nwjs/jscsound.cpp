@@ -2,7 +2,7 @@
  * A Node.js (and io.js and NW.js) binding for Csound. This interface should
  * mirror the Csound JavaScript interface for the Chromium Embedded Framework
  * and Android. In JavaScript environments, Csound has already been
- * instantiated and initialized, and is named "csound" in the default
+ * instantiated and initialized, and is named "csound" in the user's
  * JavaScript context.
  *
  * int getVersion ()
@@ -44,15 +44,19 @@
 
 using namespace v8;
 
+static CSOUND* csound = nullptr;
 
 void Method(const FunctionCallbackInfo<Value>& args) {
   Isolate* isolate = Isolate::GetCurrent();
   HandleScope scope(isolate);
-  args.GetReturnValue().Set(String::NewFromUtf8(isolate, "world"));
+    char buffer[0x100];
+    std::sprintf(buffer, "Hello, world! This is Csound 0x%p.", csound);
+  args.GetReturnValue().Set(String::NewFromUtf8(isolate, buffer));
 }
 
 void init(Handle<Object> target) {
-  NODE_SET_METHOD(target, "This is Csound!", Method);
+    csound = csoundCreate(0);
+    NODE_SET_METHOD(target, "hello", Method);
 }
 
 NODE_MODULE(binding, init);
