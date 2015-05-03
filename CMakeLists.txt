@@ -807,8 +807,6 @@ list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} $
 
 # Handling New Parser
 
-add_custom_target(NewParser echo "Creating parser.c")
-
 set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
 set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.c)
 set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.h)
@@ -856,7 +854,6 @@ set_source_files_properties(${PRELEX_OUT} GENERATED)
 
 if(SCORE_PARSER)
     message(STATUS "SCORE PARSER being built")
-    add_custom_target(NewScoParser echo "Creating sco_parser.c")
     #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSCORE_PARSER")
     list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
 
