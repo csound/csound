@@ -88,25 +88,26 @@ if(BUILD_PD_CLASS)
     elseif(WIN32)
         set(pdname "csound6~.dll")
     endif()
-    add_library(${pdname} MODULE csoundapi_tilde/csoundapi_tilde.c)
+    add_library(pdcsound MODULE csoundapi_tilde/csoundapi_tilde.c)
     if(WIN32)
-        target_link_libraries (${pdname} ${CSOUNDLIB} ${PD_LIBRARY})
-        set_target_properties(${pdname}  PROPERTIES "LINK_FLAGS"
+        target_link_libraries (pdcsound ${CSOUNDLIB} ${PD_LIBRARY})
+        set_target_properties(pdcsound  PROPERTIES "LINK_FLAGS"
             "-Wl,--allow-multiple-definition")
     else()
-        target_link_libraries (${pdname} ${CSOUNDLIB})
+        target_link_libraries (pdcsound ${CSOUNDLIB})
     endif()
-    set_target_properties(${pdname} PROPERTIES
+    set_target_properties(pdcsound PROPERTIES
         PREFIX ""
         SUFFIX ""
+        OUTPUT_NAME ${pdname}
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
     if(APPLE)
-        set_target_properties(${pdname}  PROPERTIES "LINK_FLAGS"
+        set_target_properties(pdcsound  PROPERTIES "LINK_FLAGS"
             "-flat_namespace -undefined suppress")
     endif(APPLE)
-    install(TARGETS ${pdname}
+    install(TARGETS pdcsound
         LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR})
 endif()
 
