@@ -364,6 +364,10 @@ If you want to use the csnd6 Python library, add the following line to .bashrc:
 
 `export PYTHONPATH=/usr/local/lib`
 
+Enabling the Python Bindings requires swig and python-dev packages to be installed with 
+
+`sudo apt-get install swig python-dev`
+
 
 
 Fedora 18 <a name="fedora">
