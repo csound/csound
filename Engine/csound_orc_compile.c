@@ -1382,9 +1382,10 @@ void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable){
 
 static char *node2string(int type)
 {
+    /* Add new nodes here as necessary */
     switch (type) {
-    case LABEL_TOKEN:
-      return "label";
+    /* case LABEL_TOKEN: */
+    /*   return "label"; */
     default:
       return "??";
     }
@@ -1614,6 +1615,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       case T_OPCODE:
       case T_OPCODE0:
       case LABEL:
+      case LABEL_TOKEN:
         break;
 
       default:
