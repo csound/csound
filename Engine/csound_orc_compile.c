@@ -1382,7 +1382,7 @@ void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable){
 
 static char *node2string(int type)
 {
-    /* Add new nodes here as necessary */
+    /* Add new nodes here as necessary -- JPff */
     switch (type) {
     /* case LABEL_TOKEN: */
     /*   return "label"; */
