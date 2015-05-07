@@ -840,7 +840,7 @@ public:
     #else
     pydata = NULL;
     #endif
-    
+
   }
   Csound(void *hostData)
   {
