@@ -233,8 +233,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
           break;
         case '-':
           FIND(Str("no log file"));
-          while (*s++)
-               ; s--;
+          while (*s++) {}; s--;
           break;
         default:
           return quit(csound, Str("Invalid switch option"));

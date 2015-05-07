@@ -15,19 +15,19 @@
 ; I hope to change this soon.
 
 ; Uncomment the following line to build for Cabbage, CsoundVST, and vst4cs.
-#define CSOUNDVST
+; #define CSOUNDVST
 
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.04.0-vst"
+#define MyAppMinVersion "6.05-vst"
 #else
-#define MyAppMinVersion "6.04.0"
+#define MyAppMinVersion "6.05"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
-#define MyMinGwLibDir "D:\Qt5.3.0\Tools\mingw482_32\i686-w64-mingw32\lib\"
+#define MyMinGwLibDir "D:\Qt\Qt5.4.1\Tools\mingw491_32\i686-w64-mingw32\lib\"
 ; If you are not Michael Gogins, change this to your MSys /bin/ directory.
 #define MyMSysBinDir "D:\msys\bin\"
 ; If you are not Michael Gogins, change this to your MSys /usr/local/ directory.
@@ -59,9 +59,9 @@
 ; If you are not Michael Gogins, change this to your STK dll directory.
 #define MyLibStkSourceDir "D:\msys\local\src\stk-4.5.0\"
 ; If you are not Michael Gogins, change this to your CsoundQt repository directory.
-#define MyCsoundQtDir "D:\CsoundQt\"
+#define MyCsoundQtDir "C:\Users\mike\qutecsound-code\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
-#define MyCsoundQtBinDir "C:\Users\restore\build-qcs-Desktop_Qt_5_4_0_MSVC2013_32bit-Release\bin\"
+#define MyCsoundQtBinDir "C:\Users\mike\build-qcs-Desktop_Qt_5_4_0_MSVC2013_32bit-Release\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
 #define MyQtSdkBinDir "D:\Qt5.4.0\5.4\msvc2013\bin\"
 ; If you are not Michael Gogins, change this to your unzipped cabbage-master directory.
@@ -157,6 +157,7 @@ Source: "{#MyMSysUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core
 Source: "csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "*.lib"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
@@ -186,6 +187,7 @@ Source: "chua.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Component
 Source: "cs_date.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "csladspa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "doppler.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "exciter.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "fareygen.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "fluidOpcodes.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "fractalnoise.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;

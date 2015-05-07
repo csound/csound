@@ -27,6 +27,7 @@
 #include <ctype.h>
 
 static void list_audio_devices(CSOUND *csound, int output);
+static void list_midi_devices(CSOUND *csound, int output);
 extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 #define FIND(MSG)   if (*s == '\0')  \
@@ -283,8 +284,10 @@ static const char *longUsageList[] = {
   Str_noop("--port=N\t\t listen to UDP port N for instruments/orchestra "
            "code (implies --daemon)"),
   Str_noop("--vbr-quality=Ft\t set quality of variable bit0rate compression"),
+    Str_noop("--devices[=in|out] \t\t list available MIDI devices and exit"),
   Str_noop("--devices[=in|out] \t\t list available audio devices and exit"),
   Str_noop("--get-system-sr \t\t print system sr and exit"),
+  Str_noop("--ksmps=N \t\t override ksmps"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -614,6 +617,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 13;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no control rate"));
       O->kr_override = (float)atof(s);
+      return 1;
+    }
+    else if (!(strncmp(s, "ksmps=", 6))) {
+      s += 6;
+      if (UNLIKELY(*s=='\0')) dieu(csound, Str("no ksmps"));
+      O->ksmps_override = atoi(s);
       return 1;
     }
     /* -K */
@@ -1029,6 +1038,24 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->info_message_request = 1;
       return 1;
       }
+     else if (!(strncmp(s, "midi-devices",12))) {
+      csoundLoadExternals(csound);
+      if (csoundInitModules(csound) != 0)
+        csound->LongJmp(csound, 1);
+      if (*(s+12) == '='){
+        if (!strncmp(s+13,"in", 2)) {
+          list_midi_devices(csound, 0);
+        }
+        else if(!strncmp(s+13,"out", 2))
+          list_midi_devices(csound,1);
+      }
+      else {
+        list_midi_devices(csound,0);
+        list_midi_devices(csound,1);
+      }
+      csound->info_message_request = 1;
+      return 1;
+      }
     else if (!(strncmp(s, "get-system-sr",13))){
       if (O->outfilename &&
           !(strncmp(O->outfilename, "dac",3))) {
@@ -1324,15 +1351,15 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
                 readOptions(csound, ind, 0);
                 csound->FileClose(csound, fd);
               }
-              while (*s++)
-               ; s--; /* semicolon on separate line to silence warning */
+              while (*s++) {};
+              s--; /* semicolon on separate line to silence warning */
             }
             break;
           case 'O':
             FIND(Str("no log file"));
             do_logging(s);
-            while (*s++)
-              ; s--; /* semicolon on separate line to silence warning */
+            while (*s++) {};
+            s--; /* semicolon on separate line to silence warning */
             break;
           case '-':
 #if defined(LINUX)
@@ -1461,6 +1488,8 @@ PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
   oparms->nchnls_override = p->nchnls_override;
   oparms->nchnls_i_override = p->nchnls_i_override;
   oparms->e0dbfs_override = p->e0dbfs_override;
+  
+  if(p->ksmps_override > 0) oparms->ksmps_override = p->ksmps_override;
 }
 
 PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
@@ -1499,6 +1528,7 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
   p->heartbeat = oparms->heartbeat;
   p->ring_bell = oparms->ringbell;
   p->daemon = oparms->daemon;
+  p->ksmps_override = oparms->ksmps_override;
 }
 
 
@@ -1637,6 +1667,22 @@ static void list_audio_devices(CSOUND *csound, int output){
          else
            csound->Message(csound, "%d audio input devices \n", n);
          csoundGetAudioDevList(csound,devs,output);
+         for(i=0; i < n; i++)
+             csound->Message(csound, " %d: %s (%s)\n",
+                   i, devs[i].device_id, devs[i].device_name);
+         free(devs);
+}
+
+static void list_midi_devices(CSOUND *csound, int output){
+
+       int i,n = csoundGetMIDIDevList(csound,NULL, output);
+         CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *)
+             malloc(n*sizeof(CS_MIDIDEVICE));
+         if(output)
+          csound->Message(csound, "%d MIDI output devices \n", n);
+         else
+           csound->Message(csound, "%d MIDI input devices \n", n);
+         csoundGetMIDIDevList(csound,devs,output);
          for(i=0; i < n; i++)
              csound->Message(csound, " %d: %s (%s)\n",
                    i, devs[i].device_id, devs[i].device_name);

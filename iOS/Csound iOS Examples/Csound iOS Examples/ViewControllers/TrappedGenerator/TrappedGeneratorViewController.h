@@ -27,6 +27,6 @@
 
 @interface TrappedGeneratorViewController : BaseCsoundViewController<CsoundObjListener> 
 
--(IBAction)generateTrappedToDocumentsFolder:(id)sender;
+- (IBAction)generateTrappedToDocumentsFolder:(id)sender;
 
 @end
