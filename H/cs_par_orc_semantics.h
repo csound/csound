@@ -21,6 +21,7 @@ typedef struct instr_semantics_t {
     char                        hdr[HDR_LEN];
     char                        *name;
     int32                       insno;
+    int32                       sanitized;
     struct set_t                *read;
     struct set_t                *write;
     struct set_t                *read_write;

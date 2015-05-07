@@ -132,7 +132,7 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
     memset(p->yr, 0, BUF_LEN*sizeof(MYFLT));
     memset(p->outl, 0, BUF_LEN*sizeof(MYFLT));
     memset(p->outr, 0, BUF_LEN*sizeof(MYFLT));
-    
+
         /* initialize left overlap buffer */
         /* initialize right overlap buffer */
     /* for (i=0; i<FILT_LENm1; i++) { */

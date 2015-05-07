@@ -44,6 +44,7 @@ extern "C" {
         struct csvariable* (*createVariable)(void*, void*);
         void (*copyValue)(void* csound, void* dest, void* src);
         struct cstype** unionTypes;
+        void (*freeVariableMemory)(void* csound, void* varMem);
     } CS_TYPE;
 
     typedef struct csvarmem {
@@ -109,6 +110,7 @@ extern "C" {
         int poolSize;
         struct csvarpool* parent;
         int varCount;
+        int synthArgCount;
     } CS_VAR_POOL;
 
     PUBLIC CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound);

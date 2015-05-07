@@ -31,12 +31,12 @@
 
 @implementation TrappedGeneratorViewController
 
--(void)viewDidLoad {
+- (void)viewDidLoad {
     self.title = @"Trapped Generator";
     [super viewDidLoad];
 }
 
--(IBAction)generateTrappedToDocumentsFolder:(id)sender {
+- (IBAction)generateTrappedToDocumentsFolder:(id)sender {
     NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"trapped" ofType:@"csd"];
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
@@ -55,15 +55,15 @@
 #pragma mark CsoundObjListener
 
 
--(void)csoundObjStarted:(CsoundObj *)csoundObj {
+- (void)csoundObjStarted:(CsoundObj *)csoundObj {
 }
 
--(void)csoundObjCompleted:(CsoundObj *)csoundObj {
+- (void)csoundObjCompleted:(CsoundObj *)csoundObj {
     
     NSString *title = @"Render Complete";
     NSString *message = @"File generated as trapped.wav in application Documents Folder";
     
-    UIAlertView* alert = [[UIAlertView alloc] initWithTitle:title
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
                                                     message:message
                                                    delegate:nil
                                           cancelButtonTitle:@"Dismiss"

@@ -579,7 +579,7 @@ int bowed(CSOUND *csound, BOWED *p)
                                 /* Set Frequency if changed */
     if (p->lastfreq != *p->frequency) {
       /* delay - approx. filter delay */
-      if (p->limit<=*p->frequency) 
+      if (p->limit<=*p->frequency)
         p->lastfreq = *p->frequency;
       else {
         p->lastfreq = p->limit;

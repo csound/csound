@@ -62,7 +62,7 @@ void test_cscore(void)
 int main()
 {
    CU_pSuite pSuite = NULL;
-
+        
    /* initialize the CUnit test registry */
    if (CUE_SUCCESS != CU_initialize_registry())
       return CU_get_error();

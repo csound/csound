@@ -59,7 +59,7 @@
 #define _MM_DENORMALS_ZERO_MASK   0
 #define _MM_DENORMALS_ZERO_ON     0
 #define _MM_DENORMALS_ZERO_OFF    0
-#define _MM_SET_DENORMALS_ZERO_MODE(mode)  
+#define _MM_SET_DENORMALS_ZERO_MODE(mode)
 #endif
 #endif
 
@@ -232,6 +232,7 @@ typedef struct {
     MYFLT   e0dbfs_override;
     int     daemon;
     double  quality;        /* for ogg encoding */
+    int     ksmps_override;
   } OPARMS;
 
   typedef struct arglst {
@@ -279,17 +280,17 @@ typedef struct {
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
    */
   typedef struct text {
-    int     linenum;        /* Line num in orch file (currently buggy!)  */
-    OENTRY* oentry;
-    char    *opcod;         /* Pointer to opcode name in global pool */
-    ARGLST  *inlist;        /* Input args (pointer to item in name list) */
-    ARGLST  *outlist;
-    ARG     *inArgs;        /* Input args (index into list of values) */
-    unsigned int inArgCount;
-    ARG     *outArgs;
-    unsigned int outArgCount;
-    char    intype;         /* Type of first input argument (g,k,a,w etc) */
-    char    pftype;         /* Type of output argument (k,a etc) */
+    int             linenum;        /* Line num in orch file (currently buggy!)  */
+    OENTRY          *oentry;
+    char            *opcod;         /* Pointer to opcode name in global pool */
+    ARGLST          *inlist;        /* Input args (pointer to item in name list) */
+    ARGLST          *outlist;
+    ARG             *inArgs;        /* Input args (index into list of values) */
+    unsigned int    inArgCount;
+    ARG             *outArgs;
+    unsigned        int outArgCount;
+    char            intype;         /* Type of first input argument (g,k,a,w etc) */
+    char            pftype;         /* Type of output argument (k,a etc) */
   } TEXT;
 
 
@@ -442,7 +443,7 @@ typedef struct {
     int     scnt;
     char    *strarg;
     /* instance pointer */
-    void  *pinstance;
+    void  *pinstance;  /* TODO - Remove this field in Csound 7, not being used */
     /** Event type */
     char    opcod;
     /** Number of p-fields */
@@ -1474,7 +1475,6 @@ typedef struct NAME__ {
     /* statics from twarp.c should be TSEG* */
     void          *tseg, *tpsave, *tplim;
     /* Statics from express.c */
-    int           acount, kcount, icount, Bcount, bcount, tcount;
     MYFLT         *gbloffbas;       /* was static in oload.c */
     pthread_t    file_io_thread;
     int          file_io_start;
@@ -1622,6 +1622,7 @@ typedef struct NAME__ {
     char          *SF_csd_licence;
     char          *SF_id_title;
     char          *SF_id_copyright;
+    int           SF_id_scopyright;
     char          *SF_id_software;
     char          *SF_id_artist;
     char          *SF_id_comment;
@@ -1697,6 +1698,7 @@ typedef struct NAME__ {
     int (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug
                                and nodebug function */
     int           score_parser;
+    CS_HASH_TABLE* symbtab;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

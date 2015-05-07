@@ -408,8 +408,8 @@ void test_next(void)
                              "ksig line 0, p3, 1\n"
                              "ksig2 line 1, p3, 0\n"
                              "asig3 oscils 0.5, 440, 0.5\n"
-                             "endin\n");
-    csoundCompileOrc(csound, "instr 30\n"
+                             "endin\n"
+                             "instr 30\n"
                              "kvar init 10\n"
                              "kvar = kvar + 1\n"
                              "ksig2 line 1, p3, 0\n"

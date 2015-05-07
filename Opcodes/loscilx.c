@@ -42,7 +42,7 @@ static int sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p, int isstring)
     SF_INFO     sfinfo;
     int         sampleFormat, loopMode;
 
-    if(isstring) fname = ((STRINGDAT *)p->Sfname)->data;
+    if (isstring) fname = ((STRINGDAT *)p->Sfname)->data;
     else {
       if(ISSTRCOD(*p->Sfname))
         fname = csound->Strdup(csound, get_arg_string(csound, *p->Sfname));
@@ -111,12 +111,14 @@ static int sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p, int isstring)
     return OK;
 }
 
-static int sndload_opcode_init(CSOUND *csound, SNDLOAD_OPCODE *p){
-  return sndload_opcode_init_(csound,p,0);
+static int sndload_opcode_init(CSOUND *csound, SNDLOAD_OPCODE *p)
+{
+    return sndload_opcode_init_(csound,p,0);
 }
 
-static int sndload_opcode_init_S(CSOUND *csound, SNDLOAD_OPCODE *p){
-  return sndload_opcode_init_(csound,p,0);
+static int sndload_opcode_init_S(CSOUND *csound, SNDLOAD_OPCODE *p)
+{
+    return sndload_opcode_init_(csound,p,1); /* JPff: surely wrong as 0 */
 }
 
 
@@ -694,9 +696,9 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
  /* ------------------------------------------------------------------------ */
 
 static OENTRY loscilx_localops[] = {
-  { "sndload",  sizeof(SNDLOAD_OPCODE), 0, 1,  "",                 "iooooojjoo",
+  { "sndload",  sizeof(SNDLOAD_OPCODE), _QQ, 1,  "",                 "iooooojjoo",
     (SUBR) sndload_opcode_init, (SUBR) NULL, (SUBR) NULL                      },
- { "sndload.S",  sizeof(SNDLOAD_OPCODE), 0, 1,  "",                 "Sooooojjoo",
+ { "sndload.S",  sizeof(SNDLOAD_OPCODE), _QQ, 1,  "",                 "Sooooojjoo",
     (SUBR) sndload_opcode_init_S, (SUBR) NULL, (SUBR) NULL                      },
   { "loscilx",  sizeof(LOSCILX_OPCODE), TR, 5,  "mmmmmmmmmmmmmmmm", "xkioojjoo",
     (SUBR) loscilx_opcode_init, (SUBR) NULL, (SUBR) loscilx_opcode_perf       }
