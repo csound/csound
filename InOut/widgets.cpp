@@ -1716,6 +1716,7 @@ extern "C" {
             if (q >= (int) ST(AddrSetValue).size()) continue;
             v = &(ST(AddrSetValue)[q]);
           }
+          if (k<0) return NOTOK;
           if ((int) ST(snapshots)[group][k].fields.size() < j+1)
             ST(snapshots)[group][k].fields.resize(j+1);
           ST(snapshots)[group][k].is_empty = 0;

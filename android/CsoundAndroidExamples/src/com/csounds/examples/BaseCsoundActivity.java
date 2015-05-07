@@ -33,16 +33,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.SeekBar;
 
 import com.csounds.CsoundObj;
 
-public class BaseCsoundActivity extends Activity {
+@SuppressLint("NewApi") public class BaseCsoundActivity extends Activity {
 	
-	protected CsoundObj csoundObj = new CsoundObj(false);
+	protected CsoundObj csoundObj = new CsoundObj(false,false);
 	protected Handler handler = new Handler();
 	
 	
@@ -50,6 +54,8 @@ public class BaseCsoundActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		csoundObj.setMessageLoggingEnabled(true);
 		super.onCreate(savedInstanceState);
+		/* Log.d("CsoundObj", "FRAMES:" + ((AudioManager) getSystemService(Context.AUDIO_SERVICE)).
+				getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER));*/
 	}
 	
 	@Override

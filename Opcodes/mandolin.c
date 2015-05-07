@@ -100,7 +100,7 @@ int mandolinset(CSOUND *csound, MANDOL *p)
       make_DLineL(csound,&p->combDelay, p->length);
       make_OneZero(&p->filter1);
       make_OneZero(&p->filter2);
-      p->lastLength = p->length * FL(0.5);
+      //      p->lastLength = p->length * FL(0.5);
 /*    soundfile->normalize(0.05);    Empirical hack here transferred to use  */
       p->lastLength = ( CS_ESR / p->lastFreq);        /* length - delays */
 /*    DLineA_setDelay(&p->delayLine1, (p->lastLength / *p->detuning) - 0.5f); */

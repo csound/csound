@@ -5,7 +5,7 @@
 	<TITLE></TITLE>
 	<META NAME="GENERATOR" CONTENT="LibreOffice 4.0.1.2 (Windows)">
 	<META NAME="CREATED" CONTENT="20130611;20113632">
-	<META NAME="CHANGED" CONTENT="20140702;9392027">
+	<META NAME="CHANGED" CONTENT="20150409;8311847">
 	<STYLE TYPE="text/css">
 	<!--
 		@page { size: 8.5in 11in; margin: 0.79in }
@@ -28,12 +28,12 @@
 </HEAD>
 <BODY LANG="en-US" LINK="#000080" VLINK="#800000" DIR="LTR">
 <H1 CLASS="western" ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in">
-User Guide<BR>Csound 6.03.3 for Android 
+User Guide<BR>Csound 6.05.0 for Android 
 </H1>
 <P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>Michael
 Gogins</B></I></P>
-<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>2
-July 2014</B></I></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><I><B>9
+April 2015</B></I></P>
 <P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><BR>
 </P>
 <H1 CLASS="western" STYLE="margin-top: 0.08in; margin-bottom: 0in">Introduction</H1>
@@ -162,8 +162,7 @@ with the <FONT FACE="Courier New, monospace">@JavascriptInterface</FONT>
 attribute in the Csound for Android source code. For a basic example
 of a user-defined widget setup, see the <FONT FACE="Courier New, monospace">Drone-HTML5.csd</FONT>
 example file. Here is a snippet showing a slider's <FONT FACE="Courier New, monospace">onInput</FONT>
-event handler setting a Csound control channel:<BR><BR>
-</P>
+event handler setting a Csound control channel:</P>
 <PRE CLASS="western" STYLE="page-break-inside: avoid; page-break-before: auto; page-break-after: auto">&lt;script&gt;
 function gk_Reverb_FeedbackUpdate(value) {
 var numberValue = parseFloat(value)
@@ -171,13 +170,14 @@ csoundApp.setControlChannel('gk_Reverb_Feedback', numberValue);
 }
 &lt;/script&gt;</PRE><H1 CLASS="western" STYLE="margin-top: 0.08in; margin-bottom: 0in">
 Examples</H1>
-<P STYLE="margin-top: 0.08in; margin-bottom: 0in">On Csound's
-SourceForge page, in the Files section, there is an archive of
-examples for the Csound6 app. Not all of these examples use the
-widgets, and some of them write audio to soundfile and not to the
-audio device. The examples demonstrate not only some techniques for
-using the Csound6 Android app, but also a few of the many different
-ways of making music with Csound.</P>
+<P STYLE="margin-top: 0.08in; margin-bottom: 0in">The menu of the
+Csound app features a number of built-in examples. Selecting an
+example will cause its file or files to be copied to the app's
+external storage area and loaded into the app, ready to be performed
+or edited. Not all of the examples use the widgets. The examples
+demonstrate not only some techniques for using the Csound6 Android
+app, but also a few of the many different ways of making music with
+Csound.</P>
 <P STYLE="margin-top: 0.08in; margin-bottom: 0in">When I first
 encountered the Csound app, I was very impressed. Now that I have
 been able to contribute to its development, I have come to realize

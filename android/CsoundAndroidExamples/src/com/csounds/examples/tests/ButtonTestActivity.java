@@ -146,7 +146,7 @@ public class ButtonTestActivity extends BaseCsoundActivity implements
 									float range = max - min;
 									value = (value * range) + min;
 									String event = String.format("i2 0 %f", value);
-									
+									Log.d("CsoundObj", "dur " + value);
 									csoundObj.inputMessage(event);
 									
 									return true;

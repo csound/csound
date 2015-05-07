@@ -97,7 +97,9 @@ typedef struct {
 static int oscsend_deinit(CSOUND *csound, OSCSEND *p)
 {
     lo_address a = (lo_address)p->addr;
-    lo_address_free(a);
+    if(a != NULL)
+      lo_address_free(a);
+    p->addr = NULL;
     return OK;
 }
 
@@ -152,6 +154,8 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
       snprintf(port, 8, "%d", (int) MYFLT2LRND(*p->port));
     hh = (char*) p->host->data;
     if (*hh=='\0') hh = NULL;
+    if(p->addr != NULL)
+      lo_address_free(p->addr);
     p->addr = lo_address_new(hh, pp);
 
     if (p->cnt++ ==0 || *p->kwhen!=p->last) {
@@ -421,10 +425,11 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
       return csound->InitError(csound,
                                Str("cannot start OSC listener on port %s\n"),
                                buff);
-    if (lo_server_thread_start(ports[n].thread)<0)
-      return csound->InitError(csound,
-                               Str("cannot start OSC listener on port %s\n"),
-                               buff);
+    ///if (lo_server_thread_start(ports[n].thread)<0)
+    ///  return csound->InitError(csound,
+    ///                           Str("cannot start OSC listener on port %s\n"),
+    ///                           buff);
+    lo_server_thread_start(ports[n].thread);
     pp->ports = ports;
     pp->nPorts = n + 1;
     csound->Warning(csound, Str("OSC listener #%d started on port %s\n"), n, buff);
