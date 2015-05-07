@@ -807,10 +807,9 @@ list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} $
 
 # Handling New Parser
 
-add_custom_target(NewParser echo "Creating parser.c")
-
 set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
 set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.c)
+set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.h)
 
 set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.l)
 set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
@@ -819,24 +818,23 @@ set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
 set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
 
 add_custom_command(
-    SOURCE ${LEX_SRC}
+    OUTPUT ${LEX_OUT}
+    DEPENDS ${LEX_SRC}
     COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SRC} > ${LEX_OUT}
-    TARGET NewParser
-    OUTPUTS ${LEX_OUT})
+    )
 
 add_custom_command(
-    SOURCE ${PRELEX_SRC}
+    DEPENDS ${PRELEX_SRC}
     COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SRC} > ${PRELEX_OUT}
-    TARGET NewParser
-    OUTPUTS ${PRELEX_OUT})
+    OUTPUT ${PRELEX_OUT}
+    )
 
 add_custom_command(
-    SOURCE ${YACC_SRC}
+    OUTPUT ${YACC_OUT} ${YACC_OUTH}
+    DEPENDS ${YACC_SRC} ${LEX_OUT}
     COMMAND ${BISON_EXECUTABLE}
     ARGS -pcsound_orc -d --report=itemset -o ${YACC_OUT} ${YACC_SRC}
-    TARGET NewParser
-    DEPENDS ${LEX_OUT}
-    OUTPUTS ${YACC_OUT})
+    )
 
 list(APPEND libcsound_SRCS
     ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
@@ -848,18 +846,20 @@ list(APPEND libcsound_SRCS
     Engine/symbtab.c)
 
 set_source_files_properties(${YACC_OUT} GENERATED)
+set_source_files_properties(${YACC_OUTH} GENERATED)
 set_source_files_properties(${LEX_OUT} GENERATED)
+set_source_files_properties(${PRELEX_OUT} GENERATED)
 
 # Handling New Score Parser
 
 if(SCORE_PARSER)
     message(STATUS "SCORE PARSER being built")
-    add_custom_target(NewScoParser echo "Creating sco_parser.c")
     #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSCORE_PARSER")
     list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
 
     set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
     set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
+    set(YACC_SCOOUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.h)
 
     set(LEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.lex)
     set(LEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c)
@@ -872,24 +872,23 @@ if(SCORE_PARSER)
     ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c")
 
     add_custom_command(
-        SOURCE ${LEX_SCOSRC}
+        OUTPUT ${LEX_SCOOUT}
+        DEPENDS ${LEX_SCOSRC}
         COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT}
-        TARGET NewScoParser
-        OUTPUTS ${LEX_SCOOUT})
+        )
 
     add_custom_command(
-        SOURCE ${PRELEX_SCOSRC}
+        OUTPUT ${PRELEX_SCOOUT}
+        DEPENDS ${PRELEX_SCOSRC}
         COMMAND ${FLEX_EXECUTABLE} ARGS -B -t -d ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
-        TARGET NewScoParser
-        OUTPUTS ${PRELEX_SCOOUT})
+        )
 
     add_custom_command(
-        SOURCE ${YACC_SCOSRC}
+        OUTPUT ${YACC_SCOOUT} ${YACC_SCOOUTH}
+        DEPENDS ${YACC_SCOSRC} ${LEX_SCOOUT}
         COMMAND ${BISON_EXECUTABLE}
         ARGS -pcsound_sco -t -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
-        TARGET NewScoParser
-        DEPENDS ${LEX_SCOOUT}
-        OUTPUTS ${YACC_SCOOUT})
+        )
 
     list(APPEND libcsound_SRCS
         ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
