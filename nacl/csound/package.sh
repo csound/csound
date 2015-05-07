@@ -11,8 +11,8 @@ mkdir ./csound/pnacl
 mkdir ./csound/pnacl/Release
 cp -R ./pnacl/Release/csound.pexe ./csound/pnacl/Release/.
 cp -R ./pnacl/Release/csound.nmf ./csound/pnacl/Release/.
-tar cf csound6.04-pnacl.tar csound
-gzip  csound6.04-pnacl.tar
+tar cf csound6.05-pnacl.tar csound
+gzip  csound6.05-pnacl.tar
 rm -r csound
 
 
