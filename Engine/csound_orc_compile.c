@@ -1427,6 +1427,18 @@ void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable){
       cs_cons_free_complete(csound, typeTable->labelList);
       csound->Free(csound, typeTable);
 }
+
+static char *node2string(int type)
+{
+    /* Add new nodes here as necessary -- JPff */
+    switch (type) {
+    /* case LABEL_TOKEN: */
+    /*   return "label"; */
+    default:
+      return "??";
+    }
+}
+
 /**
  * Compile the given TREE node into structs
 
@@ -1617,8 +1629,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
 
       default:
         csound->Message(csound,
-                        Str("Unknown TREE node of type %d found in root.\n"),
-                        current->type);
+                        Str("Unknown TREE node of type %d (%s) found in root.\n"),
+                        current->type, node2string(current->type));
         if (PARSER_DEBUG) print_tree(csound, NULL, current);
       }
       current = current->next;
@@ -1669,7 +1681,9 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                      (!thread && bp->t.pftype != 'b'))) {
           csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n",
                            bp->t.opcod, thread, bp->t.pftype);
-          synterr(csound, Str("perf-pass statements illegal in header blk\n"));
+          synterr(csound,
+                  Str("perf-pass statements illegal in header blk (%s)\n"),
+                  oentry->opname);
         }
       }
 
