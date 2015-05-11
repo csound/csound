@@ -685,12 +685,12 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
 
 }
 
-inline static int is_in_optional_arg(char arg) {
-    return (strchr("opqvjhOJVP?", arg) != NULL);
+inline static int is_in_optional_arg(char* arg) {
+    return (strlen(arg) == 1) && (strchr("opqvjhOJVP?", *arg) != NULL);
 }
 
-inline static int is_in_var_arg(char arg) {
-    return (strchr("mMNnWyzZ*", arg) != NULL);
+inline static int is_in_var_arg(char* arg) {
+    return (strlen(arg) == 1) && (strchr("mMNnWyzZ*", *arg) != NULL);
 }
 
 int check_array_arg(char* found, char* required) {
@@ -739,7 +739,7 @@ int check_in_arg(char* found, char* required) {
       t = (char*)POLY_IN_TYPES[i + 2];
     }
 
-    if (is_in_optional_arg(*required)) {
+    if (is_in_optional_arg(required)) {
       t = (char*)OPTIONAL_IN_TYPES[0];
       for (i = 0; t != NULL; i += 2) {
         if (strcmp(required, t) == 0) {
@@ -749,7 +749,7 @@ int check_in_arg(char* found, char* required) {
       }
     }
 
-    if (!is_in_var_arg(*required)) {
+    if (!is_in_var_arg(required)) {
       return 0;
     }
 
@@ -784,7 +784,7 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
       int returnVal = 1;
 
       if ((argsFoundCount > argsRequiredCount) &&
-          !(is_in_var_arg(*argsRequired[argsRequiredCount - 1]))) {
+          !(is_in_var_arg(argsRequired[argsRequiredCount - 1]))) {
         csound->Free(csound, argsRequired);
         return 0;
       }
@@ -792,7 +792,7 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
       argsFound = splitArgs(csound, inArgsFound);
 
       if (argsFoundCount == 0) {
-        if (is_in_var_arg(*argsRequired[0])) {
+        if (is_in_var_arg(argsRequired[0])) {
           varArg = argsRequired[0];
         }
       } else {
@@ -810,7 +810,7 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
               returnVal = 0;
               break;
             }
-            if (is_in_var_arg(*argRequired)) {
+            if (is_in_var_arg(argRequired)) {
               varArg = argRequired;
             }
           }
@@ -819,7 +819,7 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
 
       if (returnVal && varArg == NULL) {
         while (argTypeIndex < argsRequiredCount) {
-          char c = *argsRequired[argTypeIndex++];
+          char* c = argsRequired[argTypeIndex++];
 
           if (!is_in_optional_arg(c) && !is_in_var_arg(c)) {
             returnVal = 0;
@@ -846,8 +846,8 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
     }
 }
 
-inline static int is_out_var_arg(char arg) {
-    return (strchr("mzIXNF*", arg) != NULL);
+inline static int is_out_var_arg(char* arg) {
+    return strlen(arg) == 1 && (strchr("mzIXNF*", *arg) != NULL);
 }
 
 int check_out_arg(char* found, char* required) {
@@ -886,7 +886,7 @@ int check_out_arg(char* found, char* required) {
       t = (char*)POLY_OUT_TYPES[i + 2];
     }
 
-    if (!is_out_var_arg(*required)) {
+    if (!is_out_var_arg(required)) {
       return 0;
     }
 
@@ -919,7 +919,7 @@ int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
       int returnVal = 1;
 
       if ((argsFoundCount > argsRequiredCount) &&
-          !(is_out_var_arg(*argsRequired[argsRequiredCount - 1]))) {
+          !(is_out_var_arg(argsRequired[argsRequiredCount - 1]))) {
         csound->Free(csound, argsRequired);
         return 0;
       }
@@ -940,7 +940,7 @@ int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
             returnVal = 0;
             break;
           }
-          if (is_out_var_arg(*argRequired)) {
+          if (is_out_var_arg(argRequired)) {
             varArg = argRequired;
           }
         }
@@ -950,7 +950,7 @@ int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 
         if (argTypeIndex < argsRequiredCount) {
           char* argRequired = argsRequired[argTypeIndex];
-          returnVal = is_out_var_arg(*argRequired);
+          returnVal = is_out_var_arg(argRequired);
         } else {
           returnVal = 1;
         }
@@ -2030,7 +2030,9 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
         
 //        csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
         
-        type->members = cs_cons(csound, var, type->members);
+        CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
+        member->value = var;
+        type->members = cs_cons_append(type->members, member);
         current = current->next;
     }
     
