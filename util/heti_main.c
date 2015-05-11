@@ -95,9 +95,9 @@ int main(int argc, char **argv)
       int16 end = END;
       x = getnum(infd, &term);
       if (term == '\0') break;
-      if (UNLIKELY(fwrite(&x, 1, sizeof(int16), outf)!=1)) exit(1);
+      if (UNLIKELY(fwrite(&x, sizeof(int16), 1, outf)!=1)) exit(1);
       if (term == '\n')
-        if (UNLIKELY(fwrite(&end, 1, sizeof(int16), outf)!=1)) exit(1);
+        if (UNLIKELY(fwrite(&end, sizeof(int16), 1, outf)!=1)) exit(1);
     }
     fclose(outf);
     fclose(infd);
