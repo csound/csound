@@ -1,7 +1,15 @@
+/* TODO
+   1:  time varying conversions
+   3:  Adjust cmake
+   5:  logging option
+   6:  better information at end
+   7:  supression of messages
+ */
+
 /*
     srconv.c
 
-    Copyright (C) 2015 John ffitch after Mark Dolson and Eric de Catro Lopo
+    Copyright (C) 2015 John ffitch after Eric de Catro Lopo
 
     This file is associated with Csound.
 
@@ -54,7 +62,7 @@
 
 #define Str_noop(x) x
 
-static int rewrt_hdr = 0, heartbeat = 0, ringbell = 0;
+static int rewrt_hdr = 0, heartbeat = 0, ringbell = 0, peaks = SF_TRUE;
 static int filetyp, outformat;
 static char* outfilename = NULL;
 static block = 0;
@@ -251,6 +259,9 @@ int main(int argc, char **argv)
           case 'N':
             ringbell = 1;        /* notify on completion */
             break;
+          case 'K':
+            peaks = SF_FALSE;
+            break;
           case 'Q':
             FIND(Str("No Q argument"))
             sscanf(s,"%d", &Q);
@@ -315,7 +326,6 @@ int main(int argc, char **argv)
 
     if ((P != 0.0) && (Rout != 0.0)) {
       strncpy(err_msg, Str("srconv: cannot specify both -r and -P"), 256);
-      err_msg[255] = '\0';
       goto err_rtn_msg;
     }
 
@@ -353,7 +363,6 @@ int main(int argc, char **argv)
         if (fscanf(tvfp, "%lf %lf", i0, i1) != 2) {
           strncpy(err_msg, Str("srconv: too few x-y pairs "
                                 "in time-vary function file"), 256);
-          err_msg[255] = '\0';
           goto err_rtn_msg1;
         }
         if (*i1 > P)
@@ -405,6 +414,7 @@ int main(int argc, char **argv)
       goto err_rtn_msg1;
     }
     sf_command(outf, SFC_SET_CLIPPING, NULL, SF_TRUE);
+    sf_command(outf, SFC_SET_ADD_PEAK_CHUNK, NULL, peaks);
 
     {
       SRC_STATE *state;
@@ -452,12 +462,14 @@ int main(int argc, char **argv)
       state = src_delete(state);
       printf("wrote %d frames\n", count);
       sf_close(inf); sf_close(outf);
+      if (ringbell) fprintf(stderr, "\a");
       exit(0);
 
     }
   err_rtn_msg1:
     sf_close(inf);
   err_rtn_msg:
+    err_msg[255] = '\0';
     fprintf(stderr, err_msg);
     return -1;
 }    
