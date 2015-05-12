@@ -1695,11 +1695,15 @@ int pvsceps_perf(CSOUND *csound, PVSCEPS *p){
 
 int init_ceps(CSOUND *csound, FFT *p){
     int N = p->in->sizes[0]-1;
+    if(N < 64)
+      return csound->InitError(csound,
+                               Str("FFT size too small (min 64 samples)\n"));
     if(isPowerOfTwo(N))
       tabensure(csound, p->out, 2*N+2);
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
+    
     return OK;
 }
 
