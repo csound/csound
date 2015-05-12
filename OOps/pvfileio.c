@@ -624,6 +624,7 @@ static int pvoc_readfmt(CSOUND *csound, PVOCFILE *p, WAVEFORMATPVOCEX *pWfpx)
       return -1;
     }
 
+
     return 0;
 }
 

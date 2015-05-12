@@ -4,10 +4,9 @@ function(compile_po code _infile)
     set(_mofile "${CMAKE_CURRENT_BINARY_DIR}/${code}.mo")
     set(_pofile "${CMAKE_CURRENT_SOURCE_DIR}/${_infile}")
     add_custom_command(
-        TARGET "translations"
-        SOURCE ${_pofile}
+        OUTPUT ${_mofile}
         COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} ARGS -o ${_mofile} ${_pofile}
-        OUTPUTS ${_mofile}
+        DEPENDS ${_pofile}
         )
     INSTALL(FILES ${_mofile}
         DESTINATION ${LOCALE_INSTALL_DIR}/${code}/LC_MESSAGES/
