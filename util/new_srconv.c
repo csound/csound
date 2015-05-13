@@ -9,7 +9,7 @@
 /*
     srconv.c
 
-    Copyright (C) 2015 John ffitch after Eric de Catro Lopo
+    Copyright (C) 2015 John ffitch after Eric de Castro Lopo
 
     This file is associated with Csound.
 
