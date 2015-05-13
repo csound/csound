@@ -48,6 +48,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "sndfile.h"
 #include "samplerate.h"
 
@@ -74,8 +75,13 @@ static block = 0;
       }                                                             \
 }
 
+typedef struct {
+  sf_count_t    frame;
+  double        time;
+  double        ratio;
+} WARP;
 
-static  void    usage(void);
+static void usage(void);
 
 static void heartbeater(void)
 {
@@ -160,13 +166,6 @@ int main(int argc, char **argv)
       *i1;        /* pointer */
 
     double
-      tvx0 = 0,                 /* current x value of time-var function */
-      tvx1 = 0,                 /* next x value of time-var function */
-      tvdx,                     /* tvx1 - tvx0 */
-      tvy0 = 0,                 /* current y value of time-var function */
-      tvy1 = 0,                 /* next y value of time-var function */
-      tvdy,                     /* tvy1 - tvy0 */
-      tvslope = 0,              /* tvdy / tvdx */
       P = 0.0,              /* Rin / Rout */
       Rin = 0.0,            /* input sampling rate */
       Rout = 0.0;           /* output sample rate */
@@ -179,6 +178,7 @@ int main(int argc, char **argv)
       Chans = 1,                /* number of channels */
       Q = 3;                    /* quality factor */
 
+    WARP        *warp;          /* fior time-varying convertion */
     FILE        *tvfp = NULL;   /* time-vary function file */
     char        *infile = NULL, *bfile = NULL;
     SNDFILE     *inf = NULL;
@@ -295,7 +295,7 @@ int main(int argc, char **argv)
         //printf(Str("Infile set to %s\n"), infile);
       }
       else {
-        printf(Str("End with %s\n"), s);
+        printf(Str("Extra arguments: %s\n"), s);
         usage();
         return -1;
       }
@@ -342,59 +342,48 @@ int main(int argc, char **argv)
       Rout = Rin;
     P = Rout/Rin;
     //printf("P=%f, Rin=%f, Rout=%f\n", P, Rin, Rout);
+
     if (tvflg) {
-      P = 0.0;        /* will be reset to max in time-vary function */
       if ((tvfp = fopen(bfile, "r")) == NULL) {
         strncpy(err_msg,
                 Str("srconv: cannot open time-vary function file"), 256);
         goto err_rtn_msg1;
       }
-      if (fscanf(tvfp, "%d", &tvlen) != 1)
-        printf(Str("Read failure\n"));
+      if (fscanf(tvfp, "%d", &tvlen) != 1) {
+        strncpy(err_msg, Str("Read failure of warp file\n"), 267);
+        fclose(tvfp);
+        goto err_rtn_msg1;
+      }
       if (tvlen <= 0) {
+        fclose(tvfp);
         strncpy(err_msg, Str("srconv: tvlen <= 0 "), 256);
         goto err_rtn_msg1;
       }
-      fxval = (double*) malloc(tvlen * sizeof(double));
-      fyval = (double*) malloc(tvlen * sizeof(double));
-      i0 = fxval;
-      i1 = fyval;
-      for (i = 0; i < tvlen; i++, i0++, i1++) {
-        if (fscanf(tvfp, "%lf %lf", i0, i1) != 2) {
+      warp = (WARP*) malloc(tvlen * sizeof(WARP));
+      for (i = 0; i < tvlen; i++) {
+        if (fscanf(tvfp, "%lf %lf", &warp[i].time, &warp[i].ratio) != 2) {
           strncpy(err_msg, Str("srconv: too few x-y pairs "
                                 "in time-vary function file"), 256);
+          fclose(tvfp);
           goto err_rtn_msg1;
         }
-        if (*i1 > P)
-          P = *i1;
+        warp[i].frame = warp[i].time*Rin;
       }
-      Rout = Rin / P;    /* this is min Rout */
-      tvx0 = fxval[0];
-      tvx1 = fxval[1];
-      tvy0 = fyval[0];
-      tvy1 = fyval[1];
-      tvdx = tvx1 - tvx0;
-      if (tvx0 != 0.0) {
-        strncpy(err_msg, Str("srconv: first x value "
+      if (warp[0].frame != 0.0) {
+        strncpy(err_msg, Str("srconv: first frame value "
                              "in time-vary function must be 0"), 256);
         goto err_rtn_msg1;
       }
-      if (tvy0 <= 0.0) {
-        strncpy(err_msg, Str("srconv: invalid initial y value "
-                             "in time-vary function"),256);
-        goto err_rtn_msg1;
-      }
-      if (tvdx <= 0.0) {
-        strncpy(err_msg,
-                       Str("srconv: invalid x values in time-vary function"),
-                       256);
-        goto err_rtn_msg1;
-      }
-      tvdy = tvy1 - tvy0;
-      tvslope = tvdy / tvdx;
       tvnxt = 1;
     }
-        
+    else {
+      warp = (WARP*) malloc(2*sizeof(WARP));
+      warp[0].time = 0.0; warp[0].frame = 0;
+      warp[0].ratio = 1.0;
+      warp[1].time = LONG_MAX; warp[1].frame = LONG_MAX;
+      warp[0].ratio = 1.0;
+      tvlen = 2;
+    }
     if (outformat == 0) outformat = SF_FORMAT_PCM_16;
     if (filetyp == SF_FORMAT_RAW) rewrt_hdr = 0;
     if (outfilename == NULL) {
@@ -439,6 +428,10 @@ int main(int argc, char **argv)
       data.data_out = output;
       data.output_frames = C;
       for (;;) {
+        if (tvnxt < tvlen-1 && count >= warp[tvnxt].frame) {
+          data.src_ratio = warp[tvnxt].ratio;
+          tvnxt++ ;
+        }
         if (data.input_frames==0) {
           if (C!= (data.input_frames = sf_readf_float(inf, input, C)))
             data.end_of_input = SF_TRUE;
@@ -460,7 +453,7 @@ int main(int argc, char **argv)
         data.input_frames -= data.input_frames_used;
       }
       state = src_delete(state);
-      printf("wrote %d frames\n", count);
+      printf("wrote %d frames converting sr %.2f to %.2f\n", count, Rin, Rout);
       sf_close(inf); sf_close(outf);
       if (ringbell) fprintf(stderr, "\a");
       exit(0);
