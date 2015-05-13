@@ -33,4 +33,15 @@ if(BUILD_UTILITIES)
     make_utility(scale       scale_main.c)
     make_utility(sndinfo     sndinfo_main.c)
     make_utility(srconv      srconv_main.c)
+
+
+    find_library(LIBSNDFILE_LIBRARY sndfile)
+    find_library(LIBSAMPLERATE_LIBRARY samplerate)
+
+    if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY) 
+        make_executable(newsrconv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}") 
+    else()
+        message(STATUS "Not building newsrconv (libsndfile or libsamplerate not found)")
+    endif()
+
 endif()
