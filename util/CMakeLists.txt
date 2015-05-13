@@ -39,9 +39,9 @@ if(BUILD_UTILITIES)
     find_library(LIBSAMPLERATE_LIBRARY samplerate)
 
     if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY) 
-        make_executable(newsrconv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}") 
+        make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}") 
     else()
-        message(STATUS "Not building newsrconv (libsndfile or libsamplerate not found)")
+        message(STATUS "Not building src_conv (libsndfile or libsamplerate not found)")
     endif()
 
 endif()
