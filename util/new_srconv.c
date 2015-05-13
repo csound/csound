@@ -1,5 +1,4 @@
 /* TODO
-   1:  time varying conversions
    3:  Adjust cmake
    5:  logging option
    6:  better information at end
