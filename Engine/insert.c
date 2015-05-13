@@ -2272,11 +2272,11 @@ static void instance(CSOUND *csound, int insno)
           if (arg->structPath != NULL) {
             char* path = cs_strdup(csound, arg->structPath);
             char *next, *th;
-            CS_TYPE* type = csoundGetTypeForArg(argpp[n]);
-            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)argpp[n];
              
             next = cs_strtok_r(path, ".", &th);
             while (next != NULL) {
+              CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)argpp[n];
+              CS_TYPE* type = csoundGetTypeForArg(argpp[n]);
               CONS_CELL* members = type->members;
               int i = 0;
               while(members != NULL) {
