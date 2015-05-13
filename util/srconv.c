@@ -255,7 +255,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
               csound->ErrorMsg(csound, Str("-o cannot be stdin"));
               return -1;
             }
-#if defined WIN32
+#if defined(WIN32)
             if (strcmp(O.outfilename, "stdout") == 0) {
               csound->ErrorMsg(csound, Str("stdout audio not supported"));
               return -1;
@@ -757,7 +757,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 static int srconv(CSOUND *csound, int argc, char **argv)
 {
     csound->Message(csound, Str("Do not use srconv but the src_conv program\n"));
-    return -1;
+    return execv("src_conv", argv);
 }
 #endif
 
