@@ -424,13 +424,11 @@ unsigned int CountCSD(char **csdnames)
   char ladspa_path[1024] = "";
   char *src = NULL;
 
-#ifdef MACOSX
-  src = strdup("/Library/Audio/Plug-Ins/LADSPA");
-#else
   src = getenv("LADSPA_PATH");
   if (src)
     src = strdup(src);
-#endif
+  else
+    src = strdup(DEFAULT_LADSPA_PATH);
 
   if (src) {
     strncpy(ladspa_path, src, 1023);
