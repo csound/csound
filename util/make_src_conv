@@ -1,0 +1,2 @@
+#!/bin/sh
+gcc -g new_srconv.c -lsndfile -lsamplerate -o src_conv

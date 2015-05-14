@@ -6,6 +6,7 @@
  * JavaScript context.
  *
  * int getVersion ()
+ * int compileCsd (String pathname)
  * void compileOrc (String orchestracode)
  * double evalCode (String orchestracode)
  * void readScore (String scorelines)
@@ -46,17 +47,42 @@ using namespace v8;
 
 static CSOUND* csound = nullptr;
 
-void Method(const FunctionCallbackInfo<Value>& args) {
-  Isolate* isolate = Isolate::GetCurrent();
-  HandleScope scope(isolate);
+void hello(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
     char buffer[0x100];
     std::sprintf(buffer, "Hello, world! This is Csound 0x%p.", csound);
-  args.GetReturnValue().Set(String::NewFromUtf8(isolate, buffer));
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, buffer));
 }
 
-void init(Handle<Object> target) {
+void getVersion(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    int version = csoundGetVersion();
+    args.GetReturnValue().Set(Number::New(isolate, version));
+}
+
+/**
+ * Compiles the CSD file, and also parses out the <CsHtml5> element
+ * and loads it into NW.js.
+ */
+void compileCsd(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    v8::String::Utf8Value csdpath(args[0]->ToString());
+    int result = csoundCompileCsd(csound, *csdpath);
+    args.GetReturnValue().Set(Number::New(isolate, result));
+}
+
+void init(Handle<Object> target)
+{
     csound = csoundCreate(0);
-    NODE_SET_METHOD(target, "hello", Method);
+    NODE_SET_METHOD(target, "hello", hello);
+    NODE_SET_METHOD(target, "getVersion", getVersion);
+    NODE_SET_METHOD(target, "compileCsd", compileCsd);
 }
 
 NODE_MODULE(binding, init);
