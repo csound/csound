@@ -531,13 +531,6 @@ int add_udo_definition(CSOUND *csound, char *opname,
         }
         csound->Message(csound,
                         Str("WARNING: redefined opcode: %s\n"), opname);
-        
-        /* rename the old opcode version so that older compiled instances using the opcode
-           continue to run using the older opcode version. Renaming instead of deleting is necessary
-           as the size of OENTRY->dsblksize might change in new UDO versions */
-        opc->opname = cs_strdup(csound, "#^_");
-        opc->intypes = cs_strdup(csound, "#");
-        opc->outypes = cs_strdup(csound, "#");
     }
 
     /* IV - Oct 31 2002 */
@@ -551,33 +544,39 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     inm->prv = csound->opcodeInfo;
     csound->opcodeInfo = inm;
-    
-    /* IV - Oct 31 2002: */
-    /* create a fake opcode so we can call it as such */
-    opc = find_opcode(csound, "##userOpcode");
-    memcpy(&tmpEntry, opc, sizeof(OENTRY));
-    tmpEntry.opname = cs_strdup(csound, opname);
-
-    csound->AppendOpcodes(csound, &tmpEntry, 1);
-    newopc = csound_find_internal_oentry(csound, &tmpEntry);
-    
-    newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
-
-    /* check in/out types and copy to the opcode's */
-    /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
-    newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
-                                      + strlen(intypes) + 2);
-    newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
-
-    if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
-      return -3;
-
-    if (strcmp(outtypes, "0")==0) {
-        add_token(csound, opname, T_OPCODE0);
+   
+    if (opc != NULL) {
+        opc->useropinfo = inm;
+        newopc = opc;
     } else {
-        add_token(csound, opname, T_OPCODE);
+        /* IV - Oct 31 2002: */
+        /* create a fake opcode so we can call it as such */
+        opc = find_opcode(csound, "##userOpcode");
+        memcpy(&tmpEntry, opc, sizeof(OENTRY));
+        tmpEntry.opname = cs_strdup(csound, opname);
+        
+        csound->AppendOpcodes(csound, &tmpEntry, 1);
+        newopc = csound_find_internal_oentry(csound, &tmpEntry);
+        
+        newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
+        
+        /* check in/out types and copy to the opcode's */
+        /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
+        newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
+                                         + strlen(intypes) + 2);
+        newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
+        
+        if (strcmp(outtypes, "0")==0) {
+            add_token(csound, opname, T_OPCODE0);
+        } else {
+            add_token(csound, opname, T_OPCODE);
+        }
+      
     }
-
+    
+    if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
+        return -3;
+    
     return 0;
 }
 
