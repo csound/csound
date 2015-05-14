@@ -48,6 +48,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <ctype.h>
 #include "sndfile.h"
 #include "samplerate.h"
 
@@ -65,7 +66,7 @@
 static int rewrt_hdr = 0, heartbeat = 0, ringbell = 0, peaks = SF_TRUE;
 static int filetyp, outformat;
 static char* outfilename = NULL;
-static block = 0;
+static int block = 0;
 #define FIND(MSG)                                                   \
 {                                                                   \
     if (*s == '\0')                                                 \
@@ -159,18 +160,12 @@ int main(int argc, char **argv)
     SF_INFO sfinfo;
 
     double
-      *fxval = 0, /* pointer to start of time-array for time-vary function */
-      *fyval = 0, /* pointer to start of P-scale-array for time-vary func */
-      *i0,        /* pointer */
-      *i1;        /* pointer */
-
-    double
       P = 0.0,              /* Rin / Rout */
       Rin = 0.0,            /* input sampling rate */
       Rout = 0.0;           /* output sample rate */
 
     int
-      i,k,                      /* index variables */
+      i,                        /* index variables */
       tvflg = 0,                /* flag for time-varying time-scaling */
       tvnxt = 0,                /* counter for stepping thru time-var func */
       tvlen,                    /* length of time-varying function */
