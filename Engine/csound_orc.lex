@@ -360,7 +360,9 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 {SYMBOL}     { return *yytext;}
 
 {NUMBER}        { *lvalp = make_num(csound, yytext); return (NUMBER_TOKEN); }
-<*>{WHITE}         { }
+<INITIAL>{
+  {WHITE}         { }
+}
 
 {SLINE}         { BEGIN(sline); }
 <sline>{INTGR}   { csound_orcset_lineno(atoi(yytext), yyscanner); }
