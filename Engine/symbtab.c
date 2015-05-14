@@ -505,8 +505,29 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     /* check if opcode is already defined */
 
-    opc = find_opcode_new(csound, opname, outtypes, intypes);
+    /* FIXME: this checks for opcode name ONLY */
+    inm =  csound->opcodeInfo;
+    while(inm){
+      if(strcmp(opname, inm->name) == NULL) {
+	 csound->Message(csound,
+                        Str("WARNING: redefining opcode: %s\n"), opname);
+	if(inm->instno == 0){
+	  /* Opcodes seem to be added in reverse order */
+	  /* last definition is what counts */
+          return 0;
+	} 
+	if(inm->prv == NULL) {
+	  csound->opcodeInfo = NULL;
+          break;
+	} else {
+          inm->prv = inm->prv->prv;
+	}	
+      }
+      inm = inm->prv;
+    }
 
+    /* VL this check is not working at all */
+    opc = find_opcode_new(csound, opname, outtypes, intypes);
     if (opc != NULL) {
         /* IV - Oct 31 2002: redefine old opcode if possible */
       if (UNLIKELY(
@@ -522,7 +543,6 @@ int add_udo_definition(CSOUND *csound, char *opname,
           synterr(csound, Str("cannot redefine %s"), opname);
           return -2;
         }
-
         csound->Message(csound,
                         Str("WARNING: redefined opcode: %s\n"), opname);
     }

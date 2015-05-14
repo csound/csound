@@ -56,11 +56,11 @@ int16 getnum(FILE* inf, char *term)
     int  cc;
     int p = 0;
     while ((cc=getc(inf))!=',' && cc!='\n' && p<99) {
-        if (cc == EOF) {
-            *term = '\0';
-            return 0;
-        }
-        buff[p++] = cc;
+      if (UNLIKELY(cc == EOF)) {
+        *term = '\0';
+        return 0;
+      }
+      buff[p++] = cc;
     }
     buff[p]='\0';
     *term = cc;
@@ -72,18 +72,18 @@ int main(int argc, char **argv)
     FILE *infd;
     FILE *outf;
 
-    if (argc!= 3) {
+    if (UNLIKELY(argc!= 3)) {
       het_import_usage();
       return 1;
     }
 
     infd = fopen(argv[1], "r");
-    if (infd == NULL) {
+    if (UNLIKELY(infd == NULL)) {
       printf("Cannot open input comma file%s\n", argv[1]);
       return 1;
     }
     outf = fopen(argv[2], "wb");
-    if (outf == NULL) {
+    if (UNLIKELY(outf == NULL)) {
       printf("Cannot open output hetro file %s\n", argv[2]);
       fclose(infd);
       return 1;
@@ -94,10 +94,10 @@ int main(int argc, char **argv)
       char term;
       int16 end = END;
       x = getnum(infd, &term);
-      if (term == '\0') break;
-      if (UNLIKELY(fwrite(&x, 1, sizeof(int16), outf)!=1)) exit(1);
+      if (UNLIKELY(term == '\0')) break;
+      if (UNLIKELY(fwrite(&x, sizeof(int16), 1, outf)!=1)) exit(1);
       if (term == '\n')
-        if (UNLIKELY(fwrite(&end, 1, sizeof(int16), outf)!=1)) exit(1);
+        if (UNLIKELY(fwrite(&end, sizeof(int16), 1, outf)!=1)) exit(1);
     }
     fclose(outf);
     fclose(infd);
