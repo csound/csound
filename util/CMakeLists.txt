@@ -1,9 +1,9 @@
 # UTILITY PLUGIN AND PROGRAMS
 
 set(stdutil_SRCS
-    atsa.c          cvanal.c        dnoise.c    envext.c    
-    het_export.c    het_import.c    hetro.c     lpanal.c 
-    lpc_export.c    lpc_import.c    mixer.c     pvanal.c        
+    atsa.c          cvanal.c        dnoise.c    envext.c
+    het_export.c    het_import.c    hetro.c     lpanal.c
+    lpc_export.c    lpc_import.c    mixer.c     pvanal.c
     pv_export.c     pv_import.c     pvlook.c    scale.c
     sndinfo.c       srconv.c        std_util.c  xtrct.c
     ../SDIF/sdif.c)
@@ -38,8 +38,8 @@ if(BUILD_UTILITIES)
     find_library(LIBSNDFILE_LIBRARY sndfile)
     find_library(LIBSAMPLERATE_LIBRARY samplerate)
 
-    if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY) 
-        make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}") 
+    if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY)
+        make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}")
     else()
         message(STATUS "Not building src_conv (libsndfile or libsamplerate not found)")
     endif()
