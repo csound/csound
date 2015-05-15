@@ -154,7 +154,9 @@ def runTest():
     ]
 
 
-    structTests = [["structs/test_structs.csd", "basic struct test"],
+    structTests = [
+        ["structs/test_structs.csd", "basic struct test"],
+        ["structs/test_sub_structs.csd", "read/write to struct member of struct"]
     ]
 
     udoTests = [["udo/fail_no_xin.csd", "fail due to no xin", 1],
@@ -175,6 +177,7 @@ def runTest():
 
     testPass = 0
     testFail = 0
+    testFailMessages = ""
 
     for t in tests:
         filename = t[0]
@@ -195,10 +198,15 @@ def runTest():
         out = ""
         if (retVal == 0) == (expectedResult == 0):
             testPass += 1
+            out = "[pass] - "
         else:
             testFail += 1
-            out = "[FAIL] - Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult)
-            print out
+            out = "[FAIL] - "
+        out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult)
+        print out
+
+        if (out.startswith("[FAIL]")):
+            testFailMessages += out
 
         output += "%s\n"%("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
@@ -224,6 +232,8 @@ def runTest():
     print "%s\n\n"%("=" * 80)
     print "Tests Passed: %i\nTests Failed: %i\n"%(testPass, testFail)
 
+    if (testFail > 0):
+        print "[FAILED TESTS]\n\n%s"%testFailMessages
 
     f = open("results.txt", "w")
     f.write(output)
