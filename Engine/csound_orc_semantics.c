@@ -955,6 +955,19 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 //    return retVal;
 }
 
+OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
+                       char* outArgTypes, char* inArgTypes) {
+    int i;
+    for (i = 0; i < entries->count; i++) {
+        OENTRY* temp = entries->entries[i];
+        if (!strcmp(inArgTypes, temp->intypes) &&
+            !strcmp(outArgTypes, temp->outypes)) {
+            return temp;
+        }
+    }
+    return NULL;
+}
+
 /* used when creating T_FUNCTION's */
 char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
                               char* inArgTypes) {
@@ -1126,6 +1139,24 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
 
     return retVal;
 }
+
+OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
+                        char* outArgsFound, char* inArgsFound) {
+    
+    OENTRIES* opcodes = find_opcode2(csound, opname);
+    
+    if (opcodes->count == 0) {
+        return NULL;
+    }
+    
+    
+    OENTRY* retVal = resolve_opcode_exact(csound, opcodes, outArgsFound, inArgsFound);
+    
+    csound->Free(csound, opcodes);
+    
+    return retVal;
+}
+
 
 //FIXME - this needs to be updated to take into account array names
 // that could clash with non-array names, i.e. kVar and kVar[]
