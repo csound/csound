@@ -353,7 +353,7 @@ int main(int argc, char **argv)
         strncpy(err_msg, Str("srconv: tvlen <= 0 "), 256);
         goto err_rtn_msg1;
       }
-      warp = (WARP*) malloc(tvlen * sizeof(WARP));
+      warp = (WARP*) malloc((tvlen+1) * sizeof(WARP));
       for (i = 0; i < tvlen; i++) {
         if (fscanf(tvfp, "%lf %lf", &warp[i].time, &warp[i].ratio) != 2) {
           strncpy(err_msg, Str("srconv: too few x-y pairs "
@@ -363,6 +363,9 @@ int main(int argc, char **argv)
         }
         warp[i].frame = warp[i].time*Rin;
       }
+      warp[tvlen].ratio = warp[tvlen-1].ratio;
+      warp[tvlen].time = warp[tvlen].frame = LONG_MAX;
+      tvlen++;
       if (warp[0].frame != 0.0) {
         strncpy(err_msg, Str("srconv: first frame value "
                              "in time-vary function must be 0"), 256);
@@ -373,9 +376,9 @@ int main(int argc, char **argv)
     else {
       warp = (WARP*) malloc(2*sizeof(WARP));
       warp[0].time = 0.0; warp[0].frame = 0;
-      warp[0].ratio = 1.0;
+      warp[0].ratio = P;
       warp[1].time = LONG_MAX; warp[1].frame = LONG_MAX;
-      warp[0].ratio = 1.0;
+      warp[0].ratio = P;
       tvlen = 2;
     }
     if (outformat == 0) outformat = SF_FORMAT_PCM_16;
@@ -407,6 +410,8 @@ int main(int argc, char **argv)
       static float output[OBUF];
       int C = OBUF/Chans;
       int count = 0;
+      double P0 = P, P1 = warp[0].ratio;
+      int CC = 0, N = warp[1].frame-warp[0].frame;
       
       state = src_new(Q, Chans, &err);
       if (state==NULL) {
@@ -421,15 +426,26 @@ int main(int argc, char **argv)
       data.src_ratio = P;
       data.data_out = output;
       data.output_frames = C;
+      //printf("tvnxt=%d: P, P0, P1 = %f, %f, %f  N=%d\n", tvnxt, P,P0,P1,N);
       for (;;) {
         if (tvnxt < tvlen-1 && count >= warp[tvnxt].frame) {
-          data.src_ratio = warp[tvnxt].ratio;
+          P0 = P1;
+          P1 = data.src_ratio = warp[tvnxt].ratio;
+          CC = 0;
+          N = warp[tvnxt].frame - warp[tvnxt-1].frame;
           tvnxt++ ;
+          //printf("tvnxt=%d: P, P0, P1 = %f, %f, %f  N=%d\n", tvnxt, P,P0,P1,N);
         }
+        if (P0!=P1) data.src_ratio = P0+(P1-P0)*(double)CC/N;
+        //printf("CC=%d, C=%d, ratio=%f P0=%f x/N=%f\n",
+        //       CC, C, data.src_ratio, P0, (double)CC/N);
         if (data.input_frames==0) {
-          if (C!= (data.input_frames = sf_readf_float(inf, input, C)))
+          int cn = C;
+          if (warp[tvnxt].frame-CC<C) cn=warp[tvnxt].frame-CC;
+          if (cn!= (data.input_frames = sf_readf_float(inf, input, cn)))
             data.end_of_input = SF_TRUE;
           data.data_in = input;
+          CC += data.input_frames_used;
         }
         err = src_process(state, &data);
         if (err) {
