@@ -154,6 +154,12 @@ Source: "{#MyMSysBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv
 Source: "{#MyQtSdkBinDir}icuin53.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}icuuc53.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}icudt53.dll"; DestDir: "{#APP_BIN}"; Components: core;
+ 
+; Microsoft C runtime library.
+Source: "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x86\Microsoft.VC120.CRT\msvcr120.dll"; DestDir: "{#APP_BIN}"; Components: core;
+; Microsoft C++ runtime library.
+Source: "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x86\Microsoft.VC120.CRT\msvcp120.dll"; DestDir: "{#APP_BIN}"; Components: core;
+
 ;Source: "{#MyMinGwLibDir}libgomp-1.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyMSysUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -301,9 +307,9 @@ Name: "{group}\Csound Tutorial"; Filename: "{#APP_TUTORIAL}tutorial.pdf";  Compo
 Name: "{group}\CsoundAC Tutorial"; Filename: "{#APP_TUTORIAL}Csound_Algorithmic_Composition_Tutorial.pdf";  Components: core  
 
 [Registry]
-Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"RAWWAVE_PATH"; ValueData:"{#APP_SAMPLES}"; Flags: preservestringtype uninsdeletekey;  Components: core 
-Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"OPCODE6DIR64"; ValueData:"{#APP_PLUGINS64}"; Flags: preservestringtype uninsdeletekey;  Components: core 
-Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"PYTHONPATH"; ValueData:"{#APP_BIN}"; Flags: preservestringtype uninsdeletekey;  Components: python 
+Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"RAWWAVE_PATH"; ValueData:"{#APP_SAMPLES}"; Flags: preservestringtype uninsdeletevalue;  Components: core 
+Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"OPCODE6DIR64"; ValueData:"{#APP_PLUGINS64}"; Flags: preservestringtype uninsdeletevalue;  Components: core 
+Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"PYTHONPATH"; ValueData:"{#APP_BIN}"; Flags: preservestringtype uninsdeletevalue;  Components: python 
 
 [Tasks]
 Name: modifypath; Description: &Add application directory to your PATH environment variable; Components: core; 
