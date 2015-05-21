@@ -8,9 +8,6 @@ Use right mouse button for devtools to debug or examine.
 <CsOptions>
 -RWdfodac -m3 -d --sample-accurate
 </CsOptions>
-<CsHtml5>
-<!DOCTYPE html>
-<!-- saved from url=(0044)http://www.clicktorelease.com/code/conway3d/ -->
 <html lang="en">
 <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -425,7 +422,6 @@ Use right mouse button for devtools to debug or examine.
 	</script>
 </body>
 </html>
-</CsHtml5>
 <CsInstruments>
 sr                              =                       48000
 ksmps                           =                       20
