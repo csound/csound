@@ -533,14 +533,14 @@ static int main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
     /* open output file */
     fd = csound->FileOpen2(csound, &outfile, CSFILE_STD, ats_outfile, "wb",
                           NULL, CSFTYPE_ATS, 0);
-    if (fd == NULL) {
+    if (UNLIKELY(fd == NULL)) {
       csound->Die(csound, Str("\nCould not open %s for writing, bye...\n"),
                   ats_outfile);
     }
     /* call tracker */
     sound = tracker(csound, anargs, soundfile, resfile);
     /* save sound */
-    if (sound != NULL) {
+    if (LIKELY(sound != NULL)) {
       csound->Message(csound, Str("saving ATS data..."));
       ats_save(csound, sound, outfile, anargs->SMR_thres, anargs->type);
                       csound->Message(csound, Str("done!\n"));
