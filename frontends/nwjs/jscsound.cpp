@@ -49,7 +49,7 @@
 using namespace v8;
 
 static CSOUND* csound = 0;
-static bool stop = true;
+static bool stop_playing = true;
 static bool finished = true;
 static std::shared_ptr<std::thread> threadptr;
 
@@ -134,19 +134,21 @@ void setControlChannel(const FunctionCallbackInfo<Value>& args)
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     v8::String::Utf8Value channelName(args[0]->ToString());
-    double value = csoundSetControlChannel(csound, *channelName, value);
-    args.GetReturnValue().Set(Number::New(isolate, value));
+    double value = args[1]->ToNumber()->Value();
+    csoundSetControlChannel(csound, *channelName, value);
 }
 
 /**
  * Returns the numerical value of the named Csound control channel.
  */
-void setControlChannel(const FunctionCallbackInfo<Value>& args)
+void getControlChannel(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     v8::String::Utf8Value channelName(args[0]->ToString());
-    double value = csoundSetControlChannel(csound, *channelName, value);
+    int result = 0;
+    double value = csoundGetControlChannel(csound, *channelName, &result);
+    args.GetReturnValue().Set(Number::New(isolate, value));
 }
 
 /**
@@ -203,15 +205,15 @@ void isPlaying(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    bool playing = ((stop == false) && (finished == false));
+    bool playing = ((stop_playing == false) && (finished == false));
     args.GetReturnValue().Set(Number::New(isolate, playing) );
 }
 
-static int play_routine(CSOUND *csound)
+static void play_routine(CSOUND *csound)
 {
     int result = 0;
-    for (stop = false, finished = false;
-         ((stop == false) && (finished == false)); )
+    for (stop_playing = false, finished = false;
+         ((stop_playing == false) && (finished == false)); )
     {
         finished = csoundPerformBuffer(csound);
     }
@@ -225,13 +227,13 @@ static int play_routine(CSOUND *csound)
  * If Csound is already performing, it is first stopped.
  * The performance occurs in a separate, internal thread.
  */
-void play(const FunctionCallbackInfo<Value>& args)
+void perform(const FunctionCallbackInfo<Value>& args)
 {
-    if (threadptr->is_joinable()) {
-        stop();
-        threadptr->join();
-    }
-    threadptr = new std::thread(play_routine, csound);
+    //if (threadptr->joinable()) {
+    //    stop_playing = true;
+    //    threadptr->join();
+    //}
+    threadptr = std::make_shared<std::thread>(&play_routine, csound);
 }
 
 /**
@@ -239,7 +241,7 @@ void play(const FunctionCallbackInfo<Value>& args)
  */
 void stop(const FunctionCallbackInfo<Value>& args)
 {
-    stop = true;
+    stop_playing = true;
 }
 
 void init(Handle<Object> target)
@@ -248,6 +250,18 @@ void init(Handle<Object> target)
     NODE_SET_METHOD(target, "hello", hello);
     NODE_SET_METHOD(target, "getVersion", getVersion);
     NODE_SET_METHOD(target, "compileCsd", compileCsd);
+    NODE_SET_METHOD(target, "compileOrc", compileOrc);
+    NODE_SET_METHOD(target, "evalCode", evalCode);
+    NODE_SET_METHOD(target, "readScore", readScore);
+    NODE_SET_METHOD(target, "setControlChannel", setControlChannel);
+    NODE_SET_METHOD(target, "getControlChannel", getControlChannel);
+    NODE_SET_METHOD(target, "message", message);
+    NODE_SET_METHOD(target, "getSr", getSr);
+    NODE_SET_METHOD(target, "getKsmps", getKsmps);
+    NODE_SET_METHOD(target, "getNchnls", getNchnls);
+    NODE_SET_METHOD(target, "isPlaying", isPlaying);
+    NODE_SET_METHOD(target, "perform", perform);
+    NODE_SET_METHOD(target, "stop", stop);
 }
 
 NODE_MODULE(binding, init);
