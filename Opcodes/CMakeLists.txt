@@ -15,6 +15,8 @@ option(BUILD_FAUST_OPCODES "Build the Faust opcodes" OFF)
 option(BUILD_VST4CS_OPCODES "Build the vst4cs opcodes" OFF)
 option(BUILD_EXCITER_OPCODES "Build the exciter opcode" ON)
 option(BUILD_BUCHLA_OPCODES "Build the Buchla filter opcode" ON)
+option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
+option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 
 find_package(Boost)
 check_include_file(ladspa.h LADSPA_H)
@@ -66,6 +68,7 @@ make_plugin(fractalnoise tl/fractalnoise.cpp)
 
 make_plugin(fareygen fareygen.c)
 
+if(BUILD_PADSYNTH_OPCODES)
 if(APPLE)
   make_plugin(padsynth padsynth_gen.cpp)
   set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11 -stdlib=libc++"
@@ -86,6 +89,7 @@ elseif(LINUX)
 else()
     make_plugin(padsynth padsynth_gen.cpp)
 endif()
+endif()
 
 
 make_plugin(cellular cellular.c)
@@ -98,9 +102,11 @@ if(BUILD_PLATEREV_OPCODES)
    make_plugin(platerev platerev.c m)
 endif()
 
-set(scansyn_SRCS
-    scansyn.c scansynx.c)
-make_plugin(scansyn "${scansyn_SRCS}" m)
+if(BUILD_SCANSYN_OPCODES)
+    set(scansyn_SRCS
+        scansyn.c scansynx.c)
+    make_plugin(scansyn "${scansyn_SRCS}" m)
+endif()
 
 if(UNIX)
     make_plugin(control control.c)

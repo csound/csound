@@ -427,7 +427,9 @@ unsigned int CountCSD(char **csdnames)
 #ifdef MACOSX
   src = strdup("/Library/Audio/Plug-Ins/LADSPA");
 #else
-  src = strdup(getenv("LADSPA_PATH"));
+  src = getenv("LADSPA_PATH");
+  if (src)
+    src = strdup(src);
 #endif
 
   if (src) {
@@ -452,7 +454,8 @@ unsigned int CountCSD(char **csdnames)
     }
     else dip = opendir(ladspa_path);
   }
-  if (dip == NULL){
+  if (dip == NULL) {
+    free(src);
     return 0;
   }
   while ((dit = readdir(dip))!=NULL)

@@ -1586,11 +1586,12 @@ int kperf_nodebug(CSOUND *csound)
       memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
     }
     csound->spoutran(csound); /* send to audio_out */
-    #ifdef ANDROID
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    csound->Message(csound, "kperf kcount, %d,%d.%06d\n", csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
-    #endif
+    //#ifdef ANDROID
+    //struct timespec ts;
+    //clock_gettime(CLOCK_MONOTONIC, &ts);
+    //csound->Message(csound, "kperf kcount, %d,%d.%06d\n",
+    //                csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
+    //#endif
     return 0;
 }
 
@@ -3113,7 +3114,8 @@ PUBLIC void csoundReset(CSOUND *csound)
 
     csound->engineState.stringPool = cs_hash_table_create(csound);
     csound->engineState.constantsPool = myflt_pool_create(csound);
-    if(csound->symbtab != NULL) cs_hash_table_mfree_complete(csound, csound->symbtab);
+    if (csound->symbtab != NULL)
+      cs_hash_table_mfree_complete(csound, csound->symbtab);
     csound->symbtab = NULL;
     csound->engineStatus |= CS_STATE_PRE;
     csound_aops_init_tables(csound);

@@ -95,6 +95,8 @@ Alg_smf_write::Alg_smf_write(Alg_seq_ptr a_seq)
     seq = a_seq;
 
     previous_divs = 0; // used to compute deltas for midifile
+    // to suppress coverity defect report
+    channels_per_track = num_tracks = timesig_when = keysig_when = -1; 
 }
 
 

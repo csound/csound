@@ -182,9 +182,10 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     #ifdef ANDROID
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    csound->Message(csound, "input message kcount, %d, %d.%06d\n", csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
+    csound->Message(csound, Str("input message kcount, %d, %d.%06d\n"),
+                            csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
     #endif
-    
+
     if ((n=linevent_alloc(csound, 0)) != 0) return;
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
@@ -266,7 +267,8 @@ static void sensLine(CSOUND *csound, void *userData)
           pcnt++;
           if (c == '"') {                       /* if find character string */
             if (e.strarg == NULL)
-              e.strarg = sstrp = csound->Malloc(csound, strsiz=SSTRSIZ);
+              e.strarg = csound->Malloc(csound, strsiz=SSTRSIZ);
+            sstrp = e.strarg;
             n = scnt;
             while (n-->0) sstrp += strlen(sstrp)+1;
             n = 0;
