@@ -1,3 +1,4 @@
+
 /*
     symbtab.c:
 

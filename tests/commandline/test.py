@@ -140,6 +140,7 @@ def runTest():
         ["test_explicit_types.csd", "test typed identifiers (i.e. signals:a[], sigLeft:a)"],
         ["test_parser3_opcall_ambiguities.csd", "test T_OPCALL ambiguities"],
         ["test_new_udo_syntax.csd", "test new-style UDO syntax"],
+        ["test_new_udo_syntax_explicit_types.csd", "test new-style UDO syntax with explicit types"],
         ["test_multiple_return.csd", "test multiple return from express (i.. a1,a2 = xx())"],
     ]
 
