@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export MANUAL_DIR=`pwd`/../../../manual
-export CS_VERSION="6.04"
+export CS_VERSION="6.05"
 export PACKAGE_NAME=csound${CS_VERSION}-OSX10.10-universal.pkg
 export DMG_DIR="Csound ${CS_VERSION}"
 export DMG_NAME="csound${CS_VERSION}-OSX10.10-universal.dmg"
@@ -173,8 +173,7 @@ echo "copying csladspa..."
 
 
 mkdir -p $APPS64_DIR/../../../Library/Audio/Plug-Ins/LADSPA
-mv $FRAMEWORK64_DIR/Resources/Opcodes64/csladspa.dylib $APPS64_DIR/../../../Library/Audio/Plug-Ins/LADSPA/csladspa64.dylib
-
+mv $FRAMEWORK64_DIR/Resources/Opcodes64/csladspa.dylib $APPS64_DIR/../../../Library/Audio/Plug-Ins/LADSPA/csladspa64.so
 
 echo "copying apps..."
 

@@ -193,7 +193,7 @@ PUBLIC int csoundCsdPerform(CSOUND *csound, char *filename);
 
 
  /* VL: a new, more complete, version of this function has been added to the main
-     Csound library. 
+     Csound library.
   PUBLIC int csoundCompileCsd(CSOUND *, char *csdFilename);
  */
 

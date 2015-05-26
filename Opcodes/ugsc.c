@@ -40,8 +40,10 @@
 
 static int svfset(CSOUND *csound, SVF *p)
 {
-    /* set initial delay states to 0 */
-    p->ynm1 = p->ynm2 = FL(0.0);
+    if (*p->iskip) {
+      /* set initial delay states to 0 */
+      p->ynm1 = p->ynm2 = FL(0.0);
+    }
     return OK;
 }
 
@@ -714,16 +716,16 @@ static int lp2ak(CSOUND *csound, LP2 *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "svfilter", S(SVF),    0, 5, "aaa", "axxo", (SUBR)svfset, NULL, (SUBR)svf     },
-{ "hilbert", S(HILBERT), 0, 5, "aa", "a", (SUBR)hilbertset, NULL, (SUBR)hilbert },
-{ "resonr", S(RESONZ),   0, 5, "a", "axxoo", (SUBR)resonzset, NULL, (SUBR)resonr},
-{ "resonz", S(RESONZ),   0, 5, "a", "axxoo", (SUBR)resonzset, NULL, (SUBR)resonz},
-{ "lowpass2.kk", S(LP2), 0, 5, "a", "akko",  (SUBR)lp2_set, NULL, (SUBR)lp2     },
-{ "lowpass2.aa", S(LP2), 0, 5, "a", "aaao",  (SUBR)lp2_set, NULL, (SUBR)lp2aa   },
-{ "lowpass2.ak", S(LP2), 0, 5, "a", "aakao", (SUBR)lp2_set, NULL, (SUBR)lp2ak   },
-{ "lowpass2.ka", S(LP2), 0, 5, "a", "akao",  (SUBR)lp2_set, NULL, (SUBR)lp2ka   },
-{ "phaser2", S(PHASER2), 0, 5, "a", "akkkkkk",(SUBR)phaser2set,NULL,(SUBR)phaser2},
-{ "phaser1", S(PHASER1), 0, 5, "a", "akkko", (SUBR)phaser1set, NULL,(SUBR)phaser1}
+{ "svfilter", S(SVF),    0, 5, "aaa", "axxoo", (SUBR)svfset, NULL, (SUBR)svf    },
+{ "hilbert", S(HILBERT), 0,5, "aa", "a", (SUBR)hilbertset, NULL, (SUBR)hilbert },
+{ "resonr", S(RESONZ),   0,5, "a", "axxoo", (SUBR)resonzset, NULL, (SUBR)resonr},
+{ "resonz", S(RESONZ),   0,5, "a", "axxoo", (SUBR)resonzset, NULL, (SUBR)resonz},
+{ "lowpass2.kk", S(LP2), 0,5, "a", "akko",  (SUBR)lp2_set, NULL, (SUBR)lp2     },
+{ "lowpass2.aa", S(LP2), 0,5, "a", "aaao",  (SUBR)lp2_set, NULL, (SUBR)lp2aa   },
+{ "lowpass2.ak", S(LP2), 0,5, "a", "aakao", (SUBR)lp2_set, NULL, (SUBR)lp2ak   },
+{ "lowpass2.ka", S(LP2), 0,5, "a", "akao",  (SUBR)lp2_set, NULL, (SUBR)lp2ka   },
+{ "phaser2", S(PHASER2), 0,5, "a", "akkkkkk",(SUBR)phaser2set,NULL,(SUBR)phaser2},
+{ "phaser1", S(PHASER1), 0,5, "a", "akkko", (SUBR)phaser1set, NULL,(SUBR)phaser1}
 };
 
 int ugsc_init_(CSOUND *csound)

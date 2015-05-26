@@ -434,10 +434,12 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
       O->RTevents = 1;
     if (!O->sfheader)
       O->rewrt_hdr = 0;         /* cannot rewrite header of headerless file */
+    /* VL 9 04 15: these not need occur jointly anymore */
+    /* 
     if (O->sr_override || O->kr_override) {
       if (!O->sr_override || !O->kr_override)
         dieu(csound, Str("srate and krate overrides must occur jointly"));
-    }
+    } */
     if (!O->outformat)                      /* if no audioformat yet  */
       O->outformat = AE_SHORT;              /*  default to short_ints */
     O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
