@@ -8,8 +8,6 @@ showspaces=false, showstringspaces=false
 }
 \begin{document}
 
-
-
 \title{Csound for Portable Native Client}
 \author{Victor Lazzarini}
 \date{\today}
@@ -29,7 +27,10 @@ translated to a native binary by the browser. To check whether your version of C
  {\tt chrome://nacl }
 \\
 
-A binary package for PNaCl-Csound can be found in the Csound releases \url{http://sourceforge.net/projects/csound/files/csound6}
+The pNaCl Csound implementation allows users to embed the system in web pages. With a minimal use of Javascript, it is possible
+to create applications and frontends for Csound, to be run inside a web browser (Chrome, Chromium).
+
+A binary package for pNaCl-Csound can be found in the Csound releases \url{http://sourceforge.net/projects/csound/files/csound6}
 
 \subsection{Running the example application}
 
@@ -60,7 +61,7 @@ The ``finished render" message is issued on completion.
 \item {\tt csound.Event(s)} - sends in the line events contained in the string s (no preprocessing)
 \item {\tt csound.SetChannel(name, value)} - sends the control channel
   \emph{name} the value \emph{value}.
-\item {\tt csound.SetStrinhChannel(name, string)} - sends the string channel
+\item {\tt csound.SetStringChannel(name, string)} - sends the string channel
   \emph{name} the string \emph{string}.
 \item {\tt csound.SetTable(num, pos, value)} - sets the table
   \emph{name} at index \emph{pos} the value \emph{value}.
@@ -68,6 +69,14 @@ The ``finished render" message is issued on completion.
   table \emph{num}. The ``Table::Complete" message is issued on completion. 
 \item {\tt csound.GetTableData()} - returns the most recently
   requested table data as an ArrayObject. 
+\item {\tt MIDIin(byte1, byte2, byte3)} - sends a MIDI in message to Csound.
+\item {\tt NoteOn(channel,number,velocity)} - sends a Note ON message to Csound.
+\item {\tt NoteOff(channel,number,velocity)} - sends a Note OFF message to Csound.
+\item {\tt PolyAftertouch(channel,number,aftertouch)} - sends a polyphonic aftertouch message to Csound.
+\item {\tt ControlChange(channel,control,amount)} - sends a control change message to Csound.
+\item {\tt ProgramChange(channel,control)} - sends a program change message to Csound.
+\item {\tt Aftertouch(channel,amount)} - sends a mono aftertouch message to Csound.
+\item {\tt PitchBend(channel,fine,coarse)} - sends a pitchbend message to Csound.
 \end{itemize}
 
 \subsection{Filesystem functions}
@@ -111,8 +120,8 @@ Here is a minimal HTML example showing the use of Csound
 The following limitations apply:
 
 \begin{itemize}
-\item no MIDI in the NaCl module. However, it might be possible to implement MIDI in javascript, and using the csound.js functions,
-send data to Csound, and respond to MIDI NOTE messages.
+\item MIDI is implemented so that Csound MIDI opcodes can be used. MIDI hardware interface needs to be provided
+in Javascript by another library (e.g. WebMIDI).
 \item no plugins, as pNaCl does not support dlopen() and friends. This means some opcodes are not available as they reside in plugin libraries.
 It might be possible to add some of these opcodes statically to the Csound pNaCl library in the future.
 \end {itemize}
