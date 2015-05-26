@@ -437,17 +437,17 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 //      i++; types++;
 //    }
     int n=0;
-    while(out_args[n] != NULL)  {
-	  // printf("delete %p \n", argsFound[n]);
-	  csound->Free(csound, in_args[n]);
-	  n++;
+    while(in_args[n] != NULL)  {
+          // printf("delete %p \n", argsFound[n]);
+          csound->Free(csound, in_args[n]);
+          n++;
    }
     csound->Free(csound, in_args);
     n = 0;
     while(out_args[n] != NULL)  {
-	  // printf("delete %p \n", argsFound[n]);
-	  csound->Free(csound, out_args[n]);
-	  n++;
+          // printf("delete %p \n", argsFound[n]);
+          csound->Free(csound, out_args[n]);
+          n++;
    }
     csound->Free(csound, out_args);
     return err;
@@ -497,16 +497,23 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     OENTRY    tmpEntry, *opc, *newopc;
     OPCODINFO *inm;
+    int len;
 
     if (UNLIKELY(!check_instr_name(opname))) {
         synterr(csound, Str("invalid name for opcode"));
         return -1;
     }
 
+    len = strlen(intypes);
+    if (len == 1 && *intypes == '0') {
+      opc = find_opcode_exact(csound, opname, outtypes, "o");
+    } else {
+    char* adjusted_intypes = malloc(sizeof(char) * (len + 2));
+      sprintf(adjusted_intypes, "%so", intypes);
+      opc = find_opcode_exact(csound, opname, outtypes, adjusted_intypes);
+    }
+    
     /* check if opcode is already defined */
-
-    opc = find_opcode_new(csound, opname, outtypes, intypes);
-
     if (opc != NULL) {
         /* IV - Oct 31 2002: redefine old opcode if possible */
       if (UNLIKELY(
@@ -522,7 +529,6 @@ int add_udo_definition(CSOUND *csound, char *opname,
           synterr(csound, Str("cannot redefine %s"), opname);
           return -2;
         }
-
         csound->Message(csound,
                         Str("WARNING: redefined opcode: %s\n"), opname);
     }
@@ -538,32 +544,39 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     inm->prv = csound->opcodeInfo;
     csound->opcodeInfo = inm;
-
-    /* IV - Oct 31 2002: */
-    /* create a fake opcode so we can call it as such */
-    opc = find_opcode(csound, "##userOpcode");
-    memcpy(&tmpEntry, opc, sizeof(OENTRY));
-    tmpEntry.opname = cs_strdup(csound, opname);
-    csound->AppendOpcodes(csound, &tmpEntry, 1);
-
-    newopc = csound_find_internal_oentry(csound, &tmpEntry);
-    newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
-
-    /* check in/out types and copy to the opcode's */
-    /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
-    newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
-                                      + strlen(intypes) + 2);
-    newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
-
-    if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
-      return -3;
-
-    if (strcmp(outtypes, "0")==0) {
-        add_token(csound, opname, T_OPCODE0);
+   
+    if (opc != NULL) {
+        opc->useropinfo = inm;
+        newopc = opc;
     } else {
-        add_token(csound, opname, T_OPCODE);
+        /* IV - Oct 31 2002: */
+        /* create a fake opcode so we can call it as such */
+        opc = find_opcode(csound, "##userOpcode");
+        memcpy(&tmpEntry, opc, sizeof(OENTRY));
+        tmpEntry.opname = cs_strdup(csound, opname);
+        
+        csound->AppendOpcodes(csound, &tmpEntry, 1);
+        newopc = csound_find_internal_oentry(csound, &tmpEntry);
+        
+        newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
+        
+        /* check in/out types and copy to the opcode's */
+        /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
+        newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
+                                         + strlen(intypes) + 2);
+        newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
+        
+        if (strcmp(outtypes, "0")==0) {
+            add_token(csound, opname, T_OPCODE0);
+        } else {
+            add_token(csound, opname, T_OPCODE);
+        }
+      
     }
-
+    
+    if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
+        return -3;
+    
     return 0;
 }
 

@@ -54,6 +54,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
                       ENGINE_STATE *engineState, int merge);
 int check_instr_name(char *s);
+extern void free_instr_var_memory(CSOUND*, INSDS*);
 
 extern const char* SYNTHESIZED_ARG;
 
@@ -214,7 +215,7 @@ char** splitArgs(CSOUND* csound, char* argString)
     // printf("alloc %p \n", args);
     char* t = argString;
     int i = 0;
-    	    
+
     if (t != NULL) {
       while (*t != '\0' ) {
         char* part;
@@ -239,8 +240,8 @@ char** splitArgs(CSOUND* csound, char* argString)
             len++;
             dimensions++;
           }
-	  part = csound->Malloc(csound, sizeof(char) * (dimensions + 3));
-	  //printf("alloc %p \n", part);
+          part = csound->Malloc(csound, sizeof(char) * (dimensions + 3));
+          //printf("alloc %p \n", part);
           part[dimensions + 2] = '\0';
           part[dimensions + 1] = ']';
           part[dimensions] = *start;
@@ -250,7 +251,7 @@ char** splitArgs(CSOUND* csound, char* argString)
 
         } else {
           part = csound->Malloc(csound, sizeof(char) * 2);
-	  //printf("alloc %p \n", part);
+          //printf("alloc %p \n", part);
           part[0] = *t;
           part[1] = '\0';
           t++;
@@ -610,15 +611,30 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                       csound->esr, csound->ekr, csound->ksmps,
                       csound->nchnls, csound->e0dbfs);
 
-    if (O->sr_override) {        /* if command-line overrides, apply now */
+    if (O->sr_override || O->kr_override || O->ksmps_override) {   /* if command-line overrides, apply now */
       MYFLT ensmps;
-      csound->esr = (MYFLT) O->sr_override;
-      csound->ekr = (MYFLT) O->kr_override;
-      csound->ksmps = (int) ((ensmps = ((MYFLT) O->sr_override
-                                        / (MYFLT) O->kr_override)) + FL(0.5));
-      csound->Message(csound, Str("sample rate overrides: "
-                                  "esr = %7.4f, ekr = %7.4f, ksmps = %d\n"),
-                      csound->esr, csound->ekr, csound->ksmps);
+      
+      if(!O->ksmps_override){
+      csound->esr = (MYFLT) (O->sr_override ? O->sr_override : csound->esr);
+      csound->ekr = (MYFLT) (O->kr_override ? O->kr_override : csound->ekr);
+      csound->ksmps = (int) ((ensmps = ((MYFLT) csound->esr
+                                        / (MYFLT) csound->ekr)) + FL(0.5));
+      }
+      else {
+        csound->ksmps = (ensmps = O->ksmps_override);
+        if(O->sr_override) {
+          csound->ekr = O->sr_override / csound->ksmps;
+          csound->esr = O->sr_override;
+        }
+        else if(O->kr_override) {
+          csound->esr = O->kr_override * csound->ksmps;
+          csound->ekr = O->kr_override;
+        }
+        else {
+         csound->ekr = csound->esr / csound->ksmps;
+        }
+      }
+      
       /* chk consistency one more time */
       {
         char  s[256];
@@ -633,6 +649,9 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         if (UNLIKELY(FLOAT_COMPARE(csound->esr, (double) csound->ekr * ensmps)))
           csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
       }
+      csound->Message(csound, Str("sample rate overrides: "
+                                  "esr = %7.4f, ekr = %7.4f, ksmps = %d\n"),
+                      csound->esr, csound->ekr, csound->ksmps);
     }
 
     csound->tpidsr = TWOPI_F / csound->esr;               /* now set internal  */
@@ -645,7 +664,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->onedsr = FL(1.0) / csound->esr;
     csound->onedkr = FL(1.0) / csound->ekr;
     csound->global_kcounter  = csound->kcounter;
- 
+
     if (csound->ksmps != DFLT_KSMPS) {
       reallocateVarPoolMemory(csound, engineState->varPool);
       //csound->Message(csound, "recalculate varpool\n");
@@ -866,36 +885,37 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
         fdchclose(csound, active);
       if (active->auxchp != NULL)
         auxchfree(csound, active);
+      free_instr_var_memory(csound, active);
       if(active->opcod_iobufs != NULL)
-	csound->Free(csound, active->opcod_iobufs);
+        csound->Free(csound, active->opcod_iobufs);
       csound->Free(csound, active);
       active = nxt;
     }
     OPTXT *t = ip->nxtop;
     while (t) {
           OPTXT *s = t->nxtop;
-	  TEXT *ttp = &t->t;
-	  //printf("%s \n",  ttp->opcod);
+          TEXT *ttp = &t->t;
+          //printf("%s \n",  ttp->opcod);
           ARG* current = ttp->outArgs;
           while (current != NULL) {
-	      ARG *tmp = current;
-	      //printf("delete %p \n", tmp);
-	      current = current->next;
-	      csound->Free(csound, tmp);
-            } 
-	  csound->Free(csound, t->t.outlist);
-	  current = ttp->inArgs;
+              ARG *tmp = current;
+              //printf("delete %p \n", tmp);
+              current = current->next;
+              csound->Free(csound, tmp);
+            }
+          csound->Free(csound, t->t.outlist);
+          current = ttp->inArgs;
             while (current  != NULL) {
-	      ARG *tmp = current;
-	      //printf("delete %p \n", tmp);
-	      current = current->next;
-	      csound->Free(csound, tmp);
+              ARG *tmp = current;
+              //printf("delete %p \n", tmp);
+              current = current->next;
+              csound->Free(csound, tmp);
            }
           csound->Free(csound, t->t.inlist);
           csound->Free(csound, t);
           t = s;
         }
- 
+
     csound->Free(csound, ip->t.outlist);
     csound->Free(csound, ip->t.inlist);
     CS_VARIABLE *var = ip->varPool->head;
@@ -904,7 +924,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
       var = var->next;
       csound->Free(csound, tmp->varName);
     }
-    
+
     csoundFreeVarPool(csound, ip->varPool);
     csound->Free(csound, ip);
      if (csound->oparms->odebug)
@@ -1011,7 +1031,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
       /* no active instances */
       if (active == NULL) {
         if (csound->oparms->odebug)
-          csound->Message(csound, "no active instances \n");
+          csound->Message(csound, Str("no active instances \n"));
         free_instrtxt(csound, engineState->instrtxtp[inm->instno]);
         engineState->instrtxtp[inm->instno] = NULL;
       }
@@ -1157,7 +1177,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
         }
         active = active->nxtinstance;
       }
-     
+
       /* no active instances */
       /* instr0 is freed elsewhere */
       if (active == NULL  && instrNum != 0) {
@@ -1166,11 +1186,11 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
                        Str("no active instances of instr %d \n"), instrNum);
        free_instrtxt(csound, engineState->instrtxtp[instrNum]);
       }
-             
+
       /* err++; continue; */
     }
  end:
-     
+
     instrtxt->instance = instrtxt->act_instance = instrtxt->lst_instance = NULL;
     engineState->instrtxtp[instrNum] = instrtxt;
 
@@ -1270,18 +1290,18 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
         /* when disposing of the engineState global vars, we do not
            delete the memBlock */
         var->memBlock = gVar->memBlock;
-	//csound->Message(csound, Str(" adding %d) %s:%s\n"), count,
-	//          gVar->varName, gVar->varType->varTypeName);
+        //csound->Message(csound, Str(" adding %d) %s:%s\n"), count,
+        //          gVar->varName, gVar->varType->varTypeName);
          gVar = gVar->next;
       } else {
-	// if variable exists
-	// free variable mem block
-	// printf("free %p \n", gVar->memBlock);
-	// the CS_VARIABLE itself will be freed on engine_free()
-	csound->Free(csound, gVar->memBlock);
-	csound->Free(csound, gVar->varName);
+        // if variable exists
+        // free variable mem block
+        // printf("free %p \n", gVar->memBlock);
+        // the CS_VARIABLE itself will be freed on engine_free()
+        csound->Free(csound, gVar->memBlock);
+        csound->Free(csound, gVar->varName);
         gVar = gVar->next;
-      }	
+      }
     }
 
     /* merge opcodinfo */
@@ -1359,6 +1379,18 @@ void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable){
       cs_cons_free_complete(csound, typeTable->labelList);
       csound->Free(csound, typeTable);
 }
+
+static char *node2string(int type)
+{
+    /* Add new nodes here as necessary -- JPff */
+    switch (type) {
+    /* case LABEL_TOKEN: */
+    /*   return "label"; */
+    default:
+      return "??";
+    }
+}
+
 /**
  * Compile the given TREE node into structs
 
@@ -1410,7 +1442,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     }
     else {
       engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
-      engineState->stringPool = csound->engineState.stringPool; //cs_hash_table_create(csound);
+      engineState->stringPool = csound->engineState.stringPool;
+                                //cs_hash_table_create(csound);
       engineState->constantsPool = myflt_pool_create(csound);
       engineState->varPool = typeTable->globalPool;
       prvinstxt = &(engineState->instxtanchor);
@@ -1421,14 +1454,14 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
           subsequent compilations */
        csound->instr0 = create_global_instrument(csound, current, engineState,
                                          typeTable->instr0LocalPool);
-    
+
         insert_instrtxt(csound, csound->instr0, 0, engineState,1);
-	
+
        prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
       //engineState->maxinsno = 1;
     }
 
-  
+
     // allocate memory for global vars
     // if this variable already exists,
     // memory will be freed on merge.
@@ -1445,7 +1478,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         var = var->next;
     }
 
-    
+
     while (current != NULL) {
 
       switch (current->type) {
@@ -1582,12 +1615,13 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       case T_OPCODE:
       case T_OPCODE0:
       case LABEL:
+      case LABEL_TOKEN:
         break;
 
       default:
         csound->Message(csound,
-                        Str("Unknown TREE node of type %d found in root.\n"),
-                        current->type);
+                        Str("Unknown TREE node of type %d (%s) found in root.\n"),
+                        current->type, node2string(current->type));
         if (PARSER_DEBUG) print_tree(csound, NULL, current);
       }
       current = current->next;
@@ -1638,7 +1672,9 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                      (!thread && bp->t.pftype != 'b'))) {
           csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n",
                            bp->t.opcod, thread, bp->t.pftype);
-          synterr(csound, Str("perf-pass statements illegal in header blk\n"));
+          synterr(csound,
+                  Str("perf-pass statements illegal in header blk (%s)\n"),
+                  oentry->opname);
         }
       }
 
@@ -1687,7 +1723,12 @@ PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str)
 #endif
 }
 
+#ifdef EMSCRIPTEN
+void sanitize(CSOUND *csound) {}
+#else
 extern void sanitize(CSOUND *csound);
+#endif
+
 /**
     Parse and compile an orchestra given on an string (OPTIONAL)
     if str is NULL the string is taken from the internal corfile
@@ -1705,7 +1746,7 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
      csoundDeleteTree(csound, root);
     }
     else {
-     csoundDeleteTree(csound, root);
+      // csoundDeleteTree(csound, root);
      return  CSOUND_ERROR;
     }
 
@@ -1784,16 +1825,16 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 
           if (ttp->inArgs == NULL) {
             ttp->inArgs = arg;
-	    //printf("yinarg %p -- opcode %s \n", arg, ttp->opcod);
+            //printf("yinarg %p -- opcode %s \n", arg, ttp->opcod);
           } else {
             ARG* current = ttp->inArgs;
-	    //printf("xinarg %p %p -- opcode %s \n", current, arg, ttp->opcod);
+            //printf("xinarg %p %p -- opcode %s \n", current, arg, ttp->opcod);
             while(current->next != NULL) {
-	      //printf("inarg %p %p -- opcode %s \n", current, arg, ttp->opcod);
-              current = current->next; 
+              //printf("inarg %p %p -- opcode %s \n", current, arg, ttp->opcod);
+              current = current->next;
             }
             current->next = arg;
-            
+
             arg->next = NULL;
           }
         }
@@ -1852,10 +1893,10 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
           csound->Message(csound, "\n");
         }
         //printf("delete %p \n", argStringParts);
-	for(n=0; argStringParts[n] != NULL; n++) {
-	  //printf("delete %p \n", argStringParts[n]);
-	  csound->Free(csound, argStringParts[n]);
-	}
+        for(n=0; argStringParts[n] != NULL; n++) {
+          //printf("delete %p \n", argStringParts[n]);
+          csound->Free(csound, argStringParts[n]);
+        }
         csound->Free(csound, argStringParts);
       }
 
@@ -1958,7 +1999,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       }
     }
     /*    csound->Message(csound, " [%s -> %d (%x)]\n", s, indx, indx); */
-     
+
     return arg;
 }
 

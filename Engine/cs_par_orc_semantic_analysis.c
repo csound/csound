@@ -183,7 +183,8 @@ void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
         struct set_t *new_read_write = NULL;
         csp_set_union(csound, csound->instCurr->read_write,
                       new, &new_read_write);
-        //printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, *new_read_write);
+        //printf("Line: %d of cs_par_orc_semantics(%p)\n",
+        //       __LINE__, *new_read_write);
         csp_set_dealloc(csound, &csound->instCurr->read_write);
         csound->instCurr->read_write = new_read_write;
       }
@@ -272,16 +273,16 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {
     name = strdup(name); // JPff:  leaks: necessary??
-    printf("csp_orc_sa_instr_add name=%s\n", name);
+    //printf("csp_orc_sa_instr_add name=%s\n", name);
     csound->inInstr = 1;
     if (csound->instRoot == NULL) {
-      printf("instRoot id NULL\n");
+      //printf("instRoot id NULL\n");
       csound->instRoot = instr_semantics_alloc(csound, name);
       csound->instCurr = csound->instRoot;
     }
     else if (csound->instCurr == NULL) {
       INSTR_SEMANTICS *prev = csound->instRoot;
-      printf("instCurr NULL\n");
+      //printf("instCurr NULL\n");
       csound->instCurr = prev->next;
       while (csound->instCurr != NULL) {
         prev = csound->instCurr;

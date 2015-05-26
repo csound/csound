@@ -1316,8 +1316,9 @@ static MYFLT nextval(FILE *f)
     /* Read the next charcater; suppress multiple space and comments to a
        single space */
     int c;
-    c = getc(f);
  top:
+    c = getc(f);
+ top1:
     if (feof(f)) return NAN; /* Hope value is ignored */
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
       double d;                           /* A number starts */
@@ -1334,10 +1335,11 @@ static MYFLT nextval(FILE *f)
       }
       return (MYFLT)d;
     }
-    while (isspace(c)) c = getc(f);       /* Whitespace */
+    while (isspace(c) || c == ',') c = getc(f);       /* Whitespace */
     if (c==';' || c=='#' || c=='<') {     /* Comment and tag*/
       while ((c = getc(f)) != '\n');
     }
+    if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') goto top1;
     goto top;
 }
 
@@ -1600,7 +1602,7 @@ static int gen28(FGDATA *ff, FUNC *ftp)
           newy = (MYFLT*)realloc(y, arraysize*sizeof(MYFLT));
           newz = (MYFLT*)realloc(z, arraysize*sizeof(MYFLT));
           if (!newx || !newy || !newz) {
-            fprintf(stderr, "Out of Memory\n");
+            fprintf(stderr, Str("Out of Memory\n"));
             exit(7);
           }
           x = newx; y = newy; z = newz;

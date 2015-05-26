@@ -24,11 +24,11 @@
 */
 
 /*
-	08.03.2015 gausstrig was fixed to properly work at k-time.
-	Also I added an optional feature related to the behavior 
+        08.03.2015 gausstrig was fixed to properly work at k-time.
+        Also I added an optional feature related to the behavior
   of very first impulse.
 
-	-- Gleb Rogozinsky
+        -- Gleb Rogozinsky
 */
 
 #include "csoundCore.h"
@@ -156,34 +156,35 @@ static int dust2_process_arate(CSOUND *csound, DUST *p)
 static int gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
 {
     p->rand  = csoundRand31(&csound->randSeed1);
-		if (*p->ifrst1 > FL(0.0)) {
-/* values less than FL(0.0) could be used in later versions as an offset in samples */
-	 		int     nextsamps;
-		  MYFLT   nextcount, frq, dev, r1, r2;
-		  p->frq0 = *p->kfrq;
-		  frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
-		  dev = *p->kdev;
-	
-		  nextsamps = (int)(csound->GetSr(csound) / frq);
-		  p->rand = csoundRand31(&p->rand);
-		  r1 = (MYFLT)p->rand * dv2_31;
-		  p->rand = csoundRand31(&p->rand);
-		  r2 = (MYFLT)p->rand * dv2_31;
-		  nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
-		  if (nextcount < FL(-1.0)) {
-		    MYFLT diff = FL(-1.0) - nextcount;
-		    nextcount  = (FL(1.0) < FL(-1.0) + diff ? FL(1.0) : FL(-1.0) + diff);
-		  }
-		  else if (nextcount > FL(1.0)) {
-		    MYFLT diff = nextcount - FL(1.0);
-		    nextcount  = (FL(-1.0) > FL(1.0) - diff ? FL(-1.0) : FL(1.0) - diff);
-		  }
-		  p->count = (int)(nextsamps + nextcount * dev * nextsamps);
-		}
-		else {
-/* GaussTrig UGen behavior */ 
-			p->count = 0;
-		}
+    if (*p->ifrst1 > FL(0.0)) {
+      /* values less than FL(0.0) could be used in later versions
+         as an offset in samples */
+      int     nextsamps;
+      MYFLT   nextcount, frq, dev, r1, r2;
+      p->frq0 = *p->kfrq;
+      frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
+      dev = *p->kdev;
+
+      nextsamps = (int)(csound->GetSr(csound) / frq);
+      p->rand = csoundRand31(&p->rand);
+      r1 = (MYFLT)p->rand * dv2_31;
+      p->rand = csoundRand31(&p->rand);
+      r2 = (MYFLT)p->rand * dv2_31;
+      nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
+      if (nextcount < FL(-1.0)) {
+        MYFLT diff = FL(-1.0) - nextcount;
+        nextcount  = (FL(1.0) < FL(-1.0) + diff ? FL(1.0) : FL(-1.0) + diff);
+      }
+      else if (nextcount > FL(1.0)) {
+        MYFLT diff = nextcount - FL(1.0);
+        nextcount  = (FL(-1.0) > FL(1.0) - diff ? FL(-1.0) : FL(1.0) - diff);
+      }
+      p->count = (int)(nextsamps + nextcount * dev * nextsamps);
+    }
+    else {
+      /* GaussTrig UGen behavior */
+      p->count = 0;
+    }
     /*
      * imode > 0 means better frequency modulation. If the frequency
      * changes, the delay before the next impulse is calculed again.
@@ -198,14 +199,15 @@ static int gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
 static int gausstrig_initk(CSOUND* csound, GAUSSTRIG *p)
 {
     p->rand  = csoundRand31(&csound->randSeed1);
-		if (*p->ifrst1 > FL(0.0)) {
-/* values less than FL(0.0) could be used in later versions as an offset in samples */
- 			int     nextsamps;
+    if (*p->ifrst1 > FL(0.0)) {
+      /* values less than FL(0.0) could be used in later versions
+         as an offset in samples */
+      int     nextsamps;
       MYFLT   nextcount, frq, dev, r1, r2;
       p->frq0 = *p->kfrq;
       frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
       dev = *p->kdev;
-/* this very line of k-time fix. Changed GetSt to GetKr */
+      /* this very line of k-time fix. Changed GetSt to GetKr */
       nextsamps = (int)(csound->GetKr(csound) / frq);
       p->rand = csoundRand31(&p->rand);
       r1 = (MYFLT)p->rand * dv2_31;
@@ -221,11 +223,11 @@ static int gausstrig_initk(CSOUND* csound, GAUSSTRIG *p)
         nextcount  = (FL(-1.0) > FL(1.0) - diff ? FL(-1.0) : FL(1.0) - diff);
       }
       p->count = (int)(nextsamps + nextcount * dev * nextsamps);
-		}
-		else {
-/* GaussTrig UGen behavior */ 
-			p->count = 0;
-		}
+    }
+    else {
+      /* GaussTrig UGen behavior */
+      p->count = 0;
+    }
     p->mmode = (*p->imode <= FL(0.0) ? 0 : 1);
     return OK;
 }

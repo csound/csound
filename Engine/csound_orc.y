@@ -162,7 +162,7 @@
     extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
     extern int csound_orclex(TREE**, CSOUND *, void *);
     extern void print_tree(CSOUND *, char *msg, TREE *);
-    extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE*, const char*);
+    extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE**, const char*);
     extern void add_udo_definition(CSOUND*, char *, char *, char *);
     extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LINE csound_orcget_lineno(scanner)
@@ -247,6 +247,7 @@ instrdecl : INSTR_TOKEN
                     namedInstrFlag = 0;
                     csound->Message(csound, Str("No number following instr\n"));
                     csp_orc_sa_instr_finalize(csound);
+                    $$ = NULL;
                 }
           ;
 
@@ -649,7 +650,7 @@ exprlist  : exprlist ',' expr
                                       make_leaf(csound, LINE,LOCN,
                                                 LABEL_TOKEN, (ORCTOKEN *)$3));
                 }
-          | exprlist ',' error 
+          | exprlist ',' error { $$ = NULL; }
           | expr { $$ = $1; }
           | bexpr { $$ = $1; }
           | T_IDENT { $$ = make_leaf(csound, LINE,LOCN, LABEL_TOKEN, (ORCTOKEN *)$1);  }
@@ -661,23 +662,23 @@ exprlist  : exprlist ',' expr
 
 bexpr     : '(' bexpr ')'       { $$ = $2; }
           | expr S_LE expr      { $$ = make_node(csound, LINE,LOCN, S_LE, $1, $3); }
-          | expr S_LE error
+          | expr S_LE error     { $$ = NULL; }
           | expr S_GE expr      { $$ = make_node(csound, LINE,LOCN, S_GE, $1, $3); }
-          | expr S_GE error
+          | expr S_GE error     { $$ = NULL; }
           | expr S_NEQ expr     { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $3); }
-          | expr S_NEQ error
+          | expr S_NEQ error    { $$ = NULL; }
           | expr S_EQ expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
-          | expr S_EQ error
+          | expr S_EQ error     { $$ = NULL; }
           | expr '=' expr       { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
-          | expr '=' error
+          | expr '=' error      { $$ = NULL; }
           | expr S_GT expr      { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $3); }
-          | expr S_GT error
+          | expr S_GT error     { $$ = NULL; }
           | expr S_LT expr      { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $3); }
-          | expr S_LT error
+          | expr S_LT error     { $$ = NULL; }
           | bexpr S_AND bexpr   { $$ = make_node(csound, LINE,LOCN, S_AND, $1, $3); }
-          | bexpr S_AND error
+          | bexpr S_AND error   { $$ = NULL; }
           | bexpr S_OR bexpr    { $$ = make_node(csound, LINE,LOCN, S_OR, $1, $3); }
-          | bexpr S_OR error
+          | bexpr S_OR error    { $$ = NULL; }
           | '!' bexpr %prec S_UNOT { $$ = make_node(csound, LINE,LOCN,
                                                     S_UNOT, $2, NULL); }
           | '!' error           { $$ = NULL; }
@@ -686,16 +687,16 @@ bexpr     : '(' bexpr ')'       { $$ = $2; }
 expr      : bexpr '?' expr ':' expr %prec '?'
             { $$ = make_node(csound,LINE,LOCN, '?', $1,
                              make_node(csound, LINE,LOCN, ':', $3, $5)); }
-          | bexpr '?' expr ':' error
-          | bexpr '?' expr error
-          | bexpr '?' error
+          | bexpr '?' expr ':' error     { $$ = NULL; }
+          | bexpr '?' expr error { $$ = NULL; }
+          | bexpr '?' error     { $$ = NULL; }
           | iexp                { $$ = $1; }
           ;
 
 iexp      : iexp '+' iexp   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
-          | iexp '+' error
-          | iexp '-' iexp  { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
-          | iexp '-' error
+          | iexp '+' error  { $$ = NULL; }
+          | iexp '-' iexp   { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
+          | iexp '-' error  { $$ = NULL; }
           | '-' iexp %prec S_UMINUS
             {
                 $$ = make_node(csound,LINE,LOCN, S_UMINUS, NULL, $2);
@@ -710,13 +711,13 @@ iexp      : iexp '+' iexp   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
           ;
 
 iterm     : iexp '*' iexp    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
-          | iexp '*' error
+          | iexp '*' error   { $$ = NULL; }
           | iexp '/' iexp    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
-          | iexp '/' error
+          | iexp '/' error   { $$ = NULL; }
           | iexp '^' iexp    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
-          | iexp '^' error
+          | iexp '^' error   { $$ = NULL; }
           | iexp '%' iexp    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
-          | iexp '%' error
+          | iexp '%' error   { $$ = NULL; }
           | ifac                { $$ = $1;  }
           ;
 
@@ -724,17 +725,17 @@ ifac      : ident               { $$ = $1; }
           | constant            { $$ = $1; }
           | arrayexpr		{ $$ = $1; }
           | iexp '|' iexp        { $$ = make_node(csound, LINE,LOCN, '|', $1, $3); }
-          | iexp '|' error
+          | iexp '|' error       { $$ = NULL; }
           | iexp '&' iexp        { $$ = make_node(csound, LINE,LOCN, '&', $1, $3); }
-          | iexp '&' error
+          | iexp '&' error       { $$ = NULL; }
           | iexp '#' iexp        { $$ = make_node(csound, LINE,LOCN, '#', $1, $3); }
-          | iexp '#' error
+          | iexp '#' error       { $$ = NULL; }
           | iexp S_BITSHIFT_LEFT iexp   
                  { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_LEFT, $1, $3); }
-          | iexp S_BITSHIFT_LEFT error
+          | iexp S_BITSHIFT_LEFT error { $$ = NULL; }
           | iexp S_BITSHIFT_RIGHT iexp
                  { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_RIGHT, $1, $3); }
-          | iexp S_BITSHIFT_RIGHT error
+          | iexp S_BITSHIFT_RIGHT error { $$ = NULL; }
           | '~' iexp %prec S_UMINUS
             { $$ = make_node(csound, LINE,LOCN, '~', NULL, $2);}
           | '~' error         { $$ = NULL; }
@@ -770,8 +771,8 @@ ifac      : ident               { $$ = $1; }
                 //print_tree(csound, "FUNCTION CALL", $$);
             }
           
-          | identb error
-          | opcodeb error
+          | identb error    { $$ = NULL; }
+          | opcodeb error   { $$ = NULL; }
           ;
 
 rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,

@@ -54,7 +54,7 @@ extern void csound_prelex(CSOUND*, void*);
 extern void csound_prelex_destroy(void *);
 
 extern void csound_orc_scan_buffer (const char *, size_t, void*);
-extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE*);
+extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
 extern void csound_orclex_init(void *);
 extern void csound_orcset_extra(void *, void *);
 extern void csound_orcset_lineno(int, void*);
@@ -95,7 +95,7 @@ void add_include_udo_dir(CORFIL *xx)
     char buff[1024];
     if (dir) {
       DIR *udo = opendir(dir);
-      printf("** found CS_UDO_DIR=%s\n", dir);
+      printf(Str("** found CS_UDO_DIR=%s\n"), dir);
       if (udo) {
         struct dirent *f;
         //printf("**and it opens\n");
@@ -185,21 +185,21 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_orc));
       corfile_rm(&csound->orchstr);
-      
+
     }
     {
-      /* VL 15.3.2015 allocating memory here will cause 
+      /* VL 15.3.2015 allocating memory here will cause
          unwanted growth.
          We just pass a pointer, which will be allocated
-         by make leaf */ 
-      TREE* astTree;// = (TREE *)csound->Calloc(csound, sizeof(TREE));
+         by make leaf */
+      TREE* astTree = NULL;// = (TREE *)csound->Calloc(csound, sizeof(TREE));
       TREE* newRoot;
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
-      
+
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
-      init_symbtab(csound);    
+      init_symbtab(csound);
 
       csound_orcdebug = O->odebug;
       csound_orclex_init(&pp.yyscanner);
@@ -219,7 +219,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
       if (csound->synterrcnt) err = 3;
       if (LIKELY(err == 0)) {
-        if(csound->oparms->odebug) csound->Message(csound, "Parsing successful!\n");
+        if(csound->oparms->odebug) csound->Message(csound,
+                                                   Str("Parsing successful!\n"));
       }
       else {
         if (err == 1){
@@ -248,7 +249,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
-      
+
       /**** THIS NEXT LINE IS WRONG AS err IS int WHILE FN RETURNS TREE* ****/
       astTree = verify_tree(csound, astTree, typeTable);
 //      csound->Free(csound, typeTable->instr0LocalPool);
@@ -260,12 +261,13 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       if (astTree == NULL || csound->synterrcnt){
           err = 3;
           if (astTree)
-            csound->Message(csound, "Parsing failed due to %d semantic error%s!\n",
+            csound->Message(csound,
+                            Str("Parsing failed due to %d semantic error%s!\n"),
                             csound->synterrcnt, csound->synterrcnt==1?"":"s");
           else if (csound->synterrcnt)
-               csound->Message(csound, "Parsing failed to syntax errors\n");
+            csound->Message(csound, Str("Parsing failed to syntax errors\n"));
           else
-            csound->Message(csound, "Parsing failed due no input!\n");
+            csound->Message(csound, Str("Parsing failed due no input!\n"));
           goto ending;
       }
       err = 0;
@@ -276,7 +278,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 //
       if (UNLIKELY(PARSER_DEBUG)) {
         print_tree(csound, "AST - AFTER VERIFICATION/EXPANSION\n", astTree);
-	}
+        }
 
     ending:
       csound_orclex_destroy(pp.yyscanner);
@@ -295,7 +297,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         }
         return NULL;
       }
-      
+
       astTree = csound_orc_optimize(csound, astTree);
 
       // small hack: use an extra node as head of tree list to hold the
@@ -303,9 +305,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       newRoot = make_leaf(csound, 0, 0, 0, NULL);
       newRoot->markup = typeTable;
       newRoot->next = astTree;
-       
+
       /* if(str!=NULL){ */
-      /* 	if (typeTable != NULL) { */
+      /*        if (typeTable != NULL) { */
       /*     csoundFreeVarPool(csound, typeTable->globalPool); */
       /*     if(typeTable->instr0LocalPool != NULL) { */
       /*       csoundFreeVarPool(csound, typeTable->instr0LocalPool); */

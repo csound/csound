@@ -81,6 +81,7 @@ $(CSOUND_SRC_ROOT)/OOps/ugrw2.c \
 $(CSOUND_SRC_ROOT)/OOps/vdelay.c \
 $(CSOUND_SRC_ROOT)/OOps/compile_ops.c \
 $(CSOUND_SRC_ROOT)/Opcodes/babo.c \
+$(CSOUND_SRC_ROOT)/Opcodes/exciter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/bilbar.c \
 $(CSOUND_SRC_ROOT)/Opcodes/compress.c \
 $(CSOUND_SRC_ROOT)/Opcodes/eqfil.c \
@@ -247,11 +248,11 @@ $(CSOUND_SRC_ROOT)/interfaces/filebuilding.cpp \
 java_interfaceJAVA_wrap.cpp
 #CsoundObj.cpp
 
-LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc 
+LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc
 
 # For building with all plugins use:
 
-#LOCAL_SHARED_LIBRARIES += LuaCsound fluidOpcodes signalflowgraph stdutil gnustl_shared sndfile 
+#LOCAL_SHARED_LIBRARIES += LuaCsound fluidOpcodes signalflowgraph stdutil gnustl_shared sndfile
 
 # For building without plugins, but with support for plugins that may depend on GNU STL, use:
 

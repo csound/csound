@@ -7,7 +7,7 @@
 <meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)"> 
 <!-- html --> 
 <meta name="src" content="pnacl_csound.tex"> 
-<meta name="date" content="2014-11-08 12:11:00"> 
+<meta name="date" content="2015-05-18 16:38:00"> 
 <link rel="stylesheet" type="text/css" href="pnacl_csound.css"> 
 </head><body 
 >
@@ -23,52 +23,56 @@
 <div class="author" ><span 
 class="cmr-12">Victor Lazzarini</span></div><br />
 <div class="date" ><span 
-class="cmr-12">November 8, 2014</span></div>
+class="cmr-12">May 18, 2015</span></div>
    </div>
    <h3 class="sectionHead"><span class="titlemark">1   </span> <a 
  id="x1-10001"></a>Introduction</h3>
-<!--l. 20--><p class="noindent" >Native Client (NaCl) is a sandboxing technology developed by Google that allows
+<!--l. 18--><p class="noindent" >Native Client (NaCl) is a sandboxing technology developed by Google that allows
 C/C++ modules to extend the support provided by HTML5. Portable
 Native Client (pNaCl) is one of the toolchains in the NaCl SDK (the
 others are newlib and glibc). The advantage of pNaCl over the other
 options is that it only requires a single module to be built for all supported
 architectures.
-<!--l. 24--><p class="indent" >   The other major advantage is that pNaCl is, as of Google Chrome 31, enabled
+<!--l. 22--><p class="indent" >   The other major advantage is that pNaCl is, as of Google Chrome 31, enabled
 by default in the browser. This means that users just need to load a page
 containing the pNaCl application and it will work. pNaCl modules are compiled
 to llvm bytecode that is translated to a native binary by the browser. To check
 whether your version of Chrome supports pNaCl, use the following address:
 <br 
 class="newline" />
-<!--l. 29--><p class="indent" >   <span 
+<!--l. 27--><p class="indent" >   <span 
 class="cmtt-10x-x-109">chrome://nacl  </span><br 
 class="newline" />
-<!--l. 32--><p class="indent" >   A binary package for PNaCl-Csound can be found in the Csound releases
+<!--l. 30--><p class="indent" >   The pNaCl Csound implementation allows users to embed the system in
+web pages. With a minimal use of Javascript, it is possible to create
+applications and frontends for Csound, to be run inside a web browser (Chrome,
+Chromium).
+<!--l. 33--><p class="indent" >   A binary package for pNaCl-Csound can be found in the Csound releases
 <a 
 href="http://sourceforge.net/projects/csound/files/csound6" class="url" ><span 
 class="cmtt-10x-x-109">http://sourceforge.net/projects/csound/files/csound6</span></a>
-<!--l. 34--><p class="noindent" >
-   <h4 class="subsectionHead"><span class="titlemark">1.1   </span> <a 
- id="x1-20001.1"></a>Running the example application</h4>
                                                                      
 
                                                                      
-<!--l. 36--><p class="noindent" >NaCl pages need to be served over http, which means they will not
+<!--l. 35--><p class="noindent" >
+   <h4 class="subsectionHead"><span class="titlemark">1.1   </span> <a 
+ id="x1-20001.1"></a>Running the example application</h4>
+<!--l. 37--><p class="noindent" >NaCl pages need to be served over http, which means they will not
 work when opened as local files. For this you will need a http server.
 A minimal one, written in Python, can be found in the NaCl SDK
 <a 
 href="https://developer.chrome.com/native-client/sdk/download" class="url" ><span 
 class="cmtt-10x-x-109">https://developer.chrome.com/native-client/sdk/download</span></a>.
-<!--l. 41--><p class="noindent" >
+<!--l. 42--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">2   </span> <a 
  id="x1-30002"></a>Csound pNaCl module reference</h3>
-<!--l. 43--><p class="noindent" >The interface to Csound is found in the csound.js javascript file. Csound
+<!--l. 44--><p class="noindent" >The interface to Csound is found in the csound.js javascript file. Csound
 is ready on module load, and can accept control messages from then
 on.
-<!--l. 46--><p class="noindent" >
+<!--l. 47--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">2.1   </span> <a 
  id="x1-40002.1"></a>Control functions</h4>
-<!--l. 48--><p class="noindent" >The following control functions can be used to interact with Csound:
+<!--l. 49--><p class="noindent" >The following control functions can be used to interact with Csound:
      <ul class="itemize1">
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.Play() </span>- starts performance
@@ -88,12 +92,12 @@ class="cmtt-10x-x-109">csound.Pause() </span>- pauses performance
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.StartAudioInput() </span>- switches on audio input (available in
      Chrome version 36 onwards)
-     </li>
-     <li class="itemize"><span 
-class="cmtt-10x-x-109">csound.CompileOrc(s) </span>- compiles the Csound code in the string s
                                                                      
 
                                                                      
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">csound.CompileOrc(s) </span>- compiles the Csound code in the string s
      </li>
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.ReadScore(s) </span>-  reads  the  score  in  the  string  s  (with
@@ -110,7 +114,7 @@ class="cmti-10x-x-109">name</span>
 class="cmti-10x-x-109">value</span>.
      </li>
      <li class="itemize"><span 
-class="cmtt-10x-x-109">csound.SetStrinhChannel(name, string)  </span>-   sends   the   string
+class="cmtt-10x-x-109">csound.SetStringChannel(name, string)  </span>-   sends   the   string
      channel <span 
 class="cmti-10x-x-109">name </span>the string <span 
 class="cmti-10x-x-109">string</span>.
@@ -129,11 +133,45 @@ class="cmti-10x-x-109">num</span>.
      </li>
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.GetTableData() </span>- returns the most recently requested table
-     data as an ArrayObject.</li></ul>
-<!--l. 73--><p class="noindent" >
+     data as an ArrayObject.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">MIDIin(byte1, byte2, byte3) </span>- sends a MIDI in message to Csound.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">NoteOn(channel,number,velocity) </span>- sends a Note ON message to
+     Csound.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">NoteOff(channel,number,velocity) </span>- sends a Note OFF message to
+     Csound.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">PolyAftertouch(channel,number,aftertouch) </span>- sends a polyphonic
+     aftertouch message to Csound.
+                                                                     
+
+                                                                     
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">ControlChange(channel,control,amount) </span>- sends a control change
+     message to Csound.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">ProgramChange(channel,control)  </span>-   sends   a   program   change
+     message to Csound.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">Aftertouch(channel,amount) </span>- sends a mono aftertouch message to
+     Csound.
+     </li>
+     <li class="itemize"><span 
+class="cmtt-10x-x-109">PitchBend(channel,fine,coarse) </span>- sends a pitchbend message to
+     Csound.</li></ul>
+<!--l. 82--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">2.2   </span> <a 
  id="x1-50002.2"></a>Filesystem functions</h4>
-<!--l. 75--><p class="noindent" >In order to facilitate access to files, the following filesystem functions can be
+<!--l. 84--><p class="noindent" >In order to facilitate access to files, the following filesystem functions can be
 used:
      <ul class="itemize1">
      <li class="itemize"><span 
@@ -143,9 +181,6 @@ class="cmti-10x-x-109">src </span>in the ORIGIN
 class="cmti-10x-x-109">dest</span>, which can be accessed at ./local/<span 
 class="cmti-10x-x-109">dest</span>.
      The &#8220;Complete&#8221; message is issued on completion.
-                                                                     
-
-                                                                     
      </li>
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.CopyUrlToLocal(url,dest) </span>- copies the url <span 
@@ -165,10 +200,13 @@ class="cmti-10x-x-109">src</span>. The &#8220;Complete&#8221; message is issued 
      <li class="itemize"><span 
 class="cmtt-10x-x-109">csound.GetFileData() </span>- returns the most recently requested file data
      as an ArrayObject.</li></ul>
-<!--l. 88--><p class="noindent" >
+                                                                     
+
+                                                                     
+<!--l. 97--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">2.3   </span> <a 
  id="x1-60002.3"></a>Callbacks</h4>
-<!--l. 90--><p class="noindent" >The csound.js module will call the following window functions when it
+<!--l. 99--><p class="noindent" >The csound.js module will call the following window functions when it
 starts:
      <ul class="itemize1">
      <li class="itemize"><span 
@@ -183,7 +221,7 @@ class="cmtt-10x-x-109">function handleMessage(message)</span>: called when there
      <li class="itemize"><span 
 class="cmtt-10x-x-109">function attachListeners()</span>:  this  is  called  when  listeners  for
      different events are to be attached.</li></ul>
-<!--l. 99--><p class="indent" >   You should implement these functions in your HTML page script, in order to
+<!--l. 108--><p class="indent" >   You should implement these functions in your HTML page script, in order to
 use the Csound javascript interface. In addition to the above, Csound javascript
 module messages are always sent to the HTML element with id=&#8216;console&#8217;, which
 is normally of type <span 
@@ -191,17 +229,14 @@ class="cmmi-10x-x-109">&#x003C;</span>div<span
 class="cmmi-10x-x-109">&#x003E; </span>or <span 
 class="cmmi-10x-x-109">&#x003C;</span>textarea<span 
 class="cmmi-10x-x-109">&#x003E;</span>.
-                                                                     
-
-                                                                     
-<!--l. 103--><p class="noindent" >
+<!--l. 112--><p class="noindent" >
    <h4 class="subsectionHead"><span class="titlemark">2.4   </span> <a 
  id="x1-70002.4"></a>Example</h4>
-<!--l. 105--><p class="noindent" >Here is a minimal HTML example showing the use of Csound
-   <!--l. 107--><div class="lstinputlisting">
+<!--l. 114--><p class="noindent" >Here is a minimal HTML example showing the use of Csound
+   <!--l. 116--><div class="lstinputlisting">
 <a 
  id="x1-7001"></a>
-<!--l. 107--><p class="indent" >   <span 
+<!--l. 116--><p class="indent" >   <span 
 class="cmtt-10x-x-109">, </span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
  id="x1-7002r1"></a></span><span 
@@ -323,7 +358,6 @@ class="cmtt-9">.</span><span
 class="cmtt-9">js</span><span 
 class="cmtt-9">&#x00A0;</span><br /><span class="label"><a 
  id="x1-7013r12"></a></span><span 
-class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">function</span><span 
 class="cmtt-9">&#x00A0;</span><span 
 class="cmtt-9">moduleDidLoad</span><span 
@@ -833,14 +867,17 @@ class="cmtt-9">html</span><span
 class="cmtt-9">&#x003E;</span>
    
    </div>
-<!--l. 109--><p class="noindent" >
+<!--l. 118--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">3   </span> <a 
  id="x1-80003"></a>Limitations</h3>
-<!--l. 111--><p class="noindent" >The following limitations apply:
+<!--l. 120--><p class="noindent" >The following limitations apply:
+                                                                     
+
+                                                                     
      <ul class="itemize1">
-     <li class="itemize">no  MIDI  in  the  NaCl  module.  However,  it  might  be  possible  to
-     implement MIDI in javascript, and using the csound.js functions, send
-     data to Csound, and respond to MIDI NOTE messages.
+     <li class="itemize">MIDI  is  implemented  so  that  Csound  MIDI  opcodes  can  be  used.
+     MIDI hardware interface needs to be provided in Javascript by another
+     library (e.g. WebMIDI).
      </li>
      <li class="itemize">no  plugins,  as  pNaCl  does  not  support  dlopen()  and  friends.  This
      means some opcodes are not available as they reside in plugin libraries.

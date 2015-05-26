@@ -1378,6 +1378,7 @@ int invalset_string_S(CSOUND *csound, INVAL *p)
 {
     int   err;
     int type;
+    STRINGDAT *out = (STRINGDAT *) p->value;
 
     const char  *s = ((STRINGDAT *)p->valID)->data;
     csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
@@ -1392,9 +1393,11 @@ int invalset_string_S(CSOUND *csound, INVAL *p)
     if (UNLIKELY(err))
       return print_chn_err(p, err);
 
-    if ( ((STRINGDAT *)(p->value))->data == NULL) {
-      ((STRINGDAT *)(p->value))->data = csound->Calloc(csound, 128);
-      ((STRINGDAT *)(p->value))->size = 128;
+    if (out->data == NULL || out->size < 256) {
+      if(out->data != NULL)
+        csound->Free(csound, out->data);
+      out->data = csound->Calloc(csound, 256);
+      out->size = 256;
     }
 
     /* grab input now for use during i-pass */
@@ -1583,7 +1586,8 @@ int outvalset_string(CSOUND *csound, OUTVAL *p)
     int type, err;
 
     /* convert numerical channel to string name */
-    csound->AuxAlloc(csound, 32, &p->channelName);
+    if(p->channelName.auxp == NULL)
+     csound->AuxAlloc(csound, 32, &p->channelName);
     snprintf((char*)p->channelName.auxp,  32, "%d",
             (int)MYFLT2LRND(*p->valID));
 

@@ -145,6 +145,12 @@ static int tabfill(CSOUND *csound, TABFILL *p)
     size_t memMyfltSize;
     MYFLT  **valp = p->iargs;
     tabensure(csound, p->ans, nargs);
+    if (p->ans->dimensions > 2) {
+      return
+        csound->InitError(csound,
+                          Str("fillarrray: arrays with dim > 2 not "
+                              "currently supported\n"));
+    }
     memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
     for (i=0; i<nargs; i++) {
       p->ans->arrayType->copyValue(csound,
@@ -1689,11 +1695,15 @@ int pvsceps_perf(CSOUND *csound, PVSCEPS *p){
 
 int init_ceps(CSOUND *csound, FFT *p){
     int N = p->in->sizes[0]-1;
+    if(N < 64)
+      return csound->InitError(csound,
+                               Str("FFT size too small (min 64 samples)\n"));
     if(isPowerOfTwo(N))
       tabensure(csound, p->out, 2*N+2);
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
+    
     return OK;
 }
 
