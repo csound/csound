@@ -48,6 +48,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <ctype.h>
 #include "sndfile.h"
 #include "samplerate.h"
 
@@ -65,7 +66,7 @@
 static int rewrt_hdr = 0, heartbeat = 0, ringbell = 0, peaks = SF_TRUE;
 static int filetyp, outformat;
 static char* outfilename = NULL;
-static block = 0;
+static int block = 0;
 #define FIND(MSG)                                                   \
 {                                                                   \
     if (*s == '\0')                                                 \
@@ -159,25 +160,19 @@ int main(int argc, char **argv)
     SF_INFO sfinfo;
 
     double
-      *fxval = 0, /* pointer to start of time-array for time-vary function */
-      *fyval = 0, /* pointer to start of P-scale-array for time-vary func */
-      *i0,        /* pointer */
-      *i1;        /* pointer */
-
-    double
       P = 0.0,              /* Rin / Rout */
       Rin = 0.0,            /* input sampling rate */
       Rout = 0.0;           /* output sample rate */
 
     int
-      i,k,                      /* index variables */
+      i,                        /* index variables */
       tvflg = 0,                /* flag for time-varying time-scaling */
       tvnxt = 0,                /* counter for stepping thru time-var func */
       tvlen,                    /* length of time-varying function */
       Chans = 1,                /* number of channels */
       Q = 3;                    /* quality factor */
 
-    WARP        *warp;          /* fior time-varying convertion */
+    WARP        *warp = NULL;   /* fior time-varying convertion */
     FILE        *tvfp = NULL;   /* time-vary function file */
     char        *infile = NULL, *bfile = NULL;
     SNDFILE     *inf = NULL;
@@ -186,6 +181,7 @@ int main(int argc, char **argv)
     const char  *envoutyp;
     char        outformch = 's';
     char        err_msg[256];
+    sf_count_t  flen;
 
     outformat = SF_FORMAT_PCM_16;
 
@@ -283,7 +279,7 @@ int main(int argc, char **argv)
             while ((*s++)) {}; s--;
             break;
           default:
-            printf(Str("Looking at %c\n"), c);
+            fprintf(stderr, Str("Looking at %c\n"), c);
             usage();    /* this exits with error */
             return -1;
           }
@@ -294,13 +290,13 @@ int main(int argc, char **argv)
         //printf(Str("Infile set to %s\n"), infile);
       }
       else {
-        printf(Str("Extra arguments: %s\n"), s);
+        fprintf(stderr, Str("Extra arguments: %s\n"), s);
         usage();
         return -1;
       }
     }
     if (infile == NULL) {
-      printf(Str("No input given\n"));
+      fprintf(stderr, Str("No input given\n"));
       usage();
       return -1;
     }
@@ -332,6 +328,7 @@ int main(int argc, char **argv)
       fprintf(stderr, Str("error while opening %s"), infile);
       return -1;
     }
+    flen = sfinfo.frames;
 
     Rin = sfinfo.samplerate;
     Chans = sfinfo.channels;
@@ -358,7 +355,7 @@ int main(int argc, char **argv)
         strncpy(err_msg, Str("srconv: tvlen <= 0 "), 256);
         goto err_rtn_msg1;
       }
-      warp = (WARP*) malloc(tvlen * sizeof(WARP));
+      warp = (WARP*) calloc((tvlen+2), sizeof(WARP));
       for (i = 0; i < tvlen; i++) {
         if (fscanf(tvfp, "%lf %lf", &warp[i].time, &warp[i].ratio) != 2) {
           strncpy(err_msg, Str("srconv: too few x-y pairs "
@@ -368,21 +365,27 @@ int main(int argc, char **argv)
         }
         warp[i].frame = warp[i].time*Rin;
       }
+      warp[tvlen].ratio = warp[tvlen-1].ratio;
+      warp[tvlen].frame = flen; warp[tvlen].time = flen/Rin;
+      tvlen++;
       if (warp[0].frame != 0.0) {
         strncpy(err_msg, Str("srconv: first frame value "
                              "in time-vary function must be 0"), 256);
         goto err_rtn_msg1;
       }
+      /* for (i=0; i<tvlen;i++) */
+      /*   printf("warp %d: time=%f frame=%d, ratio=%f\n", */
+      /*          i, warp[i].time, warp[i].frame, warp[i].ratio); */
       tvnxt = 1;
     }
-    else {
-      warp = (WARP*) malloc(2*sizeof(WARP));
-      warp[0].time = 0.0; warp[0].frame = 0;
-      warp[0].ratio = 1.0;
-      warp[1].time = LONG_MAX; warp[1].frame = LONG_MAX;
-      warp[0].ratio = 1.0;
-      tvlen = 2;
-    }
+    /* else { */
+    /*   warp = (WARP*) malloc(2*sizeof(WARP)); */
+    /*   warp[0].time = 0.0; warp[0].frame = 0; */
+    /*   warp[0].ratio = P; */
+    /*   warp[1].time = LONG_MAX; warp[1].frame = LONG_MAX; */
+    /*   warp[0].ratio = P; */
+    /*   tvlen = 2; */
+    /* } */
     if (outformat == 0) outformat = SF_FORMAT_PCM_16;
     if (filetyp == SF_FORMAT_RAW) rewrt_hdr = 0;
     if (outfilename == NULL) {
@@ -404,41 +407,64 @@ int main(int argc, char **argv)
     sf_command(outf, SFC_SET_CLIPPING, NULL, SF_TRUE);
     sf_command(outf, SFC_SET_ADD_PEAK_CHUNK, NULL, peaks);
 
-    {
+    if (tvflg) {
       SRC_STATE *state;
       SRC_DATA  data;
       int err;
-      static float input[IBUF] ;
-      static float output[OBUF];
-      int C = OBUF/Chans;
-      int count = 0;
-      
-      state = src_new(Q, Chans, &err);
+      int C         = (int)(0.01*Rin);
+      float* input  = (float*)calloc(sizeof(float), C*Chans);
+      float* output = (float*)calloc(sizeof(float), C*Chans);
+      int count     = 0, countin = 0;
+      double P0     = warp[0].ratio; /* Last ratio */
+      double P1     = warp[1].ratio; /* next ratio (at end of segment) */
+      sf_count_t CC = 0;             /* index through segment */
+      sf_count_t N  = warp[1].frame; /* Length of segment */
+      sf_count_t target = warp[1].frame; /* Count when at end */
+
+      if (C==0) C=1;            /* avoid silly value for buffer sizes */
+      state = src_new(Q, Chans, &err); /* initialise */
       if (state==NULL) {
-        printf("Error: failed to initialise SRC -- %s\n", src_strerror(err));
+        fprintf(stderr,
+                "Error: failed to initialise SRC -- %s\n", src_strerror(err));
         sf_close(inf); sf_close(outf);
         usage();
         exit(1);
       }
       data.end_of_input = 0;  /* Not end yet */
-      data.input_frames = 0;
-      data.data_in = input;
-      data.src_ratio = P;
-      data.data_out = output;
-      data.output_frames = C;
+      data.input_frames = 0;  /* frames unprocessed */
+      data.data_in = input;   /* input buffer */
+      data.src_ratio = P0;    /* initial ratio */
+      data.data_out = output; /* output buffer */
+      data.output_frames = C; /* length of output buffer */
+      //printf("tvnxt=%d: P0, P1 = %f, %f  N=%d target=%d\n",tvnxt,P0,P1,N,target);
       for (;;) {
-        if (tvnxt < tvlen-1 && count >= warp[tvnxt].frame) {
-          data.src_ratio = warp[tvnxt].ratio;
-          tvnxt++ ;
+        if (/*tvnxt < tvlen &&*/ countin >= target) {
+          /* printf("end of segment %d countin = %d target = %d\n", */
+          /*        tvnxt-1, countin, target); */
+          P0 = P1;
+          P1 = warp[tvnxt+1].ratio;
+          CC = 0;
+          N = warp[tvnxt+1].frame - warp[tvnxt].frame;
+          target = warp[tvnxt+1].frame;
+          tvnxt++;
+          /* printf("tvnxt=%d: countin=%d, P0, P1 = %f, %f  N=%d target=%d\n", */
+          /*        tvnxt, countin, P0, P1, N, target); */
         }
+        if (target==0) break;
+        data.src_ratio = P0+(P1-P0)*(double)CC/N;
+        /* printf("CC=%d, C=%d, ratio=%f P1=%f x/N=%f\n", */
+        /*        CC, C, data.src_ratio, P1, (double)CC/N); */
         if (data.input_frames==0) {
-          if (C!= (data.input_frames = sf_readf_float(inf, input, C)))
+          int cn = C;
+          if (target-CC<C) { cn=target-CC; printf("only %d left to eos\n", cn); }
+          if (cn!= (data.input_frames = sf_readf_float(inf, input, cn)))
             data.end_of_input = SF_TRUE;
           data.data_in = input;
+          CC += data.input_frames; countin += data.input_frames;
         }
         err = src_process(state, &data);
         if (err) {
-          printf("srconv: error: %s\n", src_strerror(err));
+          fprintf(stderr, "srconv: error: %s\n", src_strerror(err));
           sf_close(inf); sf_close(outf);
           exit(1);
         }
@@ -455,8 +481,58 @@ int main(int argc, char **argv)
       printf("wrote %d frames converting sr %.2f to %.2f\n", count, Rin, Rout);
       sf_close(inf); sf_close(outf);
       if (ringbell) fprintf(stderr, "\a");
+      free(input); free(output); free(warp);
       exit(0);
-
+    }
+    else {                      /* Simpler case with large steops */
+      SRC_STATE *state;
+      SRC_DATA  data;
+      int err;
+      int C = IBUF;
+      float* input = (float*)calloc(sizeof(float), C*Chans);
+      float* output = (float*)calloc(sizeof(float), C*Chans);
+      int count = 0;
+      
+      state = src_new(Q, Chans, &err);
+      if (state==NULL) {
+        fprintf(stderr,
+                "Error: failed to initialise SRC -- %s\n", src_strerror(err));
+        sf_close(inf); sf_close(outf);
+        usage();
+        exit(1);
+      }
+      data.end_of_input = 0;  /* Not end yet */
+      data.input_frames = 0;
+      data.data_in = input;
+      data.src_ratio = P;
+      data.data_out = output;
+      data.output_frames = C;
+      for (;;) {
+        if (data.input_frames==0) {
+          if (C != (data.input_frames = sf_readf_float(inf, input, C)))
+            data.end_of_input = SF_TRUE;
+          data.data_in = input;
+        }
+        err = src_process(state, &data);
+        if (err) {
+          fprintf(stderr, "srconv: error: %s\n", src_strerror(err));
+          sf_close(inf); sf_close(outf); free(input); free(output);
+          exit(1);
+        }
+        if (data.end_of_input && data.output_frames_gen == 0) break;
+        sf_writef_float(outf, output, data.output_frames_gen);
+        if (rewrt_hdr)
+          sf_command(outf, SFC_UPDATE_HEADER_NOW, NULL, 0);
+        if (heartbeat) heartbeater();
+        count += data.output_frames_gen;
+        data.data_in += data.input_frames_used * Chans;
+        data.input_frames -= data.input_frames_used;
+      }
+      state = src_delete(state);
+      printf("wrote %d frames converting sr %.2f to %.2f\n", count, Rin, Rout);
+      sf_close(inf); sf_close(outf); free(input); free(output);
+      if (ringbell) fprintf(stderr, "\a");
+      exit(0);
     }
   err_rtn_msg1:
     sf_close(inf);
@@ -488,7 +564,7 @@ static const char *usage_txt[] = {
   Str_noop("-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)"),
   Str_noop("-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write"),
   Str_noop("-N\tnotify (ring the bell) when done"),
-  Str_noop("-- fnam\tlog output to file"),
+  //  Str_noop("-- fnam\tlog output to file"),
     NULL
 };
 

@@ -35,7 +35,7 @@
 
 typedef struct {
         OPDS h;
-        MYFLT *low, *high, *band, *in, *kfco, *kq, *iscl;
+  MYFLT *low, *high, *band, *in, *kfco, *kq, *iscl, *iskip;
         MYFLT ynm1, ynm2;
 } SVF;
 

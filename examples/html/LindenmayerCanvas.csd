@@ -7,8 +7,6 @@ You will have to set widgets, save values, and restore values before Csound will
 <CsOptions>
 -RWdfodac -m3 -d 
 </CsOptions>
-<CsHtml5>
-<!DOCTYPE html>
 <html>
 <head>
 <style type="text/css">
@@ -332,7 +330,6 @@ csound.setControlChannel('gk_Master_Level', numberValue);
 </script>
 </body>
 </html>
-</CsHtml5>
 <CsInstruments>
 sr = 48000
 ksmps = 100
