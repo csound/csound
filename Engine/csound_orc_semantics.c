@@ -533,10 +533,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return cs_strdup(csound, "l");
       }
 
-      if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
-        return cs_strdup(csound, "[k]");
-      }
-
       if ((*s >= '1' && *s <= '9') || *s == '.' || *s == '-' || *s == '+' ||
           (*s == '0' && strcmp(s, "0dbfs") != 0))
         return cs_strdup(csound, "c");                          /* const */
@@ -572,6 +568,11 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       } else {
         return cs_strdup(csound, var->varType->varTypeName);
       }
+            
+//      if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
+//        return cs_strdup(csound, "[k]");
+//      }
+
     case T_TYPED_IDENT:
       return cs_strdup(csound, tree->value->optype);
     case STRUCT_EXPR:
@@ -1526,7 +1527,7 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           break;
         }
 
-        if (*varName == 't') { /* Support legacy t-vars */
+        if (*varName == 't' && current->value->optype == NULL) { /* Support legacy t-vars */
           add_array_arg(csound, varName, "k", 1, typeTable);
         } else {
           add_arg(csound, varName, current->value->optype, typeTable);
