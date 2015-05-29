@@ -142,7 +142,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     char** in_args;
     char** out_args;
     char intypes[256];
-    char typeSpecifier[2];
+    char typeSpecifier[256];
     char tempName[20];
     int i = 0, err = 0;
     int n=0;
@@ -180,6 +180,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     if (*in_args[0] != '0') {
       while (in_args[i] != NULL) {
         char* in_arg = in_args[i];
+        char* end;
         snprintf(tempName, 20, "in%d", i);
 
         if (*in_arg == '[') {
@@ -188,7 +189,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             dimensions += 1;
             in_arg += 1;
           }
-          typeSpecifier[0] = *in_arg;
+
+          end = in_arg;
+          while(*end != ']') {
+            end++;
+          }
+          memcpy(typeSpecifier, in_arg, end - in_arg);
+
+          typeSpecifier[(end - in_arg) + 1] = 0;
 // printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
@@ -196,6 +204,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid input type for opcode %s\n"), in_arg);
             err++;
+            i++;
             continue;
           }
 
@@ -234,6 +243,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     if (*out_args[0] != '0') {
       while(out_args[i] != NULL) {
         char* out_arg = out_args[i];
+        char* end;
         snprintf(tempName, 20, "out%d", i);
 
         if (*out_arg == '[') {
@@ -242,7 +252,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             dimensions += 1;
             out_arg += 1;
           }
-          typeSpecifier[0] = *out_arg;
+
+          end = out_arg;
+          while(*end != ']') {
+            end++;
+          }
+          memcpy(typeSpecifier, out_arg, end - out_arg);
+
+          typeSpecifier[(end - out_arg) + 1] = 0;
           //printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
