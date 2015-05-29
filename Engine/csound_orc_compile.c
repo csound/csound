@@ -218,7 +218,7 @@ char** splitArgs(CSOUND* csound, char* argString)
           //FIXME - needs to check if invalid arg string given...
           part = cs_strndup(csound, t, len);
           t += len + 1;
-        } else if (*(t + 1) == '[') {
+        } else if (*(t + 1) == '[') { // FIXME
           char* start = t;
           int len = 1;
           int j;

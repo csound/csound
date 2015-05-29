@@ -182,14 +182,13 @@ char* get_array_sub_type(CSOUND* csound, char* arrayName) {
 }
 
 char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
-    int i, len = arrayVar->dimensions + 3;
+    char* varTypeName = arrayVar->subType->varTypeName;
+    int len = arrayVar->dimensions + strlen(varTypeName) + 2;
     char* retVal = csound->Malloc(csound, len);
     retVal[len - 1] = '\0';
     retVal[len - 2] = ']';
-    retVal[len - 3] = *arrayVar->subType->varTypeName;
-    for (i = len - 4; i >= 0; i--) {
-        retVal[i] = '[';
-    }
+    memset(retVal, '[', arrayVar->dimensions);
+    strncpy(retVal + arrayVar->dimensions, varTypeName, strlen(varTypeName));
     return retVal;
 }
 
@@ -1050,10 +1049,24 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
  to internal representation. */
 char* convert_internal_to_external(CSOUND* csound, char* arg) {
     int i, dimensions;
-    char* retVal;
+    char *start = arg;
+    char *retVal, *current;;
+    int nameLen, len = strlen(arg);
 
-    if (arg == NULL || *arg != '[') {
+    if (arg == NULL || len == 1) {
         return arg;
+    }
+    
+    if (strchr(arg, '[') == NULL) {
+        /* User-Defined Struct */
+        retVal = csound->Malloc(csound, sizeof(char) * (len + 3));
+        current = retVal;
+        *current++ = ':';
+        strncpy(current, arg, len);
+        current += len;
+        *current++ = ';';
+        *current = '\0';
+        return retVal;
     }
 
     dimensions = 0;
@@ -1061,14 +1074,30 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
         arg++;
         dimensions++;
     }
-
-    retVal = csound->Malloc(csound, sizeof(char) * ((dimensions * 2) + 2));
-    retVal[0] = *arg;
-    for (i = 0; i < dimensions * 2; i += 2) {
-       retVal[i + 1] = '[';
-       retVal[i + 2] = ']';
+    
+    nameLen = len - (arg - start) - 1;
+    
+    if (nameLen > 1) {
+        nameLen += 2;
     }
-    retVal[dimensions * 2 + 1] = '\0';
+
+    retVal = csound->Malloc(csound, sizeof(char) * (nameLen + (dimensions * 2) + 1));
+    current = retVal;
+    
+    if (nameLen > 1) {
+        *current++ = ':';
+        strncpy(current, arg, nameLen - 2);
+        current += (nameLen - 2);
+        *current++ = ';';
+    } else {
+        *current++ = *arg;
+    }
+    
+    for (i = 0; i < dimensions * 2; i += 2) {
+       *current++ = '[';
+       *current++ = ']';
+    }
+    *current = '\0';
     //csound->Free(csound, arg);
     return retVal;
 }
@@ -1120,11 +1149,8 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
             argsLen += 1;
             argTypes[index++] = cs_strdup(csound, "@");
         } else {
-            int argLen = strlen(argType);
-            int adjust = (argLen > 1 && argType[argLen - 1] != ']') ? 2 : 0;
             argType = convert_internal_to_external(csound, argType);
-            argLen = strlen(argType);
-            argsLen += argLen + adjust;
+            argsLen += strlen(argType);
             argTypes[index++] = argType;
         }
 
@@ -1135,19 +1161,12 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     char* temp = argString;
 
     for (i = 0; i < len; i++) {
-        int size = strlen(argTypes[i]);
+        char* argType = argTypes[i];
+        int size = strlen(argType);
         
-        if (size > 1 && strchr(argTypes[i], '[') == 0) {
-//            printf("UserDefined Type found...\n");
-          *temp = ':';
-          memcpy(temp + 1, argTypes[i], size);
-          *(temp + 1 + size) = ';';
-          temp += 2 + size;
-        } else {
-          memcpy(temp, argTypes[i], size);
-          temp += size;
-          csound->Free(csound, argTypes[i]);
-        }
+        memcpy(temp, argTypes[i], size);
+        temp += size;
+        csound->Free(csound, argTypes[i]);
     }
 
     argString[argsLen] = '\0';
