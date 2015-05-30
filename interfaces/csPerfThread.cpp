@@ -123,7 +123,7 @@ class CsPerfThreadMsg_TogglePause : public CsoundPerformanceThreadMessage {
 };
 
 extern "C" {
-  static unsigned long recordThread_(void *recordData_)
+  static uintptr_t recordThread_(void *recordData_)
   {
     recordData_t *recordData = (recordData_t *)recordData_;
     int retval = 0;
@@ -146,7 +146,7 @@ extern "C" {
         } while(sampsread != 0);
         pthread_mutex_unlock(&recordData->mutex);
     }
-    return (unsigned long) retval;
+    return (uintptr_t) ((unsigned int) retval);
   }
 }
 
