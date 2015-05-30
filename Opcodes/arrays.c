@@ -112,8 +112,9 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
       //size = MYFLT2LRND(size); // size is an int32_t not float
     }
 
+
     {
-      CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,NULL);
+      CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, arrayDat->arrayType);
       char *mem;
       arrayDat->arrayMemberSize = var->memBlockSize;
       arrayDat->data = csound->Calloc(csound,
