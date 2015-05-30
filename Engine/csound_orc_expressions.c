@@ -87,17 +87,23 @@ char *create_out_arg(CSOUND *csound, char* outype, int argCount,
         }
         add_arg(csound, s, NULL, typeTable);
     } else {
+        // FIXME - struct arrays
         if (*outype == '[') {
             snprintf(s, 16, "#%c%d[]", outype[1], argCount);
             add_array_arg(csound, s, NULL, 1, typeTable);
-        } else if(*outype == ':') {
-            char* argType = cs_strndup(csound, outype + 1, strlen(outype) - 2);
-            snprintf(s, 256, "#%s%d", argType, argCount);
-            add_arg(csound, s, argType, typeTable);
         } else {
-            csound->Warning(csound, "ERROR: unknown outype found for out arg synthesis: %s\n", outype);
-            return NULL;
+//            char* argType = cs_strndup(csound, outype + 1, strlen(outype) - 2);
+            snprintf(s, 256, "#%s%d", outype, argCount);
+            add_arg(csound, s, outype, typeTable);
         }
+//        } else if(*outype == ':') {
+//            char* argType = cs_strndup(csound, outype + 1, strlen(outype) - 2);
+//            snprintf(s, 256, "#%s%d", argType, argCount);
+//            add_arg(csound, s, argType, typeTable);
+//        } else {
+//            csound->Warning(csound, "ERROR: unknown outype found for out arg synthesis: %s\n", outype);
+//            return NULL;
+//        }
     }
 
     return s;
