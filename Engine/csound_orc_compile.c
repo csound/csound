@@ -204,10 +204,12 @@ int argsRequired(char* argString)
             t++;
           }
           t++;
+          while (*t == '[' || *t == ']') {
+            t++;
+          }
         } else {
-
           t++;
-          while (*t == '[') {
+          while (*t == '[') { //FIXME - Struct Arrays
             t++;
             if (*t != ']') {
                // ERROR HERE, unmatched array identifier, perhaps should report...
@@ -228,67 +230,67 @@ char** splitArgs(CSOUND* csound, char* argString)
 {
     int argCount = argsRequired(argString);
     char** args = csound->Malloc(csound, sizeof(char*) * (argCount + 1));
-    char* t = argString;
+
+    char* start = argString;
     int i = 0;
 
-    if (t != NULL) {
-      while (*t != '\0' ) {
+    if (start != NULL) {
+      while (*start != '\0' ) {
+        char* current = start;
         char* part;
         int dimensions = 0;
 
-        if (*t == ':') {
-          t++;
-          char* end = strchr(t, ';');
-          int len = (end - t);
-          //FIXME - needs to check if invalid arg string given...
-          part = cs_strndup(csound, t, len);
-          t += len + 1;
-        } else if (*(t + 1) == '[') { // FIXME
-          char* start = t;
-          int len = 1;
-          int j;
-          t++;
+        if (*current == ':') {
+          current++;
+          while (*current != ';') {
+            current++;
+          }
+        }
+
+        current++;
+
+        if (*current == '[') { // FIXME
+          int len = current - start;
+          if (*start == ':') {
+            len -= 2;
+            start += 1;
+          }
+          char* t = current;
 
           while (*t == '[') {
             t++;
-            len++;
 
             if (*t != ']') {
                // ERROR HERE, unmatched array identifier, perhaps should report...
                return NULL;
             }
-
-        while (*t == '[') {
-          t++;
-          len++;
-
-          if (UNLIKELY(*t != ']')) {
-            // FIXME: needs more precise error information
-            csound->Message(csound,
-                            Str("ERROR: Unmatched bracket found in array"
-                                "argument type specification\n"));
-            return NULL;
+            t++;
+            dimensions++;
           }
+          part = csound->Malloc(csound, sizeof(char) * (dimensions + len + 2));
 
-          t++;
-          len++;
-          dimensions++;
-        }
-        part = csound->Malloc(csound, sizeof(char) * (dimensions + 3));
-        // printf("alloc %p\n", part);
-        part[dimensions + 2] = '\0';
-        part[dimensions + 1] = ']';
-        part[dimensions] = *start;
-        for (j = 0; j < dimensions; j++) {
-          part[j] = '[';
+          memset(part, '[', dimensions);
+          strncpy((part + dimensions), start, len);
+          part[dimensions + len] = ']';
+          part[dimensions + len + 1] = '\0';
+
+          args[i] = part;
+
+          start = t;
+        } else {
+          int len = current - start;
+          if (*start == ':') {
+            len -= 2;
+            start += 1;
+          }
+          // part = csound->Malloc(csound, sizeof(char) * (len + 1));
+          // printf("alloc %p \n", part);
+          args[i] = cs_strndup(csound, start, len);
+
+          start = current;
         }
 
-      } else {
-        part = csound->Malloc(csound, sizeof(char) * 2);
-        // printf("alloc %p\n", part);
-        part[0] = *t;
-        part[1] = '\0';
-        t++;
+        i++;
       }
       args[i] = part;
       i++;
