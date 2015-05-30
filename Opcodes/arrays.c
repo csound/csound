@@ -124,7 +124,7 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
       size = MYFLT2LRND(size);
     }
 
-    CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, NULL);
+    CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, arrayDat->arrayType);
 
     arrayDat->arrayMemberSize = var->memBlockSize;
     arrayDat->data = csound->Calloc(csound, var->memBlockSize*size);
