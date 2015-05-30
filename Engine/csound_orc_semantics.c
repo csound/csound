@@ -1835,16 +1835,20 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
 
     if (UNLIKELY(oentry == NULL)) {
+      int i;
       synterr(csound, Str("Unable to find opcode entry for \'%s\' "
                           "with matching argument types:\n"),
               opcodeName);
-      csoundMessage(csound, Str("Found: %s %s %s\n"),
+      csoundMessage(csound, Str("Found:\n  %s %s %s\n"),
                     leftArgString, root->value->lexeme, rightArgString);
-      if (root->left && root->left->value && root->right && root->right->value)
-      csoundMessage(csound, Str("       %s %s %s ...\n"),
-                    root->left->value->lexeme, root->value->lexeme,
-                    root->right->value->lexeme);
-      csoundMessage(csound, Str("Line: %d\n"),
+        csoundMessage(csound, Str("\nCandidates:\n"));
+
+        for (i = 0; i < entries->count; i++) {
+          OENTRY *entry = entries->entries[i];
+          csoundMessage(csound, "  %s %s %s\n", entry->outypes, entry->opname, entry->intypes);
+        }
+
+      csoundMessage(csound, Str("\nLine: %d\n"),
                     root->line);
       do_baktrace(csound, root->locn);
 
