@@ -101,7 +101,7 @@ aoutright                       =                       gkMasterLevel * ainright
 </CsInstruments>
 <html>
 <h1>Score Generator</h1>
-<button  id="generate" onclick="generate()"> Generate score </button>
+<button onclick="generate()"> Generate score </button>
 <script>
 var c = 0.99;
 var y = 0.5;
@@ -112,8 +112,7 @@ function generate() {
 	  var y1 = 4.0 * c * y * (1.0 - y);
 	  y = y1;
 	  var key = Math.round(36.0 + (y * 60.0));
-	  var note = "i 1 " + t + " 2.0 " + key + " 60 0.5\n";
-	  csound.message(note);
+	  var note = "i 1 " + t + " 2.0 " + key + " 60 0.0 0.5\n";
 	  csound.readScore(note);		
 	};
 };
