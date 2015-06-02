@@ -1,10 +1,17 @@
 #!/bin/sh
 /bin/ln -sF /Library/Frameworks/CsoundLib64.framework/Resources/Java/lib_jcsound6.jnilib /Library/Java/Extensions/lib_jcsound6.jnilib
+/bin/ln -sF /Library/Frameworks/CsoundLib64.framework/Versions/6.0/libcsnd6.6.0.dylib /usr/local/lib/libcsnd.6.0.dylib
 
 PY_SRC_DIR="/Library/Frameworks/CsoundLib64.framework/Resources/Python/Current"
 
 PYTHON_DIR="/Library/Python/2.7/site-packages"
 if [ -d "$PYTHON_DIR" ]; then
+  /bin/ln -sF $PY_SRC_DIR/CsoundAC.py $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/_CsoundAC.so $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/_csnd6.so $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/csnd6.py $PYTHON_DIR
+else
+  mkdir -p $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/CsoundAC.py $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/_CsoundAC.so $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/_csnd6.so $PYTHON_DIR

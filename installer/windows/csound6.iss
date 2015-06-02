@@ -11,12 +11,19 @@
 ; All of these changes SHOULD be in the #defines immediately following this.
 ; Also, this installer assumes LuaJIT and CsoundAC are part of Csound core.
 ; At this time the following features are not included in the installer:
-; Cabbage, CsoundVST.
+; faustgen.
 ; I hope to change this soon.
+
+; Uncomment the following line to build for Cabbage, CsoundVST, and vst4cs.
+;#define CSOUNDVST
 
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
-#define MyAppMinVersion "6.00.1"
+#ifdef CSOUNDVST
+#define MyAppMinVersion "6.03.1-vst"
+#else
+#define MyAppMinVersion "6.03.1"
+#endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
@@ -26,9 +33,9 @@
 ; If you are not Michael Gogins, change this to your MSys /usr/local/ directory.
 #define MyMSysUsrLocalDir "D:\msys\local\"
 ; If you are not Michael Gogins, change this to your Csound build directory.
-#define MySourceDir "C:\Users\mkg.sorabji\csound-csound6-git\"
+#define MySourceDir "C:\Users\mike\csound-csound6-git\"
 ; If you are not Michael Gogins, change this to your Csound reference manual build directory.
-#define MyManualSourceDir "C:\Users\mkg.sorabji\csound-manual6-git\"
+#define MyManualSourceDir "C:\Users\mike\csound-manual6-git\"
 ; If you are not Michael Gogins, change this to your Csound tutorial directory.
 #define MyCsoundTutorialSourceDir "D:\Dropbox\tutorial\"
 ; If you are not Michael Gogins, change this to your CsoundAC tutorial directory.
@@ -52,18 +59,27 @@
 ; If you are not Michael Gogins, change this to your STK dll directory.
 #define MyLibStkSourceDir "D:\msys\local\src\stk-4.4.4\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
-#define MyCsoundQtBinDir "C:\Users\mkg.sorabji\qutecsound-code\bin\"
+#define MyCsoundQtBinDir "C:\Users\mike\qutecsound-code\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
-#define MyQtSdkBinDir "D:\qt-everywhere-opensource-src-5.1.0\qtbase\bin\"
+#define MyQtSdkBinDir "D:\qt-everywhere-opensource-src-5.1.1\qtbase\bin\"
+; If you are not Michael Gogins, change this to your unzipped cabbage-master directory.
+#define MyCabbageDir "D:\cabbage-master\"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full; 
+Name: "pd"; Description: "Pure Data csound~ object (requires Pure Data)"; Types: full; 
+#ifdef CSOUNDVST
+Name: "csoundvst"; Description: "Cabbage, Csound VST plugin, and vst4cs opcodes"; Types: full; 
+#endif
 
 [Dirs]
-; ALL programs and shared libraries (including opcodes and other modules) go here.
+; ALL programs and shared libraries (except opcodes and other Csound modules) go here.
 Name: "{app}\bin"; Permissions: users-modify
 #define APP_BIN "{app}\bin\"
+; ALL Csound opcodes and other Csound modules go here.
+Name: "{app}\plugins64"; Permissions: users-modify
+#define APP_PLUGINS64 "{app}\plugins64\"
 ; All C or C++ include files for Csound and other components used by Csound go here.
 ; This is a convenience for people like me who program in C or C++ and might use 
 ; features of these third party components.
@@ -84,7 +100,8 @@ Name: "{app}\samples"
 ; Tutorials go here.
 Name: "{app}\doc\tutorial"
 #define APP_TUTORIAL "{app}\doc\tutorial\"
-
+Name: "{app}\cabbage"
+#define APP_CABBAGE "{app}\cabbage\"
 ; These are the Csound environment variables related to directories.
 
 #define SFDIR
@@ -113,7 +130,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName=Csound 6
 AllowNoIcons=yes
-LicenseFile=readme-csound6.txt
+LicenseFile=README.md
 ;InfoBeforeFile=readme-csound6.txt
 OutputDir=installer\windows
 OutputBaseFilename=Setup_{#MyAppName}_{#MyAppMinVersion}
@@ -125,19 +142,69 @@ SourceDir={#MySourceDir}
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
+Source: "*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "{#MyMinGwBinDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 ; No idea why this other name is needed.
 Source: "{#MyMSysBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv.dll"; Components: core;
 Source: "{#MyMSysUsrLocalDir}bin/*.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "*.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "*.dll*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Excludes: "py.dll"; Components: core;
-Source: "py.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "*.py";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
+Source: "csound6~.dll";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: pd;
+Source: "CsoundAC.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+#ifdef CSOUNDVST
+Source: "CsoundVST.dll";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst;
+#endif
+Source: "luaCsnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "luaCsoundAC.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "_jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+
+#ifdef CSOUNDVST
+Source: "{#MyCabbageDir}cabbage.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
+Source: "{#MyCabbageDir}CabbagePluginSynth.dat"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
+Source: "{#MyCabbageDir}CabbagePluginEffect.dat"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
+Source: "{#MyCabbageDir}Examples\*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs; Components: csoundvst
+Source: "{#MyCabbageDir}Docs\*"; DestDir: "{#APP_BIN}\Docs"; Flags: ignoreversion recursesubdirs; Components: csoundvst
+#endif
+
+Source: "LuaCsound.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "ampmidid.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "cellular.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "chua.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "cs_date.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "csladspa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "doppler.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "fareygen.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "fluidOpcodes.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "fractalnoise.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "image.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "ipmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "linear_algebra.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "mixer.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "osc.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "platerev.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "pmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "py.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: python;
+Source: "rtpa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "rtwinmm.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "scansyn.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "serial.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "signalflowgraph.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "stdutil.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "stk.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "system_call.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "virtual.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+#ifdef CSOUNDVST
+Source: "vst4cs.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: csoundvst;
+#endif
+Source: "widgets.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 
 Source: "{#MyCsoundQtBinDir}CsoundQt-d-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyCsoundQtBinDir}..\src\Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core 
 Source: "{#MyQtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
@@ -152,9 +219,11 @@ Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreve
 Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
 
 ; Ignore the unspeakably stupid libtool crap.
-Source: {#MyPortAudioSourceDir}\lib\.libs\*.dll; DestDir: "{#APP_BIN}"; Components: core 
-Source: {#MyPortAudioSourceDir}\bin\.libs\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
-Source: {#MyPortAudioSourceDir}\bin\.libs\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
+; Source: {#MyPortAudioSourceDir}\lib\.libs\*.dll; DestDir: "{#APP_BIN}"; Components: core 
+Source: {#MyPortAudioSourceDir}\bin\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
+Source: {#MyPortAudioSourceDir}\bin\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
+; Required by pre-built portaudio_x86.dll (built with MSVC).
+Source: "C:\Windows\system32\msvcr110.dll"; DestDir: "{#APP_BIN}"; Components: core  
 
 Source: {#MyPortMidiSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core 
 
@@ -180,8 +249,8 @@ Source: frontends/CsoundAC/*.hpp; DestDir: "{#APP_INCLUDE}\csoundac"; Flags: ign
 
 Source: {#MyManualSourceDir}html\*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs;  Components: core 
 
-Source: "doc\csound\html\*.*"; DestDir: "{#APP_APIREF}/csound"; Flags: ignoreversion recursesubdirs;  Components: core 
-Source: "doc\csoundac\html\*.*"; DestDir: "{#APP_APIREF}/csoundac"; Flags: ignoreversion recursesubdirs;  Components: core 
+Source: "doc\doxygen\csound\html\*.*"; DestDir: "{#APP_APIREF}/csound"; Flags: ignoreversion recursesubdirs;  Components: core 
+Source: "doc\doxygen\csoundac\html\*.*"; DestDir: "{#APP_APIREF}/csoundac"; Flags: ignoreversion recursesubdirs;  Components: core 
 
 Source: "examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav"; Flags: ignoreversion recursesubdirs;  Components: core 
 
@@ -192,12 +261,16 @@ Source: {#MyCsoundTutorialSourceDir}tutorial.pdf; DestDir: "{#APP_TUTORIAL}"; Fl
 Source: {#MyCsoundAcTutorialSourceDir}Csound_Algorithmic_Composition_Tutorial.pdf; DestDir: "{#APP_TUTORIAL}"; Flags: ignoreversion recursesubdirs;  Components: core 
 Source: {#MyCsoundAcTutorialSourceDir}code\*.*; DestDir: "{#APP_TUTORIAL}code\"; Excludes: "*.wav"; Flags: ignoreversion recursesubdirs;  Components: core 
 
+Source: "doc\csound_system_documentation\*.pdf"; DestDir:"{#APP_APIREF}"; Flags: ignoreversion; Components: core
+
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}";  Components: core;  
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core  
 Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-cs6.exe"; WorkingDir: "{#APP_BIN}";  Components: core   
-Name: "{group}\WinSound"; Filename: "{#APP_BIN}winsound.exe"; WorkingDir: "{#APP_BIN}";  Components: core 
+#ifdef CSOUNDVST
+Name: "{group}\Cabbage"; Filename: "{#APP_BIN}cabbage.exe"; WorkingDir: "{#APP_BIN}";  Components: csoundvst
+#endif
 Name: "{group}\LuaJIT"; Filename: "{#APP_BIN}luajit.exe"; WorkingDir: "{#APP_BIN}";  Components: core 
 Name: "{group}\Audio device information"; Filename: "cmd"; Parameters: "/K pa_devs.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core 
 Name: "{group}\Audio device latency"; Filename: "cmd"; Parameters: "/K pa_minlat.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core 
@@ -209,7 +282,7 @@ Name: "{group}\CsoundAC Tutorial"; Filename: "{#APP_TUTORIAL}Csound_Algorithmic_
 
 [Registry]
 Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"RAWWAVE_PATH"; ValueData:"{#APP_SAMPLES}"; Flags: preservestringtype uninsdeletekey;  Components: core 
-Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"OPCODE6DIR64"; ValueData:"{#APP_BIN}"; Flags: preservestringtype uninsdeletekey;  Components: core 
+Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"OPCODE6DIR64"; ValueData:"{#APP_PLUGINS64}"; Flags: preservestringtype uninsdeletekey;  Components: core 
 Root: HKCU; Subkey: "Environment"; ValueType:string; ValueName:"PYTHONPATH"; ValueData:"{#APP_BIN}"; Flags: preservestringtype uninsdeletekey;  Components: python 
 
 [Tasks]

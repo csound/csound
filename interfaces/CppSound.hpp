@@ -20,6 +20,7 @@
 #ifndef CSND_CPPSOUND_H
 #define CSND_CPPSOUND_H
 
+#include "float-version.h"
 #ifndef __MYFLT_DEF
 #define __MYFLT_DEF
 #ifdef USE_DOUBLE

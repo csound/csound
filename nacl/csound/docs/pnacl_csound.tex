@@ -1,0 +1,135 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{hyperref}
+
+\lstset {
+basicstyle={\ttfamily, \footnotesize},
+showspaces=false, showstringspaces=false
+}
+\begin{document}
+
+
+
+\title{Csound for Portable Native Client}
+\author{Victor Lazzarini}
+\date{\today}
+\maketitle
+
+\section{Introduction}
+
+Native Client (NaCl) is a sandboxing technology developed by Google that allows C/C++ modules to extend the support provided
+by HTML5. Portable Native Client (pNaCl) is one of the toolchains in the NaCl SDK (the others are newlib and glibc). The advantage
+of pNaCl over the other options is that it only requires a single module to be built for all supported architectures.
+
+The other major advantage is that pNaCl is, as of Google Chrome 31, enabled by default in the browser. This means that users
+just need to load a page containing the pNaCl application and it will work. pNaCl modules are compiled to llvm bytecode that is 
+translated to a native binary by the browser. To check whether your version of Chrome supports pNaCl, use the following address:
+\\
+
+ {\tt chrome://nacl }
+\\
+
+Porting Csound to pNaCl involved three steps, following the SDK installation:
+\\
+\begin{enumerate}
+\item Building libsndfile as a pNaCl library
+\item Build Csound as a pNaCl library
+\item Developing the pNaCl module to provide an interface to the Csound library
+\end{enumerate}
+
+
+\section{Building Csound for pNaCl}
+
+\subsection{Building the libraries}
+
+With the NaCl SDK installed, and the NACL\_SDK\_ROOT set as per installation instructions and the libsndfile-nacl sources
+(\url{https://www.dropbox.com/s/ezfo9rmo5wtzptz/libsndfile-nacl.tar.gz}),
+you can use the make command to build libsndfile. To build the Csound library, run  the build.sh script in the ./nacl subdirectory 
+of the Csound 6 sources. When libraries are built, they are added to the SDK, and made readily available for applications to be
+built with them.
+
+\subsection{Building the pNaCl Csound module}
+
+Once the libraries are built, you can run make in the ./nacl/csound subdirectory of the Csound sources. This will build the
+nacl module in  pnacl/Release. There is a package.sh that can be used to copy and package all the relevant files for 
+HTML5 development. This package is self-contained, i.e. it does not have any dependencies, and it can be expanded
+elsewhere in your project application folders. 
+
+
+\subsection{Running the example application}
+
+NaCl pages need to be served over http, which means they will not work when opened as local files. You need to start a local server,
+and this can be done with the python script httpd.py found in the \$NACL\_SDK\_ROOT/tools directory. If you start this script 
+in the top level directory of the pNaCl Csound package, then the example will be found at the {\tt http://localhost:5103} address.
+
+\section{Csound pNaCl module reference}
+
+The interface to Csound is found in the csound.js javascript file. Csound is ready on module load, and can accept control messages
+from then on.
+
+\subsection{Control functions}
+
+The following control functions can be used to interact with Csound:
+
+\begin{itemize}
+\item {\tt csound.Play()} - starts performance
+\item {\tt csound.PlayCsd(s)} - starts performance from a CSD file s, which can be in ./http/ (ORIGIN server) or ./local/ (local sandbox).
+\item {\tt csound.RenderCsd(s)} - renders a CSD file s, which can be in ./http/ (ORIGIN server) or ./local/ (local sandbox), with no RT audio output.
+The ``finished render" message is issued on completion.
+\item {\tt csound.Pause()} - pauses performance
+\item  {\tt csound.StartAudioInput()} - switches on audio input
+  (available in Chrome version 36 onwards)
+\item {\tt csound.CompileOrc(s)} - compiles the Csound code in the string s
+\item {\tt csound.ReadScore(s)} - reads the score in the string s (with preprocessing support)
+\item {\tt csound.Event(s)} - sends in the line events contained in the string s (no preprocessing)
+\item {\tt csound.SetChannel(name, value)} - sends the control channel \emph{name} the value \emph{value}, both arguments being strings.
+\end{itemize}
+
+\subsection{Filesystem functions}
+
+In order to facilitate access to files, the following filesystem functions can be used:
+
+\begin{itemize}
+\item {\tt csound.CopyToLocal(src, dest)} - copies the file \emph{src} in the ORIGIN directory to the local file \emph{dest}, which can
+be accessed at ./local/\emph{dest}. The ``Complete" message is issued on completion.
+\item {\tt csound.CopyUrlToLocal(url,dest)} - copies the url \emph{url} to the local file \emph{dest}, which can
+be accessed at ./local/\emph{dest}. Currently only ORIGIN and CORS urls are allowed remotely, but local files can
+also be passed if encoded as urls with the webkitURL.createObjectURL() javascript method. The ``Complete" message is issued on completion.
+\item {\tt csound.RequestFileFromLocal(src)} - requests the data from the local file \emph{src}. The ``Complete" message is issued on completion. 
+\item {\tt csound.GetFileData()} - returns the most recently requested file data as an ArrayObject.
+\end{itemize}
+
+
+\subsection{Callbacks}
+
+The csound.js module will call the following window functions when it starts:
+
+\begin{itemize} 
+\item {\tt function moduleDidLoad()}: this is called as soon as the module is loaded 
+\item {\tt function handleMessage(message)}: called when there are messages from Csound (pnacl module). 
+The string message.data contains the message.
+\item {\tt function attachListeners()}: this is called when listeners for different events are to be attached. 
+\end{itemize}
+
+You should implement these functions in your HTML page script, in order to use the Csound javascript interface.
+In addition to the above, Csound javascript module messages are always sent to the HTML element with id=`console', 
+which is normally of type \textless div\textgreater \, or \textless textarea\textgreater .
+
+\subsection{Example}
+
+Here is a minimal HTML example showing the use of Csound
+
+\lstinputlisting[language=HTML]{../minimal.html}
+
+\section{Limitations}
+
+The following limitations apply:
+
+\begin{itemize}
+\item no MIDI in the NaCl module. However, it might be possible to implement MIDI in javascript, and using the csound.js functions,
+send data to Csound, and respond to MIDI NOTE messages.
+\item no plugins, as pNaCl does not support dlopen() and friends. This means some opcodes are not available as they reside in plugin libraries.
+It might be possible to add some of these opcodes statically to the Csound pNaCl library in the future.
+\end {itemize}
+
+\end{document}

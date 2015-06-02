@@ -41,7 +41,7 @@ typedef struct {
 static int pan2set(CSOUND *csound, PAN2 *p)
 {
     int type = p->type = MYFLT2LRND(*p->itype);
-    if (UNLIKELY(type <0 || type > 2))
+    if (UNLIKELY(type <0 || type > 3))
       return csound->InitError(csound, Str("Unknown panning type"));
     return OK;
 }
@@ -112,9 +112,10 @@ static int pan2run(CSOUND *csound, PAN2 *p)
     return OK;
 }
 
+
 static OENTRY pan2_localops[] =
 {
-  { "pan2", sizeof(PAN2), 0, 5, "aa", "axo", (SUBR) pan2set, 0, (SUBR) pan2run }
+  { "pan2", sizeof(PAN2), 0, 5, "aa", "axo", (SUBR) pan2set, 0, (SUBR) pan2run },
 };
 
 LINKAGE_BUILTIN(pan2_localops)

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<!--
+ Csound pnacl csd player example
+ Copyright (C) 2013 V Lazzarini
+-->
+<head>
+ <title> csd player </title>
+ <style type="text/css">
+   textarea.console { font-family: "Courier New"; color: #FCF477;
+                     background-color: #007777 }
+  </style>
+ <script type="text/javascript" src="csound.js"></script>
+ <script type="text/javascript">
+ // called by csound.js
+ function moduleDidLoad() {
+
+ }
+ function attachListeners() { 
+  document.getElementById('playButton').
+       addEventListener('click', togglePlay);
+   document.getElementById('files').
+      addEventListener('change', handleFileSelect, false);
+ }
+
+ var count = 0;
+ function handleMessage(message) {
+        var element = document.getElementById('console');
+        element.value += message.data;
+        element.scrollTop = 99999; // focus on bottom
+        count += 1;
+        if(count == 1000) {
+           element.value = ' ';
+           count = 0;
+        }
+  }
+
+
+ var playing = false;
+ var started = false;
+ var loaded = false;
+ var fname;
+
+ function togglePlay(){
+  if(loaded) {
+  if(!playing) {
+  if(started) csound.Play();
+  else {
+   csound.PlayCsd("local/" + fname)
+   started = true;
+  }
+  document.getElementById('playButton').innerText = "Pause";
+  playing = true;
+  } else {
+  csound.Pause()
+  document.getElementById('playButton').innerText ="Play";
+  playing = false;
+  }
+}
+}
+
+function handleFileSelect(evt) {
+   if(!loaded) {
+    var files = evt.target.files; 
+    var f = files[0];
+    var objectURL = window.webkitURL.createObjectURL(f);
+    csound.CopyUrlToLocal(objectURL, f.name);
+    fname = f.name;
+    loaded = true;
+   } else {
+   csound.updateStatus("to load a new CSD, first refresh page!")
+  }
+}
+ 
+</script>
+</head>
+<body>
+  <p>
+  <input type="file" id="files" name="file" />
+  <button id="playButton">Play</button>
+  </p>
+  <textarea class="console" cols="55" rows="13" id="console"
+  value="">Csound: not loaded</textarea>
+  <!--pNaCl csound module-->
+  <div id="engine"></div>
+</body>
+</html>
+

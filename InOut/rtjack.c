@@ -231,7 +231,7 @@ static CS_NOINLINE int rtJack_ListPorts(CSOUND *csound,
     for (nPorts = 0; portNames[nPorts] != NULL; nPorts++)
       ;
     qsort((void*) portNames, (size_t) nPorts, sizeof(char*), portname_cmp_func);
-    sprintf(&(clientNameBuf[0]), "%s:", clientName);
+    snprintf(&(clientNameBuf[0]), MAX_NAME_LEN + 2, "%s:", clientName);
     len = strlen(&(clientNameBuf[0]));
     prvPortName[0] = (char) 0;
     maxChn = nChn = 0;
@@ -372,7 +372,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
     if (p->inputEnabled) {
       /* register input ports */
       for (i = 0; i < p->nChannels; i++) {
-        sprintf(&(portName[0]), "%s%d", &(p->inputPortName[0]), i + 1);
+        snprintf(portName, MAX_NAME_LEN + 4, "%s%d", p->inputPortName, i + 1);
         p->inPorts[i] = jack_port_register(p->client, &(portName[0]),
                                            JACK_DEFAULT_AUDIO_TYPE,
                                            flags | JackPortIsInput, 0UL);
@@ -383,7 +383,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
     if (p->outputEnabled) {
       /* register output ports */
       for (i = 0; i < p->nChannels; i++) {
-        sprintf(&(portName[0]), "%s%d", &(p->outputPortName[0]), i + 1);
+        snprintf(portName, MAX_NAME_LEN + 4, "%s%d", p->outputPortName, i + 1);
         p->outPorts[i] = jack_port_register(p->client, &(portName[0]),
                                             JACK_DEFAULT_AUDIO_TYPE,
                                             flags | JackPortIsOutput, 0UL);
@@ -403,9 +403,11 @@ static void openJackStreams(RtJackGlobals *p)
     CSOUND *csound = p->csound;
 
     /* connect to JACK server */
-    p->client = jack_client_open(&(p->clientName[0]), JackNullOption, NULL);
+    p->client = jack_client_open(&(p->clientName[0]), JackNoStartServer, NULL);
     if (UNLIKELY(p->client == NULL))
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
+
+    csound->system_sr(csound, jack_get_sample_rate(p->client));
 
     /* check consistency of parameters */
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > 255))
@@ -413,7 +415,7 @@ static void openJackStreams(RtJackGlobals *p)
     if (UNLIKELY(p->sampleRate < 1000 || p->sampleRate > 768000))
       rtJack_Error(csound, -1, Str("invalid sample rate"));
     if (UNLIKELY(p->sampleRate != (int) jack_get_sample_rate(p->client))) {
-      sprintf(&(buf[0]), Str("sample rate %d does not match "
+      snprintf(&(buf[0]), 256, Str("sample rate %d does not match "
                              "JACK sample rate %d"),
               p->sampleRate, (int) jack_get_sample_rate(p->client));
       rtJack_Error(p->csound, -1, &(buf[0]));
@@ -499,22 +501,23 @@ static void openJackStreams(RtJackGlobals *p)
         strncpy(dev, devs[0].device_name, 128);
         free(devs);
       }
-      if(p->inDevName != NULL)
-          strncpy(dev, p->inDevName, 128);
-      if (dev) {
-        dev_final = dev;
-        sp = strchr(dev_final, '\0');
-        if(!isalpha(dev_final[0])) dev_final++;
-
-        for (i = 0; i < p->nChannels; i++) {
-          sprintf(sp, "%d", i + 1);
-          if (UNLIKELY(jack_connect(p->client, dev_final,
-                                    jack_port_name(p->inPorts[i])) != 0)) {
-              rtJack_Error(csound, -1, Str("error connecting input ports"));
-          }
-        }
-        *sp = (char) 0;
+      if(p->inDevName != NULL) {
+        strncpy(dev, p->inDevName, 128); dev[127]='\0';
       }
+      //if (dev) {
+      dev_final = dev;
+      sp = strchr(dev_final, '\0');
+      if (!isalpha(dev_final[0])) dev_final++;
+
+      for (i = 0; i < p->nChannels; i++) {
+        snprintf(sp, 128-(dev-sp), "%d", i + 1);
+        if (UNLIKELY(jack_connect(p->client, dev_final,
+                                  jack_port_name(p->inPorts[i])) != 0)) {
+          rtJack_Error(csound, -1, Str("error connecting input ports"));
+        }
+      }
+      *sp = (char) 0;
+      //}
 
     }
     if (p->outputEnabled) {
@@ -530,20 +533,21 @@ static void openJackStreams(RtJackGlobals *p)
           strncpy(dev, devs[0].device_name, 128);
           free(devs);
       }
-      if(p->outDevName != NULL) strncpy(dev, p->outDevName, 128);
-      if (dev) {
-        dev_final = dev;
-        sp = strchr(dev_final, '\0');
-        if(!isalpha(dev_final[0])) dev_final++;
-        for (i = 0; i < p->nChannels; i++) {
-          sprintf(sp, "%d", i + 1);
-          if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
-                           dev_final) != 0) {
-            rtJack_Error(csound, -1, Str("error connecting output ports"));
-          }
-        }
-        *sp = (char) 0;
+      if (p->outDevName != NULL) {
+        strncpy(dev, p->outDevName, 128); dev[127]='\0';
       }
+      //if (dev) { this test is rubbish
+      dev_final = dev;
+      sp = strchr(dev_final, '\0');
+      if(!isalpha(dev_final[0])) dev_final++;
+      for (i = 0; i < p->nChannels; i++) {
+        snprintf(sp, 128-(dev-sp), "%d", i + 1);
+        if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
+                         dev_final) != 0) {
+          rtJack_Error(csound, -1, Str("error connecting output ports"));
+        }
+      }
+      *sp = (char) 0;
     }
     /* stream is now active */
     p->jackState = 0;
@@ -569,7 +573,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
       /* connection yet; this is a somewhat hackish solution... */
       if (p->client == (jack_client_t*) NULL) {
         useTmpClient = 1;
-        client_ = jack_client_open(&(p->clientName[0]), JackNullOption, NULL);
+        client_ = jack_client_open(&(p->clientName[0]), JackNoStartServer, NULL);
       }
       else
         client_ = p->client;
@@ -768,6 +772,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     int           i, j, k, nframes, bufpos, bufcnt;
 
     p = (RtJackGlobals*) *(csound->GetRtPlayUserData(csound));
+    if (UNLIKELY(p==NULL)) rtJack_Abort(csound, 0);
     if (p->jackState != 0) {
       if (p->jackState < 0)
         openJackStreams(p);     /* open audio input */
@@ -782,6 +787,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     for (i = j = 0; i < nframes; i++) {
       if (bufpos == 0) {
         /* wait until there is enough data in ring buffer */
+        /* **** COVERITY: claims this is a double lock **** */
         rtJack_Lock(csound, &(p->bufs[bufcnt]->csndLock));
       }
       /* copy audio data */
@@ -834,6 +840,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
       if (p->csndBufPos == 0) {
         /* wait until there is enough free space in ring buffer */
         if (!p->inputEnabled)
+          /* **** COVERITY: claims this is a double lock **** */
           rtJack_Lock(csound, &(p->bufs[p->csndBufCnt]->csndLock));
       }
       /* copy audio data */
@@ -892,16 +899,16 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
     *(csound->GetRtRecordUserData(csound))  = NULL;
     memcpy(&p, pp, sizeof(RtJackGlobals));
     /* free globals */
-    csound->DestroyGlobalVariable(csound, "_rtjackGlobals");
+
     if (p.client != (jack_client_t*) NULL) {
       /* deactivate client */
-      if (p.jackState != 2) {
-        if (p.jackState == 0)
-          csound->Sleep((size_t)
-                        ((int) ((double) (p.bufSize * p.nBuffers)
-                                * 1000.0 / (double) p.sampleRate + 0.999)));
-        jack_deactivate(p.client);
-      }
+      //if (p.jackState != 2) {
+      //if (p.jackState == 0)
+      //  csound->Sleep((size_t)
+      //                ((int) ((double) (p.bufSize * p.nBuffers)
+      //                        * 1000.0 / (double) p.sampleRate + 0.999)));
+      jack_deactivate(p.client);
+      //}
       csound->Sleep((size_t) 50);
       /* unregister and free all ports */
       if (p.inPorts != NULL) {
@@ -937,6 +944,7 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
       free(p.outPortBufs);
     /* free ring buffers */
     rtJack_DeleteBuffers(&p);
+    csound->DestroyGlobalVariable(csound, "_rtjackGlobals");
 }
 
 /* print error message, close connection, and terminate performance */

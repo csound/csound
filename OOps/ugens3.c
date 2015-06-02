@@ -815,7 +815,8 @@ static int adset_(CSOUND *csound, ADSYN *p, int stringname)
 
     if (csound->isintab == NULL) {  /* if no sin table yet, make one */
       int16 *ip;
-      csound->isintab = ip = (int16*) mmalloc(csound, ISINSIZ * sizeof(int16));
+      csound->isintab = ip =
+        (int16*) csound->Malloc(csound, ISINSIZ * sizeof(int16));
       for (n = 0; n < ISINSIZ; n++)
         *ip++ = (int16) (sin(TWOPI * n / ISINSIZ) * 32767.0);
     }

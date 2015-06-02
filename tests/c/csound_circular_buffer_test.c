@@ -53,15 +53,15 @@ void test_read_write_diff_size(void) {
         float val = i;
         csoundWriteCircularBuffer(csound, rb, &val, 1);
     }
-    float invals[256];
-    float outvals[256];
+    float invals[512];
+    float outvals[512];
     for (i = 256 ; i <512; i++) {
         invals[i] = i;
     }
     int writeindex = 0;
     int readindex = 0;
     for (i = 1 ; i < 16; i++) {
-        int read = csoundReadCircularBuffer(csound, rb, outvals, 17 - i);
+      int read = csoundReadCircularBuffer(csound, rb, outvals, 17 - i);
         CU_ASSERT_EQUAL(read, 17-i);
         for (j = 0; j < read; j++) {
             CU_ASSERT_EQUAL(outvals[j], readindex++);
@@ -83,8 +83,8 @@ void test_peek(void) {
         float val = i;
         csoundWriteCircularBuffer(csound, rb, &val, 1);
     }
-    float invals[256];
-    float outvals[256];
+    float invals[512];
+    float outvals[512];
     for (i = 256 ; i <512; i++) {
         invals[i] = i;
     }
@@ -111,7 +111,7 @@ void test_peek(void) {
 }
 
 void test_wrap(void) {
-    int i, j;
+    int i;
     CSOUND* csound = csoundCreate(NULL);
     void *rb = csoundCreateCircularBuffer(csound, 32, sizeof(float));
     CU_ASSERT_PTR_NOT_NULL(rb);

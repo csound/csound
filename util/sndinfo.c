@@ -97,7 +97,7 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
           strcpy(channame, Str("oct"));
           break;
         default:
-          sprintf(channame, "%d-channel", sf_info.channels);
+          snprintf(channame, 32, "%d-channel", sf_info.channels);
           break;
         }
         csound->Message(csound,

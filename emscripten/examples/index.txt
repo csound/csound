@@ -1,0 +1,23 @@
+; 
+; CSOUND EMSCRIPTEN
+; =================
+;
+; Edward Costello <edwardcostello@gmail.com>
+; Steven Yi <stevenyi@gmail.com>
+;
+; This is a number of examples showing the Csound library cross-compiled to javascript using Emscripten https://github.com/kripken/emscripten/wiki.
+; This version of Csound doesn't support multi-threaded operation or any plugins.
+; The Csound library is wrapped in a number of C functions which are further wrapped in the CsoundObj object defined in the CsoundObj.js file.
+; This implementation definitely contains many bugs, the performance of the library is also limited due to the slow nature of javascript, even generated asm.js code which will run on Firefox has trouble with complicated scores.
+; Csound output messages are displayed in the javascript console
+;
+; TESTS
+; =====
+;
+; Tests can be found on the left side bar and are loaded by clicking on the links.
+; They can be run by compiling then running the code in the text editor by pressing the Compile then Perform buttons.
+; The Mic Input test will not work on Safari because that hasn't implemented audio input yet.
+; 
+; Each test csd can also be edited using the text editor.
+; The text editor component used is CodeMirror available from http://codemirror.net/
+;

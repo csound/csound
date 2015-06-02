@@ -30,9 +30,8 @@
 int linset(CSOUND *csound, LINE *p)
 {
    double       dur;
-
     if ((dur = *p->idur) > FL(0.0)) {
-      p->incr = (*p->ib - *p->ia) / dur * CS_ONEDKR;
+      p->incr = (*p->ib - *p->ia) / dur * csound->onedsr;
       p->val = *p->ia;
     }
     return OK;
@@ -41,7 +40,7 @@ int linset(CSOUND *csound, LINE *p)
 int kline(CSOUND *csound, LINE *p)
 {
     *p->xr = p->val;            /* rslt = val   */
-    p->val += p->incr;          /* val += incr  */
+    p->val += (p->incr*CS_KSMPS);          /* val += incr  */
     return OK;
 }
 
@@ -62,12 +61,13 @@ int aline(CSOUND *csound, LINE *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-    p->val += inc;/* nxtval = val + inc */
-    inc /= (nsmps - offset);
+    //p->val += inc;/* nxtval = val + inc */
+    //inc /= (nsmps - offset);
     for (n=offset; n<nsmps; n++) {
       ar[n] = (MYFLT)val;
       val += inc;       /* interp val for ksmps */
     }
+    p->val = val;
     return OK;
 }
 
@@ -214,10 +214,11 @@ int klnseg(CSOUND *csound, LINSEG *p)
 
 int linseg(CSOUND *csound, LINSEG *p)
 {
-    double val, ainc; MYFLT *rs = p->rslt;
+    double val, ainc;
+    MYFLT *rs = p->rslt;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-     uint32_t early  = p->h.insdshead->ksmps_no_end;
-     uint32_t n, nsmps = CS_KSMPS;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
 
@@ -251,7 +252,7 @@ int linseg(CSOUND *csound, LINSEG *p)
         val += ainc;
       }
     }
-    else {
+    else {                      /* no more segments */
     putk:
       for (n=offset; n<nsmps; n++) {
         rs[n] = (MYFLT)val;

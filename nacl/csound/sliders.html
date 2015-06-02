@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<!--
+ Csound pnacl sliders example
+ Copyright (C) 2013 V Lazzarini
+-->
+<head>
+ <title>Sliders Example</title>
+ <style type="text/css">
+   textarea.console { font-family: "Courier New"; color: #FCF477;
+                     background-color: #000077 }
+  </style>
+ <script type="text/javascript" src="csound.js"></script>
+ <script type="text/javascript">
+ // called by csound.js
+ function moduleDidLoad() {
+  csound.Play();
+  csound.CompileOrc(
+  "schedule 1,0,-1 \n" +
+  "instr 1 \n" +
+  "kfr chnget \"freq\" \n" +
+  "kamp chnget \"amp\" \n" +
+  "kcf chnget \"cf\" \n" +
+  "a1 vco2 kamp/1000,440+kfr \n" +
+  "a2 moogvcf a1, kcf, 0.8 \n" +
+   "outs a2,a2 \n"  +
+  "printf \"fundamental: %.1f Hz\n\",kfr,kfr+440\n" +
+  "printf \"amplitude: %.2f \n\",kamp, kamp/1000\n" +
+  "printf \"filter frequency: %.1f Hz\n\",kcf,kcf\n" +
+  "endin");
+  SetParam("amp");
+  SetParam("cf");
+  SetParam("freq");
+ }
+ function attachListeners() {
+   document.getElementById("freq").
+       addEventListener("change",SetFreq);
+   document.getElementById("amp").
+       addEventListener("change",SetAmp);
+   document.getElementById("cf").
+       addEventListener("change",SetCf);
+ }
+
+ var count = 0;
+    function handleMessage(message) {
+        var element = document.getElementById('console');
+        element.value += message.data;
+        element.scrollTop = 99999; // focus on bottom
+        count += 1;
+        if(count == 1000) {
+           element.value = ' ';
+           count = 0;
+        }
+  }
+
+ function SetAmp(){
+  SetParam('amp');
+ }
+ function SetFreq(){
+  SetParam('freq');
+ }
+ function SetCf(){
+  SetParam('cf');
+ }
+ function SetParam(name) {
+  var val = document.getElementById(name).value;
+  csound.SetChannel(name, val); 
+ }
+ </script>
+</head>
+<body>
+   
+  </textarea>
+  <p>
+  <input type="range" name="frequency" id="freq" step="1" value="50"
+  min="0" max="100"> fundamental </p>
+  <p>
+  <input type="range" name="frequency" id="amp" step="1" value="500"
+  min="0" max="1000"> amplitude</p>
+  <p> 
+  <input type="range" name="frequency" id="cf" step="1" value="880"
+  min="880" max="3000"> filter frequency</p>
+  <textarea class="console" cols="55" rows="16" id="console"
+  value="">Csound: not loaded</textarea>
+  <!--pNaCl csound module-->
+  <div id="engine"></div>
+</body>
+</html>
+

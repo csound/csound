@@ -149,12 +149,13 @@ struct ADDR_SET_VALUE /*: ADDR*/{
   int group; // group for snapshot groups
   ADDR_SET_VALUE(int new_exponential,MYFLT new_min, MYFLT new_max,
                  void *new_WidgAddress, void *new_opcode,  int grp = 0) :
-      exponential(new_exponential),min(new_min), max(new_max),
-      WidgAddress(new_WidgAddress),opcode(new_opcode),
-      widg_type(FL_WIDG), group(grp) {}
+  exponential(new_exponential),min(new_min), max(new_max),
+    WidgAddress(new_WidgAddress),opcode(new_opcode),
+    widg_type(FL_WIDG), group(grp), joy(FL_JOY) {}
   ADDR_SET_VALUE() {
       exponential=LIN_; min=0; max=0; WidgAddress=NULL; opcode=NULL;
       widg_type = FL_WIDG; group = 0;
+      joy = FL_JOY;
   }
 };
 
@@ -237,10 +238,6 @@ typedef struct {
  //GAB (MAKING snapshots_iterator GLOBAL IS A TEMPORARY UGLY HACK)
     vector<SNAPVEC>::iterator snapshots_iterator;
     FLTKMETER *p_vumeter;
-#ifdef CS_VSTHOST
-    vector<VSTPlugin*> VSTplugEditors; //GAB for the vst plugin custom editors
-    vector<VSTPlugin*> vstPlugins; //GAB to remove globals in VST plugins
-#endif
 
 #ifdef CS_IMAGE
     vector<ImageSTRUCT> Bm_image; // map of pointers to CAnyBmp objects

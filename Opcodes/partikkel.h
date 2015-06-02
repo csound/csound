@@ -73,7 +73,7 @@ typedef struct {
     FUNC *zzz_tab;
     FUNC *zzo_tab;
     FUNC *zzhhhhz_tab;
-    char *tablestorage;
+  //char *tablestorage;
     PARTIKKEL_GLOBALS_ENTRY *rootentry;
 } PARTIKKEL_GLOBALS;
 

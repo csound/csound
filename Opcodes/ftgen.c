@@ -113,6 +113,7 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
           named = named->next;                            /*  and round again   */
         }
         if (UNLIKELY(named == NULL)) {
+          free(ftevt);
           return csound->InitError(csound,
                                    Str("Named gen \"%s\" not defined"),
                                    (char *)p->p4);
@@ -188,18 +189,19 @@ static int ftgentmp(CSOUND *csound, FTGEN *p)
     return register_ftable_delete(csound, p, fno);
 }
 
-/* static int ftgentmp_S(CSOUND *csound, FTGEN *p) */
-/* { */
-/*     int   p1, fno; */
 
-/*     if (UNLIKELY(ftgen_(csound, p,0,1) != OK)) */
-/*       return NOTOK; */
-/*     p1 = (int) MYFLT2LRND(*p->p1); */
-/*     if (p1) */
-/*       return OK; */
-/*     fno = (int) MYFLT2LRND(*p->ifno); */
-/*     return register_ftable_delete(csound, p, fno); */
-/* } */
+static int ftgentmp_S(CSOUND *csound, FTGEN *p)
+{
+    int   p1, fno;
+
+    if (UNLIKELY(ftgen_(csound, p,0,1) != OK))
+      return NOTOK;
+    p1 = (int) MYFLT2LRND(*p->p1);
+    if (p1)
+      return OK;
+    fno = (int) MYFLT2LRND(*p->ifno);
+    return register_ftable_delete(csound, p, fno);
+}
 
 static int ftfree(CSOUND *csound, FTFREE *p)
 {
@@ -272,9 +274,9 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
         if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
           goto err;
         ftp = ft_func(csound, &fno_f);
-        memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ);
-        memset(&(ftp->ftable[0]), 0, sizeof(MYFLT) * (ftp->flen + 1));
-        n = fread(&(ftp->ftable[0]), sizeof(MYFLT), ftp->flen + 1, file);
+        memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT*) - SSTRSIZ);
+        memset(ftp->ftable, 0, sizeof(MYFLT) * (ftp->flen + 1));
+        n = fread(ftp->ftable, sizeof(MYFLT), ftp->flen + 1l, file);
         if (UNLIKELY(n!=ftp->flen + 1)) goto err4;
         /* ***** Need to do byte order here ***** */
         argp++;
@@ -374,7 +376,7 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
           goto err;
         ftp = ft_func(csound, &fno_f);
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT));
-        memset(&(ftp->ftable[0]), 0, sizeof(MYFLT) * (ftp->flen + 1));
+        memset(ftp->ftable, 0, sizeof(MYFLT) * (ftp->flen + 1));
         for (j = 0; j <= ftp->flen; j++) {
           if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;
           ftp->ftable[j] = (MYFLT) cs_strtod(s, &endptr);
@@ -586,8 +588,8 @@ static OENTRY localops[] = {
   { "ftgen.S",    S(FTGEN),   TW, 1,  "i",  "iiiSim", (SUBR) ftgen_S, NULL, NULL  },
   { "ftgen.iS",    S(FTGEN),  TW, 1,  "i",  "iiiiSm", (SUBR) ftgen_iS, NULL, NULL },
   { "ftgen.SS",    S(FTGEN),  TW, 1,  "i",  "iiiSSm", (SUBR) ftgen_SS, NULL, NULL },
-  { "ftgentmp", S(FTGEN),     TW, 1,  "i",  "iiiiim", (SUBR) ftgentmp, NULL, NULL },
-  { "ftgentmp.S", S(FTGEN),   TW, 1,  "i",  "iiiiSm", (SUBR) ftgentmp, NULL, NULL },
+  { "ftgentmp.i", S(FTGEN),   TW, 1,  "i",  "iiiiim", (SUBR) ftgentmp, NULL, NULL },
+  { "ftgentmp.iS", S(FTGEN),  TW, 1,  "i",  "iiiiSm", (SUBR) ftgentmp_S, NULL,NULL},
   { "ftfree",   S(FTFREE),    TW, 1,  "",   "ii",     (SUBR) ftfree, NULL, NULL   },
   { "ftsave",   S(FTLOAD),    TR, 1,  "",   "iim",    (SUBR) ftsave, NULL, NULL   },
   { "ftsave.S",   S(FTLOAD),  TR, 1,  "",   "Sim",    (SUBR) ftsave_S, NULL, NULL },

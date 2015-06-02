@@ -55,7 +55,9 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
         return NOTOK;
     flength = nxtfunc->flen;
     p->outfunc =
-        (FUNC*) csound->Calloc(csound, sizeof(FUNC) + flength * sizeof(MYFLT));
+      (FUNC*) csound->Calloc(csound, sizeof(FUNC));
+    p->outfunc->ftable =
+      (MYFLT*)csound->Calloc(csound, (1 + flength) * sizeof(MYFLT));
     p->outfunc->flen = nxtfunc->flen;
     p->outfunc->lenmask = nxtfunc->lenmask;
     p->outfunc->lobits = nxtfunc->lobits;

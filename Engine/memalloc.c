@@ -98,7 +98,7 @@ void *mcalloc(CSOUND *csound, size_t size)
 #ifdef MEMDEBUG
     if (UNLIKELY(size == (size_t) 0)) {
       csound->DebugMsg(csound,
-              " *** internal error: mcalloc() called with zero nbytes\n");
+              " *** internal error: csound->Calloc() called with zero nbytes\n");
       return NULL;
     }
 #endif
@@ -131,7 +131,7 @@ void mfree(CSOUND *csound, void *p)
     pp = HDR_PTR(p);
  #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
-      csound->Warning(csound, "mfree() called with invalid "
+      csound->Warning(csound, "csound->Free() called with invalid "
                       "pointer (%p)", p);
       /* exit() is ugly, but this is a fatal error that can only occur */
       /* as a result of a bug */

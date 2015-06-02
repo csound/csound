@@ -7,7 +7,7 @@ LIBSNDFILE_SRC_DIR := $(NDK_MODULE_PATH)/libsndfile-android/jni/
 
 LOCAL_MODULE   := csoundandroid
 LOCAL_C_INCLUDES := $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../H $(LOCAL_PATH)/../../../include $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces
-LOCAL_CFLAGS := -O3 -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_BUILTIN_ATOMIC
+LOCAL_CFLAGS := -O3 -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_BUILTIN_ATOMIC -w
 LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
 LOCAL_CPPFLAGS += -std=c++11 -pthread -frtti -fexceptions
 LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(NDK_MODULE_PATH)/luajit-2.0/src -L$(LIBSNDFILE_SRC_DIR)
@@ -135,6 +135,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/cpumeter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gendy.c \
 $(CSOUND_SRC_ROOT)/Opcodes/tl/sc_noise.c \
 $(CSOUND_SRC_ROOT)/Top/argdecode.c \
+$(CSOUND_SRC_ROOT)/Top/csdebug.c \
 $(CSOUND_SRC_ROOT)/Top/cscore_internal.c \
 $(CSOUND_SRC_ROOT)/Top/cscorfns.c \
 $(CSOUND_SRC_ROOT)/Top/csmodule.c \
@@ -146,8 +147,10 @@ $(CSOUND_SRC_ROOT)/Top/one_file.c \
 $(CSOUND_SRC_ROOT)/Top/opcode.c \
 $(CSOUND_SRC_ROOT)/Top/threads.c \
 $(CSOUND_SRC_ROOT)/Top/utility.c \
+$(CSOUND_SRC_ROOT)/Top/server.c \
 $(CSOUND_SRC_ROOT)/Top/threadsafe.c \
 $(CSOUND_SRC_ROOT)/Opcodes/ambicode.c       \
+$(CSOUND_SRC_ROOT)/Opcodes/afilters.c       \
 $(CSOUND_SRC_ROOT)/Opcodes/bbcut.c          \
 $(CSOUND_SRC_ROOT)/Opcodes/biquad.c \
 $(CSOUND_SRC_ROOT)/Opcodes/butter.c         \
@@ -251,10 +254,11 @@ LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc
 
 # For building without plugins, but with support for plugins that may depend on GNU STL, use:
 
-LOCAL_SHARED_LIBRARIES += gnustl_shared sndfile 
+LOCAL_SHARED_LIBRARIES += gnustl_shared sndfile
+#LOCAL_STATIC_LIBRARIES += sndfile
+
 
 include $(BUILD_SHARED_LIBRARY)
-
 $(call import-module,libsndfile-android/jni)
 #$(call import-module,libstdutil/jni)
 #$(call import-module,libfluidsynth/jni)

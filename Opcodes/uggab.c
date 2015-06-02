@@ -855,7 +855,7 @@ static int resony(CSOUND *csound, RESONY *p)
     double  cf;
     int     loop = p->loop;
     if (UNLIKELY(loop==0))
-      csound->InitError(csound, Str("loop cannot be zero"));
+      return csound->InitError(csound, Str("loop cannot be zero"));
     {
       MYFLT   sep = (*p->sep / (MYFLT) loop);
       int     flag = (int) *p->iflag;

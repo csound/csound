@@ -167,7 +167,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
 		info.cs = cs;
 		info.attr = attr;
 		info.format = format;
-		info.valist = valist;
+        va_copy(info.valist,valist);
 		NSValue *infoObj = [NSValue value:&info withObjCType:@encode(Message)];
 		[obj performSelector:@selector(performMessageCallback:) withObject:infoObj];
 	}
@@ -329,7 +329,7 @@ OSStatus  Csound_Render(void *inRefCon,
 	if (cdata->shouldRecord) {
 		OSStatus err = ExtAudioFileWriteAsync(cdata->file, inNumberFrames, ioData);
 		if (err != noErr) {
-			printf("***Error writing to file: %ld\n", err);
+			printf("***Error writing to file: %d\n", (int)err);
 		}
 	}
     
@@ -338,21 +338,24 @@ OSStatus  Csound_Render(void *inRefCon,
 }
 
 
-void InterruptionListener(void *inClientData, UInt32 inInterruption)
-{
-	csdata *cdata  = (csdata *)inClientData;
+-(void)handleInterruption:(NSNotification*)notification {
+   
+    NSDictionary *interuptionDict = notification.userInfo;
+    NSUInteger interuptionType = (NSUInteger)[interuptionDict
+                                              valueForKey:AVAudioSessionInterruptionTypeKey];
     
-	if (inInterruption == kAudioSessionEndInterruption) {
-		// make sure we are again the active session
-        if (cdata != NULL && cdata->running) {
-            AudioSessionSetActive(true);
-            AudioOutputUnitStart(*(cdata->aunit));
-        }
-	}
-	
-	if (inInterruption == kAudioSessionBeginInterruption) {
-        if (cdata != NULL && cdata->running) {
-            AudioOutputUnitStop(*(cdata->aunit));
+    NSError* error;
+    BOOL success;
+   
+    if (mCsData.running) {
+        if (interuptionType == AVAudioSessionInterruptionTypeBegan) {
+            AudioOutputUnitStop(*(mCsData.aunit));
+        } else if (interuptionType == kAudioSessionEndInterruption) {
+            // make sure we are again the active session
+            success = [[AVAudioSession sharedInstance] setActive:YES error:&error];
+            if(success) {
+                AudioOutputUnitStart(*(mCsData.aunit));
+            }
         }
     }
 }
@@ -404,7 +407,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
         // Warm the file up.
         ExtAudioFileWriteAsync(mCsData.file, 0, NULL);
     } else {
-        printf("***Not recording. Error: %ld\n", err);
+        printf("***Not recording. Error: %d\n", (int)err);
         err = noErr;
     }
     
@@ -493,6 +496,8 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
 	
     @autoreleasepool {
 		CSOUND *cs;
+        NSError* error;
+        BOOL success;
         
 		cs = csoundCreate(NULL);
         csoundSetHostImplementedAudioIO(cs, 1, 0);
@@ -526,37 +531,39 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
                 id<CsoundValueCacheable> cachedValue = [valuesCache objectAtIndex:i];
                 [cachedValue setup:self];
             }
+           
             
             /* Audio Session handler */
-            AudioSessionInitialize(NULL, NULL, InterruptionListener, &mCsData);
-			AudioSessionSetActive(true);
-			UInt32 audioCategory = _useAudioInput ? kAudioSessionCategory_PlayAndRecord :  kAudioSessionCategory_MediaPlayback;
-			AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
+            AVAudioSession* session = [AVAudioSession sharedInstance];
+           
+            if (_useAudioInput) {
+                success = [session setCategory:AVAudioSessionCategoryPlayAndRecord
+                          withOptions:(AVAudioSessionCategoryOptionMixWithOthers |
+                                       AVAudioSessionCategoryOptionDefaultToSpeaker)
+                                         error:&error];
+            } else {
+                success = [session setCategory:AVAudioSessionCategoryPlayback
+                                   withOptions:(AVAudioSessionCategoryOptionMixWithOthers | AVAudioSessionCategoryOptionDefaultToSpeaker)
+                                         error:&error];
+            }
             
             
-            //APE: must be after sets kAudioSessionCategory_PlayAndRecord
-            //        UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker;
-            //        AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute, sizeof(audioRouteOverride), &audioRouteOverride);
+//            success = [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
             
-            //            AudioSessionGetProperty(kAudioSession, <#UInt32 *ioDataSize#>, <#void *outData#>)
-            
-            // change also default out route to speaker
-            UInt32 doChangeDefaultRoute = 1;
-            AudioSessionSetProperty (kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof (doChangeDefaultRoute), &doChangeDefaultRoute);
-            
-//            CFStringRef route;
-//            UInt32 propertySize = sizeof(CFStringRef);
-//            AudioSessionGetProperty(kAudioSessionProperty_AudioRoute, &propertySize, &route);
-//            NSLog(@"CURRENT AUDIO ROUTE: %@\n", route);
+            Float32 preferredBufferSize = mCsData.bufframes / csoundGetSr(cs);
+            [session setPreferredIOBufferDuration:preferredBufferSize error:&error];
             
             
-            //Then you can add mixable audio
-            //We want our audio to mix with other app's audio //must be after OverrideToSpeaker
-            UInt32 shouldMix = 1;
-            AudioSessionSetProperty (kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof (shouldMix), &shouldMix);
+            success = [session setActive:YES error:&error];
+            if(!success) {
+                
+            }
             
-			Float32 preferredBufferSize = mCsData.bufframes / csoundGetSr(cs);
-			AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, sizeof(preferredBufferSize), &preferredBufferSize);
+            [[NSNotificationCenter defaultCenter] addObserver:self
+                                                     selector:@selector(handleInterruption:)
+                                                         name:AVAudioSessionInterruptionNotification
+                                                       object:session];
+             
 			AudioComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_RemoteIO, kAudioUnitManufacturer_Apple, 0, 0};
 			AudioComponent HALOutput = AudioComponentFindNext(NULL, &cd);
 			
@@ -622,7 +629,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption)
 							// Warm the file up.
 							ExtAudioFileWriteAsync(mCsData.file, 0, NULL);
 						} else {
-							printf("***Not recording. Error: %ld\n", err);
+							printf("***Not recording. Error: %d\n", (int)err);
 							err = noErr;
 						}
 					}

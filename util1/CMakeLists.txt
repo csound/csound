@@ -3,7 +3,7 @@
 make_utility(scsort      sortex/smain.c)
 make_utility(extract     sortex/xmain.c)
 
-if(CMAKE_COMPILER_IS_GNUCC)
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
     if(HAVE_UNISTD_H)
       add_definitions("-DHAVE_UNISTD_H")
     endif()

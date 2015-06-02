@@ -33,7 +33,6 @@
 ./Engine/swritestr.c
 ./Engine/symbtab.c
 ./Engine/twarp.c
-./Engine/typetabl.h
 ./H/aops.h
 ./H/bus.h
 ./H/cmath.h
@@ -170,6 +169,7 @@
 ./Opcodes/LuaCsound.cpp
 ./Opcodes/OSC.c
 ./Opcodes/Vosim.c
+./Opcodes/afilters.c
 ./Opcodes/ambicode.c
 ./Opcodes/ambicode1.c
 ./Opcodes/ampmidid.cpp
@@ -424,6 +424,7 @@
 ./Top/argdecode.c
 ./Top/cscore_internal.c
 ./Top/cscorfns.c
+./Top/csdebug.c
 ./Top/csmodule.c
 ./Top/csound.c
 ./Top/getstring.c
@@ -525,6 +526,7 @@
 ./frontends/CsoundVST/ScoreGeneratorVstUi.h
 ./frontends/CsoundVST/csoundvst_main.cpp
 ./frontends/CsoundVST/pyrun.c
+./frontends/debugger/csdebugger.cpp
 ./frontends/csladspa/csladspa.cpp
 ./frontends/csladspa/ladspa.h
 ./frontends/csound/csound_main.c
@@ -537,6 +539,7 @@
 ./include/cfgvar.h
 ./include/cs_par_structs.h
 ./include/cscore.h
+./include/csdebug.h
 ./include/csdl.h
 ./include/csound.h
 ./include/csound.hpp
@@ -544,7 +547,7 @@
 ./include/csound_standard_types.h
 ./include/csound_type_system.h
 ./include/cwindow.h
-./include/float-version-double.h
+./include/csound_data_structures.h
 ./include/float-version.h
 ./include/interlocks.h
 ./include/msg_attr.h
@@ -621,3 +624,5 @@
 ./util1/scot/scot_main.c
 ./util1/sortex/smain.c
 ./util1/sortex/xmain.c
+./Opcodes/cuda/adsyn.cu
+./Opcodes/cuda/pvsops.cu

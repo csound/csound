@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<!--
+ Csound pnacl interactive example
+ Copyright (C) 2013 V Lazzarini
+-->
+<head>
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="-1">
+  <title>Interactive Csound</title>
+
+  <style type="text/css">
+   textarea.console { font-family: "Courier New"; color: #00FF00 ;
+                     background-color: #000000 }
+   textarea.code { font-family: "Courier New"; color: black;
+                   background-color:#B8F4F5 }
+  </style>
+
+  <script type="text/javascript" src="csound.js"></script>
+  <script type="text/javascript">
+
+    var orchval, selection;
+
+    // functions called by csound.js
+    function moduleDidLoad() {
+    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    }
+
+    function WithInput(){
+    csound.StartInputAudio();
+    document.getElementById('inputAudio').removeEventListener('click',
+    WithInput);
+   }
+
+    function attachListeners() {
+       document.getElementById('playButton').addEventListener('click',
+       csound.Play);
+       document.getElementById('pauseButton').addEventListener('click',csound.Pause);
+       document.getElementById('inputAudio').addEventListener('click',WithInput);
+       document.getElementById('loadButton').addEventListener('click', loadFile);
+       document.getElementById('compileButton1').addEventListener('click', compileOrc1);
+       document.getElementById('compileButton2').addEventListener('click', compileOrc2);
+       document.getElementById('orchestraField').addEventListener('blur',changeOrchestra);
+       document.getElementById('orchestraField').addEventListener('select',selectOrchestra);
+       orchval = getOrchestraElement().value;
+    }
+   
+    var count = 0;
+    function handleMessage(message) {
+        var element = document.getElementById('console');
+        element.value += message.data;
+        element.scrollTop = 99999; // focus on bottom
+        count += 1;
+        if(count == 1000) {
+           element.value = ' ';
+           count = 0;
+        }
+    }
+    
+    // event handlers for the html page
+    function getOrchestraElement() {
+      return document.getElementById('orchestraField');
+    }
+
+    function compileOrc1() {
+       csound.CompileOrc(orchval); 
+    }
+
+    function compileOrc2() {
+       orchval = selection;
+       csound.CompileOrc(orchval);
+    }
+
+   function changeOrchestra() {    
+       orchval = getOrchestraElement().value;
+    }
+
+   function getText(elem) {
+       if(elem.tagName === "TEXTAREA" ||
+         (elem.tagName === "INPUT" && elem.type === "text")) {
+           return elem.value.substring(elem.selectionStart,
+                                       elem.selectionEnd);
+        }
+        return null;
+    }
+
+    function selectOrchestra() {
+        selection = getText(document.activeElement);  
+    }
+  
+  var fname = '';
+  var objectURL;
+  function handleFileSelect(evt) {
+    var files = evt.target.files; 
+    var f = files[0];
+    objectURL = window.webkitURL.createObjectURL(f);
+    fname = f.name;
+    document.getElementById('loadButton').innerText = 'load to ./local/' + fname;
+  }
+
+   function loadFile(){
+    if(fname != ''){
+     csound.CopyUrlToLocal(objectURL, fname);
+     document.getElementById('loadButton').innerText = './local/' + fname +
+     ' loaded' ;
+    }
+   }
+
+  </script>
+</head>
+
+<body>
+  <p>
+  <button id="playButton">Start Engine</button>
+  <button id="pauseButton">Pause Engine</button>
+ <input type="radio" id="inputAudio" value="1">input audio<br>
+  </p>
+  <p> 
+  <textarea class="code" cols="80" rows="20" id="orchestraField">
+; press "Compile All" to compile this code, 
+; if Csound is running you will hear white noise.
+; This is an edit box, you can change the code
+; and compile again with the buttons below.
+
+schedule 1,0,1
+
+instr 1
+ a1 rand 0.5
+ out a1
+endin
+  </textarea>
+
+  <br>
+  <button id="compileButton1">Compile All</button>
+  <button id="compileButton2">Compile Selection</button> </p>
+   <p>
+  <p>
+  <input type="file" id="files" name="file" />
+  <button id="loadButton">load to ./local</button>
+  </p>
+  <textarea class="console" cols="80" rows="25" id="console"
+  value="">Csound: not loaded</textarea>
+  </p>
+  <!--pNaCl csound module-->
+  <div id="engine"></div>
+</body>
+</html>

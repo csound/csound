@@ -49,6 +49,11 @@ typedef struct {
     OPDS    h;
 } LINK;
 
+typedef struct {
+    OPDS    h;
+    MYFLT  *inst;
+} KILLOP;
+
 /* the number of optional outputs defined in entry.c */
 #define SUBINSTNUMOUTS  8
 

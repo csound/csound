@@ -789,11 +789,13 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
     p->fout->framecount = 0;
     p->fout->sliding = 0;
     if (p->fout->overlap<(int)CS_KSMPS || p->fout->overlap<=10) {
+      return csound->InitError(csound, Str("pvsosc does not work while sliding"));
+#ifdef SOME_FINE_DAY
       CMPLX *bframe;
       int NB = 1+N/2;
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t n, nsmps = CS_KSMPS;
-      return csound->InitError(csound, Str("pvsosc does not work while sliding"));
+    
       p->fout->NB = NB;
       p->fout->sliding = 1;
       if (p->fout->frame.auxp == NULL ||
@@ -809,6 +811,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
           bframe[i+NB*n].im = (n<offset ? FL(0.0) : i * N * csound->onedsr);
         }
       return OK;
+#endif
     }
     else
       {
@@ -1290,7 +1293,7 @@ static int pvsfilter(CSOUND *csound, PVSFILTER *p)
       kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : 1) : FL(0.0);
       dirgain = (1 - kdepth);
       for (i = 0; i < N + 2; i += 2) {
-        fout[i] = (float) (fin[i] * dirgain + fil[i] * kdepth)*g;
+        fout[i] = (float) (fin[i] * (dirgain + fil[i] * kdepth))*g;
         fout[i + 1] = fin[i + 1];
       }
 

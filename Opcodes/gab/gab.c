@@ -33,6 +33,8 @@
 #include <math.h>
 #include "interlocks.h"
 
+#define FLT_MAX ((MYFLT)0x7fffffff)
+
 static int krsnsetx(CSOUND *csound, KRESONX *p)
   /* Gabriel Maldonado, modifies for arb order  */
 {
@@ -126,8 +128,11 @@ static int fastabw(CSOUND *csound, FASTAB *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
+    FUNC *ftp = csound->FTnp2Find(csound, p->xfn);
+    p->table = ftp->ftable;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
+
 
     if (UNLIKELY(early)) nsmps -= early;
     if (p->xmode) {
@@ -226,6 +231,8 @@ static int fastab(CSOUND *csound, FASTAB *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
+    FUNC *ftp = csound->FTnp2Find(csound, p->xfn);
+    p->table = ftp->ftable;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
     if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
@@ -539,7 +546,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     count = p->count;
 
     ar = p->sr;
-    if (UNLIKELY(offset)) memset(ar, 0, nsmps*sizeof(MYFLT));
+    memset(ar, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
@@ -567,7 +574,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
 static int exitnow(CSOUND *csound, EXITNOW *p)
 {
     (void) p;
-    csound->LongJmp(csound, 0);
+    csound->LongJmp(csound, MYFLT2LRND(*p->retval));
     return OK;  /* compiler only */
 }
 
@@ -711,7 +718,17 @@ static int isChanged(CSOUND *csound,ISCHANGED *p)
 
 static int partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
 {
-    p->max = 0;
+    int flag = (int) *p->imaxflag;
+    switch (flag) {
+    case 1:
+      p->max = 0; break;
+    case 2:
+      p->max = -FLT_MAX; break;
+    case 3:
+      p->max = FLT_MAX; break;
+    case 4:
+      p->max = 0; break;
+    }
     p->counter = 0;
     return OK;
 }
@@ -759,13 +776,22 @@ static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
                                Str("max_k: invalid imaxflag value"));
     }
     if (*p->ktrig) {
-      if (flag == 4) {
+      switch (flag) {
+      case 4:
         *p->kout = p->max / (MYFLT) p->counter;
         p->counter = 0;
-      }
-      else
+        p->max = FL(0.0);
+      break;
+      case 1:
         *p->kout = p->max;
-      p->max = FL(0.0);
+        p->max = 0; break;
+      case 2:
+        *p->kout = p->max;
+        p->max = -FLT_MAX; break;
+      case 3:
+        *p->kout = p->max;
+        p->max = FLT_MAX; break;
+      }
     }
     return OK;
 }
@@ -872,7 +898,7 @@ OENTRY gab_localops[] = {
                             (SUBR) nlalp_set, NULL, (SUBR) nlalp   },
   { "adsynt2",S(ADSYNT2),TR, 5,    "a",     "kkiiiio",
                             (SUBR) adsynt2_set, NULL, (SUBR)adsynt2 },
-  { "exitnow",S(EXITNOW),   0, 1,    "",  "", (SUBR) exitnow, NULL, NULL },
+  { "exitnow",S(EXITNOW),   0, 1,    "",  "o", (SUBR) exitnow, NULL, NULL },
 /* { "zr_i",  S(ZKR),     0, 1,  "i",  "i",  (SUBR)zread, NULL, NULL}, */
 /* { "zr_k",  S(ZKR),     0, 2,  "k",  "k",  NULL, (SUBR)zread, NULL}, */
 /* { "zr_a",  S(ZAR),     0, 5,  "a",  "a",  (SUBR)zaset, NULL, (SUBR)zar}, */

@@ -88,9 +88,10 @@ static int het_import(CSOUND *csound, int argc, char **argv)
     if ((c=getc(infd)) == 'H') {
       char buf[6];
       int i;
-      for (i=0; i<4; i++) buf[i]=getc(infd);
+      for (i=0; i<4; i++) buf[i]=(char)getc(infd);
       if (strncmp(buf, "ETRO", 4)!=0) {
         csound->Message(csound, Str("Not an hetro anaysis file %s\n"), argv[1]);
+        fclose(infd); fclose(outf);
         return 1;
       }
     }

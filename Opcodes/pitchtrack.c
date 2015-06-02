@@ -168,7 +168,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
     spectmp[k]   = spec[i];
     spectmp[k+1] = -spec[i+1];
   }
-  for (i = (2*FLTLEN), k = (2*FLTLEN-2);i<FLTLEN*2; i+=2, k-=2) {
+  for (i = (2*FLTLEN), k = (2*FLTLEN-2);i<FLTLEN*4; i+=2, k-=2) {
     spectmp[k]   = spectmp[i];
     spectmp[k+1] = -spectmp[i+1];
   }

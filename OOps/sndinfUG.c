@@ -74,7 +74,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
     if (sf == NULL) {
       /* open failed: maybe analysis or raw file ? */
       if (*(p->irawfiles) == FL(0.0)) {
-        mfree(csound, sfname);
+        csound->Free(csound, sfname);
         return 0;
       }
       /* check for analysis files */
@@ -110,7 +110,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
         if (fd >= 0) {
           hdr->frames =
               (sf_count_t) (((int32)csound->PVOC_FrameCount(csound, fd)
-                             / (int)fmt.nChannels) * (int)pvdata.dwOverlap);
+                             / (int)fmt.nChannels) * (sf_count_t)pvdata.dwOverlap);
           hdr->samplerate = (int)fmt.nSamplesPerSec;
           hdr->channels = (int)fmt.nChannels;
           csound->PVOC_CloseFile(csound, fd);
@@ -140,7 +140,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
        FileOpen2(), even if the file was not a PVOC file. */
     if (csFileType != CSFTYPE_PVCEX)
       csoundNotifyFileOpened(csound, sfname, csFileType, 0, 0);
-    mfree(csound, sfname);
+    csound->Free(csound, sfname);
     return 1;
 }
 

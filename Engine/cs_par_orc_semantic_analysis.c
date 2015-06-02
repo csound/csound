@@ -264,18 +264,18 @@ void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
 {
     while (x) {
       if (x->type == INTEGER_TOKEN) {
-        csp_orc_sa_instr_add(csound, strdup(x->value->lexeme));
+        csp_orc_sa_instr_add(csound, x->value->lexeme);
         return;
       }
       if (x->type == T_IDENT) {
-        csp_orc_sa_instr_add(csound, strdup(x->value->lexeme));
+        csp_orc_sa_instr_add(csound, x->value->lexeme);
         return;
       }
       if (UNLIKELY(x->type != T_INSTLIST)) {
         csound->DebugMsg(csound,"type %d not T_INSTLIST\n", x->type);
         csound->Die(csound, Str("Not a proper list of ints"));
       }
-      csp_orc_sa_instr_add(csound, strdup(x->left->value->lexeme));
+      csp_orc_sa_instr_add(csound, x->left->value->lexeme);
       x = x->right;
     }
 }

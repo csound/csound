@@ -167,7 +167,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
 #define BARRIER_SERIAL_THREAD (-1)
 
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
-#if !defined(__MACH__) && !defined(__HAIKU__) && !defined(ANDROID)
+#if !defined(__MACH__) && !defined(__HAIKU__) && !defined(ANDROID) && !defined(NACL)
 
 typedef struct barrier {
     pthread_mutex_t mut;
@@ -185,7 +185,9 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                         (void *(*)(void *)) threadRoutine, userdata)) {
       return (void*) pthread;
     }
-  return NULL;
+    free(pthread);
+    return NULL;
+
 }
 
 PUBLIC void *csoundGetCurrentThreadId(void)

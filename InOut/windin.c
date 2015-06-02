@@ -49,7 +49,7 @@ int xyinset(CSOUND *csound, XYIN *p)
 /*     MYFLT   iyinit = *p->iyinit; */
 /*     MYFLT   ixinit = *p->ixinit; */
 
-/*     if (UNLIKELY((p->timcount = (int)(csound->ekr* *p->iprd + FL(0.5)))<=0)) { */
+/*     if (UNLIKELY((p->timcount = (int)(CS_EKR * *p->iprd + FL(0.5)))<=0)) { */
 /*       return csound->InitError(csound, Str("illegal iprd")); */
 /*     } */
 /*     if (UNLIKELY(iymin > iymax)) {        /\* swap if wrong order *\/ */

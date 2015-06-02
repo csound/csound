@@ -1,4 +1,5 @@
- /*
+
+/*
     csound_orc_expressions.c:
 
     Copyright (C) 2006
@@ -71,17 +72,17 @@ char *create_out_arg(CSOUND *csound, char* outype, TYPE_TABLE* typeTable)
     char* s = (char *)csound->Malloc(csound, 16);
 
     switch(*outype) {
-    case 'a': sprintf(s, "#a%d", csound->acount++); break;
+    case 'a': snprintf(s, 16, "#a%d", csound->acount++); break;
     case 'K':
-    case 'k': sprintf(s, "#k%d", csound->kcount++); break;
-    case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
-    case 'b': sprintf(s, "#b%d", csound->bcount++); break;
-    case 'f': sprintf(s, "#f%d", csound->tcount++); break;
-    case 't': sprintf(s, "#k%d", csound->tcount++); break;
-    case 'S': sprintf(s, "#S%d", csound->tcount++); break;
-    case '[': sprintf(s, "#%c%d[]", outype[1], csound->tcount++);
+    case 'k': snprintf(s, 16, "#k%d", csound->kcount++); break;
+    case 'B': snprintf(s, 16, "#B%d", csound->Bcount++); break;
+    case 'b': snprintf(s, 16, "#b%d", csound->bcount++); break;
+    case 'f': snprintf(s, 16, "#f%d", csound->tcount++); break;
+    case 't': snprintf(s, 16, "#k%d", csound->tcount++); break;
+    case 'S': snprintf(s, 16, "#S%d", csound->tcount++); break;
+    case '[': snprintf(s, 16, "#%c%d[]", outype[1], csound->tcount++);
               break; // piggyback on tcount
-    default:  sprintf(s, "#i%d", csound->icount++); break;
+    default:  snprintf(s, 16, "#i%d", csound->icount++); break;
     }
 
     if (*outype == '[') {
@@ -122,7 +123,7 @@ char *set_expression_type(CSOUND *csound, char * op, char arg1, char arg2,
 char * get_boolean_arg(CSOUND *csound, int type)
 {
     char* s = (char *)csound->Malloc(csound, 8);
-    sprintf(s, "#%c%d", type?'B':'b',csound->Bcount++);
+    snprintf(s, 8, "#%c%d", type?'B':'b',csound->Bcount++);
 
     return s;
 }
@@ -130,7 +131,7 @@ char * get_boolean_arg(CSOUND *csound, int type)
 TREE *create_empty_token(CSOUND *csound)
 {
     TREE *ans;
-    ans = (TREE*)mmalloc(csound, sizeof(TREE));
+    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);
@@ -150,7 +151,7 @@ TREE *create_empty_token(CSOUND *csound)
 TREE *create_minus_token(CSOUND *csound)
 {
     TREE *ans;
-    ans = (TREE*)mmalloc(csound, sizeof(TREE));
+    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);
@@ -336,7 +337,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     arg2 = get_arg_type2(csound, d, typeTable);
     ans  = get_arg_type2(csound, b, typeTable);
 
-    sprintf(condInTypes, "%s%s%s", ans, arg1, arg2);
+    snprintf(condInTypes, 64, "%s%s%s", ans, arg1, arg2);
 
     OENTRIES* entries = find_opcode2(csound, ":cond");
     outype = resolve_opcode_get_outarg(csound, entries, condInTypes);
@@ -348,7 +349,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     opTree->right->next = c;
     opTree->right->next->next = d;
     /* should recycle memory for root->right */
-    //mfree(csound, root->right); root->right = NULL;
+    //csound->Free(csound, root->right); root->right = NULL;
     last->next = opTree;
     //    print_tree(csound, "Answer:\n", anchor);
     return anchor;
@@ -362,10 +363,10 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
 
     char* leftArgType = get_arg_string_from_tree(csound, left, typeTable);
     char* rightArgType = get_arg_string_from_tree(csound, right, typeTable);
-    char* argString = mcalloc(csound, 80);
+    char* argString = csound->Calloc(csound, 80);
 
     strncpy(argString, leftArgType, 80);
-    strncat(argString, rightArgType, 80 - strlen(leftArgType));
+    strlcat(argString, rightArgType, 80);
     outType = resolve_opcode_get_outarg(csound, opentries, argString);
     if(outType == NULL) return NULL;
 
@@ -439,7 +440,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
     }
     root->right = newArgList;
 
-    op = mcalloc(csound, 80);
+    op = csound->Calloc(csound, 80);
 
     switch(root->type) {
     case '+':
@@ -583,20 +584,20 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
           char* outype = resolve_opcode_get_outarg(csound, opentries,
                                                          argString);
 
-          // free(argString);
-
           if (outype == NULL) {
             return NULL;
           }
           outarg = create_out_arg(csound, outype, typeTable);
 
         }
-
         break;
-
+        /* it should not get here, but if it does,
+           return NULL */
+    default:
+      return NULL;
     }
     opTree = create_opcode_token(csound, op);
-    if(root->value) opTree->value->optype = root->value->optype;
+    if (root->value) opTree->value->optype = root->value->optype;
     if (root->left != NULL) {
       opTree->right = root->left;
       opTree->right->next = root->right;
@@ -621,7 +622,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
       }
       last->next = opTree;
     }
-    mfree(csound, op);
+    csound->Free(csound, op);
     return anchor;
 }
 
@@ -710,7 +711,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
       root->locn = locn;
     }
 
-    op = mcalloc(csound, 80);
+    op = csound->Calloc(csound, 80);
     switch(root->type) {
     case S_EQ:
       strncpy(op, "==", 80);
@@ -765,7 +766,7 @@ TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
       }
       last->next = opTree;
     }
-    mfree(csound, op);
+    csound->Free(csound, op);
     return anchor;
 }
 
@@ -775,7 +776,7 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
     char *label = (char *)csound->Calloc(csound, 20);
     ORCTOKEN *token;
 
-    sprintf(label, "__synthetic_%ld", (long)count);
+    snprintf(label,20, "__synthetic_%ld", (long)count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
     token = make_token(csound, label);
@@ -787,7 +788,7 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
 {
     char *label = (char *)csound->Calloc(csound, 20);
 
-    sprintf(label, "__synthetic_%ld:", (long)count);
+    snprintf(label, 20, "__synthetic_%ld:", (long)count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
     return make_leaf(csound, -1, 0, LABEL_TOKEN, make_label(csound, label));

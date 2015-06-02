@@ -83,6 +83,10 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
     c = *p++;
     isntAfunc = 1;
     switch (c) {
+    case 'z':
+      printf("skip z\n");
+      //corfile_putc('\n', sco);
+      break;
     case 'f':
       isntAfunc = 0;
     case 'q':
@@ -90,7 +94,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
     case 'a':
       corfile_putc(c, sco);
       corfile_putc(*p++, sco);
-    while ((c = *p++) != SP && c != LF)
+      while ((c = *p++) != SP && c != LF)
         corfile_putc(c, sco);                /* put p1       */
       corfile_putc(c, sco);
       if (c == LF)
@@ -112,11 +116,11 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
       }
       else { /*make sure p3s (table length) are ints */
         char temp[256];
-        sprintf(temp,"%d ",(int32)bp->p3val);   /* put p3val  */
+        snprintf(temp,256,"%d ",(int32)bp->p3val);   /* put p3val  */
         fpnum(csound,temp, lincnt, pcnt, sco);
         corfile_putc(SP, sco);
         if (first) {
-          sprintf(temp,"%d ",(int32)bp->newp3);   /* put newp3  */
+          snprintf(temp,256,"%d ",(int32)bp->newp3);   /* put newp3  */
           fpnum(csound,temp, lincnt, pcnt, sco);
         }
         while ((c = *p++) != SP && c != LF)
@@ -148,12 +152,13 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
         corfile_putc(c, sco);
       corfile_putc(LF, sco);
       break;
+    case 'y':
     case -1:
       break;
     default:
       csound->Message(csound,
-                      Str("swrite: unexpected opcode, section %d line %d\n"),
-                      csound->sectcnt, lincnt);
+                      Str("swrite: unexpected opcode %c, section %d line %d\n"),
+                      c, csound->sectcnt, lincnt);
       break;
     }
     if ((bp = bp->nxtblk) != NULL)

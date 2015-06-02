@@ -26,6 +26,7 @@
 #include "csmodule.h"
 #include <ctype.h>
 
+static void list_audio_devices(CSOUND *csound, int output);
 extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 #define FIND(MSG)   if (*s == '\0')  \
@@ -132,6 +133,7 @@ static const char *longUsageList[] = {
   Str_noop("--noheader\t\tRaw format"),
   Str_noop("--nopeaks\t\tDo not write peak information"),
   " ",
+   Str_noop("--displays\t\tUse graphic displays"),
   Str_noop("--nodisplays\t\tSuppress all displays"),
   Str_noop("--asciidisplay\t\tSuppress graphics, use ascii displays"),
   Str_noop("--postscriptdisplay\tSuppress graphics, use Postscript displays"),
@@ -219,6 +221,13 @@ static const char *longUsageList[] = {
   Str_noop("--nchnls_i=N\t\t override number of input audio channels"),
   Str_noop("--0dbfs=N\t\t override 0dbfs (max positive signal amplitude)"),
   Str_noop("--sinesize\t\tlength of internal sine table"),
+  Str_noop("--daemon\t\t daemon mode: do not exit if CSD/orchestra is "
+           "not given, is empty or does not compile"),
+  Str_noop("--port=N\t\t listen to UDP port N for instruments/orchestra "
+           "code (implies --daemon)"),
+  Str_noop("--vbr-quality=Ft\t set quality of variable bit0rate compression"),
+  Str_noop("--devices[=in|out] \t\t list available audio devices and exit"),
+  Str_noop("--get-system-sr \t\t print system sr and exit"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -232,7 +241,7 @@ void print_short_usage(CSOUND *csound)
     int     i;
     i = -1;
     while (shortUsageList[++i] != NULL) {
-      sprintf(buf, "%s\n", shortUsageList[i]);
+      snprintf(buf, 256, "%s\n", shortUsageList[i]);
       csound->Message(csound, Str(buf));
     }
     csound->Message(csound,
@@ -357,6 +366,9 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
     { NULL , -1 }
 };
 
+extern void sfopenout(CSOUND *csound);
+extern void sfcloseout(CSOUND *csound);
+
 static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
@@ -364,14 +376,14 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "decode_long %s\n", s);
     if (!(strncmp(s, "omacro:", 7))) {
-      NAMES *nn = (NAMES*) mmalloc(csound, sizeof(NAMES));
+      NAMES *nn = (NAMES*) csound->Malloc(csound, sizeof(NAMES));
       nn->mac = s;
       nn->next = csound->omacros;
       csound->omacros = nn;
       return 1;
     }
     else if (!(strncmp(s, "smacro:", 7))) {
-      NAMES *nn = (NAMES*) mmalloc(csound, sizeof(NAMES));
+      NAMES *nn = (NAMES*) csound->Malloc(csound, sizeof(NAMES));
       nn->mac = s;
       nn->next = csound->smacros;
       csound->smacros = nn;
@@ -441,6 +453,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strcmp (s, "displays"))) {
       O->displays = 1;                  /* func displays */
+      O->graphsoff = 0;
       return 1;
     }
     else if (!(strcmp (s, "defer-gen1"))) {
@@ -452,9 +465,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       if (UNLIKELY(*s == '\0')) dieu(csound, Str("no midifile name"));
       O->FMidiname = s;                 /* Midifile name */
       if (!strcmp(O->FMidiname, "stdin")) {
-        set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #if defined(WIN32)
         csoundDie(csound, Str("-F: stdin not supported on this platform"));
+#else
+        set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #endif
       }
       else
@@ -726,12 +740,15 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     /* IV - Jan 27 2005: --expression-opt */
+    /* NOTE these do nothing */
     else if (!(strcmp (s, "expression-opt"))) {
-      O->expr_opt = 1;
+      //O->expr_opt = 1;
+      csound->Warning(csound, Str("option expresson-opt has no affect\n"));
       return 1;
     }
     else if (!(strcmp (s, "no-expression-opt"))) {
-      O->expr_opt = 0;
+      //O->expr_opt = 0;
+      csound->Warning(csound, Str("option no-expresson-opt has no affect\n"));
       return 1;
     }
     else if (!(strncmp (s, "env:", 4))) {
@@ -843,13 +860,13 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       nbytes = (int) strlen(s) + 1;
       if (csound->dl_opcodes_oplibs == NULL) {
         /* start new library list */
-        csound->dl_opcodes_oplibs = (char*) mmalloc(csound, (size_t) nbytes);
+        csound->dl_opcodes_oplibs = (char*) csound->Malloc(csound, (size_t) nbytes);
         strcpy(csound->dl_opcodes_oplibs, s);
       }
       else {
         /* append to existing list */
         nbytes += ((int) strlen(csound->dl_opcodes_oplibs) + 1);
-        csound->dl_opcodes_oplibs = (char*) mrealloc(csound,
+        csound->dl_opcodes_oplibs = (char*) csound->ReAlloc(csound,
                                                      csound->dl_opcodes_oplibs,
                                                      (size_t) nbytes);
         strcat(csound->dl_opcodes_oplibs, ",");
@@ -885,6 +902,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strcmp(s, "realtime"))) {
+      csound->Message(csound, "realtime mode enabled\n");
       O->realtime = 1;
       return 1;
     }
@@ -917,6 +935,57 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
              !(strcmp(s, "old-parser"))) {
         return 1;  /* ignore flag, this is here for backwards compatibility */
     }
+    else if (!(strcmp(s, "daemon"))) {
+        O->daemon = 1;
+        return 1;
+    }
+    else if (!(strncmp(s, "port=",5))) {
+        s += 5;
+        O->daemon = atoi(s);
+        return 1;
+    }
+    else if (!(strncmp(s, "vbr-quality=",12))) {
+        s += 12;
+        O->quality = atof(s);
+        return 1;
+      }
+    else if (!(strncmp(s, "devices",7))) {
+      csoundLoadExternals(csound);
+      if (csoundInitModules(csound) != 0)
+              csound->LongJmp(csound, 1);
+      if(*(s+7) == '='){
+        if(!strncmp(s+8,"in", 2)) {
+          list_audio_devices(csound, 0);
+        }
+        else if(!strncmp(s+8,"out", 2))
+          list_audio_devices(csound,1);
+      }
+      else {
+        list_audio_devices(csound,0);
+        list_audio_devices(csound,1);
+      }
+      csound->info_message_request = 1;
+      return 1;
+      }
+    else if (!(strncmp(s, "get-system-sr",13))){
+      if(O->outfilename &&
+        !(strncmp(O->outfilename, "dac",3))) {
+      /* these are default values to get the
+         backend to open successfully */
+      set_output_format(O, 'f');
+      O->inbufsamps = O->outbufsamps = 256;
+      O->oMaxLag = 1024;
+      csoundLoadExternals(csound);
+      if (csoundInitModules(csound) != 0)
+              csound->LongJmp(csound, 1);
+      sfopenout(csound);
+      csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
+      sfcloseout(csound);
+      }
+      csound->info_message_request = 1;
+      return 1;
+    }
+
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
 }
@@ -936,7 +1005,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
     nbytes = (argc + 1) * (int) sizeof(char*);
     for (i = 0; i <= argc; i++)
       nbytes += ((int) strlen(argv_[i]) + 1);
-    p1 = (char*) mmalloc(csound, nbytes);   /* will be freed by memRESET() */
+    p1 = (char*) csound->Malloc(csound, nbytes);   /* will be freed by memRESET() */
     p2 = (char*) p1 + ((int) sizeof(char*) * (argc + 1));
     argv = (char**) p1;
     for (i = 0; i <= argc; i++) {
@@ -1101,10 +1170,11 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             FIND(Str("no midi device_name"));
             O->Midiname = s;              /* Midi device name */
             s += (int) strlen(s);
-            if (!strcmp(O->Midiname, "stdin")) {
-              set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
+            if (strcmp(O->Midiname, "stdin")==0) {
 #if defined(WIN32)
               csoundDie(csound, Str("-M: stdin not supported on this platform"));
+#else
+              set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
 #endif
             }
             else
@@ -1115,10 +1185,11 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             FIND(Str("no midifile name"));
             O->FMidiname = s;             /* Midifile name */
             s += (int) strlen(s);
-            if (!strcmp(O->FMidiname, "stdin")) {
-              set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
+            if (strcmp(O->FMidiname, "stdin")==0) {
 #if defined(WIN32)
               csoundDie(csound, Str("-F: stdin not supported on this platform"));
+#else
+              set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #endif
             }
             else
@@ -1191,12 +1262,14 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
                 readOptions(csound, ind, 0);
                 csound->FileClose(csound, fd);
               }
-              while (*s++); s--;
+              while (*s++)
+               ; s--; /* semicolon on separate line to silence warning */
             }
             break;
           case 'O':
             FIND(Str("no log file"));
-            while (*s++); s--;
+            while (*s++)
+              ; s--; /* semicolon on separate line to silence warning */
             break;
           case '-':
 #if defined(LINUX)
@@ -1281,6 +1354,7 @@ PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
   oparms->useCsdLineCounts = p->csd_line_counts;
   oparms->heartbeat = p->heartbeat;
   oparms->ringbell = p->ring_bell;
+  oparms->daemon = p->daemon;
 
   /* message level */
   if(p->message_level > 0)
@@ -1361,49 +1435,51 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
   p->e0dbfs_override = oparms->e0dbfs_override;
   p->heartbeat = oparms->heartbeat;
   p->ring_bell = oparms->ringbell;
+  p->daemon = oparms->daemon;
 }
 
 
-PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format){
+PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format)
+{
 
-  OPARMS *oparms = csound->oparms;
-  char *typename;
+    OPARMS *oparms = csound->oparms;
+    char *typename;
 
-  /* if already compiled and running, return */
-  if(csound->engineStatus & CS_STATE_COMP) return;
+    /* if already compiled and running, return */
+    if (csound->engineStatus & CS_STATE_COMP) return;
 
-  oparms->outfilename =
-    csound->Malloc(csound, strlen(name) + 1); /* will be freed by memRESET */
-  strcpy(oparms->outfilename, name);
-  if (strcmp(oparms->outfilename, "stdout") == 0) {
-        set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
+    oparms->outfilename =
+      csound->Malloc(csound, strlen(name) + 1); /* will be freed by memRESET */
+    strcpy(oparms->outfilename, name); /* unsafe -- REVIEW */
+    if (strcmp(oparms->outfilename, "stdout") == 0) {
+      set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
 #if defined(WIN32)
-        csound->Warning(csound, Str("stdout not supported on this platform"));
+      csound->Warning(csound, Str("stdout not supported on this platform"));
 #endif
-      }
-  else set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
+    }
+    else set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
 
-  oparms->sfwrite = 1;
-  if(type != NULL){
-  int i=0;
-  while((typename = file_type_map[i].format) != NULL) {
-    if(!strcmp(type,typename)) break;
-    i++;
+    oparms->sfwrite = 1;
+    if (type != NULL) {
+      int i=0;
+      while ((typename = file_type_map[i].format) != NULL) {
+        if(!strcmp(type,typename)) break;
+        i++;
+      }
+      if (typename != NULL) {
+        oparms->filetyp = file_type_map[i].type;
+      }
     }
-  if(typename != NULL) {
-    oparms->filetyp = file_type_map[i].type;
-  }
-  }
-  if(format != NULL){
-   int i=0;
-   while((typename = sample_format_map[i].longformat) != NULL) {
-    if(!strcmp(type,typename)) break;
-    i++;
+    if (format != NULL) {
+      int i=0;
+      while ((typename = sample_format_map[i].longformat) != NULL) {
+        if (!strcmp(type,typename)) break;
+        i++;
+      }
+      if (format != NULL) {
+        set_output_format(oparms, sample_format_map[i].shortformat);
+      }
     }
-  if(format != NULL) {
-    set_output_format(oparms, sample_format_map[i].shortformat);
-  }
-  }
 }
 
 PUBLIC void csoundSetInput(CSOUND *csound, char *name) {
@@ -1486,4 +1562,20 @@ PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name) {
    oparms->Midioutname =
      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
    strcpy(oparms->Midioutname, name);
+}
+
+static void list_audio_devices(CSOUND *csound, int output){
+
+       int i,n = csoundGetAudioDevList(csound,NULL, output);
+         CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
+             malloc(n*sizeof(CS_AUDIODEVICE));
+         if(output)
+          csound->Message(csound, "%d audio output devices \n", n);
+         else
+           csound->Message(csound, "%d audio input devices \n", n);
+         csoundGetAudioDevList(csound,devs,output);
+         for(i=0; i < n; i++)
+             csound->Message(csound, " %d: %s (%s)\n",
+                   i, devs[i].device_id, devs[i].device_name);
+         free(devs);
 }

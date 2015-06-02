@@ -321,7 +321,7 @@ EXsndgetset(CSOUND *csound, XTRC *x, char *name)
     x->p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     x->p->channel = ALLCHNLS;
     x->p->skiptime = FL(0.0);
-    strcpy(x->p->sfname, name);
+    strncpy(x->p->sfname, name,  MAXSNDNAME-1);
     if ((infd = csound->sndgetset(csound, x->p)) == 0) /*open sndfil, do skiptime*/
         return(0);
     x->p->getframes = x->p->framesrem;

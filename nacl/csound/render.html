@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<!--
+ Csound pnacl render example
+ Copyright (C) 2013 V Lazzarini
+-->
+<head>
+ <title> Simple File Render Example</title>
+ <script type="text/javascript" src="csound.js"></script>
+ <script type="text/javascript">
+
+ // called by csound.js
+ function moduleDidLoad() {
+  csound.RenderCsd("http/test.csd");
+ }
+
+
+ function attachListeners() {
+ }
+
+ function handleMessage(message) {
+  var mess = message.data;
+  if(mess == "finished render"){
+      ReadFile();
+      return;
+  } else if(mess == "Complete"){
+      saveFile();
+      scrollTo(0, messField.scrollHeight);
+      return;
+  }
+   var messField = document.getElementById("mess")
+   messField.innerText += mess;
+   scrollTo(0, messField.scrollHeight);
+ }
+
+  function saveFile(){
+
+  window.URL = window.webkitURL || window.URL;
+  const MIME_TYPE = 'application/octet-stream';
+  var bb = new Blob([csound.GetFileData()], { type: MIME_TYPE});
+  var a = document.createElement('a'); 
+  a.download =  "test.wav";
+  a.href = window.URL.createObjectURL(bb);
+  a.textContent = 'Click here to save file';
+  a.dataset.downloadurl = [MIME_TYPE, a.download, a.href].join(':');
+  document.getElementById('console').appendChild(a);
+ }
+
+ function ReadFile() {
+   csound.RequestFileFromLocal("test.wav");
+ }
+ </script>
+</head>
+<body>
+  <div id="mess"> </div>
+   <div id="console"></div>
+  <!--pNaCl csound module-->
+  <div id="engine"></div>
+</body>
+</html>

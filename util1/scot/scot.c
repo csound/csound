@@ -744,6 +744,7 @@ int applymacs(char **s, Inst *n)
     for (sz = 0; (*s)[sz]; sz++) {
       if (sz >= 300) {
         scoterror(Str("Macro expansion too long -- circular macros?"));
+        free(news);
         return FALSE;
       }
       news[sz] = (*s)[sz];

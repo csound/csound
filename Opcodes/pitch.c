@@ -670,6 +670,7 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
         *lphs++ = ((int32) (*p->iphs * FMAXLEN)) & PHMASK;
       } while (--count);
     }
+
     return OK;
 }
 
@@ -1706,7 +1707,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
         segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
-        segp->nxtpt = nxtval;
+      segp->nxtpt = nxtval;
       segp->val = val;
       if (alpha == FL(0.0)) {
         segp->c1 = (nxtval-val)/d;
@@ -1760,7 +1761,7 @@ int trnset_bkpt(CSOUND *csound, TRANSEG *p)
         segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
-        segp->nxtpt = nxtval;
+      segp->nxtpt = nxtval;
       segp->val = val;
       if (alpha == FL(0.0)) {
         segp->c1 = (nxtval-val)/d;
@@ -1906,7 +1907,7 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
         segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
-        segp->nxtpt = nxtval;
+      segp->nxtpt = nxtval;
       segp->val = val;
       if (alpha == FL(0.0)) {
         segp->c1 = (nxtval-val)/d;
@@ -2145,23 +2146,16 @@ int lpf18db(CSOUND *csound, LPF18 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT kfcn = FL(2.0) * *p->fco * csound->onedsr;
-    MYFLT kp   = ((-FL(2.7528)*kfcn + FL(3.0429))*kfcn +
-                  FL(1.718))*kfcn - FL(0.9984);
-    MYFLT kp1 = kp+FL(1.0);
-    MYFLT kp1h = FL(0.5)*kp1;
-    /* Version using log */
-    /* MYFLT kres = *p->res * (FL(2.2173) - FL(1.6519)*log(kp+FL(1.0))); */
-    MYFLT kres = *p->res * (((-FL(2.7079)*kp1 + FL(10.963))*kp1
-                             - FL(14.934))*kp1 + FL(8.4974));
     MYFLT ay1 = p->ay1;
     MYFLT ay2 = p->ay2;
     MYFLT aout = p->aout;
     MYFLT *ain = p->ain;
     MYFLT *ar = p->ar;
-    double dist = (double)*p->dist;
     MYFLT lastin = p->lastin;
-    double value = 1.0+(dist*(1.5+2.0*(double)kres*(1.0-(double)kfcn)));
+    double value = 0.0;
+    int   flag = 1;
+    MYFLT lfc=0, lrs=0, kres=0, kfcn=0, kp=0, kp1=0,  kp1h=0;
+    double lds = 0.0;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -2169,13 +2163,37 @@ int lpf18db(CSOUND *csound, LPF18 *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset;n<nsmps;n++) {
-      MYFLT ax1   = lastin;
-      MYFLT ay11  = ay1;
-      MYFLT ay31  = ay2;
-      lastin  =  ain[n] - TANH(kres*aout);
-      ay1      = kp1h * (lastin + ax1) - kp*ay1;
-      ay2      = kp1h * (ay1 + ay11) - kp*ay2;
-      aout     = kp1h * (ay2 + ay31) - kp*aout;
+      MYFLT fco, res, dist;
+      MYFLT ax1  = lastin;
+      MYFLT ay11 = ay1;
+      MYFLT ay31 = ay2;
+      fco        = (XINARG2 ? p->fco[n] : *p->fco);
+      res        = (XINARG3 ? p->res[n] : *p->res);
+      dist       = (double)(XINARG4 ? p->dist[n] : *p->dist);
+      if (fco != lfc || flag) {
+        lfc = fco;
+        kfcn = FL(2.0) * fco * csound->onedsr;
+        kp   = ((-FL(2.7528)*kfcn + FL(3.0429))*kfcn +
+                FL(1.718))*kfcn - FL(0.9984);
+        kp1 = kp+FL(1.0);
+        kp1h = FL(0.5)*kp1;
+        flag = 1;
+      }
+      if (res != lrs || flag) {
+        lrs = res;
+        kres = res * (((-FL(2.7079)*kp1 + FL(10.963))*kp1
+                           - FL(14.934))*kp1 + FL(8.4974));
+        flag = 1;
+      }
+      if (dist != lds || flag) {
+        lds = dist;
+        value = 1.0+(dist*(1.5+2.0*(double)kres*(1.0-(double)kfcn)));
+      }
+      flag = 0;
+      lastin     = ain[n] - TANH(kres*aout);
+      ay1        = kp1h * (lastin + ax1) - kp*ay1;
+      ay2        = kp1h * (ay1 + ay11) - kp*ay2;
+      aout       = kp1h * (ay2 + ay31) - kp*aout;
 
       ar[n] = TANH(aout*value);
     }

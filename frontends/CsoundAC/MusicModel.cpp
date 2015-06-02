@@ -72,10 +72,10 @@ namespace csound
     }
     cppSound->addScoreLine(score.getCsoundScore(tonesPerOctave, conformPitches));
     char buffer[0x100];
-    std::sprintf(buffer, "\ns %9.3f", extendSeconds);
-    cppSound->addScoreLine(buffer);
-    //std::sprintf(buffer, "\ne %9.3f", extendSeconds);
+    //std::sprintf(buffer, "\ns %9.3f", extendSeconds);
     //cppSound->addScoreLine(buffer);
+    std::sprintf(buffer, "\ne %9.3f\n", extendSeconds);
+    cppSound->addScoreLine(buffer);
     //cppSound->exportForPerformance();
   }
 
@@ -254,7 +254,6 @@ namespace csound
       postPossible = false;
       const char *audiosystem = argsmap["--audio"].c_str();
       const char *devicename = argsmap["--device"].c_str();
-      const char *temp_path = std::getenv("TEMP");
       std::sprintf(command,
                    "csound --midi-key=4 --midi-velocity=5 -m195 -+rtaudio=%s -o %s",
                    audiosystem, devicename);

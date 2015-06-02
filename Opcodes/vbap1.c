@@ -169,7 +169,7 @@ int vbap1_init(CSOUND *csound, VBAP1 *p)
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
     char name[24];
-    sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
+    snprintf(name, 24, "vbap_ls_table_%d", (int)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
     if (ls_table==NULL)
       return csound->InitError(csound,
@@ -237,7 +237,7 @@ int vbap1_init_a(CSOUND *csound, VBAPA1 *p)
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
     char name[24];
-    sprintf(name, "vbap_ls_table_%d", (int)*p->layout);
+    snprintf(name, 24, "vbap_ls_table_%d", (int)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
     if (ls_table==NULL)
       return csound->InitError(csound,

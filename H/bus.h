@@ -139,6 +139,7 @@ typedef struct {
     MYFLT   *value, *valID;
     AUXCH   channelName;
     const CS_TYPE *channelType;
+    void *channelptr;
 } INVAL;
 
 typedef struct {
@@ -146,6 +147,7 @@ typedef struct {
     MYFLT   *valID, *value;
     AUXCH   channelName;
     const CS_TYPE *channelType;
+    void *channelptr;
 } OUTVAL;
 
 int     chano_opcode_perf_k(CSOUND *, CHNVAL *);

@@ -158,7 +158,7 @@ static int alloc_event(CSOUND *csound, unsigned long kcnt, unsigned char *data,
     if (MF(nEvents) >= MF(maxEvents)) {
       MF(maxEvents) += (MF(maxEvents) >> 3);
       MF(maxEvents) = (MF(maxEvents) + 64) & (~63);
-      tmp = (midiEvent_t*) mrealloc(csound, MF(eventList),
+      tmp = (midiEvent_t*) csound->ReAlloc(csound, MF(eventList),
                                     sizeof(midiEvent_t) * MF(maxEvents));
       MF(eventList) = tmp;
       tmp = &(MF(eventList)[MF(nEvents)]);
@@ -183,7 +183,7 @@ static int alloc_tempo(CSOUND *csound, unsigned long kcnt, double tempoVal)
     if (MF(nTempo) >= MF(maxTempo)) {
       MF(maxTempo) += (MF(maxTempo) >> 3);
       MF(maxTempo) = (MF(maxTempo) + 64) & (~63);
-      tmp = (tempoEvent_t*) mrealloc(csound, MF(tempoList),
+      tmp = (tempoEvent_t*) csound->ReAlloc(csound, MF(tempoList),
                                      sizeof(tempoEvent_t) * MF(maxTempo));
       MF(tempoList) = tmp;
       tmp = &(MF(tempoList)[MF(nTempo)]);
@@ -626,7 +626,7 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
       timeCode = (timeCode << 8) | c;
     }
     /* allocate structure */
-    MIDIFILE = (void*) mcalloc(csound, sizeof(midiFile_t));
+    MIDIFILE = (void*) csound->Calloc(csound, sizeof(midiFile_t));
     /* calculate ticks per second or beat based on time code */
     if (timeCode < 1 || (timeCode >= 0x8000 && (timeCode & 0xFF) == 0)) {
       csound->Message(csound, Str(" *** invalid time code: %d\n"), timeCode);

@@ -37,6 +37,32 @@ void test_create_buffer(void)
     csoundDestroy(csound);
 }
 
+void test_buffer_run(void)
+{
+    csoundSetGlobalEnv("OPCODE6DIR64", "../../");
+    CSOUND *csound = csoundCreate(0);
+    csoundCreateMessageBuffer(csound, 0);
+    int result = csoundCompileOrc(csound, "instr 1\n"
+                                  "asig oscil 0.1, 440\n"
+                                  "out asig\n"
+                                  "endin\n");
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    csoundStart(csound);
+
+    csoundPerform(csound);
+
+    while (csoundGetMessageCnt(csound)) {
+        const char * msg = csoundGetFirstMessage(csound);
+        CU_ASSERT_PTR_NOT_NULL(msg);
+        csoundPopFirstMessage(csound);
+        printf("CSOUND MESSAGE: %s", msg);
+    }
+
+    csoundCleanup(csound);
+    csoundDestroyMessageBuffer(csound);
+    csoundDestroy(csound);
+}
+
 int main()
 {
    CU_pSuite pSuite = NULL;
@@ -54,7 +80,7 @@ int main()
 
    /* add the tests to the suite */
    if ((NULL == CU_add_test(pSuite, "Create Message Buffer", test_create_buffer))
-//           || (NULL == CU_add_test(pSuite, "test of fread()", testFREAD))
+           || (NULL == CU_add_test(pSuite, "Test run", test_buffer_run))
            )
    {
       CU_cleanup_registry();

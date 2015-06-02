@@ -19,7 +19,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
 
     char   *pcBuffer;
     const char *pcEnd;
-    const char *pcLADSPAPath;
+          char *pcLADSPAPath = NULL;
     const char *pcDSSIPath;
     const char *pcStart;
     int     iEndsInSO;
@@ -46,8 +46,10 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
       pcLADSPAPath = getenv("LADSPA_PATH");
       pcDSSIPath = getenv("DSSI_PATH");
       if (pcDSSIPath) {
-        strcat((char *) pcLADSPAPath, ":");
-        strcat((char *) pcLADSPAPath, pcDSSIPath);
+        int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
+        char *tmp = (char*)malloc(len);
+        snprintf(tmp, len, "%s:%s", pcLADSPAPath, pcDSSIPath);
+        pcLADSPAPath = tmp;
       }
       if (pcLADSPAPath) {
         pcStart = pcLADSPAPath;
@@ -73,14 +75,14 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
           csound->Free(csound, pcBuffer);
           if (pvResult != NULL)
             return pvResult;
-
+          
           pcStart = pcEnd;
           if (*pcStart == ':')
             pcStart++;
         }
       }
     }
-
+    free(pcLADSPAPath);
     /* As a last ditch effort, check if filename does not end with
        ".so". In this case, add this suffix and recurse. */
     iEndsInSO = 0;

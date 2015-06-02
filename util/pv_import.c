@@ -121,6 +121,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     }
     if (outf < 0) {
       csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
+      fclose(inf);
       return 1;
     }
 

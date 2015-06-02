@@ -1,9 +1,10 @@
 #!/bin/sh
 
-export MANUAL_DIR=`pwd`/../../../manual6
-export PACKAGE_NAME=csound6.00.1-OSX10.8-x86_64.pkg
-export DMG_DIR="Csound 6.00.1"
-export DMG_NAME="csound6.00.1-OSX10.8-x86_64.dmg"
+export MANUAL_DIR=`pwd`/../../../manual
+export CS_VERSION="6.03.2"
+export PACKAGE_NAME=csound${CS_VERSION}-OSX10.9-universal.pkg
+export DMG_DIR="Csound ${CS_VERSION}"
+export DMG_NAME="csound${CS_VERSION}-OSX10.9-universal.dmg"
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
 
@@ -38,14 +39,14 @@ fi
 #BUILD DOUBLES CSOUND
 echo "Building Csound (double)..."
 cd csound6
-cp ../../../../Custom.cmake .
+cp ../../Custom_10.9.cmake Custom.cmake 
 
 #/usr/local/bin/scons -j2 &> ../csound5_build_log.txt
 mkdir build
 cd build
 # RUN CMAKE TWICE TO GET AROUND ISSUE WITH UNIVERSAL BUILD
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1
 make -j6 install
 
 # BUILD FLOAT CSOUND5
@@ -69,6 +70,7 @@ export FRAMEWORK64_DIR=$INSTALLER_DIR/CsoundLib64/Package_Contents/Library/Frame
 export PYTHON_DIR=Versions/$CSLIBVERSION/Resources/Python/Current
 export TCLTK_DIR=Versions/$CSLIBVERSION/Resources/TclTk
 export JAVA_DIR=Versions/$CSLIBVERSION/Resources/Java
+export LUA_DIR=Versions/$CSLIBVERSION/Resources/Luajit
 export CSLADSPA_DIR=Versions/$CSLIBVERSION/Resources/csladspa
 export SAMPLES_DIR=Versions/$CSLIBVERSION/Resources/samples
 export PD_DIR=Versions/$CSLIBVERSION/Resources/PD
@@ -94,6 +96,7 @@ mkdir -p $FRAMEWORK64_DIR/$PYTHON_DIR
 mkdir -p $FRAMEWORK64_DIR/$TCLTK_DIR
 mkdir -p $FRAMEWORK64_DIR/$PYTHON_DIR
 mkdir -p $FRAMEWORK64_DIR/$JAVA_DIR
+mkdir -p $FRAMEWORK64_DIR/$LUA_DIR
 mkdir -p $FRAMEWORK64_DIR/$SAMPLES_DIR
 mkdir -p $FRAMEWORK64_DIR/$PD_DIR
 mkdir -p $FRAMEWORK64_DIR/../Documentation
@@ -133,6 +136,8 @@ cp  $DIST/lib/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
 cp  $DIST/lib/libCsoundAC.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
 cp  $DIST/lib/lib_jcsound6.jnilib $FRAMEWORK64_DIR/$JAVA_DIR
 cp  $DIST/lib/csnd6.jar $FRAMEWORK64_DIR/$JAVA_DIR
+cp  $DIST/lib/luaCsnd6.so $FRAMEWORK64_DIR/$LUA_DIR
+cp  $DIST/lib/luaCsoundAC.so $FRAMEWORK64_DIR/$LUA_DIR
 cp  $DIST/lib/csound6~.pd_darwin $FRAMEWORK64_DIR/$PD_DIR
 cp  csound6/examples/csoundapi_tilde/csound6~-help.pd $FRAMEWORK64_DIR/$PD_DIR/
 cp  csound6/examples/csoundapi_tilde/csapi_demo.csd $FRAMEWORK64_DIR/$PD_DIR/

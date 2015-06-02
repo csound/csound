@@ -94,8 +94,8 @@ int kingoto(CSOUND *csound, CGOTO *p)
 
 int timset(CSOUND *csound, TIMOUT *p)
 {
-    if (UNLIKELY((p->cnt1 = (int32)(*p->idel * csound->ekr + FL(0.5))) < 0L ||
-                 (p->cnt2 = (int32)(*p->idur * csound->ekr + FL(0.5))) < 0L))
+    if (UNLIKELY((p->cnt1 = (int32)(*p->idel * CS_EKR + FL(0.5))) < 0L ||
+                 (p->cnt2 = (int32)(*p->idur * CS_EKR + FL(0.5))) < 0L))
       return csoundInitError(csound, Str("negative time period"));
     return OK;
 }
@@ -169,6 +169,7 @@ int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
     IGN(csound);
     INSDS  *lcurip = CS_PDS->insdshead;
+    if (p->h.insdshead->actflg) {
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     /* find top level instrument instance */
     while (lcurip->opcod_iobufs)
@@ -177,6 +178,7 @@ int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
     if (lcurip->xtratim <= 0)
       while (CS_PDS->nxtp != NULL)
         CS_PDS = CS_PDS->nxtp;                /* loop to last opds */
+    }
     return OK;
 }
 

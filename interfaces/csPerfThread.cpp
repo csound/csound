@@ -292,6 +292,7 @@ int CsoundPerformanceThread::Perform()
         // if paused, wait until a new message is received, then loop back
         if (!paused)
           break;
+        // VL: if this is paused, then it will double lock.
         csoundWaitThreadLockNoTimeout(pauseLock);
         csoundNotifyThreadLock(pauseLock);
       }

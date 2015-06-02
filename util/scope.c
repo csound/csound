@@ -34,10 +34,10 @@ static int scope(CSOUND *csound, int argc, char **argv)
     corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
 
     csound->expanded_sco = corfile_create_w();
-    sprintf(buff, "#source %d\n",
+    snprintf(buff, 1024, "#source %d\n",
             qq.lstack[0] = file_to_int(csound, csound->scorename));
     corfile_puts(buff, csound->expanded_sco);
-    sprintf(buff, "#line %d\n", csound->orcLineOffset);
+    snprintf(buff, "#line %d\n", csound->orcLineOffset);
     corfile_puts(buff, csound->expanded_sco);
     qq.line = 1;
     csound_prslex(csound, qq.yyscanner);

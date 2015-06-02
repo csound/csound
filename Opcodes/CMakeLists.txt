@@ -12,6 +12,7 @@ option(BUILD_P5GLOVE_OPCODES "Build the P5Glove opcodes" ON)
 option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
 option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
 option(BUILD_FAUST_OPCODES "Build the Faust opcodes" OFF)
+option(BUILD_VST4CS_OPCODES "Build the vst4cs opcodes" OFF)
 
 find_package(Boost)
 check_include_file(ladspa.h LADSPA_H)
@@ -42,7 +43,8 @@ find_library(P5GLOVE_LIB p5glove)
 
 if(BUILD_FAUST_OPCODES)
 find_package(LLVM)
-find_library(FAUST_LIBRARY faust HINTS /usr/local/lib/faust)
+exec_program(llvm-config ARGS --libs OUTPUT_VARIABLE LLVM_LIBS)
+find_library(FAUST_LIBRARY faust.a HINTS /usr/local/lib/faust)
 endif()
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
@@ -95,7 +97,7 @@ if(BUILD_DSSI_OPCODES)
     make_plugin(dssi4cs "${dssi_SRC}" dl)
 endif()
 
-check_deps(BUILD_FLUID_OPCODES FLUIDSYNTH_H FLUIDSYNTH_LIBRARY USE_OPENMP)
+check_deps(BUILD_FLUID_OPCODES FLUIDSYNTH_H FLUIDSYNTH_LIBRARY)
 if(BUILD_FLUID_OPCODES)
     if(EXISTS ${FLUIDSYNTH_INCLUDE_DIR})
         include_directories("${FLUIDSYNTH_INCLUDE_DIR}")
@@ -122,7 +124,7 @@ if(BUILD_LINEAR_ALGEBRA_OPCODES)
     make_plugin(linear_algebra linear_algebra.cpp)
 endif()
 
-check_deps(BUILD_OSC_OPCODES OSC_HEADER LIBLO_LIBRARY)
+check_deps(BUILD_OSC_OPCODES LIBLO_LIBRARY OSC_HEADER)
 if(BUILD_OSC_OPCODES)
     make_plugin(osc OSC.c)
     if(WIN32)
@@ -144,6 +146,7 @@ endif()
 check_deps(BUILD_PYTHON_OPCODES PYTHONLIBS_FOUND)
 if(BUILD_PYTHON_OPCODES)
     include_directories(${PYTHON_INCLUDE_DIRS})
+    include_directories(${CMAKE_HOME_DIRECTORY}/include)
     make_plugin(py py/pythonopcodes.c ${PYTHON_LIBRARIES})
 endif()
 
@@ -157,7 +160,7 @@ if(NOT APPLE)
   endif()
 endif()
 
-check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H)
+check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H WIIUSE_LIB)
 if(BUILD_WIIMOTE_OPCODES)
     make_plugin(wiimote wiimote.c ${WIIUSE_LIB})
     add_dependency_to_framework(wiimote ${WIIUSE_LIB})
@@ -169,15 +172,24 @@ if(BUILD_P5GLOVE_OPCODES)
     make_plugin(p5g p5glove.c ${P5GLOVE_LIB})
 endif()
 
-
-if(BUILD_FAUST_OPCODES)
 check_deps(BUILD_FAUST_OPCODES LLVM_FOUND FAUST_LIBRARY)
-   llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES AsmParser Instrumentation Linker Archive BitReader DebugInfo JIT ipo Vectorize BitWriter TableGen XCoreCodeGen XCoreDesc XCoreInfo X86AsmParser X86Disassembler X86CodeGen X86Desc X86Info X86AsmPrinter X86Utils SparcCodeGen SparcDesc SparcInfo PTXCodeGen PTXDesc PTXInfo PTXAsmPrinter PowerPCCodeGen PowerPCDesc PowerPCAsmPrinter PowerPCInfo MSP430CodeGen MSP430Desc MSP430Info MSP430AsmPrinter MBlazeDisassembler MBlazeAsmParser MBlazeCodeGen MBlazeDesc MBlazeInfo MBlazeAsmPrinter MipsDisassembler MipsAsmParser MipsCodeGen MipsDesc MipsInfo MipsAsmPrinter HexagonCodeGen HexagonDesc HexagonInfo HexagonAsmPrinter CppBackendCodeGen CppBackendInfo CellSPUCodeGen CellSPUDesc CellSPUInfo ARMDisassembler ARMAsmParser ARMCodeGen SelectionDAG AsmPrinter ARMDesc ARMInfo ARMAsmPrinter MCDisassembler MCParser Interpreter CodeGen ScalarOpts InstCombine TransformUtils ipa Analysis MCJIT RuntimeDyld ExecutionEngine Target MC Object Core Support
-)
-
+if(BUILD_FAUST_OPCODES)
   make_plugin(faustcsound faustgen.cpp)
-  add_compiler_flags("-DFAUSTFLOAT=double"  TARGETS faustcsound)
-  target_link_libraries(faustcsound faust ${REQ_LLVM_LIBRARIES})
+  target_link_libraries(faustcsound -lcrypto)
+ if(APPLE)
+ if(${OSX_VERSION} STREQUAL "10.6")
+   add_compiler_flags("-DFAUSTFLOAT=double "  TARGETS faustcsound)
+    target_link_libraries(faustcsound ${FAUST_LIBRARY} -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
+  else()
+     add_compiler_flags("-DFAUSTFLOAT=double -stdlib=libc++"  TARGETS faustcsound)
+     target_link_libraries(faustcsound ${FAUST_LIBRARY} -stdlib=libc++ -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
+  endif()
+  else()
+    add_compiler_flags("-DFAUSTFLOAT=double "  TARGETS faustcsound)
+    target_link_libraries(faustcsound ${FAUST_LIBRARY} -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
+   endif()
+ 
+  include_directories(${LLVM_INCLUDE_DIRS})
 endif()
 
 
@@ -187,6 +199,32 @@ endif()
 #    make_plugin(ogg ogg.c "${vorbis_LIBS}")
 #endif()
 
+check_deps(BUILD_VST4CS_OPCODES VSTSDK2X_DIR FLTK_FOUND)
+if(BUILD_VST4CS_OPCODES)
+    include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
+    include_directories(${VSTSDK2X_DIR})
+    include_directories(${VSTSDK2X_DIR}/public.sdk/source/vst2.x)
+    include_directories(${VSTSDK2X_DIR}/pluginterfaces/source/vst2.x)
+    include_directories(${FLTK_INCLUDE_DIR})
+    add_definitions(-DVST_FORCE_DEPRECATED=0 -DCS_VSTHOST)
+    set(VST4CS_SRCS
+        vst4cs/src/vst4cs.cpp
+        vst4cs/src/vsthost.cpp
+        vst4cs/src/fxbank.cpp
+        ${VSTSDK2X_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
+        ${VSTSDK2X_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
+    add_library(vst4cs SHARED ${VST4CS_SRCS})
+    set_target_properties(vst4cs PROPERTIES
+        LINK_INTERFACE_LIBRARIES ""
+        RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+        )
+    target_link_libraries(vst4cs ${CSOUNDLIB} ${FLTK_LIBRARIES})
+    install(TARGETS vst4cs
+        LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
+        ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
+endif()
 
 
 #set(sfont_FLAGS "")
@@ -203,3 +241,5 @@ endif()
 #    PROPERTIES COMPILER_FLAGS "${sfont_FLAGS}")
 
 add_subdirectory(stk)
+add_subdirectory(cuda)
+add_subdirectory(opencl)

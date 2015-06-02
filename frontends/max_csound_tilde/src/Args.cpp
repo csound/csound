@@ -146,12 +146,12 @@ void Args::SetCsoundArguments(short argc, const t_atom *argv, const string & pat
 		{
 			if(argv[i].a_type == A_LONG)
 			{
-				sprintf(tmp2, "%d", argv[i].a_w.w_long);
+				sprintf(tmp2, "%lld", (long long)atom_getlong(&argv[i]));
 				m_list.push_back(tmp2);
 			}
 			else if(argv[i].a_type == A_FLOAT)
 			{
-				sprintf(tmp2, "%f", argv[i].a_w.w_float);
+				sprintf(tmp2, "%f", atom_getfloat(&argv[i]));
 				m_list.push_back(tmp2);
 			}
 			else if(argv[i].a_type == A_SYM)

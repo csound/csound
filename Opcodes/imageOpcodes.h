@@ -38,7 +38,8 @@ typedef struct
 typedef struct
 {
   OPDS h;
-  MYFLT *kn, *ifilnam ;
+  MYFLT *kn;
+  STRINGDAT *ifilnam ;
 } IMGLOAD;
 
 typedef struct
@@ -67,7 +68,8 @@ typedef struct
 typedef struct
 {
   OPDS h;
-  MYFLT *kn, *ifilnam;
+  MYFLT *kn;
+  STRINGDAT *ifilnam;
 } IMGSAVE;
 
 typedef struct

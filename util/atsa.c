@@ -726,7 +726,10 @@ static int atsa_main(CSOUND *csound, int argc, char **argv)
       char buffer[160];
       char * tmp = getenv("TEMP");
       strncpy(buffer, tmp, 160);
-      strncat(buffer, ATSA_RES_FILE, 160);
+      // MKG 2014 Jan 29: No linkage for strlcat with MinGW here.
+      // but wrong; corrected
+      //strlcat(buffer, ATSA_RES_FILE, 160);
+      strncat(buffer, ATSA_RES_FILE, 159-strlen(buffer)); buffer[159] = '0';
       val = main_anal(csound, soundfile, ats_outfile, anargs, buffer);
     }
 #else
@@ -2383,7 +2386,10 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       char buffer[160];
       char * tmp = getenv("TEMP");
       strncpy(buffer, tmp, 160);
-      strncat(buffer, ATSA_RES_FILE, 160);
+      // MKG 2014 Jan 29: No linkage for strlcat with MinGW here.
+      // snd corrected
+      //strlcat(buffer, ATSA_RES_FILE, 160);
+      strncat(buffer, ATSA_RES_FILE, 159-strlen(buffer)); buffer[159]='\0';
       csound->Message(csound, Str("Analysing residual..."));
       residual_analysis(csound, buffer, sound);
 #else

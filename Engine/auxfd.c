@@ -41,7 +41,7 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
         void  *tmp = auxchp->auxp;
         /* if size change only, free the old space and re-allocate */
         auxchp->auxp = NULL;
-        mfree(csound, tmp);
+        csound->Free(csound, tmp);
       }
     }
     else {                                  /* else linkin new auxch blk */
@@ -50,7 +50,7 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
     }
     /* now alloc the space and update the internal data */
     auxchp->size = nbytes;
-    auxchp->auxp = mcalloc(csound, nbytes);
+    auxchp->auxp = csound->Calloc(csound, nbytes);
     auxchp->endp = (char*)auxchp->auxp + nbytes;
     if (UNLIKELY(csound->oparms->odebug))
       auxchprint(csound, csound->curip);
@@ -108,7 +108,7 @@ void auxchfree(CSOUND *csound, INSDS *ip)
       void  *auxp = (void*) ip->auxchp->auxp;
       AUXCH *nxt = ip->auxchp->nxtchp;
       memset((void*) ip->auxchp, 0, sizeof(AUXCH)); /*  delete the pntr     */
-      mfree(csound, auxp);                          /*  & free the space    */
+      csound->Free(csound, auxp);                          /*  & free the space    */
       ip->auxchp = nxt;
     }
     if (UNLIKELY(csound->oparms->odebug))

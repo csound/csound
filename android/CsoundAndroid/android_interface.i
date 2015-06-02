@@ -61,7 +61,7 @@ typedef unsigned int uint32_t;
     } catch (Throwable e) {
         java.lang.System.err.println("CsoundAndroid: sndfile native code library failed to load.");
         java.lang.System.err.println(e.toString());
-    }
+	} 
     try {
         java.lang.System.loadLibrary("csoundandroid");
     } catch (Throwable e) {

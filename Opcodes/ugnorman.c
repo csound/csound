@@ -1146,10 +1146,11 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
       p->frmInc = n_partials * 3 + 26;
       break;
 
-    default:
-      return csound->InitError(csound, Str("ATSADDNZ: Type either has no noise "
-                                           "or is not implemented "
-                                           "(only type 3 and 4 work now)"));
+    /* default: // Cannot happen */
+    /*   return csound->InitError(csound, */
+    /*                            Str("ATSADDNZ: Type either has no noise " */
+    /*                                "or is not implemented " */
+    /*                                "(only type 3 and 4 work now)")); */
     }
 
     /* save bandwidths for creating noise bands */
@@ -1315,10 +1316,11 @@ static int atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
       p->frmInc = n_partials * 3 + 26;
       break;
 
-    default:
-      return csound->InitError(csound, Str("ATSADDNZ: Type either has no noise "
-                                           "or is not implemented "
-                                           "(only type 3 and 4 work now)"));
+    /* default: */ // Cannot happen as tested earlier
+    /*   return csound->InitError(csound, */
+    /*                            Str("ATSADDNZ: Type either has no noise " */
+    /*                                        "or is not implemented " */
+    /*                                        "(only type 3 and 4 work now)")); */
     }
 
     /* save bandwidths for creating noise bands */

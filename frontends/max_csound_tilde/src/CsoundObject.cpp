@@ -336,6 +336,88 @@ void CsoundObject::Perform()
 	}
 }
 
+
+void CsoundObject::Perform64()
+{
+	int i, j, chan, indexMultChans;
+	int vectorSize = m_x->vectorSize;
+	double **in = m_x->in64, **out = m_x->out64;
+	MYFLT *csIn, *csOut;
+	ScopedLock k(m_lock);
+
+	if(m_compiled && !m_renderingToFile && !m_performanceFinished)
+	{
+		csOut = csoundGetSpout(m_csound);
+		csIn = csoundGetSpin(m_csound);
+
+		if(m_x->evenlyDivisible)
+		{	/* ksmps evenly divides the current Max vector size. Keep filling csIn[].
+			 * When csIn[] is full, process Csound.  Processing Csound will give us
+			 * ksmps output frames stored in csOut[].  At the end of the for loop, if
+			 * there are any frames in csOut[], copy them to the output buffer provided
+			 * by Max.  Since vector_size % ksmps == 0, this results in latency = 0 samples. */
+			j = 0;
+			for(i=0; i<vectorSize; i++)
+			{
+				if(!m_performanceFinished)
+				{
+					indexMultChans = m_in_index * m_chans;
+					for(chan=0; chan<m_inChans; chan++)
+						csIn[indexMultChans + chan] = (MYFLT)in[chan][i] * m_scale; 
+					
+					if(++m_in_index == m_ksmps) 
+					{	
+						m_performanceFinished = csoundPerformKsmps(m_csound);
+						m_in_index = 0;
+						m_out_index = 0;
+					}
+
+					while(m_out_index < m_ksmps && j < vectorSize)
+					{
+						indexMultChans = m_out_index * m_chans;
+						for(chan=0; chan<m_outChans; chan++)
+							out[chan][j] = (t_double)(csOut[indexMultChans + chan] * m_oneDivScale);
+						++j;
+						++m_out_index;
+					}
+				}
+			}
+		}
+		else // x->evenlyDivisible == false
+		{	/* ksmps does not evenly divide the current Max vector size. Here's a description of the loop: 
+			 * We add a frame from the Max input vectors to csIn[], check to see if we have ksmps frames,
+			 * if we have ksmps frames then process Csound, then copy a frame from csOut[] to the Max output
+			 * vector (csOut[] may contain only zeros). This results in latency = ksmps. */
+			for(i=0; i<vectorSize; i++)
+			{
+				if(!m_performanceFinished)
+				{
+					if(m_in_index == m_ksmps) 
+					{	
+						m_performanceFinished = csoundPerformKsmps(m_csound);
+						m_in_index = 0;
+					}
+					indexMultChans = m_in_index * m_chans;
+					for(chan=0; chan<m_inChans; chan++)
+						csIn[indexMultChans + chan] = (MYFLT)in[chan][i] * m_scale;
+					
+					for(chan=0; chan<m_outChans; chan++)
+						out[chan][i] = (t_double)(csOut[indexMultChans + chan] * m_oneDivScale);
+					
+					++m_in_index;
+				}
+			}
+		}
+		if(m_performanceFinished) 
+		{
+			m_iChanGroup.ClearPtrs();
+			m_oChanGroup.ClearPtrs();
+			defer_low(m_obj, (method)csound_sendPerfDoneBang, NULL, 0, NULL);
+		}
+	}
+}
+
+
 void CsoundObject::Rewind()
 {
 	ScopedLock k(m_lock);
@@ -374,14 +456,14 @@ void CsoundObject::Stop()
 	m_oChanGroup.ClearPtrs();
 	{
 		ScopedLock k(m_lock);
-		if(m_compiled)
-		{
+//		if(m_compiled)
+//		{
 			csoundCleanup(m_csound);
 			csoundReset(m_csound);
 			m_compiled = false;
 			m_performanceFinished = true;
 			send_bang = true;
-		}
+//		}
 	}
 	if(send_bang) 
 		csound_sendPerfDoneBang(m_x,NULL,0,NULL); // Always call outlets outside locked zones.
@@ -430,8 +512,12 @@ void CsoundObject_RenderThreadFunc(CsoundObject *cso)
 
 void inputValueCallback(CSOUND *csound, const char *name, void *channelValuePtr, const void *channelType)
 {
-	CsoundObject *cso = (CsoundObject *) csoundGetHostData(csound);
-	if(cso->m_x->input) cso->m_iChanGroup.GetVal(name, (MYFLT*)channelValuePtr );
+//	CsoundObject *cso = (CsoundObject *) csoundGetHostData(csound);
+    
+   	t_csound *x = (t_csound *) csoundGetHostData(csound);
+	if(x->input) {
+        x->cso->m_iChanGroup.GetVal(name, (MYFLT*)channelValuePtr );
+    }
 }
 
 void outputValueCallback(CSOUND *csound, const char *name, void *channelValuePtr, const void *channelType)
@@ -482,7 +568,7 @@ void messageCallback(CSOUND *csound, int attr, const char *format, va_list valis
 		
 		// Clear the contents of buf in preparation for the next line of text.
 		buf[0] = '\0'; 
-	}		
+	}
 }
 
 int midiInOpenCallback(CSOUND *csound, void **userData, const char *buf) { return 0; }

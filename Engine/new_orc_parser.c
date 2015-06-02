@@ -27,6 +27,21 @@
 #include "csound_orc.h"
 #include "corfile.h"
 
+#if defined(HAVE_DIRENT_H)
+#  include <dirent.h>
+#  if 0 && defined(__MACH__)
+typedef void*   DIR;
+DIR             opendir(const char *);
+struct dirent   *readdir(DIR*);
+int             closedir(DIR*);
+#  endif
+#endif
+
+#if defined(WIN32)
+#  include <io.h>
+#  include <direct.h>
+#endif
+
 extern void csound_orcrestart(FILE*, void *);
 
 extern int csound_orcdebug;
@@ -61,15 +76,53 @@ void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
     csound->DebugMsg(csound,"******************\n");
 }
 
-uint32_t make_location(PRE_PARM *qq)
+uint64_t make_location(PRE_PARM *qq)
 {
     int d = qq->depth;
-    uint32_t loc = 0;
-    int n = (d>6?d-5:0);
+    uint64_t loc = 0;
+    int n = (d>8?d-7:0);
     for (; n<=d; n++) {
-      loc = (loc<<6)+(qq->lstack[n]);
+      loc = (loc<<8)+(qq->lstack[n]);
     }
     return loc;
+}
+
+// Code to add #includes of UDOs
+void add_include_udo_dir(CORFIL *xx)
+{
+#if defined(HAVE_DIRENT_H)
+    char *dir = getenv("CS_UDO_DIR");
+    char buff[1024];
+    if (dir) {
+      DIR *udo = opendir(dir);
+      printf("** found CS_UDO_DIR=%s\n", dir);
+      if (udo) {
+        struct dirent *f;
+        //printf("**and it opens\n");
+        strcpy(buff, "#line 0\n");
+        while ((f = readdir(udo)) != NULL) {
+          char *fname = &(f->d_name[0]);
+          int n = (int)strlen(fname);
+          //printf("**  name=%s n=%d\n", fname, n);
+          if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
+            strcpy(buff, "#include \"");
+            strlcat(buff, dir, 1024);
+            strlcat(buff, "/", 1024);
+            strlcat(buff, fname, 1024);
+            strlcat(buff, "\"\n", 1024);
+            if (strlen(buff)>768) {
+              corfile_preputs(buff, xx);
+              buff[0] ='\0';
+            }
+          }
+        }
+        closedir(udo);
+        strlcat(buff, "###\n", 1024);
+        corfile_preputs(buff, xx);
+      }
+    }
+    //printf("Giving\n%s", corfile_body(xx));
+#endif
 }
 
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
@@ -87,16 +140,20 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       file_to_int(csound, "**unknown**");
       if (str == NULL) {
         char bb[80];
-        if (csound->orchstr==NULL)
+
+        if (csound->orchstr==NULL && !csound->oparms->daemon)
           csound->Die(csound,
                       Str("Failed to open input file %s\n"), csound->orchname);
+        else if(csound->orchstr==NULL && csound->oparms->daemon)  return NULL;
+
+        add_include_udo_dir(csound->orchstr);
         if (csound->orchname==NULL ||
             csound->orchname[0]=='\0') csound->orchname = csound->csdname;
         /* We know this is the start so stack is empty so far */
-        sprintf(bb, "#source %d\n",
+        snprintf(bb, 80, "#source %d\n",
                 qq.lstack[0] = file_to_int(csound, csound->orchname));
         corfile_puts(bb, csound->expanded_orc);
-        sprintf(bb, "#line %d\n", csound->orcLineOffset);
+        snprintf(bb, 80, "#line %d\n", csound->orcLineOffset);
         corfile_puts(bb, csound->expanded_orc);
       }
       else {
@@ -128,7 +185,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       corfile_rm(&csound->orchstr);
     }
     {
-      TREE* astTree = (TREE *)mcalloc(csound, sizeof(TREE));
+      TREE* astTree = (TREE *)csound->Calloc(csound, sizeof(TREE));
       TREE* newRoot;
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
@@ -144,6 +201,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       csound_orcset_extra(&pp, pp.yyscanner);
       csound_orc_scan_buffer(corfile_body(csound->expanded_orc),
                              corfile_tell(csound->expanded_orc), pp.yyscanner);
+
       //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
       err = csound_orcparse(&pp, pp.yyscanner, csound, astTree);
       corfile_rm(&csound->expanded_orc);
@@ -169,27 +227,32 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         print_tree(csound, "AST - INITIAL\n", astTree);
       }
       //print_tree(csound, "AST - INITIAL\n", astTree);
-      typeTable = mmalloc(csound, sizeof(TYPE_TABLE));
+      typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
 
-      typeTable->globalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
-      typeTable->instr0LocalPool = mcalloc(csound, sizeof(CS_VAR_POOL));
+      typeTable->globalPool = csoundCreateVarPool(csound);
+      typeTable->instr0LocalPool = csoundCreateVarPool(csound);
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
 
       /**** THIS NEXT LINE IS WRONG AS err IS int WHILE FN RETURNS TREE* ****/
       astTree = verify_tree(csound, astTree, typeTable);
-//      mfree(csound, typeTable->instr0LocalPool);
-//      mfree(csound, typeTable->globalPool);
-//      mfree(csound, typeTable);
+//      csound->Free(csound, typeTable->instr0LocalPool);
+//      csound->Free(csound, typeTable->globalPool);
+//      csound->Free(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
 
       //FIXME - synterrcnt should not be global
       if (astTree == NULL || csound->synterrcnt){
           err = 3;
-          csound->Message(csound, "Parsing failed due to %d semantic error%s!\n",
-                          csound->synterrcnt, csound->synterrcnt==1?"":"s");
+          if (astTree)
+            csound->Message(csound, "Parsing failed due to %d semantic error%s!\n",
+                            csound->synterrcnt, csound->synterrcnt==1?"":"s");
+          else if (csound->synterrcnt)
+               csound->Message(csound, "Parsing failed to syntax errors\n");
+          else 
+            csound->Message(csound, "Parsing failed due no input!\n");
           goto ending;
       }
       err = 0;
@@ -205,10 +268,17 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
     ending:
       csound_orclex_destroy(pp.yyscanner);
       if(err) {
-        csound->Warning(csound, Str("Stopping on parser failure\n"));
+        csound->ErrorMsg(csound, Str("Stopping on parser failure"));
         csoundDeleteTree(csound, astTree);
         if (typeTable != NULL) {
-          mfree(csound, typeTable);
+          csoundFreeVarPool(csound, typeTable->globalPool);
+          if(typeTable->instr0LocalPool != NULL) {
+            csoundFreeVarPool(csound, typeTable->instr0LocalPool);
+          }
+          if(typeTable->localPool != typeTable->instr0LocalPool) {
+            csoundFreeVarPool(csound, typeTable->localPool);
+          }
+          csound->Free(csound, typeTable);
         }
         return NULL;
       }

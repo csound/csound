@@ -115,11 +115,11 @@ void RTclose(CSOUND *csound)
       {
         if (strcmp(csound->oparms->Linename, "stdin") != 0)
           close(csound->Linefd);
-  #if !defined(DOSGCC) && !defined(WIN32)
+#if !defined(DOSGCC) && !defined(WIN32)
         else
           fcntl(csound->Linefd, F_SETFL, STA(stdmode));
-  #endif
-}
+#endif
+      }
 //csound->Free(csound, csound->lineventGlobals);
 //csound->lineventGlobals = NULL;
 }
@@ -140,12 +140,12 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
     volatile jmp_buf tmpExitJmp;
     int         err;
 
-    if(reallocsize > 0) {
+    if (reallocsize > 0) {
       STA(Linebuf) = (char *) csound->ReAlloc(csound,
                                               (void *) STA(Linebuf), reallocsize);
       STA(linebufsiz) = reallocsize;
       STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
-    } else if(STA(Linebuf)==NULL) {
+    } else if (STA(Linebuf)==NULL) {
        STA(linebufsiz) = LBUFSIZ;
        STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
     }
@@ -159,8 +159,6 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
       //csound->lineventGlobals = NULL;
       return -1;
     }
-    /* csound->lineventGlobals = */
-    /*     (LINEVENT_GLOBALS*) mcalloc(csound, sizeof(LINEVENT_GLOBALS)); */
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
@@ -182,10 +180,10 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       int extralloc = STA(Linep) + size - STA(Linebufend);
-      if ((n=linevent_alloc(csound, STA(linebufsiz) + extralloc ), 0) != 0){
-      csoundErrorMsg(csound, Str("LineBuffer Overflow - "
-                                 "Input Data has been Lost"));
-      return;
+      if ((n=linevent_alloc(csound, STA(linebufsiz) + extralloc ), 0) != 0) {
+        csoundErrorMsg(csound, Str("LineBuffer Overflow - "
+                                   "Input Data has been Lost"));
+        return;
       }
     }
     memcpy(STA(Linep), message, size);
@@ -219,6 +217,7 @@ static void sensLine(CSOUND *csound, void *userData)
         char    *sstrp = NULL;
         int     scnt = 0;
         int     strsiz = 0;
+        memset(&e, 0, sizeof(EVTBLK));
         e.strarg = NULL; e.scnt = 0;
         c = *cp;
         while (c == ' ' || c == '\t')   /* skip initial white space */
@@ -250,7 +249,7 @@ static void sensLine(CSOUND *csound, void *userData)
           pcnt++;
           if (c == '"') {                       /* if find character string */
             if (e.strarg == NULL)
-              e.strarg = sstrp = mmalloc(csound, strsiz=SSTRSIZ);
+              e.strarg = sstrp = csound->Malloc(csound, strsiz=SSTRSIZ);
             n = scnt;
             while (n-->0) sstrp += strlen(sstrp)+1;
             n = 0;
@@ -261,7 +260,7 @@ static void sensLine(CSOUND *csound, void *userData)
               }
               sstrp[n++] = c;                   /*   save in private strbuf */
               if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
-                e.strarg = mrealloc(csound, e.strarg, strsiz+=SSTRSIZ);
+                e.strarg = csound->ReAlloc(csound, e.strarg, strsiz+=SSTRSIZ);
                 sstrp = e.strarg+n;
               }
             }
@@ -321,7 +320,7 @@ static void sensLine(CSOUND *csound, void *userData)
         Linestart = (++cp);
         insert_score_event_at_sample(csound, &e, csound->icurTime);
         continue;
- Lerr:
+      Lerr:
         n = cp - Linestart;                     /* error position */
         while (*cp != LF)
           cp++;                                 /* go on to LF    */
@@ -357,8 +356,9 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     EVTBLK  evt;
     int     i;
     char    opcod;
+    memset(&evt, 0, sizeof(EVTBLK));
 
-    if(p1==0)
+    if (p1==0)
          opcod = *((STRINGDAT*) p->args[0])->data;
     else  opcod = p1;
 
@@ -367,9 +367,10 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       return csound->PerfError(csound, p->h.insdshead,Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
-    if(p->flag==1) evt.pcnt = p->argno-2;
+    if (p->flag==1) evt.pcnt = p->argno-2;
     else
       evt.pcnt = p->INOCOUNT - 1;
+
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (insname) {
@@ -398,12 +399,12 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
 
 int eventOpcode(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcode_(csound, p, 0, 0);
+    return eventOpcode_(csound, p, 0, 0);
 }
 
 int eventOpcode_S(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcode_(csound, p, 1, 0);
+    return eventOpcode_(csound, p, 1, 0);
 }
 
 
@@ -415,10 +416,11 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     EVTBLK  evt;
     int     i, err = 0;
     char    opcod;
+    memset(&evt, 0, sizeof(EVTBLK));
 
     if(p1==0)
          opcod = *((STRINGDAT*) p->args[0])->data;
-    else  opcod = p1;
+    else opcod = p1;
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
       return csound->InitError(csound, Str(errmsg_1));
@@ -461,10 +463,56 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
 
 int eventOpcodeI(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcodeI_(csound, p, 0, 0);
+    return eventOpcodeI_(csound, p, 0, 0);
 }
 
 int eventOpcodeI_S(CSOUND *csound, LINEVENT *p)
 {
-  return eventOpcodeI_(csound, p, 1, 0);
+    return eventOpcodeI_(csound, p, 1, 0);
+}
+
+int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
+{
+    EVTBLK  evt;
+    int     i;
+
+    evt.strarg = NULL; evt.scnt = 0;
+    evt.opcod = 'i';
+    evt.pcnt = p->INOCOUNT;
+
+    /* pass in the memory to hold the instance after insertion */
+    evt.pinstance = (void *) p->inst;
+
+    /* IV - Oct 31 2002: allow string argument */
+    if (evt.pcnt > 0) {
+      if (insname) {
+        evt.p[1] =  csound->strarg2insno(csound,
+                                           ((STRINGDAT*) p->args[0])->data, 1);
+        evt.strarg = NULL; evt.scnt = 0;
+      }
+      else {
+        if (ISSTRCOD(*p->args[0])) {
+          evt.p[1]  = csound->strarg2insno(csound,
+                                           get_arg_string(csound, *p->args[0]), 1);
+        } else evt.p[1] = *p->args[0];
+        evt.strarg = NULL; evt.scnt = 0;
+      }
+      for (i = 2; i <= evt.pcnt; i++)
+        evt.p[i] = *p->args[i-1];
+    }
+    if (insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0)
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("instance: error creating event"));
+
+    return OK;
+}
+
+int instanceOpcode(CSOUND *csound, LINEVENT2 *p)
+{
+    return instanceOpcode_(csound, p, 0);
+}
+
+int instanceOpcode_S(CSOUND *csound, LINEVENT2 *p)
+{
+    return instanceOpcode_(csound, p, 1);
 }

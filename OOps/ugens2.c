@@ -1011,7 +1011,7 @@ int ko1set(CSOUND *csound, OSCIL1 *p)
     }
     p->ftp = ftp;
     p->phs = 0;
-    p->dcnt = (int32)(*p->idel * csound->ekr);
+    p->dcnt = (int32)(*p->idel * CS_EKR);
     p->kinc = (int32) (CS_KICVT / *p->idur);
     if (p->kinc==0) p->kinc = 1;
     return OK;
@@ -1136,6 +1136,47 @@ int osciln(CSOUND *csound, OSCILN *p)
                              Str("osciln: not initialised"));
 }
 
+static int fill_func_from_array(ARRAYDAT *a, FUNC *f)
+{
+    int     lobits, ltest, flen, i;
+    int     nonpowof2_flag = 0;
+
+    flen = f->flen = a->sizes[0];
+    flen &= -2L;
+    for (ltest = flen, lobits = 0;
+         (ltest & MAXLEN) == 0L;
+         lobits++, ltest <<= 1)
+      ;
+    if (UNLIKELY(ltest != MAXLEN)) {
+      lobits = 0;
+      nonpowof2_flag = 1;
+    }
+    f->ftable   = a->data;
+    f->lenmask  = ((flen & (flen - 1L)) ?
+                   0L : (flen - 1L));      /*  init hdr w powof2 data  */
+    f->lobits   = lobits;
+    i           = (1 << lobits);
+    f->lomask   = (int32) (i - 1);
+    f->lodiv    = FL(1.0) / (MYFLT) i;        /*    & other useful vals   */
+    f->nchanls  = 1;                          /*    presume mono for now  */
+    f->flenfrms = flen;
+    if (nonpowof2_flag)
+      f->lenmask = 0xFFFFFFFF;
+    return OK;
+}
+
+int oscsetA(CSOUND *csound, OSC *p)
+{
+    FUNC        *ftp = &p->FF;
+
+    if (*p->iphs >= 0)
+      p->lphs = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
+    //check p->ifn is a valid array with power-of-two length
+    p->ftp = ftp;
+    fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
+    return OK;
+}
+
 int oscset(CSOUND *csound, OSC *p)
 {
     FUNC        *ftp;
@@ -1190,6 +1231,7 @@ int osckk(CSOUND *csound, OSC *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+
     for (n=offset;n<nsmps;n++) {
       ar[n] = ftbl[phs >> lobits] * amp;
       /* phs += inc; */

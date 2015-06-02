@@ -1,6 +1,6 @@
 #!/bin/sh 
 
-export RELEASE_DIR=csound-android-6.00.1
+export RELEASE_DIR=csound-android-6.03.2
 
 #remove backup files ending with ~
 find . -name "*~" -exec rm {} \;
@@ -17,13 +17,18 @@ done
 
 #rm -rf pluginlibs/libfluidsynth/obj
 
+cd docs
+pdflatex csound_android_manual.tex
+pdflatex csound_android_manual.tex
+cd ..
+
 rm -rf $RELEASE_DIR
 mkdir $RELEASE_DIR
 cd $RELEASE_DIR
 
 cp ../COPYING .
 cp ../CHANGELOG .
-cp ../introduction_csound_android.pdf .
+cp ../docs/csound_android_manual.pdf .
 cp -R ../CSDPlayer .
 cp -R ../CsoundAndroid .
 cp -R ../CsoundAndroidExamples .

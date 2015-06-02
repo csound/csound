@@ -181,7 +181,7 @@ extern "C" {
     fprintf(file, "<CsScore>");
     for (std::vector<std::string>::iterator it = csoundFile.score.begin();
          it != csoundFile.score.end(); ++it) {
-      fprintf(file, it->c_str());
+      fprintf(file, "%s", (it->c_str()));
     }
     fprintf(file, "</CsScore>");
     fprintf(file, "</CsoundSynthesizer>");
@@ -200,6 +200,8 @@ extern "C" {
     return csoundPerformCsd(csound, filename);
   }
 
+  /* VL: a new version of this function has been added to the main
+     Csound library.
   PUBLIC int csoundCompileCsd(CSOUND *csound, char *csdFilename)
   {
     char *argv[2];
@@ -207,6 +209,7 @@ extern "C" {
     argv[1] = csdFilename;
     return csoundCompile(csound, 2, argv);
   }
+  */
 
   PUBLIC int csoundPerformCsd(CSOUND *csound, char *csdFilename)
   {

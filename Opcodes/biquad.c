@@ -181,7 +181,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
         scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor */
         k     = res*scale;
       }
-      xn = (double)in[n] * dmax;
+      xn = (double)in[n] * dmax/csound->e0dbfs;
       xn = xn - k * y4n; /* Inverted feed back for corner peaking */
 
       /* Four cascaded onepole filters (bilinear transform) */
@@ -202,7 +202,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
       y1nm1 = y1n;      /* Update Y1n-1 */
       y2nm1 = y2n;      /* Update Y2n-1 */
       y3nm1 = y3n;      /* Update Y3n-1 */
-      out[n]   = (MYFLT)(y4n * max);
+      out[n]   = (MYFLT)(y4n * max * csound->e0dbfs);
     }
     p->xnm1 = xnm1; p->y1nm1 = y1nm1; p->y2nm1 = y2nm1; p->y3nm1 = y3nm1;
     p->y1n  = y1n;  p->y2n  = y2n; p->y3n = y3n; p->y4n = y4n;
@@ -1355,7 +1355,9 @@ static int bqrez(CSOUND *csound, REZZY *p)
     /* Initialize filter to zero if set to reinitialize.  */
     if (*p->reinit==FL(0.0)) {      /* Only reset in in non-legato mode */
       p->xnm1 = p->ynm1 = p->ynm2 = 0.0;
+      p->a0 = p->a1 = p->a2 = p->d = 0.0;
     }
+    p->lfq = -FL(1.0); p->lq = -FL(1.0);
     return OK;
 }
 
@@ -1365,17 +1367,9 @@ static int mode(CSOUND *csound, MODE *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
+    MYFLT lfq = p->lfq, lq = p->lq;
 
-    double kfreq  = *p->kfreq*TWOPI;
-    double kalpha = (CS_ESR/kfreq);
-    double kbeta  = kalpha*kalpha;
-    double d      = 0.5*kalpha;
-
-    double a0     = 1.0/ (kbeta+d/(*p->kq));
-    double a1     = a0 * (1.0-2.0*kbeta);
-    double a2     = a0 * (kbeta-d/(*p->kq));
-
-    double xn, yn;
+    double xn, yn, a0=p->a0, a1=p->a1, a2=p->a2,d=p->d;
     double xnm1 = p->xnm1, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
     if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
@@ -1384,6 +1378,19 @@ static int mode(CSOUND *csound, MODE *p)
       memset(&p->aout[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
+      MYFLT kfq = XINARG2 ? p->kfreq[n] : *p->kfreq;
+      MYFLT kq  = XINARG3 ? p->kq[n] : *p->kq;
+      if (lfq != kfq || lq != kq) {
+        double kfreq  = kfq*TWOPI;
+        double kalpha = (CS_ESR/kfreq);
+        double kbeta  = kalpha*kalpha;
+               d      = 0.5*kalpha;
+
+        lq = kq; lfq = kfq;
+        a0     = 1.0/ (kbeta+d/kq);
+        a1     = a0 * (1.0-2.0*kbeta);
+        a2     = a0 * (kbeta-d/kq);
+      }
       xn = (double)p->ain[n];
 
       yn = a0*xnm1 - a1*ynm1 - a2*ynm2;
@@ -1397,6 +1404,8 @@ static int mode(CSOUND *csound, MODE *p)
       p->aout[n] = (MYFLT)yn;
     }
     p->xnm1 = xnm1;  p->ynm1 = ynm1;  p->ynm2 = ynm2;
+    p->lfq = lfq;    p->lq = lq;      p->d = d;
+    p->a0 = a0;      p->a1 = a1;      p->a2 = a2;
     return OK;
 }
 
@@ -1426,7 +1435,7 @@ static OENTRY localops[] = {
                                      (SUBR)nestedapset, NULL, (SUBR)nestedap},
 { "lorenz", S(LORENZ),0,  5, "aaa", "kkkkiiiio",
                                   (SUBR)lorenzset, NULL, (SUBR)lorenz},
-{ "mode",  S(MODE),   0, 5,      "a", "akko", (SUBR)modeset, NULL, (SUBR)mode   }
+{ "mode",  S(MODE),   0, 5,      "a", "axxo", (SUBR)modeset, NULL, (SUBR)mode   }
 };
 
 int biquad_init_(CSOUND *csound)

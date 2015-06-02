@@ -120,8 +120,8 @@ cd ..
 fi
 
 # LIBPNG
-if [ ! -f libpng-1.6.2/.complete ]; then
-cd libpng-1.6.2
+if [ ! -f libpng-1.6.6/.complete ]; then
+cd libpng-1.6.6
 ./configure CFLAGS="$C_FLAGS" --disable-dependency-tracking 
 make 
 sudo make install

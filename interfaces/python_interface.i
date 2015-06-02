@@ -402,8 +402,9 @@ void SetExternalMidiReadCallback(PyObject *pyfunc){
 static void PythonCallback(void *p){
 
     PyObject *res;
+    PyGILState_STATE stat;
     CsoundPerformanceThread *t = (CsoundPerformanceThread *) p;
-    PyGILState_STATE stat = PyGILState_Ensure();
+    stat = PyGILState_Ensure();
     res = PyEval_CallObject(t->pydata.func, t->pydata.data);
     if (res == NULL){
     PyErr_SetString(PyExc_TypeError, "Exception in callback");

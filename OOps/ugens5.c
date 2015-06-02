@@ -342,28 +342,6 @@ int reson(CSOUND *csound, RESON *p)
     double      c3p1, c3t4, omc3, c2sqr;
     double      yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
 
-    if (*p->kcf != (MYFLT)p->prvcf) {
-      p->prvcf = (double)*p->kcf;
-      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
-      flag = 1;                 /* Mark as changed */
-    }
-    if (*p->kbw != (MYFLT)p->prvbw) {
-      p->prvbw = (double)*p->kbw;
-      c3 = p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
-      flag = 1;                /* Mark as changed */
-    }
-    if (flag) {
-      c3p1 = c3 + 1.0;
-      c3t4 = c3 * 4.0;
-      omc3 = 1.0 - c3;
-      c2 = p->c2 = c3t4 * p->cosf / c3p1;               /* -B, so + below */
-      c2sqr = c2 * c2;
-      if (p->scale == 1)
-        c1 = p->c1 = omc3 * sqrt(1.0 - c2sqr / c3t4);
-      else if (p->scale == 2)
-        c1 = p->c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
-      else c1 = p->c1 = 1.0;
-    }
     asig = p->asig;
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -373,7 +351,33 @@ int reson(CSOUND *csound, RESON *p)
     }
     yt1 = p->yt1; yt2 = p->yt2;
     for (n=offset; n<nsmps; n++) {
-      double yt0 = c1 * ((double)asig[n]) + c2 * yt1 - c3 * yt2;
+      double yt0;
+      MYFLT cf = XINARG2 ? p->kcf[n] : *p->kcf;
+      MYFLT bw = XINARG3 ? p->kbw[n] : *p->kbw;
+      if (cf != (MYFLT)p->prvcf) {
+        p->prvcf = (double)cf;
+        p->cosf = cos(cf * (double)(csound->tpidsr));
+        flag = 1;                 /* Mark as changed */
+      }
+      if (bw != (MYFLT)p->prvbw) {
+        p->prvbw = (double)bw;
+        c3 = p->c3 = exp(bw * (double)(csound->mtpdsr));
+        flag = 1;                /* Mark as changed */
+      }
+      if (flag) {
+        c3p1 = c3 + 1.0;
+        c3t4 = c3 * 4.0;
+        omc3 = 1.0 - c3;
+        c2 = p->c2 = c3t4 * p->cosf / c3p1;               /* -B, so + below */
+        c2sqr = c2 * c2;
+        if (p->scale == 1)
+          c1 = p->c1 = omc3 * sqrt(1.0 - c2sqr / c3t4);
+        else if (p->scale == 2)
+          c1 = p->c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
+        else c1 = p->c1 = 1.0;
+        flag = 0;
+      }
+      yt0 = c1 * ((double)asig[n]) + c2 * yt1 - c3 * yt2;
       ar[n] = (MYFLT)yt0;
       yt2 = yt1;
       yt1 = yt0;
@@ -415,29 +419,6 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     double      c3p1, c3t4, omc3, c2sqr;
     double      *yt1, *yt2, c1,c2,c3;
 
-    if (*p->kcf != (MYFLT)p->prvcf) {
-      p->prvcf = (double)*p->kcf;
-      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
-      flag = 1;
-    }
-    if (*p->kbw != (MYFLT)p->prvbw) {
-      p->prvbw = (double)*p->kbw;
-      p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
-      flag = 1;
-    }
-    if (flag) {
-      c3p1 = p->c3 + 1.0;
-      c3t4 = p->c3 * 4.0;
-      omc3 = 1.0 - p->c3;
-      p->c2 = c3t4 * p->cosf / c3p1;            /* -B, so + below */
-      c2sqr = p->c2 * p->c2;
-      if (p->scale == 1)
-        p->c1 = omc3 * sqrt(1.0 - (c2sqr / c3t4));
-      else if (p->scale == 2)
-        p->c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
-      else p->c1 = 1.0;
-    }
-
     ar   = p->ar;
     c1   = p->c1;
     c2   = p->c2;
@@ -453,20 +434,46 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     }
     for (j=0; j< p->loop; j++) {
       for (n=offset; n<nsmps; n++) {
-        double x =
-          c1 * ((double)ar[n]) + c2 * yt1[j] - c3 * yt2[j];
+        double x;
+        MYFLT cf = XINARG2 ? p->kcf[n] : *p->kcf;
+        MYFLT bw = XINARG3 ? p->kbw[n] : *p->kbw;
+        if (cf != (MYFLT)p->prvcf) {
+          p->prvcf = (double)cf;
+          p->cosf = cos(cf * (double)(csound->tpidsr));
+          flag = 1;
+        }
+        if (bw != (MYFLT)p->prvbw) {
+          p->prvbw = (double)bw;
+          c3 = exp(bw * (double)(csound->mtpdsr));
+          flag = 1;
+        }
+        if (flag) {
+          c3p1 = c3 + 1.0;
+          c3t4 = c3 * 4.0;
+          omc3 = 1.0 - c3;
+          c2 = c3t4 * p->cosf / c3p1;            /* -B, so + below */
+          c2sqr = c2 * c2;
+          if (p->scale == 1)
+            c1 = omc3 * sqrt(1.0 - (c2sqr / c3t4));
+          else if (p->scale == 2)
+            c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
+          else c1 = 1.0;
+          flag =0;
+        }
+        x = c1 * ((double)ar[n]) + c2 * yt1[j] - c3 * yt2[j];
         yt2[j] = yt1[j];
         ar[n] = (MYFLT)x;
         yt1[j] = x;
       }
     }
+    p->c1 = c1; p->c2 = c2; p->c3 = c3;
     return OK;
 }
 
 int kareson(CSOUND *csound, RESON *p)
 {
     uint32_t flag = 0;
-    double      c3p1, c3t4, omc3, c2sqr, D = 2.0; /* 1/RMS = root2 (rand) */
+    double      c3p1, c3t4, omc3, c2sqr; //, D = 2.0; /* 1/RMS = root2 (rand) */
                                                    /*      or 1/.5  (sine) */
     double      yt1, yt2, c1, c2, c3;
     IGN(csound);
@@ -490,7 +497,7 @@ int kareson(CSOUND *csound, RESON *p)
       if (p->scale == 1)                        /* i.e. 1 - A(reson) */
         p->c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
       else if (p->scale == 2)                 /* i.e. D - A(reson) */
-        p->c1 = D - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
+        p->c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
       else p->c1 = 0.0;                        /* cannot tell        */
     }
 
@@ -506,7 +513,7 @@ int kareson(CSOUND *csound, RESON *p)
         double sig = (double) *p->asig;
         double ans = c1 * sig + c2 * yt1 - c3 * yt2;
         yt2 = yt1;
-        yt1 = ans - D * sig;      /* yt1 contains yt1-D*xt1 */
+        yt1 = ans - 2.0 * sig;      /* yt1 contains yt1-D*xt1 */
         *p->ar = (MYFLT)ans;
     }
     p->yt1 = yt1; p->yt2 = yt2;
@@ -519,7 +526,7 @@ int areson(CSOUND *csound, RESON *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t flag = 0, n, nsmps = CS_KSMPS;
     MYFLT       *ar, *asig;
-    double      c3p1, c3t4, omc3, c2sqr, D = 2.0; /* 1/RMS = root2 (rand) */
+    double      c3p1, c3t4, omc3, c2sqr;//, D = 2.0; /* 1/RMS = root2 (rand) */
                                                    /*      or 1/.5  (sine) */
     double      yt1, yt2, c1, c2, c3;
 
@@ -542,7 +549,7 @@ int areson(CSOUND *csound, RESON *p)
       if (p->scale == 1)                        /* i.e. 1 - A(reson) */
         p->c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
       else if (p->scale == 2)                 /* i.e. D - A(reson) */
-        p->c1 = D - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
+        p->c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
       else p->c1 = 0.0;                        /* cannot tell        */
     }
     asig = p->asig;
@@ -567,7 +574,7 @@ int areson(CSOUND *csound, RESON *p)
         double sig = (double)asig[n];
         double ans = c1 * sig + c2 * yt1 - c3 * yt2;
         yt2 = yt1;
-        yt1 = ans - D * sig;      /* yt1 contains yt1-D*xt1 */
+        yt1 = ans - 2.0 * sig;      /* yt1 contains yt1-D*xt1 */
         ar[n] = (MYFLT)ans;
       }
     }
@@ -594,14 +601,14 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
     if (csound->lprdaddr == NULL ||
         csound->currentLPCSlot >= csound->max_lpc_slot) {
       csound->max_lpc_slot = csound->currentLPCSlot + MAX_LPC_SLOT;
-      csound->lprdaddr = mrealloc(csound,
+      csound->lprdaddr = csound->ReAlloc(csound,
                                   csound->lprdaddr,
                                   csound->max_lpc_slot * sizeof(LPREAD*));
     }
     ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = p;
 
     /* Build file name */
-    if(stringname) strncpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
+    if (stringname) strncpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
     else if (ISSTRCOD(*p->ifilcod))
       strncpy(lpfilname, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
     else csound->strarg2name(csound, lpfilname, p->ifilcod, "lp.", 0);
@@ -655,10 +662,12 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
                                  Str("insufficient args and no file header"));
       }
     }
-    /* Check  pole number */
-    if (UNLIKELY(p->npoles > MAXPOLES)) {
-      return csound->InitError(csound, Str("npoles > MAXPOLES"));
-    }
+    /* Check pole number */
+    csound->AuxAlloc(csound, (int32)(p->npoles*8*sizeof(MYFLT)), &p->aux);
+    p->kcoefs = (MYFLT*)p->aux.auxp;
+    /* if (UNLIKELY(p->npoles > MAXPOLES)) { */
+    /*   return csound->InitError(csound, Str("npoles > MAXPOLES")); */
+    /* } */
     /* Look for total frame data size (file size - header) */
     totvals = (mfp->length - p->headlen)/sizeof(MYFLT);
     /* Store the size of a frame in integer */
@@ -674,7 +683,8 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
 
 int lprdset(CSOUND *csound, LPREAD *p){
   return lprdset_(csound, p, 0);
-  }
+}
+
 int lprdset_S(CSOUND *csound, LPREAD *p){
   return lprdset_(csound, p, 1);
 }
@@ -682,7 +692,7 @@ int lprdset_S(CSOUND *csound, LPREAD *p){
 
 #ifdef TRACE_POLES
 static void
- DumpPolesF(int poleCount, MYFLT *part1, MYFLT *part2, int isMagn, char *where)
+  DumpPolesF(int poleCount, MYFLT *part1, MYFLT *part2, int isMagn, char *where)
 {
     int i;
 
@@ -747,7 +757,7 @@ static int DoPoleInterpolation(int poleCount,
     int i;
 
     if (UNLIKELY(poleCount%2!=0)) {
-/*    printf (Str("Cannot handle uneven pole count yet \n")); */
+      printf (Str("Cannot handle uneven pole count yet \n"));
       return (0);
     }
 
@@ -854,9 +864,13 @@ int lpread(CSOUND *csound, LPREAD *p)
     int32    nn, framphase;
     MYFLT   fract;
     int     i, status;
-    MYFLT   poleMagn1[MAXPOLES], polePhas1[MAXPOLES];
-    MYFLT   poleMagn2[MAXPOLES], polePhas2[MAXPOLES];
-    MYFLT   interMagn[MAXPOLES], interPhas[MAXPOLES];
+    MYFLT   *poleMagn1 = p->kcoefs + 2*p->npoles;
+    MYFLT   *polePhas1 = poleMagn1 + p->npoles;
+    MYFLT   *poleMagn2 = polePhas1 + p->npoles;
+    MYFLT   *polePhas2 = poleMagn2 + p->npoles;
+    MYFLT   *interMagn = polePhas2 + p->npoles;
+    MYFLT   *interPhas = interMagn + p->npoles;
+
 
     if (UNLIKELY(p->mfp==NULL)) {
       return csound->PerfError(csound, p->h.insdshead,
@@ -937,6 +951,7 @@ int lpformantset(CSOUND *csound, LPFORM *p)
    /* connect to previously loaded lpc analysis */
    /* get adr lpread struct */
     p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
+    csound->AuxAlloc(csound, p->lpread->npoles*sizeof(MYFLT), &p->aux);
     return OK;
 }
 
@@ -944,7 +959,8 @@ int lpformant(CSOUND *csound, LPFORM *p)
 {
     LPREAD *q = p->lpread;
     MYFLT   *coefp, sr = csound->esr;
-    MYFLT   cfs[MAXPOLES/2], bws[MAXPOLES/2];
+    MYFLT   *cfs = (MYFLT*)p->aux.auxp;
+    MYFLT   *bws = cfs+p->lpread->npoles/2;
     int     i, j, ndx = *p->kfor;
     double  pm,pp;
 
@@ -956,7 +972,7 @@ int lpformant(CSOUND *csound, LPFORM *p)
         cfs[j] = pp*sr/TWOPI;
         /* if (pm > 1.0) csound->Message(csound,
                                         Str("warning unstable pole %f\n"), pm); */
-        bws[j] = -log(pm)*sr/PI;
+        bws[j] = -LOG(pm)*sr/PI;
       }
     }
     else {
@@ -966,7 +982,8 @@ int lpformant(CSOUND *csound, LPFORM *p)
       return NOTOK;
     }
 
-    j = (ndx < 1 ? 1 : (ndx >= MAXPOLES/2 ? MAXPOLES/2 : ndx)) - 1;
+    j = (ndx < 1 ? 1 :
+         (ndx >= p->lpread->npoles/2 ? p->lpread->npoles/2 : ndx)) - 1;
     if (bws[j] > sr/2 || isnan(bws[j])) bws[j] = sr/2;
     if (bws[j] < 1.0) bws[j] = 1.0;
     if (cfs[j] > sr/2 || isnan(cfs[j])) cfs[j] = sr/2;
@@ -992,8 +1009,9 @@ int lprsnset(CSOUND *csound, LPRESON *p)
    /* get adr lpread struct */
     p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
 
+    csound->AuxAlloc(csound, (int32)((q->npoles<<1)*sizeof(MYFLT)), &p->aux);
    /* Initialize pointer to circulat buffer (for filtering) */
-    p->circjp = p->circbuf;
+    p->circjp = p->circbuf = (MYFLT*)p->aux.auxp;
     p->jp2lim = p->circbuf + (q->npoles << 1);  /* npoles det circbuflim */
     return OK;
 }
@@ -1102,6 +1120,9 @@ int lpfrsnset(CSOUND *csound, LPFRESON *p)
     p->prvratio = FL(1.0);
     p->d = FL(0.0);
     p->prvout = FL(0.0);
+    csound->AuxAlloc(csound, (int32)(p->lpread->npoles*sizeof(MYFLT)), &p->aux);
+    p->past = (MYFLT*)p->aux.auxp;
+
     return OK;
 }
 
@@ -1336,7 +1357,7 @@ int lpslotset(CSOUND *csound, LPSLOT *p)
     else {
       if (n >= csound->max_lpc_slot) {
         csound->max_lpc_slot = n + MAX_LPC_SLOT;
-        csound->lprdaddr = mrealloc(csound,
+        csound->lprdaddr = csound->ReAlloc(csound,
                                     csound->lprdaddr,
                                     csound->max_lpc_slot * sizeof(LPREAD**));
       }
@@ -1374,6 +1395,8 @@ int lpitpset(CSOUND *csound, LPINTERPOL *p)
 #endif
 
     p->npoles = p->lp1->npoles;
+    csound->AuxAlloc(csound, (int32)(p->npoles*8*sizeof(MYFLT)), &p->aux);
+    p->kcoefs = (MYFLT*)p->aux.auxp;
     p->storePoles = 1;
     ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = (LPREAD*) p;
     return OK;
@@ -1383,9 +1406,12 @@ int lpinterpol(CSOUND *csound, LPINTERPOL *p)
 {
     int     i,status;
     MYFLT   *cp,*cp1,*cp2;
-    MYFLT   poleMagn1[MAXPOLES], polePhas1[MAXPOLES];
-    MYFLT   poleMagn2[MAXPOLES], polePhas2[MAXPOLES];
-    MYFLT   interMagn[MAXPOLES], interPhas[MAXPOLES];
+    MYFLT   *poleMagn1 = p->kcoefs + 2*p->npoles;
+    MYFLT   *polePhas1 = poleMagn1 + p->npoles;
+    MYFLT   *poleMagn2 = polePhas1 + p->npoles;
+    MYFLT   *polePhas2 = poleMagn2 + p->npoles;
+    MYFLT   *interMagn = polePhas2 + p->npoles;
+    MYFLT   *interPhas = interMagn + p->npoles;
 
     /* RWD: guessing this... */
     if (UNLIKELY(p->lp1==NULL || p->lp2==NULL)) {

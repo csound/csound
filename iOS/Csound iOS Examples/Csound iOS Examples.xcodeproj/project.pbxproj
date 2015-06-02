@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F604B21618288A9E00C7C552 /* libcsound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F604B21518288A9E00C7C552 /* libcsound.a */; };
 		F632065E16ADA58500F17AE2 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = F632065C16ADA58500F17AE2 /* Default.png */; };
 		F632065F16ADA58500F17AE2 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F632065D16ADA58500F17AE2 /* Default-568h@2x.png */; };
 		F632066116ADA59B00F17AE2 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F632066016ADA59B00F17AE2 /* Default@2x.png */; };
@@ -93,12 +94,12 @@
 		F6B647C214D353D2005F786B /* CachedGyroscope.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6479214D353D2005F786B /* CachedGyroscope.m */; };
 		F6B647C314D353D2005F786B /* CachedSlider.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6479414D353D2005F786B /* CachedSlider.m */; };
 		F6B647C414D353D2005F786B /* CachedSwitch.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6479614D353D2005F786B /* CachedSwitch.m */; };
-		F6B647CF14D353D2005F786B /* libcsound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F6B647B814D353D2005F786B /* libcsound.a */; };
 		F6B647D014D353D2005F786B /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F6B647B914D353D2005F786B /* libsndfile.a */; };
 		F6EE378B16AD67C50050820E /* testAudioFile.aif in Resources */ = {isa = PBXBuildFile; fileRef = F6EE378A16AD67C50050820E /* testAudioFile.aif */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		F604B21518288A9E00C7C552 /* libcsound.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcsound.a; sourceTree = "<group>"; };
 		F632065C16ADA58500F17AE2 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		F632065D16ADA58500F17AE2 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		F632066016ADA59B00F17AE2 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
@@ -245,7 +246,6 @@
 		F6B647B414D353D2005F786B /* sysdep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sysdep.h; sourceTree = "<group>"; };
 		F6B647B514D353D2005F786B /* text.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = text.h; sourceTree = "<group>"; };
 		F6B647B614D353D2005F786B /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
-		F6B647B814D353D2005F786B /* libcsound.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcsound.a; sourceTree = "<group>"; };
 		F6B647B914D353D2005F786B /* libsndfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libsndfile.a; sourceTree = "<group>"; };
 		F6EE378A16AD67C50050820E /* testAudioFile.aif */ = {isa = PBXFileReference; lastKnownFileType = file; path = testAudioFile.aif; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -258,13 +258,13 @@
 				F6B646EE14D34CB4005F786B /* CoreMIDI.framework in Frameworks */,
 				F6B646EF14D34CB4005F786B /* CoreMotion.framework in Frameworks */,
 				F6B646EA14D34CA3005F786B /* AudioToolbox.framework in Frameworks */,
+				F604B21618288A9E00C7C552 /* libcsound.a in Frameworks */,
 				F6B646EB14D34CA3005F786B /* CoreAudio.framework in Frameworks */,
 				F6B646E714D34C8C005F786B /* AVFoundation.framework in Frameworks */,
 				F6B646E514D34C82005F786B /* QuartzCore.framework in Frameworks */,
 				F6B6465E14D348E5005F786B /* UIKit.framework in Frameworks */,
 				F6B6466014D348E5005F786B /* Foundation.framework in Frameworks */,
 				F6B6466214D348E5005F786B /* CoreGraphics.framework in Frameworks */,
-				F6B647CF14D353D2005F786B /* libcsound.a in Frameworks */,
 				F6B647D014D353D2005F786B /* libsndfile.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -629,7 +629,7 @@
 		F6B647B714D353D2005F786B /* libs */ = {
 			isa = PBXGroup;
 			children = (
-				F6B647B814D353D2005F786B /* libcsound.a */,
+				F604B21518288A9E00C7C552 /* libcsound.a */,
 				F6B647B914D353D2005F786B /* libsndfile.a */,
 			);
 			path = libs;
@@ -826,7 +826,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
@@ -848,7 +848,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
@@ -860,7 +860,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_INCLUDING_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
@@ -875,7 +875,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
@@ -892,10 +892,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Csound iOS Examples/Csound iOS Examples-Prefix.pch";
 				INFOPLIST_FILE = "Csound iOS Examples/Csound iOS Examples-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/csound-iOS/libs\"",
+					"$(SRCROOT)/csound-iOS/libs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -909,10 +909,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Csound iOS Examples/Csound iOS Examples-Prefix.pch";
 				INFOPLIST_FILE = "Csound iOS Examples/Csound iOS Examples-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/csound-iOS/libs\"",
+					"$(SRCROOT)/csound-iOS/libs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;

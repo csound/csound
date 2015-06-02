@@ -95,11 +95,12 @@ void MidiWidgetsManagerReadProc(const MIDIPacketList *pktlist, void *refcon, voi
 #pragma mark CoreMidi Code
 
 -(void)openMidiIn {
-    int k, endpoints;
+    int k;
+    ItemCount endpoints;
     
     CFStringRef name = NULL, cname = NULL, pname = NULL;
     CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
-    MIDIPortRef mport = NULL;
+    MIDIPortRef mport = 0;
     MIDIEndpointRef endpoint;
     OSStatus ret;
 	
@@ -116,8 +117,7 @@ void MidiWidgetsManagerReadProc(const MIDIPacketList *pktlist, void *refcon, voi
 			//NSLog(@"midi srcs %d\n", endpoints); 
             for(k=0; k < endpoints; k++){
                 endpoint = MIDIGetSource(k);
-                void *srcRefCon = endpoint;
-                MIDIPortConnectSource(mport, endpoint, srcRefCon);
+                MIDIPortConnectSource(mport, endpoint, NULL);
                 
             }
         }

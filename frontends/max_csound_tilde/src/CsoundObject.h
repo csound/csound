@@ -52,6 +52,7 @@ public:
 
 	void Compile();         // Compile the Csound orchestra. Do not post directly in here. Use m_msg_buf.
 	void Perform();         // Perform Csound (must be run in audio thread).
+   	void Perform64();         // Perform Csound (must be run in audio thread).
 	void Rewind();
 	void SetCsoundArguments(short argc, const t_atom *argv);
 	void SetCurDir();       // Set cur dir to m_path. If m_path empty, use m_defaultPath.

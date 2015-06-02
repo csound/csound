@@ -451,7 +451,7 @@ int tablerkt_audio(CSOUND *csound, TABL *p) {
       p->mul = 1;
   p->len = p->ftp->flen;
 
-  return tabler_audio(csound,p);;
+  return tabler_audio(csound,p);
 }
 
 int tableirkt_kontrol(CSOUND *csound, TABL *p) {
@@ -467,23 +467,23 @@ int tableirkt_kontrol(CSOUND *csound, TABL *p) {
       p->mul = 1;
   p->len = p->ftp->flen;
 
-  return tableir_kontrol(csound,p);;
+  return tableir_kontrol(csound,p);
 }
 
-int tableirkt_audio(CSOUND *csound, TABL *p) {
+int tableirkt_audio(CSOUND *csound, TABL *p)
+{
 
-  if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
+    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->PerfError(csound, p->h.insdshead,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
-   p->np2 = p->ftp->lenmask ? 0 : 1;
-   if (*p->mode)
+    p->np2 = p->ftp->lenmask ? 0 : 1;
+    if (*p->mode)
       p->mul = p->ftp->flen;
     else
       p->mul = 1;
-  p->len = p->ftp->flen;
-
-  return tableir_audio(csound,p);;
+    p->len = p->ftp->flen;
+    return tableir_audio(csound,p);
 }
 
 int table3rkt_kontrol(CSOUND *csound, TABL *p) {
@@ -520,13 +520,14 @@ int tablew_init(CSOUND *csound, TABL *p) {
 
   int ndx, len;
   int mask;
-  MYFLT *func = p->ftp->ftable;
+  MYFLT *func;
   int32 iwrap = *p->wrap;
 
   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->InitError(csound,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
+  func = p->ftp->ftable;
   mask = p->ftp->lenmask;
   p->np2 = mask ? 0 : 1;
   len = p->ftp->flen;
@@ -765,7 +766,7 @@ int table_mix(CSOUND *csound, TABLMIX *p) {
       else p1 &= ftp1->lenmask;
       if (np22) {
         while(p2 < 0) p2 += len2;
-        while(p2 >= len2) p1 -= len2;
+        while(p2 >= len2) p2 -= len2;
       }
       else p2 &= ftp2->lenmask;
       func[p0] = func1[p1]*g1 + func2[p2]*g2;

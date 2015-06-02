@@ -24,7 +24,7 @@
 
 namespace csound
 {
-Hocket::Hocket()
+Hocket::Hocket() : modulus(0), startingIndex(0)
 {
 }
 

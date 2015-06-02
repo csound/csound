@@ -31,6 +31,22 @@ typedef void *locale_t;
 #endif
 #endif
 
+/* this checks for 64BIT builds */
+#if defined(__MACH__) || defined(LINUX)
+#include <limits.h>
+#if ( __WORDSIZE == 64 ) || defined(__x86_64__) || defined(__amd64__)
+#define B64BIT
+#endif
+#endif
+
+#if defined(WIN32)
+#if _WIN64
+#define B64BIT
+#endif
+#endif
+
+
+
 #ifdef HAVE_GCC3
 #  undef HAVE_GCC3
 #endif
@@ -237,6 +253,11 @@ typedef uint_least16_t uint16;
 
 #endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 
+#ifdef WIN32
+#  define ENVSEP ';'
+#else
+#  define ENVSEP ':'
+#endif
 /* standard integer types */
 
 #if defined(USE_GUSI2)
@@ -391,6 +412,19 @@ static inline double csoundUndenormalizeDouble(double x)
 
 #endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 
+// This is wrong.....  needs thought
+/* #ifdef HAVE_SPRINTF_L */
+/* # define CS_SPRINTF sprintf_l */
+/* #elseif HAVE__SPRINT_L */
+/*   /\* this would be the case for the Windows locale aware function *\/ */
+/* # define CS_SPRINTF _sprintf_l */
+/* #else */
+# define CS_SPRINTF cs_sprintf
+# define CS_SSCANF cs_sscanf
+/* #endif */
+
+#if !defined(HAVE_STRLCAT) && !defined(strlcat)
+size_t strlcat(char *dst, const char *src, size_t siz);
+#endif
 
 #endif  /* CSOUND_SYSDEP_H */
-

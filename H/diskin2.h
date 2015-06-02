@@ -44,6 +44,11 @@ typedef struct {
     MYFLT   *iSkipInit;
     MYFLT   *forceSync;
  /* ------------------------------------- */
+    MYFLT   WinSize;
+    MYFLT   BufSize;
+    MYFLT   SkipInit;
+    MYFLT   fforceSync;
+
     int     initDone;
     int     nChannels;
     int     bufSize;            /* in sample frames, power of two */
@@ -69,9 +74,56 @@ typedef struct {
   int  async;
 } DISKIN2;
 
+typedef struct {
+    OPDS    h;
+    ARRAYDAT *aOut;
+    MYFLT   *iFileCode;
+    MYFLT   *kTranspose;
+    MYFLT   *iSkipTime;
+    MYFLT   *iWrapMode;
+    MYFLT   *iSampleFormat;
+    MYFLT   *iWinSize;
+    MYFLT   *iBufSize;
+    MYFLT   *iSkipInit;
+    MYFLT   *forceSync;
+ /* ------------------------------------- */
+    MYFLT   WinSize;
+    MYFLT   BufSize;
+    MYFLT   SkipInit;
+    MYFLT   fforceSync;
+    int     initDone;
+    int     nChannels;
+    int     bufSize;            /* in sample frames, power of two */
+    int     wrapMode;
+    int32    fileLength;         /* in sample frames */
+    int32    bufStartPos;
+    int64_t pos_frac;           /* type should be defined in sysdep.h */
+    int64_t pos_frac_inc;
+    int32    prvBufStartPos;
+    int32    winSize;
+    MYFLT   *buf;
+    MYFLT   *prvBuf;
+    MYFLT   prv_kTranspose;
+    MYFLT   winFact;
+    double  warpScale;
+    SNDFILE *sf;
+    FDCH    fdch;
+    AUXCH   auxData;            /* for dynamically allocated buffers */
+    AUXCH   auxData2;
+  MYFLT *aOut_buf;
+  MYFLT aOut_bufsize;
+  void *cb;
+  int  async;
+} DISKIN2_ARRAY;
+
 int diskin2_init(CSOUND *csound, DISKIN2 *p);
 int diskin2_init_S(CSOUND *csound, DISKIN2 *p);
 int diskin2_perf(CSOUND *csound, DISKIN2 *p);
+int diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
+int diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
+int diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
+int diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
+int diskin2_perf_array(CSOUND *csound, DISKIN2_ARRAY *p);
 
 typedef struct {
     OPDS    h;
@@ -111,4 +163,3 @@ typedef struct {
 } SNDOUTS;
 
 #endif      /* CSOUND_DISKIN2_H */
-

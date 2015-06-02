@@ -41,13 +41,14 @@
  * There are also convenience functions to compile and perform
  * the saved CSD file.
  */
-
+#ifndef PUBLIC
 #if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG)
 #  define PUBLIC        __declspec(dllexport)
 #elif defined(__GNUC__) && !defined(__MACH__)
 #  define PUBLIC        __attribute__ ( (visibility("default")) )
 #else
 #  define PUBLIC
+#endif
 #endif
 
   /**
@@ -57,6 +58,7 @@
 #ifdef SWIG
 #define CS_PRINTF2
 #define CS_PRINTF3
+#include "float-version.h"
 #ifndef __MYFLT_DEF
 #define __MYFLT_DEF
 #ifndef USE_DOUBLE
@@ -189,19 +191,11 @@ PUBLIC int csoundCsdCompile(CSOUND *csound, char *filename);
  */
 PUBLIC int csoundCsdPerform(CSOUND *csound, char *filename);
 
-/**
- * Compiles a Csound input file (.csd file)
- * which includes command-line arguments,
- * but does not perform the file. Returns a non-zero error code on failure.
- * In this (host-driven) mode, the sequence of calls should be as follows:
- * /code
- *       csoundCompileCsd(csound, argc, argv);
- *       while (!csoundPerformBuffer(csound));
- *       csoundCleanup(csound);
- *       csoundReset(csound);
- * /endcode
+
+ /* VL: a new, more complete, version of this function has been added to the main
+     Csound library. 
+  PUBLIC int csoundCompileCsd(CSOUND *, char *csdFilename);
  */
-PUBLIC int csoundCompileCsd(CSOUND *, char *csdFilename);
 
 /**
  * Compiles and renders a Csound performance,

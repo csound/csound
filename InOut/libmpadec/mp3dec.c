@@ -64,7 +64,8 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       tmp = lseek(fd, 0, SEEK_END);
       if (tmp >= 0) {
         mp3->stream_size = tmp;
-        lseek(fd, mp3->stream_offset, SEEK_SET);
+        tmp = lseek(fd, mp3->stream_offset, SEEK_SET);
+        if (tmp<0) fprintf(stderr, "seek failure im mp3\n");
       } else mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;
     }
     if (mp3->stream_size > mp3->stream_offset) {

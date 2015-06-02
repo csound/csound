@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     FILE *outf;
     LPHEADER hdr;
     unsigned int i, j;
-    char *str;
+    char *str = NULL;
     MYFLT *coef;
 
     if (argc!= 3) {
@@ -76,7 +76,8 @@ int main(int argc, char **argv)
     fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
-    str = (char *)malloc(hdr.headersize-sizeof(LPHEADER)+4);
+    str = (char *)malloc((size_t)(hdr.headersize-sizeof(LPHEADER)+4));
+    if( str == NULL) exit(1);
     if (UNLIKELY(fread(&hdr, sizeof(char),
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=
                  hdr.headersize-sizeof(LPHEADER)+4)){
@@ -86,17 +87,20 @@ int main(int argc, char **argv)
     for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);
     putc('\n', outf);
-    coef = (MYFLT *)malloc((hdr.npoles+hdr.nvals)*sizeof(MYFLT));
-    for (i = 0; i<floor(hdr.framrate*hdr.duration); i++) {
-      if (UNLIKELY(fread(&coef[0], sizeof(MYFLT), hdr.npoles,inf) != hdr.npoles)) {
-        fprintf(stderr, "Read failure\n");
-        exit(1);
+    if (hdr.npoles+hdr.nvals > 0 && hdr.npoles > 0) {
+      coef = (MYFLT *)malloc((hdr.npoles+hdr.nvals)*sizeof(MYFLT));
+      for (i = 0; i<floor(hdr.framrate*hdr.duration); i++) {
+        if (UNLIKELY(fread(&coef[0], sizeof(MYFLT), hdr.npoles,inf) != hdr.npoles)) {
+          fprintf(stderr, "Read failure\n");
+          exit(1);
+        }
+        for (j=0; j<hdr.npoles; j++)
+          fprintf(outf, "%f%c", coef[j], (j==hdr.npoles-1 ? '\n' : ','));
       }
-      for (j=0; j<hdr.npoles; j++)
-        fprintf(outf, "%f%c", coef[j], (j==hdr.npoles-1 ? '\n' : ','));
     }
     fclose(outf);
     fclose(inf);
-    free(coef); free(str);
+    if (hdr.npoles+hdr.nvals > 0 && hdr.npoles > 0) free(coef);
+    free(str);
     return 0;
 }

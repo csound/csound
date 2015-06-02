@@ -29,10 +29,10 @@
 
 /* structure for real time event */
 
-typedef struct rtEvt_s {
-    struct rtEvt_s  *nxt;
-    EVTBLK  e;
-} rtEvt_t;
+/* typedef struct rtEvt_s { */
+/*     struct rtEvt_s  *nxt; */
+/*     EVTBLK  e; */
+/* } rtEvt_t; */
 
 typedef struct {
     OPDS h;             /* default header */
@@ -117,7 +117,7 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     if (*p->port<0)
       pp = NULL;
     else
-      sprintf(port, "%d", (int) MYFLT2LRND(*p->port));
+      snprintf(port, 8, "%d", (int) MYFLT2LRND(*p->port));
     hh = (char*) p->host->data;
     if (*hh=='\0') hh = NULL;
     p->addr = lo_address_new(hh, pp);
@@ -399,7 +399,7 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
     ports[n].csound = csound;
     ports[n].mutex_ = csound->Create_Mutex(0);
     ports[n].oplst = NULL;
-    sprintf(buff, "%d", (int) *(p->port));
+    snprintf(buff, 32, "%d", (int) *(p->port));
     ports[n].thread = lo_server_thread_new(buff, OSC_error);
     lo_server_thread_start(ports[n].thread);
     pp->ports = ports;

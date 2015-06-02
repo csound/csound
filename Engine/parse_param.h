@@ -33,21 +33,22 @@ typedef struct IFDEFSTACK_ {
 typedef struct pre_parm_s {
     void            *yyscanner;
     MACRO           *macros;
-    MACRON alt_stack[MAX_INCLUDE_DEPTH];
+    MACRON          *alt_stack; //[MAX_INCLUDE_DEPTH];
     unsigned int macro_stack_ptr;
+    unsigned int macro_stack_size;
     IFDEFSTACK      *ifdefStack;
     unsigned char   isIfndef;
     unsigned char   isString;
     uint16_t        line;
-    uint32_t        locn;
-    uint32_t        llocn;
+    uint64_t        locn;
+    uint64_t        llocn;
     uint16_t        depth;
     uint8_t         lstack[1024];
 } PRE_PARM;
 
 typedef struct parse_parm_s {
     void            *yyscanner;
-    int             locn;
+    uint64_t        locn;
     MACRO           *macros;
     char            *xstrbuff;
     int             xstrptr,xstrmax;
@@ -56,7 +57,7 @@ typedef struct parse_parm_s {
 void    cs_init_math_constants_macros(CSOUND*, PRE_PARM*);
 void    cs_init_omacros(CSOUND*, PRE_PARM*, NAMES*);
 
-uint32_t make_location(PRE_PARM *);
+uint64_t make_location(PRE_PARM *);
 extern uint8_t file_to_int(CSOUND*, const char*);
 
 #endif

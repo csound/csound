@@ -58,6 +58,7 @@ int T_EXPORT main(void)
 	class_addmethod(c, (method)csound_control,      "control", A_GIMME, 0);
 	class_addmethod(c, (method)csound_dblclick,     "dblclick", A_CANT, 0);
 	class_addmethod(c, (method)csound_dsp,          "dsp", A_CANT, 0);
+   	class_addmethod(c, (method)csound_dsp64,          "dsp64", A_CANT, 0);
 	class_addmethod(c, (method)csound_event,        "e", A_GIMME, 0);
 	class_addmethod(c, (method)csound_event,        "event", A_GIMME, 0);
 	class_addmethod(c, (method)csound_float,        "float", A_FLOAT, 0);
@@ -179,12 +180,12 @@ void csound_assist(t_csound *x, void *b, long msg, long arg, char *s)
 		switch(arg)
 		{
 		case 0:  sprintf(s, "(signal) Audio In 0 / (int) MIDI Input"); break;
-		default: sprintf(s, "(signal) Audio In %l", arg); break;
+		default: sprintf(s, "(signal) Audio In %ld", arg); break;
 		}
 	}
 	else if(msg == ASSIST_OUTLET)
 	{
-		if(arg < x->numOutSignals) sprintf(s, "(signal) Audio Out %l", arg);
+		if(arg < x->numOutSignals) sprintf(s, "(signal) Audio Out %ld", arg);
 		else
 		{
 			i = arg - x->numOutSignals;
@@ -287,6 +288,48 @@ t_int *csound_perform(t_int *w)
 	return (w+1+x->numPerformArgs);  
 }
 
+
+void csound_perform64(t_object *_x, t_object *dsp64, double **ins,
+                           long numins, double **outs, long numouts, long sampleframes, long flags, void *
+                           userparam) {
+    
+	t_csound *x = (t_csound *)_x;
+	int i, chan, vectorSize = x->vectorSize;
+	CsoundObject *cso = x->cso;
+	x->in64 = ins, x->out64 = outs;
+    
+//	for(i=0; i<x->numInSignals; i++) x->in[i] = (float *)(w[i+2]);
+	for(i=0; i < numouts; i++)
+	{
+		memset(outs[i], 0, sizeof(t_double) * sampleframes);
+	}
+    
+	if(x->l_obj.z_disabled) return;
+	
+	if(x->bypass)
+	{
+		// Copy audio input to output.
+		chan = (x->numInSignals < x->numOutSignals ? x->numInSignals : x->numOutSignals);
+		for(i=0; i<chan; i++) memcpy(x->out[i], x->in[i], sizeof(double) * vectorSize);
+		
+		// Since we're bypassing the Csound performance, return early.
+		// Must return w + 1 + the # of args to perform method (see csound_dsp()).
+//		return (w+1+x->numPerformArgs);
+	}
+	
+	cso->Perform64();
+	
+	if(x->outputOverdrive && x->output)
+	{
+		cso->m_oChanGroup.ProcessDirtyChannels(ChannelGroup::AUDIO_THREAD);
+		cso->m_oChanGroup.SendDirtyChannels(x->message_outlet, ChannelGroup::AUDIO_THREAD);
+	}
+	
+	// Must return w + 1 + the # of args to perform method (see csound_dsp()).
+//	return (w+1+x->numPerformArgs);
+}
+
+
 void csound_dsp(t_csound *x, t_signal **sp, short *count)
 {
 	CsoundObject *cso = x->cso;
@@ -317,6 +360,43 @@ void csound_dsp(t_csound *x, t_signal **sp, short *count)
 		}
 	}
 
+	x->evenlyDivisible = (x->vectorSize % x->cso->m_ksmps == 0);
+}
+
+void csound_dsp64(t_csound *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
+{
+	CsoundObject *cso = x->cso;
+//	int i=0, totalVectors=0;
+    int totalVectors=0;
+//	void **perform_args;
+	
+	totalVectors = x->numInSignals + x->numOutSignals;
+	x->numPerformArgs = totalVectors + 1;
+    
+//	perform_args = (void **) MemoryNew(sizeof(void*) * (totalVectors + 1));
+//	perform_args[0] = (void *) x;  // first argument is a pointer to the t_csound struct
+//	for(i=1; i<=totalVectors; i++) perform_args[i] = (void*) sp[i-1]->s_vec;
+	
+//	x->sr = sp[0]->s_sr;  // store current sampling rate
+    x->sr = (int)samplerate;  // store current sampling rate
+//	x->vectorSize = sp[0]->s_n; // store vector size
+    x->vectorSize = maxvectorsize;
+	x->one_div_sr = 1.0f / (float)x->sr; // store 1 / sr
+   
+//	dsp_addv(csound_perform, x->numPerformArgs, perform_args);
+	dsp_add64(dsp64, (t_object*)x, (t_perfroutine64)csound_perform64, 0, NULL);
+//	MemoryFree(perform_args);
+    
+	if(cso->m_compiled && x->sr != cso->m_sr)
+	{
+		if(!x->matchMaxSR && x->messageOutputEnabled)
+			object_error(x->m_obj, "Max sr (%d) != Csound sr (%d)", x->sr, x->cso->m_sr);
+		else if(x->matchMaxSR)
+		{
+			cso->Compile();
+		}
+	}
+    
 	x->evenlyDivisible = (x->vectorSize % x->cso->m_ksmps == 0);
 }
  
@@ -350,8 +430,8 @@ void csound_control(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 	name = argv[0].a_w.w_sym->s_name;
 	switch(argv[1].a_type)
 	{
-	case A_FLOAT: f_val = (MYFLT) argv[1].a_w.w_float; break;
-	case A_LONG:  f_val = (MYFLT) argv[1].a_w.w_long; break;
+	case A_FLOAT: f_val = (MYFLT) atom_getfloat(&argv[1]); break;
+	case A_LONG:  f_val = (MYFLT) atom_getlong(&argv[1]); break;
 	case A_SYM:   s_val = argv[1].a_w.w_sym->s_name; break;
 	}
 
@@ -397,7 +477,7 @@ void csound_midi(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 		switch(argv[i].a_type)
 		{
 		case A_LONG:
-			buffer[i] = (byte) argv[i].a_w.w_long;
+			buffer[i] = (byte) atom_getlong(&argv[i]);
 			break;
 		default: 
 			object_error(x->m_obj, "Only integers are allowed in midi messages.");
@@ -464,12 +544,12 @@ void csound_event(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 		switch(argv[i].a_type)
 		{
 		case A_LONG:
-			sprintf(tmp, " %d", argv[i].a_w.w_long);
+			sprintf(tmp, " %lld", (long long)atom_getlong(&argv[i]));
 			totalSize += strlen(tmp);
 			strncat(buffer, tmp, MAX_EVENT_MESSAGE_SIZE - strlen(buffer) - 1);
 			break;
 		case A_FLOAT:
-			sprintf(tmp, " %f", argv[i].a_w.w_float);
+			sprintf(tmp, " %f", atom_getfloat(&argv[i]));
 			totalSize += strlen(tmp);
 			strncat(buffer, tmp, MAX_EVENT_MESSAGE_SIZE - strlen(buffer) - 1);
 			break;
@@ -570,7 +650,7 @@ void *csound_new(t_symbol *s, short argc, t_atom *argv)
 			switch(argv[i].a_type)
 			{
 				case A_LONG:
-					iarg = argv[i].a_w.w_long;
+					iarg = atom_getlong(&argv[i]);
 
 					if(lastAttr != NULL)
 					{
@@ -585,9 +665,9 @@ void *csound_new(t_symbol *s, short argc, t_atom *argv)
 					else
 					{
 						if(numArgCount == 0)
-							x->numInSignals = x->numOutSignals = argv[i].a_w.w_long;
+							x->numInSignals = x->numOutSignals = atom_getlong(&argv[i]);
 						else if(numArgCount == 1)
-							x->numOutSignals = argv[i].a_w.w_long;
+							x->numOutSignals = atom_getlong(&argv[i]);
 						else
 							object_error(x->m_obj, "Too many integer arguments.");
 						++numArgCount;
@@ -940,8 +1020,8 @@ void csound_loadsamp(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 	float sizeSeconds = 0.0f; 
 	
 	if(argc < 3 || argv[0].a_type != A_LONG || argv[1].a_type != A_LONG || argv[2].a_type != A_SYM) return;
-	tableNum = argv[0].a_w.w_long;
-	channel = argv[1].a_w.w_long;
+	tableNum = atom_getlong(&argv[0]);
+	channel = atom_getlong(&argv[1]);
 	strncpy(filename, argv[2].a_w.w_sym->s_name, MAX_STRING_LENGTH-1);
 	
 	// If 4'th argument exists, it specifies offset time in seconds.
@@ -949,8 +1029,8 @@ void csound_loadsamp(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 	{
 		switch(argv[3].a_type) 
 		{
-		case A_FLOAT: offsetSeconds = argv[3].a_w.w_float; break;
-		case A_LONG:  offsetSeconds = (float) argv[3].a_w.w_long; break;
+		case A_FLOAT: offsetSeconds = (float) atom_getfloat(&argv[3]); break;
+		case A_LONG:  offsetSeconds = (float) atom_getlong(&argv[3]); break;
 		}
 	}
 	
@@ -959,8 +1039,8 @@ void csound_loadsamp(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 	{
 		switch(argv[4].a_type) 
 		{
-		case A_FLOAT: sizeSeconds = argv[4].a_w.w_float; break;
-		case A_LONG:  sizeSeconds = (float) argv[4].a_w.w_long; break;
+		case A_FLOAT: sizeSeconds = atom_getfloat(&argv[4]); break;
+		case A_LONG:  sizeSeconds = (float) atom_getlong(&argv[4]); break;
 		}
 	}
 	
@@ -993,16 +1073,16 @@ void csound_readbuf(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 	float sizeSeconds = 0.0f;
 	
 	if(argc < 3 || argv[0].a_type != A_LONG || argv[1].a_type != A_LONG || argv[2].a_type != A_SYM) return;
-	tableNum = argv[0].a_w.w_long;
-	channel = argv[1].a_w.w_long;
+	tableNum = atom_getlong(&argv[0]);
+	channel = atom_getlong(&argv[1]);
 	
 	// If 4'th argument exists, it specifies offset time in seconds.
 	if(argc > 3)
 	{
 		switch(argv[3].a_type) 
 		{
-		case A_FLOAT: offsetSeconds = argv[3].a_w.w_float;  break;
-		case A_LONG:  offsetSeconds = (float) argv[3].a_w.w_long;  break;
+		case A_FLOAT: offsetSeconds = (float) atom_getfloat(&argv[3]);  break;
+		case A_LONG:  offsetSeconds = (float) atom_getlong(&argv[3]);  break;
 		}
 	}
 	
@@ -1011,8 +1091,8 @@ void csound_readbuf(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 	{
 		switch(argv[4].a_type) 
 		{
-		case A_FLOAT: sizeSeconds = argv[4].a_w.w_float;  break;
-		case A_LONG:  sizeSeconds = (float) argv[4].a_w.w_long; break;
+		case A_FLOAT: sizeSeconds = (float) atom_getfloat(&argv[4]);  break;
+		case A_LONG:  sizeSeconds = (float) atom_getlong(&argv[4]); break;
 		}
 	}
 
@@ -1033,16 +1113,16 @@ void csound_writebuf(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 	float sizeSeconds = 0.0f; 
 	
 	if(argc < 3 || argv[0].a_type != A_LONG || argv[1].a_type != A_LONG || argv[2].a_type != A_SYM) return;
-	tableNum = argv[0].a_w.w_long;
-	channel = argv[1].a_w.w_long;
+	tableNum = atom_getlong(&argv[0]);
+	channel = atom_getlong(&argv[1]);
 	
 	// If 4'th argument exists, it specifies offset time in seconds.
 	if(argc > 3)
 	{
 		switch(argv[3].a_type) 
 		{
-		case A_FLOAT: offsetSeconds = argv[3].a_w.w_float;  break;
-		case A_LONG:  offsetSeconds = (float) argv[3].a_w.w_long;  break;
+		case A_FLOAT: offsetSeconds = (float) atom_getfloat(&argv[3]);  break;
+		case A_LONG:  offsetSeconds = (float) atom_getlong(&argv[3]);  break;
 		}
 	}
 	
@@ -1051,8 +1131,8 @@ void csound_writebuf(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 	{
 		switch(argv[4].a_type) 
 		{
-		case A_FLOAT: sizeSeconds = argv[4].a_w.w_float;  break;
-		case A_LONG:  sizeSeconds = (float) argv[4].a_w.w_long;  break;
+		case A_FLOAT: sizeSeconds = (float) atom_getfloat(&argv[4]);  break;
+		case A_LONG:  sizeSeconds = (float) atom_getlong(&argv[4]);  break;
 		}
 	}
 
@@ -1072,8 +1152,8 @@ void csound_rsidx(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 	MYFLT val;
 	
 	if(argc != 2 || argv[0].a_type != A_LONG || argv[1].a_type != A_LONG) return;
-	tableNum = argv[0].a_w.w_long;
-	index = argv[1].a_w.w_long;
+	tableNum = atom_getlong(&argv[0]);
+	index = atom_getlong(&argv[1]);
 	if(index < 0) return;
 	
 	{
@@ -1088,9 +1168,9 @@ void csound_rsidx(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 	switch(result)
 	{
 	case 0:
-		x->atomList[1].a_w.w_long = tableNum;
-		x->atomList[2].a_w.w_long = index;
-		x->atomList[3].a_w.w_float = (float) val;
+        atom_setlong(&x->atomList[1], (t_atom_long)tableNum);
+        atom_setlong(&x->atomList[2], (t_atom_long)index);
+        atom_setfloat(&x->atomList[3], (t_atom_float)val);
 		outlet_list(x->message_outlet, 0L, 4, x->atomList);
 		break;
 	case 1:
@@ -1109,9 +1189,9 @@ void csound_wsidx(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 	
 	if(argc != 3 || argv[0].a_type != A_LONG || argv[1].a_type != A_LONG || 
 	   (argv[2].a_type != A_FLOAT && argv[2].a_type != A_LONG)) return;
-	tableNum = argv[0].a_w.w_long;
-	index = argv[1].a_w.w_long;
-	val = (float)(argv[2].a_type == A_FLOAT ? argv[2].a_w.w_float : argv[2].a_w.w_long);
+	tableNum = atom_getlong(&argv[0]);
+	index = atom_getlong(&argv[1]);
+	val = (float)(argv[2].a_type == A_FLOAT ? atom_getfloat(&argv[2]) : atom_getlong(&argv[2]));
 	if(index < 0) return;
 	
 	{
@@ -1153,11 +1233,11 @@ void csound_run(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 		switch(argv[i].a_type)
 		{
 		case A_FLOAT:
-			snprintf(tmp, MAX_STRING_LENGTH-1, "%l", argv[i].a_w.w_long);
+			snprintf(tmp, MAX_STRING_LENGTH-1, "%f", (float)atom_getfloat(&argv[i]));
 			args[i] = strdup(tmp);
 			break;
 		case A_LONG:
-			snprintf(tmp, MAX_STRING_LENGTH-1, "%f", argv[i].a_w.w_float);
+			snprintf(tmp, MAX_STRING_LENGTH-1, "%lld", (long long)atom_getlong(&argv[i]));
 			args[i] = strdup(tmp);
 			break;
 		case A_SYM:
@@ -1197,10 +1277,10 @@ void csound_run(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 		switch(argv[i].a_type)
 		{
 		case A_FLOAT:
-			snprintf(tmp, MAX_STRING_LENGTH-1, "%d", argv[i].a_w.w_long);
+			snprintf(tmp, MAX_STRING_LENGTH-1, "%f", (float)atom_getfloat(&argv[i]));
 			break;
 		case A_LONG:
-			snprintf(tmp, MAX_STRING_LENGTH-1, "%f", argv[i].a_w.w_float);
+			snprintf(tmp, MAX_STRING_LENGTH-1, "%lld", (long long)atom_getlong(&argv[i]));
 			break;
 		case A_SYM:
 			strncpy(tmp, argv[i].a_w.w_sym->s_name, MAX_STRING_LENGTH-1);

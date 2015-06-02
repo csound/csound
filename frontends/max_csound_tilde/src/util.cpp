@@ -22,7 +22,11 @@
 */
 
 #include "util.h"
+
+#if defined(__MACH__)
 #include <LaunchServices.h>
+#endif
+
 using namespace std;
 
 void change_directory(t_object *o, const char *path)
@@ -68,8 +72,8 @@ void to_lower(char *str)
 {
 	int i=0, len=0;
 	len = strlen(str);
-	while(i<len)
-		str[i] = tolower(str[i++]);
+	for(i = 0; i < len; i++)
+		str[i] = tolower(str[i]);
 }
 
 void to_lower(std::string & str)
@@ -290,7 +294,7 @@ void PrintAtoms(t_symbol *s, long argc, t_atom *argv, char *dst, int dstSize)
     for (i = 0, ap = argv; i < argc; i++, ap++) {       // increment ap each time to get to the next atom
         switch (atom_gettype(ap)) {
             case A_LONG:
-				wrote = snprintf(b, maxLen, "%d ", atom_getlong(ap));
+				wrote = snprintf(b, maxLen, "%ld ", atom_getlong(ap));
                 break;
             case A_FLOAT:
 				wrote = snprintf(b, maxLen, "%f ", atom_getfloat(ap));

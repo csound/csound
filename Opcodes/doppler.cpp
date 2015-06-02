@@ -59,8 +59,8 @@ public:
   {
     sampleRate = (MYFLT) sampleRate_;
     size_ = (int) std::ceil(maximumDelay * sampleRate);
-    std::cout << "DelayLine::initialize: size: " << size_ << std::endl;
-    std::cout << "DelayLine::initialize: sampleRate: " << sampleRate << std::endl;
+    //std::cout << "DelayLine::initialize: size: " << size_ << std::endl;
+    //std::cout << "DelayLine::initialize: sampleRate: " << sampleRate << std::endl;
     resize(size_);
     writingFrame = 0;
   }
@@ -170,21 +170,21 @@ public:
       smoothingFilter = new RCLowpassFilter();
       smoothingFilter->initialize(sampleRate,
                                   smoothingFilterCutoff, targetPosition);
-      log(csound, "Doppler::kontrol: sizeof(MYFLT):         %10d\n", sizeof(MYFLT));
-      log(csound, "Doppler::kontrol: PI:                    %10.3f\n", pi);
-      log(csound, "Doppler::kontrol: this:                  %10p\n", this);
-      log(csound, "Doppler::kontrol: sampleRate:            %10.3f\n", sampleRate);
-      log(csound, "Doppler::kontrol: blockSize:             %10.3f\n", blockSize);
-      log(csound, "Doppler::kontrol: blockRate:             %10.3f\n", blockRate);
-      log(csound, "Doppler::kontrol: speedOfSound:          %10.3f\n",
+      warn(csound, "Doppler::kontrol: sizeof(MYFLT):         %10d\n", sizeof(MYFLT));
+      warn(csound, "Doppler::kontrol: PI:                    %10.3f\n", pi);
+      warn(csound, "Doppler::kontrol: this:                  %10p\n", this);
+      warn(csound, "Doppler::kontrol: sampleRate:            %10.3f\n", sampleRate);
+      warn(csound, "Doppler::kontrol: blockSize:             %10.3f\n", blockSize);
+      warn(csound, "Doppler::kontrol: blockRate:             %10.3f\n", blockRate);
+      warn(csound, "Doppler::kontrol: speedOfSound:          %10.3f\n",
           speedOfSound);
-      log(csound, "Doppler::kontrol: samplesPerDistance:    %10.3f\n",
+      warn(csound, "Doppler::kontrol: samplesPerDistance:    %10.3f\n",
           samplesPerDistance);
-      log(csound, "Doppler::kontrol: smoothingFilterCutoff: %10.3f\n",
+      warn(csound, "Doppler::kontrol: smoothingFilterCutoff: %10.3f\n",
           smoothingFilterCutoff);
-      log(csound, "Doppler::kontrol: kMicPosition:          %10.3f\n",
+      warn(csound, "Doppler::kontrol: kMicPosition:          %10.3f\n",
           *kMicPosition);
-      log(csound, "Doppler::kontrol: kSourcePosition:       %10.3f\n",
+      warn(csound, "Doppler::kontrol: kSourcePosition:       %10.3f\n",
           *kSourcePosition);
     }
 

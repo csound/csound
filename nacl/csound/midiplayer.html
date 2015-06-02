@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<!--
+ Csound pnacl midi player example
+ Copyright (C) 2013 V Lazzarini
+-->
+<head>
+ <title> midi player </title>
+ <style type="text/css">
+   textarea.console { font-family: "Courier New"; color: #FCF477;
+                     background-color: #770077 }
+  </style>
+ <script type="text/javascript" src="csound.js"></script>
+ <script type="text/javascript">
+ // called by csound.js
+ function moduleDidLoad() {
+   csound.CopyToLocal("sf_GMbank.sf2","sf_GMbank.sf2"); 
+ }
+ function attachListeners() { 
+  document.getElementById('playButton').
+       addEventListener('click', togglePlay);
+   document.getElementById('files').
+      addEventListener('change', handleFileSelect, false);
+ }
+
+ var fcopied = false;
+ var count = 0;
+
+ function handleMessage(message) {
+   var element = document.getElementById('console');
+   element.value += message.data;
+   element.scrollTop = 99999; // focus on bottom
+   if(message.data == "copied file: ")
+      fcopied = true;
+   count += 1;
+   if(count == 1000) {
+     element.value = ' ';
+     count = 0;
+   }
+ }
+
+ var playing = false;
+ var started = false;
+ var loaded = false;
+
+ function togglePlay(){
+  if(loaded && fcopied) {
+  if(!playing) {
+  if(started) csound.Play();
+  else {
+   csound.PlayCsd("http/gm.csd");
+   started = true;
+  }
+  document.getElementById('playButton').innerText = "Pause";
+  playing = true;
+  } else {
+  csound.Pause()
+  document.getElementById('playButton').innerText ="Play";
+  playing = false;
+  }
+}
+}
+
+function handleFileSelect(evt) { 
+   if(!loaded) {
+    var files = evt.target.files; 
+    var f = files[0];
+    var objectURL = window.webkitURL.createObjectURL(f);
+    csound.CopyUrlToLocal(objectURL,"midifile.mid");
+    loaded = true;
+   } else {
+   csound.updateStatus("to load a new midfile, first refresh page!")
+  }
+}
+ 
+</script>
+</head>
+<body>
+   <textarea class="console" cols="65" rows="20" id="console"
+  value="">Csound: not loaded</textarea>
+  <p>
+  <input type="file" id="files" name="file" />
+  <button id="playButton">Play</button>
+  </p>
+  <!--pNaCl csound module-->
+  <div id="engine"></div>
+</body>
+</html>
+

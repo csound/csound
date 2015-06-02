@@ -23,9 +23,9 @@ void test_perfthread(void)
             "endin \n";
 
     Csound csound;
-    csound.SetOption("-odac");
+    csound.SetOption((char*)"-odac");
     csound.CompileOrc(instrument);
-    csound.ReadScore("i 1 0  3 10000 5000\n");
+    csound.ReadScore((char*)"i 1 0  3 10000 5000\n");
     csound.Start();
     CsoundPerformanceThread performanceThread1(csound.GetCsound());
     performanceThread1.Play();
@@ -33,9 +33,9 @@ void test_perfthread(void)
     csound.Cleanup();
     csound.Reset();
     CsoundPerformanceThread performanceThread2(csound.GetCsound());
-    csound.SetOption("-odac");
+    csound.SetOption((char*)"-odac");
     csound.CompileOrc(instrument);
-    csound.ReadScore("i 1 0  3 10000 5000\n");
+    csound.ReadScore((char*)"i 1 0  3 10000 5000\n");
     csound.Start();
     performanceThread2.Play();
     performanceThread2.Join();

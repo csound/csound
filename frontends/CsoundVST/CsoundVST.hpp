@@ -29,6 +29,7 @@
 #include <mmsystem.h>
 #endif
 #include "public.sdk/source/vst2.x/audioeffectx.h"
+#include <float-version.h>
 #include <CppSound.hpp>
 #include <list>
 
@@ -132,6 +133,7 @@ public:
     virtual VstIntPtr dispatcher (VstInt32 opcode, VstInt32 index, VstIntPtr value, void* ptr, float opt);
   static int midiDeviceOpen(CSOUND *csound, void **userData,
                             const char *devName);
+  static int midiDeviceClose(CSOUND *csound, void *userData);
   static int midiRead(CSOUND *csound, void *userData,
                       unsigned char *buf, int nbytes);
 };
@@ -140,8 +142,9 @@ public:
 
 extern "C"
 {
-  SILENCE_PUBLIC CsoundVST* CreateCsoundVST();
-  SILENCE_PUBLIC void RunCsoundVST(const char *filename);
+    SILENCE_PUBLIC AEffect* VSTPluginMain(audioMasterCallback audioMaster);
+    SILENCE_PUBLIC CsoundVST* CreateCsoundVST();
+    SILENCE_PUBLIC void RunCsoundVST(const char *filename);
 }
 
 #endif

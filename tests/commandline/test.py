@@ -11,7 +11,8 @@ from Tkinter import *
 
 parserType = ""
 showUIatClose = False
-csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
+##csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
+csoundExecutable =""
 
 class Test:
     def __init__(self, fileName, description, expected=True):
@@ -129,6 +130,9 @@ def runTest():
 	["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
 	["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)"],
 	["test_polymorphic_udo.csd", "test polymorphic udo"],
+	["test_udo_a_array.csd", "test udo with a-array"],
+	["test_udo_2d_array.csd", "test udo with 2d-array"],
+        ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -163,8 +167,9 @@ def runTest():
             print command
             retVal = os.system(command)
         else:
-            executable = (csoundExecutable == "") and "../csound" or csoundExecutable
+            executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
             command = "%s %s %s %s &> %s"%(executable, parserType, runArgs, filename, tempfile)
+            #print command
             retVal = os.system(command)
   
         out = ""

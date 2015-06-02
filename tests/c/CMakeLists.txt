@@ -71,6 +71,12 @@ add_test(NAME testPerfThread
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/c/
         COMMAND $<TARGET_FILE:testPerfThread> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
 
+add_executable(testDebugger csound_debugger_test.c)
+target_link_libraries(testDebugger ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread libcsnd6)
+add_test(NAME testDebugger
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/c/
+        COMMAND $<TARGET_FILE:testDebugger> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
+
 endif(BUILD_TESTS)
 
 

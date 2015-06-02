@@ -85,17 +85,17 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
     }
     lower_rail = (DelayLine*)p->lower.auxp;
     lower_rail->length = rail_len;
-    if (rail_len > 0) {
+    //if (rail_len > 0) {  Always true
       csound->AuxAlloc(csound, rail_len*sizeof(MYFLT),&p->down_data);
       lower_rail->data = (MYFLT*)p->down_data.auxp;
-    }
-    else lower_rail->data = NULL;
+      //}
+    //else lower_rail->data = NULL;
     lower_rail->pointer = lower_rail->data;
     lower_rail->end = lower_rail->data + rail_len - 1;
 
                                 /* Set initial shape */
     if (plk != FL(0.0)) {
-      initial_shape = (MYFLT*)malloc(rail_len*sizeof(MYFLT));
+      initial_shape = (MYFLT*) malloc(rail_len*sizeof(MYFLT));
       if (pickpt < 1) pickpt = 1;       /* Place for pluck, in range (0,1.0) */
       upslope = FL(1.0)/(MYFLT)pickpt; /* Slightly faster to precalculate */
       downslope = FL(1.0)/(MYFLT)(rail_len - pickpt - 1);

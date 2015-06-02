@@ -61,7 +61,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       char *sstrp;
       int n = csound->scnt;
       if ((sstrp = csound->sstrbuf) == NULL)
-        sstrp = csound->sstrbuf = mmalloc(csound, csound->strsiz=SSTRSIZ);
+        sstrp = csound->sstrbuf = csound->Malloc(csound, csound->strsiz=SSTRSIZ);
       while (n--!=0) sstrp += strlen(sstrp)+1;
       n = sstrp-csound->sstrbuf;
       while ((c = corfile_getc(csound->scstr)) != '"') {
@@ -69,7 +69,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
         *sstrp++ = c;
         n++;
         if (n > csound->strsiz-10) {
-          csound->sstrbuf = mrealloc(csound, csound->sstrbuf,
+          csound->sstrbuf = csound->ReAlloc(csound, csound->sstrbuf,
                                      csound->strsiz+=SSTRSIZ);
           sstrp = csound->sstrbuf+n;
         }
@@ -118,6 +118,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
 {                                     /*      presumes good format if warped */
     MYFLT   *pp, *plim;
     int     c;
+    e->pinstance = NULL;
 
     if (csound->scstr == NULL ||
         csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */
@@ -141,6 +142,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
         continue;
       case 's':
       case 't':
+      case 'y':
         csound->warped = 0;
         goto unwarped;
       case 'w':
@@ -201,7 +203,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                                        (int)e->p[3],(int)e->p[4]);
                       new = (MYFLT*)realloc(e->c.extra,sizeof(MYFLT)*PMAX);
                       if (new==NULL) {
-                        fprintf(stderr, "Out of Mdemory\n");
+                        fprintf(stderr, Str("Out of Memory\n"));
                         exit(7);
                       }
                       e->c.extra = new;
@@ -213,7 +215,8 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                           csound->DebugMsg(csound,
                                            "and more extra p-fields [%d](%d)%d\n",
                                            c, (int) e->c.extra[0],
-                                           sizeof(MYFLT)*((int)e->c.extra[0]+PMAX));
+                                           (int)sizeof(MYFLT)*
+                                                   ((int)e->c.extra[0]+PMAX));
                           new =
                             (MYFLT *)realloc(e->c.extra,
                                              sizeof(MYFLT)*((int) e->c.extra[0]+
@@ -240,7 +243,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
         e->pcnt = pp - &e->p[0];                   /* count the pfields */
         if (e->pcnt>=PMAX) e->pcnt += e->c.extra[0]; /* and overflow fields */
         if (csound->sstrlen) {        /* if string arg present, save it */
-          e->strarg = mmalloc(csound, csound->sstrlen); /* FIXME:       */
+          e->strarg = csound->Malloc(csound, csound->sstrlen); /* FIXME:       */
           memcpy(e->strarg, csound->sstrbuf, csound->sstrlen); /* leaks memory */
           e->scnt = csound->scnt;
           csound->sstrlen = 0;

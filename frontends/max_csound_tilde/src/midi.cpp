@@ -25,7 +25,7 @@
 
 using namespace dvx;
 
-MidiBuffer::MidiBuffer(t_object * o) : m_buffer(BUFFER_SIZE), m_sysex(false), m_lock("MidiBuffer"), m_obj(o)
+MidiBuffer::MidiBuffer(t_object * o) : m_buffer(BUFFER_SIZE), m_sysex(false), m_lock((char*)"MidiBuffer"), m_obj(o)
 {
 	memset(m_activeNoteMatrix, 0, MIDI_MATRIX_SIZE);
 }

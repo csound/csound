@@ -212,7 +212,7 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
                                Str("outz index < 0. No output."));
     }
     if ((int)*p->layout==0) strcpy(name, "vbap_ls_table");
-    else sprintf(name, "vbap_ls_table_%d", (int)*p->layout==0);
+    else snprintf(name, 24, "vbap_ls_table_%d", (int)*p->layout==0);
     /* Now read from the array in za space and write to the output. */
     p->out_array     = csound->zastart + (indx * CS_KSMPS);/* outputs */
     csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);

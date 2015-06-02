@@ -81,12 +81,13 @@ void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon){
 /* csound MIDI input open callback, sets the device for input */ 
 static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
-    int k, endpoints;
+    int k;
+    ItemCount endpoints;
         
     CFStringRef name = NULL, cname = NULL, pname = NULL;
     CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
-    MIDIClientRef mclient = NULL;
-    MIDIPortRef mport = NULL;
+    MIDIClientRef mclient = 0;
+    MIDIPortRef mport = 0;
     MIDIEndpointRef endpoint;
     MIDIdata *mdata = (MIDIdata *) malloc(DSIZE*sizeof(MIDIdata));
     OSStatus ret;
@@ -107,11 +108,10 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
         if(!ret){
             /* sources, we connect to all available input sources */
             endpoints = MIDIGetNumberOfSources();
-			csoundMessage(csound, "midi srcs %d\n", endpoints); 
+			csoundMessage(csound, "midi srcs %lu\n", endpoints); 
             for(k=0; k < endpoints; k++){
                 endpoint = MIDIGetSource(k);
-                void *srcRefCon = endpoint;
-                MIDIPortConnectSource(mport, endpoint, srcRefCon);
+                MIDIPortConnectSource(mport, endpoint, NULL);
                 
             }
         }

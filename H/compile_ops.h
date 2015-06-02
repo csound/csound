@@ -14,6 +14,7 @@ typedef struct _retval {
 
 int compile_orc_i(CSOUND *csound, COMPILE *c);
 int compile_str_i(CSOUND *csound, COMPILE *c);
+int compile_csd_i(CSOUND *csound, COMPILE *c);
 int read_score_i(CSOUND *csound, COMPILE *c);
 int eval_str_i(CSOUND *csound, COMPILE *p);
 int eval_str_k(CSOUND *csound, COMPILE *p);

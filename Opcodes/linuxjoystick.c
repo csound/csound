@@ -47,7 +47,6 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
     int evtidx;
     long long evtmask = 0;
     char device[256];
-    int olderr=0;
 
     if (UNLIKELY(stick->initme == 0)) {
       stick->timeout = 0;
@@ -58,7 +57,7 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
       if (UNLIKELY((void *)(stick->ftp = csound->FTnp2Find(csound, stick->ktable))
                    == NULL)) {
         csound->Warning(csound, Str("linuxjoystick: No such table %f"),
-                        stick->ktable);
+                        *(float*)(stick->ktable));
         return OK;
       }
       stick->table = *stick->ktable;
@@ -69,10 +68,9 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
         return OK;
       }
       stick->dev = (int)MYFLT2LRND(*stick->kdev);
-      sprintf(device, "/dev/js%i", stick->dev);
+      snprintf(device, 256, "/dev/js%i", stick->dev);
       if ((stick->devFD = open(device, O_RDONLY, O_NONBLOCK)) < 0) {
-        olderr = errno;
-        sprintf(device, "/dev/input/js%i", stick->dev);
+        snprintf(device, 256, "/dev/input/js%i", stick->dev);
         stick->devFD = open(device, O_RDONLY, O_NONBLOCK);
       }
       if (stick->devFD > 0) {
@@ -95,11 +93,11 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
         csound->Warning(csound,
                         Str("linuxjoystick: could not open device "
                             "/dev/input/js%d for reason: %s\n"),
-                        stick->dev, sys_errlist[errno]);
+                        stick->dev, strerror(errno));
         csound->Warning(csound,
                         Str("linuxjoystick: could not open device "
                             "/dev/js%d for reason: %s\n"),
-                        stick->dev, sys_errlist[olderr]);
+                        stick->dev, strerror(errno));
         return OK;
       }
     }

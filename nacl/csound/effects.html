@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<!--
+ Csound pnacl effects example
+ Copyright (C) 2013 V Lazzarini
+-->
+<head>
+ <title>Effects Example</title>
+ <style type="text/css">
+   textarea.console { font-family: "Courier New"; color: #FCF477;
+                     background-color: #770000 }
+   #rev {
+    -webkit-appearance: slider-vertical;
+   }
+
+   #dry {
+    -webkit-appearance: slider-vertical;
+   }
+
+   #flan {
+    -webkit-appearance: slider-vertical;
+   }
+
+  </style>
+ <script type="text/javascript" src="csound.js"></script>
+ <script type="text/javascript">
+ // called by csound.js
+ function moduleDidLoad() {
+  csound.Play();
+  csound.CompileOrc(document.getElementById('orchestraField').value);
+   csound.SetChannel("rev", "50");
+   csound.SetChannel("dry", "50");
+   csound.SetChannel("flan", "50");
+ }
+ function attachListeners() {
+   document.getElementById("rev").
+       addEventListener("change",setRev);
+   document.getElementById("flan").
+       addEventListener("change",setFlan);
+   document.getElementById("dry").
+       addEventListener("change",setDry);
+ 
+  document.getElementById('playButton').
+       addEventListener('click', togglePlay);
+   document.getElementById('files').
+      addEventListener('change', handleFileSelect, false);
+ }
+
+ function handleMessage(message) {
+   var element = document.getElementById('console');
+   element.value += message.data;
+   element.scrollTop = 99999; // focus on bottom
+ }
+
+ function setRev(){
+   setParam("rev");
+ }
+
+ function setFlan(){
+   setParam("flan");
+ }
+
+ function setDry(){
+   setParam("dry");
+ }
+
+ function setParam(name) {
+  var val = document.getElementById(name).value;
+  csound.SetChannel(name, val); 
+ }
+ var playing = false;
+ var selected = false;
+
+ function togglePlay(){
+  if(playing) {
+   csound.Event("i-1 0 1");
+   playing = false;
+   console.log("stop");
+  } else {
+  if(selected) {
+   csound.Event("i1 0 -1");
+   playing = true;
+  }
+  }
+}
+
+function handleFileSelect(evt) {
+    var files = evt.target.files; 
+    var f = files[0];
+    var objectURL = window.webkitURL.createObjectURL(f);
+    if(playing) {
+     csound.Event("i-1 0 1");
+     playing = false;   
+   }
+    csound.CopyUrlToLocal(objectURL,"soundfile");
+    selected = true;
+  }
+ 
+</script>
+</head>
+<body>
+  <textarea id="orchestraField" hidden>
+   instr 1
+   Sfile = "./local/soundfile"
+   ichn filenchnls Sfile 
+   if ichn == 1 then 
+   a1 diskin2 Sfile,1,0,1 
+   a2  = a1
+   elseif ichn == 2 then
+   a1,a2 diskin2 Sfile,1,0,1
+   endif
+
+   kdry chnget "dry"
+   krev chnget "rev"
+   kfl chnget  "flan"
+   krev = krev/100
+   kdry = kdry/100
+   kfl = kfl/100
+
+   adel1 oscili  0.002,1.3
+   adel2 oscili  0.003,0.9 
+
+   ar1, ar2  freeverb  a1,a2,0.7,0.8
+   af1 flanger a1, adel1+0.003,0.6
+   af2 flanger a2, adel2+0.004,0.6
+
+   amix1 = ar1*krev + a1*kdry + af1*kfl
+   amix2 = ar2*krev + a2*kdry + af2*kfl
+
+     outs amix1*0.3, amix2*0.3
+   endin
+  </textarea>
+  <p>
+  <input type="file" id="files" name="file" />
+  <button id="playButton">Play</button>
+  </p>
+  <p>
+  <input type="range" name="reverb" id="rev" step="1" value="50"
+  min="0" max="100"> 
+  <input type="range" name="flanger" id="flan" step="1" value="50"
+  min="0" max="100"> 
+ <input type="range" name="dry" id="dry" step="1" value="50"
+  min="0" max="100"> </p>
+ <p>
+<pre>
+    reverb            flanger            dry signal
+</pre>
+</p>
+  <textarea class="console" cols="55" rows="13" id="console"
+  value="">Csound: not loaded</textarea>
+  <!--pNaCl csound module-->
+  <div id="engine"></div>
+</body>
+</html>
+

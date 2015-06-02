@@ -170,7 +170,7 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
       sprintf(buffer, "Program%d", (int)(i + 1));
       bank[i].name = buffer;
     }
-  setCommand("csound -f -h -+rtmidi=null -M0 -d -n -m7 --midi-key-oct=4 --midi-velocity=5 temp.orc temp.sco");
+  setCommand("csound -f -h -+rtmidi=null -M0 -d -n -m7 --midi-key-oct=4 --midi-velocity=5");
 }
 
 CsoundVST::CsoundVST() :
@@ -269,6 +269,11 @@ int CsoundVST::midiDeviceOpen(CSOUND *csound, void **userData,
   return 0;
 }
 
+int CsoundVST::midiDeviceClose(CSOUND *csound, void *userData)
+{
+  return 0;
+}
+
 uintptr_t CsoundVST::performanceThreadRoutine()
 {
   stop();
@@ -284,15 +289,13 @@ uintptr_t CsoundVST::performanceThreadRoutine()
   vstcommand.append(command);
   if (command.find(".orc") == std::string::npos && command.find(".sco") == std::string::npos) {
     updateCommand = true;
-    vstcommand.append(" temp.orc temp.sco");
+    //vstcommand.append(" temp.orc temp.sco");
   }
   if (updateCommand) {
     setCommand(vstcommand);
     std::string buffer = getCommand();
     csoundVstFltk->commandInput->value(buffer.c_str());
   }
-  exportForPerformance();
-  Message("Saved as: '%s' and '%s'.\n", getOrcFilename().c_str(), getScoFilename().c_str());
   reset();
   // FLTK flags is the sum of any of the following values:
   //   1:  disable widget opcodes by setting up dummy opcodes instead
@@ -320,13 +323,18 @@ uintptr_t CsoundVST::performanceThreadRoutine()
     }
     if(getIsVst()) {
       Message("Compiling for VST performance.\n");
+      SetHostImplementedAudioIO(1, 0);
+      SetHostImplementedMIDIIO(1);
       SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
       SetExternalMidiReadCallback(&CsoundVST::midiRead);
+      SetExternalMidiInCloseCallback(&CsoundVST::midiDeviceClose);
         if(compile()) {
           Message("Csound compilation failed.\n");
           reset();
           stop();
         }
+        int initialDelayFrames = GetKsmps();
+        setInitialDelay(initialDelayFrames);
     } else {
       Message("Classic performance.\n");
       perform();
@@ -466,10 +474,10 @@ int CsoundVST::midiRead(CSOUND *csound, void *userData,
     midiData[cnt + 1] = (unsigned char) event.midiData[1];
     midiData[cnt + 2] = (unsigned char) event.midiData[2];
     csoundVST->midiEventQueue.pop_front();
-    //~ Message("CsoundVST::midiRead(%x, %x, %x)\n",
-    //~ (int) midiData[cnt + 0],
-    //~ (int) midiData[cnt + 1],
-    //~ (int) midiData[cnt + 2]);
+    //csoundVST->Message("CsoundVST::midiRead(%x, %x, %x)\n",
+    //(int) midiData[cnt + 0],
+    //(int) midiData[cnt + 1],
+    //(int) midiData[cnt + 2]);
     switch ((int) midiData[cnt] & 0xF0) {
     case 0x80:    /* note off */
     case 0x90:    /* note on */
@@ -814,6 +822,17 @@ VstIntPtr CsoundVST::dispatcher(VstInt32 opcode, VstInt32 index, VstIntPtr value
 
 extern "C"
 {
+    PUBLIC AEffect* VSTPluginMain(audioMasterCallback audioMaster)
+    {
+        if (!audioMaster (0, audioMasterVersion, 0, 0, 0, 0)) {
+            return 0;
+        }
+        AudioEffect* effect = new CsoundVST(audioMaster);
+        if (!effect) {
+            return 0;
+        }
+        return effect->getAeffect();
+    }
   SILENCE_PUBLIC CsoundVST* CreateCsoundVST()
   {
     CsoundVST *csoundVST = new CsoundVST;

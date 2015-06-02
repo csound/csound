@@ -66,35 +66,37 @@ void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
         memcpy(&mdata[*p], curpack, 3);
         mdata[*p].flag = 1;
         (*p)++;
-        if(*p == DSIZE) *p = 0;
+        if (*p == DSIZE) *p = 0;
       }
       packet = MIDIPacketNext(packet);
     }
 
 }
 
-static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
-  int k, endpoints;
-  MIDIEndpointRef endpoint;
-  CFStringRef name = NULL;
-  CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
-  char tmp[64];
-  char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
-  if(isOutput) return 0;
-  endpoints = MIDIGetNumberOfSources();
-  if(list == NULL) return endpoints;
-  for(k=0; k < endpoints; k++) {
-    endpoint = MIDIGetSource(k);
-    MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-    strncpy(list[k].device_name, CFStringGetCStringPtr(name, defaultEncoding), 63);
-    sprintf(tmp, "%d", k);
-    strncpy(list[k].device_id, tmp, 63);
-    list[k].isOutput = isOutput;
-    strcpy(list[k].interface_name, "");
-    strncpy(list[k].midi_module, drv, 63);
-  }
-  if(name) CFRelease(name);
-  return endpoints;
+static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput)
+{
+    int k, endpoints;
+    MIDIEndpointRef endpoint;
+    CFStringRef name = NULL;
+    CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
+    char tmp[64];
+    char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
+    if (isOutput) return 0;
+    endpoints = MIDIGetNumberOfSources();
+    if (list == NULL) return endpoints;
+    for(k=0; k < endpoints; k++) {
+      endpoint = MIDIGetSource(k);
+      MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
+      strncpy(list[k].device_name,
+              CFStringGetCStringPtr(name, defaultEncoding), 63);
+      snprintf(tmp, 64, "%d", k);
+      strncpy(list[k].device_id, tmp, 63);
+      list[k].isOutput = isOutput;
+      strcpy(list[k].interface_name, "");
+      strncpy(list[k].midi_module, drv, 63);
+    }
+    if (name) CFRelease(name);
+    return endpoints;
 }
 
 
@@ -117,15 +119,15 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
     /* MIDI client */
     cname = CFStringCreateWithCString(NULL, "my client", defaultEncoding);
     ret = MIDIClientCreate(cname, NULL, NULL, &mclient);
-    if(!ret){
+    if (!ret){
       /* MIDI input port */
       pname = CFStringCreateWithCString(NULL, "inport", defaultEncoding);
       ret = MIDIInputPortCreate(mclient, pname, ReadProc, refcon, &mport);
-      if(!ret){
+      if (!ret){
         /* sources, we connect to all available input sources */
         endpoints = MIDIGetNumberOfSources();
         csound->Message(csound, Str("%d MIDI sources in system \n"), endpoints);
-        if(!strcmp(dev,"all")) {
+        if (!strcmp(dev,"all")) {
           csound->Message(csound, Str("receiving from all sources \n"));
           for(k=0; k < endpoints; k++){
             endpoint = MIDIGetSource(k);
@@ -138,7 +140,7 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
         }
         else{
           k = atoi(dev);
-          if(k < endpoints){
+          if (k < endpoints){
             endpoint = MIDIGetSource(k);
             long srcRefCon = (long) endpoint;
             MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
@@ -156,9 +158,9 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
     }
     refcon->mclient = mclient;
     *userData = (void*) refcon;
-    if(name) CFRelease(name);
-    if(pname) CFRelease(pname);
-    if(cname) CFRelease(cname);
+    if (name) CFRelease(name);
+    if (pname) CFRelease(pname);
+    if (cname) CFRelease(cname);
     /* report success */
     return 0;
 }
@@ -216,7 +218,7 @@ static int MidiDataRead(CSOUND *csound, void *userData,
     next:
       mdata[*q].flag = 0;
       (*q)++;
-      if(*q==DSIZE) *q = 0;
+      if (*q==DSIZE) *q = 0;
 
     }
 
@@ -228,9 +230,11 @@ static int MidiDataRead(CSOUND *csound, void *userData,
 static int MidiInDeviceClose(CSOUND *csound, void *userData)
 {
     cdata * data = (cdata *)userData;
-    MIDIClientDispose(data->mclient);
-    free(data->mdata);
-    free(data);
+    if (data != NULL) {
+      MIDIClientDispose(data->mclient);
+      free(data->mdata);
+      free(data);
+    }
     return 0;
 }
 

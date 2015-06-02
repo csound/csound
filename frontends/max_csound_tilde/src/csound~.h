@@ -46,6 +46,7 @@ typedef struct _csound
 	void *midi_outlet;		  // An outlet for MIDI data output from Csound.
 	void *message_outlet;	  // An outlet for Csound outvalue lists.
 	float **in, **out;		  // Array of pointers to MSP input/output vectors.
+   	double **in64, **out64;		  // Array of pointers to MSP input/output vectors.
 	void *outputClock;		  // When set, calls csound_outputClockCallback().
 	void *msgClock;           // When set, calls csound_msgClockCallback().
 	t_atom atomList[4];		  // Pre-allocated atomList[] for sending rsidx messages.
@@ -72,6 +73,7 @@ typedef struct _csound
 
 t_int *csound_perform(t_int *w);
 void csound_dsp(t_csound *x, t_signal **sp, short *count);
+void csound_dsp64(t_csound *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);
 void csound_int(t_csound *x, long n);
 void csound_float(t_csound *x, double f);
 void csound_control(t_csound *x, t_symbol *s, short argc, t_atom *argv);

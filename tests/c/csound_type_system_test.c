@@ -38,14 +38,14 @@ void test_type_system(void)
   CU_ASSERT_PTR_NOT_NULL(var);
   //printf("Var type created: %s\n", var->varType->varTypeName);
   
-  csoundAddVariable(varPool, var);
+  csoundAddVariable(csound, varPool, var);
   
-  CS_VARIABLE* var2 = csoundFindVariableWithName(varPool, "a1");
+  CS_VARIABLE* var2 = csoundFindVariableWithName(csound, varPool, "a1");
   CU_ASSERT_PTR_NOT_NULL(var2);
   CU_ASSERT_STRING_EQUAL(var2->varType->varTypeName, "a");
   CU_ASSERT_STRING_EQUAL(var2->varName, "a1");
   
-  CU_ASSERT_PTR_NULL(csoundFindVariableWithName(varPool, "a2"));
+  CU_ASSERT_PTR_NULL(csoundFindVariableWithName(csound, varPool, "a2"));
   
 }
 

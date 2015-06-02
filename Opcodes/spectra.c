@@ -532,15 +532,15 @@ int spdspset(CSOUND *csound, SPECDISP *p)
       SPECDAT *specp = p->wsig;
       DOWNDAT *downp = specp->downsrcp;
       if (downp->lofrq > FL(5.0)) {
-        sprintf(strmsg,
-                Str("instr %d %s, dft (%s), %ld octaves (%d - %d Hz):"),
+        snprintf(strmsg, 256,
+                Str("instr %d %s, dft (%s), %d octaves (%d - %d Hz):"),
                 (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
                 outstring[specp->dbout],
                 downp->nocts, (int)downp->lofrq, (int)downp->hifrq);
       }
       else {                            /* more detail if low frequency  */
-        sprintf(strmsg,
-                Str("instr %d %s, dft (%s), %ld octaves (%3.1f - %3.1f Hz):"),
+        snprintf(strmsg, 256,
+                Str("instr %d %s, dft (%s), %d octaves (%3.1f - %3.1f Hz):"),
                 (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
                 outstring[specp->dbout],
                 downp->nocts, downp->lofrq, downp->hifrq);
@@ -1255,10 +1255,10 @@ static OENTRY spectra_localops[] = {
 { "adsynt",S(HSBOSC), TR, 5,  "a", "kkiiiio", (SUBR)adsyntset, NULL, (SUBR)adsynt },
 { "mpulse", S(IMPULSE), 0, 5,  "a", "kko",
                                     (SUBR)impulse_set, NULL, (SUBR)impulse },
-{ "lpf18", S(LPF18),    0, 5,  "a", "akkko",  (SUBR)lpf18set, NULL, (SUBR)lpf18db },
-{ "waveset", S(BARRI),  0, 5,  "a", "ako",   (SUBR)wavesetset, NULL, (SUBR)waveset},
+{ "lpf18", S(LPF18), 0, 5,  "a", "axxxo",  (SUBR)lpf18set, NULL, (SUBR)lpf18db },
+{ "waveset", S(BARRI), 0, 5,  "a", "ako",  (SUBR)wavesetset, NULL, (SUBR)waveset},
 { "pinkish", S(PINKISH), 0, 5, "a", "xoooo", (SUBR)pinkset, NULL, (SUBR)pinkish },
-{ "noise",  S(VARI),  0, 5,    "a", "xk",   (SUBR)varicolset, NULL, (SUBR)varicol },
+{ "noise",  S(VARI), 0, 5,  "a", "xk",   (SUBR)varicolset, NULL, (SUBR)varicol },
 { "transeg", S(TRANSEG),0, 3,  "k", "iiim",
                                            (SUBR)trnset,(SUBR)ktrnseg, NULL},
 { "transeg.a", S(TRANSEG),0, 5,  "a", "iiim",

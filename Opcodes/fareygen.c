@@ -67,7 +67,7 @@ static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
     char    buf[64];
     va_list args;
 
-    sprintf(buf, Str("ftable %d: "), ff->fno);
+    snprintf(buf, 64, Str("ftable %d: "), ff->fno);
     va_start(args, s);
     csound->ErrMsgV(csound, buf, s, args);
     va_end(args);

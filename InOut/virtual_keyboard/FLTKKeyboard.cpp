@@ -348,9 +348,10 @@ void FLTKKeyboard::handleKey(int key, int value) {
       index += 29;
     }
 
-    if(index < 0) {
-      return;
-    }
+    // This cannot happen
+    //    if(index < 0) {
+    //      return;
+    //}
 
     index = ((octave * 12) + index) - 21;
 

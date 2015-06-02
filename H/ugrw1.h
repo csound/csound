@@ -322,6 +322,15 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
+        MYFLT   *iformat;
+        MYFLT   *val;
+        MYFLT   oldvalue;
+        char    *sarg;
+} PRINTK3;
+
+
+typedef struct {
+        OPDS    h;
         MYFLT   *ndx;
 } IOZ;
 
@@ -348,6 +357,9 @@ int printksset(CSOUND*,PRINTKS *p);
 int printksset_S(CSOUND*,PRINTKS *p);
 int printsset(CSOUND*,PRINTS *p);
 int printsset_S(CSOUND*,PRINTS *p);
+int printk3(CSOUND*,PRINTK3 *p);
+int printk3set(CSOUND*,PRINTK3 *p);
+
 //int tablecopy(CSOUND*,TABLECOPY *p);
 //int tablecopyset(CSOUND*,TABLECOPY *p);
 //int tablegpw(CSOUND*,TABLEGPW *p);

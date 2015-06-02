@@ -165,6 +165,17 @@
 #  include <intrin.h> /* for _InterlockedExchange */
 #endif
 
+#if defined(__MACH__)
+// on OSX 10.6 i386 does not have all builtins
+ #if defined(MAC_OS_X_VERSION_10_6)
+  #ifdef HAVE_ATOMIC_BUILTIN
+   #ifndef __x86_64__
+    #undef HAVE_ATOMIC_BUILTIN
+   #endif
+  #endif
+ #endif
+#endif
+
 /**
  * Enables Python interface.
  */
@@ -172,6 +183,7 @@
 #ifdef SWIG
 #define CS_PRINTF2
 #define CS_PRINTF3
+#include "float-version.h"
 #ifndef __MYFLT_DEF
 #define __MYFLT_DEF
 #ifndef USE_DOUBLE
@@ -180,7 +192,7 @@
 #define MYFLT double
 #endif
 #endif
-%module csnd
+%module csnd6
 %{
 #  include "sysdep.h"
 #  include "text.h"
@@ -375,8 +387,7 @@ extern "C" {
     int     number_of_threads;   /* number of threads for multicore performance */
     int     syntax_check_only;   /* do not compile, only check syntax */
     int     csd_line_counts;     /* csd line error reporting */
-    int     compute_weights;     /* use calculated opcode weights for
-                                    multicore, 0 or 1  */
+    int     compute_weights;     /* deprecated, kept for backwards comp.  */
     int     realtime_mode;       /* use realtime priority mode, 0 or 1 */
     int     sample_accurate;     /* use sample-level score event accuracy */
     MYFLT   sample_rate_override; /* overriding sample rate */
@@ -384,6 +395,7 @@ extern "C" {
     int     nchnls_override;  /* overriding number of out channels */
     int     nchnls_i_override;  /* overriding number of in channels */
     MYFLT   e0dbfs_override;   /* overriding 0dbfs */
+    int     daemon;  /* daemon mode */
   } CSOUND_PARAMS;
 
     /**
@@ -471,7 +483,7 @@ extern "C" {
         int           rate;
         int           len;
         int           line;
-        int           locn;
+        uint64_t      locn;
         struct TREE   *left;
         struct TREE   *right;
         struct TREE   *next;
@@ -642,6 +654,9 @@ extern "C" {
     /**
      * Prepares Csound for performance after compilation
      * using one or more of the above functions.
+     * NB: this is called internally by csoundCompile(), therefore
+     * it is only required if performance is started without
+     * a call to that function
      */
     PUBLIC int csoundStart(CSOUND *csound);
 
@@ -661,6 +676,24 @@ extern "C" {
      *  Calls csoundStart() internally.
      */
     PUBLIC int csoundCompile(CSOUND *, int argc, char **argv);
+
+    /**
+     * Compiles a Csound input file (.csd file)
+     * which includes command-line arguments,
+     * but does not perform the file. Returns a non-zero error code on failure.
+     * In this (host-driven) mode, the sequence of calls should be as follows:
+     * /code
+     *       csoundCompileCsd(csound, argc, argv);
+     *       while (!csoundPerformBuffer(csound));
+     *       csoundCleanup(csound);
+     *       csoundReset(csound);
+     * /endcode
+     * NB: this function can be called during performance to
+     * replace or add new instruments and events.
+     *
+     */
+
+    PUBLIC int csoundCompileCsd(CSOUND *csound, char *str);
 
     /**
      * Senses input events and performs audio output until the end of score
@@ -1002,7 +1035,7 @@ extern "C" {
       *       malloc(n*sizeof(CS_AUDIODEVICE));
       *   csoundGetAudioDevList(csound,devs,1);
       *   for(i=0; i < n; i++)
-      *       csound-Message(csound, " %d: %s (%s)\n",
+      *       csound->Message(csound, " %d: %s (%s)\n",
       *             i, devs[i].device_id, devs[i].device_name);
       *   free(devs);
       * \endcode
@@ -1152,7 +1185,7 @@ extern "C" {
      *  It can be called repeatedly, with the new score events
      *  being added to the currently scheduled ones.
      */
-    PUBLIC int csoundReadScore(CSOUND *csound, char *str);
+    PUBLIC int csoundReadScore(CSOUND *csound, const char *str);
 
     /**
      * Returns the current score time in seconds
@@ -2163,7 +2196,7 @@ extern "C" {
   * void *out - preallocated buffer with at least items number of elements, where
   *              buffer contents will be read into
   * int items - number of samples to be read
-  * returns the actual number of samples read (0 <= n <= items)
+  * returns the actual number of items read (0 <= n <= items)
   */
   PUBLIC int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
                                       void *out, int items);
@@ -2174,7 +2207,7 @@ extern "C" {
    * void *out - preallocated buffer with at least items number of elements, where
    *              buffer contents will be read into
    * int items - number of samples to be read
-   * returns the actual number of samples read (0 <= n <= items)
+   * returns the actual number of items read (0 <= n <= items)
    */
    PUBLIC int csoundPeekCircularBuffer(CSOUND *csound, void *circular_buffer,
                                        void *out, int items);

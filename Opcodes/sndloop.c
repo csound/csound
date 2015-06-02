@@ -419,8 +419,9 @@ static int flooper2_init(CSOUND *csound, flooper2 *p)
       }
       p->init = 1;
       p->firsttime = 1;
+      p->cfade = 1;
     }
-
+    
     return OK;
 }
 
@@ -480,7 +481,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
       p->lend = loop_end =   loop_end > len ? len :
         (loop_end < loop_start ? loop_start : loop_end);
       loopsize = loop_end - loop_start;
-      crossfade = (int) (*p->crossfade*sr);
+      if(*p->crossfade > 0.0)
+       crossfade = (int) (*p->crossfade*sr);
       p->ostart = *p->loop_start; p->oend = *p->loop_end;
 
       if (mode == 1) {
@@ -544,7 +546,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           p->lend = loop_end =   loop_end > len ? len :
             (loop_end < loop_start ? loop_start : loop_end);
           loopsize = loop_end - loop_start;
-          crossfade = (int) (*p->crossfade*sr);
+          if(*p->crossfade > 0.0)
+           crossfade = (int) (*p->crossfade*sr);
           p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
           ndx[0] = ndx[1];
           ndx[1] =  (double)loop_end;
@@ -626,7 +629,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
             p->lend = loop_end =   loop_end > len ? len :
               (loop_end < loop_start ? loop_start : loop_end);
             loopsize = loop_end - loop_start;
-            crossfade = (int) (*p->crossfade*sr);
+            if(*p->crossfade > 0.0)
+              crossfade = (int) (*p->crossfade*sr);
             p->cfade = crossfade = crossfade > loopsize/2 ?
               loopsize/2-1 : crossfade;
             p->oend = *p->loop_end;
@@ -670,7 +674,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           p->lend = loop_end =   loop_end > len ? len :
             (loop_end < loop_start ? loop_start : loop_end);
           loopsize = loop_end - loop_start;
-          crossfade = (int) (*p->crossfade*sr);
+          if(*p->crossfade > 0.0)
+            crossfade = (int) (*p->crossfade*sr);
           p->cfade = crossfade = crossfade > loopsize ? loopsize-1 : crossfade;
           ndx[0] = ndx[1];
           ndx[1] = (double)loop_start;

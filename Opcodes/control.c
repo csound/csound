@@ -163,7 +163,8 @@ static void readvalues(CONTROL_GLOBALS *p)
         printf("Failed to read from child");
         return;
       }
-      if (n > 0) p->values[n] = val;
+      if (n>p->max_sliders);    /* ignore error case */
+      else if (n > 0) p->values[n] = val;
       else if (n == 0) p->buttons[val] = 1;
       else p->checks[-n] = val;
       tv.tv_sec = 0;

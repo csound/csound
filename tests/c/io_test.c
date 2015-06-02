@@ -144,6 +144,118 @@ void test_keyboard_io(void)
     csoundDestroy(csound);
 }
 
+
+void test_audio_modules(void)
+{
+    CSOUND  *csound;
+    csound = csoundCreate(NULL);
+    char *name, *type;
+    int n = 0;
+
+    while(!csoundGetModule(csound, n++, &name, &type)) {
+        if (strcmp(type, "audio") == 0) {
+            const char  *instrument =
+                    "ksmps = 256\n"
+                    "instr 1 \n"
+                    "asig oscil 0.1, 440\n"
+                    "out asig\n"
+                    "endin \n";
+            csoundSetOption(csound, "-B4096");
+            csoundCompileOrc(csound, instrument);
+            csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
+            csoundSetRTAudioModule(csound, name);
+            csoundSetOutput(csound, "dac", NULL, NULL);
+            int ret = csoundStart(csound);
+            if (strcmp(name, "jack") != 0) { // Jack module would fail this test if jack is not running
+              CU_ASSERT(ret == 0);
+            }
+            if (ret == 0) {
+              ret = csoundPerform(csound);
+              CU_ASSERT(ret > 0);
+            }
+            csoundReset(csound);
+        }
+    }
+
+}
+
+void test_audio_hostbased(void)
+{
+    CSOUND  *csound;
+    csound = csoundCreate(NULL);
+    const char  *instrument =
+            "ksmps = 256\n"
+            "instr 1 \n"
+            "asig oscil 0.1, 440\n"
+            "out asig\n"
+            "endin \n";
+    csoundSetOption(csound, "-B4096");
+    csoundCompileOrc(csound, instrument);
+    csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
+//    csoundSetRTAudioModule(csound, "hostbased");
+    csoundSetHostImplementedAudioIO(csound, 1, 256);
+    csoundSetOutput(csound, "dac", NULL, NULL);
+    int ret = csoundStart(csound);
+    CU_ASSERT(ret == 0);
+    ret = csoundPerform(csound);
+    CU_ASSERT(ret > 0);
+    csoundReset(csound);
+}
+
+
+void test_midi_modules(void)
+{
+    CSOUND  *csound;
+    csound = csoundCreate(NULL);
+    char *name, *type;
+    int n = 0;
+
+    while(!csoundGetModule(csound, n++, &name, &type)) {
+        if (strcmp(type, "midi") == 0) {
+            const char  *instrument =
+                    "ksmps = 256\n"
+                    "instr 1 \n"
+                    "asig oscil 0.1, 440\n"
+                    "out asig\n"
+                    "endin \n";
+            csoundSetOption(csound, "-B4096");
+            csoundCompileOrc(csound, instrument);
+            csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
+            csoundSetMIDIModule(csound, name);
+            csoundSetOutput(csound, "dac", NULL, NULL);
+            int ret = csoundStart(csound);
+            CU_ASSERT(ret == 0);
+            ret = csoundPerform(csound);
+            CU_ASSERT(ret > 0);
+            csoundReset(csound);
+        }
+    }
+}
+
+void test_midi_hostbased(void)
+{
+    CSOUND  *csound;
+    csound = csoundCreate(NULL);
+    const char  *instrument =
+            "ksmps = 256\n"
+            "instr 1 \n"
+            "asig oscil 0.1, 440\n"
+            "out asig\n"
+            "endin \n";
+    csoundSetOption(csound, "-B4096");
+    csoundCompileOrc(csound, instrument);
+    csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
+//    csoundSetMIDIModule(csound, "hostbased");
+    csoundSetHostImplementedMIDIIO(csound, 1);
+    csoundSetOutput(csound, "dac", NULL, NULL);
+    int ret = csoundStart(csound);
+    CU_ASSERT(ret == 0);
+    ret = csoundPerform(csound);
+    CU_ASSERT(ret > 0);
+    csoundReset(csound);
+}
+
+
 int main(int argc, char **argv)
 {
     CU_pSuite pSuite = NULL;
@@ -162,6 +274,10 @@ int main(int argc, char **argv)
     /* add the tests to the suite */
     if ((NULL == CU_add_test(pSuite, "Device Listing", test_dev_list))
             || (NULL == CU_add_test(pSuite, "Keyboard IO", test_keyboard_io))
+            || (NULL == CU_add_test(pSuite, "Audio Modules", test_audio_modules))
+            || (NULL == CU_add_test(pSuite, "Audio Hostbased", test_audio_hostbased))
+            || (NULL == CU_add_test(pSuite, "MIDI Modules", test_midi_modules))
+            || (NULL == CU_add_test(pSuite, "MIDI Hostbased", test_midi_hostbased))
         )
     {
        CU_cleanup_registry();

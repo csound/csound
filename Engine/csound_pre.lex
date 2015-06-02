@@ -39,7 +39,8 @@ void do_macro(CSOUND *, char *, yyscan_t);
 void do_umacro(CSOUND *, char *, yyscan_t);
 void do_ifdef(CSOUND *, char *, yyscan_t);
 void do_ifdef_skip_code(CSOUND *, yyscan_t);
-// static void print_csound_predata(CSOUND *,char *,yyscan_t);
+void do_function(char *, CORFIL*);
+   // static void print_csound_predata(CSOUND *,char *,yyscan_t);
 void csound_pre_line(CORFIL*, yyscan_t);
 
 #include "parse_param.h"
@@ -48,7 +49,10 @@ void csound_pre_line(CORFIL*, yyscan_t);
 #define PARM    yyget_extra(yyscanner)
 
 #define YY_USER_INIT {csound_pre_scan_string(csound->orchstr->body, yyscanner); \
-    csound_preset_lineno(csound->orcLineOffset, yyscanner); yyg->yy_flex_debug_r=1;}
+    csound_preset_lineno(csound->orcLineOffset, yyscanner);             \
+    yyg->yy_flex_debug_r=1; PARM->macro_stack_size = 0;                 \
+    PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
+  }
 %}
 %option reentrant
 %option noyywrap
@@ -56,7 +60,6 @@ void csound_pre_line(CORFIL*, yyscan_t);
 %option outfile="Engine/csound_prelex.c"
 %option stdout
 
-WHITE           ^[ \t]*
 NEWLINE         (\n|\r\n?)
 STSTR           \"
 ESCAPE          \\.
@@ -77,14 +80,89 @@ IFDEF           #ifn?def
 ELSE            #else[ \t]*(;.*)?$
 END             #end(if)?[ \t]*(;.*)?(\n|\r\n?)
 CONT            \\[ \t]*(;.*)?(\n|\r\n?)
+RESET           "###\n"
 
-%x incl
+INT             "int"[ \t]*\(
+FRAC		"frac"[ \t]*\(
+ROUND		"round"[ \t]*\(
+FLOOR		"floor"[ \t]*\(
+CEIL		"ceil"[ \t]*\(
+RND		"rnd"[ \t]*\(
+BIRND		"birnd"[ \t]*\(
+ABS		"abs"[ \t]*\(
+EXP		"exp"[ \t]*\(
+LOG		"log"[ \t]*\(
+SQRT		"sqrt"[ \t]*\(
+SIN		"sin"[ \t]*\(
+COS		"cos"[ \t]*\(
+TAN		"tan"[ \t]*\(
+SININV		"sininv"[ \t]*\(
+COSINV		"cosinv"[ \t]*\(
+TANINV		"taninv"[ \t]*\(
+LOG10		"log10"[ \t]*\(
+LOG2		"log2"[ \t]*\(
+SINH		"sinh"[ \t]*\(
+COSH		"cosh"[ \t]*\(
+TANH		"tanh"[ \t]*\(
+AMPDB		"ampdb"[ \t]*\(
+AMPDBFS		"ampdbfs"[ \t]*\(
+DBAMP		"dbamp"[ \t]*\(
+DBFSAMP		"dbfsamp"[ \t]*\(
+FTCPS		"ftcps"[ \t]*\(
+FTLEN		"ftlen"[ \t]*\(
+FTSR		"ftsr"[ \t]*\(
+FTLPTIM		"ftlptim"[ \t]*\(
+FTCHNLS		"ftchnls"[ \t]*\(
+I		"i"[ \t]*\(
+K		"k"[ \t]*\(
+CPSOCT		"cpsoct"[ \t]*\(
+OCTPCH		"octpch"[ \t]*\(
+CPSPCH		"cpspch"[ \t]*\(
+PCHOCT		"pchoct"[ \t]*\(
+OCTCPS		"octcps"[ \t]*\(
+NSAMP		"nsamp"[ \t]*\(
+POWOFTWO	"powoftwo"[ \t]*\(
+LOGBTWO		"logbtwo"[ \t]*\(
+A		"a"[ \t]*\(
+TB0		"tb0"[ \t]*\(
+TB1		"tb1"[ \t]*\(
+TB2		"tb2"[ \t]*\(
+TB3		"tb3"[ \t]*\(
+TB4		"tb4"[ \t]*\(
+TB5		"tb5"[ \t]*\(
+TB6		"tb6"[ \t]*\(
+TB7		"tb7"[ \t]*\(
+TB8		"tb8"[ \t]*\(
+TB9		"tb9"[ \t]*\(
+TB10		"tb10"[ \t]*\(
+TB11		"tb11"[ \t]*\(
+TB12		"tb12"[ \t]*\(
+TB13		"tb13"[ \t]*\(
+TB14		"tb14"[ \t]*\(
+TB15		"tb15"[ \t]*\(
+URD		"urd"[ \t]*\(
+NOT		"not"[ \t]*\(
+CENT		"cent"[ \t]*\(
+OCTAVE		"octave"[ \t]*\(
+SEMITONE	"semitone"[ \t]*\(
+CPSMIDIN	"cpsmidinn"[ \t]*\(
+OCTMIDIN	"octmidinn"[ \t]*\(
+PCHMIDIN	"pchmidinn"[ \t]*\(
+DB		"db"[ \t]*\(
+P		"p"[ \t]*\(
+QINF		"qinf"[ \t]*\(
+QNAN		"qnan"[ \t]*\(
+
+%X incl
 %x macro
 %x umacro
 %x ifdef
 
 %%
 
+{RESET}         { csound_preset_lineno(csound->orcLineOffset, yyscanner);
+                  csound->Free(csound, PARM->alt_stack);
+                }
 {CONT}          { csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
                 }
@@ -171,8 +249,13 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                    /*         yytext+1, PARM->macro_stack_ptr); */
                    /* print_csound_predata(csound, "macro found", yyscanner); */
                    /* ??fiddle with buffers I guess */
-                   if (UNLIKELY(PARM->macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
-                     csound->Die(csound, Str("Includes nested too deeply"));
+                   if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+                     PARM->alt_stack =
+                       (MACRON*)
+                       csound->ReAlloc(csound, PARM->alt_stack,
+                                       sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     csound->DebugMsg(csound, "alt_stack now %d long\n",
+                                      PARM->macro_stack_size);
                    }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
@@ -202,9 +285,13 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                    }
                    /* Need to read from macro definition */
                    /* ??fiddle with buffers I guess */
-                   if (UNLIKELY(PARM->macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
-                     csound->Message(csound, Str("Includes nested too deeply\n"));
-                     exit(1);
+                   if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+                     PARM->alt_stack =
+                       (MACRON*)
+                       csound->ReAlloc(csound, PARM->alt_stack,
+                                       sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     csound->DebugMsg(csound, "alt_stack now %d long\n",
+                                      PARM->macro_stack_size);
                    }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
@@ -266,11 +353,14 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                      PARM->macros = nn;
                    }
                    /* csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body); */
-                   if (UNLIKELY(PARM->macro_stack_ptr >= MAX_INCLUDE_DEPTH )) {
-                     csound->Message(csound,
-                                     Str("macro_stack_ptr beyond end: %d \n"),
-                                     PARM->macro_stack_ptr);
-                     exit(1);
+                   if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+                     PARM->alt_stack =
+                       (MACRON*)
+                       csound->ReAlloc(csound, PARM->alt_stack,
+                                       sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     csound->DebugMsg(csound,
+                                      "macro_stack extends alt_stack to %d long\n",
+                                      PARM->macro_stack_size);
                    }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = PARM->macros->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
@@ -289,10 +379,12 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                    MACRO     *mm = PARM->macros;
                    char      *mname;
                    int c, i, j;
-                   /* csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext); */
+                   /* csound->DebugMsg(csound,"Macro with arguments call %s\n",
+                                       yytext); */
                    yytext[yyleng-2] = '\0';
                    while (mm != NULL) {  /* Find the definition */
-                     csound->DebugMsg(csound,"Check %s against %s\n", yytext+1, mm->name);
+                     csound->DebugMsg(csound,"Check %s against %s\n",
+                                      yytext+1, mm->name);
                      if (!(strcmp(yytext+1, mm->name)))
                        break;
                      mm = mm->next;
@@ -334,6 +426,14 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                      PARM->macros = nn;
                    }
                    csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
+                   if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+                     PARM->alt_stack =
+                       (MACRON*)
+                       csound->ReAlloc(csound, PARM->alt_stack,
+                                       sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     csound->DebugMsg(csound, "alt_stack now %d long\n",
+                                      PARM->macro_stack_size);
+                   }
                    PARM->alt_stack[PARM->macro_stack_ptr].n = PARM->macros->acnt;
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
                    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
@@ -366,22 +466,33 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 <<EOF>>         {
                   MACRO *x, *y=NULL;
                   int n;
-                  csound->DebugMsg(csound,"*********Leaving buffer %p\n", YY_CURRENT_BUFFER);
+                  csound->DebugMsg(csound,"*********Leaving buffer %p\n",
+                                   YY_CURRENT_BUFFER);
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
                   if (UNLIKELY(PARM->depth > 1024))
                     csound->Die(csound, Str("unexpected EOF"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
-                  csound->DebugMsg(csound,"%s(%d): loc=%d; lastloc=%d\n", __FILE__, __LINE__,
+                  csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n",
+                                   __FILE__, __LINE__,
                          PARM->llocn, PARM->locn);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   /* csound->DebugMsg(csound,"End of input; popping to %p\n", */
                   /*         YY_CURRENT_BUFFER); */
                   csound_pre_line(csound->expanded_orc, yyscanner);
+                  if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+                     PARM->alt_stack =
+                       (MACRON*)
+                       csound->ReAlloc(csound, PARM->alt_stack,
+                                       sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     csound->DebugMsg(csound, "alt_stack now %d long\n",
+                                      PARM->macro_stack_size);
+                  }
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  csound->DebugMsg(csound,"%s(%d): line now %d at %d\n", __FILE__, __LINE__,
+                  csound->DebugMsg(csound,"%s(%d): line now %d at %d\n",
+                                   __FILE__, __LINE__,
                          csound_preget_lineno(yyscanner), PARM->macro_stack_ptr);
                   /* csound->DebugMsg(csound,"n=%d\n", n); */
                   if (n!=0) {
@@ -419,8 +530,10 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 <macro>[ \t]*    /* eat the whitespace */
 <macro>{MACRO}  {
                   yytext[yyleng-1] = '\0';
-                  /* csound->DebugMsg(csound,"Define macro with args %s\n", yytext); */
-                  /* print_csound_predata(csound, "Before do_macro_arg", yyscanner); */
+                  /* csound->DebugMsg(csound,"Define macro with args %s\n",
+                                      yytext); */
+                  /* print_csound_predata(csound, "Before do_macro_arg",
+                                          yyscanner); */
                   do_macro_arg(csound, yytext, yyscanner);
                   //print_csound_predata(csound,"After do_macro_arg", yyscanner);
                   BEGIN(INITIAL);
@@ -501,7 +614,79 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                   else {
                     corfile_puts(yytext, csound->expanded_orc);
                   }
-                }
+}
+{IDENT}         { corfile_puts(yytext,csound->expanded_orc); }
+{INT}     	{ do_function(yytext,csound->expanded_orc); }
+{FRAC}		{ do_function(yytext,csound->expanded_orc); }
+{ROUND}		{ do_function(yytext,csound->expanded_orc); }
+{FLOOR}		{ do_function(yytext,csound->expanded_orc); }
+{CEIL}		{ do_function(yytext,csound->expanded_orc); }
+{RND}		{ do_function(yytext,csound->expanded_orc); }
+{BIRND}		{ do_function(yytext,csound->expanded_orc); }
+{ABS}		{ do_function(yytext,csound->expanded_orc); }
+{EXP}		{ do_function(yytext,csound->expanded_orc); }
+{LOG}		{ do_function(yytext,csound->expanded_orc); }
+{SQRT}		{ do_function(yytext,csound->expanded_orc); }
+{SIN}		{ do_function(yytext,csound->expanded_orc); }
+{COS}		{ do_function(yytext,csound->expanded_orc); }
+{TAN}		{ do_function(yytext,csound->expanded_orc); }
+{SININV}	{ do_function(yytext,csound->expanded_orc); }
+{COSINV}	{ do_function(yytext,csound->expanded_orc); }
+{TANINV}	{ do_function(yytext,csound->expanded_orc); }
+{LOG10}		{ do_function(yytext,csound->expanded_orc); }
+{LOG2}		{ do_function(yytext,csound->expanded_orc); }
+{SINH}		{ do_function(yytext,csound->expanded_orc); }
+{COSH}		{ do_function(yytext,csound->expanded_orc); }
+{TANH}		{ do_function(yytext,csound->expanded_orc); }
+{AMPDB}		{ do_function(yytext,csound->expanded_orc); }
+{AMPDBFS}	{ do_function(yytext,csound->expanded_orc); }
+{DBAMP}		{ do_function(yytext,csound->expanded_orc); }
+{DBFSAMP}	{ do_function(yytext,csound->expanded_orc); }
+{FTCPS}		{ do_function(yytext,csound->expanded_orc); }
+{FTLEN}		{ do_function(yytext,csound->expanded_orc); }
+{FTSR}		{ do_function(yytext,csound->expanded_orc); }
+{FTLPTIM}	{ do_function(yytext,csound->expanded_orc); }
+{FTCHNLS}	{ do_function(yytext,csound->expanded_orc); }
+{I}		{ do_function(yytext,csound->expanded_orc); }
+{K}		{ do_function(yytext,csound->expanded_orc); }
+{CPSOCT}	{ do_function(yytext,csound->expanded_orc); }
+{OCTPCH}	{ do_function(yytext,csound->expanded_orc); }
+{CPSPCH}	{ do_function(yytext,csound->expanded_orc); }
+{PCHOCT}	{ do_function(yytext,csound->expanded_orc); }
+{OCTCPS}	{ do_function(yytext,csound->expanded_orc); }
+{NSAMP}		{ do_function(yytext,csound->expanded_orc); }
+{POWOFTWO}	{ do_function(yytext,csound->expanded_orc); }
+{LOGBTWO}	{ do_function(yytext,csound->expanded_orc); }
+{A}		{ do_function(yytext,csound->expanded_orc); }
+{TB0}		{ do_function(yytext,csound->expanded_orc); }
+{TB1}		{ do_function(yytext,csound->expanded_orc); }
+{TB2}		{ do_function(yytext,csound->expanded_orc); }
+{TB3}		{ do_function(yytext,csound->expanded_orc); }
+{TB4}		{ do_function(yytext,csound->expanded_orc); }
+{TB5}		{ do_function(yytext,csound->expanded_orc); }
+{TB6}		{ do_function(yytext,csound->expanded_orc); }
+{TB7}		{ do_function(yytext,csound->expanded_orc); }
+{TB8}		{ do_function(yytext,csound->expanded_orc); }
+{TB9}		{ do_function(yytext,csound->expanded_orc); }
+{TB10}		{ do_function(yytext,csound->expanded_orc); }
+{TB11}		{ do_function(yytext,csound->expanded_orc); }
+{TB12}		{ do_function(yytext,csound->expanded_orc); }
+{TB13}		{ do_function(yytext,csound->expanded_orc); }
+{TB14}		{ do_function(yytext,csound->expanded_orc); }
+{TB15}		{ do_function(yytext,csound->expanded_orc); }
+{URD}		{ do_function(yytext,csound->expanded_orc); }
+{NOT}		{ do_function(yytext,csound->expanded_orc); }
+{CENT}		{ do_function(yytext,csound->expanded_orc); }
+{OCTAVE}	{ do_function(yytext,csound->expanded_orc); }
+{SEMITONE}	{ do_function(yytext,csound->expanded_orc); }
+{CPSMIDIN}	{ do_function(yytext,csound->expanded_orc); }
+{OCTMIDIN}	{ do_function(yytext,csound->expanded_orc); }
+{PCHMIDIN}	{ do_function(yytext,csound->expanded_orc); }
+{DB}		{ do_function(yytext,csound->expanded_orc); }
+{P}		{ do_function(yytext,csound->expanded_orc); }
+{QINF}		{ do_function(yytext,csound->expanded_orc); }
+{QNAN}		{ do_function(yytext,csound->expanded_orc); }
+
 .               { corfile_putc(yytext[0], csound->expanded_orc); }
 
 %%
@@ -581,19 +766,28 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       csound->Die(csound, Str("Includes nested too deeply"));
     }
     csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
-    csound->DebugMsg(csound,"line %d at end of #include line\n", csound_preget_lineno(yyscanner));
+    csound->DebugMsg(csound,"line %d at end of #include line\n",
+                     csound_preget_lineno(yyscanner));
     {
       uint8_t n = file_to_int(csound, buffer);
-      char bb[16];
+      char bb[128];
       PARM->lstack[PARM->depth] = n;
-      sprintf(bb, "#source %d\n", PARM->locn = make_location(PARM));
+      sprintf(bb, "#source %llud\n", PARM->locn = make_location(PARM));
       PARM->llocn = PARM->locn;
       corfile_puts(bb, csound->expanded_orc);
     }
+    csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (cf == NULL)
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
+    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+      PARM->alt_stack =
+        (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
+                                  sizeof(MACRON)*(PARM->macro_stack_size+=10));
+      csound->DebugMsg(csound, "alt_stack now %d long, \n",
+                       PARM->macro_stack_size);
+    }
     csound->DebugMsg(csound,"%s(%d): stacking line %d at %d\n", __FILE__, __LINE__,
            csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
@@ -903,12 +1097,12 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
     int n = csound_preget_lineno(yyscanner);
     /* This assumes that the initial line was not written with this system  */
     if (cf->body[cf->p-1]=='\n') {
-      int locn = PARM->locn;
-      int llocn = PARM->llocn;
+      uint64_t locn = PARM->locn;
+      uint64_t llocn = PARM->llocn;
       if (locn != llocn) {
-      char bb[80];
-      sprintf(bb, "#source %d\n", locn);
-      corfile_puts(bb, cf);
+        char bb[80];
+        sprintf(bb, "#source %llud\n", locn);
+        corfile_puts(bb, cf);
       }
       PARM->llocn = locn;
       if (n!=PARM->line+1) {
@@ -920,6 +1114,17 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
     PARM->line = n;
 }
 
+void do_function(char *text, CORFIL *cf)
+{
+    char *p = text;
+    //printf("do_function on >>%s<<\n", text);
+    while (*p != '\0') {
+      if (!isspace(*p)) corfile_putc(*p, cf);
+      p++;
+    }
+    return;
+}
+ 
 #if 0
 static void print_csound_predata(CSOUND *csound, char *mesg, void *yyscanner)
 {

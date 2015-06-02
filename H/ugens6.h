@@ -155,6 +155,7 @@ int del1set(CSOUND *, DELAY1 *p);
 int delay1(CSOUND *, DELAY1 *p);
 int cmbset(CSOUND *, COMB *p);
 int comb(CSOUND *, COMB *p);
+int invcomb(CSOUND *, COMB *p);
 int alpass(CSOUND *, COMB *p);
 void reverbinit(CSOUND *);
 int rvbset(CSOUND *, REVERB *p);

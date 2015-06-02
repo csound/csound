@@ -655,8 +655,8 @@ void VSTPlugin::Init()
 {
     size_t i;
     Debug("VSTPlugin::Init.\n");
-    framesPerSecond = (size_t) ((long) (csound->esr + FL(0.5)));
-    framesPerBlock = csound->ksmps;
+    framesPerSecond = (size_t) ((long) (csound->GetSr(csound) + FL(0.5)));
+    framesPerBlock = csound->GetKsmps(csound);
     Log("VSTPlugin::Init framesPerSecond %d framesPerBlock %d "
         "channels %d in / %d out.\n",
         framesPerSecond, framesPerBlock, getNumInputs(), getNumOutputs());
@@ -926,7 +926,7 @@ VstTimeInfo *VSTPlugin::GetTime(void)
 {
     Debug("VSGPlugin::GetTime().\n");
     if (csound)
-      vstTimeInfo.samplePos = csound->icurTime;
+      vstTimeInfo.samplePos = csound->GetCurrentTimeSamples(csound);
     else
       vstTimeInfo.samplePos = 0;
     vstTimeInfo.sampleRate = framesPerSecond;

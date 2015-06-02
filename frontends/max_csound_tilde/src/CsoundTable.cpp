@@ -20,6 +20,9 @@
     License along with this software; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+#if defined(__MACH__)
+#include <CoreServices/CoreServices.h>
+#endif
 
 #include "CsoundTable.h"
 #include "buffer.h"	// Leave this out of CsoundTable.h; it causes conflicts with boost/max header combo.

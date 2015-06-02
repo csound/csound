@@ -127,6 +127,8 @@ static char set_output_format(CSOUND *csound, char c, char outformch, OPARMS *op
       oparms->outformat = AE_FLOAT; /* float sndfile (for rescaling) */
       break;
     default:
+      oparms->outformat = 0;
+      csound->ErrorMsg(csound, Str("srconv: unknown outout format '%c'\n"), c);
       return outformch; /* do nothing */
     };
     return c;
@@ -199,7 +201,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       tvflg = 0,                /* flag for time-varying time-scaling */
       tvnxt = 0,                /* counter for stepping thru time-var func */
       tvlen,                    /* length of time-varying function */
-      Chans = 0,                /* number of channels */
+      Chans = 1,                /* number of channels */
       chan,                     /* current channel */
       Q = 2;                    /* quality factor */
 
@@ -228,7 +230,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       else if (strcmp(envoutyp, "IRCAM") == 0)
         O.filetyp = TYP_IRCAM;
       else {
-        sprintf(err_msg, Str("%s not a recognized SFOUTYP env setting"),
+        snprintf(err_msg, 256, Str("%s not a recognized SFOUTYP env setting"),
                 envoutyp);
         dieu(csound, err_msg);
         return -1;
@@ -321,7 +323,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             FIND(Str("No break file"))
             tvflg = 1;
             bfile = s;
-            while ((*s++)); s--;
+            while ((*s++)) {}; s--;
             break;
           default:
             csound->Message(csound, Str("Looking at %c\n"), c);
@@ -377,6 +379,10 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       (void) csound->CreateFileHandle(csound, &tvfp, CSFILE_STD, bfile);
       if (UNLIKELY(fscanf(tvfp, "%d", &tvlen) != 1))
         csound->Message(csound, Str("Read failure\n"));
+      if(tvlen == 0) {
+            strncpy(err_msg, Str("srconv: tvlen = 0 "), 256);
+            goto err_rtn_msg;
+       }
       fxval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
       fyval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
       i0 = fxval;
@@ -463,7 +469,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       if (strcmp(O.outfilename, "stdout") != 0) {
         name = csound->FindOutputFile(csound, O.outfilename, "SFDIR");
         if (name == NULL) {
-          sprintf(err_msg, Str("cannot open %s."), O.outfilename);
+          snprintf(err_msg, 256, Str("cannot open %s."), O.outfilename);
           goto err_rtn_msg;
         }
         outfd = sf_open(name, SFM_WRITE, &sfinfo);
@@ -477,7 +483,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       else
         outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 1);
       if (outfd == NULL) {
-        sprintf(err_msg, Str("cannot open %s."), O.outfilename);
+        snprintf(err_msg, 256, Str("cannot open %s."), O.outfilename);
         goto err_rtn_msg;
       }
       /* register file to be closed by csoundReset() */

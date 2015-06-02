@@ -2,6 +2,9 @@
 Author: Steven Yi
 Last updated: 2011-11-19
 
+These scripts can be useful if you need to build dependencies from source. There might be easier alternatives like using
+package managers like homebrew/macports on OS X or the system package manager on Linux systems.
+
 [About the Scripts]
 
 Included are two scripts:
@@ -24,3 +27,4 @@ To build the dependencies, the following are required to install:
 [Notes]
 
 * Boost is only downloaded and unpacked.  This is because the parts of boost that Csound has dependencies on are header-only dependencies and do not require linking to any libraries.  One can modify their custom.py or Custom.cmake to include this directory to have boost found. 
+

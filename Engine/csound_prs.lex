@@ -1,40 +1,4 @@
-%{
-
- /*
-    csound_prs.l:
-
-    Copyright (C) 2013
-    John ffitch
-
-    This file is part of Csound.
-
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
-
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
-*/
-
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include "csoundCore.h"
-#include "corfile.h"
-#include "score_param.h"
-
-#define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
-static void comment(yyscan_t);
-static void do_comment(yyscan_t);
+_comment(yyscan_t);
 static void do_include(CSOUND *, int, yyscan_t);
 static void do_macro_arg(CSOUND *, char *, yyscan_t);
 static void do_macro(CSOUND *, char *, yyscan_t);
@@ -590,7 +554,8 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       PARM->llocn = PARM->locn;
       corfile_puts(bb, csound->expanded_sco);
     }
-    cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
+    if (strstr(buffer, "://")) return cf = copyurl_corefile(csound, buffer, 1);
+    else                       cf = copy_to_corefile(csound, buffer, "INCDIR", 1);
     if (cf == NULL)
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);

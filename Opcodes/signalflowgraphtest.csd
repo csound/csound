@@ -1,79 +1,130 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -m255 -RWfo signalflowgraphtest.wav
+; Select audio/midi flags here according to platform
+; Audio out   Audio in    No messages
+-odac
+; For Non-realtime ouput leave only the line below:
+; -o madsr.wav -W ;;; for file output any platform
 </CsOptions>
 <CsInstruments>
 
-sr = 44100
-ksmps = 128
+/* Written by Michael Gogins */
+; Initialize the global variables.
+sr = 48000
+ksmps = 100
 nchnls = 2
-0dbfs = 1
 
-alwayson "baz"
-alwayson "masterout"
+; Connect up the instruments to create a signal flow graph.
 
-connect "1", "left", "masterout", "left"
-connect "1", "right", "masterout", "right"
-connect "3", "left", "masterout", "left"
-connect "3", "right", "masterout", "right"
-connect "baz", "left", "masterout", "left"
-connect "baz", "right", "masterout", "right"
+connect "SimpleSine",   "leftout",     "Reverberator",     	"leftin"
+connect "SimpleSine",   "rightout",    "Reverberator",     	"rightin"
 
-instr 1
-ifno  ftgentmp   0, 0, 512, 10, 1
-print ifno
-asignal poscil3 .25, 440, ifno
-adummy = 0
-outleta "left", adummy
-outleta "right", asignal
+connect "Moogy",        "leftout",     "Reverberator",     	"leftin"
+connect "Moogy",        "rightout",    "Reverberator",     	"rightin"
+
+connect "Reverberator", "leftout",     "Compressor",       	"leftin"
+connect "Reverberator", "rightout",    "Compressor",       	"rightin"
+
+connect "Compressor",   "out",     "Soundfile",       	"in"
+
+; Turn on the "effect" units in the signal flow graph.
+
+alwayson "Reverberator", 0.91, 12000
+alwayson "Compressor"
+alwayson "Soundfile"
+
+instr SimpleSine
+  ihz = cpsmidinn(p4)
+  iamplitude = ampdb(p5)
+  print ihz, iamplitude
+  ; Use ftgenonce instead of ftgen, ftgentmp, or f statement.
+  isine ftgenonce 0, 0, 4096, 10, 1
+  a1 oscili iamplitude, ihz, isine
+  aenv madsr 0.05, 0.1, 0.5, 0.2
+  asignal = a1 * aenv
+  ; Stereo audio outlet to be routed in the orchestra header.
+  outleta "leftout", asignal * 0.25
+  outleta "rightout", asignal * 0.75
 endin
 
-instr 2
-print ftlen(p4)
+instr Moogy
+  ihz = cpsmidinn(p4)
+  iamplitude = ampdb(p5)
+  ; Use ftgenonce instead of ftgen, ftgentmp, or f statement.
+  isine ftgenonce 0, 0, 4096, 10, 1
+  asignal vco iamplitude, ihz, 1, 0.5, isine
+  kfco line 200, p3, 2000
+  krez init 0.9
+  asignal moogvcf asignal, kfco, krez, 100000
+  ; Stereo audio outlet to be routed in the orchestra header.
+  outleta "leftout", asignal * 0.75
+  outleta "rightout", asignal * 0.25
 endin
 
-instr 3
-ifno  ftgenonce  0, 0, 512, 10, 1, p4, p5
-print ftlen(ifno)
-print ifno, p4
-asignal poscil3 .25, 440, ifno
-adummy = 0
-outleta "left", asignal
-outleta "right", adummy
+instr Reverberator
+  ; Stereo input.
+  aleftin inleta "leftin"
+  arightin inleta "rightin"
+  idelay = p4
+  icutoff = p5
+  aleftout, arightout reverbsc aleftin, arightin, idelay, icutoff
+  ; Stereo output.
+  outleta "leftout", aleftout
+  outleta "rightout", arightout
 endin
 
-instr baz
-ifno  ftgenonce  0, 0, 512, 10, 4, 3, 2, 1
-print ftlen(ifno)
-print ifno
-asignal poscil3 .25, 60, ifno
-outleta "left", asignal
-outleta "right", asignal
+instr Compressor
+  ; Stereo input.
+  aleftin inleta "leftin"
+  arightin inleta "rightin"
+  kthreshold = 25000
+  icomp1 = 0.5
+  icomp2 = 0.763
+  irtime = 0.1
+  iftime = 0.1
+  prints "init Compressor"
+  asignal[] init 2
+  aleftout dam aleftin, kthreshold, icomp1, icomp2, irtime, iftime
+  arightout dam arightin, kthreshold, icomp1, icomp2, irtime, iftime
+  ; Stereo output.
+  asignal[0] = aleftout
+  asignal[1] = arightout
+  outletv "out", asignal
 endin
 
-instr masterout
-aleft inleta "left"
-aright inleta "right"
-outs aleft, aright
+instr Soundfile
+  ; Stereo input.
+  asignal[] init 2
+  asignal inletv "in"
+  out asignal
 endin
 
 </CsInstruments>
 <CsScore>
-i 1 0 10
-i 2 2 1 101
-i 1 5 10
-i 2 7 1 102
-i 2 12 1 101 
-i 2 17 1 102 
-
-i 3 20 10 1 1
-i 3 21 10 2 1
-i 3 22 10 1 2
-i 3 23 10 1 1
-
-i "baz" 40 5 1 1
-e
+; Not necessary to activate "effects" or create f-tables in the score!
+; Overlapping notes to create new instances of instruments.
+i "SimpleSine" 1 5 60 85
+i "SimpleSine" 2 5 64 80
+i "Moogy" 3 5 67 75
+i "Moogy" 4 5 71 70
+e 1
 </CsScore>
 </CsoundSynthesizer>
 
-
+<bsbPanel>
+ <label>Widgets</label>
+ <objectName/>
+ <x>100</x>
+ <y>100</y>
+ <width>320</width>
+ <height>240</height>
+ <visible>true</visible>
+ <uuid/>
+ <bgcolor mode="nobackground">
+  <r>255</r>
+  <g>255</g>
+  <b>255</b>
+ </bgcolor>
+</bsbPanel>
+<bsbPresets>
+</bsbPresets>

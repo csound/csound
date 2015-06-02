@@ -141,24 +141,21 @@
 #include "cs_par_orc_semantics.h"
 #include "parse_param.h"
 
-    //int udoflag = -1; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 #define udoflag csound->parserUdoflag
 
-   //int namedInstrFlag = 0; /* THIS NEEDS TO BE MADE NON-GLOBAL */
 #define namedInstrFlag csound->parserNamedInstrFlag
 
-extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
-extern int csound_orclex(TREE**, CSOUND *, void *);
-extern void print_tree(CSOUND *, char *msg, TREE *);
-extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE*, const char*);
-extern void add_udo_definition(CSOUND*, char *, char *, char *);
-extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
+    extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
+    extern int csound_orclex(TREE**, CSOUND *, void *);
+    extern void print_tree(CSOUND *, char *msg, TREE *);
+    extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE*, const char*);
+    extern void add_udo_definition(CSOUND*, char *, char *, char *);
+    extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LINE csound_orcget_lineno(scanner)
 #define LOCN csound_orcget_locn(scanner)
-extern int csound_orcget_locn(void *);
-extern int csound_orcget_lineno(void *);
-extern ORCTOKEN *make_string(CSOUND *, char *);
-
+    extern int csound_orcget_locn(void *);
+    extern int csound_orcget_lineno(void *);
+    extern ORCTOKEN *make_string(CSOUND *, char *);
 %}
 %%
 
@@ -194,7 +191,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                                          INTEGER_TOKEN, (ORCTOKEN *)$1), $3); }
           | label ',' instlist
               {
-                  csp_orc_sa_instr_add(csound, strdup(((ORCTOKEN *)$1)->lexeme));
+                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$1)->lexeme);
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST,
                                make_leaf(csound, LINE,LOCN,
                                          T_IDENT, (ORCTOKEN *)$1), $3); }
@@ -203,7 +200,7 @@ instlist  : INTEGER_TOKEN ',' instlist
                   TREE *ans;
                   ans = make_leaf(csound, LINE,LOCN, T_IDENT, (ORCTOKEN *)$2);
                   ans->rate = (int) '+';
-                  csp_orc_sa_instr_add(csound, strdup(((ORCTOKEN *)$2)->lexeme));
+                  csp_orc_sa_instr_add(csound, ((ORCTOKEN *)$2)->lexeme);
                   $$ = make_node(csound,LINE,LOCN, T_INSTLIST, ans, $4); }
           | '+' label
               {
@@ -708,22 +705,13 @@ ifac      : ident               { $$ = $1; }
           | '(' expr ')'      { $$ = $2;  }
           | '(' expr error    { $$ = NULL;  }
           | '(' error         { $$ = NULL; }
-          | identb exprlist ')'
+          | opcode exprlist ')'
             {
                 
                 $1->left = NULL;
                 $1->right = $2;
 		$1->type = T_FUNCTION;
                 
-                $$ = $1;
-            }
-          | opcode ':' identb exprlist ')'
-            {
-                $1->left = NULL;
-                $1->right = $4;
-		$1->type = T_FUNCTION;
-                $1->value->optype = $3->value->lexeme;
-		
                 $$ = $1;
             }
           | opcode ':' opcodeb exprlist ')'   /* this is need because a & k are also opcodes */

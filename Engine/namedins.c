@@ -159,8 +159,8 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
 /*   return value:                                              */
 /*      pointer to the output string; if 's' is not NULL, it is */
 /*      always the same as 's', otherwise it is allocated with  */
-/*      mmalloc() and the caller is responsible for freeing the */
-/*      allocated memory with mfree() or csound->Free()         */
+/*      csound->Malloc() and the caller is responsible for freeing the */
+/*      allocated memory with csound->Free() or csound->Free()         */
 
 char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
                                   int is_string)
@@ -168,7 +168,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
     if (is_string) {
       /* opcode string argument */
       if (s == NULL)
-        s = mmalloc(csound, strlen((char*) p) + 1);
+        s = csound->Malloc(csound, strlen((char*) p) + 1);
       strcpy(s, (char*) p);
     }
     else if (ISSTRCOD(*((MYFLT*) p))) {
@@ -177,7 +177,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
       int   i = 0;
       //printf("strarg2name: %g %s\n", *((MYFLT*)p), s2);
       if (s == NULL)
-        s = mmalloc(csound, strlen(s2) + 1);
+        s = csound->Malloc(csound, strlen(s2) + 1);
       if (*s2 == '"')
         s2++;
       while (*s2 != '"' && *s2 != '\0')
@@ -190,14 +190,17 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
       if (i >= 0 && i <= (int) csound->strsmax &&
           csound->strsets != NULL && csound->strsets[i] != NULL) {
         if (s == NULL)
-          s = mmalloc(csound, strlen(csound->strsets[i]) + 1);
+          s = csound->Malloc(csound, strlen(csound->strsets[i]) + 1);
         strcpy(s, csound->strsets[i]);
       }
       else {
-        if (s == NULL)
+        int n;
+        if (s == NULL) {
           /* allocate +20 characters, assuming sizeof(int) <= 8 */
-          s = mmalloc(csound, strlen(baseName) + 21);
-        sprintf(s, "%s%d", baseName, i);
+          s = csound->Malloc(csound, n = strlen(baseName) + 21);
+          snprintf(s, n, "%s%d", baseName, i);
+        }
+        else sprintf(s, "%s%d", baseName, i);
       }
     }
     return s;
@@ -221,14 +224,14 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
  * parameters (zero nbytes, invalid or already used name), or
  * CSOUND_MEMORY if there is not enough memory.
  */
-PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
+PUBLIC int csoundCreateGlobalVariable(CSOUND *csound,
                                       const char *name, size_t nbytes)
 {
     void* p;
     /* create new empty database if it does not exist yet */
-    if (csnd->namedGlobals == NULL) {
-      csnd->namedGlobals = cs_hash_table_create(csnd);
-      if (UNLIKELY(csnd->namedGlobals == NULL))
+    if (csound->namedGlobals == NULL) {
+      csound->namedGlobals = cs_hash_table_create(csound);
+      if (UNLIKELY(csound->namedGlobals == NULL))
         return CSOUND_MEMORY;
     }
     /* check for valid parameters */
@@ -239,14 +242,14 @@ PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
     if (UNLIKELY(nbytes < (size_t) 1 || nbytes >= (size_t) 0x7F000000L))
       return CSOUND_ERROR;
 
-    if (cs_hash_table_get(csnd, csnd->namedGlobals, (char*)name) != NULL)
+    if (cs_hash_table_get(csound, csound->namedGlobals, (char*)name) != NULL)
       return CSOUND_ERROR;
 
-    p = mcalloc(csnd, nbytes);
+    p = csound->Calloc(csound, nbytes);
     if (UNLIKELY(p == NULL))
       return CSOUND_MEMORY;
 
-    cs_hash_table_put(csnd, csnd->namedGlobals, (char*)name, p);
+    cs_hash_table_put(csound, csound->namedGlobals, (char*)name, p);
     return CSOUND_SUCCESS;
 }
 
@@ -254,16 +257,16 @@ PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
  * Get pointer to space allocated with the name "name".
  * Returns NULL if the specified name is not defined.
  */
-PUBLIC void *csoundQueryGlobalVariable(CSOUND *csnd, const char *name)
+PUBLIC void *csoundQueryGlobalVariable(CSOUND *csound, const char *name)
 {
     /* check if there is an actual database to search */
-    if (csnd->namedGlobals == NULL) return NULL;
+    if (csound->namedGlobals == NULL) return NULL;
 
     /* check for a valid name */
     if (name == NULL) return NULL;
     if (name[0] == '\0') return NULL;
 
-    return cs_hash_table_get(csnd, csnd->namedGlobals, (char*) name);
+    return cs_hash_table_get(csound, csound->namedGlobals, (char*) name);
 }
 
 /**
@@ -272,9 +275,9 @@ PUBLIC void *csoundQueryGlobalVariable(CSOUND *csnd, const char *name)
  * Faster, but may crash or return an invalid pointer if 'name' is
  * not defined.
  */
-PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csnd, const char *name)
+PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csound, const char *name)
 {
-    return cs_hash_table_get(csnd, csnd->namedGlobals, (char*) name);
+    return cs_hash_table_get(csound, csound->namedGlobals, (char*) name);
 }
 
 /**
@@ -282,14 +285,14 @@ PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csnd, const char *name)
  * Return value is CSOUND_SUCCESS on success, or CSOUND_ERROR if the name is
  * not defined.
  */
-PUBLIC int csoundDestroyGlobalVariable(CSOUND *csnd, const char *name)
+PUBLIC int csoundDestroyGlobalVariable(CSOUND *csound, const char *name)
 {
-    void *p = cs_hash_table_get(csnd, csnd->namedGlobals, (char*)name);
+    void *p = cs_hash_table_get(csound, csound->namedGlobals, (char*)name);
     if (UNLIKELY(p == NULL))
       return CSOUND_ERROR;
 
-    mfree(csnd, p);
-    cs_hash_table_remove(csnd, csnd->namedGlobals, (char*) name);
+    csound->Free(csound, p);
+    cs_hash_table_remove(csound, csound->namedGlobals, (char*) name);
 
     return CSOUND_SUCCESS;
 }

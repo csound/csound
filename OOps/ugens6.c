@@ -455,7 +455,7 @@ int deltap(CSOUND *csound, DELTAP *p)
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1; /* RWD fix */
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
@@ -487,7 +487,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
@@ -495,6 +495,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
+      if(*p->xdlt == INFINITY) goto err2;
       delsmps = *p->xdlt * csound->esr;
       idelsmps = (int32)delsmps;
       delfrac = delsmps - idelsmps;
@@ -512,6 +513,7 @@ int deltapi(CSOUND *csound, DELTAP *p)
     else {
       MYFLT *timp = p->xdlt, *curq = q->curp;
       for (n=offset; n<nsmps; n++) {
+        if(timp[n] == INFINITY) goto err2;
         delsmps = timp[n] * csound->esr;
         idelsmps = (int32)delsmps;
         delfrac = delsmps - idelsmps;
@@ -527,7 +529,10 @@ int deltapi(CSOUND *csound, DELTAP *p)
     return OK;
  err1:
     return csound->PerfError(csound, p->h.insdshead,
-                             Str("deltapi: not initialised"));
+                              Str("deltapi: not initialised"));
+  err2:
+    return csound->PerfError(csound, p->h.insdshead,
+                              Str("deltapi: INF delaytime"));
 }
 
 /* ***** From Hans Mikelson ************* */
@@ -544,7 +549,7 @@ int deltapn(CSOUND *csound, DELTAP *p)
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
@@ -557,9 +562,9 @@ int deltapn(CSOUND *csound, DELTAP *p)
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
       for (n=offset; n<nsmps; n++) {
-        if (UNLIKELY(tap >= endp ))
+        while (UNLIKELY(tap >= endp ))
           tap -= q->npts;
-        if (UNLIKELY(tap < begp))
+        while (UNLIKELY(tap < begp))
           tap += q->npts;
         ar[n] = *tap;
         tap++;
@@ -604,6 +609,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!p->XINCODE) {
+      if(*p->xdlt == INFINITY) goto err2;
       delsmps = *p->xdlt * csound->esr;
       idelsmps = (int32)delsmps;
       delfrac = delsmps - idelsmps;
@@ -638,6 +644,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
       MYFLT *timp = p->xdlt, *curq = q->curp;
       for (n=offset; n<nsmps; n++) {
         MYFLT ym1, y0, y1, y2;
+        if(timp[n] == INFINITY) goto err2;
         delsmps = *timp++ * csound->esr;
         idelsmps = (int32)delsmps;
         delfrac = delsmps - idelsmps;
@@ -665,6 +672,10 @@ int deltap3(CSOUND *csound, DELTAP *p)
  err1:
     return csound->PerfError(csound, p->h.insdshead,
                              Str("deltap3: not initialised"));
+  err2:
+    return csound->PerfError(csound, p->h.insdshead,
+                              Str("deltapi: INF delaytime"));
+
 }
 
 
@@ -696,7 +707,7 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
 
     if (UNLIKELY(q->auxch.auxp == NULL)) goto err1; /* RWD fix */
     out1 = p->ar; del = p->adlt;
-    if (UNLIKELY(offset)) memset(out1, '0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out1, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
@@ -961,6 +972,45 @@ int comb(CSOUND *csound, COMB *p)
  err1:
     return csound->PerfError(csound, p->h.insdshead,
                              Str("comb: not initialised"));
+}
+
+int invcomb(CSOUND *csound, COMB *p)
+{
+    int n, nsmps = csound->ksmps;
+    MYFLT       *ar, *asig, *xp, *endp;
+    MYFLT       coef = p->coef;
+
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
+    if (p->prvt != *p->krvt) {
+      p->prvt = *p->krvt;
+      /*
+       * The argument to exp() in the following is sometimes a small
+       * enough negative number to result in a denormal (or worse)
+       * on Alpha. So if the result would be less than 1.0e-16, we
+       * just say it is zero and do not call exp().  heh 981101
+       */
+      double exp_arg = (double)(log001 * *p->ilpt / p->prvt);
+      if (UNLIKELY(exp_arg < -36.8413615))    /* ln(1.0e-16) */
+        coef = p->coef = FL(0.0);
+      else
+        coef = p->coef = (MYFLT)exp(exp_arg);
+    }
+    xp = p->pntr;
+    endp = (MYFLT *) p->auxch.endp;
+    ar = p->ar;
+    asig = p->asig;
+    MYFLT out;
+    for (n=0; n<nsmps; n++) {
+      out = *xp;
+      ar[n] = (*xp = asig[n])-coef*out;
+      if (UNLIKELY(++xp >= endp))
+        xp = (MYFLT *) p->auxch.auxp;
+    }
+    p->pntr = xp;
+    return OK;
+ err1:
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("combinv: not initialised"));
 }
 
 int alpass(CSOUND *csound, COMB *p)

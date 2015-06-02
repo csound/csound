@@ -21,7 +21,7 @@ void test_control_channel_params(void)
     CSOUND *csound = csoundCreate(0);
     csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=NULL");
-    int argc = 2;
+    //int argc = 2;
     csoundCompileOrc(csound, orc1);
     int err = csoundStart(csound);
     CU_ASSERT(err == CSOUND_SUCCESS);
@@ -51,7 +51,7 @@ void test_control_channel(void)
     CSOUND *csound = csoundCreate(0);
     csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
-    int argc = 2;
+    //int argc = 2;
     csoundCompileOrc(csound, orc1);
     int err = csoundStart(csound);
     CU_ASSERT(err == CSOUND_SUCCESS);
@@ -71,7 +71,7 @@ void test_channel_list(void)
     CSOUND *csound = csoundCreate(0);
     csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
-    int argc = 2;
+    //int argc = 2;
     csoundCompileOrc(csound, orc2);
     int err = csoundStart(csound);
     CU_ASSERT(err == CSOUND_SUCCESS);
@@ -96,8 +96,6 @@ const char orc3[] = "instr 1\n kval invalue \"intest\"\n"
         "endin\n"
         "instr 2\n outvalue \"outtest\", 10\n endin\n";
 
-MYFLT val1, val2;
-char strval[32];
 
 void inputCallback(CSOUND *csound,
                    const char *channelName,
@@ -121,15 +119,14 @@ void outputCallback(CSOUND *csound,
 {
     if (strcmp(channelName, "intest") == 0 /*&& channelType == &CS_VAR_TYPE_K*/) {
         MYFLT *v = (MYFLT *) channelValuePtr;
-        val1 = *v;
+        CU_ASSERT_DOUBLE_EQUAL(*v, 5.0, 0.0000001);
     }
     if (strcmp(channelName, "instrtest") == 0 /*&& channelType == &CS_VAR_TYPE_S*/) {
-        char *v = (char *) channelValuePtr;
-        strcpy(strval,v);
+        CU_ASSERT_STRING_EQUAL((char *) channelValuePtr, "hello channels");
     }
     if (strcmp(channelName, "outtest") == 0 /*&& channelType == &CS_VAR_TYPE_K*/) {
         MYFLT *v = (MYFLT *) channelValuePtr;
-        val2 = *v;
+        CU_ASSERT_DOUBLE_EQUAL(*v, 10.0, 0.0000001);
     }
 
 }
@@ -140,7 +137,6 @@ void test_channel_callbacks(void)
     CSOUND *csound = csoundCreate(0);
     csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
-    val1 = 0;
     csoundCompileOrc(csound, orc3);
     csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback);
     csoundSetOutputChannelCallback(csound, (channelCallback_t) outputCallback);
@@ -149,13 +145,10 @@ void test_channel_callbacks(void)
     MYFLT pFields[] = {1.0, 0.0, 1.0};
     err = csoundScoreEvent(csound, 'i', pFields, 3);
     MYFLT pFields2[] = {2.0, 0.0, 1.0};
-    err = csoundScoreEvent(csound, 'i', pFields2, 3);
+    err += csoundScoreEvent(csound, 'i', pFields2, 3);
     CU_ASSERT(err == CSOUND_SUCCESS);
     err = csoundPerformKsmps(csound);
     CU_ASSERT(err == CSOUND_SUCCESS);
-    CU_ASSERT_DOUBLE_EQUAL(val1, 5.0, 0.0000001);
-    CU_ASSERT_DOUBLE_EQUAL(val2, 10.0, 0.0000001);
-    CU_ASSERT_STRING_EQUAL(strval, "hello channels");
     csoundCleanup(csound);
     csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
@@ -166,7 +159,9 @@ const char orc4[] = "chn_k \"1\", 3\n"
         "chn_k \"2\", 3\n"
         "chn_k \"3\", 3\n"
         "chn_k \"4\", 3\n"
-        "instr 1\n kval invalue \"1\"\n"
+
+        "instr 1\n"
+        "kval invalue \"1\"\n"
         "outvalue \"2\",kval\n"
         "endin\n"
 
@@ -327,7 +322,7 @@ void test_chn_hints(void)
 
 void test_string_channel(void)
 {
-    const char orcS[] = "chn_S \"testing\", 3\n  instr 1\n  endin\n";
+    const char orcS[] = "chn_S \"strchan1\",1\n chn_S \"strchan2\",2\n chn_S \"strchan3\",3\n instr 1\n  endin\n";
 
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
@@ -337,8 +332,25 @@ void test_string_channel(void)
     int err = csoundStart(csound);
     CU_ASSERT(err == CSOUND_SUCCESS);
 
-    
     csoundSetStringChannel(csound, "testing", "ttt");
+    int len = csoundGetChannelDatasize(csound, "testing");
+    char string[len];
+    csoundGetStringChannel(csound, "testing", string);
+    CU_ASSERT_STRING_EQUAL(string, "ttt");
+
+    csoundSetStringChannel(csound, "strchan1", "strchan1_val");
+    csoundSetStringChannel(csound, "strchan2", "strchan2_val");
+    csoundSetStringChannel(csound, "strchan3", "strchan3_val");
+
+    csoundGetStringChannel(csound, "strchan1", string);
+    CU_ASSERT_STRING_EQUAL(string, "strchan1_val");
+
+    csoundGetStringChannel(csound, "strchan2", string);
+    CU_ASSERT_STRING_EQUAL(string, "strchan2_val");
+
+    csoundGetStringChannel(csound, "strchan3", string);
+    CU_ASSERT_STRING_EQUAL(string, "strchan3_val");
+
     csoundCleanup(csound);
     csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);

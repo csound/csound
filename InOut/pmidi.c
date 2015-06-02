@@ -178,7 +178,7 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
   for (i = 0; i < cnt; i++) {
       info = portMidi_getDeviceInfo(i, isOutput);
       strncpy(list[i].device_name, info->name, 63);
-      sprintf(tmp, "%d", i);
+      snprintf(tmp, 64, "%d", i);
       strncpy(list[i].device_id, tmp, 63);
       list[i].isOutput = isOutput;
       if (info->interf != NULL)
@@ -240,7 +240,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
       devnum = -1;
     }
 
-    if (UNLIKELY(cntdev < 1 && dev[0] != 'a')) {
+    if (UNLIKELY(cntdev < 1 && (dev==NULL || dev[0] != 'a'))) {
       return portMidiErrMsg(csound, Str("no input devices are available"));
     }
     opendevs = 0;
@@ -271,6 +271,11 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
                  (PmDeviceID) portMidi_getRealDeviceID(i, 0),
                          NULL, 512L, (PmTimeProcPtr) NULL, NULL);
         if (UNLIKELY(retval != pmNoError)) {
+          // Prevent leaking memory from "data"
+          if (data) {
+            next = data->next;
+            free(data);
+          }
           return portMidiErrMsg(csound, Str("error opening input device %d: %s"),
                                           i, Pm_GetErrorText(retval));
         }

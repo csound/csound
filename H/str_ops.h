@@ -139,6 +139,7 @@ typedef struct {
 } STRINDEX_OP;
 
 /*
+*********These are not correct for csound 6 as they omit the flags field********
  {  "strset",   S(STRSET_OP),   1,  "",     "iS",
     (SUBR) strset_init, (SUBR) NULL, (SUBR) NULL                        },
  {  "strget",   S(STRGET_OP),   1,  "S",    "i",
@@ -235,6 +236,7 @@ int     strindex_opcode(CSOUND *, void *);
 int     strrindex_opcode(CSOUND *, void *);
   int str_changed(CSOUND *csound, STRCHGD *p);
   int str_changed_k(CSOUND *csound, STRCHGD *p);
+  int str_from_url(CSOUND *csound, STRCPY_OP *p);
 
 #endif      /* CSOUND_STR_OPS_C */
 

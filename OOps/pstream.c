@@ -59,7 +59,7 @@ int fassign_set(CSOUND *csound, FASSIGN *p)
     p->fout->overlap = p->fsrc->overlap;
     p->fout->winsize = p->fsrc->winsize;
     p->fout->wintype =p->fsrc->wintype;
-    p->fout->format = p->fout->format;
+    p->fout->format = p->fsrc->format;
     p->fout->sliding = p->fsrc->sliding;
     /* sliding needs to be checked */
     if (p->fsrc->sliding) {
