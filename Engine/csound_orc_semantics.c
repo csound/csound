@@ -1,4 +1,5 @@
- /*
+
+/*
     csound_orc_semantics.c:
 
     Copyright (C) 2006
@@ -2033,7 +2034,8 @@ CS_VARIABLE* createStructVar(void* cs, void* p) {
     IGN(p);
     var->memBlockSize = sizeof(CS_STRUCT_VAR);
     var->initializeVariableMemory = initializeStructVar;
-    
+    var->varType = type;
+  
     //FIXME - implement
     return var;
 }
