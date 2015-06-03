@@ -1581,7 +1581,7 @@ int xinset(CSOUND *csound, XIN *p)
     void* in = (void*)bufs[i];
     void* out = (void*)p->args[i];
     tmp[i + inm->outchns] = out;
-    current->varType->copyValue(csound, out, in);
+    current->varType->copyValue(csound, current->varType, out, in);
     current = current->next;
   }
 
@@ -1608,7 +1608,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     void* in = (void*)p->args[i];
     void* out = (void*)bufs[i];
     tmp[i] = in;
-    current->varType->copyValue(csound, out, in);
+    current->varType->copyValue(csound, current->varType, out, in);
     current = current->next;
   }
 
@@ -1940,7 +1940,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, out, in);
+          current->varType->copyValue(csound, current->varType, out, in);
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -2050,7 +2050,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, out, in);
+          current->varType->copyValue(csound, current->varType, out, in);
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -2182,7 +2182,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         }
 
       } else {
-        current->varType->copyValue(csound, out, in);
+        current->varType->copyValue(csound, current->varType, out, in);
       }
     }
     current = current->next;
@@ -2205,6 +2205,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int i, done;
+
 
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
   done = ATOMIC_GET(p->ip->init_done);
@@ -2240,8 +2241,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       } else {
         void* in = (void*)external_ptrs[i + inm->outchns];
         void* out = (void*)internal_ptrs[i + inm->outchns];
-        current->varType->copyValue(csound, out, in);
-        //                memcpy(out, in, p->buf->in_arg_sizes[i]);
+        current->varType->copyValue(csound, current->varType, out, in);
+        // memcpy(out, in, p->buf->in_arg_sizes[i]);
       }
     }
     current = current->next;
@@ -2278,7 +2279,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
         void* in = (void*)internal_ptrs[i];
         void* out = (void*)external_ptrs[i];
         //            memcpy(out, in, p->buf->out_arg_sizes[i]);
-        current->varType->copyValue(csound, out, in);
+        current->varType->copyValue(csound, current->varType, out, in);
       }
     }
     current = current->next;
