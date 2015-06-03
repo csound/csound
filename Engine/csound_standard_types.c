@@ -29,22 +29,22 @@
 
 /* MEMORY COPYING FUNCTIONS */
 
-void myflt_copy_value(CSOUND* csound, void* dest, void* src) {
+void myflt_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     MYFLT* f1 = (MYFLT*)dest;
     MYFLT* f2 = (MYFLT*)src;
     *f1 = *f2;
 }
 
-void asig_copy_value(CSOUND* csound, void* dest, void* src) {
+void asig_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     memcpy(dest, src, sizeof(MYFLT) * ((CSOUND*)csound)->ksmps);
 }
 
-void wsig_copy_value(CSOUND* csound, void* dest, void* src) {
+void wsig_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     memcpy(dest, src, sizeof(SPECDAT));
     //TODO - check if this needs to copy SPECDAT's DOWNDAT member and AUXCH
 }
 
-void fsig_copy_value(CSOUND* csound, void* dest, void* src) {
+void fsig_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     PVSDAT *fsigout = (PVSDAT*) dest;
     PVSDAT *fsigin = (PVSDAT*) src;
     int N = fsigin->N;
@@ -57,7 +57,7 @@ void fsig_copy_value(CSOUND* csound, void* dest, void* src) {
 }
 
 
-void string_copy_value(CSOUND* csound, void* dest, void* src) {
+void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     STRINGDAT* sDest = (STRINGDAT*)dest;
     STRINGDAT* sSrc = (STRINGDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
@@ -92,10 +92,11 @@ static size_t array_get_num_members(ARRAYDAT* aSrc) {
     return (size_t)retVal;
 }
 
-void array_copy_value(CSOUND* csound, void* dest, void* src) {
+void array_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     ARRAYDAT* aDest = (ARRAYDAT*)dest;
     ARRAYDAT* aSrc = (ARRAYDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
+    CS_VARIABLE* var;
     size_t j;
     int memMyfltSize;
     size_t arrayNumMembers;
@@ -123,10 +124,14 @@ void array_copy_value(CSOUND* csound, void* dest, void* src) {
         }
         aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * arrayNumMembers);
     }
-
+  
+    var = aDest->arrayType->createVariable(cs, aDest->arrayType);
     for (j = 0; j < arrayNumMembers; j++) {
         int index = j * memMyfltSize;
-        aDest->arrayType->copyValue(csound,
+        if(var->initializeVariableMemory != NULL) {
+          var->initializeVariableMemory(csound, var, aDest->data + index);
+        }
+        aDest->arrayType->copyValue(csound, aDest->arrayType,
                                     aDest->data + index, aSrc->data + index);
     }
 
@@ -251,7 +256,6 @@ void array_free_var_mem(void* csnd, void* p) {
         CS_TYPE* arrayType = dat->arrayType;
 
         if (arrayType->freeVariableMemory != NULL) {
-            MYFLT* mem = dat->data;
             size_t memMyfltSize = dat->arrayMemberSize / sizeof(MYFLT);
             int i, size = dat->sizes[0];
             for (i = 1; i < dat->dimensions; i++) {

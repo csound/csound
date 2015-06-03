@@ -157,7 +157,8 @@ def runTest():
 
     structTests = [
         ["structs/test_structs.csd", "basic struct test"],
-        ["structs/test_sub_structs.csd", "read/write to struct member of struct"]
+        ["structs/test_sub_structs.csd", "read/write to struct member of struct"],
+        ["structs/test_struct_arrays.csd", "arrays of structs"],
     ]
 
     udoTests = [["udo/fail_no_xin.csd", "fail due to no xin", 1],

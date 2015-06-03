@@ -75,8 +75,8 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
     if (p->data==NULL || p->dimensions == 0 ||
         (p->dimensions==1 && p->sizes[0] < size)) {
       size_t ss;
+      CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
       if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
         p->arrayMemberSize = var->memBlockSize;
       }
 
@@ -86,6 +86,14 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
       p->dimensions = 1;
       p->sizes = (int*)csound->Malloc(csound, sizeof(int));
       p->sizes[0] = size;
+      
+      if (var->initializeVariableMemory != NULL) {
+        int i, mem_incr = p->arrayMemberSize / sizeof(MYFLT);
+        for(i = 0; i < size; i++) {
+          var->initializeVariableMemory(csound, var, p->data + (i * mem_incr));
+        }
+      }
+
   }
 }
 
@@ -128,6 +136,13 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
 
     arrayDat->arrayMemberSize = var->memBlockSize;
     arrayDat->data = csound->Calloc(csound, var->memBlockSize*size);
+  
+    if (var->initializeVariableMemory != NULL) {
+      int i, mem_incr = arrayDat->arrayMemberSize / sizeof(MYFLT);
+      for(i = 0; i < size; i++) {
+        var->initializeVariableMemory(csound, var, arrayDat->data + (i * mem_incr));
+      }
+    }
   //    for (i=0; i<size; i++) t->data[i] = val;
   //    { // Need to recover space eventually
   //        TABDEL *op = (TABDEL*) csound->Malloc(csound, sizeof(TABDEL));
@@ -154,6 +169,7 @@ static int tabfill(CSOUND *csound, TABFILL *p)
     memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
     for (i=0; i<nargs; i++) {
       p->ans->arrayType->copyValue(csound,
+                                   p->ans->arrayType,
                                    p->ans->data + (i * memMyfltSize),
                                    valp[i]);
     }
@@ -201,7 +217,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
     incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
     //memcpy(mem, p->value, dat->arrayMemberSize);
-    dat->arrayType->copyValue(csound, mem, p->value);
+    dat->arrayType->copyValue(csound, dat->arrayType, mem, p->value);
     /* printf("array_set: mem = %p, incr = %d, value = %f\n", */
     /*        mem, incr, *((MYFLT*)p->value)); */
     return OK;
@@ -247,7 +263,7 @@ static int array_get(CSOUND* csound, ARRAY_GET *p)
     incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
     //    memcpy(p->out, &mem[incr], dat->arrayMemberSize);
-    dat->arrayType->copyValue(csound, (void*)p->out, (void*)mem);
+    dat->arrayType->copyValue(csound, dat->arrayType, (void*)p->out, (void*)mem);
     return OK;
 }
 
@@ -1018,7 +1034,7 @@ static int tabcopy(CSOUND *csound, TABCPY *p)
 
     for (i = 0; i < arrayTotalSize; i++) {
       int index = (i * memMyfltSize);
-      p->dst->arrayType->copyValue(csound,
+      p->dst->arrayType->copyValue(csound, p->dst->arrayType,
                                    (void*)(p->dst->data + index),
                                    (void*)(p->src->data + index));
     }
@@ -1139,7 +1155,7 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
 
     for (i = start; i < end + 1; i++) {
       int destIndex = i - start;
-      p->tab->arrayType->copyValue(csound,
+      p->tab->arrayType->copyValue(csound, p->tab->arrayType,
                                    p->tab->data + (destIndex * memMyfltSize),
                                    tabin + (memMyfltSize * i));
     }
