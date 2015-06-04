@@ -990,7 +990,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
 
     csoundFreeVarPool(csound, ip->varPool);
     csound->Free(csound, ip);
-     if (csound->oparms->odebug)
+    if (csound->oparms->odebug)
        csound->Message(csound, Str("-- deleted instr from deadpool \n"));
 }
 
@@ -1018,10 +1018,11 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
         }
         /* no active instances */
         if (active == NULL) {
-        if (csound->oparms->odebug)
-          csound->Message(csound, Str(" -- free instr def %p \n"),
+	 if (csound->oparms->odebug)
+          csound->Message(csound, Str(" -- free instr def %p %p \n"),
+			  csound->dead_instr_pool[i]->instance,
                           csound->dead_instr_pool[i]);
-        free_instrtxt(csound, csound->dead_instr_pool[i]);
+	  free_instrtxt(csound, csound->dead_instr_pool[i]);
         csound->dead_instr_pool[i] = NULL;
         }
       }
@@ -1086,7 +1087,11 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
       INSDS *active = engineState->instrtxtp[inm->instno]->instance;
       while (active != NULL) {
         if (active->actflg) {
-          add_to_deadpool(csound, engineState->instrtxtp[inm->instno]);
+	  /* FIXME:  */
+	  /* this seems to be wiping memory that is still being used */
+          // add_to_deadpool(csound, engineState->instrtxtp[inm->instno]);
+	  /* this marks the instrument number ready for replacement */
+	  engineState->instrtxtp[inm->instno] = NULL;
           break;
         }
         active = active->nxtinstance;
@@ -1109,6 +1114,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
     inm->name = strdup(s); inm->ip = ip;
     inm2->instno = insno;
     inm2->name = (char*) inm;   /* hack */
+    //printf("insno %d \n", insno);
     /* link into chain */
     cs_hash_table_put(csound, engineState->instrumentNames, s, inm);
 
@@ -1143,7 +1149,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
     if (!engineState->instrumentNames) return;       /* no named instruments */
     inm_first = cs_hash_table_get(csound, engineState->instrumentNames,
                                   (char*)INSTR_NAME_FIRST);
-
+    
     while (--insno_priority > -3) {
       if (insno_priority == -2) {
         num = engineState->maxinsno;         /* find last used instr number */
@@ -1166,6 +1172,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
         }
         /* hack: "name" actually points to the corresponding INSTRNAME */
         inm2 = (INSTRNAME*) (inm->name);    /* entry in the table */
+	//printf("instno %d \n", num);
         inm2->instno = (int32) num;
         engineState->instrtxtp[num] = inm2->ip;
         if (csound->oparms->msglevel && engineState == &csound->engineState)
@@ -1391,6 +1398,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       }
     }
     /* merges all named instruments */
+    //printf("assign numbers; %p\n", current_state);
     named_instr_assign_numbers(csound,current_state);
     /* this needs to be called in a separate loop
        in case of multiple instr numbers, so insprep() is called only once */
@@ -1576,11 +1584,13 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
-                if (UNLIKELY(!named_instr_alloc(csound, c,
-                                                instrtxt, insno_priority,
-                                                engineState,0))) {
-                  synterr(csound, Str("instr %s redefined"), c);
-                }
+                named_instr_alloc(csound,c,instrtxt, insno_priority,
+                                  engineState,0);
+//                if (UNLIKELY(!named_instr_alloc(csound, c,
+//                                                instrtxt, insno_priority,
+//                                                engineState,0))) {
+//                  synterr(csound, Str("instr %s redefined"), c);
+//                }
                 instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
                 strcpy(instrtxt->insname, c);
               }
