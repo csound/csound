@@ -7,14 +7,14 @@
 for running Csound in NW.js, and demonstrates a few simple applications.
 <H2>Building</H2>
 <p>Install io.js and NW.js. Use npm to install node-gyp.
-Build in csound/frontends/nwjs with nw-gyp. For Node.js or io.js,  build with node-gyp.
+Build in csound/frontends/nwjs with "nw-gyp build". For Node.js or io.js,  build with node-gyp.
 <H2>Installation</H2>
 Copy csound.node to your csound/bin directory.
 Modify your NODE_PATH environment variable to include the Csound bin directory.
 <H2>Running</H2>
 <p>Run the nw program.
-<p>Drag and drop the folder containg this Web page and package.json file on the NW program.
-You should see some messages from Csound.
+<p>Drag and drop the package.json file on the NW program.
+You should see some messages from Csound, both on this Web page and in the JavaScript console.
 <script>
 var xanadu_orc = `
 sr          =           44100
@@ -244,10 +244,13 @@ document.write('<p>csound.hello() => ' + csound.hello());
 document.write('<p>csound.getVersion() => ' + csound.getVersion());
 document.write('<pre>' + xanadu_orc + '</pre>');
 document.write('<pre>' + xanadu_sco + '</pre>');
+console.log('Here is the orc:' + xanadu_orc + '\n');
 document.write('<p>csound.compileOrc(xanadu) => ' + csound.compileOrc(xanadu_orc));
-document.write('<p>csound.readScore(xanadu) => ' + csound.readScore(xanadu_sco));
+csound.message('This is a test of csound.message() from the HTML code.\n');
 document.write('<p>csound.perform() => ');
 csound.perform();
+document.write('<p>csound.readScore(xanadu) => ' + csound.readScore(xanadu_sco));
+csound.message('"Done now." from the HTML code.\n');
 </script>
 </body>
 </html>
