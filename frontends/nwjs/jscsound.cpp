@@ -40,6 +40,7 @@
 // Must do this on Windows: https://connect.microsoft.com/VisualStudio/feedback/details/811347/compiling-vc-12-0-with-has-exceptions-0-and-including-concrt-h-causes-a-compiler-error
 
 #include <csound.h>
+#include <cstdlib>
 #include <node.h>
 #include <memory>
 #include <string>
@@ -52,6 +53,8 @@ static CSOUND* csound = 0;
 static bool stop_playing = true;
 static bool finished = true;
 static std::shared_ptr<std::thread> threadptr;
+static char *orc = 0;
+static char *sco = 0;
 
 /**
  * This is provided so that the developer may verify that
@@ -88,15 +91,15 @@ void compileCsd(const FunctionCallbackInfo<Value>& args)
 }
 
 /**
- * Compiles the orchestra code, and also parses out the <html>
- * element and and loads it into NW.js.
+ * Compiles the orchestra code.
  */
 void compileOrc(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     v8::String::Utf8Value orchestraCode(args[0]->ToString());
-    int result = csoundCompileOrc(csound, *orchestraCode);
+    orc = strdup(*orchestraCode);
+    int result = csoundCompileOrc(csound, orc);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -162,6 +165,33 @@ void message(const FunctionCallbackInfo<Value>& args)
     csoundMessage(csound, *text);
 }
 
+static Persistent<Function, CopyablePersistentTraits<Function>> console_function(Isolate *isolate)
+{
+    static Persistent<Function, CopyablePersistentTraits<Function>> function;
+    static bool initialized = false;
+    if (initialized == false) {
+        initialized = true;
+        auto code = String::NewFromUtf8(isolate, "(function(arg) {\n\
+         window.console.log(arg);\n\
+        })");
+        auto result = Script::Compile(code)->Run();
+        auto function_handle = Handle<Function>::Cast(result);
+        function.Reset(isolate, function_handle);
+    }
+    return function;
+}
+
+void csoundMessageCallback_(CSOUND *csound, int attr, const char *format, va_list valist)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    char buffer[0x1000];
+    std::vsprintf(buffer, format, valist);
+    Local<v8::Value> args[] = { String::NewFromUtf8(isolate, buffer) };
+    Local<Function> local_function = Local<Function>::New(isolate, console_function(isolate));
+    local_function->Call(isolate->GetCurrentContext()->Global(), 1, args);
+}
+
 /**
  * Returns Csound's current sampling rate.
  */
@@ -209,16 +239,15 @@ void isPlaying(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Number::New(isolate, playing) );
 }
 
-static void play_routine(CSOUND *csound)
+static void play_routine(CSOUND *csound_)
 {
     int result = 0;
     for (stop_playing = false, finished = false;
-         ((stop_playing == false) && (finished == false)); )
-    {
-        finished = csoundPerformBuffer(csound);
+            ((stop_playing == false) && (finished == false)); ) {
+        finished = csoundPerformBuffer(csound_);
     }
-    result = csoundCleanup(csound);
-    csoundReset(csound);
+    result = csoundCleanup(csound_);
+    csoundReset(csound_);
 }
 
 /**
@@ -247,6 +276,8 @@ void stop(const FunctionCallbackInfo<Value>& args)
 void init(Handle<Object> target)
 {
     csound = csoundCreate(0);
+    csoundSetMessageLevel(csound, 3);
+    csoundSetMessageCallback(csound, &csoundMessageCallback_);
     NODE_SET_METHOD(target, "hello", hello);
     NODE_SET_METHOD(target, "getVersion", getVersion);
     NODE_SET_METHOD(target, "compileCsd", compileCsd);
