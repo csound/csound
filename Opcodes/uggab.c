@@ -237,7 +237,8 @@ static int posc_set(CSOUND *csound, POSC *p)
     p->ftp        = ftp;
     p->tablen     = ftp->flen;
     p->tablenUPsr = p->tablen * csound->onedsr;
-    p->phs        = *p->iphs * p->tablen;
+    if (*p->iphs>=FL(0.0))
+      p->phs        = *p->iphs * p->tablen;
     return OK;
 }
 
