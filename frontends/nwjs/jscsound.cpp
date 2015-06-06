@@ -52,7 +52,7 @@ using namespace v8;
 static CSOUND* csound = 0;
 static bool stop_playing = true;
 static bool finished = true;
-static std::shared_ptr<std::thread> threadptr;
+static std::thread perform_thread;
 static char *orc = 0;
 static char *sco = 0;
 
@@ -239,30 +239,44 @@ void isPlaying(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Number::New(isolate, playing) );
 }
 
-static void play_routine(CSOUND *csound_)
+//http://kkaefer.github.io/node-cpp-modules/#dont-do-v8-in-threadpool
+//Can't even touch v8 from another thread, so Csound message callback must
+//be managed with queue or async mechanisms.
+
+void perform_routine(CSOUND *csound_)
 {
+    csoundStart(csound);
     int result = 0;
     for (stop_playing = false, finished = false;
             ((stop_playing == false) && (finished == false)); ) {
-        finished = csoundPerformBuffer(csound_);
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        finished = csoundPerformBuffer(csound);
     }
-    result = csoundCleanup(csound_);
-    csoundReset(csound_);
+    result = csoundCleanup(csound);
+    csoundReset(csound);
 }
 
 /**
  * Begins performing the score and/or producing audio.
  * It is first necessary to call compileCsd(pathname) or compileOrc(text).
- * If Csound is already performing, it is first stopped.
- * The performance occurs in a separate, internal thread.
+ * Returns the native handle of the performance thread.
  */
 void perform(const FunctionCallbackInfo<Value>& args)
 {
-    //if (threadptr->joinable()) {
-    //    stop_playing = true;
-    //    threadptr->join();
-    //}
-    threadptr = std::make_shared<std::thread>(&play_routine, csound);
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    //perform_thread = std::thread(&perform_routine, csound);
+    csoundStart(csound);
+    int result = 0;
+    for (stop_playing = false, finished = false;
+            ((stop_playing == false) && (finished == false)); ) {
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        finished = csoundPerformBuffer(csound);
+    }
+    result = csoundCleanup(csound);
+    csoundReset(csound);
+    //args.GetReturnValue().Set(Number::New(isolate, perform_thread.native_handle()));
+    args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
 /**

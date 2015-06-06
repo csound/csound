@@ -238,6 +238,8 @@ i1 45.4 . . 10.11   ;B
 i1 45.5 . . 11.04   ;E
 e
 `
+document.write('<p>process.cwd() => ' + process.cwd());
+document.write('<p>process.env => ' + process.env);
 var csound = require('csound');
 document.write('<p>csound => ' + csound);
 document.write('<p>csound.hello() => ' + csound.hello());
@@ -247,9 +249,8 @@ document.write('<pre>' + xanadu_sco + '</pre>');
 console.log('Here is the orc:' + xanadu_orc + '\n');
 document.write('<p>csound.compileOrc(xanadu) => ' + csound.compileOrc(xanadu_orc));
 csound.message('This is a test of csound.message() from the HTML code.\n');
-document.write('<p>csound.perform() => ');
-csound.perform();
 document.write('<p>csound.readScore(xanadu) => ' + csound.readScore(xanadu_sco));
+document.write('<p>csound.perform() => ' + csound.perform());
 csound.message('"Done now." from the HTML code.\n');
 </script>
 </body>
