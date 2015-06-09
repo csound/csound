@@ -250,6 +250,8 @@ console.log('Here is the orc:' + xanadu_orc + '\n');
 document.write('<p>csound.compileOrc(xanadu) => ' + csound.compileOrc(xanadu_orc));
 csound.message('This is a test of csound.message() from the HTML code.\n');
 document.write('<p>csound.readScore(xanadu) => ' + csound.readScore(xanadu_sco));
+csound.setOption('-odac');
+// Crashes: need FIFO csound.setOption('-j4');
 document.write('<p>csound.perform() => ' + csound.perform());
 csound.message('"Done now." from the HTML code.\n');
 </script>

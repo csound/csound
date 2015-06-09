@@ -41,10 +41,12 @@
 
 #include <csound.h>
 #include <cstdlib>
-#include <node.h>
+#include <fstream>
+#include <ios>
+#include <iostream>
 #include <memory>
+#include <node.h>
 #include <string>
-#include <thread>
 #include <v8.h>
 
 using namespace v8;
@@ -52,7 +54,6 @@ using namespace v8;
 static CSOUND* csound = 0;
 static bool stop_playing = true;
 static bool finished = true;
-static std::thread perform_thread;
 static char *orc = 0;
 static char *sco = 0;
 
@@ -78,6 +79,29 @@ void getVersion(const FunctionCallbackInfo<Value>& args)
 }
 
 /**
+ * Sets the value of one Csound option. Spaces are not permitted.
+ */
+void setOption(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    v8::String::Utf8Value option(args[0]->ToString());
+    int result = csoundSetOption(csound, *option);
+    args.GetReturnValue().Set(Number::New(isolate, result));
+}
+
+/**
+ * Runs arbitrary JavaScript code in the caller's context.
+ */
+static double run_javascript(Isolate *isolate, std::string code)
+{
+    Handle<String> source = String::NewFromUtf8(isolate, code.c_str());
+    Handle<Script> script = Script::Compile(source);
+    Handle<Value> result = script->Run();
+    return result->NumberValue();
+}
+
+/**
  * Compiles the CSD file, and also parses out the <html> element
  * and loads it into NW.js.
  */
@@ -85,8 +109,30 @@ void compileCsd(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    v8::String::Utf8Value csdpath(args[0]->ToString());
-    int result = csoundCompileCsd(csound, *csdpath);
+    int result = 0;
+    v8::String::Utf8Value csd_path(args[0]->ToString());
+    std::ifstream csd_file(*csd_path);
+    if (csd_file.good()) {
+        std::string csd_text((std::istreambuf_iterator<char>(csd_file)),
+                             std::istreambuf_iterator<char>());
+        csd_file.close();
+        size_t html_start = csd_text.find("<html");
+        if (html_start != std::string::npos) {
+            size_t html_end = csd_text.find("</html>", html_start);
+            if (html_end != std::string::npos) {
+                std::string html_text = csd_text.substr(html_start, html_end - html_start + 7);
+                std::string html_path = *csd_path;
+                html_path += ".html";
+                std::ofstream html_file(html_path.c_str(), std::ios_base::out | std::ios_base::binary);
+                if (html_file.good()) {
+                    html_file.write(html_text.c_str(), html_text.size());
+                    html_file.close();
+                }
+                run_javascript(isolate, "location = '" + html_path + "';");
+            }
+        }
+    }
+    result = csoundCompileCsd(csound, *csd_path);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -239,23 +285,6 @@ void isPlaying(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Number::New(isolate, playing) );
 }
 
-//http://kkaefer.github.io/node-cpp-modules/#dont-do-v8-in-threadpool
-//Can't even touch v8 from another thread, so Csound message callback must
-//be managed with queue or async mechanisms.
-
-void perform_routine(CSOUND *csound_)
-{
-    csoundStart(csound);
-    int result = 0;
-    for (stop_playing = false, finished = false;
-            ((stop_playing == false) && (finished == false)); ) {
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        finished = csoundPerformBuffer(csound);
-    }
-    result = csoundCleanup(csound);
-    csoundReset(csound);
-}
-
 /**
  * Begins performing the score and/or producing audio.
  * It is first necessary to call compileCsd(pathname) or compileOrc(text).
@@ -275,7 +304,6 @@ void perform(const FunctionCallbackInfo<Value>& args)
     }
     result = csoundCleanup(csound);
     csoundReset(csound);
-    //args.GetReturnValue().Set(Number::New(isolate, perform_thread.native_handle()));
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -294,6 +322,7 @@ void init(Handle<Object> target)
     csoundSetMessageCallback(csound, &csoundMessageCallback_);
     NODE_SET_METHOD(target, "hello", hello);
     NODE_SET_METHOD(target, "getVersion", getVersion);
+    NODE_SET_METHOD(target, "setOption", setOption);
     NODE_SET_METHOD(target, "compileCsd", compileCsd);
     NODE_SET_METHOD(target, "compileOrc", compileOrc);
     NODE_SET_METHOD(target, "evalCode", evalCode);
