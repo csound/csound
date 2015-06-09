@@ -40,10 +40,13 @@
 // Must do this on Windows: https://connect.microsoft.com/VisualStudio/feedback/details/811347/compiling-vc-12-0-with-has-exceptions-0-and-including-concrt-h-causes-a-compiler-error
 
 #include <csound.h>
-#include <node.h>
+#include <cstdlib>
+#include <fstream>
+#include <ios>
+#include <iostream>
 #include <memory>
+#include <node.h>
 #include <string>
-#include <thread>
 #include <v8.h>
 
 using namespace v8;
@@ -51,7 +54,8 @@ using namespace v8;
 static CSOUND* csound = 0;
 static bool stop_playing = true;
 static bool finished = true;
-static std::shared_ptr<std::thread> threadptr;
+static char *orc = 0;
+static char *sco = 0;
 
 /**
  * This is provided so that the developer may verify that
@@ -75,6 +79,29 @@ void getVersion(const FunctionCallbackInfo<Value>& args)
 }
 
 /**
+ * Sets the value of one Csound option. Spaces are not permitted.
+ */
+void setOption(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    v8::String::Utf8Value option(args[0]->ToString());
+    int result = csoundSetOption(csound, *option);
+    args.GetReturnValue().Set(Number::New(isolate, result));
+}
+
+/**
+ * Runs arbitrary JavaScript code in the caller's context.
+ */
+static double run_javascript(Isolate *isolate, std::string code)
+{
+    Handle<String> source = String::NewFromUtf8(isolate, code.c_str());
+    Handle<Script> script = Script::Compile(source);
+    Handle<Value> result = script->Run();
+    return result->NumberValue();
+}
+
+/**
  * Compiles the CSD file, and also parses out the <html> element
  * and loads it into NW.js.
  */
@@ -82,21 +109,43 @@ void compileCsd(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    v8::String::Utf8Value csdpath(args[0]->ToString());
-    int result = csoundCompileCsd(csound, *csdpath);
+    int result = 0;
+    v8::String::Utf8Value csd_path(args[0]->ToString());
+    std::ifstream csd_file(*csd_path);
+    if (csd_file.good()) {
+        std::string csd_text((std::istreambuf_iterator<char>(csd_file)),
+                             std::istreambuf_iterator<char>());
+        csd_file.close();
+        size_t html_start = csd_text.find("<html");
+        if (html_start != std::string::npos) {
+            size_t html_end = csd_text.find("</html>", html_start);
+            if (html_end != std::string::npos) {
+                std::string html_text = csd_text.substr(html_start, html_end - html_start + 7);
+                std::string html_path = *csd_path;
+                html_path += ".html";
+                std::ofstream html_file(html_path.c_str(), std::ios_base::out | std::ios_base::binary);
+                if (html_file.good()) {
+                    html_file.write(html_text.c_str(), html_text.size());
+                    html_file.close();
+                }
+                run_javascript(isolate, "location = '" + html_path + "';");
+            }
+        }
+    }
+    result = csoundCompileCsd(csound, *csd_path);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
 /**
- * Compiles the orchestra code, and also parses out the <html>
- * element and and loads it into NW.js.
+ * Compiles the orchestra code.
  */
 void compileOrc(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     v8::String::Utf8Value orchestraCode(args[0]->ToString());
-    int result = csoundCompileOrc(csound, *orchestraCode);
+    orc = strdup(*orchestraCode);
+    int result = csoundCompileOrc(csound, orc);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -162,6 +211,33 @@ void message(const FunctionCallbackInfo<Value>& args)
     csoundMessage(csound, *text);
 }
 
+static Persistent<Function, CopyablePersistentTraits<Function>> console_function(Isolate *isolate)
+{
+    static Persistent<Function, CopyablePersistentTraits<Function>> function;
+    static bool initialized = false;
+    if (initialized == false) {
+        initialized = true;
+        auto code = String::NewFromUtf8(isolate, "(function(arg) {\n\
+         window.console.log(arg);\n\
+        })");
+        auto result = Script::Compile(code)->Run();
+        auto function_handle = Handle<Function>::Cast(result);
+        function.Reset(isolate, function_handle);
+    }
+    return function;
+}
+
+void csoundMessageCallback_(CSOUND *csound, int attr, const char *format, va_list valist)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    char buffer[0x1000];
+    std::vsprintf(buffer, format, valist);
+    Local<v8::Value> args[] = { String::NewFromUtf8(isolate, buffer) };
+    Local<Function> local_function = Local<Function>::New(isolate, console_function(isolate));
+    local_function->Call(isolate->GetCurrentContext()->Global(), 1, args);
+}
+
 /**
  * Returns Csound's current sampling rate.
  */
@@ -209,31 +285,26 @@ void isPlaying(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Number::New(isolate, playing) );
 }
 
-static void play_routine(CSOUND *csound)
+/**
+ * Begins performing the score and/or producing audio.
+ * It is first necessary to call compileCsd(pathname) or compileOrc(text).
+ * Returns the native handle of the performance thread.
+ */
+void perform(const FunctionCallbackInfo<Value>& args)
 {
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    //perform_thread = std::thread(&perform_routine, csound);
+    csoundStart(csound);
     int result = 0;
     for (stop_playing = false, finished = false;
-         ((stop_playing == false) && (finished == false)); )
-    {
+            ((stop_playing == false) && (finished == false)); ) {
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
         finished = csoundPerformBuffer(csound);
     }
     result = csoundCleanup(csound);
     csoundReset(csound);
-}
-
-/**
- * Begins performing the score and/or producing audio.
- * It is first necessary to call compileCsd(pathname) or compileOrc(text).
- * If Csound is already performing, it is first stopped.
- * The performance occurs in a separate, internal thread.
- */
-void perform(const FunctionCallbackInfo<Value>& args)
-{
-    //if (threadptr->joinable()) {
-    //    stop_playing = true;
-    //    threadptr->join();
-    //}
-    threadptr = std::make_shared<std::thread>(&play_routine, csound);
+    args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
 /**
@@ -247,8 +318,11 @@ void stop(const FunctionCallbackInfo<Value>& args)
 void init(Handle<Object> target)
 {
     csound = csoundCreate(0);
+    csoundSetMessageLevel(csound, 3);
+    csoundSetMessageCallback(csound, &csoundMessageCallback_);
     NODE_SET_METHOD(target, "hello", hello);
     NODE_SET_METHOD(target, "getVersion", getVersion);
+    NODE_SET_METHOD(target, "setOption", setOption);
     NODE_SET_METHOD(target, "compileCsd", compileCsd);
     NODE_SET_METHOD(target, "compileOrc", compileOrc);
     NODE_SET_METHOD(target, "evalCode", evalCode);
