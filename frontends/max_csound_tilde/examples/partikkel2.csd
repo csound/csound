@@ -24,11 +24,11 @@ giWinBlackman  ftgen 103, 0, 4096, 20, 4 ; Blackman
 giWinBlackHar  ftgen 104, 0, 4096, 20, 5 ; Blackman - Harris
 giWinGaussian  ftgen 105, 0, 4096, 20, 6 ; Gaussian
 giWinSync      ftgen 106, 0, 4096, 20, 9 ; Sync
-giWinPerc      ftgen 107, 0, 4096, 7, 0, 12, 1, 500, 0       ; PERCUSSIVE - STRAIGHT SEGMENTS
-giWinPercExp   ftgen 108, 0, 4096, 5, .001, 12, 1, 500, .001 ; PERCUSSIVE - EXPONENTIAL SEGMENTS
-giWinGate      ftgen 109, 0, 4096, 7, 0, 6, 1, 500, 1, 6, 0  ; GATE - WITH ANTI-CLICK RAMP UP AND RAMP DOWN SEGMENTS
-giWinRevPerc   ftgen 110, 0, 4096, 7, 0, 500, 1, 12, 0,      ; REVERSE PERCUSSIVE - STRAIGHT SEGMENTS
-giWinRevPerc2  ftgen 111, 0, 4096, 5, .001, 500, 1, 12, .001 ; REVERSE PERCUSSIVE - EXPONENTIAL SEGMENTS
+giWinPerc      ftgen 107, 0, 512, 7, 0, 12, 1, 500, 0       ; PERCUSSIVE - STRAIGHT SEGMENTS
+giWinPercExp   ftgen 108, 0, 512, 5, .001, 12, 1, 500, .001 ; PERCUSSIVE - EXPONENTIAL SEGMENTS
+giWinGate      ftgen 109, 0, 512, 7, 0, 6, 1, 500, 1, 6, 0  ; GATE - WITH ANTI-CLICK RAMP UP AND RAMP DOWN SEGMENTS
+giWinRevPerc   ftgen 110, 0, 512, 7, 0, 500, 1, 12, 0      ; REVERSE PERCUSSIVE - STRAIGHT SEGMENTS
+giWinRevPerc2  ftgen 111, 0, 512, 5, .001, 500, 1, 12, .001 ; REVERSE PERCUSSIVE - EXPONENTIAL SEGMENTS
 
 instr 1
     ipan  init 0            ; panning narrow 0 to wide 1
@@ -160,3 +160,20 @@ f0 86400
 e
 </CsScore>
 </CsoundSynthesizer>
+<bsbPanel>
+ <label>Widgets</label>
+ <objectName/>
+ <x>100</x>
+ <y>100</y>
+ <width>320</width>
+ <height>240</height>
+ <visible>true</visible>
+ <uuid/>
+ <bgcolor mode="nobackground">
+  <r>255</r>
+  <g>255</g>
+  <b>255</b>
+ </bgcolor>
+</bsbPanel>
+<bsbPresets>
+</bsbPresets>
