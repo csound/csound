@@ -218,7 +218,7 @@ static Persistent<Function, CopyablePersistentTraits<Function>> console_function
     if (initialized == false) {
         initialized = true;
         auto code = String::NewFromUtf8(isolate, "(function(arg) {\n\
-         window.console.log(arg);\n\
+            console.log(arg);\n\
         })");
         auto result = Script::Compile(code)->Run();
         auto function_handle = Handle<Function>::Cast(result);
@@ -235,7 +235,7 @@ void csoundMessageCallback_(CSOUND *csound, int attr, const char *format, va_lis
     std::vsprintf(buffer, format, valist);
     Local<v8::Value> args[] = { String::NewFromUtf8(isolate, buffer) };
     Local<Function> local_function = Local<Function>::New(isolate, console_function(isolate));
-    local_function->Call(isolate->GetCurrentContext()->Global(), 1, args);
+    local_function->Call(isolate->GetCallingContext()->Global(), 1, args);
 }
 
 /**
