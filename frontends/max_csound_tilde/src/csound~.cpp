@@ -640,7 +640,7 @@ void *csound_new(t_symbol *s, short argc, t_atom *argv)
 		if(firstTime)
 		{
 			// Post the version number.
-			object_post(x->m_obj, "csound~ v1.1.0");
+			object_post(x->m_obj, "csound~ v1.1.3");
 			firstTime = false;
 		}
 	
