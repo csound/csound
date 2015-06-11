@@ -109,6 +109,7 @@ void compileCsd(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
+    //csoundCreateMessageBuffer(csound, 1);
     int result = 0;
     v8::String::Utf8Value csd_path(args[0]->ToString());
     std::ifstream csd_file(*csd_path);
@@ -143,6 +144,7 @@ void compileOrc(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
+    //csoundCreateMessageBuffer(csound, 1);
     v8::String::Utf8Value orchestraCode(args[0]->ToString());
     orc = strdup(*orchestraCode);
     int result = csoundCompileOrc(csound, orc);
@@ -218,7 +220,7 @@ static Persistent<Function, CopyablePersistentTraits<Function>> console_function
     if (initialized == false) {
         initialized = true;
         auto code = String::NewFromUtf8(isolate, "(function(arg) {\n\
-         window.console.log(arg);\n\
+            console.log(arg);\n\
         })");
         auto result = Script::Compile(code)->Run();
         auto function_handle = Handle<Function>::Cast(result);
@@ -235,7 +237,7 @@ void csoundMessageCallback_(CSOUND *csound, int attr, const char *format, va_lis
     std::vsprintf(buffer, format, valist);
     Local<v8::Value> args[] = { String::NewFromUtf8(isolate, buffer) };
     Local<Function> local_function = Local<Function>::New(isolate, console_function(isolate));
-    local_function->Call(isolate->GetCurrentContext()->Global(), 1, args);
+    local_function->Call(isolate->GetCallingContext()->Global(), 1, args);
 }
 
 /**
@@ -285,6 +287,19 @@ void isPlaying(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Number::New(isolate, playing) );
 }
 
+static void consume_messages(Isolate *isolate)
+{
+    char buffer[0x1002];
+    int pending_messages = csoundGetMessageCnt(csound);
+    for (int i = 0, n = csoundGetMessageCnt(csound);  i < n; ++i) {
+        const char *message = csoundGetFirstMessage(csound);
+        Local<v8::Value> args[] = { String::NewFromUtf8(isolate, message) };
+        Local<Function> local_function = Local<Function>::New(isolate, console_function(isolate));
+        local_function->Call(isolate->GetCallingContext()->Global(), 1, args);
+        csoundPopFirstMessage(csound);
+    }
+}
+
 /**
  * Begins performing the score and/or producing audio.
  * It is first necessary to call compileCsd(pathname) or compileOrc(text).
@@ -292,18 +307,27 @@ void isPlaying(const FunctionCallbackInfo<Value>& args)
  */
 void perform(const FunctionCallbackInfo<Value>& args)
 {
+    csoundMessage(csound, "Began JavaScript perform()...\n");
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    //perform_thread = std::thread(&perform_routine, csound);
+    //consume_messages(isolate);
     csoundStart(csound);
     int result = 0;
     for (stop_playing = false, finished = false;
             ((stop_playing == false) && (finished == false)); ) {
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        for (int i = 0; i < 100; ++i) {
+            if (uv_run(uv_default_loop(), UV_RUN_NOWAIT) == 0) {
+                break;
+            }
+            //consume_messages(isolate);
+        }
         finished = csoundPerformBuffer(csound);
     }
+    csoundMessage(csound, "Ended JavaScript perform(), cleaning up now.\n");
     result = csoundCleanup(csound);
+    //consume_messages(isolate);
     csoundReset(csound);
+    //csoundDestroyMessageBuffer(csound);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -318,8 +342,7 @@ void stop(const FunctionCallbackInfo<Value>& args)
 void init(Handle<Object> target)
 {
     csound = csoundCreate(0);
-    csoundSetMessageLevel(csound, 3);
-    csoundSetMessageCallback(csound, &csoundMessageCallback_);
+    csoundSetMessageCallback(csound, csoundMessageCallback_);
     NODE_SET_METHOD(target, "hello", hello);
     NODE_SET_METHOD(target, "getVersion", getVersion);
     NODE_SET_METHOD(target, "setOption", setOption);
