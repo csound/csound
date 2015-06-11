@@ -496,7 +496,7 @@
 				"box" : 				{
 					"maxclass" : "comment",
 					"varname" : "autohelp_top_title",
-					"text" : "csound~ v1.1.0",
+					"text" : "csound~ v1.1.3",
 					"presentation_linecount" : 2,
 					"numinlets" : 1,
 					"presentation_rect" : [ 50.0, 33.0, 121.0, 75.0 ],
