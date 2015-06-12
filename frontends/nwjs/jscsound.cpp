@@ -58,7 +58,7 @@ static bool finished = true;
 static char *orc = 0;
 static char *sco = 0;
 static uv_thread_t uv_csound_perform_thread;
-static uv_async_t uv_async;
+static uv_async_t uv_csound_message_async;
 static concurrency::concurrent_queue<char *> csound_messages_queue;
 
 /**
@@ -253,7 +253,7 @@ void csoundMessageCallback_(CSOUND *csound, int attr, const char *format, va_lis
     // Actual data...
     csound_messages_queue.push(strdup(buffer));
     // ... and notification that data is ready.
-    uv_async_send(&uv_async);
+    uv_async_send(&uv_csound_message_async);
 }
 
 /**
@@ -338,6 +338,11 @@ void stop(const FunctionCallbackInfo<Value>& args)
     stop_playing = true;
 }
 
+void on_exit()
+{
+    uv_close((uv_handle_t *)&uv_csound_message_async, 0);
+}
+
 void init(Handle<Object> target)
 {
     csound = csoundCreate(0);
@@ -358,7 +363,8 @@ void init(Handle<Object> target)
     NODE_SET_METHOD(target, "isPlaying", isPlaying);
     NODE_SET_METHOD(target, "perform", perform);
     NODE_SET_METHOD(target, "stop", stop);
-    uv_async_init(uv_default_loop(), &uv_async, uv_csound_message_callback);
+    uv_async_init(uv_default_loop(), &uv_csound_message_async, uv_csound_message_callback);
+    std::atexit(&on_exit);
 }
 
 NODE_MODULE(binding, init);
