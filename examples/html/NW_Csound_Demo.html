@@ -15,8 +15,9 @@ Modify your NODE_PATH environment variable to include the Csound bin directory.
 <p>Run the nw program.
 <p>Drag and drop the package.json file on the NW program.
 You should see some messages from Csound, both on this Web page and in the JavaScript console.
-<script>
-var xanadu_orc = `
+
+<H3>Orc</H3>
+<pre id="orc">
 sr          =           44100
 ksmps       =           100
 nchnls      =           2
@@ -85,8 +86,10 @@ aoutl       oscil       1000*kadsr*a4, ao2+cpsoct(ioct+ishift), 1 ;fnl outleft
 aoutr       oscil       1000*kadsr*a4, ao2+cpsoct(ioct-ishift), 1 ;fnl outright
             outs        aoutl, aoutr
             endin
-`
-var xanadu_sco = `;       Score for final project in Digital Audio Processing
+</pre>
+<H3>Orc</H3>
+<pre id="sco">
+;       Score for final project in Digital Audio Processing
 ;       ---------------------------------------------------
 
 ;           Piece entitled :  X A N A D U (short version)
@@ -237,22 +240,23 @@ i1 45.3 . . 10.10   ;Bb next one up
 i1 45.4 . . 10.11   ;B
 i1 45.5 . . 11.04   ;E
 e
-`
+</pre>
+<H3>Performance</H3>
+<script>
 document.write('<p>process.cwd() => ' + process.cwd());
 document.write('<p>process.env => ' + process.env);
+console.log('Here is the orc:' + document.getElementById('orc').innerHTML + '\n');
+console.log('Here is the sco:' + document.getElementById('sco').innerHTML + '\n');
 var csound = require('csound');
 document.write('<p>csound => ' + csound);
 document.write('<p>csound.hello() => ' + csound.hello());
 document.write('<p>csound.getVersion() => ' + csound.getVersion());
-document.write('<pre>' + xanadu_orc + '</pre>');
-document.write('<pre>' + xanadu_sco + '</pre>');
-console.log('Here is the orc:' + xanadu_orc + '\n');
-document.write('<p>csound.compileOrc(xanadu) => ' + csound.compileOrc(xanadu_orc));
+document.write('<p>csound.compileOrc(xanadu) => ' + csound.compileOrc(document.getElementById('orc').innerHTML));
 csound.setOption('--logfile=\\csound.log');
 csound.setOption('-odac');
 csound.message('This is a test of csound.message() from the HTML code.\n');
-document.write('<p>csound.readScore(xanadu) => ' + csound.readScore(xanadu_sco));
-// Crashes: need FIFO csound.setOption('-j4');
+document.write('<p>csound.readScore(xanadu) => ' + csound.readScore(document.getElementById('sco').innerHTML));
+// Crashes: csound.setOption('-j4');
 document.write('<p>csound.perform() => ' + csound.perform());
 csound.message('"Done now." from the HTML code.\n');
 </script>

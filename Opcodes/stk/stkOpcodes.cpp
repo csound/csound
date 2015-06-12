@@ -752,7 +752,7 @@ extern "C"
       for(size_t i = 0, n = getStkInstances()[csound].size(); i < n; ++i) {
         delete getStkInstances()[csound][i];
       }
-      getStkInstances()[csound].clear();
+      //getStkInstances()[csound].clear();
       getStkInstances().erase(csound);
     }
     return 0;

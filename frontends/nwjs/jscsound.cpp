@@ -39,6 +39,7 @@
 
 // Must do this on Windows: https://connect.microsoft.com/VisualStudio/feedback/details/811347/compiling-vc-12-0-with-has-exceptions-0-and-including-concrt-h-causes-a-compiler-error
 
+#include <concurrent_queue.h>
 #include <csound.h>
 #include <cstdlib>
 #include <fstream>
@@ -56,6 +57,9 @@ static bool stop_playing = true;
 static bool finished = true;
 static char *orc = 0;
 static char *sco = 0;
+static uv_thread_t uv_csound_perform_thread;
+static uv_async_t uv_async;
+static concurrency::concurrent_queue<char *> csound_messages_queue;
 
 /**
  * This is provided so that the developer may verify that
@@ -229,15 +233,27 @@ static Persistent<Function, CopyablePersistentTraits<Function>> console_function
     return function;
 }
 
-void csoundMessageCallback_(CSOUND *csound, int attr, const char *format, va_list valist)
+void uv_csound_message_callback(uv_async_t *handle)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
+    char *message;
+    while (csound_messages_queue.try_pop(message)) {
+        Local<v8::Value> args[] = { String::NewFromUtf8(isolate, message) };
+        Local<Function> local_function = Local<Function>::New(isolate, console_function(isolate));
+        local_function->Call(isolate->GetCurrentContext()->Global(), 1, args);
+        std::free(message);
+    }
+}
+
+void csoundMessageCallback_(CSOUND *csound, int attr, const char *format, va_list valist)
+{
     char buffer[0x1000];
     std::vsprintf(buffer, format, valist);
-    Local<v8::Value> args[] = { String::NewFromUtf8(isolate, buffer) };
-    Local<Function> local_function = Local<Function>::New(isolate, console_function(isolate));
-    local_function->Call(isolate->GetCallingContext()->Global(), 1, args);
+    // Actual data...
+    csound_messages_queue.push(strdup(buffer));
+    // ... and notification that data is ready.
+    uv_async_send(&uv_async);
 }
 
 /**
@@ -287,17 +303,18 @@ void isPlaying(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Number::New(isolate, playing) );
 }
 
-static void consume_messages(Isolate *isolate)
+void uv_csound_perform_thread_routine(void * arg)
 {
-    char buffer[0x1002];
-    int pending_messages = csoundGetMessageCnt(csound);
-    for (int i = 0, n = csoundGetMessageCnt(csound);  i < n; ++i) {
-        const char *message = csoundGetFirstMessage(csound);
-        Local<v8::Value> args[] = { String::NewFromUtf8(isolate, message) };
-        Local<Function> local_function = Local<Function>::New(isolate, console_function(isolate));
-        local_function->Call(isolate->GetCallingContext()->Global(), 1, args);
-        csoundPopFirstMessage(csound);
+    csoundMessage(csound, "Began JavaScript perform()...\n");
+    csoundStart(csound);
+    int result = 0;
+    for (stop_playing = false, finished = false;
+            ((stop_playing == false) && (finished == false)); ) {
+        finished = csoundPerformBuffer(csound);
     }
+    csoundMessage(csound, "Ended JavaScript perform(), cleaning up now.\n");
+    result = csoundCleanup(csound);
+    csoundReset(csound);
 }
 
 /**
@@ -307,27 +324,9 @@ static void consume_messages(Isolate *isolate)
  */
 void perform(const FunctionCallbackInfo<Value>& args)
 {
-    csoundMessage(csound, "Began JavaScript perform()...\n");
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    //consume_messages(isolate);
-    csoundStart(csound);
-    int result = 0;
-    for (stop_playing = false, finished = false;
-            ((stop_playing == false) && (finished == false)); ) {
-        for (int i = 0; i < 100; ++i) {
-            if (uv_run(uv_default_loop(), UV_RUN_NOWAIT) == 0) {
-                break;
-            }
-            //consume_messages(isolate);
-        }
-        finished = csoundPerformBuffer(csound);
-    }
-    csoundMessage(csound, "Ended JavaScript perform(), cleaning up now.\n");
-    result = csoundCleanup(csound);
-    //consume_messages(isolate);
-    csoundReset(csound);
-    //csoundDestroyMessageBuffer(csound);
+    int result = uv_thread_create(&uv_csound_perform_thread, uv_csound_perform_thread_routine, csound);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -359,6 +358,7 @@ void init(Handle<Object> target)
     NODE_SET_METHOD(target, "isPlaying", isPlaying);
     NODE_SET_METHOD(target, "perform", perform);
     NODE_SET_METHOD(target, "stop", stop);
+    uv_async_init(uv_default_loop(), &uv_async, uv_csound_message_callback);
 }
 
 NODE_MODULE(binding, init);
