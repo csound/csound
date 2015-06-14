@@ -284,7 +284,7 @@ void WebSocketOpcode_allocateStringArgument(MYFLT *argument, OpcodeArgument *arg
     if (isInputArgument == true) {
         
         csound->Die(csound,
-                    Str("websocket: this opcode doesn't send strings, only receiving them is supported\nExiting"),
+                    Str("websocket: this opcode does not send strings, only receiving them is supported\nExiting"),
                     argumentArrayItem->name);
     }
     else {
