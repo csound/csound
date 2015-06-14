@@ -66,10 +66,10 @@ void OLABuffer_readFrame(OLABuffer *self, MYFLT *outputFrame, u_int32_t outputFr
 {
     memcpy(&outputFrame[outputFrameOffset], &self->frames[0][olaBufferOffset], samplesCount * sizeof(MYFLT));
     
-    u_int32_t i;
+    u_int32_t i, j;
     for (i = 1; i < self->framesCount; ++i) {
         
-        for (size_t j = 0; j < samplesCount; ++j) {
+        for (j = 0; j < samplesCount; ++j) {
             
             outputFrame[j + outputFrameOffset] += self->frames[i][j + olaBufferOffset];
         }
