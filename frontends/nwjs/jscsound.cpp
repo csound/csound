@@ -39,7 +39,6 @@
 
 // Must do this on Windows: https://connect.microsoft.com/VisualStudio/feedback/details/811347/compiling-vc-12-0-with-has-exceptions-0-and-including-concrt-h-causes-a-compiler-error
 
-#include <concurrent_queue.h>
 #include <csound.h>
 #include <cstdlib>
 #include <fstream>
@@ -49,6 +48,11 @@
 #include <node.h>
 #include <string>
 #include <v8.h>
+#if defined(MSVC_VER)
+#include <concurrent_queue.h>
+#else
+#include <boost/lockfree/queue.hpp>
+#endif
 
 using namespace v8;
 
@@ -59,7 +63,11 @@ static char *orc = 0;
 static char *sco = 0;
 static uv_thread_t uv_csound_perform_thread;
 static uv_async_t uv_csound_message_async;
+#if defined(MSVC_VER)
 static concurrency::concurrent_queue<char *> csound_messages_queue;
+#else
+static boost::lockfree::queue<char *> csound_messages_queue;
+#endif
 
 /**
  * This is provided so that the developer may verify that
@@ -238,7 +246,11 @@ void uv_csound_message_callback(uv_async_t *handle)
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     char *message;
+#if defined(MSVC_VER)
     while (csound_messages_queue.try_pop(message)) {
+#else
+    while (csound_messages_queue.pop(message)) {
+#endif
         Local<v8::Value> args[] = { String::NewFromUtf8(isolate, message) };
         Local<Function> local_function = Local<Function>::New(isolate, console_function(isolate));
         local_function->Call(isolate->GetCurrentContext()->Global(), 1, args);
