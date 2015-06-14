@@ -287,6 +287,3 @@ add_subdirectory(stk)
 add_subdirectory(cuda)
 add_subdirectory(opencl)
 add_subdirectory(hdf5)
-add_subdirectory(websockets)
-add_subdirectory(framebuffer)
-
