@@ -246,6 +246,11 @@
 ./Opcodes/follow.h
 ./Opcodes/fout.c
 ./Opcodes/fout.h
+./Opcodes/framebuffer/Framebuffer.c
+./Opcodes/framebuffer/Framebuffer.h
+./Opcodes/framebuffer/OLABuffer.c
+./Opcodes/framebuffer/OLABuffer.h
+./Opcodes/framebuffer/OpcodeEntries.c
 ./Opcodes/freeverb.c
 ./Opcodes/ftconv.c
 ./Opcodes/ftest.c
@@ -436,6 +441,8 @@
 ./Opcodes/wave-terrain.c
 ./Opcodes/wave-terrain.h
 ./Opcodes/wavegde.h
+./Opcodes/websockets/WebSocketOpcode.c
+./Opcodes/websockets/WebSocketOpcode.h
 ./Opcodes/wii_mac.h
 ./Opcodes/wiimote.c
 ./SDIF/sdif-mem.c
