@@ -196,7 +196,7 @@ void WebSocketOpcode_handleReceive(struct libwebsocket *websocket, WebSocketOpco
         &&
         argument->argumentType != STRING_VAR) {
         
-        csound->Message(csound, "websocket: received message from %s is not correct size for variable %s, message dumped", protocol->name, argument->name);
+      csound->Message(csound, Str("websocket: received message from %s is not correct size for variable %s, message dumped"), protocol->name, argument->name);
         return;
     }
     
@@ -204,7 +204,7 @@ void WebSocketOpcode_handleReceive(struct libwebsocket *websocket, WebSocketOpco
         &&
         argument->bytesCount > stringVarMaximumBytesCount) {
         
-        csound->Message(csound, "websocket: received string message from %s is too large, message dumped", protocol->name, argument->name);
+      csound->Message(csound, ("websocket: received string message from %s is too large, message dumped"), protocol->name, argument->name);
         
         return;
     }
@@ -213,7 +213,7 @@ void WebSocketOpcode_handleReceive(struct libwebsocket *websocket, WebSocketOpco
     
     if (writtenItems == 0) {
         
-        csound->Message(csound, "websocket: received message from %s dumped, buffer overrrun", argument->name);
+      csound->Message(csound, Str("websocket: received message from %s dumped, buffer overrrun"), argument->name);
     }
     else {
         
@@ -240,7 +240,9 @@ static int Websocket_callback(struct libwebsocket_context *context,
         case LWS_CALLBACK_ESTABLISHED: {
             
             const struct libwebsocket_protocols *protocol = libwebsockets_get_protocol(websocket);
-            csound->Message(csound, "websocket: connection established for %s\n", protocol->name);
+            csound->Message(csound,
+                            Str("websocket: connection established for %s\n"),
+                            protocol->name);
             break;
         }
         case LWS_CALLBACK_SERVER_WRITEABLE: {
@@ -282,7 +284,7 @@ void WebSocketOpcode_allocateStringArgument(MYFLT *argument, OpcodeArgument *arg
     if (isInputArgument == true) {
         
         csound->Die(csound,
-                    "websocket: this opcode doesn't send strings, only receiving them is supported\nExiting",
+                    Str("websocket: this opcode doesn't send strings, only receiving them is supported\nExiting"),
                     argumentArrayItem->name);
     }
     else {
@@ -290,7 +292,7 @@ void WebSocketOpcode_allocateStringArgument(MYFLT *argument, OpcodeArgument *arg
         if (string->size != 0) {
             
             csound->Die(csound,
-                        "websocket: error output string variable %s must not be initialised\nExiting",
+                        Str("websocket: error output string variable %s must not be initialised\nExiting"),
                         argumentArrayItem->name);
         }
         else {
@@ -316,7 +318,7 @@ void WebSocketOpcode_allocateArrayArgument(MYFLT *argument, OpcodeArgument *argu
     if (array->dimensions == 0) {
         
         csound->Die(csound,
-                    "websocket: error array variable %s has not been initialised\nExiting",
+                    Str("websocket: error array variable %s has not been initialised\nExiting"),
                     argumentArrayItem->name);
     }
     
@@ -379,7 +381,7 @@ void WebSocketOpcode_initialiseArgumentsArray(CSOUND *csound, WebSocketOpcode *s
             }
             default: {
                 
-                csound->Die(csound, "websocket: error, incompatible argument detected\nExiting");
+              csound->Die(csound, Str("websocket: error, incompatible argument detected\nExiting"));
                 break;
             }
         }
@@ -433,7 +435,7 @@ void WebSocketOpcode_initialiseWebSocket(WebSocketOpcode *self, CSOUND *csound)
     
     if (self->webSocket->context == NULL) {
         
-        csound->Die(csound, "websocket: couldn't initialise websocket, Exiting");
+      csound->Die(csound, Str("websocket: could not initialise websocket, Exiting"));
     }
     
     self->isRunning = true;
@@ -457,7 +459,8 @@ void WebSocketOpcode_sendInputArgumentData(CSOUND *csound, WebSocketOpcode *self
         
         if (itemsWritten != currentArgument->itemsCount) {
             
-            csound->Message(csound, "websocket: variable %s data not sent, buffer overrrun\n", currentArgument->name);
+            csound->Message(csound,
+                            Str("websocket: variable %s data not sent, buffer overrrun\n"), currentArgument->name);
         }
     }
 }
