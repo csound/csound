@@ -40,8 +40,9 @@ int OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
     csound->AuxAlloc(csound, self->framesCount * sizeof(MYFLT *), &self->framePointerMemory);
     self->frames = self->framePointerMemory.auxp;
     self->ksmps = csound->GetKsmps(csound);
-    
-    for (size_t i = 0; i < self->framesCount; ++i) {
+   
+    u_int32_t i;
+    for (i = 0; i < self->framesCount; ++i) {
         
         self->frames[i] = &((MYFLT *)self->frameSamplesMemory.auxp)[i * self->frameSamplesCount];
     }
@@ -65,7 +66,8 @@ void OLABuffer_readFrame(OLABuffer *self, MYFLT *outputFrame, u_int32_t outputFr
 {
     memcpy(&outputFrame[outputFrameOffset], &self->frames[0][olaBufferOffset], samplesCount * sizeof(MYFLT));
     
-    for (size_t i = 1; i < self->framesCount; ++i) {
+    u_int32_t i;
+    for (i = 1; i < self->framesCount; ++i) {
         
         for (size_t j = 0; j < samplesCount; ++j) {
             
