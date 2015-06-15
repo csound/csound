@@ -4,7 +4,7 @@
  WebSockets
  
  Created by Edward Costello on 10/06/2015.
- Copyright (c) 2015 Edward Costello. All rights reserved.
+ Copyright (c) 2015 Edward Costello. 
  
  This file is part of Csound.
  
@@ -426,6 +426,7 @@ void WebSocketOpcode_initialiseWebSocket(WebSocketOpcode *self, CSOUND *csound)
     self->webSocket->info.gid = -1;
     self->webSocket->info.uid = -1;
     self->webSocket->info.user = self;
+    lws_set_log_level(LLL_ERR, NULL);
     self->webSocket->context = libwebsocket_create_context(&self->webSocket->info);
     self->webSocket->messageBuffer = csound->Calloc(csound, LWS_SEND_BUFFER_PRE_PADDING +
                                                     (sizeof(char) * writeBufferBytesCount) +
