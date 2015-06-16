@@ -107,7 +107,7 @@ static double run_javascript(Isolate *isolate, std::string code)
 
 /**
  * Compiles the CSD file, and also parses out the <html> element
- * and loads it into NW.js.
+ * and loads it into the current window.
  */
 void compileCsd(const FunctionCallbackInfo<Value>& args)
 {
@@ -133,7 +133,7 @@ void compileCsd(const FunctionCallbackInfo<Value>& args)
                     html_file.write(html_text.c_str(), html_text.size());
                     html_file.close();
                 }
-                run_javascript(isolate, "location = '" + html_path + "';");
+                run_javascript(isolate, "location = 'file:///" + html_path + "';");
             }
         }
     }
