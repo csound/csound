@@ -51,6 +51,7 @@
     <script type="text/javascript">
     </script>
   </form>
+  <base target="_blank" />
   <script type="text/javascript">
     var csound = require('csound');
     var gui = require('nw.gui');
@@ -60,17 +61,35 @@
         console.log('csound_run()...');
         console.log('csound:' + csound);
         var filename = document.getElementById('title').innerHTML;
+        // Thre are two file modes for csound.node:
+        // .html files, which must always create their own csound object with
+        // require('csound');, and .csd files, which assume that the csound
+        // object has already been created in their JavasScript context.
         console.log('filename:' + filename);
-        csound_window = gui.Window.open(filename, {
-  position: 'center'
-});
+        if (filename.endsWith('html')) {
+            csound_window = gui.Window.open('file:///' + filename,
+                {
+                    "position": 'center',
+                    "nodejs": true,
+                    "new-instance": true,
+                }
+            );
+            return;
+        };
         if (filename.endsWith('.csd')) {
-            csound_window.csound = csound;
-            console.log('csound_window.csound:' + csound_window.csound);
-       }
-        //csound_window.moveBy(100, 100);
-
-      }
+            csound_window = gui.Window.open('about:blank',
+                {
+                    "position": 'center',
+                    "nodejs": true,
+                    "new-instance": true,
+                    "inject-js-start": 'embed_csound.js',
+                }
+            );
+            csound_window.csound.compileCsd(filename);
+            return;
+        }
+        alert('Unknown file type:' + filename);
+      };
       function csound_stop()
       {
         console.log('csound_stop()...');
