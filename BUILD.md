@@ -294,6 +294,17 @@ To switch the faust opcodes build on and coerce cmake into finding the faust lib
 
 cmake -DCMAKE_INSTALL_PREFIX=$HOME -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$HOME/lib/faust/libfaust.a ..
 
+NB: Ubuntu users should be aware that LLVM 3.4 and 3.5 packages seem broken. It is probably recommended to build LLVM by oneself. Otherwise, LLVM 3.3 package is enough for building csound 6.05 with Faust opcodes assuming that
+
+- LLVMConfig.cmake is correctly spelled in /usr/share/llvm-3.3/cmake (otherwise create a symbolic link with that name : ln -s /usr/share/llvm-3.3/cmake/LLVM-Config.cmake /usr/share/llvm-3.3/cmake/LLVMConfig.cmake) 
+- llvm-config is correctly spelled in /usr/bin
+- faust2 is built with LLVM 3.3
+- cmake version > 2.8.7 (version 3.3.0 builds easily for instance)
+
+Then some additional environment variables may have to be set during the configuration step:
+
+cmake -DLLVM_DIR=/usr/share/llvm-3.3/cmake -DCMAKE_MODULE_LINKER_FLAGS="-L/usr/lib/llvm-3.3/lib" -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=pathTo/libfaust.a ../csound-develop/ 
+
 #### Portaudio module
 
 portaudio - http://www.portaudio.com/
