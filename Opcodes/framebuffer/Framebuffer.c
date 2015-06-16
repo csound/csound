@@ -4,8 +4,8 @@
  Framebuffer
  
  Created by Edward Costello on 10/06/2015.
- Copyright (c) 2015 Edward Costello. All rights reserved.
-
+ Copyright (c) 2015 Edward Costello.
+ 
  This file is part of Csound.
  
  The Csound Library is free software; you can redistribute it
@@ -67,7 +67,7 @@ void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self, MYFLT *inputSamp
         
         u_int32_t firstHalf = self->elementCount - self->writeIndex;
         memcpy(&self->buffer[self->writeIndex], inputSamples, sizeof(MYFLT) * firstHalf);
-        u_int32_t secondHalf = self->elementCount - firstHalf;
+        u_int32_t secondHalf = inputSamplesCount - firstHalf;
         memcpy(self->buffer, &inputSamples[firstHalf], sizeof(MYFLT) * secondHalf);
         self->writeIndex = secondHalf;
     }
@@ -83,7 +83,7 @@ void Framebuffer_readBuffer(CSOUND *csound, Framebuffer *self, MYFLT *outputSamp
         
         u_int32_t firstHalf = self->elementCount - self->writeIndex;
         memcpy(outputSamples, &self->buffer[self->writeIndex], sizeof(MYFLT) * firstHalf);
-        u_int32_t secondHalf = self->elementCount - firstHalf;
+        u_int32_t secondHalf = outputSamplesCount - firstHalf;
         memcpy(&outputSamples[firstHalf], self->buffer, sizeof(MYFLT) * secondHalf);
     }
 }
@@ -107,15 +107,15 @@ int Framebuffer_process(CSOUND *csound, Framebuffer *self)
 {
     if (self->inputType == KRATE_ARRAY) {
         
-        
+
         Framebuffer_processFrameInAudioOut(csound, self);
     }
     else if (self->inputType == ARATE_VAR) {
         
         Framebuffer_processAudioInFrameOut(csound, self);
     }
-    
-    
+
+
     return OK;
 }
 
