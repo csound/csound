@@ -4,7 +4,7 @@
  WebSockets
  
  Created by Edward Costello on 10/06/2015.
- Copyright (c) 2015 Edward Costello. All rights reserved.
+ Copyright (c) 2015 Edward Costello.
  
  This file is part of Csound.
  
