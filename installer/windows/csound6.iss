@@ -178,6 +178,7 @@ Source: "CsoundVST.dll";  DestDir: "{#APP_BIN}"; Flags: ignoreversion; Component
 Source: "luaCsnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "luaCsoundAC.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "_jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "frontends\nwjs\build\Release\csound.node"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
 #ifdef CSOUNDVST
 Source: "{#MyCabbageDir}cabbage.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
