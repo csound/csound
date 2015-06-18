@@ -9,7 +9,19 @@
             ],
             'conditions':
             [
-                ['OS=="win"',
+                 ['OS=="linux"',
+                    {
+                        'libraries':
+                        [
+                            '-L$(CSOUND_HOME)/cs6make -lcsound64',
+                        ],
+                        'include_dirs':
+                        [
+                            '$(CSOUND_HOME)/include',
+                        ],
+		    }
+               ],
+               ['OS=="win"',
                     {
                         'libraries':
                         [
