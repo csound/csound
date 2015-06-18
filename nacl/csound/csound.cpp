@@ -408,10 +408,10 @@ bool CsoundInstance::StartDAC(){
 
   int frames = 
   pp::AudioConfig::RecommendSampleFrameCount(this,
-  				       PP_AUDIOSAMPLERATE_44100, kSampleFrameCount);
+  				       isr, kSampleFrameCount);
   dac = pp::Audio(
 		  this,
-		  pp::AudioConfig(this, PP_AUDIOSAMPLERATE_44100, frames),
+		  pp::AudioConfig(this, isr, frames),
 		  CsoundCallback,
 		  this);
   int cbufsiz = frames*csoundGetNchnls(csound)*4;
