@@ -253,6 +253,7 @@ document.write('<p>csound.hello() => ' + csound.hello());
 document.write('<p>csound.getVersion() => ' + csound.getVersion());
 document.write('<p>csound.compileOrc(xanadu) => ' + csound.compileOrc(document.getElementById('orc').innerHTML));
 csound.setOption('--logfile=\\csound.log');
+csound.setOption('-m3');
 csound.setOption('-odac');
 csound.message('This is a test of csound.message() from the HTML code.\n');
 document.write('<p>csound.readScore(xanadu) => ' + csound.readScore(document.getElementById('sco').innerHTML));
