@@ -18,19 +18,19 @@ idbaheadroom                    init                    idbafs - iheadroom
 iampheadroom                    init                    ampdb(idbaheadroom)
                                 prints                  "Amplitude at headroom:        %9.4f\n", iampheadroom
                                 prints                  "Balance so the overall amps at the end of performance -6 dbfs.\n"
-                                
-                           	connect                  "ModerateFM", "outleft", "Reverberation", "inleft"
-                               connect                  "ModerateFM", "outright", "Reverberation", "inright"
-                               connect                  "Reverberation", "outleft", "MasterOutput", "inleft"
-                               connect                  "Reverberation", "outright", "MasterOutput", "inright"
-                                
-                                alwayson                "Reverberation"
-                                alwayson                "MasterOutput"
-                                alwayson                "Controls"
 
-gk_FmIndex                      init                    0.5 
-gk_FmCarrier                    init                    1 
-                                instr			        ModerateFM
+                                connect                  "ModerateFM", "outleft", "Reverberation", "inleft"
+                                connect                  "ModerateFM", "outright", "Reverberation", "inright"
+                                connect                  "Reverberation", "outleft", "MasterOutput", "inleft"
+                                connect                  "Reverberation", "outright", "MasterOutput", "inright"
+
+                                alwayson                 "Reverberation"
+                                alwayson                 "MasterOutput"
+                                alwayson                 "Controls"
+
+gk_FmIndex                      init                    0.5
+gk_FmCarrier                    init                    1
+                                instr                   ModerateFM
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
                                 //////////////////////////////////////////////
@@ -91,7 +91,7 @@ aoutright			         =			            ainright * kdry + awetright * gkReverberati
                                 endin
 
 gk_MasterLevel                   init                   1
-	                           instr                   MasterOutput
+                               instr                   MasterOutput
 ainleft                         inleta                  "inleft"
 ainright                        inleta                  "inright"
 aoutleft                        =                       gk_MasterLevel * ainleft
@@ -99,7 +99,7 @@ aoutright                       =                       gk_MasterLevel * ainrigh
                                 outs                    aoutleft, aoutright
                                 prints                  "instr %4d t %9.4f d %9.4f k %9.4f v %9.4f p %9.4f\n", p1, p2, p3, p4, p5, p7
                                 endin
-                                
+
 instr Controls
 
 gk_FmIndex_ chnget "gk_FmIndex"
@@ -126,16 +126,18 @@ endin
 
 </CsInstruments>
 <html>
-
+<script>
+var csound = require('csound');
+</script>
 <style type="text/css">
 input[type='range'] {
-	-webkit-appearance: none;
-	border-radius: 5px;
-	box-shadow: inset 0 0 5px #333;
-	background-color: #999;
-	height: 10px;
+    -webkit-appearance: none;
+    border-radius: 5px;
+    box-shadow: inset 0 0 5px #333;
+    background-color: #999;
+    height: 10px;
     width: 100%;
-	vertical-align: middle;
+    vertical-align: middle;
 }
 input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -148,13 +150,13 @@ input[type=range]::-webkit-slider-thumb {
     border-radius: 10px;
 }
 table td {
-	border-width: 2px;
-	padding: 8px;
-	border-style: solid;
-	border-color: transparent;
+    border-width: 2px;
+    padding: 8px;
+    border-style: solid;
+    border-color: transparent;
     color:yellow;
-	background-color: teal;
-	font-family: sans-serif
+    background-color: teal;
+    font-family: sans-serif
 }
 </style>
 
@@ -165,44 +167,44 @@ table td {
 var c = 0.99;
 var y = 0.5;
 function generate() {
-	csound.message("generate()...\n");
-	for (i = 0; i < 50; i++) {
-	  var t = i * (1.0 / 3.0);	
-	  var y1 = 4.0 * c * y * (1.0 - y);
-	  y = y1;
-	  var key = Math.round(36.0 + (y * 60.0));
-	  var note = "i 1 " + t + " 2.0 " + key + " 60 0.0 0.5\n";
-	  csound.readScore(note);		
-	};
+    csound.message("generate()...\n");
+    for (i = 0; i < 50; i++) {
+      var t = i * (1.0 / 3.0);
+      var y1 = 4.0 * c * y * (1.0 - y);
+      y = y1;
+      var key = Math.round(36.0 + (y * 60.0));
+      var note = "i 1 " + t + " 2.0 " + key + " 60 0.0 0.5\n";
+      csound.readScore(note);
+    };
 };
 
 function on_sliderC(value) {
-	c = parseFloat(value);
-	document.querySelector('#sliderCOutput').value = c;
+    c = parseFloat(value);
+    document.querySelector('#sliderCOutput').value = c;
 }
 
 function on_sliderFmIndex(value) {
-	var numberValue = parseFloat(value);
-	document.querySelector('#sliderFmIndexOutput').value = numberValue;
-	csound.setControlChannel('gk_FmIndex', numberValue);
+    var numberValue = parseFloat(value);
+    document.querySelector('#sliderFmIndexOutput').value = numberValue;
+    csound.setControlChannel('gk_FmIndex', numberValue);
 }
 
 function on_sliderFmRatio(value) {
-	var numberValue = parseFloat(value);
-	document.querySelector('#sliderFmRatioOutput').value = numberValue;
-	csound.setControlChannel('gk_FmCarrier', numberValue);
+    var numberValue = parseFloat(value);
+    document.querySelector('#sliderFmRatioOutput').value = numberValue;
+    csound.setControlChannel('gk_FmCarrier', numberValue);
 }
 
 function on_sliderReverberationDelay(value) {
-	var numberValue = parseFloat(value);
-	document.querySelector('#sliderReverberationDelayOutput').value = numberValue;
-	csound.setControlChannel('gk_ReverberationDelay', numberValue);
+    var numberValue = parseFloat(value);
+    document.querySelector('#sliderReverberationDelayOutput').value = numberValue;
+    csound.setControlChannel('gk_ReverberationDelay', numberValue);
 }
 
 function on_sliderMasterLevel(value) {
-	var numberValue = parseFloat(value);
-	document.querySelector('#sliderMasterLevelOutput').value = numberValue;
-	csound.setControlChannel('gk_MasterLevel', numberValue);
+    var numberValue = parseFloat(value);
+    document.querySelector('#sliderMasterLevelOutput').value = numberValue;
+    csound.setControlChannel('gk_MasterLevel', numberValue);
 }
 
 </script>

@@ -48,7 +48,7 @@
 #include <node.h>
 #include <string>
 #include <v8.h>
-#if defined(MSVC_VER)
+#if defined(WIN32)
 #include <concurrent_queue.h>
 #else
 #include <boost/lockfree/queue.hpp>
@@ -63,7 +63,7 @@ static char *orc = 0;
 static char *sco = 0;
 static uv_thread_t uv_csound_perform_thread;
 static uv_async_t uv_csound_message_async;
-#if defined(MSVC_VER)
+#if defined(WIN32)
 static concurrency::concurrent_queue<char *> csound_messages_queue;
 #else
 static boost::lockfree::queue<char *> csound_messages_queue;
@@ -114,8 +114,7 @@ static double run_javascript(Isolate *isolate, std::string code)
 }
 
 /**
- * Compiles the CSD file, and also parses out the <html> element
- * and loads it into the current window.
+ * Compiles the CSD file.
  */
 void compileCsd(const FunctionCallbackInfo<Value>& args)
 {
@@ -124,27 +123,6 @@ void compileCsd(const FunctionCallbackInfo<Value>& args)
     //csoundCreateMessageBuffer(csound, 1);
     int result = 0;
     v8::String::Utf8Value csd_path(args[0]->ToString());
-    std::ifstream csd_file(*csd_path);
-    if (csd_file.good()) {
-        std::string csd_text((std::istreambuf_iterator<char>(csd_file)),
-                             std::istreambuf_iterator<char>());
-        csd_file.close();
-        size_t html_start = csd_text.find("<html");
-        if (html_start != std::string::npos) {
-            size_t html_end = csd_text.find("</html>", html_start);
-            if (html_end != std::string::npos) {
-                std::string html_text = csd_text.substr(html_start, html_end - html_start + 7);
-                std::string html_path = *csd_path;
-                html_path += ".html";
-                std::ofstream html_file(html_path.c_str(), std::ios_base::out | std::ios_base::binary);
-                if (html_file.good()) {
-                    html_file.write(html_text.c_str(), html_text.size());
-                    html_file.close();
-                }
-                run_javascript(isolate, "location = 'file:///" + html_path + "';");
-            }
-        }
-    }
     result = csoundCompileCsd(csound, *csd_path);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
@@ -246,7 +224,7 @@ void uv_csound_message_callback(uv_async_t *handle)
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     char *message;
-#if defined(MSVC_VER)
+#if defined(WIN32)
     while (csound_messages_queue.try_pop(message)) {
 #else
     while (csound_messages_queue.pop(message)) {

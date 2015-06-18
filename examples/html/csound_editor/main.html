@@ -55,38 +55,63 @@
   <script type="text/javascript">
     var csound = require('csound');
     var gui = require('nw.gui');
-    var csound_window = null;
+    var fs = require('fs');
+    //var csound_window = null;
       function csound_run()
       {
         console.log('csound_run()...');
-        console.log('csound:' + csound);
         var filename = document.getElementById('title').innerHTML;
         // Thre are two file modes for csound.node:
         // .html files, which must always create their own csound object with
         // require('csound');, and .csd files, which assume that the csound
         // object has already been created in their JavasScript context.
         console.log('filename:' + filename);
-        if (filename.endsWith('html')) {
+        if (filename.endsWith('.html')) {
             csound_window = gui.Window.open('file:///' + filename,
                 {
                     "position": 'center',
                     "nodejs": true,
-                    "new-instance": true,
+                    "new-instance": false,
                 }
-            );
+             );
+            csound_window.moveBy(100, 100);
             return;
         };
         if (filename.endsWith('.csd')) {
-            csound_window = gui.Window.open('about:blank',
-                {
-                    "position": 'center',
-                    "nodejs": true,
-                    "new-instance": true,
-                    "inject-js-start": 'embed_csound.js',
+            var html_filename = filename + '.html';
+            var csd = editor.getValue();
+            //console.log('csd:', csd);
+            if (csd) {
+                var html_start = csd.indexOf('<html');
+                if (html_start != -1) {
+                    var html_end = csd.indexOf('</html>');
+                    if (html_end != -1) {
+                        var html = csd.slice(html_start, html_end);
+                        //console.log('html:', html);
+                         if (html) {
+                            html += `
+<script>
+csound.compileCsd('${filename}');
+csound.perform();
+<script>
+</html>
+`;
+                            console.log('html:', html);
+                            var html_file = fs.openSync(html_filename, 'w+');
+                            fs.writeSync(html_file, html);
+                            fs.closeSync(html_file);
+                            csound_window = gui.Window.open('file:///' + html_filename,
+                                {
+                                    "position": 'center',
+                                    "nodejs": true,
+                                    "new-instance": false,
+                                }
+                             );
+                       };
+                    };
                 }
-            );
-            csound_window.csound.compileCsd(filename);
-            return;
+            };
+             return;
         }
         alert('Unknown file type:' + filename);
       };
