@@ -41,7 +41,7 @@ int OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
     self->frames = self->framePointerMemory.auxp;
     self->ksmps = csound->GetKsmps(csound);
 
-    u_int32_t i;
+    int i;
     for (i = 0; i < self->framesCount; ++i) {
 
       self->frames[i] = &((MYFLT *)self->frameSamplesMemory.auxp)[i * self->frameSamplesCount];
@@ -52,21 +52,21 @@ int OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
     return OK;
 }
 
-void OLABuffer_writeFrame(OLABuffer *self, MYFLT *inputFrame, u_int32_t frameIndex)
+void OLABuffer_writeFrame(OLABuffer *self, MYFLT *inputFrame, int frameIndex)
 {
-    u_int32_t firstHalfOffset = self->overlapSamplesCount * frameIndex;
-    u_int32_t firstHalfCount = self->frameSamplesCount - firstHalfOffset;
-    u_int32_t secondHalfCount = self->frameSamplesCount - firstHalfCount;
+    int firstHalfOffset = self->overlapSamplesCount * frameIndex;
+    int firstHalfCount = self->frameSamplesCount - firstHalfOffset;
+    int secondHalfCount = self->frameSamplesCount - firstHalfCount;
     memcpy(&self->frames[frameIndex][firstHalfOffset], inputFrame, firstHalfCount * sizeof(MYFLT));
     memcpy(self->frames[frameIndex], &inputFrame[firstHalfCount], secondHalfCount * sizeof(MYFLT));
 }
 
-void OLABuffer_readFrame(OLABuffer *self, MYFLT *outputFrame, u_int32_t outputFrameOffset,
-                         u_int32_t olaBufferOffset, u_int32_t samplesCount)
+void OLABuffer_readFrame(OLABuffer *self, MYFLT *outputFrame, int outputFrameOffset,
+                         int olaBufferOffset, int samplesCount)
 {
     memcpy(&outputFrame[outputFrameOffset], &self->frames[0][olaBufferOffset], samplesCount * sizeof(MYFLT));
 
-    u_int32_t i, j;
+    int i, j;
     for (i = 1; i < self->framesCount; ++i) {
 
       for (j = 0; j < samplesCount; ++j) {
@@ -78,7 +78,7 @@ void OLABuffer_readFrame(OLABuffer *self, MYFLT *outputFrame, u_int32_t outputFr
 
 int OLABuffer_process(CSOUND *csound, OLABuffer *self)
 {
-    u_int32_t nextKPassSampleIndex = (self->readSampleIndex + self->ksmps) % self->overlapSamplesCount;
+    int nextKPassSampleIndex = (self->readSampleIndex + self->ksmps) % self->overlapSamplesCount;
 
     if (nextKPassSampleIndex == 0) {
 
@@ -89,7 +89,7 @@ int OLABuffer_process(CSOUND *csound, OLABuffer *self)
     }
     else if (nextKPassSampleIndex < self->overlapSampleIndex) {
 
-      u_int32_t firstHalfCount = self->overlapSamplesCount - self->overlapSampleIndex;
+      int firstHalfCount = self->overlapSamplesCount - self->overlapSampleIndex;
 
       if (firstHalfCount != 0) {
 
@@ -98,7 +98,7 @@ int OLABuffer_process(CSOUND *csound, OLABuffer *self)
 
       OLABuffer_writeFrame(self, self->inputArray->data, self->frameIndex);
 
-      u_int32_t secondHalfCount = self->ksmps - firstHalfCount;
+      int secondHalfCount = self->ksmps - firstHalfCount;
 
       if (secondHalfCount != 0) {
 
@@ -137,7 +137,7 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
       csound->Die(csound, Str("olabuffer: Error, k-rate array must be one dimensional"));
     }
 
-    u_int32_t frameSampleCount = array->sizes[0];
+    int frameSampleCount = array->sizes[0];
 
     if (frameSampleCount <= (int)overlapCount) {
 

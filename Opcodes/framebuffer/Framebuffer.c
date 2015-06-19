@@ -55,7 +55,7 @@ int Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
     return OK;
 }
 
-void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self, MYFLT *inputSamples, u_int32_t inputSamplesCount)
+void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self, MYFLT *inputSamples, int inputSamplesCount)
 {
     if (self->writeIndex + inputSamplesCount <= self->elementCount) {
         
@@ -65,15 +65,15 @@ void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self, MYFLT *inputSamp
     }
     else {
         
-        u_int32_t firstHalf = self->elementCount - self->writeIndex;
+        int firstHalf = self->elementCount - self->writeIndex;
         memcpy(&self->buffer[self->writeIndex], inputSamples, sizeof(MYFLT) * firstHalf);
-        u_int32_t secondHalf = inputSamplesCount - firstHalf;
+        int secondHalf = inputSamplesCount - firstHalf;
         memcpy(self->buffer, &inputSamples[firstHalf], sizeof(MYFLT) * secondHalf);
         self->writeIndex = secondHalf;
     }
 }
 
-void Framebuffer_readBuffer(CSOUND *csound, Framebuffer *self, MYFLT *outputSamples, u_int32_t outputSamplesCount)
+void Framebuffer_readBuffer(CSOUND *csound, Framebuffer *self, MYFLT *outputSamples, int outputSamplesCount)
 {
     if (self->writeIndex + outputSamplesCount < self->elementCount) {
         
@@ -81,9 +81,9 @@ void Framebuffer_readBuffer(CSOUND *csound, Framebuffer *self, MYFLT *outputSamp
     }
     else {
         
-        u_int32_t firstHalf = self->elementCount - self->writeIndex;
+        int firstHalf = self->elementCount - self->writeIndex;
         memcpy(outputSamples, &self->buffer[self->writeIndex], sizeof(MYFLT) * firstHalf);
-        u_int32_t secondHalf = outputSamplesCount - firstHalf;
+        int secondHalf = outputSamplesCount - firstHalf;
         memcpy(&outputSamples[firstHalf], self->buffer, sizeof(MYFLT) * secondHalf);
     }
 }
