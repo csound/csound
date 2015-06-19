@@ -33,7 +33,7 @@
   <div class="buttons">
     <button id="new">New</button>
     <button id="open">Open...</button>
-    <button id="save">Save...</button>
+    <button id="save">Save as...</button>
     <button id="run" onclick="csound_run()">Run</button>
     <button id="stop" onclick="csound_stop()">Stop</button>
   </div>
@@ -53,19 +53,20 @@
   </form>
   <base target="_blank" />
   <script type="text/javascript">
-    var csound = require('csound');
+    //var csound = require('csound');
     var gui = require('nw.gui');
     var fs = require('fs');
     //var csound_window = null;
       function csound_run()
       {
         console.log('csound_run()...');
-        var filename = document.getElementById('title').innerHTML;
+        var filename = document.getElementById('title').innerText;
+        filename = filename.replace(/\\/g,"/");
+        console.log('filename: ' + filename);
         // Thre are two file modes for csound.node:
         // .html files, which must always create their own csound object with
         // require('csound');, and .csd files, which assume that the csound
         // object has already been created in their JavasScript context.
-        console.log('filename:' + filename);
         if (filename.endsWith('.html')) {
             csound_window = gui.Window.open('file:///' + filename,
                 {
@@ -87,16 +88,20 @@
                     var html_end = csd.indexOf('</html>');
                     if (html_end != -1) {
                         var html = csd.slice(html_start, html_end);
-                        //console.log('html:', html);
+                        // In CsoundQt, Android, etc., the Csound object is created by the host
+                        // and is called by the host to compile and perform the pieced. Here,
+                        // JavaScript for doing these things has to be written into the HTML.
+                        // THe code for generating this code is, no doubt, a true kludge!
                          if (html) {
-                            html += `
-<script>
+                            var script = `<script>
+csound = require('csound');
 csound.compileCsd('${filename}');
 csound.perform();
-<script>
-</html>
 `;
-                            console.log('html:', html);
+                            html += script;
+                            html += '<\/script>\n';
+                            html += '<\/html>\n';
+                            //console.log('html:', html);
                             var html_file = fs.openSync(html_filename, 'w+');
                             fs.writeSync(html_file, html);
                             fs.closeSync(html_file);
