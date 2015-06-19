@@ -41,8 +41,8 @@ extern "C"
     {
         OPDS h;
         MYFLT *arguments[20];
-        u_int16_t inputArgumentCount;
-        u_int16_t outputArgumentCount;
+        int inputArgumentCount;
+        int outputArgumentCount;
         WebSocket *webSocket;
         OpcodeArgument *inputArguments;
         OpcodeArgument *outputArguments;
