@@ -53,9 +53,9 @@ extern "C"
         ArgumentType outputType;
         MYFLT *buffer;
         AUXCH bufferMemory;
-        u_int32_t elementCount;
-        u_int32_t writeIndex;
-        u_int32_t ksmps;
+        int elementCount;
+        int writeIndex;
+        int ksmps;
     } Framebuffer;
     
     int Framebuffer_initialise(CSOUND *csound, Framebuffer *self);
