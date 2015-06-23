@@ -105,7 +105,9 @@ csound.perform();
                             var html_file = fs.openSync(html_filename, 'w+');
                             fs.writeSync(html_file, html);
                             fs.closeSync(html_file);
-                            csound_window = gui.Window.open('file:///' + html_filename,
+			    var html_url = 'file:///' + html_filename;
+			    window.App.addOriginAccessWhitelistEntry('localhost', 'file', 'localhost', true);
+                            csound_window = gui.Window.open(html_url,
                                 {
                                     "position": 'center',
                                     "nodejs": true,
