@@ -4,6 +4,7 @@
   "description": "Use Csound in NW.js",
   "version": "0.1.0",
   "keywords": [ "Csound", "node-webkit" ],
+  "nodejs": true,
   "window": {
     "title": "Node-Webkit Csound Demo",
     "icon": "link.png",
