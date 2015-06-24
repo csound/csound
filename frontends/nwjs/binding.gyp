@@ -13,12 +13,17 @@
                     {
                         'libraries':
                         [
-                            '-L$(CSOUND_HOME)/cs6make -lcsound64',
+                            '-L$(CSOUND_HOME) -lcsound64',
                         ],
                         'include_dirs':
                         [
                             '$(CSOUND_HOME)/include',
                         ],
+ 			'cflags_cc!': 
+			[
+              		'-fno-exceptions',
+			'-std=c++11',
+            		],
 		    }
                ],
                ['OS=="win"',
