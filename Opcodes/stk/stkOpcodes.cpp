@@ -29,8 +29,6 @@
  * csound6/Opcodes/stk/src
  * csound6/Opcodes/stk/rawwaves
  *
- * Also, specify buildStkOpcodes=1 for SCons.
- *
  * To use these opcodes, define a RAWWAVE_PATH environment variable that points
  * to your rawwaves directory, which contains raw soundfiles with function table
  * data.
