@@ -113,9 +113,9 @@ Use right mouse button for devtools to debug or examine.
         <script type="text/javascript" src="js/widgets.js"></script>
 	</div>
 	<div id="container"></div>
-	<script type="text/javascript" src="js/Three.js"></script>
+	<script type="text/javascript" src="js/three.js"></script>
 	<script type="text/javascript" src="js/Tween.js"></script>
-	<script type="text/javascript" src="js/RequestAnimationFrame.js"></script>
+	<!-- <script type="text/javascript" src="js/RequestAnimationFrame.js"></script> -->
 	<script type="text/javascript" src="js/Detector.js"></script>
 	<script type="text/javascript" src="js/sprintf.js"></script>
 	<script type="text/javascript">
