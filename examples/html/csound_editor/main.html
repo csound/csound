@@ -33,7 +33,7 @@
   <div class="buttons">
     <button id="new">New</button>
     <button id="open">Open...</button>
-    <button id="save">Save...</button>
+    <button id="save">Save as...</button>
     <button id="run" onclick="csound_run()">Run</button>
     <button id="stop" onclick="csound_stop()">Stop</button>
   </div>
@@ -46,26 +46,30 @@
   </div>
 
   <form>
-    <input style="display:none;" id="openFile" type="file">
-    <input style="display:none;" id="saveFile" type="file" nwsaveas="">
     <script type="text/javascript">
+    function onFileOpen(filename_) {
+        filename = filename_;
+        console.log('filename:', filename);
+    };
     </script>
+    <input style="display:none;" id="openFile" type="file" onchange = "onFileOpen(this.value)">
+    <input style="display:none;" id="saveFile" type="file" nwsaveas="">
   </form>
   <base target="_blank" />
   <script type="text/javascript">
-    var csound = require('csound');
+    //var csound = require('csound');
     var gui = require('nw.gui');
     var fs = require('fs');
     //var csound_window = null;
       function csound_run()
       {
         console.log('csound_run()...');
-        var filename = document.getElementById('title').innerHTML;
+        filename = filename.replace(/\\/g,"/");
+        console.log('filename: ' + filename);
         // Thre are two file modes for csound.node:
         // .html files, which must always create their own csound object with
         // require('csound');, and .csd files, which assume that the csound
         // object has already been created in their JavasScript context.
-        console.log('filename:' + filename);
         if (filename.endsWith('.html')) {
             csound_window = gui.Window.open('file:///' + filename,
                 {
@@ -87,27 +91,35 @@
                     var html_end = csd.indexOf('</html>');
                     if (html_end != -1) {
                         var html = csd.slice(html_start, html_end);
-                        //console.log('html:', html);
+                        // In CsoundQt, Android, etc., the Csound object is created by the host
+                        // and is called by the host to compile and perform the pieced. Here,
+                        // JavaScript for doing these things has to be written into the HTML.
+                        // THe code for generating this code is, no doubt, a true kludge!
                          if (html) {
-                            html += `
-<script>
+                            var script = `<script>
+csound = require('csound.node');
 csound.compileCsd('${filename}');
 csound.perform();
-<script>
-</html>
 `;
-                            console.log('html:', html);
-                            var html_file = fs.openSync(html_filename, 'w+');
-                            fs.writeSync(html_file, html);
-                            fs.closeSync(html_file);
-                            csound_window = gui.Window.open('file:///' + html_filename,
-                                {
-                                    "position": 'center',
-                                    "nodejs": true,
-                                    "new-instance": false,
-                                }
-                             );
-                       };
+                            var head_end = html.indexOf('</head>');
+                                if (head_end != -1) {
+                                    var head = html.slice(0, head_end);
+                                    var body = html.slice(head_end);
+                                    html = head + script + '<\/script>\n' + body;
+                                    //console.log('html:', html);
+                                    var html_file = fs.openSync(html_filename, 'w+');
+                                    fs.writeSync(html_file, html);
+                                    fs.closeSync(html_file);
+			                        var html_url = 'file:///' + html_filename;
+                                    csound_window = gui.Window.open(html_url,
+                                        {
+                                            "position": 'center',
+                                            "nodejs": true,
+                                            "new-instance": false,
+                                        }
+                                     );
+                              };
+                         };
                     };
                 }
             };

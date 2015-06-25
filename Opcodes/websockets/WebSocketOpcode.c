@@ -272,7 +272,7 @@ static int Websocket_callback(struct libwebsocket_context *context,
 int WebSocketOpcode_getArrayElementCount(ARRAYDAT *array)
 {
     int elementCount = array->sizes[0];
-    u_int32_t i;
+    int i;
     for (i = 1; i < array->dimensions; ++i) {
 
       elementCount *= array->sizes[i];
@@ -354,7 +354,7 @@ void WebSocketOpcode_initialiseArgumentsArray(CSOUND *csound,
                                               WebSocketOpcode *self, OpcodeArgument *argumentsArray,
                                               size_t argumentsCount, MYFLT **arguments, bool areInputArguments)
 {
-    u_int32_t i;
+    int i;
     for (i = 0; i < argumentsCount; ++i) {
 
       OpcodeArgument *argumentArrayItem = &argumentsArray[i];
@@ -416,7 +416,7 @@ void WebSocketOpcode_initialiseWebSocket(WebSocketOpcode *self, CSOUND *csound)
     self->webSocket = csound->Calloc(csound, sizeof(WebSocket));
     self->webSocket->protocols = csound->Calloc(csound, sizeof(struct libwebsocket_protocols) * (argumentsCount + 1)); //Last protocol is null
     size_t argumentIndex = 0;
-    u_int32_t i;
+    int i;
     for (i = 0; i < self->outputArgumentCount; ++i, ++argumentIndex) {
 
       self->webSocket->protocols[argumentIndex].name = self->outputArguments[i].name;
@@ -454,7 +454,7 @@ void WebSocketOpcode_initialiseWebSocket(WebSocketOpcode *self, CSOUND *csound)
 
 void WebSocketOpcode_sendInputArgumentData(CSOUND *csound, WebSocketOpcode *self)
 {
-    u_int32_t i;
+    int i;
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
       OpcodeArgument *currentArgument = &self->inputArguments[i];
@@ -477,7 +477,7 @@ void WebSocketOpcode_sendInputArgumentData(CSOUND *csound, WebSocketOpcode *self
 
 void WebSocketOpcode_receiveOutputArgumentData(CSOUND *csound, WebSocketOpcode *self)
 {
-    u_int32_t i;
+    int i;
     for (i = 0; i < self->outputArgumentCount; ++i) {
 
       OpcodeArgument *currentArgument = &self->outputArguments[i];
@@ -508,7 +508,7 @@ int WebSocketOpcode_finish(CSOUND *csound, void *opaqueReference)
 
     libwebsocket_cancel_service(self->webSocket->context);
     libwebsocket_context_destroy(self->webSocket->context);
-    u_int32_t i;
+    int i;
     for (i = 0; i < self->outputArgumentCount; ++i) {
 
       csoundDestroyCircularBuffer(csound, self->outputArguments[i].circularBuffer);
