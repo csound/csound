@@ -66,7 +66,7 @@ static uv_async_t uv_csound_message_async;
 #if defined(WIN32)
 static concurrency::concurrent_queue<char *> csound_messages_queue;
 #else
-static boost::lockfree::queue<char *> csound_messages_queue;
+static boost::lockfree::queue<char *, boost::lockfree::fixed_sized<false> > csound_messages_queue(0);
 #endif
 
 /**

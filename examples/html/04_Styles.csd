@@ -126,9 +126,8 @@ endin
 
 </CsInstruments>
 <html>
-<script>
-var csound = require('csound');
-</script>
+<head>
+</head>
 <style type="text/css">
 input[type='range'] {
     -webkit-appearance: none;
