@@ -40,13 +40,13 @@ extern "C"
         ARRAYDAT *inputArray;
         AUXCH frameSamplesMemory;
         AUXCH framePointerMemory;
-        u_int32_t frameIndex;
-        u_int32_t overlapSampleIndex;
-        u_int32_t readSampleIndex;
-        u_int32_t framesCount;
-        u_int32_t frameSamplesCount;
-        u_int32_t overlapSamplesCount;
-        u_int32_t ksmps;
+        int frameIndex;
+        int overlapSampleIndex;
+        int readSampleIndex;
+        int framesCount;
+        int frameSamplesCount;
+        int overlapSamplesCount;
+        int ksmps;
         MYFLT **frames;
     } OLABuffer;
     

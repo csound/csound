@@ -1,12 +1,12 @@
 {
-  "main": "NW_Csound_Demo.html",
-  "name": "NW_Csound_Demo",
-  "description": "Use Csound in NW.js",
+  "main": "index.html",
+  "name": "Emscripten Csound",
+  "description": "Use Emscripten Csound in NW.js",
   "version": "0.1.0",
-  "keywords": [ "Csound", "node-webkit" ],
-  "nodejs": true,
+  "keywords": [ "Csound", "Emscripten", "node-webkit" ],
+  "nodejs": false,
   "window": {
-    "title": "Node-Webkit Csound Demo",
+    "title": "Node-Webkit Emscripten Csound Demo",
     "icon": "link.png",
     "toolbar": true,
     "frame": true,

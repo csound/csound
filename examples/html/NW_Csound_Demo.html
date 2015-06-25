@@ -247,7 +247,7 @@ document.write('<p>process.cwd() => ' + process.cwd());
 document.write('<p>process.env => ' + process.env);
 console.log('Here is the orc:' + document.getElementById('orc').innerHTML + '\n');
 console.log('Here is the sco:' + document.getElementById('sco').innerHTML + '\n');
-var csound = require('csound');
+csound = require("csound.node");
 document.write('<p>csound => ' + csound);
 document.write('<p>csound.hello() => ' + csound.hello());
 document.write('<p>csound.getVersion() => ' + csound.getVersion());
