@@ -1,13 +1,14 @@
 {
-  "name": "MiniCodeEdit",
-  "version": "0.1.11",
-  "description": "A very small code editor.",
+  "name": "CsoundEditor",
+  "version": "0.1.0",
+  "description": "Edit and run CSD files with <html> elements.",
   "main": "main.html",
   "window": {
     "width": 400,
     "height": 520,
     "show": false,
-    "title": "Mini Code Editor",
-    "toolbar": false
+    "title": "Csound Editor",
+    "toolbar": true,
+    "nodejs": true
   }
 }

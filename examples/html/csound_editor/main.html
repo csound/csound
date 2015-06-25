@@ -46,10 +46,14 @@
   </div>
 
   <form>
-    <input style="display:none;" id="openFile" type="file">
-    <input style="display:none;" id="saveFile" type="file" nwsaveas="">
     <script type="text/javascript">
+    function onFileOpen(filename_) {
+        filename = filename_;
+        console.log('filename:', filename);
+    };
     </script>
+    <input style="display:none;" id="openFile" type="file" onchange = "onFileOpen(this.value)">
+    <input style="display:none;" id="saveFile" type="file" nwsaveas="">
   </form>
   <base target="_blank" />
   <script type="text/javascript">
@@ -60,7 +64,6 @@
       function csound_run()
       {
         console.log('csound_run()...');
-        var filename = document.getElementById('title').innerText;
         filename = filename.replace(/\\/g,"/");
         console.log('filename: ' + filename);
         // Thre are two file modes for csound.node:
@@ -94,27 +97,29 @@
                         // THe code for generating this code is, no doubt, a true kludge!
                          if (html) {
                             var script = `<script>
-csound = require('csound');
+csound = require('csound.node');
 csound.compileCsd('${filename}');
 csound.perform();
 `;
-                            html += script;
-                            html += '<\/script>\n';
-                            html += '<\/html>\n';
-                            //console.log('html:', html);
-                            var html_file = fs.openSync(html_filename, 'w+');
-                            fs.writeSync(html_file, html);
-                            fs.closeSync(html_file);
-			    var html_url = 'file:///' + html_filename;
-			    window.App.addOriginAccessWhitelistEntry('localhost', 'file', 'localhost', true);
-                            csound_window = gui.Window.open(html_url,
-                                {
-                                    "position": 'center',
-                                    "nodejs": true,
-                                    "new-instance": false,
-                                }
-                             );
-                       };
+                            var head_end = html.indexOf('</head>');
+                                if (head_end != -1) {
+                                    var head = html.slice(0, head_end);
+                                    var body = html.slice(head_end);
+                                    html = head + script + '<\/script>\n' + body;
+                                    //console.log('html:', html);
+                                    var html_file = fs.openSync(html_filename, 'w+');
+                                    fs.writeSync(html_file, html);
+                                    fs.closeSync(html_file);
+			                        var html_url = 'file:///' + html_filename;
+                                    csound_window = gui.Window.open(html_url,
+                                        {
+                                            "position": 'center',
+                                            "nodejs": true,
+                                            "new-instance": false,
+                                        }
+                                     );
+                              };
+                         };
                     };
                 }
             };
