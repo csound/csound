@@ -1,14 +1,12 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 
 <html>
-<head>
-  <meta name="generator" content=
-  "HTML Tidy for Windows (vers 25 March 2009), see www.w3.org">
-
-  <title>Csound Editor for NW.js</title>
-  <script src="zepto.min.js" type="text/javascript">
-</script>
-  <script src="editor.js" type="text/javascript">
+    <head>
+        <meta name="generator" content=
+            "HTML Tidy for Windows (vers 25 March 2009), see www.w3.org">
+    <title>Csound Editor for NW.js</title>
+    <script src="zepto.min.js" type="text/javascript"></script>
+    <script src="editor.js" type="text/javascript">
 </script>
   <script src="cm/lib/codemirror.js" type="text/javascript">
 </script>
@@ -34,6 +32,7 @@
     <button id="new">New</button>
     <button id="open">Open...</button>
     <button id="save">Save as...</button>
+    <button id="save_noprompt" onclick="csound_save()">Save</button>
     <button id="run" onclick="csound_run()">Run</button>
     <button id="stop" onclick="csound_stop()">Stop</button>
   </div>
@@ -57,10 +56,10 @@
   </form>
   <base target="_blank" />
   <script type="text/javascript">
-    //var csound = require('csound');
+    var csound = require('csound');
     var gui = require('nw.gui');
     var fs = require('fs');
-    //var csound_window = null;
+    var csound_window = null;
       function csound_run()
       {
         console.log('csound_run()...');
@@ -130,8 +129,16 @@ csound.perform();
       function csound_stop()
       {
         console.log('csound_stop()...');
-
-      }
+        csound_window.window.csound.stop();
+      };
+    function csound_save()
+    {
+        var csd = editor.getValue();
+        csd_file = fs.openSync(filename, 'w+');
+        fs.writeSync(csd_file, csd);
+        fs.closeSync(csd_file);
+        console.log('Saved: ' + filename);
+    }
   </script>
   </body>
   </html>
