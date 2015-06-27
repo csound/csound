@@ -86,14 +86,14 @@ void ChannelObject::SyncVal(Direction d)
 		if(IsControlChannel())
 			*m_csoundChanPtr = m_value;
 		else if(IsStringChannel())
-			strncpy((char*)m_csoundChanPtr, m_str_value.c_str(), MaxChannelStringLength-1);
+      SetStringVal(m_str_value.c_str());
 	}
 	else if(OUT_ == d)
 	{
 		if(IsControlChannel())
 			m_value = *m_csoundChanPtr;
 		else if(IsStringChannel())
-			m_str_value = (char*)m_csoundChanPtr;
+      GetStringVal();
 		m_dirty = true;
 	}
 }
