@@ -310,7 +310,7 @@ void csound_perform64(t_object *_x, t_object *dsp64, double **ins,
 	{
 		// Copy audio input to output.
 		chan = (x->numInSignals < x->numOutSignals ? x->numInSignals : x->numOutSignals);
-		for(i=0; i<chan; i++) memcpy(x->out[i], x->in[i], sizeof(double) * vectorSize);
+		for(i=0; i<chan; i++) memcpy(x->out64[i], x->in64[i], sizeof(double) * vectorSize);
 		
 		// Since we're bypassing the Csound performance, return early.
 		// Must return w + 1 + the # of args to perform method (see csound_dsp()).
