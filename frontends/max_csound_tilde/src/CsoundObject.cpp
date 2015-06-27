@@ -221,7 +221,6 @@ int CsoundObject::Compile(bool lock)
                 if(m_chans != m_x->numOutSignals)
                     m_msg_buf.addv(message::_WARNING_MSG, "# of Csound audio channels (%d) != # of signal outlets (%d).", m_chans, m_x->numOutSignals);
 
-                csoundStart(m_csound);
                 // If DSP is not active and bypass == 0, perform one k-cycle of the newly compiled
                 // Csound instance to force table loading.
                 if(!sys_getdspstate() && !m_x->bypass)
