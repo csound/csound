@@ -157,6 +157,8 @@ Source: "{#MyQtSdkBinDir}icudt53.dll"; DestDir: "{#APP_BIN}"; Components: core;
  
 ; Microsoft C runtime library.
 Source: "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x86\Microsoft.VC120.CRT\msvcr120.dll"; DestDir: "{#APP_BIN}"; Components: core;
+; PThreads wants this.
+Source: "C:\Windows\system32\msvcr100.dll"; DestDir: "{#APP_BIN}"; Components: core;
 ; Microsoft C++ runtime library.
 Source: "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x86\Microsoft.VC120.CRT\msvcp120.dll"; DestDir: "{#APP_BIN}"; Components: core;
 
