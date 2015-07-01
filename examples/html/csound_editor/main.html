@@ -78,6 +78,13 @@
                 }
              );
             csound_window.moveBy(100, 100);
+            csound_window.on('close', function() {
+                this.hide(); // Pretend to be closed already
+                console.log("Performance window is closing...");
+                this.window.csound.stop();
+                console.log("csound.stop()...");
+                this.close(true);
+            });
             return;
         };
         if (filename.endsWith('.csd')) {
@@ -117,6 +124,13 @@ csound.perform();
                                             "new-instance": false,
                                         }
                                      );
+                                    csound_window.on('close', function() {
+                                        this.hide(); // Pretend to be closed already
+                                        console.log("Performance window is closing...");
+                                        this.window.csound.stop();
+                                        console.log("csound.stop()...");
+                                        this.close(true);
+                                    });
                               };
                          };
                     };
