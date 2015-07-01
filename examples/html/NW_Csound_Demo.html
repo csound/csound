@@ -6,11 +6,13 @@
 <p>NW.js is what used to be called Node.webkit. This Web page demonstrates the requirements
 for running Csound in NW.js, and demonstrates a few simple applications.
 <H2>Building</H2>
-<p>Install NW.js, io.js, and npm. Use npm to install node-gyp.
-Build in csound/frontends/nwjs with "nw-gyp build". For Node.js or io.js,  build with node-gyp.
+<p>Install NW.js, io.js, and npm. Use npm to install nw-gyp.
+Build in csound/frontends/nwjs with "nw-gyp build".
 <H2>Installation</H2>
 Copy csound.node to your csound/bin directory.
 Modify your NODE_PATH environment variable to include the Csound bin directory.
+Copy libgcc_s_dw2-1.dll and libstdc++-6.dll from your Csound bin directory to your NW.js directory,
+these apparently will not load from the Csound bin directory.
 <H2>Running</H2>
 <p>Run the nw program.
 <p>Drag and drop this example html file on the NW program. Or, run nw with this directory as the one command-line argument.
