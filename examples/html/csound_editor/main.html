@@ -1,9 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-
 <html>
 <head>
     <meta name="generator" content="HTML Tidy for Windows (vers 25 March 2009), see www.w3.org">
-
     <title>Csound Editor for NW.js</title>
     <script src="zepto.min.js" type="text/javascript">
     </script>
@@ -24,7 +22,6 @@
     <link rel="stylesheet" href="cm/theme/lesser-dark.css" type="text/css">
     <base target="_blank">
 </head>
-
 <body>
     <div class="buttons">
         <button id="new">New</button> <button id="open">
@@ -38,14 +35,11 @@
             Stop
         </button>
     </div>
-
     <div id="editor"></div>
-
     <div class="info">
         <label>Filename:</label> <span id="title"></span>
         <label>Mode:</label> <span id="mode"></span>
     </div>
-
     <form>
         <script type="text/javascript">
             function onFileOpen(filename_) {
@@ -59,28 +53,19 @@
         var csound_window = null;
         var gui = require('nw.gui');
         var fs = require('fs');
-
         var option = {
             key : "F11",
             active : function() {
-                console.log("Global desktop keyboard shortcut: " + this.key + " active."); 
-                csound_window.isFullscreen = (csound_window.isFullscreen == false);
-
+                console.log("Global desktop keyboard shortcut: " + this.key + " active.");
+                csound_window.toggleFullscreen();
             },
             failed : function(msg) {
                 // :(, fail to register the |key| or couldn't parse the |key|.
                 console.log(msg);
             }
         };
-
-        // Create a shortcut with |option|.
         var shortcut = new gui.Shortcut(option);
-
-        // Register global desktop shortcut, which can work without focus.
         gui.App.registerGlobalHotKey(shortcut);
-
-
-
         function csound_run()
         {
             console.log('csound_run()...');
@@ -123,11 +108,12 @@
                             // JavaScript for doing these things has to be written into the HTML.
                             // The code for generating this code is, no doubt, a true kludge!
                             if (html) {
-                                var script = `<script>
-      csound = require('csound.node');
-                                csound.compileCsd('${filename}');
-                                csound.perform();
-      `;
+                                var script = `
+<script>
+csound = require('csound.node');
+csound.compileCsd('${filename}');
+csound.perform();
+`;
                                 var head_end = html.indexOf('<\/head>');
                                 if (head_end != -1) {
                                     var head = html.slice(0, head_end);

@@ -128,65 +128,19 @@ endin
 <html>
 <head>
 </head>
+
 <script type="text/javascript" src="js/dat.gui.js"></script>
 <script type="text/javascript">
     
-var FizzyText = function() {
-  this.message = 'dat.gui';
-  this.speed = 0.8;
-  this.displayOutline = false;
-  this.explode = function() { };
-  // Define render logic ...
-};
 
-window.onload = function() {
-  var text = new FizzyText();
-  var gui = new dat.GUI();
-  gui.add(text, 'message');
-  gui.add(text, 'speed', -5, 5);
-  gui.add(text, 'displayOutline');
-  gui.add(text, 'explode');
-};
     
 </script>  
-<style type="text/css">
-input[type='range'] {
-    -webkit-appearance: none;
-    border-radius: 5px;
-    box-shadow: inset 0 0 5px #333;
-    background-color: #999;
-    height: 10px;
-    width: 100%;
-    vertical-align: middle;
-}
-input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    border: none;
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    background: yellow;
-    margin-top: -4px;
-    border-radius: 10px;
-}
-table td {
-    border-width: 2px;
-    padding: 8px;
-    border-style: solid;
-    border-color: transparent;
-    color:yellow;
-    background-color: teal;
-    font-family: sans-serif
-}
-</style>
-
-<h1>Score Generator</h1>
 
 <script>
 
 var c = 0.99;
 var y = 0.5;
-function generate() {
+function on_generate() {
     csound.message("generate()...\n");
     for (i = 0; i < 50; i++) {
       var t = i * (1.0 / 3.0);
@@ -198,94 +152,50 @@ function generate() {
     };
 };
 
-function on_sliderC(value) {
-    c = parseFloat(value);
-    document.querySelector('#sliderCOutput').value = c;
+function on_c(value) {
+    c = value;
 }
 
-function on_sliderFmIndex(value) {
-    var numberValue = parseFloat(value);
-    document.querySelector('#sliderFmIndexOutput').value = numberValue;
-    csound.setControlChannel('gk_FmIndex', numberValue);
+function on_gk_FmIndex(value) {
+    csound.setControlChannel('gk_FmIndex', value);
 }
 
-function on_sliderFmRatio(value) {
-    var numberValue = parseFloat(value);
-    document.querySelector('#sliderFmRatioOutput').value = numberValue;
-    csound.setControlChannel('gk_FmCarrier', numberValue);
+function on_gk_FmRatio(value) {
+    csound.setControlChannel('gk_FmCarrier', value);
 }
 
-function on_sliderReverberationDelay(value) {
-    var numberValue = parseFloat(value);
-    document.querySelector('#sliderReverberationDelayOutput').value = numberValue;
-    csound.setControlChannel('gk_ReverberationDelay', numberValue);
+function on_gk_ReverberationDelay(value) {
+    csound.setControlChannel('gk_ReverberationDelay', value);
 }
 
-function on_sliderMasterLevel(value) {
-    var numberValue = parseFloat(value);
-    document.querySelector('#sliderMasterLevelOutput').value = numberValue;
-    csound.setControlChannel('gk_MasterLevel', numberValue);
+function on_gk_MasterLevel(value) {
+    csound.setControlChannel('gk_MasterLevel', value);
 }
+
+var parameters = {
+    c: 0.5,
+    gk_FmIndex: 0.5,
+    gk_FmCarrier : 1,
+    gk_ReverberationDelay: 0.5,
+    gk_MasterLevel: 0.5,
+    generate: on_generate,
+};
+
+window.onload = function() {
+  var gui = new dat.GUI();
+  gui.remember(parameters);
+  var f1 = gui.addFolder('Dynamical System');
+  f1.add(parameters, 'c', 0, 1).onChange(on_c);
+  var f2 = gui.addFolder('Frequency Modulation');
+  f2.add(parameters, 'gk_FmIndex', 0, 2).name('FM Index').onChange(on_gk_FmIndex);
+  f2.add(parameters, 'gk_FmCarrier', -5, 5).name('FM Ratio').onChange(on_gk_FmRatio);
+  var f3 = gui.addFolder('Effects');
+  f3.add(parameters, 'gk_ReverberationDelay', 0, 1).name('Reverberation').onChange(on_gk_ReverberationDelay);
+  f3.add(parameters, 'gk_MasterLevel', 0, 1).name('Master Level').onChange(on_gk_MasterLevel);
+  gui.add(parameters, 'generate').name('Generate');
+};
 
 </script>
-
-<table>
-<col width="2*">
-<col width="5*">
-<col width="100px">
-
-<tr>
-<td>
-<label for=sliderC>c</label>
-<td>
-<input type=range min=0 max=1 value=.5 id=sliderC step=0.001 oninput="on_sliderC(value)">
-<td>
-<output for=sliderC id=sliderCOutput>.5</output>
-</tr>
-
-<tr>
-<td>
-<label for=sliderFmIndex>Frequency modulation index</label>
-<td>
-<input type=range min=0 max=1 value=.5 id=sliderC step=0.001 oninput="on_sliderFmIndex(value)">
-<td>
-<output for=sliderFmIndex id=sliderFmIndexOutput>.5</output>
-</tr>
-
-<tr>
-<td>
-<label for=sliderFmRatio>Frequency modulation ratio</label>
-<td>
-<input type=range min=0 max=1 value=.5 id=sliderFmRatio step=0.001 oninput="on_sliderFmRatio(value)">
-<td>
-<output for=sliderFmRatio id=sliderFmRatioOutput>.5</output>
-</tr>
-
-<tr>
-<td>
-<label for=sliderReverberationDelay>Reverberation delay</label>
-<td>
-<input type=range min=0 max=1 value=.5 id=sliderReverberationDelay step=0.001 oninput="on_sliderReverberationDelay(value)">
-<td>
-<output for=sliderReverberationDelay id=sliderReverberationDelayOutput>.5</output>
-</tr>
-
-<tr>
-<td>
-<label for=sliderMasterLevel>Master output level</label>
-<td>
-<input type=range min=0 max=1 value=.5 id=sliderMasterLevel step=0.001 oninput="on_sliderMasterLevel(value)">
-<td>
-<output for=sliderMasterLevel id=sliderMasterLevelOutput>.5</output>
-</tr>
-
-<tr>
-<td>
-<button onclick="generate()"> Generate score </button>
-</td>
-</tr>
-
-</table>
 
 </html>
 <CsScore>
