@@ -1,5 +1,6 @@
 #!/bin/sh
 /bin/ln -sF /Library/Frameworks/CsoundLib64.framework/Resources/Java/lib_jcsound6.jnilib /Library/Java/Extensions/lib_jcsound6.jnilib
+/bin/ln -sF /Library/Frameworks/CsoundLib64.framework/Resources/Java/csnd6.jar /Library/Java/Extensions/csnd6.jar
 /bin/ln -sF /Library/Frameworks/CsoundLib64.framework/Versions/6.0/libcsnd6.6.0.dylib /usr/local/lib/libcsnd.6.0.dylib
 
 PY_SRC_DIR="/Library/Frameworks/CsoundLib64.framework/Resources/Python/Current"
