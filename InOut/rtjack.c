@@ -646,6 +646,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
     p->nChannels = parm->nChannels;
     p->bufSize = parm->bufSamp_SW;
     p->nBuffers = (parm->bufSamp_HW + parm->bufSamp_SW - 1) / parm->bufSamp_SW;
+    
 }
 
 /* open for audio input */
