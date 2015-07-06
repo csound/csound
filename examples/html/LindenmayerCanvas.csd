@@ -9,207 +9,13 @@ You will have to set widgets, save values, and restore values before Csound will
 </CsOptions>
 <html>
 <head>
-<style type="text/css">
-input[type='range'] {
-	-webkit-appearance: none;
-	border-radius: 5px;
-	box-shadow: inset 0 0 5px #333;
-	background-color: #999;
-	height: 10px;
-              width: 100%;
-	vertical-align: middle;
-}
-input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    border: none;
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    background: goldenrod;
-    margin-top: -4px;
-    border-radius: 10px;
-}
-table.gridtable {
-	font-family: verdana,arial,sans-serif;
-	font-size:11px;
-	color:#333333;
-	border-width: 2px;
-	border-color: transparent;
-    width:100%;
-	border-collapse: collapse;
-    layout-type:fixed;
-}
-table.gridtable th {
-	border-width: 2px;
-	font-size:12px;
-	padding: 8px;
-	border-style: solid;
-	border-color: transparent;
-    color:yellow;
-	background-color: black;
-}
-table.gridtable td {
-	border-width: 2px;
-	padding: 8px;
-	border-style: solid;
-	border-color: transparent;
-              color:yellow;
-	background-color: teal;
-}
-</style>
 </head>
 <body style="background:black;">
-
-<table id="controls" class="gridtable">
-<col width="2*">
-<col width="5*">
-<col width="100px">
-<th colspan="3">
-Droner
-</th>
-<tr>
-<td>
-<label for=gk_Droner_partial1>gk_Droner_partial1</label>
-<td>
-<input type=range width="40em" min=0 max=1 value=.5 id=gk_Droner_partial1 step=0.001 oninput="gk_Droner_partial1Update(value)">
-<td>
-<output for=gk_Droner_partial1 id=gk_Droner_partial1Output>.5</output>
-</tr>
-
-<tr>
-<td>
-<label for=gk_Droner_partial2>gk_Droner_partial2</label>
-<td>
-<input type=range min=0 max=1 value=.5 id=gk_Droner_partial2 step=0.001 oninput="gk_Droner_partial2Update(value)">
-<td>
-<output for=gk_Droner_partial2 id=gk_Droner_partial2Output>.5</output>
-</tr>
-
-<tr>
-<td>
-<label for=gk_Droner_partial3>gk_Droner_partial3</label>
-<td>
-<input type=range min=0 max=1 value=.5 id=gk_Droner_partial3 step=0.001 oninput="gk_Droner_partial3Update(value)">
-<td>
-<output for=gk_Droner_partial3 id=gk_Droner_partial3Output>.5</output>
-</tr>
-
-<tr>
-<td>
-<label for=gk_Droner_partial4>gk_Droner_partial4</label>
-<td>
-<input type=range min=0 max=1 value=.5 id=gk_Droner_partial4 step=0.001 oninput="gk_Droner_partial4Update(value)">
-<td>
-<output for=gk_Droner_partial4 id=gk_Droner_partial4Output>.5</output>
-</tr>
-
-<tr>
-<td>
-<label for=gk_Droner_partial5>gk_Droner_partial5</label>
-<td>
-<input type=range min=0 max=1 value=.5 id=gk_Droner_partial5 step=0.001 oninput="gk_Droner_partial5Update(value)">
-<td>
-<output for=gk_Droner_partial5 id=gk_Droner_partial5Output>.5</output>
-</tr>
-
-<th colspan="3">
-Buzzer
-</th>
-<tr>
-<td>
-<label for=gk_Buzzer_Harmonics>gk_Buzzer_Harmonics</label>
-<td>
-<input type=range min=0 max=40 value=15 id=gk_Buzzer_Harmonics step=0.001 oninput="gk_Buzzer_HarmonicsUpdate(value)">
-<td>
-<output for=gk_Buzzer_Harmonics id=gk_Buzzer_HarmonicsOutput>.5</output>
-</tr>
-
-<th colspan="3">
-Reverb
-</th>
-<tr>
-<td>
-<label for=gk_Reverb_Feedback>gk_Reverb_Feedback</label>
-<td>
-<input type=range min=0 max=1 value=.5 id=gk_Reverb_Feedback step=0.001 oninput="gk_Reverb_FeedbackUpdate(value)">
-<td>
-<output for=gk_Reverb_Feedback id=gk_Reverb_FeedbackOutput>.5</output>
-</tr>
-
-<tr>
-<td>
-<label for=gk_Reverb_Modulation>gk_Reverb_Modulation</label>
-<td>
-<input type=range min=0 max=1 value=.5 id=gk_Reverb_Modulation step=0.001 oninput="gk_Reverb_ModulationUpdate(value)">
-<td>
-<output for=gk_Reverb_Modulation id=gk_Reverb_ModulationOutput>.5</output>
-</tr>
-
-<th colspan="3">
-Master
-</th>
-<tr>
-<td>
-<label for=gk_Master_Level>gk_Master_Level</label>
-<td>
-<input type=range min=-40 max=40 value=0 id=gk_Master_Level step=0.001 oninput="gk_Master_LevelUpdate(value)">
-<td>
-<output for=gk_Master_Level id=gk_Master_LevelOutput>0</output>
-</tr>
-<th colspan=3>
-<button  id="generate" onclick="generate()"> Generate score </button>
-<button  id="save" onclick="save()"> Save control values </button>
-<button  id="restore" onclick="restore()"> Restore control values </button>
-</table>
-<canvas id="canvas" style="block;">
+<canvas id="canvas" style="block;margin=0;padding=0;">
 </canvas>
-<script type='text/javascript' src='js/canvas_wrapper.js'></script>
-<script type='text/javascript' src='js/numeric.js'></script>
-<script type='text/javascript' src='js/tinycolor.js'></script>
-<script type='text/javascript' src='js/silencio.js'></script>
+<script type="text/javascript" src="js/dat.gui.js">
+</script>
 <script>
-if (typeof(Storage) == "undefined" ) {
-  alert("HTML5 localStorage is not supported.");
-} 
-else {
-  csound.message("Both localStorage and sessionStorage support are present.\n");
-}
-var title = 'Drone-HTML7';
-var saveChannel = function(id) {
-  localStorage[title + id] = document.getElementById(id).value;
-}
-var restoreChannel = function(id) {
-  try {
-    numberValue = localStorage[title + id];
-    document.getElementById(id).value = numberValue;
-    csound.setControlChannel(id, parseFloat(numberValue));
-  } catch(err) {
-    csound.message(err.name + ': ' + err.message + ' ' + err.line + '\n' + 'id: ' + id + '\n');
-  }
-}
-var save = function () {
-  saveChannel('gk_Droner_partial1');
-  saveChannel('gk_Droner_partial2');
-  saveChannel('gk_Droner_partial3');
-  saveChannel('gk_Droner_partial4');
-  saveChannel('gk_Droner_partial5');
-  saveChannel('gk_Buzzer_Harmonics');
-  saveChannel('gk_Reverb_Feedback');
-  saveChannel('gk_Reverb_Modulation');
-  saveChannel('gk_Master_Level');
-}
-var restore = function() {
-  restoreChannel('gk_Droner_partial1');
-  restoreChannel('gk_Droner_partial2');
-  restoreChannel('gk_Droner_partial3');
-  restoreChannel('gk_Droner_partial4');
-  restoreChannel('gk_Droner_partial5');
-  restoreChannel('gk_Buzzer_Harmonics');
-  restoreChannel('gk_Reverb_Feedback');
-  restoreChannel('gk_Reverb_Modulation');
-  restoreChannel('gk_Master_Level');
-}
-restore();
 var chaos = (function() {
 	return {
 		/**
@@ -218,12 +24,11 @@ var chaos = (function() {
 		init: function() {
 			this.canvas = document.getElementById("canvas");
 			this.context = this.canvas.getContext("2d");
-                        var master = document.getElementById("controls");
-			this.setSize(master.offsetWidth, 0);
 		},
-		setSize: function(width, height) {
-			this.width = this.canvas.width = width;
-			this.height = this.canvas.height = width / 2;
+		setSize: function() {
+			this.width = this.canvas.width = window.innerWidth;
+			this.height = this.canvas.height = window.innerHeight;
+            console.log('window width:' + this.width + ' height:' + this.height);
 		},
 		/**
 		 * Clears the canvas by filling it with the color specified, or erasing all
@@ -231,7 +36,7 @@ var chaos = (function() {
 		 */
 		clear: function(color) {
 			if(color) {
-				this.context.fillStyle = color;
+				this.context.fillStyle = white;
 				this.context.fillRect(0, 0, this.width, this.height);
 			}
 			else {
@@ -240,24 +45,33 @@ var chaos = (function() {
 		},
 	};
 }());
+chaos.init();
+</script>
+
+<script type='text/javascript' src='js/canvas_wrapper.js'></script>
+<script type='text/javascript' src='js/numeric.js'></script>
+<script type='text/javascript' src='js/tinycolor.js'></script>
+<script type='text/javascript' src='js/silencio.js'></script>
+<script>
 window.onerror = function (message, url, line) {
   csound.message(message + '\n' + url + '\n' + line + '\n');
   console.trace();
 }
-function generate() {
+var on_generate = function() {
   csound.message("generate()...\n");
   try {
     chaos.init();
+	chaos.setSize();
+	chaos.clear();
     var ctx = chaos.context;
     // Code borrowed from namin.org/fractals.htm and adapted by me.
     var H = ctx.canvas.height;
     var W = ctx.canvas.width;
     var lsys = new silencio.LSys();
     lsys.axiom = "-F++F";
-    lsys.addRule('F', 'FFf+i[+vF-F[++FF]FFf-F[--ffVF]ff-ivFV]-[f-FI+f+FFVFv]');
+    lsys.addRule('F', 'FFf+i[+vF-F[++FF]FFf-F[--ffVF]fFfF-ivFV]-[f-FI+f+FFVFv]');
     var t = new silencio.Turtle(10, Math.PI/4);
     lsys.generate(2);
-    chaos.clear();
     lsys.draw(t, ctx, W, H);
     csound.message('H: ' + H + ' W: ' + W + '\n');
     lsys.score.findScales();
@@ -276,7 +90,8 @@ function generate() {
     csound.message(lsys.score.minima.toString());
     csound.message(lsys.score.ranges.toString());
     csound.message('Generated ' + lsys.score.data.length + ' notes.\n');
-    lsys.score.log();
+    //lsys.score.log();
+    //lsys.score.draw(chaos.canvas, W, H);
     lsys.score.sendToCsound(csound);
   } catch(err) {
     csound.message(err.name + ': ' + err.message + ' ' + err.line + '\n');
@@ -284,49 +99,68 @@ function generate() {
 }
 function gk_Droner_partial1Update(value) {
 var numberValue = parseFloat(value);
-document.querySelector('#gk_Droner_partial1Output').value = numberValue;
 csound.setControlChannel('gk_Droner_partial1', numberValue.toPrecision(6));
 }
 function gk_Droner_partial2Update(value) {
 var numberValue = parseFloat(value);
-document.querySelector('#gk_Droner_partial2Output').value = numberValue;
 csound.setControlChannel('gk_Droner_partial2', numberValue);
 }
 function gk_Droner_partial3Update(value) {
 var numberValue = parseFloat(value);
-document.querySelector('#gk_Droner_partial3Output').value = numberValue;
 csound.setControlChannel('gk_Droner_partial3', numberValue);
 }
 function gk_Droner_partial4Update(value) {
 var numberValue = parseFloat(value);
-document.querySelector('#gk_Droner_partial4Output').value = numberValue;
 csound.setControlChannel('gk_Droner_partial4', numberValue);
 }
 function gk_Droner_partial5Update(value) {
 var numberValue = parseFloat(value);
-document.querySelector('#gk_Droner_partial5Output').value = numberValue;
 csound.setControlChannel('gk_Droner_partial5', numberValue);
 }
 function gk_Reverb_FeedbackUpdate(value) {
 var numberValue = parseFloat(value);
-document.querySelector('#gk_Reverb_FeedbackOutput').value = numberValue;
 csound.setControlChannel('gk_Reverb_Feedback', numberValue);
 }
 function gk_Buzzer_HarmonicsUpdate(value) {
 var numberValue = parseFloat(value);
-document.querySelector('#gk_Buzzer_HarmonicsOutput').value = numberValue;
 csound.setControlChannel('gk_Buzzer_Harmonics', numberValue);
 }
 function gk_Reverb_ModulationUpdate(value) {
 var numberValue = parseFloat(value);
-document.querySelector('#gk_Reverb_ModulationOutput').value = numberValue;
 csound.setControlChannel('gk_Reverb_Feedback', numberValue);
 }
 function gk_Master_LevelUpdate(value) {
 var numberValue = parseFloat(value);
-document.querySelector('#gk_Master_LevelOutput').value = numberValue;
 csound.setControlChannel('gk_Master_Level', numberValue);
 }
+var parameters = {
+    gk_Droner_partial1: 0.5,
+    gk_Droner_partial2: 0.5,
+    gk_Droner_partial3: 0.5,
+    gk_Droner_partial4: 0.5,
+    gk_Droner_partial5: 0.5,
+    gk_Buzzer_Harmonics : 0.1,
+    gk_Reverb_Feedback: 0.6,
+    gk_Master_Level: 0.5,
+    generate: on_generate,
+};
+
+window.onload = function() {
+  var gui = new dat.GUI();
+  gui.remember(parameters);
+  var f1 = gui.addFolder('Droner');
+  f1.add(parameters, 'gk_Droner_partial1', 0, 1).onChange(gk_Droner_partial1Update);
+  f1.add(parameters, 'gk_Droner_partial2', 0, 1).onChange(gk_Droner_partial2Update);
+  f1.add(parameters, 'gk_Droner_partial3', 0, 1).onChange(gk_Droner_partial3Update);
+  f1.add(parameters, 'gk_Droner_partial4', 0, 1).onChange(gk_Droner_partial4Update);
+  f1.add(parameters, 'gk_Droner_partial5', 0, 1).onChange(gk_Droner_partial5Update);
+  var f2 = gui.addFolder('Buzzer');
+  f2.add(parameters, 'gk_Buzzer_Harmonics', 0, 2).name('Harmonics').onChange(gk_Buzzer_HarmonicsUpdate);
+  var f3 = gui.addFolder('Effects');
+  f3.add(parameters, 'gk_Reverb_Feedback', 0, 1).name('Reverberation').onChange(gk_Reverb_ModulationUpdate);
+  f3.add(parameters, 'gk_Master_Level', 0, 1).name('Master Level').onChange(gk_Master_LevelUpdate);
+  gui.add(parameters, 'generate').name('Generate');
+};
 </script>
 </body>
 </html>
