@@ -125,19 +125,44 @@ endif
 endin
 
 </CsInstruments>
-<html>
+<html width="100%" height="100%" >
 <head>
 </head>
-
-<script type="text/javascript" src="js/dat.gui.js"></script>
-<script type="text/javascript">
-    
-
-    
-</script>  
-
+<body style="background:black;">
+<canvas id="canvas" width="100%" height="800px" />
+<script type="text/javascript" src="js/dat.gui.js">
+</script>
 <script>
-
+var chaos = (function() {
+	return {
+		/**
+		 * Initializes chaos by finding the canvas on the page and resizing it.
+		 */
+		init: function() {
+			this.canvas = document.getElementById("canvas");
+			this.context = this.canvas.getContext("2d");
+		},
+		setSize: function(width, height) {
+			this.width = this.canvas.width = width;
+			this.height = this.canvas.height = width / 2;
+		},
+		/**
+		 * Clears the canvas by filling it with the color specified, or erasing all
+		 * pixels if no color is specified.
+		 */
+		clear: function(color) {
+			if(color) {
+				this.context.fillStyle = color;
+				this.context.fillRect(0, 0, this.width, this.height);
+			}
+			else {
+				this.context.clearRect(0, 0, this.width, this.height);
+			}
+		},
+	};
+}());
+chaos.init();
+chaos.clear();
 var c = 0.99;
 var y = 0.5;
 function on_generate() {
@@ -196,7 +221,7 @@ window.onload = function() {
 };
 
 </script>
-
+</body>
 </html>
 <CsScore>
 </CsScore>
