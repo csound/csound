@@ -560,7 +560,7 @@ msgstr ""
 msgid "insufficient gen arguments"
 msgstr ""
 
-#: Engine/fgens.c:189 Opcodes/ftgen.c:118 Opcodes/signalflowgraph.cpp:1401
+#: Engine/fgens.c:189 Opcodes/ftgen.c:118 Opcodes/signalflowgraph.cpp:1469
 #, c-format
 msgid "Named gen \"%s\" not defined"
 msgstr ""
@@ -1064,29 +1064,29 @@ msgid ""
 "\tlclbas %p, opds %p\n"
 msgstr ""
 
-#: Engine/insert.c:2147
+#: Engine/insert.c:2148
 #, c-format
 msgid "op (%s) allocated at %p\n"
 msgstr ""
 
-#: Engine/insert.c:2172
+#: Engine/insert.c:2173
 msgid "null iopadr"
 msgstr ""
 
-#: Engine/insert.c:2183
+#: Engine/insert.c:2184
 msgid "null opadr"
 msgstr ""
 
-#: Engine/insert.c:2270
+#: Engine/insert.c:2271
 msgid "inconsistent opds total"
 msgstr ""
 
-#: Engine/insert.c:2330
+#: Engine/insert.c:2331
 #, c-format
 msgid "Instrument %s is still active"
 msgstr ""
 
-#: Engine/insert.c:2333
+#: Engine/insert.c:2334
 #, c-format
 msgid "Instrument %d is still active"
 msgstr ""
@@ -3060,7 +3060,7 @@ msgid "input"
 msgstr ""
 
 #: InOut/rtjack.c:345 InOut/rtjack.c:358 InOut/rtjack.c:363 InOut/rtjack.c:627
-#: InOut/rtjack.c:667 InOut/rtjack.c:672 InOut/rtjack.c:696 InOut/rtjack.c:701
+#: InOut/rtjack.c:668 InOut/rtjack.c:673 InOut/rtjack.c:697 InOut/rtjack.c:702
 #: InOut/rtwinmm.c:112 InOut/rtwinmm.c:316 Opcodes/ftgen.c:79
 msgid "memory allocation failure"
 msgstr ""
@@ -3153,51 +3153,51 @@ msgstr ""
 msgid "sample rate must be an integer"
 msgstr ""
 
-#: InOut/rtjack.c:782
+#: InOut/rtjack.c:783
 msgid "JACK sample rate changed"
 msgstr ""
 
-#: InOut/rtjack.c:785
+#: InOut/rtjack.c:786
 msgid "no connection to JACK server"
 msgstr ""
 
-#: InOut/rtjack.c:793
+#: InOut/rtjack.c:794
 msgid " *** rtjack: connection to JACK server was lost, reconnecting..."
 msgstr ""
 
-#: InOut/rtjack.c:832
+#: InOut/rtjack.c:833
 msgid "rtjack: input audio timeout"
 msgstr ""
 
-#: InOut/rtjack.c:858 InOut/rtjack.c:904
+#: InOut/rtjack.c:859 InOut/rtjack.c:905
 msgid "rtjack: xrun in real time audio"
 msgstr ""
 
-#: InOut/rtjack.c:1067
+#: InOut/rtjack.c:1068
 msgid "JACK real-time audio module for Csound by Istvan Varga\n"
 msgstr ""
 
-#: InOut/rtjack.c:1071
+#: InOut/rtjack.c:1072
 msgid " *** rtjack: error allocating globals"
 msgstr ""
 
-#: InOut/rtjack.c:1098
+#: InOut/rtjack.c:1099
 msgid "JACK client name (default: csound6)"
 msgstr ""
 
-#: InOut/rtjack.c:1107
+#: InOut/rtjack.c:1108
 msgid "JACK input port name prefix (default: input)"
 msgstr ""
 
-#: InOut/rtjack.c:1116
+#: InOut/rtjack.c:1117
 msgid "JACK output port name prefix (default: output)"
 msgstr ""
 
-#: InOut/rtjack.c:1123
+#: InOut/rtjack.c:1124
 msgid "Deprecated"
 msgstr ""
 
-#: InOut/rtjack.c:1156
+#: InOut/rtjack.c:1157
 msgid "rtaudio: JACK module enabled\n"
 msgstr ""
 
@@ -6266,25 +6266,25 @@ msgid ""
 "array input with a-rate var output are valid arguments, Exiting"
 msgstr ""
 
-#: Opcodes/framebuffer/OLABuffer.c:122
+#: Opcodes/framebuffer/OLABuffer.c:130
 msgid "olabuffer: Error, overlap factor must be an integer"
 msgstr ""
 
-#: Opcodes/framebuffer/OLABuffer.c:129
+#: Opcodes/framebuffer/OLABuffer.c:137
 msgid "olabuffer: Error, k-rate array must be one dimensional"
 msgstr ""
 
-#: Opcodes/framebuffer/OLABuffer.c:136
+#: Opcodes/framebuffer/OLABuffer.c:144
 msgid "olabuffer: Error, k-rate array size must be larger than ovelap factor"
 msgstr ""
 
-#: Opcodes/framebuffer/OLABuffer.c:141
+#: Opcodes/framebuffer/OLABuffer.c:149
 msgid ""
 "olabuffer: Error, overlap factor must be an integer multiple of k-rate array "
 "size"
 msgstr ""
 
-#: Opcodes/framebuffer/OLABuffer.c:146
+#: Opcodes/framebuffer/OLABuffer.c:154
 msgid ""
 "olabuffer: Error, k-rate array size divided by overlap factor must be larger "
 "than or equal to ksmps"
@@ -6319,7 +6319,7 @@ msgstr ""
 msgid "Error deleting ftable %d"
 msgstr ""
 
-#: Opcodes/ftgen.c:138 Opcodes/signalflowgraph.cpp:1423
+#: Opcodes/ftgen.c:138 Opcodes/signalflowgraph.cpp:1491
 msgid "ftgen string arg not allowed"
 msgstr ""
 
@@ -8055,7 +8055,7 @@ msgstr ""
 #: Opcodes/pvlock.c:843 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:691
 #: Opcodes/pvsbasic.c:1017 Opcodes/pvsbasic.c:1230 Opcodes/pvsbasic.c:1336
 #: Opcodes/pvsbasic.c:1565 Opcodes/pvsbasic.c:1778 Opcodes/pvsbasic.c:1952
-#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:690
+#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:758
 msgid "Unsafe to have same fsig as in and out"
 msgstr ""
 
@@ -8519,36 +8519,36 @@ msgstr ""
 msgid "powershape: ifullscale must be strictly positive"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:367 Opcodes/signalflowgraph.cpp:654
+#: Opcodes/signalflowgraph.cpp:435 Opcodes/signalflowgraph.cpp:722
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:439
+#: Opcodes/signalflowgraph.cpp:507
 #, c-format
 msgid "Created instance 0x%x of %d instances of outlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:513
+#: Opcodes/signalflowgraph.cpp:581
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%xof inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:717
+#: Opcodes/signalflowgraph.cpp:785
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:873
+#: Opcodes/signalflowgraph.cpp:941
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1201 Opcodes/signalflowgraph.cpp:1245
+#: Opcodes/signalflowgraph.cpp:1269 Opcodes/signalflowgraph.cpp:1313
 #, c-format
 msgid "Connected outlet %s to inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1449
+#: Opcodes/signalflowgraph.cpp:1517
 msgid "ftgenonce error"
 msgstr ""
 
@@ -8892,13 +8892,13 @@ msgstr ""
 msgid "stdopcod.c: error: globals already allocated"
 msgstr ""
 
-#: Opcodes/stk/stkOpcodes.cpp:723
+#: Opcodes/stk/stkOpcodes.cpp:721
 msgid ""
-"Error: define environment variable RAWWAVE_PATH\n"
+"STK opodes not available: define environment variable RAWWAVE_PATH\n"
 "(points to rawwaves directory) to use STK opcodes."
 msgstr ""
 
-#: Opcodes/stk/stkOpcodes.cpp:733
+#: Opcodes/stk/stkOpcodes.cpp:731
 #, c-format
 msgid "RAWWAVE_PATH: %s\n"
 msgstr ""
@@ -9485,55 +9485,55 @@ msgstr ""
 msgid "Table lengths do not agree!!"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:203
+#: Opcodes/websockets/WebSocketOpcode.c:204
 #, c-format
 msgid ""
 "websocket: received message from %s is not correct size for variable %s, "
 "message dumped"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:220
+#: Opcodes/websockets/WebSocketOpcode.c:221
 #, c-format
 msgid "websocket: received message from %s dumped, buffer overrrun"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:248
+#: Opcodes/websockets/WebSocketOpcode.c:249
 #, c-format
 msgid "websocket: connection established for %s\n"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:291
+#: Opcodes/websockets/WebSocketOpcode.c:292
 msgid ""
 "websocket: this opcode does not send strings, only receiving them is "
 "supported\n"
 "Exiting"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:299
+#: Opcodes/websockets/WebSocketOpcode.c:300
 #, c-format
 msgid ""
 "websocket: error output string variable %s must not be initialised\n"
 "Exiting"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:326
+#: Opcodes/websockets/WebSocketOpcode.c:327
 #, c-format
 msgid ""
 "websocket: error array variable %s has not been initialised\n"
 "Exiting"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:391
+#: Opcodes/websockets/WebSocketOpcode.c:392
 msgid ""
 "websocket: error, incompatible argument detected\n"
 "Exiting"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:446
+#: Opcodes/websockets/WebSocketOpcode.c:448
 msgid "websocket: could not initialise websocket, Exiting"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:471
+#: Opcodes/websockets/WebSocketOpcode.c:473
 #, c-format
 msgid "websocket: variable %s data not sent, buffer overrrun\n"
 msgstr ""
