@@ -588,7 +588,7 @@ msgstr "la ftable %d est maintenant supprimée\n"
 msgid "insufficient gen arguments"
 msgstr "nombre d'arguments de GEN insuffisant"
 
-#: Engine/fgens.c:189 Opcodes/ftgen.c:118 Opcodes/signalflowgraph.cpp:1401
+#: Engine/fgens.c:189 Opcodes/ftgen.c:118 Opcodes/signalflowgraph.cpp:1469
 #, c-format
 msgid "Named gen \"%s\" not defined"
 msgstr "Le GEN nommé \"%s\" n'est pas défini"
@@ -1103,29 +1103,29 @@ msgstr ""
 "instr %d alloué à %p\n"
 "\tlclbas %p, opds %p\n"
 
-#: Engine/insert.c:2147
+#: Engine/insert.c:2148
 #, c-format
 msgid "op (%s) allocated at %p\n"
 msgstr "op (%s) alloué à %p\n"
 
-#: Engine/insert.c:2172
+#: Engine/insert.c:2173
 msgid "null iopadr"
 msgstr "iopadr null"
 
-#: Engine/insert.c:2183
+#: Engine/insert.c:2184
 msgid "null opadr"
 msgstr "opadr null"
 
-#: Engine/insert.c:2270
+#: Engine/insert.c:2271
 msgid "inconsistent opds total"
 msgstr "total d'opds non cohérent"
 
-#: Engine/insert.c:2330
+#: Engine/insert.c:2331
 #, c-format
 msgid "Instrument %s is still active"
 msgstr "L'instrument %s est toujours actif"
 
-#: Engine/insert.c:2333
+#: Engine/insert.c:2334
 #, c-format
 msgid "Instrument %d is still active"
 msgstr "L'instrument %d est toujours actif"
@@ -3141,7 +3141,7 @@ msgid "input"
 msgstr "entrée"
 
 #: InOut/rtjack.c:345 InOut/rtjack.c:358 InOut/rtjack.c:363 InOut/rtjack.c:627
-#: InOut/rtjack.c:667 InOut/rtjack.c:672 InOut/rtjack.c:696 InOut/rtjack.c:701
+#: InOut/rtjack.c:668 InOut/rtjack.c:673 InOut/rtjack.c:697 InOut/rtjack.c:702
 #: InOut/rtwinmm.c:112 InOut/rtwinmm.c:316 Opcodes/ftgen.c:79
 msgid "memory allocation failure"
 msgstr "échec de l'allocation mémoire"
@@ -3236,52 +3236,52 @@ msgstr "la taille de la période (-b) doit être un multiple entier de ksmps"
 msgid "sample rate must be an integer"
 msgstr "le taux d'échantillonnage doit être entier"
 
-#: InOut/rtjack.c:782
+#: InOut/rtjack.c:783
 msgid "JACK sample rate changed"
 msgstr "le taux d'échantillonnage de JACK a changé"
 
-#: InOut/rtjack.c:785
+#: InOut/rtjack.c:786
 msgid "no connection to JACK server"
 msgstr "pas de connexion au serveur JACK"
 
-#: InOut/rtjack.c:793
+#: InOut/rtjack.c:794
 msgid " *** rtjack: connection to JACK server was lost, reconnecting..."
 msgstr ""
 " *** rtjack : la connexion au serveur JACK a été perdue, reconnexion..."
 
-#: InOut/rtjack.c:832
+#: InOut/rtjack.c:833
 msgid "rtjack: input audio timeout"
 msgstr "rtjack : dépassement de temps sur l'entrée audio"
 
-#: InOut/rtjack.c:858 InOut/rtjack.c:904
+#: InOut/rtjack.c:859 InOut/rtjack.c:905
 msgid "rtjack: xrun in real time audio"
 msgstr "rtjack : xrun en audio temps réel"
 
-#: InOut/rtjack.c:1067
+#: InOut/rtjack.c:1068
 msgid "JACK real-time audio module for Csound by Istvan Varga\n"
 msgstr "Module audio JACK en temps réel pour Csound par Istvan Varga\n"
 
-#: InOut/rtjack.c:1071
+#: InOut/rtjack.c:1072
 msgid " *** rtjack: error allocating globals"
 msgstr " *** rtjack : erreur d'allocation des variables globales"
 
-#: InOut/rtjack.c:1098
+#: InOut/rtjack.c:1099
 msgid "JACK client name (default: csound6)"
 msgstr "Nom du client JACK (par défaut : csound6)"
 
-#: InOut/rtjack.c:1107
+#: InOut/rtjack.c:1108
 msgid "JACK input port name prefix (default: input)"
 msgstr "Préfixe du nom du port d'entrée de JACK (par défaut : input)"
 
-#: InOut/rtjack.c:1116
+#: InOut/rtjack.c:1117
 msgid "JACK output port name prefix (default: output)"
 msgstr "Préfixe du nom du port de sortie de JACK (par défaut : output)"
 
-#: InOut/rtjack.c:1123
+#: InOut/rtjack.c:1124
 msgid "Deprecated"
 msgstr "Obsolète"
 
-#: InOut/rtjack.c:1156
+#: InOut/rtjack.c:1157
 msgid "rtaudio: JACK module enabled\n"
 msgstr "rtaudio : module JACK activé\n"
 
@@ -6502,8 +6502,8 @@ msgstr ""
 msgid ""
 "framebuffer: Error, only k-rate arrays allowed for a-rate var inputs, Exiting"
 msgstr ""
-"framebuffer : erreur, seuls les tableaux de taux-k sont permis pour "
-"les vars de taux-a en entrée, sortie"
+"framebuffer : erreur, seuls les tableaux de taux-k sont permis pour les vars "
+"de taux-a en entrée, sortie"
 
 #: Opcodes/framebuffer/Framebuffer.c:140
 msgid ""
@@ -6515,16 +6515,17 @@ msgstr ""
 #: Opcodes/framebuffer/Framebuffer.c:147
 msgid "framebuffer: Error, k-rate array input must be one dimensional, Exiting"
 msgstr ""
-"framebuffer : erreur, un tableau de taux-k en entrée doit être unidimensionnel"
-" , sortie"
+"framebuffer : erreur, un tableau de taux-k en entrée doit être "
+"unidimensionnel , sortie"
 
 #: Opcodes/framebuffer/Framebuffer.c:152
 msgid ""
 "framebuffer: Error, k-rate array input element count must be less than or "
 "equal to specified framebuffer size, Exiting"
 msgstr ""
-"framebuffer : erreur, le nombre d'éléments d'un tableau de taux-k en entrée"
-"doit être inférieur ou égal à la taille du framebuffer spécifiée, sortie"
+"framebuffer : erreur, le nombre d'éléments d'un tableau de taux-k en "
+"entréedoit être inférieur ou égal à la taille du framebuffer spécifiée, "
+"sortie"
 
 #: Opcodes/framebuffer/Framebuffer.c:157
 msgid ""
@@ -6532,24 +6533,24 @@ msgid ""
 "array input with a-rate var output are valid arguments, Exiting"
 msgstr ""
 "framebuffer : erreur, seules une var de taux-a en entrée avec un tableau de "
-"taux-k en sortie ou un tableau de taux-k en entrée avec une var de taux-a "
-"en sortie sont des arguments valides, sortie"
+"taux-k en sortie ou un tableau de taux-k en entrée avec une var de taux-a en "
+"sortie sont des arguments valides, sortie"
 
-#: Opcodes/framebuffer/OLABuffer.c:122
+#: Opcodes/framebuffer/OLABuffer.c:130
 msgid "olabuffer: Error, overlap factor must be an integer"
 msgstr "olabuffer : erreur, le taux de superposition doit être entier"
 
-#: Opcodes/framebuffer/OLABuffer.c:129
+#: Opcodes/framebuffer/OLABuffer.c:137
 msgid "olabuffer: Error, k-rate array must be one dimensional"
 msgstr "olabuffer : erreur, le tableau de taux-k doit être unidimensionnel"
 
-#: Opcodes/framebuffer/OLABuffer.c:136
+#: Opcodes/framebuffer/OLABuffer.c:144
 msgid "olabuffer: Error, k-rate array size must be larger than ovelap factor"
 msgstr ""
-"olabuffer : erreur, la taille du tableau de taux-k doit être supérieure"
-" au facteur de superposition"
+"olabuffer : erreur, la taille du tableau de taux-k doit être supérieure au "
+"facteur de superposition"
 
-#: Opcodes/framebuffer/OLABuffer.c:141
+#: Opcodes/framebuffer/OLABuffer.c:149
 msgid ""
 "olabuffer: Error, overlap factor must be an integer multiple of k-rate array "
 "size"
@@ -6557,7 +6558,7 @@ msgstr ""
 "olabuffer : erreur, le facteur de superposition doit être un multiple entier "
 "de la taille du tableau de taux-k"
 
-#: Opcodes/framebuffer/OLABuffer.c:146
+#: Opcodes/framebuffer/OLABuffer.c:154
 msgid ""
 "olabuffer: Error, k-rate array size divided by overlap factor must be larger "
 "than or equal to ksmps"
@@ -6598,7 +6599,7 @@ msgstr "ftconv : non initialisé"
 msgid "Error deleting ftable %d"
 msgstr "Erreur en supprimant la ftable %d"
 
-#: Opcodes/ftgen.c:138 Opcodes/signalflowgraph.cpp:1423
+#: Opcodes/ftgen.c:138 Opcodes/signalflowgraph.cpp:1491
 msgid "ftgen string arg not allowed"
 msgstr "ftgen : argument chaîne interdit"
 
@@ -8433,7 +8434,7 @@ msgstr "nombre d'arguments de sortie non valide"
 #: Opcodes/pvlock.c:843 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:691
 #: Opcodes/pvsbasic.c:1017 Opcodes/pvsbasic.c:1230 Opcodes/pvsbasic.c:1336
 #: Opcodes/pvsbasic.c:1565 Opcodes/pvsbasic.c:1778 Opcodes/pvsbasic.c:1952
-#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:690
+#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:758
 msgid "Unsafe to have same fsig as in and out"
 msgstr "Il est risqué d'avoir le même fsig en entrée et en sortie"
 
@@ -8915,36 +8916,36 @@ msgstr "erreur... impossible de créer les globales de sfont\n"
 msgid "powershape: ifullscale must be strictly positive"
 msgstr "powershape : la ftable ifullscale doit être entirèrement positive"
 
-#: Opcodes/signalflowgraph.cpp:367 Opcodes/signalflowgraph.cpp:654
+#: Opcodes/signalflowgraph.cpp:435 Opcodes/signalflowgraph.cpp:722
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s.\n"
 msgstr "Instances de l'outlet %s connectées à l'instance 0x%x de l'inlet %s.\n"
 
-#: Opcodes/signalflowgraph.cpp:439
+#: Opcodes/signalflowgraph.cpp:507
 #, c-format
 msgid "Created instance 0x%x of %d instances of outlet %s\n"
 msgstr "Création de l'instance 0x%x des %d instances de l'outlet %s\n"
 
-#: Opcodes/signalflowgraph.cpp:513
+#: Opcodes/signalflowgraph.cpp:581
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%xof inlet %s.\n"
 msgstr "Instances de l'outlet %s connectées à l'instance 0x%x de l'inlet %s.\n"
 
-#: Opcodes/signalflowgraph.cpp:717
+#: Opcodes/signalflowgraph.cpp:785
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr "inletf : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/signalflowgraph.cpp:873
+#: Opcodes/signalflowgraph.cpp:941
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s\n"
 msgstr "Instances de l'outlet %s connectées à l'instance 0x%x de l'inlet %s\n"
 
-#: Opcodes/signalflowgraph.cpp:1201 Opcodes/signalflowgraph.cpp:1245
+#: Opcodes/signalflowgraph.cpp:1269 Opcodes/signalflowgraph.cpp:1313
 #, c-format
 msgid "Connected outlet %s to inlet %s.\n"
 msgstr "Outlet %s connectée à l'inlet %s.\n"
 
-#: Opcodes/signalflowgraph.cpp:1449
+#: Opcodes/signalflowgraph.cpp:1517
 msgid "ftgenonce error"
 msgstr "erreur ftgenonce"
 
@@ -9299,15 +9300,16 @@ msgstr "la pile est déjà allouée"
 msgid "stdopcod.c: error: globals already allocated"
 msgstr "stdopcod.c : erreur : les variables globales sont déjà allouées"
 
-#: Opcodes/stk/stkOpcodes.cpp:723
+#: Opcodes/stk/stkOpcodes.cpp:721
+#, fuzzy
 msgid ""
-"Error: define environment variable RAWWAVE_PATH\n"
+"STK opodes not available: define environment variable RAWWAVE_PATH\n"
 "(points to rawwaves directory) to use STK opcodes."
 msgstr ""
 "Erreur : il faut définir la variable d'environnement RAWWAVE_PATH\n"
 "(pointant sur le répertoire des rawwaves) pour utiliser les opcodes STK."
 
-#: Opcodes/stk/stkOpcodes.cpp:733
+#: Opcodes/stk/stkOpcodes.cpp:731
 #, c-format
 msgid "RAWWAVE_PATH: %s\n"
 msgstr "RAWWAVE_PATH : %s\n"
@@ -9948,7 +9950,7 @@ msgstr "Scantable : la table de vélocité n'a pas été trouvée"
 msgid "Table lengths do not agree!!"
 msgstr "Les longueurs des tables ne concordent pas !!"
 
-#: Opcodes/websockets/WebSocketOpcode.c:203
+#: Opcodes/websockets/WebSocketOpcode.c:204
 #, c-format
 msgid ""
 "websocket: received message from %s is not correct size for variable %s, "
@@ -9957,53 +9959,58 @@ msgstr ""
 "websocket : le message reçu de %s a une taille incorrecte pour la variable "
 "%s, message éliminé"
 
-#: Opcodes/websockets/WebSocketOpcode.c:220
+#: Opcodes/websockets/WebSocketOpcode.c:221
 #, c-format
 msgid "websocket: received message from %s dumped, buffer overrrun"
 msgstr "websocket : élimination du message reçu de %s, tampon saturé"
 
-#: Opcodes/websockets/WebSocketOpcode.c:248
+#: Opcodes/websockets/WebSocketOpcode.c:249
 #, c-format
 msgid "websocket: connection established for %s\n"
 msgstr "websocket : connexion établie pour %s\n"
 
-#: Opcodes/websockets/WebSocketOpcode.c:291
+#: Opcodes/websockets/WebSocketOpcode.c:292
 msgid ""
 "websocket: this opcode does not send strings, only receiving them is "
 "supported\n"
 "Exiting"
 msgstr ""
 "websocket : cet opcode n'envoie pas de chaînes de caractères, seule leur "
-"réception est supportée\nSortie"
+"réception est supportée\n"
+"Sortie"
 
-#: Opcodes/websockets/WebSocketOpcode.c:299
+#: Opcodes/websockets/WebSocketOpcode.c:300
 #, c-format
 msgid ""
 "websocket: error output string variable %s must not be initialised\n"
 "Exiting"
 msgstr ""
-"websocket : erreur, la chaîne de caractères %s en sortie ne doit pas "
-"être initialisée\nSortie"
+"websocket : erreur, la chaîne de caractères %s en sortie ne doit pas être "
+"initialisée\n"
+"Sortie"
 
-#: Opcodes/websockets/WebSocketOpcode.c:326
+#: Opcodes/websockets/WebSocketOpcode.c:327
 #, c-format
 msgid ""
 "websocket: error array variable %s has not been initialised\n"
 "Exiting"
 msgstr ""
-"websocket : erreur, la variable tableau %s n'a pas été initialisée\nSortie"
+"websocket : erreur, la variable tableau %s n'a pas été initialisée\n"
+"Sortie"
 
-#: Opcodes/websockets/WebSocketOpcode.c:391
+#: Opcodes/websockets/WebSocketOpcode.c:392
 msgid ""
 "websocket: error, incompatible argument detected\n"
 "Exiting"
-msgstr "websocket : erreur, argument incompatible détecté\nSortie"
+msgstr ""
+"websocket : erreur, argument incompatible détecté\n"
+"Sortie"
 
-#: Opcodes/websockets/WebSocketOpcode.c:446
+#: Opcodes/websockets/WebSocketOpcode.c:448
 msgid "websocket: could not initialise websocket, Exiting"
 msgstr "websocket : impossible d'initialiser websocket. Sortie"
 
-#: Opcodes/websockets/WebSocketOpcode.c:471
+#: Opcodes/websockets/WebSocketOpcode.c:473
 #, c-format
 msgid "websocket: variable %s data not sent, buffer overrrun\n"
 msgstr "websocket : données de la var %s non envoyées, tampon saturé\n"
