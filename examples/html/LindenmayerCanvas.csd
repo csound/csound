@@ -10,8 +10,24 @@ You will have to set widgets, save values, and restore values before Csound will
 <html>
 <head>
 </head>
+<style type="text/css">
+  body, html {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+canvas {
+    width: 95%;
+    height: 95%;
+    margin: 5;
+    padding: 5;
+    position:absolute;
+}
+</style>
 <body style="background:black;">
-<canvas id="canvas" style="block;margin=0;padding=0;">
+<canvas id="canvas">
 </canvas>
 <script type="text/javascript" src="js/dat.gui.js">
 </script>
@@ -58,7 +74,7 @@ window.onerror = function (message, url, line) {
   console.trace();
 }
 var on_generate = function() {
-  csound.message("generate()...\n");
+  csound.message("on_generate()...\n");
   try {
     chaos.init();
 	chaos.setSize();
@@ -69,8 +85,8 @@ var on_generate = function() {
     var W = ctx.canvas.width;
     var lsys = new silencio.LSys();
     lsys.axiom = "-F++F";
-    lsys.addRule('F', 'FFf+i[+vF-F[++FF]FFf-F[--ffVF]fFfF-ivFV]-[f-FI+f+FFVFv]');
-    var t = new silencio.Turtle(10, Math.PI/4);
+    lsys.addRule('F', 'Fff+i+ff-Ff+[++ffFfIIF]fFff-f[ii--ffVF]fFfF-ivffIIIFffV-[f-FfI+f-iiiFfFVfffIFv]');
+    var t = new silencio.Turtle(10, Math.PI/2);
     lsys.generate(2);
     lsys.draw(t, ctx, W, H);
     csound.message('H: ' + H + ' W: ' + W + '\n');
@@ -168,7 +184,7 @@ window.onload = function() {
 sr = 48000
 ksmps = 100
 nchnls = 2
-0dbfs = 500000
+0dbfs = 5000000
 
 connect "Bower", "outleft", "ReverbLeft", "inleft"
 connect "Bower", "outright", "ReverbRight", "inright"
