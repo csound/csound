@@ -938,13 +938,15 @@ void csound_writeDeferred(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 		}
 
 		Sequencer::ParamObject *spo = new Sequencer::ParamObject(&seq, absPath);
-		int result;
+		void* result = NULL;
 
-		result = pthread_create(&seq.m_read_write_thread, NULL, (void *(*)(void*)) Sequencer_WriteThreadFunc, (void*)spo);
-		if(0 != result)
+		result = csoundCreateThread(Sequencer_WriteThreadFunc, (void*)spo);
+		if(result == NULL)
 			object_error(x->m_obj, "Could not create writing thread.");
-		else
+    else {
+      seq.m_read_write_thread = result;
 			seq.m_read_write_thread_exists = true;
+    }
 	}
 	catch(std::exception & ex)
 	{
@@ -990,13 +992,15 @@ void csound_readDeferred(t_csound *x, t_symbol *s, short argc, t_atom *argv)
 		}
 
 		Sequencer::ParamObject *spo = new Sequencer::ParamObject(&seq, absPath);
-		int result;
 
-		result = pthread_create(&seq.m_read_write_thread, NULL, (void *(*)(void*)) Sequencer_ReadThreadFunc, (void*)spo);
-		if(0 != result)
+
+		void *result = csoundCreateThread(Sequencer_ReadThreadFunc, (void*)spo);
+		if(result == NULL)
 			object_error(x->m_obj, "Could not create reading thread.");
-		else
+    else {
+      seq.m_read_write_thread = result;
 			seq.m_read_write_thread_exists = true;
+    }
 	}
 	catch(std::exception & ex)
 	{
