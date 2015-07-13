@@ -31,28 +31,13 @@
 #else
 #  define POW2MAX   (15.0)
 #endif
+
 #define EIPT3       (25.0/3.0)
 #define LOGTWO      (0.69314718055994530942)
 #define STEPS       (32768)
 #define INTERVAL    (4.0)
 #define ONEdLOG2    FL(1.4426950408889634074)
 #define MIDINOTE0   (3.00)  /* Lowest midi note is 3.00 in oct & pch formats */
-
-/* static lookup tables, initialised once at start-up; also used by midi ops */
-/* MYFLT   cpsocfrc[OCTRES] = { FL(0.0) }; */
-/* static  MYFLT   powerof2[POW2TABSIZI]; */
-
-/* initialise the tables, called by csoundInitialize() */
-
-/*void aops_init_tables(void)
-{
-    int   i;
-    for (i = 0; i < OCTRES; i++)
-      cpsocfrc[i] = POWER(FL(2.0), (MYFLT)i / OCTRES) * ONEPT;
-    for (i = 0; i < POW2TABSIZI; i++)
-      powerof2[i] = POWER(FL(2.0),
-                          (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX));
-}*/
 
 /* initialise the tables, called by csoundPreCompile() */
 void csound_aops_init_tables(CSOUND *csound)
@@ -1019,7 +1004,6 @@ int pchoct(CSOUND *csound, EVAL *p)
 
 int cpsoct(CSOUND *csound, EVAL *p)
 {
-    IGN(csound);
     int loct = (int)(*p->a * OCTRES);
     *p->r = (MYFLT)CPSOCTL(loct);
     return OK;
@@ -1058,10 +1042,9 @@ int cpspch(CSOUND *csound, EVAL *p)
 {
     double fract, oct;
     int    loct;
-    IGN(csound);
     fract = modf((double)*p->a, &oct);
     fract *= EIPT3;
-    loct = (int)((oct + fract) * OCTRES);
+    loct = (int)MYFLT2LRND((oct + fract) * OCTRES);
     *p->r = (MYFLT)CPSOCTL(loct);
     return OK;
 }
