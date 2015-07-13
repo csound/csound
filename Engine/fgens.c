@@ -1141,7 +1141,7 @@ static int gen18(FGDATA *ff, FUNC *ftp)
       finish=(int)*pp++;
       if (UNLIKELY(nsw && pp>=&ff->e.p[PMAX-1])) nsw =0, pp = &(ff->e.c.extra[1]);
 
-      if (UNLIKELY((start>ff->flen) || (finish>ff->flen))) {
+      if (UNLIKELY((start>ff->flen) || (finish>=ff->flen))) {
         /* make sure start and finish < flen */
         return fterror(ff, Str("a range given exceeds table length"));
       }
