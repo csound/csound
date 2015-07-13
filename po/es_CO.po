@@ -3850,47 +3850,47 @@ msgstr ""
 msgid "not supported on this terminal"
 msgstr "no está soportado en esta terminal"
 
-#: OOps/aops.c:151 OOps/aops.c:178
+#: OOps/aops.c:136 OOps/aops.c:163
 #, c-format
 msgid "Cannot be more In arguments than Out in init (%d,%d)"
 msgstr ""
 
-#: OOps/aops.c:252 OOps/aops.c:369 OOps/aops.c:382 util1/scot/scot.c:1302
+#: OOps/aops.c:237 OOps/aops.c:354 OOps/aops.c:367 util1/scot/scot.c:1302
 #: util1/scot/scot.c:1317 util1/scot/scot.c:1371
 msgid "Division by zero"
 msgstr ""
 
-#: OOps/aops.c:960
+#: OOps/aops.c:945
 msgid "non-looping sample"
 msgstr ""
 
-#: OOps/aops.c:1112 OOps/aops.c:1140
+#: OOps/aops.c:1095 OOps/aops.c:1123
 #, c-format
 msgid "No tuning table %d"
 msgstr ""
 
-#: OOps/aops.c:1185 OOps/aops.c:1223
+#: OOps/aops.c:1168 OOps/aops.c:1206
 msgid "cpstun: invalid table"
 msgstr "cpstun: tabla inválida"
 
-#: OOps/aops.c:1615 OOps/aops.c:1651
+#: OOps/aops.c:1598 OOps/aops.c:1634
 #, c-format
 msgid "Input channel %d too large; ignored"
 msgstr ""
 
-#: OOps/aops.c:1647
+#: OOps/aops.c:1630
 msgid "Input and output argument count differs in inch"
 msgstr ""
 
-#: OOps/aops.c:2090
+#: OOps/aops.c:2073
 msgid "Unknown function called"
 msgstr ""
 
-#: OOps/aops.c:2126
+#: OOps/aops.c:2109
 msgid "number of arguments != nchnls"
 msgstr ""
 
-#: OOps/aops.c:2156
+#: OOps/aops.c:2139
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 
