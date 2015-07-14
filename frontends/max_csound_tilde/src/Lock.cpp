@@ -145,11 +145,6 @@ void spinlock::lock(char *context)
 	#endif
 }
 
-inline void spinlock::trylock(char *context)
-{
-	lock(context);
-}
-
 void spinlock::unlock(char *context)
 {
 	#ifdef _DEBUG
@@ -176,18 +171,6 @@ void wspinlock::lock(char *context)
 	EnterCriticalSection(&m_critical_section);
 	#ifdef _DEBUG
 		log_lock(context);
-	#endif
-}
-
-void wspinlock::trylock(char *context)
-{
-	#ifdef _DEBUG
-		bool result;
-		result = TryEnterCriticalSection(&m_critical_section);
-		if(result)
-			log_lock(context);
-	#else
-		TryEnterCriticalSection(&m_critical_section);
 	#endif
 }
 
