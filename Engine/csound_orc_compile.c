@@ -955,11 +955,11 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
         }
         /* no active instances */
         if (active == NULL) {
-	 if (csound->oparms->odebug)
+         if (csound->oparms->odebug)
           csound->Message(csound, Str(" -- free instr def %p %p \n"),
-			  csound->dead_instr_pool[i]->instance,
+                          csound->dead_instr_pool[i]->instance,
                           csound->dead_instr_pool[i]);
-	  free_instrtxt(csound, csound->dead_instr_pool[i]);
+          free_instrtxt(csound, csound->dead_instr_pool[i]);
         csound->dead_instr_pool[i] = NULL;
         }
       }
@@ -1024,11 +1024,11 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
       INSDS *active = engineState->instrtxtp[inm->instno]->instance;
       while (active != NULL) {
         if (active->actflg) {
-	  /* FIXME:  */
-	  /* this seems to be wiping memory that is still being used */
+          /* FIXME:  */
+          /* this seems to be wiping memory that is still being used */
           // add_to_deadpool(csound, engineState->instrtxtp[inm->instno]);
-	  /* this marks the instrument number ready for replacement */
-	  engineState->instrtxtp[inm->instno] = NULL;
+          /* this marks the instrument number ready for replacement */
+          engineState->instrtxtp[inm->instno] = NULL;
           break;
         }
         active = active->nxtinstance;
@@ -1109,7 +1109,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
         }
         /* hack: "name" actually points to the corresponding INSTRNAME */
         inm2 = (INSTRNAME*) (inm->name);    /* entry in the table */
-	//printf("instno %d \n", num);
+        //printf("instno %d \n", num);
         inm2->instno = (int32) num;
         engineState->instrtxtp[num] = inm2->ip;
         if (csound->oparms->msglevel && engineState == &csound->engineState)
@@ -1527,8 +1527,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                                engineState,0);
                 /* VL 10.10.14: check for redefinition */
                 //if (UNLIKELY(!named_instr_alloc(csound, c,
-		//  instrtxt, insno_priority,
-		//                              engineState, 0))) {
+                //  instrtxt, insno_priority,
+                //                              engineState, 0))) {
       //synterr(csound, Str("instr %s redefined\n"), c);
       //}
 
