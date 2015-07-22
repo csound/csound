@@ -124,10 +124,14 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
 
        message(STATUS "JNI INCLUDE set to ${JNI_INCLUDE_DIRS}")
 
-      	if(LINUX)
-            set(swigjava_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
+      	if(WIN32)
+	     set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB}
+	     ${LIBSNDFILE_LIBRARY} libcsnd6)
+        elseif(APPLE)
+             set(swigjava_LIBS  ${JAVA_VM_LIBRARY} ${CSOUNDLIB}
+	             ${LIBSNDFILE_LIBRARY} libcsnd6)
         else()
-            set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
+             set(swigjava_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
         endif()
 
         list(APPEND javaSwigOptions -package csnd6 -includeall)
