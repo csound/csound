@@ -22,6 +22,7 @@
 */
 
 #include "CsoundObject.h"
+#include "csound.h"
 #include "csound~.h"
 #include "memory.h" 
 #include "util.h"
@@ -80,8 +81,9 @@ void CsoundObject::Compile()
 	if(m_renderThreadExists) 
 	{
 		m_performanceFinished = false;
-		if(0 != pthread_join(m_renderThread, NULL))
-			m_msg_buf.add(message::_ERROR_MSG, "pthread_join() with render thread failed.");
+    
+		if(0 != csoundJoinThread(m_renderThread))
+			m_msg_buf.add(message::_ERROR_MSG, "csoundJoinThread() with render thread failed.");
 		m_renderThreadExists = false;
 	}
 
@@ -112,7 +114,7 @@ void CsoundObject::Compile()
 
 int CsoundObject::Compile(bool lock)
 {
-	int threadCreateResult, result = COMPILATION_FAILURE;
+  int result = COMPILATION_FAILURE;
 //	char *opcodedir = NULL;
 //	string default_opcodedir;
 	MYFLT *csIn = NULL;
@@ -240,8 +242,9 @@ int CsoundObject::Compile(bool lock)
             
                 if(m_renderingToFile)
                 {
-                    threadCreateResult = pthread_create(&m_renderThread, NULL, (void *(*)(void*))CsoundObject_RenderThreadFunc, (void *) this);
-                    if(threadCreateResult != 0) m_msg_buf.add(message::_ERROR_MSG, "Could not create Csound render thread.");
+                  
+                    void *threadCreateResult = csoundCreateThread(CsoundObject_RenderThreadFunc, (void*)this);
+                    if(threadCreateResult == NULL) m_msg_buf.add(message::_ERROR_MSG, "Could not create Csound render thread.");
                     else m_renderThreadExists = true;
                 }
             }
@@ -469,8 +472,9 @@ void CsoundObject::Stop()
 		csound_sendPerfDoneBang(m_x,NULL,0,NULL); // Always call outlets outside locked zones.
 }
 
-void CsoundObject_RenderThreadFunc(CsoundObject *cso)
+uintptr_t CsoundObject_RenderThreadFunc(void* data)
 {
+  CsoundObject *cso = (CsoundObject*)data;
 	Sequencer &seq = cso->m_sequencer;
 	bool firstPass = true;
 	bool inStoppageTime = false;
@@ -506,8 +510,8 @@ void CsoundObject_RenderThreadFunc(CsoundObject *cso)
 	}
 	cso->Stop();
 	cso->m_renderThreadExists = false;
-	pthread_exit(NULL);
-}	
+  return 0;
+}
 
 
 void inputValueCallback(CSOUND *csound, const char *name, void *channelValuePtr, const void *channelType)
