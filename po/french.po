@@ -9301,12 +9301,12 @@ msgid "stdopcod.c: error: globals already allocated"
 msgstr "stdopcod.c : erreur : les variables globales sont déjà allouées"
 
 #: Opcodes/stk/stkOpcodes.cpp:721
-#, fuzzy
 msgid ""
 "STK opodes not available: define environment variable RAWWAVE_PATH\n"
 "(points to rawwaves directory) to use STK opcodes."
 msgstr ""
-"Erreur : il faut définir la variable d'environnement RAWWAVE_PATH\n"
+"Opcodes STK non disponibles : "
+"il faut définir la variable d'environnement RAWWAVE_PATH\n"
 "(pointant sur le répertoire des rawwaves) pour utiliser les opcodes STK."
 
 #: Opcodes/stk/stkOpcodes.cpp:731
