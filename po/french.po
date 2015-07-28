@@ -216,22 +216,22 @@ msgstr "N'est pas une liste d'ints correcte"
 msgid "create_opcode: No rule to handle statement of type %d\n"
 msgstr "create_opcode : aucune règle pour traiter une instruction de type %d\n"
 
-#: Engine/csound_orc_compile.c:572 Engine/csound_orc_compile.c:646
+#: Engine/csound_orc_compile.c:572 Engine/csound_orc_compile.c:647
 #, c-format
 msgid "%s invalid sample rate"
 msgstr "%s taux d'échantillonnage non valide"
 
-#: Engine/csound_orc_compile.c:574 Engine/csound_orc_compile.c:648
+#: Engine/csound_orc_compile.c:574 Engine/csound_orc_compile.c:649
 #, c-format
 msgid "%s invalid control rate"
 msgstr "%s taux de contrôle non valide"
 
-#: Engine/csound_orc_compile.c:578 Engine/csound_orc_compile.c:644
+#: Engine/csound_orc_compile.c:578 Engine/csound_orc_compile.c:645
 #, c-format
 msgid "%s invalid ksmps value"
 msgstr "%s valeur de ksmps non valide"
 
-#: Engine/csound_orc_compile.c:580 Engine/csound_orc_compile.c:650
+#: Engine/csound_orc_compile.c:580 Engine/csound_orc_compile.c:651
 #, c-format
 msgid "%s inconsistent sr, kr, ksmps"
 msgstr "%s sr, kr, ksmps contradictoires"
@@ -246,7 +246,7 @@ msgid "bad value for 0dbfs: must be positive. Setting default value."
 msgstr ""
 "mauvaise valeur pour 0dbfs : elle doit être positive. Valeur par défaut."
 
-#: Engine/csound_orc_compile.c:641
+#: Engine/csound_orc_compile.c:642
 #, c-format
 msgid ""
 "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
@@ -255,120 +255,120 @@ msgstr ""
 "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
 "erreur :"
 
-#: Engine/csound_orc_compile.c:652
+#: Engine/csound_orc_compile.c:653
 #, c-format
 msgid "sample rate overrides: esr = %7.4f, ekr = %7.4f, ksmps = %d\n"
 msgstr ""
 "redéfinition des taux d'échantillonnage : esr = %7.4f, ekr = %7.4f, ksmps = "
 "%d\n"
 
-#: Engine/csound_orc_compile.c:814
+#: Engine/csound_orc_compile.c:815
 #, c-format
 msgid "create_instrument: instr num %ld\n"
 msgstr "create_instrument : numéro d'instrument %ld\n"
 
-#: Engine/csound_orc_compile.c:931
+#: Engine/csound_orc_compile.c:932
 msgid "-- deleted instr from deadpool \n"
 msgstr "-- instr supprimé de deadpool \n"
 
-#: Engine/csound_orc_compile.c:959
+#: Engine/csound_orc_compile.c:960
 #, c-format
 msgid " -- free instr def %p %p \n"
 msgstr " -- déf libre d'instr %p %p\n"
 
-#: Engine/csound_orc_compile.c:973 Engine/csound_orc_compile.c:984
+#: Engine/csound_orc_compile.c:974 Engine/csound_orc_compile.c:985
 #, c-format
 msgid " -- added to deadpool slot %d \n"
 msgstr " -- ajout du slot %d au deadpool \n"
 
-#: Engine/csound_orc_compile.c:1012 Engine/csound_orc_compile.c:1167
+#: Engine/csound_orc_compile.c:1013 Engine/csound_orc_compile.c:1168
 #, c-format
 msgid "instr %ld redefined, replacing previous definition"
 msgstr "instr %ld redéfini, précédente définition remplacée"
 
-#: Engine/csound_orc_compile.c:1039
+#: Engine/csound_orc_compile.c:1040
 msgid "no active instances \n"
 msgstr "pas d'instances actives\n"
 
-#: Engine/csound_orc_compile.c:1116
+#: Engine/csound_orc_compile.c:1117
 #, c-format
 msgid "instr %s uses instrument number %d\n"
 msgstr "l'instr %s utilise le numéro d'instrument %d\n"
 
-#: Engine/csound_orc_compile.c:1193
+#: Engine/csound_orc_compile.c:1194
 #, c-format
 msgid "no active instances of instr %d \n"
 msgstr "aucune instance active de l'instr %d \n"
 
-#: Engine/csound_orc_compile.c:1239
+#: Engine/csound_orc_compile.c:1240
 msgid "!!! csound->opcodeInfo is NULL !!!\n"
 msgstr "!!! csound->opcodeInfo est NULL !!!\n"
 
-#: Engine/csound_orc_compile.c:1275
+#: Engine/csound_orc_compile.c:1276
 #, c-format
 msgid " merging constants %d) %f\n"
 msgstr " fusion des constantes %d) %f\n"
 
-#: Engine/csound_orc_compile.c:1285
+#: Engine/csound_orc_compile.c:1286
 #, c-format
 msgid " merging  %d) %s:%s\n"
 msgstr " fusion  %d) %s:%s\n"
 
-#: Engine/csound_orc_compile.c:1323
+#: Engine/csound_orc_compile.c:1324
 #, c-format
 msgid "merging instr %d \n"
 msgstr "fusion de l'instr %d \n"
 
-#: Engine/csound_orc_compile.c:1331
+#: Engine/csound_orc_compile.c:1332
 #, c-format
 msgid "merging instr %s \n"
 msgstr "fusion de l'instr %s \n"
 
-#: Engine/csound_orc_compile.c:1524 Engine/csound_orc_compile.c:1559
-#: Engine/csound_orc_compile.c:1582
+#: Engine/csound_orc_compile.c:1525 Engine/csound_orc_compile.c:1560
+#: Engine/csound_orc_compile.c:1583
 msgid "invalid name for instrument"
 msgstr "nom d'instrument non valide"
 
-#: Engine/csound_orc_compile.c:1564 Engine/csound_orc_compile.c:1587
+#: Engine/csound_orc_compile.c:1565 Engine/csound_orc_compile.c:1588
 #, c-format
 msgid "instr %s redefined"
 msgstr "instr %s redéfini"
 
-#: Engine/csound_orc_compile.c:1609
+#: Engine/csound_orc_compile.c:1610
 #, c-format
 msgid "ERROR: Could not find OPCODINFO for opname: %s\n"
 msgstr "ERREUR : impossible de trouver l'OPCODINFO pour : %s\n"
 
-#: Engine/csound_orc_compile.c:1631
+#: Engine/csound_orc_compile.c:1632
 #, c-format
 msgid "Unknown TREE node of type %d (%s) found in root.\n"
 msgstr "Noeud inconnu de type %d (%s) trouvé à la racine.\n"
 
-#: Engine/csound_orc_compile.c:1640
+#: Engine/csound_orc_compile.c:1641
 #, c-format
 msgid "%d syntax errors in orchestra.  compilation invalid\n"
 msgstr "%d erreurs de syntaxe dans l'orchestre. Compilation non valide\n"
 
-#: Engine/csound_orc_compile.c:1684
+#: Engine/csound_orc_compile.c:1685
 #, c-format
 msgid "perf-pass statements illegal in header blk (%s)\n"
 msgstr ""
 "les instructions d'exécution sont interdites dans le bloc d'en-tête (%s)\n"
 
-#: Engine/csound_orc_compile.c:1863
+#: Engine/csound_orc_compile.c:1864
 msgid "i[fixme] pset args != pmax"
 msgstr "i[fixme] pset args != pmax"
 
-#: Engine/csound_orc_compile.c:2006
+#: Engine/csound_orc_compile.c:2007
 #, c-format
 msgid "Missing local arg: %s\n"
 msgstr "Argument local manquant : %s\n"
 
-#: Engine/csound_orc_compile.c:2066
+#: Engine/csound_orc_compile.c:2067
 msgid "**unrecorded**"
 msgstr "**non enregistré**"
 
-#: Engine/csound_orc_compile.c:2139
+#: Engine/csound_orc_compile.c:2140
 #, c-format
 msgid "Opcode \"%s\" is deprecated\n"
 msgstr "L'opcode \"%s\" est obsolète\n"
@@ -792,8 +792,8 @@ msgstr "remplacement de la ftable précédente %d"
 #: Engine/fgens.c:2357 Engine/fgens.c:2499 Engine/fgens.c:2527
 #: Engine/fgens.c:2534 Opcodes/gab/gab.c:592 Opcodes/gab/gab.c:647
 #: Opcodes/midiops2.c:233 Opcodes/midiops2.c:388 Opcodes/midiops2.c:470
-#: Opcodes/uggab.c:1626 Opcodes/uggab.c:1662 Opcodes/uggab.c:1684
-#: Opcodes/uggab.c:1737
+#: Opcodes/uggab.c:1628 Opcodes/uggab.c:1664 Opcodes/uggab.c:1686
+#: Opcodes/uggab.c:1739
 #, c-format
 msgid "Invalid ftable no. %f"
 msgstr "Numéro de ftable non valide. %f"
@@ -9305,8 +9305,8 @@ msgid ""
 "STK opodes not available: define environment variable RAWWAVE_PATH\n"
 "(points to rawwaves directory) to use STK opcodes."
 msgstr ""
-"Opcodes STK non disponibles : "
-"il faut définir la variable d'environnement RAWWAVE_PATH\n"
+"Opcodes STK non disponibles : il faut définir la variable d'environnement "
+"RAWWAVE_PATH\n"
 "(pointant sur le répertoire des rawwaves) pour utiliser les opcodes STK."
 
 #: Opcodes/stk/stkOpcodes.cpp:731
@@ -9484,7 +9484,12 @@ msgstr "une boucle ne peut pas être nulle"
 msgid "loop opcode: wrong argument count"
 msgstr "opcode de boucle : mauvais compteur"
 
-#: Opcodes/uggab.c:1353 Opcodes/uggab.c:1396
+#: Opcodes/uggab.c:1295
+#, fuzzy
+msgid "vibrato@ Phase out of range"
+msgstr "valeur hors limites"
+
+#: Opcodes/uggab.c:1355 Opcodes/uggab.c:1398
 msgid "vibrato(krate): not initialised"
 msgstr "vibrato(taux-k) : non initialisé"
 
