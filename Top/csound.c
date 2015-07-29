@@ -1044,12 +1044,12 @@ static char *signal_to_string(int sig)
     }
 }
 
-static void psignal(int sig, char *str)
+static void psignal_(int sig, char *str)
 {
     fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
 #elif defined(__BEOS__)
-static void psignal(int sig, char *str)
+static void psignal_(int sig, char *str)
 {
     fprintf(stderr, "%s: %s\n", str, strsignal(sig));
 }
@@ -1059,11 +1059,19 @@ static void signal_handler(int sig)
 {
 #if defined(SIGPIPE)
     if (sig == (int) SIGPIPE) {
+#ifdef ANDROID
+      psignal_(sig, "Csound ignoring SIGPIPE");
+#else
       psignal(sig, "Csound ignoring SIGPIPE");
+#endif
       return;
     }
 #endif
+#ifdef ANDROID
     psignal(sig, "Csound tidy up");
+#else
+    psignal(sig, "Csound tidy up");
+#endif
     if ((sig == (int) SIGINT || sig == (int) SIGTERM) && !exitNow_) {
       exitNow_ = -1;
       return;
