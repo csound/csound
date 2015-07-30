@@ -229,7 +229,7 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
                                               CS_ESR, STYPE_16,
                                               p->fin->wintype, 0.0f, NULL,
                                               p->fin->winsize)) == -1)
-     
+
       return csound->InitError(csound,
                                Str("pvsfwrite: could not open file %s\n"),
                                fname);
