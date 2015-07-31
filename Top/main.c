@@ -246,12 +246,10 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     if (csound->enableHostImplementedMIDIIO == 1) {
-        if (s == NULL) {
-          s = "hostbased";
-        } else {
+        if (s) {
             strcpy(s, "hostbased");
         }
-        csoundSetConfigurationVariable(csound,"rtmidi", s);
+        csoundSetConfigurationVariable(csound,"rtmidi", "hostbased");
     }
 
     /* IV - Jan 28 2005 */
@@ -376,8 +374,9 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
      }
   else {
    s = csoundQueryGlobalVariable(csound, "_RTMIDI");
-   strcpy(s, "hostbased");
-   csoundSetConfigurationVariable(csound,"rtmidi", s);
+   if (s)
+     strcpy(s, "hostbased");
+   csoundSetConfigurationVariable(csound,"rtmidi", "hostbased");
   }
    }
 
