@@ -36,8 +36,7 @@ typedef struct {
 typedef struct {
   OPDS    h;
   ARRAYDAT* arrayDat;
-  MYFLT   *isizes[VARGMAX];
-} ARRAYINIT;
+  MYFLT   *isizes[VARGMAX];} ARRAYINIT;
 
 typedef struct {
   OPDS    h;
@@ -1389,7 +1388,7 @@ int perf_rfft(CSOUND *csound, FFT *p){
 int rfft_i(CSOUND *csound, FFT *p){
   if(init_rfft(csound,p) == OK)
     return perf_rfft(csound, p);
-  else return NOTOK; 
+  else return NOTOK;
 }
 
 int init_rifft(CSOUND *csound, FFT *p){
@@ -1419,7 +1418,7 @@ int perf_rifft(CSOUND *csound, FFT *p){
 int rifft_i(CSOUND *csound, FFT *p){
   if(init_rifft(csound,p) == OK)
     return perf_rifft(csound, p);
-  else return NOTOK; 
+  else return NOTOK;
 }
 
 int init_rfftmult(CSOUND *csound, FFT *p){
@@ -1467,7 +1466,7 @@ int perf_fft(CSOUND *csound, FFT *p){
 int fft_i(CSOUND *csound, FFT *p){
   if(init_fft(csound,p) == OK)
     return perf_fft(csound, p);
-  else return NOTOK; 
+  else return NOTOK;
 }
 
 
@@ -1495,7 +1494,7 @@ int perf_ifft(CSOUND *csound, FFT *p){
 int ifft_i(CSOUND *csound, FFT *p){
   if(init_ifft(csound,p) == OK)
     return perf_ifft(csound, p);
-  else return NOTOK; 
+  else return NOTOK;
 }
 
 int init_recttopol(CSOUND *csound, FFT *p){
@@ -1630,7 +1629,7 @@ int perf_rtoc(CSOUND *csound, FFT *p){
 int rtoc_i(CSOUND *csound, FFT *p){
   if(init_rtoc(csound,p) == OK)
     return perf_rtoc(csound, p);
-  else return NOTOK; 
+  else return NOTOK;
 }
 
 int init_ctor(CSOUND *csound, FFT *p){
@@ -1653,7 +1652,7 @@ int perf_ctor(CSOUND *csound, FFT *p){
 int ctor_i(CSOUND *csound, FFT *p){
   if(init_ctor(csound,p) == OK)
     return perf_ctor(csound, p);
-  else return NOTOK; 
+  else return NOTOK;
 }
 
 
@@ -1741,7 +1740,7 @@ int init_ceps(CSOUND *csound, FFT *p){
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
-    
+
     return OK;
 }
 
