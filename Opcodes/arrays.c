@@ -1667,6 +1667,7 @@ int init_window(CSOUND *csound, FFT *p){
     w = (MYFLT *) p->mem.auxp;
     switch(type){
     case 0:
+      printf("hamming\n");
       for(i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*2*PI/N);
       break;
     case 1:
