@@ -309,7 +309,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
     double   a, frac, incra, incrph, factor, lotwopi, cnt;
     MYFLT   scale = *p->scal;
     int     ndx, size = p->func->flen;
-    int     i, j, k, m, id;
+    int     i=0, j, k, m, id;
     int     notcontin = 0;
     int     contin = 0;
     int     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
@@ -324,6 +324,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
     MYFLT   *outsum = (MYFLT *) p->sum.auxp;
     int     *trackID = (int *) p->trackID.auxp;
     int     hopsize = p->hopsize;
+
 
     incrph = csound->onedsr;
     lotwopi = (double)(size) / TWOPI_F;
@@ -340,6 +341,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
       out[n] = outsum[pos];
       pos++;
       if (pos == hopsize) {
+
         memset(outsum, 0, sizeof(MYFLT) * hopsize);
         /* for each track */
         i = j = k = 0;
@@ -348,6 +350,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
           freqnext = (double) fin[i + 1] * TWOPI_F;
           phasenext = (double) fin[i + 2];
           if ((id = (int) fin[i + 3]) != -1) {
+	    
             j = k + notcontin;
 
             if (k < tracks - notcontin) {
@@ -371,13 +374,13 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
             else {
               /* new track */
               contin = 1;
+              goto cont;
               freq = freqnext;
               phase = phasenext - freq * factor;
               amp = FL(0.0);
             }
             /* phasediff */
             phasediff = phasenext - phase;
-
             while (phasediff >= PI_F)
               phasediff -= TWOPI_F;
             while (phasediff < -PI_F)
@@ -410,8 +413,8 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
               ph = phase + cnt * (freq + cnt * (a2 + a3 * cnt));
             }
             /* keep amp, freq, and phase values for next time */
-            if (contin) {
-
+	  cont:
+            if (contin) {        
               amps[k] = ampnext;
               freqs[k] = freqnext;
               phases[k] = phasenext;
@@ -422,15 +425,17 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
             else
               notcontin++;
           }
-          else
+          else 	    
             break;
-        }
+	    
+        }	
         pos = 0;
         p->tracks = k;
       }
+      	
     }
     p->pos = pos;
-
+    	
     return OK;
 }
 

@@ -451,8 +451,14 @@ static int partials_process(CSOUND * csound, _PARTS * p)
           a = fin1[pos];
           b = (bins[k] < numbins - 1 ? (fin1[pos + 2] - a) : 0);
           fout[i + 1] = (float) (a + frac * b);
-          if (!nophase)
-            fout[i + 2] = fin2[pos];  /* phase (truncated) */
+          if (!nophase){
+	    float pha = fin2[pos];
+	    /* while (pha >= PI_F)
+              pha -= TWOPI_F;
+            while (pha < -PI_F)
+	    pha += TWOPI_F; */
+            fout[i + 2] = pha;  /* phase (truncated) */
+	  }
           else
             fout[i + 2] = 0.f;
           fout[i + 3] = (float) trndx[k];  /* trk IDs */

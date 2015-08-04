@@ -247,7 +247,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     if (csound->enableHostImplementedMIDIIO == 1) {
         if (s) {
-            strcpy(s, "hostbased");
+	  s = strcpy(csound, "hostbased");
         }
         csoundSetConfigurationVariable(csound,"rtmidi", "hostbased");
     }
