@@ -467,10 +467,49 @@ static int partials_process(CSOUND * csound, _PARTS * p)
     return OK;
 }
 
+typedef struct  _partxt{
+  OPDS h;
+  STRINGDAT *fname;
+  PVSDAT *tracks;
+  FDCH  fdch;
+  FILE *f;
+  uint32 lastframe;
+} PARTXT;
+
+
+int part2txt_init(CSOUND *csound, PARTXT *p){
+  
+  if(p->fdch.fd != NULL)
+    fdclose(csound, &(p->fdch));
+  p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, p->fname->data,
+                                   "w", "", CSFTYPE_FLOATS_TEXT, 0);
+  if(UNLIKELY(p->fdch.fd == NULL))
+      return csound->InitError(csound, Str("Cannot open %s"), p->fname->data);
+
+  p->lastframe = 0;
+  return OK;
+}
+
+int part2txt_perf(CSOUND *csound, PARTXT *p){
+  float *tracks = (float *) p->tracks->frame.auxp;
+    int i = 0;
+    if(p->tracks->framecount > p->lastframe){
+      for(i=0; tracks[i+3] != -1; i+=4){ 
+       fprintf(p->f, "%f %f %f %d\n",tracks[i],tracks[i+1],
+	       tracks[i+2], (int) tracks[i+3]);
+      }
+      fprintf(p->f, "-1.0 -1.0 -1.0 -1\n"); 
+      p->lastframe = p->tracks->framecount;
+    }
+    return OK;
+}
+
 static OENTRY localops[] =
   {
     { "partials", sizeof(_PARTS), 0, 3, "f", "ffkkki",
-                            (SUBR) partials_init, (SUBR) partials_process }
+      (SUBR) partials_init, (SUBR) partials_process },
+    { "part2txt", sizeof(_PARTS), 0, 3, "", "Sf",
+                            (SUBR) part2txt_init, (SUBR) part2txt_perf }
   };
 
 int partials_init_(CSOUND *csound)
