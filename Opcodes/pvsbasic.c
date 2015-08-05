@@ -529,6 +529,7 @@ int pvstanalset(CSOUND *csound, PVST *p)
     p->scnt = p->fout[0]->overlap;
     p->tscale  = 1;
     p->pos =  *p->offset*CS_ESR;
+    printf("off: %f\n", *p->offset);
     p->accum = 0.0;
     return OK;
 }
@@ -575,6 +576,8 @@ int pvstanal(CSOUND *csound, PVST *p)
                                      "sound file channels"));
 
       sizefrs = size/nchans;
+      if(!*p->wrap && spos == 0.0)
+	  spos += hsize;
       if (!*p->wrap && spos >= sizefrs) {
         for (j=0; j < nchans; j++) {
           memset(p->fout[j]->frame.auxp, 0, sizeof(float)*(N+2));
@@ -586,6 +589,7 @@ int pvstanal(CSOUND *csound, PVST *p)
       while (spos >= sizefrs) spos -= sizefrs;
       while (spos < hsize)  spos += (sizefrs + hsize);
       pos = spos;
+ 
       for (j=0; j < nchans; j++) {
 
         fout = (float *)  p->fout[j]->frame.auxp;
