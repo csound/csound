@@ -124,7 +124,9 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
         p->r->data = cs_strdup(csound, ss);
         p->r->size = strlen(ss) + 1;
       }
-      else strcpy(p->r->data, ss);
+      else {
+	strcpy(p->r->data, ss);
+      }
       return OK;
     }
     indx = (int)((double)*(p->indx) + (*(p->indx) >= FL(0.0) ? 0.5 : -0.5));
