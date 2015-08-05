@@ -50,20 +50,19 @@ typedef struct _ifd {
 /* data */
     AUXCH   sigframe, diffsig, win, diffwin;
     AUXCH   counter;
-    int     fftsize, hopsize, wintype, frames, cnt;
+  int     fftsize, hopsize, wintype, frames;//, cnt;
     double  fund, factor;
     MYFLT   norm, g;
 } IFD;
 
 static int ifd_init(CSOUND * csound, IFD * p)
 {
-
     int     fftsize, hopsize, frames;
     int    *counter, wintype, i;
     MYFLT  *winf, *dwinf;
     double  alpha = 0.0, fac;
 
-    p->cnt = 0;
+    //p->cnt = 0;
     fftsize = p->fftsize = (int) *p->size;
     hopsize = p->hopsize = (int) *p->hop;
     p->g = *p->scal;
@@ -234,7 +233,7 @@ static int ifd_process(CSOUND * csound, IFD * p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     frames = p->frames;
-    int     cnt = p->cnt;
+    //int     cnt = p->cnt;
 
     if (UNLIKELY(early)) nsmps -= early;
     for (n = offset; n < nsmps; n++) {
