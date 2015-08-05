@@ -6519,17 +6519,14 @@ msgstr ""
 "unidimensionnel , sortie"
 
 #: Opcodes/framebuffer/Framebuffer.c:166
-#, fuzzy
 msgid ""
 "framebuffer: Error, k-rate array input element count must be less than \n"
 "or equal to specified framebuffer size, Exiting"
 msgstr ""
-"framebuffer : erreur, le nombre d'éléments d'un tableau de taux-k en "
-"entréedoit être inférieur ou égal à la taille du framebuffer spécifiée, "
-"sortie"
+"framebuffer : erreur, le nombre d'éléments d'un tableau de taux-k en entrée\n"
+"doit être inférieur ou égal à la taille du framebuffer spécifiée, sortie"
 
 #: Opcodes/framebuffer/Framebuffer.c:174
-#, fuzzy
 msgid ""
 "framebuffer: Error, only a-rate var input with k-rate array output or k-"
 "rate\n"
@@ -9488,9 +9485,8 @@ msgid "loop opcode: wrong argument count"
 msgstr "opcode de boucle : mauvais compteur"
 
 #: Opcodes/uggab.c:1295
-#, fuzzy
 msgid "vibrato@ Phase out of range"
-msgstr "valeur hors limites"
+msgstr "vibrato@ Phase hors limites"
 
 #: Opcodes/uggab.c:1355 Opcodes/uggab.c:1398
 msgid "vibrato(krate): not initialised"
@@ -9968,11 +9964,9 @@ msgstr ""
 "%s, message éliminé"
 
 #: Opcodes/websockets/WebSocketOpcode.c:232
-#, fuzzy, c-format
+#, c-format
 msgid "websocket: received string message from %s is too large, message dumped"
-msgstr ""
-"websocket : le message reçu de %s a une taille incorrecte pour la variable "
-"%s, message éliminé"
+msgstr "websocket : la chaîne de caractères reçue de %s est trop grande, message supprimé"
 
 #: Opcodes/websockets/WebSocketOpcode.c:245
 #, c-format
@@ -10026,9 +10020,9 @@ msgid "websocket: could not initialise websocket, Exiting"
 msgstr "websocket : impossible d'initialiser websocket. Sortie"
 
 #: Opcodes/websockets/WebSocketOpcode.c:547
-#, fuzzy, c-format
+#, c-format
 msgid "websocket: variable %s data not sent,buffer overrrun\n"
-msgstr "websocket : données de la var %s non envoyées, tampon saturé\n"
+msgstr "websocket : données de la variable %s non envoyées, tampon saturé\n"
 
 #: Opcodes/wiimote.c:122
 msgid "unable to open wiimote\n"
@@ -11521,14 +11515,14 @@ msgid "and cannot remove %s"
 msgstr "et impossible d'effacer %s"
 
 #: Top/one_file.c:441
-#, fuzzy, c-format
+#, c-format
 msgid "opened %s"
-msgstr "Impossible d'ouvrir %s"
+msgstr "%s ouvert"
 
 #: Top/one_file.c:444
-#, fuzzy, c-format
+#, c-format
 msgid "closing %s"
-msgstr "fermeture du périphérique\n"
+msgstr "fermeture de %s"
 
 #: Top/one_file.c:491
 #, c-format
