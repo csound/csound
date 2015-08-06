@@ -77,6 +77,7 @@ typedef struct OPEN_SL_PARAMS_ {
   int run;
 } open_sl_params;
 
+int old = 0;
 #define CONV16BIT (32768)//./csoundGet0dBFS(csound))
 #define CONVMYFLT FL(1./32768.)
 static double curtime;
@@ -87,8 +88,10 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
   CSOUND *csound = p->csound;
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
-  //csound->Message(csound, "callback kcount, %d, %d.%06d\n", csound->GetKcounter(csound), ts.tv_sec, ts.tv_nsec/1000);
-
+  /*csound->Message(csound, "callback kcount, %d, %d.%06d: %d\n",
+  		  csound->GetKcounter(csound), ts.tv_sec, ts.tv_nsec/1000,
+  		  (ts.tv_nsec-old)/1000000);*/
+  old = ts.tv_nsec;
   if(p->async){
     int read=0,items = p->outBufSamples, i, r = 0;
     MYFLT *outputBuffer = p->outputBuffer;

@@ -50,20 +50,19 @@ typedef struct _ifd {
 /* data */
     AUXCH   sigframe, diffsig, win, diffwin;
     AUXCH   counter;
-    int     fftsize, hopsize, wintype, frames, cnt;
+  int     fftsize, hopsize, wintype, frames;//, cnt;
     double  fund, factor;
     MYFLT   norm, g;
 } IFD;
 
 static int ifd_init(CSOUND * csound, IFD * p)
 {
-
     int     fftsize, hopsize, frames;
     int    *counter, wintype, i;
     MYFLT  *winf, *dwinf;
     double  alpha = 0.0, fac;
 
-    p->cnt = 0;
+    //p->cnt = 0;
     fftsize = p->fftsize = (int) *p->size;
     hopsize = p->hopsize = (int) *p->hop;
     p->g = *p->scal;
@@ -162,7 +161,7 @@ static int ifd_init(CSOUND * csound, IFD * p)
 static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
 {
 
-    double  powerspec, da, db, a, b, ph, d, factor = p->factor, fund = p->fund;
+    double  powerspec, da, db, a, b, ph, factor = p->factor, fund = p->fund;
     MYFLT   scl = p->g / p->norm;
     int     i2, i, fftsize = p->fftsize, hsize = p->fftsize / 2;
     MYFLT   tmp1, tmp2, *diffwin = (MYFLT *) p->diffwin.auxp;
@@ -203,12 +202,12 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
       if ((outphases[i] = output[i] = (float) sqrt(powerspec)) != 0.0f) {
         output[i + 1] = ((a * db - b * da) / powerspec) * factor + i2 * fund;
         ph = (float) atan2(b, a);
-        d = ph - outphases[i + 1];
+        /*double d = ph - outphases[i + 1];
         while (d > PI)
           d -= TWOPI;
         while (d < -PI)
-          d += TWOPI;
-        outphases[i + 1] += (float)d;
+	d += TWOPI; */
+        outphases[i + 1] = (float)ph;
       }
       else {
         output[i + 1] = i2 * fund;
@@ -234,7 +233,7 @@ static int ifd_process(CSOUND * csound, IFD * p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     frames = p->frames;
-    int     cnt = p->cnt;
+    //int     cnt = p->cnt;
 
     if (UNLIKELY(early)) nsmps -= early;
     for (n = offset; n < nsmps; n++) {
@@ -242,15 +241,15 @@ static int ifd_process(CSOUND * csound, IFD * p)
         sigframe[i * fftsize + counter[i]] = sigin[n];
         counter[i]++;
         if (counter[i] == fftsize) {
-          if (cnt < frames)
-            cnt++;
-          else
+          //if (cnt < frames)
+	  // cnt++;
+          //else
             IFAnalysis(csound, p, &sigframe[i * fftsize]);
           counter[i] = 0;
         }
       }
     }
-    p->cnt = cnt;
+    //p->cnt = cnt;
 
     return OK;
 }

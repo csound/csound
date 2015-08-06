@@ -611,9 +611,10 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                       csound->esr, csound->ekr, csound->ksmps,
                       csound->nchnls, csound->e0dbfs);
 
-    if (O->sr_override || O->kr_override || O->ksmps_override) {   /* if command-line overrides, apply now */
+    if (O->sr_override || O->kr_override ||
+        O->ksmps_override) {   /* if command-line overrides, apply now */
       MYFLT ensmps;
-      
+
       if(!O->ksmps_override){
       csound->esr = (MYFLT) (O->sr_override ? O->sr_override : csound->esr);
       csound->ekr = (MYFLT) (O->kr_override ? O->kr_override : csound->ekr);
@@ -634,7 +635,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
          csound->ekr = csound->esr / csound->ksmps;
         }
       }
-      
+
       /* chk consistency one more time */
       {
         char  s[256];
@@ -1086,7 +1087,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
     if (!engineState->instrumentNames) return;       /* no named instruments */
     inm_first = cs_hash_table_get(csound, engineState->instrumentNames,
                                   (char*)INSTR_NAME_FIRST);
-    
+
     while (--insno_priority > -3) {
       if (insno_priority == -2) {
         num = engineState->maxinsno;         /* find last used instr number */
