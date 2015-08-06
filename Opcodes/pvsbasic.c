@@ -577,7 +577,7 @@ int pvstanal(CSOUND *csound, PVST *p)
 
       sizefrs = size/nchans;
       if(!*p->wrap && spos == 0.0)
-	  spos += hsize;
+          spos += hsize;
       if (!*p->wrap && spos >= sizefrs) {
         for (j=0; j < nchans; j++) {
           memset(p->fout[j]->frame.auxp, 0, sizeof(float)*(N+2));
