@@ -46,7 +46,7 @@ typedef struct _parts {
     PVSDAT *fin1, *fin2;
     MYFLT  *kthresh, *pts, *gap, *mtrks;
     int     tracks, numbins, mtracks, prev, cur;
-    int     accum;
+    unsigned long  accum;
     uint32  lastframe, timecount;
     AUXCH   mags, lmags, index, cflag, trkid, trndx;
     AUXCH   tstart, binex, magex, oldbins, diffs, adthresh;
@@ -377,7 +377,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
              used to identify and match tracks
            */
           tstart[cur + count] = timecount;
-          trkid[cur + count] = ((accum++) % (maxtracks * 4));
+          trkid[cur + count] = ((accum++));// % (maxtracks * 1000));
           lastpk[cur + count] = timecount;
           count++;
 
