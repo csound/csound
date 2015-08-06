@@ -179,7 +179,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
         /* for each track */
         i = j = k = 0;
         while (i < maxtracks * 4) {
-	  
+          
           ampnext = (double) fin[i] * scale;
           freqnext = (double) fin[i + 1] * pitch;
           if ((id = (int) fin[i + 3]) != -1) {
@@ -211,7 +211,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
               amp = FL(0.0);
 
             }
-	    if(amp > min){
+            if(amp > min){
             /* interpolation & track synthesis loop */
             a = amp;
             f = freq;
@@ -230,7 +230,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
               a += incra;
               f += incrph;
             }
-	    }
+            }
             /* keep amp, freq, and phase values for next time */
             if (contin) {
 
@@ -276,7 +276,7 @@ static int psynth2_init(CSOUND *csound, _PSYN2 *p)
     p->facsqr = p->factor * p->factor;
     if(*p->thresh == -1) p->min = 0.00002*csound->Get0dBFS(csound);
     else p->min = *p->thresh*csound->Get0dBFS(csound);
-	
+        
     if (p->amps.auxp == NULL ||
         (unsigned) p->amps.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
@@ -355,7 +355,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
           freqnext = (double) fin[i + 1] * TWOPI_F;
           phasenext = (double) fin[i + 2];
           if ((id = (int) fin[i + 3]) != -1) {
-	    
+            
             j = k + notcontin;
 
             if (k < tracks - notcontin) {
@@ -384,7 +384,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
               phase = phasenext - freq * factor;
               amp = FL(0.0);
             }
-	    if(amp > min){
+            if(amp > min){
             /* phasediff */
             phasediff = phasenext - phase;
             while (phasediff >= PI_F)
@@ -417,9 +417,9 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
               cnt += incrph;
               ph = phase + cnt * (freq + cnt * (a2 + a3 * cnt));
             }
-	   }
+           }
             /* keep amp, freq, and phase values for next time */
-	  cont:
+          cont:
             if (contin) {        
               amps[k] = ampnext;
               freqs[k] = freqnext;
@@ -431,17 +431,17 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
             else
               notcontin++;
           }
-          else 	    
+          else      
             break;
-	    
-        }	
+            
+        }       
         pos = 0;
         p->tracks = k;
       }
-      	
+        
     }
     p->pos = pos;
-    	
+        
     return OK;
 }
 
@@ -520,7 +520,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
               phase = phasenext - freq * factor;
               amp = FL(0.0);
             }
-	    if(amp > min){
+            if(amp > min){
             /* phasediff */
             phasediff = phasenext - phase;
             while (phasediff >= PI_F)
@@ -554,7 +554,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
               cnt += incrph;
               ph = phase + cnt * (freq + cnt * (a2 + a3 * cnt));
             }
-	    }
+            }
             /* keep amp, freq, and phase values for next time */
             if (contin) {
               amps[k] = ampnext;

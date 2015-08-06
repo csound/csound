@@ -206,7 +206,7 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
         while (d > PI)
           d -= TWOPI;
         while (d < -PI)
-	d += TWOPI; */
+        d += TWOPI; */
         outphases[i + 1] = (float)ph;
       }
       else {
@@ -242,7 +242,7 @@ static int ifd_process(CSOUND * csound, IFD * p)
         counter[i]++;
         if (counter[i] == fftsize) {
           //if (cnt < frames)
-	  // cnt++;
+          // cnt++;
           //else
             IFAnalysis(csound, p, &sigframe[i * fftsize]);
           counter[i] = 0;

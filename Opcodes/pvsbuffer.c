@@ -293,13 +293,13 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
       tab2 = ftab->ftable;
       for (i=0; i < (unsigned int)N+2; i++){
         pos = (*p->ktime - tab[i/2])*(sr/overlap);
-	   while(pos >= frames) {
-	     pos -= frames;
-	   }
-	   while(pos < 0){
-	     pos += frames;
-	   }
-        posi = (int) pos;
+           while(pos >= frames) {
+             pos -= frames;
+           }
+           while(pos < 0){
+             pos += frames;
+           }
+           posi = (int) pos;
         if (N == handle->header.N &&
             overlap == (unsigned int)handle->header.overlap) {
            frame1 = buffer + (N + 2) * posi;

@@ -80,7 +80,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
       csound->Linepipe = _popen(&(O->Linename[1]), "r");
       if (LIKELY(csound->Linepipe != NULL)) {
         csound->Linefd = fileno(csound->Linepipe);
-	setvbuf(csound->Linepipe, NULL, _IONBF, 0);
+        setvbuf(csound->Linepipe, NULL, _IONBF, 0);
       }
       else csoundDie(csound, Str("Cannot open %s"), O->Linename);
     }
