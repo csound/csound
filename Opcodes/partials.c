@@ -452,13 +452,13 @@ static int partials_process(CSOUND * csound, _PARTS * p)
           b = (bins[k] < numbins - 1 ? (fin1[pos + 2] - a) : 0);
           fout[i + 1] = (float) (a + frac * b);
           if (!nophase){
-	    float pha = fin2[pos];
-	    /* while (pha >= PI_F)
+            float pha = fin2[pos];
+            /* while (pha >= PI_F)
               pha -= TWOPI_F;
             while (pha < -PI_F)
-	    pha += TWOPI_F; */
+            pha += TWOPI_F; */
             fout[i + 2] = pha;  /* phase (truncated) */
-	  }
+          }
           else
             fout[i + 2] = 0.f;
           fout[i + 3] = (float) trndx[k];  /* trk IDs */
@@ -502,7 +502,7 @@ int part2txt_perf(CSOUND *csound, PARTXT *p){
     if(p->tracks->framecount > p->lastframe){
       for(i=0; tracks[i+3] != -1; i+=4){ 
        fprintf(p->f, "%f %f %f %d\n",tracks[i],tracks[i+1],
-	       tracks[i+2], (int) tracks[i+3]);
+               tracks[i+2], (int) tracks[i+3]);
       }
       fprintf(p->f, "-1.0 -1.0 -1.0 -1\n"); 
       p->lastframe = p->tracks->framecount;
