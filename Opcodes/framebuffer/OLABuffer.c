@@ -36,15 +36,19 @@ int OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
     self->frameSamplesCount = self->inputArray->sizes[0];
     self->framesCount = *self->overlapArgument;
     self->overlapSamplesCount = self->frameSamplesCount / self->framesCount;
-    csound->AuxAlloc(csound, self->frameSamplesCount * self->framesCount * sizeof(MYFLT), &self->frameSamplesMemory);
-    csound->AuxAlloc(csound, self->framesCount * sizeof(MYFLT *), &self->framePointerMemory);
+    csound->AuxAlloc(csound,
+                     self->frameSamplesCount * self->framesCount * sizeof(MYFLT),
+                     &self->frameSamplesMemory);
+    csound->AuxAlloc(csound, self->framesCount * sizeof(MYFLT *),
+                     &self->framePointerMemory);
     self->frames = self->framePointerMemory.auxp;
     self->ksmps = csound->GetKsmps(csound);
 
     int i;
     for (i = 0; i < self->framesCount; ++i) {
 
-      self->frames[i] = &((MYFLT *)self->frameSamplesMemory.auxp)[i * self->frameSamplesCount];
+      self->frames[i] =
+        &((MYFLT *)self->frameSamplesMemory.auxp)[i * self->frameSamplesCount];
     }
 
     self->overlapSampleIndex = self->overlapSamplesCount;
@@ -57,14 +61,17 @@ void OLABuffer_writeFrame(OLABuffer *self, MYFLT *inputFrame, int frameIndex)
     int firstHalfOffset = self->overlapSamplesCount * frameIndex;
     int firstHalfCount = self->frameSamplesCount - firstHalfOffset;
     int secondHalfCount = self->frameSamplesCount - firstHalfCount;
-    memcpy(&self->frames[frameIndex][firstHalfOffset], inputFrame, firstHalfCount * sizeof(MYFLT));
-    memcpy(self->frames[frameIndex], &inputFrame[firstHalfCount], secondHalfCount * sizeof(MYFLT));
+    memcpy(&self->frames[frameIndex][firstHalfOffset], inputFrame,
+           firstHalfCount * sizeof(MYFLT));
+    memcpy(self->frames[frameIndex], &inputFrame[firstHalfCount],
+           secondHalfCount * sizeof(MYFLT));
 }
 
 void OLABuffer_readFrame(OLABuffer *self, MYFLT *outputFrame, int outputFrameOffset,
                          int olaBufferOffset, int samplesCount)
 {
-    memcpy(&outputFrame[outputFrameOffset], &self->frames[0][olaBufferOffset], samplesCount * sizeof(MYFLT));
+    memcpy(&outputFrame[outputFrameOffset],
+           &self->frames[0][olaBufferOffset], samplesCount * sizeof(MYFLT));
 
     int i, j;
     for (i = 1; i < self->framesCount; ++i) {
@@ -78,12 +85,14 @@ void OLABuffer_readFrame(OLABuffer *self, MYFLT *outputFrame, int outputFrameOff
 
 int OLABuffer_process(CSOUND *csound, OLABuffer *self)
 {
-    int nextKPassSampleIndex = (self->readSampleIndex + self->ksmps) % self->overlapSamplesCount;
+    int nextKPassSampleIndex =
+      (self->readSampleIndex + self->ksmps) % self->overlapSamplesCount;
 
     if (nextKPassSampleIndex == 0) {
 
       OLABuffer_writeFrame(self, self->inputArray->data, self->frameIndex);
-      OLABuffer_readFrame(self, self->outputArgument, 0, self->readSampleIndex, self->ksmps);
+      OLABuffer_readFrame(self, self->outputArgument, 0,
+                          self->readSampleIndex, self->ksmps);
       self->frameIndex++;
       self->frameIndex %= self->framesCount;
     }
@@ -93,7 +102,8 @@ int OLABuffer_process(CSOUND *csound, OLABuffer *self)
 
       if (firstHalfCount != 0) {
 
-        OLABuffer_readFrame(self, self->outputArgument, 0, self->readSampleIndex, firstHalfCount);
+        OLABuffer_readFrame(self, self->outputArgument, 0,
+                            self->readSampleIndex, firstHalfCount);
       }
 
       OLABuffer_writeFrame(self, self->inputArray->data, self->frameIndex);
@@ -102,7 +112,8 @@ int OLABuffer_process(CSOUND *csound, OLABuffer *self)
 
       if (secondHalfCount != 0) {
 
-        OLABuffer_readFrame(self, self->outputArgument, firstHalfCount, self->readSampleIndex, secondHalfCount);
+        OLABuffer_readFrame(self, self->outputArgument, firstHalfCount,
+                            self->readSampleIndex, secondHalfCount);
       }
 
       self->frameIndex++;
@@ -110,7 +121,8 @@ int OLABuffer_process(CSOUND *csound, OLABuffer *self)
     }
     else {
 
-      OLABuffer_readFrame(self, self->outputArgument, 0, self->readSampleIndex, self->ksmps);
+      OLABuffer_readFrame(self, self->outputArgument, 0,
+                          self->readSampleIndex, self->ksmps);
     }
 
     self->overlapSampleIndex += self->ksmps;
@@ -127,30 +139,37 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 
     if (floor(overlapCount) != overlapCount) {
 
-      csound->Die(csound, Str("olabuffer: Error, overlap factor must be an integer"));
+      csound->Die(csound,
+                  Str("olabuffer: Error, overlap factor must be an integer"));
     }
 
     ARRAYDAT *array = (ARRAYDAT *) self->inputArgument;
 
     if (array->dimensions != 1) {
 
-      csound->Die(csound, Str("olabuffer: Error, k-rate array must be one dimensional"));
+      csound->Die(csound,
+                  Str("olabuffer: Error, k-rate array must be one dimensional"));
     }
 
     int frameSampleCount = array->sizes[0];
 
     if (frameSampleCount <= (int)overlapCount) {
 
-      csound->Die(csound, Str("olabuffer: Error, k-rate array size must be larger than ovelap factor"));
+      csound->Die(csound,
+                  Str("olabuffer: Error, k-rate array size must be "
+                      "larger than ovelap factor"));
     }
 
     if (frameSampleCount % (int)overlapCount != 0) {
 
-      csound->Die(csound, Str("olabuffer: Error, overlap factor must be an integer multiple of k-rate array size"));
+      csound->Die(csound, Str("olabuffer: Error, overlap factor must be "
+                              "an integer multiple of k-rate array size"));
     }
 
     if (frameSampleCount / (int)overlapCount < csound->GetKsmps(csound)) {
 
-      csound->Die(csound, Str("olabuffer: Error, k-rate array size divided by overlap factor must be larger than or equal to ksmps"));
+      csound->Die(csound, Str("olabuffer: Error, k-rate array size divided "
+                              "by overlap factor must be larger than or equal "
+                              "to ksmps"));
     }
 }

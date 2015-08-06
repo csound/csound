@@ -36,8 +36,7 @@ typedef struct {
 typedef struct {
   OPDS    h;
   ARRAYDAT* arrayDat;
-  MYFLT   *isizes[VARGMAX];
-} ARRAYINIT;
+  MYFLT   *isizes[VARGMAX];} ARRAYINIT;
 
 typedef struct {
   OPDS    h;
@@ -1386,6 +1385,12 @@ int perf_rfft(CSOUND *csound, FFT *p){
     return OK;
 }
 
+int rfft_i(CSOUND *csound, FFT *p){
+  if(init_rfft(csound,p) == OK)
+    return perf_rfft(csound, p);
+  else return NOTOK;
+}
+
 int init_rifft(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
  if(p->in->dimensions > 1)
@@ -1408,6 +1413,12 @@ int perf_rifft(CSOUND *csound, FFT *p){
       csound->InverseRealFFTnp2(csound,p->out->data,N);
     }
     return OK;
+}
+
+int rifft_i(CSOUND *csound, FFT *p){
+  if(init_rifft(csound,p) == OK)
+    return perf_rifft(csound, p);
+  else return NOTOK;
 }
 
 int init_rfftmult(CSOUND *csound, FFT *p){
@@ -1452,6 +1463,13 @@ int perf_fft(CSOUND *csound, FFT *p){
     return OK;
 }
 
+int fft_i(CSOUND *csound, FFT *p){
+  if(init_fft(csound,p) == OK)
+    return perf_fft(csound, p);
+  else return NOTOK;
+}
+
+
 int init_ifft(CSOUND *csound, FFT *p){
   int   N2 = p->in->sizes[0];
    if(p->in->dimensions > 1)
@@ -1471,6 +1489,12 @@ int perf_ifft(CSOUND *csound, FFT *p){
       csoundInverseComplexFFTnp2(csound,p->out->data,N2/2);
     }
     return OK;
+}
+
+int ifft_i(CSOUND *csound, FFT *p){
+  if(init_ifft(csound,p) == OK)
+    return perf_ifft(csound, p);
+  else return NOTOK;
 }
 
 int init_recttopol(CSOUND *csound, FFT *p){
@@ -1602,6 +1626,12 @@ int perf_rtoc(CSOUND *csound, FFT *p){
     return OK;
 }
 
+int rtoc_i(CSOUND *csound, FFT *p){
+  if(init_rtoc(csound,p) == OK)
+    return perf_rtoc(csound, p);
+  else return NOTOK;
+}
+
 int init_ctor(CSOUND *csound, FFT *p){
     int   N = p->in->sizes[0];
     tabensure(csound, p->out, N/2);
@@ -1619,6 +1649,13 @@ int perf_ctor(CSOUND *csound, FFT *p){
     return OK;
 }
 
+int ctor_i(CSOUND *csound, FFT *p){
+  if(init_ctor(csound,p) == OK)
+    return perf_ctor(csound, p);
+  else return NOTOK;
+}
+
+
 int init_window(CSOUND *csound, FFT *p){
     int   N = p->in->sizes[0];
     int   i,type = (int) *p->f;
@@ -1629,6 +1666,7 @@ int init_window(CSOUND *csound, FFT *p){
     w = (MYFLT *) p->mem.auxp;
     switch(type){
     case 0:
+      printf("hamming\n");
       for(i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*2*PI/N);
       break;
     case 1:
@@ -1703,7 +1741,7 @@ int init_ceps(CSOUND *csound, FFT *p){
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
-    
+
     return OK;
 }
 
@@ -2096,14 +2134,22 @@ static OENTRY arrayvars_localops[] =
     { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina},
     {"rfft", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_rfft, (SUBR) perf_rfft, NULL},
+    {"rfft", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) rfft_i, NULL, NULL},
     {"rifft", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_rifft, (SUBR) perf_rifft, NULL},
+    {"rifft", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) rifft_i, NULL, NULL},
     {"cmplxprod", sizeof(FFT), 0, 3, "k[]","k[]k[]",
      (SUBR) init_rfftmult, (SUBR) perf_rfftmult, NULL},
     {"fft", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_fft, (SUBR) perf_fft, NULL},
+    {"fft", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) fft_i, NULL, NULL},
     {"fftinv", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_ifft, (SUBR) perf_ifft, NULL},
+    {"fftinv", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) ifft_i, NULL, NULL},
     {"rect2pol", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_recttopol, (SUBR) perf_recttopol, NULL},
     {"pol2rect", sizeof(FFT), 0, 3, "k[]","k[]",
@@ -2116,8 +2162,12 @@ static OENTRY arrayvars_localops[] =
      (SUBR) init_mags, (SUBR) perf_phs, NULL},
     {"log", sizeof(FFT), 0, 3, "k[]","k[]o",
      (SUBR) init_logarray, (SUBR) perf_logarray, NULL},
+    {"r2c", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) rtoc_i, NULL, NULL},
     {"r2c", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_rtoc, (SUBR) perf_rtoc, NULL},
+    {"c2r", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) ctor_i, NULL, NULL},
     {"c2r", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_ctor, (SUBR) perf_ctor, NULL},
     {"window", sizeof(FFT), 0, 3, "k[]","k[]Op",
