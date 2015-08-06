@@ -70,22 +70,22 @@ typedef struct _psyn {
     OPDS    h;
     MYFLT   *out;
     PVSDAT  *fin;
-    MYFLT   *scal, *pitch, *maxtracks, *ftb;
+    MYFLT   *scal, *pitch, *maxtracks, *ftb, *thresh;
     int     tracks, pos, numbins, hopsize;
     FUNC    *func;
     AUXCH   sum, amps, freqs, phases, trackID;
-    double   factor, facsqr;
+    double   factor, facsqr, min;
 } _PSYN;
 
 typedef struct _psyn2 {
     OPDS    h;
     MYFLT   *out;
     PVSDAT  *fin;
-    MYFLT   *scal, *maxtracks, *ftb;
+    MYFLT   *scal, *maxtracks, *ftb, *thresh;
     int     tracks, pos, numbins, hopsize;
     FUNC    *func;
     AUXCH   sum, amps, freqs, phases, trackID;
-    double   factor, facsqr;
+    double   factor, facsqr, min;
 } _PSYN2;
 
 static int psynth_init(CSOUND *csound, _PSYN *p)
@@ -107,7 +107,9 @@ static int psynth_init(CSOUND *csound, _PSYN *p)
     p->numbins = numbins;
     p->factor = p->hopsize * csound->onedsr;
     p->facsqr = p->factor * p->factor;
-
+    if(*p->thresh == -1) p->min = 0.00002*csound->Get0dBFS(csound);
+    else p->min = *p->thresh*csound->Get0dBFS(csound);
+    
     if (p->amps.auxp == NULL ||
         (unsigned) p->amps.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
@@ -158,7 +160,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
     MYFLT    *outsum = (MYFLT *) p->sum.auxp;
     int     *trackID = (int *) p->trackID.auxp;
     int     hopsize = p->hopsize;
-
+    double  min = p->min;
     ratio = size * csound->onedsr;
     factor = p->factor;
 
@@ -177,7 +179,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
         /* for each track */
         i = j = k = 0;
         while (i < maxtracks * 4) {
-
+	  
           ampnext = (double) fin[i] * scale;
           freqnext = (double) fin[i + 1] * pitch;
           if ((id = (int) fin[i + 3]) != -1) {
@@ -209,8 +211,8 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
               amp = FL(0.0);
 
             }
+	    if(amp > min){
             /* interpolation & track synthesis loop */
-
             a = amp;
             f = freq;
             incra = (ampnext - amp) / hopsize;
@@ -228,6 +230,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
               a += incra;
               f += incrph;
             }
+	    }
             /* keep amp, freq, and phase values for next time */
             if (contin) {
 
@@ -271,7 +274,9 @@ static int psynth2_init(CSOUND *csound, _PSYN2 *p)
     p->numbins = numbins;
     p->factor = p->hopsize * csound->onedsr;
     p->facsqr = p->factor * p->factor;
-
+    if(*p->thresh == -1) p->min = 0.00002*csound->Get0dBFS(csound);
+    else p->min = *p->thresh*csound->Get0dBFS(csound);
+	
     if (p->amps.auxp == NULL ||
         (unsigned) p->amps.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
@@ -309,7 +314,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
     double   a, frac, incra, incrph, factor, lotwopi, cnt;
     MYFLT   scale = *p->scal;
     int     ndx, size = p->func->flen;
-    int     i, j, k, m, id;
+    int     i=0, j, k, m, id;
     int     notcontin = 0;
     int     contin = 0;
     int     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
@@ -324,6 +329,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
     MYFLT   *outsum = (MYFLT *) p->sum.auxp;
     int     *trackID = (int *) p->trackID.auxp;
     int     hopsize = p->hopsize;
+    double  min = p->min;
 
     incrph = csound->onedsr;
     lotwopi = (double)(size) / TWOPI_F;
@@ -340,6 +346,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
       out[n] = outsum[pos];
       pos++;
       if (pos == hopsize) {
+
         memset(outsum, 0, sizeof(MYFLT) * hopsize);
         /* for each track */
         i = j = k = 0;
@@ -348,6 +355,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
           freqnext = (double) fin[i + 1] * TWOPI_F;
           phasenext = (double) fin[i + 2];
           if ((id = (int) fin[i + 3]) != -1) {
+	    
             j = k + notcontin;
 
             if (k < tracks - notcontin) {
@@ -371,18 +379,18 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
             else {
               /* new track */
               contin = 1;
+              goto cont;
               freq = freqnext;
               phase = phasenext - freq * factor;
               amp = FL(0.0);
             }
+	    if(amp > min){
             /* phasediff */
             phasediff = phasenext - phase;
-
             while (phasediff >= PI_F)
               phasediff -= TWOPI_F;
             while (phasediff < -PI_F)
               phasediff += TWOPI_F;
-
             /* update phasediff to match the freq */
             cph = ((freq + freqnext) * factor * 0.5 - phasediff) / TWOPI;
             phasediff += TWOPI_F * (int) (cph + 0.5);
@@ -409,9 +417,10 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
               cnt += incrph;
               ph = phase + cnt * (freq + cnt * (a2 + a3 * cnt));
             }
+	   }
             /* keep amp, freq, and phase values for next time */
-            if (contin) {
-
+	  cont:
+            if (contin) {        
               amps[k] = ampnext;
               freqs[k] = freqnext;
               phases[k] = phasenext;
@@ -422,15 +431,17 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
             else
               notcontin++;
           }
-          else
+          else 	    
             break;
-        }
+	    
+        }	
         pos = 0;
         p->tracks = k;
       }
+      	
     }
     p->pos = pos;
-
+    	
     return OK;
 }
 
@@ -457,6 +468,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
     MYFLT    *outsum = (MYFLT *) p->sum.auxp;
     int     *trackID = (int *) p->trackID.auxp;
     int     hopsize = p->hopsize;
+    double  min = p->min;
 
     incrph = csound->onedsr;
     lotwopi = (double) (size) / TWOPI_F;
@@ -508,9 +520,9 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
               phase = phasenext - freq * factor;
               amp = FL(0.0);
             }
+	    if(amp > min){
             /* phasediff */
             phasediff = phasenext - phase;
-
             while (phasediff >= PI_F)
               phasediff -= TWOPI_F;
             while (phasediff < -PI_F)
@@ -542,6 +554,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
               cnt += incrph;
               ph = phase + cnt * (freq + cnt * (a2 + a3 * cnt));
             }
+	    }
             /* keep amp, freq, and phase values for next time */
             if (contin) {
               amps[k] = ampnext;
@@ -1221,13 +1234,13 @@ static int binit_process(CSOUND *csound, _PSBIN *p)
 
 static OENTRY localops[] =
   {
-    {"tradsyn", sizeof(_PSYN),0,  5, "a", "fkkki", (SUBR) psynth_init, NULL,
+    {"tradsyn", sizeof(_PSYN),0,  5, "a", "fkkkij", (SUBR) psynth_init, NULL,
      (SUBR) psynth_process}
     ,
-    {"sinsyn", sizeof(_PSYN2), TR, 5, "a", "fkki", (SUBR) psynth2_init, NULL,
+    {"sinsyn", sizeof(_PSYN2), TR, 5, "a", "fkkij", (SUBR) psynth2_init, NULL,
      (SUBR) psynth2_process}
     ,
-    {"resyn", sizeof(_PSYN), TR, 5, "a", "fkkki", (SUBR) psynth_init, NULL,
+    {"resyn", sizeof(_PSYN), TR, 5, "a", "fkkkij", (SUBR) psynth_init, NULL,
      (SUBR) psynth3_process}
     ,
     {"trscale", sizeof(_PTRANS),0,  3, "f", "fz", (SUBR) trans_init,

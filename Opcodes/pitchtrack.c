@@ -623,7 +623,7 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
     MYFLT *asig=p->asig,kd=*p->kd,klpf,klpfQ,klf,khf,kthresh;
     MYFLT *freq=p->freq, *lock =p->lock, itmp = asig[0];
     int itest = 0;
-  
+
     _0dbfs = csound->e0dbfs;
     ksmps = CS_KSMPS;
     esr = CS_ESR;

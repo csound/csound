@@ -425,19 +425,23 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
             csoundErrorMsg(csound, Str("and cannot remove"));
           return FALSE;
         }
-        if (UNLIKELY(remove(extname)))
-          csoundErrorMsg(csound, Str("and cannot remove %s"), extname);
+       if (UNLIKELY(remove(extname)))
+	csoundErrorMsg(csound, Str("and cannot remove %s"), extname);
         if (csound->scorestr == NULL)
           csound->scorestr = corfile_create_w();
+	
         fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, STA(sconame),
                                     "r", NULL, CSFTYPE_SCORE, 0);
         if (UNLIKELY(fd == NULL)) {
+	   csoundErrorMsg(csound, Str("cannot open %s"), STA(sconame));
           if (UNLIKELY(remove(STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
           return FALSE;
         }
+	csoundMessage(csound, Str("opened %s"), STA(sconame));
         while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, scof)!= NULL)
           corfile_puts(buffer, csound->scorestr);
+       csoundMessage(csound, Str("closing %s"), STA(sconame));
         csoundFileClose(csound, fd);
           if (UNLIKELY(remove(STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));

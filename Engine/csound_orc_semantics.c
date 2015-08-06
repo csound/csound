@@ -1142,18 +1142,19 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
 
 OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
                         char* outArgsFound, char* inArgsFound) {
-    
+
     OENTRIES* opcodes = find_opcode2(csound, opname);
-    
+
     if (opcodes->count == 0) {
         return NULL;
     }
-    
-    
-    OENTRY* retVal = resolve_opcode_exact(csound, opcodes, outArgsFound, inArgsFound);
-    
+
+
+    OENTRY* retVal = resolve_opcode_exact(csound, opcodes,
+                                          outArgsFound, inArgsFound);
+
     csound->Free(csound, opcodes);
-    
+
     return retVal;
 }
 
