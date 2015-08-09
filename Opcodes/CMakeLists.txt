@@ -110,10 +110,11 @@ endif()
 
 if(UNIX)
     make_plugin(control control.c)
+    make_plugin(urandom urandom.c)
 endif()
 
 if(LINUX)
-    make_plugin(urandom urandom.c)
+    #make_plugin(urandom urandom.c)
     make_plugin(joystick linuxjoystick.c)
 endif()
 
