@@ -66,14 +66,18 @@ void string_copy_value(void* csound, void* dest, void* src) {
     if(dest == NULL) return;
 
     if (sSrc->size > sDest->size) {
-      sDest->size = sSrc->size;
-     if (sDest->data != NULL) {
+      if (sDest->data != NULL) {
         cs->Free(cs, sDest->data);
       }
       sDest->data = cs_strdup(csound, sSrc->data);
     } else {
-      memcpy(sDest->data, sSrc->data, sDest->size);
+      if (sDest->data == NULL) {
+        sDest->data = cs_strdup(csound, sSrc->data);
+      } else {
+        memcpy(sDest->data, sSrc->data, sDest->size);
+      }
     }
+    sDest->size = sSrc->size;
 }
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {

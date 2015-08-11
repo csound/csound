@@ -125,7 +125,9 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
         p->r->size = strlen(ss) + 1;
       }
       else {
-        strcpy(p->r->data, ss);
+        p->r->size = strlen(ss) + 1;
+        strncpy(p->r->data, ss, strlen(ss));
+        p->r->data[p->r->size - 1] = '\0';
       }
       return OK;
     }
