@@ -604,6 +604,8 @@ OENTRY opcodlst_1[] = {
   { "betarand.k",S(PRAND),0,2,      "k",    "kkk",  NULL,   ikbeta,NULL     },
   { "betarand.a",S(PRAND),0,4,      "a",    "kkk",  NULL,   NULL,  abeta    },
   { "seed",     S(PRAND),0, 1,      "",     "i",    seedrand, NULL, NULL    },
+  { "getseed.i",S(GETSEED),0, 1,    "i",     "",    getseed, NULL, NULL     },
+  { "getseed.k",S(GETSEED),0, 3,    "k",     "",    getseed, getseed, NULL  },
   { "unirand.i",S(PRAND),0, 1,     "i",     "k",    ikuniform, NULL,  NULL  },
   { "unirand.k",S(PRAND),0, 2,     "k",     "k",    NULL,    ikuniform, NULL},
   { "unirand.a",S(PRAND),0, 4,     "a",     "k",    NULL,    NULL, auniform },
