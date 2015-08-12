@@ -71,11 +71,11 @@ static int ifd_init(CSOUND * csound, IFD * p)
 
   if (UNLIKELY((frames - (float) fftsize / hopsize) != 0.0f))
     return csound->InitError(csound, Str("pvsifd: fftsize should "
-					 "be an integral multiple of hopsize"));
+                                         "be an integral multiple of hopsize"));
 
   if (UNLIKELY((fftsize & (fftsize - 1))))
     return csound->InitError(csound,
-			     Str("pvsifd: fftsize should be power-of-two"));
+                             Str("pvsifd: fftsize should be power-of-two"));
 
   p->frames = frames;
 
@@ -138,7 +138,7 @@ static int ifd_init(CSOUND * csound, IFD * p)
     break;
   default:
     return csound->InitError(csound,
-			     Str("pvsifd: unsupported value for iwintype\n"));
+                             Str("pvsifd: unsupported value for iwintype\n"));
     break;
   }
   fac = TWOPI / (fftsize - 1.0);
@@ -204,7 +204,7 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
       ph = (float) atan2(b, a);
       /*double d = ph - outphases[i + 1];
         while (d > PI)
-	d -= TWOPI;
+        d -= TWOPI;
         while (d < -PI)
         d += TWOPI; */
       outphases[i + 1] = (float)ph;
@@ -241,11 +241,11 @@ static int ifd_process(CSOUND * csound, IFD * p)
       sigframe[i * fftsize + counter[i]] = sigin[n];
       counter[i]++;
       if (counter[i] == fftsize) {
-	//if (cnt < frames)
-	// cnt++;
-	//else
-	IFAnalysis(csound, p, &sigframe[i * fftsize]);
-	counter[i] = 0;
+        //if (cnt < frames)
+        // cnt++;
+        //else
+        IFAnalysis(csound, p, &sigframe[i * fftsize]);
+        counter[i] = 0;
       }
     }
   }
@@ -265,27 +265,27 @@ static int tifd_init(CSOUND * csound, IFD * p)
   fftsize = p->fftsize = (int) *p->p4;
   hopsize = p->hopsize = (int) *p->p5;
   wintype = p->wintype = (int) *p->p6;
-    
+
   if (UNLIKELY((fftsize & (fftsize - 1))))
     return csound->InitError(csound,
-			     Str("pvsifd: fftsize should be power-of-two"));
+                             Str("pvsifd: fftsize should be power-of-two"));
 
   if (p->sigframe.auxp == NULL ||
       fftsize * sizeof(MYFLT) > (unsigned int) p->sigframe.size)
     csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->sigframe);
   else
     memset(p->sigframe.auxp, 0, sizeof(MYFLT) * fftsize);
-    
+
   if (p->diffsig.auxp == NULL ||
       fftsize * sizeof(MYFLT) > (unsigned int) p->diffsig.size)
     csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffsig);
   else
     memset(p->diffsig.auxp, 0, sizeof(MYFLT) * fftsize);
-    
+
   if (p->diffwin.auxp == NULL ||
       fftsize * sizeof(MYFLT) > (unsigned int) p->diffwin.size)
     csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffwin);
-    
+
   if (p->win.auxp == NULL ||
       fftsize * sizeof(MYFLT) > (unsigned int) p->win.size)
     csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->win);
@@ -300,7 +300,7 @@ static int tifd_init(CSOUND * csound, IFD * p)
     csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout2->frame);
   else
     memset(p->fout2->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
-    
+
   p->fout1->N = fftsize;
   p->fout1->overlap = hopsize;
   p->fout1->winsize = fftsize;
@@ -327,7 +327,7 @@ static int tifd_init(CSOUND * csound, IFD * p)
     break;
   default:
     return csound->InitError(csound,
-			     Str("pvsifd: unsupported value for iwintype\n"));
+                             Str("pvsifd: unsupported value for iwintype\n"));
     break;
   }
   fac = TWOPI / (fftsize - 1.0);
@@ -363,7 +363,7 @@ static int tifd_process(CSOUND * csound, IFD * p)
     FUNC *ft = csound->FTnp2Find(csound,p->p7);
     if (ft == NULL){
       csound->PerfError(csound, p->h.insdshead,
-			"could not find table number %d\n", (int) *p->p7);
+                        "could not find table number %d\n", (int) *p->p7);
       return NOTOK;
     }
     MYFLT *tab = ft->ftable;
@@ -392,7 +392,7 @@ static OENTRY localops[] =
     { "pvsifd", sizeof(IFD), 0, 5, "ff", "aiiip",
       (SUBR) ifd_init, 0, (SUBR) ifd_process},
     { "tabifd", sizeof(IFD), 0, 3, "ff", "kkkiiii",
-      (SUBR) tifd_init, (SUBR) tifd_process} 
+      (SUBR) tifd_init, (SUBR) tifd_process}
   };
 
 int ifd_init_(CSOUND *csound)
