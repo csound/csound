@@ -69,7 +69,9 @@ char* cs_strdup(CSOUND* csound, char* str) {
     len = strlen(str);
     retVal = csound->Malloc(csound, (len + 1) * sizeof(char));
 
-    if (len > 0) memcpy(retVal, str, len * sizeof(char));//why not strcpy?
+    if (len > 0) {
+      strncpy(retVal, str, len);
+    } 
     retVal[len] = '\0';
 
     return retVal;
