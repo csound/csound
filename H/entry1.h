@@ -286,7 +286,7 @@ int     apcauchy(CSOUND *, void *), ikpcauchy(CSOUND *, void *);
 int     abeta(CSOUND *, void *), ikbeta(CSOUND *, void *);
 int     aweib(CSOUND *, void *), ikweib(CSOUND *, void *);
 int     apoiss(CSOUND *, void *), ikpoiss(CSOUND *, void *);
-int     seedrand(CSOUND *, void *);
+int     seedrand(CSOUND *, void *), getseed(CSOUND *, void *);
 int     auniform(CSOUND *, void *), ikuniform(CSOUND *, void *);
 int     newsndinset(CSOUND *, void *), soundinew(CSOUND *, void *);
 int     iout_on(CSOUND *, void *), iout_off(CSOUND *, void *);
