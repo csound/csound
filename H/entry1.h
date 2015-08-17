@@ -345,6 +345,7 @@ int     fluteset(CSOUND *, void *), flute(CSOUND *, void *);
 int     bowedset(CSOUND *, void *), bowed(CSOUND *, void *);
 int     brassset(CSOUND *, void *), brass(CSOUND *, void *);
 int     schedule(CSOUND *, void *), schedule_S(CSOUND *, void *);
+int     schedule_N(CSOUND *, void *), schedule_SN(CSOUND *, void *);
 int     ifschedule(CSOUND *, void *), kschedule(CSOUND *, void *);
 int     triginset(CSOUND *, void *), ktriginstr(CSOUND *, void *);
 int     triginset_S(CSOUND *, void *), ktriginstr_S(CSOUND *, void *);

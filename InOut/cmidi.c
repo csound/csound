@@ -87,8 +87,9 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput)
     for(k=0; k < endpoints; k++) {
       endpoint = MIDIGetSource(k);
       MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-      strncpy(list[k].device_name,
-              CFStringGetCStringPtr(name, defaultEncoding), 63);
+      char *sn = CFStringGetCStringPtr(name, defaultEncoding);
+      if(sn != NULL)
+       strncpy(list[k].device_name, sn, 63);
       snprintf(tmp, 64, "%d", k);
       strncpy(list[k].device_id, tmp, 63);
       list[k].isOutput = isOutput;
@@ -243,9 +244,6 @@ static int MidiDataWrite(CSOUND *csound, void *userData,
 {
     /* stub at the moment */
     /*
-
-
-
     */
     return nbytes;
 }
