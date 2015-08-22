@@ -977,7 +977,7 @@ int bowedbarset(void*,void*);
 int bowedbar(void*,void*);
 
 static OENTRY physmod_localops[] = {
-{ "wgclar",  S(CLARIN),TR, 5, "a", "kkkiikkkio",(SUBR)clarinset,NULL, (SUBR)clarin },
+{ "wgclar",  S(CLARIN),TR, 5, "a", "kkkiikkkjo",(SUBR)clarinset,NULL, (SUBR)clarin },
 { "wgflute", S(FLUTE), TR, 5, "a", "kkkiikkkjovv",(SUBR)fluteset,NULL, (SUBR)flute },
 { "wgbow",   S(BOWED), TR, 5, "a", "kkkkkkjo", (SUBR)bowedset, NULL,   (SUBR)bowed },
 { "wgbrass", S(BRASS), TR, 5, "a", "kkkikkjo", (SUBR)brassset, NULL,    (SUBR)brass},
