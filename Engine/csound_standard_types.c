@@ -62,8 +62,8 @@ void string_copy_value(void* csound, void* dest, void* src) {
     STRINGDAT* sSrc = (STRINGDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
 
-    if(src == NULL) return;
-    if(dest == NULL) return;
+    if (UNLIKELY(src == NULL)) return;
+    if (UNLIKELY(dest == NULL)) return;
 
     if (sSrc->size > sDest->size) {
       if (sDest->data != NULL) {
@@ -73,11 +73,17 @@ void string_copy_value(void* csound, void* dest, void* src) {
     } else {
       if (sDest->data == NULL) {
         sDest->data = cs_strdup(csound, sSrc->data);
-      } else {
-        memcpy(sDest->data, sSrc->data, sDest->size);
+      } else {//breaks here
+        //fprintf(stderr, " in:src %p size=%d >>>%s<<<dstsize=%d dst->data=%p\n",
+        //        sSrc, sSrc->size, sSrc->data, sDest->size, sDest->data);
+        //memcpy(sDest->data, sSrc->data, sDest->size);
+        strcpy(sDest->data, sSrc->data);
+        //cs->Free(cs, sDest->data); sDest->data = cs_strdup(csound, sSrc->data);
       }
     }
     sDest->size = sSrc->size;
+    //fprintf(stderr, "out:srcsize=%d >>>%s<<<dstsize=%d dst->data=%p\n",
+    //        sSrc->size, sSrc->data, sDest->size, sDest->data);
 }
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {

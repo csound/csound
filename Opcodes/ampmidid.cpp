@@ -1,4 +1,8 @@
 /*
+    ampmidid.cpp
+
+    Copyright (C) 2006 Michael Gogins
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
