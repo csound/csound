@@ -711,6 +711,7 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
         int size = p->Ssrc->size;
         p->Sdst->data = csound->Calloc(csound, size);
         p->Sdst->size = size;
+	
     }
 
     src = (char*) p->Ssrc->data;
@@ -776,7 +777,6 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       } while (++i < len);
       dst[i] = '\0';
     }
-
     return OK;
 }
 
