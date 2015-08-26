@@ -43,6 +43,7 @@ typedef struct {
     MYFLT  *table, curr_unit_time;
 } SEQTIM2;
 
+
 static int seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
 {
     FUNC *ftp;
