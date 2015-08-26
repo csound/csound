@@ -121,7 +121,7 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 
   }
   //struct timespec ts;
-  //  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+  // clock_gettime(CLOCK_MONOTONIC, &ts);
   //  csound->Message(csound, "rr time = %f ms\n", 1e-6*ts.tv_nsec);
 }
 

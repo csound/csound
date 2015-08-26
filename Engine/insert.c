@@ -315,6 +315,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     if (O->sampleAccurate && !tie) {
       int64_t start_time_samps, start_time_kcycles;
       double duration_samps;
+      while(ip->init_done != 1) usleep(1);
       start_time_samps = (int64_t) (ip->p2.value * csound->esr);
       duration_samps =  ip->p3.value * csound->esr;
       start_time_kcycles = start_time_samps/csound->ksmps;
@@ -2448,12 +2449,13 @@ void *init_pass_thread(void *p){
     while (csound->init_pass_loop) {
 
 #if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
-      usleep(1000*wakeup);
+      usleep(10*wakeup);
 #else
       csoundSleep(((int)wakeup > 0) ? wakeup : 1);
 #endif
       ip = csound->actanchor.nxtact;
       /* do init pass for this instr */
+                csoundLockMutex(csound->init_pass_threadlock);
       while (ip != NULL){
         INSDS *nxt = ip->nxtact;
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -2462,7 +2464,7 @@ void *init_pass_thread(void *p){
         done = ip->init_done;
 #endif
         if (done == 0) {
-          csoundLockMutex(csound->init_pass_threadlock);
+
           csound->ids = (OPDS *) (ip->nxti);
           csound->curip = ip;
           while (csound->ids != NULL) {
@@ -2481,12 +2483,13 @@ void *init_pass_thread(void *p){
           if (ip->reinitflag==1) {
             ip->reinitflag = 0;
           }
-          csoundUnlockMutex(csound->init_pass_threadlock);
+    
         }
         ip = nxt;
 
       }
-
+            csoundUnlockMutex(csound->init_pass_threadlock);
     }
+    
     return NULL;
 }
