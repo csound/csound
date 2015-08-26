@@ -77,7 +77,8 @@ void string_copy_value(void* csound, void* dest, void* src) {
         //fprintf(stderr, " in:src %p size=%d >>>%s<<<dstsize=%d dst->data=%p\n",
         //        sSrc, sSrc->size, sSrc->data, sDest->size, sDest->data);
         //memcpy(sDest->data, sSrc->data, sDest->size);
-        cs->Free(cs, sDest->data); sDest->data = cs_strdup(csound, sSrc->data);
+        strcpy(sDest->data, sSrc->data);
+        //cs->Free(cs, sDest->data); sDest->data = cs_strdup(csound, sSrc->data);
       }
     }
     sDest->size = sSrc->size;
