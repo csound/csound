@@ -1290,7 +1290,7 @@ static int vibrato_set(CSOUND *csound, VIBRATO *p)
     if ((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
       if (*p->iphs >= 0 && *p->iphs<1.0)
-        p->lphs = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
+        p->lphs = (((long)(*p->iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
       else if (*p->iphs>=1.0)
         return csound->InitError(csound, Str("vibrato@ Phase out of range"));
     }
@@ -1370,7 +1370,7 @@ static int vibr_set(CSOUND *csound, VIBR *p)
 
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
-      p->lphs = ((int32)(iphs * FMAXLEN)) & PHMASK;
+      p->lphs = (((int32)(iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
     }
     else return NOTOK;
     p->xcpsAmpRate = randGab  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
