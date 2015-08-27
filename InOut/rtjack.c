@@ -436,6 +436,7 @@ static void openJackStreams(RtJackGlobals *p)
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
 
     csound->system_sr(csound, jack_get_sample_rate(p->client));
+    csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
 
     /* check consistency of parameters */
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > 255))
