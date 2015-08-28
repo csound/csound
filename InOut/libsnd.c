@@ -492,7 +492,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
         parm.bufSamp_SW   =
           (unsigned int) O->inbufsamps / (unsigned int) csound->inchnls;
         parm.bufSamp_HW   = O->oMaxLag;
-        parm.nChannels    = csound->nchnls;
+        parm.nChannels    = csound->inchnls;
         parm.sampleFormat = O->informat;
         parm.sampleRate   = (float) csound->esr;
         /* open devaudio for input */
