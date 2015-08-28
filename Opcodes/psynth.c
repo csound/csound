@@ -109,7 +109,7 @@ static int psynth_init(CSOUND *csound, _PSYN *p)
     p->facsqr = p->factor * p->factor;
     if(*p->thresh == -1) p->min = 0.00002*csound->Get0dBFS(csound);
     else p->min = *p->thresh*csound->Get0dBFS(csound);
-    
+
     if (p->amps.auxp == NULL ||
         (unsigned) p->amps.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
@@ -179,7 +179,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
         /* for each track */
         i = j = k = 0;
         while (i < maxtracks * 4) {
-          
+
           ampnext = (double) fin[i] * scale;
           freqnext = (double) fin[i + 1] * pitch;
           if ((id = (int) fin[i + 3]) != -1) {
@@ -276,7 +276,7 @@ static int psynth2_init(CSOUND *csound, _PSYN2 *p)
     p->facsqr = p->factor * p->factor;
     if(*p->thresh == -1) p->min = 0.00002*csound->Get0dBFS(csound);
     else p->min = *p->thresh*csound->Get0dBFS(csound);
-        
+
     if (p->amps.auxp == NULL ||
         (unsigned) p->amps.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
@@ -355,7 +355,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
           freqnext = (double) fin[i + 1] * TWOPI_F;
           phasenext = (double) fin[i + 2];
           if ((id = (int) fin[i + 3]) != -1) {
-            
+
             j = k + notcontin;
 
             if (k < tracks - notcontin) {
@@ -420,7 +420,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
            }
             /* keep amp, freq, and phase values for next time */
           cont:
-            if (contin) {        
+            if (contin) {
               amps[k] = ampnext;
               freqs[k] = freqnext;
               phases[k] = phasenext;
@@ -431,17 +431,17 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
             else
               notcontin++;
           }
-          else      
+          else
             break;
-            
-        }       
+
+        }
         pos = 0;
         p->tracks = k;
       }
-        
+
     }
     p->pos = pos;
-        
+
     return OK;
 }
 
