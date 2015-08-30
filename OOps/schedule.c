@@ -58,11 +58,11 @@ int schedule_N(CSOUND *csound, SCHED *p)
     sprintf(s, "i %f %f %f", *p->which, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
-	 if(csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
-	   sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
-	 else sprintf(s, "%s %f", s,  *arg);
+         if(csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
+           sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
+         else sprintf(s, "%s %f", s,  *arg);
     }
-    csoundInputMessage(csound, s);   
+    csoundInputMessage(csound, s);
     return OK;
 }
 
@@ -74,11 +74,11 @@ int schedule_SN(CSOUND *csound, SCHED *p)
     sprintf(s, "i \"%s\" %f %f", ((STRINGDAT *)p->which)->data, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
-	 if(csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
-	   sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
-	 else sprintf(s, "%s %f", s,  *arg);
+         if(csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
+           sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
+         else sprintf(s, "%s %f", s,  *arg);
     }
-    csoundInputMessage(csound, s);   
+    csoundInputMessage(csound, s);
     return OK;
 }
 
