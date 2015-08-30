@@ -414,7 +414,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     for (i = j = 0; i <= len; i++) {
       if (envList[i] == ';' || envList[i] == ':' || envList[i] == '\0') {
         if (i > j) {
-          tmp = (nameChain_t*) csound->Malloc(csound, sizeof(nameChain_t) + (i - j));
+          tmp = (nameChain_t*)csound->Malloc(csound, sizeof(nameChain_t) + (i-j));
           for (k = 0; j < i; j++, k++)
             tmp->s[k] = envList[j];
           tmp->s[k] = '\0';
@@ -448,8 +448,10 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
         len = (int) strlen(s);
       else
         len = -1;
+      // **** THIS CODE DOES NOT CHECK FOR WINDOWS STYLE C:\foo ****
       for (i = j = 0; i <= len; i++) {
-        if (s[i] == ';' || s[i] == ':' || s[i] == '\0') {
+        if (i==0 && isalpha(s[i]) && s[i+1]==':') i++;
+        else if (s[i] == ';' || s[i] == ':' || s[i] == '\0') {
           if (i > j) {
             tmp = (nameChain_t*) csound->Malloc(csound, sizeof(nameChain_t)
                                                  + (i - j) + 1);
@@ -477,6 +479,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
             }
           }
           j = i + 1;
+          if (s[i+2]==':' && isalpha(s[i+1])) i+=2;
         }
       }
     }
