@@ -1747,6 +1747,8 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
         return OK;
       fdclose(csound, &(p->fdch));
     }
+    // to handle raw files nuber of channels
+    if (t->data) p->nChannels = t->sizes[0];
     /* set default format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.samplerate = (int)(csound->esr + FL(0.5));
