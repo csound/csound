@@ -1044,10 +1044,17 @@ static char *signal_to_string(int sig)
     }
 }
 
+#ifdef ANDROID
 static void psignal_(int sig, char *str)
 {
     fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
+#else
+static void psignal(int sig, char *str)
+{
+    fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
+}
+#endif
 #elif defined(__BEOS__)
 static void psignal_(int sig, char *str)
 {
