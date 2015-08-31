@@ -35,7 +35,7 @@ var CsoundObj = function() {
 	var _getZerodBFS = cwrap('CsoundObj_getZerodBFS', ['number'], ['number']);
 	var _setMidiCallbacks = cwrap('CsoundObj_setMidiCallbacks', null, ['number']);
 	var _pushMidiMessage = cwrap('CsoundObj_pushMidiMessage', null, ['number', 'number', 'number', 'number']);
-    var _setOutputValueCallback = cwrap('CsoundObj_setOutputValueCallback', null, ['number', 'number']);
+    var _setOutputChannelCallback = cwrap('CsoundObj_setOutputChannelCallback', null, ['number', 'number']);
 	var bufferSize = 256;
 	var _self = _new();
 
@@ -160,16 +160,16 @@ var CsoundObj = function() {
 		return _getControlChannel(_self, channelName);
 	};
 
-    this.setOutputValueCallback = function(callback) {
+    this.setOutputChannelCallback = function(callback) {
    
-        function csoundCallback(csoundPtr, stringPtr, valuePtr) {
+        function csoundCallback(csoundPtr, stringPtr, valuePtr, typePtr) {
        
             var string = Pointer_stringify(stringPtr);
             var value = getValue(valuePtr, 'float');
             callback(string, value);
         };
         var functionPointer = Runtime.addFunction(csoundCallback);
-        _setOutputValueCallback(_self, functionPointer);
+        _setOutputChannelCallback(_self, functionPointer);
     };
 
 	this.getTable = function(tableNumber) {

@@ -178,7 +178,7 @@ float *CsoundObj_getTable(CsoundObj *self, int tableNumber)
 }
 
 
-void CsoundObj_setOutputValueCallback(CsoundObj *self, void (*outputCallback)(CSOUND *csound, const char *channelName, float value))
+void CsoundObj_setOutputChannelCallback(CsoundObj *self, void (*outputCallback)(CSOUND *csound, const char *channelName, void *valuePointer, const void *channelType))
 {
     csoundSetOutputChannelCallback(self->csound, outputCallback);
 }
