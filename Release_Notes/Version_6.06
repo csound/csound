@@ -1,7 +1,7 @@
 
 ============================
 CSOUND VERSION 6.06
-RELEASE NOTES   VERSION 6.0
+RELEASE NOTES   VERSION 6.06
 ============================
 
 
@@ -33,7 +33,7 @@ Orchestra:
     
 Score:
 
-    o    Maximum string length in scores increated to 1024
+    o    Maximum string length in scores increased to 1024
 
 Options:
 
@@ -48,29 +48,32 @@ Modified Opcodes and Gens:
   o    Vibrato f-table in wgflute and wgcar optional, defaulting to
        sine wave
 
-  o    schedule nowacceopt string arguments
+  o    schedule now accept string arguments
 
   o    urandom now available on OSX platforms
 
-  o    GEN18 had fencepot problem; largely rewritten
+  o    GEN18 had fencepost problem; largely rewritten
 
-  o    In poscil family of opcodes it is possible to skipinitalisation
+  o    In poscil family of opcodes it is possible to skip initialisation
        of phase
 
-  o    svfilter now can skipinitialisation
+  o    svfilter now can skip initialisation
 
-  o    When opening an input file nchncls_i  is used rather than nchbls
+  o    When opening an input file nchncls_i  is used rather than nchnls
 
   o    rtjack module now reports the sampling rate
 
-  0    The opcodes rfft, rifft, fft, fftinv, r2c and c2r now
+  o    The opcodes rfft, rifft, fft, fftinv, r2c and c2r now
        have i-rate array versions
+
+  o    New optional threshhold parameter in opcodes tradsyn, sinsyn
+       and resyn
   
 Utilities:
 
   o    extract fixed
 
-  o    src_conv improved and iniegrated with -U options
+  o    src_conv improved and integrated with -U options
 
   o    fixes in atsa, and heti
   
@@ -84,16 +87,18 @@ Frontends:
   csound~:
         Changes to the threading system
         String channel initialisation fixed
+        A number of other bugs were fixed
         
-
   Emscripten:
 
   csdebugger:
 
+  HTML5:
+        New system for running Csound in a browser
 
 General usage:
 
-    o   Ill-formatted acros in the orchestra now trapped
+    o   Ill-formatted macros in the orchestra now trapped
 
 Bugs fixed:
 
@@ -176,84 +181,8 @@ Date:   Sun Aug 16 02:17:36 2015 +0100
 
     fixed installation of cudaops
 
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Tue Aug 11 08:23:16 2015 -0400
-
-    changes to ensure STRINGDAT->size is set
-
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Thu Aug 6 10:02:07 2015 +0100
 
     thresholding in additive synthesis
-
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Aug 5 21:08:41 2015 +0100
-
-    strg crashes fix
-
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Aug 4 14:12:25 2015 +0100
-
-    some fixes to partials etc
-
-Author: gogins <michael.gogins@gmail.com>
-Date:   Fri Jul 3 16:11:04 2015 -0400
-
-    F11 key toggles fullscreen in NW.js csound editor performance window.
-
-Author: gogins <michael.gogins@gmail.com>
-Date:   Wed Jul 1 13:57:33 2015 -0400
-
-    Stop Csound when the performance window closes.
-
-Author: gogins <michael.gogins@gmail.com>
-Date:   Wed Jul 1 12:58:56 2015 -0400
-
-    Completed instructions for csound.node.
-
-Author: gogins <michael.gogins@gmail.com>
-Date:   Tue Jun 30 11:37:41 2015 -0400
-
-    Added msvcr100.dll.
-
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Sat Jun 27 15:07:49 2015 -0400
-
-    stored CSOUND* with ChannelObject, updated string channel usage to use
-    csoundSetStringChannel and csoundGetStringChannel to work with Csound 6
-    [fixes #486]
-
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Sat Jun 27 00:57:40 2015 -0400
-
-    removed call to csoundStart() which was necessary with Csound 5 but extraneous in Csound 6 [fixes #492]
-
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Fri Jun 26 22:20:02 2015 -0400
-
-    fixed typo that caused crash when bypass enabled with Max 64-bit processing [fixes #491]
-
-Author: Michael Gogins <michael.gogins@gmail.com>
-Date:   Wed Jun 24 21:53:37 2015 -0400
-
-    Fixes to get csound.node to load in csd files under edit in csound_edit.
-
-Author: Michael Gogins <michael.gogins@gmail.com>
-Date:   Mon Jun 22 20:38:05 2015 -0400
-
-    Fixed boost lockfree bug (again).
-
-
-Author: gogins <michael.gogins@gmail.com>
-Date:   Wed Jun 17 21:59:22 2015 -0400
-
-    csound.node now works with .csds and .htmls, but there is a problem loading signalflowgraph.dll when running a csd in csound.node.
-
-Author: gogins <michael.gogins@gmail.com>
-Date:   Thu Jun 4 22:06:05 2015 -0400
-
-    Moved Android minimum API level consistently to 14, moved Android version to 5.0.1. May move the minimum API further back...
-    Enabled <html> not only <CsHtml5> in Android.
-    Better HTML examples, more tutorial.
-    Still trying to get NW.js csound.node to work...
 
