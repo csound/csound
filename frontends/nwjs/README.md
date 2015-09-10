@@ -78,7 +78,8 @@ to configure the build tool for your version of NW.js. The version number is pri
 on the default window of the NW.js `nw` program.
 
 Set an environment variable named `CSOUND_HOME` that points to the root directory of
-your Csound installation.
+your Csound installation. Or, it may be necessary to modify binding.gyp to reflect the 
+installed locations of the Csound header files and shared libraries on your system.
 
 In the `csound/frontends/nwjs` directory, execute `nw-gyp build` to build `csound.node`.
 If the build messages end with `ok`, then the build succeeded.
