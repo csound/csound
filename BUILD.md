@@ -562,7 +562,7 @@ Open the Windows command prompt and cd to a folder you wish to create your Csoun
 `mkdir build`
 `cd build`
 
-The run cmake-gui from the command line:
+Then run cmake-gui from the command line:
 
 `cmake-gui`
 
