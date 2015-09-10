@@ -196,7 +196,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
 
     float   absthresh, logthresh;
     int     ndx, count = 0, i = 0, n = 0, j = 0;
-    float   max = 0.f, dbstep;
+    float   dbstep;
     double  y1, y2, a, b, dtmp;
     float   ftmp, ftmp2;
     int     numbins = p->numbins, maxtracks = p->mtracks;
@@ -222,12 +222,15 @@ static void Analysis(CSOUND * csound, _PARTS * p)
              maxgap = (unsigned int) (*p->gap > 0 ? *p->gap : 0);
     int     test1 = 1, test2 = 0;
 
+    if(*p->kthresh >= 0) {
+    float max = 0.f;
     for (i = 0; i < numbins; i++)
       if (max < mags[i]) {
         max = mags[i];
       }
-
     absthresh = (float)(*p->kthresh * max);
+    } else absthresh = (float)(-*p->kthresh * csound->Get0dBFS(csound));
+  
     logthresh = LOG(absthresh / 5.0f);
 
     /* Quadratic Interpolation
