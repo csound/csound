@@ -201,8 +201,8 @@ int tablexkt_set(CSOUND *csound, TABLEXKT *p)
       if (p->wsize > 1024) p->wsize = 1024;         /* integer multiply of 4 */
     }
     /* constant for window calculation */
-    p->win_fact = (FL(1.0) - POWER(p->wsize * FL(0.85172), -FL(0.89624))
-                   / (MYFLT)((p->wsize * p->wsize) >> 2));
+    p->win_fact = (FL(1.0) - POWER(p->wsize * FL(0.85172), -FL(0.89624)))
+                   / ((MYFLT)((p->wsize * p->wsize) >> 2));
 
     p->ndx_scl = (*(p->ixmode) == FL(0.0) ? 0 : 1);         /* index mode */
     p->wrap_ndx = (*(p->iwrap) == FL(0.0) ? 0 : 1);         /* wrap index */
@@ -381,23 +381,28 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
               i = wsized2 >> 1;
               do {
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
+		a1 = a1 * a1 / (MYFLT) d;
                 ar[n] += ftable[(ndx_i < 0L ? (wrap_ndx ? ndx_i + flen : 0L)
-                                            : ndx_i)] * a1 * a1 / (MYFLT) d;
+				 : ndx_i)] * a1;
                 d+=1.0; ndx_i++;
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
+		a1 = a1 * a1 / (MYFLT) d;
                 ar[n] -= ftable[(ndx_i < 0L ? (wrap_ndx ? ndx_i + flen : 0L)
-                                            : ndx_i)] * a1 * a1 / (MYFLT) d;
+                                            : ndx_i)] * a1;
                 d+=1.0; ndx_i++;
+
               } while (--i);
               /* samples 1 to (window size / 2) */
               i = wsized2 >> 1;
               do {
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
-                ar[n] += a1 * a1 * ftable[ndx_i] / (MYFLT) d;
+		a1 = a1 * a1 / (MYFLT) d;
+                ar[n] += a1 * ftable[ndx_i];
                 d+=1.0;
                 if (++ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
-                ar[n] -=  a1 * a1 * ftable[ndx_i] / (MYFLT) d;
+		a1 = a1 * a1 / (MYFLT) d;
+                ar[n] -=  a1 * ftable[ndx_i];
                 d+=1.0;
                 if (++ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
               } while (--i);
