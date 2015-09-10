@@ -668,13 +668,13 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
               i = wsized2;
               do {
                 a1 = (MYFLT)d; a1 = FL(1.0) - a1 * a1 * winFact;
-                a1 = a0 * a1 * a1 / (MYFLT)d;
-                diskin2_get_sample(csound, p, ndx, nn, a1);
+                a1 = a1 * a1 / (MYFLT)d;
+                diskin2_get_sample(csound, p, ndx, nn, a1*a0);
                 d += 1.0;
                 ndx++;
                 a1 = (MYFLT)d; a1 = FL(1.0) - a1 * a1 * winFact;
-                a1 = -(a0 * a1 * a1 / (MYFLT)d);
-                diskin2_get_sample(csound, p, ndx, nn, a1);
+                a1 = -(a1 * a1 / (MYFLT)d);
+                diskin2_get_sample(csound, p, ndx, nn, a1*a0);
                 d += 1.0;
                 ndx++;
               } while (--i);
