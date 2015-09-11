@@ -17,11 +17,17 @@ New opcodes:
     o    getseed reads the state of the PRN generator; opposite of
          seed opcode.
 
-    o    tabifd
+    o    tabifd — Instantaneous Frequency Distribution, magnitude and
+         phase analysis.  
 
-    o    websocket
+    o    websocket — Read and write signals and arrays using a
+         websocket connection.  
 
-    o    framebuffer
+    o    framebuffer — Read audio signals into 1 dimensional k-rate
+         arrays and vice-versa with a specified buffer size. 
+
+    o    olabuffer — Sum overlapping frames of audio as k-rate arrays
+         and read as an audio signal 
     
 New Gen and Macros:
 
@@ -68,7 +74,9 @@ Modified Opcodes and Gens:
 
   o    New optional threshhold parameter in opcodes tradsyn, sinsyn
        and resyn
-  
+
+  o    New thresholding option for partials
+
 Utilities:
 
   o    extract fixed
@@ -90,11 +98,17 @@ Frontends:
         A number of other bugs were fixed
         
   Emscripten:
+        Csound Javascript object can now receive data from the outvalue
+        opcode.
 
   csdebugger:
 
   HTML5:
-        New system for running Csound in a browser
+        Integrate HTML, JavaScript, and other features of HTML5 with
+        Csound, either by embedding a Web page as an <html> element in
+        the CSD file for CsoundQt or Csound for Android, or by hosting
+        Csound in the JavaScript context of a standalone Web browser
+        (Emscripten, PNaCl) or embedded Web browser (csound.node).
 
 General usage:
 
@@ -116,7 +130,11 @@ Bugs fixed:
     o   Rounding error in cpspch fixed
 
     o   Removed crash on recompiling a named instrument
-    
+
+    o   Fix interpolation bug in tablexkt
+
+    0   Fix to plltrack when ksmps is 1
+
 ====================
 SYSTEM LEVEL CHANGES
 ====================
@@ -164,25 +182,6 @@ Linux
 
 
 ========================================================================
-Log changes I have not documented in Notes above
-================================================
 
-Author: Edward Costello <phasereset@gmail.com>
-Date:   Mon Aug 31 22:52:48 2015 +0200
 
-    Change Value method/function names to Channel
-
-Author: Edward Costello <phasereset@gmail.com>
-Date:   Mon Aug 31 22:42:04 2015 +0200
-
-    Add Output value callback method
-
-Date:   Sun Aug 16 02:17:36 2015 +0100
-
-    fixed installation of cudaops
-
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Aug 6 10:02:07 2015 +0100
-
-    thresholding in additive synthesis
 
