@@ -362,7 +362,7 @@ After adding that to the sources.list, you should run `sudo apt-get update ` and
 
 6.  `cd cs6make`
 
-7.  `cmake ../csound -DBUILD_CSOUND_AC=OFF` (this will not build CsoundAC, that
+7.  `cmake ../csound -DBUILD_CSOUND_AC=OFF -DCMAKE_BUILD_TYPE="Release"` (this will not build CsoundAC, that
     gives errors)
 
 8.  `make -j6`
