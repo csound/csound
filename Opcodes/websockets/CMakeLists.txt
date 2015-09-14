@@ -15,7 +15,7 @@ check_include_file(libwebsockets.h WEBSOCKETS_H)
 
 if(WEBSOCKETS_H AND websockets_library) 
   set(CMAKE_REQUIRED_INCLUDES libwebsockets.h)
-  set(CMAKE_REQUIRED_LIBRARIES websockets)
+  set(CMAKE_REQUIRED_LIBRARIES ${websockets_library})
   check_function_exists(libwebsocket_cancel_service LIBWEBSOCKET_CANCEL_SERVICE)
 endif()
 
