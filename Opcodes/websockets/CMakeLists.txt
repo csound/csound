@@ -11,7 +11,13 @@ FIND_LIBRARY ( websockets_library websockets
 
 find_library (websockets_library NAMES websockets)
 check_include_file(libwebsockets.h WEBSOCKETS_H)
-check_function_exists(libwebsocket_cancel_service LIBWEBSOCKET_CANCEL_SERVICE)
+
+
+if(WEBSOCKETS_H AND websockets_library) 
+  set(CMAKE_REQUIRED_INCLUDES libwebsockets.h)
+  set(CMAKE_REQUIRED_LIBRARIES websockets)
+  check_function_exists(libwebsocket_cancel_service LIBWEBSOCKET_CANCEL_SERVICE)
+endif()
 
 check_deps(BUILD_WEBSOCKET_OPCODE websockets_library WEBSOCKETS_H LIBWEBSOCKET_CANCEL_SERVICE)
 if(BUILD_WEBSOCKET_OPCODE)
