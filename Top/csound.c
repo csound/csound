@@ -1075,7 +1075,7 @@ static void signal_handler(int sig)
     }
 #endif
 #ifdef ANDROID
-    psignal(sig, "Csound tidy up");
+    psignal_(sig, "Csound tidy up");
 #else
     psignal(sig, "Csound tidy up");
 #endif
