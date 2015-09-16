@@ -1102,6 +1102,13 @@ if(LINUX)
     message(STATUS "Building on Linux")
     add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE -DHAVE_SOCKETS)
     list(APPEND libcsound_LIBS m dl)
+
+    find_library(LIBRT_LIBRARY rt)
+
+    if(LIBRT_LIBRARY)
+      list(APPEND libcsound_LIBS ${LIBRT_LIBRARY})
+      message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}")
+    endif()
 endif()
 
 if(APPLE)

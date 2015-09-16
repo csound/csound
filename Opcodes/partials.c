@@ -230,7 +230,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
       }
     absthresh = (float)(*p->kthresh * max);
     } else absthresh = (float)(-*p->kthresh * csound->Get0dBFS(csound));
-  
+
     logthresh = LOG(absthresh / 5.0f);
 
     /* Quadratic Interpolation
@@ -264,7 +264,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
 
       y1 = lmags[rmax] - (dtmp =
                           (rmax ? lmags[rmax - 1] : lmags[rmax + 1])) +
-          0.000001;
+                          0.000001;
       y2 = (rmax <
             numbins - 1 ? lmags[rmax + 1] : lmags[rmax]) - dtmp + 0.000001;
 
@@ -437,7 +437,7 @@ static int partials_process(CSOUND * csound, _PARTS * p)
 
     if (p->lastframe < p->fin1->framecount) {
 
-     for (i = k = 0; i < fftsize + 2; i += 2, k++)
+      for (i = k = 0; i < fftsize + 2; i += 2, k++)
         mags[k] = fin1[i];
       Analysis(csound, p);
       /* fout holds [amp, freq, pha, ID] */
@@ -487,27 +487,27 @@ typedef struct  _partxt{
 
 
 int part2txt_init(CSOUND *csound, PARTXT *p){
-  
-  if(p->fdch.fd != NULL)
-    fdclose(csound, &(p->fdch));
-  p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, p->fname->data,
+
+    if (p->fdch.fd != NULL)
+      fdclose(csound, &(p->fdch));
+    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, p->fname->data,
                                    "w", "", CSFTYPE_FLOATS_TEXT, 0);
-  if(UNLIKELY(p->fdch.fd == NULL))
+    if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), p->fname->data);
 
-  p->lastframe = 0;
-  return OK;
+    p->lastframe = 0;
+    return OK;
 }
 
 int part2txt_perf(CSOUND *csound, PARTXT *p){
-  float *tracks = (float *) p->tracks->frame.auxp;
+    float *tracks = (float *) p->tracks->frame.auxp;
     int i = 0;
-    if(p->tracks->framecount > p->lastframe){
-      for(i=0; tracks[i+3] != -1; i+=4){ 
-       fprintf(p->f, "%f %f %f %d\n",tracks[i],tracks[i+1],
-               tracks[i+2], (int) tracks[i+3]);
+    if (p->tracks->framecount > p->lastframe){
+      for (i=0; tracks[i+3] != -1; i+=4){
+        fprintf(p->f, "%f %f %f %d\n",tracks[i],tracks[i+1],
+                tracks[i+2], (int) tracks[i+3]);
       }
-      fprintf(p->f, "-1.0 -1.0 -1.0 -1\n"); 
+      fprintf(p->f, "-1.0 -1.0 -1.0 -1\n");
       p->lastframe = p->tracks->framecount;
     }
     return OK;
@@ -516,7 +516,7 @@ int part2txt_perf(CSOUND *csound, PARTXT *p){
 static OENTRY localops[] =
   {
     { "partials", sizeof(_PARTS), 0, 3, "f", "ffkkki",
-      (SUBR) partials_init, (SUBR) partials_process },
+                            (SUBR) partials_init, (SUBR) partials_process },
     { "part2txt", sizeof(_PARTS), 0, 3, "", "Sf",
                             (SUBR) part2txt_init, (SUBR) part2txt_perf }
   };
