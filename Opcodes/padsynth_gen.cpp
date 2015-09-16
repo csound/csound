@@ -357,14 +357,14 @@ FUNC(circle)
         if((x < -b) || (x > b)) {
             y = 0;
         } else {
-            y = sqrt(1 - (pow(x, 2) / pow(b, 2)));    // normally * a^2, but a stays 1
+            y = sqrt(1 - (x*x) / (b*b));    // normally * a^2, but a stays 1
         }
     } else {
         x = x - 3; // x goes from -1 to 1 as well
         if((x < -b) || (x > b)) {
             y = 0;
         } else {
-            y = -sqrt(1 - (pow(x, 2) / pow(b, 2)));
+            y = -sqrt(1 - (x*x) / (b*b));
         }
     }
     return y;
@@ -430,7 +430,9 @@ extern "C" {
 
             bwi=bw_Hz/(2.0*samplerate);
             fi=rF/samplerate;
-            for (i=0; i<N/2; i++) { //here you can optimize, by avoiding to compute the profile for the full frequency (usually it's zero or very close to zero)
+            for (i=0; i<N/2; i++) { //here you can optimize, by avoiding to
+                                   // compute the profile for the full frequency
+                                   // (usually it's zero or very close to zero)
                 MYFLT hprofile;
                 hprofile=profile((i/(MYFLT)N)-fi,bwi);
                 freq_amp[i]+=hprofile*A[nh];

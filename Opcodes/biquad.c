@@ -1373,6 +1373,8 @@ static int mode(CSOUND *csound, MODE *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT lfq = p->lfq, lq = p->lq;
+    MYFLT kfq = *p->kfreq;
+    MYFLT kq  = *p->kq;
 
     double xn, yn, a0=p->a0, a1=p->a1, a2=p->a2,d=p->d;
     double xnm1 = p->xnm1, ynm1 = p->ynm1, ynm2 = p->ynm2;
@@ -1383,8 +1385,10 @@ static int mode(CSOUND *csound, MODE *p)
       memset(&p->aout[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT kfq = IS_ASIG_ARG(p->kfreq) ? p->kfreq[n] : *p->kfreq;
-      MYFLT kq  = IS_ASIG_ARG(p->kq) ? p->kq[n] : *p->kq;
+      if (IS_ASIG_ARG(p->kfreq)) kfq = p->kfreq[n];
+      if (IS_ASIG_ARG(p->kq)) kq = p->kq[n];
+      //MYFLT kfq = IS_ASIG_ARG(p->kfreq) ? p->kfreq[n] : *p->kfreq;
+      //MYFLT kq  = IS_ASIG_ARG(p->kq) ? p->kq[n] : *p->kq;
       if (lfq != kfq || lq != kq) {
         double kfreq  = kfq*TWOPI;
         double kalpha = (CS_ESR/kfreq);
