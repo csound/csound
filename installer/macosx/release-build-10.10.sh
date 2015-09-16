@@ -274,6 +274,7 @@ install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libFLAC.8.
 
 install_name_tool -change /usr/local/lib/libfltk.1.3.dylib @loader_path/libfltk.1.3.dylib  $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
 install_name_tool -change /usr/local/lib/libfltk.1.3.dylib @loader_path/libfltk.1.3.dylib  $SUPPORT_LIBS_DIR/libfltk_forms.1.3.dylib
+install_name_tool -change /usr/local/lib/libpng16.16.dylib @loader_path/libpng16.16.dylib  $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
 
 install_name_tool -change /usr/local/lib/libportaudio.2.dylib @loader_path/libportaudio.2.dylib $SUPPORT_LIBS_DIR/libfluidsynth.1.dylib
 
