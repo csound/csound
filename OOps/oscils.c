@@ -381,12 +381,12 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
               i = wsized2 >> 1;
               do {
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
-		a1 = a1 * a1 / (MYFLT) d;
+                a1 = a1 * a1 / (MYFLT) d;
                 ar[n] += ftable[(ndx_i < 0L ? (wrap_ndx ? ndx_i + flen : 0L)
-				 : ndx_i)] * a1;
+                                            : ndx_i)] * a1;
                 d+=1.0; ndx_i++;
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
-		a1 = a1 * a1 / (MYFLT) d;
+                a1 = a1 * a1 / (MYFLT) d;
                 ar[n] -= ftable[(ndx_i < 0L ? (wrap_ndx ? ndx_i + flen : 0L)
                                             : ndx_i)] * a1;
                 d+=1.0; ndx_i++;
@@ -396,12 +396,12 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
               i = wsized2 >> 1;
               do {
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
-		a1 = a1 * a1 / (MYFLT) d;
+                a1 = a1 * a1 / (MYFLT) d;
                 ar[n] += a1 * ftable[ndx_i];
                 d+=1.0;
                 if (++ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * win_fact;
-		a1 = a1 * a1 / (MYFLT) d;
+                a1 = a1 * a1 / (MYFLT) d;
                 ar[n] -=  a1 * ftable[ndx_i];
                 d+=1.0;
                 if (++ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
