@@ -4,6 +4,9 @@ CSOUND VERSION 6.06
 RELEASE NOTES   VERSION 6.06
 ============================
 
+A number of bug fixes, some quite major, are included, as well as some
+new facilities and extensions
+
 
 The Developers 
 
@@ -66,6 +69,7 @@ Modified Opcodes and Gens:
   o    svfilter now can skip initialisation
 
   o    When opening an input file nchncls_i  is used rather than nchnls
+       This ia a change that should have followed the existence of nchnls_i
 
   o    rtjack module now reports the sampling rate
 
@@ -174,7 +178,9 @@ Windows
 
 OSX
 ---
-       csnd6.jar added to installer
+        - csnd6.jar link installed in the correct location.
+        - Java JNI linking issues solved.
+        - fixed link name for libpng in libfltk_image
     
 Linux
 -----
