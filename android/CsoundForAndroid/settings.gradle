@@ -1,1 +1,1 @@
-include ':CsoundAndroidExamples', ':CsoundAndroid'
+include ':CsoundAndroidExamples', ':CsoundAndroid', ':CsoundApplication'
