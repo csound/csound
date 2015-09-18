@@ -2397,34 +2397,7 @@ FUNC *csoundFTFind2(CSOUND *csound, MYFLT *argp)
     return ftp;
 }
 
-/* **** SOMETHING WRONG HERE __ NOT CALLED **** */
-static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int fno)
-{
-    FGDATA  ff;
-    char    strarg[SSTRSIZ];
-    FUNC    *ftp = csound->flist[fno];
-
-    /* The soundfile hasn't been loaded yet, so call GEN01 */
-    strcpy(strarg, ftp->gen01args.strarg);
-    memset(&ff, 0, sizeof(FGDATA));
-    ff.csound = csound;
-    ff.fno = fno;
-    ff.e.strarg = strarg;
-    ff.e.opcod = 'f';
-    ff.e.pcnt = 8;
-    ff.e.p[1] = (MYFLT) fno;
-    ff.e.p[4] = ftp->gen01args.gen01;
-    ff.e.p[5] = ftp->gen01args.ifilno;
-    ff.e.p[6] = ftp->gen01args.iskptim;
-    ff.e.p[7] = ftp->gen01args.iformat;
-    ff.e.p[8] = ftp->gen01args.channel;
-    if (UNLIKELY(gen01raw(&ff, ftp) != 0)) {
-      csoundErrorMsg(csound, Str("Deferred load of '%s' failed"), strarg);
-      return NULL;
-    }
-    return csound->flist[fno];
-}
-
+static FUNC *gen01_defer_load(CSOUND *csound, int fno);
 PUBLIC int csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum)
 {
     FUNC    *ftp;
@@ -2435,17 +2408,18 @@ PUBLIC int csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum)
     if (UNLIKELY(ftp == NULL))
       goto err_return;
     if (!ftp->flen) {
-      ftp = gen01_defer_load(csound, tableNum);
+    ftp = gen01_defer_load(csound, tableNum);
       if (UNLIKELY(ftp == NULL))
         goto err_return;
     }
     *tablePtr = ftp->ftable;
     return (int) ftp->flen;
-
  err_return:
     *tablePtr = (MYFLT*) NULL;
     return -1;
 }
+
+
 
 PUBLIC int csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum)
 {
@@ -2528,14 +2502,14 @@ FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
       return NULL;
     }
     if (ftp->flen == 0) {
-      if (LIKELY(csound->oparms->gen01defer))
+     if (LIKELY(csound->oparms->gen01defer))
        ftp = gen01_defer_load(csound, fno);
-      else {
+       else { 
         csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
         return NULL;
-      }
+    }
       if (UNLIKELY(ftp == NULL))
-        csound->inerrcnt++;
+      csound->inerrcnt++; 
     }
     return ftp;
 }
@@ -3024,34 +2998,6 @@ static int gen49(FGDATA *ff, FUNC *ftp)
 }
 #endif
 
-#if 0
-static CS_NOINLINE FUNC *gen49_defer_load(CSOUND *csound, int fno)
-{
-    FGDATA  ff;
-    char    strarg[SSTRSIZ];
-    FUNC    *ftp = csound->flist[fno];
-
-    /* The soundfile hasn't been loaded yet, so call GEN49 */
-    strcpy(strarg, ftp->gen01args.strarg);
-    memset(&ff, 0, sizeof(FGDATA));
-    ff.fno = fno;
-    ff.e.strarg = strarg;
-    ff.e.opcod = 'f';
-    ff.e.pcnt = 8;
-    ff.e.p[1] = (MYFLT) fno;
-    ff.e.p[4] = ftp->gen01args.gen01;
-    ff.e.p[5] = ftp->gen01args.ifilno;
-    ff.e.p[6] = ftp->gen01args.iskptim;
-    ff.e.p[7] = ftp->gen01args.iformat;
-    ff.e.p[8] = ftp->gen01args.channel;
-    if (UNLIKELY(gen49raw(&ff, ftp) != 0)) {
-      csoundErrorMsg(csound, Str("Deferred load of '%s' failed"), strarg);
-      return NULL;
-    }
-    return csound->flist[fno];
-}
-#endif
-
 static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
 {
     int     j, notenum, grade, numgrades, basekeymidi, nvals;
@@ -3370,3 +3316,32 @@ int resize_table(CSOUND *csound, RESIZE *p)
     csound->flist[fno] = ftp;
     return OK;
 }
+
+static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int fno)
+{
+    FGDATA  ff;
+    char    *strarg;
+    FUNC    *ftp = csound->flist[fno];
+
+    /* The soundfile hasn't been loaded yet, so call GEN01 */
+    strarg = csound->Malloc(csound, strlen(ftp->gen01args.strarg)+1);
+    strcpy(strarg, ftp->gen01args.strarg);
+    memset(&ff, 0, sizeof(FGDATA));
+    ff.csound = csound;
+    ff.fno = fno;
+    ff.e.strarg = strarg;
+    ff.e.opcod = 'f';
+    ff.e.pcnt = 8;
+    ff.e.p[1] = (MYFLT) fno;
+    ff.e.p[4] = ftp->gen01args.gen01;
+    ff.e.p[5] = ftp->gen01args.ifilno;
+    ff.e.p[6] = ftp->gen01args.iskptim;
+    ff.e.p[7] = ftp->gen01args.iformat;
+    ff.e.p[8] = ftp->gen01args.channel;
+    if (UNLIKELY(gen01raw(&ff, ftp) != 0)) {
+      csoundErrorMsg(csound, Str("Deferred load of '%s' failed"), strarg);
+      return NULL;
+    }
+    return csound->flist[fno];
+}
+
