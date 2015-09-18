@@ -149,7 +149,7 @@ int isUDOArgList(char *s)
     int len = strlen(s) - 1;
 
     while (len >= 0) {
-      if (UNLIKELY(strchr("aijkftKOVPopS[]0", s[len]) == NULL)) {
+      if (UNLIKELY(strchr("aijkftKOJVPopS[]0", s[len]) == NULL)) {
         /* printf("Invalid char '%c' in '%s'", *p, s); */
         return 0;
       }
@@ -231,7 +231,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 static char map_udo_in_arg_type(char in) {
     if (strchr("ijop", in) != NULL) {
         return 'i';
-    } else if (strchr("kKOPV", in) != NULL) {
+    } else if (strchr("kKOJPV", in) != NULL) {
         return 'k';
     }
     return in;
@@ -318,7 +318,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
           if (type == NULL) {
-            synterr(csound, Str("invalid input type for opcode %s"), in_arg);
+            synterr(csound, Str("invalid input type for opcode %s \n"), in_arg);
             err++;
             continue;
           }
@@ -339,7 +339,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
           if (type == NULL) {
-            synterr(csound, Str("invalid input type for opcode %s"), in_arg);
+            synterr(csound, Str("invalid input type for opcode %s \n"), in_arg);
             err++;
             continue;
           }
