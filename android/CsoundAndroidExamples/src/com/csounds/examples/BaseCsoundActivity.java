@@ -46,7 +46,7 @@ import com.csounds.CsoundObj;
 
 @SuppressLint("NewApi") public class BaseCsoundActivity extends Activity {
 	
-	protected CsoundObj csoundObj = new CsoundObj(false,false);
+	protected CsoundObj csoundObj = new CsoundObj();//(false,false);
 	protected Handler handler = new Handler();
 	
 	
