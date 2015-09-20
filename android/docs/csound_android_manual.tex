@@ -57,7 +57,7 @@ escapeinside={\%*}{*)},          % if you want to add a comment within your code
 
 \section{Introduction}
 
-Welcome to Csound for Android! This document will discuss the details about using Csound for Android OS using the Eclipse IDE.  
+Welcome to Csound for Android! This document will discuss the details about using Csound for Android OS using the Android Studio IDE. 
 
 For those with knowledge of Csound, hopefully you will see that the value of your knowledge is only enhanced by offering a new platform on which to create musical software and works. 
 
@@ -76,33 +76,36 @@ The Csound for Android includes Csound and \href{http://mega-nerd.com/libsndfile
 The Csound for Android library is distributed as a Zip release from the Csound Sourceforge page. The Zip archive includes:
 
 \begin{itemize}
-\item Statically compiled libcsound.a and libsndfile.a, compiled as universal binaries for armv6, armv7, and i386 CPU architectures (to work with both Android devices and simulators)
-\item C Headers for the Csound C API
-\item Java API source
-\item Documentation
+  \item CsoundForAndroid Android Studio Project, which includes:
+  \begin{itemize}
+  \item CsoundAndroid - main Csound library module, contains libcsound.so native library (compiled as universal binaries for armeabi and armeabi-v7a CPU architecturesi), CsoundObj and Csound APIs
+  \item CsoundAndroidExamples - Examples application module that illustrates how to use CsoundObj and Csound APIs on Android
+  \item CsoundApplicaiton - Csound6 application module, originally by Victor Lazzarini (CSDPlayer) and now developed and mainained by Michael Gogins
+  \end{itemize}
+  \item pluginLibs - Android Native Development Kit (NDK) projects for building Csound plugin libraries (i.e. fluidsynth, lua opcodes) 
+  \item Documentation - This PDF manual
 \end{itemize} 
 
-You will also need to install the android NDK available at \href{http://developer.android.com}{AndroidDeveloper} site, to compile the native code in Csound for java.
+To develop applications with Csound, you will use the CsoundAndroid library module from the Android Studio project.  This library is delivered with all of th native parts pre-compiled. You do \emph{not} have to have the NDK installed to use this library.  
 
-Csound for Android was chosen to be delivered as pre-compiled libraries and headers for easy inclusion into projects.  After starting a new project in Eclipse, do the following:
+To create a new Csound-based Android application, first create your application project using the appropriate application module template for your work. Next, import the CsoundAndroid library module into your project.  To do this, do the following:
 
 \begin{enumerate}
-\item Import the CsoundAndroid Library into Eclipse using file>import from the location you downloaded it to.
-\item Right-click your project and from the context menu choose ``Properties''
-\item In the window that opens, select the "Android tab" on the left hand-side of the window,  go to the right of the box labelled "library" select "add". Select the "CsoundAndroid Library" which you have just added to your workspace(Step 1).
-\item If at anytime when working with the CsoundAndroid library the project does seem not to recognise the CsoundAndroid is added, select "Project" from the menu bar and then select "Clean" to rebuild the paths in the project. 
+\item From the ``File'' menu, choose ``New'', then ``Import Module''.
+\item A dialog will appear asking you for the source folder to use.  Navigate to the CsoundForAndroid/CsoundAndroid folder to select it, then press okay.  The library module will be copied into your projec.   
+\item Finally, in the projects view, right-click your application module and choose ``Open Module Settings''. In the dialog that appears, select your application module.  On the right-hand side, choose the ``Dependencies'' tab. Click the + button, then choose ``Add Module Dependency'' from the menu that appears.  Select the ``CsoundAndroid'' module.
 \end{enumerate}
 
-After adding the CsoundAndroid library, it should now be a part of your project. You will now be able to reference both the standard Csound C API as well as the Java CsoundObj API from your project code.
+At this point, your application now has a dependency on the CsoundAndroid library module and you can begin developing your Csound-based Android application. All of the Java classes and native libraries from CsoundAndroid will now be a part of your application and you can use any of the CsoundObj and Csound API classes. 
 
 %======
 
 \section{Introduction to the API}
 \subsection{CsoundObj and Csound API's}
 
-Csound for Android is released with the standard Csound C API as well as a custom Java CsoundObj API that has been designed to make developing on Android OS convenient.  The CsoundObj API includes methods for binding widgets to channels (used to communicate to and from Csound), enabling hardware sensors, and more.  For further detail, please consult the CsoundObj.java class.
+Csound for Android is released with the standard Csound C API as well as a custom Java CsoundObj API that has been designed to make developing on Android OS convenient.  The CsoundObj API includes methods for binding widgets to channels (used to communicate to and from Csound), enabling hardware sensors, and more.  For further detail, please consult the \texttt{CsoundObj.java} class.
 
-While the CsoundObj API has been designed to ease things for Android OS development and to follow conventions of Java, the decision was made not to wrap everything in the Csound C API. . The Csound java Object that a CsoundObj class holds can be accessed via the \textbf{getCsound} method in CsoundObj.  For more information about the Csound C API, consult Csound.java class.
+While the CsoundObj API has been designed to ease things for Android OS development and to follow conventions of Java, the decision was made not to wrap everything in the Csound C API. . The Csound java Object that a CsoundObj class holds can be accessed via the \textbf{getCsound} method in CsoundObj.  For more information about the Csound C API, consult \texttt{Csound.java} class.
 
 \section{Using the CsoundObj API}
 
@@ -437,7 +440,7 @@ Next go to the containing folder of your project on your computer and put your C
 
 
 \section{Csound App 2.0}
-This app demonstrates the use of the Csound library in the context of a larger application with multiple Activities, Views and the ability to load in different .csd files dynamically. It is designed for stand alone use for those that do not want to get their hands dirty with Android programming but still want access to the platform, and for those who want an app with lots of functionality that they can use in their own applications. 
+This app demonstrates the use of the Csound library in the context of a larger application with multiple Activities, Views, and the ability to load in different .csd files dynamically. It is designed for stand alone use for those that do not want to get their hands dirty with Android programming but still want access to the platform, and for those who want an app with lots of functionality that they can use in their own applications. 
 
 Hence the in order to get up and running with Csound on Android, all you need to do is use chnget in your .csd to get access to the UI values. SeekBars are set from 0 to 1 consequently some scaling may be necessary in your .csd. The Variable names to be used are:
 
