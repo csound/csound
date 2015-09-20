@@ -2408,7 +2408,7 @@ PUBLIC int csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum)
     if (UNLIKELY(ftp == NULL))
       goto err_return;
     if (!ftp->flen) {
-    ftp = gen01_defer_load(csound, tableNum);
+      ftp = gen01_defer_load(csound, tableNum);
       if (UNLIKELY(ftp == NULL))
         goto err_return;
     }
