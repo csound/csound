@@ -274,10 +274,11 @@ static void sensLine(CSOUND *csound, void *userData)
             while (n-->0) sstrp += strlen(sstrp)+1;
             n = 0;
             while ((c = *(++cp)) != '"') {
-              if (UNLIKELY(c == LF)) {
-                csound->ErrorMsg(csound, Str("unmatched quotes"));
-                goto Lerr;
-              }
+	      /* VL: allow strings to be multi-line */
+	      // if (UNLIKELY(c == LF)) {
+              //  csound->ErrorMsg(csound, Str("unmatched quotes"));
+              //  goto Lerr;
+              //}
               sstrp[n++] = c;                   /*   save in private strbuf */
               if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
                 e.strarg = csound->ReAlloc(csound, e.strarg, strsiz+=SSTRSIZ);
