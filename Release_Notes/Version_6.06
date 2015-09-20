@@ -53,7 +53,9 @@ Modified Opcodes and Gens:
 
   o    diskin2 array version uses array size to give number of
        channels in raw file form
-  
+
+  o    diskin2 now has the kpitch parameter defaulting to 1 for simple use
+
   o    Vibrato f-table in wgflute and wgcar optional, defaulting to
        sine wave
 
