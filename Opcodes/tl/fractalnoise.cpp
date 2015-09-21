@@ -88,7 +88,7 @@ private:
   }
 
 public:
-  csUI() : UserInterface(), ctrlCount(0) { args[0] = args[2] = NULL; };
+  csUI() : UserInterface(), ctrlCount(0) { args[0] = args[1] = NULL; };
   virtual ~csUI() {};
 
   virtual void addButton(char* label, MYFLT* zone)
