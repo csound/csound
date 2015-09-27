@@ -172,27 +172,34 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
       csoundErrorMsg(csound, Str("Error: no indexes set for array set\n"));
       return CSOUND_ERROR;
     }
-    if (UNLIKELY(indefArgCount>dat->dimensions))
-      return csound->PerfError(csound, p->h.insdshead,
+    if (UNLIKELY(indefArgCount>dat->dimensions)){
+      csound->Warning(csound,
                                Str("Array dimension %d out of range "
                                    "for dimensions %d\n"),
                                indefArgCount, dat->dimensions);
+      return NOTOK;
+
+    }
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-    if (UNLIKELY(index >= dat->sizes[end] || index<0))
-      return csound->PerfError(csound, p->h.insdshead,
+    if (UNLIKELY(index >= dat->sizes[end] || index<0)){
+        csound->Warning(csound,
                                Str("Array index %d out of range (0,%d) "
                                    "for dimension %d\n"),
                                index, dat->sizes[end]-1, indefArgCount);
+	return NOTOK;
+
+    }
 
     if (indefArgCount > 1) {
       for (i = end - 1; i >= 0; i--) {
         int ind = MYFLT2LRND(*p->indexes[i]);
-        if (UNLIKELY(ind >= dat->sizes[i] || ind<0))
-          return csound->PerfError(csound, p->h.insdshead,
-                                   Str("Array index %d out of range (0,%d) "
+        if (UNLIKELY(ind >= dat->sizes[i] || ind<0)){
+          csound->Warning(csound,Str("Array index %d out of range (0,%d) "
                                        "for dimension %d\n"), ind,
                                    dat->sizes[i]-1, i+1);
+          return NOTOK;
+	}
         index += ind * dat->sizes[i + 1];
       }
     }
@@ -219,26 +226,34 @@ static int array_get(CSOUND* csound, ARRAY_GET *p)
     if (UNLIKELY(indefArgCount == 0))
       csound->PerfError(csound, p->h.insdshead,
                         Str("Error: no indexes set for array get"));
-    if (UNLIKELY(indefArgCount>dat->dimensions))
-      return csound->PerfError(csound, p->h.insdshead,
+    if (UNLIKELY(indefArgCount>dat->dimensions)){
+       csound->Warning(csound,
                                Str("Array dimension %d out of range "
-                                   "for dimensions %d\n"),
+                                   "for dimensions %d"),
                                indefArgCount, dat->dimensions);
+       return NOTOK;
+    }
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-    if (UNLIKELY(index >= dat->sizes[end] || index<0))
-      return csound->PerfError(csound, p->h.insdshead,
+    if (UNLIKELY(index >= dat->sizes[end] || index<0)){
+      csound->Warning(csound,
                                Str("Array index %d out of range (0,%d) "
-                                   "for dimension %d\n"),
+                                   "for dimension %d"),
                                index, dat->sizes[end]-1, end+1);
+      return NOTOK;
+
+    }
     if (indefArgCount > 1) {
       for (i = end - 1; i >= 0; i--) {
         int ind = MYFLT2LRND(*p->indexes[i]);
-        if (UNLIKELY(ind >= dat->sizes[i] || ind<0))
-          return csound->PerfError(csound, p->h.insdshead,
+        if (UNLIKELY(ind >= dat->sizes[i] || ind<0)){
+        csound->Warning(csound, 
                                    Str("Array index %d out of range (0,%d) "
-                                       "for dimension %d\n"), ind,
+                                       "for dimension %d"), ind,
                                    dat->sizes[i]-1, i+1);
+	  
+	  return NOTOK;
+	}
         index += ind * dat->sizes[i + 1];
       }
     }
