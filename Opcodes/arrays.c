@@ -187,7 +187,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
                                Str("Array index %d out of range (0,%d) "
                                    "for dimension %d\n"),
                                index, dat->sizes[end]-1, indefArgCount);
-	return NOTOK;
+        return NOTOK;
 
     }
 
@@ -199,7 +199,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
                                        "for dimension %d\n"), ind,
                                    dat->sizes[i]-1, i+1);
           return NOTOK;
-	}
+        }
         index += ind * dat->sizes[i + 1];
       }
     }
@@ -251,9 +251,9 @@ static int array_get(CSOUND* csound, ARRAY_GET *p)
                                    Str("Array index %d out of range (0,%d) "
                                        "for dimension %d"), ind,
                                    dat->sizes[i]-1, i+1);
-	  
-	  return NOTOK;
-	}
+          
+          return NOTOK;
+        }
         index += ind * dat->sizes[i + 1];
       }
     }
