@@ -274,8 +274,8 @@ static void sensLine(CSOUND *csound, void *userData)
             while (n-->0) sstrp += strlen(sstrp)+1;
             n = 0;
             while ((c = *(++cp)) != '"') {
-	      /* VL: allow strings to be multi-line */
-	      // if (UNLIKELY(c == LF)) {
+              /* VL: allow strings to be multi-line */
+              // if (UNLIKELY(c == LF)) {
               //  csound->ErrorMsg(csound, Str("unmatched quotes"));
               //  goto Lerr;
               //}
