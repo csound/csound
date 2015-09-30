@@ -265,7 +265,7 @@ void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
         current->updateMemBlockSize(csound, current);
       }
       // VL 14-3-2015 only realloc if we need to
-      if(memSize < current->memBlockSize) {
+      if(memSize < (size_t)current->memBlockSize) {
           memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + current->memBlockSize;
           varMem =
                (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound,varMem,
