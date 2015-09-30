@@ -166,7 +166,7 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
                               "an integer multiple of k-rate array size"));
     }
 
-    if (frameSampleCount / (int)overlapCount < csound->GetKsmps(csound)) {
+    if (frameSampleCount / (int)overlapCount < (int) csound->GetKsmps(csound)) {
 
       csound->Die(csound, Str("olabuffer: Error, k-rate array size divided "
                               "by overlap factor must be larger than or equal "

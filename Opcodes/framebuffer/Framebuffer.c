@@ -131,7 +131,7 @@ int Framebuffer_process(CSOUND *csound, Framebuffer *self)
 
 void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 {
-    if (self->elementCount < csound->GetKsmps(csound)) {
+    if ((uint32_t)self->elementCount < csound->GetKsmps(csound)) {
 
       csound->Die(csound, Str("framebuffer: Error, specified element "
                               "count less than ksmps value, Exiting"));

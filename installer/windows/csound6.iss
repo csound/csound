@@ -20,9 +20,9 @@
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.05.3beta-vst"
+#define MyAppMinVersion "6.06.0beta-vst"
 #else
-#define MyAppMinVersion "6.05.3beta"
+#define MyAppMinVersion "6.06.0beta"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
