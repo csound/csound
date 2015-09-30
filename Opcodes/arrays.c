@@ -185,7 +185,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
     if (UNLIKELY(index >= dat->sizes[end] || index<0)){
         csound->Warning(csound,
                                Str("Array index %d out of range (0,%d) "
-                                   "for dimension %d\n"),
+                                   "for dimension %d"),
                                index, dat->sizes[end]-1, indefArgCount);
 	return NOTOK;
 
@@ -196,7 +196,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
         int ind = MYFLT2LRND(*p->indexes[i]);
         if (UNLIKELY(ind >= dat->sizes[i] || ind<0)){
           csound->Warning(csound,Str("Array index %d out of range (0,%d) "
-                                       "for dimension %d\n"), ind,
+                                       "for dimension %d"), ind,
                                    dat->sizes[i]-1, i+1);
           return NOTOK;
 	}
