@@ -502,7 +502,7 @@ int trigseq(CSOUND *csound, TRIGSEQ *p)
       int j, nargs = p->nargs;
       int32 start = (int32) *p->kstart, loop = (int32) *p->kloop;
       int32 *ndx = &p->ndx;
-      MYFLT *out = *p->outargs;
+      MYFLT **out = p->outargs;
 
       if (p->pfn != (int32)*p->kfn) {
         FUNC *ftp;
@@ -516,7 +516,7 @@ int trigseq(CSOUND *csound, TRIGSEQ *p)
       if (*p->ktrig) {
         int nn = nargs * (int)*ndx;
         for (j=0; j < nargs; j++) {
-          out[j] = p->table[nn+j];
+          *out[j] = p->table[nn+j];
         }
         if (loop > 0) {
           (*ndx)++;
