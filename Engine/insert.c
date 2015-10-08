@@ -2483,13 +2483,13 @@ void *init_pass_thread(void *p){
           if (ip->reinitflag==1) {
             ip->reinitflag = 0;
           }
-    
+
         }
         ip = nxt;
 
       }
             csoundUnlockMutex(csound->init_pass_threadlock);
     }
-    
+
     return NULL;
 }
