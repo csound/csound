@@ -66,7 +66,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
     if (strcmp(O->Linename, "stdin") == 0) {
-#if defined(DOSGCC) || defined(WIN32) 
+#if defined(DOSGCC) || defined(WIN32)
       setvbuf(stdin, NULL, _IONBF, 0);
       /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
 #else

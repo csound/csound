@@ -1172,7 +1172,7 @@ int oscsetA(CSOUND *csound, OSC *p)
     if (*p->iphs >= 0)
       p->lphs = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
     //check p->ifn is a valid array with power-of-two length
-    int x = ((ARRAYDAT*)p->ifn)->sizes[0]; 
+    int x = ((ARRAYDAT*)p->ifn)->sizes[0];
       if((x != 0) && !(x & (x - 1))) {
        p->ftp = ftp;
        fill_func_from_array((ARRAYDAT*)p->ifn, ftp);

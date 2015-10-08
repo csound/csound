@@ -2504,12 +2504,12 @@ FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
     if (ftp->flen == 0) {
      if (LIKELY(csound->oparms->gen01defer))
        ftp = gen01_defer_load(csound, fno);
-       else { 
+       else {
         csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
         return NULL;
     }
       if (UNLIKELY(ftp == NULL))
-      csound->inerrcnt++; 
+      csound->inerrcnt++;
     }
     return ftp;
 }
@@ -3344,4 +3344,3 @@ static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int fno)
     }
     return csound->flist[fno];
 }
-
