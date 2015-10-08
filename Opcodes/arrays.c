@@ -247,11 +247,11 @@ static int array_get(CSOUND* csound, ARRAY_GET *p)
       for (i = end - 1; i >= 0; i--) {
         int ind = MYFLT2LRND(*p->indexes[i]);
         if (UNLIKELY(ind >= dat->sizes[i] || ind<0)){
-        csound->Warning(csound, 
+        csound->Warning(csound,
                                    Str("Array index %d out of range (0,%d) "
                                        "for dimension %d"), ind,
                                    dat->sizes[i]-1, i+1);
-          
+
           return NOTOK;
         }
         index += ind * dat->sizes[i + 1];
