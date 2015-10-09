@@ -1274,10 +1274,10 @@ typedef struct NAME__ {
     int (*OpenLibrary)(void **library, const char *libraryPath);
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
-#ifndef __MACH__
-    char *(*LocalizeString)(const char *) __attribute__ ((format_arg (1)));
-#else
+#if defined (__CUDACC__) || defined (__MACH__) 
     char *(*LocalizeString)(const char *);
+#else
+    char *(*LocalizeString)(const char *) __attribute__ ((format_arg (1)));
 #endif
     char *(*strtok_r)(char*, char*, char**);
     double (*strtod)(char*, char**);
