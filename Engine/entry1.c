@@ -512,6 +512,7 @@ OENTRY opcodlst_1[] = {
   { "soundouts",S(SNDOUTS),_QQ, 5,  "",    "aaSo", sndoutset_S, NULL, soundouts },
   { "soundouts.i",S(SNDOUTS),_QQ, 5,  "",    "aaio", sndoutset, NULL, soundouts },
   { "in.a",   S(INM),0,     4,      "a",    "",     NULL,   NULL,   in      },
+  { "in.s",   S(INM),0,     4,      "aa",    "",     NULL,   NULL,   ins      },
   { "in.A",   S(INM),0,     4,      "a[]",  "",     NULL,   NULL,   inarray },
   { "ins",    S(INS),0,     4,      "aa",   "",     NULL,   NULL,   ins     },
   { "inq",    S(INQ),0,     4,      "aaaa", "",     NULL,   NULL,   inq     },
