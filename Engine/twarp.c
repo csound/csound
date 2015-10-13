@@ -24,7 +24,7 @@
 #include "csoundCore.h"                               /*    TWARP.C  */
 
 #define TSEGMAX (PMAX/2)
-//#define TSEGMAX (100)
+/* #define TSEGMAX (100) */
 
 typedef struct {
     MYFLT   betbas;
