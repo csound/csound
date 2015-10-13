@@ -456,6 +456,7 @@ extern "C" {
         char        *opname;
         char        *outypes;
         char        *intypes;
+        int         flags;
     } opcodeListEntry;
 
     typedef struct CsoundRandMTState_ {
