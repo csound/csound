@@ -28,6 +28,7 @@
                                 /* John ffitch -- 26 Jan 97 */
                                 /*  4 april 02 -- ma++ */
                                 /*  restructure to retrieve externally  */
+                                /* And suppressing deprecated Oct 2015 -- JPff */
 #include "csoundCore.h"
 #include <ctype.h>
 #include "interlocks.h"
@@ -125,6 +126,7 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
             s += ((int) strlen(ep->intypes) + 1);
             ((opcodeListEntry*) lst)[cnt].flags = ep->flags;
             //if (ep->flags&_QQ) printf("DEPRICATED: %s\n", ep->opname);
+            //if (ep->flags&_QQ) *deprec++;
             cnt++;
           }
           temp = temp->next;
@@ -156,7 +158,7 @@ void list_opcodes(CSOUND *csound, int level)
     opcodeListEntry *lst;
     const char      *sp = "                    ";   /* length should be 20 */
     int             j, k;
-    int             cnt, len = 0, xlen = 0;
+    int             cnt, deprec = 0, len = 0, xlen = 0;
 
     cnt = csoundNewOpcodeList(csound, &lst);
     if (UNLIKELY(cnt <= 0)) {
@@ -164,7 +166,10 @@ void list_opcodes(CSOUND *csound, int level)
       free(lst);
       return;
     }
-    csound->Message(csound, Str("%d opcodes\n"), cnt);
+    if ((level&2)==0)
+      for (j=0; j<cnt; j++)
+        if ((lst[j].flags&_QQ) !=0) deprec++;
+    csound->Message(csound, Str("%d opcodes\n"), cnt-deprec);
 
     for (j = 0, k = -1; j < cnt; j++) {
       if ((level&1) == 0) {                         /* Print in 4 columns */
