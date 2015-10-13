@@ -1699,6 +1699,7 @@ typedef struct NAME__ {
                                and nodebug function */
     int           score_parser;
     CS_HASH_TABLE* symbtab;
+    int           tseglen;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
