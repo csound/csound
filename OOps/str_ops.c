@@ -417,9 +417,7 @@ sprintf_opcode_(CSOUND *csound,
             maxChars += ((STRINGDAT*)parm)->size + strlen(strseg);
             outstring = str->data + offs;
           }
-          printf("in %%s case format=%s  arg=%s\n", strseg, ((STRINGDAT*)parm)->data);
           n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
-          printf("giving %s\n", outstring);
           break;
         default:
           free(strseg);
