@@ -417,7 +417,9 @@ sprintf_opcode_(CSOUND *csound,
             maxChars += ((STRINGDAT*)parm)->size + strlen(strseg);
             outstring = str->data + offs;
           }
+          printf("in %%s case format=%s  arg=%s\n", strseg, ((STRINGDAT*)parm)->data);
           n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
+          printf("giving %s\n", outstring);
           break;
         default:
           free(strseg);
@@ -480,7 +482,7 @@ static CS_NOINLINE int printf_opcode_(CSOUND *csound, PRINTF_OP *p)
     err = sprintf_opcode_(csound, p, &buf, (char*) p->sfmt->data, &(p->args[0]),
                           (int) p->INOCOUNT - 2,0);
     if (LIKELY(err == OK))
-      csound->MessageS(csound, CSOUNDMSG_ORCH, buf.data);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf.data);
     csound->Free(csound, buf.data);
 
     return err;
@@ -517,7 +519,7 @@ int puts_opcode_init(CSOUND *csound, PUTS_OP *p)
       if (!p->noNewLine)
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*) p->str->data);
       else
-        csound->MessageS(csound, CSOUNDMSG_ORCH, (char*) p->str->data);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", (char*) p->str->data);
     }
     p->prv_ktrig = *p->ktrig;
 
@@ -531,7 +533,7 @@ int puts_opcode_perf(CSOUND *csound, PUTS_OP *p)
       if (!p->noNewLine)
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*) p->str->data);
       else
-        csound->MessageS(csound, CSOUNDMSG_ORCH, (char*) p->str->data);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", (char*) p->str->data);
     }
 
     return OK;
