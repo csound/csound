@@ -1997,9 +1997,9 @@ msgid "Type confusion for %s (%d,%d), replacing\n"
 msgstr "Confusion de type pour %s (%d,%d), remplacement\n"
 
 #: Engine/symbtab.c:321 Engine/symbtab.c:342
-#, fuzzy, c-format
+#, c-format
 msgid "invalid input type for opcode %s \n"
-msgstr "type d'entrée non valide pour l'opcode %s"
+msgstr "type d'entrée non valide pour l'opcode %s\n"
 
 #: Engine/symbtab.c:375 Engine/symbtab.c:395
 #, c-format
@@ -5974,18 +5974,18 @@ msgstr "La dimension %d du tableau est hors limites pour les dimensions %d\n"
 
 #: Opcodes/arrays.c:187 Opcodes/arrays.c:198 Opcodes/arrays.c:240
 #: Opcodes/arrays.c:251
-#, fuzzy, c-format
+#, c-format
 msgid "Array index %d out of range (0,%d) for dimension %d"
-msgstr "Indice %d du tableau hors limites (0,%d) pour la dimension %d\n"
+msgstr "Indice %d du tableau hors limites (0, %d) pour la dimension %d"
 
 #: Opcodes/arrays.c:228 Opcodes/newarray.c:208
 msgid "Error: no indexes set for array get"
 msgstr "Erreur : aucun indice fixé pour lire dans le tableau"
 
 #: Opcodes/arrays.c:231
-#, fuzzy, c-format
+#, c-format
 msgid "Array dimension %d out of range for dimensions %d"
-msgstr "La dimension %d du tableau est hors limites pour les dimensions %d\n"
+msgstr "La dimension %d du tableau est hors limites pour les dimensions %d"
 
 #: Opcodes/arrays.c:319 Opcodes/newarray.c:290
 msgid "Dimensions do not match in array arithmetic"
@@ -10679,10 +10679,9 @@ msgstr ""
 "--devices[=in|out] \t\t liste les périphériques MIDI disponibles et termine"
 
 #: Top/argdecode.c:288
-#, fuzzy
 msgid "--midi-devices[=in|out] \t\t list available audio devices and exit"
 msgstr ""
-"--devices[=in|out] \t\t liste les périphériques audio disponibles et termine"
+"--midi-devices[=in|out] \t\t liste les périphériques disponibles et termine"
 
 #: Top/argdecode.c:289
 msgid "--get-system-sr \t\t print system sr and exit"
