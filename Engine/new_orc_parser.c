@@ -216,7 +216,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       // print_tree(csound, "AST - AFTER csound_orcparse()\n", astTree);
       //csp_orc_sa_cleanup(csound);
       corfile_rm(&csound->expanded_orc);
-
+      if (csound->oparms->odebug) csp_orc_sa_print_list(csound);
       if (csound->synterrcnt) err = 3;
       if (LIKELY(err == 0)) {
         if(csound->oparms->odebug) csound->Message(csound,
