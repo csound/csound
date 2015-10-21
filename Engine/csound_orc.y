@@ -21,7 +21,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-%pure_parser
+%pure-parser
 %parse-param {PARSE_PARM *parm}
 %parse-param {void *scanner}
 %lex-param { CSOUND * csound }
@@ -117,7 +117,6 @@
 %right S_AT
 %token S_GOTO
 %token T_HIGHEST
-%pure_parser
 %error-verbose
 %parse-param { CSOUND * csound }
 %parse-param { TREE ** astTree }
