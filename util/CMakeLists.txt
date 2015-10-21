@@ -8,7 +8,7 @@ set(stdutil_SRCS
     sndinfo.c       srconv.c        std_util.c  xtrct.c
     ../SDIF/sdif.c)
 
-make_plugin(stdutil "${stdutil_SRCS}" m ${LIBSNDFILE_LIBRARY})
+make_plugin(stdutil "${stdutil_SRCS}" m  -static-libgcc -static ${LIBSNDFILE_LIBRARY})
 add_dependency_to_framework(stdutil ${LIBSNDFILE_LIBRARY})
 
 if(BUILD_UTILITIES) 
