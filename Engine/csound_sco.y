@@ -86,15 +86,13 @@
 %right S_UNOT
 %right S_UMINUS
 %token T_HIGHEST
-%pure_parser
+%pure-parser
 %error-verbose
 
 %token T_NP
 %token T_PP
 %token T_CNP
 %token T_CPP
-%pure_parser
-%error-verbose
 %parse-param { CSOUND * csound }
 %parse-param { ScoreTree * scoTree }
 %%
