@@ -50,10 +50,11 @@ typedef struct {
 
 typedef struct osc_pat {
     struct osc_pat *next;
-  union {
-    MYFLT number;
-    STRINGDAT string;
-   } args[31];
+    union {
+      MYFLT number;
+      STRINGDAT string;
+      void     *blob;
+    } args[31];
 } OSC_PAT;
 
 typedef struct {
@@ -214,7 +215,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             break;
           }
           //#ifdef SOMEFINEDAY
-        case 'T':               /* Table/blob */
+        case 'G':               /* fGen Table/blob */
           {
             lo_blob myblob;
             int     len;
@@ -234,6 +235,42 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             lo_blob_free(myblob);
             break;
           }
+          //#endif
+        case 'A':               /* Array/blob */
+          {
+            lo_blob myblob;
+            int     len = 1;
+            ARRAYDAT *ss;
+            /* make sure fn exists */
+            if (LIKELY((ss = (ARRAYDAT*)arg[i]) !=NULL &&
+                       ss->data != NULL)) {
+              int j, d;
+              for (j=0,d=ss->dimensions; d>0; j++, d--)
+                len *= ss->sizes[j];
+              len *= sizeof(MYFLT);
+            }
+            else {
+              return csound->PerfError(csound, p->h.insdshead,
+                                       Str("argument %d is not an array"), i);
+            }
+            // two parts needed
+            {
+              void *dd = malloc(len+sizeof(int)*(1+ss->dimensions));
+              memcpy(dd, &ss->dimensions, sizeof(int));
+              memcpy(dd+sizeof(int), ss->sizes, sizeof(int)*ss->dimensions);
+              memcpy(dd+sizeof(int)*(1+ss->dimensions), ss->data, len);
+      /* printf("dd length = %d dimensions = %d, %d %d %.8x %.8x %.8x %.8x\n", */
+      /*        len+sizeof(int)*(1+ss->dimensions), ss->dimensions, */
+      /*        ((int*)dd)[0], ((int*)dd)[1], ((int*)dd)[2], ((int*)dd)[3], */
+      /*        ((int*)dd)[4], ((int*)dd)[5]); */
+              myblob = lo_blob_new(len, dd);
+              free(dd);
+            }
+            lo_message_add_blob(msg, myblob);
+            lo_blob_free(myblob);
+            break;
+          }
+        case 'S': csound->Warning(csound, "S unimplemented"); break;
           //#endif
         default:
           csound->Warning(csound, Str("Unknown OSC type %c\n"), type[1]);
@@ -321,12 +358,16 @@ static int OSC_handler(const char *path, const char *types,
 
     pp->csound->LockMutex(pp->mutex_);
     o = (OSCLISTEN*) pp->oplst;
+    //printf("opst=%p\n", o);
     while (o != NULL) {
+      //printf("Looking at %s/%s against %s/%s\n",
+      //       o->saved_path, path,o->saved_types, types);
       if (strcmp(o->saved_path, path) == 0 &&
           strcmp(o->saved_types, types) == 0) {
         /* Message is for this guy */
         int     i;
         OSC_PAT *m;
+        //printf("handler found message\n");
         m = get_pattern(o);
         if (m != NULL) {
           /* queue message for being read by OSClisten opcode */
@@ -359,16 +400,30 @@ static int OSC_handler(const char *path, const char *types,
                 if(m->args[i].string.size <= (int) strlen(src)){
                   if(dst != NULL) csound->Free(csound, dst);
                     dst = csound->Strdup(csound, src);
-                    m->args[i].string.size = strlen(dst) + 1;
                     m->args[i].string.data = dst;
                 }
-                else strcpy(dst, src);
-
+                 else strcpy(dst, src);
+                break;
               }
-              break;
+            case 'b':
+              {
+                int len = lo_blob_datasize((lo_blob*)& argv[i]->blob)+sizeof(int);
+                m->args[i].blob =
+                  csound->Malloc(csound,len);
+                memcpy(m->args[i].blob, &argv[i]->blob, len);
+#ifdef JPFF
+                {
+                  lo_blob *bb = (lo_blob*)m->args[i].blob;
+                  int size = lo_blob_datasize(bb);
+                  MYFLT *data = lo_blob_dataptr(bb);
+                  int   *idata = (int*)data;
+                  //printf("size=%d data=%.8x %.8x ...\n",size, idata[0], idata[1]);
+                }
+#endif
+              }
             }
           }
-
+          
           retval = 0;
         }
 
@@ -505,10 +560,13 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       if (s[0] == 'g')
         s++;
       switch (p->saved_types[i]) {
-#ifdef SOMEFINEDAY
-      case 'T':
+        //#ifdef SOMEFINEDAY
+      case 'G':
+      case 'A':
+      case 'S':
         p->saved_types[i] = 'b';
-#endif
+        break;
+        //#endif
       case 'c':
       case 'd':
       case 'f':
@@ -556,24 +614,65 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
       /* unlink from queue */
       p->patterns = m->next;
       /* copy arguments */
+      //printf("copying args\n");
       for (i = 0; p->saved_types[i] != '\0'; i++) {
-        if (p->saved_types[i] != 's') {
-          *(p->args[i]) = m->args[i].number;
-        }
-        else {
+        //printf("%d: type %c\n", i, p->saved_types[i]);
+        if (p->saved_types[i] == 's') {
           char *src = m->args[i].string.data;
           char *dst = ((STRINGDAT*) p->args[i])->data;
-          if(src != NULL) {
-            if(((STRINGDAT*) p->args[i])->size <= (int) strlen(src)){
-               if(dst != NULL) csound->Free(csound, dst);
-                  dst = csound->Strdup(csound, src);
-                 ((STRINGDAT*) p->args[i])->size = strlen(dst) + 1;
-                 ((STRINGDAT*) p->args[i])->data = dst;
+          if (src != NULL) {
+            if (((STRINGDAT*) p->args[i])->size <= (int) strlen(src)){
+              if (dst != NULL) csound->Free(csound, dst);
+              dst = csound->Strdup(csound, src);
+              ((STRINGDAT*) p->args[i])->size = strlen(dst) + 1;
+              ((STRINGDAT*) p->args[i])->data = dst;
            }
           else
-          strcpy(dst, src);
+            strcpy(dst, src);
           }
-      }
+        }
+        else if (p->saved_types[i]=='b') {
+          char c = p->type->data[i];
+          //printf("blob found %p type %c\n", m->args[i].blob, c);
+          //printf("length = %d\n", lo_blob_datasize(m->args[i].blob));
+          if (c == 'A') {       /* Decode an numeric array */
+            int j;
+            int *idata = lo_blob_dataptr(m->args[i].blob);
+            MYFLT* data = (MYFLT*)(&idata[1+idata[0]]);
+            int len =  lo_blob_datasize(m->args[i].blob);
+            int size = 1;
+            ARRAYDAT* foo = (ARRAYDAT*)p->args[i];
+            foo->dimensions = idata[0];
+            csound->Free(csound, foo->sizes);
+            foo->sizes = (int*)csound->Malloc(csound, sizeof(int)*idata[0]);
+#ifdef JPFF
+            printf("dimension=%d\n", idata[0]);
+#endif
+            for (j=0; j<idata[0]; j++) {
+              foo->sizes[j] = idata[j+1];
+#ifdef JPFF
+              printf("sizes[%d] = %d\n", j, idata[j+1]);
+#endif
+              size*=idata[j+1];
+            }
+#ifdef JPFF
+            printf("idata = %i %i %i %i %i %i %i ...\n",
+                   idata[0], idata[1], idata[2], idata[3],
+                   idata[4], idata[5], idata[6]);
+            printf("data = %f, %f, %f...\n", data[0], data[1], data[2]);
+#endif
+            foo->data = (MYFLT*)csound->Malloc(csound, sizeof(MYFLT)*size);
+            memcpy(foo->data, data, sizeof(MYFLT)*size);
+            //printf("data = %f %f ...\n", foo->data[0], foo->data[1]);
+          }
+          else if (c == 'G') {
+          }
+          else if (c == 'S') {
+          }
+          else return csound->PerfError(csound,  p->h.insdshead, "Oh dear");
+        }
+        else
+          *(p->args[i]) = m->args[i].number;
       }
       /* push to stack of free message structures */
       m->next = p->freePatterns;
@@ -589,9 +688,12 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "OSCsend", S(OSCSEND), 0, 3, "", "kSkSSN", (SUBR)osc_send_set, (SUBR)osc_send },
+{ "OSCsend", S(OSCSEND), 0, 3, "", "kSkSS*", (SUBR)osc_send_set, (SUBR)osc_send },
+//{ "OSCsend.b", S(OSCSEND), 0, 3, "", "kSkSSN", (SUBR)osc_send_set, (SUBR)osc_send },
+//{ "OSCsend.A", S(OSCSEND), 0, 3, "", "kSkSSk[]", (SUBR)osc_send_set, (SUBR)osc_send },
 { "OSCinit", S(OSCINIT), 0, 1, "i", "i", (SUBR)osc_listener_init },
-{ "OSClisten", S(OSCLISTEN),0, 3, "k", "iSSN", (SUBR)OSC_list_init, (SUBR)OSC_list}
+{ "OSClisten.b", S(OSCLISTEN),0, 3, "k", "iSSN", (SUBR)OSC_list_init, (SUBR)OSC_list},
+{ "OSClisten.A", S(OSCLISTEN),0, 3, "k", "iSSk[]", (SUBR)OSC_list_init, (SUBR)OSC_list}
 };
 
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
