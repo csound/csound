@@ -407,10 +407,11 @@ static int OSC_handler(const char *path, const char *types,
               }
             case 'b':
               {
-                int len = lo_blob_datasize((lo_blob*)& argv[i]->blob)+sizeof(int);
+                int len =
+                  lo_blob_datasize((lo_blob*)argv[i])+sizeof(int);
                 m->args[i].blob =
                   csound->Malloc(csound,len);
-                memcpy(m->args[i].blob, &argv[i]->blob, len);
+                memcpy(m->args[i].blob, argv[i], len);
 #ifdef JPFF
                 {
                   lo_blob *bb = (lo_blob*)m->args[i].blob;
@@ -670,6 +671,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
           else if (c == 'S') {
           }
           else return csound->PerfError(csound,  p->h.insdshead, "Oh dear");
+          csound->Free(csound, m->args[i].blob);
         }
         else
           *(p->args[i]) = m->args[i].number;
