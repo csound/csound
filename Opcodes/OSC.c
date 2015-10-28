@@ -242,6 +242,18 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             break;
           }
           //#endif
+        case 'a':               /* Audio as blob */
+          {
+            lo_blob myblob;
+            MYFLT *data = csound->Malloc(csound, sizeof(MYFLT)*(CS_KSMPS+1));
+            data[0] = CS_KSMPS;
+            memcpy(&data[1], arg[i], data[0]);
+            myblob = lo_blob_new(sizeof(MYFLT)*(CS_KSMPS+1), data);
+            lo_message_add_blob(msg, myblob);
+            csound->Free(csound, data);
+            lo_blob_free(myblob);
+            break;
+          }
         case 'A':               /* Array/blob */
           {
             lo_blob myblob;
@@ -570,6 +582,7 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
         //#ifdef SOMEFINEDAY
       case 'G':
       case 'A':
+      case 'a':
       case 'S':
         p->saved_types[i] = 'b';
         break;
@@ -672,6 +685,12 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
             memcpy(foo->data, data, sizeof(MYFLT)*size);
             //printf("data = %f %f ...\n", foo->data[0], foo->data[1]);
           }
+          else if (c == 'a') {
+            MYFLT *data= (MYFLT*)idata;
+            int len = (int)data[0];
+            if (len>CS_KSMPS) len = CS_KSMPS;
+            memcpy(p->args[i], &data[1], len*sizeof(MYFLT));
+          }
           else if (c == 'G') {  /* ftable received */
             FUNC* data = (FUNC*)idata;
             int fno = MYFLT2LRND(*p->args[i]);
@@ -691,7 +710,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
               MYFLT* dst = ftp->ftable;
               MYFLT* src = &(data->ftable);
 #ifdef JPFF
-              int j;
+              //int j;
               printf("copy data: from %p to %p length %d %d\n",
                      src, dst, len-sizeof(FUNC)+sizeof(MYFLT*), data->flen);
               printf("was %f %f %f ...\n", dst[0], dst[1], dst[2]);
