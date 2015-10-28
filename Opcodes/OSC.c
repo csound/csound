@@ -218,20 +218,26 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
         case 'G':               /* fGen Table/blob */
           {
             lo_blob myblob;
-            int     len;
+            int     len, olen;
             FUNC    *ftp;
             void *data;
             /* make sure fn exists */
             if (LIKELY((ftp=csound->FTnp2Find(csound,arg[i]))!=NULL)) {
-              data = ftp->ftable;
-              len = ftp->flen-1;        /* and set it up */
+              len = ftp->flen;        /* and set it up */
+              data = csound->Malloc(csound,
+                                    olen=sizeof(FUNC)-sizeof(MYFLT*)+
+                                         sizeof(MYFLT)*len);
+              memcpy(data, ftp, sizeof(FUNC)-sizeof(MYFLT*));
+              memcpy(data+sizeof(FUNC)-sizeof(MYFLT*),
+                     ftp->ftable, sizeof(MYFLT)*len);
             }
             else {
               return csound->PerfError(csound, p->h.insdshead,
                                        Str("ftable %.2f does not exist"), *arg[i]);
             }
-            myblob = lo_blob_new(sizeof(MYFLT)*len, data);
+            myblob = lo_blob_new(olen, data);
             lo_message_add_blob(msg, myblob);
+            csound->Free(csound, data);
             lo_blob_free(myblob);
             break;
           }
@@ -408,7 +414,7 @@ static int OSC_handler(const char *path, const char *types,
             case 'b':
               {
                 int len =
-                  lo_blob_datasize((lo_blob*)argv[i])+sizeof(int);
+                  lo_blobsize((lo_blob*)argv[i]);
                 m->args[i].blob =
                   csound->Malloc(csound,len);
                 memcpy(m->args[i].blob, argv[i], len);
@@ -634,13 +640,13 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
         }
         else if (p->saved_types[i]=='b') {
           char c = p->type->data[i];
+          int len =  lo_blob_datasize(m->args[i].blob);
           //printf("blob found %p type %c\n", m->args[i].blob, c);
           //printf("length = %d\n", lo_blob_datasize(m->args[i].blob));
+          int *idata = lo_blob_dataptr(m->args[i].blob);
           if (c == 'A') {       /* Decode an numeric array */
             int j;
-            int *idata = lo_blob_dataptr(m->args[i].blob);
             MYFLT* data = (MYFLT*)(&idata[1+idata[0]]);
-            int len =  lo_blob_datasize(m->args[i].blob);
             int size = 1;
             ARRAYDAT* foo = (ARRAYDAT*)p->args[i];
             foo->dimensions = idata[0];
@@ -666,7 +672,37 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
             memcpy(foo->data, data, sizeof(MYFLT)*size);
             //printf("data = %f %f ...\n", foo->data[0], foo->data[1]);
           }
-          else if (c == 'G') {
+          else if (c == 'G') {  /* ftable received */
+            FUNC* data = (FUNC*)idata;
+            int fno = MYFLT2LRND(*p->args[i]);
+            FUNC *ftp;
+            if (UNLIKELY(fno <= 0 /* ||
+                         fno > csound->maxfnum */))
+              return csound->PerfError(csound, p->h.insdshead,
+                                       Str("Invalid ftable no. %d"), fno);
+            ftp = csound->FTFindP(csound, p->args[i]);
+            if (ftp==NULL) // need to allocate
+              ;
+            printf("flen: %d -> ", ftp->flen);
+            memcpy(ftp, data, sizeof(FUNC)-sizeof(MYFLT*));
+            printf("%d\n", ftp->flen);
+            ftp->fno = fno;
+            ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
+                                                  len-sizeof(FUNC)+sizeof(MYFLT*));
+            {
+              MYFLT* dst = ftp->ftable;
+              MYFLT* src = &(data->ftable);
+#ifdef JPFF
+              int j;
+              printf("copy data: from %p to %p length %d %d\n",
+                     src, dst, len-sizeof(FUNC)+sizeof(MYFLT*), data->flen);
+              printf("was %f %f %f ...\n", dst[0], dst[1], dst[2]);
+              printf("will be %f %f %f ...\n", src[0],src[1], src[2]);
+              memcpy(dst, src, len-sizeof(FUNC)+sizeof(MYFLT*));
+#endif
+              //for (j=0; j<data->flen;j++) dst[j]=src[j];
+              //printf("now %f %f %f ...\n", dst[0], dst[1], dst[2]);
+            }
           }
           else if (c == 'S') {
           }
