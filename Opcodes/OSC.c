@@ -683,9 +683,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
             ftp = csound->FTFindP(csound, p->args[i]);
             if (ftp==NULL) // need to allocate
               ;
-            printf("flen: %d -> ", ftp->flen);
             memcpy(ftp, data, sizeof(FUNC)-sizeof(MYFLT*));
-            printf("%d\n", ftp->flen);
             ftp->fno = fno;
             ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
                                                   len-sizeof(FUNC)+sizeof(MYFLT*));
