@@ -1747,6 +1747,8 @@ extern void sanitize(CSOUND *csound);
 PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
 {
     int retVal=1;
+    if ((retVal=setjmp(csound->exitjmp))) return retVal;
+    retVal = 1;
     TREE *root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
      retVal = csoundCompileTree(csound, root);
