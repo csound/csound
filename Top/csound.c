@@ -850,7 +850,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* dag_task_dep */
     100,            /* dag_task_max_size */
     0,              /* tempStatus */
-    0,              /* orcLineOffset */
+    1,              /* orcLineOffset */
     0,              /* scoLineOffset */
     NULL,           /* csdname */
     -1,             /*  parserUdoflag */
