@@ -115,11 +115,11 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     if (UNLIKELY(p->INOCOUNT > 31))
       return csound->InitError(csound, Str("Too many arguments to OSCsend"));
     /* a-rate arguments are not allowed */
-    for (i = 0; i < p->INOCOUNT-5; i++) {
-      if (strcmp("a", csound->GetTypeForArg(p->arg[i])->varTypeName) == 0) {
-        return csound->InitError(csound, Str("No a-rate arguments allowed"));
-      }
-    }
+    /* for (i = 0; i < p->INOCOUNT-5; i++) { */
+    /*   if (strcmp("a", csound->GetTypeForArg(p->arg[i])->varTypeName) == 0) { */
+    /*     return csound->InitError(csound, Str("No a-rate arguments allowed")); */
+    /*   } */
+    /* } */
 
     if (*p->port<0)
       pp = NULL;
@@ -442,15 +442,10 @@ static int OSC_handler(const char *path, const char *types,
               }
             }
           }
-          
           retval = 0;
         }
-
         break;
-
       }
-
-
       o = (OSCLISTEN*) o->nxt;
     }
 
@@ -744,11 +739,8 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 
 static OENTRY localops[] = {
 { "OSCsend", S(OSCSEND), 0, 3, "", "kSkSS*", (SUBR)osc_send_set, (SUBR)osc_send },
-//{ "OSCsend.b", S(OSCSEND), 0, 3, "", "kSkSSN", (SUBR)osc_send_set, (SUBR)osc_send },
-//{ "OSCsend.A", S(OSCSEND), 0, 3, "", "kSkSSk[]", (SUBR)osc_send_set, (SUBR)osc_send },
 { "OSCinit", S(OSCINIT), 0, 1, "i", "i", (SUBR)osc_listener_init },
-{ "OSClisten.b", S(OSCLISTEN),0, 3, "k", "iSSN", (SUBR)OSC_list_init, (SUBR)OSC_list},
-{ "OSClisten.A", S(OSCLISTEN),0, 3, "k", "iSSk[]", (SUBR)OSC_list_init, (SUBR)OSC_list}
+{ "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS*", (SUBR)OSC_list_init, (SUBR)OSC_list},
 };
 
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
