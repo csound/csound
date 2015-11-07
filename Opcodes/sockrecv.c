@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
@@ -115,7 +115,7 @@ static uintptr_t udpRecv(void *pdata)
 static int init_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
@@ -211,7 +211,7 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
 static int init_recvS(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
@@ -295,7 +295,7 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
 static int init_srecv(CSOUND *csound, SOCKRECVT *p)
 {
     socklen_t clilen;
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
@@ -317,7 +317,7 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
     p->server_addr.sin_family = AF_INET;
 
     /* the server IP address, in network byte order */
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
     p->server_addr.sin_addr.S_un.S_addr =
       inet_addr((const char *) p->ipaddress->data);
 #else

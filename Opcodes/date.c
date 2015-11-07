@@ -89,7 +89,7 @@ static int getcurdir(CSOUND *csound, GETCWD *p)
       p->Scd->data = csound->Calloc(csound, p->Scd->size);
     }
 
-#if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__)
+#if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__) || defined(__CYGWIN__)
     if (UNLIKELY(getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #else
     if (UNLIKELY( _getcwd(p->Scd->data, p->Scd->size-1)==NULL))

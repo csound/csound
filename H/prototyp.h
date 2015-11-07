@@ -20,10 +20,10 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-                                                        /*  PROTOTYP.H  */
+/*  PROTOTYP.H  */
 #if defined(__BUILDING_LIBCSOUND) && !defined(_CSOUND_PROTO_H)
 #define _CSOUND_PROTO_H
-
+#include <sysdep.h>
 #include <sndfile.h>
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +34,7 @@ void    *mmalloc(CSOUND *, size_t);
 void    *mcalloc(CSOUND *, size_t);
 void    *mrealloc(CSOUND *, void *, size_t);
 void    mfree(CSOUND *, void *);
-  void    *mmallocDebug(CSOUND *, size_t, char*, int);
+void    *mmallocDebug(CSOUND *, size_t, char*, int);
 void    *mcallocDebug(CSOUND *, size_t, char*, int);
 void    *mreallocDebug(CSOUND *, void *, size_t, char*, int);
 void    mfreeDebug(CSOUND *, void *, char*, int);
@@ -80,10 +80,10 @@ void    add_tmpfile(CSOUND *, char *);
 void    xturnoff(CSOUND *, INSDS *);
 void    xturnoff_now(CSOUND *, INSDS *);
 int     insert_score_event(CSOUND *, EVTBLK *, double);
-  //MEMFIL  *ldmemfile(CSOUND *, const char *);
-  //MEMFIL  *ldmemfile2(CSOUND *, const char *, int);
+//MEMFIL  *ldmemfile(CSOUND *, const char *);
+//MEMFIL  *ldmemfile2(CSOUND *, const char *, int);
 MEMFIL  *ldmemfile2withCB(CSOUND *csound, const char *filnam, int csFileType,
-                         int (*callback)(CSOUND*, MEMFIL*));
+                          int (*callback)(CSOUND*, MEMFIL*));
 void    rlsmemfiles(CSOUND *);
 int     delete_memfile(CSOUND *, const char *);
 char    *csoundTmpFileName(CSOUND *, const char *);
@@ -99,7 +99,7 @@ int     check_rtaudio_name(char *fName, char **devName, int isOutput);
 int     csoundLoadOpcodeDB(CSOUND *, const char *);
 void    csoundDestroyOpcodeDB(CSOUND *);
 int     csoundCheckOpcodePluginFile(CSOUND *, const char *);
-  //int     csoundLoadAllPluginOpcodes(CSOUND *);
+//int     csoundLoadAllPluginOpcodes(CSOUND *);
 int     csoundLoadAndInitModule(CSOUND *, const char *);
 void    csoundNotifyFileOpened(CSOUND *, const char *, int, int, int);
 int     insert_score_event_at_sample(CSOUND *, EVTBLK *, int64_t);
@@ -271,14 +271,14 @@ int csoundYield(CSOUND *);
  * Returns zero on success.
  */
 int csoundAddUtility(CSOUND *, const char *name,
-                               int (*UtilFunc)(CSOUND *, int, char **));
+                     int (*UtilFunc)(CSOUND *, int, char **));
 
 /**
  * Set description text for the specified utility.
  * Returns zero on success.
  */
 int csoundSetUtilityDescription(CSOUND *, const char *utilName,
-                                          const char *utilDesc);
+                                const char *utilDesc);
 
 /**
  * Remove all configuration variables of Csound instance 'csound',
