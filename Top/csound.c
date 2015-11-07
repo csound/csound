@@ -850,7 +850,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* dag_task_dep */
     100,            /* dag_task_max_size */
     0,              /* tempStatus */
-    0,              /* orcLineOffset */
+    1,              /* orcLineOffset */
     0,              /* scoLineOffset */
     NULL,           /* csdname */
     -1,             /*  parserUdoflag */
@@ -4112,6 +4112,7 @@ static void csoundMessageBufferCallback_1_(CSOUND *csound, int attr,
 
     csoundLockMutex(pp->mutex_);
     len = vsnprintf(pp->buf, 16384, fmt, args); // FIXEDME: this can overflow
+    va_end(args);
     if (UNLIKELY((unsigned int) len >= (unsigned int) 16384)) {
       csoundUnlockMutex(pp->mutex_);
       fprintf(stderr, Str("csound: internal error: message buffer overflow\n"));
@@ -4149,6 +4150,7 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
     default:
       len = vfprintf(stdout, fmt, args);
     }
+    va_end(args);
     p = (csMsgStruct*) malloc(sizeof(csMsgStruct) + (size_t) len);
     p->nxt = (csMsgStruct*) NULL;
     p->attr = attr;

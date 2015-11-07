@@ -86,7 +86,7 @@
 %right S_UNOT
 %right S_UMINUS
 %token T_HIGHEST
-%pure_parser
+%pure-parser
 %error-verbose
 
 %token T_NP
