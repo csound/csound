@@ -99,7 +99,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                    //printf("newline: %d\n", n);
                    csound_prs_line(csound->expanded_sco, yyscanner);
                    if (csound->expanded_sco->body[csound->expanded_sco->p-1]!='\n')
-                     corfile_putc('\n', csound->expanded_sco); 
+                     corfile_putc('\n', csound->expanded_sco);
                  }
                 }
 "//"            {
@@ -110,7 +110,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                     csound_prsset_lineno(n, yyscanner);
                     csound_prs_line(csound->expanded_sco, yyscanner);
                     if (csound->expanded_sco->body[csound->expanded_sco->p-1]!='\n')
-                      corfile_putc('\n', csound->expanded_sco); 
+                      corfile_putc('\n', csound->expanded_sco);
                   }
                   else {
                     corfile_puts(yytext, csound->expanded_sco);
@@ -118,7 +118,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                 }
 ";"             {
                   if (PARM->isString != 1) {
-                    comment(yyscanner); 
+                    comment(yyscanner);
                     csound_prsset_lineno(csound_prsget_lineno(yyscanner)+1,
                                          yyscanner);
                     //printf("comment: %d\n", csound_prsget_lineno(yyscanner));
@@ -365,7 +365,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                      csound->Die(csound, Str("Includes nested too deeply"));
                    }
                    csound_prsset_lineno(1, yyscanner);
-                   PARM->lstack[PARM->depth] = 
+                   PARM->lstack[PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, mname) : 63);
                    yy_scan_string(mm->body, yyscanner);
                  }
@@ -490,11 +490,11 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                   do_ifdef(csound, yytext, yyscanner);
                   BEGIN(INITIAL);
                 }
-{ELSE}          { 
+{ELSE}          {
                   if (PARM->isString != 1) {
                     if (PARM->ifdefStack == NULL) {
                       csound->Message(csound, Str("#else without #if\n"));
-                      csound->LongJmp(csound, 1); 
+                      csound->LongJmp(csound, 1);
                     }
                     else if (PARM->ifdefStack->isElse) {
                       csound->Message(csound, Str("#else after #else\n"));
@@ -622,8 +622,12 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       PARM->llocn = PARM->locn;
       corfile_puts(bb, csound->expanded_sco);
     }
-    if (strstr(buffer, "://")) cf = copy_url_corefile(csound, buffer, 1);
-    else                       cf = copy_to_corefile(csound, buffer, "INCDIR", 1);
+#ifdef HAVE_CURL
+    if (strstr(buffer, "://"))
+        cf = copy_url_corefile(csound, buffer, 1);
+#endif
+    if (!strstr(buffer, "://"))
+        cf = copy_to_corefile(csound, buffer, "INCDIR", 1);
     if (cf == NULL)
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
@@ -904,7 +908,7 @@ void csound_prs_line(CORFIL* cf, void *yyscanner)
       PARM->llocn = locn;
       if (n!=PARM->line+1) {
         char bb[80];
-        //printf("old line %d, new %d\n", PARM->line+1, n); 
+        //printf("old line %d, new %d\n", PARM->line+1, n);
         sprintf(bb, "#line %d\n", n);
         corfile_puts(bb, cf);
       }
