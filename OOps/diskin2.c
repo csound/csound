@@ -301,7 +301,8 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
-                               Str("diskin2: %s: failed to open file"), name);
+                               Str("diskin2: %s: failed to open file (%s)"),
+                               name, strerror(errno));
     }
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));

@@ -169,8 +169,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         corfile_putc('\0', csound->orchstr);
         corfile_putc('\0', csound->orchstr);
       }
-      csound->DebugMsg(csound, "Calling preprocess on >>%s<<\n",
-              corfile_body(csound->orchstr));
+      /* csound->DebugMsg(csound, "Calling preprocess on >>%s<<\n", */
+      /*         corfile_body(csound->orchstr)); */
       //csound->DebugMsg(csound,"FILE: %s \n", csound->orchstr->body);
       //    csound_print_preextra(&qq);
       cs_init_math_constants_macros(csound, &qq);
@@ -182,8 +182,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csound->LongJmp(csound, 1);
       }
       csound_prelex_destroy(qq.yyscanner);
-      csound->DebugMsg(csound, "yielding >>%s<<\n",
-                       corfile_body(csound->expanded_orc));
+      /* csound->DebugMsg(csound, "yielding >>%s<<\n", */
+      /*                  corfile_body(csound->expanded_orc)); */
       corfile_rm(&csound->orchstr);
 
     }
@@ -216,7 +216,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       // print_tree(csound, "AST - AFTER csound_orcparse()\n", astTree);
       //csp_orc_sa_cleanup(csound);
       corfile_rm(&csound->expanded_orc);
-
+      if (csound->oparms->odebug) csp_orc_sa_print_list(csound);
       if (csound->synterrcnt) err = 3;
       if (LIKELY(err == 0)) {
         if(csound->oparms->odebug) csound->Message(csound,
