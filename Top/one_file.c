@@ -62,7 +62,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 {
 #define   nBytes (256)
     char lbuf[256];
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN__)
     struct _stat tmp;
 #else
     struct stat tmp;
@@ -930,7 +930,8 @@ int read_unified_file2(CSOUND *csound, char *csd)
                                strerror(errno));
       return 0;
     }
-
+// TODO: Factor this out so it can be used with a FILE obtained from open_memstream.
+// Oops, can't do it, no open_memstream in MinGW.
 #ifdef _DEBUG
     csoundMessage(csound, "Calling unified file system with %s\n", name);
 #endif
@@ -968,6 +969,7 @@ int read_unified_file2(CSOUND *csound, char *csd)
                     Str("Could not find <CsoundSynthesizer> tag in CSD file.\n"));
       result = FALSE;
     }
+    // Factoring ends here.
     csoundFileClose(csound, fd);
     return result;
 }

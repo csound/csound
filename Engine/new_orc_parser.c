@@ -37,7 +37,7 @@ int             closedir(DIR*);
 #  endif
 #endif
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN__)
 #  include <io.h>
 #  include <direct.h>
 #endif
