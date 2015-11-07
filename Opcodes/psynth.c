@@ -380,9 +380,11 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
               /* new track */
               contin = 1;
               goto cont;
+#if 0
               freq = freqnext;
               phase = phasenext - freq * factor;
               amp = FL(0.0);
+#endif
             }
             if(amp > min){
             /* phasediff */

@@ -71,7 +71,7 @@ char* cs_strdup(CSOUND* csound, char* str) {
 
     if (len > 0) {
       strncpy(retVal, str, len);
-    } 
+    }
     retVal[len] = '\0';
 
     return retVal;
