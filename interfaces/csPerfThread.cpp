@@ -135,7 +135,8 @@ extern "C" {
         pthread_cond_wait(&recordData->condvar, &recordData->mutex);
         int sampsread;
         do {
-            sampsread = csoundReadCircularBuffer(NULL, recordData->cbuf, buf, bufsize);
+            sampsread = csoundReadCircularBuffer(NULL, recordData->cbuf,
+                                                 buf, bufsize);
 #ifdef USE_DOUBLE
             sf_write_double((SNDFILE *) recordData->sfile,
                             buf, sampsread);
@@ -440,12 +441,14 @@ int CsoundPerformanceThread::Perform()
                   modspout++;
               }
           }
-          int written = csoundWriteCircularBuffer(NULL, recordData.cbuf, spout, len);
+          int written = csoundWriteCircularBuffer(NULL, recordData.cbuf,
+                                                  spout, len);
           if (written != len) {
               csoundMessage(csound, "perfThread record buffer overrun.\n");
           }
       }
-      pthread_cond_signal(&recordData.condvar); // Needs to be outside the if for the case where stop record was requested
+      pthread_cond_signal(&recordData.condvar); // Needs to be outside the if
+                              // for the case where stop record was requested
     } while (!retval);
  endOfPerf:
     status = retval;
