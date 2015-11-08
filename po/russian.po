@@ -343,20 +343,20 @@ msgstr ""
 msgid "perf-pass statements illegal in header blk (%s)\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1864
+#: Engine/csound_orc_compile.c:1866
 msgid "i[fixme] pset args != pmax"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:2007
+#: Engine/csound_orc_compile.c:2009
 #, c-format
 msgid "Missing local arg: %s\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:2067
+#: Engine/csound_orc_compile.c:2069
 msgid "**unrecorded**"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:2140
+#: Engine/csound_orc_compile.c:2142
 #, c-format
 msgid "Opcode \"%s\" is deprecated\n"
 msgstr ""
@@ -936,157 +936,157 @@ msgstr ""
 msgid "instr %d uses %d p-fields but is given %d"
 msgstr ""
 
-#: Engine/insert.c:384 Engine/insert.c:617
+#: Engine/insert.c:384 Engine/insert.c:618
 #, c-format
 msgid "instr %s now active:\n"
 msgstr ""
 
-#: Engine/insert.c:386 Engine/insert.c:619
+#: Engine/insert.c:386 Engine/insert.c:620
 #, c-format
 msgid "instr %d now active:\n"
 msgstr ""
 
-#: Engine/insert.c:428
+#: Engine/insert.c:429
 #, c-format
 msgid "MIDI activating instr %s\n"
 msgstr ""
 
-#: Engine/insert.c:430
+#: Engine/insert.c:431
 #, c-format
 msgid "MIDI activating instr %d\n"
 msgstr ""
 
-#: Engine/insert.c:439
+#: Engine/insert.c:440
 #, c-format
 msgid "new MIDI alloc for instr %s:\n"
 msgstr ""
 
-#: Engine/insert.c:441
+#: Engine/insert.c:442
 #, c-format
 msgid "new MIDI alloc for instr %d:\n"
 msgstr ""
 
-#: Engine/insert.c:457
+#: Engine/insert.c:458
 #, c-format
 msgid "MIDI note overlaps with key %d on same channel"
 msgstr ""
 
-#: Engine/insert.c:727
+#: Engine/insert.c:728
 #, c-format
 msgid "removed instance of instr %s\n"
 msgstr ""
 
-#: Engine/insert.c:729
+#: Engine/insert.c:730
 #, c-format
 msgid "removed instance of instr %d\n"
 msgstr ""
 
-#: Engine/insert.c:909
+#: Engine/insert.c:910
 msgid "inactive allocs returned to freespace\n"
 msgstr ""
 
-#: Engine/insert.c:935
+#: Engine/insert.c:936
 #, c-format
 msgid "could not find playing instr %f\n"
 msgstr ""
 
-#: Engine/insert.c:948
+#: Engine/insert.c:949
 msgid ""
 "\n"
 "INIT ERROR: "
 msgstr ""
 
-#: Engine/insert.c:961
+#: Engine/insert.c:962
 #, c-format
 msgid "INIT ERROR in instr %d (opcode %s): "
 msgstr ""
 
-#: Engine/insert.c:964
+#: Engine/insert.c:965
 #, c-format
 msgid "INIT ERROR in instr %d (subinstr %d): "
 msgstr ""
 
-#: Engine/insert.c:968
+#: Engine/insert.c:969
 #, c-format
 msgid "INIT ERROR in instr %d: "
 msgstr ""
 
-#: Engine/insert.c:989
+#: Engine/insert.c:990
 #, c-format
 msgid "PERF ERROR in instr %d (opcode %s): "
 msgstr ""
 
-#: Engine/insert.c:992
+#: Engine/insert.c:993
 #, c-format
 msgid "PERF ERROR in instr %d (subinstr %d): "
 msgstr ""
 
-#: Engine/insert.c:996
+#: Engine/insert.c:997
 #, c-format
 msgid "PERF ERROR in instr %d: "
 msgstr ""
 
-#: Engine/insert.c:1002
+#: Engine/insert.c:1003
 msgid "   note aborted\n"
 msgstr ""
 
-#: Engine/insert.c:1021
+#: Engine/insert.c:1022
 msgid "subinstr: number of output args greater than nchnls"
 msgstr ""
 
-#: Engine/insert.c:1089
+#: Engine/insert.c:1090
 msgid "subinstr: too many p-fields"
 msgstr ""
 
-#: Engine/insert.c:1193
+#: Engine/insert.c:1194
 #, c-format
 msgid "%s: invalid local ksmps value: %d"
 msgstr ""
 
-#: Engine/insert.c:1345 OOps/bus.c:620 Opcodes/stackops.c:290
+#: Engine/insert.c:1346 OOps/bus.c:620 Opcodes/stackops.c:290
 #, c-format
 msgid "%s: not initialised"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Engine/insert.c:1426
+#: Engine/insert.c:1427
 #, c-format
 msgid "setksmps: invalid ksmps value: %d, original: %d"
 msgstr ""
 
-#: Engine/insert.c:1564
+#: Engine/insert.c:1565
 msgid "subinstr: not initialised"
 msgstr ""
 
-#: Engine/insert.c:2122
+#: Engine/insert.c:2123
 #, c-format
 msgid ""
 "instr %d allocated at %p\n"
 "\tlclbas %p, opds %p\n"
 msgstr ""
 
-#: Engine/insert.c:2149
+#: Engine/insert.c:2150
 #, c-format
 msgid "op (%s) allocated at %p\n"
 msgstr ""
 
-#: Engine/insert.c:2174
+#: Engine/insert.c:2175
 msgid "null iopadr"
 msgstr ""
 
-#: Engine/insert.c:2185
+#: Engine/insert.c:2186
 msgid "null opadr"
 msgstr ""
 
-#: Engine/insert.c:2272
+#: Engine/insert.c:2273
 msgid "inconsistent opds total"
 msgstr ""
 
-#: Engine/insert.c:2332
+#: Engine/insert.c:2333
 #, c-format
 msgid "Instrument %s is still active"
 msgstr ""
 
-#: Engine/insert.c:2335
+#: Engine/insert.c:2336
 #, c-format
 msgid "Instrument %d is still active"
 msgstr ""
@@ -1963,19 +1963,19 @@ msgstr ""
 msgid "error:  "
 msgstr ""
 
-#: Engine/twarp.c:90
+#: Engine/twarp.c:91
 msgid "twarp: illegal opcode\n"
 msgstr ""
 
-#: Engine/twarp.c:157
+#: Engine/twarp.c:189
 msgid "twarp: t has extra or disordered beat value\n"
 msgstr ""
 
-#: Engine/twarp.c:160
+#: Engine/twarp.c:192
 msgid "twarp: t has non-positive tempo\n"
 msgstr ""
 
-#: Engine/twarp.c:163
+#: Engine/twarp.c:195
 msgid "twarp: t segments exceed twarp array\n"
 msgstr ""
 
@@ -2758,228 +2758,228 @@ msgstr ""
 msgid "Memory allocation failure"
 msgstr ""
 
-#: InOut/rtalsa.c:571
+#: InOut/rtalsa.c:574
 msgid " *** ALSA: must specify a device name, not a number (e.g. -odac:hw:0,0)"
 msgstr ""
 
-#: InOut/rtalsa.c:579
+#: InOut/rtalsa.c:582
 #, c-format
 msgid " *** ALSA: %s: memory allocation failure"
 msgstr ""
 
-#: InOut/rtalsa.c:665
+#: InOut/rtalsa.c:668
 msgid "Error reading data from audio input device"
 msgstr ""
 
-#: InOut/rtalsa.c:710
+#: InOut/rtalsa.c:713
 msgid "Error writing data to audio output device"
 msgstr ""
 
-#: InOut/rtalsa.c:751
+#: InOut/rtalsa.c:754
 msgid "ALSA MIDI: memory allocation failure"
 msgstr ""
 
-#: InOut/rtalsa.c:758
+#: InOut/rtalsa.c:761
 #, c-format
 msgid "ALSA: error opening MIDI input device: '%s'"
 msgstr ""
 
-#: InOut/rtalsa.c:762
+#: InOut/rtalsa.c:765
 #, c-format
 msgid "ALSA: opened MIDI input device '%s'\n"
 msgstr ""
 
-#: InOut/rtalsa.c:781
+#: InOut/rtalsa.c:784
 msgid "ALSA midi: no string\n"
 msgstr ""
 
-#: InOut/rtalsa.c:785
+#: InOut/rtalsa.c:788
 msgid "ALSA midi: Using all devices.\n"
 msgstr ""
 
-#: InOut/rtalsa.c:814
+#: InOut/rtalsa.c:817
 #, c-format
 msgid "ALSA midi: Error opening device: %s\n"
 msgstr ""
 
-#: InOut/rtalsa.c:836
+#: InOut/rtalsa.c:839
 msgid "ALSA midi: No devices found.\n"
-msgstr ""
-
-#: InOut/rtalsa.c:936
-#, c-format
-msgid "ALSA: error opening MIDI output device '%s'"
 msgstr ""
 
 #: InOut/rtalsa.c:939
 #, c-format
+msgid "ALSA: error opening MIDI output device '%s'"
+msgstr ""
+
+#: InOut/rtalsa.c:942
+#, c-format
 msgid "ALSA: opened MIDI output device '%s'\n"
 msgstr ""
 
-#: InOut/rtalsa.c:979
+#: InOut/rtalsa.c:982
 msgid "-M stdin fcntl failed"
 msgstr ""
 
-#: InOut/rtalsa.c:987 Top/one_file.c:436
+#: InOut/rtalsa.c:990 Top/one_file.c:436
 #, c-format
 msgid "cannot open %s"
 msgstr ""
 
-#: InOut/rtalsa.c:998
+#: InOut/rtalsa.c:1001
 msgid "MIDI receive: cannot get termios info."
 msgstr ""
 
-#: InOut/rtalsa.c:1006
+#: InOut/rtalsa.c:1009
 msgid "MIDI receive: cannot set input baud rate."
 msgstr ""
 
-#: InOut/rtalsa.c:1012
+#: InOut/rtalsa.c:1015
 msgid "MIDI receive: cannot set termios."
 msgstr ""
 
-#: InOut/rtalsa.c:1016
+#: InOut/rtalsa.c:1019
 #, c-format
 msgid "Opened MIDI input device file '%s'\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1056
+#: InOut/rtalsa.c:1059
 #, c-format
 msgid "sensMIDI: retval errno %d"
 msgstr ""
 
-#: InOut/rtalsa.c:1123
+#: InOut/rtalsa.c:1126
 #, c-format
 msgid "Error opening MIDI output device file '%s'"
 msgstr ""
 
-#: InOut/rtalsa.c:1127
+#: InOut/rtalsa.c:1130
 #, c-format
 msgid "Opened MIDI output device file '%s'\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1287
+#: InOut/rtalsa.c:1290
 #, c-format
 msgid "ALSASEQ: connection failed %s %s (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1291 InOut/rtalsa.c:1308
+#: InOut/rtalsa.c:1294 InOut/rtalsa.c:1311
 #, c-format
 msgid "ALSASEQ: connected %s %d:%d\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1304 InOut/rtalsa.c:1314
+#: InOut/rtalsa.c:1307 InOut/rtalsa.c:1317
 #, c-format
 msgid "ALSASEQ: connection failed %s %s, port %d (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1334
+#: InOut/rtalsa.c:1337
 msgid "ALSASEQ input: memory allocation failure"
 msgstr ""
 
-#: InOut/rtalsa.c:1341 InOut/rtalsa.c:1433
+#: InOut/rtalsa.c:1344 InOut/rtalsa.c:1436
 #, c-format
 msgid "ALSASEQ: error opening sequencer (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1346
+#: InOut/rtalsa.c:1349
 msgid "ALSASEQ: opened MIDI input sequencer\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1351 InOut/rtalsa.c:1443
+#: InOut/rtalsa.c:1354 InOut/rtalsa.c:1446
 #, c-format
 msgid "ALSASEQ: cannot set client name '%s' (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1363
+#: InOut/rtalsa.c:1366
 #, c-format
 msgid "ALSASEQ: cannot create input port (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1371
+#: InOut/rtalsa.c:1374
 #, c-format
 msgid "ALSASEQ: created input port '%s' %d:%d\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1375 InOut/rtalsa.c:1467
+#: InOut/rtalsa.c:1378 InOut/rtalsa.c:1470
 #, c-format
 msgid "ALSASEQ: cannot create midi event (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1426
+#: InOut/rtalsa.c:1429
 msgid "ALSASEQ output: memory allocation failure"
 msgstr ""
 
-#: InOut/rtalsa.c:1438
+#: InOut/rtalsa.c:1441
 msgid "ALSASEQ: opened MIDI output sequencer\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1455
+#: InOut/rtalsa.c:1458
 #, c-format
 msgid "ALSASEQ: cannot create output port (%s)"
 msgstr ""
 
-#: InOut/rtalsa.c:1463
+#: InOut/rtalsa.c:1466
 #, c-format
 msgid "ALSASEQ: created output port '%s' %d:%d\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1521
+#: InOut/rtalsa.c:1524
 msgid "warning... could not create global var\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1526
+#: InOut/rtalsa.c:1529
 msgid "RT scheduler priority, alsa module"
 msgstr ""
 
-#: InOut/rtalsa.c:1534
+#: InOut/rtalsa.c:1537
 msgid "ALSASEQ client name (default: Csound)"
 msgstr ""
 
-#: InOut/rtalsa.c:1541
+#: InOut/rtalsa.c:1544
 msgid "ALSA real-time audio and MIDI module for Csound by Istvan Varga\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1554 InOut/rtalsa.c:1680
+#: InOut/rtalsa.c:1557 InOut/rtalsa.c:1683
 #, c-format
 msgid "cannot determine card number: %s"
 msgstr ""
 
-#: InOut/rtalsa.c:1558
+#: InOut/rtalsa.c:1561
 msgid "no sound card found"
 msgstr ""
 
-#: InOut/rtalsa.c:1569
+#: InOut/rtalsa.c:1572
 #, c-format
 msgid "cannot open control for card %d: %s"
 msgstr ""
 
-#: InOut/rtalsa.c:1576
+#: InOut/rtalsa.c:1579
 #, c-format
 msgid "cannot determine device number: %s"
 msgstr ""
 
-#: InOut/rtalsa.c:1618
+#: InOut/rtalsa.c:1621
 #, c-format
 msgid "cannot get rawmidi information %d:%d:%d: %s\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1765
+#: InOut/rtalsa.c:1768
 msgid "rtalsa: Wrong callback."
 msgstr ""
 
-#: InOut/rtalsa.c:1800
+#: InOut/rtalsa.c:1803
 msgid "rtaudio: ALSA module enabled\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1817
+#: InOut/rtalsa.c:1820
 msgid "rtmidi: ALSA Raw MIDI module enabled\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1829
+#: InOut/rtalsa.c:1832
 msgid "rtmidi: ALSASEQ module enabled\n"
 msgstr ""
 
-#: InOut/rtalsa.c:1839
+#: InOut/rtalsa.c:1842
 msgid "rtmidi: devfile module enabled\n"
 msgstr ""
 
@@ -3927,112 +3927,117 @@ msgstr ""
 msgid "diskin2: invalid number of channels"
 msgstr ""
 
-#: OOps/diskin2.c:289 OOps/diskin2.c:1759
+#: OOps/diskin2.c:289 OOps/diskin2.c:1760
 msgid "diskin2: unknown sample format"
 msgstr ""
 
-#: OOps/diskin2.c:304 OOps/diskin2.c:1774
+#: OOps/diskin2.c:304
 #, c-format
-msgid "diskin2: %s: failed to open file"
+msgid "diskin2: %s: failed to open file (%s)"
 msgstr ""
 
-#: OOps/diskin2.c:314
+#: OOps/diskin2.c:315
 msgid ""
 "diskin2: number of output args inconsistent with number of file channels"
 msgstr ""
 
-#: OOps/diskin2.c:346 OOps/diskin2.c:1831
+#: OOps/diskin2.c:347 OOps/diskin2.c:1832
 #, c-format
 msgid "diskin2: warning: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 
-#: OOps/diskin2.c:432 OOps/diskin2.c:1924
+#: OOps/diskin2.c:433 OOps/diskin2.c:1925
 #, c-format
 msgid ""
 "diskin2: opened (asynchronously) '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
 
-#: OOps/diskin2.c:446 OOps/diskin2.c:1938
+#: OOps/diskin2.c:447 OOps/diskin2.c:1939
 #, c-format
 msgid ""
 "diskin2: opened '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
 
-#: OOps/diskin2.c:527 OOps/diskin2.c:713 OOps/diskin2.c:909
-#: OOps/diskin2.c:1540 OOps/diskin2.c:1970 OOps/diskin2.c:2163
+#: OOps/diskin2.c:528 OOps/diskin2.c:714 OOps/diskin2.c:910
+#: OOps/diskin2.c:1541 OOps/diskin2.c:1971 OOps/diskin2.c:2164
 msgid "diskin2: not initialised"
 msgstr ""
 
-#: OOps/diskin2.c:693 OOps/diskin2.c:884 OOps/diskin2.c:1711
-#: OOps/diskin2.c:2136
+#: OOps/diskin2.c:694 OOps/diskin2.c:885 OOps/diskin2.c:1712
+#: OOps/diskin2.c:2137
 msgid "diskin2: file descriptor closed or invalid\n"
 msgstr ""
 
-#: OOps/diskin2.c:1018
+#: OOps/diskin2.c:1019
 msgid "soundin: invalid number of channels"
 msgstr ""
 
-#: OOps/diskin2.c:1040
+#: OOps/diskin2.c:1041
 msgid "soundin: unknown sample format"
 msgstr ""
 
-#: OOps/diskin2.c:1061
+#: OOps/diskin2.c:1062
 #, c-format
 msgid "soundin: %s: failed to open file"
 msgstr ""
 
-#: OOps/diskin2.c:1069
+#: OOps/diskin2.c:1070
 #, c-format
 msgid ""
 "soundin: opened '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
 
-#: OOps/diskin2.c:1079
+#: OOps/diskin2.c:1080
 msgid ""
 "soundin: number of output args inconsistent with number of file channels"
 msgstr ""
 
-#: OOps/diskin2.c:1088
+#: OOps/diskin2.c:1089
 #, c-format
 msgid "soundin: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 
-#: OOps/diskin2.c:1137
+#: OOps/diskin2.c:1138
 msgid "soundin: not initialised"
 msgstr ""
 
-#: OOps/diskin2.c:1220
+#: OOps/diskin2.c:1221
 #, c-format
 msgid "%s is deprecated; use fout instead\n"
 msgstr ""
 
-#: OOps/diskin2.c:1257
+#: OOps/diskin2.c:1258
 #, c-format
 msgid "%s: invalid sample format: %d"
 msgstr ""
 
-#: OOps/diskin2.c:1262
+#: OOps/diskin2.c:1263
 #, c-format
 msgid "%s cannot open %s"
 msgstr ""
 
-#: OOps/diskin2.c:1274
+#: OOps/diskin2.c:1275
 #, c-format
 msgid "%s: opening RAW outfile %s\n"
 msgstr ""
 
-#: OOps/diskin2.c:1299
+#: OOps/diskin2.c:1300
 msgid "soundout: not initialised"
 msgstr ""
 
-#: OOps/diskin2.c:1321
+#: OOps/diskin2.c:1322
 msgid "soundouts: not initialised"
 msgstr ""
 
-#: OOps/diskin2.c:1800
+#: OOps/diskin2.c:1775
+#, c-format
+msgid "diskin2: %s: failed to open file"
+msgstr ""
+
+#: OOps/diskin2.c:1801
 msgid "diskin2: output array too small"
 msgstr ""
 
@@ -5613,66 +5618,72 @@ msgstr ""
 msgid "reverbx: not initialised"
 msgstr ""
 
-#: Opcodes/OSC.c:115
+#: Opcodes/OSC.c:116
 msgid "Too many arguments to OSCsend"
 msgstr ""
 
-#: Opcodes/OSC.c:119
-msgid "No a-rate arguments allowed"
-msgstr ""
-
-#: Opcodes/OSC.c:211
+#: Opcodes/OSC.c:212
 msgid "Time stamp is two values"
 msgstr ""
 
-#: Opcodes/OSC.c:230
+#: Opcodes/OSC.c:236
 #, c-format
 msgid "ftable %.2f does not exist"
 msgstr ""
 
-#: Opcodes/OSC.c:239
+#: Opcodes/OSC.c:272
+#, c-format
+msgid "argument %d is not an array"
+msgstr ""
+
+#: Opcodes/OSC.c:294
 #, c-format
 msgid "Unknown OSC type %c\n"
 msgstr ""
 
-#: Opcodes/OSC.c:273
+#: Opcodes/OSC.c:328
 msgid "OSC: failed to allocate globals"
 msgstr ""
 
-#: Opcodes/OSC.c:403
+#: Opcodes/OSC.c:472
 msgid "OSC deinitiatised\n"
 msgstr ""
 
-#: Opcodes/OSC.c:426
+#: Opcodes/OSC.c:495
 #, c-format
 msgid "cannot start OSC listener on port %s\n"
 msgstr ""
 
-#: Opcodes/OSC.c:435
+#: Opcodes/OSC.c:504
 #, c-format
 msgid "OSC listener #%d started on port %s\n"
 msgstr ""
 
-#: Opcodes/OSC.c:485
+#: Opcodes/OSC.c:554
 msgid "OSC not running"
 msgstr ""
 
-#: Opcodes/OSC.c:489
+#: Opcodes/OSC.c:558
 msgid "invalid handle"
 msgstr ""
 
-#: Opcodes/OSC.c:497
+#: Opcodes/OSC.c:566
 #, fuzzy
 msgid "invalid number of arguments"
 msgstr "неправильный число аргументов"
 
-#: Opcodes/OSC.c:518 Opcodes/OSC.c:523
+#: Opcodes/OSC.c:591 Opcodes/OSC.c:596
 msgid "argument list inconsistent with format string"
 msgstr ""
 
-#: Opcodes/OSC.c:527
+#: Opcodes/OSC.c:600
 msgid "invalid type"
 msgstr ""
+
+#: Opcodes/OSC.c:696
+#, fuzzy, c-format
+msgid "Invalid ftable no. %d"
+msgstr "неправильный число аргументов"
 
 #: Opcodes/Vosim.c:51
 msgid "vosim: pulse table not found"
@@ -7983,31 +7994,31 @@ msgstr ""
 msgid "psynth: function table not found\n"
 msgstr ""
 
-#: Opcodes/psynth.c:604 Opcodes/psynth.c:697
+#: Opcodes/psynth.c:606 Opcodes/psynth.c:699
 msgid "Input not in TRACKS format\n"
 msgstr ""
 
-#: Opcodes/psynth.c:802
+#: Opcodes/psynth.c:804
 msgid "trsplit: input not in TRACKS format\n"
 msgstr ""
 
-#: Opcodes/psynth.c:898 Opcodes/psynth.c:1060
+#: Opcodes/psynth.c:900 Opcodes/psynth.c:1062
 msgid "trmix: first input not in TRACKS format\n"
 msgstr ""
 
-#: Opcodes/psynth.c:903 Opcodes/psynth.c:1065
+#: Opcodes/psynth.c:905 Opcodes/psynth.c:1067
 msgid "trmix: second input not in TRACKS format\n"
 msgstr ""
 
-#: Opcodes/psynth.c:976
+#: Opcodes/psynth.c:978
 msgid "trfil: input not in TRACKS format\n"
 msgstr ""
 
-#: Opcodes/psynth.c:981
+#: Opcodes/psynth.c:983
 msgid "trfil: could not find function table\n"
 msgstr ""
 
-#: Opcodes/psynth.c:1168
+#: Opcodes/psynth.c:1170
 msgid "binit: first input not in TRACKS format\n"
 msgstr ""
 
@@ -8986,7 +8997,7 @@ msgstr ""
 
 #: Opcodes/stk/stkOpcodes.cpp:721
 msgid ""
-"STK opodes not available: define environment variable RAWWAVE_PATH\n"
+"STK opcodes not available: define environment variable RAWWAVE_PATH\n"
 "(points to rawwaves directory) to use STK opcodes."
 msgstr ""
 
@@ -10623,200 +10634,200 @@ msgstr ""
 msgid "Error allocating opcode list"
 msgstr ""
 
-#: Top/csound.c:1446
+#: Top/csound.c:1448
 #, c-format
 msgid "Multithread performance: insno: %3d  thread %d of %d starting.\n"
 msgstr ""
 
-#: Top/csound.c:1452
+#: Top/csound.c:1454
 msgid "Bad ThreadId"
 msgstr ""
 
-#: Top/csound.c:1923 Top/csound.c:1955 Top/csound.c:1983 Top/csound.c:2019
-#: Top/csound.c:4185
+#: Top/csound.c:1925 Top/csound.c:1957 Top/csound.c:1985 Top/csound.c:2021
+#: Top/csound.c:4189
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 
-#: Top/csound.c:1939 Top/csound.c:1968
+#: Top/csound.c:1941 Top/csound.c:1970
 msgid "Score finished in csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1962 Top/csound.c:4192
+#: Top/csound.c:1964 Top/csound.c:4196
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:1990
+#: Top/csound.c:1992
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:2028
+#: Top/csound.c:2030
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2036
+#: Top/csound.c:2038
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2047
+#: Top/csound.c:2049
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2331
+#: Top/csound.c:2333
 msgid "WARNING: "
 msgstr "ПРЕДУПРЕЖДЕНИЕ:"
 
-#: Top/csound.c:2473
+#: Top/csound.c:2475
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2474
+#: Top/csound.c:2476
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2503 Top/csound.c:2540
+#: Top/csound.c:2505 Top/csound.c:2542
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2507 Top/csound.c:2544
+#: Top/csound.c:2509 Top/csound.c:2546
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2661
+#: Top/csound.c:2663
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2666 Top/csound.c:2700
+#: Top/csound.c:2668 Top/csound.c:2702
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2669 Top/csound.c:2703
+#: Top/csound.c:2671 Top/csound.c:2705
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2695
+#: Top/csound.c:2697
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2717
+#: Top/csound.c:2719
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:2879
+#: Top/csound.c:2881
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:2901
+#: Top/csound.c:2903
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3042 Top/main.c:352
+#: Top/csound.c:3044 Top/main.c:352
 msgid "setting dummy interface\n"
 msgstr ""
 
-#: Top/csound.c:3124
+#: Top/csound.c:3126
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:3149
+#: Top/csound.c:3151
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:3165
+#: Top/csound.c:3167
 msgid "Failed during csoundLoadModules"
 msgstr ""
 
-#: Top/csound.c:3180
+#: Top/csound.c:3182
 #, c-format
 msgid "Csound version %s beta (float samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3183
+#: Top/csound.c:3185
 #, c-format
 msgid "Csound version %s (float samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3188
+#: Top/csound.c:3190
 #, c-format
 msgid "Csound version %s beta (double samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3191
+#: Top/csound.c:3193
 #, c-format
 msgid "Csound version %s (double samples) %s\n"
 msgstr ""
 
-#: Top/csound.c:3222
+#: Top/csound.c:3224
 msgid "Real time audio module name"
 msgstr ""
 
-#: Top/csound.c:3247
+#: Top/csound.c:3249
 msgid "Real time MIDI module name"
 msgstr ""
 
-#: Top/csound.c:3252
+#: Top/csound.c:3254
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:3258
+#: Top/csound.c:3260
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:3266
+#: Top/csound.c:3268
 msgid "Title tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3272
+#: Top/csound.c:3274
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3277
+#: Top/csound.c:3279
 msgid "Short Copyright tag in output soundfile"
 msgstr ""
 
-#: Top/csound.c:3283
+#: Top/csound.c:3285
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3288
+#: Top/csound.c:3290
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3295
+#: Top/csound.c:3297
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3300
+#: Top/csound.c:3302
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3310
+#: Top/csound.c:3312
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:3316
+#: Top/csound.c:3318
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:3323
+#: Top/csound.c:3325
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3532
+#: Top/csound.c:3534
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:3562
+#: Top/csound.c:3564
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:4084
+#: Top/csound.c:4086
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:4115
+#: Top/csound.c:4118
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 
@@ -11144,7 +11155,7 @@ msgstr ""
 msgid "Failed to open csd file: %s"
 msgstr ""
 
-#: Top/one_file.c:807 Top/one_file.c:942
+#: Top/one_file.c:807 Top/one_file.c:943
 msgid "STARTING FILE\n"
 msgstr ""
 
@@ -11156,11 +11167,11 @@ msgstr ""
 msgid "Skipping <CsOptions>\n"
 msgstr ""
 
-#: Top/one_file.c:846 Top/one_file.c:953
+#: Top/one_file.c:846 Top/one_file.c:954
 msgid "Creating orchestra\n"
 msgstr ""
 
-#: Top/one_file.c:851 Top/one_file.c:958
+#: Top/one_file.c:851 Top/one_file.c:959
 msgid "Creating score\n"
 msgstr ""
 
@@ -11169,7 +11180,7 @@ msgstr ""
 msgid "unknown CSD tag: %s\n"
 msgstr ""
 
-#: Top/one_file.c:895 Top/one_file.c:968
+#: Top/one_file.c:895 Top/one_file.c:969
 msgid "Could not find <CsoundSynthesizer> tag in CSD file.\n"
 msgstr ""
 
@@ -11177,11 +11188,11 @@ msgstr ""
 msgid "Could not find </CsoundSynthesizer> tag in CSD file.\n"
 msgstr ""
 
-#: Top/opcode.c:159
+#: Top/opcode.c:165
 msgid "Error creating opcode list"
 msgstr ""
 
-#: Top/opcode.c:163
+#: Top/opcode.c:172
 #, c-format
 msgid "%d opcodes\n"
 msgstr ""
