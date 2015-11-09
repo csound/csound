@@ -27,7 +27,8 @@ using namespace std;
 using namespace dvx;
 extern int MaxChannelStringLength;
 
-ChannelObject::ChannelObject(const char *name, int type) :
+ChannelObject::ChannelObject(CSOUND* csound, const char *name, int type) :
+  m_csound(csound),
 	m_name(name), 
 	m_type(type), 
 	m_value(FL(0.0)), 
@@ -62,14 +63,19 @@ void ChannelObject::SetStringVal(const char *str)
 	assert(str);
 	m_str_value = str;
 	if(m_csoundChanPtr)
-		strncpy((char*)m_csoundChanPtr, str, MaxChannelStringLength-1);
+    csoundSetStringChannel(m_csound, m_name.c_str(), (char*)str);
 	m_dirty = true;
 }
 
 void ChannelObject::GetStringVal()
 {
-	if(m_csoundChanPtr)
-		m_str_value = (char*)m_csoundChanPtr;
+  if(m_csoundChanPtr) {
+    int strsize = csoundGetChannelDatasize(m_csound, m_name.c_str());
+    char* data = (char*)malloc(strsize + 1);
+    csoundGetStringChannel(m_csound, m_name.c_str(), data);
+    m_str_value = data;
+    free(data);
+  }
 }
 
 void ChannelObject::SyncVal(Direction d)
@@ -80,14 +86,14 @@ void ChannelObject::SyncVal(Direction d)
 		if(IsControlChannel())
 			*m_csoundChanPtr = m_value;
 		else if(IsStringChannel())
-			strncpy((char*)m_csoundChanPtr, m_str_value.c_str(), MaxChannelStringLength-1);
+      SetStringVal(m_str_value.c_str());
 	}
 	else if(OUT_ == d)
 	{
 		if(IsControlChannel())
 			m_value = *m_csoundChanPtr;
 		else if(IsStringChannel())
-			m_str_value = (char*)m_csoundChanPtr;
+      GetStringVal();
 		m_dirty = true;
 	}
 }
@@ -104,7 +110,7 @@ void ChannelObject::SetName(const char *str)
 
 
 ChannelGroup::ChannelGroup(t_object *o, CSOUND *c, Direction d) : 
-	m_channels(), m_direction(d), m_obj(o), m_csound(c), m_lock((char*)"ChannelGroup"), m_cmp_co((char*)"", 0),
+	m_channels(), m_direction(d), m_obj(o), m_csound(c), m_lock((char*)"ChannelGroup"), m_cmp_co(c, (char*)"", 0),
 	m_audio_thread_atom_buffer(2),
 	m_clock_thread_atom_buffer(2)
 {
@@ -120,7 +126,7 @@ bool ChannelGroup::SetVal(const char *name, int type, MYFLT val)
 {
 	ChannelObject *co = NULL;
 	ScopedLock lock(m_lock);
-	co = FindCreateChannel(name, type);
+	co = FindCreateChannel(m_csound, name, type);
 	if(co)
 	{ 
 		co->SetVal(val); return true;
@@ -132,10 +138,11 @@ bool ChannelGroup::SetVal(const char *name, int type, const char *str)
 {
 	ChannelObject *co = NULL;
 	ScopedLock lock(m_lock);
-	co = FindCreateChannel(name, type);
+	co = FindCreateChannel(m_csound, name, type);
 	if(co)
-	{ 
-		co->SetStringVal(str); return true;
+	{
+    csoundSetStringChannel(m_csound, name, (char*)str);
+    return true;
 	}
 	return false;
 }
@@ -144,7 +151,7 @@ bool ChannelGroup::SetValAndSync(const char *name, int type, MYFLT val)
 {
 	ChannelObject *co = NULL;
 	ScopedLock lock(m_lock);
-	co = FindCreateChannel(name, type);
+	co = FindCreateChannel(m_csound, name, type);
 	if(co)
 	{ 
 		if(NULL == co->m_csoundChanPtr)
@@ -159,14 +166,12 @@ bool ChannelGroup::SetValAndSync(const char *name, int type, const char *str)
 {
 	ChannelObject *co = NULL;
 	ScopedLock lock(m_lock);
-	co = FindCreateChannel(name, type);
+  co = FindCreateChannel(m_csound, name, type);
 	if(co)
-	{ 
-		if(NULL == co->m_csoundChanPtr)
-			csoundGetChannelPtr(m_csound, &co->m_csoundChanPtr, co->m_name.c_str(), co->m_type);
-			
-		co->SetStringVal(str); return true;
-	}
+	{
+    csoundSetStringChannel(m_csound, name, (char*)str);
+    return true;
+  }
 	return false;
 }
 
@@ -285,7 +290,7 @@ void ChannelGroup::GetPtrs()
 			if(co) 
 				channel_object_exists = true;
 			else
-				co = FindCreateChannel(csoundChanList[i].name, csoundChanList[i].type);
+				co = FindCreateChannel(m_csound, csoundChanList[i].name, csoundChanList[i].type);
 			if(co)
 			{
 				result = csoundGetChannelPtr(m_csound, &co->m_csoundChanPtr, co->m_name.c_str(), co->m_type);
@@ -340,7 +345,7 @@ void ChannelGroup::ClearPtrs()
 }
 
 // Find and return ChannelObject if it exists.  If not, create and return it.
-ChannelObject* ChannelGroup::FindCreateChannel(const char *name, int type)
+ChannelObject* ChannelGroup::FindCreateChannel(CSOUND* csound, const char *name, int type)
 {
 	boost::ptr_set<ChannelObject>::iterator it;
 	ChannelObject *co = NULL;
@@ -352,7 +357,7 @@ ChannelObject* ChannelGroup::FindCreateChannel(const char *name, int type)
 	{
 		if(it == m_channels.end())
 		{
-			co = new ChannelObject(name, type);
+			co = new ChannelObject(csound, name, type);
 			m_channels.insert(co);
 		}
 		else co = &*it;

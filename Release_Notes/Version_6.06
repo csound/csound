@@ -1,0 +1,192 @@
+
+============================
+CSOUND VERSION 6.06
+RELEASE NOTES   VERSION 6.06
+============================
+
+A number of bug fixes, some quite major, are included, as well as some
+new facilities and extensions
+
+
+The Developers 
+
+
+
+USER-LEVEL CHANGES
+==================
+
+New opcodes:
+
+    o    getseed reads the state of the PRN generator; opposite of
+         seed opcode.
+
+    o    tabifd — Instantaneous Frequency Distribution, magnitude and
+         phase analysis.  
+
+    o    websocket — Read and write signals and arrays using a
+         websocket connection.  
+
+    o    framebuffer — Read audio signals into 1 dimensional k-rate
+         arrays and vice-versa with a specified buffer size. 
+
+    o    olabuffer — Sum overlapping frames of audio as k-rate arrays
+         and read as an audio signal 
+    
+New Gen and Macros:
+
+    o    
+
+Orchestra:
+
+    o   Labels are allowed in instrument 0
+    
+Score:
+
+    o    Maximum string length in scores increased to 1024
+
+Options:
+
+    o    
+
+
+Modified Opcodes and Gens:
+
+  o    diskin2 array version uses array size to give number of
+       channels in raw file form
+
+  o    diskin2 now has the kpitch parameter defaulting to 1 for simple use
+
+  o    Vibrato f-table in wgflute and wgcar optional, defaulting to
+       sine wave
+
+  o    schedule now accept string arguments
+
+  o    urandom now available on OSX platforms
+
+  o    GEN18 had fencepost problem; largely rewritten
+
+  o    In poscil family of opcodes it is possible to skip initialisation
+       of phase
+
+  o    svfilter now can skip initialisation
+
+  o    When opening an input file nchncls_i  is used rather than nchnls
+       This ia a change that should have followed the existence of nchnls_i
+
+  o    rtjack module now reports the sampling rate
+
+  o    The opcodes rfft, rifft, fft, fftinv, r2c and c2r now
+       have i-rate array versions
+
+  o    New optional threshhold parameter in opcodes tradsyn, sinsyn
+       and resyn
+
+  o    New thresholding option for partials
+
+Utilities:
+
+  o    extract fixed
+
+  o    src_conv improved and integrated with -U options
+
+  o    fixes in atsa, and heti
+  
+Frontends:
+
+  pnacl: 
+         Support for 48000 sample rate fixed
+
+  icsound:
+
+  csound~:
+        Changes to the threading system
+        String channel initialisation fixed
+        A number of other bugs were fixed
+        
+  Emscripten:
+        Csound Javascript object can now receive data from the outvalue
+        opcode.
+
+  csdebugger:
+
+  HTML5:
+        Integrate HTML, JavaScript, and other features of HTML5 with
+        Csound, either by embedding a Web page as an <html> element in
+        the CSD file for CsoundQt or Csound for Android, or by hosting
+        Csound in the JavaScript context of a standalone Web browser
+        (Emscripten, PNaCl) or embedded Web browser (csound.node).
+
+General usage:
+
+    o   Ill-formatted macros in the orchestra now trapped
+
+Bugs fixed:
+
+    o   Use of Windows-style environments for INCDIR etc now works with
+        device numbers.
+
+    o   vibrato opcode fixed 
+
+    o   clicking in real-time sample accurate case fixed
+
+    o   Copying of strings now correct; did confuse memory sometimes
+
+    o   Bug in pvstanal fixed
+
+    o   Rounding error in cpspch fixed
+
+    o   Removed crash on recompiling a named instrument
+
+    o   Fix interpolation bug in tablexkt
+
+    0   Fix to plltrack when ksmps is 1
+
+====================
+SYSTEM LEVEL CHANGES
+====================
+
+System changes:
+
+    o   The "error" message from STK plugin is now a warning
+
+    o   
+    
+
+Internal changes:
+
+    * 
+
+API
+===
+    * Redefinition of opcodes and UDOs fixed
+    
+
+Platform Specific
+=================
+
+iOS
+---
+
+    * 
+
+
+Android
+-------
+
+    * 
+
+Windows
+-------
+
+OSX
+---
+        - csnd6.jar link installed in the correct location.
+        - Java JNI linking issues solved.
+        - fixed link name for libpng in libfltk_image
+    
+Linux
+-----
+       
+
+
+========================================================================

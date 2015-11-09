@@ -206,11 +206,30 @@ static int cpupercent(CSOUND *csound, CPUMETER* p)
     return OK;
 }
 
+typedef struct {
+    OPDS   h;
+    MYFLT  *ti;
+} SYST;
+
+
+static int systime(CSOUND *csound, SYST *p){
+    struct timespec ts;
+    long ns;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    *p->ti = round((ts.tv_sec + ts.tv_nsec/1.e9)*1000);
+    return OK;
+}
+
+
+
+
 #define S(x)    sizeof(x)
 
 static OENTRY cpumeter_localops[] = {
   { "cpumeter",   S(CPUMETER),   0,5, "kzzzzzzzz", "i",
     (SUBR)cpupercent_init, (SUBR)cpupercent, NULL   },
+{ "systime", S(SYST),0, 3, "k",    "", (SUBR)systime, (SUBR)systime},
+{ "systime", S(SYST),0, 1, "i",    "", (SUBR)systime}
 };
 
 LINKAGE_BUILTIN(cpumeter_localops)

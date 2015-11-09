@@ -1,9 +1,9 @@
 # UTILITY PLUGIN AND PROGRAMS
 
 set(stdutil_SRCS
-    atsa.c          cvanal.c        dnoise.c    envext.c    
-    het_export.c    het_import.c    hetro.c     lpanal.c 
-    lpc_export.c    lpc_import.c    mixer.c     pvanal.c        
+    atsa.c          cvanal.c        dnoise.c    envext.c
+    het_export.c    het_import.c    hetro.c     lpanal.c
+    lpc_export.c    lpc_import.c    mixer.c     pvanal.c
     pv_export.c     pv_import.c     pvlook.c    scale.c
     sndinfo.c       srconv.c        std_util.c  xtrct.c
     ../SDIF/sdif.c)
@@ -23,9 +23,11 @@ if(BUILD_UTILITIES)
     make_utility(hetro       het_main.c)
     make_utility(lpanal      lpc_main.c)
     make_utility(lpc_export  lpcx_main.c)
-    target_link_libraries(lpc_export m)
     make_utility(lpc_import  lpci_main.c)
     make_executable(mixer-bin   mixer_main.c   "${CSOUNDLIB}" mixer)
+    if(LINUX)
+      target_link_libraries(mixer-bin m)
+    endif()
     make_utility(pvanal      pvc_main.c)
     make_utility(pvlook      pvl_main.c)
     make_utility(pv_export   pvx_main.c)
@@ -33,4 +35,15 @@ if(BUILD_UTILITIES)
     make_utility(scale       scale_main.c)
     make_utility(sndinfo     sndinfo_main.c)
     make_utility(srconv      srconv_main.c)
+
+
+    find_library(LIBSNDFILE_LIBRARY sndfile)
+    find_library(LIBSAMPLERATE_LIBRARY samplerate)
+
+    if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY)
+        make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}")
+    else()
+        message(STATUS "Not building src_conv (libsndfile or libsamplerate not found)")
+    endif()
+
 endif()

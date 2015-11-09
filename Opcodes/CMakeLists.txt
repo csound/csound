@@ -16,6 +16,7 @@ option(BUILD_VST4CS_OPCODES "Build the vst4cs opcodes" OFF)
 option(BUILD_EXCITER_OPCODES "Build the exciter opcode" ON)
 option(BUILD_BUCHLA_OPCODES "Build the Buchla filter opcode" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
+option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 
 find_package(Boost)
 check_include_file(ladspa.h LADSPA_H)
@@ -101,16 +102,19 @@ if(BUILD_PLATEREV_OPCODES)
    make_plugin(platerev platerev.c m)
 endif()
 
-set(scansyn_SRCS
-    scansyn.c scansynx.c)
-make_plugin(scansyn "${scansyn_SRCS}" m)
+if(BUILD_SCANSYN_OPCODES)
+    set(scansyn_SRCS
+        scansyn.c scansynx.c)
+    make_plugin(scansyn "${scansyn_SRCS}" m)
+endif()
 
 if(UNIX)
     make_plugin(control control.c)
+    make_plugin(urandom urandom.c)
 endif()
 
 if(LINUX)
-    make_plugin(urandom urandom.c)
+    #make_plugin(urandom urandom.c)
     make_plugin(joystick linuxjoystick.c)
 endif()
 
@@ -284,3 +288,6 @@ add_subdirectory(stk)
 add_subdirectory(cuda)
 add_subdirectory(opencl)
 add_subdirectory(hdf5)
+add_subdirectory(websockets)
+add_subdirectory(framebuffer)
+

@@ -71,7 +71,8 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
     STA(onsect) = 1;     STA(onbeat) = FL(0.0);   /* other default vals   */
     STA(offsect) = 999;  STA(offbeat) = FL(0.0);
     //    while (fscanf(xfp, s) != EOF) {
-    while (fgets(s, 82, xfp) != NULL) {
+     while (fscanf(xfp, "%s", s) != EOF) {
+       //while (fgets(s, 82, xfp) != NULL) {
       char *c = s;
       int i;
       switch (*c) {
@@ -86,6 +87,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
         switch (flag) {
         case 'i':
           sscanf(s, "%d", &i);
+          //printf("%s %d\n", s, i);
           if (i>=0 && i < INSMAX) STA(inslst)[i] = 1;
           else csound->Die(csound, Str("instrument number out of range"));
           all = 0;

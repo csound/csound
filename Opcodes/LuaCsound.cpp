@@ -201,7 +201,8 @@ public:
         }
         else
         {
-            log(csound, "luaL_dostring failed with: %d\n", result);
+            log(csound, "luaL_dostring failed with: %d\n%s\n",
+                result, lua_tostring(L, -1));
         }
         return result;
     }

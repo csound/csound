@@ -157,8 +157,8 @@ Sequencer::~Sequencer()
 	if(m_read_write_thread_exists)
 	{
 		object_post(m_obj, "Waiting for sequencer read/write thread to finish.");
-		if(0 != pthread_join(m_read_write_thread, NULL))
-			object_error(m_obj, "Sequencer::~Sequencer() : pthread_join() failed.");
+		if(0 != csoundJoinThread(m_read_write_thread))
+			object_error(m_obj, "Sequencer::~Sequencer() : csoundJoinThread() failed.");
 	}
 }
 
@@ -204,23 +204,25 @@ namespace dvx
 		if(s->m_recording || s->m_playing) clock_fdelay(s->m_max_clock, s->m_timerRes);
 	}
 
-	void Sequencer_ReadThreadFunc(Sequencer::ParamObject *spo)
-	{
+	uintptr_t Sequencer_ReadThreadFunc(void *data)
+  {
+    Sequencer::ParamObject *spo = (Sequencer::ParamObject*)data;
 		object_post(spo->m_seq->m_obj, "Reading sequence from %s...", spo->m_file.c_str());
 		spo->m_seq->Read(spo->m_file);
 		spo->m_seq->m_read_write_thread_exists = false;
 		delete spo;
-		pthread_exit(NULL);
-	}
+    return 0;
+  }
 
-	void Sequencer_WriteThreadFunc(Sequencer::ParamObject *spo)
+	uintptr_t Sequencer_WriteThreadFunc(void* data)
 	{
+    Sequencer::ParamObject *spo = (Sequencer::ParamObject*)data;
 		object_post(spo->m_seq->m_obj, "Writing sequence to %s...", spo->m_file.c_str());
 		spo->m_seq->Write(spo->m_file);
 		spo->m_seq->m_read_write_thread_exists = false;
 		delete spo;
-		pthread_exit(NULL);
-	}
+    return 0;
+  }
 
 } // namespace dvx
 

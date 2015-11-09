@@ -525,7 +525,6 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
     pp->winsize = pvdata.dwWinlen;
     pp->chans   = fmt.nChannels;
     switch ((pv_wtype) pvdata.wWindowType) {
-      case PVOC_DEFAULT:
       case PVOC_HAMMING:
         pp->wintype = PVS_WIN_HAMMING;
         break;

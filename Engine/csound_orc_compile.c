@@ -611,9 +611,10 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                       csound->esr, csound->ekr, csound->ksmps,
                       csound->nchnls, csound->e0dbfs);
 
-    if (O->sr_override || O->kr_override || O->ksmps_override) {   /* if command-line overrides, apply now */
+    if (O->sr_override || O->kr_override ||
+        O->ksmps_override) {   /* if command-line overrides, apply now */
       MYFLT ensmps;
-      
+
       if(!O->ksmps_override){
       csound->esr = (MYFLT) (O->sr_override ? O->sr_override : csound->esr);
       csound->ekr = (MYFLT) (O->kr_override ? O->kr_override : csound->ekr);
@@ -634,7 +635,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
          csound->ekr = csound->esr / csound->ksmps;
         }
       }
-      
+
       /* chk consistency one more time */
       {
         char  s[256];
@@ -927,7 +928,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt)
 
     csoundFreeVarPool(csound, ip->varPool);
     csound->Free(csound, ip);
-     if (csound->oparms->odebug)
+    if (csound->oparms->odebug)
        csound->Message(csound, Str("-- deleted instr from deadpool \n"));
 }
 
@@ -955,10 +956,11 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
         }
         /* no active instances */
         if (active == NULL) {
-        if (csound->oparms->odebug)
-          csound->Message(csound, Str(" -- free instr def %p \n"),
+         if (csound->oparms->odebug)
+          csound->Message(csound, Str(" -- free instr def %p %p \n"),
+                          csound->dead_instr_pool[i]->instance,
                           csound->dead_instr_pool[i]);
-        free_instrtxt(csound, csound->dead_instr_pool[i]);
+          free_instrtxt(csound, csound->dead_instr_pool[i]);
         csound->dead_instr_pool[i] = NULL;
         }
       }
@@ -1023,7 +1025,11 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
       INSDS *active = engineState->instrtxtp[inm->instno]->instance;
       while (active != NULL) {
         if (active->actflg) {
-          add_to_deadpool(csound, engineState->instrtxtp[inm->instno]);
+          /* FIXME:  */
+          /* this seems to be wiping memory that is still being used */
+          // add_to_deadpool(csound, engineState->instrtxtp[inm->instno]);
+          /* this marks the instrument number ready for replacement */
+          engineState->instrtxtp[inm->instno] = NULL;
           break;
         }
         active = active->nxtinstance;
@@ -1046,6 +1052,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
     inm->name = strdup(s); inm->ip = ip;
     inm2->instno = insno;
     inm2->name = (char*) inm;   /* hack */
+    //printf("insno %d \n", insno);
     /* link into chain */
     cs_hash_table_put(csound, engineState->instrumentNames, s, inm);
 
@@ -1103,6 +1110,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState)
         }
         /* hack: "name" actually points to the corresponding INSTRNAME */
         inm2 = (INSTRNAME*) (inm->name);    /* entry in the table */
+        //printf("instno %d \n", num);
         inm2->instno = (int32) num;
         engineState->instrtxtp[num] = inm2->ip;
         if (csound->oparms->msglevel && engineState == &csound->engineState)
@@ -1328,6 +1336,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
       }
     }
     /* merges all named instruments */
+    //printf("assign numbers; %p\n", current_state);
     named_instr_assign_numbers(csound,current_state);
     /* this needs to be called in a separate loop
        in case of multiple instr numbers, so insprep() is called only once */
@@ -1379,6 +1388,18 @@ void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable){
       cs_cons_free_complete(csound, typeTable->labelList);
       csound->Free(csound, typeTable);
 }
+
+static char *node2string(int type)
+{
+    /* Add new nodes here as necessary -- JPff */
+    switch (type) {
+    /* case LABEL_TOKEN: */
+    /*   return "label"; */
+    default:
+      return "??";
+    }
+}
+
 /**
  * Compile the given TREE node into structs
 
@@ -1503,14 +1524,14 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
-                //named_instr_alloc(csound,c,instrtxt, insno_priority,
-                //                engineState,0);
+                named_instr_alloc(csound,c,instrtxt, insno_priority,
+                               engineState,0);
                 /* VL 10.10.14: check for redefinition */
-                if (UNLIKELY(!named_instr_alloc(csound, c,
-                                                instrtxt, insno_priority,
-                                                engineState, 0))) {
-                  synterr(csound, Str("instr %s redefined\n"), c);
-                }
+                //if (UNLIKELY(!named_instr_alloc(csound, c,
+                //  instrtxt, insno_priority,
+                //                              engineState, 0))) {
+      //synterr(csound, Str("instr %s redefined\n"), c);
+      //}
 
                 instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
                 strcpy(instrtxt->insname, c);
@@ -1603,12 +1624,13 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       case T_OPCODE:
       case T_OPCODE0:
       case LABEL:
+      case LABEL_TOKEN:
         break;
 
       default:
         csound->Message(csound,
-                        Str("Unknown TREE node of type %d found in root.\n"),
-                        current->type);
+                        Str("Unknown TREE node of type %d (%s) found in root.\n"),
+                        current->type, node2string(current->type));
         if (PARSER_DEBUG) print_tree(csound, NULL, current);
       }
       current = current->next;
@@ -1659,7 +1681,9 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                      (!thread && bp->t.pftype != 'b'))) {
           csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n",
                            bp->t.opcod, thread, bp->t.pftype);
-          synterr(csound, Str("perf-pass statements illegal in header blk\n"));
+          synterr(csound,
+                  Str("perf-pass statements illegal in header blk (%s)\n"),
+                  oentry->opname);
         }
       }
 
