@@ -1,7 +1,6 @@
 #!/bin/sh
 
-export CS_TILDE_VERSION=1.1.2
-export MANUAL_DIR=`pwd`/../../../manual6
+export CS_TILDE_VERSION=1.1.3
 export PACKAGE_NAME=csound~_${CS_TILDE_VERSION}.pkg
 export DMG_DIR="csound~_${CS_TILDE_VERSION}"
 export DMG_NAME="csound~_${CS_TILDE_VERSION}.dmg"
@@ -54,14 +53,17 @@ cd ../..
 
 # ASSEMBLE FILES FOR INSTALLER
 export PACKAGE_CONTENTS="installer/Package_Contents"
-export MAX_61_INSTALL_DIR="$PACKAGE_CONTENTS/Applications/Max 6.1/Cycling '74/"
-export EXTERNALS_DIR="${MAX_61_INSTALL_DIR}/msp-externals"
-export HELP_DIR="${MAX_61_INSTALL_DIR}/msp-help"
+export MAX_7_INSTALL_DIR="$PACKAGE_CONTENTS/Users/Shared/Max 7/"
+export EXTERNALS_DIR="${MAX_7_INSTALL_DIR}/Library/csound~/externals"
+export HELP_DIR="${MAX_7_INSTALL_DIR}/Library/csound~/help"
+export EXAMPLES_DIR="${MAX_7_INSTALL_DIR}/Examples"
 
 mkdir -p "$EXTERNALS_DIR"
 mkdir -p "$HELP_DIR"
+mkdir -p "$EXAMPLES_DIR"
 cp -r csound6/build/frontends/max_csound_tilde/csound~.mxo "$EXTERNALS_DIR"
-cp -r ../../help/csound~ "$HELP_DIR"
+cp ../../help/csound~/* "$HELP_DIR"
+cp -r ../../examples "$EXAMPLES_DIR/csound~"
 
 
 echo "building packages ..."

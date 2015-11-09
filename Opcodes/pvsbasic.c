@@ -229,6 +229,7 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
                                               CS_ESR, STYPE_16,
                                               p->fin->wintype, 0.0f, NULL,
                                               p->fin->winsize)) == -1)
+
       return csound->InitError(csound,
                                Str("pvsfwrite: could not open file %s\n"),
                                fname);
@@ -368,7 +369,6 @@ static int pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int stringname)
     p->fout->overlap =  pvdata.dwOverlap;
     p->fout->winsize = pvdata.dwWinlen;
     switch ((pv_wtype) pvdata.wWindowType) {
-    case PVOC_DEFAULT:
     case PVOC_HAMMING:
       p->fout->wintype = PVS_WIN_HAMMING;
       break;
@@ -529,6 +529,7 @@ int pvstanalset(CSOUND *csound, PVST *p)
     p->scnt = p->fout[0]->overlap;
     p->tscale  = 1;
     p->pos =  *p->offset*CS_ESR;
+    printf("off: %f\n", *p->offset);
     p->accum = 0.0;
     return OK;
 }
@@ -575,6 +576,8 @@ int pvstanal(CSOUND *csound, PVST *p)
                                      "sound file channels"));
 
       sizefrs = size/nchans;
+      if(!*p->wrap && spos == 0.0)
+          spos += hsize;
       if (!*p->wrap && spos >= sizefrs) {
         for (j=0; j < nchans; j++) {
           memset(p->fout[j]->frame.auxp, 0, sizeof(float)*(N+2));
@@ -586,6 +589,7 @@ int pvstanal(CSOUND *csound, PVST *p)
       while (spos >= sizefrs) spos -= sizefrs;
       while (spos < hsize)  spos += (sizefrs + hsize);
       pos = spos;
+ 
       for (j=0; j < nchans; j++) {
 
         fout = (float *)  p->fout[j]->frame.auxp;
@@ -2226,6 +2230,7 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
         (f1->wintype == f2->wintype) &&     /* harsh, maybe... */
         (f1->N == f2->N) &&
         (f1->format == f2->format))
+
       return 1;
     return 0;
 }

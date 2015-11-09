@@ -1,0 +1,246 @@
+
+============================
+CSOUND VERSION 6.04
+RELEASE NOTES   VERSION 6.04
+============================
+
+This new version has many extensions and fixes; many new opcodes 
+and significant numbers of internal reworking.  There is a new
+frontend and iOS and Android version have seen many improvements.
+
+As ever we track bugs and requests for enhancements via the github
+issues system.  Already proposals for the next release are being
+made but the volume of changes require a release now.
+
+The Developers 
+
+
+
+USER-LEVEL CHANGES
+==================
+
+New opcodes:
+    o    pinker generates high quality pink noise
+
+    o    power opcode ^ now works with array arguments
+
+    o    exciter opcode, modelled on the calf plugin
+,
+    o    vactrol opcode simulate an analog envelope follower
+
+    o    family of hdf5 opcodes to handle hdf5 format files
+
+    o    (experimental undocumented) buchla opcode models the lowgate
+         filter of Buchla
+
+    o    New k-rate opcodes acting on arrays:
+         -  transforms: rfft, rifft, fft, fftinv
+         -  complex product: complxprod
+         -  polar - rectangular conversion: rect2pol, pol2rect, mags, phs,
+         -  real - complex: r2c, c2r
+         -  windowing: window
+         -  cepstrum: pvsceps, iceps, ceps
+         -  column / row access: getrow, getcol, setrow, setcol
+         -  a-rate data - k-array copy: shiftin, shiftout
+         -  phase unwraping: unwrap
+
+
+New Gen and Macros:
+
+Orchestra:
+
+    o    Line numbers corrected in instr statements
+
+    o    New control operation, while, for looping
+
+    o    A long-standing bug with macros which use the same name for an
+         argument has been corrected
+
+    o    Redefinition of an instrument in a single call to compile is
+         flagged as an error
+
+    o    ID3 header skip for mp3 files now properly implemented.
+
+    o    Errors induced by not defining the location of STK's raw wave
+         files has been removed
+
+    o    bug fixed where UDO's could not read strings from pfields
+
+    o    bug fixed which hid tb opcodesat i-rate
+
+    o    Attempts to use two OSClisteners with the same port is now
+         trapped rather than give a segmenttion fault
+Score:
+
+Options:
+
+Modified Opcodes and Gens:
+
+    o    stackops opcodes deprecated
+
+    o    lenarray extended to handle multi-dimensional arrays
+
+    o    ftgenonce accepts string arguments correctly and multiple
+         string arguments
+
+    o    max and min now have initialisation-time versions
+
+    o    gen23 improved regarding comments and reporting problems
+
+    o    in OSCsend the port is now a k-rate value
+
+    o    socksend now works at k-rate
+
+    o    a number of envelope-generating opcodes are now correct in
+         sample-accurate mode
+
+    o    faust compilation is now lock-protected
+
+    o    mp3 fixed to allow reinit to be used with it.
+
+    o    In remote opcode the name of the network can be set via the
+         environment variable CS_NETWORK.  Defaults to en0 (OSX) or
+         eth0.
+
+    o    invalue, outvalue are available at i-rate as well as k-rate
+    
+Utilities:
+
+
+Frontends:
+
+  icsound:
+      New frontend icsound is now ready for general use.  icsound is a
+      python interface for interactive work in the ipython notebook.
+
+  csound~:
+
+  Emscripten:
+
+  csdebugger:
+      A number of changes and improvements have been made, like
+      stepping through active instruments, better line number use
+
+General usage:
+
+      Jack module now does not stop Csound if autoconnect fails
+
+Bugs fixed:
+
+    o    atsinnoi fixed
+
+    o    ftsavek fixed
+
+    o    sprintf fixed
+
+    o    gen27 fixed, especially with extended arguments, as well as
+         fixed a number of errors in extended score arguments.
+
+    o    Physem opcodes (guiro cabasa, sekere) fixed so second call
+         works
+
+    o    flooper fixed in mode 2
+
+    o    OSCsend multiple fixes
+
+    o    UDO fix for case of local ksmps of 1
+
+    o    More changes/fixes to dssi code
+
+    o    xscanu and scanu fixed
+
+    o    temposcal and mincer fixed
+
+    o    crash in ftload fixed
+
+====================
+SYSTEM LEVEL CHANGES
+====================
+
+System changes:
+
+    o    In server mode exit is now clean
+
+    o    Fixes to rtalsa module
+
+    o    Pulseaudio rt module fixes
+
+    o    Fix to remove fluidEngine entries for csound instance
+         (prevents crash on moduleDestroy)
+
+    o    Opcodes called through function calls that returned arrays
+         did not correctly synthesize args as array types due to not
+         converting the arg specifier to the internal format
+
+    o    fixed crashing issue during note initialization for tied
+         notes due to goto skipping over code
+
+    o    fixed incorrect initialization of pfields when note's pfields
+         length were less than instrument expected (off-by-one)
+
+
+Internal changes:
+
+    * Added Runtime Type Identification for instrument variables;
+    removed use of XINCODE/XOUTCO
+
+    * fix malloc length in negative number parsing, and improved
+      handling of negative numbers
+
+    * writing to circularBuffer is now atomic
+
+    * a number of memory leaks and potential dangerous code have been
+      fixed
+
+    * type-inference has been extensively reworked, as have a few
+      parsing areas
+
+API
+===
+    * Added API function for retrieving GEN parameters used for
+      creating a table
+
+Platform Specific
+=================
+
+iOS
+---
+* API Refactored for clearer method names and abstraction names (i.e.
+CsoundBinding instead of CsoundValueCacheable)
+* Updated to remove deprecated code
+* A significant amount of reworking has been done on the code
+
+Android
+-------
+* API Refactored for clearer method names and abstraction names (i.e.
+CsoundBinding instead of CsoundValueCacheable)
+* Changes to enable HTML 5 with JavaScript and it is to be hoped WebGL
+in the Csound6 Android app.
+* Enabled change of screen orientation in the Csound6 app without
+forcing a restart of the app.
+* Enabled local storage (useful for saving and restoring widget
+values, etc.).
+
+Windows
+-------
+
+* fixed pointer arithmetic that caused crashing on Windows
+
+*  pyexec changed to use python's file opening functions to prevent crash on
+   Windows
+
+OSX
+---
+
+* CsoundAC now compiles
+
+
+Linux
+-----
+
+* threadlocks bug fix on linux.
+
+
+
+========================================================================
+

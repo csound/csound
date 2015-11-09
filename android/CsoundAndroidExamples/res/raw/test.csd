@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -d -B512 -b256
+-o dac -d -B1920 -b480
 </CsOptions>
 <CsInstruments>
 nchnls=1
@@ -26,7 +26,7 @@ f1 0 16384 10 1
 ;i1 [$CNT*0.2] 0.5 0.5 [440*(2^[$CNT/12])]
 ;}
 
-i1 0 60 0.5 440
+i1 0 36000 0.5 440
 </CsScore>
 </CsoundSynthesizer>
 

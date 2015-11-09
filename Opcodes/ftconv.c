@@ -183,7 +183,8 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     else if (p->initDone > 0 && *(p->iSkipInit) != FL(0.0))
       return OK;    /* skip initialisation if requested */
     /* if skipping samples: check for possible truncation of IR */
-    if (skipSamples > 0 && (csound->oparms->msglevel & WARNMSG)) {
+    /*
+      if (skipSamples > 0 && (csound->oparms->msglevel & WARNMSG)) {
       n = skipSamples * p->nChannels;
       if (n > (int) ftp->flen)
         n = (int) ftp->flen;
@@ -195,7 +196,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
           break;
         }
       }
-    }
+      }*/
     /* initialise buffer pointers */
     set_buf_pointers(p, p->nChannels, p->partSize, p->nPartitions);
     /* clear ring buffer to zero */

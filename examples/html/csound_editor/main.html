@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <meta name="generator" content="HTML Tidy for Windows (vers 25 March 2009), see www.w3.org">
+    <title>Csound Editor for NW.js</title>
+    <script src="zepto.min.js" type="text/javascript">
+    </script>
+    <script src="editor.js" type="text/javascript">
+    </script>
+    <script src="cm/lib/codemirror.js" type="text/javascript">
+    </script>
+    <script src="cm/mode/css/css.js" type="text/javascript">
+    </script>
+    <script src="cm/mode/xml/xml.js" type="text/javascript">
+    </script>
+    <script src="cm/mode/javascript/javascript.js" type="text/javascript">
+    </script>
+    <script src="cm/mode/htmlmixed/htmlmixed.js" type="text/javascript">
+    </script>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <link rel="stylesheet" href="cm/lib/codemirror.css" type="text/css">
+    <link rel="stylesheet" href="cm/theme/lesser-dark.css" type="text/css">
+    <base target="_blank">
+</head>
+<body>
+    <div class="buttons">
+        <button id="new">New</button> <button id="open">
+            Open...
+        </button> <button id="save">Save as...</button>
+        <button id="save_noprompt" onclick="csound_save()">
+            Save
+        </button> <button id="run" onclick="csound_run()">
+            Run
+        </button> <button id="stop" onclick="csound_stop()">
+            Stop
+        </button>
+    </div>
+    <div id="editor"></div>
+    <div class="info">
+        <label>Filename:</label> <span id="title"></span>
+        <label>Mode:</label> <span id="mode"></span>
+    </div>
+    <form>
+        <script type="text/javascript">
+            function onFileOpen(filename_) {
+                filename = filename_;
+                console.log('filename:', filename);
+            };
+        </script> <input style="display:none;" id="openFile" type="file" onchange="onFileOpen(this.value)"> <input style="display:none;" id="saveFile" type="file" nwsaveas="">
+    </form>
+    <script type="text/javascript">
+        var csound = require('csound');
+        var csound_window = null;
+        var gui = require('nw.gui');
+        var fs = require('fs');
+        var option = {
+            key : "F11",
+            active : function() {
+                console.log("Global desktop keyboard shortcut: " + this.key + " active.");
+                csound_window.toggleFullscreen();
+            },
+            failed : function(msg) {
+                // :(, fail to register the |key| or couldn't parse the |key|.
+                console.log(msg);
+            }
+        };
+        var shortcut = new gui.Shortcut(option);
+        gui.App.registerGlobalHotKey(shortcut);
+        function csound_run()
+        {
+            console.log('csound_run()...');
+            filename = filename.replace(/\\/g,"/");
+            console.log('filename: ' + filename);
+            // Thre are two file modes for csound.node:
+            // .html files, which must always create their own csound object with
+            // require('csound');, and .csd files, which assume that the csound
+            // object has already been created in their JavasScript context.
+            if (filename.endsWith('.html')) {
+                csound_window = gui.Window.open('file:///' + filename,
+                    {
+                        "position": 'center',
+                        "nodejs": true,
+                        "new-instance": false,
+                    }
+                 );
+                csound_window.moveBy(100, 100);
+                csound_window.on('close', function() {
+                    this.hide(); // Pretend to be closed already
+                    console.log("Performance window is closing...");
+                    this.window.csound.stop();
+                    console.log("csound.stop()...");
+                    this.close(true);
+                });
+                return;
+            };
+            if (filename.endsWith('.csd')) {
+                var html_filename = filename + '.html';
+                var csd = editor.getValue();
+                //console.log('csd:', csd);
+                if (csd) {
+                    var html_start = csd.indexOf('<html');
+                    if (html_start != -1) {
+                        var html_end = csd.indexOf('<\/html>');
+                        if (html_end != -1) {
+                            var html = csd.slice(html_start, html_end);
+                            // In CsoundQt, Android, etc., the Csound object is created by the host
+                            // and is called by the host to compile and perform the pieced. Here,
+                            // JavaScript for doing these things has to be written into the HTML.
+                            // The code for generating this code is, no doubt, a true kludge!
+                            if (html) {
+                                var script = `
+<script>
+csound = require('csound.node');
+csound.compileCsd('${filename}');
+csound.perform();
+`;
+                                var head_end = html.indexOf('<\/head>');
+                                if (head_end != -1) {
+                                    var head = html.slice(0, head_end);
+                                    var body = html.slice(head_end);
+                                    html = head + script + '<\/script>\n' + body;
+                                    //console.log('html:', html);
+                                    var html_file = fs.openSync(html_filename, 'w+');
+                                    fs.writeSync(html_file, html);
+                                    fs.closeSync(html_file);
+                                    var html_url = 'file:///' + html_filename;
+                                    csound_window = gui.Window.open(html_url,
+                                        {
+                                            "position": 'center',
+                                            "nodejs": true,
+                                            "new-instance": false,
+                                        }
+                                     );
+                                    csound_window.on('close', function() {
+                                        this.hide(); // Pretend to be closed already
+                                        console.log("Performance window is closing...");
+                                        this.window.csound.stop();
+                                        console.log("csound.stop()...");
+                                        this.close(true);
+                                    });
+                                };
+                            };
+                        };
+                    }
+                };
+                return;
+            }
+            alert('Unknown file type:' + filename);
+        };
+        function csound_stop()
+        {
+            console.log('csound_stop()...');
+            csound_window.window.csound.stop();
+        };
+        function csound_save()
+        {
+            var csd = editor.getValue();
+            csd_file = fs.openSync(filename, 'w+');
+            fs.writeSync(csd_file, csd);
+            fs.closeSync(csd_file);
+            console.log('Saved: ' + filename);
+        }
+    </script>
+</body>
+</html>

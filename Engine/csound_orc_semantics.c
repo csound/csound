@@ -67,9 +67,11 @@ char* cs_strdup(CSOUND* csound, char* str) {
     if (str == NULL) return NULL;
 
     len = strlen(str);
-    retVal = csound->Malloc(csound, (len + 1) * sizeof(char));
+    retVal = csound->Malloc(csound, len + 1);
 
-    if (len > 0) memcpy(retVal, str, len * sizeof(char));//why not strcpy?
+    if (len > 0) {
+      strncpy(retVal, str, len);
+    } 
     retVal[len] = '\0';
 
     return retVal;
@@ -86,8 +88,8 @@ char* cs_strndup(CSOUND* csound, char* str, size_t size) {
       return cs_strdup(csound, str);
     }
 
-    retVal = csound->Malloc(csound, (size + 1) * sizeof(char));
-    memcpy(retVal, str, size * sizeof(char));
+    retVal = csound->Malloc(csound, size + 1);
+    memcpy(retVal, str, size);
     retVal[size] = '\0';
 
     return retVal;
@@ -955,6 +957,19 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 //    return retVal;
 }
 
+OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
+                       char* outArgTypes, char* inArgTypes) {
+    int i;
+    for (i = 0; i < entries->count; i++) {
+        OENTRY* temp = entries->entries[i];
+        if (!strcmp(inArgTypes, temp->intypes) &&
+            !strcmp(outArgTypes, temp->outypes)) {
+            return temp;
+        }
+    }
+    return NULL;
+}
+
 /* used when creating T_FUNCTION's */
 char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
                               char* inArgTypes) {
@@ -1126,6 +1141,25 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
 
     return retVal;
 }
+
+OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
+                        char* outArgsFound, char* inArgsFound) {
+
+    OENTRIES* opcodes = find_opcode2(csound, opname);
+
+    if (opcodes->count == 0) {
+        return NULL;
+    }
+
+
+    OENTRY* retVal = resolve_opcode_exact(csound, opcodes,
+                                          outArgsFound, inArgsFound);
+
+    csound->Free(csound, opcodes);
+
+    return retVal;
+}
+
 
 //FIXME - this needs to be updated to take into account array names
 // that could clash with non-array names, i.e. kVar and kVar[]

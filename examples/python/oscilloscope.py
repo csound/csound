@@ -18,13 +18,11 @@ norm = 32768.0
 class Disp:
 
  def callb(self, dummy):
-    sig = array.array('f')
+    sig = array.array('d')
     cs  = self.data[0]
     disp = self.data[1]
-    chn = self.data[2]
-    cs.ChanOAGet(chn.cast(), 1)
     for i in range(0,cs.GetKsmps()):
-      sig.append(chn[i]/norm)
+      sig.append(cs.GetSpoutSample(i,0)/norm)
     disp.draw(sig,time_interval*cs.GetSr())
    
  def __init__(self,data):
@@ -42,9 +40,7 @@ perf = csnd6.CsoundPerformanceThread(cs)
 master = Tk()
 disp = display.Oscilloscope(master, window_size, perf.Stop, "green", "black")
 
-# samples array
-chn = csnd6.floatArray(cs.GetKsmps())
-dat = (cs,disp,chn)
+dat = (cs,disp)
 tes = Disp(dat)
 
 # set the callback

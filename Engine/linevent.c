@@ -66,7 +66,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
     if (strcmp(O->Linename, "stdin") == 0) {
-#if defined(DOSGCC) || defined(WIN32)
+#if defined(DOSGCC) || defined(WIN32) 
       setvbuf(stdin, NULL, _IONBF, 0);
       /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
 #else
@@ -80,6 +80,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
       csound->Linepipe = _popen(&(O->Linename[1]), "r");
       if (LIKELY(csound->Linepipe != NULL)) {
         csound->Linefd = fileno(csound->Linepipe);
+        setvbuf(csound->Linepipe, NULL, _IONBF, 0);
       }
       else csoundDie(csound, Str("Cannot open %s"), O->Linename);
     }
@@ -273,10 +274,11 @@ static void sensLine(CSOUND *csound, void *userData)
             while (n-->0) sstrp += strlen(sstrp)+1;
             n = 0;
             while ((c = *(++cp)) != '"') {
-              if (UNLIKELY(c == LF)) {
-                csound->ErrorMsg(csound, Str("unmatched quotes"));
-                goto Lerr;
-              }
+	      /* VL: allow strings to be multi-line */
+	      // if (UNLIKELY(c == LF)) {
+              //  csound->ErrorMsg(csound, Str("unmatched quotes"));
+              //  goto Lerr;
+              //}
               sstrp[n++] = c;                   /*   save in private strbuf */
               if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
                 e.strarg = csound->ReAlloc(csound, e.strarg, strsiz+=SSTRSIZ);

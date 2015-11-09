@@ -50,6 +50,39 @@ int schedule(CSOUND *csound, SCHED *p)
     return eventOpcodeI_(csound, &pp, 0, 'i');
 }
 
+int schedule_N(CSOUND *csound, SCHED *p)
+{
+    int i;
+    int argno = p->INOCOUNT+1;
+    char s[16384];
+    sprintf(s, "i %f %f %f", *p->which, *p->when, *p->dur);
+    for (i=4; i < argno ; i++) {
+       MYFLT *arg = p->argums[i-4];
+         if(csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
+           sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
+         else sprintf(s, "%s %f", s,  *arg);
+    }
+    csoundInputMessage(csound, s);
+    return OK;
+}
+
+int schedule_SN(CSOUND *csound, SCHED *p)
+{
+    int i;
+    int argno = p->INOCOUNT+1;
+    char s[16384];
+    sprintf(s, "i \"%s\" %f %f", ((STRINGDAT *)p->which)->data, *p->when, *p->dur);
+    for (i=4; i < argno ; i++) {
+       MYFLT *arg = p->argums[i-4];
+         if(csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
+           sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
+         else sprintf(s, "%s %f", s,  *arg);
+    }
+    csoundInputMessage(csound, s);
+    return OK;
+}
+
+
 int schedule_S(CSOUND *csound, SCHED *p)
 {
     LINEVENT pp;

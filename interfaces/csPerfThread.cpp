@@ -442,7 +442,7 @@ int CsoundPerformanceThread::Perform()
           }
           int written = csoundWriteCircularBuffer(NULL, recordData.cbuf, spout, len);
           if (written != len) {
-              csoundMessage(csound, "perfThread record buffer overrun.");
+              csoundMessage(csound, "perfThread record buffer overrun.\n");
           }
       }
       pthread_cond_signal(&recordData.condvar); // Needs to be outside the if for the case where stop record was requested
@@ -577,6 +577,18 @@ CsoundPerformanceThread::~CsoundPerformanceThread()
     if (!status)
       this->Stop();     // FIXME: should handle memory errors here
     this->Join();
+    if (queueLock) {
+        csoundDestroyMutex(queueLock);
+    }
+    if (pauseLock) {
+        csoundDestroyMutex(pauseLock);
+    }
+    if (flushLock) {
+        csoundDestroyMutex(flushLock);
+    }
+    if (recordLock) {
+        csoundDestroyMutex(recordLock);
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -657,9 +669,13 @@ int CsoundPerformanceThread::Join()
     retval = status;
 
     if (perfThread) {
-      pthread_cond_signal(&recordData.condvar);
       retval = csoundJoinThread(perfThread);
       perfThread = (void*) 0;
+    }
+    if (recordData.running) {
+        recordData.running = false;
+        pthread_cond_signal(&recordData.condvar);
+        csoundJoinThread(recordData.thread);
     }
 
     // delete any pending messages

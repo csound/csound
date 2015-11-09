@@ -200,7 +200,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
           s = csound->Malloc(csound, n = strlen(baseName) + 21);
           snprintf(s, n, "%s%d", baseName, i);
         }
-        else sprintf(s, "%s%d", baseName, i);
+        else sprintf(s, "%s%d", baseName, i); /* dubious */
       }
     }
     return s;
