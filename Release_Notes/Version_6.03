@@ -1,0 +1,229 @@
+
+============================
+CSOUND VERSION 6.03
+RELEASE NOTES
+============================
+
+This new version has a large number of bug fixes (including clearing
+many tickets on SourceForge and GitHub) as well internal changes to improve
+performance.   
+
+USER-LEVEL CHANGES
+==================
+
+New opcodes:
+
+    o   printks2: Prints a new value every time a control variable
+        changes using a printf() style syntax. 
+
+    o   mp3sr mp3bitrate and mp3nchnls to get information on mp3 files
+
+    o   EXPERIMENTAL: CUDA opcodes for partitioned convolution direct
+        convolution and sliding phase vocoding; OpenCL opcode for
+        additive synthesis
+
+    o   compilecsd to compile instruments from a standard CSD file
+
+
+New Gen and Macros: 
+
+Orchestra:
+
+    o  The argument for i() is supposed to be a variable not an
+       expression.  This is now enforced. (bug #90)
+
+Score:
+
+    o  New score opcode y sets the random seed (for ~) at read time
+
+Options:
+       This was a bug in CsOptions; the last argument was missed being
+       read (issue #296)
+
+       As command-line options expression-opt and no-expression-opt do
+       nothing in Csound6 a warning is printed.
+       
+Modified Opcodes and Gens:
+
+    o   For ogg output it is possible to specify a VBR (variable bit
+        rate) quality.
+
+    o   dssi4cs code has been extensively reworked to avoid potential
+        memory faults.
+
+    o   Many array operations now available for i-arrays as well as
+        k-arrays. 
+
+    o   fillarray will work for string arrays
+
+    o   Displays of FFT (via dispfft) improved with scaling/zooming
+        options 
+
+    o   Signal flow graph opcodes are now working with a-rate array
+        signals.
+    
+    o   In alsa rt code the sample rate is taken from the device
+
+    o   Faust opcode system updated to latest Faust API.
+
+
+Utilities: 
+    o    fixed bug in lpanal
+
+Frontends:
+
+  csound~:
+     o   OSX - fix for running with 32-bit cpu architecture
+     o   Windows - csound~ now available for Windows
+
+  Emscripten:
+         This is now generally merged in to the code-base
+
+
+General usage:
+
+     o   --displays now switches graphs on, as expected
+
+     o   New command-line option --get-system-sr added to obtain the
+         machine's sample rate.
+
+     o   New command-line option --devices[=in|out] gives a list of
+         available audio devices and then exit
+
+
+Bugs fixed:
+
+     o  fixed the bug when tables were replaced but the size did not change
+
+     o  A number of bugs in --sample-accurate have been detected and
+        fixed.  This includes opcodes out, outn, and line.
+
+     o  A number of bugs in grain3 were fixed#
+
+     o  Bug in str_chanel could cause a crash; fixed
+
+     o  Small bug in rtjack fixed
+
+     o  Error in resize opcode corrected
+
+     o  Fixed an unlikely bug in atsa
+
+     o  Fixed rtauhal pause issue
+
+     o  Fixed bug in rtjack
+
+     o  A number of bugs/untidiness fixed in GEN23
+
+     o  Array bound checks fixed
+
+     o  strings channels were not correctly set for dynamic-size
+        strings, now fixed
+
+     o  memory allocation for string formatting in printfsk was fixed,
+        stopping string truncation.
+
+     o  strcat safe against overflow
+
+     o  error in compilation of arrays fixed (issue #293)
+
+     o  GetPvsChannel fixed against a crash
+     
+====================
+SYSTEM LEVEL CHANGES
+====================
+
+System changes:
+
+    o  turnoff opcode now checks that the instrument being affected is
+       active
+
+    o  lenarray can accept any array type
+
+    o  the way of rounding a table number to an integer was changed
+    and is now more as expected.
+
+    o  there is a new possible section in a csd file called
+       <CsFile...> which is like csFileB but with unencoded text.
+       
+    o  UDO compilation now uses the type system.  This means that
+    UDOs now allow any array type to be used. 
+
+    o  Improved orchestra parsing speeds with better algorithms
+    
+
+Internal changes:
+
+    The whole system has been checked by the Coverity static checker
+    which identified a number of (mainly minor) problems.  These have
+    been reviewed and checked.  In particular better use of printing
+    and string copying should prevent overflows.
+
+    The type and variable system has been extensively rewritten; this
+    allows better array and UDO support.
+
+    Alignment of variables got right in all cases
+
+    array copying is now using the type system to copy values; fixes
+    issues with copying string arrays, f-sigs, etc.
+
+    Always reset Csound when stopping to ensure state is clean; was
+    not being reset when there was a compile error, so that next
+    successful run would start with an invalid Csound engine (issue
+    #305)
+    
+API
+===
+
+All opcodes etc now use the API memory allocation operations, so it is
+possible to replace the whole memory allocator.
+
+Added csoundCompileCsd to API and associated new compilecsd opcode
+
+Protected csoundGetStringChannel against null and short strings and
+added a check for string size
+
+A number of API functions have had char* changed to const char* which
+reflect the usage
+
+
+The performance engine now includes debugging capabilities to allow
+interrupting rendering and providing introspection into the engine's state
+and instrument variables. The following new functions are available by
+including the csdebug.h header:
+
+void csoundDebuggerInit (CSOUND *csound)
+void csoundDebuggerClean (CSOUND *csound)
+void csoundSetInstrumentBreakpoint (CSOUND *csound, MYFLT instr, int skip)
+void csoundRemoveInstrumentBreakpoint (CSOUND *csound, MYFLT instr)
+void csoundClearBreakpoints (CSOUND *csound)
+void csoundSetBreakpointCallback (CSOUND *csound, breakpoint_cb_t bkpt_cb,
+void *userdata)
+void csoundDebugContinue (CSOUND *csound)
+void csoundDebugStop (CSOUND *csound)
+INSDS * csoundDebugGetInstrument (CSOUND *csound)
+
+
+Platform Specific
+=================
+
+iOS
+---
+
+
+Windows
+-------
+
+Soundfonts in Windows had an internal alignment problem which is fixed.
+
+
+OSX
+---
+
+
+Linux
+-----
+
+========================================================================
+
+
+

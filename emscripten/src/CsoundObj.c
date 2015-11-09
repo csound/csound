@@ -176,6 +176,13 @@ float *CsoundObj_getTable(CsoundObj *self, int tableNumber)
 	csoundGetTable(self->csound, &tablePointer, tableNumber);
 	return tablePointer;
 }
+
+
+void CsoundObj_setOutputChannelCallback(CsoundObj *self, void (*outputCallback)(CSOUND *csound, const char *channelName, void *valuePointer, const void *channelType))
+{
+    csoundSetOutputChannelCallback(self->csound, outputCallback);
+}
+
 void CsoundObj_pushMidiMessage(CsoundObj *self, unsigned char status, unsigned char data1, unsigned char data2)
 {
 	self->midiCallbackData->midiData[self->midiCallbackData->p].status = status;

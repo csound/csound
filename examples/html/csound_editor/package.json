@@ -1,0 +1,14 @@
+{
+  "name": "CsoundEditor",
+  "version": "0.1.0",
+  "description": "Edit and run CSD files with <html> elements.",
+  "main": "main.html",
+  "window": {
+    "width": 800,
+    "height": 600,
+    "show": false,
+    "title": "Csound Editor",
+    "toolbar": true,
+    "nodejs": true
+  }
+}

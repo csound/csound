@@ -819,7 +819,33 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       csound->Message(csound, Str("macro error\n"));
     }
     free(mname);
-    while (c!='#') c = input(yyscanner); /* skip to start of body */
+    while (c!='#') {
+      if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
+      else if (c==';')
+        while ((c=input(yyscanner))!= '\n') 
+          if (c==EOF) {
+            csound->Die(csound, Str("define macro runaway\n"));
+          }
+      else if (c=='/') {
+        if ((c=input(yyscanner))=='/') {
+          while ((c=input(yyscanner))!= '\n')
+            if (c==EOF)
+              csound->Die(csound, Str("define macro runaway\n"));
+        }
+        else if (c=='*') {
+          while ((c=input(yyscanner))!='*') {
+          again:
+            if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
+          }
+          if ((c=input(yyscanner))!='/') goto again;
+        }
+      }
+      else if (!isspace(c))
+        csound->Die(csound,
+                    Str("define macro unexpected character %c(0x%.2x) awaiting #\n"),
+                    c, c);
+      c = input(yyscanner); /* skip to start of body */
+    }
     mm->acnt = arg;
     i = 0;
     mm->body = (char*) csound->Malloc(csound, 100);
@@ -866,7 +892,33 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     strcpy(mm->name, name0);
     mm->acnt = 0;
     i = 0;
-    while ((c = input(yyscanner)) != '#');
+    while ((c = input(yyscanner)) != '#') {
+      if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
+      else if (c==';') {
+        while ((c=input(yyscanner))!= '\n')
+          if (c==EOF) {
+            csound->Die(csound, Str("define macro runaway\n"));
+          }
+      }
+      else if (c=='/') {
+        if ((c=input(yyscanner))=='/') {
+          while ((c=input(yyscanner))!= '\n')
+            if (c==EOF)
+              csound->Die(csound, Str("define macro runaway\n"));
+        }
+        else if (c=='*') {
+          while ((c=input(yyscanner))!='*') {
+          again:
+            if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
+          }
+          if ((c=input(yyscanner))!='/') goto again;
+        }
+      }
+      else if (!isspace(c))
+        csound->Die(csound,
+                    Str("define macro unexpected character %c(0x%.2x) awaiting #\n"),
+                    c, c);
+    }
     mm->body = (char*) csound->Malloc(csound, 100);
     while ((c = input(yyscanner)) != '#') {
       if (UNLIKELY(c == EOF))

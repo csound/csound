@@ -668,13 +668,13 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
               i = wsized2;
               do {
                 a1 = (MYFLT)d; a1 = FL(1.0) - a1 * a1 * winFact;
-                a1 = a0 * a1 * a1 / (MYFLT)d;
-                diskin2_get_sample(csound, p, ndx, nn, a1);
+                a1 = a1 * a1 / (MYFLT)d;
+                diskin2_get_sample(csound, p, ndx, nn, a1*a0);
                 d += 1.0;
                 ndx++;
                 a1 = (MYFLT)d; a1 = FL(1.0) - a1 * a1 * winFact;
-                a1 = -(a0 * a1 * a1 / (MYFLT)d);
-                diskin2_get_sample(csound, p, ndx, nn, a1);
+                a1 = -(a1 * a1 / (MYFLT)d);
+                diskin2_get_sample(csound, p, ndx, nn, a1*a0);
                 d += 1.0;
                 ndx++;
               } while (--i);
@@ -1747,6 +1747,8 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
         return OK;
       fdclose(csound, &(p->fdch));
     }
+    // to handle raw files nuber of channels
+    if (t->data) p->nChannels = t->sizes[0];
     /* set default format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.samplerate = (int)(csound->esr + FL(0.5));

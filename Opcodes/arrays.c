@@ -36,8 +36,7 @@ typedef struct {
 typedef struct {
   OPDS    h;
   ARRAYDAT* arrayDat;
-  MYFLT   *isizes[VARGMAX];
-} ARRAYINIT;
+  MYFLT   *isizes[VARGMAX];} ARRAYINIT;
 
 typedef struct {
   OPDS    h;
@@ -173,27 +172,34 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
       csoundErrorMsg(csound, Str("Error: no indexes set for array set\n"));
       return CSOUND_ERROR;
     }
-    if (UNLIKELY(indefArgCount>dat->dimensions))
-      return csound->PerfError(csound, p->h.insdshead,
+    if (UNLIKELY(indefArgCount>dat->dimensions)){
+      csound->Warning(csound,
                                Str("Array dimension %d out of range "
                                    "for dimensions %d\n"),
                                indefArgCount, dat->dimensions);
+      return NOTOK;
+
+    }
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-    if (UNLIKELY(index >= dat->sizes[end] || index<0))
-      return csound->PerfError(csound, p->h.insdshead,
+    if (UNLIKELY(index >= dat->sizes[end] || index<0)){
+        csound->Warning(csound,
                                Str("Array index %d out of range (0,%d) "
                                    "for dimension %d\n"),
                                index, dat->sizes[end]-1, indefArgCount);
+	return NOTOK;
+
+    }
 
     if (indefArgCount > 1) {
       for (i = end - 1; i >= 0; i--) {
         int ind = MYFLT2LRND(*p->indexes[i]);
-        if (UNLIKELY(ind >= dat->sizes[i] || ind<0))
-          return csound->PerfError(csound, p->h.insdshead,
-                                   Str("Array index %d out of range (0,%d) "
+        if (UNLIKELY(ind >= dat->sizes[i] || ind<0)){
+          csound->Warning(csound,Str("Array index %d out of range (0,%d) "
                                        "for dimension %d\n"), ind,
                                    dat->sizes[i]-1, i+1);
+          return NOTOK;
+	}
         index += ind * dat->sizes[i + 1];
       }
     }
@@ -220,26 +226,34 @@ static int array_get(CSOUND* csound, ARRAY_GET *p)
     if (UNLIKELY(indefArgCount == 0))
       csound->PerfError(csound, p->h.insdshead,
                         Str("Error: no indexes set for array get"));
-    if (UNLIKELY(indefArgCount>dat->dimensions))
-      return csound->PerfError(csound, p->h.insdshead,
+    if (UNLIKELY(indefArgCount>dat->dimensions)){
+       csound->Warning(csound,
                                Str("Array dimension %d out of range "
-                                   "for dimensions %d\n"),
+                                   "for dimensions %d"),
                                indefArgCount, dat->dimensions);
+       return NOTOK;
+    }
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-    if (UNLIKELY(index >= dat->sizes[end] || index<0))
-      return csound->PerfError(csound, p->h.insdshead,
+    if (UNLIKELY(index >= dat->sizes[end] || index<0)){
+      csound->Warning(csound,
                                Str("Array index %d out of range (0,%d) "
-                                   "for dimension %d\n"),
+                                   "for dimension %d"),
                                index, dat->sizes[end]-1, end+1);
+      return NOTOK;
+
+    }
     if (indefArgCount > 1) {
       for (i = end - 1; i >= 0; i--) {
         int ind = MYFLT2LRND(*p->indexes[i]);
-        if (UNLIKELY(ind >= dat->sizes[i] || ind<0))
-          return csound->PerfError(csound, p->h.insdshead,
+        if (UNLIKELY(ind >= dat->sizes[i] || ind<0)){
+        csound->Warning(csound, 
                                    Str("Array index %d out of range (0,%d) "
-                                       "for dimension %d\n"), ind,
+                                       "for dimension %d"), ind,
                                    dat->sizes[i]-1, i+1);
+	  
+	  return NOTOK;
+	}
         index += ind * dat->sizes[i + 1];
       }
     }
@@ -1386,6 +1400,12 @@ int perf_rfft(CSOUND *csound, FFT *p){
     return OK;
 }
 
+int rfft_i(CSOUND *csound, FFT *p){
+  if(init_rfft(csound,p) == OK)
+    return perf_rfft(csound, p);
+  else return NOTOK;
+}
+
 int init_rifft(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
  if(p->in->dimensions > 1)
@@ -1408,6 +1428,12 @@ int perf_rifft(CSOUND *csound, FFT *p){
       csound->InverseRealFFTnp2(csound,p->out->data,N);
     }
     return OK;
+}
+
+int rifft_i(CSOUND *csound, FFT *p){
+  if(init_rifft(csound,p) == OK)
+    return perf_rifft(csound, p);
+  else return NOTOK;
 }
 
 int init_rfftmult(CSOUND *csound, FFT *p){
@@ -1452,6 +1478,13 @@ int perf_fft(CSOUND *csound, FFT *p){
     return OK;
 }
 
+int fft_i(CSOUND *csound, FFT *p){
+  if(init_fft(csound,p) == OK)
+    return perf_fft(csound, p);
+  else return NOTOK;
+}
+
+
 int init_ifft(CSOUND *csound, FFT *p){
   int   N2 = p->in->sizes[0];
    if(p->in->dimensions > 1)
@@ -1471,6 +1504,12 @@ int perf_ifft(CSOUND *csound, FFT *p){
       csoundInverseComplexFFTnp2(csound,p->out->data,N2/2);
     }
     return OK;
+}
+
+int ifft_i(CSOUND *csound, FFT *p){
+  if(init_ifft(csound,p) == OK)
+    return perf_ifft(csound, p);
+  else return NOTOK;
 }
 
 int init_recttopol(CSOUND *csound, FFT *p){
@@ -1602,6 +1641,12 @@ int perf_rtoc(CSOUND *csound, FFT *p){
     return OK;
 }
 
+int rtoc_i(CSOUND *csound, FFT *p){
+  if(init_rtoc(csound,p) == OK)
+    return perf_rtoc(csound, p);
+  else return NOTOK;
+}
+
 int init_ctor(CSOUND *csound, FFT *p){
     int   N = p->in->sizes[0];
     tabensure(csound, p->out, N/2);
@@ -1619,6 +1664,13 @@ int perf_ctor(CSOUND *csound, FFT *p){
     return OK;
 }
 
+int ctor_i(CSOUND *csound, FFT *p){
+  if(init_ctor(csound,p) == OK)
+    return perf_ctor(csound, p);
+  else return NOTOK;
+}
+
+
 int init_window(CSOUND *csound, FFT *p){
     int   N = p->in->sizes[0];
     int   i,type = (int) *p->f;
@@ -1629,6 +1681,7 @@ int init_window(CSOUND *csound, FFT *p){
     w = (MYFLT *) p->mem.auxp;
     switch(type){
     case 0:
+      printf("hamming\n");
       for(i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*2*PI/N);
       break;
     case 1:
@@ -1695,11 +1748,15 @@ int pvsceps_perf(CSOUND *csound, PVSCEPS *p){
 
 int init_ceps(CSOUND *csound, FFT *p){
     int N = p->in->sizes[0]-1;
+    if(N < 64)
+      return csound->InitError(csound,
+                               Str("FFT size too small (min 64 samples)\n"));
     if(isPowerOfTwo(N))
       tabensure(csound, p->out, 2*N+2);
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
+
     return OK;
 }
 
@@ -2092,14 +2149,22 @@ static OENTRY arrayvars_localops[] =
     { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina},
     {"rfft", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_rfft, (SUBR) perf_rfft, NULL},
+    {"rfft", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) rfft_i, NULL, NULL},
     {"rifft", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_rifft, (SUBR) perf_rifft, NULL},
+    {"rifft", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) rifft_i, NULL, NULL},
     {"cmplxprod", sizeof(FFT), 0, 3, "k[]","k[]k[]",
      (SUBR) init_rfftmult, (SUBR) perf_rfftmult, NULL},
     {"fft", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_fft, (SUBR) perf_fft, NULL},
+    {"fft", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) fft_i, NULL, NULL},
     {"fftinv", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_ifft, (SUBR) perf_ifft, NULL},
+    {"fftinv", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) ifft_i, NULL, NULL},
     {"rect2pol", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_recttopol, (SUBR) perf_recttopol, NULL},
     {"pol2rect", sizeof(FFT), 0, 3, "k[]","k[]",
@@ -2112,8 +2177,12 @@ static OENTRY arrayvars_localops[] =
      (SUBR) init_mags, (SUBR) perf_phs, NULL},
     {"log", sizeof(FFT), 0, 3, "k[]","k[]o",
      (SUBR) init_logarray, (SUBR) perf_logarray, NULL},
+    {"r2c", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) rtoc_i, NULL, NULL},
     {"r2c", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_rtoc, (SUBR) perf_rtoc, NULL},
+    {"c2r", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) ctor_i, NULL, NULL},
     {"c2r", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_ctor, (SUBR) perf_ctor, NULL},
     {"window", sizeof(FFT), 0, 3, "k[]","k[]Op",

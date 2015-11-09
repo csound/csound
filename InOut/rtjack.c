@@ -436,6 +436,7 @@ static void openJackStreams(RtJackGlobals *p)
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
 
     csound->system_sr(csound, jack_get_sample_rate(p->client));
+    csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
 
     /* check consistency of parameters */
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > 255))
@@ -646,6 +647,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
     p->nChannels = parm->nChannels;
     p->bufSize = parm->bufSamp_SW;
     p->nBuffers = (parm->bufSamp_HW + parm->bufSamp_SW - 1) / parm->bufSamp_SW;
+
 }
 
 /* open for audio input */

@@ -29,8 +29,6 @@
  * csound6/Opcodes/stk/src
  * csound6/Opcodes/stk/rawwaves
  *
- * Also, specify buildStkOpcodes=1 for SCons.
- *
  * To use these opcodes, define a RAWWAVE_PATH environment variable that points
  * to your rawwaves directory, which contains raw soundfiles with function table
  * data.
@@ -719,8 +717,8 @@ extern "C"
 #endif
     if(!path)
       {
-        csound->ErrorMsg(csound,
-                         Str("Error: define environment variable RAWWAVE_PATH\n"
+        csound->Warning(csound,
+                        Str("STK opodes not available: define environment variable RAWWAVE_PATH\n"
                              "(points to rawwaves directory) to use STK opcodes."));
         return 0;
       }
@@ -752,7 +750,7 @@ extern "C"
       for(size_t i = 0, n = getStkInstances()[csound].size(); i < n; ++i) {
         delete getStkInstances()[csound][i];
       }
-      getStkInstances()[csound].clear();
+      //getStkInstances()[csound].clear();
       getStkInstances().erase(csound);
     }
     return 0;

@@ -124,7 +124,11 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
         p->r->data = cs_strdup(csound, ss);
         p->r->size = strlen(ss) + 1;
       }
-      else strcpy(p->r->data, ss);
+      else {
+        p->r->size = strlen(ss) + 1;
+        strncpy(p->r->data, ss, strlen(ss));
+        p->r->data[p->r->size - 1] = '\0';
+      }
       return OK;
     }
     indx = (int)((double)*(p->indx) + (*(p->indx) >= FL(0.0) ? 0.5 : -0.5));
@@ -772,7 +776,6 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       } while (++i < len);
       dst[i] = '\0';
     }
-
     return OK;
 }
 
