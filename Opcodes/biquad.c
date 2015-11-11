@@ -267,7 +267,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
 #ifdef JPFF
           {    // POLES
             double b1, b2, p0, p1, pi;
-            b1 = -a-2.0*csq; b2 = csq;
+            b1 = (-a-2.0*csq)*invb; b2 = csq*invb;
             if (b2==0.0) {
               if (b1==0.0) {
                 pi = p1 = p0 = 0.0;
@@ -314,7 +314,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
 #ifdef JPFF
           {    // POLES
             double b1, b2, p0, p1, pi;
-            b1 = -a-2.0*csq; b2 = csq;
+            b1 = (-a-2.0*csq)*invb; b2 = csq*invb;
             if (b2==0.0) {
               if (b1==0.0) {
                 pi = p1 = p0 = 0.0;
@@ -368,7 +368,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
 #ifdef JPFF
           {    // POLES
             double b1, b2, p0, p1, pi;
-            b1 = 1.0-c/rez2-2.0*csq; b2 = csq;
+            b1 = (1.0-c/rez2-2.0*csq)*invb; b2 = csq*invb;
             if (b2==0.0) {
               if (b1==0.0) {
                 pi = p1 = p0 = 0.0;
@@ -415,7 +415,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
 #ifdef JPFF
           {    // POLES
             double b1, b2, p0, p1, pi;
-            b1 = 1.0-c/rez2-2.0*csq; b2 = csq;
+            b1 = (1.0-c/rez2-2.0*csq)*invb; b2 = csq*invb;
             if (b2==0.0) {
               if (b1==0.0) {
                 pi = p1 = p0 = 0.0;
