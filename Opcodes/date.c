@@ -52,10 +52,11 @@ static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
     struct timespec tp;
     clock_gettime(CLOCK_REALTIME, &tp);
     *p->time_ = (MYFLT) (tp.tv_sec-base);
-    *p->time_ += (MYFLT)tp.tv_nsec*1.0e-9;
+    *p->time_ += (MYFLT)(tp.tv_nsec*1.0e-9);
     if (p->OUTOCOUNT==2) *p->nano =(MYFLT)tp.tv_nsec;
 #else
     *p->time_ = (MYFLT) (time(NULL)-base);
+    if (p->OUTOCOUNT==2) *p->nano = FL(0.0);
 #endif
     return OK;
 }
