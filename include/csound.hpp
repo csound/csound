@@ -263,7 +263,10 @@ public:
   {
     return csoundCompileCsd(csound, csd);
   }
-
+  virtual int CompileCsdText(char *csd_text)
+  {
+    return csoundCompileCsdText(csound, csd_text);
+  }
   virtual int Start()
   {
     return csoundStart(csound);

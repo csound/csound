@@ -234,4 +234,13 @@ public class JSCsoundObj extends CsoundObj {
         }
 	}
 
+    @JavascriptInterface
+    public void compileOrc(String orchestra) {
+        super.compileOrc(orchestra);
+    }
+
+    @JavascriptInterface
+    public void compileCsdText(String csd_text) {
+        super.compileCsdText(csd_text);
+    }
 }
