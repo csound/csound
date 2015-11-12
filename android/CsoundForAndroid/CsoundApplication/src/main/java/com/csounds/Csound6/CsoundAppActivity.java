@@ -69,7 +69,7 @@ import csnd6.Csound;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 @SuppressWarnings("unused")
 public class CsoundAppActivity extends Activity implements CsoundObjListener,
-		CsoundObj.MessagePoster {
+		CsoundObj.MessagePoster, SharedPreferences.OnSharedPreferenceChangeListener {
 	Uri templateUri = null;
 	Button newButton = null;
 	Button openButton = null;
@@ -82,7 +82,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 	CsoundUI csoundUI = null;
 	File csd = null;
 	Button pad = null;
-	WebView webLayout = null;
+	WebView htmlView = null;
 	LinearLayout channelsLayout = null;
 	ArrayList<SeekBar> sliders = new ArrayList<SeekBar>();
 	ArrayList<Button> buttons = new ArrayList<Button>();
@@ -150,11 +150,11 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 
 	public void csoundObjCompleted(CsoundObj csoundObj) {
 		runOnUiThread(new Runnable() {
-			public void run() {
-				startStopButton.setChecked(false);
-				postMessage("Csound has finished.\n");
-			}
-		});
+            public void run() {
+                startStopButton.setChecked(false);
+                postMessage("Csound has finished.\n");
+            }
+        });
 	}
 
 	@Override
@@ -369,19 +369,19 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 		final String message = message_;
 		final boolean doClear = doClear_;
 		CsoundAppActivity.this.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				if (doClear == true) {
-					messageTextView.setText("");
-				}
-				if (message == null) {
-					return;
-				}
-				messageTextView.append(message);
-				messageScrollView.fullScroll(ScrollView.FOCUS_DOWN);
-				Log.i("Csound6", message);
-			}
-		});
+            @Override
+            public void run() {
+                if (doClear == true) {
+                    messageTextView.setText("");
+                }
+                if (message == null) {
+                    return;
+                }
+                messageTextView.append(message);
+                messageScrollView.fullScroll(ScrollView.FOCUS_DOWN);
+                Log.i("Csound6", message);
+            }
+        });
 	}
 
 	private void goToUrl(String url) {
@@ -414,64 +414,92 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 	}
 
 	/**
-	 * Opens the CSD and searches for a <CsHtml5> element. If found, hide the
-	 * channelsLayout, show the webLayout, and set the contents of the CsHtml5
-	 * element as the content of the Web view.
+	 * Opens the CSD and searches for a <CsHtml5> element.
 	 */
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 	protected void parseWebLayout() {
-		try {
-			FileReader in = new FileReader(csd);
-			StringBuilder contents = new StringBuilder();
-			char[] buffer = new char[4096];
-			int read = 0;
-			do {
-				contents.append(buffer, 0, read);
-				read = in.read(buffer);
-			} while (read >= 0);
-			in.close();
-			String csdText = contents.toString();
-			int start = csdText.indexOf("<html");
-			int end = csdText.indexOf("</html>") + 7;
-			if (!(start == -1 || end == -1)) {
-				html5Page = csdText.substring(start, end);
-				if (html5Page.length() > 1) {
-					webLayout.setLayerType(View.LAYER_TYPE_NONE, null);
-					webLayout.setVisibility(View.VISIBLE);
-					channelsLayout.setVisibility(View.GONE);
-					WebSettings settings = webLayout.getSettings();
-					// Page itself must specify utf-8 in meta tag?
-					settings.setDefaultTextEncodingName("utf-8");
-					settings.setDomStorageEnabled(true);
-					settings.setDatabaseEnabled(true);
-					settings.setBuiltInZoomControls(true);
-					settings.setDisplayZoomControls(false);
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-						settings.setAllowFileAccessFromFileURLs(true);
-						settings.setAllowUniversalAccessFromFileURLs(true);
-					}
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-						settings.setJavaScriptEnabled(true);
-					}
-					File basePath = csd.getParentFile();
-					baseUrl = basePath.toURI().toURL();
-					webLayout.loadDataWithBaseURL(baseUrl.toString(),
-							html5Page, "text/html", "utf-8", null);
-				}
-			} else {
-				webLayout.onPause();
-				webLayout.pauseTimers();
-				webLayout.setVisibility(View.GONE);
-				channelsLayout.setVisibility(View.VISIBLE);
-			}
-			View mainLayout = findViewById(R.id.mainLayout);
-			mainLayout.invalidate();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+        try {
+            FileReader in = new FileReader(csd);
+            StringBuilder contents = new StringBuilder();
+            char[] buffer = new char[4096];
+            int read = 0;
+            do {
+                contents.append(buffer, 0, read);
+                read = in.read(buffer);
+            } while (read >= 0);
+            in.close();
+            String csdText = contents.toString();
+            int start = csdText.indexOf("<html");
+            int end = csdText.indexOf("</html>") + 7;
+            if (!(start == -1 || end == -1)) {
+                html5Page = csdText.substring(start, end);
+                if (html5Page.length() > 1) {
+                    htmlView.setLayerType(View.LAYER_TYPE_NONE, null);
+                    WebSettings settings = htmlView.getSettings();
+                    // Page itself must specify utf-8 in meta tag?
+                    settings.setDefaultTextEncodingName("utf-8");
+                    settings.setDomStorageEnabled(true);
+                    settings.setDatabaseEnabled(true);
+                    settings.setBuiltInZoomControls(true);
+                    settings.setDisplayZoomControls(false);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                        settings.setAllowFileAccessFromFileURLs(true);
+                        settings.setAllowUniversalAccessFromFileURLs(true);
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                        settings.setJavaScriptEnabled(true);
+                    }
+                    File basePath = csd.getParentFile();
+                    baseUrl = basePath.toURI().toURL();
+                    htmlView.loadDataWithBaseURL(baseUrl.toString(),
+                            html5Page, "text/html", "utf-8", null);
+                }
+            } else {
+                htmlView.onPause();
+                htmlView.pauseTimers();
+            }
+            View mainLayout = findViewById(R.id.mainLayout);
+            mainLayout.invalidate();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setScreenLayout(SharedPreferences sharedPreferences)
+    {
+        String screenLayout = sharedPreferences.getString("screenLayout", "1");
+        if        (screenLayout.equals("1")) {
+            channelsLayout.setVisibility(channelsLayout.GONE);
+            htmlView.setVisibility(htmlView.GONE);
+            messageScrollView.setVisibility(messageScrollView.VISIBLE);
+        } else if (screenLayout.equals("2")) {
+            channelsLayout.setVisibility(channelsLayout.GONE);
+            htmlView.setVisibility(htmlView.VISIBLE);
+            messageScrollView.setVisibility(messageScrollView.GONE);
+        } else if (screenLayout.equals("3")) {
+            channelsLayout.setVisibility(channelsLayout.GONE);
+            htmlView.setVisibility(htmlView.VISIBLE);
+            messageScrollView.setVisibility(messageScrollView.VISIBLE);
+        } else if (screenLayout.equals("4")) {
+            channelsLayout.setVisibility(channelsLayout.VISIBLE);
+            htmlView.setVisibility(htmlView.GONE);
+            messageScrollView.setVisibility(messageScrollView.GONE);
+        } else if (screenLayout.equals("5")) {
+            channelsLayout.setVisibility(channelsLayout.VISIBLE);
+            htmlView.setVisibility(htmlView.GONE);
+            messageScrollView.setVisibility(messageScrollView.VISIBLE);
+        }
+        View mainLayout = findViewById(R.id.mainLayout);
+        mainLayout.invalidate();
+    }
+
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(SettingsActivity.KEY_LIST_PREFERENCE)) {
+            setScreenLayout(sharedPreferences);
+        }
+    }
 
 	private void OnFileChosen(File file) {
 		Log.d("FILE CHOSEN", file.getAbsolutePath());
@@ -522,6 +550,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 		OPCODE6DIR = getBaseContext().getApplicationInfo().nativeLibraryDir;
 		SharedPreferences sharedPreferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 		OPCODE6DIR = sharedPreferences.getString("OPCODE6DIR", OPCODE6DIR);
 		SSDIR = packageInfo.applicationInfo.dataDir + "/samples";
 		SSDIR = sharedPreferences.getString("SSDIR", SSDIR);
@@ -547,38 +576,38 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 		setContentView(R.layout.main);
 		newButton = (Button) findViewById(R.id.newButton);
 		newButton.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				AlertDialog.Builder alert = new AlertDialog.Builder(
-						CsoundAppActivity.this);
-				alert.setTitle("New CSD...");
-				alert.setMessage("Filename:");
-				final EditText input = new EditText(CsoundAppActivity.this);
-				alert.setView(input);
-				alert.setPositiveButton("Ok",
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int whichButton) {
-								String value = input.getText().toString();
-								File root = Environment
-										.getExternalStorageDirectory();
-								csd = new File(root, value);
-								writeTemplateFile();
-								Intent intent = new Intent(Intent.ACTION_VIEW);
-								Uri uri = Uri.parse("file://"
-										+ csd.getAbsolutePath());
-								intent.setDataAndType(uri, "text/plain");
-								startActivity(intent);
-							}
-						});
-				alert.setNegativeButton("Cancel",
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int whichButton) {
-							}
-						});
-				alert.show();
-			}
-		});
+            public void onClick(View v) {
+                AlertDialog.Builder alert = new AlertDialog.Builder(
+                        CsoundAppActivity.this);
+                alert.setTitle("New CSD...");
+                alert.setMessage("Filename:");
+                final EditText input = new EditText(CsoundAppActivity.this);
+                alert.setView(input);
+                alert.setPositiveButton("Ok",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int whichButton) {
+                                String value = input.getText().toString();
+                                File root = Environment
+                                        .getExternalStorageDirectory();
+                                csd = new File(root, value);
+                                writeTemplateFile();
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                Uri uri = Uri.parse("file://"
+                                        + csd.getAbsolutePath());
+                                intent.setDataAndType(uri, "text/plain");
+                                startActivity(intent);
+                            }
+                        });
+                alert.setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int whichButton) {
+                            }
+                        });
+                alert.show();
+            }
+        });
 		openButton = (Button) findViewById(R.id.openButton);
 		openButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -667,21 +696,19 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 				}
 			}
 		});
-		messageTextView = (TextView) findViewById(R.id.messageTextView);
-		messageScrollView = (ScrollView) findViewById(R.id.messageScrollView);
 		channelsLayout = (LinearLayout) findViewById(R.id.channelsLayout);
-		// By default, the WebView is not shown, and the channels layout is
-		// shown.
-		webLayout = (WebView) findViewById(R.id.webLayout);
-		webLayout.setWebViewClient(new WebViewClient() {
-			public void onReceivedError(WebView view, int errorCode,
-					String description, String failingUrl) {
-				Toast.makeText(CsoundAppActivity.this,
-						"WebView error! " + description, Toast.LENGTH_SHORT)
-						.show();
-			}
-		});
-		webLayout.setVisibility(View.GONE);
+		htmlView = (WebView) findViewById(R.id.htmlView);
+		htmlView.setWebViewClient(new WebViewClient() {
+            public void onReceivedError(WebView view, int errorCode,
+                                        String description, String failingUrl) {
+                Toast.makeText(CsoundAppActivity.this,
+                        "WebView error! " + description, Toast.LENGTH_SHORT)
+                        .show();
+            }
+        });
+        messageTextView = (TextView) findViewById(R.id.messageTextView);
+        messageScrollView = (ScrollView) findViewById(R.id.csoundMessages);
+        //htmlView.setVisibility(View.GONE);
 		sliders.add((SeekBar) findViewById(R.id.seekBar1));
 		sliders.add((SeekBar) findViewById(R.id.seekBar2));
 		sliders.add((SeekBar) findViewById(R.id.seekBar3));
@@ -727,8 +754,8 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 					csoundUI = new CsoundUI(csound);
 					csound.messagePoster = CsoundAppActivity.this;
 					csound.setMessageLoggingEnabled(true);
-					webLayout.addJavascriptInterface(csound, "csound");
-					webLayout.addJavascriptInterface(CsoundAppActivity.this,
+					htmlView.addJavascriptInterface(csound, "csound");
+					htmlView.addJavascriptInterface(CsoundAppActivity.this,
 							"csoundApp");
 					// Csound will not be in scope of any JavaScript on the page
 					// until
@@ -780,6 +807,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 				}
 			}
 		});
+        setScreenLayout(sharedPreferences);
 	}
 
 	@Override

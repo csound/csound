@@ -434,7 +434,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     if (!O->sfheader)
       O->rewrt_hdr = 0;         /* cannot rewrite header of headerless file */
     /* VL 9 04 15: these not need occur jointly anymore */
-    /* 
+    /*
     if (O->sr_override || O->kr_override) {
       if (!O->sr_override || !O->kr_override)
         dieu(csound, Str("srate and krate overrides must occur jointly"));
@@ -491,8 +491,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
   else return result;
 }
 
-
-
 PUBLIC int csoundCompileCsd(CSOUND *csound, char *str) {
 
   if((csound->engineStatus & CS_STATE_COMP) == 0) {
@@ -516,3 +514,18 @@ PUBLIC int csoundCompileCsd(CSOUND *csound, char *str) {
    return res;
   }
 }
+
+PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
+{
+    FILE *temporary_file;
+    char temporary_filename[L_tmpnam];
+    int result = CSOUND_SUCCESS;
+    tmpnam(temporary_filename);
+    temporary_file = fopen(temporary_filename, "w+");
+    fwrite(csd_text, sizeof(char), strlen(csd_text), temporary_file);
+    fclose(temporary_file);
+    result = csoundCompileCsd(csound, temporary_filename);
+    remove(temporary_filename);
+    return result;
+}
+
