@@ -7,20 +7,18 @@ import android.preference.ListPreference;
 
 public class SettingsActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static final String KEY_LIST_PREFERENCE = "screenLayout";
-    private ListPreference mListPreference;
+    public ListPreference screenLayoutPreference;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
-        mListPreference=(ListPreference)findPreference(KEY_LIST_PREFERENCE);
+        screenLayoutPreference =(ListPreference)findPreference(KEY_LIST_PREFERENCE);
     }
     @Override
     protected void onResume() {
         super.onResume();
-
         // Setup the initial values
-        mListPreference.setSummary("Current value is " + mListPreference.getEntry().toString());
-
+        screenLayoutPreference.setSummary("Current value is " + screenLayoutPreference.getEntry().toString());
         // Set up a listener whenever a key changes
         getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
@@ -28,7 +26,6 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
     @Override
     protected void onPause() {
         super.onPause();
-
         // Unregister the listener whenever a key changes
         getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
@@ -36,7 +33,7 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         // Set new summary, when a preference value changes
         if (key.equals(KEY_LIST_PREFERENCE)) {
-            mListPreference.setSummary("Current value is " + mListPreference.getEntry().toString());
+            screenLayoutPreference.setSummary("Current value is " + screenLayoutPreference.getEntry().toString());
         }
     }
 }
