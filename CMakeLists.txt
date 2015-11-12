@@ -97,7 +97,7 @@ endfunction(make_executable)
 function(make_utility name srcs)
     make_executable(${name} "${srcs}" "${CSOUNDLIB}")
     add_dependencies(${name} ${CSOUNDLIB})
- 
+
     if(LINUX)
         target_link_libraries(${name} m)
     endif()

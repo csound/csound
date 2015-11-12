@@ -71,7 +71,7 @@ char* cs_strdup(CSOUND* csound, char* str) {
 
     if (len > 0) {
       strncpy(retVal, str, len);
-    } 
+    }
     retVal[len] = '\0';
 
     return retVal;
@@ -1864,7 +1864,11 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     do {
       ch = *++p;
       if (ch == '\n') break;
-      csound->Message(csound, "%c", ch);
+      // Now get rid of any continuations
+      if (ch=='#' && strncmp(p,"sline ",6)) {
+        p+=7; while (isdigit(*p)) p++;
+      }
+      else csound->Message(csound, "%c", ch);
     } while (ch != '\n' && ch != '\0');
     csound->Message(csound, " <<<\n");
 }

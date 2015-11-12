@@ -693,7 +693,7 @@ extern "C" {
      * but does not perform the file. Returns a non-zero error code on failure.
      * In this (host-driven) mode, the sequence of calls should be as follows:
      * /code
-     *       csoundCompileCsd(csound, argc, argv);
+     *       csoundCompileCsd(csound, str);
      *       while (!csoundPerformBuffer(csound));
      *       csoundCleanup(csound);
      *       csoundReset(csound);
@@ -704,6 +704,24 @@ extern "C" {
      */
 
     PUBLIC int csoundCompileCsd(CSOUND *csound, char *str);
+
+    /**
+     * Compiles a Csound input file contained in a string of text,
+     * which includes command-line arguments, orchestra, score, etc.,
+     * but does not perform the file. Returns a non-zero error code on failure.
+     * In this (host-driven) mode, the sequence of calls should be as follows:
+     * /code
+     *       csoundCompileCsdText(csound, csd_text);
+     *       while (!csoundPerformBuffer(csound));
+     *       csoundCleanup(csound);
+     *       csoundReset(csound);
+     * /endcode
+     * NB: A temporary file is created, the csd_text is written to the temporary
+     * file, and csoundCompileCsd is called with the name of the temporary file,
+     * which is deleted after compilation. Behavior may vary by platform.
+     */
+
+    PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text);
 
     /**
      * Senses input events and performs audio output until the end of score
@@ -1252,7 +1270,7 @@ extern "C" {
 
     /**
      * Sorts score file 'inFile' and writes the result to 'outFile'.
-     * The Csound instance should be initialised 
+     * The Csound instance should be initialised
      * before calling this function, and csoundReset() should be called
      * after sorting the score to clean up. On success, zero is returned.
      */

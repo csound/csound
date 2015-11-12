@@ -53,7 +53,6 @@ public class CsoundObj {
 		/** Append the message to the message display. */
 		public void postMessage(String message);
 	};
-
 	private Csound csound;
 	private ArrayList<CsoundBinding> bindings;
 	private ArrayList<CsoundObjListener> listeners;
@@ -195,7 +194,14 @@ public class CsoundObj {
 		sendScore(score);
 	}
 
-	public void updateOrchestra(String orchestraString) {
+    public void compileCsdText(String csd_text) {
+        csound.CompileCsdText(csd_text);
+    }
+    public void updateOrchestra(String orchestraString) {
+        csound.CompileOrc(orchestraString);
+    }
+
+	public void compileOrc(String orchestraString) {
 		csound.CompileOrc(orchestraString);
 	}
 
@@ -219,7 +225,6 @@ public class CsoundObj {
 				if (useAudioTrack == false) {
 					// Log.d("CsoundObj", "USING OPENSL");
 					runCsoundOpenSL(csdFile);
-
 				} else {
 					// Log.d("CsoundObj", "USING AUDIO TRACK");
 					runCsoundAudioTrack(csdFile);
@@ -271,6 +276,11 @@ public class CsoundObj {
 		return retVal;
 	}
 
+    @JavascriptInterface
+    public int SetOption(String option) {
+        return csound.SetOption(option);
+    }
+
 	/* Render Methods */
 
 	private void runCsoundOpenSL(File f) {
@@ -290,7 +300,12 @@ public class CsoundObj {
 			callbacks.SetMessageCallback();
 		}
 		if(!isAsync) this.pause();
-		retVal = csound.Compile(f.getAbsolutePath());
+		if(f.getAbsolutePath().toLowerCase().endsWith(".csd")) {
+			retVal = csound.Compile(f.getAbsolutePath());
+		} else {
+            csound.SetOption("-odac");
+			retVal = csound.Start();
+		}
 		Log.d("CsoundObj", "Return Value2: " + retVal);
 		if (retVal == 0) {
 			for (int i = 0; i < bindings.size(); i++) {
@@ -307,7 +322,6 @@ public class CsoundObj {
 				CsoundObjListener listener = listeners.get(i);
 				listener.csoundObjStarted(this);
 			}
-			
 			startTime = System.nanoTime()*1.0e-6;
 			//double tmptime = startTime;
 			if(!isAsync) this.play();
@@ -389,7 +403,6 @@ public class CsoundObj {
 		}
 		Log.d("CsoundObj", "THREAD END");
 	}
-	
 
 	private void runCsoundAudioTrack(File f) {
 		csound.SetHostImplementedAudioIO(1, 0);
