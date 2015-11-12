@@ -56,12 +56,13 @@ static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
     if (p->OUTOCOUNT==2) *p->nano =(MYFLT)tp.tv_nsec;
 #else
   #ifdef __MACH
+    // There may be more accurate methods.....
     struct timeval tp;
     int rv = gettimeofday(&tp, NULL);
     *p->time_  = (MYFLT)(tp.tv_sec-base);
     *p->time_ += (MYFLT)(tp.tv_usec)*1.0e-6;
     if (p->OUTOCOUNT==2) *p->nano =(MYFLT)(tp.tv_usec * 1000);
-  #else 
+  #else
     *p->time_ = (MYFLT) (time(NULL)-base);
     if (p->OUTOCOUNT==2) *p->nano = FL(0.0);
   #endif
