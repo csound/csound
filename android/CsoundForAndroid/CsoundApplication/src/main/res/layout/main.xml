@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/mainLayout"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <TableRow
         android:id="@+id/tableRow1"
@@ -63,8 +63,9 @@
     <TableLayout
         android:id="@+id/channelsLayout"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
-        
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
         <SeekBar
             android:id="@+id/seekBar1"
             style="@style/csoundSeekBar"
@@ -197,22 +198,22 @@
             android:id="@+id/pad"
             style="@style/csoundButtonStyle"
             android:layout_width="match_parent"
-            android:layout_height="96dp"
+            android:layout_height="match_parent"
             android:layout_marginTop="-5dip"
             android:text="@string/trackpad" />
     </TableLayout>
 
     <WebView
-        android:id="@+id/webLayout"
-        android:layout_width="match_parent"
-        android:layout_weight="1"
-        android:layout_height="wrap_content"/>
-
-    <ScrollView
-        android:id="@+id/messageScrollView"
+        android:id="@+id/htmlView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="2" >
+        android:layout_weight="3" />
+
+    <ScrollView
+        android:id="@+id/csoundMessages"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" >
 
         <TextView
             android:id="@+id/messageTextView"

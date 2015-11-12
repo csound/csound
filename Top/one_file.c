@@ -62,7 +62,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 {
 #define   nBytes (256)
     char lbuf[256];
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN__)
     struct _stat tmp;
 #else
     struct stat tmp;
@@ -930,7 +930,6 @@ int read_unified_file2(CSOUND *csound, char *csd)
                                strerror(errno));
       return 0;
     }
-
 #ifdef _DEBUG
     csoundMessage(csound, "Calling unified file system with %s\n", name);
 #endif

@@ -235,7 +235,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
     MYFLT *out, *fcoptr, *rezptr, *in;
     double fco, rez, xn, yn;
     double fqcadj, a=0.0, /* Initialisations fake */
-           csq=0.0, invb=0.0, tval=0.0; /* Temporary varibles for the filter */
+           csq=0.0, invb=0.0, tval=0.0; /* Temporary variables for the filter */
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
     in     = p->in;
@@ -264,6 +264,25 @@ static int rezzy(CSOUND *csound, REZZY *p)
         csq  = c*c;               /* Precalculate c^2 */
         b    = 1.0 + a + csq;     /* Normalization constant */
         invb = 1.0/b;
+#ifdef JPFF
+          {    // POLES
+            //Note that csq cannot be zero
+            double b1 = (-a-2.0*csq)*invb, b2 = csq*invb, p0, p1, pi;
+            double disc=b1*b1-(4*b2);
+            if (disc<0.0) {
+              pi = sqrt(-disc)/2.0;
+              p0=p1=(-b1)/2.0;
+              if (p0*p0+pi*pi>=1.0) printf("UNSTABLE\n");
+            }
+            else {
+              pi = 0;
+              p0=(sqrt(disc)-b1)/2.0;
+              p1=(-sqrt(disc)-b1)/2.0;
+              if (p0*p0>=1.0 || p1*p1>=1) printf("UNSTABLE\n");
+            }
+          }
+          //printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, -pi);
+#endif
       }
       for (n=offset; n<nsmps; n++) { /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
@@ -281,12 +300,28 @@ static int rezzy(CSOUND *csound, REZZY *p)
           csq  = c*c;           /* Precalculate c^2 */
           b    = 1.0 + a + csq; /* Normalization constant */
           invb = 1.0/b;
+#ifdef JPFF
+          {    // POLES
+            double b1 = (-a-2.0*csq)*invb, b2 = csq*invb, p0, p1, pi;
+            double disc=b1*b1-(4*b2);
+            if (disc<0.0) {
+              pi = sqrt(-disc)/2.0;
+              p0=p1=(-b1)/2.0;
+              if (p0*p0+pi*pi>=1.0) printf("UNSTABLE\n");
+            }
+            else {
+              pi = 0;
+              p0=(sqrt(disc)-b1)/2.0;
+              p1=(-sqrt(disc)-b1)/2.0;
+            }
+          }
+          //printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, -pi);
+#endif
         }
         xn = (double)in[n];             /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/
-        //yn = (1.0/sqrt(1.0+rez)*xn - (-a-2.0*csq)*ynm1 - csq*ynm2)*invb;
-        yn = (1.0/sqrt(1.0+rez)*xn - csq*((-a-2.0)*ynm1 + ynm2))*invb;
-
+        yn = (1.0/sqrt(1.0+rez)*xn - (-a-2.0*csq)*ynm1 - csq*ynm2)*invb;
+        
         xnm2 = xnm1; /* Update Xn-2 */
         xnm1 = xn;   /* Update Xn-1 */
         ynm2 = ynm1; /* Update Yn-2 */
@@ -306,6 +341,24 @@ static int rezzy(CSOUND *csound, REZZY *p)
         csq  = c*c;
         b    = (c/rez2 + csq);
         invb = 1.0/b;
+#ifdef JPFF
+          {    // POLES
+            double b1 = (1.0-c/rez2-2.0*csq)*invb, b2 = csq*invb, p0, p1, pi;
+            double disc=b1*b1-(4*b2);
+            if (disc<0.0) {
+              pi = sqrt(-disc)/2.0;
+              p0=p1=(-b1)/2.0;
+              if (p0*p0+pi*pi>=1.0) printf("UNSTABLE\n");
+            }
+            else {
+              pi = 0;
+              p0=(sqrt(disc)-b1)/2.0;
+              p1=(-sqrt(disc)-b1)/2.0;
+              if (p0*p0>=1.0 || p1*p1>=1) printf("UNSTABLE\n");
+            }
+          }
+          //printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, -pi);
+#endif
       }
       for (n=offset; n<nsmps; n++) { /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
@@ -323,6 +376,34 @@ static int rezzy(CSOUND *csound, REZZY *p)
           csq    = c*c;
           b      = (c/rez2 + csq);
           invb   = 1.0/b;
+#ifdef JPFF
+          {    // POLES
+            double b1 = (1.0-c/rez2-2.0*csq)*invb, b2 = csq*invb, p0, p1, pi;
+            double disc=b1*b1-(4*b2);
+            if (disc<0.0) {
+              pi = sqrt(-disc)/2.0;
+              p0=p1=(-b1)/2.0;
+              if (p0*p0+pi*pi >=1.0) {
+                double theta = atan2(pi,p0);
+                printf("UNSTABLE\n");
+                p0=p1=0.9999*cos(theta);
+                pi   = 0.9999*sin(theta);
+              }
+              else {
+                pi = 0;
+                p0=(sqrt(disc)-b1)/2.0;
+                p1=(-sqrt(disc)-b1)/2.0;
+                if (p0>=1.0||p0<=-1.0||p1>=1.0||p1<=-1.0)
+                  printf("UNSTABLE\n");
+                if (p0>=1) p0 = 0.9999; else if (p0<=-1.0) p0 = -0.9999;
+                if (p1>=1) p1 = 0.9999; else if (p1<=-1.0) p0 = -0.9999;
+              }
+            }
+            //printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, -pi);
+            //if (p0*p0+pi*pi>=1.0 || p1*p1+pi*pi>=1.0) printf("UNSTABLE\n");
+            //else printf("\n");
+          }
+#endif
         }
         xn = (double)in[n];            /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/

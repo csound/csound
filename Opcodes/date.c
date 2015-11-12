@@ -31,6 +31,7 @@
 typedef struct {
    OPDS h;
    MYFLT *time_;
+   MYFLT *nano;
 } DATEMYFLT;
 
 typedef struct {
@@ -47,7 +48,24 @@ static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
     /*    time_t base = 946684800; */  /* 1 Jan 2000 */
     const time_t base = 1262304000;    /* 1 Jan 2010 */
 #endif
+#ifdef LINUX
+    struct timespec tp;
+    clock_gettime(CLOCK_REALTIME, &tp);
+    *p->time_ = (MYFLT) (tp.tv_sec-base);
+    *p->time_ += (MYFLT)(tp.tv_nsec)*1.0e-9;
+    if (p->OUTOCOUNT==2) *p->nano =(MYFLT)tp.tv_nsec;
+#else
+  #ifdef __MACH
+    struct timeval tp;
+    int rv = gettimeofday(&tp, NULL);
+    *p->time_  = (MYFLT)(tp.tv_sec-base);
+    *p->time_ += (MYFLT)(tp.tv_usec)*1.0e-6;
+    if (p->OUTOCOUNT==2) *p->nano =(MYFLT)(tp.tv_usec * 1000);
+  #else 
     *p->time_ = (MYFLT) (time(NULL)-base);
+    if (p->OUTOCOUNT==2) *p->nano = FL(0.0);
+  #endif
+#endif
     return OK;
 }
 
@@ -89,7 +107,7 @@ static int getcurdir(CSOUND *csound, GETCWD *p)
       p->Scd->data = csound->Calloc(csound, p->Scd->size);
     }
 
-#if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__)
+#if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__) || defined(__CYGWIN__)
     if (UNLIKELY(getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #else
     if (UNLIKELY( _getcwd(p->Scd->data, p->Scd->size-1)==NULL))
@@ -183,11 +201,13 @@ static int readfi_S(CSOUND *csound, READF *p)
 
 static OENTRY date_localops[] =
 {
-    { "date",   sizeof(DATEMYFLT),  0, 1, "i",    "", (SUBR)datemyfltset   },
+    { "date.i", sizeof(DATEMYFLT),  0, 1, "iI",   "", (SUBR)datemyfltset   },
+    { "date.k", sizeof(DATEMYFLT),  0, 3, "kz",   "", (SUBR)datemyfltset,
+      (SUBR)datemyfltset },
     { "dates",  sizeof(DATESTRING), 0, 1, "S",    "j", (SUBR)datestringset },
     { "pwd",    sizeof(GETCWD),     0, 1, "S",    "",  (SUBR)getcurdir     },
     { "readfi", sizeof(READF),      0, 1, "Si",   "i", (SUBR)readfi,       },
-    { "readfi.S", sizeof(READF),      0, 1, "Si",   "S", (SUBR)readfi_S,       },
+    { "readfi.S", sizeof(READF),    0, 1, "Si",   "S", (SUBR)readfi_S,       },
     { "readf",  sizeof(READF),      0, 3, "Sk",   "i", (SUBR)readf_init,
       (SUBR)readf         },
     { "readf.S",  sizeof(READF),      0, 3, "Sk",   "S", (SUBR)readf_init_S,
