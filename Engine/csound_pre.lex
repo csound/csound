@@ -163,8 +163,12 @@ QNAN		"qnan"[ \t]*\(
 {RESET}         { csound_preset_lineno(csound->orcLineOffset, yyscanner);
                   csound->Free(csound, PARM->alt_stack);
                 }
-{CONT}          { csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+{CONT}          {
+                  char bb[80];
+                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
+                  sprintf(bb, "#sline %d ", csound_preget_lineno(yyscanner));
+                  corfile_puts(bb, csound->expanded_orc);
                 }
 {NEWLINE}       { csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);

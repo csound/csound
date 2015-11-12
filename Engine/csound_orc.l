@@ -84,9 +84,11 @@ CONT            \\[ \t]*(;.*)?\n
 XSTR            "{{"
 EXSTR           "}}"
 LINE            ^[ \t]*"#line"
+SLINE           "#sline "
 FILE            ^[ \t]*"#source"
 FNAME           [a-zA-Z0-9/:.+-_]+
 %x line
+%x sline
 %x src
 %x xstr
 %x udodef
@@ -478,6 +480,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 {NUMBER}        { *lvalp = make_num(csound, yytext); return (NUMBER_TOKEN); }
 {WHITE}         { }
 
+{SLINE}         { BEGIN(sline); }
+<sline>{INTGR}   { csound_orcset_lineno(atoi(yytext), yyscanner); }
+<sline>[ \t]*   { BEGIN(INITIAL);}
 {LINE}          { BEGIN(line); }
 
 <line>[ \t]*     /* eat the whitespace */
