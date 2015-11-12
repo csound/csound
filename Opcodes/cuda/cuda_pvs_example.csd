@@ -8,8 +8,8 @@ ksmps = 64
 0dbfs = 1
 
 instr 1
-ifftsize = 1024
-ihopsize = 256
+ifftsize = 2048
+ihopsize = 512
 asig = diskin2:a("flutec3.wav",1,0,1)
 fsig = cudanal(asig, 
                ifftsize, 
@@ -22,8 +22,8 @@ endin
 
 instr 2
 S1 = "flutec3.wav"
-ifftsize = 1024
-ihopsize = 256
+ifftsize = 2048
+ihopsize = 512
 asig  diskin2 S1, 1, 0, 1
 fsig pvsanal asig, ifftsize, ihopsize, ifftsize, 1
 a1 pvsynth fsig
@@ -34,7 +34,7 @@ endin
 
 </CsInstruments>
 <CsScore>
-i1 0 60
+i2 0 60
 </CsScore>
 </CsoundSynthesizer>
 
