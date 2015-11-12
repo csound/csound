@@ -266,33 +266,22 @@ static int rezzy(CSOUND *csound, REZZY *p)
         invb = 1.0/b;
 #ifdef JPFF
           {    // POLES
-            double b1, b2, p0, p1, pi;
-            b1 = (-a-2.0*csq)*invb; b2 = csq*invb;
-            if (b2==0.0) {
-              if (b1==0.0) {
-                pi = p1 = p0 = 0.0;
-              }
-              else {
-                p1 = p0 = -b1;
-                pi = 0.0;
-              }
+            //Note that csq cannot be zero
+            double b1 = (-a-2.0*csq)*invb, b2 = csq*invb, p0, p1, pi;
+            double disc=b1*b1-(4*b2);
+            if (disc<0.0) {
+              pi = sqrt(-disc)/2.0;
+              p0=p1=(-b1)/2.0;
+              if (p0*p0+pi*pi>=1.0) printf("UNSTABLE\n");
             }
             else {
-              double disc=b1*b1-(4*b2);
-              if (disc<0.0) {
-                pi = sqrt(-disc)/2.0;
-                p0=p1=(-b1)/2.0;
-              }
-              else {
-                pi = 0;
-                p0=(sqrt(disc)-b1)/2.0;
-                p1=(-sqrt(disc)-b1)/2.0;
-              }
+              pi = 0;
+              p0=(sqrt(disc)-b1)/2.0;
+              p1=(-sqrt(disc)-b1)/2.0;
+              if (p0*p0>=1.0 || p1*p1>=1) printf("UNSTABLE\n");
             }
-            printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, pi);
-            if (p0*p0+pi*pi>=1.0 || p1*p1+pi*pi>=1.0) printf("UNSTABLE\n");
-            else printf("\n");
           }
+          //printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, -pi);
 #endif
       }
       for (n=offset; n<nsmps; n++) { /* do ksmp times   */
@@ -313,33 +302,20 @@ static int rezzy(CSOUND *csound, REZZY *p)
           invb = 1.0/b;
 #ifdef JPFF
           {    // POLES
-            double b1, b2, p0, p1, pi;
-            b1 = (-a-2.0*csq)*invb; b2 = csq*invb;
-            if (b2==0.0) {
-              if (b1==0.0) {
-                pi = p1 = p0 = 0.0;
-              }
-              else {
-                p1 = p0 = -b1;
-                pi = 0.0;
-              }
+            double b1 = (-a-2.0*csq)*invb, b2 = csq*invb, p0, p1, pi;
+            double disc=b1*b1-(4*b2);
+            if (disc<0.0) {
+              pi = sqrt(-disc)/2.0;
+              p0=p1=(-b1)/2.0;
+              if (p0*p0+pi*pi>=1.0) printf("UNSTABLE\n");
             }
             else {
-              double disc=b1*b1-(4*b2);
-              if (disc<0.0) {
-                pi = sqrt(-disc)/2.0;
-                p0=p1=(-b1)/2.0;
-              }
-              else {
-                pi = 0;
-                p0=(sqrt(disc)-b1)/2.0;
-                p1=(-sqrt(disc)-b1)/2.0;
-              }
+              pi = 0;
+              p0=(sqrt(disc)-b1)/2.0;
+              p1=(-sqrt(disc)-b1)/2.0;
             }
-            printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, pi);
-            if (p0*p0+pi*pi>=1.0 || p1*p1+pi*pi>=1.0) printf("UNSTABLE\n");
-            else printf("\n");
           }
+          //printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, -pi);
 #endif
         }
         xn = (double)in[n];             /* Get the next sample */
@@ -367,33 +343,21 @@ static int rezzy(CSOUND *csound, REZZY *p)
         invb = 1.0/b;
 #ifdef JPFF
           {    // POLES
-            double b1, b2, p0, p1, pi;
-            b1 = (1.0-c/rez2-2.0*csq)*invb; b2 = csq*invb;
-            if (b2==0.0) {
-              if (b1==0.0) {
-                pi = p1 = p0 = 0.0;
-              }
-              else {
-                p1 = p0 = -b1;
-                pi = 0.0;
-              }
+            double b1 = (1.0-c/rez2-2.0*csq)*invb, b2 = csq*invb, p0, p1, pi;
+            double disc=b1*b1-(4*b2);
+            if (disc<0.0) {
+              pi = sqrt(-disc)/2.0;
+              p0=p1=(-b1)/2.0;
+              if (p0*p0+pi*pi>=1.0) printf("UNSTABLE\n");
             }
             else {
-              double disc=b1*b1-(4*b2);
-              if (disc<0.0) {
-                pi = sqrt(-disc)/2.0;
-                p0=p1=(-b1)/2.0;
-              }
-              else {
-                pi = 0;
-                p0=(sqrt(disc)-b1)/2.0;
-                p1=(-sqrt(disc)-b1)/2.0;
-              }
+              pi = 0;
+              p0=(sqrt(disc)-b1)/2.0;
+              p1=(-sqrt(disc)-b1)/2.0;
+              if (p0*p0>=1.0 || p1*p1>=1) printf("UNSTABLE\n");
             }
-            printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, pi);
-            if (p0*p0+pi*pi>=1.0 || p1*p1+pi*pi>=1.0) printf("UNSTABLE\n");
-            else printf("\n");
           }
+          //printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, -pi);
 #endif
       }
       for (n=offset; n<nsmps; n++) { /* do ksmp times   */
@@ -414,32 +378,30 @@ static int rezzy(CSOUND *csound, REZZY *p)
           invb   = 1.0/b;
 #ifdef JPFF
           {    // POLES
-            double b1, b2, p0, p1, pi;
-            b1 = (1.0-c/rez2-2.0*csq)*invb; b2 = csq*invb;
-            if (b2==0.0) {
-              if (b1==0.0) {
-                pi = p1 = p0 = 0.0;
-              }
-              else {
-                p1 = p0 = -b1;
-                pi = 0.0;
-              }
-            }
-            else {
-              double disc=b1*b1-(4*b2);
-              if (disc<0.0) {
-                pi = sqrt(-disc)/2.0;
-                p0=p1=(-b1)/2.0;
+            double b1 = (1.0-c/rez2-2.0*csq)*invb, b2 = csq*invb, p0, p1, pi;
+            double disc=b1*b1-(4*b2);
+            if (disc<0.0) {
+              pi = sqrt(-disc)/2.0;
+              p0=p1=(-b1)/2.0;
+              if (p0*p0+pi*pi >=1.0) {
+                double theta = atan2(pi,p0);
+                printf("UNSTABLE\n");
+                p0=p1=0.9999*cos(theta);
+                pi   = 0.9999*sin(theta);
               }
               else {
                 pi = 0;
                 p0=(sqrt(disc)-b1)/2.0;
                 p1=(-sqrt(disc)-b1)/2.0;
+                if (p0>=1.0||p0<=-1.0||p1>=1.0||p1<=-1.0)
+                  printf("UNSTABLE\n");
+                if (p0>=1) p0 = 0.9999; else if (p0<=-1.0) p0 = -0.9999;
+                if (p1>=1) p1 = 0.9999; else if (p1<=-1.0) p0 = -0.9999;
               }
             }
-            printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, pi);
-            if (p0*p0+pi*pi>=1.0 || p1*p1+pi*pi>=1.0) printf("UNSTABLE\n");
-            else printf("\n");
+            //printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, -pi);
+            //if (p0*p0+pi*pi>=1.0 || p1*p1+pi*pi>=1.0) printf("UNSTABLE\n");
+            //else printf("\n");
           }
 #endif
         }
