@@ -20,9 +20,9 @@
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.06.0beta-vst"
+#define MyAppMinVersion "6.07.0beta-vst"
 #else
-#define MyAppMinVersion "6.06.0beta"
+#define MyAppMinVersion "6.07.0beta"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
@@ -181,15 +181,6 @@ Source: "luaCsnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components:
 Source: "luaCsoundAC.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "_jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "frontends\nwjs\build\Release\csound.node"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-
-#ifdef CSOUNDVST
-Source: "{#MyCabbageDir}cabbage.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
-Source: "{#MyCabbageDir}CabbagePluginSynth.dat"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
-Source: "{#MyCabbageDir}CabbagePluginEffect.dat"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
-Source: "{#MyCabbageDir}Examples\*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs; Components: csoundvst
-Source: "{#MyCabbageDir}Docs\*"; DestDir: "{#APP_BIN}\Docs"; Flags: ignoreversion recursesubdirs; Components: csoundvst
-#endif
-
 Source: "LuaCsound.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "ampmidid.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "buchla.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
@@ -297,9 +288,6 @@ Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}";  Com
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core  
 Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-cs6.exe"; WorkingDir: "{#APP_BIN}";  Components: core   
-#ifdef CSOUNDVST
-Name: "{group}\Cabbage"; Filename: "{#APP_BIN}cabbage.exe"; WorkingDir: "{#APP_BIN}";  Components: csoundvst
-#endif
 Name: "{group}\LuaJIT"; Filename: "{#APP_BIN}luajit.exe"; WorkingDir: "{#APP_BIN}";  Components: core 
 Name: "{group}\Audio device information"; Filename: "cmd"; Parameters: "/K pa_devs.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core 
 Name: "{group}\Audio device latency"; Filename: "cmd"; Parameters: "/K pa_minlat.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core 

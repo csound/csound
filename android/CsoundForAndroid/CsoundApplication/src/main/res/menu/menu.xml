@@ -5,6 +5,8 @@
             <item android:id="@+id/itemTrapped" android:visible="true" android:titleCondensed="Trapped in Convert" android:title="Trapped in Convert, Richard Boulanger" android:enabled="true"/>
             <item android:id="@+id/itemDroneIV" android:visible="true" android:titleCondensed="Drone IV" android:title="Drone IV, Michael Gogins" android:enabled="true"/>
             <item android:id="@+id/itemLuaScoregen" android:visible="true" android:titleCondensed="Lua score generator" android:enabled="true" android:title="Lua score generator, Michael Gogins" />
+            <item android:id="@+id/itemLindenmayerCanvas" android:visible="true" android:titleCondensed="Lindenmayer Canvas" android:enabled="true" android:title="Lindenmayer Canvas, Michael Gogins"/>
+            <!-- n<item android:id="@+id/itemPoustinia" android:visible="true" android:titleCondensed="Poustinia" android:enabled="true" android:title="Poustinia, Michael Gogins"/> -->
             <item android:id="@+id/itemChimePad" android:visible="true" android:titleCondensed="Chime Pad" android:enabled="true" android:title="Chime Pad, Art Hunkins" />
             <item android:id="@+id/itemKoanI" android:visible="true" android:titleCondensed="Csound Koan I" android:title="Csound Koan I, Ian McCurdy" android:enabled="true" />
             <item android:id="@+id/itemPartikkel" android:visible="true" android:titleCondensed="Partikkel" android:enabled="true" android:title="Partikkel, Peiman Khosravi" />
