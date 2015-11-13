@@ -185,7 +185,7 @@ int pfun(CSOUND *csound, PFUN *p)
     MYFLT ans;
     if (n<1 || n>PMAX) ans = FL(0.0);
     else ans = csound->currevent->p[n];
-/*     csound->Message(csound, "p(%d) %f\n", n,ans); */
+    /*csound->Message(csound, "p(%d) %f\n", n,ans);*/ 
     *p->ans = ans;
     return OK;
 }
