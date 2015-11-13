@@ -48,6 +48,7 @@ typedef struct {
     MYFLT   *out, *in, *fco, *rez, *mode, *iskip;
     double  xnm1, xnm2, ynm1, ynm2;
     int16   fcocod, rezcod;
+    int16   warn;
 } REZZY;
 
                                 /* Structure for distortion */
