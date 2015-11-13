@@ -223,9 +223,11 @@ static int rezzyset(CSOUND *csound, REZZY *p)
     }
     p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
     p->rezcod = IS_ASIG_ARG(p->rez) ? 1 : 0;
-
+    p->warn = 1;
     return OK;
 } /* end rezzyset(p) */
+
+#define NEARONE (0.99999)
 
 static int rezzy(CSOUND *csound, REZZY *p)
 {
@@ -238,6 +240,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
       csq=0.0, invb=0.0, tval=0.0; /* Temporary variables for the filter */
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
     double b1, b2;
+    int warn = p->warn;
 
     in     = p->in;
     out    = p->out;
@@ -267,7 +270,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
         invb = 1.0/b;
         b1 = (-a-2.0*csq)*invb;
         b2 = csq*invb;
-#ifdef JPFF
+#if 1
         {    // POLES
           //Note that csq cannot be zero
           double  p0, p1, pi, disc;
@@ -277,10 +280,10 @@ static int rezzy(CSOUND *csound, REZZY *p)
             p0 = p1 = (-b1)/2.0;
             if (p0*p0+pi*pi>=1.0) {
               double theta = atan2(pi, p0);
-              printf("UNSTABLE\n");
-              p0 = 0.9999 * cos(theta);
-              //pi = 0.9999 * sin(theta);
-              b1 = -2*p0; b2 = 0.9999*0.9999;
+              if (warn) csound->Warning(csound, Str("rezzy instability corrected"));
+              p0 = NEARONE * cos(theta);
+              //pi = NEARONE * sin(theta);
+              b1 = -2*p0; b2 = NEARONE*NEARONE; warn = 0;
             }
           }
           else {
@@ -288,10 +291,10 @@ static int rezzy(CSOUND *csound, REZZY *p)
             p0=(sqrt(disc)-b1)/2.0;
             p1=(-sqrt(disc)-b1)/2.0;
             if (p0*p0>=1.0 || p1*p1>=1) {
-              printf("UNSTABLE\n");
-              if (p0*p0>=1) p0 = 0.9999*(p0>0.0?1:-1);
-              if (p1*p1>=1) p1 = 0.9999*(p1>0.0?1:-1);
-              b1 = -(p0+p1); b2 = p0*p1;
+              if (warn) csound->Warning(csound, Str("rezzy instability corrected"));
+              if (p0*p0>=1) p0 = NEARONE*(p0>0.0?1:(-1));
+              if (p1*p1>=1) p1 = NEARONE*(p1>0.0?1:(-1));
+              b1 = -(p0+p1); b2 = p0*p1; warn = 0;
             }
           }
         }
@@ -316,7 +319,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
           invb = 1.0/b;
           b1 = (-a-2.0*csq)*invb;
           b2 = csq*invb;
-#ifdef JPFF
+#if 1
           {    // POLES
             double disc, p0, p1, pi;
             disc=b1*b1-(4*b2);
@@ -325,16 +328,28 @@ static int rezzy(CSOUND *csound, REZZY *p)
               p0=p1=(-b1)/2.0;
               if (p0*p0+pi*pi>=1.0) {
                 double theta = atan2(pi, p0);
-                printf("UNSTABLE\n");
-                p0 = 0.9999 * cos(theta);
-                //pi = 0.9999 * sin(theta);
-                b1 = -2*p0; b2 = 0.9999*0.9999;
+                if (warn) csound->Warning(csound,
+                                          Str("rezzy instability corrected"));
+                printf("b1, b2 = %f, %f ->", b1,b2);
+                p0 = NEARONE * cos(theta);
+                //pi = NEARONE * sin(theta);
+                b1 = -2*p0; b2 = NEARONE*NEARONE; warn = 0;
+                printf(" b1, b2 = %f, %f\n", b1, b2);
               }
             }
             else {
               pi = 0;
               p0=(sqrt(disc)-b1)/2.0;
               p1=(-sqrt(disc)-b1)/2.0;
+              if (p0*p0>=1.0 || p1*p1>=1) {
+                if (warn) csound->Warning(csound,
+                                          Str("rezzy instability corrected"));
+                printf("b1, b2= %f, %f ", b1, b2);
+                if (p0*p0>=1) p0 = NEARONE*(p0>0.0?1:(-1));
+                if (p1*p1>=1) p1 = NEARONE*(p1>0.0?1:(-1));
+                b1 = -(p0+p1); b2 = p0*p1; warn = 0;
+                printf("b1, b2= %f, %f ", b1, b2);
+              }
             }
           }
           //printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, -pi);
@@ -366,7 +381,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
         invb = 1.0/b;
         b1 = (1.0-c/rez2-2.0*csq)*invb;
         b2 = csq*invb;
-#ifdef JPFF
+#if 1
         {    // POLES
           double p0, p1, pi;
           double disc=b1*b1-(4*b2);
@@ -375,8 +390,10 @@ static int rezzy(CSOUND *csound, REZZY *p)
             p0=p1=(-b1)/2.0;
             if (p0*p0+pi*pi>=1.0) {
               double theta = atan2(pi, p0);
-              printf("UNSTABLE\n");
-              b1 = -p0*cos(theta); b2 = 0.9999*0.9999;
+              //printf("b1, b2= %f, %f ", b1, b2);
+              if (warn) csound->Warning(csound, Str("rezzy instability corrected"));
+              b1 = -p0*cos(theta); b2 = NEARONE*NEARONE; warn = 0;
+              //printf("-> b1, b2= %f, %f\n", b1, b2);
             }
           }
           else {
@@ -384,10 +401,12 @@ static int rezzy(CSOUND *csound, REZZY *p)
             p0=(sqrt(disc)-b1)/2.0;
             p1=(-sqrt(disc)-b1)/2.0;
             if (p0*p0>=1.0 || p1*p1>=1) {
-              printf("UNSTABLE\n");
-              if (p0*p0>=1.0) p0 = 0.9999*(p0>0?1:(-1));
-              if (p1*p1>=1.0) p1 = 0.9999*(p1>0?1:(-1));
-              b1 = -(p0+p1); b2 = p0*p1;
+              //printf("b1, b2= %f, %f ", b1, b2);
+              if (warn) csound->Warning(csound, Str("rezzy instability corrected"));
+              if (p0*p0>=1.0) p0 = NEARONE*(p0>0?1:(-1));
+              if (p1*p1>=1.0) p1 = NEARONE*(p1>0?1:(-1));
+              b1 = -(p0+p1); b2 = p0*p1; warn = 0;
+              //printf("-> b1, b2= %f, %f\n", b1, b2);
             }
           }
         }
@@ -412,7 +431,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
           invb   = 1.0/b;
           b1 = (1.0-c/rez2-2.0*csq)*invb;
           b2 = csq*invb;
-#ifdef JPFF
+#if 1
           {    // POLES
             double  p0, p1, pi;
             double disc=b1*b1-(4*b2);
@@ -421,19 +440,23 @@ static int rezzy(CSOUND *csound, REZZY *p)
               p0=p1=(-b1)/2.0;
               if (p0*p0+pi*pi >=1.0) {
                 double theta = atan2(pi,p0);
-                printf("UNSTABLE\n");
-                p0=p1=0.9999*cos(theta);
-                pi   = 0.9999*sin(theta);
+                //printf("b1, b2= %f, %f ", b1, b2);
+                if (warn) csound->Warning(csound,
+                                          Str("rezzy instability corrected"));
+                b1 = -p0*cos(theta); b2 = NEARONE*NEARONE; warn = 0;
+                //printf("-> b1, b2= %f, %f\n", b1, b2);
               }
             }
             else {
               pi = 0;
               p0=(sqrt(disc)-b1)/2.0;
               p1=(-sqrt(disc)-b1)/2.0;
-              if (p0>=1.0||p0<=-1.0||p1>=1.0||p1<=-1.0) {
-                printf("UNSTABLE\n");
-                if (p0>=1) p0 = 0.9999; else if (p0<=-1.0) p0 = -0.9999;
-                if (p1>=1) p1 = 0.9999; else if (p1<=-1.0) p0 = -0.9999;
+              if (p0*p0>=1.0 || p1*p1>=1) {
+                if (warn) csound->Warning(csound,
+                                          Str("rezzy instability corrected"));
+                if (p0*p0>=1.0) p0 = NEARONE*(p0>0?1:(-1));
+                if (p1*p1>=1.0) p1 = NEARONE*(p1>0?1:(-1));
+                b1 = -(p0+p1); b2 = p0*p1; warn = 0;
               }
             }
             //printf("Poles: (%f,%f) and (%f,%f)\n", p0, pi, p1, -pi);
@@ -454,6 +477,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
       }
     }
     p->xnm1 = xnm1; p->xnm2 = xnm2; p->ynm1 = ynm1; p->ynm2 = ynm2;
+    p->warn = warn;
     return OK;
 }
 /***************************************************************************/
