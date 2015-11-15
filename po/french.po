@@ -4031,9 +4031,9 @@ msgid "diskin2: unknown sample format"
 msgstr "diskin2 : format d'échantillon inconnu"
 
 #: OOps/diskin2.c:304
-#, fuzzy, c-format
+#, c-format
 msgid "diskin2: %s: failed to open file (%s)"
-msgstr "diskin2 : %s: l'ouverture du fichier a échoué"
+msgstr "diskin2 : %s : l'ouverture du fichier (%s)  a échoué"
 
 #: OOps/diskin2.c:315
 msgid ""
@@ -5835,7 +5835,7 @@ msgstr "la ftable %.2f n'existe pas"
 #: Opcodes/OSC.c:272
 #, c-format
 msgid "argument %d is not an array"
-msgstr ""
+msgstr "l'argument %d n'est pas un tableau"
 
 #: Opcodes/OSC.c:294
 #, c-format
@@ -5881,9 +5881,9 @@ msgid "invalid type"
 msgstr "type non valide"
 
 #: Opcodes/OSC.c:696
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid ftable no. %d"
-msgstr "Numéro de ftable non valide. %f"
+msgstr "Numéro de ftable %d non valide."
 
 #: Opcodes/Vosim.c:51
 msgid "vosim: pulse table not found"
@@ -9311,7 +9311,6 @@ msgid "stdopcod.c: error: globals already allocated"
 msgstr "stdopcod.c : erreur : les variables globales sont déjà allouées"
 
 #: Opcodes/stk/stkOpcodes.cpp:721
-#, fuzzy
 msgid ""
 "STK opcodes not available: define environment variable RAWWAVE_PATH\n"
 "(points to rawwaves directory) to use STK opcodes."
