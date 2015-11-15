@@ -970,3 +970,227 @@ int read_unified_file2(CSOUND *csound, char *csd)
     csoundFileClose(csound, fd);
     return result;
 }
+
+#ifdef JPFF
+
+static char *my_fgets1(CSOUND *csound, char *s, int n, CORFIL *stream)
+{
+    char *a = s;
+    if (UNLIKELY(n <= 1)) return NULL;        /* best of a bad deal */
+    do {
+      int ch = corfile_getc(stream);
+      if (ch == EOF) {                       /* error or EOF       */
+        if (s == a) return NULL;             /* no chars -> leave  */
+        //if (ferror(stream)) a = NULL;
+        break; /* add NULL even if ferror(), spec says 'indeterminate' */
+      }
+      if (ch == '\n' || ch == '\r') {   /* end of line ? */
+        ++(STA(csdlinecount));          /* count the lines */
+        *(s++) = '\n';                  /* convert */
+        if (ch == '\r') {
+          ch = corfile_getc(stream);
+          if (ch != '\n')               /* Mac format */
+            corfile_ungetc(stream);
+        }
+        break;
+      }
+      *(s++) = ch;
+    } while (--n > 1);
+    *s = '\0';
+    return a;
+}
+
+static int createOrchestra1(CSOUND *csound, CORFIL *unf)
+{
+    char  *p;
+    CORFIL *incore = corfile_create_w();
+    char  buffer[CSD_MAX_LINE_LEN];
+
+    csound->orcLineOffset = STA(csdlinecount)+1;
+    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
+      p = buffer;
+      while (*p == ' ' || *p == '\t') p++;
+      if (strstr(p, "</CsInstruments>") == p) {
+        //corfile_flush(incore);
+        corfile_puts("\n#exit\n", incore);
+        corfile_putc('\0', incore);
+        corfile_putc('\0', incore);
+        csound->orchstr = incore;
+        return TRUE;
+      }
+      else
+        corfile_puts(buffer, incore);
+    }
+    csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>"));
+    corfile_rm(&incore);
+    return FALSE;
+}
+
+
+
+static int createScore1(CSOUND *csound, CORFIL *unf)
+{
+    char   *p;
+    char   buffer[CSD_MAX_LINE_LEN];
+
+    if (csound->scorestr == NULL)
+      csound->scorestr = corfile_create_w();
+    csound->scoLineOffset = STA(csdlinecount);
+    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
+      p = buffer;
+      while (*p == ' ' || *p == '\t') p++;
+      if (strstr(p, "</CsScore>") == p) {
+#ifdef SCORE_PARSER
+        corfile_puts("\n#exit\n", csound->scorestr);
+        corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
+        corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
+#endif
+        return TRUE;
+      }
+      else
+        corfile_puts(buffer, csound->scorestr);
+    }
+    csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
+    return FALSE;
+}
+
+
+static int createExScore1(CSOUND *csound, char *p, CORFIL *unf)
+{
+    char *extname;
+    char *q;
+    char prog[256];
+    void *fd;
+    FILE  *scof;
+    char  buffer[CSD_MAX_LINE_LEN];
+
+    p = strstr(p, "bin=\"");
+    if (UNLIKELY(p==NULL)) {
+      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
+      return FALSE;
+    }
+    q = strchr(p+5, '"');
+    if (UNLIKELY(q==NULL)) {              /* No program given */
+      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
+      return FALSE;
+    }
+    *q = '\0';
+    strncpy(prog, p+5, 255); prog[255]='\0';/* after "<CsExScore " */
+    /* Generate score name */
+    if (STA(sconame)) free(STA(sconame));
+    STA(sconame) = csoundTmpFileName(csound, ".sco");
+    extname = csoundTmpFileName(csound, ".ext");
+    fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, extname, "w", NULL,
+                                CSFTYPE_SCORE, 1);
+    csound->tempStatus |= csScoInMask;
+/* #ifdef _DEBUG */
+    csoundMessage(csound, Str("Creating %s (%p)\n"), extname, scof);
+/* #endif */
+    if (UNLIKELY(fd == NULL))
+      return FALSE;
+
+    csound->scoLineOffset = STA(csdlinecount);
+    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
+      p = buffer;
+      if (strstr(p, "</CsScore>") == p) {
+        char sys[1024];
+        csoundFileClose(csound, fd);
+        snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
+        if (UNLIKELY(system(sys) != 0)) {
+          csoundErrorMsg(csound, Str("External generation failed"));
+          if (UNLIKELY(remove(extname) || remove(STA(sconame))))
+            csoundErrorMsg(csound, Str("and cannot remove"));
+          return FALSE;
+        }
+       if (UNLIKELY(remove(extname)))
+         csoundErrorMsg(csound, Str("and cannot remove %s"), extname);
+        if (csound->scorestr == NULL)
+          csound->scorestr = corfile_create_w();
+
+        fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, STA(sconame),
+                                    "r", NULL, CSFTYPE_SCORE, 0);
+        if (UNLIKELY(fd == NULL)) {
+          csoundErrorMsg(csound, Str("cannot open %s"), STA(sconame));
+          if (UNLIKELY(remove(STA(sconame))))
+            csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
+          return FALSE;
+        }
+        csoundMessage(csound, Str("opened %s"), STA(sconame));
+        while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, scof)!= NULL)
+          corfile_puts(buffer, csound->scorestr);
+       csoundMessage(csound, Str("closing %s"), STA(sconame));
+        csoundFileClose(csound, fd);
+          if (UNLIKELY(remove(STA(sconame))))
+            csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
+        return TRUE;
+      }
+      else fputs(buffer, scof);
+    }
+    csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
+    free(extname);
+    return FALSE;
+}
+
+int read_unified_file4(CSOUND *csound, CORFIL *cf)
+{
+    int   started = FALSE;
+    int   result = TRUE;
+    int   r;
+    char    buffer[CSD_MAX_LINE_LEN];
+    //#ifdef _DEBUG
+    csoundMessage(csound, "Calling unified file system4\n");
+    //#endif
+    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)) {
+      char *p = buffer;
+      while (*p == ' ' || *p == '\t') p++;
+      if (strstr(p, "<CsoundSynthesizer>") == p ||
+          strstr(p, "<CsoundSynthesiser>") == p) {
+        csoundMessage(csound, Str("STARTING FILE\n"));
+        started = TRUE;
+      }
+      else if (strstr(p, "</CsoundSynthesizer>") == p ||
+               strstr(p, "</CsoundSynthesiser>") == p) {
+        if (csound->scorestr != NULL)
+          corfile_flush(csound->scorestr);
+        corfile_rm(&cf);
+        return result;
+      }
+      else if (strstr(p, "<CsInstruments>") == p) {
+        csoundMessage(csound, Str("Creating orchestra\n"));
+        r = createOrchestra1(csound, cf);
+        result = r && result;
+      }
+      else if (strstr(p, "<CsScore") == p) {
+        csoundMessage(csound, Str("Creating score\n"));
+        if (strstr(p, "<CsScore>") == p)
+          r = createScore1(csound, cf);
+        else
+          r = createExScore1(csound, p, cf);
+        result = r && result;
+      }
+    }
+    if (UNLIKELY(!started)) {
+      csoundMessage(csound,
+                    Str("Could not find <CsoundSynthesizer> tag in CSD file.\n"));
+      result = FALSE;
+    }
+    corfile_rm(&cf);
+    return result;
+}
+
+int read_unified_file3(CSOUND *csound, char *csd)
+{
+    char  *name = csd;
+    CORFIL * cf;
+
+    /* Need to open in binary to deal with MIDI and the like. */
+    cf = copy_to_corefile(csound, csd, NULL, 0);
+    if (UNLIKELY(cf == NULL)) {
+      csound->ErrorMsg(csound, Str("Failed to open csd file: %s"),
+                               strerror(errno));
+      return 0;
+    }
+    return read_unified_file4(csound, cf);
+}
+
+#endif
