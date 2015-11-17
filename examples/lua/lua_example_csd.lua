@@ -242,5 +242,4 @@ while csound:PerformKsmps() == 0 do
 end
 csound:Cleanup()
 csound:Reset()
-args:Clear()
 
