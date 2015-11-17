@@ -3,11 +3,6 @@
 require "luaCsnd6"
 
 csound = luaCsnd6.Csound()
-args = luaCsnd6.CsoundArgVList()
-args_ = {"csound", "-dfo", "test.wav", "examples/trapped.csd"}
-for i,v in ipairs(args_) do
-    args:Append(v)
-end
 local csd_text = [[
 <CsoundSynthesizer>
 <CsOptions>
