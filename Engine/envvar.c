@@ -479,7 +479,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
             }
           }
           j = i + 1;
-          if (s[i+2]==':' && isalpha(s[i+1])) i+=2;
+          if (i+2<=len && s[i+2]==':' && isalpha(s[i+1])) i+=2;
         }
       }
     }
