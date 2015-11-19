@@ -494,19 +494,20 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
 }
 
 PUBLIC int csoundCompileCsd(CSOUND *csound, char *str) {
-
-  if((csound->engineStatus & CS_STATE_COMP) == 0) {
+#ifdef JPFF
+    CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
+    int res = csoundCompileCsdText(csound, tt->body);
+    corfile_rm(&tt);
+    return res;
+#else
+  if ((csound->engineStatus & CS_STATE_COMP) == 0) {
     char *argv[2] = { "csound", (char *) str };
     int argc = 2;
     return csoundCompile(csound, argc, argv);
   }
   else {
-#ifdef JPFF
-    int res = read_unified_file3(csound, (char *) str);
-#else
     int res = read_unified_file2(csound, (char *) str);
-#endif
-   if (res) {
+    if (res) {
      res = csoundCompileOrc(csound, NULL);
      if (res == CSOUND_SUCCESS){
        csoundLockMutex(csound->API_lock);
@@ -519,12 +520,13 @@ PUBLIC int csoundCompileCsd(CSOUND *csound, char *str) {
    }
    return res;
   }
+#endif
 }
 
 PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
 {
 #ifdef JPFF
-    csound->oparms->odebug = 1; /* *** SWITCH ON EXTRA DEBUGGING *** */
+    //csound->oparms->odebug = 1; /* *** SWITCH ON EXTRA DEBUGGING *** */
     int res = read_unified_file4(csound, corfile_create_r(csd_text));
     if (res) {
       csound->csdname = strdup("*string*"); /* Mark asfrom text */
@@ -532,8 +534,11 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
       if (res == CSOUND_SUCCESS){
         csoundLockMutex(csound->API_lock);
         char *sc = scsortstr(csound, csound->scorestr);
-        csoundInputMessageInternal(csound, (const char *) sc);
-        free(sc);
+        if ((csound->engineStatus & CS_STATE_COMP) != 0) {
+          csoundInputMessageInternal(csound, (const char *) sc);
+        
+        }
+        //free(sc);
         csoundUnlockMutex(csound->API_lock);
       }
     }
