@@ -139,6 +139,23 @@ int corfile_getc(CORFIL *f)
     return c;
 }
 
+int corfile_fgets(char *buff, int len, CORFIL *f)
+{
+    int i;
+    int ch = corfile_getc(f);
+    if (ch == EOF) return NULL;
+    for (i=0; i<len-1; i++) {
+      if (ch == EOF || ch == '\n') {
+        buff[i] = '\n';
+        buff[i+1] = '\0';
+        return buff;
+      }
+      buff[i] = ch;
+    }
+    buff[len-1] = '\0';
+    return buff;
+}
+
 #undef corfile_ungetc
 void corfile_ungetc(CORFIL *f)
 {
