@@ -163,10 +163,20 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 
       if(csound->orchname != NULL) {
       csound->csdname = csound->orchname; /* save original CSD name */
+#ifdef JPFF
+      {
+        CORFIL *cf = copy_to_corefile(csound, csound->csdname, NULL, 0);
+        corfile_rewind(cf);
+        if (!read_unified_file4(csound, cf)) {
+          csound->Die(csound, Str("Reading CSD failed ... stopping"));
+        }
+      }
+#else
       if (!read_unified_file(csound, &(csound->orchname),
                                        &(csound->scorename))) {
         csound->Die(csound, Str("Reading CSD failed ... stopping"));
       }
+#endif
       csdFound = 1;
       }
     }
@@ -223,6 +233,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       corfile_puts("\n#exit\n", csound->orchstr);
       corfile_putc('\0', csound->orchstr);
       corfile_putc('\0', csound->orchstr);
+      corfile_rewind(csound->orchstr);
       //csound->orchname = NULL;
     }
     if (csound->xfilename != NULL)
