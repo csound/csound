@@ -33,6 +33,7 @@ void corfile_flush(CORFIL *f);
 void corfile_rm(CORFIL **ff);
 int corfile_getc(CORFIL *f);
 void corfile_ungetc(CORFIL *f);
+char *corfile_fgets(char *b, int len, CORFIL *f);
 #define corfile_ungetc(f)  (--f->p)
 MYFLT corfile_get_flt(CORFIL *f);
 void corfile_reset(CORFIL *f);
