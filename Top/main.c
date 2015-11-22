@@ -170,6 +170,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
         if (!read_unified_file4(csound, cf)) {
           csound->Die(csound, Str("Reading CSD failed ... stopping"));
         }
+        /* cf is deleted in read)unified_file4 */
       }
 #else
       if (!read_unified_file(csound, &(csound->orchname),
