@@ -54,9 +54,9 @@ void corfile_putc(int c, CORFIL *f)
 {
     char *new;
     f->body[f->p++] = c;
-    if (f->p >= f->len) {
+    if (UNLIKELY(f->p >= f->len)) {
       new = (char*) realloc(f->body, f->len+=100);
-      if (new==NULL) {
+      if (UNLIKELY(new==NULL)) {
         fprintf(stderr, Str("Out of Memory\n"));
         exit(7);
       }
@@ -75,9 +75,9 @@ void corfile_puts(const char *s, CORFIL *f)
     for (c = s; *c != '\0'; c++) {
       char *new;
       f->body[f->p++] = *c;
-      if (f->p >= f->len) {
+      if (UNLIKELY(f->p >= f->len)) {
         new = (char*) realloc(f->body, f->len+=100);
-        if (new==NULL) {
+        if (UNLIKELY(new==NULL)) {
           fprintf(stderr, Str("Out of Memory\n"));
           exit(7);
         }
@@ -89,9 +89,9 @@ void corfile_puts(const char *s, CORFIL *f)
       while(--n >= 0) {
         char *new;
         f->body[f->p++] = '\0';
-        if (f->p >= f->len) {
+        if (UNLIKELY(f->p >= f->len)) {
           new = (char*) realloc(f->body, f->len+=100);
-          if (new==NULL) {
+          if (UNLIKELY(new==NULL)) {
             fprintf(stderr, Str("Out of Memory\n"));
             exit(7);
           }
@@ -107,7 +107,7 @@ void corfile_flush(CORFIL *f)
     char *new;
     f->len = strlen(f->body)+1;
     new = (char*)realloc(f->body, f->len);
-    if (new==NULL) {
+    if (UNLIKELY(new==NULL)) {
       fprintf(stderr, Str("Out of Memory\n"));
       exit(7);
     }
@@ -124,7 +124,7 @@ int corfile_length(CORFIL *f)
 void corfile_rm(CORFIL **ff)
 {
     CORFIL *f = *ff;
-    if (f!=NULL) {
+    if (LIKELY(f!=NULL)) {
       free(f->body);
       free(f);
       *ff = NULL;
@@ -134,7 +134,7 @@ void corfile_rm(CORFIL **ff)
 int corfile_getc(CORFIL *f)
 {
     int c = f->body[f->p];
-    if (c=='\0') return EOF;
+    if (UNLIKELY(c=='\0')) return EOF;
     f->p++;
     return c;
 }
@@ -142,17 +142,13 @@ int corfile_getc(CORFIL *f)
 int corfile_fgets(char *buff, int len, CORFIL *f)
 {
     int i;
-    int ch = corfile_getc(f);
-    if (ch == EOF) return NULL;
-    for (i=0; i<len-1; i++) {
-      if (ch == EOF || ch == '\n') {
-        buff[i] = '\n';
-        buff[i+1] = '\0';
-        return buff;
-      }
-      buff[i] = ch;
-    }
-    buff[len-1] = '\0';
+    char *p = &(f->body[f->p]), *q;
+    if (UNLIKELY(*p == '\0')) return NULL;
+    q = strchr(p, '\n');
+    i = (q-p);
+    if (UNLIKELY(i>=len)) i = len-1;
+    memcpy(buff, p, i);
+    f->p += i;
     return buff;
 }
 
@@ -201,7 +197,7 @@ void corfile_seek(CORFIL *f, int n, int dir)
     if (dir == SEEK_SET) f->p = n;
     else if (dir == SEEK_CUR) f->p += n;
     else if (dir == SEEK_END) f->p = strlen(f->body)-n;
-    if (f->p > strlen(f->body)) {
+    if (UNLIKELY(f->p > strlen(f->body))) {
       printf("INTERNAL ERROR: Corfile seek out of range\n");
       exit(1);
     }
@@ -237,7 +233,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     }
 #endif
     fd = fopen_path(csound, &ff, (char *)fname, NULL, (char *)env, fromScore);
-    if (ff==NULL) return NULL;
+    if (UNLIKELY(ff==NULL)) return NULL;
     mm = corfile_create_w();
     memset(buffer, '\0', 1024);
     while ((n = fread(buffer, 1, 1023, ff))) {
@@ -277,7 +273,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   struct MemoryStruct *mem = (struct MemoryStruct *)userp;
 
   mem->memory = realloc(mem->memory, mem->size + realsize + 1);
-  if (mem->memory == NULL) {
+  if (UNLIKELY(mem->memory == NULL)) {
     /* out of memory! */
     printf(Str("not enough memory (realloc returned NULL)\n"));
     return 0;
@@ -304,7 +300,7 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
     n = curl_easy_perform(curl);
-    if (n != CURLE_OK) {
+    if (UNLIKELY(n != CURLE_OK)) {
       csound->Die(csound, Str("curl_easy_perform() failed: %s\n"),
                   curl_easy_strerror(n));
     }

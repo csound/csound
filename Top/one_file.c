@@ -140,14 +140,14 @@ static char *my_fgets(CSOUND *csound, char *s, int n, FILE *stream)
         if (ferror(stream)) a = NULL;
         break; /* add NULL even if ferror(), spec says 'indeterminate' */
       }
-      if (ch == '\n' || ch == '\r') {   /* end of line ? */
+      if (ch == '\n'/* || ch == '\r'*/) {   /* end of line ? */
         ++(STA(csdlinecount));          /* count the lines */
         *(s++) = '\n';                  /* convert */
-        if (ch == '\r') {
-          ch = getc(stream);
-          if (ch != '\n')               /* Mac format */
-            ungetc(ch, stream);
-        }
+        /* if (ch == '\r') { */
+        /*   ch = getc(stream); */
+        /*   if (ch != '\n')               /\* Mac format *\/ */
+        /*     ungetc(ch, stream); */
+        /* } */
         break;
       }
       *(s++) = ch;
@@ -461,16 +461,16 @@ static void read_base64(CSOUND *csound, FILE *in, FILE *out)
 
     n = nbits = 0;
     while ((c = getc(in)) != '=' && c != '<') {
-      while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
+      while (c == ' ' || c == '\t' || c == '\n'/* || c == '\r'*/) {
         if (c == '\n') {               /* count lines */
           ++(STA(csdlinecount));
           c = getc(in);
         }
-        else if (c == '\r') {
-          ++(STA(csdlinecount));
-          c = getc(in);
-          if (c == '\n') c = getc(in); /* DOS format */
-        }
+        /* else if (c == '\r') { */
+        /*   ++(STA(csdlinecount)); */
+        /*   c = getc(in); */
+        /*   if (c == '\n') c = getc(in); /\* DOS format *\/ */
+        /* } */
         else c = getc(in);
       }
       if (c == '=' || c == '<' || c == EOF)
@@ -784,8 +784,9 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     char    buffer[CSD_MAX_LINE_LEN];
     int endtag_found = 0;
 
-    /* Need to open in binary to deal with MIDI and the like. */
-    fd = csoundFileOpenWithType(csound, &unf, CSFILE_STD, name, "rb", NULL,
+    /* Need to open in binary to deal with MIDI and the like. 
+       but that akes things harder and deprecate CsFile       */
+    fd = csoundFileOpenWithType(csound, &unf, CSFILE_STD, name, "r", NULL,
                                 CSFTYPE_UNIFIED_CSD, 0);
     /* RWD 3:2000 fopen can fail... */
     if (UNLIKELY(fd == NULL)) {
@@ -868,6 +869,8 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
         result = r && result;
       }
       else if (strstr(p, "<CsFile filename=") == p) {
+        csoundMessage(csound,
+                      Str("CsFile is deprecatedand may not work; use CsFileB\n"));
         r = createFilea(csound, buffer, unf);
         result = r && result;
       }
@@ -984,14 +987,14 @@ static char *my_fgets1(CSOUND *csound, char *s, int n, CORFIL *stream)
         //if (ferror(stream)) a = NULL;
         break; /* add NULL even if ferror(), spec says 'indeterminate' */
       }
-      if (ch == '\n' || ch == '\r') {   /* end of line ? */
+      if (ch == '\n'/* || ch == '\r'*/) {   /* end of line ? */
         ++(STA(csdlinecount));          /* count the lines */
         *(s++) = '\n';                  /* convert */
-        if (ch == '\r') {
-          ch = corfile_getc(stream);
-          if (ch != '\n')               /* Mac format */
-            corfile_ungetc(stream);
-        }
+        /* if (ch == '\r') { */
+        /*   ch = corfile_getc(stream); */
+        /*   if (ch != '\n')               /\* Mac format *\/ */
+        /*     corfile_ungetc(stream); */
+        /* } */
         break;
       }
       *(s++) = ch;
@@ -1276,16 +1279,16 @@ static void read_base641(CSOUND *csound, CORFIL *in, FILE *out)
 
     n = nbits = 0;
     while ((c = corfile_getc(in)) != '=' && c != '<') {
-      while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
+      while (c == ' ' || c == '\t' || c == '\n' /*|| c == '\r'*/) {
         if (c == '\n') {               /* count lines */
           ++(STA(csdlinecount));
           c = corfile_getc(in);
         }
-        else if (c == '\r') {
-          ++(STA(csdlinecount));
-          c = corfile_getc(in);
-          if (c == '\n') c = corfile_getc(in); /* DOS format */
-        }
+        /* else if (c == '\r') { */
+        /*   ++(STA(csdlinecount)); */
+        /*   c = corfile_getc(in); */
+        /*   if (c == '\n') c = corfile_getc(in); /\* DOS format *\/ */
+        /* } */
         else c = corfile_getc(in);
       }
       if (c == '=' || c == '<' || c == EOF)
@@ -1670,7 +1673,8 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
         result = r && result;
       }
       else if (strstr(p, "<CsFile filename=") == p) {
-        csoundMessage(csound, Str("CsFile is deprecated\n"));
+        csoundMessage(csound,
+                      Str("CsFile is deprecated and may not work; use CsFileB\n"));
         r = createFilea1(csound, buffer, cf);
         result = r && result;
       }
