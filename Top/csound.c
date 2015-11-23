@@ -3551,7 +3551,7 @@ static int getTimeResolution(void)
       if (s == NULL) continue;          /* invalid entry */
       do {
         s++;
-      } while (*s == ' ' || *s == '\t');    /* skip white space */
+      } while (isblank(*s));            /* skip white space */
       i = CS_SSCANF(s, "%lf", &timeResolutionSeconds);
 
       if (i < 1 || timeResolutionSeconds < 1.0) {
