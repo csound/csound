@@ -192,7 +192,7 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
     char  *p;
     int   argc = 0;
     char  *argv[CSD_MAX_ARGS];
-    char    buffer[CSD_MAX_LINE_LEN];
+    char  buffer[CSD_MAX_LINE_LEN];
 
     //alloc_globals(csound);
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf) != NULL) {
@@ -200,10 +200,10 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
       /* Remove trailing spaces; rather heavy handed */
       {
         int len = strlen(p)-2;
-        while (len>0 && (p[len]==' ' || p[len]=='\t')) len--;
+        while (len>0 && (isblank(p[len]))) len--;
         p[len+1] = '\n'; p[len+2] = '\0';
       }
-      while (*p == ' ' || *p == '\t') p++;
+      while (isblank(*p)) p++;
       if (readingCsOptions && strstr(p, "</CsOptions>") == p) {
         return TRUE;
       }
@@ -216,20 +216,20 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
       if (*p==';' || *p=='#' || *p=='\n') continue; /* empty or comment line? */
       argc = 0;
       argv[0] = p;
-      while (*p==' ' || *p=='\t') p++;  /* Ignore leading space */
+      while (isblank(*p)) p++;  /* Ignore leading space */
       if (*p=='-') {        /* Deal with case where no command name is given */
         argv[0] = "csound";
         argv[1] = p;
         argc++;
       }
       while (*p != '\0') {
-        if (*p==' ' || *p=='\t') {
+        if (isblank(*p)) {
           *p++ = '\0';
 #ifdef _DEBUG
           csoundMessage(csound, "argc=%d argv[%d]=%s\n",
                                 argc, argc, argv[argc]);
 #endif
-          while (*p == ' ' || *p=='\t') p++;
+          while (isblank(*p)) p++;
 
           if (*p== '"') {
             if (argc == CSD_MAX_ARGS)
@@ -332,7 +332,7 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
     csound->orcLineOffset = STA(csdlinecount)+1;
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = buffer;
-      while (*p == ' ' || *p == '\t') p++;
+      while (isblank(*p)) p++;
       if (strstr(p, "</CsInstruments>") == p) {
         //corfile_flush(incore);
         corfile_puts("\n#exit\n", incore);
@@ -361,7 +361,7 @@ static int createScore(CSOUND *csound, FILE *unf)
     csound->scoLineOffset = STA(csdlinecount);
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = buffer;
-      while (*p == ' ' || *p == '\t') p++;
+      while (isblank(*p)) p++;
       if (strstr(p, "</CsScore>") == p) {
 #ifdef SCORE_PARSER
         corfile_puts("\n#exit\n", csound->scorestr);
@@ -461,7 +461,7 @@ static void read_base64(CSOUND *csound, FILE *in, FILE *out)
 
     n = nbits = 0;
     while ((c = getc(in)) != '=' && c != '<') {
-      while (c == ' ' || c == '\t' || c == '\n'/* || c == '\r'*/) {
+      while (isspace(c)) {
         if (c == '\n') {               /* count lines */
           ++(STA(csdlinecount));
           c = getc(in);
@@ -535,7 +535,7 @@ static int createMIDI2(CSOUND *csound, FILE *unf)
     while (TRUE) {
       if (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
         p = buffer;
-        while (*p == ' ' || *p == '\t') p++;
+        while (isblank(*p)) p++;
         if (strstr(p, "</CsMidifileB>") == p) {
           return TRUE;
         }
@@ -570,7 +570,7 @@ static int createSample(CSOUND *csound, char *buffer, FILE *unf)
     while (TRUE) {
       if (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
         char *p = buffer;
-        while (*p == ' ' || *p == '\t') p++;
+        while (isblank(*p)) p++;
         if (strstr(p, "</CsSampleB>") == p) {
           return TRUE;
         }
@@ -620,7 +620,7 @@ static int createFile(CSOUND *csound, char *buffer, FILE *unf)
     while (TRUE) {
       if (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
         char *p = buffer;
-        while (*p == ' ' || *p == '\t') p++;
+        while (isblank(*p)) p++;
         if (strstr(p, "</CsFileB>") == p) {
           return TRUE;
         }
@@ -685,7 +685,7 @@ static int checkVersion(CSOUND *csound, FILE *unf)
 
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf) != NULL) {
       p = buffer;
-      while (*p == ' ' || *p == '\t') p++;
+      while (isblank(*p)) p++;
       if (strstr(p, "</CsVersion>") != NULL)
         return result;
       if (strstr(p, "Before") != NULL) {
@@ -767,7 +767,7 @@ static int blank_buffer(CSOUND *csound, char *buffer)
     for (s = &(buffer[0]); *s != '\0' && *s != '\n'; s++) {
       if (*s == ';')
         return TRUE;
-      if (*s != ' ' && *s != '\t')
+      if (!isblank(*s))
         return FALSE;
     }
     return TRUE;
@@ -802,7 +802,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
 #endif
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)) {
       char *p = buffer;
-      while (*p == ' ' || *p == '\t') p++;
+      while (isblank(*p)) p++;
       if (strstr(p, "<CsoundSynthesizer>") == p ||
           strstr(p, "<CsoundSynthesiser>") == p) {
         csoundMessage(csound, Str("STARTING FILE\n"));
@@ -839,7 +839,7 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
               break;
             }
             p = buffer;
-            while (*p == ' ' || *p == '\t') p++;
+            while (isblank(*p)) p++;
           } while (strstr(p, "</CsOptions>") != p);
         }
       }
@@ -938,7 +938,7 @@ int read_unified_file2(CSOUND *csound, char *csd)
 #endif
     while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, unf)) {
       char *p = buffer;
-      while (*p == ' ' || *p == '\t') p++;
+      while (isblank(*p)) p++;
       if (strstr(p, "<CsoundSynthesizer>") == p ||
           strstr(p, "<CsoundSynthesiser>") == p) {
         csoundMessage(csound, Str("STARTING FILE\n"));
@@ -976,6 +976,7 @@ int read_unified_file2(CSOUND *csound, char *csd)
 
 #ifdef JPFF
 
+/* Consider wrapping corfile_fgets for this function */
 static char *my_fgets1(CSOUND *csound, char *s, int n, CORFIL *stream)
 {
     char *a = s;
@@ -984,8 +985,7 @@ static char *my_fgets1(CSOUND *csound, char *s, int n, CORFIL *stream)
       int ch = corfile_getc(stream);
       if (ch == EOF) {                       /* error or EOF       */
         if (s == a) return NULL;             /* no chars -> leave  */
-        //if (ferror(stream)) a = NULL;
-        break; /* add NULL even if ferror(), spec says 'indeterminate' */
+        break;
       }
       if (ch == '\n'/* || ch == '\r'*/) {   /* end of line ? */
         ++(STA(csdlinecount));          /* count the lines */
@@ -1010,7 +1010,7 @@ int readOptions1(CSOUND *csound, CORFIL *cf, int readingCsOptions)
     char  *p;
     int   argc = 0;
     char  *argv[CSD_MAX_ARGS];
-    char    buffer[CSD_MAX_LINE_LEN];
+    char  buffer[CSD_MAX_LINE_LEN];
 
     //alloc_globals(csound);
     while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
@@ -1018,10 +1018,10 @@ int readOptions1(CSOUND *csound, CORFIL *cf, int readingCsOptions)
       /* Remove trailing spaces; rather heavy handed */
       {
         int len = strlen(p)-2;
-        while (len>0 && (p[len]==' ' || p[len]=='\t')) len--;
+        while (len>0 && (isblank(p[len]))) len--;
         p[len+1] = '\n'; p[len+2] = '\0';
       }
-      while (*p == ' ' || *p == '\t') p++;
+      while (isblank(*p)) p++;
       if (readingCsOptions && strstr(p, "</CsOptions>") == p) {
         return TRUE;
       }
@@ -1034,20 +1034,20 @@ int readOptions1(CSOUND *csound, CORFIL *cf, int readingCsOptions)
       if (*p==';' || *p=='#' || *p=='\n') continue; /* empty or comment line? */
       argc = 0;
       argv[0] = p;
-      while (*p==' ' || *p=='\t') p++;  /* Ignore leading space */
+      while (isblank(*p)) p++;  /* Ignore leading space */
       if (*p=='-') {        /* Deal with case where no command name is given */
         argv[0] = "csound";
         argv[1] = p;
         argc++;
       }
       while (*p != '\0') {
-        if (*p==' ' || *p=='\t') {
+        if (isblank(*p)) {
           *p++ = '\0';
 #ifdef _DEBUG
           csoundMessage(csound, "argc=%d argv[%d]=%s\n",
                                 argc, argc, argv[argc]);
 #endif
-          while (*p == ' ' || *p=='\t') p++;
+          while (isblank(*p)) p++;
 
           if (*p== '"') {
             if (argc == CSD_MAX_ARGS)
@@ -1141,16 +1141,16 @@ int readOptions1(CSOUND *csound, CORFIL *cf, int readingCsOptions)
 
 
 
-static int createOrchestra1(CSOUND *csound, CORFIL *unf)
+static int createOrchestra1(CSOUND *csound, CORFIL *cf)
 {
     char  *p;
     CORFIL *incore = corfile_create_w();
     char  buffer[CSD_MAX_LINE_LEN];
 
     csound->orcLineOffset = STA(csdlinecount)+1;
-    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
+    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
       p = buffer;
-      while (*p == ' ' || *p == '\t') p++;
+      while (isblank(*p)) p++;
       if (strstr(p, "</CsInstruments>") == p) {
         //corfile_flush(incore);
         corfile_puts("\n#exit\n", incore);
@@ -1169,7 +1169,7 @@ static int createOrchestra1(CSOUND *csound, CORFIL *unf)
 
 
 
-static int createScore1(CSOUND *csound, CORFIL *unf)
+static int createScore1(CSOUND *csound, CORFIL *cf)
 {
     char   *p;
     char   buffer[CSD_MAX_LINE_LEN];
@@ -1177,9 +1177,9 @@ static int createScore1(CSOUND *csound, CORFIL *unf)
     if (csound->scorestr == NULL)
       csound->scorestr = corfile_create_w();
     csound->scoLineOffset = STA(csdlinecount);
-    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
+    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
       p = buffer;
-      while (*p == ' ' || *p == '\t') p++;
+      while (isblank(*p)) p++;
       if (strstr(p, "</CsScore>") == p) {
 #ifdef SCORE_PARSER
         corfile_puts("\n#exit\n", csound->scorestr);
@@ -1196,7 +1196,7 @@ static int createScore1(CSOUND *csound, CORFIL *unf)
 }
 
 
-static int createExScore1(CSOUND *csound, char *p, CORFIL *unf)
+static int createExScore1(CSOUND *csound, char *p, CORFIL *cf)
 {
     char *extname;
     char *q;
@@ -1231,7 +1231,7 @@ static int createExScore1(CSOUND *csound, char *p, CORFIL *unf)
       return FALSE;
 
     csound->scoLineOffset = STA(csdlinecount);
-    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, unf)!= NULL) {
+    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
       p = buffer;
       if (strstr(p, "</CsScore>") == p) {
         char sys[1024];
@@ -1279,7 +1279,7 @@ static void read_base641(CSOUND *csound, CORFIL *in, FILE *out)
 
     n = nbits = 0;
     while ((c = corfile_getc(in)) != '=' && c != '<') {
-      while (c == ' ' || c == '\t' || c == '\n' /*|| c == '\r'*/) {
+      while (isspace(c)) {
         if (c == '\n') {               /* count lines */
           ++(STA(csdlinecount));
           c = corfile_getc(in);
@@ -1353,7 +1353,7 @@ static int createMIDI21(CSOUND *csound, CORFIL *cf)
     while (TRUE) {
       if (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
         p = buffer;
-        while (*p == ' ' || *p == '\t') p++;
+        while (isblank(*p)) p++;
         if (strstr(p, "</CsMidifileB>") == p) {
           return TRUE;
         }
@@ -1388,7 +1388,7 @@ static int createSample1(CSOUND *csound, char *buffer, CORFIL *cf)
     while (TRUE) {
       if (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
         char *p = buffer;
-        while (*p == ' ' || *p == '\t') p++;
+        while (isblank(*p)) p++;
         if (strstr(p, "</CsSampleB>") == p) {
           return TRUE;
         }
@@ -1437,7 +1437,7 @@ static int createFile1(CSOUND *csound, char *buffer, CORFIL *cf)
     while (TRUE) {
       if (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
         char *p = buffer;
-        while (*p == ' ' || *p == '\t') p++;
+        while (isblank(*p)) p++;
         if (strstr(p, "</CsFileB>") == p) {
           return TRUE;
         }
@@ -1501,7 +1501,7 @@ static int checkVersion1(CSOUND *csound, CORFIL *cf)
 
     while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
       p = buffer;
-      while (*p == ' ' || *p == '\t') p++;
+      while (isblank(*p)) p++;
       if (strstr(p, "</CsVersion>") != NULL)
         return result;
       if (strstr(p, "Before") != NULL) {
@@ -1594,7 +1594,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
     }
     while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)) {
       char *p = buffer;
-      while (*p == ' ' || *p == '\t') p++;
+      while (isblank(*p)) p++;
       if (strstr(p, "<CsoundSynthesizer>") == p ||
           strstr(p, "<CsoundSynthesiser>") == p) {
         csoundMessage(csound, Str("STARTING FILE\n"));
@@ -1628,7 +1628,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
               break;
             }
             p = buffer;
-            while (*p == ' ' || *p == '\t') p++;
+            while (isblank(*p)) p++;
           } while (strstr(p, "</CsOptions>") != p);
         }
       }
@@ -1660,7 +1660,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
               break;
             }
             p = buffer;
-            while (*p == ' ' || *p == '\t') p++;
+            while (isblank(*p)) p++;
           } while (strstr(p, "</CsMidiFileB>") != p);
         }
       }

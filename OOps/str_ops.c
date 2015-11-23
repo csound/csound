@@ -543,15 +543,15 @@ int strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
     double  x;
 
     if (ISSTRCOD(*p->str))
-        s = get_arg_string(csound, *p->str);
-      else {
-        int ndx = (int) MYFLT2LRND(*p->str);
-        if (ndx >= 0 && ndx <= (int) csound->strsmax && csound->strsets != NULL)
-          s = csound->strsets[ndx];
-      }
-   if (UNLIKELY(s == NULL))
+      s = get_arg_string(csound, *p->str);
+    else {
+      int ndx = (int) MYFLT2LRND(*p->str);
+      if (ndx >= 0 && ndx <= (int) csound->strsmax && csound->strsets != NULL)
+        s = csound->strsets[ndx];
+    }
+    if (UNLIKELY(s == NULL))
         return StrOp_ErrMsg(p, "empty string");
-    while (*s == ' ' || *s == '\t') s++;
+    while (isblank(*s)) s++;
     if (UNLIKELY(*s == '\0'))
       return StrOp_ErrMsg(p, "empty string");
     x = cs_strtod(s, &tmp);
@@ -567,7 +567,7 @@ int strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
     char    *s = NULL, *tmp;
     double  x;
     s = (char*) p->str->data;
-    while (*s == ' ' || *s == '\t') s++;
+    while (isblank(*s)) s++;
     if (UNLIKELY(*s == '\0'))
       return StrOp_ErrMsg(p, "empty string");
     x = cs_strtod(s, &tmp);
@@ -585,7 +585,7 @@ int strtol_opcode_S(CSOUND *csound, STRSET_OP *p)
     int32  x = 0L;
 
     s = (char*) p->str->data;
-    while (*s == ' ' || *s == '\t') s++;
+    while (isblank(*s)) s++;
     if (UNLIKELY(*s == '\0'))
       return StrOp_ErrMsg(p, "empty string");
     if (*s == '+') s++;
@@ -646,7 +646,7 @@ int strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
       if (UNLIKELY(s == NULL))
         return StrOp_ErrMsg(p, "empty string");
 
-    while (*s == ' ' || *s == '\t') s++;
+      while (isblank(*s)) s++;
     if (UNLIKELY(*s == '\0'))
       return StrOp_ErrMsg(p, "empty string");
     if (*s == '+') s++;
