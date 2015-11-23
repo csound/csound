@@ -866,7 +866,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         {
           char  *p = &(STA(bp)->text[1]);
           char q;
-          while (*p == ' ' || *p == '\t')
+          while (isblank(*p))
             p++;
           /* Measurement shows isdigit and 3 cases is about 30% */
           /* faster than use of strchr (measured on Suse9.3)    */
@@ -927,14 +927,14 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           STA(repeat_cnt_n)[STA(repeat_index)] = 0;
           do {
             c = getscochar(csound, 1);
-          } while (c==' '||c=='\t');
+          } while isblank(c);
           while (isdigit(c)) {
             STA(repeat_cnt_n)[STA(repeat_index)] =
               10 * STA(repeat_cnt_n)[STA(repeat_index)] + c - '0';
             c = getscochar(csound, 1);
           }
           if (UNLIKELY(STA(repeat_cnt_n)[STA(repeat_index)] <= 0
-                       || (c != ' ' && c != '\t' && c != '\n')))
+                       || isspace(c))) // != ' ' && c != '\t' && c != '\n')))
             scorerr(csound, Str("{: invalid repeat count"));
           if (STA(repeat_index) > 1) {
             char st[41];
@@ -954,7 +954,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
                               STA(repeat_cnt_n)[STA(repeat_index)],
                               STA(repeat_index));
           }
-          while (c == ' ' || c == '\t') {
+          while (isblank(c)) {
             c = getscochar(csound, 1);
           }
           for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
@@ -1029,17 +1029,17 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           STA(repeat_cnt) = 0;
           do {
             c = getscochar(csound, 1);
-          } while (c == ' ' || c == '\t');
+          } while (isblank(c));
           while (isdigit(c)) {
             STA(repeat_cnt) = 10 * STA(repeat_cnt) + c - '0';
             c = getscochar(csound, 1);
           }
-          if (UNLIKELY(STA(repeat_cnt) <= 0 ||
-                       (c != ' ' && c != '\t' && c != '\n')))
+          if (UNLIKELY(STA(repeat_cnt) <= 0 || isspace(c)))
+            //(c != ' ' && c != '\t' && c != '\n')
             scorerr(csound, Str("r: invalid repeat count"));
           if (csound->oparms->msglevel & TIMEMSG)
             csound->Message(csound, Str("Repeats=%d\n"), STA(repeat_cnt));
-          while (c == ' ' || c == '\t') {
+          while (isblank(c)) {
             c = getscochar(csound, 1);
           }
           for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
@@ -1076,7 +1076,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           char  buff[200];
           int   c;
           int   i = 0, j;
-          while ((c = getscochar(csound, 1)) == ' ' || c == '\t');
+          while (isblank(c = getscochar(csound, 1)));
           while (isNameChar(c, i)) {
             buff[i++] = c;
             c = getscochar(csound, 1);
@@ -1114,7 +1114,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           char buff[200];
           int c;
           int i = 0;
-          while ((c = getscochar(csound, 1)) == ' ' || c == '\t');
+          while (isblank(c = getscochar(csound, 1)));
           while (isNameChar(c, i)) {
             buff[i++] = c;
             c = getscochar(csound, 1);
@@ -1513,7 +1513,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
     int c;
 
  srch:
-    while ((c = getscochar(csound, 1)) == SP || c == '\t' || c == LF)
+    while (isblank(c = getscochar(csound, 1)) || c == LF)
       if (c == LF) {
         STA(lincnt)++;
         STA(linpos) = 0;
@@ -1529,7 +1529,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         while ((c=getscochar(csound, 1)!='\n') && c!=EOF);
         goto srch;
       }
-      if (c==' ' || c=='\t') goto again;
+      if (isblank(c)) goto again;
       if (c!='\n' && c!=EOF) {
         csound->Message(csound, Str("Improper \\"));
         while (c!='\n' && c!=EOF) c = getscochar(csound, 1);
