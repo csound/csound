@@ -85,9 +85,10 @@ int a_k_set(CSOUND *csound, INTERP *p)
 int interpset(CSOUND *csound, INTERP *p)
 {
     if (*p->istor == FL(0.0)) {
-      p->prev = FL(0.0);
+      p->prev = (*p->imode == FL(0.0) ? *p->istart : FL(0.0));
       p->init_k = (*p->imode == FL(0.0) ? 0 : 1);       /* IV - Sep 5 2002 */
     }
+    
     return OK;
 }
 
