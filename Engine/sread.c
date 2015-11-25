@@ -927,7 +927,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           STA(repeat_cnt_n)[STA(repeat_index)] = 0;
           do {
             c = getscochar(csound, 1);
-          } while isblank(c);
+          } while(isblank(c));
           while (isdigit(c)) {
             STA(repeat_cnt_n)[STA(repeat_index)] =
               10 * STA(repeat_cnt_n)[STA(repeat_index)] + c - '0';
