@@ -46,7 +46,6 @@ extern  void    print_benchmark_info(CSOUND *, const char *);
 extern  void    openMIDIout(CSOUND *);
 extern  int     read_unified_file(CSOUND *, char **, char **);
 extern  int     read_unified_file2(CSOUND *csound, char *csd);
-extern  int     read_unified_file3(CSOUND *csound, char *csd);
 extern  int     read_unified_file4(CSOUND *csound, CORFIL *csd);
 extern  uintptr_t  kperfThread(void * cs);
 extern void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
@@ -164,10 +163,21 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 
       if(csound->orchname != NULL) {
       csound->csdname = csound->orchname; /* save original CSD name */
+#ifdef JPFF
+      {
+        CORFIL *cf = copy_to_corefile(csound, csound->csdname, NULL, 0);
+        corfile_rewind(cf);
+        if (!read_unified_file4(csound, cf)) {
+          csound->Die(csound, Str("Reading CSD failed ... stopping"));
+        }
+        /* cf is deleted in read)unified_file4 */
+      }
+#else
       if (!read_unified_file(csound, &(csound->orchname),
                                        &(csound->scorename))) {
         csound->Die(csound, Str("Reading CSD failed ... stopping"));
       }
+#endif
       csdFound = 1;
       }
     }
@@ -224,6 +234,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       corfile_puts("\n#exit\n", csound->orchstr);
       corfile_putc('\0', csound->orchstr);
       corfile_putc('\0', csound->orchstr);
+      corfile_rewind(csound->orchstr);
       //csound->orchname = NULL;
     }
     if (csound->xfilename != NULL)
@@ -536,7 +547,6 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
         char *sc = scsortstr(csound, csound->scorestr);
         if ((csound->engineStatus & CS_STATE_COMP) != 0) {
           csoundInputMessageInternal(csound, (const char *) sc);
-        
         }
         //free(sc);
         csoundUnlockMutex(csound->API_lock);
