@@ -1197,7 +1197,7 @@ static int midi_in_read(CSOUND *csound,
       return OK;
     }
   }
-  return OK;
+  return bufp - buf;
 }
 
 static int midi_in_close(CSOUND *csound, void *userData){
