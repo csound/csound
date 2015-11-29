@@ -22,6 +22,7 @@
 */
 
 #include <jack/jack.h>
+#include <jack/midiport.h>
 #include <ctype.h>
 /* no #ifdef, should always have these on systems where JACK is available */
 #include <unistd.h>
@@ -1129,7 +1130,109 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
+typedef struct jackMidiInputDevice_ {
+    jack_client_t *client;
+    jack_port_t *port;
+} jackMidiInputDevice;
 
+static int midi_in_open(CSOUND *csound,
+			void **userData,
+			const char *devName){
+
+  jack_client_t *jack_client;
+  jack_port_t  *jack_port;
+  jackMidiInputDevice *dev;
+  
+  if((jack_client =
+      jack_client_open("csound-midi", 0, NULL)) == NULL){
+    *userData = NULL;
+    csound->ErrorMsg(csound, "Jack MIDI module: failed to create client for input");
+    return NOTOK;
+  }
+  if((jack_port = jack_port_register(jack_client,"input",
+				  JACK_DEFAULT_MIDI_TYPE,
+				  JackPortIsInput | JackPortIsTerminal,
+                                  0)) == NULL){
+    jack_client_close(jack_client);
+    *userData = NULL;
+    csound->ErrorMsg(csound, "Jack MIDI module: failed to register input port");
+    return NOTOK;
+   }
+ 
+  if(jack_activate(jack_client) != 0){
+     jack_client_close(jack_client);
+     *userData = NULL;
+    csound->ErrorMsg(csound, "Jack MIDI module: failed to activate input");
+    return NOTOK;
+  }
+
+  if(jack_connect(jack_client,devName,"csound-midi:input") != 0){
+      csound->Warning(csound, "Jack MIDI module: failed to connect to: %s",
+		      devName);
+   }
+
+  dev = (jackMidiInputDevice *) csound->Calloc(csound,sizeof(jackMidiInputDevice));
+  dev->client = jack_client;
+  dev->port = jack_port;
+  *userData = (void *) dev;
+
+  return OK;
+}
+
+static int midi_in_read(CSOUND *csound,
+                        void *userData, unsigned char *buf, int nbytes)
+{
+  jack_midi_event_t event;
+  jackMidiInputDevice *dev = (jackMidiInputDevice *) userData;
+  int n = 0;
+  unsigned char *bufp = buf;
+  
+  while(jack_midi_event_get(&event,
+		      jack_port_get_buffer(dev->port,1),
+		      n++) == 0) {
+    memcpy(bufp, event.buffer, event.size);
+    bufp += event.size;
+    if(bufp - buf > nbytes){
+      csound->Warning(csound, "Jack MIDI modules: buffer overflow \n");
+      return OK;
+    }
+  }
+  return OK;
+}
+
+static int midi_in_close(CSOUND *csound, void *userData){
+  jackMidiInputDevice *dev = (jackMidiInputDevice *) userData;
+  jack_port_disconnect(dev->client, dev->port);
+  jack_client_close(dev->client);
+  csound->Free(csound, dev);
+  return OK;
+}
+
+static int midi_out_open(CSOUND *csound, void **userData,
+			 const char *devName)
+{
+  IGN(csound);
+  return OK;
+}
+
+static int midi_out_write(CSOUND *csound,
+                        void *userData, const unsigned char *buf, int nbytes)
+{
+  IGN(csound);
+  return OK;
+}
+
+static int midi_out_close(CSOUND *csound, void *userData){
+  IGN(csound);
+  return OK;
+}
+
+static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
+			int isOutput){
+  IGN(csound);
+  return 0;
+}
+  
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
@@ -1165,6 +1268,25 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtcloseCallback(csound, rtclose_);
       csound->SetAudioDeviceListCallback(csound, listDevices);
     }
+
+    drv = (char*) csound->QueryGlobalVariable(csound, "_RTMIDI");
+    if (drv == NULL)
+      return 0;
+     if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
+          strcmp(drv, "JACK") == 0))
+      return 0;
+
+     csound->Message(csound, Str("rtmidi: JACK module enabled\n"));
+    {
+      csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
+      csound->SetExternalMidiReadCallback(csound, midi_in_read);
+      csound->SetExternalMidiInCloseCallback(csound, midi_in_close);
+      csound->SetExternalMidiOutOpenCallback(csound, midi_out_open);
+      csound->SetExternalMidiWriteCallback(csound, midi_out_write);
+      csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
+      csound->SetMIDIDeviceListCallback(csound,listDevicesM);
+    }
+    
     return 0;
 }
 
