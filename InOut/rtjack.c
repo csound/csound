@@ -1134,7 +1134,31 @@ typedef struct jackMidiInputDevice_ {
     jack_client_t *client;
     jack_port_t *port;
     jack_nframes_t  lastframe;
+    CSOUND *csound;
+    void *cb;
 } jackMidiInputDevice;
+
+int MidiInProcessCallback(jack_nframes_t nframes, void *userData){
+
+  jack_midi_event_t event;
+  jackMidiInputDevice *dev = (jackMidiInputDevice *) userData;
+  CSOUND *csound = dev->csound;
+  int n = 0;
+  while(jack_midi_event_get(&event,
+		      jack_port_get_buffer(dev->port,nframes),
+		      n++) == 0) {
+    if(csound->WriteCircularBuffer(csound,dev->cb,
+				   event.buffer,event.size)
+             != (int) event.size){
+      csound->Warning(csound, "Jack MIDI module: buffer overflow");
+      return 1;
+    }
+  }
+  if(event.time)
+    dev->lastframe = event.time; 
+  return 0;
+}
+
 
 static int midi_in_open(CSOUND *csound,
 			void **userData,
@@ -1159,10 +1183,28 @@ static int midi_in_open(CSOUND *csound,
     csound->ErrorMsg(csound, "Jack MIDI module: failed to register input port");
     return NOTOK;
    }
- 
+
+  dev = (jackMidiInputDevice *) csound->Calloc(csound,sizeof(jackMidiInputDevice));
+  dev->client = jack_client;
+  dev->port = jack_port;
+  dev->csound = csound;
+  dev->cb = csound->CreateCircularBuffer(csound, 1024, sizeof(char));
+  
+  if(jack_set_process_callback(jack_client,
+                     MidiInProcessCallback,
+			       (void*) dev) != 0){
+    jack_client_close(jack_client);
+    csound->DestroyCircularBuffer(csound, dev->cb);
+    csound->Free(csound, dev);
+    csound->ErrorMsg(csound, "Jack MIDI module: failed to set input process callback");
+    return NOTOK;
+   }
+  
   if(jack_activate(jack_client) != 0){
      jack_client_close(jack_client);
-     *userData = NULL;
+     csound->DestroyCircularBuffer(csound, dev->cb);
+     csound->Free(csound, dev);
+    *userData = NULL;
     csound->ErrorMsg(csound, "Jack MIDI module: failed to activate input");
     return NOTOK;
   }
@@ -1172,44 +1214,22 @@ static int midi_in_open(CSOUND *csound,
 		      devName);
    }
 
-  dev = (jackMidiInputDevice *) csound->Calloc(csound,sizeof(jackMidiInputDevice));
-  dev->client = jack_client;
-  dev->port = jack_port;
-  dev->lastframe = 0;
   *userData = (void *) dev;
-
   return OK;
 }
 
 static int midi_in_read(CSOUND *csound,
                         void *userData, unsigned char *buf, int nbytes)
 {
-  jack_midi_event_t event;
   jackMidiInputDevice *dev = (jackMidiInputDevice *) userData;
-  int n = 0;
-  unsigned char *bufp = buf;
-  event.time = 0;
-  
-  while(jack_midi_event_get(&event,
-		      jack_port_get_buffer(dev->port,1),
-		      n++) == 0) {
-    if(event.time > dev->lastframe) {
-     memcpy(bufp, event.buffer, event.size);
-     bufp += event.size;
-     if(bufp - buf > nbytes){
-      csound->Warning(csound, "Jack MIDI modules: buffer overflow \n");
-      return OK;
-     }     
-    }
-  }
-  if(event.time) dev->lastframe = event.time; 
-  return bufp - buf;
+  return csound->ReadCircularBuffer(csound,dev->cb,buf,nbytes);
 }
 
 static int midi_in_close(CSOUND *csound, void *userData){
   jackMidiInputDevice *dev = (jackMidiInputDevice *) userData;
   jack_port_disconnect(dev->client, dev->port);
   jack_client_close(dev->client);
+  csound->DestroyCircularBuffer(csound, dev->cb);
   csound->Free(csound, dev);
   return OK;
 }
