@@ -1987,6 +1987,7 @@ static OENTRY arrayvars_localops[] =
     { "##array_set.k", sizeof(ARRAY_SET), 0, 2, "", ".[].z",
       NULL, (SUBR)array_set },
     { "##array_get.i", sizeof(ARRAY_GET), 0, 1, "i", "i[]m", (SUBR)array_get },
+    /*{ "##array_get.i", sizeof(ARRAY_GET), 0, 1, "S", "S[]m", (SUBR)array_get },*/
     { "##array_get.k0", sizeof(ARRAY_GET), 0, 3, "k", "k[]z",
       (SUBR)array_get, (SUBR)array_get },
     { "##array_get.i2", sizeof(ARRAY_GET), 0, 3, ".", ".[]m",

@@ -1133,6 +1133,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 typedef struct jackMidiInputDevice_ {
     jack_client_t *client;
     jack_port_t *port;
+    jack_nframes_t  lastframe;
 } jackMidiInputDevice;
 
 static int midi_in_open(CSOUND *csound,
@@ -1174,6 +1175,7 @@ static int midi_in_open(CSOUND *csound,
   dev = (jackMidiInputDevice *) csound->Calloc(csound,sizeof(jackMidiInputDevice));
   dev->client = jack_client;
   dev->port = jack_port;
+  dev->lastframe = 0;
   *userData = (void *) dev;
 
   return OK;
@@ -1186,17 +1188,21 @@ static int midi_in_read(CSOUND *csound,
   jackMidiInputDevice *dev = (jackMidiInputDevice *) userData;
   int n = 0;
   unsigned char *bufp = buf;
+  event.time = 0;
   
   while(jack_midi_event_get(&event,
 		      jack_port_get_buffer(dev->port,1),
 		      n++) == 0) {
-    memcpy(bufp, event.buffer, event.size);
-    bufp += event.size;
-    if(bufp - buf > nbytes){
+    if(event.time > dev->lastframe) {
+     memcpy(bufp, event.buffer, event.size);
+     bufp += event.size;
+     if(bufp - buf > nbytes){
       csound->Warning(csound, "Jack MIDI modules: buffer overflow \n");
       return OK;
+     }     
     }
   }
+  if(event.time) dev->lastframe = event.time; 
   return bufp - buf;
 }
 
