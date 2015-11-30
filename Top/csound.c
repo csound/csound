@@ -3181,18 +3181,18 @@ PUBLIC void csoundReset(CSOUND *csound)
 #ifndef USE_DOUBLE
 #ifdef BETA
       csound->Message(csound, Str("Csound version %s beta (float samples) %s\n"),
-                      CS_PACKAGE_VERSION, __DATE__);
+                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
 #else
       csound->Message(csound, Str("Csound version %s (float samples) %s\n"),
-                      CS_PACKAGE_VERSION, __DATE__);
+                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
 #endif
 #else
 #ifdef BETA
       csound->Message(csound, Str("Csound version %s beta (double samples) %s\n"),
-                      CS_PACKAGE_VERSION, __DATE__);
+                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
 #else
       csound->Message(csound, Str("Csound version %s (double samples) %s\n"),
-                      CS_PACKAGE_VERSION, __DATE__);
+                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
 #endif
 #endif
       {

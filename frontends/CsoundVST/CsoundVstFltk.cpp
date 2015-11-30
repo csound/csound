@@ -35,13 +35,13 @@ static std::string about = "CSOUND AND CSOUND VST\n"
   "Version "
   CS_PACKAGE_VERSION
   " beta "
-  __DATE__
+  CS_PACKAGE_DATE
   "\n"
 #else
   "Version "
   CS_PACKAGE_VERSION
   " "
-  __DATE__
+  CS_PACKAGE_DATE
   "\n"
 #endif
   "\n"
