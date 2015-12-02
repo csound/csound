@@ -180,12 +180,12 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     int32  size = (int32) strlen(message);
     int n;
 
-    #ifdef ANDROID
+#ifdef ANDROID
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     csound->Message(csound, Str("input message kcount, %d, %d.%06d\n"),
                             csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
-    #endif
+#endif
 
     if ((n=linevent_alloc(csound, 0)) != 0) return;
     if (!size) return;
@@ -239,7 +239,7 @@ static void sensLine(CSOUND *csound, void *userData)
         memset(&e, 0, sizeof(EVTBLK));
         e.strarg = NULL; e.scnt = 0;
         c = *cp;
-        while (c == ' ' || c == '\t')   /* skip initial white space */
+        while (isblank(c))              /* skip initial white space */
           c = *(++cp);
         if (c == LF) {                  /* if null line, bugout     */
           Linestart = (++cp);
@@ -262,7 +262,7 @@ static void sensLine(CSOUND *csound, void *userData)
           char  *newcp;
           do {                                  /* skip white space */
             c = *(++cp);
-          } while (c == ' ' || c == '\t');
+          } while (isblank(c));
           if (c == LF)
             break;
           pcnt++;
@@ -300,7 +300,7 @@ static void sensLine(CSOUND *csound, void *userData)
           if (UNLIKELY(!(isdigit(c) || c == '+' || c == '-' || c == '.')))
             goto Lerr;
           if (c == '.' &&                       /*  if lone dot,       */
-              ((n = cp[1]) == ' ' || n == '\t' || n == LF)) {
+              (isblank(n = cp[1]) || n == LF)) {
             if (UNLIKELY(e.opcod != 'i' ||
                          STA(prve).opcod != 'i' || pcnt > STA(prve).pcnt)) {
               csound->ErrorMsg(csound, Str("dot carry has no reference"));

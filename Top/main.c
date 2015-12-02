@@ -46,7 +46,6 @@ extern  void    print_benchmark_info(CSOUND *, const char *);
 extern  void    openMIDIout(CSOUND *);
 extern  int     read_unified_file(CSOUND *, char **, char **);
 extern  int     read_unified_file2(CSOUND *csound, char *csd);
-extern  int     read_unified_file3(CSOUND *csound, char *csd);
 extern  int     read_unified_file4(CSOUND *csound, CORFIL *csd);
 extern  uintptr_t  kperfThread(void * cs);
 extern void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
@@ -164,10 +163,21 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 
       if(csound->orchname != NULL) {
       csound->csdname = csound->orchname; /* save original CSD name */
+#ifdef JPFF
+      {
+        CORFIL *cf = copy_to_corefile(csound, csound->csdname, NULL, 0);
+        corfile_rewind(cf);
+        if (!read_unified_file4(csound, cf)) {
+          csound->Die(csound, Str("Reading CSD failed ... stopping"));
+        }
+        /* cf is deleted in read)unified_file4 */
+      }
+#else
       if (!read_unified_file(csound, &(csound->orchname),
                                        &(csound->scorename))) {
         csound->Die(csound, Str("Reading CSD failed ... stopping"));
       }
+#endif
       csdFound = 1;
       }
     }
@@ -224,6 +234,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       corfile_puts("\n#exit\n", csound->orchstr);
       corfile_putc('\0', csound->orchstr);
       corfile_putc('\0', csound->orchstr);
+      corfile_rewind(csound->orchstr);
       //csound->orchname = NULL;
     }
     if (csound->xfilename != NULL)
@@ -494,49 +505,54 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
 }
 
 PUBLIC int csoundCompileCsd(CSOUND *csound, char *str) {
-
-  if((csound->engineStatus & CS_STATE_COMP) == 0) {
+#ifdef JPFF
+    CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
+    int res = csoundCompileCsdText(csound, tt->body);
+    corfile_rm(&tt);
+    return res;
+#else
+  if ((csound->engineStatus & CS_STATE_COMP) == 0) {
     char *argv[2] = { "csound", (char *) str };
     int argc = 2;
     return csoundCompile(csound, argc, argv);
   }
   else {
-#ifdef JPFF
-    int res = read_unified_file3(csound, (char *) str);
-#else
     int res = read_unified_file2(csound, (char *) str);
-#endif
-   if(res) {
-    res = csoundCompileOrc(csound, NULL);
-    if(res == CSOUND_SUCCESS){
-      csoundLockMutex(csound->API_lock);
-      char *sc = scsortstr(csound, csound->scorestr);
-      csoundInputMessageInternal(csound, (const char *) sc);
-      free(sc);
-      csoundUnlockMutex(csound->API_lock);
-      return CSOUND_SUCCESS;
-    }
+    if (res) {
+     res = csoundCompileOrc(csound, NULL);
+     if (res == CSOUND_SUCCESS){
+       csoundLockMutex(csound->API_lock);
+       char *sc = scsortstr(csound, csound->scorestr);
+       csoundInputMessageInternal(csound, (const char *) sc);
+       free(sc);
+       csoundUnlockMutex(csound->API_lock);
+       return CSOUND_SUCCESS;
+     }
    }
    return res;
   }
+#endif
 }
 
 PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
 {
 #ifdef JPFF
+    //csound->oparms->odebug = 1; /* *** SWITCH ON EXTRA DEBUGGING *** */
     int res = read_unified_file4(csound, corfile_create_r(csd_text));
     if (res) {
-    res = csoundCompileOrc(csound, NULL);
-    if(res == CSOUND_SUCCESS){
-      csoundLockMutex(csound->API_lock);
-      char *sc = scsortstr(csound, csound->scorestr);
-      csoundInputMessageInternal(csound, (const char *) sc);
-      free(sc);
-      csoundUnlockMutex(csound->API_lock);
-      return CSOUND_SUCCESS;
+      csound->csdname = strdup("*string*"); /* Mark asfrom text */
+      res = csoundCompileOrc(csound, NULL);
+      if (res == CSOUND_SUCCESS){
+        csoundLockMutex(csound->API_lock);
+        char *sc = scsortstr(csound, csound->scorestr);
+        if ((csound->engineStatus & CS_STATE_COMP) != 0) {
+          csoundInputMessageInternal(csound, (const char *) sc);
+        }
+        //free(sc);
+        csoundUnlockMutex(csound->API_lock);
+      }
     }
-   }
-   return res;
+    return res;
 #else
     FILE *temporary_file;
     char temporary_filename[L_tmpnam];

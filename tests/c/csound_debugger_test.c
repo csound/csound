@@ -228,7 +228,7 @@ static void brkpt_cb6(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
     } else if (count == 1) {
         CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "line");
     } else if (count == 2) {
-        CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "oscils");
+        CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "line");
     }
     count++;
 }
@@ -252,29 +252,43 @@ void test_line_breakpoint(void)
     csoundSetBreakpoint(csound, 5, 1, 0);
     csoundPerformKsmps(csound);
 
+    CU_ASSERT_EQUAL(count, 1);
+
+    csoundRemoveBreakpoint(csound, 5, 1);
     csoundDebugContinue(csound);
     csoundPerformKsmps(csound);
     csoundSetBreakpoint(csound, 4, 1, 0);
     csoundPerformKsmps(csound);
 
+    CU_ASSERT_EQUAL(count, 2);
+
     csoundDebugContinue(csound);
-    csoundPerformKsmps(csound);
+    csoundPerformKsmps(csound); // This completes the k-pass
+
+    csoundPerformKsmps(csound); // This triggers the breakpoint again
+
+    CU_ASSERT_EQUAL(count, 3);
     csoundRemoveBreakpoint(csound, 4, 1);
+    csoundDebugContinue(csound);
     csoundPerformKsmps(csound);
 
     csoundDebugContinue(csound);
     csoundSetBreakpoint(csound, 1, 1, 0); // This breakpoint shouldn't be triggered as it's an init opcode
     csoundPerformKsmps(csound);
 
+    CU_ASSERT_EQUAL(count, 3);
     csoundDebugContinue(csound);
     csoundSetBreakpoint(csound, 2, 2, 0); // This breakpoint shouldn't be triggered as instr 2 is not defined
     csoundPerformKsmps(csound);
 
+    CU_ASSERT_EQUAL(count, 3);
+
     csoundDebuggerClean(csound);
+
 
     csoundDestroy(csound);
 
-    CU_ASSERT_EQUAL(count, 2);
+    CU_ASSERT_EQUAL(count, 3);
 }
 
 static void brkpt_cb7(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
@@ -324,8 +338,11 @@ void test_line_breakpoint_orc_file(void)
     csoundSetBreakpointCallback(csound, brkpt_cb7, &line);
     csoundSetBreakpoint(csound, line, 0, 0);
     csoundPerformKsmps(csound);
+
     csoundDebugContinue(csound);
+
     csoundRemoveBreakpoint(csound, line, 0);
+
     csoundPerformKsmps(csound);
     csoundDebugContinue(csound);
     csoundPerformKsmps(csound);

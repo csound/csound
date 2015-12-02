@@ -948,7 +948,7 @@ OENTRY opcodlst_1[] = {
   { "downsamp",S(DOWNSAMP),0,3, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
   { "upsamp", S(UPSAMP),0,  4,  "a", "k",    NULL,   NULL,   (SUBR)upsamp        },
   /* IV - Sep 5 2002 */
-  { "interp", S(INTERP),0,  5,  "a", "koo",  (SUBR)interpset,NULL, (SUBR)interp  },
+  { "interp", S(INTERP),0,  5,  "a", "kooo", (SUBR)interpset,NULL, (SUBR)interp  },
   { "a.k",    S(INTERP),0,  5,  "a", "k",    (SUBR)a_k_set,NULL,   (SUBR)interp  },
   { "integ", S(INDIFF),  0, 5,  "a", "xo",
     (SUBR)indfset,NULL,(SUBR)integrate},
