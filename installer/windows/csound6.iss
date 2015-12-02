@@ -15,7 +15,7 @@
 ; I hope to change this soon.
 
 ; Uncomment the following line to build for Cabbage, CsoundVST, and vst4cs.
-#define CSOUNDVST
+; #define CSOUNDVST
 
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
