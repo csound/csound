@@ -1748,18 +1748,21 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
 {
     TREE *root;
     int retVal=1;
-    if ((retVal=setjmp(csound->exitjmp))) return retVal;
-    retVal = 1;
+
+    /* if ((retVal=setjmp(csound->exitjmp))) { */
+    /*   return retVal; */
+    /* } */
+    //retVal = 1;
     root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
-     retVal = csoundCompileTree(csound, root);
-     // Sanitise semantic sets here
-     sanitize(csound);
-     csoundDeleteTree(csound, root);
+      retVal = csoundCompileTree(csound, root);
+      // Sanitise semantic sets here
+      sanitize(csound);
+      csoundDeleteTree(csound, root);
     }
     else {
       // csoundDeleteTree(csound, root);
-     return  CSOUND_ERROR;
+      return  CSOUND_ERROR;
     }
 
     if (UNLIKELY(csound->oparms->odebug))
