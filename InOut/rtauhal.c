@@ -349,13 +349,12 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                          isInput, &format, &psize);
     format.mSampleRate    = srate;
     format.mFormatID = kAudioFormatLinearPCM;
-    format.mFormatFlags = kAudioFormatFlagsCanonical |
-      kLinearPCMFormatFlagIsNonInterleaved;
-    format.mBytesPerPacket = sizeof(AudioUnitSampleType);
+    format.mFormatFlags = kLinearPCMFormatFlagIsNonInterleaved;
+    format.mBytesPerPacket = sizeof(Float32);
     format.mFramesPerPacket = 1;
-    format.mBytesPerFrame = sizeof(AudioUnitSampleType);
+    format.mBytesPerFrame = sizeof(Float32);
     format.mChannelsPerFrame = nchnls;
-    format.mBitsPerChannel = sizeof(AudioUnitSampleType)*8;
+    format.mBitsPerChannel = sizeof(Float32)*8;
     AudioUnitSetProperty(*aunit, kAudioUnitProperty_StreamFormat,
                          (isInput ? kAudioUnitScope_Output : kAudioUnitScope_Input),
                          isInput, &format,
@@ -385,9 +384,9 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       for (i = 0; i < cdata->inchnls; i++) {
         CAInputData->mBuffers[i].mNumberChannels = 1;
         CAInputData->mBuffers[i].mDataByteSize =
-          bufframes * sizeof(AudioUnitSampleType);
+          bufframes * sizeof(Float32);
         CAInputData->mBuffers[i].mData =
-          calloc(bufframes, sizeof(AudioUnitSampleType));
+          calloc(bufframes, sizeof(Float32));
       }
       cdata->inputdata = CAInputData;
 
@@ -592,7 +591,7 @@ OSStatus  Csound_Input(void *inRefCon,
     int inchnls = cdata->inchnls;
     MYFLT *inputBuffer = cdata->inputBuffer;
     int j,k;
-    AudioUnitSampleType *buffer;
+    Float32 *buffer;
     int n = inNumberFrames*inchnls;
     int l;
     IGN(ioData);
@@ -600,7 +599,7 @@ OSStatus  Csound_Input(void *inRefCon,
     AudioUnitRender(cdata->inunit, ioActionFlags, inTimeStamp, inBusNumber,
                     inNumberFrames, cdata->inputdata);
     for (k = 0; k < inchnls; k++){
-      buffer = (AudioUnitSampleType *) cdata->inputdata->mBuffers[k].mData;
+      buffer = (Float32 *) cdata->inputdata->mBuffers[k].mData;
       for(j=0; (unsigned int) j < inNumberFrames; j++){
         inputBuffer[j*inchnls+k] = buffer[j];
       }
@@ -638,7 +637,7 @@ OSStatus  Csound_Render(void *inRefCon,
     int onchnls = cdata->onchnls;
     MYFLT *outputBuffer = cdata->outputBuffer;
     int j,k;
-    AudioUnitSampleType *buffer;
+    Float32 *buffer;
     int n = inNumberFrames*onchnls;
     IGN(ioActionFlags);
     IGN(inTimeStamp);
@@ -647,9 +646,9 @@ OSStatus  Csound_Render(void *inRefCon,
 
     n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
     for (k = 0; k < onchnls; k++) {
-      buffer = (AudioUnitSampleType *) ioData->mBuffers[k].mData;
+      buffer = (Float32 *) ioData->mBuffers[k].mData;
       for(j=0; (unsigned int) j < inNumberFrames; j++){
-        buffer[j] = (AudioUnitSampleType) outputBuffer[j*onchnls+k] ;
+        buffer[j] = (Float32) outputBuffer[j*onchnls+k] ;
         outputBuffer[j*onchnls+k] = FL(0.0);
       }
     }

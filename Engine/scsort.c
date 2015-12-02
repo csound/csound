@@ -56,14 +56,14 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
       swritestr(csound, sco, first);
       m++;
     }
-    if(first){
-    if (m==0)
-      corfile_puts("f0 800000000000.0\ne\n", sco); /* ~25367 years */
-    else corfile_puts("e\n", sco);
+    if (first) {
+      if (m==0)
+        corfile_puts("f0 800000000000.0\ne\n", sco); /* ~25367 years */
+      else corfile_puts("e\n", sco);
     }
     corfile_flush(sco);
     sfree(csound);
-    if(first) return sco->body;
+    if (first) return sco->body;
     else {
       char *str = strdup(sco->body);
       corfile_rm(&(sco));

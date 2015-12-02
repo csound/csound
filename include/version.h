@@ -49,5 +49,9 @@
 #define CS_APISUBVER        0   /* for minor changes that will still allow
                                    compatiblity with older hosts */
 
+#ifndef CS_PACKAGE_DATE
+#define CS_PACKAGE_DATE __DATE__
+#endif
+
 #endif /* CSOUND_VERSION_H */
 
