@@ -332,7 +332,7 @@ void copy_options(char **dst, char *src)
     while (++i < (int) strlen(src)) {
       if (!j) {
         /* skip whitespace between options */
-        if (src[i] == ' ' || src[i] == '\t') continue;
+        if (isblank(src[i])) continue;
         /* if quoted option */
         if (src[i] == '"') {
           j = 2; *s++ = ' '; *s++ = '"'; continue;
@@ -340,7 +340,7 @@ void copy_options(char **dst, char *src)
         /* otherwise simple option */
         *s++ = ' '; *s++ = '"'; j = 1;
       }
-      if (j == 1 && (src[i] == ' ' || src[i] == '\t')) {
+      if (j == 1 && isblank(src[i])) {
         /* whitespace can terminate simple option, but not quoted one */
         *s++ = '"'; j = 0; continue;
       }

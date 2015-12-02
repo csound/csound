@@ -671,7 +671,7 @@ extern "C" {
     PUBLIC int csoundStart(CSOUND *csound);
 
     /**
-     * Compiles Csound input files (such as an orchestra and score)
+     * Compiles Csound input files (such as an orchestra and score, or CSD)
      * as directed by the supplied command-line arguments,
      * but does not perform them. Returns a non-zero error code on failure.
      * This function cannot be called during performance, and before a
@@ -684,11 +684,12 @@ extern "C" {
      *       csoundReset(csound);
      * /endcode
      *  Calls csoundStart() internally.
+     *  Can only be called again after reset (see csoundReset())
      */
     PUBLIC int csoundCompile(CSOUND *, int argc, char **argv);
 
     /**
-     * Compiles a Csound input file (.csd file)
+     * Compiles a Csound input file (CSD, .csd file)
      * which includes command-line arguments,
      * but does not perform the file. Returns a non-zero error code on failure.
      * In this (host-driven) mode, the sequence of calls should be as follows:
@@ -700,6 +701,8 @@ extern "C" {
      * /endcode
      * NB: this function can be called during performance to
      * replace or add new instruments and events.
+     * On a first call and if called before csoundStart(), this function 
+     * behaves similarly to csoundCompile() 
      *
      */
 
