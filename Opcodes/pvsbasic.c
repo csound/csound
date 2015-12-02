@@ -1748,7 +1748,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
         else
           fout[i] *= g;
         /*binf = (i/2)*sr/N;
-	  if (fenv[i/2] && binf < sr/2+pshift ) fin[i] *= fenv[i/2];*/
+        x  if (fenv[i/2] && binf < sr/2+pshift ) fin[i] *= fenv[i/2];*/
       }
 
       p->fout->framecount = p->lastframe = p->fin->framecount;
