@@ -1748,10 +1748,13 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
 {
     TREE *root;
     int retVal=1;
-
-    /* if ((retVal=setjmp(csound->exitjmp))) { */
-    /*   return retVal; */
-    /* } */
+    volatile jmp_buf tmpExitJmp;
+    
+    memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
+    if ((retVal=setjmp(csound->exitjmp))) {
+      memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+      return retVal;
+    }
     //retVal = 1;
     root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
@@ -1762,11 +1765,13 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     }
     else {
       // csoundDeleteTree(csound, root);
+      memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
       return  CSOUND_ERROR;
     }
 
     if (UNLIKELY(csound->oparms->odebug))
       debugPrintCsound(csound);
+    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     return retVal;
 }
 
