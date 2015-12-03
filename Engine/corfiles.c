@@ -227,6 +227,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     void *fd;
     int n;
     char buffer[1024];
+    char *s;
 #ifdef HAVE_CURL
     if (strstr(fname,"://")) {
       return copy_url_corefile(csound, fname, fromScore);
@@ -237,6 +238,12 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     mm = corfile_create_w();
     memset(buffer, '\0', 1024);
     while ((n = fread(buffer, 1, 1023, ff))) {
+      /* Need to lose \r characters  here */
+      while ((s = strchr(buffer, '\r'))) {
+        int k = n - (s-buffer);
+        memmove(s, s+1, k);
+        n--;
+      }
       corfile_puts(buffer, mm);
       memset(buffer, '\0', 1024);
     }
