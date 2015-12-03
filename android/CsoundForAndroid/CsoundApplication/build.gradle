@@ -22,11 +22,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            debuggable true
             signingConfig signingConfigs.CsoundForAndroid
         }
         debug {
+            minifyEnabled false
             signingConfig signingConfigs.CsoundForAndroid
+            debuggable true
         }
     }
 }
