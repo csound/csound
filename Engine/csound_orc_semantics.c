@@ -1855,7 +1855,7 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     uint64_t files = csound_orcget_locn(yyscanner);
        printf("LINE: %d\n", line);
     if (*p=='\0') line--;
- 
+
     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
     do_baktrace(csound, files);

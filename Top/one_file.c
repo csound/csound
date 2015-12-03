@@ -185,9 +185,10 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
     STA(toremove) = tmp;
 }
 
+
 /* readingCsOptions should be non-zero when readOptions() is called
    while reading the <CsOptions> tag, but zero in other cases. */
-int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
+int readOptions_file(CSOUND *csound, FILE *unf, int readingCsOptions)
 {
     char  *p;
     int   argc = 0;
@@ -321,6 +322,8 @@ int readOptions(CSOUND *csound, FILE *unf, int readingCsOptions)
     return FALSE;
 }
 
+#ifdef OLD
+
 static int createOrchestra(CSOUND *csound, FILE *unf)
 {
     char  *p;
@@ -453,6 +456,7 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
     free(extname);
     return FALSE;
 }
+
 
 static void read_base64(CSOUND *csound, FILE *in, FILE *out)
 {
@@ -761,6 +765,8 @@ static int checkShortLicence(CSOUND *csound, FILE *unf)
     return FALSE;
 }
 
+#endif
+
 static int blank_buffer(CSOUND *csound, char *buffer)
 {
     const char *s;
@@ -773,6 +779,7 @@ static int blank_buffer(CSOUND *csound, char *buffer)
     return TRUE;
 }
 
+#ifdef OLD
 int read_unified_file(CSOUND *csound, char **pname, char **score)
 {
     char  *name = *pname;
@@ -974,10 +981,10 @@ int read_unified_file2(CSOUND *csound, char *csd)
     return result;
 }
 
-#ifdef JPFF
+#else
 
 /* Consider wrapping corfile_fgets for this function */
-static char *my_fgets1(CSOUND *csound, char *s, int n, CORFIL *stream)
+static char *my_fgets_cf(CSOUND *csound, char *s, int n, CORFIL *stream)
 {
     char *a = s;
     if (UNLIKELY(n <= 1)) return NULL;        /* best of a bad deal */
@@ -1005,7 +1012,7 @@ static char *my_fgets1(CSOUND *csound, char *s, int n, CORFIL *stream)
 
 /* readingCsOptions should be non-zero when readOptions() is called
    while reading the <CsOptions> tag, but zero in other cases. */
-int readOptions1(CSOUND *csound, CORFIL *cf, int readingCsOptions)
+int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
 {
     char  *p;
     int   argc = 0;
@@ -1013,7 +1020,7 @@ int readOptions1(CSOUND *csound, CORFIL *cf, int readingCsOptions)
     char  buffer[CSD_MAX_LINE_LEN];
 
     //alloc_globals(csound);
-    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
       p = buffer;
       /* Remove trailing spaces; rather heavy handed */
       {
@@ -1081,7 +1088,7 @@ int readOptions1(CSOUND *csound, CORFIL *cf, int readingCsOptions)
             if (*p=='*') {
               p++; goto top;
             }
-            my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf);
+            my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf);
             p = buffer; goto top;
           }
           if (UNLIKELY(argc == CSD_MAX_ARGS))
@@ -1141,14 +1148,14 @@ int readOptions1(CSOUND *csound, CORFIL *cf, int readingCsOptions)
 
 
 
-static int createOrchestra1(CSOUND *csound, CORFIL *cf)
+static int createOrchestra(CSOUND *csound, CORFIL *cf)
 {
     char  *p;
     CORFIL *incore = corfile_create_w();
     char  buffer[CSD_MAX_LINE_LEN];
 
     csound->orcLineOffset = STA(csdlinecount)+1;
-    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
       p = buffer;
       while (isblank(*p)) p++;
       if (strstr(p, "</CsInstruments>") == p) {
@@ -1169,7 +1176,7 @@ static int createOrchestra1(CSOUND *csound, CORFIL *cf)
 
 
 
-static int createScore1(CSOUND *csound, CORFIL *cf)
+static int createScore(CSOUND *csound, CORFIL *cf)
 {
     char   *p;
     char   buffer[CSD_MAX_LINE_LEN];
@@ -1177,7 +1184,7 @@ static int createScore1(CSOUND *csound, CORFIL *cf)
     if (csound->scorestr == NULL)
       csound->scorestr = corfile_create_w();
     csound->scoLineOffset = STA(csdlinecount);
-    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
       p = buffer;
       while (isblank(*p)) p++;
       if (strstr(p, "</CsScore>") == p) {
@@ -1196,7 +1203,7 @@ static int createScore1(CSOUND *csound, CORFIL *cf)
 }
 
 
-static int createExScore1(CSOUND *csound, char *p, CORFIL *cf)
+static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
 {
     char *extname;
     char *q;
@@ -1231,7 +1238,7 @@ static int createExScore1(CSOUND *csound, char *p, CORFIL *cf)
       return FALSE;
 
     csound->scoLineOffset = STA(csdlinecount);
-    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
       p = buffer;
       if (strstr(p, "</CsScore>") == p) {
         char sys[1024];
@@ -1272,7 +1279,7 @@ static int createExScore1(CSOUND *csound, char *p, CORFIL *cf)
     return FALSE;
 }
 
-static void read_base641(CSOUND *csound, CORFIL *in, FILE *out)
+static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
 {
     int c;
     int n, nbits;
@@ -1329,7 +1336,7 @@ static void read_base641(CSOUND *csound, CORFIL *in, FILE *out)
     }
 }
 
-static int createMIDI21(CSOUND *csound, CORFIL *cf)
+static int createMIDI2(CSOUND *csound, CORFIL *cf)
 {
     char  *p;
     FILE  *midf;
@@ -1346,12 +1353,12 @@ static int createMIDI21(CSOUND *csound, CORFIL *cf)
                         STA(midname));
     }
     csound->tempStatus |= csMidiScoMask;
-    read_base641(csound, cf, midf);
+    read_base64(csound, cf, midf);
     csoundFileClose(csound, fd);
     add_tmpfile(csound, STA(midname));               /* IV - Feb 03 2005 */
     STA(midiSet) = TRUE;
     while (TRUE) {
-      if (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
         p = buffer;
         while (isblank(*p)) p++;
         if (strstr(p, "</CsMidifileB>") == p) {
@@ -1363,7 +1370,7 @@ static int createMIDI21(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 
-static int createSample1(CSOUND *csound, char *buffer, CORFIL *cf)
+static int createSample(CSOUND *csound, char *buffer, CORFIL *cf)
 {
     int   num;
     FILE  *smpf;
@@ -1382,11 +1389,11 @@ static int createSample1(CSOUND *csound, char *buffer, CORFIL *cf)
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open sample file (%s) subfile"), sampname);
     }
-    read_base641(csound, cf, smpf);
+    read_base64(csound, cf, smpf);
     csoundFileClose(csound, fd);
     add_tmpfile(csound, sampname);              /* IV - Feb 03 2005 */
     while (TRUE) {
-      if (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
         char *p = buffer;
         while (isblank(*p)) p++;
         if (strstr(p, "</CsSampleB>") == p) {
@@ -1398,7 +1405,7 @@ static int createSample1(CSOUND *csound, char *buffer, CORFIL *cf)
     return FALSE;
 }
 
-static int createFile1(CSOUND *csound, char *buffer, CORFIL *cf)
+static int createFile(CSOUND *csound, char *buffer, CORFIL *cf)
 {
     FILE  *smpf;
     void  *fd;
@@ -1430,12 +1437,12 @@ static int createFile1(CSOUND *csound, char *buffer, CORFIL *cf)
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
     }
-    read_base641(csound, cf, smpf);
+    read_base64(csound, cf, smpf);
     csoundFileClose(csound, fd);
     add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
 
     while (TRUE) {
-      if (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
         char *p = buffer;
         while (isblank(*p)) p++;
         if (strstr(p, "</CsFileB>") == p) {
@@ -1447,7 +1454,7 @@ static int createFile1(CSOUND *csound, char *buffer, CORFIL *cf)
     return FALSE;
 }
 
-static int createFilea1(CSOUND *csound, char *buffer, CORFIL *cf)
+static int createFilea(CSOUND *csound, char *buffer, CORFIL *cf)
 {
     FILE  *smpf;
     void  *fd;
@@ -1491,7 +1498,7 @@ static int createFilea1(CSOUND *csound, char *buffer, CORFIL *cf)
     return res;
 }
 
-static int checkVersion1(CSOUND *csound, CORFIL *cf)
+static int checkVersion(CSOUND *csound, CORFIL *cf)
 {
     char  *p;
     int   major = 0, minor = 0;
@@ -1499,7 +1506,7 @@ static int checkVersion1(CSOUND *csound, CORFIL *cf)
     int   version = csoundGetVersion();
     char  buffer[CSD_MAX_LINE_LEN];
 
-    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
       p = buffer;
       while (isblank(*p)) p++;
       if (strstr(p, "</CsVersion>") != NULL)
@@ -1532,7 +1539,7 @@ static int checkVersion1(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
                                                       
-static int checkLicence1(CSOUND *csound, CORFIL *cf)
+static int checkLicence(CSOUND *csound, CORFIL *cf)
 {
     char  *p, *licence;
     int   len = 1;
@@ -1540,7 +1547,7 @@ static int checkLicence1(CSOUND *csound, CORFIL *cf)
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
     licence = (char*) csound->Calloc(csound, len);
-    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
       p = buffer;
       if (strstr(p, "</CsLicence>") != NULL ||
           strstr(p, "</CsLicense>") != NULL) {
@@ -1559,13 +1566,13 @@ static int checkLicence1(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 
-static int checkShortLicence1(CSOUND *csound, CORFIL *cf)
+static int checkShortLicence(CSOUND *csound, CORFIL *cf)
 {
     int   type = 0;
     char  buff[CSD_MAX_LINE_LEN];
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
-    while (my_fgets1(csound, buff, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (my_fgets_cf(csound, buff, CSD_MAX_LINE_LEN, cf) != NULL) {
       if (strstr(buff, "</CsShortLicence>") != NULL ||
           strstr(buff, "</CsShortLicense>") != NULL) {
         csound->SF_id_scopyright = type;
@@ -1592,7 +1599,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
       STA(orcname) = STA(sconame) = STA(midname) = NULL;
       STA(midiSet) = FALSE;
     }
-    while (my_fgets1(csound, buffer, CSD_MAX_LINE_LEN, cf)) {
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)) {
       char *p = buffer;
       while (isblank(*p)) p++;
       if (strstr(p, "<CsoundSynthesizer>") == p ||
@@ -1615,13 +1622,13 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
         if (!notrunning) {
           csoundMessage(csound, Str("Creating options\n"));
           csound->orchname = NULL;  /* allow orchestra/score name in CSD file */
-          r = readOptions1(csound, cf, 1);
+          r = readOptions(csound, cf, 1);
           result = r && result;
         }
         else {
           csoundMessage(csound, Str("Skipping <CsOptions>\n"));
           do {
-            if (UNLIKELY(my_fgets1(csound, buffer,
+            if (UNLIKELY(my_fgets_cf(csound, buffer,
                                    CSD_MAX_LINE_LEN, cf) == NULL)) {
               csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));
               result = FALSE;
@@ -1634,26 +1641,26 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
       }
       else if (strstr(p, "<CsInstruments>") == p) {
         csoundMessage(csound, Str("Creating orchestra\n"));
-        r = createOrchestra1(csound, cf);
+        r = createOrchestra(csound, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsScore") == p) {
         csoundMessage(csound, Str("Creating score\n"));
         if (strstr(p, "<CsScore>") == p)
-          r = createScore1(csound, cf);
+          r = createScore(csound, cf);
         else
-          r = createExScore1(csound, p, cf);
+          r = createExScore(csound, p, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsMidifileB>") == p) {
         if (notrunning) {
-          r = createMIDI21(csound, cf);
+          r = createMIDI2(csound, cf);
           result = r && result;
         }
         else {
           csoundMessage(csound, Str("Skipping <CsMidifileB>\n"));
           do {
-            if (UNLIKELY(my_fgets1(csound, buffer,
+            if (UNLIKELY(my_fgets_cf(csound, buffer,
                                    CSD_MAX_LINE_LEN, cf) == NULL)) {
               csoundErrorMsg(csound, Str("Missing end tag </CsMidiFileB>"));
               result = FALSE;
@@ -1665,31 +1672,31 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
         }
       }
       else if (strstr(p, "<CsSampleB filename=") == p) {
-        r = createSample1(csound, buffer, cf);
+        r = createSample(csound, buffer, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsFileB filename=") == p) {
-        r = createFile1(csound, buffer, cf);
+        r = createFile(csound, buffer, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsFile filename=") == p) {
         csoundMessage(csound,
                       Str("CsFile is deprecated and may not work; use CsFileB\n"));
-        r = createFilea1(csound, buffer, cf);
+        r = createFilea(csound, buffer, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsVersion>") == p) {
-        r = checkVersion1(csound, cf);
+        r = checkVersion(csound, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsLicence>") == p ||
                strstr(p, "<CsLicense>") == p) {
-        r = checkLicence1(csound, cf);
+        r = checkLicence(csound, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsShortLicence>") == p ||
                strstr(p, "<CsSortLicense>") == p) {
-        r = checkShortLicence1(csound, cf);
+        r = checkShortLicence(csound, cf);
         result = r && result;
       }
       else if (blank_buffer(csound, buffer)) continue;
