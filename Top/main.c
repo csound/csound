@@ -86,7 +86,7 @@ static void checkOptions(CSOUND *csound)
       csound->FileClose(csound, fd);
     }
     /* check for .csound6rc in current directory */
-    fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csound6rc", "r", NULL,
+     fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csound6rc", "r", NULL,
                            CSFTYPE_OPTIONS, 0);
     if (fd != NULL) {
       readOptions_file(csound, csrc, 0);
