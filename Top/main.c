@@ -111,10 +111,10 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
 
-    if(csound->engineStatus & CS_STATE_COMP){
+    if (csound->engineStatus & CS_STATE_COMP) {
       csound->Message(csound, Str("Csound is already started, call csoundReset()\n"
                                   "before starting again \n"));
-       return CSOUND_ERROR;
+      return CSOUND_ERROR;
     }
 
     if (--argc <= 0) {
@@ -135,11 +135,11 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     }
     /* check for CSD file */
     if (csound->orchname == NULL) {
-      if(csound->info_message_request) {
+      if (csound->info_message_request) {
         csound->info_message_request = 0;
         csound->LongJmp(csound, 1);
       }
-      else if(csound->oparms->daemon == 0)
+      else if (csound->oparms->daemon == 0)
          dieu(csound, Str("no orchestra name"));
 
     }
@@ -161,7 +161,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
         csound->Free(csound, fileDir);
       }
 
-      if(csound->orchname != NULL) {
+      if (csound->orchname != NULL) {
       csound->csdname = csound->orchname; /* save original CSD name */
 #ifdef JPFF
       {
@@ -244,15 +244,15 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
      /* VL: added this also to csoundReset() in csound.c   */
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
-     if(csoundCompileOrc(csound, NULL) != 0){
-       if(csound->oparms->daemon == 0)
+     if (csoundCompileOrc(csound, NULL) != 0){
+       if (csound->oparms->daemon == 0)
          csoundDie(csound, Str("cannot compile orchestra"));
        else {
          /* VL -- 21-10-13 Csound does not need to die on
           failure to compile. It can carry on, because new
           instruments can be compiled again */
-       csound->Warning(csound, Str("cannot compile orchestra."));
-       csound->Warning(csound, Str("Csound will start with no instruments"));
+       csound->Warning(csound, Str("cannot compile orchestra.\n"
+                                   "Csound will start with no instruments"));
        }
      }
      csound->modules_loaded = 1;
@@ -348,10 +348,10 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     int     n;
 
     /* if a CSD was not used, check options */
-    if(csound->csdname == NULL)
+    if (csound->csdname == NULL)
           checkOptions(csound);
 
-   if(csound->engineStatus & CS_STATE_COMP){
+   if (csound->engineStatus & CS_STATE_COMP){
        csound->Message(csound, "Csound is already started, call csoundReset()\n"
                                 "before starting again \n");
        return CSOUND_ERROR;
@@ -359,8 +359,8 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 
    { /* test for dummy module request */
     char *s;
-     if((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
-       if(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
+     if ((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
+       if (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
            strcmp(s, "NULL") == 0) {
         csound->Message(csound, Str("setting dummy interface\n"));
       csound->SetPlayopenCallback(csound, playopen_dummy);
@@ -372,9 +372,9 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
         }
 
      /* and midi */
-  if(csound->enableHostImplementedMIDIIO == 0){
-  if((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
-    if(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
+  if (csound->enableHostImplementedMIDIIO == 0){
+  if ((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
+    if (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
      strcmp(s, "NULL") == 0) {
      csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
      csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
@@ -398,7 +398,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
        Csound to start without calling csoundCompile, but directly from
        csoundCompileOrc() and csoundReadSco()
     */
-   if(csound->modules_loaded == 0){
+   if (csound->modules_loaded == 0){
     csoundLoadExternals(csound);    /* load plugin opcodes */
     if (csoundInitModules(csound) != 0)
            csound->LongJmp(csound, 1);
@@ -489,7 +489,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
       csound->WaitBarrier(csound->barrier2);
     }
     csound->engineStatus |= CS_STATE_COMP;
-    if(csound->oparms->daemon > 1)
+    if (csound->oparms->daemon > 1)
         UDPServerStart(csound,csound->oparms->daemon);
 
 
@@ -500,7 +500,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
 
   int result = csoundCompileArgs(csound,argc,argv);
 
-  if(result == CSOUND_SUCCESS) return csoundStart(csound);
+  if (result == CSOUND_SUCCESS) return csoundStart(csound);
   else return result;
 }
 

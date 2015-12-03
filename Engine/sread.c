@@ -934,7 +934,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             c = getscochar(csound, 1);
           }
           if (UNLIKELY(STA(repeat_cnt_n)[STA(repeat_index)] <= 0
-                       || isspace(c))) // != ' ' && c != '\t' && c != '\n')))
+                       || !isspace(c))) // != ' ' && c != '\t' && c != '\n')))
             scorerr(csound, Str("{: invalid repeat count"));
           if (STA(repeat_index) > 1) {
             char st[41];
@@ -1034,7 +1034,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             STA(repeat_cnt) = 10 * STA(repeat_cnt) + c - '0';
             c = getscochar(csound, 1);
           }
-          if (UNLIKELY(STA(repeat_cnt) <= 0 || isspace(c)))
+          if (UNLIKELY(STA(repeat_cnt) <= 0 || !isspace(c)))
             //(c != ' ' && c != '\t' && c != '\n')
             scorerr(csound, Str("r: invalid repeat count"));
           if (csound->oparms->msglevel & TIMEMSG)
