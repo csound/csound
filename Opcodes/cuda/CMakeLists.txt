@@ -63,8 +63,10 @@ SET(CUDA_NVCC_FLAGS  "-ccbin /usr/bin/clang -arch=sm_30 -Xcompiler
   make_cuda_plugin(cudaop3 slidingm.cu)
   make_cuda_plugin(cudaop4 conv.cu)
   make_cuda_plugin(cudaop5 pconv.cu)
-  target_link_libraries(cudaop2 ${CUFFT})
-   target_link_libraries(cudaop5 ${CUFFT})
+  CUDA_ADD_CUFFT_TO_TARGET(cudaop2)
+   CUDA_ADD_CUFFT_TO_TARGET(cudaop5)
+   #target_link_libraries(cudaop5 ${CUFFT})
+  #target_link_libraries(cudaop2 ${CUFFT})
  endif()
 
  SET (CUDA_VERBOSE_BUILD ON CACHE BOOL "nvcc verbose" FORCE)
