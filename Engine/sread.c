@@ -174,7 +174,7 @@ static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
     case '*': ans = a * b; break;
     case '/': ans = a / b; break;
     case '%': ans = MOD(a, b); break;
-    case '^': ans = (MYFLT) pow((double) a, (double) b); break;
+    case '^': ans = POWER(a, b); break;
     case '&': ans = (MYFLT) (MYFLT2LRND(a) & MYFLT2LRND(b)); break;
     case '|': ans = (MYFLT) (MYFLT2LRND(a) | MYFLT2LRND(b)); break;
     case '#': ans = (MYFLT) (MYFLT2LRND(a) ^ MYFLT2LRND(b)); break;
@@ -196,10 +196,10 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
         corfile_rm(&(STA(macros)->body));
       csound->Free(csound, STA(macros)->name);
  #ifdef MACDEBUG
-     csound->DebugMsg(csound,"%s(%d): corfile is %p\n",
-                      __FILE__, __LINE__, STA(macros)->body);
+      csound->DebugMsg(csound,"%s(%d): corfile is %p\n",
+                       __FILE__, __LINE__, STA(macros)->body);
  #endif
-     for (i = 0; i < STA(macros)->acnt; i++)
+      for (i = 0; i < STA(macros)->acnt; i++)
         csound->Free(csound, STA(macros)->arg[i]);
       csound->Free(csound, STA(macros));
       STA(macros) = mm;

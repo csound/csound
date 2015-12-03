@@ -982,8 +982,8 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
                ++csound->dead_instr_no * sizeof(INSTRTXT*));
     csound->dead_instr_pool[csound->dead_instr_no-1] = instrtxt;
     if (csound->oparms->odebug)
-    csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
-                    csound->dead_instr_no-1);
+      csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
+                      csound->dead_instr_no-1);
 }
 
 /**
@@ -1749,7 +1749,7 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     TREE *root;
     int retVal=1;
     volatile jmp_buf tmpExitJmp;
-    
+
     memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
     if ((retVal=setjmp(csound->exitjmp))) {
       memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));

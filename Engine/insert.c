@@ -400,7 +400,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     CS_VAR_MEM *pfields;
     EVTBLK  *evt;
     int pmax = 0;
-    
+
     if (UNLIKELY(csound->advanceCnt))
       return 0;
     if (UNLIKELY(insno <= 0 || csound->engineState.instrtxtp[insno]->muted == 0))
@@ -522,7 +522,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       CS_VAR_MEM* pfield = (pfields + pfield_index);
       MYFLT value = (MYFLT) ip->m_pitch;
       pfield->value = value;
-      
+
       if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiKey:         pfield: %3d  value: %3d\n",
                         pfield_index, (int) pfield->value);
