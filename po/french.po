@@ -3279,50 +3279,51 @@ msgstr "Obsolète"
 
 #: InOut/rtjack.c:1172
 msgid "Jack MIDI module: failed to create client for input"
-msgstr ""
+msgstr "Module MIDI Jack : échec de la création du client en entrée"
 
 #: InOut/rtjack.c:1182
 msgid "Jack MIDI module: failed to register input port"
-msgstr ""
+msgstr "Module MIDI Jack : échec de l'enregistrement du port d'entrée"
 
 #: InOut/rtjack.c:1201 InOut/rtjack.c:1302
 msgid "Jack MIDI module: failed to set input process callback"
 msgstr ""
+"Module MIDI Jack : échec de la fixation du callback"
+"du processus d'entrée"
 
 #: InOut/rtjack.c:1211
 msgid "Jack MIDI module: failed to activate input"
-msgstr ""
+msgstr "Module MIDI Jack : échec de l'activation de l'entrée"
 
 #: InOut/rtjack.c:1217
 #, c-format
 msgid "Jack MIDI module: failed to connect to: %s"
-msgstr ""
+msgstr "Module MIDI Jack : échec de la connexion à : %s"
 
 #: InOut/rtjack.c:1273
 msgid "Jack MIDI module: failed to create client for output"
-msgstr ""
+msgstr "Module MIDI Jack : échec de la création du client en sortie"
 
 #: InOut/rtjack.c:1283
 msgid "Jack MIDI module: failed to register output port"
-msgstr ""
+msgstr "Module MIDI Jack : échec de l'enregistrement du port de sortie"
 
 #: InOut/rtjack.c:1312
 msgid "Jack MIDI module: failed to activate output"
-msgstr ""
+msgstr "Module MIDI Jack : échec de l'activation de la sortie"
 
 #: InOut/rtjack.c:1319
 #, c-format
 msgid "Jack MIDI out module: failed to connect to: %s"
-msgstr ""
+msgstr "Module MIDI Jack : échec de la connexion à : %s"
 
 #: InOut/rtjack.c:1376
 msgid "rtaudio: JACK module enabled\n"
 msgstr "rtaudio : module JACK activé\n"
 
 #: InOut/rtjack.c:1394
-#, fuzzy
 msgid "rtmidi: JACK module enabled\n"
-msgstr "rtaudio : module JACK activé\n"
+msgstr "rtmidi : module JACK activé\n"
 
 #: InOut/rtpa.c:76
 msgid " *** PortAudio: error: "
@@ -6157,7 +6158,7 @@ msgstr "Se termine mais peut être fixé(1), pivotant(2) ou libre(3)"
 #: Opcodes/biquad.c:346 Opcodes/biquad.c:394 Opcodes/biquad.c:405
 #: Opcodes/biquad.c:445 Opcodes/biquad.c:456
 msgid "rezzy instability corrected"
-msgstr ""
+msgstr "L'instabilité de rezzy a été corrigée"
 
 #: Opcodes/biquad.c:790
 msgid "vco: not initialised"
@@ -11397,11 +11398,12 @@ msgid "cannot compile orchestra"
 msgstr "impossible de compiler l'orchestre"
 
 #: Top/main.c:254
-#, fuzzy
 msgid ""
 "cannot compile orchestra.\n"
 "Csound will start with no instruments"
-msgstr "Csound va démarrer sans instruments"
+msgstr ""
+"Impossible de compiler l'orchestre.\n"
+"Csound va démarrer sans instruments"
 
 #: Top/main.c:269
 msgid "end of orchestra compile"
@@ -11696,6 +11698,7 @@ msgstr "Création de la partition\n"
 #: Top/one_file.c:873
 msgid "CsFile is deprecatedand may not work; use CsFileB\n"
 msgstr ""
+"CsFile est obsolète et pourrait ne pas fonctionner ; utiliser CsFileB\n"
 
 #: Top/one_file.c:893 Top/one_file.c:1697
 #, c-format
@@ -11712,18 +11715,17 @@ msgid "Could not find </CsoundSynthesizer> tag in CSD file.\n"
 msgstr "Balise <CsoundSynthesizer> introuvable dans le fichier CSD.\n"
 
 #: Top/one_file.c:1654
-#, fuzzy
 msgid "Skipping <CsMidifileB>\n"
-msgstr "On ignore <CsOptions>\n"
+msgstr "On ignore <CsMidifileB>\n"
 
 #: Top/one_file.c:1658
-#, fuzzy
 msgid "Missing end tag </CsMidiFileB>"
 msgstr "La balise fermante </CsMidifileB> est absente"
 
 #: Top/one_file.c:1677
 msgid "CsFile is deprecated and may not work; use CsFileB\n"
 msgstr ""
+"CsFile est obsolète et pourrait ne pas fonctionner ; utiliser CsFileB\n"
 
 #: Top/opcode.c:165
 msgid "Error creating opcode list"
