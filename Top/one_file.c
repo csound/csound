@@ -185,6 +185,7 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
     STA(toremove) = tmp;
 }
 
+#ifdef OLD
 
 /* readingCsOptions should be non-zero when readOptions() is called
    while reading the <CsOptions> tag, but zero in other cases. */
@@ -321,8 +322,6 @@ int readOptions_file(CSOUND *csound, FILE *unf, int readingCsOptions)
       csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));
     return FALSE;
 }
-
-#ifdef OLD
 
 static int createOrchestra(CSOUND *csound, FILE *unf)
 {
