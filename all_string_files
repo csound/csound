@@ -562,8 +562,7 @@
 ./frontends/csound/csound_main.c
 ./frontends/csound/sched.c
 ./frontends/csoundapi_tilde/csoundapi_tilde.c
-./frontends/winsound.cxx
-./frontends/winsound.h
+./frontends/winsound/winsound.fl
 ./frontends/winsound/main.cxx
 ./include/OpcodeBase.hpp
 ./include/cfgvar.h
