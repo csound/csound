@@ -105,7 +105,7 @@ OENTRY opcodlst_1[] = {
     "****************************************************************"
     "****************************************************************", "",
     xinset,  NULL, NULL },*/
-   { "xout", S(XOUT_MAX),0,  1,  "",                 "*", xoutset, NULL, NULL },
+  { "xout", S(XOUT_MAX),0,  1,  "",                 "*", xoutset, NULL, NULL },
   /* { "##xout64", S(XOUT_HIGH),0, 1,  "",                 "*", xoutset, NULL },
      { "##xout256", S(XOUT_MAX),0,  1,  "",                 "*", xoutset, NULL },*/
   { "setksmps", S(SETKSMPS),0,  1,  "",     "i",    setksmpsset, NULL, NULL  },
