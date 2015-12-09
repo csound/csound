@@ -66,8 +66,8 @@ extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
 extern TREE* csound_orc_optimize(CSOUND *, TREE *);
 extern void csp_orc_analyze_tree(CSOUND* csound, TREE* root);
 
-
-void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
+#if 0
+static void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
 {
     csound->DebugMsg(csound,"********* Extra Pre Data %p *********\n", x);
     csound->DebugMsg(csound,"macros = %p, macro_stack_ptr = %u, ifdefStack=%p,\n"
@@ -75,6 +75,7 @@ void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
            x->macros, x->macro_stack_ptr, x->ifdefStack, x->isIfndef, x->line);
     csound->DebugMsg(csound,"******************\n");
 }
+#endif
 
 uint64_t make_location(PRE_PARM *qq)
 {
@@ -195,7 +196,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
          unwanted growth.
          We just pass a pointer, which will be allocated
          by make leaf */
-      TREE* astTree = NULL;// = (TREE *)csound->Calloc(csound, sizeof(TREE));
+      TREE* astTree = NULL;
       TREE* newRoot;
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
@@ -220,7 +221,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       //csp_orc_sa_cleanup(csound);
       corfile_rm(&csound->expanded_orc);
       if (csound->oparms->odebug) csp_orc_sa_print_list(csound);
-      if (csound->synterrcnt) err = 3;
+      if (UNLIKELY(csound->synterrcnt)) err = 3;
       if (LIKELY(err == 0)) {
         if(csound->oparms->odebug) csound->Message(csound,
                                                    Str("Parsing successful!\n"));
@@ -239,10 +240,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         }
         goto ending;
       }
-       if (UNLIKELY(PARSER_DEBUG)) {
+      if (UNLIKELY(PARSER_DEBUG)) {
         print_tree(csound, "AST - INITIAL\n", astTree);
-       }
-       //print_tree(csound, "AST - INITIAL\n", astTree);
+      }
 
       typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
@@ -261,17 +261,17 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       //print_tree(csound, "AST - FOLDED\n", astTree);
 
       //FIXME - synterrcnt should not be global
-      if (astTree == NULL || csound->synterrcnt){
-          err = 3;
-          if (astTree)
-            csound->Message(csound,
-                            Str("Parsing failed due to %d semantic error%s!\n"),
-                            csound->synterrcnt, csound->synterrcnt==1?"":"s");
-          else if (csound->synterrcnt)
-            csound->Message(csound, Str("Parsing failed to syntax errors\n"));
-          else
-            csound->Message(csound, Str("Parsing failed due no input!\n"));
-          goto ending;
+      if (UNLIKELY(astTree == NULL || csound->synterrcnt)) {
+        err = 3;
+        if (astTree)
+          csound->Message(csound,
+                          Str("Parsing failed due to %d semantic error%s!\n"),
+                          csound->synterrcnt, csound->synterrcnt==1?"":"s");
+        else if (csound->synterrcnt)
+          csound->Message(csound, Str("Parsing failed to syntax errors\n"));
+        else
+          csound->Message(csound, Str("Parsing failed due no input!\n"));
+        goto ending;
       }
       err = 0;
 
@@ -281,11 +281,11 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 //
       if (UNLIKELY(PARSER_DEBUG)) {
         print_tree(csound, "AST - AFTER VERIFICATION/EXPANSION\n", astTree);
-        }
+      }
 
     ending:
       csound_orclex_destroy(pp.yyscanner);
-      if (err) {
+      if (UNLIKELY(err)) {
         csound->ErrorMsg(csound, Str("Stopping on parser failure"));
         csoundDeleteTree(csound, astTree);
         if (typeTable != NULL) {

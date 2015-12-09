@@ -530,12 +530,14 @@ arrayexpr :  arrayexpr '[' iexp ']'
           }
           ;
 
-ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
-          {
-            $3->right = $5;
-            $$ = make_node(csound,LINE,LOCN, IF_TOKEN, $2, $3);
-            //print_tree(csound, "if-endif", $$);
-          }
+ifthen    : IF_TOKEN bexpr then {
+                $$ = make_node(csound,LINE,LOCN, IF_TOKEN, $2, $3);
+              }
+            NEWLINE statementlist ENDIF_TOKEN NEWLINE
+              {
+                  $3->right = $6;
+                  //print_tree(csound, "if-endif", $$);
+              }
           | IF_TOKEN bexpr then NEWLINE statementlist ELSE_TOKEN
                                         statementlist ENDIF_TOKEN NEWLINE
           {
