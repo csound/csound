@@ -109,6 +109,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
     static String SADIR = null;
     static String INCDIR = null;
     WebView webview = null;
+    private String screenLayout = "1";
 
     static {
         int result = 0;
@@ -513,7 +514,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
     }
 
     private void setScreenLayout(SharedPreferences sharedPreferences) {
-        String screenLayout = sharedPreferences.getString("screenLayout", "1");
+        screenLayout = sharedPreferences.getString("screenLayout", "1");
         if (screenLayout.equals("1")) {
             channelsLayout.setVisibility(channelsLayout.GONE);
             htmlView.setVisibility(htmlView.GONE);
@@ -818,14 +819,19 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    String channelName;
-                    for (int i = 0; i < 5; i++) {
-                        channelName = "slider" + (i + 1);
-                        csoundUI.addSlider(sliders.get(i), channelName, 0., 1.);
-                        channelName = "butt" + (i + 1);
-                        csoundUI.addButton(buttons.get(i), channelName, 1);
+                    // We hook up the builtin widgets only if they are
+                    // actually being used, otherwise they prevent names from
+                    // begin used for HTML channels.
+                    if (screenLayout.equals("4") || screenLayout.equals("5")) {
+                        String channelName;
+                        for (int i = 0; i < 5; i++) {
+                            channelName = "slider" + (i + 1);
+                            csoundUI.addSlider(sliders.get(i), channelName, 0., 1.);
+                            channelName = "butt" + (i + 1);
+                            csoundUI.addButton(buttons.get(i), channelName, 1);
+                        }
+                        csoundUI.addButton(pad, "trackpad", 1);
                     }
-                    csoundUI.addButton(pad, "trackpad", 1);
                     CsoundMotion motion = new CsoundMotion(csound);
                     motion.enableAccelerometer(CsoundAppActivity.this);
                     csound.addListener(CsoundAppActivity.this);
