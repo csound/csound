@@ -153,7 +153,7 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
        STA(linebufsiz) = LBUFSIZ1;
        STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
     }
-    if(STA(Linebuf) == NULL) return 1;
+    if (STA(Linebuf) == NULL) return 1;
 
     if (STA(Linep)) return 0;
     csound->Linefd = -1;
@@ -439,7 +439,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     char    opcod;
     memset(&evt, 0, sizeof(EVTBLK));
 
-    if(p1==0)
+    if (p1==0)
          opcod = *((STRINGDAT*) p->args[0])->data;
     else opcod = p1;
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
@@ -447,7 +447,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       return csound->InitError(csound, Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
-    if(p->flag==1) evt.pcnt = p->argno-1;
+    if (p->flag==1) evt.pcnt = p->argno-1;
     else
       evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */

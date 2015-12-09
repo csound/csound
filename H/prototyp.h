@@ -73,7 +73,11 @@ char    *type2string(int type);
 int     type2csfiletype(int type, int encoding);
 int     sftype2csfiletype(int type);
 void    rewriteheader(void *ofd);
-int     readOptions(CSOUND *, FILE *, int);
+#if 0
+int     readOptions_file(CSOUND *, FILE *, int);
+#else
+int     readOptions(CSOUND *, CORFIL *, int);
+#endif
 int     argdecode(CSOUND *, int, char **);
 void    remove_tmpfiles(CSOUND *);
 void    add_tmpfile(CSOUND *, char *);
