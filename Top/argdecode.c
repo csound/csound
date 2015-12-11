@@ -24,6 +24,7 @@
 #include "soundio.h"
 #include "new_opts.h"
 #include "csmodule.h"
+#include "corfile.h"
 #include <ctype.h>
 
 static void list_audio_devices(CSOUND *csound, int output);
@@ -1343,12 +1344,14 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
               FILE *ind;
               void *fd;
               fd = csound->FileOpen2(csound, &ind, CSFILE_STD,
-                                     s, "rb", NULL, CSFTYPE_OPTIONS, 0);
+                                     s, "r", NULL, CSFTYPE_OPTIONS, 0);
               if (UNLIKELY(fd == NULL)) {
                 dieu(csound, Str("Cannot open indirection file %s\n"), s);
               }
               else {
-                readOptions_file(csound, ind, 0);
+                CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
+                readOptions(csound, cf, 0);
+                corfile_rm(&cf);
                 csound->FileClose(csound, fd);
               }
               while (*s++) {};

@@ -78,20 +78,25 @@ static void checkOptions(CSOUND *csound)
                              CSFTYPE_OPTIONS, 0);
       if (fd != NULL)
         csound->Message(csound, Str("Reading options from $HOME/.csound6rc\n"));
-      csound->Free(csound, s);
+      //csound->Free(csound, s);
     }
     /* read global .csound6rc file (if exists) */
     if (fd != NULL) {
-      readOptions_file(csound, csrc, 0);
+      CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
+      readOptions(csound, cf, 0);
+      corfile_rm(&cf);
       csound->FileClose(csound, fd);
+      csound->Free(csound, s);
     }
     /* check for .csound6rc in current directory */
      fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csound6rc", "r", NULL,
                            CSFTYPE_OPTIONS, 0);
     if (fd != NULL) {
-      readOptions_file(csound, csrc, 0);
+      CORFIL *cf = copy_to_corefile(csound, ".csound6rc", NULL, 0);
+      readOptions(csound, cf, 0);
       csound->Message(csound,
                       Str("Reading options from local directory .csound6rc \n"));
+      corfile_rm(&cf);
       csound->FileClose(csound, fd);
     }
 }

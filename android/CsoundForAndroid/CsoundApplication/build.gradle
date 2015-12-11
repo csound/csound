@@ -9,14 +9,14 @@ android {
             storeFile file('C:/Users/restore/CsoundForAndroid.jks')
         }
     }
-    compileSdkVersion 19
+    compileSdkVersion 21
     buildToolsVersion "23.0.2"
     defaultConfig {
         applicationId "com.csounds.Csound6"
-        minSdkVersion 15
-        targetSdkVersion 19
-        versionCode 1
-        versionName "1.2"
+        minSdkVersion 21
+        targetSdkVersion 21
+        versionCode 3
+        versionName "6.07.beta3"
     }
     buildTypes {
         release {

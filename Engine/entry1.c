@@ -194,6 +194,7 @@ OENTRY opcodlst_1[] = {
   { ":cond.i",     S(CONVAL),0,  1,      "i",    "bii",  conval                  },
   { ":cond.k",     S(CONVAL),0,  2,      "k",    "Bkk",  NULL,   conval          },
   { ":cond.a",     S(CONVAL),0,  4,      "a",    "Bxx",  NULL,   NULL,   aconval },
+  { ":cond.s",     S(CONVAL),0,  3,      "S",    "bSS",  conval, NULL         },
   { ":cond.S",     S(CONVAL),0,  3,      "S",    "BSS",  conval, conval       },
   { "##add.ii",  S(AOP),0,    1,      "i",    "ii",   addkk                   },
   { "##sub.ii",  S(AOP),0,    1,      "i",    "ii",   subkk                   },
