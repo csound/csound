@@ -696,6 +696,7 @@ OENTRY opcodlst_1[] = {
   { "ptablew.aa", S(TABLEW),0,  5,  "", "aaiooo",
     (SUBR)itblchkw, NULL, (SUBR)ptablew},
   { "tableiw",  S(TABL),TW, 1,    "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
+  { "tablew",  S(TABL),TW, 1,    "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
   { "tablew.kk", S(TABL),TW,  3,    "", "kkiooo",(SUBR)tabl_setup,
     (SUBR)tablew_kontrol, NULL          },
   { "tablew.aa", S(TABL),TW,  5,    "", "aaiooo",(SUBR)tabl_setup, NULL,
