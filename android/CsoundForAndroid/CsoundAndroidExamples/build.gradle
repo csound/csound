@@ -1,15 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 19
+    compileSdkVersion 21
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "com.csounds.examples"
-        minSdkVersion 15
-        targetSdkVersion 19
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion 21
+        targetSdkVersion 21
+        versionCode 2
+        versionName "6.07.beta2"
     }
     buildTypes {
         release {
