@@ -1272,7 +1272,7 @@ static int midi_in_open(CSOUND *csound,
     }
 
     if(strcmp(devName,"0")){
-      if(jack_connect(jack_client,devName,"csound-midi:input") != 0){
+      if(jack_connect(jack_client,devName, pm->inputPortName) != 0){
         csound->Warning(csound, Str("Jack MIDI module: failed to connect to: %s"),
                         devName);
       }
@@ -1383,7 +1383,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
     }
 
     if(strcmp(devName,"0")){
-      if(jack_connect(jack_client,"csound-midiout:output",devName) != 0){
+      if(jack_connect(jack_client,pm->outputPortName,devName) != 0){
         csound->Warning(csound,
                         Str("Jack MIDI out module: failed to connect to: %s"),
                         devName);
