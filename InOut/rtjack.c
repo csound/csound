@@ -1143,9 +1143,9 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     pm = (RtJackMIDIGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                             "_rtjackMIDIGlobals");
 
-    strcpy(&(p->clientName[0]), "csound6-midi");
-    strcpy(&(p->inputPortName[0]), "input");
-    strcpy(&(p->outputPortName[0]), "output");
+    strcpy(&(pm->clientName[0]), "csound6-midi");
+    strcpy(&(pm->inputPortName[0]), "input");
+    strcpy(&(pm->outputPortName[0]), "output");
      /*   client name */
     i = jack_client_name_size();
     if (i > (MAX_NAME_LEN + 1))
