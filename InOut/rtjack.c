@@ -1054,11 +1054,10 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 }
 
 typedef struct RtJackMIDIGlobals_ {
-  char clientName[MAX_NAME_LEN];
+  char InClientName[MAX_NAME_LEN];
+  char OutClientName[MAX_NAME_LEN];
   char inputPortName[MAX_NAME_LEN];
   char outputPortName[MAX_NAME_LEN];
-  jack_client_t *client;
-  int isOpen;
 } RtJackMIDIGlobals;
 
 
@@ -1143,18 +1142,25 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     pm = (RtJackMIDIGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                             "_rtjackMIDIGlobals");
 
-    strcpy(&(pm->clientName[0]), "csound6-midi");
-    strcpy(&(pm->inputPortName[0]), "input");
-    strcpy(&(pm->outputPortName[0]), "output");
+    strcpy(&(pm->InClientName[0]), "csound6-midi_in");
+    strcpy(&(pm->OutClientName[0]),"csound6-midi_out");
+    strcpy(&(pm->inputPortName[0]), "port");
+    strcpy(&(pm->outputPortName[0]), "port");
      /*   client name */
     i = jack_client_name_size();
     if (i > (MAX_NAME_LEN + 1))
       i = (MAX_NAME_LEN + 1);
-    csound->CreateConfigurationVariable(csound, "jack_midi_client",
-                                        (void*) &(pm->clientName[0]),
+    csound->CreateConfigurationVariable(csound, "jack_midi_in_client",
+                                        (void*) &(pm->InClientName[0]),
                                         CSOUNDCFG_STRING, 0, NULL, &i,
-                                        Str("JACK MIDI client name (default: csound6-midi)"),
+                                        Str("JACK MIDI in client name (default: csound6-midi_in)"),
+					NULL);
+    csound->CreateConfigurationVariable(csound, "jack_midi_out_client",
+                                        (void*) &(pm->InClientName[0]),
+                                        CSOUNDCFG_STRING, 0, NULL, &i,
+                                        Str("JACK MIDI out client name (default: csound6-midi_out)"),
                                         NULL);
+    
     /*   input port name */
     i = jack_port_name_size() - 3;
     if (i > (MAX_NAME_LEN + 1))
@@ -1163,7 +1169,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                         (void*) &(pm->inputPortName[0]),
                                         CSOUNDCFG_STRING, 0, NULL, &i,
                                         Str("JACK MIDI input port name"
-                                            "(default: input)"), NULL);
+                                            "(default: port)"), NULL);
     /*   output port name */
     i = jack_port_name_size() - 3;
     if (i > (MAX_NAME_LEN + 1))
@@ -1172,10 +1178,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                       (void*) &(pm->outputPortName[0]),
                                         CSOUNDCFG_STRING, 0, NULL, &i,
                                         Str("JACK MIDI output port name"
-                                            " (default: output)"), NULL);
+                                            " (default: port)"), NULL);
 
-    pm->isOpen = 0;
-    pm->client = NULL;
     return 0;
 }
 
@@ -1218,17 +1222,14 @@ static int midi_in_open(CSOUND *csound,
     
     pm = (RtJackMIDIGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                             "_rtjackMIDIGlobals");
-    if(!pm->isOpen){
+   
      if((jack_client =
-        jack_client_open(pm->clientName, 0, NULL)) == NULL){
+        jack_client_open(pm->InClientName, 0, NULL)) == NULL){
       *userData = NULL;
       csound->ErrorMsg(csound,
                        Str("Jack MIDI module: failed to create client for input"));
       return NOTOK;
      }
-     pm->isOpen = 1;
-     pm->client = jack_client;
-    } else jack_client = pm->client;
 
       
     if((jack_port = jack_port_register(jack_client,pm->inputPortName,
@@ -1259,7 +1260,7 @@ static int midi_in_open(CSOUND *csound,
       csound->ErrorMsg(csound,
                        Str("Jack MIDI module: failed to set input"
                            " process callback"));
-    return NOTOK;
+      return NOTOK;
    }
 
     if(jack_activate(jack_client) != 0){
@@ -1272,7 +1273,7 @@ static int midi_in_open(CSOUND *csound,
     }
 
     if(strcmp(devName,"0")){
-      if(jack_connect(jack_client,devName, pm->inputPortName) != 0){
+      if(jack_connect(jack_client,devName,jack_port_name(dev->port)) != 0){
         csound->Warning(csound, Str("Jack MIDI module: failed to connect to: %s"),
                         devName);
       }
@@ -1328,19 +1329,15 @@ static int midi_out_open(CSOUND *csound, void **userData,
     
     pm = (RtJackMIDIGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                             "_rtjackMIDIGlobals");
-    
 
-    if(!pm->isOpen){
      if((jack_client =
-        jack_client_open(pm->clientName, 0, NULL)) == NULL){
+        jack_client_open(pm->OutClientName, 0, NULL)) == NULL){
       *userData = NULL;
       csound->ErrorMsg(csound,
                        Str("Jack MIDI module: failed to create client for output"));
       return NOTOK;
      }
-     pm->isOpen = 1;
-     pm->client = jack_client;
-    } else jack_client = pm->client;
+    
     
     if((jack_port = jack_port_register(jack_client,pm->outputPortName,
                                        JACK_DEFAULT_MIDI_TYPE,
@@ -1383,7 +1380,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
     }
 
     if(strcmp(devName,"0")){
-      if(jack_connect(jack_client,pm->outputPortName,devName) != 0){
+      if(jack_connect(jack_client,jack_port_name(dev->port),devName) != 0){
         csound->Warning(csound,
                         Str("Jack MIDI out module: failed to connect to: %s"),
                         devName);
@@ -1404,11 +1401,6 @@ static int midi_out_write(CSOUND *csound,
 
 static int midi_out_close(CSOUND *csound, void *userData){
     jackMidiDevice *dev = (jackMidiDevice *) userData;
-    RtJackMIDIGlobals *pm;
-    pm = (RtJackMIDIGlobals*) csound->QueryGlobalVariableNoCheck(csound,
-                                                            "_rtjackMIDIGlobals");
-    pm->isOpen = 0;
-    pm->client = NULL;
     jack_port_disconnect(dev->client, dev->port);
     jack_client_close(dev->client);
     csound->DestroyCircularBuffer(csound, dev->cb);
