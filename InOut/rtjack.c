@@ -1220,7 +1220,7 @@ static int midi_in_open(CSOUND *csound,
                                                             "_rtjackMIDIGlobals");
     if(!pm->isOpen){
      if((jack_client =
-        jack_client_open("csound-midi", 0, NULL)) == NULL){
+        jack_client_open(pm->clientName, 0, NULL)) == NULL){
       *userData = NULL;
       csound->ErrorMsg(csound,
                        Str("Jack MIDI module: failed to create client for input"));
@@ -1332,7 +1332,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
 
     if(!pm->isOpen){
      if((jack_client =
-        jack_client_open("csound-midiout", 0, NULL)) == NULL){
+        jack_client_open(pm->clientName, 0, NULL)) == NULL){
       *userData = NULL;
       csound->ErrorMsg(csound,
                        Str("Jack MIDI module: failed to create client for output"));
