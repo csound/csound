@@ -1156,7 +1156,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                         Str("JACK MIDI in client name (default: csound6-midi_in)"),
 					NULL);
     csound->CreateConfigurationVariable(csound, "jack_midi_out_client",
-                                        (void*) &(pm->InClientName[0]),
+                                        (void*) &(pm->OutClientName[0]),
                                         CSOUNDCFG_STRING, 0, NULL, &i,
                                         Str("JACK MIDI out client name (default: csound6-midi_out)"),
                                         NULL);
