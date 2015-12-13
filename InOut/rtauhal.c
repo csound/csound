@@ -348,8 +348,8 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                          (isInput ? kAudioUnitScope_Output : kAudioUnitScope_Input),
                          isInput, &format, &psize);
     format.mSampleRate    = srate;
-    format.mFormatID = kAudioFormatLinearPCM;
-    format.mFormatFlags = kLinearPCMFormatFlagIsNonInterleaved;
+    format.mFormatID =  kAudioFormatLinearPCM;
+    format.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked | kLinearPCMFormatFlagIsNonInterleaved;
     format.mBytesPerPacket = sizeof(Float32);
     format.mFramesPerPacket = 1;
     format.mBytesPerFrame = sizeof(Float32);
@@ -642,7 +642,6 @@ OSStatus  Csound_Render(void *inRefCon,
     IGN(ioActionFlags);
     IGN(inTimeStamp);
     IGN(inBusNumber);
-
 
     n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
     for (k = 0; k < onchnls; k++) {
