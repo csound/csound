@@ -1054,7 +1054,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 }
 
 typedef struct RtJackMIDIGlobals_ {
-  char clientName[MAX_NAME_LEN+4];
+  char clientName[MAX_NAME_LEN];
   char inputPortName[MAX_NAME_LEN];
   char outputPortName[MAX_NAME_LEN];
 } RtJackMIDIGlobals;
@@ -1212,14 +1212,14 @@ static int midi_in_open(CSOUND *csound,
     jack_port_t  *jack_port;
     jackMidiDevice *dev;
     RtJackMIDIGlobals *pm;
-    
+    char clientName[MAX_NAME_LEN+3];
     
     pm = (RtJackMIDIGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                             "_rtjackMIDIGlobals");
 
-    strcat(pm->clientName, "_in");
+    sprintf(clientName, "%s_in", pm->clientName);
      if((jack_client =
-        jack_client_open(pm->clientName, 0, NULL)) == NULL){
+        jack_client_open(clientName, 0, NULL)) == NULL){
       *userData = NULL;
       csound->ErrorMsg(csound,
                        Str("Jack MIDI module: failed to create client for input"));
@@ -1321,17 +1321,18 @@ static int midi_out_open(CSOUND *csound, void **userData,
     jack_port_t  *jack_port;
     jackMidiDevice *dev;
     RtJackMIDIGlobals *pm;
+    char clientName[MAX_NAME_LEN+4];
     
     pm = (RtJackMIDIGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                             "_rtjackMIDIGlobals");
-     strcat(pm->clientName, "_out");
-     if((jack_client =
-        jack_client_open(pm->clientName, 0, NULL)) == NULL){
+    sprintf(clientName, "%s_out", pm->clientName);
+    if((jack_client =
+        jack_client_open(clientName, 0, NULL)) == NULL){
       *userData = NULL;
       csound->ErrorMsg(csound,
                        Str("Jack MIDI module: failed to create client for output"));
       return NOTOK;
-     }
+    }
     
     
     if((jack_port = jack_port_register(jack_client,pm->outputPortName,
