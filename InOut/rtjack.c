@@ -1154,13 +1154,13 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                         (void*) &(pm->InClientName[0]),
                                         CSOUNDCFG_STRING, 0, NULL, &i,
                                         Str("JACK MIDI in client name (default: csound6-midi_in)"),
-					NULL);
+                                        NULL);
     csound->CreateConfigurationVariable(csound, "jack_midi_out_client",
                                         (void*) &(pm->OutClientName[0]),
                                         CSOUNDCFG_STRING, 0, NULL, &i,
                                         Str("JACK MIDI out client name (default: csound6-midi_out)"),
                                         NULL);
-    
+
     /*   input port name */
     i = jack_port_name_size() - 3;
     if (i > (MAX_NAME_LEN + 1))
@@ -1219,10 +1219,10 @@ static int midi_in_open(CSOUND *csound,
     jack_port_t  *jack_port;
     jackMidiDevice *dev;
     RtJackMIDIGlobals *pm;
-    
+
     pm = (RtJackMIDIGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                             "_rtjackMIDIGlobals");
-   
+
      if((jack_client =
         jack_client_open(pm->InClientName, 0, NULL)) == NULL){
       *userData = NULL;
@@ -1231,7 +1231,7 @@ static int midi_in_open(CSOUND *csound,
       return NOTOK;
      }
 
-      
+
     if((jack_port = jack_port_register(jack_client,pm->inputPortName,
                                        JACK_DEFAULT_MIDI_TYPE,
                                        JackPortIsInput | JackPortIsTerminal,
@@ -1326,7 +1326,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
     jack_port_t  *jack_port;
     jackMidiDevice *dev;
     RtJackMIDIGlobals *pm;
-    
+
     pm = (RtJackMIDIGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                             "_rtjackMIDIGlobals");
 
@@ -1337,8 +1337,8 @@ static int midi_out_open(CSOUND *csound, void **userData,
                        Str("Jack MIDI module: failed to create client for output"));
       return NOTOK;
      }
-    
-    
+
+
     if((jack_port = jack_port_register(jack_client,pm->outputPortName,
                                        JACK_DEFAULT_MIDI_TYPE,
                                        JackPortIsOutput,
