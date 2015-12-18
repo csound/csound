@@ -173,6 +173,9 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 #ifndef OLD
       {
         CORFIL *cf = copy_to_corefile(csound, csound->csdname, NULL, 0);
+        if (cf == NULL) {
+          csound->Die(csound, Str("Reading CSD failed ... stopping"));
+        }
         corfile_rewind(cf);
         if (!read_unified_file4(csound, cf)) {
           csound->Die(csound, Str("Reading CSD failed ... stopping"));
