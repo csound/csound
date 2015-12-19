@@ -540,11 +540,10 @@ ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
                                         statementlist ENDIF_TOKEN NEWLINE
           {
             $3->right = $5;
-            if($5 != NULL) {
+            if ($5 != NULL)
               $3->next = make_node(csound,$5->line, $5->locn, ELSE_TOKEN, NULL, $7);
-            } else {
-              $3->next = make_node(csound,LINE,LOCN, ELSE_TOKEN, NULL, $7);
-            }
+            else
+              $3->next = make_node(csound,1+($3->line),$3->locn,ELSE_TOKEN, NULL, $7);
             $$ = make_node(csound,$2->line, $2->locn, IF_TOKEN, $2, $3);
             //print_tree(csound, "if-else", $$);
 
@@ -574,8 +573,12 @@ ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
                 tempLastNode = tempLastNode->right->next;
             }
 
-            tempLastNode->right->next = make_node(csound, $8->line,$8->locn,
-                                                  ELSE_TOKEN, NULL, $8);
+            if ($8)
+              tempLastNode->right->next = make_node(csound, $8->line,$8->locn,
+                                                    ELSE_TOKEN, NULL, $8);
+            else
+              tempLastNode->right->next = make_node(csound, LINE,LOCN,
+                                                    ELSE_TOKEN, NULL, $8);
             //print_tree(csound, "IF TREE", $$);
           }
           ;
