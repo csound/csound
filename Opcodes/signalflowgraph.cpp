@@ -1574,7 +1574,7 @@ extern "C"
         {
             (char *)"outleta",
             sizeof(Outleta),
-            CW,
+            _CW,
             5,
             (char *)"",
             (char *)"Sa",
@@ -1585,7 +1585,7 @@ extern "C"
         {
             (char *)"inleta",
             sizeof(Inleta),
-            CR,
+            _CR,
             5,
             (char *)"a",
             (char *)"S",
@@ -1596,7 +1596,7 @@ extern "C"
         {
             (char *)"outletk",
             sizeof(Outletk),
-            CW,
+            _CW,
             3,
             (char *)"",
             (char *)"Sk",
@@ -1607,7 +1607,7 @@ extern "C"
         {
             (char *)"inletk",
             sizeof(Inletk),
-            CR,
+            _CR,
             3,
             (char *)"k",
             (char *)"S",
@@ -1618,7 +1618,7 @@ extern "C"
         {
             (char *)"outletkid",
             sizeof(Outletkid),
-            CW,
+            _CW,
             3,
             (char *)"",
             (char *)"SSk",
@@ -1629,7 +1629,7 @@ extern "C"
         {
             (char *)"inletkid",
             sizeof(Inletkid),
-            CR,
+            _CR,
             3,
             (char *)"k",
             (char *)"SS",
@@ -1640,7 +1640,7 @@ extern "C"
         {
             (char *)"outletf",
             sizeof(Outletf),
-            CW,
+            _CW,
             5,
             (char *)"",
             (char *)"Sf",
@@ -1651,7 +1651,7 @@ extern "C"
         {
             (char *)"inletf",
             sizeof(Inletf),
-            CR,
+            _CR,
             5,
             (char *)"f",
             (char *)"S",
@@ -1662,7 +1662,7 @@ extern "C"
         {
             (char *)"outletv",
             sizeof(Outletv),
-            CW,
+            _CW,
             5,
             (char *)"",
             (char *)"Sa[]",
@@ -1673,7 +1673,7 @@ extern "C"
         {
             (char *)"inletv",
             sizeof(Inletv),
-            CR,
+            _CR,
             5,
             (char *)"a[]",
             (char *)"S",
