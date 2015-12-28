@@ -66,7 +66,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
     if (strcmp(O->Linename, "stdin") == 0) {
-#if defined(DOSGCC) || defined(WIN32) 
+#if defined(DOSGCC) || defined(WIN32)
       setvbuf(stdin, NULL, _IONBF, 0);
       /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
 #else
@@ -153,7 +153,7 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
        STA(linebufsiz) = LBUFSIZ1;
        STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
     }
-    if(STA(Linebuf) == NULL) return 1;
+    if (STA(Linebuf) == NULL) return 1;
 
     if (STA(Linep)) return 0;
     csound->Linefd = -1;
@@ -180,12 +180,12 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     int32  size = (int32) strlen(message);
     int n;
 
-    #ifdef ANDROID
+#ifdef ANDROID
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     csound->Message(csound, Str("input message kcount, %d, %d.%06d\n"),
                             csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
-    #endif
+#endif
 
     if ((n=linevent_alloc(csound, 0)) != 0) return;
     if (!size) return;
@@ -239,7 +239,7 @@ static void sensLine(CSOUND *csound, void *userData)
         memset(&e, 0, sizeof(EVTBLK));
         e.strarg = NULL; e.scnt = 0;
         c = *cp;
-        while (c == ' ' || c == '\t')   /* skip initial white space */
+        while (isblank(c))              /* skip initial white space */
           c = *(++cp);
         if (c == LF) {                  /* if null line, bugout     */
           Linestart = (++cp);
@@ -262,7 +262,7 @@ static void sensLine(CSOUND *csound, void *userData)
           char  *newcp;
           do {                                  /* skip white space */
             c = *(++cp);
-          } while (c == ' ' || c == '\t');
+          } while (isblank(c));
           if (c == LF)
             break;
           pcnt++;
@@ -300,7 +300,7 @@ static void sensLine(CSOUND *csound, void *userData)
           if (UNLIKELY(!(isdigit(c) || c == '+' || c == '-' || c == '.')))
             goto Lerr;
           if (c == '.' &&                       /*  if lone dot,       */
-              ((n = cp[1]) == ' ' || n == '\t' || n == LF)) {
+              (isblank(n = cp[1]) || n == LF)) {
             if (UNLIKELY(e.opcod != 'i' ||
                          STA(prve).opcod != 'i' || pcnt > STA(prve).pcnt)) {
               csound->ErrorMsg(csound, Str("dot carry has no reference"));
@@ -439,7 +439,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     char    opcod;
     memset(&evt, 0, sizeof(EVTBLK));
 
-    if(p1==0)
+    if (p1==0)
          opcod = *((STRINGDAT*) p->args[0])->data;
     else opcod = p1;
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
@@ -447,7 +447,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       return csound->InitError(csound, Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
-    if(p->flag==1) evt.pcnt = p->argno-1;
+    if (p->flag==1) evt.pcnt = p->argno-1;
     else
       evt.pcnt = p->INOCOUNT - 1;
     /* IV - Oct 31 2002: allow string argument */

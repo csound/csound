@@ -28,15 +28,16 @@
 /* MODULE name is now csnd6 */
 %module csnd6
 #endif
+%begin %{
+#include <cmath>
+%}
 %include "typemaps.i"
-
 %include "std_string.i"
 %include "std_vector.i"
 %include "carrays.i"
 %array_functions(int, intp);
 %array_functions(float, floatp);
 %array_functions(double, doublep);
-
 %array_class(int, intArray);
 %array_class(float, floatArray);
 %array_class(double, doubleArray)
@@ -53,7 +54,7 @@
     #include "CsoundFile.hpp"
     #include "CppSound.hpp"
     #include "filebuilding.h"
-    #include "Soundfile.hpp" 
+    #include "Soundfile.hpp"
 %}
 
 %apply int { size_t };
@@ -456,5 +457,5 @@ static void PythonCallback(void *p){
     self->SetMessageCallback(pythonMessageCallback);
   }
 
- 
+
 };

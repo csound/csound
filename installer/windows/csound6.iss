@@ -1,4 +1,4 @@
-  ; C S O U N D   6   I N N O   S E T U P   S C R I P T
+; C S O U N D   6   I N N O   S E T U P   S C R I P T
 
 ; Copyright (C) 2013 by Michael Gogins.
 ; This software is licensed under the terms of the 
@@ -15,19 +15,19 @@
 ; I hope to change this soon.
 
 ; Uncomment the following line to build for Cabbage, CsoundVST, and vst4cs.
-#define CSOUNDVST
+; #define CSOUNDVST
 
 #define MyAppName "Csound6"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.06.0beta-vst"
+#define MyAppMinVersion "6.07.0beta-vst"
 #else
-#define MyAppMinVersion "6.06.0beta"
+#define MyAppMinVersion "6.07.0beta"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://sourceforge.net/projects/csound"
 ; If you are not Michael Gogins, change this to your MinGW dll directory.
-#define MyMinGwLibDir "D:\Qt\Qt5.4.1\Tools\mingw491_32\i686-w64-mingw32\lib\"
+#define MyMinGwLibDir "D:\Qt\Qt5.5.1\Tools\mingw492_32\bin\"
 ; If you are not Michael Gogins, change this to your MSys /bin/ directory.
 #define MyMSysBinDir "D:\msys\bin\"
 ; If you are not Michael Gogins, change this to your MSys /usr/local/ directory.
@@ -45,13 +45,13 @@
 ; If you are not Michael Gogins, change this to your PortAudio lib directory.
 #define MyPortAudioSourceDir "D:\msys\local\src\portaudio\"
 ; If you are not Michael Gogins, change this to your PortMidi build directory.
-#define MyPortMidiSourceDir "D:\msys\local\src\portmidi\"
+#define MyPortMidiSourceDir "D:\msys\local\src\portmedia-code-229\portmidi\trunk\"
 ; If you are not Michael Gogins, change this to your LuaJIT bin directory.
 #define MyLuaJitSourceDir "D:\msys\local\src\luajit-2.0\src\"
 ; If you are not Michael Gogins, change this to your FLTK dll directory.
-#define MyFltkSourceDir "D:\msys\local\src\fltk-1.3.2\src\"
+#define MyFltkSourceDir "D:\msys\local\src\fltk-1.3.3\lib\"
 ; If you are not Michael Gogins, change this to your libmusicxml dll directory.
-#define MyLibMusicXmlSourceDir "D:\msys\local\src\libmusicxml\"
+#define MyLibMusicXmlSourceDir "D:\msys\local\src\libmusicxml-master\"
 ; If you are not Michael Gogins, change this to your FluidSynth dll directory.
 #define MyFluidSynthSourceDir "D:\msys\local\src\fluidsynth\src\.libs\"
 ; If you are not Michael Gogins, change this to your OSC library dll directory.
@@ -61,20 +61,18 @@
 ; If you are not Michael Gogins, change this to your CsoundQt repository directory.
 #define MyCsoundQtDir "C:\Users\mike\qutecsound-code\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
-#define MyCsoundQtBinDir "C:\Users\mike\build-qcs-Desktop_Qt_5_4_0_MSVC2013_32bit-Release\bin\"
+#define MyCsoundQtBinDir "C:\Users\mike\qutecsound-code\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
-#define MyQtSdkBinDir "D:\Qt5.4.0\5.4\msvc2013\bin\"
-; If you are not Michael Gogins, change this to your unzipped cabbage-master directory.
-#define MyCabbageDir "D:\cabbage-master\"
+#define MyQtSdkBinDir "D:\Qt-msvc\Qt5.5.1\5.5\msvc2013\bin\"
 ; If you are not Michael Gogins, change this to your unzipped Chromium Embedded Framework directory.
-#define MyCefHome "D:\msys\local\opt\cef_binary_3.2171.1979_windows32\"
+#define MyCefHome "D:\msys\local\opt\cef_binary_3.2454.1333.ga594fe2_windows32\"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full; 
 Name: "pd"; Description: "Pure Data csound~ object (requires Pure Data)"; Types: full; 
 #ifdef CSOUNDVST
-Name: "csoundvst"; Description: "Cabbage, Csound VST plugin, and vst4cs opcodes"; Types: full; 
+Name: "csoundvst"; Description: "Csound VST plugin and vst4cs opcodes"; Types: full; 
 #endif
 
 [Dirs]
@@ -104,8 +102,6 @@ Name: "{app}\samples"
 ; Tutorials go here.
 Name: "{app}\doc\tutorial"
 #define APP_TUTORIAL "{app}\doc\tutorial\"
-Name: "{app}\cabbage"
-#define APP_CABBAGE "{app}\cabbage\"
 
 ; These are the Csound environment variables related to directories.
 #define SFDIR
@@ -151,9 +147,9 @@ Source: "*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 Source: "{#MyMinGwLibDir}*.dll"; DestDir: "{#APP_BIN}"; Components: core;
 ; No idea why this other name is needed.
 Source: "{#MyMSysBinDir}libiconv-2.dll"; DestDir: "{#APP_BIN}"; DestName: "iconv.dll"; Components: core;
-Source: "{#MyQtSdkBinDir}icuin53.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyQtSdkBinDir}icuuc53.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyQtSdkBinDir}icudt53.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}icuin54.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}icuuc54.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}icudt54.dll"; DestDir: "{#APP_BIN}"; Components: core;
  
 ; Microsoft C runtime library.
 Source: "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x86\Microsoft.VC120.CRT\msvcr120.dll"; DestDir: "{#APP_BIN}"; Components: core;
@@ -181,15 +177,6 @@ Source: "luaCsnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components:
 Source: "luaCsoundAC.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "_jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "frontends\nwjs\build\Release\csound.node"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-
-#ifdef CSOUNDVST
-Source: "{#MyCabbageDir}cabbage.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
-Source: "{#MyCabbageDir}CabbagePluginSynth.dat"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
-Source: "{#MyCabbageDir}CabbagePluginEffect.dat"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: csoundvst
-Source: "{#MyCabbageDir}Examples\*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs; Components: csoundvst
-Source: "{#MyCabbageDir}Docs\*"; DestDir: "{#APP_BIN}\Docs"; Flags: ignoreversion recursesubdirs; Components: csoundvst
-#endif
-
 Source: "LuaCsound.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "ampmidid.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "buchla.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
@@ -248,7 +235,6 @@ Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreve
 Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
 
 ; Ignore the unspeakably stupid libtool crap.
-; Source: {#MyPortAudioSourceDir}\lib\.libs\*.dll; DestDir: "{#APP_BIN}"; Components: core 
 Source: {#MyPortAudioSourceDir}\bin\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core  
 Source: {#MyPortAudioSourceDir}\bin\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core  
 ; Required by pre-built portaudio_x86.dll (built with MSVC).
@@ -264,9 +250,10 @@ Source: {#MyLuaJitSourceDir}lua51.dll; DestDir: "{#APP_BIN}"; DestName: "lua5.1.
 Source: {#MyLuaJitSourceDir}lua51.dll; DestDir: "{#APP_BIN}"; DestName: "luajit.dll"; Flags: ignoreversion;  Components: core 
 Source: {#MyLuaJitSourceDir}lua*.h; DestDir: "{#APP_INCLUDE}\luajit"; Flags: ignoreversion;  Components: core 
 
+
 Source: {#MyFltkSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 
-Source: {#MyLibMusicXmlSourceDir}\cmake\*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
+Source: {#MyLibMusicXmlSourceDir}\*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 
 ; Source: {#MyFluidSynthSourceDir}*.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core 
 
@@ -285,6 +272,8 @@ Source: "examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav *.html"; Fl
 
 Source: "samples\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core 
 Source: "{#MyLibStkSourceDir}rawwaves\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core 
+;Source: "{#MyLibStkSourceDir}src\libstk.so"; DestDir: "{#APP_BIN}"; DestName: "libstk.so.4.4.4"; Flags: ignoreversion;  Components: core 
+
 
 Source: {#MyCsoundTutorialSourceDir}tutorial.pdf; DestDir: "{#APP_TUTORIAL}"; Flags: ignoreversion recursesubdirs;  Components: core 
 Source: {#MyCsoundAcTutorialSourceDir}Csound_Algorithmic_Composition_Tutorial.pdf; DestDir: "{#APP_TUTORIAL}"; Flags: ignoreversion recursesubdirs;  Components: core 
@@ -297,9 +286,6 @@ Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; Filename: "{#MyAppURL}";  Com
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core  
 Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-cs6.exe"; WorkingDir: "{#APP_BIN}";  Components: core   
-#ifdef CSOUNDVST
-Name: "{group}\Cabbage"; Filename: "{#APP_BIN}cabbage.exe"; WorkingDir: "{#APP_BIN}";  Components: csoundvst
-#endif
 Name: "{group}\LuaJIT"; Filename: "{#APP_BIN}luajit.exe"; WorkingDir: "{#APP_BIN}";  Components: core 
 Name: "{group}\Audio device information"; Filename: "cmd"; Parameters: "/K pa_devs.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core 
 Name: "{group}\Audio device latency"; Filename: "cmd"; Parameters: "/K pa_minlat.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core 

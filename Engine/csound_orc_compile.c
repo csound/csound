@@ -982,8 +982,8 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
                ++csound->dead_instr_no * sizeof(INSTRTXT*));
     csound->dead_instr_pool[csound->dead_instr_no-1] = instrtxt;
     if (csound->oparms->odebug)
-    csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
-                    csound->dead_instr_no-1);
+      csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
+                      csound->dead_instr_no-1);
 }
 
 /**
@@ -1163,10 +1163,14 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       /* redefinition does not raise an error now, just a warning */
       /* unless we are not merging */
       if(!merge) synterr(csound, "instr %d redefined\n", instrNum);
-       if (instrNum && csound->oparms->odebug)
+      if (instrNum && csound->oparms->odebug)
         csound->Warning(csound,
                         Str("instr %ld redefined, replacing previous definition"),
                         instrNum);
+	/* inherit active & maxalloc flags */
+        instrtxt->active = engineState->instrtxtp[instrNum]->active;
+        instrtxt->maxalloc = engineState->instrtxtp[instrNum]->maxalloc;
+      
       /* here we should move the old instrument definition into a deadpool
          which will be checked for active instances and freed when there are no
          further ones
@@ -1746,21 +1750,32 @@ extern void sanitize(CSOUND *csound);
 */
 PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
 {
+    TREE *root;
     int retVal=1;
-    TREE *root = csoundParseOrc(csound, str);
+    volatile jmp_buf tmpExitJmp;
+
+    memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
+    if ((retVal=setjmp(csound->exitjmp))) {
+      memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+      return retVal;
+    }
+    //retVal = 1;
+    root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
-     retVal = csoundCompileTree(csound, root);
-     // Sanitise semantic sets here
-     sanitize(csound);
-     csoundDeleteTree(csound, root);
+      retVal = csoundCompileTree(csound, root);
+      // Sanitise semantic sets here
+      sanitize(csound);
+      csoundDeleteTree(csound, root);
     }
     else {
       // csoundDeleteTree(csound, root);
-     return  CSOUND_ERROR;
+      memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+      return  CSOUND_ERROR;
     }
 
     if (UNLIKELY(csound->oparms->odebug))
       debugPrintCsound(csound);
+    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     return retVal;
 }
 

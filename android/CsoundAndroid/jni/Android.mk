@@ -259,6 +259,9 @@ LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc
 LOCAL_SHARED_LIBRARIES += gnustl_shared sndfile
 #LOCAL_STATIC_LIBRARIES += sndfile
 
+# Prevents stripping needed exports from the shared library.
+
+cmd-strip :=
 
 include $(BUILD_SHARED_LIBRARY)
 $(call import-module,libsndfile-android/jni)

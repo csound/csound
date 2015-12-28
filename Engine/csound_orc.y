@@ -21,7 +21,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-%pure_parser
+%pure-parser
 %parse-param {PARSE_PARM *parm}
 %parse-param {void *scanner}
 %lex-param { CSOUND * csound }
@@ -117,7 +117,6 @@
 %right S_AT
 %token S_GOTO
 %token T_HIGHEST
-%pure_parser
 %error-verbose
 %parse-param { CSOUND * csound }
 %parse-param { TREE ** astTree }
@@ -175,12 +174,11 @@
 
 orcfile           : rootstatement
                         {
-			       
-                            if ($1 != NULL)
-                              *astTree = ((TREE *)$1);
-                            csound->synterrcnt = csound_orcnerrs;
-                            //print_tree(csound, "ALL", $1);
-			    
+                          if ($1 != NULL)
+                            *astTree = ((TREE *)$1);
+                          csound->synterrcnt = csound_orcnerrs;
+                          if (csound->oparms->odebug)
+                            print_tree(csound, "ALL", $1); 
                         }
                   ;
 
@@ -485,13 +483,13 @@ statement : ident '=' expr NEWLINE
           | ifthen
           | UNTIL_TOKEN bexpr DO_TOKEN statementlist OD_TOKEN
               {
-                  $$ = make_leaf(csound,LINE,LOCN, UNTIL_TOKEN, (ORCTOKEN *)$1);
+                  $$ = make_leaf(csound,$2->line,$2->locn, UNTIL_TOKEN, (ORCTOKEN *)$1);
                   $$->left = $2;
                   $$->right = $4;
               }
           | WHILE_TOKEN bexpr DO_TOKEN statementlist OD_TOKEN
               {
-                  $$ = make_leaf(csound,LINE,LOCN, WHILE_TOKEN, (ORCTOKEN *)$1);
+                  $$ = make_leaf(csound,$2->line,$2->locn, WHILE_TOKEN, (ORCTOKEN *)$1);
                   $$->left = $2;
                   $$->right = $4;
               }
@@ -526,23 +524,27 @@ arrayexpr :  arrayexpr '[' iexp ']'
           { 
            char* arrayName = $1->value->lexeme;
             $$ = make_node(csound, LINE, LOCN, T_ARRAY, 
-	   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3); 
+	   make_leaf(csound, LINE, LOCN, T_IDENT,
+                     make_token(csound, arrayName)), $3); 
 
           }
           ;
 
 ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
-          {
-            $3->right = $5;
-            $$ = make_node(csound,LINE,LOCN, IF_TOKEN, $2, $3);
-            //print_tree(csound, "if-endif", $$);
-          }
+              {
+                  $$ = make_node(csound,$2->line, $2->locn, IF_TOKEN, $2, $3);
+                  $3->right = $5;
+                  //print_tree(csound, "if-endif", $$);
+              }
           | IF_TOKEN bexpr then NEWLINE statementlist ELSE_TOKEN
                                         statementlist ENDIF_TOKEN NEWLINE
           {
             $3->right = $5;
-            $3->next = make_node(csound,LINE,LOCN, ELSE_TOKEN, NULL, $7);
-            $$ = make_node(csound,LINE,LOCN, IF_TOKEN, $2, $3);
+            if ($5 != NULL)
+              $3->next = make_node(csound,$5->line, $5->locn, ELSE_TOKEN, NULL, $7);
+            else
+              $3->next = make_node(csound,1+($3->line),$3->locn,ELSE_TOKEN, NULL, $7);
+            $$ = make_node(csound,$2->line, $2->locn, IF_TOKEN, $2, $3);
             //print_tree(csound, "if-else", $$);
 
           }
@@ -552,7 +554,7 @@ ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
                 csound->Message(csound, "IF-ELSEIF FOUND!\n");
             $3->right = $5;
             $3->next = $6;
-            $$ = make_node(csound, LINE,LOCN, IF_TOKEN, $2, $3);
+            $$ = make_node(csound, $2->line, $2->locn, IF_TOKEN, $2, $3);
             //print_tree(csound, "if-elseif\n", $$);
           }
           | IF_TOKEN bexpr then NEWLINE statementlist elseiflist ELSE_TOKEN
@@ -563,7 +565,7 @@ ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
             $3->right = $5;
             $3->next = $6;
 
-            $$ = make_node(csound, LINE,LOCN, IF_TOKEN, $2, $3);
+            $$ = make_node(csound, $2->line, $2->locn, IF_TOKEN, $2, $3);
 
             tempLastNode = $$;
 
@@ -571,8 +573,12 @@ ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
                 tempLastNode = tempLastNode->right->next;
             }
 
-            tempLastNode->right->next = make_node(csound, LINE,LOCN,
-                                                  ELSE_TOKEN, NULL, $8);
+            if ($8)
+              tempLastNode->right->next = make_node(csound, $8->line,$8->locn,
+                                                    ELSE_TOKEN, NULL, $8);
+            else
+              tempLastNode->right->next = make_node(csound, LINE,LOCN,
+                                                    ELSE_TOKEN, NULL, $8);
             //print_tree(csound, "IF TREE", $$);
           }
           ;
@@ -597,7 +603,7 @@ elseif    : ELSEIF_TOKEN bexpr then NEWLINE statementlist
                 if (UNLIKELY(PARSER_DEBUG))
                   csound->Message(csound, "ELSEIF FOUND!\n");
                 $3->right = $5;
-                $$ = make_node(csound,LINE,LOCN, ELSEIF_TOKEN, $2, $3);
+                $$ = make_node(csound,$2->line,$2->locn, ELSEIF_TOKEN, $2, $3);
                 //print_tree(csound, "ELSEIF", $$);
             }
           ;

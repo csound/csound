@@ -718,7 +718,7 @@ extern "C"
     if(!path)
       {
         csound->Warning(csound,
-                        Str("STK opodes not available: define environment variable RAWWAVE_PATH\n"
+                        Str("STK opcodes not available: define environment variable RAWWAVE_PATH\n"
                              "(points to rawwaves directory) to use STK opcodes."));
         return 0;
       }

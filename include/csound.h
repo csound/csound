@@ -456,6 +456,7 @@ extern "C" {
         char        *opname;
         char        *outypes;
         char        *intypes;
+        int         flags;
     } opcodeListEntry;
 
     typedef struct CsoundRandMTState_ {
@@ -670,7 +671,7 @@ extern "C" {
     PUBLIC int csoundStart(CSOUND *csound);
 
     /**
-     * Compiles Csound input files (such as an orchestra and score)
+     * Compiles Csound input files (such as an orchestra and score, or CSD)
      * as directed by the supplied command-line arguments,
      * but does not perform them. Returns a non-zero error code on failure.
      * This function cannot be called during performance, and before a
@@ -683,26 +684,47 @@ extern "C" {
      *       csoundReset(csound);
      * /endcode
      *  Calls csoundStart() internally.
+     *  Can only be called again after reset (see csoundReset())
      */
     PUBLIC int csoundCompile(CSOUND *, int argc, char **argv);
 
     /**
-     * Compiles a Csound input file (.csd file)
+     * Compiles a Csound input file (CSD, .csd file)
      * which includes command-line arguments,
      * but does not perform the file. Returns a non-zero error code on failure.
      * In this (host-driven) mode, the sequence of calls should be as follows:
      * /code
-     *       csoundCompileCsd(csound, argc, argv);
+     *       csoundCompileCsd(csound, str);
      *       while (!csoundPerformBuffer(csound));
      *       csoundCleanup(csound);
      *       csoundReset(csound);
      * /endcode
      * NB: this function can be called during performance to
      * replace or add new instruments and events.
+     * On a first call and if called before csoundStart(), this function 
+     * behaves similarly to csoundCompile() 
      *
      */
 
     PUBLIC int csoundCompileCsd(CSOUND *csound, char *str);
+
+    /**
+     * Compiles a Csound input file contained in a string of text,
+     * which includes command-line arguments, orchestra, score, etc.,
+     * but does not perform the file. Returns a non-zero error code on failure.
+     * In this (host-driven) mode, the sequence of calls should be as follows:
+     * /code
+     *       csoundCompileCsdText(csound, csd_text);
+     *       while (!csoundPerformBuffer(csound));
+     *       csoundCleanup(csound);
+     *       csoundReset(csound);
+     * /endcode
+     * NB: A temporary file is created, the csd_text is written to the temporary
+     * file, and csoundCompileCsd is called with the name of the temporary file,
+     * which is deleted after compilation. Behavior may vary by platform.
+     */
+
+    PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text);
 
     /**
      * Senses input events and performs audio output until the end of score
@@ -1251,7 +1273,7 @@ extern "C" {
 
     /**
      * Sorts score file 'inFile' and writes the result to 'outFile'.
-     * The Csound instance should be initialised 
+     * The Csound instance should be initialised
      * before calling this function, and csoundReset() should be called
      * after sorting the score to clean up. On success, zero is returned.
      */

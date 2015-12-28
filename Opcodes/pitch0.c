@@ -88,6 +88,7 @@ int instcount(CSOUND *csound, INSTCNT *p)
       *p->cnt = (MYFLT)tot;
     }
     else {
+      //csound->Message(csound, "Instr %p \n", csound->engineState.instrtxtp[n]);
       *p->cnt = ((*p->opt) ?
                  (MYFLT) csound->engineState.instrtxtp[n]->instcnt :
                  (MYFLT) csound->engineState.instrtxtp[n]->active);
@@ -185,7 +186,7 @@ int pfun(CSOUND *csound, PFUN *p)
     MYFLT ans;
     if (n<1 || n>PMAX) ans = FL(0.0);
     else ans = csound->currevent->p[n];
-/*     csound->Message(csound, "p(%d) %f\n", n,ans); */
+    /*csound->Message(csound, "p(%d) %f\n", n,ans);*/ 
     *p->ans = ans;
     return OK;
 }

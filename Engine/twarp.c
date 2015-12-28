@@ -24,7 +24,8 @@
 #include "csoundCore.h"                               /*    TWARP.C  */
 
 /* #define TSEGMAX (PMAX/2) */
-#define TSEGMAX (100)
+/* #define TSEGMAX (100) */
+#define TSEGMAX (20)
 
 typedef struct {
     MYFLT   betbas;
@@ -103,6 +104,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
     if (csound->tseg == NULL) {               /* if no space yet, alloc */
       csound->tseg = csound->Malloc(csound, (int32)TSEGMAX * sizeof(TSEG));
       csound->tplim = (TSEG*) csound->tseg + TSEGMAX-1;
+      csound->tseglen = TSEGMAX;
     }
     tp = (TSEG*) (csound->tpsave = csound->tseg);
     if (UNLIKELY(bp->pcnt < 2))
@@ -123,8 +125,23 @@ int realtset(CSOUND *csound, SRTBLK *bp)
       ;
     while (c != LF) {                         /* for each time-tempo pair: */
       prvtp = tp;
-      if (UNLIKELY(++tp > (TSEG*) csound->tplim))
-        goto error3;
+      if (UNLIKELY(++tp > (TSEG*) csound->tplim)) {
+        /* extend */
+        TSEG* oldtseg = csound->tseg;
+        /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */
+        /*        csound->tplim, csound->tpsave, tp, csound->tseglen); */
+        /* printf("tseg extend %p->", oldtseg); */
+        csound->tseglen += TSEGMAX;
+        csound->tseg =
+          (TSEG*)csound->ReAlloc(csound, oldtseg, csound->tseglen*sizeof(TSEG));
+        tp += ((TSEG*)csound->tseg - oldtseg);
+        csound->tplim = csound->tseg + csound->tseglen-1;
+        csound->tpsave += ((TSEG*)csound->tseg - oldtseg);
+        /* printf("%p\n", csound->tseg); */
+        /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */
+        /*        csound->tplim, csound->tpsave, tp, csound->tseglen); */
+        //goto error3;
+      }
       tp->betbas = stof(csound, p);           /* betbas = time         */
       while ((c = *p++) != SP && c != LF)
         ;
@@ -148,8 +165,23 @@ int realtset(CSOUND *csound, SRTBLK *bp)
         ;
     }
     tp->durslp = FL(0.0);                     /* clear last durslp */
-    if (UNLIKELY(++tp > (TSEG*) csound->tplim))
-      goto error3;
+    if (UNLIKELY(++tp > (TSEG*) csound->tplim)) {
+      /* extend */
+      TSEG* oldtseg = csound->tseg;
+      /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */
+      /*        csound->tplim, csound->tpsave, tp, csound->tseglen); */
+      /* printf("tseg extend %p->", oldtseg); */
+      csound->tseglen += TSEGMAX;
+      csound->tseg =
+        (TSEG*)csound->ReAlloc(csound, oldtseg, csound->tseglen*sizeof(TSEG));
+      tp += ((TSEG*)csound->tseg - oldtseg);
+      csound->tplim = csound->tseg + csound->tseglen-1;
+      csound->tpsave += ((TSEG*)csound->tseg - oldtseg);
+      /* printf("%p\n", csound->tseg); */
+      /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */
+      /*        csound->tplim, csound->tpsave, tp, csound->tseglen); */
+      //goto error3;
+    }
     tp->betbas = FL(9223372036854775807.0);   /* and cap with large betval */
     return(1);
 

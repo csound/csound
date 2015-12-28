@@ -67,10 +67,10 @@ To build on other platforms, you need to install [GCC][gcc] and [Python 2.7][pyt
 Install [NW.js][nwjs]. On Windows, make sure that this is the version for 32 bit CPU
 architecture.
 
-Install [io.js][iojs]. On Windows, make sure that this is the version for 32 bit CPU
+Install [Node.js][https://nodejs.org/en/]. On Windows, make sure that this is the version for 32 bit CPU
 architecture.
 
-From the io.js command prompt, execute `npm install nw-gyp` to install the build tool
+From the Node.js command prompt, execute `npm install nw-gyp` to install the build tool
 for NW.js addons. See [nw-gyp][] for more information.
 
 From the io.js command prompt, execute `nw-gyp configure --version <version number of NW.js>`
@@ -78,7 +78,7 @@ to configure the build tool for your version of NW.js. The version number is pri
 on the default window of the NW.js `nw` program.
 
 Set an environment variable named `CSOUND_HOME` that points to the root directory of
-your Csound installation. Or, it may be necessary to modify binding.gyp to reflect the 
+your Csound installation. Or, it may be necessary to modify binding.gyp to reflect the
 installed locations of the Csound header files and shared libraries on your system.
 
 In the `csound/frontends/nwjs` directory, execute `nw-gyp build` to build `csound.node`.

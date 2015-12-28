@@ -71,7 +71,7 @@ char* cs_strdup(CSOUND* csound, char* str) {
 
     if (len > 0) {
       strncpy(retVal, str, len);
-    } 
+    }
     retVal[len] = '\0';
 
     return retVal;
@@ -1853,7 +1853,9 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     char *p = csound_orcget_current_pointer(yyscanner)-1;
     int line = csound_orcget_lineno(yyscanner);
     uint64_t files = csound_orcget_locn(yyscanner);
-    if (*p=='\0') line--;
+    if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
+    //printf("LINE: %d\n", line);
+
     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
     do_baktrace(csound, files);
@@ -1861,8 +1863,12 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     while ((ch=*--p) != '\n' && ch != '\0');
     do {
       ch = *++p;
-      if (ch == '\n') break;
-      csound->Message(csound, "%c", ch);
+      if (UNLIKELY(ch == '\n')) break;
+      // Now get rid of any continuations
+      if (ch=='#' && strncmp(p,"sline ",6)) {
+        p+=7; while (isdigit(*p)) p++;
+      }
+      else csound->Message(csound, "%c", ch);
     } while (ch != '\n' && ch != '\0');
     csound->Message(csound, " <<<\n");
 }

@@ -24,7 +24,7 @@
 #ifndef CSOUND_VERSION_H
 #define CSOUND_VERSION_H
 
-#define VERSION "6.06"
+#define VERSION "6.07"
 
 /* Define to the full name of this package. */
 #define CS_PACKAGE_NAME     "Csound"
@@ -48,6 +48,10 @@
                                    the CSOUND struct */
 #define CS_APISUBVER        0   /* for minor changes that will still allow
                                    compatiblity with older hosts */
+
+#ifndef CS_PACKAGE_DATE
+#define CS_PACKAGE_DATE __DATE__
+#endif
 
 #endif /* CSOUND_VERSION_H */
 

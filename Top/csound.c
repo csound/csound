@@ -45,7 +45,7 @@
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
 # include <windows.h>
 # include <winsock2.h>
 #endif
@@ -60,7 +60,7 @@
 #include "cs_par_dispatch.h"
 #include "csound_orc_semantics.h"
 
-#if defined(linux) || defined(__HAIKU__) || defined(__EMSCRIPTEN__)
+#if defined(linux) || defined(__HAIKU__) || defined(__EMSCRIPTEN__) || defined(__CYGWIN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
 #endif
 
@@ -850,7 +850,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* dag_task_dep */
     100,            /* dag_task_max_size */
     0,              /* tempStatus */
-    0,              /* orcLineOffset */
+    1,              /* orcLineOffset */
     0,              /* scoLineOffset */
     NULL,           /* csdname */
     -1,             /*  parserUdoflag */
@@ -1050,10 +1050,12 @@ static void psignal_(int sig, char *str)
     fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
 #else
+# if !defined(__CYGWIN__)
 static void psignal(int sig, char *str)
 {
     fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
+# endif
 #endif
 #elif defined(__BEOS__)
 static void psignal_(int sig, char *str)
@@ -1619,11 +1621,12 @@ static inline void opcode_perf_debug(CSOUND *csound,
         bkpt_node_t *bp_node = data->bkpt_anchor->next;
         if (data->debug_opcode_ptr) {
           opstart = data->debug_opcode_ptr;
+          data->debug_opcode_ptr = NULL;
         }
         int linenum = opstart->optext->t.linenum;
         while (bp_node) {
           if (bp_node->instr == ip->p1.value || (bp_node->instr == 0)) {
-            if ((bp_node->line + 1) == linenum) { /* line matches */
+            if ((bp_node->line) == linenum) { /* line matches */
               if (bp_node->count < 2) { /* skip of 0 or 1 has the same effect */
                 if (data->debug_opcode_ptr != opstart) { /* did we just stop here */
                   data->debug_instr_ptr = ip;
@@ -1678,7 +1681,7 @@ static inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data)
           prev = n;
           n = n->next;
         }
-        csound->Free(csound, bkpt_node); /* TODO move to non rt context */
+//        csound->Free(csound, bkpt_node); /* TODO move to non rt context */
       } else {
           // FIXME sort list to optimize
           bkpt_node->next = data->bkpt_anchor->next;
@@ -3178,18 +3181,18 @@ PUBLIC void csoundReset(CSOUND *csound)
 #ifndef USE_DOUBLE
 #ifdef BETA
       csound->Message(csound, Str("Csound version %s beta (float samples) %s\n"),
-                      CS_PACKAGE_VERSION, __DATE__);
+                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
 #else
       csound->Message(csound, Str("Csound version %s (float samples) %s\n"),
-                      CS_PACKAGE_VERSION, __DATE__);
+                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
 #endif
 #else
 #ifdef BETA
       csound->Message(csound, Str("Csound version %s beta (double samples) %s\n"),
-                      CS_PACKAGE_VERSION, __DATE__);
+                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
 #else
       csound->Message(csound, Str("Csound version %s (double samples) %s\n"),
-                      CS_PACKAGE_VERSION, __DATE__);
+                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
 #endif
 #endif
       {
@@ -3549,7 +3552,7 @@ static int getTimeResolution(void)
       if (s == NULL) continue;          /* invalid entry */
       do {
         s++;
-      } while (*s == ' ' || *s == '\t');    /* skip white space */
+      } while (isblank(*s));            /* skip white space */
       i = CS_SSCANF(s, "%lf", &timeResolutionSeconds);
 
       if (i < 1 || timeResolutionSeconds < 1.0) {
@@ -4110,6 +4113,7 @@ static void csoundMessageBufferCallback_1_(CSOUND *csound, int attr,
 
     csoundLockMutex(pp->mutex_);
     len = vsnprintf(pp->buf, 16384, fmt, args); // FIXEDME: this can overflow
+    va_end(args);
     if (UNLIKELY((unsigned int) len >= (unsigned int) 16384)) {
       csoundUnlockMutex(pp->mutex_);
       fprintf(stderr, Str("csound: internal error: message buffer overflow\n"));
@@ -4147,6 +4151,7 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
     default:
       len = vfprintf(stdout, fmt, args);
     }
+    va_end(args);
     p = (csMsgStruct*) malloc(sizeof(csMsgStruct) + (size_t) len);
     p->nxt = (csMsgStruct*) NULL;
     p->attr = attr;
