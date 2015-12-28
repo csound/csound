@@ -83,6 +83,7 @@ static void checkOptions(CSOUND *csound)
     /* read global .csound6rc file (if exists) */
     if (fd != NULL) {
       CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
+      corfile_rewind(cf);
       readOptions(csound, cf, 0);
       corfile_rm(&cf);
       csound->FileClose(csound, fd);
@@ -93,6 +94,7 @@ static void checkOptions(CSOUND *csound)
                            CSFTYPE_OPTIONS, 0);
     if (fd != NULL) {
       CORFIL *cf = copy_to_corefile(csound, ".csound6rc", NULL, 0);
+      corfile_rewind(cf);
       readOptions(csound, cf, 0);
       csound->Message(csound,
                       Str("Reading options from local directory .csound6rc \n"));
@@ -171,6 +173,9 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 #ifndef OLD
       {
         CORFIL *cf = copy_to_corefile(csound, csound->csdname, NULL, 0);
+        if (cf == NULL) {
+          csound->Die(csound, Str("Reading CSD failed ... stopping"));
+        }
         corfile_rewind(cf);
         if (!read_unified_file4(csound, cf)) {
           csound->Die(csound, Str("Reading CSD failed ... stopping"));
