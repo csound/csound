@@ -1151,9 +1151,10 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     csound->CreateConfigurationVariable(csound, "jack_midi_client",
                                         (void*) &(pm->clientName[0]),
                                         CSOUNDCFG_STRING, 0, NULL, &i,
-                                        Str("JACK MIDI client name prefix (default: csound6-midi)"),
-					NULL);
-    
+                                        Str("JACK MIDI client name prefix"
+                                            " (default: csound6-midi)"),
+                                        NULL);
+
     /*   input port name */
     i = jack_port_name_size() - 3;
     if (i > (MAX_NAME_LEN + 1))
@@ -1213,7 +1214,7 @@ static int midi_in_open(CSOUND *csound,
     jackMidiDevice *dev;
     RtJackMIDIGlobals *pm;
     char clientName[MAX_NAME_LEN+3];
-    
+
     pm = (RtJackMIDIGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                             "_rtjackMIDIGlobals");
 
@@ -1226,7 +1227,7 @@ static int midi_in_open(CSOUND *csound,
       return NOTOK;
      }
 
-      
+
     if((jack_port = jack_port_register(jack_client,pm->inputPortName,
                                        JACK_DEFAULT_MIDI_TYPE,
                                        JackPortIsInput | JackPortIsTerminal,
@@ -1322,7 +1323,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
     jackMidiDevice *dev;
     RtJackMIDIGlobals *pm;
     char clientName[MAX_NAME_LEN+4];
-    
+
     pm = (RtJackMIDIGlobals*) csound->QueryGlobalVariableNoCheck(csound,
                                                             "_rtjackMIDIGlobals");
     sprintf(clientName, "%s_out", pm->clientName);
@@ -1333,8 +1334,8 @@ static int midi_out_open(CSOUND *csound, void **userData,
                        Str("Jack MIDI module: failed to create client for output"));
       return NOTOK;
     }
-    
-    
+
+
     if((jack_port = jack_port_register(jack_client,pm->outputPortName,
                                        JACK_DEFAULT_MIDI_TYPE,
                                        JackPortIsOutput,
