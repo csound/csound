@@ -180,9 +180,9 @@ void CppSound::write(const char *text)
   Message("%s", text);
 }
 
-long CppSound::getThis()
+intptr_t CppSound::getThis()
 {
-  return (long) this;
+  return (intptr_t) this;
 }
 
 CsoundFile *CppSound::getCsoundFile()
