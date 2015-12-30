@@ -13,6 +13,7 @@ The following are instructions for building Csound for 64-bit Windows (x86_64) u
   * mingw64/mingw-w64-x86_64-swig
   * mingw64/mingw-w64-x86_64-portaudio
   * mingw64/mingw-w64-x86_64-portmidi
+  * mingw64/mingw-w64-x86_64-fltk
 3. Open a MinGW-w64 Win64 Shell.  This will load a terminal with all tools for mingw64 setup.
 4. Change directories to this directory and run ./build.sh
 
