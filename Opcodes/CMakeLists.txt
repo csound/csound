@@ -88,6 +88,11 @@ elseif(LINUX)
     endif()
 else()
     make_plugin(padsynth padsynth_gen.cpp)
+
+    if(WIN32 AND NOT MSVC)
+      set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11"
+        LINK_FLAGS "-std=gnu++11")
+    endif()
 endif()
 endif()
 
