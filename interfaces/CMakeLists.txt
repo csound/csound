@@ -16,14 +16,20 @@ if(BUILD_CXX_INTERFACE)
         csPerfThread.cpp
         cs_glue.cpp
         filebuilding.cpp)
-      set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} )
+
+    set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} )
+
+    if(WIN32 AND NOT MSVC) 
+      list(APPEND libcsnd6_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
+    endif()
+
     set(libcsnd6_CFLAGS "")
     list(APPEND libcsnd6_LIBS ${CSOUNDLIB})
 
     add_library(libcsnd6 SHARED ${libcsnd6_SRCS})
     target_link_libraries(libcsnd6 ${libcsnd6_LIBS})
     set_target_properties(libcsnd6 PROPERTIES
-        LINK_INTERFACE_LIBRARIES ""
+        INTERFACE_LINK_LIBRARIES ""
         SOVERSION ${APIVERSION}
         OUTPUT_NAME csnd6
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
@@ -81,7 +87,11 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
 
         if(WIN32)
+          if(NOT MSVC) 
+            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} ${PYTHON_LIBRARY} libcsnd6)
+          else()
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd6)
+          endif()
         else()
             # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
@@ -125,8 +135,13 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
        message(STATUS "JNI INCLUDE set to ${JNI_INCLUDE_DIRS}")
 
       	if(WIN32)
-	     set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB}
-	     ${LIBSNDFILE_LIBRARY} libcsnd6)
+          if(NOT MSVC) 
+             set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB}
+               ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} libcsnd6)
+          else()
+             set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB}
+               ${LIBSNDFILE_LIBRARY} libcsnd6)
+          endif()
         elseif(APPLE)
              set(swigjava_LIBS  ${JAVA_VM_LIBRARY} ${CSOUNDLIB}
 	             ${LIBSNDFILE_LIBRARY} libcsnd6)
