@@ -732,7 +732,6 @@ static int isAChanged(CSOUND *csound,ISACHANGED *p)
     ARRAYDAT *chk = p->chk;
     void *old_chk = p->old_chk.auxp;
     int size = p->size;
-    int i;
     int ktrig = memcmp(chk->data, old_chk, size);
     memcpy(old_chk, chk->data, size);
     *p->ktrig = ktrig?FL(1.0):FL(0.0);
