@@ -1,5 +1,6 @@
 
 /*  Copyright (C) 2002-2004 Gabriel Maldonado */
+/*                2016 John ffitch (array changed) */
 
 /*  The gab library is free software; you can redistribute it */
 /*  and/or modify it under the terms of the GNU Lesser General Public */
@@ -27,6 +28,7 @@
 /*changed some comments to c-style */
 /*Check csystem, exitnow */
 /*Check other opcodes commented out in Oentry */
+
 
 #include "stdopcod.h"
 #include "gab.h"
@@ -729,10 +731,10 @@ static int isAChanged(CSOUND *csound,ISACHANGED *p)
 {
     ARRAYDAT *chk = p->chk;
     void *old_chk = p->old_chk.auxp;
-    int ktrig = 0;
-
-    ktrig = memcmp(chk->data, old_chk, p->size);
-    memcpy(old_chk, chk->data, p->size);
+    int size = p->size;
+    int i;
+    int ktrig = memcmp(chk->data, old_chk, size);
+    memcpy(old_chk, chk->data, size);
     *p->ktrig = ktrig?FL(1.0):FL(0.0);
     return OK;
 }
