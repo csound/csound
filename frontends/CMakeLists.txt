@@ -49,7 +49,7 @@ endif()
 
 message(STATUS "Building csLadspa")
 
-make_plugin_frontend(csladspa "csladspa/csladspa.cpp" "${CSOUNDLIB}")
+make_plugin_frontend(csladspa "csladspa/csladspa.cpp" "${CSOUNDLIB}" -static-libstdc++ -static)
 # We do not want the lib prefix
 set_target_properties(csladspa PROPERTIES PREFIX "")
 
