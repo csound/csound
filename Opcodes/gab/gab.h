@@ -118,6 +118,14 @@ typedef struct {
 } ISCHANGED;
 
 typedef struct {
+    OPDS     h;
+    MYFLT    *ktrig;
+    ARRAYDAT *chk;
+    int      size;
+    AUXCH    old_chk;
+} ISACHANGED;
+
+typedef struct {
     OPDS    h;
     MYFLT   *commandLine;
 } CSSYSTEM;
