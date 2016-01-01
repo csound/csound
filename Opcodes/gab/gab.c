@@ -685,6 +685,7 @@ static int isChanged_set(CSOUND *csound,ISCHANGED *p)
 {
     p->numargs = p->INOCOUNT;
     memset(p->old_inargs, 0, sizeof(MYFLT)*p->numargs); /* Initialise */
+    p->cnt = 1;
     return OK;
 }
 
@@ -694,23 +695,30 @@ static int isChanged(CSOUND *csound,ISCHANGED *p)
     MYFLT *old_inargs = p->old_inargs;
     int numargs = p->numargs, ktrig = 0, j;
 
-    for (j =0; j< numargs; j++) {
-      if (*inargs[j] != old_inargs[j]) {
-        ktrig = 1;
-        break;
+    if (p->cnt)
+      for (j =0; j< numargs; j++) {
+        if (*inargs[j] != old_inargs[j]) {
+          ktrig = 1;
+          break;
+        }
       }
-    }
 
-    if (ktrig) {
+    if (ktrig || p->cnt==0) {
       for (j =0; j< numargs; j++) {
         old_inargs[j] = *inargs[j];
       }
     }
     *p->ktrig = (MYFLT) ktrig;
+    p->cnt++;
     return OK;
 }
 
-
+static int isChanged2_set(CSOUND *csound,ISCHANGED *p)
+{
+    int res = isChanged(csound,p);
+    p->cnt = 0;
+    return res;
+}
 
 /* changed in array */
 static int isAChanged_set(CSOUND *csound, ISACHANGED *p)
@@ -938,9 +946,11 @@ OENTRY gab_localops[] = {
                             (SUBR) tabrec_set, (SUBR) tabrec_k, NULL },
   { "tabplay",  S(TABPLAY), TR, 3,     "",      "kkkz",
                             (SUBR) tabplay_set, (SUBR) tabplay_k, NULL },
-  { "changed.k", S(ISCHANGED), 0, 3,     "k",     "z",
+  { "changed.k", S(ISCHANGED), _QQ, 3,     "k",     "z",
                             (SUBR) isChanged_set, (SUBR)isChanged, NULL },
-  { "changed.A", S(ISACHANGED), 0, 3,     "k",     "*[]",
+  { "changed2.k", S(ISCHANGED), 0, 3,     "k",     "z",
+                            (SUBR) isChanged2_set, (SUBR)isChanged, NULL },
+  { "changed2.A", S(ISACHANGED), 0, 3,     "k",     "*[]",
                             (SUBR) isAChanged_set, (SUBR)isAChanged, NULL },
   /*{ "ftlen_k",S(EVAL),    0, 2,      "k",    "k", NULL,      (SUBR)ftlen   }, */
   { "max_k",  S(P_MAXIMUM), 0, 5,      "k",    "aki",
