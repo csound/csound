@@ -623,6 +623,22 @@ int notinit_opcode_stub(CSOUND *csound, void *p)
 
 /* print error message on failed channel query */
 
+static CS_NOINLINE void print_chn_err_perf(void *p, int err)
+{
+    CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
+    const char  *msg;
+
+    if (((OPDS*) p)->opadr != (SUBR) NULL)
+      ((OPDS*) p)->opadr = (SUBR) notinit_opcode_stub;
+    if (err == CSOUND_MEMORY)
+      msg = "memory allocation failure";
+    else if (err < 0)
+      msg = "invalid channel name";
+    else
+      msg = "channel already exists with incompatible type";
+    csound->Warning(csound, Str(msg));
+}
+
 static CS_NOINLINE int print_chn_err(void *p, int err)
 {
     CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
@@ -639,6 +655,7 @@ static CS_NOINLINE int print_chn_err(void *p, int err)
     return csound->InitError(csound, Str(msg));
 }
 
+ 
 /* receive control value from bus at performance time */
 static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
@@ -650,7 +667,7 @@ static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
     p->iname->data = p->chname;
     }
     else
-      print_chn_err(p, err);
+      print_chn_err_perf(p, err);
   }
     
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -672,6 +689,17 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
+
+    if(p->iname->data != p->chname){
+    int err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+                              CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+    if(err == 0) {
+    p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
+    p->iname->data = p->chname;
+    }
+    else
+      print_chn_err_perf(p, err);
+    }
 
     if(CS_KSMPS == (unsigned int) csound->ksmps) {
     csoundSpinLock(p->lock);
@@ -750,6 +778,7 @@ int chnget_opcode_init_a(CSOUND *csound, CHNGET *p)
       p->h.opadr = (SUBR) chnget_opcode_perf_a;
       return OK;
     }
+    p->chname = p->iname->data;
     return print_chn_err(p, err);
 }
 
