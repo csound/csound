@@ -717,12 +717,15 @@ static int isAChanged_set(CSOUND *csound, ISACHANGED *p)
 {
     int size = 0, i;
     ARRAYDAT *arr = p->chk;
-    for (i=0; i<arr->dimensions; i++)
-      size += arr->sizes[i];
+    //char *tmp;
+    for (i=0; i<arr->dimensions; i++) size += arr->sizes[i];
     size *= arr->arrayMemberSize;
     csound->AuxAlloc(csound, size, &p->old_chk);
-    memset(p->old_chk.auxp, '\0', size);
+    /* tmp = (char*)p->old_chk.auxp; */
+    /* for (i=0; i<size; i++) tmp[i]=rand()&0xff; */
+    /* memset(p->old_chk.auxp, '\0', size); */
     p->size = size;
+    p->cnt = 0;
     return OK;
 }
 
@@ -734,7 +737,8 @@ static int isAChanged(CSOUND *csound,ISACHANGED *p)
     int size = p->size;
     int ktrig = memcmp(chk->data, old_chk, size);
     memcpy(old_chk, chk->data, size);
-    *p->ktrig = ktrig?FL(1.0):FL(0.0);
+    *p->ktrig = (p->cnt && ktrig)?FL(1.0):FL(0.0);
+    p->cnt++;
     return OK;
 }
 
