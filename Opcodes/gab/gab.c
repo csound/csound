@@ -1,5 +1,6 @@
 
 /*  Copyright (C) 2002-2004 Gabriel Maldonado */
+/*                2016 John ffitch (array changed) */
 
 /*  The gab library is free software; you can redistribute it */
 /*  and/or modify it under the terms of the GNU Lesser General Public */
@@ -27,6 +28,7 @@
 /*changed some comments to c-style */
 /*Check csystem, exitnow */
 /*Check other opcodes commented out in Oentry */
+
 
 #include "stdopcod.h"
 #include "gab.h"
@@ -679,7 +681,6 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
     return OK;
 }
 
-/* This code is wrong; old_inargs is not initialised */
 static int isChanged_set(CSOUND *csound,ISCHANGED *p)
 {
     p->numargs = p->INOCOUNT;
@@ -708,6 +709,35 @@ static int isChanged(CSOUND *csound,ISCHANGED *p)
     *p->ktrig = (MYFLT) ktrig;
     return OK;
 }
+
+
+
+/* changed in array */
+static int isAChanged_set(CSOUND *csound, ISACHANGED *p)
+{
+    int size = 0, i;
+    ARRAYDAT *arr = p->chk;
+    for (i=0; i<arr->dimensions; i++)
+      size += arr->sizes[i];
+    size *= arr->arrayMemberSize;
+    csound->AuxAlloc(csound, size, &p->old_chk);
+    memset(p->old_chk.auxp, '\0', size);
+    p->size = size;
+    return OK;
+}
+
+
+static int isAChanged(CSOUND *csound,ISACHANGED *p)
+{
+    ARRAYDAT *chk = p->chk;
+    void *old_chk = p->old_chk.auxp;
+    int size = p->size;
+    int ktrig = memcmp(chk->data, old_chk, size);
+    memcpy(old_chk, chk->data, size);
+    *p->ktrig = ktrig?FL(1.0):FL(0.0);
+    return OK;
+}
+
 
 /* ------------------------- */
 
@@ -904,8 +934,10 @@ OENTRY gab_localops[] = {
                             (SUBR) tabrec_set, (SUBR) tabrec_k, NULL },
   { "tabplay",  S(TABPLAY), TR, 3,     "",      "kkkz",
                             (SUBR) tabplay_set, (SUBR) tabplay_k, NULL },
-  { "changed", S(ISCHANGED), 0, 3,     "k",     "z",
+  { "changed.k", S(ISCHANGED), 0, 3,     "k",     "z",
                             (SUBR) isChanged_set, (SUBR)isChanged, NULL },
+  { "changed.A", S(ISACHANGED), 0, 3,     "k",     "*[]",
+                            (SUBR) isAChanged_set, (SUBR)isAChanged, NULL },
   /*{ "ftlen_k",S(EVAL),    0, 2,      "k",    "k", NULL,      (SUBR)ftlen   }, */
   { "max_k",  S(P_MAXIMUM), 0, 5,      "k",    "aki",
             (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum },
