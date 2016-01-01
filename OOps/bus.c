@@ -642,6 +642,17 @@ static CS_NOINLINE int print_chn_err(void *p, int err)
 /* receive control value from bus at performance time */
 static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
+  if(p->iname->data != p->chname){
+    int err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+                              CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+    if(err == 0) {
+    p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
+    p->iname->data = p->chname;
+    }
+    else
+      print_chn_err(p, err);
+  }
+    
 #ifdef HAVE_ATOMIC_BUILTIN
     volatile union {
     MYFLT d;
@@ -689,7 +700,6 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
 {
     int   err;
-
     err = csoundGetChannelPtr(csound, &(p->fp), p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
@@ -706,6 +716,7 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
 #else
     *(p->arg) = *(p->fp);
 #endif
+
     return OK;
 }
 
@@ -714,7 +725,6 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
 int chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
 {
     int   err;
-
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
@@ -722,6 +732,7 @@ int chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
       p->h.opadr = (SUBR) chnget_opcode_perf_k;
       return OK;
     }
+    p->chname = p->iname->data;
     return print_chn_err(p, err);
 }
 
