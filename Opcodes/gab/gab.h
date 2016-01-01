@@ -122,6 +122,7 @@ typedef struct {
     MYFLT    *ktrig;
     ARRAYDAT *chk;
     int      size;
+    int      cnt;
     AUXCH    old_chk;
 } ISACHANGED;
 
