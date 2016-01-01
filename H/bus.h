@@ -80,6 +80,7 @@ typedef struct {
     MYFLT   *fp;
     int     *lock;
     int      pos;
+    char  *chname;
 } CHNGET;
 
 typedef struct {
