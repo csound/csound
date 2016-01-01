@@ -695,7 +695,7 @@ static int isChanged(CSOUND *csound,ISCHANGED *p)
     MYFLT *old_inargs = p->old_inargs;
     int numargs = p->numargs, ktrig = 0, j;
 
-    if (p->cnt)
+    if (LIKELY(p->cnt))
       for (j =0; j< numargs; j++) {
         if (*inargs[j] != old_inargs[j]) {
           ktrig = 1;
@@ -715,7 +715,7 @@ static int isChanged(CSOUND *csound,ISCHANGED *p)
 
 static int isChanged2_set(CSOUND *csound,ISCHANGED *p)
 {
-    int res = isChanged(csound,p);
+    int res = isChanged_set(csound,p);
     p->cnt = 0;
     return res;
 }
