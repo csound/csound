@@ -1064,6 +1064,27 @@ static int tab2ftab(CSOUND *csound, TABCOPY *p)
     return OK;
 }
 
+static int tab2ftabi(CSOUND *csound, TABCOPY *p)
+{
+    FUNC        *ftp;
+    int fsize;
+    MYFLT *fdata;
+    ARRAYDAT *t = p->tab;
+    int i, tlen = 0;
+
+    if (UNLIKELY(p->tab->data==NULL))
+      return csound->InitError(csound, Str("array-var not initialised"));
+    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+      return csound->InitError(csound, Str("No table for copy2ftab"));
+    for (i=0; i<t->dimensions; i++) tlen += t->sizes[i];
+    fsize = ftp->flen;
+    fdata = ftp->ftable;
+    if (fsize<tlen) tlen = fsize;
+    memcpy(fdata, p->tab->data, sizeof(MYFLT)*tlen);
+    return OK;
+}
+
+
 typedef struct {
   OPDS h;
   ARRAYDAT *tab;
@@ -1104,6 +1125,27 @@ static int tabgen(CSOUND *csound, TABGEN *p)
 }
 
 
+static int ftab2tabi(CSOUND *csound, TABCOPY *p)
+{
+    FUNC        *ftp;
+    int         fsize;
+    MYFLT       *fdata;
+    int tlen;
+
+    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+      return csound->InitError(csound,Str("No table for copy2ftab"));
+    fsize = ftp->flen;
+    if (UNLIKELY(p->tab->data==NULL)) {
+      tabensure(csound, p->tab, fsize);
+      p->tab->sizes[0] = fsize;
+    }
+    tlen = p->tab->sizes[0];
+    fdata = ftp->ftable;
+    if (fsize<tlen) tlen = fsize;
+    memcpy(p->tab->data, fdata, sizeof(MYFLT)*tlen);
+    return OK;
+}
+
 static int ftab2tab(CSOUND *csound, TABCOPY *p)
 {
     FUNC        *ftp;
@@ -1125,6 +1167,9 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
     memcpy(p->tab->data, fdata, sizeof(MYFLT)*tlen);
     return OK;
 }
+
+
+
 
 typedef struct {
   OPDS h;
@@ -2136,11 +2181,11 @@ static OENTRY arrayvars_localops[] =
     { "copy2ftab", sizeof(TABCOPY), TW|_QQ, 2, "", "k[]k", NULL, (SUBR) tab2ftab },
     { "copy2ttab", sizeof(TABCOPY), TR|_QQ, 2, "", "k[]k", NULL, (SUBR) ftab2tab },
     { "copya2ftab.k", sizeof(TABCOPY), TW, 3, "", "k[]k",
-      (SUBR) tab2ftab, (SUBR) tab2ftab },
+      (SUBR) tab2ftabi, (SUBR) tab2ftab },
     { "copyf2array.k", sizeof(TABCOPY), TR, 3, "", "k[]k",
-      (SUBR) ftab2tab, (SUBR) ftab2tab },
-    { "copya2ftab.i", sizeof(TABCOPY), TW, 1, "", "i[]i", (SUBR) tab2ftab },
-    { "copyf2array.i", sizeof(TABCOPY), TR, 1, "", "i[]i", (SUBR) ftab2tab },
+      (SUBR) ftab2tabi, (SUBR) ftab2tab },
+    { "copya2ftab.i", sizeof(TABCOPY), TW, 1, "", "i[]i", (SUBR) tab2ftabi },
+    { "copyf2array.i", sizeof(TABCOPY), TR, 1, "", "i[]i", (SUBR) ftab2tabi },
     /* { "lentab", 0xffff}, */
     { "lentab.i", sizeof(TABQUERY1), _QQ, 1, "i", "k[]p", (SUBR) tablength },
     { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]p", NULL, (SUBR) tablength },
