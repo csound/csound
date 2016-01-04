@@ -114,6 +114,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *ktrig, *inargs[VARGMAX];
     int     numargs;            /* Reordered for caching */
+    int     cnt;
     MYFLT   old_inargs[VARGMAX];
 } ISCHANGED;
 
