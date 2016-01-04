@@ -679,6 +679,42 @@ void comment(yyscan_t yyscanner)              /* Skip until nextline */
     csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
 }
 
+#if 1
+void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
+{
+    int c;
+    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
+ TOP:
+    c = input(yyscanner);
+    switch (c) {
+    NL:
+    case '\n':
+      csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
+      goto TOP;
+    case '*':
+    AST:
+      c = input(yyscanner);
+      switch (c) {
+      case '*':
+        goto AST;
+      case '\n':
+        goto NL;
+      case '/':
+        return;
+      case EOF:
+        goto ERR;
+      default:
+        goto TOP;
+      }
+    case EOF:
+    ERR:
+      YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
+        YY_BUFFER_EOF_PENDING;
+      return;
+    }
+}
+#else
+
 void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
 {
     char c;
@@ -687,7 +723,7 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
       c = input(yyscanner);
       if (UNLIKELY(c == '\r')) { /* skip */
         if ((c = input(yyscanner)) != '\n')
-          unput(c);
+            unput(c);
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
       }
       else if (UNLIKELY(c=='\n')) { /* skip */
@@ -699,7 +735,7 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
         return;
       }
       if (c != '*') continue;
-      while ((c=input(yyscanner))=='*');
+      while ((c=input(yyscanner))=='*')
       if (c=='/') return;
       if (UNLIKELY(c == '\r')) {
         if ((c = input(yyscanner)) != '\n')
@@ -716,6 +752,7 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
       }
     }
 }
+#endif
 
 void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 {
