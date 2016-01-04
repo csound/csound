@@ -2351,8 +2351,8 @@ FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
       if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
       return csound->sinetable;
     }
-    if (UNLIKELY(fno <= 0                 ||
-        fno > csound->maxfnum       ||
+    if (UNLIKELY(fno <= 0                    ||
+                 fno > csound->maxfnum       ||
                  (ftp = csound->flist[fno]) == NULL)) {
       csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
