@@ -42,17 +42,17 @@ static int krsnsetx(CSOUND *csound, KRESONX *p)
 {
     int scale;
     p->scale = scale = (int) *p->iscl;
-    if ((p->loop = MYFLT2LRND(*p->ord)) < 1)
+    if (UNLIKELY((p->loop = MYFLT2LRND(*p->ord)) < 1))
       p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (unsigned int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
       csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
-    if (scale && scale != 1 && scale != 2) {
+    if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound,Str("illegal reson iscl value, %f"),
                                *p->iscl);
     }
-    if (!(*p->istor)) {
+    if (LIKELY(!(*p->istor))) {
       memset(p->yt1, 0, p->loop*sizeof(MYFLT));
       memset(p->yt2, 0, p->loop*sizeof(MYFLT));
       /* int j; */
@@ -112,7 +112,7 @@ static int kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified */
 static int fastab_set(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
-    if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, Str("fastab: incorrect table number"));
     }
     p->table = ftp->ftable;
@@ -213,7 +213,7 @@ static int fastabiw(CSOUND *csound, FASTAB *p)
     FUNC *ftp;
     int32 i;
     /*ftp = csound->FTFind(p->xfn); */
-    if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, Str("tabw_i: incorrect table number"));
     }
     if (*p->ixmode)
@@ -336,10 +336,9 @@ static void printi(CSOUND *csound, PRINTI *p)
 {
     char    *sarg;
 
-    if ((*p->ifilcod != sstrcod) || (*p->STRARG == 0)) {
-      csound->InitError(csound, Str("printi parameter was not "
-                                    "a \"quoted string\""));
-      return NOTOK;
+    if (UNLIKELY((*p->ifilcod != sstrcod) || (*p->STRARG == 0))) {
+      return csound->InitError(csound, Str("printi parameter was not "
+                                           "a \"quoted string\""));
     }
     else {
       sarg = p->STRARG;
@@ -392,7 +391,7 @@ static int nlalp(CSOUND *csound, NLALP *p)
       memset(&rp[nsmps], '\0', early*sizeof(MYFLT));
     }
    if (knfact == 0.0) { /* linear case */
-      if (klfact == 0.0) { /* degenerated linear case */
+     if (UNLIKELY(klfact == 0.0)) { /* degenerated linear case */
         m0 = (double)ip[0] - tm1;
         rp[offset] = (MYFLT)(tm0);
         for (n=offset+1; n<nsmps; n++) {
@@ -412,7 +411,7 @@ static int nlalp(CSOUND *csound, NLALP *p)
         }
       }
     } else { /* non-linear case */
-      if (klfact == 0.0) { /* simplified non-linear case */
+     if (UNLIKELY(klfact == 0.0)) { /* simplified non-linear case */
         for (n=offset; n<nsmps; n++) {
           m0 = (double)ip[n] - tm1;
           m1 = fabs(m0) * knfact;
@@ -589,7 +588,7 @@ static int tabrec_k(CSOUND *csound,TABREC *p)
     if (*p->ktrig_start) {
       if (*p->kfn != p->old_fn) {
         int flen;
-        if ((flen = csoundGetTable(csound, &(p->table), (int) *p->kfn)) < 0)
+        if (UNLIKELY((flen = csoundGetTable(csound,&(p->table),(int)*p->kfn)) < 0))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (long) flen;
@@ -644,7 +643,7 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
     if (*p->ktrig) {
       if (*p->kfn != p->old_fn) {
         int flen;
-        if ((flen = csoundGetTable(csound, &(p->table), (int) *p->kfn)) < 0)
+        if (UNLIKELY((flen = csoundGetTable(csound, &(p->table),(int)*p->kfn)) < 0))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (long) flen;
@@ -668,11 +667,8 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
       int j, curr_frame = p->ndx * p->numouts;
       MYFLT *table = p->table;
       MYFLT **outargs = p->outargs;
-      if (curr_frame + p->numouts < p->tablen) {
+      if (UNLIKELY(curr_frame + p->numouts < p->tablen)) {
         /* play only if ndx is inside table */
-        /*for (j = p->ndx* p->numouts; j < end; j++) */
-        /*      *outargs[j] = table[j]; */
-
         for (j = 0; j < p->numouts; j++)
           *outargs[j] = table[curr_frame+j];
       }
