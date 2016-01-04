@@ -1179,6 +1179,8 @@ OENTRY opcodlst_1[] = {
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  (SUBR) NULL },
   { "outrg", S(OUTRANGE), 0,5, "", "ky",
     (SUBR)outRange_i, (SUBR)NULL, (SUBR)outRange},
+  { "nchnls_hw", S(ASSIGN), 0,1, "ii", "",
+    (SUBR)hw_channels},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };
