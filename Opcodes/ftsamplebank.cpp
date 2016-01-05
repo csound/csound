@@ -173,6 +173,123 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory, int skiptime
 	return 0;
 } 	
 
+typedef struct {
+  OPDS    h;
+  ARRAYDAT* outArr;
+  STRINGDAT *directoryName;
+  MYFLT* extension;
+} DIR_STRUCT;
+
+/* this function will looks for files of a set type, in a particular directory */
+std::vector<std::string> searchDir(CSOUND *csound, char* directory, char* extension);
+
+/* from Opcodes/arrays.c */
+static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
+{
+    if (p->data==NULL || p->dimensions == 0 ||
+        (p->dimensions==1 && p->sizes[0] < size)) {
+      size_t ss;
+      if (p->data == NULL) {
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+        p->arrayMemberSize = var->memBlockSize;
+      }
+
+      ss = p->arrayMemberSize*size;
+      if (p->data==NULL) p->data = (MYFLT*)csound->Calloc(csound, ss);
+      else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+      p->dimensions = 1;
+      p->sizes = (int*)csound->Malloc(csound, sizeof(int));
+      p->sizes[0] = size;
+  }
+}
+
+static int directory(CSOUND *csound, DIR_STRUCT* p)
+{
+	int inArgCount = p->INOCOUNT;
+	char *extension, *file;
+	std::vector<std::string> fileNames; 
+	
+	if(inArgCount==0)
+      return csound->InitError(csound,
+                          Str("Error: you must pass a directory as a string."));
+
+		
+	if(inArgCount==1)
+	{
+	  fileNames = searchDir(csound, p->directoryName->data, (char *)"");
+	}
+	else if(inArgCount==2)
+	{
+		CS_TYPE* argType = csound->GetTypeForArg(p->extension);
+		if(strcmp("S", argType->varTypeName) == 0)
+		{
+			extension = csound->Strdup(csound, ((STRINGDAT *)p->extension)->data);
+			fileNames = searchDir(csound, p->directoryName->data, extension);
+		}
+		else
+			return csound->InitError(csound,
+                      Str("Error: second parameter to directory must be a string"));
+	}	
+
+	int numberOfFiles = fileNames.size();
+	tabensure(csound, p->outArr, numberOfFiles);
+	STRINGDAT *strings = (STRINGDAT *) p->outArr->data;
+
+	for(int i=0; i < numberOfFiles; i++)
+	{
+		file = &fileNames[i][0u];
+		strings[i].data = csound->Strdup(csound, file);
+	}
+
+	return OK;
+}
+
+//-----------------------------------------------------------------
+//	load samples into functoin tables
+//-----------------------------------------------------------------
+std::vector<std::string> searchDir(CSOUND *csound, char* directory, char* extension)
+{
+	std::vector<std::string> fileNames;
+	if(directory)
+	{
+		DIR *dir = opendir(directory);			
+		std::string fileExtension(extension);
+		int noOfFiles = 0;
+		
+		//check for valid path first
+		if(dir) 
+		{ 
+			struct dirent *ent; 
+			while((ent = readdir(dir)) != NULL) 
+			{ 			
+				std::ostringstream fullFileName;
+				
+				if(std::string(ent->d_name).find(fileExtension)!=std::string::npos && strlen(ent->d_name)>2)
+				{						
+					#if defined(WIN32)
+						fullFileName << directory << "\\" << ent->d_name;
+					#else
+						fullFileName << directory << "/" << ent->d_name;
+					#endif
+					
+					noOfFiles++;
+					fileNames.push_back(fullFileName.str());		  
+				}
+			}
+			
+			// Sort names
+			std::sort(fileNames.begin(), fileNames.end() );
+		}	
+		else 
+			{ 
+			csound->Message(csound, "Cannot find directory. Error opening directory: %s\n",  directory); 
+			} 			
+	}
+
+	return fileNames;
+} 	
+
+
 
 extern "C" {
 
@@ -206,7 +323,7 @@ extern "C" {
                                      (int (*)(CSOUND*,void*)) 0,
                                      (int (*)(CSOUND*,void*)) 0);
 									 
-      status |= csound->AppendOpcode(csound,
+      /*  status |= csound->AppendOpcode(csound,
                                         (char*)"ftsamplebank",
                                         0xffff,
                                         0,
@@ -215,7 +332,18 @@ extern "C" {
                                         0,
                                         0,
                                         0,
-                                        0);
+                                        0); */
+      
+     status |= csound->AppendOpcode(csound,
+                                     (char*)"directory",
+                                     sizeof(DIR_STRUCT),
+                                        0,
+                                     1,
+                                     (char*)"S[]",
+                                     (char*)"SN",
+                                     (int (*)(CSOUND*,void*)) directory,
+                                     (int (*)(CSOUND*,void*)) 0,
+                                     (int (*)(CSOUND*,void*)) 0);
       return status;
   }
 
