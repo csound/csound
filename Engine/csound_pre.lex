@@ -686,24 +686,20 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
  TOP:
     c = input(yyscanner);
-    printf("top: %c(%.2x)\n", c, c);
     switch (c) {
     NL:
     case '\n':
-    printf("nl: %c(%.2x)\n", c, c);
       csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
       goto TOP;
     case '*':
     AST:
       c = input(yyscanner);
-      printf("ast: %c(%.2x)\n", c, c);
       switch (c) {
       case '*':
         goto AST;
       case '\n':
         goto NL;
       case '/':
-        printf("slash: %c(%.2x)\n", c, c);
         return;
       case EOF:
         goto ERR;
