@@ -1985,12 +1985,14 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
         p->curx = FL(0.0);
       }
       if (p->alpha == FL(0.0)) {
+	/* VL 9-1-16 this is suspicious */
         p->curval += p->curinc/**CS_KSMPS*/;   /* advance the cur val  */
         //printf("curval = %f\n", p->curval);
       }
       else
         p->curval = p->cursegp->val + p->curinc *
           (FL(1.0) - EXP(p->curx));
+      /* VL 9-1-16 this is suspicious */
       p->curx += /* (MYFLT)CS_KSMPS* */ p->alpha;
     }
     return OK;

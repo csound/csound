@@ -488,6 +488,7 @@ int rndset(CSOUND *csound, RAND *p)
       }
     }
     p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krand) */
+    
     return OK;
 }
 
@@ -519,7 +520,7 @@ int arand(CSOUND *csound, RAND *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       ampscl;
     MYFLT       base = *p->base;
-
+  
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
