@@ -1591,7 +1591,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
     int notrunning = csound->engineStatus & CS_STATE_COMP;
     char    buffer[CSD_MAX_LINE_LEN];
     //#ifdef _DEBUG
-    csoundMessage(csound, "Calling unified file system4\n");
+    //csoundMessage(csound, "Calling unified file system4\n");
     //#endif
     if (notrunning==0) {
       alloc_globals(csound);
