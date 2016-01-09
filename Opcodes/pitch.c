@@ -1956,14 +1956,13 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
         }                               /*   get univ relestim  */
         segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
         if (segp->alpha == FL(0.0)) {
-          segp->c1 = (p->finalval-p->curval)/segp->cnt;
+          segp->c1 = (p->finalval-p->curval)/(segp->cnt*CS_KSMPS);
           //printf("finalval = %f curval = %f, cnt = %d c1 = %f\n",
           //       p->finalval, p->curval, segp->cnt, segp->c1);
         }
         else {
-          /* this is very wrong */
           segp->c1 = (p->finalval - p->curval)/(FL(1.0) - EXP(p->lastalpha));
-          segp->alpha = p->lastalpha/segp->cnt;
+          segp->alpha = p->lastalpha/(segp->cnt*CS_KSMPS);
           segp->val = p->curval;
         }
         goto newm;                      /*   and set new curmlt */
@@ -1985,15 +1984,13 @@ int ktrnsegr(CSOUND *csound, TRANSEG *p)
         p->curx = FL(0.0);
       }
       if (p->alpha == FL(0.0)) {
-	/* VL 9-1-16 this is suspicious */
-        p->curval += p->curinc/**CS_KSMPS*/;   /* advance the cur val  */
+        p->curval += p->curinc *CS_KSMPS;   /* advance the cur val  */
         //printf("curval = %f\n", p->curval);
       }
       else
-        p->curval = p->cursegp->val + p->curinc *
+        p->curval = p->cursegp->val + (p->curinc) *
           (FL(1.0) - EXP(p->curx));
-      /* VL 9-1-16 this is suspicious */
-      p->curx += /* (MYFLT)CS_KSMPS* */ p->alpha;
+      p->curx +=  (MYFLT)CS_KSMPS* p->alpha;
     }
     return OK;
 }
