@@ -551,7 +551,89 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
     return OK;
 }
 
+/* filter designs by Fons Adriaensen */
+typedef struct _mvcf {
+  OPDS h;
+  MYFLT *out;
+  MYFLT *in, *freq, *res, *skipinit;
+  double c1, c2, c3, c4, c5;
+  double fr, w;
+} mvclpf24;
+
+double exp2ap(double x) {
+  int i = (int) (floor(x));
+  x -= i;
+  return ldexp(1 + x * (0.6930 +
+		   x * (0.2416 + x * (0.0517 +
+		   x * 0.0137))), i);
+}
+
+
+int mvclpf24_init(CSOUND *csound, mvclpf24 *p){
+  if(!*p->skipinit){
+     p->c1 = p->c2  = p->c3 = 
+       p->c4 = p->c5 = FL(0.0);
+     p->fr = FL(0.0);
+  }
+  return OK;
+}
+
+int mvclpf24_perf(CSOUND *csound, mvclpf24 *p){
+  MYFLT *out = p->out;
+  MYFLT *in = p->in, res;
+  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+    c4 = p->c4, c5 = p->c5, w, x, t;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  
+  if(p->fr != *p->freq) {
+    MYFLT fr = *p->freq;///(0.5*csound->GetSr(csound));
+    p->fr  = *p->freq;
+    //fr = (fr*12)-6;
+    printf("%f \n",fr);
+    w = exp2ap(fr + 10.82)/csound->GetSr(csound);
+    if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
+    else {
+     w *= 0.6; 
+     if (w > 0.92) w = 0.92;
+    }
+    p->w = w;
+  } else w = p->w;
+  
+  res = *p->res > FL(0.0) ?
+    (*p->res < FL(1.0) ?
+     *p->res : FL(1.0)) : FL(0.0);
+
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+   
+  for(i=offset; i < nsmps; i++){
+	x = -4.2*res*c5 + in[i] + 1e-10;
+        t = c1 / (1 + fabs (c1));
+	c1 += w*(x - t);
+	x = c1 / (1 + fabs (c1));
+        c2 += w * (x  - c2);
+	c3 += w * (c2 - c3);
+	c4 += w * (c3 - c4);
+	out[i]  = c4;
+	c5 += 0.5 * (c4 - c5);
+  }
+  p->c1 = c1;
+  p->c2 = c2;
+  p->c3 = c3;
+  p->c4 = c4;
+  p->c5 = c5;
+  
+  return OK;
+}
+
 static OENTRY localops[] = {
+  {"mvclpf24", sizeof(mvclpf24), 0, 5, "a", "akkp",
+                (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf},
   {"moogladder.kk", sizeof(moogladder), 0, 5, "a", "akkp",
                     (SUBR) moogladder_init, NULL, (SUBR) moogladder_process },
   {"moogladder.aa", sizeof(moogladder), 0, 5, "a", "aaap",
