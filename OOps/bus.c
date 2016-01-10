@@ -692,14 +692,14 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 
     if(p->iname->data != p->chname){
     int err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
-                              CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+                              CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
     if(err == 0) {
     p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
     p->iname->data = p->chname;
     }
     else
       print_chn_err_perf(p, err);
-    }
+      }
 
     if(CS_KSMPS == (unsigned int) csound->ksmps) {
     csoundSpinLock(p->lock);
