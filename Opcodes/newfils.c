@@ -577,8 +577,9 @@ int mvclpf24_init(CSOUND *csound, mvclpf24 *p){
   }
   return OK;
 }
+#define CBASE 261.62556416
 
-int mvclpf24_perf(CSOUND *csound, mvclpf24 *p){
+int mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, res;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -588,10 +589,8 @@ int mvclpf24_perf(CSOUND *csound, mvclpf24 *p){
   uint32_t i, nsmps = CS_KSMPS;
   
   if(p->fr != *p->freq) {
-    MYFLT fr = *p->freq;///(0.5*csound->GetSr(csound));
+    MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    //fr = (fr*12)-6;
-    printf("%f \n",fr);
     w = exp2ap(fr + 10.82)/csound->GetSr(csound);
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -631,9 +630,244 @@ int mvclpf24_perf(CSOUND *csound, mvclpf24 *p){
   return OK;
 }
 
+
+int mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
+  MYFLT *out = p->out;
+  MYFLT *in = p->in, res;
+  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+    c4 = p->c4, c5 = p->c5, w, x, t;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  
+  if(p->fr != *p->freq) {
+    MYFLT fr = log2(*p->freq/CBASE);
+    p->fr  = *p->freq;
+    w = exp2ap(fr + 10.71)/csound->GetSr(csound);
+    if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
+    else {
+     w *= 0.6; 
+     if (w > 0.92) w = 0.92;
+    }
+    p->w = w;
+  } else w = p->w;
+  
+  res = *p->res > FL(0.0) ?
+    (*p->res < FL(1.0) ?
+     *p->res : FL(1.0)) : FL(0.0);
+
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+   
+  for(i=offset; i < nsmps; i++){
+        x = -4.5*res*c5 + in[i] + 1e-10; 
+        x /= sqrt (1 + x * x);
+        c1 += w * (x  - c1) / (1 + c1 * c1);            
+        c2 += w * (c1 - c2) / (1 + c2 * c2);            
+        c3 += w * (c2 - c3) / (1 + c3 * c3);            
+        c4 += w * (c3 - c4) / (1 + c4 * c4);            
+        out[i]  = c4;
+	c5 += 0.5 * (c4 - c5);	
+  }
+  p->c1 = c1;
+  p->c2 = c2;
+  p->c3 = c3;
+  p->c4 = c4;
+  p->c5 = c5;
+  
+  return OK;
+}
+
+int mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
+  MYFLT *out = p->out;
+  MYFLT *in = p->in, res;
+  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+    c4 = p->c4, c5 = p->c5, w, x, t, d;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  
+  if(p->fr != *p->freq) {
+    MYFLT fr = log2(*p->freq/CBASE);
+    p->fr  = *p->freq;
+    w = exp2ap(fr + 9.70)/csound->GetSr(csound);
+    if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
+    else {
+     w *= 0.6748; 
+     if (w > 0.82) w = 0.82;
+    }
+    p->w = w;
+  } else w = p->w;
+  
+  res = *p->res > FL(0.0) ?
+    (*p->res < FL(1.0) ?
+     *p->res : FL(1.0)) : FL(0.0);
+
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+   
+  for(i=offset; i < nsmps; i++){
+	    x = in[i] - (4.3 - 0.2 * w) * res * c5 + 1e-10; 
+            x /= sqrt (1 + x * x);
+            d = w * (x  - c1) / (1 + c1 * c1);            
+            x = c1 + 0.77 * d;
+            c1 = x + 0.23 * d;        
+            d = w * (x  - c2) / (1 + c2 * c2);            
+            x = c2 + 0.77 * d;
+            c2 = x + 0.23 * d;        
+            d = w * (x  - c3) / (1 + c3 * c3);            
+            x = c3 + 0.77 * d;
+            c3 = x + 0.23 * d;        
+            d = w * (x  - c4);
+            x = c4 + 0.77 * d;
+            c4 = x + 0.23 * d;        
+            c5 += 0.85 * (c4 - c5);
+
+	    x = in[i] -(4.3 - 0.2 * w) * res * c5;
+            x /= sqrt (1 + x * x);
+            d = w * (x  - c1) / (1 + c1 * c1);            
+            x = c1 + 0.77 * d;
+            c1 = x + 0.23 * d;        
+            d = w * (x  - c2) / (1 + c2 * c2);            
+            x = c2 + 0.77 * d;
+            c2 = x + 0.23 * d;        
+            d = w * (x  - c3) / (1 + c3 * c3);            
+            x = c3 + 0.77 * d;
+            c3 = x + 0.23 * d;        
+            d = w * (x  - c4);
+            x = c4 + 0.77 * d;
+            c4 = x + 0.23 * d;        
+            c5 += 0.85 * (c4 - c5);
+	    out[i] = c4;
+  }
+  p->c1 = c1;
+  p->c2 = c2;
+  p->c3 = c3;
+  p->c4 = c4;
+  p->c5 = c5;
+  
+  return OK;
+}
+
+typedef struct _mvcf4 {
+  OPDS h;
+  MYFLT *out0, *out1, *out2, *out3;
+  MYFLT *in, *freq, *res, *skipinit;
+  double c1, c2, c3, c4, c5;
+  double fr, w;
+} mvclpf24_4;
+
+
+int mvclpf24_4_init(CSOUND *csound, mvclpf24_4 *p){
+  if(!*p->skipinit){
+     p->c1 = p->c2  = p->c3 = 
+       p->c4 = p->c5 = FL(0.0);
+     p->fr = FL(0.0);
+  }
+  return OK;
+}
+
+int mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
+  MYFLT *out0 = p->out0, *out1 = p->out1,
+     *out2 = p->out2, *out3 = p->out3;
+  MYFLT *in = p->in, res;
+  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+    c4 = p->c4, c5 = p->c5, w, x, t, d;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  
+  if(p->fr != *p->freq) {
+    MYFLT fr = log2(*p->freq/CBASE);
+    p->fr  = *p->freq;
+    w = exp2ap(fr + 9.70)/csound->GetSr(csound);
+    if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
+    else {
+     w *= 0.6748; 
+     if (w > 0.82) w = 0.82;
+    }
+    p->w = w;
+  } else w = p->w;
+  
+  res = *p->res > FL(0.0) ?
+    (*p->res < FL(1.0) ?
+     *p->res : FL(1.0)) : FL(0.0);
+
+  if (UNLIKELY(offset)) {
+      memset(out0, '\0', offset*sizeof(MYFLT));
+      memset(out1, '\0', offset*sizeof(MYFLT));
+      memset(out2, '\0', offset*sizeof(MYFLT));
+      memset(out3, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out0[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out3[nsmps], '\0', early*sizeof(MYFLT));
+    }
+   
+  for(i=offset; i < nsmps; i++){
+	    x = in[i] - (4.3 - 0.2 * w) * res * c5 + 1e-10; 
+            x /= sqrt (1 + x * x);
+            d = w * (x  - c1) / (1 + c1 * c1);            
+            x = c1 + 0.77 * d;
+            c1 = x + 0.23 * d;        
+            d = w * (x  - c2) / (1 + c2 * c2);            
+            x = c2 + 0.77 * d;
+            c2 = x + 0.23 * d;        
+            d = w * (x  - c3) / (1 + c3 * c3);            
+            x = c3 + 0.77 * d;
+            c3 = x + 0.23 * d;        
+            d = w * (x  - c4);
+            x = c4 + 0.77 * d;
+            c4 = x + 0.23 * d;        
+            c5 += 0.85 * (c4 - c5);
+
+	    x = in[i] -(4.3 - 0.2 * w) * res * c5;
+            x /= sqrt (1 + x * x);
+            d = w * (x  - c1) / (1 + c1 * c1);            
+            x = c1 + 0.77 * d;
+            c1 = x + 0.23 * d;        
+            d = w * (x  - c2) / (1 + c2 * c2);            
+            x = c2 + 0.77 * d;
+            c2 = x + 0.23 * d;        
+            d = w * (x  - c3) / (1 + c3 * c3);            
+            x = c3 + 0.77 * d;
+            c3 = x + 0.23 * d;        
+            d = w * (x  - c4);
+            x = c4 + 0.77 * d;
+            c4 = x + 0.23 * d;        
+            c5 += 0.85 * (c4 - c5);
+	    out0[i] = c1;
+	    out1[i] = c2;
+	    out2[i] = c3;
+	    out3[i] = c4;
+  }
+  p->c1 = c1;
+  p->c2 = c2;
+  p->c3 = c3;
+  p->c4 = c4;
+  p->c5 = c5;
+  
+  return OK;
+}
+
 static OENTRY localops[] = {
-  {"mvclpf24", sizeof(mvclpf24), 0, 5, "a", "akkp",
-                (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf},
+  {"mvclpf1", sizeof(mvclpf24), 0, 5, "a", "akkp",
+                (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf1},
+  {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "akkp",
+                (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf2},
+  {"mvclpf3", sizeof(mvclpf24), 0, 5, "a", "akkp",
+                (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf3},
+  {"mvclpf4", sizeof(mvclpf24_4), 0, 5, "aaaa", "akkp",
+                (SUBR) mvclpf24_4_init, NULL, (SUBR) mvclpf24_perf4},
   {"moogladder.kk", sizeof(moogladder), 0, 5, "a", "akkp",
                     (SUBR) moogladder_init, NULL, (SUBR) moogladder_process },
   {"moogladder.aa", sizeof(moogladder), 0, 5, "a", "aaap",
