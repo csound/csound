@@ -945,6 +945,7 @@ OENTRY opcodlst_1[] = {
   { "turnoff2.i",S(TURNOFF2),0,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
   { "turnoff2.r",S(TURNOFF2),0,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
   { "cngoto", S(CGOTO),0,   3,      "",     "Bl",   ingoto, kngoto, NULL     },
+  { "cnkgoto", S(CGOTO),0,   2,      "",     "Bl",   NULL,  kngoto, NULL     },
   { "cingoto", S(CGOTO),0,   1,      "",     "Bl",   ingoto, NULL, NULL     },
   { "tempoval", S(GTEMPO),0, 2,  "k", "",      NULL, (SUBR)gettempo, NULL    },
   { "downsamp",S(DOWNSAMP),0,3, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
@@ -1179,6 +1180,8 @@ OENTRY opcodlst_1[] = {
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  (SUBR) NULL },
   { "outrg", S(OUTRANGE), 0,5, "", "ky",
     (SUBR)outRange_i, (SUBR)NULL, (SUBR)outRange},
+  { "nchnls_hw", S(ASSIGN), 0,1, "ii", "",
+    (SUBR)hw_channels},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };
