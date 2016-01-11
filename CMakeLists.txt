@@ -1095,6 +1095,14 @@ endif()
 
 if(CURL_FOUND)
   list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
+  if(WIN32 AND NOT MSVC) 
+    # not quite working yet with msys2/mingw64
+    #list(APPEND libcsound_CFLAGS -DCURL_STATICLIB -DLIBSSH_STATIC)
+    #list(APPEND libcsound_LIBS crypto ssh2 ssl ws2_32 rtmp)
+    #find_library(GNUTLS_LIB gnutls)
+    #list(APPEND libcsound_LIBS ${GNUTLS_LIB})
+  endif()
+
 endif()
 
 # Linux does not have a separate libintl, it is part of libc
