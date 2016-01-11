@@ -1777,8 +1777,8 @@ int csgset(CSOUND *csound, COSSEG *p)
       if (UNLIKELY((segp->acnt = (int32)(dur * CS_ESR)) < 0))
         segp->acnt = 0;
 
-      printf("i: %d(%p): cnt=%d nxtpt=%f\n",
-           p->segsrem-nsegs, segp, segp->cnt, segp->nxtpt);
+      //printf("i: %d(%p): cnt=%d nxtpt=%f\n",
+      //   p->segsrem-nsegs, segp, segp->cnt, segp->nxtpt);
       segp++;
     } while (--nsegs);
     p->y1 = y1;
@@ -1968,6 +1968,9 @@ int cossegr(CSOUND *csound, COSSEG *p)
         //      p->segsrem, segp, segp->cnt,val1, segp->nxtpt);
         goto newi;                          /*   and set new curinc */
       }
+      if(p->segsrem == 1 && !p->h.insdshead->relesing) {
+       goto putk;
+      }
       if (--p->curcnt <= 0) {             /*  if done cur segment */
       chk1:
         p->y1 = val1 = val2;
@@ -2077,7 +2080,7 @@ int cossegr(CSOUND *csound, COSSEG *p)
 
 int kcssegr(CSOUND *csound, COSSEG *p)
 {
-  double val1 = p->y1, val2 = p->y2, x = p->x, val = p->val;
+    double val1 = p->y1, val2 = p->y2, x = p->x, val = p->val;
     double inc = p->inc;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;          /* RWD fix */
@@ -2094,9 +2097,12 @@ int kcssegr(CSOUND *csound, COSSEG *p)
         p->y1 = val1 = val;
         goto newi;                         /*   and set new curinc */
       }
+      if(p->segsrem == 1 && !p->h.insdshead->relesing) {
+       goto putk;
+      }
       if (--p->curcnt <= 0) {             /*  if done cur segment */
       chk1:
-        p->y1 = val1 = val2;
+	p->y1 = val1 = val2;
         if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
           p->y2 = val2 = segp->nxtpt;
           goto putk;                      /*      put endval      */

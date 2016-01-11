@@ -91,6 +91,28 @@ OSStatus  Csound_Render(void *inRefCon,
                         UInt32 inNumberFrames,
                         AudioBufferList *ioData);
 
+static void DAC_channels(CSOUND *csound, int chans){
+    int *dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
+    if (dachans == NULL) {
+      if (csound->CreateGlobalVariable(csound, "_DAC_CHANNELS_",
+				        sizeof(int)) != 0)
+        return;
+      dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
+      *dachans = chans;
+    }
+}
+
+static void ADC_channels(CSOUND *csound, int chans){
+    int *dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
+    if (dachans == NULL) {
+      if (csound->CreateGlobalVariable(csound, "_ADC_CHANNELS_",
+				        sizeof(int)) != 0)
+        return;
+      dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
+      *dachans = chans;
+    }
+}
+
 int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                csdata *cdata, int isInput)
 {
@@ -149,7 +171,10 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       prop.mSelector = kAudioObjectPropertyName;
       AudioObjectGetPropertyData(sysdevs[i],
                                  &prop, 0, NULL, &psize, &devName);
-      strcpy(devinfo[i].name, CFStringGetCStringPtr(devName, defaultEncoding));
+      if(CFStringGetCStringPtr(devName, defaultEncoding))
+       strncpy(devinfo[i].name, CFStringGetCStringPtr(devName, defaultEncoding), 127);
+      else
+       strncpy(devinfo[i].name, "unnamed device", 127);	
       CFRelease(devName);
 
       devchannels = 0;
@@ -234,10 +259,11 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
           prop.mSelector = kAudioHardwarePropertyDefaultInputDevice;
           dev  = sysdevs[CoreAudioDev];
           AudioObjectSetPropertyData(kAudioObjectSystemObject, &prop,
-                                     0, NULL, sizeof(AudioDeviceID), &dev);
+                                     0, NULL, sizeof(AudioDeviceID), &dev);	  
         }
         else csound->Warning(csound, Str("requested device %d out of range"),
                              devnum);
+       
       }
       else {
         prop.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
@@ -248,13 +274,20 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
           dev  = sysdevs[CoreAudioDev];
           AudioObjectSetPropertyData(kAudioObjectSystemObject, &prop,
                                      0, NULL, sizeof(AudioDeviceID), &dev);
+	  
         }
         else csound->Warning(csound, Str("requested device %d out of range"),
-                             devnum, devinfo[CoreAudioDev].name);
+                             devnum, devinfo[CoreAudioDev].name);	
       }
     }
 
-
+    for(i=0; (unsigned int)  i < devnos; i++) 
+	if(sysdevs[i] == dev){
+	  if(isInput) ADC_channels(csound, devinfo[i].inchannels);
+          else DAC_channels(csound, devinfo[i].outchannels);
+	}
+    
+    
     free(sysdevs);
     free(devinfo);
 
@@ -265,6 +298,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     if(isInput)
       csound->Message(csound, Str("selected input device: %s \n"),
                       CFStringGetCStringPtr(devName, defaultEncoding));
+      
     else
       csound->Message(csound, Str("selected output device: %s \n"),
                       CFStringGetCStringPtr(devName, defaultEncoding));

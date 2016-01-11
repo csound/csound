@@ -157,8 +157,27 @@ static int listPortAudioDevices_blocking(CSOUND *csound,
     return n;
 }
 
+static void DAC_channels(CSOUND *csound, int chans){
+    int *dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
+    if (dachans == NULL) {
+      if (csound->CreateGlobalVariable(csound, "_DAC_CHANNELS_",
+				        sizeof(int)) != 0)
+        return;
+      dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
+      *dachans = chans;
+    }
+}
 
-
+static void ADC_channels(CSOUND *csound, int chans){
+    int *dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
+    if (dachans == NULL) {
+      if (csound->CreateGlobalVariable(csound, "_ADC_CHANNELS_",
+				        sizeof(int)) != 0)
+        return;
+      dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
+      *dachans = chans;
+    }
+}
 
 /* select PortAudio device; returns the actual device number */
 
@@ -195,17 +214,17 @@ static int selectPortAudioDevice(CSOUND *csound, int devNum, int play)
       devNum = i;
     }
     dev_info = (PaDeviceInfo*) Pa_GetDeviceInfo((PaDeviceIndex) devNum);
-    if (dev_info)
+    if (dev_info) {
       csound->Message(csound, Str("PortAudio: selected %s device '%s'\n"),
                       (play ? Str("output") : Str("input")),
                       dev_info->name);
+      if(play) {
+      csound->system_sr(csound, (MYFLT) dev_info->defaultSampleRate);
+      DAC_channels(csound, dev_info->maxOutputChannels);
+      } else ADC_channels(csound, dev_info->maxInputChannels);
+    }
     else
       csound->Message(csound, Str("PortAudio: failed to obtain device info.\n"));
-
-    if(play && dev_info) {
-      csound->system_sr(csound, (MYFLT) dev_info->defaultSampleRate);
-    }
-
     return devNum;
 }
 
