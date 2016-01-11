@@ -859,7 +859,95 @@ int mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
   return OK;
 }
 
+#define PEAKHCF FL(1.4)
+
+typedef struct _mvcfh {
+  OPDS h;
+  MYFLT *out;
+  MYFLT *in, *freq, *skipinit;
+  double c1, c2, c3, c4, c5;
+  double fr, w, x;
+} mvchpf24;
+
+int mvchpf24_init(CSOUND *csound, mvchpf24 *p){
+  if(!*p->skipinit){
+     p->c1 = p->c2  = p->c3 = 
+       p->c4 = p->c5 = p->x = FL(0.0);
+     p->fr = FL(0.0);
+  }
+  return OK;
+}
+
+int mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
+  MYFLT *out = p->out;
+  MYFLT *in = p->in;
+  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+    c4 = p->c4, c5 = p->c5, w, x = p->x, t, d, y;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  
+  if(p->fr != *p->freq) {
+    MYFLT fr = log2(*p->freq/CBASE);
+    p->fr  = *p->freq;
+    w = csound->GetSr(csound)/exp2ap(fr+ 9.2);
+    if (w < 2) w = 2;
+    p->w = w;
+  } else w = p->w;
+
+  if (UNLIKELY(offset)) {
+      memset(out, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+   
+  for(i=offset; i < nsmps; i++){
+            x = y = in[i]  - 0.3 * x;
+            d = x - c1 + 1e-10;
+            t = d * d;
+            d *= (1 + t) / (w + t);            
+            c1 += d;
+            x -= c1;
+            c1 += d;
+            d = x - c2 + 1e-10;
+            t = d * d;
+            d *= (1 + t) / (w + t);            
+            c2 += d;
+            x -= c2;
+            c2 += d;
+            d = x - c3 + 1e-10;
+            t = d * d;
+            d *= (1 + t) / (w + t);            
+            c3 += d;
+            x -= c3;
+            c3 += d;
+            d = x - c4 + 1e-10;
+            t = d * d;
+            d *= (1 + t) / (w + t);            
+            c4 += d;
+            x -= c4;
+            c4 += d;
+            out[i] = x/PEAKHCF;
+            x -= y; 
+  }
+  p->c1 = c1;
+  p->c2 = c2;
+  p->c3 = c3;
+  p->c4 = c4;
+  p->c5 = c5;
+  p->x  = x;
+  
+  return OK;
+}
+
+
+
+
 static OENTRY localops[] = {
+  {"mvchpf", sizeof(mvchpf24), 0, 5, "a", "akp",
+                (SUBR) mvchpf24_init, NULL, (SUBR) mvchpf24_perf},
   {"mvclpf1", sizeof(mvclpf24), 0, 5, "a", "akkp",
                 (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf1},
   {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "akkp",
