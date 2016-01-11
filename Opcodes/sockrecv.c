@@ -360,7 +360,7 @@ static int send_srecv(CSOUND *csound, SOCKRECVT *p)
 #define S(x)    sizeof(x)
 
 static OENTRY sockrecv_localops[] = {
-  { "sockrecv", S(SOCKRECV), 0, 7, "a", "ii", (SUBR) init_recv, (SUBR) send_recv_k,
+  { "sockrecv", S(SOCKRECV), 0, 7, "s", "ii", (SUBR) init_recv, (SUBR) send_recv_k,
     (SUBR) send_recv },
   { "sockrecvs", S(SOCKRECV), 0, 5, "aa", "ii", (SUBR) init_recvS, NULL,
     (SUBR) send_recvS },

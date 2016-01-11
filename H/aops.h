@@ -196,3 +196,4 @@ int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
 int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
 int outRange_i(CSOUND *csound, OUTRANGE *p);
 int outRange(CSOUND *csound, OUTRANGE *p);
+int hw_channels(CSOUND *csound, ASSIGN *p);
