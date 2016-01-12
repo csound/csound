@@ -8,7 +8,14 @@ set(stdutil_SRCS
     sndinfo.c       srconv.c        std_util.c  xtrct.c
     ../SDIF/sdif.c)
 
-make_plugin(stdutil "${stdutil_SRCS}" m ${LIBSNDFILE_LIBRARY})
+
+if(WIN32 AND NOT MSVC) 
+  make_plugin(stdutil "${stdutil_SRCS}" m
+    ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
+else()
+  make_plugin(stdutil "${stdutil_SRCS}" m ${LIBSNDFILE_LIBRARY})
+endif()
+
 add_dependency_to_framework(stdutil ${LIBSNDFILE_LIBRARY})
 
 if(BUILD_UTILITIES) 

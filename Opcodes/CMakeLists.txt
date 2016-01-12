@@ -65,6 +65,7 @@ make_plugin(cs_date date.c)
 make_plugin(system_call system_call.c)
 make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
+make_plugin(ftsamplebank ftsamplebank.cpp)
 
 make_plugin(fareygen fareygen.c)
 
@@ -88,6 +89,11 @@ elseif(LINUX)
     endif()
 else()
     make_plugin(padsynth padsynth_gen.cpp)
+
+    if(WIN32 AND NOT MSVC)
+      set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11"
+        LINK_FLAGS "-std=gnu++11")
+    endif()
 endif()
 endif()
 
@@ -137,7 +143,13 @@ if(BUILD_FLUID_OPCODES)
     if(EXISTS ${FLUIDSYNTH_INCLUDE_DIR})
         include_directories("${FLUIDSYNTH_INCLUDE_DIR}")
      endif()
-    make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp ${FLUIDSYNTH_LIBRARY})
+
+     if(WIN32 AND NOT MSVC) 
+        set(FSYNTH_SUPPORT_LIBS ${FLUIDSYNTH_LIBRARY} wsock32 glib-2.0 intl iconv ws2_32 winmm)
+        make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp ${FSYNTH_SUPPORT_LIBS})
+     else()
+        make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp ${FLUIDSYNTH_LIBRARY})
+     endif()
     add_dependency_to_framework(fluidOpcodes ${FLUIDSYNTH_LIBRARY})
 endif()
 

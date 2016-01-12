@@ -313,8 +313,29 @@ static snd_pcm_format_t set_format(void (**convFunc)(void), int csound_format,
     return SND_PCM_FORMAT_UNKNOWN;
 }
 
-/* set up audio device */
+static void DAC_channels(CSOUND *csound, int chans){
+    int *dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
+    if (dachans == NULL) {
+      if (csound->CreateGlobalVariable(csound, "_DAC_CHANNELS_",
+				        sizeof(int)) != 0)
+        return;
+      dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
+      *dachans = chans;
+    }
+}
 
+static void ADC_channels(CSOUND *csound, int chans){
+    int *dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
+    if (dachans == NULL) {
+      if (csound->CreateGlobalVariable(csound, "_ADC_CHANNELS_",
+				        sizeof(int)) != 0)
+        return;
+      dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
+      *dachans = chans;
+    }
+}
+
+/* set up audio device */
 #define MSGLEN (512)
 static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
 {
@@ -350,7 +371,17 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       strncpy(msg, Str("No real-time audio configurations found"), MSGLEN);
       goto err_return_msg;
     }
-
+    /*=======================*/
+    int hwchns;
+    if(snd_pcm_hw_params_get_channels_max(hw_params, &hwchns) < 0){
+      strncpy(msg, Str("Could not retrieve max number of channels"), MSGLEN);
+      goto err_return_msg;
+    }
+    if(play) {
+      DAC_channels(csound,hwchns);
+      } else ADC_channels(csound,hwchns);
+    /*=========================*/
+    
     /* now set the various hardware parameters: */
     /* access method, */
     if (snd_pcm_hw_params_set_access(dev->handle, hw_params,
@@ -394,7 +425,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       if (dev->srate!=target)
         p->MessageS(p, CSOUNDMSG_WARNING, " *** rate set to %d\n", dev->srate);
     }
-    csound->system_sr(csound, (MYFLT) dev->srate);
+
     /* buffer size, */
     if (dev->buffer_smps == 0)
       dev->buffer_smps = 1024;
