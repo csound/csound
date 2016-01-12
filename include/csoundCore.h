@@ -1667,7 +1667,7 @@ typedef struct NAME__ {
     int           dag_changed;
     int           dag_num_active;
     INSDS         **dag_task_map;
-    volatile enum state    *dag_task_status;
+    volatile stateWithPadding    *dag_task_status;
     watchList     * volatile *dag_task_watch;
     watchList     *dag_wlmm;
     char          **dag_task_dep;

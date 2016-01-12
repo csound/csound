@@ -1337,12 +1337,12 @@ inline void advanceINSDSPointer(INSDS ***start, int num)
     **start = s;
 }
 
-int dag_get_task(CSOUND *csound);
+int dag_get_task(CSOUND *csound, int index, int numThreads, int next_task);
 int dag_end_task(CSOUND *csound, int task);
 void dag_build(CSOUND *csound, INSDS *chain);
 void dag_reinit(CSOUND *csound);
 
-inline static int nodePerf(CSOUND *csound, int index)
+inline static int nodePerf(CSOUND *csound, int index, int numThreads)
 {
     INSDS *insds = NULL;
     OPDS  *opstart = NULL;
@@ -1352,11 +1352,12 @@ inline static int nodePerf(CSOUND *csound, int index)
     double time_end;
 #define INVALID (-1)
 #define WAIT    (-2)
+    int next_task = INVALID;
     IGN(index);
 
     while(1) {
       int done;
-      which_task = dag_get_task(csound);
+      which_task = dag_get_task(csound, index, numThreads, next_task);
       //printf("******** Select task %d\n", which_task);
       if (which_task==WAIT) continue;
       if (which_task==INVALID) return played_count;
@@ -1424,7 +1425,7 @@ inline static int nodePerf(CSOUND *csound, int index)
         played_count++;
         }
         //printf("******** finished task %d\n", which_task);
-        dag_end_task(csound, which_task);
+        next_task = dag_end_task(csound, which_task);
     }
     return played_count;
 }
@@ -1468,7 +1469,7 @@ unsigned long kperfThread(void * cs)
       }
       csound_global_mutex_unlock();
 
-      nodePerf(csound, index);
+      nodePerf(csound, index, numThreads);
 
       csound->WaitBarrier(csound->barrier2);
     }
@@ -1516,7 +1517,7 @@ int kperf_nodebug(CSOUND *csound)
         /* process this partition */
         csound->WaitBarrier(csound->barrier1);
 
-        (void) nodePerf(csound, 0);
+        (void) nodePerf(csound, 0, 1);
 
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
@@ -1764,7 +1765,7 @@ int kperf_debug(CSOUND *csound)
         /* process this partition */
         csound->WaitBarrier(csound->barrier1);
 
-        (void) nodePerf(csound, 0);
+        (void) nodePerf(csound, 0, 1);
 
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
