@@ -437,14 +437,14 @@ else()
     message(FATAL_ERROR "Could not find sndfile.h")
 endif()
 
-find_library(PTHREAD_LIBRARY pthread)
+find_library(PTHREAD_LIBRARY winpthread-1)
 
-if(NOT PTHREAD_LIBRARY AND WIN32)
-    find_library(PTHREAD_LIBRARY pthreadGC2)
+if(NOT PTHREAD_LIBRARY)
+    find_library(PTHREAD_LIBRARY pthread)
 endif()
 
 if(NOT PTHREAD_LIBRARY AND WIN32)
-    find_library(PTHREAD_LIBRARY winpthread-1)
+    find_library(PTHREAD_LIBRARY pthreadGC2)
 endif()
 
 if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
