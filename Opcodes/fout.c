@@ -1401,23 +1401,23 @@ static int fprintf_set_S(CSOUND *csound, FPRINTF *p){
   return fprintf_set_(csound,p,1);
 }
 
+
+
 /* perform a sprintf-style format -- matt ingalls */
-void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
+void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
 {
     char strseg[8192];
     int len = 8192;
     int i = 0, j = 0;
     char *segwaiting = 0;
-
     while (*fmt) {
       if (*fmt == '%') {
         /* if already a segment waiting, then lets print it */
         if (segwaiting) {
           strseg[i] = '\0';
-
           switch (*segwaiting) {
           case '%':
-            snprintf(outstring, len, "%%");
+            strncpy(outstring, "%%", len);
             j--;
             break;
           case 'd':
@@ -1450,10 +1450,9 @@ void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
           if (j < numVals-1)
             j++;
         }
-
         /* copy the '%' */
         strseg[i++] = *fmt++;
-
+        
         /* find the format code */
         segwaiting = fmt;
         while (*segwaiting && !isalpha(*segwaiting) && !(*segwaiting=='%'))
@@ -1462,7 +1461,7 @@ void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
       else
         strseg[i++] = *fmt++;
     }
-
+    
     if (i) {
       strseg[i] = '\0';
       if (segwaiting) {
@@ -1488,13 +1487,14 @@ void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
           break;
 
         default:
-          snprintf(outstring, len, strseg, *kvals[j]);
+	  snprintf(outstring, len, strseg, *kvals[j]);
           break;
         }
       }
       else
         snprintf(outstring, len, "%s", strseg);
     }
+   
 }
 
 static int fprintf_k(CSOUND *csound, FPRINTF *p)
@@ -1502,7 +1502,7 @@ static int fprintf_k(CSOUND *csound, FPRINTF *p)
     char    string[8192];
 
     (void) csound;
-    sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
+    sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f, "%s", string);
 
     return OK;
@@ -1515,7 +1515,7 @@ static int fprintf_i(CSOUND *csound, FPRINTF *p)
 
     if (UNLIKELY(fprintf_set(csound, p) != OK))
       return NOTOK;
-    sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
+    sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f,"%s", string);
     /* fflush(p->f.f); */
     return OK;
@@ -1527,7 +1527,7 @@ static int fprintf_i_S(CSOUND *csound, FPRINTF *p)
 
     if (UNLIKELY(fprintf_set_S(csound, p) != OK))
       return NOTOK;
-    sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
+    sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f, "%s", string);
     /* fflush(p->f.f); */
     return OK;

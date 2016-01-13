@@ -908,8 +908,10 @@ int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
           }
         }
         /* This case is from matt ingalls */
-        else if (temp == '%') { /* an extra option to specify tab and
-                                   return as %t and %r*/
+	else if (temp == '%' && tempn != '%' ) {
+	   /* an extra option to specify tab and
+              return as %t and %r*/
+	  /* allowing for %% escape -- VL */
           switch (tempn) {
           case 'r': case 'R':
             *sdest++ = '\r';
@@ -927,10 +929,10 @@ int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
             *sdest++ = ';';
             sarg++;
             break;
-          case '%':             /* Should we do this? JPff */
-            *sdest++ = '%';
-            sarg++;
-            break;
+	    // case '%':             /* Should we do this? JPff */
+            // *sdest++ = '%';       /* No. VL */
+	    // sarg++; 
+            // break;
           default:
             *sdest++ = temp;
             break;
@@ -961,14 +963,16 @@ int printksset(CSOUND *csound, PRINTKS *p){
 }
 
 
-/* perform a sprintf-style format  -- matt ingalls */
-/* void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals) */
+//perform a sprintf-style format  -- matt ingalls
+/* void sprints_local(char *outstring, char *fmt, MYFLT **kvals, int32 numVals) */
 /* { */
 /*     char strseg[8192]; */
 /*     int i = 0, j = 0; */
 /*     char *segwaiting = 0; */
+/*     puts(fmt); */
 /*     while (*fmt) { */
 /*       if (*fmt == '%') { */
+/* 	//if(*(fmt+1) == '%'){ fmt++;  strcpy(outstring, "%%"); outstring += strlen(outstring); continue;} */
 /*         /\* if already a segment waiting, then lets print it *\/ */
 /*         if (segwaiting) { */
 /*           MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]); */
@@ -994,6 +998,7 @@ int printksset(CSOUND *csound, PRINTKS *p){
 /*             break; */
 
 /*           default: */
+/* 	    printf("strseg:%s - %c\n", strseg, *segwaiting); */
 /*             CS_SPRINTF(outstring, strseg, xx); */
 /*             break; */
 /*           } */
@@ -1051,6 +1056,64 @@ int printksset(CSOUND *csound, PRINTKS *p){
 /*         snprintf(outstring, 8196, "%s", strseg); */
 /*     } */
 /* } */
+/* VL - rewritten 1/16
+   escaping %% correctly now.
+ */
+static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
+  char tmp[8],cc;
+  int j = 0;
+  int len = 8192;
+  while(*fmt){
+    if(*fmt == '%'){
+      if(*(fmt+1) == '%'){
+        *outstring++ = *fmt++;
+	*outstring++ = *fmt++;
+	len-=2;
+      }
+      else{
+	int n = 0;
+	char check;
+	while(*(fmt+n) && !isspace(*(fmt+n))){
+	  tmp[n] = check = *(fmt+n);
+	  n++;
+	}
+	tmp[n] = *(fmt+n);
+	tmp[n+1] = '\0';
+	n++;
+	switch(check){
+          case 'd':
+          case 'i':
+          case 'o':
+          case 'x':
+          case 'X':
+          case 'u':
+           snprintf(outstring, len, tmp, MYFLT2LRND(*kvals[j]));
+           break;
+	  case 'c':	   
+	   cc  = (char) MYFLT2LRND(*kvals[j]);
+	   if(cc == '%'){
+	     *outstring++ = '%';
+	   }
+	   snprintf(outstring, len, tmp, cc);
+          break;
+	  default:
+	   snprintf(outstring, len, tmp, *kvals[j]);
+	   break;
+	}
+	if (j < numVals-1)
+            j++;
+	fmt += n;
+	outstring += strlen(outstring);
+	len -= strlen(outstring);
+      }
+    }
+    else {
+      *outstring++ = *fmt++;
+      len--;
+    }
+  }
+}
+
 
 /*************************************/
 
