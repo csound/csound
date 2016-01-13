@@ -206,12 +206,17 @@ namespace csound
     }
     return command_;
   }
-
-  intptr_t MusicModel::getThis()
+#ifndef LINUX
+  intptr_t
+#else
+  long
+#endif
+  MusicModel::getThis()
   {
     return (intptr_t) this;
   }
 
+  
   Node *MusicModel::getThisNode()
   {
     return (Node *)this;
