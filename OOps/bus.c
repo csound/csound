@@ -664,7 +664,7 @@ static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if(err == 0) {
     p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
-    p->iname->data = p->chname;
+    p->iname->data =  p->chname;
     }
     else
       print_chn_err_perf(p, err);
@@ -757,10 +757,12 @@ int chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
     if (LIKELY(!err)) {
+      p->chname =  p->iname->data;
       p->h.opadr = (SUBR) chnget_opcode_perf_k;
       return OK;
     }
-    p->chname = p->iname->data;
+   
+    
     return print_chn_err(p, err);
 }
 
@@ -775,10 +777,10 @@ int chnget_opcode_init_a(CSOUND *csound, CHNGET *p)
     p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
 
     if (LIKELY(!err)) {
+      p->chname =  p->iname->data;
       p->h.opadr = (SUBR) chnget_opcode_perf_a;
       return OK;
     }
-    p->chname = p->iname->data;
     return print_chn_err(p, err);
 }
 
