@@ -34,6 +34,7 @@
 #include "CppSound.hpp"
 #include "Node.hpp"
 #include "Score.hpp"
+#include <stdint.h>
 #endif
 
 namespace csound
