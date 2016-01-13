@@ -1070,6 +1070,12 @@ static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
 	*outstring++ = *fmt++;
 	len-=2;
       }
+      else if(*(fmt+1) && isspace(*(fmt+1))){
+        *outstring++ = *fmt++;
+	*outstring++ = '%';
+	*outstring++ = *fmt++; 
+	len-=3;
+      }	
       else{
 	int n = 0;
 	char check;
@@ -1097,6 +1103,7 @@ static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
 	   snprintf(outstring, len, tmp, cc);
           break;
 	  default:
+	    puts(fmt);
 	   snprintf(outstring, len, tmp, *kvals[j]);
 	   break;
 	}
