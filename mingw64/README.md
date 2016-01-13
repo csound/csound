@@ -39,5 +39,5 @@ The following are instructions for building Csound for 64-bit Windows (x86_64) u
 * Websockets opcodes (libwebsockets)
 * Jack (is this done normally on Windows?) 
 * csoundapi~ for PD (requires pd headers)
-* CsoundAC (problems due to getThis as long; modified to intptr_t but issue with pad() in allegro.h, stopped there for now and disabled CsoundAC in build.sh)
+* CsoundAC (builds except Lua interface, same linking problems as above)
 * C Unit tests (cunit library)
