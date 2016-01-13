@@ -659,12 +659,12 @@ static CS_NOINLINE int print_chn_err(void *p, int err)
 /* receive control value from bus at performance time */
 static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
-  if(p->iname->data != p->chname){
+  if(strncmp(p->chname, p->iname->data, MAX_CHAN_NAME)){
     int err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if(err == 0) {
     p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
-    p->iname->data =  p->chname;
+    strncpy(p->chname, p->iname->data, MAX_CHAN_NAME);
     }
     else
       print_chn_err_perf(p, err);
@@ -690,12 +690,12 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 
-    if(p->iname->data != p->chname){
+    if(strncmp(p->chname, p->iname->data, MAX_CHAN_NAME)){
     int err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
     if(err == 0) {
     p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
-    p->iname->data = p->chname;
+    strncpy(p->chname, p->iname->data, MAX_CHAN_NAME);
     }
     else
       print_chn_err_perf(p, err);
@@ -757,7 +757,7 @@ int chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
     if (LIKELY(!err)) {
-      p->chname =  p->iname->data;
+      strncpy(p->chname, p->iname->data, MAX_CHAN_NAME);
       p->h.opadr = (SUBR) chnget_opcode_perf_k;
       return OK;
     }
@@ -777,7 +777,7 @@ int chnget_opcode_init_a(CSOUND *csound, CHNGET *p)
     p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
 
     if (LIKELY(!err)) {
-      p->chname =  p->iname->data;
+      strncpy(p->chname, p->iname->data, MAX_CHAN_NAME);
       p->h.opadr = (SUBR) chnget_opcode_perf_a;
       return OK;
     }
