@@ -18,6 +18,7 @@ The following are instructions for building Csound for 64-bit Windows (x86_64) u
   * mingw64/mingw-w64-x86_64-boost
   * mingw64/mingw-w64-x86_64-curl 
   * mingw64/mingw-w64-x86_64-luajit-git 
+  * mingw64/mingw-w64-x86_64-eigen3 
 3. Open a MinGW-w64 Win64 Shell.  This will load a terminal with all tools for mingw64 setup.
 4. Change directories to this directory and run ./build.sh
 
@@ -38,5 +39,5 @@ The following are instructions for building Csound for 64-bit Windows (x86_64) u
 * Websockets opcodes (libwebsockets)
 * Jack (is this done normally on Windows?) 
 * csoundapi~ for PD (requires pd headers)
-* CsoundAC (eigendense)
+* CsoundAC (problems due to getThis as long; modified to intptr_t but issue with pad() in allegro.h, stopped there for now and disabled CsoundAC in build.sh)
 * C Unit tests (cunit library)
