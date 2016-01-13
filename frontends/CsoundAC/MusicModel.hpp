@@ -51,12 +51,7 @@ namespace csound
     virtual ~MusicModel();
     virtual void initialize();
     virtual int generate();
-#ifndef LINUX
-    virtual intptr_t
-#else
-    virtual long
-#endif
-      getThis();
+    virtual intptr_t getThis();
     virtual Node *getThisNode();
     /**
      * Translate the generated score to a Csound score
