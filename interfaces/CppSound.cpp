@@ -180,12 +180,7 @@ void CppSound::write(const char *text)
   Message("%s", text);
 }
 
-#ifndef LINUX
-  intptr_t
-#else
-  long
-#endif
-CppSound::getThis()
+intptr_t CppSound::getThis()
 {
   return (intptr_t) this;
 }
