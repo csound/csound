@@ -554,7 +554,7 @@ public:
 #pragma warning(disable: 546) // cast to int is OK, we only want low 7 bits
 #pragma warning(disable: 4311) // type cast pointer to long warning
 #endif
-    void get_pad() { while (((long) ptr) & 7) ptr++; }
+    void get_pad() { while (((intptr_t) ptr) & 7) ptr++; }
 #if defined(_WIN32)
 #pragma warning(default: 4311 546)
 #endif
@@ -624,7 +624,7 @@ typedef class Serial_write_buffer: public Serial_buffer {
 #pragma warning(disable: 546) // cast to int is OK, we only want low 7 bits
 #pragma warning(disable: 4311) // type cast pointer to long warning
 #endif
-    void pad() { while (((long) ptr) & 7) set_char(0); }
+    void pad() { while (((intptr_t) ptr) & 7) set_char(0); }
 #if defined(_WIN32)
 #pragma warning(default: 4311 546)
 #endif
