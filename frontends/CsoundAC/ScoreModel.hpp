@@ -67,7 +67,12 @@ public:
         /**
          * Returns the address of this as a long integer.
          */
-        virtual intptr_t getThis();
+#ifndef LINUX
+        virtual intptr_t
+#else
+        virtual long
+#endif
+        getThis();
         /**
          * Returns the address of this as a Node pointer.
          */
