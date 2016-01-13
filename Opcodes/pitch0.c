@@ -34,9 +34,9 @@ int mute_inst(CSOUND *csound, MUTE *p)
     int n;
     int onoff = (*p->onoff == FL(0.0) ? 0 : 1);
 
-    if(ISSTRCOD(*p->ins)) {
-    char *ss = get_arg_string(csound,*p->ins);
-    n = csound->strarg2insno(csound,ss,1);
+    if (ISSTRCOD(*p->ins)) {
+      char *ss = get_arg_string(csound,*p->ins);
+      n = csound->strarg2insno(csound,ss,1);
     } else n = *p->ins;
 
     if (UNLIKELY(n < 1)) return NOTOK;
@@ -49,6 +49,7 @@ int mute_inst(CSOUND *csound, MUTE *p)
     csound->engineState.instrtxtp[n]->muted = onoff;
     return OK;
 }
+
 int mute_inst_S(CSOUND *csound, MUTE *p)
 {
     int n;
@@ -71,10 +72,11 @@ int instcount(CSOUND *csound, INSTCNT *p)
 {
     int n;
 
-    if(ISSTRCOD(*p->ins)) {
-    char *ss = get_arg_string(csound,*p->ins);
-    n = csound->strarg2insno(csound,ss,1);
-    } else n = *p->ins;
+    if (ISSTRCOD(*p->ins)) {
+      char *ss = get_arg_string(csound,*p->ins);
+      n = csound->strarg2insno(csound,ss,1);
+    }
+    else n = *p->ins;
 
     if (n<0 || n > csound->engineState.maxinsno ||
         csound->engineState.instrtxtp[n] == NULL)
@@ -157,12 +159,13 @@ int cpuperc_S(CSOUND *csound, CPU_PERC *p)
 
 int maxalloc(CSOUND *csound, CPU_PERC *p)
 {
-     int n;
+    int n;
 
-    if(ISSTRCOD(*p->instrnum)) {
-    char *ss = get_arg_string(csound,*p->instrnum);
-    n = csound->strarg2insno(csound,ss,1);
-    } else n = *p->instrnum;
+    if (ISSTRCOD(*p->instrnum)) {
+      char *ss = get_arg_string(csound,*p->instrnum);
+      n = csound->strarg2insno(csound,ss,1);
+    }
+    else n = *p->instrnum;
     if (n > 0 && n <= csound->engineState.maxinsno &&
         csound->engineState.instrtxtp[n] != NULL)
       /* If instrument exists */
@@ -184,8 +187,10 @@ int pfun(CSOUND *csound, PFUN *p)
 {
     int n = (int)MYFLT2LONG(*p->pnum);
     MYFLT ans;
-    if (n<1 || n>PMAX) ans = FL(0.0);
-    else ans = csound->currevent->p[n];
+    if (n<1) ans = FL(0.0);
+    else if (n<PMAX) ans = csound->currevent->p[n];
+    else if (csound->currevent->c.extra && n<PMAX+csound->currevent->c.extra[0]) ans = csound->currevent->c.extra[n-PMAX+1];
+    else ans = FL(0.0);
     /*csound->Message(csound, "p(%d) %f\n", n,ans);*/ 
     *p->ans = ans;
     return OK;
