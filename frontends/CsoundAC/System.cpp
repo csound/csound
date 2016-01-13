@@ -354,7 +354,7 @@ namespace csound
   int System::shellOpen(const char *filename, const char *command)
   {
     int returnValue = 0;
-    int hInstance = (int) ShellExecute(0,
+    intptr_t hInstance = (intptr_t) ShellExecute(0,
                                        command,
                                        filename,
                                        0,
