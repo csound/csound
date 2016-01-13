@@ -23,6 +23,7 @@
 #include "System.hpp"
 #include <cstdio>
 #include <cstdlib>
+#include <cstdint>
 
 namespace csound
 {
