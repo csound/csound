@@ -52,12 +52,8 @@ namespace csound
     Node::clear();
     Composition::clear();
   }
-#ifndef LINUX
-  intptr_t
-#else
-  long
-#endif
-  ScoreModel::getThis()
+
+  intptr_t ScoreModel::getThis()
   {
     return (intptr_t) this;
   }
