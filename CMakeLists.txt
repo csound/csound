@@ -419,6 +419,17 @@ if(NOT LIBSNDFILE_LIBRARY)
     message(FATAL_ERROR "Csound requires the sndfile library")
 endif()
 
+
+if(WIN32 AND NOT MSVC) 
+  find_library(OGG_LIB ogg)
+  find_library(VORBIS_LIB vorbis)
+  find_library(VORBISENC_LIB vorbisenc)
+  find_library(SPEEX_LIB speex)
+  find_library(FLAC_LIB FLAC)
+  set(LIBSNDFILE_SUPPORT_LIBS ${VORBIS_LIB} ${VORBISENC_LIB} ${SPEEX_LIB} ${FLAC_LIB} ${OGG_LIB}
+)
+endif()
+
 find_path(SNDFILE_H_PATH sndfile.h)
 if(SNDFILE_H_PATH)
     include_directories(${SNDFILE_H_PATH})
@@ -426,7 +437,11 @@ else()
     message(FATAL_ERROR "Could not find sndfile.h")
 endif()
 
-find_library(PTHREAD_LIBRARY pthread)
+find_library(PTHREAD_LIBRARY winpthread-1)
+
+if(NOT PTHREAD_LIBRARY)
+    find_library(PTHREAD_LIBRARY pthread)
+endif()
 
 if(NOT PTHREAD_LIBRARY AND WIN32)
     find_library(PTHREAD_LIBRARY pthreadGC2)
@@ -1073,10 +1088,21 @@ endif()
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
+    if(NOT MSVC) 
+      list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
+    endif()
 endif()
 
 if(CURL_FOUND)
   list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
+  if(WIN32 AND NOT MSVC) 
+    # not quite working yet with msys2/mingw64
+    #list(APPEND libcsound_CFLAGS -DCURL_STATICLIB -DLIBSSH_STATIC)
+    #list(APPEND libcsound_LIBS crypto ssh2 ssl ws2_32 rtmp)
+    #find_library(GNUTLS_LIB gnutls)
+    #list(APPEND libcsound_LIBS ${GNUTLS_LIB})
+  endif()
+
 endif()
 
 # Linux does not have a separate libintl, it is part of libc
@@ -1201,7 +1227,6 @@ endif()
 
 
 add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
-
 target_link_libraries(${CSOUNDLIB} ${libcsound_LIBS})
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
