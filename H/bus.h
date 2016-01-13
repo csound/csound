@@ -31,6 +31,8 @@
 #include "pstream.h"
 #include "csound_standard_types.h"
 
+#define MAX_CHAN_NAME 1024
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -80,7 +82,7 @@ typedef struct {
     MYFLT   *fp;
     int     *lock;
     int      pos;
-    char  *chname;
+    char     chname[MAX_CHAN_NAME+1];
 } CHNGET;
 
 typedef struct {
