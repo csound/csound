@@ -718,8 +718,8 @@ int mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
   for(i=offset; i < nsmps; i++){
     
     x = -4.2*c5*(res[i] > FL(0.0) ?
-    (res[i] < FL(1.0) ?
-     res[i] : FL(1.0)) : FL(0.0))
+		 (res[i] < FL(1.0) ?
+		  res[i] : FL(1.0)) : FL(0.0))
       + in[i]/scal + 1e-10;
     t = c1 / (1 + fabs (c1));
     c1 += w*(x - t);
@@ -772,8 +772,8 @@ int mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
     }
     
     x = -4.2*c5*(res[i] > FL(0.0) ?
-    (res[i] < FL(1.0) ?
-     res[i] : FL(1.0)) : FL(0.0))
+		 (res[i] < FL(1.0) ?
+		  res[i] : FL(1.0)) : FL(0.0))
       + in[i]/scal + 1e-10;
     t = c1 / (1 + fabs (c1));
     c1 += w*(x - t);
@@ -927,8 +927,8 @@ int mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
    
   for(i=offset; i < nsmps; i++){
     x = -4.5*c5*(res[i] > FL(0.0) ?
-    (res[i] < FL(1.0) ?
-     res[i] : FL(1.0)) : FL(0.0))
+		 (res[i] < FL(1.0) ?
+		  res[i] : FL(1.0)) : FL(0.0))
       + in[i]/scal + 1e-10; 
     x /= sqrt (1 + x * x);
     c1 += w * (x  - c1) / (1 + c1 * c1);            
@@ -979,8 +979,8 @@ int mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
       if(w > 0.92) w = 0.92;
     }
     x = -4.5*c5*(res[i] > FL(0.0) ?
-    (res[i] < FL(1.0) ?
-     res[i] : FL(1.0)) : FL(0.0))
+		 (res[i] < FL(1.0) ?
+		  res[i] : FL(1.0)) : FL(0.0))
       + in[i]/scal + 1e-10; 
     x /= sqrt (1 + x * x);
     c1 += w * (x  - c1) / (1 + c1 * c1);            
@@ -1007,7 +1007,7 @@ int mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-   MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csound->Get0dBFS(csound);
   
   if(p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
@@ -1161,7 +1161,7 @@ int mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
- MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csound->Get0dBFS(csound);
   
   if(p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
@@ -1183,9 +1183,9 @@ int mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
    
   for(i=offset; i < nsmps; i++){
     x = in[i]/scal - (4.3 - 0.2 * w) *
-    (res[i] > FL(0.0) ?
-     (res[i] < FL(1.0) ?
-      res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10; 
+      (res[i] > FL(0.0) ?
+       (res[i] < FL(1.0) ?
+	res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10; 
     x /= sqrt (1 + x * x);
     d = w * (x  - c1) / (1 + c1 * c1);            
     x = c1 + 0.77 * d;
@@ -1202,9 +1202,9 @@ int mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
     c5 += 0.85 * (c4 - c5);
 
     x = in[i]/scal - (4.3 - 0.2 * w) *
-    (res[i] > FL(0.0) ?
-     (res[i] < FL(1.0) ?
-      res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
+      (res[i] > FL(0.0) ?
+       (res[i] < FL(1.0) ?
+	res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
     x /= sqrt (1 + x * x);
     d = w * (x  - c1) / (1 + c1 * c1);            
     x = c1 + 0.77 * d;
@@ -1263,10 +1263,10 @@ int mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
     }
 
     
-     x = in[i]/scal - (4.3 - 0.2 * w) *
-    (res[i] > FL(0.0) ?
-     (res[i] < FL(1.0) ?
-      res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10; 
+    x = in[i]/scal - (4.3 - 0.2 * w) *
+      (res[i] > FL(0.0) ?
+       (res[i] < FL(1.0) ?
+	res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10; 
     x /= sqrt (1 + x * x);
     d = w * (x  - c1) / (1 + c1 * c1);            
     x = c1 + 0.77 * d;
@@ -1283,9 +1283,9 @@ int mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
     c5 += 0.85 * (c4 - c5);
 
     x = in[i]/scal - (4.3 - 0.2 * w) *
-    (res[i] > FL(0.0) ?
-     (res[i] < FL(1.0) ?
-      res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
+      (res[i] > FL(0.0) ?
+       (res[i] < FL(1.0) ?
+	res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
     x /= sqrt (1 + x * x);
     d = w * (x  - c1) / (1 + c1 * c1);            
     x = c1 + 0.77 * d;
@@ -1545,9 +1545,9 @@ int mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
    
   for(i=offset; i < nsmps; i++){
     x = in[i]/scal - (4.3 - 0.2 * w) *
-    (res[i] > FL(0.0) ?
-     (res[i] < FL(1.0) ?
-      res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
+      (res[i] > FL(0.0) ?
+       (res[i] < FL(1.0) ?
+	res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
     x /= sqrt (1 + x * x);
     d = w * (x  - c1) / (1 + c1 * c1);            
     x = c1 + 0.77 * d;
@@ -1563,10 +1563,10 @@ int mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
     c4 = x + 0.23 * d;        
     c5 += 0.85 * (c4 - c5);
 
-   x = in[i]/scal - (4.3 - 0.2 * w) *
-    (res[i] > FL(0.0) ?
-     (res[i] < FL(1.0) ?
-      res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
+    x = in[i]/scal - (4.3 - 0.2 * w) *
+      (res[i] > FL(0.0) ?
+       (res[i] < FL(1.0) ?
+	res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
     x /= sqrt (1 + x * x);
     d = w * (x  - c1) / (1 + c1 * c1);            
     x = c1 + 0.77 * d;
@@ -1636,9 +1636,9 @@ int mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
       if (w > 0.82) w = 0.82;
     }
     x = in[i]/scal - (4.3 - 0.2 * w) *
-    (res[i] > FL(0.0) ?
-     (res[i] < FL(1.0) ?
-      res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10; 
+      (res[i] > FL(0.0) ?
+       (res[i] < FL(1.0) ?
+	res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10; 
     x /= sqrt (1 + x * x);
     d = w * (x  - c1) / (1 + c1 * c1);            
     x = c1 + 0.77 * d;
@@ -1655,9 +1655,9 @@ int mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
     c5 += 0.85 * (c4 - c5);
 
     x = in[i]/scal - (4.3 - 0.2 * w) *
-    (res[i] > FL(0.0) ?
-     (res[i] < FL(1.0) ?
-      res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
+      (res[i] > FL(0.0) ?
+       (res[i] < FL(1.0) ?
+	res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
     x /= sqrt (1 + x * x);
     d = w * (x  - c1) / (1 + c1 * c1);            
     x = c1 + 0.77 * d;
@@ -1732,7 +1732,7 @@ int mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
   }
    
   for(i=offset; i < nsmps; i++){
-    x = y = in[i]/scal/scal  - 0.3 * x;
+    x = y = in[i]/scal  - 0.3 * x;
     d = x - c1 + 1e-10;
     t = d * d;
     d *= (1 + t) / (w + t);            
@@ -1841,39 +1841,39 @@ int mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
 static OENTRY localops[] = {
   {"mvchpf", sizeof(mvchpf24), 0, 5, "a", "akp",
    (SUBR) mvchpf24_init, NULL, (SUBR) mvchpf24_perf},
-    {"mvchpf", sizeof(mvchpf24), 0, 5, "a", "aap",
+  {"mvchpf", sizeof(mvchpf24), 0, 5, "a", "aap",
    (SUBR) mvchpf24_init, NULL, (SUBR) mvchpf24_perf_a},
   {"mvclpf1", sizeof(mvclpf24), 0, 5, "a", "akkp",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf1},
   {"mvclpf1", sizeof(mvclpf24), 0, 5, "a", "aakp",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf1_ak},
-   {"mvclpf1", sizeof(mvclpf24), 0, 5, "a", "akap",
+  {"mvclpf1", sizeof(mvclpf24), 0, 5, "a", "akap",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf1_ka},
   {"mvclpf1", sizeof(mvclpf24), 0, 5, "a", "aaap",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf1_aa},
   {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "akkp",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf2},
-    {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "aakp",
+  {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "aakp",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf2_ak},
-    {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "akap",
+  {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "akap",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf2_ka},
-    {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "aaap",
+  {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "aaap",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf2_aa},
   {"mvclpf3", sizeof(mvclpf24), 0, 5, "a", "akkp",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf3},
   {"mvclpf3", sizeof(mvclpf24), 0, 5, "a", "aakp",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf3_ak},
-    {"mvclpf3", sizeof(mvclpf24), 0, 5, "a", "akap",
+  {"mvclpf3", sizeof(mvclpf24), 0, 5, "a", "akap",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf3_ka},
-    {"mvclpf3", sizeof(mvclpf24), 0, 5, "a", "aaap",
+  {"mvclpf3", sizeof(mvclpf24), 0, 5, "a", "aaap",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf3_aa},
   {"mvclpf4", sizeof(mvclpf24_4), 0, 5, "aaaa", "akkp",
    (SUBR) mvclpf24_4_init, NULL, (SUBR) mvclpf24_perf4},
-   {"mvclpf4", sizeof(mvclpf24), 0, 5, "a", "aakp",
+  {"mvclpf4", sizeof(mvclpf24), 0, 5, "a", "aakp",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf4_ak},
-    {"mvclpf4", sizeof(mvclpf24), 0, 5, "a", "akap",
+  {"mvclpf4", sizeof(mvclpf24), 0, 5, "a", "akap",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf4_ka},
-    {"mvclpf4", sizeof(mvclpf24), 0, 5, "a", "aaap",
+  {"mvclpf4", sizeof(mvclpf24), 0, 5, "a", "aaap",
    (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf4_aa},
   {"moogladder.kk", sizeof(moogladder), 0, 5, "a", "akkp",
    (SUBR) moogladder_init, NULL, (SUBR) moogladder_process },
