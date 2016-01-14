@@ -479,7 +479,9 @@ int rndset(CSOUND *csound, RAND *p)
       }
       else {
         if (p->new) {
-          p->rand = (int32) (*p->iseed * FL(2147483648.0));
+          MYFLT seed = *p->iseed;
+          if (seed==FL(0.0)) seed = FL(0.5);
+          p->rand = (int32) (seed * FL(2147483648.0));
           p->rand = randint31(p->rand);
           p->rand = randint31(p->rand);
         }
