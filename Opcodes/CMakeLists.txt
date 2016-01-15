@@ -145,8 +145,12 @@ if(BUILD_FLUID_OPCODES)
      endif()
 
      if(WIN32 AND NOT MSVC) 
-        set(FSYNTH_SUPPORT_LIBS ${FLUIDSYNTH_LIBRARY} wsock32 glib-2.0 intl iconv ws2_32 winmm)
+        set(FSYNTH_SUPPORT_LIBS ${FLUIDSYNTH_LIBRARY} dsound portaudio
+          ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} wsock32 glib-2.0
+          intl iconv ws2_32 winmm Setupapi)
         make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp ${FSYNTH_SUPPORT_LIBS})
+
+        add_compiler_flags(-DFLUIDSYNTH_NOT_A_DLL TARGETS fluidOpcodes)
      else()
         make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp ${FLUIDSYNTH_LIBRARY})
      endif()
@@ -177,6 +181,9 @@ if(BUILD_OSC_OPCODES)
     make_plugin(osc OSC.c)
     if(WIN32)
       target_link_libraries(osc ${LIBLO_LIBRARY} pthread wsock32 ws2_32)
+      if(NOT MSVC) 
+        target_link_libraries(osc iphlpapi)
+      endif()
     else()
       target_link_libraries(osc ${LIBLO_LIBRARY} pthread)
     endif()

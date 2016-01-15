@@ -1,0 +1,49 @@
+# Maintainer: Steven Yi <stevenyi@gmail.com>
+
+_realname='liblo'
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
+         "${MINGW_PACKAGE_PREFIX}-${_realname}-devel")
+pkgver=0.28
+pkgrel=1
+pkgdesc="A lightweight OSC (Open Sound Control) implementation"
+arch=('i686' 'x86_64')
+url="http://liblo.sourceforge.net/"
+# options=('!libtool')
+options=('!strip' '!buildflags' 'staticlibs')
+license=('LGPL')
+source=("http://downloads.sourceforge.net/project/${_realname}/${_realname}/$pkgver/${_realname}-$pkgver.tar.gz")
+md5sums=('e2a4391a08b49bb316c03e2034e06fa2')
+
+build() {
+  export CFLAGS="-Wno-error"
+  cd "${srcdir}/${_realname}-$pkgver/"
+  ./configure --enable-static --enable-shared --prefix=${MINGW_PREFIX}
+  make
+  make DESTDIR="${srcdir}/dest" install
+}
+
+check() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+  #make -j1 check
+}
+
+package_mingw-w64-x86_64-liblo() {
+  groups=('libraries')
+
+  mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,share}
+  cp -f ${srcdir}/dest/${MINGW_PREFIX}/bin/*.dll ${pkgdir}${MINGW_PREFIX}/bin/
+  cp -f ${srcdir}/dest/${MINGW_PREFIX}/bin/*.exe ${pkgdir}${MINGW_PREFIX}/bin/
+}
+
+package_mingw-w64-x86_64-liblo-devel() {
+  pkgdesc="liblo headers and libraries"
+  groups=('development')
+  depends=("${MINGW_PACKAGE_PREFIX}-liblo=${pkgver}")
+  options=('staticlibs')
+
+  mkdir -p ${pkgdir}${MINGW_PREFIX}
+  #cp -f ${srcdir}/dest/usr/bin/*-config ${pkgdir}/usr/bin/
+  cp -rf ${srcdir}/dest/${MINGW_PREFIX}/include ${pkgdir}${MINGW_PREFIX}/
+  cp -rf ${srcdir}/dest/${MINGW_PREFIX}/lib ${pkgdir}${MINGW_PREFIX}/
+  #cp -rf ${srcdir}/dest/usr/share/apr ${pkgdir}/usr/share/
+}
