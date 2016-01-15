@@ -2171,11 +2171,13 @@ int hw_channels(CSOUND *csound, ASSIGN *p){
 
     int *dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
     if (dachans == NULL) {
-      csound->Warning(csound, "number of hardware output channels not currently available");
+      csound->Warning(csound, Str("number of hardware output channels"
+                                  " not currently available"));
     } else *p->r = *dachans;
     dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
     if (dachans == NULL) {
-      csound->Warning(csound, "number of hardware input channels not currently available");
-    } else *p->a = *dachans;   
+      csound->Warning(csound, Str("number of hardware input channels"
+                                  " not currently available"));
+    } else *p->a = *dachans;
     return OK;
 }
