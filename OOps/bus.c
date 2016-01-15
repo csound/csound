@@ -655,7 +655,7 @@ static CS_NOINLINE int print_chn_err(void *p, int err)
     return csound->InitError(csound, Str(msg));
 }
 
- 
+
 /* receive control value from bus at performance time */
 static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
@@ -669,7 +669,7 @@ static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
     else
       print_chn_err_perf(p, err);
   }
-    
+
 #ifdef HAVE_ATOMIC_BUILTIN
     volatile union {
     MYFLT d;
@@ -761,8 +761,8 @@ int chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
       p->h.opadr = (SUBR) chnget_opcode_perf_k;
       return OK;
     }
-   
-    
+
+
     return print_chn_err(p, err);
 }
 
