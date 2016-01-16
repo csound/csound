@@ -1104,7 +1104,7 @@ static int pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
           /* amp smoothing */
           fout[i].re = fin[i].re * (1.0 + coef1) - del[i].re * coef1;
           /* freq smoothing */
-          fout[i].im = fin[i].im * (1.0 + coef2) - del[i].im * coef1;
+          fout[i].im = fin[i].im * (1.0 + coef2) - del[i].im * coef2;
           del[i] = fout[i];
         }
       }
@@ -1128,7 +1128,7 @@ static int pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
         /* amp smoothing */
         fout[i] = (float) (fin[i] * (1.0 + coef1) - del[i] * coef1);
         /* freq smoothing */
-        fout[i + 1] = (float) (fin[i + 1] * (1.0 + coef2) - del[i + 1] * coef1);
+        fout[i + 1] = (float) (fin[i + 1] * (1.0 + coef2) - del[i + 1] * coef2);
         del[i] = fout[i];
         del[i + 1] = fout[i + 1];
       }
