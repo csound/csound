@@ -743,7 +743,7 @@ int mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, *res = p->res, *freq = p->freq;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-    c4 = p->c4, c5 = p->c5, w, x, t;
+         c4 = p->c4, c5 = p->c5, w, x, t;
   int wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -797,7 +797,7 @@ int mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, res;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-      c4 = p->c4, c5 = p->c5, w, x, t;
+      c4 = p->c4, c5 = p->c5, w, x;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -901,7 +901,7 @@ int mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, *res = p->res;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-      c4 = p->c4, c5 = p->c5, w, x, t;
+      c4 = p->c4, c5 = p->c5, w, x;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -1003,7 +1003,7 @@ int mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, res;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-      c4 = p->c4, c5 = p->c5, w, x, t, d;
+      c4 = p->c4, c5 = p->c5, w, x, d;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -1157,7 +1157,7 @@ int mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, *res  = p->res;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-      c4 = p->c4, c5 = p->c5, w, x, t, d;
+      c4 = p->c4, c5 = p->c5, w, x, d;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -1234,7 +1234,7 @@ int mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, *res = p->res, *freq = p->freq;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-      c4 = p->c4, c5 = p->c5, w, x, t, d;
+      c4 = p->c4, c5 = p->c5, w, x, d;
     int wi;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1334,7 +1334,7 @@ int mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
       *out2 = p->out2, *out3 = p->out3;
     MYFLT *in = p->in, res;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-      c4 = p->c4, c5 = p->c5, w, x, t, d;
+      c4 = p->c4, c5 = p->c5, w, x, d;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -1422,7 +1422,7 @@ int mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
       *out2 = p->out2, *out3 = p->out3;
     MYFLT *in = p->in, res, *freq = p->freq;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-      c4 = p->c4, c5 = p->c5, w, x, t, d;
+           c4 = p->c4, c5 = p->c5, w, x, t, d;
     int wi;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
