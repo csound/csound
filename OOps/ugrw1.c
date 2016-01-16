@@ -908,10 +908,10 @@ int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
           }
         }
         /* This case is from matt ingalls */
-	else if (temp == '%' && tempn != '%' ) {
-	   /* an extra option to specify tab and
+        else if (temp == '%' && tempn != '%' ) {
+           /* an extra option to specify tab and
               return as %t and %r*/
-	  /* allowing for %% escape -- VL */
+          /* allowing for %% escape -- VL */
           switch (tempn) {
           case 'r': case 'R':
             *sdest++ = '\r';
@@ -929,9 +929,9 @@ int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
             *sdest++ = ';';
             sarg++;
             break;
-	    // case '%':             /* Should we do this? JPff */
+            // case '%':             /* Should we do this? JPff */
             // *sdest++ = '%';       /* No. VL */
-	    // sarg++; 
+            // sarg++;
             // break;
           default:
             *sdest++ = temp;
@@ -972,7 +972,7 @@ int printksset(CSOUND *csound, PRINTKS *p){
 /*     puts(fmt); */
 /*     while (*fmt) { */
 /*       if (*fmt == '%') { */
-/* 	//if(*(fmt+1) == '%'){ fmt++;  strcpy(outstring, "%%"); outstring += strlen(outstring); continue;} */
+/*      //if(*(fmt+1) == '%'){ fmt++;  strcpy(outstring, "%%"); outstring += strlen(outstring); continue;} */
 /*         /\* if already a segment waiting, then lets print it *\/ */
 /*         if (segwaiting) { */
 /*           MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]); */
@@ -998,7 +998,7 @@ int printksset(CSOUND *csound, PRINTKS *p){
 /*             break; */
 
 /*           default: */
-/* 	    printf("strseg:%s - %c\n", strseg, *segwaiting); */
+/*          printf("strseg:%s - %c\n", strseg, *segwaiting); */
 /*             CS_SPRINTF(outstring, strseg, xx); */
 /*             break; */
 /*           } */
@@ -1067,26 +1067,26 @@ static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
     if(*fmt == '%'){
       if(*(fmt+1) == '%'){
         *outstring++ = *fmt++;
-	*outstring++ = *fmt++;
-	len-=2;
+        *outstring++ = *fmt++;
+        len-=2;
       }
       else if(*(fmt+1) && isspace(*(fmt+1))){
         *outstring++ = *fmt++;
-	*outstring++ = '%';
-	*outstring++ = *fmt++; 
-	len-=3;
-      }	
+        *outstring++ = '%';
+        *outstring++ = *fmt++;
+        len-=3;
+      }
       else{
-	int n = 0;
-	char check;
-	while(*(fmt+n) && !isspace(*(fmt+n))){
-	  tmp[n] = check = *(fmt+n);
-	  n++;
-	}
-	tmp[n] = *(fmt+n);
-	tmp[n+1] = '\0';
-	n++;
-	switch(check){
+        int n = 0;
+        char check;
+        while(*(fmt+n) && !isspace(*(fmt+n))){
+          tmp[n] = check = *(fmt+n);
+          n++;
+        }
+        tmp[n] = *(fmt+n);
+        tmp[n+1] = '\0';
+        n++;
+        switch(check){
           case 'd':
           case 'i':
           case 'o':
@@ -1095,23 +1095,23 @@ static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
           case 'u':
            snprintf(outstring, len, tmp, MYFLT2LRND(*kvals[j]));
            break;
-	  case 'c':	   
-	   cc  = (char) MYFLT2LRND(*kvals[j]);
-	   if(cc == '%'){
-	     *outstring++ = '%';
-	   }
-	   snprintf(outstring, len, tmp, cc);
+          case 'c':
+           cc  = (char) MYFLT2LRND(*kvals[j]);
+           if(cc == '%'){
+             *outstring++ = '%';
+           }
+           snprintf(outstring, len, tmp, cc);
           break;
-	  default:
-	    puts(fmt);
-	   snprintf(outstring, len, tmp, *kvals[j]);
-	   break;
-	}
-	if (j < numVals-1)
+          default:
+            puts(fmt);
+           snprintf(outstring, len, tmp, *kvals[j]);
+           break;
+        }
+        if (j < numVals-1)
             j++;
-	fmt += n;
-	outstring += strlen(outstring);
-	len -= strlen(outstring);
+        fmt += n;
+        outstring += strlen(outstring);
+        len -= strlen(outstring);
       }
     }
     else {
