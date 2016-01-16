@@ -317,7 +317,7 @@ static void DAC_channels(CSOUND *csound, int chans){
     int *dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
     if (dachans == NULL) {
       if (csound->CreateGlobalVariable(csound, "_DAC_CHANNELS_",
-				        sizeof(int)) != 0)
+                                       sizeof(int)) != 0)
         return;
       dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
       *dachans = chans;
@@ -328,7 +328,7 @@ static void ADC_channels(CSOUND *csound, int chans){
     int *dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
     if (dachans == NULL) {
       if (csound->CreateGlobalVariable(csound, "_ADC_CHANNELS_",
-				        sizeof(int)) != 0)
+                                       sizeof(int)) != 0)
         return;
       dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
       *dachans = chans;
