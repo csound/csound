@@ -1452,7 +1452,7 @@ void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
         }
         /* copy the '%' */
         strseg[i++] = *fmt++;
-        
+
         /* find the format code */
         segwaiting = fmt;
         while (*segwaiting && !isalpha(*segwaiting) && !(*segwaiting=='%'))
@@ -1461,7 +1461,7 @@ void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
       else
         strseg[i++] = *fmt++;
     }
-    
+
     if (i) {
       strseg[i] = '\0';
       if (segwaiting) {
@@ -1487,14 +1487,14 @@ void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
           break;
 
         default:
-	  snprintf(outstring, len, strseg, *kvals[j]);
+          snprintf(outstring, len, strseg, *kvals[j]);
           break;
         }
       }
       else
         snprintf(outstring, len, "%s", strseg);
     }
-   
+
 }
 
 static int fprintf_k(CSOUND *csound, FPRINTF *p)
