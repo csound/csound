@@ -341,7 +341,7 @@ sprintf_opcode_(CSOUND *csound,
                                    know the value of *fmt the loads are
                                    unnecessary */
         strseg[i++] = *fmt++;
-	
+
         continue;
       }
       /* if already a segment waiting, then lets print it */

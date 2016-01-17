@@ -2102,7 +2102,7 @@ int kcssegr(CSOUND *csound, COSSEG *p)
       }
       if (--p->curcnt <= 0) {             /*  if done cur segment */
       chk1:
-	p->y1 = val1 = val2;
+        p->y1 = val1 = val2;
         if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
           p->y2 = val2 = segp->nxtpt;
           goto putk;                      /*      put endval      */
