@@ -2781,9 +2781,8 @@ msgid "No real-time audio configurations found"
 msgstr "Configuration audio temps réel introuvable"
 
 #: InOut/rtalsa.c:377
-#, fuzzy
 msgid "Could not retrieve max number of channels"
-msgstr "soundin : nombre de canaux non valide"
+msgstr "Impossible de retrouver le nombre max de canaux"
 
 #: InOut/rtalsa.c:389
 msgid "Error setting access type for soundcard"
@@ -3259,9 +3258,8 @@ msgid "rtjack: xrun in real time audio"
 msgstr "rtjack : xrun en audio temps réel"
 
 #: InOut/rtjack.c:1073
-#, fuzzy
 msgid "JACK real-time audio module for Csound\n"
-msgstr "Module audio en temps réel PortAudio pour Csound\n"
+msgstr "Module audio en temps réel JACK pour Csound\n"
 
 #: InOut/rtjack.c:1076
 msgid " *** rtjack: error allocating globals"
@@ -3285,25 +3283,21 @@ msgstr "Obsolète"
 
 #: InOut/rtjack.c:1135
 msgid "JACK MIDI module for Csound\n"
-msgstr ""
+msgstr "Module JACK MIDI pour Csound\n"
 
 #: InOut/rtjack.c:1138
-#, fuzzy
 msgid " *** rtjack MIDI: error allocating globals"
-msgstr " *** rtjack : erreur d'allocation des variables globales"
+msgstr " *** rtjack MIDI : erreur d'allocation des variables globales"
 
 #: InOut/rtjack.c:1154
-#, fuzzy
 msgid "JACK MIDI client name prefix (default: csound6-midi)"
-msgstr "Nom du client JACK (par défaut : csound6)"
+msgstr "Préfixe du nom du client JACK MIDI (par défaut : csound6_midi)"
 
 #: InOut/rtjack.c:1165
-#, fuzzy
 msgid "JACK MIDI input port name(default: port)"
-msgstr "Préfixe du nom du port d'entrée de JACK (par défaut : input)"
+msgstr "Nom du port d'entrée JACK MIDI (par défaut : port)"
 
 #: InOut/rtjack.c:1174
-#, fuzzy
 msgid "JACK MIDI output port name (default: port)"
 msgstr "Préfixe du nom du port de sortie de JACK (par défaut : output)"
 
@@ -4013,11 +4007,11 @@ msgstr ""
 
 #: OOps/aops.c:2174
 msgid "number of hardware output channels not currently available"
-msgstr ""
+msgstr "nombre de canaux matériels en sortie non disponible"
 
 #: OOps/aops.c:2179
 msgid "number of hardware input channels not currently available"
-msgstr ""
+msgstr "nombre de canaux matériels en entrée non disponible"
 
 #: OOps/bus.c:83 OOps/bus.c:105 OOps/bus.c:130 OOps/bus.c:158
 msgid "chani: invalid index"
@@ -6808,27 +6802,24 @@ msgid "max_k: invalid imaxflag value"
 msgstr "max_k : valeur de imaxflag non valide"
 
 #: Opcodes/gab/hvs.c:64 Opcodes/gab/hvs.c:150 Opcodes/gab/hvs.c:249
-#, fuzzy
 msgid "hvs: No out table"
-msgstr "tabsum : pas de table"
+msgstr "hvs : pas de table de sortie"
 
 #: Opcodes/gab/hvs.c:67 Opcodes/gab/hvs.c:153 Opcodes/gab/hvs.c:252
 msgid "hvs: No positions table"
-msgstr ""
+msgstr "hvs: pas de table de positions"
 
 #: Opcodes/gab/hvs.c:70 Opcodes/gab/hvs.c:156 Opcodes/gab/hvs.c:255
-#, fuzzy
 msgid "hvs: No snap table"
-msgstr "pvsftw : pas de ftable d'amps !\n"
+msgstr "hvs : pas de table instantanée"
 
 #: Opcodes/gab/hvs.c:73
 msgid "hvs1: a line segment must be delimited by 2 points at least"
 msgstr "hvs1 : un segment de droite doit être délimité par 2 points au moins"
 
 #: Opcodes/gab/hvs.c:80 Opcodes/gab/hvs.c:166 Opcodes/gab/hvs.c:266
-#, fuzzy
 msgid "hvs: no config table"
-msgstr "pvsftw : pas de ftable de fréqs !\n"
+msgstr "hvs : pas de table de configuration"
 
 #: Opcodes/gab/hvs.c:159
 msgid "hvs2: a square area must be delimited by 2 lines at least"
