@@ -602,9 +602,7 @@ int mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
     p->w = w;
   } else w = p->w;
 
-  res = *p->res > FL(0.0) ?
-    (*p->res < FL(1.0) ?
-     *p->res : FL(1.0)) : FL(0.0);
+  res = *p->res;
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -643,9 +641,7 @@ int mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT scal = csound->Get0dBFS(csound);
 
-  res = *p->res > FL(0.0) ?
-    (*p->res < FL(1.0) ?
-     *p->res : FL(1.0)) : FL(0.0);
+  res = *p->res;
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -717,9 +713,7 @@ int mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
 
   for(i=offset; i < nsmps; i++){
 
-    x = -4.2*c5*(res[i] > FL(0.0) ?
-                 (res[i] < FL(1.0) ?
-                  res[i] : FL(1.0)) : FL(0.0))
+    x = -4.2*c5*res[i]
       + in[i]/scal + 1e-10;
     t = c1 / (1 + fabs (c1));
     c1 += w*(x - t);
@@ -771,9 +765,7 @@ int mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
       if(w > 0.92) w = 0.92;
     }
 
-    x = -4.2*c5*(res[i] > FL(0.0) ?
-                 (res[i] < FL(1.0) ?
-                  res[i] : FL(1.0)) : FL(0.0))
+    x = -4.2*c5*res[i] 
       + in[i]/scal + 1e-10;
     t = c1 / (1 + fabs (c1));
     c1 += w*(x - t);
@@ -815,9 +807,7 @@ int mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
       p->w = w;
     } else w = p->w;
 
-    res = *p->res > FL(0.0) ?
-      (*p->res < FL(1.0) ?
-       *p->res : FL(1.0)) : FL(0.0);
+    res = *p->res;
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -855,9 +845,7 @@ int mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT scal = csound->Get0dBFS(csound);
 
-    res = *p->res > FL(0.0) ?
-      (*p->res < FL(1.0) ?
-       *p->res : FL(1.0)) : FL(0.0);
+    res = *p->res;
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -926,9 +914,7 @@ int mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
     }
 
     for(i=offset; i < nsmps; i++){
-      x = -4.5*c5*(res[i] > FL(0.0) ?
-                   (res[i] < FL(1.0) ?
-                    res[i] : FL(1.0)) : FL(0.0))
+      x = -4.5*c5*res[i] 
         + in[i]/scal + 1e-10;
       x /= sqrt (1 + x * x);
       c1 += w * (x  - c1) / (1 + c1 * c1);
@@ -978,9 +964,7 @@ int mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
         w *= 0.6;
         if(w > 0.92) w = 0.92;
       }
-      x = -4.5*c5*(res[i] > FL(0.0) ?
-                   (res[i] < FL(1.0) ?
-                    res[i] : FL(1.0)) : FL(0.0))
+      x = -4.5*c5*res[i] 
         + in[i]/scal + 1e-10;
       x /= sqrt (1 + x * x);
       c1 += w * (x  - c1) / (1 + c1 * c1);
@@ -1021,9 +1005,7 @@ int mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
       p->w = w;
     } else w = p->w;
 
-    res = *p->res > FL(0.0) ?
-      (*p->res < FL(1.0) ?
-       *p->res : FL(1.0)) : FL(0.0);
+    res = *p->res;
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1084,10 +1066,7 @@ int mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT scal = csound->Get0dBFS(csound);
-
-    res = *p->res > FL(0.0) ?
-      (*p->res < FL(1.0) ?
-       *p->res : FL(1.0)) : FL(0.0);
+    res = *p->res;
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1202,9 +1181,7 @@ int mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
       c5 += 0.85 * (c4 - c5);
 
       x = in[i]/scal - (4.3 - 0.2 * w) *
-        (res[i] > FL(0.0) ?
-         (res[i] < FL(1.0) ?
-          res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
+        res[i]  * c5 + 1e-10;
       x /= sqrt (1 + x * x);
       d = w * (x  - c1) / (1 + c1 * c1);
       x = c1 + 0.77 * d;
@@ -1283,9 +1260,7 @@ int mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
       c5 += 0.85 * (c4 - c5);
 
       x = in[i]/scal - (4.3 - 0.2 * w) *
-        (res[i] > FL(0.0) ?
-         (res[i] < FL(1.0) ?
-          res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
+        res[i]  * c5 + 1e-10;
       x /= sqrt (1 + x * x);
       d = w * (x  - c1) / (1 + c1 * c1);
       x = c1 + 0.77 * d;
@@ -1429,9 +1404,7 @@ int mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT scal = csound->Get0dBFS(csound);
 
-    res = *p->res > FL(0.0) ?
-      (*p->res < FL(1.0) ?
-       *p->res : FL(1.0)) : FL(0.0);
+    res = *p->res;
 
     if (UNLIKELY(offset)) {
       memset(out0, '\0', offset*sizeof(MYFLT));
@@ -1545,9 +1518,7 @@ int mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
 
     for(i=offset; i < nsmps; i++){
       x = in[i]/scal - (4.3 - 0.2 * w) *
-        (res[i] > FL(0.0) ?
-         (res[i] < FL(1.0) ?
-          res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
+        res[i]  * c5 + 1e-10;
       x /= sqrt (1 + x * x);
       d = w * (x  - c1) / (1 + c1 * c1);
       x = c1 + 0.77 * d;
@@ -1636,9 +1607,7 @@ int mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
         if (w > 0.82) w = 0.82;
       }
       x = in[i]/scal - (4.3 - 0.2 * w) *
-        (res[i] > FL(0.0) ?
-         (res[i] < FL(1.0) ?
-          res[i] : FL(1.0)) : FL(0.0)) * c5 + 1e-10;
+        res[i]  * c5 + 1e-10;
       x /= sqrt (1 + x * x);
       d = w * (x  - c1) / (1 + c1 * c1);
       x = c1 + 0.77 * d;
