@@ -20,6 +20,7 @@ The following are instructions for building Csound for 64-bit Windows (x86_64) u
   * mingw64/mingw-w64-x86_64-luajit-git 
   * mingw64/mingw-w64-x86_64-eigen3 
   * mingw64/mingw-w64-x86_64-hdf5 
+  * mingw64/mingw-w64-x86_64-libwebsockets
 3. Open a MinGW-w64 Win64 Shell.  This will load a terminal with all tools for mingw64 setup.
 4. Build and install packages for dependencies not currently in MSYS2's repositories. The formulas are included in the packages folder. cd into each directory and use 'makepkg-mingw' to build the package. Use 'pacman -U name-of-package.pkg.tar.xz' to install the package.  
 5. Run ./build.sh in this directory.
@@ -36,7 +37,6 @@ The following are instructions for building Csound for 64-bit Windows (x86_64) u
 * Lua interface (with luajit installed, linker reports -lluajit-5.1 not found, disabled in build.sh for now)
 * Wii opcodes (requires wiiuse)
 * STK opcodes (requires STK)
-* Websockets opcodes (libwebsockets)
 * Jack (is this done normally on Windows?) 
 * csoundapi~ for PD (requires pd headers)
 * CsoundAC (builds except Lua interface, same linking problems as above)
