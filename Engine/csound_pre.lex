@@ -862,6 +862,7 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       csound->Message(csound, Str("macro error\n"));
     }
     free(mname);
+    c = input(yyscanner);
     while (c!='#') {
       if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
       else if (c==';') {
