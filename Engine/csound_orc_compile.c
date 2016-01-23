@@ -1167,10 +1167,10 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
         csound->Warning(csound,
                         Str("instr %ld redefined, replacing previous definition"),
                         instrNum);
-	/* inherit active & maxalloc flags */
+      /* inherit active & maxalloc flags */
         instrtxt->active = engineState->instrtxtp[instrNum]->active;
         instrtxt->maxalloc = engineState->instrtxtp[instrNum]->maxalloc;
-      
+
       /* here we should move the old instrument definition into a deadpool
          which will be checked for active instances and freed when there are no
          further ones

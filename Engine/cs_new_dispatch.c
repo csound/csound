@@ -432,7 +432,9 @@ taskID dag_end_task(CSOUND *csound, taskID i)
             //       csound->dag_task_status[j].s, i, j, k);
           }
 
-        } else if (current_task_status == AVAILABLE || current_task_status == INPROGRESS) {
+        }
+        else if (current_task_status == AVAILABLE ||
+                 current_task_status == INPROGRESS) {
           wait_on_current_tasks = 1;
         }
         //else { printf("not %d\n", k); }
