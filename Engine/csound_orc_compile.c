@@ -1287,14 +1287,14 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     while (gVar != NULL) {
       CS_VARIABLE* var;
       if (csound->oparms->odebug)
-        csound->Message(csound, Str(" merging  %d) %s:%s\n"), count,
+      csound->Message(csound, Str(" merging %p %d) %s:%s\n"), gVar, count,
                         gVar->varName, gVar->varType->varTypeName);
       var = csoundFindVariableWithName(csound,
                                        current_state->varPool, gVar->varName);
       if (var == NULL) {
         ARRAY_VAR_INIT varInit;
         varInit.dimensions = gVar->dimensions;
-        varInit.type = gVar->varType;
+        varInit.type = gVar->subType;
         var = csoundCreateVariable(csound, csound->typePool,
                                    gVar->varType, gVar->varName, &varInit);
         csoundAddVariable(csound, current_state->varPool, var);
@@ -1302,8 +1302,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
         /* when disposing of the engineState global vars, we do not
            delete the memBlock */
         var->memBlock = gVar->memBlock;
-        //csound->Message(csound, Str(" adding %d) %s:%s\n"), count,
-        //          gVar->varName, gVar->varType->varTypeName);
+	if (csound->oparms->odebug)
+        csound->Message(csound, Str(" adding %p %d) %s:%s\n"),  var, count,
+                  gVar->varName, gVar->varType->varTypeName);
          gVar = gVar->next;
       } else {
         // if variable exists
