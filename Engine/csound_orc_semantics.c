@@ -514,6 +514,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         if(var == NULL)
           var = csoundFindVariableWithName(csound, typeTable->globalPool,
                                            tree->value->lexeme);
+	//printf("var: %p %s\n", var, var->varName);
       } else
         var = csoundFindVariableWithName(csound, typeTable->localPool,
                                          tree->value->lexeme);
