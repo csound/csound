@@ -413,14 +413,16 @@ static int OSC_handler(const char *path, const char *types,
             case 'd':
                m->args[i].number= (MYFLT) argv[i]->d; break;
             case 's':
-              {
+              { // ***NO CHECK THAT m->args[i] IS A STRING
                 char  *src = (char*) &(argv[i]->s), *dst = m->args[i].string.data;
-                if(m->args[i].string.size <= (int) strlen(src)){
-                  if(dst != NULL) csound->Free(csound, dst);
-                    dst = csound->Strdup(csound, src);
-                    m->args[i].string.data = dst;
+                if (m->args[i].string.size <= (int) strlen(src)) {
+                  if (dst != NULL) csound->Free(csound, dst);
+                  dst = csound->Strdup(csound, src);
+                  // who sets m->args[i].string.size ??
+                  m->args[i].string.data = dst;
+                  m->args[i].string.size = strlen(dst)+1; 
                 }
-                 else strcpy(dst, src);
+                else strcpy(dst, src);
                 break;
               }
             case 'b':
