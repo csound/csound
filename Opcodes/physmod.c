@@ -435,7 +435,7 @@ int flute(CSOUND *csound, FLUTE *p)
 #endif
 
       temp = (int32) temp_time;        /*  Integer part of time address    */
-                                      /*  fractional part of time address */
+                                       /*  fractional part of time address */
       alpha = temp_time - (MYFLT)temp;
       v_lastOutput = v_data[temp];    /* Do linear interpolation */
       /*  same as alpha*data[temp+1] + (1-alpha)data[temp] */

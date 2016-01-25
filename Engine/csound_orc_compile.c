@@ -1302,10 +1302,10 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
         /* when disposing of the engineState global vars, we do not
            delete the memBlock */
         var->memBlock = gVar->memBlock;
-	if (csound->oparms->odebug)
-        csound->Message(csound, Str(" adding %p %d) %s:%s\n"),  var, count,
-                  gVar->varName, gVar->varType->varTypeName);
-         gVar = gVar->next;
+        if (csound->oparms->odebug)
+          csound->Message(csound, Str(" adding %p %d) %s:%s\n"),  var, count,
+                          gVar->varName, gVar->varType->varTypeName);
+        gVar = gVar->next;
       } else {
         // if variable exists
         // free variable mem block
