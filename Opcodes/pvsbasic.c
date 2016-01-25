@@ -529,7 +529,7 @@ int pvstanalset(CSOUND *csound, PVST *p)
     p->scnt = p->fout[0]->overlap;
     p->tscale  = 1;
     p->pos =  *p->offset*CS_ESR;
-    printf("off: %f\n", *p->offset);
+    //printf("off: %f\n", *p->offset);
     p->accum = 0.0;
     return OK;
 }
@@ -557,7 +557,7 @@ int pvstanal(CSOUND *csound, PVST *p)
       ft = csound->FTnp2Find(csound,p->knum);
       if (ft == NULL){
         csound->PerfError(csound, p->h.insdshead,
-                          "could not find table number %d\n", (int) *p->knum);
+                          Str("could not find table number %d\n"), (int) *p->knum);
         return NOTOK;
 
       }
