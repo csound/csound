@@ -430,7 +430,7 @@ void addGlobalVariable(CSOUND *csound,
     varMem->varType = var->varType;
     var->memBlock = varMem;
     if (var->initializeVariableMemory != NULL) {
-      var->initializeVariableMemory(var, &varMem->value);
+      var->initializeVariableMemory((void *)csound, var, &varMem->value);
     }
 }
 
@@ -1487,7 +1487,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       varMem->varType = var->varType;
       var->memBlock = varMem;
       if (var->initializeVariableMemory != NULL) {
-        var->initializeVariableMemory(var, &varMem->value);
+        var->initializeVariableMemory((void *)csound, var, &varMem->value);
       } else  memset(&varMem->value , 0, var->memBlockSize);
         var = var->next;
     }

@@ -2134,7 +2134,7 @@ static void instance(CSOUND *csound, int insno)
     /* gbloffbas = csound->globalVarPool; */
     lcloffbas = (CS_VAR_MEM*)&ip->p0;
     lclbas = (MYFLT*) ((char*) ip + pextent);   /* split local space */
-    initializeVarPool(lclbas, tp->varPool);
+    initializeVarPool((void *)csound, lclbas, tp->varPool);
 
     opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize +
                 (tp->varPool->varCount * sizeof(MYFLT));
