@@ -149,8 +149,8 @@ void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
     var->memBlockSize = ksmps * sizeof (MYFLT);
 }
 
-void varInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
-  //IGN(csound);
+void varInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    IGN(csound);
     memset(memblock, 0, var->memBlockSize);
 }
 
@@ -230,7 +230,7 @@ CS_VARIABLE* createString(void* cs, void* p) {
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(STRINGDAT));
-    //var->initializeVariableMemory = &varInitMemoryString;
+    var->initializeVariableMemory = &varInitMemoryString;
     return var;
 }
 
