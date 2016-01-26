@@ -154,6 +154,12 @@ void varInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
     memset(memblock, 0, var->memBlockSize);
 }
 
+void arrayInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    IGN(csound);
+    ARRAYDAT* dat = (ARRAYDAT*)memblock;
+    dat->arrayType = var->subType;
+}
+
 void varInitMemoryString(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
     STRINGDAT *str = (STRINGDAT *)memblock;
     CSOUND* cs = (CSOUND*)csound;
@@ -218,11 +224,6 @@ CS_VARIABLE* createFsig(void* cs, void* p) {
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(PVSDAT));
     var->initializeVariableMemory = &varInitMemory;
     return var;
-}
-
-void arrayInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
-    ARRAYDAT* dat = (ARRAYDAT*)memblock;
-    dat->arrayType = var->subType;
 }
 
 CS_VARIABLE* createString(void* cs, void* p) {
