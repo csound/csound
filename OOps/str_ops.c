@@ -166,20 +166,23 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
     if (p->r->data == NULL) {
       p->r->data =  cs_strdup(csound, newVal);
       p->r->size =  strlen(p->str->data) + 1;
-      // printf("str:%p %p \n", p->r, p->r->data);
+      //printf("NULL str:%p %p \n", p->r, p->r->data);
         return OK;
     }
-    if (p->r->data == p->str->data)
+    if (p->r->data == p->str->data){
+      //printf("sameptr str:%p %p \n", p->r->data);
       return OK;
+    }
     if (UNLIKELY((int) strlen(newVal) >= p->r->size)){
         csound->Free(csound, p->r->data);
         p->r->data = cs_strdup(csound, newVal);
         p->r->size = strlen(newVal) + 1;
-
+        //printf("dup str:%p %p \n", p->r, p->r->data);
     }
     else {
       strcpy((char*) p->r->data, newVal);
-      // printf("str:%p %p \n", p->r, p->r->data);
+      p->r->size = strlen(newVal) + 1;
+      //printf("str:%p %p \n", p->r, p->r->data);
     }
 
     return OK;
@@ -242,8 +245,10 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
         p->r->data = cs_strdup(csound, ss);
         p->r->size = strlen(ss) + 1;
       }
-      else strcpy(p->r->data,ss);
-
+      else {
+	strcpy(p->r->data,ss);
+       p->r->size = strlen(ss) + 1;
+      }
     }
     else{
       p->r->data = csound->strarg2name(csound, NULL, p->indx, "soundin.", 0);

@@ -66,9 +66,9 @@ void string_copy_value(void* csound, void* dest, void* src) {
     if (UNLIKELY(dest == NULL)) return;
 
     if (sSrc->size > sDest->size) {
-      // if (sDest->data != NULL) {
-      //  cs->Free(cs, sDest->data);
-      //}
+      if (sDest->data != NULL) {
+	cs->Free(cs, sDest->data);
+      }
       sDest->data = cs_strdup(csound, sSrc->data);
     } else {
       if (sDest->data == NULL) {
@@ -150,7 +150,15 @@ void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
 }
 
 void varInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
+  //IGN(csound);
     memset(memblock, 0, var->memBlockSize);
+}
+
+void varInitMemoryString(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    STRINGDAT *str = (STRINGDAT *)memblock;
+    CSOUND* cs = (CSOUND*)csound;
+    str->data = cs_strdup(cs, "");
+    str->size = 1;
 }
 
 /* CREATE VAR FUNCTIONS */
@@ -222,6 +230,7 @@ CS_VARIABLE* createString(void* cs, void* p) {
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(STRINGDAT));
+    //var->initializeVariableMemory = &varInitMemoryString;
     return var;
 }
 
