@@ -66,7 +66,7 @@ extern "C" {
         struct csvariable* next;
         CS_TYPE* subType;
         void (*updateMemBlockSize)(void*, struct csvariable*);
-        void (*initializeVariableMemory)(struct csvariable*, MYFLT*);
+      void (*initializeVariableMemory)(void*,struct csvariable*, MYFLT*);
         CS_VAR_MEM *memBlock;
     } CS_VARIABLE;
 
@@ -123,7 +123,7 @@ extern "C" {
                                  CS_VARIABLE* var);
     PUBLIC void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
     PUBLIC void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
-    PUBLIC void initializeVarPool(MYFLT* memBlock, CS_VAR_POOL* pool);
+    PUBLIC void initializeVarPool(void *csound, MYFLT* memBlock, CS_VAR_POOL* pool);
 
 #ifdef  __cplusplus
 }
