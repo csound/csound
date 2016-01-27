@@ -248,11 +248,11 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
         p->r->size = strlen(ss) + 1;
       }
       else {
-	strcpy(p->r->data,ss);
-       p->r->size = strlen(ss) + 1;
+        strcpy(p->r->data,ss);
+        p->r->size = strlen(ss) + 1;
       }
     }
-    else{
+    else {
       p->r->data = csound->strarg2name(csound, NULL, p->indx, "soundin.", 0);
     }
 

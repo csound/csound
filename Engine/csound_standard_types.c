@@ -67,7 +67,7 @@ void string_copy_value(void* csound, void* dest, void* src) {
 
     if (sSrc->size > sDest->size) {
       if (sDest->data != NULL) {
-	cs->Free(cs, sDest->data);
+        cs->Free(cs, sDest->data);
       }
       sDest->data = cs_strdup(csound, sSrc->data);
     } else {
