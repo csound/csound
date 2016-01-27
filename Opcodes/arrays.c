@@ -132,9 +132,9 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
     //for(i=0; i < size; i++){
     //
     //
-    // }	
+    // }
     //}
-    
+
   //    for (i=0; i<size; i++) t->data[i] = val;
   //    { // Need to recover space eventually
   //        TABDEL *op = (TABDEL*) csound->Malloc(csound, sizeof(TABDEL));
