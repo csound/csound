@@ -123,18 +123,12 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
       size = MYFLT2LRND(size);
     }
 
-    /*ARRAY_VAR_INIT varInit;
-     varInit.dimensions = arrayDat->dimensions;
-     varInit.type = arrayDat->arrayType;*/
-
-    CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, /*&varInit*/ NULL);
-
+    CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,NULL);
     arrayDat->arrayMemberSize = var->memBlockSize;
     arrayDat->data = csound->Calloc(csound, var->memBlockSize*size);
-
-   for(i=0; i < size; i++){
+    for(i=0; i < size; i++){
      var->initializeVariableMemory(csound,var,arrayDat->data+i); 	
-   }
+    }
     
   //    for (i=0; i<size; i++) t->data[i] = val;
   //    { // Need to recover space eventually
