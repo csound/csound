@@ -130,13 +130,6 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
      var->initializeVariableMemory(csound,var,arrayDat->data+i); 	
     }
     
-  //    for (i=0; i<size; i++) t->data[i] = val;
-  //    { // Need to recover space eventually
-  //        TABDEL *op = (TABDEL*) csound->Malloc(csound, sizeof(TABDEL));
-  //        op->h.insdshead = ((OPDS*) p)->insdshead;
-  //        op->tab = t;
-  //        csound->RegisterDeinitCallback(csound, op, tabdel);
-  //    }
     return OK;
 }
 
