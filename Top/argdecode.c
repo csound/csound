@@ -1491,8 +1491,8 @@ PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
   oparms->nchnls_override = p->nchnls_override;
   oparms->nchnls_i_override = p->nchnls_i_override;
   oparms->e0dbfs_override = p->e0dbfs_override;
-  
-  if(p->ksmps_override > 0) oparms->ksmps_override = p->ksmps_override;
+
+  if (p->ksmps_override > 0) oparms->ksmps_override = p->ksmps_override;
 }
 
 PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
