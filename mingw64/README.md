@@ -11,7 +11,7 @@ The following are instructions for building Csound for 64-bit Windows (x86_64) u
   * mingw-w64-x86_64-toolchain 
   * flex
   * bison
-  * cmake
+  * mingw-w64-x86_64-cmake
   * mingw64/mingw-w64-x86_64-swig
   * mingw64/mingw-w64-x86_64-portaudio
   * mingw64/mingw-w64-x86_64-portmidi
