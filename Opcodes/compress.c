@@ -36,6 +36,7 @@ typedef struct {
         MYFLT   *abuf, *cbuf, *aptr, *cptr, *clim, lmax, *lmaxp;
         int32   newenv;
         AUXCH   auxch;
+        MYFLT   bias;
 } CMPRS;
 
 typedef struct {        /* this now added from 07/01 */
@@ -70,8 +71,15 @@ static int compset(CSOUND *csound, CMPRS *p)
     p->lmax = FL(0.0);
     p->cenv = 0.0;
     p->newenv = 0;
-
+    p->bias = FL(0.0);
     return OK;
+}
+
+static int comp2set(CSOUND *csound, CMPRS *p)
+{
+    int ret = compset(csound, p);
+    p->bias = FL(90.0);
+    return ret;
 }
 
 static int compress(CSOUND *csound, CMPRS *p)
@@ -86,7 +94,7 @@ static int compress(CSOUND *csound, CMPRS *p)
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
       p->thresh = *p->kthresh;
-      p->envthrsh = (MYFLT) exp(p->thresh * LOG10D20);
+      p->envthrsh = (MYFLT) exp((p->thresh+p->bias) * LOG10D20);
     }
     if (*p->kloknee != p->loknee ||
         *p->khiknee != p->hiknee ||
@@ -95,7 +103,7 @@ static int compress(CSOUND *csound, CMPRS *p)
       p->loknee = *p->kloknee;
       p->hiknee = *p->khiknee;
       p->ratio = *p->kratio;
-      p->envlo = (MYFLT) exp(p->loknee * LOG10D20);
+      p->envlo = (MYFLT) exp((p->loknee+p->bias) * LOG10D20);
       if ((p->kneespan = p->hiknee - p->loknee) < FL(0.0))
         p->kneespan = FL(0.0);
       if ((ratio = p->ratio) < FL(0.01))         /* expand max is 100 */
@@ -171,7 +179,7 @@ static int compress(CSOUND *csound, CMPRS *p)
           double dbenv, excess;
           p->newenv = 0;
           dbenv = log(p->cenv + 0.001) / LOG10D20;      /* for softknee */
-          if ((excess = dbenv - p->loknee) < p->kneespan)
+          if ((excess = dbenv - (p->loknee+p->bias)) < p->kneespan)
             p->ampmul = exp(p->kneecoef * excess * excess);
           else {
             excess -= p->kneespan;      /* or ratio line */
@@ -273,6 +281,8 @@ static int distort(CSOUND *csound, DIST *p)
 static OENTRY compress_localops[] = {
   { "compress", S(CMPRS), 0, 5, "a", "aakkkkkki",
     (SUBR) compset, NULL, (SUBR) compress },
+  { "compress2", S(CMPRS), 0, 5, "a", "aakkkkkki",
+    (SUBR) comp2set, NULL, (SUBR) compress },
   { "distort", S(DIST), TR, 5, "a", "akiqo",
     (SUBR) distset, NULL, (SUBR) distort },
 };

@@ -6,11 +6,13 @@ The following are instructions for building Csound for 64-bit Windows (x86_64) u
 
 1. Install the x86_64 version of [msys2](http://msys2.github.io/). Follow the pacman setup instructions carefully.
 2. Install additional development tools and libraries using pacman. 
+
   * mingw-w64-x86_64-toolchain 
   * flex
   * bison
   * mingw-w64-x86_64-cmake  
   * mingw-w64-x86_64-swig
+  * mingw-w64-x86_64-libsndfile
   * mingw-w64-x86_64-portaudio
   * mingw-w64-x86_64-portmidi
   * mingw-w64-x86_64-fltk
