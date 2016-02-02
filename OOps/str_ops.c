@@ -391,7 +391,7 @@ sprintf_opcode_(CSOUND *csound,
           if ((int)strlen(strseg) + 24 > (int)maxChars) {
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data,
-                                 str->size  + 13);
+                                 str->size  + 24);
             str->size += 24;
             maxChars += 24;
             outstring = str->data + offs;
