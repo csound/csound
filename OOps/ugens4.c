@@ -490,7 +490,7 @@ int rndset(CSOUND *csound, RAND *p)
       }
     }
     p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krand) */
-    
+
     return OK;
 }
 
@@ -522,7 +522,7 @@ int arand(CSOUND *csound, RAND *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       ampscl;
     MYFLT       base = *p->base;
-  
+
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -560,12 +560,12 @@ int arand(CSOUND *csound, RAND *p)
         }
       }
       else {
-          MYFLT *xamp = p->xamp;
-          for (n=offset;n<nsmps;n++) {
-            rand = randint31(rand);
-            ar[n] = base +
-              dv2_31 * (MYFLT)((int32)((unsigned)rand<<1)-BIPOLAR) * xamp[n];
-          }
+        MYFLT *xamp = p->xamp;
+        for (n=offset;n<nsmps;n++) {
+          rand = randint31(rand);
+          ar[n] = base +
+            dv2_31 * (MYFLT)((int32)((unsigned)rand<<1)-BIPOLAR) * xamp[n];
+        }
       }
       p->rand = rand;   /* save current rand */
     }
