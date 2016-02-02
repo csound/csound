@@ -234,9 +234,9 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
       if(ss == NULL){
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
         return csoundPerfError(csound, ((OPDS*)p)->insdshead,
-                               Str("NULL string \n")); 
+                               Str("NULL string \n"));
       else
-        return csoundInitError(csound, Str("NULL string \n")); 
+        return csoundInitError(csound, Str("NULL string \n"));
     }
       if (p->r->data == NULL) {
         p->r->data = cs_strdup(csound, ss);
@@ -268,10 +268,10 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 
     if(str1 == NULL || str2 == NULL){
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
-      return csoundPerfError(csound, ((OPDS*)p)->insdshead, "NULL string \n"); 
-      else return csoundInitError(csound, "NULL string \n"); 
+      return csoundPerfError(csound, ((OPDS*)p)->insdshead, "NULL string \n");
+      else return csoundInitError(csound, "NULL string \n");
     }
-    
+
     size = strlen(str1) + strlen(str2);
 
     if (p->r->data == NULL) {
@@ -297,10 +297,10 @@ int strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
     int     i;
     if(p->str1->data == NULL || p->str2->data == NULL){
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
-      return csoundPerfError(csound, ((OPDS*)p)->insdshead, "NULL string \n"); 
-      else return csoundInitError(csound, "NULL string \n"); 
+      return csoundPerfError(csound, ((OPDS*)p)->insdshead, "NULL string \n");
+      else return csoundInitError(csound, "NULL string \n");
     }
-    
+
     *(p->r) = FL(0.0);
     if (p->str1 == p->str2)
       return OK;

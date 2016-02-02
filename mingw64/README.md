@@ -6,23 +6,25 @@ The following are instructions for building Csound for 64-bit Windows (x86_64) u
 
 1. Install the x86_64 version of [msys2](http://msys2.github.io/). Follow the pacman setup instructions carefully.
 2. Install additional development tools and libraries using pacman. 
+
   * mingw-w64-x86_64-toolchain 
   * flex
   * bison
-  * cmake
-  * mingw64/mingw-w64-x86_64-swig
-  * mingw64/mingw-w64-x86_64-portaudio
-  * mingw64/mingw-w64-x86_64-portmidi
-  * mingw64/mingw-w64-x86_64-fltk
-  * mingw64/mingw-w64-x86_64-fluidsynth
-  * mingw64/mingw-w64-x86_64-boost
-  * mingw64/mingw-w64-x86_64-curl 
-  * mingw64/mingw-w64-x86_64-luajit-git 
-  * mingw64/mingw-w64-x86_64-eigen3 
-  * mingw64/mingw-w64-x86_64-hdf5 
-  * mingw64/mingw-w64-x86_64-libwebsockets
+  * mingw-w64-x86_64-cmake  
+  * mingw-w64-x86_64-swig
+  * mingw-w64-x86_64-libsndfile
+  * mingw-w64-x86_64-portaudio
+  * mingw-w64-x86_64-portmidi
+  * mingw-w64-x86_64-fltk
+  * mingw-w64-x86_64-fluidsynth
+  * mingw-w64-x86_64-boost
+  * mingw-w64-x86_64-curl 
+  * mingw-w64-x86_64-luajit-git 
+  * mingw-w64-x86_64-eigen3 
+  * mingw-w64-x86_64-hdf5 
+  * mingw-w64-x86_64-libwebsockets
 3. Open a MinGW-w64 Win64 Shell.  This will load a terminal with all tools for mingw64 setup.
-4. Build and install packages for dependencies not currently in MSYS2's repositories. The formulas are included in the packages folder. cd into each directory and use 'makepkg-mingw' to build the package. Use 'pacman -U name-of-package.pkg.tar.xz' to install the package.  
+4. Build and install packages for dependencies not currently in MSYS2's repositories. The formulas are included in the packages folder. cd into each directory and use 'makepkg-mingw' to build the package. Use 'pacman -U name-of-package.pkg.tar.xz' to install the package. (If get an error about line endings. Simply run dos2unix on the PKGBUILD file to change its line endings.) 
 5. Run ./build.sh in this directory.
 
 ## Notes
