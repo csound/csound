@@ -85,7 +85,7 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
       p->dimensions = 1;
       p->sizes = (int*)csound->Malloc(csound, sizeof(int));
       p->sizes[0] = size;
-  }
+    }
 }
 
 static int array_init(CSOUND *csound, ARRAYINIT *p)
@@ -101,7 +101,7 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
                           Str("Error: no sizes set for array initialization"));
 
     for (i = 0; i < inArgCount; i++) {
-      if(MYFLT2LRND(*p->isizes[i]) <= 0) {
+      if (MYFLT2LRND(*p->isizes[i]) <= 0) {
         return
           csound->InitError(csound,
                           Str("Error: sizes must be > 0 for array initialization"));
@@ -128,9 +128,9 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
     arrayDat->data = csound->Calloc(csound, var->memBlockSize*size);
     char *mem = (char *) arrayDat->data; 
     for(i=0; i < size; i++){
-      var->initializeVariableMemory(csound,var,mem+i*var->memBlockSize); 	
+      var->initializeVariableMemory(csound,var,mem+i*var->memBlockSize);
     }
-    
+
     return OK;
 }
 
@@ -180,11 +180,11 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
     if (UNLIKELY(index >= dat->sizes[end] || index<0)){
-        csound->Warning(csound,
-                               Str("Array index %d out of range (0,%d) "
-                                   "for dimension %d"),
-                               index, dat->sizes[end]-1, indefArgCount);
-        return NOTOK;
+      csound->Warning(csound,
+                      Str("Array index %d out of range (0,%d) "
+                          "for dimension %d"),
+                      index, dat->sizes[end]-1, indefArgCount);
+      return NOTOK;
 
     }
 
@@ -193,8 +193,8 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
         int ind = MYFLT2LRND(*p->indexes[i]);
         if (UNLIKELY(ind >= dat->sizes[i] || ind<0)){
           csound->Warning(csound,Str("Array index %d out of range (0,%d) "
-                                       "for dimension %d"), ind,
-                                   dat->sizes[i]-1, i+1);
+                                     "for dimension %d"), ind,
+                          dat->sizes[i]-1, i+1);
           return NOTOK;
         }
         index += ind * dat->sizes[i + 1];
@@ -225,18 +225,18 @@ static int array_get(CSOUND* csound, ARRAY_GET *p)
                         Str("Error: no indexes set for array get"));
     if (UNLIKELY(indefArgCount>dat->dimensions)){
        csound->Warning(csound,
-                               Str("Array dimension %d out of range "
-                                   "for dimensions %d"),
-                               indefArgCount, dat->dimensions);
+                       Str("Array dimension %d out of range "
+                           "for dimensions %d"),
+                       indefArgCount, dat->dimensions);
        return NOTOK;
     }
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
     if (UNLIKELY(index >= dat->sizes[end] || index<0)){
       csound->Warning(csound,
-                               Str("Array index %d out of range (0,%d) "
-                                   "for dimension %d"),
-                               index, dat->sizes[end]-1, end+1);
+                      Str("Array index %d out of range (0,%d) "
+                          "for dimension %d"),
+                      index, dat->sizes[end]-1, end+1);
       return NOTOK;
 
     }
@@ -330,7 +330,7 @@ static int tabiadd(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l, MYFLT r, void *p)
 static int tabarithset1(CSOUND *csound, TABARITH1 *p)
 {
     ARRAYDAT *left = p->left;
-    if(p->ans->data == left->data) {
+    if (p->ans->data == left->data) {
       printf("same ptr \n");
       return OK;
     }
