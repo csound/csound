@@ -8,7 +8,7 @@ ksmps = 64
 0dbfs = 1
 
 instr 1
-ifftsize = 32768
+ifftsize = 4096
 ihopsize = 512
 asig = diskin2:a("flutec3.wav",1,0,1)
 fsig = cudanal(asig, 
