@@ -254,6 +254,7 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
     }
     else {
       p->r->data = csound->strarg2name(csound, NULL, p->indx, "soundin.", 0);
+      p->r->size = strlen(p->r->data) + 1;
     }
 
     return OK;
@@ -416,7 +417,7 @@ sprintf_opcode_(CSOUND *csound,
                                  str->size  + 13);
             str->size += 24;
             maxChars += 24;
-            outstring = str->data + offs;
+             outstring = str->data + offs;
             //printf("maxchars = %d  %s\n", maxChars, strseg);
           }
           n = snprintf(outstring, maxChars, strseg, (double)*parm);
@@ -477,8 +478,8 @@ sprintf_opcode_(CSOUND *csound,
 
 int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
-    if (p->r->data == NULL) {
-      int size = p->sfmt->size+ 10*((int) p->INOCOUNT);
+    int size = p->sfmt->size+ 10*((int) p->INOCOUNT);
+    if (p->r->data == NULL || p->r->size < size) {
       /* this 10 is 1n incorrect guess which is OK with numbers*/
       p->r->data = csound->Calloc(csound, size);
       p->r->size = size;
@@ -731,6 +732,7 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     if (p->Ssrc->data == NULL) return NOTOK;
     if (p->Sdst->data == NULL || p->Sdst->size < p->Ssrc->size) {
         int size = p->Ssrc->size;
+	if(p->Sdst->data != NULL) csound->Free(csound, p->Sdst->data);
         p->Sdst->data = csound->Calloc(csound, size);
         p->Sdst->size = size;
     }
@@ -858,8 +860,9 @@ int strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
     char        *dst;
     int         i;
     if (p->Ssrc->data == NULL) return NOTOK;
-    if (p->Sdst->data == NULL) {
+    if (p->Sdst->data == NULL || p->Sdst->size < p->Ssrc->size) {
         int size = p->Ssrc->size;
+        if(p->Sdst->data != NULL) csound->Free(csound, p->Sdst->data);
         p->Sdst->data = csound->Calloc(csound, size);
         p->Sdst->size = size;
     }
@@ -882,8 +885,9 @@ int strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
     char        *dst;
     int         i;
     if (p->Ssrc->data == NULL) return NOTOK;
-    if (p->Sdst->data == NULL) {
+    if (p->Sdst->data == NULL || p->Sdst->size < p->Ssrc->size) {
         int size = p->Ssrc->size;
+	if(p->Sdst->data != NULL) csound->Free(csound,p->Sdst->data);
         p->Sdst->data = csound->Calloc(csound, size);
         p->Sdst->size = size;
     }
@@ -917,8 +921,11 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
 #endif
     char        buf[32];
 
-    p->Sdst->data = csound->Calloc(csound,32);
-    p->Sdst->size = 32;
+    if(p->Sdst->size < 32){
+      csound->Free(csound, p->Sdst->data);
+      p->Sdst->data = csound->Calloc(csound,32);
+      p->Sdst->size = 32;
+    }
     //((char*) p->Sdst->data)[0] = '\0';
     buf[0] = '\0';
     s = &(buf[0]);
