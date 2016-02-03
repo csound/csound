@@ -286,6 +286,7 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     if (p->r->data != str1)
      strncpy((char*) p->r->data,  str1, p->r->size);
     strcat((char*) p->r->data, str2);
+    
     free(str2);                 /* not needed anymore */
     return OK;
 }
@@ -728,7 +729,7 @@ int strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     int         i, len, strt, end, rev = 0;
 
     if (p->Ssrc->data == NULL) return NOTOK;
-    if (p->Sdst->data == NULL) {
+    if (p->Sdst->data == NULL || p->Sdst->size < p->Ssrc->size) {
         int size = p->Ssrc->size;
         p->Sdst->data = csound->Calloc(csound, size);
         p->Sdst->size = size;
