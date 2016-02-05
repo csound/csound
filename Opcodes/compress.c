@@ -75,6 +75,8 @@ static int compset(CSOUND *csound, CMPRS *p)
     return OK;
 }
 
+/* compress2 is compress but with dB inputs in range [-90,0] rather
+   than [0.90], by setting p->bias valuex */
 static int comp2set(CSOUND *csound, CMPRS *p)
 {
     int ret = compset(csound, p);
