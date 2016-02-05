@@ -310,14 +310,14 @@ msgid " merging constants %d) %f\n"
 msgstr " fusion des constantes %d) %f\n"
 
 #: Engine/csound_orc_compile.c:1290
-#, fuzzy, c-format
+#, c-format
 msgid " merging %p %d) %s:%s\n"
-msgstr " fusion  %d) %s:%s\n"
+msgstr " fusion de %p %d) %s : %s\n"
 
 #: Engine/csound_orc_compile.c:1306
-#, fuzzy, c-format
+#, c-format
 msgid " adding %p %d) %s:%s\n"
-msgstr " fusion  %d) %s:%s\n"
+msgstr " ajout de %p %d) %s : %s\n"
 
 #: Engine/csound_orc_compile.c:1329
 #, c-format
@@ -5167,12 +5167,10 @@ msgid "--strset: invalid format"
 msgstr "--strset : format non valide"
 
 #: OOps/str_ops.c:237 OOps/str_ops.c:239
-#, fuzzy
 msgid "NULL string \n"
 msgstr "chaîne nulle\n"
 
 #: OOps/str_ops.c:338
-#, fuzzy
 msgid "a-rate argument not allowed"
 msgstr "Les arguments de taux-a sont interdits"
 
@@ -5182,35 +5180,30 @@ msgid "too many arguments"
 msgstr "trop d'arguments"
 
 #: OOps/str_ops.c:375
-#, fuzzy
 msgid "insufficient arguments for format"
-msgstr "arguments insuffisants pour une table de Farey"
+msgstr "arguments insuffisants pour le format"
 
 #: OOps/str_ops.c:430
 msgid "output argument may not be the same as any of the input args"
-msgstr ""
+msgstr "l'argument de sortie ne peut pas être le même qu'un argument d'entrée"
 
 #: OOps/str_ops.c:446
-#, fuzzy
 msgid "invalid format string"
-msgstr "nom d'instrument non valide"
+msgstr "format de chaîne de caractères non valide"
 
 #: OOps/str_ops.c:472
-#, fuzzy
 msgid "too many arguments for format"
-msgstr "trop d'arguments"
+msgstr "trop d'arguments pour le format"
 
 #: OOps/str_ops.c:575 OOps/str_ops.c:578 OOps/str_ops.c:594 OOps/str_ops.c:612
 #: OOps/str_ops.c:669 OOps/str_ops.c:673
-#, fuzzy
 msgid "empty string"
-msgstr "pas de chaîne de commentaire"
+msgstr "chaîne de caractères vide"
 
 #: OOps/str_ops.c:581 OOps/str_ops.c:597 OOps/str_ops.c:626 OOps/str_ops.c:647
 #: OOps/str_ops.c:687 OOps/str_ops.c:708
-#, fuzzy
 msgid "invalid format"
-msgstr "--strset : format non valide"
+msgstr "format non valide"
 
 #: OOps/str_ops.c:972
 #, c-format
