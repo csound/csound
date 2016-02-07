@@ -115,9 +115,9 @@ int dspset(CSOUND *csound, DSPLAY *p)
     p->nxtp = (MYFLT *) auxp;
     p->pntcnt = npts;
     snprintf(strmsg, 256, Str("instr %d, signal %s:"),
-                    (int) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0]);
+             (int) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0]);
     dispset(csound, &p->dwindow, (MYFLT*) auxp, bufpts, strmsg,
-                    (int) *p->iwtflg, Str("display"));
+            (int) *p->iwtflg, Str("display"));
     return OK;
 }
 
@@ -164,7 +164,7 @@ int dsplay(CSOUND *csound, DSPLAY *p)
     nsmps -= early;
     if (!p->nprds) {
       for (n=offset; n<nsmps; n++) {
-        fp[n] = sp[n];
+        *fp++ = sp[n];
         if (fp >= endp) {
           fp = p->begp;
           display(csound, &p->dwindow);
