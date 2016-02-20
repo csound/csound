@@ -139,7 +139,7 @@ int corfile_getc(CORFIL *f)
     return c;
 }
 
-int corfile_fgets(char *buff, int len, CORFIL *f)
+char *corfile_fgets(char *buff, int len, CORFIL *f)
 {
     int i;
     char *p = &(f->body[f->p]), *q;
