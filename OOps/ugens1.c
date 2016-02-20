@@ -1119,18 +1119,29 @@ int linen(CSOUND *csound, LINEN *p)
     }
 
     for (n=offset; n<nsmps; n++) {
+    val = FL(1.0);
     if (p->cnt1 > 0) {
       flag = 1;
       val = p->lin1;
       p->lin1 += p->inc1;
       p->cnt1--;
     }
-    if (p->cnt2 <= 0) {
+
+    if (p->cnt2){
+      p->cnt2--;
+    }
+    else {
+      val *= p->lin2;
+      p->lin2 -= p->inc2;
+      flag = 1;
+    }
+      /*if (p->cnt2 <= 0) {
       flag = 1;
       val = p->lin2;
       p->lin2 -= p->inc2;
     }
-    else p->cnt2--;
+    else p->cnt2--; */
+      
 
     if (flag) {
       if (IS_ASIG_ARG(p->sig))
