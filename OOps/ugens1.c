@@ -272,7 +272,7 @@ int linseg(CSOUND *csound, LINSEG *p)
 
 /* **** ADSR is just a construction and use of linseg */
 
-static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
+static int adsrset1(CSOUND *csound, LINSEG *p, int midip)
 {
     SEG         *segp;
     int         nsegs;
@@ -282,11 +282,8 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     MYFLT       release = *argp[3];
     int32       relestim;
 
+    //printf("len = %f\n", len);
     if (UNLIKELY(len<=FL(0.0))) len = FL(100000.0); /* MIDI case set int32 */
-    len -= release;         /* len is time remaining */
-    if (UNLIKELY(len<FL(0.0))) { /* Odd case of release time greater than dur */
-      release = csound->curip->p3.value; len = FL(0.0);
-    }
     nsegs = 6;          /* DADSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (unsigned int)p->auxch.size) {
@@ -296,60 +293,57 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     }
     else if (**argp > FL(0.0))
       memset(p->auxch.auxp, 0, (size_t)nsegs*sizeof(SEG));
-    if (**argp <= FL(0.0))  return;       /* if idur1 <= 0, skip init  */
+    if (**argp <= FL(0.0))  return OK;       /* if idur1 <= 0, skip init  */
     p->curval = 0.0;
     p->curcnt = 0;
     p->cursegp = segp - 1;      /* else setup null seg0 */
     p->segsrem = nsegs;
+    //printf("args: %f %f %f %f %f\n",
+    //       *argp[0], *argp[1], *argp[2], *argp[3],* argp[4]);
                                 /* Delay */
     dur = (double)*argp[4];
-    if (UNLIKELY(dur > len)) dur = len;
-    len -= dur;
     segp->nxtpt = FL(0.0);
-    if ((segp->cnt = (int32)(dur * CS_EKR + FL(0.5))) == 0)
-      segp->cnt = 0;
+    segp->cnt = (int32)(dur * CS_EKR + FL(0.5));
     //printf("delay: dur=%f cnt=%d\n", dur, segp->cnt);
     segp++;
                                 /* Attack */
-    dur = *argp[0];
-    if (dur > len) dur = len;
-    len -= dur;
+    dur = (double)*argp[0];
     segp->nxtpt = FL(1.0);
-    if (UNLIKELY((segp->cnt = (int32)(dur * CS_EKR + FL(0.5))) == 0))
-      segp->cnt = 0;
+    segp->cnt = (int32)(dur * CS_EKR + FL(0.5));
     if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
         segp->acnt = 0;
-    //printf("attack: dur=%f cnt=%d acnt=%d\n", dur, segp->cnt, segp->acnt);
+    //printf("attack: dur=%f cnt=%d acnt=%d nxt=%f\n",
+    //       dur, segp->cnt, segp->acnt, segp->nxtpt);
     segp++;
                                 /* Decay */
     dur = *argp[1];
-    if (dur > len) dur = len;
-    len -= dur;
     segp->nxtpt = *argp[2];
-    if (UNLIKELY((segp->cnt = (int32)(dur * CS_EKR + FL(0.5))) == 0))
-      segp->cnt = 0;
+    segp->cnt = (int32)(dur * CS_EKR + FL(0.5));
     if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
       segp->acnt = 0;
-    //printf("decay: dur=%f cnt=%d acnt=%d\n", dur, segp->cnt, segp->acnt);
+    //printf("decay: dur=%f cnt=%d acnt=%d nxt=%f\n",
+    //       dur, segp->cnt, segp->acnt, segp->nxtpt);
     segp++;
                                 /* Sustain */
     /* Should use p3 from score, but how.... */
-    dur = len;
-/*  dur = csound->curip->p3 - *argp[4] - *argp[0] - *argp[1] - *argp[3]; */
+    dur = len - *argp[4] - *argp[0] - *argp[1] - *argp[3];
+    if (dur <0.0)
+      return csound->InitError(csound, Str("length of ADSR note too short"));
     segp->nxtpt = *argp[2];
-    if (UNLIKELY((segp->cnt = (int32)(dur * CS_EKR + FL(0.5))) == 0))
-      segp->cnt = 0;
+    segp->cnt = (int32)(dur * CS_EKR + FL(0.5));
     if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
       segp->acnt = 0;
-    //printf("sustain: dur=%f cnt=%d acnt=%d\n", dur, segp->cnt, segp->acnt);
+    //printf("sustain: dur=%f cnt=%d acnt=%d nxt=%f\n",
+    //       dur, segp->cnt, segp->acnt, segp->nxtpt);
     segp++;
                                 /* Release */
+    dur = *argp[3];
     segp->nxtpt = FL(0.0);
-    if (UNLIKELY((segp->cnt = (int32)(release * CS_EKR + FL(0.5))) == 0))
-      segp->cnt = 0;
+    segp->cnt = (int32)(release * CS_EKR + FL(0.5));
     if (UNLIKELY((segp->acnt = (int32)(release * csound->esr + FL(0.5))) < 0))
       segp->acnt = 0;
-    //printf("release: dur=%f cnt=%d acnt=%d\n", dur, segp->cnt, segp->acnt);
+    //printf("release: dur=%f cnt=%d acnt=%d nxt=%f\n",
+    //       dur, segp->cnt, segp->acnt, segp->nxtpt);
     if (midip) {
       relestim = (p->cursegp + p->segsrem - 1)->cnt;
       p->xtra = relestim;
@@ -360,18 +354,17 @@ static void adsrset1(CSOUND *csound, LINSEG *p, int midip)
     }
     else
       p->xtra = 0L;
+    return OK;
 }
 
 int adsrset(CSOUND *csound, LINSEG *p)
 {
-    adsrset1(csound, p, 0);
-    return OK;
+    return adsrset1(csound, p, 0);
 }
 
 int madsrset(CSOUND *csound, LINSEG *p)
 {
-    adsrset1(csound, p, 1);
-    return OK;
+    return adsrset1(csound, p, 1);
 }
 
 /* End of ADSR */
