@@ -38,7 +38,7 @@
 struct windat_ {
     uintptr_t windid;           /* set by MakeGraph() */
     MYFLT   *fdata;             /* data passed to DrawGraph */
-    int32    npts;               /* size of above array */
+    int32   npts;               /* size of above array */
     char    caption[CAPSIZE];   /* caption string for graph */
     int16   waitflg;            /* set =1 to wait for ms after Draw */
     int16   polarity;           /* controls positioning of X axis */
@@ -46,7 +46,7 @@ struct windat_ {
     MYFLT   absmax;             /* workspace .. largest of above */
     MYFLT   oabsmax;            /* Y axis scaling factor */
     int     danflag;            /* set to 1 for extra Yaxis mid span */
-  int     absflag;             /* set to 1 to skip abs check */
+    int     absflag;            /* set to 1 to skip abs check */
 };
 
 enum {                  /* symbols for WINDAT.polarity field */
