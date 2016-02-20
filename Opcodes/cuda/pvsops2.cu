@@ -435,11 +435,94 @@ static int destroy_pvanal(CSOUND *csound, void *pp){
   return OK;
 }
 
+typedef struct _cudapvsgain2 {
+  OPDS    h;
+  PVSDAT  *fout;
+  PVSDAT  *fa;
+  MYFLT   *kgain;
+  int gridSize;   // number of blocks in the grid (1D)
+  int blockSize;   // number of threads in one block (1D)
+  uint32  lastframe;
+} CUDAPVSGAIN2;
+
+// kernel for scaling PV amplitudes
+__global__ void applygain(float* output, float* input, MYFLT g, int length) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = i<<1;
+
+  if(j < length){
+    output[j] = (float) input[j] * g;
+    output[j+1] = input[j+1];
+  }
+} 
+
+static int free_device(CSOUND* csound, void* pp){
+  CUDAPVSGAIN2* p = (CUDAPVSGAIN2*) pp;
+  cudaFree(p->fout->frame.auxp);
+  return OK;
+} 
+
+static int cudapvsgain2set(CSOUND *csound, CUDAPVSGAIN2 *p){
+
+  int32 N = p->fa->N;
+  int size = (N+2) * sizeof(float);
+  int maxBlockDim;
+  int SMcount;
+  int totNumThreads = (N+2)/2;
+  cudaDeviceProp deviceProp;
+  cudaGetDeviceProperties(&deviceProp,0);
+  maxBlockDim = deviceProp.maxThreadsPerBlock;
+  SMcount = deviceProp.multiProcessorCount;
+  csound->Message(csound, "cudapvsgain2 running on device %s (capability %d.%d)\n", deviceProp.name,
+     deviceProp.major, deviceProp.minor);
+    
+  p->fout->sliding = 0;
+    
+  if (p->fout->frame.auxp == NULL || p->fout->frame.size < size)
+    AuxCudaAlloc(size, &p->fout->frame);
+    
+  p->blockSize = (((totNumThreads/SMcount)/32)+1)*32;
+  if (p->blockSize > maxBlockDim) p->blockSize = maxBlockDim;
+  p->gridSize = totNumThreads / p->blockSize + 1;  
+  p->fout->N = N;
+  p->fout->overlap = p->fa->overlap;
+  p->fout->winsize = p->fa->winsize;
+  p->fout->wintype = p->fa->wintype;
+  p->fout->format = p->fa->format;
+  p->fout->framecount = 1;
+  p->lastframe = 0;
+  
+  csound->RegisterDeinitCallback(csound, p, free_device);
+  
+  return OK;
+}
+
+static int cudapvsgain2(CSOUND *csound, CUDAPVSGAIN2 *p)
+{
+  int32   framelength = p->fa->N + 2;
+  MYFLT gain = *p->kgain;
+  float* fo = (float*) p->fout->frame.auxp;
+  float* fi = (float*) p->fa->frame.auxp;
+
+  if (p->lastframe < p->fa->framecount) {
+     if (cudaDeviceSynchronize() != cudaSuccess)
+         csound->Message(csound,"Cuda error: Failed to synchronize\n");
+    applygain<<<p->gridSize,p->blockSize>>>(fo, fi, gain, framelength); 
+    p->fout->framecount = p->fa->framecount;
+    p->lastframe = p->fout->framecount;
+  }
+
+  return OK;
+}
+
+
 static OENTRY localops[] = {
   {"cudasynth2", sizeof(PVSYN),0, 5, "a", "f", (SUBR) pvsynset, NULL,
    (SUBR) pvsynperf},
    {"cudanal2", sizeof(PVAN),0, 5, "f", "aiiii", (SUBR) pvanalset, NULL,
-   (SUBR) pvanalperf}
+    (SUBR) pvanalperf},
+  {"cudapvsgain2", sizeof(CUDAPVSGAIN2), 0, 3, "f", "fk",
+                               (SUBR) cudapvsgain2set, (SUBR) cudapvsgain2, NULL}
 };
 
 extern "C" {
