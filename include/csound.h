@@ -602,6 +602,7 @@ extern "C" {
     /**
      * Parse the given orchestra from an ASCII string into a TREE.
      * This can be called during performance to parse new code.
+     * Argument str is ignored
     */
     PUBLIC TREE *csoundParseOrc(CSOUND *csound, const char *str);
 
