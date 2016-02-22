@@ -140,6 +140,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       free(csound->delayederrormessages);
       csound->delayederrormessages = NULL;
     }
+    
     /* check for CSD file */
     if (csound->orchname == NULL) {
       if (csound->info_message_request) {
@@ -237,6 +238,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (csound->orchstr==NULL && csound->orchname) {
       /*  does not deal with search paths */
       csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
+      csound->orcLineOffset = 0;
       csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL, 0);
       if (csound->orchstr==NULL)
         csound->Die(csound,
