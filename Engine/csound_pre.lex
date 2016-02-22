@@ -39,7 +39,7 @@ void do_umacro(CSOUND *, char *, yyscan_t);
 void do_ifdef(CSOUND *, char *, yyscan_t);
 void do_ifdef_skip_code(CSOUND *, yyscan_t);
 void do_function(char *, CORFIL*);
-   // static void print_csound_predata(CSOUND *,char *,yyscan_t);
+static void print_csound_predata(CSOUND *,char *,yyscan_t);
 void csound_pre_line(CORFIL*, yyscan_t);
  static void delete_macros(CSOUND*, yyscan_t);
 #include "parse_param.h"
@@ -439,9 +439,9 @@ QNAN		"qnan"[ \t]*\(
                   if (UNLIKELY(PARM->depth > 1024))
                     csound->Die(csound, Str("unexpected EOF"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
-                  /* csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n", */
-                  /*                  __FILE__, __LINE__, */
-                  /*        PARM->llocn, PARM->locn); */
+                  csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n",
+                                   __FILE__, __LINE__,
+                         PARM->llocn, PARM->locn);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   /* csound->DebugMsg(csound,"End of input; popping to %p\n", */
                   /*         YY_CURRENT_BUFFER); */
@@ -451,17 +451,17 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
-                     /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
-                     /*                  PARM->macro_stack_size); */
+                     csound->DebugMsg(csound, "alt_stack now %d long\n",
+                                      PARM->macro_stack_size);
                   }
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  /* csound->DebugMsg(csound,"%s(%d): line now %d at %d\n", */
-                  /*                  __FILE__, __LINE__, */
-                  /*        csound_preget_lineno(yyscanner), */
-                  /*        PARM->macro_stack_ptr); */
-                  /* csound->DebugMsg(csound,"n=%d\n", n); */
+                  csound->DebugMsg(csound,"%s(%d): line now %d at %d\n",
+                                   __FILE__, __LINE__,
+                         csound_preget_lineno(yyscanner),
+                         PARM->macro_stack_ptr);
+                  csound->DebugMsg(csound,"n=%d\n", n);
                   if (n!=0) {
                     /* We need to delete n macros starting with y */
                     y = PARM->alt_stack[PARM->macro_stack_ptr].s;
@@ -487,7 +487,9 @@ QNAN		"qnan"[ \t]*\(
                   csound->DebugMsg(csound,
                                    "End of input segment: macro pop %p -> %p\n",
                                    y, PARM->macros);
+                  print_csound_predata(csound,"Before pre_line", yyscanner);
                   csound_pre_line(csound->orchstr, yyscanner);
+                  print_csound_predata(csound,"After pre_line", yyscanner);
                 }
 {DEFINE}        {
                   if (PARM->isString != 1)
@@ -679,7 +681,6 @@ void comment(yyscan_t yyscanner)              /* Skip until nextline */
     csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
 }
 
-#if 1
 void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
 {
     int c;
@@ -715,46 +716,6 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
       goto TOP;
     }
 }
-#else
-
-void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
-{
-    char c;
-    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
-    for (;;) {
-      c = input(yyscanner);
-      if (UNLIKELY(c == '\r')) { /* skip */
-        if ((c = input(yyscanner)) != '\n')
-            unput(c);
-        csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
-      }
-      else if (UNLIKELY(c=='\n')) { /* skip */
-        csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
-      }
-      if (c == EOF) {
-        YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
-          YY_BUFFER_EOF_PENDING;
-        return;
-      }
-      if (c != '*') continue;
-      while ((c=input(yyscanner))=='*')
-      if (c=='/') return;
-      if (UNLIKELY(c == '\r')) {
-        if ((c = input(yyscanner)) != '\n')
-          unput(c);
-        csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
-      }
-      else if (UNLIKELY(c=='\n')) {
-        csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
-      }
-      if (c == EOF) {
-        YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
-          YY_BUFFER_EOF_PENDING;
-        return;
-      }
-    }
-}
-#endif
 
 void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 {
@@ -779,7 +740,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       uint8_t n = file_to_int(csound, buffer);
       char bb[128];
       PARM->lstack[PARM->depth] = n;
-      sprintf(bb, "#source %llud\n", PARM->locn = make_location(PARM));
+      sprintf(bb, "#source %llu\n", PARM->locn = make_location(PARM));
       PARM->llocn = PARM->locn;
       corfile_puts(bb, csound->expanded_orc);
     }
@@ -1195,13 +1156,14 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
 void csound_pre_line(CORFIL* cf, void *yyscanner)
 {
     int n = csound_preget_lineno(yyscanner);
+    //printf("line number %d\n", n);
     /* This assumes that the initial line was not written with this system  */
-    if (cf->body[cf->p-1]=='\n') {
+    if (cf->p>0 && cf->body[cf->p-1]=='\n') {
       uint64_t locn = PARM->locn;
       uint64_t llocn = PARM->llocn;
       if (locn != llocn) {
         char bb[80];
-        sprintf(bb, "#source %llud\n", locn);
+        sprintf(bb, "#source %llu\n", locn);
         corfile_puts(bb, cf);
       }
       PARM->llocn = locn;
@@ -1252,28 +1214,34 @@ MACRO *find_definition(MACRO *mmo, char *s)
 }
 
 
-#if 0
+#if 1
 static void print_csound_predata(CSOUND *csound, char *mesg, void *yyscanner)
 {
     struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
-    csound->DebugMsg(csound,"********* %s extra data ************\n", mesg);
-    csound->DebugMsg(csound,"yyscanner = %p\n", yyscanner);
-    csound->DebugMsg(csound,"yyextra_r = %p, yyin_r = %p, yyout_r = %p, yy_buffer_stack_top = %d\n", 
+    csound->DebugMsg(csound,"********* %s extra data ************", mesg);
+    csound->DebugMsg(csound,"yyscanner = %p", yyscanner);
+    csound->DebugMsg(csound,"yyextra_r = %p, yyin_r = %p, yyout_r = %p, yy_buffer_stack_top = %d", 
            yyg->yyextra_r, yyg->yyin_r,yyg->yyout_r, yyg->yy_buffer_stack_top);
-    csound->DebugMsg(csound,"yy_buffer_stack_max = %d1, yy_buffer_stack = %p, yy_hold_char = %d '%c'\n", 
+    csound->DebugMsg(csound,"yy_buffer_stack_max = %d1, yy_buffer_stack = %p, yy_hold_char = %d '%c'", 
            yyg->yy_buffer_stack_max, yyg->yy_buffer_stack, yyg->yy_hold_char,
            yyg->yy_hold_char);
-    csound->DebugMsg(csound,"yy_n_chars = %d, yyleng_r = %d, yy_c_buf_p = %p %c\n",
+    csound->DebugMsg(csound,"yy_n_chars = %d, yyleng_r = %d, yy_c_buf_p = %p %c",
            yyg->yy_n_chars, yyg->yyleng_r, yyg->yy_c_buf_p, *yyg->yy_c_buf_p);
-    csound->DebugMsg(csound,"yy_init = %d, yy_start = %d, yy_did_buffer_switch_on_eof = %d\n",
+    csound->DebugMsg(csound,"yy_init = %d, yy_start = %d, yy_did_buffer_switch_on_eof = %d",
            yyg->yy_init, yyg->yy_start, yyg->yy_did_buffer_switch_on_eof);
-    csound->DebugMsg(csound,"yy_start_stack_ptr = %d, yy_start_stack_depth = %d, yy_start_stack = %p\n",
+    csound->DebugMsg(csound,"yy_start_stack_ptr = %d, yy_start_stack_depth = %d, yy_start_stack = %p",
            yyg->yy_start_stack_ptr, yyg->yy_start_stack_depth, yyg->yy_start_stack);
 
-    csound->DebugMsg(csound,"yy_last_accepting_state = %d, yy_last_accepting_cpos = %p %c\n",
+    csound->DebugMsg(csound,"yy_last_accepting_state = %d, yy_last_accepting_cpos = %p %c",
            yyg->yy_last_accepting_state, yyg->yy_last_accepting_cpos, *yyg->yy_last_accepting_cpos);
-    csound->DebugMsg(csound,"yylineno_r = %d, yy_flex_debug_r = %d, yytext_r = %p \"%s\", yy_more_flag = %d, yy_more_len = %d\n",
+    csound->DebugMsg(csound,"yylineno_r = %d, yy_flex_debug_r = %d, yytext_r = %p \"%s\", yy_more_flag = %d, yy_more_len = %d",
            yyg->yylineno_r, yyg->yy_flex_debug_r, yyg->yytext_r, yyg->yytext_r, yyg->yy_more_flag, yyg->yy_more_len);
+    {
+      PRE_PARM* pp = yyg->yyextra_r;
+      printf("macros = %p, isIfndef = %d, isString = %d, line - %d loc = %d\n",
+             pp->macros, pp->isIfndef, pp->isString, pp->line, pp->locn);
+      printf("llocn = %d dept=%d\n", pp->llocn, pp->depth);
+    }
     csound->DebugMsg(csound,"*********\n");
 }
 #endif
