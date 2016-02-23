@@ -25,11 +25,11 @@
  02111-1307 USA
  */
 
-#import "WebSocketOpcode.h"
-#import <sys/param.h>
-#import <stdio.h>
-#import <libwebsockets.h>
-#import <stdlib.h>
+#include "WebSocketOpcode.h"
+#include <sys/param.h>
+#include <stdio.h>
+#include <libwebsockets.h>
+#include <stdlib.h>
 
 typedef enum ArgumentType
 {
