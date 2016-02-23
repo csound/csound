@@ -284,7 +284,7 @@ QNAN		"qnan"[ \t]*\(
                    MACRO     *mm = PARM->macros;
                    char      *mname;
                    int c, i, j;
-                   csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext);
+                   //csound->DebugMsg(csound,"Macro with arguments call %s\n", yytext);
                    yytext[yyleng-1] = '\0';
                    mm = find_definition(PARM->macros, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
@@ -293,7 +293,7 @@ QNAN		"qnan"[ \t]*\(
                    }
                    mname = yytext;
                    /* Need to read from macro definition */
-                   csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
+                   //csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
                    for (j = 0; j < mm->acnt; j++) {
                      char  term = (j == mm->acnt - 1 ? ')' : '\'');
  /* Compatability */
@@ -301,7 +301,7 @@ QNAN		"qnan"[ \t]*\(
                      MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
                      int   size = 100;
                      nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1);
-                     csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
+                     //csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
@@ -323,7 +323,7 @@ QNAN		"qnan"[ \t]*\(
                      nn->next = PARM->macros;
                      PARM->macros = nn;
                    }
-                   csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
+                   //csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
                    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
                      PARM->alt_stack =
                        (MACRON*)
@@ -339,7 +339,7 @@ QNAN		"qnan"[ \t]*\(
                    PARM->alt_stack[PARM->macro_stack_ptr].line =
                      csound_preget_lineno(yyscanner);
                    PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
-                   csound->DebugMsg(csound,"Push %p macro stack\n",PARM->macros);
+                   //csound->DebugMsg(csound,"Push %p macro stack\n",PARM->macros);
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
                    PARM->lstack[++PARM->depth] =
@@ -350,8 +350,8 @@ QNAN		"qnan"[ \t]*\(
                    MACRO     *mm = PARM->macros;
                    char      *mname;
                    int c, i, j;
-                   csound->DebugMsg(csound,"Macro with arguments call %s\n",
-                                       yytext);
+                   //csound->DebugMsg(csound,"Macro with arguments call %s\n",
+                   //                    yytext);
                    yytext[yyleng-2] = '\0';
                    mm = find_definition(PARM->macros, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
@@ -360,7 +360,7 @@ QNAN		"qnan"[ \t]*\(
                    }
                    mname = yytext;
                    /* Need to read from macro definition */
-                   csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
+                   //csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
                    for (j = 0; j < mm->acnt; j++) {
                      char  term = (j == mm->acnt - 1 ? ')' : '\'');
  /* Compatability */
@@ -368,7 +368,7 @@ QNAN		"qnan"[ \t]*\(
                      MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
                      int   size = 100;
                      nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1);
-                     csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
+                     //csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
@@ -390,7 +390,7 @@ QNAN		"qnan"[ \t]*\(
                      nn->next = PARM->macros;
                      PARM->macros = nn;
                    }
-                   csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
+                   //csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
                    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
                      PARM->alt_stack =
                        (MACRON*)
@@ -432,16 +432,16 @@ QNAN		"qnan"[ \t]*\(
 <<EOF>>         {
                   MACRO *x, *y=NULL;
                   int n;
-                  csound->DebugMsg(csound,"*********Leaving buffer %p\n",
-                                   YY_CURRENT_BUFFER);
+                  /* csound->DebugMsg(csound,"*********Leaving buffer %p\n", */
+                  /*                  YY_CURRENT_BUFFER); */
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
                   if (UNLIKELY(PARM->depth > 1024))
                     csound->Die(csound, Str("unexpected EOF"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
-                  csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n",
-                                   __FILE__, __LINE__,
-                         PARM->llocn, PARM->locn);
+                  /* csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n", */
+                  /*                  __FILE__, __LINE__, */
+                  /*        PARM->llocn, PARM->locn); */
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   /* csound->DebugMsg(csound,"End of input; popping to %p\n", */
                   /*         YY_CURRENT_BUFFER); */
@@ -451,17 +451,17 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
-                     csound->DebugMsg(csound, "alt_stack now %d long\n",
-                                      PARM->macro_stack_size);
+                     /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
+                     /*                  PARM->macro_stack_size); */
                   }
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  csound->DebugMsg(csound,"%s(%d): line now %d at %d\n",
-                                   __FILE__, __LINE__,
-                         csound_preget_lineno(yyscanner),
-                         PARM->macro_stack_ptr);
-                  csound->DebugMsg(csound,"n=%d\n", n);
+                  /* csound->DebugMsg(csound,"%s(%d): line now %d at %d\n", */
+                  /*                  __FILE__, __LINE__, */
+                  /*        csound_preget_lineno(yyscanner), */
+                  /*        PARM->macro_stack_ptr); */
+                  /* csound->DebugMsg(csound,"n=%d\n", n); */
                   if (n!=0) {
                     /* We need to delete n macros starting with y */
                     y = PARM->alt_stack[PARM->macro_stack_ptr].s;
@@ -484,12 +484,12 @@ QNAN		"qnan"[ \t]*\(
                     }
                     y->next = x;
                   }
-                  csound->DebugMsg(csound,
-                                   "End of input segment: macro pop %p -> %p\n",
-                                   y, PARM->macros);
-                  print_csound_predata(csound,"Before pre_line", yyscanner);
+                  /* csound->DebugMsg(csound, */
+                  /*                  "End of input segment: macro pop %p -> %p\n", */
+                  /*                  y, PARM->macros); */
+                  //print_csound_predata(csound,"Before pre_line", yyscanner);
                   csound_pre_line(csound->orchstr, yyscanner);
-                  print_csound_predata(csound,"After pre_line", yyscanner);
+                  //print_csound_predata(csound,"After pre_line", yyscanner);
                 }
 {DEFINE}        {
                   if (PARM->isString != 1)
@@ -1167,7 +1167,7 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
         corfile_puts(bb, cf);
       }
       PARM->llocn = locn;
-      if (n!=PARM->line+1) {
+      /* if (n!=PARM->line+1) */ {
         char bb[80];
         sprintf(bb, "#line %d\n", n);
         corfile_puts(bb, cf);
@@ -1214,7 +1214,7 @@ MACRO *find_definition(MACRO *mmo, char *s)
 }
 
 
-#if 1
+#if 0
 static void print_csound_predata(CSOUND *csound, char *mesg, void *yyscanner)
 {
     struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
