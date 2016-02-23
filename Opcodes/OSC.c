@@ -109,7 +109,7 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     char port[8];
     char *pp = port;
     char *hh;
-    unsigned int i;
+    //unsigned int i;
 
     /* with too many args, XINCODE may not work correctly */
     if (UNLIKELY(p->INOCOUNT > 31))
@@ -438,7 +438,7 @@ static int OSC_handler(const char *path, const char *types,
                   int size = lo_blob_datasize(bb);
                   MYFLT *data = lo_blob_dataptr(bb);
                   int   *idata = (int*)data;
-                  //printf("size=%d data=%.8x %.8x ...\n",size, idata[0], idata[1]);
+                  printf("size=%d data=%.8x %.8x ...\n",size, idata[0], idata[1]);
                 }
 #endif
               }
@@ -684,7 +684,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
           }
           else if (c == 'a') {
             MYFLT *data= (MYFLT*)idata;
-            int len = (int)data[0];
+            unsigned int len = (int)data[0];
             if (len>CS_KSMPS) len = CS_KSMPS;
             memcpy(p->args[i], &data[1], len*sizeof(MYFLT));
           }
@@ -697,7 +697,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
               return csound->PerfError(csound, p->h.insdshead,
                                        Str("Invalid ftable no. %d"), fno);
             ftp = csound->FTFindP(csound, p->args[i]);
-            if (ftp==NULL) // need to allocate
+            if (ftp==NULL) // need to allocate ***FIXME***
               ;
             memcpy(ftp, data, sizeof(FUNC)-sizeof(MYFLT*));
             ftp->fno = fno;
@@ -705,7 +705,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
                                                   len-sizeof(FUNC)+sizeof(MYFLT*));
             {
               MYFLT* dst = ftp->ftable;
-              MYFLT* src = &(data->ftable);
+              MYFLT* src = (MYFLT*)(&(data->ftable));
 #ifdef JPFF
               //int j;
               printf("copy data: from %p to %p length %d %d\n",

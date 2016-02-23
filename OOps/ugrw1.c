@@ -1060,65 +1060,65 @@ int printksset(CSOUND *csound, PRINTKS *p){
    escaping %% correctly now.
  */
 static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
-  char tmp[8],cc;
-  int j = 0;
-  int len = 8192;
-  while(*fmt){
-    if(*fmt == '%'){
-      if(*(fmt+1) == '%'){
-        *outstring++ = *fmt++;
-        *outstring++ = *fmt++;
-        len-=2;
-      }
-      else if(*(fmt+1) && isspace(*(fmt+1))){
-        *outstring++ = *fmt++;
-        *outstring++ = '%';
-        *outstring++ = *fmt++;
-        len-=3;
-      }
-      else{
-        int n = 0;
-        char check;
-        while(*(fmt+n) && !isspace(*(fmt+n))){
-          tmp[n] = check = *(fmt+n);
-          n++;
+    char tmp[8],cc;
+    int j = 0;
+    int len = 8192;
+    while (*fmt) {
+      if (*fmt == '%') {
+        if (*(fmt+1) == '%') {
+          *outstring++ = *fmt++;
+          *outstring++ = *fmt++;
+          len-=2;
         }
-        tmp[n] = *(fmt+n);
-        tmp[n+1] = '\0';
-        n++;
-        switch(check){
+        else if (*(fmt+1) && isspace(*(fmt+1))) {
+          *outstring++ = *fmt++;
+          *outstring++ = '%';
+          *outstring++ = *fmt++;
+          len-=3;
+        }
+        else {
+          int n = 0;
+          char check='\0';
+          while(*(fmt+n) && !isspace(*(fmt+n))){
+            tmp[n] = check = *(fmt+n);
+            n++;
+          }
+          tmp[n] = *(fmt+n);
+          tmp[n+1] = '\0';
+          n++;
+          switch (check) {
           case 'd':
           case 'i':
           case 'o':
           case 'x':
           case 'X':
           case 'u':
-           snprintf(outstring, len, tmp, MYFLT2LRND(*kvals[j]));
-           break;
+            snprintf(outstring, len, tmp, MYFLT2LRND(*kvals[j]));
+            break;
           case 'c':
-           cc  = (char) MYFLT2LRND(*kvals[j]);
-           if(cc == '%'){
-             *outstring++ = '%';
-           }
-           snprintf(outstring, len, tmp, cc);
-          break;
+            cc  = (char) MYFLT2LRND(*kvals[j]);
+            if (cc == '%') {
+              *outstring++ = '%';
+            }
+            snprintf(outstring, len, tmp, cc);
+            break;
           default:
             puts(fmt);
-           snprintf(outstring, len, tmp, *kvals[j]);
-           break;
-        }
-        if (j < numVals-1)
+            snprintf(outstring, len, tmp, *kvals[j]);
+            break;
+          }
+          if (j < numVals-1)
             j++;
-        fmt += n;
-        outstring += strlen(outstring);
-        len -= strlen(outstring);
+          fmt += n;
+          outstring += strlen(outstring);
+          len -= strlen(outstring);
+        }
+      }
+      else {
+        *outstring++ = *fmt++;
+        len--;
       }
     }
-    else {
-      *outstring++ = *fmt++;
-      len--;
-    }
-  }
 }
 
 
