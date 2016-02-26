@@ -1335,11 +1335,14 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
 
         if (retval>0) {
           char    ch = '\0';
-          if (UNLIKELY(read(0, &ch, 1)!=1)) {
+          int n=0;
+          if (UNLIKELY((n=read(0, &ch, 1))<0)) {
             csound->PerfError(csound, p->h.insdshead,
                               Str("read failure in sensekey\n"));
             return NOTOK;
           }
+          //if n==0 then EOF which we treat os empty
+          else ch = '\0';
           keyCode = (int)((unsigned char) ch);
           /* FD_ISSET(0, &rfds) will be true. */
         }
