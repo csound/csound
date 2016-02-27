@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
---opcode-lib=./libcudaop2.dylib
+;--opcode-lib=./libcudaop2.dylib
 </CsOptions>
 <CsInstruments>
 
@@ -8,7 +8,7 @@ ksmps = 64
 0dbfs = 1
 
 instr 1
-ifftsize = 2048
+ifftsize = 4096
 ihopsize = 512
 asig = diskin2:a("flutec3.wav",1,0,1)
 fsig = cudanal(asig, 
@@ -22,7 +22,7 @@ endin
 
 instr 2
 S1 = "flutec3.wav"
-ifftsize = 2048
+ifftsize = 32768
 ihopsize = 512
 asig  diskin2 S1, 1, 0, 1
 fsig pvsanal asig, ifftsize, ihopsize, ifftsize, 1
@@ -34,7 +34,7 @@ endin
 
 </CsInstruments>
 <CsScore>
-i2 0 60
+i1 0 60
 </CsScore>
 </CsoundSynthesizer>
 

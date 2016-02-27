@@ -1333,18 +1333,22 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
 
         retval = select(1, &rfds, NULL, NULL, &tv);
 
-        if (retval) {
+        if (retval>0) {
           char    ch = '\0';
-          if (UNLIKELY(read(0, &ch, 1)!=1)) {
+          int n=0;
+          if (UNLIKELY((n=read(0, &ch, 1))<0)) {
             csound->PerfError(csound, p->h.insdshead,
                               Str("read failure in sensekey\n"));
             return NOTOK;
           }
+          //if n==0 then EOF which we treat os empty
+          else ch = '\0';
           keyCode = (int)((unsigned char) ch);
           /* FD_ISSET(0, &rfds) will be true. */
         }
+        else if (retval<0) perror(Str("sensekey error:"));
 #else
-        unsigned char ch = (unsigned char) 0;
+        unsigned char ch = (unsigned char) '\0';
 #  ifdef WIN32
         if (_kbhit())
           ch = (unsigned char) _getch();

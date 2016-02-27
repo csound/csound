@@ -141,7 +141,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       qq.line = csound->orcLineOffset;
       csound->expanded_orc = corfile_create_w();
       file_to_int(csound, "**unknown**");
-      if (str == NULL) {
+      if (str==NULL) {
         char bb[80];
 
         if (csound->orchstr==NULL && !csound->oparms->daemon)
@@ -173,8 +173,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         corfile_putc('\0', csound->orchstr);
         corfile_putc('\0', csound->orchstr);
       }
-      /* csound->DebugMsg(csound, "Calling preprocess on >>%s<<\n", */
-      /*         corfile_body(csound->orchstr)); */
+
+      csound->DebugMsg(csound, "Calling preprocess on >>%s<<\n",
+              corfile_body(csound->orchstr));
       //csound->DebugMsg(csound,"FILE: %s \n", csound->orchstr->body);
       //    csound_print_preextra(&qq);
       cs_init_math_constants_macros(csound, &qq);
