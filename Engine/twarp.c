@@ -191,9 +191,9 @@ int realtset(CSOUND *csound, SRTBLK *bp)
  error2:
     csound->Message(csound,Str("twarp: t has non-positive tempo\n"));
     return(0);
- error3:
-    csound->Message(csound,Str("twarp: t segments exceed twarp array\n"));
-    return(0);
+ /* error3: */
+ /*    csound->Message(csound,Str("twarp: t segments exceed twarp array\n")); */
+ /*    return(0); */
 }
 
 MYFLT realt(CSOUND *csound, MYFLT srctim)
