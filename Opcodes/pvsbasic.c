@@ -1039,6 +1039,7 @@ static int pvsmoothset(CSOUND *csound, PVSMOOTH *p)
         if (p->del.auxp == NULL || p->del.size < sizeof(float) * (N + 2))
           csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->del);
       }
+    memset(p->del.auxp, 0, (N + 2) * sizeof(float));
     p->fout->N = N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;

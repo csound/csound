@@ -29,16 +29,25 @@
 
 #include <pstream.h>
 
+void AuxCudaAlloc(int size, AUXCH *p){
+  float *mem;
+  cudaMalloc(&mem, size);
+  cudaMemset(mem, 0, size);  
+  p->auxp = mem;
+  p->size = size;
+}
+
+
 /* kernel to convert from pvs to rectangular frame */
-__global__ void frompvs(float* inframe, double* lastph,
+__global__ void frompvs(float* inframe, float* fsig, double* lastph,
                         double scal, double fac) {
 
-  int k = threadIdx.x + blockIdx.x*blockDim.x + 1;
+  int k = threadIdx.x + blockIdx.x*blockDim.x;
   int i = k << 1;
-  float mag = inframe[i];
-  double delta = (inframe[i+1] - k*scal)*fac;
-  double phi = fmod(lastph[k-1] + delta, TWOPI);
-  lastph[k-1] = phi;
+  float mag = fsig[i];
+  double delta = (fsig[i+1] - k*scal)*fac;
+  double phi = fmod(lastph[k] + delta, TWOPI);
+  lastph[k] = phi;
   inframe[i] =  (float) (mag*cos(phi));
   inframe[i+1] = (float) (mag*sin(phi));
 }
@@ -106,9 +115,9 @@ static int pvsynset(CSOUND *csound, PVSYN *p){
     size = (N+2)*sizeof(float);
     cudaMalloc(&p->inframe, size);
     cudaMemset(p->inframe, 0, size);
-     size = (N+2)*sizeof(float);
-    cudaMalloc(&p->inframe2, size);
     size = (N+2)*sizeof(float);
+    cudaMalloc(&p->inframe2, size);
+    size = (N/2)*sizeof(double);
     cudaMalloc(&p->lastph, size);
     cudaMemset(p->lastph, 0, size);
     size = N*sizeof(float);
@@ -180,14 +189,10 @@ static int pvsynperf(CSOUND *csound, PVSYN *p){
       float *cur = &(frames[start]);
       float *win = (float *) p->win;
       float *inframe = p->inframe;
-            float *inframe2 = p->inframe2;
+      float *inframe2 = p->inframe2;
       float *fsig = (float *) p->fsig->frame.auxp;
-      /* copy fsig data to device */
-      fsig[N+1] = fsig[1] = 0.f;
-      cudaMemcpy(inframe,fsig,(N+2)*sizeof(float),
-                 cudaMemcpyHostToDevice);
       /* perf pvs to rect conversion */
-      frompvs<<<p->bblocks,p->bthreads-1>>>(inframe,p->lastph,p->scal,p->fac);
+      frompvs<<<p->bblocks,p->bthreads>>>(inframe,fsig,p->lastph,p->scal,p->fac);
       /* execute inverse real FFT */
       if(cufftExecC2R(p->plan,(cufftComplex*)inframe,inframe)
          != CUFFT_SUCCESS) csound->Message(csound, "cuda fft error\n");
@@ -233,18 +238,17 @@ __device__ double modTwoPi(double x)
 }
 
 /* kernel to convert from rectangular to pvs frame */
-__global__ void topvs(float* aframe, double* oldph,
+__global__ void topvs(float *fsig, float *aframe, double* oldph,
                       double scal, double fac) {
-  int k = threadIdx.x + blockIdx.x*blockDim.x + 1;
+  int k = threadIdx.x + blockIdx.x*blockDim.x;
   int i = k << 1;
-
   float re = aframe[i], im = aframe[i+1];
   float mag = sqrtf(re*re + im*im);
   double phi = atan2f(im,re);
-  double delta = phi - oldph[k-1];
-  oldph[k-1] = phi;
-  aframe[i] =  mag;
-  aframe[i+1] = (float) ((modTwoPi(delta) + k*scal)*fac);
+  double delta = phi - oldph[k];
+  oldph[k] = phi;
+  fsig[i] =  mag;
+  fsig[i+1] = (float) ((modTwoPi(delta) + k*scal)*fac);
 }
 
 __global__ void rotatewin(float* aframe2, float *aframe, float *win,
@@ -290,6 +294,7 @@ static int pvanalset(CSOUND *csound, PVAN *p){
 
     p->fsig->N = N;
     p->fsig->overlap = hsize;
+    p->fsig->format = -1;
     /* ignore winsize & wintype */
     p->fsig->winsize = N;
     p->fsig->wintype = 1;
@@ -305,9 +310,8 @@ static int pvanalset(CSOUND *csound, PVAN *p){
     size = (N+2)*sizeof(float);
     if(p->fsig->frame.auxp == NULL ||
        p->fsig->frame.size < size)
-      csound->AuxAlloc(csound, size, &p->fsig->frame);
-    memset(p->fsig->frame.auxp, 0, size);
-
+       AuxCudaAlloc(size, &p->fsig->frame);
+    
     size = sizeof(int)*numframes;
     if(p->count.auxp == NULL ||
        p->count.size < size)
@@ -321,11 +325,12 @@ static int pvanalset(CSOUND *csound, PVAN *p){
     cudaMalloc(&p->aframe, size);
     size = (N+2)*sizeof(float);
     cudaMalloc(&p->aframe2, size);
-    size = (N/2-1)*sizeof(double);
+    size = (N/2)*sizeof(double);
     cudaMalloc(&p->oldph, size);
     cudaMemset(p->oldph, 0, size);
     size = N*sizeof(float);
     cudaMalloc(&p->win, size);
+
 
     win = (float *) malloc(sizeof(float)*N);
     for(i=0; i < N; i++)
@@ -351,7 +356,7 @@ static int pvanalset(CSOUND *csound, PVAN *p){
     p->nblocks = N > blockspt ? N/blockspt : 1;
     p->bthreads = bins/p->bblocks;
     p->nthreads = N/p->nblocks;
-  if(csound->GetDebug(csound))
+   if(csound->GetDebug(csound))
     csound->Message(csound, "%d (%d each), %d (%d each)\n",
                     p->nblocks, p->nthreads, p->bblocks, p->bthreads);
     return OK;
@@ -394,7 +399,6 @@ static int pvanalperf(CSOUND *csound, PVAN *p){
       float *aframe = p->aframe;
       float *aframe2 = p->aframe2;
       float *fsig = (float *) p->fsig->frame.auxp;
-      /* copy fsig data to device */
       cudaMemcpy(aframe,cur,N*sizeof(float),
              cudaMemcpyHostToDevice);
       /* window and rotate data on device */
@@ -406,11 +410,8 @@ static int pvanalperf(CSOUND *csound, PVAN *p){
        if (cudaDeviceSynchronize() != cudaSuccess)
          csound->Message(csound,"Cuda error: Failed to synchronize\n");
        /* perf rect to pvs conversion */
-       topvs<<<p->bblocks,p->bthreads-1>>>(aframe2,p->oldph,p->scal,p->fac);
-       /* copy data to current out frame */
-      cudaMemcpy(fsig,aframe2,(N+2)*sizeof(float),cudaMemcpyDeviceToHost);
+       topvs<<<p->bblocks,p->bthreads>>>(fsig,aframe2,p->oldph,p->scal,p->fac);
       /* reset counter for this frame to the start */
-      fsig[N+1] = fsig[1] = 0.f;
       count[curframe] = start;
       /* move current to next frame circularly */
       p->curframe = --(curframe) < 0 ? numframes-1 : curframe;
@@ -428,15 +429,100 @@ static int destroy_pvanal(CSOUND *csound, void *pp){
   cudaFree(p->aframe);
   cudaFree(p->aframe2);
   cudaFree(p->oldph);
+  cudaFree(p->fsig->frame.auxp);
+  p->fsig->frame.size = 0;
   cudaFree(p->win);
   return OK;
 }
 
+typedef struct _cudapvsgain2 {
+  OPDS    h;
+  PVSDAT  *fout;
+  PVSDAT  *fa;
+  MYFLT   *kgain;
+  int gridSize;   // number of blocks in the grid (1D)
+  int blockSize;   // number of threads in one block (1D)
+  uint32  lastframe;
+} CUDAPVSGAIN2;
+
+// kernel for scaling PV amplitudes
+__global__ void applygain(float* output, float* input, MYFLT g, int length) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = i<<1;
+
+  if(j < length){
+    output[j] = (float) input[j] * g;
+    output[j+1] = input[j+1];
+  }
+} 
+
+static int free_device(CSOUND* csound, void* pp){
+  CUDAPVSGAIN2* p = (CUDAPVSGAIN2*) pp;
+  cudaFree(p->fout->frame.auxp);
+  return OK;
+} 
+
+static int cudapvsgain2set(CSOUND *csound, CUDAPVSGAIN2 *p){
+
+  int32 N = p->fa->N;
+  int size = (N+2) * sizeof(float);
+  int maxBlockDim;
+  int SMcount;
+  int totNumThreads = (N+2)/2;
+  cudaDeviceProp deviceProp;
+  cudaGetDeviceProperties(&deviceProp,0);
+  maxBlockDim = deviceProp.maxThreadsPerBlock;
+  SMcount = deviceProp.multiProcessorCount;
+  csound->Message(csound, "cudapvsgain2 running on device %s (capability %d.%d)\n", deviceProp.name,
+     deviceProp.major, deviceProp.minor);
+    
+  p->fout->sliding = 0;
+    
+  if (p->fout->frame.auxp == NULL || p->fout->frame.size < size)
+    AuxCudaAlloc(size, &p->fout->frame);
+    
+  p->blockSize = (((totNumThreads/SMcount)/32)+1)*32;
+  if (p->blockSize > maxBlockDim) p->blockSize = maxBlockDim;
+  p->gridSize = totNumThreads / p->blockSize + 1;  
+  p->fout->N = N;
+  p->fout->overlap = p->fa->overlap;
+  p->fout->winsize = p->fa->winsize;
+  p->fout->wintype = p->fa->wintype;
+  p->fout->format = p->fa->format;
+  p->fout->framecount = 1;
+  p->lastframe = 0;
+  
+  csound->RegisterDeinitCallback(csound, p, free_device);
+  
+  return OK;
+}
+
+static int cudapvsgain2(CSOUND *csound, CUDAPVSGAIN2 *p)
+{
+  int32   framelength = p->fa->N + 2;
+  MYFLT gain = *p->kgain;
+  float* fo = (float*) p->fout->frame.auxp;
+  float* fi = (float*) p->fa->frame.auxp;
+
+  if (p->lastframe < p->fa->framecount) {
+     if (cudaDeviceSynchronize() != cudaSuccess)
+         csound->Message(csound,"Cuda error: Failed to synchronize\n");
+    applygain<<<p->gridSize,p->blockSize>>>(fo, fi, gain, framelength); 
+    p->fout->framecount = p->fa->framecount;
+    p->lastframe = p->fout->framecount;
+  }
+
+  return OK;
+}
+
+
 static OENTRY localops[] = {
-  {"cudasynth", sizeof(PVSYN),0, 5, "a", "f", (SUBR) pvsynset, NULL,
+  {"cudasynth2", sizeof(PVSYN),0, 5, "a", "f", (SUBR) pvsynset, NULL,
    (SUBR) pvsynperf},
-   {"cudanal", sizeof(PVAN),0, 5, "f", "aiiii", (SUBR) pvanalset, NULL,
-   (SUBR) pvanalperf}
+   {"cudanal2", sizeof(PVAN),0, 5, "f", "aiiii", (SUBR) pvanalset, NULL,
+    (SUBR) pvanalperf},
+  {"cudapvsgain2", sizeof(CUDAPVSGAIN2), 0, 3, "f", "fk",
+                               (SUBR) cudapvsgain2set, (SUBR) cudapvsgain2, NULL}
 };
 
 extern "C" {

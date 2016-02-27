@@ -58,36 +58,36 @@ typedef struct {
         int     hmrngflg;
 } HARM234;
 
-static void print_data(HARM234* p, int x)
-{
-    printf("DATA %d\n=======\n", x);
-    printf("nbufsmps, n2bufsmps, period, cpsmode, polarity, poslead "
-           "= (%d,%d,%d,%d,%d,%d\n",
-           p->nbufsmps, p->n2bufsmps, p->period, p->cpsmode, p->polarity,
-           p->poslead);
-    printf("prvoct, minoct, sicvt = %f, %f, %f\n", p->prvoct, p->minoct, p->sicvt);
-    //MYFLT   *bufp, *midp, *inp1, *inp2;
-    //MYFLT   *pulsbuf[4], *sigmoid, *curpuls;
-    printf("vocamp, vocinc, ampinc = %f, %f, %f\n",
-           p->vocamp, p->vocinc, p->ampinc);
-    //PULDAT  puldat[PULMAX], *endp, *limp;
-    //VOCDAT  vocdat[VOCMAX], *vlim;
-    printf("pbufcnt, maxprd, pulslen, switching = %d, %d, %d, %d, %d\n",
-           p->pbufcnt, p->maxprd, p->pulslen, p->switching, p->hmrngflg);
-    //AUXCH   auxch;
-    //int     hmrngflg;
-    printf("pulse: %p %p %p %p; %d %d %d %d\n",
-           p->puldat[0].srcp, p->puldat[1].srcp,
-           p->puldat[2].srcp, p->puldat[3].srcp,
-           p->puldat[0].cntr, p->puldat[1].cntr,
-           p->puldat[2].cntr, p->puldat[3].cntr);
-    printf("voc: (%p %d %d) (%p %d %d) (%p %d %d) (%p %d %d)\n",
-           p->vocdat[0].kfrq, p->vocdat[0].phase, p->vocdat[0].phsinc,
-           p->vocdat[1].kfrq, p->vocdat[1].phase, p->vocdat[1].phsinc,
-           p->vocdat[2].kfrq, p->vocdat[2].phase, p->vocdat[2].phsinc,
-           p->vocdat[3].kfrq, p->vocdat[3].phase, p->vocdat[3].phsinc);
-    printf("output: %f %f %f %f ...\n", p->ar[0], p->ar[1], p->ar[2], p->ar[3]);
-}
+/* static void print_data(HARM234* p, int x) */
+/* { */
+/*     printf("DATA %d\n=======\n", x); */
+/*     printf("nbufsmps, n2bufsmps, period, cpsmode, polarity, poslead " */
+/*            "= (%d,%d,%d,%d,%d,%d\n", */
+/*            p->nbufsmps, p->n2bufsmps, p->period, p->cpsmode, p->polarity, */
+/*            p->poslead); */
+/*     printf("prvoct, minoct, sicvt = %f, %f, %f\n", p->prvoct, p->minoct, p->sicvt); */
+/*     //MYFLT   *bufp, *midp, *inp1, *inp2; */
+/*     //MYFLT   *pulsbuf[4], *sigmoid, *curpuls; */
+/*     printf("vocamp, vocinc, ampinc = %f, %f, %f\n", */
+/*            p->vocamp, p->vocinc, p->ampinc); */
+/*     //PULDAT  puldat[PULMAX], *endp, *limp; */
+/*     //VOCDAT  vocdat[VOCMAX], *vlim; */
+/*     printf("pbufcnt, maxprd, pulslen, switching = %d, %d, %d, %d, %d\n", */
+/*            p->pbufcnt, p->maxprd, p->pulslen, p->switching, p->hmrngflg); */
+/*     //AUXCH   auxch; */
+/*     //int     hmrngflg; */
+/*     printf("pulse: %p %p %p %p; %d %d %d %d\n", */
+/*            p->puldat[0].srcp, p->puldat[1].srcp, */
+/*            p->puldat[2].srcp, p->puldat[3].srcp, */
+/*            p->puldat[0].cntr, p->puldat[1].cntr, */
+/*            p->puldat[2].cntr, p->puldat[3].cntr); */
+/*     printf("voc: (%p %d %d) (%p %d %d) (%p %d %d) (%p %d %d)\n", */
+/*            p->vocdat[0].kfrq, p->vocdat[0].phase, p->vocdat[0].phsinc, */
+/*            p->vocdat[1].kfrq, p->vocdat[1].phase, p->vocdat[1].phsinc, */
+/*            p->vocdat[2].kfrq, p->vocdat[2].phase, p->vocdat[2].phsinc, */
+/*            p->vocdat[3].kfrq, p->vocdat[3].phase, p->vocdat[3].phsinc); */
+/*     printf("output: %f %f %f %f ...\n", p->ar[0], p->ar[1], p->ar[2], p->ar[3]); */
+/* } */
 #define PBUFS   4
 #define PBMSK   0x3
 #define SLEN    256

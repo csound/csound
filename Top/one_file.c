@@ -790,8 +790,8 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
     char    buffer[CSD_MAX_LINE_LEN];
     int endtag_found = 0;
 
-    /* Need to open in binary to deal with MIDI and the like. 
-       but that akes things harder and deprecate CsFile       */
+    /* Need to open in binary to deal with MIDI and the like.
+       but that makes things harder and deprecate CsFile       */
     fd = csoundFileOpenWithType(csound, &unf, CSFILE_STD, name, "r", NULL,
                                 CSFTYPE_UNIFIED_CSD, 0);
     /* RWD 3:2000 fopen can fail... */
@@ -1537,7 +1537,7 @@ static int checkVersion(CSOUND *csound, CORFIL *cf)
     csoundErrorMsg(csound, Str("Missing end tag </CsVersion>"));
     return FALSE;
 }
-                                                      
+
 static int checkLicence(CSOUND *csound, CORFIL *cf)
 {
     char  *p, *licence;

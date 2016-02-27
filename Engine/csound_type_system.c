@@ -295,13 +295,13 @@ void deleteVarPoolMemory(void* csnd, CS_VAR_POOL* pool) {
 
 
 
-void initializeVarPool(MYFLT* memBlock, CS_VAR_POOL* pool) {
+void initializeVarPool(void *csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;
     int varNum = 1;
 
     while (current != NULL) {
       if (current->initializeVariableMemory != NULL) {
-        current->initializeVariableMemory(current,
+        current->initializeVariableMemory(csound, current,
                                           memBlock + current->memBlockIndex);
       }
       varNum++;
