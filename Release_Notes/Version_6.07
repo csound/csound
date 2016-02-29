@@ -160,9 +160,9 @@ SYSTEM LEVEL CHANGES
 System changes:
 
     o   Extensive use made of in-memory files.  Orc and sco are always
-        thus, as are .csound6rc.  This simplifies uch internally
+        thus, as are .csound6rc.  This simplifies much internally
 
-    o   Nested longjmps fixed wich affected some API use.
+    o   Nested longjmps fixed which affected some API use.
 
     o   If a non-existent .csd file is presented Csound no longer
         crashes
