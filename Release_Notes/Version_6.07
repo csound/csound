@@ -4,9 +4,9 @@ CSOUND VERSION 6.07
 RELEASE NOTES   VERSION 6.07
 ============================
 
-A number of bug fixes, some quite major, are included, as well as some
-new facilities and extensions
-
+A large number of bug fixes, some quite major, some internal are
+included, as well as some new facilities and extensions. As ever tere
+are coding improvements as well.
 
 The Developers 
 
@@ -19,7 +19,15 @@ New opcodes:
 
     o    compress2: likecompress but using a more normal use of dB (0
          for full scale)
-         
+
+    o    (Experimental) New cuda opcodes cudasynth2 and cudanal2
+
+    o    directory opcode
+
+    o    ftsamplebank:to load a sample library
+
+    o    
+
 New Gen and Macros:
 
     o    
@@ -36,7 +44,10 @@ Orchestra:
     o    While loop improved/fixed
     
     o    Better and consistent reading of comments
-    
+
+    o    Continuation lines handled better, especialy respecting line
+         numbers
+         
 Score:
 
     o    The list of tempo points in score opcode t is now arbitarily
@@ -65,6 +76,16 @@ Modified Opcodes and Gens:
 
      o   Use of diskin to an array ow resizes the output arraty if
          necessary
+
+     o   chnget now checks for a change in chanel name as well as data
+
+     o   interp can take an optional extra argument to give an initial
+         value
+
+     o   oscilikts uses a more liberal table lookup
+
+     o   opcode in can read mono or stereo, obviating the in/ins
+         distinction
      
 Utilities:
 
@@ -81,6 +102,8 @@ Frontends:
   Emscripten:
 
   csdebugger:
+  
+       * Some memory issues fixed
 
   HTML5:
 
@@ -92,6 +115,8 @@ General usage:
     o   When replacing instruments the new version inherits maxalloc
         and active flags
 
+    o   Multicore code now wors wit midi instruments
+    
 Bugs fixed:
 
     o   Fix to trigseq
@@ -113,6 +138,13 @@ Bugs fixed:
     o   Many fixes in string opcodes (strsub, strcpy and others)
 
     o   Fixed bugs in print formats (sprintf printf prints)
+
+    o   pvsmooth had a missing initialisation
+
+    o   Array initialisation now robust
+
+    o   Bug in copya2ftab fixed
+    
 ====================
 SYSTEM LEVEL CHANGES
 ====================
@@ -126,11 +158,27 @@ System changes:
 
     o   If a non-existent .csd file is presented Csound no longer
         crashes
-    
+
 
 API
 ===
     * 
+    
+
+Platform Specific
+=================
+
+iOS
+---
+
+    * 
+
+
+Android
+-------
+
+    * csoundCompileCsdText: new function to compile strings
+
     
 
 Platform Specific
@@ -152,30 +200,18 @@ Windows
 
 OSX
 ---
+    * Installer fixed for link names for _csnd6 and _CsoundAC
 
 
 GNU/Linux
 ---------
-       
-
+    * date opcode more accurate
 
 ========================================================================
 
 ========================================================================
 commit 8f9f573790dfa5d84bef2f11f44bdbeefe34247c
 Date:   Mon Feb 22 23:16:29 2016 +0000
-
-commit 78be812f04dd27b3cbd1b0931d31cf153ffaf9de
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Feb 4 16:30:43 2016 +0000
-
-    issue in pvsmooth
-
-commit 5ae4f1bfdc16c5ec5c25f3c7847341368d07cd65
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Feb 4 08:37:03 2016 +0000
-
-    pushed new cuda opcodes
 
 commit 26a4187b807d85860485d96345c03de337d00b2f
 Author: jpff <jpff@codemist.co.uk>
@@ -188,24 +224,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sat Jan 30 10:09:40 2016 +0000
 
     fixed issue in cudapvsanal
-
-commit c43ec991117d671c1e91014e98b3ab877d7939fd
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Jan 26 15:24:34 2016 +0000
-
-    array initialisation
-
-commit c965d805b9cbd637b7006a84ace4d76979ec140c
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Jan 26 15:07:37 2016 +0000
-
-    fixed array init signature
-
-commit 2b8a2dcdc4af2eea325eba6eb69a06c9d1111480
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Jan 26 14:52:39 2016 +0000
-
-    string var initialisation
 
 commit d4a6368ca84611c92916dbb9c965f93330b24b7e
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -224,12 +242,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sun Jan 17 11:31:12 2016 +0000
 
     lifted the limiting on the resonance
-
-commit 4ddcdb49ff24115690b7a881aeb3e5a229ec510f
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Jan 16 09:18:56 2016 +0000
-
-    fixed bug in pvsmooth
 
 commit 49a837b16410e3f1c49e37539033e1abb2f4c286
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -297,12 +309,6 @@ Date:   Tue Jan 5 13:13:12 2016 +0000
 
     exposed k-rate version of sockrecv
 
-commit 1244d8bb26b037e027888cdf6de0ad1c0a55d5ab
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Jan 5 09:05:34 2016 +0000
-
-    added directory opcode
-
 commit 0586ad2ace731cd18aaeadb23d6de1e5c06e5e28
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Mon Jan 4 21:41:54 2016 +0000
@@ -315,65 +321,11 @@ Date:   Mon Jan 4 19:39:51 2016 +0000
 
     added means of checking hw channels
 
-commit b72262a664b9447b0968ec016f64cf43d0fb2c51
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Jan 4 14:58:42 2016 +0000
-
-    copya2ftab bug fixed
-
-commit 39a0c88a22e5aa12c34bc7662fbb74263249ed2d
-Author: jpff <jpff@codemist.co.uk>
-Date:   Fri Jan 1 20:47:38 2016 +0000
-
-    fix stupid error in changed2
-
-commit 83171078e086d3f623d5f66019d102c4687b2560
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Jan 1 19:22:46 2016 +0000
-
-    chnget:a also checks for changes in channel name
-
-commit 15124e44bbc22890fe0627bf5164ca34d408eb4e
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Jan 1 19:13:34 2016 +0000
-
-    chnget:k checks for changes in channel name
-
-commit dece34831de757835376c79b99c84d4976b0d448
-Author: jpff <jpff@codemist.co.uk>
-Date:   Fri Jan 1 18:07:05 2016 +0000
-
-    better changed array case
-
-commit f5ed174238016cabca56e4008f7b40b2615d65f7
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Jan 1 12:25:50 2016 +0000
-
-    added rory's opcode
-
-commit e9d8b8c74e2bdec6d8319a968dff6e7f8c3c5dad
-Author: jpff <jpff@codemist.co.uk>
-Date:   Thu Dec 31 20:26:37 2015 +0000
-
-    changed for arays
-
 commit 5ca2ba92ae3e688bb00d696a5a577471a3e8d217
 Author: Steven Yi <stevenyi@gmail.com>
 Date:   Tue Dec 29 23:01:19 2015 -0500
 
     updated for FLTK
-
-commit 1b1606474674a02a7876c61ef31df742642c97f2
-Author: Steven Yi <Steven Yi>
-Date:   Tue Dec 29 22:18:01 2015 -0500
-
-    Modified CMake build for msys2/mingw64: check and use dependencies for libsndfile and use as link libraries where appropriate
-
-commit ce565fbcdb40d63242a4790089d5db6ef5818010
-Author: Steven Yi <Steven Yi>
-Date:   Tue Dec 29 18:46:24 2015 -0500
-
-    modified to use intptr_t instead of long to fix error when compiling on 64-bit platforms (long is 32-bit on windows64)
 
 commit 0335d2ca6c1240dbfffdc84ffa8c375772001914
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -429,12 +381,6 @@ Date:   Fri Dec 11 09:56:38 2015 +0000
 
     naming of jack midi ports
 
-commit 60aadba710280dc6e0f2f54d8d1354a15f5e41ef
-Author: jpff <jpff@codemist.co.uk>
-Date:   Thu Dec 10 15:21:57 2015 +0000
-
-    better line numbers in tree
-
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Tue Dec 1 12:47:06 2015 +0000
 
@@ -476,80 +422,9 @@ Date:   Sun Nov 29 17:29:54 2015 +0000
 
     added code for jack midi input
 
-commit c6f2623e7a8bf15fac43c7210b2417a2178503a7
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Nov 28 11:32:46 2015 +0000
-
-    fixed installer link names for _csnd6 and _CsoundAC on OSX
-
-commit 285a403f4320aececdb4b2928635c561f56d5bdf
-Author: Andres Cabrera <mantaraya36@gmail.com>
-Date:   Wed Nov 25 21:37:59 2015 -0800
-
-    Fixed memory and other issues with debugger.
-
-commit bc97353d257fceb15fffd588a588849d4d7a3ef2
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Nov 25 21:22:10 2015 +0000
-
-    fixed sread.c parentheses
-
-commit 15bcdb887f4893fea405d92fb3ba52e756310743
-Author: jpff <jpff@codemist.co.uk>
-Date:   Tue Nov 24 14:17:57 2015 +0000
-
-    optional starting value for interp
-
-commit e28c80b70e4a35b2ed37c0b854d5511458794745
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sat Nov 21 18:54:19 2015 +0000
-
-    better csoundCompileCsd[Text]
-
 commit b507c4d88a5110ad3d7b4d08151a8cc9586cdbe8
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Thu Nov 12 23:06:59 2015 +0000
 
     fixed pfun for MIDI events
 
-commit de73d832539aaeadeb382788b344d2724149a362
-Author: jpff <jpff@codemist.co.uk>
-Date:   Thu Nov 12 14:35:00 2015 +0000
-
-    revised date opcode
-
-commit 6770316cd9fd6e9c55f9730910a0a6c09a671c20
-Author: gogins <michael.gogins@gmail.com>
-Date:   Wed Nov 11 19:59:44 2015 -0500
-
-    Introduced csoundCompileCsdText to the API but not as a member of the CSOUND struct.
-
-commit 8e16077d62e2de98f3fb0e8d96debc561812ea7f
-Author: jpff <jpff@codemist.co.uk>
-Date:   Tue Nov 10 12:12:35 2015 +0000
-
-    patch to continuation lines
-
-commit a159e9a98755ce6239d779f004cb7db7b610ec4d
-Author: jpff <jpff@codemist.co.uk>
-Date:   Wed Nov 4 11:15:16 2015 +0000
-
-    change ib oscilikts
-
-commit b95e9186c18418108f436bf7e12eae5ce1833f8d
-Author: jpff <jpff@codemist.co.uk>
-Date:   Thu Oct 29 16:19:22 2015 +0000
-
-    add setjmp to csoundcomileorc
-
-commit 17afd614508b14822f072ffb263e0e3424b84fc6
-Author: jpff <jpff@codemist.co.uk>
-Date:   Wed Oct 14 15:45:21 2015 +0100
-
-    suggested fix to MIDIinsert
-
-commit e8e47a72856577a28cfa86b018483e39e5c81a90
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Oct 13 08:39:59 2015 +0100
-
-    overloading in
