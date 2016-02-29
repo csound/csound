@@ -1,0 +1,627 @@
+
+============================
+CSOUND VERSION 6.07
+RELEASE NOTES   VERSION 6.07
+============================
+
+A number of bug fixes, some quite major, are included, as well as some
+new facilities and extensions
+
+
+The Developers 
+
+
+
+USER-LEVEL CHANGES
+==================
+
+New opcodes:
+
+    o    compress2: likecompress but using a more normal use of dB (0
+         for full scale)
+         
+New Gen and Macros:
+
+    o    
+
+Orchestra:
+
+    o    The boolean ?..:.. construction can now have string results,
+         while previously it only allowed numbers.
+
+    o    The line number reported when an error is detected at the end
+         of a line is now correct.  Also more improvements in line numbers
+         for complex syntax
+
+    o    While loop improved/fixed
+    
+    o    Better and consistent reading of comments
+    
+Score:
+
+    o    The list of tempo points in score opcode t is now arbitarily
+         long
+
+    o    A stupidity in r and { opcodes fixed
+
+Options:
+
+    o    The -z option now suppresses deprecated opcodes, unless given
+         a 2 or 3 argument
+
+
+Modified Opcodes and Gens:
+
+     o   In OSC opcodes it is now possible to send and receive arrays,
+         tables and audio
+
+     o   Better diagnostic if diskin2 fails
+
+     o   Rezzy now checks fr unstable filter and modifies to close
+         stable version
+
+     o   adsr rewritten so it gives an error if the segments are
+     longer than p3
+     
+Utilities:
+
+  o    
+
+Frontends:
+
+  pnacl: 
+
+  icsound:
+
+  csound~:
+        
+  Emscripten:
+
+  csdebugger:
+
+  HTML5:
+
+
+General usage:
+
+    o   The multicore options somewhat improved
+
+Bugs fixed:
+
+    o   Fix to trigseq
+
+    o   Major error in rezzy fixed
+
+    o   p() fixed for high numbers of p-arguments
+
+    o   The 31-bit random number generator could gice a very short
+        loop if seeded with zero; fixed
+
+    o   Macros in .orc files now work
+
+    o   A long-standing bug in display of graphs fixed
+
+    o   Fixes to the envelope opcodes linen, expsegr, linsegr
+
+    o   Many fixes in string opcodes (strsub, strcpy and others)
+
+    o   Fixed bugs in print formats (sprintf printf prints)
+====================
+SYSTEM LEVEL CHANGES
+====================
+
+System changes:
+
+    o   
+
+    o   
+    
+
+Internal changes:
+
+    * 
+
+API
+===
+    * 
+    
+
+Platform Specific
+=================
+
+iOS
+---
+
+    * 
+
+
+Android
+-------
+
+    * 
+
+Windows
+-------
+
+OSX
+---
+
+
+GNU/Linux
+---------
+       
+
+
+========================================================================
+
+========================================================================
+commit 8f9f573790dfa5d84bef2f11f44bdbeefe34247c
+Author: jpff <jpff@codemist.co.uk>
+Date:   Mon Feb 22 23:16:29 2016 +0000
+
+commit 78be812f04dd27b3cbd1b0931d31cf153ffaf9de
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Feb 4 16:30:43 2016 +0000
+
+    issue in pvsmooth
+
+commit 5ae4f1bfdc16c5ec5c25f3c7847341368d07cd65
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Feb 4 08:37:03 2016 +0000
+
+    pushed new cuda opcodes
+
+commit 26a4187b807d85860485d96345c03de337d00b2f
+Author: jpff <jpff@codemist.co.uk>
+Date:   Sat Jan 30 18:34:06 2016 +0000
+
+    fix from victor
+
+commit fb62fb8478a72b7d517f5b13e2659fe6313d7232
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sat Jan 30 10:09:40 2016 +0000
+
+    fixed issue in cudapvsanal
+
+commit c43ec991117d671c1e91014e98b3ab877d7939fd
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Jan 26 15:24:34 2016 +0000
+
+    array initialisation
+
+commit c965d805b9cbd637b7006a84ace4d76979ec140c
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Jan 26 15:07:37 2016 +0000
+
+    fixed array init signature
+
+commit 2b8a2dcdc4af2eea325eba6eb69a06c9d1111480
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Jan 26 14:52:39 2016 +0000
+
+    string var initialisation
+
+commit d4a6368ca84611c92916dbb9c965f93330b24b7e
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sat Jan 23 16:21:24 2016 +0000
+
+    fixed merging of global arrays bug
+
+commit 462a224c8f7b67c03a3d90fb9dc1ad866cbd72c2
+Author: jpff <jpff@codemist.co.uk>
+Date:   Mon Jan 18 11:19:44 2016 +0000
+
+    hope this fixes macros with args
+
+commit 094229eed7529a0698704711a538dd2117d10a93
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sun Jan 17 11:31:12 2016 +0000
+
+    lifted the limiting on the resonance
+
+commit 4ddcdb49ff24115690b7a881aeb3e5a229ec510f
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sat Jan 16 09:18:56 2016 +0000
+
+    fixed bug in pvsmooth
+
+commit 49a837b16410e3f1c49e37539033e1abb2f4c286
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Jan 14 15:09:30 2016 +0000
+
+    normalising filters fix
+
+commit b0b895df164e28016ad44a4f3dc37b7f8705cfe6
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Jan 14 15:06:02 2016 +0000
+
+    normalising filters
+
+commit db925f4b2d2441cd878a1b4c8d09a22999e8921b
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Jan 14 10:41:29 2016 +0000
+
+    added audio-rate versions of moog filters
+
+commit 37c28aba1f22684e28f6ee7d2fdb73cf3a8e3539
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Jan 13 18:52:52 2016 +0000
+
+    fixing k-rate change of string in chnget
+
+commit 92a4942201016972a4575dd7dee379403666281a
+Author: jpff <jpff@codemist.co.uk>
+Date:   Wed Jan 13 14:21:58 2016 +0000
+
+    change error to warning in strarg2isno
+
+commit 2543d8c6519fd2311b00403fa64204379731a4f4
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Jan 13 11:52:08 2016 +0000
+
+    fixed the setting of channels in chnget
+
+commit 8b4ae300531e63693db2f9fe8bcc2329a8bb223a
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Jan 11 12:31:41 2016 +0000
+
+    added Fons' moog highpass filter
+
+commit 342976e3d0eafdc1337f6ee93fe6782c3f3a0fdf
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sun Jan 10 22:27:55 2016 +0000
+
+    fons filters
+
+commit bf6817a55c75b03603c03b5cb0c0b9663b56106d
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sun Jan 10 21:17:07 2016 +0000
+
+    fixed chnget
+
+commit ca60f1eb27f616b6add56738ededeefc5cce96b4
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sat Jan 9 16:35:41 2016 +0000
+
+    fixed cossegr
+
+commit b138b7bc07986be083fce1e395404e409715a0a8
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sat Jan 9 13:16:05 2016 +0000
+
+    fixed transegr
+
+
+commit aea65c341828603ba381477dc3cbcf648ed6dc57
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sat Jan 9 12:17:47 2016 +0000
+
+    suspicious lines
+
+commit a851a2ad82c4bc1fa5d305d42a726165b705363c
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Jan 5 13:13:12 2016 +0000
+
+    exposed k-rate version of sockrecv
+
+commit 1244d8bb26b037e027888cdf6de0ad1c0a55d5ab
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Jan 5 09:05:34 2016 +0000
+
+    added directory opcode
+
+commit 0586ad2ace731cd18aaeadb23d6de1e5c06e5e28
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Jan 4 21:41:54 2016 +0000
+
+    hw channels probe on rtauhal
+
+commit 497e56a4da34a9e78341dc6107d2b54b0c0aa903
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Jan 4 19:39:51 2016 +0000
+
+    added means of checking hw channels
+
+commit b72262a664b9447b0968ec016f64cf43d0fb2c51
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Jan 4 14:58:42 2016 +0000
+
+    copya2ftab bug fixed
+
+commit 39a0c88a22e5aa12c34bc7662fbb74263249ed2d
+Author: jpff <jpff@codemist.co.uk>
+Date:   Fri Jan 1 20:47:38 2016 +0000
+
+    fix stupid error in changed2
+
+commit 83171078e086d3f623d5f66019d102c4687b2560
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Jan 1 19:22:46 2016 +0000
+
+    chnget:a also checks for changes in channel name
+
+commit 15124e44bbc22890fe0627bf5164ca34d408eb4e
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Jan 1 19:13:34 2016 +0000
+
+    chnget:k checks for changes in channel name
+
+commit dece34831de757835376c79b99c84d4976b0d448
+Author: jpff <jpff@codemist.co.uk>
+Date:   Fri Jan 1 18:07:05 2016 +0000
+
+    better changed array case
+
+commit f5ed174238016cabca56e4008f7b40b2615d65f7
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Jan 1 12:25:50 2016 +0000
+
+    added rory's opcode
+
+commit e9d8b8c74e2bdec6d8319a968dff6e7f8c3c5dad
+Author: jpff <jpff@codemist.co.uk>
+Date:   Thu Dec 31 20:26:37 2015 +0000
+
+    changed for arays
+
+commit 7db7ed2b37fa0ccaa80cf31e74b8fa79a8a3b13d
+Author: jpff <jpff@codemist.co.uk>
+Date:   Wed Dec 30 20:47:01 2015 +0000
+
+    #573 arrsay resized in diskin
+
+commit 5ca2ba92ae3e688bb00d696a5a577471a3e8d217
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Tue Dec 29 23:01:19 2015 -0500
+
+    updated for FLTK
+
+commit 1b1606474674a02a7876c61ef31df742642c97f2
+Author: Steven Yi <Steven Yi>
+Date:   Tue Dec 29 22:18:01 2015 -0500
+
+    Modified CMake build for msys2/mingw64: check and use dependencies for libsndfile and use as link libraries where appropriate
+
+commit ce565fbcdb40d63242a4790089d5db6ef5818010
+Author: Steven Yi <Steven Yi>
+Date:   Tue Dec 29 18:46:24 2015 -0500
+
+    modified to use intptr_t instead of long to fix error when compiling on 64-bit platforms (long is 32-bit on windows64)
+
+commit 2630454f600db0f8a4b9920f928d426d0fae44ee
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Dec 28 15:03:29 2015 +0000
+
+    instr defs inherit maxalloc and active flags
+
+commit 47a6a74e484cb9524355118e7ef331991d9e0bb7
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Sat Dec 19 00:24:17 2015 -0500
+
+    fixed segfault when statement list is empty
+
+commit 8a24b2e87f66b8fbc1e0219bed827ba95212fca6
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Fri Dec 18 12:58:16 2015 -0500
+
+    fix segfault if non-existent csd file given to csound
+
+commit cdfe572232bf7a5d75b46b40a6fffb2e7bc933eb
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Fri Dec 18 12:51:21 2015 -0500
+
+    fixed .csound6rc file not parsing by adding missing calls to corfile_rewind()
+
+commit 0335d2ca6c1240dbfffdc84ffa8c375772001914
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Dec 14 09:58:04 2015 +0000
+
+    fixed naming of ports
+
+commit 79e3aa7e20bf959ad9998d0b49afd6b2dbb58e49
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Dec 14 09:39:08 2015 +0000
+
+    jack midi client option
+
+commit ae397552fb31e1c37ed66dbd58d33958464cd591
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sun Dec 13 17:07:48 2015 +0000
+
+    fixed auhal format flag
+
+commit 92e2cedc908cc941e41672efc0b3946467edc3fa
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sat Dec 12 09:38:04 2015 +0000
+
+    midi out client setting
+
+commit f5eb93c8566dedf83e83f87be24cf8f6cb173d46
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Dec 11 16:54:45 2015 +0000
+
+    fixed jack connections
+
+commit d39b673c2cfe5c677a319c0af4af74977a76e491
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Dec 11 11:34:30 2015 +0000
+
+    fixed bug in jack midi
+
+commit c58b18f56bd76470ac6b4e594194e2bcec020467
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Dec 11 11:28:46 2015 +0000
+
+    fixing jack connections
+
+commit 1670cca8818ce0cead33193f99e41db4779caba0
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Dec 11 11:27:19 2015 +0000
+
+    fixing jack connections
+
+commit 82fc58dd698a6c731700e1629346ec8b74fcd2dd
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Dec 11 09:56:38 2015 +0000
+
+    naming of jack midi ports
+
+commit 60aadba710280dc6e0f2f54d8d1354a15f5e41ef
+Author: jpff <jpff@codemist.co.uk>
+Date:   Thu Dec 10 15:21:57 2015 +0000
+
+    better line numbers in tree
+
+commit da3014bd4fad8b7e7a024f477bdebb9db1f0bf2b
+Author: jpff <jpff@codemist.co.uk>
+Date:   Sun Dec 6 19:54:08 2015 +0000
+
+    uses corfies for .csound6rc
+
+commit 8b7f94ed1f973dafde8e452f98ddc32462a9ce56
+Author: jpff <jpff@codemist.co.uk>
+Date:   Thu Dec 3 18:13:45 2015 +0000
+
+    move to in-core fies for decoding csd files
+
+commit 2ef6d63da68b6360f6706de6966930e48639f7f7
+
+    fix longjmp issue; unfix other problem
+
+commit 0cc741f5ec4da80af607ade38218eadb50f097b4
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Dec 1 12:47:06 2015 +0000
+
+    added output to jack midi
+
+commit d07aba75a9738c279032d8e83d7c51de91e831b5
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Nov 30 15:52:48 2015 +0000
+
+    trying to fix jack midi input, added process callback
+
+commit d0d5589d1b83e82db39fbea979cf6d2fe447c6ac
+Author: Felipe Sateler <fsateler@gmail.com>
+Date:   Mon Nov 30 09:40:27 2015 -0300
+
+    Introduce CS_PACKAGE_DATE macro
+    
+    Defaults to __DATE__ if not set. This can be overriden, in order to set
+    a deterministic date on it, and thus one step closer to binary
+    reproducibility.
+    
+    Fixes: #561
+
+commit cedfdfdfe1bf447723bcadb45d40420eaad3ca7c
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Nov 30 08:26:32 2015 +0000
+
+    check time of event in jack midi
+
+commit 514496ccce4649917fba17205e2573d0c96b8586
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sun Nov 29 18:47:26 2015 +0000
+
+    midi_out_read returning the number of bytes read
+
+commit f17b8a479b68dd47d2ef1a8b3d8f03b1a75bb815
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sun Nov 29 17:29:54 2015 +0000
+
+    added code for jack midi input
+
+commit c6f2623e7a8bf15fac43c7210b2417a2178503a7
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sat Nov 28 11:32:46 2015 +0000
+
+    fixed installer link names for _csnd6 and _CsoundAC on OSX
+
+commit 285a403f4320aececdb4b2928635c561f56d5bdf
+Author: Andres Cabrera <mantaraya36@gmail.com>
+Date:   Wed Nov 25 21:37:59 2015 -0800
+
+    Fixed memory and other issues with debugger.
+
+commit bc97353d257fceb15fffd588a588849d4d7a3ef2
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Nov 25 21:22:10 2015 +0000
+
+    fixed sread.c parentheses
+
+commit 15bcdb887f4893fea405d92fb3ba52e756310743
+Author: jpff <jpff@codemist.co.uk>
+Date:   Tue Nov 24 14:17:57 2015 +0000
+
+    optional starting value for interp
+
+commit 3f42cb1a1eec247682aa6f4207e3d11c396501a4
+Author: jpff <jpff@codemist.co.uk>
+Date:   Sun Nov 22 16:34:01 2015 +0000
+
+    simplify read_unified_file
+
+commit e28c80b70e4a35b2ed37c0b854d5511458794745
+Author: jpff <jpff@codemist.co.uk>
+Date:   Sat Nov 21 18:54:19 2015 +0000
+
+    better csoundCompileCsd[Text]
+
+commit 338e7ddf621f96fb24a633757db675e4f501a6a4
+Author: jpff <jpff@codemist.co.uk>
+Date:   Wed Nov 18 20:09:35 2015 +0000
+
+    fix a memory issue in envvar; more on csdtext in core
+
+commit 21fec40a49ad91d4556fd7ee3ffd2289f82720ef
+Author: jpff <jpff@codemist.co.uk>
+Date:   Sun Nov 15 21:35:49 2015 +0000
+
+    experimental use of corfiles in ine_file etc
+
+commit b507c4d88a5110ad3d7b4d08151a8cc9586cdbe8
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Nov 12 23:06:59 2015 +0000
+
+    fixed pfun for MIDI events
+
+commit de73d832539aaeadeb382788b344d2724149a362
+Author: jpff <jpff@codemist.co.uk>
+Date:   Thu Nov 12 14:35:00 2015 +0000
+
+    revised date opcode
+
+commit 6770316cd9fd6e9c55f9730910a0a6c09a671c20
+Author: gogins <michael.gogins@gmail.com>
+Date:   Wed Nov 11 19:59:44 2015 -0500
+
+    Introduced csoundCompileCsdText to the API but not as a member of the CSOUND struct.
+
+commit 8e16077d62e2de98f3fb0e8d96debc561812ea7f
+Author: jpff <jpff@codemist.co.uk>
+Date:   Tue Nov 10 12:12:35 2015 +0000
+
+    patch to continuation lines
+
+commit a159e9a98755ce6239d779f004cb7db7b610ec4d
+Author: jpff <jpff@codemist.co.uk>
+Date:   Wed Nov 4 11:15:16 2015 +0000
+
+    change ib oscilikts
+
+commit b95e9186c18418108f436bf7e12eae5ce1833f8d
+Author: jpff <jpff@codemist.co.uk>
+Date:   Thu Oct 29 16:19:22 2015 +0000
+
+    add setjmp to csoundcomileorc
+
+commit 17afd614508b14822f072ffb263e0e3424b84fc6
+Author: jpff <jpff@codemist.co.uk>
+Date:   Wed Oct 14 15:45:21 2015 +0100
+
+    suggested fix to MIDIinsert
+
+commit e8e47a72856577a28cfa86b018483e39e5c81a90
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Oct 13 08:39:59 2015 +0100
+
+    overloading in
