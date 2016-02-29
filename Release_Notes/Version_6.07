@@ -61,7 +61,10 @@ Modified Opcodes and Gens:
          stable version
 
      o   adsr rewritten so it gives an error if the segments are
-     longer than p3
+         longer than p3
+
+     o   Use of diskin to an array ow resizes the output arraty if
+         necessary
      
 Utilities:
 
@@ -86,6 +89,9 @@ General usage:
 
     o   The multicore options somewhat improved
 
+    o   When replacing instruments the new version inherits maxalloc
+        and active flags
+
 Bugs fixed:
 
     o   Fix to trigseq
@@ -101,7 +107,8 @@ Bugs fixed:
 
     o   A long-standing bug in display of graphs fixed
 
-    o   Fixes to the envelope opcodes linen, expsegr, linsegr
+    o   Fixes to the envelope opcodes linen, expsegr, linsegr,
+        cossegr, transegr
 
     o   Many fixes in string opcodes (strsub, strcpy and others)
 
@@ -112,14 +119,14 @@ SYSTEM LEVEL CHANGES
 
 System changes:
 
-    o   
+    o   Extensive use made of in-memory files.  Orc and sco are always
+        thus, as are .csound6rc.  This simplifies uch internally
 
-    o   
+    o   Nested longjmps fixed wich affected some API use.
+
+    o   If a non-existent .csd file is presented Csound no longer
+        crashes
     
-
-Internal changes:
-
-    * 
 
 API
 ===
@@ -156,7 +163,6 @@ GNU/Linux
 
 ========================================================================
 commit 8f9f573790dfa5d84bef2f11f44bdbeefe34247c
-Author: jpff <jpff@codemist.co.uk>
 Date:   Mon Feb 22 23:16:29 2016 +0000
 
 commit 78be812f04dd27b3cbd1b0931d31cf153ffaf9de
@@ -279,19 +285,6 @@ Date:   Sun Jan 10 21:17:07 2016 +0000
 
     fixed chnget
 
-commit ca60f1eb27f616b6add56738ededeefc5cce96b4
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Jan 9 16:35:41 2016 +0000
-
-    fixed cossegr
-
-commit b138b7bc07986be083fce1e395404e409715a0a8
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Jan 9 13:16:05 2016 +0000
-
-    fixed transegr
-
-
 commit aea65c341828603ba381477dc3cbcf648ed6dc57
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sat Jan 9 12:17:47 2016 +0000
@@ -364,12 +357,6 @@ Date:   Thu Dec 31 20:26:37 2015 +0000
 
     changed for arays
 
-commit 7db7ed2b37fa0ccaa80cf31e74b8fa79a8a3b13d
-Author: jpff <jpff@codemist.co.uk>
-Date:   Wed Dec 30 20:47:01 2015 +0000
-
-    #573 arrsay resized in diskin
-
 commit 5ca2ba92ae3e688bb00d696a5a577471a3e8d217
 Author: Steven Yi <stevenyi@gmail.com>
 Date:   Tue Dec 29 23:01:19 2015 -0500
@@ -387,30 +374,6 @@ Author: Steven Yi <Steven Yi>
 Date:   Tue Dec 29 18:46:24 2015 -0500
 
     modified to use intptr_t instead of long to fix error when compiling on 64-bit platforms (long is 32-bit on windows64)
-
-commit 2630454f600db0f8a4b9920f928d426d0fae44ee
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Dec 28 15:03:29 2015 +0000
-
-    instr defs inherit maxalloc and active flags
-
-commit 47a6a74e484cb9524355118e7ef331991d9e0bb7
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Sat Dec 19 00:24:17 2015 -0500
-
-    fixed segfault when statement list is empty
-
-commit 8a24b2e87f66b8fbc1e0219bed827ba95212fca6
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Fri Dec 18 12:58:16 2015 -0500
-
-    fix segfault if non-existent csd file given to csound
-
-commit cdfe572232bf7a5d75b46b40a6fffb2e7bc933eb
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Fri Dec 18 12:51:21 2015 -0500
-
-    fixed .csound6rc file not parsing by adding missing calls to corfile_rewind()
 
 commit 0335d2ca6c1240dbfffdc84ffa8c375772001914
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -472,23 +435,6 @@ Date:   Thu Dec 10 15:21:57 2015 +0000
 
     better line numbers in tree
 
-commit da3014bd4fad8b7e7a024f477bdebb9db1f0bf2b
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sun Dec 6 19:54:08 2015 +0000
-
-    uses corfies for .csound6rc
-
-commit 8b7f94ed1f973dafde8e452f98ddc32462a9ce56
-Author: jpff <jpff@codemist.co.uk>
-Date:   Thu Dec 3 18:13:45 2015 +0000
-
-    move to in-core fies for decoding csd files
-
-commit 2ef6d63da68b6360f6706de6966930e48639f7f7
-
-    fix longjmp issue; unfix other problem
-
-commit 0cc741f5ec4da80af607ade38218eadb50f097b4
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Tue Dec 1 12:47:06 2015 +0000
 
@@ -554,29 +500,11 @@ Date:   Tue Nov 24 14:17:57 2015 +0000
 
     optional starting value for interp
 
-commit 3f42cb1a1eec247682aa6f4207e3d11c396501a4
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sun Nov 22 16:34:01 2015 +0000
-
-    simplify read_unified_file
-
 commit e28c80b70e4a35b2ed37c0b854d5511458794745
 Author: jpff <jpff@codemist.co.uk>
 Date:   Sat Nov 21 18:54:19 2015 +0000
 
     better csoundCompileCsd[Text]
-
-commit 338e7ddf621f96fb24a633757db675e4f501a6a4
-Author: jpff <jpff@codemist.co.uk>
-Date:   Wed Nov 18 20:09:35 2015 +0000
-
-    fix a memory issue in envvar; more on csdtext in core
-
-commit 21fec40a49ad91d4556fd7ee3ffd2289f82720ef
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sun Nov 15 21:35:49 2015 +0000
-
-    experimental use of corfiles in ine_file etc
 
 commit b507c4d88a5110ad3d7b4d08151a8cc9586cdbe8
 Author: veplaini <victor.lazzarini@nuim.ie>
