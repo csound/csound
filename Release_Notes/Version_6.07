@@ -133,6 +133,8 @@ Bugs fixed:
 
     o   p() fixed for high numbers of p-arguments
 
+    o   p() nowworks from MIDI events
+
     o   The 31-bit random number generator could gice a very short
         loop if seeded with zero; fixed
 
@@ -258,12 +260,6 @@ Date:   Thu Jan 14 10:41:29 2016 +0000
 
     added audio-rate versions of moog filters
 
-commit 92a4942201016972a4575dd7dee379403666281a
-Author: jpff <jpff@codemist.co.uk>
-Date:   Wed Jan 13 14:21:58 2016 +0000
-
-    change error to warning in strarg2isno
-
 commit 2543d8c6519fd2311b00403fa64204379731a4f4
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Wed Jan 13 11:52:08 2016 +0000
@@ -376,10 +372,4 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sun Nov 29 17:29:54 2015 +0000
 
     added code for jack midi input
-
-commit b507c4d88a5110ad3d7b4d08151a8cc9586cdbe8
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Nov 12 23:06:59 2015 +0000
-
-    fixed pfun for MIDI events
 
