@@ -46,35 +46,35 @@
  * See the STK class documentation to determine the controller numbers
  * used by each instrument.
  */
-#include "include/Stk.h"
-#include "include/BandedWG.h"
-#include "include/BeeThree.h"
-#include "include/BlowBotl.h"
-#include "include/BlowHole.h"
-#include "include/Bowed.h"
-#include "include/Brass.h"
-#include "include/Clarinet.h"
-#include "include/Drummer.h"
-#include "include/Flute.h"
-#include "include/FMVoices.h"
-#include "include/HevyMetl.h"
-#include "include/Mandolin.h"
-//#include "include/Mesh2D.h"
-#include "include/ModalBar.h"
-#include "include/Moog.h"
-#include "include/PercFlut.h"
-#include "include/Plucked.h"
-#include "include/Resonate.h"
-#include "include/Rhodey.h"
-#include "include/Saxofony.h"
-#include "include/Shakers.h"
-#include "include/Simple.h"
-#include "include/Sitar.h"
-#include "include/StifKarp.h"
-#include "include/TubeBell.h"
-#include "include/VoicForm.h"
-#include "include/Whistle.h"
-#include "include/Wurley.h"
+#include <Stk.h>
+#include <BandedWG.h>
+#include <BeeThree.h>
+#include <BlowBotl.h>
+#include <BlowHole.h>
+#include <Bowed.h>
+#include <Brass.h>
+#include <Clarinet.h>
+#include <Drummer.h>
+#include <Flute.h>
+#include <FMVoices.h>
+#include <HevyMetl.h>
+#include <Mandolin.h>
+//#include <Mesh2D.h>
+#include <ModalBar.h>
+#include <Moog.h>
+#include <PercFlut.h>
+#include <Plucked.h>
+#include <Resonate.h>
+#include <Rhodey.h>
+#include <Saxofony.h>
+#include <Shakers.h>
+#include <Simple.h>
+#include <Sitar.h>
+#include <StifKarp.h>
+#include <TubeBell.h>
+#include <VoicForm.h>
+#include <Whistle.h>
+#include <Wurley.h>
 
 using namespace stk;
 
