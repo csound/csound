@@ -26,7 +26,8 @@ New opcodes:
 
     o    ftsamplebank:to load a sample library
 
-    o    
+    o    mvclpf1, mvclpf2, mvclpf3, mvclpf4, mvchpf: Moog filters from
+         Fons Andriessen
 
 New Gen and Macros:
 
@@ -86,7 +87,14 @@ Modified Opcodes and Gens:
 
      o   opcode in can read mono or stereo, obviating the in/ins
          distinction
-     
+
+     o   sensekey rewritten to provide better diagnostics and fixes a
+         minor bug
+
+     o   Fix to a case of defining a macro with arguments
+
+     o   sockrecv now works at a and k rate
+
 Utilities:
 
   o    
@@ -210,14 +218,9 @@ GNU/Linux
 ========================================================================
 
 ========================================================================
-commit 8f9f573790dfa5d84bef2f11f44bdbeefe34247c
-Date:   Mon Feb 22 23:16:29 2016 +0000
-
-commit 26a4187b807d85860485d96345c03de337d00b2f
+commit 92bb46d79a02d4b2b4acce9e871ff3efd3af584f
 Author: jpff <jpff@codemist.co.uk>
-Date:   Sat Jan 30 18:34:06 2016 +0000
-
-    fix from victor
+Date:   Mon Feb 29 14:35:07 2016 +0000
 
 commit fb62fb8478a72b7d517f5b13e2659fe6313d7232
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -230,12 +233,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sat Jan 23 16:21:24 2016 +0000
 
     fixed merging of global arrays bug
-
-commit 462a224c8f7b67c03a3d90fb9dc1ad866cbd72c2
-Author: jpff <jpff@codemist.co.uk>
-Date:   Mon Jan 18 11:19:44 2016 +0000
-
-    hope this fixes macros with args
 
 commit 094229eed7529a0698704711a538dd2117d10a93
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -261,12 +258,6 @@ Date:   Thu Jan 14 10:41:29 2016 +0000
 
     added audio-rate versions of moog filters
 
-commit 37c28aba1f22684e28f6ee7d2fdb73cf3a8e3539
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Jan 13 18:52:52 2016 +0000
-
-    fixing k-rate change of string in chnget
-
 commit 92a4942201016972a4575dd7dee379403666281a
 Author: jpff <jpff@codemist.co.uk>
 Date:   Wed Jan 13 14:21:58 2016 +0000
@@ -279,35 +270,11 @@ Date:   Wed Jan 13 11:52:08 2016 +0000
 
     fixed the setting of channels in chnget
 
-commit 8b4ae300531e63693db2f9fe8bcc2329a8bb223a
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Jan 11 12:31:41 2016 +0000
-
-    added Fons' moog highpass filter
-
-commit 342976e3d0eafdc1337f6ee93fe6782c3f3a0fdf
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sun Jan 10 22:27:55 2016 +0000
-
-    fons filters
-
 commit bf6817a55c75b03603c03b5cb0c0b9663b56106d
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sun Jan 10 21:17:07 2016 +0000
 
     fixed chnget
-
-commit aea65c341828603ba381477dc3cbcf648ed6dc57
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Jan 9 12:17:47 2016 +0000
-
-    suspicious lines
-
-commit a851a2ad82c4bc1fa5d305d42a726165b705363c
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Jan 5 13:13:12 2016 +0000
-
-    exposed k-rate version of sockrecv
 
 commit 0586ad2ace731cd18aaeadb23d6de1e5c06e5e28
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -391,18 +358,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Mon Nov 30 15:52:48 2015 +0000
 
     trying to fix jack midi input, added process callback
-
-commit d0d5589d1b83e82db39fbea979cf6d2fe447c6ac
-Author: Felipe Sateler <fsateler@gmail.com>
-Date:   Mon Nov 30 09:40:27 2015 -0300
-
-    Introduce CS_PACKAGE_DATE macro
-    
-    Defaults to __DATE__ if not set. This can be overriden, in order to set
-    a deterministic date on it, and thus one step closer to binary
-    reproducibility.
-    
-    Fixes: #561
 
 commit cedfdfdfe1bf447723bcadb45d40420eaad3ca7c
 Author: veplaini <victor.lazzarini@nuim.ie>
