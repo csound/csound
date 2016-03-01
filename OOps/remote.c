@@ -391,14 +391,15 @@ static int SVopen(CSOUND *csound)
 int SVrecv(CSOUND *csound, int conn, void *data, int length)
 {
     struct sockaddr from;
-    IGN(csound);
-#if defined(WIN32) && !defined(__CYGWIN__) /* VL, 12/10/06: I'm guessing here. If someone knows better, fix it */
+    /* VL, 12/10/06: I'm guessing here. If someone knows better, fix it */
+#if defined(WIN32) && !defined(__CYGWIN__)
 #define MSG_DONTWAIT  0
     int clilen = sizeof(from);
 #else
     socklen_t clilen = sizeof(from);
 #endif
     size_t n;
+    IGN(csound);
     n = recvfrom(conn, data, length, MSG_DONTWAIT, &from, &clilen);
     /*  if (n>0) csound->Message(csound, "nbytes received: %d \n", (int)n); */
     return (int)n;

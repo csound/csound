@@ -420,7 +420,7 @@ static int OSC_handler(const char *path, const char *types,
                   dst = csound->Strdup(csound, src);
                   // who sets m->args[i].string.size ??
                   m->args[i].string.data = dst;
-                  m->args[i].string.size = strlen(dst)+1; 
+                  m->args[i].string.size = strlen(dst)+1;
                 }
                 else strcpy(dst, src);
                 break;

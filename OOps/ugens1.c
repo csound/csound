@@ -1139,7 +1139,7 @@ int linen(CSOUND *csound, LINEN *p)
       p->lin2 -= p->inc2;
     }
     else p->cnt2--; */
-      
+
 
     if (flag) {
       if (IS_ASIG_ARG(p->sig))
