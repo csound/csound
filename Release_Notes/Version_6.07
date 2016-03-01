@@ -17,17 +17,18 @@ USER-LEVEL CHANGES
 
 New opcodes:
 
-    o    compress2: likecompress but using a more normal use of dB (0
-         for full scale)
+    o    compress2: like compress but using a more normal use of dB
+         (0.0 for full scale).
 
-    o    (Experimental) New cuda opcodes cudasynth2 and cudanal2
+    o    (Experimental) New cuda opcodes cudasynth2 and cudanal2.
 
-    o    directory opcode
+    o    directory opcode: Reads a directory and outputs to a string
+         array a list of file names.   
 
-    o    ftsamplebank:to load a sample library
+    o    ftsamplebank:to load a sample library from a directory.
 
-    o    mvclpf1, mvclpf2, mvclpf3, mvclpf4, mvchpf: Moog filters from
-         Fons Andriessen
+    o    mvclpf1, mvclpf2, mvclpf3, mvclpf4, mvchpf: Moog
+         voltage-controlled filter emulations from Fons Andriaensen.
 
 New Gen and Macros:
 
