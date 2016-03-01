@@ -384,7 +384,9 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                          isInput, &format, &psize);
     format.mSampleRate    = srate;
     format.mFormatID =  kAudioFormatLinearPCM;
-    format.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked | kLinearPCMFormatFlagIsNonInterleaved;
+    format.mFormatFlags = kAudioFormatFlagIsFloat  |
+                          kAudioFormatFlagIsPacked |
+                          kLinearPCMFormatFlagIsNonInterleaved;
     format.mBytesPerPacket = sizeof(Float32);
     format.mFramesPerPacket = 1;
     format.mBytesPerFrame = sizeof(Float32);

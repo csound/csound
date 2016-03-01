@@ -88,7 +88,7 @@ int interpset(CSOUND *csound, INTERP *p)
       p->prev = (*p->imode == FL(0.0) ? *p->istart : FL(0.0));
       p->init_k = (*p->imode == FL(0.0) ? 0 : 1);       /* IV - Sep 5 2002 */
     }
-    
+
     return OK;
 }
 
@@ -1248,4 +1248,3 @@ int pan(CSOUND *csound, PAN *p)
     return csound->PerfError(csound, p->h.insdshead,
                              Str("pan: not initialised"));
 }
-

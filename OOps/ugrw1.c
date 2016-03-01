@@ -972,7 +972,6 @@ int printksset(CSOUND *csound, PRINTKS *p){
 /*     puts(fmt); */
 /*     while (*fmt) { */
 /*       if (*fmt == '%') { */
-/*      //if(*(fmt+1) == '%'){ fmt++;  strcpy(outstring, "%%"); outstring += strlen(outstring); continue;} */
 /*         /\* if already a segment waiting, then lets print it *\/ */
 /*         if (segwaiting) { */
 /*           MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]); */
