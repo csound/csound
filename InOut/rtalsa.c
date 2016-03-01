@@ -379,9 +379,10 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     }
     if(play) {
       DAC_channels(csound,hwchns);
-      } else ADC_channels(csound,hwchns);
+    }
+    else ADC_channels(csound,hwchns);
     /*=========================*/
-    
+
     /* now set the various hardware parameters: */
     /* access method, */
     if (snd_pcm_hw_params_set_access(dev->handle, hw_params,
@@ -570,7 +571,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         temp = strchr (line_, ':');
         if (temp)
           temp = temp + 2;
-        else return 0;
+        else return 0;          /* ***AND LEAK SPACE */
         if (list != NULL) {
           /* for some reason, there appears to be a memory
              problem if we try to copy more than 10 chars,
