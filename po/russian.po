@@ -1349,7 +1349,7 @@ msgstr ""
 msgid "sorting cscore.out ..\n"
 msgstr ""
 
-#: Engine/musmon.c:342 Top/main.c:317
+#: Engine/musmon.c:342 Top/main.c:319
 msgid "\t... done\n"
 msgstr ""
 
@@ -1514,41 +1514,41 @@ msgstr ""
 msgid "Failed to open input file %s\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:185
+#: Engine/new_orc_parser.c:186
 msgid "Unmatched #ifdef\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:227
+#: Engine/new_orc_parser.c:228
 msgid "Parsing successful!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:231
+#: Engine/new_orc_parser.c:232
 msgid "Parsing failed due to invalid input!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:235
+#: Engine/new_orc_parser.c:236
 msgid "Parsing failed due to memory exhaustion!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:238
+#: Engine/new_orc_parser.c:239
 #, c-format
 msgid "Parsing failed due to %d syntax error%s!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:268
+#: Engine/new_orc_parser.c:269
 #, c-format
 msgid "Parsing failed due to %d semantic error%s!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:271
+#: Engine/new_orc_parser.c:272
 msgid "Parsing failed to syntax errors\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:273
+#: Engine/new_orc_parser.c:274
 msgid "Parsing failed due no input!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:289
+#: Engine/new_orc_parser.c:290
 msgid "Stopping on parser failure"
 msgstr ""
 
@@ -1978,10 +1978,6 @@ msgstr ""
 
 #: Engine/twarp.c:192
 msgid "twarp: t has non-positive tempo\n"
-msgstr ""
-
-#: Engine/twarp.c:195
-msgid "twarp: t segments exceed twarp array\n"
 msgstr ""
 
 #: InOut/cmidi.c:130
@@ -3875,45 +3871,45 @@ msgstr ""
 msgid "Division by zero"
 msgstr ""
 
-#: OOps/aops.c:945
+#: OOps/aops.c:949
 msgid "non-looping sample"
 msgstr ""
 
-#: OOps/aops.c:1095 OOps/aops.c:1123
+#: OOps/aops.c:1099 OOps/aops.c:1127
 #, c-format
 msgid "No tuning table %d"
 msgstr ""
 
-#: OOps/aops.c:1168 OOps/aops.c:1206
+#: OOps/aops.c:1172 OOps/aops.c:1210
 msgid "cpstun: invalid table"
 msgstr ""
 
-#: OOps/aops.c:1598 OOps/aops.c:1634
+#: OOps/aops.c:1602 OOps/aops.c:1638
 #, c-format
 msgid "Input channel %d too large; ignored"
 msgstr ""
 
-#: OOps/aops.c:1630
+#: OOps/aops.c:1634
 msgid "Input and output argument count differs in inch"
 msgstr ""
 
-#: OOps/aops.c:2073
+#: OOps/aops.c:2077
 msgid "Unknown function called"
 msgstr ""
 
-#: OOps/aops.c:2109
+#: OOps/aops.c:2113
 msgid "number of arguments != nchnls"
 msgstr ""
 
-#: OOps/aops.c:2139
+#: OOps/aops.c:2143
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 
-#: OOps/aops.c:2174
+#: OOps/aops.c:2178
 msgid "number of hardware output channels not currently available"
 msgstr ""
 
-#: OOps/aops.c:2179
+#: OOps/aops.c:2183
 msgid "number of hardware input channels not currently available"
 msgstr ""
 
@@ -3967,15 +3963,19 @@ msgstr ""
 msgid "invalid export variable"
 msgstr ""
 
-#: OOps/bus.c:1340
+#: OOps/bus.c:1341
 msgid "read failure in sensekey\n"
 msgstr ""
 
-#: OOps/bus.c:1448 OOps/bus.c:1474 OOps/bus.c:1515 OOps/bus.c:1542
+#: OOps/bus.c:1349
+msgid "sensekey error:"
+msgstr ""
+
+#: OOps/bus.c:1452 OOps/bus.c:1478 OOps/bus.c:1519 OOps/bus.c:1546
 msgid "InputChannelCallback not set."
 msgstr ""
 
-#: OOps/bus.c:1593 OOps/bus.c:1619 OOps/bus.c:1647 OOps/bus.c:1673
+#: OOps/bus.c:1597 OOps/bus.c:1623 OOps/bus.c:1651 OOps/bus.c:1677
 msgid "OutputChannelCallback not set."
 msgstr ""
 
@@ -5018,7 +5018,7 @@ msgstr ""
 msgid "unlike signs"
 msgstr ""
 
-#: OOps/ugens1.c:178 OOps/ugens1.c:1814 OOps/ugens1.c:1824
+#: OOps/ugens1.c:178 OOps/ugens1.c:1823 OOps/ugens1.c:1833
 #, c-format
 msgid "Breakpoint %d not valid"
 msgstr ""
@@ -5032,64 +5032,68 @@ msgstr "%s: не выступлено с иничиативой"
 msgid "linseg: not initialised (arate)\n"
 msgstr ""
 
-#: OOps/ugens1.c:522 OOps/ugens1.c:524 OOps/ugens1.c:576 OOps/ugens1.c:578
-#: OOps/ugens1.c:633 OOps/ugens1.c:635 OOps/ugens1.c:684 OOps/ugens1.c:686
-#: OOps/ugens1.c:889 OOps/ugens1.c:891
+#: OOps/ugens1.c:331
+msgid "length of ADSR note too short"
+msgstr ""
+
+#: OOps/ugens1.c:520 OOps/ugens1.c:522 OOps/ugens1.c:574 OOps/ugens1.c:576
+#: OOps/ugens1.c:631 OOps/ugens1.c:633 OOps/ugens1.c:682 OOps/ugens1.c:684
+#: OOps/ugens1.c:887 OOps/ugens1.c:889
 #, c-format
 msgid "ival%d is zero"
 msgstr ""
 
-#: OOps/ugens1.c:525 OOps/ugens1.c:579 OOps/ugens1.c:636 OOps/ugens1.c:687
-#: OOps/ugens1.c:892
+#: OOps/ugens1.c:523 OOps/ugens1.c:577 OOps/ugens1.c:634 OOps/ugens1.c:685
+#: OOps/ugens1.c:890
 #, c-format
 msgid "ival%d sign conflict"
 msgstr ""
 
-#: OOps/ugens1.c:555 OOps/ugens1.c:609
+#: OOps/ugens1.c:553 OOps/ugens1.c:607
 #, c-format
 msgid "Breakpoint time %f not valid"
 msgstr ""
 
-#: OOps/ugens1.c:811
+#: OOps/ugens1.c:809
 msgid "expseg (krate): not initialised"
 msgstr ""
 
-#: OOps/ugens1.c:843
+#: OOps/ugens1.c:841
 msgid "expseg (arate): not initialised"
 msgstr ""
 
-#: OOps/ugens1.c:1166 OOps/ugens1.c:1189 OOps/ugens1.c:1319 OOps/ugens1.c:1431
-#: OOps/ugens1.c:1562 OOps/ugens1.c:1621
+#: OOps/ugens1.c:1175 OOps/ugens1.c:1198 OOps/ugens1.c:1328 OOps/ugens1.c:1440
+#: OOps/ugens1.c:1571 OOps/ugens1.c:1630
 msgid "non-positive iatdec"
 msgstr ""
 
-#: OOps/ugens1.c:1276 OOps/ugens1.c:1388 OOps/ugens1.c:1524 OOps/ugens1.c:1583
+#: OOps/ugens1.c:1285 OOps/ugens1.c:1397 OOps/ugens1.c:1533 OOps/ugens1.c:1592
 msgid "ixmod out of range."
 msgstr ""
 
-#: OOps/ugens1.c:1304 OOps/ugens1.c:1416 OOps/ugens1.c:1552 OOps/ugens1.c:1611
+#: OOps/ugens1.c:1313 OOps/ugens1.c:1425 OOps/ugens1.c:1561 OOps/ugens1.c:1620
 msgid "rise func ends with zero"
 msgstr ""
 
-#: OOps/ugens1.c:1348 OOps/ugens1.c:1467 OOps/ugens1.c:1696
+#: OOps/ugens1.c:1357 OOps/ugens1.c:1476 OOps/ugens1.c:1705
 msgid "envlpx rise func ends with zero"
 msgstr ""
 
-#: OOps/ugens1.c:1370 OOps/ugens1.c:1460 OOps/ugens1.c:1689
+#: OOps/ugens1.c:1379 OOps/ugens1.c:1469 OOps/ugens1.c:1698
 msgid "envlpx(krate): not initialised"
 msgstr ""
 
-#: OOps/ugens1.c:1886 OOps/ugens1.c:2137
+#: OOps/ugens1.c:1895 OOps/ugens1.c:2146
 #, fuzzy
 msgid "cosseg not initialised (krate)\n"
 msgstr "%s: не выступлено с иничиативой"
 
-#: OOps/ugens1.c:1941
+#: OOps/ugens1.c:1950
 #, fuzzy
 msgid "cosseg: not initialised (arate)\n"
 msgstr "%s: не выступлено с иничиативой"
 
-#: OOps/ugens1.c:2012 OOps/ugens1.c:2079
+#: OOps/ugens1.c:2021 OOps/ugens1.c:2088
 #, fuzzy
 msgid "cossegr: not initialised (arate)\n"
 msgstr "%s: не выступлено с иничиативой"
@@ -7312,15 +7316,15 @@ msgstr ""
 msgid "grain4: not initialised"
 msgstr ""
 
-#: Opcodes/harmon.c:255
+#: Opcodes/harmon.c:257
 msgid "harm signal has positive lead\n"
 msgstr ""
 
-#: Opcodes/harmon.c:262
+#: Opcodes/harmon.c:264
 msgid "harm signal has negative lead\n"
 msgstr ""
 
-#: Opcodes/harmon.c:393
+#: Opcodes/harmon.c:395
 msgid "harmon234: out of range\n"
 msgstr ""
 
@@ -10858,7 +10862,7 @@ msgstr ""
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3046 Top/main.c:375
+#: Top/csound.c:3046 Top/main.c:377
 msgid "setting dummy interface\n"
 msgstr ""
 
@@ -10990,82 +10994,82 @@ msgid ""
 "before starting again \n"
 msgstr ""
 
-#: Top/main.c:150
+#: Top/main.c:151
 msgid "no orchestra name"
 msgstr ""
 
-#: Top/main.c:177 Top/main.c:181 Top/main.c:188
+#: Top/main.c:178 Top/main.c:182 Top/main.c:189
 msgid "Reading CSD failed ... stopping"
 msgstr ""
 
-#: Top/main.c:203
+#: Top/main.c:204
 msgid "error: multiple uses of stdin"
 msgstr ""
 
-#: Top/main.c:207
+#: Top/main.c:208
 msgid "error: multiple uses of stdout"
 msgstr ""
 
-#: Top/main.c:216
+#: Top/main.c:217
 msgid "realtime performance using dummy numeric scorefile\n"
 msgstr ""
 
-#: Top/main.c:239
+#: Top/main.c:240
 #, c-format
 msgid "orchname:  %s\n"
 msgstr ""
 
-#: Top/main.c:243
+#: Top/main.c:245
 #, c-format
 msgid "Failed to open input file - %s\n"
 msgstr ""
 
-#: Top/main.c:259
+#: Top/main.c:261
 msgid "cannot compile orchestra"
 msgstr ""
 
-#: Top/main.c:264
+#: Top/main.c:266
 msgid ""
 "cannot compile orchestra.\n"
 "Csound will start with no instruments"
 msgstr ""
 
-#: Top/main.c:279
+#: Top/main.c:281
 msgid "end of orchestra compile"
 msgstr ""
 
-#: Top/main.c:287
+#: Top/main.c:289
 #, c-format
 msgid "using previous %s\n"
 msgstr ""
 
-#: Top/main.c:297
+#: Top/main.c:299
 #, c-format
 msgid "cannot open scorefile %s"
 msgstr ""
 
-#: Top/main.c:299
+#: Top/main.c:301
 msgid "sorting score ...\n"
 msgstr ""
 
-#: Top/main.c:309
+#: Top/main.c:311
 #, c-format
 msgid "cannot open extract file %s"
 msgstr ""
 
-#: Top/main.c:312
+#: Top/main.c:314
 msgid "  ... extracting ...\n"
 msgstr ""
 
-#: Top/main.c:321
+#: Top/main.c:323
 msgid "end of score sort"
 msgstr ""
 
-#: Top/main.c:323
+#: Top/main.c:325
 msgid "Syntax check completed.\n"
 msgstr ""
 
-#: Top/main.c:442 util/dnoise.c:266
+#: Top/main.c:444 util/dnoise.c:266
 #, c-format
 msgid "%s not a recognised SFOUTYP env setting"
 msgstr ""

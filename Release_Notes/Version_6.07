@@ -5,7 +5,7 @@ RELEASE NOTES   VERSION 6.07
 ============================
 
 A large number of bug fixes, some quite major, some internal are
-included, as well as some new facilities and extensions. As ever tere
+included, as well as some new facilities and extensions. As ever there
 are coding improvements as well.
 
 The Developers 
@@ -124,6 +124,9 @@ General usage:
         and active flags
 
     o   Multicore code now wors wit midi instruments
+
+    o   MIDI operations now available via jack (***NEEDS ORE***)
+    
     
 Bugs fixed:
 
@@ -154,7 +157,8 @@ Bugs fixed:
     o   Array initialisation now robust
 
     o   Bug in copya2ftab fixed
-    
+
+    o   Fix in cudapvsanal (EXPERMENTAL)
 ====================
 SYSTEM LEVEL CHANGES
 ====================
@@ -224,12 +228,6 @@ commit 92bb46d79a02d4b2b4acce9e871ff3efd3af584f
 Author: jpff <jpff@codemist.co.uk>
 Date:   Mon Feb 29 14:35:07 2016 +0000
 
-commit fb62fb8478a72b7d517f5b13e2659fe6313d7232
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Jan 30 10:09:40 2016 +0000
-
-    fixed issue in cudapvsanal
-
 commit d4a6368ca84611c92916dbb9c965f93330b24b7e
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sat Jan 23 16:21:24 2016 +0000
@@ -283,12 +281,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Mon Jan 4 19:39:51 2016 +0000
 
     added means of checking hw channels
-
-commit 5ca2ba92ae3e688bb00d696a5a577471a3e8d217
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Tue Dec 29 23:01:19 2015 -0500
-
-    updated for FLTK
 
 commit 0335d2ca6c1240dbfffdc84ffa8c375772001914
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -345,31 +337,7 @@ Date:   Fri Dec 11 09:56:38 2015 +0000
     naming of jack midi ports
 
 Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Dec 1 12:47:06 2015 +0000
-
-    added output to jack midi
-
-commit d07aba75a9738c279032d8e83d7c51de91e831b5
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Nov 30 15:52:48 2015 +0000
-
-    trying to fix jack midi input, added process callback
-
-commit cedfdfdfe1bf447723bcadb45d40420eaad3ca7c
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Nov 30 08:26:32 2015 +0000
-
-    check time of event in jack midi
-
-commit 514496ccce4649917fba17205e2573d0c96b8586
-Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sun Nov 29 18:47:26 2015 +0000
 
     midi_out_read returning the number of bytes read
-
-commit f17b8a479b68dd47d2ef1a8b3d8f03b1a75bb815
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sun Nov 29 17:29:54 2015 +0000
-
-    added code for jack midi input
 
