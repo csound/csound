@@ -4067,9 +4067,8 @@ msgid "read failure in sensekey\n"
 msgstr "échec de la lecture dans sensekey\n"
 
 #: OOps/bus.c:1349
-#, fuzzy
 msgid "sensekey error:"
-msgstr "envext : erreur : "
+msgstr "erreur de sensekey : "
 
 #: OOps/bus.c:1452 OOps/bus.c:1478 OOps/bus.c:1519 OOps/bus.c:1546
 msgid "InputChannelCallback not set."
@@ -5238,7 +5237,7 @@ msgstr "linseg : non initialisé (taux-a)\n"
 
 #: OOps/ugens1.c:331
 msgid "length of ADSR note too short"
-msgstr ""
+msgstr "durée de la note de l'ADSR trop courte"
 
 #: OOps/ugens1.c:520 OOps/ugens1.c:522 OOps/ugens1.c:574 OOps/ugens1.c:576
 #: OOps/ugens1.c:631 OOps/ugens1.c:633 OOps/ugens1.c:682 OOps/ugens1.c:684
@@ -6777,22 +6776,22 @@ msgid "ftsave: failed to write file"
 msgstr "ftsave : impossible d'ouvrir le fichier"
 
 #: Opcodes/ftsamplebank.cpp:170
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot load file. Error opening directory: %s\n"
-msgstr "Erreur en ouvrant le répertoire de plugin : %s"
+msgstr "Impossible de charger le fichier. Erreur d'ouverture du répertoire : %s\n"
 
 #: Opcodes/ftsamplebank.cpp:221
 msgid "Error: you must pass a directory as a string."
-msgstr ""
+msgstr "Erreur : il faut donner le nom d'un répertoire."
 
 #: Opcodes/ftsamplebank.cpp:235
 msgid "Error: second parameter to directory mustbe a string"
-msgstr ""
+msgstr "Erreur : le second paramètre du répertoire doit être une chaîne"
 
 #: Opcodes/ftsamplebank.cpp:288
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot find directory. Error opening directory: %s\n"
-msgstr "Erreur en ouvrant le répertoire de plugin : %s"
+msgstr "Répertoire introuvable. Erreur d'ouverture du répertoire : %s\n"
 
 #: Opcodes/gab/gab.c:116
 msgid "fastab: incorrect table number"
