@@ -241,12 +241,6 @@ Date:   Sun Jan 17 11:31:12 2016 +0000
 
     lifted the limiting on the resonance
 
-commit 49a837b16410e3f1c49e37539033e1abb2f4c286
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Jan 14 15:09:30 2016 +0000
-
-    normalising filters fix
-
 commit b0b895df164e28016ad44a4f3dc37b7f8705cfe6
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Thu Jan 14 15:06:02 2016 +0000
@@ -307,23 +301,11 @@ Date:   Sat Dec 12 09:38:04 2015 +0000
 
     midi out client setting
 
-commit f5eb93c8566dedf83e83f87be24cf8f6cb173d46
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Dec 11 16:54:45 2015 +0000
-
-    fixed jack connections
-
 commit d39b673c2cfe5c677a319c0af4af74977a76e491
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Fri Dec 11 11:34:30 2015 +0000
 
     fixed bug in jack midi
-
-commit c58b18f56bd76470ac6b4e594194e2bcec020467
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Dec 11 11:28:46 2015 +0000
-
-    fixing jack connections
 
 commit 1670cca8818ce0cead33193f99e41db4779caba0
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -341,4 +323,4 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sun Nov 29 18:47:26 2015 +0000
 
     midi_out_read returning the number of bytes read
-
+    9but there is no midi_out_read function!)

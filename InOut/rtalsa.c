@@ -548,14 +548,13 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     FILE * f = fopen("/proc/asound/pcm", "r");
     /*file presents this format:
       02-00: Analog PCM : Mona : playback 6 : capture 4*/
-    char *line, *line_;
-    line = (char *) calloc (128, sizeof(char));
-    line_ = (char *) calloc (128, sizeof(char));
+    char line[128], line_[128];
     char card_[] = "  ";
     char num_[] = "  ";
     char *temp;
     char tmp[64];
     int n =0;
+    memset(line, '\0', 128); memset(line_, '\0', 128); 
     if (f)  {
       char *th;
       while (fgets(line, 128, f))  {   /* Read one line*/
@@ -571,7 +570,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         temp = strchr (line_, ':');
         if (temp)
           temp = temp + 2;
-        else return 0;          /* ***AND LEAK SPACE */
+        else return 0;
         if (list != NULL) {
           /* for some reason, there appears to be a memory
              problem if we try to copy more than 10 chars,
@@ -587,8 +586,6 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       }
       fclose(f);
     }
-    free(line);
-    free(line_);
     return n;
 }
 
