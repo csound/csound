@@ -318,7 +318,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
           invb = 1.0/b;
           b1 = (-a-2.0*csq)*invb;
           b2 = csq*invb;
-          // Stabalise 
+          // Stabalise
           {    // POLES
             double disc, p0, p1, pi;
             disc=b1*b1-(4*b2);

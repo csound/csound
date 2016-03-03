@@ -65,7 +65,8 @@ typedef struct {
 /*            "= (%d,%d,%d,%d,%d,%d\n", */
 /*            p->nbufsmps, p->n2bufsmps, p->period, p->cpsmode, p->polarity, */
 /*            p->poslead); */
-/*     printf("prvoct, minoct, sicvt = %f, %f, %f\n", p->prvoct, p->minoct, p->sicvt); */
+/*     printf("prvoct, minoct, sicvt = %f, %f, %f\n", */
+/*             p->prvoct, p->minoct, p->sicvt); */
 /*     //MYFLT   *bufp, *midp, *inp1, *inp2; */
 /*     //MYFLT   *pulsbuf[4], *sigmoid, *curpuls; */
 /*     printf("vocamp, vocinc, ampinc = %f, %f, %f\n", */
@@ -86,7 +87,8 @@ typedef struct {
 /*            p->vocdat[1].kfrq, p->vocdat[1].phase, p->vocdat[1].phsinc, */
 /*            p->vocdat[2].kfrq, p->vocdat[2].phase, p->vocdat[2].phsinc, */
 /*            p->vocdat[3].kfrq, p->vocdat[3].phase, p->vocdat[3].phsinc); */
-/*     printf("output: %f %f %f %f ...\n", p->ar[0], p->ar[1], p->ar[2], p->ar[3]); */
+/*     printf("output: %f %f %f %f ...\n", */
+/*            p->ar[0], p->ar[1], p->ar[2], p->ar[3]); */
 /* } */
 #define PBUFS   4
 #define PBMSK   0x3

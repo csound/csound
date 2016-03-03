@@ -379,9 +379,10 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     }
     if(play) {
       DAC_channels(csound,hwchns);
-      } else ADC_channels(csound,hwchns);
+    }
+    else ADC_channels(csound,hwchns);
     /*=========================*/
-    
+
     /* now set the various hardware parameters: */
     /* access method, */
     if (snd_pcm_hw_params_set_access(dev->handle, hw_params,
@@ -547,14 +548,13 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     FILE * f = fopen("/proc/asound/pcm", "r");
     /*file presents this format:
       02-00: Analog PCM : Mona : playback 6 : capture 4*/
-    char *line, *line_;
-    line = (char *) calloc (128, sizeof(char));
-    line_ = (char *) calloc (128, sizeof(char));
+    char line[128], line_[128];
     char card_[] = "  ";
     char num_[] = "  ";
     char *temp;
     char tmp[64];
     int n =0;
+    memset(line, '\0', 128); memset(line_, '\0', 128); 
     if (f)  {
       char *th;
       while (fgets(line, 128, f))  {   /* Read one line*/
@@ -586,8 +586,6 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       }
       fclose(f);
     }
-    free(line);
-    free(line_);
     return n;
 }
 
