@@ -37,6 +37,11 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
     FUNC    *nxtfunc, *curfunc;
     int32    flength;
 
+    if(!(p->INCOUNT & 1)){
+      csound->InitError(csound, "incomplete number of input arguments");
+      return NOTOK;
+    }
+
     {
       PVOC_GLOBALS  *p_ = PVOC_GetGlobals(csound);
       p_->tbladr = p;

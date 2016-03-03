@@ -27,6 +27,7 @@
 
 #define FHUND (FL(100.0))
 
+
 int linset(CSOUND *csound, LINE *p)
 {
     double       dur;
@@ -134,7 +135,12 @@ int lsgset(CSOUND *csound, LINSEG *p)
     int nsegs;
     MYFLT       **argp;
     double val;
-
+    
+    if(!(p->INCOUNT & 1)){
+      csound->InitError(csound, "incomplete number of input arguments");
+      return NOTOK;
+    }
+    
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     if (UNLIKELY((segp = (SEG *) p->auxch.auxp) == NULL ||
@@ -160,7 +166,9 @@ int lsgset(CSOUND *csound, LINSEG *p)
       segp++;
     } while (--nsegs);
     p->xtra = -1;
+
     return OK;
+    
 }
 
 int lsgset_bkpt(CSOUND *csound, LINSEG *p)
@@ -369,26 +377,19 @@ int madsrset(CSOUND *csound, LINSEG *p)
 
 /* End of ADSR */
 
-
-
-
-
 int lsgrset(CSOUND *csound, LINSEG *p)
 {
     int32 relestim;
-    lsgset(csound,p);
-    // if(p->segsrem - 1 > 1) {
+    if(lsgset(csound,p) == OK){
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
     p->xtra = relestim;  /* VL 4-1-2011 was -1, making all linsegr
                             releases in an instr => xtratim
                             set to relestim seems to fix this */
-    //}
-    //else {
-    // return csound->InitError(csound, "No release segment defined \n");
-    //}
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int)relestim;
     return OK;
+    }
+    else return NOTOK;
 }
 
 int klnsegr(CSOUND *csound, LINSEG *p)
@@ -480,6 +481,11 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
     int         nsegs;
     MYFLT       d, **argp, val, dur, nxtval;
     int         n=0;
+    
+    if(!(p->INCOUNT & 1)){
+      csound->InitError(csound, "incomplete number of input arguments");
+      return NOTOK;
+    }
 
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
@@ -529,6 +535,12 @@ int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
     int         nsegs;
     MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
     int         n=0;
+
+        
+    if(!(p->INCOUNT & 1)){
+      csound->InitError(csound, "incomplete number of input arguments");
+      return NOTOK;
+    }
 
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
@@ -584,6 +596,12 @@ int xsgset2b(CSOUND *csound, EXPSEG2 *p)
     int         nsegs;
     MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
     int         n;
+
+        
+    if(!(p->INCOUNT & 1)){
+      csound->InitError(csound, "incomplete number of input arguments");
+      return NOTOK;
+    }
 
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
@@ -641,6 +659,12 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
     MYFLT       d, **argp, val, dur, nxtval;
     int         n;
 
+        
+    if(!(p->INCOUNT & 1)){
+      csound->InitError(csound, "incomplete number of input arguments");
+      return NOTOK;
+    }
+    
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
@@ -848,6 +872,12 @@ int xsgrset(CSOUND *csound, EXPSEG *p)
     int     nsegs, n = 0;
     MYFLT   **argp, prvpt;
 
+       
+    if(!(p->INCOUNT & 1)){
+      csound->InitError(csound, "incomplete number of input arguments");
+      return NOTOK;
+    }
+    
     //p->xtra = -1;
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
@@ -1760,6 +1790,12 @@ int csgset(CSOUND *csound, COSSEG *p)
     MYFLT       **argp;
     double val, y1, y2;
 
+        
+    if(!(p->INCOUNT & 1)){
+      csound->InitError(csound, "incomplete number of input arguments");
+      return NOTOK;
+    }
+
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     //printf("nsegs = %d\n", nsegs);
@@ -1844,7 +1880,7 @@ int csgset_bkpt(CSOUND *csound, COSSEG *p)
 int csgrset(CSOUND *csound, COSSEG *p)
 {
     int32 relestim;
-    csgset(csound,p);
+    if(csgset(csound,p) != 0) return NOTOK;
     relestim = (p->cursegp + p->segsrem-2)->cnt;
     p->xtra = relestim;
     if (relestim > p->h.insdshead->xtratim)
