@@ -255,6 +255,7 @@
 ./Opcodes/ftconv.c
 ./Opcodes/ftest.c
 ./Opcodes/ftgen.c
+./Opcodes/ftsamplebank.cpp
 ./Opcodes/gab/gab.c
 ./Opcodes/gab/gab.h
 ./Opcodes/gab/hvs.c
@@ -308,7 +309,6 @@
 ./Opcodes/moog1.c
 ./Opcodes/moog1.h
 ./Opcodes/mp3in.c
-./Opcodes/newarray.c
 ./Opcodes/newfils.c
 ./Opcodes/newfils.h
 ./Opcodes/nlfilt.c

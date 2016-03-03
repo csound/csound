@@ -428,8 +428,8 @@ typedef double v2d __attribute__((vector_size(GCCVSIZEB)));
 #define AA_VECTOR(OPNAME,OP)                   \
   int OPNAME(CSOUND *csound, AOP *p) {          \
   MYFLT   *r, *a, *b;                           \
-  v2d     rv[MAXKSMPS/GCCVSIZE], av[MAXKSMPS/GCCVSIZE], bv[MAXKSMPS/GCCVSIZE];            \
-  uint32_t n, nsmps = CS_KSMPS, end;		\
+  v2d     rv[MAXKSMPS/GCCVSIZE], av[MAXKSMPS/GCCVSIZE], bv[MAXKSMPS/GCCVSIZE];  \
+  uint32_t n, nsmps = CS_KSMPS, end;            \
   if (LIKELY(nsmps!=1)) {                       \
     uint32_t offset = p->h.insdshead->ksmps_offset; \
     uint32_t early  = p->h.insdshead->ksmps_no_end; \

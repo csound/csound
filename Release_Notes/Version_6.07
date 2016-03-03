@@ -1,0 +1,329 @@
+
+============================
+CSOUND VERSION 6.07
+RELEASE NOTES   VERSION 6.07
+============================
+
+A large number of bug fixes, some quite major, some internal are
+included, as well as some new facilities and extensions. As ever there
+are coding improvements as well.
+
+The Developers 
+
+
+
+USER-LEVEL CHANGES
+==================
+
+New opcodes:
+
+    o    compress2: like compress but using a more normal use of dB
+         (0.0 for full scale).
+
+    o    (Experimental) New cuda opcodes cudasynth2 and cudanal2.
+
+    o    directory opcode: Reads a directory and outputs to a string
+         array a list of file names.   
+
+    o    ftsamplebank:to load a sample library from a directory.
+
+    o    mvclpf1, mvclpf2, mvclpf3, mvclpf4, mvchpf: Moog
+         voltage-controlled filter emulations from Fons Andriaensen.
+
+New Gen and Macros:
+
+    o    
+
+Orchestra:
+
+    o    The boolean ?..:.. construction can now have string results,
+         while previously it only allowed numbers.
+
+    o    The line number reported when an error is detected at the end
+         of a line is now correct.  Also more improvements in line numbers
+         for complex syntax
+
+    o    While loop improved/fixed
+    
+    o    Better and consistent reading of comments
+
+    o    Continuation lines handled better, especially respecting line
+         numbers
+         
+Score:
+
+    o    The list of tempo points in score opcode t is now arbitrarily
+         long
+
+    o    A stupidity in r and { opcodes fixed
+
+Options:
+
+    o    The -z option now suppresses deprecated opcodes, unless given
+         a 2 or 3 argument
+
+
+Modified Opcodes and Gens:
+
+     o   In OSC opcodes it is now possible to send and receive arrays,
+         tables and audio
+
+     o   Better diagnostic if diskin2 fails
+
+     o   Rezzy now checks for unstable filter and modifies to close
+         stable version
+
+     o   adsr rewritten so it gives an error if the segments are
+         longer than p3
+
+     o   Use of diskin to an array ow resizes the output array if
+         necessary
+
+     o   chnget now checks for a change in chanel name as well as data
+
+     o   interp can take an optional extra argument to give an initial
+         value
+
+     o   oscilikts uses a more liberal table lookup
+
+     o   opcode in can read mono or stereo, obviating the in/ins
+         distinction
+
+     o   sensekey rewritten to provide better diagnostics and fixes a
+         minor bug
+
+     o   Fix to a case of defining a macro with arguments
+
+     o   sockrecv now works at a and k rate
+
+Utilities:
+
+  o    
+
+Frontends:
+
+  pnacl: 
+
+  icsound:
+
+  csound~:
+        
+  Emscripten:
+
+  csdebugger:
+  
+       * Some memory issues fixed
+
+  HTML5:
+
+  CsoundQT has its own notes at
+  https://github.com/CsoundQt/CsoundQt/blob/master/release_notes/Release%20notes%200.9.2.md
+
+
+General usage:
+
+    o   The multicore options somewhat improved
+
+    o   When replacing instruments the new version inherits maxalloc
+        and active flags
+
+    o   Multicore code now works wit midi instruments
+
+    o   MIDI operations now available via jack (***NEEDS ORE***)
+    
+    
+Bugs fixed:
+
+    o   Fix to trigseq
+
+    o   Major error in rezzy fixed
+
+    o   p() fixed for high numbers of p-arguments
+
+    o   p() now works from MIDI events
+
+    o   The 31-bit random number generator could give a very short
+        loop if seeded with zero; fixed
+
+    o   Macros in .orc files now work
+
+    o   A long-standing bug in display of graphs fixed
+
+    o   Fixes to the envelope opcodes linen, expsegr, linsegr,
+        cossegr, transegr
+
+    o   Many fixes in string opcodes (strsub, strcpy and others)
+
+    o   Fixed bugs in print formats (sprintf printf prints)
+
+    o   pvsmooth had a missing initialisation
+
+    o   Array initialisation now robust
+
+    o   Bug in copya2ftab fixed
+
+    o   Fix in cudapvsanal (EXPERIMENTAL)
+====================
+SYSTEM LEVEL CHANGES
+====================
+
+System changes:
+
+    o   Extensive use made of in-memory files.  Orc and sco are always
+        thus, as are .csound6rc.  This simplifies much internally
+
+    o   Nested longjmps fixed which affected some API use.
+
+    o   If a non-existent .csd file is presented Csound no longer
+        crashes
+
+
+API
+===
+    * 
+    
+
+Platform Specific
+=================
+
+iOS
+---
+
+    * 
+
+
+Android
+-------
+
+    * csoundCompileCsdText: new function to compile strings
+
+    
+
+Platform Specific
+=================
+
+iOS
+---
+
+    * 
+
+
+Android
+-------
+
+    * 
+
+Windows
+-------
+
+OSX
+---
+    * Installer fixed for link names for _csnd6 and _CsoundAC
+
+
+GNU/Linux
+---------
+    * date opcode more accurate
+
+========================================================================
+
+========================================================================
+commit 92bb46d79a02d4b2b4acce9e871ff3efd3af584f
+Author: jpff <jpff@codemist.co.uk>
+Date:   Mon Feb 29 14:35:07 2016 +0000
+
+commit d4a6368ca84611c92916dbb9c965f93330b24b7e
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sat Jan 23 16:21:24 2016 +0000
+
+    fixed merging of global arrays bug
+
+commit 094229eed7529a0698704711a538dd2117d10a93
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sun Jan 17 11:31:12 2016 +0000
+
+    lifted the limiting on the resonance
+
+commit b0b895df164e28016ad44a4f3dc37b7f8705cfe6
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Jan 14 15:06:02 2016 +0000
+
+    normalising filters
+
+commit db925f4b2d2441cd878a1b4c8d09a22999e8921b
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Jan 14 10:41:29 2016 +0000
+
+    added audio-rate versions of moog filters
+
+commit 2543d8c6519fd2311b00403fa64204379731a4f4
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Jan 13 11:52:08 2016 +0000
+
+    fixed the setting of channels in chnget
+
+commit bf6817a55c75b03603c03b5cb0c0b9663b56106d
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sun Jan 10 21:17:07 2016 +0000
+
+    fixed chnget
+
+commit 0586ad2ace731cd18aaeadb23d6de1e5c06e5e28
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Jan 4 21:41:54 2016 +0000
+
+    hw channels probe on rtauhal
+
+commit 497e56a4da34a9e78341dc6107d2b54b0c0aa903
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Jan 4 19:39:51 2016 +0000
+
+    added means of checking hw channels
+
+commit 0335d2ca6c1240dbfffdc84ffa8c375772001914
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Dec 14 09:58:04 2015 +0000
+
+    fixed naming of ports
+
+commit 79e3aa7e20bf959ad9998d0b49afd6b2dbb58e49
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Dec 14 09:39:08 2015 +0000
+
+    jack midi client option
+
+commit ae397552fb31e1c37ed66dbd58d33958464cd591
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sun Dec 13 17:07:48 2015 +0000
+
+    fixed auhal format flag
+
+commit 92e2cedc908cc941e41672efc0b3946467edc3fa
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sat Dec 12 09:38:04 2015 +0000
+
+    midi out client setting
+
+commit d39b673c2cfe5c677a319c0af4af74977a76e491
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Dec 11 11:34:30 2015 +0000
+
+    fixed bug in jack midi
+
+commit 1670cca8818ce0cead33193f99e41db4779caba0
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Dec 11 11:27:19 2015 +0000
+
+    fixing jack connections
+
+commit 82fc58dd698a6c731700e1629346ec8b74fcd2dd
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Dec 11 09:56:38 2015 +0000
+
+    naming of jack midi ports
+
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sun Nov 29 18:47:26 2015 +0000
+
+    midi_out_read returning the number of bytes read
+    9but there is no midi_out_read function!)
