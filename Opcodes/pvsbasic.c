@@ -218,6 +218,8 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
     }
     else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME-1);
 
+
+
     if (UNLIKELY(p->fin->sliding))
       return csound->InitError(csound,Str("SDFT Not implemented in this case yet"));
     p->pvfile= -1;
@@ -249,6 +251,8 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
     } else
 #endif
     {
+     if (p->frame.auxp == NULL || p->frame.size < sizeof(float) * (N + 2))
+       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->frame);
       p->async = 0;
     }
     csound->RegisterDeinitCallback(csound, p, pvsfwrite_destroy);
@@ -291,13 +295,23 @@ static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
     if (p->lastframe < p->fin->framecount) {
       int32 framesize = p->fin->N+2,i;
       if(p->async == 0) {
-      if (UNLIKELY(!csound->PVOC_PutFrames(csound, p->pvfile, fin, 1)))
+	float _0dbfs = (float) csound->Get0dBFS(csound);
+        float *fout = p->frame.auxp;
+        for (i=0;i < framesize; i+=2){
+            fout[i] =   fin[i]/_0dbfs;
+            fout[i+1] = fin[i+1];
+         }
+      if (UNLIKELY(!csound->PVOC_PutFrames(csound, p->pvfile, fout, 1)))
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("pvsfwrite: could not write data\n"));
       }
       else {
       MYFLT *fout = p->frame.auxp;
-      for (i=0;i < framesize; i++) fout[i] = (MYFLT) fin[i];
+      MYFLT _0dbfs = csound->Get0dBFS(csound);
+      for (i=0;i < framesize; i+=2){
+         fout[i] = (MYFLT) fin[i]/_0dbfs;
+         fout[i+1] = (MYFLT) fin[i+1];
+      }
       csound->WriteCircularBuffer(csound, p->cb, fout, framesize);
       }
       p->lastframe = p->fin->framecount;
