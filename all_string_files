@@ -309,7 +309,6 @@
 ./Opcodes/moog1.c
 ./Opcodes/moog1.h
 ./Opcodes/mp3in.c
-./Opcodes/newarray.c
 ./Opcodes/newfils.c
 ./Opcodes/newfils.h
 ./Opcodes/nlfilt.c
