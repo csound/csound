@@ -377,15 +377,15 @@ int lsgrset(CSOUND *csound, LINSEG *p)
 {
     int32 relestim;
     lsgset(csound,p);
-    if(p->segsrem - 1 > 1) {
+    // if(p->segsrem - 1 > 1) {
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
     p->xtra = relestim;  /* VL 4-1-2011 was -1, making all linsegr
                             releases in an instr => xtratim
                             set to relestim seems to fix this */
-    }
-    else {
-      return csound->InitError(csound, "No release segment defined \n");
-    }
+    //}
+    //else {
+    // return csound->InitError(csound, "No release segment defined \n");
+    //}
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int)relestim;
     return OK;
