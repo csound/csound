@@ -1,7 +1,7 @@
 /*
     This file is part of Csound.
 
-	Copyright (C) 2014 Rory Walsh
+        Copyright (C) 2014 Rory Walsh
 
     The Csound Library is free software; you can redistribute it
     and/or modify it under the terms of the GNU Lesser General Public
@@ -18,104 +18,112 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
  */
- 
+
 #include "OpcodeBase.hpp"
 #include <cmath>
-#include <sys/types.h> 
-#include <dirent.h> 
-#include <iostream>  
-#include <algorithm>   
-#include <vector>     
+#include <sys/types.h>
+#include <dirent.h>
+#include <iostream>
+#include <algorithm>
+#include <vector>
 #include <string>
 #include <sstream>
 
 using namespace std;
 
-/* this function will load all samples of supported types into function tables number 'index' and upwards.
+/* this function will load all samples of supported types into function
+   tables number 'index' and upwards.
    It return the number of samples loaded */
-int loadSamplesToTables(CSOUND *csound, int index, char* directory, int skiptime, int format, int channel);
+int loadSamplesToTables(CSOUND *csound, int index, char* directory,
+                        int skiptime, int format, int channel);
 
 //-----------------------------------------------------------------
-//	i-rate class
+//      i-rate class
 //-----------------------------------------------------------------
 class iftsamplebank : public OpcodeBase<iftsamplebank>
 {
 public:
-	// Outputs.
-	MYFLT* numberOfFiles;
-	// Inputs.
-	STRINGDAT* sDirectory;
-	MYFLT* index;
-	MYFLT* trigger;
-	MYFLT* skiptime;
-	MYFLT* format;
-	MYFLT* channel;
+    // Outputs.
+    MYFLT* numberOfFiles;
+    // Inputs.
+    STRINGDAT* sDirectory;
+    MYFLT* index;
+    MYFLT* trigger;
+    MYFLT* skiptime;
+    MYFLT* format;
+    MYFLT* channel;
 
-	iftsamplebank(){}
+    iftsamplebank() {}
 
-	//init-pass
-	int init(CSOUND *csound)
-	{
-		*numberOfFiles = loadSamplesToTables(csound, *index,  (char* )sDirectory->data, *skiptime, *format, *channel);
-		return OK;
-	}
+    //init-pass
+    int init(CSOUND *csound)
+    {
+        *numberOfFiles = loadSamplesToTables(csound, *index,
+                                             (char* )sDirectory->data,
+                                             *skiptime, *format, *channel);
+        return OK;
+    }
 
-	int noteoff(CSOUND *)
-	{
-	return OK;
-	}  
+    int noteoff(CSOUND *)
+    {
+        return OK;
+    }
 };
 
 //-----------------------------------------------------------------
-//	k-rate class
+//      k-rate class
 //-----------------------------------------------------------------
 class kftsamplebank : public OpcodeBase<kftsamplebank>
 {
 public:
-	// Outputs.
-	MYFLT* numberOfFiles;
-	// Inputs.
-	STRINGDAT* sDirectory;
-	MYFLT* index;
-	MYFLT* trigger;
-	MYFLT* skiptime;
-	MYFLT* format;
-	MYFLT* channel;	
-	int internalCounter;
-	kftsamplebank():internalCounter(0){}
+    // Outputs.
+    MYFLT* numberOfFiles;
+    // Inputs.
+    STRINGDAT* sDirectory;
+    MYFLT* index;
+    MYFLT* trigger;
+    MYFLT* skiptime;
+    MYFLT* format;
+    MYFLT* channel;
+    int internalCounter;
+    kftsamplebank():internalCounter(0){}
 
-	//init-pass
-	int init(CSOUND *csound)
-	{
-		*numberOfFiles = 0;//loadSamplesToTables(csound, *index, fileNames, (char* )sDirectory->data, *skiptime, *format, *channel);
-		//csound->Message(csound, (char* )sDirectory->data);
-		*trigger=0;
-		return OK;
-	}
+    //init-pass
+    int init(CSOUND *csound)
+    {
+        *numberOfFiles = 0;//loadSamplesToTables(csound, *index, fileNames,
+                           // (char* )sDirectory->data, *skiptime, *format, *channel);
+        //csound->Message(csound, (char* )sDirectory->data);
+        *trigger=0;
+        return OK;
+    }
 
-	int noteoff(CSOUND *)
-	{
-		return OK;
-	}
+    int noteoff(CSOUND *)
+    {
+        return OK;
+    }
 
-	int kontrol(CSOUND* csound)
-	{
-		//if directry changes update tables..
-		if(*trigger==1)
-		{
-			*numberOfFiles = loadSamplesToTables(csound, *index, (char* )sDirectory->data, *skiptime, *format, *channel);
-			*trigger = 0;
-		}
-		return OK;
-	}
-  
+    int kontrol(CSOUND* csound)
+    {
+        //if directry changes update tables..
+        if (*trigger==1) {
+          *numberOfFiles = loadSamplesToTables(csound, *index,
+                                               (char* )sDirectory->data,
+                                               *skiptime, *format, *channel);
+          *trigger = 0;
+        }
+        return OK;
+    }
+
 };
 
 //-----------------------------------------------------------------
-//	load samples into functoin tables
+//      load samples into functoin tables
 //-----------------------------------------------------------------
-int loadSamplesToTables(CSOUND *csound, int index, char* directory, int skiptime, int format, int channel)
+int loadSamplesToTables(CSOUND *csound, int index, char* directory,
+                        int skiptime, int format, int channel)
 {
+
 	if(directory)
 	{
 		DIR *dir = opendir(directory);			
@@ -179,6 +187,7 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory, int skiptime
 	return 0;
 } 	
 
+
 typedef struct {
   OPDS    h;
   ARRAYDAT* outArr;
@@ -187,7 +196,8 @@ typedef struct {
 } DIR_STRUCT;
 
 /* this function will looks for files of a set type, in a particular directory */
-std::vector<std::string> searchDir(CSOUND *csound, char* directory, char* extension);
+std::vector<std::string> searchDir(CSOUND *csound,
+                                   char* directory, char* extension);
 
 /* from Opcodes/arrays.c */
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
@@ -211,14 +221,14 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
 
 static int directory(CSOUND *csound, DIR_STRUCT* p)
 {
-	int inArgCount = p->INOCOUNT;
-	char *extension, *file;
-	std::vector<std::string> fileNames; 
-	
-	if(inArgCount==0)
-      return csound->InitError(csound,
-                          Str("Error: you must pass a directory as a string."));
+    int inArgCount = p->INOCOUNT;
+    char *extension, *file;
+    std::vector<std::string> fileNames;
 
+    if (inArgCount==0)
+      return
+        csound->InitError(csound,
+                          Str("Error: you must pass a directory as a string."));
 		
 	if(inArgCount==1)
 	{
@@ -256,7 +266,7 @@ static int directory(CSOUND *csound, DIR_STRUCT* p)
 }
 
 //-----------------------------------------------------------------
-//	load samples into functoin tables
+//      load samples into functoin tables
 //-----------------------------------------------------------------
 std::vector<std::string> searchDir(CSOUND *csound, char* directory, char* extension)
 {
@@ -307,6 +317,7 @@ std::vector<std::string> searchDir(CSOUND *csound, char* directory, char* extens
 
 
 
+
 extern "C" {
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
@@ -316,44 +327,45 @@ extern "C" {
 
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
-	  
-      int status = csound->AppendOpcode(csound,
-                                        (char*)"ftsamplebank.k",
-                                        sizeof(kftsamplebank),
-                                        0,
-                                        3,
-                                        (char*)"k",
-                                        (char*)"Skkkkk",
-                                        (int(*)(CSOUND*,void*)) kftsamplebank::init_,
-                                        (int(*)(CSOUND*,void*)) kftsamplebank::kontrol_,
-                                        (int (*)(CSOUND*,void*)) 0);
+
+      int status =
+        csound->AppendOpcode(csound,
+                             (char*)"ftsamplebank.k",
+                             sizeof(kftsamplebank),
+                             0,
+                             3,
+                             (char*)"k",
+                             (char*)"Skkkkk",
+                             (int(*)(CSOUND*,void*)) kftsamplebank::init_,
+                             (int(*)(CSOUND*,void*)) kftsamplebank::kontrol_,
+                             (int (*)(CSOUND*,void*)) 0);
 
       status |= csound->AppendOpcode(csound,
                                      (char*)"ftsamplebank.i",
                                      sizeof(iftsamplebank),
-                                        0,
+                                     0,
                                      1,
                                      (char*)"i",
                                      (char*)"Siiiii",
                                      (int (*)(CSOUND*,void*)) iftsamplebank::init_,
                                      (int (*)(CSOUND*,void*)) 0,
                                      (int (*)(CSOUND*,void*)) 0);
-									 
+
       /*  status |= csound->AppendOpcode(csound,
-                                        (char*)"ftsamplebank",
-                                        0xffff,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0); */
-      
-     status |= csound->AppendOpcode(csound,
+          (char*)"ftsamplebank",
+          0xffff,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0); */
+
+      status |= csound->AppendOpcode(csound,
                                      (char*)"directory",
                                      sizeof(DIR_STRUCT),
-                                        0,
+                                     0,
                                      1,
                                      (char*)"S[]",
                                      (char*)"SN",
@@ -368,6 +380,3 @@ extern "C" {
       return 0;
   }
 }
-
-
-
