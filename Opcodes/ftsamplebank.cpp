@@ -137,12 +137,18 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory, int skiptime
 				//only use supported file types
 				for(int i=0;i<fileExtensions.size();i++)
 					if(std::string(ent->d_name).find(fileExtensions[i])!=std::string::npos)
-					{						
-					#if defined(WIN32)
-						fullFileName << directory << "\\" << ent->d_name;
-					#else
-						fullFileName << directory << "/" << ent->d_name;
-					#endif
+					{	
+						if(strlen(directory)>2)
+						{ 	
+							#if defined(WIN32)
+							fullFileName << directory << "\\" << ent->d_name;
+							#else
+							fullFileName << directory << "/" << ent->d_name;
+							#endif
+						}
+						else 
+							fullFileName << ent->d_name;
+
 					
 					noOfFiles++;
 					fileNames.push_back(fullFileName.str());		
@@ -218,6 +224,7 @@ static int directory(CSOUND *csound, DIR_STRUCT* p)
 	{
 	  fileNames = searchDir(csound, p->directoryName->data, (char *)"");
 	}
+
 	else if(inArgCount==2)
 	{
 		CS_TYPE* argType = csound->GetTypeForArg(p->extension);
@@ -229,6 +236,7 @@ static int directory(CSOUND *csound, DIR_STRUCT* p)
 		else
 			return csound->InitError(csound,
                       Str("Error: second parameter to directory must be a string"));
+
 	}	
 
 	int numberOfFiles = fileNames.size();
@@ -238,8 +246,11 @@ static int directory(CSOUND *csound, DIR_STRUCT* p)
 	for(int i=0; i < numberOfFiles; i++)
 	{
 		file = &fileNames[i][0u];
+		strings[i].size = strlen(file) + 1;
 		strings[i].data = csound->Strdup(csound, file);
 	}
+
+	fileNames.clear();
 
 	return OK;
 }
@@ -265,13 +276,18 @@ std::vector<std::string> searchDir(CSOUND *csound, char* directory, char* extens
 				std::ostringstream fullFileName;
 				
 				if(std::string(ent->d_name).find(fileExtension)!=std::string::npos && strlen(ent->d_name)>2)
-				{						
+				{					
+					if(strlen(directory)>2)
+					{ 	
 					#if defined(WIN32)
 						fullFileName << directory << "\\" << ent->d_name;
 					#else
 						fullFileName << directory << "/" << ent->d_name;
 					#endif
-					
+					}
+					else 
+						fullFileName << ent->d_name;
+
 					noOfFiles++;
 					fileNames.push_back(fullFileName.str());		  
 				}
