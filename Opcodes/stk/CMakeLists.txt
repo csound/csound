@@ -14,11 +14,11 @@ if(BUILD_STK_OPCODES)
         if(STK_INCLUDE_DIR)
             include_directories(${STK_INCLUDE_DIR})
 
-            make_plugin(stk-ops stkOpcodes.cpp ${STK_LIBRARY})
-            add_compiler_flags(${rawwave_path} TARGETS stk-ops)
+            make_plugin(stkops stkOpcodes.cpp ${STK_LIBRARY})
+            add_compiler_flags(${rawwave_path} TARGETS stkops)
 
-            set_target_properties(stk-ops PROPERTIES
-                OUTPUT_NAME stk)
+            #set_target_properties(stkops PROPERTIES
+            #    OUTPUT_NAME stkop)
         endif()
     else()
 
@@ -52,7 +52,7 @@ if(BUILD_STK_OPCODES)
             include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/stk)
             include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-            make_plugin(stk "${stk_srcs}")
+            make_plugin(stkops "${stk_srcs}")
 
             set(stkdefs "-D__STK_REALTIME__")
             if(APPLE)
@@ -71,8 +71,8 @@ if(BUILD_STK_OPCODES)
                 list(APPEND stkdefs "-D__LITTLE_ENDIAN__")
             endif()
 
-            add_compiler_flags(${stkdefs} TARGETS stk)
-            add_compiler_flags(${rawwave_path} TARGETS stk)
+            add_compiler_flags(${stkdefs} TARGETS stkops)
+            add_compiler_flags(${rawwave_path} TARGETS stkops)
 
         endif()
     endif()

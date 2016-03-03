@@ -156,18 +156,17 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
             (n<offset || n>nsmps-early ? FL(0.0) :(i >>1) * N * csound->onedsr);
         }
     }
-    else
-      {
-        if (p->fout->frame.auxp == NULL ||
-            p->fout->frame.size < sizeof(float) * (N + 2)) {
-          csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-        }
-        bframe = (float *) p->fout->frame.auxp;
-        for (i = 0; i < N + 2; i += 2) {
-          //bframe[i] = 0.0f;
-          bframe[i + 1] = (i >>1) * N * csound->onedsr;
-        }
+    else {
+      if (p->fout->frame.auxp == NULL ||
+          p->fout->frame.size < sizeof(float) * (N + 2)) {
+        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
       }
+      bframe = (float *) p->fout->frame.auxp;
+      for (i = 0; i < N + 2; i += 2) {
+        //bframe[i] = 0.0f;
+        bframe[i + 1] = (i >>1) * N * csound->onedsr;
+      }
+    }
     p->lastframe = 0;
     return OK;
 }
@@ -195,16 +194,16 @@ void *pvs_io_thread(void *pp);
 
 static int pvsfwrite_destroy(CSOUND *csound, void *pp)
 {
-  PVSFWRITE *p = (PVSFWRITE *) pp;
+    PVSFWRITE *p = (PVSFWRITE *) pp;
 #ifndef __EMSCRIPTEN__
-  if(p->async){
-    p->async = 0;
-    pthread_join(p->thread, NULL);
-    csound->DestroyCircularBuffer(csound, p->cb);
-  }
+    if (p->async){
+      p->async = 0;
+      pthread_join(p->thread, NULL);
+      csound->DestroyCircularBuffer(csound, p->cb);
+    }
 #endif
-  csound->PVOC_CloseFile(csound,p->pvfile);
-  return OK;
+    csound->PVOC_CloseFile(csound,p->pvfile);
+    return OK;
 }
 
 static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
@@ -212,7 +211,7 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
     int N;
     char fname[MAXNAME];
 
-    if (stringname==0){
+    if (stringname==0) {
       if (ISSTRCOD(*p->file))
         strncpy(fname,get_arg_string(csound, *p->file), MAXNAME-1);
       else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
@@ -234,7 +233,7 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
                                Str("pvsfwrite: could not open file %s\n"),
                                fname);
 #ifndef __EMSCRIPTEN__
-    if(csound->realtime_audio_flag) {
+    if (csound->realtime_audio_flag) {
       int bufframes = 16;
       p->csound = csound;
       if (p->frame.auxp == NULL || p->frame.size < sizeof(MYFLT) * (N + 2))
@@ -258,30 +257,30 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
 }
 
 static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p){
-  return pvsfwriteset_(csound,p,0);
+    return pvsfwriteset_(csound,p,0);
 }
 
 static int pvsfwriteset_S(CSOUND *csound, PVSFWRITE *p){
-  return pvsfwriteset_(csound,p,1);
+    return pvsfwriteset_(csound,p,1);
 }
 
 
 void *pvs_io_thread(void *pp){
-  PVSFWRITE *p = (PVSFWRITE *) pp;
-  CSOUND *csound = p->csound;
-  MYFLT  *buf = (MYFLT *) p->buf.auxp;
-  float  *frame = (float *) p->dframe.auxp;
-  int  *on = &p->async;
-  int lc,n, N2=p->N+2;
-  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-  while (*on) {
+    PVSFWRITE *p = (PVSFWRITE *) pp;
+    CSOUND *csound = p->csound;
+    MYFLT  *buf = (MYFLT *) p->buf.auxp;
+    float  *frame = (float *) p->dframe.auxp;
+    int  *on = &p->async;
+    int lc,n, N2=p->N+2;
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+    while (*on) {
       lc = csound->ReadCircularBuffer(csound, p->cb, buf, N2);
-      if(lc)  {
-      for (n=0; n < N2; n++) frame[n] = (float) buf[n];
+      if (lc) {
+        for (n=0; n < N2; n++) frame[n] = (float) buf[n];
         csound->PVOC_PutFrames(csound, p->pvfile, frame, 1);
       }
     }
-  return NULL;
+    return NULL;
 }
 
 
@@ -589,7 +588,7 @@ int pvstanal(CSOUND *csound, PVST *p)
       while (spos >= sizefrs) spos -= sizefrs;
       while (spos < hsize)  spos += (sizefrs + hsize);
       pos = spos;
- 
+
       for (j=0; j < nchans; j++) {
 
         fout = (float *)  p->fout[j]->frame.auxp;
@@ -666,13 +665,13 @@ int pvstanal(CSOUND *csound, PVST *p)
 
         p->fout[j]->framecount++;
       }
-     if (time < 0 || time >= 1 || !*p->konset) {
+      if (time < 0 || time >= 1 || !*p->konset) {
         spos += hsize*time;
       }
       else if (p->tscale) {
         spos += hsize*(time/(1+p->accum));
         p->accum=0.0;
-       }
+      }
       else  {
         spos += hsize;
         p->accum++;
