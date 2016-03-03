@@ -125,9 +125,10 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
 
     {
       CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,NULL);
-      char *mem = (char *) arrayDat->data;
+      char *mem;
       arrayDat->arrayMemberSize = var->memBlockSize;
       arrayDat->data = csound->Calloc(csound, var->memBlockSize*size);
+      mem = (char *) arrayDat->data;
       for (i=0; i < size; i++) {
         var->initializeVariableMemory(csound,var,mem+i*var->memBlockSize);
       }
