@@ -47,12 +47,12 @@ Orchestra:
     
     o    Better and consistent reading of comments
 
-    o    Continuation lines handled better, especialy respecting line
+    o    Continuation lines handled better, especially respecting line
          numbers
          
 Score:
 
-    o    The list of tempo points in score opcode t is now arbitarily
+    o    The list of tempo points in score opcode t is now arbitrarily
          long
 
     o    A stupidity in r and { opcodes fixed
@@ -70,13 +70,13 @@ Modified Opcodes and Gens:
 
      o   Better diagnostic if diskin2 fails
 
-     o   Rezzy now checks fr unstable filter and modifies to close
+     o   Rezzy now checks for unstable filter and modifies to close
          stable version
 
      o   adsr rewritten so it gives an error if the segments are
          longer than p3
 
-     o   Use of diskin to an array ow resizes the output arraty if
+     o   Use of diskin to an array ow resizes the output array if
          necessary
 
      o   chnget now checks for a change in chanel name as well as data
@@ -116,6 +116,9 @@ Frontends:
 
   HTML5:
 
+  CsoundQT has its own notes at
+  https://github.com/CsoundQt/CsoundQt/blob/master/release_notes/Release%20notes%200.9.2.md
+
 
 General usage:
 
@@ -124,7 +127,7 @@ General usage:
     o   When replacing instruments the new version inherits maxalloc
         and active flags
 
-    o   Multicore code now wors wit midi instruments
+    o   Multicore code now works wit midi instruments
 
     o   MIDI operations now available via jack (***NEEDS ORE***)
     
@@ -137,9 +140,9 @@ Bugs fixed:
 
     o   p() fixed for high numbers of p-arguments
 
-    o   p() nowworks from MIDI events
+    o   p() now works from MIDI events
 
-    o   The 31-bit random number generator could gice a very short
+    o   The 31-bit random number generator could give a very short
         loop if seeded with zero; fixed
 
     o   Macros in .orc files now work
@@ -159,7 +162,7 @@ Bugs fixed:
 
     o   Bug in copya2ftab fixed
 
-    o   Fix in cudapvsanal (EXPERMENTAL)
+    o   Fix in cudapvsanal (EXPERIMENTAL)
 ====================
 SYSTEM LEVEL CHANGES
 ====================

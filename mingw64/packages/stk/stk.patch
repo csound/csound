@@ -1,0 +1,164 @@
+Only in stk-4.5.1-patched: autom4te.cache
+Only in stk-4.5.1-patched: config.log
+Only in stk-4.5.1-patched: config.status
+diff -aur stk-4.5.1-pristine/configure.ac stk-4.5.1-patched/configure.ac
+--- stk-4.5.1-pristine/configure.ac	2016-02-22 20:51:06.000000000 -0500
++++ stk-4.5.1-patched/configure.ac	2016-03-02 04:00:15.239728800 -0500
+@@ -182,7 +182,7 @@
+     AC_CHECK_LIB(pthread, pthread_create, , AC_MSG_ERROR(RtAudio requires the pthread library!))
+     ;;
+ 
+-    *-mingw32*)
++    *-mingw64*)
+     AC_ARG_WITH(asio, [  --with-asio = choose ASIO API support (windoze only)], [
+     api="$api -D__WINDOWS_ASIO__"
+     AC_MSG_RESULT(using ASIO)
+Only in stk-4.5.1-patched: Makefile
+Only in stk-4.5.1-patched/projects/demo: Makefile
+Only in stk-4.5.1-patched/projects/demo: stk-demo.exe
+Only in stk-4.5.1-patched/projects/effects: effects.exe
+Only in stk-4.5.1-patched/projects/effects: Makefile
+Only in stk-4.5.1-patched/projects/eguitar: eguitar.exe
+Only in stk-4.5.1-patched/projects/eguitar: Makefile
+Only in stk-4.5.1-patched/projects/examples: audioprobe.exe
+Only in stk-4.5.1-patched/projects/examples: bethree.exe
+Only in stk-4.5.1-patched/projects/examples: controlbee.exe
+Only in stk-4.5.1-patched/projects/examples: crtsine.exe
+Only in stk-4.5.1-patched/projects/examples: duplex.exe
+Only in stk-4.5.1-patched/projects/examples: foursine.aif
+Only in stk-4.5.1-patched/projects/examples: foursine.exe
+Only in stk-4.5.1-patched/projects/examples: grains.exe
+Only in stk-4.5.1-patched/projects/examples: inetIn.exe
+Only in stk-4.5.1-patched/projects/examples: inetOut.exe
+diff -aur stk-4.5.1-pristine/projects/examples/libMakefile stk-4.5.1-patched/projects/examples/libMakefile
+--- stk-4.5.1-pristine/projects/examples/libMakefile	2016-02-22 20:56:55.000000000 -0500
++++ stk-4.5.1-patched/projects/examples/libMakefile	2016-03-01 08:18:34.854297700 -0500
+@@ -10,13 +10,13 @@
+ vpath %.h $(INCLUDE)
+ 
+ CC       = g++
+-DEFS     =   -DHAVE_GETTIMEOFDAY -D__MACOSX_CORE__
++DEFS     =  
+ DEFS    += -D__LITTLE_ENDIAN__
+ CFLAGS   = -O3 -Wall
+ CFLAGS  += -I$(INCLUDE) -Iinclude
+-LIBRARY = -lpthread -framework CoreAudio -framework CoreFoundation -framework CoreMidi
++LIBRARY = -lm 
+ 
+-REALTIME = yes
++REALTIME = no
+ ifeq ($(REALTIME),yes)
+   PROGRAMS += audioprobe midiprobe duplex play record inetIn inetOut rtsine crtsine bethree controlbee threebees playsmf grains
+ endif
+Only in stk-4.5.1-patched/projects/examples: Makefile
+Only in stk-4.5.1-patched/projects/examples: midiprobe.exe
+Only in stk-4.5.1-patched/projects/examples: play.exe
+Only in stk-4.5.1-patched/projects/examples: playsmf.exe
+Only in stk-4.5.1-patched/projects/examples: record.exe
+Only in stk-4.5.1-patched/projects/examples: rtsine.exe
+Only in stk-4.5.1-patched/projects/examples: sine.exe
+Only in stk-4.5.1-patched/projects/examples: sineosc.exe
+Only in stk-4.5.1-patched/projects/examples: threebees.exe
+Only in stk-4.5.1-patched/projects/ragamatic: Makefile
+Only in stk-4.5.1-patched/projects/ragamatic: ragamat.exe
+Only in stk-4.5.1-patched/src: libstk.a
+Only in stk-4.5.1-patched/src: Makefile
+Only in stk-4.5.1-patched/src/Release: ADSR.o
+Only in stk-4.5.1-patched/src/Release: Asymp.o
+Only in stk-4.5.1-patched/src/Release: BandedWG.o
+Only in stk-4.5.1-patched/src/Release: BeeThree.o
+Only in stk-4.5.1-patched/src/Release: BiQuad.o
+Only in stk-4.5.1-patched/src/Release: Blit.o
+Only in stk-4.5.1-patched/src/Release: BlitSaw.o
+Only in stk-4.5.1-patched/src/Release: BlitSquare.o
+Only in stk-4.5.1-patched/src/Release: BlowBotl.o
+Only in stk-4.5.1-patched/src/Release: BlowHole.o
+Only in stk-4.5.1-patched/src/Release: Bowed.o
+Only in stk-4.5.1-patched/src/Release: Brass.o
+Only in stk-4.5.1-patched/src/Release: Chorus.o
+Only in stk-4.5.1-patched/src/Release: Clarinet.o
+Only in stk-4.5.1-patched/src/Release: Delay.o
+Only in stk-4.5.1-patched/src/Release: DelayA.o
+Only in stk-4.5.1-patched/src/Release: DelayL.o
+Only in stk-4.5.1-patched/src/Release: Drummer.o
+Only in stk-4.5.1-patched/src/Release: Echo.o
+Only in stk-4.5.1-patched/src/Release: Envelope.o
+Only in stk-4.5.1-patched/src/Release: FileLoop.o
+Only in stk-4.5.1-patched/src/Release: FileRead.o
+Only in stk-4.5.1-patched/src/Release: FileWrite.o
+Only in stk-4.5.1-patched/src/Release: FileWvIn.o
+Only in stk-4.5.1-patched/src/Release: FileWvOut.o
+Only in stk-4.5.1-patched/src/Release: Fir.o
+Only in stk-4.5.1-patched/src/Release: Flute.o
+Only in stk-4.5.1-patched/src/Release: FM.o
+Only in stk-4.5.1-patched/src/Release: FMVoices.o
+Only in stk-4.5.1-patched/src/Release: FormSwep.o
+Only in stk-4.5.1-patched/src/Release: FreeVerb.o
+Only in stk-4.5.1-patched/src/Release: Granulate.o
+Only in stk-4.5.1-patched/src/Release: Guitar.o
+Only in stk-4.5.1-patched/src/Release: HevyMetl.o
+Only in stk-4.5.1-patched/src/Release: Iir.o
+Only in stk-4.5.1-patched/src/Release: InetWvIn.o
+Only in stk-4.5.1-patched/src/Release: InetWvOut.o
+Only in stk-4.5.1-patched/src/Release: JCRev.o
+Only in stk-4.5.1-patched/src/Release: LentPitShift.o
+Only in stk-4.5.1-patched/src/Release: Mandolin.o
+Only in stk-4.5.1-patched/src/Release: Mesh2D.o
+Only in stk-4.5.1-patched/src/Release: Messager.o
+Only in stk-4.5.1-patched/src/Release: MidiFileIn.o
+Only in stk-4.5.1-patched/src/Release: Modal.o
+Only in stk-4.5.1-patched/src/Release: ModalBar.o
+Only in stk-4.5.1-patched/src/Release: Modulate.o
+Only in stk-4.5.1-patched/src/Release: Moog.o
+Only in stk-4.5.1-patched/src/Release: Mutex.o
+Only in stk-4.5.1-patched/src/Release: Noise.o
+Only in stk-4.5.1-patched/src/Release: NRev.o
+Only in stk-4.5.1-patched/src/Release: OnePole.o
+Only in stk-4.5.1-patched/src/Release: OneZero.o
+Only in stk-4.5.1-patched/src/Release: PercFlut.o
+Only in stk-4.5.1-patched/src/Release: Phonemes.o
+Only in stk-4.5.1-patched/src/Release: PitShift.o
+Only in stk-4.5.1-patched/src/Release: Plucked.o
+Only in stk-4.5.1-patched/src/Release: PoleZero.o
+Only in stk-4.5.1-patched/src/Release: PRCRev.o
+Only in stk-4.5.1-patched/src/Release: Resonate.o
+Only in stk-4.5.1-patched/src/Release: Rhodey.o
+Only in stk-4.5.1-patched/src/Release: RtAudio.o
+Only in stk-4.5.1-patched/src/Release: RtMidi.o
+Only in stk-4.5.1-patched/src/Release: RtWvIn.o
+Only in stk-4.5.1-patched/src/Release: RtWvOut.o
+Only in stk-4.5.1-patched/src/Release: Sampler.o
+Only in stk-4.5.1-patched/src/Release: Saxofony.o
+Only in stk-4.5.1-patched/src/Release: Shakers.o
+Only in stk-4.5.1-patched/src/Release: Simple.o
+Only in stk-4.5.1-patched/src/Release: SineWave.o
+Only in stk-4.5.1-patched/src/Release: SingWave.o
+Only in stk-4.5.1-patched/src/Release: Sitar.o
+Only in stk-4.5.1-patched/src/Release: Skini.o
+Only in stk-4.5.1-patched/src/Release: Socket.o
+Only in stk-4.5.1-patched/src/Release: Sphere.o
+Only in stk-4.5.1-patched/src/Release: StifKarp.o
+Only in stk-4.5.1-patched/src/Release: Stk.o
+Only in stk-4.5.1-patched/src/Release: TcpClient.o
+Only in stk-4.5.1-patched/src/Release: TcpServer.o
+Only in stk-4.5.1-patched/src/Release: Thread.o
+Only in stk-4.5.1-patched/src/Release: TubeBell.o
+Only in stk-4.5.1-patched/src/Release: Twang.o
+Only in stk-4.5.1-patched/src/Release: TwoPole.o
+Only in stk-4.5.1-patched/src/Release: TwoZero.o
+Only in stk-4.5.1-patched/src/Release: UdpSocket.o
+Only in stk-4.5.1-patched/src/Release: Voicer.o
+Only in stk-4.5.1-patched/src/Release: VoicForm.o
+Only in stk-4.5.1-patched/src/Release: Whistle.o
+Only in stk-4.5.1-patched/src/Release: Wurley.o
+diff -aur stk-4.5.1-pristine/src/RtAudio.cpp stk-4.5.1-patched/src/RtAudio.cpp
+--- stk-4.5.1-pristine/src/RtAudio.cpp	2016-03-02 04:50:22.272810100 -0500
++++ stk-4.5.1-patched/src/RtAudio.cpp	2016-03-02 04:05:54.750716200 -0500
+@@ -42,6 +42,7 @@
+ 
+ #include "RtAudio.h"
+ #include <iostream>
++#include <cmath>
+ #include <cstdlib>
+ #include <cstring>
+ #include <climits>

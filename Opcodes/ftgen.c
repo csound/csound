@@ -126,11 +126,12 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
         fp[5] = SSTRCOD;
         if (n < 0)
           n = -n;
-        switch (n) {                      /*   must be Gen01, 23, 28, or 43 */
+        switch (n) {                      /*   must be Gen01, 23, 28, 43, 49 */
         case 1:
         case 23:
         case 28:
         case 43:
+        case 49:
           ftevt->strarg = ((STRINGDAT *) p->p5)->data;
           break;
         default:

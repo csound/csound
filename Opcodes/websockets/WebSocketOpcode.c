@@ -538,8 +538,10 @@ void WebSocketOpcode_sendInputArgumentData(CSOUND *csound, WebSocketOpcode *self
         continue;
       }
 
-      int itemsWritten = csoundWriteCircularBuffer(csound, currentArgument->circularBuffer,
-                                                   currentArgument->dataPointer, currentArgument->itemsCount);
+      int itemsWritten = csoundWriteCircularBuffer(csound,
+                                                   currentArgument->circularBuffer,
+                                                   currentArgument->dataPointer,
+                                                   currentArgument->itemsCount);
 
       if (itemsWritten != currentArgument->itemsCount) {
 
