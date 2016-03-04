@@ -96,6 +96,8 @@ Modified Opcodes and Gens:
 
      o   sockrecv now works at a and k rate
 
+     o   GEN49 now works fron ftgen calls
+     
 Utilities:
 
   o    
@@ -163,6 +165,13 @@ Bugs fixed:
     o   Bug in copya2ftab fixed
 
     o   Fix in cudapvsanal (EXPERIMENTAL)
+
+    o   partikkel fix to subsample grain placement
+
+    o   Opcodes that require an odd number of arguments are now properly checked
+
+    o   pvswrite now takes proper notice of 0dbfs
+    
 ====================
 SYSTEM LEVEL CHANGES
 ====================
