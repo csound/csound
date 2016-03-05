@@ -65,6 +65,7 @@ extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
 extern TREE* csound_orc_optimize(CSOUND *, TREE *);
 extern void csp_orc_analyze_tree(CSOUND* csound, TREE* root);
+extern void csp_orc_sa_print_list(CSOUND*);
 
 #if 0
 static void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)

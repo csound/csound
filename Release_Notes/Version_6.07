@@ -186,10 +186,14 @@ System changes:
     o   If a non-existent .csd file is presented Csound no longer
         crashes
 
+    o   The kcounter value is now consistently an unsigned 64bit
+        value, allowing for long performances.
 
 API
 ===
-    * 
+    * The function call csound-<GetKcounter(csound) now returns an
+      unsigned 64 bit integer.  Previously it returned a long which is
+      unclear.
     
 
 Platform Specific

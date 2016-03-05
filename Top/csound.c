@@ -89,7 +89,7 @@ static int  csoundPerformKsmpsInternal(CSOUND *csound);
 static void csoundTableSetInternal(CSOUND *csound, int table, int index,
                                    MYFLT value);
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
-long csoundGetKcounter(CSOUND *csound);
+uint64_t csoundGetKcounter(CSOUND *csound);
 static void set_util_sr(CSOUND *csound, MYFLT sr);
 static void set_util_nchnls(CSOUND *csound, int nchnls);
 
@@ -4172,7 +4172,7 @@ static INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
   return csound->engineState.instrtxtp;
 }
 
-long csoundGetKcounter(CSOUND *csound){
+uint64_t csoundGetKcounter(CSOUND *csound){
   return csound->kcounter;
 }
 

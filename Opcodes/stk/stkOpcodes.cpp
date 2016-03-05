@@ -17,7 +17,7 @@
   02111-1307 USA
 */
 /*
- * CSOUND 5 OPCODES FOR PERRY COOK'S SYNTHESIS TOOLKIT IN C++ (STK) INSTRUMENT
+ * CSOUND 5/6 OPCODES FOR PERRY COOK'S SYNTHESIS TOOLKIT IN C++ (STK) INSTRUMENT
  *
  * This code is copyright (C) 2005 by Michael Gogins. It is licensed under the
  * same terms as the Synthesis Tookit in C++ by Perry R. Cook and Gary P. Scavone.
@@ -749,7 +749,8 @@ extern "C"
     if(!path)
       {
         csound->Warning(csound,
-                        Str("STK opcodes not available: define environment variable RAWWAVE_PATH\n"
+                        Str("STK opcodes not available: define environment "
+                            "variable RAWWAVE_PATH\n"
                              "(points to rawwaves directory) to use STK opcodes."));
         return 0;
       }
