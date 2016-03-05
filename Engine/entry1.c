@@ -995,6 +995,8 @@ OENTRY opcodlst_1[] = {
      (SUBR) strset_init, (SUBR) NULL, (SUBR) NULL                        },
   {  "strget",   S(STRGET_OP),0,   1,  "S",    "i",
      (SUBR) strget_init, (SUBR) NULL, (SUBR) NULL                        },
+   {  "S",   S(STRGET_OP),0,   1,  "S",    "i",
+     (SUBR) strget_init, (SUBR) NULL, (SUBR) NULL                        },
   {  "strcpy",   S(STRCPY_OP),0,   1,  "S",    "S",
      (SUBR) strcpy_opcode_S, (SUBR) NULL, (SUBR) NULL                      },
   {  "strcpy",   S(STRGET_OP),0,   1,  "S",    "i",
