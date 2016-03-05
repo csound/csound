@@ -1303,7 +1303,7 @@ msgid "error reading pvoc-ex file %s after %d frames"
 msgstr "erreur de lecture sur le fichier pvoc-ex %s après %d trames"
 
 #: Engine/memfiles.c:518 Opcodes/pvinterp.c:77 Opcodes/pvinterp.c:193
-#: Opcodes/pvinterp.c:383 Opcodes/ugens9.c:104 Opcodes/vpvoc.c:212
+#: Opcodes/pvinterp.c:383 Opcodes/ugens9.c:104 Opcodes/vpvoc.c:217
 #, c-format
 msgid "%s's srate = %8.0f, orch's srate = %8.0f"
 msgstr "srate de %s = %8.0f, srate de l'orchestre = %8.0f"
@@ -5210,91 +5210,91 @@ msgstr "format non valide"
 msgid "invalid option code: %g"
 msgstr "code d'option non valide : %g"
 
-#: OOps/ugens1.c:88
+#: OOps/ugens1.c:89
 msgid "arg1 is zero"
 msgstr "arg1 vaut zéro"
 
-#: OOps/ugens1.c:90
+#: OOps/ugens1.c:91
 msgid "arg2 is zero"
 msgstr "arg2 vaut zéro"
 
-#: OOps/ugens1.c:91
+#: OOps/ugens1.c:92
 msgid "unlike signs"
 msgstr "signes différents"
 
-#: OOps/ugens1.c:178 OOps/ugens1.c:1823 OOps/ugens1.c:1833
+#: OOps/ugens1.c:186 OOps/ugens1.c:1859 OOps/ugens1.c:1869
 #, c-format
 msgid "Breakpoint %d not valid"
 msgstr "Point charnière %d non valide"
 
-#: OOps/ugens1.c:217
+#: OOps/ugens1.c:225
 msgid "linseg not initialised (krate)\n"
 msgstr "linseg non initialisé (taux-k)\n"
 
-#: OOps/ugens1.c:270
+#: OOps/ugens1.c:278
 msgid "linseg: not initialised (arate)\n"
 msgstr "linseg : non initialisé (taux-a)\n"
 
-#: OOps/ugens1.c:331
+#: OOps/ugens1.c:339
 msgid "length of ADSR note too short"
 msgstr "durée de la note de l'ADSR trop courte"
 
-#: OOps/ugens1.c:520 OOps/ugens1.c:522 OOps/ugens1.c:574 OOps/ugens1.c:576
-#: OOps/ugens1.c:631 OOps/ugens1.c:633 OOps/ugens1.c:682 OOps/ugens1.c:684
-#: OOps/ugens1.c:887 OOps/ugens1.c:889
+#: OOps/ugens1.c:526 OOps/ugens1.c:528 OOps/ugens1.c:586 OOps/ugens1.c:588
+#: OOps/ugens1.c:649 OOps/ugens1.c:651 OOps/ugens1.c:706 OOps/ugens1.c:708
+#: OOps/ugens1.c:917 OOps/ugens1.c:919
 #, c-format
 msgid "ival%d is zero"
 msgstr "ival%d vaut zéro"
 
-#: OOps/ugens1.c:523 OOps/ugens1.c:577 OOps/ugens1.c:634 OOps/ugens1.c:685
-#: OOps/ugens1.c:890
+#: OOps/ugens1.c:529 OOps/ugens1.c:589 OOps/ugens1.c:652 OOps/ugens1.c:709
+#: OOps/ugens1.c:920
 #, c-format
 msgid "ival%d sign conflict"
 msgstr "ival%d conflit de signe"
 
-#: OOps/ugens1.c:553 OOps/ugens1.c:607
+#: OOps/ugens1.c:565 OOps/ugens1.c:625
 #, c-format
 msgid "Breakpoint time %f not valid"
 msgstr "Date %f du point charnière non valide"
 
-#: OOps/ugens1.c:809
+#: OOps/ugens1.c:833
 msgid "expseg (krate): not initialised"
 msgstr "expseg (taux-k) : non initialisé"
 
-#: OOps/ugens1.c:841
+#: OOps/ugens1.c:865
 msgid "expseg (arate): not initialised"
 msgstr "expseg (taux-a) : non initialisé"
 
-#: OOps/ugens1.c:1175 OOps/ugens1.c:1198 OOps/ugens1.c:1328 OOps/ugens1.c:1440
-#: OOps/ugens1.c:1571 OOps/ugens1.c:1630
+#: OOps/ugens1.c:1205 OOps/ugens1.c:1228 OOps/ugens1.c:1358 OOps/ugens1.c:1470
+#: OOps/ugens1.c:1601 OOps/ugens1.c:1660
 msgid "non-positive iatdec"
 msgstr "iatdec non positif"
 
-#: OOps/ugens1.c:1285 OOps/ugens1.c:1397 OOps/ugens1.c:1533 OOps/ugens1.c:1592
+#: OOps/ugens1.c:1315 OOps/ugens1.c:1427 OOps/ugens1.c:1563 OOps/ugens1.c:1622
 msgid "ixmod out of range."
 msgstr "ixmod hors limites"
 
-#: OOps/ugens1.c:1313 OOps/ugens1.c:1425 OOps/ugens1.c:1561 OOps/ugens1.c:1620
+#: OOps/ugens1.c:1343 OOps/ugens1.c:1455 OOps/ugens1.c:1591 OOps/ugens1.c:1650
 msgid "rise func ends with zero"
 msgstr "la fonction d'attaque se termine par zéro"
 
-#: OOps/ugens1.c:1357 OOps/ugens1.c:1476 OOps/ugens1.c:1705
+#: OOps/ugens1.c:1387 OOps/ugens1.c:1506 OOps/ugens1.c:1735
 msgid "envlpx rise func ends with zero"
 msgstr "la fonction d'attaque de envlpx se termine zéro"
 
-#: OOps/ugens1.c:1379 OOps/ugens1.c:1469 OOps/ugens1.c:1698
+#: OOps/ugens1.c:1409 OOps/ugens1.c:1499 OOps/ugens1.c:1728
 msgid "envlpx(krate): not initialised"
 msgstr "envlpx(taux-k) : non initialisé"
 
-#: OOps/ugens1.c:1895 OOps/ugens1.c:2146
+#: OOps/ugens1.c:1931 OOps/ugens1.c:2182
 msgid "cosseg not initialised (krate)\n"
 msgstr "cosseg non initialisé (taux-k)\n"
 
-#: OOps/ugens1.c:1950
+#: OOps/ugens1.c:1986
 msgid "cosseg: not initialised (arate)\n"
 msgstr "cosseg : non initialisé (taux-a)\n"
 
-#: OOps/ugens1.c:2021 OOps/ugens1.c:2088
+#: OOps/ugens1.c:2057 OOps/ugens1.c:2124
 msgid "cossegr: not initialised (arate)\n"
 msgstr "cosseg : non initialisé (taux-a)\n"
 
@@ -6081,7 +6081,7 @@ msgstr "Le nombre de canaux de sortie ne correspond pas à la valeur de isetup."
 msgid "bformdec1 output array not initilised"
 msgstr "tableau de sortie de bformdec1 non initialisé"
 
-#: Opcodes/arrays.c:101 Opcodes/newarray.c:102
+#: Opcodes/arrays.c:101
 msgid "Error: no sizes set for array initialization"
 msgstr "Erreur : aucune dimension donnée à l'initialisation du tableau"
 
@@ -6089,133 +6089,117 @@ msgstr "Erreur : aucune dimension donnée à l'initialisation du tableau"
 msgid "Error: sizes must be > 0 for array initialization"
 msgstr "Erreur : les tailles doivent être > 0 à l'initialisation d'un tableau"
 
-#: Opcodes/arrays.c:149
+#: Opcodes/arrays.c:150
 msgid "fillarrray: arrays with dim > 2 not currently supported\n"
 msgstr "fillarray : les tableaux de dim > 2 ne sont pas encore supportés\n"
 
-#: Opcodes/arrays.c:171 Opcodes/newarray.c:159
+#: Opcodes/arrays.c:172
 msgid "Error: no indexes set for array set\n"
 msgstr "Erreur : aucun indice fixé pour écrire dans le tableau\n"
 
-#: Opcodes/arrays.c:176 Opcodes/newarray.c:164 Opcodes/newarray.c:211
+#: Opcodes/arrays.c:177
 #, c-format
 msgid "Array dimension %d out of range for dimensions %d\n"
 msgstr "La dimension %d du tableau est hors limites pour les dimensions %d\n"
 
-#: Opcodes/arrays.c:186 Opcodes/arrays.c:197 Opcodes/arrays.c:239
-#: Opcodes/arrays.c:250
+#: Opcodes/arrays.c:187 Opcodes/arrays.c:198 Opcodes/arrays.c:240
+#: Opcodes/arrays.c:251
 #, c-format
 msgid "Array index %d out of range (0,%d) for dimension %d"
 msgstr "Indice %d du tableau hors limites (0, %d) pour la dimension %d"
 
-#: Opcodes/arrays.c:227 Opcodes/newarray.c:208
+#: Opcodes/arrays.c:228
 msgid "Error: no indexes set for array get"
 msgstr "Erreur : aucun indice fixé pour lire dans le tableau"
 
-#: Opcodes/arrays.c:230
+#: Opcodes/arrays.c:231
 #, c-format
 msgid "Array dimension %d out of range for dimensions %d"
 msgstr "La dimension %d du tableau est hors limites pour les dimensions %d"
 
-#: Opcodes/arrays.c:318 Opcodes/newarray.c:290
+#: Opcodes/arrays.c:319
 msgid "Dimensions do not match in array arithmetic"
 msgstr "Les dimensions ne correspondent pas dans l'arithmétique des tableaux"
 
-#: Opcodes/arrays.c:326 Opcodes/arrays.c:351 Opcodes/arrays.c:369
-#: Opcodes/arrays.c:383 Opcodes/arrays.c:403 Opcodes/arrays.c:440
-#: Opcodes/arrays.c:461 Opcodes/arrays.c:486 Opcodes/arrays.c:507
-#: Opcodes/arrays.c:544 Opcodes/arrays.c:582 Opcodes/arrays.c:602
-#: Opcodes/arrays.c:619 Opcodes/arrays.c:660 Opcodes/arrays.c:683
-#: Opcodes/arrays.c:706 Opcodes/arrays.c:726 Opcodes/arrays.c:754
-#: Opcodes/arrays.c:781 Opcodes/arrays.c:830 Opcodes/arrays.c:836
-#: Opcodes/arrays.c:847 Opcodes/arrays.c:878 Opcodes/arrays.c:909
-#: Opcodes/arrays.c:930 Opcodes/arrays.c:1002 Opcodes/newarray.c:298
-#: Opcodes/newarray.c:323 Opcodes/newarray.c:341 Opcodes/newarray.c:355
-#: Opcodes/newarray.c:375 Opcodes/newarray.c:412 Opcodes/newarray.c:433
-#: Opcodes/newarray.c:456 Opcodes/newarray.c:477 Opcodes/newarray.c:513
-#: Opcodes/newarray.c:551 Opcodes/newarray.c:571 Opcodes/newarray.c:588
-#: Opcodes/newarray.c:629 Opcodes/newarray.c:652 Opcodes/newarray.c:675
-#: Opcodes/newarray.c:695 Opcodes/newarray.c:722 Opcodes/newarray.c:749
-#: Opcodes/newarray.c:786 Opcodes/newarray.c:809 Opcodes/newarray.c:858
-#: Opcodes/newarray.c:864 Opcodes/newarray.c:875 Opcodes/newarray.c:906
-#: Opcodes/newarray.c:937 Opcodes/newarray.c:958 Opcodes/newarray.c:1030
-#: Opcodes/pvsbasic.c:2383 Opcodes/pvsbasic.c:2425
+#: Opcodes/arrays.c:327 Opcodes/arrays.c:352 Opcodes/arrays.c:370
+#: Opcodes/arrays.c:384 Opcodes/arrays.c:404 Opcodes/arrays.c:441
+#: Opcodes/arrays.c:462 Opcodes/arrays.c:487 Opcodes/arrays.c:508
+#: Opcodes/arrays.c:545 Opcodes/arrays.c:583 Opcodes/arrays.c:603
+#: Opcodes/arrays.c:620 Opcodes/arrays.c:661 Opcodes/arrays.c:684
+#: Opcodes/arrays.c:707 Opcodes/arrays.c:727 Opcodes/arrays.c:755
+#: Opcodes/arrays.c:782 Opcodes/arrays.c:831 Opcodes/arrays.c:837
+#: Opcodes/arrays.c:848 Opcodes/arrays.c:879 Opcodes/arrays.c:910
+#: Opcodes/arrays.c:931 Opcodes/arrays.c:1003 Opcodes/pvsbasic.c:2397
+#: Opcodes/pvsbasic.c:2439
 msgid "array-variable not initialised"
 msgstr "tableau : non initialisé"
 
-#: Opcodes/arrays.c:345 Opcodes/arrays.c:363 Opcodes/newarray.c:317
-#: Opcodes/newarray.c:335
+#: Opcodes/arrays.c:346 Opcodes/arrays.c:364
 msgid "Dimension does not match in array arithmetic"
 msgstr "La dimension ne correspond pas dans l'arithmétique des tableaux"
 
-#: Opcodes/arrays.c:471 Opcodes/arrays.c:734
+#: Opcodes/arrays.c:472 Opcodes/arrays.c:735
 #, c-format
 msgid "division by zero in array-var at index %d"
 msgstr "division par zéro dans le tableau à l'indice %d"
 
-#: Opcodes/arrays.c:516 Opcodes/arrays.c:763 Opcodes/arrays.c:790
-#: Opcodes/newarray.c:486 Opcodes/newarray.c:731 Opcodes/newarray.c:758
-#: Opcodes/newarray.c:818
+#: Opcodes/arrays.c:517 Opcodes/arrays.c:764 Opcodes/arrays.c:791
 #, c-format
 msgid "undefined power in array-var at index %d"
 msgstr "puissance indéfinie dans le tableau à l'indice %d"
 
-#: Opcodes/arrays.c:657 Opcodes/arrays.c:680 Opcodes/arrays.c:703
-#: Opcodes/newarray.c:441 Opcodes/newarray.c:626 Opcodes/newarray.c:649
-#: Opcodes/newarray.c:672 Opcodes/newarray.c:702
+#: Opcodes/arrays.c:658 Opcodes/arrays.c:681 Opcodes/arrays.c:704
 msgid "division by zero in array-var"
 msgstr "division par zéro dans le tableau"
 
-#: Opcodes/arrays.c:912 Opcodes/newarray.c:940
+#: Opcodes/arrays.c:913
 msgid "array-variable not a vector"
 msgstr "tableau pas un vecteur"
 
-#: Opcodes/arrays.c:1005 Opcodes/newarray.c:1033
+#: Opcodes/arrays.c:1006
 msgid "array-variable dimensions do not match"
 msgstr "les dimensions du tableau ne correspondent pas"
 
-#: Opcodes/arrays.c:1007 Opcodes/newarray.c:1035
+#: Opcodes/arrays.c:1008
 msgid "array-variable types do not match"
 msgstr "les types du tableau ne correspondent pas"
 
-#: Opcodes/arrays.c:1054 Opcodes/arrays.c:1075 Opcodes/arrays.c:1252
-#: Opcodes/arrays.c:1288 Opcodes/arrays.c:1291 Opcodes/newarray.c:1082
-#: Opcodes/newarray.c:1235 Opcodes/newarray.c:1271 Opcodes/newarray.c:1274
+#: Opcodes/arrays.c:1055 Opcodes/arrays.c:1076 Opcodes/arrays.c:1253
+#: Opcodes/arrays.c:1289 Opcodes/arrays.c:1292
 msgid "array-var not initialised"
 msgstr "tableau non initialisée"
 
-#: Opcodes/arrays.c:1057 Opcodes/arrays.c:1077 Opcodes/arrays.c:1135
-#: Opcodes/arrays.c:1157 Opcodes/newarray.c:1085 Opcodes/newarray.c:1143
+#: Opcodes/arrays.c:1058 Opcodes/arrays.c:1078 Opcodes/arrays.c:1136
+#: Opcodes/arrays.c:1158
 msgid "No table for copy2ftab"
 msgstr "Pas de table pour copy2ftab"
 
-#: Opcodes/arrays.c:1107 Opcodes/newarray.c:1114
+#: Opcodes/arrays.c:1108
 msgid "inconsistent start, end and increment parameters"
 msgstr "paramètres début, fin et incrément inconstistants"
 
-#: Opcodes/arrays.c:1191 Opcodes/newarray.c:1174
+#: Opcodes/arrays.c:1192
 msgid "inconsistent start, end parameters"
 msgstr "paramètres début, fin inconsistants"
 
-#: Opcodes/arrays.c:1194 Opcodes/newarray.c:1177
+#: Opcodes/arrays.c:1195
 msgid "slice larger than original size"
 msgstr "intervalle plus grand que la taille d'origine"
 
-#: Opcodes/arrays.c:1265 Opcodes/newarray.c:1248
+#: Opcodes/arrays.c:1266
 #, c-format
 msgid "%s not found"
 msgstr "%s non trouvé"
 
-#: Opcodes/arrays.c:1296 Opcodes/newarray.c:1279
+#: Opcodes/arrays.c:1297
 msgid "map fn not found at k rate"
 msgstr "fn de map introuvable au taux-k"
 
-#: Opcodes/arrays.c:1766 Opcodes/arrays.c:1802 Opcodes/arrays.c:1830
-#: Opcodes/newarray.c:1707 Opcodes/newarray.c:1740 Opcodes/newarray.c:1767
+#: Opcodes/arrays.c:1767 Opcodes/arrays.c:1803 Opcodes/arrays.c:1831
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr "non puissance de deux pas encore implémentée\n"
 
-#: Opcodes/arrays.c:1797
+#: Opcodes/arrays.c:1798
 msgid "FFT size too small (min 64 samples)\n"
 msgstr "Taille de TFR trop petite (min 64 échantillons)\n"
 
@@ -6723,72 +6707,74 @@ msgstr ""
 msgid "ftconv: not initialised"
 msgstr "ftconv : non initialisé"
 
-#: Opcodes/ftgen.c:69 Opcodes/ftgen.c:214
+#: Opcodes/ftgen.c:69 Opcodes/ftgen.c:215
 #, c-format
 msgid "Error deleting ftable %d"
 msgstr "Erreur en supprimant la ftable %d"
 
-#: Opcodes/ftgen.c:138 Opcodes/signalflowgraph.cpp:1491
+#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1491
 msgid "ftgen string arg not allowed"
 msgstr "ftgen : argument chaîne interdit"
 
-#: Opcodes/ftgen.c:157 Opcodes/oscbnk.c:1822 Opcodes/oscbnk.c:1846
+#: Opcodes/ftgen.c:158 Opcodes/oscbnk.c:1822 Opcodes/oscbnk.c:1846
 msgid "ftgen error"
 msgstr "erreur de ftgen"
 
-#: Opcodes/ftgen.c:211
+#: Opcodes/ftgen.c:212
 #, c-format
 msgid "Invalid table number: %d"
 msgstr "Numéro de table non valide : %d"
 
-#: Opcodes/ftgen.c:403
+#: Opcodes/ftgen.c:404
 msgid "ftload: error allocating ftable"
 msgstr "ftload : erreur d'allocation de la ftable"
 
-#: Opcodes/ftgen.c:405
+#: Opcodes/ftgen.c:406
 msgid "ftload: no table numbers"
 msgstr "ftload : pas de numéro de table"
 
-#: Opcodes/ftgen.c:407
+#: Opcodes/ftgen.c:408
 msgid "ftload: unable to open file"
 msgstr "ftload : impossible d'ouvrir le fichier"
 
-#: Opcodes/ftgen.c:410
+#: Opcodes/ftgen.c:411
 msgid "ftload: incorrect file"
 msgstr "ftload : fichier incorrect"
 
-#: Opcodes/ftgen.c:550
+#: Opcodes/ftgen.c:551
 msgid "ftsave: Bad table number. Saving is possible only for existing tables."
 msgstr ""
 "ftsave : mauvais numéro de table. La sauvegarde n'est possible que pour des "
 "tables existantes."
 
-#: Opcodes/ftgen.c:553
+#: Opcodes/ftgen.c:554
 msgid "ftsave: no table numbers"
 msgstr "ftsave : pas de numéros de table"
 
-#: Opcodes/ftgen.c:555
+#: Opcodes/ftgen.c:556
 msgid "ftsave: unable to open file"
 msgstr "ftsave : impossible d'ouvrir le fichier"
 
-#: Opcodes/ftgen.c:557
+#: Opcodes/ftgen.c:558
 msgid "ftsave: failed to write file"
 msgstr "ftsave : impossible d'ouvrir le fichier"
 
-#: Opcodes/ftsamplebank.cpp:170
+#: Opcodes/ftsamplebank.cpp:180
 #, c-format
 msgid "Cannot load file. Error opening directory: %s\n"
-msgstr "Impossible de charger le fichier. Erreur d'ouverture du répertoire : %s\n"
+msgstr ""
+"Impossible de charger le fichier. Erreur d'ouverture du répertoire : %s\n"
 
-#: Opcodes/ftsamplebank.cpp:221
+#: Opcodes/ftsamplebank.cpp:232
 msgid "Error: you must pass a directory as a string."
 msgstr "Erreur : il faut donner le nom d'un répertoire."
 
-#: Opcodes/ftsamplebank.cpp:235
-msgid "Error: second parameter to directory mustbe a string"
+#: Opcodes/ftsamplebank.cpp:249
+#, fuzzy
+msgid "Error: second parameter to directory must be a string"
 msgstr "Erreur : le second paramètre du répertoire doit être une chaîne"
 
-#: Opcodes/ftsamplebank.cpp:288
+#: Opcodes/ftsamplebank.cpp:314
 #, c-format
 msgid "Cannot find directory. Error opening directory: %s\n"
 msgstr "Répertoire introuvable. Erreur d'ouverture du répertoire : %s\n"
@@ -6903,7 +6889,7 @@ msgstr "vphaseseg : la première fonction est non valide ou manquante"
 msgid "Failed to find ftable"
 msgstr "ftable introuvable"
 
-#: Opcodes/gab/hvs.c:410 Opcodes/gab/vectorial.c:2335
+#: Opcodes/gab/hvs.c:410 Opcodes/gab/vectorial.c:2340
 msgid "vphaseseg: invalid num. of elements"
 msgstr "vphaseseg : nombre d'éléments non valide"
 
@@ -7410,35 +7396,35 @@ msgstr "vecdly : table de délai non valide"
 msgid "vecdly: not initialised"
 msgstr "vecdly : non initialisé"
 
-#: Opcodes/gab/vectorial.c:2215
+#: Opcodes/gab/vectorial.c:2220
 msgid "vlinseg/vexpseg: invalid num. of elements"
 msgstr "vlinseg/vexpseg : nombre d'éléments non valide"
 
-#: Opcodes/gab/vectorial.c:2257 Opcodes/vpvoc.c:121
+#: Opcodes/gab/vectorial.c:2262 Opcodes/vpvoc.c:126
 msgid "tableseg: not initialised"
 msgstr "tableseg : non initialisé"
 
-#: Opcodes/gab/vectorial.c:2287 Opcodes/vpvoc.c:150
+#: Opcodes/gab/vectorial.c:2292 Opcodes/vpvoc.c:155
 msgid "tablexseg: not initialised"
 msgstr "tablexseg : non initialisé"
 
-#: Opcodes/gab/vectorial.c:2440
+#: Opcodes/gab/vectorial.c:2445
 msgid "vdelayk: not initialised"
 msgstr "vdelayk : non initialisé"
 
-#: Opcodes/gab/vectorial.c:2473 Opcodes/gab/vectorial.c:2479
+#: Opcodes/gab/vectorial.c:2478 Opcodes/gab/vectorial.c:2484
 msgid "cella: invalid num of elements"
 msgstr "cella : nombre d'éléments non valide"
 
-#: Opcodes/gab/vectorial.c:2475
+#: Opcodes/gab/vectorial.c:2480
 msgid "cella: invalid output table"
 msgstr "cella : table de sortie non valide"
 
-#: Opcodes/gab/vectorial.c:2482
+#: Opcodes/gab/vectorial.c:2487
 msgid "cella: invalid initial state table"
 msgstr "cella : table d'état initial non valide"
 
-#: Opcodes/gab/vectorial.c:2486
+#: Opcodes/gab/vectorial.c:2491
 msgid "cella: invalid rule table"
 msgstr "cella : table de règle non valide"
 
@@ -7935,7 +7921,7 @@ msgid "loscilx: invalid number of output arguments"
 msgstr "loscilx : nombre d'arguments de sortie non valide"
 
 #: Opcodes/loscilx.c:211 Opcodes/loscilx.c:240 Opcodes/pvlock.c:166
-#: Opcodes/pvlock.c:391 Opcodes/pvlock.c:674 Opcodes/pvsbasic.c:573
+#: Opcodes/pvlock.c:391 Opcodes/pvlock.c:674 Opcodes/pvsbasic.c:587
 msgid ""
 "number of output arguments inconsistent with number of sound file channels"
 msgstr ""
@@ -8028,16 +8014,6 @@ msgstr "mp3in : %s : l'ouverture du fichier a échoué"
 msgid "mp3in: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 "mp3in : taux d'échantillonnage du fichier (%d) != sr de l'orchestre (%d)\n"
-
-#: Opcodes/newarray.c:171 Opcodes/newarray.c:180 Opcodes/newarray.c:218
-#: Opcodes/newarray.c:226
-#, c-format
-msgid "Array index %d out of range (0,%d) for dimension %d\n"
-msgstr "Indice %d du tableau hors limites (0,%d) pour la dimension %d\n"
-
-#: Opcodes/newarray.c:794
-msgid "undefined power in array-var"
-msgstr "puissance indéfinie dans le tableau"
 
 #: Opcodes/nlfilt.c:130
 msgid "nlfilt: not initialised"
@@ -8172,24 +8148,24 @@ msgstr "Pas de gant ouvert"
 msgid "Unknown panning type"
 msgstr "Type de panoramique inconnu"
 
-#: Opcodes/partikkel.c:25 Opcodes/partikkel.c:26 Opcodes/partikkel.c:27
+#: Opcodes/partikkel.c:26 Opcodes/partikkel.c:27 Opcodes/partikkel.c:28
 msgid "partikkel: "
 msgstr "partikkel :"
 
-#: Opcodes/partikkel.c:839
+#: Opcodes/partikkel.c:840
 msgid "partikkelsync: opcode id needs to be a non-zero integer"
 msgstr "partikkelsync : l'id de l'opcode doit être un entier non nul"
 
-#: Opcodes/partikkel.c:843 Opcodes/partikkel.c:849
+#: Opcodes/partikkel.c:844 Opcodes/partikkel.c:850
 msgid "partikkelsync: could not find opcode id"
 msgstr "partikkelsync : impossible de trouver l'id de l'opcode"
 
-#: Opcodes/partikkel.c:879
+#: Opcodes/partikkel.c:880
 #, c-format
 msgid "%s: partikkel not initialized"
 msgstr "%s : partikkel non initialisé"
 
-#: Opcodes/partikkel.c:887
+#: Opcodes/partikkel.c:888
 #, c-format
 msgid "%s: could not find opcode id"
 msgstr "%s : impossible de trouver l'id de l'opcode"
@@ -8506,30 +8482,30 @@ msgstr "pvoc-ex : le fichier %s n'est pas mono"
 msgid "PVBUFREAD cannot load %s"
 msgstr "PVBUFREAD ne peut pas charger %s"
 
-#: Opcodes/pvinterp.c:82 Opcodes/vpvoc.c:217
+#: Opcodes/pvinterp.c:82 Opcodes/vpvoc.c:222
 #, c-format
 msgid "PVOC frame %ld bigger than %ld in %s"
 msgstr "La trame PVOC %ld est plus grande que %ld dans %s"
 
-#: Opcodes/pvinterp.c:87 Opcodes/vpvoc.c:222
+#: Opcodes/pvinterp.c:87 Opcodes/vpvoc.c:227
 #, c-format
 msgid "PVOC frame %ld seems too small in %s"
 msgstr "La trame PVOC %ld semble trop petite dans %s"
 
 #: Opcodes/pvinterp.c:91 Opcodes/pvinterp.c:203 Opcodes/pvinterp.c:393
-#: Opcodes/vpvoc.c:226
+#: Opcodes/vpvoc.c:231
 #, c-format
 msgid "%d chans (not 1) in PVOC file %s"
 msgstr "%d canaux (pas 1) dans le fichier PVOC %s"
 
 #: Opcodes/pvinterp.c:106 Opcodes/pvinterp.c:230 Opcodes/pvinterp.c:418
-#: Opcodes/ugens8.c:101 Opcodes/vpvoc.c:254
+#: Opcodes/ugens8.c:101 Opcodes/vpvoc.c:259
 #, c-format
 msgid "ksmps of %d needs wdw of %d, max is %d for pv %s"
 msgstr "Un ksmps de %d necécessite une fenêtre de %d, max vaut %d pour pv %s"
 
 #: Opcodes/pvinterp.c:135 Opcodes/pvinterp.c:284 Opcodes/pvinterp.c:475
-#: Opcodes/pvread.c:109 Opcodes/ugens8.c:174 Opcodes/vpvoc.c:316
+#: Opcodes/pvread.c:109 Opcodes/ugens8.c:174 Opcodes/vpvoc.c:321
 msgid "PVOC ktimpnt truncated to last frame"
 msgstr "PVOC ktimpnt a été tronqué à la dernière trame"
 
@@ -8538,7 +8514,7 @@ msgid "pvbufread: not initialised"
 msgstr "pvbufread : non initialisé"
 
 #: Opcodes/pvinterp.c:146 Opcodes/pvinterp.c:337 Opcodes/pvinterp.c:540
-#: Opcodes/pvread.c:117 Opcodes/ugens8.c:232 Opcodes/vpvoc.c:384
+#: Opcodes/pvread.c:117 Opcodes/ugens8.c:232 Opcodes/vpvoc.c:389
 msgid "PVOC timpnt < 0"
 msgstr "PVOC timpnt < 0"
 
@@ -8563,12 +8539,12 @@ msgid "pvinterp: not initialised"
 msgstr "pvinterp : non initialisé"
 
 #: Opcodes/pvinterp.c:332 Opcodes/pvinterp.c:534 Opcodes/ugens8.c:226
-#: Opcodes/vpvoc.c:378
+#: Opcodes/vpvoc.c:383
 msgid "PVOC transpose too low"
 msgstr "PVOC transpose trop bas"
 
 #: Opcodes/pvinterp.c:335 Opcodes/pvinterp.c:537 Opcodes/ugens8.c:229
-#: Opcodes/vpvoc.c:381
+#: Opcodes/vpvoc.c:386
 msgid "PVOC transpose too high"
 msgstr "PVOC transpose trop haut"
 
@@ -8588,7 +8564,7 @@ msgstr ""
 "pvcross : %s : la taille de trame %d ne correspond à la taille de trame %d "
 "de pvbufread\n"
 
-#: Opcodes/pvinterp.c:498 Opcodes/vpvoc.c:341
+#: Opcodes/pvinterp.c:498 Opcodes/vpvoc.c:346
 msgid "PVOC debug: one frame gets through\n"
 msgstr "PVOC debuf : une trame est passée\n"
 
@@ -8596,13 +8572,13 @@ msgstr "PVOC debuf : une trame est passée\n"
 msgid "pvcross: not initialised"
 msgstr "pvcross : non initialisé"
 
-#: Opcodes/pvlock.c:72 Opcodes/pvsbasic.c:486
+#: Opcodes/pvlock.c:72 Opcodes/pvsbasic.c:500
 msgid "invalid number of output arguments"
 msgstr "nombre d'arguments de sortie non valide"
 
-#: Opcodes/pvlock.c:843 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:694
-#: Opcodes/pvsbasic.c:1020 Opcodes/pvsbasic.c:1234 Opcodes/pvsbasic.c:1340
-#: Opcodes/pvsbasic.c:1569 Opcodes/pvsbasic.c:1782 Opcodes/pvsbasic.c:1956
+#: Opcodes/pvlock.c:843 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:708
+#: Opcodes/pvsbasic.c:1034 Opcodes/pvsbasic.c:1248 Opcodes/pvsbasic.c:1354
+#: Opcodes/pvsbasic.c:1583 Opcodes/pvsbasic.c:1796 Opcodes/pvsbasic.c:1970
 #: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:758
 msgid "Unsafe to have same fsig as in and out"
 msgstr "Il est risqué d'avoir le même fsig en entrée et en sortie"
@@ -8628,94 +8604,94 @@ msgstr "pvsband : non initialisé"
 msgid "pvsgain: signal format must be amp-phase or amp-freq."
 msgstr "pvsgain : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/pvsbasic.c:222 Opcodes/pvsbasic.c:344
+#: Opcodes/pvsbasic.c:224 Opcodes/pvsbasic.c:358
 msgid "SDFT Not implemented in this case yet"
 msgstr "SDFT pas encore implémentée dans ce cas"
 
-#: Opcodes/pvsbasic.c:233
+#: Opcodes/pvsbasic.c:235
 #, c-format
 msgid "pvsfwrite: could not open file %s\n"
 msgstr "pvsfwrite : impossible d'ouvrir le fichier %s\n"
 
-#: Opcodes/pvsbasic.c:296
+#: Opcodes/pvsbasic.c:306
 msgid "pvsfwrite: could not write data\n"
 msgstr "pvsfwrite : impossible d'écrire les données\n"
 
-#: Opcodes/pvsbasic.c:348
+#: Opcodes/pvsbasic.c:362
 #, c-format
 msgid "pvsdiskin: could not open file %s\n"
 msgstr "pvsdiskin : impossible d'ouvrir le fichier %s\n"
 
-#: Opcodes/pvsbasic.c:559 Opcodes/pvsbasic.c:2288
+#: Opcodes/pvsbasic.c:573 Opcodes/pvsbasic.c:2302
 #, c-format
 msgid "could not find table number %d\n"
 msgstr "la table %d est introuvable\n"
 
-#: Opcodes/pvsbasic.c:725
+#: Opcodes/pvsbasic.c:739
 msgid "pvsfreeze: signal format must be amp-phase or amp-freq."
 msgstr "pvsfreeze : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/pvsbasic.c:802
+#: Opcodes/pvsbasic.c:816
 msgid "pvsosc does not work while sliding"
 msgstr "pvsosc ne travaille pas lors du glissement"
 
-#: Opcodes/pvsbasic.c:1051
+#: Opcodes/pvsbasic.c:1065
 msgid "pvsmooth: signal format must be amp-phase or amp-freq."
 msgstr "pvsmooth : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/pvsbasic.c:1168
+#: Opcodes/pvsbasic.c:1182
 msgid "pvsmix: signal format must be amp-phase or amp-freq."
 msgstr "pvsmix : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/pvsbasic.c:1224
+#: Opcodes/pvsbasic.c:1238
 msgid "pvsmix: formats are different."
 msgstr "pvsmix : les formats sont différents"
 
-#: Opcodes/pvsbasic.c:1237
+#: Opcodes/pvsbasic.c:1251
 msgid "pvsfilter: signal format must be amp-phase or amp-freq."
 msgstr "pvsfilter : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/pvsbasic.c:1316
+#: Opcodes/pvsbasic.c:1330
 msgid "pvsfilter: not initialised"
 msgstr "pvsfilter : non initialisé"
 
-#: Opcodes/pvsbasic.c:1319
+#: Opcodes/pvsbasic.c:1333
 msgid "pvsfilter: formats are different."
 msgstr "pvsfilter : les formats sont différents"
 
-#: Opcodes/pvsbasic.c:1546
+#: Opcodes/pvsbasic.c:1560
 msgid "pvscale: not initialised"
 msgstr "pvscale : non initialisé"
 
-#: Opcodes/pvsbasic.c:1759
+#: Opcodes/pvsbasic.c:1773
 msgid "pvshift: not initialised"
 msgstr "pvshift : non initialisé"
 
-#: Opcodes/pvsbasic.c:1941
+#: Opcodes/pvsbasic.c:1955
 msgid "pvswarp: not initialised"
 msgstr "pvswarp : non initialisé"
 
-#: Opcodes/pvsbasic.c:1958
+#: Opcodes/pvsbasic.c:1972
 msgid "pvsblur does not work sliding yet"
 msgstr "pvsblur ne traite pas encore le glissement"
 
-#: Opcodes/pvsbasic.c:2096
+#: Opcodes/pvsbasic.c:2110
 msgid "pvsblur: not initialised"
 msgstr "pvsblur : non initialisé"
 
-#: Opcodes/pvsbasic.c:2132
+#: Opcodes/pvsbasic.c:2146
 msgid "pvstencil: signal format must be amp-phase or amp-freq."
 msgstr "pvstencil : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/pvsbasic.c:2140
+#: Opcodes/pvsbasic.c:2154
 msgid "pvstencil: ftable needs to equal the number of bins"
 msgstr "pvstencil : la ftable doit égaler le nombre de bins"
 
-#: Opcodes/pvsbasic.c:2221
+#: Opcodes/pvsbasic.c:2235
 msgid "pvstencil: not initialised"
 msgstr "pvstencil : non initialisé"
 
-#: Opcodes/pvsbasic.c:2380
+#: Opcodes/pvsbasic.c:2394
 msgid "pvs2tab: signal format must be amp-phase or amp-freq."
 msgstr "pvs2tab : le format du signal doit être amp-phase ou amp-fréq."
 
@@ -10066,21 +10042,21 @@ msgstr "Il manque des champs dans vbapzmove\n"
 msgid "Have to have at least %d directions in vbapzmove"
 msgstr "Il faut au moins %d directions dans vbapzmove"
 
-#: Opcodes/vpvoc.c:177
+#: Opcodes/vpvoc.c:182
 #, c-format
 msgid "vpvoc: Could not find ifnmagctrl table %f"
 msgstr "vpvoc : la table ifnmagctrl %f n'a pas été trouvée"
 
-#: Opcodes/vpvoc.c:183
+#: Opcodes/vpvoc.c:188
 msgid "vpvoc: associated tableseg not found"
 msgstr "vpvoc : tableseg associé non trouvé"
 
-#: Opcodes/vpvoc.c:205
+#: Opcodes/vpvoc.c:210
 #, c-format
 msgid "VPVOC cannot load %s"
 msgstr "VPVOC ne peut pas charger %s"
 
-#: Opcodes/vpvoc.c:375
+#: Opcodes/vpvoc.c:380
 msgid "vpvoc: not initialised"
 msgstr "vpvoc : non initialisé"
 
@@ -13957,6 +13933,12 @@ msgstr "traitement scot terminé\n"
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr "scot : %d erreurs.\n"
+
+#~ msgid "Array index %d out of range (0,%d) for dimension %d\n"
+#~ msgstr "Indice %d du tableau hors limites (0,%d) pour la dimension %d\n"
+
+#~ msgid "undefined power in array-var"
+#~ msgstr "puissance indéfinie dans le tableau"
 
 #~ msgid "twarp: t segments exceed twarp array\n"
 #~ msgstr "twarp : les segments t dépassent la capacité du tableau twarp\n"

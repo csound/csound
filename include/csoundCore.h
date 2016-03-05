@@ -483,7 +483,7 @@ typedef struct {
     /* Extra memory used by opcodes in this instr */
     AUXCH   *auxchp;
     /* Extra release time requested with xtratim opcode */
-    int     xtratim;
+    int      xtratim;
     /* MIDI note info block if event started from MIDI */
     MCHNBLK *m_chnbp;
     /* ptr to next overlapping MIDI voice */
@@ -493,29 +493,29 @@ typedef struct {
     /* Instrument def address */
     INSTRTXT *instr;
     /* non-zero for sustaining MIDI note */
-    int16   m_sust;
+    int16    m_sust;
     /* MIDI pitch, for simple access */
     unsigned char m_pitch;
     /* ...ditto velocity */
     unsigned char m_veloc;
     /* Flag to indicate we are releasing, test with release opcode */
-    char    relesing;
+    char     relesing;
     /* Set if instr instance is active (perfing) */
-    char    actflg;
+    char     actflg;
     /* Time to turn off event, in score beats */
-    double  offbet;
+    double   offbet;
     /* Time to turn off event, in seconds (negative on indef/tie) */
-    double  offtim;
+    double   offtim;
     /* Python namespace for just this instance. */
     void    *pylocal;
     /* pointer to Csound engine and API for externals */
     CSOUND  *csound;
-    int     kcounter;
+    uint64_t kcounter;
     unsigned int     ksmps;     /* Instrument copy of ksmps */
-    MYFLT   ekr;                /* and of rates */
-    MYFLT   onedksmps, onedkr, kicvt;
+    MYFLT    ekr;                /* and of rates */
+    MYFLT    onedksmps, onedkr, kicvt;
     struct opds  *pds;          /* Used for jumping */
-    MYFLT   scratchpad[4];      /* Persistent data */
+    MYFLT    scratchpad[4];      /* Persistent data */
 
     /* user defined opcode I/O buffers */
     void    *opcod_iobufs;
@@ -527,14 +527,14 @@ typedef struct {
                              (calculated) */
     uint32_t ksmps_no_end; /* samps left at the end for sample accuracy
                               (used by opcodes) */
-    MYFLT  *spin;         /* offset into csound->spin */
-    MYFLT  *spout;        /* offset into csound->spout, or local spout, if needed */
-    int    init_done;
-    int    tieflag;
-    int    reinitflag;
-    MYFLT  retval;
-    MYFLT  *lclbas;  /* base for variable memory pool */
-    char   *strarg;       /* string argument */
+    MYFLT   *spin;         /* offset into csound->spin */
+    MYFLT   *spout;        /* offset into csound->spout, or local spout */
+    int      init_done;
+    int      tieflag;
+    int      reinitflag;
+    MYFLT    retval;
+    MYFLT   *lclbas;  /* base for variable memory pool */
+    char    *strarg;       /* string argument */
     /* Copy of required p-field values for quick access */
     CS_VAR_MEM  p0;
     CS_VAR_MEM  p1;
@@ -939,7 +939,7 @@ typedef struct NAME__ {
     uint32_t (*GetNchnls_i)(CSOUND *);
     MYFLT (*Get0dBFS) (CSOUND *);
     /** Get number of control blocks elapsed */
-    long (*GetKcounter)(CSOUND *);
+    uint64_t (*GetKcounter)(CSOUND *);
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
@@ -1371,7 +1371,7 @@ typedef struct NAME__ {
     uint32_t      nchnls;
     int           inchnls;
     int           spoutactive;
-    long          kcounter, global_kcounter;
+    uint64_t      kcounter, global_kcounter;
     MYFLT         esr;
     MYFLT         ekr;
     /** current time in seconds, inc. per kprd */
