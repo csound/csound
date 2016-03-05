@@ -28,11 +28,12 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
-#ifdef _WIN32
-#pragma warning(disable:4786) //gab
+#ifdef WIN32
+#pragma GCC diagnostic ignored "-fpermissive"
 #endif
 
 #ifdef MSVC
+#pragma warning(disable:4786) //gab
 #define round int
 #endif
 
@@ -963,10 +964,10 @@ bool VSTPlugin::OnOutputConnected(AEffect *effect, long output)
     return true;
 }
 
-long VSTPlugin::Master(AEffect *effect,
-                       long opcode,
-                       long index,
-                       long value,
+VstIntPtr VSTPlugin::Master(AEffect *effect,
+                       VstInt32 opcode,
+                       VstInt32 index,
+                       VstIntPtr value,
                        void *ptr,
                        float opt)
 {
@@ -1020,8 +1021,9 @@ long VSTPlugin::Master(AEffect *effect,
     case audioMasterProcessEvents:
       return false;
     case audioMasterGetTime:
-      if (plugin)
-        return (long) plugin->GetTime();
+      if (plugin) {
+        return (VstIntPtr) plugin->GetTime();
+      }
       else {
         //static VstTimeInfo vstTimeInfo;
         //memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
