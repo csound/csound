@@ -58,7 +58,7 @@ static void checkOptions(CSOUND *csound)
     const char  *home_dir;
     FILE        *csrc = NULL;
     void        *fd = NULL;
-    char *s;
+    char        *s = NULL;
     /* IV - Feb 17 2005 */
     csrcname = csoundGetEnv(csound, "CSOUND6RC");
     if (csrcname != NULL && csrcname[0] != '\0') {

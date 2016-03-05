@@ -46,7 +46,7 @@
                                    not be able to handle -- most likely this
                                    will be a change to an API function or
                                    the CSOUND struct */
-#define CS_APISUBVER        0   /* for minor changes that will still allow
+#define CS_APISUBVER        1   /* for minor changes that will still allow
                                    compatiblity with older hosts */
 
 #ifndef CS_PACKAGE_DATE

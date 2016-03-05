@@ -554,7 +554,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     char *temp;
     char tmp[64];
     int n =0;
-    memset(line, '\0', 128); memset(line_, '\0', 128); 
+    memset(line, '\0', 128); memset(line_, '\0', 128);
     if (f)  {
       char *th;
       while (fgets(line, 128, f))  {   /* Read one line*/
