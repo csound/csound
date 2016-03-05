@@ -2036,7 +2036,7 @@ static int gen34(FGDATA *ff, FUNC *ftp)
     /* table length and data */
     ft = ftp->ftable; flen = (int32) ftp->flen;
     /* source table */
-    if (UNLIKELY((src = csoundFTFind(csound, &(ff->e.p[5]))) == NULL))
+    if (UNLIKELY((src = csoundFTnp2Find(csound, &(ff->e.p[5]))) == NULL))
       return NOTOK;
     srcft = src->ftable; srclen = (int32) src->flen;
     /* number of partials */
