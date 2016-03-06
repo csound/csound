@@ -23,13 +23,14 @@ New opcodes:
     o    (Experimental) New cuda opcodes cudasynth2 and cudanal2.
 
     o    directory opcode: Reads a directory and outputs to a string
-         array a list of file names.   
+         array a list of file names.
 
     o    ftsamplebank:to load a sample library from a directory.
 
     o    mvclpf1, mvclpf2, mvclpf3, mvclpf4, mvchpf: Moog
          voltage-controlled filter emulations from Fons Andriaensen.
 
+    o    S() converter from k-rate and i-time number to a string.
 New Gen and Macros:
 
     o    
@@ -49,7 +50,9 @@ Orchestra:
 
     o    Continuation lines handled better, especially respecting line
          numbers
-         
+
+    o    opcode:S(.) syntax now allowed
+    
 Score:
 
     o    The list of tempo points in score opcode t is now arbitrarily
@@ -131,7 +134,7 @@ General usage:
 
     o   Multicore code now works wit midi instruments
 
-    o   MIDI operations now available via jack (***NEEDS ORE***)
+    o   MIDI operations now available via a new rtmidi jack module (-+rtmidi=jack)
     
     
 Bugs fixed:
@@ -171,7 +174,9 @@ Bugs fixed:
     o   Opcodes that require an odd number of arguments are now properly checked
 
     o   pvswrite now takes proper notice of 0dbfs
-    
+
+    o   GEN34 now allowing non-power-of-two source tables
+
 ====================
 SYSTEM LEVEL CHANGES
 ====================
