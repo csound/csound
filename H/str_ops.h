@@ -174,9 +174,9 @@ int     strrindex_opcode(CSOUND *, void *);
 int     str_changed(CSOUND *csound, STRCHGD *p);
 int     str_changed_k(CSOUND *csound, STRCHGD *p);
 int     str_from_url(CSOUND *csound, STRCPY_OP *p);
-
 int     print_type_opcode(CSOUND*, void*);
-
+  int     s_opcode(CSOUND *csound, void *p);
+  int     s_opcode_k(CSOUND *csound, void *p);
 #endif      /* CSOUND_STR_OPS_C */
 
 #ifdef __cplusplus

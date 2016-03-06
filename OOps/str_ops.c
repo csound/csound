@@ -41,6 +41,23 @@
 #endif
 #endif
 
+int s_opcode(CSOUND *csound, STRGET_OP *p){
+  if(p->r->data == NULL){
+   p->r->data = (char *) csound->Malloc(csound, 15);
+   p->r->size = 15;
+  } else if(p->r->size < 15){
+  p->r->data = (char *) csound->ReAlloc(csound, p->r->data, 15);
+  p->r->size = 15;
+  }
+  snprintf(p->r->data, p->r->size, "%f", *p->indx);
+  return OK;
+}
+
+int s_opcode_k(CSOUND *csound, STRGET_OP *p){
+  snprintf(p->r->data, p->r->size, "%f", *p->indx);
+  return OK;
+}
+
 /* strset by John ffitch */
 
 static void str_set(CSOUND *csound, int ndx, const char *s)
