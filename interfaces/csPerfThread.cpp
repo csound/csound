@@ -468,7 +468,7 @@ int CsoundPerformanceThread::Perform()
     }
     csoundNotifyThreadLock(flushLock);
     csoundUnlockMutex(queueLock);
-    running = 1;
+    //running = 0;
     return retval;
 }
 
@@ -544,8 +544,10 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
     pthread_cond_init(&recordData.condvar, NULL);
 
     perfThread = csoundCreateThread(csoundPerformanceThread_, (void*) this);
-    if (perfThread)
+    if (perfThread) {
       status = 0;
+      running = 1;
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -709,6 +711,7 @@ int CsoundPerformanceThread::Join()
       flushLock = (void*) 0;
     }
 
+    running = 0;
     return retval;
 }
 
