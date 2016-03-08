@@ -1525,9 +1525,9 @@ msgid "error in score.  illegal opcode %c (ASCII %d)\n"
 msgstr "erreur dans la partition.  L'opcode %c (ASCII %d) est illégal\n"
 
 #: Engine/musmon.c:1260
-#, fuzzy, c-format
+#, c-format
 msgid "insert_score_event(): invalid instrument number or name %d\n"
-msgstr "insert_score_event() : numéro ou nom d'instrument non valide\n"
+msgstr "insert_score_event() : numéro ou nom d'instrument non valide %d\n"
 
 #: Engine/musmon.c:1280
 #, c-format
@@ -6771,7 +6771,6 @@ msgid "Error: you must pass a directory as a string."
 msgstr "Erreur : il faut donner le nom d'un répertoire."
 
 #: Opcodes/ftsamplebank.cpp:249
-#, fuzzy
 msgid "Error: second parameter to directory must be a string"
 msgstr "Erreur : le second paramètre du répertoire doit être une chaîne"
 
