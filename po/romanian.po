@@ -1473,7 +1473,8 @@ msgid "error in score.  illegal opcode %c (ASCII %d)\n"
 msgstr ""
 
 #: Engine/musmon.c:1260
-msgid "insert_score_event(): invalid instrument number or name\n"
+#, c-format
+msgid "insert_score_event(): invalid instrument number or name %d\n"
 msgstr ""
 
 #: Engine/musmon.c:1280
@@ -1503,51 +1504,51 @@ msgstr ""
 msgid "cannot find the specified instrument or opcode"
 msgstr ""
 
-#: Engine/new_orc_parser.c:99
+#: Engine/new_orc_parser.c:100
 #, c-format
 msgid "** found CS_UDO_DIR=%s\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:149
+#: Engine/new_orc_parser.c:150
 #, c-format
 msgid "Failed to open input file %s\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:186
+#: Engine/new_orc_parser.c:187
 msgid "Unmatched #ifdef\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:228
+#: Engine/new_orc_parser.c:229
 msgid "Parsing successful!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:232
+#: Engine/new_orc_parser.c:233
 msgid "Parsing failed due to invalid input!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:236
+#: Engine/new_orc_parser.c:237
 msgid "Parsing failed due to memory exhaustion!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:239
+#: Engine/new_orc_parser.c:240
 #, c-format
 msgid "Parsing failed due to %d syntax error%s!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:269
+#: Engine/new_orc_parser.c:270
 #, c-format
 msgid "Parsing failed due to %d semantic error%s!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:272
+#: Engine/new_orc_parser.c:273
 msgid "Parsing failed to syntax errors\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:274
+#: Engine/new_orc_parser.c:275
 msgid "Parsing failed due no input!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:290
+#: Engine/new_orc_parser.c:291
 msgid "Stopping on parser failure"
 msgstr ""
 
@@ -4924,64 +4925,64 @@ msgstr ""
 msgid "filepeak: error getting peak value"
 msgstr ""
 
-#: OOps/str_ops.c:64
+#: OOps/str_ops.c:81
 msgid "illegal strset index"
 msgstr ""
 
-#: OOps/str_ops.c:72
+#: OOps/str_ops.c:89
 #, c-format
 msgid "strset index conflict at %d"
 msgstr ""
 
-#: OOps/str_ops.c:73
+#: OOps/str_ops.c:90
 #, c-format
 msgid "previous value: '%s', replaced with '%s'"
 msgstr ""
 
-#: OOps/str_ops.c:97 OOps/str_ops.c:104
+#: OOps/str_ops.c:114 OOps/str_ops.c:121
 msgid "--strset: invalid format"
 msgstr ""
 
-#: OOps/str_ops.c:237 OOps/str_ops.c:239
+#: OOps/str_ops.c:254 OOps/str_ops.c:256
 msgid "NULL string \n"
 msgstr ""
 
-#: OOps/str_ops.c:338
+#: OOps/str_ops.c:355
 msgid "a-rate argument not allowed"
 msgstr ""
 
-#: OOps/str_ops.c:343 Opcodes/stackops.c:203 Top/argdecode.c:1411
+#: OOps/str_ops.c:360 Opcodes/stackops.c:203 Top/argdecode.c:1411
 #: util/envext.c:99 util/scale.c:249
 msgid "too many arguments"
 msgstr ""
 
-#: OOps/str_ops.c:375
+#: OOps/str_ops.c:392
 msgid "insufficient arguments for format"
 msgstr ""
 
-#: OOps/str_ops.c:430
+#: OOps/str_ops.c:447
 msgid "output argument may not be the same as any of the input args"
 msgstr ""
 
-#: OOps/str_ops.c:446
+#: OOps/str_ops.c:463
 msgid "invalid format string"
 msgstr ""
 
-#: OOps/str_ops.c:472
+#: OOps/str_ops.c:489
 msgid "too many arguments for format"
 msgstr ""
 
-#: OOps/str_ops.c:575 OOps/str_ops.c:578 OOps/str_ops.c:594 OOps/str_ops.c:612
-#: OOps/str_ops.c:669 OOps/str_ops.c:673
+#: OOps/str_ops.c:592 OOps/str_ops.c:595 OOps/str_ops.c:611 OOps/str_ops.c:629
+#: OOps/str_ops.c:686 OOps/str_ops.c:690
 msgid "empty string"
 msgstr ""
 
-#: OOps/str_ops.c:581 OOps/str_ops.c:597 OOps/str_ops.c:626 OOps/str_ops.c:647
-#: OOps/str_ops.c:687 OOps/str_ops.c:708
+#: OOps/str_ops.c:598 OOps/str_ops.c:614 OOps/str_ops.c:643 OOps/str_ops.c:664
+#: OOps/str_ops.c:704 OOps/str_ops.c:725
 msgid "invalid format"
 msgstr ""
 
-#: OOps/str_ops.c:972
+#: OOps/str_ops.c:989
 #, c-format
 msgid "invalid option code: %g"
 msgstr ""
@@ -9038,7 +9039,7 @@ msgid ""
 "(points to rawwaves directory) to use STK opcodes."
 msgstr ""
 
-#: Opcodes/stk/stkOpcodes.cpp:762
+#: Opcodes/stk/stkOpcodes.cpp:763
 #, c-format
 msgid "RAWWAVE_PATH: %s\n"
 msgstr ""
