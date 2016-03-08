@@ -727,3 +727,133 @@ void CsoundPerformanceThread::FlushMessageQueue()
       csoundNotifyThreadLock(flushLock);
     }
 }
+
+
+// This section has been added to have a C layer exposing
+// CsoundPerformanceThread, to facilitate the wrapping of
+// CsoundPerformanceThread through FFI libraries.
+extern "C" {
+
+#ifndef PUBLIK
+#if (defined(WIN32) || defined(_WIN32))
+#  define PUBLIK        __declspec(dllexport)
+#elif defined(__GNUC__) && !defined(__MACH__)
+#  define PUBLIK        __attribute__ ( (visibility("default")) )
+#else
+#  define PUBLIK
+#endif
+#endif
+
+typedef void* Cpt;
+
+PUBLIK Cpt NewCsoundPT(CSOUND *csound)
+{
+  CsoundPerformanceThread *pt = new CsoundPerformanceThread(csound);
+  return (void *)pt;
+}
+
+PUBLIK void DeleteCsoundPT(Cpt pt)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  delete cpt;
+}
+
+PUBLIK int CsoundPTisRunning(Cpt pt)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  return cpt->isRunning();
+}
+
+PUBLIK void *CsoundPTgetProcessCB(Cpt pt)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  cpt->GetProcessCallback();
+}
+
+PUBLIK void CsoundPTsetProcessCB(Cpt pt, void (*callback)(void *), void *cbData)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  cpt->SetProcessCallback(callback, cbData);
+}
+
+PUBLIK CSOUND *CsoundPTgetCsound(Cpt pt)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  return cpt->GetCsound();
+}
+
+PUBLIK int CsoundPTgetStatus(Cpt pt)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  return cpt->GetStatus();
+}
+
+PUBLIK void CsoundPTplay(Cpt pt)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  cpt->Play();
+}
+
+PUBLIK void CsoundPTpause(Cpt pt)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  cpt->Pause();
+}
+
+PUBLIK void CsoundPTtogglePause(Cpt pt)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  cpt->TogglePause();
+}
+
+PUBLIK void CsoundPTstop(Cpt pt)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  cpt->Stop();
+}
+
+PUBLIK void CsoundPTrecord(Cpt pt, const char *filename, int samplebits, int numbufs)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  std::string fname(filename);
+  cpt->Record(fname, samplebits, numbufs);
+}
+
+PUBLIK void CsoundPTstopRecord(Cpt pt)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  cpt->StopRecord();
+}
+
+PUBLIK void CsoundPTscoreEvent(Cpt pt, int absp2mode, char opcod, int pcnt, MYFLT *p)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  cpt->ScoreEvent(absp2mode, opcod, pcnt, p);
+}
+
+PUBLIK void CsoundPTinputMessage(Cpt pt, const char *s)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  cpt->InputMessage(s);
+}
+
+PUBLIK void CsoundPTsetScoreOffsetSeconds(Cpt pt, double timeVal)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  cpt->SetScoreOffsetSeconds(timeVal);
+}
+
+PUBLIK int CsoundPTjoin(Cpt pt)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  return cpt->Join();
+}
+
+PUBLIK void CsoundPTflushMessageQueue(Cpt pt)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  cpt->FlushMessageQueue();
+}
+
+} // extern "C"
+
