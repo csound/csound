@@ -1,11 +1,16 @@
-# Try to find the STK library.
+# Try to find the Liblo library.
 # Once done this will define:
 #  LIBLO_FOUND - System has the OSC library.
 #  LIBLO_INCLUDE_DIRS - The OSC include directories.
 #  LIBLO_LIBRARIES - The libraries needed to use the OSC library.
 
 find_path(LIBLO_INCLUDE_DIR lo.h PATH_SUFFIXES lo)
+
+if(LINUX)
+find_library(LIBLO_LIBRARY NAMES lo)
+else()
 find_library(LIBLO_LIBRARY NAMES liblo.a lo)
+endif()
 
 set(LIBLO_INCLUDE_DIRS ${LIBLO_INCLUDE_DIR})
 set(LIBLO_LIBRARIES ${LIBLO_LIBRARY} )
