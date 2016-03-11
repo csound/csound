@@ -282,7 +282,7 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
     int size;
-    char *str1 = p->str1->data, *str2 = strdup(p->str2->data);
+    char *str1 = strdup(p->str1->data), *str2 = strdup(p->str2->data);
 
     if(str1 == NULL || str2 == NULL){
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
@@ -297,15 +297,24 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
         p->r->size = size+1;
     }
     else if (UNLIKELY((int) size >= p->r->size)) {
-      p->r->data = csound->ReAlloc(csound, p->r->data, size + 1);
-      p->r->size = size + 1;
+       char *nstr =  csound->ReAlloc(csound, p->r->data, size + 1);
+       if(p->r->data == p->str1->data){
+         p->str1->data = nstr; 
+         p->str1->size = size + 1;
+       } 
+       if(p->r->data == p->str2->data){
+         p->str2->data = nstr; 
+         p->str2->size = size + 1;
+       } 
+         p->r->data = nstr; 
+         p->r->size = size + 1;
     }
 
-    if (p->r->data != str1)
-      strncpy((char*) p->r->data,  str1, p->r->size);
+    strncpy((char*) p->r->data,  str1, p->r->size-1);
     strcat((char*) p->r->data, str2);
 
     free(str2);                 /* not needed anymore */
+    free(str1);
     return OK;
 }
 
