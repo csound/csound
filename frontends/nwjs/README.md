@@ -69,7 +69,7 @@ Install [Node.js](https://nodejs.org/en/). On Windows, make sure you get the ver
 version of Csound that you need to use. The default should now be x64.
 
 From the Node.js command prompt, execute `npm install nw-gyp` to install the build tool
-for NW.js addons. See [nw-gyp][http://docs.nwjs.io/en/v0.13.0-rc2/For%20Users/Advanced/Use%20Native%20Node%20Modules/] for more information.
+for NW.js addons. See [nw-gyp](http://docs.nwjs.io/en/v0.13.0-rc2/For%20Users/Advanced/Use%20Native%20Node%20Modules/) for more information.
 
 Set an environment variable named `CSOUND_HOME` that points to the root directory of
 your Csound build directory. Or, it may be necessary to modify binding.gyp to reflect the
@@ -93,7 +93,7 @@ the scope of NW.js's addon loader.
 
 Test your installation by running the NW.js program, `nw`. Drag the `NW_Csound_Demo.html` file
 and drop it on `nw`'s window. You should hear the Csound piece "Xanadu" by Joseph Kung,
-which is embedded in the HTML file, and you should be able to click on `nw`'s menu button
+which is embedded in the HTML file, and you should be able press the [F12] key
 to bring up the NW.js developer tools, where you should see the runtime messages
 from Csound being printed in the JavaScript console.
 
