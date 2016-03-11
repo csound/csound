@@ -1081,10 +1081,17 @@ function(add_dependency_to_framework pluginlib dependency)
 endfunction(add_dependency_to_framework)
 
 # Add the install target
-install(TARGETS ${CSOUNDLIB}
+if(WIN32)
+  install(TARGETS ${CSOUNDLIB}
     RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}"
     ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
     FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
+else()
+  install(TARGETS ${CSOUNDLIB}
+    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
+    FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
+endif()
 
 if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
@@ -1101,6 +1108,7 @@ if(WIN32)
     if(NOT MSVC)
       list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
     endif()
+else()
 endif()
 
 if(CURL_FOUND)
