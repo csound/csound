@@ -62,10 +62,10 @@ and [Python 2.7][python].
 
 To build on other platforms, you need to install [GCC][gcc] and [Python 2.7][python].
 
-Install [NW.js][nwjs]. On Windows, make sure you get the version built for the CPU architecture of the
+Install [NW.js](nwjs). On Windows, make sure you get the version built for the CPU architecture of the
 version of Csound that you need to use. The default should now be x64.
 
-Install [Node.js][https://nodejs.org/en/]. On Windows, make sure you get the version built for the CPU architecture of the
+Install [Node.js](https://nodejs.org/en/). On Windows, make sure you get the version built for the CPU architecture of the
 version of Csound that you need to use. The default should now be x64.
 
 From the Node.js command prompt, execute `npm install nw-gyp` to install the build tool
