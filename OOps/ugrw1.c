@@ -1170,7 +1170,7 @@ int printks(CSOUND *csound, PRINTKS *p)
 int printsset(CSOUND *csound, PRINTS *p)
 {
     PRINTKS pk;
-    char        string[8192];
+    char    string[8192];
     MYFLT ptime = 1;
     string[0] = '\0';    /* necessary as sprints is not nice */
     pk.h = p->h;
@@ -1185,15 +1185,20 @@ int printsset(CSOUND *csound, PRINTS *p)
 int printsset_S(CSOUND *csound, PRINTS *p)
 {
     PRINTKS pk;
-    char        string[8192];
+    char   string[8192];
     MYFLT ptime = 1;
     string[0] = '\0';    /* necessary as sprints is not nice */
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
     printksset_S(csound, &pk);
+    if(strlen(pk.txtstring) < 8191){
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
     csound->MessageS(csound, CSOUNDMSG_ORCH, string);
+    } else {
+      csound->Warning(csound, 
+		      "Formatting string too long: %s", pk.txtstring); 
+    }
     return OK;
 }
 
