@@ -1,7 +1,5 @@
 # CSOUND.NODE
 
-Version 6.05.2
-
 Michael Gogins<br>
 http://michaelgogins.tumblr.com<br>
 michael dot gogins at google dot com
@@ -64,24 +62,20 @@ and [Python 2.7][python].
 
 To build on other platforms, you need to install [GCC][gcc] and [Python 2.7][python].
 
-Install [NW.js][nwjs]. On Windows, make sure that this is the version for 32 bit CPU
-architecture.
+Install [NW.js][nwjs]. On Windows, make sure you get the version built for the CPU architecture of the
+version of Csound that you need to use. The default should now be x64.
 
-Install [Node.js][https://nodejs.org/en/]. On Windows, make sure that this is the version for 32 bit CPU
-architecture.
+Install [Node.js][https://nodejs.org/en/]. On Windows, make sure you get the version built for the CPU architecture of the
+version of Csound that you need to use. The default should now be x64.
 
 From the Node.js command prompt, execute `npm install nw-gyp` to install the build tool
-for NW.js addons. See [nw-gyp][] for more information.
-
-From the io.js command prompt, execute `nw-gyp configure --version <version number of NW.js>`
-to configure the build tool for your version of NW.js. The version number is printed
-on the default window of the NW.js `nw` program.
+for NW.js addons. See [nw-gyp][http://docs.nwjs.io/en/v0.13.0-rc2/For%20Users/Advanced/Use%20Native%20Node%20Modules/] for more information.
 
 Set an environment variable named `CSOUND_HOME` that points to the root directory of
-your Csound installation. Or, it may be necessary to modify binding.gyp to reflect the
+your Csound build directory. Or, it may be necessary to modify binding.gyp to reflect the
 installed locations of the Csound header files and shared libraries on your system.
 
-In the `csound/frontends/nwjs` directory, execute `nw-gyp build` to build `csound.node`.
+In the `csound/frontends/nwjs` directory, execute `nw-gyp rebuild --target=0.13.0-rc1 --arch=x64` (or, --arch=x86) to build `csound.node`.
 If the build messages end with `ok`, then the build succeeded.
 
 ## INSTALLING
