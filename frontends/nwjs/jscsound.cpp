@@ -47,6 +47,7 @@
 #include <memory>
 #include <node.h>
 #include <string>
+#include <uv.h>
 #include <v8.h>
 #if defined(WIN32)
 #include <concurrent_queue.h>
