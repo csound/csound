@@ -168,7 +168,9 @@ static int start_portmidi(CSOUND *csound)
       csound->ErrorMsg(csound, Str(errMsg));
       return -1;
     }
+#if !defined(WIN32)
     //csound_global_mutex_unlock();
+#endif
     return csound->RegisterResetCallback(csound, NULL, stop_portmidi);
 }
 
