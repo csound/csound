@@ -756,9 +756,13 @@ extern "C"
       }
     else
       {
+#if !defined(WIN32)
         csound_global_mutex_lock();
+#endif
         Stk::setRawwavePath(path);
+#if !defined(WIN32)
         csound_global_mutex_unlock();
+#endif
         csound->DebugMsg(csound,
                          Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
       }
