@@ -80,7 +80,7 @@ elseif(LINUX)
     CHECK_CXX_COMPILER_FLAG("-std=gnu++0x" COMPILER_SUPPORTS_CXX0X)
     if(COMPILER_SUPPORTS_CXX11)
         make_plugin(padsynth padsynth_gen.cpp)
-        set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11") 
+        set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11")
     elseif(COMPILER_SUPPORTS_CXX0X)
         make_plugin(padsynth padsynth_gen.cpp)
         set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++0x")
@@ -144,7 +144,7 @@ if(BUILD_FLUID_OPCODES)
         include_directories("${FLUIDSYNTH_INCLUDE_DIR}")
      endif()
 
-     if(WIN32 AND NOT MSVC) 
+     if(WIN32 AND NOT MSVC)
         set(FSYNTH_SUPPORT_LIBS ${FLUIDSYNTH_LIBRARY} dsound portaudio
           ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} wsock32 glib-2.0
           intl iconv ws2_32 winmm Setupapi)
@@ -181,7 +181,7 @@ if(BUILD_OSC_OPCODES)
     make_plugin(osc OSC.c)
     if(WIN32)
       target_link_libraries(osc ${LIBLO_LIBRARY} pthread wsock32 ws2_32)
-      if(NOT MSVC) 
+      if(NOT MSVC)
         target_link_libraries(osc iphlpapi)
       endif()
     else()
@@ -262,20 +262,21 @@ endif()
 #    make_plugin(ogg ogg.c "${vorbis_LIBS}")
 #endif()
 
-check_deps(BUILD_VST4CS_OPCODES VSTSDK2X_DIR FLTK_FOUND)
+check_deps(BUILD_VST4CS_OPCODES VSTSDK2X_FOUND FLTK_FOUND)
+message("VSTSDK2X_INCLUDE_DIR: ${VSTSDK2X_INCLUDE_DIR}")
 if(BUILD_VST4CS_OPCODES)
     include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
-    include_directories(${VSTSDK2X_DIR})
-    include_directories(${VSTSDK2X_DIR}/public.sdk/source/vst2.x)
-    include_directories(${VSTSDK2X_DIR}/pluginterfaces/source/vst2.x)
+    include_directories(${VSTSDK2X_INCLUDE_DIR})
+    include_directories(${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x)
+    include_directories(${VSTSDK2X_INCLUDE_DIR}/pluginterfaces/source/vst2.x)
     include_directories(${FLTK_INCLUDE_DIR})
     add_definitions(-DVST_FORCE_DEPRECATED=0 -DCS_VSTHOST)
     set(VST4CS_SRCS
         vst4cs/src/vst4cs.cpp
         vst4cs/src/vsthost.cpp
         vst4cs/src/fxbank.cpp
-        ${VSTSDK2X_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
-        ${VSTSDK2X_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
+        ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
+        ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
     add_library(vst4cs SHARED ${VST4CS_SRCS})
     set_target_properties(vst4cs PROPERTIES
         LINK_INTERFACE_LIBRARIES ""

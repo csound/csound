@@ -8,6 +8,8 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project (Csound)
 
+include("${CUSTOM_CMAKE}" OPTIONAL)
+
 ENABLE_TESTING()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -419,7 +421,9 @@ if(NOT LIBSNDFILE_LIBRARY)
     message(FATAL_ERROR "Csound requires the sndfile library")
 endif()
 
+find_package(Boost)
 find_package(CURL)
+find_package(FLTK)
 find_package(Java)
 find_package(JNI)
 find_package(LIBLO)
@@ -428,6 +432,7 @@ find_package(MUSICXML)
 find_package(PORTSMF)
 find_package(PythonLibs)
 find_package(STK)
+find_package(SWIG)
 find_package(VSTSDK2X)
 
 if(WIN32 AND NOT MSVC)
