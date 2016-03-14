@@ -5841,9 +5841,9 @@ msgid "printks not initialised"
 msgstr "printks : non initialisé"
 
 #: OOps/ugrw1.c:1200
-#, fuzzy, c-format
+#, c-format
 msgid "Formatting string too long: %s"
-msgstr "la chaîne est trop longue"
+msgstr "Chaîne de formatage trop longue : %s"
 
 #: OOps/ugrw1.c:1331
 msgid "inz index > isizea. Not writing."
