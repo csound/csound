@@ -140,7 +140,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
       free(csound->delayederrormessages);
       csound->delayederrormessages = NULL;
     }
-    
+
     /* check for CSD file */
     if (csound->orchname == NULL) {
       if (csound->info_message_request) {

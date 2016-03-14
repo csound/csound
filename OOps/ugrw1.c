@@ -1196,8 +1196,8 @@ int printsset_S(CSOUND *csound, PRINTS *p)
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
     csound->MessageS(csound, CSOUNDMSG_ORCH, string);
     } else {
-      csound->Warning(csound, 
-		      "Formatting string too long: %s", pk.txtstring); 
+      csound->Warning(csound,
+                      Str("Formatting string too long: %s"), pk.txtstring);
     }
     return OK;
 }
