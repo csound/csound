@@ -294,25 +294,25 @@ static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
 
     if (p->lastframe < p->fin->framecount) {
       int32 framesize = p->fin->N+2,i;
-      if(p->async == 0) {
-	float _0dbfs = (float) csound->Get0dBFS(csound);
+      if (p->async == 0) {
+        float _0dbfs = (float) csound->Get0dBFS(csound);
         float *fout = p->frame.auxp;
-        for (i=0;i < framesize; i+=2){
+        for (i=0;i < framesize; i+=2) {
             fout[i] =   fin[i]/_0dbfs;
             fout[i+1] = fin[i+1];
-         }
-      if (UNLIKELY(!csound->PVOC_PutFrames(csound, p->pvfile, fout, 1)))
-        return csound->PerfError(csound, p->h.insdshead,
-                                 Str("pvsfwrite: could not write data\n"));
+        }
+        if (UNLIKELY(!csound->PVOC_PutFrames(csound, p->pvfile, fout, 1)))
+          return csound->PerfError(csound, p->h.insdshead,
+                                   Str("pvsfwrite: could not write data\n"));
       }
       else {
-      MYFLT *fout = p->frame.auxp;
-      MYFLT _0dbfs = csound->Get0dBFS(csound);
-      for (i=0;i < framesize; i+=2){
-         fout[i] = (MYFLT) fin[i]/_0dbfs;
-         fout[i+1] = (MYFLT) fin[i+1];
-      }
-      csound->WriteCircularBuffer(csound, p->cb, fout, framesize);
+        MYFLT *fout = p->frame.auxp;
+        MYFLT _0dbfs = csound->Get0dBFS(csound);
+        for (i=0;i < framesize; i+=2){
+          fout[i] = (MYFLT) fin[i]/_0dbfs;
+          fout[i+1] = (MYFLT) fin[i+1];
+        }
+        csound->WriteCircularBuffer(csound, p->cb, fout, framesize);
       }
       p->lastframe = p->fin->framecount;
     }
