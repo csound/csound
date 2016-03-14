@@ -1276,9 +1276,11 @@ if(BUILD_STATIC_LIBRARY)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
-install(TARGETS ${CSOUNDLIB}
-    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
+# VL -- this seems to be a duplicate instruction
+# and it's breaking the build. See lines 1088-95
+#install(TARGETS ${CSOUNDLIB}
+#    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+#   ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 
 
 ## option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
