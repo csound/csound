@@ -438,7 +438,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     int     i, err = 0;
     char    opcod;
     memset(&evt, 0, sizeof(EVTBLK));
-
+    
     if (p1==0)
          opcod = *((STRINGDAT*) p->args[0])->data;
     else opcod = p1;
