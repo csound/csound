@@ -299,14 +299,14 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     else if (UNLIKELY((int) size >= p->r->size)) {
        char *nstr =  csound->ReAlloc(csound, p->r->data, size + 1);
        if(p->r->data == p->str1->data){
-         p->str1->data = nstr; 
+         p->str1->data = nstr;
          p->str1->size = size + 1;
-       } 
+       }
        if(p->r->data == p->str2->data){
-         p->str2->data = nstr; 
+         p->str2->data = nstr;
          p->str2->size = size + 1;
-       } 
-         p->r->data = nstr; 
+       }
+         p->r->data = nstr;
          p->r->size = size + 1;
     }
 
