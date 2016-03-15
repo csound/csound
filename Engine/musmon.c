@@ -1202,6 +1202,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       memcpy(e->evt.strarg, evt->strarg, p-evt->strarg+1 );
       e->evt.scnt = evt->scnt;
     }
+    e->evt.pinstance = evt->pinstance;
     e->evt.opcod = evt->opcod;
     e->evt.pcnt = evt->pcnt;
     p = &(e->evt.p[0]);

@@ -1,3 +1,4 @@
+
 /*
     remote.c:
 
@@ -594,6 +595,7 @@ int insSendevt(CSOUND *csound, EVTBLK *evt, int rfd)
     EVTBLK *cpp = (EVTBLK *)bp->data;       /* align an EVTBLK struct */
     int nn;
     MYFLT *f, *g;
+    cpp->pinstance = NULL;
     cpp->strarg = NULL;                     /* copy the initial header */
     cpp->scnt = 0;
     cpp->opcod = evt->opcod;
