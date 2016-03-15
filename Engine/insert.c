@@ -386,6 +386,9 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, Str("instr %d now active:\n"), insno);
       showallocs(csound);
     }
+     if (newevtp->pinstance != NULL) {
+       *((MYFLT *)newevtp->pinstance) = (MYFLT) ((long) ip);
+     }
     return 0;
 }
 

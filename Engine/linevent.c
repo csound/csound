@@ -501,6 +501,9 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
     evt.opcod = 'i';
     evt.pcnt = p->INOCOUNT;
 
+       /* pass in the memory to hold the instance after insertion */
+    evt.pinstance = (void *) p->inst;
+
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (insname) {

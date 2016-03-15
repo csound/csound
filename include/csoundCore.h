@@ -443,7 +443,7 @@ typedef struct {
     int     scnt;
     char    *strarg;
     /* instance pointer */
-    void  *pinstance;  /* TODO - Remove this field in Csound 7, not being used */
+    void  *pinstance;  /* used in nstance opcode */
     /** Event type */
     char    opcod;
     /** Number of p-fields */
