@@ -120,7 +120,7 @@ extern "C" {
         while (p->eventQueue != NULL) {
           rtEvt_t *ep = p->eventQueue;
           p->eventQueue = ep->nxt;
-          ep->evt->pinstance = NULL;
+          ep->evt.pinstance = NULL;
           csound->UnlockMutex(p->mutex_);
           csound->insert_score_event_at_sample(csound, &(ep->evt),
                                      csound->GetCurrentTimeSamples(csound));
@@ -168,7 +168,7 @@ extern "C" {
         /* Create the new event */
         evt = (rtEvt_t*) malloc(sizeof(rtEvt_t));
         evt->nxt = NULL;
-        evt->pinstance = NULL;
+        evt->evt.pinstance = NULL;
         evt->evt.strarg = NULL; evt->evt.scnt = 0;
         evt->evt.opcod = (char) *args[0];
         if (evt->evt.opcod == '\0')
