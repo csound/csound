@@ -120,6 +120,7 @@ extern "C" {
         while (p->eventQueue != NULL) {
           rtEvt_t *ep = p->eventQueue;
           p->eventQueue = ep->nxt;
+	  ep->evt->pinstance = NULL;
           csound->UnlockMutex(p->mutex_);
           csound->insert_score_event_at_sample(csound, &(ep->evt),
                                      csound->GetCurrentTimeSamples(csound));
@@ -167,6 +168,7 @@ extern "C" {
         /* Create the new event */
         evt = (rtEvt_t*) malloc(sizeof(rtEvt_t));
         evt->nxt = NULL;
+	evt->pinstance = NULL;
         evt->evt.strarg = NULL; evt->evt.scnt = 0;
         evt->evt.opcod = (char) *args[0];
         if (evt->evt.opcod == '\0')
@@ -194,7 +196,6 @@ extern "C" {
         {
           EVTBLK  e;
           int     i;
-
           /* Create the new event */
           e.strarg = NULL; e.scnt = 0;
           e.opcod = (char) *args[0];
@@ -206,8 +207,9 @@ extern "C" {
             e.p[i] = *args[i];
           if (e.p[2] < MYFLT(0.0))
             e.p[2] = MYFLT(0.0);
+	  e.pinstance = NULL;
           csound->insert_score_event_at_sample(csound, &e,
-                                    csound->GetCurrentTimeSamples(csound));
+	                          csound->GetCurrentTimeSamples(csound));
         }
   }
 }
