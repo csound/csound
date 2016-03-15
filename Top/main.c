@@ -519,9 +519,12 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
 PUBLIC int csoundCompileCsd(CSOUND *csound, char *str) {
 #ifndef OLD
     CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
+    if(tt != NULL){
     int res = csoundCompileCsdText(csound, tt->body);
     corfile_rm(&tt);
     return res;
+    } 
+    return CSOUND_ERROR;  
 #else
     if ((csound->engineStatus & CS_STATE_COMP) == 0) {
       char *argv[2] = { "csound", (char *) str };
