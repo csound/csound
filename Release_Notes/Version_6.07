@@ -31,9 +31,12 @@ New opcodes:
          voltage-controlled filter emulations from Fons Andriaensen.
 
     o    S() converter from k-rate and i-time number to a string.
+
+
 New Gen and Macros:
 
-    o    
+    o    NONE
+
 
 Orchestra:
 
@@ -99,7 +102,9 @@ Modified Opcodes and Gens:
 
      o   sockrecv now works at a and k rate
 
-     o   GEN49 now works fron ftgen calls
+     o   GEN49 now works from ftgen calls
+
+     o   GEN34 liberalised in tables it accepts
      
 Utilities:
 
@@ -177,6 +182,12 @@ Bugs fixed:
 
     o   GEN34 now allowing non-power-of-two source tables
 
+    o   vst2cs will now work on 64bit architecture
+
+    o   strcat mended
+
+    o   nstance mended
+
 ====================
 SYSTEM LEVEL CHANGES
 ====================
@@ -246,9 +257,11 @@ GNU/Linux
 ========================================================================
 
 ========================================================================
-commit 92bb46d79a02d4b2b4acce9e871ff3efd3af584f
-Author: jpff <jpff@codemist.co.uk>
-Date:   Mon Feb 29 14:35:07 2016 +0000
+commit d334de98d35df3c627faa422db23ba0bce044f81
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Mar 15 10:55:07 2016 +0000
+
+    fixed FLbutton
 
 commit d4a6368ca84611c92916dbb9c965f93330b24b7e
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -344,4 +357,5 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sun Nov 29 18:47:26 2015 +0000
 
     midi_out_read returning the number of bytes read
-    9but there is no midi_out_read function!)
+    (but there is no midi_out_read function!)
+    
