@@ -20,7 +20,8 @@ New opcodes:
     o    compress2: like compress but using a more normal use of dB
          (0.0 for full scale).
 
-    o    (Experimental) New cuda opcodes cudasynth2 and cudanal2.
+    o    (Experimental, source code-only) New cuda opcodes cudasynth2
+         and cudanal2
 
     o    directory opcode: Reads a directory and outputs to a string
          array a list of file names.
@@ -106,6 +107,8 @@ Modified Opcodes and Gens:
 
      o   GEN34 liberalised in tables it accepts
      
+     o   chnget now allows channel names to be changed at perf time.
+
 Utilities:
 
   o    
@@ -187,6 +190,10 @@ Bugs fixed:
     o   strcat mended
 
     o   nstance mended
+    
+    o   fixed small issues in rtauhal module
+
+
 
 ====================
 SYSTEM LEVEL CHANGES
@@ -205,9 +212,11 @@ System changes:
     o   The kcounter value is now consistently an unsigned 64bit
         value, allowing for long performances.
 
+
+
 API
 ===
-    * The function call csound-<GetKcounter(csound) now returns an
+    * The function call csound->GetKcounter(csound) now returns an
       unsigned 64 bit integer.  Previously it returned a long which is
       unclear.
     
@@ -261,14 +270,6 @@ commit d334de98d35df3c627faa422db23ba0bce044f81
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Tue Mar 15 10:55:07 2016 +0000
 
-    fixed FLbutton
-
-commit d4a6368ca84611c92916dbb9c965f93330b24b7e
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Jan 23 16:21:24 2016 +0000
-
-    fixed merging of global arrays bug
-
 commit 094229eed7529a0698704711a538dd2117d10a93
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sun Jan 17 11:31:12 2016 +0000
@@ -281,81 +282,3 @@ Date:   Thu Jan 14 15:06:02 2016 +0000
 
     normalising filters
 
-commit db925f4b2d2441cd878a1b4c8d09a22999e8921b
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Jan 14 10:41:29 2016 +0000
-
-    added audio-rate versions of moog filters
-
-commit 2543d8c6519fd2311b00403fa64204379731a4f4
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Jan 13 11:52:08 2016 +0000
-
-    fixed the setting of channels in chnget
-
-commit bf6817a55c75b03603c03b5cb0c0b9663b56106d
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sun Jan 10 21:17:07 2016 +0000
-
-    fixed chnget
-
-commit 0586ad2ace731cd18aaeadb23d6de1e5c06e5e28
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Jan 4 21:41:54 2016 +0000
-
-    hw channels probe on rtauhal
-
-commit 497e56a4da34a9e78341dc6107d2b54b0c0aa903
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Jan 4 19:39:51 2016 +0000
-
-    added means of checking hw channels
-
-commit 0335d2ca6c1240dbfffdc84ffa8c375772001914
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Dec 14 09:58:04 2015 +0000
-
-    fixed naming of ports
-
-commit 79e3aa7e20bf959ad9998d0b49afd6b2dbb58e49
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Dec 14 09:39:08 2015 +0000
-
-    jack midi client option
-
-commit ae397552fb31e1c37ed66dbd58d33958464cd591
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sun Dec 13 17:07:48 2015 +0000
-
-    fixed auhal format flag
-
-commit 92e2cedc908cc941e41672efc0b3946467edc3fa
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Dec 12 09:38:04 2015 +0000
-
-    midi out client setting
-
-commit d39b673c2cfe5c677a319c0af4af74977a76e491
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Dec 11 11:34:30 2015 +0000
-
-    fixed bug in jack midi
-
-commit 1670cca8818ce0cead33193f99e41db4779caba0
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Dec 11 11:27:19 2015 +0000
-
-    fixing jack connections
-
-commit 82fc58dd698a6c731700e1629346ec8b74fcd2dd
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Dec 11 09:56:38 2015 +0000
-
-    naming of jack midi ports
-
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sun Nov 29 18:47:26 2015 +0000
-
-    midi_out_read returning the number of bytes read
-    (but there is no midi_out_read function!)
-    
