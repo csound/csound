@@ -280,7 +280,7 @@ int linseg(CSOUND *csound, LINSEG *p)
 
 /* **** ADSR is just a construction and use of linseg */
 
-static int adsrset1(CSOUND *csound, LINSEG *p, int midip, int checkDur)
+static int adsrset1(CSOUND *csound, LINSEG *p, int midip)
 {
     SEG         *segp;
     int         nsegs;
@@ -335,8 +335,8 @@ static int adsrset1(CSOUND *csound, LINSEG *p, int midip, int checkDur)
                                 /* Sustain */
     /* Should use p3 from score, but how.... */
     dur = len - *argp[4] - *argp[0] - *argp[1] - *argp[3];
-    if (checkDur && dur <0.0)
-      return csound->InitError(csound, Str("length of ADSR note too short"));
+    if (!midip && dur <0.0)
+      csound->Warning(csound, Str("length of ADSR note too short"));
     segp->nxtpt = *argp[2];
     segp->cnt = (int32)(dur * CS_EKR + FL(0.5));
     if (UNLIKELY((segp->acnt = (int32)(dur * csound->esr + FL(0.5))) < 0))
@@ -367,12 +367,12 @@ static int adsrset1(CSOUND *csound, LINSEG *p, int midip, int checkDur)
 
 int adsrset(CSOUND *csound, LINSEG *p)
 {
-    return adsrset1(csound, p, 0, 1);
+    return adsrset1(csound, p, 0);
 }
 
 int madsrset(CSOUND *csound, LINSEG *p)
 {
-    return adsrset1(csound, p, 1, 0);
+    return adsrset1(csound, p, 1);
 }
 
 /* End of ADSR */
