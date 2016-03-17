@@ -1645,7 +1645,7 @@ int perf_phs(CSOUND *csound, FFT *p){
 }
 
 int init_logarray(CSOUND *csound, FFT *p){
-    tabensure(csound, p->out, p->out->sizes[0]);
+    tabensure(csound, p->out, p->in->sizes[0]);
     if(*((MYFLT *)p->in2))
       p->b = 1/log(*((MYFLT *)p->in2));
     else
