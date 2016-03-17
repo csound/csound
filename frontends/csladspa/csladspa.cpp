@@ -91,7 +91,6 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   inp = new LADSPA_Data*[chans];
   outp = new LADSPA_Data*[chans];
 
-
   // csound parameters
   cmdl = new char*[5];
   cmdl[0] = (char*)"csound";
@@ -103,6 +102,7 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   sprintf(sr,"%d", (int)rate);
   sr_override.append("--sample-rate= ");
   sr_override.append(sr);
+  printf("SR=%s\n", sr_override.c_str());
   cmdl[3] = (char *) sr_override.c_str();
 
   // ksmps override
@@ -110,7 +110,8 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   sprintf(kr,"%f",(float)rate/ksmps);
   kr_override.append("-k ");
   kr_override.append(kr);
-  cmdl[4] = (char *) kr_override.c_str();
+  printf("KR=%s \n", kr_override.c_str());
+  cmdl[4] = (char*) kr_override.c_str();
 
   csound =  new Csound;
   result = csound->Compile(5,cmdl);
@@ -121,12 +122,10 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   delete[] cmdl;
   delete[]  sr;
   delete[]  kr;
-  delete paux;
 }
 
 CsoundPlugin::~CsoundPlugin(){
   delete csound;
-  delete[] ctlchn;
   delete[] inp;
   delete[] outp;
 }
@@ -138,8 +137,8 @@ void CsoundPlugin::Process(unsigned long cnt){
   MYFLT scale = csound->Get0dBFS();
 
   for(i=0;i<ctlports;i++)
-    csound->SetChannel(ctlchn[i].c_str(),
-                       *(ctl[i]));
+   csound->SetChannel(ctlchn[i].c_str(),
+                      *(ctl[i]));
 
   if(!result){
     for(i=0; i < n; i++, frames++){
@@ -226,7 +225,7 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
   LADSPA_PortDescriptor *PortDescriptors = new LADSPA_PortDescriptor[MAXPORTS];
   LADSPA_PortRangeHint  *PortRangeHints =  new LADSPA_PortRangeHint[MAXPORTS];
   LADSPA_Descriptor *desc =  new LADSPA_Descriptor;
-
+  paux->ksmps = 10;
 
   // if descriptor was created
   // and csdfile was open properly
