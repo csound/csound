@@ -523,8 +523,8 @@ PUBLIC int csoundCompileCsd(CSOUND *csound, char *str) {
     int res = csoundCompileCsdText(csound, tt->body);
     corfile_rm(&tt);
     return res;
-    } 
-    return CSOUND_ERROR;  
+    }
+    return CSOUND_ERROR;
 #else
     if ((csound->engineStatus & CS_STATE_COMP) == 0) {
       char *argv[2] = { "csound", (char *) str };
