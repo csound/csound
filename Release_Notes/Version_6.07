@@ -266,19 +266,5 @@ GNU/Linux
 ========================================================================
 
 ========================================================================
-commit d334de98d35df3c627faa422db23ba0bce044f81
-Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Tue Mar 15 10:55:07 2016 +0000
-
-commit 094229eed7529a0698704711a538dd2117d10a93
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sun Jan 17 11:31:12 2016 +0000
-
-    lifted the limiting on the resonance
-
-commit b0b895df164e28016ad44a4f3dc37b7f8705cfe6
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Jan 14 15:06:02 2016 +0000
-
-    normalising filters
 
