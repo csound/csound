@@ -33,8 +33,10 @@ static int moogladder_init(CSOUND *csound,moogladder *p)
     if (LIKELY(*p->istor == FL(0.0))) {
       for (i = 0; i < 6; i++)
         p->delay[i] = 0.0;
+      //memset(p->delay, '\0', 6*sizeof(double));
       for (i = 0; i < 3; i++)
         p->tanhstg[i] = 0.0;
+      //memset(p->tanhstg, '\0', 3*sizeof(double));
       p->oldfreq = FL(0.0);
       p->oldres = -FL(1.0);     /* ensure calculation on first cycle */
     }
@@ -94,7 +96,7 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
         /* filter stages  */
         input = in[i] - res4 /*4.0*res*acr*/ *delay[5];
         delay[0] = stg[0] = delay[0] + tune*(tanh(input*THERMAL) - tanhstg[0]);
-#if 0
+#if 1
         input = stg[0];
         stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*THERMAL)) - tanhstg[1]);
         input = delay[1] = stg[1];
@@ -190,7 +192,7 @@ static int moogladder_process_aa(CSOUND *csound,moogladder *p)
         /* filter stages  */
         input = in[i] - res4 /*4.0*res*acr*/ *delay[5];
         delay[0] = stg[0] = delay[0] + tune*(tanh(input*THERMAL) - tanhstg[0]);
-#if 0
+#if 1
         input = stg[0];
         stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*THERMAL)) - tanhstg[1]);
         input = delay[1] = stg[1];
@@ -286,7 +288,7 @@ static int moogladder_process_ak(CSOUND *csound,moogladder *p)
         /* filter stages  */
         input = in[i] - res4 /*4.0*res*acr*/ *delay[5];
         delay[0] = stg[0] = delay[0] + tune*(tanh(input*THERMAL) - tanhstg[0]);
-#if 0
+#if 1
         input = stg[0];
         stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*THERMAL)) - tanhstg[1]);
         input = delay[1] = stg[1];
@@ -383,7 +385,7 @@ static int moogladder_process_ka(CSOUND *csound,moogladder *p)
         /* filter stages  */
         input = in[i] - res4 /*4.0*res*acr*/ *delay[5];
         delay[0] = stg[0] = delay[0] + tune*(tanh(input*THERMAL) - tanhstg[0]);
-#if 0
+#if 1
         input = stg[0];
         stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*THERMAL)) - tanhstg[1]);
         input = delay[1] = stg[1];
