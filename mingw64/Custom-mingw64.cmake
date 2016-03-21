@@ -9,3 +9,6 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(NEED_PORTTIME OFF)
 set(TCL_VERSION 8.5)
 set(USE_OPEN_MP OFF)
+
+#Turning off use of CURL until a static library can be used
+set(USE_CURL OFF)
