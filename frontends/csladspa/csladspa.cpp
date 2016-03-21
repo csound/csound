@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2007 Rory Walsh, Victor Lazzarini
+  Copyright (C) 2007-16 Rory Walsh, Victor Lazzarini
 
 
   csLADSPA is free software; you can redistribute it
@@ -35,6 +35,13 @@ using namespace std;
 
 #define MAXLINESIZE 4098
 #define MAXPORTS 64
+#define MAXPLUGINS 512
+
+// plugin aux information
+static struct AuxData {
+  string portnames[MAXPORTS];
+  int ksmps;
+} aux[MAXPLUGINS];
 
 //to remove leading and trailing spaces
 string trim(string s)
@@ -45,11 +52,6 @@ string trim(string s)
   s.erase( s.find_last_not_of( " \t\n" ) + 1);
   return s;
 }
-
-struct AuxData {
-  string *portnames;
-  int ksmps;
-};
 
 // Csound plugin class
 // holds the Csound instancec
@@ -210,7 +212,7 @@ static void runplugin(LADSPA_Handle inst, unsigned long cnt)
 
 
 // initialise a descriptor for a given CSD file
-static LADSPA_Descriptor *init_descriptor(char *csdname)
+static LADSPA_Descriptor *init_descriptor(char *csdname, int plugindex)
 {
   char *str, *tmp;
   string csddata, temp;
@@ -219,13 +221,11 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
   string::size_type indx,indx2,equals=0;
   fstream csdfile(csdname);
   char **PortNames = new char*[MAXPORTS];
-  AuxData *paux = new AuxData;
   float upper, lower;
-  string *ctlchn = new string[MAXPORTS];
+  string *ctlchn = aux[plugindex].portnames;
   LADSPA_PortDescriptor *PortDescriptors = new LADSPA_PortDescriptor[MAXPORTS];
   LADSPA_PortRangeHint  *PortRangeHints =  new LADSPA_PortRangeHint[MAXPORTS];
   LADSPA_Descriptor *desc =  new LADSPA_Descriptor;
-  paux->ksmps = 10;
 
   // if descriptor was created
   // and csdfile was open properly
@@ -235,7 +235,7 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
       str = new char[MAXLINESIZE+1];
       strcpy(tmp, csdname);
       desc->Label = (const char*) tmp;
-      paux->ksmps = 10;
+      aux[plugindex].ksmps = 10;
       // check channels
       while(!csdfile.eof()){
         csdfile.getline(str,MAXLINESIZE);
@@ -266,7 +266,7 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
         if(csddata.find("ksmps")!=string::npos){
           indx = csddata.find('=');
           temp = csddata.substr(indx+1,100);
-          paux->ksmps = (int) atoi((char *) temp.c_str());
+          aux[plugindex].ksmps = (int) atoi((char *) temp.c_str());
           break;
         }
         else if(csddata.find("instr")!=string::npos) break;
@@ -391,8 +391,8 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
         desc->deactivate = NULL;
         desc->cleanup = destroyplugin;
         // add the channel names to the descriptor
-        paux->portnames = ctlchn;
-        desc->ImplementationData = (void *) paux;
+        // paux->portnames = ctlchn;
+        desc->ImplementationData = (void *) &aux[plugindex];
         delete[] str;
         cerr << "PLUGIN LOADED\n";
         return desc;
@@ -403,7 +403,6 @@ static LADSPA_Descriptor *init_descriptor(char *csdname)
   // and return NULL
   delete desc;
   delete[] PortNames;
-  delete paux;
   delete[] ctlchn;
   delete[] PortDescriptors;
   delete[] PortRangeHints;
@@ -470,9 +469,11 @@ unsigned int CountCSD(char **csdnames)
             name.append(temp);
           }
           else name = temp;
-          csdnames[i] =  new char[name.length()+1];
-          strcpy(csdnames[i], (char*)name.c_str());
-          i++;
+	  if(i < MAXPLUGINS) {
+            csdnames[i] =  new char[name.length()+1];
+            strcpy(csdnames[i], (char*)name.c_str());
+            i++;
+	  }
         }
     }
   closedir(dip);
@@ -482,21 +483,21 @@ unsigned int CountCSD(char **csdnames)
 
 // plugin lib entry point
 PUBLIC
-const LADSPA_Descriptor *ladspa_descriptor(unsigned long Index)
+const LADSPA_Descriptor *ladspa_descriptor(unsigned long index)
 {
   // count CSD files to build the plugin lib
   // and fill in the CSD names list
   LADSPA_Descriptor *descriptor = NULL;
-  char **csdnames = new char*[100];
+  char **csdnames = new char*[MAXPLUGINS];
   unsigned int csds;
   csds = CountCSD(csdnames);
 
   // if the requested index is in the range of CSD numbers
-  if(Index<csds)
+  if(index < csds)
     {
-      cerr << "attempting to load plugin index: " << Index << "\n";
+      cerr << "attempting to load plugin index: " << index << "\n";
       // initialise the descriptor for a given CSD
-      descriptor = init_descriptor(csdnames[Index]);
+      descriptor = init_descriptor(csdnames[index], index);
     }
   // delete the CSD list
   for(unsigned int i=0; i < csds; i++) delete[] csdnames[i];
