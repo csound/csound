@@ -767,7 +767,7 @@ PUBLIK int CsoundPTisRunning(Cpt pt)
 PUBLIK void *CsoundPTgetProcessCB(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
-  cpt->GetProcessCallback();
+  return cpt->GetProcessCallback();
 }
 
 PUBLIK void CsoundPTsetProcessCB(Cpt pt, void (*callback)(void *), void *cbData)
