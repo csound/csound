@@ -80,8 +80,8 @@ If the build messages end with `ok`, then the build succeeded.
 
 ## INSTALLING
 
-Currently, getting csound.node to run in a development environment is tricky. The easiest way is to run the csound/mingw64/find_csound_dependencies.py script to copy all
-Csound targets and dependencies into the NW.js directory. Then set both OPCODE6DIR64 and NODE_PATH to point to the NW.js directory also.
+Currently, getting csound.node to run in a development environment is tricky. The easiest way is to run the csound/mingw64/find_csound_dependencies.py script,
+which copies all Csound targets and dependencies into the NW.js directory. Then set both OPCODE6DIR64 and NODE_PATH also to point to the NW.js directory.
 
 Test your installation by running the NW.js program, `nw`. Drag the `NW_Csound_Demo.html` file
 and drop it on `nw`'s window. You should hear the Csound piece "Xanadu" by Joseph Kung,
