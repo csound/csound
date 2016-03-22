@@ -106,7 +106,7 @@ void setOption(const FunctionCallbackInfo<Value>& args)
 /**
  * Runs arbitrary JavaScript code in the caller's context.
  */
-static double run_javascript(Isolate *isolate, std::string code)
+double run_javascript(Isolate *isolate, std::string code)
 {
     Handle<String> source = String::NewFromUtf8(isolate, code.c_str());
     Handle<Script> script = Script::Compile(source);
