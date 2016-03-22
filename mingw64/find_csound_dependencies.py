@@ -1,11 +1,11 @@
 #!python
 '''
-This module dynamically compiles a list of all runtime components of Csound and
-all their plugins and runtime dependencies, and copies them to a target directory.
-System files and some other files are excluded.
+Run this script in the mingw64 shell to dynamically compile a list of
+all runtime components of Csound and all their plugins and runtime
+dependencies, and copy them to a staging directory. System files and some
+other files are excluded.
 
-NOTE: The target directory must already exist, and each copied file overwrites any
-existing file of the same name.
+NOTE: The staging directory is always removed and re-created.
 '''
 import fnmatch
 import os
@@ -13,12 +13,13 @@ import os.path
 import shutil
 import subprocess
 
-build_directory = r'D:\msys64\home\restore\csound\mingw64\csound-mingw64'
-globs = '*.exe *.dll *.so *.node *.pyd *.py'
+csound_directory = r'D:\msys64\home\restore\csound'
+globs = '*.exe *.dll *.so *.node *.pyd *.py *.pdb'
 ldd_filepath = r'D:\msys64\usr\bin\ldd'
-target_directory = r'C:\temp\marshaling'
+staging_directory = r'C:/temp/csound_staging/'
 exclusions = set()
 
+os.chdir(csound_directory)
 targets = set()
 dependencies = set()
 for dirpath, dirnames, files in os.walk('.'):
@@ -51,6 +52,11 @@ for dependency in dependencies:
     if realpath.find('Windows') == -1 and realpath.find('''/dist/''') == -1 and realpath.find('CMake') == -1:
         nonsystem_dependencies.add(realpath)
 nonsystem_dependencies = sorted(nonsystem_dependencies)
+try:
+    shutil.rmtree(staging_directory)
+except:
+    pass
+os.mkdir(staging_directory)
 for dependency in nonsystem_dependencies:
     print dependency
-    shutil.copy(dependency, target_directory)
+    shutil.copy(dependency, staging_directory)
