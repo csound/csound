@@ -4,7 +4,7 @@ The following are instructions for building Csound for 64-bit Windows (x86_64) u
 
 ## Setup
 
-1  Install Microsoft Visual Studio 2013, Community Edition, from [here](https://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx).
+1. Install Microsoft Visual Studio 2013, Community Edition, from [here](https://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx).
 2. Install the Qt SDK for 64 bit CPU architecture and MSVS 2013, from [here](http://download.qt.io/official_releases/qt/5.6/5.6.0/qt-opensource-windows-x86-msvc2013_64-5.6.0.exe).
 3. Install the Chromium Embedded Framework from [here](https://cefbuilds.com/) and compile the solution using MSVS for 64 bit CPU architecture. ONce you have confirmated the cefclient runs, rebuild the wrapper library using the /MD and /MDd compiler options, which are required by the Qt SDK.
 4. Install node.js for Windows 64 bit CPU architecture from [here](https://nodejs.org/en/). This is used to build csound.node for NW.js.
@@ -60,7 +60,20 @@ site](http://ascend4.org/Setting_up_a_MinGW-w64_build_environment). Note that cu
 10. Edit the csound/mingw64/find_csound_dependencies.py script to reflect paths for tools and resources it requires. This may need to be edited if your paths differ from mine.
 11. Run ./build-mkg.sh in the mingw64 directory. It may be necessary to edit this script to reflect options or paths it requires. The first time you run this script, it should build Csound and then fail because some targets must be built with MSVS.
 12. Run the VS2013 x64 native tools command prompt. Change to the csound/mingw64 directory and run the make_import_library.cmd script. This will create a Microsoft-compatible import library for the mingw64-built Csound DLL. This import library is required to build csound.node and CsoundQt.
-13. Clone the CsoundQt [repository](https://github.com/CsoundQt/CsoundQt). Run QtCreator and open the CsoundQt qcs.pro project. Configure user.config.pri if necessary. Disable the shadow build option. Run qmake and rebuild the project.
+13. Clone the CsoundQt [repository](https://github.com/CsoundQt/CsoundQt). Run QtCreator and open the CsoundQt qcs.pro project. Configure config.user.pri if necessary. Disable the shadow build option. Run qmake and rebuild the project. My config.user.pri is:
+```
+CONFIG *= html5
+CONFIG *= perfThread_build
+
+CEF_HOME = D:/cef_binary_3.2556.1368.g535c4fb_windows64
+CSOUND_API_INCLUDE_DIR = D:/msys64/home/restore/csound/include
+CSOUND_INTERFACES_INCLUDE_DIR = D:/msys64/home/restore/csound/interfaces
+CSOUND_LIBRARY_DIR = D:/msys64/home/restore/csound/mingw64
+INCLUDEPATH += C:\Program_Files\Mega-Nerd\libsndfile\include
+LPTHREAD = D:\msys\local\opt\pthreads-w32-2-9-1-release\Pre-built.2\lib\x64\pthreadVC2.lib
+LSNDFILE = C:\Program_Files\Mega-Nerd\libsndfile\lib\libsndfile-1.lib
+PTHREAD_INCLUDE_DIR = D:/msys/local/opt/pthreads-w32-2-9-1-release/Pre-built.2/include
+```
 14. Run the node.js command prompt. Set the CSOUND_HOME environment variable to point to your Csound project root directory. Run 'nw-gyp rebuild --target=0.12.3 --arch=x64". If the script ends with "ok" it has succeeded.
 15. Run csound/mingw64/build-mkg.sh again. It should:
   * Run CMake.
