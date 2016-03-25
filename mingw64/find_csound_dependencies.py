@@ -62,6 +62,7 @@ csound64.dll
 luaCsnd6.dll
 luaCsoundAC.dll
 lua51.dll
+csound.node
 '''.split('\n')
 module_extensions = '.dll .so .DLL .SO'.split()
 def is_plugin(dependency):
@@ -83,24 +84,29 @@ def emit(dependency):
 os.chdir(csound_directory)
 targets = set()
 dependencies = set()
-for dirpath, dirnames, files in os.walk('.'):
-    for glob in globs.split(' '):
-        matches = fnmatch.filter(files, glob)
-        for match in matches:
-            filepath = os.path.join(dirpath, match)
-            if filepath.find('Setup_Csound6_') == -1:
-                targets.add(filepath)
-dependencies = set()
-for target in sorted(targets):
-    dependencies.add(target)
-    popen = subprocess.Popen([ldd_filepath, target], stdout = subprocess.PIPE)
-    output = popen.communicate()[0]
-    for line in output.split('\n'):
-        parts = line.split()
-        if len(parts) > 2:
-            dependencies.add(parts[2])
-        elif len(parts) > 0:
-            dependencies.add(parts[0])
+# In order to identify what file some dependency is for.
+with open('mingw64/csound_ldd.txt', 'w') as f:
+    for dirpath, dirnames, files in os.walk('.'):
+        for glob in globs.split(' '):
+            matches = fnmatch.filter(files, glob)
+            for match in matches:
+                filepath = os.path.join(dirpath, match)
+                if filepath.find('Setup_Csound6_') == -1:
+                    targets.add(filepath)
+        dependencies = set()
+    for target in sorted(targets):
+        dependencies.add(target)
+        popen = subprocess.Popen([ldd_filepath, target], stdout = subprocess.PIPE)
+        output = popen.communicate()[0]
+        f.write(target + '\n')
+        if len(output) > 1:
+            f.write(output + '\n')
+        for line in output.split('\n'):
+            parts = line.split()
+            if len(parts) > 2:
+                dependencies.add(parts[2])
+            elif len(parts) > 0:
+                dependencies.add(parts[0])
 print
 print 'CSOUND TARGETS AND DEPENDENCIES'
 print
@@ -113,11 +119,6 @@ for dependency in dependencies:
     realpath = realpath.replace('''D:/msys64/msys64/''', '''D:/msys64/''')
     nonsystem_dependencies.add(realpath)
 nonsystem_dependencies = sorted(nonsystem_dependencies)
-try:
-    shutil.rmtree(staging_directory)
-except:
-    pass
-os.mkdir(staging_directory)
 with open('installer/windows/csound_targets_and_dependencies.iss', 'w') as f:
     for dependency in nonsystem_dependencies:
         if not exclude(dependency):
