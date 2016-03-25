@@ -116,6 +116,7 @@ using namespace stk;
 
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 #include <string>
 #include <map>
 #include <vector>
@@ -756,9 +757,13 @@ extern "C"
       }
     else
       {
+        if (std::strlen(path) < 1) {
+            path = std::getenv("RAWWAVE_PATH");
+        }
 #if !defined(WIN32)
         csound_global_mutex_lock();
 #endif
+
         Stk::setRawwavePath(path);
 #if !defined(WIN32)
         csound_global_mutex_unlock();
