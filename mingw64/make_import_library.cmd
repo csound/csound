@@ -1,4 +1,8 @@
 @echo CREATING MICROSOFT IMPORT LIBRARY FOR CSOUND64.DLL FOR X64
+del exports.txt
+del csound64.def
+del csound64.exp
+del csound64.lib
 dumpbin /exports csound-mingw64/csound64.dll > exports.txt
 @echo LIBRARY CSOUND64 >> csound64.def
 @echo EXPORTS >> csound64.def
