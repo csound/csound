@@ -2,13 +2,10 @@
 
 The following are instructions for building Csound for 64-bit Windows (x86_64) using msys2 and mingw64. These instructions were used to build the Windows installer for Windows 64 bit CPU architecture on Windows 8.
 
-## Setup
+These instructions come in two parts. The first is for building a "plain" Csound that the build will install into a "dist" directory. This build is simple, and Csound will run in the "dist" directory. The second is for building all features of Csound that are available for Windows 64 bit CPU architecture, then building an Inno Setup installer for them, then running the installer. This build is considerably more complex.
 
-1. Install Microsoft Visual Studio 2013, Community Edition, from [here](https://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx).
-2. Install the Qt SDK for 64 bit CPU architecture and MSVS 2013, from [here](http://download.qt.io/official_releases/qt/5.6/5.6.0/qt-opensource-windows-x86-msvc2013_64-5.6.0.exe).
-3. Install the Chromium Embedded Framework from [here](https://cefbuilds.com/) and compile the solution using MSVS for 64 bit CPU architecture. Once you have confirmaed that the cefclient program runs, rebuild the wrapper library (libcef_dll_wrapper.lib) using the /MD (release) and /MDd (debug) compiler options, which are required by the Qt SDK.
-4. Install node.js for Windows 64 bit CPU architecture from [here](https://nodejs.org/en/). This is used to build csound.node for NW.js.
-4. Install NW.js for Windows 64 bit CPU architecture from [here](http://nwjs.io/). The latest version that I could get to work with csound.node is 0.12.3.
+## Plain Build
+
 8. Install the following dependencies, which are not or should not be built with mingw64. The build system should be able to find them without manual configuration.
   * The Java SDK for x64 from [Oracle](http://www.oracle.com/technetwork/java/index.html).
   * Python for x64 from [Python.org](https://www.python.org/).
@@ -56,6 +53,16 @@ export RAWWAVE_PATH=/home/restore/csound/mingw64/packages/stk/src/stk-4.5.1/raww
 ```
 7. Build and install packages for dependencies not currently in MSYS2's repositories. The formulas are included in the packages folder. Note that the purpose of these packages is simply to get dependencies installed for the Csound build system to find, not to replicate existing packages, so PKGBUILD files may be simplified. Also note that some packages contain patches that may need to be updated when source files are updated. Cd into each directory and use 'makepkg-mingw' to build the package. Use 'pacman -U name-of-package.pkg.tar.xz' to install the package. If there is a 'devel' package in the package directory, install that also. If there are any errors about line endings, simply run dos2unix on the file(s) to change the line endings.
 7. Create an mingw64-compatible import library for the MSVS-built Python DLL following [instructions here](http://ascend4.org/Setting_up_a_MinGW-w64_build_environment). Note that currently, gendef comes with the MSYS2 toolchain, and does not need to be built.
+8. Skip this step if you are performing the installer build: run ./build.sh in the mingw64 directory. It will run CMake, run make, and then copy the targets into the "dist" directory.
+
+# Installer Build
+
+1. Of course, configure your system as for the "Plain Build", above, but do not perform the actual build. In addition...
+1. Install Microsoft Visual Studio 2013, Community Edition, from [here](https://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx).
+2. Install the Qt SDK for 64 bit CPU architecture and MSVS 2013, from [here](http://download.qt.io/official_releases/qt/5.6/5.6.0/qt-opensource-windows-x86-msvc2013_64-5.6.0.exe).
+3. Install the Chromium Embedded Framework from [here](https://cefbuilds.com/) and compile the solution using MSVS for 64 bit CPU architecture. Once you have confirmaed that the cefclient program runs, rebuild the wrapper library (libcef_dll_wrapper.lib) using the /MD (release) and /MDd (debug) compiler options, which are required by the Qt SDK.
+4. Install node.js for Windows 64 bit CPU architecture from [here](https://nodejs.org/en/). This is used to build csound.node for NW.js.
+4. Install NW.js for Windows 64 bit CPU architecture from [here](http://nwjs.io/). The latest version that I could get to work with csound.node is 0.12.3.
 9. Set an environment variable XSL_BASE_PATH in ~/.bash_profile e.g. to mingw64/share/xml/docbook/xsl-stylesheets-1.78.1. Clone or update the Csound manual repository from git@github.com:csound/manual.git. Execute "mingw32-make html-dist" in the mingw64 shell to build the Csound Reference Manual.
 10. Edit the csound/mingw64/find_csound_dependencies.py script to reflect paths for tools and resources it requires. This may need to be edited if your paths differ from mine.
 11. Run ./build-mkg.sh in the mingw64 directory. It may be necessary to edit this script to reflect options or paths it requires. The first time you run this script, it should build Csound and then fail because some targets must be built with MSVS.
