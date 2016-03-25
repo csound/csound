@@ -160,7 +160,8 @@
  *
 
 { "ilimit", S(LIMIT),   1,      "i",    "iii",   klimit, NULL,   NULL},
-{ "limit",  S(LIMIT),   7,      "s",    "xkk",   limitset, klimit, limit},
+{ "limit",  S(LIMIT),   2,      "k",    "xkk",   NULL, klimit, limit},
+{ "limit",  S(LIMIT),   4,      "a",    "xkk",   NULL, klimit, limit},
 
  *
  */
