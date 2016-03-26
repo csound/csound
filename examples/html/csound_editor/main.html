@@ -90,6 +90,7 @@
                     this.window.csound.stop();
                     console.log("csound.stop()...");
                     this.close(true);
+                    gui.App.quit();
                 });
                 return;
             };
@@ -137,6 +138,7 @@ csound.perform();
                                         this.window.csound.stop();
                                         console.log("csound.stop()...");
                                         this.close(true);
+                                        guit.App.quit();
                                     });
                                 };
                             };
