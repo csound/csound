@@ -14,9 +14,9 @@
 ; PLAN
 ;
 ; C:\Program Files\Csound6
-;     bin (copy Csound, CsoundQt, PortAudio, libsndfile, LuaJIT, and CEF binary trees here; but not Csound opcodes).
+;     bin (copy Csound, CsoundQt, PortAudio, libsndfile, LuaJIT, NW.js, and CEF binary trees here; but not Csound opcodes).
 ;     doc (copy tree)
-;     examples (copy tree)
+;     examples (copy tree but exclude .wav files)
 ;     include
 ;         csound (copy include and interfaces dirs *.h and *.hpp)
 ;         csoundac (copy dir *.hpp)
@@ -33,14 +33,14 @@
 ; Can run from the command line with "/S /D installation directory".
 ;
 ; Uncomment the following line to build CsoundVST and vst4cs:
-; #define CSOUNDVST
+#define CSOUNDVST
 
 #define MyAppName "Csound6_x64"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.07.0-vst"
+#define MyAppMinVersion "6.07.0rc1-vst"
 #else
-#define MyAppMinVersion "6.07.0"
+#define MyAppMinVersion "6.07.0rc1"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://csound.github.io/"
@@ -69,7 +69,7 @@
 ; If you are not Michael Gogins, change this to your STK source directory.
 #define MyLibStkSourceDir "D:\msys64\home\restore\csound\mingw64\packages\stk\src\stk-4.5.1\"
 ; If you are not Michael Gogins, change this to your NW.js installation directory.
-#define MyNwJsDir "D:\nwjs-v0.12.3-win-x64\"
+#define MyNwJsDir "D:\nwjs-sdk-v0.13.1-win-x64\"
 ; If you are not Michael Gogins, change this to your Winpthreads installation directory.
 #define MyWinPthreadsDir "D:\msys\local\opt\pthreads-w32-2-9-1-release\Pre-built.2\"
 
@@ -160,10 +160,6 @@ Source: "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x64\*"; D
 Source: "{#MySourceDir}frontends/nwjs/build/Release/csound.node"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MySourceDir}frontends/nwjs/build/Release/csound.pdb"; DestDir: "{#APP_BIN}"; Components: core;
 
-#ifdef CSOUNDVST
-Source: "vst4cs.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: csoundvst;
-#endif
-
 Source: "{#MyNwJsDir}*.*"; DestDir: "{#APP_BIN}\"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "{#MyMingw64Dir}\bin\luajit.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
@@ -221,7 +217,7 @@ Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#MyAppURL}";  Component
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
 Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-cs6.exe"; WorkingDir: "{#APP_BIN}";  Components: core
-Name: "{group}\NW.js"; Filename: "{#APP_BIN}nw.exe {#APP_EXAMPLES}html/csound_editor/"; WorkingDir: "{#APP_BIN}";  Components: core
+Name: "{group}\NW.js"; Filename: "{#APP_BIN}nw.exe {#APP_EXAMPLES}html/csound_editor/main.html"; WorkingDir: "{#APP_BIN}";  Components: core
 Name: "{group}\LuaJIT"; Filename: "{#APP_BIN}luajit.exe"; WorkingDir: "{#APP_BIN}";  Components: core
 Name: "{group}\Audio device information"; Filename: "cmd"; Parameters: "/K pa_devs.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
 Name: "{group}\Audio device latency"; Filename: "cmd"; Parameters: "/K pa_minlat.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
