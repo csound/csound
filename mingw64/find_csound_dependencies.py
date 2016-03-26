@@ -19,8 +19,8 @@ ldd_filepath = r'D:\msys64\usr\bin\ldd'
 def exclude(filepath):
     if fnmatch.fnmatch(filepath, '''*/examples/*'''):
         return True
-    ##if fnmatch.fnmatch(filepath, '''*/frontends/*'''):
-    ##    return True
+    if fnmatch.fnmatch(filepath, '''*/frontends/*'''):
+        return True
     if fnmatch.fnmatch(filepath, '''*/installer/*'''):
         return True
     if fnmatch.fnmatch(filepath, '''*find_csound_dependencies.py'''):
