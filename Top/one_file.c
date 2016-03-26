@@ -47,6 +47,8 @@ int mkstemp(char *);
 #  define FALSE (0)
 #endif
 
+#define _DEBUG
+
 /* These are used to set/clear bits in csound->tempStatus.
    If the bit is set, it indicates that the given file is
    a temporary. */
