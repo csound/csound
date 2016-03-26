@@ -57,7 +57,7 @@ export RAWWAVE_PATH=/home/restore/csound/mingw64/packages/stk/src/stk-4.5.1/raww
 
 # Installer Build
 
-1. Of course, configure your system as for the "Plain Build", above, but do not perform the actual build. In addition...
+1. Of course, configure your system as for the "Plain Build", above, and perform all steps -- except do not perform the actual build. In addition...
 1. Install Microsoft Visual Studio 2013, Community Edition, from [here](https://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx).
 2. Install the Qt SDK for 64 bit CPU architecture and MSVS 2013, from [here](http://download.qt.io/official_releases/qt/5.6/5.6.0/qt-opensource-windows-x86-msvc2013_64-5.6.0.exe).
 3. Install the Chromium Embedded Framework from [here](https://cefbuilds.com/) and compile the solution using MSVS for 64 bit CPU architecture. Once you have confirmaed that the cefclient program runs, rebuild the wrapper library (libcef_dll_wrapper.lib) using the /MD (release) and /MDd (debug) compiler options, which are required by the Qt SDK.

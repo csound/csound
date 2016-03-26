@@ -19,8 +19,8 @@ ldd_filepath = r'D:\msys64\usr\bin\ldd'
 def exclude(filepath):
     if fnmatch.fnmatch(filepath, '''*/examples/*'''):
         return True
-    if fnmatch.fnmatch(filepath, '''*/frontends/*'''):
-        return True
+    ##if fnmatch.fnmatch(filepath, '''*/frontends/*'''):
+    ##    return True
     if fnmatch.fnmatch(filepath, '''*/installer/*'''):
         return True
     if fnmatch.fnmatch(filepath, '''*find_csound_dependencies.py'''):
@@ -64,6 +64,18 @@ luaCsoundAC.dll
 lua51.dll
 csound.node
 '''.split('\n')
+vst_targets = '''
+CsoundVST.dll
+csoundvstmain.exe
+vst4cs.dll
+'''.split('\n')
+python_targets = '''
+_csnd6.pyd
+_CsoundAC.pyd
+csnd6.py
+CsoundAC.py
+py.dll
+'''.split('\n')
 module_extensions = '.dll .so .DLL .SO'.split()
 def is_plugin(dependency):
     path, extension = os.path.splitext(dependency)
@@ -79,6 +91,13 @@ def emit(dependency):
         line = 'Source: "%s"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;\n' % dependency
     else:
         line = 'Source: "%s"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;\n' % dependency
+    # Patch the command if it is for a VST or Python feature.
+    filename = os.path.split(dependency)[1]
+    if filename in python_targets:
+        line = line.replace('Components: core;', 'Components: python;')
+    if filename in vst_targets:
+        line = line.replace('Components: core;', 'Components: csoundvst;')
+        line = '#ifdef CSOUNDVST\n' + line + '#endif\n'
     return line
 
 os.chdir(csound_directory)
