@@ -10,8 +10,9 @@ for debugging Csound.
 
 There is a test piece for each of the major runtime environments. Some of the
 pieces work for more than one runtime environment. All test pieces work with
-either MIDI or score input. Each test produces a half a minute
-or so of real-time audio. The HTML tests produce visuals as well.
+either MIDI or score input. More or less the same orchestra is used in all
+tests. Each test produces real-time audio and runs for a long time -- you
+have to kill it. The HTML tests produce visuals as well.
 
 1. osc_server.csd should always be running in the background,
    start_osc_server.cmd starts it.
@@ -19,19 +20,19 @@ or so of real-time audio. The HTML tests produce visuals as well.
 2. test_vst.csd for CsoundVST.
 1. test_with_html.csd for CsoundQt, NW.js, and Android.
 1. test_in_html.html for NW.js.
-1. test.py to test the Python interface.
-1. test.lua to test the Lua interface.
-1. test.java to test the Java interface.
+1. test.py for the Python interface.
+1. test.lua for the Lua interface.
+1. test.java for the Java interface.
 
 ## Features Tested
 
-These tests exercise the following features, but all features are not
-necessarily tested in each test piece.
+The test pieces exercise the following features, but all features are not
+necessarily tested in each piece.
 
 1. The OSC opcodes.
 1. The signal flow graph opcodes.
 1. The fluidsynth opcodes.
 1. The STK opcodes.
+1. The vst4cs opcodes (requires the 64 bit Pianoteq VST plugin).
 1. The Lua opcodes.
 1. The Python opcodes.
-1. The vst4cs opcodes (requires the 64 bit Pianoteq VST plugin).
