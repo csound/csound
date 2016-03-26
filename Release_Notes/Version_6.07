@@ -8,7 +8,7 @@ A large number of bug fixes, some quite major, some internal are
 included, as well as some new facilities and extensions. As ever there
 are coding improvements as well.
 
-The Developers 
+The Developers
 
 
 
@@ -49,14 +49,14 @@ Orchestra:
          for complex syntax
 
     o    While loop improved/fixed
-    
+
     o    Better and consistent reading of comments
 
     o    Continuation lines handled better, especially respecting line
          numbers
 
     o    opcode:S(.) syntax now allowed
-    
+
 Score:
 
     o    The list of tempo points in score opcode t is now arbitrarily
@@ -106,25 +106,25 @@ Modified Opcodes and Gens:
      o   GEN49 now works from ftgen calls
 
      o   GEN34 liberalised in tables it accepts
-     
+
      o   chnget now allows channel names to be changed at perf time.
 
 Utilities:
 
-  o    
+  o
 
 Frontends:
 
-  pnacl: 
+  pnacl:
 
   icsound:
 
   csound~:
-        
+
   Emscripten:
 
   csdebugger:
-  
+
        * Some memory issues fixed
 
   HTML5:
@@ -143,8 +143,8 @@ General usage:
     o   Multicore code now works wit midi instruments
 
     o   MIDI operations now available via a new rtmidi jack module (-+rtmidi=jack)
-    
-    
+
+
 Bugs fixed:
 
     o   Fix to trigseq
@@ -190,7 +190,7 @@ Bugs fixed:
     o   strcat mended
 
     o   nstance mended
-    
+
     o   fixed small issues in rtauhal module
 
 
@@ -219,7 +219,7 @@ API
     * The function call csound->GetKcounter(csound) now returns an
       unsigned 64 bit integer.  Previously it returned a long which is
       unclear.
-    
+
 
 Platform Specific
 =================
@@ -227,7 +227,7 @@ Platform Specific
 iOS
 ---
 
-    * 
+    *
 
 
 Android
@@ -235,24 +235,12 @@ Android
 
     * csoundCompileCsdText: new function to compile strings
 
-    
-
-Platform Specific
-=================
-
-iOS
----
-
-    * 
-
-
-Android
--------
-
-    * 
 
 Windows
 -------
+
+    * The Windows installer for Csound now contains all executables
+      built for 64 bit CPU architecture.
 
 OSX
 ---

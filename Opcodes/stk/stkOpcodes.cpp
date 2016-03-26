@@ -757,7 +757,7 @@ extern "C"
       }
     else
       {
-        if (std::strlen(path) < 1) {
+        if (std::strlen(path) == 0) {
             path = std::getenv("RAWWAVE_PATH");
         }
 #if !defined(WIN32)
