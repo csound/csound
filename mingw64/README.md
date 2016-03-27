@@ -53,7 +53,7 @@ export RAWWAVE_PATH=/home/restore/csound/mingw64/packages/stk/src/stk-4.5.1/raww
 ```
 7. Build and install packages for dependencies not currently in MSYS2's repositories. The formulas are included in the packages folder. Note that the purpose of these packages is simply to get dependencies installed for the Csound build system to find, not to replicate existing packages, so PKGBUILD files may be simplified. Also note that some packages contain patches that may need to be updated when source files are updated. Cd into each directory and use 'makepkg-mingw' to build the package. Use 'pacman -U name-of-package.pkg.tar.xz' to install the package. If there is a 'devel' package in the package directory, install that also. If there are any errors about line endings, simply run dos2unix on the file(s) to change the line endings.
 7. Create an mingw64-compatible import library for the MSVS-built Python DLL following [instructions here](http://ascend4.org/Setting_up_a_MinGW-w64_build_environment). Note that currently, gendef comes with the MSYS2 toolchain, and does not need to be built.
-8. Skip this step if you are performing the installer build: run ./build.sh in the mingw64 directory. It will run CMake, run make, and then copy the targets into the "dist" directory.
+8. Skip this step if you are performing the installer build: run ./build.sh in the mingw64 directory. It will run CMake, run make, and then copy the targets into the "dist" directory. For a truly clean build, first delete the csound-mingw64 directory and all of its contents.
 
 # Installer Build
 
@@ -82,7 +82,7 @@ LSNDFILE = C:\Program_Files\Mega-Nerd\libsndfile\lib\libsndfile-1.lib
 PTHREAD_INCLUDE_DIR = D:/msys/local/opt/pthreads-w32-2-9-1-release/Pre-built.2/include
 ```
 14. Run the node.js command prompt. Set the CSOUND_HOME environment variable to point to your Csound project root directory. Run 'nw-gyp rebuild --target=0.12.3 --arch=x64". If the script ends with "ok" it has succeeded.
-15. Run csound/mingw64/build-mkg.sh again. It should:
+15. Run csound/mingw64/build-mkg.sh again. For a truly clean build, first delete the csound-mingw64 directory and all of its contents. The build script should:
   * Run CMake.
   * Run make.
   * Run doxygen to rebuild the API documentation.
