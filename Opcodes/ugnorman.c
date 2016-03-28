@@ -1918,7 +1918,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
         p->prFlg = 0;           /* set to false */
         csound->Warning(csound, Str("ATSSINNOI: time pointer out of range, "
                                     // "frIndx=%g maxFr=%g (%g %g) "
-                                    "truncating to last frame\n"),
+                                    "truncating to last frame\n")
                         //frIndx, (MYFLT)p->maxFr, *(p->ktimpnt), p->timefrmInc
                         );
       }
