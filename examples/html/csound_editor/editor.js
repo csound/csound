@@ -123,7 +123,7 @@ function initContextMenu() {
   }));
 
   document.getElementById("editor").addEventListener('contextmenu',
-                                                     function(ev) { 
+                                                     function(ev) {
     ev.preventDefault();
     menu.popup(ev.x, ev.y);
     return false;
