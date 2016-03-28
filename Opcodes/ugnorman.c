@@ -59,6 +59,8 @@ kamp            ATSinterpread   kfreq
 
 */
 
+//was frIndx > p->maxFr
+#define OUT_OF_FRAMES (frIndx >= p->maxFr+1)
 
 #include "ugnorman.h"
 #include <ctype.h>
@@ -422,7 +424,7 @@ static int atsread(CSOUND *csound, ATSREAD *p)
                                     "values allowed, setting to zero\n"));
       }
     }
-    else if (frIndx > p->maxFr) {
+    else if (OUT_OF_FRAMES) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
@@ -605,7 +607,7 @@ static int atsreadnz(CSOUND *csound, ATSREADNZ *p)
                                     "values allowed, setting to zero\n"));
       }
     }
-    else if (frIndx > p->maxFr) {
+    else if (OUT_OF_FRAMES) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
@@ -871,7 +873,7 @@ static int atsadd(CSOUND *csound, ATSADD *p)
                                     "values are allowed, setting to zero\n"));
       }
     }
-    else if (frIndx > p->maxFr) {
+    else if (OUT_OF_FRAMES) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
@@ -1442,7 +1444,7 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
                                     "values are allowed, setting to zero\n"));
       }
     }
-    else if (frIndx > p->maxFr) {
+    else if (OUT_OF_FRAMES) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
@@ -1910,14 +1912,17 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
                                     "values are allowed, setting to zero\n"));
       }
     }
-    else if (frIndx > p->maxFr) {
+    else if (OUT_OF_FRAMES) {
       /* if we are trying to get frames past where we have data */
-      frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;           /* set to false */
         csound->Warning(csound, Str("ATSSINNOI: time pointer out of range, "
-                                    "truncating to last frame\n"));
+                                    // "frIndx=%g maxFr=%g (%g %g) "
+                                    "truncating to last frame\n"),
+                        //frIndx, (MYFLT)p->maxFr, *(p->ktimpnt), p->timefrmInc
+                        );
       }
+      frIndx = (MYFLT) p->maxFr;
     }
     else
       p->prFlg = 1;
@@ -2412,7 +2417,7 @@ static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
                                     "values are allowed, setting to zero\n"));
       }
     }
-    else if (frIndx > p->maxFr) {
+    else if (OUT_OF_FRAMES) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
@@ -2859,7 +2864,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
                                     "values are allowed, setting to zero\n"));
       }
     }
-    else if (frIndx > p->maxFr) {
+    else if (OUT_OF_FRAMES) {
       /* if we are trying to get frames past where we have data */
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
