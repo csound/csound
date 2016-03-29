@@ -2235,7 +2235,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR) init_window, (SUBR) perf_window, NULL},
     {"pvsceps", sizeof(PVSCEPS), 0, 3, "k[]","fo",
      (SUBR) pvsceps_init, (SUBR) pvsceps_perf, NULL},
-    {"iceps", sizeof(FFT), 0, 3, "k[]","k[]",
+    {"cepsinv", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_iceps, (SUBR) perf_iceps, NULL},
     {"ceps", sizeof(FFT), 0, 3, "k[]","k[]k",
      (SUBR) init_ceps, (SUBR) perf_ceps, NULL},
