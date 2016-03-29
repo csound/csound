@@ -52,13 +52,13 @@ typedef float mus_sample_t;
 
 /********** ANALYSIS PARAMETERS ***********/
 /* start time */
-#define  ATSA_START 0.0
+#define  ATSA_START 0.0f
 /* duration */
-#define  ATSA_DUR 0.0
+#define  ATSA_DUR 0.0f
 /* lowest frequency (hertz)  */
-#define  ATSA_LFREQ 20.0
+#define  ATSA_LFREQ 20.0f
 /* highest frequency (hertz) */
-#define  ATSA_HFREQ 20000.0
+#define  ATSA_HFREQ 20000.0f
 /* frequency deviation (ratio) */
 #define  ATSA_FREQDEV 0.1f
 /* number of f0 cycles in window */
@@ -68,23 +68,23 @@ typedef float mus_sample_t;
 /* window size */
 #define  ATSA_WSIZE 1024
 /* hop size proportional to window size (ratio) */
-#define  ATSA_HSIZE 0.25
+#define  ATSA_HSIZE 0.25f
 /* lowest magnitude for peaks (amp) */
-#define  ATSA_LMAG  -60.0
+#define  ATSA_LMAG  -60.0f
 /* length of analysis tracks (frames) */
 #define  ATSA_TRKLEN 3
 /* minimum short partial length (frames) */
 #define  ATSA_MSEGLEN 3
 /* minimum short partial SMR avreage (dB SPL) */
-#define  ATSA_MSEGSMR 60.0
+#define  ATSA_MSEGSMR 60.0f
 /* minimum gap length (frames) */
 #define  ATSA_MGAPLEN 3
 /* threshold for partial SMR average (dB SPL) */
-#define  ATSA_SMRTHRES 30.0
+#define  ATSA_SMRTHRES 30.0f
 /* last peak contribution for tracking (ratio) */
-#define  ATSA_LPKCONT 0.0
+#define  ATSA_LPKCONT 0.0f
 /* SMR contribution for tracking (ratio) */
-#define  ATSA_SMRCONT 0.5
+#define  ATSA_SMRCONT 0.5f
 /* minimum number of frames for analysis (frames) */
 #define ATSA_MFRAMES 4
 /* default analysis file type
@@ -117,8 +117,8 @@ typedef float mus_sample_t;
                                   3150.0, 3700.0, 4400.0, 5300.0, 6400.0,   \
                                   7700.0, 9500.0, 12000.0, 15500.0, 20000.0}
 
-#define  AMP_DB(amp)  ((amp) != 0.0 ? (float) log10((amp) * 20.0) : -32767.0f)
-#define  DB_AMP(db)   ((float) pow(10.0, (db) / 20.0))
+//#define  AMP_DB(amp)  ((amp) != 0.0 ? (float) log10((amp) * 20.0) : -32767.0f)
+//#define  DB_AMP(db)   ((float) pow(10.0, (db) / 20.0))
 
 /* data structures */
 

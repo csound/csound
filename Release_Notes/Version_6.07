@@ -1,15 +1,14 @@
 
 ============================
 CSOUND VERSION 6.07
-RELEASE NOTES   VERSION 6.07
+RELEASE NOTES VERSION 6.07
 ============================
 
 A large number of bug fixes, some quite major, some internal are
 included, as well as some new facilities and extensions. As ever there
 are coding improvements as well.
 
-The Developers 
-
+-- The Developers
 
 
 USER-LEVEL CHANGES
@@ -33,11 +32,9 @@ New opcodes:
 
     o    S() converter from k-rate and i-time number to a string.
 
-
 New Gen and Macros:
 
     o    NONE
-
 
 Orchestra:
 
@@ -48,151 +45,154 @@ Orchestra:
          of a line is now correct.  Also more improvements in line numbers
          for complex syntax
 
-    o    While loop improved/fixed
-    
-    o    Better and consistent reading of comments
+    o    While loop improved/fixed.
+
+    o    Better and consistent reading of comments.
 
     o    Continuation lines handled better, especially respecting line
-         numbers
+         numbers.
 
-    o    opcode:S(.) syntax now allowed
-    
+    o    opcode:S(.) syntax now allowed.
+
 Score:
 
     o    The list of tempo points in score opcode t is now arbitrarily
-         long
+         long.
 
-    o    A stupidity in r and { opcodes fixed
+    o    A stupidity in r and { opcodes fixed.
 
 Options:
 
     o    The -z option now suppresses deprecated opcodes, unless given
-         a 2 or 3 argument
+         a 2 or 3 argument.
 
 
 Modified Opcodes and Gens:
 
      o   In OSC opcodes it is now possible to send and receive arrays,
-         tables and audio
+         tables and audio.
 
-     o   Better diagnostic if diskin2 fails
+     o   Better diagnostic if diskin2 fails.
 
      o   Rezzy now checks for unstable filter and modifies to close
-         stable version
+         stable version.
 
      o   adsr rewritten so it gives an error if the segments are
-         longer than p3
+         longer than p3.
 
      o   Use of diskin to an array ow resizes the output array if
-         necessary
+         necessary.
 
-     o   chnget now checks for a change in chanel name as well as data
+     o   chnget now checks for a change in chanel name as well as data.
 
      o   interp can take an optional extra argument to give an initial
-         value
+         value.
 
-     o   oscilikts uses a more liberal table lookup
+     o   oscilikts uses a more liberal table lookup.
 
      o   opcode in can read mono or stereo, obviating the in/ins
-         distinction
+         distinction.
 
      o   sensekey rewritten to provide better diagnostics and fixes a
-         minor bug
+         minor bug.
 
-     o   Fix to a case of defining a macro with arguments
+     o   Fix to a case of defining a macro with arguments.
 
-     o   sockrecv now works at a and k rate
+     o   sockrecv now works at a and k rate.
 
-     o   GEN49 now works from ftgen calls
+     o   GEN49 now works from ftgen calls.
 
-     o   GEN34 liberalised in tables it accepts
-     
+     o   GEN34 liberalised in tables it accepts.
+
      o   chnget now allows channel names to be changed at perf time.
+
+     o   iceps has been renamed cepsinv to avoid name clashes
 
 Utilities:
 
-  o    
+  o
 
 Frontends:
 
-  pnacl: 
+  pnacl:
 
   icsound:
 
   csound~:
-        
+
   Emscripten:
 
   csdebugger:
-  
-       * Some memory issues fixed
+
+       * Some memory issues fixed.
 
   HTML5:
 
-  CsoundQT has its own notes at
-  https://github.com/CsoundQt/CsoundQt/blob/master/release_notes/Release%20notes%200.9.2.md
-
+  o  CsoundQT has its own notes at
+     https://github.com/CsoundQt/CsoundQt/blob/master/release_notes/Release%20notes%200.9.2.md
 
 General usage:
 
-    o   The multicore options somewhat improved
+    o   The multicore options somewhat improved.
 
     o   When replacing instruments the new version inherits maxalloc
-        and active flags
+        and active flags.
 
-    o   Multicore code now works wit midi instruments
+    o   Multicore code now works with midi instruments.
 
     o   MIDI operations now available via a new rtmidi jack module (-+rtmidi=jack)
-    
-    
+
+
 Bugs fixed:
 
-    o   Fix to trigseq
+    o   Fix to trigseq.
 
-    o   Major error in rezzy fixed
+    o   Major error in rezzy fixed.
 
-    o   p() fixed for high numbers of p-arguments
+    o   p() fixed for high numbers of p-arguments.
 
-    o   p() now works from MIDI events
+    o   p() now works from MIDI events.
 
     o   The 31-bit random number generator could give a very short
-        loop if seeded with zero; fixed
+        loop if seeded with zero; fixed.
 
-    o   Macros in .orc files now work
+    o   Macros in .orc files now work.
 
-    o   A long-standing bug in display of graphs fixed
+    o   A long-standing bug in display of graphs fixed.
 
     o   Fixes to the envelope opcodes linen, expsegr, linsegr,
-        cossegr, transegr
+        cossegr, transegr.
 
-    o   Many fixes in string opcodes (strsub, strcpy and others)
+    o   Many fixes in string opcodes (strsub, strcpy and others).
 
-    o   Fixed bugs in print formats (sprintf printf prints)
+    o   Fixed bugs in print formats (sprintf printf prints).
 
-    o   pvsmooth had a missing initialisation
+    o   pvsmooth had a missing initialisation.
 
-    o   Array initialisation now robust
+    o   Array initialisation now robust.
 
-    o   Bug in copya2ftab fixed
+    o   Bug in copya2ftab fixed.
 
-    o   Fix in cudapvsanal (EXPERIMENTAL)
+    o   Fix in cudapvsanal (EXPERIMENTAL).
 
-    o   partikkel fix to subsample grain placement
+    o   partikkel fix to subsample grain placement.
 
-    o   Opcodes that require an odd number of arguments are now properly checked
+    o   Opcodes that require an odd number of arguments are now properly checked.
 
-    o   pvswrite now takes proper notice of 0dbfs
+    o   pvswrite now takes proper notice of 0dbfs.
 
-    o   GEN34 now allowing non-power-of-two source tables
+    o   GEN34 now allowing non-power-of-two source tables.
 
-    o   vst2cs will now work on 64bit architecture
+    o   vst4cs will now work on 64bit architecture.
 
-    o   strcat mended
+    o   strcat mended.
 
-    o   nstance mended
-    
-    o   fixed small issues in rtauhal module
+    o   nstance mended.
 
+    o   fixed small issues in rtauhal module.
+
+    o   Windows installer for 64 bit CPU architecture now sets environment variables
+        on system level as it should.
 
 
 ====================
@@ -202,24 +202,26 @@ SYSTEM LEVEL CHANGES
 System changes:
 
     o   Extensive use made of in-memory files.  Orc and sco are always
-        thus, as are .csound6rc.  This simplifies much internally
+        thus, as are .csound6rc.  This simplifies much internally.
 
     o   Nested longjmps fixed which affected some API use.
 
     o   If a non-existent .csd file is presented Csound no longer
-        crashes
+        crashes.
 
     o   The kcounter value is now consistently an unsigned 64bit
         value, allowing for long performances.
 
 
-
 API
 ===
+
+    * csoundCompileCsdText: New function to compile a CSD from a string of text.
+
     * The function call csound->GetKcounter(csound) now returns an
       unsigned 64 bit integer.  Previously it returned a long which is
       unclear.
-    
+
 
 Platform Specific
 =================
@@ -227,58 +229,43 @@ Platform Specific
 iOS
 ---
 
-    * 
+    *
 
 
 Android
 -------
 
-    * csoundCompileCsdText: new function to compile strings
-
-    
-
-Platform Specific
-=================
-
-iOS
----
-
-    * 
-
-
-Android
--------
-
-    * 
+    *
 
 Windows
 -------
 
+    * The Windows installer for Csound now contains all executables
+      built for 64 bit CPU architecture.
+
+    * The Windows installer for 64 bit CPU architecture now provides NW.js
+      "out of the box." It runs all features of
+      Csound, as well as all features of HTML5, in a browser-like runtime
+      with JavaScript scripting, and includes a Csound editor implemented
+      in HTML. The editor will run pieces either as .csd files with embedded
+      <html> or as .html files calling the csound object, and includes
+      JavaScript debugging.
+
+    * A new simplified build system has been implemented in the csound/mingw64
+      directory for building Csound using the MSYS2/mingw64 toolchain.
+
 OSX
 ---
-    * Installer fixed for link names for _csnd6 and _CsoundAC
 
+    * Installer fixed for link names for _csnd6 and _CsoundAC.
 
 GNU/Linux
 ---------
-    * date opcode more accurate
+
+    * date opcode more accurate.
 
 ========================================================================
 
 ========================================================================
-commit d334de98d35df3c627faa422db23ba0bce044f81
-Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Tue Mar 15 10:55:07 2016 +0000
-
-commit 094229eed7529a0698704711a538dd2117d10a93
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sun Jan 17 11:31:12 2016 +0000
-
-    lifted the limiting on the resonance
-
-commit b0b895df164e28016ad44a4f3dc37b7f8705cfe6
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Jan 14 15:06:02 2016 +0000
-
-    normalising filters
 

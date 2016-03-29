@@ -72,24 +72,16 @@ From the Node.js command prompt, execute `npm install nw-gyp` to install the bui
 for NW.js addons. See [nw-gyp](http://docs.nwjs.io/en/v0.13.0-rc2/For%20Users/Advanced/Use%20Native%20Node%20Modules/) for more information.
 
 Set an environment variable named `CSOUND_HOME` that points to the root directory of
-your Csound build directory. Or, it may be necessary to modify binding.gyp to reflect the
+your Csound tree. Or, it may be necessary to modify binding.gyp to reflect the
 installed locations of the Csound header files and shared libraries on your system.
 
-In the `csound/frontends/nwjs` directory, execute `nw-gyp rebuild --target=0.13.0-rc1 --arch=x64` (or, --arch=x86) to build `csound.node`.
+In the `csound/frontends/nwjs` directory, execute `nw-gyp rebuild --target=0.12.3 --arch=x64` (or, --arch=x86, or whatever version of NW you have) to build `csound.node`.
 If the build messages end with `ok`, then the build succeeded.
 
 ## INSTALLING
 
-Copy `csound.node` from the `csound/frontends/nwjs/build/Release` directory to your Csound
-installaton's bin directory, or better yet, create a symbolic link to the built `csound.node`
-file in your Csound installation's bin directory.
-
-On Windows, copy `libgcc_s_dw2-1.dll` and `libstdc++-6.dll` from your Csound bin directory
-to your NW.js directory, or create symbolic links there.
-
-Set an environment variable named `NODE_PATH` that points to your Csound installation's
-bin directory. This will bring both `csound.node` and Csound itself into
-the scope of NW.js's addon loader.
+Currently, getting csound.node to run in a development environment is tricky. The easiest way is to run the csound/mingw64/find_csound_dependencies.py script,
+which copies all Csound targets and dependencies into the NW.js directory. Then set both OPCODE6DIR64 and NODE_PATH also to point to the NW.js directory.
 
 Test your installation by running the NW.js program, `nw`. Drag the `NW_Csound_Demo.html` file
 and drop it on `nw`'s window. You should hear the Csound piece "Xanadu" by Joseph Kung,
