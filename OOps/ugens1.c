@@ -750,9 +750,9 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     MYFLT   sus, dur;
     MYFLT   release = *argp[3];
 
-    if (len<FL(0.0)) len = FL(100000.0); /* MIDI case set long */
+    if (UNLIKELY(len<FL(0.0))) len = FL(100000.0); /* MIDI case set long */
     len -= release;                      /* len is time remaining */
-    if (len<FL(0.0)) { /* Odd case of release time greater than dur */
+    if (UNLIKELY(len<FL(0.0))) { /* Odd case of release time greater than dur */
       release = csound->curip->p3.value; len = FL(0.0);
     }
     nsegs = 5;          /* DXDSR */

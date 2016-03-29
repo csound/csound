@@ -145,7 +145,6 @@ int katone(CSOUND*,KTONE *p);
 int krsnset(CSOUND*,KRESON *p);
 int kreson(CSOUND*,KRESON *p);
 int kareson(CSOUND*,KRESON *p);
-int limitset(CSOUND*,LIMIT *p);
 int klimit(CSOUND*,LIMIT *p);
 int limit(CSOUND*,LIMIT *p);
 
