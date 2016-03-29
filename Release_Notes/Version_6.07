@@ -106,6 +106,8 @@ Modified Opcodes and Gens:
 
      o   chnget now allows channel names to be changed at perf time.
 
+     o   iceps has been renamed cepsinv to avoid name clashes
+
 Utilities:
 
   o
