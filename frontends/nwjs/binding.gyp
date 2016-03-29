@@ -19,7 +19,7 @@
                         [
                             '$(CSOUND_HOME)/include',
                         ],
- 			'cflags_cc!': 
+ 			'cflags_cc!':
 			[
               		'-fno-exceptions',
 			'-std=c++11',
@@ -30,7 +30,7 @@
                     {
                         'libraries':
                         [
-                            '-l$(CSOUND_HOME)/csound64.lib',
+                            '-l$(CSOUND_HOME)/mingw64/csound64.lib',
                         ],
                         'include_dirs':
                         [
