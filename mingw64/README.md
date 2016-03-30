@@ -9,7 +9,7 @@ These instructions come in two parts. The first is for building a "plain" Csound
 ## Plain Build
 
 1. Install the x86_64 version of [msys2](http://msys2.github.io/). Follow the pacman setup instructions carefully.
-2. Using pacman, install the following additional development tools and libraries:
+2. Using pacman, install the following additional development tools and libraries (not all of these tools are needed in order to build Csound. It depends on what 3rd party tools you require. For example, luajit, boost, fltk, eigen3, hdf5, fluidsynth, libwebsockets, etc. are all optional):
   * mingw-w64-x86_64-toolchain
   * make
   * autoconf
