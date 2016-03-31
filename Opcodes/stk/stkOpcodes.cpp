@@ -757,9 +757,11 @@ extern "C"
       }
     else
       {
+#if !defined(MACOSX)
         if (std::strlen(path) == 0) {
             path = std::getenv("RAWWAVE_PATH");
         }
+#endif
 #if !defined(WIN32)
         csound_global_mutex_lock();
 #endif

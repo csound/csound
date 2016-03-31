@@ -1,7 +1,15 @@
 #!/bin/sh
 
+if [ $# == 0 ]; then
+  echo "Must give branch name to build from"
+  exit
+else
+  export BRANCH_NAME=$1
+  echo "Using branch: $BRANCH_NAME"
+fi
+
 export MANUAL_DIR=`pwd`/../../../manual
-export CS_VERSION="6.06"
+export CS_VERSION="6.07beta"
 export PACKAGE_NAME=csound${CS_VERSION}-OSX-universal.pkg
 export DMG_DIR="Csound ${CS_VERSION}"
 export DMG_NAME="csound${CS_VERSION}-OSX-universal.dmg"
@@ -11,14 +19,6 @@ export TARGET=10.7
 export DEPS_BASE=/usr/local
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
-
-if [ $# == 0 ]; then
-  echo "Must give branch name to build from"
-  exit
-else
-  export BRANCH_NAME=$1
-  echo "Using branch: $BRANCH_NAME"
-fi
 
 if [ $# -gt 1 ]; then
 	cd $2
