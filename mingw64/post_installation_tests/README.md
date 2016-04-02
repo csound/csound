@@ -1,6 +1,6 @@
 # Post-Installation Tests
 
-This directory contains simple all-in-one test pieces as a sanity check after
+This directory contains some all-in-one test pieces as a sanity check after
 installation, for all major runtime environments. The tests were created to
 _quickly_ test the Windows installer for 64 bit CPU architecture, but they
 might prove useful on other platforms. And of course the tests can be useful
