@@ -7,8 +7,6 @@
 
 #include "stdarg.h"
 #include "stdio.h"
-#include "crtdbg.h"
-
 
 void trace(char *format, ...)
 {
@@ -17,7 +15,8 @@ void trace(char *format, ...)
     va_start(args, format);
     _vsnprintf_s(msg, 256, _TRUNCATE, format, args);
     va_end(args);
-#ifdef _DEBUG
+#if 0
+    // Csound doesn't use or need this.
     _CrtDbgReport(_CRT_WARN, NULL, NULL, NULL, msg);
 #else
     printf(msg);
