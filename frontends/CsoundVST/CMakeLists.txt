@@ -28,7 +28,7 @@ if(BUILD_CSOUNDVST)
         CsoundVstUi.cpp
         ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
         ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
-
+    add_compile_options("-O2")
     add_library(CsoundVST SHARED ${CSOUNDVST_SRCS})
     set_target_properties(CsoundVST PROPERTIES
         LINK_INTERFACE_LIBRARIES ""

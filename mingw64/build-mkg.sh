@@ -20,6 +20,7 @@ cmake ../.. -G "MSYS Makefiles" \
 -DTCL_VERSION=8.5 \
 -DUSE_CURL=0 \
 -DUSE_OPEN_MP=0 \
+-D_WIN32=1 \
 -DSWIG_DIR=C:\msys2\mingw64\share\swig\3.0.6
 if [ $? -ne 0 ]; then
     echo "Failed to run CMake."
