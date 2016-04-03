@@ -9,9 +9,10 @@
 ; This file assumes that you are Michael Gogins,
 ; but comments indicate what you should change if you are not me.
 ; All of these changes SHOULD be in the #defines immediately following this.
-; Also, this installer assumes LuaJIT and CsoundAC are part of Csound core.
+; Also, this installer assumes LuaJIT, CsoundAC, and HTML support are part of
+; Csound core.
 ;
-; PLAN
+; DIRECTORY STRUCTURE
 ;
 ; C:\Program Files\Csound6
 ;     bin (copy Csound, CsoundQt, PortAudio, libsndfile, LuaJIT, NW.js, and CEF binary trees here; but not Csound opcodes).
@@ -38,9 +39,9 @@
 #define MyAppName "Csound6_x64"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.07.0beta3-vst"
+#define MyAppMinVersion "6.07.0rc1-vst"
 #else
-#define MyAppMinVersion "6.07.0beta3"
+#define MyAppMinVersion "6.07.0rc1"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://csound.github.io/"
