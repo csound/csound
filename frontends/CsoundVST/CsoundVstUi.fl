@@ -1,6 +1,6 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0108
-header_name {.h}
+version 1.0303 
+header_name {.h} 
 code_name {.cpp}
 Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
 } {
@@ -74,8 +74,8 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
       xywh {5 34 700 351} box GTK_THIN_UP_BOX color 50 labelsize 10 resizable
     } {
       Fl_Group settingsGroup {
-        label Settings open selected
-        xywh {5 59 700 325} box GTK_THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12 resizable
+        label Settings open
+        xywh {5 59 700 325} box GTK_THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12 hide resizable
       } {
         Fl_Check_Button settingsVstPluginModeEffect {
           label {VST Effect}
@@ -109,7 +109,7 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
         xywh {5 59 700 325} box GTK_THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12 hide
       } {
         Fl_Text_Editor orchestraTextEdit {
-          xywh {10 65 690 312} box GTK_THIN_DOWN_BOX labelsize 12 textfont 4 textsize 11
+          xywh {10 65 690 312} box GTK_THIN_DOWN_BOX labelsize 12 textfont 4 textsize 11 resizable
         }
       }
       Fl_Group scoreGroup {
@@ -117,17 +117,17 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
         xywh {5 59 700 325} box GTK_THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12 hide
       } {
         Fl_Text_Editor scoreTextEdit {
-          xywh {10 65 690 312} box GTK_THIN_DOWN_BOX labelsize 12 textfont 4 textsize 11
+          xywh {10 65 690 312} box GTK_THIN_DOWN_BOX labelsize 12 textfont 4 textsize 11 resizable
         }
       }
       Fl_Group aboutGroup {
         label About open
-        xywh {5 59 700 325} box GTK_THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12 hide
+        xywh {5 59 700 325} box GTK_THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12
       } {
-        Fl_Text_Display aboutTextDisplay {
-          xywh {10 65 690 312} box GTK_THIN_DOWN_BOX color 54 labelsize 12 align 0 textfont 4 textsize 11
+        Fl_Text_Display aboutTextDisplay {selected
+          xywh {10 65 690 312} box GTK_THIN_DOWN_BOX color 54 labelsize 12 align 0 textfont 4 textsize 11 resizable
         }
       }
     }
   }
-}
+} 
