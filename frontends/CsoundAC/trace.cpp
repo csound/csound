@@ -13,7 +13,7 @@ void trace(char *format, ...)
     char msg[256];
     va_list args;
     va_start(args, format);
-    _vsnprintf_s(msg, 256, _TRUNCATE, format, args);
+    _vsnprintf(msg, 256, format, args);
     va_end(args);
 #if 0
     // Csound doesn't use or need this.
