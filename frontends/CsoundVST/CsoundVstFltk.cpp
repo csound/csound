@@ -179,18 +179,18 @@ CsoundVstFltk::CsoundVstFltk(AudioEffect *audioEffect) :
   this->runtimeMessagesBrowser = ::runtimeMessagesBrowser;
   this->orchestraTextEdit = ::orchestraTextEdit;
   this->orchestraTextBuffer = new Fl_Text_Buffer();
-  this->orchestraTextEdit->buffer(this->orchestraTextBuffer);
   this->scoreTextEdit = ::scoreTextEdit;
   this->scoreTextBuffer = new Fl_Text_Buffer();
-  this->scoreTextEdit->buffer(this->scoreTextBuffer);
   this->settingsEditSoundfileInput = ::settingsEditSoundfileInput;
   this->settingsVstPluginModeEffect = ::settingsVstPluginModeEffect;
   this->settingsVstPluginModeInstrument = ::settingsVstPluginModeInstrument;
   this->aboutTextBuffer = new Fl_Text_Buffer();
   this->aboutTextDisplay = ::aboutTextDisplay;
-  this->aboutTextDisplay->buffer(this->aboutTextBuffer);
   this->orchestraGroup = ::orchestraGroup;
   this->scoreGroup = ::scoreGroup;
+  this->orchestraTextEdit->buffer(this->orchestraTextBuffer);
+  this->scoreTextEdit->buffer(this->scoreTextBuffer);
+  this->aboutTextDisplay->buffer(this->aboutTextBuffer);
   csoundVST->setEditor(this);
 }
 
