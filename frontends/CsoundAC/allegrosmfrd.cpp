@@ -48,7 +48,6 @@ public:
         track_number = -1; // no tracks started yet, 1st will be #0
         meta_channel = -1;
         port = 0;
-        divisions = 0; track = 0; channel_offset = 0; // JPff for coverity defects
     }
     // delete destroys the seq member as well, so set it to NULL if you
     // copied the pointer elsewhere
@@ -172,7 +171,7 @@ void Alg_midifile_reader::Mf_eot()
 
 void Alg_midifile_reader::Mf_error(char *msg)
 {
-    fprintf(stdout, (char*)"Midifile reader error: %s\n", msg);
+    fprintf(stdout, "Midifile reader error: %s\n", msg);
 }
 
 
@@ -334,7 +333,7 @@ void Alg_midifile_reader::Mf_sysex(int len, unsigned char *msg)
 
 void Alg_midifile_reader::Mf_arbitrary(int len, unsigned char *msg)
 {
-    Mf_error((char*)"arbitrary data ignored");
+    Mf_error("arbitrary data ignored");
 }
 
 
@@ -350,7 +349,7 @@ void Alg_midifile_reader::Mf_metamisc(int type, int len, unsigned char *msg)
 
 void Alg_midifile_reader::Mf_seqnum(int n)
 {
-    Mf_error((char*)"seqnum data ignored");
+    Mf_error("seqnum data ignored");
 }
 
 

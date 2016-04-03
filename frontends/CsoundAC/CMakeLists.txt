@@ -91,7 +91,7 @@ if(BUILD_CSOUND_AC)
     if(USE_SYSTEM_PORTSMF)
         target_link_libraries(libCsoundAC ${PORTSMF_LIBRARY})
     endif()
-    if(WIN32 AND NOT MSVC) # for MSYS2/mingw64 
+    if(WIN32 AND NOT MSVC) # for MSYS2/mingw64
         target_link_libraries(libCsoundAC jpeg png z)
     endif()
     if(HAVE_UNISTD_H)
