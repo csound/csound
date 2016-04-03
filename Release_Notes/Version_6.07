@@ -221,6 +221,8 @@ API
     * The function call csound->GetKcounter(csound) now returns an
       unsigned 64 bit integer.  Previously it returned a long which is
       unclear.
+    
+    * New wrapper module for Python 2.x and Python 3.x using ctypes: ctcsound
 
 
 Platform Specific

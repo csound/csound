@@ -9,9 +9,10 @@
 ; This file assumes that you are Michael Gogins,
 ; but comments indicate what you should change if you are not me.
 ; All of these changes SHOULD be in the #defines immediately following this.
-; Also, this installer assumes LuaJIT and CsoundAC are part of Csound core.
+; Also, this installer assumes LuaJIT, CsoundAC, and HTML support are part of
+; Csound core.
 ;
-; PLAN
+; DIRECTORY STRUCTURE
 ;
 ; C:\Program Files\Csound6
 ;     bin (copy Csound, CsoundQt, PortAudio, libsndfile, LuaJIT, NW.js, and CEF binary trees here; but not Csound opcodes).
@@ -33,14 +34,14 @@
 ; Can run from the command line with "/S /D installation directory".
 ;
 ; Uncomment the following line to build CsoundVST and vst4cs:
-; #define CSOUNDVST
+#define CSOUNDVST
 
 #define MyAppName "Csound6_x64"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.07.0beta3-vst"
+#define MyAppMinVersion "6.07.0rc1-vst"
 #else
-#define MyAppMinVersion "6.07.0beta3"
+#define MyAppMinVersion "6.07.0rc1"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://csound.github.io/"
@@ -62,6 +63,8 @@
 #define MyCsoundQtDir "C:\Users\restore\CsoundQt\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
 #define MyCsoundQtBinDir "C:\Users\restore\CsoundQt\bin\"
+; If you are not Michael Gogins, change this to your Qt SDK directory.
+#define MyQtSdkDir "C:\Qt-msvc-x64\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
 #define MyQtSdkBinDir "C:\Qt-msvc-x64\Qt5.5.1\5.5\msvc2013_64\bin\"
 ; If you are not Michael Gogins, change this to your unzipped Chromium Embedded Framework directory.
@@ -165,8 +168,10 @@ Source: "{#MySourceDir}mingw64/run_csound_editor.cmd"; DestDir: "{#APP_BIN}"; Co
 
 Source: "{#MyMingw64Dir}\bin\luajit.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
+; NOTE: The .qml files are compiled into the resources of CsoundQt.
 Source: "{#MyCsoundQtBinDir}CsoundQt-d-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#MyCsoundQtDir}Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
+Source: "{#MyCsoundQtDir}examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
+
 Source: "{#MyQtSdkBinDir}Qt5Core.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Gui.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Network.dll"; DestDir: "{#APP_BIN}"; Components: core;
@@ -176,12 +181,13 @@ Source: "{#MyQtSdkBinDir}Qt5Quick.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5QuickWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
-;Source: "{#MyQtSdkBinDir}..\plugins\accessible\qtaccessiblewidgets.dll"; DestDir: "{#APP_BIN}\plugins\accessible"; Components: core;
 Source: "{#MyQtSdkBinDir}..\plugins\imageformats\*.dll"; DestDir: "{#APP_BIN}\plugins\imageformats"; Components: core;
 Source: "{#MyQtSdkBinDir}..\plugins\platforms\qwindows.dll"; DestDir: "{#APP_BIN}\platforms"; Components: core;
 Source: "{#MyQtSdkBinDir}..\plugins\printsupport\windowsprintersupport.dll"; DestDir: "{#APP_BIN}\plugins\printsupport"; Components: core;
+Source: "{#MyQtSdkBinDir}..\qml\QtQml\*.*"; DestDir: "{#APP_BIN}QtQml"; Flags: ignoreversion recursesubdirs;  Components: core;
+Source: "{#MyQtSdkBinDir}..\qml\QtQuick\*.*"; DestDir: "{#APP_BIN}QtQuick"; Flags: ignoreversion recursesubdirs;  Components: core;
+Source: "{#MyQtSdkBinDir}..\qml\QtQuick.2\*.*"; DestDir: "{#APP_BIN}QtQuick.2"; Flags: ignoreversion recursesubdirs;  Components: core;
 
-; Removed due to WideVine proprietary DLLs required by CEF applications.
 Source: "{#MyCefHome}Resources\*.*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion recursesubdirs; Components: core;
 Source: "{#MyCefHome}Release\*.*"; DestDir: "{#APP_BIN}"; Excludes: "*.lib"; Flags: ignoreversion; Components: core;
 
@@ -189,10 +195,6 @@ Source: {#MyWinPthreadsDir}dll\x64\pthreadVC2.dll; DestDir: "{#APP_BIN}"; Flags:
 
 Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
-
-; Ignore the unspeakably stupid libtool crap.
-;Source: {#MyPortAudioSourceDir}\bin\pa_devs.exe; DestDir: "{#APP_BIN}"; Components: core
-;Source: {#MyPortAudioSourceDir}\bin\pa_minlat.exe; DestDir: "{#APP_BIN}"; Components: core
 
 Source: include/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: interfaces/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
@@ -234,8 +236,8 @@ Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environmen
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"NODE_PATH"; ValueData:"{#APP_BIN};{olddata}"; Flags: preservestringtype uninsdeletevalue;  Components: core
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"PYTHONPATH"; ValueData:"{#APP_BIN};{olddata}"; Flags: preservestringtype uninsdeletevalue;  Components: python
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"RAWWAVE_PATH"; ValueData:"{#APP_SAMPLES}"; Flags: preservestringtype uninsdeletevalue;  Components: core
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"LUA_PATH"; ValueData:"{#APP_EXAMPLES}lua"; Flags: preservestringtype uninsdeletevalue;  Components: core
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"LUA_CPATH"; ValueData:"{#APP_BIN}"; Flags: preservestringtype uninsdeletevalue;  Components: core
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"LUA_PATH"; ValueData:"{#APP_EXAMPLES}lua\?.lua"; Flags: preservestringtype uninsdeletevalue;  Components: core
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"LUA_CPATH"; ValueData:"{#APP_BIN}?.dll"; Flags: preservestringtype uninsdeletevalue;  Components: core
 
 [Tasks]
 Name: modifypath; Description: &Add application directory to your PATH environment variable; Components: core;
