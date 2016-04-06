@@ -1159,7 +1159,8 @@ int printks(CSOUND *csound, PRINTKS *p)
     if (p->cysofar < cycles) {
       p->cysofar = cycles;
       /* Do the print cycle. */
-      string[0]='\0';           /* incase of empty string */
+      //string[0]='\0';           /* incase of empty string */
+      memset(string,0,8192);
       sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2);
       csound->MessageS(csound, CSOUNDMSG_ORCH, string);
     }
@@ -1177,6 +1178,7 @@ int printsset(CSOUND *csound, PRINTS *p)
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
     printksset(csound, &pk);
+    memset(string,0,8192);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
     csound->MessageS(csound, CSOUNDMSG_ORCH, string);
     return OK;
@@ -1193,6 +1195,7 @@ int printsset_S(CSOUND *csound, PRINTS *p)
     pk.ptime = &ptime;
     printksset_S(csound, &pk);
     if(strlen(pk.txtstring) < 8191){
+     memset(string,0,8192);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
     csound->MessageS(csound, CSOUNDMSG_ORCH, string);
     } else {

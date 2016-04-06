@@ -56,7 +56,7 @@ static int pvsbandinit(CSOUND *csound, PVSBAND *p)
         if (p->fout->frame.auxp == NULL ||
             p->fout->frame.size < (N+2)*sizeof(float))  /* RWD MUST be 32bit */
           csound->AuxAlloc(csound, (N+2)*sizeof(float), &p->fout->frame);
-        else memset(p->fout->frame.auxp, 0, (N+2)*sizeof(MYFLT));
+        else memset(p->fout->frame.auxp, 0, (N+2)*sizeof(float));
       }
     p->fout->N = N;
     p->fout->overlap = p->fin->overlap;
