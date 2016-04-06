@@ -106,7 +106,7 @@ Modified Opcodes and Gens:
 
      o   chnget now allows channel names to be changed at perf time.
 
-     o   iceps has been renamed cepsinv to avoid name clashes
+     o   iceps has been renamed cepsinv to avoid name clashes.
 
 Utilities:
 
@@ -128,7 +128,7 @@ Frontends:
 
   HTML5:
 
-  o  CsoundQT has its own notes at
+  CsoundQT has its own notes at
      https://github.com/CsoundQt/CsoundQt/blob/master/release_notes/Release%20notes%200.9.2.md
 
 General usage:
