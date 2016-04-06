@@ -166,13 +166,13 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     p->buf = (uint8_t *) p->auxch.auxp;
     p->bufused = -1;
     buffersize /= mpainfo.decoded_sample_size;
-    while (skip > 0) {
+    /*while (skip > 0) {
       int xx= skip;
       if (xx > buffersize) xx = buffersize;
       skip -= xx;
       r = mp3dec_decode(mpa, p->buf, mpainfo.decoded_sample_size*xx, &p->bufused);
-      if(r ==  MP3DEC_RETCODE_OK) printf("could skip %d \n", p->bufused);
-    }
+      }*/
+    mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
     p->r = r;
     if(p->initDone == -1)
        csound->RegisterDeinitCallback(csound, p,
@@ -498,13 +498,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
    buffersize /= mpainfo.decoded_sample_size;
    int skip = (int)(*p->skip*CS_ESR)*p->resamp;
    p->bufused = -1;
-   while (skip > 0) {
-      int xx= skip;
-      if (xx > buffersize) xx = buffersize;
-      skip -= xx;
-      r = mp3dec_decode(mpa,p->buffer.auxp, mpainfo.decoded_sample_size*xx, &p->bufused);
-   }
-
+   mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
 
    // fill buffers
     p->curbuf = 0;
@@ -564,6 +558,8 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
     
     int outnum = csound->GetOutputArgCnt(p);
     double _0dbfs = csound->Get0dBFS(csound);
+
+    if(time < 0) time = 0.0;
 
     /*if(p->finished){
       for (j=0; j < nchans; j++) {
