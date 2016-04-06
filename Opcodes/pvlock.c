@@ -356,7 +356,6 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
     int decim = p->decim;
     double scaling = (8./decim)/3.;
 
-    
     if (UNLIKELY(early)) {
       nsmps -= early;
       for (j=0; j < nchans; j++) {
@@ -378,19 +377,19 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
         tab = ft->ftable;
         size = ft->flen;
 
-	if (time < 0 || time >= 1 || !*p->konset) {
+        if (time < 0 || time >= 1 || !*p->konset) {
           spos += hsize*time;
-	  //csound->Message(csound, "position: %f \n", spos);
-	  }
-	   else if (p->tscale) {
-	    spos += hsize*(time/(1+p->accum));
-	     p->accum=0.0;
-	   }
-	   else  {
-	      spos += hsize;
-	     p->accum++;
-	     p->tscale = 1;
-	    }
+          //csound->Message(csound, "position: %f \n", spos);
+          }
+           else if (p->tscale) {
+            spos += hsize*(time/(1+p->accum));
+             p->accum=0.0;
+           }
+           else  {
+              spos += hsize;
+             p->accum++;
+             p->tscale = 1;
+            }
         if (UNLIKELY((int) ft->nchanls != nchans))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("number of output arguments "
@@ -579,7 +578,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
       csound->AuxAlloc(csound, size, &p->fdata);
    p->indata[0] = p->fdata.auxp;
    p->indata[1] = p->fdata.auxp + size/2;
-   
+
    memset(&(p->fdch), 0, sizeof(FDCH));
    p->fdch.fd = fd;
    fdrecord(csound, &(p->fdch));
@@ -641,7 +640,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
     int *framecnt, curframe = p->curframe;
     int decim = p->decim;
     double tstamp = p->tstamp, incrt = p->incr;
-    
+
     int outnum = csound->GetOutputArgCnt(p);
         double _0dbfs = csound->Get0dBFS(csound);
 
@@ -667,33 +666,33 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
 
         if (time < 0 || time >= 1 || !*p->konset) {
           spos += hsize*time;
-	  incrt =  time*nsmps;
+          incrt =  time*nsmps;
         }
         else if (p->tscale) {
           spos += hsize*(time/(1+p->accum));
-	  incrt =  (time/(1+p->accum))*nsmps;
+          incrt =  (time/(1+p->accum))*nsmps;
           p->accum=0.0;
         }
         else  {
           spos += hsize;
-	  incrt =  nsmps;
+          incrt =  nsmps;
           p->accum++;
           p->tscale = 1;
         }
         sizefrs = size/nchans;
 
-	while(spos > sizefrs) {
+        while(spos > sizefrs) {
           spos -= sizefrs;
         }
         while(spos <= 0){
           spos += sizefrs;
         }
-	if (spos > sizefrs/2 && p->curbuf == 0) {
-	  tab = fillbuf(csound, p, (int)size/2, (int)size/2);
-	} else if (spos < sizefrs/2 && p->curbuf == 1){
+        if (spos > sizefrs/2 && p->curbuf == 0) {
           tab = fillbuf(csound, p, (int)size/2, (int)size/2);
-	}
-	   
+        } else if (spos < sizefrs/2 && p->curbuf == 1){
+          tab = fillbuf(csound, p, (int)size/2, (int)size/2);
+        }
+
         for (j = 0; j < nchans; j++) {
           pos = spos;
           bwin = (MYFLT *) p->bwin[j].auxp;
@@ -713,16 +712,16 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
            while(post >= size) post -= size;
            if(post+nchans <  size)
             in = tab[post] + frac*(tab[post+nchans] - tab[post]);
-	   else {
-	     in = tab[post];
-	   }
+           else {
+             in = tab[post];
+           }
 
             fwin[i] = in * win[i];
 
             post = (int) (pos - hsize*pitch);
             post *= nchans;
             post += j;
-	    while(post < 0) post += size;
+            while(post < 0) post += size;
             while(post >= size) post -= size;
             if(post+nchans <  size)
             in = tab[post] + frac*(tab[post+nchans] - tab[post]);
