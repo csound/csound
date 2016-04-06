@@ -740,7 +740,7 @@ int instimes(CSOUND *csound, RDTIME *p)
 
 /* Printing at k rate - printk. */
 
-/* printkset is called when the instance of the instrument is initiallised. */
+/* printkset is called when the instance of the instrument is initialised. */
 
 int printkset(CSOUND *csound, PRINTK *p)
 {
@@ -827,7 +827,7 @@ int printk(CSOUND *csound, PRINTK *p)
 
 #define ESC (0x1B)
 
-/* printksset is called when the instance of the instrument is initiallised. */
+/* printksset is called when the instance of the instrument is initialised. */
 int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
 {
     char        *sdest;
@@ -840,126 +840,126 @@ int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       p->ctime = *p->ptime;
     p->initime = (MYFLT) CS_KCNT * CS_ONEDKR;
     p->cysofar = -1;
-      memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
-      sdest = p->txtstring;
-      /* Copy the string to the storage place in PRINTKS.
-       *
-       * We will look out for certain special codes and write special
-       * bytes directly to the string.
-       *
-       * There is probably a more elegant way of doing this, then using
-       * the look flag.  I could use goto - but I would rather not.      */
-                                /* This is really a if then else if...
-                                 * construct and is currently grotty -- JPff */
-      while (*sarg) {
-        temp  = *sarg++;
-        tempn = *sarg--;
-        /* Look for a single caret and insert an escape char.  */
-        if ((temp  == '^') && (tempn != '^')) {
-          *sdest++ = ESC;
-        }
+    memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
+    sdest = p->txtstring;
+    /* Copy the string to the storage place in PRINTKS.
+     *
+     * We will look out for certain special codes and write special
+     * bytes directly to the string.
+     *
+     * There is probably a more elegant way of doing this, then using
+     * the look flag.  I could use goto - but I would rather not.      */
+    /* This is really a if then else if...
+     * construct and is currently grotty -- JPff */
+    while (*sarg) {
+      temp  = *sarg++;
+      tempn = *sarg--;
+      /* Look for a single caret and insert an escape char.  */
+      if ((temp  == '^') && (tempn != '^')) {
+        *sdest++ = ESC;
+      }
 /* Look for a double caret and insert a single caret - stepping forward  one */
-        else if ((temp  == '^') && (tempn == '^')) {
-          *sdest++ = '^';
-          sarg++;
-        }
+      else if ((temp  == '^') && (tempn == '^')) {
+        *sdest++ = '^';
+        sarg++;
+      }
 /* Look for a single tilde and insert an escape followed by a '['.
  * ESC[ is the escape sequence for ANSI consoles */
-        else if ((temp  == '~') && (tempn != '~')) {
-          *sdest++ = ESC;
-          *sdest++ = '[';
-        }
-/* Look for a double tilde and insert a tilde caret - stepping forward one.  */
-        else if ((temp  == '~') && (tempn == '~')) {
-          *sdest++ = '~';
-          sarg++;
-        }
-        /* Look for \n, \N etc */
-        else if (temp == '\\') {
-          switch (tempn) {
-          case 'r': case 'R':
-            *sdest++ = '\r';
-            sarg++;
-            break;
-          case 'n': case 'N':
-            *sdest++ = '\n';
-            sarg++;
-            break;
-          case 't': case 'T':
-            *sdest++ = '\t';
-            sarg++;
-            break;
-          case 'a': case 'A':
-            *sdest++ = '\a';
-            sarg++;
-            break;
-          case 'b': case 'B':
-            *sdest++ = '\b';
-            sarg++;
-            break;
-          case '\\':
-            *sdest++ = '\\';
-            sarg++;
-            break;
-          default:
-            *sdest++ = tempn;
-            sarg++;
-            break;
-          }
-        }
-        /* This case is from matt ingalls */
-        else if (temp == '%' && tempn != '%' ) {
-           /* an extra option to specify tab and
-              return as %t and %r*/
-          /* allowing for %% escape -- VL */
-          switch (tempn) {
-          case 'r': case 'R':
-            *sdest++ = '\r';
-            sarg++;
-            break;
-          case 'n': case 'N':
-            *sdest++ = '\n';
-            sarg++;
-            break;
-          case 't': case 'T':
-            *sdest++ = '\t';
-            sarg++;
-            break;
-          case '!':     /* and a ';' */
-            *sdest++ = ';';
-            sarg++;
-            break;
-            // case '%':             /* Should we do this? JPff */
-            // *sdest++ = '%';       /* No. VL */
-            // sarg++;
-            // break;
-          default:
-            *sdest++ = temp;
-            break;
-          }
-        }
-        else {
-          /* If none of these match, then copy the character directly
-           * and try again.      */
-          *sdest++ = temp;
-        }
-      /* Increment pointer and process next character until end of string.  */
-        ++sarg;
+      else if ((temp  == '~') && (tempn != '~')) {
+        *sdest++ = ESC;
+        *sdest++ = '[';
       }
+/* Look for a double tilde and insert a tilde caret - stepping forward one.  */
+      else if ((temp  == '~') && (tempn == '~')) {
+        *sdest++ = '~';
+        sarg++;
+      }
+      /* Look for \n, \N etc */
+      else if (temp == '\\') {
+        switch (tempn) {
+        case 'r': case 'R':
+          *sdest++ = '\r';
+          sarg++;
+          break;
+        case 'n': case 'N':
+          *sdest++ = '\n';
+          sarg++;
+          break;
+        case 't': case 'T':
+          *sdest++ = '\t';
+          sarg++;
+          break;
+        case 'a': case 'A':
+          *sdest++ = '\a';
+          sarg++;
+          break;
+        case 'b': case 'B':
+          *sdest++ = '\b';
+          sarg++;
+          break;
+        case '\\':
+          *sdest++ = '\\';
+          sarg++;
+          break;
+        default:
+          *sdest++ = tempn;
+          sarg++;
+          break;
+        }
+      }
+      /* This case is from matt ingalls */
+      else if (temp == '%' && tempn != '%' ) {
+        /* an extra option to specify tab and
+           return as %t and %r*/
+        /* allowing for %% escape -- VL */
+        switch (tempn) {
+        case 'r': case 'R':
+          *sdest++ = '\r';
+          sarg++;
+          break;
+        case 'n': case 'N':
+          *sdest++ = '\n';
+          sarg++;
+          break;
+        case 't': case 'T':
+          *sdest++ = '\t';
+          sarg++;
+          break;
+        case '!':     /* and a ';' */
+          *sdest++ = ';';
+          sarg++;
+          break;
+          // case '%':             /* Should we do this? JPff */
+          // *sdest++ = '%';       /* No. VL */
+          // sarg++;
+          // break;
+        default:
+          *sdest++ = temp;
+          break;
+        }
+      }
+      else {
+        /* If none of these match, then copy the character directly
+         * and try again.      */
+        *sdest++ = temp;
+      }
+      /* Increment pointer and process next character until end of string.  */
+      ++sarg;
+    }
 
     return OK;
 }
 
 int printksset_S(CSOUND *csound, PRINTKS *p){
- char *sarg;
- sarg = ((STRINGDAT*)p->ifilcod)->data;
- if(sarg == NULL) return csoundInitError(csound, Str("null string\n"));
- p->old = cs_strdup(csound, sarg);
- return printksset_(csound, p, sarg);
+    char *sarg;
+    sarg = ((STRINGDAT*)p->ifilcod)->data;
+    if (sarg == NULL) return csoundInitError(csound, Str("null string\n"));
+    p->old = cs_strdup(csound, sarg);
+    return printksset_(csound, p, sarg);
 }
 
 int printksset(CSOUND *csound, PRINTKS *p){
-  return printksset_(csound, p, get_arg_string(csound, *p->ifilcod));
+    return printksset_(csound, p, get_arg_string(csound, *p->ifilcod));
 }
 
 
