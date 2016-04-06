@@ -810,7 +810,7 @@ int printk(CSOUND *csound, PRINTK *p)
       /* Print spaces and then the value we want to read.   */
       if (p->pspace > 0L) {
         char  s[128];   /* p->pspace is limited to 120 in printkset() above */
-        memset(s, ' ', (size_t) p->pspace);
+        memset(s, ' ', 128 /*(size_t) p->pspace */);
         s[p->pspace] = '\0';
         csound->MessageS(csound, CSOUNDMSG_ORCH, s);
       }
@@ -1102,7 +1102,7 @@ static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
             snprintf(outstring, len, tmp, cc);
             break;
           default:
-            puts(fmt);
+            //puts(fmt);
             snprintf(outstring, len, tmp, *kvals[j]);
             break;
           }
