@@ -334,6 +334,7 @@ typedef struct dats{
   double tstamp, incr;
   int initDone;
   uint32_t bufused;
+  int finished;
 } DATASPACE;
 
 int mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
@@ -342,8 +343,6 @@ int mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
       mp3dec_uninit(p->mpa);
     return OK;
 }
-
-
 
 #define BUFS 8
 static void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps);
@@ -497,7 +496,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
  
    int buffersize = size;
    buffersize /= mpainfo.decoded_sample_size;
-   int skip = (int)(*p->skip*CS_ESR+1)*p->resamp;
+   int skip = (int)(*p->skip*CS_ESR)*p->resamp;
    p->bufused = -1;
    while (skip > 0) {
       int xx= skip;
@@ -519,6 +518,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
        csound->RegisterDeinitCallback(csound, p,
                                    (int (*)(CSOUND*, void*)) mp3scale_cleanup);
     p->initDone = -1;
+    p->finished = 0;
     return OK;
 }
 
@@ -532,9 +532,12 @@ void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
      short *buffer= (short *) p->buffer.auxp;
      MYFLT *data =  p->indata[p->curbuf];
      int r,i;
+     if(!p->finished){
      r = mp3dec_decode(p->mpa,p->buffer.auxp, nsmps*sizeof(short), &p->bufused);
      for(i=0; i < nsmps;i++)
-       data[i] = p->bufused ? buffer[i]/32768.0 : 0.0;       
+       data[i] = p->bufused ? buffer[i]/32768.0 : 0.0;
+     if(p->bufused == 0) p->finished = 1;
+     } else memset(data,0,nsmps*sizeof(MYFLT));
      p->curbuf = p->curbuf ? 0 : 1;  
 }
 
@@ -561,6 +564,14 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
     
     int outnum = csound->GetOutputArgCnt(p);
     double _0dbfs = csound->Get0dBFS(csound);
+
+    /*if(p->finished){
+      for (j=0; j < nchans; j++) {
+         out = j == 0 ? p->out1 : p->out2;
+        memset(out, '\0', nsmps*sizeof(MYFLT));
+     }
+      return OK;
+      }*/
 
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -720,7 +731,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
     p->curframe = curframe;
     p->pos = spos;
     p->tstamp = tstamp + incrt;
-    *p->kstamp = *p->skip + p->tstamp/csound->GetSr(csound);
+    *p->kstamp = (*p->skip + p->tstamp/csound->GetSr(csound))/p->resamp;
     p->incr = incrt;
     return OK;
 
