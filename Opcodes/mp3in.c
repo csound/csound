@@ -450,7 +450,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
       return csound->InitError(csound, mp3dec_error(r));
     } else
       csound->Message(csound, Str("mp3scale: init %s \n"), name);
-    
+
     if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
                  MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
@@ -470,14 +470,14 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
                       mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
                       mpainfo.duration%60);
     }
-    
+
     if(mpainfo.frequency != CS_ESR)
       p->resamp = mpainfo.frequency/CS_ESR;
     else
      p->resamp = 1;
     p->nchans = 2;
 
-    
+
    sinit(csound, p);
    size = p->N*sizeof(MYFLT)*BUFS;
    if (p->fdata.auxp == NULL || p->fdata.size < size)
@@ -487,13 +487,13 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
    size = p->N*sizeof(short)*BUFS/2;
    if (p->buffer.auxp == NULL || p->buffer.size < size)
       csound->AuxAlloc(csound, size, &p->buffer);
-   
+
    /*
    memset(&(p->fdch), 0, sizeof(FDCH));
    p->fdch.fd = fd;
    fdrecord(csound, &(p->fdch));
    */
- 
+
    int buffersize = size;
    buffersize /= mpainfo.decoded_sample_size;
    int skip = (int)(*p->skip*CS_ESR)*p->resamp;
@@ -506,7 +506,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
     p->pos = p->hsize;
     p->tscale  = 0;
     p->accum = 0;
-    p->tab = (MYFLT *) p->fdata.auxp;  
+    p->tab = (MYFLT *) p->fdata.auxp;
     p->tstamp = 0;
     if(p->initDone == -1)
        csound->RegisterDeinitCallback(csound, p,
@@ -532,7 +532,7 @@ void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
        data[i] = p->bufused ? buffer[i]/32768.0 : 0.0;
      if(p->bufused == 0) p->finished = 1;
      } else memset(data,0,nsmps*sizeof(MYFLT));
-     p->curbuf = p->curbuf ? 0 : 1;  
+     p->curbuf = p->curbuf ? 0 : 1;
 }
 
 static int sprocess3(CSOUND *csound, DATASPACE *p)
@@ -555,7 +555,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
     int *framecnt, curframe = p->curframe;
     int decim = p->decim;
     double tstamp = p->tstamp, incrt = p->incr;
-    
+
     int outnum = csound->GetOutputArgCnt(p);
     double _0dbfs = csound->Get0dBFS(csound);
 
@@ -572,7 +572,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
     if (UNLIKELY(early)) {
       nsmps -= early;
       for (j=0; j < nchans; j++) {
-	out = j == 0 ? p->out1 : p->out2;
+        out = j == 0 ? p->out1 : p->out2;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
       }
     }
@@ -589,22 +589,22 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
         tab = p->tab;
         size = p->fdata.size/sizeof(MYFLT);
         spos += hsize*time;
-	incrt =  time*nsmps;
-       
+        incrt =  time*nsmps;
+
         sizefrs = size/nchans;
 
-	while(spos > sizefrs) {
+        while(spos > sizefrs) {
           spos -= sizefrs;
         }
         while(spos <= 0){
           spos += sizefrs;
         }
-	if (spos > sizefrs/2 && p->curbuf == 0) {
-	  fillbuf(csound,p,size/2);
-	} else if (spos < sizefrs/2 && p->curbuf == 1){
+        if (spos > sizefrs/2 && p->curbuf == 0) {
           fillbuf(csound,p,size/2);
-	}
-	   
+        } else if (spos < sizefrs/2 && p->curbuf == 1){
+          fillbuf(csound,p,size/2);
+        }
+
         for (j = 0; j < nchans; j++) {
           pos = spos;
           bwin = (MYFLT *) p->bwin[j].auxp;
@@ -623,16 +623,16 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
            while(post >= size) post -= size;
            if(post+nchans <  size)
             in = tab[post] + frac*(tab[post+nchans] - tab[post]);
-	   else {
-	     in = tab[post];
-	   }
+           else {
+             in = tab[post];
+           }
 
             fwin[i] = in * win[i];
 
             post = (int) (pos - hsize*pitch);
             post *= nchans;
             post += j;
-	    while(post < 0) post += size;
+            while(post < 0) post += size;
             while(post >= size) post -= size;
             if(post+nchans <  size)
             in = tab[post] + frac*(tab[post+nchans] - tab[post]);
@@ -640,11 +640,11 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
             bwin[i] = in * win[i];
             pos += pitch;
           }
- 
+
           csound->RealFFT(csound, bwin, N);
           bwin[N] = bwin[1];
           bwin[N+1] = FL(0.0);
-          csound->RealFFT(csound, fwin, N);       
+          csound->RealFFT(csound, fwin, N);
           fwin[N] = fwin[1];
           fwin[N+1] = FL(0.0);
 
@@ -733,7 +733,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
 
 }
 
-  
+
 
 #define S(x)    sizeof(x)
 
