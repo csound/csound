@@ -145,7 +145,8 @@ static int readf_init_(CSOUND *csound, READF *p, int isstring)
     else csound->strarg2name(csound, name, p->Sfile, "input.", 0);
     p->fd = fopen(name, "r");
     p->lineno = 0;
-    if (p->Sline->data == NULL) {
+    if (p->Sline->size < MAXLINE) {
+      if(p->Sline->data != NULL) csound->Free(csound, p->Sline->data);
       p->Sline->data = (char *) csound->Calloc(csound, MAXLINE);
     p->Sline->size = MAXLINE;
     }
