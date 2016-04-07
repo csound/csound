@@ -263,7 +263,10 @@ public:
   {
     return csoundCompileCsd(csound, csd);
   }
-
+  virtual int CompileCsdText(char *csd_text)
+  {
+    return csoundCompileCsdText(csound, csd_text);
+  }
   virtual int Start()
   {
     return csoundStart(csound);
@@ -423,6 +426,9 @@ public:
   virtual const char *GetOutputName()
   {
     return csoundGetOutputName(csound);
+  }
+  virtual long GetCurrentTimeSamples(){
+    return csoundGetCurrentTimeSamples(csound);
   }
   virtual void SetHostImplementedAudioIO(int state, int bufSize)
   {

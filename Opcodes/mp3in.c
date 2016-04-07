@@ -335,6 +335,9 @@ typedef struct dats{
   int initDone;
   uint32_t bufused;
   int finished;
+  char init;
+  CSOUND *csound;
+   pthread_t t;
 } DATASPACE;
 
 int mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
@@ -413,7 +416,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
 
     return OK;
 }
-static int sinit3(CSOUND *csound, DATASPACE *p)
+static int sinit3_(CSOUND *csound, DATASPACE *p)
 {
     unsigned int size,i;
     char *name;
@@ -443,13 +446,13 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
       mp3dec_uninit(mpa);
       return
         csound->InitError(csound, Str("mp3scale: %s: failed to open file"), name);
-    } else
-       csound->Message(csound, Str("mp3scale: open %s \n"), name);
+     }// else
+      // csound->Message(csound, Str("mp3scale: open %s \n"), name);
     if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
       return csound->InitError(csound, mp3dec_error(r));
-    } else
-      csound->Message(csound, Str("mp3scale: init %s \n"), name);
+    } // else
+      // csound->Message(csound, Str("mp3scale: init %s \n"), name);
 
     if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
                  MP3DEC_RETCODE_OK)) {
@@ -465,10 +468,10 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
       if (mpainfo.layer == 1) strcat(temp, "Layer I");
       else if (mpainfo.layer == 2) strcat(temp, "Layer II");
       else strcat(temp, "Layer III");
-      csound->Warning(csound, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
+      /* csound->Warning(csound, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
                       temp, ((mpainfo.channels > 1) ? "stereo" : "mono"),
                       mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
-                      mpainfo.duration%60);
+                      mpainfo.duration%60);*/
     }
 
     if(mpainfo.frequency != CS_ESR)
@@ -493,12 +496,19 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
    p->fdch.fd = fd;
    fdrecord(csound, &(p->fdch));
    */
-
+   printf("fftsize = %d \n", p->N); 
    int buffersize = size;
    buffersize /= mpainfo.decoded_sample_size;
    int skip = (int)(*p->skip*CS_ESR)*p->resamp;
    p->bufused = -1;
-   mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
+
+   /*while (skip > 0) {
+      int xx= skip;
+      if (xx > buffersize) xx = buffersize;
+      skip -= xx;
+      r = mp3dec_decode(mpa, p->buffer.auxp, mpainfo.decoded_sample_size*xx, &p->bufused);
+      }*/
+    mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
 
    // fill buffers
     p->curbuf = 0;
@@ -513,25 +523,51 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
                                    (int (*)(CSOUND*, void*)) mp3scale_cleanup);
     p->initDone = -1;
     p->finished = 0;
+    p->init = 1;
     return OK;
 }
+
+#ifdef MP3SCAL_THREADED_INIT
+void *init_thread(void *p){
+  DATASPACE *pp = (DATASPACE *) p;
+  sinit3_(pp->csound,pp);
+}
+
+static int sinit3(CSOUND *csound, DATASPACE *p){
+   p->csound = csound;
+   p->init = 0;
+   pthread_create(&p->t, NULL, init_thread, p);
+   return OK;
+}
+#else
+
+static int sinit3(CSOUND *csound, DATASPACE *p) {
+  return sinit3_(csound,p);
+}
+
+#endif
+
 
 /*
  this will read a buffer full of samples
  from disk position offset samps from the last
  call to fillbuf
 */
-
 void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
      short *buffer= (short *) p->buffer.auxp;
      MYFLT *data =  p->indata[p->curbuf];
-     int r,i;
+     int r,i,end;
+     memset(data,0,nsmps*sizeof(MYFLT));
      if(!p->finished){
+     memset(p->buffer.auxp, 0, nsmps*sizeof(short)); 
      r = mp3dec_decode(p->mpa,p->buffer.auxp, nsmps*sizeof(short), &p->bufused);
-     for(i=0; i < nsmps;i++)
-       data[i] = p->bufused ? buffer[i]/32768.0 : 0.0;
      if(p->bufused == 0) p->finished = 1;
-     } else memset(data,0,nsmps*sizeof(MYFLT));
+     else {
+     end = p->bufused/sizeof(short);
+     for(i=0; i < nsmps;i++)
+       data[i] = buffer[i]/32768.0;
+     }
+     }
      p->curbuf = p->curbuf ? 0 : 1;
 }
 
@@ -561,13 +597,14 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
 
     if(time < 0) time = 0.0;
 
-    /*if(p->finished){
+    if(!p->init){
       for (j=0; j < nchans; j++) {
          out = j == 0 ? p->out1 : p->out2;
         memset(out, '\0', nsmps*sizeof(MYFLT));
      }
+      *p->kstamp = -1;
       return OK;
-      }*/
+    }
 
     if (UNLIKELY(early)) {
       nsmps -= early;
