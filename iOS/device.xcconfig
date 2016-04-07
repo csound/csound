@@ -1,5 +1,5 @@
 ONLY_ACTIVE_ARCH=NO
-ARCHS = arm64 armv7 armv7s 
+ARCHS =  arm64 armv7 armv7s
 VALID_ARCHS = arm64 armv7 armv7s
 IPHONEOS_DEPLOYMENT_TARGET = 6.1 
 GCC_VERSION = com.apple.compilers.llvm.clang.1_0
