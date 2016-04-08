@@ -822,7 +822,8 @@ int table_ra(CSOUND *csound, TABLRA *p) {
 
 int table_wa_set(CSOUND *csound, TABLWA *p) {
   IGN(csound);
-  p->pos =0;
+  if(*p->skipinit) p->pos = 0;
+  p->pos =+ *p->off;
   return OK;
 }
 
@@ -842,7 +843,7 @@ int table_wa(CSOUND *csound, TABLWA *p) {
   np2 = ftp->lenmask ? 0 : 1;
 
   mask = ftp->lenmask;
-  pos = p->pos + *p->off;
+  pos = p->pos; /*+ *p->off;*/
 
   if (pos < 0)
     return csound->PerfError(csound, p->h.insdshead,
