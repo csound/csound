@@ -166,12 +166,13 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     p->buf = (uint8_t *) p->auxch.auxp;
     p->bufused = -1;
     buffersize /= mpainfo.decoded_sample_size;
-    while (skip > 0) {
+    /*while (skip > 0) {
       int xx= skip;
       if (xx > buffersize) xx = buffersize;
       skip -= xx;
       r = mp3dec_decode(mpa, p->buf, mpainfo.decoded_sample_size*xx, &p->bufused);
-    }
+      }*/
+    mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
     p->r = r;
     if(p->initDone == -1)
        csound->RegisterDeinitCallback(csound, p,
@@ -311,6 +312,465 @@ int mp3len(CSOUND *csound, MP3LEN *p){
 int mp3len_S(CSOUND *csound, MP3LEN *p){
   return mp3len_(csound,p,1);
 }
+#define MAXOUTS 2
+#define MAXOUTS 2
+
+typedef struct dats{
+  OPDS h;
+  MYFLT *out1,*out2,*kstamp, *knum, *time,*kpitch, *kamp, *skip, *iN,
+    *idecim, *klock;
+  int cnt, hsize, curframe, N, decim,tscale;
+  unsigned int nchans;
+  double pos;
+  MYFLT accum;
+  AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS],
+    nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS], fdata, buffer;
+  MYFLT *indata[2];
+  MYFLT *tab;
+  int curbuf;
+  mp3dec_t mpa;
+  FDCH    fdch;
+  MYFLT resamp;
+  double tstamp, incr;
+  int initDone;
+  uint32_t bufused;
+  int finished;
+  char init;
+  CSOUND *csound;
+   pthread_t t;
+} DATASPACE;
+
+int mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
+{
+    if (p->mpa != NULL)
+      mp3dec_uninit(p->mpa);
+    return OK;
+}
+
+#define BUFS 8
+static void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps);
+/* file-reading version of temposcal */
+static int sinit(CSOUND *csound, DATASPACE *p)
+{
+
+    int N =  *p->iN, ui;
+    unsigned int nchans, i;
+    unsigned int size;
+    int decim = *p->idecim;
+
+    if (N) {
+      for (i=0; N; i++) {
+        N >>= 1;
+      }
+      N = (int) pow(2.0, i-1);
+    } else N = 2048;
+    if (decim == 0) decim = 4;
+
+    p->hsize = N/decim;
+    p->cnt = p->hsize;
+    p->curframe = 0;
+    p->pos = 0;
+
+    nchans = p->nchans;
+
+  if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
+      csound->InitError(csound, Str("invalid number of output arguments"));
+    p->nchans = nchans;
+
+    for (i=0; i < nchans; i++){
+
+    size = (N+2)*sizeof(MYFLT);
+    if (p->fwin[i].auxp == NULL || p->fwin[i].size < size)
+      csound->AuxAlloc(csound, size, &p->fwin[i]);
+    if (p->bwin[i].auxp == NULL || p->bwin[i].size < size)
+      csound->AuxAlloc(csound, size, &p->bwin[i]);
+    if (p->prev[i].auxp == NULL || p->prev[i].size < size)
+      csound->AuxAlloc(csound, size, &p->prev[i]);
+    size = decim*sizeof(int);
+    if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
+      csound->AuxAlloc(csound, size, &p->framecount[i]);
+    {
+      int k=0;
+      for (k=0; k < decim; k++) {
+        ((int *)(p->framecount[i].auxp))[k] = k*N;
+      }
+    }
+    size = decim*sizeof(MYFLT)*N;
+    if (p->outframe[i].auxp == NULL || p->outframe[i].size < size)
+      csound->AuxAlloc(csound, size, &p->outframe[i]);
+    else
+      memset(p->outframe[i].auxp,0,size);
+    }
+    size = N*sizeof(MYFLT);
+    if (p->win.auxp == NULL || p->win.size < size)
+      csound->AuxAlloc(csound, size, &p->win);
+
+    {
+      MYFLT x = FL(2.0)*PI_F/N;
+      for (ui=0; ui < N; ui++)
+        ((MYFLT *)p->win.auxp)[ui] = FL(0.5) - FL(0.5)*COS((MYFLT)ui*x);
+    }
+
+    p->N = N;
+    p->decim = decim;
+
+    return OK;
+}
+static int sinit3_(CSOUND *csound, DATASPACE *p)
+{
+    unsigned int size,i;
+    char *name;
+    SF_INFO sfinfo;
+    // open file
+    int fd;
+    int r;
+    mp3dec_t mpa           = NULL;
+    mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
+                               MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
+                               MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
+                               0.0 };
+    mpadec_info_t mpainfo;
+    name = ((STRINGDAT *)p->knum)->data;
+    p->mpa = mpa = mp3dec_init();
+    if (UNLIKELY(!mpa)) {
+      return csound->InitError(csound, Str("Not enough memory\n"));
+    }
+    if (UNLIKELY((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK)) {
+      mp3dec_uninit(mpa);
+      p->mpa = NULL;
+      return csound->InitError(csound, mp3dec_error(r));
+    }
+     if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+                                   name, "rb", "SFDIR;SSDIR",
+                                   CSFTYPE_OTHER_BINARY, 0) == NULL)) {
+      mp3dec_uninit(mpa);
+      return
+        csound->InitError(csound, Str("mp3scale: %s: failed to open file"), name);
+     }// else
+      // csound->Message(csound, Str("mp3scale: open %s \n"), name);
+    if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
+      mp3dec_uninit(mpa);
+      return csound->InitError(csound, mp3dec_error(r));
+    } // else
+      // csound->Message(csound, Str("mp3scale: init %s \n"), name);
+
+    if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
+                 MP3DEC_RETCODE_OK)) {
+      mp3dec_uninit(mpa);
+      return csound->InitError(csound, mp3dec_error(r));
+    }
+
+    {
+      char temp[80];
+      if (mpainfo.frequency < 16000) strcpy(temp, "MPEG-2.5 ");
+      else if (mpainfo.frequency < 32000) strcpy(temp, "MPEG-2 ");
+      else strcpy(temp, "MPEG-1 ");
+      if (mpainfo.layer == 1) strcat(temp, "Layer I");
+      else if (mpainfo.layer == 2) strcat(temp, "Layer II");
+      else strcat(temp, "Layer III");
+      /* csound->Warning(csound, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
+                      temp, ((mpainfo.channels > 1) ? "stereo" : "mono"),
+                      mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
+                      mpainfo.duration%60);*/
+    }
+
+    if(mpainfo.frequency != CS_ESR)
+      p->resamp = mpainfo.frequency/CS_ESR;
+    else
+     p->resamp = 1;
+    p->nchans = 2;
+
+
+   sinit(csound, p);
+   size = p->N*sizeof(MYFLT)*BUFS;
+   if (p->fdata.auxp == NULL || p->fdata.size < size)
+      csound->AuxAlloc(csound, size, &p->fdata);
+   p->indata[0] = p->fdata.auxp;
+   p->indata[1] = p->fdata.auxp + size/2;
+   size = p->N*sizeof(short)*BUFS/2;
+   if (p->buffer.auxp == NULL || p->buffer.size < size)
+      csound->AuxAlloc(csound, size, &p->buffer);
+
+   /*
+   memset(&(p->fdch), 0, sizeof(FDCH));
+   p->fdch.fd = fd;
+   fdrecord(csound, &(p->fdch));
+   */
+   printf("fftsize = %d \n", p->N); 
+   int buffersize = size;
+   buffersize /= mpainfo.decoded_sample_size;
+   int skip = (int)(*p->skip*CS_ESR)*p->resamp;
+   p->bufused = -1;
+
+   /*while (skip > 0) {
+      int xx= skip;
+      if (xx > buffersize) xx = buffersize;
+      skip -= xx;
+      r = mp3dec_decode(mpa, p->buffer.auxp, mpainfo.decoded_sample_size*xx, &p->bufused);
+      }*/
+    mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
+
+   // fill buffers
+    p->curbuf = 0;
+    fillbuf(csound,p,p->N*BUFS/2);
+    p->pos = p->hsize;
+    p->tscale  = 0;
+    p->accum = 0;
+    p->tab = (MYFLT *) p->fdata.auxp;
+    p->tstamp = 0;
+    if(p->initDone == -1)
+       csound->RegisterDeinitCallback(csound, p,
+                                   (int (*)(CSOUND*, void*)) mp3scale_cleanup);
+    p->initDone = -1;
+    p->finished = 0;
+    p->init = 1;
+    return OK;
+}
+
+#ifdef MP3SCAL_THREADED_INIT
+void *init_thread(void *p){
+  DATASPACE *pp = (DATASPACE *) p;
+  sinit3_(pp->csound,pp);
+}
+
+static int sinit3(CSOUND *csound, DATASPACE *p){
+   p->csound = csound;
+   p->init = 0;
+   pthread_create(&p->t, NULL, init_thread, p);
+   return OK;
+}
+#else
+
+static int sinit3(CSOUND *csound, DATASPACE *p) {
+  return sinit3_(csound,p);
+}
+
+#endif
+
+
+/*
+ this will read a buffer full of samples
+ from disk position offset samps from the last
+ call to fillbuf
+*/
+void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
+     short *buffer= (short *) p->buffer.auxp;
+     MYFLT *data =  p->indata[p->curbuf];
+     int r,i,end;
+     memset(data,0,nsmps*sizeof(MYFLT));
+     if(!p->finished){
+     memset(p->buffer.auxp, 0, nsmps*sizeof(short)); 
+     r = mp3dec_decode(p->mpa,p->buffer.auxp, nsmps*sizeof(short), &p->bufused);
+     if(p->bufused == 0) p->finished = 1;
+     else {
+     end = p->bufused/sizeof(short);
+     for(i=0; i < nsmps;i++)
+       data[i] = buffer[i]/32768.0;
+     }
+     }
+     p->curbuf = p->curbuf ? 0 : 1;
+}
+
+static int sprocess3(CSOUND *csound, DATASPACE *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    MYFLT pitch = *p->kpitch*p->resamp, time = *p->time*p->resamp, lock = *p->klock;
+    MYFLT *out, amp =*p->kamp;
+    MYFLT *tab,frac;
+    FUNC *ft;
+    int N = p->N, hsize = p->hsize, cnt = p->cnt, sizefrs, nchans = p->nchans;
+    int  nsmps = CS_KSMPS, n;
+    int size, post, i, j;
+    double pos, spos = p->pos;
+    MYFLT *fwin, *bwin;
+    MYFLT in, *nwin, *prev;
+    MYFLT *win = (MYFLT *) p->win.auxp, *outframe;
+    MYFLT powrat;
+    MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
+    int *framecnt, curframe = p->curframe;
+    int decim = p->decim;
+    double tstamp = p->tstamp, incrt = p->incr;
+
+    int outnum = csound->GetOutputArgCnt(p);
+    double _0dbfs = csound->Get0dBFS(csound);
+
+    if(time < 0) time = 0.0;
+
+    if(!p->init){
+      for (j=0; j < nchans; j++) {
+         out = j == 0 ? p->out1 : p->out2;
+        memset(out, '\0', nsmps*sizeof(MYFLT));
+     }
+      *p->kstamp = -1;
+      return OK;
+    }
+
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      for (j=0; j < nchans; j++) {
+        out = j == 0 ? p->out1 : p->out2;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      }
+    }
+    if (UNLIKELY(offset)) {
+     for (j=0; j < nchans; j++) {
+         out = j == 0 ? p->out1 : p->out2;
+        memset(out, '\0', offset*sizeof(MYFLT));
+     }
+     }
+
+    for (n=offset; n < nsmps; n++) {
+
+      if (cnt == hsize){
+        tab = p->tab;
+        size = p->fdata.size/sizeof(MYFLT);
+        spos += hsize*time;
+        incrt =  time*nsmps;
+
+        sizefrs = size/nchans;
+
+        while(spos > sizefrs) {
+          spos -= sizefrs;
+        }
+        while(spos <= 0){
+          spos += sizefrs;
+        }
+        if (spos > sizefrs/2 && p->curbuf == 0) {
+          fillbuf(csound,p,size/2);
+        } else if (spos < sizefrs/2 && p->curbuf == 1){
+          fillbuf(csound,p,size/2);
+        }
+
+        for (j = 0; j < nchans; j++) {
+          pos = spos;
+          bwin = (MYFLT *) p->bwin[j].auxp;
+          fwin = (MYFLT *) p->fwin[j].auxp;
+          prev = (MYFLT *)p->prev[j].auxp;
+          framecnt  = (int *)p->framecount[j].auxp;
+          outframe= (MYFLT *) p->outframe[j].auxp;
+
+          for (i=0; i < N; i++) {
+            post = (int) pos;
+            frac = pos  - post;
+            post *= nchans;
+            post += j;
+
+           while(post < 0) post += size;
+           while(post >= size) post -= size;
+           if(post+nchans <  size)
+            in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+           else {
+             in = tab[post];
+           }
+
+            fwin[i] = in * win[i];
+
+            post = (int) (pos - hsize*pitch);
+            post *= nchans;
+            post += j;
+            while(post < 0) post += size;
+            while(post >= size) post -= size;
+            if(post+nchans <  size)
+            in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+            else in = tab[post];
+            bwin[i] = in * win[i];
+            pos += pitch;
+          }
+
+          csound->RealFFT(csound, bwin, N);
+          bwin[N] = bwin[1];
+          bwin[N+1] = FL(0.0);
+          csound->RealFFT(csound, fwin, N);
+          fwin[N] = fwin[1];
+          fwin[N+1] = FL(0.0);
+
+          for (i=0; i < N + 2; i+=2) {
+
+            div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1.0e-20);
+            ph_real  =    prev[i]*div;
+            ph_im =       prev[i+1]*div;
+
+            tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
+            tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
+            bwin[i] = tmp_real;
+            bwin[i+1] = tmp_im;
+          }
+
+          for (i=0; i < N + 2; i+=2) {
+            if (lock) {
+              if (i > 0) {
+                if (i < N) {
+                  tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
+                  tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+                }
+                else {
+                  tmp_real = bwin[i] + bwin[i-2];
+                  tmp_im = FL(0.0);
+                }
+              }
+              else {
+                tmp_real = bwin[i] + bwin[i+2];
+                tmp_im = FL(0.0);
+              }
+            }
+            else {
+              tmp_real = bwin[i];
+              tmp_im = bwin[i+1];
+            }
+
+            tmp_real += 1e-15;
+            div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
+
+            ph_real = tmp_real*div;
+            ph_im = tmp_im*div;
+
+            tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
+            tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
+
+            prev[i] = fwin[i] = tmp_real;
+            prev[i+1] = fwin[i+1] = tmp_im;
+          }
+
+          fwin[1] = fwin[N];
+          csound->InverseRealFFT(csound, fwin, N);
+
+          framecnt[curframe] = curframe*N;
+
+          for (i=0;i<N;i++) outframe[framecnt[curframe]+i] = win[i]*fwin[i];
+
+        }
+        cnt=0;
+        curframe++;
+        if (curframe == decim) curframe = 0;
+      }
+
+      /* we only output as many channels as we have outs for */
+      for (j=0; j < 2; j++) {
+        out = j == 0 ? p->out1 : p->out2;
+        framecnt  = (int *) p->framecount[j].auxp;
+        outframe  = (MYFLT *) p->outframe[j].auxp;
+        out[n] = (MYFLT) 0;
+
+        for (i = 0; i < decim; i++) {
+          out[n] += outframe[framecnt[i]];
+          framecnt[i]++;
+        }
+        out[n] *= _0dbfs*amp*(2./3.);
+      }
+      cnt++;
+    }
+    p->cnt = cnt;
+    p->curframe = curframe;
+    p->pos = spos;
+    p->tstamp = tstamp + incrt;
+    *p->kstamp = (*p->skip + p->tstamp/csound->GetSr(csound))/p->resamp;
+    p->incr = incrt;
+    return OK;
+
+}
+
+
 
 #define S(x)    sizeof(x)
 
@@ -324,7 +784,9 @@ static OENTRY mp3in_localops[] = {
     {"mp3bitrate", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
   {"mp3bitrate.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
     {"mp3nchnls", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
-  {"mp3nchnls.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL}
+  {"mp3nchnls.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+  {"mp3scal", sizeof(DATASPACE), 0, 5, "aak", "Skkkooop",
+                                               (SUBR)sinit3, NULL,(SUBR)sprocess3 },
 };
 
 LINKAGE_BUILTIN(mp3in_localops)

@@ -24,6 +24,7 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 #include "pstream.h"
+#include "soundio.h"
 #define MAXOUTS 2
 
 typedef struct dats{
@@ -35,12 +36,14 @@ typedef struct dats{
   double pos;
   MYFLT accum;
   AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS],
-    nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS], indata[2];
+    nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS], fdata;
+  MYFLT *indata[2];
   MYFLT *tab;
   int curbuf;
   SNDFILE *sf;
   FDCH    fdch;
   MYFLT resamp;
+  double tstamp, incr;
 } DATASPACE;
 
 
@@ -326,7 +329,7 @@ static int sinit2(CSOUND *csound, DATASPACE *p)
     for (i=0; i < p->nchans; i++)
     if (p->nwin[i].auxp == NULL || p->nwin[i].size < size)
       csound->AuxAlloc(csound, size, &p->nwin[i]);
-    p->pos = *p->offset*CS_ESR - p->hsize;
+    p->pos = *p->offset*CS_ESR + p->hsize;
     p->tscale  = 0;
     p->accum = 0;
     return OK;
@@ -376,16 +379,17 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
 
         if (time < 0 || time >= 1 || !*p->konset) {
           spos += hsize*time;
-        }
-        else if (p->tscale) {
-          spos += hsize*(time/(1+p->accum));
-          p->accum=0.0;
-        }
-        else  {
-          spos += hsize;
-          p->accum++;
-          p->tscale = 1;
-        }
+          //csound->Message(csound, "position: %f \n", spos);
+          }
+           else if (p->tscale) {
+            spos += hsize*(time/(1+p->accum));
+             p->accum=0.0;
+           }
+           else  {
+              spos += hsize;
+             p->accum++;
+             p->tscale = 1;
+            }
         if (UNLIKELY((int) ft->nchanls != nchans))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("number of output arguments "
@@ -543,9 +547,9 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
     return OK;
 
 }
-#if 0
-#define BUFS 10
 
+#define BUFS 20
+static void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps);
 /* file-reading version of temposcal */
 static int sinit3(CSOUND *csound, DATASPACE *p)
 {
@@ -553,14 +557,20 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
     char *name;
     SF_INFO sfinfo;
     // open file
-    name = ((STRINGDATA *)p->num)->data;
-    sf = (SNDFILE *) csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+    void *fd;
+    name = ((STRINGDAT *)p->knum)->data;
+    fd  = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                          "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
-    if(sfinfo.rate != CS_ESR)
-     p->resamp = CS_ESR/sfinfo.rate;
+    if(sfinfo.samplerate != CS_ESR)
+     p->resamp = sfinfo.samplerate/CS_ESR;
     else
      p->resamp = 1;
-    p->nchans = sfinfo.chans;
+    p->nchans = sfinfo.channels;
+
+    if(p->OUTOCOUNT != p->nchans)
+      return csound->InitError(csound,
+	    "filescal: mismatched channel numbers. %d outputs, %d inputs\n",
+              p->OUTOCOUNT, p->nchans);
 
     sinit(csound, p);
     size = p->N*sizeof(MYFLT);
@@ -569,25 +579,23 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
       csound->AuxAlloc(csound, size, &p->nwin[i]);
 
    size = p->N*sizeof(MYFLT)*BUFS;
-   if (p->indata[0].auxp == NULL || p->indata[0].size < size)
-      csound->AuxAlloc(csound, size, &p->indata[0]);
-   if (p->indata[1].auxp == NULL || p->indata[1].size < size)
-      csound->AuxAlloc(csound, size, &p->indata[1]);
+   if (p->fdata.auxp == NULL || p->fdata.size < size)
+      csound->AuxAlloc(csound, size, &p->fdata);
+   p->indata[0] = p->fdata.auxp;
+   p->indata[1] = p->fdata.auxp + size/2;
 
    memset(&(p->fdch), 0, sizeof(FDCH));
    p->fdch.fd = fd;
    fdrecord(csound, &(p->fdch));
 
    // fill buffers
-    fillbuffer(csound, p, 0);
-    fillbuffer(csound, p, size/sizeof(MYFLT));
+       p->curbuf = 0;
+    fillbuf(csound, p, p->N*BUFS/2);
     p->pos = *p->offset*CS_ESR + p->hsize;
     p->tscale  = 0;
     p->accum = 0;
-    p->tab = (MYFLT *) p->indata[0].auxp;
-    p->curbuf = 0;
-
-
+    p->tab = (MYFLT *) p->indata[0];
+    p->tstamp = 0.0;
     return OK;
 }
 
@@ -597,23 +605,17 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
  call to fillbuf
 */
 
-MYFLT *fillbuf(CSOUND *csound, DATASPACE *p, int offset){
+void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
 
    sf_count_t sampsread;
-
-   // find read position
-   sf_seek(p->sf, offset, SEEK_CUR);
-
    // fill p->curbuf
-   sampsread = sf_read_MYFLT(p->sf, p->indata[curbuf].auxp,
-                p->indata[curbuf].size/sizeof(MYFLT));
-
-   // place read pointer at the read position
-   sf_seek(p->sf, -sampsread, SEEK_CUR);
-
+   sampsread = sf_read_MYFLT(p->sf, p->indata[p->curbuf],
+                nsmps);
+   if(sampsread < nsmps)
+     memset(p->indata[p->curbuf]+sampsread*sizeof(MYFLT), 0,
+	    sizeof(MYFLT)*(nsmps-sampsread));
    // point to the other
     p->curbuf = p->curbuf ? 0 : 1;
-    return (p->tab = (MYFLT *) p->indata[p->curbuf].auxp);
 }
 
 static int sprocess3(CSOUND *csound, DATASPACE *p)
@@ -635,7 +637,15 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
     MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
     int *framecnt, curframe = p->curframe;
     int decim = p->decim;
+    double tstamp = p->tstamp, incrt = p->incr;
+
+    if(time < 0) /* negative tempo is not possible */
+      time = 0.0;
+    time *= p->resamp;
+    
+
     int outnum = csound->GetOutputArgCnt(p);
+    double _0dbfs = csound->Get0dBFS(csound);
 
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -655,35 +665,38 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
 
       if (cnt == hsize){
         tab = p->tab;
-        size = indata[0].size/sizeof(MYFLT);
+        size = p->fdata.size/sizeof(MYFLT);
 
         if (time < 0 || time >= 1 || !*p->konset) {
           spos += hsize*time;
+          incrt =  time*nsmps;
         }
         else if (p->tscale) {
           spos += hsize*(time/(1+p->accum));
+          incrt =  (time/(1+p->accum))*nsmps;
           p->accum=0.0;
         }
         else  {
           spos += hsize;
+          incrt =  nsmps;
           p->accum++;
           p->tscale = 1;
         }
-        if (UNLIKELY((int) ft->nchanls != nchans))
-          return csound->PerfError(csound, p->h.insdshead,
-                                   Str("number of output arguments "
-                                       "inconsistent with number of "
-                                       "sound file channels"));
         sizefrs = size/nchans;
 
         while(spos > sizefrs) {
-          tab = fillbuffer(csound, p, size*sizeof(MYFLT));
           spos -= sizefrs;
         }
         while(spos <= 0){
-          tab = fillbuffer(csound, p, -size*sizeof(MYFLT));
           spos += sizefrs;
         }
+
+	if (spos > sizefrs/2 && p->curbuf == 0) {
+	  fillbuf(csound, p, size/2);
+	} else if (spos < sizefrs/2 && p->curbuf == 1){
+          fillbuf(csound, p, size/2);
+	}
+	   
 
         for (j = 0; j < nchans; j++) {
           pos = spos;
@@ -700,25 +713,33 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
             post *= nchans;
             post += j;
 
-            while(post < 0) post += size;
-            while(post >= size) post -= size;
+           while(post < 0) post += size;
+           while(post >= size) post -= size;
+           if(post+nchans <  size)
             in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+           else {
+             in = tab[post];
+           }
 
             fwin[i] = in * win[i];
 
             post = (int) (pos - hsize*pitch);
             post *= nchans;
             post += j;
-            if (post >= 0 && post < size)
-              in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
-            else in =  (MYFLT) 0;
+            while(post < 0) post += size;
+            while(post >= size) post -= size;
+            if(post+nchans <  size)
+            in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+            else in = tab[post];
             bwin[i] = in * win[i];
             post = (int) pos + hsize;
             post *= nchans;
             post += j;
             while(post < 0) post += size;
             while(post >= size) post -= size;
+            if(post+nchans <  size)
             in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+            else in = tab[post];
             nwin[i] = in * win[i];
             pos += pitch;
           }
@@ -812,18 +833,21 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
           out[n] += outframe[framecnt[i]];
           framecnt[i]++;
         }
-        out[n] *= amp*(2./3.);
+        out[n] *= _0dbfs*amp*(2./3.);
       }
       cnt++;
     }
     p->cnt = cnt;
     p->curframe = curframe;
     p->pos = spos;
+    //printf("%f s  \n", tstamp/csound->GetSr(csound));
+    p->tstamp = tstamp + incrt;
+    p->incr = incrt;
     return OK;
 
 }
 
-#endif
+
 
 
 typedef struct {
@@ -897,6 +921,8 @@ static OENTRY pvlock_localops[] = {
                                                (SUBR)sinit1, NULL,(SUBR)sprocess1 },
   {"temposcal", sizeof(DATASPACE), 0, 5, "mm", "kkkkkooPOP",
                                                (SUBR)sinit2, NULL,(SUBR)sprocess2 },
+   {"filescal", sizeof(DATASPACE), 0, 5, "mm", "kkkSkooPOP",
+                                               (SUBR)sinit3, NULL,(SUBR)sprocess3 },
   {"pvslock", sizeof(PVSLOCK), 0, 3, "f", "fk", (SUBR) pvslockset,
          (SUBR) pvslockproc},
 };

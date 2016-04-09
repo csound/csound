@@ -131,23 +131,23 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
                         NULL, 0, &mp3->in_buffer_offset, NULL);
       mp3->in_buffer_used -= mp3->in_buffer_offset;
       if (r != MPADEC_RETCODE_OK) {
-        /* this is a fix for ID3 tag at the start of a file */
-        /* while(r == 7) { /\* NO SYNC, read more data *\/ */
-        /*   int32_t n = sizeof(mp3->in_buffer); */
-        /*   if (mp3->stream_size && (n > mp3->stream_size)) */
-        /*      n = (int32_t)mp3->stream_size; */
-        /*      n = read(fd, mp3->in_buffer, n); */
-        /*      if (n <= 0){ n = 0; break; } /\* EOF *\/ */
-        /*      mp3->stream_position = mp3->in_buffer_used = n;  */
-        /*      r = mpadec_decode(mp3->mpadec, mp3->in_buffer, */
-        /*                        mp3->in_buffer_used, */
-        /*                 NULL, 0, &mp3->in_buffer_offset, NULL); */
-        /*      mp3->in_buffer_used -= mp3->in_buffer_offset; */
-        /* } */
-        // if (r != MPADEC_RETCODE_OK) {
+        //this is a fix for ID3 tag at the start of a file
+        while(r == 7) { /* NO SYNC, read more data */
+          int32_t n = sizeof(mp3->in_buffer);
+          if (mp3->stream_size && (n > mp3->stream_size))
+             n = (int32_t)mp3->stream_size;
+             n = read(fd, mp3->in_buffer, n);
+             if (n <= 0){ n = 0; break; } /* EOF */
+             mp3->stream_position = mp3->in_buffer_used = n;
+             r = mpadec_decode(mp3->mpadec, mp3->in_buffer,
+                               mp3->in_buffer_used,
+                        NULL, 0, &mp3->in_buffer_offset, NULL);
+             mp3->in_buffer_used -= mp3->in_buffer_offset;
+        }
+        if (r != MPADEC_RETCODE_OK) {
         mp3dec_reset(mp3);
         return MP3DEC_RETCODE_NOT_MPEG_STREAM;
-        //}
+        }
       }
     }
     if ((mpadec_get_info(mp3->mpadec, &mp3->mpainfo,

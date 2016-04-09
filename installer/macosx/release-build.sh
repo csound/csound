@@ -1,7 +1,15 @@
 #!/bin/sh
 
+if [ $# == 0 ]; then
+  echo "Must give branch name to build from"
+  exit
+else
+  export BRANCH_NAME=$1
+  echo "Using branch: $BRANCH_NAME"
+fi
+
 export MANUAL_DIR=`pwd`/../../../manual
-export CS_VERSION="6.06"
+export CS_VERSION="6.07beta"
 export PACKAGE_NAME=csound${CS_VERSION}-OSX-universal.pkg
 export DMG_DIR="Csound ${CS_VERSION}"
 export DMG_NAME="csound${CS_VERSION}-OSX-universal.dmg"
@@ -11,14 +19,6 @@ export TARGET=10.7
 export DEPS_BASE=/usr/local
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
-
-if [ $# == 0 ]; then
-  echo "Must give branch name to build from"
-  exit
-else
-  export BRANCH_NAME=$1
-  echo "Using branch: $BRANCH_NAME"
-fi
 
 if [ $# -gt 1 ]; then
 	cd $2
@@ -229,13 +229,14 @@ install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/.
 install_name_tool -change $DEPS_BASE/lib/libfltk_forms.1.3.dylib @loader_path/../../../../libs/libfltk_forms.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
 install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/../../../../libs/libfltk.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libvirtual.dylib
 install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/../../../../libs/libfltk_images.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libvirtual.dylib
+install_name_tool -change $DEPS_BASE/lib/libfltk_forms.1.3.dylib @loader_path/../../../../libs/libfltk_forms.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libvirtual.dylib
 install_name_tool -change $DEPS_BASE/lib/liblo.7.dylib @loader_path/../../../../libs/liblo.7.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libosc.dylib
 install_name_tool -change $DEPS_BASE/lib/libportaudio.2.dylib @loader_path/../../../../libs/libportaudio.2.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/librtpa.dylib
 install_name_tool -change $DEPS_BASE/lib/libwiiuse.dylib @loader_path/../../../../libs/libwiiuse.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwiimote.dylib
 install_name_tool -change $DEPS_BASE/lib/libpng16.16.dylib @loader_path/../../../../libs/libpng16.16.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libimage.dylib
 install_name_tool -change $DEPS_BASE/lib/libpng16.16.dylib @loader_path/../../../../libs/libpng16.16.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
 install_name_tool -change $DEPS_BASE/lib/libfluidsynth.1.dylib @loader_path/../../../../libs/libfluidsynth.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libfluidOpcodes.dylib
-install_name_tool -change libportmidi.dylib @loader_path/../../../../libs/libportmidi.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libpmidi.dylib
+install_name_tool -change /usr/local/lib/libportmidi.dylib @loader_path/../../../../libs/libportmidi.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libpmidi.dylib
 
 
 install_name_tool -change libCsoundAC.6.0.dylib /usr/local/lib/libCsoundAC.6.0.dylib $CSOUND_AC_PYLIB

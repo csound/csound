@@ -44,7 +44,7 @@
 
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(EMSCRIPTEN) 
 #ifndef _MM_DENORMALS_ZERO_ON
 #include <xmmintrin.h>
 #define _MM_DENORMALS_ZERO_MASK   0x0040
@@ -71,7 +71,7 @@ extern "C" {
 #include <xlocale.h>
 #endif
 
-#if (defined(__MACH__) || defined(ANDROID) || defined(NACL))
+#if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__))
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;
@@ -150,7 +150,7 @@ typedef struct {
 #endif
 #define ISSTRCOD(X) isnan(X)
 
-#define SSTRSIZ    200
+#define SSTRSIZ    1024
 #define ALLCHNLS   0x7fff
 #define DFLT_SR    FL(44100.0)
 #define DFLT_KR    FL(4410.0)
@@ -443,7 +443,7 @@ typedef struct {
     int     scnt;
     char    *strarg;
     /* instance pointer */
-    void  *pinstance;  /* TODO - Remove this field in Csound 7, not being used */
+    void  *pinstance;  /* used in nstance opcode */
     /** Event type */
     char    opcod;
     /** Number of p-fields */
@@ -483,7 +483,7 @@ typedef struct {
     /* Extra memory used by opcodes in this instr */
     AUXCH   *auxchp;
     /* Extra release time requested with xtratim opcode */
-    int     xtratim;
+    int      xtratim;
     /* MIDI note info block if event started from MIDI */
     MCHNBLK *m_chnbp;
     /* ptr to next overlapping MIDI voice */
@@ -493,29 +493,29 @@ typedef struct {
     /* Instrument def address */
     INSTRTXT *instr;
     /* non-zero for sustaining MIDI note */
-    int16   m_sust;
+    int16    m_sust;
     /* MIDI pitch, for simple access */
     unsigned char m_pitch;
     /* ...ditto velocity */
     unsigned char m_veloc;
     /* Flag to indicate we are releasing, test with release opcode */
-    char    relesing;
+    char     relesing;
     /* Set if instr instance is active (perfing) */
-    char    actflg;
+    char     actflg;
     /* Time to turn off event, in score beats */
-    double  offbet;
+    double   offbet;
     /* Time to turn off event, in seconds (negative on indef/tie) */
-    double  offtim;
+    double   offtim;
     /* Python namespace for just this instance. */
     void    *pylocal;
     /* pointer to Csound engine and API for externals */
     CSOUND  *csound;
-    int     kcounter;
+    uint64_t kcounter;
     unsigned int     ksmps;     /* Instrument copy of ksmps */
-    MYFLT   ekr;                /* and of rates */
-    MYFLT   onedksmps, onedkr, kicvt;
+    MYFLT    ekr;                /* and of rates */
+    MYFLT    onedksmps, onedkr, kicvt;
     struct opds  *pds;          /* Used for jumping */
-    MYFLT   scratchpad[4];      /* Persistent data */
+    MYFLT    scratchpad[4];      /* Persistent data */
 
     /* user defined opcode I/O buffers */
     void    *opcod_iobufs;
@@ -527,14 +527,14 @@ typedef struct {
                              (calculated) */
     uint32_t ksmps_no_end; /* samps left at the end for sample accuracy
                               (used by opcodes) */
-    MYFLT  *spin;         /* offset into csound->spin */
-    MYFLT  *spout;        /* offset into csound->spout, or local spout, if needed */
-    int    init_done;
-    int    tieflag;
-    int    reinitflag;
-    MYFLT  retval;
-    MYFLT  *lclbas;  /* base for variable memory pool */
-    char   *strarg;       /* string argument */
+    MYFLT   *spin;         /* offset into csound->spin */
+    MYFLT   *spout;        /* offset into csound->spout, or local spout */
+    int      init_done;
+    int      tieflag;
+    int      reinitflag;
+    MYFLT    retval;
+    MYFLT   *lclbas;  /* base for variable memory pool */
+    char    *strarg;       /* string argument */
     /* Copy of required p-field values for quick access */
     CS_VAR_MEM  p0;
     CS_VAR_MEM  p1;
@@ -939,7 +939,7 @@ typedef struct NAME__ {
     uint32_t (*GetNchnls_i)(CSOUND *);
     MYFLT (*Get0dBFS) (CSOUND *);
     /** Get number of control blocks elapsed */
-    long (*GetKcounter)(CSOUND *);
+    uint64_t (*GetKcounter)(CSOUND *);
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
@@ -1274,10 +1274,10 @@ typedef struct NAME__ {
     int (*OpenLibrary)(void **library, const char *libraryPath);
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
-#ifndef __MACH__
-    char *(*LocalizeString)(const char *) __attribute__ ((format_arg (1)));
-#else
+#if defined (__CUDACC__) || defined (__MACH__)
     char *(*LocalizeString)(const char *);
+#else
+    char *(*LocalizeString)(const char *) __attribute__ ((format_arg (1)));
 #endif
     char *(*strtok_r)(char*, char*, char**);
     double (*strtod)(char*, char**);
@@ -1371,7 +1371,7 @@ typedef struct NAME__ {
     uint32_t      nchnls;
     int           inchnls;
     int           spoutactive;
-    long          kcounter, global_kcounter;
+    uint64_t      kcounter, global_kcounter;
     MYFLT         esr;
     MYFLT         ekr;
     /** current time in seconds, inc. per kprd */
@@ -1667,7 +1667,7 @@ typedef struct NAME__ {
     int           dag_changed;
     int           dag_num_active;
     INSDS         **dag_task_map;
-    volatile enum state    *dag_task_status;
+    volatile stateWithPadding    *dag_task_status;
     watchList     * volatile *dag_task_watch;
     watchList     *dag_wlmm;
     char          **dag_task_dep;
@@ -1699,6 +1699,7 @@ typedef struct NAME__ {
                                and nodebug function */
     int           score_parser;
     CS_HASH_TABLE* symbtab;
+    int           tseglen;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
