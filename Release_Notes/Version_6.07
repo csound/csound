@@ -106,6 +106,8 @@ Modified Opcodes and Gens:
 
      o   chnget now allows channel names to be changed at perf time.
 
+     o   iceps has been renamed cepsinv to avoid name clashes.
+
 Utilities:
 
   o
@@ -126,7 +128,7 @@ Frontends:
 
   HTML5:
 
-  o  CsoundQT has its own notes at
+  CsoundQT has its own notes at
      https://github.com/CsoundQt/CsoundQt/blob/master/release_notes/Release%20notes%200.9.2.md
 
 General usage:
@@ -219,6 +221,8 @@ API
     * The function call csound->GetKcounter(csound) now returns an
       unsigned 64 bit integer.  Previously it returned a long which is
       unclear.
+    
+    * New wrapper module for Python 2.x and Python 3.x using ctypes: ctcsound
 
 
 Platform Specific

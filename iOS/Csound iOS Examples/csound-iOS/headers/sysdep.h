@@ -268,6 +268,12 @@ typedef int64_t             int_least64_t;
 typedef uint64_t            uint_least64_t;
 #elif defined(HAVE_STDINT_H) || defined(HAVE_C99)
 #  include <stdint.h>
+#    if defined(__CYGWIN__)
+#define __int8 char
+#define __int16 short
+#define __int32 int
+#define __int64 long long
+#    endif
 #else
 typedef signed char         int8_t;
 typedef unsigned char       uint8_t;

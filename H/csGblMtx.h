@@ -20,12 +20,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-
 #ifndef CSOUND_CSGBLMTX_H
-#define CSOUND_CSGBLMTX_H
-
-#if defined(__linux) || defined(__linux__) || defined(__unix) ||    \
-    defined(__unix__) || defined(__MACOSX__) || defined(__APPLE__)
 
 #include <pthread.h>
 
@@ -33,150 +28,28 @@
 extern "C" {
 #endif
 
-static  pthread_mutex_t     csound_global_lock_ = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t csound_global_lock_ = PTHREAD_MUTEX_INITIALIZER;
 
-static
-#ifdef __GNUC__
-#  ifndef __STRICT_ANSI__
-  inline
-#  else
-  __inline__
-#  endif
-#endif
-    void csound_global_mutex_lock(void)
+static void csound_global_mutex_init_(void)
 {
-    pthread_mutex_lock(&csound_global_lock_);
 }
 
-static
-#ifdef __GNUC__
-#  ifndef __STRICT_ANSI__
-  inline
-#  else
-  __inline__
-#  endif
-#endif
-    void csound_global_mutex_unlock(void)
+static void csound_global_mutex_unlock(void)
 {
     pthread_mutex_unlock(&csound_global_lock_);
 }
 
-#ifdef __cplusplus
-}       /* extern "C" */
-#endif
-
-#elif defined(_WIN32) || defined(__WIN32__)
-
-#include <windows.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-static  CRITICAL_SECTION    csound_global_lock_;
-
-#ifdef __GNUC__
-
-static __attribute__ ((__constructor__)) void csound_global_mutex_init_(void)
+static void csound_global_mutex_lock(void)
 {
-    InitializeCriticalSection(&csound_global_lock_);
+    pthread_mutex_lock(&csound_global_lock_);
 }
 
-static __attribute__ ((__destructor__)) void csound_global_mutex_destroy_(void)
-{
-    DeleteCriticalSection(&csound_global_lock_);
-}
-
-#else
-
-static  int     csound_global_lock_init_done_ = 0;
-
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved);
-
-#endif
-
-static
-#ifdef __GNUC__
-#  ifndef __STRICT_ANSI__
-  inline
-#  else
-  __inline__
-#  endif
-#elif defined(_MSC_VER)
-  __inline
-#endif
-    void csound_global_mutex_lock(void)
-{
-#ifndef __GNUC__
-    if (csound_global_lock_init_done_)
-#endif
-      EnterCriticalSection(&csound_global_lock_);
-}
-
-static
-#ifdef __GNUC__
-#  ifndef __STRICT_ANSI__
-  inline
-#  else
-  __inline__
-#  endif
-#elif defined(_MSC_VER)
-  __inline
-#endif
-    void csound_global_mutex_unlock(void)
-{
-#ifndef __GNUC__
-    if (csound_global_lock_init_done_)
-#endif
-      LeaveCriticalSection(&csound_global_lock_);
-}
-
-#ifdef __cplusplus
-}       /* extern "C" */
-#endif
-
-#else
-
-#ifdef __GNUC__
-#  warning "global thread locks not supported on this platform"
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-static
-#ifdef __GNUC__
-#  ifndef __STRICT_ANSI__
-  inline
-#  else
-  __inline__
-#  endif
-#elif defined(_MSC_VER)
-  __inline
-#endif
-    void csound_global_mutex_lock(void)
-{
-}
-
-static
-#ifdef __GNUC__
-#  ifndef __STRICT_ANSI__
-  inline
-#  else
-  __inline__
-#  endif
-#elif defined(_MSC_VER)
-  __inline
-#endif
-    void csound_global_mutex_unlock(void)
+static void csound_global_mutex_destroy_(void)
 {
 }
 
 #ifdef __cplusplus
-}       /* extern "C" */
-#endif
-
+}
 #endif
 
 #endif      /* CSOUND_CSGBLMTX_H */

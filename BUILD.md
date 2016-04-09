@@ -14,9 +14,11 @@ following operating systems
 
 -   [Fedora 18](#fedora)
 
--   [Windows (Mingw32)](#mingw32)
+-   [Windows 32/64 bit using MYSYS (recommended)](#msys2)
 
-Instructions compiled by Dominic Melville contact via dcamelville at gmail.com
+-   [Windows (Mingw32)](#mingw32)   
+
+Instructions for RPI compiled by Dominic Melville contact via dcamelville at gmail.com
 for amendments and updates
 
 
@@ -538,9 +540,12 @@ and log out of root
 Testing As a basic test, just try typing csound at a command prompt, and you
 should get the help message.
 
+Windows 32/64 Bit (msys2) <a name="msys2">
+---------------
+Csound for Windows can now be built using MSYS2. This is the recommeneded way to build Csound for Windows. Please follow the instruction posted [https://github.com/csound/csound/tree/develop/mingw64] here.
 
 
-Windows (mingw32) <a name="mingw32">
+Windows 32 Bit (mingw32) <a name="mingw32">
 ---------------
 A basic working knowledge of the Windows command prompt is assumed. Further instructions for Windows can be found in their own document at the following link [Csound Windows Build Doc][1]
 
