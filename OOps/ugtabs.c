@@ -823,7 +823,7 @@ int table_ra(CSOUND *csound, TABLRA *p) {
 int table_wa_set(CSOUND *csound, TABLWA *p) {
   IGN(csound);
   if(*p->skipinit) p->pos = 0;
-  p->pos =+ *p->off;
+  p->pos += *p->off;
   return OK;
 }
 
