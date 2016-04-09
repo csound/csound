@@ -47,7 +47,7 @@ int mkstemp(char *);
 #  define FALSE (0)
 #endif
 
-#define _DEBUG
+//#define _DEBUG
 
 /* These are used to set/clear bits in csound->tempStatus.
    If the bit is set, it indicates that the given file is
@@ -410,9 +410,9 @@ static int createExScore(CSOUND *csound, char *p, FILE *unf)
     fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, extname, "w", NULL,
                                 CSFTYPE_SCORE, 1);
     csound->tempStatus |= csScoInMask;
-/* #ifdef _DEBUG */
+#ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), extname, scof);
-/* #endif */
+#endif
     if (UNLIKELY(fd == NULL))
       return FALSE;
 
@@ -1232,9 +1232,9 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
     fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, extname, "w", NULL,
                                 CSFTYPE_SCORE, 1);
     csound->tempStatus |= csScoInMask;
-/* #ifdef _DEBUG */
+#ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), extname, scof);
-/* #endif */
+#endif
     if (UNLIKELY(fd == NULL))
       return FALSE;
 
@@ -1592,9 +1592,9 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
     int started = FALSE;
     int notrunning = csound->engineStatus & CS_STATE_COMP;
     char    buffer[CSD_MAX_LINE_LEN];
-    //#ifdef _DEBUG
+#ifdef _DEBUG
     //csoundMessage(csound, "Calling unified file system4\n");
-    //#endif
+#endif
     if (notrunning==0) {
       alloc_globals(csound);
       STA(orcname) = STA(sconame) = STA(midname) = NULL;

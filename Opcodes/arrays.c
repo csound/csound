@@ -1761,7 +1761,7 @@ typedef struct _pvsceps {
 int pvsceps_init(CSOUND *csound, PVSCEPS *p){
     int N = p->fin->N;
     if(isPowerOfTwo(N))
-      tabensure(csound, p->out, N);
+      tabensure(csound, p->out, N/2+1);
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
@@ -1773,18 +1773,20 @@ int pvsceps_perf(CSOUND *csound, PVSCEPS *p){
 
     if (p->lastframe < p->fin->framecount) {
       int N = p->fin->N;
-      int i;
+      int i, j;
       MYFLT *ceps = p->out->data;
       MYFLT coefs = *p->coefs;
       float *fin = (float *) p->fin->frame.auxp;
-      for(i=0; i < N; i+=2){
-        ceps[i] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
-        ceps[i+1] = 0.f;
+      for(i=j=0; i < N; i+=2, j++){
+        ceps[j] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
       }
-      csound->InverseComplexFFT(csound, ceps, N/2);
-      if(coefs)
+      ceps[N/2] = fin[N/2];
+      csound->RealFFT(csound, ceps, N/2);
+      if(coefs){
         // lifter coefs
-        for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
+        for (i=coefs*2; i < N/2; i++) ceps[i] = 0.0;
+        ceps[N/2] = 0.0;
+      }
       p->lastframe = p->fin->framecount;
     }
     return OK;
@@ -1797,7 +1799,7 @@ int init_ceps(CSOUND *csound, FFT *p){
       return csound->InitError(csound,
                                Str("FFT size too small (min 64 samples)\n"));
     if(isPowerOfTwo(N))
-      tabensure(csound, p->out, 2*N+2);
+      tabensure(csound, p->out, N+1);
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
@@ -1807,42 +1809,45 @@ int init_ceps(CSOUND *csound, FFT *p){
 
 
 int perf_ceps(CSOUND *csound, FFT *p){
-    int siz = p->out->sizes[0], i, j;
+    int siz = p->out->sizes[0]-1, i;
     MYFLT *ceps = p->out->data;
     MYFLT coefs = *((MYFLT *)p->in2);
     MYFLT *mags = (MYFLT *) p->in->data;
-    for(j=i=0; i < siz; i++, j+=2){
-      ceps[j] = log(mags[i] > 0.0 ? mags[i] : 1e-20);
-      ceps[j+1] = 0.f;
+    for(i=0; i < siz; i++){
+      ceps[i] = log(mags[i] > 0.0 ? mags[i] : 1e-20);
     }
-    csound->InverseComplexFFT(csound, ceps, siz/2-1);
-    if(coefs)
+    ceps[siz] = mags[siz];
+    csound->RealFFT(csound, ceps, siz);
+    if(coefs){
       // lifter coefs
-      for (i=coefs; i < siz-coefs; i++) ceps[i] = 0.0;
+      for (i=coefs*2; i < siz; i++) ceps[i] = 0.0;
+      ceps[siz] = 0.0;
+    }
     return OK;
 }
 
 int init_iceps(CSOUND *csound, FFT *p){
-    int N = p->in->sizes[0]-2;
+    int N = p->in->sizes[0]-1;
     if(isPowerOfTwo(N))
-      tabensure(csound, p->out, N/2+1);
+      tabensure(csound, p->out, N+1);
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
-    if(p->mem.auxp == NULL || p->mem.size < (N+2)*sizeof(MYFLT))
-      csound->AuxAlloc(csound, (N+2)*sizeof(MYFLT), &p->mem);
+    if(p->mem.auxp == NULL || p->mem.size < (N+1)*sizeof(MYFLT))
+      csound->AuxAlloc(csound, (N)*sizeof(MYFLT), &p->mem);
     return OK;
 }
 
 int perf_iceps(CSOUND *csound, FFT *p){
-    int siz = p->in->sizes[0], i, j;
+    int siz = p->in->sizes[0]-1, i;
     MYFLT *spec = (MYFLT *)p->mem.auxp;
     MYFLT *out = p->out->data;
     memcpy(spec, p->in->data, siz*sizeof(MYFLT));
-    csound->ComplexFFT(csound,spec,siz/2-1);
-    for(i=j=0; i < siz; i+=2, j++){
-      out[j] = exp(spec[i]);
+    csound->InverseRealFFT(csound,spec,siz);
+    for(i=0; i < siz; i++){
+      out[i] = exp(spec[i]);
     }
+    out[siz] = spec[siz];
     return OK;
 }
 
@@ -2235,7 +2240,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR) init_window, (SUBR) perf_window, NULL},
     {"pvsceps", sizeof(PVSCEPS), 0, 3, "k[]","fo",
      (SUBR) pvsceps_init, (SUBR) pvsceps_perf, NULL},
-    {"iceps", sizeof(FFT), 0, 3, "k[]","k[]",
+    {"cepsinv", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_iceps, (SUBR) perf_iceps, NULL},
     {"ceps", sizeof(FFT), 0, 3, "k[]","k[]k",
      (SUBR) init_ceps, (SUBR) perf_ceps, NULL},
