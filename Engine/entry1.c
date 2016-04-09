@@ -715,7 +715,7 @@ OENTRY opcodlst_1[] = {
   { "tablecopy", S(TGP),TB, 2, "", "kk", NULL, (SUBR)table_copy, NULL},
   { "tablera", S(TABLRA),TR, 5,   "a",  "kkk",
     (SUBR)table_ra_set, NULL, (SUBR)table_ra},
-  { "tablewa", S(TABLWA),TW, 5,   "k",  "kako",
+  { "tablewa", S(TABLWA),TW, 5,   "k",  "kakp",
     (SUBR)table_wa_set, NULL, (SUBR)table_wa},
   { "tablekt",  S(TABL),TR, 3,   "k",  "xkooo",  (SUBR)tablkt_setup,
     (SUBR)tablerkt_kontrol,
