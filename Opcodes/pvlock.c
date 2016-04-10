@@ -569,7 +569,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
 
     if(p->OUTOCOUNT != p->nchans)
       return csound->InitError(csound,
-	    "filescal: mismatched channel numbers. %d outputs, %d inputs\n",
+              Str("filescal: mismatched channel numbers. %d outputs, %d inputs\n"),
               p->OUTOCOUNT, p->nchans);
 
     sinit(csound, p);
@@ -613,7 +613,7 @@ void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
                 nsmps);
    if(sampsread < nsmps)
      memset(p->indata[p->curbuf]+sampsread*sizeof(MYFLT), 0,
-	    sizeof(MYFLT)*(nsmps-sampsread));
+            sizeof(MYFLT)*(nsmps-sampsread));
    // point to the other
     p->curbuf = p->curbuf ? 0 : 1;
 }
@@ -691,12 +691,11 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
           spos += sizefrs;
         }
 
-	if (spos > sizefrs/2 && p->curbuf == 0) {
-	  fillbuf(csound, p, size/2);
-	} else if (spos < sizefrs/2 && p->curbuf == 1){
+        if (spos > sizefrs/2 && p->curbuf == 0) {
           fillbuf(csound, p, size/2);
-	}
-	   
+        } else if (spos < sizefrs/2 && p->curbuf == 1) {
+          fillbuf(csound, p, size/2);
+        }
 
         for (j = 0; j < nchans; j++) {
           pos = spos;
