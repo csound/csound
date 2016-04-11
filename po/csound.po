@@ -803,7 +803,13 @@ msgid "channel %d illegal"
 msgstr ""
 
 #: Engine/fgens.c:2608
-msgid "deferred alloc\n"
+#, c-format
+msgid "deferred alloc for %s\n"
+msgstr ""
+
+#: Engine/fgens.c:2612
+#, c-format
+msgid "Failed to open file %s"
 msgstr ""
 
 #: Engine/fgens.c:2617 Engine/fgens.c:2938

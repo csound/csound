@@ -835,8 +835,14 @@ msgid "channel %d illegal"
 msgstr "le canal %d est illégal"
 
 #: Engine/fgens.c:2608
-msgid "deferred alloc\n"
+#, fuzzy, c-format
+msgid "deferred alloc for %s\n"
 msgstr "allocation différée\n"
+
+#: Engine/fgens.c:2612
+#, fuzzy, c-format
+msgid "Failed to open file %s"
+msgstr "L'ouverture du fichier csd a échoué : %s"
 
 #: Engine/fgens.c:2617 Engine/fgens.c:2938
 msgid "deferred size, but filesize unknown"
