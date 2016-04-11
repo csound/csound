@@ -50,9 +50,9 @@ export PYTHONPATH=/home/restore/csound/mingw64/csound-mingw64
 export RAWWAVE_PATH=/home/restore/csound/mingw64/packages/stk/src/stk-4.5.1/rawwaves
 ```
 5. Build and install packages for dependencies not currently in MSYS2's repositories. The formulas are included in the packages folder. Note that the purpose of these packages is simply to get dependencies installed for the Csound build system to find, not to replicate existing packages, so PKGBUILD files may be simplified. Also note that some packages contain patches that may need to be updated when source files are updated. Cd into each directory and use 'makepkg-mingw' to build the package. Use 'pacman -U name-of-package.pkg.tar.xz' to install the package. If there is a 'devel' package in the package directory, install that also. If there are any errors about line endings, simply run dos2unix on the file(s) to change the line endings. Failing that you can simple run this command from the package directory
-'''
+```
 sed -i 's/^M//' PKGBUILD
-'''
+```
 6. If you wish to create an mingw64-compatible import library for the MSVS-built Python DLL, see the following [instructions here](http://ascend4.org/Setting_up_a_MinGW-w64_build_environment). Note that currently, gendef comes with the MSYS2 toolchain, and does not need to be built.
 7. Run ./build.sh in the mingw64 directory. It will run CMake, run make, and then copy the targets into the "dist" directory. For a truly clean build, first delete the csound-mingw64 directory and all of its contents. (You can skip this step if you are performing the installer build below).
 
