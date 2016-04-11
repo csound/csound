@@ -811,8 +811,14 @@ msgid "channel %d illegal"
 msgstr "Führung %d ungültig"
 
 #: Engine/fgens.c:2608
-msgid "deferred alloc\n"
+#, fuzzy, c-format
+msgid "deferred alloc for %s\n"
 msgstr "aufgeschobene Verteilung\n"
+
+#: Engine/fgens.c:2612
+#, fuzzy, c-format
+msgid "Failed to open file %s"
+msgstr "Störung Öffnung ASCII Akte"
 
 #: Engine/fgens.c:2617 Engine/fgens.c:2938
 msgid "deferred size, but filesize unknown"
