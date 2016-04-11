@@ -1798,7 +1798,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     y[1] = y[l1];
     y[l1] = y[l1 + 1] = FL(0.0);
     csound->InverseRealFFT(csound, y, l1);
-    /* memcpy(f1, y, l11*sizeof(MYFLT)); */
+    /* memcpy(f1, y, l1*sizeof(MYFLT)); */
     for (i = 0; i < l1; i++)
       f1[i] = y[i];
     f1[l1] = f1[0];     /* write guard point */
