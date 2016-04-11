@@ -146,7 +146,7 @@ void array_copy_value(void* csound, void* dest, void* src) {
 void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
     CSOUND* cs = (CSOUND*)csound;
     int ksmps = cs->ksmps;
-    var->memBlockSize = ksmps * sizeof (MYFLT);
+    var->memBlockSize = CS_FLOAT_ALIGN(ksmps * sizeof (MYFLT));
 }
 
 void varInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
@@ -184,7 +184,7 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
 //    }
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-    var->memBlockSize = ksmps * sizeof (MYFLT);
+    var->memBlockSize = CS_FLOAT_ALIGN(ksmps * sizeof (MYFLT));
     var->updateMemBlockSize = &updateAsigMemBlock;
     var->initializeVariableMemory = &varInitMemory;
     return var;
@@ -194,7 +194,7 @@ CS_VARIABLE* createMyflt(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = sizeof (MYFLT);
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof (MYFLT));
     var->initializeVariableMemory = &varInitMemory;
     return var;
 }
@@ -203,7 +203,7 @@ CS_VARIABLE* createBool(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = sizeof (MYFLT);
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof (MYFLT));
     var->initializeVariableMemory = &varInitMemory;
     return var;
 }
