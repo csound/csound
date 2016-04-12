@@ -1798,7 +1798,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     y[1] = y[l1];
     y[l1] = y[l1 + 1] = FL(0.0);
     csound->InverseRealFFT(csound, y, l1);
-    /* memcpy(f1, y, l11*sizeof(MYFLT)); */
+    /* memcpy(f1, y, l1*sizeof(MYFLT)); */
     for (i = 0; i < l1; i++)
       f1[i] = y[i];
     f1[l1] = f1[0];     /* write guard point */
@@ -2605,11 +2605,11 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       p->channel = ALLCHNLS;
     p->analonly = 0;
     if (UNLIKELY(ff->flen == 0 && (csound->oparms->msglevel & 7))){
-      csoundMessage(csound, Str("deferred alloc\n"));
+      csoundMessage(csound, Str("deferred alloc for %s\n"), p->sfname);
     }
     if (UNLIKELY((fd = sndgetset(csound, p))==NULL)) {
       /* sndinset to open the file  */
-      return fterror(ff, "Failed to open file");
+      return fterror(ff, Str("Failed to open file %s"), p->sfname);
     }
     if (ff->flen == 0) {                      /* deferred ftalloc requestd: */
       if (UNLIKELY((ff->flen = p->framesrem + 1) <= 0)) {
