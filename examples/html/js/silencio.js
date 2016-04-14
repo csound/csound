@@ -3,7 +3,7 @@ S I L E N C I O
 
 Copyright (C) 2014 by Michael Gogins
 
-This software is licensed under the terms of the 
+This software is licensed under the terms of the
 GNU Lesser General Public License
 
 Algorithmic music composition library in JavaScript for Csound.
@@ -12,9 +12,9 @@ Algorithmic music composition library in JavaScript for Csound.
 (function () {
     /**
     A Score is a matrix in which the rows are events.
-    
+
     An Event is a homogeneous vector with the following dimensions:
-    
+
      1 Time in seconds from start of performance.
      2 Duration in seconds.
      3 MIDI status (only the most significant nybble, e.g. 144 for 'NOTE ON').
@@ -26,9 +26,9 @@ Algorithmic music composition library in JavaScript for Csound.
      9 z or heigth, 0 is the origin.
     10 Phase, in radians.
     11 Homogeneity, normally always 1.
-    
+
     NOTE: ECMASCRIPT 5 doesn't support inheritance from Array
-    in a clean and complete way, so we don't even try. 
+    in a clean and complete way, so we don't even try.
     */
 
     function eq_epsilon(a, b) {
@@ -244,7 +244,7 @@ Algorithmic music composition library in JavaScript for Csound.
         for (var i = 0; i < this.data.length; i++) {
             jscore += this.data[i].toIStatement() + '\n';
         }
-        csound.readScore(jscore);
+        csound.inputMessage(jscore);
     }
     Score.prototype.findScales = function () {
         for (var i = 0; i < this.minima.data.length; i++) {
@@ -483,14 +483,14 @@ Algorithmic music composition library in JavaScript for Csound.
     LSys.prototype.draw = function (t, context, W, H) {
         context.fillStyle = 'black';
         context.fillRect(0, 0, W, H);
-        // Draw for size. 
+        // Draw for size.
         t.reset();
         var size = [t.p.x, t.p.y, t.p.x, t.p.y];
         for (var i = 0; this.sentence.length > i; i++) {
             var c = this.sentence[i];
             this.interpret(c, t, context, size);
         }
-        // Draw to show. 
+        // Draw to show.
         var xsize = size[2] - size[0];
         var ysize = size[3] - size[1];
         var xscale = Math.abs(W / xsize);
@@ -528,7 +528,7 @@ Algorithmic music composition library in JavaScript for Csound.
         this.event.pan = Math.random();
     }
     LSys.prototype.endNote = function (t) {
-        // Handle the note ending before it starts. 
+        // Handle the note ending before it starts.
         var x1 = this.event.time;
         var x2 = t.p.x;
         this.event.time = Math.min(x1, x2);
@@ -577,35 +577,35 @@ Algorithmic music composition library in JavaScript for Csound.
     within the score, as if moving a pen, and may at any time write the
     current state of the cursor into the score, or write other events
     based, or not based, upon the cursor into the score.
-    
+
     The generating functions may be lambdas. Generated notes must not
     be the same object as the cursor, but may be clones of the cusor,
     or entirely new objects.
-    
+
     cursor          A Silencio.Event object that represents a position in a
                     musical score. This could be a note, a grain of sound, or
                     a control event.
-    
+
     depth           The current depth of recursion. This must begin > 1.
                     For each recursion, the depth is decremented. Recursion
                     ends when the depth reaches 0.
-    
+
     Returns the next position of the cursor, and optionally, a table of
     generated events.
-    
+
     generator = function(cursor, depth);
     {cursor, events} = generator(cursor, depth);
-    
+
     The algorithm is similar to the deterministic algorithm for computing the
     attractor of a recurrent iterated function systems. Instead of using
     affine transformation matrixes as the RIFS algorithm does, the current
     algorithm uses generating functions; but if each generating function
     applies a single affine transformation to the cursor, the current
     algorithm will in fact compute a RIFS.
-    
+
     generators      A list of generating functions with the above signature.
                     Unlike RIFS, the functions need not be contractive.
-    
+
     transitions     An N x N transition matrix for the N generating functions.
                     If entry [i][j] is 1, then if the current generator is the
                     ith, then the jth generator will be applied to the current
@@ -613,18 +613,18 @@ Algorithmic music composition library in JavaScript for Csound.
                     will not be applied to the current cursor after the ith.
                     In addition, each generator in the matrix must be reached
                     at some point during recursion.
-    
+
     depth           The current depth of recursion. This must begin > 1.
                     For each recursion, the depth is decremented. Recursion
                     ends when the depth reaches 0.
-    
+
     index           Indicates the current generating function, i.e. the
                     index-th row of the transition matrix.
-    
+
     cursor          A Silencio.Event object that represents a position in a
                     musical score. This could be a note, a grain of sound, or
                     a control event.
-    
+
     score           A Silencio.Score object that collects generated events.
     */
 
