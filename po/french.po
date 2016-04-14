@@ -1,5 +1,5 @@
 # Csound Audio Synthesis System
-# Copyright (C) 2007-2010 John ffitch and Csound community
+# Copyright (C) 2007-2016 John ffitch and Csound community
 # This file is distributed under the same license as the Csound package.
 # John ffitch <jpff@sourceforge.net>, 2007.
 #
@@ -567,7 +567,7 @@ msgstr "erreur interne : csoundFileOpen() : type non valide : %d"
 
 #: Engine/envvar.c:1016
 msgid "csound->FileOpen2 failed:"
-msgstr ""
+msgstr "csound->FileOpen2, échec :"
 
 #: Engine/envvar.c:1202
 #, c-format
@@ -835,14 +835,14 @@ msgid "channel %d illegal"
 msgstr "le canal %d est illégal"
 
 #: Engine/fgens.c:2608
-#, fuzzy, c-format
+#, c-format
 msgid "deferred alloc for %s\n"
-msgstr "allocation différée\n"
+msgstr "allocation différée pour %s\n"
 
 #: Engine/fgens.c:2612
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open file %s"
-msgstr "L'ouverture du fichier csd a échoué : %s"
+msgstr "L'ouverture du fichier %s a échoué"
 
 #: Engine/fgens.c:2617 Engine/fgens.c:2938
 msgid "deferred size, but filesize unknown"
@@ -8035,9 +8035,9 @@ msgid "invalid number of output arguments"
 msgstr "nombre d'arguments de sortie non valide"
 
 #: Opcodes/mp3in.c:448
-#, fuzzy, c-format
+#, c-format
 msgid "mp3scale: %s: failed to open file"
-msgstr "mp3in : %s : l'ouverture du fichier a échoué"
+msgstr "mp3scale : %s : l'ouverture du fichier a échoué"
 
 #: Opcodes/nlfilt.c:130
 msgid "nlfilt: not initialised"
@@ -8599,7 +8599,7 @@ msgstr "pvcross : non initialisé"
 #: Opcodes/pvlock.c:572
 #, c-format
 msgid "filescal: mismatched channel numbers. %d outputs, %d inputs\n"
-msgstr ""
+msgstr "filescal : nombres de canaux différents. %d sorties, %d entrées\n"
 
 #: Opcodes/pvlock.c:866 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:708
 #: Opcodes/pvsbasic.c:1034 Opcodes/pvsbasic.c:1248 Opcodes/pvsbasic.c:1354
