@@ -328,7 +328,7 @@ typedef struct dats{
     nwin[MP3_CHNS], prev[MP3_CHNS], framecount[MP3_CHNS], fdata[MP3_CHNS], buffer;
   MYFLT *indataL[2], *indataR[2];
   MYFLT *tab[MP3_CHNS];
-  int curbuf;
+  char curbuf;
   mp3dec_t mpa;
   FDCH    fdch;
   MYFLT resamp;
@@ -340,6 +340,7 @@ typedef struct dats{
   CSOUND *csound;
   pthread_t t;
   int ti;
+  char filling;
 } DATASPACE;
 
 int mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
@@ -549,6 +550,7 @@ static int sinit3_(CSOUND *csound, DATASPACE *p)
 void *init_thread(void *p){
   DATASPACE *pp = (DATASPACE *) p;
   sinit3_(pp->csound,pp);
+  return NULL;
 }
 
 static int sinit3(CSOUND *csound, DATASPACE *p){
@@ -576,8 +578,8 @@ static int sinit3(CSOUND *csound, DATASPACE *p) {
 void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
   short *buffer= (short *) p->buffer.auxp;
   MYFLT *data[2];
-  data[0] =  p->indataL[p->curbuf];
-  data[1] =  p->indataR[p->curbuf];
+  data[0] =  p->indataL[(int)p->curbuf];
+  data[1] =  p->indataR[(int)p->curbuf];
   int r,i,j, end;
   memset(data[0],0,nsmps*sizeof(MYFLT));
   memset(data[1],0,nsmps*sizeof(MYFLT));
@@ -836,7 +838,7 @@ typedef struct _mp3scal2_ {
     nwin[MP3_CHNS], prev[MP3_CHNS], framecount[MP3_CHNS], fdata[MP3_CHNS], buffer;
   MYFLT *indataL[2], *indataR[2];
   MYFLT *tab[MP3_CHNS];
-  int curbuf;
+  char curbuf;
   mp3dec_t mpa;
   FDCH    fdch;
   MYFLT resamp;
@@ -846,11 +848,14 @@ typedef struct _mp3scal2_ {
   int finished;
   char init;
   CSOUND *csound;
-  pthread_t t;
+  pthread_t t,t1;
   int ti;
   MYFLT ilen;
   MYFLT skip;
   char playing;
+  int nsmps;
+  char filling;
+  int async;
 } MP3SCAL2;
 
 typedef struct _loader {
@@ -861,11 +866,14 @@ typedef struct _loader {
   MP3SCAL2 p;
 } LOADER;
 
-void fillbuf2(CSOUND *csound, MP3SCAL2 *p, int nsmps){
+
+void *buffiller(void *pp){
+  MP3SCAL2 *p = (MP3SCAL2 *) pp;
+  int nsmps = p->nsmps;
   short *buffer= (short *) p->buffer.auxp;
   MYFLT *data[2];
-  data[0] =  p->indataL[p->curbuf];
-  data[1] =  p->indataR[p->curbuf];
+  data[0] =  p->indataL[(int)p->curbuf];
+  data[1] =  p->indataR[(int)p->curbuf];
   int r,i,j, end;
   memset(data[0],0,nsmps*sizeof(MYFLT));
   memset(data[1],0,nsmps*sizeof(MYFLT));
@@ -883,6 +891,15 @@ void fillbuf2(CSOUND *csound, MP3SCAL2 *p, int nsmps){
     }
   }
   p->curbuf = p->curbuf ? 0 : 1;
+  return NULL;
+}
+
+void fillbuf2(CSOUND *csound, MP3SCAL2 *p, int nsmps){
+  p->nsmps = nsmps;
+  if(p->async)
+   pthread_create(&(p->t1), NULL, buffiller, p);
+  else
+    buffiller((void *) p);
 }
 
 static int meminit(CSOUND *csound, LOADER *pp)
@@ -1020,7 +1037,8 @@ static int filinit(CSOUND *csound, LOADER *pp)
 
   // fill buffers
   p->curbuf = 0;
-  fillbuf2(csound,p,p->N*BUFS/2);
+  p->nsmps = p->N*BUFS/2;
+  buffiller((void *)p);
   p->pos = p->hsize;
   p->tscale  = 0;
   p->accum = 0;
@@ -1031,7 +1049,7 @@ static int filinit(CSOUND *csound, LOADER *pp)
   p->finished = 0;
   p->init = 1;
   p->skip = *pp->skip;
-  
+  p->filling = 1;
   return OK;
 }
 
@@ -1039,8 +1057,7 @@ void *loader_thread(void *p){
   LOADER *pp = (LOADER *) p;
   filinit(pp->p.csound,pp);
   // pp->p.csound->Message(pp->p.csound, "loader thread end\n");
-  
-  return pp->p.t;
+  return NULL;
 }
 
 static int loader_init(CSOUND *csound, LOADER *pp){
@@ -1065,8 +1082,6 @@ typedef struct _check {
 } CHECK;
 
 
-
-
 static int check_init(CSOUND *csound, CHECK *p){
   if(p->pp->data != NULL &&
      p->pp->size != sizeof(MP3SCAL2)) {
@@ -1087,7 +1102,7 @@ typedef struct _player {
   OPDS h;
   MYFLT *out1, *out2, *kstamp, *ilen;
   STRINGDAT *pp;
-  MYFLT *time, *kpitch, *kamp, *klock, *kinterp;
+  MYFLT *time, *kpitch, *kamp, *klock, *kinterp, *async;
   MP3SCAL2 *p;
 } PLAYER;
 
@@ -1105,6 +1120,7 @@ static int player_init(CSOUND *csound, PLAYER *p){
   }
   else return csound->InitError(csound, "invalid handle \n");
   *p->ilen = p->p->ilen;
+  p->p->async = *p->async;
   
   //if(p->p->initDone == -1)
     csound->RegisterDeinitCallback(csound, p,
@@ -1144,6 +1160,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
     *mframecount = p->framecount;
   MYFLT hsizepitch = hsize*pitch;
   int nbytes =  p->N*sizeof(MYFLT);
+  
   p->playing = 1;
   
   if(time < 0) time = 0.0;
@@ -1157,7 +1174,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
     p->ti++;
     *pp->kstamp = 0;
     return OK;
-  }
+  } else *pp->ilen = p->ilen;
   
   if (UNLIKELY(early)) {
     nsmps -= early;
@@ -1184,10 +1201,12 @@ static int player_play(CSOUND *csound, PLAYER *pp)
       while(spos < 0){
 	spos += size;
       }
-      if (spos > size/2+hsize && curbuf == 0) {
+      if (spos > size/2+hsize && p->curbuf == 0 && p->filling == 0) {
 	fillbuf2(csound,p,size/2);
-      } else if (spos < size/2+hsize && curbuf == 1){
+	p->filling = 1;
+      } else if (spos < size/2+hsize && p->curbuf == 1 && p->filling == 1){
 	fillbuf2(csound,p,size/2);
+	p->filling = 0;
       }
 
       for (j = 0; j < MP3_CHNS; j++) {
@@ -1363,7 +1382,7 @@ static OENTRY mp3in_localops[] = {
    (SUBR)sinit3, NULL,(SUBR)sprocess3 },
     {"mp3scal_load", sizeof(LOADER), 0, 1, "i", "Sooo",
    (SUBR)loader_init, NULL,NULL },
-    {"mp3scal_play", sizeof(PLAYER), 0, 5, "aaki", "ikkkPP",
+    {"mp3scal_play", sizeof(PLAYER), 0, 5, "aaki", "ikkkPPo",
    (SUBR)player_init, NULL,(SUBR)player_play},
     {"mp3scal_check", sizeof(CHECK), 0, 5, "k", "i",
    (SUBR)check_init, NULL,(SUBR)check_play}
