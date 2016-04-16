@@ -47,6 +47,7 @@
 #include <memory>
 #include <node.h>
 #include <string>
+#include <vector>
 #include <uv.h>
 #include <v8.h>
 #if defined(WIN32)
@@ -64,10 +65,21 @@ static char *orc = 0;
 static char *sco = 0;
 static uv_thread_t uv_csound_perform_thread;
 static uv_async_t uv_csound_message_async;
+
+struct ScoreEvent
+{
+    char opcode;
+    std::vector<MYFLT> pfields;
+};
+
 #if defined(WIN32)
 static concurrency::concurrent_queue<char *> csound_messages_queue;
+static concurrency::concurrent_queue<std::string> csound_score_queue;
+static concurrency::concurrent_queue<ScoreEvent *> csound_event_queue;
 #else
 static boost::lockfree::queue<char *, boost::lockfree::fixed_sized<false> > csound_messages_queue(0);
+static boost::lockfree::queue<char *, boost::lockfree::fixed_sized<false> > csound_score_queue(0);
+static boost::lockfree::queue<ScoreEvent *, boost::lockfree::fixed_sized<false> > csound_event_queue(0);
 #endif
 
 /**
@@ -161,12 +173,55 @@ void evalCode(const FunctionCallbackInfo<Value>& args)
  */
 void readScore(const FunctionCallbackInfo<Value>& args)
 {
+    int result = 0;
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     v8::String::Utf8Value scoreLines(args[0]->ToString());
-    int result = csoundReadScore(csound, *scoreLines);
+    csound_score_queue.push(strdup(*scoreLines));
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
+
+/**
+ * Evaluates the string of text, which may main contain multiple lines,
+ * as a Csound score for immediate performance. The score is assumed
+ * to be presorted.
+ */
+void inputMessage(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    v8::String::Utf8Value scoreLines(args[0]->ToString());
+    csound_score_queue.push(strdup(*scoreLines));
+    args.GetReturnValue().Set(Number::New(isolate, 0));
+}
+
+/**
+ * Evaluates a single score event, sent as opcode and pfields,
+ * relative to the current performance time. The number of pfields
+ * is read from the length of the array, not from the Csound API
+ * parameter.
+ */
+void scoreEvent(const FunctionCallbackInfo<Value>& args)
+{
+    int result = 0;
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    v8::String::Utf8Value javascript_opcode(args[0]->ToString());
+    ScoreEvent *event = new ScoreEvent;
+    char *opcode_ = *javascript_opcode;
+    event->opcode = opcode_[0];
+    v8::Local<v8::Array> javascript_pfields = v8::Local<v8::Array>::Cast(args[1]);
+    int javascript_pfields_count = javascript_pfields->Length();
+    for(int i = 0; i < javascript_pfields_count; i++)
+    {
+        v8::Local<v8::Value> element = javascript_pfields->Get(i);
+        event->pfields.push_back(element->NumberValue());
+    }
+    csound_event_queue.push(event);
+    args.GetReturnValue().Set(Number::New(isolate, result));
+}
+
+
 
 /**
  * Sets the numerical value of the named Csound control channel.
@@ -299,13 +354,45 @@ void uv_csound_perform_thread_routine(void * arg)
     csoundMessage(csound, "Began JavaScript perform()...\n");
     csoundStart(csound);
     int result = 0;
+    ScoreEvent *event = 0;
+    char *score_text = 0;
     for (stop_playing = false, finished = false;
             ((stop_playing == false) && (finished == false)); ) {
-        finished = csoundPerformBuffer(csound);
+#if defined(WIN32)
+        while (csound_event_queue.try_pop(event)) {
+#else
+        while (csound_event_queue.pop(event)) {
+#endif
+            csoundScoreEvent(csound, event->opcode, event->pfields.data(), event->pfields.size());
+            delete event;
+        }
+#if defined(WIN32)
+        while (csound_event_queue.try_pop(event)) {
+#else
+        while (csound_score_queue.pop(score_text)) {
+#endif
+            csoundReadScore(csound, score_text);
+            free(score_text);
+        }
+        finished = csoundPerformKsmps(csound);
     }
     csoundMessage(csound, "Ended JavaScript perform(), cleaning up now.\n");
     result = csoundCleanup(csound);
     csoundReset(csound);
+#if defined(WIN32)
+    while (csound_event_queue.try_pop(event)) {
+#else
+    while (csound_event_queue.pop(event)) {
+#endif
+        delete event;
+    }
+#if defined(WIN32)
+    while (csound_event_queue.try_pop(event)) {
+#else
+    while (csound_score_queue.pop(score_text)) {
+#endif
+        free(score_text);
+    }
 }
 
 /**
@@ -345,6 +432,8 @@ void init(Handle<Object> target)
     NODE_SET_METHOD(target, "compileOrc", compileOrc);
     NODE_SET_METHOD(target, "evalCode", evalCode);
     NODE_SET_METHOD(target, "readScore", readScore);
+    NODE_SET_METHOD(target, "inputMessage", inputMessage);
+    NODE_SET_METHOD(target, "scoreEvent", scoreEvent);
     NODE_SET_METHOD(target, "setControlChannel", setControlChannel);
     NODE_SET_METHOD(target, "getControlChannel", getControlChannel);
     NODE_SET_METHOD(target, "message", message);
