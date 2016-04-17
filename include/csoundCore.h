@@ -148,7 +148,25 @@ typedef struct {
 #define SSTRCOD    (float)NAN
   //#define SSTRCOD    (nanf("0"))
 #endif
-#define ISSTRCOD(X) isnan(X)
+  //#define ISSTRCOD(X) isnan(X)
+static inline int ISSTRCOD(MYFLT xx)
+{
+#ifdef USE_DOUBLE
+    union {
+      double d;
+      int32_t i[2];
+    } z;
+    z.d = xx;
+    return ((z.i[1]&0x7ff00000)==0x7ff00000);
+#else
+    union {
+      float f;
+      int32_t i;
+    } z;
+    z.f = xx;
+    return ((z.i&0x7f800000) == 0x7f800000);
+#endif
+}
 
 #define SSTRSIZ    1024
 #define ALLCHNLS   0x7fff
