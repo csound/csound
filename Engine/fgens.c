@@ -2596,34 +2596,34 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         int32_t i[2];
       } xx;
       xx.d = ff->e.p[5];
-      printf("****line %d: ff->e.p[5] %f %.8x %.8x\n", __LINE__,
-             ff->e.p[5], xx.i[1], xx.i[0]);
-      printf("****line %d: ISSTRCOD=%d %d file %s\n", __LINE__,
-             ISSTRCOD(ff->e.p[5]), isnan(ff->e.p[5]), ff->e.strarg);
+      /* printf("****line %d: ff->e.p[5] %f %.8x %.8x\n", __LINE__, */
+      /*        ff->e.p[5], xx.i[1], xx.i[0]); */
+      /* printf("****line %d: ISSTRCOD=%d %d file %s\n", __LINE__, */
+      /*        ISSTRCOD(ff->e.p[5]), isnan(ff->e.p[5]), ff->e.strarg); */
       if (ISSTRCOD(ff->e.p[5])) {
-        printf("****line %d\n" , __LINE__);
+        /* printf("****line %d\n" , __LINE__); */
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
-          printf("****line %d\n" , __LINE__);
+          /* printf("****line %d\n" , __LINE__); */
           strncpy(p->sfname, ff->e.strarg + 1, 512);
           if (len >= 0 && p->sfname[len] == '"')
             p->sfname[len] = '\0';
         }
         else {
-          printf("****line %d\n" , __LINE__);
+          /* printf("****line %d\n" , __LINE__); */
           strncpy(p->sfname, ff->e.strarg, 512);
         }
       }
       else if (filno >= 0 && filno <= csound->strsmax &&
                csound->strsets && csound->strsets[filno]) {
-        printf("****line %d\n" , __LINE__);
+        /* printf("****line %d\n" , __LINE__); */
         strncpy(p->sfname, csound->strsets[filno], 512);
       }
       else {
-        printf("****line %d\n" , __LINE__);
+        /* printf("****line %d\n" , __LINE__); */
         snprintf(p->sfname, 512, "soundin.%d", filno);   /* soundin.filno */
       }
-      printf("****line %d: sfname=%s\n" , __LINE__, p->sfname);
+      /* printf("****line %d: sfname=%s\n" , __LINE__, p->sfname); */
       if (!fmt)
         p->format = csound->oparms->outformat;
       else {
