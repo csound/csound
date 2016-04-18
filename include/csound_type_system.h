@@ -30,7 +30,7 @@ extern "C" {
 
 #include "csound.h"
 #include "csound_data_structures.h"
-#include <stdint.h> 
+#include <stdint.h>
 
 #define CS_ARG_TYPE_BOTH 0
 #define CS_ARG_TYPE_IN 1

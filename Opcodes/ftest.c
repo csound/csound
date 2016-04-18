@@ -80,7 +80,7 @@ static int sonetable(FGDATA *ff, FUNC *ftp)
        ff->e.p[5], ff->e.p[6], ff->e.p[7], ff->e.p[8]); */
     for (i = 0, x = start; i <= (int) ftp->flen; i++, x += step) {
       fp[i] = x*POWER(x/eqlp, FL(33.0)/FL(78.0));
-       printf("%f -> %f\n", x, fp[i]); 
+      printf("%f -> %f\n", x, fp[i]);
     }
 
     if (resc!=FL(0.0)) ff->e.p[4] = -1;
