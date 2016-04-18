@@ -96,7 +96,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
       return csound->InitError(csound, mp3dec_error(r));
     }
     /* FIXME: name can overflow with very long string */
-    if(stringname==0){
+    if (stringname==0){
       if (ISSTRCOD(*p->iFileCode))
         strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
@@ -174,7 +174,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
       }*/
     mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
     p->r = r;
-    if(p->initDone == -1)
+    if (p->initDone == -1)
        csound->RegisterDeinitCallback(csound, p,
                                    (int (*)(CSOUND*, void*)) mp3in_cleanup);
     /* done initialisation */
@@ -267,8 +267,8 @@ int mp3len_(CSOUND *csound, MP3LEN *p, int stringname)
     }
     /* FIXME: name can overflow with very long string */
 
-    if(stringname==0){
-      if(ISSTRCOD(*p->iFileCode))
+    if (stringname==0){
+      if (ISSTRCOD(*p->iFileCode))
         strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
     }
@@ -292,13 +292,13 @@ int mp3len_(CSOUND *csound, MP3LEN *p, int stringname)
     }
     close(fd);
 
-    if(!strcmp(csound->GetOpcodeName(&p->h), "mp3len"))
-        *p->ir = (MYFLT)mpainfo.duration;
-    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3sr"))
+    if (!strcmp(csound->GetOpcodeName(&p->h), "mp3len"))
+      *p->ir = (MYFLT)mpainfo.duration;
+    else if (!strcmp(csound->GetOpcodeName(&p->h), "mp3sr"))
       *p->ir = (MYFLT) mpainfo.frequency;
-    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3bitrate"))
+    else if (!strcmp(csound->GetOpcodeName(&p->h), "mp3bitrate"))
       *p->ir = (MYFLT) mpainfo.bitrate;
-    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3nchnls"))
+    else if (!strcmp(csound->GetOpcodeName(&p->h), "mp3nchnls"))
       *p->ir = (MYFLT) mpainfo.channels;
 
     mp3dec_uninit(mpa);
@@ -306,16 +306,16 @@ int mp3len_(CSOUND *csound, MP3LEN *p, int stringname)
 }
 
 int mp3len(CSOUND *csound, MP3LEN *p){
-  return mp3len_(csound,p,0);
+    return mp3len_(csound,p,0);
 }
 
 int mp3len_S(CSOUND *csound, MP3LEN *p){
-  return mp3len_(csound,p,1);
+    return mp3len_(csound,p,1);
 }
 #define MAXOUTS 2
 #define MAXOUTS 2
 
-typedef struct dats{
+typedef struct dats {
   OPDS h;
   MYFLT *out1,*out2,*kstamp, *knum, *time,*kpitch, *kamp, *skip, *iN,
     *idecim, *klock;
@@ -373,7 +373,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
 
     nchans = p->nchans;
 
-  if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
+    if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
       csound->InitError(csound, Str("invalid number of output arguments"));
     p->nchans = nchans;
 
@@ -416,6 +416,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
 
     return OK;
 }
+
 static int sinit3_(CSOUND *csound, DATASPACE *p)
 {
     unsigned int size,i;
@@ -440,7 +441,7 @@ static int sinit3_(CSOUND *csound, DATASPACE *p)
       p->mpa = NULL;
       return csound->InitError(csound, mp3dec_error(r));
     }
-     if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
       mp3dec_uninit(mpa);
@@ -474,29 +475,28 @@ static int sinit3_(CSOUND *csound, DATASPACE *p)
                       mpainfo.duration%60);*/
     }
 
-    if(mpainfo.frequency != CS_ESR)
+    if (mpainfo.frequency != CS_ESR)
       p->resamp = mpainfo.frequency/CS_ESR;
     else
-     p->resamp = 1;
+      p->resamp = 1;
     p->nchans = 2;
-
 
    sinit(csound, p);
    size = p->N*sizeof(MYFLT)*BUFS;
    if (p->fdata.auxp == NULL || p->fdata.size < size)
-      csound->AuxAlloc(csound, size, &p->fdata);
+     csound->AuxAlloc(csound, size, &p->fdata);
    p->indata[0] = p->fdata.auxp;
    p->indata[1] = p->fdata.auxp + size/2;
    size = p->N*sizeof(short)*BUFS/2;
    if (p->buffer.auxp == NULL || p->buffer.size < size)
-      csound->AuxAlloc(csound, size, &p->buffer);
+     csound->AuxAlloc(csound, size, &p->buffer);
 
    /*
    memset(&(p->fdch), 0, sizeof(FDCH));
    p->fdch.fd = fd;
    fdrecord(csound, &(p->fdch));
    */
-   printf("fftsize = %d \n", p->N); 
+   printf("fftsize = %d \n", p->N);
    int buffersize = size;
    buffersize /= mpainfo.decoded_sample_size;
    int skip = (int)(*p->skip*CS_ESR)*p->resamp;
@@ -506,25 +506,26 @@ static int sinit3_(CSOUND *csound, DATASPACE *p)
       int xx= skip;
       if (xx > buffersize) xx = buffersize;
       skip -= xx;
-      r = mp3dec_decode(mpa, p->buffer.auxp, mpainfo.decoded_sample_size*xx, &p->bufused);
+      r = mp3dec_decode(mpa, p->buffer.auxp,
+                        mpainfo.decoded_sample_size*xx, &p->bufused);
       }*/
-    mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
+   mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
 
    // fill buffers
-    p->curbuf = 0;
-    fillbuf(csound,p,p->N*BUFS/2);
-    p->pos = p->hsize;
-    p->tscale  = 0;
-    p->accum = 0;
-    p->tab = (MYFLT *) p->fdata.auxp;
-    p->tstamp = 0;
-    if(p->initDone == -1)
-       csound->RegisterDeinitCallback(csound, p,
-                                   (int (*)(CSOUND*, void*)) mp3scale_cleanup);
-    p->initDone = -1;
-    p->finished = 0;
-    p->init = 1;
-    return OK;
+   p->curbuf = 0;
+   fillbuf(csound,p,p->N*BUFS/2);
+   p->pos = p->hsize;
+   p->tscale  = 0;
+   p->accum = 0;
+   p->tab = (MYFLT *) p->fdata.auxp;
+   p->tstamp = 0;
+   if (p->initDone == -1)
+     csound->RegisterDeinitCallback(csound, p,
+                                    (int (*)(CSOUND*, void*)) mp3scale_cleanup);
+   p->initDone = -1;
+   p->finished = 0;
+   p->init = 1;
+   return OK;
 }
 
 #ifdef MP3SCAL_THREADED_INIT
@@ -542,7 +543,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p){
 #else
 
 static int sinit3(CSOUND *csound, DATASPACE *p) {
-  return sinit3_(csound,p);
+    return sinit3_(csound,p);
 }
 
 #endif
@@ -553,22 +554,22 @@ static int sinit3(CSOUND *csound, DATASPACE *p) {
  from disk position offset samps from the last
  call to fillbuf
 */
-void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
-     short *buffer= (short *) p->buffer.auxp;
-     MYFLT *data =  p->indata[p->curbuf];
-     int r,i,end;
-     memset(data,0,nsmps*sizeof(MYFLT));
-     if(!p->finished){
-     memset(p->buffer.auxp, 0, nsmps*sizeof(short)); 
-     r = mp3dec_decode(p->mpa,p->buffer.auxp, nsmps*sizeof(short), &p->bufused);
-     if(p->bufused == 0) p->finished = 1;
-     else {
-     end = p->bufused/sizeof(short);
-     for(i=0; i < nsmps;i++)
-       data[i] = buffer[i]/32768.0;
-     }
-     }
-     p->curbuf = p->curbuf ? 0 : 1;
+static void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
+    short *buffer= (short *) p->buffer.auxp;
+    MYFLT *data =  p->indata[p->curbuf];
+    int r,i,end;
+    memset(data,0,nsmps*sizeof(MYFLT));
+    if (!p->finished){
+      memset(p->buffer.auxp, 0, nsmps*sizeof(short));
+      r = mp3dec_decode(p->mpa,p->buffer.auxp, nsmps*sizeof(short), &p->bufused);
+      if (p->bufused == 0) p->finished = 1;
+      else {
+        end = p->bufused/sizeof(short);
+        for (i=0; i < nsmps;i++)
+          data[i] = buffer[i]/32768.0;
+      }
+    }
+    p->curbuf = p->curbuf ? 0 : 1;
 }
 
 static int sprocess3(CSOUND *csound, DATASPACE *p)
@@ -595,13 +596,13 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
     int outnum = csound->GetOutputArgCnt(p);
     double _0dbfs = csound->Get0dBFS(csound);
 
-    if(time < 0) time = 0.0;
+    if (time < 0) time = 0.0;
 
-    if(!p->init){
+    if (!p->init){
       for (j=0; j < nchans; j++) {
-         out = j == 0 ? p->out1 : p->out2;
+        out = j == 0 ? p->out1 : p->out2;
         memset(out, '\0', nsmps*sizeof(MYFLT));
-     }
+      }
       *p->kstamp = -1;
       return OK;
     }
@@ -610,15 +611,15 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
       nsmps -= early;
       for (j=0; j < nchans; j++) {
         out = j == 0 ? p->out1 : p->out2;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&out[nsmps], '\0', early*sizeof(MYFLT));
       }
     }
     if (UNLIKELY(offset)) {
-     for (j=0; j < nchans; j++) {
-         out = j == 0 ? p->out1 : p->out2;
+      for (j=0; j < nchans; j++) {
+        out = j == 0 ? p->out1 : p->out2;
         memset(out, '\0', offset*sizeof(MYFLT));
-     }
-     }
+      }
+    }
 
     for (n=offset; n < nsmps; n++) {
 
@@ -658,8 +659,8 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
 
            while(post < 0) post += size;
            while(post >= size) post -= size;
-           if(post+nchans <  size)
-            in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+           if (post+nchans <  size)
+             in = tab[post] + frac*(tab[post+nchans] - tab[post]);
            else {
              in = tab[post];
            }
@@ -671,7 +672,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
             post += j;
             while(post < 0) post += size;
             while(post >= size) post -= size;
-            if(post+nchans <  size)
+            if (post+nchans <  size)
             in = tab[post] + frac*(tab[post+nchans] - tab[post]);
             else in = tab[post];
             bwin[i] = in * win[i];
@@ -781,9 +782,9 @@ static OENTRY mp3in_localops[] = {
   {"mp3len.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
   {"mp3sr", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
   {"mp3sr.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
-    {"mp3bitrate", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
+  {"mp3bitrate", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
   {"mp3bitrate.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
-    {"mp3nchnls", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
+  {"mp3nchnls", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
   {"mp3nchnls.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
   {"mp3scal", sizeof(DATASPACE), 0, 5, "aak", "Skkkooop",
                                                (SUBR)sinit3, NULL,(SUBR)sprocess3 },

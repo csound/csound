@@ -37,7 +37,7 @@ struct instr_semantics_t;
  * can cause additional conflicts and memory subsystem traffic.
  * The best way to avoid this is to pad the structures so that they don't
  * share a cache line.  64 bytes seems to be becoming the usual cache line
- * size.  If the actual line is smaller, it will waste a little memory but 
+ * size.  If the actual line is smaller, it will waste a little memory but
  * shouldn't affect the sharing.  If the actual line is larger then it may
  * cause a few conflicts and thus a performance hit.  Unless you are
  * using a very unusual machine and you happen to know it's cache line size
