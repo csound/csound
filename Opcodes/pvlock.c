@@ -625,7 +625,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
     MYFLT pitch = *p->kpitch*p->resamp, time = *p->time, lock = *p->klock;
     MYFLT *out, amp =*p->kamp;
     MYFLT *tab,frac,  dbtresh = *p->dbthresh;
-    FUNC *ft;
+    //FUNC *ft;
     int N = p->N, hsize = p->hsize, cnt = p->cnt, sizefrs, nchans = p->nchans;
     int  nsmps = CS_KSMPS, n;
     int size, post, i, j;
@@ -642,199 +642,200 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
     if(time < 0) /* negative tempo is not possible */
       time = 0.0;
     time *= p->resamp;
-    
 
-    int outnum = csound->GetOutputArgCnt(p);
-    double _0dbfs = csound->Get0dBFS(csound);
+    {
+      int outnum = csound->GetOutputArgCnt(p);
+      double _0dbfs = csound->Get0dBFS(csound);
 
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      for (j=0; j < nchans; j++) {
-      out = p->out[j];
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        nsmps -= early;
+        for (j=0; j < nchans; j++) {
+          out = p->out[j];
+          memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+        }
       }
-    }
-    if (UNLIKELY(offset)) {
-     for (j=0; j < nchans; j++) {
-        out = p->out[j];
-        memset(out, '\0', offset*sizeof(MYFLT));
-     }
-     }
-
-    for (n=offset; n < nsmps; n++) {
-
-      if (cnt == hsize){
-        tab = p->tab;
-        size = p->fdata.size/sizeof(MYFLT);
-
-        if (time < 0 || time >= 1 || !*p->konset) {
-          spos += hsize*time;
-          incrt =  time*nsmps;
+      if (UNLIKELY(offset)) {
+        for (j=0; j < nchans; j++) {
+          out = p->out[j];
+          memset(out, '\0', offset*sizeof(MYFLT));
         }
-        else if (p->tscale) {
-          spos += hsize*(time/(1+p->accum));
-          incrt =  (time/(1+p->accum))*nsmps;
-          p->accum=0.0;
-        }
-        else  {
-          spos += hsize;
-          incrt =  nsmps;
-          p->accum++;
-          p->tscale = 1;
-        }
-        sizefrs = size/nchans;
+      }
 
-        while(spos > sizefrs) {
-          spos -= sizefrs;
-        }
-        while(spos <= 0){
-          spos += sizefrs;
-        }
+      for (n=offset; n < nsmps; n++) {
 
-        if (spos > sizefrs/2 && p->curbuf == 0) {
-          fillbuf(csound, p, size/2);
-        } else if (spos < sizefrs/2 && p->curbuf == 1) {
-          fillbuf(csound, p, size/2);
-        }
+        if (cnt == hsize){
+          tab = p->tab;
+          size = p->fdata.size/sizeof(MYFLT);
 
-        for (j = 0; j < nchans; j++) {
-          pos = spos;
-          bwin = (MYFLT *) p->bwin[j].auxp;
-          fwin = (MYFLT *) p->fwin[j].auxp;
-          nwin = (MYFLT *) p->nwin[j].auxp;
-          prev = (MYFLT *)p->prev[j].auxp;
-          framecnt  = (int *)p->framecount[j].auxp;
-          outframe= (MYFLT *) p->outframe[j].auxp;
+          if (time < 0 || time >= 1 || !*p->konset) {
+            spos += hsize*time;
+            incrt =  time*nsmps;
+          }
+          else if (p->tscale) {
+            spos += hsize*(time/(1+p->accum));
+            incrt =  (time/(1+p->accum))*nsmps;
+            p->accum=0.0;
+          }
+          else  {
+            spos += hsize;
+            incrt =  nsmps;
+            p->accum++;
+            p->tscale = 1;
+          }
+          sizefrs = size/nchans;
 
-          for (i=0; i < N; i++) {
-            post = (int) pos;
-            frac = pos  - post;
-            post *= nchans;
-            post += j;
-
-           while(post < 0) post += size;
-           while(post >= size) post -= size;
-           if(post+nchans <  size)
-            in = tab[post] + frac*(tab[post+nchans] - tab[post]);
-           else {
-             in = tab[post];
-           }
-
-            fwin[i] = in * win[i];
-
-            post = (int) (pos - hsize*pitch);
-            post *= nchans;
-            post += j;
-            while(post < 0) post += size;
-            while(post >= size) post -= size;
-            if(post+nchans <  size)
-            in = tab[post] + frac*(tab[post+nchans] - tab[post]);
-            else in = tab[post];
-            bwin[i] = in * win[i];
-            post = (int) pos + hsize;
-            post *= nchans;
-            post += j;
-            while(post < 0) post += size;
-            while(post >= size) post -= size;
-            if(post+nchans <  size)
-            in = tab[post] + frac*(tab[post+nchans] - tab[post]);
-            else in = tab[post];
-            nwin[i] = in * win[i];
-            pos += pitch;
+          while(spos > sizefrs) {
+            spos -= sizefrs;
+          }
+          while(spos <= 0){
+            spos += sizefrs;
           }
 
-          csound->RealFFT(csound, bwin, N);
-          bwin[N] = bwin[1];
-          bwin[N+1] = FL(0.0);
-          csound->RealFFT(csound, fwin, N);
-          csound->RealFFT(csound, nwin, N);
-
-          tmp_real = tmp_im = (MYFLT) 1e-20;
-          for (i=2; i < N; i++) {
-            tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
-            tmp_im += fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1];
-          }
-          powrat = FL(20.0)*LOG10(tmp_real/tmp_im);
-          if (powrat > dbtresh) p->tscale=0;
-          /*else tscale=1;*/
-
-          fwin[N] = fwin[1];
-          fwin[N+1] = FL(0.0);
-
-          for (i=0; i < N + 2; i+=2) {
-
-            div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1.0e-20);
-            ph_real  =    prev[i]*div;
-            ph_im =       prev[i+1]*div;
-
-            tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
-            tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
-            bwin[i] = tmp_real;
-            bwin[i+1] = tmp_im;
+          if (spos > sizefrs/2 && p->curbuf == 0) {
+            fillbuf(csound, p, size/2);
+          } else if (spos < sizefrs/2 && p->curbuf == 1) {
+            fillbuf(csound, p, size/2);
           }
 
-          for (i=0; i < N + 2; i+=2) {
-            if (lock) {
-              if (i > 0) {
-                if (i < N) {
-                  tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
-                  tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+          for (j = 0; j < nchans; j++) {
+            pos = spos;
+            bwin = (MYFLT *) p->bwin[j].auxp;
+            fwin = (MYFLT *) p->fwin[j].auxp;
+            nwin = (MYFLT *) p->nwin[j].auxp;
+            prev = (MYFLT *)p->prev[j].auxp;
+            framecnt  = (int *)p->framecount[j].auxp;
+            outframe= (MYFLT *) p->outframe[j].auxp;
+
+            for (i=0; i < N; i++) {
+              post = (int) pos;
+              frac = pos  - post;
+              post *= nchans;
+              post += j;
+
+              while (post < 0) post += size;
+              while (post >= size) post -= size;
+              if (post+nchans <  size)
+                in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+              else {
+                in = tab[post];
+              }
+
+              fwin[i] = in * win[i];
+
+              post = (int) (pos - hsize*pitch);
+              post *= nchans;
+              post += j;
+              while(post < 0) post += size;
+              while(post >= size) post -= size;
+              if(post+nchans <  size)
+                in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+              else in = tab[post];
+              bwin[i] = in * win[i];
+              post = (int) pos + hsize;
+              post *= nchans;
+              post += j;
+              while(post < 0) post += size;
+              while(post >= size) post -= size;
+              if(post+nchans <  size)
+                in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+              else in = tab[post];
+              nwin[i] = in * win[i];
+              pos += pitch;
+            }
+
+            csound->RealFFT(csound, bwin, N);
+            bwin[N] = bwin[1];
+            bwin[N+1] = FL(0.0);
+            csound->RealFFT(csound, fwin, N);
+            csound->RealFFT(csound, nwin, N);
+
+            tmp_real = tmp_im = (MYFLT) 1e-20;
+            for (i=2; i < N; i++) {
+              tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
+              tmp_im += fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1];
+            }
+            powrat = FL(20.0)*LOG10(tmp_real/tmp_im);
+            if (powrat > dbtresh) p->tscale=0;
+            /*else tscale=1;*/
+
+            fwin[N] = fwin[1];
+            fwin[N+1] = FL(0.0);
+
+            for (i=0; i < N + 2; i+=2) {
+
+              div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1.0e-20);
+              ph_real  =    prev[i]*div;
+              ph_im =       prev[i+1]*div;
+
+              tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
+              tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
+              bwin[i] = tmp_real;
+              bwin[i+1] = tmp_im;
+            }
+
+            for (i=0; i < N + 2; i+=2) {
+              if (lock) {
+                if (i > 0) {
+                  if (i < N) {
+                    tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
+                    tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+                  }
+                  else {
+                    tmp_real = bwin[i] + bwin[i-2];
+                    tmp_im = FL(0.0);
+                  }
                 }
                 else {
-                  tmp_real = bwin[i] + bwin[i-2];
+                  tmp_real = bwin[i] + bwin[i+2];
                   tmp_im = FL(0.0);
                 }
               }
               else {
-                tmp_real = bwin[i] + bwin[i+2];
-                tmp_im = FL(0.0);
+                tmp_real = bwin[i];
+                tmp_im = bwin[i+1];
               }
+
+              tmp_real += 1e-15;
+              div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
+
+              ph_real = tmp_real*div;
+              ph_im = tmp_im*div;
+
+              tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
+              tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
+
+              prev[i] = fwin[i] = tmp_real;
+              prev[i+1] = fwin[i+1] = tmp_im;
             }
-            else {
-              tmp_real = bwin[i];
-              tmp_im = bwin[i+1];
-            }
 
-            tmp_real += 1e-15;
-            div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
+            fwin[1] = fwin[N];
+            csound->InverseRealFFT(csound, fwin, N);
 
-            ph_real = tmp_real*div;
-            ph_im = tmp_im*div;
+            framecnt[curframe] = curframe*N;
 
-            tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
-            tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
+            for (i=0;i<N;i++) outframe[framecnt[curframe]+i] = win[i]*fwin[i];
 
-            prev[i] = fwin[i] = tmp_real;
-            prev[i+1] = fwin[i+1] = tmp_im;
           }
-
-          fwin[1] = fwin[N];
-          csound->InverseRealFFT(csound, fwin, N);
-
-          framecnt[curframe] = curframe*N;
-
-          for (i=0;i<N;i++) outframe[framecnt[curframe]+i] = win[i]*fwin[i];
-
+          cnt=0;
+          curframe++;
+          if (curframe == decim) curframe = 0;
         }
-        cnt=0;
-        curframe++;
-        if (curframe == decim) curframe = 0;
-      }
 
-      /* we only output as many channels as we have outs for */
-      for (j=0; j < outnum; j++) {
-        out = p->out[j];
-        framecnt  = (int *) p->framecount[j].auxp;
-        outframe  = (MYFLT *) p->outframe[j].auxp;
-        out[n] = (MYFLT) 0;
+        /* we only output as many channels as we have outs for */
+        for (j=0; j < outnum; j++) {
+          out = p->out[j];
+          framecnt  = (int *) p->framecount[j].auxp;
+          outframe  = (MYFLT *) p->outframe[j].auxp;
+          out[n] = (MYFLT) 0;
 
-        for (i = 0; i < decim; i++) {
-          out[n] += outframe[framecnt[i]];
-          framecnt[i]++;
+          for (i = 0; i < decim; i++) {
+            out[n] += outframe[framecnt[i]];
+            framecnt[i]++;
+          }
+          out[n] *= _0dbfs*amp*(2./3.);
         }
-        out[n] *= _0dbfs*amp*(2./3.);
+        cnt++;
       }
-      cnt++;
     }
     p->cnt = cnt;
     p->curframe = curframe;
