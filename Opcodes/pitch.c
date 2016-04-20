@@ -1804,12 +1804,12 @@ int ktrnseg(CSOUND *csound, TRANSEG *p)
         p->alpha = segp->alpha;
         p->curx = FL(0.0);
       }
+      p->curx += (MYFLT)CS_KSMPS*p->alpha;
       if (p->alpha == FL(0.0))
         p->curval += p->curinc*CS_KSMPS;   /* advance the cur val  */
       else
         p->curval = p->cursegp->val + p->curinc *
           (FL(1.0) - EXP(p->curx));
-      p->curx += (MYFLT)CS_KSMPS*p->alpha;
     }
     return OK;
 }
