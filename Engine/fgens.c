@@ -34,7 +34,7 @@
 #include "pvfileio.h"
 #include <stdlib.h>
 /* #undef ISSTRCOD */
-int ISSTRCOD(double xx)
+int ISSTRCOD(MYFLT xx)
 {
 #ifdef USE_DOUBLE
     union {

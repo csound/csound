@@ -27,8 +27,8 @@
 #include "newfils.h"
 #include <math.h>
 
-#ifdef JPFF
-inline double fast_tanh(double x){
+inline double fast_tanh(double x)
+{
   double x2 = x * x;
   double a = x * (135135.0 + x2 * (17325.0 + x2 * (378.0 + x2)));
   double b = 135135.0 + x2 * (62370.0 + x2 * (3150.0 + x2 * 28.0));
@@ -50,11 +50,8 @@ static double TanH(double x)
     printf("x=%g\n",x, fast_tanh(x),tanh(x));
     return sign*fast_tanh(x);
 }
-#else
-#define TanH(x) tanh(x)
-#endif
 
-static int moogladder_init(CSOUND *csound,moogladder *p)
+static int moogladder_init(CSOUND *csound, moogladder *p)
 {
     /* int i; */
     if (LIKELY(*p->istor == FL(0.0))) {
@@ -70,7 +67,384 @@ static int moogladder_init(CSOUND *csound,moogladder *p)
     return OK;
 }
 
-static int moogladder_process(CSOUND *csound,moogladder *p)
+static int moogladder_process(CSOUND *csound, moogladder *p)
+{
+    MYFLT   *out = p->out;
+    MYFLT   *in = p->in;
+    MYFLT   freq = *p->freq;
+    MYFLT   res = *p->res;
+    double  res4;
+    double  *delay = p->delay;
+    double  *tanhstg = p->tanhstg;
+    double  stg[4], input;
+    double  acr, tune;
+#define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
+    int     j;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i, nsmps = CS_KSMPS;
+
+    if (res < 0) res = 0;
+
+    if (p->oldfreq != freq || p->oldres != res) {
+      double  f, fc, fc2, fc3, fcr;
+      p->oldfreq = freq;
+      /* sr is half the actual filter sampling rate  */
+      fc =  (double)(freq/CS_ESR);
+      f  =  0.5*fc;
+      fc2 = fc*fc;
+      fc3 = fc2*fc;
+      /* frequency & amplitude correction  */
+      fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
+      acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
+      tune = (1.0 - exp(-(TWOPI*f*fcr))) / THERMAL;   /* filter tuning  */
+      p->oldres = res;
+      p->oldacr = acr;
+      p->oldtune = tune;
+    }
+    else {
+      res = p->oldres;
+      acr = p->oldacr;
+      tune = p->oldtune;
+    }
+    res4 = 4.0*(double)res*acr;
+
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (i = offset; i < nsmps; i++) {
+      /* oversampling  */
+      for (j = 0; j < 2; j++) {
+        /* filter stages  */
+        input = in[i] - res4*delay[5];
+        delay[0] = stg[0] = delay[0] + tune*(tanh(input*THERMAL) - tanhstg[0]);
+#if 1
+        input = stg[0];
+        stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*THERMAL)) - tanhstg[1]);
+        input = delay[1] = stg[1];
+        stg[2] = delay[2] + tune*((tanhstg[1] = tanh(input*THERMAL)) - tanhstg[2]);
+        input = delay[2] = stg[2];
+        stg[3] = delay[3] + tune*((tanhstg[2] =
+                                   tanh(input*THERMAL)) - tanh(delay[3]*THERMAL));
+        delay[3] = stg[3];
+#else
+        { int k;
+          for (k = 1; k < 4; k++) {
+            input = stg[k-1];
+            stg[k] = delay[k]
+              + tune*((tanhstg[k-1] = tanh(input*THERMAL))
+                      - (k != 3 ? tanhstg[k] : tanh(delay[k]*THERMAL)));
+            delay[k] = stg[k];
+          }
+        }
+#endif
+        /* 1/2-sample delay for phase compensation  */
+        delay[5] = (stg[3] + delay[4])*0.5;
+        delay[4] = stg[3];
+      }
+      out[i] = (MYFLT) delay[5];
+    }
+    return OK;
+}
+
+static int moogladder_process_aa(CSOUND *csound, moogladder *p)
+{
+    MYFLT   *out = p->out;
+    MYFLT   *in = p->in;
+    MYFLT   *freq = p->freq;
+    MYFLT   *res = p->res;
+    MYFLT   cfreq = freq[0], cres = res[0];
+    double  res4;
+    double  *delay = p->delay;
+    double  *tanhstg = p->tanhstg;
+    double  stg[4], input;
+    double  acr, tune;
+#define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
+    int     j;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i, nsmps = CS_KSMPS;
+
+    if (p->oldfreq != cfreq || p->oldres != cres) {
+      double  f, fc, fc2, fc3, fcr;
+      p->oldfreq = cfreq;
+      /* sr is half the actual filter sampling rate  */
+      fc =  (double)(cfreq/CS_ESR);
+      f  =  0.5*fc;
+      fc2 = fc*fc;
+      fc3 = fc2*fc;
+      /* frequency & amplitude correction  */
+      fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
+      acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
+      tune = (1.0 - exp(-(TWOPI*f*fcr))) / THERMAL;   /* filter tuning  */
+      p->oldres = cres;
+      p->oldacr = acr;
+      p->oldtune = tune;
+    }
+    else {
+      cres = p->oldres;
+      acr = p->oldacr;
+      tune = p->oldtune;
+    }
+    res4 = 4.0*(double)cres*acr;
+
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (i = offset; i < nsmps; i++) {
+      if (p->oldfreq != freq[i] || p->oldres != res[i]) {
+        double  f, fc, fc2, fc3, fcr;
+        p->oldfreq = freq[i];
+        /* sr is half the actual filter sampling rate  */
+        fc =  (double)(freq[i]/CS_ESR);
+        f  =  0.5*fc;
+        fc2 = fc*fc;
+        fc3 = fc2*fc;
+        /* frequency & amplitude correction  */
+        fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
+        acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
+        tune = (1.0 - exp(-(TWOPI*f*fcr))) / THERMAL;   /* filter tuning  */
+        p->oldres = cres;
+        p->oldacr = acr;
+        p->oldtune = tune;
+        res4 = 4.0*(double)res[i]*acr;
+      }
+      /* oversampling  */
+      for (j = 0; j < 2; j++) {
+        /* filter stages  */
+        input = in[i] - res4 /*4.0*res*acr*/ *delay[5];
+        delay[0] = stg[0] = delay[0] + tune*(tanh(input*THERMAL) - tanhstg[0]);
+#if 1
+        input = stg[0];
+        stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*THERMAL)) - tanhstg[1]);
+        input = delay[1] = stg[1];
+        stg[2] = delay[2] + tune*((tanhstg[1] = tanh(input*THERMAL)) - tanhstg[2]);
+        input = delay[2] = stg[2];
+        stg[3] = delay[3] + tune*((tanhstg[2] =
+                                   tanh(input*THERMAL)) - tanh(delay[3]*THERMAL));
+        delay[3] = stg[3];
+#else
+        { int k;
+          for (k = 1; k < 4; k++) {
+            input = stg[k-1];
+            stg[k] = delay[k]
+              + tune*((tanhstg[k-1] = tanh(input*THERMAL))
+                      - (k != 3 ? tanhstg[k] : tanh(delay[k]*THERMAL)));
+            delay[k] = stg[k];
+          }
+        }
+#endif
+        /* 1/2-sample delay for phase compensation  */
+        delay[5] = (stg[3] + delay[4])*0.5;
+        delay[4] = stg[3];
+      }
+      out[i] = (MYFLT) delay[5];
+    }
+    return OK;
+}
+
+static int moogladder_process_ak(CSOUND *csound, moogladder *p)
+{
+    MYFLT   *out = p->out;
+    MYFLT   *in = p->in;
+    MYFLT   *freq = p->freq;
+    MYFLT   res = *p->res;
+    double  res4;
+    double  *delay = p->delay;
+    double  *tanhstg = p->tanhstg;
+    double  stg[4], input;
+    double  acr, tune;
+#define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
+    int     j;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i, nsmps = CS_KSMPS;
+
+    if (res < 0) res = 0;
+
+    if (p->oldfreq != freq[0] || p->oldres != res) {
+      double  f, fc, fc2, fc3, fcr;
+      p->oldfreq = freq[0];
+      /* sr is half the actual filter sampling rate  */
+      fc =  (double)(freq[0]/CS_ESR);
+      f  =  0.5*fc;
+      fc2 = fc*fc;
+      fc3 = fc2*fc;
+      /* frequency & amplitude correction  */
+      fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
+      acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
+      tune = (1.0 - exp(-(TWOPI*f*fcr))) / THERMAL;   /* filter tuning  */
+      p->oldres = res;
+      p->oldacr = acr;
+      p->oldtune = tune;
+    }
+    else {
+      res = p->oldres;
+      acr = p->oldacr;
+      tune = p->oldtune;
+    }
+    res4 = 4.0*(double)res*acr;
+
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (i = offset; i < nsmps; i++) {
+      if (p->oldfreq != freq[i]) {
+        double  f, fc, fc2, fc3, fcr;
+        p->oldfreq = freq[i];
+        /* sr is half the actual filter sampling rate  */
+        fc =  (double)(freq[i]/CS_ESR);
+        f  =  0.5*fc;
+        fc2 = fc*fc;
+        fc3 = fc2*fc;
+        /* frequency & amplitude correction  */
+        fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
+        acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
+        tune = (1.0 - exp(-(TWOPI*f*fcr))) / THERMAL;   /* filter tuning  */
+        p->oldacr = acr;
+        p->oldtune = tune;
+        res4 = 4.0*(double)res*acr;
+      }
+      /* oversampling  */
+      for (j = 0; j < 2; j++) {
+        /* filter stages  */
+        input = in[i] - res4 /*4.0*res*acr*/ *delay[5];
+        delay[0] = stg[0] = delay[0] + tune*(tanh(input*THERMAL) - tanhstg[0]);
+#if 1
+        input = stg[0];
+        stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*THERMAL)) - tanhstg[1]);
+        input = delay[1] = stg[1];
+        stg[2] = delay[2] + tune*((tanhstg[1] = tanh(input*THERMAL)) - tanhstg[2]);
+        input = delay[2] = stg[2];
+        stg[3] = delay[3] + tune*((tanhstg[2] =
+                                   tanh(input*THERMAL)) - tanh(delay[3]*THERMAL));
+        delay[3] = stg[3];
+#else
+        { int k;
+          for (k = 1; k < 4; k++) {
+            input = stg[k-1];
+            stg[k] = delay[k]
+              + tune*((tanhstg[k-1] = tanh(input*THERMAL))
+                      - (k != 3 ? tanhstg[k] : tanh(delay[k]*THERMAL)));
+            delay[k] = stg[k];
+          }
+        }
+#endif
+        /* 1/2-sample delay for phase compensation  */
+        delay[5] = (stg[3] + delay[4])*0.5;
+        delay[4] = stg[3];
+      }
+      out[i] = (MYFLT) delay[5];
+    }
+    return OK;
+}
+
+static int moogladder_process_ka(CSOUND *csound, moogladder *p)
+{
+    MYFLT   *out = p->out;
+    MYFLT   *in = p->in;
+    MYFLT   freq = *p->freq;
+    MYFLT   *res = p->res;
+    MYFLT cres = res[0];
+    double  res4;
+    double  *delay = p->delay;
+    double  *tanhstg = p->tanhstg;
+    double  stg[4], input;
+    double  acr, tune;
+#define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
+    int     j;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i, nsmps = CS_KSMPS;
+
+    if (cres < 0) cres = 0;
+
+    if (p->oldfreq != freq || p->oldres != cres) {
+      double  f, fc, fc2, fc3, fcr;
+      p->oldfreq = freq;
+      /* sr is half the actual filter sampling rate  */
+      fc =  (double)(freq/CS_ESR);
+      f  =  0.5*fc;
+      fc2 = fc*fc;
+      fc3 = fc2*fc;
+      /* frequency & amplitude correction  */
+      fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
+      acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
+      tune = (1.0 - exp(-(TWOPI*f*fcr))) / THERMAL;   /* filter tuning  */
+      p->oldres = cres;
+      p->oldacr = acr;
+      p->oldtune = tune;
+    }
+    else {
+      cres = p->oldres;
+      acr = p->oldacr;
+      tune = p->oldtune;
+    }
+    res4 = 4.0*(double)cres*acr;
+
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (i = offset; i < nsmps; i++) {
+      if (cres != res[i]) {
+        double  f, fc, fc2, fc3, fcr;
+        /* sr is half the actual filter sampling rate  */
+        fc =  (double)(freq/CS_ESR);
+        f  =  0.5*fc;
+        fc2 = fc*fc;
+        fc3 = fc2*fc;
+        /* frequency & amplitude correction  */
+        fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
+        acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
+        tune = (1.0 - exp(-(TWOPI*f*fcr))) / THERMAL;   /* filter tuning  */
+        p->oldres = cres = res[i];
+        p->oldacr = acr;
+        p->oldtune = tune;
+        res4 = 4.0*(double)cres*acr;
+      }
+      /* oversampling  */
+      for (j = 0; j < 2; j++) {
+        /* filter stages  */
+        input = in[i] - res4 /*4.0*res*acr*/ *delay[5];
+        delay[0] = stg[0] = delay[0] + tune*(tanh(input*THERMAL) - tanhstg[0]);
+#if 1
+        input = stg[0];
+        stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*THERMAL)) - tanhstg[1]);
+        input = delay[1] = stg[1];
+        stg[2] = delay[2] + tune*((tanhstg[1] = tanh(input*THERMAL)) - tanhstg[2]);
+        input = delay[2] = stg[2];
+        stg[3] = delay[3] + tune*((tanhstg[2] =
+                                   tanh(input*THERMAL)) - tanh(delay[3]*THERMAL));
+        delay[3] = stg[3];
+#else
+        { int k;
+          for (k = 1; k < 4; k++) {
+            input = stg[k-1];
+            stg[k] = delay[k]
+              + tune*((tanhstg[k-1] = tanh(input*THERMAL))
+                      - (k != 3 ? tanhstg[k] : tanh(delay[k]*THERMAL)));
+            delay[k] = stg[k];
+          }
+        }
+#endif
+        /* 1/2-sample delay for phase compensation  */
+        delay[5] = (stg[3] + delay[4])*0.5;
+        delay[4] = stg[3];
+      }
+      out[i] = (MYFLT) delay[5];
+    }
+    return OK;
+}
+
+static int moogladder2_process(CSOUND *csound, moogladder *p)
 {
     MYFLT   *out = p->out;
     MYFLT   *in = p->in;
@@ -152,7 +526,7 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
     return OK;
 }
 
-static int moogladder_process_aa(CSOUND *csound,moogladder *p)
+static int moogladder2_process_aa(CSOUND *csound, moogladder *p)
 {
     MYFLT   *out = p->out;
     MYFLT   *in = p->in;
@@ -250,7 +624,7 @@ static int moogladder_process_aa(CSOUND *csound,moogladder *p)
     return OK;
 }
 
-static int moogladder_process_ak(CSOUND *csound,moogladder *p)
+static int moogladder2_process_ak(CSOUND *csound, moogladder *p)
 {
     MYFLT   *out = p->out;
     MYFLT   *in = p->in;
@@ -348,7 +722,7 @@ static int moogladder_process_ak(CSOUND *csound,moogladder *p)
     return OK;
 }
 
-static int moogladder_process_ka(CSOUND *csound,moogladder *p)
+static int moogladder2_process_ka(CSOUND *csound, moogladder *p)
 {
     MYFLT   *out = p->out;
     MYFLT   *in = p->in;
@@ -1887,6 +2261,14 @@ static OENTRY localops[] = {
    (SUBR) moogladder_init, NULL, (SUBR) moogladder_process_ak },
   {"moogladder.ka", sizeof(moogladder), 0, 5, "a", "akap",
    (SUBR) moogladder_init, NULL, (SUBR) moogladder_process_ka },
+  {"moogladder2.kk", sizeof(moogladder), 0, 5, "a", "akkp",
+   (SUBR) moogladder_init, NULL, (SUBR) moogladder2_process },
+  {"moogladder2.aa", sizeof(moogladder), 0, 5, "a", "aaap",
+   (SUBR) moogladder_init, NULL, (SUBR) moogladder2_process_aa },
+  {"moogladder2.ak", sizeof(moogladder), 0, 5, "a", "aakp",
+   (SUBR) moogladder_init, NULL, (SUBR) moogladder2_process_ak },
+  {"moogladder2.ka", sizeof(moogladder), 0, 5, "a", "akap",
+   (SUBR) moogladder_init, NULL, (SUBR) moogladder2_process_ka },
   {"statevar", sizeof(statevar), 0, 5, "aaaa", "axxop",
    (SUBR) statevar_init, NULL, (SUBR) statevar_process     },
   {"fofilter", sizeof(fofilter), 0, 5, "a", "axxxp",
