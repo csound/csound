@@ -12,10 +12,10 @@ using namespace std;
 #include "strparse.h"
 #include "allegro.h"
 
-// Note about precision: %g prints 6 significant digits. For 1ms precision, 
+// Note about precision: %g prints 6 significant digits. For 1ms precision,
 // the maximum magnitude is 999.999, i.e. 1000s < 17minutes. For anything
 // over 1000s, time in seconds will be printed with 10ms precision, which
-// is not good. Therefore, times and durations are printed as %.4d, which 
+// is not good. Therefore, times and durations are printed as %.4d, which
 // gives 100us precision.
 // The following define allows you to change this decision:
 /* #define TIMFMT "%.4d" */
@@ -48,7 +48,7 @@ void parameter_print(ostream &file, Alg_parameter_ptr p)
     }
 }
 
-Alg_event_ptr Alg_seq::write_track_name(ostream &file, int n, 
+Alg_event_ptr Alg_seq::write_track_name(ostream &file, int n,
                                         Alg_events &events)
 // write #track <n> <trackname-or-sequencename>
 // if we write the name on the "#track" line, then we do *not* want
@@ -112,9 +112,9 @@ void Alg_seq::write(ostream &file, bool in_secs, double offset)
         Alg_time_sig &ts = time_sig[i];
         double time = ts.beat;
         if (in_secs) {
-            file << "T" << TIMFMT << time << " V- -timesig_numr:" << 
+            file << "T" << TIMFMT << time << " V- -timesig_numr:" <<
                     GFMT << ts.num << "\n";
-            file << "T" << TIMFMT << time << " V- -timesig_denr:" << 
+            file << "T" << TIMFMT << time << " V- -timesig_denr:" <<
                     GFMT << ts.den << "\n";
         } else {
             double wholes = ts.beat / 4;
@@ -147,14 +147,14 @@ void Alg_seq::write(ostream &file, bool in_secs, double offset)
             if (e->is_note()) {
                 Alg_note_ptr n = (Alg_note_ptr) e;
                 double dur = n->dur;
-                file << " K" << n->get_identifier() << 
+                file << " K" << n->get_identifier() <<
                         " P" << GFMT << n->pitch;
                 if (in_secs) {
                     file << " U" << TIMFMT << dur;
                 } else {
                     file << " Q" << TIMFMT << dur;
                 }
-                file << " L" << GFMT << n->loud; 
+                file << " L" << GFMT << n->loud;
                 Alg_parameters_ptr p = n->parameters;
                 while (p) {
                     parameter_print(file, &(p->parm));

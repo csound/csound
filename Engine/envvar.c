@@ -1012,8 +1012,10 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       fullName = (char*) name;
       if (type == CSFILE_STD) {
         tmp_f = fopen(fullName, (char*) param);
-        if (tmp_f == NULL)
+        if (tmp_f == NULL) {
+          perror(Str("csound->FileOpen2 failed:"));
           goto err_return;
+        }
       }
       else {
         if (type == CSFILE_SND_R || type == CSFILE_FD_R)
