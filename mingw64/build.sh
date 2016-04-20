@@ -11,7 +11,6 @@ cmake ../.. -G "MSYS Makefiles" \
 -DBUILD_CSOUNDVST=0 \
 -DBUILD_PD_CLASS=0 \
 -DBUILD_STATIC_LIBRARY=1 \
--DBUILD_TESTS=0 \
 -DBUILD_VST4CS_OPCODES=0 \
 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 -DCMAKE_INSTALL_PREFIX=dist \
@@ -32,7 +31,6 @@ if [ $? -ne 0 ]; then
     exit
 fi
 make install
-make -j6 $@
 if [ $? -ne 0 ]; then
     echo "Failed to run make install."
     exit

@@ -33,6 +33,25 @@
 #include "pstream.h"
 #include "pvfileio.h"
 #include <stdlib.h>
+/* #undef ISSTRCOD */
+int ISSTRCOD(MYFLT xx)
+{
+#ifdef USE_DOUBLE
+    union {
+      double d;
+      int32_t i[2];
+    } z;
+    z.d = xx;
+    return ((z.i[1]&0x7ff00000)==0x7ff00000);
+#else
+    union {
+      float f;
+      int32_t i;
+    } z;
+    z.f = xx;
+    return ((z.i&0x7f800000) == 0x7f800000);
+#endif
+}
 
 extern double besseli(double);
 
@@ -1798,7 +1817,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     y[1] = y[l1];
     y[l1] = y[l1 + 1] = FL(0.0);
     csound->InverseRealFFT(csound, y, l1);
-    /* memcpy(f1, y, l11*sizeof(MYFLT)); */
+    /* memcpy(f1, y, l1*sizeof(MYFLT)); */
     for (i = 0; i < l1; i++)
       f1[i] = y[i];
     f1[l1] = f1[0];     /* write guard point */
@@ -2572,21 +2591,39 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     {
       int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
       int   fmt = (int) MYFLT2LRND(ff->e.p[7]);
+      union {
+        MYFLT d;
+        int32_t i[2];
+      } xx;
+      xx.d = ff->e.p[5];
+      /* printf("****line %d: ff->e.p[5] %f %.8x %.8x\n", __LINE__, */
+      /*        ff->e.p[5], xx.i[1], xx.i[0]); */
+      /* printf("****line %d: ISSTRCOD=%d %d file %s\n", __LINE__, */
+      /*        ISSTRCOD(ff->e.p[5]), isnan(ff->e.p[5]), ff->e.strarg); */
       if (ISSTRCOD(ff->e.p[5])) {
+        /* printf("****line %d\n" , __LINE__); */
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
+          /* printf("****line %d\n" , __LINE__); */
           strncpy(p->sfname, ff->e.strarg + 1, 512);
           if (len >= 0 && p->sfname[len] == '"')
             p->sfname[len] = '\0';
         }
-        else
+        else {
+          /* printf("****line %d\n" , __LINE__); */
           strncpy(p->sfname, ff->e.strarg, 512);
+        }
       }
       else if (filno >= 0 && filno <= csound->strsmax &&
-               csound->strsets && csound->strsets[filno])
+               csound->strsets && csound->strsets[filno]) {
+        /* printf("****line %d\n" , __LINE__); */
         strncpy(p->sfname, csound->strsets[filno], 512);
-      else
+      }
+      else {
+        /* printf("****line %d\n" , __LINE__); */
         snprintf(p->sfname, 512, "soundin.%d", filno);   /* soundin.filno */
+      }
+      /* printf("****line %d: sfname=%s\n" , __LINE__, p->sfname); */
       if (!fmt)
         p->format = csound->oparms->outformat;
       else {
@@ -2605,11 +2642,11 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       p->channel = ALLCHNLS;
     p->analonly = 0;
     if (UNLIKELY(ff->flen == 0 && (csound->oparms->msglevel & 7))){
-      csoundMessage(csound, Str("deferred alloc\n"));
+      csoundMessage(csound, Str("deferred alloc for %s\n"), p->sfname);
     }
     if (UNLIKELY((fd = sndgetset(csound, p))==NULL)) {
       /* sndinset to open the file  */
-      return fterror(ff, "Failed to open file");
+      return fterror(ff, Str("Failed to open file %s"), p->sfname);
     }
     if (ff->flen == 0) {                      /* deferred ftalloc requestd: */
       if (UNLIKELY((ff->flen = p->framesrem + 1) <= 0)) {

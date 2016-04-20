@@ -44,7 +44,7 @@
 
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
-#if defined(__SSE__) && !defined(EMSCRIPTEN) 
+#if defined(__SSE__) && !defined(EMSCRIPTEN)
 #ifndef _MM_DENORMALS_ZERO_ON
 #include <xmmintrin.h>
 #define _MM_DENORMALS_ZERO_MASK   0x0040
@@ -148,7 +148,8 @@ typedef struct {
 #define SSTRCOD    (float)NAN
   //#define SSTRCOD    (nanf("0"))
 #endif
-#define ISSTRCOD(X) isnan(X)
+  //#define ISSTRCOD(X) isnan(X)
+extern int ISSTRCOD(MYFLT);
 
 #define SSTRSIZ    1024
 #define ALLCHNLS   0x7fff
