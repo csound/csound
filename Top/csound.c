@@ -2431,9 +2431,8 @@ PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = type;
     evt.pcnt = (int16) numFields;
-    for (i = 0; i < (int) numFields; i++) /* Could be memcpy */
+    for (i = 0; i < (int) numFields; i++)
       evt.p[i + 1] = pfields[i];
-    //memcpy(&evt.p[1],pfields, numFields*sizeof(MYFLT));
     csoundLockMutex(csound->API_lock);
     ret = insert_score_event_at_sample(csound, &evt, csound->icurTime);
     csoundUnlockMutex(csound->API_lock);
