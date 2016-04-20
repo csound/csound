@@ -1070,7 +1070,6 @@ static int loader_init(CSOUND *csound, LOADER *pp){
   p->csound = csound;
   p->init = 0;
   p->ti = 0;
-  // csound->Message(csound, "loader thread start\n");
   if(p->playing == 0)
    pthread_create(&(pp->p.t), NULL, loader_thread, pp);
   else return csound->InitError(csound, "cannot load: player still active\n");
