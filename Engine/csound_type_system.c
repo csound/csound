@@ -223,7 +223,8 @@ int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
     // may need to revise this; var pools are accessed as MYFLT*,
     // so need to ensure all memory is aligned to sizeof(MYFLT)
     // boundaries maybe should align block size here to +7 before dividing?
-    var->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) + ((pool->varCount + 1) * (CS_VAR_TYPE_OFFSET / sizeof(MYFLT)));
+    var->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) +
+      ((pool->varCount + 1) * (CS_VAR_TYPE_OFFSET / sizeof(MYFLT)));
     pool->poolSize += var->memBlockSize;
     pool->varCount += 1;
     return 0;
@@ -243,7 +244,8 @@ void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool)
         current->updateMemBlockSize(csound, current);
       }
 
-      current->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) + (varCount * CS_VAR_TYPE_OFFSET / sizeof(MYFLT));
+      current->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) +
+        (varCount * CS_VAR_TYPE_OFFSET / sizeof(MYFLT));
       pool->poolSize += current->memBlockSize;
 
       current = current->next;
