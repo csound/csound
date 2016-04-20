@@ -74,7 +74,7 @@ struct ScoreEvent
 
 #if defined(WIN32)
 static concurrency::concurrent_queue<char *> csound_messages_queue;
-static concurrency::concurrent_queue<std::string> csound_score_queue;
+static concurrency::concurrent_queue<char *> csound_score_queue;
 static concurrency::concurrent_queue<ScoreEvent *> csound_event_queue;
 #else
 static boost::lockfree::queue<char *, boost::lockfree::fixed_sized<false> > csound_messages_queue(0);
@@ -367,7 +367,7 @@ void uv_csound_perform_thread_routine(void * arg)
             delete event;
         }
 #if defined(WIN32)
-        while (csound_event_queue.try_pop(event)) {
+        while (csound_score_queue.try_pop(score_text)) {
 #else
         while (csound_score_queue.pop(score_text)) {
 #endif
@@ -387,7 +387,7 @@ void uv_csound_perform_thread_routine(void * arg)
         delete event;
     }
 #if defined(WIN32)
-    while (csound_event_queue.try_pop(event)) {
+    while (csound_score_queue.try_pop(score_text)) {
 #else
     while (csound_score_queue.pop(score_text)) {
 #endif
