@@ -856,6 +856,7 @@ typedef struct _mp3scal2_ {
   int nsmps;
   char filling;
   int async;
+  int error;
 } MP3SCAL2;
 
 typedef struct _loader {
@@ -910,6 +911,7 @@ static int meminit(CSOUND *csound, LOADER *pp)
   unsigned int nchans, i;
   unsigned int size;
   int decim = *pp->idecim;
+  p->error = 0;
   if (N) {
     for (i=0; N; i++) {
       N >>= 1;
@@ -977,38 +979,35 @@ static int filinit(CSOUND *csound, LOADER *pp)
 			     MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
 			     0.0 };
   mpadec_info_t mpainfo;
-  /*double dtime;
-  struct timespec ts;
-   clock_gettime(CLOCK_MONOTONIC, &ts);
-    dtime = ts.tv_sec + 1e-9*ts.tv_nsec;*/
   name = pp->name->data;
   p->mpa = mpa = mp3dec_init();
   if (UNLIKELY(!mpa)) {
-    return csound->InitError(csound, Str("Not enough memory\n"));
+    p->error = MPADEC_RETCODE_NOT_ENOUGH_MEMORY;
+    return NOTOK;
   }
   if (UNLIKELY((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
     p->mpa = NULL;
-    return csound->InitError(csound, mp3dec_error(r));
+    p->error = r;
+    return NOTOK;
   }
   if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
 				 name, "rb", "SFDIR;SSDIR",
 				 CSFTYPE_OTHER_BINARY, 0) == NULL)) {
     mp3dec_uninit(mpa);
-    return
-      csound->InitError(csound, Str("mp3scale: %s: failed to open file"), name);
-  }// else
-  // csound->Message(csound, Str("mp3scale: open %s \n"), name);
+    p->error = -1;
+    return NOTOK;
+  }
   if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->InitError(csound, mp3dec_error(r));
-  } // else
-  // csound->Message(csound, Str("mp3scale: init %s \n"), name);
+    p->error = r;
+    return NOTOK;
+  } 
 
   if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
 	       MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->InitError(csound, mp3dec_error(r));
+    return NOTOK;
   }
 
   p->ilen =  (MYFLT) mpainfo.duration;
@@ -1055,8 +1054,14 @@ static int filinit(CSOUND *csound, LOADER *pp)
 
 void *loader_thread(void *p){
   LOADER *pp = (LOADER *) p;
-  filinit(pp->p.csound,pp);
-  // pp->p.csound->Message(pp->p.csound, "loader thread end\n");
+  if(filinit(pp->p.csound,pp) == NOTOK) {
+    if(pp->p.error > 0)
+    pp->p.csound->Message(pp->p.csound, "mp3scal_load error: %s \n",
+			  mp3dec_error(pp->p.error));
+    else
+    pp->p.csound->Message(pp->p.csound, "mp3scal_load error:"
+			  "could not open %s \n", pp->name->data);
+  }
   return NULL;
 }
 
