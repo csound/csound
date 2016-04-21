@@ -32,6 +32,9 @@ New opcodes:
 
     o    S() converter from k-rate and i-time number to a string.
 
+    o    moogladder2 is a faster, less accurate implementation of moogladder.
+
+
 New Gen and Macros:
 
     o    NONE

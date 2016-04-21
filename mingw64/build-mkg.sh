@@ -17,6 +17,7 @@ cmake ../.. -G "MSYS Makefiles" \
 -DCMAKE_VERBOSE_MAKEFILE=1 \
 -DMUSICXML_LIBRARY=D:/msys64/mingw64/bin/libmusicxml2.dll \
 -DNEED_PORTTIME=0 \
+-DPTHREAD_STATIC_LIBRARY=D:/msys64/mingw64/x86_64-w64-mingw32/lib/libpthread.a \
 -DTCL_VERSION=8.5 \
 -DUSE_CURL=0 \
 -DUSE_OPEN_MP=0 \
