@@ -27,7 +27,10 @@
 #include "newfils.h"
 #include <math.h>
 
-inline double fast_tanh(double x)
+#ifndef __MACH__
+inline
+#endif
+double fast_tanh(double x)
 {
   double x2 = x * x;
   double a = x * (135135.0 + x2 * (17325.0 + x2 * (378.0 + x2)));

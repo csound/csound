@@ -149,8 +149,12 @@ typedef struct {
   //#define SSTRCOD    (nanf("0"))
 #endif
   //#define ISSTRCOD(X) isnan(X)
+#ifndef __MACH__
 extern int ISSTRCOD(MYFLT);
-
+#else
+  #define ISSTRCOD(X) isnan(X)
+#endif
+  
 #define SSTRSIZ    1024
 #define ALLCHNLS   0x7fff
 #define DFLT_SR    FL(44100.0)

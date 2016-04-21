@@ -34,6 +34,7 @@
 #include "pvfileio.h"
 #include <stdlib.h>
 /* #undef ISSTRCOD */
+#ifndef __MACH__
 int ISSTRCOD(MYFLT xx)
 {
 #ifdef USE_DOUBLE
@@ -52,6 +53,7 @@ int ISSTRCOD(MYFLT xx)
     return ((z.i&0x7f800000) == 0x7f800000);
 #endif
 }
+#endif
 
 extern double besseli(double);
 
