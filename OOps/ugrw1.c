@@ -812,7 +812,7 @@ int printk(CSOUND *csound, PRINTK *p)
         char  s[128];   /* p->pspace is limited to 120 in printkset() above */
         memset(s, ' ', 128 /*(size_t) p->pspace */);
         s[p->pspace] = '\0';
-        csound->MessageS(csound, CSOUNDMSG_ORCH, s);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
     }
@@ -1162,7 +1162,7 @@ int printks(CSOUND *csound, PRINTKS *p)
       //string[0]='\0';           /* incase of empty string */
       memset(string,0,8192);
       sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2);
-      csound->MessageS(csound, CSOUNDMSG_ORCH, string);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     }
     return OK;
 }
@@ -1180,7 +1180,7 @@ int printsset(CSOUND *csound, PRINTS *p)
     printksset(csound, &pk);
     memset(string,0,8192);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
-    csound->MessageS(csound, CSOUNDMSG_ORCH, string);
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     return OK;
 }
 
@@ -1197,7 +1197,7 @@ int printsset_S(CSOUND *csound, PRINTS *p)
     if(strlen(pk.txtstring) < 8191){
      memset(string,0,8192);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
-    csound->MessageS(csound, CSOUNDMSG_ORCH, string);
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     } else {
       csound->Warning(csound,
                       Str("Formatting string too long: %s"), pk.txtstring);
@@ -1274,7 +1274,7 @@ int printk2(CSOUND *csound, PRINTK2 *p)
         char  s[128];   /* p->pspace is limited to 120 in printk2set() above */
         memset(s, ' ', (size_t) p->pspace);
         s[p->pspace] = '\0';
-        csound->MessageS(csound, CSOUNDMSG_ORCH, s);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
       p->oldvalue = value;
@@ -1299,7 +1299,7 @@ int printk3(CSOUND *csound, PRINTK3 *p)
       vv[0] = &value;
       buff[0] = '\0';
       sprints(buff, p->sarg, vv, 1);
-      csound->MessageS(csound, CSOUNDMSG_ORCH, buff);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buff);
       p->oldvalue = value;
     }
     //else printf("....%f %f\n", p->oldvalue, value);

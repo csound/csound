@@ -180,11 +180,11 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     int32  size = (int32) strlen(message);
     int n;
 
-#ifdef ANDROID
+#if 0
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     csound->Message(csound, Str("input message kcount, %d, %d.%06d\n"),
-                            csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
+		    csound->kcounter,ts.tv_sec,ts.tv_nsec/1000);
 #endif
 
     if ((n=linevent_alloc(csound, 0)) != 0) return;
@@ -385,7 +385,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
 
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
-      return csound->PerfError(csound, p->h.insdshead,Str(errmsg_1));
+      return csound->PerfError(csound, p->h.insdshead, "%s", Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
     if (p->flag==1) evt.pcnt = p->argno-2;
@@ -396,7 +396,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     if (evt.pcnt > 0) {
       if (insname) {
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q'))
-          return csound->PerfError(csound, p->h.insdshead,Str(errmsg_2));
+          return csound->PerfError(csound, p->h.insdshead, "%s", Str(errmsg_2));
         evt.p[1] =  csound->strarg2insno(csound,
                                            ((STRINGDAT*) p->args[1])->data, 1);
         evt.strarg = NULL; evt.scnt = 0;
@@ -444,7 +444,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     else opcod = p1;
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
-      return csound->InitError(csound, Str(errmsg_1));
+      return csound->InitError(csound, "%s", Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
     if (p->flag==1) evt.pcnt = p->argno-1;
@@ -454,7 +454,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     if (evt.pcnt > 0) {
       if (insname) {
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q'))
-          return csound->InitError(csound, Str(errmsg_2));
+          return csound->InitError(csound, "%s", Str(errmsg_2));
         evt.p[1] = csound->strarg2insno(csound,((STRINGDAT *)p->args[1])->data, 1);
         evt.strarg = NULL; evt.scnt = 0;
         for (i = 2; i <= evt.pcnt; i++)

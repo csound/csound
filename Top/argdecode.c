@@ -303,7 +303,7 @@ void print_short_usage(CSOUND *csound)
     i = -1;
     while (shortUsageList[++i] != NULL) {
       snprintf(buf, 256, "%s\n", shortUsageList[i]);
-      csound->Message(csound, Str(buf));
+      csound->Message(csound, "%s", Str(buf));
     }
     csound->Message(csound,
                     Str("flag defaults: csound -s -otest -b%d -B%d -m%d\n"),

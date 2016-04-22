@@ -189,12 +189,12 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, s);
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s",  s);
           }
         }
         break;
       case 4:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", "\a");
         break;
     }
 }
@@ -241,7 +241,7 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, s);
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
           }
         }
         break;
@@ -293,7 +293,7 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, s);
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
           }
         }
         break;
@@ -343,12 +343,12 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, s);
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s",  s);
           }
         }
         break;
       case 4:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s",  "\a");
         break;
     }
 }
@@ -393,7 +393,7 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, s);
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
           }
         }
         break;

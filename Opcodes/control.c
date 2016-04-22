@@ -32,6 +32,25 @@
 #include <unistd.h>
 #endif
 
+int ISSTRCOD(MYFLT xx)
+{
+#ifdef USE_DOUBLE
+    union {
+      double d;
+      int32_t i[2];
+    } z;
+    z.d = xx;
+    return ((z.i[1]&0x7ff00000)==0x7ff00000);
+#else
+    union {
+      float f;
+      int32_t i;
+    } z;
+    z.f = xx;
+    return ((z.i&0x7f800000) == 0x7f800000);
+#endif
+}
+
 static CS_NOINLINE CONTROL_GLOBALS *get_globals_(CSOUND *csound)
 {
     CONTROL_GLOBALS *p;
