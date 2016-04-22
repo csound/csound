@@ -1,7 +1,6 @@
 #ifdef SWIG
 %module csnd
 #endif
-
 #include "csound.hpp"
 extern "C" long csoundGetKcounter(CSOUND *csound);
 

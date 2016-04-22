@@ -2363,7 +2363,7 @@ void csoundErrMsgV(CSOUND *csound,
                    const char *hdr, const char *msg, va_list args)
 {
     if (hdr != NULL)
-      csound->MessageS(csound, CSOUNDMSG_ERROR, hdr);
+      csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
     csound->csoundMessageCallback_(csound, CSOUNDMSG_ERROR, msg, args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
@@ -3144,7 +3144,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       int err = csoundInitStaticModules(csound);
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
-        csound->Warning(csound, csound->delayederrormessages);
+        csound->Warning(csound, "%s",csound->delayederrormessages);
         free(csound->delayederrormessages);
         csound->delayederrormessages = NULL;
       }
@@ -3160,7 +3160,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       err = csoundLoadModules(csound);
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
-        csound->Warning(csound, csound->delayederrormessages);
+        csound->Warning(csound, "%s", csound->delayederrormessages);
         free(csound->delayederrormessages);
         csound->delayederrormessages = NULL;
       }
