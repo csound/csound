@@ -197,7 +197,8 @@ Bugs fixed:
     o   Windows installer for 64 bit CPU architecture now sets environment variables
         on system level as it should.
 
-
+    o   transeg at k-rate with itype non-zero had an initial delay if one cycle
+    
 ====================
 SYSTEM LEVEL CHANGES
 ====================
