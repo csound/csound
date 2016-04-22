@@ -99,6 +99,7 @@ extern MYFLT csoundPow2(CSOUND *csound, MYFLT a);
 extern int csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
+extern int isstrcod(MYT);
 
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
@@ -145,10 +146,10 @@ static void create_opcode_table(CSOUND *csound)
 static void module_list_add(CSOUND *csound, char *drv, char *type){
     MODULE_INFO **modules =
       (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
-    if(modules != NULL){
+    if (modules != NULL){
      int i = 0;
      while(modules[i] != NULL && i < MAX_MODULES){
-       if(!strcmp(modules[i]->module, drv)) return;
+       if (!strcmp(modules[i]->module, drv)) return;
        i++;
      }
      modules[i] = (MODULE_INFO *) csound->Malloc(csound, sizeof(MODULE_INFO));
@@ -158,12 +159,12 @@ static void module_list_add(CSOUND *csound, char *drv, char *type){
 }
 
 static int csoundGetRandSeed(CSOUND *csound, int which){
-    if(which > 1) return csound->randSeed1;
+    if (which > 1) return csound->randSeed1;
     else return csound->randSeed2;
 }
 
 static char *csoundGetStrsets(CSOUND *csound, long p){
-    if(csound->strsets == NULL) return NULL;
+    if (csound->strsets == NULL) return NULL;
     else return csound->strsets[p];
 }
 
@@ -193,7 +194,7 @@ static int csoundGetTieFlag(CSOUND *csound){
 }
 
 static MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
-  if(val > 0) csound->_system_sr = val;
+  if (val > 0) csound->_system_sr = val;
   return csound->_system_sr;
 }
 
@@ -439,12 +440,13 @@ static const CSOUND cenviron_ = {
     csoundSetScoreOffsetSeconds,
     csoundRewindScore,
     csoundInputMessageInternal,
+    isstrcod,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL,
+      NULL, NULL,
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -1249,7 +1251,7 @@ PUBLIC void csoundDestroy(CSOUND *csound)
         pp = nxt;
       } while (pp != (CsoundCallbackEntry_t*) NULL);
     }
-    if(csound->API_lock != NULL) {
+    if (csound->API_lock != NULL) {
       //csoundLockMutex(csound->API_lock);
       csoundDestroyMutex(csound->API_lock);
     }
@@ -1373,9 +1375,9 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
 #else
         done = insds->init_done;
 #endif
-        if(done) {
+        if (done) {
         opstart = (OPDS*)task_map[which_task];
-        if(insds->ksmps == csound->ksmps) {
+        if (insds->ksmps == csound->ksmps) {
         insds->spin = csound->spin;
         insds->spout = csound->spout;
         insds->kcounter =  csound->kcounter;
@@ -1405,7 +1407,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
             start += csound->nchnls;
           }
           insds->ksmps_offset = offset;
-          if(early){
+          if (early){
             n -= (early*csound->nchnls);
             insds->ksmps_no_end = early % lksmps;
           }
@@ -1549,7 +1551,7 @@ int kperf_nodebug(CSOUND *csound)
             ip->spin = csound->spin;
             ip->spout = csound->spout;
             ip->kcounter =  csound->kcounter;
-            if(ip->ksmps == csound->ksmps) {
+            if (ip->ksmps == csound->ksmps) {
               while ((opstart = opstart->nxtp) != NULL) {
                 opstart->insdshead->pds = opstart;
                 (*opstart->opadr)(csound, opstart); /* run each opcode */
@@ -1575,7 +1577,7 @@ int kperf_nodebug(CSOUND *csound)
                   start += csound->nchnls;
                 }
                 ip->ksmps_offset = offset;
-                if(early){
+                if (early){
                   n -= (early*csound->nchnls);
                   ip->ksmps_no_end = early % lksmps;
                   }
@@ -1829,7 +1831,7 @@ int kperf_debug(CSOUND *csound)
             ip->spin = csound->spin;
             ip->spout = csound->spout;
             ip->kcounter =  csound->kcounter;
-            if(ip->ksmps == csound->ksmps) {
+            if (ip->ksmps == csound->ksmps) {
                 opcode_perf_debug(csound, data, ip);
             } else { /* when instrument has local ksmps */
               int i, n = csound->nspout, start = 0;
@@ -1850,7 +1852,7 @@ int kperf_debug(CSOUND *csound)
                   start += csound->nchnls;
                 }
                 ip->ksmps_offset = offset;
-                if(early){
+                if (early){
                   n -= (early*csound->nchnls);
                   ip->ksmps_no_end = early % lksmps;
                   }
@@ -1893,7 +1895,7 @@ PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
 {
     OPARMS  *O = csound->oparms;
      /* protect resource */
-    if(csound->scorestr != NULL &&
+    if (csound->scorestr != NULL &&
        csound->scorestr->body != NULL)
       corfile_rewind(csound->scorestr);
 
@@ -1902,7 +1904,7 @@ PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
     corfile_flush(csound->scorestr);
     /* copy sorted score name */
     csoundLockMutex(csound->API_lock);
-    if(csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
+    if (csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
       scsortstr(csound, csound->scorestr);
       O->playscore = csound->scstr;
     }
@@ -2095,7 +2097,7 @@ PUBLIC uint32_t csoundGetNchnls(CSOUND *csound)
 
 PUBLIC uint32_t csoundGetNchnlsInput(CSOUND *csound)
 {
-  if(csound->inchnls > 0)
+  if (csound->inchnls > 0)
     return (uint32_t) csound->inchnls;
   else return csound->nchnls;
 }
@@ -2225,7 +2227,7 @@ extern void midifile_rewind_score(CSOUND *csound);    /* midifile.c */
 PUBLIC void csoundRewindScore(CSOUND *csound)
 {
     musmon_rewind_score(csound);
-    if(csound->oparms->FMidiname != NULL) midifile_rewind_score(csound);
+    if (csound->oparms->FMidiname != NULL) midifile_rewind_score(csound);
 }
 
 PUBLIC void csoundSetCscoreCallback(CSOUND *p,
@@ -3059,10 +3061,10 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
 PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
     char *s;
 
-    if((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
+    if ((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
       strncpy(s, module, 20);
     if (s==NULL) return;        /* Should not happen */
-    if(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
+    if (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
        strcmp(s, "NULL") == 0) {
       csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
       csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
@@ -3082,7 +3084,7 @@ PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
 PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
     MODULE_INFO **modules =
       (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
-    if(modules[no] == NULL || no >= MAX_MODULES) return CSOUND_ERROR;
+    if (modules[no] == NULL || no >= MAX_MODULES) return CSOUND_ERROR;
     *module = modules[no]->module;
     *type = modules[no]->type;
     return CSOUND_SUCCESS;
@@ -3098,7 +3100,7 @@ PUBLIC void csoundReset(CSOUND *csound)
 
 
 
-    if(csound->engineStatus & CS_STATE_COMP ||
+    if (csound->engineStatus & CS_STATE_COMP ||
        csound->engineStatus & CS_STATE_PRE) {
      /* and reset */
       csound->Message(csound, "resetting Csound instance\n");
@@ -3112,7 +3114,7 @@ PUBLIC void csoundReset(CSOUND *csound)
      pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
      pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
     #endif
-     if(O->odebug)
+     if (O->odebug)
         csound->Message(csound,"init spinlocks\n");
     }
 
@@ -3237,7 +3239,7 @@ PUBLIC void csoundReset(CSOUND *csound)
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     strcpy(s, "null");
-    if(csound->enableHostImplementedMIDIIO == 0)
+    if (csound->enableHostImplementedMIDIIO == 0)
 #ifndef LINUX
     strcpy(s, "portmidi");
 #else
@@ -3359,9 +3361,9 @@ PUBLIC void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
     /* in realtime mode init pass is executed in a separate thread, so
      we need to protect it */
     csoundUnlockMutex(csound->API_lock);
-   if(csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
+   if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
     csound->flist[table]->ftable[index] = value;
-   if(csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
+   if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
     csoundUnlockMutex(csound->API_lock);
 }
 

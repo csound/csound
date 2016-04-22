@@ -42,20 +42,20 @@
 #endif
 
 int s_opcode(CSOUND *csound, STRGET_OP *p){
-  if(p->r->data == NULL){
-   p->r->data = (char *) csound->Malloc(csound, 15);
-   p->r->size = 15;
-  } else if(p->r->size < 15){
-  p->r->data = (char *) csound->ReAlloc(csound, p->r->data, 15);
-  p->r->size = 15;
-  }
-  snprintf(p->r->data, p->r->size, "%f", *p->indx);
-  return OK;
+    if (p->r->data == NULL){
+      p->r->data = (char *) csound->Malloc(csound, 15);
+      p->r->size = 15;
+    } else if (p->r->size < 15){
+      p->r->data = (char *) csound->ReAlloc(csound, p->r->data, 15);
+      p->r->size = 15;
+    }
+    snprintf(p->r->data, p->r->size, "%f", *p->indx);
+    return OK;
 }
 
 int s_opcode_k(CSOUND *csound, STRGET_OP *p){
-  snprintf(p->r->data, p->r->size, "%f", *p->indx);
-  return OK;
+    snprintf(p->r->data, p->r->size, "%f", *p->indx);
+    return OK;
 }
 
 /* strset by John ffitch */
@@ -78,8 +78,8 @@ static void str_set(CSOUND *csound, int ndx, const char *s)
       csound->strsmax = newmax;
     }
     if (UNLIKELY(ndx < 0))  {  /* -ve index */
-     csound->InitError(csound, Str("illegal strset index"));
-     return;
+      csound->InitError(csound, Str("illegal strset index"));
+      return;
     }
 
     if (csound->strsets[ndx] != NULL) {
@@ -127,7 +127,7 @@ void strset_option(CSOUND *csound, char *s)
 int strget_init(CSOUND *csound, STRGET_OP *p)
 {
     int   indx;
-    if (ISSTRCOD(*(p->indx))) {
+    if (csound->ISSTRCOD(*(p->indx))) {
       char *ss = csound->currevent->strarg;
       if (ss == NULL)
         return OK;
@@ -245,10 +245,10 @@ int str_changed_k(CSOUND *csound, STRCHGD *p)
 extern char* get_strarg(CSOUND *csound, MYFLT p, char *strarg);
 int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
-    if (ISSTRCOD(*p->indx)) {
+    if (csound->ISSTRCOD(*p->indx)) {
       char *ss;
       ss = get_arg_string(csound, *p->indx);
-      if(ss == NULL){
+      if (ss == NULL){
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
         return csoundPerfError(csound, ((OPDS*)p)->insdshead,
                                Str("NULL string \n"));
@@ -284,7 +284,7 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     int size;
     char *str1 = strdup(p->str1->data), *str2 = strdup(p->str2->data);
 
-    if(str1 == NULL || str2 == NULL){
+    if (str1 == NULL || str2 == NULL){
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
       return csoundPerfError(csound, ((OPDS*)p)->insdshead, "NULL string \n");
       else return csoundInitError(csound, "NULL string \n");
@@ -298,11 +298,11 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     }
     else if (UNLIKELY((int) size >= p->r->size)) {
        char *nstr =  csound->ReAlloc(csound, p->r->data, size + 1);
-       if(p->r->data == p->str1->data){
+       if (p->r->data == p->str1->data){
          p->str1->data = nstr;
          p->str1->size = size + 1;
        }
-       if(p->r->data == p->str2->data){
+       if (p->r->data == p->str2->data){
          p->str2->data = nstr;
          p->str2->size = size + 1;
        }
@@ -323,7 +323,7 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 int strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
 {
     int     i;
-    if(p->str1->data == NULL || p->str2->data == NULL){
+    if (p->str1->data == NULL || p->str2->data == NULL){
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
       return csoundPerfError(csound, ((OPDS*)p)->insdshead, "NULL string \n");
       else return csoundInitError(csound, "NULL string \n");
@@ -590,7 +590,7 @@ int strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
     char    *s = NULL, *tmp;
     double  x;
 
-    if (ISSTRCOD(*p->str))
+    if (csound->ISSTRCOD(*p->str))
       s = get_arg_string(csound, *p->str);
     else {
       int ndx = (int) MYFLT2LRND(*p->str);
@@ -684,7 +684,7 @@ int strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
     int   sgn = 0, radix = 10;
     int32  x = 0L;
 
-    if (ISSTRCOD(*p->str))
+    if (csound->ISSTRCOD(*p->str))
         s = get_arg_string(csound, *p->str);
       else {
         int ndx = (int) MYFLT2LRND(*p->str);

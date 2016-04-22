@@ -1359,7 +1359,8 @@ static void setprv(CSOUND *csound)      /*  set insno = (int) p1val         */
     SRTBLK *p = STA(bp);
     int16 n;
 
-    if (ISSTRCOD(STA(bp)->p1val) && *STA(sp) == '"') {   /* IV - Oct 31 2002 */
+    if (csound->ISSTRCOD(STA(bp)->p1val) && *STA(sp) == '"') {
+      /* IV - Oct 31 2002 */
       char name[MAXNAME], *c, *s = STA(sp);
       /* unquote instrument name */
       c = name; while (*++s != '"') *c++ = *s; *c = '\0';
