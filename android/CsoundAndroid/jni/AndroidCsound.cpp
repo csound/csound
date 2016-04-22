@@ -11,14 +11,14 @@ extern void androidrtclose_(CSOUND *csound);
 static void androidMessageCallback(CSOUND*, int attr, const char *format, va_list valist) {
     char message[1024];
     vsnprintf(message, 1024, format, valist);
-    __android_log_print(ANDROID_LOG_INFO,"AndroidCsound",message); 
+    __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","%s", message); 
 }
 }
 
-
+#include <pthread.h>
 void AndroidCsound::setOpenSlCallbacks() {
 
-       __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","setOpenSlCallbacks"); 
+   __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","setOpenSlCallbacks"); 
 
    if(csoundQueryGlobalVariable(csound,"::async::") == NULL) 
     if (this->CreateGlobalVariable("::async::", sizeof(int)) == 0) {

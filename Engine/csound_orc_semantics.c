@@ -2364,7 +2364,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
 void print_tree(CSOUND * csound, char* msg, TREE *l)
 {
     if (msg)
-      csound->Message(csound, msg);
+      csound->Message(csound, "%s", msg);
     else
       csound->Message(csound, "Printing Tree\n");
     csound->Message(csound, "<ast>\n");
