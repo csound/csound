@@ -171,7 +171,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
         s = csound->Malloc(csound, strlen((char*) p) + 1);
       strcpy(s, (char*) p);
     }
-    else if (ISSTRCOD(*((MYFLT*) p))) {
+    else if (csound->ISSTRCOD(*((MYFLT*) p))) {
       /* p-field string, unquote and copy */
       char  *s2 = get_arg_string(csound, *((MYFLT*)p));
       int   i = 0;

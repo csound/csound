@@ -81,7 +81,7 @@ int pvaddset_(CSOUND *csound, PVADD *p, int stringname)
     p->AmpGateFunc = AmpGateFunc;
 
     if (stringname==0){
-      if (ISSTRCOD(*p->ifilno))
+      if (csound->ISSTRCOD(*p->ifilno))
         strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
@@ -201,11 +201,11 @@ int pvadd(CSOUND *csound, PVADD *p)
 }
 
 int pvaddset(CSOUND *csound, PVADD *p){
-  return pvaddset_(csound, p, 0);
+    return pvaddset_(csound, p, 0);
 }
 
 int pvaddset_S(CSOUND *csound, PVADD *p){
-  return pvaddset_(csound, p, 1);
+    return pvaddset_(csound, p, 1);
 }
 
 
