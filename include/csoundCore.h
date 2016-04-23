@@ -1296,11 +1296,12 @@ typedef struct NAME__ {
     void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT offset);
     void (*RewindScore)(CSOUND *);
     void (*InputMessage)(CSOUND *, const char *message__);
+    int  (*ISSTRCOD)(MYFLT);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[43];
+    SUBR dummyfn_2[42];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */

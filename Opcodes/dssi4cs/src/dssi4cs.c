@@ -234,13 +234,13 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
     CS_TYPE* argType = csound->GetTypeForArg(p->iplugin);
 
-    if(strcmp("S", argType->varTypeName) == 0)
+    if (strcmp("S", argType->varTypeName) == 0)
       strncpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME-1);
     else
-      csound->strarg2name(csound, dssiFilename, ISSTRCOD(*p->iplugin) ?
+      csound->strarg2name(csound, dssiFilename, csound->ISSTRCOD(*p->iplugin) ?
                           csound->GetString(csound, *p->iplugin) :
                           (char *) p->iplugin, "dssiinit.",
-                          (int) ISSTRCOD(*p->iplugin));
+                          (int) csound->ISSTRCOD(*p->iplugin));
     PluginIndex = (unsigned long) *p->iindex;
     PluginLibrary = dlopenLADSPA(csound, dssiFilename, RTLD_NOW);
     if (UNLIKELY(!PluginLibrary))

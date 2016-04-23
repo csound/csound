@@ -42,9 +42,9 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
 
     memset(hdr, 0, sizeof(SF_INFO));
     /* leap thru std hoops to get the name */
-    if(strin)
+    if (strin)
       strncpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
-    else if (ISSTRCOD(*p->ifilno)){
+    else if (csound->ISSTRCOD(*p->ifilno)){
       strncpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
     else csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",0);
@@ -322,7 +322,7 @@ int filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
 int filepeak(CSOUND *csound, SNDINFOPEAK *p){
 
  char soundiname[1024];
- if (ISSTRCOD(*p->ifilno)){
+ if (csound->ISSTRCOD(*p->ifilno)){
       strncpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
   else csound->strarg2name(csound, soundiname, p->ifilno,
@@ -344,7 +344,7 @@ int filevalid(CSOUND *csound, FILEVALID *p)
 {
     char soundiname[1024];       /* There is no check on this length */
     *p->r1 = 0;
-    if (ISSTRCOD(*p->ifilno)){
+    if (csound->ISSTRCOD(*p->ifilno)){
       strncpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
     else csound->strarg2name(csound, soundiname, p->ifilno,

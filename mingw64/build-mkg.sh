@@ -7,18 +7,19 @@ cd csound-mingw64
 pwd
 rm -rf dist
 cmake ../.. -G "MSYS Makefiles" \
--DUSE_GETTEXT=0 \
 -DBUILD_CSOUNDVST=1 \
 -DBUILD_PD_CLASS=0 \
--DBUILD_STATIC_LIBRARY=0 \
+-DBUILD_STATIC_LIBRARY=1 \
 -DBUILD_TESTS=0 \
 -DBUILD_VST4CS_OPCODES=1 \
 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 -DCMAKE_VERBOSE_MAKEFILE=1 \
 -DMUSICXML_LIBRARY=D:/msys64/mingw64/bin/libmusicxml2.dll \
 -DNEED_PORTTIME=0 \
+-DPTHREAD_STATIC_LIBRARY=D:/msys64/mingw64/x86_64-w64-mingw32/lib/libpthread.a \
 -DTCL_VERSION=8.5 \
 -DUSE_CURL=0 \
+-DUSE_GETTEXT=0 \
 -DUSE_OPEN_MP=0 \
 -D_WIN32=1 \
 -DSWIG_DIR=C:\msys2\mingw64\share\swig\3.0.6
