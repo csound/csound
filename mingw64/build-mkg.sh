@@ -6,6 +6,10 @@ mkdir csound-mingw64
 cd csound-mingw64
 pwd
 rm -rf dist
+
+# -DFIND_CMAKE_SYSTEM_PATH=//mingw64 \
+# --trace-expand \
+
 cmake ../.. -G "MSYS Makefiles" \
 -DBUILD_CSOUNDVST=1 \
 -DBUILD_PD_CLASS=0 \
@@ -14,15 +18,16 @@ cmake ../.. -G "MSYS Makefiles" \
 -DBUILD_VST4CS_OPCODES=1 \
 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 -DCMAKE_VERBOSE_MAKEFILE=1 \
--DMUSICXML_LIBRARY=D:/msys64/mingw64/bin/libmusicxml2.dll \
+-DMUSICXML_LIBRARY:FILEPATH=/mingw64/bin/libmusicxml2.dll \
 -DNEED_PORTTIME=0 \
--DPTHREAD_STATIC_LIBRARY=D:/msys64/mingw64/x86_64-w64-mingw32/lib/libpthread.a \
+-DPTHREAD_STATIC_LIBRARY:FILEPATH=/mingw64/x86_64-w64-mingw32/lib/libpthread.a \
 -DTCL_VERSION=8.5 \
 -DUSE_CURL=0 \
 -DUSE_GETTEXT=0 \
 -DUSE_OPEN_MP=0 \
 -D_WIN32=1 \
--DSWIG_DIR=C:\msys2\mingw64\share\swig\3.0.6
+-DSTK_STATIC_LIBRARY:FILEPATH=/mingw64/lib/libstk.a
+
 if [ $? -ne 0 ]; then
     echo "Failed to run CMake."
     exit
