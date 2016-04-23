@@ -6,7 +6,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0022 OLD)
 
 cmake_minimum_required(VERSION 2.8.3)
 
-project(Csound LANGUAGES C CXX)
+project(Csound)
 
 include("${CUSTOM_CMAKE}" OPTIONAL)
 
