@@ -135,7 +135,7 @@ if(USE_PORTAUDIO AND PORTAUDIO_V19 MATCHES 1)
     make_plugin(rtpa rtpa.c ${rtpa_LIBS})
 else()
   message(STATUS "Not building Portaudio Driver...")
-  message(STATUS "Portaudio v19 Found: ${PORTAUDIO_V19}")
+  message(STATUS "Portaudio v19 Found: ${PORTAUDIO_V19}.")
 endif()
 
 if(APPLE)

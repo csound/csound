@@ -9,7 +9,7 @@ set(stdutil_SRCS
     ../SDIF/sdif.c)
 
 
-if(WIN32 AND NOT MSVC) 
+if(WIN32 AND NOT MSVC)
   make_plugin(stdutil "${stdutil_SRCS}" m
     ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
 else()
@@ -18,7 +18,7 @@ endif()
 
 add_dependency_to_framework(stdutil ${LIBSNDFILE_LIBRARY})
 
-if(BUILD_UTILITIES) 
+if(BUILD_UTILITIES)
     make_utility(atsa        atsa_main.c)
     make_utility(csanalyze   csanalyze.c)
     make_utility(cvanal      cvl_main.c)
@@ -50,7 +50,7 @@ if(BUILD_UTILITIES)
     if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY)
         make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}")
     else()
-        message(STATUS "Not building src_conv (libsndfile or libsamplerate not found)")
+        message(STATUS "Not building src_conv (libsndfile or libsamplerate not found).")
     endif()
 
 endif()
