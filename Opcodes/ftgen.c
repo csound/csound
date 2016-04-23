@@ -121,7 +121,7 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
         else fp[4] = named->genum;
       }
 
-      if(istring2) {  /* string argument: */
+      if (istring2) {  /* string argument: */
         n = (int) fp[4];
         fp[5] = SSTRCOD;
         if (n < 0)
@@ -247,12 +247,12 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
     if (UNLIKELY(nargs <= 0))
       goto err2;
 
-    if(!istring) {
-      if(ISSTRCOD(*p->ifilno))
-         csound->strarg2name(csound, filename, p->ifilno, "ftsave.",
-                               0);
-         else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME-1);
-
+    if (!istring) {
+      if (csound->ISSTRCOD(*p->ifilno))
+        csound->strarg2name(csound, filename, p->ifilno, "ftsave.",
+                            0);
+      else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME-1);
+      
     } else {
       strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
     }
@@ -375,7 +375,7 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
         header.fno = (int32) fno;
         if (fno_f == fno) {
           ftp = ft_func(csound, &fno_f);
-          if(ftp->flen < header.flen){
+          if (ftp->flen < header.flen){
              if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
              goto err;
           }
@@ -459,11 +459,11 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
     if (UNLIKELY(nargs <= 0))
       goto err2;
 
-    if(!istring) {
-      if(ISSTRCOD(*p->ifilno))
-         csound->strarg2name(csound, filename, p->ifilno, "ftsave.",
-                               0);
-         else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME-1);
+    if (!istring) {
+      if (csound->ISSTRCOD(*p->ifilno))
+        csound->strarg2name(csound, filename, p->ifilno, "ftsave.",
+                            0);
+      else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME-1);
 
     } else {
       strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);

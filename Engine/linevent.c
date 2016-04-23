@@ -307,7 +307,7 @@ static void sensLine(CSOUND *csound, void *userData)
               goto Lerr;
             }                                   /*        pfld carry   */
             e.p[pcnt] = STA(prve).p[pcnt];
-            if (UNLIKELY(ISSTRCOD(e.p[pcnt]))) {
+            if (UNLIKELY(csound->ISSTRCOD(e.p[pcnt]))) {
               csound->ErrorMsg(csound, Str("cannot carry string p-field"));
               goto Lerr;
             }
@@ -402,7 +402,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
         evt.strarg = NULL; evt.scnt = 0;
       }
       else {
-        if (ISSTRCOD(*p->args[1])) {
+        if (csound->ISSTRCOD(*p->args[1])) {
           evt.p[1]  = csound->strarg2insno(csound,
                                            get_arg_string(csound, *p->args[1]), 1);
         } else evt.p[1] = *p->args[1];
@@ -438,7 +438,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     int     i, err = 0;
     char    opcod;
     memset(&evt, 0, sizeof(EVTBLK));
-    
+
     if (p1==0)
          opcod = *((STRINGDAT*) p->args[0])->data;
     else opcod = p1;
@@ -462,7 +462,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       }
       else {
         evt.strarg = NULL; evt.scnt = 0;
-        if (ISSTRCOD(*p->args[1])) {
+        if (csound->ISSTRCOD(*p->args[1])) {
           evt.p[1]  = csound->strarg2insno(csound,
                                            get_arg_string(csound, *p->args[1]), 1);
         } else evt.p[1] = *p->args[1];
@@ -512,7 +512,7 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
         evt.strarg = NULL; evt.scnt = 0;
       }
       else {
-        if (ISSTRCOD(*p->args[0])) {
+        if (csound->ISSTRCOD(*p->args[0])) {
           evt.p[1]  = csound->strarg2insno(csound,
                                            get_arg_string(csound, *p->args[0]), 1);
         } else evt.p[1] = *p->args[0];

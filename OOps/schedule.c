@@ -58,7 +58,7 @@ int schedule_N(CSOUND *csound, SCHED *p)
     sprintf(s, "i %f %f %f", *p->which, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
-         if(csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
+         if (csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
            sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
          else sprintf(s, "%s %f", s,  *arg);
     }
@@ -74,7 +74,7 @@ int schedule_SN(CSOUND *csound, SCHED *p)
     sprintf(s, "i \"%s\" %f %f", ((STRINGDAT *)p->which)->data, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
-         if(csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
+         if (csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
            sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
          else sprintf(s, "%s %f", s,  *arg);
     }
@@ -127,8 +127,8 @@ int kschedule(CSOUND *csound, WSCHED *p)
       }
       p->todo =0;
       pp.flag = 1;
-       if(IS_STR_ARG(p->which)){
-          return eventOpcode_(csound, &pp, 1, 'i');
+       if (IS_STR_ARG(p->which)){
+         return eventOpcode_(csound, &pp, 1, 'i');
        }
        else {
          pp.flag = 0;
@@ -367,7 +367,7 @@ static int get_absinsno(CSOUND *csound, TRIGINSTR *p, int stringname)
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (stringname)
       insno = (int)strarg2insno_p(csound, ((STRINGDAT*)p->args[0])->data);
-    else if (ISSTRCOD(*p->args[0])) {
+    else if (csound->ISSTRCOD(*p->args[0])) {
       char *ss = get_arg_string(csound, *p->args[0]);
       insno = (int)strarg2insno_p(csound, ss);
     }
@@ -410,7 +410,7 @@ static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
       p->prvmintim = *p->mintime;
     }
 
-    if (*p->args[0] >= FL(0.0) || ISSTRCOD(*p->args[0])) {
+    if (*p->args[0] >= FL(0.0) || csound->ISSTRCOD(*p->args[0])) {
       /* Check for rate limit on event generation */
       if (*p->mintime > FL(0.0) && p->timrem > 0)
         return OK;
@@ -437,7 +437,7 @@ static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
       /*evt.strarg = ((STRINGDAT*)p->args[0])->data;
         evt.p[1] = SSTRCOD;*/
     }
-    else if (ISSTRCOD(*p->args[0])) {
+    else if (csound->ISSTRCOD(*p->args[0])) {
       unquote(name, get_arg_string(csound, *p->args[0]), 512);
       evt.p[1] = csound->strarg2insno(csound,name, 1);
       evt.strarg = NULL;

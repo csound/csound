@@ -32,6 +32,9 @@ New opcodes:
 
     o    S() converter from k-rate and i-time number to a string.
 
+    o    moogladder2 is a faster, less accurate implementation of moogladder.
+
+
 New Gen and Macros:
 
     o    NONE
@@ -194,7 +197,8 @@ Bugs fixed:
     o   Windows installer for 64 bit CPU architecture now sets environment variables
         on system level as it should.
 
-
+    o   transeg at k-rate with itype non-zero had an initial delay if one cycle
+    
 ====================
 SYSTEM LEVEL CHANGES
 ====================
