@@ -99,7 +99,7 @@ extern MYFLT csoundPow2(CSOUND *csound, MYFLT a);
 extern int csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
-extern int isstrcod(MYT);
+extern int isstrcod(MYFLT );
 
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
