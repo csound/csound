@@ -6,13 +6,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0022 OLD)
 
 cmake_minimum_required(VERSION 2.8.3)
 
-# Instruct CMake to use specified pathnames for target_link_library even if
-# another version of the specified library exists in a standard location.
-if(WIN32)
-    cmake_policy(SET CMP0060 NEW)
-endif()
-
-project (Csound)
+project(Csound LANGUAGES C CXX)
 
 include("${CUSTOM_CMAKE}" OPTIONAL)
 
@@ -150,9 +144,9 @@ function(check_deps option)
         endwhile()
     endif()
     if(${option})
-        message(STATUS "${option} is enabled")
+        message(STATUS "${option} is enabled.")
     else()
-        message(STATUS "${option} is disabled")
+        message(STATUS "${option} is disabled.")
     endif()
 endfunction(check_deps)
 
@@ -226,7 +220,7 @@ if(WIN32 AND NOT MSVC)
     if(EXISTS "C:/MinGW/include")
         include_directories(C:/MinGW/include)
     else()
-        MESSAGE(STATUS "MinGW include dir not found")
+        MESSAGE(STATUS "MinGW include dir not found.")
     endif()
 
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
@@ -338,7 +332,7 @@ if(APPLE)
 
   if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
-    message(STATUS "OSX: Setting Depolyment Target to 10.7")
+    message(STATUS "OSX: Setting Deployment Target to 10.7")
   endif()
 
 endif()
@@ -401,9 +395,9 @@ set(BUILD_LIB_DIR ${BUILD_DIR})
 #    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes)
 #endif()
 
-message(STATUS "BUILD_BIN_DIR set to ${BUILD_BIN_DIR}")
-message(STATUS "BUILD_LIB_DIR set to ${BUILD_LIB_DIR}")
-message(STATUS "BUILD_PLUGINS_DIR set to ${BUILD_PLUGINS_DIR}")
+message(STATUS "BUILD_BIN_DIR set to ${BUILD_BIN_DIR}.")
+message(STATUS "BUILD_LIB_DIR set to ${BUILD_LIB_DIR}.")
+message(STATUS "BUILD_PLUGINS_DIR set to ${BUILD_PLUGINS_DIR}.")
 
 # OS specific checks
 
@@ -473,7 +467,7 @@ if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
     message(FATAL_ERROR "Csound requires the pthread library")
 endif()
 
-message(STATUS "PTHREAD_STATIC_LIBRARY: ${PTHREAD_STATIC_LIBRARY}")
+message(STATUS "PTHREAD_STATIC_LIBRARY: ${PTHREAD_STATIC_LIBRARY}.")
 
 set(CMAKE_REQUIRED_INCLUDES pthread.h)
 set(CMAKE_REQUIRED_LIBRARIES pthread)
@@ -484,14 +478,14 @@ option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
 if(USE_ATOMIC_BUILTIN)
 include(cmake/CheckAtomic.cmake)
   if(HAVE_ATOMIC_BUILTIN)
-    message(STATUS "Using Atomic Builtins")
+    message(STATUS "Using atomic builtins.")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_ATOMIC_BUILTIN")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ATOMIC_BUILTIN")
   else()
-    message(STATUS "Not using Atomic Builtins - not found")
+    message(STATUS "Not using atomic builtins - not found")
   endif()
 else()
-  message(STATUS "Not using Atomic Builtins - user disabled")
+  message(STATUS "Not using atomic builtins - user disabled")
 endif()
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
@@ -527,10 +521,10 @@ if(USE_CURL)
   if(CURL_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_CURL")
   else()
-    message(STATUS "Not using CURL for urls - not found")
+    message(STATUS "Not using CURL for urls - not found.")
   endif()
 else()
-  message(STATUS "Not using CURL for urls - disabled")
+  message(STATUS "Not using CURL for urls - disabled.")
 endif()
 
 # Flex/Bison for the new parser
@@ -866,7 +860,7 @@ set_source_files_properties(${PRELEX_OUT} GENERATED)
 # Handling New Score Parser
 
 if(SCORE_PARSER)
-    message(STATUS "SCORE PARSER being built")
+    message(STATUS "SCORE PARSER being built.")
     #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSCORE_PARSER")
     list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
 
@@ -911,7 +905,7 @@ if(SCORE_PARSER)
     set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
 
 else()
-    message(STATUS "Not building with score parser")
+    message(STATUS "Not building with score parser.")
 endif()
 
 
@@ -919,14 +913,14 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 if(NEW_PARSER_DEBUG)
-    message(STATUS "Building with new parser debugging")
+    message(STATUS "Building with new parser debugging.")
     list(APPEND libcsound_CFLAGS -DPARSER_DEBUG=1)
 else()
-    message(STATUS "Not building with new parser debugging")
+    message(STATUS "Not building with new parser debugging.")
 endif()
 
 if(BUILD_MULTI_CORE)
-    message(STATUS "Building with multicore")
+    message(STATUS "Building with multicore support.")
 
     list(APPEND libcsound_SRCS
         Engine/cs_new_dispatch.c
@@ -937,7 +931,7 @@ if(BUILD_MULTI_CORE)
     list(APPEND libcsound_CFLAGS -DPARCS)
 
 else()
-    message(STATUS "Not building with multicore")
+    message(STATUS "Not building with multicore support.")
 endif()
 
 set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
@@ -1111,7 +1105,7 @@ endif()
 set(LIBINTL_AVAIL (LIBINTL_LIBRARY OR LINUX))
 check_deps(USE_GETTEXT LIBINTL_HEADER LIBINTL_AVAIL GETTEXT_MSGFMT_EXECUTABLE)
 if(USE_GETTEXT)
-    message(STATUS "Using GNU Gettext")
+    message(STATUS "Using GNU gettext.")
     if(NOT LINUX)
         list(APPEND libcsound_LIBS ${LIBINTL_LIBRARY})
     endif()
@@ -1120,18 +1114,18 @@ if(USE_GETTEXT)
         file(TO_NATIVE_PATH "${CMAKE_INSTALL_PREFIX}/${LOCALE_INSTALL_DIR}" CSOUND_TEXTDOMAIN)
     endif()
     if(CSOUND_TEXTDOMAIN)
-        message(STATUS "Setting textdomain to ${CSOUND_TEXTDOMAIN}")
+        message(STATUS "Setting textdomain to ${CSOUND_TEXTDOMAIN}.")
         set_source_files_properties(Top/getstring.c PROPERTIES
             COMPILE_FLAGS -DCSOUND_TEXTDOMAIN=\\\"${CSOUND_TEXTDOMAIN}\\\")
     else()
-        message(STATUS "Not setting textdomain")
+        message(STATUS "Not setting textdomain.")
     endif()
 else()
-    message(STATUS "Not using localization")
+    message(STATUS "Not using localization.")
 endif()
 
 if(LINUX)
-    message(STATUS "Building on Linux")
+    message(STATUS "Building on Linux.")
     add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE -DHAVE_SOCKETS)
     list(APPEND libcsound_LIBS m dl)
 
@@ -1139,7 +1133,7 @@ if(LINUX)
 
     if(LIBRT_LIBRARY)
       list(APPEND libcsound_LIBS ${LIBRT_LIBRARY})
-      message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}")
+      message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}.")
     endif()
 endif()
 
