@@ -6,6 +6,12 @@ set(CMAKE_POLICY_DEFAULT_CMP0022 OLD)
 
 cmake_minimum_required(VERSION 2.8.3)
 
+# Instruct CMake to use specified pathnames for target_link_library even if
+# another version of the specified library exists in a standard location.
+if(WIN32)
+    cmake_policy(SET CMP0060 NEW)
+endif()
+
 project (Csound)
 
 include("${CUSTOM_CMAKE}" OPTIONAL)
@@ -467,7 +473,7 @@ if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
     message(FATAL_ERROR "Csound requires the pthread library")
 endif()
 
-message(STATUS "PTHREAD STATIC LIBRARY: ${PTHREAD_STATIC_LIBRARY}")
+message(STATUS "PTHREAD_STATIC_LIBRARY: ${PTHREAD_STATIC_LIBRARY}")
 
 set(CMAKE_REQUIRED_INCLUDES pthread.h)
 set(CMAKE_REQUIRED_LIBRARIES pthread)
