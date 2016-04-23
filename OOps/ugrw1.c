@@ -1133,7 +1133,7 @@ int printks(CSOUND *csound, PRINTKS *p)
     int32        cycles;
     char        string[8192]; /* matt ingals replacement */
 
-    if (ISSTRCOD(*p->ifilcod) == 0) {
+    if (csound->ISSTRCOD(*p->ifilcod) == 0) {
       char *sarg;
       sarg = ((STRINGDAT*)p->ifilcod)->data;
       if (sarg == NULL)
@@ -1194,8 +1194,8 @@ int printsset_S(CSOUND *csound, PRINTS *p)
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
     printksset_S(csound, &pk);
-    if(strlen(pk.txtstring) < 8191){
-     memset(string,0,8192);
+    if (strlen(pk.txtstring) < 8191){
+      memset(string,0,8192);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
     csound->MessageS(csound, CSOUNDMSG_ORCH, string);
     } else {

@@ -530,7 +530,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         csound->Message(csound, "  midiKey:         pfield: %3d  value: %3d\n",
                         pfield_index, (int) pfield->value);
       }
-      if(pmax < pfield_index) pmax = pfield_index;
+      if (pmax < pfield_index) pmax = pfield_index;
     }
     else if (O->midiKeyCps) {
       int pfield_index = O->midiKeyCps;
@@ -545,7 +545,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         csound->Message(csound, "  midiKeyCps:      pfield: %3d  value: %3d\n",
                         pfield_index, (int) pfield->value);
       }
-      if(pmax < pfield_index) pmax = pfield_index;
+      if (pmax < pfield_index) pmax = pfield_index;
     }
     else if (O->midiKeyOct) {
       int pfield_index = O->midiKeyOct;
@@ -557,7 +557,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         csound->Message(csound, "  midiKeyOct:      pfield: %3d  value: %3d\n",
                         pfield_index, (int) pfield->value);
       }
-      if(pmax < pfield_index) pmax = pfield_index;
+      if (pmax < pfield_index) pmax = pfield_index;
     }
     else if (O->midiKeyPch) {
       int pfield_index = O->midiKeyPch;
@@ -574,7 +574,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         csound->Message(csound, "  midiKeyPch:      pfield: %3d  value: %3d\n",
                         pfield_index, (int) pfield->value);
       }
-      if(pmax < pfield_index) pmax = pfield_index;
+      if (pmax < pfield_index) pmax = pfield_index;
     }
     if (O->midiVelocity) {
       int pfield_index = O->midiVelocity;
@@ -585,7 +585,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         csound->Message(csound, "  midiVelocity:    pfield: %3d  value: %3d\n",
                         pfield_index, (int) pfield->value);
       }
-      if(pmax < pfield_index) pmax = pfield_index;
+      if (pmax < pfield_index) pmax = pfield_index;
     }
     else if (O->midiVelocityAmp) {
       int pfield_index = O->midiVelocityAmp;
@@ -598,11 +598,11 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %3d\n",
                         pfield_index, (int)pfield->value);
       }
-      if(pmax < pfield_index) pmax = pfield_index;
+      if (pmax < pfield_index) pmax = pfield_index;
     }
-    if(pmax > 0){
+    if (pmax > 0){
       int i;
-      if(csound->currevent == NULL){
+      if (csound->currevent == NULL){
        evt = (EVTBLK *) csound->Calloc(csound, sizeof(EVTBLK));
        csound->currevent = evt;
       }
@@ -2308,7 +2308,7 @@ int prealloc_(CSOUND *csound, AOP *p, int instname)
       n = (int) strarg2opcno(csound, ((STRINGDAT*)p->r)->data, 1,
                              (*p->b == FL(0.0) ? 0 : 1));
     else {
-      if (ISSTRCOD(*p->r))
+      if (csound->ISSTRCOD(*p->r))
         n = (int) strarg2opcno(csound, get_arg_string(csound,*p->r), 1,
                                (*p->b == FL(0.0) ? 0 : 1));
       else n = *p->r;
