@@ -27,9 +27,7 @@
 #include "newfils.h"
 #include <math.h>
 
-#ifndef __MACH__
-inline
-#endif
+static inline
 double fast_tanh(double x)
 {
   double x2 = x * x;
