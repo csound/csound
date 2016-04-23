@@ -212,7 +212,7 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
   char fname[MAXNAME];
 
   if (stringname==0) {
-    if (ISSTRCOD(*p->file))
+    if (csound->ISSTRCOD(*p->file))
       strncpy(fname,get_arg_string(csound, *p->file), MAXNAME-1);
     else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
   }
@@ -347,7 +347,7 @@ static int pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int stringname)
   char fname[MAXNAME];
 
   if (stringname==0){
-    if (ISSTRCOD(*p->file))
+    if (csound->ISSTRCOD(*p->file))
       strncpy(fname,get_arg_string(csound, *p->file), MAXNAME-1);
     else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
   }
@@ -589,7 +589,7 @@ int pvstanal(CSOUND *csound, PVST *p)
                                    "sound file channels"));
 
     sizefrs = size/nchans;
-    if(!*p->wrap && spos == 0.0)
+    if (!*p->wrap && spos == 0.0)
       spos += hsize;
     if (!*p->wrap && spos >= sizefrs) {
       for (j=0; j < nchans; j++) {
@@ -2417,46 +2417,46 @@ typedef struct tab2pvs_t {
 
 int tab2pvs_init(CSOUND *csound, TAB2PVS_T *p)
 {
-  if (LIKELY(p->in->data)){
-    int N;
-    p->fout->N = N = p->in->sizes[0] - 2;
-    p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
-    p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
-    p->fout->wintype = (int32) *p->wintype;
-    p->fout->format = 0;
-    p->fout->framecount = 1;
-    p->lastframe = 0;
-    p->ktime = 0;
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(float) * (N + 2)) {
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    if (LIKELY(p->in->data)){
+      int N;
+      p->fout->N = N = p->in->sizes[0] - 2;
+      p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
+      p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
+      p->fout->wintype = (int32) *p->wintype;
+      p->fout->format = 0;
+      p->fout->framecount = 1;
+      p->lastframe = 0;
+      p->ktime = 0;
+      if (p->fout->frame.auxp == NULL ||
+          p->fout->frame.size < sizeof(float) * (N + 2)) {
+        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+      }
+      else
+        memset(p->fout->frame.auxp, 0, sizeof(float)*(N+2));
+      return OK;
     }
-    else
-      memset(p->fout->frame.auxp, 0, sizeof(float)*(N+2));
-    return OK;
-  }
-  else return csound->InitError(csound, Str("array-variable not initialised"));
+    else return csound->InitError(csound, Str("array-variable not initialised"));
 }
 
 int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
 {
-  int size = p->in->sizes[0], i;
-  float *fout = (float *) p->fout->frame.auxp;
+    int size = p->in->sizes[0], i;
+    float *fout = (float *) p->fout->frame.auxp;
 
-  p->ktime += CS_KSMPS;
-  if(p->ktime > (uint32) p->fout->overlap) {
-    p->fout->framecount++;
-    p->ktime -= p->fout->overlap;
-  }
-
-  if (p->lastframe < p->fout->framecount){
-    for (i = 0; i < size; i++){
-      fout[i] = (float) p->in->data[i];
+    p->ktime += CS_KSMPS;
+    if (p->ktime > (uint32) p->fout->overlap) {
+      p->fout->framecount++;
+      p->ktime -= p->fout->overlap;
     }
-    p->lastframe = p->fout->framecount;
-  }
 
-  return OK;
+    if (p->lastframe < p->fout->framecount){
+      for (i = 0; i < size; i++){
+        fout[i] = (float) p->in->data[i];
+      }
+      p->lastframe = p->fout->framecount;
+    }
+
+    return OK;
 }
 
 

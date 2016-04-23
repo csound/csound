@@ -214,7 +214,7 @@ static int ocontrol_(CSOUND *csound, SCNTRL *p, int istring)
     case 4:
       {
         char buffer[100];
-        if(istring) {
+        if (istring) {
           csound->strarg2name(csound, buffer,
                               ((STRINGDAT *)p->val)->data, "Control ",istring);
         }
@@ -302,26 +302,24 @@ static int textflash_(CSOUND *csound, TXTWIN *p, int istring)
       start_tcl_tk(pp);
     if (istring) {
       csound->strarg2name(csound, buffer, ((STRINGDAT *)p->val)->data, "", istring);
-/*    csound->Message(csound, "settext %d \"%s\"\n", wind, buffer); */
       fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);
     }
-    else if(ISSTRCOD(*p->val)) {
+    else if (csound->ISSTRCOD(*p->val)) {
       csound->strarg2name(csound, buffer,
                           csound->GetString(csound, *p->val), "", 1);
     }
     else {
-/*    csound->Message(csound, "deltext %d\n", wind); */
       fprintf(pp->wish_cmd, "deltext %d\n", wind);
     }
     return OK;
 }
 
 static int textflash(CSOUND *csound, TXTWIN *p){
-  return textflash_(csound, p, 0);
+    return textflash_(csound, p, 0);
 }
 
 static int textflash_S(CSOUND *csound, TXTWIN *p){
-  return textflash_(csound, p, 1);
+    return textflash_(csound, p, 1);
 }
 
 

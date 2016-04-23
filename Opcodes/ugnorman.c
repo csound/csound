@@ -115,9 +115,9 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
       opname[i] = toupper(opname[i]);           /* converted to upper case */
 
     /* copy in ats file name */
-    if(istring) strncpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
+    if (istring) strncpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
     else {
-      if(ISSTRCOD(*((MYFLT*)name_arg)))
+      if (csound->ISSTRCOD(*((MYFLT*)name_arg)))
         strncpy(fname,get_arg_string(csound, *((MYFLT*)name_arg)),MAXNAME-1);
          else csound->strarg2name(csound, fname, name_arg, "ats.",0);
     }
@@ -1562,7 +1562,7 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
                                                         + sizeof(RANDIATS));
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    if(p->auxch.auxp != NULL || memsize > (int)p->auxch.size)
+    if (p->auxch.auxp != NULL || memsize > (int)p->auxch.size)
         csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
@@ -1747,8 +1747,8 @@ static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
                                                         + sizeof(RANDIATS));
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    if(p->auxch.auxp != NULL || memsize > (int)p->auxch.size)
-        csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
+    if (p->auxch.auxp != NULL || memsize > (int)p->auxch.size)
+      csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->oscbuf = (ATS_DATA_LOC *) (p->auxch.auxp);
