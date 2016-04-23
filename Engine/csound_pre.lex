@@ -39,7 +39,7 @@ void do_umacro(CSOUND *, char *, yyscan_t);
 void do_ifdef(CSOUND *, char *, yyscan_t);
 void do_ifdef_skip_code(CSOUND *, yyscan_t);
 void do_function(char *, CORFIL*);
-static void print_csound_predata(CSOUND *,char *,yyscan_t);
+//static void print_csound_predata(CSOUND *,char *,yyscan_t);
 void csound_pre_line(CORFIL*, yyscan_t);
  static void delete_macros(CSOUND*, yyscan_t);
 #include "parse_param.h"
