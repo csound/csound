@@ -292,7 +292,7 @@ int musmon(CSOUND *csound)
       else
         sfnopenout(csound);
     }
-    if(O->playscore!=NULL) corfile_flush(O->playscore);
+    if (O->playscore!=NULL) corfile_flush(O->playscore);
     //csound->scfp
     if (UNLIKELY(O->usingcscore)) {
       if (STA(lsect) == NULL) {
@@ -350,7 +350,7 @@ int musmon(CSOUND *csound)
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
 
 #ifndef __EMSCRIPTEN__
-    if(csound->realtime_audio_flag && csound->init_pass_loop == 0){
+    if (csound->realtime_audio_flag && csound->init_pass_loop == 0){
       extern void *init_pass_thread(void *);
       pthread_attr_t attr;
       csound->init_pass_threadlock = csoundCreateMutex(0);
@@ -411,7 +411,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     int32    *rngp;
     uint32_t n;
 
-    if(csound->QueryGlobalVariable(csound,"::UDPCOM")
+    if (csound->QueryGlobalVariable(csound,"::UDPCOM")
        != NULL) UDPServerClose(csound);
 
     while (csound->evtFuncChain != NULL) {
@@ -436,7 +436,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     delete_pending_rt_events(csound);
 
 #ifndef __EMSCRIPTEN__
-    if(csound->init_pass_loop == 1) {
+    if (csound->init_pass_loop == 1) {
       csoundLockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 0;
       csoundUnlockMutex(csound->init_pass_threadlock);
@@ -526,7 +526,7 @@ int turnon(CSOUND *csound, TURNON *p)
     evt.opcod = 'i';
     evt.pcnt = 3;
 
-    if(ISSTRCOD(*p->insno)) {
+    if (csound->ISSTRCOD(*p->insno)) {
     char *ss = get_arg_string(csound,*p->insno);
     insno = csound->strarg2insno(csound,ss,1);
     if (insno <= 0L)
@@ -685,7 +685,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       csound->currevent = saved_currevent;
       return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
     case 'q':
-      if (ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
+      if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
         if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) < 1)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %s undefined"),
@@ -712,7 +712,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       }
       break;
     case 'i':
-      if (ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
+      if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
         if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) < 1)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %s undefined"),
@@ -1251,7 +1251,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
         /* fall through required */
       case 'q':                         /* mute instrument */
         /* check for a valid instrument number or name */
-        if (evt->strarg != NULL && ISSTRCOD(p[1]))
+        if (evt->strarg != NULL && csound->ISSTRCOD(p[1]))
           i = (int) named_instr_find(csound, evt->strarg);
         else
           i = (int) fabs((double) p[1]);
@@ -1353,7 +1353,7 @@ void musmon_rewind_score(CSOUND *csound)
     csound->advanceCnt = 0;
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
-    if(csound->scstr)
+    if (csound->scstr)
       corfile_rewind(csound->scstr);
     else csound->Warning(csound, Str("cannot rewind score: no score in memory \n"));
 }

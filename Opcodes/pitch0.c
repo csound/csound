@@ -34,7 +34,7 @@ int mute_inst(CSOUND *csound, MUTE *p)
     int n;
     int onoff = (*p->onoff == FL(0.0) ? 0 : 1);
 
-    if (ISSTRCOD(*p->ins)) {
+    if (csound->ISSTRCOD(*p->ins)) {
       char *ss = get_arg_string(csound,*p->ins);
       n = csound->strarg2insno(csound,ss,1);
     } else n = *p->ins;
@@ -72,7 +72,7 @@ int instcount(CSOUND *csound, INSTCNT *p)
 {
     int n;
 
-    if (ISSTRCOD(*p->ins)) {
+    if (csound->ISSTRCOD(*p->ins)) {
       char *ss = get_arg_string(csound,*p->ins);
       n = csound->strarg2insno(csound,ss,1);
     }
@@ -135,9 +135,9 @@ int cpuperc(CSOUND *csound, CPU_PERC *p)
 {
     int n;
 
-    if(ISSTRCOD(*p->instrnum)) {
-    char *ss = get_arg_string(csound,*p->instrnum);
-    n = csound->strarg2insno(csound,ss,1);
+    if (csound->ISSTRCOD(*p->instrnum)) {
+      char *ss = get_arg_string(csound,*p->instrnum);
+      n = csound->strarg2insno(csound,ss,1);
     } else n = *p->instrnum;
 
     if (n > 0 && n <= csound->engineState.maxinsno &&
@@ -161,7 +161,7 @@ int maxalloc(CSOUND *csound, CPU_PERC *p)
 {
     int n;
 
-    if (ISSTRCOD(*p->instrnum)) {
+    if (csound->ISSTRCOD(*p->instrnum)) {
       char *ss = get_arg_string(csound,*p->instrnum);
       n = csound->strarg2insno(csound,ss,1);
     }
