@@ -1635,7 +1635,7 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
     TREE* xoutArgs = NULL;
     char* inArgs = inArgsTree->value->lexeme;
     char* outArgs = outArgsTree->value->lexeme;
-    int i;
+    unsigned int i;
 
     for (i = 0; i < strlen(inArgs);i++) {
         if (inArgs[i] == 'K') {
