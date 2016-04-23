@@ -249,6 +249,17 @@ void getControlChannel(const FunctionCallbackInfo<Value>& args)
 }
 
 /**
+ * Returns the time in seconds from the beginning of performance.
+ */
+void getScoreTime(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    double value = csoundGetScoreTime(csound);
+    args.GetReturnValue().Set(Number::New(isolate, value));
+}
+
+/**
  * Sends text as a message to Csound, for printing if printing is enabled.
  */
 void message(const FunctionCallbackInfo<Value>& args)
@@ -440,6 +451,7 @@ void init(Handle<Object> target)
     NODE_SET_METHOD(target, "getSr", getSr);
     NODE_SET_METHOD(target, "getKsmps", getKsmps);
     NODE_SET_METHOD(target, "getNchnls", getNchnls);
+    NODE_SET_METHOD(target, "getScoreTime", getScoreTime);
     NODE_SET_METHOD(target, "isPlaying", isPlaying);
     NODE_SET_METHOD(target, "perform", perform);
     NODE_SET_METHOD(target, "stop", stop);

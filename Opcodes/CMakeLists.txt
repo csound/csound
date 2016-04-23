@@ -179,7 +179,7 @@ check_deps(BUILD_OSC_OPCODES LIBLO_LIBRARY OSC_HEADER)
 if(BUILD_OSC_OPCODES)
     make_plugin(osc OSC.c)
     if(WIN32)
-      cmake_policy(SET CMP0025 NEW)
+      cmake_policy(SET CMP0060 NEW)
       target_link_libraries(osc ${LIBLO_LIBRARY})
       if(BUILD_STATIC_LIBRARY)
         target_link_libraries(osc ${PTHREAD_STATIC_LIBRARY})
@@ -291,24 +291,19 @@ if(BUILD_VST4CS_OPCODES)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
     target_link_libraries(vst4cs ${CSOUNDLIB} ${FLTK_LIBRARIES})
+    if(BUILD_STATIC_LIBRARY)
+        if(WIN32)
+            add_library(pthread STATIC IMPORTED)
+            set_target_properties(pthread PROPERTIES IMPORTED_LOCATION ${PTHREAD_STATIC_LIBRARY})
+        endif()
+      target_link_libraries(vst4cs pthread)
+    else()
+      target_link_libraries(vst4cs ${PTHREAD_LIBRARY})
+    endif()
     install(TARGETS vst4cs
         LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
         ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 endif()
-
-
-#set(sfont_FLAGS "")
-
-#if(CMAKE_C_COMPILER MATCHES "gcc")
-#    set(sfont_FLAGS ${sfont_FLAGS} -fno-strict-aliasing)
-#endif()
-#if(BIG_ENDIAN)
-#    set(sfont_FLAGS ${sfont_FLAGS} -DWORDS_BIGENDIAN)
-#endif()
-#message(STATUS "Compiler flags used for sfont lib: ${sfont_FLAGS}")
-#make_plugin(sfont sfont.c m)
-#set_target_properties(sfont
-#    PROPERTIES COMPILER_FLAGS "${sfont_FLAGS}")
 
 add_subdirectory(stk)
 add_subdirectory(cuda)
