@@ -1,7 +1,7 @@
 /*
   mp3in.c:
 
-  Copyright (C) 2009 by John ffitch,
+  Copyright (C) 2009 by John ffitch, V Lazzarini
 
   This file is part of Csound.
 
