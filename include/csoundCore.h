@@ -598,7 +598,7 @@ extern int ISSTRCOD(MYFLT);
   } DOWNDAT;
 
   typedef struct {
-    int32    ktimstamp, ktimprd;
+    uint32_t   ktimstamp, ktimprd;
     int32    npts, nfreqs, dbout;
     DOWNDAT *downsrcp;
     AUXCH   auxch;
