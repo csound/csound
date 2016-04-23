@@ -239,7 +239,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
     double fqcadj, a=0.0, /* Initialisations fake */
       csq=0.0, invb=0.0, tval=0.0; /* Temporary variables for the filter */
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-    double b1, b2;
+    double b1 = 0.0, b2 = 0.0;
     int warn = p->warn;
 
     in     = p->in;
