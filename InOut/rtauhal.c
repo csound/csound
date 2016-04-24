@@ -478,7 +478,9 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       prop.mSelector = kAudioObjectPropertyName;
       AudioObjectGetPropertyData(sysdevs[i],
                                  &prop, 0, NULL, &psize, &devName);
-      strcpy(devinfo[i].name, CFStringGetCStringPtr(devName, defaultEncoding));
+      memset(devinfo[i].name,0,128);
+      if(CFStringGetCStringPtr(devName, defaultEncoding) != NULL)
+        strncpy(devinfo[i].name, CFStringGetCStringPtr(devName, defaultEncoding),127);
       CFRelease(devName);
 
       devchannels = 0;
