@@ -130,7 +130,8 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
       arrayDat->data = csound->Calloc(csound, var->memBlockSize*size);
       mem = (char *) arrayDat->data;
       for (i=0; i < size; i++) {
-        var->initializeVariableMemory(csound,var,(MYFLT*)(mem+i*var->memBlockSize));
+        var->initializeVariableMemory(csound, var,
+                                      (MYFLT*)(mem+i*var->memBlockSize));
       }
     }
 

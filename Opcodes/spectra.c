@@ -1018,8 +1018,8 @@ int spsclset(CSOUND *csound, SPECSCAL *p)
         phs += inc;
       }
     }
-    if ((p->thresh = (int)*p->ifthresh)
-        && (ftp=csound->FTFind(csound, p->ifthresh)) != NULL) {
+    if ((p->thresh = (int)*p->ifthresh) &&
+        (ftp=csound->FTFind(csound, p->ifthresh)) != NULL) {
       /* if fthresh given,       */
       int32 nn = npts;
       int32 phs = 0;
@@ -1027,7 +1027,7 @@ int spsclset(CSOUND *csound, SPECSCAL *p)
       int32 lobits = ftp->lobits;
       MYFLT *ftable = ftp->ftable;
       MYFLT *flp = p->fthresh;
-      for(nn=0;nn<npts;nn++) {
+      for (nn=0;nn<npts;nn++) {
         flp[nn] = *(ftable + (phs >> lobits));   /*  sample into thresh area */
         phs += inc;
       }
@@ -1040,10 +1040,8 @@ int spsclset(CSOUND *csound, SPECSCAL *p)
 int specscal(CSOUND *csound, SPECSCAL *p)
 {
     SPECDAT *inspecp = p->wsig;
-    if ((inspecp->auxch.auxp==NULL) /* RWD fix */
-        ||
-        (p->wscaled->auxch.auxp==NULL)
-        ||
+    if ((inspecp->auxch.auxp==NULL) /* RWD fix */ ||
+        (p->wscaled->auxch.auxp==NULL)            ||
         (p->fscale==NULL)) goto err1;
     if (inspecp->ktimstamp == CS_KCNT) {   /* if inspectrum is new: */
       SPECDAT *outspecp = p->wscaled;

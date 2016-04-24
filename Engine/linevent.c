@@ -184,7 +184,7 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     csound->Message(csound, Str("input message kcount, %d, %d.%06d\n"),
-		    csound->kcounter,ts.tv_sec,ts.tv_nsec/1000);
+                    csound->kcounter,ts.tv_sec,ts.tv_nsec/1000);
 #endif
 
     if ((n=linevent_alloc(csound, 0)) != 0) return;
