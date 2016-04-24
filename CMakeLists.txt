@@ -467,8 +467,6 @@ if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
     message(FATAL_ERROR "Csound requires the pthread library")
 endif()
 
-message(STATUS "PTHREAD_STATIC_LIBRARY: ${PTHREAD_STATIC_LIBRARY}.")
-
 set(CMAKE_REQUIRED_INCLUDES pthread.h)
 set(CMAKE_REQUIRED_LIBRARIES pthread)
 
