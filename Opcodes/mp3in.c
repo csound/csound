@@ -913,8 +913,8 @@ void fillbuf2(CSOUND *csound, MP3SCAL2 *p, int nsmps){
     pthread_create(&(p->t1), NULL, buffiller, p);
     pthread_getschedparam(p->t1, &policy,
 			  &param);
-    param.sched_priority = 1;
-    //policy = SCHED_OTHER;
+    param.sched_priority = 0;
+    policy = SCHED_OTHER;
     if(pthread_setschedparam(p->t1, policy,
 			     &param) != 0)
       csound->Message(csound, "could not set priority \n");
@@ -985,6 +985,15 @@ static int meminit(CSOUND *csound, LOADER *pp)
   return OK;
 }
 
+int mp3dec_cleanup(CSOUND *csound, LOADER *p)
+{
+  while(p->p.lock)
+    usleep(1000);
+  if (p->p.mpa != NULL)
+    mp3dec_uninit(p->p.mpa);
+    p->p.mpa = NULL;
+  return OK;
+}
 
 static int filinit(CSOUND *csound, LOADER *pp)
 {
@@ -1087,7 +1096,6 @@ static int filinit(CSOUND *csound, LOADER *pp)
   p->tab[0] = (MYFLT *) p->fdata[0].auxp;
   p->tab[1] = (MYFLT *) p->fdata[1].auxp;
   p->tstamp = 0;
-  p->initDone = -1;
   p->finished = 0;
   p->init = 1;
   p->skip = *pp->skip;
@@ -1129,6 +1137,10 @@ static int loader_init(CSOUND *csound, LOADER *pp){
   else return csound->InitError(csound, "cannot load: player still active\n");
   pp->res->data = (char *) p;
   pp->res->size = sizeof(MP3SCAL2);
+  if(p->initDone == 0)
+  csound->RegisterDeinitCallback(csound, pp,
+    (int (*)(CSOUND*, void*)) mp3dec_cleanup);
+  p->initDone = 1;
   return OK;
 }
 
@@ -1164,14 +1176,6 @@ typedef struct _player {
   MP3SCAL2 *p;
 } PLAYER;
 
-int mp3dec_cleanup(CSOUND *csound, PLAYER *p)
-{
-  if(p->p->lock) return OK;
-  if (p->p->mpa != NULL)
-    mp3dec_uninit(p->p->mpa);
-  p->p->mpa = NULL;
-  return OK;
-}
 
 static int player_init(CSOUND *csound, PLAYER *p){
   if(p->pp->data != NULL &&
@@ -1181,11 +1185,7 @@ static int player_init(CSOUND *csound, PLAYER *p){
   else return csound->InitError(csound, "invalid handle \n");
   *p->ilen = p->p->ilen;
   p->p->async = *p->async;
-  
-  if(p->p->initDone == -1)
-    csound->RegisterDeinitCallback(csound, p,
-				   (int (*)(CSOUND*, void*)) mp3dec_cleanup);
-     
+   
   return OK;
 }
 
