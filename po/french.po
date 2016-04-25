@@ -2778,9 +2778,9 @@ msgid "csound: setting scheduling policy to SCHED_RR\n"
 msgstr "csound : politique de partage fixée à SCHED_RR\n"
 
 #: InOut/rtalsa.c:137
-#, fuzzy, c-format
+#, c-format
 msgid "csound: cannot set nice level to %d"
-msgstr "csound : impossible de fixer la politique de partage à SCHED_RR"
+msgstr "csound : impossible de fixer le niveau de nice à %d"
 
 #: InOut/rtalsa.c:362
 #, c-format
@@ -2829,7 +2829,7 @@ msgstr "Impossible de fixer le taux d'échantillonnage sur la carte son"
 #: InOut/rtalsa.c:427
 #, c-format
 msgid " *** rate set to %d\n"
-msgstr ""
+msgstr " *** taux fixé à %d\n"
 
 #: InOut/rtalsa.c:440
 #, c-format
@@ -2875,9 +2875,8 @@ msgid "Buffer overrun in real-time audio input"
 msgstr "Saturation du tampon dans l'entrée audio en temps réel"
 
 #: InOut/rtalsa.c:691
-#, fuzzy
 msgid "Real-time audio input suspended"
-msgstr "Nom du module audio en temps réel"
+msgstr "Entrée audio en temps réel suspendue"
 
 #: InOut/rtalsa.c:697
 msgid "Error reading data from audio input device"
@@ -2888,9 +2887,8 @@ msgid "Buffer underrun in real-time audio output"
 msgstr "Déficit de remplissage du tampon sur la sortie audio en temps réel"
 
 #: InOut/rtalsa.c:736
-#, fuzzy
 msgid "Real-time audio output suspended"
-msgstr "Nom du module audio en temps réel"
+msgstr "Sortie audio en temps réel suspendue"
 
 #: InOut/rtalsa.c:742
 msgid "Error writing data to audio output device"
@@ -3086,9 +3084,8 @@ msgid "cannot get rawmidi information %d:%d:%d: %s\n"
 msgstr "impossible de lire l'information rawmidi %d:%d:%d %s\n"
 
 #: InOut/rtalsa.c:1754
-#, fuzzy
 msgid "can't open sequencer\n"
-msgstr "impossible d'ouvrir %s.\n"
+msgstr "impossible d'ouvrir le séquenceur\n"
 
 #: InOut/rtalsa.c:1797
 msgid "rtalsa: Wrong callback."
@@ -3369,9 +3366,8 @@ msgid "Jack MIDI module: failed to connect to: %s"
 msgstr "Module MIDI Jack : échec de la connexion à : %s"
 
 #: InOut/rtjack.c:1311
-#, fuzzy
 msgid "Jack MIDI module: out buffer overflow"
-msgstr "dates : dépassement de tampon"
+msgstr "Module MIDI Jack : dépassement du tampon de sortie"
 
 #: InOut/rtjack.c:1335
 msgid "Jack MIDI module: failed to create client for output"
@@ -5299,9 +5295,8 @@ msgid "Breakpoint time %f not valid"
 msgstr "Date %f du point charnière non valide"
 
 #: OOps/ugens1.c:755
-#, fuzzy
 msgid "length of XADSR note too short"
-msgstr "durée de la note de l'ADSR trop courte"
+msgstr "durée de la note de l'XADSR trop courte"
 
 #: OOps/ugens1.c:835
 msgid "expseg (krate): not initialised"
@@ -10263,9 +10258,9 @@ msgid "No wii range"
 msgstr "Pas d'intervalle wii"
 
 #: Top/argdecode.c:85
-#, fuzzy, c-format
+#, c-format
 msgid "Error opening log file '%s': %s\n"
-msgstr "erreur en ouvrant le fichier '%s'"
+msgstr "Erreur en ouvrant le fichier journal '%s' : %s\n"
 
 #: Top/argdecode.c:123
 msgid "--help\tprint long usage options"
@@ -11066,9 +11061,8 @@ msgid "no xfilename"
 msgstr "pas de nom de fichier d'extraction de partition"
 
 #: Top/argdecode.c:973
-#, fuzzy
 msgid "realtime mode enabled\n"
-msgstr "rtaudio : module factice activé\n"
+msgstr "mode temps réel activé\n"
 
 #: Top/argdecode.c:1079
 #, c-format
@@ -11124,24 +11118,24 @@ msgid "stdin not supported on this platform"
 msgstr "stdin n'est pas supporté sur cette plateforme"
 
 #: Top/argdecode.c:1668
-#, fuzzy, c-format
+#, c-format
 msgid "%d audio output devices \n"
-msgstr "périphérique de sortie sélectionné : %s\n"
+msgstr "%d périphériques de sortie audio \n"
 
 #: Top/argdecode.c:1670
-#, fuzzy, c-format
+#, c-format
 msgid "%d audio input devices \n"
-msgstr "Les périphériques d'entrée disponibles sont :\n"
+msgstr "%d périphériques d'entrée audio \n"
 
 #: Top/argdecode.c:1684
-#, fuzzy, c-format
+#, c-format
 msgid "%d MIDI output devices \n"
-msgstr "pas de périphérique de sortie MIDI"
+msgstr "%d périphériques de sortie MIDI \n"
 
 #: Top/argdecode.c:1686
-#, fuzzy, c-format
+#, c-format
 msgid "%d MIDI input devices \n"
-msgstr "pas de périphérique de sortie MIDI"
+msgstr "%d périphériques d'entrée MIDI \n"
 
 #: Top/cscorfns.c:285
 msgid "PMAX exceeded, string event truncated.\n"
