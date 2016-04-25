@@ -1,5 +1,4 @@
 LOCAL_PATH := $(call my-dir)
-
 include $(CLEAR_VARS)
 
 CSOUND_SRC_ROOT := ../../..
@@ -7,7 +6,7 @@ LIBSNDFILE_SRC_DIR := $(NDK_MODULE_PATH)/libsndfile-android/jni/
 
 LOCAL_MODULE   := csoundandroid
 LOCAL_C_INCLUDES := $(LIBSNDFILE_SRC_DIR) $(HOME)/include $(LOCAL_PATH)/../../../H $(LOCAL_PATH)/../../../include $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces
-LOCAL_CFLAGS := -O3 -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_BUILTIN_ATOMIC -w
+LOCAL_CFLAGS := -O3 -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_BUILTIN_ATOMIC 
 LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
 LOCAL_CPPFLAGS += -std=c++11 -pthread -frtti -fexceptions
 LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(NDK_MODULE_PATH)/luajit-2.0/src -L$(LIBSNDFILE_SRC_DIR)
@@ -248,7 +247,7 @@ $(CSOUND_SRC_ROOT)/interfaces/filebuilding.cpp \
 java_interfaceJAVA_wrap.cpp
 #CsoundObj.cpp
 
-LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc
+LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc -latomic 
 
 # For building with all plugins use:
 
@@ -256,7 +255,7 @@ LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc
 
 # For building without plugins, but with support for plugins that may depend on GNU STL, use:
 
-LOCAL_SHARED_LIBRARIES += gnustl_shared sndfile
+LOCAL_SHARED_LIBRARIES += c++_shared sndfile
 #LOCAL_STATIC_LIBRARIES += sndfile
 
 # Prevents stripping needed exports from the shared library.

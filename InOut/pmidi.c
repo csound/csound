@@ -162,7 +162,7 @@ static int start_portmidi(CSOUND *csound)
     if (errMsg == NULL)
       portmidi_init_cnt++;
 #if !defined(WIN32)
-    //csound_global_mutex_unlock();
+    csound_global_mutex_unlock();
 #endif
     if (UNLIKELY(errMsg != NULL)) {
       csound->ErrorMsg(csound, Str(errMsg));

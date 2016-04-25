@@ -35,6 +35,7 @@
 #include <stdlib.h>
 /* #undef ISSTRCOD */
 
+
 int isstrcod(MYFLT xx)
 {
 #ifdef USE_DOUBLE
@@ -2592,11 +2593,11 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     {
       int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
       int   fmt = (int) MYFLT2LRND(ff->e.p[7]);
-      union {
-        MYFLT d;
-        int32_t i[2];
-      } xx;
-      xx.d = ff->e.p[5];
+      /* union { */
+      /*   MYFLT d; */
+      /*   int32_t i[2]; */
+      /* } xx; */
+      /* xx.d = ff->e.p[5]; */
       /* printf("****line %d: ff->e.p[5] %f %.8x %.8x\n", __LINE__, */
       /*        ff->e.p[5], xx.i[1], xx.i[0]); */
       /* printf("****line %d: isstrcod=%d %d file %s\n", __LINE__, */

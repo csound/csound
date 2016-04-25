@@ -636,7 +636,7 @@ static CS_NOINLINE void print_chn_err_perf(void *p, int err)
       msg = "invalid channel name";
     else
       msg = "channel already exists with incompatible type";
-    csound->Warning(csound, Str(msg));
+    csound->Warning(csound, "%s", Str(msg));
 }
 
 static CS_NOINLINE int print_chn_err(void *p, int err)
@@ -652,7 +652,7 @@ static CS_NOINLINE int print_chn_err(void *p, int err)
       msg = "invalid channel name";
     else
       msg = "channel already exists with incompatible type";
-    return csound->InitError(csound, Str(msg));
+    return csound->InitError(csound, "%s", Str(msg));
 }
 
 

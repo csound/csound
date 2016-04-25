@@ -16,4 +16,4 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(STK DEFAULT_MSG
                                   STK_LIBRARY STK_INCLUDE_DIR)
 
-mark_as_advanced(STK_INCLUDE_DIR STK_LIBRARY )
+mark_as_advanced(STK_INCLUDE_DIR STK_LIBRARY)
