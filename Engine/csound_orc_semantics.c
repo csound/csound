@@ -1635,7 +1635,7 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
     TREE* xoutArgs = NULL;
     char* inArgs = inArgsTree->value->lexeme;
     char* outArgs = outArgsTree->value->lexeme;
-    int i;
+    unsigned int i;
 
     for (i = 0; i < strlen(inArgs);i++) {
         if (inArgs[i] == 'K') {
@@ -2364,7 +2364,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
 void print_tree(CSOUND * csound, char* msg, TREE *l)
 {
     if (msg)
-      csound->Message(csound, msg);
+      csound->Message(csound, "%s", msg);
     else
       csound->Message(csound, "Printing Tree\n");
     csound->Message(csound, "<ast>\n");

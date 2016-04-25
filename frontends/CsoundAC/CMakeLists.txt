@@ -115,7 +115,7 @@ if(BUILD_CSOUND_AC)
     endif()
 
     if(BUILD_CSOUND_AC_PYTHON_INTERFACE)
-        message(STATUS "Building CsoundAC Python interface")
+        message(STATUS "Building CsoundAC Python interface.")
         find_package(PythonLibs)
         include_directories(${PYTHON_INCLUDE_PATH})
         # Had: 	    SWIG_FLAGS "-threads"
@@ -148,7 +148,7 @@ if(BUILD_CSOUND_AC)
     endif()
 
     if(BUILD_CSOUND_AC_LUA_INTERFACE)
-        message(STATUS "Building CsoundAC Lua interface")
+        message(STATUS "Building CsoundAC Lua interface.")
         include_directories(${LUA_H_PATH})
 
         SET_SOURCE_FILES_PROPERTIES(luaCsoundAC.i

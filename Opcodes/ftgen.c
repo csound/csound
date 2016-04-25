@@ -220,7 +220,7 @@ static int ftfree(CSOUND *csound, FTFREE *p)
 
 static int myInitError(CSOUND *csound, INSDS *p, const char *str, ...)
 {
-    return csound->InitError(csound, str);
+    return csound->InitError(csound, "%s",str);
 }
 
 static int ftload_(CSOUND *csound, FTLOAD *p, int istring)

@@ -27,9 +27,7 @@
 #include "newfils.h"
 #include <math.h>
 
-#ifndef __MACH__
-inline
-#endif
+static inline
 double fast_tanh(double x)
 {
   double x2 = x * x;
@@ -50,7 +48,9 @@ static double TanH(double x)
       return sign;
     }
     if (x<0.5) return x*sign;
+#ifdef JPFF
     printf("x=%g\n",x, fast_tanh(x),tanh(x));
+#endif
     return sign*fast_tanh(x);
 }
 

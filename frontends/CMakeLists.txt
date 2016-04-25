@@ -47,7 +47,7 @@ if(LINUX)
   target_link_libraries(csound-bin m)
 endif()
 
-message(STATUS "Building csLadspa")
+message(STATUS "Building csLadspa.")
 
 make_plugin_frontend(csladspa "csladspa/csladspa.cpp" "${CSOUNDLIB}")
 # We do not want the lib prefix
