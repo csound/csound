@@ -134,7 +134,7 @@ int set_scheduler_priority(CSOUND *csound, int priority)
     else {
       /* nice requested */
       if (setpriority(PRIO_PROCESS, 0, priority) != 0) {
-        csound->Message(csound,"csound: cannot set nice level to %d",
+        csound->Message(csound, Str("csound: cannot set nice level to %d"),
                         priority);
       }
     }
@@ -424,7 +424,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
         goto err_return_msg;
       }
       if (dev->srate!=target)
-        p->MessageS(p, CSOUNDMSG_WARNING, " *** rate set to %d\n", dev->srate);
+        p->MessageS(p, CSOUNDMSG_WARNING, Str(" *** rate set to %d\n"), dev->srate);
     }
 
     /* buffer size, */
@@ -683,12 +683,12 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
       /* handle I/O errors */
       if (err == -EPIPE) {
         /* buffer underrun */
-        warning("Buffer overrun in real-time audio input");     /* complain */
+        warning(Str("Buffer overrun in real-time audio input"));     /* complain */
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
       else if (err == -ESTRPIPE) {
         /* suspend */
-        warning("Real-time audio input suspended");
+        warning(Str("Real-time audio input suspended"));
         while (snd_pcm_resume(dev->handle) == -EAGAIN) sleep(1);
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
@@ -728,12 +728,12 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       /* handle I/O errors */
       if (err == -EPIPE) {
         /* buffer underrun */
-        warning("Buffer underrun in real-time audio output");   /* complain */
+        warning(Str("Buffer underrun in real-time audio output"));   /* complain */
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
       else if (err == -ESTRPIPE) {
         /* suspend */
-        warning("Real-time audio output suspended");
+        warning(Str("Real-time audio output suspended"));
         while (snd_pcm_resume(dev->handle) == -EAGAIN) sleep(1);
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
@@ -1751,7 +1751,7 @@ int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
     IGN(csound);
 
     if (snd_seq_open(&seq, "default", SND_SEQ_OPEN_DUPLEX, 0) < 0) {
-      fprintf(stderr, "can't open sequencer\n");
+      fprintf(stderr, Str("can't open sequencer\n"));
       return 1;
     }
 

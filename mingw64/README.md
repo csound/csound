@@ -6,6 +6,8 @@ These instructions come in two parts. The first is for building a "plain" Csound
 
 > Note that MSYS2 can also be used to create 32bit binaries. Simply use the MinGW-w64 Win32 Shell instead of the Win64 Shell. See below for details.
 
+> If you want all Csound plugins to be built with static linkage to all library dependencies, you must set STK_LIBRARY and PTHREAD_LIBRARY in your build.sh or build-mkg.sh to specify the full pathname to the static version of the respective library.
+
 ## Plain Build
 
 1. Install the x86_64 version of [msys2](http://msys2.github.io/). Follow the pacman setup instructions carefully.
