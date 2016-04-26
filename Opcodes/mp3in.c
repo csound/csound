@@ -1250,8 +1250,6 @@ static int player_play(CSOUND *csound, PLAYER *pp)
   for (n=offset; n < nsmps; n++) {
    
     if (cnt == hsize){
-      spos += hsize*time;
-      incrt =  time*nsmps;
       while(spos >= size) {
 	spos -= size;
       }
@@ -1427,6 +1425,10 @@ static int player_play(CSOUND *csound, PLAYER *pp)
       cnt=0;
       curframe++;
       if (curframe == decim) curframe = 0;
+
+      /* increment position according to timescale */
+      spos += hsize*time;
+      incrt =  time*nsmps;
     }
 
     /* we only output as many channels as we have outs for */
