@@ -537,11 +537,11 @@ msgstr ""
 msgid "internal error: csoundFileOpen(): invalid type: %d"
 msgstr ""
 
-#: Engine/envvar.c:1016
+#: Engine/envvar.c:1027 Engine/envvar.c:1036
 msgid "csound->FileOpen2 failed:"
 msgstr ""
 
-#: Engine/envvar.c:1202
+#: Engine/envvar.c:1223
 #, c-format
 msgid "internal error: csoundCreateFileHandle(): invalid type: %d"
 msgstr ""
@@ -5035,7 +5035,7 @@ msgstr ""
 msgid "unlike signs"
 msgstr ""
 
-#: OOps/ugens1.c:186 OOps/ugens1.c:1859 OOps/ugens1.c:1869
+#: OOps/ugens1.c:186 OOps/ugens1.c:1861 OOps/ugens1.c:1871
 #, c-format
 msgid "Breakpoint %d not valid"
 msgstr ""
@@ -5054,13 +5054,13 @@ msgstr ""
 
 #: OOps/ugens1.c:526 OOps/ugens1.c:528 OOps/ugens1.c:586 OOps/ugens1.c:588
 #: OOps/ugens1.c:649 OOps/ugens1.c:651 OOps/ugens1.c:706 OOps/ugens1.c:708
-#: OOps/ugens1.c:917 OOps/ugens1.c:919
+#: OOps/ugens1.c:919 OOps/ugens1.c:921
 #, c-format
 msgid "ival%d is zero"
 msgstr ""
 
 #: OOps/ugens1.c:529 OOps/ugens1.c:589 OOps/ugens1.c:652 OOps/ugens1.c:709
-#: OOps/ugens1.c:920
+#: OOps/ugens1.c:922
 #, c-format
 msgid "ival%d sign conflict"
 msgstr ""
@@ -5070,44 +5070,48 @@ msgstr ""
 msgid "Breakpoint time %f not valid"
 msgstr ""
 
-#: OOps/ugens1.c:833
+#: OOps/ugens1.c:755
+msgid "length of XADSR note too short"
+msgstr ""
+
+#: OOps/ugens1.c:835
 msgid "expseg (krate): not initialised"
 msgstr ""
 
-#: OOps/ugens1.c:865
+#: OOps/ugens1.c:867
 msgid "expseg (arate): not initialised"
 msgstr ""
 
-#: OOps/ugens1.c:1205 OOps/ugens1.c:1228 OOps/ugens1.c:1358 OOps/ugens1.c:1470
-#: OOps/ugens1.c:1601 OOps/ugens1.c:1660
+#: OOps/ugens1.c:1207 OOps/ugens1.c:1230 OOps/ugens1.c:1360 OOps/ugens1.c:1472
+#: OOps/ugens1.c:1603 OOps/ugens1.c:1662
 msgid "non-positive iatdec"
 msgstr ""
 
-#: OOps/ugens1.c:1315 OOps/ugens1.c:1427 OOps/ugens1.c:1563 OOps/ugens1.c:1622
+#: OOps/ugens1.c:1317 OOps/ugens1.c:1429 OOps/ugens1.c:1565 OOps/ugens1.c:1624
 msgid "ixmod out of range."
 msgstr ""
 
-#: OOps/ugens1.c:1343 OOps/ugens1.c:1455 OOps/ugens1.c:1591 OOps/ugens1.c:1650
+#: OOps/ugens1.c:1345 OOps/ugens1.c:1457 OOps/ugens1.c:1593 OOps/ugens1.c:1652
 msgid "rise func ends with zero"
 msgstr ""
 
-#: OOps/ugens1.c:1387 OOps/ugens1.c:1506 OOps/ugens1.c:1735
+#: OOps/ugens1.c:1389 OOps/ugens1.c:1508 OOps/ugens1.c:1737
 msgid "envlpx rise func ends with zero"
 msgstr ""
 
-#: OOps/ugens1.c:1409 OOps/ugens1.c:1499 OOps/ugens1.c:1728
+#: OOps/ugens1.c:1411 OOps/ugens1.c:1501 OOps/ugens1.c:1730
 msgid "envlpx(krate): not initialised"
 msgstr ""
 
-#: OOps/ugens1.c:1931 OOps/ugens1.c:2182
+#: OOps/ugens1.c:1933 OOps/ugens1.c:2184
 msgid "cosseg not initialised (krate)\n"
 msgstr ""
 
-#: OOps/ugens1.c:1986
+#: OOps/ugens1.c:1988
 msgid "cosseg: not initialised (arate)\n"
 msgstr ""
 
-#: OOps/ugens1.c:2057 OOps/ugens1.c:2124
+#: OOps/ugens1.c:2059 OOps/ugens1.c:2126
 msgid "cossegr: not initialised (arate)\n"
 msgstr ""
 
