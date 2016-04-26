@@ -751,6 +751,8 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     MYFLT   release = *argp[3];
 
     if (UNLIKELY(len<FL(0.0))) len = FL(100000.0); /* MIDI case set long */
+    if (csound->curip->p3.value-delay-attack-decay<FL(0.0))
+      csound->Warning(csound, Str("length of XADSR note too short"));
     len -= release;                      /* len is time remaining */
     if (UNLIKELY(len<FL(0.0))) { /* Odd case of release time greater than dur */
       release = csound->curip->p3.value; len = FL(0.0);
