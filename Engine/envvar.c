@@ -1011,6 +1011,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     if (env == NULL) {
       fullName = (char*) name;
 #if defined(WIN32)
+      {
         /* To handle Widows errors in file name characters. */
         size_t sz = MultiByteToWideChar(CP_UTF8, 0, name, -1, NULL, 0);
         wchar_t *wfname = alloca(sz);
@@ -1027,6 +1028,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
             goto err_return;
           }
         }
+      }
 #else
       if (type == CSFILE_STD) {
         tmp_f = fopen(fullName, (char*) param);
