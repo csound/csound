@@ -51,9 +51,9 @@ typedef unsigned int uint32_t;
 %pragma(java) jniclasscode=%{
   static {
     try {
-        java.lang.System.loadLibrary("gnustl_shared");
+        java.lang.System.loadLibrary("c++_shared");
     } catch (Throwable e) {
-        java.lang.System.err.println("CsoundAndroid: gnustl_shared native code library failed to load.");
+        java.lang.System.err.println("CsoundAndroid: c++_shared native code library failed to load.");
         java.lang.System.err.println(e.toString());
     }
     try {
