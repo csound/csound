@@ -1764,6 +1764,7 @@ int envlpxr(CSOUND *csound, ENVLPR *p)
             val -= p->asym;
             phs = -1;
           }
+          else val = fact;      /* JPff: in case very early release */
           p->phs = phs;
         }
         else {
