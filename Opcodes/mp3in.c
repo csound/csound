@@ -871,10 +871,6 @@ void *buffiller(void *pp){
   int nsmps = p->nsmps;
   short *buffer= (short *) p->buffer.auxp;
   MYFLT *data[2];
-  //CSOUND *csound = p->csound;
-  //struct timespec ts;
-  //clock_gettime(CLOCK_MONOTONIC, &ts);
-  //double dtime = ts.tv_sec + 1e-9*ts.tv_nsec;
   p->lock = 1;
   if(p->mpa != NULL) {
     data[0] =  p->indataL[(int)p->curbuf];
@@ -899,9 +895,6 @@ void *buffiller(void *pp){
     p->curbuf = (p->curbuf+1)%8;
   }
   p->lock = 0;
-  //clock_gettime(CLOCK_MONOTONIC, &ts);
-  //dtime = ts.tv_sec + 1e-9*ts.tv_nsec - dtime;
-  //csound->Message(csound, "buffer fill time %f ms", dtime*1000);
   return NULL;
 }
 
@@ -913,8 +906,8 @@ void fillbuf2(CSOUND *csound, MP3SCAL2 *p, int nsmps){
     pthread_create(&(p->t1), NULL, buffiller, p);
     pthread_getschedparam(p->t1, &policy,
 			  &param);
-    param.sched_priority = 0;
-    policy = SCHED_OTHER;
+    param.sched_priority = 1;
+    //policy = SCHED_OTHER;
     if(pthread_setschedparam(p->t1, policy,
 			     &param) != 0)
       csound->Message(csound, "could not set priority \n");
@@ -1137,10 +1130,10 @@ static int loader_init(CSOUND *csound, LOADER *pp){
   else return csound->InitError(csound, "cannot load: player still active\n");
   pp->res->data = (char *) p;
   pp->res->size = sizeof(MP3SCAL2);
-  if(p->initDone == 0)
-  csound->RegisterDeinitCallback(csound, pp,
-    (int (*)(CSOUND*, void*)) mp3dec_cleanup);
-  p->initDone = 1;
+  // if(p->initDone == 0)
+  //csound->RegisterDeinitCallback(csound, pp,
+  // (int (*)(CSOUND*, void*)) mp3dec_cleanup);
+  //p->initDone = 1;
   return OK;
 }
 
@@ -1176,6 +1169,16 @@ typedef struct _player {
   MP3SCAL2 *p;
 } PLAYER;
 
+int mp3dec_cleanup_player(CSOUND *csound,  PLAYER  *p)
+{
+  while(p->p->lock)
+    usleep(1000);
+  pthread_join(p->p->t1, NULL);
+  if (p->p->mpa != NULL)
+    mp3dec_uninit(p->p->mpa);
+    p->p->mpa = NULL;
+  return OK;
+}
 
 static int player_init(CSOUND *csound, PLAYER *p){
   if(p->pp->data != NULL &&
@@ -1185,6 +1188,10 @@ static int player_init(CSOUND *csound, PLAYER *p){
   else return csound->InitError(csound, "invalid handle \n");
   *p->ilen = p->p->ilen;
   p->p->async = *p->async;
+  if(p->p->initDone == 0)
+   csound->RegisterDeinitCallback(csound, p,
+   (int (*)(CSOUND*, void*)) mp3dec_cleanup_player);
+  p->p->initDone = 1; 
    
   return OK;
 }
@@ -1361,7 +1368,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	  }
 	}
       
-    
+        if(time != FL(1.0) || pitch != 0){ 
 	csound->RealFFT(csound, bwin, N);
 	bwin[N] = bwin[1];
 	bwin[N+1] = FL(0.0);
@@ -1418,6 +1425,8 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 
 	fwin[1] = fwin[N];
 	csound->InverseRealFFT(csound, fwin, N);
+	}
+      
 	framecnt[curframe] = curframe*N;
 	for (i=0;i<N;i++)
 	  outframe[framecnt[curframe]+i] = win[i]*fwin[i];
