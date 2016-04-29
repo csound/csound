@@ -1196,6 +1196,63 @@ static int player_init(CSOUND *csound, PLAYER *p){
   return OK;
 }
 
+#ifdef HAVE_NEON
+#include <arm_neon.h>
+static
+inline
+void
+cmplx_multiply_scal(MYFLT *ans_r, MYFLT *ans_i,
+		    MYFLT  op1_r, MYFLT  op1_i,
+	            MYFLT  op2_r, MYFLT  op2_i,
+		    MYFLT div){
+  float32x4_t op1, op2, ans;
+  float32_t vans[4];
+  /* ac - bd + i(ad + bc) */
+  
+  op1 = vld1q_lane_f32(&op1_r,op1,0);
+  op1 = vld1q_lane_f32(&op1_i,op1,1);
+  op1 = vld1q_lane_f32(&op1_r,op1,2);
+  op1 = vld1q_lane_f32(&op1_i,op1,3);
+  op2 = vld1q_lane_f32(&op2_r,op2,0);
+  op2 = vld1q_lane_f32(&op2_i,op2,1);
+  op2 = vld1q_lane_f32(&op2_i,op2,2);
+  op2 = vld1q_lane_f32(&op2_r,op2,3);
+  ans = vmulq_n_f32(op2,div);
+  op2 = vmulq_f32(op1,ans);
+  vst1q_f32(vans, op2);
+  *ans_r =  vans[0] - vans[1];
+  *ans_i =  vans[2] + vans[3];
+}
+/*static
+inline
+MYFLT
+inv_mag(MYFLT *a){
+  float32x2_t ans, op;
+  float32_t vans[2];
+  op = vld1_f32(a);
+  ans = vmul_f32(op,op);
+  vst1_f32(vans, ans);
+  return FL(1.0)/(sqrt(vans[0]+vans[1])+1.0e-20);
+  } */
+#else
+void
+static
+inline
+cmplx_multiply_scal(MYFLT *ans_r, MYFLT *ans_i,
+	       MYFLT op1_r, MYFLT op1_i,
+	       MYFLT op2_r, MYFLT op2_i, MYFLT div){
+   op2_r *= div; op2_i *= div;
+  *ans_r = op1_r*op2_r - op1_i*op2_i;
+  *ans_i = op1_r*op2_i + op1_i*op2_r;
+}
+#endif
+static
+inline
+MYFLT
+inv_mag(MYFLT *a){
+  return FL(1.0)/(sqrt(a[0]*a[0]+a[1]*a[1])+1.0e-20);
+}
+
 static int player_play(CSOUND *csound, PLAYER *pp)
 {
   MP3SCAL2 *p = pp->p;
@@ -1205,17 +1262,19 @@ static int player_play(CSOUND *csound, PLAYER *pp)
   MYFLT pitch = *pp->kpitch*p->resamp, time = *pp->time*p->resamp, lock = *pp->klock;
   double amp = *pp->kamp*csound->Get0dBFS(csound)*(8./decim)/3.;
   int interp = *pp->kinterp;
-  MYFLT *out;
-  MYFLT *tab, **table,frac;
+  MYFLT *restrict out;
+  MYFLT *restrict tab, **table,frac;
   int N = p->N, hsize = p->hsize, cnt = p->cnt;
   int  nsmps = csound->GetKsmps(csound), n;
   int size = p->fdata[0].size/sizeof(MYFLT), post, i, j;
   double pos, spos = p->pos;
-  MYFLT *fwin, *bwin;
-  MYFLT in, *prev;
-  MYFLT *win = (MYFLT *) p->win.auxp, *outframe;
-  MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
-  int *framecnt, curframe = p->curframe;
+  MYFLT *restrict fwin;
+  MYFLT *restrict bwin;
+  MYFLT *restrict prev;
+  MYFLT in;
+  MYFLT *restrict win = (MYFLT *) p->win.auxp, *restrict outframe;
+  MYFLT div;
+  int *restrict framecnt, curframe = p->curframe;
   double tstamp = p->tstamp, incrt = p->incr;
   AUXCH *mfwin = p->fwin,
     *mbwin = p->bwin,
@@ -1263,15 +1322,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
       while(spos < 0){
 	spos += size;
       }
-      /*
-	if (spos > size/2+hsize && p->curbuf == 0 && p->filling == 0) {
-	fillbuf2(csound,p,size/2);
-	p->filling = 1;
-	} else if (spos < size/2+hsize && p->curbuf == 1 && p->filling == 1){
-	fillbuf2(csound,p,size/2);
-	p->filling = 0;
-	}
-      */
+      
       if (spos > size/8+hsize && p->curbuf == 0 && p->filling == 0) {
 	fillbuf2(csound,p,size/8);
 	p->filling = 1;
@@ -1368,7 +1419,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	  }
 	}
       
-        if(time != FL(1.0) || pitch != 0){ 
+        if(time != FL(1.0) || pitch != FL(1.0)){ 
 	csound->RealFFT(csound, bwin, N);
 	bwin[N] = bwin[1];
 	bwin[N+1] = FL(0.0);
@@ -1376,56 +1427,42 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	fwin[N] = fwin[1];
 	fwin[N+1] = FL(0.0);
 
-	for (i=0; i < N + 2; i+=2) {
-
-	  div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1.0e-20);
-	  ph_real  =    prev[i]*div;
-	  ph_im =       prev[i+1]*div;
-
-	  tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
-	  tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
-	  bwin[i] = tmp_real;
-	  bwin[i+1] = tmp_im;
-	}
-
-	for (i=0; i < N + 2; i+=2) {
-	  if (lock) {
-	    if (i > 0) {
-	      if (i < N) {
-		tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
-		tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
-	      }
-	      else {
-		tmp_real = bwin[i] + bwin[i-2];
-		tmp_im = FL(0.0);
-	      }
-	    }
-	    else {
-	      tmp_real = bwin[i] + bwin[i+2];
-	      tmp_im = FL(0.0);
-	    }
+	for (i=0; i < N; i+=2) {
+	  div =  inv_mag(&prev[i]);
+	  cmplx_multiply_scal(&prev[i],&prev[i+1],
+			 bwin[i],-bwin[i+1],
+			      prev[i],prev[i+1],
+			 div); 
 	  }
-	  else {
-	    tmp_real = bwin[i];
-	    tmp_im = bwin[i+1];
-	  }
-
-	  tmp_real += 1e-15;
-	  div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
-
-	  ph_real = tmp_real*div;
-	  ph_im = tmp_im*div;
-
-	  tmp_real = fwin[i] * ph_real - fwin[i+1] * ph_im;
-	  tmp_im = fwin[i] * ph_im + fwin[i+1] * ph_real;
-
-	  prev[i] = fwin[i] = tmp_real;
-	  prev[i+1] = fwin[i+1] = tmp_im;
+        
+	if (lock) {
+	  MYFLT *restrict phs = prev;
+	  for(i = 2; i < N; i++)
+	    bwin[i] = 0;
+	  for(i = 2; i < N; i++)
+	     bwin[i] += phs[i];
+	  for(i = 2; i < N; i++)
+	    bwin[i] += phs[i-2];
+	  for(i = 2; i < N; i++)
+	    bwin[i] += phs[i+2];	    
+	 bwin[0] = prev[i] + prev[i-2];
+	 bwin[N] = prev[i] + prev[i+2];
 	}
+	else memcpy(bwin,prev,sizeof(MYFLT)*(N+2));
 
+       for (i=0; i < N; i+=2) {
+	  div =  inv_mag(&bwin[i]);
+	  cmplx_multiply_scal(&prev[i],&prev[i+1],
+			      fwin[i],fwin[i+1],
+			      bwin[i],bwin[i+1],
+			      div);
+	}
+       for(i=0; i < N+2; i++)
+	 fwin[i] = prev[i];
+ 
 	fwin[1] = fwin[N];
-	csound->InverseRealFFT(csound, fwin, N);
-	}
+	  csound->InverseRealFFT(csound, fwin, N);
+	} 
       
 	framecnt[curframe] = curframe*N;
 	for (i=0;i<N;i++)

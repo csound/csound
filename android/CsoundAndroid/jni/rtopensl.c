@@ -90,11 +90,11 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
   CSOUND *csound = p->csound;
   struct timespec ts;
   double dtime;
-  /*clock_gettime(CLOCK_MONOTONIC, &ts);
+  clock_gettime(CLOCK_MONOTONIC, &ts);
   dtime = ts.tv_sec + 1e-9*ts.tv_nsec;
   if(dtime - old > 0.021)
     csound->Message(csound, "inter-callback: %f s\n", dtime - old );
-    old = dtime;*/
+    old = dtime;
   if(p->async){
     int read=0,items = p->outBufSamples, i, r = 0;
     MYFLT *outputBuffer = p->outputBuffer;
@@ -123,12 +123,12 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 
   }
   
-  /*clock_gettime(CLOCK_MONOTONIC, &ts);
+  clock_gettime(CLOCK_MONOTONIC, &ts);
   dtime = (ts.tv_sec + 1e-9*ts.tv_nsec) - dtime;
   if(tmax < dtime) tmax = dtime;
   if(dtime > 0.01) csound->Message(csound, "delta = %f s\n", dtime);
   ttime +=  dtime;
-  p_count++;*/
+  p_count++;
 }
 
 #define MICROS 1000000
