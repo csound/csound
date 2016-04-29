@@ -1159,7 +1159,9 @@ static int check_play(CSOUND *csound, CHECK *p){
   return OK;
 }
 
-
+#ifdef HAVE_NEON
+#include <pffft.h>
+#endif
 
 typedef struct _player {
   OPDS h;
@@ -1167,6 +1169,10 @@ typedef struct _player {
   STRINGDAT *pp;
   MYFLT *time, *kpitch, *kamp, *klock, *kinterp, *async;
   MP3SCAL2 *p;
+#ifdef HAVE_NEON
+  PFFFT_Setup *setup;
+  float *bw,*fw;
+#endif
 } PLAYER;
 
 int mp3dec_cleanup_player(CSOUND *csound,  PLAYER  *p)
@@ -1177,6 +1183,11 @@ int mp3dec_cleanup_player(CSOUND *csound,  PLAYER  *p)
   if (p->p->mpa != NULL)
     mp3dec_uninit(p->p->mpa);
     p->p->mpa = NULL;
+#ifdef HAVE_NEON
+    pffft_destroy_setup(p->setup);
+    pffft_aligned_free(p->bw);
+    pffft_aligned_free(p->fw);
+#endif 
   return OK;
 }
 
@@ -1192,7 +1203,11 @@ static int player_init(CSOUND *csound, PLAYER *p){
    csound->RegisterDeinitCallback(csound, p,
    (int (*)(CSOUND*, void*)) mp3dec_cleanup_player);
   p->p->initDone = 1; 
-   
+#ifdef HAVE_NEON
+  p->setup = pffft_new_setup(p->p->N,PFFFT_REAL);
+  p->bw = pffft_aligned_malloc(p->p->N*sizeof(float));
+  p->fw = pffft_aligned_malloc(p->p->N*sizeof(float));
+#endif
   return OK;
 }
 
@@ -1208,7 +1223,6 @@ cmplx_multiply_scal(MYFLT *ans_r, MYFLT *ans_i,
   float32x4_t op1, op2, ans;
   float32_t vans[4];
   /* ac - bd + i(ad + bc) */
-  
   op1 = vld1q_lane_f32(&op1_r,op1,0);
   op1 = vld1q_lane_f32(&op1_i,op1,1);
   op1 = vld1q_lane_f32(&op1_r,op1,2);
@@ -1223,17 +1237,17 @@ cmplx_multiply_scal(MYFLT *ans_r, MYFLT *ans_i,
   *ans_r =  vans[0] - vans[1];
   *ans_i =  vans[2] + vans[3];
 }
-/*static
+static
 inline
 MYFLT
-inv_mag(MYFLT *a){
+inv_mag_neon(MYFLT *a){
   float32x2_t ans, op;
   float32_t vans[2];
   op = vld1_f32(a);
   ans = vmul_f32(op,op);
   vst1_f32(vans, ans);
-  return FL(1.0)/(sqrt(vans[0]+vans[1])+1.0e-20);
-  } */
+  return FL(1.0)/(sqrtf(vans[0]+vans[1])+1.0e-20);
+  } 
 #else
 void
 static
@@ -1245,6 +1259,7 @@ cmplx_multiply_scal(MYFLT *ans_r, MYFLT *ans_i,
   *ans_r = op1_r*op2_r - op1_i*op2_i;
   *ans_i = op1_r*op2_i + op1_i*op2_r;
 }
+
 #endif
 static
 inline
@@ -1283,7 +1298,9 @@ static int player_play(CSOUND *csound, PLAYER *pp)
     *mframecount = p->framecount;
   MYFLT hsizepitch = hsize*pitch;
   int nbytes =  p->N*sizeof(MYFLT);
-  
+#ifdef HAVE_NEON
+  float *restrict bw =  pp->bw, *restrict fw = pp->fw;
+#endif
   p->playing = 1;
   
   if(time < 0) time = 0.0;
@@ -1375,7 +1392,11 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	    }
 	    else 
 	      in = tab[post];        
-            fwin[i] = in * win[i];
+#if HAVE_NEON
+	    fw[i] = in * win[i];
+#else	    
+	    fwin[i] = in * win[i];
+#endif            
               
             post -= hsizepitch;
             if(post < 0) post += size;
@@ -1385,7 +1406,11 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	    }
             else
 	      in = tab[post];
+#if HAVE_NEON
+            bw[i] = in * win[i];
+#else	    
             bwin[i] = in * win[i];
+#endif
             pos += pitch;
           }
 	}
@@ -1413,17 +1438,35 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	    memcpy(bwin,&tab[post],nbytes-endbytes);
 	    memcpy(&bwin[end],tab,endbytes);   
 	  }
+#if HAVE_NEON
+      	  for(i=0; i < N; i++) {
+	    bw[i] = bwin[i]*win[i];
+	    fw[i] = fwin[i]*win[i];
+	  }
+#else
 	  for(i=0; i < N; i++) {
 	    bwin[i] *= win[i];
 	    fwin[i] *= win[i];
 	  }
+#endif	  
 	}
       
-        if(time != FL(1.0) || pitch != FL(1.0)){ 
+        if(time != FL(1.0) || pitch != FL(1.0)){
+#if HAVE_NEON
+          pffft_transform_ordered(pp->setup,bw,bw,NULL,PFFFT_FORWARD);
+          pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_FORWARD);
+          for(i=0;i<N;i++){
+	    bwin[i] = (bw[i]/N);
+	    fwin[i] = (fw[i]/N);
+           }
+	   bwin[N] = bw[1]/N;
+	   fwin[N] = fw[1]/N;
+#else
 	csound->RealFFT(csound, bwin, N);
+	csound->RealFFT(csound, fwin, N);
+#endif
 	bwin[N] = bwin[1];
 	bwin[N+1] = FL(0.0);
-	csound->RealFFT(csound, fwin, N);
 	fwin[N] = fwin[1];
 	fwin[N+1] = FL(0.0);
 
@@ -1431,7 +1474,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	  div =  inv_mag(&prev[i]);
 	  cmplx_multiply_scal(&prev[i],&prev[i+1],
 			 bwin[i],-bwin[i+1],
-			      prev[i],prev[i+1],
+			 prev[i],prev[i+1],
 			 div); 
 	  }
         
@@ -1449,7 +1492,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	 bwin[N] = prev[i] + prev[i+2];
 	}
 	else memcpy(bwin,prev,sizeof(MYFLT)*(N+2));
-
+		
        for (i=0; i < N; i+=2) {
 	  div =  inv_mag(&bwin[i]);
 	  cmplx_multiply_scal(&prev[i],&prev[i+1],
@@ -1457,16 +1500,27 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 			      bwin[i],bwin[i+1],
 			      div);
 	}
-       for(i=0; i < N+2; i++)
-	 fwin[i] = prev[i];
- 
-	fwin[1] = fwin[N];
-	  csound->InverseRealFFT(csound, fwin, N);
-	} 
+
+#if HAVE_NEON
+       for(i=0;i<N;i++)
+	 fw[i] = prev[i];
+	fw[1] = prev[N]; 
+	pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_BACKWARD);
+#else
+	for(i=0; i < N+2; i++)
+	   fwin[i] = prev[i];
+        fwin[1] = fwin[N];
+	csound->InverseRealFFT(csound, fwin, N);
+#endif
+	}
       
 	framecnt[curframe] = curframe*N;
 	for (i=0;i<N;i++)
-	  outframe[framecnt[curframe]+i] = win[i]*fwin[i];
+#ifdef HAVE_NEON
+        outframe[framecnt[curframe]+i] = win[i]*fw[i];
+#else
+        outframe[framecnt[curframe]+i] = win[i]*fwin[i];
+#endif
       }
       cnt=0;
       curframe++;
