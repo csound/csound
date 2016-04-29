@@ -1063,7 +1063,7 @@ int lnnset(CSOUND *csound, LINEN *p)
     MYFLT a,b,dur;
 
     if ((dur = *p->idur) > FL(0.0)) {
-      if (*p->irise + *p->idec > dur)
+      if (*p->iris + *p->idec > dur)
           csound->Warning(csound, Str("irise greater than idur in linen"));
 
       p->cnt1 = (int32)(*p->iris * CS_EKR + FL(0.5));
