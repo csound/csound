@@ -755,6 +755,7 @@ set(stdopcod_SRCS
     Opcodes/nlfilt.c
     Opcodes/oscbnk.c
     Opcodes/pluck.c
+    Opcodes/paulstretch.c
     Opcodes/repluck.c
     Opcodes/reverbsc.c
     Opcodes/seqtime.c
