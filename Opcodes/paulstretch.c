@@ -92,34 +92,37 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p) {
 
 static int ps_init(CSOUND* csound, PAULSTRETCH *p)
 {
-    FUNC *ftp;
-    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
-      return NOTOK;
+    FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
+
+    if (ftp == NULL) return NOTOK;
+
     p->ft = ftp;
     uint32_t i = 0;
-    p->windowsize = (uint32_t)(CS_ESR * *p->winsize);
+    unsigned int size;
+    p->windowsize = (uint32_t)floor((CS_ESR * *p->winsize));
     if(p->windowsize < 16) {
         p->windowsize = 16;
     }
     p->half_windowsize = p->windowsize / 2;
     p->displace_pos = (p->windowsize * 0.5) / *p->stretch;
 
-    csound->AuxAlloc(csound, (size_t) sizeof(MYFLT) * p->windowsize, &(p->m_window));
+    size = sizeof(MYFLT) * p->windowsize;
+    csound->AuxAlloc(csound, size, &(p->m_window));
     p->window = p->m_window.auxp;
 
-    csound->AuxAlloc(csound, sizeof(MYFLT) * p->windowsize, &p->m_old_windowed_buf);
+    csound->AuxAlloc(csound, size, &p->m_old_windowed_buf);
     p->old_windowed_buf = p->m_old_windowed_buf.auxp;
 
-    csound->AuxAlloc(csound, sizeof(MYFLT) * p->half_windowsize, &p->m_hinv_buf);
+    csound->AuxAlloc(csound, (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_hinv_buf);
     p->hinv_buf = p->m_hinv_buf.auxp;
 
-    csound->AuxAlloc(csound, sizeof(MYFLT) * p->windowsize, &p->m_buf);
+    csound->AuxAlloc(csound, size, &p->m_buf);
     p->buf = p->m_buf.auxp;
 
-    csound->AuxAlloc(csound, sizeof(MYFLT) * p->half_windowsize, &p->m_output);
+    csound->AuxAlloc(csound, (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_output);
     p->output = p->m_output.auxp;
 
-    csound->AuxAlloc(csound, sizeof(MYFLT) * p->windowsize + 2, &p->m_tmp);
+    csound->AuxAlloc(csound, size + 2, &p->m_tmp);
     p->tmp = p->m_tmp.auxp;
 
     /* Create Hann window */
@@ -134,8 +137,6 @@ static int ps_init(CSOUND* csound, PAULSTRETCH *p)
     p->start_pos = 0.0;
     p->counter = 0;
 
-    printf("PaulStretch: window size %d stretch %g half windowsize %d\n", 
-            p->windowsize, *p->stretch, p->half_windowsize);
     return OK;
 }
 
@@ -160,7 +161,6 @@ static int paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
             compute_block(csound, p);
         }
         out[n] = p->output[p->counter];
-        //out[n] = p->ft->ftable[p->counter];
         p->counter = (p->counter + 1) % p->half_windowsize;
     }
     return OK;
