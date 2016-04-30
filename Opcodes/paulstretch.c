@@ -122,7 +122,7 @@ static int ps_init(CSOUND* csound, PAULSTRETCH *p)
     csound->AuxAlloc(csound, (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_output);
     p->output = p->m_output.auxp;
 
-    csound->AuxAlloc(csound, size + 2, &p->m_tmp);
+    csound->AuxAlloc(csound, size + 2 * sizeof(MYFLT), &p->m_tmp);
     p->tmp = p->m_tmp.auxp;
 
     /* Create Hann window */
