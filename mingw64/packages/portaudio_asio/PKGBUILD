@@ -1,39 +1,46 @@
 # Maintainer: Michael Gogins <michael.gogins@gmail.com>
 
-pkgname=portaudio-svn
-pkgver=11474.dabc2a9
+# Maintainer: Michael Gogins <michael.gogins@gmail.com>
+
+_realname=portaudio
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=11685.5e94a9c
 pkgrel=1
-pkgdesc='A Free, cross platform, open-source, audio I/O library.'
-arch=('i686' 'x86_64')
+pkgdesc='A free, cross platform, open-source, audio I/O library.'
+arch=('x86_64')
 url="http://www.portaudio.com"
 license=('custom')
 depends=('gcc-libs')
 makedepends=('subversion')
 conflicts=('portaudio')
 provides=('portaudio')
-options=('!libtool')
+#options=('!libtool')
 source=("${pkgname}::svn+https://subversion.assembla.com/svn/portaudio/portaudio/trunk/")
 md5sums=('SKIP')
 
 pkgver() {
-    cd $srcdir/$pkgname
+    cd "$srcdir/$pkgname"
     echo $(git rev-list --count HEAD).$(git rev-parse --short HEAD)
 }
 
 prepare() {
-  cd $srcdir/${pkgname}
-  pwd
-  patch -Np1 -i ../../portaudio_svn.patch
+    cd "$srcdir/$pkgname"
+    pwd
+    patch -p1 -i ../../portaudio_svn.patch
 }
 
 build() {
-  cd $pkgname
-  ./configure --prefix="${pkgdir}${MINGW_PREFIX}" --with-winapi=wmme,directx,asio,wdmks --with-asiodir=/mingw64/include/asiosdk2 --with-dxdir=/mingw64/include --with-gnu-ld=yes --enable-static --disable-shared
-  make -j1
+    cd "$pkgname"
+    ./configure \
+    --prefix=${MINGW_PREFIX} \
+    --with-asiodir=/mingw64/include/asiosdk2 \
+    --with-dxdir=/mingw64/include \
+    --with-winapi=wmme,directx,asio,wdmks
+    make -j4
 }
 
 package() {
-  cd $pkgname
-  make DESTDIR="${pkgdir}" install
-  install -D -m644 LICENSE.txt "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE.txt"
+    cd "$pkgname"
+    make DESTDIR="$pkgdir" install
 }
