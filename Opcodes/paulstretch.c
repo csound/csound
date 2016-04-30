@@ -1,6 +1,10 @@
 /*
     paulstretch.c:
 
+    This is an implementation of the paulstretch algorithm by 
+    Paul Nasca Octavian, based off of the Numpy/Scipy python 
+    implementation written by the same author.
+
     Copyright (C) 2016 by Paul Batchelor
 
     This file is part of Csound.
@@ -32,7 +36,6 @@ typedef struct {
     MYFLT *window;
     MYFLT *old_windowed_buf;
     MYFLT *hinv_buf;
-    MYFLT *buf;
     MYFLT *output;
     FUNC *ft;
     uint32_t windowsize;
@@ -42,7 +45,6 @@ typedef struct {
     AUXCH m_window;
     AUXCH m_old_windowed_buf;
     AUXCH m_hinv_buf;
-    AUXCH m_buf;
     AUXCH m_output;
     AUXCH m_tmp;
 } PAULSTRETCH;
@@ -53,7 +55,6 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p) {
     uint32_t i;
     uint32_t windowsize = p->windowsize;
     uint32_t half_windowsize = p->half_windowsize;
-    MYFLT *buf = p->buf;
     MYFLT *hinv_buf = p->hinv_buf;
     MYFLT *old_windowed_buf= p->old_windowed_buf;
     MYFLT *tbl = p->ft->ftable;
@@ -68,17 +69,24 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p) {
             tmp[i] = 0;
         }
     }
+    /* re-order bins and take FFT */
     tmp[p->windowsize] = tmp[1];
     tmp[p->windowsize + 1] = 0.0;
     csoundRealFFTnp2(csound, tmp, p->windowsize);
+
+    /* randomize phase */
     for(i = 0; i < windowsize + 2; i += 2) {
         MYFLT mag = sqrt(tmp[i]*tmp[i] + tmp[i + 1]*tmp[i + 1]);
         complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
         tmp[i] = mag * (MYFLT)crealf(ph); 
         tmp[i + 1] = mag * (MYFLT)cimagf(ph); 
     }
+
+    /* re-order bins and take inverse FFT */
     tmp[1] = tmp[p->windowsize];
     csoundInverseRealFFTnp2(csound, tmp, p->windowsize);
+
+    /* apply window and overlap */
     for(i = 0; i < windowsize; i++) {
         tmp[i] *= window[i];
         if(i < half_windowsize) {
@@ -116,9 +124,6 @@ static int ps_init(CSOUND* csound, PAULSTRETCH *p)
     csound->AuxAlloc(csound, (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_hinv_buf);
     p->hinv_buf = p->m_hinv_buf.auxp;
 
-    csound->AuxAlloc(csound, size, &p->m_buf);
-    p->buf = p->m_buf.auxp;
-
     csound->AuxAlloc(csound, (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_output);
     p->output = p->m_output.auxp;
 
@@ -129,7 +134,7 @@ static int ps_init(CSOUND* csound, PAULSTRETCH *p)
     for(i = 0; i < p->windowsize; i++) {
         p->window[i] = 0.5 - cos(i * 2.0 * M_PI / (p->windowsize - 1)) * 0.5;
     }
-    /* creatve inverse hann window */
+    /* creatve inverse Hann window */
     MYFLT hinv_sqrt2 = (1 + sqrt(0.5)) * 0.5;
     for(i = 0; i < p->half_windowsize; i++) {
         p->hinv_buf[i] = hinv_sqrt2 - (1.0 - hinv_sqrt2) * cos(i * 2.0 * M_PI / p->half_windowsize);
