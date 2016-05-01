@@ -480,7 +480,8 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
                                  &prop, 0, NULL, &psize, &devName);
       memset(devinfo[i].name,0,128);
       if(CFStringGetCStringPtr(devName, defaultEncoding) != NULL)
-        strncpy(devinfo[i].name, CFStringGetCStringPtr(devName, defaultEncoding),127);
+        strncpy(devinfo[i].name,
+                CFStringGetCStringPtr(devName, defaultEncoding),127);
       CFRelease(devName);
 
       devchannels = 0;
