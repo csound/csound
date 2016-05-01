@@ -28,6 +28,7 @@
 #include <complex.h>
 #include <math.h>
 #include "csoundCore.h"
+#include "interlocks.h"
 
 typedef struct {
     OPDS h;
