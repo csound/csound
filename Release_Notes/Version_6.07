@@ -34,6 +34,10 @@ New opcodes:
 
     o    moogladder2 is a faster, less accurate implementation of moogladder.
 
+    o    paulstretch opcode is a lightweight implementation of the PaulStretch
+         time-stretching algorithm by Paul Nasca Octavian. It is ideal for
+         timestretching a signal by very large amounts.
+
 
 New Gen and Macros:
 
