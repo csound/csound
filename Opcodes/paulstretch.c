@@ -181,7 +181,7 @@ static int paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
 int paulstretch_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "paulstretch",
-                                (int) sizeof(PAULSTRETCH), 0, 5, "a", "iii",
+                                (int) sizeof(PAULSTRETCH), TR, 5, "a", "iii",
                                 (int (*)(CSOUND *, void *)) ps_init,
                                 (int (*)(CSOUND *, void *)) NULL,
                                 (int (*)(CSOUND *, void *)) paulstretch_perf);
