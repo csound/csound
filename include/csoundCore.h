@@ -41,6 +41,12 @@
 #include "csound_data_structures.h"
 #include "csound_standard_types.h"
 #include "pools.h"
+#include "pffft.h"
+
+#ifdef HAVE_VECLIB
+/* vDSP FFT implementation */
+#include <Accelerate/Accelerate.h>
+#endif
 
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
@@ -1706,6 +1712,19 @@ typedef struct NAME__ {
     int           score_parser;
     CS_HASH_TABLE* symbtab;
     int           tseglen;
+#ifdef HAVE_VECLIB
+#ifdef USE_DOUBLE
+    FFTSetupD    vdsp_setup;
+    vDSP_DFT_SetupD vdsp_setup_fwd;
+    vDSP_DFT_SetupD vdsp_setup_inv;
+#else
+    FFTSetup    vdsp_setup;
+    vDSP_DFT_Setup vdsp_setup_fwd;
+    vDSP_DFT_Setup vdsp_setup_inv;
+#endif
+#endif
+    MYFLT       *vdsp_buffer;
+    PFFFT_Setup  *setup;    
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
