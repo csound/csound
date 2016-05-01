@@ -1,8 +1,8 @@
 /*
     paulstretch.c:
 
-    This is an implementation of the paulstretch algorithm by 
-    Paul Nasca Octavian, based off of the Numpy/Scipy python 
+    This is an implementation of the paulstretch algorithm by
+    Paul Nasca Octavian, based off of the Numpy/Scipy python
     implementation written by the same author.
 
     Copyright (C) 2016 by Paul Batchelor
@@ -49,9 +49,10 @@ typedef struct {
     AUXCH m_tmp;
 } PAULSTRETCH;
 
-static void compute_block(CSOUND *csound, PAULSTRETCH *p) {
+static void compute_block(CSOUND *csound, PAULSTRETCH *p)
+{
     uint32_t istart_pos = floor(p->start_pos);
-    uint32_t pos; 
+    uint32_t pos;
     uint32_t i;
     uint32_t windowsize = p->windowsize;
     uint32_t half_windowsize = p->half_windowsize;
@@ -61,13 +62,13 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p) {
     MYFLT *window = p->window;
     MYFLT *output= p->output;
     MYFLT *tmp = p->tmp;
-    for(i = 0; i < windowsize; i++) {
-        pos = istart_pos + i;
-        if(pos < p->ft->flen) {
-            tmp[i] = tbl[pos] * window[i];
-        } else {
-            tmp[i] = 0;
-        }
+    for (i = 0; i < windowsize; i++) {
+      pos = istart_pos + i;
+      if (pos < p->ft->flen) {
+        tmp[i] = tbl[pos] * window[i];
+      } else {
+        tmp[i] = 0;
+      }
     }
     /* re-order bins and take FFT */
     tmp[p->windowsize] = tmp[1];
@@ -75,11 +76,11 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p) {
     csoundRealFFTnp2(csound, tmp, p->windowsize);
 
     /* randomize phase */
-    for(i = 0; i < windowsize + 2; i += 2) {
-        MYFLT mag = sqrt(tmp[i]*tmp[i] + tmp[i + 1]*tmp[i + 1]);
-        complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
-        tmp[i] = mag * (MYFLT)crealf(ph); 
-        tmp[i + 1] = mag * (MYFLT)cimagf(ph); 
+    for (i = 0; i < windowsize + 2; i += 2) {
+      MYFLT mag = HYPOT(tmp[i], tmp[i + 1]);
+      complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
+      tmp[i] = mag * (MYFLT)crealf(ph);
+      tmp[i + 1] = mag * (MYFLT)cimagf(ph);
     }
 
     /* re-order bins and take inverse FFT */
@@ -87,13 +88,13 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p) {
     csoundInverseRealFFTnp2(csound, tmp, p->windowsize);
 
     /* apply window and overlap */
-    for(i = 0; i < windowsize; i++) {
-        tmp[i] *= window[i];
-        if(i < half_windowsize) {
-            output[i] = (MYFLT)(tmp[i] + old_windowed_buf[half_windowsize + i]);
-            output[i] *= hinv_buf[i];
-        }
-        old_windowed_buf[i] = tmp[i];
+    for (i = 0; i < windowsize; i++) {
+      tmp[i] *= window[i];
+      if (i < half_windowsize) {
+        output[i] = (MYFLT)(tmp[i] + old_windowed_buf[half_windowsize + i]);
+        output[i] *= hinv_buf[i];
+      }
+      old_windowed_buf[i] = tmp[i];
     }
     p->start_pos += p->displace_pos;
 }
@@ -101,18 +102,19 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p) {
 static int ps_init(CSOUND* csound, PAULSTRETCH *p)
 {
     FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
-
-    if (ftp == NULL) return NOTOK;
-
-    p->ft = ftp;
     uint32_t i = 0;
     unsigned int size;
+
+    if (ftp == NULL)
+      return csound->InitError(csound, Str("paulstretch: table not found"));
+
+    p->ft = ftp;
     p->windowsize = (uint32_t)floor((CS_ESR * *p->winsize));
-    if(p->windowsize < 16) {
-        p->windowsize = 16;
+    if (p->windowsize < 16) {
+      p->windowsize = 16;
     }
     p->half_windowsize = p->windowsize / 2;
-    p->displace_pos = (p->windowsize * 0.5) / *p->stretch;
+    p->displace_pos = (p->windowsize * FL(0.5)) / *p->stretch;
 
     size = sizeof(MYFLT) * p->windowsize;
     csound->AuxAlloc(csound, size, &(p->m_window));
@@ -121,25 +123,28 @@ static int ps_init(CSOUND* csound, PAULSTRETCH *p)
     csound->AuxAlloc(csound, size, &p->m_old_windowed_buf);
     p->old_windowed_buf = p->m_old_windowed_buf.auxp;
 
-    csound->AuxAlloc(csound, (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_hinv_buf);
+    csound->AuxAlloc(csound,
+                     (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_hinv_buf);
     p->hinv_buf = p->m_hinv_buf.auxp;
 
-    csound->AuxAlloc(csound, (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_output);
+    csound->AuxAlloc(csound,
+                     (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_output);
     p->output = p->m_output.auxp;
 
     csound->AuxAlloc(csound, size + 2 * sizeof(MYFLT), &p->m_tmp);
     p->tmp = p->m_tmp.auxp;
 
     /* Create Hann window */
-    for(i = 0; i < p->windowsize; i++) {
-        p->window[i] = 0.5 - cos(i * 2.0 * M_PI / (p->windowsize - 1)) * 0.5;
+    for (i = 0; i < p->windowsize; i++) {
+      p->window[i] = 0.5 - cos(i * 2.0 * M_PI / (p->windowsize - 1)) * 0.5;
     }
-    /* creatve inverse Hann window */
+    /* create inverse Hann window */
     MYFLT hinv_sqrt2 = (1 + sqrt(0.5)) * 0.5;
-    for(i = 0; i < p->half_windowsize; i++) {
-        p->hinv_buf[i] = hinv_sqrt2 - (1.0 - hinv_sqrt2) * cos(i * 2.0 * M_PI / p->half_windowsize);
+    for (i = 0; i < p->half_windowsize; i++) {
+      p->hinv_buf[i] =
+        hinv_sqrt2 - (FL(1.0) - hinv_sqrt2) * COS(i * TWOPI_F / p->half_windowsize);
     }
-    p->start_pos = 0.0;
+    p->start_pos = FL(0.0);
     p->counter = 0;
 
     return OK;
@@ -162,11 +167,11 @@ static int paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
     }
 
     for (n = offset; n < nsmps; n++) {
-        if(p->counter == 0) {
-            compute_block(csound, p);
-        }
-        out[n] = p->output[p->counter];
-        p->counter = (p->counter + 1) % p->half_windowsize;
+      if (p->counter == 0) {
+        compute_block(csound, p);
+      }
+      out[n] = p->output[p->counter];
+      p->counter = (p->counter + 1) % p->half_windowsize;
     }
     return OK;
 }
@@ -181,4 +186,3 @@ int paulstretch_init_(CSOUND *csound)
                                 (int (*)(CSOUND *, void *)) NULL,
                                 (int (*)(CSOUND *, void *)) paulstretch_perf);
 }
-
