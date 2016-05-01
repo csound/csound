@@ -925,6 +925,7 @@ static int meminit(CSOUND *csound, LOADER *pp)
   unsigned int i;
   unsigned int size;
   int decim = *pp->idecim;
+  p->N = N;
   p->error = 0;
   if (N) {
     for (i=0; N; i++) {
@@ -1204,6 +1205,7 @@ static int player_init(CSOUND *csound, PLAYER *p){
    (int (*)(CSOUND*, void*)) mp3dec_cleanup_player);
   p->p->initDone = 1; 
 #ifdef HAVE_NEON
+  while(!p->p->N) usleep(1000);
   p->setup = pffft_new_setup(p->p->N,PFFFT_REAL);
   p->bw = pffft_aligned_malloc(p->p->N*sizeof(float));
   p->fw = pffft_aligned_malloc(p->p->N*sizeof(float));
@@ -1211,62 +1213,78 @@ static int player_init(CSOUND *csound, PLAYER *p){
   return OK;
 }
 
+
+
+
+#include <stdbool.h> 
 #ifdef HAVE_NEON
 #include <arm_neon.h>
 static
 inline
 void
 cmplx_multiply_scal(MYFLT *ans_r, MYFLT *ans_i,
-		    MYFLT  op1_r, MYFLT  op1_i,
-	            MYFLT  op2_r, MYFLT  op2_i,
-		    MYFLT div){
+		    MYFLT  *in1, MYFLT  *in2,
+		    MYFLT div, bool neg){
   float32x4_t op1, op2, ans;
+  float32x2_t tmp1, tmp2;
   float32_t vans[4];
+  tmp1 = vld1_f32(in1);
+  tmp2 = vld1_f32(in2);
+  op1 = vcombine_f32(tmp1,tmp1);
+  op2 = vcombine_f32(tmp2,vrev64_f32(tmp2)); 
   /* ac - bd + i(ad + bc) */
-  op1 = vld1q_lane_f32(&op1_r,op1,0);
-  op1 = vld1q_lane_f32(&op1_i,op1,1);
-  op1 = vld1q_lane_f32(&op1_r,op1,2);
-  op1 = vld1q_lane_f32(&op1_i,op1,3);
-  op2 = vld1q_lane_f32(&op2_r,op2,0);
-  op2 = vld1q_lane_f32(&op2_i,op2,1);
-  op2 = vld1q_lane_f32(&op2_i,op2,2);
-  op2 = vld1q_lane_f32(&op2_r,op2,3);
   ans = vmulq_n_f32(op2,div);
-  op2 = vmulq_f32(op1,ans);
+  op2 = vmulq_f32(op1,ans);    
   vst1q_f32(vans, op2);
-  *ans_r =  vans[0] - vans[1];
-  *ans_i =  vans[2] + vans[3];
+  *ans_r =  vans[0] - (neg ? -vans[1] : vans[1]);
+  *ans_i =  vans[2] + (neg ? -vans[3] : vans[3]);
 }
 static
 inline
 MYFLT
-inv_mag_neon(MYFLT *a){
+invsqrt(MYFLT x)
+{
+ long i;
+ float x2 = x*0.5f;
+ i = * (long *) &x;                   
+ i = 0x5f3759df - (i >> 1);              
+ x = *(float *) &i;
+ x = x*(1.5f - (x2*x*x));   
+ return x;
+}
+
+static
+inline
+MYFLT
+inv_mag(MYFLT *a){
   float32x2_t ans, op;
   float32_t vans[2];
   op = vld1_f32(a);
   ans = vmul_f32(op,op);
   vst1_f32(vans, ans);
-  return FL(1.0)/(sqrtf(vans[0]+vans[1])+1.0e-20);
+  return invsqrt(vans[0]+vans[1]);
   } 
 #else
-void
+
 static
 inline
+void
 cmplx_multiply_scal(MYFLT *ans_r, MYFLT *ans_i,
-	       MYFLT op1_r, MYFLT op1_i,
-	       MYFLT op2_r, MYFLT op2_i, MYFLT div){
-   op2_r *= div; op2_i *= div;
-  *ans_r = op1_r*op2_r - op1_i*op2_i;
-  *ans_i = op1_r*op2_i + op1_i*op2_r;
+	       MYFLT* in1, MYFLT* in2,
+	       MYFLT div, bool neg){
+  MYFLT r = in2[0] * div, i = in2[1] * div;
+  *ans_r = in1[0]*r - (neg ? -in1[1]*i : in1[1]*i);
+  *ans_i = in1[0]*i + (neg ? -in1[1]*r : in1[1]*r);
 }
-
-#endif
 static
 inline
 MYFLT
 inv_mag(MYFLT *a){
   return FL(1.0)/(sqrt(a[0]*a[0]+a[1]*a[1])+1.0e-20);
+  //return invsqrt(a[0]*a[0]+a[1]*a[1]);
 }
+#endif
+
 
 static int player_play(CSOUND *csound, PLAYER *pp)
 {
@@ -1392,7 +1410,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	    }
 	    else 
 	      in = tab[post];        
-#if HAVE_NEON
+#ifdef HAVE_NEON
 	    fw[i] = in * win[i];
 #else	    
 	    fwin[i] = in * win[i];
@@ -1406,7 +1424,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	    }
             else
 	      in = tab[post];
-#if HAVE_NEON
+#ifdef HAVE_NEON
             bw[i] = in * win[i];
 #else	    
             bwin[i] = in * win[i];
@@ -1438,7 +1456,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	    memcpy(bwin,&tab[post],nbytes-endbytes);
 	    memcpy(&bwin[end],tab,endbytes);   
 	  }
-#if HAVE_NEON
+#ifdef HAVE_NEON
       	  for(i=0; i < N; i++) {
 	    bw[i] = bwin[i]*win[i];
 	    fw[i] = fwin[i]*win[i];
@@ -1452,7 +1470,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	}
       
         if(time != FL(1.0) || pitch != FL(1.0)){
-#if HAVE_NEON
+#ifdef HAVE_NEON
           pffft_transform_ordered(pp->setup,bw,bw,NULL,PFFFT_FORWARD);
           pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_FORWARD);
           for(i=0;i<N;i++){
@@ -1473,9 +1491,8 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	for (i=0; i < N; i+=2) {
 	  div =  inv_mag(&prev[i]);
 	  cmplx_multiply_scal(&prev[i],&prev[i+1],
-			 bwin[i],-bwin[i+1],
-			 prev[i],prev[i+1],
-			 div); 
+			      &bwin[i],&prev[i],
+			      div, true); 
 	  }
         
 	if (lock) {
@@ -1496,12 +1513,11 @@ static int player_play(CSOUND *csound, PLAYER *pp)
        for (i=0; i < N; i+=2) {
 	  div =  inv_mag(&bwin[i]);
 	  cmplx_multiply_scal(&prev[i],&prev[i+1],
-			      fwin[i],fwin[i+1],
-			      bwin[i],bwin[i+1],
-			      div);
+			      &fwin[i], &bwin[i],
+			      div, false);
 	}
 
-#if HAVE_NEON
+#ifdef HAVE_NEON
        for(i=0;i<N;i++)
 	 fw[i] = prev[i];
 	fw[1] = prev[N]; 

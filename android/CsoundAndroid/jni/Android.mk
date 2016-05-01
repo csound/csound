@@ -14,8 +14,11 @@ LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(NDK_MODULE_PATH)/luajit-2.0/src -L$(LI
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi-v7a x86))
 LOCAL_ARM_NEON  := true
 LOCAL_CFLAGS += -DHAVE_NEON
-endif # TARGET_ARCH_ABI == armeabi-v7a || x
+endif # TARGET_ARCH_ABI == armeabi-v7a || x86
 
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi))
+LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE
+endif # TARGET_ARCH_ABI == armeabi
 ###
 
 LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Engine/auxfd.c \
@@ -59,6 +62,7 @@ $(CSOUND_SRC_ROOT)/OOps/diskin2.c \
 $(CSOUND_SRC_ROOT)/OOps/disprep.c \
 $(CSOUND_SRC_ROOT)/OOps/dumpf.c \
 $(CSOUND_SRC_ROOT)/OOps/fftlib.c \
+$(CSOUND_SRC_ROOT)/OOps/pffft.c \
 $(CSOUND_SRC_ROOT)/OOps/goto_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/midiinterop.c \
 $(CSOUND_SRC_ROOT)/OOps/midiops.c \
@@ -252,9 +256,6 @@ $(CSOUND_SRC_ROOT)/interfaces/cs_glue.cpp \
 $(CSOUND_SRC_ROOT)/interfaces/filebuilding.cpp \
 java_interfaceJAVA_wrap.cpp
 
-ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi-v7a x86))
-LOCAL_SRC_FILES += pffft.c
-endif
 #CsoundObj.cpp
 
 LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc -latomic 

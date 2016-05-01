@@ -335,6 +335,9 @@ if(APPLE)
     message(STATUS "OSX: Setting Deployment Target to 10.7")
   endif()
 
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
+ 
+   
 endif()
 
 if(USE_DOUBLE)
@@ -626,6 +629,7 @@ set(libcsound_SRCS
     OOps/disprep.c
     OOps/dumpf.c
     OOps/fftlib.c
+    OOps/pffft.c
     OOps/goto_ops.c
     OOps/midiinterop.c
     OOps/midiops.c
@@ -1140,7 +1144,10 @@ endif()
 if(APPLE)
     message(STATUS "Building on OSX")
     add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS)
-    list(APPEND libcsound_LIBS m dl)
+    find_library(ACCELERATE_LIBRARY Accelerate)
+    find_path(VECLIB_PATH "Accelerate/Accelerate.h")
+    include_directories(${VECLIB_PATH})
+    list(APPEND libcsound_LIBS m dl ${ACCELERATE_LIBRARY})
 endif()
 
 if(WIN32)
