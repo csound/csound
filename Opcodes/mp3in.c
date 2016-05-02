@@ -1295,19 +1295,30 @@ static int player_play(CSOUND *csound, PLAYER *pp)
   MYFLT pitch = *pp->kpitch*p->resamp, time = *pp->time*p->resamp, lock = *pp->klock;
   double amp = *pp->kamp*csound->Get0dBFS(csound)*(8./decim)/3.;
   int interp = *pp->kinterp;
+#ifdef __clang__
   MYFLT *restrict out;
+  MYFLT *restrict fwin;
+  MYFLT *restrict bwin;
+  MYFLT *restrict prev;
+  MYFLT *restrict win = (MYFLT *) p->win.auxp, *restrict outframe;
+  int *restrict framecnt, curframe = p->curframe;
   MYFLT *restrict tab, **table,frac;
+#else
+  MYFLT *out;
+  MYFLT *fwin;
+  MYFLT *bwin;
+  MYFLT *prev;
+  MYFLT *win = (MYFLT *) p->win.auxp, *outframe;
+  int *framecnt, curframe = p->curframe;
+  MYFLT *tab, **table,frac;
+#endif
   int N = p->N, hsize = p->hsize, cnt = p->cnt;
   int  nsmps = csound->GetKsmps(csound), n;
   int size = p->fdata[0].size/sizeof(MYFLT), post, i, j;
   double pos, spos = p->pos;
-  MYFLT *restrict fwin;
-  MYFLT *restrict bwin;
-  MYFLT *restrict prev;
   MYFLT in;
-  MYFLT *restrict win = (MYFLT *) p->win.auxp, *restrict outframe;
   MYFLT div;
-  int *restrict framecnt, curframe = p->curframe;
+ 
   double tstamp = p->tstamp, incrt = p->incr;
   AUXCH *mfwin = p->fwin,
     *mbwin = p->bwin,
