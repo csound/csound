@@ -78,14 +78,14 @@ typedef struct {
                                   "position %d.  When using table "     \
                                   "indexing, the init range is 0 to 1"),\
                         j);                                             \
-                return csound->InitError(csound, "%s", sbuf);		\
+                return csound->InitError(csound, "%s", sbuf);           \
                 break;                                                  \
               }                                                         \
             }                                                           \
             else if (value < *min || value > *max ) {                   \
               snprintf(sbuf, 120,                                       \
                       Str("illegal initvalue at position n.%d"), j);    \
-              return csound->InitError(csound, "%s", sbuf);                   \
+              return csound->InitError(csound, "%s", sbuf);             \
               break;                                                    \
             }                                                           \
                                                                         \
