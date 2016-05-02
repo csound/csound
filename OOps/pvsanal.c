@@ -811,7 +811,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
 
 
    if (!(N & (N - 1L)))
-     sum = csound->GetInverseRealFFTScale(csound, (int) N) / sum;
+     sum = csound->GetInverseRealFFTScale(csound, (int) N)/ sum;
     else
       sum = FL(1.0) / sum;
 
