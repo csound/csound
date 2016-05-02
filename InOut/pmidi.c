@@ -187,6 +187,7 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
   if (list == NULL) return cnt;
   for (i = 0; i < cnt; i++) {
       info = portMidi_getDeviceInfo(i, isOutput);
+      if(info->name != NULL)
       strncpy(list[i].device_name, info->name, 63);
       snprintf(tmp, 64, "%d", i);
       strncpy(list[i].device_id, tmp, 63);

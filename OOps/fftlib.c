@@ -3238,8 +3238,7 @@ MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int FFTsize)
 {
   IGN(FFTsize);
   IGN(csound);
-  if(csound->oparms->numThreads > 1 || FFTsize <= 16) return FL(1.0);
-  else return FL(1.0/FFTsize);
+  return FL(1.0);
 }
 
 /**
@@ -3466,7 +3465,7 @@ void vDSP_RealFFT(CSOUND *csound,int FFTsize,MYFLT *sig,FFTDirection d){
 		ConvertFFTSize(csound, FFTsize),
 		d); 
 #endif
- s = (d == 1 ? (MYFLT)(FFTsize<<1) : FL(1.0));
+ s = (d == -1 ? (MYFLT)(FFTsize<<1) : FL(2.0));
  for(i=j=0;i<FFTsize;i+=2,j++){
     sig[i] = tmp.realp[j]/s;
     sig[i+1] = tmp.imagp[j]/s;
@@ -3555,7 +3554,7 @@ void vDSP_RealFFT_New(CSOUND *csound,int FFTsize,MYFLT *sig,
 #else
   vDSP_DFT_Execute(setup,inr,ini,inr,ini);
 #endif
-    s = (d == 1 ? (MYFLT)(FFTsize<<1) : FL(1.0));
+    s = (d == -1 ? (MYFLT)(FFTsize) : FL(2.0));
   for(i=j=0;i<FFTsize;i+=2,j++){
     sig[i] = inr[j]/s;
     sig[i+1] = ini[j]/s;
@@ -3599,7 +3598,7 @@ void pffft_RealFFT(CSOUND *csound,
     buf[i] = sig[i];
   pffft_transform_ordered(csound->setup,
 			  buf,buf,NULL,d);
-  s = (d == PFFFT_FORWARD ? (MYFLT)FFTsize : FL(1.0));
+  s = (d == PFFFT_BACKWARD ? (MYFLT)FFTsize : FL(1.0));
   for(i=0;i<FFTsize;i++)
     sig[i] = buf[i]/s;
 }
