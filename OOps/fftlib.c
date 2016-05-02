@@ -3238,7 +3238,8 @@ MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int FFTsize)
 {
   IGN(FFTsize);
   IGN(csound);
-  return FL(1.0);
+  if(csound->oparms->numThreads > 1 || FFTsize <= 16) return FL(1.0);
+  else return FL(1.0/FFTsize);
 }
 
 /**
@@ -3289,7 +3290,7 @@ void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 void csoundRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
 
-if(csound->oparms->numThreads > 1 || FFTsize < 16){
+if(csound->oparms->numThreads > 1 || FFTsize <= 16){
     MYFLT *Utbl;
     int16 *BRLow;
     int   M;
@@ -3320,7 +3321,7 @@ if(csound->oparms->numThreads > 1 || FFTsize < 16){
 void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
 
-  if(csound->oparms->numThreads > 1 || FFTsize < 16){
+  if(csound->oparms->numThreads > 1 || FFTsize <= 16){
     MYFLT *Utbl;
     int16 *BRLow;
     int   M;
@@ -3591,7 +3592,7 @@ void pffft_RealFFT(CSOUND *csound,
 		   int FFTsize,MYFLT *sig,
 		   int d){
   int i;
-  float s, *buf; 
+  float s, *buf;
   pffft_setup(csound, FFTsize);
   buf = (float *)csound->vdsp_buffer;
   for(i=0;i<FFTsize;i++)
