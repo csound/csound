@@ -3455,7 +3455,7 @@ void vDSP_RealFFT(CSOUND *csound,int FFTsize,MYFLT *sig,FFTDirection d){
   for(i=j=0;i<FFTsize;i+=2,j++){
     tmp.realp[j] = sig[i];
     tmp.imagp[j] = sig[i+1];
-  }
+    }
 #ifdef USE_DOUBLE
   vDSP_fft_zripD(csound->vdsp_setup, &tmp, 1,
 		 ConvertFFTSize(csound, FFTsize),
@@ -3465,11 +3465,12 @@ void vDSP_RealFFT(CSOUND *csound,int FFTsize,MYFLT *sig,FFTDirection d){
 		ConvertFFTSize(csound, FFTsize),
 		d); 
 #endif
-  s = (d == 1 ? (MYFLT)(FFTsize<<1) : FL(1.0));
-  for(i=j=0;i<FFTsize;i+=2,j++){
+ s = (d == 1 ? (MYFLT)(FFTsize<<1) : FL(1.0));
+ for(i=j=0;i<FFTsize;i+=2,j++){
     sig[i] = tmp.realp[j]/s;
     sig[i+1] = tmp.imagp[j]/s;
-  }
+    }
+ 
 }
 
 /* these functions are available from OSX 10.9 */
