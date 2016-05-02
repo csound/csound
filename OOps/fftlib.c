@@ -3289,7 +3289,7 @@ void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 void csoundRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
 
-if(csound->oparms->numThreads > 1){
+if(csound->oparms->numThreads > 1 || FFTsize < 16){
     MYFLT *Utbl;
     int16 *BRLow;
     int   M;
@@ -3320,7 +3320,7 @@ if(csound->oparms->numThreads > 1){
 void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
 
-  if(csound->oparms->numThreads > 1){
+  if(csound->oparms->numThreads > 1 || FFTsize < 16){
     MYFLT *Utbl;
     int16 *BRLow;
     int   M;
