@@ -751,6 +751,8 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     MYFLT   release = *argp[3];
 
     if (UNLIKELY(len<FL(0.0))) len = FL(100000.0); /* MIDI case set long */
+    if (csound->curip->p3.value-delay-attack-decay<FL(0.0))
+      csound->Warning(csound, Str("length of XADSR note too short"));
     len -= release;                      /* len is time remaining */
     if (UNLIKELY(len<FL(0.0))) { /* Odd case of release time greater than dur */
       release = csound->curip->p3.value; len = FL(0.0);
@@ -1061,6 +1063,9 @@ int lnnset(CSOUND *csound, LINEN *p)
     MYFLT a,b,dur;
 
     if ((dur = *p->idur) > FL(0.0)) {
+      if (*p->iris + *p->idec > dur)
+          csound->Warning(csound, Str("irise greater than idur in linen"));
+
       p->cnt1 = (int32)(*p->iris * CS_EKR + FL(0.5));
       if (p->cnt1 > (int32)0) {
         p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
@@ -1330,6 +1335,8 @@ int evxset(CSOUND *csound, ENVLPX *p)
       }
       else asym = FL(0.0);
       if ((irise = *p->irise) > FL(0.0)) {
+        if (irise + *p->idec > idur)
+          csound->Warning(csound, Str("irise greater than idur in envlpx"));
         p->phs = 0;
         p->ki = (int32) (CS_KICVT / irise);
         p->val = *ftp->ftable;
@@ -1762,6 +1769,7 @@ int envlpxr(CSOUND *csound, ENVLPR *p)
             val -= p->asym;
             phs = -1;
           }
+          else val = fact;      /* JPff: in case very early release */
           p->phs = phs;
         }
         else {

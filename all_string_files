@@ -322,6 +322,7 @@
 ./Opcodes/partials.c
 ./Opcodes/partikkel.c
 ./Opcodes/partikkel.h
+./Opcodes/paulstretch.c
 ./Opcodes/phisem.c
 ./Opcodes/phisem.h
 ./Opcodes/physmod.c

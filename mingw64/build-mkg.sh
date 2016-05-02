@@ -20,13 +20,13 @@ cmake ../.. -G "MSYS Makefiles" \
 -DCMAKE_VERBOSE_MAKEFILE=1 \
 -DMUSICXML_LIBRARY:FILEPATH=/mingw64/bin/libmusicxml2.dll \
 -DNEED_PORTTIME=0 \
--DPTHREAD_STATIC_LIBRARY:FILEPATH=/mingw64/x86_64-w64-mingw32/lib/libpthread.a \
+-DPTHREAD_LIBRARY:FILEPATH=/mingw64/x86_64-w64-mingw32/lib/libpthread.a \
 -DTCL_VERSION=8.5 \
 -DUSE_CURL=0 \
 -DUSE_GETTEXT=0 \
 -DUSE_OPEN_MP=0 \
 -D_WIN32=1 \
--DSTK_STATIC_LIBRARY:FILEPATH=/mingw64/lib/libstk.a
+-DSTK_LIBRARY:FILEPATH=/mingw64/lib/libstk.a
 
 if [ $? -ne 0 ]; then
     echo "Failed to run CMake."

@@ -1308,7 +1308,7 @@ int MidiOutProcessCallback(jack_nframes_t nframes, void *userData){
                                           JACK_MIDI_BUFFSIZE)) != 0) {
       if(jack_midi_event_write(jack_port_get_buffer(dev->port,nframes),
                                0, buf,n) != 0){
-        csound->Warning(csound, "Jack MIDI module: out buffer overflow");
+        csound->Warning(csound, Str("Jack MIDI module: out buffer overflow"));
         return 1;
       }
     }

@@ -75,6 +75,7 @@
 #define MyNwJsDir "D:\nwjs-v0.12.3-win-x64\"
 ; If you are not Michael Gogins, change this to your Winpthreads installation directory.
 #define MyWinPthreadsDir "D:\msys64\home\restore\pthreads-w32-2-9-1-release\Pre-built.2\"
+#define MyPackagesDir "D:\msys64\home\restore\csound\mingw64\packages\"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
@@ -165,6 +166,8 @@ Source: "{#MySourceDir}frontends/nwjs/build/Release/csound.node"; DestDir: "{#AP
 Source: "{#MySourceDir}frontends/nwjs/build/Release/csound.pdb"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyNwJsDir}*.*"; DestDir: "{#APP_BIN}\"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "{#MySourceDir}mingw64/run_csound_editor.cmd"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyPackagesDir}portaudio_asio\src\mingw-w64-x86_64-portaudio\bin\.libs\pa_devs.exe"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyPackagesDir}portaudio_asio\src\mingw-w64-x86_64-portaudio\bin\.libs\pa_minlat.exe"; DestDir: "{#APP_BIN}"; Components: core;
 
 Source: "{#MyMingw64Dir}\bin\luajit.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
