@@ -1303,6 +1303,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
   MYFLT *restrict win = (MYFLT *) p->win.auxp, *restrict outframe;
   int *restrict framecnt, curframe = p->curframe;
   MYFLT *restrict tab, **table,frac;
+  MYFLT *restrict phs;
 #else
   MYFLT *out;
   MYFLT *fwin;
@@ -1311,6 +1312,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
   MYFLT *win = (MYFLT *) p->win.auxp, *outframe;
   int *framecnt, curframe = p->curframe;
   MYFLT *tab, **table,frac;
+  MYFLT *phs;
 #endif
   int N = p->N, hsize = p->hsize, cnt = p->cnt;
   int  nsmps = csound->GetKsmps(csound), n;
@@ -1507,7 +1509,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	  }
         
 	if (lock) {
-	  MYFLT *restrict phs = prev;
+	  phs = prev;
 	  for(i = 2; i < N; i++)
 	    bwin[i] = 0;
 	  for(i = 2; i < N; i++)
