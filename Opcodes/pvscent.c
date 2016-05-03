@@ -138,6 +138,7 @@ typedef struct _cent {
   MYFLT  *asig, *ktrig, *ifftsize;
   uint32_t fsize, count;
   MYFLT old;
+  void *setup;
   AUXCH frame, windowed, win;
 } CENT;
 
@@ -168,6 +169,7 @@ static int cent_i(CSOUND *csound, CENT *p)
     p->old = 0;
     memset(p->frame.auxp, 0, p->fsize*sizeof(MYFLT));
     memset(p->windowed.auxp, 0, p->fsize*sizeof(MYFLT));
+    p->setup = csound->RealFFT2Setup(csound,p->fsize,FFT_FWD); 
     return OK;
 }
 
@@ -199,7 +201,7 @@ static int cent_k(CSOUND *csound, CENT *p)
         if (k == fsize-1) k=0;
         else k++;
       }
-      csound->RealFFT(csound, windowed, fsize);
+      csound->RealFFT2(csound, p->setup, windowed);
       cf=FL(0.5)*binsize;
       mag = windowed[0];
       c += mag*cf;

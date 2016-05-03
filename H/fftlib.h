@@ -116,6 +116,33 @@ extern "C" {
    */
   void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize);
 
+    
+   /**
+   * New Real FFT interface
+   * Creates a setup for a series of FFT operations.
+   *
+   * FFTsize: FFT length in samples; not required to be an integer power of two,
+   *          but should be even and not have too many factors.
+   * d:       direction (FFT_FWD or FFT_INV). Scaling by 1/FFTsize is done on
+   *          the inverse direction (as with the other RealFFT functions above). 
+   *
+   *  returns: a pointer to the FFT setup.
+   */
+  void *csoundRealFFT2Setup(CSOUND *csound, int FFTsize, int d);
+  
+   /**
+   * New Real FFT interface
+   * Compute in-place real FFT.
+   *
+   * buf:     array of FFTsize + 2 MYFLT values, in interleaved real/imaginary
+   *          format (note: the real part of the Nyquist frequency is stored
+   *          in buf[FFTsize], and not in buf[1]).
+   * setup:   an FFT setup created with csoundRealFFT2Setup()
+   */
+  void csoundRealFFT2(CSOUND *csound, void *setup, MYFLT *sig);
+
+  
+
 #ifdef __cplusplus
 }
 #endif
