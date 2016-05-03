@@ -486,6 +486,7 @@ typedef struct _pvst {
   AUXCH win;
   int nchans;
   int init;
+  void *fwdsetup;
 } PVST;
 
 int pvstanalset(CSOUND *csound, PVST *p)
@@ -544,6 +545,7 @@ int pvstanalset(CSOUND *csound, PVST *p)
   p->pos =  *p->offset*CS_ESR;
   //printf("off: %f\n", *p->offset);
   p->accum = 0.0;
+  p->fwdsetup = csound->RealFFT2Setup(csound,N,FFT_FWD);
   return OK;
 }
 
@@ -648,10 +650,10 @@ int pvstanal(CSOUND *csound, PVST *p)
       /* take the FFT of both frames
          re-order Nyquist bin from pos 1 to N
       */
-      csound->RealFFT(csound, bwin, N);
-      csound->RealFFT(csound, fwin, N);
+      csound->RealFFT2(csound, p->fwdsetup, bwin);
+      csound->RealFFT2(csound, p->fwdsetup, fwin);
       if (*p->konset){
-        csound->RealFFT(csound, nwin, N);
+        csound->RealFFT2(csound,p->fwdsetup, nwin);
         tmp_real = tmp_im = (MYFLT) 1e-20;
         for (i=2; i < N; i++) {
           tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
@@ -1343,6 +1345,7 @@ typedef struct _pvscale {
   MYFLT   *gain;
   MYFLT   *coefs;
   AUXCH   fenv, ceps, ftmp;
+  void *fwdsetup, *invsetup;
   uint32  lastframe;
 } PVSSCALE;
 
@@ -1387,6 +1390,8 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
       p->fenv.size < sizeof(MYFLT) * (N+2))
     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
   memset(p->fenv.auxp, 0, sizeof(MYFLT)*(N+2));
+  p->fwdsetup = csound->RealFFT2Setup(csound, N/2, FFT_FWD);
+  p->invsetup = csound->RealFFT2Setup(csound, N/2, FFT_INV);
   return OK;
 }
 
@@ -1403,7 +1408,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
   float   *fin = (float *) p->fin->frame.auxp;
   float   *fout = (float *) p->fout->frame.auxp;
   MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
-  float   *ftmp = (MYFLT *) p->ftmp.auxp;
+  float   *ftmp = (float *) p->ftmp.auxp;
   MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
   float sr = CS_ESR, binf;
   int coefs = (int) *p->coefs;
@@ -1502,12 +1507,12 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
             ceps[i] = fenv[i];
           }
           if (!(N & (N - 1)))
-            csound->RealFFT(csound, ceps, N/2);
+            csound->RealFFT2(csound, p->fwdsetup, ceps);
           else
             csound->RealFFTnp2(csound, ceps, tmp);
           for (i=coefs; i < N/2; i++) ceps[i] = 0.0;
           if (!(N & (N - 1)))
-            csound->InverseRealFFT(csound, ceps, N/2);
+            csound->RealFFT2(csound, p->invsetup, ceps);
           else
             csound->InverseRealFFTnp2(csound, ceps, tmp);
           for (i=j=0; i < N/2; i++, j+=2) {
@@ -1639,7 +1644,7 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
   float   g = (float) *p->gain;
   float   *fin = (float *) p->fin->frame.auxp;
   float   *fout = (float *) p->fout->frame.auxp;
-  float  *ftmp = (MYFLT *) p->ftmp.auxp;
+  float  *ftmp = (float *) p->ftmp.auxp;
   MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
   MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
   float sr = CS_ESR, binf;
