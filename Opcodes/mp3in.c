@@ -340,6 +340,7 @@ typedef struct dats{
   pthread_t t;
   int ti;
   char filling;
+  void *fwdsetup, *invsetup;
 } DATASPACE;
 
 int mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
@@ -416,6 +417,8 @@ static int sinit(CSOUND *csound, DATASPACE *p)
   /*clock_gettime(CLOCK_MONOTONIC, &ts);
     dtime = ts.tv_sec + 1e-9*ts.tv_nsec - dtime;
     csound->Message(csound, "SINIT time %f ms", dtime*1000);*/
+  p->fwdsetup = csound->RealFFT2Setup(csound,N,FFT_FWD);
+  p->invsetup = csound->RealFFT2Setup(csound,N,FFT_INV);
   return OK;
 }
 static int sinit3_(CSOUND *csound, DATASPACE *p)
@@ -736,10 +739,10 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
 	}
       
     
-	csound->RealFFT(csound, bwin, N);
+	csound->RealFFT2(csound, p->fwdsetup, bwin);
 	bwin[N] = bwin[1];
 	bwin[N+1] = FL(0.0);
-	csound->RealFFT(csound, fwin, N);
+	csound->RealFFT2(csound, p->fwdsetup, fwin);
 	fwin[N] = fwin[1];
 	fwin[N+1] = FL(0.0);
 
@@ -791,7 +794,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
 	}
 
 	fwin[1] = fwin[N];
-	csound->InverseRealFFT(csound, fwin, N);
+	csound->RealFFT2(csound, p->invsetup, fwin);
 	framecnt[curframe] = curframe*N;
 	for (i=0;i<N;i++)
 	  outframe[framecnt[curframe]+i] = win[i]*fwin[i];
