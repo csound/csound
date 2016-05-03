@@ -3638,6 +3638,7 @@ void pffft_execute(CSOUND_FFT_SETUP *setup,
     sig[i] = buf[i]/s;
 }
 
+#ifdef __MACH__
 static
 void vDSP_execute(CSOUND_FFT_SETUP *setup,
 		   MYFLT *sig){
@@ -3670,7 +3671,7 @@ void vDSP_execute(CSOUND_FFT_SETUP *setup,
     sig[i+1] = tmp.imagp[j]/s;
     }
 }
-
+#endif
 
 #define ALIGN_BYTES 64
 static
