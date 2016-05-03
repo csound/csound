@@ -891,7 +891,6 @@ void *buffiller(void *pp){
 	}
       }
     }
-    //p->curbuf = p->curbuf ? 0 : 1;
     p->curbuf = (p->curbuf+1)%8;
   }
   p->lock = 0;
@@ -1178,9 +1177,11 @@ typedef struct _player {
 
 int mp3dec_cleanup_player(CSOUND *csound,  PLAYER  *p)
 {
+  //csound->Message(csound, "cleanup \n");
   while(p->p->lock)
     usleep(1000);
   pthread_join(p->p->t1, NULL);
+  //csound->Message(csound, "cleanup joined \n");
   if (p->p->mpa != NULL)
     mp3dec_uninit(p->p->mpa);
     p->p->mpa = NULL;
@@ -1486,12 +1487,10 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 #ifdef HAVE_NEON
           pffft_transform_ordered(pp->setup,bw,bw,NULL,PFFFT_FORWARD);
           pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_FORWARD);
-          for(i=0;i<N;i++){
-	    bwin[i] = (bw[i]/N);
-	    fwin[i] = (fw[i]/N);
-           }
-	   bwin[N] = bw[1]/N;
-	   fwin[N] = fw[1]/N;
+	  memcpy(bwin,bw,N*sizeof(float)); 
+          memcpy(fwin,fw,N*sizeof(float)); 
+	  bwin[N] = bw[1];
+	  fwin[N] = fw[1];
 #else
 	csound->RealFFT(csound, bwin, N);
 	csound->RealFFT(csound, fwin, N);
@@ -1529,10 +1528,9 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 			      &fwin[i], &bwin[i],
 			      div, false);
 	}
-
 #ifdef HAVE_NEON
        for(i=0;i<N;i++)
-	 fw[i] = prev[i];
+	 fw[i] = prev[i]/N;
 	fw[1] = prev[N]; 
 	pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_BACKWARD);
 #else
@@ -1541,8 +1539,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
         fwin[1] = fwin[N];
 	csound->InverseRealFFT(csound, fwin, N);
 #endif
-	}
-      
+	}     
 	framecnt[curframe] = curframe*N;
 	for (i=0;i<N;i++)
 #ifdef HAVE_NEON
