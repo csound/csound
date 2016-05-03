@@ -3206,7 +3206,7 @@ static inline void getTablePointers(CSOUND *p, MYFLT **ct, int16 **bt,
   *bt = ((int16**) p->FFT_table_2)[bn];
 }
 
-
+#undef HAVE_VECLIB
 #ifdef HAVE_VECLIB
 static
 void
@@ -3572,16 +3572,17 @@ int pffft_reset(CSOUND *csound, void *pp){
 /* create setup if setup does not exist */
 static
 void pffft_setup(CSOUND *csound, int FFTsize){
-  if(csound->FFT_max_size < FFTsize){
+  if(csound->FFT_max_size != FFTsize){
     if(csound->setup != NULL)
       pffft_destroy_setup(csound->setup);
     else
       csound->RegisterResetCallback(csound, (void*) NULL,
 				    (int (*)(CSOUND *, void *)) pffft_reset); 
     csound->setup = pffft_new_setup(FFTsize,PFFFT_REAL);
-    if(csound->vdsp_buffer != NULL) 
+    if(csound->FFT_max_size < FFTsize) {
       pffft_aligned_free(csound->vdsp_buffer);
-    csound->vdsp_buffer = (MYFLT *) pffft_aligned_malloc(FFTsize*(sizeof(float)));
+      csound->vdsp_buffer = (MYFLT *) pffft_aligned_malloc(FFTsize*(sizeof(float)));
+    }
   }
   csound->FFT_max_size = FFTsize;
 }
@@ -3592,6 +3593,7 @@ void pffft_RealFFT(CSOUND *csound,
 		   int d){
   int i;
   float s, *buf;
+ 
   pffft_setup(csound, FFTsize);
   buf = (float *)csound->vdsp_buffer;
   for(i=0;i<FFTsize;i++)
