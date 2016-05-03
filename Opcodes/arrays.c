@@ -1413,6 +1413,7 @@ typedef struct _fft {
   MYFLT *f;
   MYFLT b;
   int n;
+  void *setup;
   AUXCH mem;
 } FFT;
 
@@ -1427,8 +1428,10 @@ int init_rfft(CSOUND *csound, FFT *p){
   if(p->in->dimensions > 1)
     return csound->InitError(csound,
      "rfft: only one-dimensional arrays allowed");
-  if (isPowerOfTwo(N))
+  if (isPowerOfTwo(N)){
     tabensure(csound, p->out,N);
+    p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
+  }
   else
     tabensure(csound, p->out, N+2);
   return OK;
@@ -1438,7 +1441,7 @@ int perf_rfft(CSOUND *csound, FFT *p){
     int N = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
     if (isPowerOfTwo(N))
-      csound->RealFFT(csound,p->out->data,N);
+      csound->RealFFT2(csound,p->setup,p->out->data);
     else{
       p->out->data[N] = FL(0.0);
       csound->RealFFTnp2(csound,p->out->data,N);
@@ -1457,8 +1460,10 @@ int init_rifft(CSOUND *csound, FFT *p){
  if(p->in->dimensions > 1)
     return csound->InitError(csound,
        "rifft: only one-dimensional arrays allowed");
-  if (isPowerOfTwo(N))
+ if (isPowerOfTwo(N)){
+    p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
     tabensure(csound, p->out, N);
+ }
   else
     tabensure(csound, p->out, N+2);
   return OK;
@@ -1468,7 +1473,7 @@ int perf_rifft(CSOUND *csound, FFT *p){
     int N = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
     if (isPowerOfTwo(N))
-      csound->InverseRealFFT(csound,p->out->data,N);
+      csound->RealFFT2(csound,p->setup,p->out->data);
     else{
       p->out->data[N] = FL(0.0);
       csound->InverseRealFFTnp2(csound,p->out->data,N);
@@ -1756,13 +1761,16 @@ typedef struct _pvsceps {
   ARRAYDAT  *out;
   PVSDAT  *fin;
   MYFLT   *coefs;
+  void *setup;
   uint32_t  lastframe;
 } PVSCEPS;
 
 int pvsceps_init(CSOUND *csound, PVSCEPS *p){
     int N = p->fin->N;
-    if(isPowerOfTwo(N))
+    if(isPowerOfTwo(N)){
+      p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
       tabensure(csound, p->out, N/2+1);
+    }
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
@@ -1782,7 +1790,7 @@ int pvsceps_perf(CSOUND *csound, PVSCEPS *p){
         ceps[j] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
       }
       ceps[N/2] = fin[N/2];
-      csound->RealFFT(csound, ceps, N/2);
+      csound->RealFFT2(csound, p->setup, ceps);
       if(coefs){
         // lifter coefs
         for (i=coefs*2; i < N/2; i++) ceps[i] = 0.0;
@@ -1799,8 +1807,10 @@ int init_ceps(CSOUND *csound, FFT *p){
     if(N < 64)
       return csound->InitError(csound,
                                Str("FFT size too small (min 64 samples)\n"));
-    if(isPowerOfTwo(N))
+    if(isPowerOfTwo(N)){
+      p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
       tabensure(csound, p->out, N+1);
+    }
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
@@ -1818,7 +1828,7 @@ int perf_ceps(CSOUND *csound, FFT *p){
       ceps[i] = log(mags[i] > 0.0 ? mags[i] : 1e-20);
     }
     ceps[siz] = mags[siz];
-    csound->RealFFT(csound, ceps, siz);
+    csound->RealFFT2(csound, p->setup, ceps);
     if(coefs){
       // lifter coefs
       for (i=coefs*2; i < siz; i++) ceps[i] = 0.0;
@@ -1829,8 +1839,10 @@ int perf_ceps(CSOUND *csound, FFT *p){
 
 int init_iceps(CSOUND *csound, FFT *p){
     int N = p->in->sizes[0]-1;
-    if(isPowerOfTwo(N))
+    if(isPowerOfTwo(N)){
+      p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
       tabensure(csound, p->out, N+1);
+    }
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
@@ -1844,7 +1856,7 @@ int perf_iceps(CSOUND *csound, FFT *p){
     MYFLT *spec = (MYFLT *)p->mem.auxp;
     MYFLT *out = p->out->data;
     memcpy(spec, p->in->data, siz*sizeof(MYFLT));
-    csound->InverseRealFFT(csound,spec,siz);
+    csound->RealFFT2(csound,p->setup,spec);
     for(i=0; i < siz; i++){
       out[i] = exp(spec[i]);
     }

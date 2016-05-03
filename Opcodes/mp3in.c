@@ -340,6 +340,7 @@ typedef struct dats{
   pthread_t t;
   int ti;
   char filling;
+  void *fwdsetup, *invsetup;
 } DATASPACE;
 
 int mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
@@ -416,6 +417,8 @@ static int sinit(CSOUND *csound, DATASPACE *p)
   /*clock_gettime(CLOCK_MONOTONIC, &ts);
     dtime = ts.tv_sec + 1e-9*ts.tv_nsec - dtime;
     csound->Message(csound, "SINIT time %f ms", dtime*1000);*/
+  p->fwdsetup = csound->RealFFT2Setup(csound,N,FFT_FWD);
+  p->invsetup = csound->RealFFT2Setup(csound,N,FFT_INV);
   return OK;
 }
 static int sinit3_(CSOUND *csound, DATASPACE *p)
@@ -736,10 +739,10 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
 	}
       
     
-	csound->RealFFT(csound, bwin, N);
+	csound->RealFFT2(csound, p->fwdsetup, bwin);
 	bwin[N] = bwin[1];
 	bwin[N+1] = FL(0.0);
-	csound->RealFFT(csound, fwin, N);
+	csound->RealFFT2(csound, p->fwdsetup, fwin);
 	fwin[N] = fwin[1];
 	fwin[N+1] = FL(0.0);
 
@@ -791,7 +794,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
 	}
 
 	fwin[1] = fwin[N];
-	csound->InverseRealFFT(csound, fwin, N);
+	csound->RealFFT2(csound, p->invsetup, fwin);
 	framecnt[curframe] = curframe*N;
 	for (i=0;i<N;i++)
 	  outframe[framecnt[curframe]+i] = win[i]*fwin[i];
@@ -891,7 +894,6 @@ void *buffiller(void *pp){
 	}
       }
     }
-    //p->curbuf = p->curbuf ? 0 : 1;
     p->curbuf = (p->curbuf+1)%8;
   }
   p->lock = 0;
@@ -1173,6 +1175,8 @@ typedef struct _player {
 #ifdef HAVE_NEON
   PFFFT_Setup *setup;
   float *bw,*fw;
+#else
+  void *fwdsetup, *invsetup;
 #endif
 } PLAYER;
 
@@ -1209,7 +1213,11 @@ static int player_init(CSOUND *csound, PLAYER *p){
   p->setup = pffft_new_setup(p->p->N,PFFFT_REAL);
   p->bw = pffft_aligned_malloc(p->p->N*sizeof(float));
   p->fw = pffft_aligned_malloc(p->p->N*sizeof(float));
-#endif
+#else
+  while(!p->p->N) usleep(1000);
+  p->fwdsetup = csound->RealFFT2Setup(csound,p->p->N,FFT_FWD);
+  p->invsetup = csound->RealFFT2Setup(csound,p->p->N,FFT_INV);
+#endif  
   return OK;
 }
 
@@ -1486,15 +1494,13 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 #ifdef HAVE_NEON
           pffft_transform_ordered(pp->setup,bw,bw,NULL,PFFFT_FORWARD);
           pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_FORWARD);
-          for(i=0;i<N;i++){
-	    bwin[i] = (bw[i]/N);
-	    fwin[i] = (fw[i]/N);
-           }
-	   bwin[N] = bw[1]/N;
-	   fwin[N] = fw[1]/N;
+	  memcpy(bwin,bw,N*sizeof(float)); 
+          memcpy(fwin,fw,N*sizeof(float)); 
+	  bwin[N] = bw[1];
+	  fwin[N] = fw[1];
 #else
-	csound->RealFFT(csound, bwin, N);
-	csound->RealFFT(csound, fwin, N);
+	csound->RealFFT2(csound, pp->fwdsetup, bwin);
+	csound->RealFFT2(csound, pp->fwdsetup, fwin);
 #endif
 	bwin[N] = bwin[1];
 	bwin[N+1] = FL(0.0);
@@ -1529,20 +1535,18 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 			      &fwin[i], &bwin[i],
 			      div, false);
 	}
-
 #ifdef HAVE_NEON
        for(i=0;i<N;i++)
-	 fw[i] = prev[i];
+	 fw[i] = prev[i]/N;
 	fw[1] = prev[N]; 
 	pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_BACKWARD);
 #else
 	for(i=0; i < N+2; i++)
 	   fwin[i] = prev[i];
         fwin[1] = fwin[N];
-	csound->InverseRealFFT(csound, fwin, N);
+	csound->RealFFT2(csound, pp->invsetup, fwin);
 #endif
-	}
-      
+	}     
 	framecnt[curframe] = curframe*N;
 	for (i=0;i<N;i++)
 #ifdef HAVE_NEON
