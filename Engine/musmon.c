@@ -411,6 +411,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     int32    *rngp;
     uint32_t n;
 
+    csoundLockMutex(csound->API_lock);
     if (csound->QueryGlobalVariable(csound,"::UDPCOM")
        != NULL) UDPServerClose(csound);
 
@@ -421,8 +422,10 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     }
 
     /* check if we have already cleaned up */
-    if (!(csound->engineStatus & CS_STATE_CLN))
+    if (!(csound->engineStatus & CS_STATE_CLN)){
+      csoundUnlockMutex(csound->API_lock);
       return 0;
+    }
     /* will not clean up more than once */
     csound->engineStatus &= ~(CS_STATE_CLN);
 
@@ -496,7 +499,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (csound->oparms->ringbell)
       cs_beep(csound);
 
-
+    csoundUnlockMutex(csound->API_lock);
     return dispexit(csound);    /* hold or terminate the display output     */
 }
 

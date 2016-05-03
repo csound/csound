@@ -43,11 +43,6 @@
 #include "pools.h"
 #include "pffft.h"
 
-#ifdef HAVE_VECLIB
-/* vDSP FFT implementation */
-#include <Accelerate/Accelerate.h>
-#endif
-
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
 #if defined(__SSE__) && !defined(EMSCRIPTEN)
@@ -205,6 +200,9 @@ extern int ISSTRCOD(MYFLT);
 #define ASYNC_GLOBAL 1
 #define ASYNC_LOCAL  2
 
+enum {FFT_LIB=0, PFFT_LIB, VDSP_LIB};
+enum {FFT_FWD=0, FFT_INV};
+  
   typedef struct CORFIL {
     char    *body;
     unsigned int     len;
@@ -244,6 +242,7 @@ extern int ISSTRCOD(MYFLT);
     int     daemon;
     double  quality;        /* for ogg encoding */
     int     ksmps_override;
+    int     fft_lib;
   } OPARMS;
 
   typedef struct arglst {
@@ -1303,11 +1302,16 @@ typedef struct NAME__ {
     void (*RewindScore)(CSOUND *);
     void (*InputMessage)(CSOUND *, const char *message__);
     int  (*ISSTRCOD)(MYFLT);
+    void *(*RealFFT2Setup)(CSOUND *csound,
+			 int FFTsize,
+			 int d);
+    void (*RealFFT2)(CSOUND *csound,
+			   void *p, MYFLT *sig);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[42];
+    SUBR dummyfn_2[40];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1711,20 +1715,7 @@ typedef struct NAME__ {
                                and nodebug function */
     int           score_parser;
     CS_HASH_TABLE* symbtab;
-    int           tseglen;
-#ifdef HAVE_VECLIB
-#ifdef USE_DOUBLE
-    FFTSetupD    vdsp_setup;
-    vDSP_DFT_SetupD vdsp_setup_fwd;
-    vDSP_DFT_SetupD vdsp_setup_inv;
-#else
-    FFTSetup    vdsp_setup;
-    vDSP_DFT_Setup vdsp_setup_fwd;
-    vDSP_DFT_Setup vdsp_setup_inv;
-#endif
-#endif
-    MYFLT       *vdsp_buffer;
-    PFFFT_Setup  *setup;    
+    int           tseglen;   
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
