@@ -117,7 +117,7 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
     if(ret==0){
       for(i=0;i < items; i++)
 	playBuffer[i] = (short) (outputBuffer[i]*CONV16BIT);
-    }
+    } else return;
       (*bq)->Enqueue(bq,playBuffer,items*sizeof(short));
       if(p->streamTime != NULL) (*p->streamTime) += (items/csoundGetNchnls(csound));
 
