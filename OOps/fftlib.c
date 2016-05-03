@@ -3206,7 +3206,6 @@ static inline void getTablePointers(CSOUND *p, MYFLT **ct, int16 **bt,
   *bt = ((int16**) p->FFT_table_2)[bn];
 }
 
-#undef HAVE_VECLIB
 #ifdef HAVE_VECLIB
 static
 void
@@ -3465,7 +3464,7 @@ void vDSP_RealFFT(CSOUND *csound,int FFTsize,MYFLT *sig,FFTDirection d){
 		ConvertFFTSize(csound, FFTsize),
 		d); 
 #endif
- s = (d == -1 ? (MYFLT)(FFTsize<<1) : FL(2.0));
+ s = (d == -1 ? (MYFLT)(FFTsize) : FL(2.0));
  for(i=j=0;i<FFTsize;i+=2,j++){
     sig[i] = tmp.realp[j]/s;
     sig[i+1] = tmp.imagp[j]/s;
@@ -3607,3 +3606,164 @@ void pffft_RealFFT(CSOUND *csound,
     sig[i] = buf[i]/s;
 }
 #endif
+
+/* 
+  New FFT interface
+  VL, 2016
+*/
+typedef struct _FFT_SETUP{
+  int N;
+  int M;
+  void  *setup;
+  MYFLT *buffer;
+  int    lib;
+  int    d;
+} CSOUND_FFT_SETUP;
+
+
+static
+void pffft_execute(CSOUND_FFT_SETUP *setup,
+		   MYFLT *sig) {
+  int i, N = setup->N;
+  float s, *buf;
+  buf = (float *) setup->buffer;
+  for(i=0;i<N;i++)
+    buf[i] = sig[i];
+  pffft_transform_ordered((PFFFT_Setup *)
+			  setup->setup,
+			  buf,buf,NULL,setup->d);
+  s = (setup->d == PFFFT_BACKWARD ?
+       (MYFLT) setup->N : FL(1.0));
+  for(i=0;i<N;i++)
+    sig[i] = buf[i]/s;
+}
+
+static
+void vDSP_execute(CSOUND_FFT_SETUP *setup,
+		   MYFLT *sig){
+#ifdef USE_DOUBLE
+  DSPDoubleSplitComplex tmp;
+#else
+  DSPSplitComplex tmp;
+#endif
+  int i,j;
+  MYFLT s;
+  int N = setup->N;
+  tmp.realp = &setup->buffer[0];
+  tmp.imagp = &setup->buffer[N>>1];
+  for(i=j=0;i<N;i+=2,j++){
+    tmp.realp[j] = sig[i];
+    tmp.imagp[j] = sig[i+1];
+    }
+#ifdef USE_DOUBLE
+  vDSP_fft_zripD((FFTSetupD) setup->setup,
+		 &tmp, 1,
+		 setup->M,setup->d);
+#else
+  vDSP_fft_zrip((FFTSetup) setup->setup,
+		 &tmp, 1,
+		 setup->M,setup->d);
+#endif
+ s = (setup->d == -1 ? (MYFLT)(N) : FL(2.0));
+ for(i=j=0;i<N;i+=2,j++){
+    sig[i] = tmp.realp[j]/s;
+    sig[i+1] = tmp.imagp[j]/s;
+    }
+}
+
+
+#define ALIGN_BYTES 64
+static
+void *align_alloc(CSOUND *csound, size_t nb_bytes){  
+  void *p, *p0 = csound->Malloc(csound, nb_bytes + ALIGN_BYTES);
+  if(!p0) return (void *) 0;
+  p = (void *) (((size_t) p0 + ALIGN_BYTES)
+		& (~((size_t) (ALIGN_BYTES-1))));
+  *((void **) p - 1) = p0;
+  return p;
+}
+
+int setupDispose(CSOUND *csound, void *pp){
+  CSOUND_FFT_SETUP *setup =(CSOUND_FFT_SETUP *) pp;
+  switch(setup->lib){
+#ifdef __MACH__
+  case VDSP_LIB:
+    vDSP_destroy_fftsetupD(
+#ifdef USE_DOUBLE
+			   (FFTSetupD)			   
+#else
+			   (FFTSetup)			   
+#endif
+			   setup->setup);
+    break;
+#endif
+  case PFFT_LIB:
+    pffft_destroy_setup((PFFFT_Setup *)setup->setup);
+    break;
+  }
+  return OK;
+}
+
+void *csoundRealFFT2Setup(CSOUND *csound,
+			 int FFTsize,
+			 int d,
+			 int lib){
+  CSOUND_FFT_SETUP *setup;
+  setup = (CSOUND_FFT_SETUP *)
+    csound->Calloc(csound, sizeof(CSOUND_FFT_SETUP));
+  setup->N = FFTsize;
+  setup->M = ConvertFFTSize(csound, FFTsize);
+  setup->buffer = (MYFLT *) align_alloc(csound, sizeof(MYFLT)*FFTsize);
+  switch(lib){
+#ifdef __MACH__
+  case VDSP_LIB:
+    setup->setup = (void *)
+      vDSP_create_fftsetupD(setup->M,kFFTRadix2);
+      setup->d = (d ==  FFT_FWD ?
+		kFFTDirection_Forward :
+		kFFTDirection_Inverse); 
+    setup->lib = lib;
+    break;
+#endif
+  case PFFT_LIB:
+    setup->setup = (void *)
+      pffft_new_setup(FFTsize,PFFFT_REAL);
+    setup->d = (d ==  FFT_FWD ?
+	        PFFFT_FORWARD :
+		PFFFT_BACKWARD);
+    setup->lib = lib;
+    break;
+  default:
+    setup->lib = 0;  
+  }
+  csound->RegisterResetCallback(csound, (void*) setup,
+				(int (*)(CSOUND *, void *))
+				setupDispose);
+  return (void *) setup;
+}
+
+void csoundRealFFT2(CSOUND *csound,
+		     void   *p, MYFLT *sig){
+
+  CSOUND_FFT_SETUP *setup =
+        (CSOUND_FFT_SETUP *) p;
+  switch(setup->lib) {
+#ifdef __MACH__
+  case VDSP_LIB:
+    vDSP_execute(setup,sig);
+    break;
+#endif
+  case PFFT_LIB:
+    pffft_execute(setup,sig);
+    break;
+  default:
+    (setup->d == FFT_FWD ?
+       csoundRealFFT(csound,
+		     sig,
+		     setup->N) :  
+      csoundInverseRealFFT(csound,
+		     sig,setup->N));       
+    setup->lib = 0; 
+  }
+}
+
