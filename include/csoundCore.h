@@ -1724,7 +1724,7 @@ typedef struct NAME__ {
 #endif
 #endif
     MYFLT       *vdsp_buffer;
-    PFFFT_Setup  *setup;    
+    PFFFT_Setup  *setup[32];    
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

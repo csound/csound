@@ -3289,7 +3289,7 @@ void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 void csoundRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
 
-if(csound->oparms->numThreads > 1 || FFTsize <= 16){
+  if(csound->oparms->numThreads > 1 || FFTsize <= 16){
     MYFLT *Utbl;
     int16 *BRLow;
     int   M;
@@ -3564,27 +3564,29 @@ void vDSP_RealFFT_New(CSOUND *csound,int FFTsize,MYFLT *sig,
 #else /* HAVE_VECLIB */
 int pffft_reset(CSOUND *csound, void *pp){
   IGN(pp);
-  pffft_destroy_setup(csound->setup);
+  int i;
+  for(i=0; i < 32; i++)
+    if(csound->setup[i]) pffft_destroy_setup(csound->setup[i]);
   pffft_aligned_free(csound->vdsp_buffer);
   return OK;
 }
 
 /* create setup if setup does not exist */
 static
-void pffft_setup(CSOUND *csound, int FFTsize){
+void pffft_setup(CSOUND *csound, int FFTsize, int M){
   if(csound->FFT_max_size != FFTsize){
-    if(csound->setup != NULL)
-      pffft_destroy_setup(csound->setup);
-    else
+    if(csound->FFT_max_size == 0)
       csound->RegisterResetCallback(csound, (void*) NULL,
-				    (int (*)(CSOUND *, void *)) pffft_reset); 
-    csound->setup = pffft_new_setup(FFTsize,PFFFT_REAL);
+				    (int (*)(CSOUND *, void *)) pffft_reset);
+    if(csound->setup[M] == NULL)
+       csound->setup[M] = pffft_new_setup(FFTsize,PFFFT_REAL);
     if(csound->FFT_max_size < FFTsize) {
       pffft_aligned_free(csound->vdsp_buffer);
       csound->vdsp_buffer = (MYFLT *) pffft_aligned_malloc(FFTsize*(sizeof(float)));
+      memset(csound->vdsp_buffer,0, FFTsize*(sizeof(float)));
+      csound->FFT_max_size = FFTsize;
     }
   }
-  csound->FFT_max_size = FFTsize;
 }
 
 static
@@ -3593,12 +3595,12 @@ void pffft_RealFFT(CSOUND *csound,
 		   int d){
   int i;
   float s, *buf;
- 
-  pffft_setup(csound, FFTsize);
+  int M = ConvertFFTSize(csound, FFTsize);
+  pffft_setup(csound, FFTsize, M);
   buf = (float *)csound->vdsp_buffer;
   for(i=0;i<FFTsize;i++)
     buf[i] = sig[i];
-  pffft_transform_ordered(csound->setup,
+  pffft_transform_ordered(csound->setup[M],
 			  buf,buf,NULL,d);
   s = (d == PFFFT_BACKWARD ? (MYFLT)FFTsize : FL(1.0));
   for(i=0;i<FFTsize;i++)
