@@ -1172,16 +1172,16 @@ typedef struct _player {
 #ifdef HAVE_NEON
   PFFFT_Setup *setup;
   float *bw,*fw;
+#else
+  void *fwdsetup, *invsetup;
 #endif
 } PLAYER;
 
 int mp3dec_cleanup_player(CSOUND *csound,  PLAYER  *p)
 {
-  //csound->Message(csound, "cleanup \n");
   while(p->p->lock)
     usleep(1000);
   pthread_join(p->p->t1, NULL);
-  //csound->Message(csound, "cleanup joined \n");
   if (p->p->mpa != NULL)
     mp3dec_uninit(p->p->mpa);
     p->p->mpa = NULL;
@@ -1210,7 +1210,11 @@ static int player_init(CSOUND *csound, PLAYER *p){
   p->setup = pffft_new_setup(p->p->N,PFFFT_REAL);
   p->bw = pffft_aligned_malloc(p->p->N*sizeof(float));
   p->fw = pffft_aligned_malloc(p->p->N*sizeof(float));
-#endif
+#else
+  while(!p->p->N) usleep(1000);
+  p->fwdsetup = csound->RealFFT2Setup(csound,p->p->N,FFT_FWD);
+  p->invsetup = csound->RealFFT2Setup(csound,p->p->N,FFT_INV);
+#endif  
   return OK;
 }
 
@@ -1492,8 +1496,8 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	  bwin[N] = bw[1];
 	  fwin[N] = fw[1];
 #else
-	csound->RealFFT(csound, bwin, N);
-	csound->RealFFT(csound, fwin, N);
+	csound->RealFFT2(csound, pp->fwdsetup, bwin);
+	csound->RealFFT2(csound, pp->fwdsetup, fwin);
 #endif
 	bwin[N] = bwin[1];
 	bwin[N+1] = FL(0.0);
@@ -1537,7 +1541,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 	for(i=0; i < N+2; i++)
 	   fwin[i] = prev[i];
         fwin[1] = fwin[N];
-	csound->InverseRealFFT(csound, fwin, N);
+	csound->RealFFT2(csound, pp->invsetup, fwin);
 #endif
 	}     
 	framecnt[curframe] = curframe*N;

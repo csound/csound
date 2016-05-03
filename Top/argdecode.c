@@ -289,6 +289,7 @@ static const char *longUsageList[] = {
   Str_noop("--midi-devices[=in|out] \t\t list available audio devices and exit"),
   Str_noop("--get-system-sr \t\t print system sr and exit"),
   Str_noop("--ksmps=N \t\t override ksmps"),
+  Str_noop("--fftlib=N \t\t real fft lib to use (FFTLIB=0, PFFFT = 1, vDSP =2)"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -1014,6 +1015,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     else if (!(strncmp(s, "port=",5))) {
       s += 5;
       O->daemon = atoi(s);
+      return 1;
+    }
+    else if (!(strncmp(s, "fftlib=",7))) {
+      s += 7;
+      O->fft_lib = atoi(s);
       return 1;
     }
     else if (!(strncmp(s, "vbr-quality=",12))) {

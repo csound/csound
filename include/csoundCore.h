@@ -43,11 +43,6 @@
 #include "pools.h"
 #include "pffft.h"
 
-#ifdef HAVE_VECLIB
-/* vDSP FFT implementation */
-#include <Accelerate/Accelerate.h>
-#endif
-
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
 #if defined(__SSE__) && !defined(EMSCRIPTEN)
@@ -247,6 +242,7 @@ enum {FFT_FWD=0, FFT_INV};
     int     daemon;
     double  quality;        /* for ogg encoding */
     int     ksmps_override;
+    int     fft_lib;
   } OPARMS;
 
   typedef struct arglst {
@@ -1308,8 +1304,8 @@ typedef struct NAME__ {
     int  (*ISSTRCOD)(MYFLT);
     void *(*RealFFT2Setup)(CSOUND *csound,
 			 int FFTsize,
-			 int d, int lib);
-    void (*csoundRealFFT2)(CSOUND *csound,
+			 int d);
+    void (*RealFFT2)(CSOUND *csound,
 			   void *p, MYFLT *sig);
        /**@}*/
     /** @name Placeholders
@@ -1719,20 +1715,7 @@ typedef struct NAME__ {
                                and nodebug function */
     int           score_parser;
     CS_HASH_TABLE* symbtab;
-    int           tseglen;
-#ifdef HAVE_VECLIB
-#ifdef USE_DOUBLE
-    FFTSetupD    vdsp_setup;
-    vDSP_DFT_SetupD vdsp_setup_fwd;
-    vDSP_DFT_SetupD vdsp_setup_inv;
-#else
-    FFTSetup    vdsp_setup;
-    vDSP_DFT_Setup vdsp_setup_fwd;
-    vDSP_DFT_Setup vdsp_setup_inv;
-#endif
-#endif
-    MYFLT       *vdsp_buffer;
-    PFFFT_Setup  *setup[32];    
+    int           tseglen;   
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

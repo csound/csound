@@ -125,11 +125,10 @@ extern "C" {
    *          but should be even and not have too many factors.
    * d:       direction (FFT_FWD or FFT_INV). Scaling by 1/FFTsize is done on
    *          the inverse direction (as with the other RealFFT functions above). 
-   * lib:     implementation library (FFT_LIB, PFFFT_LIB or VDSP_LIB)
    *
    *  returns: a pointer to the FFT setup.
    */
-  void *csoundRealFFT2Setup(CSOUND *csound, int FFTsize, int d, int lib);
+  void *csoundRealFFT2Setup(CSOUND *csound, int FFTsize, int d);
   
    /**
    * New Real FFT interface
