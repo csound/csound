@@ -16,7 +16,9 @@ following operating systems
 
 -   [Windows 32/64 bit using MYSYS (recommended)](#msys2)
 
--   [Windows (Mingw32)](#mingw32)   
+-   [Windows (Mingw32)](#mingw32) 
+
+-   [Android](#android)  
 
 Instructions for RPI compiled by Dominic Melville contact via dcamelville at gmail.com
 for amendments and updates
@@ -610,4 +612,42 @@ Download and install cmake
 Run cmake from the csound dir and configure Csound to build using MinGW Makefiles. For this minimal you'll need to disable quite a few features.
 Run generate.
 cd to csound build directory and run mingw32-make
- 
+
+Android <a name="android">
+-------------- 
+
+Requirements
+
+1. SWIG (www.swig.org)
+2. libsndfile sources for android (https://bitbucket.org/kunstmusik/libsndfile-android.git)
+3. boost (www.boost.org)
+4. Android NDK
+
+### Steps
+
+1. Download, build and install SWIG (or install from your distro package system)
+2. Clone the libsndfile sources for android repo,e.g.:
+
+ $ cd $HOME
+ $ mkdir android
+ $ cd android
+ $ git clone https://bitbucket.org/kunstmusik/libsndfile-android.git
+
+3. Set the ANDROID_NDK_MODULE variable to point to the top directory
+where the libsndfile sources are located,e.g.
+
+ $ export ANDROID_NDK_MODULE=$HOME/android
+
+4. Download boost and install the headers only in your include path (e.g. /usr/local/include)
+5. Download the Android NDK and place it somewhere (e.g. $HOME), set the ANDROID_NDK_ROOT
+to point to it
+
+ $ export ANDROID_NDK_ROOT=$HOME
+
+5. Get Csound, and go to the ./android/CsoundAndroid directory, run
+
+  $ sh build.sh
+
+The Java files and NDK libraries will be under CsoundAndroid.
+
+
