@@ -137,13 +137,16 @@ static int ps_init(CSOUND* csound, PAULSTRETCH *p)
 
     /* Create Hann window */
     for (i = 0; i < p->windowsize; i++) {
-      p->window[i] = 0.5 - cos(i * 2.0 * M_PI / (p->windowsize - 1)) * 0.5;
+      p->window[i] = FL(0.5) - COS(i * TWOPI_F / (p->windowsize - 1)) * FL(0.5);
     }
     /* create inverse Hann window */
-    MYFLT hinv_sqrt2 = (1 + sqrt(0.5)) * 0.5;
-    for (i = 0; i < p->half_windowsize; i++) {
-      p->hinv_buf[i] =
-        hinv_sqrt2 - (FL(1.0) - hinv_sqrt2) * COS(i * TWOPI_F / p->half_windowsize);
+    {
+      MYFLT hinv_sqrt2 = (1 + SQRT(FL(0.5))) * FL(0.5);
+      for (i = 0; i < p->half_windowsize; i++) {
+        p->hinv_buf[i] =
+          hinv_sqrt2 - (FL(1.0) - hinv_sqrt2) *
+          COS(i * TWOPI_F / p->half_windowsize);
+      }
     }
     p->start_pos = FL(0.0);
     p->counter = 0;
