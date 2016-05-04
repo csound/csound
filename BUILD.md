@@ -641,7 +641,9 @@ where the libsndfile sources are located,e.g.
 
  $ export ANDROID_NDK_MODULE=$HOME/android
 
-4. Download boost and install the headers only in your include path (e.g. /usr/local/include)
+4. Download boost and install (headers only) in your include path (e.g. /usr/local/include). There is
+no need to build the library.
+
 5. Download the Android NDK and place it somewhere (e.g. $HOME), set the ANDROID_NDK_ROOT
 to point to it
 
