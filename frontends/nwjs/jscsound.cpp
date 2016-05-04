@@ -86,50 +86,6 @@ static boost::lockfree::queue<ScoreEvent *, boost::lockfree::fixed_sized<false> 
 #endif
 
 /**
- * This is provided so that the developer may verify that
- * the "csound" object exists in his or her JavaScript context.
- */
-void hello(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    char buffer[0x100];
-    std::sprintf(buffer, "Hello, world! This is Csound 0x%p.", csound_);
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, buffer));
-}
-
-void getVersion(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    int version = csoundGetVersion();
-    args.GetReturnValue().Set(Number::New(isolate, version));
-}
-
-/**
- * Sets the value of one Csound option. Spaces are not permitted.
- */
-void setOption(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    v8::String::Utf8Value option(args[0]->ToString());
-    int result = csoundSetOption(csound_, *option);
-    args.GetReturnValue().Set(Number::New(isolate, result));
-}
-
-/**
- * Runs arbitrary JavaScript code in the caller's context.
- */
-double run_javascript(Isolate *isolate, std::string code)
-{
-    Handle<String> source = String::NewFromUtf8(isolate, code.c_str());
-    Handle<Script> script = Script::Compile(source);
-    Handle<Value> result = script->Run();
-    return result->NumberValue();
-}
-
-/**
  * Compiles the CSD file.
  */
 void compileCsd(const FunctionCallbackInfo<Value>& args)
@@ -157,6 +113,32 @@ void compileOrc(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
+static Persistent<Function, CopyablePersistentTraits<Function>> console_function(Isolate *isolate)
+{
+    static Persistent<Function, CopyablePersistentTraits<Function>> function;
+    static bool initialized = false;
+    if (initialized == false) {
+        initialized = true;
+        auto code = String::NewFromUtf8(isolate, "(function(arg) {\n\
+            console.log(arg);\n\
+        })");
+        auto result = Script::Compile(code)->Run();
+        auto function_handle = Handle<Function>::Cast(result);
+        function.Reset(isolate, function_handle);
+    }
+    return function;
+}
+
+void csoundMessageCallback_(CSOUND *csound_, int attr, const char *format, va_list valist)
+{
+    char buffer[0x1000];
+    std::vsprintf(buffer, format, valist);
+    // Actual data...
+    csound_messages_queue.push(strdup(buffer));
+    // ... and notification that data is ready.
+    uv_async_send(&uv_csound_message_async);
+}
+
 /**
  * Evaluates the orchestra code as an expression, and returns its value
  * as a number.
@@ -167,6 +149,156 @@ void evalCode(const FunctionCallbackInfo<Value>& args)
     HandleScope scope(isolate);
     v8::String::Utf8Value orchestraCode(args[0]->ToString());
     double result = csoundEvalCode(csound_, *orchestraCode);
+    args.GetReturnValue().Set(Number::New(isolate, result));
+}
+
+/**
+ * Returns the numerical value of the named Csound control channel.
+ */
+void getControlChannel(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    v8::String::Utf8Value channelName(args[0]->ToString());
+    int result = 0;
+    double value = csoundGetControlChannel(csound_, *channelName, &result);
+    args.GetReturnValue().Set(Number::New(isolate, value));
+}
+
+/**
+ * Returns the current number of sample frames per kperiod
+ * in the current Csound performance.
+ */
+void getKsmps(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    double value = csoundGetKsmps(csound_);
+    args.GetReturnValue().Set(Number::New(isolate, value));
+}
+
+/**
+ * Returns the number of audio output channels
+ * in the current Csound performance.
+ */
+void getNchnls(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    double value = csoundGetNchnls(csound_);
+    args.GetReturnValue().Set(Number::New(isolate, value));
+}
+
+/**
+ * Returns Csound's current sampling rate.
+ */
+void getSr(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    double value = csoundGetSr(csound_);
+    args.GetReturnValue().Set(Number::New(isolate, value));
+}
+
+/**
+ * Returns the time in seconds from the beginning of performance.
+ */
+void getScoreTime(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    double value = csoundGetScoreTime(csound_);
+    args.GetReturnValue().Set(Number::New(isolate, value));
+}
+
+void getVersion(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    int version = csoundGetVersion();
+    args.GetReturnValue().Set(Number::New(isolate, version));
+}
+
+/**
+ * This is provided so that the developer may verify that
+ * the "csound" object exists in his or her JavaScript context.
+ */
+void hello(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    char buffer[0x100];
+    std::sprintf(buffer, "Hello, world! This is Csound 0x%p.", csound_);
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, buffer));
+}
+
+/**
+ * Evaluates the string of text, which may main contain multiple lines,
+ * as a Csound score for immediate performance. The score is assumed
+ * to be presorted.
+ */
+void inputMessage(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    v8::String::Utf8Value scoreLines(args[0]->ToString());
+    csound_score_queue.push(strdup(*scoreLines));
+    args.GetReturnValue().Set(Number::New(isolate, 0));
+}
+
+/**
+ * Returns 1 if Csound is currently playing (synthesizing score
+ * events, or 0 otherwise.
+ */
+void isPlaying(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    bool playing = ((stop_playing == false) && (finished == false));
+    args.GetReturnValue().Set(Number::New(isolate, playing) );
+}
+
+void isScorePending(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    bool is_pending = csoundIsScorePending(csound_);
+    args.GetReturnValue().Set(Boolean::New(isolate, is_pending));
+}
+
+/**
+ * Sends text as a message to Csound, for printing if printing is enabled.
+ */
+void message(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    v8::String::Utf8Value text(args[0]->ToString());
+    csoundMessage(csound_, *text);
+}
+
+void on_exit()
+{
+    uv_close((uv_handle_t *)&uv_csound_message_async, 0);
+}
+
+void pause(const FunctionCallbackInfo<Value>& args)
+{
+    paused = true;
+}
+
+void uv_csound_perform_thread_routine(void * arg);
+
+/**
+ * Begins performing the score and/or producing audio.
+ * It is first necessary to call compileCsd(pathname) or compileOrc(text).
+ * Returns the native handle of the performance thread.
+ */
+void perform(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    int result = uv_thread_create(&uv_csound_perform_thread, uv_csound_perform_thread_routine, csound_);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -184,34 +316,9 @@ void readScore(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
-/**
- * Evaluates the string of text, which may main contain multiple lines,
- * as a Csound score for immediate performance. The score is assumed
- * to be presorted.
- */
-void inputMessage(const FunctionCallbackInfo<Value>& args)
+void resume(const FunctionCallbackInfo<Value>& args)
 {
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    v8::String::Utf8Value scoreLines(args[0]->ToString());
-    csound_score_queue.push(strdup(*scoreLines));
-    args.GetReturnValue().Set(Number::New(isolate, 0));
-}
-
-void isScorePending(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    bool is_pending = csoundIsScorePending(csound_);
-    args.GetReturnValue().Set(Boolean::New(isolate, is_pending));
-}
-
-void setScorePending(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    bool is_pending = args[0]->BooleanValue();
-    csoundSetScorePending(csound_, is_pending);
+    paused = false;
 }
 
 void rewindScore(const FunctionCallbackInfo<Value>& args)
@@ -221,14 +328,15 @@ void rewindScore(const FunctionCallbackInfo<Value>& args)
     csoundRewindScore(csound_);
 }
 
-void pause(const FunctionCallbackInfo<Value>& args)
+/**
+ * Runs arbitrary JavaScript code in the caller's context.
+ */
+double run_javascript(Isolate *isolate, std::string code)
 {
-    paused = true;
-}
-
-void resume(const FunctionCallbackInfo<Value>& args)
-{
-    paused = false;
+    Handle<String> source = String::NewFromUtf8(isolate, code.c_str());
+    Handle<Script> script = Script::Compile(source);
+    Handle<Value> result = script->Run();
+    return result->NumberValue();
 }
 
 /**
@@ -269,54 +377,31 @@ void setControlChannel(const FunctionCallbackInfo<Value>& args)
 }
 
 /**
- * Returns the numerical value of the named Csound control channel.
+ * Sets the value of one Csound option. Spaces are not permitted.
  */
-void getControlChannel(const FunctionCallbackInfo<Value>& args)
+void setOption(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    v8::String::Utf8Value channelName(args[0]->ToString());
-    int result = 0;
-    double value = csoundGetControlChannel(csound_, *channelName, &result);
-    args.GetReturnValue().Set(Number::New(isolate, value));
+    v8::String::Utf8Value option(args[0]->ToString());
+    int result = csoundSetOption(csound_, *option);
+    args.GetReturnValue().Set(Number::New(isolate, result));
+}
+
+void setScorePending(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    bool is_pending = args[0]->BooleanValue();
+    csoundSetScorePending(csound_, is_pending);
 }
 
 /**
- * Returns the time in seconds from the beginning of performance.
+ * Stops any ongoing Csound performance.
  */
-void getScoreTime(const FunctionCallbackInfo<Value>& args)
+void stop(const FunctionCallbackInfo<Value>& args)
 {
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    double value = csoundGetScoreTime(csound_);
-    args.GetReturnValue().Set(Number::New(isolate, value));
-}
-
-/**
- * Sends text as a message to Csound, for printing if printing is enabled.
- */
-void message(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    v8::String::Utf8Value text(args[0]->ToString());
-    csoundMessage(csound_, *text);
-}
-
-static Persistent<Function, CopyablePersistentTraits<Function>> console_function(Isolate *isolate)
-{
-    static Persistent<Function, CopyablePersistentTraits<Function>> function;
-    static bool initialized = false;
-    if (initialized == false) {
-        initialized = true;
-        auto code = String::NewFromUtf8(isolate, "(function(arg) {\n\
-            console.log(arg);\n\
-        })");
-        auto result = Script::Compile(code)->Run();
-        auto function_handle = Handle<Function>::Cast(result);
-        function.Reset(isolate, function_handle);
-    }
-    return function;
+    stop_playing = true;
 }
 
 void uv_csound_message_callback(uv_async_t *handle)
@@ -334,63 +419,6 @@ void uv_csound_message_callback(uv_async_t *handle)
         local_function->Call(isolate->GetCurrentContext()->Global(), 1, args);
         std::free(message);
     }
-}
-
-void csoundMessageCallback_(CSOUND *csound_, int attr, const char *format, va_list valist)
-{
-    char buffer[0x1000];
-    std::vsprintf(buffer, format, valist);
-    // Actual data...
-    csound_messages_queue.push(strdup(buffer));
-    // ... and notification that data is ready.
-    uv_async_send(&uv_csound_message_async);
-}
-
-/**
- * Returns Csound's current sampling rate.
- */
-void getSr(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    double value = csoundGetSr(csound_);
-    args.GetReturnValue().Set(Number::New(isolate, value));
-}
-
-/**
- * Returns the current number of sample frames per kperiod
- * in the current Csound performance.
- */
-void getKsmps(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    double value = csoundGetKsmps(csound_);
-    args.GetReturnValue().Set(Number::New(isolate, value));
-}
-
-/**
- * Returns the number of audio output channels
- * in the current Csound performance.
- */
-void getNchnls(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    double value = csoundGetNchnls(csound_);
-    args.GetReturnValue().Set(Number::New(isolate, value));
-}
-
-/**
- * Returns 1 if Csound is currently playing (synthesizing score
- * events, or 0 otherwise.
- */
-void isPlaying(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    bool playing = ((stop_playing == false) && (finished == false));
-    args.GetReturnValue().Set(Number::New(isolate, playing) );
 }
 
 void uv_csound_perform_thread_routine(void * arg)
@@ -441,38 +469,11 @@ void uv_csound_perform_thread_routine(void * arg)
     }
 }
 
-/**
- * Begins performing the score and/or producing audio.
- * It is first necessary to call compileCsd(pathname) or compileOrc(text).
- * Returns the native handle of the performance thread.
- */
-void perform(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    int result = uv_thread_create(&uv_csound_perform_thread, uv_csound_perform_thread_routine, csound_);
-    args.GetReturnValue().Set(Number::New(isolate, result));
-}
-
-/**
- * Stops any ongoing Csound performance.
- */
-void stop(const FunctionCallbackInfo<Value>& args)
-{
-    stop_playing = true;
-}
-
-void on_exit()
-{
-    uv_close((uv_handle_t *)&uv_csound_message_async, 0);
-}
-
 void init(Handle<Object> target)
 {
     csound_ = csoundCreate(0);
     csoundSetMessageCallback(csound_, csoundMessageCallback_);
     // Keep these in alphabetical order.
-    NODE_SET_METHOD(target, "hello", hello);
     NODE_SET_METHOD(target, "compileCsd", compileCsd);
     NODE_SET_METHOD(target, "compileOrc", compileOrc);
     NODE_SET_METHOD(target, "getControlChannel", getControlChannel);
@@ -481,6 +482,7 @@ void init(Handle<Object> target)
     NODE_SET_METHOD(target, "getScoreTime", getScoreTime);
     NODE_SET_METHOD(target, "getSr", getSr);
     NODE_SET_METHOD(target, "getVersion", getVersion);
+    NODE_SET_METHOD(target, "hello", hello);
     NODE_SET_METHOD(target, "inputMessage", inputMessage);
     NODE_SET_METHOD(target, "isPlaying", isPlaying);
     NODE_SET_METHOD(target, "isScorePending", isScorePending);
