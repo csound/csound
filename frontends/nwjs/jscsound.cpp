@@ -39,6 +39,7 @@
 
 // Must do this on Windows: https://connect.microsoft.com/VisualStudio/feedback/details/811347/compiling-vc-12-0-with-has-exceptions-0-and-including-concrt-h-causes-a-compiler-error
 
+//#include <Csound.hxx>
 #include <csound.h>
 #include <cstdlib>
 #include <fstream>
@@ -50,7 +51,7 @@
 #include <vector>
 #include <uv.h>
 #include <v8.h>
-#if defined(WIN32)
+#if defined(_MSC_VER)
 #include <concurrent_queue.h>
 #else
 #include <boost/lockfree/queue.hpp>
@@ -58,21 +59,23 @@
 
 using namespace v8;
 
-static CSOUND* csound = 0;
+static CSOUND* csound_ = 0;
 static bool stop_playing = true;
 static bool finished = true;
+static bool paused = false;
 static char *orc = 0;
 static char *sco = 0;
 static uv_thread_t uv_csound_perform_thread;
 static uv_async_t uv_csound_message_async;
 
-struct ScoreEvent
-{
+//static csound::CSound Csound;
+
+struct ScoreEvent {
     char opcode;
     std::vector<MYFLT> pfields;
 };
 
-#if defined(WIN32)
+#if defined(_MSC_VER)
 static concurrency::concurrent_queue<char *> csound_messages_queue;
 static concurrency::concurrent_queue<char *> csound_score_queue;
 static concurrency::concurrent_queue<ScoreEvent *> csound_event_queue;
@@ -91,7 +94,7 @@ void hello(const FunctionCallbackInfo<Value>& args)
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     char buffer[0x100];
-    std::sprintf(buffer, "Hello, world! This is Csound 0x%p.", csound);
+    std::sprintf(buffer, "Hello, world! This is Csound 0x%p.", csound_);
     args.GetReturnValue().Set(String::NewFromUtf8(isolate, buffer));
 }
 
@@ -111,7 +114,7 @@ void setOption(const FunctionCallbackInfo<Value>& args)
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     v8::String::Utf8Value option(args[0]->ToString());
-    int result = csoundSetOption(csound, *option);
+    int result = csoundSetOption(csound_, *option);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -133,10 +136,10 @@ void compileCsd(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    //csoundCreateMessageBuffer(csound, 1);
+    //csoundCreateMessageBuffer(csound_, 1);
     int result = 0;
     v8::String::Utf8Value csd_path(args[0]->ToString());
-    result = csoundCompileCsd(csound, *csd_path);
+    result = csoundCompileCsd(csound_, *csd_path);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -147,10 +150,10 @@ void compileOrc(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    //csoundCreateMessageBuffer(csound, 1);
+    //csoundCreateMessageBuffer(csound_, 1);
     v8::String::Utf8Value orchestraCode(args[0]->ToString());
     orc = strdup(*orchestraCode);
-    int result = csoundCompileOrc(csound, orc);
+    int result = csoundCompileOrc(csound_, orc);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -163,7 +166,7 @@ void evalCode(const FunctionCallbackInfo<Value>& args)
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     v8::String::Utf8Value orchestraCode(args[0]->ToString());
-    double result = csoundEvalCode(csound, *orchestraCode);
+    double result = csoundEvalCode(csound_, *orchestraCode);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -195,8 +198,41 @@ void inputMessage(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Number::New(isolate, 0));
 }
 
+void isScorePending(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    bool is_pending = csoundIsScorePending(csound_);
+    args.GetReturnValue().Set(Boolean::New(isolate, is_pending));
+}
+
+void setScorePending(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    bool is_pending = args[0]->BooleanValue();
+    csoundSetScorePending(csound_, is_pending);
+}
+
+void rewindScore(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    csoundRewindScore(csound_);
+}
+
+void pause(const FunctionCallbackInfo<Value>& args)
+{
+    paused = true;
+}
+
+void resume(const FunctionCallbackInfo<Value>& args)
+{
+    paused = false;
+}
+
 /**
- * Evaluates a single score event, sent as opcode and pfields,
+ * Evaluates a singisle score event, sent as opcode and pfields,
  * relative to the current performance time. The number of pfields
  * is read from the length of the array, not from the Csound API
  * parameter.
@@ -212,16 +248,13 @@ void scoreEvent(const FunctionCallbackInfo<Value>& args)
     event->opcode = opcode_[0];
     v8::Local<v8::Array> javascript_pfields = v8::Local<v8::Array>::Cast(args[1]);
     int javascript_pfields_count = javascript_pfields->Length();
-    for(int i = 0; i < javascript_pfields_count; i++)
-    {
+    for(int i = 0; i < javascript_pfields_count; i++) {
         v8::Local<v8::Value> element = javascript_pfields->Get(i);
         event->pfields.push_back(element->NumberValue());
     }
     csound_event_queue.push(event);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
-
-
 
 /**
  * Sets the numerical value of the named Csound control channel.
@@ -232,7 +265,7 @@ void setControlChannel(const FunctionCallbackInfo<Value>& args)
     HandleScope scope(isolate);
     v8::String::Utf8Value channelName(args[0]->ToString());
     double value = args[1]->ToNumber()->Value();
-    csoundSetControlChannel(csound, *channelName, value);
+    csoundSetControlChannel(csound_, *channelName, value);
 }
 
 /**
@@ -244,7 +277,7 @@ void getControlChannel(const FunctionCallbackInfo<Value>& args)
     HandleScope scope(isolate);
     v8::String::Utf8Value channelName(args[0]->ToString());
     int result = 0;
-    double value = csoundGetControlChannel(csound, *channelName, &result);
+    double value = csoundGetControlChannel(csound_, *channelName, &result);
     args.GetReturnValue().Set(Number::New(isolate, value));
 }
 
@@ -255,7 +288,7 @@ void getScoreTime(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    double value = csoundGetScoreTime(csound);
+    double value = csoundGetScoreTime(csound_);
     args.GetReturnValue().Set(Number::New(isolate, value));
 }
 
@@ -267,7 +300,7 @@ void message(const FunctionCallbackInfo<Value>& args)
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     v8::String::Utf8Value text(args[0]->ToString());
-    csoundMessage(csound, *text);
+    csoundMessage(csound_, *text);
 }
 
 static Persistent<Function, CopyablePersistentTraits<Function>> console_function(Isolate *isolate)
@@ -291,7 +324,7 @@ void uv_csound_message_callback(uv_async_t *handle)
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     char *message;
-#if defined(WIN32)
+#if defined(_MSC_VER)
     while (csound_messages_queue.try_pop(message)) {
 #else
     while (csound_messages_queue.pop(message)) {
@@ -303,7 +336,7 @@ void uv_csound_message_callback(uv_async_t *handle)
     }
 }
 
-void csoundMessageCallback_(CSOUND *csound, int attr, const char *format, va_list valist)
+void csoundMessageCallback_(CSOUND *csound_, int attr, const char *format, va_list valist)
 {
     char buffer[0x1000];
     std::vsprintf(buffer, format, valist);
@@ -320,7 +353,7 @@ void getSr(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    double value = csoundGetSr(csound);
+    double value = csoundGetSr(csound_);
     args.GetReturnValue().Set(Number::New(isolate, value));
 }
 
@@ -332,7 +365,7 @@ void getKsmps(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    double value = csoundGetKsmps(csound);
+    double value = csoundGetKsmps(csound_);
     args.GetReturnValue().Set(Number::New(isolate, value));
 }
 
@@ -344,7 +377,7 @@ void getNchnls(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    double value = csoundGetNchnls(csound);
+    double value = csoundGetNchnls(csound_);
     args.GetReturnValue().Set(Number::New(isolate, value));
 }
 
@@ -362,42 +395,44 @@ void isPlaying(const FunctionCallbackInfo<Value>& args)
 
 void uv_csound_perform_thread_routine(void * arg)
 {
-    csoundMessage(csound, "Began JavaScript perform()...\n");
-    csoundStart(csound);
+    csoundMessage(csound_, "Began JavaScript perform()...\n");
+    csoundStart(csound_);
     int result = 0;
     ScoreEvent *event = 0;
     char *score_text = 0;
-    for (stop_playing = false, finished = false;
+    for (stop_playing = false, finished = false, paused = false;
             ((stop_playing == false) && (finished == false)); ) {
-#if defined(WIN32)
-        while (csound_event_queue.try_pop(event)) {
+        if (paused == false) {
+#if defined(_MSC_VER)
+            while (csound_event_queue.try_pop(event)) {
 #else
-        while (csound_event_queue.pop(event)) {
+            while (csound_event_queue.pop(event)) {
 #endif
-            csoundScoreEvent(csound, event->opcode, event->pfields.data(), event->pfields.size());
-            delete event;
-        }
-#if defined(WIN32)
-        while (csound_score_queue.try_pop(score_text)) {
+                csoundScoreEvent(csound_, event->opcode, event->pfields.data(), event->pfields.size());
+                delete event;
+            }
+#if defined(_MSC_VER)
+            while (csound_score_queue.try_pop(score_text)) {
 #else
-        while (csound_score_queue.pop(score_text)) {
+            while (csound_score_queue.pop(score_text)) {
 #endif
-            csoundReadScore(csound, score_text);
-            free(score_text);
+                csoundReadScore(csound_, score_text);
+                free(score_text);
+            }
+            finished = csoundPerformKsmps(csound_);
         }
-        finished = csoundPerformKsmps(csound);
     }
-    csoundMessage(csound, "Ended JavaScript perform(), cleaning up now.\n");
-    result = csoundCleanup(csound);
-    csoundReset(csound);
-#if defined(WIN32)
+    csoundMessage(csound_, "Ended JavaScript perform(), cleaning up now.\n");
+    result = csoundCleanup(csound_);
+    csoundReset(csound_);
+#if defined(_MSC_VER)
     while (csound_event_queue.try_pop(event)) {
 #else
     while (csound_event_queue.pop(event)) {
 #endif
         delete event;
     }
-#if defined(WIN32)
+#if defined(_MSC_VER)
     while (csound_score_queue.try_pop(score_text)) {
 #else
     while (csound_score_queue.pop(score_text)) {
@@ -415,7 +450,7 @@ void perform(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    int result = uv_thread_create(&uv_csound_perform_thread, uv_csound_perform_thread_routine, csound);
+    int result = uv_thread_create(&uv_csound_perform_thread, uv_csound_perform_thread_routine, csound_);
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -434,26 +469,31 @@ void on_exit()
 
 void init(Handle<Object> target)
 {
-    csound = csoundCreate(0);
-    csoundSetMessageCallback(csound, csoundMessageCallback_);
+    csound_ = csoundCreate(0);
+    csoundSetMessageCallback(csound_, csoundMessageCallback_);
+    // Keep these in alphabetical order.
     NODE_SET_METHOD(target, "hello", hello);
-    NODE_SET_METHOD(target, "getVersion", getVersion);
-    NODE_SET_METHOD(target, "setOption", setOption);
     NODE_SET_METHOD(target, "compileCsd", compileCsd);
     NODE_SET_METHOD(target, "compileOrc", compileOrc);
-    NODE_SET_METHOD(target, "evalCode", evalCode);
-    NODE_SET_METHOD(target, "readScore", readScore);
-    NODE_SET_METHOD(target, "inputMessage", inputMessage);
-    NODE_SET_METHOD(target, "scoreEvent", scoreEvent);
-    NODE_SET_METHOD(target, "setControlChannel", setControlChannel);
     NODE_SET_METHOD(target, "getControlChannel", getControlChannel);
-    NODE_SET_METHOD(target, "message", message);
-    NODE_SET_METHOD(target, "getSr", getSr);
     NODE_SET_METHOD(target, "getKsmps", getKsmps);
     NODE_SET_METHOD(target, "getNchnls", getNchnls);
     NODE_SET_METHOD(target, "getScoreTime", getScoreTime);
+    NODE_SET_METHOD(target, "getSr", getSr);
+    NODE_SET_METHOD(target, "getVersion", getVersion);
+    NODE_SET_METHOD(target, "inputMessage", inputMessage);
     NODE_SET_METHOD(target, "isPlaying", isPlaying);
+    NODE_SET_METHOD(target, "isScorePending", isScorePending);
+    NODE_SET_METHOD(target, "message", message);
     NODE_SET_METHOD(target, "perform", perform);
+    NODE_SET_METHOD(target, "pause", pause);
+    NODE_SET_METHOD(target, "readScore", readScore);
+    NODE_SET_METHOD(target, "resume", resume);
+    NODE_SET_METHOD(target, "rewindScore", rewindScore);
+    NODE_SET_METHOD(target, "scoreEvent", scoreEvent);
+    NODE_SET_METHOD(target, "setControlChannel", setControlChannel);
+    NODE_SET_METHOD(target, "setOption", setOption);
+    NODE_SET_METHOD(target, "setScorePending", setScorePending);
     NODE_SET_METHOD(target, "stop", stop);
     uv_async_init(uv_default_loop(), &uv_csound_message_async, uv_csound_message_callback);
     std::atexit(&on_exit);
