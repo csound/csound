@@ -629,8 +629,11 @@ Requirements
 2. Clone the libsndfile sources for android repo,e.g.:
 
  $ cd $HOME
+
  $ mkdir android
+
  $ cd android
+
  $ git clone https://bitbucket.org/kunstmusik/libsndfile-android.git
 
 3. Set the ANDROID_NDK_MODULE variable to point to the top directory
