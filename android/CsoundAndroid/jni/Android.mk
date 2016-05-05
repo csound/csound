@@ -254,7 +254,8 @@ $(CSOUND_SRC_ROOT)/interfaces/Soundfile.cpp \
 $(CSOUND_SRC_ROOT)/interfaces/csPerfThread.cpp \
 $(CSOUND_SRC_ROOT)/interfaces/cs_glue.cpp \
 $(CSOUND_SRC_ROOT)/interfaces/filebuilding.cpp \
-java_interfaceJAVA_wrap.cpp
+java_interfaceJAVA_wrap.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c
 
 #CsoundObj.cpp
 

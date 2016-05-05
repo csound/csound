@@ -180,21 +180,12 @@ static int paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
     return OK;
 }
 
-static OENTRY ps_localops[] = { { "paulstretch",
-                                (int) sizeof(PAULSTRETCH), TR, 5, "a", "iii",
-                                (int (*)(CSOUND *, void *)) ps_init,
+static OENTRY paulstretch_localops[] = {
+  { "paulstretch", (int) sizeof(PAULSTRETCH), TR, 5, "a", "iii",
+   (int (*)(CSOUND *, void *)) ps_init,
                                 (int (*)(CSOUND *, void *)) NULL,
-			(int (*)(CSOUND *, void *)) paulstretch_perf} };
+			(int (*)(CSOUND *, void *)) paulstretch_perf}
+};
 
-LINKAGE_BUILTIN(ps_localops)
+LINKAGE_BUILTIN(paulstretch_localops)
 
-/*
-int paulstretch_init_(CSOUND *csound)
-{
-    return csound->AppendOpcode(csound, "paulstretch",
-                                (int) sizeof(PAULSTRETCH), TR, 5, "a", "iii",
-                                (int (*)(CSOUND *, void *)) ps_init,
-                                (int (*)(CSOUND *, void *)) NULL,
-                                (int (*)(CSOUND *, void *)) paulstretch_perf);
-}
-*/
