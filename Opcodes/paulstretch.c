@@ -180,7 +180,7 @@ static int paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
     return OK;
 }
 
-static ps_localops[] = { { "paulstretch",
+static OENTRY ps_localops[] = { { "paulstretch",
                                 (int) sizeof(PAULSTRETCH), TR, 5, "a", "iii",
                                 (int (*)(CSOUND *, void *)) ps_init,
                                 (int (*)(CSOUND *, void *)) NULL,
