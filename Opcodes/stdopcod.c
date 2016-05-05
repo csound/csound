@@ -73,7 +73,7 @@ int stdopc_ModuleInit(CSOUND *csound)
     err |= newfils_init_(csound);
     err |= nlfilt_init_(csound);
     err |= oscbnk_init_(csound);
-    err |= paulstretch_init_(csound);
+    //err |= paulstretch_init_(csound);
     err |= pluck_init_(csound);
     err |= repluck_init_(csound);
     err |= reverbsc_init_(csound);

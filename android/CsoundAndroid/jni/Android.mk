@@ -225,7 +225,6 @@ $(CSOUND_SRC_ROOT)/Opcodes/pvread.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/ugens8.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vpvoc.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pvoc.c \
-$(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_semantics.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_expressions.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_optimize.c \
