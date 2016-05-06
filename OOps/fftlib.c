@@ -87,7 +87,7 @@ static void fftBRInit(int M, int16 *BRLow)
     bitmask = 1;
     for (bit = 1; bit <= Mroot_1; bitmask <<= 1, bit++)
       if (i1 & bitmask)
-	bitsum = bitsum + (Nroot_1 >> bit);
+        bitsum = bitsum + (Nroot_1 >> bit);
     BRLow[i1] = bitsum;
   }
 }
@@ -152,60 +152,60 @@ static void bitrevR2(MYFLT *ioptr, int M, int16 *BRLow)
       f1r = *(p0r + posA);
       f1i = *(p0r + posAi);
       for (; iCol > Colstart;) {
-	f2r = *(p0r + 2);
-	f2i = *(p0r + (2 + 1));
-	f3r = *(p0r + posB);
-	f3i = *(p0r + posBi);
-	f4r = *(p1r);
-	f4i = *(p1r + 1);
-	f5r = *(p1r + posA);
-	f5i = *(p1r + posAi);
-	f6r = *(p1r + 2);
-	f6i = *(p1r + (2 + 1));
-	f7r = *(p1r + posB);
-	f7i = *(p1r + posBi);
+        f2r = *(p0r + 2);
+        f2i = *(p0r + (2 + 1));
+        f3r = *(p0r + posB);
+        f3i = *(p0r + posBi);
+        f4r = *(p1r);
+        f4i = *(p1r + 1);
+        f5r = *(p1r + posA);
+        f5i = *(p1r + posAi);
+        f6r = *(p1r + 2);
+        f6i = *(p1r + (2 + 1));
+        f7r = *(p1r + posB);
+        f7i = *(p1r + posBi);
 
-	t0r = f0r + f1r;
-	t0i = f0i + f1i;
-	f1r = f0r - f1r;
-	f1i = f0i - f1i;
-	t1r = f2r + f3r;
-	t1i = f2i + f3i;
-	f3r = f2r - f3r;
-	f3i = f2i - f3i;
-	f0r = f4r + f5r;
-	f0i = f4i + f5i;
-	f5r = f4r - f5r;
-	f5i = f4i - f5i;
-	f2r = f6r + f7r;
-	f2i = f6i + f7i;
-	f7r = f6r - f7r;
-	f7i = f6i - f7i;
+        t0r = f0r + f1r;
+        t0i = f0i + f1i;
+        f1r = f0r - f1r;
+        f1i = f0i - f1i;
+        t1r = f2r + f3r;
+        t1i = f2i + f3i;
+        f3r = f2r - f3r;
+        f3i = f2i - f3i;
+        f0r = f4r + f5r;
+        f0i = f4i + f5i;
+        f5r = f4r - f5r;
+        f5i = f4i - f5i;
+        f2r = f6r + f7r;
+        f2i = f6i + f7i;
+        f7r = f6r - f7r;
+        f7i = f6i - f7i;
 
-	*(p1r) = t0r;
-	*(p1r + 1) = t0i;
-	*(p1r + 2) = f1r;
-	*(p1r + (2 + 1)) = f1i;
-	*(p1r + posA) = t1r;
-	*(p1r + posAi) = t1i;
-	*(p1r + posB) = f3r;
-	*(p1r + posBi) = f3i;
-	*(p0r) = f0r;
-	*(p0r + 1) = f0i;
-	*(p0r + 2) = f5r;
-	*(p0r + (2 + 1)) = f5i;
-	*(p0r + posA) = f2r;
-	*(p0r + posAi) = f2i;
-	*(p0r + posB) = f7r;
-	*(p0r + posBi) = f7i;
+        *(p1r) = t0r;
+        *(p1r + 1) = t0i;
+        *(p1r + 2) = f1r;
+        *(p1r + (2 + 1)) = f1i;
+        *(p1r + posA) = t1r;
+        *(p1r + posAi) = t1i;
+        *(p1r + posB) = f3r;
+        *(p1r + posBi) = f3i;
+        *(p0r) = f0r;
+        *(p0r + 1) = f0i;
+        *(p0r + 2) = f5r;
+        *(p0r + (2 + 1)) = f5i;
+        *(p0r + posA) = f2r;
+        *(p0r + posAi) = f2i;
+        *(p0r + posB) = f7r;
+        *(p0r + posBi) = f7i;
 
-	p0r -= Nrems2;
-	f0r = *(p0r);
-	f0i = *(p0r + 1);
-	f1r = *(p0r + posA);
-	f1i = *(p0r + posAi);
-	iCol -= 1;
-	p1r = IOP + BRLow[iCol] * 4;
+        p0r -= Nrems2;
+        f0r = *(p0r);
+        f0i = *(p0r + 1);
+        f1r = *(p0r + posA);
+        f1i = *(p0r + posAi);
+        iCol -= 1;
+        p1r = IOP + BRLow[iCol] * 4;
       }
       f2r = *(p0r + 2);
       f2i = *(p0r + (2 + 1));
@@ -828,110 +828,110 @@ static void bfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
       f1r = *p1r;
       f1i = *(p1r + 1);
       for (SameUCnt = NSameU - 1; SameUCnt > 0; SameUCnt--) {
-	f2r = *p2r;
-	f2i = *(p2r + 1);
-	f3r = *p3r;
-	f3i = *(p3r + 1);
+        f2r = *p2r;
+        f2i = *(p2r + 1);
+        f3r = *p3r;
+        f3i = *(p3r + 1);
 
-	t0r = f0r + f1r * w0r + f1i * w0i;
-	t0i = f0i - f1r * w0i + f1i * w0r;
-	f1r = f0r * Two - t0r;
-	f1i = f0i * Two - t0i;
+        t0r = f0r + f1r * w0r + f1i * w0i;
+        t0i = f0i - f1r * w0i + f1i * w0r;
+        f1r = f0r * Two - t0r;
+        f1i = f0i * Two - t0i;
 
-	f4r = *(p0r + pos);
-	f4i = *(p0r + posi);
-	f5r = *(p1r + pos);
-	f5i = *(p1r + posi);
+        f4r = *(p0r + pos);
+        f4i = *(p0r + posi);
+        f5r = *(p1r + pos);
+        f5i = *(p1r + posi);
 
-	f6r = *(p2r + pos);
-	f6i = *(p2r + posi);
-	f7r = *(p3r + pos);
-	f7i = *(p3r + posi);
+        f6r = *(p2r + pos);
+        f6i = *(p2r + posi);
+        f7r = *(p3r + pos);
+        f7i = *(p3r + posi);
 
-	t1r = f2r - f3r * w0r - f3i * w0i;
-	t1i = f2i + f3r * w0i - f3i * w0r;
-	f2r = f2r * Two - t1r;
-	f2i = f2i * Two - t1i;
+        t1r = f2r - f3r * w0r - f3i * w0i;
+        t1i = f2i + f3r * w0i - f3i * w0r;
+        f2r = f2r * Two - t1r;
+        f2i = f2i * Two - t1i;
 
-	f0r = t0r + f2r * w1r + f2i * w1i;
-	f0i = t0i - f2r * w1i + f2i * w1r;
-	f2r = t0r * Two - f0r;
-	f2i = t0i * Two - f0i;
+        f0r = t0r + f2r * w1r + f2i * w1i;
+        f0i = t0i - f2r * w1i + f2i * w1r;
+        f2r = t0r * Two - f0r;
+        f2i = t0i * Two - f0i;
 
-	f3r = f1r + t1r * w1i - t1i * w1r;
-	f3i = f1i + t1r * w1r + t1i * w1i;
-	f1r = f1r * Two - f3r;
-	f1i = f1i * Two - f3i;
+        f3r = f1r + t1r * w1i - t1i * w1r;
+        f3i = f1i + t1r * w1r + t1i * w1i;
+        f1r = f1r * Two - f3r;
+        f1i = f1i * Two - f3i;
 
-	t0r = f4r + f5r * w0r + f5i * w0i;
-	t0i = f4i - f5r * w0i + f5i * w0r;
-	f5r = f4r * Two - t0r;
-	f5i = f4i * Two - t0i;
+        t0r = f4r + f5r * w0r + f5i * w0i;
+        t0i = f4i - f5r * w0i + f5i * w0r;
+        f5r = f4r * Two - t0r;
+        f5i = f4i * Two - t0i;
 
-	t1r = f6r - f7r * w0r - f7i * w0i;
-	t1i = f6i + f7r * w0i - f7i * w0r;
-	f6r = f6r * Two - t1r;
-	f6i = f6i * Two - t1i;
+        t1r = f6r - f7r * w0r - f7i * w0i;
+        t1i = f6i + f7r * w0i - f7i * w0r;
+        f6r = f6r * Two - t1r;
+        f6i = f6i * Two - t1i;
 
-	f4r = t0r + f6r * w1r + f6i * w1i;
-	f4i = t0i - f6r * w1i + f6i * w1r;
-	f6r = t0r * Two - f4r;
-	f6i = t0i * Two - f4i;
+        f4r = t0r + f6r * w1r + f6i * w1i;
+        f4i = t0i - f6r * w1i + f6i * w1r;
+        f6r = t0r * Two - f4r;
+        f6i = t0i * Two - f4i;
 
-	f7r = f5r + t1r * w1i - t1i * w1r;
-	f7i = f5i + t1r * w1r + t1i * w1i;
-	f5r = f5r * Two - f7r;
-	f5i = f5i * Two - f7i;
+        f7r = f5r + t1r * w1i - t1i * w1r;
+        f7i = f5i + t1r * w1r + t1i * w1i;
+        f5r = f5r * Two - f7r;
+        f5i = f5i * Two - f7i;
 
-	t0r = f0r - f4r * w2r - f4i * w2i;
-	t0i = f0i + f4r * w2i - f4i * w2r;
-	f0r = f0r * Two - t0r;
-	f0i = f0i * Two - t0i;
+        t0r = f0r - f4r * w2r - f4i * w2i;
+        t0i = f0i + f4r * w2i - f4i * w2r;
+        f0r = f0r * Two - t0r;
+        f0i = f0i * Two - t0i;
 
-	t1r = f1r - f5r * w3r - f5i * w3i;
-	t1i = f1i + f5r * w3i - f5i * w3r;
-	f1r = f1r * Two - t1r;
-	f1i = f1i * Two - t1i;
+        t1r = f1r - f5r * w3r - f5i * w3i;
+        t1i = f1i + f5r * w3i - f5i * w3r;
+        f1r = f1r * Two - t1r;
+        f1i = f1i * Two - t1i;
 
-	*(p0r + pos) = t0r;
-	*(p1r + pos) = t1r;
-	*(p0r + posi) = t0i;
-	*(p1r + posi) = t1i;
-	*p0r = f0r;
-	*p1r = f1r;
-	*(p0r + 1) = f0i;
-	*(p1r + 1) = f1i;
+        *(p0r + pos) = t0r;
+        *(p1r + pos) = t1r;
+        *(p0r + posi) = t0i;
+        *(p1r + posi) = t1i;
+        *p0r = f0r;
+        *p1r = f1r;
+        *(p0r + 1) = f0i;
+        *(p1r + 1) = f1i;
 
-	p0r += pnext;
-	f0r = *p0r;
-	f0i = *(p0r + 1);
+        p0r += pnext;
+        f0r = *p0r;
+        f0i = *(p0r + 1);
 
-	p1r += pnext;
+        p1r += pnext;
 
-	f1r = *p1r;
-	f1i = *(p1r + 1);
+        f1r = *p1r;
+        f1i = *(p1r + 1);
 
-	f4r = f2r - f6r * w2i + f6i * w2r;
-	f4i = f2i - f6r * w2r - f6i * w2i;
-	f6r = f2r * Two - f4r;
-	f6i = f2i * Two - f4i;
+        f4r = f2r - f6r * w2i + f6i * w2r;
+        f4i = f2i - f6r * w2r - f6i * w2i;
+        f6r = f2r * Two - f4r;
+        f6i = f2i * Two - f4i;
 
-	f5r = f3r - f7r * w3i + f7i * w3r;
-	f5i = f3i - f7r * w3r - f7i * w3i;
-	f7r = f3r * Two - f5r;
-	f7i = f3i * Two - f5i;
+        f5r = f3r - f7r * w3i + f7i * w3r;
+        f5i = f3i - f7r * w3r - f7i * w3i;
+        f7r = f3r * Two - f5r;
+        f7i = f3i * Two - f5i;
 
-	*p2r = f4r;
-	*p3r = f5r;
-	*(p2r + 1) = f4i;
-	*(p3r + 1) = f5i;
-	*(p2r + pos) = f6r;
-	*(p3r + pos) = f7r;
-	*(p2r + posi) = f6i;
-	*(p3r + posi) = f7i;
+        *p2r = f4r;
+        *p3r = f5r;
+        *(p2r + 1) = f4i;
+        *(p3r + 1) = f5i;
+        *(p2r + pos) = f6r;
+        *(p3r + pos) = f7r;
+        *(p2r + posi) = f6i;
+        *(p3r + posi) = f7i;
 
-	p2r += pnext;
-	p3r += pnext;
+        p2r += pnext;
+        p3r += pnext;
       }
 
       f2r = *p2r;
@@ -970,7 +970,7 @@ static void bfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
       f1i = f1i * Two - f3i;
 
       if ((int) DiffUCnt == NDiffU / 2)
-	Uinc4 = -Uinc4;
+        Uinc4 = -Uinc4;
 
       u0r += Uinc4;
       u0i -= Uinc4;
@@ -1007,7 +1007,7 @@ static void bfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
       w1i = *u1i;
 
       if ((int) DiffUCnt <= NDiffU / 2)
-	w0r = -w0r;
+        w0r = -w0r;
 
       t0r = f0r - f4r * w2r - f4i * w2i;
       t0i = f0i + f4r * w2i - f4i * w2r;
@@ -1080,7 +1080,7 @@ static void fftrecurs(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride, int NDiffU,
   else {
     for (i1 = 0; i1 < 8; i1++) {
       fftrecurs(&ioptr[i1 * POW2(M - 3) * 2], M - 3, Utbl, 8 * Ustride,
-		NDiffU, StageCnt - 1);  /*  RADIX 8 Stages      */
+                NDiffU, StageCnt - 1);  /*  RADIX 8 Stages      */
     }
     bfstages(ioptr, M, Utbl, Ustride, POW2(M - 3), 1);  /*  RADIX 8 Stage */
   }
@@ -1191,60 +1191,60 @@ static void scbitrevR2(MYFLT *ioptr, int M, int16 *BRLow, MYFLT scale)
       f1r = *(p0r + posA);
       f1i = *(p0r + posAi);
       for (; iCol > Colstart;) {
-	f2r = *(p0r + 2);
-	f2i = *(p0r + (2 + 1));
-	f3r = *(p0r + posB);
-	f3i = *(p0r + posBi);
-	f4r = *(p1r);
-	f4i = *(p1r + 1);
-	f5r = *(p1r + posA);
-	f5i = *(p1r + posAi);
-	f6r = *(p1r + 2);
-	f6i = *(p1r + (2 + 1));
-	f7r = *(p1r + posB);
-	f7i = *(p1r + posBi);
+        f2r = *(p0r + 2);
+        f2i = *(p0r + (2 + 1));
+        f3r = *(p0r + posB);
+        f3i = *(p0r + posBi);
+        f4r = *(p1r);
+        f4i = *(p1r + 1);
+        f5r = *(p1r + posA);
+        f5i = *(p1r + posAi);
+        f6r = *(p1r + 2);
+        f6i = *(p1r + (2 + 1));
+        f7r = *(p1r + posB);
+        f7i = *(p1r + posBi);
 
-	t0r = f0r + f1r;
-	t0i = f0i + f1i;
-	f1r = f0r - f1r;
-	f1i = f0i - f1i;
-	t1r = f2r + f3r;
-	t1i = f2i + f3i;
-	f3r = f2r - f3r;
-	f3i = f2i - f3i;
-	f0r = f4r + f5r;
-	f0i = f4i + f5i;
-	f5r = f4r - f5r;
-	f5i = f4i - f5i;
-	f2r = f6r + f7r;
-	f2i = f6i + f7i;
-	f7r = f6r - f7r;
-	f7i = f6i - f7i;
+        t0r = f0r + f1r;
+        t0i = f0i + f1i;
+        f1r = f0r - f1r;
+        f1i = f0i - f1i;
+        t1r = f2r + f3r;
+        t1i = f2i + f3i;
+        f3r = f2r - f3r;
+        f3i = f2i - f3i;
+        f0r = f4r + f5r;
+        f0i = f4i + f5i;
+        f5r = f4r - f5r;
+        f5i = f4i - f5i;
+        f2r = f6r + f7r;
+        f2i = f6i + f7i;
+        f7r = f6r - f7r;
+        f7i = f6i - f7i;
 
-	*(p1r) = scale * t0r;
-	*(p1r + 1) = scale * t0i;
-	*(p1r + 2) = scale * f1r;
-	*(p1r + (2 + 1)) = scale * f1i;
-	*(p1r + posA) = scale * t1r;
-	*(p1r + posAi) = scale * t1i;
-	*(p1r + posB) = scale * f3r;
-	*(p1r + posBi) = scale * f3i;
-	*(p0r) = scale * f0r;
-	*(p0r + 1) = scale * f0i;
-	*(p0r + 2) = scale * f5r;
-	*(p0r + (2 + 1)) = scale * f5i;
-	*(p0r + posA) = scale * f2r;
-	*(p0r + posAi) = scale * f2i;
-	*(p0r + posB) = scale * f7r;
-	*(p0r + posBi) = scale * f7i;
+        *(p1r) = scale * t0r;
+        *(p1r + 1) = scale * t0i;
+        *(p1r + 2) = scale * f1r;
+        *(p1r + (2 + 1)) = scale * f1i;
+        *(p1r + posA) = scale * t1r;
+        *(p1r + posAi) = scale * t1i;
+        *(p1r + posB) = scale * f3r;
+        *(p1r + posBi) = scale * f3i;
+        *(p0r) = scale * f0r;
+        *(p0r + 1) = scale * f0i;
+        *(p0r + 2) = scale * f5r;
+        *(p0r + (2 + 1)) = scale * f5i;
+        *(p0r + posA) = scale * f2r;
+        *(p0r + posAi) = scale * f2i;
+        *(p0r + posB) = scale * f7r;
+        *(p0r + posBi) = scale * f7i;
 
-	p0r -= Nrems2;
-	f0r = *(p0r);
-	f0i = *(p0r + 1);
-	f1r = *(p0r + posA);
-	f1i = *(p0r + posAi);
-	iCol -= 1;
-	p1r = IOP + BRLow[iCol] * 4;
+        p0r -= Nrems2;
+        f0r = *(p0r);
+        f0i = *(p0r + 1);
+        f1r = *(p0r + posA);
+        f1i = *(p0r + posAi);
+        iCol -= 1;
+        p1r = IOP + BRLow[iCol] * 4;
       }
       f2r = *(p0r + 2);
       f2i = *(p0r + (2 + 1));
@@ -1868,113 +1868,113 @@ static void ibfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
       f1r = *p1r;
       f1i = *(p1r + 1);
       for (SameUCnt = NSameU - 1; SameUCnt > 0; SameUCnt--) {
-	f2r = *p2r;
-	f2i = *(p2r + 1);
-	f3r = *p3r;
-	f3i = *(p3r + 1);
+        f2r = *p2r;
+        f2i = *(p2r + 1);
+        f3r = *p3r;
+        f3i = *(p3r + 1);
 
-	t0r = f0r + f1r * w0r - f1i * w0i;
-	t0i = f0i + f1r * w0i + f1i * w0r;
-	f1r = f0r * Two - t0r;
-	f1i = f0i * Two - t0i;
+        t0r = f0r + f1r * w0r - f1i * w0i;
+        t0i = f0i + f1r * w0i + f1i * w0r;
+        f1r = f0r * Two - t0r;
+        f1i = f0i * Two - t0i;
 
-	f4r = *(p0r + pos);
-	f4i = *(p0r + posi);
-	f5r = *(p1r + pos);
-	f5i = *(p1r + posi);
+        f4r = *(p0r + pos);
+        f4i = *(p0r + posi);
+        f5r = *(p1r + pos);
+        f5i = *(p1r + posi);
 
-	f6r = *(p2r + pos);
-	f6i = *(p2r + posi);
-	f7r = *(p3r + pos);
-	f7i = *(p3r + posi);
+        f6r = *(p2r + pos);
+        f6i = *(p2r + posi);
+        f7r = *(p3r + pos);
+        f7i = *(p3r + posi);
 
-	t1r = f2r - f3r * w0r + f3i * w0i;
-	t1i = f2i - f3r * w0i - f3i * w0r;
-	f2r = f2r * Two - t1r;
-	f2i = f2i * Two - t1i;
+        t1r = f2r - f3r * w0r + f3i * w0i;
+        t1i = f2i - f3r * w0i - f3i * w0r;
+        f2r = f2r * Two - t1r;
+        f2i = f2i * Two - t1i;
 
-	f0r = t0r + f2r * w1r - f2i * w1i;
-	f0i = t0i + f2r * w1i + f2i * w1r;
-	f2r = t0r * Two - f0r;
-	f2i = t0i * Two - f0i;
+        f0r = t0r + f2r * w1r - f2i * w1i;
+        f0i = t0i + f2r * w1i + f2i * w1r;
+        f2r = t0r * Two - f0r;
+        f2i = t0i * Two - f0i;
 
-	f3r = f1r + t1r * w1i + t1i * w1r;
-	f3i = f1i - t1r * w1r + t1i * w1i;
-	f1r = f1r * Two - f3r;
-	f1i = f1i * Two - f3i;
+        f3r = f1r + t1r * w1i + t1i * w1r;
+        f3i = f1i - t1r * w1r + t1i * w1i;
+        f1r = f1r * Two - f3r;
+        f1i = f1i * Two - f3i;
 
-	t0r = f4r + f5r * w0r - f5i * w0i;
-	t0i = f4i + f5r * w0i + f5i * w0r;
-	f5r = f4r * Two - t0r;
-	f5i = f4i * Two - t0i;
+        t0r = f4r + f5r * w0r - f5i * w0i;
+        t0i = f4i + f5r * w0i + f5i * w0r;
+        f5r = f4r * Two - t0r;
+        f5i = f4i * Two - t0i;
 
-	t1r = f6r - f7r * w0r + f7i * w0i;
-	t1i = f6i - f7r * w0i - f7i * w0r;
-	f6r = f6r * Two - t1r;
-	f6i = f6i * Two - t1i;
+        t1r = f6r - f7r * w0r + f7i * w0i;
+        t1i = f6i - f7r * w0i - f7i * w0r;
+        f6r = f6r * Two - t1r;
+        f6i = f6i * Two - t1i;
 
-	f4r = t0r + f6r * w1r - f6i * w1i;
-	f4i = t0i + f6r * w1i + f6i * w1r;
-	f6r = t0r * Two - f4r;
-	f6i = t0i * Two - f4i;
+        f4r = t0r + f6r * w1r - f6i * w1i;
+        f4i = t0i + f6r * w1i + f6i * w1r;
+        f6r = t0r * Two - f4r;
+        f6i = t0i * Two - f4i;
 
-	f7r = f5r + t1r * w1i + t1i * w1r;
-	f7i = f5i - t1r * w1r + t1i * w1i;
-	f5r = f5r * Two - f7r;
-	f5i = f5i * Two - f7i;
+        f7r = f5r + t1r * w1i + t1i * w1r;
+        f7i = f5i - t1r * w1r + t1i * w1i;
+        f5r = f5r * Two - f7r;
+        f5i = f5i * Two - f7i;
 
-	t0r = f0r - f4r * w2r + f4i * w2i;
-	t0i = f0i - f4r * w2i - f4i * w2r;
-	f0r = f0r * Two - t0r;
-	f0i = f0i * Two - t0i;
+        t0r = f0r - f4r * w2r + f4i * w2i;
+        t0i = f0i - f4r * w2i - f4i * w2r;
+        f0r = f0r * Two - t0r;
+        f0i = f0i * Two - t0i;
 
-	t1r = f1r - f5r * w3r + f5i * w3i;
-	t1i = f1i - f5r * w3i - f5i * w3r;
-	f1r = f1r * Two - t1r;
-	f1i = f1i * Two - t1i;
+        t1r = f1r - f5r * w3r + f5i * w3i;
+        t1i = f1i - f5r * w3i - f5i * w3r;
+        f1r = f1r * Two - t1r;
+        f1i = f1i * Two - t1i;
 
-	*(p0r + pos) = t0r;
-	*(p0r + posi) = t0i;
-	*p0r = f0r;
-	*(p0r + 1) = f0i;
+        *(p0r + pos) = t0r;
+        *(p0r + posi) = t0i;
+        *p0r = f0r;
+        *(p0r + 1) = f0i;
 
-	p0r += pnext;
-	f0r = *p0r;
-	f0i = *(p0r + 1);
+        p0r += pnext;
+        f0r = *p0r;
+        f0i = *(p0r + 1);
 
-	*(p1r + pos) = t1r;
-	*(p1r + posi) = t1i;
-	*p1r = f1r;
-	*(p1r + 1) = f1i;
+        *(p1r + pos) = t1r;
+        *(p1r + posi) = t1i;
+        *p1r = f1r;
+        *(p1r + 1) = f1i;
 
-	p1r += pnext;
+        p1r += pnext;
 
-	f1r = *p1r;
-	f1i = *(p1r + 1);
+        f1r = *p1r;
+        f1i = *(p1r + 1);
 
-	f4r = f2r - f6r * w2i - f6i * w2r;
-	f4i = f2i + f6r * w2r - f6i * w2i;
-	f6r = f2r * Two - f4r;
-	f6i = f2i * Two - f4i;
+        f4r = f2r - f6r * w2i - f6i * w2r;
+        f4i = f2i + f6r * w2r - f6i * w2i;
+        f6r = f2r * Two - f4r;
+        f6i = f2i * Two - f4i;
 
-	f5r = f3r - f7r * w3i - f7i * w3r;
-	f5i = f3i + f7r * w3r - f7i * w3i;
-	f7r = f3r * Two - f5r;
-	f7i = f3i * Two - f5i;
+        f5r = f3r - f7r * w3i - f7i * w3r;
+        f5i = f3i + f7r * w3r - f7i * w3i;
+        f7r = f3r * Two - f5r;
+        f7i = f3i * Two - f5i;
 
-	*p2r = f4r;
-	*(p2r + 1) = f4i;
-	*(p2r + pos) = f6r;
-	*(p2r + posi) = f6i;
+        *p2r = f4r;
+        *(p2r + 1) = f4i;
+        *(p2r + pos) = f6r;
+        *(p2r + posi) = f6i;
 
-	p2r += pnext;
+        p2r += pnext;
 
-	*p3r = f5r;
-	*(p3r + 1) = f5i;
-	*(p3r + pos) = f7r;
-	*(p3r + posi) = f7i;
+        *p3r = f5r;
+        *(p3r + 1) = f5i;
+        *(p3r + pos) = f7r;
+        *(p3r + posi) = f7i;
 
-	p3r += pnext;
+        p3r += pnext;
       }
 
       f2r = *p2r;
@@ -2013,7 +2013,7 @@ static void ibfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
       f1i = f1i * Two - f3i;
 
       if ((int) DiffUCnt == NDiffU / 2)
-	Uinc4 = -Uinc4;
+        Uinc4 = -Uinc4;
 
       u0r += Uinc4;
       u0i -= Uinc4;
@@ -2050,7 +2050,7 @@ static void ibfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
       w1i = *u1i;
 
       if ((int) DiffUCnt <= NDiffU / 2)
-	w0r = -w0r;
+        w0r = -w0r;
 
       t0r = f0r - f4r * w2r + f4i * w2i;
       t0i = f0i - f4r * w2i - f4i * w2r;
@@ -2123,7 +2123,7 @@ static void ifftrecurs(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
   else {
     for (i1 = 0; i1 < 8; i1++) {
       ifftrecurs(&ioptr[i1 * POW2(M - 3) * 2], M - 3, Utbl, 8 * Ustride,
-		 NDiffU, StageCnt - 1);           /*  RADIX 8 Stages       */
+                 NDiffU, StageCnt - 1);           /*  RADIX 8 Stages       */
     }
     ibfstages(ioptr, M, Utbl, Ustride, POW2(M - 3), 1);   /* RADIX 8 Stage */
   }
@@ -3133,13 +3133,13 @@ static void fftInit(CSOUND *csound, int M)
   /*** I did NOT test cases with M>27 ***/
   /* init cos table */
   UtblArray[M] = (MYFLT*) csound->Malloc(csound,
-					 (POW2(M) / 4 + 1) * sizeof(MYFLT));
+                                         (POW2(M) / 4 + 1) * sizeof(MYFLT));
   fftCosInit(M, UtblArray[M]);
   if (M > 1) {
     /* init bit reversed table for cmplx FFT */
     if (BRLowArray[M / 2] == NULL) {
       BRLowArray[M / 2] =
-	(int16*) csound->Malloc(csound, POW2(M / 2 - 1) * sizeof(int16));
+        (int16*) csound->Malloc(csound, POW2(M / 2 - 1) * sizeof(int16));
       fftBRInit(M, BRLowArray[M / 2]);
     }
   }
@@ -3147,8 +3147,8 @@ static void fftInit(CSOUND *csound, int M)
     /* init bit reversed table for real FFT */
     if (BRLowArray[(M - 1) / 2] == 0) {
       BRLowArray[(M - 1) / 2] =
-	(int16*) csound->Malloc(csound,
-				POW2((M - 1) / 2 - 1) * sizeof(int16));
+        (int16*) csound->Malloc(csound,
+                                POW2((M - 1) / 2 - 1) * sizeof(int16));
       fftBRInit(M - 1, BRLowArray[(M - 1) / 2]);
     }
   }
@@ -3193,12 +3193,12 @@ static inline int ConvertFFTSize(CSOUND *csound, int N)
   case 0x10000000:  return 28;
   }
   csound->Warning(csound, Str(" *** fftlib.c: internal error: "
-			      "invalid FFT size: %d"), N);
+                              "invalid FFT size: %d"), N);
   return 0;
 }
 
 static inline void getTablePointers(CSOUND *p, MYFLT **ct, int16 **bt,
-				    int cn, int bn)
+                                    int cn, int bn)
 {
   if (!(p->FFT_max_size & (1 << cn)))
     fftInit(p, cn);
@@ -3347,7 +3347,7 @@ void csoundRealFFTMult(CSOUND *csound, MYFLT *outbuf,
 }
 
 
-/* 
+/*
   New FFT interface
   VL, 2016
 */
@@ -3362,15 +3362,15 @@ typedef struct _FFT_SETUP{
 
 static
 void pffft_execute(CSOUND_FFT_SETUP *setup,
-		   MYFLT *sig) {
+                   MYFLT *sig) {
   int i, N = setup->N;
   float s, *buf;
   buf = (float *) setup->buffer;
   for(i=0;i<N;i++)
     buf[i] = sig[i];
   pffft_transform_ordered((PFFFT_Setup *)
-			  setup->setup,
-			  buf,buf,NULL,setup->d);
+                          setup->setup,
+                          buf,buf,NULL,setup->d);
   s = (setup->d == PFFFT_BACKWARD ?
        (MYFLT) setup->N : FL(1.0));
   for(i=0;i<N;i++)
@@ -3382,7 +3382,7 @@ void pffft_execute(CSOUND_FFT_SETUP *setup,
 #include <Accelerate/Accelerate.h>
 static
 void vDSP_execute(CSOUND_FFT_SETUP *setup,
-		   MYFLT *sig){
+                   MYFLT *sig){
 #ifdef USE_DOUBLE
   DSPDoubleSplitComplex tmp;
 #else
@@ -3399,12 +3399,12 @@ void vDSP_execute(CSOUND_FFT_SETUP *setup,
     }
 #ifdef USE_DOUBLE
   vDSP_fft_zripD((FFTSetupD) setup->setup,
-		 &tmp, 1,
-		 setup->M,setup->d);
+                 &tmp, 1,
+                 setup->M,setup->d);
 #else
   vDSP_fft_zrip((FFTSetup) setup->setup,
-		 &tmp, 1,
-		 setup->M,setup->d);
+                 &tmp, 1,
+                 setup->M,setup->d);
 #endif
  s = (setup->d == -1 ? (MYFLT)(N) : FL(2.0));
  for(i=j=0;i<N;i+=2,j++){
@@ -3416,11 +3416,11 @@ void vDSP_execute(CSOUND_FFT_SETUP *setup,
 
 #define ALIGN_BYTES 64
 static
-void *align_alloc(CSOUND *csound, size_t nb_bytes){  
+void *align_alloc(CSOUND *csound, size_t nb_bytes){
   void *p, *p0 = csound->Malloc(csound, nb_bytes + ALIGN_BYTES);
   if(!p0) return (void *) 0;
   p = (void *) (((size_t) p0 + ALIGN_BYTES)
-		& (~((size_t) (ALIGN_BYTES-1))));
+                & (~((size_t) (ALIGN_BYTES-1))));
   *((void **) p - 1) = p0;
   return p;
 }
@@ -3432,11 +3432,11 @@ int setupDispose(CSOUND *csound, void *pp){
   case VDSP_LIB:
     vDSP_destroy_fftsetupD(
 #ifdef USE_DOUBLE
-			   (FFTSetupD)			   
+                           (FFTSetupD)
 #else
-			   (FFTSetup)			   
+                           (FFTSetup)
 #endif
-			   setup->setup);
+                           setup->setup);
     break;
 #endif
   case PFFT_LIB:
@@ -3447,8 +3447,8 @@ int setupDispose(CSOUND *csound, void *pp){
 }
 
 void *csoundRealFFT2Setup(CSOUND *csound,
-			 int FFTsize,
-			 int d){
+                         int FFTsize,
+                         int d){
   CSOUND_FFT_SETUP *setup;
   int lib = csound->oparms->fft_lib;
   if(lib == PFFT_LIB && FFTsize <= 16){
@@ -3456,13 +3456,13 @@ void *csoundRealFFT2Setup(CSOUND *csound,
       "FFTsize %d \n"
       "Cannot use PFFT with sizes <= 16\n"
       "--defaulting to FFTLIB",
-	FFTsize);
+        FFTsize);
     lib = 0;
   }
   setup = (CSOUND_FFT_SETUP *)
     csound->Calloc(csound, sizeof(CSOUND_FFT_SETUP));
   setup->N = FFTsize;
- 
+
   switch(lib){
 #ifdef __MACH__
   case VDSP_LIB:
@@ -3474,8 +3474,8 @@ void *csoundRealFFT2Setup(CSOUND *csound,
       vDSP_create_fftsetup(setup->M,kFFTRadix2);
 #endif
       setup->d = (d ==  FFT_FWD ?
-		kFFTDirection_Forward :
-		kFFTDirection_Inverse); 
+                kFFTDirection_Forward :
+                kFFTDirection_Inverse);
     setup->lib = lib;
     break;
 #endif
@@ -3483,8 +3483,8 @@ void *csoundRealFFT2Setup(CSOUND *csound,
     setup->setup = (void *)
       pffft_new_setup(FFTsize,PFFFT_REAL);
     setup->d = (d ==  FFT_FWD ?
-	        PFFFT_FORWARD :
-		PFFFT_BACKWARD);
+                PFFFT_FORWARD :
+                PFFFT_BACKWARD);
     setup->lib = lib;
     break;
   default:
@@ -3494,13 +3494,13 @@ void *csoundRealFFT2Setup(CSOUND *csound,
   }
   setup->buffer = (MYFLT *) align_alloc(csound, sizeof(MYFLT)*FFTsize);
   csound->RegisterResetCallback(csound, (void*) setup,
-				(int (*)(CSOUND *, void *))
-				setupDispose);
+                                (int (*)(CSOUND *, void *))
+                                setupDispose);
   return (void *) setup;
 }
 
 void csoundRealFFT2(CSOUND *csound,
-		     void *p, MYFLT *sig){
+                     void *p, MYFLT *sig){
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
   switch(setup->lib) {
@@ -3515,10 +3515,10 @@ void csoundRealFFT2(CSOUND *csound,
   default:
     (setup->d == FFT_FWD ?
       csoundRealFFT(csound,
-		     sig,setup->N) :  
+                     sig,setup->N) :
       csoundInverseRealFFT(csound,
-		     sig,setup->N));       
-    setup->lib = 0; 
+                     sig,setup->N));
+    setup->lib = 0;
   }
 }
 
@@ -3529,11 +3529,11 @@ void csoundRealFFT2(CSOUND *csound,
 
 #define ALIGN64 64
 static
-void *vDSP_alloc(CSOUND *csound, size_t nb_bytes){  
+void *vDSP_alloc(CSOUND *csound, size_t nb_bytes){
   void *p, *p0 = csound->Malloc(csound, nb_bytes + ALIGN64);
   if(!p0) return (void *) 0;
   p = (void *) (((size_t) p0 + ALIGN64)
-		& (~((size_t) (ALIGN64-1))));
+                & (~((size_t) (ALIGN64-1))));
   *((void **) p - 1) = p0;
   return p;
 }
@@ -3575,11 +3575,11 @@ void vDSP_setup(CSOUND *csound, int FFTsize){
     if(csound->vdsp_buffer != NULL)
       vDSP_free(csound, csound->vdsp_buffer);
     csound->vdsp_buffer = vDSP_alloc(csound,
-				     FFTsize*(sizeof(MYFLT)));
+                                     FFTsize*(sizeof(MYFLT)));
     if(csound->FFT_max_size == 0)
       csound->RegisterResetCallback(csound, (void*) NULL,
-				    (int (*)(CSOUND *, void *))
-				    vDSP_reset);
+                                    (int (*)(CSOUND *, void *))
+                                    vDSP_reset);
     csound->FFT_max_size = FFTsize;
   }
 }
@@ -3602,19 +3602,19 @@ void vDSP_RealFFT(CSOUND *csound,int FFTsize,MYFLT *sig,FFTDirection d){
     }
 #ifdef USE_DOUBLE
   vDSP_fft_zripD(csound->vdsp_setup, &tmp, 1,
-		 ConvertFFTSize(csound, FFTsize),
-		 d);
+                 ConvertFFTSize(csound, FFTsize),
+                 d);
 #else
   vDSP_fft_zrip(csound->vdsp_setup, &tmp, 1,
-		ConvertFFTSize(csound, FFTsize),
-		d); 
+                ConvertFFTSize(csound, FFTsize),
+                d);
 #endif
  s = (d == -1 ? (MYFLT)(FFTsize) : FL(2.0));
  for(i=j=0;i<FFTsize;i+=2,j++){
     sig[i] = tmp.realp[j]/s;
     sig[i+1] = tmp.imagp[j]/s;
     }
- 
+
 }
 
 /* these functions are available from OSX 10.9 */
@@ -3643,41 +3643,41 @@ vDSP_setup_New(CSOUND *csound, int FFTsize, int d){
      csound->vdsp_setup_inv == NULL){
 #ifdef USE_DOUBLE
     if(d == 1)
-      csound->vdsp_setup_fwd = 
-	vDSP_DFT_zrop_CreateSetupD(csound->vdsp_setup_fwd,
-				   FFTsize, d);
+      csound->vdsp_setup_fwd =
+        vDSP_DFT_zrop_CreateSetupD(csound->vdsp_setup_fwd,
+                                   FFTsize, d);
     else
-      csound->vdsp_setup_inv = 
-	vDSP_DFT_zrop_CreateSetupD(csound->vdsp_setup_inv,
-				   FFTsize, d);
+      csound->vdsp_setup_inv =
+        vDSP_DFT_zrop_CreateSetupD(csound->vdsp_setup_inv,
+                                   FFTsize, d);
 #else
     if(d == 1)
-      csound->vdsp_setup_fwd = 
-	vDSP_DFT_zrop_CreateSetup(csound->vdsp_setup_fwd,
-				  FFTsize, d);
+      csound->vdsp_setup_fwd =
+        vDSP_DFT_zrop_CreateSetup(csound->vdsp_setup_fwd,
+                                  FFTsize, d);
     else
-      csound->vdsp_setup_inv = 
-	vDSP_DFT_zrop_CreateSetup(csound->vdsp_setup_inv,
-				  FFTsize, d);
+      csound->vdsp_setup_inv =
+        vDSP_DFT_zrop_CreateSetup(csound->vdsp_setup_inv,
+                                  FFTsize, d);
 #endif
   }
   if(csound->FFT_max_size < FFTsize) {
     vDSP_free(csound, csound->vdsp_buffer);
     csound->vdsp_buffer = vDSP_alloc(csound,
-				     FFTsize*(sizeof(MYFLT)));
+                                     FFTsize*(sizeof(MYFLT)));
   }
-  
+
   if(csound->FFT_max_size == 0)
     csound->RegisterResetCallback(csound, (void*) NULL,
-				  (int (*)(CSOUND *, void *))
-				  vDSP_reset_New);
+                                  (int (*)(CSOUND *, void *))
+                                  vDSP_reset_New);
   csound->FFT_max_size = FFTsize;
   return d == 1 ? csound->vdsp_setup_fwd :
-    csound->vdsp_setup_inv; 
+    csound->vdsp_setup_inv;
 }
 
 void vDSP_RealFFT_New(CSOUND *csound,int FFTsize,MYFLT *sig,
-		  FFTDirection d){
+                  FFTDirection d){
   int i,j;
   MYFLT s;
 #ifdef USE_DOUBLE
@@ -3688,7 +3688,7 @@ void vDSP_RealFFT_New(CSOUND *csound,int FFTsize,MYFLT *sig,
   setup = vDSP_setup_New(csound, FFTsize, d);
   MYFLT *inr = &csound->vdsp_buffer[0];
   MYFLT *ini = &csound->vdsp_buffer[FFTsize>>1];
-  
+
   for(i=j=0;i<FFTsize;i+=2,j++){
     inr[j] = sig[i];
     ini[j] = sig[i+1];
@@ -3721,7 +3721,7 @@ void pffft_setup(CSOUND *csound, int FFTsize, int M){
   if(csound->FFT_max_size != FFTsize){
     if(csound->FFT_max_size == 0)
       csound->RegisterResetCallback(csound, (void*) NULL,
-				    (int (*)(CSOUND *, void *)) pffft_reset);
+                                    (int (*)(CSOUND *, void *)) pffft_reset);
     if(csound->setup[M] == NULL)
        csound->setup[M] = pffft_new_setup(FFTsize,PFFFT_REAL);
     if(csound->FFT_max_size < FFTsize) {
@@ -3735,8 +3735,8 @@ void pffft_setup(CSOUND *csound, int FFTsize, int M){
 
 static
 void pffft_RealFFT(CSOUND *csound,
-		   int FFTsize,MYFLT *sig,
-		   int d){
+                   int FFTsize,MYFLT *sig,
+                   int d){
   int i;
   float s, *buf;
   int M = ConvertFFTSize(csound, FFTsize);
@@ -3745,7 +3745,7 @@ void pffft_RealFFT(CSOUND *csound,
   for(i=0;i<FFTsize;i++)
     buf[i] = sig[i];
   pffft_transform_ordered(csound->setup[M],
-			  buf,buf,NULL,d);
+                          buf,buf,NULL,d);
   s = (d == PFFFT_BACKWARD ? (MYFLT)FFTsize : FL(1.0));
   for(i=0;i<FFTsize;i++)
     sig[i] = buf[i]/s;
