@@ -1207,7 +1207,17 @@ static int player_init(CSOUND *csound, PLAYER *p){
   if(p->p->initDone == 0)
    csound->RegisterDeinitCallback(csound, p,
    (int (*)(CSOUND*, void*)) mp3dec_cleanup_player);
-  p->p->initDone = 1; 
+  p->p->initDone = 1;
+
+  int policy;
+    struct sched_param param;
+    pthread_getschedparam(pthread_self(), &policy,
+			  &param);
+    /*if(policy == SCHED_OTHER)
+      csound->Message(csound, "POLICY: SCHED_OTHER");
+    else if(policy == SCHED_FIFO)
+    csound->Message(csound, "POLICY: SCHED_FIFO, %d", param.sched_priority);*/
+    
 #ifdef HAVE_NEON
   while(!p->p->N) usleep(1000);
   p->setup = pffft_new_setup(p->p->N,PFFFT_REAL);

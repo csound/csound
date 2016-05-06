@@ -79,7 +79,11 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
     /* randomize phase */
     for (i = 0; i < windowsize + 2; i += 2) {
       MYFLT mag = HYPOT(tmp[i], tmp[i + 1]);
-      complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
+      // Android 5.1 does not seem to have cexpf ...
+      // complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
+      // so ...
+      MYFLT  x = (((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
+      complex ph =  cos(x) + I*sin(x); 
       tmp[i] = mag * (MYFLT)crealf(ph);
       tmp[i + 1] = mag * (MYFLT)cimagf(ph);
     }
