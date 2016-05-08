@@ -1369,11 +1369,11 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
           p->fout->frame.size < sizeof(float) * (N + 2))  /* RWD MUST be 32bit */
         csound->AuxAlloc(csound, sizeof(float) * (N + 2), &p->fout->frame);
     }
-  
+
  if (p->ftmp.auxp == NULL ||
       p->ftmp.size < sizeof(float) * (N+4))
     csound->AuxAlloc(csound, sizeof(float) * (N + 2), &p->ftmp);
- 
+
   p->fout->N = N;
   p->fout->overlap = p->fin->overlap;
   p->fout->winsize = p->fin->winsize;
@@ -1533,13 +1533,13 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
             fenv[i] = exp(ceps[i]);
             max = max < fenv[i] ? fenv[i] : max;
          }
-	
+
         if (max)
           for (i=j=2; i<N/2; i++, j+=2) {
             fenv[i]/=max;
             binf = (i)*sr/N;
             if (fenv[i] && binf < pscal*sr/2 )
-	       ftmp[j] /= fenv[i];
+               ftmp[j] /= fenv[i];
           }
       }
     }
