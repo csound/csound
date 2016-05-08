@@ -31,6 +31,7 @@
 #include "csoundCore.h"
 #include "csound.h"
 #include "fftlib.h"
+#include "pffft.h"
 
 
 
