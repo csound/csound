@@ -1302,10 +1302,10 @@ typedef struct NAME__ {
     void (*InputMessage)(CSOUND *, const char *message__);
     int  (*ISSTRCOD)(MYFLT);
     void *(*RealFFT2Setup)(CSOUND *csound,
-			 int FFTsize,
-			 int d);
+                           int FFTsize,
+                           int d);
     void (*RealFFT2)(CSOUND *csound,
-			   void *p, MYFLT *sig);
+                     void *p, MYFLT *sig);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
