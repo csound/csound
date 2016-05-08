@@ -41,7 +41,6 @@
 #include "csound_data_structures.h"
 #include "csound_standard_types.h"
 #include "pools.h"
-#include "pffft.h"
 
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
