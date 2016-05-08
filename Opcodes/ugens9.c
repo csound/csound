@@ -476,7 +476,7 @@ static int pconvset_(CSOUND *csound, PCONVOLVE *p, int stringname)
           *fp2++ = *fp1 * scaleFac;
           fp1 += p->nchanls;
         }
-	
+
         csound->RealFFT2(csound, p->fwdsetup, IRblock);
         IRblock[p->Hlenpadded] = IRblock[1];
         IRblock[1] = IRblock[p->Hlenpadded + 1L] = FL(0.0);
