@@ -71,7 +71,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
                              MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                              0.0 };
   mpadec_info_t mpainfo;
-  int buffersize = (*p->ibufsize<=0.0 ? 0x1000 : (int)*p->ibufsize);
+  int buffersize = (*p->ibufsize<=0.0 ? /*0x1000*/ 8*1152 : (int)*p->ibufsize);
   /* uint64_t maxsize; */
   int r;
   int skip;
@@ -126,8 +126,8 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     mp3dec_uninit(mpa);
     return csound->InitError(csound, "%s", mp3dec_error(r));
   }
-  skip = (int)(*p->iSkipTime*CS_ESR+1);
-  printf("%d \n", skip);
+  skip = (int)(*p->iSkipTime*CS_ESR);
+
   /* maxsize = mpainfo.decoded_sample_size */
   /*          *mpainfo.decoded_frame_samples */
   /*          *mpainfo.frames; */
@@ -164,20 +164,24 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
                     mpainfo.frequency, (int) (CS_ESR + FL(0.5)));
   }
   /* initialise buffer */
+  mp3dec_seek(mpa,0, MP3DEC_SEEK_SAMPLES);
   p->bufSize = buffersize;
   if (p->auxch.auxp == NULL || p->auxch.size < (unsigned int)buffersize)
     csound->AuxAlloc(csound, buffersize, &p->auxch);
   p->buf = (uint8_t *) p->auxch.auxp;
   p->bufused = -1;
-  buffersize /= (mpainfo.decoded_sample_size*2);
-  /*while (skip > 0) {
+  buffersize /= (mpainfo.decoded_sample_size);
+  //printf("===%d \n", skip);
+  //skip = skip - 528;
+  while (skip > 0) {
      int xx= skip;
+    printf("%d \n", skip);
     if (xx > buffersize) xx = buffersize;
     skip -= xx;
     r = mp3dec_decode(mpa, p->buf, mpainfo.decoded_sample_size*xx, &p->bufused);
-    }*/
-  if(skip)
-    mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
+    }
+  //if(!skip)
+  //mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
   p->r = r;
   if(p->initDone == -1)
     csound->RegisterDeinitCallback(csound, p,
@@ -1060,6 +1064,7 @@ static int filinit(CSOUND *csound, LOADER *pp)
   p->indataL[5] = p->fdata[0].auxp + 5*size/8;
   p->indataL[6] = p->fdata[0].auxp + 3*size/4;
   p->indataL[7] = p->fdata[0].auxp + 7*size/8;
+  memset(p->indataL[7], 0, size/8);
   if (p->fdata[1].auxp == NULL || p->fdata[1].size < size)
     csound->AuxAlloc(csound, size, &p->fdata[1]);
   p->indataR[0] = p->fdata[1].auxp;
@@ -1070,6 +1075,7 @@ static int filinit(CSOUND *csound, LOADER *pp)
   p->indataR[5] = p->fdata[1].auxp + 5*size/8;
   p->indataR[6] = p->fdata[1].auxp + 3*size/4;
   p->indataR[7] = p->fdata[1].auxp + 7*size/8;
+  memset(p->indataR[7], 0, size/8);
   size =  buffsize*sizeof(short)/4;
   if (p->buffer.auxp == NULL || p->buffer.size < size)
     csound->AuxAlloc(csound, size, &p->buffer);
@@ -1080,14 +1086,21 @@ static int filinit(CSOUND *csound, LOADER *pp)
 
   
   /* mp3_seek operates on multiples of 1152 frames */
-  if (skip) {
-     skip -= 528;  /* compensate for no gap decoding */
-     int skips = (skip/4608)*4608;
-     mp3dec_seek(mpa, skips, MP3DEC_SEEK_SAMPLES);
-     skip = skip - skips;   
-  } else mp3dec_seek(mpa, 0, MP3DEC_SEEK_SAMPLES);
+  int frmsiz = mpainfo.decoded_frame_samples;
+  if (skip==0) skip = 1;
 
-  
+   {
+     skip -= 528;  /* compensate for no gap decoding */
+     int skips = (skip/frmsiz)*frmsiz;
+     int offs = 0;
+     if(mpainfo.frequency == 44100 &&
+        mpainfo.bitrate == 192 &&
+        *pp->skip > 0.09) offs = frmsiz;
+       
+     mp3dec_seek(mpa, skips-offs, MP3DEC_SEEK_SAMPLES);
+     skip = skip - skips;   
+   } /*else mp3dec_seek(mpa, 0, MP3DEC_SEEK_SAMPLES);*/
+
   // fill buffers
   p->orsr = mpainfo.frequency;
   p->curbuf = 0;
@@ -1099,9 +1112,9 @@ static int filinit(CSOUND *csound, LOADER *pp)
   buffiller((void *)p);
   buffiller((void *)p);
   buffiller((void *)p);
-  buffiller((void *)p);
+  //buffiller((void *)p);
   
-  p->pos = skip;
+  p->pos = skip*csound->GetSr(csound)/p->orsr;// ? skip : -528;
   p->tscale  = 0;
   p->accum = 0;
   p->tab[0] = (MYFLT *) p->fdata[0].auxp;
@@ -1110,7 +1123,7 @@ static int filinit(CSOUND *csound, LOADER *pp)
   p->finished = 0;
   p->init = 1;
   p->skip = *pp->skip;
-  p->filling = 0;
+  p->filling = 7;
   return OK;
 }
 
@@ -1234,7 +1247,7 @@ static int player_init(CSOUND *csound, PLAYER *p){
     struct sched_param param;
     pthread_getschedparam(pthread_self(), &policy,
                           &param);
-    /*if(policy == SCHED_OTHER)
+   if(policy == SCHED_OTHER)
       csound->Message(csound, "POLICY: SCHED_OTHER");
     else if(policy == SCHED_FIFO)
     csound->Message(csound, "POLICY: SCHED_FIFO, %d", param.sched_priority);*/
