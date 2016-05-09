@@ -1061,10 +1061,11 @@ int expsegr(CSOUND *csound, EXPSEG *p)
 int lnnset(CSOUND *csound, LINEN *p)
 {
     MYFLT a,b,dur;
+    MYFLT len = csound->curip->p3.value;
 
     if ((dur = *p->idur) > FL(0.0)) {
-      if (*p->iris + *p->idec > dur)
-          csound->Warning(csound, Str("irise greater than idur in linen"));
+      if (len<(*p->iris<*p->idec?*p->idec:*p->iris))
+        csound->Warning(csound, Str("p3 too short in linen"));
 
       p->cnt1 = (int32)(*p->iris * CS_EKR + FL(0.5));
       if (p->cnt1 > (int32)0) {
@@ -1307,7 +1308,8 @@ int evxset(CSOUND *csound, ENVLPX *p)
     FUNC        *ftp;
     MYFLT       ixmod, iatss, idur, prod, diff, asym, nk, denom, irise;
     int32       cnt1;
-
+    MYFLT       len = csound->curip->p3.value;
+    
     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
       return NOTOK;
     p->ftp = ftp;
@@ -1335,8 +1337,8 @@ int evxset(CSOUND *csound, ENVLPX *p)
       }
       else asym = FL(0.0);
       if ((irise = *p->irise) > FL(0.0)) {
-        if (irise + *p->idec > idur)
-          csound->Warning(csound, Str("irise greater than idur in envlpx"));
+        if (irise + *p->idec > len)
+          csound->Warning(csound, Str("p3 too short in envlpx"));
         p->phs = 0;
         p->ki = (int32) (CS_KICVT / irise);
         p->val = *ftp->ftable;
