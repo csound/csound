@@ -175,10 +175,11 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
   //skip = skip - 528;
   while (skip > 0) {
      int xx= skip;
-    printf("%d \n", skip);
+     // printf("%d \n", skip);
     if (xx > buffersize) xx = buffersize;
     skip -= xx;
     r = mp3dec_decode(mpa, p->buf, mpainfo.decoded_sample_size*xx, &p->bufused);
+    // printf("u %d \n", p->bufused);
     }
   //if(!skip)
   //mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
@@ -864,6 +865,7 @@ typedef struct _mp3scal2_ {
   int error;
   MYFLT orsr;
   char lock;
+  unsigned long end;
 } MP3SCAL2;
 
 typedef struct _loader {
@@ -998,6 +1000,15 @@ int mp3dec_cleanup(CSOUND *csound, LOADER *p)
   return OK;
 }
 
+void decode_seek(CSOUND *csound, mp3dec_t mpa, int skip){
+  unsigned char buffer[1152*4];
+  mp3dec_seek(mpa, 0, MP3DEC_SEEK_SAMPLES);
+  while (skip > 0) {
+    mp3dec_decode(mpa,buffer, 1152*4,NULL);
+    skip -= 1152;
+    }
+}
+
 static int filinit(CSOUND *csound, LOADER *pp)
 {
   MP3SCAL2 *p = &(pp->p);
@@ -1084,21 +1095,32 @@ static int filinit(CSOUND *csound, LOADER *pp)
   int skip = (int)(*pp->skip*mpainfo.frequency);
   p->bufused = -1;
 
-  
+ 
   /* mp3_seek operates on multiples of 1152 frames */
   int frmsiz = mpainfo.decoded_frame_samples;
   if (skip==0) skip = 1;
-
+  
    {
      skip -= 528;  /* compensate for no gap decoding */
      int skips = (skip/frmsiz)*frmsiz;
-     int offs = 0;
-     if(mpainfo.frequency == 44100 &&
+     //int offs = 0;
+     /*if(mpainfo.frequency == 44100 &&
         mpainfo.bitrate == 192 &&
-        *pp->skip > 0.09) offs = frmsiz;
-       
-     mp3dec_seek(mpa, skips-offs, MP3DEC_SEEK_SAMPLES);
-     skip = skip - skips;   
+        *pp->skip > 0.09) offs = frmsiz;*/
+     // double dtime;
+     //struct timespec ts;
+     //clock_gettime(CLOCK_MONOTONIC, &ts);
+     //dtime = ts.tv_sec + 1e-9*ts.tv_nsec;
+     
+     if(*pp->skip < FL(5.0))
+       decode_seek(csound, mpa,skips);
+     else
+       mp3dec_seek(mpa, skips, MP3DEC_SEEK_SAMPLES);
+     skip = skip - skips;
+
+     //clock_gettime(CLOCK_MONOTONIC, &ts);
+     //dtime = ts.tv_sec + 1e-9*ts.tv_nsec - dtime;
+     //csound->Message(csound, "load time %f \n", dtime);
    } /*else mp3dec_seek(mpa, 0, MP3DEC_SEEK_SAMPLES);*/
 
   // fill buffers
@@ -1154,7 +1176,7 @@ static int loader_init(CSOUND *csound, LOADER *pp){
     param.sched_priority = 0;
     policy = SCHED_OTHER;
     if(pthread_setschedparam((pp->p.t), policy,
-                             &param) != 0)
+                           &param) != 0)
       csound->Message(csound, "could not set priority \n");
   }
   else return csound->InitError(csound, "cannot load: player still active\n");
@@ -1823,6 +1845,560 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 }
 //#endif
 
+
+static int meminit2(CSOUND *csound, LOADER *pp)
+{
+
+  MP3SCAL2 *p = &(pp->p);
+  int N =  *pp->iN, ui;
+  unsigned int i;
+  unsigned int size;
+  int decim = *pp->idecim;
+  p->N = N;
+  p->error = 0;
+  if (N) {
+    for (i=0; N; i++) {
+      N >>= 1;
+    }
+    N = (int) pow(2.0, i-1);
+  } else N = 2048;
+  if (decim == 0) decim = 4;
+
+  p->hsize = N/decim;
+  p->cnt = p->hsize;
+  p->curframe = 0;
+  p->pos = 0;
+
+  for (i=0; i < MP3_CHNS; i++){
+
+    size = (N+2)*sizeof(MYFLT);
+    if (p->fwin[i].auxp == NULL || p->fwin[i].size < size)
+      csound->AuxAlloc(csound, size, &p->fwin[i]);
+    if (p->bwin[i].auxp == NULL || p->bwin[i].size < size)
+      csound->AuxAlloc(csound, size, &p->bwin[i]);
+    if (p->prev[i].auxp == NULL || p->prev[i].size < size)
+      csound->AuxAlloc(csound, size, &p->prev[i]);
+    
+    size = decim*sizeof(int);
+    if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
+      csound->AuxAlloc(csound, size, &p->framecount[i]);
+    {
+      int k=0;
+      for (k=0; k < decim; k++) {
+        ((int *)(p->framecount[i].auxp))[k] = k*N;
+      }
+    }
+    size = decim*sizeof(MYFLT)*N;
+    if (p->outframe[i].auxp == NULL || p->outframe[i].size < size)
+      csound->AuxAlloc(csound, size, &p->outframe[i]);
+    else
+      memset(p->outframe[i].auxp,0,size);
+  }
+  size = N*sizeof(MYFLT);
+  if (p->win.auxp == NULL || p->win.size < size)
+    csound->AuxAlloc(csound, size, &p->win);
+
+  {
+    MYFLT x = FL(2.0)*PI_F/N;
+    for (ui=0; ui < N; ui++)
+      ((MYFLT *)p->win.auxp)[ui] = FL(0.5) - FL(0.5)*COS((MYFLT)ui*x);
+  }
+  
+  p->N = N;
+  p->decim = decim;
+  return OK;
+}
+
+static int filinit2(CSOUND *csound, LOADER *pp)
+{
+  MP3SCAL2 *p = &(pp->p);
+  unsigned int size;
+  char *name;
+  // open file
+  int fd;
+  int r;
+  mp3dec_t mpa           = NULL;
+  mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
+                             MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
+                             MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
+                             0.0 };
+  mpadec_info_t mpainfo;
+  int buffsize = 32768;
+  if(*pp->bfs) buffsize = *pp->bfs*8;
+
+  name = pp->name->data;
+  if(p->mpa != NULL) mp3dec_uninit(p->mpa);
+  p->mpa = mpa = mp3dec_init();
+  if (UNLIKELY(!mpa)) {
+    p->error = MPADEC_RETCODE_NOT_ENOUGH_MEMORY;
+    return NOTOK;
+  }
+  if (UNLIKELY((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK)) {
+    mp3dec_uninit(mpa);
+    p->mpa = NULL;
+    p->error = r;
+    return NOTOK;
+  }
+  if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+                                 name, "rb", "SFDIR;SSDIR",
+                                 CSFTYPE_OTHER_BINARY, 0) == NULL)) {
+    mp3dec_uninit(mpa);
+    p->error = -1;
+    return NOTOK;
+  }
+  if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
+    mp3dec_uninit(mpa);
+    p->error = r;
+    return NOTOK;
+  }
+
+  if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
+               MP3DEC_RETCODE_OK)) {
+    mp3dec_uninit(mpa);
+    return NOTOK;
+  }
+
+  p->ilen =  (MYFLT) mpainfo.duration;
+  if(mpainfo.frequency != CS_ESR)
+    p->resamp = mpainfo.frequency/CS_ESR;
+  else
+    p->resamp = 1;
+  meminit2(csound, pp);
+
+  int extrasmps = p->N+p->hsize+528;
+  size = (mpainfo.duration*mpainfo.frequency + extrasmps)*sizeof(MYFLT);
+  if (p->fdata[0].auxp == NULL || p->fdata[0].size < size)
+    csound->AuxAlloc(csound, size, &p->fdata[0]);
+  if (p->fdata[1].auxp == NULL || p->fdata[1].size < size)
+    csound->AuxAlloc(csound, size, &p->fdata[1]);
+ 
+  int frmsiz = mpainfo.decoded_frame_samples;
+  int skip = (int)(*pp->skip*mpainfo.frequency);
+  p->bufused = -1;
+  p->orsr = mpainfo.frequency;
+  p->curbuf = 0;
+  p->nsmps = buffsize/8;
+  p->pos = p->hsize + skip - 528;
+  p->tscale  = 0;
+  p->accum = 0;
+  p->tab[0] = (MYFLT *) p->fdata[0].auxp;
+  p->tab[1] = (MYFLT *) p->fdata[1].auxp;
+  p->tstamp = 0;
+  p->finished = 0;
+  p->init = 0;
+  p->skip = *pp->skip;
+  p->filling = 7;
+
+  // fill buffers
+  mp3dec_seek(mpa,0, MP3DEC_SEEK_SAMPLES);
+  int end = mpainfo.duration*mpainfo.frequency;
+  short decbuffer[frmsiz*sizeof(short)*MP3_CHNS];
+  p->end = end;
+  MYFLT *left = (MYFLT *)  p->fdata[0].auxp;
+  MYFLT *right = (MYFLT *) p->fdata[1].auxp;
+  left += p->hsize;
+  right += p->hsize; 
+  int i,j,k;
+  uint32_t bufused = 0;
+  for(i=0;i<end;i+=frmsiz){ 
+    mp3dec_decode(mpa, (unsigned char *)decbuffer,frmsiz*sizeof(short)*MP3_CHNS,&bufused);
+    //int ss = (bufused/sizeof(short))/MP3_CHNS;
+    for(k=j=0;k<frmsiz;j+=2,k++){
+      left[i+k] = decbuffer[j]/32768.;
+      right[i+k] = decbuffer[j+1]/32768.;
+    }
+    if(i > p->pos) {
+      p->init = 1;
+    }
+  }
+  return OK;
+}
+
+void *loader_thread2(void *p){
+  LOADER *pp = (LOADER *) p;
+  if(filinit2(pp->p.csound,pp) == NOTOK) {
+    if(pp->p.error > 0)
+      pp->p.csound->Message(pp->p.csound, "mp3scal_load error: %s \n",
+                            mp3dec_error(pp->p.error));
+    else
+      pp->p.csound->Message(pp->p.csound, "mp3scal_load error:"
+                            "could not open %s \n", pp->name->data);
+  }
+  return NULL;
+}
+
+
+static int loader_init2(CSOUND *csound, LOADER *pp){
+  MP3SCAL2 *p = &(pp->p);
+  p->csound = csound;
+  p->init = 0;
+  p->ti = 0;
+  if(p->playing == 0){
+    pthread_create(&(pp->p.t), NULL, loader_thread2, pp);
+    struct sched_param param;
+    int policy;
+    pthread_getschedparam((pp->p.t), &policy,
+                          &param);
+    param.sched_priority = 0;
+    policy = SCHED_OTHER;
+    if(pthread_setschedparam((pp->p.t), policy,
+                             &param) != 0)
+      csound->Message(csound, "could not set priority \n");
+  }
+  else return csound->InitError(csound, "cannot load: player still active\n");
+  pp->res->data = (char *) p;
+  pp->res->size = sizeof(MP3SCAL2);
+  return OK;
+}
+
+static int player_init2(CSOUND *csound, PLAYER *p){
+  if(p->pp->data != NULL &&
+     p->pp->size != sizeof(MP3SCAL2)) {
+    p->p = (MP3SCAL2 *) p->pp->data;
+  }
+  else return csound->InitError(csound, "invalid handle \n");
+  *p->ilen = p->p->ilen;
+  p->p->async = *p->async;
+  if(p->p->initDone == 0)
+    csound->RegisterDeinitCallback(csound, p,
+				   (int (*)(CSOUND*, void*)) mp3dec_cleanup_player);
+  p->p->initDone = 1;
+
+#ifdef HAVE_NEON
+  while(!p->p->N) usleep(1000);
+  p->setup = pffft_new_setup(p->p->N,PFFFT_REAL);
+  p->bw = pffft_aligned_malloc(p->p->N*sizeof(float));
+  p->fw = pffft_aligned_malloc(p->p->N*sizeof(float));
+#else
+  while(!p->p->N) usleep(1000);
+  p->fwdsetup = csound->RealFFT2Setup(csound,p->p->N,FFT_FWD);
+  p->invsetup = csound->RealFFT2Setup(csound,p->p->N,FFT_INV);
+#endif
+  p->start_flag = 1;
+  return OK;
+}
+
+
+
+static int player_play2(CSOUND *csound, PLAYER *pp)
+{
+  MP3SCAL2 *p = pp->p;
+  uint32_t offset = pp->h.insdshead->ksmps_offset;
+  uint32_t early  = pp->h.insdshead->ksmps_no_end;
+  int decim = p->decim;
+  MYFLT pitch = *pp->kpitch*p->resamp, time = *pp->time*p->resamp, lock = *pp->klock;
+  double amp = *pp->kamp*csound->Get0dBFS(csound)*(8./decim)/3.;
+  int interp = *pp->kinterp;
+#ifdef __clang__
+  MYFLT *restrict out;
+  MYFLT *restrict fwin;
+  MYFLT *restrict bwin;
+  MYFLT *restrict prev;
+  MYFLT *restrict win = (MYFLT *) p->win.auxp, *restrict outframe;
+  int *restrict framecnt, curframe = p->curframe;
+  MYFLT *restrict tab;
+  MYFLT frac;
+  MYFLT *restrict phs;
+#else
+  MYFLT *out;
+  MYFLT *fwin;
+  MYFLT *bwin;
+  MYFLT *prev;
+  MYFLT *win = (MYFLT *) p->win.auxp, *outframe;
+  int *framecnt, curframe = p->curframe;
+  MYFLT *tab;
+  MYFLT frac;
+  MYFLT *phs;
+#endif
+  int N = p->N, hsize = p->hsize, cnt = p->cnt;
+  int  nsmps = csound->GetKsmps(csound), n;
+  int post, i, j;
+  double pos, spos = p->pos;
+  MYFLT in;
+  MYFLT div;
+  double tstamp = p->tstamp, incrt = p->incr;
+  AUXCH *mfwin = p->fwin,
+    *mbwin = p->bwin,
+    *mprev = p->prev,
+    *moutframe = p->outframe,
+    *mframecount = p->framecount;
+  MYFLT hsizepitch = hsize*pitch;
+  int nbytes =  p->N*sizeof(MYFLT);
+  int start_flag = pp->start_flag;
+#ifdef HAVE_NEON
+  float *restrict bw =  pp->bw, *restrict fw = pp->fw;
+#endif
+  if(spos >= p->end) {
+    for (j=0; j < MP3_CHNS; j++) {
+      out = j == 0 ? pp->out1 : pp->out2;
+      memset(out, '\0', nsmps*sizeof(MYFLT));
+    }
+    return OK;
+  }
+  p->playing = 1;
+
+  if(time < 0) time = 0.0;
+
+
+
+  if(!p->init){
+    for (j=0; j < MP3_CHNS; j++) {
+      out = j == 0 ? pp->out1 : pp->out2;
+      memset(out, '\0', nsmps*sizeof(MYFLT));
+    }
+    p->ti++;
+    *pp->kstamp = 0;
+    return OK;
+  } else *pp->ilen = p->ilen;
+
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    for (j=0; j < MP3_CHNS; j++) {
+      out = j == 0 ? pp->out1 : pp->out2;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+  }
+  if (UNLIKELY(offset)) {
+    for (j=0; j < MP3_CHNS; j++) {
+      out = j == 0 ? pp->out1 : pp->out2;
+      memset(out, '\0', offset*sizeof(MYFLT));
+    }
+  }
+
+  for (n=offset; n < nsmps; n++) {
+    if(cnt == hsize){
+      for (j = 0; j < MP3_CHNS; j++) {
+        bwin = (MYFLT *) mbwin[j].auxp;
+        fwin = (MYFLT *) mfwin[j].auxp;
+        prev = (MYFLT *) mprev[j].auxp;
+        framecnt  = (int *) mframecount[j].auxp;
+        outframe= (MYFLT *) moutframe[j].auxp;
+        tab = (MYFLT *) p->fdata[j].auxp;
+        if(pitch != 1) {
+          pos = spos;
+#ifndef HAVE_NEON
+          for (i=0; i < N; i++) {
+            post = (int) pos;
+            frac = pos  - post;
+            if(interp){
+              in = tab[post] + frac*(tab[post+1] - tab[post]);
+            }
+            else
+              in = tab[post];
+#ifdef HAVE_NEON
+            fw[i] = in * win[i];
+#else
+            fwin[i] = in * win[i];
+#endif
+     
+            post -= hsizepitch;
+            if(interp){
+              in = tab[post] + frac*(tab[post+1] - tab[post]);
+            }
+            else
+              in = tab[post];
+#ifdef HAVE_NEON
+            bw[i] = in * win[i];
+#else
+            bwin[i] = in * win[i];
+#endif
+            pos += pitch;
+          }
+#else
+	  float32x4_t bsm1,bsm2,ans;
+	  float tmpf[5],fracv[4];
+	  float tmpos;
+	  int   tmposi;
+	  for (i=0; i < N; i+=4) {
+            tmpos = pos;
+	    tmposi = FTOINT(tmpos);
+	    tmpf[0] = tab[tmposi];
+	    fracv[0] = tmpos - tmposi;
+	    tmpos += pitch;
+	    tmposi = FTOINT(tmpos);
+	    tmpf[1] = tab[tmposi];
+	    fracv[1] = tmpos -tmposi;
+	    tmpos += pitch;
+	    tmposi = FTOINT(tmpos);
+	    tmpf[2] = tab[tmposi];
+	    fracv[2] = tmpos - tmposi;
+	    tmpos += pitch;
+	    tmposi = FTOINT(tmpos);
+	    tmpf[3] = tab[tmposi];
+	    fracv[3] = tmpos - tmposi;
+	    tmpos += pitch;
+	    tmposi = FTOINT(tmpos);
+            tmpf[4] = tab[tmposi];
+       
+	    bsm1 = vld1q_f32(&tmpf[0]);
+	    bsm2 = vld1q_f32(&tmpf[1]);
+	    ans = vsubq_f32(bsm2,bsm1);
+	    bsm2 = vld1q_f32(fracv);
+	    bsm2 = vmulq_f32(ans,bsm2);
+	    ans = vaddq_f32(bsm1,bsm2);
+	    bsm1 = vld1q_f32(&win[i]);
+	    bsm2 = vmulq_f32(ans,bsm1);
+            vst1q_f32(&fw[i],bsm2);
+	    	    
+	    tmpos = pos - hsize*pitch;
+            tmposi = FTOINT(tmpos);
+	    tmpf[0] = tab[tmposi];
+	    fracv[0] = tmpos - tmposi;
+	    tmpos += pitch;
+	    tmposi = FTOINT(tmpos);
+	    tmpf[1] = tab[tmposi];
+	    fracv[1] = tmpos -tmposi;
+	    tmpos += pitch;
+	    tmposi = FTOINT(tmpos);
+	    tmpf[2] = tab[tmposi];
+	    fracv[2] = tmpos - tmposi;
+	    tmpos += pitch;
+	    tmposi = FTOINT(tmpos);
+	    tmpf[3] = tab[tmposi];
+	    fracv[3] = tmpos - tmposi;
+	    tmpos += pitch;
+	    tmposi = FTOINT(tmpos);
+            tmpf[4] = tab[tmposi];
+ 
+	    bsm1 = vld1q_f32(&tmpf[0]);
+	    bsm2 = vld1q_f32(&tmpf[1]);
+	    ans = vsubq_f32(bsm2,bsm1);
+	    bsm2 = vld1q_f32(fracv);
+	    bsm2 = vmulq_f32(ans,bsm2);
+	    ans = vaddq_f32(bsm1,bsm2);
+	    bsm1 = vld1q_f32(&win[i]);
+	    bsm2 = vmulq_f32(ans,bsm1);
+            vst1q_f32(&bw[i],bsm2);
+            pos += pitch*4;
+          }
+#endif
+	}
+	else {
+	  post = (int) spos;
+	  memcpy(fwin,&tab[post],nbytes); 
+	  post -= hsize;
+	  memcpy(bwin,&tab[post],nbytes);
+#ifdef HAVE_NEON
+          for(i=0; i < N; i++) {
+            bw[i] = bwin[i]*win[i];
+            fw[i] = fwin[i]*win[i];
+          }
+#else
+          for(i=0; i < N; i++) {
+            bwin[i] *= win[i];
+            fwin[i] *= win[i];
+          }
+#endif
+        }
+
+        if(time != FL(1.0) || pitch != FL(1.0)){
+	  	    
+#ifdef HAVE_NEON
+          pffft_transform_ordered(pp->setup,bw,bw,NULL,PFFFT_FORWARD);
+          pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_FORWARD);
+	  memcpy(bwin,bw,N*sizeof(float)); 
+          memcpy(fwin,fw,N*sizeof(float));
+	  bwin[N] = bw[1];
+	  fwin[N] = fw[1];
+#else
+	  csound->RealFFT2(csound, pp->fwdsetup, bwin);
+	  csound->RealFFT2(csound, pp->fwdsetup, fwin);
+#endif
+	  bwin[N] = bwin[1];
+	  bwin[N+1] = FL(0.0);
+	  fwin[N] = fwin[1];
+	  fwin[N+1] = FL(0.0);
+
+	  if(start_flag){
+            memcpy(prev, bwin, sizeof(MYFLT)*(N+2));
+	    pp->start_flag = 0;
+	  }
+	    
+	  for (i=0; i < N; i+=2) {
+	  div =  inv_mag(&prev[i]);
+	  cmplx_multiply_scal(&prev[i],&prev[i+1],
+				&bwin[i],&prev[i],
+				div, true);
+	  }
+        
+	  if (lock) {
+	    phs = prev;
+	    for(i = 2; i < N; i++)
+	      bwin[i] = phs[i];
+	    for(i = 2; i < N; i++)
+	      bwin[i] += phs[i-2];
+	    for(i = 2; i < N; i++)
+	      bwin[i] += phs[i+2];	    
+	    bwin[0] = prev[i] + prev[i-2];
+	    bwin[N] = prev[i] + prev[i+2];
+	  }
+	  else memcpy(bwin,prev,sizeof(MYFLT)*(N+2));
+		
+	  for (i=0; i < N; i+=2) {
+	    div =  inv_mag(&bwin[i]);
+	    cmplx_multiply_scal(&prev[i],&prev[i+1],
+				&fwin[i], &bwin[i],
+				div, false);
+	  }
+#ifdef HAVE_NEON
+	  for(i=0;i<N;i++)
+	    fw[i] = prev[i]/N;
+	  fw[1] = prev[N]/N; 
+	  pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_BACKWARD); 
+#else
+	  for(i=0; i < N+2; i++)
+	    fwin[i] = prev[i];
+	  fwin[1] = fwin[N];
+	  csound->RealFFT2(csound, pp->invsetup, fwin);
+#endif
+      } else pp->start_flag = 1;
+
+	framecnt[curframe] = curframe*N;
+	for (i=0;i<N;i++)
+#ifdef HAVE_NEON
+	  outframe[framecnt[curframe]+i] = win[i]*fw[i];
+#else
+        outframe[framecnt[curframe]+i] = win[i]*fwin[i];
+#endif
+      }
+      cnt=0;
+      curframe++;
+      if (curframe == decim) curframe = 0;
+
+      /* increment position according to timescale */
+      spos += hsize*time;
+      incrt =  time*nsmps;   
+    }
+
+    /* we only output as many channels as we have outs for */
+    for (j=0; j < 2; j++) {
+      out = j == 0 ? pp->out1 : pp->out2;
+      framecnt  = (int *) p->framecount[j].auxp;
+      outframe  = (MYFLT *) p->outframe[j].auxp;
+      out[n] = (MYFLT) 0;
+
+      for (i = 0; i < decim; i++) {
+        out[n] += outframe[framecnt[i]];
+        framecnt[i]++;
+      }
+      out[n] *= amp;
+    }
+    cnt++;
+}
+  p->cnt = cnt;
+  p->curframe = curframe;
+  p->pos = spos;
+  *pp->kstamp = (p->skip + p->tstamp/p->orsr);
+  p->tstamp = tstamp + incrt;
+  p->incr = incrt;
+  p->playing = 0;
+  return OK;
+
+}
+
+
+
+
 #define S(x)    sizeof(x)
 
 static OENTRY mp3in_localops[] = {
@@ -1843,7 +2419,11 @@ static OENTRY mp3in_localops[] = {
   {"mp3scal_play", sizeof(PLAYER), 0, 5, "aaki", "ikkkPPo",
    (SUBR)player_init, NULL,(SUBR)player_play},
   {"mp3scal_check", sizeof(CHECK), 0, 5, "k", "i",
-   (SUBR)check_init, NULL,(SUBR)check_play}
+   (SUBR)check_init, NULL,(SUBR)check_play},
+  {"mp3scal_load2", sizeof(LOADER), 0, 1, "i", "Soooo",
+   (SUBR)loader_init2, NULL,NULL },
+  {"mp3scal_play2", sizeof(PLAYER), 0, 5, "aaki", "ikkkPPo",
+   (SUBR)player_init2, NULL,(SUBR)player_play2}
 };
 
 LINKAGE_BUILTIN(mp3in_localops)
