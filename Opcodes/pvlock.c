@@ -616,7 +616,7 @@ void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
    sampsread = sf_read_MYFLT(p->sf, p->indata[p->curbuf],
                 nsmps);
    if(sampsread < nsmps)
-     memset(p->indata[p->curbuf]+sampsread*sizeof(MYFLT), 0,
+     memset(p->indata[p->curbuf]+sampsread, 0,
             sizeof(MYFLT)*(nsmps-sampsread));
    // point to the other
     p->curbuf = p->curbuf ? 0 : 1;
