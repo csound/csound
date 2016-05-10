@@ -36,10 +36,16 @@ New opcodes:
     
     o    moogladder2 is a faster, less accurate implementation of moogladder.
 
-    o    paulstretch opcode is a lightweight implementation of the PaulStretch
-         time-stretching algorithm by Paul Nasca Octavian. It is ideal for
-         timestretching a signal by very large amounts.
+    o paulstretch opcode is a lightweight implementation of the
+         PaulStretch time-stretching algorithm by Paul Nasca
+         Octavian. It is ideal for timestretching a signal by very
+         large amounts.
 
+    o    mp3scal implements phase-locked vocoder processing from
+         mp3-format disk files, resampling if necessary.
+
+    o    filescal implements phase-locked vocoder processing from disk
+         files, resampling if necessary.  
 
 New Gen and Macros:
 
@@ -74,6 +80,10 @@ Options:
 
     o    The -z option now suppresses deprecated opcodes, unless given
          a 2 or 3 argument.
+
+    o    The new option  --fftlib controls which real fft library to
+         use internally (FFTLIB = 0, PFFFT = 1, vDSP = 2)
+
 
 
 Modified Opcodes and Gens:
@@ -116,6 +126,11 @@ Modified Opcodes and Gens:
      o   chnget now allows channel names to be changed at perf time.
 
      o   iceps has been renamed cepsinv to avoid name clashes.
+
+     o   mp3 support improved in a number of minor ways.
+
+     o   a minor fix to allow a ladspa plugin to be re-loaded by the host.
+
 
 Utilities:
 
@@ -211,7 +226,11 @@ Bugs fixed:
 
     o   A fencepost errot in reading ATS files believed fixed; it
         generated spurious errors about file fimishing early.
-        
+
+    o   Initialisation error in pvbandp fixed.
+
+    o   readfi string allocation fixed
+    
 ====================
 SYSTEM LEVEL CHANGES
 ====================
@@ -288,99 +307,19 @@ GNU/Linux
 ========================================================================
 Date:   Tue May 10 14:49:44 2016 +0100
 
-commit 6f4881154cbfdd0f58829e40487dd2ab9917b439
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sun May 8 02:22:17 2016 +0100
-
-    fixing timing in mp3scal
-
-commit 05aafa2f43462bedfbdd25816850f01e21f12c93
+ommit 05aafa2f43462bedfbdd25816850f01e21f12c93
 Author: gogins <michael.gogins@gmail.com>
 Date:   Tue May 3 11:31:55 2016 -0400
 
     All plugins and modules now link statically with pthreads.
-
-commit 0a9c709ce889a03e1363d665175789f0782970ef
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue May 3 15:17:49 2016 +0100
-
-    a few more opcodes moved to new interface
-
-commit 723d755c3250783c9de1b68932d66910e41427ef
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue May 3 13:39:25 2016 +0100
-
-    started moving code to the new FFT interface
-
-commit 538fe2e2eb627f361ccb2147ba890ea356348221
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue May 3 12:46:00 2016 +0100
-
-    new fft interface and command-line option
-
-commit 0c2a28a29b8160fe7168b839654f9b62d41be13e
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon May 2 12:22:13 2016 +0100
-
-    FFT scaling fixed
 
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Tue Apr 26 16:46:53 2016 +0100
 
     oscilloscope example
 
-commit 2e6969eb8a6448f6a2ddf91dcc9ef143634ced21
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Apr 9 09:28:51 2016 +0100
-
-    change in mpadec code to allow for some files to be read
-
-commit c7daba95667bd31e2805508c42845a76e6e0aa16
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Apr 7 22:29:42 2016 +0100
-
-    mp3scal and filescal opcodes
-
-commit 594a926b011937d169201dd0b54e0b16ee2df3eb
-Merge: 991983b 7a04a26
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Apr 6 15:40:10 2016 +0100
-
-    fixed seeking on mp3in etc
-
-commit f9195eee67ed8a19d8763a997cb6f229fe00f6b7
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Apr 6 14:45:37 2016 +0100
-
-    fixed readfi string alloc
-
-commit 6ac2193e9a2e12fadb3062c7f9841e5ab12be4c3
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Apr 6 11:23:02 2016 +0100
-
-    fixed string printing
-
-commit b0183802c7ccdace0f7fa07dc5e69645082adb07
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sun Apr 3 17:00:26 2016 +0100
-
-    fixed pvsbandp initialisation
-
 commit 06cc77a1c75de604241e445e6b9bb7f6153c38f2
 Author: Francois PINOT <fggpinot@gmail.com>
 Date:   Sat Apr 2 09:19:06 2016 +0200
 
     Added ctcsound.py to interfaces
-
-commit 10d0c075d237b3cf6de5e40062d9aa53b1e275a4
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Mar 29 15:14:12 2016 +0100
-
-    some changes to cepstrum calculation
-
-commit 282394dd481ee06a0c940804f095f9710230ab39
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Mar 19 13:21:20 2016 +0000
-
-    tweak csladspa
-
