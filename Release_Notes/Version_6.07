@@ -258,8 +258,12 @@ API
       unsigned 64 bit integer.  Previously it returned a long which is
       unclear.
     
-    * New wrapper module for Python 2.x and Python 3.x using ctypes: ctcsound
-
+    * ctcsound.py is a new wrapper file to the Csound API for the
+      Python language.  It is a pure Python file using the FFI (Fast
+      Foreign Interface) module ctypes.  It does not depends on
+      Swig, and it works with Python2 and Python3 as well. It uses
+      numpy for its data structures, numpy being the fundamental
+      package for scientific computing with Python.
 
 Platform Specific
 =================
@@ -313,13 +317,3 @@ Date:   Tue May 3 11:31:55 2016 -0400
 
     All plugins and modules now link statically with pthreads.
 
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Apr 26 16:46:53 2016 +0100
-
-    oscilloscope example
-
-commit 06cc77a1c75de604241e445e6b9bb7f6153c38f2
-Author: Francois PINOT <fggpinot@gmail.com>
-Date:   Sat Apr 2 09:19:06 2016 +0200
-
-    Added ctcsound.py to interfaces
