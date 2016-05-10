@@ -1103,19 +1103,19 @@ static int filinit(CSOUND *csound, LOADER *pp)
    {
      skip -= 528;  /* compensate for no gap decoding */
      int skips = (skip/frmsiz)*frmsiz;
-     //int offs = 0;
-     /*if(mpainfo.frequency == 44100 &&
+     int offs = 0;
+     if(mpainfo.frequency == 44100 &&
         mpainfo.bitrate == 192 &&
-        *pp->skip > 0.09) offs = frmsiz;*/
+        *pp->skip > 0.09) offs = frmsiz;
      // double dtime;
      //struct timespec ts;
      //clock_gettime(CLOCK_MONOTONIC, &ts);
      //dtime = ts.tv_sec + 1e-9*ts.tv_nsec;
      
-     if(*pp->skip < FL(5.0))
-       decode_seek(csound, mpa,skips);
-     else
-       mp3dec_seek(mpa, skips, MP3DEC_SEEK_SAMPLES);
+     //if(*pp->skip < FL(5.0))
+     //  decode_seek(csound, mpa,skips);
+     //else
+       mp3dec_seek(mpa, skips-offs, MP3DEC_SEEK_SAMPLES);
      skip = skip - skips;
 
      //clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -1331,7 +1331,7 @@ invsqrt(MYFLT x)
 static
 inline
 MYFLT
-inv_mag(MYFLT *a){
+inv_mag_(MYFLT *a){
   float32x2_t ans, op;
   float32_t vans[2];
   op = vld1_f32(a);
@@ -1353,14 +1353,26 @@ cmplx_multiply_scal(MYFLT *ans_r, MYFLT *ans_i,
   *ans_r = in1[0]*r - (neg ? -in1[1]*i : in1[1]*i);
   *ans_i = in1[0]*i + (neg ? -in1[1]*r : in1[1]*r);
 }
+
+#endif
+
 static
 inline
 MYFLT
 inv_mag(MYFLT *a){
-  return FL(1.0)/(sqrt(a[0]*a[0]+a[1]*a[1])+1.0e-20);
+  return FL(1.0)/(sqrt(a[0]*a[0]+a[1]*a[1])+1.0e-15);
   //return invsqrt(a[0]*a[0]+a[1]*a[1]);
 }
-#endif
+static
+inline
+MYFLT
+inv_mag2(MYFLT *a){
+  a[0] += 1.0e-15;
+  return FL(1.0)/(sqrt(a[0]*a[0]+a[1]*a[1]));
+  //return invsqrt(a[0]*a[0]+a[1]*a[1]);
+}
+
+
 
 #define FTOINT(x)  ((int)x)
 
@@ -1739,11 +1751,10 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 #endif
         }
 
-        if(time != FL(1.0) || pitch != FL(1.0)){
 #ifdef HAVE_NEON
           pffft_transform_ordered(pp->setup,bw,bw,NULL,PFFFT_FORWARD);
           pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_FORWARD);
-          memcpy(bwin,bw,N*sizeof(float)); 
+          memcpy(bwin,bw,N*sizeof(float));
           memcpy(fwin,fw,N*sizeof(float));
           bwin[N] = bw[1];
           fwin[N] = fw[1];
@@ -1775,14 +1786,14 @@ static int player_play(CSOUND *csound, PLAYER *pp)
             for(i = 2; i < N; i++)
               bwin[i] += phs[i-2];
             for(i = 2; i < N; i++)
-              bwin[i] += phs[i+2];          
+              bwin[i] += phs[i+2];
             bwin[0] = prev[i] + prev[i-2];
             bwin[N] = prev[i] + prev[i+2];
           }
           else memcpy(bwin,prev,sizeof(MYFLT)*(N+2));
                 
           for (i=0; i < N; i+=2) {
-            div =  inv_mag(&bwin[i]);
+            div =  inv_mag2(&bwin[i]);
             cmplx_multiply_scal(&prev[i],&prev[i+1],
                                 &fwin[i], &bwin[i],
                                 div, false);
@@ -1790,16 +1801,16 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 #ifdef HAVE_NEON
           for(i=0;i<N;i++)
             fw[i] = prev[i]/N;
-          fw[1] = prev[N]/N; 
-          pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_BACKWARD); 
+          fw[1] = prev[N]/N;
+          pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_BACKWARD);
 #else
+
+	  
           for(i=0; i < N+2; i++)
             fwin[i] = prev[i];
           fwin[1] = fwin[N];
           csound->RealFFT2(csound, pp->invsetup, fwin);
 #endif
-      } else pp->start_flag = 1;
-
         framecnt[curframe] = curframe*N;
         for (i=0;i<N;i++)
 #ifdef HAVE_NEON
@@ -2291,12 +2302,12 @@ static int player_play2(CSOUND *csound, PLAYER *pp)
 #endif
         }
 
-        if(time != FL(1.0) || pitch != FL(1.0)){
+	//       if(time != FL(1.0) || pitch != FL(1.0)){
 	  	    
 #ifdef HAVE_NEON
           pffft_transform_ordered(pp->setup,bw,bw,NULL,PFFFT_FORWARD);
           pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_FORWARD);
-	  memcpy(bwin,bw,N*sizeof(float)); 
+	  memcpy(bwin,bw,N*sizeof(float));
           memcpy(fwin,fw,N*sizeof(float));
 	  bwin[N] = bw[1];
 	  fwin[N] = fw[1];
@@ -2313,7 +2324,7 @@ static int player_play2(CSOUND *csound, PLAYER *pp)
             memcpy(prev, bwin, sizeof(MYFLT)*(N+2));
 	    pp->start_flag = 0;
 	  }
-	    
+	  
 	  for (i=0; i < N; i+=2) {
 	  div =  inv_mag(&prev[i]);
 	  cmplx_multiply_scal(&prev[i],&prev[i+1],
@@ -2328,7 +2339,7 @@ static int player_play2(CSOUND *csound, PLAYER *pp)
 	    for(i = 2; i < N; i++)
 	      bwin[i] += phs[i-2];
 	    for(i = 2; i < N; i++)
-	      bwin[i] += phs[i+2];	    
+	      bwin[i] += phs[i+2];
 	    bwin[0] = prev[i] + prev[i-2];
 	    bwin[N] = prev[i] + prev[i+2];
 	  }
@@ -2346,12 +2357,9 @@ static int player_play2(CSOUND *csound, PLAYER *pp)
 	  fw[1] = prev[N]/N; 
 	  pffft_transform_ordered(pp->setup,fw,fw,NULL,PFFFT_BACKWARD); 
 #else
-	  for(i=0; i < N+2; i++)
-	    fwin[i] = prev[i];
-	  fwin[1] = fwin[N];
-	  csound->RealFFT2(csound, pp->invsetup, fwin);
+	
 #endif
-      } else pp->start_flag = 1;
+	  //} else pp->start_flag = 1;
 
 	framecnt[curframe] = curframe*N;
 	for (i=0;i<N;i++)
