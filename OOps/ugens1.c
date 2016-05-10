@@ -1064,17 +1064,18 @@ int lnnset(CSOUND *csound, LINEN *p)
     MYFLT len = csound->curip->p3.value;
 
     if ((dur = *p->idur) > FL(0.0)) {
-      if (len<(*p->iris<*p->idec?*p->idec:*p->iris))
+      MYFLT iris = *p->iris, idec = *p->idec;
+      if (len<(iris<idec?idec:iris))
         csound->Warning(csound, Str("p3 too short in linen"));
 
-      p->cnt1 = (int32)(*p->iris * CS_EKR + FL(0.5));
+      p->cnt1 = (int32)(iris * CS_EKR + FL(0.5));
       if (p->cnt1 > (int32)0) {
         p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
         p->val = FL(0.0);
       }
       else p->inc1 = p->val = FL(1.0);
       a = dur * CS_EKR + FL(0.5);
-      b = *p->idec * CS_EKR + FL(0.5);
+      b = idec * CS_EKR + FL(0.5);
       if ((int32) b > 0) {
         p->cnt2 = (int32) (a - b);
         p->inc2 = FL(1.0) /  b;
