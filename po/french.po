@@ -5308,7 +5308,7 @@ msgstr "expseg (taux-a) : non initialisé"
 
 #: OOps/ugens1.c:1068
 msgid "p3 too short in linen"
-msgstr ""
+msgstr "p3 trop court dans linen"
 
 #: OOps/ugens1.c:1211 OOps/ugens1.c:1234 OOps/ugens1.c:1367 OOps/ugens1.c:1479
 #: OOps/ugens1.c:1610 OOps/ugens1.c:1669
@@ -5321,7 +5321,7 @@ msgstr "ixmod hors limites"
 
 #: OOps/ugens1.c:1341
 msgid "p3 too short in envlpx"
-msgstr ""
+msgstr "p3 trop court dans envlpx"
 
 #: OOps/ugens1.c:1352 OOps/ugens1.c:1464 OOps/ugens1.c:1600 OOps/ugens1.c:1659
 msgid "rise func ends with zero"
@@ -8229,9 +8229,8 @@ msgid "%s: could not find opcode id"
 msgstr "%s : impossible de trouver l'id de l'opcode"
 
 #: Opcodes/paulstretch.c:114
-#, fuzzy
 msgid "paulstretch: table not found"
-msgstr "vosim : table d'impulsion non trouvée !"
+msgstr "paulstretch : table non trouvée !"
 
 #: Opcodes/physmod.c:122
 msgid "No table for Clarinet"
@@ -10907,7 +10906,7 @@ msgstr "--ksmps=N \t\t écrase ksmps"
 
 #: Top/argdecode.c:292
 msgid "--fftlib=N \t\t real fft lib to use (FFTLIB=0, PFFFT = 1, vDSP =2)"
-msgstr ""
+msgstr "-fftlib=N \t\t bib de TFR réelle à utiliser (FFTLIB=0, PFFFT = 1, vDSP =2)"
 
 #: Top/argdecode.c:294
 msgid "--help\t\t\tLong help"
