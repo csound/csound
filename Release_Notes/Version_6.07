@@ -298,6 +298,8 @@ Windows
 
     * Linking to pthreads and other libraries now static.
 
+    * Some limited support for non-ASCII characters in file names.
+    
 OSX
 ---
 
