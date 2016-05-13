@@ -469,11 +469,11 @@ unsigned int CountCSD(char **csdnames)
             name.append(temp);
           }
           else name = temp;
-	  if(i < MAXPLUGINS) {
+          if(i < MAXPLUGINS) {
             csdnames[i] =  new char[name.length()+1];
             strcpy(csdnames[i], (char*)name.c_str());
             i++;
-	  }
+          }
         }
     }
   closedir(dip);
