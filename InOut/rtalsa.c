@@ -372,7 +372,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       goto err_return_msg;
     }
     /*=======================*/
-    int hwchns;
+    unsigned int hwchns;
     if(snd_pcm_hw_params_get_channels_max(hw_params, &hwchns) < 0){
       strncpy(msg, Str("Could not retrieve max number of channels"), MSGLEN);
       goto err_return_msg;
