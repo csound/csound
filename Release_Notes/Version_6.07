@@ -260,7 +260,7 @@ API
     
     * ctcsound.py is a new wrapper file to the Csound API for the
       Python language.  It is a pure Python file using the FFI (Foreign
-      Function Interface) module ctypes.  It does not depends on
+      Function Interface) module ctypes.  It does not depend on
       Swig, and it works with Python2 and Python3 as well. It uses
       numpy for its data structures, numpy being the fundamental
       package for scientific computing with Python.
