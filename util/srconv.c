@@ -61,9 +61,10 @@
       }                                                             \
 }
 
-static  void    kaiser(int, float *, int, int, double);
+//static  void    kaiser(int, float *, int, int, double);
 static  void    usage(CSOUND *);
 
+#if 0
 static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
                        SNDFILE *outfd, int length, OPARMS *oparms)
 {
@@ -140,7 +141,6 @@ static void dieu(CSOUND *csound, char *s)
     usage(csound);
 }
 
-#if 0
 static int srconv(CSOUND *csound, int argc, char **argv)
 {
     MYFLT
@@ -817,6 +817,7 @@ static double ino(double x)
     return e;
 }
 
+#if 0
 static void kaiser(int nf, float *w, int n, int ieo, double beta)
 {
 
@@ -843,6 +844,7 @@ static void kaiser(int nf, float *w, int n, int ieo, double beta)
       w[i] = (float) (ino(beta * xi) / bes);
     }
 }
+#endif
 
 /* module interface */
 
