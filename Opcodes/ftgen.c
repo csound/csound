@@ -249,10 +249,8 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
 
     if (!istring) {
       if (csound->ISSTRCOD(*p->ifilno))
-        csound->strarg2name(csound, filename, p->ifilno, "ftsave.",
-                            0);
+        csound->strarg2name(csound, filename, p->ifilno, "ftsave.", 0);
       else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME-1);
-      
     } else {
       strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
     }
@@ -413,12 +411,12 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
 
 static int ftload(CSOUND *csound, FTLOAD *p)
 {
-  return ftload_(csound, p, 0);
+    return ftload_(csound, p, 0);
 }
 
 static int ftload_S(CSOUND *csound, FTLOAD *p)
 {
-  return ftload_(csound, p, 1);
+    return ftload_(csound, p, 1);
 }
 
 
@@ -461,10 +459,8 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
 
     if (!istring) {
       if (csound->ISSTRCOD(*p->ifilno))
-        csound->strarg2name(csound, filename, p->ifilno, "ftsave.",
-                            0);
+        csound->strarg2name(csound, filename, p->ifilno, "ftsave.", 0);
       else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME-1);
-
     } else {
       strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
     }
@@ -559,11 +555,11 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
 }
 
 static int ftsave(CSOUND *csound, FTLOAD *p){
-  return ftsave_(csound,p,0);
+    return ftsave_(csound,p,0);
 }
 
 static int ftsave_S(CSOUND *csound, FTLOAD *p){
-  return ftsave_(csound,p,1);
+    return ftsave_(csound,p,1);
 }
 
 

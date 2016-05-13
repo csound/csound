@@ -169,7 +169,7 @@ static int cent_i(CSOUND *csound, CENT *p)
     p->old = 0;
     memset(p->frame.auxp, 0, p->fsize*sizeof(MYFLT));
     memset(p->windowed.auxp, 0, p->fsize*sizeof(MYFLT));
-    p->setup = csound->RealFFT2Setup(csound,p->fsize,FFT_FWD); 
+    p->setup = csound->RealFFT2Setup(csound,p->fsize,FFT_FWD);
     return OK;
 }
 
