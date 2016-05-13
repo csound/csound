@@ -154,7 +154,7 @@ extern int ISSTRCOD(MYFLT);
   //#else
 //#define ISSTRCOD(X) isnan(X)
 //#endif
-  
+
 #define SSTRSIZ    1024
 #define ALLCHNLS   0x7fff
 #define DFLT_SR    FL(44100.0)
@@ -201,8 +201,8 @@ extern int ISSTRCOD(MYFLT);
 
 enum {FFT_LIB=0, PFFT_LIB, VDSP_LIB};
 enum {FFT_FWD=0, FFT_INV};
-  
-  typedef struct CORFIL {
+
+typedef struct CORFIL {
     char    *body;
     unsigned int     len;
     unsigned int     p;
@@ -1714,7 +1714,7 @@ typedef struct NAME__ {
                                and nodebug function */
     int           score_parser;
     CS_HASH_TABLE* symbtab;
-    int           tseglen;   
+    int           tseglen;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
