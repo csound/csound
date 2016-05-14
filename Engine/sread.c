@@ -1444,7 +1444,7 @@ static void pcopy(CSOUND *csound, int pfno, int ncopy, SRTBLK *prvbp)
 static void salcinit(CSOUND *csound)
 {                             /* init the sorter mem space for a new section */
     if (STA(curmem) == NULL) { /*  alloc 1st memblk if nec; init *nxp to this */
-      STA(curmem) = (char*) csound->Malloc(csound, (size_t) (MEMSIZ + MARGIN));
+      STA(curmem) = (char*) csound->Calloc(csound, (size_t) (MEMSIZ + MARGIN));
       STA(memend) = (char*) STA(curmem) + MEMSIZ;
     }
     STA(nxp) = (char*) STA(curmem);

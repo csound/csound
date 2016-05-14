@@ -37,9 +37,9 @@ New opcodes:
     o    moogladder2 is a faster, less accurate implementation of moogladder.
 
     o    paulstretch opcode is a lightweight implementation of the
-         PaulStretch time-stretching algorithm by Paul Nasca
-         Octavian. It is ideal for timestretching a signal by very
-         large amounts.
+         PaulStretch time-stretching algorithm by Nasca Octavian
+         Paul. It is ideal for timestretching a signal by very
+         large amounts. 
 
     o    mp3scal implements phase-locked vocoder processing from
          mp3-format disk files, resampling if necessary.
@@ -153,7 +153,9 @@ Frontends:
   HTML5:
 
   CsoundQT has its own notes at
-     https://github.com/CsoundQt/CsoundQt/blob/master/release_notes/Release%20notes%200.9.2.md
+     https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20N
+otes%200.9.2.1.md
+
 
 General usage:
 

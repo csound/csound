@@ -113,38 +113,38 @@ int realtset(CSOUND *csound, SRTBLK *bp)
     p += 2;
     if (UNLIKELY((tp->betbas = stof(csound, p)) != 0))  /* betbas1 must be zero  */
       goto error1;
-    while ((c = *p++) != SP)
-      ;
+    while ((c = *p++) != SP) {}
     if (UNLIKELY((tempo = stof(csound, p)) <= 0))       /* durbas = 60/tempo     */
       goto error2;
     if (bp->pcnt == 2 && tempo == FL(60.0))   /* just t0 60 means done */
       return(0);
     tp->durbas = FL(60.0)/tempo;
     tp->timbas = FL(0.0);                     /* timbas1 = 0           */
-    while ((c = *p++) != SP && c != LF)
-      ;
+    while ((c = *p++) != SP && c != LF) {}
     while (c != LF) {                         /* for each time-tempo pair: */
       prvtp = tp;
       if (UNLIKELY(++tp > (TSEG*) csound->tplim)) {
         /* extend */
         TSEG* oldtseg = csound->tseg;
-        /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */
-        /*        csound->tplim, csound->tpsave, tp, csound->tseglen); */
-        /* printf("tseg extend %p->", oldtseg); */
+        printf("<<tplim, tpsave, tp, prvtp, size = %p, %p, %p, %p, %d\n",
+               csound->tplim, csound->tpsave, tp, prvtp, csound->tseglen);
+        printf("tseg extend %p->", oldtseg);
         csound->tseglen += TSEGMAX;
         csound->tseg =
           (TSEG*)csound->ReAlloc(csound, oldtseg, csound->tseglen*sizeof(TSEG));
-        tp += ((TSEG*)csound->tseg - oldtseg);
-        csound->tplim = csound->tseg + csound->tseglen-1;
-        csound->tpsave += ((TSEG*)csound->tseg - oldtseg);
-        /* printf("%p\n", csound->tseg); */
-        /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */
-        /*        csound->tplim, csound->tpsave, tp, csound->tseglen); */
+        if (csound->tseg != oldtseg) {
+          printf(" MOVED ");
+          tp += ((TSEG*)csound->tseg - oldtseg); prvtp = tp-1;
+          csound->tplim = csound->tseg + csound->tseglen-1;
+          csound->tpsave += ((TSEG*)csound->tseg - oldtseg);
+        }
+        printf("%p\n", csound->tseg);
+        printf("tplim, tpsave, tp, prvtp, size = %p, %p, %p, %p, %d>>\n",
+               csound->tplim, csound->tpsave, tp, prvtp, csound->tseglen);
         //goto error3;
       }
       tp->betbas = stof(csound, p);           /* betbas = time         */
-      while ((c = *p++) != SP && c != LF)
-        ;
+      while ((c = *p++) != SP && c != LF) {}
       if (UNLIKELY(c == LF))
         goto error1;
       if (UNLIKELY((tempo = stof(csound, p)) <= 0))     /* get tempo             */
@@ -161,25 +161,24 @@ int realtset(CSOUND *csound, SRTBLK *bp)
       tp->timbas = avgdur*betspan + prvtp->timbas;    /* set timbas*/
       prvtp->durslp = (avgdur - prvtp->durbas)/betspan;/* prvdurslp*/
     align:
-      while ((c = *p++) != SP && c != LF)
-        ;
+      while ((c = *p++) != SP && c != LF) {}
     }
     tp->durslp = FL(0.0);                     /* clear last durslp */
     if (UNLIKELY(++tp > (TSEG*) csound->tplim)) {
       /* extend */
       TSEG* oldtseg = csound->tseg;
-      /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */
-      /*        csound->tplim, csound->tpsave, tp, csound->tseglen); */
-      /* printf("tseg extend %p->", oldtseg); */
+      printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n",
+             csound->tplim, csound->tpsave, tp, csound->tseglen);
+      printf("tseg extend %p->", oldtseg);
       csound->tseglen += TSEGMAX;
       csound->tseg =
         (TSEG*)csound->ReAlloc(csound, oldtseg, csound->tseglen*sizeof(TSEG));
       tp += ((TSEG*)csound->tseg - oldtseg);
       csound->tplim = csound->tseg + csound->tseglen-1;
       csound->tpsave += ((TSEG*)csound->tseg - oldtseg);
-      /* printf("%p\n", csound->tseg); */
-      /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */
-      /*        csound->tplim, csound->tpsave, tp, csound->tseglen); */
+      printf("%p\n", csound->tseg);
+      printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n",
+             csound->tplim, csound->tpsave, tp, csound->tseglen);
       //goto error3;
     }
     tp->betbas = FL(9223372036854775807.0);   /* and cap with large betval */
