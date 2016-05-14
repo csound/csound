@@ -126,21 +126,21 @@ int realtset(CSOUND *csound, SRTBLK *bp)
       if (UNLIKELY(++tp > (TSEG*) csound->tplim)) {
         /* extend */
         TSEG* oldtseg = csound->tseg;
-        printf("<<tplim, tpsave, tp, prvtp, size = %p, %p, %p, %p, %d\n",
-               csound->tplim, csound->tpsave, tp, prvtp, csound->tseglen);
-        printf("tseg extend %p->", oldtseg);
+        /* printf("<<tplim, tpsave, tp, prvtp, size = %p, %p, %p, %p, %d\n", */
+        /*        csound->tplim, csound->tpsave, tp, prvtp, csound->tseglen); */
+        /* printf("tseg extend %p->", oldtseg); */
         csound->tseglen += TSEGMAX;
         csound->tseg =
           (TSEG*)csound->ReAlloc(csound, oldtseg, csound->tseglen*sizeof(TSEG));
         if (csound->tseg != oldtseg) {
-          printf(" MOVED ");
+          /* printf(" MOVED "); */
           tp += ((TSEG*)csound->tseg - oldtseg); prvtp = tp-1;
           csound->tplim = csound->tseg + csound->tseglen-1;
-          csound->tpsave += ((TSEG*)csound->tseg - oldtseg);
+          csound->tpsave = csound->tseg;
         }
-        printf("%p\n", csound->tseg);
-        printf("tplim, tpsave, tp, prvtp, size = %p, %p, %p, %p, %d>>\n",
-               csound->tplim, csound->tpsave, tp, prvtp, csound->tseglen);
+        /* printf("%p\n", csound->tseg); */
+        /* printf("tplim, tpsave, tp, prvtp, size = %p, %p, %p, %p, %d>>\n", */
+        /*        csound->tplim, csound->tpsave, tp, prvtp, csound->tseglen); */
         //goto error3;
       }
       tp->betbas = stof(csound, p);           /* betbas = time         */
@@ -167,18 +167,18 @@ int realtset(CSOUND *csound, SRTBLK *bp)
     if (UNLIKELY(++tp > (TSEG*) csound->tplim)) {
       /* extend */
       TSEG* oldtseg = csound->tseg;
-      printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n",
-             csound->tplim, csound->tpsave, tp, csound->tseglen);
-      printf("tseg extend %p->", oldtseg);
+      /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */
+      /*        csound->tplim, csound->tpsave, tp, csound->tseglen); */
+      /* printf("tseg extend %p->", oldtseg); */
       csound->tseglen += TSEGMAX;
       csound->tseg =
         (TSEG*)csound->ReAlloc(csound, oldtseg, csound->tseglen*sizeof(TSEG));
       tp += ((TSEG*)csound->tseg - oldtseg);
       csound->tplim = csound->tseg + csound->tseglen-1;
-      csound->tpsave += ((TSEG*)csound->tseg - oldtseg);
-      printf("%p\n", csound->tseg);
-      printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n",
-             csound->tplim, csound->tpsave, tp, csound->tseglen);
+      csound->tpsave = csound->tseg;
+      /* printf("%p\n", csound->tseg); */
+      /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */
+      /*        csound->tplim, csound->tpsave, tp, csound->tseglen); */
       //goto error3;
     }
     tp->betbas = FL(9223372036854775807.0);   /* and cap with large betval */
