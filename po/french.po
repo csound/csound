@@ -4023,9 +4023,9 @@ msgid "Input channel %d too large; ignored"
 msgstr "Canal d'entrée %d trop grand ; ignoré"
 
 #: OOps/aops.c:1606 OOps/aops.c:1645
-#, fuzzy, c-format
+#, c-format
 msgid "Input channel %d is invalid; ignored"
-msgstr "Canal d'entrée %d trop grand ; ignoré"
+msgstr "Canal d'entrée %d non valide ; ignoré"
 
 #: OOps/aops.c:1637
 msgid "Input and output argument count differs in inch"
