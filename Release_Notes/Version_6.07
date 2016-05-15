@@ -32,12 +32,20 @@ New opcodes:
 
     o    S() converter from k-rate and i-time number to a string.
 
+    o    cepsinv opcode to calculate the inverse cepstrum of an array.
+    
     o    moogladder2 is a faster, less accurate implementation of moogladder.
 
-    o    paulstretch opcode is a lightweight implementation of the PaulStretch
-         time-stretching algorithm by Paul Nasca Octavian. It is ideal for
-         timestretching a signal by very large amounts.
+    o    paulstretch opcode is a lightweight implementation of the
+         PaulStretch time-stretching algorithm by Nasca Octavian
+         Paul. It is ideal for timestretching a signal by very
+         large amounts. 
 
+    o    mp3scal implements phase-locked vocoder processing from
+         mp3-format disk files, resampling if necessary.
+
+    o    filescal implements phase-locked vocoder processing from disk
+         files, resampling if necessary.  
 
 New Gen and Macros:
 
@@ -72,6 +80,10 @@ Options:
 
     o    The -z option now suppresses deprecated opcodes, unless given
          a 2 or 3 argument.
+
+    o    The new option  --fftlib controls which real fft library to
+         use internally (FFTLIB = 0, PFFFT = 1, vDSP = 2)
+
 
 
 Modified Opcodes and Gens:
@@ -115,6 +127,12 @@ Modified Opcodes and Gens:
 
      o   iceps has been renamed cepsinv to avoid name clashes.
 
+     o   mp3 support improved in a number of minor ways.
+
+     o   a minor fix to allow a ladspa plugin to be re-loaded by the host.
+
+     o   better checking in inch
+
 Utilities:
 
   o
@@ -136,7 +154,9 @@ Frontends:
   HTML5:
 
   CsoundQT has its own notes at
-     https://github.com/CsoundQt/CsoundQt/blob/master/release_notes/Release%20notes%200.9.2.md
+     https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20N
+otes%200.9.2.1.md
+
 
 General usage:
 
@@ -168,8 +188,8 @@ Bugs fixed:
     o   A long-standing bug in display of graphs fixed.
 
     o   Fixes to the envelope opcodes linen, expsegr, linsegr,
-        cossegr, transegr.
-
+        cossegr, transegr, envlpx, including new warnings.
+ 
     o   Many fixes in string opcodes (strsub, strcpy and others).
 
     o   Fixed bugs in print formats (sprintf printf prints).
@@ -198,10 +218,21 @@ Bugs fixed:
 
     o   fixed small issues in rtauhal module.
 
-    o   Windows installer for 64 bit CPU architecture now sets environment variables
-        on system level as it should.
+    o   Windows installer for 64 bit CPU architecture now sets
+        environment variables on system level as it should.
 
     o   transeg at k-rate with itype non-zero had an initial delay if one cycle
+
+    o   log function on arrays fixed
+
+    o   Rescaling of named GENs fixed
+
+    o   A fencepost error in reading ATS files believed fixed; it
+        generated spurious errors about file finishing early.
+
+    o   Initialisation error in pvbandp fixed.
+
+    o   readfi string allocation fixed
     
 ====================
 SYSTEM LEVEL CHANGES
@@ -230,8 +261,12 @@ API
       unsigned 64 bit integer.  Previously it returned a long which is
       unclear.
     
-    * New wrapper module for Python 2.x and Python 3.x using ctypes: ctcsound
-
+    * ctcsound.py is a new wrapper file to the Csound API for the
+      Python language.  It is a pure Python file using the FFI (Foreign
+      Function Interface) module ctypes.  It does not depend on
+      Swig, and it works with Python2 and Python3 as well. It uses
+      numpy for its data structures, numpy being the fundamental
+      package for scientific computing with Python.
 
 Platform Specific
 =================
@@ -264,6 +299,10 @@ Windows
     * A new simplified build system has been implemented in the csound/mingw64
       directory for building Csound using the MSYS2/mingw64 toolchain.
 
+    * Linking to pthreads and other libraries now static.
+
+    * Some limited support for non-ASCII characters in file names.
+    
 OSX
 ---
 
@@ -277,5 +316,4 @@ GNU/Linux
 ========================================================================
 
 ========================================================================
-Date:   Tue Mar 15 10:55:07 2016 +0000
-
+Date:   Tue May 10 14:49:44 2016 +0100

@@ -1482,16 +1482,19 @@ PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
     else if (p->midi_key_oct > 0) oparms->midiKeyOct = p->midi_key_oct;
 
     if (p->midi_velocity > 0) oparms->midiVelocity = p->midi_velocity;
-    else if (p->midi_velocity_amp > 0) oparms->midiVelocityAmp = p->midi_velocity_amp;
+    else if (p->midi_velocity_amp > 0)
+      oparms->midiVelocityAmp = p->midi_velocity_amp;
 
     /* CSD line counts */
     if (p->csd_line_counts > 0) oparms->useCsdLineCounts = p->csd_line_counts;
 
     /* kr override */
-    if (p->control_rate_override > 0) oparms->kr_override = p->control_rate_override;
+    if (p->control_rate_override > 0)
+      oparms->kr_override = p->control_rate_override;
 
     /* sr override */
-    if (p->sample_rate_override > 0) oparms->sr_override = p->sample_rate_override;
+    if (p->sample_rate_override > 0)
+      oparms->sr_override = p->sample_rate_override;
 
     oparms->nchnls_override = p->nchnls_override;
     oparms->nchnls_i_override = p->nchnls_i_override;
