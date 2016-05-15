@@ -131,6 +131,7 @@ Modified Opcodes and Gens:
 
      o   a minor fix to allow a ladspa plugin to be re-loaded by the host.
 
+     o   better checking in inch
 
 Utilities:
 
