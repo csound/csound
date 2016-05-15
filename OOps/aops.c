@@ -1590,6 +1590,12 @@ int in32(CSOUND *csound, INALL *p)
     return inn(csound, p, 32u);
 }
 
+int inch1_set(CSOUND *csound, INCH1 *p)
+{
+    p->init = 1;
+    return OK;
+}
+
 int inch_opcode1(CSOUND *csound, INCH1 *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1599,12 +1605,16 @@ int inch_opcode1(CSOUND *csound, INCH1 *p)
 
       ch = ((int)*p->ch + FL(0.5));
       if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
-        csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
+        if (p->init)
+          csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
         memset(p->ar, 0, sizeof(MYFLT)*nsmps);
+        p->init = 0;
         //        return OK;
       } else if (UNLIKELY(ch < 1)) {
-        csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
+        if (p->init)
+          csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
         memset(p->ar, 0, sizeof(MYFLT)*nsmps);
+        p->init = 0;
       }
       else {
         sp = CS_SPIN + (ch - 1);
@@ -1623,6 +1633,11 @@ int inch_opcode1(CSOUND *csound, INCH1 *p)
     return OK;
 }
 
+int inch_set(CSOUND *csound, INCH *p)
+{
+    p->init = 1;
+    return OK;
+}
 
 int inch_opcode(CSOUND *csound, INCH *p)
 {                               /* Rewritten to allow multiple args upto 40 */
@@ -1638,12 +1653,16 @@ int inch_opcode(CSOUND *csound, INCH *p)
     for (nc=0; nc<nChannels; nc++) {
       ch = (int)(*p->ch[nc] + FL(0.5));
       if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
-        csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
+        if (p->init)
+          csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
         memset(p->ar[nc], 0, sizeof(MYFLT)*nsmps);
+        p->init = 0;
         //        return OK;
       } else if (UNLIKELY(ch < 1)) {
-        csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
+        if (p->init)
+          csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
         memset(p->ar, 0, sizeof(MYFLT)*nsmps);
+        p->init = 0;
       } else {
         sp = CS_SPIN + (ch - 1);
         ain = p->ar[nc];

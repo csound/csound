@@ -789,12 +789,12 @@ OENTRY opcodlst_1[] = {
   { "inx",    S(INALL),0,   4,      "aaaaaaaaaaaaaaaa","",  NULL,   NULL,   in16 },
   { "in32",   S(INALL),0,   4,      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "",     NULL,   NULL,   in32 },
-  { "inch",   S(INCH1),0,    4,      "a",
-    "k",    NULL,   NULL,   (SUBR) inch_opcode1 },
-  { "inch.m",   S(INCH),0,    4,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
-    "z",    NULL,   NULL,   inch_opcode },
-  { "_in",    S(INALL),0,   4,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
-    "",     NULL,   NULL,   inall_opcode },
+  { "inch",   S(INCH1),0,    5,      "a",
+    "k",    inch1_set,   NULL,   (SUBR) inch_opcode1 },
+  { "inch.m",   S(INCH),0,    5,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "z",    inch_set,   NULL,   inch_opcode },
+  { "_in",    S(INALL),0,   5,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "",     inch_set,   NULL,   inall_opcode },
   /* Note that there is code in rdorch.c that assumes that opcodes starting
      with the characters out followed by a s, q, h, o or x are in this group
      ***BEWARE***
