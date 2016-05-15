@@ -29,6 +29,7 @@
 #include <math.h>
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "H/fftlib.h"
 
 typedef struct {
     OPDS h;
@@ -83,7 +84,7 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
       // complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
       // so ...
       MYFLT  x = (((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
-      complex ph =  cos(x) + I*sin(x); 
+      complex ph =  cos(x) + I*sin(x);
       tmp[i] = mag * (MYFLT)crealf(ph);
       tmp[i + 1] = mag * (MYFLT)cimagf(ph);
     }
@@ -188,8 +189,7 @@ static OENTRY paulstretch_localops[] = {
   { "paulstretch", (int) sizeof(PAULSTRETCH), TR, 5, "a", "iii",
    (int (*)(CSOUND *, void *)) ps_init,
                                 (int (*)(CSOUND *, void *)) NULL,
-			(int (*)(CSOUND *, void *)) paulstretch_perf}
+                        (int (*)(CSOUND *, void *)) paulstretch_perf}
 };
 
 LINKAGE_BUILTIN(paulstretch_localops)
-

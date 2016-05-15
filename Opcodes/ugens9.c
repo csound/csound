@@ -456,7 +456,7 @@ static int pconvset_(CSOUND *csound, PCONVOLVE *p, int stringname)
              sizeof(MYFLT) * p->nchanls, &p->H);
     IRblock = (MYFLT *)p->H.auxp;
     p->fwdsetup = csound->RealFFT2Setup(csound,p->Hlenpadded, FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound,p->Hlenpadded, FFT_INV); 
+    p->invsetup = csound->RealFFT2Setup(csound,p->Hlenpadded, FFT_INV);
     /* form each partition and take its FFT */
     for (part = 0; part < p->numPartitions; part++) {
       /* get the block of input samples and normalize -- soundin code
@@ -476,7 +476,7 @@ static int pconvset_(CSOUND *csound, PCONVOLVE *p, int stringname)
           *fp2++ = *fp1 * scaleFac;
           fp1 += p->nchanls;
         }
-	
+
         csound->RealFFT2(csound, p->fwdsetup, IRblock);
         IRblock[p->Hlenpadded] = IRblock[1];
         IRblock[1] = IRblock[p->Hlenpadded + 1L] = FL(0.0);

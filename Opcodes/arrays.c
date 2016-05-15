@@ -1575,8 +1575,8 @@ int perf_recttopol(CSOUND *csound, FFT *p){
     in = p->in->data;
     out = p->out->data;
     for (i=2;i<end;i+=2 ){
-      mag = sqrt(in[i]*in[i] + in[i+1]*in[i+1]);
-      ph = atan2(in[i+1],in[i]);
+      mag = HYPOT(in[i], in[i+1]);
+      ph = ATAN2(in[i+1],in[i]);
       out[i] = mag; out[i+1] = ph;
     }
     return OK;
@@ -1588,8 +1588,8 @@ int perf_poltorect(CSOUND *csound, FFT *p){
     in = p->in->data;
     out = p->out->data;
     for(i=2;i<end;i+=2){
-      re = in[i]*cos(in[i+1]);
-      im = in[i]*sin(in[i+1]);
+      re = in[i]*COS(in[i+1]);
+      im = in[i]*SIN(in[i+1]);
       out[i] = re; out[i+1] = im;
     }
     return OK;
@@ -1613,8 +1613,8 @@ int perf_poltorect2(CSOUND *csound, FFT *p){
     phs = p->in2->data;
     out = p->out->data;
     for(i=2,j=1;j<end;i+=2, j++){
-      re = mags[j]*cos(phs[j]);
-      im = mags[j]*sin(phs[j]);
+      re = mags[j]*COS(phs[j]);
+      im = mags[j]*SIN(phs[j]);
       out[i] = re; out[i+1] = im;
     }
     out[0] = mags[0];
@@ -1634,7 +1634,7 @@ int perf_mags(CSOUND *csound, FFT *p){
     in = p->in->data;
     out = p->out->data;
     for(i=2,j=1;j<end-1;i+=2,j++)
-      out[j] = sqrt(in[i]*in[i] + in[i+1]*in[i+1]);
+      out[j] = HYPOT(in[i],in[i+1]);
     out[0] = in[0];
     out[end-1] = in[1];
     return OK;

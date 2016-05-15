@@ -698,7 +698,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
                                        Str("Invalid ftable no. %d"), fno);
             ftp = csound->FTFindP(csound, p->args[i]);
             if (ftp==NULL) // need to allocate ***FIXME***
-              ;
+              {}
             memcpy(ftp, data, sizeof(FUNC)-sizeof(MYFLT*));
             ftp->fno = fno;
             ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
