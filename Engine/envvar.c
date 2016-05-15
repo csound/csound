@@ -1022,8 +1022,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       if (type == CSFILE_STD) {
         tmp_f = _wfopen(wfname, wmode);
         if (tmp_f == NULL) {
-          ///perror(Str("csound->FileOpen2 failed:"));
-            csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), name, strerror(errno));
+          /* csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), */
+          /*                name, strerror(errno)); */
           goto err_return;
         }
         fullName = (char*) name;
@@ -1033,8 +1033,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
         fullName = (char*) name;
         tmp_f = fopen(fullName, (char*) param);
         if (tmp_f == NULL) {
-          ///perror(Str("csound->FileOpen2 failed:"));
-            csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), name, strerror(errno));
+          /* csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), */
+          /*                name, strerror(errno)); */
           goto err_return;
         }
       }
