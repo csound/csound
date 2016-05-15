@@ -237,7 +237,7 @@ int     inq(CSOUND *, void *), inh(CSOUND *, void *);
 int     ino(CSOUND *, void *), in16(CSOUND *, void *);
 int     in32(CSOUND *, void *), outarr(CSOUND *, void *);
 int     inch_opcode(CSOUND *, void *), inall_opcode(CSOUND *, void *);
-int     outmultiple(CSOUND *, void *);
+int     inch_set(CSOUND*, void*), outmultiple(CSOUND *, void *);
 /* int     out(CSOUND *, void *), outs(CSOUND *, void *); */
 int     outs1(CSOUND *, void *), outs2(CSOUND *, void *);
 /* int     outq(CSOUND *, void *); */
@@ -461,7 +461,8 @@ int table_wa(CSOUND *csound, TABLWA *p);
 int tablkt_setup(CSOUND *csound, TABL *p);
 int diskin_init(CSOUND *csound, DISKIN2 *p);
 int diskin_init_S(CSOUND *csound, DISKIN2 *p);
-int inch_opcode1(CSOUND *csound, INCH1 *p);
+int inch1_set(CSOUND *csound, void *p);
+int inch_opcode1(CSOUND *csound, void *p);
 int adset_S(CSOUND *csound, void *p);
 int lprdset_S(CSOUND *csound, void *p);
 int pvsfreadset_S(CSOUND *csound, void *p);
