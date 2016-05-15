@@ -41,7 +41,6 @@
 #include "csound_data_structures.h"
 #include "csound_standard_types.h"
 #include "pools.h"
-#include "pffft.h"
 
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
@@ -155,7 +154,7 @@ extern int ISSTRCOD(MYFLT);
   //#else
 //#define ISSTRCOD(X) isnan(X)
 //#endif
-  
+
 #define SSTRSIZ    1024
 #define ALLCHNLS   0x7fff
 #define DFLT_SR    FL(44100.0)
@@ -202,8 +201,8 @@ extern int ISSTRCOD(MYFLT);
 
 enum {FFT_LIB=0, PFFT_LIB, VDSP_LIB};
 enum {FFT_FWD=0, FFT_INV};
-  
-  typedef struct CORFIL {
+
+typedef struct CORFIL {
     char    *body;
     unsigned int     len;
     unsigned int     p;
@@ -1303,10 +1302,10 @@ typedef struct NAME__ {
     void (*InputMessage)(CSOUND *, const char *message__);
     int  (*ISSTRCOD)(MYFLT);
     void *(*RealFFT2Setup)(CSOUND *csound,
-			 int FFTsize,
-			 int d);
+                           int FFTsize,
+                           int d);
     void (*RealFFT2)(CSOUND *csound,
-			   void *p, MYFLT *sig);
+                     void *p, MYFLT *sig);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
@@ -1715,7 +1714,7 @@ typedef struct NAME__ {
                                and nodebug function */
     int           score_parser;
     CS_HASH_TABLE* symbtab;
-    int           tseglen;   
+    int           tseglen;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
