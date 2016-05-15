@@ -565,11 +565,7 @@ msgstr "Le nom du chemin du répertoire courant est trop long\n"
 msgid "internal error: csoundFileOpen(): invalid type: %d"
 msgstr "erreur interne : csoundFileOpen() : type non valide : %d"
 
-#: Engine/envvar.c:1025 Engine/envvar.c:1035
-msgid "csound->FileOpen2 failed:"
-msgstr "csound->FileOpen2, échec :"
-
-#: Engine/envvar.c:1222
+#: Engine/envvar.c:1224
 #, c-format
 msgid "internal error: csoundCreateFileHandle(): invalid type: %d"
 msgstr "erreur interne : csoundCreateFileHandle() : type non valide : %d"
@@ -892,8 +888,8 @@ msgstr "numéro de canal illégal"
 msgid "ftable size too small"
 msgstr "taille de ftable trop petite"
 
-#: Engine/fgens.c:2920 Opcodes/mp3in.c:91 Opcodes/mp3in.c:271
-#: Opcodes/mp3in.c:450 Top/cscorfns.c:176 Top/cscorfns.c:207
+#: Engine/fgens.c:2920 Opcodes/mp3in.c:91 Opcodes/mp3in.c:272
+#: Opcodes/mp3in.c:451 Top/cscorfns.c:176 Top/cscorfns.c:207
 msgid "Not enough memory\n"
 msgstr "Pas assez de mémoire\n"
 
@@ -2044,11 +2040,11 @@ msgstr "erreur :  "
 msgid "twarp: illegal opcode\n"
 msgstr "twarp : opcode illégal\n"
 
-#: Engine/twarp.c:189
+#: Engine/twarp.c:188
 msgid "twarp: t has extra or disordered beat value\n"
 msgstr "twarp : t a une valeur de pulsation en trop ou désordonnée\n"
 
-#: Engine/twarp.c:192
+#: Engine/twarp.c:191
 msgid "twarp: t has non-positive tempo\n"
 msgstr "twarp : t a un tempo non positif\n"
 
@@ -3156,100 +3152,100 @@ msgstr "Module AuHAL : périphérique fermé\n"
 msgid "rtaudio: coreaaudio-AuHAL module enabled\n"
 msgstr "rtaudio : module AuHAL activé\n"
 
-#: InOut/rtjack.c:173
+#: InOut/rtjack.c:175
 msgid " *** WARNING: disabling --sched in freewheel mode\n"
 msgstr " *** AVERTISSEMENT : désactivation de --sched dans le mode freewheel\n"
 
-#: InOut/rtjack.c:216
+#: InOut/rtjack.c:218
 #, c-format
 msgid "(%d channels)\n"
 msgstr "(%d canaux)\n"
 
-#: InOut/rtjack.c:218
+#: InOut/rtjack.c:220
 msgid "(1 channel)\n"
 msgstr "(1 canal)\n"
 
-#: InOut/rtjack.c:257
+#: InOut/rtjack.c:259
 #, c-format
 msgid "The available JACK %s devices are:\n"
 msgstr "Les périphériques JACK %s disponibles sont :\n"
 
-#: InOut/rtjack.c:258 InOut/rtpa.c:202 InOut/rtpa.c:219
+#: InOut/rtjack.c:260 InOut/rtpa.c:202 InOut/rtpa.c:219
 msgid "output"
 msgstr "sortie"
 
-#: InOut/rtjack.c:258 InOut/rtpa.c:202 InOut/rtpa.c:219
+#: InOut/rtjack.c:260 InOut/rtpa.c:202 InOut/rtpa.c:219
 msgid "input"
 msgstr "entrée"
 
-#: InOut/rtjack.c:346 InOut/rtjack.c:359 InOut/rtjack.c:364 InOut/rtjack.c:630
-#: InOut/rtjack.c:671 InOut/rtjack.c:676 InOut/rtjack.c:697 InOut/rtjack.c:702
+#: InOut/rtjack.c:348 InOut/rtjack.c:361 InOut/rtjack.c:366 InOut/rtjack.c:632
+#: InOut/rtjack.c:673 InOut/rtjack.c:678 InOut/rtjack.c:699 InOut/rtjack.c:704
 #: InOut/rtwinmm.c:112 InOut/rtwinmm.c:316 Opcodes/ftgen.c:79
 msgid "memory allocation failure"
 msgstr "échec de l'allocation mémoire"
 
-#: InOut/rtjack.c:409
+#: InOut/rtjack.c:411
 msgid "error registering input ports"
 msgstr "erreur à l'enregistrement des ports d'entrée"
 
-#: InOut/rtjack.c:420
+#: InOut/rtjack.c:422
 msgid "error registering output ports"
 msgstr "erreur à l'enregistrement des ports de sortie"
 
-#: InOut/rtjack.c:438
+#: InOut/rtjack.c:440
 msgid "could not connect to JACK server"
 msgstr "impossible de se connecter au serveur JACK"
 
-#: InOut/rtjack.c:445
+#: InOut/rtjack.c:447
 msgid "invalid number of channels"
 msgstr "nombre de canaux non valide"
 
-#: InOut/rtjack.c:447
+#: InOut/rtjack.c:449
 msgid "invalid sample rate"
 msgstr "taux d'échantillonnage non valide"
 
-#: InOut/rtjack.c:449
+#: InOut/rtjack.c:451
 #, c-format
 msgid "sample rate %d does not match JACK sample rate %d"
 msgstr "taux d'échantillonnage %d pas conforme à celui de JACK %d"
 
-#: InOut/rtjack.c:455
+#: InOut/rtjack.c:457
 msgid "invalid period size (-b)"
 msgstr "taille de période non valide (-b)"
 
-#: InOut/rtjack.c:459
+#: InOut/rtjack.c:461
 msgid "invalid buffer size (-B)"
 msgstr "taille de tampon non valide (-B)"
 
-#: InOut/rtjack.c:462
+#: InOut/rtjack.c:464
 msgid "buffer size (-B) is too small"
 msgstr "taille de tampon (-B) trop petite"
 
-#: InOut/rtjack.c:499
+#: InOut/rtjack.c:501
 msgid "error setting sample rate callback"
 msgstr "erreur en fixant le callback du taux d'échantillonnage"
 
-#: InOut/rtjack.c:503
+#: InOut/rtjack.c:505
 msgid "error setting buffer size callback"
 msgstr "erreur en fixant le callback de la taille du tampon"
 
-#: InOut/rtjack.c:508
+#: InOut/rtjack.c:510
 msgid "error setting freewheel callback"
 msgstr "erreur en fixant le callback du freewheel"
 
-#: InOut/rtjack.c:511
+#: InOut/rtjack.c:513
 msgid "error setting xrun callback"
 msgstr "erreur en fixant le callback de xrun"
 
-#: InOut/rtjack.c:515
+#: InOut/rtjack.c:517
 msgid "error setting process callback"
 msgstr "erreur en fixant le callback de xrun"
 
-#: InOut/rtjack.c:519
+#: InOut/rtjack.c:521
 msgid "error activating JACK client"
 msgstr "erreur à l'activation du client JACK"
 
-#: InOut/rtjack.c:548 InOut/rtjack.c:581
+#: InOut/rtjack.c:550 InOut/rtjack.c:583
 #, c-format
 msgid ""
 "not autoconnecting input channel %d \n"
@@ -3258,139 +3254,139 @@ msgstr ""
 "pas de connexion automatique du canal d'entrée %d\n"
 "(il faut une connexion manuelle)"
 
-#: InOut/rtjack.c:621
+#: InOut/rtjack.c:623
 msgid "must specify a device name, not a number"
 msgstr "Il faut spécifier un nom de périphérique, pas un numéro"
 
-#: InOut/rtjack.c:627
+#: InOut/rtjack.c:629
 msgid "device name is too long"
 msgstr "le nom du périphérique est trop long"
 
-#: InOut/rtjack.c:640
+#: InOut/rtjack.c:642
 msgid "input and output parameters are not consistent"
 msgstr "les paramètres d'entrée et de sortie ne sont pas consistants"
 
-#: InOut/rtjack.c:644
+#: InOut/rtjack.c:646
 msgid "period size (-b) must be an integer multiple of ksmps"
 msgstr "la taille de la période (-b) doit être un multiple entier de ksmps"
 
-#: InOut/rtjack.c:648
+#: InOut/rtjack.c:650
 msgid "sample rate must be an integer"
 msgstr "le taux d'échantillonnage doit être entier"
 
-#: InOut/rtjack.c:783
+#: InOut/rtjack.c:785
 msgid "JACK sample rate changed"
 msgstr "le taux d'échantillonnage de JACK a changé"
 
-#: InOut/rtjack.c:786
+#: InOut/rtjack.c:788
 msgid "no connection to JACK server"
 msgstr "pas de connexion au serveur JACK"
 
-#: InOut/rtjack.c:794
+#: InOut/rtjack.c:796
 msgid " *** rtjack: connection to JACK server was lost, reconnecting..."
 msgstr ""
 " *** rtjack : la connexion au serveur JACK a été perdue, reconnexion..."
 
-#: InOut/rtjack.c:833
+#: InOut/rtjack.c:835
 msgid "rtjack: input audio timeout"
 msgstr "rtjack : dépassement de temps sur l'entrée audio"
 
-#: InOut/rtjack.c:859 InOut/rtjack.c:905
+#: InOut/rtjack.c:861 InOut/rtjack.c:907
 msgid "rtjack: xrun in real time audio"
 msgstr "rtjack : xrun en audio temps réel"
 
-#: InOut/rtjack.c:1074
+#: InOut/rtjack.c:1076
 msgid "JACK real-time audio module for Csound\n"
 msgstr "Module audio en temps réel JACK pour Csound\n"
 
-#: InOut/rtjack.c:1077
+#: InOut/rtjack.c:1079
 msgid " *** rtjack: error allocating globals"
 msgstr " *** rtjack : erreur d'allocation des variables globales"
 
-#: InOut/rtjack.c:1104
+#: InOut/rtjack.c:1106
 msgid "JACK client name (default: csound6)"
 msgstr "Nom du client JACK (par défaut : csound6)"
 
-#: InOut/rtjack.c:1113
+#: InOut/rtjack.c:1115
 msgid "JACK input port name prefix (default: input)"
 msgstr "Préfixe du nom du port d'entrée de JACK (par défaut : input)"
 
-#: InOut/rtjack.c:1122
+#: InOut/rtjack.c:1124
 msgid "JACK output port name prefix (default: output)"
 msgstr "Préfixe du nom du port de sortie de JACK (par défaut : output)"
 
-#: InOut/rtjack.c:1129
+#: InOut/rtjack.c:1131
 msgid "Deprecated"
 msgstr "Obsolète"
 
-#: InOut/rtjack.c:1136
+#: InOut/rtjack.c:1138
 msgid "JACK MIDI module for Csound\n"
 msgstr "Module JACK MIDI pour Csound\n"
 
-#: InOut/rtjack.c:1139
+#: InOut/rtjack.c:1141
 msgid " *** rtjack MIDI: error allocating globals"
 msgstr " *** rtjack MIDI : erreur d'allocation des variables globales"
 
-#: InOut/rtjack.c:1155
+#: InOut/rtjack.c:1157
 msgid "JACK MIDI client name prefix (default: csound6-midi)"
 msgstr "Préfixe du nom du client JACK MIDI (par défaut : csound6_midi)"
 
-#: InOut/rtjack.c:1166
+#: InOut/rtjack.c:1168
 msgid "JACK MIDI input port name(default: port)"
 msgstr "Nom du port d'entrée JACK MIDI (par défaut : port)"
 
-#: InOut/rtjack.c:1175
+#: InOut/rtjack.c:1177
 msgid "JACK MIDI output port name (default: port)"
 msgstr "Préfixe du nom du port de sortie de JACK (par défaut : output)"
 
-#: InOut/rtjack.c:1227
+#: InOut/rtjack.c:1229
 msgid "Jack MIDI module: failed to create client for input"
 msgstr "Module MIDI Jack : échec de la création du client en entrée"
 
-#: InOut/rtjack.c:1239
+#: InOut/rtjack.c:1241
 msgid "Jack MIDI module: failed to register input port"
 msgstr "Module MIDI Jack : échec de l'enregistrement du port d'entrée"
 
-#: InOut/rtjack.c:1258 InOut/rtjack.c:1366
+#: InOut/rtjack.c:1260 InOut/rtjack.c:1368
 msgid "Jack MIDI module: failed to set input process callback"
 msgstr ""
 "Module MIDI Jack : échec de la fixation du callbackdu processus d'entrée"
 
-#: InOut/rtjack.c:1268
+#: InOut/rtjack.c:1270
 msgid "Jack MIDI module: failed to activate input"
 msgstr "Module MIDI Jack : échec de l'activation de l'entrée"
 
-#: InOut/rtjack.c:1274
+#: InOut/rtjack.c:1276
 #, c-format
 msgid "Jack MIDI module: failed to connect to: %s"
 msgstr "Module MIDI Jack : échec de la connexion à : %s"
 
-#: InOut/rtjack.c:1311
+#: InOut/rtjack.c:1313
 msgid "Jack MIDI module: out buffer overflow"
 msgstr "Module MIDI Jack : dépassement du tampon de sortie"
 
-#: InOut/rtjack.c:1335
+#: InOut/rtjack.c:1337
 msgid "Jack MIDI module: failed to create client for output"
 msgstr "Module MIDI Jack : échec de la création du client en sortie"
 
-#: InOut/rtjack.c:1347
+#: InOut/rtjack.c:1349
 msgid "Jack MIDI module: failed to register output port"
 msgstr "Module MIDI Jack : échec de l'enregistrement du port de sortie"
 
-#: InOut/rtjack.c:1376
+#: InOut/rtjack.c:1378
 msgid "Jack MIDI module: failed to activate output"
 msgstr "Module MIDI Jack : échec de l'activation de la sortie"
 
-#: InOut/rtjack.c:1383
+#: InOut/rtjack.c:1385
 #, c-format
 msgid "Jack MIDI out module: failed to connect to: %s"
 msgstr "Module MIDI Jack : échec de la connexion à : %s"
 
-#: InOut/rtjack.c:1440
+#: InOut/rtjack.c:1442
 msgid "rtaudio: JACK module enabled\n"
 msgstr "rtaudio : module JACK activé\n"
 
-#: InOut/rtjack.c:1458
+#: InOut/rtjack.c:1460
 msgid "rtmidi: JACK module enabled\n"
 msgstr "rtmidi : module JACK activé\n"
 
@@ -4021,33 +4017,38 @@ msgstr "Pas de table d'accordage %d"
 msgid "cpstun: invalid table"
 msgstr "cpstun : table non valide"
 
-#: OOps/aops.c:1602 OOps/aops.c:1638
+#: OOps/aops.c:1602 OOps/aops.c:1641
 #, c-format
 msgid "Input channel %d too large; ignored"
 msgstr "Canal d'entrée %d trop grand ; ignoré"
 
-#: OOps/aops.c:1634
+#: OOps/aops.c:1606 OOps/aops.c:1645
+#, fuzzy, c-format
+msgid "Input channel %d is invalid; ignored"
+msgstr "Canal d'entrée %d trop grand ; ignoré"
+
+#: OOps/aops.c:1637
 msgid "Input and output argument count differs in inch"
 msgstr "Les nombres d'arguments d'entrée et de sortie différent dans inch"
 
-#: OOps/aops.c:2077
+#: OOps/aops.c:2082
 msgid "Unknown function called"
 msgstr "Appel de fonction inconnue"
 
-#: OOps/aops.c:2113
+#: OOps/aops.c:2118
 msgid "number of arguments != nchnls"
 msgstr "nombre d'arguments != nchnls"
 
-#: OOps/aops.c:2143
+#: OOps/aops.c:2148
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 "outrg : le numéro de canal ne peut pas être < 1 (1 est le premier canal)"
 
-#: OOps/aops.c:2178
+#: OOps/aops.c:2183
 msgid "number of hardware output channels not currently available"
 msgstr "nombre de canaux matériels en sortie non disponible"
 
-#: OOps/aops.c:2183
+#: OOps/aops.c:2188
 msgid "number of hardware input channels not currently available"
 msgstr "nombre de canaux matériels en entrée non disponible"
 
@@ -5259,7 +5260,7 @@ msgstr "arg2 vaut zéro"
 msgid "unlike signs"
 msgstr "signes différents"
 
-#: OOps/ugens1.c:186 OOps/ugens1.c:1869 OOps/ugens1.c:1879
+#: OOps/ugens1.c:186 OOps/ugens1.c:1878 OOps/ugens1.c:1888
 #, c-format
 msgid "Breakpoint %d not valid"
 msgstr "Point charnière %d non valide"
@@ -5306,44 +5307,44 @@ msgstr "expseg (taux-k) : non initialisé"
 msgid "expseg (arate): not initialised"
 msgstr "expseg (taux-a) : non initialisé"
 
-#: OOps/ugens1.c:1068
+#: OOps/ugens1.c:1069 OOps/ugens1.c:1101
 msgid "p3 too short in linen"
 msgstr "p3 trop court dans linen"
 
-#: OOps/ugens1.c:1211 OOps/ugens1.c:1234 OOps/ugens1.c:1367 OOps/ugens1.c:1479
-#: OOps/ugens1.c:1610 OOps/ugens1.c:1669
+#: OOps/ugens1.c:1216 OOps/ugens1.c:1239 OOps/ugens1.c:1372 OOps/ugens1.c:1488
+#: OOps/ugens1.c:1619 OOps/ugens1.c:1678
 msgid "non-positive iatdec"
 msgstr "iatdec non positif"
 
-#: OOps/ugens1.c:1322 OOps/ugens1.c:1436 OOps/ugens1.c:1572 OOps/ugens1.c:1631
+#: OOps/ugens1.c:1327 OOps/ugens1.c:1442 OOps/ugens1.c:1581 OOps/ugens1.c:1640
 msgid "ixmod out of range."
 msgstr "ixmod hors limites"
 
-#: OOps/ugens1.c:1341
+#: OOps/ugens1.c:1346 OOps/ugens1.c:1462
 msgid "p3 too short in envlpx"
 msgstr "p3 trop court dans envlpx"
 
-#: OOps/ugens1.c:1352 OOps/ugens1.c:1464 OOps/ugens1.c:1600 OOps/ugens1.c:1659
+#: OOps/ugens1.c:1357 OOps/ugens1.c:1473 OOps/ugens1.c:1609 OOps/ugens1.c:1668
 msgid "rise func ends with zero"
 msgstr "la fonction d'attaque se termine par zéro"
 
-#: OOps/ugens1.c:1396 OOps/ugens1.c:1515 OOps/ugens1.c:1744
+#: OOps/ugens1.c:1401 OOps/ugens1.c:1524 OOps/ugens1.c:1753
 msgid "envlpx rise func ends with zero"
 msgstr "la fonction d'attaque de envlpx se termine zéro"
 
-#: OOps/ugens1.c:1418 OOps/ugens1.c:1508 OOps/ugens1.c:1737
+#: OOps/ugens1.c:1423 OOps/ugens1.c:1517 OOps/ugens1.c:1746
 msgid "envlpx(krate): not initialised"
 msgstr "envlpx(taux-k) : non initialisé"
 
-#: OOps/ugens1.c:1941 OOps/ugens1.c:2192
+#: OOps/ugens1.c:1950 OOps/ugens1.c:2201
 msgid "cosseg not initialised (krate)\n"
 msgstr "cosseg non initialisé (taux-k)\n"
 
-#: OOps/ugens1.c:1996
+#: OOps/ugens1.c:2005
 msgid "cosseg: not initialised (arate)\n"
 msgstr "cosseg : non initialisé (taux-a)\n"
 
-#: OOps/ugens1.c:2067 OOps/ugens1.c:2134
+#: OOps/ugens1.c:2076 OOps/ugens1.c:2143
 msgid "cossegr: not initialised (arate)\n"
 msgstr "cosseg : non initialisé (taux-a)\n"
 
@@ -6779,37 +6780,37 @@ msgstr "erreur de ftgen"
 msgid "Invalid table number: %d"
 msgstr "Numéro de table non valide : %d"
 
-#: Opcodes/ftgen.c:404
+#: Opcodes/ftgen.c:402
 msgid "ftload: error allocating ftable"
 msgstr "ftload : erreur d'allocation de la ftable"
 
-#: Opcodes/ftgen.c:406
+#: Opcodes/ftgen.c:404
 msgid "ftload: no table numbers"
 msgstr "ftload : pas de numéro de table"
 
-#: Opcodes/ftgen.c:408
+#: Opcodes/ftgen.c:406
 msgid "ftload: unable to open file"
 msgstr "ftload : impossible d'ouvrir le fichier"
 
-#: Opcodes/ftgen.c:411
+#: Opcodes/ftgen.c:409
 msgid "ftload: incorrect file"
 msgstr "ftload : fichier incorrect"
 
-#: Opcodes/ftgen.c:551
+#: Opcodes/ftgen.c:547
 msgid "ftsave: Bad table number. Saving is possible only for existing tables."
 msgstr ""
 "ftsave : mauvais numéro de table. La sauvegarde n'est possible que pour des "
 "tables existantes."
 
-#: Opcodes/ftgen.c:554
+#: Opcodes/ftgen.c:550
 msgid "ftsave: no table numbers"
 msgstr "ftsave : pas de numéros de table"
 
-#: Opcodes/ftgen.c:556
+#: Opcodes/ftgen.c:552
 msgid "ftsave: unable to open file"
 msgstr "ftsave : impossible d'ouvrir le fichier"
 
-#: Opcodes/ftgen.c:558
+#: Opcodes/ftgen.c:554
 msgid "ftsave: failed to write file"
 msgstr "ftsave : impossible d'ouvrir le fichier"
 
@@ -8057,7 +8058,7 @@ msgstr "Pas de table pour l'excitation d'Agogobell"
 msgid "modmatrix: "
 msgstr "modmatrix : "
 
-#: Opcodes/mp3in.c:114 Opcodes/mp3in.c:289
+#: Opcodes/mp3in.c:114 Opcodes/mp3in.c:290
 #, c-format
 msgid "mp3in: %s: failed to open file"
 msgstr "mp3in : %s : l'ouverture du fichier a échoué"
@@ -8068,7 +8069,7 @@ msgid "mp3in: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 "mp3in : taux d'échantillonnage du fichier (%d) != sr de l'orchestre (%d)\n"
 
-#: Opcodes/mp3in.c:462
+#: Opcodes/mp3in.c:463
 #, c-format
 msgid "mp3scale: %s: failed to open file"
 msgstr "mp3scale : %s : l'ouverture du fichier a échoué"
@@ -8228,7 +8229,7 @@ msgstr "%s : partikkel non initialisé"
 msgid "%s: could not find opcode id"
 msgstr "%s : impossible de trouver l'id de l'opcode"
 
-#: Opcodes/paulstretch.c:114
+#: Opcodes/paulstretch.c:115
 msgid "paulstretch: table not found"
 msgstr "paulstretch : table non trouvée !"
 
@@ -10906,7 +10907,8 @@ msgstr "--ksmps=N \t\t écrase ksmps"
 
 #: Top/argdecode.c:292
 msgid "--fftlib=N \t\t real fft lib to use (FFTLIB=0, PFFFT = 1, vDSP =2)"
-msgstr "-fftlib=N \t\t bib de TFR réelle à utiliser (FFTLIB=0, PFFFT = 1, vDSP =2)"
+msgstr ""
+"-fftlib=N \t\t bib de TFR réelle à utiliser (FFTLIB=0, PFFFT = 1, vDSP =2)"
 
 #: Top/argdecode.c:294
 msgid "--help\t\t\tLong help"
@@ -11125,30 +11127,30 @@ msgid "error: orchestra and score name not allowed in .csound6rc"
 msgstr ""
 "erreur : les noms d'orchestre et de partition sont interdits dans .csound6rc"
 
-#: Top/argdecode.c:1558
+#: Top/argdecode.c:1561
 msgid "stdout not supported on this platform"
 msgstr "stdout n'est pas supporté sur cette plateforme"
 
-#: Top/argdecode.c:1598 Top/argdecode.c:1618 Top/argdecode.c:1638
+#: Top/argdecode.c:1601 Top/argdecode.c:1621 Top/argdecode.c:1641
 msgid "stdin not supported on this platform"
 msgstr "stdin n'est pas supporté sur cette plateforme"
 
-#: Top/argdecode.c:1674
+#: Top/argdecode.c:1677
 #, c-format
 msgid "%d audio output devices \n"
 msgstr "%d périphériques de sortie audio \n"
 
-#: Top/argdecode.c:1676
+#: Top/argdecode.c:1679
 #, c-format
 msgid "%d audio input devices \n"
 msgstr "%d périphériques d'entrée audio \n"
 
-#: Top/argdecode.c:1690
+#: Top/argdecode.c:1693
 #, c-format
 msgid "%d MIDI output devices \n"
 msgstr "%d périphériques de sortie MIDI \n"
 
-#: Top/argdecode.c:1692
+#: Top/argdecode.c:1695
 #, c-format
 msgid "%d MIDI input devices \n"
 msgstr "%d périphériques d'entrée MIDI \n"
@@ -13643,12 +13645,12 @@ msgstr "Histoire du codage : %.*s\n"
 msgid "Prints information about sound files"
 msgstr "Affichage de l'information sur des fichiers son"
 
-#: util/srconv.c:98
+#: util/srconv.c:99
 #, c-format
 msgid "Sound format -%c has been overruled by -%c"
 msgstr "Le format son -%c a été remplacé par -%c"
 
-#: util/srconv.c:131
+#: util/srconv.c:132
 #, c-format
 msgid "srconv: unknown outout format '%c'\n"
 msgstr "srconv : format de sortie '%c' inconnu\n"
@@ -13748,7 +13750,7 @@ msgstr "-i nomfic\tfichier de segments"
 msgid "-r num\toutput sample rate (must be specified)"
 msgstr "r num\ttaux d'échantillonnage en sortie (doit être spécifié)"
 
-#: util/srconv.c:854
+#: util/srconv.c:856
 msgid "Sample rate conversion"
 msgstr "Conversion du taux d'échantillonnage"
 
@@ -14033,6 +14035,9 @@ msgstr "traitement scot terminé\n"
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr "scot : %d erreurs.\n"
+
+#~ msgid "csound->FileOpen2 failed:"
+#~ msgstr "csound->FileOpen2, échec :"
 
 #~ msgid "Array index %d out of range (0,%d) for dimension %d\n"
 #~ msgstr "Indice %d du tableau hors limites (0,%d) pour la dimension %d\n"
