@@ -1602,6 +1602,9 @@ int inch_opcode1(CSOUND *csound, INCH1 *p)
         csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
         memset(p->ar, 0, sizeof(MYFLT)*nsmps);
         //        return OK;
+      } else if (UNLIKELY(ch < 1)) {
+        csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
+        memset(p->ar, 0, sizeof(MYFLT)*nsmps);
       }
       else {
         sp = CS_SPIN + (ch - 1);
@@ -1638,8 +1641,10 @@ int inch_opcode(CSOUND *csound, INCH *p)
         csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
         memset(p->ar[nc], 0, sizeof(MYFLT)*nsmps);
         //        return OK;
-      }
-      else {
+      } else if (UNLIKELY(ch < 1)) {
+        csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
+        memset(p->ar, 0, sizeof(MYFLT)*nsmps);
+      } else {
         sp = CS_SPIN + (ch - 1);
         ain = p->ar[nc];
         if (UNLIKELY(offset)) memset(ain, '\0', offset*sizeof(MYFLT));
