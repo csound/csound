@@ -896,7 +896,7 @@ static int pvslockproc(CSOUND *csound, PVSLOCK *p)
 
     if (p->lastframe < p->fin->framecount) {
       memcpy(fout,fin, sizeof(float)*(N+2));
-
+      //int l=0;
       if (*p->klock) {
         for (i=2; i < N-4; i+=2){
           float p2 = fin[i];
@@ -912,8 +912,10 @@ static int pvslockproc(CSOUND *csound, PVSLOCK *p)
             if (FABS(fout[i+3] - freq) < d)fout[i+3]  = freq;
             if (FABS(fout[i+5] - freq) < d)fout[i+5]  = freq;
             if (FABS(fout[i+7] - freq) < d)fout[i+7]  = freq;
+	    //l+=1;
           }
         }
+	//printf("%d peak locks\n", l);
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
