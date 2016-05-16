@@ -57,7 +57,7 @@
             key : "F11",
             active : function() {
                 console.log("Global desktop keyboard shortcut: " + this.key + " active.");
-                csound_window.toggleFullscreen();
+                gui.Window.get().toggleFullscreen();
             },
             failed : function(msg) {
                 // :(, fail to register the |key| or couldn't parse the |key|.
@@ -150,7 +150,7 @@ csound.perform();
         function csound_stop()
         {
             console.log('csound_stop()...');
-            csound_window.window.csound.stop();
+            csound_window.csound.stop();
         };
         function csound_save()
         {
@@ -160,6 +160,10 @@ csound.perform();
             fs.closeSync(csd_file);
             console.log('Saved: ' + filename);
         }
+        gui.Window.get().on('close', function() {
+            console.log('Closing down...');
+            process.exit(0);
+        });
     </script>
 </body>
 </html>

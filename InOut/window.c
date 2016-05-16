@@ -102,10 +102,11 @@ void dispset(CSOUND *csound,            /* setup a new window       */
              char   *label)
 {
     OPARMS  O;
-    csound->GetOParms(csound, &O);
     char *s = caption;
     char *t = wdptr->caption;
     char *tlim = t + CAPSIZE - 1;
+
+    csound->GetOParms(csound, &O);
     if (!O.displays) return;    /* return if displays disabled */
     wdptr->fdata    = fdata;            /* init remainder of data structure   */
     wdptr->npts     = npts;
@@ -163,10 +164,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     wdptr->absmax = absmax;              /* record absmax this data  */
     /* VL: absmax needs to be updated at every display in some cases */
     if (wdptr->absflag  || absmax > wdptr->oabsmax)
-     wdptr->oabsmax = absmax;           /* & absmax over life of win */
-
-
-
+      wdptr->oabsmax = absmax;           /* & absmax over life of win */
     pol = wdptr->polarity;     /* adjust polarity flg for life of win */
     if (pol == (int16)NOPOL)  {
       if (max > FL(0.0) && min < FL(0.0))      pol = (int16)BIPOL;
@@ -177,7 +175,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     else if (pol == (int16)NEGPOL && max > FL(0.0)) pol = (int16)BIPOL;
     wdptr->polarity = pol;
 
-    if(O.odebug) csound->Message(csound, " calling draw callback \n");
+    if (O.odebug) csound->Message(csound, " calling draw callback \n");
     /* now graph the function */
     csound->csoundDrawGraphCallback_(csound, wdptr);
 

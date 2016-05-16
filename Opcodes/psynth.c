@@ -380,9 +380,11 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
               /* new track */
               contin = 1;
               goto cont;
+#if 0
               freq = freqnext;
               phase = phasenext - freq * factor;
               amp = FL(0.0);
+#endif
             }
             if(amp > min){
             /* phasediff */
@@ -448,7 +450,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
 static int psynth3_process(CSOUND *csound, _PSYN *p)
 {
     double   ampnext, amp, freq, freqnext, phase, phasenext;
-    double  a2, a3, cph;
+    double  a2, a3, cph=0.0;
     double   phasediff, facsqr, ph;
     double   a, frac, incra, incrph, factor, lotwopi, cnt;
     MYFLT   scale = *p->scal, pitch = *p->pitch;

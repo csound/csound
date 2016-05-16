@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export MANUAL_DIR=`pwd`/../../../manual
-export CS_VERSION="6.04.0"
+export CS_VERSION="6.06.0"
 export PACKAGE_NAME=csound${CS_VERSION}-OSX10.9-universal.pkg
 export DMG_DIR="Csound ${CS_VERSION}"
 export DMG_NAME="csound${CS_VERSION}-OSX10.9-universal.dmg"

@@ -1,0 +1,60 @@
+# Maintainer: Michael Gogins <michael.gogins@gmail.com>
+
+_realname='stk'
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
+         "${MINGW_PACKAGE_PREFIX}-${_realname}-devel")
+pkgver=4.5.1
+pkgrel=1
+pkgdesc="The Synthesis ToolKit in C++ (STK)"
+arch=('i686' 'x86_64')
+url="https://ccrma.stanford.edu/software/stk/"
+# options=('!libtool')
+options=('!strip' '!buildflags' 'staticlibs')
+license=('MIT')
+source=("http://ccrma.stanford.edu/software/stk/release/${_realname}-${pkgver}.tar.gz stk.patch")
+md5sums=('87e1b1a24ec09f81321c01f2cdea513d')
+
+#pkgver() {
+#    cd $srcdir/${_realname}-${pkgver}
+#    echo $(git rev-list --count HEAD).$(git rev-parse --short HEAD)
+#}
+
+prepare() {
+  cd $srcdir/${_realname}-${pkgver}
+  pwd
+  patch -Np1 -i ../../stk.patch
+}
+
+build() {
+  export CFLAGS="-Wno-error"
+  cd "${srcdir}/${_realname}-${pkgver}/"
+  # Needed because of patch to configure.ac.
+  autoreconf
+  ./configure --with-ds --with-wasapi --enable-static --enable-shared --prefix=${MINGW_PREFIX}
+  make
+  make DESTDIR="${srcdir}/dest" install
+  cp src/libstk.a ${srcdir}/dest/${MINGW_PREFIX}/lib/
+}
+
+check() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+  #make -j1 check
+}
+
+package_mingw-w64-x86_64-stk() {
+  groups=('libraries')
+  mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,share}
+  cp -f ${srcdir}/dest/${MINGW_PREFIX}/lib/*.so ${pkgdir}${MINGW_PREFIX}/bin/
+}
+
+package_mingw-w64-x86_64-stk-devel() {
+  pkgdesc="STK headers and libraries"
+  groups=('development')
+  depends=("${MINGW_PACKAGE_PREFIX}-stk=${pkgver}")
+  options=('staticlibs')
+  mkdir -p ${pkgdir}${MINGW_PREFIX}
+  #cp -f ${srcdir}/dest/usr/bin/*-config ${pkgdir}/usr/bin/
+  cp -rf ${srcdir}/dest/${MINGW_PREFIX}/include ${pkgdir}${MINGW_PREFIX}/
+  cp -rf ${srcdir}/dest/${MINGW_PREFIX}/lib ${pkgdir}${MINGW_PREFIX}/
+  #cp -rf ${srcdir}/dest/usr/share/apr ${pkgdir}/usr/share/
+}

@@ -36,6 +36,17 @@
 #include <map>
 #include <string>
 
+/**
+ * THE REAL VST INTERFACE IS JUST THIS, USE THE EXACT SAME TYPES:
+ *
+ * typedef      VstIntPtr (VSTCALLBACK *audioMasterCallback) (AEffect* effect, VstInt32 opcode, VstInt32 index, VstIntPtr value, void* ptr, float opt);
+ * typedef VstIntPtr (VSTCALLBACK *AEffectDispatcherProc) (AEffect* effect, VstInt32 opcode, VstInt32 index, VstIntPtr value, void* ptr, float opt);
+ * typedef void (VSTCALLBACK *AEffectProcessProc) (AEffect* effect, float** inputs, float** outputs, VstInt32 sampleFrames);
+ * typedef void (VSTCALLBACK *AEffectProcessDoubleProc) (AEffect* effect, double** inputs, double** outputs, VstInt32 sampleFrames);
+ * typedef void (VSTCALLBACK *AEffectSetParameterProc) (AEffect* effect, VstInt32 index, float parameter);
+ * typedef float (VSTCALLBACK *AEffectGetParameterProc) (AEffect* effect, VstInt32 index);
+ */
+
 typedef enum {
   MAX_EVENTS = 64,
   MAX_INOUTS = 8,
@@ -120,9 +131,11 @@ class VSTPlugin {
   virtual void process(float **inputs,
                        float **outputs,
                        long sampleframes);
-  virtual long Dispatch(long opCode,
-                        long index=0,
-                        long value=0,
+  // typedef VstIntPtr (VSTCALLBACK *AEffectDispatcherProc) (AEffect* effect, VstInt32 opcode, VstInt32 index, VstIntPtr value, void* ptr, float opt);
+
+  virtual VstIntPtr Dispatch(VstInt32 opCode,
+                        VstInt32 index=0,
+                        VstIntPtr value=0,
                         void *ptr=0,
                         float opt=0);
   virtual void Log(const char *format, ...);
@@ -134,8 +147,11 @@ class VSTPlugin {
   static bool OnOutputConnected(AEffect *effect, long output);
   static long OnGetVersion(AEffect *effect);
   static bool OnCanDo(const char *ptr);
-  static long Master(AEffect *effect,
-                     long opcode, long index, long value, void *ptr,
+
+  //  typedef   VstIntPtr (VSTCALLBACK *audioMasterCallback) (AEffect* effect, VstInt32 opcode, VstInt32 index, VstIntPtr value, void* ptr, float opt);
+
+  static VstIntPtr Master(AEffect *effect,
+                     VstInt32 opcode, VstInt32 index, VstIntPtr value, void *ptr,
                      float opt);
   static void initializeOpcodes();
   long EffGetChunk(void **ptr, bool isPreset = false) // GAB
@@ -171,8 +187,11 @@ class VSTPlugin {
   }
 };
 
-inline long VSTPlugin::Dispatch(long opCode,
-                                long index, long value, void *ptr, float opt)
+inline VstIntPtr VSTPlugin::Dispatch(VstInt32 opCode,
+                        VstInt32 index,
+                        VstIntPtr value,
+                        void *ptr,
+                        float opt)
 {
   if (aeffect)
     return aeffect->dispatcher(aeffect, opCode, index, value, ptr, opt);

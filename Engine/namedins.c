@@ -64,7 +64,7 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
 
     if (is_string) {
       if (UNLIKELY((insno = named_instr_find(csound, (char*) p)) <= 0)) {
-        csound->InitError(csound, Str("instr %s not found"), (char*) p);
+        csound->Warning(csound, Str("instr %s not found"), (char*) p);
         return -1;
       }
     }
@@ -72,7 +72,7 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
       insno = (int32) *((MYFLT*) p);
       if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                    !csound->engineState.instrtxtp[insno])) {
-        csound->InitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
+        csound->Warning(csound, Str("Cannot Find Instrument %d"), (int) insno);
         return -1;
       }
     }
@@ -171,7 +171,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
         s = csound->Malloc(csound, strlen((char*) p) + 1);
       strcpy(s, (char*) p);
     }
-    else if (ISSTRCOD(*((MYFLT*) p))) {
+    else if (csound->ISSTRCOD(*((MYFLT*) p))) {
       /* p-field string, unquote and copy */
       char  *s2 = get_arg_string(csound, *((MYFLT*)p));
       int   i = 0;

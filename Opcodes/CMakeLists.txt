@@ -65,6 +65,7 @@ make_plugin(cs_date date.c)
 make_plugin(system_call system_call.c)
 make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
+make_plugin(ftsamplebank ftsamplebank.cpp)
 
 make_plugin(fareygen fareygen.c)
 
@@ -79,7 +80,7 @@ elseif(LINUX)
     CHECK_CXX_COMPILER_FLAG("-std=gnu++0x" COMPILER_SUPPORTS_CXX0X)
     if(COMPILER_SUPPORTS_CXX11)
         make_plugin(padsynth padsynth_gen.cpp)
-        set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11") 
+        set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11")
     elseif(COMPILER_SUPPORTS_CXX0X)
         make_plugin(padsynth padsynth_gen.cpp)
         set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++0x")
@@ -88,6 +89,11 @@ elseif(LINUX)
     endif()
 else()
     make_plugin(padsynth padsynth_gen.cpp)
+
+    if(WIN32 AND NOT MSVC)
+      set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11"
+        LINK_FLAGS "-std=gnu++11")
+    endif()
 endif()
 endif()
 
@@ -137,7 +143,17 @@ if(BUILD_FLUID_OPCODES)
     if(EXISTS ${FLUIDSYNTH_INCLUDE_DIR})
         include_directories("${FLUIDSYNTH_INCLUDE_DIR}")
      endif()
-    make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp ${FLUIDSYNTH_LIBRARY})
+
+     if(WIN32 AND NOT MSVC)
+        set(FSYNTH_SUPPORT_LIBS ${FLUIDSYNTH_LIBRARY} dsound portaudio
+          ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} wsock32 glib-2.0
+          intl iconv ws2_32 winmm Setupapi)
+        make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp ${FSYNTH_SUPPORT_LIBS})
+
+        add_compiler_flags(-DFLUIDSYNTH_NOT_A_DLL TARGETS fluidOpcodes)
+     else()
+        make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp ${FLUIDSYNTH_LIBRARY})
+     endif()
     add_dependency_to_framework(fluidOpcodes ${FLUIDSYNTH_LIBRARY})
 endif()
 
@@ -161,10 +177,20 @@ endif()
 
 check_deps(BUILD_OSC_OPCODES LIBLO_LIBRARY OSC_HEADER)
 if(BUILD_OSC_OPCODES)
-   message(STATUS "OSC OPCODES!!!!!!")
     make_plugin(osc OSC.c)
     if(WIN32)
-      target_link_libraries(osc ${LIBLO_LIBRARY} pthread wsock32 ws2_32)
+      target_link_libraries(osc ${LIBLO_LIBRARY})
+      if(BUILD_STATIC_LIBRARY)
+        add_library(pthread_static STATIC IMPORTED)
+        set_target_properties(pthread_static PROPERTIES IMPORTED_LOCATION ${PTHREAD_LIBRARY})
+        target_link_libraries(osc pthread_static)
+      else()
+        target_link_libraries(osc ${PTHREAD_LIBRARY})
+      endif()
+      target_link_libraries(osc wsock32 ws2_32)
+      if(NOT MSVC)
+        target_link_libraries(osc iphlpapi)
+      endif()
     else()
       target_link_libraries(osc ${LIBLO_LIBRARY} pthread)
     endif()
@@ -243,20 +269,21 @@ endif()
 #    make_plugin(ogg ogg.c "${vorbis_LIBS}")
 #endif()
 
-check_deps(BUILD_VST4CS_OPCODES VSTSDK2X_DIR FLTK_FOUND)
+check_deps(BUILD_VST4CS_OPCODES VSTSDK2X_FOUND FLTK_FOUND)
+message(STATUS "VSTSDK2X_INCLUDE_DIR: ${VSTSDK2X_INCLUDE_DIR}")
 if(BUILD_VST4CS_OPCODES)
     include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
-    include_directories(${VSTSDK2X_DIR})
-    include_directories(${VSTSDK2X_DIR}/public.sdk/source/vst2.x)
-    include_directories(${VSTSDK2X_DIR}/pluginterfaces/source/vst2.x)
+    include_directories(${VSTSDK2X_INCLUDE_DIR})
+    include_directories(${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x)
+    include_directories(${VSTSDK2X_INCLUDE_DIR}/pluginterfaces/source/vst2.x)
     include_directories(${FLTK_INCLUDE_DIR})
     add_definitions(-DVST_FORCE_DEPRECATED=0 -DCS_VSTHOST)
     set(VST4CS_SRCS
         vst4cs/src/vst4cs.cpp
         vst4cs/src/vsthost.cpp
         vst4cs/src/fxbank.cpp
-        ${VSTSDK2X_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
-        ${VSTSDK2X_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
+        ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
+        ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
     add_library(vst4cs SHARED ${VST4CS_SRCS})
     set_target_properties(vst4cs PROPERTIES
         LINK_INTERFACE_LIBRARIES ""
@@ -265,24 +292,19 @@ if(BUILD_VST4CS_OPCODES)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
     target_link_libraries(vst4cs ${CSOUNDLIB} ${FLTK_LIBRARIES})
+    if(BUILD_STATIC_LIBRARY)
+        if(WIN32)
+            add_library(pthread STATIC IMPORTED)
+            set_target_properties(pthread PROPERTIES IMPORTED_LOCATION ${PTHREAD_LIBRARY})
+        endif()
+      target_link_libraries(vst4cs pthread)
+    else()
+      target_link_libraries(vst4cs ${PTHREAD_LIBRARY})
+    endif()
     install(TARGETS vst4cs
         LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
         ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 endif()
-
-
-#set(sfont_FLAGS "")
-
-#if(CMAKE_C_COMPILER MATCHES "gcc")
-#    set(sfont_FLAGS ${sfont_FLAGS} -fno-strict-aliasing)
-#endif()
-#if(BIG_ENDIAN)
-#    set(sfont_FLAGS ${sfont_FLAGS} -DWORDS_BIGENDIAN)
-#endif()
-#message(STATUS "Compiler flags used for sfont lib: ${sfont_FLAGS}")
-#make_plugin(sfont sfont.c m)
-#set_target_properties(sfont
-#    PROPERTIES COMPILER_FLAGS "${sfont_FLAGS}")
 
 add_subdirectory(stk)
 add_subdirectory(cuda)
@@ -290,4 +312,3 @@ add_subdirectory(opencl)
 add_subdirectory(hdf5)
 add_subdirectory(websockets)
 add_subdirectory(framebuffer)
-

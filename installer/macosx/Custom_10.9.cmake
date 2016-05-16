@@ -10,6 +10,8 @@ set(TCL_VERSION 8.5)
 ##set(BUILD_CSOUND_AC OFF)
 ##set(BUILD_CSOUND_AC_PYTHON_INTERFACE OFF)
 ##set(BUILD_CSOUND_AC_LUA_INTERFACE OFF)
+set(PYTHON_INCLUDE_DIRS "/usr/include/python2.7")
+set(JNI_INCLUDE_DIRS "/Library/Java/JavaVirtualMachines/jdk1.7.0_45.jdk/Contents/Home/include")
 
 list(APPEND CMAKE_SYSTEM_LIBRARY_PATH "/Users/victor/src/stk-4.4.4/src")
 list(APPEND CMAKE_SYSTEM_INCLUDE_PATH "/Users/victor/src/stk-4.4.4/include")

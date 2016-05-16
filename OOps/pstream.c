@@ -58,7 +58,7 @@ int fassign_set(CSOUND *csound, FASSIGN *p)
     p->fout->N =  N;
     p->fout->overlap = p->fsrc->overlap;
     p->fout->winsize = p->fsrc->winsize;
-    p->fout->wintype =p->fsrc->wintype;
+    p->fout->wintype = p->fsrc->wintype;
     p->fout->format = p->fsrc->format;
     p->fout->sliding = p->fsrc->sliding;
     /* sliding needs to be checked */
@@ -68,7 +68,13 @@ int fassign_set(CSOUND *csound, FASSIGN *p)
                        &p->fout->frame);
       return OK;
     }
-    csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    if (p->fsrc->format < 0){
+      p->fout->frame.auxp = p->fsrc->frame.auxp;
+      p->fout->frame.size = p->fsrc->frame.size;
+      //csound->Message(csound, Str("fsig = : init\n"));
+    }
+    else
+      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     p->fout->framecount = 1;
     //csound->Message(csound, Str("fsig = : init\n"));
     return OK;
@@ -79,7 +85,12 @@ int fassign(CSOUND *csound, FASSIGN *p)
 {
     int32 framesize;
     float *fout,*fsrc;
-
+    fout = (float *) p->fout->frame.auxp;
+    fsrc = (float *) p->fsrc->frame.auxp;
+    if (fout == fsrc) {
+      //csound->Message(csound, Str("fsig = : no cpy\n"));
+      return OK;
+    }
     // if (UNLIKELY(!fsigs_equal(p->fout,p->fsrc)))
     //return csound->PerfError(csound,p->h.insdshead,
     //                         Str("fsig = : formats are different.\n"));
@@ -88,8 +99,9 @@ int fassign(CSOUND *csound, FASSIGN *p)
              sizeof(MYFLT)*(p->fsrc->N+2)*csound->ksmps);
       return OK;
     }
-    fout = (float *) p->fout->frame.auxp;
-    fsrc = (float *) p->fsrc->frame.auxp;
+
+
+
 
     framesize = p->fsrc->N + 2;
 
@@ -370,8 +382,8 @@ static int pvsfreadset_(CSOUND *csound, PVSFREAD *p, int stringname)
     uint32   N;
     char            pvfilnam[MAXNAME];
 
-    if(stringname) strncpy(pvfilnam, ((STRINGDAT*)p->ifilno)->data, MAXNAME-1);
-    else if (ISSTRCOD(*p->ifilno))
+    if (stringname) strncpy(pvfilnam, ((STRINGDAT*)p->ifilno)->data, MAXNAME-1);
+    else if (csound->ISSTRCOD(*p->ifilno))
       strncpy(pvfilnam, get_arg_string(csound, *p->ifilno), MAXNAME-1);
     else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", 0);
 

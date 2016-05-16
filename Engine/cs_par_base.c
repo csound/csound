@@ -392,7 +392,7 @@ int csp_set_element_ptr_eq(struct set_element_t *ele1,
 void csp_set_element_string_print(CSOUND *csound,
                                   struct set_element_t *ele)
 {
-    csound->Message(csound, (char *)ele->data);
+  csound->Message(csound, "%s", (char *)ele->data);
 }
 
 void csp_set_element_ptr_print(CSOUND *csound,

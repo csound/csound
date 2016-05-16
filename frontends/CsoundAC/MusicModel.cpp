@@ -23,6 +23,7 @@
 #include "System.hpp"
 #include <cstdio>
 #include <cstdlib>
+#include <stdint.h>
 
 namespace csound
 {
@@ -205,12 +206,13 @@ namespace csound
     }
     return command_;
   }
-
-  long MusicModel::getThis()
+  
+  intptr_t MusicModel::getThis()
   {
-    return (long) this;
+    return (intptr_t) this;
   }
 
+  
   Node *MusicModel::getThisNode()
   {
     return (Node *)this;
