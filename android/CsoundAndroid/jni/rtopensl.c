@@ -1,4 +1,3 @@
-
 /*
    rtopensl.c
    OpenSl ES Audio Module for Csound
@@ -25,7 +24,7 @@
 */
 #include <SLES/OpenSLES.h>
 #include "SLES/OpenSLES_Android.h"
-#include "csdl.h"
+#include "csoundCore.h"
 #include <android/log.h>
 #include <stdint.h>
 #include <time.h>
@@ -44,13 +43,13 @@ typedef struct OPEN_SL_PARAMS_ {
   // buffer queue player interfaces
   SLObjectItf bqPlayerObject;
   SLPlayItf bqPlayerPlay;
-  SLAndroidSimpleBufferQueueItf bqPlayerBufferQueue;
+  SLBufferQueueItf bqPlayerBufferQueue;
   SLEffectSendItf bqPlayerEffectSend;
 
   // recorder interfaces
   SLObjectItf recorderObject;
   SLRecordItf recorderRecord;
-  SLAndroidSimpleBufferQueueItf recorderBufferQueue;
+  SLBufferQueueItf recorderBufferQueue;
 
   // buffers
   MYFLT *outputBuffer;
@@ -84,7 +83,7 @@ double old = 0.0;
 #define CONVMYFLT FL(1./32768.)
 static double curtime;
 // this callback handler is called every time a buffer finishes playing
-void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
+void bqPlayerCallback(SLBufferQueueItf bq, void *context)
 {
   open_sl_params *p = (open_sl_params *) context;
   CSOUND *csound = p->csound;
@@ -108,9 +107,9 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
   else {
     int items = p->outBufSamples,
       i, r = 0, ret = 1, paused;
-    MYFLT *outputBuffer = csoundGetOutputBuffer(csound);
+    MYFLT *outputBuffer = csound->GetOutputBuffer(csound);
     short *playBuffer = p->playBuffer;
-    paused = *((int *) csoundQueryGlobalVariable(csound,"::paused::"));
+    paused = *((int *) csound->QueryGlobalVariable(csound,"::paused::"));
     memset(playBuffer, 0, items*sizeof(short));
     if(!paused) ret = csoundPerformBuffer(csound);
     else csound->Message(csound, "paused \n");
@@ -119,7 +118,7 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 	playBuffer[i] = (short) (outputBuffer[i]*CONV16BIT);
     } else return;
       (*bq)->Enqueue(bq,playBuffer,items*sizeof(short));
-      if(p->streamTime != NULL) (*p->streamTime) += (items/csoundGetNchnls(csound));
+      if(p->streamTime != NULL) (*p->streamTime) += (items/csound->GetNchnls(csound));
 
   }
   
@@ -183,7 +182,7 @@ int openSLPlayOpen(open_sl_params *params)
   params->csound->Message(params->csound, "play open sl \n");
 
   // configure audio source
-  SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_BUFFERQUEUE, 2};
+  SLDataLocator_BufferQueue loc_bufq = {SL_DATALOCATOR_BUFFERQUEUE, 1};
   params->csound->Message(params->csound, "==== sr=%d\n", sr);
   switch(sr){
 
@@ -335,7 +334,7 @@ int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm)
   *(p->GetRtPlayUserData(p)) = (void*) params;
   if (p->CreateGlobalVariable(p, "::streamtime::", sizeof(__uint64_t))
       == 0){
-    params->streamTime = (__int64_t *) p->QueryGlobalVariable(p, "::streamtime::");
+    params->streamTime = (__uint64_t *) p->QueryGlobalVariable(p, "::streamtime::");
     *params->streamTime = 0;
   } else params->streamTime = NULL;
   returnVal = openSLInitOutParams(params);
@@ -348,7 +347,7 @@ int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm)
 // ===============================
 
 // this callback handler is called every time a buffer finishes recording
-void bqRecorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
+void bqRecorderCallback(SLBufferQueueItf bq, void *context)
 {
   open_sl_params *p = (open_sl_params *) context;
   CSOUND *csound = p->csound;
@@ -434,7 +433,7 @@ int openSLRecOpen(open_sl_params *params){
   SLDataSource audioSrc = {&loc_dev, NULL};
 
   // configure audio sink
-  SLDataLocator_AndroidSimpleBufferQueue loc_bq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
+  SLDataLocator_BufferQueue loc_bq = {SL_DATALOCATOR_BUFFERQUEUE, 2};
   SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM,nchnls, sr,
 				 SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16,
 				 SL_SPEAKER_FRONT_CENTER, SL_BYTEORDER_LITTLEENDIAN};
@@ -442,7 +441,7 @@ int openSLRecOpen(open_sl_params *params){
 
   // create audio recorder
   // (requires the RECORD_AUDIO permission)
-  const SLInterfaceID id[1] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE};
+  const SLInterfaceID id[1] = {SL_IID_BUFFERQUEUE};
   const SLboolean req[1] = {SL_BOOLEAN_TRUE};
   result = (*params->engineEngine)->CreateAudioRecorder(params->engineEngine, &(params->recorderObject), &audioSrc,
 							&audioSnk, 1, id, req);
@@ -458,7 +457,7 @@ int openSLRecOpen(open_sl_params *params){
   if (SL_RESULT_SUCCESS != result) goto end_recopen;
 
   // get the buffer queue interface
-  result = (*params->recorderObject)->GetInterface(params->recorderObject, SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
+  result = (*params->recorderObject)->GetInterface(params->recorderObject, SL_IID_BUFFERQUEUE,
 						   &(params->recorderBufferQueue));
   if (SL_RESULT_SUCCESS != result) goto end_recopen;
 
