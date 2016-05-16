@@ -1046,7 +1046,7 @@ static int filinit(CSOUND *csound, LOADER *pp)
     p->error = -1;
     return NOTOK;
   }
-  if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
+  if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, TRUE)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
     p->error = r;
     return NOTOK;
@@ -1094,34 +1094,34 @@ static int filinit(CSOUND *csound, LOADER *pp)
 
   int skip = (int)(*pp->skip*mpainfo.frequency);
   p->bufused = -1;
-
- 
   /* mp3_seek operates on multiples of 1152 frames */
   int frmsiz = mpainfo.decoded_frame_samples;
-  if (skip==0) skip = 1;
-  
-   {
-     skip -= 528;  /* compensate for no gap decoding */
-     int skips = (skip/frmsiz)*frmsiz;
-     int offs = 0;
-     if(mpainfo.frequency == 44100 &&
-        mpainfo.bitrate == 192 &&
-        *pp->skip > 0.09) offs = frmsiz;
-     // double dtime;
-     //struct timespec ts;
-     //clock_gettime(CLOCK_MONOTONIC, &ts);
-     //dtime = ts.tv_sec + 1e-9*ts.tv_nsec;
-     
-     //if(*pp->skip < FL(5.0))
-     //  decode_seek(csound, mpa,skips);
-     //else
-       mp3dec_seek(mpa, skips-offs, MP3DEC_SEEK_SAMPLES);
+   if(skip > 0) {
+     int ftbr = skip/frmsiz;
+     int skips = ftbr*frmsiz;
+     MYFLT fsize = (FL(125.0)*mpainfo.bitrate*frmsiz)/mpainfo.frequency;
+    /* double dtime;
+     struct timespec ts;
+     clock_gettime(CLOCK_MONOTONIC, &ts);
+     dtime = ts.tv_sec + 1e-9*ts.tv_nsec;*/
+     if(fsize - (int) fsize > FL(0.0)){
+       char dat[4];
+       int byts, pad, i;
+       mp3dec_seek(mpa, 0, MP3DEC_SEEK_SAMPLES);
+       for(i=0; i < ftbr; i++){
+        byts = read(fd,dat,4);
+        pad = dat[2] & 0x02 ? 1 : 0;
+        lseek(fd,(int)fsize + pad - 4, SEEK_CUR);
+	//printf("skip %d pad %d \n", i, pad);
+       }
+     } else
+        mp3dec_seek(mpa, skips, MP3DEC_SEEK_SAMPLES);
      skip = skip - skips;
+    } else mp3dec_seek(mpa, 0, MP3DEC_SEEK_SAMPLES);
 
-     //clock_gettime(CLOCK_MONOTONIC, &ts);
-     //dtime = ts.tv_sec + 1e-9*ts.tv_nsec - dtime;
-     //csound->Message(csound, "load time %f \n", dtime);
-   } /*else mp3dec_seek(mpa, 0, MP3DEC_SEEK_SAMPLES);*/
+     /*clock_gettime(CLOCK_MONOTONIC, &ts);
+     dtime = ts.tv_sec + 1e-9*ts.tv_nsec - dtime;
+     csound->Message(csound, "skip time %f \n", dtime);*/
 
   // fill buffers
   p->orsr = mpainfo.frequency;
@@ -1134,9 +1134,9 @@ static int filinit(CSOUND *csound, LOADER *pp)
   buffiller((void *)p);
   buffiller((void *)p);
   buffiller((void *)p);
-  //buffiller((void *)p);
+  buffiller((void *)p);
   
-  p->pos = skip*csound->GetSr(csound)/p->orsr;// ? skip : -528;
+  p->pos = skip*csound->GetSr(csound)/p->orsr;
   p->tscale  = 0;
   p->accum = 0;
   p->tab[0] = (MYFLT *) p->fdata[0].auxp;
@@ -1145,7 +1145,7 @@ static int filinit(CSOUND *csound, LOADER *pp)
   p->finished = 0;
   p->init = 1;
   p->skip = *pp->skip;
-  p->filling = 7;
+  p->filling = 0;
   return OK;
 }
 
