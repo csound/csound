@@ -29,6 +29,7 @@
 #include <math.h>
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "H/fftlib.h"
 
 typedef struct {
     OPDS h;
