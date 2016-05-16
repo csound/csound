@@ -53,7 +53,6 @@ def exclude(filepath):
 non_opcode_targets = '''
 CsoundAC.dll
 CsoundVST.dll
-LuaCsound.dll
 _CsoundAC.pyd
 _csnd6.pyd
 _jcsound6.dll
