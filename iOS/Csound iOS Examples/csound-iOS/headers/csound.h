@@ -701,8 +701,8 @@ extern "C" {
      * /endcode
      * NB: this function can be called during performance to
      * replace or add new instruments and events.
-     * On a first call and if called before csoundStart(), this function 
-     * behaves similarly to csoundCompile() 
+     * On a first call and if called before csoundStart(), this function
+     * behaves similarly to csoundCompile()
      *
      */
 
