@@ -25,6 +25,8 @@
 #include <jack/jack.h>
 #include <jack/midiport.h>
 #include <ctype.h>
+#include <sys/time.h>
+
 /* no #ifdef, should always have these on systems where JACK is available */
 #include <unistd.h>
 #include <stdint.h>
