@@ -1,5 +1,5 @@
 #!/bin/sh
-export CS_VERSION="6.06.0"
+export CS_VERSION="6.07.0"
 export RELEASE_DIR=csound-emscripten-${CS_VERSION}
 
 #remove backup files ending with ~

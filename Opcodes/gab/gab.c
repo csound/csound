@@ -1,5 +1,6 @@
 
 /*  Copyright (C) 2002-2004 Gabriel Maldonado */
+/*                2016 John ffitch (array changed) */
 
 /*  The gab library is free software; you can redistribute it */
 /*  and/or modify it under the terms of the GNU Lesser General Public */
@@ -28,6 +29,7 @@
 /*Check csystem, exitnow */
 /*Check other opcodes commented out in Oentry */
 
+
 #include "stdopcod.h"
 #include "gab.h"
 #include <math.h>
@@ -40,17 +42,17 @@ static int krsnsetx(CSOUND *csound, KRESONX *p)
 {
     int scale;
     p->scale = scale = (int) *p->iscl;
-    if ((p->loop = MYFLT2LRND(*p->ord)) < 1)
+    if (UNLIKELY((p->loop = MYFLT2LRND(*p->ord)) < 1))
       p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (unsigned int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
       csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
-    if (scale && scale != 1 && scale != 2) {
+    if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound,Str("illegal reson iscl value, %f"),
                                *p->iscl);
     }
-    if (!(*p->istor)) {
+    if (LIKELY(!(*p->istor))) {
       memset(p->yt1, 0, p->loop*sizeof(MYFLT));
       memset(p->yt2, 0, p->loop*sizeof(MYFLT));
       /* int j; */
@@ -110,7 +112,7 @@ static int kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified */
 static int fastab_set(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
-    if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, Str("fastab: incorrect table number"));
     }
     p->table = ftp->ftable;
@@ -211,7 +213,7 @@ static int fastabiw(CSOUND *csound, FASTAB *p)
     FUNC *ftp;
     int32 i;
     /*ftp = csound->FTFind(p->xfn); */
-    if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, Str("tabw_i: incorrect table number"));
     }
     if (*p->ixmode)
@@ -334,10 +336,9 @@ static void printi(CSOUND *csound, PRINTI *p)
 {
     char    *sarg;
 
-    if ((*p->ifilcod != sstrcod) || (*p->STRARG == 0)) {
-      csound->InitError(csound, Str("printi parameter was not "
-                                    "a \"quoted string\""));
-      return NOTOK;
+    if (UNLIKELY((*p->ifilcod != sstrcod) || (*p->STRARG == 0))) {
+      return csound->InitError(csound, Str("printi parameter was not "
+                                           "a \"quoted string\""));
     }
     else {
       sarg = p->STRARG;
@@ -390,7 +391,7 @@ static int nlalp(CSOUND *csound, NLALP *p)
       memset(&rp[nsmps], '\0', early*sizeof(MYFLT));
     }
    if (knfact == 0.0) { /* linear case */
-      if (klfact == 0.0) { /* degenerated linear case */
+     if (UNLIKELY(klfact == 0.0)) { /* degenerated linear case */
         m0 = (double)ip[0] - tm1;
         rp[offset] = (MYFLT)(tm0);
         for (n=offset+1; n<nsmps; n++) {
@@ -410,7 +411,7 @@ static int nlalp(CSOUND *csound, NLALP *p)
         }
       }
     } else { /* non-linear case */
-      if (klfact == 0.0) { /* simplified non-linear case */
+     if (UNLIKELY(klfact == 0.0)) { /* simplified non-linear case */
         for (n=offset; n<nsmps; n++) {
           m0 = (double)ip[n] - tm1;
           m1 = fabs(m0) * knfact;
@@ -587,7 +588,7 @@ static int tabrec_k(CSOUND *csound,TABREC *p)
     if (*p->ktrig_start) {
       if (*p->kfn != p->old_fn) {
         int flen;
-        if ((flen = csoundGetTable(csound, &(p->table), (int) *p->kfn)) < 0)
+        if (UNLIKELY((flen = csoundGetTable(csound,&(p->table),(int)*p->kfn)) < 0))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (long) flen;
@@ -642,7 +643,7 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
     if (*p->ktrig) {
       if (*p->kfn != p->old_fn) {
         int flen;
-        if ((flen = csoundGetTable(csound, &(p->table), (int) *p->kfn)) < 0)
+        if (UNLIKELY((flen = csoundGetTable(csound, &(p->table),(int)*p->kfn)) < 0))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (long) flen;
@@ -666,11 +667,8 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
       int j, curr_frame = p->ndx * p->numouts;
       MYFLT *table = p->table;
       MYFLT **outargs = p->outargs;
-      if (curr_frame + p->numouts < p->tablen) {
+      if (UNLIKELY(curr_frame + p->numouts < p->tablen)) {
         /* play only if ndx is inside table */
-        /*for (j = p->ndx* p->numouts; j < end; j++) */
-        /*      *outargs[j] = table[j]; */
-
         for (j = 0; j < p->numouts; j++)
           *outargs[j] = table[curr_frame+j];
       }
@@ -679,11 +677,11 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
     return OK;
 }
 
-/* This code is wrong; old_inargs is not initialised */
 static int isChanged_set(CSOUND *csound,ISCHANGED *p)
 {
     p->numargs = p->INOCOUNT;
     memset(p->old_inargs, 0, sizeof(MYFLT)*p->numargs); /* Initialise */
+    p->cnt = 1;
     return OK;
 }
 
@@ -693,21 +691,61 @@ static int isChanged(CSOUND *csound,ISCHANGED *p)
     MYFLT *old_inargs = p->old_inargs;
     int numargs = p->numargs, ktrig = 0, j;
 
-    for (j =0; j< numargs; j++) {
-      if (*inargs[j] != old_inargs[j]) {
-        ktrig = 1;
-        break;
+    if (LIKELY(p->cnt))
+      for (j =0; j< numargs; j++) {
+        if (*inargs[j] != old_inargs[j]) {
+          ktrig = 1;
+          break;
+        }
       }
-    }
 
-    if (ktrig) {
+    if (ktrig || p->cnt==0) {
       for (j =0; j< numargs; j++) {
         old_inargs[j] = *inargs[j];
       }
     }
     *p->ktrig = (MYFLT) ktrig;
+    p->cnt++;
     return OK;
 }
+
+static int isChanged2_set(CSOUND *csound,ISCHANGED *p)
+{
+    int res = isChanged_set(csound,p);
+    p->cnt = 0;
+    return res;
+}
+
+/* changed in array */
+static int isAChanged_set(CSOUND *csound, ISACHANGED *p)
+{
+    int size = 0, i;
+    ARRAYDAT *arr = p->chk;
+    //char *tmp;
+    for (i=0; i<arr->dimensions; i++) size += arr->sizes[i];
+    size *= arr->arrayMemberSize;
+    csound->AuxAlloc(csound, size, &p->old_chk);
+    /* tmp = (char*)p->old_chk.auxp; */
+    /* for (i=0; i<size; i++) tmp[i]=rand()&0xff; */
+    /* memset(p->old_chk.auxp, '\0', size); */
+    p->size = size;
+    p->cnt = 0;
+    return OK;
+}
+
+
+static int isAChanged(CSOUND *csound,ISACHANGED *p)
+{
+    ARRAYDAT *chk = p->chk;
+    void *old_chk = p->old_chk.auxp;
+    int size = p->size;
+    int ktrig = memcmp(chk->data, old_chk, size);
+    memcpy(old_chk, chk->data, size);
+    *p->ktrig = (p->cnt && ktrig)?FL(1.0):FL(0.0);
+    p->cnt++;
+    return OK;
+}
+
 
 /* ------------------------- */
 
@@ -904,8 +942,12 @@ OENTRY gab_localops[] = {
                             (SUBR) tabrec_set, (SUBR) tabrec_k, NULL },
   { "tabplay",  S(TABPLAY), TR, 3,     "",      "kkkz",
                             (SUBR) tabplay_set, (SUBR) tabplay_k, NULL },
-  { "changed", S(ISCHANGED), 0, 3,     "k",     "z",
+  { "changed.k", S(ISCHANGED), _QQ, 3,     "k",     "z",
                             (SUBR) isChanged_set, (SUBR)isChanged, NULL },
+  { "changed2.k", S(ISCHANGED), 0, 3,     "k",     "z",
+                            (SUBR) isChanged2_set, (SUBR)isChanged, NULL },
+  { "changed2.A", S(ISACHANGED), 0, 3,     "k",     "*[]",
+                            (SUBR) isAChanged_set, (SUBR)isAChanged, NULL },
   /*{ "ftlen_k",S(EVAL),    0, 2,      "k",    "k", NULL,      (SUBR)ftlen   }, */
   { "max_k",  S(P_MAXIMUM), 0, 5,      "k",    "aki",
             (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum },

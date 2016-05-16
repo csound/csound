@@ -25,7 +25,7 @@ typedef unsigned int u_int32_t;
 #endif
 
 #include "csoundCore.h"
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
@@ -73,7 +73,7 @@ static uintptr_t udp_recv(void *pdata)
 
 static int udp_start(CSOUND *csound, UDPCOM *p)
 {
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)

@@ -146,11 +146,25 @@ void array_copy_value(void* csound, void* dest, void* src) {
 void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
     CSOUND* cs = (CSOUND*)csound;
     int ksmps = cs->ksmps;
-    var->memBlockSize = ksmps * sizeof (MYFLT);
+    var->memBlockSize = CS_FLOAT_ALIGN(ksmps * sizeof (MYFLT));
 }
 
-void varInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
+void varInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    IGN(csound);
     memset(memblock, 0, var->memBlockSize);
+}
+
+void arrayInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    IGN(csound);
+    ARRAYDAT* dat = (ARRAYDAT*)memblock;
+    dat->arrayType = var->subType;
+}
+
+void varInitMemoryString(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    STRINGDAT *str = (STRINGDAT *)memblock;
+    CSOUND* cs = (CSOUND*)csound;
+    str->data = cs_strdup(cs, "");
+    str->size = 1;
 }
 
 /* CREATE VAR FUNCTIONS */
@@ -170,7 +184,7 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
 //    }
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-    var->memBlockSize = ksmps * sizeof (MYFLT);
+    var->memBlockSize = CS_FLOAT_ALIGN(ksmps * sizeof (MYFLT));
     var->updateMemBlockSize = &updateAsigMemBlock;
     var->initializeVariableMemory = &varInitMemory;
     return var;
@@ -180,7 +194,7 @@ CS_VARIABLE* createMyflt(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = sizeof (MYFLT);
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof (MYFLT));
     var->initializeVariableMemory = &varInitMemory;
     return var;
 }
@@ -189,7 +203,7 @@ CS_VARIABLE* createBool(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = sizeof (MYFLT);
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof (MYFLT));
     var->initializeVariableMemory = &varInitMemory;
     return var;
 }
@@ -212,16 +226,12 @@ CS_VARIABLE* createFsig(void* cs, void* p) {
     return var;
 }
 
-void arrayInitMemory(CS_VARIABLE* var, MYFLT* memblock) {
-    ARRAYDAT* dat = (ARRAYDAT*)memblock;
-    dat->arrayType = var->subType;
-}
-
 CS_VARIABLE* createString(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(STRINGDAT));
+    var->initializeVariableMemory = &varInitMemoryString;
     return var;
 }
 
@@ -270,7 +280,7 @@ void array_free_var_mem(void* csnd, void* p) {
             size = MYFLT2LRND(size);
             for (i = 0; i < size; i++) {
                 arrayType->freeVariableMemory(csound,
-                                              dat->data + (i * memMyfltSize));
+                                              mem+ (i * memMyfltSize));
             }
         }
 

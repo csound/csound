@@ -1,7 +1,5 @@
 # CSOUND.NODE
 
-Version 6.05.2
-
 Michael Gogins<br>
 http://michaelgogins.tumblr.com<br>
 michael dot gogins at google dot com
@@ -64,42 +62,30 @@ and [Python 2.7][python].
 
 To build on other platforms, you need to install [GCC][gcc] and [Python 2.7][python].
 
-Install [NW.js][nwjs]. On Windows, make sure that this is the version for 32 bit CPU
-architecture.
+Install [NW.js](nwjs). On Windows, make sure you get the version built for the CPU architecture of the
+version of Csound that you need to use. The default should now be x64.
 
-Install [io.js][iojs]. On Windows, make sure that this is the version for 32 bit CPU
-architecture.
+Install [Node.js](https://nodejs.org/en/). On Windows, make sure you get the version built for the CPU architecture of the
+version of Csound that you need to use. The default should now be x64.
 
-From the io.js command prompt, execute `npm install nw-gyp` to install the build tool
-for NW.js addons. See [nw-gyp][] for more information.
-
-From the io.js command prompt, execute `nw-gyp configure --version <version number of NW.js>`
-to configure the build tool for your version of NW.js. The version number is printed
-on the default window of the NW.js `nw` program.
+From the Node.js command prompt, execute `npm install nw-gyp` to install the build tool
+for NW.js addons. See [nw-gyp](http://docs.nwjs.io/en/v0.13.0-rc2/For%20Users/Advanced/Use%20Native%20Node%20Modules/) for more information.
 
 Set an environment variable named `CSOUND_HOME` that points to the root directory of
-your Csound installation. Or, it may be necessary to modify binding.gyp to reflect the 
+your Csound tree. Or, it may be necessary to modify binding.gyp to reflect the
 installed locations of the Csound header files and shared libraries on your system.
 
-In the `csound/frontends/nwjs` directory, execute `nw-gyp build` to build `csound.node`.
+In the `csound/frontends/nwjs` directory, execute `nw-gyp rebuild --target=0.12.3 --arch=x64` (or, --arch=x86, or whatever version of NW you have) to build `csound.node`.
 If the build messages end with `ok`, then the build succeeded.
 
 ## INSTALLING
 
-Copy `csound.node` from the `csound/frontends/nwjs/build/Release` directory to your Csound
-installaton's bin directory, or better yet, create a symbolic link to the built `csound.node`
-file in your Csound installation's bin directory.
-
-On Windows, copy `libgcc_s_dw2-1.dll` and `libstdc++-6.dll` from your Csound bin directory
-to your NW.js directory, or create symbolic links there.
-
-Set an environment variable named `NODE_PATH` that points to your Csound installation's
-bin directory. This will bring both `csound.node` and Csound itself into
-the scope of NW.js's addon loader.
+Currently, getting csound.node to run in a development environment is tricky. The easiest way is to run the csound/mingw64/find_csound_dependencies.py script,
+which copies all Csound targets and dependencies into the NW.js directory. Then set both OPCODE6DIR64 and NODE_PATH also to point to the NW.js directory.
 
 Test your installation by running the NW.js program, `nw`. Drag the `NW_Csound_Demo.html` file
 and drop it on `nw`'s window. You should hear the Csound piece "Xanadu" by Joseph Kung,
-which is embedded in the HTML file, and you should be able to click on `nw`'s menu button
+which is embedded in the HTML file, and you should be able press the [F12] key
 to bring up the NW.js developer tools, where you should see the runtime messages
 from Csound being printed in the JavaScript console.
 

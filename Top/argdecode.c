@@ -24,6 +24,7 @@
 #include "soundio.h"
 #include "new_opts.h"
 #include "csmodule.h"
+#include "corfile.h"
 #include <ctype.h>
 
 static void list_audio_devices(CSOUND *csound, int output);
@@ -81,7 +82,7 @@ void do_logging(char *s)
     if (!strcmp(s, "NULL") || !strcmp(s, "null"))
       nomessages = 1;
     else if ((logFile = fopen(s, "w")) == NULL) {
-      fprintf(stderr, "Error opening log file '%s': %s\n",
+      fprintf(stderr, Str("Error opening log file '%s': %s\n"),
               s, strerror(errno));
       exit(1);
     }
@@ -288,6 +289,7 @@ static const char *longUsageList[] = {
   Str_noop("--midi-devices[=in|out] \t\t list available audio devices and exit"),
   Str_noop("--get-system-sr \t\t print system sr and exit"),
   Str_noop("--ksmps=N \t\t override ksmps"),
+  Str_noop("--fftlib=N \t\t real fft lib to use (FFTLIB=0, PFFFT = 1, vDSP =2)"),
   " ",
   Str_noop("--help\t\t\tLong help"),
 
@@ -302,7 +304,7 @@ void print_short_usage(CSOUND *csound)
     i = -1;
     while (shortUsageList[++i] != NULL) {
       snprintf(buf, 256, "%s\n", shortUsageList[i]);
-      csound->Message(csound, Str(buf));
+      csound->Message(csound, "%s", Str(buf));
     }
     csound->Message(csound,
                     Str("flag defaults: csound -s -otest -b%d -B%d -m%d\n"),
@@ -334,7 +336,7 @@ void dieu(CSOUND *csound, char *s, ...)
     va_start(args, s);
     csound->ErrMsgV(csound, Str("Csound Command ERROR:\t"), s, args);
     va_end(args);
-    if(csound->info_message_request == 0){
+    if (csound->info_message_request == 0){
       csound->info_message_request = 0;
     csound->LongJmp(csound, 1);
     }
@@ -839,7 +841,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       if (*s=='\0') dieu(csound, Str("no utility name"));
 
       retval = csoundRunUtility(csound, s, argc, argv);
-     if(retval) {
+     if (retval) {
                   csound->info_message_request = 1;
                   csound->orchname = NULL;
                   return 0;
@@ -969,7 +971,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strcmp(s, "realtime"))) {
-      csound->Message(csound, "realtime mode enabled\n");
+      csound->Message(csound, Str("realtime mode enabled\n"));
       O->realtime = 1;
       return 1;
     }
@@ -1015,6 +1017,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->daemon = atoi(s);
       return 1;
     }
+    else if (!(strncmp(s, "fftlib=",7))) {
+      s += 7;
+      O->fft_lib = atoi(s);
+      return 1;
+    }
     else if (!(strncmp(s, "vbr-quality=",12))) {
       s += 12;
       O->quality = atof(s);
@@ -1028,7 +1035,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         if (!strncmp(s+8,"in", 2)) {
           list_audio_devices(csound, 0);
         }
-        else if(!strncmp(s+8,"out", 2))
+        else if (!strncmp(s+8,"out", 2))
           list_audio_devices(csound,1);
       }
       else {
@@ -1046,7 +1053,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         if (!strncmp(s+13,"in", 2)) {
           list_midi_devices(csound, 0);
         }
-        else if(!strncmp(s+13,"out", 2))
+        else if (!strncmp(s+13,"out", 2))
           list_midi_devices(csound,1);
       }
       else {
@@ -1343,12 +1350,14 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
               FILE *ind;
               void *fd;
               fd = csound->FileOpen2(csound, &ind, CSFILE_STD,
-                                     s, "rb", NULL, CSFTYPE_OPTIONS, 0);
+                                     s, "r", NULL, CSFTYPE_OPTIONS, 0);
               if (UNLIKELY(fd == NULL)) {
                 dieu(csound, Str("Cannot open indirection file %s\n"), s);
               }
               else {
-                readOptions(csound, ind, 0);
+                CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
+                readOptions(csound, cf, 0);
+                corfile_rm(&cf);
                 csound->FileClose(csound, fd);
               }
               while (*s++) {};
@@ -1387,7 +1396,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
             while (*(++s));
             break;
           default:
-            if(csound->info_message_request == 0)
+            if (csound->info_message_request == 0)
             dieu(csound, Str("unknown flag -%c"), c);
           }
         }
@@ -1415,120 +1424,122 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
 }
 
 PUBLIC int csoundSetOption(CSOUND *csound, char *option){
-  /* if already compiled and running, return */
-  csound->info_message_request = 1;
-  if(csound->engineStatus & CS_STATE_COMP) return 1;
-  char *args[2] = {"csound", option};
-  return (argdecode(csound, 1, args) ? 0 : 1);
+    /* if already compiled and running, return */
+    char *args[2] = {"csound", option};
+    csound->info_message_request = 1;
+    if (csound->engineStatus & CS_STATE_COMP) return 1;
+    return (argdecode(csound, 1, args) ? 0 : 1);
 }
 
 PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
+    OPARMS *oparms = csound->oparms;
+    /* if already compiled and running, return */
+    if (csound->engineStatus & CS_STATE_COMP) return;
 
-  /* if already compiled and running, return */
-  if(csound->engineStatus & CS_STATE_COMP) return;
+    /* simple ON/OFF switches */
+    oparms->odebug = p->debug_mode;
+    oparms->displays = p->displays;
+    oparms->graphsoff = p->ascii_graphs;
+    oparms->postscript = p->postscript_graphs;
+    oparms->usingcscore = p->use_cscore;
+    oparms->ringbell = p->ring_bell;
+    oparms->gen01defer = p->defer_gen01_load;
+    oparms->termifend =  p->terminate_on_midi;
+    oparms->noDefaultPaths = p->no_default_paths;
+    oparms->syntaxCheckOnly = p->syntax_check_only;
+    oparms->sampleAccurate = p->sample_accurate;
+    oparms->realtime = p->realtime_mode;
+    oparms->useCsdLineCounts = p->csd_line_counts;
+    oparms->heartbeat = p->heartbeat;
+    oparms->ringbell = p->ring_bell;
+    oparms->daemon = p->daemon;
 
-  OPARMS *oparms = csound->oparms;
-  /* simple ON/OFF switches */
-  oparms->odebug = p->debug_mode;
-  oparms->displays = p->displays;
-  oparms->graphsoff = p->ascii_graphs;
-  oparms->postscript = p->postscript_graphs;
-  oparms->usingcscore = p->use_cscore;
-  oparms->ringbell = p->ring_bell;
-  oparms->gen01defer = p->defer_gen01_load;
-  oparms->termifend =  p->terminate_on_midi;
-  oparms->noDefaultPaths = p->no_default_paths;
-  oparms->syntaxCheckOnly = p->syntax_check_only;
-  oparms->sampleAccurate = p->sample_accurate;
-  oparms->realtime = p->realtime_mode;
-  oparms->useCsdLineCounts = p->csd_line_counts;
-  oparms->heartbeat = p->heartbeat;
-  oparms->ringbell = p->ring_bell;
-  oparms->daemon = p->daemon;
+    /* message level */
+    if (p->message_level > 0)
+      oparms->msglevel = p->message_level;
 
-  /* message level */
-  if(p->message_level > 0)
-   oparms->msglevel = p->message_level;
+    /* tempo / beatmode */
+    if (p->tempo > 0) {
+      oparms->cmdTempo = p->tempo;
+      oparms->Beatmode = 1;
+    }
+    /* buffer frames */
+    if (p->buffer_frames > 0)
+      oparms->inbufsamps = oparms->outbufsamps = p->buffer_frames;
 
-  /* tempo / beatmode */
-  if(p->tempo > 0) {
-    oparms->cmdTempo = p->tempo;
-    oparms->Beatmode = 1;
-  }
-  /* buffer frames */
-  if(p->buffer_frames > 0)
-    oparms->inbufsamps = oparms->outbufsamps = p->buffer_frames;
+    /* hardware buffer frames */
+    if (p->hardware_buffer_frames > 0)
+      oparms->oMaxLag = p->hardware_buffer_frames;
 
-  /* hardware buffer frames */
-  if(p->hardware_buffer_frames > 0)
-    oparms->oMaxLag = p->hardware_buffer_frames;
+    /* multicore threads */
+    if (p->number_of_threads > 1)
+      oparms->numThreads = p->number_of_threads;
 
-  /* multicore threads */
-  if(p->number_of_threads > 1)
-    oparms->numThreads = p->number_of_threads;
+    /* MIDI interop */
+    if (p->midi_key > 0) oparms->midiKey = p->midi_key;
+    else if (p->midi_key_cps > 0) oparms->midiKeyCps = p->midi_key_cps;
+    else if (p->midi_key_pch > 0) oparms->midiKeyPch = p->midi_key_pch;
+    else if (p->midi_key_oct > 0) oparms->midiKeyOct = p->midi_key_oct;
 
-  /* MIDI interop */
-  if(p->midi_key > 0) oparms->midiKey = p->midi_key;
-  else if(p->midi_key_cps > 0) oparms->midiKeyCps = p->midi_key_cps;
-  else if(p->midi_key_pch > 0) oparms->midiKeyPch = p->midi_key_pch;
-  else if(p->midi_key_oct > 0) oparms->midiKeyOct = p->midi_key_oct;
+    if (p->midi_velocity > 0) oparms->midiVelocity = p->midi_velocity;
+    else if (p->midi_velocity_amp > 0)
+      oparms->midiVelocityAmp = p->midi_velocity_amp;
 
-  if(p->midi_velocity > 0) oparms->midiVelocity = p->midi_velocity;
-  else if(p->midi_velocity_amp > 0) oparms->midiVelocityAmp = p->midi_velocity_amp;
+    /* CSD line counts */
+    if (p->csd_line_counts > 0) oparms->useCsdLineCounts = p->csd_line_counts;
 
-  /* CSD line counts */
-  if(p->csd_line_counts > 0) oparms->useCsdLineCounts = p->csd_line_counts;
+    /* kr override */
+    if (p->control_rate_override > 0)
+      oparms->kr_override = p->control_rate_override;
 
-  /* kr override */
-  if(p->control_rate_override > 0) oparms->kr_override = p->control_rate_override;
+    /* sr override */
+    if (p->sample_rate_override > 0)
+      oparms->sr_override = p->sample_rate_override;
 
-  /* sr override */
-  if(p->sample_rate_override > 0) oparms->sr_override = p->sample_rate_override;
+    oparms->nchnls_override = p->nchnls_override;
+    oparms->nchnls_i_override = p->nchnls_i_override;
+    oparms->e0dbfs_override = p->e0dbfs_override;
 
-  oparms->nchnls_override = p->nchnls_override;
-  oparms->nchnls_i_override = p->nchnls_i_override;
-  oparms->e0dbfs_override = p->e0dbfs_override;
-  
-  if(p->ksmps_override > 0) oparms->ksmps_override = p->ksmps_override;
+    if (p->ksmps_override > 0) oparms->ksmps_override = p->ksmps_override;
 }
 
 PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
 
-  OPARMS *oparms = csound->oparms;
+    OPARMS *oparms = csound->oparms;
 
-  p->debug_mode = oparms->odebug;
-  p->displays = oparms->displays;
-  p->ascii_graphs = oparms->graphsoff;
-  p->postscript_graphs = oparms->postscript;
-  p->use_cscore = oparms->usingcscore;
-  p->ring_bell = oparms->ringbell;
-  p->defer_gen01_load = oparms->gen01defer;
-  p->terminate_on_midi = oparms->termifend;
-  p->no_default_paths = oparms->noDefaultPaths;
-  p->syntax_check_only = oparms->syntaxCheckOnly;
-  p->sample_accurate = oparms->sampleAccurate;
-  p->realtime_mode = oparms->realtime;
-  p->message_level = oparms->msglevel;
-  p->tempo = oparms->cmdTempo;
-  p->buffer_frames = oparms->outbufsamps;
-  p->hardware_buffer_frames = oparms->oMaxLag;
-  p->number_of_threads = oparms->numThreads;
-  p->midi_key = oparms->midiKey;
-  p->midi_key_cps = oparms->midiKeyCps;
-  p->midi_key_pch = oparms->midiKeyPch;
-  p->midi_key_oct = oparms->midiKeyOct;
-  p->midi_velocity = oparms->midiVelocity;
-  p->midi_velocity_amp = oparms->midiVelocityAmp;
-  p->csd_line_counts = oparms->useCsdLineCounts;
-  p->control_rate_override = oparms->kr_override;
-  p->sample_rate_override = oparms->sr_override;
-  p->nchnls_override = oparms->nchnls_override;
-  p->nchnls_i_override = oparms->nchnls_i_override;
-  p->e0dbfs_override = oparms->e0dbfs_override;
-  p->heartbeat = oparms->heartbeat;
-  p->ring_bell = oparms->ringbell;
-  p->daemon = oparms->daemon;
-  p->ksmps_override = oparms->ksmps_override;
+    p->debug_mode = oparms->odebug;
+    p->displays = oparms->displays;
+    p->ascii_graphs = oparms->graphsoff;
+    p->postscript_graphs = oparms->postscript;
+    p->use_cscore = oparms->usingcscore;
+    p->ring_bell = oparms->ringbell;
+    p->defer_gen01_load = oparms->gen01defer;
+    p->terminate_on_midi = oparms->termifend;
+    p->no_default_paths = oparms->noDefaultPaths;
+    p->syntax_check_only = oparms->syntaxCheckOnly;
+    p->sample_accurate = oparms->sampleAccurate;
+    p->realtime_mode = oparms->realtime;
+    p->message_level = oparms->msglevel;
+    p->tempo = oparms->cmdTempo;
+    p->buffer_frames = oparms->outbufsamps;
+    p->hardware_buffer_frames = oparms->oMaxLag;
+    p->number_of_threads = oparms->numThreads;
+    p->midi_key = oparms->midiKey;
+    p->midi_key_cps = oparms->midiKeyCps;
+    p->midi_key_pch = oparms->midiKeyPch;
+    p->midi_key_oct = oparms->midiKeyOct;
+    p->midi_velocity = oparms->midiVelocity;
+    p->midi_velocity_amp = oparms->midiVelocityAmp;
+    p->csd_line_counts = oparms->useCsdLineCounts;
+    p->control_rate_override = oparms->kr_override;
+    p->sample_rate_override = oparms->sr_override;
+    p->nchnls_override = oparms->nchnls_override;
+    p->nchnls_i_override = oparms->nchnls_i_override;
+    p->e0dbfs_override = oparms->e0dbfs_override;
+    p->heartbeat = oparms->heartbeat;
+    p->ring_bell = oparms->ringbell;
+    p->daemon = oparms->daemon;
+    p->ksmps_override = oparms->ksmps_override;
 }
 
 
@@ -1576,115 +1587,115 @@ PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format
 }
 
 PUBLIC void csoundSetInput(CSOUND *csound, char *name) {
-  OPARMS *oparms = csound->oparms;
+    OPARMS *oparms = csound->oparms;
 
-  /* if already compiled and running, return */
-  if(csound->engineStatus & CS_STATE_COMP) return;
+    /* if already compiled and running, return */
+    if (csound->engineStatus & CS_STATE_COMP) return;
 
-  oparms->infilename =
-    csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
-  strcpy(oparms->infilename, name);
-  if (strcmp(oparms->infilename, "stdin") == 0) {
-        set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
+    oparms->infilename =
+      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+    strcpy(oparms->infilename, name);
+    if (strcmp(oparms->infilename, "stdin") == 0) {
+      set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
 #if defined(WIN32)
-        csound->Warning(csound, Str("stdin not supported on this platform"));
+      csound->Warning(csound, Str("stdin not supported on this platform"));
 #endif
-      }
-      else
-        set_stdin_assign(csound, STDINASSIGN_SNDFILE, 0);
-  oparms->sfread = 1;
+    }
+    else
+      set_stdin_assign(csound, STDINASSIGN_SNDFILE, 0);
+    oparms->sfread = 1;
 }
 
 PUBLIC void csoundSetMIDIInput(CSOUND *csound, char *name) {
-   OPARMS *oparms = csound->oparms;
+    OPARMS *oparms = csound->oparms;
 
-   /* if already compiled and running, return */
-  if(csound->engineStatus & CS_STATE_COMP) return;
+    /* if already compiled and running, return */
+    if (csound->engineStatus & CS_STATE_COMP) return;
 
-   oparms->Midiname =
-     csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
-   strcpy(oparms->Midiname, name);
-   if (!strcmp(oparms->Midiname, "stdin")) {
-        set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
+    oparms->Midiname =
+      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+    strcpy(oparms->Midiname, name);
+    if (!strcmp(oparms->Midiname, "stdin")) {
+      set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
 #if defined(WIN32)
-        csound->Warning(csound, Str("stdin not supported on this platform"));
+      csound->Warning(csound, Str("stdin not supported on this platform"));
 #endif
-      }
-      else
-        set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 0);
-      oparms->Midiin = 1;
+    }
+    else
+      set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 0);
+    oparms->Midiin = 1;
 }
 
 PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, char *name) {
-   OPARMS *oparms = csound->oparms;
+    OPARMS *oparms = csound->oparms;
 
-   /* if already compiled and running, return */
-  if(csound->engineStatus & CS_STATE_COMP) return;
+    /* if already compiled and running, return */
+    if (csound->engineStatus & CS_STATE_COMP) return;
 
-   oparms->FMidiname =
-     csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
-   strcpy(oparms->FMidiname, name);
-   if (!strcmp(oparms->FMidiname, "stdin")) {
-        set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
+    oparms->FMidiname =
+      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+    strcpy(oparms->FMidiname, name);
+    if (!strcmp(oparms->FMidiname, "stdin")) {
+      set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #if defined(WIN32)
-        csound->Warning(csound, Str("stdin not supported on this platform"));
+      csound->Warning(csound, Str("stdin not supported on this platform"));
 #endif
-      }
-      else
-        set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);
-      oparms->FMidiin = 1;
+    }
+    else
+      set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);
+    oparms->FMidiin = 1;
 }
 
 PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, char *name) {
-   OPARMS *oparms = csound->oparms;
+    OPARMS *oparms = csound->oparms;
 
-   /* if already compiled and running, return */
-  if(csound->engineStatus & CS_STATE_COMP) return;
+    /* if already compiled and running, return */
+    if (csound->engineStatus & CS_STATE_COMP) return;
 
-   oparms->FMidioutname =
-     csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
-   strcpy(oparms->FMidioutname, name);
+    oparms->FMidioutname =
+      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+    strcpy(oparms->FMidioutname, name);
 }
 
 PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name) {
-   OPARMS *oparms = csound->oparms;
+    OPARMS *oparms = csound->oparms;
 
     /* if already compiled and running, return */
-  if(csound->engineStatus & CS_STATE_COMP) return;
+    if (csound->engineStatus & CS_STATE_COMP) return;
 
-   oparms->Midioutname =
-     csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
-   strcpy(oparms->Midioutname, name);
+    oparms->Midioutname =
+      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+    strcpy(oparms->Midioutname, name);
 }
 
 static void list_audio_devices(CSOUND *csound, int output){
 
-       int i,n = csoundGetAudioDevList(csound,NULL, output);
-         CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
-             malloc(n*sizeof(CS_AUDIODEVICE));
-         if(output)
-          csound->Message(csound, "%d audio output devices \n", n);
-         else
-           csound->Message(csound, "%d audio input devices \n", n);
-         csoundGetAudioDevList(csound,devs,output);
-         for(i=0; i < n; i++)
-             csound->Message(csound, " %d: %s (%s)\n",
-                   i, devs[i].device_id, devs[i].device_name);
-         free(devs);
+    int i,n = csoundGetAudioDevList(csound,NULL, output);
+    CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
+      malloc(n*sizeof(CS_AUDIODEVICE));
+    if (output)
+      csound->Message(csound, Str("%d audio output devices \n"), n);
+    else
+      csound->Message(csound, Str("%d audio input devices \n"), n);
+    csoundGetAudioDevList(csound,devs,output);
+    for (i=0; i < n; i++)
+      csound->Message(csound, " %d: %s (%s)\n",
+                      i, devs[i].device_id, devs[i].device_name);
+    free(devs);
 }
 
 static void list_midi_devices(CSOUND *csound, int output){
 
-       int i,n = csoundGetMIDIDevList(csound,NULL, output);
-         CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *)
-             malloc(n*sizeof(CS_MIDIDEVICE));
-         if(output)
-          csound->Message(csound, "%d MIDI output devices \n", n);
-         else
-           csound->Message(csound, "%d MIDI input devices \n", n);
-         csoundGetMIDIDevList(csound,devs,output);
-         for(i=0; i < n; i++)
-             csound->Message(csound, " %d: %s (%s)\n",
-                   i, devs[i].device_id, devs[i].device_name);
-         free(devs);
+    int i,n = csoundGetMIDIDevList(csound,NULL, output);
+    CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *)
+      malloc(n*sizeof(CS_MIDIDEVICE));
+    if (output)
+      csound->Message(csound, Str("%d MIDI output devices \n"), n);
+    else
+      csound->Message(csound, Str("%d MIDI input devices \n"), n);
+    csoundGetMIDIDevList(csound,devs,output);
+    for (i=0; i < n; i++)
+      csound->Message(csound, " %d: %s (%s)\n",
+                      i, devs[i].device_id, devs[i].device_name);
+    free(devs);
 }

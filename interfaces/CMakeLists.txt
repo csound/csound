@@ -8,7 +8,7 @@ option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE
 option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" ON)
 
 if(BUILD_CXX_INTERFACE)
-    message(STATUS "Building C++ interface library")
+    message(STATUS "Building C++ interface library.")
     set(libcsnd6_SRCS
         CppSound.cpp
         CsoundFile.cpp
@@ -16,14 +16,20 @@ if(BUILD_CXX_INTERFACE)
         csPerfThread.cpp
         cs_glue.cpp
         filebuilding.cpp)
-      set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} )
+
+    set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} )
+
+    if(WIN32 AND NOT MSVC)
+      list(APPEND libcsnd6_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
+    endif()
+
     set(libcsnd6_CFLAGS "")
     list(APPEND libcsnd6_LIBS ${CSOUNDLIB})
 
     add_library(libcsnd6 SHARED ${libcsnd6_SRCS})
     target_link_libraries(libcsnd6 ${libcsnd6_LIBS})
     set_target_properties(libcsnd6 PROPERTIES
-        LINK_INTERFACE_LIBRARIES ""
+        INTERFACE_LINK_LIBRARIES ""
         SOVERSION ${APIVERSION}
         OUTPUT_NAME csnd6
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
@@ -56,7 +62,7 @@ if(NOT LUAJIT_LIBRARY AND WIN32)
 endif()
 find_path(LUA_H_PATH lua.h PATH_SUFFIXES luajit-2.0)
 
-MESSAGE(STATUS ${PYTHON_LIBRARY})
+MESSAGE(STATUS "PYTHON_LIBRARY: " ${PYTHON_LIBRARY})
 
 check_deps(BUILD_PYTHON_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE PYTHONLIBS_FOUND)
 check_deps(BUILD_JAVA_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE JNI_FOUND JAVA_FOUND)
@@ -81,7 +87,11 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
 
         if(WIN32)
+          if(NOT MSVC)
+            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} ${PYTHON_LIBRARY} libcsnd6)
+          else()
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd6)
+          endif()
         else()
             # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
@@ -114,6 +124,8 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             ARCHIVE DESTINATION "${PYTHON_MODULE_INSTALL_DIR}")
         install(FILES ${BUILD_LIB_DIR}/csnd6.py
             DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
+        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
+            DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
 
     endif()
 
@@ -122,11 +134,16 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         unset(CMAKE_SWIG_OUTDIR)
         INCLUDE_DIRECTORIES(${JNI_INCLUDE_DIRS})
 
-       message(STATUS "JNI INCLUDE set to ${JNI_INCLUDE_DIRS}")
+       message(STATUS "JNI INCLUDE set to ${JNI_INCLUDE_DIRS}.")
 
       	if(WIN32)
-	     set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB}
-	     ${LIBSNDFILE_LIBRARY} libcsnd6)
+          if(NOT MSVC)
+             set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB}
+               ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} libcsnd6)
+          else()
+             set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB}
+               ${LIBSNDFILE_LIBRARY} libcsnd6)
+          endif()
         elseif(APPLE)
              set(swigjava_LIBS  ${JAVA_VM_LIBRARY} ${CSOUNDLIB}
 	             ${LIBSNDFILE_LIBRARY} libcsnd6)

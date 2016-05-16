@@ -133,8 +133,7 @@ static void convert_txt_file(char *inflname, FILE *outfl)
         c = mygetc(infile, &is_eof);
         if (is_eof || c == '\n') {
           /* end of line: remove any trailing white space */
-          while (linepos &&
-                 (linebuf[linepos - 1] == ' ' || linebuf[linepos - 1] == '\t'))
+          while (linepos && isblank(linebuf[linepos - 1]))
             linepos--;
           linebuf[linepos++] = '\n';
           if (is_eof ||                 /* end of file */

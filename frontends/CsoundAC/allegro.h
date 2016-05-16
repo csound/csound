@@ -51,6 +51,7 @@
 #include <assert.h>
 #include <istream>
 #include <ostream>
+#include <stdint.h>
 
 #define ALG_EPS 0.000001 // epsilon
 #define ALG_DEFAULT_BPM 100.0 // default tempo
@@ -285,8 +286,7 @@ public:
 
     const char *GetDescription(); // computes a text description of this event
     // the result is in a static buffer, not thread-safe, just for debugging.
-    Alg_event() { selected = false;
-        type = key = chan = time = -1; }
+    Alg_event() { selected = false; }
     virtual ~Alg_event() {}
 } *Alg_event_ptr;
 
@@ -299,8 +299,7 @@ public:
     float loud;  // dynamic corresponding to MIDI velocity
     double dur;   // duration in seconds (normally to release point)
     Alg_parameters_ptr parameters; // attribute/value pair list
-    Alg_note() { type = 'n'; parameters = NULL;
-        pitch = loud = dur = -1;}
+    Alg_note() { type = 'n'; parameters = NULL; }
     void show();
 } *Alg_note_ptr;
 
@@ -438,7 +437,7 @@ typedef class Alg_beat {
 public:
     Alg_beat(double t, double b) {
         time = t; beat = b; }
-    Alg_beat() { time = beat = 0.0;}; /* To avoiud warnings */
+    Alg_beat() {};
     double time;
     double beat;
 } *Alg_beat_ptr;
@@ -554,7 +553,7 @@ public:
 #pragma warning(disable: 546) // cast to int is OK, we only want low 7 bits
 #pragma warning(disable: 4311) // type cast pointer to long warning
 #endif
-    void get_pad() { while (((long) ptr) & 7) ptr++; }
+    void get_pad() { while (((intptr_t) ptr) & 7) ptr++; }
 #if defined(_WIN32)
 #pragma warning(default: 4311 546)
 #endif
@@ -624,7 +623,7 @@ typedef class Serial_write_buffer: public Serial_buffer {
 #pragma warning(disable: 546) // cast to int is OK, we only want low 7 bits
 #pragma warning(disable: 4311) // type cast pointer to long warning
 #endif
-    void pad() { while (((long) ptr) & 7) set_char(0); }
+    void pad() { while (((intptr_t) ptr) & 7) set_char(0); }
 #if defined(_WIN32)
 #pragma warning(default: 4311 546)
 #endif
@@ -960,9 +959,6 @@ public:
         note_off_flag = note_off;
         maxlen = len = 0;
         pending_events = NULL;
-        // silence coverity defects
-        events_ptr = NULL;
-        cookie = NULL; index = offset = -1;
     }
     // Normally, iteration is over the events in the one sequence used
     // to instatiate the iterator (see above), but with this method, you
@@ -1014,13 +1010,12 @@ public:
     int channel_offset_per_track; // used to encode track_num into channel
     Alg_tracks track_list;       // array of Alg_events
     Alg_time_sigs time_sig;
-    //int beat_x;
+    int beat_x;
     void basic_initialization() {
         error = alg_no_error;
         units_are_seconds = true; type = 's';
         channel_offset_per_track = 0;
         add_track(0); // default is one empty track
-        pending = NULL;
     }
     Alg_seq() {
         basic_initialization();

@@ -6,7 +6,9 @@ set(CMAKE_POLICY_DEFAULT_CMP0022 OLD)
 
 cmake_minimum_required(VERSION 2.8.3)
 
-project (Csound)
+project(Csound)
+
+include("${CUSTOM_CMAKE}" OPTIONAL)
 
 ENABLE_TESTING()
 
@@ -36,8 +38,10 @@ endif()
 message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
 
 if(USE_DOUBLE)
+   message(STATUS "Building with 64-bit floats")
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins64-${APIVERSION}")
 else()
+  message(STATUS "Building with 32-bit floats")
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
 endif()
 
@@ -97,7 +101,7 @@ endfunction(make_executable)
 function(make_utility name srcs)
     make_executable(${name} "${srcs}" "${CSOUNDLIB}")
     add_dependencies(${name} ${CSOUNDLIB})
- 
+
     if(LINUX)
         target_link_libraries(${name} m)
     endif()
@@ -142,9 +146,9 @@ function(check_deps option)
         endwhile()
     endif()
     if(${option})
-        message(STATUS "${option} is enabled")
+        message(STATUS "${option} is enabled.")
     else()
-        message(STATUS "${option} is disabled")
+        message(STATUS "${option} is disabled.")
     endif()
 endfunction(check_deps)
 
@@ -218,7 +222,7 @@ if(WIN32 AND NOT MSVC)
     if(EXISTS "C:/MinGW/include")
         include_directories(C:/MinGW/include)
     else()
-        MESSAGE(STATUS "MinGW include dir not found")
+        MESSAGE(STATUS "MinGW include dir not found.")
     endif()
 
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
@@ -330,9 +334,12 @@ if(APPLE)
 
   if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
-    message(STATUS "OSX: Setting Depolyment Target to 10.7")
+    message(STATUS "OSX: Setting Deployment Target to 10.7")
   endif()
 
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
+ 
+   
 endif()
 
 if(USE_DOUBLE)
@@ -393,9 +400,9 @@ set(BUILD_LIB_DIR ${BUILD_DIR})
 #    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes)
 #endif()
 
-message(STATUS "BUILD_BIN_DIR set to ${BUILD_BIN_DIR}")
-message(STATUS "BUILD_LIB_DIR set to ${BUILD_LIB_DIR}")
-message(STATUS "BUILD_PLUGINS_DIR set to ${BUILD_PLUGINS_DIR}")
+message(STATUS "BUILD_BIN_DIR set to ${BUILD_BIN_DIR}.")
+message(STATUS "BUILD_LIB_DIR set to ${BUILD_LIB_DIR}.")
+message(STATUS "BUILD_PLUGINS_DIR set to ${BUILD_PLUGINS_DIR}.")
 
 # OS specific checks
 
@@ -419,6 +426,31 @@ if(NOT LIBSNDFILE_LIBRARY)
     message(FATAL_ERROR "Csound requires the sndfile library")
 endif()
 
+find_package(Boost)
+find_package(CURL)
+set(FLTK_SKIP_OPENGL true)
+find_package(FLTK)
+find_package(Java)
+find_package(JNI)
+find_package(LIBLO)
+find_package(LUAJIT)
+find_package(MUSICXML)
+find_package(PORTSMF)
+find_package(PythonLibs)
+find_package(STK)
+find_package(SWIG)
+find_package(VSTSDK2X)
+
+if(WIN32 AND NOT MSVC)
+  find_library(FLAC_LIB FLAC)
+  find_library(OGG_LIB ogg)
+  find_library(SPEEX_LIB speex)
+  find_library(VORBIS_LIB vorbis)
+  find_library(VORBISENC_LIB vorbisenc)
+  set(LIBSNDFILE_SUPPORT_LIBS ${VORBIS_LIB} ${VORBISENC_LIB} ${SPEEX_LIB} ${FLAC_LIB} ${OGG_LIB}
+)
+endif()
+
 find_path(SNDFILE_H_PATH sndfile.h)
 if(SNDFILE_H_PATH)
     include_directories(${SNDFILE_H_PATH})
@@ -426,7 +458,11 @@ else()
     message(FATAL_ERROR "Could not find sndfile.h")
 endif()
 
-find_library(PTHREAD_LIBRARY pthread)
+find_library(PTHREAD_LIBRARY winpthread-1)
+
+if(NOT PTHREAD_LIBRARY)
+    find_library(PTHREAD_LIBRARY pthread)
+endif()
 
 if(NOT PTHREAD_LIBRARY AND WIN32)
     find_library(PTHREAD_LIBRARY pthreadGC2)
@@ -435,8 +471,6 @@ endif()
 if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
     message(FATAL_ERROR "Csound requires the pthread library")
 endif()
-
-message(STATUS "PTHREAD STATIC LIBRARY: ${PTHREAD_STATIC_LIBRARY}")
 
 set(CMAKE_REQUIRED_INCLUDES pthread.h)
 set(CMAKE_REQUIRED_LIBRARIES pthread)
@@ -447,14 +481,14 @@ option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
 if(USE_ATOMIC_BUILTIN)
 include(cmake/CheckAtomic.cmake)
   if(HAVE_ATOMIC_BUILTIN)
-    message(STATUS "Using Atomic Builtins")
+    message(STATUS "Using atomic builtins.")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_ATOMIC_BUILTIN")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ATOMIC_BUILTIN")
   else()
-    message(STATUS "Not using Atomic Builtins - not found")
+    message(STATUS "Not using atomic builtins - not found")
   endif()
 else()
-  message(STATUS "Not using Atomic Builtins - user disabled")
+  message(STATUS "Not using atomic builtins - user disabled")
 endif()
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
@@ -490,10 +524,10 @@ if(USE_CURL)
   if(CURL_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_CURL")
   else()
-    message(STATUS "Not using CURL for urls - not found")
+    message(STATUS "Not using CURL for urls - not found.")
   endif()
 else()
-  message(STATUS "Not using CURL for urls - disabled")
+  message(STATUS "Not using CURL for urls - disabled.")
 endif()
 
 # Flex/Bison for the new parser
@@ -506,34 +540,6 @@ endif()
 
 if(NOT BISON_EXECUTABLE)
     message(FATAL_ERROR "Csound requires the bison executable")
-endif()
-
-find_program(FLTK_CONFIG_SCRIPT fltk-config)
-if(FLTK_CONFIG_SCRIPT)
-    execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --api-version
-                OUTPUT_VARIABLE FLTK_VERSION)
-    if(FLTK_VERSION)
-        string(STRIP ${FLTK_VERSION} FLTK_VERSION)
-        if(FLTK_VERSION GREATER 1.1)
-          set(HAVE_FLTK "Fltk")
-          set(FLTK_FOUND 1)
-          message("FLTK FOUND: ${FLTK_FOUND}")
-          message(STATUS "Using fltk-config script for FLTK " ${FLTK_VERSION})
-          execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --includedir
-                          OUTPUT_VARIABLE FLTK_INCLUDE_DIR)
-          string(STRIP ${FLTK_INCLUDE_DIR} FLTK_INCLUDE_DIR)
-          execute_process(COMMAND ${FLTK_CONFIG_SCRIPT} --ldflags --use-images
-                          OUTPUT_VARIABLE FLTK_LIBRARIES)
-          string(STRIP ${FLTK_LIBRARIES} FLTK_LIBRARIES)
-          string(REGEX MATCH "fltk[_ ]jpeg" FLTK_JPEG ${FLTK_LIBRARIES})
-          string(REGEX MATCH "fltk[_ ]z" FLTK_Z ${FLTK_LIBRARIES})
-          string(REGEX MATCH "fltk[_ ]png" FLTK_PNG ${FLTK_LIBRARIES})
-        endif(FLTK_VERSION GREATER 1.1)
-    endif(FLTK_VERSION)
-endif(FLTK_CONFIG_SCRIPT)
-if(NOT HAVE_FLTK)
-    set(FLTK_SKIP_OPENGL true)
-    find_package(FLTK)
 endif()
 
 ## MAIN TARGETS ##
@@ -623,6 +629,7 @@ set(libcsound_SRCS
     OOps/disprep.c
     OOps/dumpf.c
     OOps/fftlib.c
+    OOps/pffft.c
     OOps/goto_ops.c
     OOps/midiinterop.c
     OOps/midiops.c
@@ -754,6 +761,7 @@ set(stdopcod_SRCS
     Opcodes/nlfilt.c
     Opcodes/oscbnk.c
     Opcodes/pluck.c
+    Opcodes/paulstretch.c
     Opcodes/repluck.c
     Opcodes/reverbsc.c
     Opcodes/seqtime.c
@@ -857,7 +865,7 @@ set_source_files_properties(${PRELEX_OUT} GENERATED)
 # Handling New Score Parser
 
 if(SCORE_PARSER)
-    message(STATUS "SCORE PARSER being built")
+    message(STATUS "SCORE PARSER being built.")
     #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSCORE_PARSER")
     list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
 
@@ -902,7 +910,7 @@ if(SCORE_PARSER)
     set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
 
 else()
-    message(STATUS "Not building with score parser")
+    message(STATUS "Not building with score parser.")
 endif()
 
 
@@ -910,14 +918,14 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 if(NEW_PARSER_DEBUG)
-    message(STATUS "Building with new parser debugging")
+    message(STATUS "Building with new parser debugging.")
     list(APPEND libcsound_CFLAGS -DPARSER_DEBUG=1)
 else()
-    message(STATUS "Not building with new parser debugging")
+    message(STATUS "Not building with new parser debugging.")
 endif()
 
 if(BUILD_MULTI_CORE)
-    message(STATUS "Building with multicore")
+    message(STATUS "Building with multicore support.")
 
     list(APPEND libcsound_SRCS
         Engine/cs_new_dispatch.c
@@ -928,7 +936,7 @@ if(BUILD_MULTI_CORE)
     list(APPEND libcsound_CFLAGS -DPARCS)
 
 else()
-    message(STATUS "Not building with multicore")
+    message(STATUS "Not building with multicore support.")
 endif()
 
 set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
@@ -1056,10 +1064,17 @@ function(add_dependency_to_framework pluginlib dependency)
 endfunction(add_dependency_to_framework)
 
 # Add the install target
-install(TARGETS ${CSOUNDLIB}
+if(WIN32)
+  install(TARGETS ${CSOUNDLIB}
+    RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}"
+    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
+    FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
+else()
+  install(TARGETS ${CSOUNDLIB}
     LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
     ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
     FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
+endif()
 
 if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
@@ -1073,17 +1088,29 @@ endif()
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
+    if(NOT MSVC)
+      list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
+    endif()
+else()
 endif()
 
 if(CURL_FOUND)
   list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
+  if(WIN32 AND NOT MSVC)
+    # not quite working yet with msys2/mingw64
+    #list(APPEND libcsound_CFLAGS -DCURL_STATICLIB -DLIBSSH_STATIC)
+    #list(APPEND libcsound_LIBS crypto ssh2 ssl ws2_32 rtmp)
+    #find_library(GNUTLS_LIB gnutls)
+    #list(APPEND libcsound_LIBS ${GNUTLS_LIB})
+  endif()
+
 endif()
 
 # Linux does not have a separate libintl, it is part of libc
 set(LIBINTL_AVAIL (LIBINTL_LIBRARY OR LINUX))
 check_deps(USE_GETTEXT LIBINTL_HEADER LIBINTL_AVAIL GETTEXT_MSGFMT_EXECUTABLE)
 if(USE_GETTEXT)
-    message(STATUS "Using GNU Gettext")
+    message(STATUS "Using GNU gettext.")
     if(NOT LINUX)
         list(APPEND libcsound_LIBS ${LIBINTL_LIBRARY})
     endif()
@@ -1092,18 +1119,18 @@ if(USE_GETTEXT)
         file(TO_NATIVE_PATH "${CMAKE_INSTALL_PREFIX}/${LOCALE_INSTALL_DIR}" CSOUND_TEXTDOMAIN)
     endif()
     if(CSOUND_TEXTDOMAIN)
-        message(STATUS "Setting textdomain to ${CSOUND_TEXTDOMAIN}")
+        message(STATUS "Setting textdomain to ${CSOUND_TEXTDOMAIN}.")
         set_source_files_properties(Top/getstring.c PROPERTIES
             COMPILE_FLAGS -DCSOUND_TEXTDOMAIN=\\\"${CSOUND_TEXTDOMAIN}\\\")
     else()
-        message(STATUS "Not setting textdomain")
+        message(STATUS "Not setting textdomain.")
     endif()
 else()
-    message(STATUS "Not using localization")
+    message(STATUS "Not using localization.")
 endif()
 
 if(LINUX)
-    message(STATUS "Building on Linux")
+    message(STATUS "Building on Linux.")
     add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE -DHAVE_SOCKETS)
     list(APPEND libcsound_LIBS m dl)
 
@@ -1111,14 +1138,17 @@ if(LINUX)
 
     if(LIBRT_LIBRARY)
       list(APPEND libcsound_LIBS ${LIBRT_LIBRARY})
-      message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}")
+      message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}.")
     endif()
 endif()
 
 if(APPLE)
     message(STATUS "Building on OSX")
     add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS)
-    list(APPEND libcsound_LIBS m dl)
+    find_library(ACCELERATE_LIBRARY Accelerate)
+    find_path(VECLIB_PATH "Accelerate/Accelerate.h")
+    include_directories(${VECLIB_PATH})
+    list(APPEND libcsound_LIBS m dl ${ACCELERATE_LIBRARY})
 endif()
 
 if(WIN32)
@@ -1201,7 +1231,6 @@ endif()
 
 
 add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
-
 target_link_libraries(${CSOUNDLIB} ${libcsound_LIBS})
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
@@ -1227,6 +1256,13 @@ if(BUILD_STATIC_LIBRARY)
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
+
+# VL -- this seems to be a duplicate instruction
+# and it's breaking the build. See lines 1088-95
+#install(TARGETS ${CSOUNDLIB}
+#    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+#   ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
+
 
 ## option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
 ## check_deps(BUILD_CATALOG)

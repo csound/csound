@@ -24,7 +24,7 @@
 #ifndef CSOUND_VERSION_H
 #define CSOUND_VERSION_H
 
-#define VERSION "6.06"
+#define VERSION "6.07"
 
 /* Define to the full name of this package. */
 #define CS_PACKAGE_NAME     "Csound"
@@ -38,7 +38,7 @@
 /* Define to the version of this package. */
 #define CS_PACKAGE_VERSION  VERSION
 #define CS_VERSION          (6)
-#define CS_SUBVER           (6)
+#define CS_SUBVER           (7)
 #define CS_PATCHLEVEL       (0)
 
 #define CS_APIVERSION       3   /* should be increased anytime a new version
@@ -46,8 +46,12 @@
                                    not be able to handle -- most likely this
                                    will be a change to an API function or
                                    the CSOUND struct */
-#define CS_APISUBVER        0   /* for minor changes that will still allow
+#define CS_APISUBVER        1   /* for minor changes that will still allow
                                    compatiblity with older hosts */
+
+#ifndef CS_PACKAGE_DATE
+#define CS_PACKAGE_DATE __DATE__
+#endif
 
 #endif /* CSOUND_VERSION_H */
 

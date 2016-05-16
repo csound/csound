@@ -77,7 +77,9 @@ typedef struct OPEN_SL_PARAMS_ {
   int run;
 } open_sl_params;
 
-int old = 0;
+double ttime = 0.0, tmax = 0.0;
+unsigned int p_count = 1;
+double old = 0.0;
 #define CONV16BIT (32768)//./csoundGet0dBFS(csound))
 #define CONVMYFLT FL(1./32768.)
 static double curtime;
@@ -87,11 +89,12 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
   open_sl_params *p = (open_sl_params *) context;
   CSOUND *csound = p->csound;
   struct timespec ts;
+  double dtime;
   clock_gettime(CLOCK_MONOTONIC, &ts);
-  /*csound->Message(csound, "callback kcount, %d, %d.%06d: %d\n",
-  		  csound->GetKcounter(csound), ts.tv_sec, ts.tv_nsec/1000,
-  		  (ts.tv_nsec-old)/1000000);*/
-  old = ts.tv_nsec;
+  dtime = ts.tv_sec + 1e-9*ts.tv_nsec;
+  if(dtime - old > 0.021)
+    csound->Message(csound, "inter-callback: %f s\n", dtime - old );
+    old = dtime;
   if(p->async){
     int read=0,items = p->outBufSamples, i, r = 0;
     MYFLT *outputBuffer = p->outputBuffer;
@@ -102,7 +105,6 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
     (*bq)->Enqueue(bq,playBuffer,items*sizeof(short));
     if(p->streamTime != NULL) (*p->streamTime) += (items/csound->GetNchnls(csound));
   }
-
   else {
     int items = p->outBufSamples,
       i, r = 0, ret = 1, paused;
@@ -115,14 +117,18 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
     if(ret==0){
       for(i=0;i < items; i++)
 	playBuffer[i] = (short) (outputBuffer[i]*CONV16BIT);
-    }
+    } else return;
       (*bq)->Enqueue(bq,playBuffer,items*sizeof(short));
       if(p->streamTime != NULL) (*p->streamTime) += (items/csoundGetNchnls(csound));
 
   }
-  //struct timespec ts;
-  // clock_gettime(CLOCK_MONOTONIC, &ts);
-  //  csound->Message(csound, "rr time = %f ms\n", 1e-6*ts.tv_nsec);
+  
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  dtime = (ts.tv_sec + 1e-9*ts.tv_nsec) - dtime;
+  if(tmax < dtime) tmax = dtime;
+  if(dtime > 0.01) csound->Message(csound, "delta = %f s\n", dtime);
+  ttime +=  dtime;
+  p_count++;
 }
 
 #define MICROS 1000000
@@ -336,6 +342,7 @@ int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm)
   if(openSLPlayOpen(params) !=  SL_RESULT_SUCCESS)
     returnVal = -1;
   else csound->Message(csound, Str("OpenSL: open for output \n"));
+  csound->Message(csound, "outbuff samples: %d \n", params->outBufSamples);
   return returnVal;
 }
 // ===============================
@@ -514,6 +521,7 @@ int androidrecopen_(CSOUND *csound, const csRtAudioParams *parm)
     csound->Message(csound, Str("OpenSL: input open error \n"));
     returnVal = -1;
   }
+  
   return returnVal;
 }
 
@@ -524,6 +532,8 @@ void androidrtclose_(CSOUND *csound)
   open_sl_params *params;
   params = (open_sl_params *) csound->QueryGlobalVariable(csound,
 							  "_openslGlobals");
+
+  csound->Message(csound, "aver cb time = %f s, max = %f s\n",ttime/p_count, tmax); 
   params->run = 0;
   if (params == NULL)
     return;
