@@ -116,7 +116,7 @@ compiled C code, and with a highly useful foreigh function interface (FFI).
 Change to $(NDK_MODULE_PATH) and use Git to clone the LuaJIT head there.
 Change to the LuaJIT directory and execute:
 
-    make HOST_CC="gcc -m32" CROSS=$NDKP TARGET_FLAGS="$NDKF $NDKARCH" TARGET_SYS=linux
+    make HOST_CC="gcc -m32" CROSS=$NDKP TARGET_FLAGS="$NDKF $NDKARCH" TARGET_SYS=linux DEFAULT_CC=gcc
 
 BUILD AND INSTALL LUA OPCODES (OPTIONAL, USEFUL FOR ALGORITHMIC COMPOSITION IN CSOUND)
 
