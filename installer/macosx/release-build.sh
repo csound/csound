@@ -9,7 +9,7 @@ else
 fi
 
 export MANUAL_DIR=`pwd`/../../../manual
-export CS_VERSION="6.07beta"
+export CS_VERSION="6.07"
 export PACKAGE_NAME=csound${CS_VERSION}-OSX-universal.pkg
 export DMG_DIR="Csound ${CS_VERSION}"
 export DMG_NAME="csound${CS_VERSION}-OSX-universal.dmg"
@@ -99,6 +99,7 @@ cp $DIST/../_csnd6.so $FRAMEWORK64_DIR/$PYTHON_DIR
 cp $DIST/../csnd6.py $FRAMEWORK64_DIR/$PYTHON_DIR
 cp $DIST/../CsoundAC.py $FRAMEWORK64_DIR/$PYTHON_DIR
 cp $DIST/../_CsoundAC.so $FRAMEWORK64_DIR/$PYTHON_DIR
+cp $BLD/../interfaces/ctcsound.py $FRAMEWORK64_DIR/$PYTHON_DIR
 export CSOUND_AC_PYLIB=$FRAMEWORK64_DIR/$PYTHON_DIR/_CsoundAC.so
 
 
