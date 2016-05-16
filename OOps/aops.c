@@ -421,15 +421,18 @@ int modak(CSOUND *csound, AOP *p)
 /* VL
    experimental code using SIMD for operations
 */
-typedef double v2d __attribute__ ((vector_size (128)));
-#define AA_VECTOR(OPNAME,OP)                           \
+#define GCCVSIZEB 64
+#define GCCVSIZE  (GCCVSIZEB/sizeof(MYFLT))
+#define MAXKSMPS 256
+typedef double v2d __attribute__((vector_size(GCCVSIZEB)));
+#define AA_VECTOR(OPNAME,OP)                   \
   int OPNAME(CSOUND *csound, AOP *p) {          \
   MYFLT   *r, *a, *b;                           \
-  v2d     rv, av, bv;                           \
-  uint32_t n, nsmps = CS_KSMPS;                 \
+  v2d     rv[MAXKSMPS/GCCVSIZE], av[MAXKSMPS/GCCVSIZE], bv[MAXKSMPS/GCCVSIZE];  \
+  uint32_t n, nsmps = CS_KSMPS, end;            \
   if (LIKELY(nsmps!=1)) {                       \
-    uint32_t offset = p->h.insdshead->ksmps_offset;       \
-    uint32_t early  = p->h.insdshead->ksmps_no_end;  \
+    uint32_t offset = p->h.insdshead->ksmps_offset; \
+    uint32_t early  = p->h.insdshead->ksmps_no_end; \
     r = p->r;                                   \
     a = p->a;                                   \
     b = p->b;                                   \
@@ -438,12 +441,13 @@ typedef double v2d __attribute__ ((vector_size (128)));
       nsmps -= early;                           \
       memset(&r[nsmps], '\0', early*sizeof(MYFLT)); \
     }                                           \
-    for (n=offset; n<nsmps; n+=2){              \
-       memcpy(&av,&a[n],2*sizeof(MYFLT));       \
-       memcpy(&bv,&b[n],2*sizeof(MYFLT));       \
-       rv = av OP bv;                  \
-       memcpy(&r[n],&rv,2*sizeof(MYFLT));       \
+    memcpy(av,a,nsmps*sizeof(MYFLT));       \
+    memcpy(bv,b,nsmps*sizeof(MYFLT));       \
+    offset /= GCCVSIZE; end = nsmps/GCCVSIZE; \
+    for (n=offset/GCCVSIZE; n<end; n+=1){         \
+       rv[n] = av[n] OP bv[n];                  \
     }                                           \
+    memcpy(r,rv,nsmps*sizeof(MYFLT));           \
     return OK;                                  \
   }                                             \
     else {                                      \
@@ -1586,6 +1590,12 @@ int in32(CSOUND *csound, INALL *p)
     return inn(csound, p, 32u);
 }
 
+int inch1_set(CSOUND *csound, INCH1 *p)
+{
+    p->init = 1;
+    return OK;
+}
+
 int inch_opcode1(CSOUND *csound, INCH1 *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1595,9 +1605,16 @@ int inch_opcode1(CSOUND *csound, INCH1 *p)
 
       ch = ((int)*p->ch + FL(0.5));
       if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
-        csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
+        if (p->init)
+          csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
         memset(p->ar, 0, sizeof(MYFLT)*nsmps);
+        p->init = 0;
         //        return OK;
+      } else if (UNLIKELY(ch < 1)) {
+        if (p->init)
+          csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
+        memset(p->ar, 0, sizeof(MYFLT)*nsmps);
+        p->init = 0;
       }
       else {
         sp = CS_SPIN + (ch - 1);
@@ -1616,6 +1633,11 @@ int inch_opcode1(CSOUND *csound, INCH1 *p)
     return OK;
 }
 
+int inch_set(CSOUND *csound, INCH *p)
+{
+    p->init = 1;
+    return OK;
+}
 
 int inch_opcode(CSOUND *csound, INCH *p)
 {                               /* Rewritten to allow multiple args upto 40 */
@@ -1631,11 +1653,17 @@ int inch_opcode(CSOUND *csound, INCH *p)
     for (nc=0; nc<nChannels; nc++) {
       ch = (int)(*p->ch[nc] + FL(0.5));
       if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
-        csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
+        if (p->init)
+          csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
         memset(p->ar[nc], 0, sizeof(MYFLT)*nsmps);
+        p->init = 0;
         //        return OK;
-      }
-      else {
+      } else if (UNLIKELY(ch < 1)) {
+        if (p->init)
+          csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
+        memset(p->ar, 0, sizeof(MYFLT)*nsmps);
+        p->init = 0;
+      } else {
         sp = CS_SPIN + (ch - 1);
         ain = p->ar[nc];
         if (UNLIKELY(offset)) memset(ain, '\0', offset*sizeof(MYFLT));
@@ -2166,3 +2194,18 @@ int outRange(CSOUND *csound, OUTRANGE *p)
     return OK;
 }
 /* -------------------------------------------------------------------- */
+
+int hw_channels(CSOUND *csound, ASSIGN *p){
+
+    int *dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
+    if (dachans == NULL) {
+      csound->Warning(csound, Str("number of hardware output channels"
+                                  " not currently available"));
+    } else *p->r = *dachans;
+    dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
+    if (dachans == NULL) {
+      csound->Warning(csound, Str("number of hardware input channels"
+                                  " not currently available"));
+    } else *p->a = *dachans;
+    return OK;
+}

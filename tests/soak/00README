@@ -1,9 +1,9 @@
 This directory contains a soak test -- about 700 test sof Csound and
 it runs for a long time. 
 
-The idra is to run 
+The idea is to run 
     runtests.py
-which creates two significant fies
+which creates two significant files
 
 1:  Checksums
     This should be the same as SAFESums, which is the default md5s of
@@ -24,6 +24,6 @@ To deploy these tests
 3: copy Output1 to Old_Output
 
 When run there should be no differences between Checksums and SAFESums
-and only minor ones berween Output1 and Old_Output
+and only minor ones between Output1 and Old_Output
 
 JPff Oct 2013

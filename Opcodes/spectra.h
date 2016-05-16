@@ -31,7 +31,8 @@ typedef struct {
         SPECDAT *wsig;
         MYFLT   *signal,*iprd,*iocts,*ifrqs,*iq,*ihann;
         MYFLT   *idbout,*idisprd,*idsines;
-        int     nfreqs, hanning, ncoefs, dbout, nsmps, scountdown, timcount;
+        int     nfreqs, hanning, ncoefs, dbout, nsmps, scountdown;
+        uint32_t timcount;
         MYFLT   curq, *sinp, *cosp, *linbufp;
         int     disprd, dcountdown, winlen[MAXFRQS], offset[MAXFRQS];
         DOWNDAT downsig;

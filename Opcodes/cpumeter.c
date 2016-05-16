@@ -214,7 +214,6 @@ typedef struct {
 
 static int systime(CSOUND *csound, SYST *p){
     struct timespec ts;
-    long ns;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     *p->ti = round((ts.tv_sec + ts.tv_nsec/1.e9)*1000);
     return OK;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hello">Hello World, CsoundAppActivity!</string>
-    <string name="app_name">Csound 6</string>
+    <string name="app_name">Csound for Android 6.07 beta</string>
     <string name="slider1">slider1</string>
     <string name="slider2">slider2</string>
     <string name="slider3">slider3</string>
@@ -22,6 +22,8 @@
     <string name="about">About Csound</string>
     <string name="guide">User guide</string>
     <string name="settings">Settings</string>
+    <string name="settingsActivityTitle">Csound Settings</string>
+    <string name="Save_as">Save as...</string>
     <string name="csd_template" space="preserve"><![CDATA[<CsoundSynthesizer>
 <CsLicense>
 </CsLicense>
@@ -33,6 +35,4 @@
 </CsScore>
 </CsoundSynthesizer>]]>
 </string>
-    <string name="settingsActivityTitle">Csound Settings</string>
-    <string name="Save_as">Save as...</string>
 </resources>

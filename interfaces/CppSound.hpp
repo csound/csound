@@ -70,7 +70,7 @@ public:
 
   virtual ~CppSound();
   virtual CSOUND *getCsound();
-  virtual long getThis();
+  virtual intptr_t getThis();
   virtual CsoundFile *getCsoundFile();
   virtual int compile(int argc, char **argv);
   virtual int compile();

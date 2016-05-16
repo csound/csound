@@ -71,7 +71,7 @@ char* cs_strdup(CSOUND* csound, char* str) {
 
     if (len > 0) {
       strncpy(retVal, str, len);
-    } 
+    }
     retVal[len] = '\0';
 
     return retVal;
@@ -511,9 +511,10 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       if (*s == 'g') {
         var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                          tree->value->lexeme);
-        if(var == NULL)
+        if (var == NULL)
           var = csoundFindVariableWithName(csound, typeTable->globalPool,
                                            tree->value->lexeme);
+        //printf("var: %p %s\n", var, var->varName);
       } else
         var = csoundFindVariableWithName(csound, typeTable->localPool,
                                          tree->value->lexeme);
@@ -1634,7 +1635,7 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
     TREE* xoutArgs = NULL;
     char* inArgs = inArgsTree->value->lexeme;
     char* outArgs = outArgsTree->value->lexeme;
-    int i;
+    unsigned int i;
 
     for (i = 0; i < strlen(inArgs);i++) {
         if (inArgs[i] == 'K') {
@@ -1853,7 +1854,9 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     char *p = csound_orcget_current_pointer(yyscanner)-1;
     int line = csound_orcget_lineno(yyscanner);
     uint64_t files = csound_orcget_locn(yyscanner);
-    if (*p=='\0') line--;
+    if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
+    //printf("LINE: %d\n", line);
+
     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
     do_baktrace(csound, files);
@@ -1861,8 +1864,12 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     while ((ch=*--p) != '\n' && ch != '\0');
     do {
       ch = *++p;
-      if (ch == '\n') break;
-      csound->Message(csound, "%c", ch);
+      if (UNLIKELY(ch == '\n')) break;
+      // Now get rid of any continuations
+      if (ch=='#' && strncmp(p,"sline ",6)) {
+        p+=7; while (isdigit(*p)) p++;
+      }
+      else csound->Message(csound, "%c", ch);
     } while (ch != '\n' && ch != '\0');
     csound->Message(csound, " <<<\n");
 }
@@ -2357,7 +2364,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
 void print_tree(CSOUND * csound, char* msg, TREE *l)
 {
     if (msg)
-      csound->Message(csound, msg);
+      csound->Message(csound, "%s", msg);
     else
       csound->Message(csound, "Printing Tree\n");
     csound->Message(csound, "<ast>\n");

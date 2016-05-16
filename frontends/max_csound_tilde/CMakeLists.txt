@@ -1,6 +1,6 @@
 if(MAX_SDK_ROOT)
-  message(STATUS "Building csound~ for Max/MSP")
-  message(STATUS "  MAX_SDK_ROOT: ${MAX_SDK_ROOT}")
+  message(STATUS "Building csound~ for Max/MSP.")
+  message(STATUS "MAX_SDK_ROOT: ${MAX_SDK_ROOT}")
 
 set(MAX_INCLUDES_DIR
   "${MAX_SDK_ROOT}/c74support/max-includes")
@@ -107,7 +107,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 
 if(NOT APPLE)
-  set_target_properties(${MAX_OUTPUT_LIB} 
+  set_target_properties(${MAX_OUTPUT_LIB}
 	  PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc")
 
 endif()
@@ -171,7 +171,6 @@ endif(APPLE)
 endif()
 
 else()
-  message(STATUS "Not Building csound~ for Max/MSP")
-  message(STATUS "  MAX_SDK_ROOT is not defined")
-
+  message(STATUS "Not building csound~ for Max/MSP")
+  message(STATUS "MAX_SDK_ROOT is not defined.")
 endif()

@@ -73,7 +73,7 @@ int pvreadset_(CSOUND *csound, PVREAD *p, int stringname)
     char      pvfilnam[256];
 
     if (stringname==0){
-      if (ISSTRCOD(*p->ifilno))
+      if (csound->ISSTRCOD(*p->ifilno))
         strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
@@ -88,11 +88,11 @@ int pvreadset_(CSOUND *csound, PVREAD *p, int stringname)
 }
 
 int pvreadset(CSOUND *csound, PVREAD *p){
-  return pvreadset_(csound,p,0);
+    return pvreadset_(csound,p,0);
 }
 
 int pvreadset_S(CSOUND *csound, PVREAD *p){
-  return pvreadset_(csound,p,1);
+    return pvreadset_(csound,p,1);
 }
 
 int pvread(CSOUND *csound, PVREAD *p)

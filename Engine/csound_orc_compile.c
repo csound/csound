@@ -423,14 +423,14 @@ void addGlobalVariable(CSOUND *csound,
 {
     CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
                                             type, name, typeArg);
-    size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
+    size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
     CS_VAR_MEM *varMem = csound->Malloc(csound, memSize);
     csoundAddVariable(csound, engineState->varPool, var);
 
     varMem->varType = var->varType;
     var->memBlock = varMem;
     if (var->initializeVariableMemory != NULL) {
-      var->initializeVariableMemory(var, &varMem->value);
+      var->initializeVariableMemory((void *)csound, var, &varMem->value);
     }
 }
 
@@ -982,8 +982,8 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
                ++csound->dead_instr_no * sizeof(INSTRTXT*));
     csound->dead_instr_pool[csound->dead_instr_no-1] = instrtxt;
     if (csound->oparms->odebug)
-    csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
-                    csound->dead_instr_no-1);
+      csound->Message(csound, Str(" -- added to deadpool slot %d \n"),
+                      csound->dead_instr_no-1);
 }
 
 /**
@@ -1163,10 +1163,14 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       /* redefinition does not raise an error now, just a warning */
       /* unless we are not merging */
       if(!merge) synterr(csound, "instr %d redefined\n", instrNum);
-       if (instrNum && csound->oparms->odebug)
+      if (instrNum && csound->oparms->odebug)
         csound->Warning(csound,
                         Str("instr %ld redefined, replacing previous definition"),
                         instrNum);
+      /* inherit active & maxalloc flags */
+        instrtxt->active = engineState->instrtxtp[instrNum]->active;
+        instrtxt->maxalloc = engineState->instrtxtp[instrNum]->maxalloc;
+
       /* here we should move the old instrument definition into a deadpool
          which will be checked for active instances and freed when there are no
          further ones
@@ -1283,14 +1287,14 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     while (gVar != NULL) {
       CS_VARIABLE* var;
       if (csound->oparms->odebug)
-        csound->Message(csound, Str(" merging  %d) %s:%s\n"), count,
+      csound->Message(csound, Str(" merging %p %d) %s:%s\n"), gVar, count,
                         gVar->varName, gVar->varType->varTypeName);
       var = csoundFindVariableWithName(csound,
                                        current_state->varPool, gVar->varName);
       if (var == NULL) {
         ARRAY_VAR_INIT varInit;
         varInit.dimensions = gVar->dimensions;
-        varInit.type = gVar->varType;
+        varInit.type = gVar->subType;
         var = csoundCreateVariable(csound, csound->typePool,
                                    gVar->varType, gVar->varName, &varInit);
         csoundAddVariable(csound, current_state->varPool, var);
@@ -1298,9 +1302,10 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
         /* when disposing of the engineState global vars, we do not
            delete the memBlock */
         var->memBlock = gVar->memBlock;
-        //csound->Message(csound, Str(" adding %d) %s:%s\n"), count,
-        //          gVar->varName, gVar->varType->varTypeName);
-         gVar = gVar->next;
+        if (csound->oparms->odebug)
+          csound->Message(csound, Str(" adding %p %d) %s:%s\n"),  var, count,
+                          gVar->varName, gVar->varType->varTypeName);
+        gVar = gVar->next;
       } else {
         // if variable exists
         // free variable mem block
@@ -1476,13 +1481,13 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     // memory will be freed on merge.
     var = typeTable->globalPool->head;
     while(var != NULL) {
-      size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + var->memBlockSize;
+      size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
       CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
       //printf("alloc %p -- %s\n", varMem, var->varName);
       varMem->varType = var->varType;
       var->memBlock = varMem;
       if (var->initializeVariableMemory != NULL) {
-        var->initializeVariableMemory(var, &varMem->value);
+        var->initializeVariableMemory((void *)csound, var, &varMem->value);
       } else  memset(&varMem->value , 0, var->memBlockSize);
         var = var->next;
     }
@@ -1746,21 +1751,32 @@ extern void sanitize(CSOUND *csound);
 */
 PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
 {
+    TREE *root;
     int retVal=1;
-    TREE *root = csoundParseOrc(csound, str);
+    volatile jmp_buf tmpExitJmp;
+
+    memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
+    if ((retVal=setjmp(csound->exitjmp))) {
+      memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+      return retVal;
+    }
+    //retVal = 1;
+    root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
-     retVal = csoundCompileTree(csound, root);
-     // Sanitise semantic sets here
-     sanitize(csound);
-     csoundDeleteTree(csound, root);
+      retVal = csoundCompileTree(csound, root);
+      // Sanitise semantic sets here
+      sanitize(csound);
+      csoundDeleteTree(csound, root);
     }
     else {
       // csoundDeleteTree(csound, root);
-     return  CSOUND_ERROR;
+      memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+      return  CSOUND_ERROR;
     }
 
     if (UNLIKELY(csound->oparms->odebug))
       debugPrintCsound(csound);
+    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     return retVal;
 }
 
@@ -1961,7 +1977,7 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       //printf("create constant %p: %c \n", arg, c);
       arg->index = myflt_pool_find_or_addc(csound, engineState->constantsPool, s);
     } else if (c == '"') {
-      size_t memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + sizeof(STRINGDAT);
+      size_t memSize = CS_VAR_TYPE_OFFSET + sizeof(STRINGDAT);
       CS_VAR_MEM* varMem = csound->Calloc(csound, memSize);
       STRINGDAT *str = (STRINGDAT*)&varMem->value;
       //printf("create string %p: %s \n", arg, str->data);

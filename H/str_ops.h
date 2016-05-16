@@ -143,74 +143,6 @@ typedef struct {
     MYFLT   *inVar;
 } PRINT_TYPE_OP;
 
-/*
-*********These are not correct for csound 6 as they omit the flags field********
- {  "strset",   S(STRSET_OP),   1,  "",     "iS",
-    (SUBR) strset_init, (SUBR) NULL, (SUBR) NULL                        },
- {  "strget",   S(STRGET_OP),   1,  "S",    "i",
-    (SUBR) strget_init, (SUBR) NULL, (SUBR) NULL                        },
- {  "strcpy",   S(STRCPY_OP),   1,  "S",    "S",
-    (SUBR) strcpy_opcode, (SUBR) NULL, (SUBR) NULL                      },
- {  "strcpyk",  S(STRCPY_OP),   3,  "S",    "S",
-    (SUBR) strcpy_opcode, (SUBR) strcpy_opcode, (SUBR) NULL             },
- {  "strcat",   S(STRCAT_OP),   1,  "S",    "SS",
-    (SUBR) strcat_opcode, (SUBR) NULL, (SUBR) NULL                      },
- {  "strcatk",  S(STRCAT_OP),   3,  "S",    "SS",
-    (SUBR) strcat_opcode, (SUBR) strcat_opcode, (SUBR) NULL             },
- {  "strcmp",   S(STRCAT_OP),   1,  "i",    "SS",
-    (SUBR) strcmp_opcode, (SUBR) NULL, (SUBR) NULL                      },
- {  "strcmpk",  S(STRCAT_OP),   3,  "k",    "SS",
-    (SUBR) strcmp_opcode, (SUBR) strcmp_opcode, (SUBR) NULL             },
- {  "sprintf",  S(SPRINTF_OP),  1,  "S",    "SN",
-    (SUBR) sprintf_opcode, (SUBR) NULL, (SUBR) NULL                     },
- {  "sprintfk", S(SPRINTF_OP),  3,  "S",    "SN",
-    (SUBR) sprintf_opcode, (SUBR) sprintf_opcode, (SUBR) NULL           },
- {  "printf_i", S(PRINTF_OP),   1,  "",     "SiN",
-    (SUBR) printf_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
- {  "printf",   S(PRINTF_OP),   3,  "",     "SkN",
-    (SUBR) printf_opcode_set, (SUBR) printf_opcode_perf, (SUBR) NULL    },
- {  "puts",     S(PUTS_OP),     3,  "",     "Sko",
-    (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, (SUBR) NULL       },
- {  "strtod",   S(STRSET_OP),   1,  "i",    "T",
-    (SUBR) strtod_opcode, (SUBR) NULL, (SUBR) NULL                      },
- {  "strtodk",  S(STRSET_OP),   3,  "k",    "U",
-    (SUBR) strtod_opcode, (SUBR) strtod_opcode, (SUBR) NULL             },
- {  "strtol",   S(STRSET_OP),   1,  "i",    "T",
-    (SUBR) strtol_opcode, (SUBR) NULL, (SUBR) NULL                      },
- {  "strtolk",  S(STRSET_OP),   3,  "k",    "U",
-    (SUBR) strtol_opcode, (SUBR) strtol_opcode, (SUBR) NULL             },
- {  "strsub",   S(STRSUB_OP),   1,  "S",    "Soj",
-    (SUBR) strsub_opcode, (SUBR) NULL, (SUBR) NULL                      },
- {  "strsubk",  S(STRSUB_OP),   3,  "S",    "Skk",
-    (SUBR) strsub_opcode, (SUBR) strsub_opcode, (SUBR) NULL             },
- {  "strchar",  S(STRCHAR_OP),  1,  "i",    "So",
-    (SUBR) strchar_opcode, (SUBR) NULL, (SUBR) NULL                     },
- {  "strchark", S(STRCHAR_OP),  3,  "k",    "SO",
-    (SUBR) strchar_opcode, (SUBR) strchar_opcode, (SUBR) NULL           },
- {  "strlen",   S(STRLEN_OP),   1,  "i",    "S",
-    (SUBR) strlen_opcode, (SUBR) NULL, (SUBR) NULL                      },
- {  "strlenk",  S(STRLEN_OP),   3,  "k",    "S",
-    (SUBR) strlen_opcode, (SUBR) strlen_opcode, (SUBR) NULL             },
- {  "strupper", S(STRUPPER_OP), 1,  "S",    "S",
-    (SUBR) strupper_opcode, (SUBR) NULL, (SUBR) NULL                    },
- {  "strupperk", S(STRUPPER_OP), 3, "S",    "S",
-    (SUBR) strupper_opcode, (SUBR) strupper_opcode, (SUBR) NULL         },
- {  "strlower", S(STRUPPER_OP), 1,  "S",    "S",
-    (SUBR) strlower_opcode, (SUBR) NULL, (SUBR) NULL                    },
- {  "strlowerk", S(STRUPPER_OP), 3, "S",    "S",
-    (SUBR) strlower_opcode, (SUBR) strlower_opcode, (SUBR) NULL         },
- {  "getcfg",   S(GETCFG_OP),   1,  "S",    "i",
-    (SUBR) getcfg_opcode, (SUBR) NULL, (SUBR) NULL                      },
- {  "strindex", S(STRINDEX_OP), 1,  "i",    "SS",
-    (SUBR) strindex_opcode, (SUBR) NULL, (SUBR) NULL                    },
- {  "strindexk", S(STRINDEX_OP), 3, "k",    "SS",
-    (SUBR) strindex_opcode, (SUBR) strindex_opcode, (SUBR) NULL         },
- {  "strrindex", S(STRINDEX_OP), 1, "i",    "SS",
-    (SUBR) strrindex_opcode, (SUBR) NULL, (SUBR) NULL                   },
- {  "strrindexk", S(STRINDEX_OP), 3, "k",   "SS",
-    (SUBR) strrindex_opcode, (SUBR) strrindex_opcode, (SUBR) NULL       },
-*/
-
 #ifndef CSOUND_STR_OPS_C
 
 int     strset_init(CSOUND *, void *);
@@ -242,9 +174,9 @@ int     strrindex_opcode(CSOUND *, void *);
 int     str_changed(CSOUND *csound, STRCHGD *p);
 int     str_changed_k(CSOUND *csound, STRCHGD *p);
 int     str_from_url(CSOUND *csound, STRCPY_OP *p);
-
 int     print_type_opcode(CSOUND*, void*);
-
+  int     s_opcode(CSOUND *csound, void *p);
+  int     s_opcode_k(CSOUND *csound, void *p);
 #endif      /* CSOUND_STR_OPS_C */
 
 #ifdef __cplusplus

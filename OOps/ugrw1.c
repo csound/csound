@@ -740,7 +740,7 @@ int instimes(CSOUND *csound, RDTIME *p)
 
 /* Printing at k rate - printk. */
 
-/* printkset is called when the instance of the instrument is initiallised. */
+/* printkset is called when the instance of the instrument is initialised. */
 
 int printkset(CSOUND *csound, PRINTK *p)
 {
@@ -810,9 +810,9 @@ int printk(CSOUND *csound, PRINTK *p)
       /* Print spaces and then the value we want to read.   */
       if (p->pspace > 0L) {
         char  s[128];   /* p->pspace is limited to 120 in printkset() above */
-        memset(s, ' ', (size_t) p->pspace);
+        memset(s, ' ', 128 /*(size_t) p->pspace */);
         s[p->pspace] = '\0';
-        csound->MessageS(csound, CSOUNDMSG_ORCH, s);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
     }
@@ -827,7 +827,7 @@ int printk(CSOUND *csound, PRINTK *p)
 
 #define ESC (0x1B)
 
-/* printksset is called when the instance of the instrument is initiallised. */
+/* printksset is called when the instance of the instrument is initialised. */
 int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
 {
     char        *sdest;
@@ -840,133 +840,136 @@ int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       p->ctime = *p->ptime;
     p->initime = (MYFLT) CS_KCNT * CS_ONEDKR;
     p->cysofar = -1;
-      memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
-      sdest = p->txtstring;
-      /* Copy the string to the storage place in PRINTKS.
-       *
-       * We will look out for certain special codes and write special
-       * bytes directly to the string.
-       *
-       * There is probably a more elegant way of doing this, then using
-       * the look flag.  I could use goto - but I would rather not.      */
-                                /* This is really a if then else if...
-                                 * construct and is currently grotty -- JPff */
-      while (*sarg) {
-        temp  = *sarg++;
-        tempn = *sarg--;
-        /* Look for a single caret and insert an escape char.  */
-        if ((temp  == '^') && (tempn != '^')) {
-          *sdest++ = ESC;
-        }
+    memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
+    sdest = p->txtstring;
+    /* Copy the string to the storage place in PRINTKS.
+     *
+     * We will look out for certain special codes and write special
+     * bytes directly to the string.
+     *
+     * There is probably a more elegant way of doing this, then using
+     * the look flag.  I could use goto - but I would rather not.      */
+    /* This is really a if then else if...
+     * construct and is currently grotty -- JPff */
+    while (*sarg) {
+      temp  = *sarg++;
+      tempn = *sarg--;
+      /* Look for a single caret and insert an escape char.  */
+      if ((temp  == '^') && (tempn != '^')) {
+        *sdest++ = ESC;
+      }
 /* Look for a double caret and insert a single caret - stepping forward  one */
-        else if ((temp  == '^') && (tempn == '^')) {
-          *sdest++ = '^';
-          sarg++;
-        }
+      else if ((temp  == '^') && (tempn == '^')) {
+        *sdest++ = '^';
+        sarg++;
+      }
 /* Look for a single tilde and insert an escape followed by a '['.
  * ESC[ is the escape sequence for ANSI consoles */
-        else if ((temp  == '~') && (tempn != '~')) {
-          *sdest++ = ESC;
-          *sdest++ = '[';
-        }
-/* Look for a double tilde and insert a tilde caret - stepping forward one.  */
-        else if ((temp  == '~') && (tempn == '~')) {
-          *sdest++ = '~';
-          sarg++;
-        }
-        /* Look for \n, \N etc */
-        else if (temp == '\\') {
-          switch (tempn) {
-          case 'r': case 'R':
-            *sdest++ = '\r';
-            sarg++;
-            break;
-          case 'n': case 'N':
-            *sdest++ = '\n';
-            sarg++;
-            break;
-          case 't': case 'T':
-            *sdest++ = '\t';
-            sarg++;
-            break;
-          case 'a': case 'A':
-            *sdest++ = '\a';
-            sarg++;
-            break;
-          case 'b': case 'B':
-            *sdest++ = '\b';
-            sarg++;
-            break;
-          case '\\':
-            *sdest++ = '\\';
-            sarg++;
-            break;
-          default:
-            *sdest++ = tempn;
-            sarg++;
-            break;
-          }
-        }
-        /* This case is from matt ingalls */
-        else if (temp == '%') { /* an extra option to specify tab and
-                                   return as %t and %r*/
-          switch (tempn) {
-          case 'r': case 'R':
-            *sdest++ = '\r';
-            sarg++;
-            break;
-          case 'n': case 'N':
-            *sdest++ = '\n';
-            sarg++;
-            break;
-          case 't': case 'T':
-            *sdest++ = '\t';
-            sarg++;
-            break;
-          case '!':     /* and a ';' */
-            *sdest++ = ';';
-            sarg++;
-            break;
-          case '%':             /* Should we do this? JPff */
-            *sdest++ = '%';
-            sarg++;
-            break;
-          default:
-            *sdest++ = temp;
-            break;
-          }
-        }
-        else {
-          /* If none of these match, then copy the character directly
-           * and try again.      */
-          *sdest++ = temp;
-        }
-      /* Increment pointer and process next character until end of string.  */
-        ++sarg;
+      else if ((temp  == '~') && (tempn != '~')) {
+        *sdest++ = ESC;
+        *sdest++ = '[';
       }
+/* Look for a double tilde and insert a tilde caret - stepping forward one.  */
+      else if ((temp  == '~') && (tempn == '~')) {
+        *sdest++ = '~';
+        sarg++;
+      }
+      /* Look for \n, \N etc */
+      else if (temp == '\\') {
+        switch (tempn) {
+        case 'r': case 'R':
+          *sdest++ = '\r';
+          sarg++;
+          break;
+        case 'n': case 'N':
+          *sdest++ = '\n';
+          sarg++;
+          break;
+        case 't': case 'T':
+          *sdest++ = '\t';
+          sarg++;
+          break;
+        case 'a': case 'A':
+          *sdest++ = '\a';
+          sarg++;
+          break;
+        case 'b': case 'B':
+          *sdest++ = '\b';
+          sarg++;
+          break;
+        case '\\':
+          *sdest++ = '\\';
+          sarg++;
+          break;
+        default:
+          *sdest++ = tempn;
+          sarg++;
+          break;
+        }
+      }
+      /* This case is from matt ingalls */
+      else if (temp == '%' && tempn != '%' ) {
+        /* an extra option to specify tab and
+           return as %t and %r*/
+        /* allowing for %% escape -- VL */
+        switch (tempn) {
+        case 'r': case 'R':
+          *sdest++ = '\r';
+          sarg++;
+          break;
+        case 'n': case 'N':
+          *sdest++ = '\n';
+          sarg++;
+          break;
+        case 't': case 'T':
+          *sdest++ = '\t';
+          sarg++;
+          break;
+        case '!':     /* and a ';' */
+          *sdest++ = ';';
+          sarg++;
+          break;
+          // case '%':             /* Should we do this? JPff */
+          // *sdest++ = '%';       /* No. VL */
+          // sarg++;
+          // break;
+        default:
+          *sdest++ = temp;
+          break;
+        }
+      }
+      else {
+        /* If none of these match, then copy the character directly
+         * and try again.      */
+        *sdest++ = temp;
+      }
+      /* Increment pointer and process next character until end of string.  */
+      ++sarg;
+    }
 
     return OK;
 }
 
 int printksset_S(CSOUND *csound, PRINTKS *p){
- char *sarg;
- sarg = ((STRINGDAT*)p->ifilcod)->data;
- if(sarg == NULL) return csoundInitError(csound, Str("null string\n"));
- p->old = cs_strdup(csound, sarg);
- return printksset_(csound, p, sarg);
+    char *sarg;
+    sarg = ((STRINGDAT*)p->ifilcod)->data;
+    if (sarg == NULL) return csoundInitError(csound, Str("null string\n"));
+    p->old = cs_strdup(csound, sarg);
+    return printksset_(csound, p, sarg);
 }
 
 int printksset(CSOUND *csound, PRINTKS *p){
-  return printksset_(csound, p, get_arg_string(csound, *p->ifilcod));
+    return printksset_(csound, p, get_arg_string(csound, *p->ifilcod));
 }
 
 
-/* perform a sprintf-style format  -- matt ingalls */
-/* void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals) */
+//perform a sprintf-style format  -- matt ingalls
+/* void sprints_local(char *outstring, char *fmt, MYFLT **kvals, int32 numVals) */
 /* { */
 /*     char strseg[8192]; */
 /*     int i = 0, j = 0; */
 /*     char *segwaiting = 0; */
+/*     puts(fmt); */
 /*     while (*fmt) { */
 /*       if (*fmt == '%') { */
 /*         /\* if already a segment waiting, then lets print it *\/ */
@@ -994,6 +997,7 @@ int printksset(CSOUND *csound, PRINTKS *p){
 /*             break; */
 
 /*           default: */
+/*          printf("strseg:%s - %c\n", strseg, *segwaiting); */
 /*             CS_SPRINTF(outstring, strseg, xx); */
 /*             break; */
 /*           } */
@@ -1051,6 +1055,71 @@ int printksset(CSOUND *csound, PRINTKS *p){
 /*         snprintf(outstring, 8196, "%s", strseg); */
 /*     } */
 /* } */
+/* VL - rewritten 1/16
+   escaping %% correctly now.
+ */
+static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
+    char tmp[8],cc;
+    int j = 0;
+    int len = 8192;
+    while (*fmt) {
+      if (*fmt == '%') {
+        if (*(fmt+1) == '%') {
+          *outstring++ = *fmt++;
+          *outstring++ = *fmt++;
+          len-=2;
+        }
+        else if (*(fmt+1) && isspace(*(fmt+1))) {
+          *outstring++ = *fmt++;
+          *outstring++ = '%';
+          *outstring++ = *fmt++;
+          len-=3;
+        }
+        else {
+          int n = 0;
+          char check='\0';
+          while(*(fmt+n) && !isspace(*(fmt+n))){
+            tmp[n] = check = *(fmt+n);
+            n++;
+          }
+          tmp[n] = *(fmt+n);
+          tmp[n+1] = '\0';
+          n++;
+          switch (check) {
+          case 'd':
+          case 'i':
+          case 'o':
+          case 'x':
+          case 'X':
+          case 'u':
+            snprintf(outstring, len, tmp, MYFLT2LRND(*kvals[j]));
+            break;
+          case 'c':
+            cc  = (char) MYFLT2LRND(*kvals[j]);
+            if (cc == '%') {
+              *outstring++ = '%';
+            }
+            snprintf(outstring, len, tmp, cc);
+            break;
+          default:
+            //puts(fmt);
+            snprintf(outstring, len, tmp, *kvals[j]);
+            break;
+          }
+          if (j < numVals-1)
+            j++;
+          fmt += n;
+          outstring += strlen(outstring);
+          len -= strlen(outstring);
+        }
+      }
+      else {
+        *outstring++ = *fmt++;
+        len--;
+      }
+    }
+}
+
 
 /*************************************/
 
@@ -1064,7 +1133,7 @@ int printks(CSOUND *csound, PRINTKS *p)
     int32        cycles;
     char        string[8192]; /* matt ingals replacement */
 
-    if (ISSTRCOD(*p->ifilcod) == 0) {
+    if (csound->ISSTRCOD(*p->ifilcod) == 0) {
       char *sarg;
       sarg = ((STRINGDAT*)p->ifilcod)->data;
       if (sarg == NULL)
@@ -1090,9 +1159,10 @@ int printks(CSOUND *csound, PRINTKS *p)
     if (p->cysofar < cycles) {
       p->cysofar = cycles;
       /* Do the print cycle. */
-      string[0]='\0';           /* incase of empty string */
+      //string[0]='\0';           /* incase of empty string */
+      memset(string,0,8192);
       sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2);
-      csound->MessageS(csound, CSOUNDMSG_ORCH, string);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     }
     return OK;
 }
@@ -1101,30 +1171,37 @@ int printks(CSOUND *csound, PRINTKS *p)
 int printsset(CSOUND *csound, PRINTS *p)
 {
     PRINTKS pk;
-    char        string[8192];
+    char    string[8192];
     MYFLT ptime = 1;
     string[0] = '\0';    /* necessary as sprints is not nice */
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
     printksset(csound, &pk);
+    memset(string,0,8192);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
-    csound->MessageS(csound, CSOUNDMSG_ORCH, string);
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     return OK;
 }
 
 int printsset_S(CSOUND *csound, PRINTS *p)
 {
     PRINTKS pk;
-    char        string[8192];
+    char   string[8192];
     MYFLT ptime = 1;
     string[0] = '\0';    /* necessary as sprints is not nice */
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
     printksset_S(csound, &pk);
+    if (strlen(pk.txtstring) < 8191){
+      memset(string,0,8192);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
-    csound->MessageS(csound, CSOUNDMSG_ORCH, string);
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
+    } else {
+      csound->Warning(csound,
+                      Str("Formatting string too long: %s"), pk.txtstring);
+    }
     return OK;
 }
 
@@ -1197,7 +1274,7 @@ int printk2(CSOUND *csound, PRINTK2 *p)
         char  s[128];   /* p->pspace is limited to 120 in printk2set() above */
         memset(s, ' ', (size_t) p->pspace);
         s[p->pspace] = '\0';
-        csound->MessageS(csound, CSOUNDMSG_ORCH, s);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
       p->oldvalue = value;
@@ -1222,7 +1299,7 @@ int printk3(CSOUND *csound, PRINTK3 *p)
       vv[0] = &value;
       buff[0] = '\0';
       sprints(buff, p->sarg, vv, 1);
-      csound->MessageS(csound, CSOUNDMSG_ORCH, buff);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buff);
       p->oldvalue = value;
     }
     //else printf("....%f %f\n", p->oldvalue, value);

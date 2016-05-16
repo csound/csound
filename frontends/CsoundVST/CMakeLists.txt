@@ -3,25 +3,22 @@
 include(CheckIncludeFiles)
 
 option(BUILD_CSOUNDVST "Build CsoundVST plugin (needs C++ interface, FLTK, VST SDK)" OFF)
-find_package(Boost)
-find_library(MUSICXML_LIBRARY musicxml2)
 IF(APPLE)
 find_library(FLTK libfltk)
-ELSE(APPLE)
-# find_package(FLTK)
 ENDIF(APPLE)
 
 find_file(EIGEN_DENSE Dense ${EIGEN3_INCLUDE_DIR}/eigen3/Eigen)
 
-check_deps(BUILD_CSOUNDVST Boost_INCLUDE_DIRS BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN_DENSE VSTSDK2X_DIR)
 
+check_deps(BUILD_CSOUNDVST Boost_FOUND BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN_DENSE VSTSDK2X_FOUND)
+message(STATUS "BUILD_CSOUNDVST: ${BUILD_CSOUNDVST}.")
 if(BUILD_CSOUNDVST)
     include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
     include_directories(${CMAKE_HOME_DIRECTORY}/frontends/CsoundVST)
     include_directories(${EIGEN3_INCLUDE_DIR})
-    include_directories(${VSTSDK2X_DIR})
-    include_directories(${VSTSDK2X_DIR}/public.sdk/source/vst2.x)
-    include_directories(${VSTSDK2X_DIR}/pluginterfaces/source/vst2.x)
+    include_directories(${VSTSDK2X_INCLUDE_DIR})
+    include_directories(${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x)
+    include_directories(${VSTSDK2X_INCLUDE_DIR}/pluginterfaces/source/vst2.x)
     include_directories(${Boost_INCLUDE_DIRS})
     include_directories(${FLTK_INCLUDE_DIR})
     add_definitions(-DVST_FORCE_DEPRECATED=0)
@@ -29,9 +26,9 @@ if(BUILD_CSOUNDVST)
         CsoundVst.cpp
         CsoundVstFltk.cpp
         CsoundVstUi.cpp
-        ${VSTSDK2X_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
-        ${VSTSDK2X_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
-
+        ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
+        ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
+    add_compile_options("-O2")
     add_library(CsoundVST SHARED ${CSOUNDVST_SRCS})
     set_target_properties(CsoundVST PROPERTIES
         LINK_INTERFACE_LIBRARIES ""
