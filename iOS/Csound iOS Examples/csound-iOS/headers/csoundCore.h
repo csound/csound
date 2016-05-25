@@ -44,7 +44,7 @@
 
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
-#if defined(__SSE__) && !defined(EMSCRIPTEN) 
+#if defined(__SSE__) && !defined(EMSCRIPTEN)
 #ifndef _MM_DENORMALS_ZERO_ON
 #include <xmmintrin.h>
 #define _MM_DENORMALS_ZERO_MASK   0x0040
@@ -148,7 +148,12 @@ typedef struct {
 #define SSTRCOD    (float)NAN
   //#define SSTRCOD    (nanf("0"))
 #endif
-#define ISSTRCOD(X) isnan(X)
+  //#define ISSTRCOD(X) isnan(X)
+  //#ifndef __MACH__
+extern int ISSTRCOD(MYFLT);
+  //#else
+//#define ISSTRCOD(X) isnan(X)
+//#endif
 
 #define SSTRSIZ    1024
 #define ALLCHNLS   0x7fff
@@ -194,7 +199,10 @@ typedef struct {
 #define ASYNC_GLOBAL 1
 #define ASYNC_LOCAL  2
 
-  typedef struct CORFIL {
+enum {FFT_LIB=0, PFFT_LIB, VDSP_LIB};
+enum {FFT_FWD=0, FFT_INV};
+
+typedef struct CORFIL {
     char    *body;
     unsigned int     len;
     unsigned int     p;
@@ -233,6 +241,7 @@ typedef struct {
     int     daemon;
     double  quality;        /* for ogg encoding */
     int     ksmps_override;
+    int     fft_lib;
   } OPARMS;
 
   typedef struct arglst {
@@ -593,7 +602,7 @@ typedef struct {
   } DOWNDAT;
 
   typedef struct {
-    int32    ktimstamp, ktimprd;
+    uint32_t   ktimstamp, ktimprd;
     int32    npts, nfreqs, dbout;
     DOWNDAT *downsrcp;
     AUXCH   auxch;
@@ -1291,11 +1300,17 @@ typedef struct NAME__ {
     void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT offset);
     void (*RewindScore)(CSOUND *);
     void (*InputMessage)(CSOUND *, const char *message__);
+    int  (*ISSTRCOD)(MYFLT);
+    void *(*RealFFT2Setup)(CSOUND *csound,
+                           int FFTsize,
+                           int d);
+    void (*RealFFT2)(CSOUND *csound,
+                     void *p, MYFLT *sig);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[43];
+    SUBR dummyfn_2[40];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */

@@ -3379,7 +3379,7 @@ void pffft_execute(CSOUND_FFT_SETUP *setup,
     sig[i] = buf[i]/s;
 }
 
-#ifdef __MACH__
+#if defined(__MACH__) && !defined(IOS)
 /* vDSP FFT implementation */
 #include <Accelerate/Accelerate.h>
 static
@@ -3430,7 +3430,7 @@ void *align_alloc(CSOUND *csound, size_t nb_bytes){
 int setupDispose(CSOUND *csound, void *pp){
   CSOUND_FFT_SETUP *setup =(CSOUND_FFT_SETUP *) pp;
   switch(setup->lib){
-#ifdef __MACH__
+#if defined(__MACH__) && !defined(IOS)
   case VDSP_LIB:
     vDSP_destroy_fftsetupD(
 #ifdef USE_DOUBLE
@@ -3466,7 +3466,7 @@ void *csoundRealFFT2Setup(CSOUND *csound,
   setup->N = FFTsize;
 
   switch(lib){
-#ifdef __MACH__
+#if defined(__MACH__) && !defined(IOS)
   case VDSP_LIB:
     setup->M = ConvertFFTSize(csound, FFTsize);
     setup->setup = (void *)
@@ -3506,7 +3506,7 @@ void csoundRealFFT2(CSOUND *csound,
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
   switch(setup->lib) {
-#ifdef __MACH__
+#if defined(__MACH__) && !defined(IOS)
   case VDSP_LIB:
     vDSP_execute(setup,sig);
     break;
