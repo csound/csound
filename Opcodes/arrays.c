@@ -1427,7 +1427,7 @@ int init_rfft(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
   if(p->in->dimensions > 1)
     return csound->InitError(csound,
-     "rfft: only one-dimensional arrays allowed");
+                             Str("rfft: only one-dimensional arrays allowed"));
   if (isPowerOfTwo(N)){
     tabensure(csound, p->out,N);
     p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
@@ -1459,7 +1459,7 @@ int init_rifft(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
  if(p->in->dimensions > 1)
     return csound->InitError(csound,
-       "rifft: only one-dimensional arrays allowed");
+                             Str("rifft: only one-dimensional arrays allowed"));
  if (isPowerOfTwo(N)){
     p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
     tabensure(csound, p->out, N);
@@ -1490,12 +1490,13 @@ int rifft_i(CSOUND *csound, FFT *p){
 int init_rfftmult(CSOUND *csound, FFT *p){
     int   N = p->in->sizes[0];
     if(N != p->in2->sizes[0])
-      return csound->InitError(csound, "array sizes do not match\n");
+      return csound->InitError(csound, Str("array sizes do not match\n"));
     /*if(isPowerOfTwo(N))*/
     tabensure(csound, p->out, N);
     /* else
        return
-         csound->InitError(csound, "non-pow-of-two case not implemented yet \n");*/
+         csound->InitError(csound,
+                           Str("non-pow-of-two case not implemented yet \n"));*/
     return OK;
 }
 
@@ -1513,7 +1514,7 @@ int init_fft(CSOUND *csound, FFT *p){
   int   N2 = p->in->sizes[0];
  if(p->in->dimensions > 1)
     return csound->InitError(csound,
-      "fft: only one-dimensional arrays allowed");
+                             Str("fft: only one-dimensional arrays allowed"));
   tabensure(csound,p->out,N2);
   return OK;
 }
@@ -1540,7 +1541,7 @@ int init_ifft(CSOUND *csound, FFT *p){
   int   N2 = p->in->sizes[0];
    if(p->in->dimensions > 1)
     return csound->InitError(csound,
-       "fftinv: only one-dimensional arrays allowed");
+                             Str("fftinv: only one-dimensional arrays allowed"));
   tabensure(csound, p->out, N2);
   return OK;
 }
@@ -1601,7 +1602,7 @@ int init_poltorect2(CSOUND *csound, FFT *p){
       tabensure(csound, p->out, N*2);
       return OK;
     } else return csound->InitError(csound,
-                                    "in array sizes do not match: %d and %d\n",
+                                    Str("in array sizes do not match: %d and %d\n"),
                                     p->in2->sizes[0],p->in->sizes[0]);
 }
 
@@ -1872,7 +1873,7 @@ int rows_init(CSOUND *csound, FFT *p){
     }
     else
       return csound->InitError(csound,
-                               "in array not 2-dimensional\n");
+                               Str("in array not 2-dimensional\n"));
 }
 
 int rows_perf(CSOUND *csound, FFT *p){
@@ -1884,7 +1885,7 @@ int rows_perf(CSOUND *csound, FFT *p){
       return OK;
     }
     else return csound->PerfError(csound,  p->h.insdshead,
-                                  "requested row is out of range\n");
+                                  Str("requested row is out of range\n"));
 }
 
 int cols_init(CSOUND *csound, FFT *p){
@@ -1895,7 +1896,7 @@ int cols_init(CSOUND *csound, FFT *p){
     }
     else
       return csound->InitError(csound,
-                               "in array not 2-dimensional\n");
+                               Str("in array not 2-dimensional\n"));
 }
 
 int cols_perf(CSOUND *csound, FFT *p){
@@ -1907,7 +1908,7 @@ int cols_perf(CSOUND *csound, FFT *p){
       return OK;
     }
     else return csound->PerfError(csound,  p->h.insdshead,
-                                  "requested col is out of range\n");
+                                  Str("requested col is out of range\n"));
 }
 
 static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p, int rows, int columns)
@@ -1987,7 +1988,7 @@ int shiftout_init(CSOUND *csound, FFT *p){
     int siz = p->in->sizes[0];
     p->n = ((int)*((MYFLT *)p->in2) % siz);
     if((uint32_t) siz < CS_KSMPS)
-      return csound->InitError(csound, "input array too small\n");
+      return csound->InitError(csound, Str("input array too small\n"));
     return OK;
 }
 
@@ -2036,12 +2037,13 @@ int init_dct(CSOUND *csound, FFT *p){
    if(isPowerOfTwo(N)){
    if(p->in->dimensions > 1)
     return csound->InitError(csound,
-       "dct: only one-dimensional arrays allowed");
+                             Str("dct: only one-dimensional arrays allowed"));
     tabensure(csound, p->out, N);
     p->setup =  csoundDCTSetup(csound,N,FFT_FWD);
     return OK;
-   } else return csound->InitError(csound,
-       "dct: non-pow-of-two sizes not yet implemented");
+   } else return
+            csound->InitError(csound,
+                              Str("dct: non-pow-of-two sizes not yet implemented"));
 }
 
 int kdct(CSOUND *csound, FFT *p){
@@ -2063,12 +2065,14 @@ int init_dctinv(CSOUND *csound, FFT *p){
    if(isPowerOfTwo(N)){
    if(p->in->dimensions > 1)
     return csound->InitError(csound,
-       "dctinv: only one-dimensional arrays allowed");
+                             Str("dctinv: only one-dimensional arrays allowed"));
     tabensure(csound, p->out, N);
     p->setup =  csoundDCTSetup(csound,N,FFT_INV);
     return OK;
-   } else return csound->InitError(csound,
-       "dctinv: non-pow-of-two sizes not yet implemented");
+   } else
+     return
+       csound->InitError(csound,
+                         Str("dctinv: non-pow-of-two sizes not yet implemented"));
 }
 
 int dctinv(CSOUND *csound, FFT *p){
