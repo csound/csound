@@ -34,14 +34,14 @@
 ; Can run from the command line with "/S /D installation directory".
 ;
 ; Uncomment the following line to build CsoundVST and vst4cs:
-#define CSOUNDVST
+; #define CSOUNDVST
 
 #define MyAppName "Csound6_x64"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.07.0rc6-vst"
+#define MyAppMinVersion "6.07.0-vst"
 #else
-#define MyAppMinVersion "6.07.0rc6"
+#define MyAppMinVersion "6.07.0"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://csound.github.io/"
@@ -201,6 +201,7 @@ Source: {#MyLibSndfileSourceDir}\bin\*.*; DestDir: "{#APP_BIN}"; Flags: ignoreve
 Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
 
 Source: include/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
+Source: H/pffft.h; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: interfaces/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: frontends/CsoundAC/*.hpp; DestDir: "{#APP_INCLUDE}\csoundac"; Flags: ignoreversion;  Components: core
 
