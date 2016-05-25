@@ -949,7 +949,7 @@ static int meminit(CSOUND *csound, LOADER *pp)
   p->cnt = p->hsize;
   p->curframe = 0;
   p->pos = 0;
-
+  
   for (i=0; i < MP3_CHNS; i++){
 
     size = (N+2)*sizeof(MYFLT);
@@ -1009,6 +1009,7 @@ void decode_seek(CSOUND *csound, mp3dec_t mpa, int skip){
     }
 }
 
+
 static int filinit(CSOUND *csound, LOADER *pp)
 {
   MP3SCAL2 *p = &(pp->p);
@@ -1024,6 +1025,8 @@ static int filinit(CSOUND *csound, LOADER *pp)
                              0.0 };
   mpadec_info_t mpainfo;
   int buffsize = 32768;
+
+  p->init = 0;
   if(*pp->bfs) buffsize = *pp->bfs*8;
 
   name = pp->name->data;
@@ -1090,7 +1093,11 @@ static int filinit(CSOUND *csound, LOADER *pp)
   size =  buffsize*sizeof(short)/4;
   if (p->buffer.auxp == NULL || p->buffer.size < size)
     csound->AuxAlloc(csound, size, &p->buffer);
-
+  /*double dtime;
+    struct timespec ts;
+     clock_gettime(CLOCK_MONOTONIC, &ts);
+     dtime = ts.tv_sec + 1e-9*ts.tv_nsec;
+   */
 
   int skip = (int)(*pp->skip*mpainfo.frequency);
   p->bufused = -1;
@@ -1100,10 +1107,6 @@ static int filinit(CSOUND *csound, LOADER *pp)
      int ftbr = skip/frmsiz;
      int skips = ftbr*frmsiz;
      MYFLT fsize = (FL(125.0)*mpainfo.bitrate*frmsiz)/mpainfo.frequency;
-    /* double dtime;
-     struct timespec ts;
-     clock_gettime(CLOCK_MONOTONIC, &ts);
-     dtime = ts.tv_sec + 1e-9*ts.tv_nsec;*/
      if(fsize - (int) fsize > FL(0.0)){
        char dat[4];
        int byts, pad, i;
@@ -1119,13 +1122,14 @@ static int filinit(CSOUND *csound, LOADER *pp)
      skip = skip - skips;
     } else mp3dec_seek(mpa, 0, MP3DEC_SEEK_SAMPLES);
 
-     /*clock_gettime(CLOCK_MONOTONIC, &ts);
+   /*clock_gettime(CLOCK_MONOTONIC, &ts);
      dtime = ts.tv_sec + 1e-9*ts.tv_nsec - dtime;
      csound->Message(csound, "skip time %f \n", dtime);*/
 
   // fill buffers
   p->orsr = mpainfo.frequency;
   p->curbuf = 0;
+  p->finished = 0;
   p->nsmps = buffsize/8;
   buffiller((void *)p);
   buffiller((void *)p);
@@ -1143,9 +1147,10 @@ static int filinit(CSOUND *csound, LOADER *pp)
   p->tab[1] = (MYFLT *) p->fdata[1].auxp;
   p->tstamp = 0;
   p->finished = 0;
-  p->init = 1;
   p->skip = *pp->skip;
   p->filling = 0;
+  p->init = 1;
+    
   return OK;
 }
 
@@ -1168,7 +1173,8 @@ static int loader_init(CSOUND *csound, LOADER *pp){
   p->init = 0;
   p->ti = 0;
   if(p->playing == 0){
-    pthread_create(&(pp->p.t), NULL, loader_thread, pp);
+    if(pthread_create(&(pp->p.t), NULL, loader_thread, pp) != 0)
+      csound->Message(csound, "failed to start thread \n");
     struct sched_param param;
     int policy;
     pthread_getschedparam((pp->p.t), &policy,
@@ -1239,7 +1245,6 @@ int mp3dec_cleanup_player(CSOUND *csound,  PLAYER  *p)
     mp3dec_uninit(p->p->mpa);
   p->p->mpa = NULL;
 #ifdef HAVE_NEON
-
   pffft_destroy_setup(p->setup);
   pffft_aligned_free(p->bw);
   pffft_aligned_free(p->fw);
@@ -1432,6 +1437,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
       out = j == 0 ? pp->out1 : pp->out2;
       memset(out, '\0', nsmps*sizeof(MYFLT));
     }
+    csound->Message(csound, "not init \n");
     p->ti++;
     *pp->kstamp = 0;
     return OK;
