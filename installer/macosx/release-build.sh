@@ -285,7 +285,8 @@ mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
 cp  ../../../readme.pdf .
-hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
+cp  ../../../DmgResources/CsoundQt-d-py-cs6-0.9.2.1.dmg .
+#hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
 
 cd ..
 hdiutil create "$DMG_NAME" -srcfolder "$DMG_DIR" 

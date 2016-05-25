@@ -3348,6 +3348,7 @@ void csoundRealFFTMult(CSOUND *csound, MYFLT *outbuf,
 }
 
 
+
 /*
   New FFT interface
   VL, 2016
@@ -3520,6 +3521,58 @@ void csoundRealFFT2(CSOUND *csound,
       csoundInverseRealFFT(csound,
                      sig,setup->N));
     setup->lib = 0;
+  }
+}
+
+
+void *csoundDCTSetup(CSOUND *csound,
+		     int FFTsize, int d){
+ CSOUND_FFT_SETUP *setup;
+ setup = (CSOUND_FFT_SETUP *)
+   csound->Calloc(csound, sizeof(CSOUND_FFT_SETUP));
+ setup->N = FFTsize*4;
+ setup->buffer = (MYFLT *) align_alloc(csound, sizeof(MYFLT)*setup->N);
+ setup->lib = 0;
+ setup->d = d;
+ return setup;
+}
+
+
+void csoundDCT(CSOUND *csound,
+                     void *p, MYFLT *sig){
+  CSOUND_FFT_SETUP *setup =
+        (CSOUND_FFT_SETUP *) p;
+  int i,j, N= setup->N;
+  MYFLT *buffer = setup->buffer;
+  if(setup->d == FFT_FWD){
+  for(i=j = 0; i < N/2; i+=2, j++){
+    buffer[i] = FL(0.0);
+    buffer[i+1] = sig[j];
+  }
+  for(i=N/2,j=N/4-1; i < N; i+=2, j--){
+    buffer[i] = FL(0.0);
+    buffer[i+1] = sig[j];
+  }  
+  csoundRealFFT(csound,buffer, N);  
+  for(i=j=0; i < N/2; i+=2, j++){
+    sig[j] = buffer[i];
+  }  
+  } else {
+  buffer[0] = sig[0];
+  buffer[1] = -sig[0];  
+  for(i=2,j=1; i < N/2; i+=2, j++){
+    buffer[i] = sig[j];
+    buffer[i+1] = FL(0.0);
+  }
+  buffer[N/2] = buffer[N/2+1] = FL(0.0);
+  for(i=N/2+2,j=N/4-1; i < N; i+=2, j--){
+    buffer[i] = -sig[j];
+    buffer[i+1] = FL(0.0);
+  }
+  csoundInverseRealFFT(csound,buffer,N);
+  for(i=j=0; i < N/2; i+=2, j++){
+    sig[j] = buffer[i+1];
+  }
   }
 }
 

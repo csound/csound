@@ -1768,7 +1768,7 @@ typedef struct _pvsceps {
 int pvsceps_init(CSOUND *csound, PVSCEPS *p){
     int N = p->fin->N;
     if(isPowerOfTwo(N)){
-      p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
+      p->setup = csound->RealFFT2Setup(csound, N/2, FFT_FWD);
       tabensure(csound, p->out, N/2+1);
     }
     else
@@ -1793,7 +1793,7 @@ int pvsceps_perf(CSOUND *csound, PVSCEPS *p){
       csound->RealFFT2(csound, p->setup, ceps);
       if(coefs){
         // lifter coefs
-        for (i=coefs*2; i < N/2; i++) ceps[i] = 0.0;
+       for (i=coefs*2; i < N/2; i++) ceps[i] = 0.0;
         ceps[N/2] = 0.0;
       }
       p->lastframe = p->fin->framecount;
@@ -2026,6 +2026,69 @@ int unwrap(CSOUND *csound, FFT *p){
     return OK;
 }
 
+void *csoundDCTSetup(CSOUND *csound,
+		     int FFTsize, int d);
+void csoundDCT(CSOUND *csound,
+	       void *p, MYFLT *sig);
+
+int init_dct(CSOUND *csound, FFT *p){
+   int   N = p->in->sizes[0];
+   if(isPowerOfTwo(N)){
+   if(p->in->dimensions > 1)
+    return csound->InitError(csound,
+       "dct: only one-dimensional arrays allowed");
+    tabensure(csound, p->out, N);
+    p->setup =  csoundDCTSetup(csound,N,FFT_FWD);
+    return OK;
+   } else return csound->InitError(csound,
+       "dct: non-pow-of-two sizes not yet implemented");
+}
+
+int kdct(CSOUND *csound, FFT *p){
+    int N = p->out->sizes[0];
+    memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
+    csoundDCT(csound,p->setup,p->out->data);
+    return OK;
+}
+
+int dct(CSOUND *csound, FFT *p){
+    if(!init_dct(csound,p)){
+      kdct(csound,p);
+      return OK;
+      } else return NOTOK;
+}
+
+int init_dctinv(CSOUND *csound, FFT *p){
+   int   N = p->in->sizes[0];
+   if(isPowerOfTwo(N)){
+   if(p->in->dimensions > 1)
+    return csound->InitError(csound,
+       "dctinv: only one-dimensional arrays allowed");
+    tabensure(csound, p->out, N);
+    p->setup =  csoundDCTSetup(csound,N,FFT_INV);
+    return OK;
+   } else return csound->InitError(csound,
+       "dctinv: non-pow-of-two sizes not yet implemented");
+}
+
+int dctinv(CSOUND *csound, FFT *p){
+    if(!init_dctinv(csound,p)){
+      kdct(csound,p);
+      return OK;
+      } else return NOTOK;
+}
+
+int perf_pows(CSOUND *csound, FFT *p){
+    int i,j, end = p->out->sizes[0];
+    MYFLT *in, *out;
+    in = p->in->data;
+    out = p->out->data;
+    for(i=2,j=1;j<end-1;i+=2,j++)
+      out[j] = in[i]*in[i]+in[i+1]*in[i+1];
+    out[0] = in[0]*in[0];
+    out[end-1] = in[1]*in[1];
+    return OK;
+}
 
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
@@ -2237,6 +2300,8 @@ static OENTRY arrayvars_localops[] =
      (SUBR) init_poltorect2, (SUBR) perf_poltorect2, NULL},
     {"mags", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_mags, (SUBR) perf_mags, NULL},
+    {"pows", sizeof(FFT), 0, 3, "k[]","k[]",
+     (SUBR) init_mags, (SUBR) perf_pows, NULL},
     {"phs", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_mags, (SUBR) perf_phs, NULL},
     {"log", sizeof(FFT), 0, 3, "k[]","k[]o",
@@ -2271,7 +2336,15 @@ static OENTRY arrayvars_localops[] =
      (SUBR) shiftout_init, NULL, (SUBR) shiftout_perf},
     {"unwrap", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_recttopol, (SUBR) unwrap},
-    {"=.k", sizeof(FFT), 0, 3, "k[]","k", (SUBR) scalarset, (SUBR) scalarset}
+    {"=.k", sizeof(FFT), 0, 3, "k[]","k", (SUBR) scalarset, (SUBR) scalarset},
+     {"dct", sizeof(FFT), 0, 3, "k[]","k[]",
+     (SUBR) init_dct, (SUBR) kdct, NULL},
+    {"dct", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) dct, NULL, NULL},
+    {"dctinv", sizeof(FFT), 0, 3, "k[]","k[]",
+     (SUBR) init_dctinv, (SUBR) kdct, NULL},
+    {"dctinv", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR)dctinv, NULL, NULL},
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)
