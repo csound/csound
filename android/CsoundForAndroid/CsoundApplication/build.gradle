@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    signingConfigs {
-        CsoundForAndroid {
-            keyAlias 'CsoundApplication'
-            keyPassword 'Barbe48tFrant0'
-            storePassword 'macadoodles'
-            storeFile file('C:/Users/restore/CsoundForAndroid.jks')
-        }
-    }
+//    signingConfigs {
+//        CsoundForAndroid {
+//            keyAlias 'CsoundApplication'
+//            keyPassword 'Barbe48tFrant0'
+//            storePassword 'macadoodles'
+//            storeFile file('C:/Users/restore/CsoundForAndroid.jks')
+//        }
+//    }
     compileSdkVersion 21
     buildToolsVersion "23.0.2"
     defaultConfig {
@@ -16,17 +16,17 @@ android {
         minSdkVersion 21
         targetSdkVersion 21
         versionCode 3
-        versionName "6.07.beta3"
+        versionName "6.07.0"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.CsoundForAndroid
+//            signingConfig signingConfigs.CsoundForAndroid
         }
         debug {
             minifyEnabled false
-            signingConfig signingConfigs.CsoundForAndroid
+//            signingConfig signingConfigs.CsoundForAndroid
             debuggable true
         }
     }
