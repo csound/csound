@@ -55,7 +55,7 @@ graphics, and much more. For a full list of capabilities currently implemented i
 ## BUILDING
 
 Currently, on Windows, there is no need to build `csound.node`, it is distributed in the
-Windows installer for Csound. But you still need to install it, as described below.
+Windows installer for Csound along with NW.js.
 
 If you do want to build `csound.node` on Windows, then you need to install [Microsoft Visual Studio][msvs]
 and [Python 2.7][python].

@@ -2171,7 +2171,9 @@ PUBLIC void csoundSetHostImplementedMIDIIO(CSOUND *csound,
 
 PUBLIC double csoundGetScoreTime(CSOUND *csound)
 {
-    return (double)csound->icurTime/csound->esr;
+    double curtime = csound->icurTime;
+    double esr = csound->esr;
+    return curtime/esr;
 }
 
 /*
