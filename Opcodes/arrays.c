@@ -1846,8 +1846,8 @@ int init_iceps(CSOUND *csound, FFT *p){
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
-    if(p->mem.auxp == NULL || p->mem.size < (N+1)*sizeof(MYFLT))
-      csound->AuxAlloc(csound, (N)*sizeof(MYFLT), &p->mem);
+    if(p->mem.auxp == NULL || p->mem.size < N*sizeof(MYFLT))
+      csound->AuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
     return OK;
 }
 
@@ -2089,6 +2089,91 @@ int perf_pows(CSOUND *csound, FFT *p){
     out[end-1] = in[1]*in[1];
     return OK;
 }
+
+typedef struct _MFB {
+  OPDS h;
+  ARRAYDAT *out;
+  ARRAYDAT *in;
+  MYFLT *low;
+  MYFLT *up;
+  MYFLT *len;
+  AUXCH  bins;
+} MFB;
+
+static inline MYFLT f2mel(MYFLT f){
+  return 1125.*log(1.+f/700.);
+}
+
+static inline int mel2bin(MYFLT m, int N, MYFLT sr){
+  MYFLT f = 700.*(exp(m/1125.) - 1.);
+  return  (int)(f/(sr/(2*N)));
+  
+}
+
+int mfb_init(CSOUND *csound, MFB *p){
+  int   L = *p->len;
+  int N = p->in->sizes[0];
+  if(L < N) 
+   tabensure(csound, p->out, L);
+  else
+   return csound->InitError(csound,
+       "mfb: filter bank size exceeds input array length");
+  if(p->bins.auxp == NULL || p->bins.size < (L+2)*sizeof(int))
+      csound->AuxAlloc(csound, (L+2)*sizeof(MYFLT), &p->bins);
+  return OK;
+}
+
+int mfb(CSOUND *csound, MFB *p) {
+  int i,j;
+  int *bin = (int *) p->bins.auxp;
+  MYFLT start,max,end;
+  MYFLT g = FL(0.0), incr, decr;
+  int L = p->out->sizes[0];
+  int N = p->in->sizes[0];
+  MYFLT sum = FL(0.0);
+  MYFLT *out = p->out->data;
+  MYFLT *in = p->in->data;
+  MYFLT sr = csound->GetSr(csound);
+  
+  start = f2mel(*p->low);
+  end = f2mel(*p->up);
+  incr = (end-start)/L;
+  
+  for(i=0;i<L+2;i++){
+    bin[i] = (int) mel2bin(start,N-1,sr);
+    if(bin[i] > N) bin[i] = N;
+    start += incr;
+  }
+  
+  for(i=0; i < L; i++){
+    start = bin[i];
+    max = bin[i+1];
+    end = bin[i+2];
+    incr =  1.0/(max - start);
+    decr =  1.0/(end - max);
+    for(j=start; j < max; j++){
+      sum += in[j]*g;
+      g += incr;
+    }
+    g = FL(1.0);
+    for(j=max; j < end; j++){
+      sum += in[j]*g;
+      g -= decr;
+    }
+    out[i] = sum/(end - start);
+    g = FL(0.0);
+    sum = FL(0.0);
+  }
+
+  return OK;
+}
+
+int mfbi(CSOUND *csound, MFB *p){
+  if(mfb_init(csound,p) == OK)
+    return mfb(csound,p);
+  else return NOTOK;
+}
+
 
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
@@ -2345,6 +2430,10 @@ static OENTRY arrayvars_localops[] =
      (SUBR) init_dctinv, (SUBR) kdct, NULL},
     {"dctinv", sizeof(FFT), 0, 1, "i[]","i[]",
      (SUBR)dctinv, NULL, NULL},
+    {"mfb", sizeof(MFB), 0, 3, "k[]","k[]kki",
+     (SUBR) mfb_init, (SUBR) mfb, NULL},
+    {"dctinv", sizeof(MFB), 0, 1, "i[]","i[]iii",
+     (SUBR)mfbi, NULL, NULL},
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)
