@@ -394,9 +394,11 @@ CMAKE_C_FLAGS:STRING=
 
 to
 
-CMAKE_C_FLAGS:STRING=-DPFFFT_SIMD_DISABLE
+CMAKE_C_FLAGS:STRING=-mfloat-abi=hard -mfpu=neon
 
-in cs6make/CMakeCache.txt (around line 203).
+in cs6make/CMakeCache.txt (around line 203) to enable NEON instructions or
+
+CMAKE_C_FLAGS:STRING=-DPFFFT_SIMD_DISABLE
 
 
 
