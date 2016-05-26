@@ -384,6 +384,21 @@ Enabling the Python Bindings requires swig and python-dev packages to be install
 `sudo apt-get install swig python-dev`
 
 
+### (Raspian Jessie)
+
+
+
+Same steps as with Wheezy but if an error relative to Neon happens at step 8. (make) during the compilation of pfff.c, you can try to change
+
+CMAKE_C_FLAGS:STRING=
+
+to
+
+CMAKE_C_FLAGS:STRING=-DPFFFT_SIMD_DISABLE
+
+in cs6make/CMakeCache.txt (around line 203).
+
+
 
 Fedora 18 <a name="fedora">
 ---------
