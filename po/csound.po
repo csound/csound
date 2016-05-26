@@ -3901,37 +3901,37 @@ msgstr ""
 msgid "cpstun: invalid table"
 msgstr ""
 
-#: OOps/aops.c:1602 OOps/aops.c:1641
+#: OOps/aops.c:1609 OOps/aops.c:1657
 #, c-format
 msgid "Input channel %d too large; ignored"
 msgstr ""
 
-#: OOps/aops.c:1606 OOps/aops.c:1645
+#: OOps/aops.c:1615 OOps/aops.c:1663
 #, c-format
 msgid "Input channel %d is invalid; ignored"
 msgstr ""
 
-#: OOps/aops.c:1637
+#: OOps/aops.c:1652
 msgid "Input and output argument count differs in inch"
 msgstr ""
 
-#: OOps/aops.c:2082
+#: OOps/aops.c:2101
 msgid "Unknown function called"
 msgstr ""
 
-#: OOps/aops.c:2118
+#: OOps/aops.c:2137
 msgid "number of arguments != nchnls"
 msgstr ""
 
-#: OOps/aops.c:2148
+#: OOps/aops.c:2167
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 
-#: OOps/aops.c:2183
+#: OOps/aops.c:2202
 msgid "number of hardware output channels not currently available"
 msgstr ""
 
-#: OOps/aops.c:2188
+#: OOps/aops.c:2207
 msgid "number of hardware input channels not currently available"
 msgstr ""
 
@@ -6021,12 +6021,69 @@ msgstr ""
 msgid "map fn not found at k rate"
 msgstr ""
 
-#: Opcodes/arrays.c:1776 Opcodes/arrays.c:1816 Opcodes/arrays.c:1848
+#: Opcodes/arrays.c:1430
+msgid "rfft: only one-dimensional arrays allowed"
+msgstr ""
+
+#: Opcodes/arrays.c:1462
+msgid "rifft: only one-dimensional arrays allowed"
+msgstr ""
+
+#: Opcodes/arrays.c:1493
+msgid "array sizes do not match\n"
+msgstr ""
+
+#: Opcodes/arrays.c:1517
+msgid "fft: only one-dimensional arrays allowed"
+msgstr ""
+
+#: Opcodes/arrays.c:1544
+msgid "fftinv: only one-dimensional arrays allowed"
+msgstr ""
+
+#: Opcodes/arrays.c:1605
+#, c-format
+msgid "in array sizes do not match: %d and %d\n"
+msgstr ""
+
+#: Opcodes/arrays.c:1777 Opcodes/arrays.c:1817 Opcodes/arrays.c:1849
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr ""
 
-#: Opcodes/arrays.c:1809
+#: Opcodes/arrays.c:1810
 msgid "FFT size too small (min 64 samples)\n"
+msgstr ""
+
+#: Opcodes/arrays.c:1876 Opcodes/arrays.c:1899
+msgid "in array not 2-dimensional\n"
+msgstr ""
+
+#: Opcodes/arrays.c:1888
+msgid "requested row is out of range\n"
+msgstr ""
+
+#: Opcodes/arrays.c:1911
+msgid "requested col is out of range\n"
+msgstr ""
+
+#: Opcodes/arrays.c:1991
+msgid "input array too small\n"
+msgstr ""
+
+#: Opcodes/arrays.c:2040
+msgid "dct: only one-dimensional arrays allowed"
+msgstr ""
+
+#: Opcodes/arrays.c:2046
+msgid "dct: non-pow-of-two sizes not yet implemented"
+msgstr ""
+
+#: Opcodes/arrays.c:2068
+msgid "dctinv: only one-dimensional arrays allowed"
+msgstr ""
+
+#: Opcodes/arrays.c:2075
+msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
 #: Opcodes/babo.c:743
