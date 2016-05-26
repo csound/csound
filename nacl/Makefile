@@ -55,6 +55,7 @@ $(CSOUND_SRC_ROOT)/OOps/diskin2.c \
 $(CSOUND_SRC_ROOT)/OOps/disprep.c \
 $(CSOUND_SRC_ROOT)/OOps/dumpf.c \
 $(CSOUND_SRC_ROOT)/OOps/fftlib.c \
+$(CSOUND_SRC_ROOT)/OOps/pffft.c \
 $(CSOUND_SRC_ROOT)/OOps/goto_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/midiinterop.c \
 $(CSOUND_SRC_ROOT)/OOps/midiops.c \
@@ -135,6 +136,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/hrtfearly.c \
 $(CSOUND_SRC_ROOT)/Opcodes/hrtfreverb.c \
 $(CSOUND_SRC_ROOT)/Opcodes/cpumeter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gendy.c \
+$(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c \
 $(CSOUND_SRC_ROOT)/Opcodes/tl/sc_noise.c \
 $(CSOUND_SRC_ROOT)/Top/argdecode.c \
 $(CSOUND_SRC_ROOT)/Top/csdebug.c \
