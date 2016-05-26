@@ -2141,7 +2141,7 @@ int mfb(CSOUND *csound, MFB *p) {
   
   start = f2mel(*p->low);
   end = f2mel(*p->up);
-  incr = (end-start)/L;
+  incr = (end-start)/(L+1);
   
   for(i=0;i<L+2;i++){
     bin[i] = (int) mel2bin(start,N-1,sr);
