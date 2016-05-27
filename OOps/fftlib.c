@@ -3529,16 +3529,120 @@ void *csoundDCTSetup(CSOUND *csound,
 		     int FFTsize, int d){
  CSOUND_FFT_SETUP *setup;
  setup = (CSOUND_FFT_SETUP *)
-   csound->Calloc(csound, sizeof(CSOUND_FFT_SETUP));
- setup->N = FFTsize*4;
- setup->buffer = (MYFLT *) align_alloc(csound, sizeof(MYFLT)*setup->N);
- setup->lib = 0;
- setup->d = d;
+   csoundRealFFT2Setup(csound,
+		       FFTsize*4,d);
+ if(setup->lib == 0){
+  setup->buffer = (MYFLT *)
+    csound->Calloc(csound, sizeof(MYFLT)*setup->N);
+ }
  return setup;
 }
 
 
-void csoundDCT(CSOUND *csound,
+void pffft_DCT_execute(CSOUND *csound,
+                     void *p, MYFLT *sig){
+  CSOUND_FFT_SETUP *setup =
+        (CSOUND_FFT_SETUP *) p;
+  int i,j, N= setup->N;
+  float *buffer = (float *)setup->buffer;
+  if(setup->d == FFT_FWD){
+  for(i=j = 0; i < N/2; i+=2, j++){
+    buffer[i] = FL(0.0);
+    buffer[i+1] = sig[j];
+  }
+  for(i=N/2,j=N/4-1; i < N; i+=2, j--){
+    buffer[i] = FL(0.0);
+    buffer[i+1] = sig[j];
+  }
+  pffft_transform_ordered((PFFFT_Setup *)
+                          setup->setup,
+                          buffer,buffer,
+			  NULL,PFFFT_FORWARD);
+  for(i=j=0; i < N/2; i+=2, j++){
+    sig[j] = buffer[i];
+  }  
+  } else {
+  buffer[0] = sig[0];
+  buffer[1] = -sig[0];  
+  for(i=2,j=1; i < N/2; i+=2, j++){
+    buffer[i] = sig[j];
+    buffer[i+1] = FL(0.0);
+  }
+  buffer[N/2] = buffer[N/2+1] = FL(0.0);
+  for(i=N/2+2,j=N/4-1; i < N; i+=2, j--){
+    buffer[i] = -sig[j];
+    buffer[i+1] = FL(0.0);
+  }
+  pffft_transform_ordered((PFFFT_Setup *)
+                          setup->setup,
+                          buffer,buffer,
+			  NULL,PFFFT_BACKWARD);
+  for(i=j=0; i < N/2; i+=2, j++){
+    sig[j] = buffer[i+1]/N;
+  }
+  }
+}
+
+#if defined(__MACH__) && !defined(IOS)
+void vDSP_DCT_execute(CSOUND *csound,
+                     void *p, MYFLT *sig){
+  CSOUND_FFT_SETUP *setup =
+        (CSOUND_FFT_SETUP *) p;
+  int i,j, N= setup->N;
+#ifdef USE_DOUBLE
+  DSPDoubleSplitComplex tmp;
+#else
+  DSPSplitComplex tmp;
+#endif
+  tmp.realp = &setup->buffer[0];
+  tmp.imagp = &setup->buffer[N>>1];
+  if(setup->d ==  kFFTDirection_Forward){
+  for(j=0;j<N/4;j++){
+    tmp.realp[j] = FL(0.0);
+    tmp.imagp[j] = sig[j];
+    }
+  for(i=N/4,j=N/4-1;i<N/2;i++,j--){
+    tmp.realp[i] = FL(0.0);
+    tmp.imagp[i] = sig[j];
+  }
+#ifdef USE_DOUBLE
+  vDSP_fft_zripD((FFTSetupD) setup->setup,
+#else
+  vDSP_fft_zrip((FFTSetup) setup->setup,
+#endif
+                 &tmp, 1,
+                 setup->M,setup->d);
+  
+  for(j=0; j < N/4; j++){
+    sig[j] = tmp.realp[j]/FL(2.0);
+  }  
+  } else {
+  tmp.realp[0] = sig[0];
+  tmp.imagp[0] = -sig[0];  
+  for(j=1; j < N/4; j++){
+    tmp.realp[j] = sig[j];
+    tmp.imagp[j] = FL(0.0);
+  }
+  tmp.realp[N/4] = tmp.imagp[N/4] = FL(0.0);
+  for(i=N/4+1,j=N/4-1; i < N/2; i++, j--){
+    tmp.realp[i] = -sig[j];
+    tmp.imagp[i] = FL(0.0);
+  }
+#ifdef USE_DOUBLE
+  vDSP_fft_zripD((FFTSetupD) setup->setup,
+#else
+  vDSP_fft_zrip((FFTSetup) setup->setup,
+#endif
+                 &tmp, 1,
+                 setup->M,setup->d);
+  for(j=0; j < N/4; j++){
+    sig[j] = tmp.imagp[j]/N;
+  }
+  }
+}
+#endif
+
+void DCT_execute(CSOUND *csound,
                      void *p, MYFLT *sig){
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
@@ -3552,8 +3656,8 @@ void csoundDCT(CSOUND *csound,
   for(i=N/2,j=N/4-1; i < N; i+=2, j--){
     buffer[i] = FL(0.0);
     buffer[i+1] = sig[j];
-  }  
-  csoundRealFFT(csound,buffer, N);  
+  }
+  csoundRealFFT(csound,buffer,N);
   for(i=j=0; i < N/2; i+=2, j++){
     sig[j] = buffer[i];
   }  
@@ -3576,6 +3680,25 @@ void csoundDCT(CSOUND *csound,
   }
 }
 
+void csoundDCT(CSOUND *csound,
+	       void *p, MYFLT *sig){
+CSOUND_FFT_SETUP *setup =
+        (CSOUND_FFT_SETUP *) p;
+  switch(setup->lib) {
+#if defined(__MACH__) && !defined(IOS)
+  case VDSP_LIB:
+    vDSP_DCT_execute(csound,setup,sig);
+    break;
+#endif
+  case PFFT_LIB:
+    pffft_DCT_execute(csound,setup,sig);
+    break;
+  default:
+    DCT_execute(csound,setup,sig);
+    setup->lib = 0;
+  }
+}
+ 
 /* =======--====================*/
 #if 0
 #ifdef HAVE_VECLIB
