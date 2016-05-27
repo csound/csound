@@ -483,9 +483,12 @@ statement : ident '=' expr NEWLINE
           | ifthen
           | UNTIL_TOKEN bexpr DO_TOKEN statementlist OD_TOKEN
               {
-                  $$ = make_leaf(csound,$2->line,$2->locn, UNTIL_TOKEN, (ORCTOKEN *)$1);
-                  $$->left = $2;
-                  $$->right = $4;
+                  if ($2) {
+                    $$ = make_leaf(csound,$2->line,$2->locn, UNTIL_TOKEN, (ORCTOKEN *)$1);
+                    $$->left = $2;
+                    $$->right = $4;
+                  }
+                  else $$ = NULL;
               }
           | WHILE_TOKEN bexpr DO_TOKEN statementlist OD_TOKEN
               {
