@@ -2178,6 +2178,26 @@ int mfbi(CSOUND *csound, MFB *p){
   else return NOTOK;
 }
 
+typedef struct _centr{
+  OPDS h;
+  MYFLT *out;
+  ARRAYDAT *in;
+} CENTR;
+
+int array_centroid(CSOUND *csound, CENTR *p){
+  
+  MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
+  int NP1 = p->in->sizes[0];
+  MYFLT f = (NP1-1)/csound->GetSr(csound);
+  int i;
+  for(i=0; i < NP1; i++){
+    a += in[i];
+    b += in[i]*(i+1)*f;
+  }
+  *p->out = a > FL(0.0) ? b/a : FL(0.0);
+  return OK;
+}
+
 
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
@@ -2438,6 +2458,10 @@ static OENTRY arrayvars_localops[] =
      (SUBR) mfb_init, (SUBR) mfb, NULL},
     {"dctinv", sizeof(MFB), 0, 1, "i[]","i[]iii",
      (SUBR)mfbi, NULL, NULL},
+    {"centroid", sizeof(CENTR), 0, 1, "i","i[]",
+     (SUBR) array_centroid, NULL, NULL},
+    {"centroid", sizeof(CENTR), 0, 2, "k","k[]", NULL,
+     (SUBR)array_centroid, NULL}
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)
