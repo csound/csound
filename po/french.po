@@ -6252,29 +6252,28 @@ msgstr "fn de map introuvable au taux-k"
 
 #: Opcodes/arrays.c:1430
 msgid "rfft: only one-dimensional arrays allowed"
-msgstr ""
+msgstr "rfft : seuls les tableaux unidimensionnels sont permis"
 
 #: Opcodes/arrays.c:1462
 msgid "rifft: only one-dimensional arrays allowed"
-msgstr ""
+msgstr "rifft : seuls les tableaux unidimensionnels sont permis"
 
 #: Opcodes/arrays.c:1493
-#, fuzzy
 msgid "array sizes do not match\n"
-msgstr "les types du tableau ne correspondent pas"
+msgstr "les tailles de tableau ne correspondent pas\n"
 
 #: Opcodes/arrays.c:1517
 msgid "fft: only one-dimensional arrays allowed"
-msgstr ""
+msgstr "fft : seuls les tableaux unidimensionnels sont permis"
 
 #: Opcodes/arrays.c:1544
 msgid "fftinv: only one-dimensional arrays allowed"
-msgstr ""
+msgstr "fftinv : seuls les tableaux unidimensionnels sont permis"
 
 #: Opcodes/arrays.c:1605
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
-msgstr ""
+msgstr "dans array les tailles ne correspondent pas : %d et %d\n"
 
 #: Opcodes/arrays.c:1777 Opcodes/arrays.c:1817 Opcodes/arrays.c:1849
 msgid "non-pow-of-two case not implemented yet\n"
@@ -6285,42 +6284,36 @@ msgid "FFT size too small (min 64 samples)\n"
 msgstr "Taille de TFR trop petite (min 64 échantillons)\n"
 
 #: Opcodes/arrays.c:1876 Opcodes/arrays.c:1899
-#, fuzzy
 msgid "in array not 2-dimensional\n"
-msgstr "Dimension incorrecte\n"
+msgstr "dans array pas de 2-dimension\n"
 
 #: Opcodes/arrays.c:1888
-#, fuzzy
 msgid "requested row is out of range\n"
-msgstr "Le périphérique requis %d est hors limites"
+msgstr "ligne demandée hors limites\n"
 
 #: Opcodes/arrays.c:1911
-#, fuzzy
 msgid "requested col is out of range\n"
-msgstr "Le périphérique requis %d est hors limites"
+msgstr "colonne demandée hors limites\n"
 
 #: Opcodes/arrays.c:1991
-#, fuzzy
 msgid "input array too small\n"
-msgstr "diskin2 : tableau de sortie trop petit"
+msgstr "tableau d'entrée trop petit\n"
 
 #: Opcodes/arrays.c:2040
 msgid "dct: only one-dimensional arrays allowed"
-msgstr ""
+msgstr "dct : seuls les tableaux unidimensionnels sont permis"
 
 #: Opcodes/arrays.c:2046
-#, fuzzy
 msgid "dct: non-pow-of-two sizes not yet implemented"
-msgstr "non puissance de deux pas encore implémentée\n"
+msgstr "dct : tailles non puissance de deux pas encore implémentées"
 
 #: Opcodes/arrays.c:2068
 msgid "dctinv: only one-dimensional arrays allowed"
-msgstr ""
+msgstr "dctinv : seul les tableaux unidimensionnels sont permis"
 
 #: Opcodes/arrays.c:2075
-#, fuzzy
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
-msgstr "non puissance de deux pas encore implémentée\n"
+msgstr "dctinv : tailles non puissance de deux pas encore implémentées"
 
 #: Opcodes/babo.c:743
 #, c-format
