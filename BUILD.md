@@ -396,13 +396,18 @@ options exist.
 1. Try to add the correct flags for NEON compilation. This can be made
 by editing the top-level file Custom.cmake.ex, and saving it as
 Custom.cmake. In that file, the line
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -mtune=core2”)
+
 should be changed to
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=hard -mfpu=neon”)
 
 2. If step 1 fails, there might be no NEON support for your arm chip,
 in which case, you need to change the line above to
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPFFFT_SIMD_DISABLE”)
+
 in order to disable the vectorial code and use standard C scalar
 operations.
 
