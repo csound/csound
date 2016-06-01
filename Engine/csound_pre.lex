@@ -170,9 +170,10 @@ QNAN		"qnan"[ \t]*\(
                   sprintf(bb, "#sline %d ", csound_preget_lineno(yyscanner));
                   corfile_puts(bb, csound->expanded_orc);
                 }
-{NEWLINE}       { csound_preset_lineno(1+csound_preget_lineno(yyscanner),
-                                       yyscanner);
+{NEWLINE}       { 
                   corfile_putc('\n', csound->expanded_orc); 
+                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                                       yyscanner);
                   csound_pre_line(csound->expanded_orc, yyscanner);
                 }
 "//"            {

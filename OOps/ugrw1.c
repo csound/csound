@@ -793,7 +793,7 @@ int printk(CSOUND *csound, PRINTK *p)
     /* Divide the current elapsed time by the cycle time and round down to
      * an integer.
      */
-    cycles =    (int32) (timel / p->ctime);
+    cycles =    MYFLT2LRND(timel / p->ctime);
 
     /* Now test if the cycle number we arein is higher than the one in which
      * we last printed. If so, update cysofar and print.    */
@@ -1152,8 +1152,9 @@ int printks(CSOUND *csound, PRINTKS *p)
 
     /* Divide the current elapsed time by the cycle time and round down to
      * an integer.     */
-    cycles = (int32)(timel / p->ctime);
-
+    cycles = MYFLT2LRND(timel / p->ctime);
+    /* printf("cysofar = %d  cycles = %d (%f / %f)\n",
+       p->cysofar, cycles, timel, p->ctime); */
     /* Now test if the cycle number we are in is higher than the one in which
      * we last printed.  If so, update cysofar and print.     */
     if (p->cysofar < cycles) {
