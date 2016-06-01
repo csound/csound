@@ -384,20 +384,34 @@ Enabling the Python Bindings requires swig and python-dev packages to be install
 `sudo apt-get install swig python-dev`
 
 
-### (Raspian Jessie)
+### NEON support for PFFFT lib
 
 
+From 6.07, Csound includes a choice of FFT libraries. One of these is
+PFFFT, which can avail of NEON vector operations on arm, where these
+exist. This can lead to a compilation error if the correct options are
+not set. If a build error occurs in the compilation of pffft.c, two
+options exist.
 
-Same steps as with Wheezy but if an error relative to Neon happens at step 8. (make) during the compilation of pfff.c, you can try to change
+1. Try to add the correct flags for NEON compilation. This can be made
+by editing the top-level file Custom.cmake.ex, and saving it as
+Custom.cmake.
 
-CMAKE_C_FLAGS:STRING=
+In that file, the line
 
-to
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -mtune=core2”)
 
-CMAKE_C_FLAGS:STRING=-DPFFFT_SIMD_DISABLE
+should be changed to
 
-in cs6make/CMakeCache.txt (around line 203).
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=hard -mfpu=neon”)
 
+2. If step 1 fails, there might be no NEON support for your arm chip,
+in which case, you need to change the line above to
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPFFFT_SIMD_DISABLE”)
+
+in order to disable the vectorial code and use standard C scalar
+operations.
 
 
 Fedora 18 <a name="fedora">
