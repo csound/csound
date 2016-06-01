@@ -186,7 +186,9 @@ static int cent_k(CSOUND *csound, CENT *p)
     if (UNLIKELY(early)) nsmps -= early;
     for (i=offset; i < nsmps; i++){
       frame[n] = asig[i];
-      if (n == fsize-1) n=0;
+      if (n == fsize-1) {
+	n=0; 
+      }
       else n++;
     }
 
