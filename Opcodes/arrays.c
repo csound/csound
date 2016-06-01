@@ -1440,8 +1440,9 @@ int init_rfft(CSOUND *csound, FFT *p){
 int perf_rfft(CSOUND *csound, FFT *p){
     int N = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
-    if (isPowerOfTwo(N))
+    if (isPowerOfTwo(N)){
       csound->RealFFT2(csound,p->setup,p->out->data);
+    }
     else{
       p->out->data[N] = FL(0.0);
       csound->RealFFTnp2(csound,p->out->data,N);
@@ -1733,7 +1734,6 @@ int init_window(CSOUND *csound, FFT *p){
     w = (MYFLT *) p->mem.auxp;
     switch(type){
     case 0:
-      printf("hamming\n");
       for(i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*2*PI/N);
       break;
     case 1:
@@ -1995,6 +1995,7 @@ int shiftout_init(CSOUND *csound, FFT *p){
 int shiftout_perf(CSOUND *csound, FFT *p){
     uint32_t siz =  p->in->sizes[0], n = p->n;
     MYFLT *out = ((MYFLT *) p->out);
+
     if(n + CS_KSMPS < siz) {
       memcpy(out,p->in->data+n,CS_KSMPS*sizeof(MYFLT));
     }
@@ -2188,11 +2189,12 @@ int array_centroid(CSOUND *csound, CENTR *p){
   
   MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
   int NP1 = p->in->sizes[0];
-  MYFLT f = (NP1-1)/csound->GetSr(csound);
+  MYFLT f = csound->GetSr(csound)/(2*(NP1 - 1)),cf;
   int i;
-  for(i=0; i < NP1; i++){
+  cf = f*FL(0.5);
+  for(i=0; i < NP1-1; i++, cf+=f){
     a += in[i];
-    b += in[i]*(i+1)*f;
+    b += in[i]*cf;
   }
   *p->out = a > FL(0.0) ? b/a : FL(0.0);
   return OK;
