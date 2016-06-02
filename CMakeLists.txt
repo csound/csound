@@ -322,6 +322,10 @@ if (HAS_CXX_VISIBILITY_HIDDEN)
 endif()
 
 if(APPLE)
+if(IOS)
+message(STATUS "Building for iOS.")
+else()
+message(STATUS "Building for OSX")
   if(BUILD_INSTALLER)
     set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}")
   endif()
@@ -338,7 +342,7 @@ if(APPLE)
   endif()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
- 
+ endif()
    
 endif()
 
@@ -1151,7 +1155,7 @@ if(LINUX)
     endif()
 endif()
 
-if(APPLE)
+if(APPLE AND NOT IOS)
     message(STATUS "Building on OSX")
     add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS)
     find_library(ACCELERATE_LIBRARY Accelerate)
