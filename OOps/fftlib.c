@@ -3379,7 +3379,7 @@ void pffft_execute(CSOUND_FFT_SETUP *setup,
     sig[i] = buf[i]/s;
 }
 
-#if defined(__MACH__) && !defined(IOS)
+#if defined(__MACH__) // && !defined(IOS)
 /* vDSP FFT implementation */
 #include <Accelerate/Accelerate.h>
 static
