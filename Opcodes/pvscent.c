@@ -187,7 +187,7 @@ static int cent_k(CSOUND *csound, CENT *p)
     for (i=offset; i < nsmps; i++){
       frame[n] = asig[i];
       if (n == fsize-1) {
-	n=0; 
+        n=0;
       }
       else n++;
     }
@@ -210,8 +210,8 @@ static int cent_k(CSOUND *csound, CENT *p)
       d += mag;
       cf += binsize;
       for (i=2; i < fsize; i+=2, cf += binsize) {
-	windowed[i] /= fsize;
-	windowed[i+1] /= fsize;
+        windowed[i] /= fsize;
+        windowed[i+1] /= fsize;
         mag = sqrt(windowed[i]*windowed[i] + windowed[i+1]*windowed[i+1]);
         c += mag*cf;
         d += mag;
