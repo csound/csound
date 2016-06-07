@@ -2029,9 +2029,9 @@ int unwrap(CSOUND *csound, FFT *p){
 }
 
 void *csoundDCTSetup(CSOUND *csound,
-		     int FFTsize, int d);
+                     int FFTsize, int d);
 void csoundDCT(CSOUND *csound,
-	       void *p, MYFLT *sig);
+               void *p, MYFLT *sig);
 
 int init_dct(CSOUND *csound, FFT *p){
    int   N = p->in->sizes[0];
@@ -2112,13 +2112,13 @@ static inline MYFLT f2mel(MYFLT f){
 static inline int mel2bin(MYFLT m, int N, MYFLT sr){
   MYFLT f = 700.*(exp(m/1125.) - 1.);
   return  (int)(f/(sr/(2*N)));
-  
+
 }
 
 int mfb_init(CSOUND *csound, MFB *p){
   int   L = *p->len;
   int N = p->in->sizes[0];
-  if(L < N) 
+  if(L < N)
    tabensure(csound, p->out, L);
   else
    return csound->InitError(csound,
@@ -2139,17 +2139,17 @@ int mfb(CSOUND *csound, MFB *p) {
   MYFLT *out = p->out->data;
   MYFLT *in = p->in->data;
   MYFLT sr = csound->GetSr(csound);
-  
+
   start = f2mel(*p->low);
   end = f2mel(*p->up);
   incr = (end-start)/(L+1);
-  
+
   for(i=0;i<L+2;i++){
     bin[i] = (int) mel2bin(start,N-1,sr);
     if(bin[i] > N) bin[i] = N;
     start += incr;
   }
-  
+
   for(i=0; i < L; i++){
     start = bin[i];
     max = bin[i+1];
@@ -2186,7 +2186,7 @@ typedef struct _centr{
 } CENTR;
 
 int array_centroid(CSOUND *csound, CENTR *p){
-  
+
   MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
   int NP1 = p->in->sizes[0];
   MYFLT f = csound->GetSr(csound)/(2*(NP1 - 1)),cf;

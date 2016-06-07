@@ -3526,11 +3526,11 @@ void csoundRealFFT2(CSOUND *csound,
 
 
 void *csoundDCTSetup(CSOUND *csound,
-		     int FFTsize, int d){
+                     int FFTsize, int d){
  CSOUND_FFT_SETUP *setup;
  setup = (CSOUND_FFT_SETUP *)
    csoundRealFFT2Setup(csound,
-		       FFTsize*4,d);
+                       FFTsize*4,d);
  if(setup->lib == 0){
   setup->buffer = (MYFLT *)
     csound->Calloc(csound, sizeof(MYFLT)*setup->N);
@@ -3557,13 +3557,13 @@ void pffft_DCT_execute(CSOUND *csound,
   pffft_transform_ordered((PFFFT_Setup *)
                           setup->setup,
                           buffer,buffer,
-			  NULL,PFFFT_FORWARD);
+                          NULL,PFFFT_FORWARD);
   for(i=j=0; i < N/2; i+=2, j++){
     sig[j] = buffer[i];
-  }  
+  }
   } else {
   buffer[0] = sig[0];
-  buffer[1] = -sig[0];  
+  buffer[1] = -sig[0];
   for(i=2,j=1; i < N/2; i+=2, j++){
     buffer[i] = sig[j];
     buffer[i+1] = FL(0.0);
@@ -3576,7 +3576,7 @@ void pffft_DCT_execute(CSOUND *csound,
   pffft_transform_ordered((PFFFT_Setup *)
                           setup->setup,
                           buffer,buffer,
-			  NULL,PFFFT_BACKWARD);
+                          NULL,PFFFT_BACKWARD);
   for(i=j=0; i < N/2; i+=2, j++){
     sig[j] = buffer[i+1]/N;
   }
@@ -3612,13 +3612,13 @@ void vDSP_DCT_execute(CSOUND *csound,
 #endif
                  &tmp, 1,
                  setup->M,setup->d);
-  
+
   for(j=0; j < N/4; j++){
     sig[j] = tmp.realp[j]/FL(2.0);
-  }  
+  }
   } else {
   tmp.realp[0] = sig[0];
-  tmp.imagp[0] = -sig[0];  
+  tmp.imagp[0] = -sig[0];
   for(j=1; j < N/4; j++){
     tmp.realp[j] = sig[j];
     tmp.imagp[j] = FL(0.0);
@@ -3660,10 +3660,10 @@ void DCT_execute(CSOUND *csound,
   csoundRealFFT(csound,buffer,N);
   for(i=j=0; i < N/2; i+=2, j++){
     sig[j] = buffer[i];
-  }  
+  }
   } else {
   buffer[0] = sig[0];
-  buffer[1] = -sig[0];  
+  buffer[1] = -sig[0];
   for(i=2,j=1; i < N/2; i+=2, j++){
     buffer[i] = sig[j];
     buffer[i+1] = FL(0.0);
@@ -3681,7 +3681,7 @@ void DCT_execute(CSOUND *csound,
 }
 
 void csoundDCT(CSOUND *csound,
-	       void *p, MYFLT *sig){
+               void *p, MYFLT *sig){
 CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
   switch(setup->lib) {
@@ -3698,7 +3698,7 @@ CSOUND_FFT_SETUP *setup =
     setup->lib = 0;
   }
 }
- 
+
 /* =======--====================*/
 #if 0
 #ifdef HAVE_VECLIB
