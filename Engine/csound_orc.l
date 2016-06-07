@@ -495,6 +495,11 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 <src>{FNAME}    { PARM->locn = atoll(yytext); }
 <src>"\n"       { BEGIN(INITIAL); }
 
+.               {
+                  { int c = yytext[0]&0xff;
+                    printf("Ignoring character %c(%.2x)\n", c, c);
+                  }
+                }
 
 <<EOF>>         {
                   yyterminate();
