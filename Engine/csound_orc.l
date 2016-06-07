@@ -496,9 +496,10 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 <src>"\n"       { BEGIN(INITIAL); }
 
 .               {
-                  { int c = yytext[0]&0xff;
-                    printf("Ignoring character %c(%.2x)\n", c, c);
-                  }
+                 // { int c = yytext[0]&0xff;
+                    //printf("Error: character %c(%.2x)\n", c, c);
+                 // }
+                  return ERROR_TOKEN;
                 }
 
 <<EOF>>         {
