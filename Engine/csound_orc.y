@@ -57,7 +57,7 @@
 %token UDO_ANS_TOKEN
 %token UDO_ARGS_TOKEN
 
-%token T_ERROR
+%token ERROR_TOKEN
 
 %token T_FUNCTION
 %token T_FUNCTIONB
