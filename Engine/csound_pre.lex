@@ -66,11 +66,11 @@ ESCAPE          \\.
 XSTR            \{\{([^}]|\}[^}])*\}\}
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
-MACRONAME       "$"[a-zA-Z0-9_]+
-MACRONAMED      "$"[a-zA-Z0-9_]+\.
-MACRONAMEA      "$"[a-zA-Z0-9_]+\(
-MACRONAMEDA     "$"[a-zA-Z0-9_]+\.\(
-MACRO           [a-zA-Z0-9_]+\(
+MACRONAME       "$"[a-zA-Z_][a-zA-Z0-9_]*
+MACRONAMED      "$"[a-zA-Z_][a-zA-Z0-9_]*\.
+MACRONAMEA      "$"[a-zA-Z_][a-zA-Z0-9_]*\(
+MACRONAMEDA     "$"[a-zA-Z_][a-zA-Z0-9_]*\.\(
+MACRO           [a-zA-Z_][a-zA-Z0-9_]*\(
 
 STCOM           \/\*
 INCLUDE         "#include"
@@ -511,7 +511,7 @@ QNAN		"qnan"[ \t]*\(
                   //print_csound_predata(csound,"After do_macro_arg", yyscanner);
                   BEGIN(INITIAL);
                 }
-<macro>{IDENTN} {
+<macro>{IDENTN} { /* IS THIS NECESSARY??? */
                   csound->DebugMsg(csound,"Define macro %s\n", yytext);
                   /* print_csound_predata(csound,"Before do_macro", yyscanner); */
                   do_macro(csound, yytext, yyscanner);
@@ -525,7 +525,7 @@ QNAN		"qnan"[ \t]*\(
                     corfile_puts(yytext, csound->expanded_orc);
                 }
 <umacro>[ \t]*    /* eat the whitespace */
-<umacro>{IDENT}  {
+<umacro>{MACRO}  {
                   csound->DebugMsg(csound,"Undefine macro %s\n", yytext);
                   do_umacro(csound, yytext, yyscanner);
                   BEGIN(INITIAL);
