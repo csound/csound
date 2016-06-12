@@ -525,7 +525,7 @@ QNAN		"qnan"[ \t]*\(
                     corfile_puts(yytext, csound->expanded_orc);
                 }
 <umacro>[ \t]*    /* eat the whitespace */
-<umacro>{MACRO}  {
+<umacro>{IDENTN}  {
                   csound->DebugMsg(csound,"Undefine macro %s\n", yytext);
                   do_umacro(csound, yytext, yyscanner);
                   BEGIN(INITIAL);

@@ -142,7 +142,7 @@ static MYFLT profile_original(MYFLT fi, MYFLT bwi)
     return exp(-x)/bwi;
 };
 
-static MYFLT profile(int shape, MYFLT fi, MYFLT bwi,  MYFLT a)
+static MYFLT profile(int shape, MYFLT fi, MYFLT bwi, MYFLT a)
 {
     MYFLT x = fi / bwi;
     MYFLT y = 0;
