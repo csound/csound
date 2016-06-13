@@ -930,9 +930,7 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     }
     mm->body = (char*) csound->Malloc(csound, 100);
     while ((c = input(yyscanner)) != '#') {
-      if (UNLIKELY(c == 0))
-        csound->Die(csound, Str("define macro: unexpected NULL"));
-      if (UNLIKELY(c == EOF))
+      if (UNLIKELY(c == EOF || c==0))
         csound->Die(csound, Str("define macro: unexpected EOF"));
       mm->body[i++] = c=='\r'?'\n':c;
       if (UNLIKELY(i >= size))
@@ -1173,7 +1171,7 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
         corfile_puts(bb, cf);
       }
       PARM->llocn = locn;
-      /* if (n!=PARM->line+1) */ {
+      if (n!=PARM->line+1) {
         char bb[80];
         sprintf(bb, "#line   %d\n", n);
         //printf("#line %d\n", n);
