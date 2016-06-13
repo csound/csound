@@ -930,6 +930,8 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     }
     mm->body = (char*) csound->Malloc(csound, 100);
     while ((c = input(yyscanner)) != '#') {
+      if (UNLIKELY(c == 0))
+        csound->Die(csound, Str("define macro: unexpected NULL"));
       if (UNLIKELY(c == EOF))
         csound->Die(csound, Str("define macro: unexpected EOF"));
       mm->body[i++] = c=='\r'?'\n':c;
