@@ -69,6 +69,7 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option prefix="csound_orc"
 %option outfile="Engine/csound_orclex.c"
 %option stdout
+%option 8bit
 
 STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
@@ -87,6 +88,7 @@ LINE            ^[ \t]*"#line"
 SLINE           "#sline "
 FILE            ^[ \t]*"#source"
 FNAME           [a-zA-Z0-9/:.+-_]+
+
 %x line
 %x sline
 %x src
@@ -263,7 +265,8 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return '#'; }
-"¬"{OPTWHITE}"\n"? { 
+\xC2?\xAC{OPTWHITE}"\n"? {
+                     //printf("convert ¬ to ~\n");
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
@@ -496,9 +499,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 <src>"\n"       { BEGIN(INITIAL); }
 
 .               {
-                 // { int c = yytext[0]&0xff;
-                    //printf("Error: character %c(%.2x)\n", c, c);
-                 // }
+                  { int c = yytext[0]&0xff;
+                    printf("Error: character %c(%.2x)\n", c, c);
+                  }
                   return ERROR_TOKEN;
                 }
 
