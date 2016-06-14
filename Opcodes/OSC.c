@@ -82,6 +82,13 @@ typedef struct {
 
 typedef struct {
     OPDS    h;                  /* default header */
+    STRINGDAT group;
+    MYFLT   *ihandle;
+    MYFLT   *port;              /* Port number on which to listen */
+} OSCINITM;
+
+typedef struct {
+    OPDS    h;                  /* default header */
     MYFLT   *kans;
     MYFLT   *ihandle;
     STRINGDAT   *dest;
@@ -510,6 +517,45 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
     return OK;
 }
 
+#ifdef JPFF
+static int osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
+{
+    OSC_GLOBALS *pp;
+    OSC_PORT    *ports;
+    char        buff[32];
+    int         n;
+
+    /* allocate and initialise the globals structure */
+    pp = alloc_globals(csound);
+    n = pp->nPorts;
+    ports = (OSC_PORT*) csound->ReAlloc(csound, pp->ports,
+                                        sizeof(OSC_PORT) * (n + 1));
+    ports[n].csound = csound;
+    ports[n].mutex_ = csound->Create_Mutex(0);
+    ports[n].oplst = NULL;
+    snprintf(buff, 32, "%d", (int) *(p->port));
+    ports[n].thread = lo_server_thread_new_multicast(p->group.data, buff, OSC_error);
+    lo_address_set_ttl(ports[n].thread, 1);
+    if (ports[n].thread==NULL)
+      return csound->InitError(csound,
+                               Str("cannot start OSC listener on port %s\n"),
+                               buff);
+    ///if (lo_server_thread_start(ports[n].thread)<0)
+    ///  return csound->InitError(csound,
+    ///                           Str("cannot start OSC listener on port %s\n"),
+    ///                           buff);
+    lo_server_thread_start(ports[n].thread);
+    pp->ports = ports;
+    pp->nPorts = n + 1;
+    csound->Warning(csound, Str("OSC listener #%d started on port %s\n"), n, buff);
+    *(p->ihandle) = (MYFLT) n;
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int (*)(CSOUND *, void *)) OSC_deinit);
+    return OK;
+}
+
+
+#endif
 static int OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
 {
     OSC_PAT *m;
@@ -742,6 +788,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 static OENTRY localops[] = {
 { "OSCsend", S(OSCSEND), 0, 3, "", "kSkSS*", (SUBR)osc_send_set, (SUBR)osc_send },
 { "OSCinit", S(OSCINIT), 0, 1, "i", "i", (SUBR)osc_listener_init },
+{ "OSCinitM", S(OSCINITM), 0, 1, "i", "Si", (SUBR)osc_listener_initMulti },
 { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS*", (SUBR)OSC_list_init, (SUBR)OSC_list},
 };
 
