@@ -71,7 +71,7 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option stdout
 %option 8bit
 
-STRCONST        \"(\\.|[^\"])*\"
+STRCONST        \"(\\.|[^\"\n])*\"
 STRCONSTe       \"(\\.|[^\"])*$
 LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
@@ -443,7 +443,8 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   return NEWLINE; }
 
 
-{STRCONST}      { *lvalp = make_string(csound, yytext); return (STRING_TOKEN); }
+{STRCONST}      { *lvalp = make_string(csound, yytext);
+                  return (STRING_TOKEN); }
 
 {STRCONSTe}     { *lvalp = make_string(csound, yytext);
                   csound->Message(csound,
@@ -550,6 +551,7 @@ ORCTOKEN *make_string(CSOUND *csound, char *s)
     /* ans->lexeme[len-2] = '\0';  */
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strcpy(ans->lexeme, s);
+    //printf(">>%s<<\n", ans->lexeme);
     return ans;
 }
 
