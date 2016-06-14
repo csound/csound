@@ -517,7 +517,6 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
     return OK;
 }
 
-#ifdef JPFF
 static int osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
 {
     OSC_GLOBALS *pp;
@@ -555,7 +554,6 @@ static int osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
 }
 
 
-#endif
 static int OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
 {
     OSC_PAT *m;
