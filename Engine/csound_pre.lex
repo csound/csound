@@ -167,9 +167,10 @@ QNAN		"qnan"[ \t]*\(
                   char bb[80];
                   csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
-                  if (PARM->isString==0)
+                  if (PARM->isString==0) {
                     sprintf(bb, "#sline %d ", csound_preget_lineno(yyscanner));
-                  corfile_puts(bb, csound->expanded_orc);
+                    corfile_puts(bb, csound->expanded_orc);
+                  }
                 }
 {NEWLINE}       {
                   corfile_putc('\n', csound->expanded_orc);
