@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <lo/lo.h>
+#include <ctype.h>
 
 /* structure for real time event */
 
@@ -44,7 +45,9 @@ typedef struct {
     MYFLT *arg[32];     /* only 26 can be used, but add a few more for safety */
     lo_address addr;
     MYFLT last;
+    char  *lhost;
     int   cnt;
+    int   multi;
 } OSCSEND;
 
 
@@ -102,12 +105,15 @@ typedef struct {
     void    *nxt;               /* pointer to next opcode on the same port */
 } OSCLISTEN;
 
+char* cs_strdup(CSOUND*, char*);
+
 static int oscsend_deinit(CSOUND *csound, OSCSEND *p)
 {
     lo_address a = (lo_address)p->addr;
     if(a != NULL)
       lo_address_free(a);
     p->addr = NULL;
+    csound->Free(csound, p->lhost);
     return OK;
 }
 
@@ -133,8 +139,15 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     else
       snprintf(port, 8, "%d", (int) MYFLT2LRND(*p->port));
     hh = (char*) p->host->data;
+    if (isdigit(*hh)) {
+      int n = atoi(hh);
+      p->multi = (n>=224 && n<=239);
+    }
+    else p->multi = 0; 
     if (*hh=='\0') hh = NULL;
     p->addr = lo_address_new(hh, pp);
+    if (p->multi) lo_address_set_ttl(p->addr, 1);
+    p->lhost = cs_strdup(csound, hh);
     p->cnt = 0;
     p->last = 0;
     csound->RegisterDeinitCallback(csound, p,
@@ -166,11 +179,15 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
        can this be done at init time? 
        It was note that this could be creating
        a latency penatly
+       Yes; cached -- JPff
     */
-    if(p->addr != NULL)
-      lo_address_free(p->addr);
-    p->addr = lo_address_new(hh, pp);
-
+    if (strcmp(p->lhost, hh)!=0) {
+      if(p->addr != NULL)
+        lo_address_free(p->addr);
+      p->addr = lo_address_new(hh, pp);
+      if (p->multi) lo_address_set_ttl(p->addr, 1);
+      csound->Free(csound, p->lhost); p->lhost = cs_strdup(csound, hh);
+    }
     if (p->cnt++ ==0 || *p->kwhen!=p->last) {
       int i=0;
       int msk = 0x20;           /* First argument */
