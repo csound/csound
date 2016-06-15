@@ -82,8 +82,8 @@ typedef struct {
 
 typedef struct {
     OPDS    h;                  /* default header */
-    STRINGDAT group;
     MYFLT   *ihandle;
+    STRINGDAT *group;
     MYFLT   *port;              /* Port number on which to listen */
 } OSCINITM;
 
@@ -533,8 +533,8 @@ static int osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
     ports[n].mutex_ = csound->Create_Mutex(0);
     ports[n].oplst = NULL;
     snprintf(buff, 32, "%d", (int) *(p->port));
-    ports[n].thread = lo_server_thread_new_multicast(p->group.data, buff, OSC_error);
-    lo_address_set_ttl(ports[n].thread, 1);
+    ports[n].thread = lo_server_thread_new_multicast(p->group->data,
+                                                     buff, OSC_error);
     if (ports[n].thread==NULL)
       return csound->InitError(csound,
                                Str("cannot start OSC listener on port %s\n"),
@@ -546,7 +546,7 @@ static int osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
     lo_server_thread_start(ports[n].thread);
     pp->ports = ports;
     pp->nPorts = n + 1;
-    csound->Warning(csound, Str("OSC listener #%d started on port %s\n"), n, buff);
+    csound->Warning(csound, Str("OSC multicast listener #%d started on port %s\n"), n, buff);
     *(p->ihandle) = (MYFLT) n;
     csound->RegisterDeinitCallback(csound, p,
                                    (int (*)(CSOUND *, void *)) OSC_deinit);
