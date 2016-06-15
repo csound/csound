@@ -162,6 +162,11 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
       snprintf(port, 8, "%d", (int) MYFLT2LRND(*p->port));
     hh = (char*) p->host->data;
     if (*hh=='\0') hh = NULL;
+    /* 
+       can this be done at init time? 
+       It was note that this could be creating
+       a latency penatly
+    */
     if(p->addr != NULL)
       lo_address_free(p->addr);
     p->addr = lo_address_new(hh, pp);
