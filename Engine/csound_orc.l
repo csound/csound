@@ -72,7 +72,6 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option 8bit
 
 STRCONST        \"(\\.|[^\"\n])*\"
-STRCONSTe       \"(\\.|[^\"])*$
 LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*("\n")?
@@ -446,13 +445,6 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 {STRCONST}      { *lvalp = make_string(csound, yytext);
                   return (STRING_TOKEN); }
 
-{STRCONSTe}     { *lvalp = make_string(csound, yytext);
-                  csound->Message(csound,
-                          Str("unterminated string found on line %d >>%s<<\n"),
-                          csound_orcget_lineno(yyscanner),
-                          yytext);
-                  return (STRING_TOKEN); }
-
 "0dbfs"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ZERODBFS_TOKEN;
                   /* csound->Message(csound,"%d\n", (*lvalp)->type); */
@@ -626,3 +618,12 @@ uint64_t csound_orcget_ilocn(void *yyscanner)
 //    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return PARM->ilocn;
 }
+/*
+{STRCONSTe}     { *lvalp = make_string(csound, yytext);
+                  csound->Message(csound,
+                          Str("unterminated string found on line %d >>%s<<\n"),
+                          csound_orcget_lineno(yyscanner),
+                          yytext);
+                  return (STRING_TOKEN); }
+STRCONSTe \"(\.|[^\"])$
+*/

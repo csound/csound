@@ -47,7 +47,7 @@ typedef struct {
     MYFLT last;
     char  *lhost;
     int   cnt;
-    int   multi;
+    int   multicast;
 } OSCSEND;
 
 
@@ -139,12 +139,13 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     hh = (char*) p->host->data;
     if (isdigit(*hh)) {
       int n = atoi(hh);
-      p->multi = (n>=224 && n<=239);
+      p->multicast = (n>=224 && n<=239);
     }
-    else p->multi = 0; 
+    else p->multicast = 0;
+    //printf("multicast=%d\n", p->multicast);
     if (*hh=='\0') hh = NULL;
     p->addr = lo_address_new(hh, pp);
-    if (p->multi) lo_address_set_ttl(p->addr, 1);
+    if (p->multicast) lo_address_set_ttl(p->addr, 1);
     p->lhost = csound->Strdup(csound, hh);
     p->cnt = 0;
     p->last = 0;
@@ -183,7 +184,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
       if(p->addr != NULL)
         lo_address_free(p->addr);
       p->addr = lo_address_new(hh, pp);
-      if (p->multi) lo_address_set_ttl(p->addr, 1);
+      if (p->multicast) lo_address_set_ttl(p->addr, 2);
       csound->Free(csound, p->lhost); p->lhost = csound->Strdup(csound, hh);
     }
     if (p->cnt++ ==0 || *p->kwhen!=p->last) {
