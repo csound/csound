@@ -70,7 +70,8 @@ MACRONAME       "$"[a-zA-Z_][a-zA-Z0-9_]*
 MACRONAMED      "$"[a-zA-Z_][a-zA-Z0-9_]*\.
 MACRONAMEA      "$"[a-zA-Z_][a-zA-Z0-9_]*\(
 MACRONAMEDA     "$"[a-zA-Z_][a-zA-Z0-9_]*\.\(
-MACRO           [a-zA-Z_][a-zA-Z0-9_]*\(
+MACROB          [a-zA-Z_][a-zA-Z0-9_]*\(
+MACRO           [a-zA-Z_][a-zA-Z0-9_]*
 
 STCOM           \/\*
 INCLUDE         "#include"
@@ -503,7 +504,7 @@ QNAN		"qnan"[ \t]*\(
                     corfile_puts(yytext, csound->expanded_orc);
                 }
 <macro>[ \t]*    /* eat the whitespace */
-<macro>{MACRO}  {
+<macro>{MACROB} {
                   yytext[yyleng-1] = '\0';
                   csound->DebugMsg(csound,"Define macro with args %s\n",
                                       yytext);
@@ -513,13 +514,15 @@ QNAN		"qnan"[ \t]*\(
                   //print_csound_predata(csound,"After do_macro_arg", yyscanner);
                   BEGIN(INITIAL);
                 }
-<macro>{IDENTN} { /* IS THIS NECESSARY??? */
+<macro>{MACRO} {
                   csound->DebugMsg(csound,"Define macro %s\n", yytext);
                   /* print_csound_predata(csound,"Before do_macro", yyscanner); */
                   do_macro(csound, yytext, yyscanner);
                   //print_csound_predata(csound,"After do_macro", yyscanner);
                   BEGIN(INITIAL);
                 }
+<macro>.        { csound->Message(csound, Str("Unepected character %c(%.2x)\n"),
+                                  yytext[0], yytext[0]); }
 {UNDEF}         {
                   if (PARM->isString != 1)
                     BEGIN(umacro);
