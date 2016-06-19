@@ -30,24 +30,30 @@ extern "C" {
 
 static pthread_mutex_t csound_global_lock_ = PTHREAD_MUTEX_INITIALIZER;
 
-static void csound_global_mutex_init_(void)
-{
-}
+/* static void csound_global_mutex_init_(void) */
+/* { */
+/* } */
+#define csound_global_mutex_init_()
 
-static void csound_global_mutex_unlock(void)
-{
-    pthread_mutex_unlock(&csound_global_lock_);
-}
+/* static void csound_global_mutex_unlock(void) */
+/* { */
+/*     pthread_mutex_unlock(&csound_global_lock_); */
+/* } */
 
-static void csound_global_mutex_lock(void)
-{
-    pthread_mutex_lock(&csound_global_lock_);
-}
+#define csound_global_mutex_unlock() pthread_mutex_unlock(&csound_global_lock_)
 
-static void csound_global_mutex_destroy_(void)
-{
-}
+/* static void csound_global_mutex_lock(void) */
+/* { */
+/*     pthread_mutex_lock(&csound_global_lock_); */
+/* } */
 
+#define csound_global_mutex_lock() pthread_mutex_lock(&csound_global_lock_)
+  
+/* static void csound_global_mutex_destroy_(void) */
+/* { */
+/* } */
+#define csound_global_mutex_destroy_()
+  
 #ifdef __cplusplus
 }
 #endif
