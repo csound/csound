@@ -24,7 +24,7 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 #include "aops.h"
-#include "csound_orc_semantics.h"
+#include "find_opcode.h"
 
 extern MYFLT MOD(MYFLT a, MYFLT bb);
 
