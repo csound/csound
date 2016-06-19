@@ -521,8 +521,12 @@ QNAN		"qnan"[ \t]*\(
                   //print_csound_predata(csound,"After do_macro", yyscanner);
                   BEGIN(INITIAL);
                 }
-<macro>.        { csound->Message(csound, Str("Unepected character %c(%.2x)\n"),
-                                  yytext[0], yytext[0]); }
+<macro>.        { csound->Message(csound,
+                                  Str("Unexpected character %c(%.2x) line %d\n"),
+                                  yytext[0], yytext[0],
+                                  csound_preget_lineno(yyscanner));
+                  csound->LongJmp(csound, 1);
+                }
 {UNDEF}         {
                   if (PARM->isString != 1)
                     BEGIN(umacro);
@@ -530,7 +534,7 @@ QNAN		"qnan"[ \t]*\(
                     corfile_puts(yytext, csound->expanded_orc);
                 }
 <umacro>[ \t]*    /* eat the whitespace */
-<umacro>{IDENTN}  {
+<umacro>{MACRO}  {
                   csound->DebugMsg(csound,"Undefine macro %s\n", yytext);
                   do_umacro(csound, yytext, yyscanner);
                   BEGIN(INITIAL);
