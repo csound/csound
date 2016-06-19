@@ -57,6 +57,7 @@
 ./H/extract.h
 ./H/fftlib.h
 ./H/fgens.h
+./H/find_opcode.h
 ./H/insert.h
 ./H/linevent.h
 ./H/lpc.h
