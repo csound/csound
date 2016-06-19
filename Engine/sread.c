@@ -1544,13 +1544,21 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         c = '/';
       }
       else {                    /* It is a comment */
-      top:
-        while ((c = getscochar(csound, 0)) != '*');
-        if ((c = getscochar(csound, 0)) != '/') {
-          if (c != EOF) goto top;
-          return EOF;
+      top:  /* ignore comment chars */
+        c = getscochar(csound, 0);
+        switch (c) {
+        case '*':
+        stars:  /* is next char / ? */
+          c = getscochar(csound, 0);
+          switch (c) {
+          case '*': goto stars;
+          default: goto top;
+          case '/': goto srch;
+          case EOF: return EOF;
+          }
+        case EOF: return EOF;
+        default: goto top;
         }
-        goto srch;
       }
     }
     if (c == '#') {
