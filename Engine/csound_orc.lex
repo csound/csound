@@ -71,7 +71,7 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option stdout
 %option 8bit
 
-LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:
+LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:[ \t]*$  /* VL: added extra checks for after the colon */
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*("\n")?
 XIDENT          0|[aijkftKOJVPopS\[\]]+
@@ -373,10 +373,10 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   *lvalp = new_token(csound, UDOEND_TOKEN); return UDOEND_TOKEN;
                 }
 
-{LABEL}         { char *pp = yytext;
+{LABEL}         { char *pp = yytext;                 
                   while (*pp==' ' || *pp=='\t') pp++;
-                  *lvalp = make_label(csound, pp); return LABEL_TOKEN;
-                }
+		  *lvalp = make_label(csound, pp); return LABEL_TOKEN;
+               }
 
 "\{\{"          {
                   PARM->xstrbuff = (char *)malloc(128);
@@ -561,9 +561,13 @@ ORCTOKEN *make_token(CSOUND *csound, char *s)
 ORCTOKEN *make_label(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, LABEL_TOKEN);
-    int len = strlen(s);
+    int len;
+    char *ps = s;
     ans->lexeme = (char*)csound->Calloc(csound, len);
-    strncpy(ans->lexeme, s, len - 1); /* Not the trailing colon */
+    while(*ps != ':') ps++;
+    *(ps+1) = '\0';
+    len = strlen(s);
+    strncpy(ans->lexeme, s, len-1); /* Not the trailing colon */
     return ans;
 }
 
