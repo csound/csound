@@ -155,8 +155,8 @@ endif()
 
 check_deps(BUILD_CHUA_OPCODES EIGEN3_INCLUDE_PATH)
 if(BUILD_CHUA_OPCODES)
-    include_directories(${EIGEN3_INCLUDE_PATH})
     make_plugin(chua chua/ChuaOscillator.cpp)
+    target_include_directories(chua PRIVATE ${Boost_INCLUDE_DIRS})
 endif()
 
 check_deps(BUILD_DSSI_OPCODES LINUX)
@@ -167,19 +167,19 @@ endif()
 
 check_deps(BUILD_FLUID_OPCODES FLUIDSYNTH_H FLUIDSYNTH_LIBRARY)
 if(BUILD_FLUID_OPCODES)
+    make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp)
     if(EXISTS ${FLUIDSYNTH_INCLUDE_DIR})
-        include_directories("${FLUIDSYNTH_INCLUDE_DIR}")
+        target_include_directories(fluidOpcodes PRIVATE "${FLUIDSYNTH_INCLUDE_DIR}")
      endif()
 
      if(WIN32 AND NOT MSVC)
-        set(FSYNTH_SUPPORT_LIBS ${FLUIDSYNTH_LIBRARY} dsound portaudio
+        set(FSYNTH_SUPPORT_LIBS dsound portaudio
           ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} wsock32 glib-2.0
           intl iconv ws2_32 winmm Setupapi)
-        make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp ${FSYNTH_SUPPORT_LIBS})
+        target_link_libraries(fluidOpcodes ${FSYNTH_SUPPORT_LIBS})
 
         target_compile_definitions(fluidOpcodes PRIVATE -DFLUIDSYNTH_NOT_A_DLL)
      else()
-        make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp ${FLUIDSYNTH_LIBRARY})
         target_link_libraries(fluidOpcodes ${FLUIDSYNTH_LIBRARY})
      endif()
      add_dependency_to_framework(fluidOpcodes ${FLUIDSYNTH_LIBRARY})
@@ -230,8 +230,8 @@ endif()
 
 check_deps(BUILD_IMAGE_OPCODES PNG_FOUND)
 if(BUILD_IMAGE_OPCODES)
-    include_directories(${PNG_INCLUDE_DIR})
     make_plugin(image imageOpcodes.c)
+    target_include_directories(image PRIVATE ${PNG_INCLUDE_DIR})
     target_link_libraries(image ${PNG_LIBRARIES})
     target_compile_definitions(image PRIVATE ${PNG_DEFINITIONS})
     add_dependency_to_framework(image ${PNG_LIBRARY})
@@ -239,9 +239,9 @@ endif()
 
 check_deps(BUILD_PYTHON_OPCODES PYTHONLIBS_FOUND)
 if(BUILD_PYTHON_OPCODES)
-    include_directories(${PYTHON_INCLUDE_DIRS})
-    include_directories(${CMAKE_HOME_DIRECTORY}/include)
     make_plugin(py py/pythonopcodes.c)
+    target_include_directories(py PRIVATE ${PYTHON_INCLUDE_DIRS})
+    target_include_directories(py PRIVATE ${CMAKE_HOME_DIRECTORY}/include)
 	target_link_libraries(py ${PYTHON_LIBRARIES})
 endif()
 
@@ -250,7 +250,7 @@ if(NOT APPLE)
   if(BUILD_LUA_OPCODES)
     make_plugin(LuaCsound LuaCsound.cpp ${LUAJIT_LIBRARY})
     target_compile_options(LuaCsound PRIVATE ${OpenMP_CXX_FLAGS})
-    include_directories(${LUA_H_PATH})
+    target_include_directories(LuaCsound PRIVATE ${LUA_H_PATH})
   endif()
 endif()
 
@@ -308,7 +308,7 @@ endif()
     target_link_libraries(faustcsound ${FAUST_LIBRARY} -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
    endif()
 
-  include_directories(${LLVM_INCLUDE_DIRS})
+  target_include_directories(faustcsound PRIVATE ${LLVM_INCLUDE_DIRS})
 endif()
 
 
@@ -321,11 +321,6 @@ endif()
 check_deps(BUILD_VST4CS_OPCODES VSTSDK2X_FOUND FLTK_FOUND)
 message(STATUS "VSTSDK2X_INCLUDE_DIR: ${VSTSDK2X_INCLUDE_DIR}")
 if(BUILD_VST4CS_OPCODES)
-    include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
-    include_directories(${VSTSDK2X_INCLUDE_DIR})
-    include_directories(${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x)
-    include_directories(${VSTSDK2X_INCLUDE_DIR}/pluginterfaces/source/vst2.x)
-    include_directories(${FLTK_INCLUDE_DIR})
     set(VST4CS_SRCS
         vst4cs/src/vst4cs.cpp
         vst4cs/src/vsthost.cpp
@@ -334,6 +329,10 @@ if(BUILD_VST4CS_OPCODES)
         ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
     add_library(vst4cs SHARED ${VST4CS_SRCS})
     target_compile_definitions(vst4cs PRIVATE -DVST_FORCE_DEPRECATED=0 -DCS_VSTHOST)
+    target_include_directories(vst4cs PRIVATE ${VSTSDK2X_INCLUDE_DIR})
+    target_include_directories(vst4cs PRIVATE ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x)
+    target_include_directories(vst4cs PRIVATE ${VSTSDK2X_INCLUDE_DIR}/pluginterfaces/source/vst2.x)
+    target_include_directories(vst4cs PRIVATE ${FLTK_INCLUDE_DIR})
     set_target_properties(vst4cs PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
@@ -359,8 +358,6 @@ endif()
 check_deps(BUILD_ABLETON_LINK_OPCODES ABLETON_LINK_HOME)
 if(BUILD_ABLETON_LINK_OPCODES)
     message(STATUS "Ableton Link home: ${ABLETON_LINK_HOME}")
-    include_directories(${ABLETON_LINK_HOME}/include)
-    include_directories(${ABLETON_LINK_HOME}/modules/asio-standalone/asio/include)
     if(APPLE)
       make_plugin(ableton_link_opcodes ableton_link_opcodes.cpp)
       set_target_properties(ableton_link_opcodes PROPERTIES COMPILE_FLAGS "-std=c++11 -stdlib=libc++ -Wno-multichar -DLINK_PLATFORM_MACOSX=1"
@@ -388,6 +385,8 @@ if(BUILD_ABLETON_LINK_OPCODES)
             endif()
         endif()
     endif()
+    target_include_directories(ableton_link_opcodes PRIVATE ${ABLETON_LINK_HOME}/include)
+    target_include_directories(ableton_link_opcodes PRIVATE ${ABLETON_LINK_HOME}/modules/asio-standalone/asio/include)
     #install(TARGETS ableton_link_opcodes
     #    LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
     #    ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})

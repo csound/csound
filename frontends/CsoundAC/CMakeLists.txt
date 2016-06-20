@@ -78,9 +78,8 @@ if(BUILD_CSOUND_AC)
         add_library(libCsoundAC SHARED ${libcsoundac_SRCS})
     endif()
 
-    include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
-    include_directories(${EIGEN3_INCLUDE_PATH})
-    include_directories(${FLTK_INCLUDE_DIR})
+    target_include_directories(libCsoundAC PRIVATE ${EIGEN3_INCLUDE_PATH})
+    target_include_directories(libCsoundAC PRIVATE ${FLTK_INCLUDE_DIR})
 
     set_target_properties(libCsoundAC PROPERTIES
         SOVERSION ${APIVERSION}
@@ -158,7 +157,6 @@ if(BUILD_CSOUND_AC)
 
     if(BUILD_CSOUND_AC_LUA_INTERFACE)
         message(STATUS "Building CsoundAC Lua interface.")
-        include_directories(${LUA_H_PATH})
 
         SET_SOURCE_FILES_PROPERTIES(luaCsoundAC.i
             PROPERTIES CPLUSPLUS ON
@@ -174,6 +172,7 @@ if(BUILD_CSOUND_AC)
             set_target_properties(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PROPERTIES
                 LINK_FLAGS "-undefined dynamic_lookup")
        	endif()
+        target_include_directories(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PRIVATE ${LUA_H_PATH})
 
         set_target_properties(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
