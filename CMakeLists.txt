@@ -82,19 +82,6 @@ function(make_utility name srcs)
     endif()
 endfunction()
 
-
-# Expands a list into a space-separated string (outvar element1 ....)
-# Why do I have to do this? Cmake, you just lost one point
-function(expand_list out)
-    set(i 1)
-    set(tmp "")
-    while( ${i} LESS ${ARGC} )
-        set(tmp "${tmp} ${ARGV${i}}")
-        math(EXPR i "${i}+1")
-    endwhile()
-    set(${out} "${tmp}" PARENT_SCOPE)
-endfunction(expand_list)
-
 # Checks if dependencies for an enabled target are fulfilled.
 # If FAIL_MISSING is true and the dependencies are not fulfilled,
 # it will abort the cmake run.
