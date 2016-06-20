@@ -35,7 +35,6 @@ if(BUILD_CXX_INTERFACE)
     add_library(libcsnd6 SHARED ${libcsnd6_SRCS})
     target_link_libraries(libcsnd6 ${libcsnd6_LIBS})
     set_target_properties(libcsnd6 PROPERTIES
-        INTERFACE_LINK_LIBRARIES ""
         SOVERSION ${APIVERSION}
         OUTPUT_NAME csnd6
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
