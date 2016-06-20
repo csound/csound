@@ -3337,7 +3337,7 @@ int allocgen(CSOUND *csound, char *s, GEN fn)
 int csoundIsNamedGEN(CSOUND *csound, int num){
     NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
     while (n != NULL) {
-      if (n->genum == num)
+      if (n->genum == abs(num))
         return strlen(n->name);
       n = n->next;
     }
