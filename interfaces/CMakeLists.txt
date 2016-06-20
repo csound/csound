@@ -19,20 +19,20 @@ if(BUILD_CXX_INTERFACE)
         cs_glue.cpp
         filebuilding.cpp)
 
+    add_library(libcsnd6 SHARED ${libcsnd6_SRCS})
     set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} )
 
     if(WIN32 AND NOT MSVC)
       list(APPEND libcsnd6_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
       # mingw64 needs this to create a valid .pyd.
       if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        add_definitions(-DMS_WIN64)
+        target_compile_definitions(libcsnd6 PRIVATE -DMS_WIN64)
       endif()
     endif()
 
     set(libcsnd6_CFLAGS "")
     list(APPEND libcsnd6_LIBS ${CSOUNDLIB})
 
-    add_library(libcsnd6 SHARED ${libcsnd6_SRCS})
     target_link_libraries(libcsnd6 ${libcsnd6_LIBS})
     set_target_properties(libcsnd6 PROPERTIES
         SOVERSION ${APIVERSION}

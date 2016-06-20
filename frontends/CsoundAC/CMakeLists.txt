@@ -97,7 +97,7 @@ if(BUILD_CSOUND_AC)
     if(WIN32 AND NOT MSVC) # for MSYS2/mingw64
         #  mingw64 needs this to create a valid .pyd.
         if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-          add_definitions(-DMS_WIN64)
+            target_compile_definitions(libCsoundAC PRIVATE -DMS_WIN64)
         endif()
         target_link_libraries(libCsoundAC PRIVATE jpeg png z)
     endif()

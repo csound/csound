@@ -326,7 +326,6 @@ if(BUILD_VST4CS_OPCODES)
     include_directories(${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x)
     include_directories(${VSTSDK2X_INCLUDE_DIR}/pluginterfaces/source/vst2.x)
     include_directories(${FLTK_INCLUDE_DIR})
-    add_definitions(-DVST_FORCE_DEPRECATED=0 -DCS_VSTHOST)
     set(VST4CS_SRCS
         vst4cs/src/vst4cs.cpp
         vst4cs/src/vsthost.cpp
@@ -334,6 +333,7 @@ if(BUILD_VST4CS_OPCODES)
         ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
         ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
     add_library(vst4cs SHARED ${VST4CS_SRCS})
+    target_compile_definitions(vst4cs PRIVATE -DVST_FORCE_DEPRECATED=0 -DCS_VSTHOST)
     set_target_properties(vst4cs PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
