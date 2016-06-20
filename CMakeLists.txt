@@ -127,46 +127,6 @@ function(check_deps option)
     endif()
 endfunction(check_deps)
 
-# Shortcut to add compiler flags
-# Mandatory arguments: the flags to add, should be passed before optional keywords, can be
-#                      passed as lists or space-separated
-# Optional keywords:
-# LINKER: add to linker instead of compile flags (LDFLAGS vs CFLAGS)
-# TARGETS <target1> <target2> ...
-#           if specified, will add the flags to a target instead
-#           of the global namespace
-function(add_compiler_flags)
-    set(bool_options LINKER)
-    set(multi_val_args TARGETS)
-    cmake_parse_arguments(FLAGS "${bool_options}" "" "${multi_val_args}" ${ARGN})
-
-    expand_list(FLAGS ${FLAGS_UNPARSED_ARGUMENTS})
-
-    if(FLAGS_TARGETS)
-        foreach(target ${FLAGS_TARGETS})
-            if(NOT FLAGS_LINKER)
-                set(property "COMPILE_FLAGS")
-            else()
-                set(property "LINK_FLAGS")
-            endif()
-            get_target_property(propval ${target} ${property})
-            if(NOT propval)
-                set(propval "")
-            endif()
-            set_target_properties(${target} PROPERTIES
-                ${property} "${propval} ${FLAGS}")
-        endforeach()
-    else()
-        if(FLAGS_LINKER)
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS}")
-            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${FLAGS}")
-            set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${FLAGS}")
-        else()
-            add_definitions("${FLAGS}")
-        endif()
-    endif()
-endfunction(add_compiler_flags)
-
 ### COMPILER OPTIMIZATION FLAGS
 option(USE_COMPILER_OPTIMIZATIONS "Use the default Csound compiler optimization flags" ON)
 if(USE_COMPILER_OPTIMIZATIONS)
@@ -483,7 +443,6 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     add_definitions("-Wno-format")
-    #    add_compiler_flags("-g")
 endif()
 
 
@@ -1366,9 +1325,7 @@ if(BIG_ENDIAN)
 endif()
 
 
-
-
-add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
+target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
 target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
@@ -1380,7 +1337,7 @@ if(BUILD_STATIC_LIBRARY)
     add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
-    add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB_STATIC})
+    target_compile_options(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_CFLAGS})
 
     target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
 

@@ -43,12 +43,12 @@ if(BUILD_CXX_INTERFACE)
         )
 
    if(APPLE)
-    add_compiler_flags("-std=c++11" TARGETS libcsnd6)
+    target_compile_options(libcsnd6 PRIVATE "-std=c++11")
    endif()
 
 
     if(${libcsnd6_CFLAGS})
-        add_compiler_flags(${libcsnd6_CFLAGS} TARGETS libcsnd6)
+        target_compile_options(libcsnd6 PRIVATE ${libcsnd6_CFLAGS})
     endif()
 
 
