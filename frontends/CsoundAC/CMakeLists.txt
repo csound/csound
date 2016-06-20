@@ -83,16 +83,15 @@ if(BUILD_CSOUND_AC)
     include_directories(${FLTK_INCLUDE_DIR})
 
     set_target_properties(libCsoundAC PROPERTIES
-        LINK_INTERFACE_LIBRARIES ""
         SOVERSION ${APIVERSION}
         OUTPUT_NAME CsoundAC
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
 
-    target_link_libraries(libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
+    target_link_libraries(libCsoundAC PRIVATE libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
     if(USE_SYSTEM_PORTSMF)
-        target_link_libraries(libCsoundAC ${PORTSMF_LIBRARY})
+        target_link_libraries(libCsoundAC PRIVATE ${PORTSMF_LIBRARY})
     endif()
 
     if(WIN32 AND NOT MSVC) # for MSYS2/mingw64
@@ -100,7 +99,7 @@ if(BUILD_CSOUND_AC)
         if(CMAKE_SIZEOF_VOID_P EQUAL 8)
           add_definitions(-DMS_WIN64)
         endif()
-        target_link_libraries(libCsoundAC jpeg png z)
+        target_link_libraries(libCsoundAC PRIVATE jpeg png z)
     endif()
 
     if(HAVE_UNISTD_H)
@@ -109,7 +108,7 @@ if(BUILD_CSOUND_AC)
     endif()
 
     if(MUSICXML_LIBRARY)
-        target_link_libraries(libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
+        target_link_libraries(libCsoundAC PRIVATE libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
     endif()
 
     install(TARGETS libCsoundAC
@@ -188,3 +187,4 @@ if(BUILD_CSOUND_AC)
     endif()
 
 endif()
+

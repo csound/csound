@@ -336,21 +336,20 @@ if(BUILD_VST4CS_OPCODES)
         ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
     add_library(vst4cs SHARED ${VST4CS_SRCS})
     set_target_properties(vst4cs PROPERTIES
-        LINK_INTERFACE_LIBRARIES ""
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
-    target_link_libraries(vst4cs ${CSOUNDLIB} ${FLTK_LIBRARIES})
+    target_link_libraries(vst4cs PRIVATE ${CSOUNDLIB} ${FLTK_LIBRARIES})
     if(NOT MSVC)
         if(BUILD_STATIC_LIBRARY)
             if(WIN32)
                 add_library(pthread STATIC IMPORTED)
                 set_target_properties(pthread PROPERTIES IMPORTED_LOCATION ${PTHREAD_LIBRARY})
             endif()
-          target_link_libraries(vst4cs pthread)
+            target_link_libraries(vst4cs PRIVATE pthread)
         else()
-          target_link_libraries(vst4cs ${PTHREAD_LIBRARY})
+            target_link_libraries(vst4cs PRIVATE ${PTHREAD_LIBRARY})
         endif()
     endif()
     install(TARGETS vst4cs

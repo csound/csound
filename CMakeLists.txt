@@ -1095,9 +1095,6 @@ endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
-    # Do not pull extra libs when linking against shared libcsound
-    # The shared library loader will do that for us
-    LINK_INTERFACE_LIBRARIES ""
     SOVERSION ${APIVERSION})
 
 
@@ -1372,7 +1369,7 @@ endif()
 
 
 add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
-target_link_libraries(${CSOUNDLIB} ${libcsound_LIBS})
+target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
