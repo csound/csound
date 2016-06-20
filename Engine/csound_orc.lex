@@ -563,10 +563,10 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
     ORCTOKEN *ans = new_token(csound, LABEL_TOKEN);
     int len;
     char *ps = s;
-    ans->lexeme = (char*)csound->Calloc(csound, len);
     while(*ps != ':') ps++;
     *(ps+1) = '\0';
     len = strlen(s);
+    ans->lexeme = (char*)csound->Calloc(csound, len);
     strncpy(ans->lexeme, s, len-1); /* Not the trailing colon */
     return ans;
 }
