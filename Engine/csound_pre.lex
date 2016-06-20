@@ -30,17 +30,17 @@
 #include "csoundCore.h"
 #include "corfile.h"
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
-void comment(yyscan_t);
-void do_comment(yyscan_t);
-void do_include(CSOUND *, int, yyscan_t);
-void do_macro_arg(CSOUND *, char *, yyscan_t);
-void do_macro(CSOUND *, char *, yyscan_t);
-void do_umacro(CSOUND *, char *, yyscan_t);
-void do_ifdef(CSOUND *, char *, yyscan_t);
-void do_ifdef_skip_code(CSOUND *, yyscan_t);
-void do_function(char *, CORFIL*);
+static void comment(yyscan_t);
+static void do_comment(yyscan_t);
+static void do_include(CSOUND *, int, yyscan_t);
+static void do_macro_arg(CSOUND *, char *, yyscan_t);
+static void do_macro(CSOUND *, char *, yyscan_t);
+static void do_umacro(CSOUND *, char *, yyscan_t);
+static void do_ifdef(CSOUND *, char *, yyscan_t);
+static void do_ifdef_skip_code(CSOUND *, yyscan_t);
+static void do_function(char *, CORFIL*);
 //static void print_csound_predata(CSOUND *,char *,yyscan_t);
-void csound_pre_line(CORFIL*, yyscan_t);
+static void csound_pre_line(CORFIL*, yyscan_t);
  static void delete_macros(CSOUND*, yyscan_t);
 #include "parse_param.h"
 
@@ -52,7 +52,7 @@ void csound_pre_line(CORFIL*, yyscan_t);
     yyg->yy_flex_debug_r=1; PARM->macro_stack_size = 0;                 \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
   }
- MACRO *find_definition(MACRO *, char *);
+static MACRO *find_definition(MACRO *, char *);
 %}
 %option reentrant
 %option noyywrap
@@ -786,7 +786,7 @@ static inline int isNameChar(int c, int pos)
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
 
-void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
+static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     MACRO *mm = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
     int   arg = 0, i, c;
@@ -899,7 +899,7 @@ void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     PARM->macros = mm;
 }
 
-void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
+static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     MACRO *mm = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
     int   i, c;
@@ -961,7 +961,7 @@ void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     PARM->macros = mm;
 }
 
-void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
+static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     int i,c;
     if (UNLIKELY(csound->oparms->msglevel))
@@ -994,7 +994,7 @@ void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
 }
 
-void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
+static void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     int c;
     MACRO *mm;
@@ -1016,7 +1016,7 @@ void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
       while ((c = input(yyscanner)) != '\n' && c != '\r' && c != EOF);
 }
 
-void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
+static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
 {
     int i, c, nested_ifdef = 0;
     char *buf;
@@ -1201,7 +1201,7 @@ void do_function(char *text, CORFIL *cf)
     return;
 }
 
-MACRO *find_definition(MACRO *mmo, char *s)
+static MACRO *find_definition(MACRO *mmo, char *s)
 {
     MACRO *mm = mmo;
     //printf("****Looking for %s\n", s);
