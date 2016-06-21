@@ -40,7 +40,11 @@
 // Must do this on Windows: https://connect.microsoft.com/VisualStudio/feedback/details/811347/compiling-vc-12-0-with-has-exceptions-0-and-including-concrt-h-causes-a-compiler-error
 
 //#include <Csound.hxx>
+#if defined(WIN32)
 #include <csound.h>
+#else
+#include <csound/csound.h>
+#endif
 #include <cstdlib>
 #include <fstream>
 #include <ios>
