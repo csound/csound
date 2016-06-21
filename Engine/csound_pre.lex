@@ -65,7 +65,6 @@ STSTR           \"
 ESCAPE          \\.
 XSTR            \{\{([^}]|\}[^}])*\}\}
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
-IDENTN          [a-zA-Z0-9_]+
 MACRONAME       "$"[a-zA-Z_][a-zA-Z0-9_]*
 MACRONAMED      "$"[a-zA-Z_][a-zA-Z0-9_]*\.
 MACRONAMEA      "$"[a-zA-Z_][a-zA-Z0-9_]*\(
@@ -299,7 +298,7 @@ QNAN		"qnan"[ \t]*\(
                    }
                    mname = yytext;
                    /* Need to read from macro definition */
-                   //csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
+                   csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
                    for (j = 0; j < mm->acnt; j++) {
                      char  term = (j == mm->acnt - 1 ? ')' : '\'');
  /* Compatability */
@@ -307,13 +306,16 @@ QNAN		"qnan"[ \t]*\(
                      MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
                      int   size = 100;
                      nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1);
-                     //csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
+                     csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
                      i = 0;
                      nn->body = (char*) csound->Malloc(csound, 100);
                      while ((c = input(yyscanner))!= term && c!=trm1) {
+                       if (c == ')') {
+                         csound->Die(csound, Str("Too few arguments to macro\n"));
+                       }
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
                                      Str("Missing argument terminator\n%.98s"),
@@ -385,6 +387,9 @@ QNAN		"qnan"[ \t]*\(
                      i = 0;
                      nn->body = (char*) csound->Malloc(csound, 100);
                      while ((c = input(yyscanner))!= term && c!=trm1) {
+                       if (c == ')') {
+                         csound->Die(csound, Str("Too few arguments to macro\n"));
+                       }
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
                                      Str("Missing argument terminator\n%.98s"),
