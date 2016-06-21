@@ -54,6 +54,8 @@ graphics, and much more. For a full list of capabilities currently implemented i
 
 ## BUILDING
 
+### Windows
+
 Currently, on Windows, there is no need to build `csound.node`, it is distributed in the
 Windows installer for Csound along with NW.js.
 
@@ -78,7 +80,14 @@ installed locations of the Csound header files and shared libraries on your syst
 In the `csound/frontends/nwjs` directory, execute `nw-gyp rebuild --target=0.12.3 --arch=x64` (or, --arch=x86, or whatever version of NW you have) to build `csound.node`.
 If the build messages end with `ok`, then the build succeeded.
 
+### Linux
+
+Building on Linux is the same as building on Windows, except that one installs build-essentials, nodejs and npm using apt-get.
+
+
 ## INSTALLING
+
+### Windows
 
 Currently, getting csound.node to run in a development environment is tricky. The easiest way is to run the csound/mingw64/find_csound_dependencies.py script,
 which copies all Csound targets and dependencies into the NW.js directory. Then set both OPCODE6DIR64 and NODE_PATH also to point to the NW.js directory.
@@ -88,6 +97,8 @@ and drop it on `nw`'s window. You should hear the Csound piece "Xanadu" by Josep
 which is embedded in the HTML file, and you should be able press the [F12] key
 to bring up the NW.js developer tools, where you should see the runtime messages
 from Csound being printed in the JavaScript console.
+
+### Linux
 
 ## RUNNING
 
