@@ -223,6 +223,9 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                      i = 0;
                      nn->body = (char*) csound->Malloc(csound, 100);
                      while ((c = input(yyscanner))!= term && c!=trm1) {
+                       if (c == ')') {
+                         csound->Die(csound, Str("Too few arguments to macro\n"));
+                       }
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
                                      Str("Missing argument terminator\n%.98s"),
@@ -294,6 +297,9 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                      i = 0;
                      nn->body = (char*) csound->Malloc(csound, 100);
                      while ((c = input(yyscanner))!= term && c!=trm1) {
+                       if (c == ')') {
+                         csound->Die(csound, Str("Too few arguments to macro\n"));
+                       }
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
                                      Str("Missing argument terminator\n%.98s"),
