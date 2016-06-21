@@ -13,7 +13,7 @@
                     {
                         'libraries':
                         [
-                            '-L$(CSOUND_HOME) -lcsound64',
+                            '-L$(CSOUND_HOME)/../cs6make -lcsound64',
                         ],
                         'include_dirs':
                         [
