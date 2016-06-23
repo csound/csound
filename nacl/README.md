@@ -1,6 +1,6 @@
 # Building Csound for PNaCl
 
-Install Google's Native Client SDK from https://developer.chrome.com/native-client/sdk/download.
+Install Google's Native Client SDK from https://developer.chrome.com/native-client/sdk/download. Be sure to set the environment variable NACL_SDK_ROOT to the appropriate pepper directory, e.g. <pre>export NACL_SDK_ROOT=/home/mkg/nacl_sdk/pepper_49</pre>.
 
 Unzip the libsndfile sources into the "sndfile" directory. Run "make -f Makefile-pnacl".
 
