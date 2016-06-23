@@ -1076,10 +1076,13 @@ static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
           len-=3;
         }
         else {
-          int n = 0;
-          char check='\0';
-          while(*(fmt+n) && !isspace(*(fmt+n))){
-            tmp[n] = check = *(fmt+n);
+          int n = 1;
+          char check='%';
+	  tmp[0] = check;
+          while(*(fmt+n) &&
+		!isblank(*(fmt+n))){
+            tmp[n] = *(fmt+n);
+            if(isalpha(tmp[n])) check = tmp[n]; 
             n++;
           }
           tmp[n] = *(fmt+n);
