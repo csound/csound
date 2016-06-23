@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "keywords": [ "Csound", "node-webkit" ],
   "nodejs": true,
+  "node-remote": "http://<all-urls>/*",
   "window": {
     "title": "Node-Webkit Csound Demo",
     "icon": "link.png",
