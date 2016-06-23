@@ -352,6 +352,8 @@ libcsound.csoundTableCopyOut.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
 libcsound.csoundTableCopyIn.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
 libcsound.csoundGetTable.argtypes = [c_void_p, POINTER(POINTER(MYFLT)), c_int]
 libcsound.csoundGetTableArgs.argtypes = [c_void_p, POINTER(POINTER(MYFLT)), c_int]
+libcsound.csoundIsNamedGEN.argtypes = [c_void_p, c_int]
+libcsound.csoundGetNamedGEN.argtypes = [c_void_p, c_int, c_char_p, c_int]
 
 libcsound.csoundSetIsGraphable.argtypes = [c_void_p, c_int]
 MAKEGRAPHFUNC = CFUNCTYPE(None, c_void_p, POINTER(Windat), c_char_p)
@@ -756,6 +758,8 @@ class Csound:
         
         NB: this function can be called during performance to
         replace or add new instruments and events.
+        On a first call and if called before start(), this function
+        behaves similarly to compile_().
         """
         return libcsound.csoundCompileCsd(self.cs, cstring(csd_filename))
     
@@ -1790,6 +1794,22 @@ class Csound:
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
         p = cast(ptr, arrayType)
         return np.ctypeslib.as_array(p)
+    
+    def isNamedGEN(self, num):
+        """Check if a given GEN number num is a named GEN.
+        
+        If so, it returns the string length. Otherwise it returns 0.
+        """
+        return libcsound.csoundIsNamedGEN(self.cs, num)
+    
+    def namedGEN(self, num, nameLen):
+        """Get the GEN name from a GEN number, if this is a named GEN.
+        
+        The final parameter is the max len of the string.
+        """
+        s = create_string_buffer(nameLen)
+        libcsound.csoundGetNamedGEN(self.cs, num, s, nameLen)
+        return pstring(s)
     
     #Function Table Display
     def setIsGraphable(self, isGraphable):
