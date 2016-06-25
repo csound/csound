@@ -6035,9 +6035,9 @@ msgid "OSC listener #%d started on port %s\n"
 msgstr "Ecouteur OSC #%d démarré sur le port %s\n"
 
 #: Opcodes/OSC.c:570
-#, fuzzy, c-format
+#, c-format
 msgid "OSC multicast listener #%d started on port %s\n"
-msgstr "Ecouteur OSC #%d démarré sur le port %s\n"
+msgstr "Ecouteur multidiffusion OSC #%d démarré sur le port %s\n"
 
 #: Opcodes/OSC.c:621
 msgid "OSC not running"
