@@ -1040,6 +1040,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       }
 #endif
       else {
+       fullName = (char*) name;
         if (type == CSFILE_SND_R || type == CSFILE_FD_R)
           tmp_fd = open(fullName, RD_OPTS);
         else

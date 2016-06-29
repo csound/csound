@@ -5,21 +5,6 @@
  * instantiated and initialized, and is named "csound" in the user's
  * JavaScript context.
  *
- * int getVersion ()
- * int compileCsd (String pathname)
- * void compileOrc (String orchestracode)
- * double evalCode (String orchestracode)
- * void readScore (String scorelines)
- * void setControlChannel (String channelName, double value)
- * double getControlChannel (String channelName)
- * void message (String text)
- * int getSr ()
- * int getKsmps ()
- * int getNchnls ()
- * int isPlaying ()
- * int play ()
- * int stop ()
- *
  * Copyright (C) 2015 by Michael Gogins.
  *
  * This software is free software; you can redistribute it and/or
