@@ -232,7 +232,9 @@ char** splitArgs(CSOUND* csound, char* argString)
             len++;
 
             if (*t != ']') {
-               // ERROR HERE, unmatched array identifier, perhaps should report...
+              // FIXME: needs more precise error information
+              csound->Message(csound,
+                          Str("ERROR: Unmatched bracket found in array argument type specification\n"));
                return NULL;
             }
 
