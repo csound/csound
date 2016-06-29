@@ -1489,7 +1489,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     void    *fd;
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, file, &sfinfo, NULL,
+    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, file, &sfinfo,  "SFDIR;SSDIR",
                            CSFTYPE_UNKNOWN_AUDIO, 0);
     if (fd == NULL) {
       csound->Die(csound, Str("atsa: error opening residual file '%s'"), file);
@@ -2016,7 +2016,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* open input file
        we get srate and total_samps in file in anargs */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, soundfile, &sfinfo, NULL,
+    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, soundfile, &sfinfo,  "SFDIR;SSDIR",
                            CSFTYPE_UNKNOWN_AUDIO, 0);
     if (fd == NULL) {
       csound->ErrorMsg(csound, Str("atsa: cannot open input file '%s'"),

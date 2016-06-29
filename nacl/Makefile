@@ -2,7 +2,7 @@
 # V Lazzarini 2013
 
 VALID_TOOLCHAINS := pnacl newlib glibc
-LOCAL_INCLUDES := -I../Engine -I../include -I../H -I. -I..
+LOCAL_INCLUDES := -I../Engine -I../include -I../H -I. -I.. -Isndfile/src
 NACL_CFLAGS ?= -Wno-long-long
 NACL_CXXFLAGS ?= -Wno-long-long
 
