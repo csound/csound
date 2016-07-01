@@ -472,7 +472,7 @@ function GetScoreTime() {
         csound.logMessage("Input audio error: " + e);
    }
    function message(text) {
-       csound.logMessage(text);
+       csound.updateStatus(text);
    }
 
   /**
