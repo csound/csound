@@ -134,7 +134,8 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
       return -1;
     }
     if (new_format) {
-      ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "w",
+
+        ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "w",
                                      "SFDIR", CSFTYPE_CVANAL, 0);
       if (ofd_handle == NULL) {                   /* open the output CV file */
         return quit(csound, Str("cannot create output file"));
