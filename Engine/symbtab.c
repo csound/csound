@@ -286,6 +286,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     char typeSpecifier[2];
     char tempName[20];
     int i = 0, err = 0;
+    int n=0;
+
     ARRAY_VAR_INIT varInit;
 
     typeSpecifier[1] = '\0';
@@ -300,6 +302,17 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     }
     in_args = splitArgs(csound, intypes);
     out_args = splitArgs(csound, inm->outtypes);
+
+    if (in_args == NULL) {
+      synterr(csound, Str("invalid input argument types found for opcode %s: %s\n"), inm->name, intypes);
+      err++;
+    }
+    if (out_args == NULL) {
+      synterr(csound, Str("invalid output argument types found for opcode %s: %s\n"), inm->name, inm->outtypes);
+      err++;
+    }
+
+    if(err > 0) goto early_exit;
 
     if (*in_args[0] != '0') {
       while (in_args[i] != NULL) {
@@ -436,20 +449,26 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 //      }
 //      i++; types++;
 //    }
-    int n=0;
-    while(in_args[n] != NULL)  {
-          // printf("delete %p \n", argsFound[n]);
-          csound->Free(csound, in_args[n]);
-          n++;
-   }
-    csound->Free(csound, in_args);
-    n = 0;
-    while(out_args[n] != NULL)  {
-          // printf("delete %p \n", argsFound[n]);
-          csound->Free(csound, out_args[n]);
-          n++;
-   }
-    csound->Free(csound, out_args);
+//
+
+early_exit:
+    if(in_args != NULL) {
+      while(in_args[n] != NULL)  {
+        // printf("delete %p \n", argsFound[n]);
+        csound->Free(csound, in_args[n]);
+        n++;
+      }
+      csound->Free(csound, in_args);
+    }
+    if (out_args != NULL) {
+      n = 0;
+      while(out_args[n] != NULL)  {
+        // printf("delete %p \n", argsFound[n]);
+        csound->Free(csound, out_args[n]);
+        n++;
+      }
+      csound->Free(csound, out_args);
+    }
     return err;
 }
 
