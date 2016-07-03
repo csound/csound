@@ -57,6 +57,7 @@
 ./H/extract.h
 ./H/fftlib.h
 ./H/fgens.h
+./H/find_opcode.h
 ./H/insert.h
 ./H/linevent.h
 ./H/lpc.h
@@ -73,7 +74,6 @@
 ./H/new_opts.h
 ./H/oload.h
 ./H/oscils.h
-./H/pfft.h
 ./H/prototyp.h
 ./H/remote.h
 ./H/resize.h

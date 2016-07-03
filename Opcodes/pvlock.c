@@ -912,10 +912,10 @@ static int pvslockproc(CSOUND *csound, PVSLOCK *p)
             if (FABS(fout[i+3] - freq) < d)fout[i+3]  = freq;
             if (FABS(fout[i+5] - freq) < d)fout[i+5]  = freq;
             if (FABS(fout[i+7] - freq) < d)fout[i+7]  = freq;
-	    //l+=1;
+            //l+=1;
           }
         }
-	//printf("%d peak locks\n", l);
+        //printf("%d peak locks\n", l);
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }

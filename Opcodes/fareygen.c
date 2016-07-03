@@ -139,7 +139,7 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(nargs < 2)) {
       return fterror(ff, Str("insufficient arguments for fareytable"));
     }
-    ff->e.p[4] = -1;
+    ff->e.p[4] *= -1;
     pp = &(ff->e.p[5]);
     fareyseq = (int) *pp;
     pp2 = &(ff->e.p[6]);

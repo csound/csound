@@ -28,7 +28,7 @@ int scope(CSOUND *csound)
       //printf("depth = %d\n", qq.depth);
 
       csound->expanded_sco = corfile_create_w();
-      //printf("Input:\n%s<<<n", corfile_body(csound->sreadStatics.str->cf));
+      printf("Input:\n%s<<<n", corfile_body(csound->sreadStatics.str->cf));
       snprintf(buff, 1024, "#source %d\n",
                qq.lstack[0] = file_to_int(csound,
                                           csound->scorename?

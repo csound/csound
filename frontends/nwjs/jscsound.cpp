@@ -5,21 +5,6 @@
  * instantiated and initialized, and is named "csound" in the user's
  * JavaScript context.
  *
- * int getVersion ()
- * int compileCsd (String pathname)
- * void compileOrc (String orchestracode)
- * double evalCode (String orchestracode)
- * void readScore (String scorelines)
- * void setControlChannel (String channelName, double value)
- * double getControlChannel (String channelName)
- * void message (String text)
- * int getSr ()
- * int getKsmps ()
- * int getNchnls ()
- * int isPlaying ()
- * int play ()
- * int stop ()
- *
  * Copyright (C) 2015 by Michael Gogins.
  *
  * This software is free software; you can redistribute it and/or
@@ -40,7 +25,11 @@
 // Must do this on Windows: https://connect.microsoft.com/VisualStudio/feedback/details/811347/compiling-vc-12-0-with-has-exceptions-0-and-including-concrt-h-causes-a-compiler-error
 
 //#include <Csound.hxx>
+#if defined(WIN32)
 #include <csound.h>
+#else
+#include <csound/csound.h>
+#endif
 #include <cstdlib>
 #include <fstream>
 #include <ios>
@@ -67,6 +56,7 @@ static char *orc = 0;
 static char *sco = 0;
 static uv_thread_t uv_csound_perform_thread;
 static uv_async_t uv_csound_message_async;
+static Persistent<Function> csound_message_callback;
 
 //static csound::CSound Csound;
 
@@ -100,6 +90,20 @@ void compileCsd(const FunctionCallbackInfo<Value>& args)
 }
 
 /**
+ * Compiles the CSD text.
+ */
+void compileCsdText(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    //csoundCreateMessageBuffer(csound_, 1);
+    int result = 0;
+    v8::String::Utf8Value csd(args[0]->ToString());
+    result = csoundCompileCsdText(csound_, *csd);
+    args.GetReturnValue().Set(Number::New(isolate, result));
+}
+
+/**
  * Compiles the orchestra code.
  */
 void compileOrc(const FunctionCallbackInfo<Value>& args)
@@ -127,6 +131,13 @@ static Persistent<Function, CopyablePersistentTraits<Function>> console_function
         function.Reset(isolate, function_handle);
     }
     return function;
+}
+
+void setMessageCallback(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    csound_message_callback.Reset(isolate,  Handle<Function>::Cast(args[0]));
 }
 
 void csoundMessageCallback_(CSOUND *csound_, int attr, const char *format, va_list valist)
@@ -415,8 +426,13 @@ void uv_csound_message_callback(uv_async_t *handle)
     while (csound_messages_queue.pop(message)) {
 #endif
         Local<v8::Value> args[] = { String::NewFromUtf8(isolate, message) };
-        Local<Function> local_function = Local<Function>::New(isolate, console_function(isolate));
-        local_function->Call(isolate->GetCurrentContext()->Global(), 1, args);
+        if (csound_message_callback.IsEmpty()) {
+            auto  local_function = Local<Function>::New(isolate, console_function(isolate));
+            local_function->Call(isolate->GetCurrentContext()->Global(), 1, args);
+        } else {
+            auto local_csound_message_callback = Local<Function>::New(isolate, csound_message_callback);
+            local_csound_message_callback->Call(isolate->GetCurrentContext()->Global(), 1, args);
+        }
         std::free(message);
     }
 }
@@ -475,6 +491,7 @@ void init(Handle<Object> target)
     csoundSetMessageCallback(csound_, csoundMessageCallback_);
     // Keep these in alphabetical order.
     NODE_SET_METHOD(target, "compileCsd", compileCsd);
+    NODE_SET_METHOD(target, "compileCsdText", compileCsdText);
     NODE_SET_METHOD(target, "compileOrc", compileOrc);
     NODE_SET_METHOD(target, "getControlChannel", getControlChannel);
     NODE_SET_METHOD(target, "getKsmps", getKsmps);
@@ -494,6 +511,7 @@ void init(Handle<Object> target)
     NODE_SET_METHOD(target, "rewindScore", rewindScore);
     NODE_SET_METHOD(target, "scoreEvent", scoreEvent);
     NODE_SET_METHOD(target, "setControlChannel", setControlChannel);
+    NODE_SET_METHOD(target, "setMessageCallback", setMessageCallback);
     NODE_SET_METHOD(target, "setOption", setOption);
     NODE_SET_METHOD(target, "setScorePending", setScorePending);
     NODE_SET_METHOD(target, "stop", stop);

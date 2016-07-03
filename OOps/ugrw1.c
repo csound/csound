@@ -793,7 +793,7 @@ int printk(CSOUND *csound, PRINTK *p)
     /* Divide the current elapsed time by the cycle time and round down to
      * an integer.
      */
-    cycles =    (int32) (timel / p->ctime);
+    cycles =    MYFLT2LRND(timel / p->ctime);
 
     /* Now test if the cycle number we arein is higher than the one in which
      * we last printed. If so, update cysofar and print.    */
@@ -1076,10 +1076,13 @@ static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
           len-=3;
         }
         else {
-          int n = 0;
-          char check='\0';
-          while(*(fmt+n) && !isspace(*(fmt+n))){
-            tmp[n] = check = *(fmt+n);
+          int n = 1;
+          char check='%';
+	  tmp[0] = check;
+          while(*(fmt+n) &&
+		!isblank(*(fmt+n))){
+            tmp[n] = *(fmt+n);
+            if(isalpha(tmp[n])) check = tmp[n]; 
             n++;
           }
           tmp[n] = *(fmt+n);
@@ -1152,8 +1155,9 @@ int printks(CSOUND *csound, PRINTKS *p)
 
     /* Divide the current elapsed time by the cycle time and round down to
      * an integer.     */
-    cycles = (int32)(timel / p->ctime);
-
+    cycles = MYFLT2LRND(timel / p->ctime);
+    /* printf("cysofar = %d  cycles = %d (%f / %f)\n",
+       p->cysofar, cycles, timel, p->ctime); */
     /* Now test if the cycle number we are in is higher than the one in which
      * we last printed.  If so, update cysofar and print.     */
     if (p->cysofar < cycles) {

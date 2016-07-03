@@ -322,6 +322,10 @@ if (HAS_CXX_VISIBILITY_HIDDEN)
 endif()
 
 if(APPLE)
+if(IOS)
+message(STATUS "Building for iOS.")
+else()
+message(STATUS "Building for OSX")
   if(BUILD_INSTALLER)
     set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}")
   endif()
@@ -338,7 +342,7 @@ if(APPLE)
   endif()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
- 
+ endif()
    
 endif()
 
@@ -472,14 +476,14 @@ if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
     message(FATAL_ERROR "Csound requires the pthread library")
 endif()
 
-if(NOT EMSCRIPTEN)
-  find_path(PTHREAD_H_PATH pthread.h)
-  if(PTHREAD_H_PATH)
-      include_directories(${PTHREAD_H_PATH})
-  else()
-      message(FATAL_ERROR "Could not find pthread.h")
-  endif()
-endif()
+#if(NOT EMSCRIPTEN)
+#  find_path(PTHREAD_H_PATH pthread.h)
+#  if(PTHREAD_H_PATH)
+#      include_directories(${PTHREAD_H_PATH})
+#  else()
+#      message(FATAL_ERROR "Could not find pthread.h")
+#  endif()
+#endif()
 
 set(CMAKE_REQUIRED_INCLUDES pthread.h)
 set(CMAKE_REQUIRED_LIBRARIES pthread)
@@ -655,7 +659,6 @@ set(libcsound_SRCS
     OOps/str_ops.c
     OOps/ugens1.c
     OOps/ugens2.c
-    OOps/ugens2a.c
     OOps/ugens3.c
     OOps/ugens4.c
     OOps/ugens5.c
@@ -832,7 +835,7 @@ set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
 set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.c)
 set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.h)
 
-set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.l)
+set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.lex)
 set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
 
 set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
@@ -1151,7 +1154,7 @@ if(LINUX)
     endif()
 endif()
 
-if(APPLE)
+if(APPLE AND NOT IOS)
     message(STATUS "Building on OSX")
     add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS)
     find_library(ACCELERATE_LIBRARY Accelerate)

@@ -276,6 +276,7 @@ void array_free_var_mem(void* csnd, void* p) {
         CS_TYPE* arrayType = dat->arrayType;
 
         if (arrayType->freeVariableMemory != NULL) {
+            MYFLT* mem = dat->data;
             size_t memMyfltSize = dat->arrayMemberSize / sizeof(MYFLT);
             int i, size = dat->sizes[0];
             for (i = 1; i < dat->dimensions; i++) {

@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"
 #include "ugtabs.h"
+#include "ugens2.h"
 #include <math.h>
 
 //(x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
@@ -61,25 +62,29 @@ int tabler_init(CSOUND *csound, TABL *p) {
   return OK;
 }
 
+
 int tabl_setup(CSOUND *csound, TABL *p) {
-
-   if (UNLIKELY(IS_ASIG_ARG(p->ndx) != IS_ASIG_ARG(p->sig))) {
-      if (CS_KSMPS != 1)
-        return csound->InitError(csound,
-                                 Str("table: index type inconsistent with output"));
-    }
-
+  if(p->ftp == NULL) {
+    /* check for this only on first allocation */
+  if (UNLIKELY(IS_ASIG_ARG(p->ndx) != IS_ASIG_ARG(p->sig))) {
+   if (CS_KSMPS != 1)
+     return csound->InitError(csound,
+                              Str("table: index type inconsistent with output"));
+  }
+  }
    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->InitError(csound,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
+  
     p->np2 = p->ftp->lenmask ? 0 : 1;
-
+   
   if (*p->mode)
       p->mul = p->ftp->flen;
     else
       p->mul = 1;
   p->len = p->ftp->flen;
+
   p->iwrap = (int32) *p->wrap;
   return OK;
 }
@@ -118,7 +123,7 @@ int tabler_audio(CSOUND *csound, TABL *p)
     int32 iwrap = p->iwrap;
     uint32_t    koffset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
-
+    
     if (UNLIKELY(koffset)) memset(sig, '\0', koffset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -139,6 +144,7 @@ int tabler_audio(CSOUND *csound, TABL *p)
       }
       p->sig[n] = func[ndx];
     }
+    
     return OK;
 }
 
@@ -249,6 +255,7 @@ int tableir_audio(CSOUND *csound, TABL *p)
       x2 = func[ndx+1];
       p->sig[n] = x1 + (x2 - x1)*frac;
     }
+    
     return OK;
 }
 

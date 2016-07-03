@@ -54,7 +54,7 @@
 %token UDO_IDENT
 %token VOID_TOKEN
 
-%token T_ERROR
+%token ERROR_TOKEN
 
 %token T_OPCALL
 %token T_FUNCTION

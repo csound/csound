@@ -804,6 +804,10 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
       char* varArg = NULL;
       int returnVal = 1;
 
+      if (argsRequired == NULL) {
+        return 0;
+      }
+
       if ((argsFoundCount > argsRequiredCount) &&
           !(is_in_var_arg(argsRequired[argsRequiredCount - 1]))) {
         csound->Free(csound, argsRequired);

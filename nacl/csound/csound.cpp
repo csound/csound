@@ -28,6 +28,7 @@
 #include "ppapi/cpp/audio_buffer.h"
 #include "ppapi/cpp/media_stream_audio_track.h"
 #include "ppapi/cpp/var_array_buffer.h"
+#include "ppapi/cpp/var_dictionary.h"
 #include "ppapi/cpp/completion_callback.h"
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/url_loader.h"
@@ -45,30 +46,33 @@
 typedef unsigned char Byte;
 
 namespace {
-  const char* const kPlaySoundId = "playCsound";
-  const char* const kStopSoundId = "pauseCsound";
-  const char* const kOrchestraId = "orchestra";
-  const char* const kScoreId = "score";
-  const char* const kEventId = "event";
-  const char* const kChannelId = "channel";
-  const char* const kSChannelId = "schannel";
-  const char* const kChannelOutId = "outchannel";
-  const char* const kCopyId = "copyToLocal";
-  const char* const kCopyUrlId = "copyUrlToLocal";
-  const char* const kGetFileId = "getFile";
-  const char* const kGetTableId = "getTable";
-  const char* const kSetTableId = "setTable";
-  const char* const kCsdId = "csd";
-  const char* const kRenderId = "render";
-  const char* const kMIDIId = "midi";
-  static const char kMessageArgumentSeparator = ':';
-  static const char kUrlArgumentSeparator = '#';
+	// Keep these in alphabetical order.
+	const char* const kPlaySoundId = "playCsound";
+	const char* const kChannelId = "channel";
+	const char* const kChannelOutId = "outchannel";
+	const char* const kCopyId = "copyToLocal";
+	const char* const kCopyUrlId = "copyUrlToLocal";
+	const char* const kCsdId = "csd";
+	const char* const kCsdTextId = "csd_text";
+	const char* const kEventId = "event";
+	const char* const kGetFileId = "getFile";
+	const char* const kGetTableId = "getTable";
+	const char* const kMIDIId = "midi";
+	const char* const kOrchestraId = "orchestra";
+	const char* const kRenderId = "render";
+	const char* const kSChannelId = "schannel";
+	const char* const kScoreId = "score";
+	const char* const kScoreTime = "scoretime";
+	const char* const kSetTableId = "setTable";
+	const char* const kStopSoundId = "pauseCsound";
+	static const char kMessageArgumentSeparator = ':';
+	static const char kUrlArgumentSeparator = '#';
 
-  const double kDefaultFrequency = 440.0;
-  const double kPi = 3.141592653589;
-  const double kTwoPi = 2.0 * kPi;
-  const uint32_t kSampleFrameCount = 128u;
-  const uint32_t kChannels = 2u;
+	const double kDefaultFrequency = 440.0;
+	const double kPi = 3.141592653589;
+	const double kTwoPi = 2.0 * kPi;
+	const uint32_t kSampleFrameCount = 128u;
+	const uint32_t kChannels = 2u;
 }  // namespace
 
 /* MIDI message queue size */
@@ -554,6 +558,14 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
       std::string string_arg = message.substr(sep_pos + 1);
       PlayCsd((char *)string_arg.c_str(), false); 
     }
+  } else if (message.find(kCsdTextId) == 0) {
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {      
+      std::string string_arg = message.substr(sep_pos + 1);
+      if(compiled)
+      csoundCompileCsdText(csound, (char *) string_arg.c_str()); 
+      else PostMessage("engine has not started yet\n");
+    }
   } else if (message.find(kOrchestraId) == 0) {
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
     if (sep_pos != std::string::npos) {      
@@ -686,6 +698,19 @@ void CsoundInstance::HandleMessage(const pp::Var& var_message) {
 	}
       } 
     }
+  } else if (message.find(kScoreTime) == 0){ 
+    size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
+    if (sep_pos != std::string::npos) {
+      std::string string_arg = message.substr(sep_pos + 1);
+      sep_pos = string_arg.find_first_of(kMessageArgumentSeparator);
+      std::string channel = string_arg.substr(0);
+      char mess[64]; 
+      int err;
+      MYFLT val = csoundGetScoreTime(csound);
+      sprintf(mess, "::scoretime::%f",val);
+      PostMessage(mess);
+      return;  
+    }	  
   } else if (message.find(kMIDIId) == 0){     
     size_t sep_pos = message.find_first_of(kMessageArgumentSeparator);
     if (sep_pos != std::string::npos) { 

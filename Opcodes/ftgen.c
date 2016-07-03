@@ -83,7 +83,6 @@ static int register_ftable_delete(CSOUND *csound, void *p, int tableNum)
 }
 
 /* set up and call any GEN routine */
-
 static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
 {
     MYFLT   *fp;
@@ -108,6 +107,7 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
         while (named) {
           if (strcmp(named->name, ((STRINGDAT *) p->p4)->data) == 0) {
             /* Look up by name */
+	    fp[4] = named->genum;
            break;
           }
           named = named->next;                            /*  and round again   */
@@ -587,6 +587,69 @@ static int ftsave_kS(CSOUND *csound, FTLOAD_K *p)
     return OK;
 }
 
+static int ftgen_list(CSOUND *csound, FTGEN *p, int istring)
+{
+    MYFLT   *fp;
+    FUNC    *ftp;
+    EVTBLK  *ftevt;
+    int     n;
+
+    *p->ifno = FL(0.0);
+    ftevt =(EVTBLK*) malloc(sizeof(EVTBLK)); /* Can use malloc direct as local */
+    ftevt->opcod = 'f';
+    ftevt->strarg = NULL;
+    fp = &ftevt->p[0];
+    fp[0] = FL(0.0);
+    fp[1] = *p->p1;                                     /* copy p1 - p5 */
+    fp[2] = ftevt->p2orig = FL(0.0);                    /* force time 0 */
+    fp[3] = ftevt->p3orig = *p->p3;
+    fp[4] = *p->p4;
+
+
+      if (istring) {              /* Named gen */
+        NAMEDGEN *named = (NAMEDGEN*) csound->GetNamedGens(csound);
+        while (named) {
+          if (strcmp(named->name, ((STRINGDAT *) p->p4)->data) == 0) {
+            /* Look up by name */
+	    fp[4] = named->genum;
+           break;
+          }
+          named = named->next;                            /*  and round again   */
+        }
+        if (UNLIKELY(named == NULL)) {
+          free(ftevt);
+          return csound->InitError(csound,
+                                   Str("Named gen \"%s\" not defined"),
+                                   (char *)p->p4);
+        }
+        else fp[4] = named->genum;
+      }
+
+      ARRAYDAT *array = (ARRAYDAT*) (p->p5);
+      n = array->sizes[0];
+      ftevt->pcnt = (int16) n+4;
+      int i = 0;
+      memcpy(&fp[5], array->data, n*sizeof(MYFLT));
+      while(i < n){
+	i++;
+      }
+      n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
+     free(ftevt);
+     if (UNLIKELY(n != 0))
+       return csound->InitError(csound, Str("ftgen error"));
+     if (ftp != NULL)
+       *p->ifno = (MYFLT) ftp->fno;                      /* record the fno */
+    return OK;
+}
+
+static int ftgen_list_S(CSOUND *csound, FTGEN *p){
+  return ftgen_list(csound,p,1);
+}
+
+static int ftgen_list_i(CSOUND *csound, FTGEN *p){
+  return ftgen_list(csound,p,0);
+}
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
@@ -594,6 +657,8 @@ static OENTRY localops[] = {
   { "ftgen.S",    S(FTGEN),   TW, 1,  "i",  "iiiSim", (SUBR) ftgen_S, NULL, NULL  },
   { "ftgen.iS",    S(FTGEN),  TW, 1,  "i",  "iiiiSm", (SUBR) ftgen_iS, NULL, NULL },
   { "ftgen.SS",    S(FTGEN),  TW, 1,  "i",  "iiiSSm", (SUBR) ftgen_SS, NULL, NULL },
+  { "ftgen",    S(FTGEN),     TW, 1,  "i",  "iiiii[]", (SUBR) ftgen_list_i, NULL, NULL  },
+  { "ftgen",    S(FTGEN),     TW, 1,  "i",  "iiiSi[]", (SUBR) ftgen_list_S, NULL, NULL  },
   { "ftgentmp.i", S(FTGEN),   TW, 1,  "i",  "iiiiim", (SUBR) ftgentmp, NULL, NULL },
   { "ftgentmp.iS", S(FTGEN),  TW, 1,  "i",  "iiiiSm", (SUBR) ftgentmp_S, NULL,NULL},
   { "ftfree",   S(FTFREE),    TW, 1,  "",   "ii",     (SUBR) ftfree, NULL, NULL   },

@@ -187,8 +187,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csound->LongJmp(csound, 1);
       }
       csound_prelex_destroy(qq.yyscanner);
-      /* csound->DebugMsg(csound, "yielding >>%s<<\n", */
-      /*                  corfile_body(csound->expanded_orc)); */
+      csound->DebugMsg(csound, "yielding >>%s<<\n",
+                       corfile_body(csound->expanded_orc));
       corfile_rm(&csound->orchstr);
     }
     {

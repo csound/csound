@@ -201,7 +201,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
       while (n) {
         if (strcmp(n->name, ff.e.strarg) == 0) {    /* Look up by name */
-          genum = n->genum;
+          ff.e.p[4] = genum = n->genum;
           break;
         }
         n = n->next;                            /*  and round again         */
@@ -3332,6 +3332,27 @@ int allocgen(CSOUND *csound, char *s, GEN fn)
     csound->gensub[csound->genmax-1] = fn;
     return csound->genmax-1;
 }
+
+
+int csoundIsNamedGEN(CSOUND *csound, int num){
+    NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
+    while (n != NULL) {
+      if (n->genum == abs(num))
+        return strlen(n->name);
+      n = n->next;
+    }
+    return 0;
+}
+
+void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len){
+    NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
+    while (n != NULL) {
+      if (n->genum == abs(num))
+        strncpy(name,n->name,len);
+      n = n->next;
+    }
+}
+
 
 #include "resize.h"
 

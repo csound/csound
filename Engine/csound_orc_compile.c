@@ -235,7 +235,9 @@ char** splitArgs(CSOUND* csound, char* argString)
             t++;
 
             if (*t != ']') {
-               // ERROR HERE, unmatched array identifier, perhaps should report...
+              // FIXME: needs more precise error information
+              csound->Message(csound,
+                          Str("ERROR: Unmatched bracket found in array argument type specification\n"));
                return NULL;
             }
 
@@ -1571,46 +1573,6 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
         /* Handle Inserting into CSOUND here by checking ids (name or
          * numbered) and using new insert_instrtxt?
          */
-<<<<<<< HEAD
-=======
-        /* Temporarily using the following code */
-        if (current->left->type == INTEGER_TOKEN) { /* numbered instrument, eg.:
-                                                       instr 1
-                                                    */
-          int32 instrNum = (int32)current->left->value->value;
-          insert_instrtxt(csound, instrtxt, instrNum, engineState,0);
-
-        }
-        else if (current->left->type == T_IDENT){ /* named instrument, eg.:
-                                                       instr Hello
-                                                    */
-               int32  insno_priority = -1L;
-                char *c;
-                c = current->left->value->lexeme;
-
-                if (UNLIKELY(current->left->rate == (int) '+')) {
-                  insno_priority--;
-                }
-                if (UNLIKELY(!check_instr_name(c))) {
-                  synterr(csound, Str("invalid name for instrument"));
-                }
-                named_instr_alloc(csound,c,instrtxt, insno_priority,
-                               engineState,0);
-                /* VL 10.10.14: check for redefinition */
-                //if (UNLIKELY(!named_instr_alloc(csound, c,
-                //  instrtxt, insno_priority,
-                //                              engineState, 0))) {
-      //synterr(csound, Str("instr %s redefined\n"), c);
-      //}
-
-                instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
-                strcpy(instrtxt->insname, c);
-        }
-        else if (current->left->type == T_INSTLIST) {
-                                                    /* list of instr names, eg:
-                                                       instr Hello, 1, 2
-                                                    */
->>>>>>> develop
           TREE *p =  current->left;
           while (p) {
             if (PARSER_DEBUG) print_tree(csound, "Top of loop\n", p);

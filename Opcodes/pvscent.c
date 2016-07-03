@@ -186,7 +186,9 @@ static int cent_k(CSOUND *csound, CENT *p)
     if (UNLIKELY(early)) nsmps -= early;
     for (i=offset; i < nsmps; i++){
       frame[n] = asig[i];
-      if (n == fsize-1) n=0;
+      if (n == fsize-1) {
+        n=0;
+      }
       else n++;
     }
 
@@ -203,11 +205,13 @@ static int cent_k(CSOUND *csound, CENT *p)
       }
       csound->RealFFT2(csound, p->setup, windowed);
       cf=FL(0.5)*binsize;
-      mag = windowed[0];
+      mag = fabs(windowed[0])/fsize;
       c += mag*cf;
       d += mag;
       cf += binsize;
       for (i=2; i < fsize; i+=2, cf += binsize) {
+        windowed[i] /= fsize;
+        windowed[i+1] /= fsize;
         mag = sqrt(windowed[i]*windowed[i] + windowed[i+1]*windowed[i+1]);
         c += mag*cf;
         d += mag;

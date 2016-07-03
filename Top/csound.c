@@ -58,7 +58,7 @@
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
-#include "csound_orc_semantics.h"
+#include "find_opcode.h"
 
 #if defined(linux) || defined(__HAIKU__) || defined(__EMSCRIPTEN__) || defined(__CYGWIN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
@@ -2170,7 +2170,9 @@ PUBLIC void csoundSetHostImplementedMIDIIO(CSOUND *csound,
 
 PUBLIC double csoundGetScoreTime(CSOUND *csound)
 {
-    return (double)csound->icurTime/csound->esr;
+    double curtime = csound->icurTime;
+    double esr = csound->esr;
+    return curtime/esr;
 }
 
 /*
