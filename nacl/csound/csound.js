@@ -75,7 +75,7 @@ var csound = (function() {
    */
   function handleCrash(event) {
     if (csound.module.exitStatus == -1) {
-      updateStatus('Ops, something went wrong... please refresh page',1);
+      updateStatus('Oops, something went wrong... please refresh page',1);
     } else {
 	updateStatus('Csound has exited [' + csound.module.exitStatus + ']', 1);
     }
@@ -89,7 +89,7 @@ var csound = (function() {
    */
    function moduleDidLoad() {
     csound.module = document.getElementById('csound_module');
-       updateStatus('ready', 1);
+       updateStatus('Ready', 1);
     if (typeof window.moduleDidLoad !== 'undefined') {
       window.moduleDidLoad();
     }
@@ -198,15 +198,6 @@ function GetScoreTime() {
       createModule();
   }
 
- /**
-   * Sends a complete CSD document as text to be compiled by Csound.
-   *
-   * @param {string} s A string containing the code.
-   */
- function CompileCsdText(s) {
-   if (csound.module !== null) csound.module.postMessage('csd_text:' + s);
-  }
-
   /**
    * Sends code to be compiled by Csound
    *
@@ -217,7 +208,7 @@ function GetScoreTime() {
   }
 
   /**
-   * Starts audio playback with a CSD
+   * Starts real-time audio playback with a CSD
    *
    * @param {string} s A string containing the pathname to the CSD.
    */
@@ -226,7 +217,7 @@ function GetScoreTime() {
   }
 
   /**
-   * Starts audio rendering with a CSD (no RT audio playback)
+   * Starts file rendering with a CSD (no real-time audio)
    *
    * @param {string} s A string containing the pathname to the CSD.
    */
@@ -491,8 +482,8 @@ function GetScoreTime() {
         attachDefaultListeners: attachDefaultListeners,
         CompileOrc: CompileOrc,
         compileOrc: CompileOrc,
-        CompileCsdText: CompileCsdText,
-        compileCsdText: CompileCsdText,
+        CompileCsdText: PlayCsd,
+        compileCsdText: PlayCsd,
         ControlChange : ControlChange,
         CopyToLocal: CopyToLocal,
         CopyUrlToLocal: CopyUrlToLocal,
