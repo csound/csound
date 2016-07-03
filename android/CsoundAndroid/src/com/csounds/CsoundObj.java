@@ -315,7 +315,7 @@ public class CsoundObj {
 			while(!stopped) {
 			 int ret = 0;
              if(isAsync){
-            	 csound.PerformKsmps();
+            	 ret = csound.PerformKsmps();
             	 if(ret != 0) break;
     			 stime += csound.GetKsmps();
     		     
@@ -348,6 +348,7 @@ public class CsoundObj {
     						e.printStackTrace();
     					}
              } else {
+
             	 try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {

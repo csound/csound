@@ -316,6 +316,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     if (O->sampleAccurate && !tie) {
       int64_t start_time_samps, start_time_kcycles;
       double duration_samps;
+      while(ip->init_done != 1) usleep(1);
       start_time_samps = (int64_t) (ip->p2.value * csound->esr);
       duration_samps =  ip->p3.value * csound->esr;
       start_time_kcycles = start_time_samps/csound->ksmps;
@@ -386,6 +387,9 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, Str("instr %d now active:\n"), insno);
       showallocs(csound);
     }
+     if (newevtp->pinstance != NULL) {
+       *((MYFLT *)newevtp->pinstance) = (MYFLT) ((long) ip);
+     }
     return 0;
 }
 
@@ -398,6 +402,8 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     INSDS     *ip, **ipp, *prvp, *nxtp;
     OPARMS    *O = csound->oparms;
     CS_VAR_MEM *pfields;
+    EVTBLK  *evt;
+    int pmax = 0;
 
     if (UNLIKELY(csound->advanceCnt))
       return 0;
@@ -422,6 +428,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     }
     tp->active++;
     tp->instcnt++;
+    csound->dag_changed++;      /* Need to remake DAG */
     if (UNLIKELY(O->odebug)) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
       if (UNLIKELY(name))
@@ -508,6 +515,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         CS_VAR_MEM* pfield = (pfields + i + 3);
         pfield->value = *(pdat + i);
       }
+      pmax = tp->pmax;
     }
 
 
@@ -523,6 +531,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         csound->Message(csound, "  midiKey:         pfield: %3d  value: %3d\n",
                         pfield_index, (int) pfield->value);
       }
+      if (pmax < pfield_index) pmax = pfield_index;
     }
     else if (O->midiKeyCps) {
       int pfield_index = O->midiKeyCps;
@@ -537,6 +546,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         csound->Message(csound, "  midiKeyCps:      pfield: %3d  value: %3d\n",
                         pfield_index, (int) pfield->value);
       }
+      if (pmax < pfield_index) pmax = pfield_index;
     }
     else if (O->midiKeyOct) {
       int pfield_index = O->midiKeyOct;
@@ -548,6 +558,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         csound->Message(csound, "  midiKeyOct:      pfield: %3d  value: %3d\n",
                         pfield_index, (int) pfield->value);
       }
+      if (pmax < pfield_index) pmax = pfield_index;
     }
     else if (O->midiKeyPch) {
       int pfield_index = O->midiKeyPch;
@@ -564,6 +575,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         csound->Message(csound, "  midiKeyPch:      pfield: %3d  value: %3d\n",
                         pfield_index, (int) pfield->value);
       }
+      if (pmax < pfield_index) pmax = pfield_index;
     }
     if (O->midiVelocity) {
       int pfield_index = O->midiVelocity;
@@ -574,6 +586,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         csound->Message(csound, "  midiVelocity:    pfield: %3d  value: %3d\n",
                         pfield_index, (int) pfield->value);
       }
+      if (pmax < pfield_index) pmax = pfield_index;
     }
     else if (O->midiVelocityAmp) {
       int pfield_index = O->midiVelocityAmp;
@@ -585,6 +598,19 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       if (UNLIKELY(O->msglevel & WARNMSG)) {
         csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %3d\n",
                         pfield_index, (int)pfield->value);
+      }
+      if (pmax < pfield_index) pmax = pfield_index;
+    }
+    if (pmax > 0){
+      int i;
+      if (csound->currevent == NULL){
+       evt = (EVTBLK *) csound->Calloc(csound, sizeof(EVTBLK));
+       csound->currevent = evt;
+      }
+      else evt = csound->currevent;
+      evt->pcnt = pmax+1;
+      for(i =0; i < evt->pcnt; i++){
+        evt->p[i] = pfields[i].value;
       }
     }
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -2084,7 +2110,7 @@ static void instance(CSOUND *csound, int insno)
     pextent = sizeof(INSDS) + pextrab + pextra*sizeof(CS_VAR_MEM);
     ip = (INSDS*) csound->Calloc(csound,
                           (size_t) pextent + tp->varPool->poolSize +
-                                 (tp->varPool->varCount * sizeof(MYFLT)) +
+                                 (tp->varPool->varCount * CS_VAR_TYPE_OFFSET) +
                                  (tp->varPool->varCount * sizeof(CS_VARIABLE*)) +
                                  tp->opdstot);
     ip->csound = csound;
@@ -2120,7 +2146,7 @@ static void instance(CSOUND *csound, int insno)
     initializeVarPool(csound, lclbas, tp->varPool);
 
     opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize +
-                (tp->varPool->varCount * sizeof(MYFLT));
+                (tp->varPool->varCount * CS_VAR_TYPE_OFFSET);
     opdslim = nxtopds + tp->opdstot;
     if (UNLIKELY(odebug))
       csound->Message(csound,
@@ -2128,6 +2154,7 @@ static void instance(CSOUND *csound, int insno)
                       insno, ip, lclbas, nxtopds);
     optxt = (OPTXT*) tp;
     prvids = prvpds = (OPDS*) ip;
+//    prvids->insdshead = ip;
 
     /* initialize vars for CS_TYPE */
     for (current = tp->varPool->head; current != NULL; current = current->next) {
@@ -2336,7 +2363,7 @@ int prealloc_(CSOUND *csound, AOP *p, int instname)
       n = (int) strarg2opcno(csound, ((STRINGDAT*)p->r)->data, 1,
                              (*p->b == FL(0.0) ? 0 : 1));
     else {
-      if (ISSTRCOD(*p->r))
+      if (csound->ISSTRCOD(*p->r))
         n = (int) strarg2opcno(csound, get_arg_string(csound,*p->r), 1,
                                (*p->b == FL(0.0) ? 0 : 1));
       else n = *p->r;
@@ -2502,12 +2529,13 @@ void *init_pass_thread(void *p){
     while (csound->init_pass_loop) {
 
 #if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
-      usleep(1000*wakeup);
+      usleep(10*wakeup);
 #else
       csoundSleep(((int)wakeup > 0) ? wakeup : 1);
 #endif
       ip = csound->actanchor.nxtact;
       /* do init pass for this instr */
+                csoundLockMutex(csound->init_pass_threadlock);
       while (ip != NULL){
         INSDS *nxt = ip->nxtact;
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -2516,7 +2544,7 @@ void *init_pass_thread(void *p){
         done = ip->init_done;
 #endif
         if (done == 0) {
-          csoundLockMutex(csound->init_pass_threadlock);
+
           csound->ids = (OPDS *) (ip->nxti);
           csound->curip = ip;
           while (csound->ids != NULL) {
@@ -2535,12 +2563,13 @@ void *init_pass_thread(void *p){
           if (ip->reinitflag==1) {
             ip->reinitflag = 0;
           }
-          csoundUnlockMutex(csound->init_pass_threadlock);
+
         }
         ip = nxt;
 
       }
-
+            csoundUnlockMutex(csound->init_pass_threadlock);
     }
+
     return NULL;
 }

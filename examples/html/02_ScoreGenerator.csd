@@ -17,12 +17,12 @@ idbaheadroom                    init                    idbafs - iheadroom
 iampheadroom                    init                    ampdb(idbaheadroom)
                                 prints                  "Amplitude at headroom:        %9.4f\n", iampheadroom
                                 prints                  "Balance so the overall amps at the end of performance -6 dbfs.\n"
-                                
+
                            	connect                  "ModerateFM", "outleft", "Reverberation", "inleft"
                                connect                  "ModerateFM", "outright", "Reverberation", "inright"
                                connect                  "Reverberation", "outleft", "MasterOutput", "inleft"
                                connect                  "Reverberation", "outright", "MasterOutput", "inright"
-                                
+
 
                                 alwayson                "Reverberation"
                                 alwayson                "MasterOutput"
@@ -108,12 +108,12 @@ var y = 0.5;
 function generate() {
 	csound.message("generate()...\n");
 	for (i = 0; i < 200; i++) {
-	  var t = i * (1.0 / 3.0);	
+	  var t = i * (1.0 / 3.0);
 	  var y1 = 4.0 * c * y * (1.0 - y);
 	  y = y1;
 	  var key = Math.round(36.0 + (y * 60.0));
 	  var note = "i 1 " + t + " 2.0 " + key + " 60 0.0 0.5\n";
-	  csound.readScore(note);		
+	  csound.readScore(note);
 	};
 };
 </script>

@@ -317,7 +317,9 @@ static int flooper_init(CSOUND *csound, flooper *p)
     len = p->sfunc->flen;    /* function table length */
     nchnls = p->sfunc->nchanls;
     if(nchnls != p->OUTCOUNT){
-     return csound->InitError(csound,Str("function table channel count does not match output"));
+     return
+       csound->InitError(csound,
+                         Str("function table channel count does not match output"));
     }
     if (UNLIKELY(starts > len)) {
       return csound->InitError(csound,Str("start time beyond end of table\n"));
@@ -327,13 +329,13 @@ static int flooper_init(CSOUND *csound, flooper *p)
       return csound->InitError(csound,Str("table not long enough for loop\n"));
     }
 
-    if (p->buffer.auxp==NULL ||
-        p->buffer.size<(durs+1)*sizeof(MYFLT)*nchnls) /* allocate memory if necessary */
+    if (p->buffer.auxp==NULL ||               /* allocate memory if necessary */
+        p->buffer.size<(durs+1)*sizeof(MYFLT)*nchnls)
       csound->AuxAlloc(csound,(durs+1)*sizeof(MYFLT)*nchnls, &p->buffer);
 
     inc = (MYFLT)1/cfds;       /* fade envelope incr/decr */
     buffer = p->buffer.auxp;   /* loop memory */
-    
+
     /* we now write the loop into memory */
     durs *= nchnls;
     starts *= nchnls;
@@ -387,7 +389,7 @@ static int flooper_process(CSOUND *csound, flooper *p)
         memset(&aout[1][nsmps], '\0', early*sizeof(MYFLT));
       }
     }
-    
+
     for (i=offset; i < nsmps; i++) {
       tndx = (int) ndx;
       frac = ndx - tndx;
@@ -411,10 +413,12 @@ static int flooper_process(CSOUND *csound, flooper *p)
         }
         loop_off = 0;
         tndx *= nchnls;
-        aout[0][i] = amp*(buffer[tndx] + frac*(buffer[tndx+nchnls] - buffer[tndx]));
+        aout[0][i] =
+          amp*(buffer[tndx] + frac*(buffer[tndx+nchnls] - buffer[tndx]));
         if(nchnls == 2){
           tndx += 1;
-          aout[1][i] = amp*(buffer[tndx] + frac*(buffer[tndx+nchnls] - buffer[tndx]));
+          aout[1][i] =
+            amp*(buffer[tndx] + frac*(buffer[tndx+nchnls] - buffer[tndx]));
         }
         ndx += pitch;
         while (ndx < 0) ndx += durs;
@@ -486,7 +490,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
                                Str("table %d invalid\n"), (int) *p->ifn);
     if (p->ndx[0] >= p->sfunc->flen)
        p->ndx[0] = (double) p->sfunc->flen - 1.0;
-    
+
     if(p->nchnls != p->sfunc->nchanls){
        csound->Warning(csound,
           Str("function table channels do not match opcode outputs"));
@@ -587,13 +591,17 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           }
           tndx1 *= nchnls;
           tndx0 *= nchnls;
-          out[0] = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]))
-                        + fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1])));
+          out[0] = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] -
+                                                     tab[tndx0]))
+                        + fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] -
+                                                      tab[tndx1])));
           if(onchnls == 2) {
           tndx1 += 1;
           tndx0 += 1;
-          out[1] = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]))
-                        + fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1])));
+          out[1] = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] -
+                                                     tab[tndx0]))
+                        + fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] -
+                                                      tab[tndx1])));
           }
           ndx[1]-=pitch;
           count-=pitch;
@@ -639,10 +647,12 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
           tndx0 *= nchnls;
-          out[0] += amp*fadein*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          out[0] += amp*fadein*(tab[tndx0] + frac0*(tab[tndx0+nchnls] -
+                                                    tab[tndx0]));
           if(onchnls == 2){
             tndx0 += 1;
-            out[1] += amp*fadein*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+            out[1] += amp*fadein*(tab[tndx0] + frac0*(tab[tndx0+nchnls] -
+                                                      tab[tndx0]));
           }
           ndx[0] += pitch;
           count  += pitch;
@@ -669,10 +679,12 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           tndx0 = (int) ndx[0];
           frac0 = ndx[0] - tndx0;
           tndx0 *= nchnls;
-          out[0] += amp*fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+          out[0] += amp*fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] -
+                                                     tab[tndx0]));
           if(onchnls == 2){
            tndx0 += 1;
-           out[1] += amp*fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
+           out[1] += amp*fadeout*(tab[tndx0] + frac0*(tab[tndx0+nchnls] -
+                                                      tab[tndx0]));
           }
           ndx[0] += pitch;
           count  += pitch;
@@ -684,10 +696,12 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
           tndx1 *= nchnls;
-          out[0] += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1]));
+          out[0] += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] -
+                                                    tab[tndx1]));
           if(onchnls == 2){
             tndx1 += 1;
-            out[1] += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1]));
+            out[1] += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+nchnls] -
+                                                      tab[tndx1]));
           }
           ndx[1] -= pitch;
         }

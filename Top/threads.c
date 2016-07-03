@@ -167,7 +167,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
 #define BARRIER_SERIAL_THREAD (-1)
 
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
-#if !defined(__MACH__) && !defined(__HAIKU__) && !defined(ANDROID) && !defined(NACL)
+#if !defined(__MACH__) && !defined(__HAIKU__) && !defined(ANDROID) && !defined(NACL) && !defined(__CYGWIN__)
 
 typedef struct barrier {
     pthread_mutex_t mut;
@@ -650,7 +650,7 @@ void csoundUnLock(void)
     csound_global_mutex_unlock();
 }
 
-#ifdef MSVC
+#ifdef WIN32
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
@@ -658,12 +658,10 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     (void) lpvReserved;
     switch ((int) fdwReason) {
     case (int) DLL_PROCESS_ATTACH:
-      InitializeCriticalSection(&csound_global_lock_);
-      csound_global_lock_init_done_ = 1;
+      csound_global_mutex_init_();
       break;
     case (int) DLL_PROCESS_DETACH:
-      csound_global_lock_init_done_ = 0;
-      DeleteCriticalSection(&csound_global_lock_);
+      csound_global_mutex_destroy_();
       break;
     }
     return TRUE;

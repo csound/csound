@@ -21,6 +21,8 @@
 #pragma warning(disable: 4786)
 #endif
 #include "CsoundFile.hpp"
+#include <boost/algorithm/string.hpp>
+#include <string.h>
 #include <ctime>
 #include <cctype>
 #include <algorithm>
@@ -60,26 +62,19 @@ void PUBLIC gatherArgs(int argc, const char **argv, std::string &commandLine)
 void PUBLIC scatterArgs(const std::string buffer,
                         std::vector<std::string> &args, std::vector<char *> &argv)
 {
-  std::string separators = " \t\n\r";
   args.clear();
-  argv.clear();
-  size_t first = 0;
-  size_t last = 0;
-  for(;;) {
-    first = buffer.find_first_not_of(separators, last);
-    if (first == std::string::npos) {
-      return;
-    }
-    last = buffer.find_first_of(separators, first);
-    if (last == std::string::npos) {
-      args.push_back(buffer.substr(first));
-      argv.push_back(const_cast<char *>(args.back().c_str()));
-      return;
-    } else {
-      args.push_back(buffer.substr(first, last - first));
-      argv.push_back(const_cast<char *>(args.back().c_str()));
-    }
+  for (int i = 0; i < argv.size(); ++i) {
+      char *arg = argv[i];
+      if (arg) {
+          free(arg);
+      }
   }
+  argv.clear();
+  boost::split(args, buffer, boost::is_any_of(" \t\n\r"), boost::token_compress_on);
+  for (int i = 0; i < args.size(); ++i) {
+      argv.push_back(const_cast<char *>(strdup(args[i].c_str())));
+  }
+  argv.push_back(0);
 }
 
 std::string PUBLIC &trim(std::string &value)
@@ -120,7 +115,7 @@ std::string PUBLIC &trimQuotes(std::string &value)
 /**
  *       Returns true if definition is a valid Csound instrument definition block.
  *       Also returns the part before the instr number, the instr number,
- *       the name (all text after the first comment on the same line as 
+ *       the name (all text after the first comment on the same line as
  *       the instr number),
  *       and the part after the instr number, all by reference.
  */

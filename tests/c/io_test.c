@@ -58,6 +58,7 @@ void test_dev_list(void)
         if (strcmp(type, "midi") == 0) {
             csoundSetMIDIModule(csound,name);
             int i,ndevs = csoundGetMIDIDevList(csound,NULL,0);
+	    //printf("%d \n", ndevs);
             CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *) malloc(ndevs*sizeof(CS_MIDIDEVICE));
             csoundGetMIDIDevList(csound,devs,0);
 //            printf("Module %d:  %s (%s): %i devices\n", n, name, type, ndevs);
@@ -79,7 +80,7 @@ void test_dev_list(void)
                 CU_ASSERT_PTR_NOT_NULL(devs[i].device_id);
                 CU_ASSERT_PTR_NOT_NULL(devs[i].device_name);
 //                CU_ASSERT_STRING_EQUAL(devs[i].rt_module, name);
-//                printf(" %d: %s (%s)\n", i, devs[i].device_id, devs[i].device_name);
+                printf(" %d: %s (%s)\n", i, devs[i].device_id, devs[i].device_name);
             }
             free(devs);
         }

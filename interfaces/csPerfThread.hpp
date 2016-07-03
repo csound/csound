@@ -88,14 +88,14 @@ int main(int argc, char *argv[])
   #define _MM_DENORMALS_ZERO_OFF    0x0000
   #define _MM_SET_DENORMALS_ZERO_MODE(mode)                                   \
             _mm_setcsr((_mm_getcsr() & ~_MM_DENORMALS_ZERO_MASK) | (mode))
-   #define _MM_GET_DENORMALS_ZERO_MODE()                                       \
+   #define _MM_GET_DENORMALS_ZERO_MODE()                                      \
             (_mm_getcsr() & _MM_DENORMALS_ZERO_MASK)
  #endif
 #else
   #define _MM_DENORMALS_ZERO_MASK   0
   #define _MM_DENORMALS_ZERO_ON     0
   #define _MM_DENORMALS_ZERO_OFF    0
-  #define _MM_SET_DENORMALS_ZERO_MODE(mode)  
+  #define _MM_SET_DENORMALS_ZERO_MODE(mode)
 #endif
 
 

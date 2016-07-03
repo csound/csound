@@ -276,8 +276,6 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     buffer = handle->data;
     N = p->fout->N;
     overlap = p->fout->overlap;
-
-
     if (p->scnt >= overlap) {
       float *frame1, *frame2;
       frames = handle->frames-1;
@@ -294,10 +292,14 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
                           N/2+1, ftab->flen);
       tab2 = ftab->ftable;
       for (i=0; i < (unsigned int)N+2; i++){
-        pos = (*p->ktime - tab[i])*(sr/overlap);
-        while(pos >= frames) pos -= frames;
-        while(pos < 0) pos += frames;
-        posi = (int) pos;
+        pos = (*p->ktime - tab[i/2])*(sr/overlap);
+           while(pos >= frames) {
+             pos -= frames;
+           }
+           while(pos < 0){
+             pos += frames;
+           }
+           posi = (int) pos;
         if (N == handle->header.N &&
             overlap == (unsigned int)handle->header.overlap) {
            frame1 = buffer + (N + 2) * posi;

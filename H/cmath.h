@@ -30,7 +30,7 @@ int gen21_rand(FGDATA *ff, FUNC *ftp);
 typedef struct  {
         OPDS    h;
         MYFLT   *sr, *in, *powerOf, *norm;
-} POW;
+ } POW;
 
 typedef struct  {
         OPDS    h;
@@ -45,3 +45,8 @@ typedef struct  {
         int32   phs;
         int     ampcod, cpscod;
 } PRANDI;
+
+typedef struct {
+        OPDS   h;
+        MYFLT  *ans;
+} GETSEED;

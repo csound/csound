@@ -479,7 +479,9 @@ int rndset(CSOUND *csound, RAND *p)
       }
       else {
         if (p->new) {
-          p->rand = (int32) (*p->iseed * FL(2147483648.0));
+          MYFLT seed = *p->iseed;
+          if (seed==FL(0.0)) seed = FL(0.5);
+          p->rand = (int32) (seed * FL(2147483648.0));
           p->rand = randint31(p->rand);
           p->rand = randint31(p->rand);
         }
@@ -488,6 +490,7 @@ int rndset(CSOUND *csound, RAND *p)
       }
     }
     p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krand) */
+
     return OK;
 }
 
@@ -557,12 +560,12 @@ int arand(CSOUND *csound, RAND *p)
         }
       }
       else {
-          MYFLT *xamp = p->xamp;
-          for (n=offset;n<nsmps;n++) {
-            rand = randint31(rand);
-            ar[n] = base +
-              dv2_31 * (MYFLT)((int32)((unsigned)rand<<1)-BIPOLAR) * xamp[n];
-          }
+        MYFLT *xamp = p->xamp;
+        for (n=offset;n<nsmps;n++) {
+          rand = randint31(rand);
+          ar[n] = base +
+            dv2_31 * (MYFLT)((int32)((unsigned)rand<<1)-BIPOLAR) * xamp[n];
+        }
       }
       p->rand = rand;   /* save current rand */
     }

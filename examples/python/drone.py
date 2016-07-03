@@ -302,10 +302,10 @@ e   10.0
 '''
 
 csoundCommands = {
-	'Audio':    'csound --messagelevel=3 --noheader                         --nodisplays --sample-rate=44100 --control-rate=100   --midi-key=4 --midi-velocity=5                                                                  --output=%s' % (			   dacName),
-	'Preview':  'csound --messagelevel=3 -W -f --rewrite --dither --nopeaks --nodisplays --sample-rate=44100 --control-rate=441   --midi-key=4 --midi-velocity=5 -+id_artist=%s -+id_copyright=Copyright_2007_by_%s -+id_title=%s --output=%s' % (author, author, title, soundfileName),
-	'CD':       'csound --messagelevel=3 -W -f --rewrite --dither --nopeaks --nodisplays --sample-rate=44100 --control-rate=44100 --midi-key=4 --midi-velocity=5 -+id_artist=%s -+id_copyright=Copyright_2007_by_%s -+id_title=%s --output=%s' % (author, author, title, soundfileName),
-	'Master':   'csound --messagelevel=3 -W -f --rewrite --dither --nopeaks --nodisplays --sample-rate=88200 --control-rate=88200 --midi-key=4 --midi-velocity=5 -+id_artist=%s -+id_copyright=Copyright_2007_by_%s -+id_title=%s --output=%s' % (author, author, title, soundfileName)
+	'Audio':    '--messagelevel=3 --noheader                         --nodisplays --sample-rate=44100 --control-rate=100   --midi-key=4 --midi-velocity=5                                                                  --output=%s' % (			   dacName),
+	'Preview':  '--messagelevel=3 -W -f --rewrite --dither --nopeaks --nodisplays --sample-rate=44100 --control-rate=441   --midi-key=4 --midi-velocity=5 -+id_artist=%s -+id_copyright=Copyright_2007_by_%s -+id_title=%s --output=%s' % (author, author, title, soundfileName),
+	'CD':       '--messagelevel=3 -W -f --rewrite --dither --nopeaks --nodisplays --sample-rate=44100 --control-rate=44100 --midi-key=4 --midi-velocity=5 -+id_artist=%s -+id_copyright=Copyright_2007_by_%s -+id_title=%s --output=%s' % (author, author, title, soundfileName),
+	'Master':   '--messagelevel=3 -W -f --rewrite --dither --nopeaks --nodisplays --sample-rate=88200 --control-rate=88200 --midi-key=4 --midi-velocity=5 -+id_artist=%s -+id_copyright=Copyright_2007_by_%s -+id_title=%s --output=%s' % (author, author, title, soundfileName)
 }
 
 '''

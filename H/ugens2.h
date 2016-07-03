@@ -33,7 +33,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr,*aphs, *xcps, *kR, *iphs;
         double  curphs;
-        double b;
+        double  b;
 } EPHSOR;
 
 typedef struct {

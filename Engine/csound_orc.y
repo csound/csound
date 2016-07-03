@@ -167,7 +167,6 @@
 /* TODO
   
  - add csp_orc_sa_instr_add calls in later csp analyze phase
-
 */
 
 orcfile : root_statement_list
@@ -175,7 +174,8 @@ orcfile : root_statement_list
               if ($1 != NULL)
                 *astTree = ((TREE *)$1);
               csound->synterrcnt = csound_orcnerrs;
-              //print_tree(csound, "ALL", $1);
+              if (csound->oparms->odebug)
+                print_tree(csound, "ALL", $1); 
           }
           ;
 
@@ -483,7 +483,7 @@ array_expr :  array_expr '[' expr ']'
           { 
            char* arrayName = $1->value->lexeme;
             $$ = make_node(csound, LINE, LOCN, T_ARRAY, 
-          	   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3);
+              	   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3);
           }
           ;
 
@@ -565,7 +565,6 @@ binary_expr : expr '+' expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); 
           | expr S_BITSHIFT_RIGHT error
           ;
 
-
 out_arg_list : out_arg_list ',' out_arg
               { $$ = appendToTree(csound, $1, $3); }
              | out_arg
@@ -577,7 +576,6 @@ out_arg : identifier
         | array_expr
         | struct_expr
         ;
-
 
 array_identifier: array_identifier '[' ']' {          
             appendToTree(csound, $1->right, 

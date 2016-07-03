@@ -130,7 +130,7 @@ Opcodes/stk/*/
 TAGS
 po/old_*
 *.wav
-Release_Notes/*
+##Release_Notes/*
 
 .DS_Store
 /CsoundLib64*

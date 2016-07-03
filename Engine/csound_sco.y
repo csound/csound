@@ -34,7 +34,7 @@
     extern void csound_scoerror(SCORE_PARM *, void *,
                             CSOUND *, ScoreTree *, const char*);
     extern int csound_scolex(ScoreTree**, CSOUND *, void *);
- 
+
 #define LINE csound_scoget_lineno(scanner)
 #define LOCN csound_scoget_locn(scanner)
     extern int csound_scoget_locn(void *);
@@ -86,7 +86,7 @@
 %right S_UNOT
 %right S_UMINUS
 %token T_HIGHEST
-%pure_parser
+%pure-parser
 %error-verbose
 
 %token T_NP
@@ -94,14 +94,14 @@
 %token T_CNP
 %token T_CPP
 %pure_parser
-%error-verbose
+/* %error-verbose */
 %parse-param { CSOUND * csound }
 %parse-param { ScoreTree * scoTree }
 %%
 scofile           : scolines { printf("result %p\n", $1); *scoTree = *$1;}
                   ;
 
-scoline           : statement 
+scoline           : statement
                         {
                             $$ = $1;
                         }
@@ -177,7 +177,7 @@ fac       : constant           { $$ = $1; }
           | exp '&' error
           | exp '#' exp        { $$ = (int)$1 ^ (int)$3; }
           | exp '#' error
-          | exp S_BITSHIFT_LEFT exp   
+          | exp S_BITSHIFT_LEFT exp
                                { $$ = (int)$1 << (int)$3; }
           | exp S_BITSHIFT_LEFT error
           | exp S_BITSHIFT_RIGHT exp

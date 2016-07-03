@@ -30,6 +30,7 @@ extern "C" {
 
 #include "csound.h"
 #include "csound_data_structures.h"
+#include <stdint.h>
 
 #define CS_ARG_TYPE_BOTH 0
 #define CS_ARG_TYPE_IN 1
@@ -52,7 +53,11 @@ extern "C" {
         MYFLT value;
     } CS_VAR_MEM;
 
+#if defined(UINTPTR_MAX) && defined(UINT64_MAX) && (UINTPTR_MAX == UINT64_MAX)
+#define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(double))
+#else
 #define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(MYFLT))
+#endif
 
     typedef struct csvariable {
         char* varName;
@@ -66,7 +71,7 @@ extern "C" {
         struct csvariable* next;
         CS_TYPE* subType;
         void (*updateMemBlockSize)(void*, struct csvariable*);
-        void (*initializeVariableMemory)(struct csvariable*, MYFLT*);
+      void (*initializeVariableMemory)(void*,struct csvariable*, MYFLT*);
         CS_VAR_MEM *memBlock;
     } CS_VARIABLE;
 
@@ -123,7 +128,7 @@ extern "C" {
                                  CS_VARIABLE* var);
     PUBLIC void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
     PUBLIC void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool);
-    PUBLIC void initializeVarPool(MYFLT* memBlock, CS_VAR_POOL* pool);
+    PUBLIC void initializeVarPool(void *csound, MYFLT* memBlock, CS_VAR_POOL* pool);
 
 #ifdef  __cplusplus
 }

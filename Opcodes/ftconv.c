@@ -46,6 +46,7 @@ typedef struct {
     MYFLT   *ringBuf;           /* ring buffer of FFTs of input partitions  */
     MYFLT   *IR_Data[FTCONV_MAXCHN];    /* impulse responses (scaled)       */
     MYFLT   *outBuffers[FTCONV_MAXCHN]; /* output buffer (size=partSize*2)  */
+    void  *fwdsetup, *invsetup;
     AUXCH   auxData;
 } FTCONV;
 
@@ -183,7 +184,8 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     else if (p->initDone > 0 && *(p->iSkipInit) != FL(0.0))
       return OK;    /* skip initialisation if requested */
     /* if skipping samples: check for possible truncation of IR */
-    if (skipSamples > 0 && (csound->oparms->msglevel & WARNMSG)) {
+    /*
+      if (skipSamples > 0 && (csound->oparms->msglevel & WARNMSG)) {
       n = skipSamples * p->nChannels;
       if (n > (int) ftp->flen)
         n = (int) ftp->flen;
@@ -195,7 +197,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
           break;
         }
       }
-    }
+      }*/
     /* initialise buffer pointers */
     set_buf_pointers(p, p->nChannels, p->partSize, p->nPartitions);
     /* clear ring buffer to zero */
@@ -209,6 +211,8 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     /* calculate FFT of impulse response partitions, in reverse order */
     /* also apply FFT amplitude scale here */
     FFTscale = csound->GetInverseRealFFTScale(csound, (p->partSize << 1));
+    p->fwdsetup = csound->RealFFT2Setup(csound,(p->partSize << 1), FFT_FWD);
+    p->invsetup = csound->RealFFT2Setup(csound,(p->partSize << 1), FFT_INV);
     for (j = 0; j < p->nChannels; j++) {
       i = (skipSamples * p->nChannels) + j;           /* table read position */
       n = (p->partSize << 1) * (p->nPartitions - 1);  /* IR write position */
@@ -224,7 +228,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
         for (k = p->partSize; k < (p->partSize << 1); k++)
           p->IR_Data[j][n + k] = FL(0.0);
         /* calculate FFT */
-        csound->RealFFT(csound, &(p->IR_Data[j][n]), (p->partSize << 1));
+        csound->RealFFT2(csound, p->fwdsetup, &(p->IR_Data[j][n]));
         n -= (p->partSize << 1);
       } while (n >= 0);
     }
@@ -272,7 +276,7 @@ static int ftconv_perf(CSOUND *csound, FTCONV *p)
       /* calculate FFT of input */
       for (i = nSamples; i < (nSamples << 1); i++)
         rBuf[i] = FL(0.0);          /* pad to double length */
-      csound->RealFFT(csound, rBuf, (nSamples << 1));
+      csound->RealFFT2(csound, p->fwdsetup, rBuf);
       /* update ring buffer position */
       p->rbCnt++;
       if (p->rbCnt >= p->nPartitions)
@@ -285,7 +289,7 @@ static int ftconv_perf(CSOUND *csound, FTCONV *p)
         multiply_fft_buffers(p->tmpBuf, p->ringBuf, p->IR_Data[n],
                              nSamples, p->nPartitions, rBufPos);
         /* inverse FFT */
-        csound->InverseRealFFT(csound, p->tmpBuf, (nSamples << 1));
+        csound->RealFFT2(csound, p->invsetup, p->tmpBuf);
         /* copy to output buffer, overlap with "tail" of previous block */
         x = &(p->outBuffers[n][0]);
         for (i = 0; i < nSamples; i++) {

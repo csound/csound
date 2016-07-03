@@ -1,0 +1,207 @@
+
+============================
+CSOUND VERSION 6.05
+RELEASE NOTES   VERSION 6.05
+============================
+
+As ever there are new facilities and numerous bug-fixes.  A major part of
+this release is the removal of a number of memory leaks and over use
+of memory.  Naturally these changes are all but invisible, just a
+smaller memory foot-print.
+
+Note that we track bugs and requests for enhancements via the github
+issues system,, and these had a significant affect on this release.
+
+The Developers 
+
+
+
+USER-LEVEL CHANGES
+==================
+
+New opcodes:
+
+    o    **None**
+
+    o    Thre opcode sndload is now deprecated
+
+New Gen and Macros:
+
+    o    Paul Octavian Nasca's padsynth algorithm implemented as a gen.
+
+Orchestra:
+
+Score:
+
+    o    Fixed string location calculation bug when processing score
+         lines [fixes #443] 
+
+Options:
+
+    o    A short-format copyright option is available, with a fixed
+         number of well-known licences (CC, etc)
+
+    o    New command-line option to report MIDI devices in simple
+         format
+
+    o    New command-line option to set ksmps
+
+
+Modified Opcodes and Gens:
+
+  o    adsynt handles amplitude changes better
+
+  o    sfont has better checking for corruptions
+
+  o    better checking in physical models for out-of-range frequencies
+
+  o    ftgenonce and others allows string parameters
+
+  o    gausstrig reworked and extended with new features
+
+  0    use of p() function no longer complains overrides the pcnt warning
+
+  o    fix to midirecv
+
+  o    OSCsend cleans up after use improved
+
+  o    fillarray is limited to 1 or 2 dimensional arrays; in fact it
+       failed silently previously for 3D and higher.
+       
+  o    oscbnk now works when the equaliser is used.
+
+  o    mp3in now works with both mono and stereo input files
+
+  o    flooper & flooper2 now allow stereo tables
+
+  o    Release phase of expsegr fixed
+
+  o    f-tables created by a large number of arguments could overwrite
+       memory, now fixed
+
+  o    performance of plltrack improved
+
+  o    init of arrays clarified and checked
+
+  o    gen23 corrected to stop an infinite loop
+
+  o    alwayson now starts from score offset; this is part of a fix to
+       the long-standing problem with alwayson in CsoundVST
+
+  o    invalue now checks for output string size and reallocates
+       memory if smaller than default string size (set at 256 bytes
+       for backwards compatibility)
+
+Utilities:
+
+  o    The srconv utilityy has been improved but it does not work well,
+       with groups of noise in otherwise good output.  We recomment
+       the use of Erik de Castro Lopo's Secret Rabbit Code (aka
+       libsamplerate) as providing sanmplrate conversion at high
+       quailty.  srconv wuill be removed shortly possibly to be
+       replaced by an SESRC-based utility.
+
+
+Frontends:
+
+  pnacl: added interface to allow the use of Csound's MIDI input system.
+         fixed audio input to conform to the latest Pepper API spec.
+
+
+  icsound:
+
+  csound~:
+
+  Emscripten:
+
+  csdebugger:
+
+
+General usage:
+
+
+Bugs fixed:
+
+    o   bugs in fastabi, oscktp, phasorbnk, adsr, xadsr, hrtfer fixed
+
+    o   bugs in the harmon. harmon2, harmon3 and harmon4 fixed
+
+    o   Csound could crash after a parsing error, a case now removed
+    
+====================
+SYSTEM LEVEL CHANGES
+====================
+
+System changes:
+
+    o    There are now checks that xin/xout types match those defined
+         as part of UDO definition.
+
+    o    jack now has a timeout
+    
+
+Internal changes:
+
+    * Many defects indicated by coverity fixed or code changed.
+      Should make csound more robust in edge cases.
+
+    * Parser-related changes simplifies allocation of temporary
+      variables, with some new optimisations.
+
+    * code for multi-thread rendering improved and stablised
+      vis-a-vis redefinition of instruments.
+
+API
+===
+    * 
+
+Platform Specific
+=================
+
+iOS
+---
+
+    * fixed audio callback to work correctly with lightning output and
+    Apple TV. 
+
+
+Android
+-------
+
+    * New experimental audio IO mode: csoundPerformKsmps() is called
+    from the OpenSL ES output callback. This mode can be optionally
+    enabled by passing a value of "false" to a new second parameter to
+    the CsoundObj constructor (bool isAsync).  The default constructor
+    and the one-parameter sets this to "true" (keeping backwards
+    compatibility with existing code).
+
+    * The OSC and exciter opcodes are included in distribution.
+
+    * There are new file open and save dialogs that permit the user to
+    access the SD card on the device, if there is one, in addition to
+    internal storage.
+    
+    * There is a new "Save as..." button that permits the user to save
+    the csd as a new file with a new name.
+
+    * Many of the examples in the archive of Android examples are now
+    built into the app and can be run from the app's menu.
+
+
+
+Windows
+-------
+
+OSX
+---
+       Installation now places csladspa.so rather than csladspa.dylib
+       on disk. 
+    
+Linux
+-----
+        Linux is now build without FLTK threads,  This removes system
+        hangs and is in line with other builds
+
+
+========================================================================
+

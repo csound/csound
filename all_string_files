@@ -73,6 +73,7 @@
 ./H/new_opts.h
 ./H/oload.h
 ./H/oscils.h
+./H/pfft.h
 ./H/prototyp.h
 ./H/remote.h
 ./H/resize.h
@@ -246,10 +247,16 @@
 ./Opcodes/follow.h
 ./Opcodes/fout.c
 ./Opcodes/fout.h
+./Opcodes/framebuffer/Framebuffer.c
+./Opcodes/framebuffer/Framebuffer.h
+./Opcodes/framebuffer/OLABuffer.c
+./Opcodes/framebuffer/OLABuffer.h
+./Opcodes/framebuffer/OpcodeEntries.c
 ./Opcodes/freeverb.c
 ./Opcodes/ftconv.c
 ./Opcodes/ftest.c
 ./Opcodes/ftgen.c
+./Opcodes/ftsamplebank.cpp
 ./Opcodes/gab/gab.c
 ./Opcodes/gab/gab.h
 ./Opcodes/gab/hvs.c
@@ -303,7 +310,6 @@
 ./Opcodes/moog1.c
 ./Opcodes/moog1.h
 ./Opcodes/mp3in.c
-./Opcodes/newarray.c
 ./Opcodes/newfils.c
 ./Opcodes/newfils.h
 ./Opcodes/nlfilt.c
@@ -317,6 +323,7 @@
 ./Opcodes/partials.c
 ./Opcodes/partikkel.c
 ./Opcodes/partikkel.h
+./Opcodes/paulstretch.c
 ./Opcodes/phisem.c
 ./Opcodes/phisem.h
 ./Opcodes/physmod.c
@@ -436,6 +443,8 @@
 ./Opcodes/wave-terrain.c
 ./Opcodes/wave-terrain.h
 ./Opcodes/wavegde.h
+./Opcodes/websockets/WebSocketOpcode.c
+./Opcodes/websockets/WebSocketOpcode.h
 ./Opcodes/wii_mac.h
 ./Opcodes/wiimote.c
 ./SDIF/sdif-mem.c
@@ -555,8 +564,7 @@
 ./frontends/csound/csound_main.c
 ./frontends/csound/sched.c
 ./frontends/csoundapi_tilde/csoundapi_tilde.c
-./frontends/winsound.cxx
-./frontends/winsound.h
+./frontends/winsound/winsound.fl
 ./frontends/winsound/main.cxx
 ./include/OpcodeBase.hpp
 ./include/cfgvar.h

@@ -49,8 +49,8 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <ctype.h>
-#include "sndfile.h"
-#include "samplerate.h"
+#include <sndfile.h>
+#include <samplerate.h>
 
 #define IBUF    (8192)
 #define OBUF    (8192)
@@ -492,7 +492,7 @@ int main(int argc, char **argv)
       float* input = (float*)calloc(sizeof(float), C*Chans);
       float* output = (float*)calloc(sizeof(float), C*Chans);
       int count = 0;
-      
+
       state = src_new(Q, Chans, &err);
       if (state==NULL) {
         fprintf(stderr,
@@ -540,7 +540,7 @@ int main(int argc, char **argv)
     err_msg[255] = '\0';
     fprintf(stderr, err_msg);
     return -1;
-}    
+}
 
 static const char *usage_txt[] = {
   Str_noop("usage: srconv [flags] infile\n\nflags:"),

@@ -9,11 +9,28 @@
             ],
             'conditions':
             [
-                ['OS=="win"',
+                 ['OS=="linux"',
                     {
                         'libraries':
                         [
-                            '-l$(CSOUND_HOME)/csound64.lib',
+                            '-L$(CSOUND_HOME) -lcsound64',
+                        ],
+                        'include_dirs':
+                        [
+                            '$(CSOUND_HOME)/include',
+                        ],
+ 			'cflags_cc!':
+			[
+              		'-fno-exceptions',
+			'-std=c++11',
+            		],
+		    }
+               ],
+               ['OS=="win"',
+                    {
+                        'libraries':
+                        [
+                            '-l$(CSOUND_HOME)/mingw64/csound64.lib',
                         ],
                         'include_dirs':
                         [

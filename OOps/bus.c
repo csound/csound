@@ -623,6 +623,22 @@ int notinit_opcode_stub(CSOUND *csound, void *p)
 
 /* print error message on failed channel query */
 
+static CS_NOINLINE void print_chn_err_perf(void *p, int err)
+{
+    CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
+    const char  *msg;
+
+    if (((OPDS*) p)->opadr != (SUBR) NULL)
+      ((OPDS*) p)->opadr = (SUBR) notinit_opcode_stub;
+    if (err == CSOUND_MEMORY)
+      msg = "memory allocation failure";
+    else if (err < 0)
+      msg = "invalid channel name";
+    else
+      msg = "channel already exists with incompatible type";
+    csound->Warning(csound, "%s", Str(msg));
+}
+
 static CS_NOINLINE int print_chn_err(void *p, int err)
 {
     CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
@@ -636,12 +652,24 @@ static CS_NOINLINE int print_chn_err(void *p, int err)
       msg = "invalid channel name";
     else
       msg = "channel already exists with incompatible type";
-    return csound->InitError(csound, Str(msg));
+    return csound->InitError(csound, "%s", Str(msg));
 }
+
 
 /* receive control value from bus at performance time */
 static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
+  if(strncmp(p->chname, p->iname->data, MAX_CHAN_NAME)){
+    int err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+                              CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+    if(err == 0) {
+    p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
+    strncpy(p->chname, p->iname->data, MAX_CHAN_NAME);
+    }
+    else
+      print_chn_err_perf(p, err);
+  }
+
 #ifdef HAVE_ATOMIC_BUILTIN
     volatile union {
     MYFLT d;
@@ -661,6 +689,17 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
+
+    if(strncmp(p->chname, p->iname->data, MAX_CHAN_NAME)){
+    int err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+                              CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
+    if(err == 0) {
+    p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
+    strncpy(p->chname, p->iname->data, MAX_CHAN_NAME);
+    }
+    else
+      print_chn_err_perf(p, err);
+      }
 
     if(CS_KSMPS == (unsigned int) csound->ksmps) {
     csoundSpinLock(p->lock);
@@ -689,7 +728,6 @@ static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
 int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
 {
     int   err;
-
     err = csoundGetChannelPtr(csound, &(p->fp), p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
@@ -706,6 +744,7 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
 #else
     *(p->arg) = *(p->fp);
 #endif
+
     return OK;
 }
 
@@ -714,14 +753,16 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
 int chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
 {
     int   err;
-
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
     if (LIKELY(!err)) {
+      strncpy(p->chname, p->iname->data, MAX_CHAN_NAME);
       p->h.opadr = (SUBR) chnget_opcode_perf_k;
       return OK;
     }
+
+
     return print_chn_err(p, err);
 }
 
@@ -736,6 +777,7 @@ int chnget_opcode_init_a(CSOUND *csound, CHNGET *p)
     p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
 
     if (LIKELY(!err)) {
+      strncpy(p->chname, p->iname->data, MAX_CHAN_NAME);
       p->h.opadr = (SUBR) chnget_opcode_perf_a;
       return OK;
     }
@@ -1291,18 +1333,22 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
 
         retval = select(1, &rfds, NULL, NULL, &tv);
 
-        if (retval) {
+        if (retval>0) {
           char    ch = '\0';
-          if (UNLIKELY(read(0, &ch, 1)!=1)) {
+          int n=0;
+          if (UNLIKELY((n=read(0, &ch, 1))<0)) {
             csound->PerfError(csound, p->h.insdshead,
                               Str("read failure in sensekey\n"));
             return NOTOK;
           }
+          //if n==0 then EOF which we treat as empty
+          else ch = '\0';
           keyCode = (int)((unsigned char) ch);
           /* FD_ISSET(0, &rfds) will be true. */
         }
+        else if (retval<0) perror(Str("sensekey error:"));
 #else
-        unsigned char ch = (unsigned char) 0;
+        unsigned char ch = (unsigned char) '\0';
 #  ifdef WIN32
         if (_kbhit())
           ch = (unsigned char) _getch();

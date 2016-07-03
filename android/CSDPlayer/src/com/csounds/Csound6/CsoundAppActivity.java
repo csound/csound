@@ -431,11 +431,12 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 			} while (read >= 0);
 			in.close();
 			String csdText = contents.toString();
-			int start = csdText.indexOf("<CsHtml5>") + 9;
-			int end = csdText.indexOf("</CsHtml5>");
+			int start = csdText.indexOf("<html");
+			int end = csdText.indexOf("</html>") + 7;
 			if (!(start == -1 || end == -1)) {
 				html5Page = csdText.substring(start, end);
 				if (html5Page.length() > 1) {
+					webLayout.setLayerType(View.LAYER_TYPE_NONE, null);
 					webLayout.setVisibility(View.VISIBLE);
 					channelsLayout.setVisibility(View.GONE);
 					WebSettings settings = webLayout.getSettings();

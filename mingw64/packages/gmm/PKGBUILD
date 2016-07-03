@@ -1,0 +1,23 @@
+# $ Id: $
+# Maintainer: Pierre Schmitz <pierre@archlinux.de>
+
+pkgname=gmm++
+pkgver=3.1
+pkgrel=1
+pkgdesc="A generic C++ template library for sparse, dense and skyline matrices"
+arch=('i586' 'i686' 'x86_64')
+license=('LGPL')
+url="http://home.gna.org/getfem/gmm_intro"
+source=(http://download.gna.org/getfem/stable/gmm-${pkgver}.tar.gz)
+md5sums=('5706d23bf3bb6d06d3d7e5889cf8554d')
+
+build() {
+	cd $srcdir/gmm-${pkgver}
+    autoreconf
+	./configure CXX=g++ --prefix="${pkgdir}${MINGW_PREFIX}"
+	make
+}
+package() {
+	cd $srcdir/gmm-${pkgver}
+	make install
+}

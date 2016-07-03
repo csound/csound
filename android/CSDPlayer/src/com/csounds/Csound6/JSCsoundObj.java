@@ -226,5 +226,12 @@ public class JSCsoundObj extends CsoundObj {
             csound_.Message(text);
         }
 	}
+	@JavascriptInterface
+	public void message(String text) {
+        Csound csound_ = super.getCsound();
+        if (csound_ != null) {
+            csound_.Message(text);
+        }
+	}
 
 }

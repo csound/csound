@@ -74,7 +74,7 @@ int kdmpset_p(CSOUND *csound, KDUMP *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if(ISSTRCOD(*p->ifilcod))
+    if (csound->ISSTRCOD(*p->ifilcod))
       strncpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
@@ -127,7 +127,7 @@ int kdmp2set_p(CSOUND *csound, KDUMP2 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if(ISSTRCOD(*p->ifilcod))
+    if (csound->ISSTRCOD(*p->ifilcod))
       strncpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
@@ -182,7 +182,7 @@ int kdmp3set_p(CSOUND *csound, KDUMP3 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if(ISSTRCOD(*p->ifilcod))
+    if (csound->ISSTRCOD(*p->ifilcod))
       strncpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
@@ -234,7 +234,7 @@ int kdmp4set_p(CSOUND *csound, KDUMP4 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if(ISSTRCOD(*p->ifilcod))
+    if (csound->ISSTRCOD(*p->ifilcod))
       strncpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
@@ -383,7 +383,7 @@ int krdset_p(CSOUND *csound, KREAD *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-     if(ISSTRCOD(*p->ifilcod))
+     if (csound->ISSTRCOD(*p->ifilcod))
        strncpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
@@ -463,7 +463,7 @@ int krd2set_p(CSOUND *csound, KREAD2 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if(ISSTRCOD(*p->ifilcod))
+    if (csound->ISSTRCOD(*p->ifilcod))
       strncpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
@@ -517,7 +517,7 @@ int krd3set_p(CSOUND *csound, KREAD3 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if(ISSTRCOD(*p->ifilcod))
+    if (csound->ISSTRCOD(*p->ifilcod))
       strncpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
@@ -571,7 +571,7 @@ int krd4set_p(CSOUND *csound, KREAD4 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if(ISSTRCOD(*p->ifilcod))
+    if (csound->ISSTRCOD(*p->ifilcod))
       strncpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
@@ -759,7 +759,7 @@ int krdsset_S(CSOUND *csound, KREADS *p)
     p->countdown = 0;
     p->lasts = (char*)csound->Calloc(csound, INITSIZE);
     p->lasts[0] = '\0';
-     if(p->str->data == NULL) {
+     if (p->str->data == NULL) {
        p->str->data = csound->Calloc(csound, INITSIZE);
         p->str->size = INITSIZE;
     }
@@ -771,7 +771,7 @@ int krdsset_p(CSOUND *csound, KREADS *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    if(ISSTRCOD(*p->ifilcod))
+    if (csound->ISSTRCOD(*p->ifilcod))
       strncpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
@@ -786,9 +786,9 @@ int krdsset_p(CSOUND *csound, KREADS *p)
     p->countdown = 0;
     p->lasts = (char*)csound->Malloc(csound, INITSIZE);
     p->lasts[0] = '\0';
-     if(p->str->data == NULL) {
+     if (p->str->data == NULL) {
        p->str->data = csound->Calloc(csound, INITSIZE);
-        p->str->size = INITSIZE;
+       p->str->size = INITSIZE;
     }
     return OK;
 }

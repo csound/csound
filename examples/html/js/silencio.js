@@ -3,15 +3,40 @@ S I L E N C I O
 
 Copyright (C) 2014 by Michael Gogins
 
-This software is licensed under the terms of the 
+This software is licensed under the terms of the
 GNU Lesser General Public License
 
-Algorithmic music composition library in JavaScript for Csound.
+Part of Silencio, an algorithmic music composition library for Csound.
+
+DEVELOPMENT LOG
+
+2015-07-15
+
+Silencio.js was relatively easy, ChordSpace.js is going to be harder. The main
+problems are that JavaScript does not permit operator overloading, and it does
+not implement deep clones or deep value comparisons out of the box.
+
+ I will omit the chord space group stuff because it will not always be
+ possible to save the chord space group files, which are necessarily for
+ efficient use with chords of more than 3 or 4 voices.
+
+It is now clear that Lua (and especially LuaJIT) is a rather superior
+language; and yet, JavaScript provides everything that I need.
+
+TO DO
+
+--  Implement various scales found in 20th and 21st century harmony
+    along with 'splitting' and 'merging' operations.
+
+--  Implement tendency masks.
+
+--  Implement Xenakis sieves.
+
 */
 
 (function() {
 /**
-A Score is a matrix in which the rows are events.
+A Score is a matrix in which the rows are Events.
 
 An Event is a homogeneous vector with the following dimensions:
 
@@ -28,11 +53,11 @@ An Event is a homogeneous vector with the following dimensions:
 11 Homogeneity, normally always 1.
 
 NOTE: ECMASCRIPT 5 doesn't support inheritance from Array
-in a clean and complete way, so we don't even try. 
+in a clean and complete way, so we don't even try.
 */
 
 function eq_epsilon(a, b) {
-  var epsilon_factor = 100 * Math.EPSILON;
+  var epsilon_factor = 100 * Number.EPSILON;
   if (Math.abs(a - b) > epsilon_factor) {
     return false;
   }
@@ -42,6 +67,16 @@ function eq_epsilon(a, b) {
 function lt_epsilon(a, b) {
   if (eq_epsilon(a, b)) {
     return false;
+  }
+  if (a < b) {
+    return true;
+  }
+  return false;
+}
+
+function le_epsilon(a, b) {
+  if (eq_epsilon(a, b)) {
+    return true;
   }
   if (a < b) {
     return true;
@@ -59,8 +94,19 @@ function gt_epsilon(a, b) {
   return false;
 }
 
+function ge_epsilon(a, b) {
+  if (eq_epsilon(a, b)) {
+    return true;
+  }
+  if (a > b) {
+    return true;
+  }
+  return false;
+}
+
 function Event() {
   this.data = [0,0,144,0,0,0,0,0,0,0,1];
+  this.chord = null;
   Object.defineProperty(this,"time",{
     get: function() { return this.data[0]; },
     set: function(value) { this.data[0] = value; }
@@ -70,16 +116,17 @@ function Event() {
     set: function(value) { this.data[1] = value; }
   });
   Object.defineProperty(this,"end",{
-    get: function() { 
-      return this.data[0] + this.data[1]; 
+    get: function() {
+      return this.data[0] + this.data[1];
     },
-    set: function(x2) 
-    { 
-      var x1 = this.data[0]
-      var start = Math.min(x1, x2);
-      var end = Math.max(x1, x2);
-      this.data[0] = start;
-      this.data[1] = end - start;
+    set: function(end_) {
+        var duration_ = end_ - this.data[0];
+        if (duration_ > 0) {
+            this.data[1] = duration_;
+        } else {
+            this.data[0] = this.data[0] + duration_;
+            this.data[1] = -1 * duration_;
+        }
     }
   });
   Object.defineProperty(this,"status",{
@@ -131,14 +178,16 @@ Event.Z = 8;
 Event.PHASE = 9;
 Event.HOMOGENEITY = 10;
 Event.COUNT = 11;
+
 Event.prototype.toString = function() {
   var text = '';
   for (var i = 0; i < this.data.length; i++) {
-    text = text.concat(' ', this.data[i].toFixed(6)); 
+    text = text.concat(' ', this.data[i].toFixed(6));
   }
   text = text.concat('\n');
   return text;
 }
+
 Event.prototype.toIStatement = function() {
   var text = 'i';
   text = text.concat(' ', this.data[3].toFixed(6));
@@ -152,13 +201,17 @@ Event.prototype.toIStatement = function() {
   text = text.concat(' ', this.data[9].toFixed(6));
   return text;
 }
+
 Event.prototype.temper = function(tonesPerOctave) {
-  tonesPerOctave = tonesPerOctave || 12;
+  if (typeof tonesPerOctave === 'undefined') {
+      tonesPerOctave = 12;
+  }
   var octave = this.key / 12;
   var tone = Math.floor((octave * tonesPerOctave) + 0.5);
   octave = tone / tonesPerOctave;
   this.key = octave * 12;
 }
+
 Event.prototype.clone = function() {
   other = new Event();
   other.data = this.data.slice(0);
@@ -173,25 +226,28 @@ function Score() {
 }
 Score.prototype.add = function(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) {
   var event = new Event();
-  for (var i = 0; i < event.length; i++) {
-    if (arguments[i] !== undefined) {
-      event[i] = arguments[i];
+  for (var i = 0; i < event.data.length; i++) {
+    if (typeof arguments[i] !== 'undefined') {
+      event.data[i] = arguments[i];
      }
   }
   this.data.push(event);
 }
+
 Score.prototype.append = function(event) {
   this.data.push(event);
 }
+
 Score.prototype.clear = function () {
   while(this.data.length > 0) {
     this.data.pop();
   }
 }
+
 Score.prototype.getDuration = function () {
   this.sort();
   this.findScale(0);
-  var duration = 0; 
+  var duration = 0;
   for (var i = 0; i < this.data.length; i++) {
     var event = this.data[i];
     if (i == 0) {
@@ -205,8 +261,9 @@ Score.prototype.getDuration = function () {
   }
   return duration;
 }
+
 Score.prototype.log = function (what) {
-  if (what === undefined) {
+  if (typeof what === 'undefined') {
     what = '';
   } else {
     what = what + ': ';
@@ -216,12 +273,13 @@ Score.prototype.log = function (what) {
     csound.message(what + event.toString());
   }
 }
+
 Score.prototype.setDuration = function (duration) {
   this.sort();
   var start = this.data[0].time;
   for (var i = 0; i < this.data.length; i++) {
     var event = this.data[i];
-    event.data[0] = event.data[0] - start;  
+    event.data[0] = event.data[0] - start;
   }
   var currentDuration = this.data[0].end;
   for (var i = 0; i < this.data.length; i++) {
@@ -233,39 +291,61 @@ Score.prototype.setDuration = function (duration) {
   var factor = Math.abs(duration / currentDuration);
   for (var i = 0; i < this.data.length; i++) {
     var event = this.data[i];
-    event.data[0] = event.data[0] * factor; 
-    event.data[1] = event.data[1] * factor; 
+    event.data[0] = event.data[0] * factor;
+    event.data[1] = event.data[1] * factor;
   }
 }
+
 Score.prototype.sendToCsound = function(csound, extra) {
-  extra = extra || 5.0;
-  this.sort();
-  var duration = this.getDuration() + extra;
-  jscore = 'f 0 ' + duration + ' 0\n';
-  for (var i = 0; i < this.data.length; i++) {
-    jscore += this.data[i].toIStatement() + '\n';
-  }
-  csound.readScore(jscore);
+    if (typeof extra === 'undefined') {
+        jscore = '';
+    } else {
+        extra = 5.0;
+        this.sort();
+        var duration = this.getDuration() + extra;
+        jscore = 'f 0 ' + duration + ' 0\n';
+    }
+    for (var i = 0; i < this.data.length; i++) {
+        var event = this.data[i];
+        var pfields = [];
+        pfields.push(event.data[3]);
+        pfields.push(event.data[0]);
+        pfields.push(event.data[1]);
+        pfields.push(event.data[4]);
+        pfields.push(event.data[5]);
+        pfields.push(event.data[6]);
+        pfields.push(event.data[7]);
+        pfields.push(event.data[8]);
+        pfields.push(event.data[9]);
+    }
+    csound.scoreEvent('i', pfields);
+  //for (var i = 0; i < this.data.length; i++) {
+  //  jscore += this.data[i].toIStatement() + '\n';
+  //}
+  // Still too slow!...
+  //csound.inputMessage(jscore);
 }
+
 Score.prototype.findScales = function() {
   for (var i = 0; i < this.minima.data.length; i++) {
     this.findScale(i);
   }
 }
+
 Score.prototype.findScale = function(dimension) {
   var min = Number.NaN;
   var max = Number.NaN;
   for (var i = 0; i < this.data.length; i++) {
     var value = this.data[i].data[dimension];
     if (i === 0) {
-      min = value; 
-      max = value; 
+      min = value;
+      max = value;
     } else {
       if (value < min) {
-        min = value; 
+        min = value;
       }
       if (value > max) {
-        max = value; 
+        max = value;
       }
     }
   }
@@ -273,6 +353,7 @@ Score.prototype.findScale = function(dimension) {
   this.maxima.data[dimension] = max;
   this.ranges.data[dimension] = max - min;
 }
+
 Score.prototype.setScale = function(dimension, minimum, range) {
   this.findScale(dimension);
   var toOrigin = this.minima.data[dimension];
@@ -281,7 +362,7 @@ Score.prototype.setScale = function(dimension, minimum, range) {
     currentRange = 1;
   }
   var rescale = range / currentRange;
-  if (range === undefined) {
+  if (typeof range === 'undefined') {
     rescale = 1;
   }
   var translate = minimum;
@@ -289,49 +370,68 @@ Score.prototype.setScale = function(dimension, minimum, range) {
     var value = this.data[i].data[dimension];
     value -= toOrigin;
     value *= rescale;
-    value += translate; 
-    this.data[i].data[dimension] = value; 
+    value += translate;
+    this.data[i].data[dimension] = value;
   }
 }
+
 Score.prototype.temper = function(tonesPerOctave) {
   for (var i = 0; i < this.data.length; i++) {
     this.data[i].temper(tonesPerOctave);
   }
 }
+
 Score.prototype.sort = function() {
   this.data.sort(eventComparator);
 }
+
 Score.prototype.tieOverlaps = function(tieExact) {
   csound.message("Before tieing: " + this.data.length + "\n");
-  tieExact = tieExact || false;
+  if (typeof tieExact === 'undefined') {
+      tieExact = false;
+  }
   this.sort();
   for (var laterI = this.data.length - 1; laterI >= 0; laterI--) {
     var laterEvent = this.data[laterI];
     if (laterEvent.status === 144) {
-      if (laterEvent.duration <= 0 || laterEvent.velocity <= 0) {
-        this.data.pop();
-      } else {
         for (var earlierI = laterI - 1; earlierI >= 0; earlierI--) {
           var earlierEvent = this.data[earlierI];
-          var later = false;
+        if (earlierEvent.status === 144) {
+          var overlaps = false;
           if (tieExact) {
-            later = !lt_epsilon(earlierEvent.end, laterEvent.time);
+            overlaps = ge_epsilon(earlierEvent.end, laterEvent.time);
           } else {
-            later = gt_epsilon(earlierEvent.end, laterEvent.time);          
+            overlaps = gt_epsilon(earlierEvent.end, laterEvent.time);
           }
-          if (earlierEvent.status === 144 &&
-              Math.floor(earlierEvent.channel) === Math.floor(laterEvent.channel) &&
-              Math.round(earlierEvent.key) === Math.round(laterEvent.key) &&
-              later) 
+          if (overlaps === true) {
+            if ((Math.floor(earlierEvent.channel) === Math.floor(laterEvent.channel)) &&
+                (Math.round(earlierEvent.key) === Math.round(laterEvent.key)))
           {
-            earlierEvent.end = laterEvent.end;
-            this.data.splice(laterI, 1);
+              //console.log('Tieing: ' + earlierI + ' ' + earlierEvent.toString());
+              //console.log('    to: ' + laterI + ' ' + laterEvent.toString());
+              earlierEvent.end = laterEvent.end;
+              laterEvent.duration = 0;
+              laterEvent.velocity = 0;
+              //console.log('Result: ' + earlierI + ' ' +  earlierEvent.toString() + '\n');
+              break;
           }
         }
       }
     }
   }
-  csound.message("After tieing: " + this.data.length + "\n");}
+  }
+  // Get rid of notes that will not sound (again).
+  for (var laterI = this.data.length - 1; laterI >= 0; laterI--) {
+    var laterEvent = this.data[laterI];
+    if (laterEvent.status === 144) {
+      if ((laterEvent.duration <= 0) || (laterEvent.velocity <= 0)) {
+        this.data.splice(laterI, 1);
+      }
+    }
+  }
+  csound.message("After tieing: " + this.data.length + "\n");
+}
+
 Score.prototype.draw = function(canvas, W, H) {
   this.findScales();
   csound.message("minima:  " + this.minima + "\n");
@@ -377,6 +477,41 @@ Score.prototype.draw = function(canvas, W, H) {
     //csound.message("note " + i + ": " + x1 + ", " + x2 + ", " + y + "\n");
   }
 }
+
+Score.prototype.toString = function() {
+    var result = '';
+    for (var i = 0; i < this.data.length; i++) {
+        var event = this.data[i];
+        result = result.concat(event.toString());
+    };
+    return result;
+};
+
+Score.prototype.size = function() {
+    return this.data.length;
+};
+
+Score.prototype.get = function(index) {
+    return this.data[index];
+};
+
+// Returns the sub-score containing events
+// starting at or later than the begin time,
+// and up to but not including the end time.
+// The events in the slice are references.
+Score.prototype.slice = function(begin, end_) {
+    this.sort();
+    var s = new Silencio.Score();
+    for (var index = 0; index < this.size(); index++) {
+        var event = this.data [index];
+        var time_ = event.time;
+        if (time_ >= begin && time_ < end_) {
+            s.append(event.clone ());
+        };
+    };
+    return s;
+};
+
 function eventComparator(a, b) {
   for (var i = 0; i < a.data.length; i++) {
     var avalue = a.data[i];
@@ -401,6 +536,7 @@ Turtle.prototype.reset = function() {
   this.stack = [];
   this.instrument = 'red';
   this.tempo = 1;
+  this.event = new Silencio.Event();
  };
 Turtle.prototype.next = function() {
   return {
@@ -445,7 +581,7 @@ Turtle.prototype.downTempo = function() {
   this.tempo = this.tempo * 1.25;
 };
 Turtle.prototype.push = function() {
-  this.stack.push({'p': this.p, 'angle': this.angle, 'instrument': this.instrument, 'tempo': this.tempo});
+  this.stack.push({'p': this.p, 'angle': this.angle, 'instrument': this.instrument, 'tempo': this.tempo, 'event': this.event.clone()});
 };
 Turtle.prototype.pop = function() {
   var s = this.stack.pop();
@@ -453,13 +589,13 @@ Turtle.prototype.pop = function() {
   this.angle = s.angle;
   this.instrument = s.instrument;
   this.tempo = s.tempo;
+  this.event = s.event;
 };
 function LSys() {
   this.axiom = '';
   this.rules = {};
   this.prior = '';
-  this.score = new silencio.Score();
-  this.event = new silencio.Event();
+  this.score = new Silencio.Score();
   return this;
 }
 LSys.prototype.addRule = function(c, replacement) {
@@ -484,14 +620,14 @@ LSys.prototype.generate = function(n) {
 LSys.prototype.draw = function(t, context, W, H) {
   context.fillStyle = 'black';
   context.fillRect(0, 0, W, H);
-  // Draw for size. 
+  // Draw for size.
   t.reset();
   var size = [t.p.x, t.p.y, t.p.x, t.p.y];
   for (var i=0; this.sentence.length > i; i++) {
     var c = this.sentence[i];
     this.interpret(c, t, context, size);
   }
-  // Draw to show. 
+  // Draw to show.
   var xsize = size[2] - size[0];
   var ysize = size[3] - size[1];
   var xscale = Math.abs(W / xsize);
@@ -520,29 +656,27 @@ LSys.prototype.findSize = function(t, size) {
     size[3] = t.p.y;
   }
 };
-LSys.prototype.startNote = function(t) {
-  var hsv = tinycolor(t.instrument).toHsv();
+Turtle.prototype.startNote = function() {
+  var hsv = tinycolor(this.instrument).toHsv();
+  this.event = new Silencio.Event();
   this.event.channel = hsv.h;
-  this.event.time = t.p.x;
-  this.event.key = - t.p.y;
+  this.event.time = this.p.x;
+  this.event.key = - this.p.y;
   this.event.velocity = hsv.v;
   this.event.pan = Math.random();
 }
-LSys.prototype.endNote = function(t) {
-  // Handle the note ending before it starts. 
-  var x1 = this.event.time;
-  var x2 = t.p.x;
-  this.event.time = Math.min(x1, x2);
-  this.event.end = Math.max(x1, x2);
+Turtle.prototype.endNote = function(score) {
+  this.event.end = this.p.x;
   if (this.event.duration > 0) {
     var event = this.event.clone();
-    this.score.data.push(event);
+    score.data.push(event);
   }
 }
 LSys.prototype.interpret = function(c, t, context, size) {
+  //csound.message('c:' + c + '\n');
   if (c === 'F') {
-    if (size === undefined) {
-      this.startNote (t);
+    if (typeof size === 'undefined') {
+      t.startNote();
       t.go(context);
     } else {
       t.move();
@@ -559,9 +693,9 @@ LSys.prototype.interpret = function(c, t, context, size) {
   else if (c === 'v') t.downVelocity();
   else if (c === 'T') t.upTempo();
   else if (c === 't') t.downTempo();
-  if (size === undefined) {
+  if (typeof size === 'undefined') {
     if (c === 'F') {
-      this.endNote (t);
+      t.endNote(this.score);
     }
     this.prior = c;
   } else {
@@ -654,10 +788,14 @@ function Recurrent(generators, transitions, depth, index, cursor, score)
     }
 }
 
-var silencio = {
+console.log('browser:  ' + navigator.appName)
+console.log('platform: ' + navigator.platform)
+var Silencio = {
   eq_epsilon: eq_epsilon,
   gt_epsilon: gt_epsilon,
   lt_epsilon: lt_epsilon,
+  ge_epsilon: ge_epsilon,
+  le_epsilon: le_epsilon,
   Event: Event,
   Score: Score,
   Turtle: Turtle,
@@ -667,15 +805,15 @@ var silencio = {
 };
 // Node: Export function
 if (typeof module !== "undefined" && module.exports) {
-    module.exports = silencio;
+    module.exports = Silencio;
 }
 // AMD/requirejs: Define the module
 else if (typeof define === 'function' && define.amd) {
-    define(function () {return silencio;});
+    define(function () {return Silencio;});
 }
 // Browser: Expose to window
 else {
-    window.silencio = silencio;
+    window.Silencio = Silencio;
 }
 
 })();

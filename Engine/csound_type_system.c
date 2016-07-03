@@ -211,7 +211,8 @@ int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
     // may need to revise this; var pools are accessed as MYFLT*,
     // so need to ensure all memory is aligned to sizeof(MYFLT)
     // boundaries maybe should align block size here to +7 before dividing?
-    var->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) + (pool->varCount + 1);
+    var->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) +
+      ((pool->varCount + 1) * (CS_VAR_TYPE_OFFSET / sizeof(MYFLT)));
     pool->poolSize += var->memBlockSize;
     pool->varCount += 1;
     return 0;
@@ -231,7 +232,8 @@ void recalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool)
         current->updateMemBlockSize(csound, current);
       }
 
-      current->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) + varCount;
+      current->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) +
+        (varCount * CS_VAR_TYPE_OFFSET / sizeof(MYFLT));
       pool->poolSize += current->memBlockSize;
 
       current = current->next;
@@ -253,8 +255,8 @@ void reallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
         current->updateMemBlockSize(csound, current);
       }
       // VL 14-3-2015 only realloc if we need to
-      if(memSize < current->memBlockSize) {
-          memSize = sizeof(CS_VAR_MEM) - sizeof(MYFLT) + current->memBlockSize;
+      if(memSize < (size_t)current->memBlockSize) {
+          memSize = CS_VAR_TYPE_OFFSET + current->memBlockSize;
           varMem =
                (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound,varMem,
                                              memSize);

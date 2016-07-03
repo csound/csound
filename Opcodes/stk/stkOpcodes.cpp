@@ -17,7 +17,7 @@
   02111-1307 USA
 */
 /*
- * CSOUND 5 OPCODES FOR PERRY COOK'S SYNTHESIS TOOLKIT IN C++ (STK) INSTRUMENT
+ * CSOUND 5/6 OPCODES FOR PERRY COOK'S SYNTHESIS TOOLKIT IN C++ (STK) INSTRUMENT
  *
  * This code is copyright (C) 2005 by Michael Gogins. It is licensed under the
  * same terms as the Synthesis Tookit in C++ by Perry R. Cook and Gary P. Scavone.
@@ -28,8 +28,6 @@
  * csound6/Opcodes/stk/include
  * csound6/Opcodes/stk/src
  * csound6/Opcodes/stk/rawwaves
- *
- * Also, specify buildStkOpcodes=1 for SCons.
  *
  * To use these opcodes, define a RAWWAVE_PATH environment variable that points
  * to your rawwaves directory, which contains raw soundfiles with function table
@@ -48,6 +46,7 @@
  * See the STK class documentation to determine the controller numbers
  * used by each instrument.
  */
+#ifndef JPFF
 #include <Stk.h>
 #include <BandedWG.h>
 #include <BeeThree.h>
@@ -77,7 +76,37 @@
 #include <VoicForm.h>
 #include <Whistle.h>
 #include <Wurley.h>
-
+#else
+#include "include/Stk.h"
+#include "include/BandedWG.h"
+#include "include/BeeThree.h"
+#include "include/BlowBotl.h"
+#include "include/BlowHole.h"
+#include "include/Bowed.h"
+#include "include/Brass.h"
+#include "include/Clarinet.h"
+#include "include/Drummer.h"
+#include "include/Flute.h"
+#include "include/FMVoices.h"
+#include "include/HevyMetl.h"
+#include "include/Mandolin.h"
+//#include "include/Mesh2D.h"
+#include "include/ModalBar.h"
+#include "include/Moog.h"
+#include "include/PercFlut.h"
+#include "include/Plucked.h"
+#include "include/Resonate.h"
+#include "include/Rhodey.h"
+#include "include/Saxofony.h"
+#include "include/Shakers.h"
+#include "include/Simple.h"
+#include "include/Sitar.h"
+#include "include/StifKarp.h"
+#include "include/TubeBell.h"
+#include "include/VoicForm.h"
+#include "include/Whistle.h"
+#include "include/Wurley.h"
+#endif
 using namespace stk;
 
 #define __BUILDING_LIBCSOUND
@@ -87,6 +116,7 @@ using namespace stk;
 
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 #include <string>
 #include <map>
 #include <vector>
@@ -719,16 +749,27 @@ extern "C"
 #endif
     if(!path)
       {
-        csound->ErrorMsg(csound,
-                         Str("Error: define environment variable RAWWAVE_PATH\n"
+        csound->Warning(csound,
+                        Str("STK opcodes not available: define environment "
+                            "variable RAWWAVE_PATH\n"
                              "(points to rawwaves directory) to use STK opcodes."));
         return 0;
       }
     else
       {
+#if !defined(MACOSX)
+        if (std::strlen(path) == 0) {
+            path = std::getenv("RAWWAVE_PATH");
+        }
+#endif
+#if !defined(WIN32)
         csound_global_mutex_lock();
+#endif
+
         Stk::setRawwavePath(path);
+#if !defined(WIN32)
         csound_global_mutex_unlock();
+#endif
         csound->DebugMsg(csound,
                          Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
       }
@@ -752,7 +793,7 @@ extern "C"
       for(size_t i = 0, n = getStkInstances()[csound].size(); i < n; ++i) {
         delete getStkInstances()[csound][i];
       }
-      getStkInstances()[csound].clear();
+      //getStkInstances()[csound].clear();
       getStkInstances().erase(csound);
     }
     return 0;

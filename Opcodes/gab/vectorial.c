@@ -2195,6 +2195,11 @@ static int vseg_set(CSOUND *csound,VSEG *p)
     FUNC *nxtfunc, *curfunc, *ftp;
     int32        flength;
 
+    if(!(p->INCOUNT & 1)){
+      csound->InitError(csound, "incomplete number of input arguments");
+      return NOTOK;
+    }
+
     nsegs = ((p->INCOUNT-2) >> 1);      /* count segs & alloc if nec */
 
     if ((segp = (TSEG *) p->auxch.auxp) == NULL) {
@@ -2607,8 +2612,8 @@ OENTRY vectorial_localops[] = {
   { "vlimit", S(VLIMIT),  TR, 3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vlimit },
   { "vwrap",  S(VLIMIT),  TB, 3, "",  "ikki",(SUBR)vlimit_set, (SUBR) vwrap },
   { "vmirror", S(VLIMIT),  0,   3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vmirror },
-  { "vlinseg", S(VSEG),   TB, 3, "",  "iin", (SUBR)vseg_set,   (SUBR)vlinseg },
-  { "vexpseg", S(VSEG),    0,   3, "",  "iin", (SUBR)vseg_set, (SUBR)vexpseg },
+  { "vlinseg", S(VSEG),   TB, 3, "",  "iim", (SUBR)vseg_set,   (SUBR)vlinseg },
+  { "vexpseg", S(VSEG),    0,   3, "",  "iim", (SUBR)vseg_set, (SUBR)vexpseg },
   { "vrandh", S(VRANDH),  TB, 3, "",  "ikkiovoo",(SUBR)vrandh_set, (SUBR)vrandh},
   { "vrandi", S(VRANDI),  TB, 3, "",  "ikkiovoo",(SUBR)vrandi_set, (SUBR)vrandi },
   { "vport",  S(VPORT),   TB, 3, "",  "ikio",(SUBR)vport_set,  (SUBR)vport   },

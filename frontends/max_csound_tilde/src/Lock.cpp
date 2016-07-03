@@ -88,51 +88,6 @@ void abstract_lock::setName(char *name)
 /*****************************************************************************************/
 /*****************************************************************************************/
 
-plock::plock(char *name) : abstract_lock(name)
-{
-	pthread_mutex_init(&m_mutex, NULL);
-}
-
-plock::~plock()
-{
-	pthread_mutex_destroy(&m_mutex);
-}
-
-void plock::lock(char *context)
-{
-	#ifdef _DEBUG
-		int result;
-		result = pthread_mutex_lock(&m_mutex);
-		if(0 == result) 
-			log_lock(context);
-	#else
-		pthread_mutex_lock(&m_mutex);
-	#endif
-}
-
-void plock::trylock(char *context)
-{
-	#ifdef _DEBUG
-		int result;
-		result = pthread_mutex_trylock(&m_mutex);
-		if(0 == result)
-			log_lock(context);
-	#else
-		pthread_mutex_trylock(&m_mutex);
-	#endif
-}
-
-void plock::unlock(char *context)
-{
-	#ifdef _DEBUG
-		log_unlock(context);
-	#endif
-	pthread_mutex_unlock(&m_mutex);
-}
-
-/*****************************************************************************************/
-/*****************************************************************************************/
-
 #ifdef MACOSX
 
 spinlock::spinlock(char *name) : abstract_lock(name)
@@ -150,16 +105,6 @@ void spinlock::lock(char *context)
 	#ifdef _DEBUG
 		log_lock(context);
 	#endif
-}
-
-inline void spinlock::trylock(char *context)
-{
-	if(OSSpinLockTry(&m_slock))
-	{
-		#ifdef _DEBUG
-			log_lock(context);
-		#endif
-	}
 }
 
 void spinlock::unlock(char *context)
@@ -200,62 +145,12 @@ void spinlock::lock(char *context)
 	#endif
 }
 
-inline void spinlock::trylock(char *context)
-{
-	lock(context);
-}
-
 void spinlock::unlock(char *context)
 {
 	#ifdef _DEBUG
 		log_unlock(context);
 	#endif
 	InterlockedExchange(m_long, *m_0);
-}
-
-/*****************************************************************************************/
-/*****************************************************************************************/
-
-pspinlock::pspinlock(char *name) : abstract_lock(name)
-{
-	pthread_spin_init(&m_spinlock, PTHREAD_PROCESS_PRIVATE);
-}
-
-pspinlock::~pspinlock()
-{
-	pthread_spin_destroy(&m_spinlock);
-}
-
-void pspinlock::lock(char *context)
-{
-	#ifdef _DEBUG
-		int result;
-		result = pthread_spin_lock(&m_spinlock);
-		if(0 == result)
-			log_lock(context);
-	#else
-		pthread_spin_lock(&m_spinlock);
-	#endif
-}
-
-void pspinlock::trylock(char *context)
-{
-	#ifdef _DEBUG
-		int result;
-		result = pthread_spin_trylock(&m_spinlock);
-		if(0 == result)
-			log_lock(context);
-	#else
-		pthread_spin_trylock(&m_spinlock);
-	#endif
-}
-
-void pspinlock::unlock(char *context)
-{
-	#ifdef _DEBUG
-		log_unlock(context);
-	#endif
-	pthread_spin_unlock(&m_spinlock);
 }
 
 // --------------------------------------------------------------------------------
@@ -276,18 +171,6 @@ void wspinlock::lock(char *context)
 	EnterCriticalSection(&m_critical_section);
 	#ifdef _DEBUG
 		log_lock(context);
-	#endif
-}
-
-void wspinlock::trylock(char *context)
-{
-	#ifdef _DEBUG
-		bool result;
-		result = TryEnterCriticalSection(&m_critical_section);
-		if(result)
-			log_lock(context);
-	#else
-		TryEnterCriticalSection(&m_critical_section);
 	#endif
 }
 

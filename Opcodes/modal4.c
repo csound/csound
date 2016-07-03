@@ -173,12 +173,12 @@ static MYFLT Modal4_tick(Modal4 *m)
     }
 #endif
 
-    itemp = (int32) temp_time;                /* Integer part of time address  */
-    alpha = temp_time - (MYFLT)itemp;     /*  fractional part of time address */
-    lastOutput = m->wave->ftable[itemp]; /*  Do linear interpolation     */
-    lastOutput = lastOutput +      /*  same as alpha*data[temp+1]   */
+    itemp = (int32) temp_time;               /* Integer part of time address  */
+    alpha = temp_time - (MYFLT)itemp;      /* fractional part of time address */
+    lastOutput = m->wave->ftable[itemp];     /*  Do linear interpolation      */
+    lastOutput = lastOutput +                /*  same as alpha*data[temp+1]   */
         (alpha * (m->wave->ftable[itemp+1] -
-                  lastOutput));            /*  + (1-alpha)data[temp]       */
+                  lastOutput));              /*  + (1-alpha)data[temp]        */
 
     temp   = m->masterGain *
       OnePole_tick(&m->onepole, lastOutput * Envelope_tick(&m->envelope));

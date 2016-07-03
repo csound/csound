@@ -110,7 +110,7 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
   /*    *a,       pointer to array 'anal'  */
   /*    *b;       pointer to array 'banal' */
 {
-    int32 nfac[17];             /*  These are one bigger than needed   */
+    int32 nfac[32];             /*  These are one bigger than needed   */
                                 /*  because wish to use Fortran array  */
                                 /* index which runs 1 to n, not 0 to n */
 

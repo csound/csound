@@ -1,7 +1,7 @@
-from Tkinter import *
+import Tkinter
 import csnd6
 
-class Application(Frame):
+class Application(Tkinter.Frame):
   
     def move(self,event):
         canvas = event.widget
@@ -13,46 +13,45 @@ class Application(Frame):
         self.cs.SetChannel("volume", 2.0*(self.size-y)/self.size)
      
     def play(self,event):
-
         note = event.widget.find_withtag("current")[0]
-        for i in range(1,len(self.notes),2):
-            if note == self.notes[i]:
-                val = self.notes[i-1]
-                self.canvas.itemconfigure(i, fill="red")
-                self.perf.InputMessage("i1 0 -1 %f %f" % (5000, val))
+        self.canvas.itemconfigure(note, fill="red")
+        self.perf.InputMessage("i1 0 -1 5000 440")
 
     def stop(self,event):
-        self.on = False
         note = event.widget.find_withtag("current")[0]
-        for i in range(1,len(self.notes),2):
-            if note == self.notes[i]:
-                val = self.notes[i-1]
-                self.canvas.itemconfigure(i, fill="black")
-                self.perf.InputMessage("i-1 0 1 %f" % val)
+        self.canvas.itemconfigure(note, fill="black")
+        self.perf.InputMessage("i-1 0 5000 440")
         
                 
     def createCanvas(self):
         self.size = 600
-        self.canvas = Canvas(self,height=self.size,width=self.size,bg="violet")
+        self.canvas = Tkinter.Canvas(self,height=self.size,
+                                     width=self.size,
+                                     bg="violet")
         self.canvas.pack()
-    
          
-    def createShapes(self):
-          item = self.canvas.create_oval(self.size/2-10,self.size/2-10,self.size/2+10,self.size/2+10,fill="black")
-          self.items.append(item)
-          self.notes.append(440)
-          self.notes.append(item)
-          self.canvas.tag_bind(item,"<ButtonPress>", self.play)
-          self.canvas.tag_bind(item,"<B1-Motion>", self.move)
-          self.canvas.tag_bind(item,"<ButtonRelease>", self.stop)
+    def createCircle(self):
+          circle = self.canvas.create_oval(self.size/2-10,
+                                         self.size/2-10,
+                                         self.size/2+10,
+                                         self.size/2+10,
+                                         fill="black")
 
+          self.canvas.tag_bind(circle,"<ButtonPress>",
+                               self.play)
+          self.canvas.tag_bind(circle,"<B1-Motion>",
+                               self.move)
+          self.canvas.tag_bind(circle,"<ButtonRelease>",
+                               self.stop)
         
-    def meter(self):
-        iw = 10
-        for i in range(0, self.size, iw):
-            self.vu.append(self.canvas.create_rectangle(i,self.size-40,i+iw,self.size,fill="grey"))
+    def createMeter(self):
+     iw = 10
+     self.vu = []
+     for i in range(0, self.size, iw):
+      self.vu.append(self.canvas.create_rectangle(i,
+            self.size-40,i+iw,self.size,fill="grey"))
 
-    def draw(self):
+    def drawMeter(self):
         level = self.cs.GetChannel("meter")
         cnt = 0
         red = (self.size/10)*0.8
@@ -68,32 +67,40 @@ class Application(Frame):
           else:
            self.canvas.itemconfigure(i, fill="grey")
           cnt  = cnt + 1
-        self.master.after(50,self.draw)
+        self.master.after(50,self.drawMeter)
                 
     def quit(self):
-        self.master.destroy()
         self.perf.Stop()
         self.perf.Join()
+        self.master.destroy()
 
+    def createEngine(self):
+        self.cs = csnd6.Csound()
+        res = self.cs.Compile('shapes.csd')
+        if res == 0:
+         self.cs.SetChannel('pitch', 1.0)
+         self.cs.SetChannel('volume', 1.0)
+         self.perf = csnd6.CsoundPerformanceThread(self.cs)
+         self.perf.Play()
+         return True
+        else:
+         return False   
+   
     def __init__(self,master=None):
-        master.title("Csound + Tkinter: just click and play")
-        self.items = []
-        self.notes = []
-        Frame.__init__(self,master)
+        Tkinter.Frame.__init__(self,master)
+        self.master.title('Csound + Tkinter: '
+         'just click and play')
+        self.master = master
         self.pack()
         self.createCanvas()  
-        self.createShapes()
-        self.cs = csnd6.Csound()
-        res = self.cs.Compile("shapes.csd")
-        self.cs.SetChannel("pitch", 1.0)
-        self.cs.SetChannel("volume", 1.0)
-        self.vu = []
-        self.meter()
-        master.after(100, self.draw),
-        self.master = master
-        self.perf = csnd6.CsoundPerformanceThread(self.cs)
-        self.perf.Play()
-        self.master.protocol("WM_DELETE_WINDOW", self.quit)
+        self.createCircle()
+        self.createMeter()
+        if self.createEngine() is True:
+          self.drawMeter()
+          self.master.protocol('WM_DELETE_WINDOW',
+                               self.quit)
+          self.master.mainloop()
+        else: self.master.quit()
 
-app = Application(Tk())
-app.mainloop()
+Application(Tkinter.Tk())
+

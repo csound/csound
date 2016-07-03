@@ -42,8 +42,8 @@ typedef struct {
 } INDIFF;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *rslt, *xsig, *istor, *imode;   /* IV - Sep 5 2002 */
+  OPDS    h;                                             /* JPff Nov 2015 */
+  MYFLT   *rslt, *xsig, *istor, *imode, *istart;   /* IV - Sep 5 2002 */
         int     init_k;
         MYFLT   prev;
 } INTERP;

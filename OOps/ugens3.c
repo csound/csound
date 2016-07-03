@@ -227,7 +227,7 @@ int losset(CSOUND *csound, LOSC *p)
         p->beg1 = ftp->begin1 << LOBITS;
         p->end1 = ftp->end1 << LOBITS;
       }
-      else if (p->mod1 < 0 || p->mod1 > 3)
+      else if (UNLIKELY(p->mod1 < 0 || p->mod1 > 3))
         goto lerr2;
       else {
         p->beg1 = (int32) (*p->ibeg1 * (MYFLT) (LOFACT));
@@ -580,11 +580,6 @@ int loscil(CSOUND *csound, LOSC *p)
  put0s:
     memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
     memset(&ar2[n], '\0', sizeof(MYFLT)*(nsmps-n));
-    /* do { */
-    /*   *ar1++ = FL(0.0); */
-    /*   *ar2++ = FL(0.0); */
-    /* } while (--nsmps); */
-
     return OK;
 }
 
@@ -793,11 +788,6 @@ int loscil3(CSOUND *csound, LOSC *p)
  put0s:
     memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
     memset(&ar2[n], '\0', sizeof(MYFLT)*(nsmps-n));
-   /*  do { */
-   /*    *ar1++ = FL(0.0); */
-   /*    *ar2++ = FL(0.0); */
-   /*  } while (--nsmps); */
-
     return OK;
 }
 
@@ -820,8 +810,8 @@ static int adset_(CSOUND *csound, ADSYN *p, int stringname)
       for (n = 0; n < ISINSIZ; n++)
         *ip++ = (int16) (sin(TWOPI * n / ISINSIZ) * 32767.0);
     }
-    if(stringname) strncpy(filnam, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
-    else if (ISSTRCOD(*p->ifilcod))
+    if (stringname) strncpy(filnam, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
+    else if (csound->ISSTRCOD(*p->ifilcod))
       strncpy(filnam, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
     else csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", 0);
 

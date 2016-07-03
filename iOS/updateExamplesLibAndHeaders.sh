@@ -3,6 +3,7 @@ export OUT_DIR=`pwd`/Csound\ iOS\ Examples/csound-iOS
 export LIBSNDFILE_LIB=`pwd`/../../iOS/csound-iOS-dependencies/libsndfile.a 
 
 # Assemble release
+mkdir -p "$OUT_DIR/libs"
 cp libcsound.a "$OUT_DIR/libs"
 cp $LIBSNDFILE_LIB "$OUT_DIR/libs"
 cd ..

@@ -55,6 +55,6 @@ typedef struct _tablra {
 
 typedef struct _tablwa {
   OPDS h;
-  MYFLT *strt,*ftable,*sig,*off;
+  MYFLT *strt,*ftable,*sig,*off,*skipinit;
   MYFLT pos;
 } TABLWA;

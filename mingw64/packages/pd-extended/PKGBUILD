@@ -1,0 +1,29 @@
+# Maintainer: Michael Gogins <michael.gogins@gmail.com>
+
+pkgname=pd-extended
+pkgrel=1
+pkgver=1247.bc8e8b3
+pkgdesc="Visual programming language for audio and visuals."
+arch=('x86_64' 'i686')
+url="https://puredata.info/"
+license=('LGPL')
+provides=('pd-extended')
+conflicts=('pd-extended')
+source=("git://git.code.sf.net/p/pure-data/pd-extended")
+md5sums=('SKIP')
+
+pkgver() {
+    cd $srcdir/$pkgname
+    echo $(git rev-list --count HEAD).$(git rev-parse --short HEAD)
+}
+
+build() {
+    cd $srcdir/$pkgname
+    ./autogen.sh
+	./configure CXX=g++ --prefix="${pkgdir}${MINGW_PREFIX}"
+}
+
+package() {
+    cd "$srcdir/$pkgname"
+    make install
+}

@@ -201,10 +201,10 @@ public:
 	void WriteBinary(const string & file);
 
 	friend void Sequencer_TimerCallback(Sequencer *s);
-	friend void Sequencer_ReadThreadFunc(Sequencer::ParamObject *spo);
-	friend void Sequencer_WriteThreadFunc(Sequencer::ParamObject *spo);
+	friend uintptr_t Sequencer_ReadThreadFunc(void *spo);
+	friend uintptr_t Sequencer_WriteThreadFunc(void *spo);
 
-	pthread_t m_read_write_thread;
+	void* m_read_write_thread;
 	volatile bool m_read_write_thread_exists;
 
 private:
@@ -239,8 +239,8 @@ private:
 };
 
 void Sequencer_TimerCallback(Sequencer *s);
-void Sequencer_ReadThreadFunc(Sequencer::ParamObject *spo);
-void Sequencer_WriteThreadFunc(Sequencer::ParamObject *spo);
+uintptr_t Sequencer_ReadThreadFunc(void *spo);
+uintptr_t Sequencer_WriteThreadFunc(void *spo);
 
 } // namespace dvx
 

@@ -393,5 +393,5 @@ int zkr(CSOUND*,ZKR *p);
 int zkset(CSOUND*,ZKR *p);
 int zkw(CSOUND*,ZKW *p);
 int zkwm(CSOUND*,ZKWM *p);
-void sprints(char *outstring, char *fmt, MYFLT **kvals, int32 numVals);
+
 

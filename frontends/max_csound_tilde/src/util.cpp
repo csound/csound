@@ -294,7 +294,7 @@ void PrintAtoms(t_symbol *s, long argc, t_atom *argv, char *dst, int dstSize)
     for (i = 0, ap = argv; i < argc; i++, ap++) {       // increment ap each time to get to the next atom
         switch (atom_gettype(ap)) {
             case A_LONG:
-				wrote = snprintf(b, maxLen, "%ld ", atom_getlong(ap));
+				wrote = snprintf(b, maxLen, "%lld ", atom_getlong(ap));
                 break;
             case A_FLOAT:
 				wrote = snprintf(b, maxLen, "%f ", atom_getfloat(ap));

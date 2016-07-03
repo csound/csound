@@ -100,14 +100,14 @@ public:
 	DEFAULT_LOCK_TYPE m_textBufferLock; // Protects textBuffer.
 	scoped_ptr<char> m_textBuffer;      // Stores Csound text output.
 
-	pthread_t m_renderThread;	        // Thread function used when Csound is rendering output to an audio file.
+	void* m_renderThread;	        // Thread function used when Csound is rendering output to an audio file.
 	volatile bool m_renderThreadExists;	// true if renderThread references an existing thread.
 };
 
 } // namespace dvx
 
 // Used when the csound command contains an audio output file.
-void CsoundObject_RenderThreadFunc(dvx::CsoundObject *cso);
+uintptr_t CsoundObject_RenderThreadFunc(void *cso);
 
 // Csound callback functions.
 void inputValueCallback(CSOUND *csound, const char *name, void *val, const void*);

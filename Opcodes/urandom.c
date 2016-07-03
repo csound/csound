@@ -22,7 +22,7 @@
 */
 
 #include "csdl.h"
-#include <ieee754.h>
+//#include <ieee754.h>
 
 typedef struct {
     OPDS    h;

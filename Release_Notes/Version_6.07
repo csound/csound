@@ -1,0 +1,319 @@
+
+============================
+CSOUND VERSION 6.07
+RELEASE NOTES VERSION 6.07
+============================
+
+A large number of bug fixes, some quite major, some internal are
+included, as well as some new facilities and extensions. As ever there
+are coding improvements as well.
+
+-- The Developers
+
+
+USER-LEVEL CHANGES
+==================
+
+New opcodes:
+
+    o    compress2: like compress but using a more normal use of dB
+         (0.0 for full scale).
+
+    o    (Experimental, source code-only) New cuda opcodes cudasynth2
+         and cudanal2
+
+    o    directory opcode: Reads a directory and outputs to a string
+         array a list of file names.
+
+    o    ftsamplebank:to load a sample library from a directory.
+
+    o    mvclpf1, mvclpf2, mvclpf3, mvclpf4, mvchpf: Moog
+         voltage-controlled filter emulations from Fons Andriaensen.
+
+    o    S() converter from k-rate and i-time number to a string.
+
+    o    cepsinv opcode to calculate the inverse cepstrum of an array.
+    
+    o    moogladder2 is a faster, less accurate implementation of moogladder.
+
+    o    paulstretch opcode is a lightweight implementation of the
+         PaulStretch time-stretching algorithm by Nasca Octavian
+         Paul. It is ideal for timestretching a signal by very
+         large amounts. 
+
+    o    mp3scal implements phase-locked vocoder processing from
+         mp3-format disk files, resampling if necessary.
+
+    o    filescal implements phase-locked vocoder processing from disk
+         files, resampling if necessary.  
+
+New Gen and Macros:
+
+    o    NONE
+
+Orchestra:
+
+    o    The boolean ?..:.. construction can now have string results,
+         while previously it only allowed numbers.
+
+    o    The line number reported when an error is detected at the end
+         of a line is now correct.  Also more improvements in line numbers
+         for complex syntax
+
+    o    While loop improved/fixed.
+
+    o    Better and consistent reading of comments.
+
+    o    Continuation lines handled better, especially respecting line
+         numbers.
+
+    o    opcode:S(.) syntax now allowed.
+
+Score:
+
+    o    The list of tempo points in score opcode t is now arbitrarily
+         long.
+
+    o    A stupidity in r and { opcodes fixed.
+
+Options:
+
+    o    The -z option now suppresses deprecated opcodes, unless given
+         a 2 or 3 argument.
+
+    o    The new option  --fftlib controls which real fft library to
+         use internally (FFTLIB = 0, PFFFT = 1, vDSP = 2)
+
+
+
+Modified Opcodes and Gens:
+
+     o   In OSC opcodes it is now possible to send and receive arrays,
+         tables and audio.
+
+     o   Better diagnostic if diskin2 fails.
+
+     o   Rezzy now checks for unstable filter and modifies to close
+         stable version.
+
+     o   adsr rewritten so it gives an error if the segments are
+         longer than p3.
+
+     o   Use of diskin to an array ow resizes the output array if
+         necessary.
+
+     o   chnget now checks for a change in chanel name as well as data.
+
+     o   interp can take an optional extra argument to give an initial
+         value.
+
+     o   oscilikts uses a more liberal table lookup.
+
+     o   opcode in can read mono or stereo, obviating the in/ins
+         distinction.
+
+     o   sensekey rewritten to provide better diagnostics and fixes a
+         minor bug.
+
+     o   Fix to a case of defining a macro with arguments.
+
+     o   sockrecv now works at a and k rate.
+
+     o   GEN49 now works from ftgen calls.
+
+     o   GEN34 liberalised in tables it accepts.
+
+     o   chnget now allows channel names to be changed at perf time.
+
+     o   iceps has been renamed cepsinv to avoid name clashes.
+
+     o   mp3 support improved in a number of minor ways.
+
+     o   a minor fix to allow a ladspa plugin to be re-loaded by the host.
+
+     o   better checking in inch
+
+Utilities:
+
+  o
+
+Frontends:
+
+  pnacl:
+
+  icsound:
+
+  csound~:
+
+  Emscripten:
+
+  csdebugger:
+
+       * Some memory issues fixed.
+
+  HTML5:
+
+  CsoundQT has its own notes at
+     https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20N
+otes%200.9.2.1.md
+
+
+General usage:
+
+    o   The multicore options somewhat improved.
+
+    o   When replacing instruments the new version inherits maxalloc
+        and active flags.
+
+    o   Multicore code now works with midi instruments.
+
+    o   MIDI operations now available via a new rtmidi jack module (-+rtmidi=jack)
+
+
+Bugs fixed:
+
+    o   Fix to trigseq.
+
+    o   Major error in rezzy fixed.
+
+    o   p() fixed for high numbers of p-arguments.
+
+    o   p() now works from MIDI events.
+
+    o   The 31-bit random number generator could give a very short
+        loop if seeded with zero; fixed.
+
+    o   Macros in .orc files now work.
+
+    o   A long-standing bug in display of graphs fixed.
+
+    o   Fixes to the envelope opcodes linen, expsegr, linsegr,
+        cossegr, transegr, envlpx, including new warnings.
+ 
+    o   Many fixes in string opcodes (strsub, strcpy and others).
+
+    o   Fixed bugs in print formats (sprintf printf prints).
+
+    o   pvsmooth had a missing initialisation.
+
+    o   Array initialisation now robust.
+
+    o   Bug in copya2ftab fixed.
+
+    o   Fix in cudapvsanal (EXPERIMENTAL).
+
+    o   partikkel fix to subsample grain placement.
+
+    o   Opcodes that require an odd number of arguments are now properly checked.
+
+    o   pvswrite now takes proper notice of 0dbfs.
+
+    o   GEN34 now allowing non-power-of-two source tables.
+
+    o   vst4cs will now work on 64bit architecture.
+
+    o   strcat mended.
+
+    o   nstance mended.
+
+    o   fixed small issues in rtauhal module.
+
+    o   Windows installer for 64 bit CPU architecture now sets
+        environment variables on system level as it should.
+
+    o   transeg at k-rate with itype non-zero had an initial delay if one cycle
+
+    o   log function on arrays fixed
+
+    o   Rescaling of named GENs fixed
+
+    o   A fencepost error in reading ATS files believed fixed; it
+        generated spurious errors about file finishing early.
+
+    o   Initialisation error in pvbandp fixed.
+
+    o   readfi string allocation fixed
+    
+====================
+SYSTEM LEVEL CHANGES
+====================
+
+System changes:
+
+    o   Extensive use made of in-memory files.  Orc and sco are always
+        thus, as are .csound6rc.  This simplifies much internally.
+
+    o   Nested longjmps fixed which affected some API use.
+
+    o   If a non-existent .csd file is presented Csound no longer
+        crashes.
+
+    o   The kcounter value is now consistently an unsigned 64bit
+        value, allowing for long performances.
+
+
+API
+===
+
+    * csoundCompileCsdText: New function to compile a CSD from a string of text.
+
+    * The function call csound->GetKcounter(csound) now returns an
+      unsigned 64 bit integer.  Previously it returned a long which is
+      unclear.
+    
+    * ctcsound.py is a new wrapper file to the Csound API for the
+      Python language.  It is a pure Python file using the FFI (Foreign
+      Function Interface) module ctypes.  It does not depend on
+      Swig, and it works with Python2 and Python3 as well. It uses
+      numpy for its data structures, numpy being the fundamental
+      package for scientific computing with Python.
+
+Platform Specific
+=================
+
+iOS
+---
+
+    *
+
+
+Android
+-------
+
+    *
+
+Windows
+-------
+
+    * The Windows installer for Csound now contains all executables
+      built for 64 bit CPU architecture.
+
+    * The Windows installer for 64 bit CPU architecture now provides NW.js
+      "out of the box." It runs all features of
+      Csound, as well as all features of HTML5, in a browser-like runtime
+      with JavaScript scripting, and includes a Csound editor implemented
+      in HTML. The editor will run pieces either as .csd files with embedded
+      <html> or as .html files calling the csound object, and includes
+      JavaScript debugging.
+
+    * A new simplified build system has been implemented in the csound/mingw64
+      directory for building Csound using the MSYS2/mingw64 toolchain.
+
+    * Linking to pthreads and other libraries now static.
+
+    * Some limited support for non-ASCII characters in file names.
+    
+OSX
+---
+
+    * Installer fixed for link names for _csnd6 and _CsoundAC.
+
+GNU/Linux
+---------
+
+    * date opcode more accurate.
+
+========================================================================
+
+========================================================================
+Date:   Tue May 10 14:49:44 2016 +0100

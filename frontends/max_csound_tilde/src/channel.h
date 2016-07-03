@@ -76,20 +76,20 @@ public:
 private:
 	// Hide ctors, and assignment to prevent messing up ChannelGroup state.
 	ChannelObject() {}
-	ChannelObject(const char *name, int type);
+	ChannelObject(CSOUND* csound, const char *name, int type);
 	ChannelObject(const ChannelObject & other) {}
 	ChannelObject & operator=(const ChannelObject & other) { return *this; }
 
 	// Change the name of this ChannelObject.
 	void SetName(const char *str);
-	 
-	  string m_name;           // The name of this channel.
-	     int m_type;		   // Bitwise or of Csound channel types.
-	   MYFLT m_value;          // If type & CSOUND_CONTROL_CHANNEL, then values is stored here.
-	  string m_str_value;      // If type & CSOUND_STRING_CHANNEL, then string will be stored here.
-	    bool m_dirty;          // Determines whether or not *csoundChanPtr should be set to m_value.
-	   MYFLT *m_csoundChanPtr; // A pointer to the actual Csound channel.
-	t_symbol *m_sym;           // Since gensym() is expensive, store symbol version of m_name here.
+  CSOUND *m_csound;
+  string m_name;           // The name of this channel.
+  int m_type;		   // Bitwise or of Csound channel types.
+  MYFLT m_value;          // If type & CSOUND_CONTROL_CHANNEL, then values is stored here.
+  string m_str_value;      // If type & CSOUND_STRING_CHANNEL, then string will be stored here.
+  bool m_dirty;          // Determines whether or not *csoundChanPtr should be set to m_value.
+  MYFLT *m_csoundChanPtr; // A pointer to the actual Csound channel.
+  t_symbol *m_sym;           // Since gensym() is expensive, store symbol version of m_name here.
 
 }; // class ChannelObject
 
@@ -171,7 +171,7 @@ private:
 
 	/* Find and return ChannelObject if it exists.  If not, create and return it.
 	   Not protected. */
-	ChannelObject* FindCreateChannel(const char *name, int type);
+	ChannelObject* FindCreateChannel(CSOUND *csound, const char *name, int type);
 
 	/* Find and return ChannelObject if it exists.  If not, return NULL.
 	   Not thread safe. Keep it that way, because this function is used by other

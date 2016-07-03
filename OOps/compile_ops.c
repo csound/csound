@@ -25,7 +25,7 @@
 
 int compile_orc_i(CSOUND *csound, COMPILE *p){
     FILE *fp;
-    int size=0;
+    size_t size=0;
     char *orc, c, *name;
 
     name = ((STRINGDAT *)p->str)->data;

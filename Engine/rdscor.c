@@ -125,6 +125,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
     MYFLT   *pp, *plim;
     int     c;
 
+    e->pinstance = NULL;
     if (csound->scstr == NULL ||
         csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */
       e->opcod = 'f';             /*     return an 'f 0 3600'    */

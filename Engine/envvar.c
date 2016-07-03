@@ -414,7 +414,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     for (i = j = 0; i <= len; i++) {
       if (envList[i] == ';' || envList[i] == ':' || envList[i] == '\0') {
         if (i > j) {
-          tmp = (nameChain_t*) csound->Malloc(csound, sizeof(nameChain_t) + (i - j));
+          tmp = (nameChain_t*)csound->Malloc(csound, sizeof(nameChain_t) + (i-j));
           for (k = 0; j < i; j++, k++)
             tmp->s[k] = envList[j];
           tmp->s[k] = '\0';
@@ -448,8 +448,10 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
         len = (int) strlen(s);
       else
         len = -1;
+      // **** THIS CODE DOES NOT CHECK FOR WINDOWS STYLE C:\foo ****
       for (i = j = 0; i <= len; i++) {
-        if (s[i] == ';' || s[i] == ':' || s[i] == '\0') {
+        if (i==0 && isalpha(s[i]) && s[i+1]==':') i++;
+        else if (s[i] == ';' || s[i] == ':' || s[i] == '\0') {
           if (i > j) {
             tmp = (nameChain_t*) csound->Malloc(csound, sizeof(nameChain_t)
                                                  + (i - j) + 1);
@@ -477,6 +479,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
             }
           }
           j = i + 1;
+          if (i+2<=len && s[i+2]==':' && isalpha(s[i+1])) i+=2;
         }
       }
     }
@@ -1006,12 +1009,36 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     }
     /* get full name and open file */
     if (env == NULL) {
-      fullName = (char*) name;
+#if defined(WIN32)
+      /* To handle Widows errors in file name characters. */
+      size_t sz = MultiByteToWideChar(CP_UTF8, 0, name, -1, NULL, 0);
+      wchar_t *wfname = alloca(sz);
+      wchar_t *wmode = 0;
+
+      MultiByteToWideChar(CP_UTF8, 0, name, -1, wfname, sz);
+      sz = MultiByteToWideChar(CP_UTF8, 0, param, -1, NULL, 0);
+      wmode = alloca(sz);
+      MultiByteToWideChar(CP_UTF8, 0, param, -1, wmode, sz);
       if (type == CSFILE_STD) {
-        tmp_f = fopen(fullName, (char*) param);
-        if (tmp_f == NULL)
+        tmp_f = _wfopen(wfname, wmode);
+        if (tmp_f == NULL) {
+          /* csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), */
+          /*                name, strerror(errno)); */
           goto err_return;
+        }
+        fullName = (char*) name;
       }
+#else
+      if (type == CSFILE_STD) {
+        fullName = (char*) name;
+        tmp_f = fopen(fullName, (char*) param);
+        if (tmp_f == NULL) {
+          /* csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), */
+          /*                name, strerror(errno)); */
+          goto err_return;
+        }
+      }
+#endif
       else {
         if (type == CSFILE_SND_R || type == CSFILE_FD_R)
           tmp_fd = open(fullName, RD_OPTS);

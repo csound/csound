@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export CS_TILDE_VERSION=1.1.2
+export CS_TILDE_VERSION=1.1.3
 export MANUAL_DIR=`pwd`/../../../manual6
 export ISCC="/c/Program Files (x86)/Inno Setup 5/ISCC.exe"
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
@@ -51,40 +51,4 @@ cp frontends/max_csound_tilde/csound~.mxe ../../installer
 cd ../../installer
 cp ../../csound~.iss .
 "$ISCC" -o. -fcsound~_${CS_TILDE_VERSION} -dCS_TILDE_VERSION=${CS_TILDE_VERSION} csound~.iss 
-exit
 
-# ASSEMBLE FILES FOR INSTALLER
-export PACKAGE_CONTENTS="installer/Package_Contents"
-export MAX_61_INSTALL_DIR="$PACKAGE_CONTENTS/Applications/Max 6.1/Cycling '74/"
-export EXTERNALS_DIR="${MAX_61_INSTALL_DIR}/msp-externals"
-export HELP_DIR="${MAX_61_INSTALL_DIR}/msp-help"
-
-mkdir -p "$EXTERNALS_DIR"
-mkdir -p "$HELP_DIR"
-cp -r csound6/build/frontends/max_csound_tilde/csound~.mxo "$EXTERNALS_DIR"
-cp -r ../../help/csound~ "$HELP_DIR"
-
-
-echo "building packages ..."
-
-#pkgbuild --identifier com.csound.csound6Environment.csound~ --root installer/Package_Contents/ --version 1 --scripts ../PkgResources/csound~ csound~_v1.1.0.pkg
-pkgbuild --identifier com.csound.csound6Environment.csound~ --root installer/Package_Contents/ --version 1  csound~_v${CS_TILDE_VERSION}.pkg
-
-#echo "building product..."
-
-#productbuild --distribution ../../Distribution.dist --resources ../../PkgResources/en.lproj $PACKAGE_NAME
-
-#echo "assembling DMG..."
-
-#mkdir "$DMG_DIR" 
-#cd "$DMG_DIR"
-#cp ../$PACKAGE_NAME .
-#cp -R ../../../DmgResources/* .
-#ln -s /Applications .
-#cd ..
-
-#hdiutil create "$DMG_NAME" -srcfolder "$DMG_DIR"
-
-echo "... finished."
-
-open $INSTALLER_DIR

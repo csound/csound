@@ -435,7 +435,7 @@ int flute(CSOUND *csound, FLUTE *p)
 #endif
 
       temp = (int32) temp_time;        /*  Integer part of time address    */
-                                      /*  fractional part of time address */
+                                       /*  fractional part of time address */
       alpha = temp_time - (MYFLT)temp;
       v_lastOutput = v_data[temp];    /* Do linear interpolation */
       /*  same as alpha*data[temp+1] + (1-alpha)data[temp] */
@@ -977,10 +977,10 @@ int bowedbarset(void*,void*);
 int bowedbar(void*,void*);
 
 static OENTRY physmod_localops[] = {
-{ "wgclar",  S(CLARIN),TR, 5, "a", "kkkiikkkio",(SUBR)clarinset,NULL, (SUBR)clarin },
-{ "wgflute", S(FLUTE), TR, 5, "a", "kkkiikkkiovv",(SUBR)fluteset,NULL, (SUBR)flute },
-{ "wgbow",   S(BOWED), TR, 5, "a", "kkkkkkio", (SUBR)bowedset, NULL,   (SUBR)bowed },
-{ "wgbrass", S(BRASS), TR, 5, "a", "kkkikkio", (SUBR)brassset, NULL,    (SUBR)brass},
+{ "wgclar",  S(CLARIN),TR, 5, "a", "kkkiikkkjo",(SUBR)clarinset,NULL, (SUBR)clarin },
+{ "wgflute", S(FLUTE), TR, 5, "a", "kkkiikkkjovv",(SUBR)fluteset,NULL, (SUBR)flute },
+{ "wgbow",   S(BOWED), TR, 5, "a", "kkkkkkjo", (SUBR)bowedset, NULL,   (SUBR)bowed },
+{ "wgbrass", S(BRASS), TR, 5, "a", "kkkikkjo", (SUBR)brassset, NULL,    (SUBR)brass},
 { "mandol", S(MANDOL), TR, 5, "a", "kkkkkkio",(SUBR)mandolinset,NULL,(SUBR)mandolin},
 { "voice", S(VOICF),   TR, 5, "a", "kkkkkkii",(SUBR)voicformset,NULL,(SUBR)voicform},
 { "fmbell",  S(FM4OP), TR, 5, "a", "kkkkkkjjjjjo",

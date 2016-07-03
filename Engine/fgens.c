@@ -33,6 +33,27 @@
 #include "pstream.h"
 #include "pvfileio.h"
 #include <stdlib.h>
+/* #undef ISSTRCOD */
+
+
+int isstrcod(MYFLT xx)
+{
+#ifdef USE_DOUBLE
+    union {
+      double d;
+      int32_t i[2];
+    } z;
+    z.d = xx;
+    return ((z.i[1]&0x7ff00000)==0x7ff00000);
+#else
+    union {
+      float f;
+      int32_t i;
+    } z;
+    z.f = xx;
+    return ((z.i&0x7f800000) == 0x7f800000);
+#endif
+}
 
 extern double besseli(double);
 
@@ -175,7 +196,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     else
       memcpy(&(ff.e.p[2]), &(evtblkp->p[2]),
              sizeof(MYFLT) * ((int) ff.e.pcnt - 1));
-    if (ISSTRCOD(ff.e.p[4])) {
+    if (isstrcod(ff.e.p[4])) {
       /* A named gen given so search the list of extra gens */
       NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
       while (n) {
@@ -1141,7 +1162,7 @@ static int gen18(FGDATA *ff, FUNC *ftp)
       finish=(int)*pp++;
       if (UNLIKELY(nsw && pp>=&ff->e.p[PMAX-1])) nsw =0, pp = &(ff->e.c.extra[1]);
 
-      if (UNLIKELY((start>ff->flen) || (finish>ff->flen))) {
+      if (UNLIKELY((start>ff->flen) || (finish>=ff->flen))) {
         /* make sure start and finish < flen */
         return fterror(ff, Str("a range given exceeds table length"));
       }
@@ -1798,7 +1819,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     y[1] = y[l1];
     y[l1] = y[l1 + 1] = FL(0.0);
     csound->InverseRealFFT(csound, y, l1);
-    /* memcpy(f1, y, l11*sizeof(MYFLT)); */
+    /* memcpy(f1, y, l1*sizeof(MYFLT)); */
     for (i = 0; i < l1; i++)
       f1[i] = y[i];
     f1[l1] = f1[0];     /* write guard point */
@@ -2036,7 +2057,7 @@ static int gen34(FGDATA *ff, FUNC *ftp)
     /* table length and data */
     ft = ftp->ftable; flen = (int32) ftp->flen;
     /* source table */
-    if (UNLIKELY((src = csoundFTFind(csound, &(ff->e.p[5]))) == NULL))
+    if (UNLIKELY((src = csoundFTnp2Find(csound, &(ff->e.p[5]))) == NULL))
       return NOTOK;
     srcft = src->ftable; srclen = (int32) src->flen;
     /* number of partials */
@@ -2229,11 +2250,11 @@ static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
     va_end(args);
     csoundMessage(csound, "f%3.0f %8.2f %8.2f ",
                             ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
-    if (ISSTRCOD(ff->e.p[4]))
+    if (isstrcod(ff->e.p[4]))
       csoundMessage(csound,"%s", ff->e.strarg);
     else
       csoundMessage(csound, "%8.2f", ff->e.p[4]);
-    if (ISSTRCOD(ff->e.p[5]))
+    if (isstrcod(ff->e.p[5]))
       csoundMessage(csound, "  \"%s\" ...\n", ff->e.strarg);
     else
       csoundMessage(csound, "%8.2f ...\n", ff->e.p[5]);
@@ -2351,8 +2372,8 @@ FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
       if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
       return csound->sinetable;
     }
-    if (UNLIKELY(fno <= 0                 ||
-        fno > csound->maxfnum       ||
+    if (UNLIKELY(fno <= 0                    ||
+                 fno > csound->maxfnum       ||
                  (ftp = csound->flist[fno]) == NULL)) {
       csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
@@ -2397,34 +2418,7 @@ FUNC *csoundFTFind2(CSOUND *csound, MYFLT *argp)
     return ftp;
 }
 
-/* **** SOMETHING WRONG HERE __ NOT CALLED **** */
-static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int fno)
-{
-    FGDATA  ff;
-    char    strarg[SSTRSIZ];
-    FUNC    *ftp = csound->flist[fno];
-
-    /* The soundfile hasn't been loaded yet, so call GEN01 */
-    strcpy(strarg, ftp->gen01args.strarg);
-    memset(&ff, 0, sizeof(FGDATA));
-    ff.csound = csound;
-    ff.fno = fno;
-    ff.e.strarg = strarg;
-    ff.e.opcod = 'f';
-    ff.e.pcnt = 8;
-    ff.e.p[1] = (MYFLT) fno;
-    ff.e.p[4] = ftp->gen01args.gen01;
-    ff.e.p[5] = ftp->gen01args.ifilno;
-    ff.e.p[6] = ftp->gen01args.iskptim;
-    ff.e.p[7] = ftp->gen01args.iformat;
-    ff.e.p[8] = ftp->gen01args.channel;
-    if (UNLIKELY(gen01raw(&ff, ftp) != 0)) {
-      csoundErrorMsg(csound, Str("Deferred load of '%s' failed"), strarg);
-      return NULL;
-    }
-    return csound->flist[fno];
-}
-
+static FUNC *gen01_defer_load(CSOUND *csound, int fno);
 PUBLIC int csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum)
 {
     FUNC    *ftp;
@@ -2441,11 +2435,12 @@ PUBLIC int csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum)
     }
     *tablePtr = ftp->ftable;
     return (int) ftp->flen;
-
  err_return:
     *tablePtr = (MYFLT*) NULL;
     return -1;
 }
+
+
 
 PUBLIC int csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum)
 {
@@ -2528,14 +2523,14 @@ FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
       return NULL;
     }
     if (ftp->flen == 0) {
-      if (LIKELY(csound->oparms->gen01defer))
+     if (LIKELY(csound->oparms->gen01defer))
        ftp = gen01_defer_load(csound, fno);
-      else {
+       else {
         csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
         return NULL;
-      }
+    }
       if (UNLIKELY(ftp == NULL))
-        csound->inerrcnt++;
+      csound->inerrcnt++;
     }
     return ftp;
 }
@@ -2598,21 +2593,39 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     {
       int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
       int   fmt = (int) MYFLT2LRND(ff->e.p[7]);
-      if (ISSTRCOD(ff->e.p[5])) {
+      /* union { */
+      /*   MYFLT d; */
+      /*   int32_t i[2]; */
+      /* } xx; */
+      /* xx.d = ff->e.p[5]; */
+      /* printf("****line %d: ff->e.p[5] %f %.8x %.8x\n", __LINE__, */
+      /*        ff->e.p[5], xx.i[1], xx.i[0]); */
+      /* printf("****line %d: isstrcod=%d %d file %s\n", __LINE__, */
+      /*        isstrcod(ff->e.p[5]), isnan(ff->e.p[5]), ff->e.strarg); */
+      if (isstrcod(ff->e.p[5])) {
+        /* printf("****line %d\n" , __LINE__); */
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
+          /* printf("****line %d\n" , __LINE__); */
           strncpy(p->sfname, ff->e.strarg + 1, 512);
           if (len >= 0 && p->sfname[len] == '"')
             p->sfname[len] = '\0';
         }
-        else
+        else {
+          /* printf("****line %d\n" , __LINE__); */
           strncpy(p->sfname, ff->e.strarg, 512);
+        }
       }
       else if (filno >= 0 && filno <= csound->strsmax &&
-               csound->strsets && csound->strsets[filno])
+               csound->strsets && csound->strsets[filno]) {
+        /* printf("****line %d\n" , __LINE__); */
         strncpy(p->sfname, csound->strsets[filno], 512);
-      else
+      }
+      else {
+        /* printf("****line %d\n" , __LINE__); */
         snprintf(p->sfname, 512, "soundin.%d", filno);   /* soundin.filno */
+      }
+      /* printf("****line %d: sfname=%s\n" , __LINE__, p->sfname); */
       if (!fmt)
         p->format = csound->oparms->outformat;
       else {
@@ -2631,11 +2644,11 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       p->channel = ALLCHNLS;
     p->analonly = 0;
     if (UNLIKELY(ff->flen == 0 && (csound->oparms->msglevel & 7))){
-      csoundMessage(csound, Str("deferred alloc\n"));
+      csoundMessage(csound, Str("deferred alloc for %s\n"), p->sfname);
     }
     if (UNLIKELY((fd = sndgetset(csound, p))==NULL)) {
       /* sndinset to open the file  */
-      return fterror(ff, "Failed to open file");
+      return fterror(ff, Str("Failed to open file %s"), p->sfname);
     }
     if (ff->flen == 0) {                      /* deferred ftalloc requestd: */
       if (UNLIKELY((ff->flen = p->framesrem + 1) <= 0)) {
@@ -2794,7 +2807,7 @@ static int gen43(FGDATA *ff, FUNC *ftp)
     }
 
     filno = &ff->e.p[5];
-    if (ISSTRCOD(ff->e.p[5]))
+    if (isstrcod(ff->e.p[5]))
       strncpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME-1);
     else
       csound->strarg2name(csound, filename, filno, "pvoc.", 0);
@@ -2869,7 +2882,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
     /* memset(&mpainfo, 0, sizeof(mpadec_info_t)); */ /* Is this necessary? */
     {
       int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
-      if (ISSTRCOD(ff->e.p[5])) {
+      if (isstrcod(ff->e.p[5])) {
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
           strncpy(sfname, ff->e.strarg + 1, 1023);
@@ -3021,34 +3034,6 @@ static int gen49(FGDATA *ff, FUNC *ftp)
       return OK;
     }
     return gen49raw(ff, ftp);
-}
-#endif
-
-#if 0
-static CS_NOINLINE FUNC *gen49_defer_load(CSOUND *csound, int fno)
-{
-    FGDATA  ff;
-    char    strarg[SSTRSIZ];
-    FUNC    *ftp = csound->flist[fno];
-
-    /* The soundfile hasn't been loaded yet, so call GEN49 */
-    strcpy(strarg, ftp->gen01args.strarg);
-    memset(&ff, 0, sizeof(FGDATA));
-    ff.fno = fno;
-    ff.e.strarg = strarg;
-    ff.e.opcod = 'f';
-    ff.e.pcnt = 8;
-    ff.e.p[1] = (MYFLT) fno;
-    ff.e.p[4] = ftp->gen01args.gen01;
-    ff.e.p[5] = ftp->gen01args.ifilno;
-    ff.e.p[6] = ftp->gen01args.iskptim;
-    ff.e.p[7] = ftp->gen01args.iformat;
-    ff.e.p[8] = ftp->gen01args.channel;
-    if (UNLIKELY(gen49raw(&ff, ftp) != 0)) {
-      csoundErrorMsg(csound, Str("Deferred load of '%s' failed"), strarg);
-      return NULL;
-    }
-    return csound->flist[fno];
 }
 #endif
 
@@ -3369,4 +3354,32 @@ int resize_table(CSOUND *csound, RESIZE *p)
     ftp->flen = fsize+1;
     csound->flist[fno] = ftp;
     return OK;
+}
+
+static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int fno)
+{
+    FGDATA  ff;
+    char    *strarg;
+    FUNC    *ftp = csound->flist[fno];
+
+    /* The soundfile hasn't been loaded yet, so call GEN01 */
+    strarg = csound->Malloc(csound, strlen(ftp->gen01args.strarg)+1);
+    strcpy(strarg, ftp->gen01args.strarg);
+    memset(&ff, 0, sizeof(FGDATA));
+    ff.csound = csound;
+    ff.fno = fno;
+    ff.e.strarg = strarg;
+    ff.e.opcod = 'f';
+    ff.e.pcnt = 8;
+    ff.e.p[1] = (MYFLT) fno;
+    ff.e.p[4] = ftp->gen01args.gen01;
+    ff.e.p[5] = ftp->gen01args.ifilno;
+    ff.e.p[6] = ftp->gen01args.iskptim;
+    ff.e.p[7] = ftp->gen01args.iformat;
+    ff.e.p[8] = ftp->gen01args.channel;
+    if (UNLIKELY(gen01raw(&ff, ftp) != 0)) {
+      csoundErrorMsg(csound, Str("Deferred load of '%s' failed"), strarg);
+      return NULL;
+    }
+    return csound->flist[fno];
 }

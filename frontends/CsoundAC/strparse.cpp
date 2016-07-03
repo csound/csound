@@ -42,7 +42,7 @@ void String_parse::get_nonspace_quoted(string &field)
         }
         if ((*str)[pos]) {
             field.append(1, (*str)[pos]);
-            pos = pos + 1;
+            pos = pos + 1;    
         }
     }
 }
@@ -78,8 +78,10 @@ void String_parse::get_remainder(std::string &field)
     field.clear();
     skip_space();
     int len = str->length() - pos;
-    if ((len > 0) && ((*str)[len - 1] == '\n')) { // if str ends in newline,
+    if ((len > 0) && ((*str)[len - 1] == '\n')) { // if str ends in newline, 
         len--; // reduce length to ignore newline
     }
     field.insert(0, *str, pos, len);
 }
+
+    

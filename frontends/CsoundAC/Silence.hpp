@@ -41,6 +41,9 @@
 #include "Platform.hpp"
 #ifdef SWIG
 %module CsoundAC
+%begin %{
+#include <cmath>
+%}
 %feature("autodoc", "1");
 %include "typemaps.i"
 %include "std_vector.i"

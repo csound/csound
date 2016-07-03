@@ -122,7 +122,7 @@ int reinit(CSOUND *csound, GOTO *p)
     csound->reinitflag = p->h.insdshead->reinitflag = 1;
     csound->curip = p->h.insdshead;
     csound->ids = p->lblblk->prvi;        /* now, despite ANSI C warning:  */
-    if(csound->realtime_audio_flag == 0) {
+    if (csound->realtime_audio_flag == 0) {
     while ((csound->ids = csound->ids->nxti) != NULL &&
            csound->ids->iopadr != (SUBR) rireturn)
       (*csound->ids->iopadr)(csound, csound->ids);
@@ -189,10 +189,10 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
     INSDS *ip, *ip2, *nip;
     int   mode, insno, allow_release;
 
-    if(isStringArg){
+    if (isStringArg){
       p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
     }
-    else  if(ISSTRCOD(*p->kInsNo)) {
+    else  if (csound->ISSTRCOD(*p->kInsNo)) {
       p1 = (MYFLT) strarg2insno(csound, get_arg_string(csound, *p->kInsNo), 1);
     }
     else p1 = *(p->kInsNo);

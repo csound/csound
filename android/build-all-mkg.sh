@@ -35,12 +35,11 @@ cd ..
 cd signalflowgraph
 $NDK/ndk-build $1
 cd ..
-
 cd ../CsoundAndroid
 ./build.sh $1
-cd ../CSDPlayer
-./install_libs.sh
 cd ..
+
+./install_libs.sh
 
 
 

@@ -53,9 +53,9 @@ namespace csound
     Composition::clear();
   }
 
-  long ScoreModel::getThis()
+  intptr_t ScoreModel::getThis()
   {
-    return (long) this;
+    return (intptr_t) this;
   }
 
   Node *ScoreModel::getThisNode()

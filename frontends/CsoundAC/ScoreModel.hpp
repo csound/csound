@@ -32,6 +32,7 @@
 #include "Composition.hpp"
 #include "Node.hpp"
 #include "Score.hpp"
+#include <stdint.h>
 #endif
 
 namespace csound {
@@ -67,7 +68,7 @@ public:
         /**
          * Returns the address of this as a long integer.
          */
-        virtual long getThis();
+        virtual intptr_t getThis();
         /**
          * Returns the address of this as a Node pointer.
          */

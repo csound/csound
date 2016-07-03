@@ -142,6 +142,7 @@ typedef struct {
         AUXCH   oldInPhase;
         AUXCH           trig;
         double          *cosine, *sine;
+        void    *setup;
 } PVSANAL;
 
 typedef struct {
@@ -169,6 +170,7 @@ typedef struct {
         AUXCH   synwinbuf;
         AUXCH   oldOutPhase;
 
+        void    *setup;
 } PVSYNTH;
 
 /* for pvadsyn */

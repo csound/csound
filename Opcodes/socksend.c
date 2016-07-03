@@ -23,7 +23,7 @@
 
 #include "csoundCore.h"
 #include <sys/types.h>
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #else
 #include <sys/socket.h>
@@ -83,7 +83,7 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
 {
     int     bsize;
     int     bwidth = sizeof(MYFLT);
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
@@ -106,7 +106,7 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
     p->server_addr.sin_addr.S_un.S_addr =
       inet_addr((const char *) p->ipaddress->data);
 #else
@@ -232,7 +232,7 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
 {
     int     bsize;
     int     bwidth = sizeof(MYFLT);
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
@@ -256,7 +256,7 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
     p->server_addr.sin_addr.S_un.S_addr =
       inet_addr((const char *) p->ipaddress->data);
 #else
@@ -331,7 +331,7 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
 /* TCP version */
 static int init_ssend(CSOUND *csound, SOCKSEND *p)
 {
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
@@ -354,7 +354,7 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
     p->server_addr.sin_family = AF_INET;
 
     /* the server IP address, in network byte order */
-#ifdef WIN32
+#if defined(WIN32) && !defined(__CYGWIN__)
     p->server_addr.sin_addr.S_un.S_addr =
       inet_addr((const char *) p->ipaddress->data);
 #else

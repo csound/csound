@@ -261,6 +261,9 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     p->fsig->framecount = 1;
     p->fsig->format = PVS_AMP_FREQ;      /* only this, for now */
     p->fsig->sliding = 0;
+
+    if (!(N & (N - 1))) /* if pow of two use this */
+     p->setup = csound->RealFFT2Setup(csound,N,FFT_FWD);
     return OK;
 }
 
@@ -327,7 +330,8 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
       anal[k] += analWindow[i] * input[j];
     }
     if (!(N & (N - 1))) {
-      csound->RealFFT(csound, anal, N);
+      /* csound->RealFFT(csound, anal, N);*/
+      csound->RealFFT2(csound,p->setup,anal);
       anal[N] = anal[1];
       anal[1] = anal[N + 1] = FL(0.0);
     }
@@ -811,7 +815,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
 
 
    if (!(N & (N - 1L)))
-     sum = csound->GetInverseRealFFTScale(csound, (int) N) / sum;
+     sum = csound->GetInverseRealFFTScale(csound, (int) N)/ sum;
     else
       sum = FL(1.0) / sum;
 
@@ -829,6 +833,8 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     p->nextOut = (MYFLT *) (p->output.auxp);
     p->buflen = buflen;
 
+    if (!(N & (N - 1))) /* if pow of two use this */
+      p->setup = csound->RealFFT2Setup(csound,N,FFT_INV);
     return OK;
 }
 
@@ -932,7 +938,8 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     if (!(NO & (NO - 1))) {
       /*printf("N %d %d \n", NO, NO & (NO-1));*/
       syn[1] = syn[NO];
-      csound->InverseRealFFT(csound, syn, NO);
+      /* csound->InverseRealFFT(csound, syn, NO);*/
+      csound->RealFFT2(csound,p->setup,syn);
       syn[NO] = syn[NO + 1] = FL(0.0);
     }
     else

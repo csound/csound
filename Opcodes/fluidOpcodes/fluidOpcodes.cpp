@@ -133,7 +133,9 @@ public:
             } else if (voiceCount > 4096) {
                 voiceCount = 4096;
             }
+#if !defined(WIN32)
             //csound_global_mutex_lock();
+#endif
             fluidSettings = new_fluid_settings();
             if (fluidSettings != NULL) {
                 fluid_settings_setnum(fluidSettings,
@@ -145,7 +147,9 @@ public:
                         (char *)"synth.polyphony", voiceCount);
                 fluidSynth = new_fluid_synth(fluidSettings);
             }
+#if !defined(WIN32)
             //csound_global_mutex_unlock();
+#endif
             if (!fluidSynth) {
                 if (fluidSettings) {
                     delete_fluid_settings(fluidSettings);
@@ -153,10 +157,14 @@ public:
                 result = csound->InitError(csound,
                                            Str("error allocating fluid engine\n"));
             } else {
+#if !defined(WIN32)
                 //csound_global_mutex_lock();
+#endif
                 fluid_synth_set_chorus_on(fluidSynth, chorusEnabled);
                 fluid_synth_set_reverb_on(fluidSynth, reverbEnabled);
+#if !defined(WIN32)
                 //csound_global_mutex_unlock();
+#endif
                 log(csound, "Created fluidEngine 0x%p with sampling rate = %f, "
                     "chorus %s, reverb %s, channels %d, voices %d.\n",
                     fluidSynth, (double) csound->GetSr(csound),

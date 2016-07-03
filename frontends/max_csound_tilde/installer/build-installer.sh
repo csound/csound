@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export CS_TILDE_VERSION=1.1.3_beta
+export CS_TILDE_VERSION=1.1.3
 export PACKAGE_NAME=csound~_${CS_TILDE_VERSION}.pkg
 export DMG_DIR="csound~_${CS_TILDE_VERSION}"
 export DMG_NAME="csound~_${CS_TILDE_VERSION}.dmg"

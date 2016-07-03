@@ -74,9 +74,11 @@ char* cs_strdup(CSOUND* csound, char* str) {
     if (str == NULL) return NULL;
 
     len = strlen(str);
-    retVal = csound->Malloc(csound, (len + 1) * sizeof(char));
+    retVal = csound->Malloc(csound, len + 1);
 
-    if (len > 0) memcpy(retVal, str, len * sizeof(char));//why not strcpy?
+    if (len > 0) {
+      strncpy(retVal, str, len);
+    }
     retVal[len] = '\0';
 
     return retVal;
@@ -93,8 +95,8 @@ char* cs_strndup(CSOUND* csound, char* str, size_t size) {
       return cs_strdup(csound, str);
     }
 
-    retVal = csound->Malloc(csound, (size + 1) * sizeof(char));
-    memcpy(retVal, str, size * sizeof(char));
+    retVal = csound->Malloc(csound, size + 1);
+    memcpy(retVal, str, size);
     retVal[size] = '\0';
 
     return retVal;
@@ -528,8 +530,26 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             
       if (*s == '#')
         s++;
-           
-      var = find_var_from_pools(csound, s, varBaseName, typeTable);
+
+      /* VL: 16/01/2014
+         in a second compilation, the
+         typeTable->globalPool is incorrect and will not
+         contain the correct addresses of global variables,
+         which are stored correctly in the engineState.varPool.
+         Ideally we should remove typeTable->globalPool and only use
+         the varPool in the engineState
+      */
+
+      if (*s == 'g') {
+        var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                         tree->value->lexeme);
+        if (var == NULL)
+          var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                           tree->value->lexeme);
+        //printf("var: %p %s\n", var, var->varName);
+      } else
+        var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                         tree->value->lexeme);
 
       if (UNLIKELY(var == NULL)) {
         synterr(csound, Str("Variable '%s' used before defined\n"),
@@ -1252,18 +1272,19 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
 
 OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
                         char* outArgsFound, char* inArgsFound) {
-    
+
     OENTRIES* opcodes = find_opcode2(csound, opname);
-    
+
     if (opcodes->count == 0) {
         return NULL;
     }
-    
-    
-    OENTRY* retVal = resolve_opcode_exact(csound, opcodes, outArgsFound, inArgsFound);
-    
+
+
+    OENTRY* retVal = resolve_opcode_exact(csound, opcodes,
+                                          outArgsFound, inArgsFound);
+
     csound->Free(csound, opcodes);
-    
+
     return retVal;
 }
 
@@ -2149,7 +2170,7 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
     TREE* xoutArgs = NULL;
     char* inArgs = inArgsTree->value->lexeme;
     char* outArgs = outArgsTree->value->lexeme;
-    int i;
+    unsigned int i;
 
     for (i = 0; i < strlen(inArgs);i++) {
         if (inArgs[i] == 'K') {
@@ -2436,7 +2457,9 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     char *p = csound_orcget_current_pointer(yyscanner)-1;
     int line = csound_orcget_lineno(yyscanner);
     uint64_t files = csound_orcget_locn(yyscanner);
-    if (*p=='\0') line--;
+    if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
+    //printf("LINE: %d\n", line);
+
     csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_orcget_text(yyscanner));
     do_baktrace(csound, files);
@@ -2444,8 +2467,12 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     while ((ch=*--p) != '\n' && ch != '\0');
     do {
       ch = *++p;
-      if (ch == '\n') break;
-      csound->Message(csound, "%c", ch);
+      if (UNLIKELY(ch == '\n')) break;
+      // Now get rid of any continuations
+      if (ch=='#' && strncmp(p,"sline ",6)) {
+        p+=7; while (isdigit(*p)) p++;
+      }
+      else csound->Message(csound, "%c", ch);
     } while (ch != '\n' && ch != '\0');
     csound->Message(csound, " <<<\n");
 }
@@ -2923,7 +2950,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
 void print_tree(CSOUND * csound, char* msg, TREE *l)
 {
     if (msg)
-      csound->Message(csound, msg);
+      csound->Message(csound, "%s", msg);
     else
       csound->Message(csound, "Printing Tree\n");
     csound->Message(csound, "<ast>\n");

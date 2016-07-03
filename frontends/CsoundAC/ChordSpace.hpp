@@ -2840,8 +2840,8 @@ public:
             Chord normalOPTgI = csound::normalize<EQUIVALENCE_RELATION_RPTgI>(chord, OCTAVE(), g);
             std::map<Chord, int>::const_iterator it = indexesForOpttis.find(normalOPTgI);
             if (it == indexesForOpttis.end()) {
-              csound::print("normalOPTgI %s not found!\n");
-              // **FIXME** fall through here means it is out of range so it->second?
+              // Falling through here means there is a bug that I want to know about.
+              csound::print("Error: normalOPTgI %s not found! Please report an issue, this should not appear.\n");
             }
             int P_ = it->second;
             if (printme) {

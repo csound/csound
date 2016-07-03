@@ -154,15 +154,6 @@
  *      If xhigh is lower than xlow, then the output will be the average of
  *      the two - it will not be affected by xsig.
  *
- *>>>   Add these to the end of opcodlst in entry.c.
- *
- * opcode   dspace      thread  outarg  inargs   isub    ksub    asub
- *
-
-{ "ilimit", S(LIMIT),   1,      "i",    "iii",   klimit, NULL,   NULL},
-{ "limit",  S(LIMIT),   7,      "s",    "xkk",   limitset, klimit, limit},
-
- *
  */
 
 /*---------------------------------------------------------------------------*/

@@ -41,7 +41,6 @@ __global__ void frompvs(float* inframe, double* lastph,
   lastph[k-1] = phi;
   inframe[i] =  (float) (mag*cos(phi));
   inframe[i+1] = (float) (mag*sin(phi));
-
 }
 
 __global__ void winrotate(float* inframe2, float* inframe, float *win,
@@ -220,6 +219,7 @@ static int destroy_pvsyn(CSOUND *csound, void *pp){
   PVSYN *p = (PVSYN *) pp;
   cufftDestroy(p->plan);
   cudaFree(p->inframe);
+  cudaFree(p->inframe2);
   cudaFree(p->lastph);
   cudaFree(p->win);
   return OK;
@@ -302,7 +302,7 @@ static int pvanalset(CSOUND *csound, PVAN *p){
       csound->AuxAlloc(csound, size, &p->frames);
     memset(p->frames.auxp, 0, size);
 
-    size = N*sizeof(float);
+    size = (N+2)*sizeof(float);
     if(p->fsig->frame.auxp == NULL ||
        p->fsig->frame.size < size)
       csound->AuxAlloc(csound, size, &p->fsig->frame);
@@ -426,6 +426,7 @@ static int destroy_pvanal(CSOUND *csound, void *pp){
   PVAN *p = (PVAN *) pp;
   cufftDestroy(p->plan);
   cudaFree(p->aframe);
+  cudaFree(p->aframe2);
   cudaFree(p->oldph);
   cudaFree(p->win);
   return OK;

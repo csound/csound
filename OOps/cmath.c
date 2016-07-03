@@ -96,6 +96,12 @@ int seedrand(CSOUND *csound, PRAND *p)
     return OK;
 }
 
+int getseed(CSOUND *csound, GETSEED *p)
+{
+    *p->ans = csound->randSeed1;
+    return OK;
+}
+
 /* * * * * * RANDOM NUMBER GENERATORS * * * * * */
 
 #define UInt32toFlt(x) ((double)(x) * (1.0 / 4294967295.03125))

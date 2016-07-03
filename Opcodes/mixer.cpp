@@ -307,7 +307,7 @@ extern "C"
     {
       (char*)"MixerSetLevel",
       sizeof(MixerSetLevel),
-      CW,
+      _CW,
       3,
       (char*)"",
       (char*)"iik",
@@ -318,7 +318,7 @@ extern "C"
     {
       (char*)"MixerSetLevel_i",
       sizeof(MixerSetLevel),
-      CW,
+      _CW,
       1,
       (char*)"",
       (char*)"iii",
@@ -329,7 +329,7 @@ extern "C"
     {
       (char*)"MixerGetLevel",
       sizeof(MixerGetLevel),
-      CR,
+      _CR,
       3,
       (char*)"k",
       (char*)"ii",
@@ -340,7 +340,7 @@ extern "C"
     {
       (char*)"MixerSend",
       sizeof(MixerSend),
-      CR,
+      _CR,
       5,
       (char*)"",
       (char*)"aiii",
@@ -351,7 +351,7 @@ extern "C"
     {
       (char*)"MixerReceive",
       sizeof(MixerReceive),
-      CW,
+      _CW,
       5,
       (char*)"a",
       (char*)"ii",

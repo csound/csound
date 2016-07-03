@@ -52,11 +52,11 @@ int port(CSOUND *csound, PORT *p)
 
 int kport(CSOUND *csound, KPORT *p)
 {
-  if(p->ihtim_old != *p->ihtim) {
-     p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
-     p->c1 = 1.0 - p->c2;
-     p->ihtim_old = *p->ihtim;
-  }
+    if (p->ihtim_old != *p->ihtim) {
+      p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
+      p->c1 = 1.0 - p->c2;
+      p->ihtim_old = *p->ihtim;
+    }
     p->yt1 = p->c1 * (double)*p->ksig + p->c2 * p->yt1;
     *p->kr = (MYFLT)p->yt1;
     return OK;
@@ -76,7 +76,7 @@ int tonset(CSOUND *csound, TONE *p)
 }
 
 int ktonset(CSOUND *csound, TONE *p) {
-   double b;
+    double b;
     p->prvhp = (double)*p->khp;
     b = 2.0 - cos((double)(p->prvhp * CS_ONEDKR *TWOPI));
     p->c2 = b - sqrt(b * b - 1.0);
@@ -85,7 +85,6 @@ int ktonset(CSOUND *csound, TONE *p) {
     if (LIKELY(!(*p->istor)))
       p->yt1 = 0.0;
     return OK;
-
  }
 
 int ktone(CSOUND *csound, TONE *p)
@@ -609,7 +608,7 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
 
     /* Build file name */
     if (stringname) strncpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
-    else if (ISSTRCOD(*p->ifilcod))
+    else if (csound->ISSTRCOD(*p->ifilcod))
       strncpy(lpfilname, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
     else csound->strarg2name(csound, lpfilname, p->ifilcod, "lp.", 0);
 

@@ -93,7 +93,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
     }
     /* get file name, */
     if (isString) name = cs_strdup(csound, ((STRINGDAT *)iFile)->data);
-    else if(ISSTRCOD(*iFile)) name = cs_strdup(csound,
+    else if (csound->ISSTRCOD(*iFile)) name = cs_strdup(csound,
                                                get_arg_string(csound, *iFile));
     /* else csound->strarg2name(csound, NULL, iFile, "fout.", 0);*/
     else {
@@ -183,7 +183,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
       if (fileType == CSFILE_SND_W) {
         do_scale = ((SF_INFO*) fileParams)->format;
         csFileType = csound->sftype2csfiletype(do_scale);
-        if(csound->realtime_audio_flag == 0 || forceSync == 1) {
+        if (csound->realtime_audio_flag == 0 || forceSync == 1) {
           fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
                                 "SFDIR", csFileType, 0);
           p->async = 0;
@@ -197,7 +197,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
         p->nchnls = ((SF_INFO*) fileParams)->channels;
       }
       else {
-         if(csound->realtime_audio_flag == 0 || forceSync == 1) {
+         if (csound->realtime_audio_flag == 0 || forceSync == 1) {
         fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
                                "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
         p->async = 0;
@@ -301,7 +301,7 @@ static int outfile(CSOUND *csound, OUTFILE *p)
         //#else
         //sf_write_double(p->f.sf, buf, p->buf_pos);
         //#endif
-        if(p->f.async==1)
+        if (p->f.async==1)
         csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
         else sf_write_MYFLT(p->f.sf, buf, p->buf_pos);
         p->buf_pos = 0;
@@ -395,7 +395,7 @@ static int fout_flush_callback(CSOUND *csound, void *p_)
       //#else
       //sf_write_double(p->f.sf, (double*) p->buf.auxp, p->buf_pos);
       //#endif
-      if(p->f.async == 1)
+      if (p->f.async == 1)
         csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
       else
         sf_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
@@ -538,7 +538,7 @@ static int koutfile(CSOUND *csound, KOUTFILE *p)
         //#else
         //sf_write_double(p->f.sf, buf, p->buf_pos);
         //#endif
-        if(p->f.async==1)
+        if (p->f.async==1)
         csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
         else sf_write_MYFLT(p->f.sf, buf, p->buf_pos);
       p->buf_pos = 0;
@@ -641,13 +641,13 @@ static int ficlose_opcode_(CSOUND *csound, FICLOSE *p, int istring)
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int               idx = -1;
 
-    if (istring || ISSTRCOD(*(p->iFile))){
+    if (istring || csound->ISSTRCOD(*(p->iFile))){
        char    *fname = NULL;
-      if(istring) fname = cs_strdup(csound, ((STRINGDAT *)p->iFile)->data);
-      else if(ISSTRCOD(*(p->iFile)))
+      if (istring) fname = cs_strdup(csound, ((STRINGDAT *)p->iFile)->data);
+      else if (csound->ISSTRCOD(*(p->iFile)))
        fname = cs_strdup(csound, get_arg_string(csound, *p->iFile));
       if (UNLIKELY(fname == NULL || fname[0] == (char) 0)) {
-        if(fname != NULL) csound->Free(csound, fname);
+        if (fname != NULL) csound->Free(csound, fname);
         return csound->InitError(csound, Str("invalid file name"));
       }
       for (idx = 0; idx <= pp->file_num; idx++) {
@@ -880,7 +880,7 @@ static int infile_set_(CSOUND *csound, INFILE *p, int istring)
     p->guard_pos = p->frames * p->nargs;
     p->buf_pos = p->guard_pos;
 
-    if(p->f.async == 1)
+    if (p->f.async == 1)
     csound->FSeekAsync(csound,p->f.fd, p->currpos*p->f.nchnls, SEEK_SET);
 
     return OK;
@@ -947,7 +947,7 @@ static int infile_set_A(CSOUND *csound, INFILEA *p)
     p->guard_pos = p->frames * p->chn;
     p->buf_pos = p->guard_pos;
 
-    if(p->f.async == 1)
+    if (p->f.async == 1)
     csound->FSeekAsync(csound,p->f.fd, p->currpos*p->f.nchnls, SEEK_SET);
 
     tabensure(csound, p->tabout, p->chn);
@@ -973,7 +973,7 @@ static int infile_act(CSOUND *csound, INFILE *p)
     }
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
-        if(UNLIKELY(p->f.async == 0)){
+        if (UNLIKELY(p->f.async == 0)){
             sf_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
             p->remain = (uint32_t) sf_read_MYFLT(p->f.sf, (MYFLT*) buf,
                                                  p->frames*p->f.nchnls);
@@ -1028,7 +1028,7 @@ static int infile_arr(CSOUND *csound, INFILEA *p)
     }
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
-        if(UNLIKELY(p->f.async == 0)){
+        if (UNLIKELY(p->f.async == 0)){
             sf_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
             p->remain = (uint32_t) sf_read_MYFLT(p->f.sf, (MYFLT*) buf,
                                                  p->frames*p->f.nchnls);
@@ -1109,7 +1109,7 @@ static int kinfile_set_(CSOUND *csound, KINFILE *p, int istring)
     p->guard_pos = p->frames * p->nargs;
     p->buf_pos = p->guard_pos;
 
-    if(p->f.async == 1)
+    if (p->f.async == 1)
     csound->FSeekAsync(csound,p->f.fd, p->currpos*p->f.nchnls, SEEK_SET);
 
     return OK;
@@ -1132,7 +1132,7 @@ static int kinfile(CSOUND *csound, KINFILE *p)
 
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
-        if(UNLIKELY(p->f.async == 0)){
+        if (UNLIKELY(p->f.async == 0)){
             sf_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
             p->remain = (uint32_t) sf_read_MYFLT(p->f.sf, (MYFLT*) buf,
                                                  p->frames*p->f.nchnls);
@@ -1401,23 +1401,23 @@ static int fprintf_set_S(CSOUND *csound, FPRINTF *p){
   return fprintf_set_(csound,p,1);
 }
 
+
+
 /* perform a sprintf-style format -- matt ingalls */
-void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
+void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
 {
     char strseg[8192];
     int len = 8192;
     int i = 0, j = 0;
     char *segwaiting = 0;
-
     while (*fmt) {
       if (*fmt == '%') {
         /* if already a segment waiting, then lets print it */
         if (segwaiting) {
           strseg[i] = '\0';
-
           switch (*segwaiting) {
           case '%':
-            snprintf(outstring, len, "%%");
+            strncpy(outstring, "%%", len);
             j--;
             break;
           case 'd':
@@ -1450,7 +1450,6 @@ void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
           if (j < numVals-1)
             j++;
         }
-
         /* copy the '%' */
         strseg[i++] = *fmt++;
 
@@ -1495,6 +1494,7 @@ void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
       else
         snprintf(outstring, len, "%s", strseg);
     }
+
 }
 
 static int fprintf_k(CSOUND *csound, FPRINTF *p)
@@ -1502,7 +1502,7 @@ static int fprintf_k(CSOUND *csound, FPRINTF *p)
     char    string[8192];
 
     (void) csound;
-    sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
+    sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f, "%s", string);
 
     return OK;
@@ -1515,7 +1515,7 @@ static int fprintf_i(CSOUND *csound, FPRINTF *p)
 
     if (UNLIKELY(fprintf_set(csound, p) != OK))
       return NOTOK;
-    sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
+    sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f,"%s", string);
     /* fflush(p->f.f); */
     return OK;
@@ -1527,7 +1527,7 @@ static int fprintf_i_S(CSOUND *csound, FPRINTF *p)
 
     if (UNLIKELY(fprintf_set_S(csound, p) != OK))
       return NOTOK;
-    sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
+    sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f, "%s", string);
     /* fflush(p->f.f); */
     return OK;

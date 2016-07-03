@@ -14,9 +14,13 @@ following operating systems
 
 -   [Fedora 18](#fedora)
 
--   [Windows (Mingw32)](#mingw32)
+-   [Windows 32/64 bit using MYSYS (recommended)](#msys2)
 
-Instructions compiled by Dominic Melville contact via dcamelville at gmail.com
+-   [Windows (Mingw32)](#mingw32) 
+
+-   [Android](#android)  
+
+Instructions for RPI compiled by Dominic Melville contact via dcamelville at gmail.com
 for amendments and updates
 
 
@@ -294,6 +298,17 @@ To switch the faust opcodes build on and coerce cmake into finding the faust lib
 
 cmake -DCMAKE_INSTALL_PREFIX=$HOME -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$HOME/lib/faust/libfaust.a ..
 
+NB: Ubuntu users should be aware that LLVM 3.4 and 3.5 packages seem broken. It is probably recommended to build LLVM by oneself. Otherwise, LLVM 3.3 package is enough for building csound 6.05 with Faust opcodes assuming that
+
+- LLVMConfig.cmake is correctly spelled in /usr/share/llvm-3.3/cmake (otherwise create a symbolic link with that name : ln -s /usr/share/llvm-3.3/cmake/LLVM-Config.cmake /usr/share/llvm-3.3/cmake/LLVMConfig.cmake) 
+- llvm-config is correctly spelled in /usr/bin
+- faust2 is built with LLVM 3.3
+- cmake version > 2.8.7 (version 3.3.0 builds easily for instance)
+
+Then some additional environment variables may have to be set during the configuration step:
+
+cmake -DLLVM_DIR=/usr/share/llvm-3.3/cmake -DCMAKE_MODULE_LINKER_FLAGS="-L/usr/lib/llvm-3.3/lib" -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=pathTo/libfaust.a ../csound-develop/ 
+
 #### Portaudio module
 
 portaudio - http://www.portaudio.com/
@@ -351,7 +366,7 @@ After adding that to the sources.list, you should run `sudo apt-get update ` and
 
 6.  `cd cs6make`
 
-7.  `cmake ../csound -DBUILD_CSOUND_AC=OFF` (this will not build CsoundAC, that
+7.  `cmake ../csound -DBUILD_CSOUND_AC=OFF -DCMAKE_BUILD_TYPE="Release"` (this will not build CsoundAC, that
     gives errors)
 
 8.  `make -j6`
@@ -527,9 +542,12 @@ and log out of root
 Testing As a basic test, just try typing csound at a command prompt, and you
 should get the help message.
 
+Windows 32/64 Bit (msys2) <a name="msys2">
+---------------
+Csound for Windows can now be built using MSYS2. This is the recommeneded way to build Csound for Windows. Please follow the instruction posted [https://github.com/csound/csound/tree/develop/mingw64] here.
 
 
-Windows (mingw32) <a name="mingw32">
+Windows 32 Bit (mingw32) <a name="mingw32">
 ---------------
 A basic working knowledge of the Windows command prompt is assumed. Further instructions for Windows can be found in their own document at the following link [Csound Windows Build Doc][1]
 
@@ -551,7 +569,7 @@ Open the Windows command prompt and cd to a folder you wish to create your Csoun
 `mkdir build`
 `cd build`
 
-The run cmake-gui from the command line:
+Then run cmake-gui from the command line:
 
 `cmake-gui`
 
@@ -594,4 +612,47 @@ Download and install cmake
 Run cmake from the csound dir and configure Csound to build using MinGW Makefiles. For this minimal you'll need to disable quite a few features.
 Run generate.
 cd to csound build directory and run mingw32-make
- 
+
+Android <a name="android">
+-------------- 
+
+Requirements
+
+1. SWIG (www.swig.org)
+2. libsndfile sources for android (https://bitbucket.org/kunstmusik/libsndfile-android.git)
+3. boost (www.boost.org)
+4. Android NDK
+
+### Steps
+
+1. Download, build and install SWIG (or install from your distro package system)
+2. Clone the libsndfile sources for android repo,e.g.:
+
+ $ cd $HOME
+
+ $ mkdir android
+
+ $ cd android
+
+ $ git clone https://bitbucket.org/kunstmusik/libsndfile-android.git
+
+3. Set the ANDROID_NDK_MODULE variable to point to the top directory
+where the libsndfile sources are located,e.g.
+
+ $ export ANDROID_NDK_MODULE=$HOME/android
+
+4. Download boost and install (headers only) in your include path (e.g. /usr/local/include). There is
+no need to build the library.
+
+5. Download the Android NDK and place it somewhere (e.g. $HOME), set the ANDROID_NDK_ROOT
+to point to it
+
+ $ export ANDROID_NDK_ROOT=$HOME
+
+5. Get Csound, and go to the ./android/CsoundAndroid directory, run
+
+  $ sh build.sh
+
+The Java files and NDK libraries will be under CsoundAndroid.
+
+

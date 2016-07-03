@@ -73,7 +73,7 @@ STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*
-XIDENT          0|[aijkftKOVPopS\[\]]+
+XIDENT          0|[aijkftKOJVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
 WHITE           [ \t]+
@@ -82,11 +82,13 @@ CONT            \\[ \t]*(;.*)?\n
 XSTR            "{{"
 EXSTR           "}}"
 LINE            ^[ \t]*"#line"
+SLINE           "#sline "
 FILE            ^[ \t]*"#source"
 FNAME           [a-zA-Z0-9/:.+-_]+
 SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 
 %x line
+%x sline
 %x src
 %x xstr
 %x udodef
@@ -315,6 +317,9 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
   {WHITE}         { }
 }
 
+{SLINE}         { BEGIN(sline); }
+<sline>{INTGR}   { csound_orcset_lineno(atoi(yytext), yyscanner); }
+<sline>[ \t]*   { BEGIN(INITIAL);}
 {LINE}          { BEGIN(line); }
 
 <line>{

@@ -1,6 +1,7 @@
 /*
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 Partikkel - a granular synthesis module for Csound 5
-Copyright (C) 2006-2009 Oeyvind Brandtsegg, Torgeir Strand Henriksen,
+Copyright (C) 2006-2016 Oeyvind Brandtsegg, Torgeir Strand Henriksen,
 Thom Johansen
 
 This library is free software; you can redistribute it and/or
@@ -334,9 +335,6 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
     /* make a new grain */
     MYFLT startfreqscale, endfreqscale;
     MYFLT maskgain, maskchannel;
-    int samples;
-    double rcp_samples; /* 1/samples */
-    double phase_corr;
     GRAIN *grain = &node->grain;
     unsigned int i;
     unsigned int chan;
@@ -418,21 +416,24 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
     grain->chan2 = p->num_outputs > chan + 1 ? chan + 1 : 0;
 
     /* duration in samples */
-    samples = (int)((CS_ESR*(*p->duration)/1000.0) + 0.5);
+    const double dur_samples = CS_ESR*(*p->duration)/1000.0;
     /* if grainlength is below one sample, we'll just cancel it */
-    if (samples <= 0) {
+    if (dur_samples < 1.0) {
         return_grain(&p->gpool, node);
         return OK;
     }
-    rcp_samples = 1.0/(double)samples;
-    grain->start = n + offset*CS_ESR;
-    grain->stop = grain->start + samples;
-    /* implement sub-sample grain placement for synchronous grains */
-    if (offset == 0.0 && p->graininc > 1e-6)
-        phase_corr = p->grainphase/p->graininc;
-    else
-        phase_corr = 0.0;
-
+    /* the grain is supposed to start at grainphase = 0, so calculate how far
+     * we overshot that and correct all relevant wave and envelope phases
+     * for proper sub-sample grain placement. if offset != 0, our grains
+     * are probably not very synchronous, and will not benefit from this.
+     * also only enable it for sufficiently high grain rates. current
+     * threshold corresponds to around 150hz */
+    const double phase_corr = offset == 0.0 && p->graininc > 0.0032
+                            ? p->grainphase/p->graininc
+                            : 0.0;
+    const double rcp_samples = 1.0/dur_samples;
+    grain->start = (unsigned)((double)n + offset*CS_ESR + phase_corr);
+    grain->stop = (unsigned)(grain->start + dur_samples - phase_corr) + 1;
     /* set up the four wavetables and dsf to use in the grain */
     for (i = 0; i < 5; ++i) {
         WAVEDATA *curwav = &grain->wav[i];
@@ -595,7 +596,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
 
             do
                 p->grainphase -= 1.0;
-            while (p->grainphase >= 1.0);
+            while (UNLIKELY(p->grainphase >= 1.0));
             /* schedule new synchronous or synced grain */
             /* first determine time offset for grain */
             if (*p->distribution >= FL(0.0)) {
@@ -613,13 +614,13 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
             /* convert offset to seconds, also limiting it to 10 seconds to
              * avoid accidentally filling grain pool with grains which will
              * spawn in half a day */
-            if (grainfreq < FL(0.001))
+            if (grainfreq < FL(0.001)) {
+                /* avoid div by zero */
                 offset = 0;
-            else if ((offset - p->grainphase)/grainfreq > 10.)
-                offset = 10.0;
-            else
-                offset = (offset - p->grainphase)/grainfreq;
-
+            } else {
+                offset /= grainfreq;
+                if (offset > 10.0) offset = 10.0;
+            }
             /* check if there are any grains left in the pool */
             if (!p->gpool.free_nodes) {
                 if (!p->out_of_voices_warning) {

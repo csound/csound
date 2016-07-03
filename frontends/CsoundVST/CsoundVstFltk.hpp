@@ -71,7 +71,7 @@ public:
   static Fl_Preferences preferences;
   CsoundVST *csoundVST;
   void *windowHandle;
-  Fl_Window *csoundVstUi;
+  Fl_Double_Window *csoundVstUi;
   int useCount;
   bool updateFlag;
   Fl_Tabs *mainTabs;

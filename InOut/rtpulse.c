@@ -40,17 +40,17 @@ typedef struct _pulse_globals {
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
-  pulse_globals *p;
-  int siz = 64;
-  OPARMS oparms;
-  csound->GetOParms(csound, &oparms);
+    pulse_globals *p;
+    int siz = 64;
+    OPARMS oparms;
+    csound->GetOParms(csound, &oparms);
 
-  if (oparms.msglevel & 0x400)
-    csound->Message(csound, Str("PulseAudio client RT IO module for Csound"
-                                "by Victor Lazzarini\n"));
+    if (oparms.msglevel & 0x400)
+      csound->Message(csound, Str("PulseAudio client RT IO module for Csound"
+                                  "by Victor Lazzarini\n"));
 
-  if (csound->CreateGlobalVariable(csound, "_pulse_globals",
-                                   sizeof(pulse_globals)) != 0) {
+    if (csound->CreateGlobalVariable(csound, "_pulse_globals",
+                                     sizeof(pulse_globals)) != 0) {
       csound->ErrorMsg(csound, Str(" *** rtpulse: error allocating globals"));
       return -1;
     }

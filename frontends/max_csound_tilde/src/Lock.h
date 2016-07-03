@@ -51,7 +51,7 @@ public:
 
 	void setName(char *name);
 	virtual void lock(char *context = NULL) = 0;
-	virtual void trylock(char *context = NULL) = 0;
+//	virtual void trylock(char *context = NULL) = 0;
 	virtual void unlock(char *context = NULL) = 0;
 
 protected:
@@ -115,7 +115,7 @@ public:
 	spinlock(char *name = NULL);
 	~spinlock();
 	void lock(char *context = NULL);
-	void trylock(char *context = NULL);
+//	void trylock(char *context = NULL);
 	void unlock(char *context = NULL);
 private:
 	spinlock(const spinlock & other) {}
@@ -137,7 +137,6 @@ public:
 	pspinlock(char *name = NULL);
 	~pspinlock();
 	void lock(char *context = NULL);
-	void trylock(char *context = NULL);
 	void unlock(char *context = NULL);
 private:
 	pspinlock(const pspinlock & other) {}
@@ -153,7 +152,6 @@ public:
 	wspinlock(char *name = NULL);
 	~wspinlock();
 	void lock(char *context = NULL);
-	void trylock(char *context = NULL);
 	void unlock(char *context = NULL);
 private:
 	enum { MAX_SPIN_COUNT = 4000 }; // Used for WIN_CRITICAL_SECTION.

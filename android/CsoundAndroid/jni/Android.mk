@@ -1,16 +1,24 @@
 LOCAL_PATH := $(call my-dir)
-
 include $(CLEAR_VARS)
 
 CSOUND_SRC_ROOT := ../../..
 LIBSNDFILE_SRC_DIR := $(NDK_MODULE_PATH)/libsndfile-android/jni/
 
 LOCAL_MODULE   := csoundandroid
-LOCAL_C_INCLUDES := $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../H $(LOCAL_PATH)/../../../include $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces
-LOCAL_CFLAGS := -O3 -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_BUILTIN_ATOMIC -w
-LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
+LOCAL_C_INCLUDES := $(LIBSNDFILE_SRC_DIR) $(HOME)/include $(LOCAL_PATH)/../../../H $(LOCAL_PATH)/../../../include $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces 
+LOCAL_CFLAGS := -O3 -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_BUILTIN_ATOMIC -mllvm -unroll-allow-partial -mllvm -unroll-runtime -funsafe-math-optimizations -ffast-math -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize
+#LOCAL_CPPFLAGS := $(LOCAL_CFLAGS)
 LOCAL_CPPFLAGS += -std=c++11 -pthread -frtti -fexceptions
 LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(NDK_MODULE_PATH)/luajit-2.0/src -L$(LIBSNDFILE_SRC_DIR)
+
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi-v7a x86))
+LOCAL_ARM_NEON  := true
+LOCAL_CFLAGS += -DHAVE_NEON
+endif # TARGET_ARCH_ABI == armeabi-v7a || x86
+
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi))
+LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE
+endif # TARGET_ARCH_ABI == armeabi
 ###
 
 LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Engine/auxfd.c \
@@ -54,6 +62,7 @@ $(CSOUND_SRC_ROOT)/OOps/diskin2.c \
 $(CSOUND_SRC_ROOT)/OOps/disprep.c \
 $(CSOUND_SRC_ROOT)/OOps/dumpf.c \
 $(CSOUND_SRC_ROOT)/OOps/fftlib.c \
+$(CSOUND_SRC_ROOT)/OOps/pffft.c \
 $(CSOUND_SRC_ROOT)/OOps/goto_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/midiinterop.c \
 $(CSOUND_SRC_ROOT)/OOps/midiops.c \
@@ -245,10 +254,12 @@ $(CSOUND_SRC_ROOT)/interfaces/Soundfile.cpp \
 $(CSOUND_SRC_ROOT)/interfaces/csPerfThread.cpp \
 $(CSOUND_SRC_ROOT)/interfaces/cs_glue.cpp \
 $(CSOUND_SRC_ROOT)/interfaces/filebuilding.cpp \
-java_interfaceJAVA_wrap.cpp
+java_interfaceJAVA_wrap.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c
+
 #CsoundObj.cpp
 
-LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc
+LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc -latomic 
 
 # For building with all plugins use:
 
@@ -256,9 +267,12 @@ LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc
 
 # For building without plugins, but with support for plugins that may depend on GNU STL, use:
 
-LOCAL_SHARED_LIBRARIES += gnustl_shared sndfile
+LOCAL_SHARED_LIBRARIES += c++_shared sndfile
 #LOCAL_STATIC_LIBRARIES += sndfile
 
+# Prevents stripping needed exports from the shared library.
+
+cmd-strip :=
 
 include $(BUILD_SHARED_LIBRARY)
 $(call import-module,libsndfile-android/jni)

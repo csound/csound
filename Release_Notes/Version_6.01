@@ -1,0 +1,198 @@
+============================
+CSOUND VERSION 6.01
+RELEASE NOTES
+============================
+
+This new version has a large number of bug fixes (including clearing
+all tickets on SourceForge) as well internal changes to improve
+performance.  Perhaps the biggest changes however is in the use of
+arrays.  Many opcodes can now use array inputs or outputs, and the
+previous array opcodes have been widened to all rates as appropriate.
+
+USER-LEVEL CHANGES
+==================
+
+New opcodes:
+
+    o   midifilestatus (UNDOCUMENTED)
+    
+    o   signum function
+
+New Gen and Macros: None
+
+Orchestra:
+
+    o   A number of small fixes have been made to the parser, such as
+    to then in i-rate, the boolean in until loop (#40), ...
+
+
+Score: None
+
+
+Modified Opcodes and Gens:
+
+    o   Fault opcode runs in its own thread
+
+    o   Many extensions to array opcodes, more flexible regarding i , k or a type
+
+    o   Opcodes in, fin, diskin, diskin2, vbap, vbap_move, vbapg,
+    vbapgmove,...  now accept array output argument 
+
+    o   Opcodes out, fout accepts an array for input
+
+    o   pvs2tab now works with arrays as well (#52, #54)
+
+Utilities:  None
+
+
+Frontends:
+
+    o   fixes to PD class and csound~
+
+  
+
+General usage:
+
+    o   Length of strings arbitrary
+
+    o   made tieflag and reinitflag per instance
+
+    o   Using an undefined variable no longer causes a crash
+
+    o   in lists of directories in environment values ; and : are both
+    allowed, with preference based on the operating system
+
+Bugs fixed:
+
+    o   Issues in Multidimension arrays fixed
+
+    o   Some parser bugs fixed
+
+    o   Fixed bug in realtime-mode initialisation pass
+
+    o   rtjack reworked
+
+    o   ftload fixed
+
+    o   crashes in pset fixed
+
+    o   fixes in use of strings
+
+    o   fix arrays in UDOs
+
+    o   fix to strlen
+
+    o   fix bug in strsub
+
+    o   fix overwriting of arrays in assignment
+
+    o   fix subinstr
+
+    o   fix chnexport initialisation
+
+    o   fixed bug in setting system constants
+
+    o   stupid error in cell fixed
+
+    o   fixed ksmps inconsistency check
+
+    o   fix bug in string assignment
+
+    o   fixed strcat opcode
+
+    o   fixed sprintf bug
+
+    o   ftconv fix
+
+    o   fix bug in loscil and related opcodes
+
+    o   fixed issues on failure to compile Faust code
+
+    o   fixed framecounting in pvsfromarray
+
+====================
+SYSTEM LEVEL CHANGES
+====================
+
+System changes:
+
+    o   Fixed issues with error value for csoundGetControlChannel and
+    added new checks in channel tests to evidence channel registration
+    error. 
+
+    o   pvs channels made threadsafe
+
+    o   A potential danger in calling csoundDestroy has been removed (#6)
+
+    o   integration of CSOUND_PARAMS to oparms(#23)
+
+Internal changes:
+
+    o   improving cpu consumption of diskin2 in async mode
+
+    o   minor improvements in moogladder and statevar to avoid recalculation
+
+    o   urandom.i faster
+
+    o   Some memory issues fixed
+
+    o   implemented a workable (but not ideal) fix that allows using
+    array syntax with a-sigs (#43) 
+
+    o  
+
+
+API
+===
+
+    o   csoundStart() is now called if it has not been already
+
+    o   fixed moduleDestroy to only destroy engine instances for
+    CSOUND that is passed in; fixes Android crashing bug 
+
+    o   ReadSco fixed to process f-statements correctly(#56)
+
+
+Platform Specific
+=================
+
+iOS
+---
+
+    o   fixed MIDI Input
+
+
+Windows
+-------
+
+    o   better handling of locales
+
+    o   CsoundObj: modified getInputChannelPtr to require
+    passing in the channelType (i.e. CSOUND_CONTROL_CHANNEL,
+    CSOUND_AUDIO_CHANNEL); previously getInputChannelPtr was hardcoded
+    for only control channels. This is a non-backwards compatible
+    change.  To update previous project, add
+    "controlChannelType.CSOUND_CONTROL_CHANNEL" when calling
+    getInputChannelPtr(#26)
+
+    o   added -source and -target settings when compiling java
+    interface wrapper; set to 1.6 for both source and target (#44)
+
+OSX
+---
+
+    o   better handling of locales
+
+    o   set the -mmacosx-version-min=10.6 flag when compiling to allow
+    running the build artifacts on 10.6 and up (note: also required
+    support libs to be compiled with -mmacosx-version-min flag) 
+
+Linux
+-----
+
+    o   thread-unsafe code to handle locales better
+
+========================================================================
+
+
+

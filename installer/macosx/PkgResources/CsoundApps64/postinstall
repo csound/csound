@@ -10,3 +10,4 @@ fi
 
 /bin/ln -sF /Library/Frameworks/CsoundLib64.framework/Versions/Current/libcsnd6.6.0.dylib /usr/local/lib/libcsnd6.6.0.dylib
 /bin/ln -sF /Library/Frameworks/CsoundLib64.framework/Versions/Current/libCsoundAC.6.0.dylib /usr/local/lib/libCsoundAC.6.0.dylib
+/bin/ln -sF /Library/Audio/Plug-ins/LADSPA/csladspa64.dylib /Library/Audio/Plug-Ins/LADSPA/csladspa64.so

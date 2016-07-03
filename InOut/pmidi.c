@@ -130,14 +130,18 @@ static int stop_portmidi(CSOUND *csound, void *userData)
 {
     (void) csound;
     (void) userData;
+#if !defined(WIN32)
     csound_global_mutex_lock();
+#endif
     if (portmidi_init_cnt) {
       if (--portmidi_init_cnt == 0UL) {
         Pm_Terminate();
         Pt_Stop();
       }
     }
+#if !defined(WIN32)
     csound_global_mutex_unlock();
+#endif
     return 0;
 }
 
@@ -145,7 +149,9 @@ static int start_portmidi(CSOUND *csound)
 {
     const char  *errMsg = NULL;
 
+#if !defined(WIN32)
     csound_global_mutex_lock();
+#endif
     if (!portmidi_init_cnt) {
       if (UNLIKELY(Pm_Initialize() != pmNoError))
         errMsg = Str(" *** error initialising PortMIDI");
@@ -155,12 +161,16 @@ static int start_portmidi(CSOUND *csound)
 
     if (errMsg == NULL)
       portmidi_init_cnt++;
+#if !defined(WIN32)
     csound_global_mutex_unlock();
+#endif
     if (UNLIKELY(errMsg != NULL)) {
       csound->ErrorMsg(csound, Str(errMsg));
       return -1;
     }
-    //csound_global_mutex_unlock();
+#if !defined(WIN32)
+    csound_global_mutex_unlock();
+#endif
     return csound->RegisterResetCallback(csound, NULL, stop_portmidi);
 }
 
@@ -177,6 +187,7 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
   if (list == NULL) return cnt;
   for (i = 0; i < cnt; i++) {
       info = portMidi_getDeviceInfo(i, isOutput);
+      if(info->name != NULL)
       strncpy(list[i].device_name, info->name, 63);
       snprintf(tmp, 64, "%d", i);
       strncpy(list[i].device_id, tmp, 63);

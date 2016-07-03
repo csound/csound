@@ -1,0 +1,27 @@
+# Maintainer: Michael Gogins <michael.gogins@gmail.com>
+
+pkgname=libportsmf
+pkgver=229M
+pkgrel=1
+pkgdesc="A library for reading, writing, and manipulating standard midi files."
+arch=('x86_64')
+license=('LGPL')
+url="https://sourceforge.net/p/portmedia/wiki/portsmf/"
+source=("svn://svn.code.sf.net/p/portmedia/code/portsmf/trunk/ ${srcdir}")
+md5sums=('SKIP')
+
+pkgver() {
+    cd "$srcdir/trunk"
+    echo $(svnversion .)
+}
+
+build() {
+	cd "${srcdir}/trunk"
+    autoreconf
+	./configure CXX=g++ CXXFLAGS=-fpermissive --prefix="${pkgdir}${MINGW_PREFIX}" --includedir="${PREFIX}/include/portsmf"
+	make
+}
+package() {
+	cd ${srcdir}/trunk
+	make install
+}

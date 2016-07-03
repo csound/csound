@@ -15,6 +15,6 @@ sed -i.bak "s/AttachCurrentThread((void \*\*)/AttachCurrentThread(/" jni/java_in
 # Actually build Csound.
 cd jni
 
-$ANDROID_NDK_ROOT/ndk-build $1
+$ANDROID_NDK_ROOT/ndk-build V=1 $1
 
 

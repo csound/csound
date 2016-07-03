@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export MANUAL_DIR=`pwd`/../../../manual
-export CS_VERSION="6.05"
+export CS_VERSION="6.06"
 export PACKAGE_NAME=csound${CS_VERSION}-OSX10.10-universal.pkg
 export DMG_DIR="Csound ${CS_VERSION}"
 export DMG_NAME="csound${CS_VERSION}-OSX10.10-universal.dmg"
@@ -274,6 +274,7 @@ install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libFLAC.8.
 
 install_name_tool -change /usr/local/lib/libfltk.1.3.dylib @loader_path/libfltk.1.3.dylib  $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
 install_name_tool -change /usr/local/lib/libfltk.1.3.dylib @loader_path/libfltk.1.3.dylib  $SUPPORT_LIBS_DIR/libfltk_forms.1.3.dylib
+install_name_tool -change /usr/local/lib/libpng16.16.dylib @loader_path/libpng16.16.dylib  $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
 
 install_name_tool -change /usr/local/lib/libportaudio.2.dylib @loader_path/libportaudio.2.dylib $SUPPORT_LIBS_DIR/libfluidsynth.1.dylib
 

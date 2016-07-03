@@ -82,7 +82,7 @@ static char* map_udo_in_arg_type(char* in) {
     if(strlen(in) == 1) {
       if (strchr("ijop", *in) != NULL) {
           return "i";
-      } else if (strchr("kKOPV", *in) != NULL) {
+      } else if (strchr("kKOJPV", *in) != NULL) {
           return "k";
       }
     }
@@ -184,7 +184,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
           if (type == NULL) {
-            synterr(csound, Str("invalid input type for opcode %s"), in_arg);
+            synterr(csound, Str("invalid input type for opcode %s \n"), in_arg);
             err++;
             i++;
             continue;
@@ -373,7 +373,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
       sprintf(adjusted_intypes, "%so", intypes);
       opc = find_opcode_exact(csound, opname, outtypes, adjusted_intypes);
     }
-    
+
     /* check if opcode is already defined */
     if (opc != NULL) {
         /* IV - Oct 31 2002: redefine old opcode if possible */
@@ -405,7 +405,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     inm->prv = csound->opcodeInfo;
     csound->opcodeInfo = inm;
-   
+
     if (opc != NULL) {
         opc->useropinfo = inm;
         newopc = opc;
@@ -415,22 +415,22 @@ int add_udo_definition(CSOUND *csound, char *opname,
         opc = find_opcode(csound, "##userOpcode");
         memcpy(&tmpEntry, opc, sizeof(OENTRY));
         tmpEntry.opname = cs_strdup(csound, opname);
-        
+
         csound->AppendOpcodes(csound, &tmpEntry, 1);
         newopc = csound_find_internal_oentry(csound, &tmpEntry);
-        
+
         newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
-        
+
         /* check in/out types and copy to the opcode's */
         /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
         newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
                                          + strlen(intypes) + 2);
         newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
     }
-    
+
     if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
         return -3;
-    
+
     return 0;
 }
 

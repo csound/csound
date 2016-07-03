@@ -106,7 +106,7 @@ INSTR *find_instr(int n)
 void print_instr_structure(void)
 {
     INSTR *p = instr;
-    fprintf(stderr, "Intruments\n");
+    fprintf(stderr, "Instruments\n");
     do {
       fprintf(stderr, "%d: last p is %d, array is at %p\n", p->n, p->largest, p->p);
       if (p->largest>5) {

@@ -49,7 +49,7 @@ int pvset_(CSOUND *csound, PVOC *p, int stringname)
     p->pp = PVOC_GetGlobals(csound);
 
      if (stringname==0){
-      if (ISSTRCOD(*p->ifilno))
+      if (csound->ISSTRCOD(*p->ifilno))
         strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }

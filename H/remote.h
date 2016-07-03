@@ -25,7 +25,7 @@
 #define CSOUND_REMOTE_H
 
 #ifdef HAVE_SOCKETS
-  #ifdef WIN32
+  #if defined(WIN32) && !defined(__CYGWIN__)
     #include <winsock2.h>
     #ifndef SHUT_RDWR
       #define SHUT_RD   0x00

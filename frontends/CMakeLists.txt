@@ -43,8 +43,11 @@ endfunction(make_plugin_frontend)
 
 # We need a different name to avoid clashes with float libcsound
 make_executable(csound-bin "${CS_MAIN_SRCS}" "${CSOUNDLIB}" csound)
+if(LINUX)
+  target_link_libraries(csound-bin m)
+endif()
 
-message(STATUS "Building csLadspa")
+message(STATUS "Building csLadspa.")
 
 make_plugin_frontend(csladspa "csladspa/csladspa.cpp" "${CSOUNDLIB}")
 # We do not want the lib prefix

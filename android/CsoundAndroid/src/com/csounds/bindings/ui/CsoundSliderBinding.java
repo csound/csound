@@ -34,6 +34,8 @@ import com.csounds.bindings.AbstractBinding;
 import csnd6.CsoundMYFLTArray;
 import csnd6.controlChannelType;
 
+import android.util.Log;
+
 public class CsoundSliderBinding extends AbstractBinding{
 	private SeekBar seekBar;
 	private String channelName;
@@ -62,16 +64,26 @@ public class CsoundSliderBinding extends AbstractBinding{
 			
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
+				//double time;
+				/*double percent1= progress / (double)seekBar.getMax();
+				double valu1= (percent1 * (maxValue - minValue)) + minValue;
+			    Log.d("CsoundObj", "sl: " + 
+				csoundObj.getCsound().GetCurrentTimeSamples()/csoundObj.getCsound().GetSr() +
+                 ":" + valu1);*/
 				
 				if(fromUser) {
 					double percent = progress / (double)seekBar.getMax();
 					double value = (percent * (maxValue - minValue)) + minValue;
-					
+					//time = csoundObj.getCsound().GetCurrentTimeSamples()/csoundObj.getCsound().GetSr();
+					//value = time;
+					csoundObj.getCsound().SetChannel(channelName, value);
 					if(value != cachedValue) {
 						cachedValue = value;
 						cacheDirty = true;
 					}
-					if(!csoundObj.getAsyncStatus()){			
+					if(!csoundObj.getAsyncStatus()){	
+						//time = csoundObj.getCsound().GetCurrentTimeSamples()/csoundObj.getCsound().GetSr();
+						//value = time;
 						csoundObj.getCsound().SetChannel(channelName, value);
 					}
 				}

@@ -6,13 +6,13 @@
 import csnd6
 
 # Create an instance of Csound (actually, CppSound).
-csound = csnd6.CppSound()
+csound = csnd6.Csound()
 # Set the Csound file.
 print "OK"
-csound.setCSD('''
+csound.CompileCsdText('''
 <CsoundSynthesizer>
 <CsOptions>
-csound -RWdfo ./Trapped.py.wav
+-odac
 </CsOptions>
 <CsInstruments>
 ;============================================================================;
@@ -691,5 +691,6 @@ e
 </CsoundSynthesizer>
 ''')
 # Perform the exported orchestra and score.
-csound.perform()
+csound.Start()
+csound.Perform()
 

@@ -107,7 +107,7 @@ int             closedir(DIR*);
 #  endif
 #endif
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__CYGWIN__)
 #  include <io.h>
 #  include <direct.h>
 #endif
@@ -808,6 +808,7 @@ extern long sockrecv_localops_init(CSOUND *, void *);
 #endif
 extern long afilts_localops_init(CSOUND *, void *);
 extern long pinker_localops_init(CSOUND *, void *);
+extern long paulstretch_localops_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
@@ -833,6 +834,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  fareyseq_localops_init, hrtfearly_localops_init,
                                  hrtfreverb_localops_init, minmax_localops_init,
                                  vaops_localops_init, pvsgendy_localops_init,
+                                 paulstretch_localops_init,
 #ifdef LINUX
                                  cpumeter_localops_init,
 #endif

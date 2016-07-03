@@ -111,9 +111,6 @@ PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int instr, int skip)
       (bkpt_node_t *) csound->Malloc(csound, sizeof(bkpt_node_t));
     newpoint->line = line;
     newpoint->instr = instr;
-    if (instr != 0) {
-      newpoint->line--; /* hack! */
-    }
     newpoint->skip = skip;
     newpoint->count = skip;
     newpoint->mode = CSDEBUG_BKPT_LINE;
@@ -134,7 +131,7 @@ PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line, int instr)
     }
     bkpt_node_t *newpoint =
       (bkpt_node_t *) csound->Malloc(csound, sizeof(bkpt_node_t));
-    newpoint->line = line - 1;
+    newpoint->line = line;
     newpoint->instr = instr;
     newpoint->mode = CSDEBUG_BKPT_DELETE;
     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
