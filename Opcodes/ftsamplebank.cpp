@@ -329,7 +329,7 @@ extern "C" {
       return 0;
   }
 
-  PUBLIC int csoundModuleInit(CSOUND *csound)
+  PUBLIC int csoundModuleInit_ftsamplebank(CSOUND *csound)
   {
 
       int status =
@@ -377,6 +377,11 @@ extern "C" {
                                      (int (*)(CSOUND*,void*)) 0,
                                      (int (*)(CSOUND*,void*)) 0);
       return status;
+  }
+
+  PUBLIC int csoundModuleInit(CSOUND *csound)
+  {
+      return csoundModuleInit_ftsamplebank(csound);
   }
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)

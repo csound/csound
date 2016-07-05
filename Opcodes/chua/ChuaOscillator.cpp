@@ -117,9 +117,9 @@
 //     d = sys_variables(12);
 //     gnor = a*(x.^3) + b*(x.^2) + c*x + d;
 
-#include <OpcodeBase.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 using namespace boost::numeric;
+#include <OpcodeBase.hpp>
 #include <cmath>
 
 #undef CS_KSMPS
