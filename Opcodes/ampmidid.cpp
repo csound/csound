@@ -131,7 +131,7 @@ extern "C" {
       return 0;
   }
 
-  PUBLIC int csoundModuleInit(CSOUND *csound)
+  PUBLIC int csoundModuleInit_ampmidid(CSOUND *csound) 
   {
       int status = csound->AppendOpcode(csound,
                                         (char*)"ampmidid.k",
@@ -164,7 +164,14 @@ extern "C" {
                                         0,
                                         0);
       return status;
-  }
+ }
+ 
+   PUBLIC int csoundModuleInit(CSOUND *csound)
+  {
+      return csoundModuleInit_ampmidid(csound);
+   }
+  
+
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {

@@ -1794,7 +1794,7 @@ extern "C"
         { 0, 0, 0, 0, 0, 0, (SUBR) 0, (SUBR) 0, (SUBR) 0 }
     };
 
-    PUBLIC int csoundModuleCreate(CSOUND *csound)
+    PUBLIC int csoundModuleCreate_signalflowgraph(CSOUND *csound)
     {
         if(csound->GetDebug(csound)) {
             csound->Message(csound, "signalflowgraph: csoundModuleCreate(%p)\n", csound);
@@ -1807,8 +1807,13 @@ extern "C"
         }
         return 0;
     }
+    
+    PUBLIC int csoundModuleCreate(CSOUND *csound)
+    {
+        return csoundModuleCreate_signalflowgraph(csound);
+    }
 
-    PUBLIC int csoundModuleInit(CSOUND *csound)
+    PUBLIC int csoundModuleInit_signalflowgraph(CSOUND *csound)
     {
         if(csound->GetDebug(csound)) {
             csound->Message(csound, "signalflowgraph: csoundModuleInit(%p)\n", csound);
@@ -1829,6 +1834,11 @@ extern "C"
             ep++;
         }
         return err;
+    }
+    
+    PUBLIC int csoundModuleInit(CSOUND *csound)
+    {
+        return csoundModuleInit_signalflowgraph(csound);
     }
 
     PUBLIC int csoundModuleDestroy(CSOUND *csound)
