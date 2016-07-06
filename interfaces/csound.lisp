@@ -62,6 +62,9 @@
     ; (csound :pointer)
     ; (control :string)
     ; &rest)
+    
+; (defun csoundMessage (csound control &rest values) 
+    ; (cffi:foreign-funcall "csoundMessage" csound :pointer control :pointer &rest values :void))
 
 (cffi:defcfun ("csoundSetControlChannel" csoundSetControlChannel) :void
   (csound :pointer)
