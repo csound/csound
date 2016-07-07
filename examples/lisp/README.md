@@ -18,10 +18,10 @@ To integrate Csound with Common Lisp you may follow these steps. Installation an
  3. Install Csound's cffi wrapper. The [interfaces/csound.lisp](http://github.com/csound/csound/blob/develop/interfaces/csound.lisp) file defines a Lisp [cffi](https://common-lisp.net/project/cffi/) (Common Foreign Function Interface) wrapper for many of the most useful functions in the Csound API defined in [include/csound.h](https://github.com/csound/csound/blob/develop/include/csound.h), and documented [here](http://csound.github.io/docs/api/index.html). If you do not find interfaces/csound.lisp in your installation of Csound, download it directly from GitHub [here](http://github.com/csound/csound/blob/develop/interfaces/csound.lisp).
 4. Test the basic Lisp examples from Csound. On Linux if you have built Csound for sources and run Csound from your build environment, the commands are as follows. If you are running pre-built Csound you may need to change some pathnames. In any event these examples are completely self-contained and should play the example piece "Xanadu" with real-time audio output.
  1. Render "Xanadu" using raw cffi calls (no Lisp wrapper code): `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/test.lisp`.
- 2. Render "Xanadu" using Csound's cffi wrapper: `sbcl --load examples/lisp/test-wrapper.lisp`.
+ 2. Render "Xanadu" using Csound's cffi wrapper: `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/test-wrapper.lisp`.
 5. Install your Lisp composition software of choice. The Lisp world has produced some notable software for algorthmic composition, including:
  1. [Common Music](http://commonmusic.sourceforge.net/).
- 2. Common Music's offspring [Grace] (now written in Scheme).
+ 2. Common Music's offspring [Grace], which is written in Scheme and C++.
  3. [OpenMusic](http://repmus.ircam.fr/openmusic/home). Some illustrious composers have used OpenMusic, which also receives contributions from contemporary researchers in mathematical music theory. You may find additional OpenMusic libraries [here](http://forumnet.ircam.fr/product/openmusic-libraries-en/) and [here](http://repmus.ircam.fr/openmusic/libraries).
  4. In addition, some composers, for example [Drew Krause], have themselves made available useful libraries of Lisp code.
 6. Configure your Lisp environment to load all required packages so that you can simply write your pieces.
