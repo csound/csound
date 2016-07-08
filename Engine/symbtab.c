@@ -304,11 +304,15 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     out_args = splitArgs(csound, inm->outtypes);
 
     if (in_args == NULL) {
-      synterr(csound, Str("invalid input argument types found for opcode %s: %s\n"), inm->name, intypes);
+      synterr(csound,
+              Str("invalid input argument types found for opcode %s: %s\n"),
+              inm->name, intypes);
       err++;
     }
     if (out_args == NULL) {
-      synterr(csound, Str("invalid output argument types found for opcode %s: %s\n"), inm->name, inm->outtypes);
+      synterr(csound,
+              Str("invalid output argument types found for opcode %s: %s\n"),
+              inm->name, inm->outtypes);
       err++;
     }
 

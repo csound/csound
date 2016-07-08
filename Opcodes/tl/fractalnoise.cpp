@@ -436,7 +436,7 @@ extern "C"
         return OK;
     }
 
-    PUBLIC int csoundModuleInit(CSOUND *csound)
+    PUBLIC int csoundModuleInit_fractalnoise(CSOUND *csound)
     {
         int status = 0;
         for(OENTRY *oentry = &localops[0]; oentry->opname; oentry++) {
@@ -453,6 +453,12 @@ extern "C"
         }
         return status;
     }
+    
+    PUBLIC int csoundModuleInit(CSOUND *csound)
+    {
+        return csoundModuleInit_fractalnoise(csound);
+    }
+
 
     PUBLIC int csoundModuleDestroy(CSOUND *csound)
     {
