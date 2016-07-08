@@ -1,18 +1,9 @@
-;; This example demonstrates the use of the Csound API from SBCL using CFFI.
-;; This example assumes that CFFI is installed, and uses cffi directly, 
-;; without a generated wrapper.
-;; You can run this example as a script, e.g. "sbcl --load examples/lisp/test.lisp"
+; This example demonstrates the use of the Csound API from SBCL using CFFI.
+; This example assumes that CFFI is installed, and uses a CFFI wrapper 
+; definition, csound.lisp.
 (require 'asdf)
 (asdf:load-system :cffi)
-(cffi:define-foreign-library libcsound64
-    (:darwin "libcsound64.dylib")
-    (:unix "libcsound64.so")
-    (:windows "csound64.dll")
-    (t (:default "libcsound64")))
-(cffi:use-foreign-library libcsound64)
-;; In SBCL setq at global scope causes warnings.
-(defparameter csound (cffi:foreign-funcall "csoundCreate" :pointer (cffi:null-pointer) :pointer))
-(format t "csoundCreate returned: ~S~%" csound)
+(load "interfaces/csound.lisp")
 (defparameter csd "<CsoundSynthesizer>
 <CsOptions>
 -odac
@@ -244,11 +235,14 @@ e
 </CsoundSynthesizer>
 ")
 (format t "csd text: ~A" csd)
-(defparameter result (cffi:foreign-funcall "csoundCompileCsdText" :pointer csound :string csd :int))
+(format t "Csound version: ~A" (csound::csoundGetVersion))
+(defparameter cs (csound::csoundCreate (cffi:null-pointer)))
+(format t "csoundCreate returned: ~S~%" cs)
+(defparameter result (csound::csoundCompileCsdText cs csd))
 (format t "csoundCompileCsdText returned: ~D" result)
-(setq result (cffi:foreign-funcall "csoundStart" :pointer csound :int))
-(print result)
+(setq result (csound::csoundStart cs))
+(format t "csoundStart returned: ~D" result)
 (loop do 
-    (setq result (cffi:foreign-funcall "csoundPerformKsmps" :pointer csound :int)) 
+    (setq result (csound::csoundPerformKsmps cs)) 
     (when (> result 0) (return)))
 (quit)

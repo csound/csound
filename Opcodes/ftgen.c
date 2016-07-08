@@ -107,8 +107,8 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
         while (named) {
           if (strcmp(named->name, ((STRINGDAT *) p->p4)->data) == 0) {
             /* Look up by name */
-	    fp[4] = named->genum;
-           break;
+            fp[4] = named->genum;
+            break;
           }
           named = named->next;                            /*  and round again   */
         }
