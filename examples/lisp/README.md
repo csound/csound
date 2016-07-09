@@ -28,6 +28,7 @@ To integrate Csound with Common Lisp you may follow these steps. Installation an
  4. In addition, some composers, for example [Drew Krause], have themselves made available useful libraries of Lisp code.
 6. Configure your Lisp environment to load all required packages so that you can simply write your pieces. There are _way_ too many ways of doing this, but the easy beginner way is simply to edit your user initialization file for your Lisp implementation to preload everything you need to compose. For example on my Linux system I have the following in `$HOME/.sbclrc`:
  ```
+
 ;;; The following lines added by ql:add-to-init-file:
 #-quicklisp
 (let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
@@ -35,14 +36,17 @@ To integrate Csound with Common Lisp you may follow these steps. Installation an
   (when (probe-file quicklisp-init)
     (load quicklisp-init)))
 
+(require 'asdf)    
 ;;; Load Csound's cffi wrapper.
-(require 'asdf)
-(asdf:load-system :cffi)
+(require 'cffi)
 (load "/home/mkg/csound/csound/interfaces/csound.lisp")
 
 ;;; Load Common Music.
+(load "/home/mkg/cm2/cm2.asd")
+(asdf:load-system :cm2)
 
 ;;; Load Drew Krause's code.
+(load "/home/mkg/nudruz/nudruz.lisp")
 ```
 7. Test your composition environment with some examples.
 
