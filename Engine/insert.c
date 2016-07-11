@@ -289,7 +289,6 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->init_done = 0;
 #endif
 
-
     if (csound->realtime_audio_flag == 0) {
      csound->curip    = ip;
      csound->ids      = (OPDS *)ip;
@@ -1224,7 +1223,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     if (!p->ip) {
       /* search for already allocated, but not active instance */
       /* if none was found, allocate a new instance */
-
       if (!tp->act_instance)
         instance(csound, instno);
     /* **** COVERITY: note that call to instance fills in structure to
