@@ -18,15 +18,19 @@ To integrate Csound with Common Lisp you may follow these steps. Installation an
  1. Install and load [quicklisp](https://www.quicklisp.org/beta/).
  2. Use quicklisp to install and load the cffi package as documented [here](https://www.quicklisp.org/beta/#installation); simply substitute `cffi` for `vecto` in the step-by step installation example.
  3. Install Csound's cffi wrapper. The [interfaces/csound.lisp](http://github.com/csound/csound/blob/develop/interfaces/csound.lisp) file defines a Lisp `cffi` wrapper for many of the most useful functions in the Csound API defined in [include/csound.h](https://github.com/csound/csound/blob/develop/include/csound.h), and documented [here](http://csound.github.io/docs/api/index.html). If you do not find `interfaces/csound.lisp` in your installation of Csound, download it directly from GitHub [here](http://github.com/csound/csound/blob/develop/interfaces/csound.lisp).
-4. Test the basic Lisp examples from Csound. On Linux if you have built Csound for sources and run Csound from your build environment, the commands are as follows. If you are running pre-built Csound you may need to change some pathnames. In any event these examples are completely self-contained and should play the example piece "Xanadu" with real-time audio output.
+4. Test the basic Lisp examples from Csound. On Linux if you have built Csound for sources and run Csound from your build environment, the commands are as follows. If you are running pre-built Csound you may need to change some pathnames. In any event these examples are completely self-contained, and should play the example piece "Xanadu" with real-time audio output.
  1. Render "Xanadu" using raw cffi calls (no Lisp wrapper code): `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/test.lisp`.
  2. Render "Xanadu" using Csound's cffi wrapper: `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/test-wrapper.lisp`.
 5. Install your Lisp composition software of choice. The Lisp community has produced some notable software for algorthmic composition, including:
- 1. [Common Music](http://commonmusic.sourceforge.net/). The original Lisp version of Common Music can be downloaded from the SourceForge repository as [this branch](https://sourceforge.net/p/commonmusic/code/HEAD/tree/branches/cm2/), e.g. using Subversion `svn checkout svn://svn.code.sf.net/p/commonmusic/code/branches/cm2`.
- 2. Common Music's offspring [Grace](http://commonmusic.sourceforge.net/), which is written in Scheme and C++. Binaries can be downloaded from [here](https://sourceforge.net/projects/commonmusic/files/cm/), and source code can be downloaded from the SourceForge repository as [the trunk](https://sourceforge.net/p/commonmusic/code/HEAD/tree/trunk/).
+ 1. [Common Music](http://commonmusic.sourceforge.net/). The original Lisp version of Common Music can be downloaded from the SourceForge repository as [this branch](https://sourceforge.net/p/commonmusic/code/HEAD/tree/branches/cm2/), e.g. using Subversion `svn checkout svn://svn.code.sf.net/p/commonmusic/code/branches/cm2`. Please note that the official documentation for installing and running Common Music do not work at this time. Instead, perform the Subversion checkout mentioned above, and then, to load Common Music, invoke this code in your `.sbclrc` file, or before using Common Music:
+ ```
+(load "/home/mkg/cm2/cm2.asd")
+(asdf:load-system :cm2)
+ ```
+ 2. Common Music's offspring [Grace](http://commonmusic.sourceforge.net/), which is written in Scheme and C++. Binaries can be downloaded from [here](https://sourceforge.net/projects/commonmusic/files/cm/), and source code can be downloaded from the SourceForge repository as [the trunk](https://sourceforge.net/p/commonmusic/code/HEAD/tree/trunk/). Unfortunately, the precompiled binary for Grace 3.8.0 that is available from SourceForge is for 32 bit CPU architecture, so if you want to use Grace with 64 bit Linux, you may have to build Grace from sources. Fortunately, this is not so hard.
  3. [OpenMusic](http://repmus.ircam.fr/openmusic/home). Some illustrious composers have used OpenMusic, which also receives contributions from contemporary researchers in computer music and mathematical music theory. You may find additional OpenMusic libraries [here](http://forumnet.ircam.fr/product/openmusic-libraries-en/) and [here](http://repmus.ircam.fr/openmusic/libraries).  Unfortunately, OpenMusic requires the LispWorks implementation of Lisp, and is installed as a LispWorks binary, which furthermore is available only for 32 bit CPU architecture, so direct integration with Csound via CFFI is currently not possible. However, you can use the freely available OM2Csound and OMChroma libraries to integrate with Csound, as illustrated by the example here.
  4. In addition, some composers, for example [Drew Krause], have themselves made available useful libraries of Lisp code.
-6. Configure your Lisp environment to load all required packages so that you can simply write your pieces. There are _way_ too many ways of doing this, but the easy beginner way is simply to edit your user initialization file for your Lisp implementation to preload everything you need for composing. For example on my Linux system I have the following in `$HOME/.sbclrc`:
+6. Configure your Lisp environment to load all required packages so that you can simply write your pieces. There are _way_ too many ways of doing this, but the easy beginner way is simply to edit your user initialization file for your Lisp implementation to preload everything that you need for composing. For example on my Linux system I have the following in `$HOME/.sbclrc`:
  ```
 
 ;;; The following lines added by ql:add-to-init-file:
@@ -49,6 +53,7 @@ To integrate Csound with Common Lisp you may follow these steps. Installation an
 (load "/home/mkg/nudruz/nudruz.lisp")
 ```
 7. Test your composition environment with some examples.
+
 
 ## Scheme
 
