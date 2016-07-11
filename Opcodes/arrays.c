@@ -2200,6 +2200,17 @@ int array_centroid(CSOUND *csound, CENTR *p){
   return OK;
 }
 
+typedef struct _inout{
+  OPDS H;
+  MYFLT *out, *in;
+} INOUT;
+  
+int nxtpow2(CSOUND *csound, INOUT *p){
+  int powtwo = 2;
+  if(powtwo < (int)*p->in) powtwo *= 2;
+  *p->out = powtwo;
+  return OK; 
+}
 
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
@@ -2207,6 +2218,7 @@ int array_centroid(CSOUND *csound, CENTR *p){
 
 static OENTRY arrayvars_localops[] =
   {
+    { "nxtpow2", sizeof(INOUT), 0, 1, "i", "i", (SUBR)nxtpow2},
     { "init.0", sizeof(ARRAYINIT), 0, 1, ".[]", "m", (SUBR)array_init },
     { "fillarray", 0xffff },
     { "fillarray.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill },
