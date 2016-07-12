@@ -421,7 +421,7 @@ OENTRY opcodlst_1[] = {
   /* { "ptable",  0xffff, TR                                                  }, */
   /* { "ptablei", 0xffff, TR                                                  }, */
   /* { "ptable3", 0xffff, TR                                                  }, */
-  { "ptable.i",  S(TABLE),0, 1,     "i",    "iiooo",(SUBR)tabler_init                },
+  { "ptable.i",  S(TABLE),0, 1,     "i",    "iiooo",(SUBR)tabler_init       },
   { "ptable.k",  S(TABLE),0, 3,     "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tabler_kontrol        },
   { "ptable.a",  S(TABLE),0, 5,     "a",    "xiooo",(SUBR)tabl_setup, NULL,
@@ -695,8 +695,8 @@ OENTRY opcodlst_1[] = {
   { "filebit.i", S(SNDINFO),0,  1,     "i",   "ip",   filebit, NULL, NULL        },
   { "filepeak.i", S(SNDINFOPEAK),0, 1, "i",   "io",   filepeak, NULL, NULL       },
   { "filevalid.i", S(FILEVALID),0, 1,  "i",   "i",    filevalid, NULL, NULL      },
-  /*  { "nlalp", S(NLALP),0,     5,     "a",    "akkoo", nlalp_set, NULL, nlalp }, */
-  { "ptableiw",  S(TABLEW),TW, 1,   "",      "iiiooo", (SUBR)tablew_init, NULL, NULL},
+  /*  { "nlalp", S(NLALP),0,     5,     "a",  "akkoo", nlalp_set, NULL, nlalp }, */
+  { "ptableiw",  S(TABLEW),TW, 1,   "", "iiiooo", (SUBR)tablew_init, NULL, NULL},
   { "ptablew.kk", S(TABLEW),0,  3,  "", "kkiooo",(SUBR)tabl_setup,
     (SUBR)tablew_kontrol, NULL          },
   { "ptablew.aa", S(TABLEW),0,  5,  "", "aaiooo",(SUBR)tabl_setup, NULL,
