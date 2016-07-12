@@ -174,8 +174,8 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
       snprintf(port, 8, "%d", (int) MYFLT2LRND(*p->port));
     hh = (char*) p->host->data;
     if (*hh=='\0') hh = NULL;
-    /* 
-       can this be done at init time? 
+    /*
+       can this be done at init time?
        It was note that this could be creating
        a latency penatly
        Yes; cached -- JPff
@@ -567,7 +567,9 @@ static int osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
     lo_server_thread_start(ports[n].thread);
     pp->ports = ports;
     pp->nPorts = n + 1;
-    csound->Warning(csound, Str("OSC multicast listener #%d started on port %s\n"), n, buff);
+    csound->Warning(csound,
+                    Str("OSC multicast listener #%d started on port %s\n"),
+                    n, buff);
     *(p->ihandle) = (MYFLT) n;
     csound->RegisterDeinitCallback(csound, p,
                                    (int (*)(CSOUND *, void *)) OSC_deinit);
