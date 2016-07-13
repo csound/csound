@@ -17,7 +17,7 @@ To integrate Csound with Common Lisp you may follow these steps. Installation an
 3. Install Lisp's Common Foreign Function Interface, [cffi](https://common-lisp.net/project/cffi/).  
  1. Install and load [quicklisp](https://www.quicklisp.org/beta/).
  2. Use quicklisp to install and load the cffi package as documented [here](https://www.quicklisp.org/beta/#installation); simply substitute `cffi` for `vecto` in the step-by step installation example.
- 3. Install Csound's cffi wrapper. The [interfaces/csound.lisp](http://github.com/csound/csound/blob/develop/interfaces/csound.lisp) file defines a Lisp `cffi` wrapper for many of the most useful functions in the Csound API defined in [include/csound.h](https://github.com/csound/csound/blob/develop/include/csound.h), and documented [here](http://csound.github.io/docs/api/index.html). If you do not find `interfaces/csound.lisp` in your installation of Csound, download it directly from GitHub [here](http://github.com/csound/csound/blob/develop/interfaces/csound.lisp).
+ 3. Install Csound's cffi wrapper. The [interfaces/csound.lisp](http://github.com/csound/csound/blob/develop/interfaces/csound.lisp) file defines a Lisp `cffi` wrapper for many of the most useful functions in the Csound API defined in [include/csound.h](https://github.com/csound/csound/blob/develop/include/csound.h), and documented [here](http://csound.github.io/docs/api/index.html). If you do not find `interfaces/csound.asd` and `interfaces/csound.lisp` in your installation of Csound, download them directly from GitHub [here](http://github.com/csound/csound/blob/develop/interfaces/).
 4. Test the basic Lisp examples from Csound. On Linux if you have built Csound for sources and run Csound from your build environment, the commands are as follows. If you are running pre-built Csound you may need to change some pathnames. In any event these examples are completely self-contained, and should play the example piece "Xanadu" with real-time audio output.
  1. Render "Xanadu" using raw cffi calls (no Lisp wrapper code): `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/test.lisp`.
  2. Render "Xanadu" using Csound's cffi wrapper: `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/test-wrapper.lisp`.
@@ -29,7 +29,7 @@ To integrate Csound with Common Lisp you may follow these steps. Installation an
  ```
  2. Common Music's offspring [Grace](http://commonmusic.sourceforge.net/), which is written in Scheme and C++. Binaries can be downloaded from [here](https://sourceforge.net/projects/commonmusic/files/cm/), and source code can be downloaded from the SourceForge repository as [the trunk](https://sourceforge.net/p/commonmusic/code/HEAD/tree/trunk/). Unfortunately, the precompiled binary for Grace 3.8.0 that is available from SourceForge is for 32 bit CPU architecture, so if you want to use Grace with 64 bit Linux, you may have to build Grace from sources. Fortunately, this is not so hard.
  3. [OpenMusic](http://repmus.ircam.fr/openmusic/home). Some illustrious composers have used OpenMusic, which also receives contributions from contemporary researchers in computer music and mathematical music theory. You may find additional OpenMusic libraries [here](http://forumnet.ircam.fr/product/openmusic-libraries-en/) and [here](http://repmus.ircam.fr/openmusic/libraries).  Unfortunately, OpenMusic requires the LispWorks implementation of Lisp, and is installed as a LispWorks binary, which furthermore is available only for 32 bit CPU architecture, so direct integration with Csound via CFFI is currently not possible. However, you can use the freely available OM2Csound and OMChroma libraries to integrate with Csound, as illustrated by the example here.
- 4. In addition, some composers, for example [Drew Krause], have themselves made available useful libraries of Lisp code.
+ 4. In addition, some composers, for example [Drew Krause], have themselves made available useful libraries of Lisp code. To use Drew's code you will have to install [`clocc`](http://clocc.sourceforge.net/) and some other packages.
 6. Configure your Lisp environment to load all required packages so that you can simply write your pieces. There are _way_ too many ways of doing this, but the easy beginner way is simply to edit your user initialization file for your Lisp implementation to preload everything that you need for composing. For example on my Linux system I have the following in `$HOME/.sbclrc`:
  ```
 
@@ -52,8 +52,6 @@ To integrate Csound with Common Lisp you may follow these steps. Installation an
 ;;; Load Drew Krause's code.
 (load "/home/mkg/nudruz/nudruz.lisp")
 ```
-7. Test your composition environment with some examples.
-
 
 ## Scheme
 
