@@ -10,9 +10,6 @@
     (:windows "csound64.dll")
     (t (:default "libcsound64")))
 (cffi:use-foreign-library libcsound64)
-;; In SBCL setq at global scope causes warnings.
-(defparameter csound (cffi:foreign-funcall "csoundCreate" :pointer (cffi:null-pointer) :pointer))
-(format t "csoundCreate returned: ~S~%" csound)
 (defparameter csd "<CsoundSynthesizer>
 <CsOptions>
 -odac
@@ -244,11 +241,18 @@ e
 </CsoundSynthesizer>
 ")
 (format t "csd text: ~A" csd)
-(defparameter result (cffi:foreign-funcall "csoundCompileCsdText" :pointer csound :string csd :int))
-(format t "csoundCompileCsdText returned: ~D" result)
-(setq result (cffi:foreign-funcall "csoundStart" :pointer csound :int))
-(print result)
-(loop do 
-    (setq result (cffi:foreign-funcall "csoundPerformKsmps" :pointer csound :int)) 
-    (when (> result 0) (return)))
+;; In SBCL setq at global scope causes warnings.
+(defparameter cs 0)
+(defparameter result 0)
+(setq cs (cffi:foreign-funcall "csoundCreate" :pointer (cffi:null-pointer) :pointer))
+(format t "csoundCreate returned: ~S~%" cs)
+(setq result (cffi:foreign-funcall "csoundCompileCsdText" :pointer cs :string csd :int))
+(format t "csoundCompileCsdText returned: ~D~%" result)
+(setq result (cffi:foreign-funcall "csoundStart" :pointer cs :int))
+(format t "csoundStart returned: ~D~%" result)
+(loop 
+	(setq result (cffi:foreign-funcall "csoundPerformKsmps" :pointer cs :int))
+	(when (not (equal result 0))(return))
+)
+(format t "Lisp has finished.~%")
 (quit)
