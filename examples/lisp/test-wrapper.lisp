@@ -3,7 +3,8 @@
 ; definition, csound.lisp.
 (require 'asdf)
 (asdf:load-system :cffi)
-(load "interfaces/csound.lisp")
+(load "interfaces/csound.asd")
+(asdf:load-system :csound)
 (defparameter csd "<CsoundSynthesizer>
 <CsOptions>
 -odac
@@ -234,15 +235,19 @@ e
 </CsScore>
 </CsoundSynthesizer>
 ")
-(format t "csd text: ~A" csd)
-(format t "Csound version: ~A" (csound::csoundGetVersion))
-(defparameter cs (csound::csoundCreate (cffi:null-pointer)))
+(format t "csd text: ~A~%" csd)
+(format t "Csound version: ~A~%" (csound::csoundGetVersion))
+(defparameter cs 0)
+(defparameter result 0)
+(setq cs (csound::csoundCreate (cffi:null-pointer)))
 (format t "csoundCreate returned: ~S~%" cs)
-(defparameter result (csound::csoundCompileCsdText cs csd))
-(format t "csoundCompileCsdText returned: ~D" result)
+(setq result (csound::csoundCompileCsdText cs csd))
+(format t "csoundCompileCsdText returned: ~D~%" result)
 (setq result (csound::csoundStart cs))
-(format t "csoundStart returned: ~D" result)
-(loop do 
-    (setq result (csound::csoundPerformKsmps cs)) 
-    (when (> result 0) (return)))
+(format t "csoundStart returned: ~D~%" result)
+(loop 
+    (setq result (csound::csoundPerformKsmps cs))
+	(when (not (equal result 0))(return))
+)
+(format t "Lisp has finished.~%")
 (quit)
