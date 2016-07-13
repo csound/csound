@@ -17,7 +17,7 @@ To integrate Csound with Common Lisp you may follow these steps. Installation an
 3. Install Lisp's Common Foreign Function Interface, [cffi](https://common-lisp.net/project/cffi/).  
  1. Install and load [quicklisp](https://www.quicklisp.org/beta/).
  2. Use quicklisp to install and load the cffi package as documented [here](https://www.quicklisp.org/beta/#installation); simply substitute `cffi` for `vecto` in the step-by step installation example.
- 3. Install Csound's cffi wrapper. The [interfaces/csound.lisp](http://github.com/csound/csound/blob/develop/interfaces/csound.lisp) file defines a Lisp `cffi` wrapper for many of the most useful functions in the Csound API defined in [include/csound.h](https://github.com/csound/csound/blob/develop/include/csound.h), and documented [here](http://csound.github.io/docs/api/index.html). If you do not find `interfaces/csound.lisp` in your installation of Csound, download it directly from GitHub [here](http://github.com/csound/csound/blob/develop/interfaces/csound.lisp).
+ 3. Install Csound's cffi wrapper. The [interfaces/csound.lisp](http://github.com/csound/csound/blob/develop/interfaces/csound.lisp) file defines a Lisp `cffi` wrapper for many of the most useful functions in the Csound API defined in [include/csound.h](https://github.com/csound/csound/blob/develop/include/csound.h), and documented [here](http://csound.github.io/docs/api/index.html). If you do not find `interfaces/csound.asd` and `interfaces/csound.lisp` in your installation of Csound, download them directly from GitHub [here](http://github.com/csound/csound/blob/develop/interfaces/).
 4. Test the basic Lisp examples from Csound. On Linux if you have built Csound for sources and run Csound from your build environment, the commands are as follows. If you are running pre-built Csound you may need to change some pathnames. In any event these examples are completely self-contained, and should play the example piece "Xanadu" with real-time audio output.
  1. Render "Xanadu" using raw cffi calls (no Lisp wrapper code): `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/test.lisp`.
  2. Render "Xanadu" using Csound's cffi wrapper: `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/test-wrapper.lisp`.
@@ -52,8 +52,6 @@ To integrate Csound with Common Lisp you may follow these steps. Installation an
 ;;; Load Drew Krause's code.
 (load "/home/mkg/nudruz/nudruz.lisp")
 ```
-7. Test your composition environment with some examples.
-
 
 ## Scheme
 
