@@ -340,6 +340,34 @@
   ; (iopadr :pointer)
   ; (kopadr :pointer)
   ; (aopadr :pointer))
+  
+;;; Given a Common Music event source (event, seq, process, or list), 
+;;; translate each event into a Csound "i" statement, then render
+;;; the resulting score using the orc-text and options. No monkeying with files.
+(defun cm-event-to-istatement (event) 
+    (let ())
+)
+(defun render-csound (event-source orc-text options)
+    (progn
+        (format t "Building Csound score...~%")
+        (defparameter score-list (list)) 
+        (mapcar cm-event-to-istatement event-source score-list)
+        (let (sco-text (apply #'concatenate 'string list)))
+        (defparameter cs 0)
+        (defparameter result 0)
+        (setq cs (csound::csoundCreate (cffi:null-pointer)))
+        (format t "csoundCreate returned: ~S~%" cs)
+        (setq result (csound::csoundCompileOrc cs orc-text))
+        (format t "csoundCompileOrc returned: ~D~%" result)
+        (setq result (csound::readScore cs sco-text))
+        (format t "csound:readScore returned: ~D~%" result)
+        (setq result (csound::csoundStart cs))
+        (format t "csoundStart returned: ~D~%" result)
+        (loop 
+            (setq result (csound::csoundPerformKsmps cs))
+            (when (not (equal result 0))(return))
+        )        
+    ))
 
 
 
