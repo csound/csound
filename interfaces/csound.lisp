@@ -17,24 +17,24 @@
 ; You should have received a copy of the GNU Lesser General Public
 ; License along with this software; if not, write to the Free Software
 ; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-; 
-; This file is handwritten and should be maintained by keeping it up to date 
-; with regard to include/csound.h. This file is not intended to be complete 
-; and essentially defines a Lisp interface to a subset of the most useful 
-; functions in csound.h. At the present time, only pointers, strings, and 
-; other primitive types are used in this interface. 
+;
+; This file is handwritten and should be maintained by keeping it up to date
+; with regard to include/csound.h. This file is not intended to be complete
+; and essentially defines a Lisp interface to a subset of the most useful
+; functions in csound.h. At the present time, only pointers, strings, and
+; other primitive types are used in this interface.
 
 (defpackage :csound
     (:use :common-lisp :cffi))
-(in-package :csound)
 (cffi:define-foreign-library libcsound64
     (:darwin "libcsound64.dylib")
     (:unix "libcsound64.so")
     (:windows "csound64.dll")
     (t (:default "libcsound64")))
 (cffi:use-foreign-library libcsound64)
+(in-package :csound)
 
-; You can paste below here new definitions including those created 
+; You can paste below here new definitions including those created
 ; e.g. by SWIG. Be sure to TEST any changes you make to this file!
 
 ; (cffi:defcfun ("csoundTableLength" csoundTableLength) :int
@@ -58,12 +58,12 @@
   ; (argc :int)
   ; (argv :pointer))
 
-; (cffi:defcfun ("csoundMessage" csoundMessage) :void 
+; (cffi:defcfun ("csoundMessage" csoundMessage) :void
     ; (csound :pointer)
     ; (control :string)
     ; &rest)
-    
-; (defun csoundMessage (csound control &rest values) 
+
+; (defun csoundMessage (csound control &rest values)
     ; (cffi:foreign-funcall "csoundMessage" csound :pointer control :pointer &rest values :void))
 
 (cffi:defcfun ("csoundSetControlChannel" csoundSetControlChannel) :void
@@ -75,7 +75,7 @@
   (flags :int))
 
 (cffi:defcfun ("csoundCreate" csoundCreate) :pointer
-  (hostData :pointer))
+  (host-data :pointer))
 
 (cffi:defcfun ("csoundDestroy" csoundDestroy) :void
   (csound :pointer))
@@ -86,11 +86,11 @@
 
 (cffi:defcfun ("csoundCompileOrc" csoundCompileOrc) :int
   (csound :pointer)
-  (str :string))
+  (orc :string))
 
 (cffi:defcfun ("csoundEvalCode" csoundEvalCode) :double
   (csound :pointer)
-  (str :string))
+  (orc :string))
 
 (cffi:defcfun ("csoundCompileArgs" csoundCompileArgs) :int
   (csound :pointer)
@@ -107,7 +107,7 @@
 
 (cffi:defcfun ("csoundCompileCsd" csoundCompileCsd) :int
   (csound :pointer)
-  (csd-text :string))
+  (csd-pathname :string))
 
 (cffi:defcfun ("csoundCompileCsdText" csoundCompileCsdText) :int
   (csound :pointer)
@@ -230,8 +230,8 @@
 (cffi:defcfun ("csoundReadScore" csoundReadScore) :int
   (csound :pointer)
   (score :string))
-  
-; (cffi:defcfun ("csoundGetScoreTime" csoundGetScoreTime) :double 
+
+; (cffi:defcfun ("csoundGetScoreTime" csoundGetScoreTime) :double
   ; (csound :pointer))
 
 ; (cffi:defcfun ("csoundIsScorePending" csoundIsScorePending) :int
