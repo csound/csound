@@ -1,5 +1,5 @@
 ;; This example demonstrates the use of the Csound API from SBCL using CFFI.
-;; This example assumes that CFFI is installed, and uses cffi directly, 
+;; This example assumes that CFFI is installed, and uses cffi directly,
 ;; without a generated wrapper.
 ;; You can run this example as a script, e.g. "sbcl --load examples/lisp/test.lisp"
 (require 'asdf)
@@ -250,7 +250,7 @@ e
 (format t "csoundCompileCsdText returned: ~D~%" result)
 (setq result (cffi:foreign-funcall "csoundStart" :pointer cs :int))
 (format t "csoundStart returned: ~D~%" result)
-(loop 
+(loop
 	(setq result (cffi:foreign-funcall "csoundPerformKsmps" :pointer cs :int))
 	(when (not (equal result 0))(return))
 )
