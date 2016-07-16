@@ -40,7 +40,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *rslt, *xndx, *xfn, *ixmode, *ixoff, *iwrap;
         MYFLT   offset;
-        int32   pfn; 
+        int32   pfn;
         int32   xbmul;
         int     wrap;
         FUNC    *ftp;
