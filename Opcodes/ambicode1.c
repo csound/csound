@@ -743,8 +743,7 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
     MYFLT p0, q, u, v, w, x, y, z;
     uint32_t dim = p->dim;
     MYFLT *tabin = p->tabin->data, *tabout = p->tabout->data;
-    uint32_t dimin = p->tabin->sizes[0];
-    
+
     switch ((int)*(p->isetup)) {
     case 1: /* Stereo */
       /* Use a 90degree stereo decode, equivalent to a M+S microphone
@@ -884,7 +883,7 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
       }
       break;
     case 4: /* Octagon: */
-      if (dimin == 4) {
+      if (p->tabin->sizes[0] == 4) {
         /* First order 'in-phase' decode: */
         if (UNLIKELY(offset))
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
@@ -917,7 +916,7 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
           tabout[7*ksmps+sampleIndex] = w + x * FL(0.11548) - y * FL(0.04783);
         }
       }
-      else if (dimin == 9) {
+      else if (p->tabin->sizes[0] == 9) {
         /* Second order 'in-phase' / 'controlled opposites' decode: */
         if (UNLIKELY(offset))
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
@@ -961,6 +960,7 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
         }
       }
       else {
+        assert(p->tabin->sizes[0]==16);
         if (UNLIKELY(offset))
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
             memset(&tabout[ksmps*sampleIndex], '\0', offset*sizeof(MYFLT));
