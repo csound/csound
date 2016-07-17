@@ -33,6 +33,7 @@
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);
 static void do_include(CSOUND *, int, yyscan_t);
+extern int isDir(char *);
 static void do_macro_arg(CSOUND *, char *, yyscan_t);
 static void do_macro(CSOUND *, char *, yyscan_t);
 static void do_umacro(CSOUND *, char *, yyscan_t);
@@ -511,7 +512,10 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                   else {
                     corfile_puts(yytext, csound->expanded_sco);
                   }
-}
+                }
+
+"{"             { printf("*** loop not done\n");
+                  corfile_putc(yytext[0], csound->expanded_sco); }
 
 .               { corfile_putc(yytext[0], csound->expanded_sco); }
 
@@ -603,6 +607,8 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 #endif
     }
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
+    if (isDir(buffer))
+      csound->Warning(csound, Str("%s is a directory; not including"), buffer);
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (cf == NULL)
       csound->Die(csound,

@@ -368,7 +368,7 @@ static int createScore(CSOUND *csound, FILE *unf)
       while (isblank(*p)) p++;
       if (strstr(p, "</CsScore>") == p) {
 #ifdef SCORE_PARSER
-        corfile_puts("\n#exit\n", csound->scorestr);
+        //        corfile_puts("\n#exit\n", csound->scorestr);
         corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
         corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
 #endif
