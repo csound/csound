@@ -2204,12 +2204,13 @@ typedef struct _inout{
   OPDS H;
   MYFLT *out, *in;
 } INOUT;
-  
+
 int nxtpow2(CSOUND *csound, INOUT *p){
-  int powtwo = 2;
-  if(powtwo < (int)*p->in) powtwo *= 2;
-  *p->out = powtwo;
-  return OK; 
+    int inval = (int)*p->in;
+    int powtwo = 2;
+    while (powtwo < inval) powtwo *= 2;
+    *p->out = powtwo;
+    return OK;
 }
 
 // reverse, scramble, mirror, stutter, rotate, ...

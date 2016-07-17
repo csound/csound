@@ -1,4 +1,4 @@
-/*
+1/*
     csGblMtx.h:
 
     Copyright (C) 2005 Istvan Varga
@@ -48,12 +48,12 @@ static pthread_mutex_t csound_global_lock_ = PTHREAD_MUTEX_INITIALIZER;
 /* } */
 
 #define csound_global_mutex_lock() pthread_mutex_lock(&csound_global_lock_)
-  
+
 /* static void csound_global_mutex_destroy_(void) */
 /* { */
 /* } */
 #define csound_global_mutex_destroy_()
-  
+
 #ifdef __cplusplus
 }
 #endif

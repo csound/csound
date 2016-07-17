@@ -34,7 +34,7 @@
 ; Can run from the command line with "/S /D installation directory".
 ;
 ; Uncomment the following line to build CsoundVST and vst4cs:
-; #define CSOUNDVST
+#define CSOUNDVST
 
 #define MyAppName "Csound6_x64"
 #define MyAppVersion "6"
@@ -72,7 +72,7 @@
 ; If you are not Michael Gogins, change this to your STK source directory.
 #define MyLibStkSourceDir "D:\msys64\home\restore\csound\mingw64\packages\stk\src\stk-4.5.1\"
 ; If you are not Michael Gogins, change this to your NW.js installation directory.
-#define MyNwJsDir "D:\nwjs-v0.12.3-win-x64\"
+#define MyNwJsDir "D:\nwjs-sdk-v0.15.2-win-x64\"
 ; If you are not Michael Gogins, change this to your Winpthreads installation directory.
 #define MyWinPthreadsDir "D:\msys64\home\restore\pthreads-w32-2-9-1-release\Pre-built.2\"
 #define MyPackagesDir "D:\msys64\home\restore\csound\mingw64\packages\"
