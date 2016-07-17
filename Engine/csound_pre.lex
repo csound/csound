@@ -733,13 +733,16 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
       goto TOP;
     }
 }
-
-int isDir(const char *path) {
+#ifndef WIN32
+int isDir(char *path) {
    struct stat statbuf;
    if (stat(path, &statbuf) != 0)
        return 0;
    return S_ISDIR(statbuf.st_mode);
 }
+#else
+int isDir(char *path) { return 0;}
+#endif
 
 void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 {
