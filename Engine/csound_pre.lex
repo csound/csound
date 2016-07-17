@@ -773,7 +773,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     }
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if(isDir(buffer))
-      csound->Warning(csound, "%s is a directory; not including", buffer);
+      csound->Warning(csound, Str("%s is a directory; not including"), buffer);
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (cf == NULL)
       csound->Die(csound,
