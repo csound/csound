@@ -734,6 +734,13 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
     }
 }
 
+int isDir(const char *path) {
+   struct stat statbuf;
+   if (stat(path, &statbuf) != 0)
+       return 0;
+   return S_ISDIR(statbuf.st_mode);
+}
+
 void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 {
     char buffer[100];
@@ -762,6 +769,8 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       corfile_puts(bb, csound->expanded_orc);
     }
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
+    if(isDir(buffer))
+      csound->Warning(csound, "%s is a directory; not including", buffer);
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (cf == NULL)
       csound->Die(csound,
