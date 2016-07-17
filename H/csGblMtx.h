@@ -1,4 +1,4 @@
-1/*
+/*
     csGblMtx.h:
 
     Copyright (C) 2005 Istvan Varga
