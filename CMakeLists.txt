@@ -342,6 +342,10 @@ message(STATUS "Building for OSX")
   endif()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
+
+  if(NOT VECLIB_PATH)
+    set(VECLIB_PATH "/System/Library/Frameworks/")
+  endif()
  endif()
    
 endif()
