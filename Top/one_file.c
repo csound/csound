@@ -142,14 +142,14 @@ static char *my_fgets(CSOUND *csound, char *s, int n, FILE *stream)
         if (ferror(stream)) a = NULL;
         break; /* add NULL even if ferror(), spec says 'indeterminate' */
       }
-      if (ch == '\n'/* || ch == '\r'*/) {   /* end of line ? */
+      if (ch == '\n' || ch == '\r') {   /* end of line ? */
         ++(STA(csdlinecount));          /* count the lines */
         *(s++) = '\n';                  /* convert */
-        /* if (ch == '\r') { */
-        /*   ch = getc(stream); */
-        /*   if (ch != '\n')               /\* Mac format *\/ */
-        /*     ungetc(ch, stream); */
-        /* } */
+        if (ch == '\r') {
+          ch = getc(stream);
+          if (ch != '\n')               /* Mac format */
+            ungetc(ch, stream);
+        }
         break;
       }
       *(s++) = ch;
@@ -471,11 +471,11 @@ static void read_base64(CSOUND *csound, FILE *in, FILE *out)
           ++(STA(csdlinecount));
           c = getc(in);
         }
-        /* else if (c == '\r') { */
-        /*   ++(STA(csdlinecount)); */
-        /*   c = getc(in); */
-        /*   if (c == '\n') c = getc(in); /\* DOS format *\/ */
-        /* } */
+        else if (c == '\r') {
+          ++(STA(csdlinecount));
+          c = getc(in);
+          if (c == '\n') c = getc(in); /* DOS format */
+        }
         else c = getc(in);
       }
       if (c == '=' || c == '<' || c == EOF)
@@ -995,14 +995,14 @@ static char *my_fgets_cf(CSOUND *csound, char *s, int n, CORFIL *stream)
         if (s == a) return NULL;             /* no chars -> leave  */
         break;
       }
-      if (ch == '\n'/* || ch == '\r'*/) {   /* end of line ? */
+      if (ch == '\n' || ch == '\r') {   /* end of line ? */
         ++(STA(csdlinecount));          /* count the lines */
         *(s++) = '\n';                  /* convert */
-        /* if (ch == '\r') { */
-        /*   ch = corfile_getc(stream); */
-        /*   if (ch != '\n')               /\* Mac format *\/ */
-        /*     corfile_ungetc(stream); */
-        /* } */
+        if (ch == '\r') {
+          ch = corfile_getc(stream);
+          if (ch != '\n')               /* Mac format */
+            corfile_ungetc(stream);
+        }
         break;
       }
       *(s++) = ch;
@@ -1292,11 +1292,11 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
           ++(STA(csdlinecount));
           c = corfile_getc(in);
         }
-        /* else if (c == '\r') { */
-        /*   ++(STA(csdlinecount)); */
-        /*   c = corfile_getc(in); */
-        /*   if (c == '\n') c = corfile_getc(in); /\* DOS format *\/ */
-        /* } */
+        else if (c == '\r') {
+          ++(STA(csdlinecount));
+          c = corfile_getc(in);
+          if (c == '\n') c = corfile_getc(in); /* DOS format */
+        }
         else c = corfile_getc(in);
       }
       if (c == '=' || c == '<' || c == EOF)
