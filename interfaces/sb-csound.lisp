@@ -1,4 +1,4 @@
-; L I S P   C F F I   I N T E R F A C E   F O R   C S O U N D . H
+; S T E E L   B A N K   C O M M O N   L I S P   F F I   I N T E R F A C E   T O   C S O U N D . H
 ;
 ; Copyright (C) 2016 Michael Gogins
 ;
@@ -25,25 +25,33 @@
 ; strings, and other primitive types are used in this interface.
 
 (defpackage :sb-csound
-    (:use :common-lisp :sb-alien :sb-c-call)
+    (:use :common-lisp :sb-alien :sb-c-call :cm)
     (:export 
-        :csoundCreate
-        :csoundDestroy
+        :csoundCompileCsd
         :csoundCompileCsdText
         :csoundCompileOrc
-        :csoundReadScore
-        :csoundStart
-        :csoundSetOption
-        :csoundSetControlChanel
+        :csoundCreate
+        :csoundDestroy
         :csoundPerformKsmps
-    )
+        :csoundReadScore
+        :csoundSetControlChanel
+        :csoundSetOption
+        :csoundStart
+     )
 )
-
 
 (in-package :sb-csound)
 
 (sb-alien:load-shared-object "libcsound64.so")
-;(sb-alien:load-shared-object "/home/mkg/csound/cs6make/libcsound64.so")
+
+(declaim (inline csoundCompileCsd))
+(define-alien-routine "csoundCompileCsd" integer (csound integer) (csd-pathname c-string))
+
+(declaim (inline csoundCompileCsdText))
+(define-alien-routine "csoundCompileCsdText" integer (csound integer) (csd-text c-string))
+
+(declaim (inline csoundCompileOrc))
+(define-alien-routine "csoundCompileOrc" integer (csound integer) (orc-text c-string))
 
 (declaim (inline csoundCreate))
 (define-alien-routine "csoundCreate" integer (host-data integer))
@@ -51,61 +59,66 @@
 (declaim (inline csoundDestroy))
 (define-alien-routine "csoundDestroy" sb-alien:void (csound integer))
       
-(declaim (inline csoundCompileCsdText))
-(define-alien-routine "csoundCompileCsdText" integer (csound integer) (csd-text c-string))
-
-(declaim (inline csoundCompileOrc))
-(define-alien-routine "csoundCompileOrc" integer (csound integer) (orc-text c-string))
+(declaim (inline csoundPerformKsmps))
+(define-alien-routine "csoundPerformKsmps" integer (csound integer))
 
 (declaim (inline csoundReadScore))
 (define-alien-routine "csoundReadScore" integer (csound integer) (sco-text c-string))
 
-(declaim (inline csoundStart))
-(define-alien-routine "csoundStart" integer (csound integer))
-
-(declaim (inline csoundPerformKsmps))
-(define-alien-routine "csoundPerformKsmps" integer (csound integer))
+(declaim (inline csoundSetControlChannel))
+(define-alien-routine "csoundSetControlChannel" sb-alien:void (csound integer) (channel-name c-string) (channel-value double))
 
 (declaim (inline csoundSetOption))
 (define-alien-routine "csoundSetOption" integer (csound integer) (one-option c-string))
 
-(declaim (inline csoundSetControlChannel))
-(define-alien-routine "csoundSetControlChannel" sb-alien:void (csound integer) (channel-name c-string) (channel-value double))
+(declaim (inline csoundStart))
+(define-alien-routine "csoundStart" integer (csound integer))
 
-#||
-(defun cm-event-to-istatement (event) 
-    (let ())
+(set-dispatch-macro-character #\# #\> #'cl-heredoc:read-heredoc)
+
+(in-package :cm)
+(use-package :sb-csound)
+
+;;; Translates a Common Music MIDI event to a Csound score event 
+;;; (i-statement), which is terminated with a newline. An offset, which may 
+;;; be any number, is added to the MIDI channel number.
+(defun event-to-istatement (event channel-offset) 
+    (format nil "i ~,6f ~,6f ~,6f ~,6f ~,6f 0 0 0 0 0 0~%" (+ channel-offset (midi-channel event)) (object-time event)(midi-duration event)(keynum (midi-keynum event))(* 127 (midi-amplitude event)))
 )
+(export 'event-to-istatement)
 
-;;; Given a Common Music event source (event, seq, process, or list), 
-;;; translate each event into a Csound "i" statement, then render
-;;; the resulting score using the orc-text and options. No monkeying with files.
-(defun render-csound (event-source orc-text options)
-    (progn
-        (format t "Building Csound score...~%")
-        (let 
-            ((score-list (list)) 
-            (cs 0) 
-            (result 0) 
-            (sco-text))
-            (mapcar cm-event-to-istatement event-source score-list)
-            (setf sco-text (format nil "~{~A~^, ~}" score-list))
-            (setf cs (csound::csoundCreate (cffi:null-pointer)))
+;;; Given a Common Music seq, translates each event into a Csound "i" 
+;;; statement, optionally offsetting the channel number, then renders
+;;; the resulting score using the csd-text. A CSD is used because it 
+;;; can contain any textual Csound input in one block of raw text.
+(defun render-with-csound (sequence csd-text channel-offset)
+    (format t "Building Csound score...~%")
+    (let 
+        ((score-list (list))
+        (cs) 
+        (result) 
+        (sco-text))
+        (progn
+            (defun curried-event-to-istatement (event)
+                (event-to-istatement event channel-offset))
+            (setq score-list (mapcar 'curried-event-to-istatement (subobjects sequence)))
+            (setq sco-text (format nil "~{~A~^ ~}" score-list))
+            (setq cs (sb-csound:csoundCreate 0))
             (format t "csoundCreate returned: ~S~%" cs)
-            (setf result (csound::csoundCompileOrc cs orc-text))
-            (format t "csoundCompileOrc returned: ~D~%" result)
-            (setf result (csound::readScore cs sco-text))
-            (format t "csound:readScore returned: ~D~%" result)
-            (setf result (csound::csoundStart cs))
+            (setq result (sb-csound:csoundCompileCsdText cs csd-text))
+            (format t "csoundCompileCsdText returned: ~D~%" result)
+            (setq result (sb-csound:csoundReadScore cs sco-text))
+            (format t "csoundReadScore returned: ~D~%" result)
+            (setq result (sb-csound:csoundStart cs))
             (format t "csoundStart returned: ~D~%" result)
             (loop 
-                (setf result (csound::csoundPerformKsmps cs))
+                (setq result (sb-csound:csoundPerformKsmps cs))
                 (when (not (equal result 0))(return))
-            )        
+            )     
+            (format t "Lisp has finished running Csound: ~D~%" result)
         )
     )
 )
-||#
-
+(export 'render-with-csound)
 
 
