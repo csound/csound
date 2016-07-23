@@ -61,6 +61,6 @@ It is important that all shared libraries be loadable from their filename alone;
 4. Test the basic Lisp examples from Csound. The following examples use Steel Bank Common Lisp's native FFI facility `sb-alien`. On Linux if you have built Csound for sources and run Csound from your build environment, the commands are as follows. If you are running pre-built Csound you may need to change some pathnames. In any event these examples are completely self-contained, and should play the example piece "Xanadu" with real-time audio output.
  1. Render "Xanadu" using raw cffi calls (no Lisp wrapper code): `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/sb-test.lisp`.
  2. Render "Xanadu" using Csound's cffi wrapper: `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/sb-wrapper-test.lisp`.
- 3. Render the Csound-enabled version of the Common Music tutorial piece "Scales": `mkg@Sun-Yukong:~/csound/csound/examples/lisp$ sbcl --load sb-scales-csound.lisp`.
+3. Test the Csound-enabled version of the Common Music tutorial piece "Scales": `mkg@Sun-Yukong:~/csound/csound/examples/lisp$ sbcl --load sb-scales-csound.lisp`.
  
 
