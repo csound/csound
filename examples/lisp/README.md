@@ -2,7 +2,7 @@
 
 Michael Gogins
 
-This directory contains some examples and this documentation for using Csound with several bodies of algorithmic composition code written in [Common Lisp](https://common-lisp.net/) or [Scheme](http://www.schemers.org/).
+This directory documentation for using Csound with several bodies of algorithmic composition code written in [Common Lisp](https://common-lisp.net/) or [Scheme](http://www.schemers.org/), along with some examples created using Common Music version 2 (for Lisp) with Steel Bank Common Lisp.
 
 The objective of this repository and documentation is to simplify the process of integrating Csound tightly with these environments, in such a way that upon generating a piece in Lisp (or Scheme), you will at once hear a finished rendering of that piece by Csound, often in real time. 
 
@@ -34,7 +34,6 @@ To integrate Csound with Common Lisp you may follow these steps. Installation an
   2. Install `rsm-mod` with `sudo apt-get install cl-rsm-mod`.
 6. Configure your Lisp environment to load all required packages so that you can simply write your pieces. There are _way_ too many ways of doing this, but the easy beginner way is simply to edit your user initialization file for your Lisp implementation to preload everything that you need for composing. For example on my Linux system I have the following in `$HOME/.sbclrc`:
  ```
-
 ;;; The following lines added by ql:add-to-init-file:
 #-quicklisp
 (let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
@@ -43,19 +42,29 @@ To integrate Csound with Common Lisp you may follow these steps. Installation an
     (load quicklisp-init)))
 
 (require 'asdf)    
-(require :sb-posix)
 
-;;; Load the CFFI wrapper for the Csound API (csound.h).
-(load "/home/mkg/csound/interfaces/csound.asd")
-(asdf:load-system :csound)
+;;; Load the Common Foreign Function Interface.
+(ql:quickload "cffi")
+
+;; Load the cl-heredoc library, which is used for 
+;; embedding arbitrary Csound code including quotes and escapes
+;; into Lisp code.
+(ql:quickload "cl-heredoc")
 
 ;;; Load Common Music.
-(load "/home/mkg/cm2/cm2.asd")
+(push "/home/mkg/cm2/" asdf:*central-registry*)
 (asdf:load-system :cm2)
 
+;;; Load Csound's ffi wrappers.
+(push "/home/mkg/csound/csound/interfaces/" asdf:*central-registry*)
+(asdf:load-system :csound)
+(asdf:load-system :sb-csound)
+
 ;;; Load Drew Krause's code.
-(load "/home/mkg/gogins.github.io/nudruz/nudruz.lisp")
+(load "/home/mkg/nudruz/nudruz.lisp")
 ```
+
+It is important that all shared libraries be loadable from their filename alone; this is possible if the directories containing the Csound executable, shared library, and plugin opcodes are in the PATH and LD_LIBRARY_PATH environment variables.
 
 ## Scheme
 
