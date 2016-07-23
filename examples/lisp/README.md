@@ -20,11 +20,7 @@ To integrate Csound with Common Lisp, follow these steps. Installation and confi
  1. Install and load [quicklisp](https://www.quicklisp.org/beta/).
  2. Use quicklisp to install and load the cffi package as documented [here](https://www.quicklisp.org/beta/#installation); simply substitute `cffi` for `vecto` in the step-by step installation example.
  3. Install Csound's cffi wrapper. The [interfaces/csound.lisp](http://github.com/csound/csound/blob/develop/interfaces/csound.lisp) file defines a Lisp `cffi` wrapper for many of the most useful functions in the Csound API defined in [include/csound.h](https://github.com/csound/csound/blob/develop/include/csound.h), and documented [here](http://csound.github.io/docs/api/index.html). If you do not find `interfaces/csound.asd` and `interfaces/csound.lisp` in your installation of Csound, download them directly from GitHub [here](http://github.com/csound/csound/blob/develop/interfaces/).
-5. Download the Lisp version of Common Music from the SourceForge repository as [this branch](https://sourceforge.net/p/commonmusic/code/HEAD/tree/branches/cm2/), e.g. using Subversion `svn checkout svn://svn.code.sf.net/p/commonmusic/code/branches/cm2`. The Common Music and Grace license is compatible with Csound's license if you want to play with source code or link with Csound binaries. Please note that the official documentation for installing and running Common Music do not work with sbcl at this time. Instead, perform the Subversion checkout mentioned above, and then, to load Common Music, invoke this code (changing the `cm2.asd` pathname as appropriate) in your `.sbclrc` file, or before using Common Music:
- ```
-(load "/home/mkg/cm2/cm2.asd")
-(asdf:load-system :cm2)
- ```
+5. Download the Lisp version of Common Music from the SourceForge repository as [this branch](https://sourceforge.net/p/commonmusic/code/HEAD/tree/branches/cm2/), e.g. using Subversion `svn checkout svn://svn.code.sf.net/p/commonmusic/code/branches/cm2`. The Common Music license is compatible with Csound's license if you want to play with source code or link with Csound binaries. Please note that the official documentation for installing and running Common Music do not work with sbcl at this time. Instead, perform the Subversion checkout mentioned above, and then configure your Lisp installation to load Common Music as discussed below.
 4.  To use Drew's code:
   1. Install [`clocc`](http://clocc.sourceforge.net/) using Mercurial: `hg clone http://hg.code.sf.net/p/clocc/hg clocc-hg`. 
   2. Install `rsm-mod` with `sudo apt-get install cl-rsm-mod`.
@@ -64,6 +60,8 @@ It is important that all shared libraries be loadable from their filename alone;
 
 4. Test the basic Lisp examples from Csound. On Linux if you have built Csound for sources and run Csound from your build environment, the commands are as follows. If you are running pre-built Csound you may need to change some pathnames. In any event these examples are completely self-contained, and should play the example piece "Xanadu" with real-time audio output.
  1. Render "Xanadu" using raw cffi calls (no Lisp wrapper code): `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/test.lisp`.
- 2. Render "Xanadu" using Csound's cffi wrapper: `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/test-wrapper.lisp`.
+ 2. Render "Xanadu" using Csound's cffi wrapper: `mkg@Sun-Yukong:~/csound/csound$ sbcl --load examples/lisp/wrapper-test.lisp`.
+ 3. Render the Common Music tutorial piece "Scales": 
+ If for some reason cffi does not work on your system, I have also provided an sb-alien binding using lower-level foreign function calls specifically for Steel Bank Common Lisp. The filenames are the same except they are prefixed `sb-`.
 
 
