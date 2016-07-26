@@ -3517,13 +3517,14 @@ qqq)
 ;;; New generator: Create a seq object to hold the generated score.
 ;;; Contrary to the documentation, events returns a name, not an object.
 ;;; The generated score is placed into the seq that is passed to events.
-(defparameter csound-events (new seq :name "csound-test"))
+(defparameter csound-seq (new seq :name "csound-test"))
 ;;; Generate events into the csound-events seq object.
-(events (ranchords 30 'c4 maj .3)  csound-events)
+(events (whirl 10 .25 .5 20 10 50 harms) csound-seq :channel-tuning 3)
+; (events (ranchords 30 'c4 maj .3) csound-seq)
 ;;; Translate the score events to "i" statements 
 ;;; and render with the Csound structured data file 
 ;;; defined in the raw string or "here-document" csd-text.
-(render-with-csound csound-events csd-text 8)
+(render-with-csound csound-seq csd-text 13 80)
           
 #|
 TRY:

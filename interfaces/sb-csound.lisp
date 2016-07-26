@@ -82,8 +82,8 @@
 ;;; Translates a Common Music MIDI event to a Csound score event 
 ;;; (i-statement), which is terminated with a newline. An offset, which may 
 ;;; be any number, is added to the MIDI channel number.
-(defun event-to-istatement (event channel-offset) 
-    (format nil "i ~,6f ~,6f ~,6f ~,6f ~,6f 0 0 0 0 0 0~%" (+ channel-offset (midi-channel event)) (object-time event)(midi-duration event)(keynum (midi-keynum event))(* 127 (midi-amplitude event)))
+(defun event-to-istatement (event channel-offset velocity-scale) 
+    (format nil "i ~,6f ~,6f ~,6f ~,6f ~,6f 0 0 0 0 0 0~%" (+ channel-offset (midi-channel event)) (object-time event)(midi-duration event)(keynum (midi-keynum event))(* velocity-scale (midi-amplitude event)))
 )
 (export 'event-to-istatement)
 
@@ -91,7 +91,7 @@
 ;;; statement, optionally offsetting the channel number, then renders
 ;;; the resulting score using the csd-text. A CSD is used because it 
 ;;; can contain any textual Csound input in one block of raw text.
-(defun render-with-csound (sequence csd-text channel-offset)
+(defun render-with-csound (sequence csd-text &optional (channel-offset 1) (velocity-scale 127) (in-thread nil))
     (format t "Building Csound score...~%")
     (let 
         ((score-list (list))
@@ -100,7 +100,7 @@
         (sco-text))
         (progn
             (defun curried-event-to-istatement (event)
-                (event-to-istatement event channel-offset))
+                (event-to-istatement event channel-offset velocity-scale))
             (setq score-list (mapcar 'curried-event-to-istatement (subobjects sequence)))
             (setq sco-text (format nil "~{~A~^ ~}" score-list))
             (setq cs (sb-csound:csoundCreate 0))
