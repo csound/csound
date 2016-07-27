@@ -268,8 +268,12 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             do_baktrace(csound, tree->locn);
             return NULL;
           }
-          csound->Free(csound, leftArgType);
-          csound->Free(csound, rightArgType);
+          if (leftArgType != NULL) {
+            csound->Free(csound, leftArgType);
+          }
+          if (rightArgType != NULL) {
+            csound->Free(csound, rightArgType);
+          }
           return cs_strdup(csound, outype);
         }
       }
@@ -967,8 +971,8 @@ OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
     int i;
     for (i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
-        if (!strcmp(inArgTypes, temp->intypes) &&
-            !strcmp(outArgTypes, temp->outypes)) {
+        if (temp->intypes != NULL && !strcmp(inArgTypes, temp->intypes) &&
+            temp->outypes != NULL && !strcmp(outArgTypes, temp->outypes)) {
             return temp;
         }
     }
