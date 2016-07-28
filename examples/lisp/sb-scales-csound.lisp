@@ -340,7 +340,7 @@ Lets define a process that plays random triads from the major mode.
                          
 (defparameter csd-text #>qqq><CsoundSynthesizer>
 <CsOptions>
---m-dB=1 -d -RWo dac
+-m0 --m-dB=1 -d -odac
 </CsOptions>
 <CsLicense>
 
@@ -3513,9 +3513,8 @@ aoutright                       =                       gkMasterLevel * ainright
 qqq)
 
 ;;; MKG: Old generator: (events (ranchords 30 'c4 maj .3) "scales.mid")
-
-;;; New generator: Create a seq object to hold the generated score.
-;;; Contrary to the documentation, events returns a name, not an object.
+;;;      New generator: Create a seq object to hold the generated score.
+;;; Contrary to CM documentation, events returns a name, not an object.
 ;;; The generated score is placed into the seq that is passed to events.
 (defparameter csound-seq (new seq :name "csound-test"))
 ;;; Generate events into the csound-events seq object.
@@ -3524,38 +3523,25 @@ qqq)
 ;;; Translate the score events to "i" statements 
 ;;; and render with the Csound structured data file 
 ;;; defined in the raw string or "here-document" csd-text.
-(render-with-csound csound-seq csd-text 13 80)
+(render-with-csound csound-seq csd-text 13 5)
           
-#|
-TRY:
+(defparameter csound-seq (new seq :name "csound-test"))
+;;; Generate events into the csound-events seq object.
+(events (ranchords 30 'c4 maj 2) csound-seq)
+;;; Translate the score events to "i" statements 
+;;; and render with the Csound structured data file 
+;;; defined in the raw string or "here-document" csd-text.
+(render-with-csound csound-seq csd-text 14 8)
 
-1. Define a minor mode and pass it to ranchord.
-2. Use whirl to play modes.
-3. Change whirl to accept a list of pitch classes and then randomly
-   change keys every once in a while.
+(defparameter stravmode (new mode steps '(2 1 2))) ; also "Shur"
 
-Here are some basic mod 12 modes to try out (Drew Krause).
-|#
+(defparameter csound-seq (new seq :name "csound-test"))
+;;; Generate events into the csound-events seq object.
+(events (ranchords 30 'c4 stravmode 2) csound-seq)
+;;; Translate the score events to "i" statements 
+;;; and render with the Csound structured data file 
+;;; defined in the raw string or "here-document" csd-text.
+(render-with-csound csound-seq csd-text 16 12)
 
-(defparameter pentatonic (new mode :steps '(2 2 3 2 3))) ; 5 members
-(defparameter pelog (new mode :steps '(1 2 4 1 4))) ; 5 members
-(defparameter wholetone (new mode :steps '(2 2 2 2 2 2))) ; 6 members
-(defparameter mlt5 (new mode :steps '(1 4 1 1 4 1))) ; 6 members
-(defparameter symmetric6 (new mode :steps '(1 3 1 3 1 3))) ; 6 members
-(defparameter ionian (new mode :steps '(2 2 1 2 2 2 1))) ; 7 members
-(defparameter octatonic (new mode :steps '(1 2 1 2 1 2 1 2))) ; 8 members
-(defparameter mlt4 (new mode :steps '(1 1 3 1 1 1 3 1))) ; 8 members
-(defparameter mlt6 (new mode :steps '(2 2 1 1 2 2 1 1))) ; 8 members
-(defparameter mlt3 (new mode :steps '(2 1 1 2 1 1 2 1 1))) ; 9 members
-(defparameter mlt7 (new mode :steps '(1 1 1 2 1 1 1 1 2 1))) ; 10 members
-
-#|
-Some cooler (not mod 12) modes, also by Drew:
-|#
-
-(defparameter stravmode (new mode :steps '(2 1 2)))
-(defparameter hyperlydian (new mode :steps '(2 2 2 1)))
-(defparameter hyperphrygian (new mode :steps '(1 2 2)))
-
-
+(quit)
 

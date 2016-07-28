@@ -1,6 +1,6 @@
 (require :asdf)
 (asdf:load-system :sb-csound)
-(defparameter csd-text #?"<CsoundSynthesizer>
+(defparameter csd-text #>qqq><CsoundSynthesizer>
 <CsOptions>
 -odac
 </CsOptions>
@@ -229,17 +229,15 @@ i1 45.5 . . 11.04   ;E
 e
 </CsScore>
 </CsoundSynthesizer>
-")
+qqq)
 ;(format t "csd text: ~A~%" csd-text)
-(with-alien ((result integer)
-    (cs integer)
-    (host-data integer)
-    (csd-text c-string))
+(let ((result)
+    (cs)
+    (host-data))
     (setq host-data 0)
-    (setq csd-text csd)
     (setq cs (sb-csound:csoundCreate 0))
     (format t "sb-csound:csoundCreate returned: 0x~X~%" cs)
-    (setq result (sb-csound:csoundCompileCsdText cs csd))
+    (setq result (sb-csound:csoundCompileCsdText cs csd-text))
     (format t "sb-csound:csoundCompileCsdText returned: ~A~%" result)
     (setq result (sb-csound:csoundStart cs))
     (format t "sb-csound:csoundStart returned: ~A~%" result)
