@@ -253,38 +253,4 @@ e
 )
 (format t "Lisp has finished.~%")
     
-#||
-(defun cm-event-to-istatement (event) 
-    (let ())
-)
-
-;;; Given a Common Music event source (event, seq, process, or list), 
-;;; translate each event into a Csound "i" statement, then render
-;;; the resulting score using the orc-text and options. No monkeying with files.
-(defun render-csound (event-source orc-text options)
-    (progn
-        (format t "Building Csound score...~%")
-        (let 
-            ((score-list (list)) 
-            (cs 0) 
-            (result 0) 
-            (sco-text))
-            (mapcar cm-event-to-istatement event-source score-list)
-            (setf sco-text (format nil "~{~A~^, ~}" score-list))
-            (setf cs (csound::csoundCreate (cffi:null-pointer)))
-            (format t "csoundCreate returned: ~S~%" cs)
-            (setf result (csound::csoundCompileOrc cs orc-text))
-            (format t "csoundCompileOrc returned: ~D~%" result)
-            (setf result (csound::readScore cs sco-text))
-            (format t "csound:readScore returned: ~D~%" result)
-            (setf result (csound::csoundStart cs))
-            (format t "csoundStart returned: ~D~%" result)
-            (loop 
-                (setf result (csound::csoundPerformKsmps cs))
-                (when (not (equal result 0))(return))
-            )        
-        )
-    )
-)
-||#
 (quit)
