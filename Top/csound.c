@@ -1902,6 +1902,9 @@ PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
 
     csound->scorestr = corfile_create_w();
     corfile_puts((char *)str, csound->scorestr);
+#ifdef JPFF
+    corfile_puts("\n#exit\n", csound->scorestr);
+#endif
     corfile_flush(csound->scorestr);
     /* copy sorted score name */
     csoundLockMutex(csound->API_lock);
