@@ -46,6 +46,7 @@ typedef struct IFDEFSTACK_ {
 
 typedef struct prs_parm_s {
     void            *yyscanner;
+    CORFIL          *cf;
     MACRO           *macros;
     MACRON          *alt_stack; //[MAX_INCLUDE_DEPTH];
     unsigned int macro_stack_ptr;
@@ -58,6 +59,16 @@ typedef struct prs_parm_s {
     uint32_t        llocn;
     uint16_t        depth;
     uint16_t        lstack[1024];
+         /* Variable for repeat loops */
+#define NAMELEN 40              /* array size of repeat macro names */
+#define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
+    char    repeat_name_n[RPTDEPTH][NAMELEN];
+    int     repeat_cnt_n[RPTDEPTH];
+    int     repeat_indx[RPTDEPTH];
+    CORFIL  *cf_stack[RPTDEPTH];
+    int     repeat_inc_n /* = 1 */;
+    MACRO   *repeat_mm_n[RPTDEPTH];
+    int     repeat_index;
 } PRS_PARM;
 
 typedef struct scotoken_s {
