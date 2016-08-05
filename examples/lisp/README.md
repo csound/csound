@@ -12,7 +12,7 @@ There are other notable Lisp-based computer music systems such as [OpenMusic](ht
 
 ## Common Lisp
 
-To integrate Csound with Common Lisp, follow these steps. Installation and configuration are more straightforward on Linux, but certainly possible on OS X and Windows.
+To integrate Csound with Common Lisp, follow these steps. Installation and configuration are more straightforward on Linux. On Windows, calling Csound with sb-alien is possible, but not with cffi, and Common Music's Lisp branch does not run thanks to errors in cm2.asd.
 
 1. Install Csound. I recommend installing pre-built binaries for 64 bit CPU architecture from [GitHub](http://csound.github.io/download.html). Of course you can always build Csound from sources, this is fairly straightforward on Linux but not for beginners on Windows or OS X.
 2. Install Lisp.  I recommend [sbcl](http://www.sbcl.org/) (Steel Bank Common Lisp).
