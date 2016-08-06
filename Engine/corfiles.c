@@ -247,6 +247,11 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
       corfile_puts(buffer, mm);
       memset(buffer, '\0', 1024);
     }
+#ifdef JPFF
+    if (fromScore) {
+      corfile_puts("\n#exit\n", mm);
+    }
+#endif
     corfile_putc('\0', mm);     /* For use in bison/flex */
     corfile_putc('\0', mm);     /* For use in bison/flex */
     if (fromScore) corfile_flush(mm);
