@@ -20,13 +20,13 @@
 ;
 ; This file is handwritten and should be maintained by keeping it up to date
 ; with regard to include/csound.h. This file is not intended to be complete
-; and essentially defines a Steel Bank Common Lisp interface to a subset of 
-; the most useful functions in csound.h. At the present time, only pointers, 
+; and essentially defines a Steel Bank Common Lisp interface to a subset of
+; the most useful functions in csound.h. At the present time, only pointers,
 ; strings, and other primitive types are used in this interface.
 
 (defpackage :sb-csound
-    (:use :common-lisp :sb-alien :sb-c-call :cm)
-    (:export 
+    (:use :common-lisp :sb-alien :sb-c-call :cm2 :trivial-features)
+    (:export
         :csoundCompileCsd
         :csoundCompileCsdText
         :csoundCompileOrc
@@ -42,7 +42,8 @@
 
 (in-package :sb-csound)
 
-(sb-alien:load-shared-object "libcsound64.so")
+#!+unix (sb-alien:load-shared-object "libcsound64.so")
+#!+win32 (sb-alien:load-shared-object "csound64.dll")
 
 (declaim (inline csoundCompileCsd))
 (define-alien-routine "csoundCompileCsd" integer (csound integer) (csd-pathname c-string))
@@ -55,10 +56,10 @@
 
 (declaim (inline csoundCreate))
 (define-alien-routine "csoundCreate" integer (host-data integer))
-      
+
 (declaim (inline csoundDestroy))
 (define-alien-routine "csoundDestroy" sb-alien:void (csound integer))
-      
+
 (declaim (inline csoundPerformKsmps))
 (define-alien-routine "csoundPerformKsmps" integer (csound integer))
 
@@ -79,10 +80,10 @@
 (in-package :cm)
 (use-package :sb-csound)
 
-(defun event-to-istatement (event channel-offset velocity-scale) 
+(defun event-to-istatement (event channel-offset velocity-scale)
 "
-Translates a Common Music MIDI event to a Csound score event 
-(i-statement), which is terminated with a newline. An offset, which may 
+Translates a Common Music MIDI event to a Csound score event
+(i-statement), which is terminated with a newline. An offset, which may
 be any number, is added to the MIDI channel number.
 "
     (format nil "i ~,6f ~,6f ~,6f ~,6f ~,6f 0 0 0 0 0 0~%" (+ channel-offset (midi-channel event)) (object-time event)(midi-duration event)(keynum (midi-keynum event))(* velocity-scale (midi-amplitude event)))
@@ -108,18 +109,18 @@ using 'test' for character equality.
 
 (defun render-with-csound (sequence csd-text &optional (channel-offset 1) (velocity-scale 127) (csound nil))
 "
-Given a Common Music seq 'sequence', translates each of its events into a 
-Csound 'i' statement, optionally offsetting the channel number and/or 
-rescaling MIDI velocity, then renders the resulting score using 'csd-text'. 
-A CSD is used because it can contain any textual Csound input in one block of 
-raw text. The score generated from 'sequence' is appended to any <CsScore> 
-lines found in 'csd-text'. This is done so that Csound will quit performing 
-at the end of the score. It is possible to call csoundReadScore during the 
+Given a Common Music seq 'sequence', translates each of its events into a
+Csound 'i' statement, optionally offsetting the channel number and/or
+rescaling MIDI velocity, then renders the resulting score using 'csd-text'.
+A CSD is used because it can contain any textual Csound input in one block of
+raw text. The score generated from 'sequence' is appended to any <CsScore>
+lines found in 'csd-text'. This is done so that Csound will quit performing
+at the end of the score. It is possible to call csoundReadScore during the
 performance. This function returns the Csound object that it uses.
 
-The optional 'csound' parameter is used to call Csound if passed. This enables 
-'render-with-csound' to be run in a separate thread of execution, and for 
-the caller to control Csound instrument parameters during real time 
+The optional 'csound' parameter is used to call Csound if passed. This enables
+'render-with-csound' to be run in a separate thread of execution, and for
+the caller to control Csound instrument parameters during real time
 performance, e.g.
 
 (setq csound (sb-csound:csoundCreate 0))
@@ -128,9 +129,9 @@ performance, e.g.
 (bt:join-thread my-thread)
 "
 
-    (let 
+    (let
         ((score-list (list))
-        (cs) 
+        (cs)
         (sco-text)
         (new-csd-text))
         (progn
@@ -151,10 +152,10 @@ performance, e.g.
             (format t "csoundCompileCsdText returned: ~D.~%" result)
             (setf result (sb-csound:csoundStart cs))
             (format t "csoundStart returned: ~D.~%" result)
-            (loop 
+            (loop
                 (setf result (sb-csound:csoundPerformKsmps cs))
                 (when (not (equal result 0))(return))
-            )     
+            )
             (format t "The Csound performance has ended: ~D.~%" result)
         )
     )
