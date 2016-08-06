@@ -2,7 +2,7 @@
 ;; This example assumes that CFFI is installed, and uses cffi directly,
 ;; without a generated wrapper.
 ;; You can run this example as a script, e.g. "sbcl --load examples/lisp/test.lisp"
-(sb-alien:load-shared-object "libcsound64.so")
+(sb-alien:load-shared-object "csound64.dll")
 (defparameter csd "<CsoundSynthesizer>
 <CsOptions>
 -odac
@@ -252,5 +252,5 @@ e
     )
 )
 (format t "Lisp has finished.~%")
-    
+
 (quit)
