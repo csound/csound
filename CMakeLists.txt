@@ -625,6 +625,7 @@ set(libcsound_SRCS
     Engine/csound_standard_types.c
     Engine/csound_data_structures.c
     Engine/pools.c
+    Engine/ugen.c
     InOut/libsnd.c
     InOut/libsnd_u.c
     InOut/midifile.c
