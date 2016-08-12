@@ -17,6 +17,7 @@
  * */
 
 #include "csoundCore.h"
+#include <stdbool.h>
 
 typedef struct {
   CSOUND* csound;
