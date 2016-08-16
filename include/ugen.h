@@ -23,10 +23,14 @@ typedef struct {
   CSOUND* csound;
   INSDS* insds;
   OENTRY* oentry;
-  void* data;
-  int (*init)(void* data);
-  int (*perform)(void* data);
-  int (*destroy)(void* data);
+  void *opcodeMem;
+  MYFLT* data;
+  OPDS* opds;
+  CS_VAR_POOL* inPool;
+  CS_VAR_POOL* outPool;
+  int inPoolCount;
+  int outPoolCount;
+  int inocount;
 } UGEN;
 
 typedef struct {
@@ -35,6 +39,7 @@ typedef struct {
 
 typedef struct {
   CSOUND* csound;
+  INSDS* insds;
 } UGEN_FACTORY;
 
 /** Creates a UGEN_FACTORY, used to list available UGENs (Csound Opcodes),
@@ -43,14 +48,16 @@ typedef struct {
 PUBLIC UGEN_FACTORY* ugen_factory_new(CSOUND* csound);
 
 /* Delete a UGEN_FACTORY */
-PUBLIC bool ugen_factory_delete(CSOUND* csound);
+PUBLIC bool ugen_factory_delete(CSOUND* csound, UGEN_FACTORY* factory);
 
+/*
 PUBLIC UGEN_CONTEXT* ugen_context_new(UGEN_FACTORY* factory);
 
 PUBLIC UGEN_CONTEXT* ugen_context_delete(UGEN_FACTORY* factory);
+*/
 
 /** Create a new UGEN, using the given UGEN_FACTORY and OENTRY */
-PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, OENTRY* oentry);
+PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, char* inargTypes);
 
 
 PUBLIC bool ugen_set_output(UGEN* ugen, int index, void* arg);
