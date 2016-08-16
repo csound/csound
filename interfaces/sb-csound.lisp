@@ -25,7 +25,7 @@
 ; strings, and other primitive types are used in this interface.
 
 (defpackage :sb-csound
-    (:use :common-lisp :sb-alien :sb-c-call :cm2 :trivial-features)
+    (:use :common-lisp :sb-alien :sb-c-call :cm)
     (:export
         :csoundCompileCsd
         :csoundCompileCsdText
@@ -37,13 +37,14 @@
         :csoundSetControlChanel
         :csoundSetOption
         :csoundStart
+        :csoundCleanup
      )
 )
 
 (in-package :sb-csound)
 
-#!+unix (sb-alien:load-shared-object "libcsound64.so")
-#!+win32 (sb-alien:load-shared-object "csound64.dll")
+#+unix (sb-alien:load-shared-object "libcsound64.so")
+#+win32 (sb-alien:load-shared-object "csound64.dll")
 
 (declaim (inline csoundCompileCsd))
 (define-alien-routine "csoundCompileCsd" integer (csound integer) (csd-pathname c-string))
@@ -74,6 +75,9 @@
 
 (declaim (inline csoundStart))
 (define-alien-routine "csoundStart" integer (csound integer))
+
+(declaim (inline csoundCleanup))
+(define-alien-routine "csoundCleanup" integer (csound integer))
 
 (set-dispatch-macro-character #\# #\> #'cl-heredoc:read-heredoc)
 
@@ -155,6 +159,13 @@ performance, e.g.
             (loop
                 (setf result (sb-csound:csoundPerformKsmps cs))
                 (when (not (equal result 0))(return))
+            )
+            (setf result(sb-csound:csoundCleanup cs))
+            (format t "csoundCleanup returned: ~D.~%" result)
+            (sleep 5)
+            (if (not csound)
+                (sb-csound::csoundDestroy cs)
+                (format t "csoundDestroy was called.~%")
             )
             (format t "The Csound performance has ended: ~D.~%" result)
         )
