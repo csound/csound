@@ -65,8 +65,9 @@ PUBLIC UGEN_CONTEXT* ugen_context_delete(UGEN_FACTORY* factory) {
 
 
 OENTRY* ugen_resolve_opcode(OENTRIES* entries, char* outargTypes, char* inargTypes) {
+    int i;
     
-    for (int i = 0; i < entries->count; i++) {
+    for (i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
         
         if (strcmp(outargTypes, temp->outypes) == 0 &&
