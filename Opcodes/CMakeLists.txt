@@ -17,7 +17,6 @@ option(BUILD_EXCITER_OPCODES "Build the exciter opcode" ON)
 option(BUILD_BUCHLA_OPCODES "Build the Buchla filter opcode" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
-option(BUILD_QUADBEZIER_OPCODES "Build the quadbezier gen" ON)
 
 find_package(Boost)
 check_include_file(ladspa.h LADSPA_H)
@@ -67,9 +66,9 @@ make_plugin(system_call system_call.c)
 make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(ftsamplebank ftsamplebank.cpp)
+make_plugin(getftargs getftargs.c)
 
 make_plugin(fareygen fareygen.c)
-
 make_plugin(quadbezier quadbezier.c)
 
 if(BUILD_PADSYNTH_OPCODES)
