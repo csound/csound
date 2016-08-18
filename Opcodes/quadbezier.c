@@ -27,7 +27,7 @@
 static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c);
 static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int x);
 
-
+#if 0
 static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
 {
     CSOUND  *csound = ff->csound;
@@ -51,16 +51,18 @@ static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
 
     return -1;
 }
+#endif
 
 static int quadbeziertable (FGDATA *ff, FUNC *ftp)
 {
     int nvals, nargs, n;
     MYFLT   *fp = ftp->ftable;
+    CSOUND *csound = ff->csound;
 
     nvals = ff->flen;
     nargs = ff->e.pcnt - 4;
     if (UNLIKELY(nargs < 5)) {
-      return fterror(ff, Str("insufficient arguments"));
+      return csound->ftError(ff, Str("insufficient arguments"));
     }
     ff->e.p[4] *= -1;
 

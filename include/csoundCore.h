@@ -1306,11 +1306,12 @@ typedef struct NAME__ {
                            int d);
     void (*RealFFT2)(CSOUND *csound,
                      void *p, MYFLT *sig);
+    int  (*ftError)(const FGDATA *, const char *, ...);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[40];
+    SUBR dummyfn_2[39];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
