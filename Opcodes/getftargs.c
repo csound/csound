@@ -60,10 +60,9 @@ static int getftargs(CSOUND *csound, FTARGS *p)
 {
     FUNC *src;
     int32 len, i;
-    char *curr;
-    char *const end;
-    
-    p->Scd->size = 1024;
+
+    p->Scd->size = 1024;        /* Why a fixed size?  Surely better to
+                                   expand if necessary */
     if (p->Scd->data == NULL) {
       p->Scd->data = (char*) csound->Calloc(csound, p->Scd->size);
     }
@@ -89,7 +88,8 @@ static int getftargs(CSOUND *csound, FTARGS *p)
 
 static OENTRY localops[] =
 {
-  { "getftargs",   sizeof(FTARGS),  0, 3, "S", "ik", (SUBR)getftargs_init, (SUBR)getftargs_process }
+  { "getftargs",   sizeof(FTARGS),  0, 3, "S", "ik",
+    (SUBR)getftargs_init, (SUBR)getftargs_process }
 };
 
 LINKAGE
