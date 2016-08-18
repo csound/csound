@@ -110,7 +110,7 @@ typedef struct namedgen {
 
 #define FTAB_SEARCH_BASE (100)
 
-static CS_NOINLINE int  fterror(const FGDATA *, const char *, ...);
+CS_NOINLINE int  fterror(const FGDATA *, const char *, ...);
 static CS_NOINLINE void ftresdisp(const FGDATA *, FUNC *);
 static CS_NOINLINE FUNC *ftalloc(const FGDATA *);
 
@@ -2238,7 +2238,7 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
     return OK;
 }
 
-static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
+CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
 {
     CSOUND  *csound = ff->csound;
     char    buf[64];
