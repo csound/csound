@@ -100,6 +100,7 @@ extern int csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 extern int isstrcod(MYFLT );
+extern int fterror(const FGDATA *ff, const char *s, ...);
 
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
@@ -443,11 +444,12 @@ static const CSOUND cenviron_ = {
     isstrcod,
     csoundRealFFT2Setup,
     csoundRealFFT2,
+    fterror,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
