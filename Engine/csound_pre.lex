@@ -811,8 +811,17 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     int mlen = 40;
     char *q = name0;
     char *mname = malloc(mlen);
+
+    if (UNLIKELY(mm == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
     mm->margs = MARGS;    /* Initial size */
     mm->name = (char*)csound->Malloc(csound, strlen(name0) + 1);
+    if (UNLIKELY(mm->name == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
     strcpy(mm->name, name0);
     do {
       i = 0;
@@ -822,27 +831,54 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         mname[i++] = c;
         if (UNLIKELY(i==mlen))
           mname = (char *)realloc(mname, mlen+=40);
+        if (UNLIKELY(mname == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
       }
       mname[i++] = '_';
-      if (UNLIKELY(i==mlen))
-          mname = (char *)realloc(mname, mlen+=40);
+      if (UNLIKELY(i==mlen)) {
+        mname = (char *)realloc(mname, mlen+=40);
+        if (UNLIKELY(mname == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
+      }
       mname[i++] = '_';
-      if (UNLIKELY(i==mlen))
-          mname = (char *)realloc(mname, mlen+=40);
+      if (UNLIKELY(i==mlen)) {
+        mname = (char *)realloc(mname, mlen+=40);
+        if (UNLIKELY(mname == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
+      }
       while (isspace((c = input(yyscanner))));
 
       while (isNameChar(c, i)) {
         mname[i++] = c;
-        if (UNLIKELY(i==mlen))
+        if (UNLIKELY(i==mlen)) {
           mname = (char *)realloc(mname, mlen+=40);
+          if (UNLIKELY(mname == NULL)) {
+            csound->Message(csound, Str("Memory exhausted"));
+            csound->LongJmp(csound, 1);
+          }
+        }
         c = input(yyscanner);
       }
       mname[i] = '\0';
       mm->arg[arg] = csound->Malloc(csound, i + 1);
+      if (UNLIKELY(mm->arg[arg] == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
       strcpy(mm->arg[arg++], mname);
       if (UNLIKELY(arg >= mm->margs)) {
         mm = (MACRO*) csound->ReAlloc(csound, mm, sizeof(MACRO)
                                + mm->margs * sizeof(char*));
+        if (UNLIKELY(mm == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
         mm->margs += MARGS;
       }
       while (isspace(c))
@@ -884,13 +920,23 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     mm->acnt = arg;
     i = 0;
     mm->body = (char*) csound->Malloc(csound, 100);
+    if (UNLIKELY(mm->body == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
+
     while ((c = input(yyscanner)) != '#') { /* read body */
       if (UNLIKELY(c == EOF))
         csound->Die(csound, Str("define macro with args: unexpected EOF"));
       if (c=='$') {             /* munge macro name? */
         int n = strlen(name0)+4;
-        if (UNLIKELY(i+n >= size))
+        if (UNLIKELY(i+n >= size)) {
           mm->body = csound->ReAlloc(csound, mm->body, size += 100);
+          if (UNLIKELY(mm->body == NULL)) {
+            csound->Message(csound, Str("Memory exhausted"));
+            csound->LongJmp(csound, 1);
+          }
+        }
         mm->body[i] = '$'; mm->body[i+1] = '_';
         strcpy(&mm->body[i+2], name0);
         mm->body[i + n - 2] = '_'; mm->body[i + n - 1] = '_';
@@ -898,12 +944,22 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         continue;
       }
       mm->body[i++] = c=='\r'?'\n':c;
-      if (UNLIKELY(i >= size))
+      if (UNLIKELY(i >= size)) {
         mm->body = csound->ReAlloc(csound, mm->body, size += 100);
+        if (UNLIKELY(mm->body == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
+      }
       if (c == '\\') {                    /* allow escaped # */
         mm->body[i++] = c = input(yyscanner);
-        if (UNLIKELY(i >= size))
+        if (UNLIKELY(i >= size)) {
           mm->body = csound->ReAlloc(csound, mm->body, size += 100);
+          if (UNLIKELY(mm->body == NULL)) {
+            csound->Message(csound, Str("Memory exhausted"));
+            csound->LongJmp(csound, 1);
+          }
+        }
       }
       if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
@@ -921,9 +977,18 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     MACRO *mm = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
     int   i, c;
     int   size = 100;
+    if (UNLIKELY(mm == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
+
     mm->margs = MARGS;    /* Initial size */
     csound->DebugMsg(csound,"Macro definition for %s\n", name0);
     mm->name = (char*)csound->Malloc(csound, strlen(name0) + 1);
+    if (UNLIKELY(mm->name == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
     strcpy(mm->name, name0);
     mm->acnt = 0;
     i = 0;
@@ -955,16 +1020,30 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
                     c, c);
     }
     mm->body = (char*) csound->Malloc(csound, 100);
+    if (UNLIKELY(mm->body == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
     while ((c = input(yyscanner)) != '#') {
       if (UNLIKELY(c == EOF || c==0))
         csound->Die(csound, Str("define macro: unexpected EOF"));
       mm->body[i++] = c=='\r'?'\n':c;
-      if (UNLIKELY(i >= size))
+      if (UNLIKELY(i >= size)) {
         mm->body = csound->ReAlloc(csound, mm->body, size += 100);
+        if (UNLIKELY(mm->body == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
+      }
       if (c == '\\') {                    /* allow escaped # */
         mm->body[i++] = c = input(yyscanner);
-        if (UNLIKELY(i >= size))
+        if (UNLIKELY(i >= size)) {
           mm->body = csound->ReAlloc(csound, mm->body, size += 100);
+          if (UNLIKELY(mm->body == NULL)) {
+            csound->Message(csound, Str("Memory exhausted"));
+            csound->LongJmp(csound, 1);
+          }
+        }
       }
       if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
@@ -1017,6 +1096,10 @@ static void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
     MACRO *mm;
     IFDEFSTACK *pp;
     pp = (IFDEFSTACK*) csound->Calloc(csound, sizeof(IFDEFSTACK));
+    if (UNLIKELY(pp == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
     pp->prv = PARM->ifdefStack;
     pp->isDef = PARM->isIfndef;
     for (mm = PARM->macros; mm != NULL; mm = mm->next) {
@@ -1036,9 +1119,13 @@ static void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
 static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
 {
     int i, c, nested_ifdef = 0;
-    char *buf;
+    char buf[8];
     IFDEFSTACK *pp;
-    buf = (char*)malloc(8*sizeof(char));
+    /* buf = (char*)malloc(8*sizeof(char)); */
+    /* if (UNLIKELY(buf == NULL)) { */
+    /*   csound->Message(csound, Str("Memory exhausted")); */
+    /*   csound->LongJmp(csound, 1); */
+    /* } */
     pp = PARM->ifdefStack;
     c = input(yyscanner);
     for (;;) {
@@ -1153,6 +1240,10 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
         csound->Die(csound, Str("Invalid macro name for --omacro"));
       }
       mname = (char*) csound->Malloc(csound, (p - s) + 1);
+      if (UNLIKELY(mname == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
       strncpy(mname, s, p - s);
       mname[p - s] = '\0';
       /* check if macro is already defined */
@@ -1162,6 +1253,10 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
       }
       if (mm == NULL) {
         mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
+        if (UNLIKELY(mm  == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
         mm->name = mname;
         mm->next = qq->macros;
         qq->macros = mm;
@@ -1173,6 +1268,10 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
       if (*p != '\0')
         p++;
       mm->body = (char*) csound->Malloc(csound, strlen(p) + 1);
+      if (UNLIKELY(mm->body == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
       strcpy(mm->body, p);
       nn = nn->next;
     }
