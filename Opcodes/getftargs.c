@@ -1,7 +1,7 @@
 /*
     getfttrgs.c:
 
-    Copyright (C) 2016 Guillermo Senna 
+    Copyright (C) 2016 Guillermo Senna
 
     This file is part of Csound.
 
@@ -24,12 +24,12 @@
 #include "csdl.h"
 
 typedef struct {
-   OPDS h;
+   OPDS      h;
    STRINGDAT *Scd;
-   MYFLT *ftable;
-   MYFLT *ktrig;
-   MYFLT  prv_ktrig;
-   int status;
+   MYFLT     *ftable;
+   MYFLT     *ktrig;
+   MYFLT     prv_ktrig;
+   int       status;
 } FTARGS;
 
 static int getftargs(CSOUND *, FTARGS *);
