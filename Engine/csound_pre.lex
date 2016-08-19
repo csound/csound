@@ -241,6 +241,10 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     if (UNLIKELY(PARM->alt_stack == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
                      /*                  PARM->macro_stack_size); */
                    }
@@ -270,6 +274,10 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     if (UNLIKELY(PARM->alt_stack == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
                      /*                  PARM->macro_stack_size); */
                    }
@@ -305,13 +313,25 @@ QNAN		"qnan"[ \t]*\(
                      char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
                      MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
                      int   size = 100;
+                     if (UNLIKELY(nn == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1);
+                     if (UNLIKELY(nn->name == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
                      i = 0;
                      nn->body = (char*) csound->Malloc(csound, 100);
+                     if (UNLIKELY(nn->body == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      while ((c = input(yyscanner))!= term && c!=trm1) {
                        if (c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
@@ -322,8 +342,13 @@ QNAN		"qnan"[ \t]*\(
                                      nn->body);
                        }
                        nn->body[i++] = c;
-                       if (UNLIKELY(i >= size))
+                       if (UNLIKELY(i >= size)) {
                          nn->body = csound->ReAlloc(csound, nn->body, size += 100);
+                         if (UNLIKELY(nn->body == NULL)) {
+                           csound->Message(csound, Str("Memory exhausted"));
+                           csound->LongJmp(csound, 1);
+                         }
+                       }
                      }
                      nn->body[i] = '\0';
                      csound->Message(csound, "as...#%s#\n", nn->body);
@@ -337,6 +362,10 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     if (UNLIKELY(PARM->alt_stack == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      /* csound->DebugMsg(csound, */
                      /*        "macro_stack extends alt_stack to %d long\n", */
                      /*                  PARM->macro_stack_size); */
@@ -379,13 +408,25 @@ QNAN		"qnan"[ \t]*\(
                      char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
                      MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
                      int   size = 100;
+                     if (UNLIKELY(nn == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1);
+                     if (UNLIKELY(mm->name == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      //csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
                      i = 0;
                      nn->body = (char*) csound->Malloc(csound, 100);
+                     if (UNLIKELY(nn->body == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      while ((c = input(yyscanner))!= term && c!=trm1) {
                        if (c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
@@ -396,8 +437,13 @@ QNAN		"qnan"[ \t]*\(
                                      nn->body);
                        }
                        nn->body[i++] = c;
-                       if (UNLIKELY(i >= size))
+                       if (UNLIKELY(i >= size)) {
                          nn->body = csound->ReAlloc(csound, nn->body, size += 100);
+                         if (UNLIKELY(nn->body == NULL)) {
+                           csound->Message(csound, Str("Memory exhausted"));
+                           csound->LongJmp(csound, 1);
+                         }
+                       }
                      }
                      nn->body[i] = '\0';
                      csound->Message(csound, "as...#%s#\n", nn->body);
@@ -411,6 +457,10 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     if (UNLIKELY(PARM->alt_stack == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
                      /*                  PARM->macro_stack_size); */
                    }
@@ -782,6 +832,10 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
                                   sizeof(MACRON)*(PARM->macro_stack_size+=10));
+      if (UNLIKELY(PARM->alt_stack == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
       /* csound->DebugMsg(csound, "alt_stack now %d long, \n", */
       /*                  PARM->macro_stack_size); */
     }
