@@ -254,6 +254,10 @@ QNAN		"qnan"[ \t]*\(
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
+                   if (PARM->depth>1022) {
+                     csound->Message(csound, Str("macros/include nested too deep: "));
+                     csound->LongJmp(csound, 1);
+                   }
                    PARM->lstack[++PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
@@ -287,6 +291,11 @@ QNAN		"qnan"[ \t]*\(
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
+                   if (PARM->depth>1022) {
+                     csound->Message(csound,
+                                     Str("macros/include nested too deep: "));
+                     csound->LongJmp(csound, 1);
+                   }
                    PARM->lstack[++PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
@@ -383,6 +392,11 @@ QNAN		"qnan"[ \t]*\(
                    //csound->DebugMsg(csound,"Push %p macro stack\n",PARM->macros);
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
+                   if (PARM->depth>1022) {
+                     csound->Message(csound,
+                                     Str("macros/include nested too deep: "));
+                     csound->LongJmp(csound, 1);
+                   }
                    PARM->lstack[++PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, mname) : 63);
                    yy_scan_string(mm->body, yyscanner);
@@ -471,10 +485,11 @@ QNAN		"qnan"[ \t]*\(
                      csound_preget_lineno(yyscanner);
                    PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   if (PARM->depth++>1024) {
-                     csound->Die(csound, Str("Includes nested too deeply"));
+                   if (PARM->depth++>1022) {
+                     csound->Message(csound,
+                                     Str("macros/include nested too deep: "));
+                     csound->LongJmp(csound, 1);
                    }
-                   csound_preset_lineno(1, yyscanner);
                    PARM->lstack[PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, mname) : 63);
                    yy_scan_string(mm->body, yyscanner);
