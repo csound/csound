@@ -946,7 +946,7 @@ OENTRY gab_localops[] = {
                             (SUBR) isChanged_set, (SUBR)isChanged, NULL },
   { "changed2.k", S(ISCHANGED), 0, 3,     "k",     "z",
                             (SUBR) isChanged2_set, (SUBR)isChanged, NULL },
-  { "changed2.A", S(ISACHANGED), 0, 3,     "k",     "*[]",
+  { "changed2.A", S(ISACHANGED), 0, 3,     "k",     ".[]",
                             (SUBR) isAChanged_set, (SUBR)isAChanged, NULL },
   /*{ "ftlen_k",S(EVAL),    0, 2,      "k",    "k", NULL,      (SUBR)ftlen   }, */
   { "max_k",  S(P_MAXIMUM), 0, 5,      "k",    "aki",

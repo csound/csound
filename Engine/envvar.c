@@ -62,11 +62,11 @@ typedef struct CSFILE_ {
     FILE            *f;
     SNDFILE         *sf;
     void            *cb;
-    int    async_flag;
-    int    items;
-    int    pos;
-    MYFLT *buf;
-    int    bufsize;
+    int             async_flag;
+    int             items;
+    int             pos;
+    MYFLT           *buf;
+    int             bufsize;
     char            fullName[1];
 } CSFILE;
 
@@ -363,7 +363,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
     value = strchr(name, '=');
     append_mode = 0;
     if (UNLIKELY(value == NULL || value == name)) {
-      strcpy(msg, " *** invalid format for --env\n");
+      strcpy(msg, Str(" *** invalid format for --env\n"));
       retval = CSOUND_ERROR;
       goto err_return;
     }
@@ -373,7 +373,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
       *(value - 2) = '\0';
     }
     if (UNLIKELY(!is_valid_envvar_name(name))) {
-      strcpy(msg, " *** invalid environment variable name\n");
+      strcpy(msg, Str(" *** invalid environment variable name\n"));
       retval = CSOUND_ERROR;
       goto err_return;
     }
@@ -383,13 +383,13 @@ int csoundParseEnv(CSOUND *csound, const char *s)
     else
       retval = csoundAppendEnv(csound, name, value);
     if (UNLIKELY(retval == CSOUND_MEMORY))
-      strcpy(msg, " *** memory allocation failure\n");
+      strcpy(msg, Str(" *** memory allocation failure\n"));
     else
-      strcpy(msg, " *** error setting environment variable\n");
+      strcpy(msg, Str(" *** error setting environment variable\n"));
 
  err_return:
     if (UNLIKELY(retval != CSOUND_SUCCESS))
-      csoundMessage(csound, "%s", Str(msg));
+      csoundMessage(csound, "%s", msg);
     csound->Free(csound, name);
     return retval;
 }
@@ -944,7 +944,7 @@ char *csoundFindOutputFile(CSOUND *csound,
     fd = csoundFindFile_Fd(csound, &name_found, filename, 1, envList);
     if (fd >= 0) {
       close(fd);
-      if (remove(name_found)<0) csound->DebugMsg(csound, "Remove failed\n");
+      if (remove(name_found)<0) csound->DebugMsg(csound, Str("Remove failed\n"));
     }
     return name_found;
 }
