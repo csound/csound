@@ -1235,8 +1235,10 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
 #ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), extname, scof);
 #endif
-    if (UNLIKELY(fd == NULL))
+    if (UNLIKELY(fd == NULL)) {
+      free(extname);
       return FALSE;
+    }
 
     csound->scoLineOffset = STA(csdlinecount);
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
@@ -1249,6 +1251,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
           csoundErrorMsg(csound, Str("External generation failed"));
           if (UNLIKELY(remove(extname) || remove(STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove"));
+          free(extname);
           return FALSE;
         }
        if (UNLIKELY(remove(extname)))
@@ -1262,6 +1265,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
           csoundErrorMsg(csound, Str("cannot open %s"), STA(sconame));
           if (UNLIKELY(remove(STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
+          free(extname);
           return FALSE;
         }
         csoundMessage(csound, Str("opened %s"), STA(sconame));
