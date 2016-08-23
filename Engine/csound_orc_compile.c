@@ -729,7 +729,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
                           "In INSTR GLOBAL: %s\n", current->value->lexeme);
         if (current->type == '='
             && strcmp(oentry->opname, "=.r") == 0)
-         csound->Warning(csound, "system constants can only be set once\n");
+          csound->Warning(csound, Str("system constants can only be set once\n"));
         else {
         op->nxtop = create_opcode(csound, current, ip, engineState);
         op = last_optxt(op);
@@ -1165,7 +1165,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       instrtxt->isNew = 1;
       /* redefinition does not raise an error now, just a warning */
       /* unless we are not merging */
-      if(!merge) synterr(csound, "instr %d redefined\n", instrNum);
+      if(!merge) synterr(csound, Str("instr %d redefined\n"), instrNum);
       if (instrNum && csound->oparms->odebug)
         csound->Warning(csound,
                         Str("instr %ld redefined, replacing previous definition"),
@@ -1647,7 +1647,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
     if (UNLIKELY(csound->synterrcnt)) {
       print_opcodedir_warning(csound);
       csound->Warning(csound, Str("%d syntax errors in orchestra.  "
-                              "compilation invalid\n"),
+                                  "compilation invalid\n"),
                   csound->synterrcnt);
       free_typetable(csound, typeTable);
       return CSOUND_ERROR;

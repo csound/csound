@@ -162,7 +162,8 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
       current = current->next;
     }
     else ((CSOUND *)csound)->ErrorMsg(csound,
-            "cannot create variable %s: NULL type", name);
+                                      Str("cannot create variable %s: NULL type"),
+                                      name);
     return NULL;
 }
 
