@@ -266,6 +266,10 @@ msgstr ""
 "redéfinition des taux d'échantillonnage : esr = %7.4f, ekr = %7.4f, ksmps = "
 "%d\n"
 
+#: Engine/csound_orc_compile.c:732
+msgid "system constants can only be set once\n"
+msgstr ""
+
 #: Engine/csound_orc_compile.c:818
 #, c-format
 msgid "create_instrument: instr num %ld\n"
@@ -298,6 +302,11 @@ msgstr "pas d'instances actives\n"
 #, c-format
 msgid "instr %s uses instrument number %d\n"
 msgstr "l'instr %s utilise le numéro d'instrument %d\n"
+
+#: Engine/csound_orc_compile.c:1168
+#, fuzzy, c-format
+msgid "instr %d redefined\n"
+msgstr "instr %s redéfini\n"
 
 #: Engine/csound_orc_compile.c:1201
 #, c-format
@@ -550,10 +559,34 @@ msgstr " depuis le fichier %s (%d)\n"
 msgid "insufficient required arguments for opcode %s on line %d:\n"
 msgstr "arguments requis manquants pour l'opcode %s ligne %d :\n"
 
+#: Engine/csound_type_system.c:165
+#, c-format
+msgid "cannot create variable %s: NULL type"
+msgstr ""
+
 #: Engine/envvar.c:216
 #, c-format
 msgid "Environment variable '%s' has been set to "
 msgstr "La variable d'environnement '%s' a été fixée à "
+
+#: Engine/envvar.c:366
+#, fuzzy
+msgid " *** invalid format for --env\n"
+msgstr "format de chaîne de caractères non valide"
+
+#: Engine/envvar.c:376
+#, fuzzy
+msgid " *** invalid environment variable name\n"
+msgstr "nom de variable non valide"
+
+#: Engine/envvar.c:386
+#, fuzzy
+msgid " *** memory allocation failure\n"
+msgstr " *** échec de l'allocation mémoire"
+
+#: Engine/envvar.c:388
+msgid " *** error setting environment variable\n"
+msgstr ""
 
 #: Engine/envvar.c:498
 #, c-format
@@ -563,6 +596,11 @@ msgstr "Création du cache de chemin de recherche pour '%s' :"
 #: Engine/envvar.c:733
 msgid "Current directory path name too long\n"
 msgstr "Le nom du chemin du répertoire courant est trop long\n"
+
+#: Engine/envvar.c:947
+#, fuzzy
+msgid "Remove failed\n"
+msgstr "Echec de l'allocation mémoire\n"
 
 #: Engine/envvar.c:1006
 #, c-format
@@ -598,7 +636,7 @@ msgid "insufficient gen arguments"
 msgstr "nombre d'arguments de GEN insuffisant"
 
 #: Engine/fgens.c:210 Opcodes/ftgen.c:118 Opcodes/ftgen.c:622
-#: Opcodes/signalflowgraph.cpp:1469
+#: Opcodes/signalflowgraph.cpp:1479
 #, c-format
 msgid "Named gen \"%s\" not defined"
 msgstr "Le GEN nommé \"%s\" n'est pas défini"
@@ -706,7 +744,8 @@ msgid "an input function does not exist"
 msgstr "une fonction d'entrée n'existe pas"
 
 #: Engine/fgens.c:1310
-msgid "No such window!"
+#, fuzzy
+msgid "No such window type!"
 msgstr "Pas de fenêtre de cette sorte !"
 
 #: Engine/fgens.c:1328
@@ -899,7 +938,8 @@ msgid "Not enough memory\n"
 msgstr "Pas assez de mémoire\n"
 
 #: Engine/fgens.c:3059
-msgid "gen51: invalid number of p-fields (too few grades)"
+#, fuzzy
+msgid "GEN51: invalid number of p-fields (too few grades)"
 msgstr "gen51 : nombre de p-champs non valide (pas assez de degrés)"
 
 #: Engine/fgens.c:3099
@@ -1032,6 +1072,11 @@ msgstr "une instance de l'instrument %s a été enlevée\n"
 msgid "removed instance of instr %d\n"
 msgstr "une instance de l'instrument %d a été enlevée\n"
 
+#: Engine/insert.c:773
+#, fuzzy
+msgid "instance not valid \n"
+msgstr "instance de DSP introuvable %d\n"
+
 #: Engine/insert.c:933
 msgid "inactive allocs returned to freespace\n"
 msgstr "les allocation inactives ont été rendues à l'espace libre\n"
@@ -1110,7 +1155,7 @@ msgstr "setksmps : valeur de ksmps non valide : %d, valeur originale : %d"
 msgid "subinstr: not initialised"
 msgstr "subinstr : non initialisé"
 
-#: Engine/insert.c:2145
+#: Engine/insert.c:2146
 #, c-format
 msgid ""
 "instr %d allocated at %p\n"
@@ -1119,29 +1164,39 @@ msgstr ""
 "instr %d alloué à %p\n"
 "\tlclbas %p, opds %p\n"
 
-#: Engine/insert.c:2172
+#: Engine/insert.c:2173
 #, c-format
 msgid "op (%s) allocated at %p\n"
 msgstr "op (%s) alloué à %p\n"
 
-#: Engine/insert.c:2197
+#: Engine/insert.c:2198
 msgid "null iopadr"
 msgstr "iopadr null"
 
-#: Engine/insert.c:2208
+#: Engine/insert.c:2209
 msgid "null opadr"
 msgstr "opadr null"
 
-#: Engine/insert.c:2295
+#: Engine/insert.c:2232
+#, fuzzy, c-format
+msgid "FIXME: Unhandled out-arg type: %d\n"
+msgstr "Type d'arg inconnu : %d\n"
+
+#: Engine/insert.c:2272
+#, c-format
+msgid "FIXME: instance unexpected arg: %d\n"
+msgstr ""
+
+#: Engine/insert.c:2296
 msgid "inconsistent opds total"
 msgstr "total d'opds non cohérent"
 
-#: Engine/insert.c:2355
+#: Engine/insert.c:2356
 #, c-format
 msgid "Instrument %s is still active"
 msgstr "L'instrument %s est toujours actif"
 
-#: Engine/insert.c:2358
+#: Engine/insert.c:2359
 #, c-format
 msgid "Instrument %d is still active"
 msgstr "L'instrument %d est toujours actif"
@@ -6821,7 +6876,7 @@ msgstr "ftconv : non initialisé"
 msgid "Error deleting ftable %d"
 msgstr "Erreur en supprimant la ftable %d"
 
-#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1491
+#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1501
 msgid "ftgen string arg not allowed"
 msgstr "ftgen : argument chaîne interdit"
 
@@ -8702,7 +8757,7 @@ msgstr "filescal : nombres de canaux différents. %d sorties, %d entrées\n"
 #: Opcodes/pvlock.c:871 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:710
 #: Opcodes/pvsbasic.c:1036 Opcodes/pvsbasic.c:1250 Opcodes/pvsbasic.c:1357
 #: Opcodes/pvsbasic.c:1595 Opcodes/pvsbasic.c:1813 Opcodes/pvsbasic.c:1987
-#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:758
+#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:763
 msgid "Unsafe to have same fsig as in and out"
 msgstr "Il est risqué d'avoir le même fsig en entrée et en sortie"
 
@@ -9184,38 +9239,101 @@ msgstr "erreur... impossible de créer les globales de sfont\n"
 msgid "powershape: ifullscale must be strictly positive"
 msgstr "powershape : la ftable ifullscale doit être entirèrement positive"
 
-#: Opcodes/signalflowgraph.cpp:435 Opcodes/signalflowgraph.cpp:722
-#, c-format
-msgid "Connected instances of outlet %s to instance 0x%x of inlet %s.\n"
-msgstr "Instances de l'outlet %s connectées à l'instance 0x%x de l'inlet %s.\n"
-
-#: Opcodes/signalflowgraph.cpp:507
+#: Opcodes/signalflowgraph.cpp:356 Opcodes/signalflowgraph.cpp:509
+#: Opcodes/signalflowgraph.cpp:1030
 #, c-format
 msgid "Created instance 0x%x of %d instances of outlet %s\n"
 msgstr "Création de l'instance 0x%x des %d instances de l'outlet %s\n"
 
-#: Opcodes/signalflowgraph.cpp:581
+#: Opcodes/signalflowgraph.cpp:370
+#, fuzzy, c-format
+msgid "Removed instance 0x%x of %d instances of outleta %s\n"
+msgstr "Création de l'instance 0x%x des %d instances de l'outlet %s\n"
+
+#: Opcodes/signalflowgraph.cpp:423 Opcodes/signalflowgraph.cpp:570
+#: Opcodes/signalflowgraph.cpp:712 Opcodes/signalflowgraph.cpp:1095
+#, fuzzy, c-format
+msgid "Created instance 0x%x of inlet %s\n"
+msgstr "Création de l'instance 0x%x des %d instances de l'outlet %s\n"
+
+#: Opcodes/signalflowgraph.cpp:437 Opcodes/signalflowgraph.cpp:727
+#: Opcodes/signalflowgraph.cpp:1105
+#, c-format
+msgid "Connected instances of outlet %s to instance 0x%x of inlet %s.\n"
+msgstr "Instances de l'outlet %s connectées à l'instance 0x%x de l'inlet %s.\n"
+
+#: Opcodes/signalflowgraph.cpp:522
+#, fuzzy, c-format
+msgid "Removed 0x%x of %d instances of outletk %s\n"
+msgstr "Création de l'instance 0x%x des %d instances de l'outlet %s\n"
+
+#: Opcodes/signalflowgraph.cpp:584
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%xof inlet %s.\n"
 msgstr "Instances de l'outlet %s connectées à l'instance 0x%x de l'inlet %s.\n"
 
-#: Opcodes/signalflowgraph.cpp:785
+#: Opcodes/signalflowgraph.cpp:648
+#, fuzzy, c-format
+msgid "Created instance 0x%x of outlet %s\n"
+msgstr "Création de l'instance 0x%x des %d instances de l'outlet %s\n"
+
+#: Opcodes/signalflowgraph.cpp:661
+#, fuzzy, c-format
+msgid "Removed 0x%x of %d instances of outletf %s\n"
+msgstr "Création de l'instance 0x%x des %d instances de l'outlet %s\n"
+
+#: Opcodes/signalflowgraph.cpp:790
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr "inletf : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/signalflowgraph.cpp:941
+#: Opcodes/signalflowgraph.cpp:857
+#, fuzzy, c-format
+msgid ""
+"Created instance 0x%x of %d instances of outlet %s (out arraydat: 0x%x dims: "
+"%2d size: %4d [%4d] data: 0x%x (0x%x))\n"
+msgstr "Création de l'instance 0x%x des %d instances de l'outlet %s\n"
+
+#: Opcodes/signalflowgraph.cpp:871
+#, fuzzy, c-format
+msgid "Removed 0x%x of %d instances of outletv %s\n"
+msgstr "Création de l'instance 0x%x des %d instances de l'outlet %s\n"
+
+#: Opcodes/signalflowgraph.cpp:931
+#, c-format
+msgid ""
+"Created instance 0x%x of inlet %s (in arraydat: 0x%x dims: %2d size: %4d "
+"[%4d] data: 0x%x (0x%x))\n"
+msgstr ""
+
+#: Opcodes/signalflowgraph.cpp:946
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s\n"
 msgstr "Instances de l'outlet %s connectées à l'instance 0x%x de l'inlet %s\n"
 
-#: Opcodes/signalflowgraph.cpp:1269 Opcodes/signalflowgraph.cpp:1313
+#: Opcodes/signalflowgraph.cpp:1043
+#, fuzzy, c-format
+msgid "Removed 0x%x of %d instances of outletkid %s\n"
+msgstr "Création de l'instance 0x%x des %d instances de l'outlet %s\n"
+
+#: Opcodes/signalflowgraph.cpp:1185 Opcodes/signalflowgraph.cpp:1231
+#: Opcodes/signalflowgraph.cpp:1279 Opcodes/signalflowgraph.cpp:1323
 #, c-format
 msgid "Connected outlet %s to inlet %s.\n"
 msgstr "Outlet %s connectée à l'inlet %s.\n"
 
-#: Opcodes/signalflowgraph.cpp:1517
+#: Opcodes/signalflowgraph.cpp:1518 Opcodes/signalflowgraph.cpp:1522
+#, c-format
+msgid "ftgenonce: re-using existing func: %f\n"
+msgstr ""
+
+#: Opcodes/signalflowgraph.cpp:1528
 msgid "ftgenonce error"
 msgstr "erreur ftgenonce"
+
+#: Opcodes/signalflowgraph.cpp:1533
+#, c-format
+msgid "ftgenonce: created new func: %d\n"
+msgstr ""
 
 #: Opcodes/singwave.c:86
 msgid "No table for Modulatr"
@@ -14134,9 +14252,6 @@ msgstr "scot : %d erreurs.\n"
 #~ msgstr ""
 #~ "ftconv : des échantillons non nuls ont été sautés, la réponse "
 #~ "impulsionnelle est peut-être tronquée\n"
-
-#~ msgid "instr %s redefined\n"
-#~ msgstr "instr %s redéfini\n"
 
 #~ msgid "srate and krate overrides must occur jointly"
 #~ msgstr ""
