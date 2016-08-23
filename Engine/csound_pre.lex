@@ -255,7 +255,8 @@ QNAN		"qnan"[ \t]*\(
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
                    if (PARM->depth>1022) {
-                     csound->Message(csound, Str("macros/include nested too deep: "));
+                     csound->Message(csound,
+                                     Str("macros/include nested too deep: "));
                      csound->LongJmp(csound, 1);
                    }
                    PARM->lstack[++PARM->depth] =
