@@ -69,7 +69,7 @@ static int quadbeziertable (FGDATA *ff, FUNC *ftp)
     for (n = 4; n < nargs; n += 4)
     {
       int j, x1;
-      j = (n < 8 ? j = 0 : ff->e.p[n]);
+      j = (n < 8) ? 0 : ff->e.p[n];
       x1 = j;
       while (j <= ff->e.p[n+4]) {
         MYFLT t;
