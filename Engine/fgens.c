@@ -1307,7 +1307,7 @@ static int gen20(FGDATA *ff, FUNC *ftp)
           ft[i] = (MYFLT) (xarg * sin(x) / x);
         return OK;
     default:
-        return fterror(ff, Str("No such window!"));
+        return fterror(ff, Str("No such window type!"));
     }
 
     arg = TWOPI / ff->flen;
@@ -3056,7 +3056,7 @@ static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
     basekeymidi = (int) *pp++;
     if (UNLIKELY((ff->e.pcnt - 8) < numgrades)) { /* gab fixed */
       return fterror(ff,
-                     Str("gen51: invalid number of p-fields (too few grades)"));
+                     Str("GEN51: invalid number of p-fields (too few grades)"));
     }
 
     for (j = 0; j < nvals; j++) {
