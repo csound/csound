@@ -214,6 +214,7 @@ msgstr "N'est pas une liste d'ints correcte"
 #: Engine/csound_orc_compile.c:237
 msgid "ERROR: Unmatched bracket found in arrayargument type specification\n"
 msgstr ""
+"ERREUR : crochet non apparié dans la spécification du type d'argument de tableau\n"
 
 #: Engine/csound_orc_compile.c:408
 #, c-format
@@ -2014,14 +2015,14 @@ msgid "Type confusion for %s (%d,%d), replacing\n"
 msgstr "Confusion de type pour %s (%d,%d), remplacement\n"
 
 #: Engine/symbtab.c:308
-#, fuzzy, c-format
+#, c-format
 msgid "invalid input argument types found for opcode %s: %s\n"
-msgstr "type d'entrée non valide pour l'opcode %s\n"
+msgstr "types d'arguments en entrée non valides pour l'opcode %s: %s\n"
 
 #: Engine/symbtab.c:314
-#, fuzzy, c-format
+#, c-format
 msgid "invalid output argument types found for opcode %s: %s\n"
-msgstr "type de sortie non valide pour l'opcode %s"
+msgstr "types d'argument en sortie non valides pour l'opcode %s: %s\n"
 
 #: Engine/symbtab.c:338 Engine/symbtab.c:359
 #, c-format
