@@ -268,12 +268,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             do_baktrace(csound, tree->locn);
             return NULL;
           }
-          if (leftArgType != NULL) {
-            csound->Free(csound, leftArgType);
-          }
-          if (rightArgType != NULL) {
-            csound->Free(csound, rightArgType);
-          }
+
+          csound->Free(csound, leftArgType);
+          csound->Free(csound, rightArgType);
           return cs_strdup(csound, outype);
         }
       }
