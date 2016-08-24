@@ -1211,8 +1211,8 @@ static void ptable(CSOUND *csound,
     int   i, n;
     MYFLT omega, fstep, tpidsrd10;
 
-    if ((n = HWIN * 20) != MAXWINDIN)
-      csound->Die(csound, Str("LPTRKFNS: inconsistent MAXWindow defines"));
+    /* if ((n = HWIN * 20) != MAXWINDIN) */
+    /*   csound->Die(csound, Str("LPTRKFNS: inconsistent MAXWindow defines")); */
     lpg->NYQ10   = sr/FL(20.0);
     lpg->Windsiz = windsiz;              /* current windin size */
     lpg->Windsiz2 = windsiz/2;           /* half of that        */
