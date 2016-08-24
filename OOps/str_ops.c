@@ -285,6 +285,8 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     char *str1 = strdup(p->str1->data), *str2 = strdup(p->str2->data);
 
     if (str1 == NULL || str2 == NULL){
+      free(str1);
+      free(str2);
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
       return csoundPerfError(csound, ((OPDS*)p)->insdshead, "NULL string \n");
       else return csoundInitError(csound, "NULL string \n");
