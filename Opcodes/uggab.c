@@ -239,6 +239,8 @@ static int posc_set(CSOUND *csound, POSC *p)
     p->tablenUPsr = p->tablen * csound->onedsr;
     if (*p->iphs>=FL(0.0))
       p->phs        = *p->iphs * p->tablen;
+    while (UNLIKELY(p->phs >= p->tablen))
+        p->phs -= p->tablen;
     return OK;
 }
 
