@@ -342,6 +342,10 @@ message(STATUS "Building for OSX")
   endif()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
+
+  if(NOT VECLIB_PATH)
+    set(VECLIB_PATH "/System/Library/Frameworks/")
+  endif()
  endif()
    
 endif()
@@ -614,7 +618,6 @@ set(libcsound_SRCS
     Engine/musmon.c
     Engine/namedins.c
     Engine/rdscor.c
-    Engine/scope.c
     Engine/scsort.c
     Engine/scxtract.c
     Engine/sort.c
@@ -881,12 +884,12 @@ if(SCORE_PARSER)
     #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSCORE_PARSER")
     list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
 
-    set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
-    set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
-    set(YACC_SCOOUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.h)
+    #set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
+    #set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
+    #set(YACC_SCOOUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.h)
 
-    set(LEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.lex)
-    set(LEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c)
+    #set(LEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.lex)
+    #set(LEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c)
 
     set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
     set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
@@ -895,11 +898,11 @@ if(SCORE_PARSER)
     ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")
     ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c")
 
-    add_custom_command(
-        OUTPUT ${LEX_SCOOUT}
-        DEPENDS ${LEX_SCOSRC}
-        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT}
-        )
+    #add_custom_command(
+    #    OUTPUT ${LEX_SCOOUT}
+    #    DEPENDS ${LEX_SCOSRC}
+    #    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT}
+    #    )
 
     add_custom_command(
         OUTPUT ${PRELEX_SCOOUT}
@@ -907,18 +910,18 @@ if(SCORE_PARSER)
         COMMAND ${FLEX_EXECUTABLE} ARGS -B -t -d ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
         )
 
-    add_custom_command(
-        OUTPUT ${YACC_SCOOUT} ${YACC_SCOOUTH}
-        DEPENDS ${YACC_SCOSRC} ${LEX_SCOOUT}
-        COMMAND ${BISON_EXECUTABLE}
-        ARGS -pcsound_sco -t -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
-        )
+    #add_custom_command(
+    #    OUTPUT ${YACC_SCOOUT} ${YACC_SCOOUTH}
+    #    DEPENDS ${YACC_SCOSRC} ${LEX_SCOOUT}
+    #    COMMAND ${BISON_EXECUTABLE}
+    #    ARGS -pcsound_sco -t -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
+    #    )
 
-    list(APPEND libcsound_SRCS
-        ${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
+    list(APPEND libcsound_SRCS ${PRELEX_SCOOUT})
+        #${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
 
-    set_source_files_properties(${YACC_SCOOUT} GENERATED)
-    set_source_files_properties(${LEX_SCOOUT} GENERATED)
+    #set_source_files_properties(${YACC_SCOOUT} GENERATED)
+    #set_source_files_properties(${LEX_SCOOUT} GENERATED)
     set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
 
 else()

@@ -62,8 +62,17 @@ struct keys_t
     int noteoff_key;
 };
 
-static pthread_mutex_t lc_getrefkey = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t lc_manageLuaState = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t &get_refkey()
+{
+    static pthread_mutex_t lc_getrefkey = PTHREAD_MUTEX_INITIALIZER;
+    return lc_getrefkey;
+}
+
+static pthread_mutex_t &get_manageLuaState()
+{
+    static pthread_mutex_t lc_manageLuaState = PTHREAD_MUTEX_INITIALIZER;
+    return lc_manageLuaState;
+}
 
 struct CriticalSection
 {
@@ -91,7 +100,7 @@ keys_t &manageLuaReferenceKeys(const lua_State *L,
                     std::map<std::string, keys_t> > luaReferenceKeys;
     keys_t *keys = 0;
     {
-        CriticalSection criticalSection(lc_getrefkey);
+        CriticalSection criticalSection(get_refkey());
         switch(operation)
         {
         case 'O':
@@ -134,7 +143,7 @@ bool operator == (const LuaStateForThread& a, const LuaStateForThread &b)
 lua_State *manageLuaState(char operation)
 {
     static std::vector<LuaStateForThread> luaStatesForThreads;
-    CriticalSection criticalSection(lc_manageLuaState);
+    CriticalSection criticalSection(get_manageLuaState());
     LuaStateForThread luaStateForThread;
     luaStateForThread.thread = pthread_self();
     std::vector<LuaStateForThread>::iterator it =

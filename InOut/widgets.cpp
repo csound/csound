@@ -5996,7 +5996,7 @@ const OENTRY widgetOpcodes_[] = {
     (SUBR)fl_vertical_slider_bank,   (SUBR) NULL,             (SUBR) NULL  },
   { (char*)"FLslidBnk2",  S(FLSLIDERBANK2),0, 1,  (char*)"",  (char*)"Siiiooooo",
     (SUBR)fl_slider_bank2_S ,          (SUBR) NULL,             (SUBR) NULL  },
-    { (char*)"FLslidBnk2.i", S(FLSLIDERBANK2),0, 1, (char*)"", (char*)"Iiiiooooo",
+    { (char*)"FLslidBnk2.i", S(FLSLIDERBANK2),0, 1, (char*)"", (char*)"iiiiooooo",
     (SUBR)fl_slider_bank2 ,          (SUBR) NULL,             (SUBR) NULL  },
   { (char*)"FLvslidBnk2", S(FLSLIDERBANK2),0, 1,  (char*)"",  (char*)"Siiiooooo",
     (SUBR)fl_vertical_slider_bank2_S,  (SUBR) NULL,             (SUBR) NULL  },

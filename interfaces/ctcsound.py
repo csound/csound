@@ -304,6 +304,7 @@ libcsound.csoundSetCscoreCallback.argtypes = [c_void_p, CSCOREFUNC]
 
 libcsound.csoundMessage.argtypes = [c_void_p, c_char_p, c_char_p]
 libcsound.csoundMessageS.argtypes = [c_void_p, c_int, c_char_p, c_char_p]
+libcsound.csoundGetMessageLevel.argtypes = [c_void_p]
 libcsound.csoundSetMessageLevel.argtypes = [c_void_p, c_int]
 libcsound.csoundCreateMessageBuffer.argtypes = [c_void_p, c_int]
 libcsound.csoundGetFirstMessage.restype = c_char_p
@@ -1346,6 +1347,10 @@ class Csound:
     #def setDefaultMessageCallback():
     
     #def setMessageCallback():
+    
+    def messageLevel(self):
+        """Return the Csound message level (from 0 to 231)."""
+        return libcsound.csoundGetMessageLevel(self.cs)
     
     def setMessageLevel(self, messageLevel):
         """Set the Csound message level (from 0 to 231)."""
