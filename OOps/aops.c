@@ -98,10 +98,10 @@ int aassign(CSOUND *csound, ASSIGN *p)
       uint32_t nsmps = CS_KSMPS;
       /* the orchestra parser converts '=' to 'upsamp' if input arg is k-rate, */
       /* and skips the opcode if outarg == inarg */
-      if (UNLIKELY(offset)) memset(p->r, '\0', offset*sizeof(MYFLT));
+      //if (UNLIKELY(offset)) memset(p->r, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         nsmps -= early;
-        memset(&p->r[nsmps], '\0', early*sizeof(MYFLT));
+        //memset(&p->r[nsmps], '\0', early*sizeof(MYFLT));
       }
       memcpy(&p->r[offset], &p->a[offset], (nsmps-offset) * sizeof(MYFLT));
     }
