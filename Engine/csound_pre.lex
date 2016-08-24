@@ -1236,7 +1236,6 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
         }
       }
     }
-    free(buf);
     while (c != '\n' && c != EOF && c != '\r') c = input(yyscanner);
 }
 
