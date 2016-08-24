@@ -121,6 +121,7 @@ typedef struct _syncgrain {
     AUXCH streamon;
     AUXCH index;
     AUXCH envindex;
+    AUXCH envincr;
     float start,frac;
 } syncgrain;
 

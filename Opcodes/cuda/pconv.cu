@@ -2,8 +2,6 @@
 /* pconv.cu
   (c) Victor Lazzarini, 2013
 
-  based on M Puckette's pitch tracking algorithm.
-
   This file is part of Csound.
 
   The Csound Library is free software; you can redistribute it

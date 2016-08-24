@@ -1749,9 +1749,9 @@ int perf_window(CSOUND *csound, FFT *p){
     in = p->in->data;
     out = p->out->data;
     w = (MYFLT *) p->mem.auxp;
-    if(off) off = end - off;
+    while(off < 0) off += end;
     for(i=0;i<end;i++)
-      out[i] = in[i]*w[(i+off)%end];
+      out[(i+off)%end] = in[i]*w[i];
     return OK;
 }
 
