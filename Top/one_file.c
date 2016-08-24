@@ -142,14 +142,14 @@ static char *my_fgets(CSOUND *csound, char *s, int n, FILE *stream)
         if (ferror(stream)) a = NULL;
         break; /* add NULL even if ferror(), spec says 'indeterminate' */
       }
-      if (ch == '\n'/* || ch == '\r'*/) {   /* end of line ? */
+      if (ch == '\n' || ch == '\r') {   /* end of line ? */
         ++(STA(csdlinecount));          /* count the lines */
         *(s++) = '\n';                  /* convert */
-        /* if (ch == '\r') { */
-        /*   ch = getc(stream); */
-        /*   if (ch != '\n')               /\* Mac format *\/ */
-        /*     ungetc(ch, stream); */
-        /* } */
+        if (ch == '\r') {
+          ch = getc(stream);
+          if (ch != '\n')               /* Mac format */
+            ungetc(ch, stream);
+        }
         break;
       }
       *(s++) = ch;
@@ -368,7 +368,7 @@ static int createScore(CSOUND *csound, FILE *unf)
       while (isblank(*p)) p++;
       if (strstr(p, "</CsScore>") == p) {
 #ifdef SCORE_PARSER
-        corfile_puts("\n#exit\n", csound->scorestr);
+        //        corfile_puts("\n#exit\n", csound->scorestr);
         corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
         corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
 #endif
@@ -471,11 +471,11 @@ static void read_base64(CSOUND *csound, FILE *in, FILE *out)
           ++(STA(csdlinecount));
           c = getc(in);
         }
-        /* else if (c == '\r') { */
-        /*   ++(STA(csdlinecount)); */
-        /*   c = getc(in); */
-        /*   if (c == '\n') c = getc(in); /\* DOS format *\/ */
-        /* } */
+        else if (c == '\r') {
+          ++(STA(csdlinecount));
+          c = getc(in);
+          if (c == '\n') c = getc(in); /* DOS format */
+        }
         else c = getc(in);
       }
       if (c == '=' || c == '<' || c == EOF)
@@ -995,14 +995,14 @@ static char *my_fgets_cf(CSOUND *csound, char *s, int n, CORFIL *stream)
         if (s == a) return NULL;             /* no chars -> leave  */
         break;
       }
-      if (ch == '\n'/* || ch == '\r'*/) {   /* end of line ? */
+      if (ch == '\n' || ch == '\r') {   /* end of line ? */
         ++(STA(csdlinecount));          /* count the lines */
         *(s++) = '\n';                  /* convert */
-        /* if (ch == '\r') { */
-        /*   ch = corfile_getc(stream); */
-        /*   if (ch != '\n')               /\* Mac format *\/ */
-        /*     corfile_ungetc(stream); */
-        /* } */
+        if (ch == '\r') {
+          ch = corfile_getc(stream);
+          if (ch != '\n')               /* Mac format */
+            corfile_ungetc(stream);
+        }
         break;
       }
       *(s++) = ch;
@@ -1235,8 +1235,10 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
 #ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), extname, scof);
 #endif
-    if (UNLIKELY(fd == NULL))
+    if (UNLIKELY(fd == NULL)) {
+      free(extname);
       return FALSE;
+    }
 
     csound->scoLineOffset = STA(csdlinecount);
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
@@ -1249,6 +1251,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
           csoundErrorMsg(csound, Str("External generation failed"));
           if (UNLIKELY(remove(extname) || remove(STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove"));
+          free(extname);
           return FALSE;
         }
        if (UNLIKELY(remove(extname)))
@@ -1262,6 +1265,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
           csoundErrorMsg(csound, Str("cannot open %s"), STA(sconame));
           if (UNLIKELY(remove(STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
+          free(extname);
           return FALSE;
         }
         csoundMessage(csound, Str("opened %s"), STA(sconame));
@@ -1292,11 +1296,11 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
           ++(STA(csdlinecount));
           c = corfile_getc(in);
         }
-        /* else if (c == '\r') { */
-        /*   ++(STA(csdlinecount)); */
-        /*   c = corfile_getc(in); */
-        /*   if (c == '\n') c = corfile_getc(in); /\* DOS format *\/ */
-        /* } */
+        else if (c == '\r') {
+          ++(STA(csdlinecount));
+          c = corfile_getc(in);
+          if (c == '\n') c = corfile_getc(in); /* DOS format */
+        }
         else c = corfile_getc(in);
       }
       if (c == '=' || c == '<' || c == EOF)

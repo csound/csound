@@ -341,6 +341,7 @@
   ; (kopadr :pointer)
   ; (aopadr :pointer))
   
+#||
 ;;; Given a Common Music event source (event, seq, process, or list), 
 ;;; translate each event into a Csound "i" statement, then render
 ;;; the resulting score using the orc-text and options. No monkeying with files.
@@ -368,6 +369,6 @@
             (when (not (equal result 0))(return))
         )        
     ))
-
+||#
 
 

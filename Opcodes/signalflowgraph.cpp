@@ -352,7 +352,8 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
                 aoutletsForCsoundsForSourceOutletIds()[csound][sourceOutletId];
             if (std::find(aoutlets.begin(), aoutlets.end(), this) == aoutlets.end()) {
                 aoutlets.push_back(this);
-                warn(csound, "Created instance 0x%x of %d instances of outlet %s\n",
+                warn(csound,
+                     Str("Created instance 0x%x of %d instances of outlet %s\n"),
                      this, aoutlets.size(), sourceOutletId);
             }
         }
@@ -366,7 +367,7 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
             aoutletsForCsoundsForSourceOutletIds()[csound][sourceOutletId];
         std::vector<Outleta *>::iterator thisoutlet = std::find(aoutlets.begin(), aoutlets.end(), this);
         aoutlets.erase(thisoutlet);
-        warn(csound, "Removed instance 0x%x of %d instances of outleta %s\n",
+        warn(csound, Str("Removed instance 0x%x of %d instances of outleta %s\n"),
              this, aoutlets.size(), sourceOutletId);
         return OK;
     }
@@ -418,7 +419,8 @@ struct Inleta : public OpcodeBase<Inleta> {
                 ainletsForCsoundsForSinkInletIds()[csound][sinkInletId];
             if (std::find(ainlets.begin(), ainlets.end(), this) == ainlets.end()) {
                 ainlets.push_back(this);
-                warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
+                warn(csound,
+                     Str("Created instance 0x%x of inlet %s\n"), this, sinkInletId);
             }
             // Find source outlets connecting to this.
             // Any number of sources may connect to any number of sinks.
@@ -517,7 +519,7 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
             koutletsForCsoundsForSourceOutletIds()[csound][sourceOutletId];
         std::vector<Outletk *>::iterator thisoutlet = std::find(koutlets.begin(), koutlets.end(), this);
         koutlets.erase(thisoutlet);
-        warn(csound, "Removed 0x%x of %d instances of outletk %s\n",
+        warn(csound, Str("Removed 0x%x of %d instances of outletk %s\n"),
              this, koutlets.size(), sourceOutletId);
         return OK;
     }
@@ -565,7 +567,8 @@ struct Inletk : public OpcodeBase<Inletk> {
                 kinletsForCsoundsForSinkInletIds()[csound][sinkInletId];
             if (std::find(kinlets.begin(), kinlets.end(), this) == kinlets.end()) {
                 kinlets.push_back(this);
-                warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
+                warn(csound, Str("Created instance 0x%x of inlet %s\n"),
+                     this, sinkInletId);
             }
             // Find source outlets connecting to this.
             // Any number of sources may connect to any number of sinks.
@@ -642,7 +645,8 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
                 foutletsForCsoundsForSourceOutletIds()[csound][sourceOutletId];
             if (std::find(foutlets.begin(), foutlets.end(), this) == foutlets.end()) {
                 foutlets.push_back(this);
-                warn(csound, "Created instance 0x%x of outlet %s\n", this, sourceOutletId);
+                warn(csound, Str("Created instance 0x%x of outlet %s\n"),
+                     this, sourceOutletId);
             }
         }
         csound->UnlockMutex(cs_sfg_ports);
@@ -654,7 +658,7 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
             foutletsForCsoundsForSourceOutletIds()[csound][sourceOutletId];
         std::vector<Outletf *>::iterator thisoutlet = std::find(foutlets.begin(), foutlets.end(), this);
         foutlets.erase(thisoutlet);
-        warn(csound, "Removed 0x%x of %d instances of outletf %s\n",
+        warn(csound, Str("Removed 0x%x of %d instances of outletf %s\n"),
              this, foutlets.size(), sourceOutletId);
         return OK;
     }
@@ -705,7 +709,8 @@ struct Inletf : public OpcodeBase<Inletf> {
                 finletsForCsoundsForSinkInletIds()[csound][sinkInletId];
             if (std::find(finlets.begin(), finlets.end(), this) == finlets.end()) {
                 finlets.push_back(this);
-                warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
+                warn(csound, Str("Created instance 0x%x of inlet %s\n"),
+                     this, sinkInletId);
             }
             // Find source outlets connecting to this.
             // Any number of sources may connect to any number of sinks.
@@ -849,7 +854,7 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
                 voutletsForCsoundsForSourceOutletIds()[csound][sourceOutletId];
             if (std::find(voutlets.begin(), voutlets.end(), this) == voutlets.end()) {
                 voutlets.push_back(this);
-                warn(csound, "Created instance 0x%x of %d instances of outlet %s (out arraydat: 0x%x dims: %2d size: %4d [%4d] data: 0x%x (0x%x))\n",
+                warn(csound, Str("Created instance 0x%x of %d instances of outlet %s (out arraydat: 0x%x dims: %2d size: %4d [%4d] data: 0x%x (0x%x))\n"),
                      this, voutlets.size(), sourceOutletId, vsignal, vsignal->dimensions, vsignal->sizes[0], vsignal->arrayMemberSize, vsignal->data, &vsignal->data);
             }
         }
@@ -863,7 +868,7 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
             voutletsForCsoundsForSourceOutletIds()[csound][sourceOutletId];
         std::vector<Outletv *>::iterator thisoutlet = std::find(voutlets.begin(), voutlets.end(), this);
         voutlets.erase(thisoutlet);
-        warn(csound, "Removed 0x%x of %d instances of outletv %s\n",
+        warn(csound, Str("Removed 0x%x of %d instances of outletv %s\n"),
              this, voutlets.size(), sourceOutletId);
         return OK;
     }
@@ -923,7 +928,7 @@ struct Inletv : public OpcodeBase<Inletv> {
                 vinletsForCsoundsForSinkInletIds()[csound][sinkInletId];
             if (std::find(vinlets.begin(), vinlets.end(), this) == vinlets.end()) {
                 vinlets.push_back(this);
-                warn(csound, "Created instance 0x%x of inlet %s (in arraydat: 0x%x dims: %2d size: %4d [%4d] data: 0x%x (0x%x))\n",
+                warn(csound, Str("Created instance 0x%x of inlet %s (in arraydat: 0x%x dims: %2d size: %4d [%4d] data: 0x%x (0x%x))\n"),
                      this, sinkInletId, vsignal, vsignal->dimensions, vsignal->sizes[0], vsignal->arrayMemberSize, vsignal->data, &vsignal->data);
             }
             // Find source outlets connecting to this.
@@ -1021,7 +1026,9 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
             std::vector<Outletkid *> &koutlets = kidoutletsForCsoundsForSourceOutletIds()[csound][sourceOutletId];
             if (std::find(koutlets.begin(), koutlets.end(), this) == koutlets.end()) {
                 koutlets.push_back(this);
-                warn(csound, "Created instance 0x%x of %d instances of outlet %s\n", this, koutlets.size(), sourceOutletId);
+                warn(csound,
+                     Str("Created instance 0x%x of %d instances of outlet %s\n"),
+                     this, koutlets.size(), sourceOutletId);
             }
         }
         csound->UnlockMutex(cs_sfg_ports);
@@ -1033,7 +1040,7 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
             kidoutletsForCsoundsForSourceOutletIds()[csound][sourceOutletId];
         std::vector<Outletkid *>::iterator thisoutlet = std::find(koutlets.begin(), koutlets.end(), this);
         koutlets.erase(thisoutlet);
-        warn(csound, "Removed 0x%x of %d instances of outletkid %s\n",
+        warn(csound, Str("Removed 0x%x of %d instances of outletkid %s\n"),
              this, koutlets.size(), sourceOutletId);
         return OK;
     }
@@ -1084,7 +1091,8 @@ struct Inletkid : public OpcodeBase<Inletkid> {
             std::vector<Inletkid *> &kinlets = kidinletsForCsoundsForSinkInletIds()[csound][sinkInletId];
             if (std::find(kinlets.begin(), kinlets.end(), this) == kinlets.end()) {
                 kinlets.push_back(this);
-                warn(csound, "Created instance 0x%x of inlet %s\n", this, sinkInletId);
+                warn(csound,
+                     Str("Created instance 0x%x of inlet %s\n"), this, sinkInletId);
             }
             // Find source outlets connecting to this.
             // Any number of sources may connect to any number of sinks.
@@ -1094,7 +1102,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
                 std::vector<Outletkid *> &koutlets = kidoutletsForCsoundsForSourceOutletIds()[csound][sourceOutletId];
                 if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &koutlets) == sourceOutlets->end()) {
                     sourceOutlets->push_back(&koutlets);
-                    warn(csound, "Connected instances of outlet %s to instance 0x%x of inlet %s.\n", sourceOutletId.c_str(), this, sinkInletId);
+                    warn(csound, Str("Connected instances of outlet %s to instance 0x%x of inlet %s.\n"), sourceOutletId.c_str(), this, sinkInletId);
                 }
             }
         }
@@ -1174,7 +1182,8 @@ struct Connect : public OpcodeBase<Connect> {
                                                Sinlet->data,
                                                (char *)"",
                                                1);
-            warn(csound, "Connected outlet %s to inlet %s.\n", sourceOutletId.c_str(), sinkInletId.c_str());
+            warn(csound, Str("Connected outlet %s to inlet %s.\n"),
+                 sourceOutletId.c_str(), sinkInletId.c_str());
             connectionsForCsounds()[csound][sinkInletId].push_back(sourceOutletId);
         }
         csound->UnlockMutex(cs_sfg_ports);
@@ -1219,7 +1228,8 @@ struct Connecti : public OpcodeBase<Connecti> {
                                                Sinlet->data,
                                                (char *)"",
                                                1);
-            warn(csound, "Connected outlet %s to inlet %s.\n", sourceOutletId.c_str(), sinkInletId.c_str());
+            warn(csound, Str("Connected outlet %s to inlet %s.\n"),
+                 sourceOutletId.c_str(), sinkInletId.c_str());
             connectionsForCsounds()[csound][sinkInletId].push_back(sourceOutletId);
         }
         csound->UnlockMutex(cs_sfg_ports);
@@ -1505,11 +1515,12 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator, bool hasS
         }
         if(functionTablesForCsoundsForEvtblks()[csound].find(eventBlock) != functionTablesForCsoundsForEvtblks()[csound].end()) {
             *p->ifno = functionTablesForCsoundsForEvtblks()[csound][eventBlock];
-            warn(csound, "ftgenonce: re-using existing func: %f\n", *p->ifno);
+            warn(csound, Str("ftgenonce: re-using existing func: %f\n"), *p->ifno);
         } else {
             if(functionTablesForCsoundsForEvtblks()[csound].find(eventBlock) != functionTablesForCsoundsForEvtblks()[csound].end()) {
                 *p->ifno = functionTablesForCsoundsForEvtblks()[csound][eventBlock];
-                warn(csound, "ftgenonce: re-using existing func: %f\n", *p->ifno);
+                warn(csound, Str("ftgenonce: re-using existing func: %f\n"),
+                     *p->ifno);
             } else {
                 FUNC *func = 0;
                 int status = csound->hfgens(csound, &func, ftevt, 1);
@@ -1519,7 +1530,7 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator, bool hasS
                 if (func) {
                     functionTablesForCsoundsForEvtblks()[csound][eventBlock] = func->fno;
                     *p->ifno = (MYFLT) func->fno;
-                    warn(csound, "ftgenonce: created new func: %d\n", func->fno);
+                    warn(csound, Str("ftgenonce: created new func: %d\n"), func->fno);
                     if(functionTablesForCsoundsForEvtblks()[csound].find(eventBlock) == functionTablesForCsoundsForEvtblks()[csound].end()) {
 #if (SIGNALFLOWGRAPH_DEBUG == 1)
                         std::fprintf(stderr, "Oops! inserted but not found.\n");
