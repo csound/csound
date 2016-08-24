@@ -596,8 +596,8 @@ int csoundInitModules(CSOUND *csound)
     csoundModule_t  *m;
     int             i, retval = CSOUND_SUCCESS;
     /* For regular Csound, init_static_modules is not compiled or called.
-     * For some builds of Csound, e.g. for PNaCl, init_static_modules is 
-     * compiled and called to initialize statically linked opcodes and other 
+     * For some builds of Csound, e.g. for PNaCl, init_static_modules is
+     * compiled and called to initialize statically linked opcodes and other
      * plugins that are dynamically loaded on other platforms.
      */
 #if defined(INIT_STATIC_MODULES)

@@ -239,14 +239,19 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     memset(buffer, '\0', 1024);
     while ((n = fread(buffer, 1, 1023, ff))) {
       /* Need to lose \r characters  here */
-      while ((s = strchr(buffer, '\r'))) {
-        int k = n - (s-buffer);
-        memmove(s, s+1, k);
-        n--;
-      }
+      /* while ((s = strchr(buffer, '\r'))) { */
+      /*   int k = n - (s-buffer); */
+      /*   memmove(s, s+1, k); */
+      /*   n--; */
+      /* } */
       corfile_puts(buffer, mm);
       memset(buffer, '\0', 1024);
     }
+#ifdef JPFF
+    if (fromScore) {
+      corfile_puts("\n#exit\n", mm);
+    }
+#endif
     corfile_putc('\0', mm);     /* For use in bison/flex */
     corfile_putc('\0', mm);     /* For use in bison/flex */
     if (fromScore) corfile_flush(mm);

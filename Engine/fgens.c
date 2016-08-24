@@ -110,7 +110,7 @@ typedef struct namedgen {
 
 #define FTAB_SEARCH_BASE (100)
 
-static CS_NOINLINE int  fterror(const FGDATA *, const char *, ...);
+CS_NOINLINE int  fterror(const FGDATA *, const char *, ...);
 static CS_NOINLINE void ftresdisp(const FGDATA *, FUNC *);
 static CS_NOINLINE FUNC *ftalloc(const FGDATA *);
 
@@ -1307,7 +1307,7 @@ static int gen20(FGDATA *ff, FUNC *ftp)
           ft[i] = (MYFLT) (xarg * sin(x) / x);
         return OK;
     default:
-        return fterror(ff, Str("No such window!"));
+        return fterror(ff, Str("No such window type!"));
     }
 
     arg = TWOPI / ff->flen;
@@ -2238,7 +2238,7 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
     return OK;
 }
 
-static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
+CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
 {
     CSOUND  *csound = ff->csound;
     char    buf[64];
@@ -3056,7 +3056,7 @@ static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
     basekeymidi = (int) *pp++;
     if (UNLIKELY((ff->e.pcnt - 8) < numgrades)) { /* gab fixed */
       return fterror(ff,
-                     Str("gen51: invalid number of p-fields (too few grades)"));
+                     Str("GEN51: invalid number of p-fields (too few grades)"));
     }
 
     for (j = 0; j < nvals; j++) {

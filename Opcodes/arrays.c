@@ -1840,13 +1840,14 @@ int perf_ceps(CSOUND *csound, FFT *p){
 
 int init_iceps(CSOUND *csound, FFT *p){
     int N = p->in->sizes[0]-1;
-    if(isPowerOfTwo(N)){
+    if (LIKELY(isPowerOfTwo(N))) {
       p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
       tabensure(csound, p->out, N+1);
     }
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
+    N++;
     if(p->mem.auxp == NULL || p->mem.size < N*sizeof(MYFLT))
       csound->AuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
     return OK;
@@ -1861,7 +1862,7 @@ int perf_iceps(CSOUND *csound, FFT *p){
     for(i=0; i < siz; i++){
       out[i] = exp(spec[i]);
     }
-    out[siz] = spec[siz];
+    out[siz] = spec[siz];       /* Writes outside data allocated */
     return OK;
 }
 

@@ -214,6 +214,8 @@
 ./Opcodes/cross2.c
 ./Opcodes/crossfm.c
 ./Opcodes/crossfm.h
+./Opcodes/cuda/adsyn.cu
+./Opcodes/cuda/pvsops.cu
 ./Opcodes/dam.c
 ./Opcodes/dam.h
 ./Opcodes/date.c
@@ -268,6 +270,7 @@
 ./Opcodes/gab/vectorial.c
 ./Opcodes/gab/vectorial.h
 ./Opcodes/gendy.c
+./Opcodes/getftargs.c
 ./Opcodes/grain.c
 ./Opcodes/grain.h
 ./Opcodes/grain4.c
@@ -367,6 +370,7 @@
 ./Opcodes/py/pythonopcodes.h
 ./Opcodes/py/pyx.auto.c
 ./Opcodes/py/pyx.auto.h
+./Opcodes/quadbezier.c
 ./Opcodes/repluck.c
 ./Opcodes/repluck.h
 ./Opcodes/reverbsc.c
@@ -558,14 +562,14 @@
 ./frontends/CsoundVST/ScoreGeneratorVstUi.h
 ./frontends/CsoundVST/csoundvst_main.cpp
 ./frontends/CsoundVST/pyrun.c
-./frontends/debugger/csdebugger.cpp
 ./frontends/csladspa/csladspa.cpp
 ./frontends/csladspa/ladspa.h
 ./frontends/csound/csound_main.c
 ./frontends/csound/sched.c
 ./frontends/csoundapi_tilde/csoundapi_tilde.c
-./frontends/winsound/winsound.fl
+./frontends/debugger/csdebugger.cpp
 ./frontends/winsound/main.cxx
+./frontends/winsound/winsound.fl
 ./include/OpcodeBase.hpp
 ./include/cfgvar.h
 ./include/cs_par_structs.h
@@ -575,10 +579,10 @@
 ./include/csound.h
 ./include/csound.hpp
 ./include/csoundCore.h
+./include/csound_data_structures.h
 ./include/csound_standard_types.h
 ./include/csound_type_system.h
 ./include/cwindow.h
-./include/csound_data_structures.h
 ./include/float-version.h
 ./include/interlocks.h
 ./include/msg_attr.h
@@ -655,5 +659,3 @@
 ./util1/scot/scot_main.c
 ./util1/sortex/smain.c
 ./util1/sortex/xmain.c
-./Opcodes/cuda/adsyn.cu
-./Opcodes/cuda/pvsops.cu
