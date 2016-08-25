@@ -235,7 +235,7 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
 
 static inline int isNameChar(int c, int pos)
 {
-    c = (int) ((unsigned char) c);
+    //c = (int) ((unsigned char) c);
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
 
@@ -260,7 +260,7 @@ static int getscochar(CSOUND *csound, int expand)
 #ifndef JPFF
   top:
     c = corfile_getc(STA(str)->cf);
-if (c == EOF) {
+    if (c == EOF) {
       if (STA(str) == &STA(inputs)[0]) {
         corfile_putc('\n', STA(str)->cf);  /* to ensure repeated EOF */
         return EOF;
@@ -1289,7 +1289,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             c = getscochar(csound, 1);
           }
           buff[i] = '\0';
-          if (c != '\n' && c != EOF) flushlin(csound);
+          if (c != EOF && c != '\n') flushlin(csound);
           if (csound->oparms->msglevel & TIMEMSG)
             csound->Message(csound,Str("Named section >>>%s<<<\n"), buff);
           for (j=0; j<=STA(next_name); j++)

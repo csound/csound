@@ -89,7 +89,7 @@ int assign(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
-int aassign(CSOUND *csound, ASSIGN *p)
+int aassign(CSOUND *csound, ASSIGN *p, int islocal)
 {
     uint32_t nsmps = CS_KSMPS;
     if (LIKELY(nsmps!=1)) {
@@ -98,10 +98,10 @@ int aassign(CSOUND *csound, ASSIGN *p)
       uint32_t nsmps = CS_KSMPS;
       /* the orchestra parser converts '=' to 'upsamp' if input arg is k-rate, */
       /* and skips the opcode if outarg == inarg */
-      //if (UNLIKELY(offset)) memset(p->r, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(islocal &&offset)) memset(p->r, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         nsmps -= early;
-        //memset(&p->r[nsmps], '\0', early*sizeof(MYFLT));
+        if (islocal) memset(&p->r[nsmps], '\0', early*sizeof(MYFLT));
       }
       memcpy(&p->r[offset], &p->a[offset], (nsmps-offset) * sizeof(MYFLT));
     }
@@ -109,6 +109,12 @@ int aassign(CSOUND *csound, ASSIGN *p)
       *p->r =*p->a;
     return OK;
 }
+
+int gaassign(CSOUND *csound, ASSIGN *p)
+{  return aassign(csound, p, 0); }
+
+int laassign(CSOUND *csound, ASSIGN *p)
+{  return aassign(csound, p, 1); }
 
 int ainit(CSOUND *csound, ASSIGN *p)
 {
