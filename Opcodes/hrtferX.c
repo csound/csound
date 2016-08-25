@@ -310,11 +310,11 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
                 /* reading in audio into x */
       if (incount == 0) {
         for (ii = 0; ii < toread; ii++)
-          x[i] = *aIn++;
+          x[ii] = *aIn++;
       }
       else {
         for (ii = incount; ii<(incount + toread); ii++)
-          x[i] = *aIn++;
+          x[ii] = *aIn++;
       }
 
           /* update counters for amount of audio read */
