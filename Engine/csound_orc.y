@@ -320,8 +320,10 @@ topstatement : rident '=' expr NEWLINE
 
 statement : ident '=' expr NEWLINE
                 {
+                    //int op = ($1->value->lexeme[0]!='a')?'=':LOCAL_ASSIGN;
                   TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
                   ans->left = (TREE *)$1;
+                  //print_tree(csound, "****assign", ans);
                   ans->right = (TREE *)$3;
                   $$ = ans;
                   if (namedInstrFlag!=2)
