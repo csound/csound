@@ -314,7 +314,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       }
 
-      // Deal with odd case if i(expressions)
+      // Deal with odd case of i(expressions)
       if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
         //print_tree(csound, "i()", tree);
         if (tree->right->type == T_ARRAY &&
@@ -1481,7 +1481,18 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       csound->Free(csound, entries);
 
       return 0;
-    } else {
+    }
+    else {
+      if (csound->oparms->sampleAccurate &&
+          (strcmp(oentry->opname, "=.a")==0) &&
+          left->value->lexeme[0]=='a') { /* Deal with sampe accurate assigns */
+        int i = 0;
+        while (strcmp(entries->entries[i]->opname, "=.l")) {
+          printf("not %d %s\n",i, entries->entries[i]->opname);
+          i++;
+        }
+        oentry = entries->entries[i];
+      }
       root->markup = oentry;
     }
     csound->Free(csound, leftArgString);
@@ -1715,7 +1726,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     typeTable->labelList = get_label_list(csound, root);
 
     //if(root->value)
-    //printf("verify %p %p (%s) \n", root, root->value, root->value->lexeme);
+    //printf("###verify %p %p (%s) \n", root, root->value, root->value->lexeme);
 
     if (PARSER_DEBUG) csound->Message(csound, "Verifying AST\n");
 
@@ -1807,7 +1818,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if(!verify_opcode(csound, current, typeTable)) {
           return 0;
         }
-
+        //print_tree(csound, "verify_tree", current);
         if (is_statement_expansion_required(current)) {
           current = expand_statement(csound, current, typeTable);
 

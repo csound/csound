@@ -303,12 +303,12 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       ip->opdstot += labelOpcode->dsblksiz;
 
       break;
+    case '=':
     case GOTO_TOKEN:
     case IGOTO_TOKEN:
     case KGOTO_TOKEN:
     case T_OPCODE:
     case T_OPCODE0:
-    case '=':
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound,
                         "create_opcode: Found node for opcode %s\n",
@@ -543,9 +543,9 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           }
 
         }
-        else{
-        op->nxtop = create_opcode(csound, current, ip, engineState);
-        op = last_optxt(op);
+        else {
+          op->nxtop = create_opcode(csound, current, ip, engineState);
+          op = last_optxt(op);
         }
 
       }
