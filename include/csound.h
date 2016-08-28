@@ -405,6 +405,7 @@ extern "C" {
     MYFLT   e0dbfs_override;   /* overriding 0dbfs */
     int     daemon;  /* daemon mode */
     int     ksmps_override; /* ksmps override */
+    int     FFT_library;    /* fft_lib */
   } CSOUND_PARAMS;
 
     /**
@@ -1731,7 +1732,7 @@ extern "C" {
     PUBLIC int csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum);
 
     /**
-     * Checks if a given GEN number num is a named GEN 
+     * Checks if a given GEN number num is a named GEN
      * if so, it returns the string length (excluding terminating NULL char)
      * Otherwise it returns 0.
      */
@@ -1740,9 +1741,9 @@ extern "C" {
     /**
      * Gets the GEN name from a number num, if this is a named GEN
      * The final parameter is the max len of the string (excluding termination)
-     */  
+     */
     PUBLIC void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len);
-  
+
     /** @}*/
     /** @defgroup TABLEDISPLAY Function table display
      *

@@ -399,6 +399,6 @@ extern "C"
   {
       return csoundModuleInit_mixer(csound);
   }
- 
-  }   // END EXTERN C
+
+}   // END EXTERN C
 
