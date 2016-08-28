@@ -453,7 +453,7 @@ extern "C"
         }
         return status;
     }
-    
+
     PUBLIC int csoundModuleInit(CSOUND *csound)
     {
         return csoundModuleInit_fractalnoise(csound);

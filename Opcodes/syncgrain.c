@@ -676,7 +676,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
                       (envindex[j] - endx)*
                       (ftable[endx+1] - ftable[endx])
                       )
-                     ); 
+                     );
         }
 
         /* increment the indexes */

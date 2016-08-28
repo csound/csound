@@ -1,7 +1,7 @@
 /*
     quadbezier.c:
 
-    Copyright (C) 2016 Guillermo Senna 
+    Copyright (C) 2016 Guillermo Senna
 
     This file is part of Csound.
 

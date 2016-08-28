@@ -1542,6 +1542,7 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
     p->ring_bell = oparms->ringbell;
     p->daemon = oparms->daemon;
     p->ksmps_override = oparms->ksmps_override;
+    p->FFT_library = oparms->fft_lib;
 }
 
 
