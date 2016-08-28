@@ -524,6 +524,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strncmp (s, "midifile=", 9))) {
       s += 9;
+      if (*s==3) s++;           /* skip ETX */
       if (UNLIKELY(*s == '\0')) dieu(csound, Str("no midifile name"));
       O->FMidiname = s;                 /* Midifile name */
       if (!strcmp(O->FMidiname, "stdin")) {
@@ -540,6 +541,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strncmp (s, "midioutfile=", 12))) {
       s += 12;
+      if (*s==3) s++;           /* skip ETX */
       if (UNLIKELY(*s == '\0')) dieu(csound, Str("no midi output file name"));
       O->FMidioutname = s;
       return 1;
@@ -568,6 +570,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
 #ifdef EMBEDDED_PYTHON
     else if (strncmp(s, "pyvar=", 6) == 0) {
       s += 6;
+      if (*s==3) s++;           /* skip ETX */
       if (UNLIKELY(python_add_cmdline_definition(s)))
         dieu(csound, Str("invalid python variable definition syntax"));
       return 1;
@@ -575,6 +578,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
 #endif
     else if (!(strncmp (s, "input=", 6))) {
       s += 6;
+      if (*s==3) s++;           /* skip ETX */
       if (UNLIKELY(*s == '\0')) dieu(csound, Str("no infilename"));
       O->infilename = s;                /* soundin name */
       if (UNLIKELY(strcmp(O->infilename, "stdout") == 0))
@@ -637,6 +641,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
      */
     else if (!(strncmp (s, "score-in=", 9))) {
       s += 9;
+      if (*s==3) s++;           /* skip ETX */
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no Linein score device_name"));
       O->Linename = s;
       if (!strcmp(O->Linename, "stdin")) {
@@ -737,6 +742,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
      */
     else if (!(strncmp (s, "midi-device=", 12))) {
       s += 12;
+      if (*s==3) s++;           /* skip ETX */
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no midi device_name"));
       O->Midiname = s;
       if (!strcmp(O->Midiname, "stdin")) {
@@ -762,6 +768,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strncmp (s, "output=", 7))) {
       s += 7;
+      if (*s==3) s++;           /* skip ETX */
       if (UNLIKELY(*s == '\0')) dieu(csound, Str("no outfilename"));
       O->outfilename = s;               /* soundout name */
       if (UNLIKELY(strcmp(O->outfilename, "stdin")) == 0)
@@ -786,6 +793,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     /* -r N */
     else if (!(strncmp (s, "sample-rate=", 12))) {
       s += 12;
+      if (*s==3) s++;           /* skip ETX */
       O->sr_override = (float)atof(s);
       return 1;
     }
@@ -838,15 +846,16 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     else if (!(strncmp (s, "utility=", 8))) {
       int retval;
       s += 8;
+      if (*s==3) s++;           /* skip ETX */
       if (*s=='\0') dieu(csound, Str("no utility name"));
 
       retval = csoundRunUtility(csound, s, argc, argv);
-     if (retval) {
-                  csound->info_message_request = 1;
-                  csound->orchname = NULL;
-                  return 0;
-              }
-       else csound->LongJmp(csound, retval);
+      if (retval) {
+        csound->info_message_request = 1;
+        csound->orchname = NULL;
+        return 0;
+      }
+      else csound->LongJmp(csound, retval);
      return 1;
     }
     /* -v */
@@ -922,6 +931,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     else if (!(strncmp (s, "opcode-lib=", 11))) {
       int   nbytes;
       s += 11;
+      if (*s==3) s++;           /* skip ETX */
       nbytes = (int) strlen(s) + 1;
       if (csound->dl_opcodes_oplibs == NULL) {
         /* start new library list */
