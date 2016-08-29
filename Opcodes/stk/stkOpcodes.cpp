@@ -765,8 +765,9 @@ extern "C"
 #if !defined(WIN32)
         csound_global_mutex_lock();
 #endif
-
-        Stk::setRawwavePath(path);
+        if (path != 0) {
+            Stk::setRawwavePath(path);
+        }
 #if !defined(WIN32)
         csound_global_mutex_unlock();
 #endif
