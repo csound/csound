@@ -2988,8 +2988,10 @@ inline std::string Chord::information() const {
 	}
 
 inline SILENCE_PUBLIC Chord octavewiseRevoicing(const Chord &chord, int revoicingNumber_, double range, bool debug) {
-    int revoicingN = octavewiseRevoicings(chord, range); // answer could be zero -- JPff
-    if (revoicingN==0) revoicingN = 1;                   // jpff patch
+    int revoicingN = octavewiseRevoicings(chord, range); 
+    if (revoicingN == 0) {
+        revoicingN = 1;
+    }        
     int revoicingNumber = revoicingNumber_ % revoicingN;
     Chord origin = csound::normalize<EQUIVALENCE_RELATION_RP>(chord, OCTAVE(), 1.0);
     Chord revoicing = origin;
@@ -3007,7 +3009,7 @@ inline SILENCE_PUBLIC Chord octavewiseRevoicing(const Chord &chord, int revoicin
         if (revoicingI == revoicingNumber) {
             return revoicing;
         }
-        next(revoicing, origin, range, OCTAVE());
+        (void) next(revoicing, origin, range, OCTAVE());
         revoicingI++;
     }
     return origin;
@@ -3035,7 +3037,7 @@ inline SILENCE_PUBLIC int indexForOctavewiseRevoicing(const Chord &chord, double
         if (revoicing == chord) {
             return revoicingI;
         }
-        next(revoicing, origin, range, OCTAVE());
+        (void) next(revoicing, origin, range, OCTAVE());
         revoicingI++;
         if (revoicingI > revoicingN) {
             return -1;
