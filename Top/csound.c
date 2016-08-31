@@ -824,7 +824,10 @@ static const CSOUND cenviron_ = {
       0,            /*    realtime  */
       0.0,          /*    0dbfs override */
       0,            /*    no exit on compile error */
-      0.4           /*    vbr quality  */
+      0.4,          /*    vbr quality  */
+      100,          /*    ksmps_override */
+      0,            /*    fft_lib */
+      440.0         /*    A4 base */
     },
 
     {0, 0, {0}}, /* REMOT_BUF */
@@ -1904,7 +1907,7 @@ PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
 
     csound->scorestr = corfile_create_w();
     corfile_puts((char *)str, csound->scorestr);
-#ifdef JPFF
+#ifdef SCORE_PARSER
     corfile_puts("\n#exit\n", csound->scorestr);
 #endif
     corfile_flush(csound->scorestr);

@@ -251,7 +251,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
       corfile_puts(buffer, mm);
       memset(buffer, '\0', 1024);
     }
-#ifdef JPFF
+#ifdef SCORE_PARSER
     if (fromScore) {
       corfile_puts("\n#exit\n", mm);
     }
