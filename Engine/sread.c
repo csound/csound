@@ -26,7 +26,7 @@
 #include <ctype.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "corfile.h"
-#ifdef JPFF
+#ifdef SCORE_PARSER
 #include "Engine/score_param.h"
 #endif
 
@@ -48,7 +48,7 @@ static  void    salcblk(CSOUND *), flushlin(CSOUND *);
 static  int     getop(CSOUND *), getpfld(CSOUND *);
         MYFLT   stof(CSOUND *, char *);
 extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
-#ifdef JPFF
+#ifdef SCORE_PARSER
 extern void csound_prslex_init(void *);
 extern void csound_prsset_extra(void *, void *);
 
@@ -245,7 +245,7 @@ static inline int isNameChar(int c, int pos)
 
 static inline void ungetscochar(CSOUND *csound, int c)
 {
-#ifdef JPFF
+#ifdef SCORE_PARSER
     corfile_ungetc(csound->expanded_sco);
     csound->expanded_sco->body[csound->expanded_sco->p] = (char)c;
 #else
@@ -258,7 +258,7 @@ static int getscochar(CSOUND *csound, int expand)
 {
 /* Read a score character, expanding macros if flag set */
     int     c;
-#ifndef JPFF
+#ifndef SCORE_PARSER
   top:
     c = corfile_getc(STA(str)->cf);
     if (c == EOF) {
@@ -602,7 +602,7 @@ static int getscochar(CSOUND *csound, int expand)
 #endif
 }
 
-#ifndef JPFF
+#ifndef SCORE_PARSER
 static int nested_repeat(CSOUND *csound)                /* gab A9*/
 {
     STA(repeat_cnt_n)[STA(repeat_index)]--;
@@ -803,15 +803,15 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
     STA(str)->is_marked_repeat = 0;
     STA(str)->line = 1; STA(str)->mac = NULL;
     init_smacros(csound, csound->smacros);
-#ifdef JPFF
+#ifdef SCORE_PARSER
     {
       PRS_PARM  qq;
       memset(&qq, '\0', sizeof(PRS_PARM));
       csound_prslex_init(&qq.yyscanner);
       csound_prsset_extra(&qq, qq.yyscanner);
       csound->expanded_sco = corfile_create_w();
-      printf("Input:\n%s<<<\n",
-             corfile_body(csound->sreadStatics.str->cf));
+      /* printf("Input:\n%s<<<\n", */
+      /*        corfile_body(csound->sreadStatics.str->cf)); */
       csound_prslex(csound, qq.yyscanner);
       csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
@@ -957,7 +957,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           STA(prvp2) = -FL(1.0);
         }
         return rtncod;
-#ifndef JPFF
+#ifndef SCORE_PARSER
       case '}':
         {
           int temp;
@@ -1579,7 +1579,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
       flushlin(csound);
       goto srch;
     }
-#ifndef JPFF
+#ifndef SCORE_PARSER
     if (c == '\\') {            /* Deal with continuations and specials */
  again:
       c = getscochar(csound, 1);
@@ -1860,7 +1860,7 @@ static int getop(CSOUND *csound)        /* get next legal opcode */
     return(c);
 }
 
-#ifdef JPFF
+#ifdef SCORE_PARSER
 static MYFLT read_expression(CSOUND *csound)
 {
       char  stack[30];
@@ -2023,7 +2023,7 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
 
     if ((c = sget1(csound)) == EOF)     /* get 1st non-white,non-comment c  */
       return(0);
-#ifdef JPFF
+#ifdef SCORE_PARSER
     if (c=='[') {
       MYFLT xx = read_expression(csound);
       //printf("****xx=%g\n", xx);
