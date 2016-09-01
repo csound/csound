@@ -359,6 +359,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "nchnls_i"      { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = NCHNLSI_TOKEN;
                   return NCHNLSI_TOKEN; }
+"A4"            { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = A4_TOKEN;
+                  return A4_TOKEN; }
 "instr"         {
                   namedInstrFlag = 1;
                   return INSTR_TOKEN;
