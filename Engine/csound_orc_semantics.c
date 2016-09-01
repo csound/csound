@@ -468,6 +468,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     case SRATE_TOKEN:
     case KRATE_TOKEN:
     case KSMPS_TOKEN:
+    case A4_TOKEN:
     case ZERODBFS_TOKEN:
     case NCHNLS_TOKEN:
     case NCHNLSI_TOKEN:
@@ -2130,6 +2131,9 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case ZERODBFS_TOKEN:
       csound->Message(csound,"ZERODFFS_TOKEN:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
+    case A4_TOKEN:
+      csound->Message(csound,"A4_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case KSMPS_TOKEN:
       csound->Message(csound,"KSMPS_TOKEN:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
@@ -2285,6 +2289,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"KRATE_TOKEN\""); break;
     case ZERODBFS_TOKEN:
       csound->Message(csound,"name=\"ZERODBFS_TOKEN\""); break;
+    case A4_TOKEN:
+      csound->Message(csound,"name=\"A4_TOKEN\""); break;
     case KSMPS_TOKEN:
       csound->Message(csound,"name=\"KSMPS_TOKEN\""); break;
     case NCHNLS_TOKEN:

@@ -1543,6 +1543,7 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
     p->daemon = oparms->daemon;
     p->ksmps_override = oparms->ksmps_override;
     p->FFT_library = oparms->fft_lib;
+    p->frequency_of_A4 = oparms->A4;
 }
 
 

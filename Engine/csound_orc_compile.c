@@ -454,6 +454,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     TREE *current;
     MYFLT sr= FL(-1.0), kr= FL(-1.0), ksmps= FL(-1.0),
           nchnls= DFLT_NCHNLS, inchnls = FL(0.0), _0dbfs= FL(-1.0);
+    double A4 = 0.0;
     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
 
     addGlobalVariable(csound, engineState, rType, "sr", NULL);
@@ -462,6 +463,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     addGlobalVariable(csound, engineState, rType, "nchnls", NULL);
     addGlobalVariable(csound, engineState, rType, "nchnls_i", NULL);
     addGlobalVariable(csound, engineState, rType, "0dbfs", NULL);
+    addGlobalVariable(csound, engineState, rType, "A4", NULL);
     addGlobalVariable(csound, engineState, rType, "$sr", NULL);
     addGlobalVariable(csound, engineState, rType, "$kr", NULL);
     addGlobalVariable(csound, engineState, rType, "$ksmps", NULL);
@@ -541,7 +543,9 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           else if (current->left->type == ZERODBFS_TOKEN) {
             _0dbfs = val;
           }
-
+          else if (current->left->type == A4_TOKEN) {
+            A4 = val;
+          }
         }
         else {
           op->nxtop = create_opcode(csound, current, ip, engineState);
@@ -594,8 +598,10 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->ekr = kr;
     if (_0dbfs < 0) csound->e0dbfs = DFLT_DBFS;
     else csound->e0dbfs = _0dbfs;
-
     OPARMS  *O = csound->oparms;
+    if (A4 == 0) O->A4 = 440.0;
+    else O->A4 = A4;
+    
     if (UNLIKELY(csound->e0dbfs <= FL(0.0))){
       csound->Warning(csound,
                       Str("bad value for 0dbfs: must be positive. "
@@ -1715,6 +1721,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var->memBlock->value = csound->inchnls;
       var = csoundFindVariableWithName(csound, engineState->varPool, "0dbfs");
       var->memBlock->value = csound->e0dbfs;
+      var = csoundFindVariableWithName(csound, engineState->varPool, "A4");
+      var->memBlock->value = csound->oparms->A4;
     }
     if (csound->init_pass_threadlock)
       csoundUnlockMutex(csound->init_pass_threadlock);
