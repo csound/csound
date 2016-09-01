@@ -74,6 +74,7 @@
 %token NCHNLS_TOKEN
 %token NCHNLSI_TOKEN
 %token ZERODBFS_TOKEN
+%token A4_TOKEN
 %token STRING_TOKEN
 %token T_IDENT
 %token T_IDENTB
@@ -802,6 +803,8 @@ rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
                                              NCHNLSI_TOKEN, (ORCTOKEN *)$1); }
           | ZERODBFS_TOKEN  { $$ = make_leaf(csound, LINE,LOCN,
                                              ZERODBFS_TOKEN, (ORCTOKEN *)$1); }
+          | A4_TOKEN        { $$ = make_leaf(csound, LINE,LOCN,
+                                             A4_TOKEN, (ORCTOKEN *)$1); }
           ;
 
 
@@ -836,6 +839,8 @@ constant  : INTEGER_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
                                            NCHNLSI_TOKEN, (ORCTOKEN *)$1); }
           | ZERODBFS_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
                                             ZERODBFS_TOKEN, (ORCTOKEN *)$1); }
+          | A4_TOKEN       { $$ = make_leaf(csound, LINE,LOCN,
+                                            A4_TOKEN, (ORCTOKEN *)$1); }
           ;
 
 opcode0   : T_OPCODE0
