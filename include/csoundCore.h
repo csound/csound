@@ -170,7 +170,8 @@ extern int ISSTRCOD(MYFLT);
 #define MAXOCTS         8
 #define MAXCHAN         16      /* 16 MIDI channels; only one port for now */
 
-#define ONEPT           1.02197486              /* A440 tuning factor */
+         /* A440 tuning factor */
+#define ONEPT           (csound->A4/430.5389646099018460319362438314060262605)
 #define LOG10D20        0.11512925              /* for db to ampfac   */
 #define DV32768         FL(0.000030517578125)
 
@@ -242,7 +243,6 @@ typedef struct CORFIL {
     double  quality;        /* for ogg encoding */
     int     ksmps_override;
     int     fft_lib;
-    double  A4;
   } OPARMS;
 
   typedef struct arglst {
@@ -1452,6 +1452,7 @@ typedef struct NAME__ {
     int           reinitflag;
     int           tieflag;
     MYFLT         e0dbfs, dbfs_to_float;
+    double        A4;
     void          *rtRecord_userdata;
     void          *rtPlay_userdata;
     jmp_buf       exitjmp;
