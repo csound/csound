@@ -1063,7 +1063,7 @@ int cpsmidinn(CSOUND *csound, EVAL *p)
 {
     IGN(csound);
     *p->r = pow(FL(2.0),
-                (*p->a - FL(69.0)) / FL(12.0)) * (MYFLT)(csound->oparms->A4);
+                (*p->a - FL(69.0)) / FL(12.0)) * (MYFLT)(csound->A4);
     return OK;
 }
 
