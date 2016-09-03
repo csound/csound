@@ -1,1 +1,3 @@
-include ':CsoundAndroidExamples', ':CsoundAndroid', ':CsoundApplication'
+include ':CsoundAndroid', ':CsoundApplication'
+project(':CsoundAndroid').projectDir = new File(settingsDir, '../CsoundAndroid')
+project(':CsoundApplication').projectDir = new File(settingsDir, 'CsoundApplication')

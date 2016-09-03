@@ -196,7 +196,14 @@ public class CsoundObj {
 		sendScore(score);
 	}
 
-	public void updateOrchestra(String orchestraString) {
+    public void compileCsdText(String csd_text) {
+        csound.CompileCsdText(csd_text);
+    }
+    public void updateOrchestra(String orchestraString) {
+        csound.CompileOrc(orchestraString);
+    }
+
+	public void compileOrc(String orchestraString) {
 		csound.CompileOrc(orchestraString);
 	}
 
@@ -272,6 +279,11 @@ public class CsoundObj {
 		return retVal;
 	}
 
+    @JavascriptInterface
+    public int SetOption(String option) {
+        return csound.SetOption(option);
+    }
+
 	/* Render Methods */
 
 	private void runCsoundOpenSL(File f) {
@@ -291,7 +303,12 @@ public class CsoundObj {
 			callbacks.SetMessageCallback();
 		}
 		if(!isAsync) this.pause();
-		retVal = csound.Compile(f.getAbsolutePath());
+		if(f.getAbsolutePath().toLowerCase().endsWith(".csd")) {
+			retVal = csound.Compile(f.getAbsolutePath());
+		} else {
+            csound.SetOption("-odac");
+			retVal = csound.Start();
+		}
 		Log.d("CsoundObj", "Return Value2: " + retVal);
 		if (retVal == 0) {
 			for (int i = 0; i < bindings.size(); i++) {
