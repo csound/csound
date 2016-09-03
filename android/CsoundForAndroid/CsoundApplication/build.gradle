@@ -10,7 +10,7 @@ android {
 //        }
 //    }
     compileSdkVersion 21
-    buildToolsVersion "23.0.2"
+    buildToolsVersion "24.0.2"
     defaultConfig {
         applicationId "com.csounds.Csound6"
         minSdkVersion 21
