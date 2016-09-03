@@ -70,7 +70,8 @@ class CsoundParams(Structure):
                 ("nchnls_i_override", c_int), # overriding number of in channels
                 ("e0dbfs_override", MYFLT),   # overriding 0dbfs
                 ("daemon", c_int),            # daemon mode
-                ("ksmps_override", c_int)]    # ksmps override
+                ("ksmps_override", c_int),    # ksmps override
+                ("FFT_library", c_int)]       # fft_lib
 
 string64 = c_char * 64
 

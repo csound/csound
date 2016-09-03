@@ -544,7 +544,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
             _0dbfs = val;
           }
           else if (current->left->type == A4_TOKEN) {
-            A4 = val;
+            A4 = val; 
           }
         }
         else {
@@ -598,10 +598,12 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->ekr = kr;
     if (_0dbfs < 0) csound->e0dbfs = DFLT_DBFS;
     else csound->e0dbfs = _0dbfs;
-    OPARMS  *O = csound->oparms;
-    if (A4 == 0) O->A4 = 440.0;
-    else O->A4 = A4;
-    
+    if (A4 == 0) csound->A4 = 440.0;
+    else {
+      extern void csound_aops_init_tables(CSOUND *);
+      csound->A4 = A4;
+      csound_aops_init_tables(csound);
+    }
     if (UNLIKELY(csound->e0dbfs <= FL(0.0))){
       csound->Warning(csound,
                       Str("bad value for 0dbfs: must be positive. "
@@ -609,6 +611,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       csound->e0dbfs = DFLT_DBFS;
     }
 
+    OPARMS  *O = csound->oparms;
     if (O->nchnls_override > 0)
       csound->nchnls = csound->inchnls = O->nchnls_override;
     if (O->nchnls_i_override > 0) csound->inchnls = O->nchnls_i_override;
@@ -1722,7 +1725,7 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var = csoundFindVariableWithName(csound, engineState->varPool, "0dbfs");
       var->memBlock->value = csound->e0dbfs;
       var = csoundFindVariableWithName(csound, engineState->varPool, "A4");
-      var->memBlock->value = csound->oparms->A4;
+      var->memBlock->value = csound->A4;
     }
     if (csound->init_pass_threadlock)
       csoundUnlockMutex(csound->init_pass_threadlock);

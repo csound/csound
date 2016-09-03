@@ -406,7 +406,6 @@ extern "C" {
     int     daemon;  /* daemon mode */
     int     ksmps_override; /* ksmps override */
     int     FFT_library;    /* fft_lib */
-    double  frequency_of_A4;
   } CSOUND_PARAMS;
 
     /**

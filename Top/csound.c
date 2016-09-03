@@ -593,6 +593,7 @@ static const CSOUND cenviron_ = {
     0,              /*  tieflag             */
     DFLT_DBFS,      /*  e0dbfs              */
     FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
+    440.0,               /* A4 base frequency */
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
 #if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) || \
@@ -826,8 +827,7 @@ static const CSOUND cenviron_ = {
       0,            /*    no exit on compile error */
       0.4,          /*    vbr quality  */
       100,          /*    ksmps_override */
-      0,            /*    fft_lib */
-      440.0         /*    A4 base */
+      0             /*    fft_lib */
     },
 
     {0, 0, {0}}, /* REMOT_BUF */
