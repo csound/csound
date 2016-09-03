@@ -647,7 +647,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
           p->loopMode = 1;
         }
         p->baseFreq = pow(2.0, (double) (((int) lpd.basenote - 69) * 100
-                                         + (int) lpd.detune) / 1200.0) * csound->oparms->A4;
+                                         + (int) lpd.detune) / 1200.0) * csound->A4;
         p->scaleFac = pow(10.0, (double) lpd.gain * 0.05);
       }
     }
