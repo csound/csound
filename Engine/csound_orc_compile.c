@@ -544,7 +544,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
             _0dbfs = val;
           }
           else if (current->left->type == A4_TOKEN) {
-            A4 = val; 
+            A4 = val;
           }
         }
         else {
