@@ -12,17 +12,12 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
-        screenLayoutPreference = (ListPreference)findPreference(KEY_LIST_PREFERENCE);
+        screenLayoutPreference =(ListPreference)findPreference(KEY_LIST_PREFERENCE);
     }
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState){
-        super.onRestoreInstanceState(savedInstanceState);
-      }
     @Override
     protected void onResume() {
         super.onResume();
         // Setup the initial values
-        screenLayoutPreference =(ListPreference)findPreference(KEY_LIST_PREFERENCE);
         screenLayoutPreference.setSummary("Current value is " + screenLayoutPreference.getEntry().toString());
         // Set up a listener whenever a key changes
         getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
