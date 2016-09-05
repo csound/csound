@@ -90,7 +90,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
           if(NOT MSVC)
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} ${PYTHON_LIBRARY} libcsnd6)
           else()
-            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd6)
+            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd)
           endif()
         else()
             # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python
