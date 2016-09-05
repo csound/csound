@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "24.0.2"
+    buildToolsVersion "23.0.2"
 
     defaultConfig {
         minSdkVersion 21
@@ -20,19 +20,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    sourceSets {
-        main {
-            java {
-                srcDirs = ['src']
-            }
-            manifest.srcFile  'AndroidManifest.xml'
-        }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_6
-        targetCompatibility JavaVersion.VERSION_1_6
-    }
 }
 
 dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
 }
