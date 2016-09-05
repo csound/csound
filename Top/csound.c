@@ -793,19 +793,13 @@ static const CSOUND cenviron_ = {
       0, 1, 1, 0,   /*    sfread, ...       */
       0, 0, 0, 0,   /*    inbufsamps, ...   */
       0,            /*    sfsampsize        */
-#ifdef LINUX
-      1,            /*    displays          */
-      1, 0, 135,    /*    graphsoff postscript, msglevel */
-#else
       1,            /*    displa          */
       1, 0, 135, /*    disp.. graphsoff ... */
-#endif
       0, 0, 0,      /*    Beatmode, ...     */
       0, 0,         /*    usingcscore, ...  */
       0, 0, 0, 0,   /*    RTevents, ...     */
       0, 0,         /*    ringbell, ...     */
       0, 0, 0,      /*    rewrt_hdr, ...    */
-//      0,            /*    expr_opt          */
       0.0f, 0.0f,   /*    sr_override ...  */
       0, 0,     /*    nchnls_override ... */
       (char*) NULL, (char*) NULL, NULL,
@@ -826,7 +820,7 @@ static const CSOUND cenviron_ = {
       0.0,          /*    0dbfs override */
       0,            /*    no exit on compile error */
       0.4,          /*    vbr quality  */
-      100,          /*    ksmps_override */
+      0,            /*    ksmps_override */
       0             /*    fft_lib */
     },
 
