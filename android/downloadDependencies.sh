@@ -34,7 +34,6 @@ else
   git clone $FLUIDSYNTH_REPO
 fi
 
-
 # LUAJIT
 LUAJIT_REPO=http://luajit.org/git/luajit-2.0.git
 if [ -e luajit-2.0 ]; then
@@ -47,6 +46,18 @@ else
   echo "Cloning libluajit...";
   git clone $LUAJIT_REPO
   cp -R $LUAJIT_JNI luajit-2.0/
+fi
+
+# STK
+STK_REPO=http://github.com/thestk/stk.git
+if [ -e stk ]; then
+  echo "STK already exists, doing a pull to get the latest";
+  cd stk;
+  git pull;
+  cd ..;
+else
+  echo "Cloning STK...";
+  git clone $STK_REPO
 fi
 
 # OpenSoundControl

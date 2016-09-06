@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -114,13 +115,6 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
     static {
         int result = 0;
         try {
-            java.lang.System.loadLibrary("gnustl_shared");
-        } catch (Throwable e) {
-            java.lang.System.err
-                    .println("Csound6: gnustl_shared native code library failed to load.\n");
-            java.lang.System.err.println(e.toString());
-        }
-        try {
             java.lang.System.loadLibrary("sndfile");
         } catch (Throwable e) {
             java.lang.System.err
@@ -213,6 +207,38 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public void setEnv(String variable, String value) {
+        try {
+            Class<?> libcore = Class.forName("libcore.io.Libcore");
+            if (libcore == null) {
+                Log.w("Csound6", "Cannot find libcore.os.Libcore;");
+                //                return;
+            } else {
+                final Object os = Class.forName("libcore.io.Libcore").getField("os").get(null);
+                Method method = os.getClass().getMethod("setenv", String.class, String.class, boolean.class);
+                method.invoke(os, variable, value, true);
+            }
+        } catch ( Exception e) {
+            Log.w("Csound6", Log.getStackTraceString(e));
+            Log.w("Csound6", e.getMessage());
+        }
+    }
+
+    private void copyRawwaves() {
+        try {
+            String[] files = getAssets().list("rawwaves");
+            for (int i = 0; i < files.length; i++) {
+                String file = files[i];
+                copyAsset("rawwaves/" + file.toString());
+            }
+            File externalStoragePublicDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+            String rawwavePath = externalStoragePublicDirectory.toString() + "/rawwaves/";
+            setEnv("RAWWAVE_PATH", rawwavePath);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -614,6 +640,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                 postMessage(e.toString() + "\n");
             }
         }
+        copyRawwaves();
         csdTemplate = "<CsoundSynthesizer>\n" + "<CsLicense>\n"
                 + "</CsLicense>\n" + "<CsOptions>\n" + "</CsOptions>\n"
                 + "<CsInstruments>\n" + "</CsInstruments>\n" + "<CsScore>\n"
