@@ -142,6 +142,7 @@ static MYFLT profile_original(MYFLT fi, MYFLT bwi)
     return exp(-x)/bwi;
 };
 
+// profile(p9_profile_shape, profile_sample_index_normalized, bandwidth_samples, p10_profile_parameter);
 static MYFLT profile(int shape, MYFLT fi, MYFLT bwi, MYFLT a)
 {
     MYFLT x = fi / bwi;
@@ -151,11 +152,12 @@ static MYFLT profile(int shape, MYFLT fi, MYFLT bwi, MYFLT a)
         y = std::exp(-(x * x * a));
         break;
     case 2:
-        y = std::exp(-(x * x * a));
+        // The parameter a is the value of the profile curve at which the profile switches from 0 to 1 and from 1 to 0.
+        y = std::exp(-(x * x * 1));
         if(y < a) {
             y = 0.0;
         } else {
-            y = 1.0;
+            y = 1;
         }
         break;
     case 3:
@@ -384,7 +386,7 @@ static base_function_t get_base_function(int index)
 
     index--;
     base_function_t functions[] = {
-        base_function_triangle,
+        base_function_triangle,comment
         base_function_pulse,
         base_function_saw,
         base_function_power,
@@ -458,7 +460,7 @@ extern "C" {
         MYFLT p8_harmonic_stretch = ff->e.p[8];
         int p9_profile_shape = (int) ff->e.p[9];
         //base_function_t base_function = get_base_function(p9_profile_shape);
-        int p10_profile_parameter = (int) ff->e.p[10];
+        MYFLT p10_profile_parameter = ff->e.p[10];
         MYFLT samplerate = csound->GetSr(csound);
         log(csound, "samplerate:                  %12d\n", (int) samplerate);
         log(csound, "p1_function_table_number:            %9.4f\n",
