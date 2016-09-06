@@ -12,6 +12,11 @@ make HOST_CC="gcc -m32" CROSS=$NDKP TARGET_FLAGS="$NDKF $NDKARCH" TARGET_SYS=lin
 cd ${CSOUND_HOME}/android/pluginlibs/LuaCsound
 $NDK/ndk-build $1
 
+cd ${CSOUND_HOME}/android/pluginlibs/stk-csound
+mkdir -p ${CSOUND_HOME}/android/CsoundForAndroid/CsoundApplication/src/main/assets/rawwaves/
+cp -rf ../stk/rawwaves/*.raw ${CSOUND_HOME}/android/CsoundForAndroid/CsoundApplication/src/main/assets/rawwaves/
+$NDK/ndk-build $1
+
 cd ${CSOUND_HOME}/android/pluginlibs/libstdutil
 $NDK/ndk-build $1
 
