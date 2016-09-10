@@ -1791,7 +1791,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     x[l2] = x[1];
     x[1] = x[l2 + 1] = FL(0.0);
 
-    for (j = 6; j < (nargs + 3); j++) {
+    for (j = 6; j < (nargs + 3); j+=3) {
       n = (int) (FL(0.5) + *valp++); if (n < 1) n = 1; /* frequency */
       if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
         nsw =0, valp = &(ff->e.c.extra[1]);
@@ -1801,7 +1801,12 @@ static int gen31(FGDATA *ff, FUNC *ftp)
       p = *valp++;                                       /* phase     */
       if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
         nsw =0, valp = &(ff->e.c.extra[1]);
-      p -= (MYFLT) ((int) p); if (p < FL(0.0)) p += FL(1.0); p *= TWOPI_F;
+      //p -= (MYFLT) ((int) p);
+      { MYFLT dummy = FL(0.0);
+        p = MODF(p, &dummy);
+      }
+      if (p < FL(0.0)) p += FL(1.0);
+      p *= TWOPI_F;
       d_re = cos((double) p); d_im = sin((double) p);
       p_re = 1.0; p_im = 0.0;   /* init. phase */
       for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
