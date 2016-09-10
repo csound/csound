@@ -39,9 +39,9 @@
 #define MyAppName "Csound6_x64"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.07.0-vst"
+#define MyAppMinVersion "6.08.0-vst"
 #else
-#define MyAppMinVersion "6.07.0"
+#define MyAppMinVersion "6.08.0"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://csound.github.io/"
@@ -52,7 +52,7 @@
 ; If you are not Michael Gogins, change this to your Csound build directory.
 #define MySourceDir "D:\msys64\home\restore\csound\"
 ; If you are not Michael Gogins, change this to your Csound reference manual build directory.
-#define MyManualSourceDir "D:\msys64\home\restore\csound-manual6-git\"
+#define MyManualSourceDir "D:\msys64\home\restore\manual\"
 ; If you are not Michael Gogins, change this to your Csound tutorial directory.
 #define MyCsoundTutorialSourceDir "D:\Dropbox\tutorial\"
 ; If you are not Michael Gogins, change this to your CsoundAC tutorial directory.
@@ -62,17 +62,17 @@
 ; If you are not Michael Gogins, change this to your CsoundQt repository directory.
 #define MyCsoundQtDir "C:\Users\restore\CsoundQt\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
-#define MyCsoundQtBinDir "C:\Users\restore\CsoundQt\bin\"
+#define MyCsoundQtBinDir "D:\msys64\home\restore\csound\mingw64\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK directory.
-#define MyQtSdkDir "C:\Qt-msvc-x64\"
+#define MyQtSdkDir "C:\Qt\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
-#define MyQtSdkBinDir "C:\Qt-msvc-x64\Qt5.5.1\5.5\msvc2013_64\bin\"
+#define MyQtSdkBinDir "C:\Qt\Qt5.7.0\5.7\msvc2013_64\bin\"
 ; If you are not Michael Gogins, change this to your unzipped Chromium Embedded Framework directory.
-#define MyCefHome "D:\cef_binary_3.2556.1368.g535c4fb_windows64\"
+#define MyCefHome "D:\cef_binary_3.2785.1474.g4a88e67_windows64\"
 ; If you are not Michael Gogins, change this to your STK source directory.
 #define MyLibStkSourceDir "D:\msys64\home\restore\csound\mingw64\packages\stk\src\stk-4.5.1\"
 ; If you are not Michael Gogins, change this to your NW.js installation directory.
-#define MyNwJsDir "D:\nwjs-sdk-v0.15.2-win-x64\"
+#define MyNwJsDir "D:\nwjs-sdk-v0.17.1-win-x64\"
 ; If you are not Michael Gogins, change this to your Winpthreads installation directory.
 #define MyWinPthreadsDir "D:\msys64\home\restore\pthreads-w32-2-9-1-release\Pre-built.2\"
 #define MyPackagesDir "D:\msys64\home\restore\csound\mingw64\packages\"
