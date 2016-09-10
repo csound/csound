@@ -108,6 +108,7 @@ static void log(CSOUND *csound, const char *format,...)
     va_list args;
     va_start(args, format);
     if(csound) {
+      if (csound->GetMessageLevel(csound) & WARNMSG)
         csound->MessageV(csound, 0, format, args);
     } else {
         vfprintf(stdout, format, args);

@@ -291,7 +291,7 @@ option(BUILD_UTILITIES "Build stand-alone executables for utilities that can als
 
 option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
 
-option(SCORE_PARSER "Enable building of alternative score parser" OFF)
+option(SCORE_PARSER "Enable building of alternative score parser" ON)
 
 option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NEW_PARSER)" ON)
 
