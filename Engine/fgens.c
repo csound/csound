@@ -2177,7 +2177,7 @@ static int gen40(FGDATA *ff, FUNC *ftp)               /*gab d5*/
 static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
 {
     MYFLT   *fp = ftp->ftable, *pp = &ff->e.p[5];
-    int     j, k, width;
+    int     i, j, k, width;
     MYFLT    tot_prob = FL(0.0);
     int     nargs = ff->e.pcnt - 4;
 
@@ -2186,13 +2186,15 @@ static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
         return fterror(ff, Str("Gen41: negative probability not allowed"));
       tot_prob += pp[j+1];
     }
-    for (j=0; j< nargs; j+=2) {
+    printf("total prob = %g\n", tot_prob);
+    for (i=0, j=0; j< nargs; j+=2) {
       width = (int) ((pp[j+1]/tot_prob) * ff->flen +.5);
-      for ( k=0; k < width; k++) {
-        *fp++ = pp[j];
+      for ( k=0; k < width; k++,i++) {
+        fp[i] = pp[j];
       }
     }
-    *fp = pp[j-1];
+    //printf("GEN41: i=%d le=%d\n", i, ff->flen);
+    if (i<=ff->flen) fp[i] = pp[j-1]; /* conditinal isattempy to stop error */
 
     return OK;
 }
