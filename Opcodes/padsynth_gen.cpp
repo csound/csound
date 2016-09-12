@@ -153,10 +153,10 @@ static MYFLT profile(int shape, MYFLT fi, MYFLT bwi, MYFLT a)
         y = std::exp(-(x * x * a));
         break;
     case 2:
-        // The parameter a is the value of the profile curve at which the profile switches from 0 to 1 and from 1 to 0.
-        y = std::exp(-(x * x * 1));
-        if(y < a) {
-            y = 0.0;
+        // The idea is to take profile 1 and simply say y goes to 0 if below a and to 1 if above a.
+        y = std::exp(-(x * x * a));
+        if (y < a) {
+            y = 0;
         } else {
             y = 1;
         }
@@ -506,7 +506,7 @@ extern "C" {
             warn(csound, "  frequency_sample_index_normalized: %9.4f\n", frequency_sample_index_normalized);
             warn(csound, "  partial_frequency_index:   %12d\n", partial_frequency_index);
             warn(csound, "  bandwidth_Hz:                      %9.4f\n", bandwidth_Hz);
-            warn(csound, "  bandwidth_samples:                 %9.4f\n", bandwidth_samples);
+            warn(csound, "  bandwidth_samples:                  %12.8f\n", bandwidth_samples);
             for (int fft_sample_index = 0; fft_sample_index < complexN; ++fft_sample_index) {
                 MYFLT fft_sample_index_normalized = ((MYFLT) fft_sample_index) / ((MYFLT) N);
                 MYFLT profile_sample_index_normalized = fft_sample_index_normalized - frequency_sample_index_normalized;
