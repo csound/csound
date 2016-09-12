@@ -26,7 +26,7 @@
 #include <ctype.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "corfile.h"
-#ifdef JPFF
+#ifdef SCORE_PARSER
 #include "Engine/score_param.h"
 #endif
 
@@ -48,7 +48,7 @@ static  void    salcblk(CSOUND *), flushlin(CSOUND *);
 static  int     getop(CSOUND *), getpfld(CSOUND *);
         MYFLT   stof(CSOUND *, char *);
 extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
-#ifdef JPFF
+#ifdef SCORE_PARSER
 extern void csound_prslex_init(void *);
 extern void csound_prsset_extra(void *, void *);
 
@@ -235,7 +235,8 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
 
 static inline int isNameChar(int c, int pos)
 {
-    c = (int) ((unsigned char) c);
+    //c = (int) ((unsigned char) c);
+    if (c<0) return 0;
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
 
@@ -244,7 +245,7 @@ static inline int isNameChar(int c, int pos)
 
 static inline void ungetscochar(CSOUND *csound, int c)
 {
-#ifdef JPFF
+#ifdef SCORE_PARSER
     corfile_ungetc(csound->expanded_sco);
     csound->expanded_sco->body[csound->expanded_sco->p] = (char)c;
 #else
@@ -257,10 +258,10 @@ static int getscochar(CSOUND *csound, int expand)
 {
 /* Read a score character, expanding macros if flag set */
     int     c;
-#ifndef JPFF
+#ifndef SCORE_PARSER
   top:
     c = corfile_getc(STA(str)->cf);
-if (c == EOF) {
+    if (c == EOF) {
       if (STA(str) == &STA(inputs)[0]) {
         corfile_putc('\n', STA(str)->cf);  /* to ensure repeated EOF */
         return EOF;
@@ -578,7 +579,7 @@ if (c == EOF) {
         STA(ingappop) = 1;
         goto top;
       }
-    }
+   }
     return c;
 #else
 /* Read a score character, expanding macros expanded */
@@ -597,163 +598,11 @@ if (c == EOF) {
       STA(str)->line++; STA(linepos) = -1;
     }
     else STA(linepos)++;
-    if (expand && c == '[') {           /* Evaluable section */
-      char  stack[30];
-      MYFLT vv[30];
-      char  *op = stack - 1;
-      MYFLT *pv = vv - 1;
-      char  buffer[100];
-      int   i;
-      int   type = 0;  /* 1 -> expecting binary operator,')', or ']'; else 0 */
-      *++op = '[';
-      c = getscochar(csound, 1);
-      do {
-        switch (c) {
-        case '0': case '1': case '2': case '3': case '4':
-        case '5': case '6': case '7': case '8': case '9':
-        case '.':
-          if (UNLIKELY(type)) {
-            scorerr(csound, Str("illegal placement of number in [] "
-                                "expression"));
-          }
- parseNumber:
-          i = 0;
-          do {
-            buffer[i++] = c;
-            c = getscochar(csound, 1);
-          } while (isdigit(c) || c == '.');
-          if (c == 'e' || c == 'E') {
-            buffer[i++] = c;
-            c = getscochar(csound, 1);
-            if (c == '+' || c == '-') {
-              buffer[i++] = c;
-              c = getscochar(csound, 1);
-            }
-            while (isdigit(c)) {
-              buffer[i++] = c;
-              c = getscochar(csound, 1);
-            }
-          }
-          buffer[i] = '\0';
-          *++pv = stof(csound, buffer);
-          type = 1;
-          break;
-        case '~':
-          if (UNLIKELY(type)) {
-            scorerr(csound, Str("illegal placement of operator ~ in [] "
-                                "expression"));
-          }
-          *++pv = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1)
-                  / FL(2147483645);
-          type = 1;
-          c = getscochar(csound, 1);
-          break;
-        case '@':
-          if (UNLIKELY(type)) {
-            scorerr(csound, Str("illegal placement of operator @ or @@ in"
-                                " [] expression"));
-          }
-          {
-            int n = 0;
-            int k = 0;          /* 0 or 1 depending on guard bit */
-            c = getscochar(csound, 1);
-            if (c=='@') { k = 1; c = getscochar(csound, 1);}
-            while (isdigit(c)) {
-              n = 10*n + c - '0';
-              c = getscochar(csound, 1);
-            }
-            i = 1;
-            while (i<=n-k && i< 0x4000000) i <<= 1;
-            *++pv = (MYFLT)(i+k);
-            type = 1;
-          }
-          break;
-        case '+': case '-':
-          if (!type)
-            goto parseNumber;
-          if (*op != '[' && *op != '(') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
-            op--; pv--;
-            *pv = v;
-          }
-          type = 0;
-          *++op = c; c = getscochar(csound, 1); break;
-        case '*':
-        case '/':
-        case '%':
-          if (UNLIKELY(!type)) {
-            scorerr(csound, Str("illegal placement of operator %c in [] "
-                                "expression"), c);
-          }
-          if (*op == '*' || *op == '/' || *op == '%') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
-            op--; pv--;
-            *pv = v;
-          }
-          type = 0;
-          *++op = c; c = getscochar(csound, 1); break;
-        case '&':
-        case '|':
-        case '#':
-          if (UNLIKELY(!type)) {
-            scorerr(csound, Str("illegal placement of operator %c in [] "
-                                "expression"), c);
-          }
-          if (*op == '|' || *op == '&' || *op == '#') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
-            op--; pv--;
-            *pv = v;
-          }
-          type = 0;
-          *++op = c; c = getscochar(csound, 1); break;
-        case '(':
-          if (UNLIKELY(type)) {
-            scorerr(csound, Str("illegal placement of '(' in [] expression"));
-          }
-          type = 0;
-          *++op = c; c = getscochar(csound, 1); break;
-        case ')':
-          if (UNLIKELY(!type)) {
-            scorerr(csound, Str("missing operand before ')' in [] expression"));
-          }
-          while (*op != '(') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
-            op--; pv--;
-            *pv = v;
-          }
-          type = 1;
-          op--; c = getscochar(csound, 1); break;
-        case '^':
-          type = 0;
-          *++op = c; c = getscochar(csound, 1); break;
-        case ']':
-          if (UNLIKELY(!type)) {
-            scorerr(csound, Str("missing operand before closing bracket in []"));
-          }
-          while (*op != '[') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
-            op--; pv--;
-            *pv = v;
-          }
-          c = '$';
-          break;
-        case '$':
-          break;
-        case ' ':               /* Ignore spaces */
-          c = getscochar(csound, 1);
-          continue;
-        default:
-          scorerr(csound, Str("illegal character %c(%.2x) in [] expression"),
-                  c, c);
-        }
-      } while (c != '$');
-      /* Make string macro or value */
-    }
     return c;
 #endif
 }
 
-#ifndef JPFF
+#ifndef SCORE_PARSER
 static int nested_repeat(CSOUND *csound)                /* gab A9*/
 {
     STA(repeat_cnt_n)[STA(repeat_index)]--;
@@ -954,15 +803,15 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
     STA(str)->is_marked_repeat = 0;
     STA(str)->line = 1; STA(str)->mac = NULL;
     init_smacros(csound, csound->smacros);
-#ifdef JPFF
+#ifdef SCORE_PARSER
     {
       PRS_PARM  qq;
       memset(&qq, '\0', sizeof(PRS_PARM));
       csound_prslex_init(&qq.yyscanner);
       csound_prsset_extra(&qq, qq.yyscanner);
       csound->expanded_sco = corfile_create_w();
-      printf("Input:\n%s<<<\n",
-             corfile_body(csound->sreadStatics.str->cf));
+      /* printf("Input:\n%s<<<\n", */
+      /*        corfile_body(csound->sreadStatics.str->cf)); */
       csound_prslex(csound, qq.yyscanner);
       csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
@@ -1108,7 +957,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           STA(prvp2) = -FL(1.0);
         }
         return rtncod;
-#ifndef JPFF
+#ifndef SCORE_PARSER
       case '}':
         {
           int temp;
@@ -1289,7 +1138,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             c = getscochar(csound, 1);
           }
           buff[i] = '\0';
-          if (c != '\n' && c != EOF) flushlin(csound);
+          if (c != EOF && c != '\n') flushlin(csound);
           if (csound->oparms->msglevel & TIMEMSG)
             csound->Message(csound,Str("Named section >>>%s<<<\n"), buff);
           for (j=0; j<=STA(next_name); j++)
@@ -1730,7 +1579,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
       flushlin(csound);
       goto srch;
     }
-#ifndef JPFF
+#ifndef SCORE_PARSER
     if (c == '\\') {            /* Deal with continuations and specials */
  again:
       c = getscochar(csound, 1);
@@ -2011,6 +1860,162 @@ static int getop(CSOUND *csound)        /* get next legal opcode */
     return(c);
 }
 
+#ifdef SCORE_PARSER
+static MYFLT read_expression(CSOUND *csound)
+{
+      char  stack[30];
+      MYFLT vv[30];
+      char  *op = stack - 1;
+      MYFLT *pv = vv - 1;
+      char  buffer[100];
+      int   i, c;
+      int   type = 0;  /* 1 -> expecting binary operator,')', or ']'; else 0 */
+      *++op = '[';
+      c = getscochar(csound, 1);
+      do {
+        switch (c) {
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9':
+        case '.':
+          if (UNLIKELY(type)) {
+            scorerr(csound, Str("illegal placement of number in [] "
+                                "expression"));
+          }
+ parseNumber:
+          i = 0;
+          do {
+            buffer[i++] = c;
+            c = getscochar(csound, 1);
+          } while (isdigit(c) || c == '.');
+          if (c == 'e' || c == 'E') {
+            buffer[i++] = c;
+            c = getscochar(csound, 1);
+            if (c == '+' || c == '-') {
+              buffer[i++] = c;
+              c = getscochar(csound, 1);
+            }
+            while (isdigit(c)) {
+              buffer[i++] = c;
+              c = getscochar(csound, 1);
+            }
+          }
+          buffer[i] = '\0';
+          *++pv = stof(csound, buffer);
+          type = 1;
+          break;
+        case '~':
+          if (UNLIKELY(type)) {
+            scorerr(csound, Str("illegal placement of operator ~ in [] "
+                                "expression"));
+          }
+          *++pv = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1)
+                  / FL(2147483645);
+          type = 1;
+          c = getscochar(csound, 1);
+          break;
+        case '@':
+          if (UNLIKELY(type)) {
+            scorerr(csound, Str("illegal placement of operator @ or @@ in"
+                                " [] expression"));
+          }
+          {
+            int n = 0;
+            int k = 0;          /* 0 or 1 depending on guard bit */
+            c = getscochar(csound, 1);
+            if (c=='@') { k = 1; c = getscochar(csound, 1);}
+            while (isdigit(c)) {
+              n = 10*n + c - '0';
+              c = getscochar(csound, 1);
+            }
+            i = 1;
+            while (i<=n-k && i< 0x4000000) i <<= 1;
+            *++pv = (MYFLT)(i+k);
+            type = 1;
+          }
+          break;
+        case '+': case '-':
+          if (!type)
+            goto parseNumber;
+          if (*op != '[' && *op != '(') {
+            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            op--; pv--;
+            *pv = v;
+          }
+          type = 0;
+          *++op = c; c = getscochar(csound, 1); break;
+        case '*':
+        case '/':
+        case '%':
+          if (UNLIKELY(!type)) {
+            scorerr(csound, Str("illegal placement of operator %c in [] "
+                                "expression"), c);
+          }
+          if (*op == '*' || *op == '/' || *op == '%') {
+            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            op--; pv--;
+            *pv = v;
+          }
+          type = 0;
+          *++op = c; c = getscochar(csound, 1); break;
+        case '&':
+        case '|':
+        case '#':
+          if (UNLIKELY(!type)) {
+            scorerr(csound, Str("illegal placement of operator %c in [] "
+                                "expression"), c);
+          }
+          if (*op == '|' || *op == '&' || *op == '#') {
+            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            op--; pv--;
+            *pv = v;
+          }
+          type = 0;
+          *++op = c; c = getscochar(csound, 1); break;
+        case '(':
+          if (UNLIKELY(type)) {
+            scorerr(csound, Str("illegal placement of '(' in [] expression"));
+          }
+          type = 0;
+          *++op = c; c = getscochar(csound, 1); break;
+        case ')':
+          if (UNLIKELY(!type)) {
+            scorerr(csound, Str("missing operand before ')' in [] expression"));
+          }
+          while (*op != '(') {
+            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            op--; pv--;
+            *pv = v;
+          }
+          type = 1;
+          op--; c = getscochar(csound, 1); break;
+        case '^':
+          type = 0;
+          *++op = c; c = getscochar(csound, 1); break;
+        case ']':
+          if (UNLIKELY(!type)) {
+            scorerr(csound, Str("missing operand before closing bracket in []"));
+          }
+          while (*op != '[') {
+            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            op--; pv--;
+            *pv = v;
+          }
+          c = '$';
+          break;
+        case '$':
+          break;
+        case ' ':               /* Ignore spaces */
+          c = getscochar(csound, 1);
+          continue;
+        default:
+          scorerr(csound, Str("illegal character %c(%.2x) in [] expression"),
+                  c, c);
+        }
+      } while (c != '$');
+      return *pv;
+}
+#endif
+
 static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
 {                                       /*      set sp, nxp                 */
     int  c;
@@ -2018,6 +2023,15 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
 
     if ((c = sget1(csound)) == EOF)     /* get 1st non-white,non-comment c  */
       return(0);
+#ifdef SCORE_PARSER
+    if (c=='[') {
+      MYFLT xx = read_expression(csound);
+      //printf("****xx=%g\n", xx);
+      snprintf(STA(sp) = STA(nxp), 16, "%g$", xx);
+      p = strchr(STA(sp),'$');
+      goto blank;
+    }
+#endif
                     /* if non-numeric, and non-carry, and non-special-char: */
     /*    if (strchr("0123456789.+-^np<>()\"~!", c) == NULL) { */
     if (!isdigit(c) && c!='.' && c!='+' && c!='-' && c!='^' && c!='n'

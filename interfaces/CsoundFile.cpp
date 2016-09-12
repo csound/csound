@@ -1237,10 +1237,15 @@ bool CsoundFile::loadOrcLibrary(const char *filename)
     }
   else
     {
-      std::string orcLibraryFilename = getenv("CSOUND_HOME");
-      orcLibraryFilename.append("/");
-      orcLibraryFilename.append("library.orc");
-      stream.open(orcLibraryFilename.c_str(), std::fstream::in | std::ios::binary);
+        const char *filename_ = getenv("CSOUND_HOME");
+        if (filename_ != 0) {
+            std::string orcLibraryFilename = filename_;
+            orcLibraryFilename.append("/");
+            orcLibraryFilename.append("library.orc");
+            stream.open(orcLibraryFilename.c_str(), std::fstream::in | std::ios::binary);
+        } else {
+            return false;
+        }
     }
   if(stream.good())
     {

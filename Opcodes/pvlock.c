@@ -695,9 +695,9 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
             spos += sizefrs;
           }
 
-          if (spos > sizefrs/2 && p->curbuf == 0) {
+          if (spos > (MYFLT)(sizefrs/2) && p->curbuf == 0) {
             fillbuf(csound, p, size/2);
-          } else if (spos < sizefrs/2 && p->curbuf == 1) {
+          } else if (spos < (MYFLT)(sizefrs/2) && p->curbuf == 1) {
             fillbuf(csound, p, size/2);
           }
 

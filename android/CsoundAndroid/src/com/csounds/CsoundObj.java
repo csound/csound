@@ -196,7 +196,15 @@ public class CsoundObj {
 		sendScore(score);
 	}
 
-	public void updateOrchestra(String orchestraString) {
+   	public void compileCsdText(String csd_text) {
+		csound.CompileCsdText(csd_text);
+    	}
+
+    	public void updateOrchestra(String orchestraString) {
+		csound.CompileOrc(orchestraString);
+    	}
+
+	public void compileOrc(String orchestraString) {
 		csound.CompileOrc(orchestraString);
 	}
 

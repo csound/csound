@@ -60,7 +60,7 @@ static int syncgrain_init(CSOUND *csound, syncgrain *p)
       csound->AuxAlloc(csound, size, &p->envindex);
     if (p->envincr.auxp == NULL || p->envincr.size < (unsigned int)size)
       csound->AuxAlloc(csound, size, &p->envincr);
-    
+
     size = (p->olaps) * sizeof(int);
     if (p->streamon.auxp == NULL || p->streamon.size < (unsigned int)size)
       csound->AuxAlloc(csound, size, &p->streamon);
@@ -127,7 +127,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1; /* turn the stream on */
         envindex[newstream] = 0.0;
-	envincrn[newstream]  = envtablesize/grsize;
+        envincrn[newstream]  = envtablesize/grsize;
         index[newstream] = start;
         numstreams++; /* increase the stream count */
         count = 0;
@@ -139,8 +139,8 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
       //for (i=numstreams,
       //      j=firststream; i; i--, j=(j+1)%olaps) {
       for(j=0; j < olaps; j++){
-	if(!streamon[j]) continue;
-	
+        if(!streamon[j]) continue;
+
         /* modulus */
         while (UNLIKELY(index[j] >= datasize))
           index[j] -= datasize;
@@ -158,17 +158,17 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
                  (ftable[(int)envindex[j]+1] - ftable[(int)envindex[j]])
                  )
                 );
-        } 
+        }
         /* increment the indexes */
         /* for each grain */
         index[j] += pitch;
         envindex[j] += envincr;
-        
+
         /* if the envelope is finished */
         /* the grain is also finished */
         if (UNLIKELY(envindex[j] >= envtablesize)) {
           streamon[j] = 0;
-	  numstreams--;
+          numstreams--;
         }
       }
 
@@ -319,25 +319,25 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
           index[j] -= datasize;
         while(index[j] < 0)
           index[j] += datasize;
-        
-	if (UNLIKELY(envindex[j] < envtablesize)){
-          
-        /* sum all the grain streams */
-        sig += ((datap[(int)index[j]] +
-                 (index[j] - (int)index[j])*
-                 (datap[(int)index[j]+1] - datap[(int)index[j]])
-                 ) *
-                (ftable[(int)envindex[j]] +
-                 (envindex[j] - (int)envindex[j])*
-                 (ftable[(int)envindex[j]+1] - ftable[(int)envindex[j]])
-                 )
-                );
-      
-        /* increment the indexes */
-        /* for each grain */
-        index[j] += pitch;
-        envindex[j] += envincr;
-	}
+
+        if (UNLIKELY(envindex[j] < envtablesize)){
+
+          /* sum all the grain streams */
+          sig += ((datap[(int)index[j]] +
+                   (index[j] - (int)index[j])*
+                   (datap[(int)index[j]+1] - datap[(int)index[j]])
+                   ) *
+                  (ftable[(int)envindex[j]] +
+                   (envindex[j] - (int)envindex[j])*
+                   (ftable[(int)envindex[j]+1] - ftable[(int)envindex[j]])
+                   )
+                  );
+
+          /* increment the indexes */
+          /* for each grain */
+          index[j] += pitch;
+          envindex[j] += envincr;
+        }
         /* if the envelope is finished */
         /* the grain is also finished */
 
@@ -677,7 +677,6 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
                       (ftable[endx+1] - ftable[endx])
                       )
                      );
-
         }
 
         /* increment the indexes */
@@ -732,4 +731,3 @@ int syncgrain_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }
-

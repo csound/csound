@@ -449,7 +449,7 @@ static const CSOUND cenviron_ = {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -593,6 +593,7 @@ static const CSOUND cenviron_ = {
     0,              /*  tieflag             */
     DFLT_DBFS,      /*  e0dbfs              */
     FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
+    440.0,               /* A4 base frequency */
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
 #if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) || \
@@ -792,19 +793,13 @@ static const CSOUND cenviron_ = {
       0, 1, 1, 0,   /*    sfread, ...       */
       0, 0, 0, 0,   /*    inbufsamps, ...   */
       0,            /*    sfsampsize        */
-#ifdef LINUX
-      1,            /*    displays          */
-      1, 0, 135,    /*    graphsoff postscript, msglevel */
-#else
       1,            /*    displa          */
       1, 0, 135, /*    disp.. graphsoff ... */
-#endif
       0, 0, 0,      /*    Beatmode, ...     */
       0, 0,         /*    usingcscore, ...  */
       0, 0, 0, 0,   /*    RTevents, ...     */
       0, 0,         /*    ringbell, ...     */
       0, 0, 0,      /*    rewrt_hdr, ...    */
-//      0,            /*    expr_opt          */
       0.0f, 0.0f,   /*    sr_override ...  */
       0, 0,     /*    nchnls_override ... */
       (char*) NULL, (char*) NULL, NULL,
@@ -824,7 +819,9 @@ static const CSOUND cenviron_ = {
       0,            /*    realtime  */
       0.0,          /*    0dbfs override */
       0,            /*    no exit on compile error */
-      0.4           /*    vbr quality  */
+      0.4,          /*    vbr quality  */
+      0,            /*    ksmps_override */
+      0             /*    fft_lib */
     },
 
     {0, 0, {0}}, /* REMOT_BUF */
@@ -1904,7 +1901,7 @@ PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
 
     csound->scorestr = corfile_create_w();
     corfile_puts((char *)str, csound->scorestr);
-#ifdef JPFF
+#ifdef SCORE_PARSER
     corfile_puts("\n#exit\n", csound->scorestr);
 #endif
     corfile_flush(csound->scorestr);
