@@ -155,6 +155,11 @@ static MYFLT profile(int shape, MYFLT fi, MYFLT bwi, MYFLT a)
     case 2:
         // The idea is to take profile 1 and simply say y goes to 0 if below a and to 1 if above a.
         y = std::exp(-(x * x * a));
+        if(a < 0.00001) {
+            a = 0.00001;
+        } else if (a > 0.99999) {
+            a = 0.99999;
+        }
         if (y < a) {
             y = 0;
         } else {
