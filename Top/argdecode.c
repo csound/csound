@@ -1081,7 +1081,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         if (csoundInitModules(csound) != 0)
           csound->LongJmp(csound, 1);
         sfopenout(csound);
-        csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
+        csound->MessageS(csound,CSOUNDMSG_STDOUT,"system sr: %f\n", csound->system_sr(csound,0));
         sfcloseout(csound);
       }
       csound->info_message_request = 1;
@@ -1677,9 +1677,9 @@ static void list_audio_devices(CSOUND *csound, int output){
     CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
       malloc(n*sizeof(CS_AUDIODEVICE));
     if (output)
-      csound->Message(csound, Str("%d audio output devices \n"), n);
+      csound->MessageS(csound,CSOUNDMSG_STDOUT, Str("%d audio output devices \n"), n);
     else
-      csound->Message(csound, Str("%d audio input devices \n"), n);
+      csound->MessageS(csound, CSOUNDMSG_STDOUT, Str("%d audio input devices \n"), n);
     csoundGetAudioDevList(csound,devs,output);
     for (i=0; i < n; i++)
       csound->Message(csound, " %d: %s (%s)\n",
@@ -1693,9 +1693,9 @@ static void list_midi_devices(CSOUND *csound, int output){
     CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *)
       malloc(n*sizeof(CS_MIDIDEVICE));
     if (output)
-      csound->Message(csound, Str("%d MIDI output devices \n"), n);
+      csound->MessageS(csound, CSOUNDMSG_STDOUT, Str("%d MIDI output devices \n"), n);
     else
-      csound->Message(csound, Str("%d MIDI input devices \n"), n);
+      csound->MessageS(csound, CSOUNDMSG_STDOUT, Str("%d MIDI input devices \n"), n);
     csoundGetMIDIDevList(csound,devs,output);
     for (i=0; i < n; i++)
       csound->Message(csound, " %d: %s (%s)\n",
