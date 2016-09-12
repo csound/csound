@@ -62,8 +62,9 @@
 #define S(x)    sizeof(x)
 
 int     ihold(CSOUND *, void *), turnoff(CSOUND *, void *);
-int     assign(CSOUND *, void *), rassign(CSOUND *, void *);
-int     aassign(CSOUND *, void *);
+int     gaassign(CSOUND *, void *), rassign(CSOUND *, void *);
+int     aassign(CSOUND *, void *), laassign(CSOUND *, void *);
+int     assign(CSOUND *, void *);
 int     init(CSOUND *, void *), ainit(CSOUND *, void *);
 int     minit(CSOUND *, void *), mainit(CSOUND *, void *);
 /* int     tinit(CSOUND *, void *), tassign(CSOUND *, void *); */

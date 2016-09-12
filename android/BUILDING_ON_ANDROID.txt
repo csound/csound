@@ -2,27 +2,24 @@ HOW TO BUILD CSOUND 6 FOR ANDROID
 =================================
 
 Michael Gogins, Steven Yi
-22 May 2014
+5 September 2016
 
 Csound 6 for Android includes the Csound library for Android, the Csound6
-app front end for the library, an app containing several demos of the
-library, and some plugins for Csound.
+app front end ("Csound for Android") for the library, an app containing 
+several demos of thelibrary, and some plugins for Csound.
 
 
 SETTING UP THE TOOLCHAIN
 ========================
 
-These instructions are for MinGW/MSys on Windows, but should mostly apply on
+These instructions are for Linuxs, but should mostly apply on
 other platforms as well. You need the following tools.
 
-Install MinGW/MSys from mingw.org. See How_to_Build_Csound_on_Windows.doc in
+For Windows, install MinGW/MSys from mingw.org. See How_to_Build_Csound_on_Windows.doc in
 the Csound 6 Git repository for how to set up the MinGW tools. On Linux, just
 install recent gcc/g++ packages. For OS X, install Xcode.
 
-Install the Android Developer Toolkit (ADT) from
-http://developer.android.com/sdk/index.html. Use the Eclipse version.
-Please note, if you have dificulty updating the ADT, see this:
-http://stackoverflow.com/questions/26551030/android-studio-updating-android-5-0-sdk-a-folder-failed-to-be-moved
+Install Android Studio from https://developer.android.com/studio/index.html.
 
 Install the Android Native Development Kit (NDK) from
 http://developer.android.com/tools/sdk/ndk/index.html.
@@ -40,22 +37,22 @@ use git to clone or pull source code for libsndfile, which is required by
 Csound, and for other optional third party libraries such as Fluidsynth
 and LuaJIT.
 
-In your MSys shell, you use the following shell script or other
+In your operating system shell, you should use the following shell script or other
 facility to set the environment variables that are used by the Android build:
 
-echo "Configure for Android/ARM, armeabi-v7a (ARMv7 VFP), Android 2.3.3)..."
+echo "Configure for Android/ARM..."
 
-export SDK=/d/android/adt-bundle-windows-x86-20140702
-export NDK=/d/Android/android-ndk-r10
-export ANDROID_NDK_ROOT=$NDK
 export CSOUND_HOME=/c/Users/mike/csound-csound6-git
-export NDK_MODULE_PATH=${CSOUND_HOME}/android/pluginlibs
-export PATH=${PATH}:$NDK_MODULE_PATH
+export SDK=/d/android/adt-bundle-windows-x86-20140702
+export ANDROID_NDK_ROOT=$NDK
+export NDK=/home/mkg/android-ndk-r12
+export NDKP=/home/mkg/android-ndk-r12/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-
+export NDK_MODULE_PATH=/home/mkg/csound/csound/android/pluginlibs
+export ANDROID_NDK_ROOT=/home/mkg/android-ndk-r12
+export NDKF=--sysroot /home/mkg/android-ndk-r12/platforms/android-19/arch-arm
+export NDKARCH=-march=armv7-a -mfloat-abi=softfp -Wl,--fix-cortex-a8
 export NDKABI=19
-export NDKVER=$NDK/toolchains/arm-linux-androideabi-4.8
-export NDKP=$NDKVER/prebuilt/windows-x86_64/bin/arm-linux-androideabi-
-export NDKF="--sysroot $NDK/platforms/android-$NDKABI/arch-arm"
-export NDKARCH="-march=armv7-a -mfloat-abi=softfp -Wl,--fix-cortex-a8"
+export NDKVER=/home/mkg/android-ndk-r12/toolchains/arm-linux-androideabi-4.9
 
 
 AUTOMATED BUILDING OF CSOUND LIBRARY AND PLUGINS
@@ -69,15 +66,16 @@ that libcsound and the plugin libs depend on (LuaJIT, Fluidsynth, and
 libsndfile). It will also patch projects so that they can be used together
 with the plugin libraries.
 
-2. build-all.sh: This script will go through all of the plugin libraries
+2. build-all-mkg.sh: This script will go through all of the plugin libraries
 and call ndk-build to build them, as well as go into the CsoundAndroid folder
 to build libcsound.  After running this script, all native parts of Csound
-should be compiled.
+should be compiled, and the libraries will be copied to the appropriate target 
+lib directories.
 
 MANUALLY BUILDING THE CSOUND PROJECTS
 =====================================
 
-To save build time, most native libraries are built as NDK modules so as
+Most native libraries are built as NDK modules so as
 to be available as pre-built shared libraries. The complete build
 may be outlined as follows.
 
@@ -141,22 +139,16 @@ libs directory, so that they will be included in the .apk file.
 BUILD THE CSOUND ANDROID APPS
 =============================
 
-Configure Eclipse for the Android SDK and for the Android NDK.
-
-Run Eclipse and load the $(CSOUND_SRC_ROOT)/android project directories:
-
-    CSDPlayer
-    CsoundAndroid
-    CsoundAndroidExamples
+Run Android Studio and open the CsoundForAndroid/build.gradle file.
 
 Make sure that the project.properties files are consistent with the
-environment variables about the Android configuration, e.g. if $NDKABI is 9,
+environment variables about the Android configuration, e.g. if $NDKABI is 19,
 then (a) the Android target version must be available when you inspect the
 Android SDK Manager configuration tool, and (b) the properties files must
 specify a target equal to or higher than the than $NDKABI, e.g. on my system
-it is target=android-10.
+it is target=android-21.
 
 Clean the projects (this should rebuild them).
 
-Connect your ARMv7 Android 2.3.3 or higher device to Eclipse with a USB cable. Run
+Connect your ARMv7 Android 5.0 or higher device to Eclipse with a USB cable. Run
 the Csound6 project. This wll create the .apk file as well.

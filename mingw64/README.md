@@ -71,7 +71,7 @@ sed -i 's/^M//' PKGBUILD
 7. Install the Chromium Embedded Framework from [here](https://cefbuilds.com/) and compile the solution using MSVS for 64 bit CPU architecture. Once you have confirmaed that the cefclient program runs, rebuild the wrapper library (libcef_dll_wrapper.lib) using the /MD (release) and /MDd (debug) compiler options, which are required by the Qt SDK.
 8. Install node.js for Windows 64 bit CPU architecture from [here](https://nodejs.org/en/). This is used to build csound.node for NW.js.
 9. Install NW.js for Windows 64 bit CPU architecture from [here](http://nwjs.io/). The latest version that I could get to work with csound.node is 0.12.3.
-10. Set an environment variable XSL_BASE_PATH in ~/.bash_profile e.g. to mingw64/share/xml/docbook/xsl-stylesheets-1.78.1. Clone or update the Csound manual repository from git@github.com:csound/manual.git. Execute "mingw32-make html-dist" in the mingw64 shell to build the Csound Reference Manual.
+10. Set an environment variable XSL_BASE_PATH in ~/.bash_profile e.g. to mingw64/share/xml/docbook/xsl-stylesheets-1.78.1. Clone or update the Csound manual repository from git@github.com:csound/manual.git. Execute "mingw32-make html-dist -DXSL_BASE_PATH" in the mingw64 shell to build the Csound Reference Manual.
 11. Edit the csound/mingw64/find_csound_dependencies.py script to reflect paths for tools and resources it requires. This may need to be edited if your paths differ from mine.
 12. Run ./build-mkg.sh in the mingw64 directory. It may be necessary to edit this script to reflect options or paths it requires. The first time you run this script, it should build Csound and then fail because some targets must be built with MSVS.
 13. Run the VS2013 x64 native tools command prompt. Change to the csound/mingw64 directory and run the make_import_library.cmd script. This will create a Microsoft-compatible import library for the mingw64-built Csound DLL. This import library is required to build csound.node and CsoundQt.
@@ -81,7 +81,7 @@ CONFIG *= html5
 CONFIG *= perfThread_build
 CONFIG *= rtmidi
 
-CEF_HOME = D:/cef_binary_3.2556.1368.g535c4fb_windows64
+CEF_HOME = D:/cef_binary_3.2785.1474.g4a88e67_windows64
 CSOUND_API_INCLUDE_DIR = D:/msys64/home/restore/csound/include
 CSOUND_INTERFACES_INCLUDE_DIR = D:/msys64/home/restore/csound/interfaces
 CSOUND_LIBRARY_DIR = D:/msys64/home/restore/csound/mingw64
@@ -92,7 +92,7 @@ LSNDFILE = D:/msys64/home/restore/Mega-Nerd/libsndfile/lib/libsndfile-1.lib
 PTHREAD_INCLUDE_DIR = D:/msys64/home/restore/pthreads-w32-2-9-1-release/Pre-built.2/include
 RTMIDI_DIR = D:/msys64/home/restore/rtmidi-2.1.1
 ```
-15. Run the node.js command prompt. Set the CSOUND_HOME environment variable to point to your Csound project root directory. Run 'nw-gyp rebuild --target=0.12.3 --arch=x64". If the script ends with "ok" it has succeeded.
+15. Run the node.js command prompt. Set the CSOUND_HOME environment variable to point to your Csound project root directory. Run 'nw-gyp rebuild --target=0.17.1 --arch=x64". If the script ends with "ok" it has succeeded.
 16. Run csound/mingw64/build-mkg.sh again. For a truly clean build, first delete the csound-mingw64 directory and all of its contents. The build script should:
   * Run CMake.
   * Run make.

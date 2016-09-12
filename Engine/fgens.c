@@ -1791,7 +1791,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     x[l2] = x[1];
     x[1] = x[l2 + 1] = FL(0.0);
 
-    for (j = 6; j < (nargs + 3); j++) {
+    for (j = 6; j < (nargs + 3); j+=3) {
       n = (int) (FL(0.5) + *valp++); if (n < 1) n = 1; /* frequency */
       if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
         nsw =0, valp = &(ff->e.c.extra[1]);
@@ -1801,7 +1801,12 @@ static int gen31(FGDATA *ff, FUNC *ftp)
       p = *valp++;                                       /* phase     */
       if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
         nsw =0, valp = &(ff->e.c.extra[1]);
-      p -= (MYFLT) ((int) p); if (p < FL(0.0)) p += FL(1.0); p *= TWOPI_F;
+      //p -= (MYFLT) ((int) p);
+      { MYFLT dummy = FL(0.0);
+        p = MODF(p, &dummy);
+      }
+      if (p < FL(0.0)) p += FL(1.0);
+      p *= TWOPI_F;
       d_re = cos((double) p); d_im = sin((double) p);
       p_re = 1.0; p_im = 0.0;   /* init. phase */
       for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
@@ -2172,7 +2177,7 @@ static int gen40(FGDATA *ff, FUNC *ftp)               /*gab d5*/
 static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
 {
     MYFLT   *fp = ftp->ftable, *pp = &ff->e.p[5];
-    int     j, k, width;
+    int     i, j, k, width;
     MYFLT    tot_prob = FL(0.0);
     int     nargs = ff->e.pcnt - 4;
 
@@ -2181,13 +2186,15 @@ static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
         return fterror(ff, Str("Gen41: negative probability not allowed"));
       tot_prob += pp[j+1];
     }
-    for (j=0; j< nargs; j+=2) {
+    printf("total prob = %g\n", tot_prob);
+    for (i=0, j=0; j< nargs; j+=2) {
       width = (int) ((pp[j+1]/tot_prob) * ff->flen +.5);
-      for ( k=0; k < width; k++) {
-        *fp++ = pp[j];
+      for ( k=0; k < width; k++,i++) {
+        fp[i] = pp[j];
       }
     }
-    *fp = pp[j-1];
+    //printf("GEN41: i=%d le=%d\n", i, ff->flen);
+    if (i<=ff->flen) fp[i] = pp[j-1]; /* conditinal isattempy to stop error */
 
     return OK;
 }
@@ -2702,7 +2709,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         }
 #endif
         natcps = pow(2.0, ((double) ((int) lpd.basenote - 69)
-                           + (double) lpd.detune * 0.01) / 12.0) * 440.0;
+                           + (double) lpd.detune * 0.01) / 12.0) * csound->A4;
         /* As far as I can tell this gainfac value is never used! */
         //gainfac = exp((double) lpd.gain * LOG10D20);
      /* if (lpd.basenote == 0)

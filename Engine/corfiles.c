@@ -228,6 +228,10 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     int n;
     char buffer[1024];
     char *s;
+    if (fname==NULL) {
+      csound->ErrorMsg(csound, Str("Null file name in copy_to_corefile"));
+      csound->LongJmp(csound, 1);
+    }
 #ifdef HAVE_CURL
     if (strstr(fname,"://")) {
       return copy_url_corefile(csound, fname, fromScore);
@@ -247,7 +251,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
       corfile_puts(buffer, mm);
       memset(buffer, '\0', 1024);
     }
-#ifdef JPFF
+#ifdef SCORE_PARSER
     if (fromScore) {
       corfile_puts("\n#exit\n", mm);
     }

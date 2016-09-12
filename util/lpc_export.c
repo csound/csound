@@ -79,7 +79,7 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
             hdr.framrate, hdr.srate, hdr.duration);
     if (UNLIKELY(hdr.npoles<=0)) { fclose(inf); fclose(outf); return 1; }
     str = (char *)csound->Malloc(csound,hdr.headersize-sizeof(LPHEADER)+4);
-    if (UNLIKELY(fread(&hdr, sizeof(char),
+    if (UNLIKELY(fread(str, sizeof(char),
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=
                  hdr.headersize-sizeof(LPHEADER)+4))
       csound->Message(csound, Str("Read failure\n"));
