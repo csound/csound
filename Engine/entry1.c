@@ -44,7 +44,8 @@
    S       String
    T       String or i-rate
    U       String or i/k-rate
-   B       Boolean
+   B       Boolean k-rate
+   b       Boolean i-rate; internally generated as required
    l       Label
    .       required arg of any-type
    and codes
@@ -165,7 +166,8 @@ OENTRY opcodlst_1[] = {
   { "=.r",    S(ASSIGN),0,  1,      "r",    "i",    rassign                 },
   { "=.i",    S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "=.k",    S(ASSIGNM),0, 2,      "zzzzzzzzzzzzzzzzzzzzzzzz", "z", NULL, minit },
-  { "=.a",    S(ASSIGN),0,  4,      "a",    "a",    NULL,   NULL,   aassign },
+  { "=.a",    S(ASSIGN),0,  4,      "a",    "a",    NULL,   NULL,   gaassign },
+  { "=.l",    S(ASSIGN),0,  4,      "a",    "a",    NULL,   NULL,   laassign },
   { "=.up",   S(UPSAMP),0,  4,      "a",    "k",    NULL,   NULL, (SUBR)upsamp },
   { "=.down",   S(DOWNSAMP),0,  3,  "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   //  { "=.t",    S(ASSIGNT),0, 2,      "t",    "kk",   NULL,   tassign, NULL   },

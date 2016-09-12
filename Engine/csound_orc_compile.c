@@ -303,12 +303,12 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       ip->opdstot += labelOpcode->dsblksiz;
 
       break;
+    case '=':
     case GOTO_TOKEN:
     case IGOTO_TOKEN:
     case KGOTO_TOKEN:
     case T_OPCODE:
     case T_OPCODE0:
-    case '=':
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound,
                         "create_opcode: Found node for opcode %s\n",
@@ -454,6 +454,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     TREE *current;
     MYFLT sr= FL(-1.0), kr= FL(-1.0), ksmps= FL(-1.0),
           nchnls= DFLT_NCHNLS, inchnls = FL(0.0), _0dbfs= FL(-1.0);
+    double A4 = 0.0;
     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
 
     addGlobalVariable(csound, engineState, rType, "sr", NULL);
@@ -462,6 +463,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     addGlobalVariable(csound, engineState, rType, "nchnls", NULL);
     addGlobalVariable(csound, engineState, rType, "nchnls_i", NULL);
     addGlobalVariable(csound, engineState, rType, "0dbfs", NULL);
+    addGlobalVariable(csound, engineState, rType, "A4", NULL);
     addGlobalVariable(csound, engineState, rType, "$sr", NULL);
     addGlobalVariable(csound, engineState, rType, "$kr", NULL);
     addGlobalVariable(csound, engineState, rType, "$ksmps", NULL);
@@ -541,11 +543,13 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           else if (current->left->type == ZERODBFS_TOKEN) {
             _0dbfs = val;
           }
-
+          else if (current->left->type == A4_TOKEN) {
+            A4 = val;
+          }
         }
-        else{
-        op->nxtop = create_opcode(csound, current, ip, engineState);
-        op = last_optxt(op);
+        else {
+          op->nxtop = create_opcode(csound, current, ip, engineState);
+          op = last_optxt(op);
         }
 
       }
@@ -594,8 +598,12 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->ekr = kr;
     if (_0dbfs < 0) csound->e0dbfs = DFLT_DBFS;
     else csound->e0dbfs = _0dbfs;
-
-    OPARMS  *O = csound->oparms;
+    if (A4 == 0) csound->A4 = 440.0;
+    else {
+      extern void csound_aops_init_tables(CSOUND *);
+      csound->A4 = A4;
+      csound_aops_init_tables(csound);
+    }
     if (UNLIKELY(csound->e0dbfs <= FL(0.0))){
       csound->Warning(csound,
                       Str("bad value for 0dbfs: must be positive. "
@@ -603,6 +611,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       csound->e0dbfs = DFLT_DBFS;
     }
 
+    OPARMS  *O = csound->oparms;
     if (O->nchnls_override > 0)
       csound->nchnls = csound->inchnls = O->nchnls_override;
     if (O->nchnls_i_override > 0) csound->inchnls = O->nchnls_i_override;
@@ -1715,6 +1724,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var->memBlock->value = csound->inchnls;
       var = csoundFindVariableWithName(csound, engineState->varPool, "0dbfs");
       var->memBlock->value = csound->e0dbfs;
+      var = csoundFindVariableWithName(csound, engineState->varPool, "A4");
+      var->memBlock->value = csound->A4;
     }
     if (csound->init_pass_threadlock)
       csoundUnlockMutex(csound->init_pass_threadlock);

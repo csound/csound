@@ -574,9 +574,12 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
         int card = atoi (card_);
         int num = atoi (num_);
         temp = strchr (line_, ':');
-        if (temp)
+        if (temp) {
           temp = temp + 2;
-        else return 0;
+        } else {
+          fclose(f);
+          return 0;
+        }
         if (list != NULL) {
           /* for some reason, there appears to be a memory
              problem if we try to copy more than 10 chars,

@@ -42,7 +42,7 @@ static void do_ifdef_skip_code(CSOUND *, yyscan_t);
 //static void print_csound_prsdata(CSOUND *,char *,yyscan_t);
 static void csound_prs_line(CORFIL*, yyscan_t);
 static void delete_macros(CSOUND*, yyscan_t);
-#define MACDEBUG 1
+//#define MACDEBUG 1
  
 static inline int isNameChar(int c, int pos)
 {
@@ -57,7 +57,7 @@ static inline int isNameChar(int c, int pos)
 
 #define YY_USER_INIT {csound_prs_scan_string(csound->scorestr->body, yyscanner); \
     csound_prsset_lineno(csound->scoLineOffset, yyscanner);             \
-    yyg->yy_flex_debug_r=1; PARM->macro_stack_size = 0;                 \
+    /*yyg->yy_flex_debug_r=1;*/ PARM->macro_stack_size = 0;             \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
     PARM->cf = csound->expanded_sco;                                    \
   }

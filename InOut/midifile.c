@@ -558,6 +558,7 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
     /* open file */
     if (name == NULL || name[0] == '\0')
       return -1;
+    //if (*name==3) name++;       /* Because of ETX added bt readOptions */
     if (strcmp(name, "stdin") == 0)
       f = stdin;
     else {
