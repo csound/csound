@@ -1,15 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-//    signingConfigs {
-//        CsoundForAndroid {
-//            keyAlias 'CsoundApplication'
-//            keyPassword 'Barbe48tFrant0'
-//            storePassword 'macadoodles'
-//            storeFile file('C:/Users/restore/CsoundForAndroid.jks')
-//        }
-//    }
-    compileSdkVersion 21
+    signingConfigs {
+        CsoundForAndroid {
+            keyAlias 'CsoundApplication'
+            keyPassword 'Barbe48tFrant0'
+            storePassword 'macadoodles'
+            storeFile file('/home/mkg/CsoundForAndroid.jks')
+        }
+    }
+    compileSdkVersion 24
     buildToolsVersion "24.0.2"
     defaultConfig {
         applicationId "com.csounds.Csound6"
@@ -22,12 +22,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-//            signingConfig signingConfigs.CsoundForAndroid
+            signingConfig signingConfigs.CsoundForAndroid
             debuggable true
         }
         debug {
             minifyEnabled false
-//            signingConfig signingConfigs.CsoundForAndroid
+            signingConfig signingConfigs.CsoundForAndroid
             debuggable true
         }
     }
