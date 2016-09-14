@@ -1,7 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
+    signingConfigs {
+        CsoundForAndroid {
+            keyAlias 'CsoundApplication'
+            keyPassword 'Barbe48tFrant0'
+            storePassword 'macadoodles'
+            storeFile file('/home/mkg/CsoundForAndroid.jks')
+        }
+    }
+    compileSdkVersion 24
     buildToolsVersion "24.0.2"
 
     defaultConfig {
@@ -19,6 +27,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':CsoundAndroid')
 }
