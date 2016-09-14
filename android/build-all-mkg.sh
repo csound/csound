@@ -4,6 +4,10 @@ if [ "$1" = "clean" ]
 then
     echo "Cleaning up shared libraries..."
     find . -name "*.so" -delete
+    echo "Cleaning up static libraries..."
+    find . -name "*.a" -delete
+    echo "Cleaning up object files..."
+    find . -name "*.o" -delete
 fi
 
 cd ${CSOUND_HOME}/android/pluginlibs/luajit-2.0
