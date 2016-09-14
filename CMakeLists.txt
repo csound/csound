@@ -8,8 +8,6 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(Csound)
 
-include("${CUSTOM_CMAKE}" OPTIONAL)
-
 ENABLE_TESTING()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
