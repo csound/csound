@@ -33,6 +33,7 @@ rm -f $JNILIBS/armeabi-v7a/libsndfile.so
 rm -f $JNILIBS/armeabi/libgnustl_shared.so
 rm -f $JNILIBS/armeabi-v7a/libgnustl_shared.so
 
+echo "These are the built and copied libs for the Csound for Android app:"
 find . -name "*.so"
 
 # Also copy other resources used by Csound opcodes.
