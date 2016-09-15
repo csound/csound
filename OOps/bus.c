@@ -1342,7 +1342,7 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
             return NOTOK;
           }
           //if n==0 then EOF which we treat as empty
-          else ch = '\0';
+          if(n==0) ch = '\0';
           keyCode = (int)((unsigned char) ch);
           /* FD_ISSET(0, &rfds) will be true. */
         }
