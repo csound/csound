@@ -21,7 +21,9 @@
 #pragma warning(disable: 4786)
 #endif
 #include "CsoundFile.hpp"
+#if !defined(__ANDROID__)
 #include <boost/algorithm/string.hpp>
+#endif
 #include <string.h>
 #include <ctime>
 #include <cctype>
@@ -70,7 +72,10 @@ void PUBLIC scatterArgs(const std::string buffer,
       }
   }
   argv.clear();
+  // TODO: Replace boost throughout interfaces.
+  #if !defined(__ANDROID__)
   boost::split(args, buffer, boost::is_any_of(" \t\n\r"), boost::token_compress_on);
+  #endif
   for (int i = 0; i < args.size(); ++i) {
       argv.push_back(const_cast<char *>(strdup(args[i].c_str())));
   }
