@@ -91,11 +91,13 @@ void bqPlayerCallback(SLBufferQueueItf bq, void *context)
   double dtime;
   clock_gettime(CLOCK_MONOTONIC, &ts);
   dtime = ts.tv_sec + 1e-9*ts.tv_nsec;
+#if DEBUG
   if(dtime - old > 0.021) {
     csound->Message(csound, "inter-callback: %f s\n", dtime - old );
     csound->Message(csound, "aver cb time = %f s, max = %f s\n",ttime/p_count, tmax); 
 
   }
+#endif
     old = dtime;
   if(p->async){
     int read=0,items = p->outBufSamples, i, r = 0;

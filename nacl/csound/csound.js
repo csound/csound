@@ -85,10 +85,14 @@ var csound = (function() {
    *  After loading the Csound module, point the csound member var to to it.
    */
    function moduleDidLoad() {
+    try {
     csound.module = document.getElementById('csound_module');
        updateStatus('Ready.', 1);
     if (typeof window.moduleDidLoad !== 'undefined') {
       window.moduleDidLoad();
+    }
+    } catch(exception) {
+    	updateStatus("No module in destroyModule:\n" + exception);
     }
   }
 
@@ -96,7 +100,11 @@ var csound = (function() {
    * Unloads/destroys module.
    */
   function destroyModule() {
+    try {
     csound.module.parentNode.removeChild(csound.module);
+    } catch(exception) {
+    	updateStatus("No module in destroyModule:\n" + exception);
+    }
     csound.module = null;
   }
 
