@@ -1767,8 +1767,6 @@ void pffft_zconvolve_accumulate(PFFFT_Setup *s, const float *a, const float *b, 
     ((v4sf_union*)vab)[1].f[0] = abi + ai*bi*scaling;
   }
 }
-
-
 #else // defined(PFFFT_SIMD_DISABLE)
 
 // standard routine using scalar floats, without SIMD stuff.
