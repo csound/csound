@@ -9,9 +9,8 @@ android {
             storeFile file('/home/mkg/CsoundForAndroid.jks')
         }
     }
-    compileSdkVersion 24
-    buildToolsVersion "24.0.2"
-
+    compileSdkVersion 23
+    buildToolsVersion "23.0.3"
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 21
