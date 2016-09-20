@@ -1580,7 +1580,7 @@ PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format
     if (format != NULL) {
       int i=0;
       while ((typename = sample_format_map[i].longformat) != NULL) {
-        if (!strcmp(type,typename)) break;
+        if (!strcmp(format,typename)) break;
         i++;
       }
       if (format != NULL) {
