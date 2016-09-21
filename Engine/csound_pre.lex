@@ -518,7 +518,7 @@ QNAN		"qnan"[ \t]*\(
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
                   if (UNLIKELY(PARM->depth > 1024))
-                    csound->Die(csound, Str("unexpected EOF"));
+                    csound->Die(csound, Str("unexpected EOF!"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
                   /* csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n", */
                   /*                  __FILE__, __LINE__, */

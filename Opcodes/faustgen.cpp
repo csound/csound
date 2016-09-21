@@ -35,7 +35,7 @@
 
 */
 #include "csdl.h"
-#include "faust/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/UI.h"
 #if defined(MACOSX) || defined(linux) || defined(HAIKU)
 #include <unistd.h>
@@ -382,7 +382,7 @@ int delete_faustgen(CSOUND *csound, void *p) {
       if(*pfobj == fobj) *pfobj = fobj->nxt;
       csound->Free(csound, fobj);
       delete pp->ctls;
-      deleteDSPInstance(pp->engine);
+      delete pp->engine;
     } else
    csound->Warning(csound,
                       Str("could not find DSP %p for deletion"), pp->engine);
@@ -426,7 +426,7 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
                                Str("factory not found %d\n"), (int) factory);
   }
 
-  dsp = createDSPInstance((llvm_dsp_factory *)fobj->obj);
+  dsp = ((llvm_dsp_factory *)fobj->obj)->createDSPInstance();
   if(dsp == NULL)
     return csound->InitError(csound, Str("Faust instantiation problem \n"));
 
@@ -469,11 +469,11 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
   p->engine->init(csound->GetSr(csound));
 
   if(p->engine->getNumInputs() != p->INCOUNT-1) {
-    deleteDSPInstance(p->engine);
+    delete p->engine;
     return csound->InitError(csound, Str("wrong number of input args\n"));
   }
   if(p->engine->getNumOutputs() != p->OUTCOUNT-1){
-    deleteDSPInstance(p->engine);
+    delete p->engine;
     return csound->InitError(csound, Str("wrong number of output args\n"));
   }
 
@@ -529,7 +529,7 @@ void *init_faustgen_thread(void *pp){
     pthread_exit(&ret);
   }
 
-  dsp = createDSPInstance(p->factory);
+  dsp = p->factory->createDSPInstance();
   if(dsp == NULL) {
     int ret = csound->InitError(csound, Str("Faust instantiation problem \n"));
     free(pp);
@@ -566,7 +566,7 @@ void *init_faustgen_thread(void *pp){
   dsp->init(csound->GetSr(csound));
   if(p->engine->getNumInputs() != p->INCOUNT-1) {
     int ret;
-    deleteDSPInstance(p->engine);
+    delete p->engine;
     deleteDSPFactory(p->factory);
     free(pp);
     ret  =csound->InitError(csound, Str("wrong number of input args\n"));
@@ -575,7 +575,7 @@ void *init_faustgen_thread(void *pp){
   }
   if(p->engine->getNumOutputs() != p->OUTCOUNT-1){
     int ret;
-    deleteDSPInstance(p->engine);
+    delete p->engine;
     deleteDSPFactory(p->factory);
     free(pp);
     ret = csound->InitError(csound, Str("wrong number of output args\n"));
