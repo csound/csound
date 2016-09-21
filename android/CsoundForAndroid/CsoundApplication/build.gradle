@@ -15,15 +15,15 @@ android {
         applicationId "com.csounds.Csound6"
         minSdkVersion 21
         targetSdkVersion 21
-        versionCode 3
-        versionName "6.08.0"
+        versionCode 4
+        versionName "6.08.0b"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.CsoundForAndroid
-            debuggable true
+            debuggable false
         }
         debug {
             minifyEnabled false
