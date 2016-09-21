@@ -464,8 +464,11 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
                                    YY_CURRENT_BUFFER);
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
-                  if (UNLIKELY(PARM->depth > 1024))
-                    csound->Die(csound, Str("unexpected EOF"));
+                  if (UNLIKELY(PARM->depth > 1024)){
+                    //csound->Die(csound, Str("unexpected EOF!!"));
+		    csound->Message(csound, Str("unexpected EOF!!\n"));
+		    csound->LongJmp(csound, 1);
+		  }
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
                   csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n",
                                    __FILE__, __LINE__,

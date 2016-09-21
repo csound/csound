@@ -8,8 +8,15 @@ else
   echo "Using branch: $BRANCH_NAME"
 fi
 
+if [ $2 == 0 ]; then
+  export CS_VERSION=6
+  exit
+else
+  export CS_VERSION=$2
+  echo "Version: $CS_VERSION"
+fi
+
 export MANUAL_DIR=`pwd`/../../../manual
-export CS_VERSION="6.07"
 export PACKAGE_NAME=csound${CS_VERSION}-OSX-universal.pkg
 export DMG_DIR="Csound ${CS_VERSION}"
 export DMG_NAME="csound${CS_VERSION}-OSX-universal.dmg"
@@ -49,8 +56,8 @@ mkdir build
 cd build
 export BUILD_DIR=`pwd`
 # RUN CMAKE TWICE TO GET AROUND ISSUE WITH UNIVERSAL BUILD
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/faust/libfaust.a  -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/faust/libfaust.a -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/libfaust.a  -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK -DBUILD_STK_OPCODES=1
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/libfaust.a -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK -DBUILD_STK_OPCODES=1
 make -j6 install
 
 cd ../..
@@ -146,7 +153,7 @@ cp $DEPS_BASE/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libportaudio.2.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libportmidi.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libpng16.16.dylib $SUPPORT_LIBS_DIR
-cp $DEPS_BASE/lib/libFLAC.8.2.0.dylib $SUPPORT_LIBS_DIR
+cp $DEPS_BASE/lib/libFLAC.8.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libvorbisenc.2.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
@@ -167,7 +174,7 @@ install_name_tool -id libsndfile.1.dylib $SUPPORT_LIBS_DIR/libsndfile.1.dylib
 install_name_tool -id libportaudio.2.dylib $SUPPORT_LIBS_DIR/libportaudio.2.dylib
 install_name_tool -id libportmidi.dylib $SUPPORT_LIBS_DIR/libportmidi.dylib
 install_name_tool -id libpng16.16.dylib $SUPPORT_LIBS_DIR/libpng16.16.dylib
-install_name_tool -id libFLAC.8.2.0.dylib $SUPPORT_LIBS_DIR/libFLAC.8.2.0.dylib
+install_name_tool -id libFLAC.8.dylib $SUPPORT_LIBS_DIR/libFLAC.8.dylib
 install_name_tool -id libvorbisenc.2.dylib $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 install_name_tool -id libvorbis.0.dylib $SUPPORT_LIBS_DIR/libvorbis.0.dylib
 install_name_tool -id libogg.0.dylib $SUPPORT_LIBS_DIR/libogg.0.dylib
@@ -191,10 +198,10 @@ install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libsndfile
 install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbis.0.dylib
 install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 
-export OLD_FLAC_LIB=/usr/local/lib/libFLAC.8.2.0.dylib
-export NEW_FLAC_LIB=@loader_path/libFLAC.8.2.0.dylib
+export OLD_FLAC_LIB=/usr/local/lib/libFLAC.8.dylib
+export NEW_FLAC_LIB=@loader_path/libFLAC.8.dylib
 install_name_tool -change $OLD_FLAC_LIB $NEW_FLAC_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
-install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libFLAC.8.2.0.dylib
+install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libFLAC.8.dylib
 
 install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/libfltk.1.3.dylib  $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
 install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/libfltk.1.3.dylib  $SUPPORT_LIBS_DIR/libfltk_forms.1.3.dylib
