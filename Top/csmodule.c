@@ -705,6 +705,8 @@ PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
       /* ugly hack to fix importing modules in Python opcodes */
       if (len >= 9 && strcmp(&(libraryPath[len - 9]), "/libpy.so") == 0)
         flg |= RTLD_GLOBAL;
+      if (len >= 12 && strcmp(&(libraryPath[len - 12]), "/libpy.dylib") == 0)
+        flg |= RTLD_GLOBAL;
     }
     *library = (void*) dlopen(libraryPath, flg);
     return (*library != NULL ? 0 : -1);
