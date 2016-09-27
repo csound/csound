@@ -1245,11 +1245,11 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
           case 't':
             FIND(Str("no tempo value"));
             {
-              int val;
-              sscanf(s, "%d%n", &val, &n); /* use this tempo .. */
+              double val;
+              sscanf(s, "%g%n", &val, &n); /* use this tempo .. */
               s += n;
-              if (UNLIKELY(val < 0)) dieu(csound, Str("illegal tempo"));
-              else if (val == 0) {
+              if (UNLIKELY(val < 0.0)) dieu(csound, Str("illegal tempo"));
+              else if (val == 0.0) {
                 csound->keep_tmp = 1;
                 break;
               }
