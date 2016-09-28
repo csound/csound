@@ -434,7 +434,7 @@ int openSLRecOpen(open_sl_params *params){
   default:
     return -1;
   }
-  nchnls = 1; /* always mono for the moment // params->csound->GetNchnls(params->csound); */
+  nchnls = params->csound->GetNchnls(params->csound); /* allowing multi channel input */
   // configure audio source
   SLDataLocator_IODevice loc_dev = {SL_DATALOCATOR_IODEVICE, SL_IODEVICE_AUDIOINPUT,
 				    SL_DEFAULTDEVICEID_AUDIOINPUT, NULL};
@@ -442,7 +442,7 @@ int openSLRecOpen(open_sl_params *params){
 
   // configure audio sink
   SLDataLocator_BufferQueue loc_bq = {SL_DATALOCATOR_BUFFERQUEUE, 2};
-  SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM,nchnls, sr,
+  SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM,nchnls,sr,
 				 SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16,
 				 SL_SPEAKER_FRONT_CENTER, SL_BYTEORDER_LITTLEENDIAN};
   SLDataSink audioSnk = {&loc_bq, &format_pcm};
