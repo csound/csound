@@ -348,7 +348,7 @@ int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm)
   returnVal = openSLInitOutParams(params);
   if(openSLPlayOpen(params) !=  SL_RESULT_SUCCESS)
     returnVal = -1;
-  else csound->Message(csound, Str("OpenSL: open for output \n"));
+  else csound->Message(csound, Str("OpenSL: open for output.\n"));
   csound->Message(csound, "outbuff samples: %d \n", params->outBufSamples);
   return returnVal;
 }
@@ -441,7 +441,7 @@ int openSLRecOpen(open_sl_params *params){
   SLDataSource audioSrc = {&loc_dev, NULL};
 
   // configure audio sink
-  SLDataLocator_BufferQueue loc_bq = {SL_DATALOCATOR_BUFFERQUEUE, 2};
+  SLDataLocator_BufferQueue loc_bq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
   SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM,nchnls,sr,
 				 SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16,
 				 SL_SPEAKER_FRONT_CENTER, SL_BYTEORDER_LITTLEENDIAN};
@@ -449,32 +449,45 @@ int openSLRecOpen(open_sl_params *params){
 
   // create audio recorder
   // (requires the RECORD_AUDIO permission)
-  const SLInterfaceID id[1] = {SL_IID_BUFFERQUEUE};
+  const SLInterfaceID id[1] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE};
   const SLboolean req[1] = {SL_BOOLEAN_TRUE};
   result = (*params->engineEngine)->CreateAudioRecorder(params->engineEngine, &(params->recorderObject), &audioSrc,
 							&audioSnk, 1, id, req);
-  if (SL_RESULT_SUCCESS != result) goto end_recopen;
-
+  if (SL_RESULT_SUCCESS != result) {
+    csound->Message(csound, "OpenSL: CreateAudioRecorder failed.\n");
+    goto end_recopen;
+  }
   // realize the audio recorder
   result = (*params->recorderObject)->Realize(params->recorderObject, SL_BOOLEAN_FALSE);
-  if (SL_RESULT_SUCCESS != result) goto end_recopen;
-
-
+  if (SL_RESULT_SUCCESS != result) {
+    csound->Message(csound, "OpenSL: Realize failed.\n");
+    goto end_recopen;
+  } 
   // get the record interface
   result = (*params->recorderObject)->GetInterface(params->recorderObject, SL_IID_RECORD, &(params->recorderRecord));
-  if (SL_RESULT_SUCCESS != result) goto end_recopen;
-
+  if (SL_RESULT_SUCCESS != result) {
+    csound->Message(csound, "OpenSL: GetInterface SL_IID_RECORD failed.\n");
+    goto end_recopen;
+  } 
   // get the buffer queue interface
-  result = (*params->recorderObject)->GetInterface(params->recorderObject, SL_IID_BUFFERQUEUE,
+  result = (*params->recorderObject)->GetInterface(params->recorderObject, SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
 						   &(params->recorderBufferQueue));
-  if (SL_RESULT_SUCCESS != result) goto end_recopen;
-
+  if (SL_RESULT_SUCCESS != result) {
+    csound->Message(csound, "OpenSL: GetInterface SL_IID_BUFFERQUEUE failed.\n");
+    goto end_recopen;
+  } 
   // register callback on the buffer queue
   result = (*params->recorderBufferQueue)->RegisterCallback(params->recorderBufferQueue, bqRecorderCallback,
 							    params);
-  if (SL_RESULT_SUCCESS != result) goto end_recopen;
-
-  result = (*params->recorderRecord)->SetRecordState(params->recorderRecord, SL_RECORDSTATE_RECORDING);
+   if (SL_RESULT_SUCCESS != result) {
+    csound->Message(csound, "OpenSL: RegisterCallback failed.\n");
+    goto end_recopen;
+  } 
+ result = (*params->recorderRecord)->SetRecordState(params->recorderRecord, SL_RECORDSTATE_RECORDING);
+   if (SL_RESULT_SUCCESS != result) {
+    csound->Message(csound, "OpenSL: SetRecordState failed.\n");
+    goto end_recopen;
+  } 
 
   if((params->recBuffer = (short *) params->csound->Calloc(params->csound, params->inBufSamples*sizeof(short))) == NULL) {
     return -1;
@@ -497,9 +510,7 @@ int openSLInitInParams(open_sl_params *params){
   if((params->incb = csoundCreateCircularBuffer(csound,params->inParm.bufSamp_HW*csound->GetNchnls(csound), sizeof(MYFLT)))== NULL) {
     return -1;
   }
-
   return OK;
-
 }
 /* open for audio input */
 int androidrecopen_(CSOUND *csound, const csRtAudioParams *parm)
@@ -524,27 +535,28 @@ int androidrecopen_(CSOUND *csound, const csRtAudioParams *parm)
   memcpy(&(params->inParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtRecordUserData(p)) = (void*) params;
   returnVal = openSLInitInParams(params);
-  if(openSLRecOpen(params) !=  SL_RESULT_SUCCESS) {
-    csound->Message(csound, Str("OpenSL: input open error \n"));
-    returnVal = -1;
+  if(returnVal !=  SL_RESULT_SUCCESS) {
+    csound->Message(csound, "OpenSL: openSLInitInParams error (%d).\n", returnVal);
   }
-  
+  returnVal = openSLRecOpen(params);
+  if(returnVal !=  SL_RESULT_SUCCESS) {
+    csound->Message(csound, "OpenSL: openSLRecOpen error (%d).\n", returnVal);
+    returnVal = -1;
+  } else
+    csound->Message(csound, Str("OpenSL: open for input.\n"));
   return returnVal;
 }
 
 /* close the I/O device entirely */
 void androidrtclose_(CSOUND *csound)
 {
-
   open_sl_params *params;
   params = (open_sl_params *) csound->QueryGlobalVariable(csound,
 							  "_openslGlobals");
-
   csound->Message(csound, "aver cb time = %f s, max = %f s\n",ttime/p_count, tmax); 
   params->run = 0;
   if (params == NULL)
     return;
-
   // destroy buffer queue audio player object, and invalidate all associated interfaces
   if (params->bqPlayerObject != NULL) {
     SLuint32 state = SL_PLAYSTATE_PLAYING;
