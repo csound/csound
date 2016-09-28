@@ -1,7 +1,7 @@
 /*
-    getfttrgs.c:
+    getftargs.c:
 
-    Copyright (C) 2016 Guillermo Senna
+    Copyright (C) 2016 Guillermo Senna.
 
     This file is part of Csound.
 
@@ -34,6 +34,12 @@ typedef struct {
 
 static int getftargs(CSOUND *, FTARGS *);
 
+/*
+    Inspiration for the implementation of this Opcode was taken
+    from the following Csound Opcodes: "sprintf", "puts" and "pwd".
+    Credit for that goes to their respective authors.
+*/
+
 static int getftargs_init(CSOUND *csound, FTARGS *p)
 {
     p->status = OK;
@@ -61,13 +67,6 @@ static int getftargs(CSOUND *csound, FTARGS *p)
     FUNC *src;
     int32 len, i;
 
-    p->Scd->size = 1024;        /* Why a fixed size?  Surely better to
-                                   expand if necessary */
-    if (p->Scd->data == NULL) {
-      p->Scd->data = (char*) csound->Calloc(csound, p->Scd->size);
-    }
-    else p->Scd->data = (char*) csound->ReAlloc(csound, p->Scd->data, p->Scd->size);
-
     if (UNLIKELY((src = csound->FTnp2Find(csound, p->ftable)) == NULL)) {
       return csound->PerfError(csound, p->h.insdshead,
                               Str("table: could not find ftable %d"),
@@ -75,10 +74,17 @@ static int getftargs(CSOUND *csound, FTARGS *p)
     }
 
     len = src->argcnt;
+    p->Scd->size = len * 8 + 1; /* argcnt * (6digits + dot + trailing space) + \0 */
+
+    if (p->Scd->data == NULL) {
+      p->Scd->data = (char*) csound->Calloc(csound, p->Scd->size);
+    }
+    else p->Scd->data = (char*) csound->ReAlloc(csound, p->Scd->data, p->Scd->size);
+
     {
-      char* curr = p->Scd->data, *const end = curr + 1024;
+      char* curr = p->Scd->data, *const end = curr + p->Scd->size;
       for (i = 1; curr != end && i != len;i++) {
-        curr += snprintf(curr, end-curr, "%f ", src->args[i]);
+        curr += snprintf(curr, end-curr, "%g ", src->args[i]);
       }
     }
 

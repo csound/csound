@@ -286,7 +286,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (!csoundYield(csound))
       return -1;
     /* IV - Oct 31 2002: now we can read and sort the score */
-          
+
     if (csound->scorename != NULL &&
         (n = strlen(csound->scorename)) > 4 &&  /* if score ?.srt or ?.xtr */
         (!strcmp(csound->scorename + (n - 4), ".srt") ||
