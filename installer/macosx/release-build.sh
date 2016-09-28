@@ -8,14 +8,12 @@ else
   echo "Using branch: $BRANCH_NAME"
 fi
 
-if [ $2 == 0 ]; then
-  export CS_VERSION=6
-  exit
-else
+if [ $# -gt 1 ]; then
   export CS_VERSION=$2
-  echo "Version: $CS_VERSION"
+else
+  export CS_VERSION="6"
 fi
-
+echo "Version: $CS_VERSION"
 export MANUAL_DIR=`pwd`/../../../manual
 export PACKAGE_NAME=csound${CS_VERSION}-OSX-universal.pkg
 export DMG_DIR="Csound ${CS_VERSION}"
@@ -27,9 +25,9 @@ export DEPS_BASE=/usr/local
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
 
-if [ $# -gt 1 ]; then
-	cd $2
-	echo "Using directory $2 `pwd`"
+if [ $# -gt 2 ]; then
+	cd $3
+	echo "Using directory $3 `pwd`"
         export INSTALLER_DIR=`pwd`/installer
         rm -rf installer 
 	rm -rf csound6/build/dist
