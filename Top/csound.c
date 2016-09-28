@@ -793,15 +793,16 @@ static const CSOUND cenviron_ = {
       0, 1, 1, 0,   /*    sfread, ...       */
       0, 0, 0, 0,   /*    inbufsamps, ...   */
       0,            /*    sfsampsize        */
-      1,            /*    displa          */
-      1, 0, 135, /*    disp.. graphsoff ... */
-      0, 0, 0,      /*    Beatmode, ...     */
+      1,            /*    displays          */
+      1, 0, 135,    /*    graphsoff ...     */
+      0, 0,         /*    Beatmode, ...     */
       0, 0,         /*    usingcscore, ...  */
       0, 0, 0, 0,   /*    RTevents, ...     */
       0, 0,         /*    ringbell, ...     */
       0, 0, 0,      /*    rewrt_hdr, ...    */
-      0.0f, 0.0f,   /*    sr_override ...  */
-      0, 0,     /*    nchnls_override ... */
+      0.0,          /*    cmdTempo          */
+      0.0f, 0.0f,   /*    sr_override ...   */
+      0, 0,     /*    nchnls_override ...   */
       (char*) NULL, (char*) NULL, NULL,
       (char*) NULL, (char*) NULL, (char*) NULL,
       (char*) NULL, (char*) NULL,
