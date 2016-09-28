@@ -216,11 +216,12 @@ typedef struct CORFIL {
     int     informat, outformat;
     int     sfsampsize;
     int     displays, graphsoff, postscript, msglevel;
-    int     Beatmode, cmdTempo, oMaxLag;
+    int     Beatmode, oMaxLag;
     int     usingcscore, Linein;
     int     RTevents, Midiin, FMidiin, RMidiin;
     int     ringbell, termifend;
     int     rewrt_hdr, heartbeat, gen01defer;
+    double  cmdTempo;
     float   sr_override, kr_override;
     int     nchnls_override, nchnls_i_override;
     char    *infilename, *outfilename;
