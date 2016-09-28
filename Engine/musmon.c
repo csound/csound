@@ -73,12 +73,12 @@ void print_benchmark_info(CSOUND *csound, const char *s)
                     (char*) s, rt, ct);
 }
 
-static void settempo(CSOUND *csound, MYFLT tempo)
+static void settempo(CSOUND *csound, double tempo)
 {
-    if (tempo <= FL(0.0)) return;
+    if (tempo <= 0.0) return;
     if (csound->oparms->Beatmode==1)
-      csound->ibeatTime = (int64_t)(csound->esr*60.0 / (double) tempo);
-    csound->curBeat_inc = (double) tempo / (60.0 * (double) csound->ekr);
+      csound->ibeatTime = (int64_t)(csound->esr*60.0 / tempo);
+    csound->curBeat_inc = tempo / (60.0 * (double) csound->ekr);
 }
 
 int gettempo(CSOUND *csound, GTEMPO *p)
@@ -93,22 +93,22 @@ int gettempo(CSOUND *csound, GTEMPO *p)
 
 int tempset(CSOUND *csound, TEMPO *p)
 {
-    MYFLT tempo;
+    double tempo;
 
-    if (UNLIKELY((tempo = *p->istartempo) <= FL(0.0))) {
+    if (UNLIKELY((tempo = (double)*p->istartempo) <= FL(0.0))) {
       return csound->InitError(csound, Str("illegal istartempo value"));
     }
     if (UNLIKELY(csound->oparms->Beatmode==0))
       return csound->InitError(csound, Str("Beat mode not in force"));
     settempo(csound, tempo);
-    p->prvtempo = tempo;
+    p->prvtempo = (MYFLT)tempo;
     return OK;
 }
 
 int tempo(CSOUND *csound, TEMPO *p)
 {
     if (*p->ktempo != p->prvtempo) {
-      settempo(csound, *p->ktempo);
+      settempo(csound, (double)*p->ktempo);
       p->prvtempo = *p->ktempo;
     }
     return OK;
@@ -212,10 +212,10 @@ int musmon(CSOUND *csound)
     csound->prvbt = csound->curbt = csound->nxtbt = 0.0;
     csound->curp2 = csound->nxtim = csound->timeOffs = csound->beatOffs = 0.0;
     csound->icurTime = 0L;
-    if (O->Beatmode && O->cmdTempo > 0) {
+    if (O->Beatmode && O->cmdTempo > 0.0) {
       /* if performing from beats, set the initial tempo */
-     csound->curBeat_inc = (double) O->cmdTempo / (60.0 * (double) csound->ekr);
-     csound->ibeatTime = (int64_t)(csound->esr*60.0 / (double) O->cmdTempo);
+     csound->curBeat_inc = O->cmdTempo / (60.0 * (double) csound->ekr);
+     csound->ibeatTime = (int64_t)(csound->esr*60.0 / O->cmdTempo);
     }
     else {
       csound->curBeat_inc = 1.0 / (double) csound->ekr;
@@ -979,7 +979,7 @@ int sensevents(CSOUND *csound)
         switch (e->opcod) {
         case 'w':
           if (!O->Beatmode)                   /* Not beatmode: read 'w' */
-            settempo(csound, e->p2orig);      /*   to init the tempo    */
+            settempo(csound, (double)e->p2orig); /* to init the tempo   */
           continue;                           /*   for this section     */
         case 'q':
         case 'i':
@@ -1343,9 +1343,9 @@ void musmon_rewind_score(CSOUND *csound)
       csound->evt.opcod  = '\0';
       /* reset tempo */
       if (csound->oparms->Beatmode)
-        settempo(csound, (MYFLT) csound->oparms->cmdTempo);
+        settempo(csound, csound->oparms->cmdTempo);
       else
-        settempo(csound, FL(60.0));
+        settempo(csound, 60.0);
       /* update section/overall amplitudes, reset to section 1 */
       section_amps(csound, 1);
       STA(sectno) = 1;
