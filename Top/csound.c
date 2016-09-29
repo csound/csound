@@ -2258,7 +2258,7 @@ static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
 #else
     FILE *fp = stderr;
     if (attr & CSOUNDMSG_TYPE_MASK == CSOUNDMSG_STDOUT)
-      fp = stdout;    
+      fp = stdout;
     if (!attr || !csound->enableMsgAttr) {
       vfprintf(fp, format, args);
       return;
