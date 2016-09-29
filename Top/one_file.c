@@ -1017,7 +1017,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
 {
     char  *p;
     int   argc = 0;
-    char  *argv[CSD_MAX_ARGS];
+    const char  *argv[CSD_MAX_ARGS];
     char  buffer[CSD_MAX_LINE_LEN];
 
     //alloc_globals(csound);

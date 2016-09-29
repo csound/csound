@@ -1092,7 +1092,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     return 0;
 }
 
-PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
+PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
 {
     OPARMS  *O = csound->oparms;
     char    *s, **argv;
@@ -1427,7 +1427,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
 
 PUBLIC int csoundSetOption(CSOUND *csound, const char *option){
     /* if already compiled and running, return */
-    char *args[2] = {"csound", option};
+    const char *args[2] = {"csound", option};
     csound->info_message_request = 1;
     if (csound->engineStatus & CS_STATE_COMP) return 1;
     return (argdecode(csound, 1, args) ? 0 : 1);
