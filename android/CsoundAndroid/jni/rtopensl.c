@@ -132,7 +132,7 @@ void bqPlayerCallback(SLBufferQueueItf bq, void *context)
   if(tmax < dtime) tmax = dtime;
   if(dtime > 0.01) {
     csound->Message(csound, "delta = %f s\n", dtime);
-    csound->Message(csound, "aver cb time = %f s, max = %f s\n",ttime/p_count, tmax);
+    csound->Message(csound, "Mean callback time: %f s, max = %f s\n",ttime/p_count, tmax);
   }
   ttime +=  dtime;
   p_count++;
@@ -187,7 +187,7 @@ int openSLPlayOpen(open_sl_params *params)
   SLresult result;
   SLuint32 sr = params->outParm.sampleRate;
 
-  params->csound->Message(params->csound, "play open sl \n");
+  params->csound->Message(params->csound, "openSLPlayOpen...\n");
 
   // configure audio source
   SLDataLocator_BufferQueue loc_bufq = {SL_DATALOCATOR_BUFFERQUEUE, 1};
@@ -298,7 +298,7 @@ int openSLInitOutParams(open_sl_params *params){
   CSOUND *csound = params->csound;
   params->outBufSamples  = params->outParm.bufSamp_SW*csound->GetNchnls(csound);
   if((params->outputBuffer = (MYFLT *) csound->Calloc(csound, params->outBufSamples*sizeof(MYFLT))) == NULL){
-      csound->Message(csound, "memory allocation failure in opensl module \n");
+      csound->Message(csound, "Memory allocation failure in opensl module.\n");
       goto err_return;
     }
     if((params->outcb = csoundCreateCircularBuffer(csound, params->outParm.bufSamp_HW*csound->GetNchnls(csound), sizeof(MYFLT))) == NULL) {
@@ -441,7 +441,7 @@ int openSLRecOpen(open_sl_params *params){
   SLDataSource audioSrc = {&loc_dev, NULL};
 
   // configure audio sink
-  SLDataLocator_BufferQueue loc_bq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
+  SLDataLocator_BufferQueue loc_bq = {SL_DATALOCATOR_ANDROIDBUFFERQUEUE, 2};
   SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM,nchnls,sr,
 				 SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16,
 				 SL_SPEAKER_FRONT_CENTER, SL_BYTEORDER_LITTLEENDIAN};
@@ -449,7 +449,7 @@ int openSLRecOpen(open_sl_params *params){
 
   // create audio recorder
   // (requires the RECORD_AUDIO permission)
-  const SLInterfaceID id[1] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE};
+  const SLInterfaceID id[1] = {SL_IID_ANDROIDBUFFERQUEUESOURCE};
   const SLboolean req[1] = {SL_BOOLEAN_TRUE};
   result = (*params->engineEngine)->CreateAudioRecorder(params->engineEngine, &(params->recorderObject), &audioSrc,
 							&audioSnk, 1, id, req);
@@ -503,7 +503,7 @@ int openSLInitInParams(open_sl_params *params){
   CSOUND *csound = params->csound;
   params->inBufSamples  = params->inParm.bufSamp_SW*csound->GetNchnls(csound);
   if((params->inputBuffer = (MYFLT *)csound->Calloc(csound, params->inBufSamples*sizeof(MYFLT))) == NULL){
-    csound->Message(params->csound, "memory allocation failure in opensl module \n");
+    csound->Message(params->csound, "Memory allocation failure in opensl module.\n");
     return -1;
   }
   memset(params->inputBuffer, 0, params->inBufSamples*sizeof(MYFLT));
@@ -528,7 +528,7 @@ int androidrecopen_(CSOUND *csound, const csRtAudioParams *parm)
     params->csound = p;
 
     if(openSLCreateEngine(params) != SL_RESULT_SUCCESS) {
-      csound->Message(csound, Str("OpenSL: engine create error \n"));
+      csound->Message(csound, Str("OpenSL: engine create error.\n"));
       return -1;
     }
   }
@@ -553,7 +553,7 @@ void androidrtclose_(CSOUND *csound)
   open_sl_params *params;
   params = (open_sl_params *) csound->QueryGlobalVariable(csound,
 							  "_openslGlobals");
-  csound->Message(csound, "aver cb time = %f s, max = %f s\n",ttime/p_count, tmax); 
+  csound->Message(csound, "Mean callbac time: %f s, max = %f s\n",ttime/p_count, tmax); 
   params->run = 0;
   if (params == NULL)
     return;
@@ -621,7 +621,7 @@ void androidrtclose_(CSOUND *csound)
   *(csound->GetRtRecordUserData(csound)) = NULL;
   *(csound->GetRtPlayUserData(csound)) = NULL;
   csound->DestroyGlobalVariable(csound, "_openslGlobals");
-  csound->Message(csound, "CLOSING CSOUND RT AUDIO \n");
+  csound->Message(csound, "Closing Cound realtime audio.\n");
 
 }
 

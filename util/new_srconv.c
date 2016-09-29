@@ -180,7 +180,7 @@ int main(int argc, char **argv)
     char        c, *s;
     const char  *envoutyp;
     char        outformch = 's';
-    char        err_msg[256];
+    char        err_msg[300];
     sf_count_t  flen;
 
     outformat = SF_FORMAT_PCM_16;

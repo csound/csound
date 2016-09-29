@@ -189,7 +189,11 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
       // if (p->multicast) lo_address_set_ttl(p->addr, 2);
       if (p->multicast) {
         u_char ttl = 2;
+          #if defined(LINUX)
+        setsockopt((long) p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+          #else
         setsockopt(p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+          #endif
       }
       csound->Free(csound, p->lhost); p->lhost = csound->Strdup(csound, hh);
     }
