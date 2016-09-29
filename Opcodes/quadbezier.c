@@ -1,7 +1,7 @@
 /*
     quadbezier.c:
 
-    Copyright (C) 2016 Guillermo Senna
+    Copyright (C) 2016 Guillermo Senna.
 
     This file is part of Csound.
 
@@ -52,6 +52,31 @@ static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
     return -1;
 }
 #endif
+
+/*
+      This Gen routine fills a table with the values produced by applying the
+      quadratic B??zier function. It is aimed at frontend developers and will
+      draw the correct paths as long as it is treated like a regular function.
+      This means that, for example, you won't be able to create a circle and
+      store it inside an f-table.
+
+      References:
+      https://pomax.github.io/bezierinfo/ -> A very concise summary on the matter.
+      http://stackoverflow.com/questions/5634460/quadratic-bezier-curve-calculate-point
+      http://stackoverflow.com/questions/27791915/quadratic-bezier-curve-calculate-t-given-x
+      https://github.com/vikman90/bezier
+      https://en.wikipedia.org/wiki/B??zier_curve
+
+      Implementation:
+      It is assumed that x1 equals 0 and that x[n] can't never be equal or
+      greater than x[n+1]. On the other hand, cx[n] can be equal to x[n] or
+      x[n+1].
+
+      For the coding part, I've recycled code from some of the numbered GEN
+      routines and specially from the "fareygen" and other named routines.
+      Credit for that goes to the respective authors of those routines.
+
+*/
 
 static int quadbeziertable (FGDATA *ff, FUNC *ftp)
 {
