@@ -43,7 +43,7 @@ using namespace std;
 
 void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata);
 
-int main(int argc, char *argv[])
+int main(int argc, const char **argv)
 {
     if (argc == 1) {
         cout << "Usage:" << endl;

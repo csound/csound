@@ -104,7 +104,7 @@ static void checkOptions(CSOUND *csound)
 }
 
 
-PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
+PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
 {
     OPARMS  *O = csound->oparms;
     char    *s;
@@ -514,7 +514,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     return musmon(csound);
 }
 
-PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
+PUBLIC int csoundCompile(CSOUND *csound, int argc, const char **argv){
 
     int result = csoundCompileArgs(csound,argc,argv);
 
@@ -522,7 +522,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
     else return result;
 }
 
-PUBLIC int csoundCompileCsd(CSOUND *csound, char *str) {
+PUBLIC int csoundCompileCsd(CSOUND *csound, const char *str) {
 #ifndef OLD
     CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
     if(tt != NULL){

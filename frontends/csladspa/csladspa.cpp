@@ -116,7 +116,7 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   cmdl[4] = (char*) kr_override.c_str();
 
   csound =  new Csound;
-  result = csound->Compile(5,cmdl);
+  result = csound->Compile(5,(const char **)cmdl);
   spout = csound->GetSpout();
   spin  = csound->GetSpin();
   memset(ctl, 0, sizeof(LADSPA_Data *)*MAXPORTS);
