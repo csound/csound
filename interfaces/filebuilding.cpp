@@ -29,8 +29,8 @@ extern "C" {
   }
 
   PUBLIC void csoundNewCSD(char *path) {
-    char *argv[2];
-    CSOUND *instance;
+   char *argv[2];
+   CSOUND *instance;
    argv[0] = (char *)malloc(7);
    argv[1] = (char *)malloc(strlen(path)+1);
    strcpy(argv[0], "csound");
@@ -41,7 +41,7 @@ extern "C" {
 
    printf("%s \n", argv[1]);
    instance = csoundCreate(NULL);
-   csoundCompile(instance,2,argv);
+   csoundCompile(instance,2,(const char**)argv);
    perfthread((void *) instance);
    csoundReset(instance);
    // csoundDestroy(instance);
