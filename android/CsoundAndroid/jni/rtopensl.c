@@ -434,14 +434,14 @@ int openSLRecOpen(open_sl_params *params){
   default:
     return -1;
   }
-  nchnls = params->csound->GetNchnls(params->csound); /* allowing multi channel input */
+  nchnls = csound->GetNchnls_i(params->csound); /* allowing multi channel input */
   // configure audio source
   SLDataLocator_IODevice loc_dev = {SL_DATALOCATOR_IODEVICE, SL_IODEVICE_AUDIOINPUT,
 				    SL_DEFAULTDEVICEID_AUDIOINPUT, NULL};
   SLDataSource audioSrc = {&loc_dev, NULL};
 
   // configure audio sink
-  SLDataLocator_BufferQueue loc_bq = {SL_DATALOCATOR_ANDROIDBUFFERQUEUE, 2};
+  SLDataLocator_BufferQueue loc_bq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
   SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM,nchnls,sr,
 				 SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16,
 				 SL_SPEAKER_FRONT_CENTER, SL_BYTEORDER_LITTLEENDIAN};
@@ -449,7 +449,7 @@ int openSLRecOpen(open_sl_params *params){
 
   // create audio recorder
   // (requires the RECORD_AUDIO permission)
-  const SLInterfaceID id[1] = {SL_IID_ANDROIDBUFFERQUEUESOURCE};
+  const SLInterfaceID id[1] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE};
   const SLboolean req[1] = {SL_BOOLEAN_TRUE};
   result = (*params->engineEngine)->CreateAudioRecorder(params->engineEngine, &(params->recorderObject), &audioSrc,
 							&audioSnk, 1, id, req);
@@ -553,7 +553,7 @@ void androidrtclose_(CSOUND *csound)
   open_sl_params *params;
   params = (open_sl_params *) csound->QueryGlobalVariable(csound,
 							  "_openslGlobals");
-  csound->Message(csound, "Mean callbac time: %f s, max = %f s\n",ttime/p_count, tmax); 
+  csound->Message(csound, "Mean callback time: %f s, max = %f s\n",ttime/p_count, tmax); 
   params->run = 0;
   if (params == NULL)
     return;
@@ -624,5 +624,3 @@ void androidrtclose_(CSOUND *csound)
   csound->Message(csound, "Closing Cound realtime audio.\n");
 
 }
-
-
