@@ -79,7 +79,8 @@ static int getftargs(CSOUND *csound, FTARGS *p)
     if (p->Scd->data == NULL) {
       p->Scd->data = (char*) csound->Calloc(csound, p->Scd->size);
     }
-    else p->Scd->data = (char*) csound->ReAlloc(csound, p->Scd->data, p->Scd->size);
+    else
+      p->Scd->data = (char*) csound->ReAlloc(csound, p->Scd->data, p->Scd->size);
 
     {
       char* curr = p->Scd->data, *const end = curr + p->Scd->size;

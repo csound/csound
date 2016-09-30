@@ -27,32 +27,6 @@
 static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c);
 static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int x);
 
-#if 0
-static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
-{
-    CSOUND  *csound = ff->csound;
-    char    buf[64];
-    va_list args;
-
-    snprintf(buf, 64, Str("ftable %d: "), ff->fno);
-    va_start(args, s);
-    csound->ErrMsgV(csound, buf, s, args);
-    va_end(args);
-    csound->Message(csound, "f%3.0f %8.2f %8.2f ",
-                            ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
-    if (csound->ISSTRCOD(ff->e.p[4]))
-      csound->Message(csound, ff->e.strarg);
-    else
-      csound->Message(csound, "%8.2f", ff->e.p[4]);
-    if (csound->ISSTRCOD(ff->e.p[5]))
-      csound->Message(csound, "  \"%s\" ...\n", ff->e.strarg);
-    else
-      csound->Message(csound, "%8.2f ...\n", ff->e.p[5]);
-
-    return -1;
-}
-#endif
-
 /*
       This Gen routine fills a table with the values produced by applying the
       quadratic B??zier function. It is aimed at frontend developers and will
