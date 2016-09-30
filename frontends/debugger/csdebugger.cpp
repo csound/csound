@@ -43,7 +43,7 @@ using namespace std;
 
 void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata);
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
     if (argc == 1) {
         cout << "Usage:" << endl;
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     int ksmpsOffset = atoi(argv[3]);
 
     Csound* csound = new Csound();
-    csound->Compile(2,argv);
+    csound->Compile(2, (const char **)argv);
     csound->Start();
     csoundDebuggerInit(csound->GetCsound());
     csoundSetBreakpointCallback(csound->GetCsound(), brkpt_cb, NULL);
