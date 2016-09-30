@@ -61,32 +61,6 @@ static int FareyLength (int n);
 static int PrimeFactors (int n, PFACTOR p[]);
 static void GenerateFarey (int n, RATIO flist[], int size);
 
-#if 0
-static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
-{
-    CSOUND  *csound = ff->csound;
-    char    buf[64];
-    va_list args;
-
-    snprintf(buf, 64, Str("ftable %d: "), ff->fno);
-    va_start(args, s);
-    csound->ErrMsgV(csound, buf, s, args);
-    va_end(args);
-    csound->Message(csound, "f%3.0f %8.2f %8.2f ",
-                            ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
-    if (csound->ISSTRCOD(ff->e.p[4]))
-      csound->Message(csound, ff->e.strarg);
-    else
-      csound->Message(csound, "%8.2f", ff->e.p[4]);
-    if (csound->ISSTRCOD(ff->e.p[5]))
-      csound->Message(csound, "  \"%s\" ...\n", ff->e.strarg);
-    else
-      csound->Message(csound, "%8.2f ...\n", ff->e.p[5]);
-
-    return -1;
-}
-#endif
-
 static int fareytable (FGDATA *ff, FUNC *ftp)
 {
     /*
