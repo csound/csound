@@ -1093,7 +1093,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     return 0;
 }
 
-PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
+PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
 {
     OPARMS  *O = csound->oparms;
     char    *s, **argv;
@@ -1426,9 +1426,9 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
     return 1;
 }
 
-PUBLIC int csoundSetOption(CSOUND *csound, char *option){
+PUBLIC int csoundSetOption(CSOUND *csound, const char *option){
     /* if already compiled and running, return */
-    char *args[2] = {"csound", option};
+    const char *args[2] = {"csound", option};
     csound->info_message_request = 1;
     if (csound->engineStatus & CS_STATE_COMP) return 1;
     return (argdecode(csound, 1, args) ? 0 : 1);
@@ -1547,7 +1547,7 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
 }
 
 
-PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format)
+PUBLIC void csoundSetOutput(CSOUND *csound, const char *name, const char *type, const char *format)
 {
 
     OPARMS *oparms = csound->oparms;
@@ -1590,7 +1590,7 @@ PUBLIC void csoundSetOutput(CSOUND *csound, char *name, char *type, char *format
     }
 }
 
-PUBLIC void csoundSetInput(CSOUND *csound, char *name) {
+PUBLIC void csoundSetInput(CSOUND *csound, const char *name) {
     OPARMS *oparms = csound->oparms;
 
     /* if already compiled and running, return */
@@ -1610,7 +1610,7 @@ PUBLIC void csoundSetInput(CSOUND *csound, char *name) {
     oparms->sfread = 1;
 }
 
-PUBLIC void csoundSetMIDIInput(CSOUND *csound, char *name) {
+PUBLIC void csoundSetMIDIInput(CSOUND *csound, const char *name) {
     OPARMS *oparms = csound->oparms;
 
     /* if already compiled and running, return */
@@ -1630,7 +1630,7 @@ PUBLIC void csoundSetMIDIInput(CSOUND *csound, char *name) {
     oparms->Midiin = 1;
 }
 
-PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, char *name) {
+PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, const char *name) {
     OPARMS *oparms = csound->oparms;
 
     /* if already compiled and running, return */
@@ -1650,7 +1650,7 @@ PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, char *name) {
     oparms->FMidiin = 1;
 }
 
-PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, char *name) {
+PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, const char *name) {
     OPARMS *oparms = csound->oparms;
 
     /* if already compiled and running, return */
@@ -1661,7 +1661,7 @@ PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, char *name) {
     strcpy(oparms->FMidioutname, name);
 }
 
-PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name) {
+PUBLIC void csoundSetMIDIOutput(CSOUND *csound, const char *name) {
     OPARMS *oparms = csound->oparms;
 
     /* if already compiled and running, return */

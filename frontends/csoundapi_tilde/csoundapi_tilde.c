@@ -278,7 +278,7 @@ static void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
       csoundSetExternalMidiInCloseCallback(x->csound, close_midi_callback);
 
       csoundSetMessageCallback(x->csound, message_callback);
-      x->result = csoundCompile(x->csound, x->argnum, cmdl);
+      x->result = csoundCompile(x->csound, x->argnum, (const char **)cmdl);
 
 
       if (!x->result) {
@@ -419,7 +419,7 @@ static void csoundapi_reset(t_csoundapi *x)
       csoundSetExternalMidiInOpenCallback(x->csound, open_midi_callback);
       csoundSetExternalMidiReadCallback(x->csound, read_midi_callback);
       csoundSetExternalMidiInCloseCallback(x->csound, close_midi_callback);
-      x->result = csoundCompile(x->csound, x->argnum, x->cmdl);
+      x->result = csoundCompile(x->csound, x->argnum, (const char **)x->cmdl);
 
       if (!x->result) {
         x->end = 0;
@@ -490,7 +490,7 @@ static void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
     csoundSetExternalMidiReadCallback(x->csound, read_midi_callback);
     csoundSetExternalMidiInCloseCallback(x->csound, close_midi_callback);
     x->run = 0;
-    x->result = csoundCompile(x->csound, x->argnum, cmdl);
+    x->result = csoundCompile(x->csound, x->argnum, (const char **)cmdl);
 
 
     if (!x->result) {
