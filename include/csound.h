@@ -660,7 +660,7 @@ extern "C" {
      *  Read arguments, parse and compile an orchestra, read, process and
      *  load a score.
     */
-    PUBLIC int csoundCompileArgs(CSOUND *, int argc, char **argv);
+    PUBLIC int csoundCompileArgs(CSOUND *, int argc, const char **argv);
 
     /**
      * Prepares Csound for performance after compilation
@@ -687,7 +687,7 @@ extern "C" {
      *  Calls csoundStart() internally.
      *  Can only be called again after reset (see csoundReset())
      */
-    PUBLIC int csoundCompile(CSOUND *, int argc, char **argv);
+    PUBLIC int csoundCompile(CSOUND *, int argc, const char **argv);
 
     /**
      * Compiles a Csound input file (CSD, .csd file)
@@ -707,7 +707,7 @@ extern "C" {
      *
      */
 
-    PUBLIC int csoundCompileCsd(CSOUND *csound, char *str);
+    PUBLIC int csoundCompileCsd(CSOUND *csound, const char *str);
 
     /**
      * Compiles a Csound input file contained in a string of text,
@@ -846,7 +846,7 @@ extern "C" {
      * Set a single csound option (flag). Returns CSOUND_SUCCESS on success.
      * NB: blank spaces are not allowed
      */
-    PUBLIC int csoundSetOption(CSOUND *csound, char *option);
+    PUBLIC int csoundSetOption(CSOUND *csound, const char *option);
 
     /**
      *  Configure Csound with a given set of parameters defined in
@@ -900,33 +900,33 @@ extern "C" {
     *   For RT audio, use device_id from CS_AUDIODEVICE for a given audio device.
     *
     */
-  PUBLIC void csoundSetOutput(CSOUND *csound, char *name,
-                              char *type, char *format);
+  PUBLIC void csoundSetOutput(CSOUND *csound, const char *name,
+                              const char *type, const char *format);
 
     /**
      *  Set input source
      */
-  PUBLIC void csoundSetInput(CSOUND *csound, char *name);
+  PUBLIC void csoundSetInput(CSOUND *csound, const char *name);
 
    /**
     *  Set MIDI input device name/number
     */
-  PUBLIC void csoundSetMIDIInput(CSOUND *csound, char *name);
+  PUBLIC void csoundSetMIDIInput(CSOUND *csound, const char *name);
 
    /**
     *  Set MIDI file input name
     */
-  PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, char *name);
+  PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, const char *name);
 
    /**
     *  Set MIDI output device name/number
     */
-  PUBLIC void csoundSetMIDIOutput(CSOUND *csound, char *name);
+  PUBLIC void csoundSetMIDIOutput(CSOUND *csound, const char *name);
 
    /**
     *  Set MIDI file utput name
     */
-  PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, char *name);
+  PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, const char *name);
 
 #if !defined(SWIG)
     /**
@@ -953,7 +953,7 @@ extern "C" {
      /**
      *  Sets the current RT audio module
      */
-    PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module);
+    PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module);
 
      /**
       * retrieves a module name and type ("audio" or "midi") given a
@@ -1128,7 +1128,7 @@ extern "C" {
     /**
      *  Sets the current MIDI IO module
      */
-    PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module);
+    PUBLIC void csoundSetMIDIModule(CSOUND *csound, const char *module);
 
      /**
       * call this function with state 1 if the host is implementing

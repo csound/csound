@@ -153,22 +153,22 @@ public:
   virtual void GetParams(CSOUND_PARAMS *p){
    csoundGetParams(csound, p);
   }
-  virtual void SetOutput(char *name, char *type, char *format){
+  virtual void SetOutput(const char *name,const char *type,const char *format){
     csoundSetOutput(csound, name, type, format);
   }
-  virtual void SetInput(char *name){
+  virtual void SetInput(const char *name){
     csoundSetInput(csound, name);
   }
-  virtual void SetMIDIInput(char *name){
+  virtual void SetMIDIInput(const char *name){
     csoundSetMIDIInput(csound,name);
   }
-  virtual void SetMIDIFileInput(char *name){
+  virtual void SetMIDIFileInput(const char *name){
     csoundSetMIDIFileInput(csound,name);
   }
-  virtual void SetMIDIOutput(char *name){
+  virtual void SetMIDIOutput(const char *name){
      csoundSetMIDIOutput(csound,name);
   }
-   virtual void SetMIDIFileOutput(char *name){
+   virtual void SetMIDIFileOutput(const char *name){
     csoundSetMIDIFileOutput(csound,name);
   }
   // performance
@@ -196,7 +196,7 @@ public:
   {
     return csoundReadScore(csound, str);
   }
-  virtual int CompileArgs(int argc, char **argv)
+  virtual int CompileArgs(int argc,const char **argv)
   {
     return csoundCompileArgs(csound, argc, argv);
   }
@@ -204,30 +204,30 @@ public:
   {
     return  csoundStart(csound);
   }
-  virtual int Compile(int argc, char **argv)
+  virtual int Compile(int argc,const char **argv)
   {
     return csoundCompile(csound, argc, argv);
   }
-  virtual int Compile(char *csdName)
+  virtual int Compile(const char *csdName)
   {
-    char  *argv[3];
+    const char  *argv[3];
     argv[0] = (char*)"csound";
     argv[1] = csdName;
     argv[2] = (char*) 0;
     return csoundCompile(csound, 2, &(argv[0]));
   }
-  virtual int Compile(char *orcName, char *scoName)
+  virtual int Compile(const char *orcName,const  char *scoName)
   {
-    char  *argv[4];
+    const char  *argv[4];
     argv[0] = (char*)"csound";
     argv[1] = orcName;
     argv[2] = scoName;
     argv[3] = (char*) 0;
     return csoundCompile(csound, 3, &(argv[0]));
   }
-  virtual int Compile(char *arg1, char *arg2, char *arg3)
+  virtual int Compile(const char *arg1,const  char *arg2,const  char *arg3)
   {
-    char  *argv[5];
+    const char  *argv[5];
     argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
@@ -235,9 +235,9 @@ public:
     argv[4] = (char*) 0;
     return csoundCompile(csound, 4, &(argv[0]));
   }
-  virtual int Compile(char *arg1, char *arg2, char *arg3, char *arg4)
+  virtual int Compile(const char *arg1,const  char *arg2,const  char *arg3,const  char *arg4)
   {
-    char  *argv[6];
+    const char  *argv[6];
     argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
@@ -246,10 +246,10 @@ public:
     argv[5] = (char*) 0;
     return csoundCompile(csound, 5, &(argv[0]));
   }
-  virtual int Compile(char *arg1, char *arg2, char *arg3,
-                      char *arg4, char *arg5)
+  virtual int Compile(const char *arg1,const  char *arg2,const char *arg3,
+                      const char *arg4,const  char *arg5)
   {
-    char  *argv[7];
+    const char  *argv[7];
     argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
@@ -259,11 +259,11 @@ public:
     argv[6] = (char*) 0;
     return csoundCompile(csound, 6, &(argv[0]));
   }
-  virtual int CompileCsd(char *csd)
+  virtual int CompileCsd(const char *csd)
   {
     return csoundCompileCsd(csound, csd);
   }
-  virtual int CompileCsdText(char *csd_text)
+  virtual int CompileCsdText(const char *csd_text)
   {
     return csoundCompileCsdText(csound, csd_text);
   }
@@ -275,7 +275,7 @@ public:
   {
     return csoundPerform(csound);
   }
-  virtual int Perform(int argc, char **argv)
+  virtual int Perform(int argc, const char **argv)
   {
     int retval = csoundCompile(csound, argc, argv);
     if (!retval)
@@ -283,9 +283,9 @@ public:
     csoundCleanup(csound);
     return (retval >= 0 ? 0 : retval);
   }
-  virtual int Perform(char *csdName)
+  virtual int Perform(const char *csdName)
   {
-    char  *argv[3];
+    const char  *argv[3];
     int   retval;
     argv[0] = (char*)"csound";
     argv[1] = csdName;
@@ -295,9 +295,9 @@ public:
     csoundCleanup(csound);
     return (retval >= 0 ? 0 : retval);
   }
-  virtual int Perform(char *orcName, char *scoName)
+  virtual int Perform(const char *orcName, const char *scoName)
   {
-    char  *argv[4];
+    const char  *argv[4];
     int   retval;
     argv[0] = (char*)"csound";
     argv[1] = orcName;
@@ -308,9 +308,9 @@ public:
     csoundCleanup(csound);
     return (retval >= 0 ? 0 : retval);
   }
-  virtual int Perform(char *arg1, char *arg2, char *arg3)
+  virtual int Perform(const char *arg1,const char *arg2,const char *arg3)
   {
-    char  *argv[5];
+    const char  *argv[5];
     int   retval;
     argv[0] = (char*)"csound";
     argv[1] = arg1;
@@ -322,9 +322,9 @@ public:
     csoundCleanup(csound);
     return (retval >= 0 ? 0 : retval);
   }
-  virtual int Perform(char *arg1, char *arg2, char *arg3, char *arg4)
+  virtual int Perform(const char *arg1,const  char *arg2,const  char *arg3,const  char *arg4)
   {
-    char  *argv[6];
+    const char  *argv[6];
     int   retval;
     argv[0] = (char*)"csound";
     argv[1] = arg1;
@@ -337,10 +337,10 @@ public:
     csoundCleanup(csound);
     return (retval >= 0 ? 0 : retval);
   }
-  virtual int Perform(char *arg1, char *arg2, char *arg3,
-                      char *arg4, char *arg5)
+  virtual int Perform(const char *arg1,const  char *arg2,const  char *arg3,
+                      const char *arg4, const  char *arg5)
   {
-    char  *argv[7];
+    const char  *argv[7];
     int   retval;
     argv[0] = (char*)"csound";
     argv[1] = arg1;

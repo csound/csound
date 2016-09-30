@@ -78,7 +78,7 @@ int     readOptions_file(CSOUND *, FILE *, int);
 #else
 int     readOptions(CSOUND *, CORFIL *, int);
 #endif
-int     argdecode(CSOUND *, int, char **);
+int     argdecode(CSOUND *, int, const char **);
 void    remove_tmpfiles(CSOUND *);
 void    add_tmpfile(CSOUND *, char *);
 void    xturnoff(CSOUND *, INSDS *);

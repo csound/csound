@@ -72,11 +72,11 @@ public:
   virtual CSOUND *getCsound();
   virtual intptr_t getThis();
   virtual CsoundFile *getCsoundFile();
-  virtual int compile(int argc, char **argv);
+  virtual int compile(int argc, const char **argv);
   virtual int compile();
   virtual size_t getSpoutSize() const;
   virtual std::string getOutputSoundfileName() const;
-  virtual int perform(int argc, char **argv);
+  virtual int perform(int argc, const char **argv);
   virtual int perform();
   virtual int performKsmps();
   virtual void cleanup();

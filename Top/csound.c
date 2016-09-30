@@ -3046,7 +3046,7 @@ static void reset(CSOUND *csound)
 }
 
 
-PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
+PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module){
     char *s;
     if ((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
       strncpy(s, module, 20);
@@ -3067,7 +3067,7 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
 }
 
 
-PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
+PUBLIC void csoundSetMIDIModule(CSOUND *csound, const char *module){
     char *s;
 
     if ((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
