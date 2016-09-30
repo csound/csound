@@ -218,13 +218,12 @@ PUBLIC void cs_hash_table_remove(CSOUND* csound,
     while (item != NULL) {
         if (strcmp(key, item->key) == 0) {
             if (previous == NULL) {
-                hashTable->buckets[index] = NULL;
-                csound->Free(csound, item);
-                return;
+                hashTable->buckets[index] = item->next;
             } else {
                 previous->next = item->next;
-                csound->Free(csound, item);
             }
+            csound->Free(csound, item);
+            return;
         }
         previous = item;
         item = item->next;
