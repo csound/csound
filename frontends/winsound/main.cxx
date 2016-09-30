@@ -56,7 +56,7 @@ char *getopcodedir(void)
 
 Fl_Preferences app(Fl_Preferences::USER, "csounds.com", "winsound");
 Fl_Preferences prof(app, "winsound");
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
     Fl_Double_Window* mw = make_mainwindow();
 #ifdef WIN32
@@ -90,7 +90,7 @@ void cs_compile_run(void)
     csoundSetYieldCallback(csound, yieldCallback);
     if (do_load) {
       char olddir[256];
-      char *argv[100];
+      const char *argv[100];
       char b1[12], b2[12], b3[12], b4[12], b5[12], b6[12], b7[12];
       int nxt=1;
       int itmp;
@@ -267,7 +267,7 @@ void cs_util_sndinfo(void)
 
 void cs_util_opc(int full)
 {
-    char *argv[2];
+    const char *argv[2];
     argv[0] = (char*)"csound";
     if (full) argv[1] = (char*)"-z1";
     else argv[1] = (char*)"-z0";
