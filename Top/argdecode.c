@@ -394,6 +394,7 @@ void set_output_format(OPARMS *O, char c)
     };
 }
 
+
 typedef struct  {
     char    *longformat;
     char    shortformat;
@@ -405,6 +406,52 @@ static const SAMPLE_FORMAT_ENTRY sample_format_map[] = {
   { "short",  's' },  { "ulaw",   'u' },  { "24bit",  '3' },
   { "vorbis", 'v' },  { NULL, '\0' }
 };
+
+const char* get_output_format(OPARMS *O)
+{
+  int i = 0;
+  char c;
+    switch (O->outformat) {
+    case  AE_ALAW:
+      c  = 'a';
+      break;
+    case AE_CHAR:
+      c  = 'c';
+      break;
+    case AE_UNCH:
+      c  = '8';
+      break;
+    case AE_FLOAT:
+      c  = 'f';
+      break;
+    case AE_DOUBLE:
+      c  = 'd';
+      break;
+    case AE_SHORT:
+      c  = 's';
+      break;
+    case AE_LONG:
+      c  = 'l';
+      break;
+    case AE_ULAW:
+      c  = 'u';
+      break;
+    case AE_24INT:
+      c  = '3';
+      break;
+    case AE_VORBIS:
+      c  = 'v';
+      break;      
+    default:
+      return NULL; 
+    };
+    while(c == sample_format_map[i].shortformat){
+      return sample_format_map[i].longformat;
+      i++;
+    }
+    return NULL;
+}
+
 
 typedef struct {
     char    *format;
@@ -1092,7 +1139,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     return 0;
 }
 
-PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
+PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
 {
     OPARMS  *O = csound->oparms;
     char    *s, **argv;
@@ -1427,10 +1474,12 @@ PUBLIC int argdecode(CSOUND *csound, int argc, char **argv_)
 
 PUBLIC int csoundSetOption(CSOUND *csound, const char *option){
     /* if already compiled and running, return */
-    char *args[2] = {"csound", option};
-    csound->info_message_request = 1;
     if (csound->engineStatus & CS_STATE_COMP) return 1;
+    else {
+    const char *args[2] = {"csound", option};
+    csound->info_message_request = 1;
     return (argdecode(csound, 1, args) ? 0 : 1);
+    }
 }
 
 PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p){
@@ -1588,6 +1637,21 @@ PUBLIC void csoundSetOutput(CSOUND *csound, const char *name, const char *type, 
       }
     }
 }
+
+PUBLIC void csoundGetOutputFormat(CSOUND *csound,
+			    char *type, char *format)
+{
+
+    OPARMS *oparms = csound->oparms;
+    int i = 0;
+    while (file_type_map[i].type == oparms->filetyp) {
+      strcpy(type,file_type_map[i].format); 
+      i++;
+    }
+    strcpy(format,get_output_format(oparms)); 
+}
+
+
 
 PUBLIC void csoundSetInput(CSOUND *csound, const char *name) {
     OPARMS *oparms = csound->oparms;
