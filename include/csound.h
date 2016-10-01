@@ -903,6 +903,16 @@ extern "C" {
   PUBLIC void csoundSetOutput(CSOUND *csound, const char *name,
                               const char *type, const char *format);
 
+  /**
+    *  Get output type and format.
+    *  type should have space for at least 5 chars excluding termination, 
+    *  and format should have space for at least 7 chars.
+    *  On return, these will hold the current values for
+    *  these parameters.
+    */
+  PUBLIC void csoundGetOutputFormat(CSOUND *csound,char *type,
+				    char *format);
+
     /**
      *  Set input source
      */
