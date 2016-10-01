@@ -39,7 +39,7 @@
 
 extern int UDPServerStart(CSOUND *csound, int port);
 extern  void    dieu(CSOUND *, char *, ...);
-extern  int     argdecode(CSOUND *, int, char **);
+extern  int     argdecode(CSOUND *, int, const char **);
 extern  int     init_pvsys(CSOUND *);
 //extern  char    *get_sconame(CSOUND *);
 extern  void    print_benchmark_info(CSOUND *, const char *);
