@@ -534,9 +534,8 @@ static int main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
     fd = csound->FileOpen2(csound, &outfile, CSFILE_STD, ats_outfile, "wb",
                           NULL, CSFTYPE_ATS, 0);
     if (UNLIKELY(fd == NULL)) {
-      csound->Message(csound, Str("\nCould not open %s for writing, bye...\n"),
+      csound->Die(csound, Str("\nCould not open %s for writing, bye...\n"),
                   ats_outfile);
-      csound->LongJmp(csound, 1);
     }
     /* call tracker */
     sound = tracker(csound, anargs, soundfile, resfile);
@@ -1493,14 +1492,12 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, file, &sfinfo,  "SFDIR;SSDIR",
                            CSFTYPE_UNKNOWN_AUDIO, 0);
     if (fd == NULL) {
-      csound->Message(csound, Str("atsa: error opening residual file '%s'"), file);
-      csound->LongJmp(csound, 1);
+      csound->Die(csound, Str("atsa: error opening residual file '%s'"), file);
     }
     if (sfinfo.channels != 2) {
-      csound->Message(csound,
-                      Str("atsa: residual file has %d channels, must be stereo !"),
-                      (int) sfinfo.channels);
-      csound->LongJmp(csound, 1);
+      csound->Die(csound,
+                  Str("atsa: residual file has %d channels, must be stereo !"),
+                  (int) sfinfo.channels);
     }
     file_sampling_rate = sfinfo.samplerate;
     sflen = (int) sfinfo.frames;
@@ -1826,9 +1823,8 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
     fd = csound->FileOpen2(csound, &sf, CSFILE_SND_W, output_file, &sfinfo,
                           NULL, CSFTYPE_WAVE, 0);
     if (fd == NULL) {
-      csound->Message(csound, Str("\nERROR: cannot open file %s for writing\n"),
-                      output_file);
-      csound->LongJmp(csound, 1);
+      csound->Die(csound, Str("\nERROR: cannot open file %s for writing\n"),
+                  output_file);
     }
     sf_set_string(sf, SF_STR_SOFTWARE, "created by ATSA");
     /* allocate memory */
@@ -1922,8 +1918,7 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
     ATS_HEADER header;
 
     if (sound->optimized == NIL) {
-      csound->Message(csound, Str("Error: sound not optimised !"));
-      csound->LongJmp(csound, 1);
+      csound->Die(csound, Str("Error: sound not optimised !"));
     }
     /* count how many partials are dead
      * unfortunately we have to do this first to
@@ -2746,8 +2741,7 @@ static void init_sound(CSOUND *csound, ATS_SOUND *sound, int sampling_rate,
     int     i, j;
 
     if (partials==0) {
-      csound->Message(csound, Str("No partials to track -- stopping\n"));
-      csound->LongJmp(csound,1);
+      csound->Die(csound, Str("No partials to track -- stopping\n"));
     }
     sound->srate = sampling_rate;
     sound->frame_size = frame_size;

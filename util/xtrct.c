@@ -40,8 +40,8 @@
 #define NUMBER_OF_SAMPLES       (4096)
 #define SHORTMAX                (32767)
 #define FIND(MSG)   if (*s == '\0')  \
-    if (!(--argc) || ((s = *++argv) && *s == '-')) {    \
-      csound->Die(csound, MSG); csound->LongJmp(csound, 1); }
+                        if (!(--argc) || ((s = *++argv) && *s == '-')) \
+                            csound->Die(csound, MSG);
 
 typedef struct {
   long        sample;         /* Time file starts in samples */
@@ -120,10 +120,8 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
             FIND(Str("no outfilename"))
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
-            if (strcmp(O.outfilename, "stdin") == 0) {
-              csound->Message(csound, Str("-o cannot be stdin"));
-              csound->LongJmp(csound,1);
-            }
+            if (strcmp(O.outfilename, "stdin") == 0)
+              csound->Die(csound, Str("-o cannot be stdin"));
             break;
           case 'S':
             FIND(Str("no start sample"));
@@ -296,8 +294,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
         fd = csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W, "stdout");
         if (fd == NULL) {
           sf_close(outfd);
-          csound->Message(csound, Str("Memory allocation failure"));
-          csound->LongJmp(csound, 1);
+          csound->Die(csound, Str("Memory allocation failure"));
         }
       }
     }
@@ -305,11 +302,9 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
       fd = csound->FileOpen2(csound, &outfd, CSFILE_SND_W,
                        O.outfilename, &sfinfo, "SFDIR",
                        csound->type2csfiletype(O.filetyp, O.outformat), 0);
-    if (fd == NULL) {
-      csound->Message(csound, Str("Failed to open output file %s"),
-                      O.outfilename);
-      csound->LongJmp(csound, 1);
-    }
+    if (fd == NULL)
+      csound->Die(csound, Str("Failed to open output file %s"),
+                          O.outfilename);
     ExtractSound(csound, &xtrc, infd, outfd, &O);
     if (O.ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c", '\007');

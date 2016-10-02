@@ -44,9 +44,8 @@
 #define NUMBER_OF_FILES   (32)
 
 #define FIND(MSG)   if (*s == '\0')  \
-    if (!(--argc) || ((s = *++argv) && *s == '-')) {                     \
-      csound->Die(csound, Str("mixer: error: %s"), MSG);                 \
-      csound->LongJmp(csound, 1); }
+                        if (!(--argc) || ((s = *++argv) && *s == '-')) \
+                            csound->Die(csound, Str("mixer: error: %s"), MSG);
 
 typedef struct scalepoint {
     MYFLT y0;
@@ -207,14 +206,11 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             FIND(Str("no outfilename"))
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
-            if (strcmp(O.outfilename, "stdin") == 0) {
-              csound->Message(csound, Str("mixer: -o cannot be stdin"));
-              csound->LongJmp(csound, 1);
-            }
+            if (strcmp(O.outfilename, "stdin") == 0)
+              csound->Die(csound, Str("mixer: -o cannot be stdin"));
 #if defined(WIN32)
             if (strcmp(O.outfilename,"stdout") == 0) {
               csound->Die(csound, Str("mixer: stdout audio not supported"));
-              csound->LongJmp(csound, 1);
             }
 #endif
             break;
@@ -441,9 +437,9 @@ InitScaleTable(MIXER_GLOBALS *pp, int i)
 
     if (csound->FileOpen2(csound, &f, CSFILE_STD, mixin[i].fname,
                            "r", NULL, CSFTYPE_FLOATS_TEXT, 0) == NULL) {
-      csound->Message(csound, Str("Cannot open scale table file %s"),
+      csound->Die(csound, Str("Cannot open scale table file %s"),
                           mixin[i].fname);
-      csound->LongJmp(csound, 1);
+      return;   /* not reached */
     }
     mixin[i].fulltable = mixin[i].table = tt;
     tt->x0 = 0; tt->y0 = FL(0.0); tt->x1 = 0; tt->y1 = FL(0.0);
