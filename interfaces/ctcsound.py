@@ -1825,7 +1825,7 @@ class Csound:
         libcsound.csoundGetNamedGEN(self.cs, num, s, nameLen)
         return pstring(string_at(s, nameLen))
     
-    #Function Table Displ
+    #Function Table Display
     def setIsGraphable(self, isGraphable):
         """Tell Csound whether external graphic table display is supported.
         
