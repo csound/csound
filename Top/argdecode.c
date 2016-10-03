@@ -443,10 +443,12 @@ const char* get_output_format(OPARMS *O)
       c  = 'v';
       break;      
     default:
-      return NULL; 
+      c = '\0';
     };
     while(c != sample_format_map[i].shortformat  &&
-	  sample_format_map[i].longformat != NULL) i++;
+	  sample_format_map[i].longformat != NULL) {
+	  i++;
+    }
     return sample_format_map[i].longformat;
 }
 
@@ -1643,10 +1645,17 @@ PUBLIC void csoundGetOutputFormat(CSOUND *csound,
 
     OPARMS *oparms = csound->oparms;
     int i = 0;
+    const char* fmt = get_output_format(oparms);
     while (file_type_map[i].type != oparms->filetyp  &&
 	  file_type_map[i].format  != NULL) i++;
-    strcpy(type,file_type_map[i].format); 
-    strcpy(format,get_output_format(oparms)); 
+    if(file_type_map[i].format != NULL)
+      strcpy(type,file_type_map[i].format);
+    else
+      strcpy(type,"");
+    if(fmt != NULL)
+      strcpy(format, fmt);
+    else
+      strcpy(format,"");
 }
 
 
