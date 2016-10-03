@@ -766,15 +766,14 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 
 static void quit(CSOUND *csound, char *msg)
 {
-    csound->Message(csound,Str("lpanal: %s\nanalysis aborted\n"), msg);
-    csound->LongJmp(csound, 1);
+    csound->Message(csound,"lpanal: %s\n", msg);
+    csound->Die(csound, Str("analysis aborted"));
 }
 
 static void lpdieu(CSOUND *csound, char *msg)
 {
     usage(csound);
-    csound->Message(csound, "lpanal: %s\n", msg);
-    csound->LongJmp(csound, 1);
+    csound->Die(csound, "lpanal: %s\n", msg);
 }
 
 /*
@@ -876,8 +875,7 @@ static void gauss(LPC* thislp,
       if (amax < 1.0e-20) {
    /* csound->Message(csound,Str("Row %d or %d have maximum of %g\n"),
                       i, thislp->poleCount, amax);
-      csound->Message(csound, Str("gauss: ill-conditioned"));
-      longmp(csound->exitjmp, 1);
+      csound->Die(csound, Str("gauss: ill-conditioned"));
    */
         for (ii=i; ii < thislp->poleCount;++ii)
           a[ii][i] = 1.0e-20; /* VL: fix for very low values */
@@ -917,8 +915,7 @@ static void gauss(LPC* thislp,
             csound->Message(csound,"Row %d or %d have maximum of %g\n",
              thislp->poleCount-1, thislp->poleCount,
              fabs(a[thislp->poleCount-1][thislp->poleCount-1]));
-             csound->Message(csound, Str("gauss: ill-conditioned"));
-             csound->LongJmp(csound, 1); */
+             csound->Die(csound, Str("gauss: ill-conditioned"));*/
       }
 
     b[thislp->poleCount-1] =
@@ -1221,10 +1218,8 @@ static void ptable(CSOUND *csound,
     lpg->Windsiz2 = windsiz/2;           /* half of that        */
     lpg->Dwind   = windsiz/10;           /* downsampled windsiz */
     lpg->Hwind   = (lpg->Dwind+1)/2;     /* half of that        */
-    if (lpg->Hwind > HWIN) {
-      csound->Message(csound, Str("LPTRKFNS: called with excessive Windsiz"));
-      csound->LongJmp(csound, 1);
-    }
+    if (lpg->Hwind > HWIN)
+      csound->Die(csound, Str("LPTRKFNS: called with excessive Windsiz"));
     tpidsrd10 = TWOPI_F / (sr/FL(10.0));
     fstep = (fmax - fmin) / FREQS;    /* alloc & init each MYFLT array  */
     for (i=0;  i<FREQS; ++i) {        /*   as if MAX dimension of Hwind */
