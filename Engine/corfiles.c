@@ -319,6 +319,7 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
     if (UNLIKELY(n != CURLE_OK)) {
       csound->Die(csound, Str("curl_easy_perform() failed: %s\n"),
                   curl_easy_strerror(n));
+      /* return NULL ? */
     }
     curl_easy_cleanup(curl);
     corfile_puts(chunk.memory, mm);
