@@ -911,7 +911,7 @@ extern "C" {
     *  these parameters.
     */
   PUBLIC void csoundGetOutputFormat(CSOUND *csound,char *type,
-				    char *format);
+                                    char *format);
 
     /**
      *  Set input source
