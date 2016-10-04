@@ -108,7 +108,7 @@ msgstr "Pas assez de mémoire\n"
 
 #: Engine/corfiles.c:232
 msgid "Null file name in copy_to_corefile"
-msgstr ""
+msgstr "Nom de fichier nul dans copy_to_corefile"
 
 #: Engine/corfiles.c:294
 msgid "not enough memory (realloc returned NULL)\n"
