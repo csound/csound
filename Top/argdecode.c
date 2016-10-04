@@ -1647,11 +1647,6 @@ PUBLIC void csoundGetOutputFormat(CSOUND *csound,
     int i = 0;
     const char* fmt = get_output_format(oparms);
     while (file_type_map[i].type != oparms->filetyp  &&
-<<<<<<< HEAD
-           file_type_map[i].format  != NULL) i++;
-    strcpy(type,file_type_map[i].format); 
-    strcpy(format,get_output_format(oparms)); 
-=======
 	  file_type_map[i].format  != NULL) i++;
     if(file_type_map[i].format != NULL)
       strcpy(type,file_type_map[i].format);
@@ -1661,7 +1656,6 @@ PUBLIC void csoundGetOutputFormat(CSOUND *csound,
       strcpy(format, fmt);
     else
       strcpy(format,"");
->>>>>>> c2c72aed47934dd096cf50c7971ce5419cffcc01
 }
 
 
