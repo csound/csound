@@ -227,6 +227,7 @@ libcsound.csoundSetDebug.argtypes = [c_void_p, c_int]
 libcsound.csoundGetOutputName.restype = c_char_p
 libcsound.csoundGetOutputName.argtypes = [c_void_p]
 libcsound.csoundSetOutput.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p]
+libcsound.csoundGetOutputFormat.argtypes = [c_void_p, c_char_p, c_char_p]
 libcsound.csoundSetInput.argtypes = [c_void_p, c_char_p]
 libcsound.csoundSetMIDIInput.argtypes = [c_void_p, c_char_p]
 libcsound.csoundSetMIDIFileInput.argtypes = [c_void_p, c_char_p]
@@ -965,6 +966,13 @@ class Csound:
         f = cstring(format)
         libcsound.csoundSetOutput(self.cs, n, t, f)
     
+    def outputFormat(self):
+        """Get output type and format."""
+        type_ = create_string_buffer(6)
+        format = create_string_buffer(8)
+        libcsound.csoundGetOutputFormat(self.cs, type_, format)
+        return pstring(string_at(type_)), pstring(string_at(format))
+
     def setInput(self, name):
         """Set input source."""
         libcsound.csoundSetInput(self.cs, cstring(name))
@@ -1815,7 +1823,7 @@ class Csound:
         """
         s = create_string_buffer(nameLen)
         libcsound.csoundGetNamedGEN(self.cs, num, s, nameLen)
-        return pstring(s)
+        return pstring(string_at(s, nameLen))
     
     #Function Table Display
     def setIsGraphable(self, isGraphable):
