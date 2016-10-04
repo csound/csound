@@ -446,7 +446,7 @@ const char* get_output_format(OPARMS *O)
       return NULL; 
     };
     while(c != sample_format_map[i].shortformat  &&
-	  sample_format_map[i].longformat != NULL) i++;
+          sample_format_map[i].longformat != NULL) i++;
     return sample_format_map[i].longformat;
 }
 
@@ -1635,16 +1635,16 @@ PUBLIC void csoundSetOutput(CSOUND *csound, const char *name, const char *type, 
         set_output_format(oparms, sample_format_map[i].shortformat);
       }
     }
-}
-
+}          
+           
 PUBLIC void csoundGetOutputFormat(CSOUND *csound,
-			    char *type, char *format)
-{
-
+                                  char *type, char *format)
+{          
+           
     OPARMS *oparms = csound->oparms;
     int i = 0;
     while (file_type_map[i].type != oparms->filetyp  &&
-	  file_type_map[i].format  != NULL) i++;
+           file_type_map[i].format  != NULL) i++;
     strcpy(type,file_type_map[i].format); 
     strcpy(format,get_output_format(oparms)); 
 }
