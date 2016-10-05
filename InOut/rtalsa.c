@@ -29,6 +29,10 @@
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200112L
 #endif
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE 1
+#endif
+/* _BSD_SOURCE definition can be dropped once support for glibc < 2.19 is dropped */
 #ifndef _BSD_SOURCE
 #define _BSD_SOURCE 1
 #endif
