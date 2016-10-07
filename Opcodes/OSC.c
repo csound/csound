@@ -502,7 +502,9 @@ static int OSC_deinit(CSOUND *csound, OSCINIT *p)
 {
     int n = (int)*p->ihandle;
     OSC_GLOBALS *pp = alloc_globals(csound);
-    OSC_PORT    *ports = pp->ports;
+    OSC_PORT    *ports;
+    if (UNLIKELY(pp==NULL)) return NOTOK;
+    ports = pp->ports;
     csound->Message(csound, "handle=%d\n", n);
     csound->DestroyMutex(ports[n].mutex_);
     ports[n].mutex_ = NULL;
@@ -591,6 +593,7 @@ static int OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
 {
     OSC_PAT *m;
 
+    if (p->port->mutex_==NULL) return NOTOK;
     csound->LockMutex(p->port->mutex_);
     if (p->port->oplst == (void*) p)
       p->port->oplst = p->nxt;
