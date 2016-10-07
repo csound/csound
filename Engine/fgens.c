@@ -2820,7 +2820,8 @@ static int gen43(FGDATA *ff, FUNC *ftp)
       csound->strarg2name(csound, filename, filno, "pvoc.", 0);
 
     if (UNLIKELY(PVOCEX_LoadFile(csound, filename, &pp) != 0))
-      csoundDie(csound, Str("Failed to load PVOC-EX file"));
+      return fterror(ff, Str("Failed to load PVOC-EX file"));
+    //csoundDie(csound, Str("Failed to load PVOC-EX file"));
     p.fftsize  = pp.fftsize;
     p.overlap  = pp.overlap;
     p.winsize  = pp.winsize;
