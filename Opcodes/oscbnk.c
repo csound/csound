@@ -440,8 +440,12 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
     p->lf2_scl = (*(p->args[10]) - *(p->args[9])) * CS_ONEDKR;
     p->lf2_ofs = *(p->args[9]) * CS_ONEDKR;      /* LFO2 freq.   */
     if (p->ieqmode >= 0) {
-      p->eqo_scl = (*(p->args[13]) - *(p->args[12])) * csound->tpidsr;
-      p->eqo_ofs = *(p->args[12]) * csound->tpidsr;   /* EQ omega */
+      MYFLT fmax =  *(p->args[13]); 
+      MYFLT fmin =  *(p->args[12]);
+      /* VL: min freq cannot be > max freq */
+      fmin = fmin < fmax ? fmin : fmax;
+      p->eqo_scl = (fmax - fmin) * csound->tpidsr;
+      p->eqo_ofs = fmin * csound->tpidsr;   /* EQ omega */
       p->eql_scl = *(p->args[15]) - (p->eql_ofs= *(p->args[14]));/* EQ level */
       p->eqq_scl = *(p->args[17]) - (p->eqq_ofs= *(p->args[16]));/* EQ Q     */
     }
