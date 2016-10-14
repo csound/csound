@@ -232,7 +232,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
       l += oscbnk_interp_read_limit(lfo1val, p->eqlt, p->eqlt_len);
       q += oscbnk_interp_read_limit(lfo1val, p->eqqt, p->eqqt_len);
     }
-    if (p->ilfomode & 0x01) {               /* LFO2 to EQ */ 
+    if (p->ilfomode & 0x01) {               /* LFO2 to EQ */
       f += oscbnk_interp_read_limit(lfo2val, p->eqft, p->eqft_len);
       l += oscbnk_interp_read_limit(lfo2val, p->eqlt, p->eqlt_len);
       q += oscbnk_interp_read_limit(lfo2val, p->eqqt, p->eqqt_len);
@@ -298,7 +298,7 @@ static int oscbnkset(CSOUND *csound, OSCBNK *p)
       }
       if (p->ieqmode > 2) p->ieqmode = 2;
     }
-    
+
     /* set up ftables */
 
     if (p->ilfomode & 0xF0) {
@@ -440,10 +440,10 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
     p->lf2_scl = (*(p->args[10]) - *(p->args[9])) * CS_ONEDKR;
     p->lf2_ofs = *(p->args[9]) * CS_ONEDKR;      /* LFO2 freq.   */
     if (p->ieqmode >= 0) {
-      MYFLT fmax =  *(p->args[13]); 
+      MYFLT fmax =  *(p->args[13]);
       MYFLT fmin =  *(p->args[12]);
-     
-      /* VL: min freq cannot be > max freq */
+
+     /* VL: min freq cannot be > max freq */
       fmin = fmin < fmax ? fmin : fmax;
       p->eqo_scl = (fmax - fmin) * csound->tpidsr;
       p->eqo_ofs = fmin * csound->tpidsr;   /* EQ omega */
@@ -536,7 +536,7 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
         }
         else {                /* EQ w/o interpolation */
           /* oscillator */
-	  a1 = o->a1; a2 = o->a2;         /* EQ coeffs    */
+          a1 = o->a1; a2 = o->a2;         /* EQ coeffs    */
           b0 = o->b0; b1 = o->b1; b2 = o->b2;
           for (nn = offset; nn < nsmps; nn++) {
             /* read from table */
