@@ -266,7 +266,7 @@ void isPlaying(const FunctionCallbackInfo<Value>& args)
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     bool playing = ((stop_playing == false) && (finished == false));
-    args.GetReturnValue().Set(Number::New(isolate, playing) );
+    args.GetReturnValue().Set(Boolean::New(isolate, playing) );
 }
 
 void isScorePending(const FunctionCallbackInfo<Value>& args)
