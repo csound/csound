@@ -1,7 +1,4 @@
-============================
-CSOUND VERSION 6.08
-RELEASE NOTES VERSION 6.08
-============================
+# CSOUND VERSION 6.08 RELEASE NOTES
 
 As usual there are a number of opcode fixes and improvements, but the
 major changes are in the language structures.  First the score language
@@ -19,184 +16,166 @@ to memory leaks and more robust code.
   
 -- The Developers
 
-USER-LEVEL CHANGES
-==================
+## USER-LEVEL CHANGES
 
-New opcodes:
+### New opcodes
 
-  o   dct -- Discrete Cosine Transform of a sample array (type-II DCT)
+- dct -- Discrete Cosine Transform of a sample array (type-II DCT)
 
-  o   getftargs -- copy arguments of a gen to an array
+- getftargs -- copy arguments of a gen to an array
 
-New Gen and Macros:
+### New Gen and Macros
 
-  o   quadbezier generating Bezier curves in a table
+- quadbezier generating Bezier curves in a table
 
-Orchestra:
+### Orchestra
 
-  o   The character ¬ is now correctly treated as a variant of ~
-      for bitwise not
+- The character ¬ is now correctly treated as a variant of ~ for bitwise not
 
-  o   Lexing bug which could corrupt strings fixed
+- Lexing bug which could corrupt strings fixed
 
-  o   Ensure no newlines in string-lexing
+- Ensure no newlines in string-lexing
 
-  o   Small improvement in reported line numbers
+- Small improvement in reported line numbers
 
-  o   Better checking of macro syntax
+- Better checking of macro syntax
 
-  o   Improved parsing of setting of labels
+- Improved parsing of setting of labels
 
-  o   Added error handling for unmatched brackets for UDO arg
-      specification
+- Added error handling for unmatched brackets for UDO arg specification
 
-  o   Check that #included file is not a directory
+- Check that #included file is not a directory
 
-  o   Deeply nested macro calls better policed
+- Deeply nested macro calls better policed
 
-  o   For years Csound has fixed the pitch of A4 at 440Hz.  Now this
-      can be set in the header using the new r-variable A4, and
-      also read with that variable
+- For years Csound has fixed the pitch of A4 at 440Hz.  Now this can be set in the header using the new r-variable A4, and also read with that variable
 
-  o   Floating point values can use e or E for exponent
+- Floating point values can use e or E for exponent
 
-  o   For array reading of indexed values the rate of the index
-      controls the rate of the action.  ***NOTE THIS IS AN INCOMPATIBLE 
-      CHANGE*** but fixes many anomalies
+- For array reading of indexed values the rate of the index controls the rate of the action.  ***NOTE THIS IS AN INCOMPATIBLE CHANGE*** but fixes many anomalies
 
-Score:
+### Score
 
-  o  New code to handle macros and other preprocessor commands.
-     Brings it into line with orchestra code
+- New code to handle macros and other preprocessor commands. Brings it into line with orchestra code
 
-Options:
+### Options
 
-  o   The tempo setting can now be a floating point value (previously
-      fixed to integer 
+- The tempo setting can now be a floating point value (previously fixed to integer)
 
-Modified Opcodes and Gens:
+### Modified Opcodes and Gens
 
-  o   Problems in centroid fixed.
+- Problems in centroid fixed.
 
-  o   Better treatment of rounding in printks
+- Better treatment of rounding in printks
 
-  o   OSC extended to include multicast
+- OSC extended to include multicast
 
-  o   Faust opcodes brought up to date with faust
+- Faust opcodes brought up to date with faust
 
-  o   oscil1 and oscili can take a negative duration
+- oscil1 and oscili can take a negative duration
 
-  o   fout opcode documentation clarified
+- fout opcode documentation clarified
 
-  o   Release time in mxadsr fixed
+- Release time in mxadsr fixed
      
-Utilities:
+### Utilities
 
-  o   pvlook now always prints explicit analysis window name
+- pvlook now always prints explicit analysis window name
      
-Frontends:
+### Frontends
 
-  o   ctcsound.py: All new python frontend
+- ctcsound.py: All new python frontend
 
-  o   icsound:
+- icsound:
 
-  o   csound~:
+- csound~:
 
-  o   csdebugger:
+- csdebugger:
   
-  o   HTML5
+- HTML5
 
-      *   csound.node: Implemented for Linux, minor API fix.
+-- csound.node: Implemented for Linux, minor API fix.
 
-      *   pnacl: Added compileCsdText method to csound object
+-- pnacl: Added compileCsdText method to csound object
 
-      *   Emscripten:
+-- Emscripten:
 
-  o   CsoundQT has its own notes at https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20N
+-- CsoundQT has its own notes at https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20N
 otes%200.9.2.1.md
 
-General usage:
+### General Usage
 
-    o   Checking of valid macro names improved
+- Checking of valid macro names improved
 
-    o   #undef fixed
+- #undef fixed
 
-Bugs fixed:
+## Bugs Fixed
 
-    o   Fix to prints in format use
+- Fix to prints in format use
 
-    o   jitter2 reworked to make it more like the manual.
+- jitter2 reworked to make it more like the manual.
 
-    o   osbank has had multiple fixes and now works as advertised
+- oscbank has had multiple fixes and now works as advertised
 
-    o   bformdec1 with arrays and type 4 fixed
+- bformdec1 with arrays and type 4 fixed
 
-    o   Bug in pvsceps fixed
+- Bug in pvsceps fixed
 
-    o   In various formatted print opcodes extra trash characters
-        might appear -- fixed
+- In various formatted print opcodes extra trash characters might appear -- fixed
 
-    o   Assigning variables with --sample-accurate could give
-        unexpected results; this is believed fixed now
+- Assigning variables with --sample-accurate could give unexpected results; this is believed fixed now
 
-    o   padsynth square profile fix, and opcode prints less depending
-        on warn level
+- padsynth square profile fix, and opcode prints less depending on warn level
 
-    o   gen31 fixed
+- gen31 fixed
 
-    o   gen41 fixed
+- gen41 fixed
 
-    o   Bug in sensekey fixed
+- Bug in sensekey fixed
     
-    o   pvlook reports actual window used
+- pvlook reports actual window used
     
-====================
-SYSTEM LEVEL CHANGES
-====================
+## SYSTEM LEVEL CHANGES
 
-System changes:
+### System Changes
 
-    o   New score lexing and preprocessor
+- New score lexing and preprocessor
 
-    o   MAC line endings now work again
+- MAC line endings now work again
 
-API
-===
+### API
 
-    o   Now supports named gens
+- Now supports named gens
 
-    o   fterror now in API
+- fterror now in API
 
-    o   API functions SetOutput and GetOutputFormat fixed
+- API functions SetOutput and GetOutputFormat fixed
 
-    o   Many API functions now use const where appropriate
+- Many API functions now use const where appropriate
     
-    o   New Lisp CFFI and FFI interfaces tested with Steel Bank Common Lisp 
-        (64 bit CPU architecture), runs in separate thread
+- New Lisp CFFI and FFI interfaces tested with Steel Bank Common Lisp (64 bit CPU architecture), runs in separate thread
     
-Platform Specific
-=================
+### Platform Specific
 
-  o   iOS
+- iOS
 
-    *
+-- 
 
-  o   Android
+- Android
 
-    *   Multichannel input and output allowed
+-- Multichannel input and output allowed
 
-  o   Windows
+- Windows
 
-    * csound64.lib import library added to Windows installer
+-- csound64.lib import library added to Windows installer
     
-  o   OSX
+- OSX
 
-    * 
+--  
 
-GNU/Linux
+-- GNU/Linux
 
-    * 
-
+<pre>
 ========================================================================
 commit aa5c04f343e0260e88b2ea7ef6ec6e203683337b
 Date:   Fri Oct 14 09:36:53 2016 +0100
@@ -264,3 +243,4 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Thu May 26 17:52:57 2016 +0100
 
     added mfb
+    </pre>
