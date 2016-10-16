@@ -8,115 +8,112 @@ major changes are in the language structures.  First the score language
 has all-new treatment of macros and preprocessing, bringing it in line
 with those of the orchestra.  The parsing of the orchestra has had a
 number of fixes as outlined below.
-  A major, and not totally compatible change as been made in reading
+
+A major, and not totally compatible change as been made in reading
 and writing array elements.  The rate of the index determines the
 time of processing.  This simplifies much  code and is explicable; the
 earlier ad hoc code had many anomalies.
-  Also as usual there are a number of new opcodes and internal fixes
-  to memory leaks and more robust code.
--- The Developers
 
+Also as usual there are a number of new opcodes and internal fixes
+to memory leaks and more robust code.
+  
+-- The Developers
 
 USER-LEVEL CHANGES
 ==================
 
 New opcodes:
 
-    o    dct -- Discrete Cosine Transform of a sample array (type-II DCT)
+  o   dct -- Discrete Cosine Transform of a sample array (type-II DCT)
 
-    o    getftargs -- copy arguments of a gen to an array
+  o   getftargs -- copy arguments of a gen to an array
 
 New Gen and Macros:
 
-    o    quadbezier generating Bezier curves in a table
+  o   quadbezier generating Bezier curves in a table
 
 Orchestra:
 
-    o    The character ¬ is now correctly treated as a variant of ~
-         for bitwise not
+  o   The character ¬ is now correctly treated as a variant of ~
+      for bitwise not
 
-    o    lexing bug which could corrupt strings fixed
+  o   Lexing bug which could corrupt strings fixed
 
-    o    ensure no newlines in string-lexing
+  o   Ensure no newlines in string-lexing
 
-    o    small improvement in reported line numbers
+  o   Small improvement in reported line numbers
 
-    o    better checking of macro syntax
+  o   Better checking of macro syntax
 
-    o    improved parsing of setting of labels
+  o   Improved parsing of setting of labels
 
-    o    added error handling for unmatched brackets for UDO arg
-         specification
+  o   Added error handling for unmatched brackets for UDO arg
+      specification
 
-    o    Check that #included file is not a directory
+  o   Check that #included file is not a directory
 
-    o    Deeply nested macro calls better policed
+  o   Deeply nested macro calls better policed
 
-    o    For years Csound has fixed the pitch of A4 at 440Hz.  Now this
-         can be set in the header using the new r-variable A4, and
-         also read with that variable
+  o   For years Csound has fixed the pitch of A4 at 440Hz.  Now this
+      can be set in the header using the new r-variable A4, and
+      also read with that variable
 
-    o    Floating point values can use e or E for exponent
+  o   Floating point values can use e or E for exponent
 
-    o    For array reading of indexed values the rate of the index
-    controls the rate of the action.  ***NOTE THIS IS A CHANGE*** but
-    fixes may anomalies
+  o   For array reading of indexed values the rate of the index
+      controls the rate of the action.  ***NOTE THIS IS AN INCOMPATIBLE 
+      CHANGE*** but fixes many anomalies
 
 Score:
 
-    o    New code to handle macros and other preprocessor commands.
-         Brings it into line with orchestra code
+  o  New code to handle macros and other preprocessor commands.
+     Brings it into line with orchestra code
 
 Options:
 
-    o   the tempo setting can now be a floating point value (previously
-        fixed to integer 
-
-
+  o   The tempo setting can now be a floating point value (previously
+      fixed to integer 
 
 Modified Opcodes and Gens:
 
-     o   Problems in centroid fixed.
+  o   Problems in centroid fixed.
 
-     o   Better treatment of rounding in printks
+  o   Better treatment of rounding in printks
 
-     o   OSC extended to include multicast
+  o   OSC extended to include multicast
 
-     o   Faust opcodes brought up to date with faust
+  o   Faust opcodes brought up to date with faust
 
-     o   oscil1 and oscili can take a negative duration
+  o   oscil1 and oscili can take a negative duration
 
-     o   fout opcode documentation clarified
+  o   fout opcode documentation clarified
 
-     o   release time in mxadsr fixed
+  o   Release time in mxadsr fixed
      
 Utilities:
 
-     o   pvlook now always prints explicit analysis window name
+  o   pvlook now always prints explicit analysis window name
      
-x
 Frontends:
 
-  ctcsound.py: All new python frontend
+  o   ctcsound.py: All new python frontend
 
-  pnacl:
+  o   icsound:
 
-  icsound:
+  o   csound~:
 
-  csound~:
+  o   csdebugger:
+  
+  o   HTML5
 
-  Emscripten:
+      *   csound.node: Implemented for Linux, minor API fix.
 
-  csdebugger:
+      *   pnacl: Added compileCsdText method to csound object
 
-       * 
+      *   Emscripten:
 
-  HTML5:
-
-  CsoundQT has its own notes at
-     https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20N
+  o   CsoundQT has its own notes at https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20N
 otes%200.9.2.1.md
-
 
 General usage:
 
@@ -124,10 +121,9 @@ General usage:
 
     o   #undef fixed
 
-
 Bugs fixed:
 
-    o   fix to prints in format use
+    o   Fix to prints in format use
 
     o   jitter2 reworked to make it more like the manual.
 
@@ -135,10 +131,10 @@ Bugs fixed:
 
     o   bformdec1 with arrays and type 4 fixed
 
-    o   bug in pvsceps fixed
+    o   Bug in pvsceps fixed
 
-    o   in various formatted print opcodes extra trash characters
-         might appear -- fixed
+    o   In various formatted print opcodes extra trash characters
+        might appear -- fixed
 
     o   Assigning variables with --sample-accurate could give
         unexpected results; this is believed fixed now
@@ -150,7 +146,9 @@ Bugs fixed:
 
     o   gen41 fixed
 
-    o   bug in sensekey fixed
+    o   Bug in sensekey fixed
+    
+    o   pvlook reports actual window used
     
 ====================
 SYSTEM LEVEL CHANGES
@@ -165,40 +163,37 @@ System changes:
 API
 ===
 
-    * Now supports named gens
+    o   Now supports named gens
 
-    * fterror now in API
+    o   fterror now in API
 
-    * API functions SetOutput and GetOutputFormat fixed
+    o   API functions SetOutput and GetOutputFormat fixed
 
-    * Many API functions now use const where appropriate
+    o   Many API functions now use const where appropriate
+    
+    o   New Lisp CFFI and FFI interfaces tested with Steel Bank Common Lisp 
+        (64 bit CPU architecture), runs in separate thread
     
 Platform Specific
 =================
 
-iOS
----
+  o   iOS
 
     *
 
+  o   Android
 
-Android
--------
+    *   Multichannel input and output allowed
 
-    * Multichannel input and output allowed
+  o   Windows
 
-Windows
--------
-
-    * 
+    * csound64.lib import library added to Windows installer
     
-OSX
----
+  o   OSX
 
     * 
 
 GNU/Linux
----------
 
     * 
 
