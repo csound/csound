@@ -94,20 +94,19 @@ to memory leaks and more robust code.
   
 - HTML5
 
--- csound.node: Implemented for Linux, minor API fix.
+ - csound.node: Implemented for Linux, minor API fix.
 
--- pnacl: Added compileCsdText method to csound object
+ - pnacl: Added compileCsdText method to csound object
 
--- Emscripten:
-
--- CsoundQT has its own notes at https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20N
+ - Emscripten:
+ - CsoundQT has its own notes at https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20N
 otes%200.9.2.1.md
 
 ### General Usage
 
 - Checking of valid macro names improved
 
-- #undef fixed
+- ```#undef``` fixed
 
 ## Bugs Fixed
 
@@ -159,21 +158,21 @@ otes%200.9.2.1.md
 
 - iOS
 
--- 
+ - 
 
 - Android
 
--- Multichannel input and output allowed
+ - Multichannel input and output allowed
 
 - Windows
 
--- csound64.lib import library added to Windows installer
+ - csound64.lib import library added to Windows installer
     
 - OSX
 
---  
+ - 
 
--- GNU/Linux
+- GNU/Linux
 
 <pre>
 ========================================================================
