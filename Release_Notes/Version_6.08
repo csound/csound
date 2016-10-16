@@ -1,0 +1,261 @@
+============================
+CSOUND VERSION 6.08
+RELEASE NOTES VERSION 6.08
+============================
+
+-- The Developers
+
+
+USER-LEVEL CHANGES
+==================
+
+New opcodes:
+
+    o    dct -- Discrete Cosine Transform of a sample array (type-II DCT)
+
+    o    getftargs -- copy arguments of a gen to an array
+
+New Gen and Macros:
+
+    o    quadbezier generating Bezier curvesina table
+
+Orchestra:
+
+    o    The character ¬ is now correctly treated as a variant of ~
+         for bitwise not
+
+    o    lexing bug which could corrupt strings fixed
+
+    o    ensure no newlines in string-lexing
+
+    o    small improvement in reported line numbers
+
+    o    better checking of macro syntax
+
+    o    improved parsing of setting of labels
+
+    o    added error handling for unmatched brackets for UDO arg
+         specification
+
+    o    Check that #included file is not a directory
+
+    o    Deeply nested macro calls better policed
+
+    o    For years Csound has fixed the pitch of A4 at 440Hz.  Now tis
+         can be set in the header using the new r-variable A4, and
+         also read with that variable
+
+    o    Floating point values can use e or E for exponent
+
+    o    For aray reading f indexed values the rate of te index
+    controls the rate of te action.  ***NOTE THIS IS A CHANGE*** but
+    fixes may anomalies
+
+Score:
+
+    o    New code to handle macros and oter preprocessor commmands.
+         Brings it into line with orchestra code
+
+Options:
+
+    o   the tempo setting can now be a floating point value (previously
+        fixed to integer 
+
+
+
+Modified Opcodes and Gens:
+
+     o   Problems in centroid fixed.
+
+     o   Better treatment of rounding in printks
+
+     o   OSC extended to include multicast
+
+     o   pvlook now always prints explicit analysis window name
+     
+     o   Faust opcodes brought up to date with faust
+
+     o   oscil1 and oscili can take a negative duration
+
+     o   fout opcode documentatin clarified
+
+     o   releasetime in mxadsr fixed
+     
+Utilities:
+
+  o
+
+Frontends:
+
+  ctcsound.py: All new python frontend
+
+  pnacl:
+
+  icsound:
+
+  csound~:
+
+  Emscripten:
+
+  csdebugger:
+
+       * 
+
+  HTML5:
+
+  CsoundQT has its own notes at
+     https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20N
+otes%200.9.2.1.md
+
+
+General usage:
+
+    o   Checking of valid macro names improved
+
+    o   #undef fixed
+
+
+Bugs fixed:
+
+    o   fix to prints in format use
+
+    o   jitter2 reworked to make it more likete manual.
+
+    o   osbk has had multiple fixes and now works as advertised
+
+    o   bformdec1 with arrays and type 4 fixed
+
+    o   bug in pvsceps fixed
+
+    o   in various formatted print opcodes extra trash characters
+         might appear -- fixed
+
+    o   Assigning variables with --sample-accurate could give
+        unexpected results; this is believed fixed now
+
+    o   padsynth square profile fix, and opcode prints less depending
+        on warn level
+
+    o   gen31 fixed
+
+    o   gen41 fixed
+
+    o   bug in sensekey fixed
+    
+====================
+SYSTEM LEVEL CHANGES
+====================
+
+System changes:
+
+    o   New score lexing and preproessor
+
+    o   MAC line endings now work again
+
+API
+===
+
+    * Now suports named gens
+
+    * fterror now in API
+
+    * API functison SetOutput and GetOutputFormat fixed
+
+    * Many API functions now useconst where appropriate
+    
+Platform Specific
+=================
+
+iOS
+---
+
+    *
+
+
+Android
+-------
+
+    * Multichannel input ad outpt allowed
+
+Windows
+-------
+
+    * 
+    
+OSX
+---
+
+    * 
+
+GNU/Linux
+---------
+
+    * 
+
+========================================================================
+commit aa5c04f343e0260e88b2ea7ef6ec6e203683337b
+Date:   Fri Oct 14 09:36:53 2016 +0100
+========================================================================
+Date:   Tue Oct 11 19:51:01 2016 +0100
+
+    tidy up fout
+
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Sep 23 10:00:36 2016 +0100
+
+    extending libpy hack to OSX
+
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Sep 12 16:20:33 2016 +0100
+
+    added CSOUNDMSG_STDOUT attribute
+
+Author: Michael Gogins <michael.gogins@gmail.com>
+Date:   Thu Jul 28 17:16:26 2016 -0400
+
+    Refinements for Lisp wrapper and examples, enables running in separate thread now, performances ends when CSD ends.
+
+Author: Michael Gogins <michael.gogins@gmail.com>
+Date:   Fri Jul 22 20:47:58 2016 -0400
+
+    Fully working Lisp integration for Steel Bank Common Lisp.
+
+Author: Michael Gogins <michael.gogins@gmail.com>
+Date:   Sun Jul 3 13:05:49 2016 -0400
+
+    PNaCl: Implemented playing and rendering CSD text. Lisp: Updated example and CFFI binding.
+
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Jul 1 16:51:22 2016 +0100
+
+    ftgen reading from array
+
+Author: Michael Gogins <michael.gogins@gmail.com>
+Date:   Wed Jun 29 12:21:39 2016 -0400
+
+    Fixed logic bugs in atsa, added method to nacl.
+
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Sun Jun 26 10:57:37 2016 +0100
+
+    fixed issue on opcode arg check and removed old obsolete code
+
+Author: Michael Gogins <michael.gogins@gmail.com>
+Date:   Tue Jun 21 14:55:27 2016 -0400
+
+    Updated csound.node for Linux. Works!
+
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri May 27 19:44:30 2016 +0100
+
+    array centroid
+
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri May 27 18:30:55 2016 +0100
+
+    centroid fixes
+
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu May 26 17:52:57 2016 +0100
+
+    added mfb
