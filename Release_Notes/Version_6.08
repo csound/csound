@@ -3,6 +3,17 @@ CSOUND VERSION 6.08
 RELEASE NOTES VERSION 6.08
 ============================
 
+As usual there are a number of opcode fixes and improvements, but the
+major changes are in the language structures.  First the score language
+has all-new treatment of macros and preprocessing, bringing it in line
+with those of the orchestra.  The parsing of the orchestra has had a
+number of fixes as outlined below.
+  A major, and not totally compatible change as been made in reading
+and writing array elements.  The rate of the index determines the
+time of processing.  This simplifies much  code and is explicable; the
+earlier ad hoc code had many anomalies.
+  Also as usual there are a number of new opcodes and internal fixes
+  to memory leaks and more robust code.
 -- The Developers
 
 
@@ -17,7 +28,7 @@ New opcodes:
 
 New Gen and Macros:
 
-    o    quadbezier generating Bezier curvesina table
+    o    quadbezier generating Bezier curves in a table
 
 Orchestra:
 
@@ -41,19 +52,19 @@ Orchestra:
 
     o    Deeply nested macro calls better policed
 
-    o    For years Csound has fixed the pitch of A4 at 440Hz.  Now tis
+    o    For years Csound has fixed the pitch of A4 at 440Hz.  Now this
          can be set in the header using the new r-variable A4, and
          also read with that variable
 
     o    Floating point values can use e or E for exponent
 
-    o    For aray reading f indexed values the rate of te index
-    controls the rate of te action.  ***NOTE THIS IS A CHANGE*** but
+    o    For array reading of indexed values the rate of the index
+    controls the rate of the action.  ***NOTE THIS IS A CHANGE*** but
     fixes may anomalies
 
 Score:
 
-    o    New code to handle macros and oter preprocessor commmands.
+    o    New code to handle macros and other preprocessor commands.
          Brings it into line with orchestra code
 
 Options:
@@ -71,20 +82,19 @@ Modified Opcodes and Gens:
 
      o   OSC extended to include multicast
 
-     o   pvlook now always prints explicit analysis window name
-     
      o   Faust opcodes brought up to date with faust
 
      o   oscil1 and oscili can take a negative duration
 
-     o   fout opcode documentatin clarified
+     o   fout opcode documentation clarified
 
-     o   releasetime in mxadsr fixed
+     o   release time in mxadsr fixed
      
 Utilities:
 
-  o
-
+     o   pvlook now always prints explicit analysis window name
+     
+x
 Frontends:
 
   ctcsound.py: All new python frontend
@@ -119,9 +129,9 @@ Bugs fixed:
 
     o   fix to prints in format use
 
-    o   jitter2 reworked to make it more likete manual.
+    o   jitter2 reworked to make it more like the manual.
 
-    o   osbk has had multiple fixes and now works as advertised
+    o   osbank has had multiple fixes and now works as advertised
 
     o   bformdec1 with arrays and type 4 fixed
 
@@ -148,20 +158,20 @@ SYSTEM LEVEL CHANGES
 
 System changes:
 
-    o   New score lexing and preproessor
+    o   New score lexing and preprocessor
 
     o   MAC line endings now work again
 
 API
 ===
 
-    * Now suports named gens
+    * Now supports named gens
 
     * fterror now in API
 
-    * API functison SetOutput and GetOutputFormat fixed
+    * API functions SetOutput and GetOutputFormat fixed
 
-    * Many API functions now useconst where appropriate
+    * Many API functions now use const where appropriate
     
 Platform Specific
 =================
@@ -175,7 +185,7 @@ iOS
 Android
 -------
 
-    * Multichannel input ad outpt allowed
+    * Multichannel input and output allowed
 
 Windows
 -------
