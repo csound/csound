@@ -1,3 +1,27 @@
+<!---
+
+To maintain this document use the following markdown:
+
+# First level heading
+## Second level heading
+### Third level heading
+
+- First level bullet point
+ - Second level bullet point
+  - Third level bullet point
+  
+`inline code`
+
+```
+preformatted text
+etc.
+```
+
+[hyperlink](url for the hyperlink)
+
+Any valid HTML can also be used.
+
+--->
 # CSOUND VERSION 6.08 RELEASE NOTES
 
 As usual there are a number of opcode fixes and improvements, but the
