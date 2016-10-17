@@ -26,7 +26,6 @@ to memory leaks and more robust code.
 
 - mfb -- implements a mel-frequency filterbank for an array of input magnitudes
 
-
 ### New Gen and Macros
 
 - quadbezier generating Bezier curves in a table
@@ -47,7 +46,7 @@ to memory leaks and more robust code.
 
 - Added error handling for unmatched brackets for UDO arg specification
 
-- Check that #included file is not a directory
+- Check that `#included` file is not a directory
 
 - Deeply nested macro calls better policed
 
@@ -81,14 +80,12 @@ to memory leaks and more robust code.
 
 - Release time in mxadsr fixed
 
--  centroid opcode  extended to take array inputs in addition
+- centroid opcode  extended to take array inputs in addition
 
--  ptable opcodes are now identical to table family
+- ptable opcodes are now identical to table family
 
--  ftgen now has array input option
-     
-  
-     
+- ftgen now as arraay input option
+
 ### Utilities
 
 - pvlook now always prints explicit analysis window name
@@ -164,6 +161,8 @@ to memory leaks and more robust code.
 - API functions SetOutput and GetOutputFormat fixed
 
 - Many API functions now use const where appropriate
+
+- Messages can now be directed to stdout from the API by using CSOUNDMSG_STDOUT attribute
     
 - New Lisp CFFI and FFI interfaces tested with Steel Bank Common Lisp (64 bit CPU architecture), runs in separate thread
 
@@ -193,5 +192,5 @@ to memory leaks and more robust code.
 ========================================================================
 commit 766f2c51cc3a62ea9a8381bb57d1c3fefebab92f
 Date:   Mon Oct 17 14:55:29 2016 +0100
-
+=======
 </pre>
