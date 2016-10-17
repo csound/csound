@@ -26,6 +26,9 @@ New opcodes:
 
     o    getftargs -- copy arguments of a gen to an array
 
+    o    mfb -- implements a mel-frequency filterbank for an array of input
+         magnitudes
+
 New Gen and Macros:
 
     o    quadbezier generating Bezier curves in a table
@@ -89,6 +92,13 @@ Modified Opcodes and Gens:
      o   fout opcode documentation clarified
 
      o   release time in mxadsr fixed
+
+     o   centroid opcode  extended to take array inputs in addition
+
+     o   ptable opcodes are now identical to table family
+
+     o   ftgen nowasarraay input option
+     
      
 Utilities:
 
@@ -151,6 +161,8 @@ Bugs fixed:
     o   gen41 fixed
 
     o   bug in sensekey fixed
+
+    o   a number of issues in centroid fixed
     
 ====================
 SYSTEM LEVEL CHANGES
@@ -162,6 +174,9 @@ System changes:
 
     o   MAC line endings now work again
 
+    o    System information messages (system sampling rate, etc) are
+         now directed to stdout
+
 API
 ===
 
@@ -172,7 +187,10 @@ API
     * API functions SetOutput and GetOutputFormat fixed
 
     * Many API functions now use const where appropriate
-    
+
+    * Messages can now be directed to stdout from the API by using
+      CSOUNDMSG_STDOUT attribute
+
 Platform Specific
 =================
 
@@ -210,16 +228,6 @@ Date:   Tue Oct 11 19:51:01 2016 +0100
 
     tidy up fout
 
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Sep 23 10:00:36 2016 +0100
-
-    extending libpy hack to OSX
-
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Sep 12 16:20:33 2016 +0100
-
-    added CSOUNDMSG_STDOUT attribute
-
 Author: Michael Gogins <michael.gogins@gmail.com>
 Date:   Thu Jul 28 17:16:26 2016 -0400
 
@@ -235,37 +243,13 @@ Date:   Sun Jul 3 13:05:49 2016 -0400
 
     PNaCl: Implemented playing and rendering CSD text. Lisp: Updated example and CFFI binding.
 
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Jul 1 16:51:22 2016 +0100
-
-    ftgen reading from array
-
 Author: Michael Gogins <michael.gogins@gmail.com>
 Date:   Wed Jun 29 12:21:39 2016 -0400
 
     Fixed logic bugs in atsa, added method to nacl.
-
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sun Jun 26 10:57:37 2016 +0100
-
-    fixed issue on opcode arg check and removed old obsolete code
 
 Author: Michael Gogins <michael.gogins@gmail.com>
 Date:   Tue Jun 21 14:55:27 2016 -0400
 
     Updated csound.node for Linux. Works!
 
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri May 27 19:44:30 2016 +0100
-
-    array centroid
-
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri May 27 18:30:55 2016 +0100
-
-    centroid fixes
-
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu May 26 17:52:57 2016 +0100
-
-    added mfb
