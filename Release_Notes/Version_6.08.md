@@ -24,6 +24,9 @@ to memory leaks and more robust code.
 
 - getftargs -- copy arguments of a gen to an array
 
+- mfb -- implements a mel-frequency filterbank for an array of input magnitudes
+
+
 ### New Gen and Macros
 
 - quadbezier generating Bezier curves in a table
@@ -77,6 +80,14 @@ to memory leaks and more robust code.
 - fout opcode documentation clarified
 
 - Release time in mxadsr fixed
+
+-  centroid opcode  extended to take array inputs in addition
+
+-  ptable opcodes are now identical to table family
+
+-  ftgen now has array input option
+     
+  
      
 ### Utilities
 
@@ -99,8 +110,8 @@ to memory leaks and more robust code.
  - pnacl: Added compileCsdText method to csound object
 
  - Emscripten:
- - CsoundQT has its own notes at https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20N
-otes%200.9.2.1.md
+
+- CsoundQT:
 
 ### General Usage
 
@@ -132,7 +143,7 @@ otes%200.9.2.1.md
 
 - Bug in sensekey fixed
     
-- pvlook reports actual window used
+- A number of issues in centroid fixed
     
 ## SYSTEM LEVEL CHANGES
 
@@ -141,6 +152,8 @@ otes%200.9.2.1.md
 - New score lexing and preprocessor
 
 - MAC line endings now work again
+
+- System information messages (system sampling rate, etc) are now directed to stdout
 
 ### API
 
@@ -153,7 +166,9 @@ otes%200.9.2.1.md
 - Many API functions now use const where appropriate
     
 - New Lisp CFFI and FFI interfaces tested with Steel Bank Common Lisp (64 bit CPU architecture), runs in separate thread
-    
+
+- Messages can now be directed to stdout from the API by using CSOUNDMSG_STDOUT attribute
+
 ### Platform Specific
 
 - iOS
@@ -176,11 +191,7 @@ otes%200.9.2.1.md
 
 <pre>
 ========================================================================
-commit aa5c04f343e0260e88b2ea7ef6ec6e203683337b
-Date:   Fri Oct 14 09:36:53 2016 +0100
-========================================================================
-Date:   Tue Oct 11 19:51:01 2016 +0100
-
-    tidy up fout
+commit 766f2c51cc3a62ea9a8381bb57d1c3fefebab92f
+Date:   Mon Oct 17 14:55:29 2016 +0100
 
 </pre>
