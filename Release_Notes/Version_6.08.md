@@ -108,7 +108,7 @@ to memory leaks and more robust code.
 
 - ptable opcodes are now identical to table family
 
-- ftgen now as arraay input option
+- ftgen now as array input option
 
 ### Utilities
 
