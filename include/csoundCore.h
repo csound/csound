@@ -1548,6 +1548,7 @@ typedef struct NAME__ {
       int32   repeat_point;
       int     repeat_inc /* = 1 */;
       S_MACRO   *repeat_mm;
+      int     nocarry;
     } sreadStatics;
     struct onefileStatics__ {
       NAMELST *toremove;
