@@ -47,7 +47,8 @@ to memory leaks and more robust code.
 
 - getftargs -- copy arguments of a gen to an array
 
-- mfb -- implements a mel-frequency filterbank for an array of input magnitudes (no manual page)
+- mfb -- implements a mel-frequency filterbank for an array of input
+  magnitudes (no manual page)
 
 ### New Gen and Macros
 
@@ -81,7 +82,11 @@ to memory leaks and more robust code.
 
 ### Score
 
-- New code to handle macros and other preprocessor commands. Brings it into line with orchestra code
+- New code to handle macros and other preprocessor commands. Brings it
+  into line with orchestra code
+
+- New score opcode C ntrduced as a way of switching automatic carry off (`C 0`)
+  or on (default) (`C 1`)
 
 ### Options
 
