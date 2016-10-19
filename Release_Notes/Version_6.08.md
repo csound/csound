@@ -32,8 +32,7 @@ number of fixes as outlined below.
 
 A major, and not totally compatible change as been made in reading
 and writing array elements.  The rate of the index determines the
-time of processing.  This simplifies much  code and is explicable; the
-earlier ad hoc code had many anomalies.
+time of processing.  This simplifies much code and is explicable; the earlier ad hoc code had many anomalies.
 
 Also as usual there are a number of new opcodes and internal fixes
 to memory leaks and more robust code.
@@ -48,7 +47,7 @@ to memory leaks and more robust code.
 
 - getftargs -- copy arguments of a gen to an array
 
-- mfb -- implements a mel-frequency filterbank for an array of input magnitudes
+- mfb -- implements a mel-frequency filterbank for an array of input magnitudes (no manual page)
 
 ### New Gen and Macros
 

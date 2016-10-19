@@ -913,6 +913,19 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           STA(nxp)++;
           goto again;
         }
+      case 'C':                 /* toggle carry */
+        {
+          char *old_nxp = STA(nxp)-2;
+          getpfld(csound);
+          STA(nocarry) = stof(csound, STA(sp))==0.0?1:0;
+          //printf("nocarry = %d\n", STA(nocarry));
+          flushlin(csound);
+          STA(op) = getop(csound);
+          STA(nxp) = old_nxp;
+          *STA(nxp)++ = STA(op); /* Undo this line */
+          STA(nxp)++;
+          goto again;
+        }
       case 's':
       case 'e':
         /* check for optional p1 before doing repeats */
@@ -1399,11 +1412,22 @@ static void ifa(CSOUND *csound)
       break;
       }
     }
-    if (STA(op) == 'i' && !nocarry &&    /* then carry any rem pflds */
+    if (STA(nocarry) && (STA(bp)->pcnt<3) && STA(op) == 'i' &&
+        ((prvbp = STA(prvibp)) != NULL ||
+         (!STA(bp)->pcnt && (prvbp = STA(bp)->prvblk) != NULL &&
+          prvbp->text[0] == 'i'))){ /* carry p1-p3 */
+      int pcnt = STA(bp)->pcnt;
+      n = 3-pcnt;
+      pcopy(csound, pcnt + 1, n, prvbp);
+      STA(bp)->pcnt = 3;
+    }
+    if (STA(op) == 'i' && !nocarry &&        /* then carry any rem pflds */
+        !STA(nocarry) &&
         ((prvbp = STA(prvibp)) != NULL ||
          (!STA(bp)->pcnt && (prvbp = STA(bp)->prvblk) != NULL &&
           prvbp->text[0] == 'i')) &&
         (n = prvbp->pcnt - STA(bp)->pcnt) > 0) {
+      printf("carrying p-fields\n");
       pcopy(csound, (int) STA(bp)->pcnt + 1, n, prvbp);
       STA(bp)->pcnt += n;
     }
@@ -1482,14 +1506,16 @@ static void pcopy(CSOUND *csound, int pfno, int ncopy, SRTBLK *prvbp)
       case 1: STA(bp)->p1val = prvbp->p1val;       /*  with p1-p3 vals */
         setprv(csound);
         break;
-      case 2: if (*(p-2) == '+')              /* (interpr . of +) */
-        STA(prvp2) = STA(bp)->p2val = prvbp->p2val + FABS(prvbp->p3val);
-      else STA(prvp2) = STA(bp)->p2val = prvbp->p2val;
-      STA(bp)->newp2 = STA(bp)->p2val;
-      break;
+      case 2:
+        if (*(p-2) == '+')              /* (interpr . of +) */
+          STA(prvp2) = STA(bp)->p2val = prvbp->p2val + FABS(prvbp->p3val);
+        else STA(prvp2) = STA(bp)->p2val = prvbp->p2val;
+        STA(bp)->newp2 = STA(bp)->p2val;
+        break;
       case 3: STA(bp)->newp3 = STA(bp)->p3val = prvbp->p3val;
         break;
-      default:break;
+      default:
+        break; 
       }
       STA(bp)->lineno = prvbp->lineno;
       pfno++;
@@ -1833,6 +1859,7 @@ static int getop(CSOUND *csound)        /* get next legal opcode */
     switch (c) {        /*   and check legality  */
     case 'a':           /* Advance time */
     case 'b':           /* Reset base clock */
+    case 'C':           /* toggle carry flag */
     case 'e':           /* End of all */
     case 'f':           /* f-table */
     case 'i':           /* Instrument */
