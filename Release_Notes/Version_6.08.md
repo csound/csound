@@ -180,6 +180,8 @@ to memory leaks and more robust code.
 
 - System information messages (system sampling rate, etc) are now directed to stdout
 
+- rtjack reworked to deal with names and numbrs
+
 ### API
 
 - Now supports named gens
@@ -218,7 +220,7 @@ to memory leaks and more robust code.
 
 <pre>
 ========================================================================
-commit 766f2c51cc3a62ea9a8381bb57d1c3fefebab92f
-Date:   Mon Oct 17 14:55:29 2016 +0100
+commit 23ffb33bbde1c029c3436c765c052b12798390cc
+Date:   Thu Oct 20 09:33:11 2016 +0100
 =======
 </pre>
