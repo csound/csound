@@ -3190,18 +3190,18 @@ PUBLIC void csoundReset(CSOUND *csound)
 
 #ifdef USE_DOUBLE
 #ifdef BETA
-    csound->Message(csound, "--Csound version %s beta (double samples) %s \n[%s]\n",
+      csound->Message(csound, Str("--Csound version %s beta (double samples) %s \n[%s]\n"),
 		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (double samples) %s[%s]\n",
+    csound->Message(csound, Str("--Csound version %s (double samples) %s \n[%s]\n"),
 		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, STRING_HASH(GIT_HASH_VALUE));
 #endif
 #else
 #ifdef BETA
-    csound->Message(csound, Str("--Csound version %s beta (float samples) %s[%s]\n",
+    csound->Message(csound, Str("--Csound version %s beta (float samples) %s \n[%s]\n"),
 		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (float samples) %s[%s]\n",
+    csound->Message(csound, Str("--Csound version %s (float samples) %s \n[%s]\n"),
 		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, STRING_HASH(GIT_HASH_VALUE));
 #endif
 #endif
