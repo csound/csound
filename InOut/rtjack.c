@@ -205,123 +205,12 @@ static void shutDownCallback(void *arg)
     }
 }
 
-static CS_NOINLINE void rtJack_PrintPortName(CSOUND *csound,
-                                             const char *portName,
-                                             int nChannels)
-{
-    if (nChannels > 0 && portName[0] != (char) 0) {
-      if ((int) strlen(portName) < 16)
-        csound->Message(csound, "      \"%s\"\t\t", portName);
-      else
-        csound->Message(csound, "      \"%s\"\t", portName);
-      if (nChannels > 1)
-        csound->Message(csound, Str("(%d channels)\n"), nChannels);
-      else
-        csound->Message(csound, Str("(1 channel)\n"));
-    }
-}
-
-static int portname_cmp_func(const void *p1, const void *p2)
-{
-    return (strcmp(*((char**) p1), *((char**) p2)));
-}
-
-/* Print the list of available device names for -i adc (if isOutput is zero) */
-/* or -o dac, returning zero on success. */
-
-static CS_NOINLINE int rtJack_ListPorts(CSOUND *csound,
-                                        jack_client_t *jackClient,
-                                        const char *clientName,
-                                        int isOutput)
-{
-    char            **portNames = (char**) NULL;
-    char            clientNameBuf[MAX_NAME_LEN + 2];
-    char            *prvPortName = (char*) NULL, *curPortName = (char*) NULL;
-    unsigned long   portFlags;
-    int             i, nChn, maxChn, len, nPorts, retval = -1;
-
-    portFlags = (isOutput ? (unsigned long) JackPortIsInput
-                 : (unsigned long) JackPortIsOutput);
-    len = jack_port_name_size();
-    prvPortName = (char*) malloc((size_t) len);
-    if (UNLIKELY(prvPortName == (char*) NULL))
-      goto err_return;
-    curPortName = (char*) malloc((size_t) len);
-    if (UNLIKELY(curPortName == (char*) NULL))
-      goto err_return;
-    portNames = (char**) jack_get_ports(jackClient,
-                                        (char*) NULL,
-                                        JACK_DEFAULT_AUDIO_TYPE,
-                                        portFlags);
-    if (UNLIKELY(portNames == (char**) NULL))
-      goto err_return;
-    retval = 0;
-    csound->Message(csound, Str("The available JACK %s devices are:\n"),
-                    (isOutput ? Str("output") : Str("input")));
-    /* count the number of ports, and sort port names in alphabetical order */
-    for (nPorts = 0; portNames[nPorts] != NULL; nPorts++)
-      ;
-    qsort((void*) portNames, (size_t) nPorts, sizeof(char*), portname_cmp_func);
-    snprintf(&(clientNameBuf[0]), MAX_NAME_LEN + 2, "%s:", clientName);
-    len = strlen(&(clientNameBuf[0]));
-    prvPortName[0] = (char) 0;
-    maxChn = nChn = 0;
-    for (i = 0; portNames[i] != NULL; i++) {
-      int     n, chn_;
-      /* skip ports owned by this client */
-      if (strncmp(portNames[i], &(clientNameBuf[0]), (size_t) len) == 0)
-        goto nextPortName;
-      n = (int) strlen(portNames[i]);
-      do {
-        n--;
-      } while (n > 0 && isdigit(portNames[i][n]));
-      n++;
-      if (n < 2 || n == (int) strlen(portNames[i]))
-        goto nextPortName;
-      chn_ = (int) atoi(&(portNames[i][n]));
-      if (chn_ == 0)
-        goto nextPortName;
-      strncpy(curPortName, portNames[i], (size_t) n);
-      curPortName[n] = (char) 0;
-      if (strcmp(curPortName, prvPortName) != 0) {
-        if (nChn == maxChn)
-          rtJack_PrintPortName(csound, prvPortName, nChn);
-        strcpy(prvPortName, curPortName);
-        nChn = 1;
-        maxChn = chn_;
-      }
-      else {
-        nChn++;
-        if (chn_ > maxChn)
-          maxChn = chn_;
-      }
-      continue;
-    nextPortName:
-      if (nChn == maxChn)
-        rtJack_PrintPortName(csound, prvPortName, nChn);
-      prvPortName[0] = (char) 0;
-      maxChn = nChn = 0;
-    }
-    if (nChn == maxChn)
-      rtJack_PrintPortName(csound, prvPortName, nChn);
-
- err_return:
-    if (portNames != (char**) NULL)
-      free((void*) portNames);
-    if (curPortName != (char*) NULL)
-      free((void*) curPortName);
-    if (prvPortName != (char*) NULL)
-      free((void*) prvPortName);
-    return retval;
-}
-
 static inline size_t rtJack_AlignData(size_t ofs)
 {
     return ((ofs + (size_t) 15) & (~((size_t) 15)));
 }
 
 /* allocate ring buffers */
-
 static void rtJack_AllocateBuffers(RtJackGlobals *p)
 {
     CSOUND *csound = p->csound;
@@ -522,6 +411,32 @@ static void openJackStreams(RtJackGlobals *p)
 
     /* connect ports if requested */
     if (p->inputEnabled) {
+      if(p->inDevNum >= 0){
+        int num = p->inDevNum;
+	 unsigned long portFlags =  JackPortIsOutput;
+         char **portNames = (char**) jack_get_ports(p->client,
+                                        (char*) NULL,
+                                        JACK_DEFAULT_AUDIO_TYPE,
+						    portFlags);
+	 
+        for (i = 0; i < p->nChannels; i++) {
+	  if(portNames[num+i] != NULL){
+	    csound->Message(csound, "connecting channel %d to %s \n",i,portNames[num+i]);
+          if(jack_connect(p->client, jack_port_name(p->inPorts[i]),
+                         portNames[num+i]) != 0) {
+            csound->Warning(csound, Str("failed autoconnecting input channel %d \n"
+                                      "(needs manual connection)"), i+1);
+	  }
+	  } else
+	  csound->Warning(csound, Str("jack port %d not valid \n"
+				      "failed autoconnecting input channel %d \n"
+                                      "(needs manual connection)"), num+i, i+1);        
+	}
+	
+	jack_free(portNames);
+
+      }
+      else {
       char dev[128], *dev_final, *sp;
       {
         int i,n = listDevices(csound,NULL,0);
@@ -529,7 +444,7 @@ static void openJackStreams(RtJackGlobals *p)
                 malloc(n*sizeof(CS_AUDIODEVICE));
         listDevices(csound,devs,0);
         for(i=0; i < n; i++)
-          csound->Message(csound, " %d: %s (%s)\n",
+          csound->Message(csound, " %d: %s (adc:%s)\n",
                           i, devs[i].device_id, devs[i].device_name);
         strncpy(dev, devs[0].device_name, 128);
         free(devs);
@@ -537,25 +452,48 @@ static void openJackStreams(RtJackGlobals *p)
       if(p->inDevName != NULL) {
         strncpy(dev, p->inDevName, 128); dev[127]='\0';
       }
-      //if (dev) {
       dev_final = dev;
       sp = strchr(dev_final, '\0');
       if (!isalpha(dev_final[0])) dev_final++;
       for (i = 0; i < p->nChannels; i++) {
         snprintf(sp, 128-(dev-sp), "%d", i + 1);
+	csound->Message(csound, "connecting channel %d to %s \n", i, dev_final);
         if (UNLIKELY(jack_connect(p->client, dev_final,
                                   jack_port_name(p->inPorts[i])) != 0)) {
-          //rtJack_Error(csound, -1, Str("error connecting input ports"));
           csound->Warning(csound,
                           Str("not autoconnecting input channel %d \n"
                               "(needs manual connection)"), i+1);
         }
       }
       *sp = (char) 0;
-      //}
-
+      }
     }
     if (p->outputEnabled) {
+      if(p->outDevNum >= 0) {
+	 int num = p->outDevNum;
+	 unsigned long portFlags =  JackPortIsInput;
+         char **portNames = (char**) jack_get_ports(p->client,
+                                        (char*) NULL,
+                                        JACK_DEFAULT_AUDIO_TYPE,
+						    portFlags);
+	 
+        for (i = 0; i < p->nChannels; i++) {
+	  if(portNames[num+i] != NULL){
+	    csound->Message(csound, "connecting channel %d to %s \n",i,portNames[num+i]);
+          if(jack_connect(p->client, jack_port_name(p->outPorts[i]),
+                         portNames[num+i]) != 0) {
+            csound->Warning(csound, Str("failed autoconnecting output channel %d \n"
+                                      "(needs manual connection)"), i+1);
+	  }
+	  } else
+	  csound->Warning(csound, Str("jack port %d not valid \n"
+				      "failed autoconnecting output channel %d \n"
+                                      "(needs manual connection)"), num+i, i+1);        
+	}
+	
+	jack_free(portNames);
+      }
+      else {
       char dev[128], *dev_final, *sp;
       {
           int i,n = listDevices(csound,NULL,1);
@@ -563,7 +501,7 @@ static void openJackStreams(RtJackGlobals *p)
                   malloc(n*sizeof(CS_AUDIODEVICE));
           listDevices(csound,devs,1);
           for(i=0; i < n; i++)
-            csound->Message(csound, " %d: %s (%s)\n",
+            csound->Message(csound, " %d: %s (dac:%s)\n",
                             i, devs[i].device_id, devs[i].device_name);
           strncpy(dev, devs[0].device_name, 128);
           free(devs);
@@ -571,21 +509,21 @@ static void openJackStreams(RtJackGlobals *p)
       if (p->outDevName != NULL) {
         strncpy(dev, p->outDevName, 128); dev[127]='\0';
       }
-      //if (dev) { this test is rubbish
       dev_final = dev;
       sp = strchr(dev_final, '\0');
       if(!isalpha(dev_final[0])) dev_final++;
       for (i = 0; i < p->nChannels; i++) {
         snprintf(sp, 128-(dev-sp), "%d", i + 1);
+	csound->Message(csound, "connecting channel %d to %s \n", i, dev_final);
         if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
                          dev_final) != 0) {
-          //rtJack_Error(csound, -1, Str("error connecting output ports"));
-          csound->Warning(csound, Str("not autoconnecting input channel %d \n"
+          csound->Warning(csound, Str("failed to autoconnect output channel %d \n"
                                       "(needs manual connection)"), i+1);
 
         }
       }
       *sp = (char) 0;
+      }
     }
     /* stream is now active */
     p->jackState = 0;
@@ -595,7 +533,7 @@ static void openJackStreams(RtJackGlobals *p)
 /* allocating extra space for a channel number suffix. */
 /* Also set up other device parameters, and check consistency. */
 
-static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
+static void rtJack_CopyDevParams(RtJackGlobals *p,
                                  const csRtAudioParams *parm, int isOutput)
 {
     CSOUND  *csound;
@@ -603,36 +541,33 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
     size_t  nBytes;
 
     csound = p->csound;
-    *devName = (char*) NULL;
+    
     if (parm->devNum != 1024) {
-      jack_client_t *client_;
-      int           useTmpClient = 0;
-      /* FIXME: a temporary JACK client is created if there is no */
-      /* connection yet; this is a somewhat hackish solution... */
-      if (p->client == (jack_client_t*) NULL) {
-        useTmpClient = 1;
-        client_ = jack_client_open(&(p->clientName[0]), JackNoStartServer, NULL);
+      if(isOutput){
+        p->outDevNum = parm->devNum;
+	p->outDevName = NULL;
       }
-      else
-        client_ = p->client;
-      if (client_ != (jack_client_t*) NULL) {
-        rtJack_ListPorts(csound, client_, &(p->clientName[0]), isOutput);
-        if (useTmpClient)
-          jack_client_close(client_);
+      else {
+	p->inDevNum = parm->devNum;
+	p->inDevName = NULL;
       }
-      rtJack_Error(csound, -1, Str("must specify a device name, not a number"));
     }
+    else {
     if (parm->devName != NULL && parm->devName[0] != (char) 0) {
       /* NOTE: this assumes max. 999 channels (the current limit is 255) */
       nBytes = strlen(parm->devName) + 4;
-      if (UNLIKELY(nBytes > (size_t) jack_port_name_size()))
-        rtJack_Error(csound, -1, Str("device name is too long"));
       s = (char*) malloc(nBytes+1);
       if (UNLIKELY(s == NULL))
         rtJack_Error(csound, CSOUND_MEMORY, Str("memory allocation failure"));
       strcpy(s, parm->devName);
-
-      *devName = s;
+      if(isOutput){
+	p->outDevNum = -1;
+	p->outDevName = s;
+      }
+      else {
+	p->inDevName = s;
+        p->inDevNum = -1;
+      }
     }
     if (isOutput && p->inputEnabled) {
       /* full duplex audio I/O: check consistency of parameters */
@@ -644,6 +579,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p, char **devName,
                                   csound->GetKsmps(csound)) != parm->bufSamp_SW))
         rtJack_Error(csound, -1,
                      Str("period size (-b) must be an integer multiple of ksmps"));
+    }
     }
     p->sampleRate = (int) parm->sampleRate;
     if (UNLIKELY((float) p->sampleRate != parm->sampleRate))
@@ -664,7 +600,7 @@ static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
     if (p == NULL)
       return -1;
     *(csound->GetRtRecordUserData(csound)) = (void*) p;
-    rtJack_CopyDevParams(p, &(p->inDevName), parm, 0);
+    rtJack_CopyDevParams(p, parm, 0);
     p->inputEnabled = 1;
     /* allocate pointers to input ports */
     p->inPorts = (jack_port_t**)
@@ -689,7 +625,7 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
     if (p == NULL)
       return -1;
     *(csound->GetRtPlayUserData(csound)) = (void*) p;
-    rtJack_CopyDevParams(p, &(p->outDevName), parm, 1);
+    rtJack_CopyDevParams(p, parm, 1);
 
     p->outputEnabled = 1;
     /* allocate pointers to output ports */
@@ -1033,24 +969,19 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     }
 
     memset(port, '\0', 64);
-    for(i=0; portNames[i] != NULL; i++) {
+    for(i=0; portNames[i] != NULL; i++, cnt++) {
       n = (int) strlen(portNames[i]);
-      do {
-        n--;
-      } while (n > 0 && isdigit(portNames[i][n]));
-      n++;
-      if(strncmp(portNames[i], port, n)==0) continue;
       strncpy(port, portNames[i], n);
       port[n] = '\0';
       if (list != NULL) {
         strncpy(list[cnt].device_name, port, 63);
-        snprintf(list[cnt].device_id, 63, "%s%s",
-                 isOutput ? "dac:" : "adc:",port);
-        list[cnt].max_nchnls = -1;
+        snprintf(list[cnt].device_id, 63, "%s%d",
+                 isOutput ? "dac" : "adc", cnt);
+        list[cnt].max_nchnls = 1;
         list[cnt].isOutput = isOutput;
       }
-      cnt++;
     }
+    jack_free(portNames);
     jack_client_close(jackClient);
     p->listclient = NULL;
     return cnt;
