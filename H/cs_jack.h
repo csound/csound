@@ -39,4 +39,5 @@ typedef struct RtJackGlobals_ {
     RtJackBuffer    **bufs;             /* 'nBuffers' I/O buffers           */
     int     xrunFlag;                   /* non-zero if an xrun has occured  */
     jack_client_t   *listclient;
+    int outDevNum, inDevNum;            /* select devs by number */
 } RtJackGlobals;
