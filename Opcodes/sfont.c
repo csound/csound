@@ -172,9 +172,10 @@ static int SfLoad_(CSOUND *csound, SFLOAD *p, int istring)
     csound->Free(csound,fname);
     if (UNLIKELY(++globals->currSFndx>=globals->maxSFndx)) {
       globals->maxSFndx += 5;
-      globals->sfArray = (SFBANK *)realloc(globals->sfArray,
-                                           globals->maxSFndx*sizeof(SFBANK));
+      globals->sfArray = (SFBANK *)csound->ReAlloc(csound, globals->sfArray,
+                    /* JPff fix */        globals->maxSFndx*sizeof(SFBANK));
       csound->Warning(csound, Str("Extending soundfonts"));
+      if (globals->sfArray  == NULL) return NOTOK;
     }
     return OK;
 }
