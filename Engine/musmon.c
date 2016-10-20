@@ -169,24 +169,26 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
 int musmon(CSOUND *csound)
 {
     OPARMS  *O = csound->oparms;
-
+    /* VL - 20-10-16 this is already printed in csound.c */
+    /*
 #ifdef USE_DOUBLE
 #ifdef BETA
-    csound->Message(csound, Str("--Csound version %s beta (double samples) %s\n"),
-                            CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
+    csound->Message(csound, Str("--Csound version %s beta (double samples) %s \n[%s]\n"),
+		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
 #else
-    csound->Message(csound, Str("--Csound version %s (double samples) %s\n"),
-                            CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
+    csound->Message(csound, Str("--Csound version %s (double samples) %s \n[%s]\n"),
+		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
 #endif
 #else
 #ifdef BETA
-    csound->Message(csound, Str("--Csound version %s beta (float samples) %s\n"),
-                            CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
+    csound->Message(csound, Str("--Csound version %s beta (float samples) %s\n[%s]\n"),
+		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
 #else
-    csound->Message(csound, Str("--Csound version %s (float samples) %s\n"),
-                            CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
+    csound->Message(csound, Str("--Csound version %s (float samples) %s\n[%s]\n"),
+		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
 #endif
 #endif
+    */
     /* initialise search path cache */
     csoundGetSearchPathFromEnv(csound, "SNAPDIR");
     csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR;INCDIR");

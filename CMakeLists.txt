@@ -25,8 +25,6 @@ set(APIVERSION "6.0")
 # Relative install paths
 set(EXECUTABLE_INSTALL_DIR "bin")
 
-
-
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
     set(LIBRARY_INSTALL_DIR "lib64")
@@ -391,6 +389,12 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     #    add_compiler_flags("-g")
 endif()
 
+
+# get the git hash and pass it to csound
+execute_process(COMMAND "/usr/bin/git" "rev-parse" "HEAD"
+                          OUTPUT_VARIABLE git_hash_value)
+message(STATUS "HASH: ${git_hash_value}")
+add_compiler_flags("-DGIT_HASH_VALUE=${git_hash_value}")
 
 #if(USE_DOUBLE)
 #    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/plugins64)
