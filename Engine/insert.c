@@ -1057,7 +1057,10 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
       csound->engineState.instrtxtp[instno]->active++;
       csound->engineState.instrtxtp[instno]->instcnt++;
       p->ip->p1.value = (MYFLT) instno;
-      p->ip->opcod_iobufs = (void*) &p->buf;
+      /* VL 21-10-16: iobufs are not used here and
+         are causing trouble elsewhere. Commenting
+         it out */
+      /* p->ip->opcod_iobufs = (void*) &p->buf; */
       /* link into deact chain */
       p->ip->subins_deact = saved_curip->subins_deact;
       p->ip->opcod_deact = NULL;
@@ -1111,9 +1114,29 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
     if (UNLIKELY(p->INOCOUNT >
                  (unsigned int)(csound->engineState.instrtxtp[instno]->pmax + 1)))
       return csoundInitError(csound, Str("subinstr: too many p-fields"));
-    for (n = 1; (unsigned int) n < p->INOCOUNT; n++)
-      (pfield + n)->value = *p->ar[inarg_ofs + n];
-
+    union {
+      MYFLT d;
+      int32 i;
+    } ch;
+    int str_cnt = 0, len = 0;
+    char *argstr;
+    for (n = 1; (unsigned int) n < p->INOCOUNT; n++){
+      if(IS_STR_ARG(p->ar[inarg_ofs + n])){
+	ch.d = SSTRCOD;
+	ch.i = str_cnt & 0xffff;
+        (pfield + n)->value = ch.d;
+        argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
+	if(str_cnt == 0)
+	  p->ip->strarg = csound->Calloc(csound, strlen(argstr)+1);
+	else
+	  p->ip->strarg = csound->ReAlloc(csound, p->ip->strarg,
+					  len+strlen(argstr)+1);
+	strcpy(p->ip->strarg + len, argstr);
+	len += strlen(argstr)+1;
+	str_cnt++;
+      }
+      else (pfield + n)->value = *p->ar[inarg_ofs + n];
+    }
     /* allocate memory for a temporary store of spout buffers */
     if (!init_op && !(pip->reinitflag | pip->tieflag))
       csoundAuxAlloc(csound,
@@ -1581,6 +1604,8 @@ int subinstr(CSOUND *csound, SUBINST *p)
     uint32_t frame, chan;
     unsigned int nsmps = CS_KSMPS;
     INSDS *ip = p->ip;
+
+    //printf("%s \n", p->ip->strarg);
 
     if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
       return csoundPerfError(csound, p->h.insdshead,
