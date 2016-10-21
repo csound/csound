@@ -599,7 +599,7 @@ endif()
 #endif(WIN32)
 
 # get the git hash and pass it to csound
-find_program(GIT_EXE "git" "/usr/bin")
+find_program(GIT_EXE git /usr/bin)
 message(STATUS "GIT: ${GIT_EXE}")
 if(GIT_EXE) 
   execute_process(COMMAND ${GIT_EXE} "rev-parse" "HEAD"
