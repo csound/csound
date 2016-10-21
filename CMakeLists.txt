@@ -599,13 +599,16 @@ endif()
 #endif(WIN32)
 
 # get the git hash and pass it to csound
-execute_process(COMMAND "/usr/bin/git" "rev-parse" "HEAD"
-                          OUTPUT_VARIABLE git_hash_value)
-string(STRIP ${git_hash_value} git_hash_values)
-message(STATUS "HASH: ${git_hash_values}")
-set_source_files_properties(Top/csound.c PROPERTIES
-  COMPILE_FLAGS  -DGIT_HASH_VALUE=${git_hash_values})
-
+find_program(GIT_EXE "git" "/usr/bin")
+message(STATUS "GIT: ${GIT_EXE}")
+if(GIT_EXE) 
+  execute_process(COMMAND ${GIT_EXE} "rev-parse" "HEAD"
+                            OUTPUT_VARIABLE git_hash_value)
+  string(STRIP ${git_hash_value} git_hash_values)
+  message(STATUS "HASH: ${git_hash_values}")
+  set_source_files_properties(Top/csound.c PROPERTIES
+    COMPILE_FLAGS  -DGIT_HASH_VALUE=${git_hash_values})
+endif()
 
 
 # The csound library
