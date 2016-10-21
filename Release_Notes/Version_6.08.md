@@ -45,7 +45,7 @@ to memory leaks and more robust code.
 
 - dct -- Discrete Cosine Transform of a sample array (type-II DCT)
 
-- getftargs -- copy arguments of a gen to an array
+- getftargs -- copy arguments of a gen to an S-variable
 
 - mfb -- implements a mel-frequency filterbank for an array of input
   magnitudes (no manual page)

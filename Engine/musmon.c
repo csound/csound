@@ -174,18 +174,18 @@ int musmon(CSOUND *csound)
 #ifdef USE_DOUBLE
 #ifdef BETA
     csound->Message(csound, Str("--Csound version %s beta (double samples) %s \n[%s]\n"),
-		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
 #else
     csound->Message(csound, Str("--Csound version %s (double samples) %s \n[%s]\n"),
-		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
 #endif
 #else
 #ifdef BETA
     csound->Message(csound, Str("--Csound version %s beta (float samples) %s\n[%s]\n"),
-		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
 #else
     csound->Message(csound, Str("--Csound version %s (float samples) %s\n[%s]\n"),
-		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
 #endif
 #endif
     */
