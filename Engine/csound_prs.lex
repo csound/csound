@@ -837,7 +837,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
                      csound_prsget_lineno(yyscanner));
     {
       uint8_t n = file_to_int(csound, buffer);
-      char bb[128];
+      //char bb[128];
       PARM->lstack[PARM->depth] = n;
       //sprintf(bb, "#source %llu\n", PARM->locn = make_location(PARM));
       PARM->llocn = PARM->locn;
@@ -1238,7 +1238,7 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
         }
       }
     }
-    free(buf);
+    //free(buf);
     while (c != '\n' && c != EOF && c != '\r') c = input(yyscanner);
 }
 
@@ -1319,13 +1319,13 @@ static void csound_prs_line(CORFIL* cf, void *yyscanner)
     if (cf->p>0 && cf->body[cf->p-1]=='\n') {
       uint64_t locn = PARM->locn;
       uint64_t llocn = PARM->llocn;
-#ifdef SCORE_PARSER
-      if (locn != llocn) {
-        char bb[80];
-        //sprintf(bb, "#source %llu\n", locn);
-        //corfile_puts(bb, cf);
-      }
-#endif
+/* #ifdef SCORE_PARSER */
+/*       if (locn != llocn) { */
+/*         //char bb[80]; */
+/*         //sprintf(bb, "#source %llu\n", locn); */
+/*         //corfile_puts(bb, cf); */
+/*       } */
+/* #endif */
       PARM->llocn = locn;
 #ifdef SCORE_PARSER
       //if (n!=PARM->line+1) {

@@ -94,7 +94,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     uint32_t vecpos, vecsize=CS_KSMPS;
     int firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
-    int     count = p->count, i,j, newstream;
+    int     count = p->count, j, newstream;
     int     datasize = p->datasize, envtablesize = p->envtablesize;
 
     pitch  = *p->pitch;
