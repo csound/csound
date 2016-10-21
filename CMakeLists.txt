@@ -390,11 +390,6 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 
-# get the git hash and pass it to csound
-execute_process(COMMAND "/usr/bin/git" "rev-parse" "HEAD"
-                          OUTPUT_VARIABLE git_hash_value)
-message(STATUS "HASH: ${git_hash_value}")
-add_compiler_flags("-DGIT_HASH_VALUE=${git_hash_value}")
 
 #if(USE_DOUBLE)
 #    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/plugins64)
@@ -603,9 +598,19 @@ endif()
     include_directories(${LIBSNDFILE_INCLUDE_DIRECTORY})
 #endif(WIN32)
 
+# get the git hash and pass it to csound
+execute_process(COMMAND "/usr/bin/git" "rev-parse" "HEAD"
+                          OUTPUT_VARIABLE git_hash_value)
+string(STRIP ${git_hash_value} git_hash_values)
+message(STATUS "HASH: ${git_hash_values}")
+set_source_files_properties(Top/csound.c PROPERTIES
+  COMPILE_FLAGS  -DGIT_HASH_VALUE=${git_hash_values})
+
+
 
 # The csound library
 set(libcsound_SRCS
+   Top/csound.c
     Engine/auxfd.c
     Engine/cfgvar.c
     Engine/corfiles.c
@@ -734,7 +739,6 @@ set(libcsound_SRCS
     Top/cscore_internal.c
     Top/cscorfns.c
     Top/csmodule.c
-    Top/csound.c
     Top/getstring.c
     Top/main.c
     Top/new_opts.c
@@ -833,6 +837,9 @@ set(mp3in_SRCS
 
 
 list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
+
+
+
 
 # Handling New Parser
 

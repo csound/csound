@@ -3188,20 +3188,21 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundInitTimerStruct(csound->csRtClock);
       csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
+        
 #ifdef USE_DOUBLE
 #ifdef BETA
-      csound->Message(csound, Str("--Csound version %s beta (double samples) %s \n[%s]\n"),
+      csound->Message(csound, Str("--Csound version %s beta (double samples) %s \n[commit: %s]\n"),
 		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (double samples) %s \n[%s]\n"),
+    csound->Message(csound, Str("--Csound version %s (double samples) %s \n[commit: %s]\n"),
 		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, STRING_HASH(GIT_HASH_VALUE));
 #endif
 #else
 #ifdef BETA
-    csound->Message(csound, Str("--Csound version %s beta (float samples) %s \n[%s]\n"),
+    csound->Message(csound, Str("--Csound version %s beta (float samples) %s \n[commit: %s]\n"),
 		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (float samples) %s \n[%s]\n"),
+    csound->Message(csound, Str("--Csound version %s (float samples) %s \n[commit: %s]\n"),
 		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, STRING_HASH(GIT_HASH_VALUE));
 #endif
 #endif
