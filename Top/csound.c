@@ -2257,7 +2257,7 @@ static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
     }
 #else
     FILE *fp = stderr;
-    if (attr & CSOUNDMSG_TYPE_MASK == CSOUNDMSG_STDOUT)
+    if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_STDOUT)
       fp = stdout;
     if (!attr || !csound->enableMsgAttr) {
       vfprintf(fp, format, args);
@@ -3188,22 +3188,31 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundInitTimerStruct(csound->csRtClock);
       csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
-        
+
 #ifdef USE_DOUBLE
 #ifdef BETA
-      csound->Message(csound, Str("--Csound version %s beta (double samples) %s \n[commit: %s]\n"),
-		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, STRING_HASH(GIT_HASH_VALUE));
+      csound->Message(csound,
+                      Str("--Csound version %s beta (double samples) %s \n"
+                          "[commit: %s]\n"),
+                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
+                      STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (double samples) %s \n[commit: %s]\n"),
-		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, STRING_HASH(GIT_HASH_VALUE));
+    csound->Message(csound, Str("--Csound version %s (double samples) %s \n"
+                                "[commit: %s]\n"),
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE
+                    , STRING_HASH(GIT_HASH_VALUE));
 #endif
 #else
 #ifdef BETA
-    csound->Message(csound, Str("--Csound version %s beta (float samples) %s \n[commit: %s]\n"),
-		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, STRING_HASH(GIT_HASH_VALUE));
+    csound->Message(csound, Str("--Csound version %s beta (float samples) %s \n"
+                                "[commit: %s]\n"),
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
+                    STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (float samples) %s \n[commit: %s]\n"),
-		    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, STRING_HASH(GIT_HASH_VALUE));
+    csound->Message(csound, Str("--Csound version %s (float samples) %s \n"
+                                "[commit: %s]\n"),
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
+                    STRING_HASH(GIT_HASH_VALUE));
 #endif
 #endif
       {
