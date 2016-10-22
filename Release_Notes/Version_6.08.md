@@ -114,6 +114,8 @@ to memory leaks and more robust code.
 
 - ftgen now as array input option
 
+- subinstr can now have string arguments
+
 ### Utilities
 
 - pvlook now always prints explicit analysis window name
@@ -180,7 +182,10 @@ to memory leaks and more robust code.
 
 - System information messages (system sampling rate, etc) are now directed to stdout
 
-- rtjack reworked to deal with names and numbrs
+- rtjack reworked to deal with names and numbers
+
+- The version printing now includes the commit as so the developers
+  know which patches have been applied 
 
 ### API
 
@@ -220,7 +225,7 @@ to memory leaks and more robust code.
 
 <pre>
 ========================================================================
-commit 23ffb33bbde1c029c3436c765c052b12798390cc
-Date:   Thu Oct 20 09:33:11 2016 +0100
+commit cd9beedac61815b37eb2ce7bafebe0bc1bd4a461
+Date:   Fri Oct 21 22:04:37 2016 +0100
 =======
 </pre>
