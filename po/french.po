@@ -3274,12 +3274,12 @@ msgid "error activating JACK client"
 msgstr "erreur à l'activation du client JACK"
 
 #: InOut/rtjack.c:441 InOut/rtjack.c:465 InOut/rtjack.c:492 InOut/rtjack.c:516
-#, fuzzy, c-format
+#, c-format
 msgid "connecting channel %d to %s \n"
-msgstr "connexion du périphérique midi %d : %s\n"
+msgstr "connexion du canal %d à %s\n"
 
 #: InOut/rtjack.c:445
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "failed autoconnecting input channel %d \n"
 "(needs manual connection)"
@@ -3288,12 +3288,13 @@ msgstr ""
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:449
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "jack port %d not valid \n"
 "failed autoconnecting input channel %d \n"
 "(needs manual connection)"
 msgstr ""
+"port jack %d invalide\n"
 "pas de connexion automatique du canal d'entrée %d\n"
 "(il faut une connexion manuelle)"
 
@@ -3307,42 +3308,41 @@ msgstr ""
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:476
-#, fuzzy
 msgid "put port not connected\n"
-msgstr "---> Connexion impossible \n"
+msgstr "port d'entrée non connecté\n"
 
 #: InOut/rtjack.c:496
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "failed autoconnecting output channel %d \n"
 "(needs manual connection)"
 msgstr ""
-"pas de connexion automatique du canal d'entrée %d\n"
+"pas de connexion automatique du canal de sortie %d\n"
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:500
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "jack port %d not valid \n"
 "failed autoconnecting output channel %d \n"
 "(needs manual connection)"
 msgstr ""
-"pas de connexion automatique du canal d'entrée %d\n"
+"port jack %d invalide\n"
+"pas de connexion automatique du canal de sortie %d\n"
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:520
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "failed to autoconnect output channel %d \n"
 "(needs manual connection)"
 msgstr ""
-"pas de connexion automatique du canal d'entrée %d\n"
+"pas de connexion automatique du canal de sortie %d\n"
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:527
-#, fuzzy
 msgid "output port not connected\n"
-msgstr "---> Connexion impossible \n"
+msgstr "port de sortie non connecté\n"
 
 #: InOut/rtjack.c:579
 msgid "input and output parameters are not consistent"
@@ -3422,9 +3422,8 @@ msgid "JACK MIDI output port name (default: port)"
 msgstr "Préfixe du nom du port de sortie de JACK (par défaut : output)"
 
 #: InOut/rtjack.c:1136
-#, fuzzy
 msgid "Jack MIDI module: buffer overflow"
-msgstr "Module MIDI Jack : dépassement du tampon de sortie"
+msgstr "Module MIDI Jack : dépassement de tampon"
 
 #: InOut/rtjack.c:1162
 msgid "Jack MIDI module: failed to create client for input"
@@ -11616,32 +11615,40 @@ msgid "Failed during csoundLoadModules"
 msgstr "Echec dans csoundLoadModules"
 
 #: Top/csound.c:3195
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "--Csound version %s beta (double samples) %s \n"
 "[commit: %s]\n"
-msgstr "--Csound version %s beta (échantillons en format double) %s\n"
+msgstr ""
+"--Csound version %s beta (échantillons en format double) %s\n"
+"[commit : %s]\n"
 
 #: Top/csound.c:3200
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "--Csound version %s (double samples) %s \n"
 "[commit: %s]\n"
-msgstr "--Csound version %s (échantillons en format double) %s\n"
+msgstr ""
+"--Csound version %s (échantillons en format double) %s\n"
+"[commit : %s]\n"
 
 #: Top/csound.c:3207
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "--Csound version %s beta (float samples) %s \n"
 "[commit: %s]\n"
-msgstr "--Csound version %s beta (échantillons en format float) %s\n"
+msgstr ""
+"--Csound version %s beta (échantillons en format float) %s\n"
+"[commit : %s]\n"
 
 #: Top/csound.c:3212
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "--Csound version %s (float samples) %s \n"
 "[commit: %s]\n"
-msgstr "--Csound version %s (échantillons en format float) %s\n"
+msgstr ""
+"--Csound version %s (échantillons en format float) %s\n"
+"[commit : %s]\n"
 
 #: Top/csound.c:3245
 msgid "Real time audio module name"
