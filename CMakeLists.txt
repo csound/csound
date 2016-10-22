@@ -600,6 +600,7 @@ endif()
 #endif(WIN32)
 
 # get the git hash and pass it to csound
+SET(git_hash_values "none")
 if(USE_GIT_COMMIT)
   find_package(Git)
   message(STATUS "GIT: ${GIT_EXECUTABLE}")
@@ -608,10 +609,10 @@ if(USE_GIT_COMMIT)
                               OUTPUT_VARIABLE git_hash_value)
     string(STRIP ${git_hash_value} git_hash_values)
     message(STATUS "HASH: ${git_hash_values}")
-    set_source_files_properties(Top/csound.c PROPERTIES
-      COMPILE_FLAGS  -DGIT_HASH_VALUE=${git_hash_values})
   endif()
 endif()
+set_source_files_properties(Top/csound.c PROPERTIES
+  COMPILE_FLAGS  -DGIT_HASH_VALUE=${git_hash_values})
 
 
 # The csound library
