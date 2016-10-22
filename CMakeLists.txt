@@ -599,7 +599,7 @@ endif()
 #endif(WIN32)
 
 # get the git hash and pass it to csound
-find_package(GIT)
+find_package(Git)
 message(STATUS "GIT: ${GIT_EXECUTABLE}")
 if(GIT_FOUND) 
   execute_process(COMMAND ${GIT_EXECUTABLE} "rev-parse" "HEAD"
