@@ -1122,18 +1122,18 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
     char *argstr;
     for (n = 1; (unsigned int) n < p->INOCOUNT; n++){
       if(IS_STR_ARG(p->ar[inarg_ofs + n])){
-	ch.d = SSTRCOD;
-	ch.i = str_cnt & 0xffff;
+        ch.d = SSTRCOD;
+        ch.i = str_cnt & 0xffff;
         (pfield + n)->value = ch.d;
         argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
-	if(str_cnt == 0)
-	  p->ip->strarg = csound->Calloc(csound, strlen(argstr)+1);
-	else
-	  p->ip->strarg = csound->ReAlloc(csound, p->ip->strarg,
-					  len+strlen(argstr)+1);
-	strcpy(p->ip->strarg + len, argstr);
-	len += strlen(argstr)+1;
-	str_cnt++;
+        if(str_cnt == 0)
+          p->ip->strarg = csound->Calloc(csound, strlen(argstr)+1);
+        else
+          p->ip->strarg = csound->ReAlloc(csound, p->ip->strarg,
+                                          len+strlen(argstr)+1);
+        strcpy(p->ip->strarg + len, argstr);
+        len += strlen(argstr)+1;
+        str_cnt++;
       }
       else (pfield + n)->value = *p->ar[inarg_ofs + n];
     }

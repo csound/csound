@@ -441,7 +441,7 @@ const char* get_output_format(OPARMS *O)
       break;
     case AE_VORBIS:
       c  = 'v';
-      break;      
+      break;
     default:
       c = '\0';
     };
@@ -1637,12 +1637,12 @@ PUBLIC void csoundSetOutput(CSOUND *csound, const char *name, const char *type, 
         set_output_format(oparms, sample_format_map[i].shortformat);
       }
     }
-}          
-           
+}
+
 PUBLIC void csoundGetOutputFormat(CSOUND *csound,
                                   char *type, char *format)
-{          
-           
+{
+
     OPARMS *oparms = csound->oparms;
     int i = 0;
     const char* fmt = get_output_format(oparms);
