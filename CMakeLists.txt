@@ -303,6 +303,7 @@ option(USE_CURL "Use CURL library" ON)
 option(BUILD_RELEASE "Build for release" ON)
 option(BUILD_INSTALLER "Build installer" OFF)
 option(BUILD_TESTS "Build tests" ON)
+option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
