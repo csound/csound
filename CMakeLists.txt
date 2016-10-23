@@ -301,8 +301,9 @@ option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
 option(USE_CURL "Use CURL library" ON)
 option(BUILD_RELEASE "Build for release" ON)
-option(BUILD_INSTALLER "Build for release" OFF)
-option(BUILD_TESTS "Build for release" ON)
+option(BUILD_INSTALLER "Build installer" OFF)
+option(BUILD_TESTS "Build tests" ON)
+
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
 
@@ -599,16 +600,19 @@ endif()
 #endif(WIN32)
 
 # get the git hash and pass it to csound
-find_package(Git)
-message(STATUS "GIT: ${GIT_EXECUTABLE}")
-if(GIT_FOUND) 
-  execute_process(COMMAND ${GIT_EXECUTABLE} "rev-parse" "HEAD"
-                            OUTPUT_VARIABLE git_hash_value)
-  string(STRIP ${git_hash_value} git_hash_values)
-  message(STATUS "HASH: ${git_hash_values}")
-  set_source_files_properties(Top/csound.c PROPERTIES
-    COMPILE_FLAGS  -DGIT_HASH_VALUE=${git_hash_values})
+SET(git_hash_values "none")
+if(USE_GIT_COMMIT)
+  find_package(Git)
+  message(STATUS "GIT: ${GIT_EXECUTABLE}")
+  if(GIT_FOUND)
+    execute_process(COMMAND ${GIT_EXECUTABLE} "rev-parse" "HEAD"
+                              OUTPUT_VARIABLE git_hash_value)
+    string(STRIP ${git_hash_value} git_hash_values)
+    message(STATUS "HASH: ${git_hash_values}")
+  endif()
 endif()
+set_source_files_properties(Top/csound.c PROPERTIES
+  COMPILE_FLAGS  -DGIT_HASH_VALUE=${git_hash_values})
 
 
 # The csound library
