@@ -1011,11 +1011,11 @@ int ko1set(CSOUND *csound, OSCIL1 *p)
       p->phs = MAXLEN-1;
     }
     else p->phs = 0;
-    p->ftp = ftp; 
+    p->ftp = ftp;
     p->dcnt = (int32)(*p->idel * CS_EKR);
     p->kinc = (int32) (CS_KICVT / *p->idur);
     if (p->kinc==0) p->kinc = 1;
-    
+
     return OK;
 }
 
@@ -1035,7 +1035,7 @@ int kosc1(CSOUND *csound, OSCIL1 *p)
         phs = MAXLEN;
         dcnt--;
       }
-      else if (UNLIKELY(phs < 0)){ 
+      else if (UNLIKELY(phs < 0)){
       phs = 0;
         dcnt--;
       }
@@ -1071,7 +1071,7 @@ int kosc1i(CSOUND *csound, OSCIL1   *p)
         phs = MAXLEN;
         dcnt--;
         p->dcnt = dcnt;
-      } else if (UNLIKELY(phs < 0)){ 
+      } else if (UNLIKELY(phs < 0)){
       phs = 0;
         dcnt--;
       }
