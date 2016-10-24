@@ -608,8 +608,10 @@ if(USE_GIT_COMMIT)
   if(GIT_FOUND)
     execute_process(COMMAND ${GIT_EXECUTABLE} "rev-parse" "HEAD"
                               OUTPUT_VARIABLE git_hash_value)
-    string(STRIP ${git_hash_value} git_hash_values)
-    message(STATUS "HASH: ${git_hash_values}")
+    if (git_hash_value)
+      string(STRIP ${git_hash_value} git_hash_values)
+      message(STATUS "HASH: ${git_hash_values}")
+    endif()
   endif()
 endif()
 set_source_files_properties(Top/csound.c PROPERTIES
