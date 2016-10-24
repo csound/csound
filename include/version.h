@@ -41,7 +41,7 @@
 #define CS_SUBVER           (8)
 #define CS_PATCHLEVEL       (0)
 
-#define CS_APIVERSION       3   /* should be increased anytime a new version
+#define CS_APIVERSION       4   /* should be increased anytime a new version
                                    contains changes that an older host will
                                    not be able to handle -- most likely this
                                    will be a change to an API function or
