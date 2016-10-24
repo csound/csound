@@ -1703,7 +1703,7 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
       }
     }
 
-    if (!check_out_args(csound, outArgsFound, outArgs)) {
+    if (!check_in_args(csound, outArgsFound, outArgs)) {
       if (!(strcmp("0", outArgs) == 0 && xoutArgs == NULL)) {
         synterr(csound,
                 Str("invalid xout statement for UDO: defined '%s', found '%s'\n"),
