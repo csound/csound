@@ -34,7 +34,7 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
       ip = ((OPCOD_IOBUFS*)ip->opcod_iobufs)->parent_ip;
     }
     ss = ip->strarg;  /* look at this instr's strarg */
-   
+
     union {
       MYFLT d;
       int32 i;
