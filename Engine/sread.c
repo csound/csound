@@ -1515,7 +1515,7 @@ static void pcopy(CSOUND *csound, int pfno, int ncopy, SRTBLK *prvbp)
       case 3: STA(bp)->newp3 = STA(bp)->p3val = prvbp->p3val;
         break;
       default:
-        break; 
+        break;
       }
       STA(bp)->lineno = prvbp->lineno;
       pfno++;

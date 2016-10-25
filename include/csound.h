@@ -905,7 +905,7 @@ extern "C" {
 
   /**
     *  Get output type and format.
-    *  type should have space for at least 5 chars excluding termination, 
+    *  type should have space for at least 5 chars excluding termination,
     *  and format should have space for at least 7 chars.
     *  On return, these will hold the current values for
     *  these parameters.
