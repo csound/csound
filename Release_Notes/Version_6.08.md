@@ -48,7 +48,7 @@ to memory leaks and more robust code.
 - getftargs -- copy arguments of a gen to an S-variable
 
 - mfb -- implements a mel-frequency filterbank for an array of input
-  magnitudes (no manual page)
+  magnitudes 
 
 ### New Gen and Macros
 
