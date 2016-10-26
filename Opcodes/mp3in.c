@@ -837,6 +837,8 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
 
 }
 
+#ifdef ANDROID
+
 typedef struct _mp3scal2_ {
   int cnt, hsize, curframe, N, decim,tscale;
   double pos;
@@ -1862,7 +1864,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
   return OK;
 
 }
-//#endif
+#endif
 
 #ifdef ONE_FINE_DAY
 static int meminit2(CSOUND *csound, LOADER *pp)
@@ -2432,12 +2434,14 @@ static OENTRY mp3in_localops[] = {
   {"mp3nchnls.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
   {"mp3scal", sizeof(DATASPACE), 0, 5, "aak", "SkkkoooPP",
    (SUBR)sinit3, NULL,(SUBR)sprocess3 },
+#ifdef ANDROID
   {"mp3scal_load", sizeof(LOADER), 0, 1, "i", "Soooo",
    (SUBR)loader_init, NULL,NULL },
   {"mp3scal_play", sizeof(PLAYER), 0, 5, "aaki", "ikkkPPo",
    (SUBR)player_init, NULL,(SUBR)player_play},
   {"mp3scal_check", sizeof(CHECK), 0, 5, "k", "i",
    (SUBR)check_init, NULL,(SUBR)check_play},
+ #endif
   /*  
   {"mp3scal_load2", sizeof(LOADER), 0, 1, "i", "Soooo",
    (SUBR)loader_init2, NULL,NULL },
