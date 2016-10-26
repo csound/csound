@@ -1864,7 +1864,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 }
 //#endif
 
-
+#ifdef ONE_FINE_DAY
 static int meminit2(CSOUND *csound, LOADER *pp)
 {
 
@@ -2414,7 +2414,7 @@ static int player_play2(CSOUND *csound, PLAYER *pp)
 
 }
 
-
+#endif
 
 
 #define S(x)    sizeof(x)
@@ -2438,10 +2438,12 @@ static OENTRY mp3in_localops[] = {
    (SUBR)player_init, NULL,(SUBR)player_play},
   {"mp3scal_check", sizeof(CHECK), 0, 5, "k", "i",
    (SUBR)check_init, NULL,(SUBR)check_play},
+  /*  
   {"mp3scal_load2", sizeof(LOADER), 0, 1, "i", "Soooo",
    (SUBR)loader_init2, NULL,NULL },
   {"mp3scal_play2", sizeof(PLAYER), 0, 5, "aaki", "ikkkPPo",
    (SUBR)player_init2, NULL,(SUBR)player_play2}
+  */
 };
 
 LINKAGE_BUILTIN(mp3in_localops)
