@@ -108,6 +108,39 @@ void csoundDebuggerBreakpointReached(CSOUND *csound);
 
 extern OENTRY opcodlst_1[];
 
+#define STRING_HASH(arg) STRSH(arg)
+#define STRSH(arg) #arg
+
+void print_csound_version(CSOUND* csound)
+{
+#ifdef USE_DOUBLE
+#ifdef BETA
+    csound->Message(csound,
+                    Str("--Csound version %s beta (double samples) %s \n"
+                        "[commit: %s]\n"),
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
+                    STRING_HASH(GIT_HASH_VALUE));
+#else
+    csound->Message(csound, Str("--Csound version %s (double samples) %s \n"
+                                "[commit: %s]\n"),
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE
+                    , STRING_HASH(GIT_HASH_VALUE));
+#endif
+#else
+#ifdef BETA
+    csound->Message(csound, Str("--Csound version %s beta (float samples) %s \n"
+                                "[commit: %s]\n"),
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
+                    STRING_HASH(GIT_HASH_VALUE));
+#else
+    csound->Message(csound, Str("--Csound version %s (float samples) %s \n"
+                                "[commit: %s]\n"),
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
+                    STRING_HASH(GIT_HASH_VALUE));
+#endif
+#endif
+}
+
 static void free_opcode_table(CSOUND* csound) {
     int i;
     CS_HASH_TABLE_ITEM* bucket;
@@ -3100,9 +3133,6 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
 }
 
 
-#define STRING_HASH(arg) STRSH(arg)
-#define STRSH(arg) #arg
-
 PUBLIC void csoundReset(CSOUND *csound)
 {
     char    *s;
@@ -3188,33 +3218,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundInitTimerStruct(csound->csRtClock);
       csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
-
-#ifdef USE_DOUBLE
-#ifdef BETA
-      csound->Message(csound,
-                      Str("--Csound version %s beta (double samples) %s \n"
-                          "[commit: %s]\n"),
-                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
-                      STRING_HASH(GIT_HASH_VALUE));
-#else
-    csound->Message(csound, Str("--Csound version %s (double samples) %s \n"
-                                "[commit: %s]\n"),
-                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE
-                    , STRING_HASH(GIT_HASH_VALUE));
-#endif
-#else
-#ifdef BETA
-    csound->Message(csound, Str("--Csound version %s beta (float samples) %s \n"
-                                "[commit: %s]\n"),
-                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
-                    STRING_HASH(GIT_HASH_VALUE));
-#else
-    csound->Message(csound, Str("--Csound version %s (float samples) %s \n"
-                                "[commit: %s]\n"),
-                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
-                    STRING_HASH(GIT_HASH_VALUE));
-#endif
-#endif
+      print_csound_version(csound);
       {
         char buffer[128];
         sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);

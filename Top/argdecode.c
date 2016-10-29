@@ -30,6 +30,7 @@
 static void list_audio_devices(CSOUND *csound, int output);
 static void list_midi_devices(CSOUND *csound, int output);
 extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
+extern void print_csound_version(CSOUND* csound);
 
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || (((s = *++argv) != NULL) && *s == '-')))  \
@@ -121,6 +122,7 @@ static inline void set_stdout_assign(CSOUND *csound, int type, int state)
 /* IV - Feb 19 2005 */
 static const char *shortUsageList[] = {
   Str_noop("--help\tprint long usage options"),
+  Str_noop("--vesion\tprint version details"),
   Str_noop("-U unam\trun utility program unam"),
   Str_noop("-C\tuse Cscore processing of scorefile"),
   Str_noop("-j N\tuse N threads in performance"),
@@ -650,10 +652,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->sfwrite = 0;                   /* and implies nosound */
       return 1;
     }
-    /*
-      -j Used in localisation
-      -J create an IRCAM format output soundfile
-     */
     else if (!(strcmp (s, "ircam"))) {
       O->filetyp = TYP_IRCAM;           /* IRCAM output request */
       return 1;
@@ -1012,6 +1010,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     else if (!(strcmp (s, "syntax-check-only"))) {
       O->syntaxCheckOnly = 1;
       return 1;
+    }
+    else if (!(strcmp(s, "version"))) {
+      //print_csound_version(csound); // as already printed!
+      csound->LongJmp(csound, 0);
     }
     else if (!(strcmp(s, "help"))) {
       longusage(csound);

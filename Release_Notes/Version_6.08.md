@@ -92,6 +92,8 @@ to memory leaks and more robust code.
 
 - The tempo setting can now be a floating point value (previously fixed to integer)
 
+- New option --version prints version infomation and exits
+
 ### Modified Opcodes and Gens
 
 - Problems in centroid fixed.
