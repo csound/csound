@@ -160,6 +160,11 @@ static int tabfill(CSOUND *csound, TABFILL *p)
     return OK;
 }
 
+static int array_err(CSOUND* csound, ARRAY_SET *p)
+{
+    return csound->InitError(csound, "Cant set i-array at k-rate\n");
+}
+
 static int array_set(CSOUND* csound, ARRAY_SET *p)
 {
     ARRAYDAT* dat = p->arrayDat;
@@ -2252,7 +2257,8 @@ static OENTRY arrayvars_localops[] =
       (SUBR)array_set,(SUBR)array_set},
     { "##array_set.a", sizeof(ARRAY_SET), 0, 2, "", "a[]am", NULL, (SUBR)array_set},
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
-    { "##array_set.k", sizeof(ARRAY_SET), 0, 2, "", ".[].z", NULL, (SUBR)array_set},
+    { "##array_set.e", sizeof(ARRAY_SET), 0, 1, "", "i[].z", (SUBR)array_err },
+    { "##array_set.x", sizeof(ARRAY_SET), 0, 2, "", ".[].z", NULL, (SUBR)array_set},
     { "##array_get.k", sizeof(ARRAY_GET), 0, 3, "k", "k[]m",
       (SUBR)array_get,(SUBR)array_get },
     { "##array_get.a", sizeof(ARRAY_GET), 0, 2, "a", "a[]m",NULL, (SUBR)array_get },
