@@ -2423,8 +2423,8 @@ static int player_play2(CSOUND *csound, PLAYER *pp)
 #define S(x)    sizeof(x)
 
 static OENTRY mp3in_localops[] = {
-  {"mp3in",  S(MP3IN),  0, 5, "mm", "Soooo", (SUBR) mp3ininit_S, NULL, (SUBR) mp3in},
-  {"mp3in.i",  S(MP3IN),  0, 5, "mm", "ioooo", (SUBR) mp3ininit, NULL, (SUBR) mp3in},
+  {"mp3in",  S(MP3IN),  0, 5, "mm", "Soooo", (SUBR) mp3ininit_S, NULL, (SUBR)mp3in},
+  {"mp3in.i",  S(MP3IN),  0, 5, "mm", "ioooo", (SUBR) mp3ininit, NULL, (SUBR)mp3in},
   {"mp3len", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
   {"mp3len.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
   {"mp3sr", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
