@@ -2259,11 +2259,12 @@ static OENTRY arrayvars_localops[] =
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
     { "##array_set.e", sizeof(ARRAY_SET), 0, 1, "", "i[].z", (SUBR)array_err },
     { "##array_set.x", sizeof(ARRAY_SET), 0, 2, "", ".[].z", NULL, (SUBR)array_set},
-    { "##array_get.k", sizeof(ARRAY_GET), 0, 3, "k", "k[]m",
-      (SUBR)array_get,(SUBR)array_get },
+    { "##array_get.k", sizeof(ARRAY_GET), 0, 2, "k", "k[]m", NULL,(SUBR)array_get },
     { "##array_get.a", sizeof(ARRAY_GET), 0, 2, "a", "a[]m",NULL, (SUBR)array_get },
     { "##array_get.x", sizeof(ARRAY_GET), 0, 1, ".", ".[]m",(SUBR)array_get },
-    { "##array_get.k1", sizeof(ARRAY_GET), 0, 2, ".", ".[]z",NULL, (SUBR)array_get},
+    { "##array_get.K", sizeof(ARRAY_GET), 0, 2, ".", ".[]z",NULL, (SUBR)array_get},
+    { "i.Ai", sizeof(ARRAY_GET),0, 1,      "i",    "k[]i", (SUBR)array_get  },
+    { "i.Ak", sizeof(ARRAY_GET),0, 1,      "i",    "k[]k", (SUBR)array_get  },
 #endif
     /* ******************************************** */
     {"##add.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
