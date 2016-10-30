@@ -2253,7 +2253,7 @@ static OENTRY arrayvars_localops[] =
       (SUBR)array_get, (SUBR)array_get },
 #else
     { "##array_init", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
-    { "##array_set.k", sizeof(ARRAY_SET), 0, 3, "", "k[]km",
+    { "##array_set.k", sizeof(ARRAY_SET), 0, 2, "", "k[]km",
       (SUBR)array_set,(SUBR)array_set},
     { "##array_set.a", sizeof(ARRAY_SET), 0, 2, "", "a[]am", NULL, (SUBR)array_set},
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
@@ -2263,8 +2263,8 @@ static OENTRY arrayvars_localops[] =
     { "##array_get.a", sizeof(ARRAY_GET), 0, 2, "a", "a[]m",NULL, (SUBR)array_get },
     { "##array_get.x", sizeof(ARRAY_GET), 0, 1, ".", ".[]m",(SUBR)array_get },
     { "##array_get.K", sizeof(ARRAY_GET), 0, 2, ".", ".[]z",NULL, (SUBR)array_get},
-    { "i.Ai", sizeof(ARRAY_GET),0, 1,      "i",    "k[]i", (SUBR)array_get  },
-    { "i.Ak", sizeof(ARRAY_GET),0, 1,      "i",    "k[]k", (SUBR)array_get  },
+    { "i.Ai", sizeof(ARRAY_GET),0, 1,      "i",    "k[]m", (SUBR)array_get  },
+    { "i.Ak", sizeof(ARRAY_GET),0, 1,      "i",    "k[]z", (SUBR)array_get  },
 #endif
     /* ******************************************** */
     {"##add.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
