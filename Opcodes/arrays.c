@@ -2492,7 +2492,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR)dctinv, NULL, NULL},
     {"mfb", sizeof(MFB), 0, 3, "k[]","k[]kki",
      (SUBR) mfb_init, (SUBR) mfb, NULL},
-    {"dctinv", sizeof(MFB), 0, 1, "i[]","i[]iii",
+    {"mfb", sizeof(MFB), 0, 1, "i[]","i[]iii",
      (SUBR)mfbi, NULL, NULL},
     {"centroid", sizeof(CENTR), 0, 1, "i","i[]",
      (SUBR) array_centroid, NULL, NULL},
