@@ -1082,7 +1082,7 @@ static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
           while (*(fmt+n) &&
                 !isblank(*(fmt+n))) {
             tmp[n] = *(fmt+n);
-            if (isalpha(tmp[n])) check = tmp[n];
+            if (isalpha(tmp[n])) { check = tmp[n]; break;}
             n++;
           }
           tmp[n] = *(fmt+n);
