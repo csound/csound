@@ -118,6 +118,9 @@ to memory leaks and more robust code.
 
 - subinstr can now have string arguments
 
+- the i() sfomat is extended to work on k-rate arrays with the first
+  argument being an array, followed by the indices
+  
 ### Utilities
 
 - pvlook now always prints explicit analysis window name
