@@ -52,7 +52,7 @@ to memory leaks and more robust code.
 
 ### New Gen and Macros
 
-- quadbezier generating Bezier curves in a table
+- quadbezier -- generating Bezier curves in a table
 
 ### Orchestra
 
@@ -78,7 +78,17 @@ to memory leaks and more robust code.
 
 - Floating point values can use e or E for exponent
 
-- For array reading of indexed values the rate of the index controls the rate of the action.  ***NOTE THIS IS AN INCOMPATIBLE CHANGE*** but fixes many anomalies
+- Array access semantics have been clarified:
+
+	- i[i]  => reading at i-time and perf-time, writing at i-time
+    only.
+	- i[k] =>  reading at perf-time, writing yields a runtime error
+	- k[i], k[k] =>  reading at perf-time, writing at perf-time
+	- a[i], a[k] => reading at perf-time, writing at perf-time
+    - other (S[], f[]) => reading and writing according to index type (i,k).
+   
+In particular, i(k[i]) will, as before, not work, but the new operator
+i(k[],i) is provided to cover this case.
 
 ### Score
 
