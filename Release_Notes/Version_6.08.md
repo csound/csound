@@ -87,7 +87,7 @@ to memory leaks and more robust code.
 	- a[i], a[k] => reading at perf-time, writing at perf-time
     - other (S[], f[]) => reading and writing according to index type (i,k).
    
-In particular, i(k[i]) will, as before, not work, but the new operator
+In particular, i(k[i]) will continue not to work, as before, but the new operator
 i(k[],i) is provided to cover this case.
 
 ### Score
