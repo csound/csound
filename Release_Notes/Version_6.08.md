@@ -153,7 +153,7 @@ to memory leaks and more robust code.
 
 ## Bugs Fixed
 
-- Fix to prints in format use
+- Fixes to prints in format use
 
 - jitter2 reworked to make it more like the manual.
 
