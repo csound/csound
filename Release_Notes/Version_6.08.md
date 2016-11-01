@@ -234,7 +234,7 @@ i(k[],i) is provided to cover this case.
     
 - OSX
 
- - 
+ - Minor issues with installer fixed 
 
 - GNU/Linux
 
