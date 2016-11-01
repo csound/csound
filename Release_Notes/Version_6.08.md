@@ -12,10 +12,7 @@ To maintain this document use the following markdown:
   
 `inline code`
 
-```
-preformatted text
-etc.
-```
+``` preformatted text etc.  ```
 
 [hyperlink](url for the hyperlink)
 
@@ -30,9 +27,11 @@ has all-new treatment of macros and preprocessing, bringing it in line
 with those of the orchestra.  The parsing of the orchestra has had a
 number of fixes as outlined below.
 
-A major, and not totally compatible change as been made in reading
-and writing array elements.  The rate of the index determines the
-time of processing.  This simplifies much code and is explicable; the earlier ad hoc code had many anomalies.
+A major, and not totally compatible change as been made in reading and
+writing array elements.  The rate of the index now often determines
+the time of processing; check the entry below under *Orchestra*.  This
+simplifies much code and seems to capture expectations; the earlier ad
+hoc code had many anomalies.
 
 Also as usual there are a number of new opcodes and internal fixes
 to memory leaks and more robust code.
@@ -95,14 +94,14 @@ i(k[],i) is provided to cover this case.
 - New code to handle macros and other preprocessor commands. Brings it
   into line with orchestra code
 
-- New score opcode C ntrduced as a way of switching automatic carry off (`C 0`)
+- New score opcode C introduced as a way of switching automatic carry off (`C 0`)
   or on (default) (`C 1`)
 
 ### Options
 
 - The tempo setting can now be a floating point value (previously fixed to integer)
 
-- New option --version prints version infomation and exits
+- New option --version prints version information and exits
 
 ### Modified Opcodes and Gens
 
@@ -128,7 +127,7 @@ i(k[],i) is provided to cover this case.
 
 - subinstr can now have string arguments
 
-- the i() sfomat is extended to work on k-rate arrays with the first
+- the i() format is extended to work on k-rate arrays with the first
   argument being an array, followed by the indices
   
 ### Utilities
