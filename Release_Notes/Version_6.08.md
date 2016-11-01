@@ -89,6 +89,8 @@ to memory leaks and more robust code.
 In particular, i(k[i]) will continue not to work, as before, but the new operator
 i(k[],i) is provided to cover this case.
 
+- xout validation no longer fails when constants are given
+
 ### Score
 
 - New code to handle macros and other preprocessor commands. Brings it
@@ -203,6 +205,8 @@ i(k[],i) is provided to cover this case.
 
 ### API
 
+- API version now 4.0
+
 - Now supports named gens
 
 - fterror now in API
@@ -221,8 +225,6 @@ i(k[],i) is provided to cover this case.
 
 - iOS
 
- - 
-
 - Android
 
  - Multichannel input and output allowed
@@ -233,13 +235,11 @@ i(k[],i) is provided to cover this case.
     
 - OSX
 
- - 
-
 - GNU/Linux
 
 <pre>
 ========================================================================
-commit cd9beedac61815b37eb2ce7bafebe0bc1bd4a461
-Date:   Fri Oct 21 22:04:37 2016 +0100
+commit 96f55f0929093a527fc2653e8b8989b2618711dc
+Date:   Tue Nov 1 16:27:27 2016 +0000  
 =======
 </pre>
