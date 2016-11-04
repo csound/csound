@@ -70,12 +70,12 @@ sed -i 's/^M//' PKGBUILD
 6. Install the Qt SDK for 64 bit CPU architecture and MSVS 2013, from [here](http://download.qt.io/official_releases/qt/5.6/5.6.0/qt-opensource-windows-x86-msvc2013_64-5.6.0.exe).
 7. Install the Chromium Embedded Framework from [here](https://cefbuilds.com/) and compile the solution using MSVS for 64 bit CPU architecture. Once you have confirmaed that the cefclient program runs, rebuild the wrapper library (libcef_dll_wrapper.lib) using the /MD (release) and /MDd (debug) compiler options, which are required by the Qt SDK.
 8. Install node.js for Windows 64 bit CPU architecture from [here](https://nodejs.org/en/). This is used to build csound.node for NW.js.
-9. Install NW.js for Windows 64 bit CPU architecture from [here](http://nwjs.io/). The latest version that I could get to work with csound.node is 0.12.3.
-10. Set an environment variable XSL_BASE_PATH in ~/.bash_profile e.g. to mingw64/share/xml/docbook/xsl-stylesheets-1.78.1. Clone or update the Csound manual repository from git@github.com:csound/manual.git. Run "python csd2docbook.py -a" to build docbook versions of the example CSDs. Execute "mingw32-make html-dist" in the mingw64 shell to build the Csound Reference Manual.
-11. Edit the csound/mingw64/find_csound_dependencies.py script to reflect paths for tools and resources it requires. This may need to be edited if your paths differ from mine.
-12. Run ./build-mkg.sh in the mingw64 directory. It may be necessary to edit this script to reflect options or paths it requires. The first time you run this script, it should build Csound and then fail because some targets must be built with MSVS.
-13. Run the VS2013 x64 native tools command prompt. Change to the csound/mingw64 directory and run the make_import_library.cmd script. This will create a Microsoft-compatible import library for the mingw64-built Csound DLL. This import library is required to build csound.node and CsoundQt.
-14. Clone the CsoundQt [repository](https://github.com/CsoundQt/CsoundQt). Run QtCreator and open the CsoundQt qcs.pro project. Configure config.user.pri if necessary. Disable the shadow build option. Run qmake and rebuild the project. My config.user.pri is:
+9. Install NW.js for Windows 64 bit CPU architecture from [here](http://nwjs.io/).
+10. Set an environment variable `XSL_BASE_PATH` in `~/.bash_profile` e.g. to `mingw64/share/xml/docbook/xsl-stylesheets-1.78.1`. Clone or update the Csound manual repository from git@github.com:csound/manual.git. Execute `python csd2docbook.py -a` to build docbook versions of the example CSDs. Execute `mingw32-make html-dist` in the mingw64 shell to build the Csound Reference Manual.
+11. Execute the `csound/mingw64/find_csound_dependencies.py` script to reflect paths for tools and resources it requires. This may need to be edited if your paths differ from mine.
+12. Execute `./build-mkg.sh` in the mingw64 directory. It may be necessary to edit this script to reflect options or paths it requires. The first time you run this script, it should build Csound and then fail because some targets must be built with MSVS.
+13. Execute the VS2013 x64 native tools command prompt. Change to the csound/mingw64 directory and run the `make_import_library.cmd` script. This will create a Microsoft-compatible import library for the mingw64-built Csound DLL. This import library is required to build csound.node and CsoundQt.
+14. Clone the CsoundQt [repository](https://github.com/CsoundQt/CsoundQt). Run QtCreator and open the CsoundQt qcs.pro project. Configure `config.user.pri` if necessary. Disable the shadow build option. Run qmake and rebuild the project. My `config.user.pri` is:
 ```
 CONFIG *= html5
 CONFIG *= perfThread_build
