@@ -477,6 +477,7 @@ CSOUNDMSG_ERROR = 0x1000         # error message (initerror, perferror, etc.)
 CSOUNDMSG_ORCH = 0x2000          # orchestra opcodes (e.g. printks)
 CSOUNDMSG_REALTIME = 0x3000      # for progress display and heartbeat characters
 CSOUNDMSG_WARNING = 0x4000       # warning messages
+CSOUNDMSG_STDOUT = 0x5000
 
 # format attributes (colors etc.), use the bitwise OR of any of these:
 CSOUNDMSG_FG_BLACK = 0x0100
