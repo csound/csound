@@ -219,8 +219,6 @@ i(k[],i) is provided to cover this case.
 
 - ctcsound.py, a new FFI interface for Python was introduced in version 6.07. It is now the recommanded interface for Python,
   csnd6.py being deprecated.
-  
-- Messages can now be directed to stdout from the API by using CSOUNDMSG_STDOUT attribute
 
 ### Platform Specific
 
