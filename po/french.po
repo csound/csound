@@ -6222,7 +6222,7 @@ msgstr "fillarray : les tableaux de dim > 2 ne sont pas encore supportés\n"
 
 #: Opcodes/arrays.c:165
 msgid "Cannot set i-array at k-rate\n"
-msgstr ""
+msgstr "Impossible de fixer un tableau-i au taux-k\n"
 
 #: Opcodes/arrays.c:178
 msgid "Error: no indexes set for array set\n"
@@ -10482,7 +10482,7 @@ msgstr "--help\taffiche les noms d'option longs "
 
 #: Top/argdecode.c:125
 msgid "--version\tprint version details"
-msgstr ""
+msgstr "--version\taffiche les détails de version"
 
 #: Top/argdecode.c:126
 msgid "-U unam\trun utility program unam"
