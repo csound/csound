@@ -50,11 +50,11 @@ import csnd6.CsoundCallbackWrapper;
 import csnd6.CsoundMYFLTArray;
 import csnd6.controlChannelType;
 
-// TODO: Add message callback to JavaScript using loadUrl("javascript:%s(%s);", callback_name, text);
 public class JSCsoundObj extends CsoundObj {
 
 	CsoundUI csoundUI = new CsoundUI(this);
 	CsoundMotion csoundMotion = new CsoundMotion(this);
+	Object message_callback = null;
 
 	public JSCsoundObj() {
 		super(false);
@@ -69,10 +69,24 @@ public class JSCsoundObj extends CsoundObj {
 		return super.isAudioInEnabled();
 	}
 
+	/**
+	 * Currently this method is a dummy because only elementary types can be passed through
+	 * JavascriptInterface methods. But this method does allow code that uses it to run without
+	 * throwing an exception. If the parameter were at least an Object with a name or a String, then
+	 * this could be used: WebKit.loadUrl("javascript:%s(%s);", message_callback, message_text);
+	 *
+	 * @param message_callback_
+     */
+	@JavascriptInterface
+	public void setMessageCallback(Object message_callback_) {
+		message_callback = message_callback_;
+	}
+
 	@JavascriptInterface
 	public void setAudioInEnabled(boolean audioInEnabled) {
 		super.setAudioInEnabled(audioInEnabled);
 	}
+
 
 	@JavascriptInterface
 	public boolean isMessageLoggingEnabled() {
