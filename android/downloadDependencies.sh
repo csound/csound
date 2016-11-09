@@ -61,7 +61,7 @@ else
 fi
 
 # OpenSoundControl
-OSC_REPO=http://bitbucket.org/kunstmusik/liblo-android.git
+OSC_REPO=https://bitbucket.org/michael_gogins/liblo-android
 if [ -e liblo-android ]; then
   echo "liblo-android already exists, doing a pull to get the latest";
   cd liblo-android;

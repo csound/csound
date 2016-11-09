@@ -11,7 +11,6 @@ LOCAL_CFLAGS := -O3 -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DI
 LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
 LOCAL_CPPFLAGS += -std=c++11 -pthread -frtti -fexceptions
 LOCAL_LDFLAGS += -Wl,--export-dynamic
-###
 
 LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Opcodes/doppler.cpp
 

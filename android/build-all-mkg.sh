@@ -11,9 +11,15 @@ then
 fi
 
 cd ${CSOUND_HOME}/android/pluginlibs/luajit-2.0
-make HOST_CC="gcc -m32" CROSS=$NDKP TARGET_FLAGS="$NDKF $NDKARCH" TARGET_SYS=linux $1
+make HOST_CC="gcc -m32"  BUILD_MODE=static CROSS=$NDKP TARGET_FLAGS="$NDKF $NDKARCH" TARGET_SYS=linux $1
 
 cd ${CSOUND_HOME}/android/pluginlibs/LuaCsound
+$NDK/ndk-build $1
+
+cd ${CSOUND_HOME}/android/pluginlibs/liblo-android
+$NDK/ndk-build $1
+
+cd ${CSOUND_HOME}/android/pluginlibs/libOSC
 $NDK/ndk-build $1
 
 cd ${CSOUND_HOME}/android/pluginlibs/stk-csound
@@ -33,11 +39,6 @@ $NDK/ndk-build $1
 cd ${CSOUND_HOME}/android/pluginlibs/libfluidsynth
 $NDK/ndk-build $1
 
-cd ${CSOUND_HOME}/android/pluginlibs/liblo-android
-$NDK/ndk-build $1
-
-cd ${CSOUND_HOME}/android/pluginlibs/libOSC
-$NDK/ndk-build $1
 
 cd ${CSOUND_HOME}/android/pluginlibs/libscansyn
 $NDK/ndk-build $1
