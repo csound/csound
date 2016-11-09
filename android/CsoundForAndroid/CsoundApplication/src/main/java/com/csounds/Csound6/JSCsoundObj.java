@@ -50,6 +50,7 @@ import csnd6.CsoundCallbackWrapper;
 import csnd6.CsoundMYFLTArray;
 import csnd6.controlChannelType;
 
+// TODO: Add message callback to JavaScript using loadUrl("javascript:%s(%s);", callback_name, text);
 public class JSCsoundObj extends CsoundObj {
 
 	CsoundUI csoundUI = new CsoundUI(this);
@@ -162,6 +163,17 @@ public class JSCsoundObj extends CsoundObj {
 	}
 
 	@JavascriptInterface
+	public void start() {
+		super.getCsound().Start();
+	}
+
+	@JavascriptInterface
+	public void perform() {
+		File empty_file = new java.io.File("");
+		super.startCsound(empty_file);
+	}
+
+	@JavascriptInterface
 	public void startCsound(final File csdFile) {
 		super.startCsound(csdFile);
 	}
@@ -179,6 +191,11 @@ public class JSCsoundObj extends CsoundObj {
 	@JavascriptInterface
 	public void play() {
 		super.play();
+	}
+
+	@JavascriptInterface
+	public synchronized void stop() {
+		super.stop();
 	}
 
 	@JavascriptInterface
