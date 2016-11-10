@@ -2127,7 +2127,7 @@ static void instance(CSOUND *csound, int insno)
     pextent = sizeof(INSDS) + pextrab + pextra*sizeof(CS_VAR_MEM);
     ip = (INSDS*) csound->Calloc(csound,
                           (size_t) pextent + tp->varPool->poolSize +
-                                 (tp->varPool->varCount * CS_VAR_TYPE_OFFSET) +
+                                 (tp->varPool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET)) +
                                  (tp->varPool->varCount * sizeof(CS_VARIABLE*)) +
                                  tp->opdstot);
     ip->csound = csound;
@@ -2164,7 +2164,7 @@ static void instance(CSOUND *csound, int insno)
     initializeVarPool((void *)csound, lclbas, tp->varPool);
 
     opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize +
-                (tp->varPool->varCount * CS_VAR_TYPE_OFFSET);
+                (tp->varPool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET));
     opdslim = nxtopds + tp->opdstot;
     if (UNLIKELY(odebug))
       csound->Message(csound,

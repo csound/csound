@@ -122,7 +122,7 @@ static inline void set_stdout_assign(CSOUND *csound, int type, int state)
 /* IV - Feb 19 2005 */
 static const char *shortUsageList[] = {
   Str_noop("--help\tprint long usage options"),
-  Str_noop("--vesion\tprint version details"),
+  Str_noop("--version\tprint version details"),
   Str_noop("-U unam\trun utility program unam"),
   Str_noop("-C\tuse Cscore processing of scorefile"),
   Str_noop("-j N\tuse N threads in performance"),
