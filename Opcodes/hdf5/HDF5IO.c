@@ -157,7 +157,7 @@ HDF5File *HDF5IO_newHDF5File(CSOUND *csound, AUXCH *hdf5FileMemory,
       }
       else {
 
-        csound->Die(csound, Str("hdf5read: Error, file doesn't exist"));
+        csound->Die(csound, Str("hdf5read: Error, file does not exist"));
       }
     }
     else {
