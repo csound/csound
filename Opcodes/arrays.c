@@ -162,7 +162,7 @@ static int tabfill(CSOUND *csound, TABFILL *p)
 
 static int array_err(CSOUND* csound, ARRAY_SET *p)
 {
-    return csound->InitError(csound, "Cant set i-array at k-rate\n");
+    return csound->InitError(csound, Str("Cannot set i-array at k-rate\n"));
 }
 
 static int array_set(CSOUND* csound, ARRAY_SET *p)
@@ -178,7 +178,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
       csoundErrorMsg(csound, Str("Error: no indexes set for array set\n"));
       return CSOUND_ERROR;
     }
-    if (UNLIKELY(indefArgCount>dat->dimensions)){
+    if (UNLIKELY(indefArgCount>dat->dimensions)) {
       csound->Warning(csound,
                                Str("Array dimension %d out of range "
                                    "for dimensions %d\n"),
@@ -188,7 +188,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
     }
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-    if (UNLIKELY(index >= dat->sizes[end] || index<0)){
+    if (UNLIKELY(index >= dat->sizes[end] || index<0)) {
       csound->Warning(csound,
                       Str("Array index %d out of range (0,%d) "
                           "for dimension %d"),

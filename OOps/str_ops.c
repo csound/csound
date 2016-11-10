@@ -394,8 +394,10 @@ sprintf_opcode_(CSOUND *csound,
 
         continue;
       }
+      
       /* if already a segment waiting, then lets print it */
       if (segwaiting != NULL) {
+	
         maxChars = str->size - len;
         strseg[i] = '\0';
         if (UNLIKELY(numVals <= 0)) {
@@ -409,6 +411,7 @@ sprintf_opcode_(CSOUND *csound,
         /* } */
         strCode >>= 1;
         parm = kvals[j++];
+	
         switch (*segwaiting) {
         case 'd':
         case 'i':
@@ -419,14 +422,15 @@ sprintf_opcode_(CSOUND *csound,
         case 'c':
 #ifdef HAVE_SNPRINTF
           if ((int)strlen(strseg) + 24 > (int)maxChars) {
-            int offs = outstring - str->data;
+	  int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data,
                                  str->size  + 24);
             str->size += 24;
             maxChars += 24;
             outstring = str->data + offs;
             //printf("maxchars = %d  %s\n", maxChars, strseg);
-          }
+      
+	  }
           n = snprintf(outstring, maxChars, strseg, (int) MYFLT2LRND(*parm));
 #else
           n = sprintf(outstring, strseg, (int) MYFLT2LRND(*parm));
@@ -486,12 +490,14 @@ sprintf_opcode_(CSOUND *csound,
         len += n;
         i = 0;
       }
+ 
       if (*fmt == '\0')
         break;
       /* copy the '%' */
       strseg[i++] = *fmt++;
       /* find the format code */
       segwaiting = fmt;
+      
       while (!isalpha(*segwaiting) && *segwaiting != '\0')
         segwaiting++;
     }
@@ -506,7 +512,7 @@ sprintf_opcode_(CSOUND *csound,
 int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
     int size = p->sfmt->size+ 10*((int) p->INOCOUNT);
-    if (p->r->data == NULL || p->r->size < size) {
+    if (p->r->data == NULL && p->r->size < size) {
       /* this 10 is 1n incorrect guess which is OK with numbers*/
       p->r->data = csound->Calloc(csound, size);
       p->r->size = size;
