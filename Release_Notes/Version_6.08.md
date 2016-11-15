@@ -185,6 +185,9 @@ i(k[],i) is provided to cover this case.
 - Bug in sensekey fixed
     
 - A number of issues in centroid fixed
+
+- An internal miscalculation of vaiable sizes that only affected 32bit
+  architectures fixed
     
 ## SYSTEM LEVEL CHANGES
 
