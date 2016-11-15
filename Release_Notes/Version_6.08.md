@@ -46,7 +46,7 @@ to memory leaks and more robust code.
 
 - getftargs -- copy arguments of a gen to an S-variable
 
-- mfb -- implements a mel-frequency filterbank for an array of input
+- mfb -- implements a mel-frequency filter-bank for an array of input
   magnitudes 
 
 ### New Gen and Macros
@@ -186,7 +186,7 @@ i(k[],i) is provided to cover this case.
     
 - A number of issues in centroid fixed
 
-- An internal miscalculation of vaiable sizes that only affected 32bit
+- An internal miscalculation of variable sizes that only affected 32bit
   architectures fixed
     
 ## SYSTEM LEVEL CHANGES
@@ -220,7 +220,7 @@ i(k[],i) is provided to cover this case.
     
 - New Lisp CFFI and FFI interfaces tested with Steel Bank Common Lisp (64 bit CPU architecture), runs in separate thread
 
-- ctcsound.py, a new FFI interface for Python was introduced in version 6.07. It is now the recommanded interface for Python,
+- ctcsound.py, a new FFI interface for Python was introduced in version 6.07. It is now the recommended interface for Python,
   csnd6.py being deprecated.
 
 ### Platform Specific
