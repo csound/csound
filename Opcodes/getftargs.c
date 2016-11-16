@@ -65,26 +65,30 @@ static int getftargs_process(CSOUND *csound, FTARGS *p)
 static int getftargs(CSOUND *csound, FTARGS *p)
 {
     FUNC *src;
-    int32 len, i;
+    int32 argcnt, i, strlen = 0;
 
     if (UNLIKELY((src = csound->FTnp2Find(csound, p->ftable)) == NULL)) {
       return csound->PerfError(csound, p->h.insdshead,
-                              Str("table: could not find ftable %d"),
-                              (int) *p->ftable);
+                               Str("table: could not find ftable %d"),
+                               (int) *p->ftable);
     }
 
-    len = src->argcnt;
-    p->Scd->size = len * 8 + 1; /* argcnt * (6digits + dot + trailing space) + \0 */
+    argcnt = src->argcnt;
+
+    for (i = 1; i != argcnt; i++)
+      strlen += snprintf(NULL, 0, "%g ", src->args[i]);
+
+    p->Scd->size = strlen;
 
     if (p->Scd->data == NULL) {
-      p->Scd->data = (char*) csound->Calloc(csound, p->Scd->size);
+      p->Scd->data = (char*) csound->Calloc(csound, strlen);
     }
     else
-      p->Scd->data = (char*) csound->ReAlloc(csound, p->Scd->data, p->Scd->size);
+      p->Scd->data = (char*) csound->ReAlloc(csound, p->Scd->data, strlen);
 
     {
-      char* curr = p->Scd->data, *const end = curr + p->Scd->size;
-      for (i = 1; curr != end && i != len;i++) {
+      char* curr = p->Scd->data, *const end = curr + strlen;
+      for (i = 1; curr != end && i != argcnt; i++) {
         curr += snprintf(curr, end-curr, "%g ", src->args[i]);
       }
     }
