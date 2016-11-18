@@ -1419,7 +1419,7 @@ static int monitora_perf(CSOUND *csound, OUTA *p)
 
     if (csound->spoutactive) {
       for (l=0; l<len; l++) {
-        sp = CS_SPOUT + l;
+        sp = CS_SPOUT;
         memset(data, '\0', nsmps*sizeof(MYFLT));
         if (UNLIKELY(early)) {
           nsmps -= early;
