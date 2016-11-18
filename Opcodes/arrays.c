@@ -1407,6 +1407,54 @@ static int ina(CSOUND *csound, OUTA *p)
     return OK;
 }
 
+static int monitora_perf(CSOUND *csound, OUTA *p)
+{
+    ARRAYDAT *aa = p->tabin;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i, j, k, l, nsmps = CS_KSMPS;
+    MYFLT       *data = aa->data;
+    MYFLT       *sp= CS_SPOUT;
+    uint32_t len = (uint32_t)p->len;
+
+    if (csound->spoutactive) {
+      for (l=0; l<len; l++) {
+        sp = CS_SPOUT + l;
+        memset(data, '\0', nsmps*sizeof(MYFLT));
+        if (UNLIKELY(early)) {
+          nsmps -= early;
+        }
+        for (i = 0; i<nsmps; i++) {
+          for (j = 0; j<csound->GetNchnls(csound); j++) {
+            if (i<offset)
+              data[i+j*nsmps] = FL(0.0);
+            else
+              data[i+j*nsmps] = sp[j];
+          }
+        }
+      }
+    }
+    else {
+      memset(data, '\0', (CS_KSMPS)*csound->GetNchnls(csound)*sizeof(MYFLT));
+    }
+    return OK;
+}
+
+static int monitora_init(CSOUND *csound, OUTA *p)
+{
+    ARRAYDAT *aa = p->tabin;
+    // should call ensure here but it is a-rate
+    aa->dimensions = 1;
+    if (aa->sizes) csound->Free(csound, aa->sizes);
+    if (aa->data) csound->Free(csound, aa->data);
+    aa->sizes = (int*)csound->Malloc(csound, sizeof(int));
+    aa->sizes[0] = p->len = csound->nchnls;
+    aa->data = (MYFLT*)
+      csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
+    aa->arrayMemberSize = CS_KSMPS*sizeof(MYFLT);
+    return OK;
+}
+
 /*
   transform operations
 */
@@ -2419,8 +2467,10 @@ static OENTRY arrayvars_localops[] =
     { "lenarray.kx", sizeof(TABQUERY1), 0, 2, "k", ".[]p", NULL, (SUBR)tablength },
     { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa},
     { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina},
-    {"rfft", sizeof(FFT), 0, 3, "k[]","k[]",
-     (SUBR) init_rfft, (SUBR) perf_rfft, NULL},
+    { "monitor.A", sizeof(OUTA), 0, 5, "a[]", "",
+      (SUBR)monitora_init, NULL, (SUBR)monitora_perf},
+    { "rfft", sizeof(FFT), 0, 3, "k[]","k[]",
+      (SUBR) init_rfft, (SUBR) perf_rfft, NULL},
     {"rfft", sizeof(FFT), 0, 1, "i[]","i[]",
      (SUBR) rfft_i, NULL, NULL},
     {"rifft", sizeof(FFT), 0, 3, "k[]","k[]",
