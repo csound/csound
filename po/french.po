@@ -7741,7 +7741,6 @@ msgid "harmon234: out of range\n"
 msgstr "harmon234 : hors limites\n"
 
 #: Opcodes/hdf5/HDF5IO.c:160
-#, fuzzy
 msgid "hdf5read: Error, file does not exist"
 msgstr "hdf5read : erreur, le fichier n'existe pas"
 
@@ -11977,19 +11976,19 @@ msgid "and cannot remove %s"
 msgstr "et impossible d'effacer %s"
 
 #: Top/one_file.c:487
-#, fuzzy, c-format
+#, c-format
 msgid "opened %s\n"
-msgstr "%s ouvert"
+msgstr "%s ouvert\n"
 
 #: Top/one_file.c:490
-#, fuzzy, c-format
+#, c-format
 msgid "closing %s\n"
-msgstr "fermeture de %s"
+msgstr "fermeture de %s\n"
 
 #: Top/one_file.c:493
-#, fuzzy, c-format
+#, c-format
 msgid "and cannot remove %s\n"
-msgstr "et impossible d'effacer %s"
+msgstr "et impossible d'effacer %s\n"
 
 #: Top/one_file.c:541
 #, c-format
