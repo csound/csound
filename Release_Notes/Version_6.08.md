@@ -46,7 +46,7 @@ to memory leaks and more robust code.
 
 - getftargs -- copy arguments of a gen to an S-variable
 
-- mfb -- implements a mel-frequency filterbank for an array of input
+- mfb -- implements a mel-frequency filter-bank for an array of input
   magnitudes 
 
 ### New Gen and Macros
@@ -131,7 +131,9 @@ i(k[],i) is provided to cover this case.
 
 - the i() format is extended to work on k-rate arrays with the first
   argument being an array, followed by the indices
-  
+
+- monitor opcode can now write to an array
+
 ### Utilities
 
 - pvlook now always prints explicit analysis window name
@@ -185,6 +187,9 @@ i(k[],i) is provided to cover this case.
 - Bug in sensekey fixed
     
 - A number of issues in centroid fixed
+
+- An internal miscalculation of variable sizes that only affected 32bit
+  architectures fixed
     
 ## SYSTEM LEVEL CHANGES
 
@@ -217,7 +222,7 @@ i(k[],i) is provided to cover this case.
     
 - New Lisp CFFI and FFI interfaces tested with Steel Bank Common Lisp (64 bit CPU architecture), runs in separate thread
 
-- ctcsound.py, a new FFI interface for Python was introduced in version 6.07. It is now the recommanded interface for Python,
+- ctcsound.py, a new FFI interface for Python was introduced in version 6.07. It is now the recommended interface for Python,
   csnd6.py being deprecated.
 
 ### Platform Specific
@@ -238,9 +243,4 @@ i(k[],i) is provided to cover this case.
 
 - GNU/Linux
 
-<pre>
-========================================================================
-commit 96f55f0929093a527fc2653e8b8989b2618711dc
-Date:   Tue Nov 1 16:27:27 2016 +0000  
-=======
-</pre>
+==END==
