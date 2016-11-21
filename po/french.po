@@ -2985,7 +2985,7 @@ msgstr "ALSA : périphérique de sortie MIDI '%s' ouvert\n"
 msgid "-M stdin fcntl failed"
 msgstr "-M stdin fcntl a échoué"
 
-#: InOut/rtalsa.c:1032 Top/one_file.c:440 Top/one_file.c:1265
+#: InOut/rtalsa.c:1032 Top/one_file.c:481
 #, c-format
 msgid "cannot open %s"
 msgstr "impossible d'ouvrir %s"
@@ -5311,33 +5311,33 @@ msgstr "Les arguments de taux-a sont interdits"
 msgid "too many arguments"
 msgstr "trop d'arguments"
 
-#: OOps/str_ops.c:403
+#: OOps/str_ops.c:405
 msgid "insufficient arguments for format"
 msgstr "arguments insuffisants pour le format"
 
-#: OOps/str_ops.c:458
+#: OOps/str_ops.c:462
 msgid "output argument may not be the same as any of the input args"
 msgstr "l'argument de sortie ne peut pas être le même qu'un argument d'entrée"
 
-#: OOps/str_ops.c:474
+#: OOps/str_ops.c:478
 msgid "invalid format string"
 msgstr "format de chaîne de caractères non valide"
 
-#: OOps/str_ops.c:500
+#: OOps/str_ops.c:506
 msgid "too many arguments for format"
 msgstr "trop d'arguments pour le format"
 
-#: OOps/str_ops.c:603 OOps/str_ops.c:606 OOps/str_ops.c:622 OOps/str_ops.c:640
-#: OOps/str_ops.c:697 OOps/str_ops.c:701
+#: OOps/str_ops.c:609 OOps/str_ops.c:612 OOps/str_ops.c:628 OOps/str_ops.c:646
+#: OOps/str_ops.c:703 OOps/str_ops.c:707
 msgid "empty string"
 msgstr "chaîne de caractères vide"
 
-#: OOps/str_ops.c:609 OOps/str_ops.c:625 OOps/str_ops.c:654 OOps/str_ops.c:675
-#: OOps/str_ops.c:715 OOps/str_ops.c:736
+#: OOps/str_ops.c:615 OOps/str_ops.c:631 OOps/str_ops.c:660 OOps/str_ops.c:681
+#: OOps/str_ops.c:721 OOps/str_ops.c:742
 msgid "invalid format"
 msgstr "format non valide"
 
-#: OOps/str_ops.c:1000
+#: OOps/str_ops.c:1006
 #, c-format
 msgid "invalid option code: %g"
 msgstr "code d'option non valide : %g"
@@ -6326,68 +6326,68 @@ msgstr "%s non trouvé"
 msgid "map fn not found at k rate"
 msgstr "fn de map introuvable au taux-k"
 
-#: Opcodes/arrays.c:1435
+#: Opcodes/arrays.c:1490
 msgid "rfft: only one-dimensional arrays allowed"
 msgstr "rfft : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:1468
+#: Opcodes/arrays.c:1523
 msgid "rifft: only one-dimensional arrays allowed"
 msgstr "rifft : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:1499
+#: Opcodes/arrays.c:1554
 msgid "array sizes do not match\n"
 msgstr "les tailles de tableau ne correspondent pas\n"
 
-#: Opcodes/arrays.c:1523
+#: Opcodes/arrays.c:1578
 msgid "fft: only one-dimensional arrays allowed"
 msgstr "fft : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:1550
+#: Opcodes/arrays.c:1605
 msgid "fftinv: only one-dimensional arrays allowed"
 msgstr "fftinv : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:1611
+#: Opcodes/arrays.c:1666
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
 msgstr "dans array les tailles ne correspondent pas : %d et %d\n"
 
-#: Opcodes/arrays.c:1782 Opcodes/arrays.c:1822 Opcodes/arrays.c:1854
+#: Opcodes/arrays.c:1837 Opcodes/arrays.c:1877 Opcodes/arrays.c:1909
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr "non puissance de deux pas encore implémentée\n"
 
-#: Opcodes/arrays.c:1815
+#: Opcodes/arrays.c:1870
 msgid "FFT size too small (min 64 samples)\n"
 msgstr "Taille de TFR trop petite (min 64 échantillons)\n"
 
-#: Opcodes/arrays.c:1882 Opcodes/arrays.c:1905
+#: Opcodes/arrays.c:1937 Opcodes/arrays.c:1960
 msgid "in array not 2-dimensional\n"
 msgstr "dans array pas de 2-dimension\n"
 
-#: Opcodes/arrays.c:1894
+#: Opcodes/arrays.c:1949
 msgid "requested row is out of range\n"
 msgstr "ligne demandée hors limites\n"
 
-#: Opcodes/arrays.c:1917
+#: Opcodes/arrays.c:1972
 msgid "requested col is out of range\n"
 msgstr "colonne demandée hors limites\n"
 
-#: Opcodes/arrays.c:1997
+#: Opcodes/arrays.c:2052
 msgid "input array too small\n"
 msgstr "tableau d'entrée trop petit\n"
 
-#: Opcodes/arrays.c:2047
+#: Opcodes/arrays.c:2102
 msgid "dct: only one-dimensional arrays allowed"
 msgstr "dct : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:2053
+#: Opcodes/arrays.c:2108
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr "dct : tailles non puissance de deux pas encore implémentées"
 
-#: Opcodes/arrays.c:2075
+#: Opcodes/arrays.c:2130
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr "dctinv : seul les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:2082
+#: Opcodes/arrays.c:2137
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr "dctinv : tailles non puissance de deux pas encore implémentées"
 
@@ -6948,21 +6948,21 @@ msgstr "ftsave : impossible d'ouvrir le fichier"
 msgid "ftsave: failed to write file"
 msgstr "ftsave : impossible d'ouvrir le fichier"
 
-#: Opcodes/ftsamplebank.cpp:180
+#: Opcodes/ftsamplebank.cpp:198
 #, c-format
 msgid "Cannot load file. Error opening directory: %s\n"
 msgstr ""
 "Impossible de charger le fichier. Erreur d'ouverture du répertoire : %s\n"
 
-#: Opcodes/ftsamplebank.cpp:232
+#: Opcodes/ftsamplebank.cpp:251
 msgid "Error: you must pass a directory as a string."
 msgstr "Erreur : il faut donner le nom d'un répertoire."
 
-#: Opcodes/ftsamplebank.cpp:249
+#: Opcodes/ftsamplebank.cpp:268
 msgid "Error: second parameter to directory must be a string"
 msgstr "Erreur : le second paramètre du répertoire doit être une chaîne"
 
-#: Opcodes/ftsamplebank.cpp:314
+#: Opcodes/ftsamplebank.cpp:333
 #, c-format
 msgid "Cannot find directory. Error opening directory: %s\n"
 msgstr "Répertoire introuvable. Erreur d'ouverture du répertoire : %s\n"
@@ -7741,7 +7741,7 @@ msgid "harmon234: out of range\n"
 msgstr "harmon234 : hors limites\n"
 
 #: Opcodes/hdf5/HDF5IO.c:160
-msgid "hdf5read: Error, file doesn't exist"
+msgid "hdf5read: Error, file does not exist"
 msgstr "hdf5read : erreur, le fichier n'existe pas"
 
 #: Opcodes/hdf5/HDF5IO.c:181
@@ -11558,7 +11558,7 @@ msgid "Bad ThreadId"
 msgstr "Mauvais ThreadId"
 
 #: Top/csound.c:1966 Top/csound.c:1998 Top/csound.c:2026 Top/csound.c:2062
-#: Top/csound.c:4214
+#: Top/csound.c:4215
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 "Csound n'est pas prêt pour l'exécution : csoundStart() n'a pas été appelée\n"
@@ -11567,7 +11567,7 @@ msgstr ""
 msgid "Score finished in csoundPerformKsmps().\n"
 msgstr "La partition est finie dans csoundPerformKsmps().\n"
 
-#: Top/csound.c:2005 Top/csound.c:4221
+#: Top/csound.c:2005 Top/csound.c:4222
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr "Retour prématuré de csoundPerformKsmps().\n"
 
@@ -11633,104 +11633,104 @@ msgstr ""
 msgid "Unknown MIDI error"
 msgstr "Erreur MIDI inconnue"
 
-#: Top/csound.c:2926
+#: Top/csound.c:2927
 msgid "Failed to allocate new opcode entry."
 msgstr "Echec de l'allocation d'une nouvelle entrée d'opcode."
 
-#: Top/csound.c:2948
+#: Top/csound.c:2949
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr "Echec de l'allocation d'une entrée d'opcode pour %s."
 
-#: Top/csound.c:3089 Top/main.c:383
+#: Top/csound.c:3090 Top/main.c:383
 msgid "setting dummy interface\n"
 msgstr "mise en place d'une interface factice\n"
 
-#: Top/csound.c:3167
+#: Top/csound.c:3168
 msgid "Failed during csoundInitEnv"
 msgstr "Echec dans csoundInitEnv"
 
-#: Top/csound.c:3192
+#: Top/csound.c:3193
 msgid "Failed during csoundInitStaticModules"
 msgstr "Echec dans csoundInitStaticModules"
 
-#: Top/csound.c:3208
+#: Top/csound.c:3209
 msgid "Failed during csoundLoadModules"
 msgstr "Echec dans csoundLoadModules"
 
-#: Top/csound.c:3249
+#: Top/csound.c:3250
 msgid "Real time audio module name"
 msgstr "Nom du module audio en temps réel"
 
-#: Top/csound.c:3274
+#: Top/csound.c:3275
 msgid "Real time MIDI module name"
 msgstr "Nom du module MIDI en temps réel"
 
-#: Top/csound.c:3279
+#: Top/csound.c:3280
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 "Ignorer les évènements (autres que les changements de tempo) dans les pistes "
 "définies par le modèle"
 
-#: Top/csound.c:3285
+#: Top/csound.c:3286
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr "Ne pas traiter les contrôleurs MIDI spéciaux (pédale sustain, etc)"
 
-#: Top/csound.c:3293
+#: Top/csound.c:3294
 msgid "Title tag in output soundfile (no spaces)"
 msgstr "Champ titre dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3299
+#: Top/csound.c:3300
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr "Champ copyright dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3304
+#: Top/csound.c:3305
 msgid "Short Copyright tag in output soundfile"
 msgstr "Champ copyright court dans le fichier son de sortie"
 
-#: Top/csound.c:3310
+#: Top/csound.c:3311
 msgid "Software tag in output soundfile (no spaces)"
 msgstr "Champ du logiciel dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3315
+#: Top/csound.c:3316
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr "Champ artiste dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3322
+#: Top/csound.c:3323
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr "Champ commentaire dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3327
+#: Top/csound.c:3328
 msgid "Date tag in output soundfile (no spaces)"
 msgstr "Champ date dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3337
+#: Top/csound.c:3338
 msgid "Enable message attributes (colors etc.)"
 msgstr "Activer les attributs de message (couleurs, etc)"
 
-#: Top/csound.c:3343
+#: Top/csound.c:3344
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 "Démarrer la restitution de la partition au temps spécifié, en ignorant les "
 "évènements antérieurs"
 
-#: Top/csound.c:3350
+#: Top/csound.c:3351
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr "Ignorer <CsOptions> dans les fichiers CSD (non par défaut)"
 
-#: Top/csound.c:3559
+#: Top/csound.c:3560
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr "Impossible d'ouvrir /proc/cpuinfo. RDTSC n'est pas supporté.\n"
 
-#: Top/csound.c:3589
+#: Top/csound.c:3590
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr "Aucune entrée de fréq CPU valide n'a été trouvée dans /proc/cpuinfo.\n"
 
-#: Top/csound.c:4111
+#: Top/csound.c:4112
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr "csoundDestroyMessageBuffer : tampon de message non alloué."
 
-#: Top/csound.c:4143
+#: Top/csound.c:4144
 msgid "csound: internal error: message buffer overflow\n"
 msgstr "csound : erreur interne : dépassement du tampon de messages\n"
 
@@ -11926,205 +11926,187 @@ msgstr "Suppression du fichier temporaire %s ...\n"
 msgid "WARNING: could not remove %s\n"
 msgstr "AVERTISSEMENT : impossible de supprimer %s\n"
 
-#: Top/one_file.c:240 Top/one_file.c:274 Top/one_file.c:1062
-#: Top/one_file.c:1096
+#: Top/one_file.c:278 Top/one_file.c:312
 #, c-format
 msgid "More than %d arguments in <CsOptions>"
 msgstr "Plus de %d arguments dans <CsOptions>"
 
-#: Top/one_file.c:315 Top/one_file.c:1137
+#: Top/one_file.c:353
 #, c-format
 msgid "Invalid arguments in <CsOptions>: %s"
 msgstr "Arguments non valides dans <CsOptions> : %s"
 
-#: Top/one_file.c:318 Top/one_file.c:1140
+#: Top/one_file.c:356
 #, c-format
 msgid "Invalid arguments in .csoundrc or -@ file: %s"
 msgstr "Arguments non valides dans .csoundrc ou dans le fichier -@ : %s"
 
-#: Top/one_file.c:324 Top/one_file.c:845 Top/one_file.c:1146
-#: Top/one_file.c:1638
+#: Top/one_file.c:362 Top/one_file.c:858
 msgid "Missing end tag </CsOptions>"
 msgstr "La balise fermante </CsOptions> est absente"
 
-#: Top/one_file.c:351 Top/one_file.c:1173
+#: Top/one_file.c:389
 msgid "Missing end tag </CsInstruments>"
 msgstr "La balise fermante </CsInstruments> est absente"
 
-#: Top/one_file.c:380 Top/one_file.c:456 Top/one_file.c:1202
-#: Top/one_file.c:1282
+#: Top/one_file.c:418 Top/one_file.c:502
 msgid "Missing end tag </CsScore>"
 msgstr "La balise fermante </CsScore> est absente"
 
-#: Top/one_file.c:396 Top/one_file.c:401 Top/one_file.c:1218
-#: Top/one_file.c:1223
+#: Top/one_file.c:434 Top/one_file.c:439
 msgid "Missing program in tag <CsScore>"
 msgstr "La balise fermante </CsScore> est absente"
 
-#: Top/one_file.c:414 Top/one_file.c:1236
+#: Top/one_file.c:452
 #, c-format
 msgid "Creating %s (%p)\n"
 msgstr "Création de %s (%p)\n"
 
-#: Top/one_file.c:427 Top/one_file.c:1251
+#: Top/one_file.c:467
 msgid "External generation failed"
 msgstr "La génération externe a échoué"
 
-#: Top/one_file.c:429 Top/one_file.c:1253
+#: Top/one_file.c:469
 msgid "and cannot remove"
 msgstr "et effaçage impossible"
 
-#: Top/one_file.c:433 Top/one_file.c:442 Top/one_file.c:451
-#: Top/one_file.c:1258 Top/one_file.c:1267 Top/one_file.c:1277
+#: Top/one_file.c:474 Top/one_file.c:483
 #, c-format
 msgid "and cannot remove %s"
 msgstr "et impossible d'effacer %s"
 
-#: Top/one_file.c:445 Top/one_file.c:1271
+#: Top/one_file.c:487
 #, c-format
-msgid "opened %s"
-msgstr "%s ouvert"
+msgid "opened %s\n"
+msgstr "%s ouvert\n"
 
-#: Top/one_file.c:448 Top/one_file.c:1274
+#: Top/one_file.c:490
 #, c-format
-msgid "closing %s"
-msgstr "fermeture de %s"
+msgid "closing %s\n"
+msgstr "fermeture de %s\n"
 
-#: Top/one_file.c:496 Top/one_file.c:1321
+#: Top/one_file.c:493
+#, c-format
+msgid "and cannot remove %s\n"
+msgstr "et impossible d'effacer %s\n"
+
+#: Top/one_file.c:541
 #, c-format
 msgid "Non base64 character %c(%2x)"
 msgstr "Le caractère %c(%2x) n'est pas en base64"
 
-#: Top/one_file.c:515 Top/one_file.c:1340
+#: Top/one_file.c:560
 msgid "Truncated byte at end of base64 stream"
 msgstr "Octet tronqué à la fin du flux base64"
 
-#: Top/one_file.c:532 Top/one_file.c:1357
+#: Top/one_file.c:577
 #, c-format
 msgid "Cannot open temporary file (%s) for MIDI subfile"
 msgstr "Impossible d'ouvrir le fichier temporaire (%s) comme sous-fichier MIDI"
 
-#: Top/one_file.c:549 Top/one_file.c:1374
+#: Top/one_file.c:594
 msgid "Missing end tag </CsMidifileB>"
 msgstr "La balise fermante </CsMidifileB> est absente"
 
-#: Top/one_file.c:565 Top/one_file.c:614 Top/one_file.c:661
-#: Top/one_file.c:1390 Top/one_file.c:1438 Top/one_file.c:1484
+#: Top/one_file.c:610 Top/one_file.c:658 Top/one_file.c:704
 #, c-format
 msgid "File %s already exists"
 msgstr "Le fichier %s existe déjà"
 
-#: Top/one_file.c:570 Top/one_file.c:1395
+#: Top/one_file.c:615
 #, c-format
 msgid "Cannot open sample file (%s) subfile"
 msgstr "Impossible d'ouvrir le sous-fichier du fichier d'échantillons (%s)"
 
-#: Top/one_file.c:584 Top/one_file.c:1409
+#: Top/one_file.c:629
 msgid "Missing end tag </CsSampleB>"
 msgstr "La balise fermante </CsSampleB> est absente"
 
-#: Top/one_file.c:619 Top/one_file.c:666 Top/one_file.c:1443
-#: Top/one_file.c:1489
+#: Top/one_file.c:663 Top/one_file.c:709
 #, c-format
 msgid "Cannot open file (%s) subfile"
 msgstr "Impossible d'ouvrir le sous-fichier du fichier (%s)"
 
-#: Top/one_file.c:634 Top/one_file.c:1458
+#: Top/one_file.c:678
 msgid "Missing end tag </CsFileB>"
 msgstr "La balise fermante </CsFileB> est absente"
 
-#: Top/one_file.c:677 Top/one_file.c:1500
+#: Top/one_file.c:720
 msgid "Missing end tag </CsFile>"
 msgstr "La balise fermante </CsFile> est absente"
 
-#: Top/one_file.c:699 Top/one_file.c:1522
+#: Top/one_file.c:742
 #, c-format
 msgid "This CSD file requires a version of Csound before %d.%02d"
 msgstr "Ce fichier CSD nécessite une version de Csound antérieure à la %d.%02d"
 
-#: Top/one_file.c:707 Top/one_file.c:714 Top/one_file.c:1530
-#: Top/one_file.c:1537
+#: Top/one_file.c:750 Top/one_file.c:757
 #, c-format
 msgid "This CSD file requires a version of Csound after %d.%02d"
 msgstr "Ce fichier CSD nécessite une version de Csound ultérieure à la %d.%02d"
 
-#: Top/one_file.c:720 Top/one_file.c:1543
+#: Top/one_file.c:763
 msgid "Missing end tag </CsVersion>"
 msgstr "La balise fermante </CsVersion> est absente"
 
-#: Top/one_file.c:730 Top/one_file.c:756 Top/one_file.c:1553
-#: Top/one_file.c:1579
+#: Top/one_file.c:773 Top/one_file.c:799
 msgid "**** Licence Information ****\n"
 msgstr "**** Information de Licence ****\n"
 
-#: Top/one_file.c:736 Top/one_file.c:1559
+#: Top/one_file.c:779
 msgid "**** End of Licence Information ****\n"
 msgstr "**** Fin de l'Information de Licence ****\n"
 
-#: Top/one_file.c:747 Top/one_file.c:1570
+#: Top/one_file.c:790
 msgid "Missing end tag </CsLicence>"
 msgstr "La balise fermante </CsLicence> est absente"
 
-#: Top/one_file.c:765 Top/one_file.c:1588
+#: Top/one_file.c:808
 msgid "Missing end tag </CsShortLicence>"
 msgstr "La balise fermante </CsShortLicence> est absente"
 
-#: Top/one_file.c:801 Top/one_file.c:940
-#, c-format
-msgid "Failed to open csd file: %s"
-msgstr "L'ouverture du fichier csd a échoué : %s"
-
-#: Top/one_file.c:816 Top/one_file.c:952 Top/one_file.c:1612
+#: Top/one_file.c:832
 msgid "STARTING FILE\n"
 msgstr "DEBUT DU FICHIER\n"
 
-#: Top/one_file.c:835 Top/one_file.c:1628
+#: Top/one_file.c:848
 msgid "Creating options\n"
 msgstr "Création des options\n"
 
-#: Top/one_file.c:841 Top/one_file.c:1634
+#: Top/one_file.c:854
 msgid "Skipping <CsOptions>\n"
 msgstr "On ignore <CsOptions>\n"
 
-#: Top/one_file.c:855 Top/one_file.c:963 Top/one_file.c:1648
+#: Top/one_file.c:868
 msgid "Creating orchestra\n"
 msgstr "Création de l'orchestre\n"
 
-#: Top/one_file.c:860 Top/one_file.c:968 Top/one_file.c:1653
+#: Top/one_file.c:873
 msgid "Creating score\n"
 msgstr "Création de la partition\n"
 
-#: Top/one_file.c:881
-msgid "CsFile is deprecatedand may not work; use CsFileB\n"
+#: Top/one_file.c:886
+msgid "Skipping <CsMidifileB>\n"
+msgstr "On ignore <CsMidifileB>\n"
+
+#: Top/one_file.c:890
+msgid "Missing end tag </CsMidiFileB>"
+msgstr "La balise fermante </CsMidifileB> est absente"
+
+#: Top/one_file.c:909
+msgid "CsFile is deprecated and may not work; use CsFileB\n"
 msgstr ""
 "CsFile est obsolète et pourrait ne pas fonctionner ; utiliser CsFileB\n"
 
-#: Top/one_file.c:901 Top/one_file.c:1709
+#: Top/one_file.c:929
 #, c-format
 msgid "unknown CSD tag: %s\n"
 msgstr "balise CSD inconnue : %s\n"
 
-#: Top/one_file.c:906 Top/one_file.c:978 Top/one_file.c:1714
+#: Top/one_file.c:934
 msgid "Could not find <CsoundSynthesizer> tag in CSD file.\n"
 msgstr ""
 "La balise <CsoundSynthesizer> n'a pas été trouvée dans le fichier CSD.\n"
-
-#: Top/one_file.c:918
-msgid "Could not find </CsoundSynthesizer> tag in CSD file.\n"
-msgstr "Balise <CsoundSynthesizer> introuvable dans le fichier CSD.\n"
-
-#: Top/one_file.c:1666
-msgid "Skipping <CsMidifileB>\n"
-msgstr "On ignore <CsMidifileB>\n"
-
-#: Top/one_file.c:1670
-msgid "Missing end tag </CsMidiFileB>"
-msgstr "La balise fermante </CsMidifileB> est absente"
-
-#: Top/one_file.c:1689
-msgid "CsFile is deprecated and may not work; use CsFileB\n"
-msgstr ""
-"CsFile est obsolète et pourrait ne pas fonctionner ; utiliser CsFileB\n"
 
 #: Top/opcode.c:165
 msgid "Error creating opcode list"
@@ -14248,6 +14230,16 @@ msgstr "traitement scot terminé\n"
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr "scot : %d erreurs.\n"
+
+#~ msgid "Failed to open csd file: %s"
+#~ msgstr "L'ouverture du fichier csd a échoué : %s"
+
+#~ msgid "CsFile is deprecatedand may not work; use CsFileB\n"
+#~ msgstr ""
+#~ "CsFile est obsolète et pourrait ne pas fonctionner ; utiliser CsFileB\n"
+
+#~ msgid "Could not find </CsoundSynthesizer> tag in CSD file.\n"
+#~ msgstr "Balise <CsoundSynthesizer> introuvable dans le fichier CSD.\n"
 
 #~ msgid "(%d channels)\n"
 #~ msgstr "(%d canaux)\n"
