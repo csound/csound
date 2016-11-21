@@ -80,13 +80,13 @@ The Csound for Android library is distributed as a Zip release from the Csound S
   \begin{itemize}
   \item CsoundAndroid - main Csound library module, contains libcsound.so native library (compiled as universal binaries for armeabi and armeabi-v7a CPU architecturesi), CsoundObj and Csound APIs
   \item CsoundAndroidExamples - Examples application module that illustrates how to use CsoundObj and Csound APIs on Android
-  \item CsoundApplicaiton - Csound6 application module, originally by Victor Lazzarini (CSDPlayer) and now developed and mainained by Michael Gogins
+  \item CsoundApplication - Csound6 application module, originally by Victor Lazzarini (CSDPlayer) and now developed and mainained by Michael Gogins
   \end{itemize}
   \item pluginLibs - Android Native Development Kit (NDK) projects for building Csound plugin libraries (i.e. fluidsynth, lua opcodes) 
   \item Documentation - This PDF manual
 \end{itemize} 
 
-To develop applications with Csound, you will use the CsoundAndroid library module from the Android Studio project.  This library is delivered with all of th native parts pre-compiled. You do \emph{not} have to have the NDK installed to use this library.  
+To develop applications with Csound, you will use the CsoundAndroid library module from the Android Studio project.  This library is delivered with all of the native parts pre-compiled. You do \emph{not} have to have the NDK installed to use this library.  
 
 To create a new Csound-based Android application, first create your application project using the appropriate application module template for your work. Next, import the CsoundAndroid library module into your project.  To do this, do the following:
 
@@ -155,15 +155,23 @@ By using CsoundBindings, CsoundObj functionality can be extended to communicate 
 
 \subsection{Binding Widgets to CsoundObj}
 
-The CsoundObj API contains the following methods for binding widgets:
+The CsoundUI class provides the following methods for binding widgets:
 
 \begin{lstlisting}[caption=Methods for Widget Binding]
 public CsoundBinding addButton(Button button, String channelName))
 public CsoundBinding addButton(Button button, String channelName,int type)
 public CsoundBinding addSlider(SeekBar seekBar, String channelName, double min, double max)}
-
-These methods allow for easy binding of UISeekBars, and UIButtons, and return the CsoundBinding that was created to wrap the widget. If the design of your app requires that you remove a widget from being used with CsoundObj, you can use the returned CsoundBinding and pass it to the removeCsoundBinding method. To bind your own custom widgets, you will need to create your own CsoundBinding.  There are examples of both using the convenience widget binding methods as well as custom CsoundBindings in the Csound for Android Examples project.
 \end{lstlisting}
+
+To use the CsoundUI class, first instantiate an instance of the class, providing the CsoundObj object to use, then call methods on the CsoundUI class:
+
+\begin{lstlisting}[caption=Using the CsoundUI class]
+CsoundUI ui = new CsoundUI(csoundObj);
+CsoundBinding binding = ui.addButton(btn, "button-channel-1");
+\end{lstlisting}
+
+
+These methods allow for easy binding of SeekBars and Buttons. The methods return the CsoundBinding that was created to wrap the widget. If the design of your app requires that you remove a widget from being used with CsoundObj, you can use the returned CsoundBinding and pass it to the removeCsoundBinding method. To bind your own custom widgets, you will need to create your own CsoundBinding.  There are examples of both using the convenience widget binding methods as well as custom CsoundBindings in the Csound for Android Examples project.
 %======
 
 \section{Interfacing with Hardware}
@@ -173,7 +181,7 @@ CsoundObj has been designed to connect everything necessary for audio input and 
 
 \subsection{Accelerometer}
 
-CsoundObj has built-in support for use of the accelerometer found in android devices. CsoundObj has the following methods to enable these features:
+The CsoundMotion class provides support for using the accelerometer found in Android devices. CsoundMotion has the following method to enable these features:
 
 
 \begin{lstlisting}[caption=CsoundObj Accelerometer Method]
@@ -181,7 +189,7 @@ public CsoundBinding enableAccelerometer(Context context)
 ]
 \end{lstlisting}
 
-When the feature is enabled, CsoundBindings that wrap the sensor will send values into Csound via hardcoded channels:
+The CsoundMotion class is used in the same way as CsoundUI: users will first instantiate an instance of CsoundMotion, then call methods that return CsoundBindgs. When the accelerometer is enabled, CsoundBindings that wrap the sensor will send values into Csound via hardcoded channels:
 
 \begin{itemize}
 
@@ -233,7 +241,7 @@ This is a generative music example that contains a number of SeekBars that affec
 This example uses a CSD based on the one used for Simple Test 2, but depends on the user to trigger a button to generate each note.  The two buttons in this example show two different ways in which to integrate buttons with CsoundObj:
 
 \begin{enumerate}
-\item Using CsoundObj's \textbf{addButton} method, which will setup a k-rate channel for Csound, the value will be 0 when the button is not pressed, and will be 1 for one ksmps period when a button is pressed (it returns to 0 the following ksmps period). 
+\item Using CsoundUI's \textbf{addButton} method, which will setup a k-rate channel for Csound, the value will be 0 when the button is not pressed, and will be 1 for one ksmps period when a button is pressed (it returns to 0 the following ksmps period). 
 \item Using a standard button callback, the callback will create a string score and send that to Csound using CsoundObj's \textbf{sendScore} method. (See code below.)
 \end{enumerate}
 
@@ -317,23 +325,20 @@ This example demonstrates using a CsoundBinding to read an f-table from Csound a
 %======
 \section{Making Your First Csound Android App }
 
-\emph{This section includes directions for developing a Csound-based Android application using Eclipse. This will be updated for Android Studio in the future.} 
 
-This section will walk you through your first implementation of the Csound library for Android: 
+This section will walk you through your first Csound-based Android application. Initial setup of your program requires that:
+
 \begin{itemize}
-\item assuming you have added the library to your project as explained in the \textit{Getting and Using the Csound for Android API} section; and
-\item  that your application is called \textit{First_Csound_App} with the package name of \textit{com.example.first_csound_app}; and
-\item you used the default names for your first class and xml file, which are\textit{MainActivity.java}  and  \textit{activity_main.xml}  respectively
+\item Create a new project in Android Studio using an application name of \textit{FirstCsoundApp} and company domain of \textit{example.com}.
+\item Use the default settings for the rest of the New Project wizard (e.g., build for phone and tablet, use ``Empty Activity'', use default MainActivity and activity\_main names). This should create a new Project space that has one module called ``app''.  
+\item Import the CsoundAndroid library module into your project. This is available from the File menu, under New, using the ``Import Module'' option.  
+\item To use the Csound module from the application, you will need to add a dependency.  Right-click the ``app'' module and choose ``Open Module Settings''. For the app module, select the far-right tab called ``Dependencies'', then use the + button to add a ``Module Dependency''. Choose CsoundAndroid.  
 \end{itemize}
 
- First let us create the user interface. This is simplest using xml files, though this can be achieved through Java.
+First let us create the user interface. Android developers will generally use either XML to define the interface or hand-code the UI using Java code. Using XML allows for using Android Studio's GUI editor and we will use this in this tutorial. 
 
-First navigate to the $res>layout>$\textit{activity_main.xml} in the Package explorer in Eclipse. At the bottom left of the the xml view pane you will see a graphical layout tab and an activity_main.xml tab
-\begin{center}
-\includegraphics{images/xmlTabBar}
-\end{center}
+Navigate to the $res>layout>$\textit{activity_main.xml} within the \textit{app} module in the Project Explorer in Android Studio. Double-click the file and the UI editor will appear.  At the bottom fo the editor will be two tabs: Design and Text.  Choose the Text tab and insert the following XML code. This will create three Buttons and a SeekBar as shown.
 
-Insert the following code in the xml file. This will create three Buttons and a SeekBar as shown.
 \begin{lstlisting}[caption=Code to create UI]
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -395,24 +400,21 @@ Insert the following code in the xml file. This will create three Buttons and a 
 \includegraphics[scale=0.30]{images/CsoundBasicAppUIDia}
 \end{center}
 
-Next go to your project manifest to add the necessary permissions for fully using the CsoundObj. This is done by selecting AndroidManifest.xml from the package explorer, then selecting  \textit{AndroidManifest.xml} from tabs at the bottom of the main pane
+Next go to your project manifest to add the necessary permissions for fully using the CsoundObj. This is done by selecting AndroidManifest.xml from the Manifests folder for the application module within project explorer. 
 
-\begin{center}
-\includegraphics[scale=0.75]{images/ManifestTabs}
-\end{center}
-
-Adding the following to your Manifest
+Add the following to your Manifest
 
 \begin{center}
 \includegraphics[scale=0.60]{images/Manifest}
 \end{center}
 
-Now that the UI is built and the manifest has been prepared, proceed to opening the main activity of the project \textit{src}$>$\textit{com.example.first_csound_app}$>$\textit{MainActivity.java}. You should see the following when you open the class (depending on your Eclipse preferences the line numbering may not appear)
+Now that the UI is built and the manifest has been prepared, proceed to opening the main activity of the project \textit{src}$>$\textit{com.example.firstCsoundApp}$>$\textit{MainActivity.java}. You should see the following when you open the class:
+
 \begin{center}
 \includegraphics[scale=0.75]{images/CsoundBasicAppOrignalActivity}
 \end{center}
 
-First add the \textit{BaseCsoundActivity.java} class to your project. This can be done by copying it into the \textit{src} folder of your project on your computer from the CsoundAndroidExamples project that comes with the Csound for Android download.
+Add the \textit{BaseCsoundActivity.java} class to your project. This can be done by copying it into the \textit{src} folder of your project on your computer from the CsoundAndroidExamples project that comes with the Csound for Android download.
 
 Next you need to import the necessary packages into your package for the application to compile correctly. These include the Csound package and widget packages for the UI. To see all the automatically imported packages click the $+$ button beside the import shown in the last image
 
@@ -420,26 +422,21 @@ Next you need to import the necessary packages into your package for the applica
 \includegraphics[scale=0.60]{images/ImportedPackages}
 \end{center}
 
-
-Next extend your class with BaseCsoundActivity instead of Activity (note that BaseCsoundActivity extends Activity). Then  add your variables and then initialise them in the onCreate method as shown below. 
+Next extend your class with BaseCsoundActivity instead of Activity (note that BaseCsoundActivity extends Activity). Then add your variables and initialise them in the onCreate method as shown below. 
 
 \begin{center}
 \includegraphics[scale=0.60]{images/VariblesCreated}
 \end{center}
 
-Finally in our Activity class we have to connect our UI comments to our CsoundObj to allow us to pass information from our UI to our Csound code. In following code the max value of the SeekBar is set to 1 and the minium value is set to 0. To reserve this data in your Csound code use the opcode chnget and button1 and seekBar1. The button and SeekBar are added each time before every time CsoundObj is set playing to ensure they are in the variable cacheable for the object
+In our Activity class we have to connect our UI comments to our CsoundObj to allow us to pass information from our UI to our Csound code. In following code the max value of the SeekBar is set to 1 and the minium value is set to 0. To reserve this data in your Csound code use the opcode chnget and button1 and seekBar1. The Button and SeekBar are added each time before every time CsoundObj is set playing to ensure they are in the variable cacheable for the object.
 
 \begin{center}
 \includegraphics[scale=0.50]{images/FinalActivity}
 \end{center}
 
-Finally, to get your Csound code into the project, create a \textit{raw} folder in your project in the \textit{res} folder. This can be done by right clicking your  \textit{res} folder in your package explorer in Eclipse, from the drop down menu set \textit{new} followed by \textit{folder} then name the folder  \textit{raw}. 
+To get your Csound code into the project, create a \textit{raw} folder in your project in the \textit{res} folder. This can be done by right-clicking your \textit{res} folder in your project explorer, go to the \textit{New} popup menu option, then choose \textit{Directory}. Name the folder  \textit{raw} and complete the operation. 
 
-\begin{center}
-\includegraphics[scale=0.60]{images/PackageExplorer}
-\end{center}
-
-Next go to the containing folder of your project on your computer and put your Csound .csd file in the raw folder. Now when you return to Eclipse and run your project as an \textit{Android Application} by clicking the play button in Eclipse, Your first Csound app should be running with your Csound code, congratulations!
+Next go to the containing folder of your project on your computer and put your Csound .csd file in the raw folder. Now when you return to Android Studio and run your project by clicking the play button, your first Csound app should be running with your Csound code. Congratulations!
 
 
 \section{Csound App 2.0}
