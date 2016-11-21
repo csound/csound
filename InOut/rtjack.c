@@ -285,7 +285,7 @@ static void listPorts(CSOUND *csound, int isOutput){
           int i,n = listDevices(csound,NULL,isOutput);
           CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
             malloc(n*sizeof(CS_AUDIODEVICE));
-          listDevices(csound,devs,1);
+          listDevices(csound,devs,isOutput);
           csound->Message(csound, "Jack %s ports:\n",
                           isOutput ? "output" : "input");
           for(i=0; i < n; i++)
