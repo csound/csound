@@ -440,8 +440,8 @@ static void openJackStreams(RtJackGlobals *p)
         if(portNames[num+i] != NULL){
           csound->Message(csound, Str("connecting channel %d to %s \n"),
                           i,portNames[num+i]);
-          if(jack_connect(p->client, jack_port_name(p->inPorts[i]),
-                          portNames[num+i]) != 0) {
+          if(jack_connect(p->client, portNames[num+i],
+			  jack_port_name(p->inPorts[i])) != 0) {
             csound->Warning(csound, Str("failed autoconnecting input channel %d \n"
                                         "(needs manual connection)"), i+1);
           }
