@@ -145,7 +145,8 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     //printf("multicast=%d\n", p->multicast);
     if (*hh=='\0') hh = NULL;
     p->addr = lo_address_new(hh, pp);
-    // MKG: Seems to have been dropped from liblo. But TTL 1 should be the default for multicast.
+    // MKG: Seems to have been dropped from liblo.
+    // But TTL 1 should be the default for multicast.
     if (p->multicast) lo_address_set_ttl(p->addr, 1);
     p->lhost = csound->Strdup(csound, hh);
     p->cnt = 0;
