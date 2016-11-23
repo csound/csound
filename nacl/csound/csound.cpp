@@ -470,7 +470,7 @@ void* compileThreadFunc(void *data) {
         csoundSetOption(csound, (char *) "--daemon");
         csoundStart(csound);
     } else {
-        char *argv[] = {(char *)"csound", p->GetCsd(), (char *)"-+rtaudio=null"};
+        const char *argv[] = {(char *)"csound", p->GetCsd(), (char *)"-+rtaudio=null"};
         p->PostMessage("Compiling CSD file...");
         result = csoundCompile(csound,3,argv);
     }
@@ -499,7 +499,7 @@ void* compileThreadFuncNoDAC(void *data) {
         p->PostMessage("Compiling CSD text...");
         result = csoundCompileCsdText(csound, csd);
     } else {
-        char *argv[] = {(char *)"csound", csd};
+        const char *argv[] = {(char *)"csound", csd};
         p->PostMessage("Compiling CSD file...");
         result = csoundCompile(csound,2,argv);
     }

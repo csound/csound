@@ -16,7 +16,7 @@ fi
 echo "Version: $CS_VERSION"
 export MANUAL_DIR=`pwd`/../../../manual
 export PACKAGE_NAME=csound${CS_VERSION}-OSX-universal.pkg
-export DMG_DIR="Csound ${CS_VERSION}"
+export DMG_DIR="Csound${CS_VERSION}"
 export DMG_NAME="csound${CS_VERSION}-OSX-universal.dmg"
 
 export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/
@@ -290,7 +290,7 @@ mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
 cp  ../../../readme.pdf .
-cp  ../../../DmgResources/CsoundQt-d-py-cs6-0.9.2.1.dmg .
+cp  ../../../DmgResources/CsoundQt-0.9.3-OSX.dmg .
 #hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
 
 cd ..
