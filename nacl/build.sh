@@ -6,6 +6,6 @@ bison -d -pcsound_orc --report=itemset -o csound_orcparse.c ../Engine/csound_orc
 
 # Actually build Csound.
 export TOOLCHAIN=pnacl
-make
+make -j 6
 
 

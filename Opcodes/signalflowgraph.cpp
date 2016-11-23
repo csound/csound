@@ -1818,12 +1818,13 @@ extern "C"
         }
         return 0;
     }
-    
+#ifndef PNACL    
     PUBLIC int csoundModuleCreate(CSOUND *csound)
     {
         return csoundModuleCreate_signalflowgraph(csound);
     }
-
+#endif
+  
     PUBLIC int csoundModuleInit_signalflowgraph(CSOUND *csound)
     {
         if(csound->GetDebug(csound)) {
@@ -1846,7 +1847,7 @@ extern "C"
         }
         return err;
     }
-    
+#ifndef PNACL      
     PUBLIC int csoundModuleInit(CSOUND *csound)
     {
         return csoundModuleInit_signalflowgraph(csound);
@@ -1918,6 +1919,7 @@ extern "C"
         csound->UnlockMutex(cs_sfg_ftables);
         return 0;
     }
+ #endif
 }
 
 }

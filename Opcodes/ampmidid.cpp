@@ -126,10 +126,12 @@ public:
 
 extern "C" {
 
+#ifndef PNACL  
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
       return 0;
   }
+#endif
 
   PUBLIC int csoundModuleInit_ampmidid(CSOUND *csound)
   {
@@ -166,6 +168,7 @@ extern "C" {
       return status;
   }
 
+#ifndef PNACL  
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
       return csoundModuleInit_ampmidid(csound);
@@ -176,6 +179,7 @@ extern "C" {
   {
       return 0;
   }
+#endif
 }
 
 

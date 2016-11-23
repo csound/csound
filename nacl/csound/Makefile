@@ -29,3 +29,5 @@ $(eval $(call STRIP_RULE,$(TARGET),$(TARGET)_unstripped))
 #endif
 
 $(eval $(call NMF_RULE,$(TARGET),))
+install:
+	cp -r pnacl csound/
