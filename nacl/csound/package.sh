@@ -1,18 +1,16 @@
 #!/bin/sh
 # script to package csound for a website
 #make
-mkdir csound
-cp csound.js ./csound
-cp *.html ./csound
-cp *.csd ./csound
-cp sf_GMbank.sf2 ./csound
-cp manifest.json ./csound
-mkdir ./csound/pnacl
-mkdir ./csound/pnacl/Release
-cp -R ./pnacl/Release/csound.pexe ./csound/pnacl/Release/.
-cp -R ./pnacl/Release/csound.nmf ./csound/pnacl/Release/.
-tar cf csound6.07-pnacl.tar csound
-gzip  csound6.07-pnacl.tar
-rm -r csound
+mkdir  csound6.08-pnacl
+cp csound.js ./csound6.08-pnacl
+cp *.html ./csound6.08-pnacl
+cp *.csd ./csound6.08-pnacl
+cp sf_GMbank.sf2 ./csound6.08-pnacl
+cp manifest.json ./csound6.08-pnacl
+mkdir ./csound6.08-pnacl/csound
+cp -R ./pnacl/ ./csound6.08-pnacl/csound/..
+tar cf csound6.08-pnacl.tar csound6.08-pnacl
+gzip  csound6.08-pnacl.tar
+rm -r csound6.08-pnacl
 
 

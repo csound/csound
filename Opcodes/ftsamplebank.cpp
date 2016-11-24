@@ -345,11 +345,13 @@ std::vector<std::string> searchDir(CSOUND *csound, char* directory, char* extens
 
 extern "C" {
 
+#ifndef PNACL
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
       return 0;
   }
-
+#endif
+  
   PUBLIC int csoundModuleInit_ftsamplebank(CSOUND *csound)
   {
 
@@ -400,6 +402,7 @@ extern "C" {
       return status;
   }
 
+ #ifndef PNACL
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
       return csoundModuleInit_ftsamplebank(csound);
@@ -409,4 +412,5 @@ extern "C" {
   {
       return 0;
   }
+  #endif
 }
