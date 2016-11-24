@@ -53,11 +53,19 @@ public:
     MYFLT* format;
     MYFLT* channel;
 
-    iftsamplebank() {}
+    iftsamplebank()
+    {
+      channel = 0;
+      index = 0;
+      skiptime = 0;
+      format = 0;
+      index = 0;
+    }
 
     //init-pass
     int init(CSOUND *csound)
     {
+
         *numberOfFiles = loadSamplesToTables(csound, *index,
                                              (char* )sDirectory->data,
                                              *skiptime, *format, *channel);
@@ -86,7 +94,14 @@ public:
     MYFLT* format;
     MYFLT* channel;
     int internalCounter;
-    kftsamplebank():internalCounter(0){}
+    kftsamplebank():internalCounter(0)
+    {
+      channel = 0;
+      index = 0;
+      skiptime = 0;
+      format = 0;
+      index = 0;
+    }
 
     //init-pass
     int init(CSOUND *csound)
@@ -142,8 +157,10 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory,
           std::ostringstream fullFileName;
           //only use supported file types
           for(int i=0;i<fileExtensions.size();i++)
-            if(std::string(ent->d_name).find(fileExtensions[i])!=std::string::npos)
-              {
+          {
+            std::string fname = ent->d_name;
+            if (fname.find(fileExtensions[i], (fname.length() - fileExtensions[i].length())) != std::string::npos)
+            {
                 if(strlen(directory)>2)
                   {
 #if defined(WIN32)
@@ -158,7 +175,8 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory,
 
                 noOfFiles++;
                 fileNames.push_back(fullFileName.str());
-              }
+            }
+          }
         }
 
         // Sort names
@@ -181,6 +199,7 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory,
                           directory);
         }
 
+        closedir(dir);
       //return number of files
       return noOfFiles;
     }
@@ -268,7 +287,7 @@ static int directory(CSOUND *csound, DIR_STRUCT* p)
 }
 
 //-----------------------------------------------------------------
-//      load samples into functoin tables
+//      load samples into function tables
 //-----------------------------------------------------------------
 std::vector<std::string> searchDir(CSOUND *csound, char* directory, char* extension)
 {
@@ -314,9 +333,11 @@ std::vector<std::string> searchDir(CSOUND *csound, char* directory, char* extens
                           Str("Cannot find directory. "
                               "Error opening directory: %s\n"),  directory);
         }
+      closedir(dir);
       }
 
-    return fileNames;
+
+      return fileNames;
 }
 
 
@@ -324,12 +345,14 @@ std::vector<std::string> searchDir(CSOUND *csound, char* directory, char* extens
 
 extern "C" {
 
+#ifndef PNACL
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
       return 0;
   }
-
-  PUBLIC int csoundModuleInit(CSOUND *csound)
+#endif
+  
+  PUBLIC int csoundModuleInit_ftsamplebank(CSOUND *csound)
   {
 
       int status =
@@ -379,8 +402,15 @@ extern "C" {
       return status;
   }
 
+ #ifndef PNACL
+  PUBLIC int csoundModuleInit(CSOUND *csound)
+  {
+      return csoundModuleInit_ftsamplebank(csound);
+  }
+
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
       return 0;
   }
+  #endif
 }

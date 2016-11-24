@@ -227,7 +227,10 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     void *fd;
     int n;
     char buffer[1024];
-    char *s;
+    if (fname==NULL) {
+      csound->ErrorMsg(csound, Str("Null file name in copy_to_corefile"));
+      csound->LongJmp(csound, 1);
+    }
 #ifdef HAVE_CURL
     if (strstr(fname,"://")) {
       return copy_url_corefile(csound, fname, fromScore);
@@ -239,14 +242,19 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     memset(buffer, '\0', 1024);
     while ((n = fread(buffer, 1, 1023, ff))) {
       /* Need to lose \r characters  here */
-      while ((s = strchr(buffer, '\r'))) {
-        int k = n - (s-buffer);
-        memmove(s, s+1, k);
-        n--;
-      }
+      /* while ((s = strchr(buffer, '\r'))) { */
+      /*   int k = n - (s-buffer); */
+      /*   memmove(s, s+1, k); */
+      /*   n--; */
+      /* } */
       corfile_puts(buffer, mm);
       memset(buffer, '\0', 1024);
     }
+#ifdef SCORE_PARSER
+    if (fromScore) {
+      corfile_puts("\n#exit\n", mm);
+    }
+#endif
     corfile_putc('\0', mm);     /* For use in bison/flex */
     corfile_putc('\0', mm);     /* For use in bison/flex */
     if (fromScore) corfile_flush(mm);
@@ -310,6 +318,7 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
     if (UNLIKELY(n != CURLE_OK)) {
       csound->Die(csound, Str("curl_easy_perform() failed: %s\n"),
                   curl_easy_strerror(n));
+      /* return NULL ? */
     }
     curl_easy_cleanup(curl);
     corfile_puts(chunk.memory, mm);

@@ -170,7 +170,8 @@ extern int ISSTRCOD(MYFLT);
 #define MAXOCTS         8
 #define MAXCHAN         16      /* 16 MIDI channels; only one port for now */
 
-#define ONEPT           1.02197486              /* A440 tuning factor */
+         /* A440 tuning factor */
+#define ONEPT           (csound->A4/430.5389646099018460319362438314060262605)
 #define LOG10D20        0.11512925              /* for db to ampfac   */
 #define DV32768         FL(0.000030517578125)
 
@@ -215,12 +216,12 @@ typedef struct CORFIL {
     int     informat, outformat;
     int     sfsampsize;
     int     displays, graphsoff, postscript, msglevel;
-    int     Beatmode, cmdTempo, oMaxLag;
+    int     Beatmode, oMaxLag;
     int     usingcscore, Linein;
     int     RTevents, Midiin, FMidiin, RMidiin;
     int     ringbell, termifend;
     int     rewrt_hdr, heartbeat, gen01defer;
-    //    int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
+    double  cmdTempo;
     float   sr_override, kr_override;
     int     nchnls_override, nchnls_i_override;
     char    *infilename, *outfilename;
@@ -1306,11 +1307,12 @@ typedef struct NAME__ {
                            int d);
     void (*RealFFT2)(CSOUND *csound,
                      void *p, MYFLT *sig);
+    int  (*ftError)(const FGDATA *, const char *, ...);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[40];
+    SUBR dummyfn_2[39];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1450,6 +1452,7 @@ typedef struct NAME__ {
     int           reinitflag;
     int           tieflag;
     MYFLT         e0dbfs, dbfs_to_float;
+    double        A4;
     void          *rtRecord_userdata;
     void          *rtPlay_userdata;
     jmp_buf       exitjmp;
@@ -1545,6 +1548,7 @@ typedef struct NAME__ {
       int32   repeat_point;
       int     repeat_inc /* = 1 */;
       S_MACRO   *repeat_mm;
+      int     nocarry;
     } sreadStatics;
     struct onefileStatics__ {
       NAMELST *toremove;

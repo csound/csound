@@ -37,8 +37,8 @@
 
 #define SHORTMAX 32767.0
 #define FIND(MSG)   if (*s == '\0')  \
-        if (!(--argc) || ((s = *++argv) && *s == '-')) \
-        csound->Die(csound, MSG);
+    if (!(--argc) || ((s = *++argv) && *s == '-')) {     \
+      csound->Message(csound, MSG); csound->LongJmp(csound, 1); }
 
 /* Static function prototypes */
 

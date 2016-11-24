@@ -959,7 +959,7 @@ int mxdsrset(CSOUND *csound, EXPSEG *p)
     segp[3].cnt = (int32) (rel*CS_EKR + FL(0.5));
     segp[3].acnt = (int32) (rel*CS_ESR + FL(0.5));
     relestim = (int)(p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = (int32)(*argp[5] * CS_EKR + FL(0.5));     /* Release time?? */
+    p->xtra = relestim;//(int32)(*argp[5] * CS_EKR + FL(0.5)); /* Release time?? */
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = relestim;
     return OK;

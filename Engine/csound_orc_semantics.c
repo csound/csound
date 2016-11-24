@@ -268,6 +268,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             do_baktrace(csound, tree->locn);
             return NULL;
           }
+
           csound->Free(csound, leftArgType);
           csound->Free(csound, rightArgType);
           return cs_strdup(csound, outype);
@@ -313,7 +314,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       }
 
-      // Deal with odd case if i(expressions)
+      // Deal with odd case of i(expressions)
       if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
         //print_tree(csound, "i()", tree);
         if (tree->right->type == T_ARRAY &&
@@ -467,6 +468,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     case SRATE_TOKEN:
     case KRATE_TOKEN:
     case KSMPS_TOKEN:
+    case A4_TOKEN:
     case ZERODBFS_TOKEN:
     case NCHNLS_TOKEN:
     case NCHNLSI_TOKEN:
@@ -733,6 +735,10 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
       char* varArg = NULL;
       int returnVal = 1;
 
+      if (argsRequired == NULL) {
+        return 0;
+      }
+
       if ((argsFoundCount > argsRequiredCount) &&
           !(is_in_var_arg(*argsRequired[argsRequiredCount - 1]))) {
         csound->Free(csound, argsRequired);
@@ -963,8 +969,8 @@ OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
     int i;
     for (i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
-        if (!strcmp(inArgTypes, temp->intypes) &&
-            !strcmp(outArgTypes, temp->outypes)) {
+        if (temp->intypes != NULL && !strcmp(inArgTypes, temp->intypes) &&
+            temp->outypes != NULL && !strcmp(outArgTypes, temp->outypes)) {
             return temp;
         }
     }
@@ -1476,7 +1482,18 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       csound->Free(csound, entries);
 
       return 0;
-    } else {
+    }
+    else {
+      if (csound->oparms->sampleAccurate &&
+          (strcmp(oentry->opname, "=.a")==0) &&
+          left->value->lexeme[0]=='a') { /* Deal with sampe accurate assigns */
+        int i = 0;
+        while (strcmp(entries->entries[i]->opname, "=.l")) {
+          printf("not %d %s\n",i, entries->entries[i]->opname);
+          i++;
+        }
+        oentry = entries->entries[i];
+      }
       root->markup = oentry;
     }
     csound->Free(csound, leftArgString);
@@ -1686,7 +1703,7 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
       }
     }
 
-    if (!check_out_args(csound, outArgsFound, outArgs)) {
+    if (!check_in_args(csound, outArgsFound, outArgs)) {
       if (!(strcmp("0", outArgs) == 0 && xoutArgs == NULL)) {
         synterr(csound,
                 Str("invalid xout statement for UDO: defined '%s', found '%s'\n"),
@@ -1710,7 +1727,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     typeTable->labelList = get_label_list(csound, root);
 
     //if(root->value)
-    //printf("verify %p %p (%s) \n", root, root->value, root->value->lexeme);
+    //printf("###verify %p %p (%s) \n", root, root->value, root->value->lexeme);
 
     if (PARSER_DEBUG) csound->Message(csound, "Verifying AST\n");
 
@@ -1802,7 +1819,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if(!verify_opcode(csound, current, typeTable)) {
           return 0;
         }
-
+        //print_tree(csound, "verify_tree", current);
         if (is_statement_expansion_required(current)) {
           current = expand_statement(csound, current, typeTable);
 
@@ -2114,6 +2131,9 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case ZERODBFS_TOKEN:
       csound->Message(csound,"ZERODFFS_TOKEN:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
+    case A4_TOKEN:
+      csound->Message(csound,"A4_TOKEN:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case KSMPS_TOKEN:
       csound->Message(csound,"KSMPS_TOKEN:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
@@ -2269,6 +2289,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"KRATE_TOKEN\""); break;
     case ZERODBFS_TOKEN:
       csound->Message(csound,"name=\"ZERODBFS_TOKEN\""); break;
+    case A4_TOKEN:
+      csound->Message(csound,"name=\"A4_TOKEN\""); break;
     case KSMPS_TOKEN:
       csound->Message(csound,"name=\"KSMPS_TOKEN\""); break;
     case NCHNLS_TOKEN:

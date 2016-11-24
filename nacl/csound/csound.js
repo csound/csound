@@ -1,7 +1,7 @@
 /*
  * Csound pnacl interactive frontend
  *
- * Copyright (C) 2013 V Lazzarini
+ * Copyright (C) 2013 V Lazzarini, Michael Gogins
  *
  * This file belongs to Csound.
  *
@@ -19,19 +19,16 @@
  * License along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
-
 var csound = (function() {
-
   /**
-   * Loads csound pNaCl module
+   * Loads csound PNaCl module.
    */
   function createModule() {
     var model = document.createElement('embed');
     model.setAttribute('name', 'csound_module');
     model.setAttribute('id', 'csound_module');
-    model.setAttribute('path', 'pnacl/Release');
-    model.setAttribute('src', 'pnacl/Release/csound.nmf');
+    model.setAttribute('path', '/csound/pnacl/Release');
+    model.setAttribute('src', '/csound/pnacl/Release/csound.nmf');
     var mimetype = 'application/x-pnacl';
     model.setAttribute('type', mimetype);
     var csoundhook = document.getElementById('engine');
@@ -39,7 +36,7 @@ var csound = (function() {
   }
   
   /**
-   * Attaches handlers for events
+   * Attaches handlers for events.
    */
   function attachDefaultListeners() {
     var csoundhook= document.getElementById('engine');
@@ -53,7 +50,7 @@ var csound = (function() {
   }
 
   /**
-   * Creates a progress count
+   * Displays a progress indicator.
    */
   var progressCount=0;
   function handleProgress(event) {
@@ -61,23 +58,23 @@ var csound = (function() {
     var loadPercentString;
     if (event.lengthComputable && event.total > 0) {
       loadPercent = (event.loaded / event.total) * 100.0;
-      loadPercentString = 'loading... (' + loadPercent.toFixed(2) + '%)';
+      loadPercentString = 'Loading... (' + loadPercent.toFixed(2) + '%)';
     } else {
        loadPercent = -1.0;
        progressCount++;
-       loadPercentString = 'loading... (count=' + progressCount + ')';
+       loadPercentString = 'Loading... (count=' + progressCount + ')';
     }
     updateStatus(loadPercentString);
   }
 
   /**
-   * Handles a crash or exit event
+   * Handles a crash or exit event.
    */
   function handleCrash(event) {
     if (csound.module.exitStatus == -1) {
-      updateStatus('Ops, something went wrong... please refresh page',1);
+      updateStatus('Oops, something went wrong... please refresh page.',1);
     } else {
-	updateStatus('Csound has exited [' + csound.module.exitStatus + ']', 1);
+	updateStatus('Csound has exited [' + csound.module.exitStatus + '].', 1);
     }
     if (typeof window.handleCrash !== 'undefined') {
       window.handleCrash(csound.module.lastError);
@@ -85,13 +82,17 @@ var csound = (function() {
   }
 
   /**
-   *  After module loading, point the member var to it
+   *  After loading the Csound module, point the csound member var to to it.
    */
    function moduleDidLoad() {
+    try {
     csound.module = document.getElementById('csound_module');
-       updateStatus('ready', 1);
+       updateStatus('Ready.', 1);
     if (typeof window.moduleDidLoad !== 'undefined') {
       window.moduleDidLoad();
+    }
+    } catch(exception) {
+    	updateStatus("No module in destroyModule:\n" + exception);
     }
   }
 
@@ -99,15 +100,19 @@ var csound = (function() {
    * Unloads/destroys module.
    */
   function destroyModule() {
+    try {
     csound.module.parentNode.removeChild(csound.module);
+    } catch(exception) {
+    	updateStatus("No module in destroyModule:\n" + exception);
+    }
     csound.module = null;
   }
 
   var fileData = null;
   function handleFileMessage(event) {
-      updateStatus("fetching file data\n");
+      updateStatus("Fetching file data...\n");
       fileData = event.data;
-      updateStatus("finished fetching file data\n");
+      updateStatus("Finished fetching file data.\n");
         var csoundhook= document.getElementById('engine');
         csoundhook.removeEventListener('message', handleFileMessage, true);
         csoundhook.addEventListener('message', handleMessage, true);
@@ -115,18 +120,16 @@ var csound = (function() {
 
   var tableData = null;
   function handleTableMessage(event) {
-      updateStatus("fetching table data\n");
+      updateStatus("Fetching table data...\n");
       tableData = event.data;
-      updateStatus("finished fetching table data\n");
+      updateStatus("fFnished fetching table data.\n");
         var csoundhook= document.getElementById('engine');
         csoundhook.removeEventListener('message', handleTableMessage, true);
         csoundhook.addEventListener('message', handleMessage, true);
    }
 
-
-
   /**
-   * handles messages by passing them to the window handler
+   * handles messages by passing them to the window handler.
    *
    * @param {Event} event A message event. 
    *                message_event.data contains
@@ -150,9 +153,9 @@ var csound = (function() {
     }
   }
 
-  var statusText = 'not loaded';
+  var statusText = 'Not loaded.';
   /**
-   * Prints current status to the console
+   * Prints current status to the console.
    * @param {string} opt_message The status message.
    */
     function updateStatus(opt_message, keep) {
@@ -175,17 +178,21 @@ var csound = (function() {
   }
 
   /**
-   * Starts audio playback
+   * Starts audio playback.
    */
   function Play() {
-    csound.module.postMessage('playCsound');
+    if (csound.module !== null) csound.module.postMessage('playCsound');
   } 
 
+function GetScoreTime() {
+    if (csound.module !== null) csound.module.postMessage('getScoreTime');
+}
+
   /**
-   * Pauses audio playback
+   * Pauses audio playback.
    */
   function Pause() {
-   csound.module.postMessage('pauseCsound');
+   if (csound.module !== null) csound.module.postMessage('pauseCsound');
   }
   
   /**
@@ -197,65 +204,65 @@ var csound = (function() {
   }
 
   /**
-   * Sends code to be compiled by Csound
+   * Sends orchestra code to be compiled by Csound.
    *
    * @param {string} s A string containing the code.
    */
   function CompileOrc(s) {
-   csound.module.postMessage('orchestra:' + s);
+   if (csound.module !== null) csound.module.postMessage('orchestra:' + s);
   }
 
   /**
-   * Starts audio playback with a CSD
+   * Starts real-time audio playback with a CSD. The variable can contain 
+   * a filepath or the literal text of a CSD.
    *
    * @param {string} s A string containing the pathname to the CSD.
    */
   function PlayCsd(s) {
-   csound.module.postMessage('csd:' + s);
+   if (csound.module !== null) csound.module.postMessage('csd:' + s);
   }
 
   /**
-   * Starts audio rendering with a CSD (no RT audio playback)
+   * Starts file rendering with a CSD (no real-time audio). The variable can contain 
+   * a filepath or the literal text of a CSD.
    *
    * @param {string} s A string containing the pathname to the CSD.
    */
   function RenderCsd(s) {
-   csound.module.postMessage('render:' + s);
+   if (csound.module !== null) csound.module.postMessage('render:' + s);
   }
 
-
   /**
-   * Sends a score to be read by Csound
+   * Sends a score to be read by Csound.
    *
    * @param {string} s A string containing the score.
    */
   function ReadScore(s) {
-    csound.module.postMessage('score:' + s);
+    if (csound.module !== null) csound.module.postMessage('score:' + s);
    }
 
   /**
-   * Sends line events to Csound
+   * Sends line events to Csound.
    *
    * @param {string} s A string containing the line events.
    */
   function Event(s) {
-    csound.module.postMessage('event:' + s);
+    if (csound.module !== null) csound.module.postMessage('event:' + s);
    }
 
   /**
-   * Sets the value of a control channel in Csound
+   * Sets the value of a control channel in Csound.
    *
    * @param {string} name The channel to be set.
    * @param {number} value The value to set the channel.
    */
   function SetChannel(name, value){
     var channel = 'channel:' + name + ':';
-    csound.module.postMessage(channel + value);
+    if (csound.module !== null) csound.module.postMessage(channel + value);
    }
 
-
   /**
-   * Sends in a MIDI message to Csound MIDI system
+   * Sends a MIDI channel message to Csound's MIDI input.
    *
    * @param {number} byte1 first midi byte (128-255)
    * @param {number} byte2 second midi byte (0-127)
@@ -268,11 +275,11 @@ var csound = (function() {
 	var mess1 = 'midi:' + byte1;
 	var mess2 = ':' + byte2;
 	var mess3 = ':' + byte3;
-        csound.module.postMessage(mess1+mess2+mess3);
+        if (csound.module !== null) csound.module.postMessage(mess1+mess2+mess3);
     }
     
    /**
-   * Sends in a MIDI NOTEOFF message to Csound MIDI system
+   * Sends a MIDI NOTEOFF message to Csound's MIDI input.
    *
    * @param {number} channel MIDI channel (1-16)
    * @param {number} number MIDI note (0-127)
@@ -284,7 +291,7 @@ var csound = (function() {
     }
 
   /**
-   * Sends in a MIDI NOTEON message to Csound MIDI system
+   * Sends in a MIDI NOTEON message to Csound's MIDI input.
    *
    * @param {number} channel MIDI channel (1-16)
    * @param {number} number MIDI note (0-127)
@@ -296,7 +303,7 @@ var csound = (function() {
     }
 
    /**
-   * Sends in a MIDI POLYAFT message to Csound MIDI system
+   * Sends in a MIDI POLYAFT message to Csound's MIDI input.
    *
    * @param {number} channel MIDI channel (1-16)
    * @param {number} number MIDI note (0-127)
@@ -308,7 +315,7 @@ var csound = (function() {
     }
    
    /**
-   * Sends in a MIDI CONTROLCHANGE message to Csound MIDI system
+   * Sends in a MIDI CONTROLCHANGE message to Csound's MIDI input.
    *
    * @param {number} channel MIDI channel (1-16)
    * @param {number} control MIDI cc number (0-127)
@@ -320,7 +327,7 @@ var csound = (function() {
     }
     
    /**
-   * Sends in a MIDI PROGRAMCHANGE message to Csound MIDI system
+   * Sends in a MIDI PROGRAMCHANGE message to Csound's MIDI input.
    *
    * @param {number} channel MIDI channel (1-16)
    * @param {number} number MIDI pgm number (0-127)
@@ -331,7 +338,7 @@ var csound = (function() {
     }
     
    /**
-   * Sends in a MIDI MONOAFT message to Csound MIDI system
+   * Sends in a MIDI MONOAFT message to Csound's MIDI input.
    *
    * @param {number} channel MIDI channel (1-16)
    * @param {number} amount  aftertouch amount (0-127)
@@ -342,7 +349,7 @@ var csound = (function() {
     }    
 
    /**
-   * Sends in a MIDI PITCHBEND message to Csound MIDI system
+   * Sends in a MIDI PITCHBEND message to Csound's MIDI input.
    *
    * @param {number} channel MIDI channel (1-16)
    * @param {number} fine fine PB amount (LSB) (0-127)
@@ -353,9 +360,8 @@ var csound = (function() {
 	   csound.MIDIin(224+channel,fine,coarse);
     }
 
-    
   /**
-   * Sets the value of a table position
+   * Sets the value of a table element.
    *
    * @param {string} num The table to be set.
    * @param {string} pos The pos to set.
@@ -363,23 +369,22 @@ var csound = (function() {
    */
     function SetTable(num, pos, value){
     var mess = 'setTable:' + num + ':' + pos + ':';
-    csound.module.postMessage(mess + value);
+    if (csound.module !== null) csound.module.postMessage(mess + value);
    }
 
   /**
-   * Sets the value of a string channel in Csound
+   * Sets the value of a string channel in Csound.
    *
    * @param {string} name The channel to be set.
    * @param {string} string The string to set the channel.
    */
   function SetStringChannel(name, value){
     var channel = 'schannel:' + name + ':';
-    csound.module.postMessage(channel + value);
+    if (csound.module !== null) csound.module.postMessage(channel + value);
    }
 
-
   /**
-   * Requests the value of a control channel in Csound
+   * Requests the value of a control channel in Csound.
    *
    * @param {string} name The channel requested
    *
@@ -395,18 +400,18 @@ var csound = (function() {
   }
 
   /**
-   * Copies a server file to local/. (not persistent)
+   * Copies a server file to local/. (not persistent).
    *
    * @param {string} src The src name
    * @param {string} dest The dest name
    */
     function CopyToLocal(src, dest) {
     var ident = 'copyToLocal:' + src + '#';
-     csound.module.postMessage(ident + dest);
+     if (csound.module !== null) csound.module.postMessage(ident + dest);
    }
  
   /**
-   * Copies a URL file to local/. (not persistent)
+   * Copies a URL file to local/. (not persistent).
    *
    * NB: works with the origin URL and CORS-ready URLs
    *
@@ -415,18 +420,19 @@ var csound = (function() {
    */
     function CopyUrlToLocal(url, name) {
      var ident = 'copyUrlToLocal:' + url + '#';
-     csound.module.postMessage(ident + name);
+     if (csound.module !== null) csound.module.postMessage(ident + name);
    }
 
   /**
-   * Requests the data from a local file
+   * Requests the data from a local file;
    * module sends "Complete" message when done.
    *
    * @param {string} url  The file name
    */
    function RequestFileFromLocal(name) {
-     csound.module.postMessage("getFile:" + name);
+     if (csound.module !== null) csound.module.postMessage("getFile:" + name);
    }
+   
   /**
    * Returns the most recently requested file data.
    *
@@ -436,13 +442,13 @@ var csound = (function() {
    }
 
   /**
-   * Requests the data from a table
+   * Requests the data from a table;
    * module sends "Complete" message when done.
    *
    * @param {number} num  The table number
    */
    function RequestTable(num) {
-     csound.module.postMessage("getTable:" + num);
+     if (csound.module !== null) csound.module.postMessage("getTable:" + num);
    }
 
   /**
@@ -454,18 +460,18 @@ var csound = (function() {
    }
 
    function input_ok(s) {
-    csound.module.postMessage({input: s.getAudioTracks()[0]});
+    if (csound.module !== null) csound.module.postMessage({input: s.getAudioTracks()[0]});
    }
 
    function input_fail(e) {
         csound.logMessage("Input audio error: " + e);
    }
    function message(text) {
-       csound.logMessage(text);
+       csound.updateStatus(text);
    }
 
   /**
-   * Start default audio input
+   * Start default audio input.
    *
    */
     function StartInputAudio() {
@@ -474,60 +480,63 @@ var csound = (function() {
    }
 
    return {
-    module: null,
-    attachDefaultListeners: attachDefaultListeners,
-    createModule: createModule,
-    destroyModule: destroyModule,
-    updateStatus: updateStatus,
-    Play: Play,
-    Pause: Pause,
-    PlayCsd: PlayCsd,
-    RenderCsd: RenderCsd,
-    CompileOrc: CompileOrc,
-    ReadScore: ReadScore,
-    Event: Event,
-    SetTable : SetTable,
-    SetChannel: SetChannel,
-    CopyToLocal: CopyToLocal,
-    CopyUrlToLocal: CopyUrlToLocal,
-    RequestFileFromLocal: RequestFileFromLocal,
-    GetFileData : GetFileData,
-    RequestChannel: RequestChannel,
-    GetTableData : GetTableData,
-    RequestTable: RequestTable,
-    SetStringChannel: SetStringChannel,
-    StartInputAudio: StartInputAudio,
-    MIDIin : MIDIin,
-    NoteOn : NoteOn,
-    NoteOff : NoteOff,
-    PolyAftertouch : PolyAftertouch,
-    ControlChange : ControlChange,
-    ProgramChange : ProgramChange,
-    Aftertouch : Aftertouch,
-    PitchBend : PitchBend,
-    // Common JavaScript API:
-    // Should be the same signatures in csound.node, Csound for PNaCl, Csound for Android, CsoundQt.
-    compileOrc: CompileOrc,
-    message: message,
-    perform: Play,
-    readScore: ReadScore,
-    setControlChannel: SetChannel,
-    setStringChannel: SetStringChannel,
-    stop: Stop
-  };
-
+        module: null,
+        /* Keep these in alphabetical order: */
+        Aftertouch : Aftertouch,
+        attachDefaultListeners: attachDefaultListeners,
+        CompileOrc: CompileOrc,
+        compileOrc: CompileOrc,
+        CompileCsdText: PlayCsd,
+        compileCsdText: PlayCsd,
+        ControlChange : ControlChange,
+        CopyToLocal: CopyToLocal,
+        CopyUrlToLocal: CopyUrlToLocal,
+        createModule: createModule,
+        destroyModule: destroyModule,
+        Event: Event,
+        GetFileData : GetFileData,
+        GetScoreTime: GetScoreTime,
+        getScoreTime: GetScoreTime,
+        GetTableData: GetTableData,
+        message: message,
+        MIDIin : MIDIin,
+        NoteOff : NoteOff,
+        NoteOn : NoteOn,
+        Pause: Pause,
+        perform: Play,
+        PitchBend: PitchBend,
+        Play: Play,
+        PlayCsd: PlayCsd,
+        PolyAftertouch : PolyAftertouch,
+        ProgramChange : ProgramChange,
+        ReadScore: ReadScore,
+        readScore: ReadScore,
+        RenderCsd: RenderCsd,
+        RequestChannel: RequestChannel,
+        RequestFileFromLocal: RequestFileFromLocal,
+        RequestTable: RequestTable,
+        SetChannel: SetChannel,
+        setControlChannel: SetChannel,
+        SetStringChannel: SetStringChannel,
+        setStringChannel: SetStringChannel,
+        SetTable : SetTable,
+        StartInputAudio: StartInputAudio,
+        start: Play,
+        stop: Stop,
+        updateStatus: updateStatus
+    };
 }());
 
 document.addEventListener('DOMContentLoaded', function() {
      csound.updateStatus('page loaded');
      if (!(navigator.mimeTypes['application/x-pnacl'] !== undefined)) {
-        csound.updateStatus('No support for pNaCl (maybe disabled?)');
+        csound.updateStatus('No support for pNaCl (maybe disabled?).');
       } else if (csound.module == null) {
-        csound.updateStatus('loading csound module');
+        csound.updateStatus('Loading csound module.');
         csound.attachDefaultListeners();
         csound.createModule();
     } else {
-      csound.updateStatus('not ready');
+      csound.updateStatus('Not ready.');
     }
 
 });

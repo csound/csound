@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -R -W -f -d  -o Xanadu.wav temp.orc temp.sco
+csound -R -W -f -d  -o dac
 </CsOptions>
 <CsInstruments>
 sr          =           44100

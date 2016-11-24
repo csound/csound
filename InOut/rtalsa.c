@@ -29,6 +29,10 @@
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200112L
 #endif
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE 1
+#endif
+/* _BSD_SOURCE definition can be dropped once support for glibc < 2.19 is dropped */
 #ifndef _BSD_SOURCE
 #define _BSD_SOURCE 1
 #endif
@@ -560,17 +564,26 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       while (fgets(line, 128, f))  {   /* Read one line*/
         strcpy(line_, line);
         temp = strtok_r (line, "-", &th);
-        if (temp==NULL) return 0;
+        if (temp==NULL) {
+          fclose(f);
+          return 0;
+        }
         strncpy (card_, temp, 2);
         temp = strtok_r (NULL, ":", &th);
-        if (temp==NULL) return 0;
+        if (temp==NULL) {
+          fclose(f);
+          return 0;
+        }
         strncpy (num_, temp, 2);
         int card = atoi (card_);
         int num = atoi (num_);
         temp = strchr (line_, ':');
-        if (temp)
+        if (temp) {
           temp = temp + 2;
-        else return 0;
+        } else {
+          fclose(f);
+          return 0;
+        }
         if (list != NULL) {
           /* for some reason, there appears to be a memory
              problem if we try to copy more than 10 chars,

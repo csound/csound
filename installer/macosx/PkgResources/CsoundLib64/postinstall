@@ -12,12 +12,14 @@ if [ -d "$PYTHON_DIR" ]; then
   /bin/ln -sF $PY_SRC_DIR/_CsoundAC.so $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/_csnd6.so $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/csnd6.py $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/ctcsound.py $PYTHON_DIR
 else
   mkdir -p $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/CsoundAC.py $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/_CsoundAC.so $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/_csnd6.so $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/csnd6.py $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/ctcsound.py $PYTHON_DIR
 fi
 
 
@@ -27,6 +29,7 @@ if [ -d "$PYTHON_DIR" ]; then
   /bin/ln -sF $PY_SRC_DIR/_CsoundAC.so $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/_csnd6.so $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/csnd6.py $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/ctcsound.py $PYTHON_DIR
 fi
 
 PYTHON_DIR="/Library/Python/2.5/site-packages"
@@ -35,4 +38,5 @@ if [ -d "$PYTHON_DIR" ]; then
   /bin/ln -sF $PY_SRC_DIR/_CsoundAC.so $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/_csnd6.so $PYTHON_DIR
   /bin/ln -sF $PY_SRC_DIR/csnd6.py $PYTHON_DIR
+  /bin/ln -sF $PY_SRC_DIR/ctcsound.py $PYTHON_DIR
 fi

@@ -170,7 +170,6 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
       break;
     }
     pvlook_print(&p, "; Window Type\t%s",
-                 data.wWindowType == PVOC_DEFAULT ? "Default" :
                  data.wWindowType == PVOC_HAMMING ? "Hamming" :
                  data.wWindowType == PVOC_HANN ? "vonHann" :
                  data.wWindowType == PVOC_KAISER ? "Kaiser" :

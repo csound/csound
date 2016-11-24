@@ -31,15 +31,18 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
     char *ss;
     INSDS* ip = csound->ids->insdshead;
     while (ip->opcod_iobufs != NULL) {
-        ip = ((OPCOD_IOBUFS*)ip->opcod_iobufs)->parent_ip;
+      ip = ((OPCOD_IOBUFS*)ip->opcod_iobufs)->parent_ip;
     }
     ss = ip->strarg;  /* look at this instr's strarg */
+
     union {
       MYFLT d;
       int32 i;
     } ch;
     ch.d = p; n = ch.i&0xffff;
-    while (n-- > 0) ss += strlen(ss)+1;
+    while (n-- > 0) {
+      ss += strlen(ss)+1;
+    }
     return ss;
 }
 

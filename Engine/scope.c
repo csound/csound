@@ -2,6 +2,9 @@
 #include "corfile.h"
 #include "score_param.h"
 
+extern uint8_t file_to_int(CSOUND*, const char*);
+int scope(CSOUND *csound)
+{
 extern void print_csound_prsdata(void *);
 extern void csound_prslex_init(void *);
 extern void csound_prsset_extra(void *, void *);
@@ -14,10 +17,7 @@ extern void csound_scolex_init(void *);
 extern void csound_scoset_extra(void *, void *);
 extern void csound_scoset_lineno(int, void*);
 extern void csound_scolex_destroy(void *);
-extern uint8_t file_to_int(CSOUND*, const char*);
-int scope(CSOUND *csound)
-{
-#ifdef SCORE_PARSER
+#if 0
     {
       PRS_PARM  qq;
       char buff[1024];
@@ -28,7 +28,7 @@ int scope(CSOUND *csound)
       //printf("depth = %d\n", qq.depth);
 
       csound->expanded_sco = corfile_create_w();
-      //printf("Input:\n%s<<<n", corfile_body(csound->sreadStatics.str->cf));
+      printf("Input:\n%s<<<\n", corfile_body(csound->sreadStatics.str->cf));
       snprintf(buff, 1024, "#source %d\n",
                qq.lstack[0] = file_to_int(csound,
                                           csound->scorename?

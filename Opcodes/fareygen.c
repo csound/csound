@@ -61,30 +61,6 @@ static int FareyLength (int n);
 static int PrimeFactors (int n, PFACTOR p[]);
 static void GenerateFarey (int n, RATIO flist[], int size);
 
-static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
-{
-    CSOUND  *csound = ff->csound;
-    char    buf[64];
-    va_list args;
-
-    snprintf(buf, 64, Str("ftable %d: "), ff->fno);
-    va_start(args, s);
-    csound->ErrMsgV(csound, buf, s, args);
-    va_end(args);
-    csound->Message(csound, "f%3.0f %8.2f %8.2f ",
-                            ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
-    if (csound->ISSTRCOD(ff->e.p[4]))
-      csound->Message(csound, ff->e.strarg);
-    else
-      csound->Message(csound, "%8.2f", ff->e.p[4]);
-    if (csound->ISSTRCOD(ff->e.p[5]))
-      csound->Message(csound, "  \"%s\" ...\n", ff->e.strarg);
-    else
-      csound->Message(csound, "%8.2f ...\n", ff->e.p[5]);
-
-    return -1;
-}
-
 static int fareytable (FGDATA *ff, FUNC *ftp)
 {
     /*
@@ -131,15 +107,15 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
 
     int j, fareyseq, nvals, nargs, farey_length, mode;
     MYFLT   *fp = ftp->ftable, *pp, *pp2;
-    //CSOUND  *csound = ff->csound;
+    CSOUND  *csound = ff->csound;
     RATIO *flist;
 
     nvals = ff->flen;
     nargs = ff->e.pcnt - 4;
     if (UNLIKELY(nargs < 2)) {
-      return fterror(ff, Str("insufficient arguments for fareytable"));
+      return csound->ftError(ff, Str("insufficient arguments for fareytable"));
     }
-    ff->e.p[4] = -1;
+    ff->e.p[4] *= -1;
     pp = &(ff->e.p[5]);
     fareyseq = (int) *pp;
     pp2 = &(ff->e.p[6]);

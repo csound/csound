@@ -162,7 +162,7 @@ static MYFLT oscbnk_interp_read_limit(MYFLT phase, MYFLT *ft, int32 flen)
     n = (int32) phase; phase -= (MYFLT) n;
     if (n >= flen) return ft[flen];
     else x = ft[n]; x += phase * (ft[++n] - x);
-
+    //printf("**** (%d) x = %f\n", __LINE__, x);
     return x;
 }
 
@@ -241,7 +241,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
     f *= p->eqo_scl; f += p->eqo_ofs;
     l *= p->eql_scl; l += p->eql_ofs;
     q *= p->eqq_scl; q += p->eqq_ofs;
-
+    f  = FABS(f); q = FABS(q);
     /* EQ code taken from biquad.c */
 
     sq = l<FL(0.0) ? FL(0.0) : SQRT(l+l);                   /* level     */
@@ -268,6 +268,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
     }
     l = FL(1.0) / l;
     o->a1 *= l; o->a2 *= l; o->b0 *= l; o->b1 *= l; o->b2 *= l;
+    //printf("**** (%d) a1, a2 = %f, %f\n", __LINE__, o->a1, o->a2);
 }
 
 /* ---------------- oscbnk set-up ---------------- */
@@ -405,9 +406,10 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
     int     osc_cnt, pm_enabled, am_enabled;
     FUNC    *ftp;
     MYFLT   *ft;
-    uint32   n, lobits, mask, ph, f_i;
+    uint32  n, lobits, mask, ph, f_i;
     MYFLT   pfrac, pm, a, f, a1, a2, b0, b1, b2;
-    MYFLT   k, a_d = FL(0.0), a1_d, a2_d, b0_d, b1_d, b2_d;
+    MYFLT   k, a_d = FL(0.0), a1_d = FL(0.0), a2_d = FL(0.0),
+              b0_d = FL(0.0), b1_d = FL(0.0), b2_d = FL(0.0);
     MYFLT   yn, xnm1 = FL(0.0), xnm2 = FL(0.0), ynm1 = FL(0.0), ynm2 = FL(0.0);
     OSCBNK_OSC      *o;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -438,8 +440,13 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
     p->lf2_scl = (*(p->args[10]) - *(p->args[9])) * CS_ONEDKR;
     p->lf2_ofs = *(p->args[9]) * CS_ONEDKR;      /* LFO2 freq.   */
     if (p->ieqmode >= 0) {
-      p->eqo_scl = (*(p->args[13]) - *(p->args[12])) * csound->tpidsr;
-      p->eqo_ofs = *(p->args[12]) * csound->tpidsr;   /* EQ omega */
+      MYFLT fmax =  *(p->args[13]);
+      MYFLT fmin =  *(p->args[12]);
+
+     /* VL: min freq cannot be > max freq */
+      fmin = fmin < fmax ? fmin : fmax;
+      p->eqo_scl = (fmax - fmin) * csound->tpidsr;
+      p->eqo_ofs = fmin * csound->tpidsr;   /* EQ omega */
       p->eql_scl = *(p->args[15]) - (p->eql_ofs= *(p->args[14]));/* EQ level */
       p->eqq_scl = *(p->args[17]) - (p->eqq_ofs= *(p->args[16]));/* EQ Q     */
     }
@@ -512,7 +519,14 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
             yn = b2 * xnm2; yn += b1 * (xnm2 = xnm1); yn += b0 * (xnm1 = k);
             yn -= a2 * ynm2; yn -= a1 * (ynm2 = ynm1); ynm1 = yn;
             /* mix to output */
+            //if (yn>1) {
+            //  printf("**** (%d) yn = %f\n", __LINE__, yn);
+            // printf("**** a1 = %f a2 = %f; %f\n",
+            //         a1, a2, 0.5*(-a1+ sqrt(a1*a1-4*a2)/a2));
+            //}
             p->args[0][nn] += yn;
+            //if (p->args[0][nn]>1)
+            //  printf("**** (%d) out%d = %f\n", __LINE__, nn, p->args[0][nn]);
             /* update phase */
             ph = (ph + f_i) & OSCBNK_PHSMSK;
           }
@@ -522,6 +536,8 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
         }
         else {                /* EQ w/o interpolation */
           /* oscillator */
+          a1 = o->a1; a2 = o->a2;         /* EQ coeffs    */
+          b0 = o->b0; b1 = o->b1; b2 = o->b2;
           for (nn = offset; nn < nsmps; nn++) {
             /* read from table */
             n = ph >> lobits; k = ft[n++];
@@ -2352,6 +2368,7 @@ static int rbjeq(CSOUND *csound, RBJEQ *p)
       p->omega = (double) p->old_kcps * TWOPI / (double) CS_ESR;
       p->cs = cos(p->omega);
       p->sn = sqrt(1.0 - p->cs * p->cs);
+      //printf("**** (%d) p->cs = %f\n", __LINE__, p->cs);
     }
     else
       new_frq = 0;
@@ -2461,6 +2478,7 @@ static int rbjeq(CSOUND *csound, RBJEQ *p)
         double  sq, alpha, tmp1, tmp2;
         p->old_kQ = *(p->kQ);
         sq = sqrt((double) (p->old_klvl = *(p->klvl)));
+        //printf("*** (%d) p->old_klvl\n", __LINE__, p->old_klvl);
 #ifdef IV_Q_CALC
         alpha = tan(p->omega * 0.5 / (double) p->old_kQ); /* IV - Dec 28 2002 */
 #else

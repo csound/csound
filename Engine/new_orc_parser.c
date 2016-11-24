@@ -188,8 +188,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csound->LongJmp(csound, 1);
       }
       csound_prelex_destroy(qq.yyscanner);
-      /* csound->DebugMsg(csound, "yielding >>%s<<\n", */
-      /*                  corfile_body(csound->expanded_orc)); */
+      csound->DebugMsg(csound, "yielding >>%s<<\n",
+                       corfile_body(csound->expanded_orc));
       corfile_rm(&csound->orchstr);
 
     }
@@ -219,14 +219,14 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       //printf("%p \n", astTree);
       err = csound_orcparse(&pp, pp.yyscanner, csound, &astTree);
       //printf("%p \n", astTree);
-      // print_tree(csound, "AST - AFTER csound_orcparse()\n", astTree);
+      //print_tree(csound, "AST - AFTER csound_orcparse()\n", astTree);
       //csp_orc_sa_cleanup(csound);
       corfile_rm(&csound->expanded_orc);
       if (csound->oparms->odebug) csp_orc_sa_print_list(csound);
       if (UNLIKELY(csound->synterrcnt)) err = 3;
       if (LIKELY(err == 0)) {
-        if(csound->oparms->odebug) csound->Message(csound,
-                                                   Str("Parsing successful!\n"));
+        if (csound->oparms->odebug) csound->Message(csound,
+                                                    Str("Parsing successful!\n"));
       }
       else {
         if (err == 1){
@@ -304,7 +304,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       }
 
       astTree = csound_orc_optimize(csound, astTree);
-
+      //print_tree(csound, "AST after optmize", astTree);
       // small hack: use an extra node as head of tree list to hold the
       // typeTable, to be used during compilation
       newRoot = make_leaf(csound, 0, 0, 0, NULL);

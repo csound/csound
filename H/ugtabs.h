@@ -24,13 +24,12 @@
 
 typedef struct _tabl {
   OPDS h;
-  MYFLT *sig;
-  MYFLT *ndx, *ftable, *mode, *offset, *wrap;
+  MYFLT *sig, *ndx, *ftable, *mode, *offset, *wrap;
   MYFLT mul;
   int32 np2;
   int32 len;
-  FUNC *ftp;
   int iwrap;
+  FUNC *ftp;
 } TABL;
 
 typedef struct _tlen {

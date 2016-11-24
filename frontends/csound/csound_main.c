@@ -35,7 +35,7 @@
 #endif
 
 #ifdef LINUX
-extern int set_rt_priority(int argc, char **argv);
+extern int set_rt_priority(int argc, const char **argv);
 #endif
 
 static FILE *logFile = NULL;
@@ -279,7 +279,7 @@ int main(int argc, char **argv)
 
     /* Real-time scheduling on Linux by Istvan Varga (Jan 6 2002) */
 #ifdef LINUX
-    if (set_rt_priority(argc, argv) != 0)
+    if (set_rt_priority(argc, (const char **)argv) != 0)
       return -1;
 
 #endif
@@ -313,7 +313,7 @@ int main(int argc, char **argv)
     _csound = csound;
 
     /*  One complete performance cycle. */
-    result = csoundCompile(csound, argc, argv);
+    result = csoundCompile(csound, argc, (const char **)argv);
 
      if(!result) csoundPerform(csound);
 
