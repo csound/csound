@@ -54,13 +54,13 @@ graphics, and much more. For a full list of capabilities currently implemented i
 
 ## BUILDING
 
+### Windows
+
 Currently, on Windows, there is no need to build `csound.node`, it is distributed in the
-Windows installer for Csound. But you still need to install it, as described below.
+Windows installer for Csound along with NW.js.
 
 If you do want to build `csound.node` on Windows, then you need to install [Microsoft Visual Studio][msvs]
 and [Python 2.7][python].
-
-To build on other platforms, you need to install [GCC][gcc] and [Python 2.7][python].
 
 Install [NW.js](nwjs). On Windows, make sure you get the version built for the CPU architecture of the
 version of Csound that you need to use. The default should now be x64.
@@ -75,10 +75,15 @@ Set an environment variable named `CSOUND_HOME` that points to the root director
 your Csound tree. Or, it may be necessary to modify binding.gyp to reflect the
 installed locations of the Csound header files and shared libraries on your system.
 
-In the `csound/frontends/nwjs` directory, execute `nw-gyp rebuild --target=0.12.3 --arch=x64` (or, --arch=x86, or whatever version of NW you have) to build `csound.node`.
-If the build messages end with `ok`, then the build succeeded.
+In the `csound/frontends/nwjs` directory, execute `nw-gyp rebuild --target=0.12.3 --arch=x64` (or, --arch=x86, or whatever version of NW you have) to build `csound.node`. If the build messages end with `ok`, then the build succeeded.
+
+### Linux
+
+Building on Linux is the same as building on Windows, except that one installs build-essentials, nodejs and npm using apt-get. Then, one installs nw-gyp using npm.
 
 ## INSTALLING
+
+### Windows
 
 Currently, getting csound.node to run in a development environment is tricky. The easiest way is to run the csound/mingw64/find_csound_dependencies.py script,
 which copies all Csound targets and dependencies into the NW.js directory. Then set both OPCODE6DIR64 and NODE_PATH also to point to the NW.js directory.
@@ -88,6 +93,24 @@ and drop it on `nw`'s window. You should hear the Csound piece "Xanadu" by Josep
 which is embedded in the HTML file, and you should be able press the [F12] key
 to bring up the NW.js developer tools, where you should see the runtime messages
 from Csound being printed in the JavaScript console.
+
+### Linux
+
+There are severa ways of installing on Linux, but the following works for me. Essentially, I am accessing Csound executables from Csound's build directory. This of course assumes you are building Csound from sources. If you are not doing that but only building csound.node itself, create a NODE_PATH environment variable that points to its directory.
+
+After building csound.node, I copy it to ~/csound/cs6make.
+
+I use my Csound build directory as a node_modules directory. I define in my .bashrc file:
+
+<pre>
+export CSOUND_HOME=~/csound/csound
+# This means that nw and node can load shared libraries loaded by csound.node.
+export LD_LIBRARY_PATH=~/csound/cs6make
+# This means nw can run an app from any directory and still require csound.node.
+export NODE_PATH=~/csound/cs6make
+export OPCODE6DIR64=$NODE_PATH
+export RAWWAVE_PATH=/usr/share/stk/rawwaves
+</pre>
 
 ## RUNNING
 
@@ -99,7 +122,31 @@ window.
 2. From the command line, execute `nw <directory>`, where the directory contains the
 JSON-formatted manifest of a NW.js application based on an HTML file that embeds a
 Csound piece. See the NW.js documention for more information on the manifest and
-packaging NW.js applications.
+packaging NW.js applications. An example manifest (must be named package.json) for csound.node is:
+
+<pre>
+{
+  "main": "Scrims_linux.html",
+  "name": "Scrims",
+  "description": "Visual music for Csound and HTML5",
+  "version": "0.1.0",
+  "keywords": [ "Csound", "node-webkit" ],
+  "nodejs": true,
+  "node-remote": "http://<all-urls>/*",
+  "window": {
+    "title": "Scrims",
+    "icon": "link.png",
+    "toolbar": false,
+    "frame": false,
+    "maximized": true,
+    "position": "mouse",
+    "fullscreen": true
+  },
+  "webkit": {
+    "plugin": true
+  }
+}
+</pre>
 
 3. Run the `csound_editor` application, either by executing `nw /csound/examples/html/csound_editor`,
 or by dropping the `/csound/examples/html/csound_editor/main.html` file on `nw`'s window. Then,

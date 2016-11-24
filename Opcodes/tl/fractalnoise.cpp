@@ -430,13 +430,14 @@ extern "C"
         (SUBR)fractalnoise_init, NULL, (SUBR)fractalnoise_process },
       { 0, 0, 0, 0, 0, 0, 0, 0, 0}
     };
-
+  
+#ifndef PNACL
     PUBLIC int csoundModuleCreate(CSOUND *csound)
     {
         return OK;
     }
-
-    PUBLIC int csoundModuleInit(CSOUND *csound)
+#endif
+    PUBLIC int csoundModuleInit_fractalnoise(CSOUND *csound)
     {
         int status = 0;
         for(OENTRY *oentry = &localops[0]; oentry->opname; oentry++) {
@@ -453,9 +454,16 @@ extern "C"
         }
         return status;
     }
+#ifndef PNACL 
+    PUBLIC int csoundModuleInit(CSOUND *csound)
+    {
+        return csoundModuleInit_fractalnoise(csound);
+    }
+
 
     PUBLIC int csoundModuleDestroy(CSOUND *csound)
     {
         return OK;
     }
+  #endif
 }

@@ -162,7 +162,8 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
       current = current->next;
     }
     else ((CSOUND *)csound)->ErrorMsg(csound,
-            "cannot create variable %s: NULL type", name);
+                                      Str("cannot create variable %s: NULL type"),
+                                      name);
     return NULL;
 }
 
@@ -222,9 +223,8 @@ int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
     cs_hash_table_put(csound, pool->table, var->varName, var);
     // may need to revise this; var pools are accessed as MYFLT*,
     // so need to ensure all memory is aligned to sizeof(MYFLT)
-    // boundaries maybe should align block size here to +7 before dividing?
     var->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) +
-      ((pool->varCount + 1) * (CS_VAR_TYPE_OFFSET / sizeof(MYFLT)));
+      ((pool->varCount + 1) * (CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(MYFLT)));
     pool->poolSize += var->memBlockSize;
     pool->varCount += 1;
     return 0;
@@ -245,7 +245,7 @@ void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool)
       }
 
       current->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) +
-        (varCount * CS_VAR_TYPE_OFFSET / sizeof(MYFLT));
+        (varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(MYFLT));
       pool->poolSize += current->memBlockSize;
 
       current = current->next;

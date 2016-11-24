@@ -863,7 +863,7 @@ void collapse_last_assigment(CSOUND* csound, TREE* anchor, TYPE_TABLE* typeTable
     }
     char *tmp1 = get_arg_type2(csound, b->left, typeTable);
     char *tmp2 = get_arg_type2(csound, b->right, typeTable);
-    if (b->type == '=' &&
+    if ((b->type == '=') &&
         !strcmp(a->left->value->lexeme, b->right->value->lexeme) &&
          tmp1 == tmp2) {
         a->left = b->left;

@@ -57,7 +57,7 @@
 %token UDO_ANS_TOKEN
 %token UDO_ARGS_TOKEN
 
-%token T_ERROR
+%token ERROR_TOKEN
 
 %token T_FUNCTION
 %token T_FUNCTIONB
@@ -74,6 +74,7 @@
 %token NCHNLS_TOKEN
 %token NCHNLSI_TOKEN
 %token ZERODBFS_TOKEN
+%token A4_TOKEN
 %token STRING_TOKEN
 %token T_IDENT
 %token T_IDENTB
@@ -320,8 +321,10 @@ topstatement : rident '=' expr NEWLINE
 
 statement : ident '=' expr NEWLINE
                 {
+                    //int op = ($1->value->lexeme[0]!='a')?'=':LOCAL_ASSIGN;
                   TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);
                   ans->left = (TREE *)$1;
+                  //print_tree(csound, "****assign", ans);
                   ans->right = (TREE *)$3;
                   $$ = ans;
                   if (namedInstrFlag!=2)
@@ -483,15 +486,22 @@ statement : ident '=' expr NEWLINE
           | ifthen
           | UNTIL_TOKEN bexpr DO_TOKEN statementlist OD_TOKEN
               {
-                  $$ = make_leaf(csound,$2->line,$2->locn, UNTIL_TOKEN, (ORCTOKEN *)$1);
-                  $$->left = $2;
-                  $$->right = $4;
+                  if ($2) {
+                    $$ = make_leaf(csound,$2->line,$2->locn, UNTIL_TOKEN, (ORCTOKEN *)$1);
+                    $$->left = $2;
+                    $$->right = $4;
+                  }
+                  else $$ = NULL;
               }
           | WHILE_TOKEN bexpr DO_TOKEN statementlist OD_TOKEN
               {
-                  $$ = make_leaf(csound,$2->line,$2->locn, WHILE_TOKEN, (ORCTOKEN *)$1);
-                  $$->left = $2;
-                  $$->right = $4;
+                  if ($2) {
+                    $$ = make_leaf(csound,$2->line,$2->locn,
+                                    WHILE_TOKEN, (ORCTOKEN *)$1);
+                    $$->left = $2;
+                    $$->right = $4;
+                  }
+                  else $$ = NULL;
               }
           | NEWLINE { $$ = NULL; }
           ;
@@ -793,6 +803,8 @@ rident    : SRATE_TOKEN     { $$ = make_leaf(csound, LINE,LOCN,
                                              NCHNLSI_TOKEN, (ORCTOKEN *)$1); }
           | ZERODBFS_TOKEN  { $$ = make_leaf(csound, LINE,LOCN,
                                              ZERODBFS_TOKEN, (ORCTOKEN *)$1); }
+          | A4_TOKEN        { $$ = make_leaf(csound, LINE,LOCN,
+                                             A4_TOKEN, (ORCTOKEN *)$1); }
           ;
 
 
@@ -827,6 +839,8 @@ constant  : INTEGER_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
                                            NCHNLSI_TOKEN, (ORCTOKEN *)$1); }
           | ZERODBFS_TOKEN { $$ = make_leaf(csound, LINE,LOCN,
                                             ZERODBFS_TOKEN, (ORCTOKEN *)$1); }
+          | A4_TOKEN       { $$ = make_leaf(csound, LINE,LOCN,
+                                            A4_TOKEN, (ORCTOKEN *)$1); }
           ;
 
 opcode0   : T_OPCODE0

@@ -1007,13 +1007,15 @@ int ko1set(CSOUND *csound, OSCIL1 *p)
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
       return NOTOK;
     if (UNLIKELY(*p->idur <= FL(0.0))) {
-      csound->Warning(csound, Str("duration < zero\n"));
+      /*csound->Warning(csound, Str("duration < zero\n"));*/
+      p->phs = MAXLEN-1;
     }
+    else p->phs = 0;
     p->ftp = ftp;
-    p->phs = 0;
     p->dcnt = (int32)(*p->idel * CS_EKR);
     p->kinc = (int32) (CS_KICVT / *p->idur);
     if (p->kinc==0) p->kinc = 1;
+
     return OK;
 }
 
@@ -1021,7 +1023,6 @@ int kosc1(CSOUND *csound, OSCIL1 *p)
 {
     FUNC *ftp;
     int32  phs, dcnt;
-
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
     phs = p->phs;
@@ -1030,8 +1031,12 @@ int kosc1(CSOUND *csound, OSCIL1 *p)
       dcnt--;
     else if (dcnt == 0) {
       phs += p->kinc;
-      if (UNLIKELY(phs >= MAXLEN)) {
+      if (UNLIKELY(phs >= MAXLEN)){
         phs = MAXLEN;
+        dcnt--;
+      }
+      else if (UNLIKELY(phs < 0)){
+      phs = 0;
         dcnt--;
       }
       p->phs = phs;
@@ -1066,6 +1071,9 @@ int kosc1i(CSOUND *csound, OSCIL1   *p)
         phs = MAXLEN;
         dcnt--;
         p->dcnt = dcnt;
+      } else if (UNLIKELY(phs < 0)){
+      phs = 0;
+        dcnt--;
       }
       p->phs = phs;
     }
@@ -1078,7 +1086,6 @@ int kosc1i(CSOUND *csound, OSCIL1   *p)
 int oscnset(CSOUND *csound, OSCILN *p)
 {
     FUNC        *ftp;
-
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->inc = ftp->flen * *p->ifrq * csound->onedsr;

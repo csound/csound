@@ -71,7 +71,7 @@ static int block = 0;
 {                                                                   \
     if (*s == '\0')                                                 \
       if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) {    \
-        dieu(MSG); return -1;                               \
+        dieu(MSG); return -1;                                       \
       }                                                             \
 }
 
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
     char        c, *s;
     const char  *envoutyp;
     char        outformch = 's';
-    char        err_msg[256];
+    char        err_msg[300];
     sf_count_t  flen;
 
     outformat = SF_FORMAT_PCM_16;
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
         filetyp = SF_FORMAT_RAW;
       /* Add new types here */
       else {
-        snprintf(err_msg, 256, Str("%s not a recognized SFOUTYP env setting"),
+        snprintf(err_msg, 299, Str("%s not a recognized SFOUTYP env setting"),
                  envoutyp);
         dieu(err_msg);
         return -1;
@@ -320,7 +320,7 @@ int main(int argc, char **argv)
     }
 
     if ((P != 0.0) && (Rout != 0.0)) {
-      strncpy(err_msg, Str("srconv: cannot specify both -r and -P"), 256);
+      strncpy(err_msg, Str("srconv: cannot specify both -r and -P"), 299);
       goto err_rtn_msg;
     }
 
@@ -342,24 +342,24 @@ int main(int argc, char **argv)
     if (tvflg) {
       if ((tvfp = fopen(bfile, "r")) == NULL) {
         strncpy(err_msg,
-                Str("srconv: cannot open time-vary function file"), 256);
+                Str("srconv: cannot open time-vary function file"), 299);
         goto err_rtn_msg1;
       }
       if (fscanf(tvfp, "%d", &tvlen) != 1) {
-        strncpy(err_msg, Str("Read failure of warp file\n"), 267);
+        strncpy(err_msg, Str("Read failure of warp file\n"), 299);
         fclose(tvfp);
         goto err_rtn_msg1;
       }
       if (tvlen <= 0) {
         fclose(tvfp);
-        strncpy(err_msg, Str("srconv: tvlen <= 0 "), 256);
+        strncpy(err_msg, Str("srconv: tvlen <= 0 "), 299);
         goto err_rtn_msg1;
       }
       warp = (WARP*) calloc((tvlen+2), sizeof(WARP));
       for (i = 0; i < tvlen; i++) {
         if (fscanf(tvfp, "%lf %lf", &warp[i].time, &warp[i].ratio) != 2) {
           strncpy(err_msg, Str("srconv: too few x-y pairs "
-                                "in time-vary function file"), 256);
+                                "in time-vary function file"), 299);
           fclose(tvfp);
           goto err_rtn_msg1;
         }
@@ -370,7 +370,7 @@ int main(int argc, char **argv)
       tvlen++;
       if (warp[0].frame != 0.0) {
         strncpy(err_msg, Str("srconv: first frame value "
-                             "in time-vary function must be 0"), 256);
+                             "in time-vary function must be 0"), 299);
         goto err_rtn_msg1;
       }
       /* for (i=0; i<tvlen;i++) */
@@ -401,7 +401,7 @@ int main(int argc, char **argv)
     sfinfo.format = filetyp | outformat;
     outf = sf_open(outfilename, SFM_WRITE, &sfinfo);
     if (outf == NULL) {
-      snprintf(err_msg, 256, Str("cannot open %s."), outfilename);
+      snprintf(err_msg, 299, Str("cannot open %s."), outfilename);
       goto err_rtn_msg1;
     }
     sf_command(outf, SFC_SET_CLIPPING, NULL, SF_TRUE);

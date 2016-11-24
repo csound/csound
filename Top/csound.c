@@ -58,7 +58,7 @@
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
-#include "csound_orc_semantics.h"
+#include "find_opcode.h"
 
 #if defined(linux) || defined(__HAIKU__) || defined(__EMSCRIPTEN__) || defined(__CYGWIN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
@@ -100,12 +100,46 @@ extern int csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 extern int isstrcod(MYFLT );
+extern int fterror(const FGDATA *ff, const char *s, ...);
 
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
 
 extern OENTRY opcodlst_1[];
+
+#define STRING_HASH(arg) STRSH(arg)
+#define STRSH(arg) #arg
+
+void print_csound_version(CSOUND* csound)
+{
+#ifdef USE_DOUBLE
+#ifdef BETA
+    csound->Message(csound,
+                    Str("--Csound version %s beta (double samples) %s \n"
+                        "[commit: %s]\n"),
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
+                    STRING_HASH(GIT_HASH_VALUE));
+#else
+    csound->Message(csound, Str("--Csound version %s (double samples) %s \n"
+                                "[commit: %s]\n"),
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE
+                    , STRING_HASH(GIT_HASH_VALUE));
+#endif
+#else
+#ifdef BETA
+    csound->Message(csound, Str("--Csound version %s beta (float samples) %s \n"
+                                "[commit: %s]\n"),
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
+                    STRING_HASH(GIT_HASH_VALUE));
+#else
+    csound->Message(csound, Str("--Csound version %s (float samples) %s \n"
+                                "[commit: %s]\n"),
+                    CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
+                    STRING_HASH(GIT_HASH_VALUE));
+#endif
+#endif
+}
 
 static void free_opcode_table(CSOUND* csound) {
     int i;
@@ -443,11 +477,12 @@ static const CSOUND cenviron_ = {
     isstrcod,
     csoundRealFFT2Setup,
     csoundRealFFT2,
+    fterror,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -591,6 +626,7 @@ static const CSOUND cenviron_ = {
     0,              /*  tieflag             */
     DFLT_DBFS,      /*  e0dbfs              */
     FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
+    440.0,               /* A4 base frequency */
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
 #if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) || \
@@ -790,21 +826,16 @@ static const CSOUND cenviron_ = {
       0, 1, 1, 0,   /*    sfread, ...       */
       0, 0, 0, 0,   /*    inbufsamps, ...   */
       0,            /*    sfsampsize        */
-#ifdef LINUX
       1,            /*    displays          */
-      1, 0, 135,    /*    graphsoff postscript, msglevel */
-#else
-      1,            /*    displa          */
-      1, 0, 135, /*    disp.. graphsoff ... */
-#endif
-      0, 0, 0,      /*    Beatmode, ...     */
+      1, 0, 135,    /*    graphsoff ...     */
+      0, 0,         /*    Beatmode, ...     */
       0, 0,         /*    usingcscore, ...  */
       0, 0, 0, 0,   /*    RTevents, ...     */
       0, 0,         /*    ringbell, ...     */
       0, 0, 0,      /*    rewrt_hdr, ...    */
-//      0,            /*    expr_opt          */
-      0.0f, 0.0f,   /*    sr_override ...  */
-      0, 0,     /*    nchnls_override ... */
+      0.0,          /*    cmdTempo          */
+      0.0f, 0.0f,   /*    sr_override ...   */
+      0, 0,     /*    nchnls_override ...   */
       (char*) NULL, (char*) NULL, NULL,
       (char*) NULL, (char*) NULL, (char*) NULL,
       (char*) NULL, (char*) NULL,
@@ -822,7 +853,9 @@ static const CSOUND cenviron_ = {
       0,            /*    realtime  */
       0.0,          /*    0dbfs override */
       0,            /*    no exit on compile error */
-      0.4           /*    vbr quality  */
+      0.4,          /*    vbr quality  */
+      0,            /*    ksmps_override */
+      0             /*    fft_lib */
     },
 
     {0, 0, {0}}, /* REMOT_BUF */
@@ -1902,6 +1935,9 @@ PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
 
     csound->scorestr = corfile_create_w();
     corfile_puts((char *)str, csound->scorestr);
+#ifdef SCORE_PARSER
+    corfile_puts("\n#exit\n", csound->scorestr);
+#endif
     corfile_flush(csound->scorestr);
     /* copy sorted score name */
     csoundLockMutex(csound->API_lock);
@@ -2171,7 +2207,9 @@ PUBLIC void csoundSetHostImplementedMIDIIO(CSOUND *csound,
 
 PUBLIC double csoundGetScoreTime(CSOUND *csound)
 {
-    return (double)csound->icurTime/csound->esr;
+    double curtime = csound->icurTime;
+    double esr = csound->esr;
+    return curtime/esr;
 }
 
 /*
@@ -2251,23 +2289,26 @@ static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
       vfprintf(stdout, format, args);
     }
 #else
+    FILE *fp = stderr;
+    if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_STDOUT)
+      fp = stdout;
     if (!attr || !csound->enableMsgAttr) {
-      vfprintf(stderr, format, args);
+      vfprintf(fp, format, args);
       return;
     }
     if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_ORCH)
       if (attr & CSOUNDMSG_BG_COLOR_MASK)
-        fprintf(stderr, "\033[4%cm", ((attr & 0x70) >> 4) + '0');
+        fprintf(fp, "\033[4%cm", ((attr & 0x70) >> 4) + '0');
     if (attr & CSOUNDMSG_FG_ATTR_MASK) {
       if (attr & CSOUNDMSG_FG_BOLD)
-        fprintf(stderr, "\033[1m");
+        fprintf(fp, "\033[1m");
       if (attr & CSOUNDMSG_FG_UNDERLINE)
-        fprintf(stderr, "\033[4m");
+        fprintf(fp, "\033[4m");
     }
     if (attr & CSOUNDMSG_FG_COLOR_MASK)
-      fprintf(stderr, "\033[3%cm", (attr & 7) + '0');
-    vfprintf(stderr, format, args);
-    fprintf(stderr, "\033[m");
+      fprintf(fp, "\033[3%cm", (attr & 7) + '0');
+    vfprintf(fp, format, args);
+    fprintf(fp, "\033[m");
 #endif
 }
 
@@ -2844,6 +2885,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
     entryCopy = csound->Malloc(csound, sizeof(OENTRY));
+    //printf("%p \n", entryCopy);
     memcpy(entryCopy, ep, sizeof(OENTRY));
     entryCopy->useropinfo = NULL;
 
@@ -3038,7 +3080,7 @@ static void reset(CSOUND *csound)
 }
 
 
-PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
+PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module){
     char *s;
     if ((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
       strncpy(s, module, 20);
@@ -3059,7 +3101,7 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, char *module){
 }
 
 
-PUBLIC void csoundSetMIDIModule(CSOUND *csound, char *module){
+PUBLIC void csoundSetMIDIModule(CSOUND *csound, const char *module){
     char *s;
 
     if ((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
@@ -3092,15 +3134,11 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
 }
 
 
-
 PUBLIC void csoundReset(CSOUND *csound)
 {
     char    *s;
     int     i, max_len;
     OPARMS  *O = csound->oparms;
-
-
-
     if (csound->engineStatus & CS_STATE_COMP ||
        csound->engineStatus & CS_STATE_PRE) {
      /* and reset */
@@ -3181,23 +3219,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundInitTimerStruct(csound->csRtClock);
       csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
-#ifndef USE_DOUBLE
-#ifdef BETA
-      csound->Message(csound, Str("Csound version %s beta (float samples) %s\n"),
-                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
-#else
-      csound->Message(csound, Str("Csound version %s (float samples) %s\n"),
-                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
-#endif
-#else
-#ifdef BETA
-      csound->Message(csound, Str("Csound version %s beta (double samples) %s\n"),
-                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
-#else
-      csound->Message(csound, Str("Csound version %s (double samples) %s\n"),
-                      CS_PACKAGE_VERSION, CS_PACKAGE_DATE);
-#endif
-#endif
+      print_csound_version(csound);
       {
         char buffer[128];
         sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);

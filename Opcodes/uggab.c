@@ -239,6 +239,8 @@ static int posc_set(CSOUND *csound, POSC *p)
     p->tablenUPsr = p->tablen * csound->onedsr;
     if (*p->iphs>=FL(0.0))
       p->phs        = *p->iphs * p->tablen;
+    while (UNLIKELY(p->phs >= p->tablen))
+        p->phs -= p->tablen;
     return OK;
 }
 
@@ -1447,6 +1449,18 @@ static int jitter2_set(CSOUND *csound, JITTER2 *p)
       p->flag = 0;
     p->dfdmax1 = p->dfdmax2 = p->dfdmax3 = FL(0.0);
     p->phs1 = p->phs2 = p->phs3 = 0;
+    p->num1a = p->num1b = p->num1c = FL(0.0); /* JPff Jul 2016 */
+    if (*p->option != FL(0.0)) {
+      p->num1a   = p->num2a;
+      p->num2a   = BiRandGab;
+      p->dfdmax1 = (p->num2a - p->num1a) / FMAXLEN;
+      p->num1b   = p->num2b;
+      p->num2b   = BiRandGab;
+      p->dfdmax2 = (p->num2b- p->num1b) / FMAXLEN;
+      p->num1c   = p->num2c;
+      p->num2c   = BiRandGab;
+      p->dfdmax3 = (p->num2c- p->num1c) / FMAXLEN;
+    }
     return OK;
 }
 
@@ -2025,8 +2039,8 @@ static OENTRY localops[] = {
 { "tlineto",  S(LINETO2), 0,3, "k", "kkk",  (SUBR)tlineto_set, (SUBR)tlineto, NULL},
 { "vibrato",  S(VIBRATO), TR, 3, "k", "kkkkkkkkio",
                                         (SUBR)vibrato_set, (SUBR)vibrato, NULL   },
-{ "vibr",     S(VIBRATO), TR, 3, "k", "kki",  (SUBR)vibr_set, (SUBR)vibr, NULL    },
-{ "jitter2",  S(JITTER2), 0,3, "k", "kkkkkkk", (SUBR)jitter2_set, (SUBR)jitter2   },
+{ "vibr",     S(VIBRATO), TR, 3, "k", "kki",  (SUBR)vibr_set, (SUBR)vibr, NULL   },
+{ "jitter2",  S(JITTER2), 0,3, "k", "kkkkkkko", (SUBR)jitter2_set, (SUBR)jitter2 },
 { "jitter",   S(JITTER),  0,3, "k", "kkk",  (SUBR)jitter_set, (SUBR)jitter, NULL },
 { "jspline",  S(JITTERS), 0,3, "k", "xkk",
                                 (SUBR)jitters_set, (SUBR)jitters, NULL },

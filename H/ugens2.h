@@ -40,9 +40,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *rslt, *xndx, *xfn, *ixmode, *ixoff, *iwrap;
         MYFLT   offset;
-        int32   pfn; /* Previous function table number - used to
-                        detect a change in table number when this is
-                        supplied by a k rate input parameter. */
+        int32   pfn;
         int32   xbmul;
         int     wrap;
         FUNC    *ftp;

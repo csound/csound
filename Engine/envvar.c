@@ -62,11 +62,11 @@ typedef struct CSFILE_ {
     FILE            *f;
     SNDFILE         *sf;
     void            *cb;
-    int    async_flag;
-    int    items;
-    int    pos;
-    MYFLT *buf;
-    int    bufsize;
+    int             async_flag;
+    int             items;
+    int             pos;
+    MYFLT           *buf;
+    int             bufsize;
     char            fullName[1];
 } CSFILE;
 
@@ -363,7 +363,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
     value = strchr(name, '=');
     append_mode = 0;
     if (UNLIKELY(value == NULL || value == name)) {
-      strcpy(msg, " *** invalid format for --env\n");
+      strncpy(msg, Str(" *** invalid format for --env\n"), 255);
       retval = CSOUND_ERROR;
       goto err_return;
     }
@@ -373,7 +373,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
       *(value - 2) = '\0';
     }
     if (UNLIKELY(!is_valid_envvar_name(name))) {
-      strcpy(msg, " *** invalid environment variable name\n");
+      strncpy(msg, Str(" *** invalid environment variable name\n"), 255);
       retval = CSOUND_ERROR;
       goto err_return;
     }
@@ -383,13 +383,13 @@ int csoundParseEnv(CSOUND *csound, const char *s)
     else
       retval = csoundAppendEnv(csound, name, value);
     if (UNLIKELY(retval == CSOUND_MEMORY))
-      strcpy(msg, " *** memory allocation failure\n");
+      strncpy(msg, Str(" *** memory allocation failure\n"), 255);
     else
-      strcpy(msg, " *** error setting environment variable\n");
+      strncpy(msg, Str(" *** error setting environment variable\n"), 255);
 
  err_return:
     if (UNLIKELY(retval != CSOUND_SUCCESS))
-      csoundMessage(csound, "%s", Str(msg));
+      csoundMessage(csound, "%s", msg);
     csound->Free(csound, name);
     return retval;
 }
@@ -728,9 +728,16 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
 
     /* do we need to worry about ~/ on *nix systems ? */
     /* we have a relative path or just a filename */
-    cwd = csound->Malloc(csound, 512);
-    if (UNLIKELY(getcwd(cwd, 512)==NULL)) {
-      csoundDie(csound, Str("Current directory path name too long\n"));
+    len = 32;
+ again:
+    cwd = csound->Malloc(csound, len);
+    if (UNLIKELY(getcwd(cwd, len)==NULL)) {
+      // Should check ERANGE==errno
+      //csoundDie(csound, Str("Current directory path name too long\n"));
+      len =len+len; cwd = csound->ReAlloc(csound, cwd, len);
+      if (len>1024*1024)
+        csoundDie(csound, Str("Current directory path name too long\n"));
+      goto again;
     }
 
     if (lastIndex == NULL) {
@@ -944,7 +951,7 @@ char *csoundFindOutputFile(CSOUND *csound,
     fd = csoundFindFile_Fd(csound, &name_found, filename, 1, envList);
     if (fd >= 0) {
       close(fd);
-      if (remove(name_found)<0) csound->DebugMsg(csound, "Remove failed\n");
+      if (remove(name_found)<0) csound->DebugMsg(csound, Str("Remove failed\n"));
     }
     return name_found;
 }
@@ -1040,6 +1047,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       }
 #endif
       else {
+        fullName = (char*) name;
         if (type == CSFILE_SND_R || type == CSFILE_FD_R)
           tmp_fd = open(fullName, RD_OPTS);
         else

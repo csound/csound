@@ -114,6 +114,10 @@ int             closedir(DIR*);
 
 extern  int     allocgen(CSOUND *, char *, int (*)(FGDATA *, FUNC *));
 
+#if defined(INIT_STATIC_MODULES)
+extern int init_static_modules(CSOUND *);
+#endif
+
 /* module interface function names */
 
 static  const   char    *opcode_init_Name =   "csound_opcode_init";
@@ -591,7 +595,14 @@ int csoundInitModules(CSOUND *csound)
 {
     csoundModule_t  *m;
     int             i, retval = CSOUND_SUCCESS;
-
+    /* For regular Csound, init_static_modules is not compiled or called.
+     * For some builds of Csound, e.g. for PNaCl, init_static_modules is
+     * compiled and called to initialize statically linked opcodes and other
+     * plugins that are dynamically loaded on other platforms.
+     */
+#if defined(INIT_STATIC_MODULES)
+    retval = init_static_modules(csound);
+#endif
     /* call init functions */
     for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt) {
       i = csoundInitModule(csound, m);
@@ -693,6 +704,8 @@ PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
       int len = (int) strlen(libraryPath);
       /* ugly hack to fix importing modules in Python opcodes */
       if (len >= 9 && strcmp(&(libraryPath[len - 9]), "/libpy.so") == 0)
+        flg |= RTLD_GLOBAL;
+      if (len >= 12 && strcmp(&(libraryPath[len - 12]), "/libpy.dylib") == 0)
         flg |= RTLD_GLOBAL;
     }
     *library = (void*) dlopen(libraryPath, flg);

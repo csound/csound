@@ -44,7 +44,8 @@
    S       String
    T       String or i-rate
    U       String or i/k-rate
-   B       Boolean
+   B       Boolean k-rate
+   b       Boolean i-rate; internally generated as required
    l       Label
    .       required arg of any-type
    and codes
@@ -165,7 +166,8 @@ OENTRY opcodlst_1[] = {
   { "=.r",    S(ASSIGN),0,  1,      "r",    "i",    rassign                 },
   { "=.i",    S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "=.k",    S(ASSIGNM),0, 2,      "zzzzzzzzzzzzzzzzzzzzzzzz", "z", NULL, minit },
-  { "=.a",    S(ASSIGN),0,  4,      "a",    "a",    NULL,   NULL,   aassign },
+  { "=.a",    S(ASSIGN),0,  4,      "a",    "a",    NULL,   NULL,   gaassign },
+  { "=.l",    S(ASSIGN),0,  4,      "a",    "a",    NULL,   NULL,   laassign },
   { "=.up",   S(UPSAMP),0,  4,      "a",    "k",    NULL,   NULL, (SUBR)upsamp },
   { "=.down",   S(DOWNSAMP),0,  3,  "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   //  { "=.t",    S(ASSIGNT),0, 2,      "t",    "kk",   NULL,   tassign, NULL   },
@@ -418,18 +420,24 @@ OENTRY opcodlst_1[] = {
     (SUBR)table3r_kontrol       },
   { "table3.a", S(TABL),0, 5,      "a",    "xiooo",(SUBR)tabl_setup, NULL,
     (SUBR)table3r_audio         },
-  { "ptable",  0xffff, TR                                                  },
-  { "ptablei", 0xffff, TR                                                  },
-  { "ptable3", 0xffff, TR                                                  },
-  { "ptable.i",  S(TABLE),0, 1,     "i",    "iiooo",pitable                },
-  { "ptable.k",  S(TABLE),0, 3,     "k",    "xiooo",tblset, pktable        },
-  { "ptable.a",  S(TABLE),0, 5,     "a",    "xiooo",tblset, NULL, ptablefn },
-  { "ptablei.i", S(TABLE),0, 1,     "i",    "iiooo",pitabli                },
-  { "ptablei.k", S(TABLE),0, 3,     "k",    "xiooo",tblset, pktabli        },
-  { "ptablei.a", S(TABLE),0, 5,     "a",    "xiooo",tblset, NULL, ptabli   },
-  { "ptable3.i", S(TABLE),0, 1,     "i",    "iiooo",pitabl3                },
-  { "ptable3.k", S(TABLE),0, 3,     "k",    "xiooo",tblset, pktabl3        },
-  { "ptable3.a", S(TABLE),0, 5,     "a",    "xiooo",tblset, NULL, ptabl3   },
+  /* { "ptable",  0xffff, TR                                                  }, */
+  /* { "ptablei", 0xffff, TR                                                  }, */
+  /* { "ptable3", 0xffff, TR                                                  }, */
+  { "ptable.i",  S(TABLE),0, 1,     "i",    "iiooo",(SUBR)tabler_init       },
+  { "ptable.k",  S(TABLE),0, 3,     "k",    "xiooo",(SUBR)tabl_setup,
+    (SUBR)tabler_kontrol        },
+  { "ptable.a",  S(TABLE),0, 5,     "a",    "xiooo",(SUBR)tabl_setup, NULL,
+    (SUBR)tabler_audio          },
+  { "ptablei.i", S(TABLE),0, 1,     "i",    "iiooo",(SUBR)tableir_init      },
+  { "ptablei.k", S(TABLE),0, 3,     "k",    "xiooo",(SUBR)tabl_setup,
+    (SUBR)tableir_kontrol       },
+  { "ptablei.a", S(TABLE),0, 5,     "a",    "xiooo",(SUBR)tabl_setup, NULL,
+    (SUBR)tableir_audio         },
+  { "ptable3.i", S(TABLE),0, 1,     "i",    "iiooo",(SUBR)table3r_init      },
+  { "ptable3.k", S(TABLE),0, 3,     "k",    "xiooo",(SUBR)tabl_setup,
+    (SUBR)table3r_kontrol       },
+  { "ptable3.a", S(TABLE),0, 5,     "a",    "xiooo",(SUBR)tabl_setup, NULL,
+    (SUBR)table3r_audio         },
   { "oscil1", S(OSCIL1), TR, 3,     "k",    "ikij", ko1set, kosc1          },
   { "oscil1i",S(OSCIL1), TR, 3,     "k",    "ikij", ko1set, kosc1i         },
   { "osciln", S(OSCILN), TR, 5,     "a",    "kiii", oscnset,NULL,   osciln },
@@ -689,12 +697,12 @@ OENTRY opcodlst_1[] = {
   { "filebit.i", S(SNDINFO),0,  1,     "i",   "ip",   filebit, NULL, NULL        },
   { "filepeak.i", S(SNDINFOPEAK),0, 1, "i",   "io",   filepeak, NULL, NULL       },
   { "filevalid.i", S(FILEVALID),0, 1,  "i",   "i",    filevalid, NULL, NULL      },
-  /*  { "nlalp", S(NLALP),0,     5,     "a",    "akkoo", nlalp_set, NULL, nlalp }, */
-  { "ptableiw",  S(TABLEW),TW, 1,   "",      "iiiooo", (SUBR)pitablew, NULL, NULL},
-  { "ptablew.kk", S(TABLEW),0,  3,  "", "kkiooo",
-    (SUBR)itblchkw,(SUBR)pktablew, NULL},
-  { "ptablew.aa", S(TABLEW),0,  5,  "", "aaiooo",
-    (SUBR)itblchkw, NULL, (SUBR)ptablew},
+  /*  { "nlalp", S(NLALP),0,     5,     "a",  "akkoo", nlalp_set, NULL, nlalp }, */
+  { "ptableiw",  S(TABLEW),TW, 1,   "", "iiiooo", (SUBR)tablew_init, NULL, NULL},
+  { "ptablew.kk", S(TABLEW),0,  3,  "", "kkiooo",(SUBR)tabl_setup,
+    (SUBR)tablew_kontrol, NULL          },
+  { "ptablew.aa", S(TABLEW),0,  5,  "", "aaiooo",(SUBR)tabl_setup, NULL,
+    (SUBR)tablew_audio               },
   { "tableiw",  S(TABL),TW, 1,    "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
   { "tablew",  S(TABL),TW, 1,    "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
   { "tablew.kk", S(TABL),TW,  3,    "", "kkiooo",(SUBR)tabl_setup,
@@ -931,10 +939,10 @@ OENTRY opcodlst_1[] = {
   { "outvalue.SS", S(OUTVAL), _CW, 3, "", "SS",
                                    (SUBR) outvalset_string_S, (SUBR) koutvalS, NULL},
   /* IV - Oct 20 2002 */
-  { "subinstr", S(SUBINST),0, 5, "mmmmmmmm", "Sm",  subinstrset_S, NULL, subinstr },
-  { "subinstrinit", S(SUBINST),0, 1, "",    "Sm",   subinstrset_S, NULL, NULL     },
-  { "subinstr.i", S(SUBINST),0, 5, "mmmmmmmm", "im",  subinstrset, NULL, subinstr },
-  { "subinstrinit.i", S(SUBINST),0, 1, "",    "im",   subinstrset, NULL, NULL     },
+  { "subinstr", S(SUBINST),0, 5, "mmmmmmmm", "SN",  subinstrset_S, NULL, subinstr },
+  { "subinstrinit", S(SUBINST),0, 1, "",    "SN",   subinstrset_S, NULL, NULL     },
+  { "subinstr.i", S(SUBINST),0, 5, "mmmmmmmm", "iN",  subinstrset, NULL, subinstr },
+  { "subinstrinit.i", S(SUBINST),0, 1, "",    "iN",   subinstrset, NULL, NULL     },
   { "nstrnum", S(NSTRNUM),0, 1,     "i",    "S",    nstrnumset_S, NULL, NULL      },
   { "nstrnum.i", S(NSTRNUM),0, 1,     "i",    "i",    nstrnumset, NULL, NULL      },
   { "turnoff2",   0xFFFB,   _CW,    0, NULL,   NULL,   NULL, NULL, NULL          },
