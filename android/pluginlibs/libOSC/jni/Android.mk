@@ -4,7 +4,7 @@ include $(CLEAR_VARS)
 
 CSOUND_SRC_ROOT := ../../../..
 
-##LIBLO_SRC_DIR := $(NDK_MODULE_PATH)/liblo-android/jni
+LIBLO_SRC_DIR := $(NDK_MODULE_PATH)/liblo-android/jni
 
 LOCAL_MODULE   := OSC
 
