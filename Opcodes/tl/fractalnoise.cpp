@@ -430,12 +430,13 @@ extern "C"
         (SUBR)fractalnoise_init, NULL, (SUBR)fractalnoise_process },
       { 0, 0, 0, 0, 0, 0, 0, 0, 0}
     };
-
+  
+#ifndef PNACL
     PUBLIC int csoundModuleCreate(CSOUND *csound)
     {
         return OK;
     }
-
+#endif
     PUBLIC int csoundModuleInit_fractalnoise(CSOUND *csound)
     {
         int status = 0;
@@ -453,7 +454,7 @@ extern "C"
         }
         return status;
     }
-
+#ifndef PNACL 
     PUBLIC int csoundModuleInit(CSOUND *csound)
     {
         return csoundModuleInit_fractalnoise(csound);
@@ -464,4 +465,5 @@ extern "C"
     {
         return OK;
     }
+  #endif
 }
