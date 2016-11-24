@@ -294,10 +294,6 @@ extern "C"
       }
     };
 
-  PUBLIC int csoundModuleCreate(CSOUND *csound)
-  {
-    return 0;
-  }
 
   PUBLIC int csoundModuleInit_doppler(CSOUND *csound)
   {
@@ -314,7 +310,12 @@ extern "C"
       }
     return status;
   }
-
+#ifndef PNACL
+  PUBLIC int csoundModuleCreate(CSOUND *csound)
+  {
+    return 0;
+  }
+  
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
       return csoundModuleInit_doppler(csound);
@@ -341,4 +342,5 @@ extern "C"
   }
     return 0;
   }
+#endif
 }
