@@ -14,6 +14,7 @@ import subprocess
 do_copy = False
 csound_directory = r'D:\msys64\home\restore\csound'
 globs = '*.exe *.dll *.so *.node *.pyd *.py *.pdb *.jar'
+ldd_globs = '*.exe *.dll *.so *.node *.pyd'
 ldd_filepath = r'D:\msys64\usr\bin\ldd'
 
 def exclude(filepath):
@@ -111,19 +112,19 @@ with open('mingw64/csound_ldd.txt', 'w') as f:
                 filepath = os.path.join(dirpath, match)
                 if filepath.find('Setup_Csound6_') == -1:
                     targets.add(filepath)
-        dependencies = set()
     for target in sorted(targets):
         dependencies.add(target)
-        popen = subprocess.Popen([ldd_filepath, target], stdout = subprocess.PIPE)
-        output = popen.communicate()[0]
-        f.write(target + '\n')
-        if len(output) > 1:
-            f.write(output + '\n')
-        for line in output.split('\n'):
-            parts = line.split()
-            if len(parts) > 2:
-                dependencies.add(parts[2])
-            elif len(parts) > 0:
+        if fnmatch.fnmatch(target, ldd_globs):
+            popen = subprocess.Popen([ldd_filepath, target], stdout = subprocess.PIPE)
+            output = popen.communicate()[0]
+            f.write(target + '\n')
+            if len(output) > 1:
+                f.write(output + '\n')
+            for line in output.split('\n'):
+                parts = line.split()
+                if len(parts) > 2:
+                    dependencies.add(parts[2])
+                elif len(parts) > 0:
                 dependencies.add(parts[0])
 print
 print 'CSOUND TARGETS AND DEPENDENCIES'

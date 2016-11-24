@@ -24,7 +24,7 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 #include "aops.h"
-#include "csound_orc_semantics.h"
+#include "find_opcode.h"
 
 extern MYFLT MOD(MYFLT a, MYFLT bb);
 
@@ -160,6 +160,11 @@ static int tabfill(CSOUND *csound, TABFILL *p)
     return OK;
 }
 
+static int array_err(CSOUND* csound, ARRAY_SET *p)
+{
+    return csound->InitError(csound, Str("Cannot set i-array at k-rate\n"));
+}
+
 static int array_set(CSOUND* csound, ARRAY_SET *p)
 {
     ARRAYDAT* dat = p->arrayDat;
@@ -173,7 +178,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
       csoundErrorMsg(csound, Str("Error: no indexes set for array set\n"));
       return CSOUND_ERROR;
     }
-    if (UNLIKELY(indefArgCount>dat->dimensions)){
+    if (UNLIKELY(indefArgCount>dat->dimensions)) {
       csound->Warning(csound,
                                Str("Array dimension %d out of range "
                                    "for dimensions %d\n"),
@@ -183,7 +188,7 @@ static int array_set(CSOUND* csound, ARRAY_SET *p)
     }
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-    if (UNLIKELY(index >= dat->sizes[end] || index<0)){
+    if (UNLIKELY(index >= dat->sizes[end] || index<0)) {
       csound->Warning(csound,
                       Str("Array index %d out of range (0,%d) "
                           "for dimension %d"),
@@ -1402,6 +1407,54 @@ static int ina(CSOUND *csound, OUTA *p)
     return OK;
 }
 
+static int monitora_perf(CSOUND *csound, OUTA *p)
+{
+    ARRAYDAT *aa = p->tabin;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i, j, k, l, nsmps = CS_KSMPS;
+    MYFLT       *data = aa->data;
+    MYFLT       *sp= CS_SPOUT;
+    uint32_t len = (uint32_t)p->len;
+
+    if (csound->spoutactive) {
+      for (l=0; l<len; l++) {
+        sp = CS_SPOUT;
+        memset(data, '\0', nsmps*sizeof(MYFLT));
+        if (UNLIKELY(early)) {
+          nsmps -= early;
+        }
+        for (i = 0; i<nsmps; i++) {
+          for (j = 0; j<csound->GetNchnls(csound); j++) {
+            if (i<offset)
+              data[i+j*nsmps] = FL(0.0);
+            else
+              data[i+j*nsmps] = sp[j];
+          }
+        }
+      }
+    }
+    else {
+      memset(data, '\0', (CS_KSMPS)*csound->GetNchnls(csound)*sizeof(MYFLT));
+    }
+    return OK;
+}
+
+static int monitora_init(CSOUND *csound, OUTA *p)
+{
+    ARRAYDAT *aa = p->tabin;
+    // should call ensure here but it is a-rate
+    aa->dimensions = 1;
+    if (aa->sizes) csound->Free(csound, aa->sizes);
+    if (aa->data) csound->Free(csound, aa->data);
+    aa->sizes = (int*)csound->Malloc(csound, sizeof(int));
+    aa->sizes[0] = p->len = csound->nchnls;
+    aa->data = (MYFLT*)
+      csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
+    aa->arrayMemberSize = CS_KSMPS*sizeof(MYFLT);
+    return OK;
+}
+
 /*
   transform operations
 */
@@ -1427,7 +1480,7 @@ int init_rfft(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
   if(p->in->dimensions > 1)
     return csound->InitError(csound,
-     "rfft: only one-dimensional arrays allowed");
+                             Str("rfft: only one-dimensional arrays allowed"));
   if (isPowerOfTwo(N)){
     tabensure(csound, p->out,N);
     p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
@@ -1440,8 +1493,9 @@ int init_rfft(CSOUND *csound, FFT *p){
 int perf_rfft(CSOUND *csound, FFT *p){
     int N = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
-    if (isPowerOfTwo(N))
+    if (isPowerOfTwo(N)){
       csound->RealFFT2(csound,p->setup,p->out->data);
+    }
     else{
       p->out->data[N] = FL(0.0);
       csound->RealFFTnp2(csound,p->out->data,N);
@@ -1459,7 +1513,7 @@ int init_rifft(CSOUND *csound, FFT *p){
   int   N = p->in->sizes[0];
  if(p->in->dimensions > 1)
     return csound->InitError(csound,
-       "rifft: only one-dimensional arrays allowed");
+                             Str("rifft: only one-dimensional arrays allowed"));
  if (isPowerOfTwo(N)){
     p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
     tabensure(csound, p->out, N);
@@ -1490,12 +1544,13 @@ int rifft_i(CSOUND *csound, FFT *p){
 int init_rfftmult(CSOUND *csound, FFT *p){
     int   N = p->in->sizes[0];
     if(N != p->in2->sizes[0])
-      return csound->InitError(csound, "array sizes do not match\n");
+      return csound->InitError(csound, Str("array sizes do not match\n"));
     /*if(isPowerOfTwo(N))*/
     tabensure(csound, p->out, N);
     /* else
        return
-         csound->InitError(csound, "non-pow-of-two case not implemented yet \n");*/
+         csound->InitError(csound,
+                           Str("non-pow-of-two case not implemented yet \n"));*/
     return OK;
 }
 
@@ -1513,7 +1568,7 @@ int init_fft(CSOUND *csound, FFT *p){
   int   N2 = p->in->sizes[0];
  if(p->in->dimensions > 1)
     return csound->InitError(csound,
-      "fft: only one-dimensional arrays allowed");
+                             Str("fft: only one-dimensional arrays allowed"));
   tabensure(csound,p->out,N2);
   return OK;
 }
@@ -1540,7 +1595,7 @@ int init_ifft(CSOUND *csound, FFT *p){
   int   N2 = p->in->sizes[0];
    if(p->in->dimensions > 1)
     return csound->InitError(csound,
-       "fftinv: only one-dimensional arrays allowed");
+                             Str("fftinv: only one-dimensional arrays allowed"));
   tabensure(csound, p->out, N2);
   return OK;
 }
@@ -1601,7 +1656,7 @@ int init_poltorect2(CSOUND *csound, FFT *p){
       tabensure(csound, p->out, N*2);
       return OK;
     } else return csound->InitError(csound,
-                                    "in array sizes do not match: %d and %d\n",
+                                    Str("in array sizes do not match: %d and %d\n"),
                                     p->in2->sizes[0],p->in->sizes[0]);
 }
 
@@ -1732,7 +1787,6 @@ int init_window(CSOUND *csound, FFT *p){
     w = (MYFLT *) p->mem.auxp;
     switch(type){
     case 0:
-      printf("hamming\n");
       for(i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*2*PI/N);
       break;
     case 1:
@@ -1748,9 +1802,9 @@ int perf_window(CSOUND *csound, FFT *p){
     in = p->in->data;
     out = p->out->data;
     w = (MYFLT *) p->mem.auxp;
-    if(off) off = end - off;
+    while(off < 0) off += end;
     for(i=0;i<end;i++)
-      out[i] = in[i]*w[(i+off)%end];
+      out[(i+off)%end] = in[i]*w[i];
     return OK;
 }
 
@@ -1768,7 +1822,7 @@ typedef struct _pvsceps {
 int pvsceps_init(CSOUND *csound, PVSCEPS *p){
     int N = p->fin->N;
     if(isPowerOfTwo(N)){
-      p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
+      p->setup = csound->RealFFT2Setup(csound, N/2, FFT_FWD);
       tabensure(csound, p->out, N/2+1);
     }
     else
@@ -1793,7 +1847,7 @@ int pvsceps_perf(CSOUND *csound, PVSCEPS *p){
       csound->RealFFT2(csound, p->setup, ceps);
       if(coefs){
         // lifter coefs
-        for (i=coefs*2; i < N/2; i++) ceps[i] = 0.0;
+       for (i=coefs*2; i < N/2; i++) ceps[i] = 0.0;
         ceps[N/2] = 0.0;
       }
       p->lastframe = p->fin->framecount;
@@ -1839,15 +1893,16 @@ int perf_ceps(CSOUND *csound, FFT *p){
 
 int init_iceps(CSOUND *csound, FFT *p){
     int N = p->in->sizes[0]-1;
-    if(isPowerOfTwo(N)){
+    if (LIKELY(isPowerOfTwo(N))) {
       p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
       tabensure(csound, p->out, N+1);
     }
     else
       return csound->InitError(csound,
                                Str("non-pow-of-two case not implemented yet\n"));
-    if(p->mem.auxp == NULL || p->mem.size < (N+1)*sizeof(MYFLT))
-      csound->AuxAlloc(csound, (N)*sizeof(MYFLT), &p->mem);
+    N++;
+    if(p->mem.auxp == NULL || p->mem.size < N*sizeof(MYFLT))
+      csound->AuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
     return OK;
 }
 
@@ -1860,7 +1915,7 @@ int perf_iceps(CSOUND *csound, FFT *p){
     for(i=0; i < siz; i++){
       out[i] = exp(spec[i]);
     }
-    out[siz] = spec[siz];
+    out[siz] = spec[siz];       /* Writes outside data allocated */
     return OK;
 }
 
@@ -1872,7 +1927,7 @@ int rows_init(CSOUND *csound, FFT *p){
     }
     else
       return csound->InitError(csound,
-                               "in array not 2-dimensional\n");
+                               Str("in array not 2-dimensional\n"));
 }
 
 int rows_perf(CSOUND *csound, FFT *p){
@@ -1884,7 +1939,7 @@ int rows_perf(CSOUND *csound, FFT *p){
       return OK;
     }
     else return csound->PerfError(csound,  p->h.insdshead,
-                                  "requested row is out of range\n");
+                                  Str("requested row is out of range\n"));
 }
 
 int cols_init(CSOUND *csound, FFT *p){
@@ -1895,7 +1950,7 @@ int cols_init(CSOUND *csound, FFT *p){
     }
     else
       return csound->InitError(csound,
-                               "in array not 2-dimensional\n");
+                               Str("in array not 2-dimensional\n"));
 }
 
 int cols_perf(CSOUND *csound, FFT *p){
@@ -1907,7 +1962,7 @@ int cols_perf(CSOUND *csound, FFT *p){
       return OK;
     }
     else return csound->PerfError(csound,  p->h.insdshead,
-                                  "requested col is out of range\n");
+                                  Str("requested col is out of range\n"));
 }
 
 static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p, int rows, int columns)
@@ -1987,13 +2042,14 @@ int shiftout_init(CSOUND *csound, FFT *p){
     int siz = p->in->sizes[0];
     p->n = ((int)*((MYFLT *)p->in2) % siz);
     if((uint32_t) siz < CS_KSMPS)
-      return csound->InitError(csound, "input array too small\n");
+      return csound->InitError(csound, Str("input array too small\n"));
     return OK;
 }
 
 int shiftout_perf(CSOUND *csound, FFT *p){
     uint32_t siz =  p->in->sizes[0], n = p->n;
     MYFLT *out = ((MYFLT *) p->out);
+
     if(n + CS_KSMPS < siz) {
       memcpy(out,p->in->data+n,CS_KSMPS*sizeof(MYFLT));
     }
@@ -2026,6 +2082,190 @@ int unwrap(CSOUND *csound, FFT *p){
     return OK;
 }
 
+void *csoundDCTSetup(CSOUND *csound,
+                     int FFTsize, int d);
+void csoundDCT(CSOUND *csound,
+               void *p, MYFLT *sig);
+
+int init_dct(CSOUND *csound, FFT *p){
+   int   N = p->in->sizes[0];
+   if(isPowerOfTwo(N)){
+   if(p->in->dimensions > 1)
+    return csound->InitError(csound,
+                             Str("dct: only one-dimensional arrays allowed"));
+    tabensure(csound, p->out, N);
+    p->setup =  csoundDCTSetup(csound,N,FFT_FWD);
+    return OK;
+   } else return
+            csound->InitError(csound,
+                              Str("dct: non-pow-of-two sizes not yet implemented"));
+}
+
+int kdct(CSOUND *csound, FFT *p){
+    int N = p->out->sizes[0];
+    memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
+    csoundDCT(csound,p->setup,p->out->data);
+    return OK;
+}
+
+int dct(CSOUND *csound, FFT *p){
+    if(!init_dct(csound,p)){
+      kdct(csound,p);
+      return OK;
+      } else return NOTOK;
+}
+
+int init_dctinv(CSOUND *csound, FFT *p){
+   int   N = p->in->sizes[0];
+   if(isPowerOfTwo(N)){
+   if(p->in->dimensions > 1)
+    return csound->InitError(csound,
+                             Str("dctinv: only one-dimensional arrays allowed"));
+    tabensure(csound, p->out, N);
+    p->setup =  csoundDCTSetup(csound,N,FFT_INV);
+    return OK;
+   } else
+     return
+       csound->InitError(csound,
+                         Str("dctinv: non-pow-of-two sizes not yet implemented"));
+}
+
+int dctinv(CSOUND *csound, FFT *p){
+    if(!init_dctinv(csound,p)){
+      kdct(csound,p);
+      return OK;
+      } else return NOTOK;
+}
+
+int perf_pows(CSOUND *csound, FFT *p){
+    int i,j, end = p->out->sizes[0];
+    MYFLT *in, *out;
+    in = p->in->data;
+    out = p->out->data;
+    for(i=2,j=1;j<end-1;i+=2,j++)
+      out[j] = in[i]*in[i]+in[i+1]*in[i+1];
+    out[0] = in[0]*in[0];
+    out[end-1] = in[1]*in[1];
+    return OK;
+}
+
+typedef struct _MFB {
+  OPDS h;
+  ARRAYDAT *out;
+  ARRAYDAT *in;
+  MYFLT *low;
+  MYFLT *up;
+  MYFLT *len;
+  AUXCH  bins;
+} MFB;
+
+static inline MYFLT f2mel(MYFLT f){
+  return 1125.*log(1.+f/700.);
+}
+
+static inline int mel2bin(MYFLT m, int N, MYFLT sr){
+  MYFLT f = 700.*(exp(m/1125.) - 1.);
+  return  (int)(f/(sr/(2*N)));
+
+}
+
+int mfb_init(CSOUND *csound, MFB *p){
+  int   L = *p->len;
+  int N = p->in->sizes[0];
+  if(L < N)
+   tabensure(csound, p->out, L);
+  else
+   return csound->InitError(csound,
+       "mfb: filter bank size exceeds input array length");
+  if(p->bins.auxp == NULL || p->bins.size < (L+2)*sizeof(int))
+      csound->AuxAlloc(csound, (L+2)*sizeof(MYFLT), &p->bins);
+  return OK;
+}
+
+int mfb(CSOUND *csound, MFB *p) {
+  int i,j;
+  int *bin = (int *) p->bins.auxp;
+  MYFLT start,max,end;
+  MYFLT g = FL(0.0), incr, decr;
+  int L = p->out->sizes[0];
+  int N = p->in->sizes[0];
+  MYFLT sum = FL(0.0);
+  MYFLT *out = p->out->data;
+  MYFLT *in = p->in->data;
+  MYFLT sr = csound->GetSr(csound);
+
+  start = f2mel(*p->low);
+  end = f2mel(*p->up);
+  incr = (end-start)/(L+1);
+
+  for(i=0;i<L+2;i++){
+    bin[i] = (int) mel2bin(start,N-1,sr);
+    if(bin[i] > N) bin[i] = N;
+    start += incr;
+  }
+
+  for(i=0; i < L; i++){
+    start = bin[i];
+    max = bin[i+1];
+    end = bin[i+2];
+    incr =  1.0/(max - start);
+    decr =  1.0/(end - max);
+    for(j=start; j < max; j++){
+      sum += in[j]*g;
+      g += incr;
+    }
+    g = FL(1.0);
+    for(j=max; j < end; j++){
+      sum += in[j]*g;
+      g -= decr;
+    }
+    out[i] = sum/(end - start);
+    g = FL(0.0);
+    sum = FL(0.0);
+  }
+
+  return OK;
+}
+
+int mfbi(CSOUND *csound, MFB *p){
+  if(mfb_init(csound,p) == OK)
+    return mfb(csound,p);
+  else return NOTOK;
+}
+
+typedef struct _centr{
+  OPDS h;
+  MYFLT *out;
+  ARRAYDAT *in;
+} CENTR;
+
+int array_centroid(CSOUND *csound, CENTR *p){
+
+  MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
+  int NP1 = p->in->sizes[0];
+  MYFLT f = csound->GetSr(csound)/(2*(NP1 - 1)),cf;
+  int i;
+  cf = f*FL(0.5);
+  for(i=0; i < NP1-1; i++, cf+=f){
+    a += in[i];
+    b += in[i]*cf;
+  }
+  *p->out = a > FL(0.0) ? b/a : FL(0.0);
+  return OK;
+}
+
+typedef struct _inout{
+  OPDS H;
+  MYFLT *out, *in;
+} INOUT;
+
+int nxtpow2(CSOUND *csound, INOUT *p){
+    int inval = (int)*p->in;
+    int powtwo = 2;
+    while (powtwo < inval) powtwo *= 2;
+    *p->out = powtwo;
+    return OK;
+}
 
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
@@ -2033,6 +2273,7 @@ int unwrap(CSOUND *csound, FFT *p){
 
 static OENTRY arrayvars_localops[] =
   {
+    { "nxtpow2", sizeof(INOUT), 0, 1, "i", "i", (SUBR)nxtpow2},
     { "init.0", sizeof(ARRAYINIT), 0, 1, ".[]", "m", (SUBR)array_init },
     { "fillarray", 0xffff },
     { "fillarray.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill },
@@ -2041,6 +2282,7 @@ static OENTRY arrayvars_localops[] =
     { "array", 0xffff },
     { "array.k", sizeof(TABFILL), _QQ, 1, "k[]", "m", (SUBR)tabfill     },
     { "array.i", sizeof(TABFILL), _QQ, 1, "i[]", "m", (SUBR)tabfill     },
+#if 0
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", "i[]im", (SUBR)array_set },
     { "##array_init", sizeof(ARRAY_SET), 0, 1, "", ".[]im", (SUBR)array_set },
     { "##array_set.k0", sizeof(ARRAY_SET), 0, 2, "", "k[]kz",
@@ -2057,6 +2299,20 @@ static OENTRY arrayvars_localops[] =
       (SUBR)array_get, (SUBR)array_get },
     { "##array_get.k", sizeof(ARRAY_GET), 0, 3, ".", ".[]z",
       (SUBR)array_get, (SUBR)array_get },
+#else
+    { "##array_init", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
+    { "##array_set.k", sizeof(ARRAY_SET), 0, 2, "", "k[]km", NULL,(SUBR)array_set},
+    { "##array_set.a", sizeof(ARRAY_SET), 0, 2, "", "a[]am", NULL, (SUBR)array_set},
+    { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
+    { "##array_set.e", sizeof(ARRAY_SET), 0, 1, "", "i[].z", (SUBR)array_err },
+    { "##array_set.x", sizeof(ARRAY_SET), 0, 2, "", ".[].z", NULL, (SUBR)array_set},
+    { "##array_get.k", sizeof(ARRAY_GET), 0, 2, "k", "k[]m", NULL,(SUBR)array_get },
+    { "##array_get.a", sizeof(ARRAY_GET), 0, 2, "a", "a[]m",NULL, (SUBR)array_get },
+    { "##array_get.x", sizeof(ARRAY_GET), 0, 1, ".", ".[]m",(SUBR)array_get },
+    { "##array_get.K", sizeof(ARRAY_GET), 0, 2, ".", ".[]z",NULL, (SUBR)array_get},
+    { "i.Ai", sizeof(ARRAY_GET),0, 1,      "i",    "k[]m", (SUBR)array_get  },
+    { "i.Ak", sizeof(ARRAY_GET),0, 1,      "i",    "k[]z", (SUBR)array_get  },
+#endif
     /* ******************************************** */
     {"##add.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
      (SUBR)tabarithset, (SUBR)tabadd},
@@ -2211,8 +2467,10 @@ static OENTRY arrayvars_localops[] =
     { "lenarray.kx", sizeof(TABQUERY1), 0, 2, "k", ".[]p", NULL, (SUBR)tablength },
     { "out.A", sizeof(OUTA), 0, 5,"", "a[]", (SUBR)outa_set, NULL, (SUBR)outa},
     { "in.A", sizeof(OUTA), 0, 5, "a[]", "", (SUBR)ina_set, NULL, (SUBR)ina},
-    {"rfft", sizeof(FFT), 0, 3, "k[]","k[]",
-     (SUBR) init_rfft, (SUBR) perf_rfft, NULL},
+    { "monitor.A", sizeof(OUTA), 0, 5, "a[]", "",
+      (SUBR)monitora_init, NULL, (SUBR)monitora_perf},
+    { "rfft", sizeof(FFT), 0, 3, "k[]","k[]",
+      (SUBR) init_rfft, (SUBR) perf_rfft, NULL},
     {"rfft", sizeof(FFT), 0, 1, "i[]","i[]",
      (SUBR) rfft_i, NULL, NULL},
     {"rifft", sizeof(FFT), 0, 3, "k[]","k[]",
@@ -2237,6 +2495,8 @@ static OENTRY arrayvars_localops[] =
      (SUBR) init_poltorect2, (SUBR) perf_poltorect2, NULL},
     {"mags", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_mags, (SUBR) perf_mags, NULL},
+    {"pows", sizeof(FFT), 0, 3, "k[]","k[]",
+     (SUBR) init_mags, (SUBR) perf_pows, NULL},
     {"phs", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_mags, (SUBR) perf_phs, NULL},
     {"log", sizeof(FFT), 0, 3, "k[]","k[]o",
@@ -2271,7 +2531,23 @@ static OENTRY arrayvars_localops[] =
      (SUBR) shiftout_init, NULL, (SUBR) shiftout_perf},
     {"unwrap", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_recttopol, (SUBR) unwrap},
-    {"=.k", sizeof(FFT), 0, 3, "k[]","k", (SUBR) scalarset, (SUBR) scalarset}
+    {"=.k", sizeof(FFT), 0, 3, "k[]","k", (SUBR) scalarset, (SUBR) scalarset},
+     {"dct", sizeof(FFT), 0, 3, "k[]","k[]",
+     (SUBR) init_dct, (SUBR) kdct, NULL},
+    {"dct", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR) dct, NULL, NULL},
+    {"dctinv", sizeof(FFT), 0, 3, "k[]","k[]",
+     (SUBR) init_dctinv, (SUBR) kdct, NULL},
+    {"dctinv", sizeof(FFT), 0, 1, "i[]","i[]",
+     (SUBR)dctinv, NULL, NULL},
+    {"mfb", sizeof(MFB), 0, 3, "k[]","k[]kki",
+     (SUBR) mfb_init, (SUBR) mfb, NULL},
+    {"mfb", sizeof(MFB), 0, 1, "i[]","i[]iii",
+     (SUBR)mfbi, NULL, NULL},
+    {"centroid", sizeof(CENTR), 0, 1, "i","i[]",
+     (SUBR) array_centroid, NULL, NULL},
+    {"centroid", sizeof(CENTR), 0, 2, "k","k[]", NULL,
+     (SUBR)array_centroid, NULL}
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)

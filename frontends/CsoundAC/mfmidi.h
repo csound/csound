@@ -23,16 +23,16 @@ class Midifile_reader {
 public:
     void midifile();
     int Mf_nomerge; /* 1 => continue'ed system exclusives are */
-				        /* not collapsed. */
+                                        /* not collapsed. */
     long Mf_currtime; /* current time in delta-time units */
     int Mf_skipinit;   /* 1 if initial garbage should be skipped */
     Midifile_reader();
-	// call finalize() when done or you may leak memory.
-	void finalize();  /* clean up before deletion */
-	// Note: rather than finalize, we should have ~Midifile_reader(),
-	// but at least VC++ complains that there is no Mf_free(), even
-	// though Mf_free is declared as virtual and this is an abstract
-	// class. I don't understand this, so finalize() is a workaround. -RBD
+        // call finalize() when done or you may leak memory.
+        void finalize();  /* clean up before deletion */
+        // Note: rather than finalize, we should have ~Midifile_reader(),
+        // but at least VC++ complains that there is no Mf_free(), even
+        // though Mf_free is declared as virtual and this is an abstract
+        // class. I don't understand this, so finalize() is a workaround. -RBD
 
 protected:
     int midifile_error;
@@ -46,7 +46,7 @@ protected:
     virtual void Mf_chanprefix(int) = 0;
     virtual void Mf_portprefix(int) = 0;
     virtual void Mf_eot() = 0;
-    virtual void Mf_error(char *) = 0;
+    virtual void Mf_error(const char *) = 0;
     virtual void Mf_header(int,int,int) = 0;
     virtual void Mf_on(int,int,int) = 0;
     virtual void Mf_off(int,int,int) = 0;
@@ -81,10 +81,10 @@ private:
     int egetc();
     int msgleng();
 
-    int readmt(char*,int);
+    int readmt(const char*,int);
     long to32bit(int,int,int,int);
     int to16bit(int,int);
-    void mferror(char *);
+    void mferror(const char *);
     void badbyte(int);
     void metaevent(int);
     void msgadd(int);

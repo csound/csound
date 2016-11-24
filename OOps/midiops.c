@@ -255,6 +255,7 @@ int kcpsmidib(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
     MYFLT bend = pitchbend_value(lcurip->m_chnbp);
+
     if (bend == p->prvbend || lcurip->relesing)
         *p->r = p->prvout;
     else {

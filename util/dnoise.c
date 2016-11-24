@@ -1188,7 +1188,7 @@ static void sndwrterr(CSOUND *csound, int nret, int nput)
     csound->Message(csound, Str("(disk may be full...\n"
                                 " closing the file ...)\n"));
     /* FIXME: should clean up */
-    csound->Die(csound, Str("\t... closed\n"));
+    //csound->Die(csound, Str("\t... closed\n"));
 }
 
 static int writebuffer(CSOUND *csound, SNDFILE *outfd,
@@ -1199,6 +1199,7 @@ static int writebuffer(CSOUND *csound, SNDFILE *outfd,
     if (outfd == NULL) return 0;
     n = sf_write_MYFLT(outfd, outbuf, nsmps);
     if (n < nsmps) {
+      sf_close(outfd);
       sndwrterr(csound, n, nsmps);
       return -1;
     }

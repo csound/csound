@@ -110,7 +110,7 @@ typedef struct namedgen {
 
 #define FTAB_SEARCH_BASE (100)
 
-static CS_NOINLINE int  fterror(const FGDATA *, const char *, ...);
+CS_NOINLINE int  fterror(const FGDATA *, const char *, ...);
 static CS_NOINLINE void ftresdisp(const FGDATA *, FUNC *);
 static CS_NOINLINE FUNC *ftalloc(const FGDATA *);
 
@@ -201,7 +201,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
       while (n) {
         if (strcmp(n->name, ff.e.strarg) == 0) {    /* Look up by name */
-          genum = n->genum;
+          ff.e.p[4] = genum = n->genum;
           break;
         }
         n = n->next;                            /*  and round again         */
@@ -1307,7 +1307,7 @@ static int gen20(FGDATA *ff, FUNC *ftp)
           ft[i] = (MYFLT) (xarg * sin(x) / x);
         return OK;
     default:
-        return fterror(ff, Str("No such window!"));
+        return fterror(ff, Str("No such window type!"));
     }
 
     arg = TWOPI / ff->flen;
@@ -1791,7 +1791,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     x[l2] = x[1];
     x[1] = x[l2 + 1] = FL(0.0);
 
-    for (j = 6; j < (nargs + 3); j++) {
+    for (j = 6; j < (nargs + 3); j+=3) {
       n = (int) (FL(0.5) + *valp++); if (n < 1) n = 1; /* frequency */
       if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
         nsw =0, valp = &(ff->e.c.extra[1]);
@@ -1801,7 +1801,12 @@ static int gen31(FGDATA *ff, FUNC *ftp)
       p = *valp++;                                       /* phase     */
       if (UNLIKELY(nsw && valp>=&ff->e.p[PMAX-1]))
         nsw =0, valp = &(ff->e.c.extra[1]);
-      p -= (MYFLT) ((int) p); if (p < FL(0.0)) p += FL(1.0); p *= TWOPI_F;
+      //p -= (MYFLT) ((int) p);
+      { MYFLT dummy = FL(0.0);
+        p = MODF(p, &dummy);
+      }
+      if (p < FL(0.0)) p += FL(1.0);
+      p *= TWOPI_F;
       d_re = cos((double) p); d_im = sin((double) p);
       p_re = 1.0; p_im = 0.0;   /* init. phase */
       for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
@@ -2172,7 +2177,7 @@ static int gen40(FGDATA *ff, FUNC *ftp)               /*gab d5*/
 static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
 {
     MYFLT   *fp = ftp->ftable, *pp = &ff->e.p[5];
-    int     j, k, width;
+    int     i, j, k, width;
     MYFLT    tot_prob = FL(0.0);
     int     nargs = ff->e.pcnt - 4;
 
@@ -2181,13 +2186,15 @@ static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
         return fterror(ff, Str("Gen41: negative probability not allowed"));
       tot_prob += pp[j+1];
     }
-    for (j=0; j< nargs; j+=2) {
+    printf("total prob = %g\n", tot_prob);
+    for (i=0, j=0; j< nargs; j+=2) {
       width = (int) ((pp[j+1]/tot_prob) * ff->flen +.5);
-      for ( k=0; k < width; k++) {
-        *fp++ = pp[j];
+      for ( k=0; k < width; k++,i++) {
+        fp[i] = pp[j];
       }
     }
-    *fp = pp[j-1];
+    //printf("GEN41: i=%d le=%d\n", i, ff->flen);
+    if (i<=ff->flen) fp[i] = pp[j-1]; /* conditinal isattempy to stop error */
 
     return OK;
 }
@@ -2238,7 +2245,7 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
     return OK;
 }
 
-static CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
+CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
 {
     CSOUND  *csound = ff->csound;
     char    buf[64];
@@ -2702,7 +2709,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         }
 #endif
         natcps = pow(2.0, ((double) ((int) lpd.basenote - 69)
-                           + (double) lpd.detune * 0.01) / 12.0) * 440.0;
+                           + (double) lpd.detune * 0.01) / 12.0) * csound->A4;
         /* As far as I can tell this gainfac value is never used! */
         //gainfac = exp((double) lpd.gain * LOG10D20);
      /* if (lpd.basenote == 0)
@@ -2813,7 +2820,8 @@ static int gen43(FGDATA *ff, FUNC *ftp)
       csound->strarg2name(csound, filename, filno, "pvoc.", 0);
 
     if (UNLIKELY(PVOCEX_LoadFile(csound, filename, &pp) != 0))
-      csoundDie(csound, Str("Failed to load PVOC-EX file"));
+      return fterror(ff, Str("Failed to load PVOC-EX file"));
+    //csoundDie(csound, Str("Failed to load PVOC-EX file"));
     p.fftsize  = pp.fftsize;
     p.overlap  = pp.overlap;
     p.winsize  = pp.winsize;
@@ -3056,7 +3064,7 @@ static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
     basekeymidi = (int) *pp++;
     if (UNLIKELY((ff->e.pcnt - 8) < numgrades)) { /* gab fixed */
       return fterror(ff,
-                     Str("gen51: invalid number of p-fields (too few grades)"));
+                     Str("GEN51: invalid number of p-fields (too few grades)"));
     }
 
     for (j = 0; j < nvals; j++) {
@@ -3332,6 +3340,27 @@ int allocgen(CSOUND *csound, char *s, GEN fn)
     csound->gensub[csound->genmax-1] = fn;
     return csound->genmax-1;
 }
+
+
+int csoundIsNamedGEN(CSOUND *csound, int num){
+    NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
+    while (n != NULL) {
+      if (n->genum == abs(num))
+        return strlen(n->name);
+      n = n->next;
+    }
+    return 0;
+}
+
+void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len){
+    NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
+    while (n != NULL) {
+      if (n->genum == abs(num))
+        strncpy(name,n->name,len);
+      n = n->next;
+    }
+}
+
 
 #include "resize.h"
 

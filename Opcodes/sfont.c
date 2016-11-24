@@ -172,9 +172,10 @@ static int SfLoad_(CSOUND *csound, SFLOAD *p, int istring)
     csound->Free(csound,fname);
     if (UNLIKELY(++globals->currSFndx>=globals->maxSFndx)) {
       globals->maxSFndx += 5;
-      globals->sfArray = (SFBANK *)realloc(globals->sfArray,
-                                           globals->maxSFndx*sizeof(SFBANK));
+      globals->sfArray = (SFBANK *)csound->ReAlloc(csound, globals->sfArray,
+                    /* JPff fix */        globals->maxSFndx*sizeof(SFBANK));
       csound->Warning(csound, Str("Extending soundfonts"));
+      if (globals->sfArray  == NULL) return NOTOK;
     }
     return OK;
 }
@@ -2605,7 +2606,7 @@ int sfont_ModuleCreate(CSOUND *csound)
     globals->currSFndx = 0;
     globals->maxSFndx = MAX_SFONT;
     for (j=0; j<128; j++) {
-      globals->pitches[j] = (MYFLT) (440.0 * pow(2.0, (double)(j- 69)/12.0));
+      globals->pitches[j] = (MYFLT) (csound->A4 * pow(2.0, (double)(j- 69)/12.0));
     }
 
    return OK;

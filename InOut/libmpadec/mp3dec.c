@@ -135,18 +135,18 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
         while(r == 7) { /* NO SYNC, read more data */
           int32_t n = sizeof(mp3->in_buffer);
           if (mp3->stream_size && (n > mp3->stream_size))
-             n = (int32_t)mp3->stream_size;
-             n = read(fd, mp3->in_buffer, n);
-             if (n <= 0){ n = 0; break; } /* EOF */
-             mp3->stream_position = mp3->in_buffer_used = n;
-             r = mpadec_decode(mp3->mpadec, mp3->in_buffer,
-                               mp3->in_buffer_used,
-                        NULL, 0, &mp3->in_buffer_offset, NULL);
-             mp3->in_buffer_used -= mp3->in_buffer_offset;
+            n = (int32_t)mp3->stream_size;
+          n = read(fd, mp3->in_buffer, n);
+          if (n <= 0){ n = 0; break; } /* EOF */
+          mp3->stream_position = mp3->in_buffer_used = n;
+          r = mpadec_decode(mp3->mpadec, mp3->in_buffer,
+                            mp3->in_buffer_used,
+                            NULL, 0, &mp3->in_buffer_offset, NULL);
+          mp3->in_buffer_used -= mp3->in_buffer_offset;
         }
         if (r != MPADEC_RETCODE_OK) {
-        mp3dec_reset(mp3);
-        return MP3DEC_RETCODE_NOT_MPEG_STREAM;
+          mp3dec_reset(mp3);
+          return MP3DEC_RETCODE_NOT_MPEG_STREAM;
         }
       }
     }
@@ -325,8 +325,10 @@ int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
       MYFLT fsize =
         (MYFLT)(125.0*mp3->mpainfo.bitrate*mp3->mpainfo.decoded_frame_samples)/
         (MYFLT)mp3->mpainfo.decoded_frequency;
+
       newpos = (int64_t)
         ((MYFLT)pos*fsize/(MYFLT)mp3->mpainfo.decoded_frame_samples);
+      //printf("seek pos: %d %d\n", newpos, pos);
       if (newpos > mp3->stream_size) newpos = mp3->stream_size;
       pos = (pos%mp3->mpainfo.decoded_frame_samples)*
         mp3->mpainfo.decoded_sample_size;

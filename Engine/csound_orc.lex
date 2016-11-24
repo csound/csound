@@ -69,15 +69,14 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option prefix="csound_orc"
 %option outfile="Engine/csound_orclex.c"
 %option stdout
+%option 8bit
 
-STRCONST        \"(\\.|[^\"])*\"
-STRCONSTe       \"(\\.|[^\"])*$
-LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:
+LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:([ \t\n]+|$)  /* VL: added extra checks for after the colon */
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*("\n")?
 XIDENT          0|[aijkftKOJVPopS\[\]]+
 INTGR           [0-9]+
-NUMBER          [0-9]+\.?[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
+NUMBER          [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
 WHITE           [ \t]+
 OPTWHITE        [ \t]*
 CONT            \\[ \t]*(;.*)?\n
@@ -87,6 +86,7 @@ LINE            ^[ \t]*"#line"
 SLINE           "#sline "
 FILE            ^[ \t]*"#source"
 FNAME           [a-zA-Z0-9/:.+-_]+
+
 %x line
 %x sline
 %x src
@@ -263,7 +263,8 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return '#'; }
-"¬"{OPTWHITE}"\n"? { 
+\xC2?\xAC{OPTWHITE}"\n"? {
+                     //printf("convert ¬ to ~\n");
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
@@ -358,6 +359,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "nchnls_i"      { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = NCHNLSI_TOKEN;
                   return NCHNLSI_TOKEN; }
+"A4"            { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = A4_TOKEN;
+                  return A4_TOKEN; }
 "instr"         {
                   namedInstrFlag = 1;
                   return INSTR_TOKEN;
@@ -372,10 +376,10 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   *lvalp = new_token(csound, UDOEND_TOKEN); return UDOEND_TOKEN;
                 }
 
-{LABEL}         { char *pp = yytext;
+{LABEL}         { char *pp = yytext;                 
                   while (*pp==' ' || *pp=='\t') pp++;
-                  *lvalp = make_label(csound, pp); return LABEL_TOKEN;
-                }
+		  *lvalp = make_label(csound, pp); return LABEL_TOKEN;
+               }
 
 "\{\{"          {
                   PARM->xstrbuff = (char *)malloc(128);
@@ -440,14 +444,43 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   return NEWLINE; }
 
 
-{STRCONST}      { *lvalp = make_string(csound, yytext); return (STRING_TOKEN); }
-
-{STRCONSTe}     { *lvalp = make_string(csound, yytext);
-                  csound->Message(csound,
-                          Str("unterminated string found on line %d >>%s<<\n"),
-                          csound_orcget_lineno(yyscanner),
-                          yytext);
-                  return (STRING_TOKEN); }
+\"              { /* String decode by c-code not rexp */
+                  char buff[200]; /* should be variable */
+                  int n = 1;
+                  int ch;
+                  buff[0] = '"';
+                  for (;;) {
+                    ch = input(yyscanner);
+                    if (ch=='"') {
+                      buff[n++] = ch;
+                      buff[n] = '\0';
+                      break;
+                    }
+                    else if (ch=='\\') {
+                      ch = input(yyscanner);
+                      switch (ch) {
+                      case 'a': case 'b': case 'n': case 'r':
+                      case 't': case '\\':
+                        buff[n++] = '\\'; buff[n++]= ch;
+                        break;
+                      default:
+                        buff[n++] = ch;
+                        break;
+                      }
+                    }
+                    else if (ch=='\n') {
+                      buff[n++] = '"';
+                      buff[n] = '\0';
+                      csound->Message(csound,
+                              Str("unterminated string found on line %d >>%s<<\n"),
+                                      csound_orcget_lineno(yyscanner), buff);
+                      break;
+                    }
+                    else buff[n++] = ch;
+                  }
+                  *lvalp = make_string(csound, buff);
+                  return (STRING_TOKEN);
+                }
 
 "0dbfs"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ZERODBFS_TOKEN;
@@ -495,6 +528,12 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 <src>{FNAME}    { PARM->locn = atoll(yytext); }
 <src>"\n"       { BEGIN(INITIAL); }
 
+.               {
+                  { int c = yytext[0]&0xff;
+                    printf("Error: character %c(%.2x)\n", c, c);
+                  }
+                  return ERROR_TOKEN;
+                }
 
 <<EOF>>         {
                   yyterminate();
@@ -525,9 +564,13 @@ ORCTOKEN *make_token(CSOUND *csound, char *s)
 ORCTOKEN *make_label(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, LABEL_TOKEN);
-    int len = strlen(s);
+    int len;
+    char *ps = s;
+    while(*ps != ':') ps++;
+    *(ps+1) = '\0';
+    len = strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len);
-    strncpy(ans->lexeme, s, len - 1); /* Not the trailing colon */
+    strncpy(ans->lexeme, s, len-1); /* Not the trailing colon */
     return ans;
 }
 
@@ -536,11 +579,9 @@ ORCTOKEN *make_string(CSOUND *csound, char *s)
     ORCTOKEN *ans = new_token(csound, STRING_TOKEN);
     int len = strlen(s);
 /* Keep the quote marks */
-    /* ans->lexeme = (char*)csound->Calloc(csound, len-1); */
-    /* strncpy(ans->lexeme, s+1, len-2); */
-    /* ans->lexeme[len-2] = '\0';  */
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strcpy(ans->lexeme, s);
+    //printf(">>%s<<\n", ans->lexeme);
     return ans;
 }
 
@@ -615,3 +656,13 @@ uint64_t csound_orcget_ilocn(void *yyscanner)
 //    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return PARM->ilocn;
 }
+/*
+{STRCONSTe}     { *lvalp = make_string(csound, yytext);
+                  csound->Message(csound,
+                          Str("unterminated string found on line %d >>%s<<\n"),
+                          csound_orcget_lineno(yyscanner), 
+                          yytext);
+                  return (STRING_TOKEN); }
+STRCONSTe \"(\.|[^\"])$
+STRCONST        \"(\\.|[^\"\n])*\"
+*/

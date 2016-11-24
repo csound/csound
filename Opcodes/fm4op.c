@@ -148,7 +148,7 @@ int make_FM4Op(CSOUND *csound, FM4OP *p)
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->vifn)) == NULL))
       goto err1;
     p->vibWave = ftp;
-    p->baseFreq = FL(440.0);
+    p->baseFreq = csound->A4;
     p->ratios[0] = FL(1.0);
     p->ratios[1] = FL(1.0);
     p->ratios[2] = FL(1.0);

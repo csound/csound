@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -RWfo CloudStrata.wav temp.orc temp.sco
+csound -RWfo dac temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 sr = 96000

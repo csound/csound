@@ -147,7 +147,8 @@ void mfree(CSOUND *csound, void *p)
  #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
       csound->Warning(csound, "csound->Free() called with invalid "
-                      "pointer (%p)", p);
+                      "pointer (%p) %x %p %x",
+                      p, pp->magic, pp->ptr, MEMALLOC_MAGIC);
       /* exit() is ugly, but this is a fatal error that can only occur */
       /* as a result of a bug */
       /*  exit(-1);  */

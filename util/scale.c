@@ -149,7 +149,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
     sc.end_table = &sc.scale_table;
 
     O.filetyp = O.outformat = 0;
-    O.heartbeat = 0;
+    O.ringbell = O.heartbeat = 0;
     /* Check arguments */
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)

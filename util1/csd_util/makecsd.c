@@ -9,6 +9,7 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#include <ctype.h>
 #define MAXLICENCE (7)
 
 static  char    *orcname = NULL, *sconame = NULL, *optname = NULL;

@@ -1489,7 +1489,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     void    *fd;
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, file, &sfinfo, NULL,
+    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, file, &sfinfo,  "SFDIR;SSDIR",
                            CSFTYPE_UNKNOWN_AUDIO, 0);
     if (fd == NULL) {
       csound->Die(csound, Str("atsa: error opening residual file '%s'"), file);
@@ -2016,15 +2016,15 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* open input file
        we get srate and total_samps in file in anargs */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, soundfile, &sfinfo, NULL,
-                           CSFTYPE_UNKNOWN_AUDIO, 0);
-    if (fd == NULL) {
+    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, soundfile, &sfinfo,
+                           "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
+    if (UNLIKELY(fd == NULL)) {
       csound->ErrorMsg(csound, Str("atsa: cannot open input file '%s'"),
                        soundfile);
       return NULL;
     }
     /* warn about multi-channel sound files */
-    if (sfinfo.channels != 1) {
+    if (UNLIKELY(sfinfo.channels != 1)) {
       csound->ErrorMsg(csound,
                        Str("atsa: file has %d channels, must be mono !"),
                        (int) sfinfo.channels);
@@ -2039,7 +2039,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     sfdur = (float) sflen / anargs->srate;
     /* check analysis parameters */
     /* check start time */
-    if (!(anargs->start >= 0.0 && anargs->start < sfdur)) {
+    if (UNLIKELY(!(anargs->start >= 0.0 && anargs->start < sfdur))) {
       csound->Warning(csound, Str("start %f out of bounds, corrected to 0.0"),
                       anargs->start);
       anargs->start = 0.0f;
@@ -2069,9 +2069,9 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       anargs->lowest_freq = ATSA_LFREQ;
     }
     /* check highest frequency */
-    if (!
-        (anargs->highest_freq > anargs->lowest_freq &&
-         anargs->highest_freq <= anargs->srate * 0.5)) {
+    if (UNLIKELY(!
+                 (anargs->highest_freq > anargs->lowest_freq &&
+                  anargs->highest_freq <= anargs->srate * 0.5))) {
       csound->Warning(csound,
                       Str("highest freq. %f out of bounds, "
                           "forced to default: %f"), anargs->highest_freq,
