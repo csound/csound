@@ -505,7 +505,7 @@ static void openJackStreams(RtJackGlobals *p)
       jack_free(portNames);
     }
     else {
-      if(strcmp(p->outDevName, "null") && p->outDevName != NULL){
+      if(p->outDevName != NULL && strcmp(p->outDevName, "null")){
         char dev[128], *dev_final, *sp;
         strncpy(dev, p->outDevName, 128); dev[127]='\0';
         dev_final = dev;
