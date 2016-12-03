@@ -1,3 +1,3 @@
 set CSOUND_HOME=D:\msys64\home\restore\csound
-set PYTHON=D:\Python27\python.exe
-nw-gyp rebuild --target=0.12.3 --arch=x64
+set PYTHON=C:\Program_Files\Anaconda2\python.exe
+nw-gyp rebuild --target=0.18.8 --arch=x64
