@@ -51,7 +51,7 @@ export PATH=${PATH}:/C/Program_Files/Java/jdk1.7.0_75/bin
 export PYTHONPATH=/home/restore/csound/mingw64/csound-mingw64
 export RAWWAVE_PATH=/home/restore/csound/mingw64/packages/stk/src/stk-4.5.1/rawwaves
 ```
-5. Build and install packages for dependencies not currently in MSYS2's repositories. The formulas are included in the packages folder. Note that the purpose of these packages is simply to get dependencies installed for the Csound build system to find, not to replicate existing packages, so PKGBUILD files may be simplified. Also note that some packages contain patches that may need to be updated when source files are updated. Cd into each directory and use 'makepkg-mingw' to build the package. Use 'pacman -U name-of-package.pkg.tar.xz' to install the package. If there is a 'devel' package in the package directory, install that also. If there are any errors about line endings, simply run dos2unix on the file(s) to change the line endings. Failing that you can simple run this command from the package directory
+5. Build and install packages for dependencies not currently in MSYS2's repositories. The formulas are included in the packages folder. Note that the purpose of these packages is simply to get dependencies installed for the Csound build system to find, not to replicate existing packages, so PKGBUILD files may be simplified. Also note that some packages contain patches that may need to be updated when source files are updated. Cd into each directory and use 'makepkg-mingw -f' to build the package. Use 'pacman -U name-of-package.pkg.tar.xz' to install the package. If there is a 'devel' package in the package directory, install that also. If there are any errors about line endings, simply run dos2unix on the file(s) to change the line endings. Failing that you can simply run this command from the package directory:
 ```
 sed -i 's/^M//' PKGBUILD
 ```
@@ -66,22 +66,19 @@ sed -i 's/^M//' PKGBUILD
   * Python for x64 from [Python.org](https://www.python.org/).
 3. Obtain from [Steinberg](http://www.steinberg.net/en/company/developers.html) the ASIO2 and VST 2.X SDKs and copy them into the mingw64/include directory.
 4. Install [Graphviz](http://www.graphviz.org/) and add its bin dir to the PATH in ~/.bash_profile.
-5. Install Microsoft Visual Studio 2013, Community Edition, from [here](https://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx).
-6. Install the Qt SDK for 64 bit CPU architecture and MSVS 2013, from [here](http://download.qt.io/official_releases/qt/5.6/5.6.0/qt-opensource-windows-x86-msvc2013_64-5.6.0.exe).
-7. Install the Chromium Embedded Framework from [here](https://cefbuilds.com/) and compile the solution using MSVS for 64 bit CPU architecture. Once you have confirmaed that the cefclient program runs, rebuild the wrapper library (libcef_dll_wrapper.lib) using the /MD (release) and /MDd (debug) compiler options, which are required by the Qt SDK.
-8. Install node.js for Windows 64 bit CPU architecture from [here](https://nodejs.org/en/). This is used to build csound.node for NW.js.
-9. Install NW.js for Windows 64 bit CPU architecture from [here](http://nwjs.io/).
-10. Set an environment variable `XSL_BASE_PATH` in `~/.bash_profile` e.g. to `mingw64/share/xml/docbook/xsl-stylesheets-1.78.1`. Clone or update the Csound manual repository from git@github.com:csound/manual.git. Execute `python csd2docbook.py -a` to build docbook versions of the example CSDs. Execute `mingw32-make html-dist` in the mingw64 shell to build the Csound Reference Manual.
-11. Execute the `csound/mingw64/find_csound_dependencies.py` script to reflect paths for tools and resources it requires. This may need to be edited if your paths differ from mine.
-12. Execute `./build-mkg.sh` in the mingw64 directory. It may be necessary to edit this script to reflect options or paths it requires. The first time you run this script, it should build Csound and then fail because some targets must be built with MSVS.
-13. Execute the VS2013 x64 native tools command prompt. Change to the csound/mingw64 directory and run the `make_import_library.cmd` script. This will create a Microsoft-compatible import library for the mingw64-built Csound DLL. This import library is required to build csound.node and CsoundQt.
-14. Clone the CsoundQt [repository](https://github.com/CsoundQt/CsoundQt). Run QtCreator and open the CsoundQt `qcs.pro` project. Configure `config.user.pri` if necessary. Disable the shadow build option. Run qmake and rebuild the project. My `config.user.pri` is:
+5. Install Microsoft Visual Studio 2015, Community Edition Update 2 or later, from [here](https://www.visualstudio.com/en-us/news/vs2013-community-vs.aspx).
+6. Install the Qt SDK for 64 bit CPU architecture and MSVS 2015, from [here](http://download.qt.io/development_releases/qt/5.8/5.8.0-beta/qt-opensource-windows-x86-msvc2015_64-5.8.0-beta.exe).
+7. Install node.js for Windows 64 bit CPU architecture from [here](https://nodejs.org/en/). This is used to build csound.node for NW.js.
+8. Install NW.js for Windows 64 bit CPU architecture from [here](http://nwjs.io/).
+9. Set an environment variable `XSL_BASE_PATH` in `~/.bash_profile` e.g. to `mingw64/share/xml/docbook/xsl-stylesheets-1.78.1`. Clone or update the Csound manual repository from git@github.com:csound/manual.git. Execute `python csd2docbook.py -a` to build docbook versions of the example CSDs. Execute `mingw32-make html-dist` in the mingw64 shell to build the Csound Reference Manual.
+10. Execute the `csound/mingw64/find_csound_dependencies.py` script to reflect paths for tools and resources it requires. This may need to be edited if your paths differ from mine.
+11. Execute `./build-mkg.sh` in the mingw64 directory. It may be necessary to edit this script to reflect options or paths it requires. The first time you run this script, it should build Csound and then fail because some targets must be built with MSVS.
+12. Execute the VS2015 x64 native tools command prompt. Change to the csound/mingw64 directory and run the `make_import_library.cmd` script. This will create a Microsoft-compatible import library for the mingw64-built Csound DLL. This import library is required to build csound.node and CsoundQt.
+13. Clone the CsoundQt [repository](https://github.com/CsoundQt/CsoundQt). Run QtCreator and open the CsoundQt `qcs.pro` project. Configure `config.user.pri` if necessary. Disable the shadow build option. Run qmake and rebuild the project. My `config.user.pri` is:
 ```
-CONFIG *= html5
 CONFIG *= perfThread_build
 CONFIG *= rtmidi
 
-CEF_HOME = D:/cef_binary_3.2785.1474.g4a88e67_windows64
 CSOUND_API_INCLUDE_DIR = D:/msys64/home/restore/csound/include
 CSOUND_INTERFACES_INCLUDE_DIR = D:/msys64/home/restore/csound/interfaces
 CSOUND_LIBRARY_DIR = D:/msys64/home/restore/csound/mingw64
@@ -92,7 +89,7 @@ LSNDFILE = D:/msys64/home/restore/Mega-Nerd/libsndfile/lib/libsndfile-1.lib
 PTHREAD_INCLUDE_DIR = D:/msys64/home/restore/pthreads-w32-2-9-1-release/Pre-built.2/include
 RTMIDI_DIR = D:/msys64/home/restore/rtmidi-2.1.1
 ```
-15. Run the node.js command prompt. Set the `CSOUND_HOME` environment variable to point to your Csound project root directory. Run `nw-gyp rebuild --target=0.17.1 --arch=x64`. If the script ends with "ok" it has succeeded.
+14. Run the node.js command prompt. Set the `CSOUND_HOME` environment variable to point to your Csound project root directory. Run `nw-gyp rebuild --target=0.18.8 --arch=x64`. If the script ends with "ok" it has succeeded.
 16. Run `csound/mingw64/build-mkg.sh` again. For a truly clean build, first delete the `csound-mingw64` directory and all of its contents. The build script should:
   * Run CMake.
   * Run make.
@@ -100,7 +97,7 @@ RTMIDI_DIR = D:/msys64/home/restore/rtmidi-2.1.1
   * Run `find_csound_depencencies.py` to use ldd to find all actual runtime targets and dependencies of Csound (mingw64 ones, anyway).
   * Run the Inno Setup compiler to build the Csound installer for Windows x64, including CsoundQt and all the CEF, Qt, NW.js, etc. dependencies.
   * Actually install Csound so you can test it! Running Csound from the build directory may work for some features, but will not work for all features.
-17. In the Csound installation's command shell (the Csound icon on the Start menu), run the following pieces to perform a variety of quick tests of some major features.
+15. In the Csound installation's command shell (the Csound icon on the Start menu), run the following pieces to perform a variety of quick tests of some major features.
   * Run `examples/xanadu.csd` with command-line Csound to test basic functionality.
   * Run `examples/python/drone.py` and `TrappedCsd.py` with Python to test the Python interface.
   * Run `examples/java/CSDPlayer.jar` with java to test the Java interface.
