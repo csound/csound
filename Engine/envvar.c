@@ -729,8 +729,8 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     /* do we need to worry about ~/ on *nix systems ? */
     /* we have a relative path or just a filename */
     len = 32;
- again:
     cwd = csound->Malloc(csound, len);
+ again:
     if (UNLIKELY(getcwd(cwd, len)==NULL)) {
       // Should check ERANGE==errno
       //csoundDie(csound, Str("Current directory path name too long\n"));
