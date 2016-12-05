@@ -42,7 +42,7 @@ static void do_ifdef_skip_code(CSOUND *, yyscan_t);
 //static void print_csound_prsdata(CSOUND *,char *,yyscan_t);
 static void csound_prs_line(CORFIL*, yyscan_t);
 static void delete_macros(CSOUND*, yyscan_t);
-//#define MACDEBUG 1
+#define MACDEBUG 1
  
 static inline int isNameChar(int c, int pos)
 {
@@ -470,7 +470,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 		    csound->LongJmp(csound, 1);
 		  }
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
-                  csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n",
+                  csound->DebugMsg(csound,"%s(%d): loc=%ld; lastloc=%ld\n",
                                    __FILE__, __LINE__,
                          PARM->llocn, PARM->locn);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
