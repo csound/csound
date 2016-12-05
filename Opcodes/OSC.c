@@ -191,7 +191,10 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
       if (p->multicast) {
         u_char ttl = 2;
 #if defined(LINUX)
-        setsockopt((long)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+        if (setsockopt((long)p->addr, IPPROTO_IP,
+                       IP_MULTICAST_TTL, &ttl, sizeof(ttl))==-1) {
+          csound->Message, csound, Str("Failed to set multicast");
+        }
 #else
         setsockopt(p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
 #endif
