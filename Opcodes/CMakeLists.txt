@@ -17,6 +17,7 @@ option(BUILD_EXCITER_OPCODES "Build the exciter opcode" ON)
 option(BUILD_BUCHLA_OPCODES "Build the Buchla filter opcode" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
+option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
 
 find_package(Boost)
 check_include_file(ladspa.h LADSPA_H)
@@ -242,6 +243,10 @@ endif()
 check_deps(BUILD_P5GLOVE_OPCODES P5GLOVE_H)
 if(BUILD_P5GLOVE_OPCODES)
     make_plugin(p5g p5glove.c ${P5GLOVE_LIB})
+endif()
+
+if(BUILD_SELECT_OPCODE)
+    make_plugin(select select.c)
 endif()
 
 check_deps(BUILD_FAUST_OPCODES LLVM_FOUND FAUST_LIBRARY)
