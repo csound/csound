@@ -625,7 +625,7 @@ msgstr "la tabla-f (ftable) %d ha sido borrada\n"
 msgid "insufficient gen arguments"
 msgstr "argumentos GEN insuficientes"
 
-#: Engine/fgens.c:210 Opcodes/ftgen.c:118 Opcodes/ftgen.c:622
+#: Engine/fgens.c:210 Opcodes/ftgen.c:118 Opcodes/ftgen.c:648
 #: Opcodes/signalflowgraph.cpp:1479
 #, c-format
 msgid "Named gen \"%s\" not defined"
@@ -1427,7 +1427,7 @@ msgstr "no es posible reabrir cscore.srt"
 msgid "sorting cscore.out ..\n"
 msgstr "ordenando cscore.out ...\n"
 
-#: Engine/musmon.c:346 Top/main.c:325
+#: Engine/musmon.c:346 Top/main.c:318
 msgid "\t... done\n"
 msgstr "\t... listo\n"
 
@@ -5923,69 +5923,74 @@ msgstr "reverbx: no ha sido inicializado"
 msgid "Too many arguments to OSCsend"
 msgstr ""
 
-#: Opcodes/OSC.c:250
+#: Opcodes/OSC.c:196
+#, fuzzy
+msgid "Failed to set multicast"
+msgstr "No fue posible abrir el archivo de salida %s"
+
+#: Opcodes/OSC.c:254
 msgid "Time stamp is two values"
 msgstr ""
 
-#: Opcodes/OSC.c:274
+#: Opcodes/OSC.c:278
 #, fuzzy, c-format
 msgid "ftable %.2f does not exist"
 msgstr "la tabla-f (ftable) %.2f no existe"
 
-#: Opcodes/OSC.c:310
+#: Opcodes/OSC.c:314
 #, c-format
 msgid "argument %d is not an array"
 msgstr ""
 
-#: Opcodes/OSC.c:332
+#: Opcodes/OSC.c:336
 #, c-format
 msgid "Unknown OSC type %c\n"
 msgstr ""
 
-#: Opcodes/OSC.c:366
+#: Opcodes/OSC.c:370
 msgid "OSC: failed to allocate globals"
 msgstr ""
 
-#: Opcodes/OSC.c:514
+#: Opcodes/OSC.c:518
 msgid "OSC deinitiatised\n"
 msgstr ""
 
-#: Opcodes/OSC.c:537 Opcodes/OSC.c:573
+#: Opcodes/OSC.c:541 Opcodes/OSC.c:577
 #, c-format
 msgid "cannot start OSC listener on port %s\n"
 msgstr ""
 
-#: Opcodes/OSC.c:546
+#: Opcodes/OSC.c:550
 #, c-format
 msgid "OSC listener #%d started on port %s\n"
 msgstr ""
 
-#: Opcodes/OSC.c:583
+#: Opcodes/OSC.c:587
 #, c-format
 msgid "OSC multicast listener #%d started on port %s\n"
 msgstr ""
 
-#: Opcodes/OSC.c:636
+#: Opcodes/OSC.c:640
 msgid "OSC not running"
 msgstr "OSC no está corriendo"
 
-#: Opcodes/OSC.c:640
+#: Opcodes/OSC.c:644
 msgid "invalid handle"
 msgstr ""
 
-#: Opcodes/OSC.c:648
+#: Opcodes/OSC.c:652
 msgid "invalid number of arguments"
 msgstr "número inválido de argumentos"
 
-#: Opcodes/OSC.c:673 Opcodes/OSC.c:678
+#: Opcodes/OSC.c:677 Opcodes/OSC.c:682
 msgid "argument list inconsistent with format string"
 msgstr ""
 
-#: Opcodes/OSC.c:682
+#: Opcodes/OSC.c:686
 msgid "invalid type"
 msgstr ""
 
-#: Opcodes/OSC.c:778
+#: Opcodes/OSC.c:782
 #, fuzzy, c-format
 msgid "Invalid ftable no. %d"
 msgstr "Tabla-f (ftable) no. %f inválida"
@@ -6193,71 +6198,71 @@ msgstr "Nombre %s no encontrado"
 msgid "map fn not found at k rate"
 msgstr ""
 
-#: Opcodes/arrays.c:1490
+#: Opcodes/arrays.c:1483
 msgid "rfft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:1523
+#: Opcodes/arrays.c:1516
 msgid "rifft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:1554
+#: Opcodes/arrays.c:1547
 #, fuzzy
 msgid "array sizes do not match\n"
 msgstr "t-variable no ha sido inicializado"
 
-#: Opcodes/arrays.c:1578
+#: Opcodes/arrays.c:1571
 msgid "fft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:1605
+#: Opcodes/arrays.c:1598
 msgid "fftinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:1666
+#: Opcodes/arrays.c:1659
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
 msgstr ""
 
-#: Opcodes/arrays.c:1837 Opcodes/arrays.c:1877 Opcodes/arrays.c:1909
+#: Opcodes/arrays.c:1830 Opcodes/arrays.c:1870 Opcodes/arrays.c:1902
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr ""
 
-#: Opcodes/arrays.c:1870
+#: Opcodes/arrays.c:1863
 msgid "FFT size too small (min 64 samples)\n"
 msgstr ""
 
-#: Opcodes/arrays.c:1937 Opcodes/arrays.c:1960
+#: Opcodes/arrays.c:1930 Opcodes/arrays.c:1953
 msgid "in array not 2-dimensional\n"
 msgstr ""
 
-#: Opcodes/arrays.c:1949
+#: Opcodes/arrays.c:1942
 #, fuzzy
 msgid "requested row is out of range\n"
 msgstr "el número del dispositivo está fuera de rango"
 
-#: Opcodes/arrays.c:1972
+#: Opcodes/arrays.c:1967
 #, fuzzy
 msgid "requested col is out of range\n"
 msgstr "el número del dispositivo está fuera de rango"
 
-#: Opcodes/arrays.c:2052
+#: Opcodes/arrays.c:2046
 msgid "input array too small\n"
 msgstr ""
 
-#: Opcodes/arrays.c:2102
+#: Opcodes/arrays.c:2096
 msgid "dct: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2108
+#: Opcodes/arrays.c:2102
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
-#: Opcodes/arrays.c:2130
+#: Opcodes/arrays.c:2124
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2137
+#: Opcodes/arrays.c:2131
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
@@ -6732,7 +6737,7 @@ msgstr ""
 msgid "ftconv: not initialised"
 msgstr "ftconv: no ha sido inicializado"
 
-#: Opcodes/ftgen.c:69 Opcodes/ftgen.c:215
+#: Opcodes/ftgen.c:69 Opcodes/ftgen.c:241
 #, fuzzy, c-format
 msgid "Error deleting ftable %d"
 msgstr "reemplazando tabla-f (ftable) %d anterior"
@@ -6741,50 +6746,50 @@ msgstr "reemplazando tabla-f (ftable) %d anterior"
 msgid "ftgen string arg not allowed"
 msgstr ""
 
-#: Opcodes/ftgen.c:158 Opcodes/ftgen.c:639 Opcodes/oscbnk.c:1838
+#: Opcodes/ftgen.c:158 Opcodes/ftgen.c:665 Opcodes/oscbnk.c:1838
 #: Opcodes/oscbnk.c:1862
 msgid "ftgen error"
 msgstr ""
 
-#: Opcodes/ftgen.c:212
+#: Opcodes/ftgen.c:238
 #, fuzzy, c-format
 msgid "Invalid table number: %d"
 msgstr "Tabla-f (ftable) no. %f inválida"
 
-#: Opcodes/ftgen.c:402
+#: Opcodes/ftgen.c:428
 #, fuzzy
 msgid "ftload: error allocating ftable"
 msgstr "pvsout: falla en asignación de memoria"
 
-#: Opcodes/ftgen.c:404
+#: Opcodes/ftgen.c:430
 #, fuzzy
 msgid "ftload: no table numbers"
 msgstr "número de tabla fuente (srctable) desconocido"
 
-#: Opcodes/ftgen.c:406
+#: Opcodes/ftgen.c:432
 #, fuzzy
 msgid "ftload: unable to open file"
 msgstr "soundin: %s: no se puede abrir el archivo"
 
-#: Opcodes/ftgen.c:409
+#: Opcodes/ftgen.c:435
 msgid "ftload: incorrect file"
 msgstr ""
 
-#: Opcodes/ftgen.c:547
+#: Opcodes/ftgen.c:573
 msgid "ftsave: Bad table number. Saving is possible only for existing tables."
 msgstr ""
 
-#: Opcodes/ftgen.c:550
+#: Opcodes/ftgen.c:576
 #, fuzzy
 msgid "ftsave: no table numbers"
 msgstr "número de tabla fuente (srctable) desconocido"
 
-#: Opcodes/ftgen.c:552
+#: Opcodes/ftgen.c:578
 #, fuzzy
 msgid "ftsave: unable to open file"
 msgstr "mp3in: %s: no se puede abrir el archivo"
 
-#: Opcodes/ftgen.c:554
+#: Opcodes/ftgen.c:580
 #, fuzzy
 msgid "ftsave: failed to write file"
 msgstr "mp3in: %s: no se puede abrir el archivo"
@@ -7604,63 +7609,48 @@ msgstr ""
 msgid "harmon234: out of range\n"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:160
-#, fuzzy
-msgid "hdf5read: Error, file does not exist"
-msgstr "la tabla-f (ftable) no existe"
-
-#: Opcodes/hdf5/HDF5IO.c:181
-msgid "HDF5IO: Illegal size for floating point type, exiting"
-msgstr ""
-
-#: Opcodes/hdf5/HDF5IO.c:469
+#: Opcodes/hdf5/HDF5IO.c:465
 msgid ""
 "hdf5write: Error, first argument does not appear to be a string, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:483
+#: Opcodes/hdf5/HDF5IO.c:477
 #, c-format
 msgid "hdf5write: Error, unable to identify type of argument %zd"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:606
-msgid "This should not happen, exiting"
+#: Opcodes/hdf5/HDF5IO.c:590
+msgid "This shouldn't happen, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:980
+#: Opcodes/hdf5/HDF5IO.c:943
 msgid "hdf5read: Error, more input arguments than output arguments, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:986
+#: Opcodes/hdf5/HDF5IO.c:948
 msgid "hdf5read: Error, more output arguments than input arguments, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:1003
-#, c-format
-msgid ""
-"hdf5read: Error, input argument %zd does not appear to be a string, exiting"
-msgstr ""
-
-#: Opcodes/hdf5/HDF5IO.c:1008
+#: Opcodes/hdf5/HDF5IO.c:968
 #, c-format
 msgid "hdf5read: Error, input argument %zd type is unknown, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:1014
+#: Opcodes/hdf5/HDF5IO.c:974
 #, c-format
 msgid "hdf5read: Error, output argument %zd appears to be a string, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:1019
+#: Opcodes/hdf5/HDF5IO.c:979
 #, c-format
 msgid "hdf5read: Error, output argument %zd type is unknown, exiting"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:1039
+#: Opcodes/hdf5/HDF5IO.c:998
 msgid "hdf5read: Error, dataset does not exist or cannot be found in file"
 msgstr ""
 
-#: Opcodes/hdf5/HDF5IO.c:1108
+#: Opcodes/hdf5/HDF5IO.c:1065
 msgid "hdf5read: Unable to read saved type of dataset, exiting"
 msgstr ""
 
@@ -11275,7 +11265,7 @@ msgstr ""
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3090 Top/main.c:383
+#: Top/csound.c:3090 Top/main.c:376
 msgid "setting dummy interface\n"
 msgstr ""
 
@@ -11393,79 +11383,79 @@ msgstr ""
 msgid "no orchestra name"
 msgstr ""
 
-#: Top/main.c:178 Top/main.c:182 Top/main.c:189
+#: Top/main.c:177 Top/main.c:181
 msgid "Reading CSD failed ... stopping"
 msgstr "Falla de lectura del archivo csd... deteniendo"
 
-#: Top/main.c:204
+#: Top/main.c:197
 msgid "error: multiple uses of stdin"
 msgstr ""
 
-#: Top/main.c:208
+#: Top/main.c:201
 msgid "error: multiple uses of stdout"
 msgstr ""
 
-#: Top/main.c:221
+#: Top/main.c:214
 msgid "realtime performance using dummy numeric scorefile\n"
 msgstr ""
 
-#: Top/main.c:244
+#: Top/main.c:237
 #, c-format
 msgid "orchname:  %s\n"
 msgstr "nombre de la orquesta:  %s\n"
 
-#: Top/main.c:249
+#: Top/main.c:242
 #, fuzzy, c-format
 msgid "Failed to open input file - %s\n"
 msgstr "No fue posible abrir el archivo de salida %s"
 
-#: Top/main.c:265
+#: Top/main.c:258
 #, fuzzy
 msgid "cannot compile orchestra"
 msgstr "No es posible abrir el archivo de orquesta %s"
 
-#: Top/main.c:270
+#: Top/main.c:263
 msgid ""
 "cannot compile orchestra.\n"
 "Csound will start with no instruments"
 msgstr ""
 
-#: Top/main.c:285
+#: Top/main.c:278
 msgid "end of orchestra compile"
 msgstr "fin de compilación de la orquesta"
 
-#: Top/main.c:294
+#: Top/main.c:287
 #, c-format
 msgid "using previous %s\n"
 msgstr ""
 
-#: Top/main.c:304
+#: Top/main.c:297
 #, c-format
 msgid "cannot open scorefile %s"
 msgstr "no es posible abrir el archivo de score %s"
 
-#: Top/main.c:306
+#: Top/main.c:299
 msgid "sorting score ...\n"
 msgstr ""
 
-#: Top/main.c:317
+#: Top/main.c:310
 #, c-format
 msgid "cannot open extract file %s"
 msgstr ""
 
-#: Top/main.c:320
+#: Top/main.c:313
 msgid "  ... extracting ...\n"
 msgstr "  ... extrayendo ...\n"
 
-#: Top/main.c:329
+#: Top/main.c:322
 msgid "end of score sort"
 msgstr ""
 
-#: Top/main.c:331
+#: Top/main.c:324
 msgid "Syntax check completed.\n"
 msgstr "Revisión de sintaxis completa.\n"
 
-#: Top/main.c:450 util/dnoise.c:266
+#: Top/main.c:443 util/dnoise.c:266
 #, c-format
 msgid "%s not a recognised SFOUTYP env setting"
 msgstr ""
@@ -13764,6 +13754,10 @@ msgstr ""
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr ""
+
+#, fuzzy
+#~ msgid "hdf5read: Error, file does not exist"
+#~ msgstr "la tabla-f (ftable) no existe"
 
 #~ msgid "Failed to open csd file: %s"
 #~ msgstr "No fue posible abrir el archivo csd: %s"

@@ -157,7 +157,7 @@ HDF5File *HDF5IO_newHDF5File(CSOUND *csound, AUXCH *hdf5FileMemory,
       }
       else {
 
-        csound->Die(csound, "hdf5read: Error, file doesn't exist");
+        csound->Die(csound, "hdf5read: Error, file does not exist");
       }
     }
     else {
@@ -587,7 +587,7 @@ void HDF5Write_newArrayDataset(CSOUND *csound, HDF5Write *self,
     }
     default: {
 
-      csound->Die(csound, Str("This shouldn't happen, exiting"));
+      csound->Die(csound, Str("This should not happen, exiting"));
       break;
     }
     }
