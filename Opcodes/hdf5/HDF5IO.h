@@ -144,7 +144,3 @@ int HDF5Read_finish(CSOUND *csound, void *inReference);
 void HDF5Read_checkArgumentSanity(CSOUND *csound, const HDF5Read *self);
 
 void HDF5Read_openDatasets(CSOUND *csound, HDF5Read *self);
-
-int ncols_init(CSOUND *csound, nFFT *p);
-
-int ncols_perf(CSOUND *csound, nFFT *p);
