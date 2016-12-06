@@ -153,6 +153,7 @@ def runTest():
         ["udo/fail_no_xout.csd", "fail due to no xout", 1],
         ["udo/fail_invalid_xin.csd", "fail due to invalid xin", 1],
         ["udo/fail_invalid_xout.csd", "fail due to invalid xout", 1],
+        ["udo/test_udo_xout_const.csd", "Constants as xout inputs work"],
     ]
 
     tests += arrayTests
