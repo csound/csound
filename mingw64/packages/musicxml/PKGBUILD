@@ -2,7 +2,7 @@
 
 pkgname=libmusicxml-git
 pkgrel=1
-pkgver=34.68feb19
+pkgver=36.80a876f
 pkgdesc="library and tools for the MusicXML format (git version)"
 arch=('x86_64' 'i686')
 url="https://github.com/dfober/libmusicxml"

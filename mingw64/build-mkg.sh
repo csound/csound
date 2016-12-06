@@ -26,7 +26,13 @@ cmake ../.. -G "MSYS Makefiles" \
 -DUSE_GETTEXT=0 \
 -DUSE_OPEN_MP=0 \
 -D_WIN32=1 \
--DSTK_LIBRARY:FILEPATH=/mingw64/lib/libstk.a
+-DPYTHON_INCLUDE_DIRS:PATH="C:/Program Files/Anaconda2/include" \
+-DPYTHON_LIBRARIES:FILEPATH="C:/Program Files/Anaconda2/libs/python27.a" \
+-DSTK_LIBRARY:FILEPATH=/mingw64/lib/libstk.a \
+-DLIBSNDFILE_LIBRARY:FILEPATH="C:\Program Files\Mega-Nerd\libsndfile\bin\libsndfile-1.dll" \
+-DSNDFILE_H_PATH:FILEPATH="C:\Program Files\Mega-Nerd\libsndfile\include\sndfile.h"
+
+
 
 if [ $? -ne 0 ]; then
     echo "Failed to run CMake."
@@ -38,7 +44,7 @@ if [ $? -ne 0 ]; then
     exit
 fi
 echo "Compiling NSIS list of targets and dependencies..."
-../find_csound_dependencies.py
+./find_csound_dependencies.py
 echo "Compiling Doxygen API documentation..."
 if [ $? -ne 0 ]; then
     echo "Failed to identify Csound targets and dependencies."

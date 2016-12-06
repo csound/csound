@@ -15,7 +15,7 @@
 ; DIRECTORY STRUCTURE
 ;
 ; C:\Program Files\Csound6
-;     bin (copy Csound, CsoundQt, PortAudio, libsndfile, LuaJIT, NW.js, and CEF binary trees here; but not Csound opcodes).
+;     bin (copy Csound, CsoundQt, PortAudio, libsndfile, LuaJIT, and NW.js binary trees here; but not Csound opcodes).
 ;     doc (copy tree)
 ;     examples (copy tree but exclude .wav files)
 ;     include
@@ -34,7 +34,7 @@
 ; Can run from the command line with "/S /D installation directory".
 ;
 ; Uncomment the following line to build CsoundVST and vst4cs:
-#define CSOUNDVST
+; #define CSOUNDVST
 
 #define MyAppName "Csound6_x64"
 #define MyAppVersion "6"
@@ -62,17 +62,15 @@
 ; If you are not Michael Gogins, change this to your CsoundQt repository directory.
 #define MyCsoundQtDir "C:\Users\restore\CsoundQt\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
-#define MyCsoundQtBinDir "D:\msys64\home\restore\csound\mingw64\bin\"
+#define MyCsoundQtBinDir "C:\Users\restore\CsoundQt\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK directory.
 #define MyQtSdkDir "C:\Qt\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
-#define MyQtSdkBinDir "C:\Qt\Qt5.7.0\5.7\msvc2013_64\bin\"
-; If you are not Michael Gogins, change this to your unzipped Chromium Embedded Framework directory.
-#define MyCefHome "D:\cef_binary_3.2785.1474.g4a88e67_windows64\"
+#define MyQtSdkBinDir "C:\Qt\Qt5.8.0\5.8\msvc2015_64\bin\"
 ; If you are not Michael Gogins, change this to your STK source directory.
 #define MyLibStkSourceDir "D:\msys64\home\restore\csound\mingw64\packages\stk\src\stk-4.5.1\"
 ; If you are not Michael Gogins, change this to your NW.js installation directory.
-#define MyNwJsDir "D:\nwjs-sdk-v0.17.1-win-x64\"
+#define MyNwJsDir "D:\nwjs-sdk-v0.18.8-win-x64\"
 ; If you are not Michael Gogins, change this to your Winpthreads installation directory.
 #define MyWinPthreadsDir "D:\msys64\home\restore\pthreads-w32-2-9-1-release\Pre-built.2\"
 #define MyPackagesDir "D:\msys64\home\restore\csound\mingw64\packages\"
@@ -162,6 +160,7 @@ Source: "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x64\Micro
 #include "csound_targets_and_dependencies.iss"
 
 ; Some targets not identified by "find_csound_dependencies.py."
+Source: "{#MySourceDir}/mingw64/csound64.lib"; DestDir: "{app}\lib"; Components: core;
 Source: "{#MySourceDir}frontends/nwjs/build/Release/csound.node"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MySourceDir}frontends/nwjs/build/Release/csound.pdb"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyNwJsDir}*.*"; DestDir: "{#APP_BIN}\"; Flags: ignoreversion recursesubdirs;  Components: core
@@ -176,6 +175,8 @@ Source: "{#MyCsoundQtBinDir}CsoundQt-d-cs6.exe"; DestDir: "{#APP_BIN}"; Componen
 Source: "{#MyCsoundQtDir}examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "{#MyCsoundQtDir}src\Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
 
+Source: "{#MyQtSdkBinDir}libEGL.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}libGLESv2.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Core.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Gui.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Network.dll"; DestDir: "{#APP_BIN}"; Components: core;
@@ -184,6 +185,9 @@ Source: "{#MyQtSdkBinDir}Qt5Qml.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Quick.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5QuickWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;;Reversion in QWebChannel 5.8.0 beta -- should be fixed in 5.8.0 release.
+;;;Source: "{#MyQtSdkBinDir}Qt5WebChannel.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;;Source: "{#MyQtSdkBinDir}Qt5WebEngine.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}..\plugins\imageformats\*.dll"; DestDir: "{#APP_BIN}\plugins\imageformats"; Components: core;
 Source: "{#MyQtSdkBinDir}..\plugins\platforms\qwindows.dll"; DestDir: "{#APP_BIN}\platforms"; Components: core;
@@ -191,9 +195,6 @@ Source: "{#MyQtSdkBinDir}..\plugins\printsupport\windowsprintersupport.dll"; Des
 Source: "{#MyQtSdkBinDir}..\qml\QtQml\*.*"; DestDir: "{#APP_BIN}QtQml"; Flags: ignoreversion recursesubdirs;  Components: core;
 Source: "{#MyQtSdkBinDir}..\qml\QtQuick\*.*"; DestDir: "{#APP_BIN}QtQuick"; Flags: ignoreversion recursesubdirs;  Components: core;
 Source: "{#MyQtSdkBinDir}..\qml\QtQuick.2\*.*"; DestDir: "{#APP_BIN}QtQuick.2"; Flags: ignoreversion recursesubdirs;  Components: core;
-
-Source: "{#MyCefHome}Resources\*.*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion recursesubdirs; Components: core;
-Source: "{#MyCefHome}Release\*.*"; DestDir: "{#APP_BIN}"; Excludes: "*.lib"; Flags: ignoreversion; Components: core;
 
 Source: {#MyWinPthreadsDir}dll\x64\pthreadVC2.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
@@ -203,6 +204,7 @@ Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile";
 Source: include/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: H/pffft.h; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: interfaces/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
+Source: interfaces/*.py; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core
 Source: frontends/CsoundAC/*.hpp; DestDir: "{#APP_INCLUDE}\csoundac"; Flags: ignoreversion;  Components: core
 
 Source: {#MyManualSourceDir}html\*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs;  Components: core

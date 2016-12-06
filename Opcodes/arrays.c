@@ -1955,16 +1955,17 @@ int cols_init(CSOUND *csound, FFT *p){
 
 int cols_perf(CSOUND *csound, FFT *p){
     int start = *((MYFLT *)p->in2);
+    
     if(start < p->in->sizes[1]) {
-      int j,i,len =  p->in->sizes[0];
-      for(j=0,i=start; j < len; i+=len, j++)
-        p->out->data[j] = p->in->data[i];
-      return OK;
+        int j,i,collen =  p->in->sizes[1], len = p->in->sizes[0];
+        for(j=0,i=start; j < len; i+=collen, j++) {
+            p->out->data[j] = p->in->data[i];
+        }
+        return OK;
     }
     else return csound->PerfError(csound,  p->h.insdshead,
                                   Str("requested col is out of range\n"));
 }
-
 static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p, int rows, int columns)
 {
     if (p->data==NULL || p->dimensions == 0 ||
@@ -2371,9 +2372,9 @@ static OENTRY arrayvars_localops[] =
     {"##add.k[", sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
      (SUBR)tabarithset2, (SUBR)tabiaadd },
     {"##sub.[k", sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
-     (SUBR)tabarithset1, (SUBR)tabiasub },
+     (SUBR)tabarithset1, (SUBR)tabaisub },
     {"##sub.k[", sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
-     (SUBR)tabarithset2, (SUBR)tabaisub },
+     (SUBR)tabarithset2, (SUBR)tabiasub },
     {"##mul.[k", sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
      (SUBR)tabarithset1, (SUBR)tabaimult },
     {"##mul.k[", sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
