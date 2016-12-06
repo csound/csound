@@ -17,9 +17,9 @@
  *
  */
 
-#include "csdl.h"
-#include "hdf5.h"
-#include <stdbool.h>
+#import "csdl.h"
+#import "hdf5.h"
+#import <stdbool.h>
 
 #pragma mark - HDF5IO -
 
@@ -34,6 +34,19 @@ typedef enum ArgumentType
     IRATE_ARRAY,
     UNKNOWN
 } ArgumentType;
+
+typedef struct _fft {
+    OPDS h;
+    ARRAYDAT *out;
+    ARRAYDAT *in, *in2;
+    MYFLT *f;
+    MYFLT b;
+    int n;
+    void *setup;
+    AUXCH mem;
+} nFFT;
+
+
 
 typedef struct HDF5Dataset
 {
@@ -50,16 +63,15 @@ typedef struct HDF5Dataset
     AUXCH offsetMemory;
     hsize_t *datasetSize;
     AUXCH datasetSizeMemory;
-
+    
     hid_t datasetID;
-
+    
     size_t elementCount;
     MYFLT *sampleBuffer;
     AUXCH sampleBufferMemory;
-
-    AUXCH arraySizesMemory;
-    AUXCH arrayDataMemory;
-
+    
+    bool readAll;
+    
 } HDF5Dataset;
 
 typedef struct HDF5File
@@ -67,12 +79,11 @@ typedef struct HDF5File
     hid_t fileHandle;
     char *fileName;
     hid_t floatSize;
-
+    
 } HDF5File;
 
 
-HDF5File *HDF5IO_newHDF5File(CSOUND *csound, AUXCH *hdf5FileMemory,
-                             STRINGDAT *path, bool openForWriting);
+HDF5File *HDF5IO_newHDF5File(CSOUND *csound, AUXCH *hdf5FileMemory, STRINGDAT *path, bool openForWriting);
 
 void HDF5IO_deleteHDF5File(CSOUND *csound, HDF5File *hdf5File);
 
@@ -88,7 +99,7 @@ typedef struct HDF5Write
     AUXCH hdf5FileMemory;
     HDF5Dataset *datasets;
     AUXCH datasetsMemory;
-
+    
 } HDF5Write;
 
 int HDF5Write_initialise(CSOUND *csound, HDF5Write *self);
@@ -121,7 +132,7 @@ typedef struct HDF5Read
     HDF5Dataset *datasets;
     AUXCH datasetsMemory;
     bool isSampleAccurate;
-
+    
 } HDF5Read;
 
 int HDF5Read_initialise(CSOUND *csound, HDF5Read *self);
@@ -133,3 +144,7 @@ int HDF5Read_finish(CSOUND *csound, void *inReference);
 void HDF5Read_checkArgumentSanity(CSOUND *csound, const HDF5Read *self);
 
 void HDF5Read_openDatasets(CSOUND *csound, HDF5Read *self);
+
+int ncols_init(CSOUND *csound, nFFT *p);
+
+int ncols_perf(CSOUND *csound, nFFT *p);
