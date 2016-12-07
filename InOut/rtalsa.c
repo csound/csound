@@ -959,7 +959,7 @@ static int midi_in_close(CSOUND *csound, void *userData)
       }
       olddev = dev;
       dev = dev->next;
-      csound->Free(csound,csoundolddev);
+      csound->Free(csound,olddev);
       if (retval != -1)
         retval = ret;
     }
